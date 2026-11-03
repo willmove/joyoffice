@@ -1,0 +1,7 @@
+{
+  "status": "pending-windows-unlock",
+  "archive_sha256": "110db0a349561c989d8e2ea38b34ba6b3f6a090ffcf8c2d38e57acafe420f99d",
+  "candidate_scope": "gui/01–11 and candidate-*.json",
+  "automated_tests": "875 Deck / 3575 joint / 0 failures / 1 pre-existing timing ignore",
+  "cli": "R1–R7 + control/MCP passed from final extracted archive"
+}

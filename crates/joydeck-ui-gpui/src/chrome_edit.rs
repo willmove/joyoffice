@@ -17,7 +17,7 @@ impl Viewer {
         let shape = *e.session.selection().shapes.first()?;
         Some(TextTarget::Shape { shape })
     }
-    fn selected_body(&self) -> Option<(TextTarget, TextBody)> {
+    pub(super) fn selected_body(&self) -> Option<(TextTarget, TextBody)> {
         let target = self.text_target()?;
         let e = self.editor.as_ref()?;
         let mut body = joydeck_engine::text_body(e.session.model(), self.page, &target).ok()?;
@@ -84,7 +84,7 @@ impl Viewer {
             );
         }
     }
-    fn run_props(&self) -> RunProps {
+    pub(super) fn run_props(&self) -> RunProps {
         let (body, at) = if let Some(i) = &self.inline {
             (
                 i.draft.body.clone(),
@@ -115,7 +115,7 @@ impl Viewer {
     }
     pub(super) fn font_group(&self, cx: &mut Context<Self>) -> Div {
         let props = self.run_props();
-        let disabled = self.selected_body().is_none() || self.loading;
+        let disabled = self.selected_body().is_none() || self.loading || self.composing();
         let p = chrome::palette(self.dark);
         let mut formats = div().flex().items_center().gap(px(1.));
         for (id, label, icon, on) in [
@@ -153,31 +153,19 @@ impl Viewer {
                     })),
             );
         }
-        formats = formats
-            .child(
-                Button::new("font-color")
-                    .ghost()
-                    .xsmall()
-                    .icon(I::Baseline)
-                    .h(px(25.))
-                    .accessibility_label("字体颜色")
-                    .tooltip("字体、字号与颜色")
-                    .disabled(disabled)
-                    .on_click(cx.listener(|s, _, w, cx| s.font_dialog(w, cx))),
-            )
-            .child(
-                Button::new("clear-format")
-                    .ghost()
-                    .xsmall()
-                    .icon(I::RemoveFormatting)
-                    .h(px(25.))
-                    .accessibility_label("清除字符格式")
-                    .tooltip("清除字符格式")
-                    .disabled(disabled)
-                    .on_click(cx.listener(|s, _, w, cx| {
-                        s.format_runs(|p| *p = RunProps::default(), w, cx)
-                    })),
-            );
+        formats = formats.child(self.font_color_picker(disabled, cx)).child(
+            Button::new("clear-format")
+                .ghost()
+                .xsmall()
+                .icon(I::RemoveFormatting)
+                .h(px(25.))
+                .accessibility_label("清除字符格式")
+                .tooltip("清除字符格式")
+                .disabled(disabled)
+                .on_click(
+                    cx.listener(|s, _, w, cx| s.format_runs(|p| *p = RunProps::default(), w, cx)),
+                ),
+        );
         let family = props
             .font
             .filter(|s| !s.starts_with('+'))
@@ -191,34 +179,54 @@ impl Viewer {
                     .flex()
                     .gap_1()
                     .child(
-                        Button::new("font-family")
+                        gpui_kit::component::select::Select::new(&self.font_picker)
                             .xsmall()
-                            .accessibility_label(family.clone())
-                            .child(
-                                div()
-                                    .flex()
-                                    .items_center()
-                                    .justify_between()
-                                    .w_full()
-                                    .child(family)
-                                    .child(Icon::new(I::ChevronDown).size(px(12.))),
-                            )
+                            .accessibility_label("字体名称")
+                            .search_placeholder("搜索已安装字体")
+                            .placeholder(family)
+                            .menu_width(px(260.))
+                            .menu_max_h(px(360.))
                             .w(px(138.))
                             .h(px(23.))
+                            .disabled(disabled),
+                    )
+                    .child(self.font_size_picker(disabled, cx))
+                    .child(
+                        Button::new("grow-font")
+                            .ghost()
+                            .xsmall()
+                            .label("A+")
+                            .h(px(23.))
+                            .w(px(28.))
+                            .accessibility_label("增大字号")
+                            .tooltip("增大字号 (Ctrl+Shift+.)")
                             .disabled(disabled)
-                            .on_click(cx.listener(|s, _, w, cx| s.font_dialog(w, cx))),
+                            .on_click(cx.listener(|s, _, w, cx| s.step_font_size(true, w, cx))),
                     )
                     .child(
-                        Button::new("font-size")
+                        Button::new("shrink-font")
+                            .ghost()
                             .xsmall()
-                            .label(format!("{}", props.size.unwrap_or(18.)))
-                            .w(px(46.))
+                            .label("A−")
                             .h(px(23.))
+                            .w(px(28.))
+                            .accessibility_label("减小字号")
+                            .tooltip("减小字号 (Ctrl+Shift+,)")
                             .disabled(disabled)
-                            .on_click(cx.listener(|s, _, w, cx| s.font_dialog(w, cx))),
+                            .on_click(cx.listener(|s, _, w, cx| s.step_font_size(false, w, cx))),
                     ),
             )
-            .child(formats);
+            .child(
+                formats.child(
+                    Button::new("font-more")
+                        .ghost()
+                        .xsmall()
+                        .label("字体…")
+                        .h(px(25.))
+                        .disabled(disabled)
+                        .on_click(cx.listener(|s, _, w, cx| s.font_dialog(w, cx))),
+                ),
+            );
         chrome::group("字体", content)
     }
     pub(super) fn paragraph_group(&self, cx: &mut Context<Self>) -> Div {
@@ -408,7 +416,7 @@ impl Viewer {
                 )
         });
     }
-    fn font_dialog(&mut self, w: &mut Window, cx: &mut Context<Self>) {
+    pub(super) fn font_dialog(&mut self, w: &mut Window, cx: &mut Context<Self>) {
         let props = self.run_props();
         let color = match &props.fill {
             Some(joydeck_model::Fill::Solid { color }) => self
@@ -439,16 +447,7 @@ impl Viewer {
                 if !(1.0..=400.).contains(&size) || v[0].trim().is_empty() {
                     return Err("字号须在 1–400 磅之间，字体名称不能为空".into());
                 }
-                let color = u32::from_str_radix(v[2].trim().trim_start_matches('#'), 16)
-                    .map_err(|_| "请输入六位 RGB 颜色")?;
-                if color > 0xffffff {
-                    return Err("请输入六位 RGB 颜色".into());
-                }
-                let color = joydeck_model::style::ColorRef::rgb(joydeck_model::Rgba::rgb(
-                    (color >> 16) as u8,
-                    (color >> 8) as u8,
-                    color as u8,
-                ));
+                let color = format_ui::parse_rgb(&v[2])?;
                 s.format_runs(
                     |p| {
                         p.font = Some(v[0].trim().into());

@@ -140,8 +140,8 @@
     "source_path": "apps/joydeck/src/viewer.rs",
     "target_path": "crates/joydeck-ui-gpui/src/viewer.rs",
     "source_sha256": "249104bdece51947664a50fe4b8166f358662e78d0000ed7d0024b10fade5584",
-    "adapted_sha256": "088974d74ab8ac1bf61db1a4a3b9dbf66f7223c16483f3e72f2c77e1f492bf30",
-    "local_changes": "Reuse asynchronous read-only viewer, generation guards, cancellation, virtual thumbnail rail and bounded cache; adapt to DeckCraft model and shared CPU renderer; R1 branding and aspect fit; upstream validation modules deferred; R1 rustfmt and bounded reader/CPU-renderer/palette/notes adapters as applicable; R2 editable viewer adapter, background save/recovery, command-driven gestures, coordinate anchoring and close guard; rustfmt; R4/R5 scene/content workspace adaptation; R6/R7 adapter additions and repository rustfmt/LF normalization.; R8 native editor, clipboard or product package version adaptation"
+    "adapted_sha256": "4a2e4ebd37809a9cbe850b10e20d462bbdcdffee95c74735c625faf61ccd9b31",
+    "local_changes": "Reuse asynchronous read-only viewer, generation guards, cancellation, virtual thumbnail rail and bounded cache; adapt to DeckCraft model and shared CPU renderer; R1 branding and aspect fit; upstream validation modules deferred; R1 rustfmt and bounded reader/CPU-renderer/palette/notes adapters as applicable; R2 editable viewer adapter, background save/recovery, command-driven gestures, coordinate anchoring and close guard; rustfmt; R4/R5 scene/content workspace adaptation; R6/R7 adapter additions and repository rustfmt/LF normalization.; R8 native editor, clipboard or product package version adaptation; R9-UI1 native formatting controls and schema-2 validation/history compatibility (see slice evidence)"
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
@@ -172,8 +172,8 @@
     "source_path": "apps/joydeck/src/canvas_text.rs",
     "target_path": "crates/joydeck-ui-gpui/src/inline_text.rs",
     "source_sha256": "e6caa4311e30aaa39f91b1da6d328e8bba46ae9afcf4a890e44e43278e5ef4f4",
-    "local_changes": "Adapt EntityInputHandler, selection/clipboard/composition routing to new pure engine; consume shared CPU text/table layout for all geometry; add bounded text metadata/TSV and notes Textarea flow from apps/joydeck/src/chrome.rs.; R8 native editor, clipboard or product package version adaptation",
-    "adapted_sha256": "0751bdb5cfeabf36fa51f3383e9eeb4bc165dc137d928f9b252d1811be4022af",
+    "local_changes": "Adapt EntityInputHandler, selection/clipboard/composition routing to new pure engine; consume shared CPU text/table layout for all geometry; add bounded text metadata/TSV and notes Textarea flow from apps/joydeck/src/chrome.rs.; R8 native editor, clipboard or product package version adaptation; R9-UI1 native formatting controls and schema-2 validation/history compatibility (see slice evidence)",
+    "adapted_sha256": "2e7d0cac3f983710b3bbcaf4b6fcfe8f60212e14c7b83b0f745d52ffbeed72b4",
     "additional_sources": [
       {
         "source_path": "apps/joydeck/src/chrome.rs",
@@ -482,8 +482,8 @@
     "source_path": "crates/joydeck-shell/src/automation.rs",
     "target_path": "crates/joydeck-shell/src/automation.rs",
     "source_sha256": "a7b1f491133a68641318cefc9dac0dd135718d1e03c66361ae1aa974bbe97cd9",
-    "local_changes": "Root, revision and replay concepts adapted to new dispatcher, selection revisions, bounded export jobs and snapshots; no old workspace state.; R9 host integration and explicit command schema negotiation",
-    "adapted_sha256": "5fee23cab2144670d0a517aa0882d644227aeafe0556d501114ccf704e41c773"
+    "local_changes": "Root, revision and replay concepts adapted to new dispatcher, selection revisions, bounded export jobs and snapshots; no old workspace state.; R9 host integration and explicit command schema negotiation; R9-UI1 native formatting controls and schema-2 validation/history compatibility (see slice evidence)",
+    "adapted_sha256": "12694c6af7f3851d2b85679668cbb955c4c8d61deb89d6c51f2608471bb869e6"
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",

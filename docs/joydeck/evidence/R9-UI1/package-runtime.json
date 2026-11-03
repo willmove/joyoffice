@@ -1,0 +1,13 @@
+{
+  "executable": "C:\\Users\\willm\\AppData\\Local\\Temp\\joyoffice-ui1-final-package-jljcq4_y\\中文 空格\\joydeck-0.8.0-r9-windows-x86_64-release-8e70ec1350\\joydeck.exe",
+  "cli": "C:\\Users\\willm\\AppData\\Local\\Temp\\joyoffice-ui1-final-package-jljcq4_y\\中文 空格\\joydeck-0.8.0-r9-windows-x86_64-release-8e70ec1350\\joydeck-cli.exe",
+  "pid": 13580,
+  "work": "C:\\Users\\willm\\AppData\\Local\\Temp\\joyoffice-ui1-final-package-jljcq4_y\\中文 空格",
+  "source": "C:\\Users\\willm\\AppData\\Local\\Temp\\joyoffice-ui1-final-package-jljcq4_y\\中文 空格\\R9 UI1 键盘格式 原稿.pptx",
+  "source_sha256": "9d9a1fe67754da0d650252ad16e2e735dde69c45501b51e14dac724f21e92b78",
+  "input_provenance": "Owned candidate-formatting PPTX, independently verified; see candidate-desktop-public-read.json",
+  "gui_sha256": "ed67cdebf7c6d3f23c8fad662340b267260349412312e72592a19e8e54a4d381",
+  "cli_sha256": "cd6fd71a3e59cb5612f06ffee3f3303599b063d0ee2e0d58a73b592cd8831673",
+  "archive_sha256": "110db0a349561c989d8e2ea38b34ba6b3f6a090ffcf8c2d38e57acafe420f99d",
+  "payload_checks": 1753
+}

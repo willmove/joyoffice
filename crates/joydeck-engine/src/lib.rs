@@ -190,6 +190,7 @@ struct Entry {
     state: EditorSnapshot,
     cost: usize,
 }
+#[derive(Clone)]
 pub struct Session {
     state: EditorSnapshot,
     undo: Vec<Entry>,
@@ -255,6 +256,11 @@ impl Session {
         }
         self.state.selection = Selection { page, shapes };
         Ok(())
+    }
+    /// Execute against a copy-on-write snapshot, including real history and budget checks.
+    /// The live document, selection, save marker and undo/redo stacks remain unchanged.
+    pub fn validate(&self, cmd: Command) -> std::result::Result<bool, String> {
+        self.clone().execute(cmd)
     }
     pub fn execute(&mut self, cmd: Command) -> std::result::Result<bool, String> {
         if let Command::Select { page, shapes } = cmd {

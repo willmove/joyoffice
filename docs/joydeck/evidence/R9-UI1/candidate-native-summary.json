@@ -1,0 +1,13 @@
+{
+  "archive_sha256": "41b172d7f8f3082f7fa04d03f77352e5163172abfbdcb00a06aaa254f542bbae",
+  "gui_sha256": "a6f2bb5f252a997ca07927300918c16edab304681c6c256077a56168ed04e909",
+  "scope": "First R9-UI1 candidate before Windows shifted punctuation fix",
+  "gui": "01-loaded through 11-reopened",
+  "fontSearch": true,
+  "sizeMenu": true,
+  "rangeThemeColor": true,
+  "undoRedo": true,
+  "keyboardSaveAsPptx": true,
+  "reopen": true,
+  "keyboardFontSize": false
+}

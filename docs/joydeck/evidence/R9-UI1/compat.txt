@@ -1,0 +1,1 @@
+Control/MCP passed: 36 exchanges; saved PPTX independently read; original unchanged

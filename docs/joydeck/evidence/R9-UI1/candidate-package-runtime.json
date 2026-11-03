@@ -1,0 +1,12 @@
+{
+  "executable": "C:\\Users\\willm\\AppData\\Local\\Temp\\joyoffice-ui1-package-29vyjlsr\\中文 空格\\joydeck-0.8.0-r9-windows-x86_64-release-5ac9c94f1d\\joydeck.exe",
+  "cli": "C:\\Users\\willm\\AppData\\Local\\Temp\\joyoffice-ui1-package-29vyjlsr\\中文 空格\\joydeck-0.8.0-r9-windows-x86_64-release-5ac9c94f1d\\joydeck-cli.exe",
+  "pid": 12492,
+  "work": "C:\\Users\\willm\\AppData\\Local\\Temp\\joyoffice-ui1-package-29vyjlsr\\中文 空格",
+  "source": "C:\\Users\\willm\\AppData\\Local\\Temp\\joyoffice-ui1-package-29vyjlsr\\中文 空格\\R9 UI1 格式 原稿.pptx",
+  "source_sha256": "d6f81497635b517ae63c071f987d3da57449072939630456303871474950e691",
+  "gui_sha256": "a6f2bb5f252a997ca07927300918c16edab304681c6c256077a56168ed04e909",
+  "cli_sha256": "cd6fd71a3e59cb5612f06ffee3f3303599b063d0ee2e0d58a73b592cd8831673",
+  "archive_sha256": "41b172d7f8f3082f7fa04d03f77352e5163172abfbdcb00a06aaa254f542bbae",
+  "payload_checks": 1753
+}

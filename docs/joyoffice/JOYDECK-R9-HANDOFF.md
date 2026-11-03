@@ -4,7 +4,7 @@
 
 当前依据依次为根 AGENTS.md、本文、[Deck 状态](../joydeck/STATUS.md)、[98 项任务](../joydeck/TASKS.md)、[UI 差距](../joydeck/UI-PARITY.md)、[329 命令范围](../joydeck/COMMANDS.csv) 与 [R9 验证](../joydeck/evidence/R9/README.md)。旧 M0–M14 状态见 [替换前状态](../joydeck/STATUS-pre-r9.md)，仅作历史基线。
 
-主工作目录当前分支为 `codex/joydeck-r9-integration`，[PR #120](https://github.com/willmove/joyoffice/pull/120) 非草稿。已保留源仓库 9 个提交为宿主祖先；后续直接在本分支继续或在合入后从最新 main 开切片，不重新迁移。原 main a973f75 保留，远端 main 未由执行 Agent 自行合并。
+[PR #120](https://github.com/willmove/joyoffice/pull/120) 已按用户明确授权于 2026-11-03 合入 main，合并提交 `3691d4dea11df473c95f94af9718cc699cd984f8`，合入前 21 项检查全部通过。源仓库 9 个提交继续保留为宿主祖先。后续从最新 main 开切片，不重新迁移。当前 UI/兼容切片为 `codex/joydeck-r9-formatting-compat`，见 [R9-UI1 验证](../joydeck/evidence/R9-UI1/README.md)。
 
 本机最终联合回归为 **3,573 通过、0 失败、1 项原计时测试忽略**；Deck 单产品 check 为 **873 通过**。新 Release 包、Word/Sheet 开发包和旧软件回退包均已实际构建，且在仓库外中文/空格路径运行。多平台 PR 检查和 JD-906 完整旧功能验收以任务表/实时 PR 为准，当前工程替换不代表整个 R9 已关闭。
 
@@ -63,7 +63,7 @@ cargo test --locked -p joyword-shell --features ai --test ai_toggle
 
 新 CLI 的行为回归为 scripts/joydeck/verify-r1.py、verify-r2.py、verify-r3.py、verify-r4-r5.py、verify-r6-r7.py。旧 M* 工具针对旧模型/UI，见 [工具边界](../joydeck/LEGACY-TOOLS.md)。不能仅运行应用入口的零项测试代替整个产品。
 
-当前 Windows Release 开发包为 `dist/joydeck/joydeck-0.8.0-r9-windows-x86_64-release-dd8add7cf4.zip`，SHA-256 `4b3b87d1432384e8dac01b3c3280a1280eb8856db0dfe35256b5fe09ae4dc271`，源码快照 `dd8add7cf47351bf069de289a56065b4569afac963775faa1b0bca58973ff60b`。包内 1,753 项 SHA 校验通过；最终 GUI 中文原位输入、Undo/Redo、原生另存/重启重开、F5/翻页/Esc，以及独立 PPTX 读取均已验证。所有 R1–R7 CLI 验证也已在最终解压包重跑，详见 R9 记录；不复用 R8 二进制证据。
+最新 Windows Release 开发包为 `dist/joydeck/joydeck-0.8.0-r9-windows-x86_64-release-8e70ec1350.zip`，SHA-256 `110db0a349561c989d8e2ea38b34ba6b3f6a090ffcf8c2d38e57acafe420f99d`，源码快照 `8e70ec13500373fe9196f85732bd1d3a4b4f4be8e30f42958c343428b0d72bfe`。R9-UI1 候选包的字体/字号/主题色与原生保存重开、最终包的 R1–R7/Control/MCP 验证及待解锁桌面专项见 [切片记录](../joydeck/evidence/R9-UI1/README.md)。本机 Deck 875 通过、三产品联合 3,575 通过/0 失败/1 忽略。原 R9 dd8add7cf4 包与全部历史证据保留。
 
 本轮还修复了旧公共 PPTX 的自定义路径：沿根 officeDocument 关系定位并保留 `slideset/main.xml` 等部件、处理合法无 .rels/未变母版的最简文稿、克隆时重定位内部关系。原宿主五个公共/PowerPoint 文稿的读取和首页渲染通过，native-20 原始附件逐字节保留。完整命令与旧媒体/审阅语义仍按下面缺项继续。
 
@@ -77,9 +77,10 @@ Word CI 还暴露出原基线也存在的两份独立实验锁漂移，已仅补
 | PPTX | 公共读取、基础编辑、保存重开，preserve/regenerate 交换与输出；长尾 OOXML/复杂主题、组、媒体/动画仍有保真差项 |
 | 控制 envelope | `joydeck-control-1` 名称保留，但命令 schema 是 2；engine.commands 明确返回 commandSchemaVersion=2、modelSchema=joydeck-v2、legacyCommandSchemaSupported=false。旧 schema 1 请求被拒绝，新增测试保证拒绝后文稿状态不变 |
 | 旧 page.add/copy/delete | 对应新的 new-slide/duplicate-slide/delete-slide 事务，参数 schema 不同，不宣称旧调用自动兼容 |
-| 旧 document.undo/redo | 通过 command.execute 的 undo/redo；目标与顶层 expectedRevision 必须正确 |
+| 旧 document.undo/redo | R9-UI1 恢复同名方法，真实历史/重放/过期修订检查；仍须 target 与顶层 expectedRevision；command.execute 的 undo/redo 同样可用 |
 | 旧 document.export | 新 export.start + jobs.get/cancel；输出只允许新路径，不自动覆盖 |
-| 旧 document.check/compare/acceptObject、command.validate 等 | 尚未迁移；不能以成功空响应兼容，保留 JD-506/706/906 后续任务 |
+| command.validate | R9-UI1 恢复：params.command 必须为新 schema 2，快照执行真实引擎与预算/历史检查，返回 valid/wouldChange/sideEffects=false；不修改活文稿。不是旧 schema 1 参数适配 |
+| 旧 document.check/compare/acceptObject 等 | 尚未迁移；不能以成功空响应兼容，保留 JD-506/706/906 后续任务 |
 | 旧桌面远程绑定/多窗口 | 当前 CLI/MCP 是有根目录限制的独立 headless 会话，attachedDesktop=false；不会修改已打开的桌面文稿。完整绑定/多窗口/旧 16 领域命令适配仍待实现 |
 | 旧偏好、最近文件、比较接受/图片依赖、完整设计与审阅 | 不能沿用旧完成状态；进入下述产品任务，并保留旧软件恢复材料 |
 
