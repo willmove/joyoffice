@@ -1,0 +1,231 @@
+{
+  "name": "recovered-from-gui.pptx",
+  "format": "joydeck",
+  "read_only": false,
+  "source_bytes": 0,
+  "width_pt": 959.9999212598425,
+  "height_pt": 540.0,
+  "media": 1,
+  "slides": [
+    {
+      "page": 1,
+      "title": "JoyDeck R2 · 编辑成功",
+      "shapes": 5,
+      "notes": "Original independent speaker notes / 备注 1",
+      "objects": [
+        {
+          "id": 2,
+          "kind": "textBox",
+          "locked": false,
+          "name": "TextBox 1",
+          "text": "JoyDeck R2 · 编辑成功",
+          "transform": {
+            "h": 72.0,
+            "w": 864.0,
+            "x": 46.8,
+            "y": 50.4
+          }
+        },
+        {
+          "id": 3,
+          "kind": "textBox",
+          "locked": false,
+          "name": "TextBox 2",
+          "text": "Made with python-pptx 1.0.2 · actual public OOXML",
+          "transform": {
+            "h": 50.4,
+            "w": 864.0,
+            "x": 50.4,
+            "y": 129.6
+          }
+        },
+        {
+          "id": 4,
+          "kind": "shape",
+          "locked": false,
+          "name": "Rounded Rectangle 3",
+          "text": "",
+          "transform": {
+            "h": 122.4,
+            "w": 237.6,
+            "x": 156.39173228346456,
+            "y": 260.6281102362205
+          }
+        },
+        {
+          "id": 5,
+          "kind": "textBox",
+          "locked": false,
+          "name": "TextBox 4",
+          "text": "JOYOFFICE / JOYDECK R1                         01",
+          "transform": {
+            "h": 43.2,
+            "w": 792.0,
+            "x": 50.4,
+            "y": 468.0
+          }
+        },
+        {
+          "id": 27,
+          "kind": "shape",
+          "locked": false,
+          "name": "Rectangle",
+          "text": null,
+          "transform": {
+            "h": 90.0,
+            "w": 160.0,
+            "x": 100.0,
+            "y": 260.0
+          }
+        }
+      ]
+    },
+    {
+      "page": 2,
+      "title": "Raster, table & geometry",
+      "shapes": 6,
+      "notes": "Original independent speaker notes / 备注 2",
+      "objects": [
+        {
+          "id": 2,
+          "kind": "textBox",
+          "locked": false,
+          "name": "TextBox 1",
+          "text": "Raster, table & geometry",
+          "transform": {
+            "h": 72.0,
+            "w": 864.0,
+            "x": 46.8,
+            "y": 50.4
+          }
+        },
+        {
+          "id": 3,
+          "kind": "textBox",
+          "locked": false,
+          "name": "TextBox 2",
+          "text": "Made with python-pptx 1.0.2 · actual public OOXML",
+          "transform": {
+            "h": 50.4,
+            "w": 864.0,
+            "x": 50.4,
+            "y": 129.6
+          }
+        },
+        {
+          "id": 4,
+          "kind": "shape",
+          "locked": false,
+          "name": "Rounded Rectangle 3",
+          "text": "",
+          "transform": {
+            "h": 122.4,
+            "w": 237.6,
+            "x": 50.4,
+            "y": 216.0
+          }
+        },
+        {
+          "id": 5,
+          "kind": "picture",
+          "locked": false,
+          "name": "Picture 4",
+          "text": null,
+          "transform": {
+            "h": 115.2,
+            "w": 172.8,
+            "x": 324.0,
+            "y": 216.0
+          }
+        },
+        {
+          "id": 6,
+          "kind": "table",
+          "locked": false,
+          "name": "Table 5",
+          "text": null,
+          "transform": {
+            "h": 144.0,
+            "w": 324.0,
+            "x": 532.8,
+            "y": 216.0
+          }
+        },
+        {
+          "id": 7,
+          "kind": "textBox",
+          "locked": false,
+          "name": "TextBox 6",
+          "text": "JOYOFFICE / JOYDECK R1                         02",
+          "transform": {
+            "h": 43.2,
+            "w": 792.0,
+            "x": 50.4,
+            "y": 468.0
+          }
+        }
+      ]
+    },
+    {
+      "page": 3,
+      "title": "Portrait-independent navigation",
+      "shapes": 4,
+      "notes": "Original independent speaker notes / 备注 3",
+      "objects": [
+        {
+          "id": 2,
+          "kind": "textBox",
+          "locked": false,
+          "name": "TextBox 1",
+          "text": "Portrait-independent navigation",
+          "transform": {
+            "h": 72.0,
+            "w": 864.0,
+            "x": 46.8,
+            "y": 50.4
+          }
+        },
+        {
+          "id": 3,
+          "kind": "textBox",
+          "locked": false,
+          "name": "TextBox 2",
+          "text": "Made with python-pptx 1.0.2 · actual public OOXML",
+          "transform": {
+            "h": 50.4,
+            "w": 864.0,
+            "x": 50.4,
+            "y": 129.6
+          }
+        },
+        {
+          "id": 4,
+          "kind": "shape",
+          "locked": false,
+          "name": "Rounded Rectangle 3",
+          "text": "",
+          "transform": {
+            "h": 122.4,
+            "w": 237.6,
+            "x": 50.4,
+            "y": 216.0
+          }
+        },
+        {
+          "id": 5,
+          "kind": "textBox",
+          "locked": false,
+          "name": "TextBox 4",
+          "text": "JOYOFFICE / JOYDECK R1                         03",
+          "transform": {
+            "h": 43.2,
+            "w": 792.0,
+            "x": 50.4,
+            "y": 468.0
+          }
+        }
+      ]
+    }
+  ],
+  "warnings": []
+}

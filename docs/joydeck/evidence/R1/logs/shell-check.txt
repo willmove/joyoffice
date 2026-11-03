@@ -1,0 +1,32 @@
+   Compiling joydeck-fonts v0.2.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-fonts)
+    Checking joydeck-color v0.2.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-color)
+    Checking joyoffice-opc v0.2.0 (D:\Coding\EditorProjects\joydeck-new\crates\joyoffice-opc)
+    Checking joydeck-geom v0.2.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-geom)
+    Checking joydeck-metafile v0.2.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-metafile)
+    Checking joydeck-model v0.2.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-model)
+    Checking joydeck-text v0.2.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-text)
+    Checking joydeck-anim v0.2.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-anim)
+    Checking joydeck-pptx v0.2.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-pptx)
+    Checking joydeck-format v0.2.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-format)
+    Checking joydeck-render v0.2.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-render)
+    Checking joydeck-shell v0.2.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-shell)
+error[E0277]: `joyoffice_opc::ZipError` doesn't implement `std::fmt::Display`
+  --> crates\joydeck-shell\src\document.rs:50:109
+   |
+50 |         let archive = joyoffice_opc::ZipArchive::new(&bytes, &budget).map_err(|e| format!("invalid package: {e}"))?;
+   |                                                                                                             ^^^ `joyoffice_opc::ZipError` cannot be formatted with the default formatter
+   |
+   = help: the trait `std::fmt::Display` is not implemented for `joyoffice_opc::ZipError`
+   = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
+
+error[E0277]: `joyoffice_opc::ZipError` doesn't implement `std::fmt::Display`
+  --> crates\joydeck-shell\src\document.rs:61:69
+   |
+61 |             let part = archive.read(i).map_err(|e| format!("{name}: {e}"))?;
+   |                                                                     ^^^ `joyoffice_opc::ZipError` cannot be formatted with the default formatter
+   |
+   = help: the trait `std::fmt::Display` is not implemented for `joyoffice_opc::ZipError`
+   = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
+
+For more information about this error, try `rustc --explain E0277`.
+error: could not compile `joydeck-shell` (lib) due to 2 previous errors

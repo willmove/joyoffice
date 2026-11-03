@@ -113,7 +113,7 @@ impl PartName {
 
     /// Directory containing the part, with a trailing slash (`/word/`).
     pub fn directory(&self) -> &str {
-        let end = self.0.rfind('/').expect("absolute name") + 1;
+        let end = self.0.rfind('/').unwrap_or(0) + 1;
         &self.0[..end]
     }
 
@@ -195,6 +195,12 @@ pub(crate) fn resolve(base_directory: &str, reference: &str) -> Option<String> {
 }
 
 #[cfg(test)]
+#[allow(
+    clippy::unwrap_used,
+    clippy::expect_used,
+    clippy::panic,
+    reason = "Test assertions"
+)]
 mod tests {
     use super::*;
 

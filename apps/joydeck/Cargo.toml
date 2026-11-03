@@ -1,27 +1,20 @@
 [package]
 name = "joydeck"
-version = "0.1.0"
+version = "0.8.0"
 edition.workspace = true
 rust-version.workspace = true
-license = "MIT OR Apache-2.0"
+license.workspace = true
 publish = false
-repository.workspace = true
 default-run = "joydeck"
 
 [dependencies]
-joydeck-shell.workspace = true
-unicode-segmentation.workspace = true
-gpui-kit = { workspace = true, optional = true }
-joyoffice-ui = { workspace = true, optional = true }
-image.workspace = true
-resvg.workspace = true
-serde_json.workspace = true
-serde.workspace = true
+joydeck-ui-gpui = { workspace = true, optional = true }
 
 [features]
 default = ["desktop"]
-desktop = ["dep:gpui-kit", "dep:joyoffice-ui"]
-validation = []
+desktop = ["dep:joydeck-ui-gpui"]
+validation = ["joydeck-ui-gpui?/validation"]
+dev-runtime-shaders = ["joydeck-ui-gpui?/dev-runtime-shaders"]
 
 [[bin]]
 name = "joydeck"

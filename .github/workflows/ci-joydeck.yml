@@ -26,6 +26,11 @@ jobs:
         run: |
           python -m unittest discover -s tools/xtask -p 'test_*.py'
           python -m unittest discover -s scripts/joydeck/tests -p 'test_*.py'
+      - name: R9 source, dependency and documentation gates
+        run: |
+          python scripts/joydeck/check_sources.py
+          python scripts/joydeck/check_dependencies.py
+          python scripts/joydeck/check_refactor_docs.py
       - name: Headless product check
         run: cargo xtask check joydeck --headless
       - name: CLI dependency isolation

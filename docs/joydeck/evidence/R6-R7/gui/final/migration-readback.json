@@ -1,0 +1,25 @@
+{
+  "source_sha256": "4d8187b2f5dffeca0a9ec5c57e5e092db297f12cb48cd47b47acb3eb72e1d3ef",
+  "output_sha256": "278dabc202853635ab154cf2fac78a8a067cfcc51e99730560d4089c27cd768b",
+  "exact_original_attachment": true,
+  "report": {
+    "schema_minor": 11,
+    "source_ids": [
+      [
+        1,
+        "page-1",
+        [
+          [
+            "object-2-2",
+            2
+          ]
+        ]
+      ]
+    ],
+    "warnings": [
+      "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+      "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+      "One-time v1 conversion resolves legacy design/fields to public OOXML; exact old archive, source package and IDs are retained in the v2 migration attachment. Native inheritance is not reconstructed."
+    ]
+  }
+}

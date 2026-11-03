@@ -1,0 +1,45 @@
+{
+  "reader": "python-pptx 1.0.2",
+  "gui_process_pid": 20192,
+  "file": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r3-final-c7x8g34r\\中文 空格路径\\joydeck-0.4.0-r3-windows-x86_64-release-6fb3ff2b70\\gui-verified.pptx",
+  "sha256": "cf040669cea4eca2fddac10b4dc6a69c72626e6278abb91109d21b331e9e8bec",
+  "pages": 3,
+  "title": "JoyDeck R3 · 原位中文😀 é你",
+  "rich_text_paste_target_text": "JoyDeck R3 · 原位中文😀 é你",
+  "source_and_paste_target_bold": true,
+  "table_count_page_2": 2,
+  "original_table_cells": [
+    [
+      "单元格 R3 😀",
+      "Tab OK"
+    ],
+    [
+      "Cell 2/1",
+      "Cell 2/2"
+    ],
+    [
+      "Cell 3/1",
+      "Cell 3/2"
+    ]
+  ],
+  "new_table_cells": [
+    [
+      "你",
+      "Tab OK",
+      ""
+    ],
+    [
+      "Cell 2/1",
+      "Cell 2/2",
+      ""
+    ],
+    [
+      "Cell 3/1",
+      "Cell 3/2",
+      ""
+    ]
+  ],
+  "notes": "JoyDeck R3 备注😀\n原位、剪贴板和表格验证你",
+  "input_pptx_unchanged": true,
+  "passed": true
+}

@@ -27,7 +27,7 @@ jobs:
       - name: Compile the playback test dependency graph
         run: |
           mkdir -p artifacts/playback-diagnostic
-          cargo test -p joydeck -p joydeck-cli -p joydeck-engine -p joydeck-export -p joydeck-formats -p joydeck-model -p joydeck-platform -p joydeck-scene -p joydeck-shell -p joyoffice-opc --locked --no-run --message-format=json > artifacts/playback-diagnostic/build.json
+          cargo test -p joydeck-shell -p joyoffice-opc --locked --no-run --message-format=json > artifacts/playback-diagnostic/build.json
       - name: Bounded reproduction and owned-process stack capture
         timeout-minutes: 9
         run: python scripts/joydeck/diagnose-playback.py

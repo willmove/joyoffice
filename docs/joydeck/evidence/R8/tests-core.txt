@@ -1,0 +1,99 @@
+   Compiling joydeck-anim v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-anim)
+   Compiling joydeck-engine v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-engine)
+   Compiling joydeck-pptx v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-pptx)
+   Compiling joydeck-legacy v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-legacy)
+   Compiling joydeck-render v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-render)
+   Compiling joydeck-pdf v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-pdf)
+   Compiling joydeck-shell v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-shell)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 8.70s
+     Running unittests src\lib.rs (target\debug\deps\joydeck_engine-b58fd799ca616b66.exe)
+
+running 6 tests
+test media_refs::tests::kept_parts_of_unmodelled_objects_are_references ... ok
+test media_refs::tests::visit_mut_rewrites_every_reference ... ok
+test media_refs::tests::every_kind_of_reference_is_found ... ok
+test content::tests::malformed_pngs_cannot_add_media_or_history ... ok
+test content::tests::gradient_and_chart_cells_are_bounded_atomic_transactions ... ok
+test content::tests::global_edits_undo_restore_saved_state_and_keep_unedited_slides_shared ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\r8.rs (target\debug\deps\r8-a204ba3f31d90f03.exe)
+
+running 4 tests
+test preset_insertion_is_atomic_and_undoable ... ok
+test clipboard_keeps_resolved_placeholder_position_as_regular_shape ... ok
+test clipboard_missing_resources_and_duplicate_ids_do_not_change_history ... ok
+test clipboard_remaps_colliding_media_and_undo_keeps_destination ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\lib.rs (target\debug\deps\joydeck_shell-7182170825e94895.exe)
+
+running 6 tests
+test tests::navigation_and_zoom_remain_bounded_for_untrusted_events ... ok
+test tests::malformed_preview_is_rejected_instead_of_entering_layout ... ok
+test show_tests::explicit_custom_show_reports_actual_order_and_skips_hidden_page ... ok
+test show_tests::pause_and_large_tick_sample_real_entrance_pixels ... ok
+test automation_tests::paths_and_dirty_replacement_are_guarded ... ok
+test automation_tests::revision_includes_selection_and_replays_do_not_execute_twice ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
+
+     Running tests\authoring.rs (target\debug\deps\authoring-7a2e261703a9eff0.exe)
+
+running 8 tests
+test range_edit_preserves_other_runs_and_paragraphs ... ok
+test composition_invalid_and_oversized_updates_leave_draft_unchanged ... ok
+test composition_ranges_graphemes_cancel_and_single_commit ... ok
+test tsv_paste_that_hits_covered_cell_is_atomic ... ok
+test formatted_text_public_roundtrip_and_shared_caret_geometry ... ok
+test table_structure_insert_delete_and_new_table_public_roundtrip ... ok
+test real_pptx_table_cells_tsv_merge_fill_undo_and_reopen ... ok
+test notes_public_and_native_preserve_speaker_body ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.23s
+
+     Running tests\documents.rs (target\debug\deps\documents-0057f7bcb52ba7d2.exe)
+
+running 5 tests
+test malformed_packages_and_future_native_versions_fail_recoverably ... ok
+test budgets_crc_and_cancellation_are_enforced ... ok
+test public_formats_are_sniffed_from_bytes_and_original_is_preserved ... ok
+test native_and_standard_pptx_do_not_depend_on_private_sidecars ... ok
+test independent_pptx_renders_geometry_picture_table_and_same_thumbnail_content ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+
+     Running tests\editing.rs (target\debug\deps\editing-1c64587c82eff024.exe)
+
+running 15 tests
+test undo_redo_branches_dirty_and_selection_restore ... ok
+test id_exhaustion_and_locked_objects_fail_atomically ... ok
+test failed_transactions_do_not_mutate_history_ids_or_model ... ok
+test recovery_clean_blocks_stale_checkpoints ... ok
+test history_budget_keeps_only_latest_128_gestures ... ok
+test invalid_destination_retains_original_and_session_dirty ... ok
+test windows_atomic_replace_failure_preserves_existing_file_and_dirty_state ... ok
+test unknown_native_parts_survive_resave ... ok
+test published_save_is_reported_as_success_even_if_recovery_cleanup_fails ... ok
+test simple_slide_structure_and_picture_copy_round_trip_in_public_pptx ... ok
+test text_transform_save_reopen_and_untouched_parts_preserved ... ok
+test external_changes_and_existing_save_as_targets_are_not_overwritten ... ok
+test save_captures_revision_and_later_edits_stay_dirty ... ok
+test native_v2_round_trip_restores_source_binding_and_rejects_legacy_reader ... ok
+test recovery_leases_corruption_and_restore_without_overwriting_source ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.30s
+
+   Doc-tests joydeck_engine
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests joydeck_shell
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s

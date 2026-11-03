@@ -1,0 +1,42 @@
+[
+  {
+    "file": "debug-table-notes.pptx",
+    "sha256": "9c3a447af5831ae6cb3b7036aeac6a13864b1dab1086bb1cbec9a79f69e82c4b",
+    "bytes": 39095
+  },
+  {
+    "file": "gui-native-to-public.pptx",
+    "sha256": "cf040669cea4eca2fddac10b4dc6a69c72626e6278abb91109d21b331e9e8bec",
+    "bytes": 39151
+  },
+  {
+    "file": "gui-verified.joydeck",
+    "sha256": "aa208407c9d60caa4a67970af1c6584bcc3422a771ea4081f91207fa4d418dbd",
+    "bytes": 43048
+  },
+  {
+    "file": "gui-verified.pptx",
+    "sha256": "cf040669cea4eca2fddac10b4dc6a69c72626e6278abb91109d21b331e9e8bec",
+    "bytes": 39151
+  },
+  {
+    "file": "R3编辑.joydeck",
+    "sha256": "71462e878a88bcfd72ed25c6242e0905564b50dd3d525cc29dc907e5e53f354b",
+    "bytes": 43020
+  },
+  {
+    "file": "R3编辑.pptx",
+    "sha256": "d8ea6c300e40287d0edfb8e4fe0ccbcc6bef16d0aa15b4d25c9410c2c16e6d6f",
+    "bytes": 39252
+  },
+  {
+    "file": "recovered-r3.pptx",
+    "sha256": "d8ea6c300e40287d0edfb8e4fe0ccbcc6bef16d0aa15b4d25c9410c2c16e6d6f",
+    "bytes": 39252
+  },
+  {
+    "file": "unknown-cell-edited.pptx",
+    "sha256": "dee6267900ac9b6a37b5ba9acb46eab393c6dea811a08dc48ae59ab3084e5f11",
+    "bytes": 39286
+  }
+]

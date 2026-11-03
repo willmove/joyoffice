@@ -1,0 +1,16 @@
+[package]
+name = "joydeck-anim"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish = false
+license.workspace = true
+description = "DeckCraft slide show timing: animation sequences, per-shape animation state over time, and transition frame layouts"
+
+[lints]
+workspace = true
+
+[dependencies]
+joydeck-model = { workspace = true }
+joydeck-geom = { workspace = true }
+serde = { workspace = true }

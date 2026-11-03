@@ -1,0 +1,9 @@
+{
+  "reader": "python-pptx 1.0.2",
+  "file": "outputs/debug-table-notes.pptx",
+  "sha256": "9c3a447af5831ae6cb3b7036aeac6a13864b1dab1086bb1cbec9a79f69e82c4b",
+  "pages": 3,
+  "cell_0_0": "单元格😀",
+  "notes": "R3 备注：表格与输入法验证",
+  "passed": true
+}

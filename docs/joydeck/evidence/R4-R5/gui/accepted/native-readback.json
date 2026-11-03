@@ -1,0 +1,12 @@
+{
+  "cli_sha256": "d29bc0e41bf3fcee27470b96422b1d283028072c678e3f767331271a47c0c1ec",
+  "native_sha256": "6d67fa0ec09bc3e5610f874d4ad58685a603980767991b7527f0c7d9f1a64af9",
+  "same_public_model_keys": [
+    "slides",
+    "masters",
+    "slideSize",
+    "props",
+    "media"
+  ],
+  "passed": true
+}

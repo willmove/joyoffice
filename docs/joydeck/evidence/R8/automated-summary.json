@@ -1,0 +1,33 @@
+{
+  "rust_passed": 870,
+  "failed": 0,
+  "ignored": 0,
+  "test_groups": 44,
+  "python_passed": 5,
+  "rust_toolchain": "rustc 1.98.1 (48a229cea 2026-09-01)\nbinary: rustc\ncommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\ncommit-date: 2026-09-01\nhost: x86_64-pc-windows-msvc\nrelease: 1.98.1\nLLVM version: 22.1.8\n",
+  "host_platform": "Windows-11-10.0.26300-SP0",
+  "dependency_alignment": "gpui-kit=0.8.1 gpui-pre=0.3.10; same JoyOffice commit a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
+  "build_stack": "Release and unoptimized debug default 1048576-byte PE stack; actual windows passed.",
+  "gpui_provenance": {
+    "passed": true,
+    "packages": 21,
+    "identical": 16,
+    "reviewed_deviations": 5,
+    "failed": 0,
+    "zed_commit": "08cbb88a152c3751a43e853425a70e9f631a5918"
+  },
+  "source_records": 268,
+  "final_source_sha256": "97c23f9b0aa069e59d796969dafeed71c5830576ba27ba888972ed8c65590e9a",
+  "final_release_exe_sha256": "898ce04dc6c67fef0354bd45d33a8bc093605ba584c14b1fdabd156519352226",
+  "debug_exe_sha256": "9f2b8958e9992ba8c83f695e3a2d7ebbd5ec04a1f7110b15e817c43df9f72881",
+  "cli_regressions": {
+    "r1": 28,
+    "r2": 20,
+    "r3": 20,
+    "r4_r5": 23,
+    "r6_r7_cli": 32,
+    "mcp_responses": 38,
+    "binary_identical_to_final": true
+  },
+  "verified_package_files": 784
+}

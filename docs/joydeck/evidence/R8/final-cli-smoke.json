@@ -1,0 +1,44 @@
+{
+  "exe_sha256": "2a68b10912fa2b78c3db4114e4a21e39c9d85e5b002e4c2675824b0df61f4bf6",
+  "source_matches": true,
+  "records": [
+    {
+      "arguments": [
+        "--version"
+      ],
+      "stdout": "JoyDeck 0.8.0\n",
+      "stderr": "",
+      "returncode": 0
+    },
+    {
+      "arguments": [
+        "diagnostics"
+      ],
+      "stdout": "{\n  \"arch\": \"x86_64\",\n  \"capabilities\": [\n    \"native-workspace\",\n    \"page-navigation\",\n    \"zoom\",\n    \"theme\",\n    \"pptx-read\",\n    \"deckcraft-read\",\n    \"cpu-render\",\n    \"thumbnails\",\n    \"inspect\",\n    \"render-png\",\n    \"basic-edit\",\n    \"undo-redo\",\n    \"pptx-preserving-save\",\n    \"joydeck-v2\",\n    \"recovery\",\n    \"inline-text\",\n    \"native-ime\",\n    \"table-edit\",\n    \"text-clipboard\",\n    \"table-tsv\",\n    \"notes-edit\",\n    \"gpui-scene\",\n    \"incremental-object-cache\",\n    \"scene-bench\",\n    \"desktop-render-benchmark\",\n    \"master-theme-edit\",\n    \"picture-insert-crop-adjust\",\n    \"category-chart-edit\",\n    \"chart-workbook\",\n    \"context-ribbon\",\n    \"content-inspector\",\n    \"legacy-migration-subset\",\n    \"pptx-exchange\",\n    \"pdf-searchable\",\n    \"notes-handouts\",\n    \"png-jpeg-gif\",\n    \"windows-print-dialog\",\n    \"slideshow\",\n    \"presenter\",\n    \"windows-media\",\n    \"static-mp4\",\n    \"title-vtt\",\n    \"headless-control\",\n    \"mcp-2025-11-25\",\n    \"export-jobs\",\n    \"native-grouped-ribbon\",\n    \"native-save-as\",\n    \"basic-object-clipboard\",\n    \"system-image-clipboard\",\n    \"inline-notes\",\n    \"slide-sorter-view\",\n    \"selection-handles\"\n  ],\n  \"cli_uses_gui\": false,\n  \"gpui_fast\": false,\n  \"gpui_kit\": \"0.8.1\",\n  \"gpui_pre\": \"0.3.10\",\n  \"os\": \"windows\",\n  \"pending\": [\n    \"rotated-in-place-text\",\n    \"advanced-object-clipboard\",\n    \"reference-full-ui-parity\",\n    \"macos-linux-runtime-qualification\",\n    \"advanced-editing\",\n    \"legacy-media-review-migration\",\n    \"multi-display-qualification\",\n    \"full-animation-editing\",\n    \"media-device-qualification\",\n    \"pdf-a-tagged\"\n  ],\n  \"preview\": \"new blank document by default; original bundled sample available via CLI\",\n  \"product\": \"JoyDeck\",\n  \"rust_toolchain\": \"1.98.1\",\n  \"stage\": \"R8-windows-editor-slice\",\n  \"version\": \"0.8.0\"\n}\n",
+      "stderr": "",
+      "returncode": 0
+    },
+    {
+      "arguments": [
+        "inspect",
+        "D:\\Coding\\EditorProjects\\joydeck-new\\docs\\joydeck\\evidence\\R8\\artifacts\\save-before-open.joydeck"
+      ],
+      "stdout": "{\n  \"name\": \"save-before-open.joydeck\",\n  \"format\": \"joydeck\",\n  \"read_only\": false,\n  \"source_bytes\": 8892,\n  \"width_pt\": 960.0,\n  \"height_pt\": 540.0,\n  \"media\": 0,\n  \"slides\": [\n    {\n      \"page\": 1,\n      \"title\": \"R8 未保存流程\",\n      \"shapes\": 2,\n      \"notes\": \"\",\n      \"objects\": [\n        {\n          \"id\": 258,\n          \"kind\": \"placeholder\",\n          \"locked\": false,\n          \"name\": \"Title 1\",\n          \"table\": null,\n          \"text\": \"R8 未保存流程\",\n          \"text_body\": {\n            \"body\": {\n              \"anchor\": null,\n              \"anchorCtr\": null,\n              \"autofit\": null,\n              \"colSpacing\": null,\n              \"columns\": null,\n              \"insetB\": null,\n              \"insetL\": null,\n              \"insetR\": null,\n              \"insetT\": null,\n              \"rot\": null,\n              \"rtlCol\": null,\n              \"spaceFirstLast\": null,\n              \"upright\": null,\n              \"vert\": null,\n              \"warp\": null,\n              \"wrap\": null\n            },\n            \"paragraphs\": [\n              {\n                \"level\": 0,\n                \"runs\": [\n                  {\n                    \"text\": \"R8 未保存流程\"\n                  }\n                ]\n              }\n            ]\n          },\n          \"transform\": {\n            \"h\": 188.0,\n            \"w\": 720.0,\n            \"x\": 120.0,\n            \"y\": 88.0\n          }\n        },\n        {\n          \"id\": 259,\n          \"kind\": \"placeholder\",\n          \"locked\": false,\n          \"name\": \"Subtitle 2\",\n          \"table\": null,\n          \"text\": \"\",\n          \"text_body\": {\n            \"body\": {\n              \"anchor\": null,\n              \"anchorCtr\": null,\n              \"autofit\": null,\n              \"colSpacing\": null,\n              \"columns\": null,\n              \"insetB\": null,\n              \"insetL\": null,\n              \"insetR\": null,\n              \"insetT\": null,\n              \"rot\": null,\n              \"rtlCol\": null,\n              \"spaceFirstLast\": null,\n              \"upright\": null,\n              \"vert\": null,\n              \"warp\": null,\n              \"wrap\": null\n            },\n            \"paragraphs\": []\n          },\n          \"transform\": {\n            \"h\": 130.0,\n            \"w\": 720.0,\n            \"x\": 120.0,\n            \"y\": 284.0\n          }\n        }\n      ]\n    }\n  ],\n  \"warnings\": [\n    \"Font family unavailable: Inter; renderer will substitute it.\"\n  ]\n}\n",
+      "stderr": "",
+      "returncode": 0
+    },
+    {
+      "arguments": [
+        "render",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r8-delivery-uvj90kop\\中文 空格\\参照 同一文稿.pptx",
+        "--page",
+        "1",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r8-delivery-uvj90kop\\中文 空格\\最终 渲染"
+      ],
+      "stdout": "Rendered 1 page(s) to C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r8-delivery-uvj90kop\\中文 空格\\最终 渲染\n",
+      "stderr": "",
+      "returncode": 0
+    }
+  ]
+}

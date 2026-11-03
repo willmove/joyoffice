@@ -1,0 +1,6 @@
+JoyDeck window opened · GPUI Kit 0.8.1 / pre 0.3.10
+R4/R5 opened=true pages=3 elapsed_ms=64
+R4 scene {"builds":2,"hits":0,"misses":16,"cpu_tiles":8,"backdrop_rasters":2,"native_paths":4,"glyphs":125,"cache_bytes":5184432,"build_micros":4706}
+R4 scene {"builds":3,"hits":0,"misses":22,"cpu_tiles":10,"backdrop_rasters":3,"native_paths":4,"glyphs":149,"cache_bytes":8235432,"build_micros":4021}
+R4/R5 pointer position=Point { x: 358px, y: 382px } bounds=Bounds { origin: Point { x: 272px, y: 254px }, size: Size { 480px × 270px } } point=(172,256) scale=0.5
+R4 diagnostics {"view":"gpui-scene","scene":{"builds":3,"hits":0,"misses":22,"cpu_tiles":10,"backdrop_rasters":3,"native_paths":4,"glyphs":149,"cache_bytes":8235432,"build_micros":4021},"gpui":{"frames":51,"tessellations":8,"texture_preparations":8,"texture_bytes":5397840,"atlas_removals":0,"cache_bytes":5900208,"draw_micros":103,"errors":0},"fallbacks":["Some(ShapeId(4)): picture decode/crop/adjust","Some(ShapeId(5)): chart"],"timing":"CPU build / draw submission, not presentation latency"}

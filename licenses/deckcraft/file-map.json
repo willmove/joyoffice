@@ -1,0 +1,2294 @@
+{
+  "upstream_snapshot_inventory": "source-inventory.json",
+  "selected_license": "MIT",
+  "files": [
+    {
+      "source_path": "crates/color/Cargo.toml",
+      "source_sha256": "a40ec478be86aa7afa1c445ae975a6fad88ccafcebdc7e09ddfd1e170f76c707",
+      "target_path": "crates/joydeck-color/Cargo.toml",
+      "adapted_sha256": "a65ac11c1e4dd642932680258f66bdc7b5885a9bb6a7d45edf6261d2b9c69524",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy",
+        "inherit JoyOffice Rust/repository metadata and keep package private"
+      ]
+    },
+    {
+      "source_path": "crates/color/src/lib.rs",
+      "source_sha256": "93b024e9e9031f8cb1ac73dd4a325ce23099a4e4b1ebd347c085f2674b21addc",
+      "target_path": "crates/joydeck-color/src/lib.rs",
+      "adapted_sha256": "03596e80002915146e1a49abf4a9cce502bf218649c50283e3c5dd1582f2e2ea",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy",
+        "preserve upstream rgba constructor with local Clippy style annotation",
+        "test-only assertion lint allowances; production no-panic guards retained",
+        "scoped Clippy style allowances preserve imported public representations"
+      ]
+    },
+    {
+      "source_path": "crates/geom/Cargo.toml",
+      "source_sha256": "7424df077a7ef2d5eb9fbc35a723f66c59aaefcdbd9803fa001f455b1c31b3b8",
+      "target_path": "crates/joydeck-geom/Cargo.toml",
+      "adapted_sha256": "b5eb91476df294216d67ebcebe23b00e372e02ad362f8e444218135bbfb911c3",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy",
+        "inherit JoyOffice Rust/repository metadata and keep package private",
+        "R9: host workspace feature wiring and sole shared-library implementation"
+      ]
+    },
+    {
+      "source_path": "crates/geom/src/lib.rs",
+      "source_sha256": "28929d4b6a2f93a402ffb96d4193beaa2b7dc3040ab700e2e70dbb0909e55449",
+      "target_path": "crates/joydeck-geom/src/lib.rs",
+      "adapted_sha256": "42a142cbdd3384f81f49177c24d91a05214bac893924af5b956279899c399e8e",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy",
+        "test-only assertion lint allowances; production no-panic guards retained"
+      ]
+    },
+    {
+      "source_path": "crates/geom/src/morph.rs",
+      "source_sha256": "38435f8a08bc23ddd27f8914ce002b4810b3a3bf39d3be27a4ff2de557ec0435",
+      "target_path": "crates/joydeck-geom/src/morph.rs",
+      "adapted_sha256": "ff3f67b8b111f50de7c11e042473ebc60ceaf0c2ba9d5a0f9ee13b4322701cc9",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy",
+        "test-only assertion lint allowances; production no-panic guards retained"
+      ]
+    },
+    {
+      "source_path": "crates/geom/src/preset/build.rs",
+      "source_sha256": "0f20c9e24506d28aaa495311d6d653279dcd297f898e5d10104bc2526ab8b154",
+      "target_path": "crates/joydeck-geom/src/preset/build.rs",
+      "adapted_sha256": "6906cb3da000efe18cd1ceab77218c95e2253862ce6991bbe714095a8c0c36d8",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy"
+      ]
+    },
+    {
+      "source_path": "crates/geom/src/preset/builder.rs",
+      "source_sha256": "26d0f06d29087a8ac5895105d80a32884ef4c7212ca6628ab6c42331991054ae",
+      "target_path": "crates/joydeck-geom/src/preset/builder.rs",
+      "adapted_sha256": "5d2b557f93dcf6ec92a982ecd95ba60266a522d025609b30f33afc62496b82fa",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy"
+      ]
+    },
+    {
+      "source_path": "crates/geom/src/preset/catalog.rs",
+      "source_sha256": "20743d98648bcf7ff0fd56694cc1ecb941d7b3f4b8fe6494ece25278741ff4c7",
+      "target_path": "crates/joydeck-geom/src/preset/catalog.rs",
+      "adapted_sha256": "b95c8f517964c462a6f1162b99a2239372bbca08dbb3f22f7b45e7a6206abc5c",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy"
+      ]
+    },
+    {
+      "source_path": "crates/geom/src/preset/extra.rs",
+      "source_sha256": "8c93e1910fe4326296182a582be0a776f7ac6a3644b349110895319d7b8a01f9",
+      "target_path": "crates/joydeck-geom/src/preset/extra.rs",
+      "adapted_sha256": "dee9400580dfb06512364f5256088eb81cee889f4d5ef3f6c2ed586a10454355",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy",
+        "test-only assertion lint allowances; production no-panic guards retained"
+      ]
+    },
+    {
+      "source_path": "crates/geom/src/preset/shapes.rs",
+      "source_sha256": "8e6ee19c5ea29805df9285991c69a9c0c6d153c82a0d1ebee75c48ff39b1a696",
+      "target_path": "crates/joydeck-geom/src/preset/shapes.rs",
+      "adapted_sha256": "a3777bc87214cb2534b79782becff320c399d0f90336fe0580f62ea17c2478f2",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy"
+      ]
+    },
+    {
+      "source_path": "crates/geom/src/preset/tests.rs",
+      "source_sha256": "699ff3f3b3a56deddab09f7e96df123a410666891b29c309cf9b96788b2e73c7",
+      "target_path": "crates/joydeck-geom/src/preset/tests.rs",
+      "adapted_sha256": "a47c2c046f50210013a3529ff417026ed638990ba3b7babc2de76d469cf35ead",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy"
+      ]
+    },
+    {
+      "source_path": "crates/geom/src/preset.rs",
+      "source_sha256": "94c4d928be5b4d8f44d570ce5c3376d6128617ab8cc14a7450b1c0383c6190fd",
+      "target_path": "crates/joydeck-geom/src/preset.rs",
+      "adapted_sha256": "4e4ada1f226be3a811b16ddfe989a6d94ca5e812f9037572e224de0eac392e6f",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy",
+        "test-only assertion lint allowances; production no-panic guards retained"
+      ]
+    },
+    {
+      "source_path": "crates/geom/src/squircle.rs",
+      "source_sha256": "ec3a473d9a183b792832b516fe059b44b26a60693b594794996b7eefa909999b",
+      "target_path": "crates/joydeck-geom/src/squircle.rs",
+      "adapted_sha256": "194c46072a378a9c01ce8c79f009d7e465549647e4821bfc1c62fe4cbaaff11d",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy",
+        "test-only assertion lint allowances; production no-panic guards retained"
+      ]
+    },
+    {
+      "source_path": "crates/geom/src/warp/tests.rs",
+      "source_sha256": "fe6a5c6fa1cd8489ecd279998cf12659da696a32a9cea9ffe2197e0b306c7d2c",
+      "target_path": "crates/joydeck-geom/src/warp/tests.rs",
+      "adapted_sha256": "ba7e8022790ec8aad172a545c174ee5314fac2739752b77d02b42d78a5f08219",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy"
+      ]
+    },
+    {
+      "source_path": "crates/geom/src/warp.rs",
+      "source_sha256": "f0571db9848e253d30a082cb4d1e6c0b91a6ab6c61d33769004d90ec04ffe71b",
+      "target_path": "crates/joydeck-geom/src/warp.rs",
+      "adapted_sha256": "c536cc35c90dee9b7aae90559e210229e5df3d446ddebc235e654d1cd2e87dd5",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy",
+        "test-only assertion lint allowances; production no-panic guards retained"
+      ]
+    },
+    {
+      "source_path": "crates/model/Cargo.toml",
+      "source_sha256": "3579cd669b5afb8ddc458487e33e9906117f8907746a28306cf2889e7b7b87b8",
+      "target_path": "crates/joydeck-model/Cargo.toml",
+      "adapted_sha256": "aa11a7ec648ed6c79861c5f3317b97e3fd31333dfc0129dca349c808bbc26eb1",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy",
+        "inherit JoyOffice Rust/repository metadata and keep package private",
+        "R9: host workspace feature wiring and sole shared-library implementation"
+      ]
+    },
+    {
+      "source_path": "crates/model/src/anim.rs",
+      "source_sha256": "0cf8e492f0588779208f950975d3309d3681af1d65ae525fa8ef38b2b31b385f",
+      "target_path": "crates/joydeck-model/src/anim.rs",
+      "adapted_sha256": "57b500a9ca20fd78df2dd9c639bdaf83f066ad71bb85c9115aa1933570745198",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy",
+        "test-only assertion lint allowances; production no-panic guards retained",
+        "scoped Clippy style allowances preserve imported public representations"
+      ]
+    },
+    {
+      "source_path": "crates/model/src/bidi.rs",
+      "source_sha256": "3c99f99c4c274cca974fff0e2c3f54a5710b36a4369b824d8ea353b33529428f",
+      "target_path": "crates/joydeck-model/src/bidi.rs",
+      "adapted_sha256": "5ce02b6a3b8618686fa5c1f4d7d43206eb277abf2687fb09877516ebd9bf699c",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy",
+        "test-only assertion lint allowances; production no-panic guards retained"
+      ]
+    },
+    {
+      "source_path": "crates/model/src/chart.rs",
+      "source_sha256": "116161d8208a9e578fc85bb4c1e099e4a1c1289cee9b84245a9f85d9dc67d870",
+      "target_path": "crates/joydeck-model/src/chart.rs",
+      "adapted_sha256": "ce00870b7176e2294fce499d5dee9cc40fce7fa85e184099eafb7e0bea219289",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy",
+        "test-only assertion lint allowances; production no-panic guards retained"
+      ]
+    },
+    {
+      "source_path": "crates/model/src/defaults.rs",
+      "source_sha256": "a0778227fc80ff263fcefa12d581f6527de18858883d63ca2dc3d0d1952397eb",
+      "target_path": "crates/joydeck-model/src/defaults.rs",
+      "adapted_sha256": "2bca0037bb67dc877ee05110c4a4c2013019486876d9f21371cd59a55941084d",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy"
+      ]
+    },
+    {
+      "source_path": "crates/model/src/edit.rs",
+      "source_sha256": "3952ebabd1b3589acbbf23e2f5097ad4c961c1da7e33b631ece895cfaad54481",
+      "target_path": "crates/joydeck-model/src/edit.rs",
+      "adapted_sha256": "6a69b5715ef0e44337b64683c7fb81508a56bfa367b44fb7bd9c6ed37487dc83",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy",
+        "test-only assertion lint allowances; production no-panic guards retained"
+      ]
+    },
+    {
+      "source_path": "crates/model/src/lib.rs",
+      "source_sha256": "4b5a99b737768e630d877382837063a3f43ca12f9385ee8834e9437ed53b16d2",
+      "target_path": "crates/joydeck-model/src/lib.rs",
+      "adapted_sha256": "9b9de374f62158faa2b16af5face911c777712a0dd1c8170e9f1820d0ef19410",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy",
+        "test-only assertion lint allowances; production no-panic guards retained",
+        "scoped Clippy style allowances preserve imported public representations"
+      ]
+    },
+    {
+      "source_path": "crates/model/src/numfmt.rs",
+      "source_sha256": "9a2f381bc781cee896ef080754b78e52dfefc4ac996653a82904beaa96b36a50",
+      "target_path": "crates/joydeck-model/src/numfmt.rs",
+      "adapted_sha256": "e1f989508bbd4c3d0b68539646df158a37dd03b5de8bc450132efa7c38555e62",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy",
+        "test-only assertion lint allowances; production no-panic guards retained"
+      ]
+    },
+    {
+      "source_path": "crates/model/src/resolve.rs",
+      "source_sha256": "fa9f06a5f23b585e9c15b882c334a7a87b32690ed6f4571fe7e865de76a91feb",
+      "target_path": "crates/joydeck-model/src/resolve.rs",
+      "adapted_sha256": "71475d2e9081484eea7afe47002eea617970e9446b97ce55f4a64e5766298d7b",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy"
+      ]
+    },
+    {
+      "source_path": "crates/model/src/style.rs",
+      "source_sha256": "b1d45ac675f57e9fa8c87d01354e164cbf45d6aa15b47f733d16cc7d391be576",
+      "target_path": "crates/joydeck-model/src/style.rs",
+      "adapted_sha256": "2b89bbdd23dc04ae4161e366743fefcb6ce59b0771262c1d102392b778de925a",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy",
+        "scoped Clippy style allowances preserve imported public representations"
+      ]
+    },
+    {
+      "source_path": "crates/model/src/table.rs",
+      "source_sha256": "1c212558120b794f94c4cd40b68e276a31bfea19fef9fe0149658635d01cc5ab",
+      "target_path": "crates/joydeck-model/src/table.rs",
+      "adapted_sha256": "cb7548800a0b9daec2f0d06f4b98001ec96afc02e991cae25d2813d0df5ae8a7",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy",
+        "test-only assertion lint allowances; production no-panic guards retained",
+        "scoped Clippy style allowances preserve imported public representations"
+      ]
+    },
+    {
+      "source_path": "crates/model/src/tests.rs",
+      "source_sha256": "04dd0eb5316422a73480514039dec3e8728eb260afa81feefe422ed85eed2ca4",
+      "target_path": "crates/joydeck-model/src/tests.rs",
+      "adapted_sha256": "0db71cd274d57d141b93179fc00f8e4d8c85c310290a5f104aa71e4fe4b00d6d",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy"
+      ]
+    },
+    {
+      "source_path": "crates/model/src/text.rs",
+      "source_sha256": "bfeeba6e1c07c4aa0f724c2d830b4483f8e7663d9459a22cba45cbc7420ecab8",
+      "target_path": "crates/joydeck-model/src/text.rs",
+      "adapted_sha256": "27ed7b745221d14452618db657b9ae0d633113460f7a3b1d015f03d92f3c580e",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy",
+        "test-only assertion lint allowances; production no-panic guards retained"
+      ]
+    },
+    {
+      "source_path": "crates/model/src/theme.rs",
+      "source_sha256": "f5f856c5fd5dc3a8f070a2895ffdbc6737ec5d5c4447b20e56ad674f2b2dcbaf",
+      "target_path": "crates/joydeck-model/src/theme.rs",
+      "adapted_sha256": "4ab169b2596f4a06586295f0683c6881e299e6700575376e43ad7a25fe584ea7",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy"
+      ]
+    },
+    {
+      "source_path": "crates/model/src/trendline.rs",
+      "source_sha256": "cde3f030b19505e6ff651d1607aeb19b4a24cd47e0abd7fa8f1d5ecbf19647e4",
+      "target_path": "crates/joydeck-model/src/trendline.rs",
+      "adapted_sha256": "4b8a63e828e726992483318657fdf9e8d81d3f12b9a057fbb64677be3abd5865",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy",
+        "test-only assertion lint allowances; production no-panic guards retained"
+      ]
+    },
+    {
+      "source_path": "crates/model/src/words.rs",
+      "source_sha256": "aa8b8b81b7fff4d030f3337bf00aac6e58640ad6842c34f4317c3f3cc694a099",
+      "target_path": "crates/joydeck-model/src/words.rs",
+      "adapted_sha256": "6b014c13572588b419c1011877d5115912acfeae16725c594f2913c2b5b9b557",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy",
+        "test-only assertion lint allowances; production no-panic guards retained"
+      ]
+    },
+    {
+      "source_path": "crates/metafile/Cargo.toml",
+      "source_sha256": "671d63f1daa3371ca4de65b4e8c1cfb3ad000c294b7a45436721eb81c5d77f58",
+      "target_path": "crates/joydeck-metafile/Cargo.toml",
+      "adapted_sha256": "80c6e36f8522ab93262225bd8658035f338bd902fb1b3e278f0a26be76232304",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R9: host workspace feature wiring and sole shared-library implementation"
+      ]
+    },
+    {
+      "source_path": "crates/metafile/src/bytes.rs",
+      "source_sha256": "ef49693acf1b635386f7cb20cbaa4132059bebee8859713d632048a9ee606123",
+      "target_path": "crates/joydeck-metafile/src/bytes.rs",
+      "adapted_sha256": "ef49693acf1b635386f7cb20cbaa4132059bebee8859713d632048a9ee606123",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream"
+      ]
+    },
+    {
+      "source_path": "crates/metafile/src/canvas.rs",
+      "source_sha256": "782c90dd2b0b64f738f3a24cad125abe97d3315f0642bb62169a1fff5370b855",
+      "target_path": "crates/joydeck-metafile/src/canvas.rs",
+      "adapted_sha256": "f7f719310a6f8b240ac0ee2ad92e292c18b64cbdd546cc0903e375ed1b211b1e",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/metafile/src/clip.rs",
+      "source_sha256": "db15261acc0bdadbefab80805696bf06527f84cbba854b2fa188301c842d428a",
+      "target_path": "crates/joydeck-metafile/src/clip.rs",
+      "adapted_sha256": "c7b5a15e399601eda7b1a3c14a7c3b284d471b550a016b97f8609faa79f6f08e",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/metafile/src/cliprect.rs",
+      "source_sha256": "f815bcf5109caab9700eb37f7e33592440b5ee7cc66bbe2a1da8d3cfcebea23d",
+      "target_path": "crates/joydeck-metafile/src/cliprect.rs",
+      "adapted_sha256": "4af6ab43c6705f5e00cba5584f919292541a56f4c1112a1e466bc8f9315e009b",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/metafile/src/dib.rs",
+      "source_sha256": "984b365afd888e4ef6b1fe52da8a9853330da101f3365124bbf8aa612555d3c1",
+      "target_path": "crates/joydeck-metafile/src/dib.rs",
+      "adapted_sha256": "12d6884bf39a3f98435cad723e28c761fefa75ab2c877ffffe6648d40acb4621",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/metafile/src/emf.rs",
+      "source_sha256": "ecfde13c6cea9cb5603a8961d0cb85231a645e6541e458a243c2facbbe0bc91c",
+      "target_path": "crates/joydeck-metafile/src/emf.rs",
+      "adapted_sha256": "59ea76e81370747007b8f4c39dbbca5f4f630a4e482480e334646edf3014b5c4",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/metafile/src/emfplus.rs",
+      "source_sha256": "183b0be47ee2467ef8824b768709a57a83dc243f15195c066ccef601a933d15e",
+      "target_path": "crates/joydeck-metafile/src/emfplus.rs",
+      "adapted_sha256": "99c915a48b3806c441ac5e26baeb9576d09eea27a53e4a535fcfc1369f599cc0",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/metafile/src/geom.rs",
+      "source_sha256": "d07a3ab7909fbdfc1153103e6d1c530959a71dfbbe0a2c9cf0833d382cda5215",
+      "target_path": "crates/joydeck-metafile/src/geom.rs",
+      "adapted_sha256": "66e03e6d3b48890ebf3a28bfdf9c491dcec4b76fa3d65ce50b6f9d40e87add28",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/metafile/src/lib.rs",
+      "source_sha256": "3adccd030b589e5f091cbc791f814929f62221850853b6932cca5d9a22014a1d",
+      "target_path": "crates/joydeck-metafile/src/lib.rs",
+      "adapted_sha256": "5bd63f7784b11b1c0dffa8a030d19a5322862e60be9c85f5ec603751e46916b3",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/metafile/src/place.rs",
+      "source_sha256": "6ba231b741dbb96b08eb304c03f992ba90d41f16166a234fff6f32793737eaf7",
+      "target_path": "crates/joydeck-metafile/src/place.rs",
+      "adapted_sha256": "a31fd04f33e5c2fc0f466ee467aab115fe51c8d582dde4194063fd88cb3ea4e1",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/metafile/src/tests.rs",
+      "source_sha256": "2eb389346a6d6e3590aeee7c47a111c7c6dda6e00237e6b2ea9a6ff2bce1e3c6",
+      "target_path": "crates/joydeck-metafile/src/tests.rs",
+      "adapted_sha256": "2e98ff7a45c6f531ba987ca0bc56a8f1e3782907d0a586ee0e3457b4e85d56a9",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/metafile/src/text.rs",
+      "source_sha256": "46765423734cb08cb0f4b1fe534a428e54ec713a1b78c09aeff06f8b558974ad",
+      "target_path": "crates/joydeck-metafile/src/text.rs",
+      "adapted_sha256": "793dba0c2e72e6fbae0aa9ac3c63513ccf3c62f29509643ec70141c804122046",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/metafile/src/wmf.rs",
+      "source_sha256": "d2d13b7ecda9f62c3ee15e715d7cbda75417aabbc225efd9e75d9bd981ba78b5",
+      "target_path": "crates/joydeck-metafile/src/wmf.rs",
+      "adapted_sha256": "233f5ee5a625adbbdc2068e12a550d3cfdde1d7b76892dbabbb6052a66422200",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/fonts/build.rs",
+      "source_sha256": "692cbe7723d5860c3b35816c5a274ae04919d80d6147cdf7d6288bb429f45bdf",
+      "target_path": "crates/joydeck-fonts/build.rs",
+      "adapted_sha256": "ec07554553d586c43fe69fa22c68710eeff3445c03d754eba21c8cbf09810483",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/fonts/Cargo.toml",
+      "source_sha256": "a194d97837f02d615456d5cd181ba03ac4c462a99b9fd1cd04038e7d3b114fd7",
+      "target_path": "crates/joydeck-fonts/Cargo.toml",
+      "adapted_sha256": "aceca10a8e0055247d0e1c944cb9a670810768df81560ea34e120d29d435abcc",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R9: host workspace feature wiring and sole shared-library implementation"
+      ]
+    },
+    {
+      "source_path": "crates/fonts/src/fallback.rs",
+      "source_sha256": "c21cdaa0e7fc744abe781f402ad0e99ec288f7354db5b0680dfb8428c4d99882",
+      "target_path": "crates/joydeck-fonts/src/fallback.rs",
+      "adapted_sha256": "cc31d57adbf23331769209421f333e0a56e88ca419a725fa0f29b2dca2fa530e",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/fonts/src/fontdb.rs",
+      "source_sha256": "bce2264f3781c38b8ee60c3e3b39322c5d42a6d9236c01f835297dfb957869bd",
+      "target_path": "crates/joydeck-fonts/src/fontdb.rs",
+      "adapted_sha256": "94603051970db23111bdc45f148d7b24977ad28c2b251e07e3459ead5a608e9f",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
+        "R4/R5 scene/content/workbook/font-revision adaptation, exact JoyOffice dependency reuse"
+      ]
+    },
+    {
+      "source_path": "crates/fonts/src/lib.rs",
+      "source_sha256": "e308aad6f535be7a88b91eeef87243b752e2b32500a85ac92086684200fff819",
+      "target_path": "crates/joydeck-fonts/src/lib.rs",
+      "adapted_sha256": "b9061e1f1fce7c815224cbfdbe7dc59bbffe2f6598249f4f705d7de0a908c6f9",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/fonts/src/script.rs",
+      "source_sha256": "48ea2b6a3fac4e61c8f4fb85ba30686a8ff21c7011ac6ec67b49a789bd20bc55",
+      "target_path": "crates/joydeck-fonts/src/script.rs",
+      "adapted_sha256": "a875715fb3807263323c1e6208ab37d6223c447a897a9ee9e76f7a8dc9c00425",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/fonts/src/shape.rs",
+      "source_sha256": "d8a837b3348a79b0dad9052d5bb09f1e56cd8d3ca5777c3f38a9a9e71cf970b1",
+      "target_path": "crates/joydeck-fonts/src/shape.rs",
+      "adapted_sha256": "39141b18066027c45b6110059fc1ef41234c4ea97e35bc03a8feb0df17cc9b87",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/fonts/src/tests.rs",
+      "source_sha256": "c1254bc95688d66447fed92140e3ed27d19691ca52d1a72112f3594fafe646bd",
+      "target_path": "crates/joydeck-fonts/src/tests.rs",
+      "adapted_sha256": "086e4e86cb6e6aa3df502f3cdebc7042ae9e6eb71c6fdcae42a88728dc394f86",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/fonts/tests/build_input.rs",
+      "source_sha256": "cb022360a37fad1a417f9b0e7585fe6ce62e8bce9e0d1b1c5029b672645d9b4a",
+      "target_path": "crates/joydeck-fonts/tests/build_input.rs",
+      "adapted_sha256": "23e6b095c25fa2339352c0a8d22cdae3953d15bc36645e6a5950397d0df527a7",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/fonts/tests/fixtures/latin-families.txt",
+      "source_sha256": "788f830352c7c8ddd42d68ef8d7d4c8889cfa5a031976c57c1b57ab7b152e153",
+      "target_path": "crates/joydeck-fonts/tests/fixtures/latin-families.txt",
+      "adapted_sha256": "788f830352c7c8ddd42d68ef8d7d4c8889cfa5a031976c57c1b57ab7b152e153",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream"
+      ]
+    },
+    {
+      "source_path": "crates/fonts/tests/fixtures/legacy-regular.ttf",
+      "source_sha256": "58f9dd88c98fa45efe7b9d9ab47fc7e77a617b4b4bfbe1fdf856ac57f74fa682",
+      "target_path": "crates/joydeck-fonts/tests/fixtures/legacy-regular.ttf",
+      "adapted_sha256": "58f9dd88c98fa45efe7b9d9ab47fc7e77a617b4b4bfbe1fdf856ac57f74fa682",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream"
+      ]
+    },
+    {
+      "source_path": "crates/fonts/tests/fixtures/legacy-semibold.ttf",
+      "source_sha256": "07e1993f91bbdb7ece2ca97e55fe49de192c1c74922e2eb49f1928f9a0d100e6",
+      "target_path": "crates/joydeck-fonts/tests/fixtures/legacy-semibold.ttf",
+      "adapted_sha256": "07e1993f91bbdb7ece2ca97e55fe49de192c1c74922e2eb49f1928f9a0d100e6",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream"
+      ]
+    },
+    {
+      "source_path": "crates/fonts/tests/fixtures/make_legacy_font.py",
+      "source_sha256": "324a6fcac374e444c0fd90a08b19e7d7154a23d916315a654e23705d71c814bc",
+      "target_path": "crates/joydeck-fonts/tests/fixtures/make_legacy_font.py",
+      "adapted_sha256": "324a6fcac374e444c0fd90a08b19e7d7154a23d916315a654e23705d71c814bc",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream"
+      ]
+    },
+    {
+      "source_path": "crates/text/Cargo.toml",
+      "source_sha256": "61d81bf587886eaba4a7f1e10f0ee8ff3fd6e36a61ed091fb9384ea45d4fb059",
+      "target_path": "crates/joydeck-text/Cargo.toml",
+      "adapted_sha256": "bda05d3146d387a42175ac70107642fe487470a9d2596428481d0835f4b3fb7d",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream"
+      ]
+    },
+    {
+      "source_path": "crates/text/src/autonum.rs",
+      "source_sha256": "5a6d94c7f2c73776ffa33fe218f0fd36873793d07102b77cb9ee769276552713",
+      "target_path": "crates/joydeck-text/src/autonum.rs",
+      "adapted_sha256": "2be6ca54afc8bb16c6e9d37b2808bd3091838bd73e11da3f8457c70a3386b6c2",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/text/src/bidi.rs",
+      "source_sha256": "0948ebcc57d3c3d5f28d2fde5b8513eb2831a36624505f7242e47a1410416651",
+      "target_path": "crates/joydeck-text/src/bidi.rs",
+      "adapted_sha256": "65df913348c7b052b9a5bd8871a333bb7edf2f889726298cdf3c934b4e9d9ea7",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/text/src/breaking.rs",
+      "source_sha256": "f2c3aa4b2331033a1d106598315edc844e3cf8d4c3d7228b46f2b52007305426",
+      "target_path": "crates/joydeck-text/src/breaking.rs",
+      "adapted_sha256": "6da0c59bbfc94af448811e3205c57c34d8db0e69958f8e6f3e0ad90336a73665",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/text/src/datetime.rs",
+      "source_sha256": "d68e5a34c9268d56b6cc28aafe13adf8ce53b136a68501b4ce28efceb8412500",
+      "target_path": "crates/joydeck-text/src/datetime.rs",
+      "adapted_sha256": "4d6129ef34374b0c0518929eb09b09845660de8d5bee2e53e5ca03423c4e1a4c",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/text/src/layout.rs",
+      "source_sha256": "f7e5603ebd9908f0e769373d1e67c26a219162bdefeb49b31e9fe0e310bde0de",
+      "target_path": "crates/joydeck-text/src/layout.rs",
+      "adapted_sha256": "8c4e150480c24a964dc2304d8f1b4f635b4ce237bbe1d71691d9b2b8ad258a29",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/text/src/lib.rs",
+      "source_sha256": "6f6f1a44aac8f2bbd6c2251b323a06833b8f055e0fdd1933b103e49d29ee27b5",
+      "target_path": "crates/joydeck-text/src/lib.rs",
+      "adapted_sha256": "591c769318fb30961195eb10b9b4eabc67372347cefd70f5e04c770f85022091",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/text/src/run.rs",
+      "source_sha256": "50d92fd41ff511f27e09e681297dc05f881ce68c01097a1c0722cb505ca6b953",
+      "target_path": "crates/joydeck-text/src/run.rs",
+      "adapted_sha256": "7ac1b564d1bb2a827f2ebe1ae1f71771460714cc9182e43894504d692e16f99f",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/text/src/shape.rs",
+      "source_sha256": "bcf5387e01f74c46a213f193e071416a2bfb45362d03dc87d2d30e13e3a0a5c4",
+      "target_path": "crates/joydeck-text/src/shape.rs",
+      "adapted_sha256": "902892d263880a7c6f5e261b1a1b6c163bc855ac3f8a5ed5cdc293593b8d5b81",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/text/src/style.rs",
+      "source_sha256": "70acfdd0669a06539701d0081cf7194d51df8bbdc4aad93564d3578d2539a579",
+      "target_path": "crates/joydeck-text/src/style.rs",
+      "adapted_sha256": "fb45b7bf700a95a3d7fd88ffc9159f8cd81d0201b5f9d621b1af5c9ed8fcb9da",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/text/src/symbol.rs",
+      "source_sha256": "10a2eaf359733c99290eebfe314d86ea1284c84f10f5d05d0f80e3ef16f9dea8",
+      "target_path": "crates/joydeck-text/src/symbol.rs",
+      "adapted_sha256": "34676c6e13566bef58da32f44674492d0ee3f0c870c03404855df463cc364c92",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/text/src/tests.rs",
+      "source_sha256": "0c590583364dc4eddd26d838f4ab5f54c966525b5ed23cf78ec21577580a7cc8",
+      "target_path": "crates/joydeck-text/src/tests.rs",
+      "adapted_sha256": "abce553d5dbe6c9a52f71f492e5cedbaeba22922f24727da2ed9798247415eea",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/anim/Cargo.toml",
+      "source_sha256": "5a3a87da8998646343243b1b70347e4758fc535ab1b93907f4f8471ad7766899",
+      "target_path": "crates/joydeck-anim/Cargo.toml",
+      "adapted_sha256": "d562787257d36ae4139ce855d81cbb23db3478d2ca841f6c0048b18684c82484",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream"
+      ]
+    },
+    {
+      "source_path": "crates/anim/src/easing.rs",
+      "source_sha256": "81c4673626731babc8f1234b7f86fe818650665930cd0b9a40bf04d1a5338911",
+      "target_path": "crates/joydeck-anim/src/easing.rs",
+      "adapted_sha256": "81c4673626731babc8f1234b7f86fe818650665930cd0b9a40bf04d1a5338911",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream"
+      ]
+    },
+    {
+      "source_path": "crates/anim/src/effects.rs",
+      "source_sha256": "116fcd66d7b31f191821e9de13af0a10798647516a744a6ede3fe8fc637e125f",
+      "target_path": "crates/joydeck-anim/src/effects.rs",
+      "adapted_sha256": "f7271d6fedea0a42faf7baaddb41d8d6f6239e78a438bd87f22a542ff610f737",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/anim/src/interact.rs",
+      "source_sha256": "e17ae8513dff536d8cc00e21018bc016580f2d8ba8dee4d69ddccd4d4dafbc76",
+      "target_path": "crates/joydeck-anim/src/interact.rs",
+      "adapted_sha256": "63e5a369b80db208babfa5eb6285d88a7ea327ee799b063fe56ba20a41e94c7c",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/anim/src/lib.rs",
+      "source_sha256": "960fee50af9c7cd413c62db1a8222a1500247882f2b855e0f0a7e688132d733c",
+      "target_path": "crates/joydeck-anim/src/lib.rs",
+      "adapted_sha256": "7845fe1501b14c7e95e5d6a32e7889225a48896d8832532a24011f36b7b576ee",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/anim/src/mesh.rs",
+      "source_sha256": "0e75e8c7b29396f4427c16416d5b4e6c436145493feba6d18a7ae5272bab4a29",
+      "target_path": "crates/joydeck-anim/src/mesh.rs",
+      "adapted_sha256": "3ae1e3f43439b5aeed2bd73c152e1cff45716f7b2d76835b884a5f73f0302b0a",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/anim/src/morph.rs",
+      "source_sha256": "c89e90da006371bb77d4e2fb5a9f2f3682764f8332bb73787dd87e7dbbe6f30b",
+      "target_path": "crates/joydeck-anim/src/morph.rs",
+      "adapted_sha256": "b788c7db95ae8bd9e5b96930ac06696913bef9e3e2ea1882335eb0604553ded6",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/anim/src/path.rs",
+      "source_sha256": "5d29571442ee5b9c9b47ed152f58af0df8c1c391c7eebef99a7ce0775b4b7bef",
+      "target_path": "crates/joydeck-anim/src/path.rs",
+      "adapted_sha256": "c7217bc0b4a3b93e2232d35b9ec3fe71b30b299b005aaa45aaebc60c395ef16f",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/anim/src/show.rs",
+      "source_sha256": "48521485fae5accc109228f893fe4f53cb82e74d2c39704c05610f33ec348a84",
+      "target_path": "crates/joydeck-anim/src/show.rs",
+      "adapted_sha256": "19727cf6f7faaa2308db1558f948649add779db8f6b3edd5c564edfc7d71d4cb",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
+        "R6/R7 version baseline, macro-preserve refusal, explicit previous transition/custom show order or rustfmt; no upstream checkout edits."
+      ]
+    },
+    {
+      "source_path": "crates/anim/src/tests.rs",
+      "source_sha256": "891d0ac516433e5a3dbb5c07d1664b5967ba085db7e9c6130e168f641f33bf36",
+      "target_path": "crates/joydeck-anim/src/tests.rs",
+      "adapted_sha256": "e09aa00c8ca532c88135a0bd4d3171be7c4e55baa712c3b2b2c559f28dad9d7a",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/anim/src/tests_interact.rs",
+      "source_sha256": "14cc8acee41d887d45c777aecf6ab74a94681e484228e140155cf4ff2cf8f306",
+      "target_path": "crates/joydeck-anim/src/tests_interact.rs",
+      "adapted_sha256": "fcb43de129a3cf131a9c72330954a4c181a0e2eaf5f0063c9223e73756beefee",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/anim/src/timeline.rs",
+      "source_sha256": "2aa1c2b7f6b1f7e256923ca2b655ebce2ecbd1113eb2a76f89cfe634cbf9e7d8",
+      "target_path": "crates/joydeck-anim/src/timeline.rs",
+      "adapted_sha256": "ab8dcbf2f03061fbe42faaf05b9353e44d8a8b6308bbb748ed8fdf487ccfdb95",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/anim/src/transition.rs",
+      "source_sha256": "22d2b6bbe3d919ece4da60511ad0b69c003c175a29f9c546127b16296e60849d",
+      "target_path": "crates/joydeck-anim/src/transition.rs",
+      "adapted_sha256": "d8f39d60db904c7526ccf577a90265a3e026368d2ee3cde2da341ffac14f83c1",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/anim/src/transition_fx.rs",
+      "source_sha256": "d33982408786bf055bf487318d4fd6a6e79d4309812a1dd0b7f5807963c79dad",
+      "target_path": "crates/joydeck-anim/src/transition_fx.rs",
+      "adapted_sha256": "66f846ac5ca44912381bbb0affdc1bb5b5a913988b992ffe3d18961a832d9039",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/anim/src/transition_geom.rs",
+      "source_sha256": "5b1f243f755182dfdf10a93ac36764b2f1b93bb6d964e7f22e31605e99ac77a2",
+      "target_path": "crates/joydeck-anim/src/transition_geom.rs",
+      "adapted_sha256": "a9aa75c4a69ebed45db0610f126f578ac918c0d922bc353abfc0d7eed3f20b55",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/anim/src/transition_tests.rs",
+      "source_sha256": "25b1f239d26905c592bda30f8538d0daa3d08be9b864054f3c78814a5a24eac8",
+      "target_path": "crates/joydeck-anim/src/transition_tests.rs",
+      "adapted_sha256": "6fed15e4ce1b847305f83b64263f5b8a4fc6660890712259636127190ddab912",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/render/Cargo.toml",
+      "source_sha256": "8aa25ab13f507069d45d9a06d68cefd43d412b84c7d3cd7fdfb25ce738886133",
+      "target_path": "crates/joydeck-render/Cargo.toml",
+      "adapted_sha256": "d34b0e0f7c3c834c30c7fc735de131f9dbc08acd5a22f63cfe854fbf4a13e194",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R4/R5 scene/content/workbook/font-revision adaptation, exact JoyOffice dependency reuse",
+        "R9: host workspace feature wiring and sole shared-library implementation"
+      ]
+    },
+    {
+      "source_path": "crates/render/src/bevel.rs",
+      "source_sha256": "4bd6263179c96b4d9b29a9d0309dc1b4f214fe7dd31abf7379724ded3abc2736",
+      "target_path": "crates/joydeck-render/src/bevel.rs",
+      "adapted_sha256": "40d024f5e6fc6a0dc31afc631489ef6538f7b8ffb9b3936066cb25d7384eff15",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/render/src/camera.rs",
+      "source_sha256": "c7d5aa72ec9e427f7a8e6d1375471a9a1c098793d361347586435b14e5d1e256",
+      "target_path": "crates/joydeck-render/src/camera.rs",
+      "adapted_sha256": "a4895686ef6f37ddb35fe28790fcf9adf88bd7f410ad071f8a5a278f87abe2bd",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/render/src/chart.rs",
+      "source_sha256": "e38397bb713239f024179b35c7ee404c5d749403f792361769353f8a37e2abd1",
+      "target_path": "crates/joydeck-render/src/chart.rs",
+      "adapted_sha256": "78a6af9e8540d051f3924f64eb7b980674658ae321e9a12d7607ca903b18134a",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/render/src/chartex.rs",
+      "source_sha256": "1ffbcce739071c63ddb47cf9fd1c15652c9084ccace55dc3c37a5c99155d2408",
+      "target_path": "crates/joydeck-render/src/chartex.rs",
+      "adapted_sha256": "f3bca674bf40279e98c18d6be8881068e1078f9b7e7abc8db8cf0458d8142393",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/render/src/colr.rs",
+      "source_sha256": "20a57537101b4d76c3d7b641b799d2374ade518afaf398747a787f7c20fa4237",
+      "target_path": "crates/joydeck-render/src/colr.rs",
+      "adapted_sha256": "4ba69e037281f90592264bd5a6adfef9b7090a62977bce353a4d69d83b21ae46",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/render/src/compound.rs",
+      "source_sha256": "e08dff4c83bdf3b74c84036344234aa4c646e08497b3c2808ac2cb234af64cd6",
+      "target_path": "crates/joydeck-render/src/compound.rs",
+      "adapted_sha256": "07954748a3e77e33824d850308c02ebaf73de769c7e515f58d6bb289cb87aaca",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/render/src/extent.rs",
+      "source_sha256": "d86375960f33920f8d7320290a4aee234184d34fdfe798d569857f4683b62a09",
+      "target_path": "crates/joydeck-render/src/extent.rs",
+      "adapted_sha256": "24cc3e4213ee98c918d25060252bf12c188e17d973ca2108e39c5c0397c8f264",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/render/src/extrude.rs",
+      "source_sha256": "7a4376fedaee9078a88338615fed6889b8d6edd0a17c100e4d7ce8c3153f489a",
+      "target_path": "crates/joydeck-render/src/extrude.rs",
+      "adapted_sha256": "3dc78e319d7ed4edd34cdba9fe1b5402ee18930cb41872a82e9c3200e6f1184c",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/render/src/geometry.rs",
+      "source_sha256": "4e04a8c04465cbcae66cc013f94fc2e11813cbca78230f3f1080d10abd1e88c6",
+      "target_path": "crates/joydeck-render/src/geometry.rs",
+      "adapted_sha256": "f3082c61cd01120a18c0a1b946f7c3014721f410d7b50b06a5fc3accb40169ff",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/render/src/images.rs",
+      "source_sha256": "695fd97f73e4101445fa20bcaea616e761f965031275912c422a3ca6bfebd8fe",
+      "target_path": "crates/joydeck-render/src/images.rs",
+      "adapted_sha256": "59ab6e3a9cef64aa594770e37fde16a9e9b686b0579134b6e84575814634e21c",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/render/src/lib.rs",
+      "source_sha256": "34736a5334491485d5026bfec7642fe44146d59332ea09a176ed0a10b3d1aa5b",
+      "target_path": "crates/joydeck-render/src/lib.rs",
+      "adapted_sha256": "6c043d126ac472e0853f100e0397fc610701bbb2bbf3145f84470eb33864941f",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
+        "R3 shared editable shape/cell text layout consumer; exact original font/renderer layout retained",
+        "R4/R5 scene/content/workbook/font-revision adaptation, exact JoyOffice dependency reuse",
+        "R6/R7 version baseline, macro-preserve refusal, explicit previous transition/custom show order or rustfmt; no upstream checkout edits."
+      ]
+    },
+    {
+      "source_path": "crates/render/src/light.rs",
+      "source_sha256": "e8b9f52981335dcd21e5bae556f1d237cf18802af6152a53a7361158b376c010",
+      "target_path": "crates/joydeck-render/src/light.rs",
+      "adapted_sha256": "13ff4000e18b888c3263229c96d89440773ed785d00063e5220ced5fa1097154",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/render/src/metafile.rs",
+      "source_sha256": "8156a07023a4503299f0d8284aa8e74587232d19a5b3638616bb1fe34bbddfdf",
+      "target_path": "crates/joydeck-render/src/metafile.rs",
+      "adapted_sha256": "df12daa6baf9262465009cf7d93fd650083550ea553bcfd01ae236f3c092467b",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/render/src/morph_path.rs",
+      "source_sha256": "8a995f3d133d39783a36a9b120c9c6d9720ed468cca1cca28f203451dfb11763",
+      "target_path": "crates/joydeck-render/src/morph_path.rs",
+      "adapted_sha256": "0e44fbf30e0a3e2872b58ad0d570f0ad0f5d3039318c1b6dc73c8f21ae23a00a",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/render/src/morph_text.rs",
+      "source_sha256": "a5d6a0bb11652fbe202fa2a092039a5f8c807b829ddbdf09dfcb17d37e690987",
+      "target_path": "crates/joydeck-render/src/morph_text.rs",
+      "adapted_sha256": "ecdb6436d41525c2163386d55df8da207e5d83ba4f963dee07e22f537e4225fd",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/render/src/opts.rs",
+      "source_sha256": "c8e27a07d06586be90d0cd33c3af5dcd68fb9e9ed9e22b10084b34cfa1ee367f",
+      "target_path": "crates/joydeck-render/src/opts.rs",
+      "adapted_sha256": "dec3d40e4f05134743d6430accbdf5b696aacfa24bdfff323bda22630d02b0c9",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/render/src/paint.rs",
+      "source_sha256": "3e51bbf4ce89a8249e9ce41cc97301574693619800026d9db9d54eee8ea22e81",
+      "target_path": "crates/joydeck-render/src/paint.rs",
+      "adapted_sha256": "22220d10e1e7d2e98ba7d53178b04ffc6e43924d4e6d866146b8d711e7f7011e",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/render/src/pathgrad.rs",
+      "source_sha256": "1131b29be7d30c373948be2dde8e067aefbc072fb91e446dc04a04996a9cc101",
+      "target_path": "crates/joydeck-render/src/pathgrad.rs",
+      "adapted_sha256": "1515079d784bf0e42487904a4f8f9470e6fead6748bececd6f02d7572e28c31b",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/render/src/pattern.rs",
+      "source_sha256": "f5350bcac210c94f3d77edd9c79089806dfa2461342bfbe268995e1ad8231a89",
+      "target_path": "crates/joydeck-render/src/pattern.rs",
+      "adapted_sha256": "d3ef52a91b9f1ab2fab22357faed4d0d9e93e7fc9a715ce9c338f9d25091edd6",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/render/src/placed.rs",
+      "source_sha256": "f2851a72da1ed824bfadafcc409a6ebbaa9a711671021ebdb4d46696d0f31f0c",
+      "target_path": "crates/joydeck-render/src/placed.rs",
+      "adapted_sha256": "3a0870daca0b1e9fef99b6a9479f2f5a333dbb52bda7643de4b4a0e81c418137",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
+        "R3 shared editable shape/cell text layout consumer; exact original font/renderer layout retained"
+      ]
+    },
+    {
+      "source_path": "crates/render/src/radar.rs",
+      "source_sha256": "20b22ed3bf83a07a90d70ffc85e8844dad714ca14eac9488421836705bd2d7d2",
+      "target_path": "crates/joydeck-render/src/radar.rs",
+      "adapted_sha256": "deecd9e5dfec318fedd72879fbb2b894d0f9f42f698c2a737b388ced279489cb",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/render/src/ramp.rs",
+      "source_sha256": "3f0eeeab1e3c0ce0c72e1f263b471af83a5effd35c9d4f8c6109c24bc7f7b334",
+      "target_path": "crates/joydeck-render/src/ramp.rs",
+      "adapted_sha256": "46af72f0a8629c07569d4c65f046a3e6f720ddcc659b07ebcec975392b038845",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/render/src/raster.rs",
+      "source_sha256": "c15e503ad2e28107159dbb2c2a7e4cddba1dbdbd5533523144f4342f1af07509",
+      "target_path": "crates/joydeck-render/src/raster.rs",
+      "adapted_sha256": "c5a9d42a2f6ea8fa9ed5277c48f5668f17106ed7bcea382a7c7921cec88af66b",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/render/src/renderer.rs",
+      "source_sha256": "6c42227ce19c97d04122d572f0a8b64f2866ade5de7df47660fe2c6066cefa65",
+      "target_path": "crates/joydeck-render/src/renderer.rs",
+      "adapted_sha256": "6b529497747afe5fbf821342c2e3ddcbe6ba6020d23ca0a55e07d46b58677ce0",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/render/src/slide.rs",
+      "source_sha256": "30308066436cc109fd0cd4ae89add083a40ece77f66d5e345d5445629441435d",
+      "target_path": "crates/joydeck-render/src/slide.rs",
+      "adapted_sha256": "b982b7b369fb516ea28c8789a8dfa9958eef0152ed9ef67783923467bc508461",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/render/src/stroke.rs",
+      "source_sha256": "b86b59c17af89b018fe18f6e078cc268af5c7d97fe9478a18ecce4bf4d30017c",
+      "target_path": "crates/joydeck-render/src/stroke.rs",
+      "adapted_sha256": "065a23b4ad2f10bd38e491835e6dfff9a4bea33f7b01be7a0cc9330b3bf64b9c",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/render/src/table.rs",
+      "source_sha256": "f67944ea571ebae83304e8afbe7e7cc5b2ae2b9d6e5b11c35d758d6faddb4d5b",
+      "target_path": "crates/joydeck-render/src/table.rs",
+      "adapted_sha256": "a516f0587fb376e96e5a8a1e2bb6c1cbeff696c863dd4f3ad4ffa3df5214630f",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/render/src/tests.rs",
+      "source_sha256": "597d0d476a1c774f659cff05c2ac10ea35a55d10f2d3e51582a0110b8b304535",
+      "target_path": "crates/joydeck-render/src/tests.rs",
+      "adapted_sha256": "13d065daaa635a795044d3094a32e94acb7286759a5299f228a15447a5d6c1f5",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/render/src/tests_wild.rs",
+      "source_sha256": "88cfa023aaba50b7fa98e79800f6001ec50cafaab4a2d1b4bd88ddb3b7db7e4b",
+      "target_path": "crates/joydeck-render/src/tests_wild.rs",
+      "adapted_sha256": "9c97cea9cd64a0e872728315f8f0984880f77ef5e64c4307185c34cc3a78a917",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/render/src/text_draw.rs",
+      "source_sha256": "50217a4b99adbffe34de7718973bc636bd91108df89bf25136b46739fce662be",
+      "target_path": "crates/joydeck-render/src/text_draw.rs",
+      "adapted_sha256": "ba91bc146b4aa0a3d7dcf364e2a2ec320864786f2c60823fa5bd243885a81b9b",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/render/src/transition.rs",
+      "source_sha256": "bae8e69100dcf1d4b018d1a9fe7344b808d3086d0cd4221c10bba03585b726f0",
+      "target_path": "crates/joydeck-render/src/transition.rs",
+      "adapted_sha256": "45e943af7a4ad5735528061b7df61f946cb18e9759bb7c6cd2ff3dd70a976da6",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
+        "R6/R7 version baseline, macro-preserve refusal, explicit previous transition/custom show order or rustfmt; no upstream checkout edits."
+      ]
+    },
+    {
+      "source_path": "crates/render/src/warp.rs",
+      "source_sha256": "a568aacca5b85438e3f64e8e150a05ade48099b097715427ea077c38e10a9f3c",
+      "target_path": "crates/joydeck-render/src/warp.rs",
+      "adapted_sha256": "44f616c1a14221ebb2d9e744d1f5bfd9724fdb857858f7d330d2e4d9379b3968",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/render/tests/fixtures/colr-squares.ttf",
+      "source_sha256": "7dee7d437ce4a82e14e264f3aca347c2c1b512af5a8c580e0562e2360d8b2abf",
+      "target_path": "crates/joydeck-render/tests/fixtures/colr-squares.ttf",
+      "adapted_sha256": "7dee7d437ce4a82e14e264f3aca347c2c1b512af5a8c580e0562e2360d8b2abf",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream"
+      ]
+    },
+    {
+      "source_path": "crates/render/tests/fixtures/make_colr_font.py",
+      "source_sha256": "3338dbbf7eb07c8c949b5550775aee6b6c6c5344638a7d8431d7910e63d6df93",
+      "target_path": "crates/joydeck-render/tests/fixtures/make_colr_font.py",
+      "adapted_sha256": "3338dbbf7eb07c8c949b5550775aee6b6c6c5344638a7d8431d7910e63d6df93",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream"
+      ]
+    },
+    {
+      "source_path": "crates/format/Cargo.toml",
+      "source_sha256": "a3bc629279e17b7c45e818c15eb7394a21735c66285841715d010d664c7cc72c",
+      "target_path": "crates/joydeck-format/Cargo.toml",
+      "adapted_sha256": "6e59093f0b04bb0bc67bfeebbe139079ff6285019781ffd3e446710bf8e74f0a",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R9: host workspace feature wiring and sole shared-library implementation"
+      ]
+    },
+    {
+      "source_path": "crates/format/src/chart_parts.rs",
+      "source_sha256": "f33c5c573d75b337c5a9a3b2af3a815cdce6ae9822518bf7cea7d30d81bd398d",
+      "target_path": "crates/joydeck-format/src/chart_parts.rs",
+      "adapted_sha256": "60b42495cc58e66075662711e89cd256f20d99b87c3534ec0e9c983fa5ace27e",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/format/src/chart_parts_tests.rs",
+      "source_sha256": "a3b7d83750c8b37d025367c72153f2b792d1d3d15ee7a8f6389260c618c6b0b6",
+      "target_path": "crates/joydeck-format/src/chart_parts_tests.rs",
+      "adapted_sha256": "5bba8a6d77d6d592438d52a8a0bfd9c3aa80891de57b31f7ca85987f79103e80",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/format/src/finite.rs",
+      "source_sha256": "8e996249a63b9aa559fecba24223afeea78a217ca079befc58fe8b5079685ce0",
+      "target_path": "crates/joydeck-format/src/finite.rs",
+      "adapted_sha256": "ac03fb33da305d3468f202e2dc6b4edcab4e27428b22b5a6f16322232381dea1",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/format/src/lib.rs",
+      "source_sha256": "b22413e017a2ce81282870713d06d22f085b32ec520af6afdcd6a7fc58b18d4e",
+      "target_path": "crates/joydeck-format/src/lib.rs",
+      "adapted_sha256": "23ed175d703d419d83842143531f5f061d9e41936ca13666ad7cf11dd96e6d19",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/format/src/rtf.rs",
+      "source_sha256": "a583b6c12fc15f623455ac92ee90fe9d038303d69537344252ea5fad903a3d68",
+      "target_path": "crates/joydeck-format/src/rtf.rs",
+      "adapted_sha256": "afcb5f4855c7d4f55d6843823b2a3a4b2d99892730f658c5b079030ab6a3c1d5",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/format/src/tests.rs",
+      "source_sha256": "42cb351be917bc7b74ee3999cde0d834d2930a9c26fa952ae8e45355fb2e3e26",
+      "target_path": "crates/joydeck-format/src/tests.rs",
+      "adapted_sha256": "f97ca44c9c36003aedaea032c1dd06a522329542e7f67bb6d55f737753733ea0",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/pptx/Cargo.toml",
+      "source_sha256": "30a783dcadbf5eb12d1e93df304c77586d1d82013cee8c8c2147ce42345fc86a",
+      "target_path": "crates/joydeck-pptx/Cargo.toml",
+      "adapted_sha256": "3b0a681cc5481c81f0c5c3a67d3dfbd4aea34bced14693a09c9cdbb2ea42f760",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R4/R5 scene/content/workbook/font-revision adaptation, exact JoyOffice dependency reuse",
+        "R9: host workspace feature wiring and sole shared-library implementation"
+      ]
+    },
+    {
+      "source_path": "crates/pptx/src/cfb.rs",
+      "source_sha256": "83c07c34dfe9647ffe5fd594f3b779527b4932f3ae0b63bcbbb9e135944cc4ad",
+      "target_path": "crates/joydeck-pptx/src/cfb.rs",
+      "adapted_sha256": "4dbec21d8f3fcb94a6d6d0052d2a57b233749c7b349bd18305f93221c5ceec82",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/pptx/src/custgeom.rs",
+      "source_sha256": "5c3ee2587c4dca11e004b2c4228a70ce66c816ed33c880b4905162a1f8379984",
+      "target_path": "crates/joydeck-pptx/src/custgeom.rs",
+      "adapted_sha256": "c3e8fb759fbf60bdc98529954b22a5bf1a6a78d1f8bcd3824491306e1e2f9359",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/pptx/src/dgm.rs",
+      "source_sha256": "19ba2df552435ff4a3c9668267a1a325c2f66c0d1127fd57d7eb225c243f0e51",
+      "target_path": "crates/joydeck-pptx/src/dgm.rs",
+      "adapted_sha256": "8ce4f195aaf0c1b5791c8813713fd93d1d42d20bea6c26cb8c18717e08972493",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/pptx/src/lib.rs",
+      "source_sha256": "7886430c0095c036472d8a84d8b4d2eccf001b0c8660e5c2b43572f6a0f79c1f",
+      "target_path": "crates/joydeck-pptx/src/lib.rs",
+      "adapted_sha256": "43fe0f97d6129aa29ffe754026e6823c53b465192090c65b76694c960cc52398",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
+        "R2 shared preservation writer entry point or rustfmt; history cost extraction kept pure"
+      ]
+    },
+    {
+      "source_path": "crates/pptx/src/maps.rs",
+      "source_sha256": "fcec93ef010b18ab29f2868c4d0f5396af8f9bcaa17371b3ea3ae7c8cee8063e",
+      "target_path": "crates/joydeck-pptx/src/maps.rs",
+      "adapted_sha256": "1417de47f4be38f93bfe0425a47580aa942bf72a8312c500a625e521d3e1496e",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/pptx/src/opc.rs",
+      "source_sha256": "f7905174cd984e290e231dbed1c05dcece3379233feef91ee06f6975e4267ef9",
+      "target_path": "crates/joydeck-pptx/src/opc.rs",
+      "adapted_sha256": "1d50d2685221c0148676131b53dc476b684c3021fcfcbc9b70e8886c8b32ad41",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/pptx/src/png.rs",
+      "source_sha256": "fe092c8e639319166b78e27e6b744a599874875ae81c9b75d52e2d2f727c87ac",
+      "target_path": "crates/joydeck-pptx/src/png.rs",
+      "adapted_sha256": "4b7d8c1f91c7e453ffd87f0d6a094dbc638badd0d39a0f8e1594834b5b0925ba",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/pptx/src/read/chart.rs",
+      "source_sha256": "5b8801d22c205a63cf49ad9e87896eb7156f6a4beff7a0dada409b10694f5e3e",
+      "target_path": "crates/joydeck-pptx/src/read/chart.rs",
+      "adapted_sha256": "7728ce331b2ea71bc4e419222a545881040f999e86186cc2376552dc10afa0e5",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/pptx/src/read/chartex.rs",
+      "source_sha256": "e32bb50fe08bd07fef6631d5b2a9bf1fb9807d8913011cf0ba94ae743f20da93",
+      "target_path": "crates/joydeck-pptx/src/read/chartex.rs",
+      "adapted_sha256": "00a08621284ffa195c37d4a8ce1e7e31aec62a6b7cd4c8b7d9f9a62f41de3b46",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/pptx/src/read/dml.rs",
+      "source_sha256": "17a01fb4afe822c403b621f3b8a550abe35a69abd90f134018fc19459415ab7a",
+      "target_path": "crates/joydeck-pptx/src/read/dml.rs",
+      "adapted_sha256": "51239af4c6210239ac52decdbe469cd82bb93e19c6e71ea723ae7626f216a811",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/pptx/src/read/shapes.rs",
+      "source_sha256": "9df34bf672f801a9fe96569f10829fa82486d39b225c9231da2adbb0b4ced9f8",
+      "target_path": "crates/joydeck-pptx/src/read/shapes.rs",
+      "adapted_sha256": "f8f6927f75b38a2f836a4a8e6e97e1e7e693b1cacc9abe8f8d7834989625bd2c",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/pptx/src/read/theme.rs",
+      "source_sha256": "bdf4ede3ce9506788bfef2b8a9c81e6ebf55d9fd4755ad1ecc65e0be721dd3ca",
+      "target_path": "crates/joydeck-pptx/src/read/theme.rs",
+      "adapted_sha256": "fbe245216290b9452719b5ea994d0ce4e6f44024e783c683e868c23cd762441f",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/pptx/src/read/timing.rs",
+      "source_sha256": "6435746216469ece643c6295fbb2721893a869f7f4107e00361624b716444b80",
+      "target_path": "crates/joydeck-pptx/src/read/timing.rs",
+      "adapted_sha256": "bc6487e99c12a9fb67694eae9953c2aba7902596f0e51fc9d5e3d424e0ddf026",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/pptx/src/read.rs",
+      "source_sha256": "db5e0ece9be0db36fedf36fbd6efa95d9536be8060cce414b28ee94e298640ff",
+      "target_path": "crates/joydeck-pptx/src/read.rs",
+      "adapted_sha256": "30902e2e315f5531b83174bb54b49370a77f9bf3278f1dd959826cc1496f148d",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/pptx/src/tables.rs",
+      "source_sha256": "ac7d4cd70eab78dac370e3cdb9d6a7eab3cc911fb442f30f0b747f86feae30e1",
+      "target_path": "crates/joydeck-pptx/src/tables.rs",
+      "adapted_sha256": "f93df9598128754971d4ab62080e5246dc7660c9b7382bed929fb06887d6b0e5",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/pptx/src/write/chart.rs",
+      "source_sha256": "200e062c4bd2928c99200b4eb36004367be3f5923656e276fee393f4d728d4a9",
+      "target_path": "crates/joydeck-pptx/src/write/chart.rs",
+      "adapted_sha256": "06cc022314ca6eb2a51366af17fd44db3d4c5eecb3956abc3948723d0f390a3d",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/pptx/src/write/dml.rs",
+      "source_sha256": "eafa305488e0835c0527442229b658aab38d407f1d5f90eabf5ef341a372d683",
+      "target_path": "crates/joydeck-pptx/src/write/dml.rs",
+      "adapted_sha256": "8006a9c83e44d95042a82ef45eb19c3cd1f2e80af4127e3550af9202e8de38a3",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/pptx/src/write/shapes.rs",
+      "source_sha256": "386f88a4a3ca7b7b1434028d1360f17ff16af7c0eca4b75cb5e73a38e7aced1a",
+      "target_path": "crates/joydeck-pptx/src/write/shapes.rs",
+      "adapted_sha256": "aa2e751748b2263771d25354a20c7f6abccb9b92ce0718e4de21c6df5eeeeb80",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/pptx/src/write/theme.rs",
+      "source_sha256": "8dcd307c0a57a7033367d586f66381b932205d97651a8b00a67a3c3e52551047",
+      "target_path": "crates/joydeck-pptx/src/write/theme.rs",
+      "adapted_sha256": "0c3b7ff3297885111aafa5bb06d054cf65d1ee3b0c71cc73cf66c5bb85ccb6e0",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/pptx/src/write/timing.rs",
+      "source_sha256": "7f96aaf7ba84e9c5a21c059d74cc15fbb66566147168aa4581b67c8619030d1d",
+      "target_path": "crates/joydeck-pptx/src/write/timing.rs",
+      "adapted_sha256": "0c605c4dff20a61e4a2ef1f3d2e0897c93a5835cef93fb48f3fa3f07c1d346e6",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/pptx/src/write.rs",
+      "source_sha256": "ca721cabd36b0853a69a1f2e69cf02211100fe1b4f499ced1c066a3321a92e65",
+      "target_path": "crates/joydeck-pptx/src/write.rs",
+      "adapted_sha256": "c921ff73b86d1c3bff23693804c77f1b09d247f62ba542e127a2f10b1f47c00a",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
+        "R4/R5 scene/content/workbook/font-revision adaptation, exact JoyOffice dependency reuse"
+      ]
+    },
+    {
+      "source_path": "crates/pptx/src/xml.rs",
+      "source_sha256": "ce9a2c92b9399fe3928cd3b2f561e5a694f2e00cbf2426543f118ded6fb88569",
+      "target_path": "crates/joydeck-pptx/src/xml.rs",
+      "adapted_sha256": "4ea19878cd65d39b0edb13f970d1411761ba79a073cf0c4b6608d63ee9c2ce74",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+      ]
+    },
+    {
+      "source_path": "crates/pptx/tests/chart_data_labels.rs",
+      "source_sha256": "8a5dd32063b32364c75563b06eaa457b74f4ad2d7eb7c57a3426ef70c047551d",
+      "target_path": "docs/joydeck/upstream-tests/joydeck-pptx/chart_data_labels.rs",
+      "adapted_sha256": "4149bfda56b0ebfdf217f2b614239a67b8a387895e1fc3acfc8891dea523259d",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream"
+      ]
+    },
+    {
+      "source_path": "crates/pptx/tests/it/anchor.rs",
+      "source_sha256": "1844d36d0d746222552842bf0ab85b5d1685c66d93b7a8a5d32e908bc24ca8b3",
+      "target_path": "docs/joydeck/upstream-tests/joydeck-pptx/it/anchor.rs",
+      "adapted_sha256": "a8e5df0ad70fa705cc92fdb61f908d094d203ff0ebea73d0bb59da40ec29e3ca",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream"
+      ]
+    },
+    {
+      "source_path": "crates/pptx/tests/it/anim_auto_reverse.rs",
+      "source_sha256": "92726ff442b069764825bbe630eeaf21133cb757255e9be2d0604bf18ad8868c",
+      "target_path": "docs/joydeck/upstream-tests/joydeck-pptx/it/anim_auto_reverse.rs",
+      "adapted_sha256": "62f9c58f012b75da04dda9a99aa7ab0a85ea116b46bbc3289b20276c63d8e43b",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream"
+      ]
+    },
+    {
+      "source_path": "crates/pptx/tests/it/chart_embed.rs",
+      "source_sha256": "b2c4dca4c3f3481dbfa21fb93620a035d6978163d3c5421a53fc7c57d289d7ad",
+      "target_path": "docs/joydeck/upstream-tests/joydeck-pptx/it/chart_embed.rs",
+      "adapted_sha256": "50a8f635401859c52ac8e81cfd04afc04672600f68f1060fc1005f3e8df047aa",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream"
+      ]
+    },
+    {
+      "source_path": "crates/pptx/tests/it/comments.rs",
+      "source_sha256": "1e66815f74ef0a218ceb5ba46a63b8f419f74df8b912a35a0ac687d199cd208a",
+      "target_path": "docs/joydeck/upstream-tests/joydeck-pptx/it/comments.rs",
+      "adapted_sha256": "5daabfceb8d700d590cea9c1258ca91507a7189386fc77e08694ae4dbf8803d2",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream"
+      ]
+    },
+    {
+      "source_path": "crates/pptx/tests/it/corpus.rs",
+      "source_sha256": "4d071ca5a6664263a38b43707eac5aa48d9c86a0aec2cbf078e2a276ed3e37cb",
+      "target_path": "docs/joydeck/upstream-tests/joydeck-pptx/it/corpus.rs",
+      "adapted_sha256": "4127d567c7e67f8e969a2ff3b4cfce94b78794faa1aa0b37fa8d5df5ca38f0b4",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream"
+      ]
+    },
+    {
+      "source_path": "crates/pptx/tests/it/corpus_charts.rs",
+      "source_sha256": "71e3d005574cc8a0cafa12eb8b913c550748358c8b1886b1bfd3d86d037c5560",
+      "target_path": "docs/joydeck/upstream-tests/joydeck-pptx/it/corpus_charts.rs",
+      "adapted_sha256": "5ea1d49431b09b5c95b2a92b2e16802cc4ec1af27dd0fdd96b5e61e4083ab5f8",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream"
+      ]
+    },
+    {
+      "source_path": "crates/pptx/tests/it/corpus_elements.rs",
+      "source_sha256": "34f213d79b4d6e117e76a7a75e60621d6ccddaf25e45ef28206fca91d70964b3",
+      "target_path": "docs/joydeck/upstream-tests/joydeck-pptx/it/corpus_elements.rs",
+      "adapted_sha256": "611f7f2e088b0a7828bcdc49563db798cc76acbe320957a7442283d3a1ca2f12",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream"
+      ]
+    },
+    {
+      "source_path": "crates/pptx/tests/it/corpus_kinds.rs",
+      "source_sha256": "504be46b60bc3ce29c889d2a724c50e20db59e6add3990569dfd4c84dde4ecb7",
+      "target_path": "docs/joydeck/upstream-tests/joydeck-pptx/it/corpus_kinds.rs",
+      "adapted_sha256": "1a67046878917a21a7cd6ae21fba03c3537d567b0743045f66c4540bb6c25714",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream"
+      ]
+    },
+    {
+      "source_path": "crates/pptx/tests/it/corpus_media.rs",
+      "source_sha256": "7b68a63e2bb88bf62dcbadc94e8aacc8f2dd2261e2ab2c6e1136e87390feb5ca",
+      "target_path": "docs/joydeck/upstream-tests/joydeck-pptx/it/corpus_media.rs",
+      "adapted_sha256": "6ff76d74893df907b350d0e05d74760a0552849c55d8c992d4e45423b5ccbd58",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream"
+      ]
+    },
+    {
+      "source_path": "crates/pptx/tests/it/corpus_style.rs",
+      "source_sha256": "c370607ea72dfa678ade39cf80a3c5af5d545b6803cddc1647ed8c2ecb3e2081",
+      "target_path": "docs/joydeck/upstream-tests/joydeck-pptx/it/corpus_style.rs",
+      "adapted_sha256": "993643c2b9b1c454c092dbe634f31eb7afe05a7e689c7200850b29eb4207cbe4",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream"
+      ]
+    },
+    {
+      "source_path": "crates/pptx/tests/it/corpus_themes.rs",
+      "source_sha256": "698660783936397f4cb8fe1a557e49705c62a6068d149d78cc0095b9a8b45437",
+      "target_path": "docs/joydeck/upstream-tests/joydeck-pptx/it/corpus_themes.rs",
+      "adapted_sha256": "27cfdc9751a2b5e891d6af725b9771938bfe9292948a96522a79ac30b5ccbb36",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream"
+      ]
+    },
+    {
+      "source_path": "crates/pptx/tests/it/fills.rs",
+      "source_sha256": "d6a6d24d210c7ace58320b47647a4ca5f011039607ed73f3ef91aad2b7e24fc3",
+      "target_path": "docs/joydeck/upstream-tests/joydeck-pptx/it/fills.rs",
+      "adapted_sha256": "fc6c0498b88cc34128dd84fed86ceaa3fba53cfa4f0e1e9b10c981218902d83e",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream"
+      ]
+    },
+    {
+      "source_path": "crates/pptx/tests/it/kept_parts.rs",
+      "source_sha256": "974334fdde427d4b2d3bdc18a59acd930a4957d7cc36f49cfe7dbc8a66037971",
+      "target_path": "docs/joydeck/upstream-tests/joydeck-pptx/it/kept_parts.rs",
+      "adapted_sha256": "a95b6bfec1b6a9e6a553f6e8c1b923a3e53e49f43f59eacdf142e4e16d0674ca",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream"
+      ]
+    },
+    {
+      "source_path": "crates/pptx/tests/it/locks.rs",
+      "source_sha256": "c48a562252bbe9efde7197794de82a7cfa8e3756fdefa8c2c22756a625ba441a",
+      "target_path": "docs/joydeck/upstream-tests/joydeck-pptx/it/locks.rs",
+      "adapted_sha256": "b2b47cc05e778a29d0d83fe00f5582f6c6d823159b8ace248a031f14c708d75f",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream"
+      ]
+    },
+    {
+      "source_path": "crates/pptx/tests/it/main.rs",
+      "source_sha256": "ebccd6b641fd43b84598d7022ff8cd9999518532686d8066415dd3cbbb90cb62",
+      "target_path": "docs/joydeck/upstream-tests/joydeck-pptx/it/main.rs",
+      "adapted_sha256": "ebccd6b641fd43b84598d7022ff8cd9999518532686d8066415dd3cbbb90cb62",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream"
+      ]
+    },
+    {
+      "source_path": "crates/pptx/tests/it/malformed.rs",
+      "source_sha256": "524609cae1cf3ed9d2d55818fd94ec0440f0b68178d87616c6fec8f3c04ec819",
+      "target_path": "docs/joydeck/upstream-tests/joydeck-pptx/it/malformed.rs",
+      "adapted_sha256": "594319eaff89131f31fc69b9ef1cbcc8e76fa97bea50778d18b0b4d46b2844a1",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream"
+      ]
+    },
+    {
+      "source_path": "crates/pptx/tests/it/math_ns.rs",
+      "source_sha256": "f048e52263f3bd16128b08ce04e08160d51c8fa7c7da2de4f0c463c62eec02d3",
+      "target_path": "docs/joydeck/upstream-tests/joydeck-pptx/it/math_ns.rs",
+      "adapted_sha256": "11629bbe5de6bff88a41b33755d9418d4b48b881cf4f1c849ebc2e6ff5c3bbfc",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream"
+      ]
+    },
+    {
+      "source_path": "crates/pptx/tests/it/media_timing.rs",
+      "source_sha256": "321f72c0b0af1c967183233957c8ea73970b39dfea21af2e4543c8dcbea8c103",
+      "target_path": "docs/joydeck/upstream-tests/joydeck-pptx/it/media_timing.rs",
+      "adapted_sha256": "c8941385dc375761ca6773911bcbf0fbd7060264bcdb2c5201f8f82dddd29658",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream"
+      ]
+    },
+    {
+      "source_path": "crates/pptx/tests/it/notes.rs",
+      "source_sha256": "7572e030d9b472a4153f82267e8f00d6b1bdba231f3ca3af4a7f7085597eae62",
+      "target_path": "docs/joydeck/upstream-tests/joydeck-pptx/it/notes.rs",
+      "adapted_sha256": "09c8a63b634a6537fb2ba5420ac47acaa5cc2586957f089514deb872f17c653c",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream"
+      ]
+    },
+    {
+      "source_path": "crates/pptx/tests/it/ole.rs",
+      "source_sha256": "7ef28fe24cc299547b7b83246a712ab290c9dcdcf4d4c7f610f166028040e565",
+      "target_path": "docs/joydeck/upstream-tests/joydeck-pptx/it/ole.rs",
+      "adapted_sha256": "aa96bd47d136a85cb0f9d9985cd3fd9652e270169e2fdd12be98c7700ad7422f",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream"
+      ]
+    },
+    {
+      "source_path": "crates/pptx/tests/it/ole_vml.rs",
+      "source_sha256": "1dc1aa79b399644abba590a3d1d52c8b67774955229a0bac59ffdec1e055ae44",
+      "target_path": "docs/joydeck/upstream-tests/joydeck-pptx/it/ole_vml.rs",
+      "adapted_sha256": "9f652aa8484c7f68d2afdc2a03e378a25008cb76fe49afd16fabeda0ac266f07",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream"
+      ]
+    },
+    {
+      "source_path": "crates/pptx/tests/it/placeholders.rs",
+      "source_sha256": "5323d19b5c0ba01ab58c0dbd7b549e308874e989e66393e96e6676dbc2226f10",
+      "target_path": "docs/joydeck/upstream-tests/joydeck-pptx/it/placeholders.rs",
+      "adapted_sha256": "ee792779cc2ef36d6c438002d96b6cce79b3e126ad296e01ce4055d1e40b1d53",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream"
+      ]
+    },
+    {
+      "source_path": "crates/pptx/tests/it/roundtrip.rs",
+      "source_sha256": "970a233c03f110d8946e4b2a601d5e1eba73bf2ec1c9e3488cc3b52cdd84df13",
+      "target_path": "docs/joydeck/upstream-tests/joydeck-pptx/it/roundtrip.rs",
+      "adapted_sha256": "b74b39eb81a6f6057fe78fd57201ee02ce992be4697cb8cce17f2e07bb9f9806",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream"
+      ]
+    },
+    {
+      "source_path": "crates/pptx/tests/it/sample.rs",
+      "source_sha256": "328d16cdfe98696a836ec1da8177ccb932473f34b8e0cb720acd0632320f42bc",
+      "target_path": "docs/joydeck/upstream-tests/joydeck-pptx/it/sample.rs",
+      "adapted_sha256": "d118fa2a41a53933683f45f546a018978cddc2bc351827ee2ce491d270333b7e",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream"
+      ]
+    },
+    {
+      "source_path": "crates/pptx/tests/it/smartart.rs",
+      "source_sha256": "eeabdd4e3aed8bd8867b8c12cf074b432f363d72627b0b671ba04123fb219de2",
+      "target_path": "docs/joydeck/upstream-tests/joydeck-pptx/it/smartart.rs",
+      "adapted_sha256": "b9056b152ef88c893c8a5eb937b773eeb9e68215dbd66e4a1bd14e283f48c857",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream"
+      ]
+    },
+    {
+      "source_path": "crates/pptx/tests/it/sniff.rs",
+      "source_sha256": "8646b4599d6b73d8aac69ef9f412e416bb0a86f67e70c00301e949e09b668936",
+      "target_path": "docs/joydeck/upstream-tests/joydeck-pptx/it/sniff.rs",
+      "adapted_sha256": "b92468f4055fa73cb48398a86be968987ad07bd4edd4721066561f8f9ab8d953",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream"
+      ]
+    },
+    {
+      "source_path": "crates/pptx/tests/it/table_styles.rs",
+      "source_sha256": "ca49197d0dca1ff272221f11aa050dcc537df3d0c8cf14a2ff9699340ec6f18f",
+      "target_path": "docs/joydeck/upstream-tests/joydeck-pptx/it/table_styles.rs",
+      "adapted_sha256": "8e85929bbccab738f7ab824fcb61071a59f05d857e44415bf891b64c79d8f1ac",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream"
+      ]
+    },
+    {
+      "source_path": "crates/pptx/tests/it/tags.rs",
+      "source_sha256": "a43b9b10077f47ae0429c526b93f624173d201761a977447b5abd0c4ad0f7db5",
+      "target_path": "docs/joydeck/upstream-tests/joydeck-pptx/it/tags.rs",
+      "adapted_sha256": "484cb5cf3325d9ab7c375bb4bd43defb5fb6a3b77cb57beda80a884fe44770ff",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream"
+      ]
+    },
+    {
+      "source_path": "crates/pptx/tests/it/transition_xml.rs",
+      "source_sha256": "130344ef47cdfc71cd7e09b7e3a38946bfa0da89a9283e20d5059ee4581b4139",
+      "target_path": "docs/joydeck/upstream-tests/joydeck-pptx/it/transition_xml.rs",
+      "adapted_sha256": "e48b1c271feec5b527044d579f625cf47567f9d9d93f0b0ee0ea7675aa10c573",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream"
+      ]
+    },
+    {
+      "source_path": "crates/pptx/tests/it/trigger_steps.rs",
+      "source_sha256": "035e7192220cc68d812602fdcb8149363b6d14bd8cd95a56c5d2c3c616836c13",
+      "target_path": "docs/joydeck/upstream-tests/joydeck-pptx/it/trigger_steps.rs",
+      "adapted_sha256": "cf880687ff5770c9d212416f24e89ad6dcc5c33a184e4ea925f9ced37e8ded86",
+      "changes": [
+        "namespace and dependency alignment",
+        "test assertion scope",
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream"
+      ]
+    },
+    {
+      "source_path": "ATTRIBUTION.md",
+      "target_path": "licenses/deckcraft/ATTRIBUTION-upstream.md",
+      "source_sha256": "3e0b490182f29522d002af0b4f0f46ab44ab8863bfe5e4e50c65a84d2d18c076",
+      "adapted_sha256": "3e0b490182f29522d002af0b4f0f46ab44ab8863bfe5e4e50c65a84d2d18c076",
+      "changes": [
+        "Original asset attribution retained; only mapped source/fixtures are imported"
+      ]
+    },
+    {
+      "source_path": "crates/pptx/src/cfb.rs",
+      "target_path": "docs/joydeck/upstream-tests/joydeck-pptx/cfb-tests.rs",
+      "source_sha256": "83c07c34dfe9647ffe5fd594f3b779527b4932f3ae0b63bcbbb9e135944cc4ad",
+      "adapted_sha256": "192a3fbceff884eab87a2c9bad90c146bff6925fc16b468c749bfe6a43e69339",
+      "changes": [
+        "Extract original engine-dependent cfg(test) section; namespace normalization; retained for R2, not compiled or counted in R1"
+      ]
+    },
+    {
+      "source_path": "crates/engine/src/lib.rs",
+      "target_path": "crates/joydeck-engine/src/history_cost.rs",
+      "source_sha256": "5f9bfddf317c43c3ccc51a82b3fdca56ccd27420e5d68d9935fbae02d813175f",
+      "adapted_sha256": "52c51343889bf296269354f49a8c8ac9fa147f6e9257876a1ac50985de737908",
+      "changes": [
+        "Extract pure copy-on-write history memory estimation; no engine IO/PDF/media services imported",
+        "R2 shared preservation writer entry point or rustfmt; history cost extraction kept pure"
+      ]
+    },
+    {
+      "source_path": "crates/render/src/placed.rs",
+      "source_sha256": "f2851a72da1ed824bfadafcc409a6ebbaa9a711671021ebdb4d46696d0f31f0c",
+      "target_path": "crates/joydeck-render/src/scene.rs",
+      "adapted_sha256": "43fa55b5e6c02fa1610866214523b869257aeb0b5d52cba8c4cb1ea6c28d52c1",
+      "changes": [
+        "R4/R5 adapts shared text-outline placement to a neutral per-object scene; exact FontFace retained; adds bounded cache and explicit fallback"
+      ]
+    },
+    {
+      "source_path": "crates/pdf/Cargo.toml",
+      "source_sha256": "0df2c9d4c8bdf9bdedbb4a56dcbbc283d6014d2e5bcb6a9a2f44aeac0d032ee6",
+      "target_path": "crates/joydeck-pdf/Cargo.toml",
+      "adapted_sha256": "fa75f6e15791357ebc2b553799fc5999bcd4ad5cd89d85d48fb95ff846868c46",
+      "changes": [
+        "R6 PDF adaptation to official JoyOffice Krilla 0.8.2, shared glyph layout, font permissions, cancellation and page/raster budgets; notes CJK/overflow handling.",
+        "R9: host workspace feature wiring and sole shared-library implementation"
+      ]
+    },
+    {
+      "source_path": "crates/pdf/src/lib.rs",
+      "source_sha256": "54e202f2aaefab915db9ac755fe7d8dc4c14a214f17acfb950a664951987040c",
+      "target_path": "crates/joydeck-pdf/src/lib.rs",
+      "adapted_sha256": "b943d8458c54bed4b45933b9d355671f18645aae807b1fd1fa4309559ee03e60",
+      "changes": [
+        "R6 PDF adaptation to official JoyOffice Krilla 0.8.2, shared glyph layout, font permissions, cancellation and page/raster budgets; notes CJK/overflow handling."
+      ]
+    },
+    {
+      "source_path": "crates/engine/src/media_refs.rs",
+      "source_sha256": "2f635edb0e1d8a0325c6245434ba1eb84d2c50649b73e2109ae8e806944ce354",
+      "target_path": "crates/joydeck-engine/src/media_refs.rs",
+      "adapted_sha256": "38a7a931873198e693d820230932ff1c81b1afb7665a557cfcb6c2146d9275ba",
+      "changes": [
+        "R8: adapt typed media references / object ID and resource remapping / layout and theme tokens to pure engine or GPUI Kit; no egui dependency",
+        "rustfmt; bounded transactions, errors and clipboard serialization; original MIT attribution retained"
+      ]
+    },
+    {
+      "source_path": "crates/engine/src/cmd/edit.rs",
+      "source_sha256": "7e715a5f006693a518ff367bce66a79b7cbe9d3b985ef006f192723ae9c114b4",
+      "target_path": "crates/joydeck-engine/src/transfer.rs",
+      "adapted_sha256": "aedb9665f4e63bfa01656a63e02f7a3cce165082b9423a7646ae99f6cab7dcfa",
+      "changes": [
+        "R8: adapt typed media references / object ID and resource remapping / layout and theme tokens to pure engine or GPUI Kit; no egui dependency",
+        "rustfmt; bounded transactions, errors and clipboard serialization; original MIT attribution retained"
+      ]
+    },
+    {
+      "source_path": "crates/ui-egui/src/theme.rs",
+      "source_sha256": "d8d6f55195ac5b0c22d49ec313b716fcfab6cb2c08b3c15445b1ed1fcbe97c6a",
+      "target_path": "crates/joydeck-ui-gpui/src/chrome.rs",
+      "adapted_sha256": "6159aeba5633f1faa75258e2b411cd7b9e42438d426ac561a5ee943db177c940",
+      "changes": [
+        "R8: adapt typed media references / object ID and resource remapping / layout and theme tokens to pure engine or GPUI Kit; no egui dependency",
+        "rustfmt; bounded transactions, errors and clipboard serialization; original MIT attribution retained"
+      ]
+    },
+    {
+      "source_path": "crates/ui-egui/src/ribbon.rs",
+      "source_sha256": "036692f8a885af7b61dfcd7e065f371f46c7db67854c0df9d205c91f35d9049a",
+      "target_path": "crates/joydeck-ui-gpui/src/chrome.rs",
+      "adapted_sha256": "6159aeba5633f1faa75258e2b411cd7b9e42438d426ac561a5ee943db177c940",
+      "changes": [
+        "R8: adapt typed media references / object ID and resource remapping / layout and theme tokens to pure engine or GPUI Kit; no egui dependency",
+        "rustfmt; bounded transactions, errors and clipboard serialization; original MIT attribution retained"
+      ]
+    },
+    {
+      "source_path": "crates/ui-egui/src/widgets.rs",
+      "source_sha256": "d62cc3cce0436f1118c6486f52c5d90175aeaa79751602a89dbf01aa8d233bf9",
+      "target_path": "crates/joydeck-ui-gpui/src/chrome.rs",
+      "adapted_sha256": "6159aeba5633f1faa75258e2b411cd7b9e42438d426ac561a5ee943db177c940",
+      "changes": [
+        "R8: adapt typed media references / object ID and resource remapping / layout and theme tokens to pure engine or GPUI Kit; no egui dependency",
+        "rustfmt; bounded transactions, errors and clipboard serialization; original MIT attribution retained"
+      ]
+    }
+  ]
+}

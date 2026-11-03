@@ -1,0 +1,2 @@
+    Checking joydeck-engine v0.3.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-engine)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.65s

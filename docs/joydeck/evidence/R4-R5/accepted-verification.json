@@ -1,0 +1,22 @@
+{
+  "source_sha256": "6233617cc50a8eda7ce097b42eb99cb89ac045d3bedafc33d153eecf9c2a3a32",
+  "rust_tests": 854,
+  "python_tests": 5,
+  "strict_clippy": true,
+  "fmt": true,
+  "dependency_isolation": true,
+  "source_records": 214,
+  "package_checksum_files": 762,
+  "gui_outside_repository": true,
+  "gui_pids_closed": [
+    29572,
+    8872
+  ],
+  "desktop_gradient_parity_passed": true,
+  "public_and_native_reopen": true,
+  "independent_pptx_workbook_readback": true,
+  "narrow_800x600_forms_diagnostics": true,
+  "actual_desktop_benchmark_frames": 120,
+  "cli_calls": 63,
+  "passed": true
+}

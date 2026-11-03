@@ -1,0 +1,11 @@
+[
+  {"command":"content","action":{"kind":"theme-accent","slot":1,"rgb":2455760}},
+  {"command":"content","action":{"kind":"master-background","rgb":15265784}},
+  {"command":"select","page":2,"shapes":[4]},
+  {"command":"content","action":{"kind":"picture","crop":[0.12,0.05,0.08,0.05],"alpha":0.75,"brightness":0.12,"contrast":0.05}},
+  {"command":"select","page":2,"shapes":[5]},
+  {"command":"content","action":{"kind":"chart-value","series":0,"index":1,"value":45}},
+  {"command":"content","action":{"kind":"chart-title","title":"JoyDeck R5 edited chart"}},
+  {"command":"undo"},
+  {"command":"redo"}
+]

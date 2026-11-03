@@ -1,0 +1,27 @@
+{
+  "before": {
+    "builds": 3,
+    "hits": 0,
+    "misses": 24,
+    "cpu_tiles": 12,
+    "backdrop_rasters": 3,
+    "native_paths": 4,
+    "glyphs": 140,
+    "cache_bytes": 18188168,
+    "build_micros": 11700
+  },
+  "after": {
+    "builds": 4,
+    "hits": 7,
+    "misses": 25,
+    "cpu_tiles": 13,
+    "backdrop_rasters": 3,
+    "native_paths": 4,
+    "glyphs": 140,
+    "cache_bytes": 18360760,
+    "build_micros": 1027
+  },
+  "one_tile_only": true,
+  "backdrop_reused": true,
+  "passed": true
+}

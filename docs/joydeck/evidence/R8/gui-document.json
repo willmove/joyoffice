@@ -1,0 +1,624 @@
+{
+  "path": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r8-qualified-ux39zv4d\\中文 空格\\R8 界面验证.pptx",
+  "sha256": "62cfa49cb9bdb17ba08cde8e388aba9890b631a5d8e43e0ccc1143e7da39e318",
+  "public_reader": "PowerPoint desktop; python-pptx; CLI independent read",
+  "title": "JoyDeck · R8 界面验证",
+  "notes": "R8 备注：真实文稿、原生 GPUI、保存重开验证。",
+  "objects": [
+    {
+      "id": 258,
+      "kind": "placeholder",
+      "locked": false,
+      "name": "Title 1",
+      "table": null,
+      "text": "JoyDeck · R8 界面验证",
+      "text_body": {
+        "body": {
+          "anchor": null,
+          "anchorCtr": null,
+          "autofit": null,
+          "colSpacing": null,
+          "columns": null,
+          "insetB": null,
+          "insetL": null,
+          "insetR": null,
+          "insetT": null,
+          "rot": null,
+          "rtlCol": null,
+          "spaceFirstLast": null,
+          "upright": null,
+          "vert": null,
+          "warp": null,
+          "wrap": null
+        },
+        "paragraphs": [
+          {
+            "endProps": {
+              "baseline": null,
+              "bold": null,
+              "caps": null,
+              "fill": {
+                "color": {
+                  "base": {
+                    "kind": "rgb",
+                    "rgb": {
+                      "a": 255,
+                      "b": 26,
+                      "g": 90,
+                      "r": 217
+                    }
+                  }
+                },
+                "kind": "solid"
+              },
+              "font": "Inter",
+              "fontCs": null,
+              "fontEa": "Inter",
+              "fontSym": null,
+              "glow": null,
+              "highlight": null,
+              "hover": null,
+              "innerShadow": null,
+              "italic": null,
+              "kern": null,
+              "lang": null,
+              "link": null,
+              "noProof": null,
+              "outline": null,
+              "reflection": null,
+              "shadow": null,
+              "size": 44.0,
+              "softEdge": null,
+              "spacing": null,
+              "strike": null,
+              "underline": null,
+              "underlineColor": null
+            },
+            "level": 0,
+            "runs": [
+              {
+                "props": {
+                  "baseline": null,
+                  "bold": null,
+                  "caps": null,
+                  "fill": {
+                    "color": {
+                      "base": {
+                        "kind": "rgb",
+                        "rgb": {
+                          "a": 255,
+                          "b": 26,
+                          "g": 90,
+                          "r": 217
+                        }
+                      }
+                    },
+                    "kind": "solid"
+                  },
+                  "font": "Inter",
+                  "fontCs": null,
+                  "fontEa": "Inter",
+                  "fontSym": null,
+                  "glow": null,
+                  "highlight": null,
+                  "hover": null,
+                  "innerShadow": null,
+                  "italic": null,
+                  "kern": null,
+                  "lang": null,
+                  "link": null,
+                  "noProof": null,
+                  "outline": null,
+                  "reflection": null,
+                  "shadow": null,
+                  "size": 44.0,
+                  "softEdge": null,
+                  "spacing": null,
+                  "strike": null,
+                  "underline": null,
+                  "underlineColor": null
+                },
+                "text": "JoyDeck · R8 界面验证"
+              }
+            ]
+          }
+        ]
+      },
+      "transform": {
+        "h": 188.0,
+        "w": 720.0,
+        "x": 120.0,
+        "y": 88.0
+      }
+    },
+    {
+      "id": 259,
+      "kind": "placeholder",
+      "locked": false,
+      "name": "Subtitle 2",
+      "table": null,
+      "text": "",
+      "text_body": {
+        "body": {
+          "anchor": null,
+          "anchorCtr": null,
+          "autofit": null,
+          "colSpacing": null,
+          "columns": null,
+          "insetB": null,
+          "insetL": null,
+          "insetR": null,
+          "insetT": null,
+          "rot": null,
+          "rtlCol": null,
+          "spaceFirstLast": null,
+          "upright": null,
+          "vert": null,
+          "warp": null,
+          "wrap": null
+        },
+        "paragraphs": [
+          {
+            "level": 0,
+            "runs": []
+          }
+        ]
+      },
+      "transform": {
+        "h": 130.0,
+        "w": 720.0,
+        "x": 120.0,
+        "y": 284.0
+      }
+    },
+    {
+      "id": 260,
+      "kind": "table",
+      "locked": false,
+      "name": "Table",
+      "table": {
+        "bandCol": false,
+        "bandRow": true,
+        "cols": [
+          200.0,
+          200.0,
+          200.0
+        ],
+        "firstCol": false,
+        "firstRow": true,
+        "lastCol": false,
+        "lastRow": false,
+        "rows": [
+          {
+            "cells": [
+              {
+                "anchor": null,
+                "borders": [
+                  null,
+                  null,
+                  null,
+                  null
+                ],
+                "diagDown": null,
+                "diagUp": null,
+                "fill": null,
+                "gridSpan": 1,
+                "hMerge": false,
+                "margins": null,
+                "rowSpan": 1,
+                "text": {
+                  "body": {
+                    "anchor": null,
+                    "anchorCtr": null,
+                    "autofit": null,
+                    "colSpacing": null,
+                    "columns": null,
+                    "insetB": null,
+                    "insetL": null,
+                    "insetR": null,
+                    "insetT": null,
+                    "rot": null,
+                    "rtlCol": null,
+                    "spaceFirstLast": null,
+                    "upright": null,
+                    "vert": null,
+                    "warp": null,
+                    "wrap": null
+                  },
+                  "paragraphs": [
+                    {
+                      "level": 0,
+                      "runs": [
+                        {
+                          "text": "能力"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "vMerge": false,
+                "vertical": null
+              },
+              {
+                "anchor": null,
+                "borders": [
+                  null,
+                  null,
+                  null,
+                  null
+                ],
+                "diagDown": null,
+                "diagUp": null,
+                "fill": null,
+                "gridSpan": 1,
+                "hMerge": false,
+                "margins": null,
+                "rowSpan": 1,
+                "text": {
+                  "body": {
+                    "anchor": null,
+                    "anchorCtr": null,
+                    "autofit": null,
+                    "colSpacing": null,
+                    "columns": null,
+                    "insetB": null,
+                    "insetL": null,
+                    "insetR": null,
+                    "insetT": null,
+                    "rot": null,
+                    "rtlCol": null,
+                    "spaceFirstLast": null,
+                    "upright": null,
+                    "vert": null,
+                    "warp": null,
+                    "wrap": null
+                  },
+                  "paragraphs": [
+                    {
+                      "level": 0,
+                      "runs": [
+                        {
+                          "text": "状态"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "vMerge": false,
+                "vertical": null
+              },
+              {
+                "anchor": null,
+                "borders": [
+                  null,
+                  null,
+                  null,
+                  null
+                ],
+                "diagDown": null,
+                "diagUp": null,
+                "fill": null,
+                "gridSpan": 1,
+                "hMerge": false,
+                "margins": null,
+                "rowSpan": 1,
+                "text": {
+                  "body": {
+                    "anchor": null,
+                    "anchorCtr": null,
+                    "autofit": null,
+                    "colSpacing": null,
+                    "columns": null,
+                    "insetB": null,
+                    "insetL": null,
+                    "insetR": null,
+                    "insetT": null,
+                    "rot": null,
+                    "rtlCol": null,
+                    "spaceFirstLast": null,
+                    "upright": null,
+                    "vert": null,
+                    "warp": null,
+                    "wrap": null
+                  },
+                  "paragraphs": [
+                    {
+                      "level": 0,
+                      "runs": []
+                    }
+                  ]
+                },
+                "vMerge": false,
+                "vertical": null
+              }
+            ],
+            "height": 32.0
+          },
+          {
+            "cells": [
+              {
+                "anchor": null,
+                "borders": [
+                  null,
+                  null,
+                  null,
+                  null
+                ],
+                "diagDown": null,
+                "diagUp": null,
+                "fill": null,
+                "gridSpan": 1,
+                "hMerge": false,
+                "margins": null,
+                "rowSpan": 1,
+                "text": {
+                  "body": {
+                    "anchor": null,
+                    "anchorCtr": null,
+                    "autofit": null,
+                    "colSpacing": null,
+                    "columns": null,
+                    "insetB": null,
+                    "insetL": null,
+                    "insetR": null,
+                    "insetT": null,
+                    "rot": null,
+                    "rtlCol": null,
+                    "spaceFirstLast": null,
+                    "upright": null,
+                    "vert": null,
+                    "warp": null,
+                    "wrap": null
+                  },
+                  "paragraphs": [
+                    {
+                      "level": 0,
+                      "runs": []
+                    }
+                  ]
+                },
+                "vMerge": false,
+                "vertical": null
+              },
+              {
+                "anchor": null,
+                "borders": [
+                  null,
+                  null,
+                  null,
+                  null
+                ],
+                "diagDown": null,
+                "diagUp": null,
+                "fill": null,
+                "gridSpan": 1,
+                "hMerge": false,
+                "margins": null,
+                "rowSpan": 1,
+                "text": {
+                  "body": {
+                    "anchor": null,
+                    "anchorCtr": null,
+                    "autofit": null,
+                    "colSpacing": null,
+                    "columns": null,
+                    "insetB": null,
+                    "insetL": null,
+                    "insetR": null,
+                    "insetT": null,
+                    "rot": null,
+                    "rtlCol": null,
+                    "spaceFirstLast": null,
+                    "upright": null,
+                    "vert": null,
+                    "warp": null,
+                    "wrap": null
+                  },
+                  "paragraphs": [
+                    {
+                      "level": 0,
+                      "runs": []
+                    }
+                  ]
+                },
+                "vMerge": false,
+                "vertical": null
+              },
+              {
+                "anchor": null,
+                "borders": [
+                  null,
+                  null,
+                  null,
+                  null
+                ],
+                "diagDown": null,
+                "diagUp": null,
+                "fill": null,
+                "gridSpan": 1,
+                "hMerge": false,
+                "margins": null,
+                "rowSpan": 1,
+                "text": {
+                  "body": {
+                    "anchor": null,
+                    "anchorCtr": null,
+                    "autofit": null,
+                    "colSpacing": null,
+                    "columns": null,
+                    "insetB": null,
+                    "insetL": null,
+                    "insetR": null,
+                    "insetT": null,
+                    "rot": null,
+                    "rtlCol": null,
+                    "spaceFirstLast": null,
+                    "upright": null,
+                    "vert": null,
+                    "warp": null,
+                    "wrap": null
+                  },
+                  "paragraphs": [
+                    {
+                      "level": 0,
+                      "runs": []
+                    }
+                  ]
+                },
+                "vMerge": false,
+                "vertical": null
+              }
+            ],
+            "height": 32.0
+          },
+          {
+            "cells": [
+              {
+                "anchor": null,
+                "borders": [
+                  null,
+                  null,
+                  null,
+                  null
+                ],
+                "diagDown": null,
+                "diagUp": null,
+                "fill": null,
+                "gridSpan": 1,
+                "hMerge": false,
+                "margins": null,
+                "rowSpan": 1,
+                "text": {
+                  "body": {
+                    "anchor": null,
+                    "anchorCtr": null,
+                    "autofit": null,
+                    "colSpacing": null,
+                    "columns": null,
+                    "insetB": null,
+                    "insetL": null,
+                    "insetR": null,
+                    "insetT": null,
+                    "rot": null,
+                    "rtlCol": null,
+                    "spaceFirstLast": null,
+                    "upright": null,
+                    "vert": null,
+                    "warp": null,
+                    "wrap": null
+                  },
+                  "paragraphs": [
+                    {
+                      "level": 0,
+                      "runs": []
+                    }
+                  ]
+                },
+                "vMerge": false,
+                "vertical": null
+              },
+              {
+                "anchor": null,
+                "borders": [
+                  null,
+                  null,
+                  null,
+                  null
+                ],
+                "diagDown": null,
+                "diagUp": null,
+                "fill": null,
+                "gridSpan": 1,
+                "hMerge": false,
+                "margins": null,
+                "rowSpan": 1,
+                "text": {
+                  "body": {
+                    "anchor": null,
+                    "anchorCtr": null,
+                    "autofit": null,
+                    "colSpacing": null,
+                    "columns": null,
+                    "insetB": null,
+                    "insetL": null,
+                    "insetR": null,
+                    "insetT": null,
+                    "rot": null,
+                    "rtlCol": null,
+                    "spaceFirstLast": null,
+                    "upright": null,
+                    "vert": null,
+                    "warp": null,
+                    "wrap": null
+                  },
+                  "paragraphs": [
+                    {
+                      "level": 0,
+                      "runs": []
+                    }
+                  ]
+                },
+                "vMerge": false,
+                "vertical": null
+              },
+              {
+                "anchor": null,
+                "borders": [
+                  null,
+                  null,
+                  null,
+                  null
+                ],
+                "diagDown": null,
+                "diagUp": null,
+                "fill": null,
+                "gridSpan": 1,
+                "hMerge": false,
+                "margins": null,
+                "rowSpan": 1,
+                "text": {
+                  "body": {
+                    "anchor": null,
+                    "anchorCtr": null,
+                    "autofit": null,
+                    "colSpacing": null,
+                    "columns": null,
+                    "insetB": null,
+                    "insetL": null,
+                    "insetR": null,
+                    "insetT": null,
+                    "rot": null,
+                    "rtlCol": null,
+                    "spaceFirstLast": null,
+                    "upright": null,
+                    "vert": null,
+                    "warp": null,
+                    "wrap": null
+                  },
+                  "paragraphs": [
+                    {
+                      "level": 0,
+                      "runs": []
+                    }
+                  ]
+                },
+                "vMerge": false,
+                "vertical": null
+              }
+            ],
+            "height": 32.0
+          }
+        ],
+        "style": "medium2-accent1"
+      },
+      "text": null,
+      "text_body": null,
+      "transform": {
+        "h": 96.0,
+        "w": 600.0,
+        "x": 100.0,
+        "y": 421.08551181102365
+      }
+    }
+  ]
+}

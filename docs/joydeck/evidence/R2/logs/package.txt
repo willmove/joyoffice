@@ -1,0 +1,27 @@
+   Compiling joydeck-engine v0.3.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-engine)
+   Compiling joydeck-shell v0.3.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-shell)
+   Compiling joydeck-ui-gpui v0.3.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-ui-gpui)
+   Compiling joydeck v0.3.0 (D:\Coding\EditorProjects\joydeck-new\apps\joydeck)
+    Finished `release` profile [optimized] target(s) in 55.05s
+   Compiling typenum v1.20.1
+   Compiling joydeck-color v0.3.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-color)
+   Compiling getrandom v0.3.4
+   Compiling joydeck-geom v0.3.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-geom)
+   Compiling joydeck-fonts v0.3.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-fonts)
+   Compiling joydeck-metafile v0.3.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-metafile)
+   Compiling generic-array v0.14.7
+   Compiling joydeck-model v0.3.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-model)
+   Compiling block-buffer v0.10.4
+   Compiling crypto-common v0.1.7
+   Compiling digest v0.10.7
+   Compiling sha2 v0.10.9
+   Compiling joydeck-text v0.3.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-text)
+   Compiling joydeck-anim v0.3.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-anim)
+   Compiling joydeck-format v0.3.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-format)
+   Compiling joydeck-engine v0.3.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-engine)
+   Compiling joydeck-pptx v0.3.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-pptx)
+   Compiling joydeck-render v0.3.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-render)
+   Compiling joydeck-shell v0.3.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-shell)
+   Compiling joydeck-cli v0.3.0 (D:\Coding\EditorProjects\joydeck-new\apps\joydeck-cli)
+    Finished `release` profile [optimized] target(s) in 53.08s
+{"directory": "D:\\Coding\\EditorProjects\\joydeck-new\\dist\\joydeck\\joydeck-0.3.0-r2-windows-x86_64-release-9216705fed", "archive": "D:\\Coding\\EditorProjects\\joydeck-new\\dist\\joydeck\\joydeck-0.3.0-r2-windows-x86_64-release-9216705fed.zip", "archive_sha256": "98f52328fa2eaadeaf0731cfadb7f1b593dca7e6fd9e668a4e6e4870d27bf591", "source_sha256": "9216705fed4dcb422732fca98effb7c5a81ccfaf0e3b5b8508374b7f0e785022", "target": "x86_64-pc-windows-msvc", "profile": "release", "sbom_packages": 446, "missing_license_texts": ["accesskit", "accesskit_consumer", "accesskit_windows", "gpui-kit", "lyon", "lyon_algorithms", "lyon_geom", "lyon_path", "lyon_tessellation", "mac", "profiling", "profiling-procmacros", "pulp-wasm-simd-flag", "rust-i18n-macro", "rust-i18n-support", "seahash", "svg_fmt", "taffy", "zune-core", "zune-inflate", "zune-jpeg"], "signed": false}

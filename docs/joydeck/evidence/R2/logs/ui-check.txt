@@ -1,0 +1,44 @@
+    Checking joydeck-geom v0.3.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-geom)
+    Checking joydeck-color v0.3.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-color)
+    Checking generic-array v0.14.7
+    Checking joydeck-fonts v0.3.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-fonts)
+    Checking joydeck-metafile v0.3.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-metafile)
+    Checking joyoffice-ui v0.1.0 (D:\Coding\EditorProjects\joydeck-new\crates\joyoffice-ui)
+    Checking block-buffer v0.10.4
+    Checking crypto-common v0.1.7
+    Checking digest v0.10.7
+    Checking joydeck-model v0.3.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-model)
+    Checking sha2 v0.10.9
+    Checking joydeck-anim v0.3.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-anim)
+    Checking joydeck-text v0.3.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-text)
+    Checking joydeck-pptx v0.3.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-pptx)
+    Checking joydeck-engine v0.3.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-engine)
+    Checking joydeck-format v0.3.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-format)
+warning: unused import: `self`
+ --> crates\joydeck-pptx\src\preserve.rs:3:35
+  |
+3 | use crate::{PptxError, opc, xml::{self, El, Node}};
+  |                                   ^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+    Checking joydeck-render v0.3.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-render)
+warning: `joydeck-pptx` (lib) generated 1 warning (run `cargo fix --lib -p joydeck-pptx` to apply 1 suggestion)
+    Checking joydeck-shell v0.3.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-shell)
+warning: unused import: `platform::private_directory`
+ --> crates\joydeck-shell\src\storage.rs:2:13
+  |
+2 | use crate::{platform::private_directory, recovery_io as edit};
+  |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `Read`
+ --> crates\joydeck-shell\src\native.rs:5:47
+  |
+5 | use std::{collections::BTreeMap, io::{Cursor, Read, Write}};
+  |                                               ^^^^
+
+warning: `joydeck-shell` (lib) generated 2 warnings (run `cargo fix --lib -p joydeck-shell` to apply 1 suggestion)
+    Checking joydeck-ui-gpui v0.3.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-ui-gpui)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 6.53s

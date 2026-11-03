@@ -1,0 +1,23 @@
+   Compiling joydeck-shell v0.4.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-shell)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.51s
+     Running tests\authoring.rs (target\debug\deps\authoring-71cab94e6ed9c0e8.exe)
+
+running 8 tests
+test range_edit_preserves_other_runs_and_paragraphs ... ok
+test composition_invalid_and_oversized_updates_leave_draft_unchanged ... ok
+test tsv_paste_that_hits_covered_cell_is_atomic ... ok
+test composition_ranges_graphemes_cancel_and_single_commit ... ok
+test formatted_text_public_roundtrip_and_shared_caret_geometry ... ok
+test table_structure_insert_delete_and_new_table_public_roundtrip ... ok
+test real_pptx_table_cells_tsv_merge_fill_undo_and_reopen ... ok
+test notes_public_and_native_preserve_speaker_body ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.23s
+
+   Compiling joydeck-pptx v0.4.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-pptx)
+   Compiling joydeck-engine v0.4.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-engine)
+   Compiling joydeck-render v0.4.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-render)
+   Compiling joydeck-shell v0.4.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-shell)
+   Compiling joydeck-ui-gpui v0.4.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-ui-gpui)
+   Compiling joydeck v0.4.0 (D:\Coding\EditorProjects\joydeck-new\apps\joydeck)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 12.51s

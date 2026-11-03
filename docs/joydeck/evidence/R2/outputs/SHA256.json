@@ -1,0 +1,17 @@
+[
+  {
+    "file": "edited-from-gui.pptx",
+    "sha256": "ca0b291f33cbc27fa9b5021cc5dd5d29717381ecae03aa969cc0c924cbc6e465",
+    "bytes": 39087
+  },
+  {
+    "file": "recovered-from-gui.joydeck",
+    "sha256": "7bdcdf121fa86d17d15f1bfb95b80578350da8def1e9aacc4691a1495a5c5fed",
+    "bytes": 54664
+  },
+  {
+    "file": "recovered-from-gui.pptx",
+    "sha256": "9e30f3c4a5aca09fc49aee13f1939c5106fbc4aa61e29c214c3f7033fe4be2be",
+    "bytes": 39135
+  }
+]

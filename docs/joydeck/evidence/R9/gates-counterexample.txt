@@ -1,0 +1,3 @@
+joyword-model depends on joyword-shell, which its layer does not allow
+filesystem access outside the allowlist: crates/joyword-model/src/lib.rs:6: let _ = std::fs::write("secret", "data");
+new panic site: crates/joyword-model/src/lib.rs:let _value = Some(1).unwrap(); occurs 1x but the baseline lists it 0x (lines 7); append the missing entries to scripts/panic_baseline.txt

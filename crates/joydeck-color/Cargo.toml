@@ -1,0 +1,15 @@
+[package]
+name = "joydeck-color"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+publish = false
+license.workspace = true
+description = "JoyDeck (adapted from DeckCraft) colour: RGB/HSL, theme colour slots, DrawingML-style colour transforms"
+
+[lints]
+workspace = true
+
+[dependencies]
+serde = { workspace = true }

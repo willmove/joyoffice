@@ -1,0 +1,105 @@
+    Checking joydeck-color v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-color)
+    Checking joydeck-geom v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-geom)
+   Compiling joydeck-fonts v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-fonts)
+    Checking joydeck-metafile v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-metafile)
+    Checking joyoffice-opc v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joyoffice-opc)
+   Compiling joydeck v0.7.0 (D:\Coding\EditorProjects\joydeck-new\apps\joydeck)
+    Checking joydeck-xtask v0.7.0 (D:\Coding\EditorProjects\joydeck-new\tools\xtask)
+    Checking joyoffice-ui v0.1.0 (D:\Coding\EditorProjects\joydeck-new\crates\joyoffice-ui)
+    Checking joydeck-legacy v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-legacy)
+    Checking joydeck-model v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-model)
+    Checking joydeck-anim v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-anim)
+    Checking joydeck-text v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-text)
+    Checking joydeck-format v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-format)
+    Checking joydeck-pptx v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-pptx)
+    Checking joydeck-engine v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-engine)
+    Checking joydeck-render v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-render)
+    Checking joydeck-pdf v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-pdf)
+    Checking joydeck-shell v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-shell)
+error: using `chunks_exact` with a constant chunk size
+  --> crates\joydeck-shell\src\show_tests.rs:49:26
+   |
+49 |     assert!(blank.pixels.chunks_exact(4).all(|p| p == [0, 0, 0, 255]));
+   |                          ^^^^^^^^^^^^^^^ help: consider using `as_chunks` instead: `as_chunks::<4>().0.iter()`
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#chunks_exact_to_as_chunks
+   = note: `-D clippy::chunks-exact-to-as-chunks` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::chunks_exact_to_as_chunks)]`
+
+    Checking joydeck-ui-gpui v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-ui-gpui)
+    Checking joydeck-cli v0.7.0 (D:\Coding\EditorProjects\joydeck-new\apps\joydeck-cli)
+error: could not compile `joydeck-shell` (lib test) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error: this looks like an `else if` but the `else` is missing
+   --> crates\joydeck-ui-gpui\src\slideshow.rs:255:288
+    |
+255 | ...igin.x)/s.scale,f32::from(e.position.y-s.origin.y)/s.scale));}}if s.laser||s.drawing{cx.notify();}}))
+    |                                                                   ^
+    |
+    = note: to remove this lint, add the missing `else` or add a new line before the second `if`
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#possible_missing_else
+    = note: `-D clippy::possible-missing-else` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::possible_missing_else)]`
+
+error: using `chunks_exact_mut` with a constant chunk size
+  --> crates\joydeck-ui-gpui\src\slideshow.rs:45:28
+   |
+45 |     for p in raster.pixels.chunks_exact_mut(4) {
+   |                            ^^^^^^^^^^^^^^^^^^^ help: consider using `as_chunks` instead: `as_chunks_mut::<4>().0`
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#chunks_exact_to_as_chunks
+   = note: `-D clippy::chunks-exact-to-as-chunks` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::chunks_exact_to_as_chunks)]`
+
+error: this `if` statement can be collapsed
+   --> crates\joydeck-ui-gpui\src\slideshow.rs:253:22
+    |
+253 | ...se if !s.laser {if let Ok(mut r)=s.shared.lock(){let _=r.player.click(f64::from(f32::from(e.position.x-s.origin.x)/s.scale),f64::from(f32::from(e.position.y-s.origin.y)/s.scale));}}cx....
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#collapsible_if
+    = note: `-D clippy::collapsible-if` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::collapsible_if)]`
+help: collapse nested if block
+    |
+253 -                 else if !s.laser {if let Ok(mut r)=s.shared.lock(){let _=r.player.click(f64::from(f32::from(e.position.x-s.origin.x)/s.scale),f64::from(f32::from(e.position.y-s.origin.y)/s.scale));}}cx.notify();
+253 +                 else if !s.laser&& let Ok(mut r)=s.shared.lock(){let _=r.player.click(f64::from(f32::from(e.position.x-s.origin.x)/s.scale),f64::from(f32::from(e.position.y-s.origin.y)/s.scale));}cx.notify();
+    |
+
+error: this `if` statement can be collapsed
+   --> crates\joydeck-ui-gpui\src\slideshow.rs:255:88
+    |
+255 | ...on;if s.drawing && s.ink.iter().map(Vec::len).sum::<usize>()<2048 {if let Some(line)=s.ink.last_mut(){line.push((f32::from(e.position.x-s.origin.x)/s.scale,f32::from(e.position.y-s.origin.y)/s.scale));}}if ...
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#collapsible_if
+help: collapse nested if block
+    |
+255 -             .on_mouse_move(cx.listener(|s,e:&MouseMoveEvent,_,cx|{s.pointer=e.position;if s.drawing && s.ink.iter().map(Vec::len).sum::<usize>()<2048 {if let Some(line)=s.ink.last_mut(){line.push((f32::from(e.position.x-s.origin.x)/s.scale,f32::from(e.position.y-s.origin.y)/s.scale));}}if s.laser||s.drawing{cx.notify();}}))
+255 +             .on_mouse_move(cx.listener(|s,e:&MouseMoveEvent,_,cx|{s.pointer=e.position;if s.drawing && s.ink.iter().map(Vec::len).sum::<usize>()<2048&& let Some(line)=s.ink.last_mut(){line.push((f32::from(e.position.x-s.origin.x)/s.scale,f32::from(e.position.y-s.origin.y)/s.scale));}if s.laser||s.drawing{cx.notify();}}))
+    |
+
+error: this `if` statement can be collapsed
+   --> crates\joydeck-ui-gpui\src\slideshow.rs:534:17
+    |
+534 | /                 if let Ok(mut r) = runtime.lock() {
+535 | |                     if !r.closed {
+536 | |                         r.closed = true;
+537 | |                         drop(r);
+...   |
+540 | |                 }
+    | |_________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#collapsible_if
+help: collapse nested if block
+    |
+534 ~                 if let Ok(mut r) = runtime.lock()
+535 ~                     && !r.closed {
+536 |                         r.closed = true;
+537 |                         drop(r);
+538 |                         let _ = handle.update(cx, |_, w, _| w.remove_window());
+539 ~                     }
+    |
+
+error: could not compile `joydeck-ui-gpui` (lib test) due to 5 previous errors
+error: could not compile `joydeck-ui-gpui` (lib) due to 5 previous errors

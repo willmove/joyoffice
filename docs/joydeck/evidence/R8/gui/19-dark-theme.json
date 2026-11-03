@@ -1,0 +1,10 @@
+{
+  "window": {
+    "app": "process:C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r8-final-ibewychh\\中文 空格\\joydeck-0.8.0-r8-windows-x86_64-release-1db7fba9b9\\joydeck.exe",
+    "id": 396732,
+    "title": "GUI 已保存.pptx - JoyDeck"
+  },
+  "a11y": "Window: \"GUI 已保存.pptx - JoyDeck\", App: joydeck.exe.\n\t0 区域 GUI 已保存.pptx - JoyDeck Secondary Actions: Raise\n\t\t1 标题栏 (settable, string) Value: GUI 已保存.pptx - JoyDeck\n\t\t\t2 菜单栏 系统 ID: MenuBar\n\t\t\t\t3 菜单项 系统\n\t\t\t4 按钮 最小化\n\t\t\t5 按钮 最大化\n\t\t\t6 按钮 关闭\n\t\t7 按钮 文件\n\t\t8 按钮 保存\n\t\t9 按钮 (disabled) 撤销\n\t\t10 按钮 (disabled) 重做\n\t\t11 按钮 从头开始放映\n\t\t12 按钮 查找文字\n\t\t13 按钮 切换明暗主题\n\t\t14 按钮 放映\n\t\t15 按钮 文件\n\t\t16 按钮 开始\n\t\t17 按钮 插入\n\t\t18 按钮 设计\n\t\t19 按钮 放映\n\t\t20 按钮 审阅\n\t\t21 按钮 视图\n\t\t472 按钮 形状格式\n\t\t448 按钮 普通\n\t\t449 按钮 幻灯片浏览\n\t\t450 按钮 备注\n\t\t451 按钮 适应窗口\n\t\t452 按钮 选择窗格\n\t\t453 按钮 渲染报告\n\t\t454 按钮 CPU / GPUI\n\t\t456 按钮 幻灯片 1 JoyDeck · R8 界面验证\n\t\t457 按钮 单击此处添加副标题\n\t\t458 编辑 (settable, string) 演讲备注 Description: 单击此处添加备注 Value: R8 备注：真实文稿、原生 GPUI、保存重开验证。 ID: speaker-notes\n\t\t460 按钮 关闭选择窗格\n\t\t461 按钮 Table\n\t\t462 按钮 Subtitle 2\n\t\t463 按钮 Title 1\n\t\t464 按钮 大小和位置…\n\t\t465 按钮 形状填充颜色\n\t\t466 按钮 渐变填充\n\t\t467 按钮 矩形\n\t\t468 按钮 圆角矩形\n\t\t469 按钮 椭圆\n\t\t470 按钮 三角形\n\t\t471 按钮 燕尾形\n\t\t54 按钮 备注\n\t\t55 按钮 普通视图\n\t\t56 按钮 幻灯片浏览\n\t\t57 按钮 从当前页放映\n\t\t58 按钮 缩小\n\t\t59 按钮 放大\n\t\t60 按钮 适应窗口\n\nThe focused UI element is 0 区域 GUI 已保存.pptx - JoyDeck Secondary Actions: Raise.",
+  "note": "Final release dark chrome; document colors remain unchanged.",
+  "exe_sha256": "53ccbe22f44ef5e604645079411d8503088c5326c6336cd55ebe84336478b7b3"
+}

@@ -1,18 +1,18 @@
 [package]
 name = "joydeck-engine"
-version = "0.1.0"
+version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
-license = "MIT OR Apache-2.0"
+license.workspace = true
 publish = false
-repository.workspace = true
+description = "Pure JoyDeck document commands, snapshots and bounded undo history"
 
 [dependencies]
-sha2.workspace = true
+image = { workspace = true, features = ["png", "jpeg", "webp", "gif", "tiff", "bmp"] }
 joydeck-model.workspace = true
 serde.workspace = true
-serde_json.workspace = true
-image = { workspace = true, features = ["png", "jpeg", "gif"] }
+serde_json = { workspace = true, features = ["float_roundtrip"] }
+unicode-segmentation.workspace = true
 
 [lints]
 workspace = true

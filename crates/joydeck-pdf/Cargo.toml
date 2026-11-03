@@ -1,0 +1,20 @@
+[package]
+name = "joydeck-pdf"
+description = "DeckCraft PDF export adapted to JoyOffice official Krilla"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+[dependencies]
+joydeck-model.workspace = true
+joydeck-render.workspace = true
+joydeck-fonts.workspace = true
+joydeck-text.workspace = true
+kurbo = { workspace = true, features = ["serde"] }
+skrifa.workspace = true
+krilla = { workspace = true, features = ["raster-images"] }
+serde.workspace = true
+thiserror.workspace = true
+[lints]
+workspace = true

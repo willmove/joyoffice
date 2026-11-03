@@ -1,0 +1,3 @@
+   Compiling joydeck-shell v0.2.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-shell)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.80s
+     Running `target\debug\examples\r1_corpus.exe tests/fixtures/joydeck`

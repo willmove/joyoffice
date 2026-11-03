@@ -1,0 +1,33 @@
+{
+  "directory": "D:\\Coding\\EditorProjects\\joydeck-new\\dist\\joydeck\\joydeck-0.5.0-r4-r5-windows-x86_64-release-6233617cc5",
+  "archive": "D:\\Coding\\EditorProjects\\joydeck-new\\dist\\joydeck\\joydeck-0.5.0-r4-r5-windows-x86_64-release-6233617cc5.zip",
+  "archive_sha256": "5405e87d36bcc5b5d69715566416cc70ce81a392bb289051c93b43471948deaf",
+  "source_sha256": "6233617cc50a8eda7ce097b42eb99cb89ac045d3bedafc33d153eecf9c2a3a32",
+  "target": "x86_64-pc-windows-msvc",
+  "profile": "release",
+  "sbom_packages": 446,
+  "missing_license_texts": [
+    "accesskit",
+    "accesskit_consumer",
+    "accesskit_windows",
+    "gpui-kit",
+    "lyon",
+    "lyon_algorithms",
+    "lyon_geom",
+    "lyon_path",
+    "lyon_tessellation",
+    "mac",
+    "profiling",
+    "profiling-procmacros",
+    "pulp-wasm-simd-flag",
+    "rust-i18n-macro",
+    "rust-i18n-support",
+    "seahash",
+    "svg_fmt",
+    "taffy",
+    "zune-core",
+    "zune-inflate",
+    "zune-jpeg"
+  ],
+  "signed": false
+}

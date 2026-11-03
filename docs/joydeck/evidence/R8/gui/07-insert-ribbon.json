@@ -1,0 +1,10 @@
+{
+  "window": {
+    "app": "process:C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r8-qualified-ux39zv4d\\中文 空格\\joydeck-0.8.0-r8-windows-x86_64-release-a88695dfed\\joydeck.exe",
+    "id": 1379730,
+    "title": "演示文稿1 * - JoyDeck"
+  },
+  "a11y": "Window: \"演示文稿1 * - JoyDeck\", App: joydeck.exe.\n\t0 区域 演示文稿1 * - JoyDeck Secondary Actions: Raise\n\t\t1 标题栏 (settable, string) Value: 演示文稿1 * - JoyDeck\n\t\t\t2 菜单栏 系统 ID: MenuBar\n\t\t\t\t3 菜单项 系统\n\t\t\t4 按钮 最小化\n\t\t\t5 按钮 最大化\n\t\t\t6 按钮 关闭\n\t\t7 按钮 文件\n\t\t8 按钮 保存\n\t\t9 按钮 撤销\n\t\t10 按钮 (disabled) 重做\n\t\t11 按钮 从头开始放映\n\t\t12 按钮 查找文字\n\t\t13 按钮 切换明暗主题\n\t\t14 按钮 放映\n\t\t15 按钮 文件\n\t\t16 按钮 开始\n\t\t17 按钮 插入\n\t\t18 按钮 设计\n\t\t19 按钮 放映\n\t\t20 按钮 审阅\n\t\t21 按钮 视图\n\t\t62 按钮 形状格式\n\t\t71 按钮 新建幻灯片\n\t\t72 按钮 表格\n\t\t73 按钮 图片\n\t\t74 按钮 形状\n\t\t75 按钮 文本框\n\t\t76 按钮 备注\n\t\t51 按钮 幻灯片 1 JoyDeck · R8 界面验证\n\t\t53 按钮 单击此处添加副标题\n\t\t54 编辑 (settable, string) 演讲备注 Description: 单击此处添加备注 Value: R8 备注：真实文稿、原生 GPUI、保存重开验证。 ID: speaker-notes\n\t\t55 按钮 备注\n\t\t56 按钮 普通视图\n\t\t57 按钮 幻灯片浏览\n\t\t58 按钮 从当前页放映\n\t\t59 按钮 缩小\n\t\t60 按钮 放大\n\t\t61 按钮 适应窗口\n\nThe focused UI element is 54 编辑 (settable, string) 演讲备注 Description: 单击此处添加备注 Value: R8 备注：真实文稿、原生 GPUI、保存重开验证。 ID: speaker-notes.",
+  "note": "最终包插入页；表格、图片、形状、文本框均接入真实操作。",
+  "exe_sha256": "5b67fb4381dcd07f14041061510c47e02c06ab58e0a77ed2acb53ea7b0a10798"
+}

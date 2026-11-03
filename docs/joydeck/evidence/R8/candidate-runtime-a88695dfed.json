@@ -1,0 +1,13 @@
+{
+  "package": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r8-qualified-ux39zv4d\\中文 空格\\joydeck-0.8.0-r8-windows-x86_64-release-a88695dfed",
+  "work": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r8-qualified-ux39zv4d\\中文 空格",
+  "executable": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r8-qualified-ux39zv4d\\中文 空格\\joydeck-0.8.0-r8-windows-x86_64-release-a88695dfed\\joydeck.exe",
+  "pid": 32688,
+  "stack_reserve": 1048576,
+  "verified_files": 784,
+  "exe_sha256": "5b67fb4381dcd07f14041061510c47e02c06ab58e0a77ed2acb53ea7b0a10798",
+  "cli_sha256": "2a68b10912fa2b78c3db4114e4a21e39c9d85e5b002e4c2675824b0df61f4bf6",
+  "regression_cli_identical": true,
+  "archive_sha256": "92887995ed8682899521dab41e4fcaacae70e99a032d04b63ddcb94854ac7b63",
+  "source_sha256": "a88695dfed3096d08a30c0ebfc7e72a5e0a68e8746159a003e4f73390caff3bf"
+}

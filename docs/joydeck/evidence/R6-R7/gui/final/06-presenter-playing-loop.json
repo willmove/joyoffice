@@ -1,0 +1,18 @@
+{
+  "window": {
+    "app": "process:C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r67-final-c8rnb1cr\\中文 开发包\\joydeck-0.7.0-r6-r7-windows-x86_64-release-e5aab1f38b\\joydeck.exe",
+    "id": 18877122,
+    "title": "JoyDeck · 演示者视图"
+  },
+  "accessibility": {
+    "focused_element": "0 区域 JoyDeck · 演示者视图 Secondary Actions: Raise",
+    "tree": "Window: \"JoyDeck · 演示者视图\", App: joydeck.exe.\n\t0 区域 JoyDeck · 演示者视图 Secondary Actions: Raise\n\t\t1 标题栏 (settable, string) Value: JoyDeck · 演示者视图\n\t\t\t2 菜单栏 系统 ID: MenuBar\n\t\t\t\t3 菜单项 系统\n\t\t\t4 按钮 最小化\n\t\t\t5 按钮 最大化\n\t\t\t6 按钮 关闭\n\t\t7 按钮 下一步\n\t\t8 按钮 上一步\n\t\t9 按钮 暂停 / 继续\n\t\t10 按钮 黑屏\n\t\t11 按钮 白屏\n\t\t12 按钮 媒体开关\n\t\t13 按钮 静音开关\n\t\t14 按钮 后退 5 秒\n\t\t15 按钮 前进 5 秒\n\t\t16 按钮 结束放映\n\nThe focused UI element is 0 区域 JoyDeck · 演示者视图 Secondary Actions: Raise."
+  },
+  "screenshots": [
+    {
+      "id": "screenshot-0",
+      "width": 902,
+      "height": 680
+    }
+  ]
+}

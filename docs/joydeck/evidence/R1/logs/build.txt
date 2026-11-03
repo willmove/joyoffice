@@ -1,0 +1,6 @@
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.20s
+     Running `target\debug\joydeck-xtask.exe build joydeck`
++ cargo build --locked -p joydeck -p joydeck-cli -p joydeck-color -p joydeck-geom -p joydeck-model -p joydeck-shell -p joydeck-ui-gpui -p joydeck-xtask -p joyoffice-ui
+   Compiling joydeck-cli v0.1.0 (D:\Coding\EditorProjects\joydeck-new\apps\joydeck-cli)
+   Compiling joydeck v0.1.0 (D:\Coding\EditorProjects\joydeck-new\apps\joydeck)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.89s

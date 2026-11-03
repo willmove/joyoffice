@@ -1,0 +1,20 @@
+JoyDeck window opened · GPUI Kit 0.8.1 / pre 0.3.10
+R3 opened=true pages=3 elapsed_ms=85
+R3 raster page=1 width=1579 elapsed_ms=49 count=1
+R3 pointer position=Point { x: 574px, y: 362px } bounds=Bounds { origin: Point { x: 357px, y: 300px }, size: Size { 789.5px × 444px } } point=(263.91891551766633,75.40540443361895) scale=0.82222223
+R3 pointer position=Point { x: 574px, y: 362px } bounds=Bounds { origin: Point { x: 357px, y: 300px }, size: Size { 789.5px × 444px } } point=(263.91891551766633,75.40540443361895) scale=0.82222223
+R3 raster page=1 width=1579 elapsed_ms=29 count=2
+R3 input=commit utf16=10 marked=false
+R3 command=set-text revision=1 dirty=true
+R3 raster page=1 width=1579 elapsed_ms=32 count=3
+R3 checkpoint revision=1
+R3 input=preedit utf16=1 marked=true
+R3 raster page=1 width=1579 elapsed_ms=30 count=4
+R3 input=commit utf16=1 marked=false
+R3 command=set-text revision=2 dirty=true
+R3 raster page=1 width=1579 elapsed_ms=30 count=5
+R3 checkpoint revision=2
+R3 command=undo revision=3 dirty=true
+R3 raster page=1 width=1579 elapsed_ms=29 count=6
+R3 checkpoint revision=3
+R3 saved revision=3 dirty=false path=C:\Users\willm\AppData\Local\Temp\joydeck-r3-debug-jz93d3sw\debug-edited.pptx
