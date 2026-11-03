@@ -1,0 +1,2 @@
+   Compiling joyword-docx-robustness v0.1.0 (D:\Coding\EditorProjects\joyoffice\experiments\docx-robustness)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.11s

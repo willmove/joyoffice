@@ -70,6 +70,10 @@ PR #120 是非草稿；最终状态以 [实时检查](https://github.com/willmov
 
 初次 CI/打包的失败记录保留：跨平台换行指纹、非 Windows helper 的 unused_mut、离线检查前未 fetch、Linux 缺 CJK 字形，以及 QEMU 子进程未继承 sysroot。已分别改为精确 LF、cfg 内可变绑定、锁定图预取、安装 Noto CJK 和 QEMU_LD_PREFIX；没有禁用相关测试/断言或放宽门禁。QEMU 只是模拟器，不代表信创真机资格。
 
+后续 Word CI 的产品测试通过后，独立实验在 `--locked` 阶段发现已有锁漂移；在原 a973f75 的额外 clone 上同样复现。两个实验锁仅补齐原已存在的 joyword-rtf / joyword-textfmt 本地路径依赖，所有 registry 版本/来源/checksum 不变。[锁审阅](experiment-locks.json)、[恢复实验](experiment-recovery-tests.txt)、[严格 Clippy](experiment-recovery-clippy.txt)、[DOCX 实验](experiment-robustness-tests.txt)、[严格 Clippy](experiment-robustness-clippy.txt)、[驱动工具](experiment-robustness-python.txt)、[固定语料](experiment-robustness-smoke.txt)、[200 次变异](experiment-robustness-fuzz.txt)。它们没有进入 Deck 二进制的构建输入，当前包源码指纹仍完全匹配。
+
+独立实验合计 10 项 Rust 测试通过；驱动工具 23 通过、3 项 POSIX 专用检查在 Windows 跳过；固定矩阵执行 81 项，变异执行 200 项。驱动没有 Windows Job Object 内存限制后端，不能把此次变异称为该平台内存/完整安全资格通过。
+
 JD-900–904 工程条件已完成；JD-905/907 已实现待验收；JD-906 的完整旧功能/命令兼容与 JD-908 最终 PR/CI/合入仍开放。下一会话只在 JoyOffice 继续，先读 [交接](../../../joyoffice/JOYDECK-R9-HANDOFF.md)，优先 UI/日常编辑与旧命令契约缺项。完整 UI/功能一致、全部旧功能无回退、实际 GPU/RSS 性能、其他平台真机、安装升级/签名等，不由本次替换冒充完成。
 
 ## 替换前演练检查（历史过程）

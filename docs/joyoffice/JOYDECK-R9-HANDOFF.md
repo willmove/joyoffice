@@ -67,6 +67,8 @@ cargo test --locked -p joyword-shell --features ai --test ai_toggle
 
 本轮还修复了旧公共 PPTX 的自定义路径：沿根 officeDocument 关系定位并保留 `slideset/main.xml` 等部件、处理合法无 .rels/未变母版的最简文稿、克隆时重定位内部关系。原宿主五个公共/PowerPoint 文稿的读取和首页渲染通过，native-20 原始附件逐字节保留。完整命令与旧媒体/审阅语义仍按下面缺项继续。
 
+Word CI 还暴露出原基线也存在的两份独立实验锁漂移，已仅补齐 RTF/textfmt 路径包，未改 registry pins；恢复与 DOCX 健壮性实验的测试、fmt/Clippy、固定语料和 200 次变异验证通过，见 R9 记录。该修复不改变当前 Deck 包构建输入。
+
 ## 旧文件与自动化边界
 
 | 旧行为 | 当前接入与未完成项 |
