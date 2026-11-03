@@ -32,6 +32,7 @@ Windows 默认使用 PowerShell 7：
 
 ```powershell
 cd D:\Coding\EditorProjects\joyoffice
+cargo fetch --locked # fresh checkout: populate the locked graph before offline gates
 cargo xtask check joydeck --headless
 cargo xtask check joydeck
 cargo xtask run joydeck

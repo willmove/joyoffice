@@ -22,6 +22,8 @@ jobs:
           python-version: '3.12'
       - name: Fixed toolchain
         run: rustup toolchain install 1.98.1 --profile minimal --component rustfmt --component clippy
+      - name: Fetch the locked graph before offline dependency gates
+        run: cargo fetch --locked
       - name: Product engineering and release-routing tests
         run: |
           python -m unittest discover -s tools/xtask -p 'test_*.py'
@@ -68,6 +70,8 @@ jobs:
           xcrun --find metal
       - name: Fixed toolchain
         run: rustup toolchain install 1.98.1 --profile minimal --component rustfmt --component clippy
+      - name: Fetch the locked graph before offline dependency gates
+        run: cargo fetch --locked
       - name: Product checks
         run: cargo xtask check joydeck
       - name: Validation-feature regression tests
