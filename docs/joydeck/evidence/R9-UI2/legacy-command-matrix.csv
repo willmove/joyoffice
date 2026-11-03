@@ -1,17 +1,17 @@
 legacy_command,implemented_subset,automatic_evidence_scope,remaining,gui_status,task
-page.add,new blank slide,legacy batch regression,layout/template details,final GUI pending desktop unlock,JD-706/JD-906
-page.copy,simple slides; remap review and animation anchors,engine copy/undo regression,group/media/opaque slides refuse,final GUI pending desktop unlock,JD-706/JD-906
-page.delete,selected pages; keep one page,r9_workflows model assertions,complete cross-page link cleanup,final GUI pending desktop unlock,JD-706/JD-906
-page.visibility,toggle selected hidden flags,r9_workflows model assertions,individual legacy-argument GUI parity,final GUI pending desktop unlock,JD-706/JD-906
-page.reorder,stable slide IDs; original-order move and sections,workspace reorder/undo regression,individual legacy-argument GUI parity,final GUI pending desktop unlock,JD-706/JD-906
-page.size,finite bounded point dimensions,legacy batch regression,all legacy designs,final GUI pending desktop unlock,JD-706/JD-906
-object.add,unsupported; use schema 2 inserted kinds,r9_workflows explicit rejection for this ID,full old object DTO conversion,final GUI pending desktop unlock,JD-706/JD-906
-object.update,unsupported; use typed schema 2 operations,r9_workflows explicit rejection for this ID,full old object DTO conversion,final GUI pending desktop unlock,JD-706/JD-906
-object.delete,top-level indexed objects; lock/reference cleanup,r9_workflows deletion/review-anchor assertions,all grouped/complex references,final GUI pending desktop unlock,JD-706/JD-906
-object.reorder,unsupported; schema 2 layer steps only,r9_workflows explicit rejection for this ID,legacy gap-position reorder,final GUI pending desktop unlock,JD-706/JD-906
-table.edit,insert/delete row/column; rowHeight/columnWidth; paste/merge/split,table engine and save/reopen regressions,setCell rich runs/distribution/style/cellStyle old contracts,final GUI pending desktop unlock,JD-706/JD-906
-document.design,notes only,legacy batch regression,theme/layout/properties/sections/replacements/page transfer,final GUI pending desktop unlock,JD-706/JD-906
-presentation.motion,unsupported; imported model retained,r9_workflows explicit rejection for this ID,full animation/show DTO adapter,final GUI pending desktop unlock,JD-706/JD-906
-media.edit,unsupported; one-time legacy import only,migration native/reopen and explicit regeneration,full resource/clip editing adapter,final GUI pending desktop unlock,JD-706/JD-906
-review.edit,add/reply/resolve/accessibility,r9_workflows add/reply/resolve/alt and migration regression,all old review actions and AT behavior,final GUI pending desktop unlock,JD-706/JD-906
-transaction.batch,atomic flatten <=256 edits; depth <=16; outer revision guard,legacy batch failure/unknown-field regression,old 1000-edit bound not inherited; lookup-dependent new anchors need separate requests,final GUI pending desktop unlock,JD-706/JD-906
+page.add,new blank slide,legacy batch regression,layout/template details,new-window/template typed GUI passed; legacy arguments automatic only,JD-706/JD-906
+page.copy,simple slides; remap review and animation anchors,engine copy/undo regression,group/media/opaque slides refuse,automatic only; GUI copy workflow not verified this round,JD-706/JD-906
+page.delete,selected pages; keep one page,r9_workflows model assertions,complete cross-page link cleanup,automatic only; GUI delete workflow not verified this round,JD-706/JD-906
+page.visibility,toggle selected hidden flags,r9_workflows model assertions,individual legacy-argument GUI parity,typed GUI hide/show passed; legacy arguments automatic only,JD-706/JD-906
+page.reorder,stable slide IDs; original-order move and sections,workspace reorder/undo regression,individual legacy-argument GUI parity,typed GUI drag/reorder/section passed; legacy arguments automatic only,JD-706/JD-906
+page.size,finite bounded point dimensions,legacy batch regression,all legacy designs,automatic only; GUI page-size workflow not verified this round,JD-706/JD-906
+object.add,unsupported; use schema 2 inserted kinds,r9_workflows explicit rejection for this ID,full old object DTO conversion,explicit rejection; no legacy GUI acceptance claimed,JD-706/JD-906
+object.update,unsupported; use typed schema 2 operations,r9_workflows explicit rejection for this ID,full old object DTO conversion,explicit rejection; no legacy GUI acceptance claimed,JD-706/JD-906
+object.delete,top-level indexed objects; lock/reference cleanup,r9_workflows deletion/review-anchor assertions,all grouped/complex references,automatic only; GUI delete workflow not verified this round,JD-706/JD-906
+object.reorder,unsupported; schema 2 layer steps only,r9_workflows explicit rejection for this ID,legacy gap-position reorder,explicit rejection; no legacy GUI acceptance claimed,JD-706/JD-906
+table.edit,insert/delete row/column; rowHeight/columnWidth; paste/merge/split,table engine and save/reopen regressions,setCell rich runs/distribution/style/cellStyle old contracts,typed GUI format/merge/split/save passed; legacy arguments automatic only,JD-706/JD-906
+document.design,notes only,legacy batch regression,theme/layout/properties/sections/replacements/page transfer,automatic notes subset; GUI design workflow not verified this round,JD-706/JD-906
+presentation.motion,unsupported; imported model retained,r9_workflows explicit rejection for this ID,full animation/show DTO adapter,explicit rejection; no motion-edit GUI acceptance claimed,JD-706/JD-906
+media.edit,unsupported; one-time legacy import only,migration native/reopen and explicit regeneration,full resource/clip editing adapter,migration automatic only; GUI media editing not implemented,JD-706/JD-906
+review.edit,add/reply/resolve/accessibility,r9_workflows add/reply/resolve/alt and migration regression,all old review actions and AT behavior,typed GUI add/reply/resolve/alt/native save passed; legacy arguments automatic only,JD-706/JD-906
+transaction.batch,atomic flatten <=256 edits; depth <=16; outer revision guard,legacy batch failure/unknown-field regression,old 1000-edit bound not inherited; lookup-dependent new anchors need separate requests,automatic only; no legacy-batch GUI acceptance claimed,JD-706/JD-906

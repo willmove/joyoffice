@@ -18,13 +18,13 @@
 | Word 字形，T101/204/701/806 | 固定 OFL 单色 Noto Emoji；缺字 cluster 回退在断行前发生，真实 font key 进入屏幕／PDF；预算与缓存保持 | 两项真实字形／raster／PDF 回归；长文档 4 项；Word 产品全量 | 新 Unicode／彩色 emoji、阿文与完整复杂文字不在本轮覆盖 |
 | Word UOS 输入法，T101/701 | 保留 Fcitx5／搜狗拼音直通缺陷，未凭 Windows 或依赖源码推测修复 | 尚未复现 | 用户确认已有 UOS 环境、稍后提供访问方式；等待连接后复现、修复、GUI 补验 |
 
-`legacyCommandSchemaSupported=false` 继续表示**完整**旧 schema 未兼容；能力响应另列 `legacyCommandSubset`。支持 page.add/copy/delete/visibility/reorder/size、object.delete、table.edit 的结构／尺寸／TSV 子集、document.design 的备注、review.edit 的 add/reply/resolve/accessibility、transaction.batch。未覆盖 action 或未知字段明确拒绝，不返回空成功。
+`legacyCommandSchemaSupported=false` 继续表示**完整**旧 schema 未兼容；能力响应另列 `legacyCommandSubset`。支持 page.add/copy/delete/visibility/reorder/size、object.delete、table.edit 的结构／尺寸／TSV 子集、document.design 的备注、review.edit 的 add/reply/resolve/accessibility、transaction.batch。未覆盖 action 或未知字段明确拒绝，不返回空成功。 [16 项兼容矩阵](legacy-command-matrix.csv) 的 GUI 栏已按解锁后的实际场景更新；GUI 调用有类型命令，不冒充旧参数自身的 GUI 验收。
 
 PPTX preserve 对无法保真写回的批注／回复／解决、动画编辑、alt／decorative、媒体及表格属性增加保存前回读检查。失败不发布输出，保留原文件与脏状态；可保存 native，或由用户显式选择 regenerate PPTX。显式再生会按原有契约报告损失，不自动替用户切换保存模式。比较当前按页序和对象 ID 配对，页面／文稿设置及资源只报告；对象顺序、媒体字节、备注页面和扩展元数据变化均纳入报告，不把不能接受的变化误报为相同。页面／文稿设置只报告；基础对象逐个接受会校验两个摘要，不能宣称完整审阅合并。
 
 ## 自动检查与实际包
 
-[检查汇总](checks.json)：三产品联合 3,596 通过、0 失败、1 项原计时测试忽略；覆盖最终资源 ID 保存校验、比较报告修复和 11 个广告子集工作流。最终产品 `cargo xtask check joydeck` **894 通过**，`cargo xtask check joyword` **1,318 通过**。最终 workspace 严格 Clippy、fmt、291 条来源指纹、1,050 Rust 文件门禁、文档检查通过。共享排版改动已覆盖 Word／Sheet／Deck 联合 feature 组合；registry 版本与所有其余依赖边保持不变；为 GUI 发现的 HWND 生命周期竞态，仅将 AccessKit Windows 0.34.0 改为同版本本地补丁，原始来源、逐文件指纹和 MIT／Apache 全文见 [补丁记录](../../../../licenses/accesskit-windows/README.md)。应用 crate 仍 forbid unsafe，原有平台 FFI 留在第三方依赖内。
+[检查汇总](checks.json)：三产品联合 3,596 通过、0 失败、1 项原计时测试忽略；覆盖最终资源 ID 保存校验、比较报告修复和 11 个广告子集工作流。最终产品 `cargo xtask check joydeck` **894 通过**，`cargo xtask check joyword` **1,318 通过**。最终 workspace 严格 Clippy、fmt、291 条来源指纹、1,050 Rust 文件门禁、文档检查通过。 根脚本工具 152 项、产品路由 14 项、Deck 工具 11 项和本地依赖／归档关联 6 项自动测试通过。共享排版改动已覆盖 Word／Sheet／Deck 联合 feature 组合；registry 版本与所有其余依赖边保持不变；为 GUI 发现的 HWND 生命周期竞态，仅将 AccessKit Windows 0.34.0 改为同版本本地补丁，原始来源、逐文件指纹和 MIT／Apache 全文见 [补丁记录](../../../../licenses/accesskit-windows/README.md)。应用 crate 仍 forbid unsafe，原有平台 FFI 留在第三方依赖内。
 
 [Deck 包元数据](package.json) 与 [Word 包元数据](word-package.json) 记录当前字节摘要。打包后在仓库外中文／空格路径运行，隔离用户状态，不打开用户私有文稿。最终 Deck 包已完成真实格式编辑／保存、审阅文稿重开／修改、最近文件重开、跨窗口主题同步和子窗口关闭补验；独立回读见下表。之前逐场景记录保留各自真实 exe SHA，不将旧包证据改写成新包。 最后只补登记模板测试中的 8 个断言位置后重新封装 final-qualified，GUI／CLI 与已实测 delivery-qualified 逐字节一致；原生 C# helper 由相同源码／编译器／SDK 重新构建、身份不同，媒体／打印设备本轮仍未验收。源码快照及生成元数据随封装更新，见 [逐文件核对](final-package-equivalence.json) 与 [实测封装记录](delivery-package.json)。
 

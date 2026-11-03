@@ -100,6 +100,11 @@
     "pythonPackagingTests": 6,
     "deckToolingTests": 11,
     "xtaskTests": 14,
-    "panicBaselineAddition": "8 assertions inside cfg(test) template round-trip regression; no production allowance"
+    "panicBaselineAddition": "8 assertions inside cfg(test) template round-trip regression; no production allowance",
+    "rootPythonToolTests": {
+      "passed": 152,
+      "failed": 0,
+      "log": "target/r9-ui2/final-python-tools.log"
+    }
   }
 }
