@@ -223,6 +223,7 @@ impl SceneViews {
 pub struct LayoutKey {
     pub version: DocumentVersion,
     pub font: FontKey,
+    pub faces: [FontKey; 5],
     pub profile: SingleFontProfile,
     /// How tracked changes were projected. The same document in another
     /// revision view is a different scene.
@@ -454,6 +455,34 @@ pub(crate) fn finish_stories(
     crate::pages::paint_stories(snapshot, document, faces, profile, cancellation)?;
     crate::revision_view::decorate_stories(snapshot, document, faces, profile, cancellation)?;
     crate::pages::record_comment_carets(snapshot, document);
+    for (page_index, page) in snapshot.pages.iter_mut().enumerate() {
+        if !page
+            .runs
+            .iter()
+            .any(|r| r.glyphs.iter().any(|g| g.fallback))
+        {
+            continue;
+        }
+        let mut mapping = Vec::with_capacity(page.runs.len() + 1);
+        let mut runs = Vec::new();
+        for run in std::mem::take(&mut page.runs) {
+            mapping.push(runs.len());
+            runs.extend(run.split_fonts());
+            if runs.len() > snapshot.limits.max_runs {
+                return Err(LayoutError::LimitExceeded(LayoutLimit::Runs));
+            }
+        }
+        mapping.push(runs.len());
+        page.runs = runs;
+        for line in snapshot
+            .lines
+            .iter_mut()
+            .chain(&mut snapshot.aux_lines)
+            .filter(|l| l.page == page_index)
+        {
+            line.run = *mapping.get(line.run).ok_or(LayoutError::InvalidDocument)?;
+        }
+    }
     Ok(())
 }
 
@@ -3499,6 +3528,7 @@ pub(crate) fn open_snapshot(
         key: LayoutKey {
             version: document.version(),
             font: faces.ascii.key(),
+            faces: faces.keys(),
             profile,
             revision_view: views.revision,
             view: views.options,
@@ -3786,6 +3816,7 @@ pub(crate) fn fit_paragraph(
         Vec::new()
     };
     let slice_limits = std::cell::Cell::new(request_limits);
+    let fallback_work = std::cell::Cell::new((0usize, 0usize));
     let mut fit_slice = |slice: &str,
                          base: usize,
                          slice_width: Emu|
@@ -3810,6 +3841,31 @@ pub(crate) fn fit_paragraph(
                 .collect()
         };
         let mut adjust = |at: usize, run: &mut ShapedRun| {
+            crate::fallback::apply(
+                shape_font,
+                faces.fallback,
+                run,
+                profile.features,
+                |cluster| {
+                    spans
+                        .iter()
+                        .find(|s| s.bytes.contains(&(at + cluster)))
+                        .map(|s| s.size)
+                        .unwrap_or(painted.size)
+                },
+                |bytes| {
+                    let (calls, total) = fallback_work.get();
+                    let next = (calls.saturating_add(1), total.saturating_add(bytes));
+                    fallback_work.set(next);
+                    if next.0 > request_limits.max_shape_calls {
+                        return Err(LineError::LimitExceeded(crate::LineLimit::ShapeCalls));
+                    }
+                    if next.1 > request_limits.max_shaped_bytes {
+                        return Err(LineError::LimitExceeded(crate::LineLimit::ShapedBytes));
+                    }
+                    Ok(())
+                },
+            )?;
             cjk::compress_shaped_run(slice, at, run, family).map_err(|_| LineError::InvalidShaping)
         };
         if needs_slots {
@@ -4100,6 +4156,19 @@ pub(crate) fn fit_paragraph(
         crate::revision_view::remap(&mut fitted.lines, &projected.map, paragraph.len());
     }
     note_hyperlinks(paragraph, &mut fitted.lines);
+    let (fallback_calls, fallback_bytes) = fallback_work.get();
+    fitted.stats.shape_calls = fitted.stats.shape_calls.saturating_add(fallback_calls);
+    fitted.stats.shaped_bytes = fitted.stats.shaped_bytes.saturating_add(fallback_bytes);
+    if fitted.stats.shape_calls > request_limits.max_shape_calls {
+        return Err(map_line(LineError::LimitExceeded(
+            crate::LineLimit::ShapeCalls,
+        )));
+    }
+    if fitted.stats.shaped_bytes > request_limits.max_shaped_bytes {
+        return Err(map_line(LineError::LimitExceeded(
+            crate::LineLimit::ShapedBytes,
+        )));
+    }
     // Line runs default to the first visible face; placement splits spans
     // when the paragraph carries more than one.
     let first = &painted.first;
@@ -5576,6 +5645,18 @@ impl LayoutSnapshot {
             return Err(LayoutError::StaleSnapshot(StaleReason::Content));
         }
         Ok(())
+    }
+    /// Validate all actual shaping faces when a caller supplies a mixed environment.
+    pub fn ensure_current_faces(
+        &self,
+        document: &DocumentSnapshot,
+        faces: FaceSet<'_>,
+        profile: SingleFontProfile,
+    ) -> Result<(), LayoutError> {
+        if self.key.faces != faces.keys() {
+            return Err(LayoutError::StaleSnapshot(StaleReason::Font));
+        }
+        self.ensure_current(document, faces.ascii, profile)
     }
     fn paragraph(&self, position: Position) -> Result<(usize, &ParagraphMap), LayoutError> {
         if position.story != self.story {

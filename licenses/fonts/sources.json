@@ -22,6 +22,20 @@
       "path": "crates/joydeck-fonts/assets/UFL.txt",
       "sha256": "2f0015108d68627bd788d313f529c21ff4da2c2c42a5e1f3883acc83480f9002",
       "usage": "licensed fallback font/license"
+    },
+    {
+      "path": "apps/joyword/assets/fonts/NotoEmoji-Regular.ttf",
+      "sha256": "415dc6290378574135b64c808dc640c1df7531973290c4970c51fdeb849cb0c5",
+      "usage": "Word bundled monochrome emoji fallback / OFL-1.1",
+      "source_url": "https://raw.githubusercontent.com/googlefonts/noto-emoji/9a5261d871451f9b5183c93483cbd68ed916b1e9/fonts/NotoEmoji-Regular.ttf",
+      "source_revision": "9a5261d871451f9b5183c93483cbd68ed916b1e9"
+    },
+    {
+      "path": "apps/joyword/LICENSE-NotoEmoji.txt",
+      "sha256": "6a73f9541c2de74158c0e7cf6b0a58ef774f5a780bf191f2d7ec9cc53efe2bf2",
+      "usage": "Word bundled monochrome emoji fallback / OFL-1.1",
+      "source_url": "https://raw.githubusercontent.com/googlefonts/noto-emoji/9a5261d871451f9b5183c93483cbd68ed916b1e9/fonts/LICENSE",
+      "source_revision": "9a5261d871451f9b5183c93483cbd68ed916b1e9"
     }
   ]
 }

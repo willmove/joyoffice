@@ -54,25 +54,45 @@ mod chrome_nav;
 mod content_ui;
 #[path = "delivery_ui.rs"]
 mod delivery_ui;
+#[path = "desktop_control.rs"]
+pub(super) mod desktop_control;
 #[path = "document_ui.rs"]
 mod document_ui;
 #[path = "editor_actions.rs"]
 mod editing;
+#[path = "file_ui.rs"]
+mod file_ui;
 #[path = "format_ui.rs"]
 mod format_ui;
 #[path = "inline_text.rs"]
 mod inline;
+#[path = "organize_ui.rs"]
+mod organize_ui;
+#[path = "paragraph_ui.rs"]
+mod paragraph_ui;
+#[path = "review_ui.rs"]
+mod review_ui;
 #[path = "scene_benchmark.rs"]
 mod scene_benchmark;
 #[path = "scene_canvas.rs"]
 mod scene_canvas;
 #[path = "scene_view.rs"]
 mod scene_view;
+#[path = "selection_format.rs"]
+mod selection_format;
 #[path = "slideshow.rs"]
 mod slideshow;
+#[path = "table_ui.rs"]
+mod table_ui;
 
 type ImageKey = (u64, usize, u32);
 pub struct Viewer {
+    comparison: Option<joydeck_shell::comparison::Comparison>,
+    compare_task: Option<Task<()>>,
+    control: Option<desktop_control::Control>,
+    control_task: Option<Task<()>>,
+    recent_paths: Result<Vec<PathBuf>, String>,
+    recent_task: Option<Task<()>>,
     font_picker: Entity<
         gpui_kit::component::select::SelectState<
             gpui_kit::component::select::SearchableVec<SharedString>,
@@ -90,6 +110,8 @@ pub struct Viewer {
     ribbon: &'static str,
     backstage: bool,
     sorter: bool,
+    slide_selection: Vec<joydeck_model::SlideId>,
+    slide_anchor: Option<joydeck_model::SlideId>,
     notes_visible: bool,
     notes_syncing: bool,
     notes_subscription: Option<Subscription>,
@@ -105,6 +127,7 @@ pub struct Viewer {
     scene_cancel: Arc<AtomicBool>,
     inline: Option<Box<inline::Inline>>,
     cell: Option<(ShapeId, usize, usize)>,
+    cell_range: Option<(ShapeId, joydeck_engine::CellRange)>,
     notes_input: Entity<TextareaState>,
     editor: Option<joydeck_shell::editor::Editor>,
     save_input: Entity<InputState>,
@@ -116,6 +139,7 @@ pub struct Viewer {
     pending_save_path: Option<String>,
     saving: bool,
     close_after_save: bool,
+    close_ready: bool,
     pending_replace: Option<document_ui::ReplaceDocument>,
     replace_ready: bool,
     canvas_bounds: Bounds<Pixels>,
@@ -185,6 +209,12 @@ impl Viewer {
             .searchable(true)
         });
         Self {
+            comparison: None,
+            compare_task: None,
+            control: None,
+            control_task: None,
+            recent_paths: Ok(vec![]),
+            recent_task: None,
             font_picker,
             font_names,
             font_subscription: None,
@@ -198,6 +228,8 @@ impl Viewer {
             ribbon: "开始",
             backstage: false,
             sorter: false,
+            slide_selection: vec![],
+            slide_anchor: None,
             notes_visible: true,
             notes_syncing: false,
             notes_subscription: None,
@@ -213,6 +245,7 @@ impl Viewer {
             scene_cancel: Arc::new(AtomicBool::new(false)),
             inline: None,
             cell: None,
+            cell_range: None,
             notes_input: cx.new(|cx| {
                 TextareaState::new(window, cx)
                     .placeholder("单击此处添加备注")
@@ -232,6 +265,7 @@ impl Viewer {
             pending_save_path: None,
             saving: false,
             close_after_save: false,
+            close_ready: false,
             pending_replace: None,
             replace_ready: false,
             canvas_bounds: Bounds::default(),
@@ -299,6 +333,9 @@ impl Viewer {
         self.delivery_cancel.cancel();
         self.end_inline(cx);
         self.cell = None;
+        self.cell_range = None;
+        self.slide_selection.clear();
+        self.slide_anchor = None;
 
         self.read_cancel.store(true, Ordering::Relaxed);
         let cancel = Arc::new(AtomicBool::new(false));
@@ -423,6 +460,7 @@ impl Viewer {
     fn select(&mut self, page: usize, cx: &mut Context<Self>) {
         self.end_inline(cx);
         self.cell = None;
+        self.cell_range = None;
         if let Some(d) = &self.deck {
             let page = page.min(d.info.slides.len() - 1);
             if page != self.page {
@@ -432,6 +470,10 @@ impl Viewer {
             self.page = page;
             if let Some(editor) = &mut self.editor {
                 let _ = editor.session.select(page, vec![]);
+                if let Some(slide) = editor.session.model().slides.get(page) {
+                    self.slide_selection = vec![slide.id];
+                    self.slide_anchor = Some(slide.id);
+                }
             }
             self.drag = None;
             self.scroll.scroll_to_item(self.page, ScrollStrategy::Top);
@@ -605,6 +647,14 @@ impl Viewer {
 }
 impl Render for Viewer {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        if self.close_ready {
+            self.close_ready = false;
+            cx.defer_in(window, |s, w, _| {
+                if !s.saving && s.editor.as_ref().is_none_or(|e| !e.session.dirty()) {
+                    w.remove_window();
+                }
+            });
+        }
         self.sync_font_picker(window, cx);
         for image in self.retired_images.drain(..) {
             let _ = window.drop_image(image);
@@ -908,9 +958,15 @@ pub fn open_window(
             view.update(cx, |s, cx| {
                 s.install_notes(w, cx);
                 s.install_font_picker(w, cx);
+                s.refresh_recent(cx);
                 cx.defer_in(w, |s, w, cx| s.focus.focus(w, cx));
                 s.activation = Some(cx.observe_window_activation(w, |s, w, cx| {
-                    if !w.is_window_active() {
+                    if w.is_window_active() {
+                        cx.set_global(ActiveEditor {
+                            window: w.window_handle(),
+                            view: cx.entity().downgrade(),
+                        });
+                    } else {
                         s.commit_notes(w, cx);
                         s.end_inline(cx);
                         if s.drag.take().is_some() {

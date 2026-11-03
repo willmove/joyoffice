@@ -202,12 +202,26 @@ def validate_feature_catalog(requirements):
                   f"feature catalog: {control_id} is not a command and must not carry one")
     check(evidenced == FEATURE_FLOOR,
           f"feature catalog: evidenced controls {evidenced} != floor {FEATURE_FLOOR}")
+    attributed = set()
+    for asset in catalog.get("binary_assets", []):
+        relative = Path(asset.get("path", ""))
+        path = (ROOT / relative).resolve()
+        notice = (ROOT / asset.get("notice", "")).resolve()
+        valid = (path.is_relative_to(ROOT) and path.is_file()
+                 and notice.is_relative_to(ROOT) and notice.is_file()
+                 and asset.get("license") == "OFL-1.1"
+                 and asset.get("source", "").startswith("https://")
+                 and hashlib.sha256(path.read_bytes()).hexdigest() == asset.get("sha256"))
+        check(valid, f"feature catalog: invalid binary attribution {relative}")
+        if valid:
+            attributed.add(relative.as_posix())
     for suffix in (".png", ".svg", ".ico", ".jpg", ".jpeg", ".webp", ".gif", ".bmp",
                    ".ttf", ".otf", ".woff", ".woff2"):
         for root in (ROOT / "apps/joyword", ROOT / "crates/joyword-shell"):
             for asset in root.rglob(f"*{suffix}"):
                 if asset.is_file():
-                    check(False, f"feature catalog: unattributed binary asset {asset.relative_to(ROOT)}")
+                    check(asset.relative_to(ROOT).as_posix() in attributed,
+                          f"feature catalog: unattributed binary asset {asset.relative_to(ROOT)}")
 
 
 def validate():

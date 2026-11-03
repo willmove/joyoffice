@@ -1,5 +1,7 @@
 # JoyWord 实施任务
 
+2026-11-03 字形增量：主字体缺字时在断行前尝试固定 OFL 单色 Noto Emoji，最终场景记录真实 face，屏幕与 PDF 共用；恢复缓存尺寸后长文档回归通过。Word 产品检查 1,318 项通过，最终包在仓库外中文路径真实显示 😀，原生导出普通 PDF 后由 pypdf／Poppler 独立抽取与渲染通过。字体原始字节与许可已登记，不承诺新 Unicode／彩色 emoji 或阿文。UOS 搜狗／Fcitx5 拼音直通缺陷保持开放：用户确认已有环境，稍后提供访问方式，尚未复现或标记修复。T101／T701／T806 等父任务状态与总计不变，见 [R9-UI2 证据](../joydeck/evidence/R9-UI2/README.md)。
+
 2026-11-02 导出限制可见性：复杂文档的版式兼容门禁继续生效，文件页新增兼容说明及每个禁用格式的原因；CLI 可选兼容标记帮助只读诊断。见 [本轮记录](verification/export-availability-20261102.md)。这次修复说明和诊断缺口，没有完成复杂文档转换，也不改变 T205／T600／T601 等父任务状态与计数。
 
 2026-11-02 文件工作区增量：主界面“文件”切换到侧栏导航页面，“导出”Tab 直接选择 PDF／DOCX／RTF／HTML／Markdown／TXT／EPUB／PDF/A-2b；返回、Esc 和现有文件作业保留。相关实现、Windows 原生观察及检查见 [本轮记录](verification/file-workspace-20261102.md)。T205／T600／T601 的完整范围仍 in_progress，任务计数不变。

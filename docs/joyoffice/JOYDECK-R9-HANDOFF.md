@@ -4,9 +4,13 @@
 
 当前依据依次为根 AGENTS.md、本文、[Deck 状态](../joydeck/STATUS.md)、[98 项任务](../joydeck/TASKS.md)、[UI 差距](../joydeck/UI-PARITY.md)、[329 命令范围](../joydeck/COMMANDS.csv) 与 [R9 验证](../joydeck/evidence/R9/README.md)。旧 M0–M14 状态见 [替换前状态](../joydeck/STATUS-pre-r9.md)，仅作历史基线。
 
-[PR #120](https://github.com/willmove/joyoffice/pull/120) 已按用户明确授权于 2026-11-03 合入 main，合并提交 `3691d4dea11df473c95f94af9718cc699cd984f8`，合入前 21 项检查全部通过。源仓库 9 个提交继续保留为宿主祖先。后续从最新 main 开切片，不重新迁移。当前 UI/兼容切片为 `codex/joydeck-r9-formatting-compat`，[PR #121](https://github.com/willmove/joyoffice/pull/121) 未合入；继续此切片先使用该分支，合入后再从 main 开新分支，避免遗漏本轮开发。见 [R9-UI1 验证](../joydeck/evidence/R9-UI1/README.md)。
+[PR #120](https://github.com/willmove/joyoffice/pull/120) 已按用户明确授权于 2026-11-03 合入 main，合并提交 `3691d4dea11df473c95f94af9718cc699cd984f8`，合入前 21 项检查全部通过。源仓库 9 个提交继续保留为宿主祖先。后续从最新 main 开切片，不重新迁移。[PR #121](https://github.com/willmove/joyoffice/pull/121) 已合入 main `6689c6e`；R9-UI1 是历史切片，见 [R9-UI1 验证](../joydeck/evidence/R9-UI1/README.md)。当前分支与 R9-UI2 证据见下节。
 
 R9 整合基线联合回归为 3,573 通过、0 失败、1 项原计时测试忽略，Deck check 为 873 通过；R9-UI1 最新检查为 **联合 3,575 通过、0 失败、1 忽略，Deck 875 通过**。新 Release 包、Word/Sheet 开发包和旧软件回退包均已实际构建，且在仓库外中文/空格路径运行。多平台 PR 检查和 JD-906 完整旧功能验收以任务表/实时 PR 为准，当前工程替换不代表整个 R9 已关闭。
+
+## R9-UI2 当前接续
+
+PR #121 已按用户要求合入 main `6689c6e`。PR #119 已整理为 QEMU 子进程 runner 修复，并在 20 项 CI 全绿后合入 `8002f27`；没有回退 main 实验锁或升级 registry。当前任务分支为 `codex/joydeck-r9-ui-compat`，开发、自动检查、实际包和剩余差距统一见 [R9-UI2 范围账本](../joydeck/evidence/R9-UI2/README.md)。本轮已推进混合格式／段落表格、日常工作区、旧审阅媒体、比较接受、旧参数严格子集和 opt-in 桌面 stdio；完整旧 16 领域／JD-906／UI 一致仍开放。Word emoji 的最终包 Windows GUI 与普通 PDF 已独立验证；UOS 输入法等待用户随后提供环境访问。下述兼容表已同步本轮新增能力；完整范围与实际验证以上述账本为准。
 
 ## 备份与恢复
 
@@ -75,14 +79,14 @@ Word CI 还暴露出原基线也存在的两份独立实验锁漂移，已仅补
 | --- | --- |
 | 旧 .joydeck v1 | 只读识别/转换；显式 `migrate OLD --output NEW.joydeck`，保留原件与原始 ID/报告；未知内容不伪装为完整可编辑 |
 | PPTX | 公共读取、基础编辑、保存重开，preserve/regenerate 交换与输出；长尾 OOXML/复杂主题、组、媒体/动画仍有保真差项 |
-| 控制 envelope | `joydeck-control-1` 名称保留，但命令 schema 是 2；engine.commands 明确返回 commandSchemaVersion=2、modelSchema=joydeck-v2、legacyCommandSchemaSupported=false。旧 schema 1 请求被拒绝，新增测试保证拒绝后文稿状态不变 |
-| 旧 page.add/copy/delete | 对应新的 new-slide/duplicate-slide/delete-slide 事务，参数 schema 不同，不宣称旧调用自动兼容 |
+| 控制 envelope | `joydeck-control-1` 名称保留，但命令 schema 是 2；engine.commands 明确返回 commandSchemaVersion=2、modelSchema=joydeck-v2、legacyCommandSchemaSupported=false。旧 schema 1 包装仍拒绝；R9-UI2 增加严格字符串命令子集和 legacyCommandSubset 能力列表，未支持参数原子拒绝 |
+| 旧 page.add/copy/delete | R9-UI2 严格映射旧 pages 参数，新增排序／隐藏／尺寸；保留 schema 2 命令，不宣称完整旧 schema |
 | 旧 document.undo/redo | R9-UI1 恢复同名方法，真实历史/重放/过期修订检查；仍须 target 与顶层 expectedRevision；command.execute 的 undo/redo 同样可用 |
 | 旧 document.export | 新 export.start + jobs.get/cancel；输出只允许新路径，不自动覆盖 |
-| command.validate | R9-UI1 恢复：params.command 必须为新 schema 2，快照执行真实引擎与预算/历史检查，返回 valid/wouldChange/sideEffects=false；不修改活文稿。不是旧 schema 1 参数适配 |
-| 旧 document.check/compare/acceptObject 等 | 尚未迁移；不能以成功空响应兼容，保留 JD-506/706/906 后续任务 |
-| 旧桌面远程绑定/多窗口 | 当前 CLI/MCP 是有根目录限制的独立 headless 会话，attachedDesktop=false；不会修改已打开的桌面文稿。完整绑定/多窗口/旧 16 领域命令适配仍待实现 |
-| 旧偏好、最近文件、比较接受/图片依赖、完整设计与审阅 | 不能沿用旧完成状态；进入下述产品任务，并保留旧软件恢复材料 |
+| command.validate | R9-UI1 恢复：params 接受 schema 2 或已广告的旧字符串子集；快照执行真实引擎与预算/历史检查，返回 valid/wouldChange/sideEffects=false；不修改活文稿，完整旧 16 领域未实现 |
+| 旧 document.check/compare/acceptObject 等 | R9-UI2 恢复实际兼容报告、按页序比较与双摘要保护的基础对象接受／单步撤销；复杂组／媒体／跨页匹配仍缺 |
+| 旧桌面远程绑定/多窗口 | CLI/MCP 默认独立 headless；R9-UI2 显式 --control-stdio=AUTHORIZED_ROOT 绑定该窗口唯一 Editor，attachedDesktop=true，限制修订／重放／组合输入／拖动／保存和文稿代次；新窗口独立生命周期。桌面 MCP 分发与完整旧 16 领域仍缺 |
+| 旧偏好、最近文件、比较接受/图片依赖、完整设计与审阅 | 新增有界最近文件、原创模板、基础比较接受、旧批注／回复／解决／媒体／链接／放映配置迁移及审阅 GUI；完整设计／母版／偏好与复杂内容仍缺，不能沿用旧 done |
 
 使用机器接口时先查询能力，不只看 envelope 字符串。新旧未覆盖功能属于实际产品差距，不是仅等待硬件验收。完整“旧功能无回退”验收（JD-906）仍开放，不能因导入和构建成功而关闭。
 

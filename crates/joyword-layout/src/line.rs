@@ -609,6 +609,7 @@ fn shape_spanned(
     let end_total = byte_start + part.len();
     let mut combined = ShapedRun {
         font: font.key(),
+        fallback_font: None,
         size: default_size,
         text: part.to_owned(),
         glyphs: Vec::new(),
@@ -628,6 +629,7 @@ fn shape_spanned(
                 .checked_add(glyph.x.raw())
                 .ok_or(LineError::InvalidShaping)?;
             combined.glyphs.push(ShapedGlyph {
+                fallback: glyph.fallback,
                 glyph_id: glyph.glyph_id,
                 cluster: glyph.cluster + offset,
                 x: Emu::new(x),

@@ -1,0 +1,9 @@
+{
+  "qualifiedPackage": "dist\\joydeck\\joydeck-r9-ui2-windows-qualified",
+  "deliveryPackage": "dist\\joydeck\\joydeck-r9-ui2-windows-delivery",
+  "scope": "GUI and CLI executable bytes match. Freshly built native helpers have distinct hashes and are exercised again by the delivery CLI suite.",
+  "sha256": {
+    "joydeck.exe": "6bc830bbf83d2256ade3bf6edd4a841fcb8988a3398e3f191e55abcb7d2da890",
+    "joydeck-cli.exe": "1cef13746d2c36daf7e4f559c02ead99875bf72abdad1015bc6406b7a4e4ddf8"
+  }
+}

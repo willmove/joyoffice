@@ -1,0 +1,11 @@
+{
+  "reader": "pypdf 6.21.2",
+  "pages": 1,
+  "text": [
+    "JoyWord emoji 验证 😀\n甲方：青禾工作室；乙方：远山设计室。\n双方约定于 2026 年 10 月 13 日提交报告，金额为人民币 12,345.67 元。\n交付内容包括：正文、表格、图片以及 English summary。\n“完成”应以书面验收为准；未经确认，不得视为自动接受。"
+  ],
+  "containsEmoji": true,
+  "pdfSha256": "4e75636df41375c3ae76ee0fa7711158fd61fd3347670e321bd3a614c348b025",
+  "renderer": "bundled Poppler pdftoppm, 120 DPI; visual inspection passed",
+  "binarySha256": "f84a2c721de39ecc2af5de8951cf2d18420499450a3a22d09427d78a004d5bbe"
+}

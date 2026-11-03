@@ -21,6 +21,7 @@ mod preset_pptx;
 mod table_pptx;
 
 use serde::Serialize;
+use std::{collections::BTreeMap, sync::Arc};
 use std::{
     io::{Cursor, Write},
     sync::atomic::AtomicBool,
@@ -33,6 +34,19 @@ pub struct Conversion {
     pub schema_minor: u64,
     pub source_ids: Vec<SourceIds>,
     pub warnings: Vec<String>,
+    #[serde(skip)]
+    pub supplement: Supplement,
+}
+/// Validated, read-only migration output. It is never a second editor/session.
+pub struct Supplement {
+    pub threads: Vec<model::review::Thread>,
+    pub accessibility: BTreeMap<String, model::review::Access>,
+    pub reading_order: BTreeMap<String, Vec<String>>,
+    pub clips: Vec<model::playback::Clip>,
+    pub assets: BTreeMap<String, Arc<model::playback::Asset>>,
+    pub links: BTreeMap<String, String>,
+    pub order: Vec<String>,
+    pub loop_show: bool,
 }
 pub type SourceIds = (usize, String, Vec<(String, usize)>);
 pub fn convert(bytes: &[u8], cancel: &AtomicBool) -> Result<Conversion, String> {
@@ -42,16 +56,12 @@ pub fn convert(bytes: &[u8], cancel: &AtomicBool) -> Result<Conversion, String> 
         serde_json::from_str(document::part(&parts, "manifest.json")?)
             .map_err(|e| e.to_string())?;
     let deck = document::decode_parts(&parts, cancel)?;
-    // Do not silently move unsupported semantic state into an editable approximation.
-    if !deck.playback.clips.is_empty()
-        || !deck.playback.assets.is_empty()
-        || !deck.review.threads.is_empty()
-        || !deck.review.accessibility.is_empty()
-        || !deck.presentation.links.is_empty()
-    {
-        return Err("legacy media, review or show-link state requires a later migration adapter; original retained unchanged".into());
-    }
     let mut warnings = pptx_write::losses(&deck);
+    warnings.retain(|w| {
+        !w.contains("媒体仅在JoyDeck原生文件")
+            && !w.contains("评论与阅读顺序仅在JoyDeck")
+            && !w.contains("对象放映链接在JoyDeck")
+    });
     warnings.push("One-time v1 conversion resolves legacy design/fields to public OOXML; exact old archive, source package and IDs are retained in the v2 migration attachment. Native inheritance is not reconstructed.".into());
     document::check_cancel(cancel)?;
     parts = pptx_write::generate(&deck)?;
@@ -107,6 +117,16 @@ pub fn convert(bytes: &[u8], cancel: &AtomicBool) -> Result<Conversion, String> 
             .ok_or("missing schemaMinor")?,
         source_ids,
         warnings,
+        supplement: Supplement {
+            threads: deck.review.threads.clone(),
+            accessibility: deck.review.accessibility.clone(),
+            reading_order: deck.review.reading_order.clone(),
+            clips: deck.playback.clips.clone(),
+            assets: deck.playback.assets.clone(),
+            links: deck.presentation.links.clone(),
+            order: deck.presentation.order.clone(),
+            loop_show: deck.presentation.loop_show,
+        },
     })
 }
 

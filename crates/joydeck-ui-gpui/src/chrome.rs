@@ -41,8 +41,8 @@ fn small(id: &'static str, icon: I, label: &'static str) -> Button {
         .xsmall()
         .icon(icon)
         .label(label)
-        .h(px(23.))
-        .text_size(px(12.))
+        .h(px(17.))
+        .text_size(px(11.))
         .rounded(px(3.))
 }
 fn tool(id: &'static str, icon: I, label: &'static str, tint: u32) -> Button {
@@ -50,8 +50,8 @@ fn tool(id: &'static str, icon: I, label: &'static str, tint: u32) -> Button {
         .ghost()
         .accessibility_label(label)
         .tooltip(label)
-        .w(px(60.))
-        .h(px(64.))
+        .w(px(68.))
+        .h(px(50.))
         .p_1()
         .rounded(px(4.))
         .child(
@@ -64,7 +64,7 @@ fn tool(id: &'static str, icon: I, label: &'static str, tint: u32) -> Button {
                 .child(div().text_size(px(11.)).child(label)),
         )
 }
-pub(super) fn group(_label: &'static str, content: impl IntoElement) -> Div {
+pub(super) fn group(label: &'static str, content: impl IntoElement) -> Div {
     div()
         .h(px(66.))
         .flex_shrink_0()
@@ -73,7 +73,19 @@ pub(super) fn group(_label: &'static str, content: impl IntoElement) -> Div {
         .border_color(rgb(0xe1e1e1))
         .flex()
         .flex_col()
+        .relative()
         .child(content)
+        .child(
+            div()
+                .absolute()
+                .bottom_0()
+                .left_0()
+                .w_full()
+                .h(px(11.))
+                .text_center()
+                .text_size(px(9.))
+                .child(label),
+        )
 }
 
 fn row() -> Div {
@@ -105,6 +117,9 @@ impl Viewer {
                     .tooltip("文件")
                     .on_click(cx.listener(|s, _, _, cx| {
                         s.backstage = !s.backstage;
+                        if s.backstage {
+                            s.refresh_recent(cx);
+                        }
                         cx.notify();
                     })),
             )
@@ -215,6 +230,9 @@ impl Viewer {
                     .on_click(cx.listener(move |s, _, _, cx| {
                         if tab == "文件" {
                             s.backstage = !s.backstage;
+                            if s.backstage {
+                                s.refresh_recent(cx);
+                            }
                         } else {
                             s.ribbon = tab;
                             s.backstage = false;
@@ -257,7 +275,9 @@ impl Viewer {
             .as_ref()
             .is_some_and(|e| !e.session.selection().shapes.is_empty());
         let bar = match self.ribbon {
-            "开始" => self.ribbon_home(cx, disabled, selected),
+            "开始" => self
+                .ribbon_home(cx, disabled, selected)
+                .child(self.organization_controls(cx)),
             "插入" => self.ribbon_insert(cx),
             "设计" => self.ribbon_design(cx, disabled),
             "图片" => self.ribbon_picture(cx, selected),
@@ -393,14 +413,31 @@ impl Viewer {
                             small("duplicate-slide", I::Copy, "复制幻灯片")
                                 .disabled(disabled)
                                 .on_click(cx.listener(|s, _, w, cx| {
-                                    s.dispatch(Command::DuplicateSlide, w, cx)
+                                    s.dispatch(
+                                        Command::Workspace {
+                                            action:
+                                                joydeck_engine::WorkspaceAction::DuplicateSlides {
+                                                    slides: s.selected_slides(),
+                                                },
+                                        },
+                                        w,
+                                        cx,
+                                    )
                                 })),
                         )
                         .child(
                             small("delete-slide", I::Trash, "删除幻灯片")
                                 .disabled(disabled)
                                 .on_click(cx.listener(|s, _, w, cx| {
-                                    s.dispatch(Command::DeleteSlide, w, cx)
+                                    s.dispatch(
+                                        Command::Workspace {
+                                            action: joydeck_engine::WorkspaceAction::DeleteSlides {
+                                                slides: s.selected_slides(),
+                                            },
+                                        },
+                                        w,
+                                        cx,
+                                    )
                                 })),
                         ),
                 ),
@@ -656,9 +693,7 @@ impl Viewer {
     // Keep ribbon construction in bounded frames on the Windows default stack.
     #[inline(never)]
     fn ribbon_table(&self, cx: &mut Context<Self>) -> Div {
-        let mut bar = row().h(px(66.)).items_start();
-        bar = bar.child(group("表格布局", self.text_table_toolbar(cx)));
-        bar
+        self.table_controls(cx)
     }
     // Keep ribbon construction in bounded frames on the Windows default stack.
     #[inline(never)]
@@ -736,6 +771,26 @@ impl Viewer {
     #[inline(never)]
     fn ribbon_review(&self, cx: &mut Context<Self>) -> Div {
         let mut bar = row().h(px(66.)).items_start();
+        bar = bar.child(group(
+            "批注与比较",
+            row()
+                .child(
+                    tool("add-comment", I::NotebookPen, "新增批注", 0x2e6fd8)
+                        .on_click(cx.listener(|s, _, w, cx| s.add_comment(w, cx))),
+                )
+                .child(
+                    tool("comments", I::NotebookPen, "批注列表", 0x2e6fd8)
+                        .on_click(cx.listener(|s, _, w, cx| s.comments_dialog(w, cx))),
+                )
+                .child(
+                    tool("accessibility", I::FilePenLine, "替代文字", 0x2e6fd8)
+                        .on_click(cx.listener(|s, _, w, cx| s.accessibility_dialog(w, cx))),
+                )
+                .child(
+                    tool("compare-documents", I::FileCheck, "比较文稿", 0x2e6fd8)
+                        .on_click(cx.listener(|s, _, w, cx| s.compare_file(w, cx))),
+                ),
+        ));
         bar = bar
             .child(group(
                 "检查",
@@ -905,6 +960,8 @@ impl Viewer {
                                 .unwrap_or("新演示文稿".into()),
                         ),
                     )
+                    .child(self.templates_panel(cx))
+                    .child(self.recent_panel(cx))
                     .child("导出与打印")
                     .child(self.delivery_toolbar(cx))
                     .child(div().mt_4().text_sm().text_color(rgb(p.muted)).child(

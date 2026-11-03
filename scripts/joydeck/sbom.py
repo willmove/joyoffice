@@ -86,6 +86,9 @@ def source_hashes(data, packages, reached):
         for identifier in reached & workspace:
             files.update(Path(packages[identifier]['manifest_path']).parent.glob('*.rc'))
     elif is_word:
+        files.update(p for p in (ROOT / 'apps/joyword/assets').rglob('*') if p.is_file())
+        files.add(ROOT / 'apps/joyword/LICENSE-NotoEmoji.txt')
+        files.add(ROOT / 'licenses/fonts/sources.json')
         files.update(ROOT / 'scripts/joydeck' / name for name in ('sbom.py', 'paths.py'))
         files.add(ROOT / 'scripts/package_release.py')
     else:

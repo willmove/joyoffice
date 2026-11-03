@@ -453,6 +453,7 @@ fn leader_run(
 }
 
 fn append_run(base: &mut ShapedRun, extra: &ShapedRun, origin: i64) {
+    base.fallback_font = base.fallback_font.or(extra.fallback_font);
     let text_base = base.text.len();
     base.text.push_str(&extra.text);
     for glyph in &extra.glyphs {
@@ -472,6 +473,7 @@ struct LineBuilder {
     source_end: (usize, usize),
     body_edge: i64,
     font_key: Option<crate::FontKey>,
+    fallback_font: Option<crate::FontKey>,
     tab_gaps: Vec<(i64, i64)>,
     label_glyphs: usize,
     label_text_bytes: usize,
@@ -489,6 +491,7 @@ impl LineBuilder {
             source_end: (0, 0),
             body_edge,
             font_key: None,
+            fallback_font: None,
             tab_gaps: Vec::new(),
             label_glyphs: 0,
             label_text_bytes: 0,
@@ -515,6 +518,7 @@ impl LineBuilder {
         let text_base = self.text.len();
         self.text.push_str(&run.text);
         self.font_key = Some(run.font);
+        self.fallback_font = self.fallback_font.or(run.fallback_font);
         for glyph in &run.glyphs {
             let mut glyph = *glyph;
             glyph.cluster += text_base;
@@ -539,6 +543,7 @@ impl LineBuilder {
             },
             run: ShapedRun {
                 font: self.font_key.unwrap_or_else(|| font.key()),
+                fallback_font: self.fallback_font,
                 size,
                 text: self.text,
                 glyphs: self.glyphs,

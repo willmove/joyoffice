@@ -535,6 +535,7 @@ fn image_line(
         },
         run: ShapedRun {
             font: font.key(),
+            fallback_font: None,
             size,
             text: String::new(),
             glyphs: Vec::new(),
@@ -576,6 +577,7 @@ fn anchor_line(font: &LoadedFont, size: Emu, image: &FlowImage) -> LayoutLine {
         },
         run: ShapedRun {
             font: font.key(),
+            fallback_font: None,
             size,
             text: String::new(),
             glyphs: Vec::new(),

@@ -1,0 +1,402 @@
+{
+  "cli": "D:\\Coding\\EditorProjects\\joyoffice\\dist\\joydeck\\joydeck-r9-ui2-windows-delivery\\joydeck-cli.exe",
+  "cli_sha256": "1cef13746d2c36daf7e4f559c02ead99875bf72abdad1015bc6406b7a4e4ddf8",
+  "working_directory": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径",
+  "checks": 28,
+  "passed": true,
+  "runs": [
+    {
+      "args": [
+        "inspect",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\r1-preview.deckcraft"
+      ],
+      "exit_code": 0,
+      "stdoutSha256": "a8edae881f0616b0238efb7a619cff1c694203d44d95d639b6a099bf5f2a9c68",
+      "stdoutBytes": 22044,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0
+    },
+    {
+      "args": [
+        "render",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\r1-preview.deckcraft",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\r1-preview.deckcraft.pngs",
+        "--all",
+        "--scale",
+        "1"
+      ],
+      "exit_code": 0,
+      "stdoutSha256": "d4f1fb70461419244058abbc445df7454d601f9008e958e9a60cafe712035be4",
+      "stdoutBytes": 126,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0
+    },
+    {
+      "args": [
+        "render",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\r1-preview.deckcraft",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\r1-preview.deckcraft.pngs"
+      ],
+      "exit_code": 1,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 0,
+      "stderrSha256": "66fc6162f44ac72f00b2135b466585ed57fcce30acd5efb27e19bc190fd822a2",
+      "stderrBytes": 107
+    },
+    {
+      "args": [
+        "render",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\r1-preview.deckcraft",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\error-3",
+        "--page",
+        "0"
+      ],
+      "exit_code": 1,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 0,
+      "stderrSha256": "7be4c78310d36013c01bc71e15858c85452b212274dfb2c11d5170fdd4670f1e",
+      "stderrBytes": 30
+    },
+    {
+      "args": [
+        "render",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\r1-preview.deckcraft",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\error-4",
+        "--page",
+        "9999"
+      ],
+      "exit_code": 1,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 0,
+      "stderrSha256": "ade41c4ede7c6a3bb631e2b951a6439d7d98550bb445212c82e828daae9e4bcb",
+      "stderrBytes": 35
+    },
+    {
+      "args": [
+        "render",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\r1-preview.deckcraft",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\error-5",
+        "--scale",
+        "NaN"
+      ],
+      "exit_code": 1,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 0,
+      "stderrSha256": "393c33dfc17fa57a10cde29615a8bf942cf773c45f586921aaa4edeea387bf24",
+      "stderrBytes": 76
+    },
+    {
+      "args": [
+        "render",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\r1-preview.deckcraft",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\error-6",
+        "--scale",
+        "8"
+      ],
+      "exit_code": 1,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 0,
+      "stderrSha256": "393c33dfc17fa57a10cde29615a8bf942cf773c45f586921aaa4edeea387bf24",
+      "stderrBytes": 76
+    },
+    {
+      "args": [
+        "render",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\r1-preview.deckcraft",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\error-7",
+        "--all",
+        "--page",
+        "1"
+      ],
+      "exit_code": 1,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 0,
+      "stderrSha256": "b1a1f9c3fafc88a7d8e5601bc86b35c9383a5296104421dcd07ba517a1aa1503",
+      "stderrBytes": 40
+    },
+    {
+      "args": [
+        "inspect",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\r1-preview.pptx"
+      ],
+      "exit_code": 0,
+      "stdoutSha256": "4b9d7d4f486a90ff1291abf6cc9cb5307cd0740848e5982a086d622f39d34185",
+      "stdoutBytes": 22089,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0
+    },
+    {
+      "args": [
+        "render",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\r1-preview.pptx",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\r1-preview.pptx.pngs",
+        "--all",
+        "--scale",
+        "1"
+      ],
+      "exit_code": 0,
+      "stdoutSha256": "f47c7e5129fbea0254aa4e9ea954f425cb248ba8a8e6a536da513306e8577d0b",
+      "stdoutBytes": 121,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0
+    },
+    {
+      "args": [
+        "render",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\r1-preview.pptx",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\r1-preview.pptx.pngs"
+      ],
+      "exit_code": 1,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 0,
+      "stderrSha256": "66fc6162f44ac72f00b2135b466585ed57fcce30acd5efb27e19bc190fd822a2",
+      "stderrBytes": 107
+    },
+    {
+      "args": [
+        "render",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\r1-preview.pptx",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\error-11",
+        "--page",
+        "0"
+      ],
+      "exit_code": 1,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 0,
+      "stderrSha256": "7be4c78310d36013c01bc71e15858c85452b212274dfb2c11d5170fdd4670f1e",
+      "stderrBytes": 30
+    },
+    {
+      "args": [
+        "render",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\r1-preview.pptx",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\error-12",
+        "--page",
+        "9999"
+      ],
+      "exit_code": 1,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 0,
+      "stderrSha256": "ade41c4ede7c6a3bb631e2b951a6439d7d98550bb445212c82e828daae9e4bcb",
+      "stderrBytes": 35
+    },
+    {
+      "args": [
+        "render",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\r1-preview.pptx",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\error-13",
+        "--scale",
+        "NaN"
+      ],
+      "exit_code": 1,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 0,
+      "stderrSha256": "393c33dfc17fa57a10cde29615a8bf942cf773c45f586921aaa4edeea387bf24",
+      "stderrBytes": 76
+    },
+    {
+      "args": [
+        "render",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\r1-preview.pptx",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\error-14",
+        "--scale",
+        "8"
+      ],
+      "exit_code": 1,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 0,
+      "stderrSha256": "393c33dfc17fa57a10cde29615a8bf942cf773c45f586921aaa4edeea387bf24",
+      "stderrBytes": 76
+    },
+    {
+      "args": [
+        "render",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\r1-preview.pptx",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\error-15",
+        "--all",
+        "--page",
+        "1"
+      ],
+      "exit_code": 1,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 0,
+      "stderrSha256": "b1a1f9c3fafc88a7d8e5601bc86b35c9383a5296104421dcd07ba517a1aa1503",
+      "stderrBytes": 40
+    },
+    {
+      "args": [
+        "inspect",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\independent.pptx"
+      ],
+      "exit_code": 0,
+      "stdoutSha256": "760cf7cc25213292855c176e08b14e30965e53f00c6c7e98d3a7d9541139d0e8",
+      "stdoutBytes": 41019,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0
+    },
+    {
+      "args": [
+        "render",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\independent.pptx",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\independent.pptx.pngs",
+        "--all",
+        "--scale",
+        "1"
+      ],
+      "exit_code": 0,
+      "stdoutSha256": "924ee34a45c6bad189d0ce647afa4475aaee43fad6e1de98f3fd9deceba1c37b",
+      "stdoutBytes": 122,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0
+    },
+    {
+      "args": [
+        "render",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\independent.pptx",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\independent.pptx.pngs"
+      ],
+      "exit_code": 1,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 0,
+      "stderrSha256": "66fc6162f44ac72f00b2135b466585ed57fcce30acd5efb27e19bc190fd822a2",
+      "stderrBytes": 107
+    },
+    {
+      "args": [
+        "render",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\independent.pptx",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\error-19",
+        "--page",
+        "0"
+      ],
+      "exit_code": 1,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 0,
+      "stderrSha256": "7be4c78310d36013c01bc71e15858c85452b212274dfb2c11d5170fdd4670f1e",
+      "stderrBytes": 30
+    },
+    {
+      "args": [
+        "render",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\independent.pptx",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\error-20",
+        "--page",
+        "9999"
+      ],
+      "exit_code": 1,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 0,
+      "stderrSha256": "ade41c4ede7c6a3bb631e2b951a6439d7d98550bb445212c82e828daae9e4bcb",
+      "stderrBytes": 35
+    },
+    {
+      "args": [
+        "render",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\independent.pptx",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\error-21",
+        "--scale",
+        "NaN"
+      ],
+      "exit_code": 1,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 0,
+      "stderrSha256": "393c33dfc17fa57a10cde29615a8bf942cf773c45f586921aaa4edeea387bf24",
+      "stderrBytes": 76
+    },
+    {
+      "args": [
+        "render",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\independent.pptx",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\error-22",
+        "--scale",
+        "8"
+      ],
+      "exit_code": 1,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 0,
+      "stderrSha256": "393c33dfc17fa57a10cde29615a8bf942cf773c45f586921aaa4edeea387bf24",
+      "stderrBytes": 76
+    },
+    {
+      "args": [
+        "render",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\independent.pptx",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\error-23",
+        "--all",
+        "--page",
+        "1"
+      ],
+      "exit_code": 1,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 0,
+      "stderrSha256": "b1a1f9c3fafc88a7d8e5601bc86b35c9383a5296104421dcd07ba517a1aa1503",
+      "stderrBytes": 40
+    },
+    {
+      "args": [
+        "inspect",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\损坏文件.pptx"
+      ],
+      "exit_code": 1,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 0,
+      "stderrSha256": "5df88b7961377840c020ea41a913c5635dbf3582e1fc742cf6f3a213af06e02f",
+      "stderrBytes": 37
+    },
+    {
+      "args": [
+        "inspect",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\future.deckcraft"
+      ],
+      "exit_code": 1,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 0,
+      "stderrSha256": "93d4df6c62d52522cbf5284525b285c8d59c0698c1be074195e01b647964d713",
+      "stderrBytes": 81
+    },
+    {
+      "args": [
+        "unknown-command"
+      ],
+      "exit_code": 1,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 0,
+      "stderrSha256": "7e570def9371a27c3d849fae00bd0bd46efc03637e3c74143e4966699cbff660",
+      "stderrBytes": 59
+    },
+    {
+      "args": [
+        "diagnostics"
+      ],
+      "exit_code": 0,
+      "stdoutSha256": "492d6c02b80db1596422cbbcc0e2f3d2f5226eca48f3f43df5f1e66d66a1f9d2",
+      "stdoutBytes": 1823,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0
+    }
+  ],
+  "fullReportSha256": "a837c2dfa03d7403652f50dfe936cac9f568316135f289a46e92f916a2807ef1",
+  "fullReportLocalPath": "D:\\Coding\\EditorProjects\\joyoffice\\target\\r9-ui2\\delivery-cli-r1-full.json",
+  "allAssertionsPassed": true
+}

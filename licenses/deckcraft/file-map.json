@@ -277,7 +277,7 @@
       "source_path": "crates/model/src/lib.rs",
       "source_sha256": "4b5a99b737768e630d877382837063a3f43ca12f9385ee8834e9437ed53b16d2",
       "target_path": "crates/joydeck-model/src/lib.rs",
-      "adapted_sha256": "9b9de374f62158faa2b16af5face911c777712a0dd1c8170e9f1820d0ef19410",
+      "adapted_sha256": "40c17dc32d930d5f958fe93fc1fd139040cb4109e0836f6521f70b88a93b21b3",
       "changes": [
         "crate/import namespace deckcraft -> joydeck",
         "LF normalization",
@@ -285,7 +285,8 @@
         "rustfmt using repository Unix newline policy",
         "test-only assertion lint allowances; production no-panic guards retained",
         "scoped Clippy style allowances preserve imported public representations"
-      ]
+      ],
+      "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained."
     },
     {
       "source_path": "crates/model/src/numfmt.rs",
@@ -1739,14 +1740,15 @@
       "source_path": "crates/pptx/src/read.rs",
       "source_sha256": "db5e0ece9be0db36fedf36fbd6efa95d9536be8060cce414b28ee94e298640ff",
       "target_path": "crates/joydeck-pptx/src/read.rs",
-      "adapted_sha256": "9c2cc183671fcb5f962cf67929f2af6431ce48f328dda9de331a595027450abd",
+      "adapted_sha256": "d566036e3e01956da962b49cadeac8429e05d38c40505e2a89675570a70912ef",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
         "R9: resolve root officeDocument relationship for custom part paths; retain minimal packages without requiring unchanged masters"
-      ]
+      ],
+      "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained."
     },
     {
       "source_path": "crates/pptx/src/tables.rs",
@@ -2266,31 +2268,34 @@
       "source_path": "crates/ui-egui/src/theme.rs",
       "source_sha256": "d8d6f55195ac5b0c22d49ec313b716fcfab6cb2c08b3c15445b1ed1fcbe97c6a",
       "target_path": "crates/joydeck-ui-gpui/src/chrome.rs",
-      "adapted_sha256": "6159aeba5633f1faa75258e2b411cd7b9e42438d426ac561a5ee943db177c940",
+      "adapted_sha256": "8cd913b897625c2f089ce9fb95bf79debb642038082aac9f2af569f84b4939d6",
       "changes": [
         "R8: adapt typed media references / object ID and resource remapping / layout and theme tokens to pure engine or GPUI Kit; no egui dependency",
         "rustfmt; bounded transactions, errors and clipboard serialization; original MIT attribution retained"
-      ]
+      ],
+      "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained."
     },
     {
       "source_path": "crates/ui-egui/src/ribbon.rs",
       "source_sha256": "036692f8a885af7b61dfcd7e065f371f46c7db67854c0df9d205c91f35d9049a",
       "target_path": "crates/joydeck-ui-gpui/src/chrome.rs",
-      "adapted_sha256": "6159aeba5633f1faa75258e2b411cd7b9e42438d426ac561a5ee943db177c940",
+      "adapted_sha256": "8cd913b897625c2f089ce9fb95bf79debb642038082aac9f2af569f84b4939d6",
       "changes": [
         "R8: adapt typed media references / object ID and resource remapping / layout and theme tokens to pure engine or GPUI Kit; no egui dependency",
         "rustfmt; bounded transactions, errors and clipboard serialization; original MIT attribution retained"
-      ]
+      ],
+      "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained."
     },
     {
       "source_path": "crates/ui-egui/src/widgets.rs",
       "source_sha256": "d62cc3cce0436f1118c6486f52c5d90175aeaa79751602a89dbf01aa8d233bf9",
       "target_path": "crates/joydeck-ui-gpui/src/chrome.rs",
-      "adapted_sha256": "6159aeba5633f1faa75258e2b411cd7b9e42438d426ac561a5ee943db177c940",
+      "adapted_sha256": "8cd913b897625c2f089ce9fb95bf79debb642038082aac9f2af569f84b4939d6",
       "changes": [
         "R8: adapt typed media references / object ID and resource remapping / layout and theme tokens to pure engine or GPUI Kit; no egui dependency",
         "rustfmt; bounded transactions, errors and clipboard serialization; original MIT attribution retained"
-      ]
+      ],
+      "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained."
     }
   ]
 }

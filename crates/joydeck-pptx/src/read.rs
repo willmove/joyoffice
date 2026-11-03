@@ -1594,6 +1594,7 @@ fn read_comments(pkg: &Package, pres: &Part, root: &El, modern: bool) -> Vec<Com
             vec![]
         };
         Comment {
+            id: e.attr("id").or(e.attr("idx")).unwrap_or("").to_owned(),
             author,
             initials,
             text,

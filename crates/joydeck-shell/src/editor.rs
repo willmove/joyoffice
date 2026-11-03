@@ -63,6 +63,11 @@ impl Editor {
         let mut editor = Self::from_document(doc, root)?;
         editor.source = Some(path.to_path_buf());
         editor.fingerprint = Some(before);
+        if let Err(error) = storage::remember_file(&editor.recovery.root, path) {
+            editor
+                .import_warnings
+                .push(format!("最近文件记录未更新：{error}"));
+        }
         Ok(editor)
     }
     pub fn new(root: PathBuf) -> Result<Self, String> {
@@ -99,11 +104,9 @@ impl Editor {
                 converted.pptx.clone(),
                 &Cancellation::default(),
             )?;
-            (
-                base.presentation.clone(),
-                original_bindings(&base.presentation),
-                base,
-            )
+            let mut model = base.presentation.clone();
+            crate::legacy_semantics::apply(&mut model, converted)?;
+            (model, original_bindings(&base.presentation), base)
         } else {
             (
                 doc.presentation.clone(),
@@ -302,6 +305,36 @@ impl SaveJob {
             if expected.notes.text() != actual.notes.text() {
                 return Err("notes cannot round-trip; save .joydeck instead".into());
             }
+            fn comments_equal(a: &[joydeck_model::Comment], b: &[joydeck_model::Comment]) -> bool {
+                a.len() == b.len()
+                    && a.iter().zip(b).all(|(a, b)| {
+                        a.author == b.author
+                            && a.text == b.text
+                            && a.resolved == b.resolved
+                            && comments_equal(&a.replies, &b.replies)
+                    })
+            }
+            if !comments_equal(&expected.comments, &actual.comments) {
+                return Err("批注或回复不能保真写回此 PPTX；请另存 .joydeck 保留审阅内容".into());
+            }
+            let shape_ids: std::collections::BTreeMap<_, _> = expected
+                .shapes
+                .iter()
+                .zip(&actual.shapes)
+                .map(|(a, b)| (a.id, b.id))
+                .collect();
+            let mut animations = expected.animations.clone();
+            for animation in &mut animations {
+                if let Some(id) = shape_ids.get(&animation.shape) {
+                    animation.shape = *id;
+                }
+                if let Some(id) = animation.trigger.and_then(|id| shape_ids.get(&id)) {
+                    animation.trigger = Some(*id);
+                }
+            }
+            if animations != actual.animations {
+                return Err("animation edits cannot round-trip in preserving mode; save .joydeck or explicitly regenerate PPTX".into());
+            }
             if expected.shapes.len() != actual.shapes.len() {
                 return Err(format!(
                     "page {} cannot round-trip its object tree; save .joydeck instead",
@@ -333,6 +366,77 @@ impl SaveJob {
                             .into(),
                     );
                 }
+                if let (joydeck_model::ShapeKind::Table(a), joydeck_model::ShapeKind::Table(b)) =
+                    (&a.kind, &b.kind)
+                {
+                    let near = |a: f64, b: f64| (a - b).abs() < 0.001;
+                    let dimensions = a.cols.iter().zip(&b.cols).all(|(a, b)| near(*a, *b))
+                        && a.rows
+                            .iter()
+                            .zip(&b.rows)
+                            .all(|(a, b)| near(a.height, b.height));
+                    let props = a.rows.iter().zip(&b.rows).all(|(a, b)| {
+                        a.cells.iter().zip(&b.cells).all(|(a, b)| {
+                            a.anchor.unwrap_or(joydeck_model::text::Anchor::Top)
+                                == b.anchor.unwrap_or(joydeck_model::text::Anchor::Top)
+                                && a.vertical
+                                    .unwrap_or(joydeck_model::text::TextDir::Horizontal)
+                                    == b.vertical
+                                        .unwrap_or(joydeck_model::text::TextDir::Horizontal)
+                                && a.margins
+                                    .unwrap_or([7.2, 7.2, 3.6, 3.6])
+                                    .iter()
+                                    .zip(b.margins.unwrap_or([7.2, 7.2, 3.6, 3.6]))
+                                    .all(|(a, b)| near(*a, b))
+                                && a.borders == b.borders
+                        })
+                    });
+                    if !dimensions
+                        || !props
+                        || a.first_row != b.first_row
+                        || a.band_row != b.band_row
+                    {
+                        return Err("table dimensions/borders/margins/alignment cannot round-trip; save .joydeck instead".into());
+                    }
+                }
+                if a.descr != b.descr || a.decorative != b.decorative {
+                    return Err("替代文字不能保真写回此 PPTX；请另存 .joydeck".into());
+                }
+                if let joydeck_model::ShapeKind::Media(expected_clip) = &a.kind {
+                    let joydeck_model::ShapeKind::Media(actual_clip) = &b.kind else {
+                        return Err("media object cannot round-trip; save .joydeck instead".into());
+                    };
+                    // Resource IDs are local to each parsed package, not semantic identity.
+                    let mut normalized = expected_clip.clone();
+                    normalized.media = actual_clip.media;
+                    normalized.poster = actual_clip.poster;
+                    let poster_equal = match (expected_clip.poster, actual_clip.poster) {
+                        (None, None) => true,
+                        (Some(a), Some(b)) => self.snapshot.model.media(a).is_some_and(|a| {
+                            reopened.presentation.media(b).is_some_and(|b| {
+                                a.content_type == b.content_type && a.data == b.data
+                            })
+                        }),
+                        _ => false,
+                    };
+                    if normalized != *actual_clip
+                        || !poster_equal
+                        || self
+                            .snapshot
+                            .model
+                            .media(expected_clip.media)
+                            .map(|m| m.data.as_slice())
+                            != reopened
+                                .presentation
+                                .media(actual_clip.media)
+                                .map(|m| m.data.as_slice())
+                    {
+                        return Err(
+                            "media parameters/bytes cannot round-trip; save .joydeck instead"
+                                .into(),
+                        );
+                    }
+                }
                 let x = joydeck_model::resolve::xfrm(&before, a);
                 let y = joydeck_model::resolve::xfrm(&after, b);
                 let same = [(x.x, y.x), (x.y, y.y), (x.w, y.w), (x.h, y.h)]
@@ -352,6 +456,13 @@ impl SaveJob {
         }
         let fingerprint = storage::save(&self.destination, &bytes, self.expected.clone())?;
         let warning = self.recovery.clean(self.revision).err();
+        let warning = match storage::remember_file(&self.recovery.root, &self.destination) {
+            Ok(()) => warning,
+            Err(e) => Some(format!(
+                "{}最近文件记录未更新：{e}",
+                warning.map(|w| format!("{w}；")).unwrap_or_default()
+            )),
+        };
         Ok(Saved {
             fingerprint,
             content_id: self.snapshot.content_id,

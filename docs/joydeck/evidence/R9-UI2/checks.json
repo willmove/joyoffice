@@ -1,0 +1,34 @@
+{
+  "joint-qualified-tests.log": {
+    "summaries": 261,
+    "passed": 3593,
+    "failed": 0,
+    "ignored": 1,
+    "failedSummaries": 0,
+    "errors": 0
+  },
+  "joydeck-qualified2-check.log": {
+    "summaries": 46,
+    "passed": 891,
+    "failed": 0,
+    "ignored": 0,
+    "failedSummaries": 0,
+    "errors": 0
+  },
+  "joyword-qualified-check.log": {
+    "summaries": 181,
+    "passed": 1318,
+    "failed": 0,
+    "ignored": 0,
+    "failedSummaries": 0,
+    "errors": 0
+  },
+  "qualified2-clippy.log": {
+    "summaries": 0,
+    "passed": 0,
+    "failed": 0,
+    "ignored": 0,
+    "failedSummaries": 0,
+    "errors": 0
+  }
+}

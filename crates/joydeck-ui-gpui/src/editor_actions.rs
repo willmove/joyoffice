@@ -6,9 +6,23 @@ pub(super) struct Drag {
     pub(super) start: Point<Pixels>,
     pub(super) current: Point<Pixels>,
     pub(super) resize: Option<(i8, i8)>,
+    pub(super) rotate: bool,
     pub(super) marquee: bool,
 }
 impl Viewer {
+    pub(super) fn selected_bounds(&self) -> Option<joydeck_model::Rect> {
+        let e = self.editor.as_ref()?;
+        let p = e.session.model();
+        let slide = p.slides.get(self.page)?;
+        let ctx = resolve::Ctx::for_slide(p, slide)?;
+        e.session
+            .selection()
+            .shapes
+            .iter()
+            .filter_map(|id| slide.shape(*id))
+            .map(|s| resolve::xfrm(&ctx, s).bounds())
+            .reduce(|a, b| a.union(b))
+    }
     pub(super) fn block_replace(&mut self, cx: &mut Context<Self>) -> bool {
         if self.composing() {
             self.message = "请先完成或取消输入法组合输入".into();
@@ -30,10 +44,13 @@ impl Viewer {
             self.page = editor.session.selection().page;
             if self
                 .cell
-                .is_some_and(|(id, _, _)| !editor.session.selection().shapes.contains(&id))
+                .is_some_and(|(id, row, col)| !editor.session.selection().shapes.contains(&id) || !matches!(editor.session.model().slides[self.page].shape(id).map(|s| &s.kind), Some(joydeck_model::ShapeKind::Table(t)) if t.cell(row, col).is_some_and(|c| !c.is_covered())))
             {
                 self.cell = None;
             }
+            self.slide_selection
+                .retain(|id| editor.session.model().slide(*id).is_some());
+            if self.cell_range.is_some_and(|(id, range)| !editor.session.selection().shapes.contains(&id) || !matches!(editor.session.model().slides[self.page].shape(id).map(|s| &s.kind), Some(joydeck_model::ShapeKind::Table(t)) if range.end_row < t.n_rows() && range.end_col < t.n_cols())) { self.cell_range = None; }
             match editor.display() {
                 Ok(mut deck) => {
                     if editor.source.is_none() && deck.info.name == "Untitled.joydeck" {
@@ -190,6 +207,8 @@ impl Viewer {
                 self.zoom = None;
                 self.cell = None;
                 self.backstage = false;
+                self.slide_selection.clear();
+                self.slide_anchor = None;
                 self.generation += 1;
                 self.save_input.update(cx, |s, cx| s.set_value("", w, cx));
                 self.sync_editor(w, cx);
@@ -291,7 +310,7 @@ impl Viewer {
                                 }
                             }
                             if s.close_after_save && !editor.session.dirty() {
-                                cx.quit();
+                                s.close_ready = true;
                             } else if s.close_after_save {
                                 s.close_after_save = false;
                                 s.message.push_str(" · 有新修改，窗口继续打开");
@@ -537,12 +556,20 @@ impl Viewer {
             "R4/R5 pointer position={:?} bounds={:?} point=({x},{y}) scale={scale}",
             event.position, self.canvas_bounds
         );
-        for shape in slide
-            .shapes
-            .iter()
-            .filter(|s| e.session.selection().shapes.contains(&s.id))
-        {
-            let b = resolve::xfrm(&ctx, shape).bounds();
+        if let Some(b) = self.selected_bounds() {
+            if ((x - b.center().x) * scale as f64).abs() <= 8.
+                && ((y - b.y0) * scale as f64 + 24.).abs() <= 8.
+            {
+                self.drag = Some(Drag {
+                    start: event.position,
+                    current: event.position,
+                    resize: None,
+                    rotate: true,
+                    marquee: false,
+                });
+                cx.notify();
+                return;
+            }
             for (hx, hy) in [
                 (-1, -1),
                 (0, -1),
@@ -560,6 +587,7 @@ impl Viewer {
                         start: event.position,
                         current: event.position,
                         resize: Some((hx, hy)),
+                        rotate: false,
                         marquee: false,
                     });
                     cx.notify();
@@ -579,10 +607,18 @@ impl Viewer {
             })
             .map(|s| s.id);
         if let Some(id) = id {
-            if event.modifiers.shift || !e.session.selection().shapes.contains(&id) {
+            let extend_cell = event.modifiers.shift
+                && (self.cell.is_some_and(|(shape, _, _)| shape == id)
+                    || self.cell_range.is_some_and(|(shape, _)| shape == id));
+            let prior_cell = self.cell;
+            let prior_range = self.cell_range;
+            if (event.modifiers.shift && !extend_cell)
+                || !e.session.selection().shapes.contains(&id)
+            {
                 self.select_object(id, event.modifiers.shift, w, cx);
             }
             self.cell = None;
+            self.cell_range = None;
             if let Some(e) = &self.editor {
                 let p = e.session.model();
                 let slide = &p.slides[self.page];
@@ -600,6 +636,25 @@ impl Viewer {
                     .into_iter()
                     .find(|(_, _, rect)| rect.contains(point))
                     .map(|(r, c, _)| (id, r, c));
+                    if extend_cell && let Some((_, row, col)) = self.cell {
+                        let (r, c) = prior_range
+                            .map(|(_, v)| (v.row, v.col))
+                            .or_else(|| prior_cell.map(|(_, r, c)| (r, c)))
+                            .unwrap_or((row, col));
+                        self.cell_range = Some((
+                            id,
+                            joydeck_engine::CellRange {
+                                row: r.min(row),
+                                col: c.min(col),
+                                end_row: r.max(row),
+                                end_col: c.max(col),
+                            },
+                        ));
+                        self.cell = None;
+                        self.drag = None;
+                        cx.notify();
+                        return;
+                    }
                 }
             }
             let empty_placeholder = self
@@ -615,11 +670,14 @@ impl Viewer {
             }
         } else if let Some(e) = &mut self.editor {
             let _ = e.session.select(self.page, vec![]);
+            self.cell = None;
+            self.cell_range = None;
         }
         self.drag = Some(Drag {
             start: event.position,
             current: event.position,
             resize: None,
+            rotate: false,
             marquee: id.is_none(),
         });
         cx.notify();
@@ -678,23 +736,42 @@ impl Viewer {
             }
             cx.notify();
         } else {
+            let Some(bounds) = self.selected_bounds() else {
+                return;
+            };
+            let (tx, ty, sx, sy, angle) = if d.rotate {
+                let center = bounds.center();
+                let ax = f32::from(d.start.x - self.canvas_bounds.origin.x) as f64 / scale as f64
+                    - center.x;
+                let ay = f32::from(d.start.y - self.canvas_bounds.origin.y) as f64 / scale as f64
+                    - center.y;
+                let mut angle = ((ay + dy).atan2(ax + dx) - ay.atan2(ax)).to_degrees();
+                if event.modifiers.shift {
+                    angle = (angle / 15.).round() * 15.;
+                }
+                (0., 0., 1., 1., angle)
+            } else if let Some((hx, hy)) = d.resize {
+                let width = (bounds.width() + dx * hx as f64).max(1.);
+                let height = (bounds.height() + dy * hy as f64).max(1.);
+                (
+                    if hx == 0 { 0. } else { dx / 2. },
+                    if hy == 0 { 0. } else { dy / 2. },
+                    width / bounds.width().max(1.),
+                    height / bounds.height().max(1.),
+                    0.,
+                )
+            } else {
+                (dx, dy, 1., 1., 0.)
+            };
             self.dispatch(
-                if let Some((hx, hy)) = d.resize {
-                    Command::Transform {
-                        dx: if hx < 0 { dx } else { 0. },
-                        dy: if hy < 0 { dy } else { 0. },
-                        dw: dx * hx as f64,
-                        dh: dy * hy as f64,
-                        rotation: 0.,
-                    }
-                } else {
-                    Command::Transform {
-                        dx,
-                        dy,
-                        dw: 0.,
-                        dh: 0.,
-                        rotation: 0.,
-                    }
+                Command::Workspace {
+                    action: joydeck_engine::WorkspaceAction::TransformSelection {
+                        dx: tx,
+                        dy: ty,
+                        scale_x: sx,
+                        scale_y: sy,
+                        rotation: angle,
+                    },
                 },
                 w,
                 cx,
@@ -720,14 +797,55 @@ impl Viewer {
             })
             .unwrap_or((0., 0., None));
         let mut overlays = Vec::new();
-        for shape in e
-            .session
-            .selection()
+        for shape in slide
             .shapes
             .iter()
-            .filter_map(|id| slide.shape(*id))
+            .filter(|s| e.session.selection().shapes.contains(&s.id))
         {
-            let b = resolve::xfrm(&ctx, shape).bounds();
+            if let joydeck_model::ShapeKind::Table(t) = &shape.kind {
+                let range = self
+                    .cell_range
+                    .filter(|(id, _)| *id == shape.id)
+                    .map(|(_, r)| r)
+                    .or_else(|| {
+                        self.cell
+                            .filter(|(id, _, _)| *id == shape.id)
+                            .map(|(_, row, col)| joydeck_engine::CellRange {
+                                row,
+                                col,
+                                end_row: row,
+                                end_col: col,
+                            })
+                    });
+                if let Some(range) = range {
+                    let transform = resolve::xfrm(&ctx, shape).affine();
+                    let heights =
+                        joydeck_render::table_row_heights(&ctx, t, &joydeck_text::NoFields);
+                    for (row, col, rect) in joydeck_render::table_cell_rects(t, &heights) {
+                        if row >= range.row
+                            && row <= range.end_row
+                            && col >= range.col
+                            && col <= range.end_col
+                        {
+                            let b = transform.transform_rect_bbox(rect);
+                            overlays.push(
+                                div()
+                                    .absolute()
+                                    .left(px(b.x0 as f32 * scale))
+                                    .top(px(b.y0 as f32 * scale))
+                                    .w(px(b.width() as f32 * scale))
+                                    .h(px(b.height() as f32 * scale))
+                                    .bg(rgba(0x0078d420))
+                                    .border_1()
+                                    .border_color(rgb(0x0078d4))
+                                    .into_any_element(),
+                            );
+                        }
+                    }
+                }
+            }
+        }
+        if let Some(b) = self.selected_bounds() {
             let (mx, my, dw, dh) = if let Some((hx, hy)) = resize {
                 (
                     if hx < 0 { dx } else { 0. },
@@ -752,6 +870,28 @@ impl Viewer {
                 .h(px(h))
                 .border_1()
                 .border_color(rgb(color));
+            outline = outline
+                .child(
+                    div()
+                        .absolute()
+                        .left(px(w / 2. - 0.5))
+                        .top(px(-24.))
+                        .w(px(1.))
+                        .h(px(24.))
+                        .bg(rgb(color)),
+                )
+                .child(
+                    div()
+                        .absolute()
+                        .left(px(w / 2. - 5.))
+                        .top(px(-29.))
+                        .w(px(10.))
+                        .h(px(10.))
+                        .rounded_full()
+                        .bg(rgb(0xffffff))
+                        .border_1()
+                        .border_color(rgb(color)),
+                );
             for (hx, hy) in [
                 (0., 0.),
                 (0.5, 0.),

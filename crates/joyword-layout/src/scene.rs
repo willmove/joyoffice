@@ -13,6 +13,7 @@ use crate::shape::{PaintedUnderline, ShapedGlyph, ShapedRun, UnderlinePaint};
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct GlyphRun {
     pub font: FontKey,
+    pub fallback_font: Option<FontKey>,
     pub size: Emu,
     /// Baseline start of the run on the page.
     pub origin_x: Emu,
@@ -34,9 +35,61 @@ pub struct GlyphRun {
 }
 
 impl GlyphRun {
+    /// Normalize fitted clusters into actual font runs without reshaping.
+    pub(crate) fn split_fonts(self) -> Vec<Self> {
+        if self.glyphs.iter().all(|g| !g.fallback) {
+            return vec![self];
+        }
+        let mut out = Vec::new();
+        let mut start = 0;
+        while start < self.glyphs.len() {
+            let font = if self.glyphs[start].fallback {
+                self.fallback_font.unwrap_or(self.font)
+            } else {
+                self.font
+            };
+            let end = self.glyphs[start..]
+                .iter()
+                .position(|g| {
+                    (if g.fallback {
+                        self.fallback_font.unwrap_or(self.font)
+                    } else {
+                        self.font
+                    }) != font
+                })
+                .map(|n| start + n)
+                .unwrap_or(self.glyphs.len());
+            let byte_start = self.glyphs[start].cluster;
+            let byte_end = self
+                .glyphs
+                .get(end)
+                .map(|g| g.cluster)
+                .unwrap_or(self.text.len());
+            let mut piece = self.clone();
+            let x = self.glyphs[start].x.raw();
+            piece.font = font;
+            piece.fallback_font = None;
+            piece.text = self.text[byte_start..byte_end].to_owned();
+            piece.origin_x = Emu::new(self.origin_x.raw().saturating_add(x));
+            piece.glyphs = self.glyphs[start..end]
+                .iter()
+                .map(|g| {
+                    let mut g = *g;
+                    g.fallback = false;
+                    g.cluster -= byte_start;
+                    g.x = Emu::new(g.x.raw() - x);
+                    g
+                })
+                .collect();
+            out.push(piece);
+            start = end;
+        }
+        out
+    }
     pub fn place(run: &ShapedRun, origin_x: Emu, baseline_y: Emu) -> Self {
         Self {
             font: run.font,
+            fallback_font: run.fallback_font,
             size: run.size,
             origin_x,
             baseline_y,

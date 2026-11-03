@@ -38,24 +38,100 @@ pub(super) fn parse_rgb(value: &str) -> Result<ColorRef, String> {
 
 impl Viewer {
     pub(super) fn step_font_size(&mut self, larger: bool, w: &mut Window, cx: &mut Context<Self>) {
-        let current = self.run_props().size.unwrap_or(18.);
-        let next = if larger {
-            SIZES
-                .iter()
-                .copied()
-                .map(f64::from)
-                .find(|n| *n > current)
-                .unwrap_or((current + 10.).min(400.))
-        } else {
-            SIZES
-                .iter()
-                .copied()
-                .rev()
-                .map(f64::from)
-                .find(|n| *n < current)
-                .unwrap_or((current - 1.).max(1.))
+        let next = |current: f64| {
+            if larger {
+                SIZES
+                    .iter()
+                    .copied()
+                    .map(f64::from)
+                    .find(|n| *n > current)
+                    .unwrap_or((current + 10.).min(400.))
+            } else {
+                SIZES
+                    .iter()
+                    .copied()
+                    .rev()
+                    .map(f64::from)
+                    .find(|n| *n < current)
+                    .unwrap_or((current - 1.).max(1.))
+            }
         };
-        self.format_runs(|p| p.size = Some(next), w, cx);
+        if self
+            .inline
+            .as_ref()
+            .is_some_and(|i| i.draft.selection.is_empty())
+        {
+            let current = self.run_props().size.unwrap_or(18.);
+            self.format_runs(|p| p.size = Some(next(current)), w, cx);
+            return;
+        }
+        let Some(e) = &self.editor else { return };
+        let pres = e.session.model();
+        let slide = &pres.slides[self.page];
+        let Some(ctx) = joydeck_model::resolve::Ctx::for_slide(pres, slide) else {
+            return;
+        };
+        let mut edits = vec![];
+        for target in self.format_targets() {
+            let id = match target {
+                joydeck_engine::TextTarget::Shape { shape }
+                | joydeck_engine::TextTarget::Cell { shape, .. } => shape,
+                _ => continue,
+            };
+            let Some(shape) = slide.shape(id) else {
+                continue;
+            };
+            let Ok(mut body) = joydeck_engine::text_body(pres, self.page, &target) else {
+                continue;
+            };
+            let range = self
+                .inline
+                .as_ref()
+                .filter(|i| i.target == target)
+                .map(|i| {
+                    body = i.draft.body.clone();
+                    i.draft.selection.clone()
+                });
+            let display = if let (
+                joydeck_engine::TextTarget::Cell { row, col, .. },
+                joydeck_model::ShapeKind::Table(t),
+            ) = (&target, &shape.kind)
+                && let Some(cell) = t.cell(*row, *col)
+            {
+                let mut cell = cell.clone();
+                cell.text = body.clone();
+                joydeck_render::table_cell_body(&ctx, t, *row, *col, &cell)
+            } else {
+                body.clone()
+            };
+            if let Err(error) = joydeck_engine::formatting::format_resolved(
+                &mut body,
+                range,
+                |pi, p, r| {
+                    joydeck_model::resolve::run(
+                        &ctx,
+                        shape,
+                        display.paragraphs.get(pi).unwrap_or(p),
+                        r,
+                    )
+                },
+                |r, effective| r.size = Some(next(effective.size.unwrap_or(18.))),
+            ) {
+                self.message = error;
+                cx.notify();
+                return;
+            }
+            edits.push(joydeck_engine::TextEdit { target, body });
+        }
+        if let Some(i) = &mut self.inline {
+            if let Some(edit) = edits.into_iter().find(|edit| edit.target == i.target) {
+                i.draft.body = edit.body;
+                self.publish_inline(w, cx);
+            }
+        } else if !edits.is_empty() {
+            self.dispatch(joydeck_engine::Command::SetTexts { edits }, w, cx);
+        }
+        self.focus.focus(w, cx);
     }
     pub(super) fn install_font_picker(&mut self, w: &mut Window, cx: &mut Context<Self>) {
         self.font_subscription =
@@ -76,10 +152,18 @@ impl Viewer {
 
     // Programmatic synchronization does not emit Confirm. Keep an active search intact.
     pub(super) fn sync_font_picker(&mut self, w: &mut Window, cx: &mut Context<Self>) {
-        if self.selected_body().is_none() {
+        let state = self.formatting();
+        if state.is_empty() {
             return;
         }
-        let family: SharedString = self.run_props().font.unwrap_or("主题字体".into()).into();
+        if state.mixed.contains("font") || state.mixed.contains("font_ea") {
+            if self.font_picker.read(cx).selected_value().is_some() {
+                self.font_picker
+                    .update(cx, |s, cx| s.set_selected_index(None, w, cx));
+            }
+            return;
+        }
+        let family: SharedString = state.run.font.unwrap_or("主题字体".into()).into();
         if self.font_picker.read(cx).selected_value() == Some(&family) {
             return;
         }
@@ -102,16 +186,26 @@ impl Viewer {
         disabled: bool,
         cx: &mut Context<Self>,
     ) -> impl IntoElement {
-        let current = self.run_props().size.unwrap_or(18.);
+        let state = self.formatting();
+        let current = state.run.size.unwrap_or(18.);
+        let label = if state.mixed.contains("size") {
+            "—⌄".into()
+        } else {
+            format!("{current}⌄")
+        };
         let view = cx.entity().downgrade();
         Popover::new("font-size-popup")
             .trigger(
                 Button::new("font-size")
                     .xsmall()
-                    .label(format!("{current}⌄"))
+                    .label(label)
                     .w(px(52.))
                     .h(px(23.))
-                    .accessibility_label("字号")
+                    .accessibility_label(if state.mixed.contains("size") {
+                        "字号（混合格式）"
+                    } else {
+                        "字号"
+                    })
                     .disabled(disabled),
             )
             .content(move |_, _, cx| {
@@ -185,7 +279,9 @@ impl Viewer {
             })
             .map(|(m, _)| m.theme.colors.clone())
             .unwrap_or_else(|| joydeck_model::theme::Theme::default().colors);
-        let selected = self.run_props().fill;
+        let state = self.formatting();
+        let mixed = state.mixed.contains("fill");
+        let selected = state.run.fill;
         let indicator = match selected {
             Some(Fill::Solid { color }) => color.resolve(&theme, None),
             _ => Rgba::BLACK,
@@ -197,9 +293,17 @@ impl Viewer {
                     .ghost()
                     .xsmall()
                     .icon(I::Baseline)
-                    .child(div().w(px(12.)).h(px(3.)).bg(rgb(rgb_value(indicator))))
+                    .child(div().w(px(12.)).h(px(3.)).bg(rgb(if mixed {
+                        0x999999
+                    } else {
+                        rgb_value(indicator)
+                    })))
                     .h(px(25.))
-                    .accessibility_label("字体颜色")
+                    .accessibility_label(if mixed {
+                        "字体颜色（混合格式）"
+                    } else {
+                        "字体颜色"
+                    })
                     .tooltip("字体颜色")
                     .disabled(disabled),
             )

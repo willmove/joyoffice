@@ -119,6 +119,15 @@ pub struct FaceSet<'a> {
 }
 
 impl<'a> FaceSet<'a> {
+    pub fn keys(&self) -> [FontKey; 5] {
+        [
+            self.ascii.key(),
+            self.h_ansi.key(),
+            self.east_asia.key(),
+            self.complex.key(),
+            self.fallback.key(),
+        ]
+    }
     pub fn uniform(font: &'a LoadedFont) -> Self {
         Self {
             ascii: font,
