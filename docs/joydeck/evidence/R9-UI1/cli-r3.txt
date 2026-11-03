@@ -1,0 +1,1 @@
+R3 public/native/table/text/notes checks passed: 20 executable calls

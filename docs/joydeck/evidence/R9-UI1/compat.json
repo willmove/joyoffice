@@ -1,0 +1,1385 @@
+{
+  "cli": "C:\\Users\\willm\\AppData\\Local\\Temp\\joyoffice-ui1-final-package-jljcq4_y\\中文 空格\\joydeck-0.8.0-r9-windows-x86_64-release-8e70ec1350\\joydeck-cli.exe",
+  "cli_sha256": "cd6fd71a3e59cb5612f06ffee3f3303599b063d0ee2e0d58a73b592cd8831673",
+  "work": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-ui1-compat-wj7j45ez\\中文 空格",
+  "source_sha256": "d6f81497635b517ae63c071f987d3da57449072939630456303871474950e691",
+  "source_unchanged": true,
+  "exchanges": 36,
+  "records": [
+    {
+      "transport": "control",
+      "request": {
+        "protocolVersion": "joydeck-control-1",
+        "requestId": "control-1",
+        "method": "engine.commands",
+        "params": {}
+      },
+      "response": {
+        "requestId": "control-1",
+        "result": {
+          "attachedDesktop": false,
+          "commandSchemaVersion": 2,
+          "commands": [
+            "content",
+            "insert-picture",
+            "select",
+            "paste-objects",
+            "insert-rect",
+            "insert-shape",
+            "insert-text",
+            "transform",
+            "replace-text",
+            "set-text",
+            "edit-text",
+            "insert-table",
+            "table",
+            "delete",
+            "duplicate",
+            "bring-forward",
+            "send-backward",
+            "new-slide",
+            "duplicate-slide",
+            "delete-slide",
+            "undo",
+            "redo"
+          ],
+          "compatibility": {
+            "commandParameters": "schema 2: params.command; target and expectedRevision required",
+            "restoredMethods": [
+              "command.validate",
+              "document.undo",
+              "document.redo"
+            ],
+            "validation": "snapshot execution, no live side effects"
+          },
+          "documentId": 0,
+          "legacyCommandSchemaSupported": false,
+          "methods": [
+            "engine.commands",
+            "document.new",
+            "document.open",
+            "document.inspect",
+            "document.status",
+            "document.close",
+            "command.execute",
+            "command.validate",
+            "document.undo",
+            "document.redo",
+            "document.save",
+            "document.exchange",
+            "export.start",
+            "jobs.get",
+            "jobs.cancel",
+            "show.start",
+            "show.action",
+            "show.tick",
+            "show.status",
+            "show.frame"
+          ],
+          "modelSchema": "joydeck-v2",
+          "outputs": "new paths only",
+          "protocolVersion": "joydeck-control-1",
+          "replay": "128 mutations / 16 MiB, same requestId and payload",
+          "root": "\\\\?\\C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-ui1-compat-wj7j45ez\\中文 空格",
+          "transport": "headless stdio"
+        }
+      }
+    },
+    {
+      "transport": "control",
+      "request": {
+        "protocolVersion": "joydeck-control-1",
+        "requestId": "control-2",
+        "method": "document.open",
+        "params": {
+          "path": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-ui1-compat-wj7j45ez\\中文 空格\\原稿.pptx"
+        }
+      },
+      "response": {
+        "requestId": "control-2",
+        "result": {
+          "canRedo": false,
+          "canUndo": false,
+          "dirty": false,
+          "documentId": 7318950252466946,
+          "engineRevision": 0,
+          "pages": 3,
+          "revision": 0,
+          "selection": {
+            "page": 0,
+            "shapes": []
+          }
+        }
+      }
+    },
+    {
+      "transport": "control",
+      "request": {
+        "protocolVersion": "joydeck-control-1",
+        "requestId": "control-3",
+        "method": "command.validate",
+        "params": {
+          "command": {
+            "command": "new-slide"
+          }
+        },
+        "target": 7318950252466946,
+        "expectedRevision": 0
+      },
+      "response": {
+        "requestId": "control-3",
+        "result": {
+          "commandSchemaVersion": 2,
+          "documentId": 7318950252466946,
+          "revision": 0,
+          "sideEffects": false,
+          "valid": true,
+          "wouldChange": true
+        }
+      }
+    },
+    {
+      "transport": "control",
+      "request": {
+        "protocolVersion": "joydeck-control-1",
+        "requestId": "control-4",
+        "method": "document.status",
+        "params": {}
+      },
+      "response": {
+        "requestId": "control-4",
+        "result": {
+          "canRedo": false,
+          "canUndo": false,
+          "dirty": false,
+          "documentId": 7318950252466946,
+          "engineRevision": 0,
+          "pages": 3,
+          "revision": 0,
+          "selection": {
+            "page": 0,
+            "shapes": []
+          }
+        }
+      }
+    },
+    {
+      "transport": "control",
+      "request": {
+        "protocolVersion": "joydeck-control-1",
+        "requestId": "control-5",
+        "method": "command.validate",
+        "params": {
+          "command": {
+            "command": "select",
+            "page": 99,
+            "shapes": []
+          }
+        },
+        "target": 7318950252466946,
+        "expectedRevision": 0
+      },
+      "response": {
+        "error": {
+          "code": "operation-failed",
+          "message": "page outside document"
+        },
+        "requestId": "control-5"
+      }
+    },
+    {
+      "transport": "control",
+      "request": {
+        "protocolVersion": "joydeck-control-1",
+        "requestId": "control-6",
+        "method": "command.validate",
+        "params": {
+          "command": {
+            "command": "new-slide"
+          }
+        },
+        "target": 7318950252466946,
+        "expectedRevision": 99
+      },
+      "response": {
+        "error": {
+          "code": "operation-failed",
+          "message": "expectedRevision missing/stale"
+        },
+        "requestId": "control-6"
+      }
+    },
+    {
+      "transport": "control",
+      "request": {
+        "protocolVersion": "joydeck-control-1",
+        "requestId": "control-7",
+        "method": "command.validate",
+        "params": {
+          "command": {
+            "schemaVersion": 1,
+            "commandId": "page.add",
+            "arguments": {}
+          }
+        },
+        "target": 7318950252466946,
+        "expectedRevision": 0
+      },
+      "response": {
+        "error": {
+          "code": "operation-failed",
+          "message": "missing field `command`"
+        },
+        "requestId": "control-7"
+      }
+    },
+    {
+      "transport": "control",
+      "request": {
+        "protocolVersion": "joydeck-control-1",
+        "requestId": "control-8",
+        "method": "document.status",
+        "params": {}
+      },
+      "response": {
+        "requestId": "control-8",
+        "result": {
+          "canRedo": false,
+          "canUndo": false,
+          "dirty": false,
+          "documentId": 7318950252466946,
+          "engineRevision": 0,
+          "pages": 3,
+          "revision": 0,
+          "selection": {
+            "page": 0,
+            "shapes": []
+          }
+        }
+      }
+    },
+    {
+      "transport": "control",
+      "request": {
+        "protocolVersion": "joydeck-control-1",
+        "requestId": "control-9",
+        "method": "command.execute",
+        "params": {
+          "command": {
+            "command": "new-slide"
+          }
+        },
+        "target": 7318950252466946,
+        "expectedRevision": 0
+      },
+      "response": {
+        "requestId": "control-9",
+        "result": {
+          "canRedo": false,
+          "canUndo": true,
+          "dirty": true,
+          "documentId": 7318950252466946,
+          "engineRevision": 1,
+          "pages": 4,
+          "revision": 1,
+          "selection": {
+            "page": 1,
+            "shapes": []
+          }
+        }
+      }
+    },
+    {
+      "transport": "control",
+      "request": {
+        "protocolVersion": "joydeck-control-1",
+        "requestId": "control-10",
+        "method": "command.validate",
+        "params": {
+          "command": {
+            "command": "undo"
+          }
+        },
+        "target": 7318950252466946,
+        "expectedRevision": 1
+      },
+      "response": {
+        "requestId": "control-10",
+        "result": {
+          "commandSchemaVersion": 2,
+          "documentId": 7318950252466946,
+          "revision": 1,
+          "sideEffects": false,
+          "valid": true,
+          "wouldChange": true
+        }
+      }
+    },
+    {
+      "transport": "control",
+      "request": {
+        "protocolVersion": "joydeck-control-1",
+        "requestId": "control-11",
+        "method": "document.status",
+        "params": {}
+      },
+      "response": {
+        "requestId": "control-11",
+        "result": {
+          "canRedo": false,
+          "canUndo": true,
+          "dirty": true,
+          "documentId": 7318950252466946,
+          "engineRevision": 1,
+          "pages": 4,
+          "revision": 1,
+          "selection": {
+            "page": 1,
+            "shapes": []
+          }
+        }
+      }
+    },
+    {
+      "transport": "control",
+      "request": {
+        "protocolVersion": "joydeck-control-1",
+        "requestId": "same-undo",
+        "method": "document.undo",
+        "params": {},
+        "target": 7318950252466946,
+        "expectedRevision": 1
+      },
+      "response": {
+        "requestId": "same-undo",
+        "result": {
+          "canRedo": true,
+          "canUndo": false,
+          "changed": true,
+          "dirty": false,
+          "documentId": 7318950252466946,
+          "engineRevision": 2,
+          "pages": 3,
+          "revision": 2,
+          "selection": {
+            "page": 0,
+            "shapes": []
+          }
+        }
+      }
+    },
+    {
+      "transport": "control",
+      "request": {
+        "protocolVersion": "joydeck-control-1",
+        "requestId": "same-undo",
+        "method": "document.undo",
+        "params": {},
+        "target": 7318950252466946,
+        "expectedRevision": 1
+      },
+      "response": {
+        "requestId": "same-undo",
+        "result": {
+          "canRedo": true,
+          "canUndo": false,
+          "changed": true,
+          "dirty": false,
+          "documentId": 7318950252466946,
+          "engineRevision": 2,
+          "pages": 3,
+          "revision": 2,
+          "selection": {
+            "page": 0,
+            "shapes": []
+          }
+        }
+      }
+    },
+    {
+      "transport": "control",
+      "request": {
+        "protocolVersion": "joydeck-control-1",
+        "requestId": "control-14",
+        "method": "document.redo",
+        "params": {},
+        "target": 7318950252466946,
+        "expectedRevision": 1
+      },
+      "response": {
+        "error": {
+          "code": "operation-failed",
+          "message": "expectedRevision missing/stale"
+        },
+        "requestId": "control-14"
+      }
+    },
+    {
+      "transport": "control",
+      "request": {
+        "protocolVersion": "joydeck-control-1",
+        "requestId": "control-15",
+        "method": "document.redo",
+        "params": {},
+        "target": 7318950252466946,
+        "expectedRevision": 2
+      },
+      "response": {
+        "requestId": "control-15",
+        "result": {
+          "canRedo": false,
+          "canUndo": true,
+          "changed": true,
+          "dirty": true,
+          "documentId": 7318950252466946,
+          "engineRevision": 3,
+          "pages": 4,
+          "revision": 3,
+          "selection": {
+            "page": 1,
+            "shapes": []
+          }
+        }
+      }
+    },
+    {
+      "transport": "control",
+      "request": {
+        "protocolVersion": "joydeck-control-1",
+        "requestId": "control-16",
+        "method": "document.save",
+        "params": {
+          "path": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-ui1-compat-wj7j45ez\\中文 空格\\control-saved.pptx"
+        },
+        "target": 7318950252466946,
+        "expectedRevision": 3
+      },
+      "response": {
+        "requestId": "control-16",
+        "result": {
+          "canRedo": false,
+          "canUndo": true,
+          "dirty": false,
+          "documentId": 7318950252466946,
+          "engineRevision": 3,
+          "pages": 4,
+          "revision": 4,
+          "selection": {
+            "page": 1,
+            "shapes": []
+          }
+        }
+      }
+    },
+    {
+      "transport": "control",
+      "request": {
+        "protocolVersion": "joydeck-control-1",
+        "requestId": "control-17",
+        "method": "document.open",
+        "params": {
+          "path": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-ui1-compat-wj7j45ez\\中文 空格\\control-saved.pptx"
+        }
+      },
+      "response": {
+        "requestId": "control-17",
+        "result": {
+          "canRedo": false,
+          "canUndo": false,
+          "dirty": false,
+          "documentId": 4617198436386314,
+          "engineRevision": 0,
+          "pages": 4,
+          "revision": 0,
+          "selection": {
+            "page": 0,
+            "shapes": []
+          }
+        }
+      }
+    },
+    {
+      "transport": "mcp",
+      "request": {
+        "jsonrpc": "2.0",
+        "id": 0,
+        "method": "initialize",
+        "params": {}
+      },
+      "response": {
+        "id": 0,
+        "jsonrpc": "2.0",
+        "result": {
+          "capabilities": {
+            "tools": {
+              "listChanged": false
+            }
+          },
+          "instructions": "Local headless session. New output paths only, authorized root fixed at launch. Mutations require document target/revision. Poll explicit export jobs; this server does not attach to desktop windows.",
+          "protocolVersion": "2025-11-25",
+          "serverInfo": {
+            "name": "joydeck",
+            "version": "0.8.0"
+          }
+        }
+      }
+    },
+    {
+      "transport": "mcp",
+      "request": {
+        "jsonrpc": "2.0",
+        "method": "notifications/initialized"
+      },
+      "response": null
+    },
+    {
+      "transport": "mcp",
+      "request": {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "tools/call",
+        "params": {
+          "name": "joydeck.control",
+          "arguments": {
+            "protocolVersion": "joydeck-control-1",
+            "requestId": "mcp-1",
+            "method": "engine.commands",
+            "params": {}
+          }
+        }
+      },
+      "response": {
+        "id": 1,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"requestId\":\"mcp-1\",\"result\":{\"attachedDesktop\":false,\"commandSchemaVersion\":2,\"commands\":[\"content\",\"insert-picture\",\"select\",\"paste-objects\",\"insert-rect\",\"insert-shape\",\"insert-text\",\"transform\",\"replace-text\",\"set-text\",\"edit-text\",\"insert-table\",\"table\",\"delete\",\"duplicate\",\"bring-forward\",\"send-backward\",\"new-slide\",\"duplicate-slide\",\"delete-slide\",\"undo\",\"redo\"],\"compatibility\":{\"commandParameters\":\"schema 2: params.command; target and expectedRevision required\",\"restoredMethods\":[\"command.validate\",\"document.undo\",\"document.redo\"],\"validation\":\"snapshot execution, no live side effects\"},\"documentId\":0,\"legacyCommandSchemaSupported\":false,\"methods\":[\"engine.commands\",\"document.new\",\"document.open\",\"document.inspect\",\"document.status\",\"document.close\",\"command.execute\",\"command.validate\",\"document.undo\",\"document.redo\",\"document.save\",\"document.exchange\",\"export.start\",\"jobs.get\",\"jobs.cancel\",\"show.start\",\"show.action\",\"show.tick\",\"show.status\",\"show.frame\"],\"modelSchema\":\"joydeck-v2\",\"outputs\":\"new paths only\",\"protocolVersion\":\"joydeck-control-1\",\"replay\":\"128 mutations / 16 MiB, same requestId and payload\",\"root\":\"\\\\\\\\?\\\\C:\\\\Users\\\\willm\\\\AppData\\\\Local\\\\Temp\\\\joydeck-ui1-compat-wj7j45ez\\\\中文 空格\",\"transport\":\"headless stdio\"}}",
+              "type": "text"
+            }
+          ],
+          "isError": false,
+          "structuredContent": {
+            "requestId": "mcp-1",
+            "result": {
+              "attachedDesktop": false,
+              "commandSchemaVersion": 2,
+              "commands": [
+                "content",
+                "insert-picture",
+                "select",
+                "paste-objects",
+                "insert-rect",
+                "insert-shape",
+                "insert-text",
+                "transform",
+                "replace-text",
+                "set-text",
+                "edit-text",
+                "insert-table",
+                "table",
+                "delete",
+                "duplicate",
+                "bring-forward",
+                "send-backward",
+                "new-slide",
+                "duplicate-slide",
+                "delete-slide",
+                "undo",
+                "redo"
+              ],
+              "compatibility": {
+                "commandParameters": "schema 2: params.command; target and expectedRevision required",
+                "restoredMethods": [
+                  "command.validate",
+                  "document.undo",
+                  "document.redo"
+                ],
+                "validation": "snapshot execution, no live side effects"
+              },
+              "documentId": 0,
+              "legacyCommandSchemaSupported": false,
+              "methods": [
+                "engine.commands",
+                "document.new",
+                "document.open",
+                "document.inspect",
+                "document.status",
+                "document.close",
+                "command.execute",
+                "command.validate",
+                "document.undo",
+                "document.redo",
+                "document.save",
+                "document.exchange",
+                "export.start",
+                "jobs.get",
+                "jobs.cancel",
+                "show.start",
+                "show.action",
+                "show.tick",
+                "show.status",
+                "show.frame"
+              ],
+              "modelSchema": "joydeck-v2",
+              "outputs": "new paths only",
+              "protocolVersion": "joydeck-control-1",
+              "replay": "128 mutations / 16 MiB, same requestId and payload",
+              "root": "\\\\?\\C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-ui1-compat-wj7j45ez\\中文 空格",
+              "transport": "headless stdio"
+            }
+          }
+        }
+      }
+    },
+    {
+      "transport": "mcp",
+      "request": {
+        "jsonrpc": "2.0",
+        "id": 2,
+        "method": "tools/call",
+        "params": {
+          "name": "joydeck.control",
+          "arguments": {
+            "protocolVersion": "joydeck-control-1",
+            "requestId": "mcp-2",
+            "method": "document.open",
+            "params": {
+              "path": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-ui1-compat-wj7j45ez\\中文 空格\\原稿.pptx"
+            }
+          }
+        }
+      },
+      "response": {
+        "id": 2,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"requestId\":\"mcp-2\",\"result\":{\"canRedo\":false,\"canUndo\":false,\"dirty\":false,\"documentId\":2405978961201775,\"engineRevision\":0,\"pages\":3,\"revision\":0,\"selection\":{\"page\":0,\"shapes\":[]}}}",
+              "type": "text"
+            }
+          ],
+          "isError": false,
+          "structuredContent": {
+            "requestId": "mcp-2",
+            "result": {
+              "canRedo": false,
+              "canUndo": false,
+              "dirty": false,
+              "documentId": 2405978961201775,
+              "engineRevision": 0,
+              "pages": 3,
+              "revision": 0,
+              "selection": {
+                "page": 0,
+                "shapes": []
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "transport": "mcp",
+      "request": {
+        "jsonrpc": "2.0",
+        "id": 3,
+        "method": "tools/call",
+        "params": {
+          "name": "joydeck.control",
+          "arguments": {
+            "protocolVersion": "joydeck-control-1",
+            "requestId": "mcp-3",
+            "method": "command.validate",
+            "params": {
+              "command": {
+                "command": "new-slide"
+              }
+            },
+            "target": 2405978961201775,
+            "expectedRevision": 0
+          }
+        }
+      },
+      "response": {
+        "id": 3,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"requestId\":\"mcp-3\",\"result\":{\"commandSchemaVersion\":2,\"documentId\":2405978961201775,\"revision\":0,\"sideEffects\":false,\"valid\":true,\"wouldChange\":true}}",
+              "type": "text"
+            }
+          ],
+          "isError": false,
+          "structuredContent": {
+            "requestId": "mcp-3",
+            "result": {
+              "commandSchemaVersion": 2,
+              "documentId": 2405978961201775,
+              "revision": 0,
+              "sideEffects": false,
+              "valid": true,
+              "wouldChange": true
+            }
+          }
+        }
+      }
+    },
+    {
+      "transport": "mcp",
+      "request": {
+        "jsonrpc": "2.0",
+        "id": 4,
+        "method": "tools/call",
+        "params": {
+          "name": "joydeck.control",
+          "arguments": {
+            "protocolVersion": "joydeck-control-1",
+            "requestId": "mcp-4",
+            "method": "document.status",
+            "params": {}
+          }
+        }
+      },
+      "response": {
+        "id": 4,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"requestId\":\"mcp-4\",\"result\":{\"canRedo\":false,\"canUndo\":false,\"dirty\":false,\"documentId\":2405978961201775,\"engineRevision\":0,\"pages\":3,\"revision\":0,\"selection\":{\"page\":0,\"shapes\":[]}}}",
+              "type": "text"
+            }
+          ],
+          "isError": false,
+          "structuredContent": {
+            "requestId": "mcp-4",
+            "result": {
+              "canRedo": false,
+              "canUndo": false,
+              "dirty": false,
+              "documentId": 2405978961201775,
+              "engineRevision": 0,
+              "pages": 3,
+              "revision": 0,
+              "selection": {
+                "page": 0,
+                "shapes": []
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "transport": "mcp",
+      "request": {
+        "jsonrpc": "2.0",
+        "id": 5,
+        "method": "tools/call",
+        "params": {
+          "name": "joydeck.control",
+          "arguments": {
+            "protocolVersion": "joydeck-control-1",
+            "requestId": "mcp-5",
+            "method": "command.validate",
+            "params": {
+              "command": {
+                "command": "select",
+                "page": 99,
+                "shapes": []
+              }
+            },
+            "target": 2405978961201775,
+            "expectedRevision": 0
+          }
+        }
+      },
+      "response": {
+        "id": 5,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"error\":{\"code\":\"operation-failed\",\"message\":\"page outside document\"},\"requestId\":\"mcp-5\"}",
+              "type": "text"
+            }
+          ],
+          "isError": true,
+          "structuredContent": {
+            "error": {
+              "code": "operation-failed",
+              "message": "page outside document"
+            },
+            "requestId": "mcp-5"
+          }
+        }
+      }
+    },
+    {
+      "transport": "mcp",
+      "request": {
+        "jsonrpc": "2.0",
+        "id": 6,
+        "method": "tools/call",
+        "params": {
+          "name": "joydeck.control",
+          "arguments": {
+            "protocolVersion": "joydeck-control-1",
+            "requestId": "mcp-6",
+            "method": "command.validate",
+            "params": {
+              "command": {
+                "command": "new-slide"
+              }
+            },
+            "target": 2405978961201775,
+            "expectedRevision": 99
+          }
+        }
+      },
+      "response": {
+        "id": 6,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"error\":{\"code\":\"operation-failed\",\"message\":\"expectedRevision missing/stale\"},\"requestId\":\"mcp-6\"}",
+              "type": "text"
+            }
+          ],
+          "isError": true,
+          "structuredContent": {
+            "error": {
+              "code": "operation-failed",
+              "message": "expectedRevision missing/stale"
+            },
+            "requestId": "mcp-6"
+          }
+        }
+      }
+    },
+    {
+      "transport": "mcp",
+      "request": {
+        "jsonrpc": "2.0",
+        "id": 7,
+        "method": "tools/call",
+        "params": {
+          "name": "joydeck.control",
+          "arguments": {
+            "protocolVersion": "joydeck-control-1",
+            "requestId": "mcp-7",
+            "method": "command.validate",
+            "params": {
+              "command": {
+                "schemaVersion": 1,
+                "commandId": "page.add",
+                "arguments": {}
+              }
+            },
+            "target": 2405978961201775,
+            "expectedRevision": 0
+          }
+        }
+      },
+      "response": {
+        "id": 7,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"error\":{\"code\":\"operation-failed\",\"message\":\"missing field `command`\"},\"requestId\":\"mcp-7\"}",
+              "type": "text"
+            }
+          ],
+          "isError": true,
+          "structuredContent": {
+            "error": {
+              "code": "operation-failed",
+              "message": "missing field `command`"
+            },
+            "requestId": "mcp-7"
+          }
+        }
+      }
+    },
+    {
+      "transport": "mcp",
+      "request": {
+        "jsonrpc": "2.0",
+        "id": 8,
+        "method": "tools/call",
+        "params": {
+          "name": "joydeck.control",
+          "arguments": {
+            "protocolVersion": "joydeck-control-1",
+            "requestId": "mcp-8",
+            "method": "document.status",
+            "params": {}
+          }
+        }
+      },
+      "response": {
+        "id": 8,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"requestId\":\"mcp-8\",\"result\":{\"canRedo\":false,\"canUndo\":false,\"dirty\":false,\"documentId\":2405978961201775,\"engineRevision\":0,\"pages\":3,\"revision\":0,\"selection\":{\"page\":0,\"shapes\":[]}}}",
+              "type": "text"
+            }
+          ],
+          "isError": false,
+          "structuredContent": {
+            "requestId": "mcp-8",
+            "result": {
+              "canRedo": false,
+              "canUndo": false,
+              "dirty": false,
+              "documentId": 2405978961201775,
+              "engineRevision": 0,
+              "pages": 3,
+              "revision": 0,
+              "selection": {
+                "page": 0,
+                "shapes": []
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "transport": "mcp",
+      "request": {
+        "jsonrpc": "2.0",
+        "id": 9,
+        "method": "tools/call",
+        "params": {
+          "name": "joydeck.control",
+          "arguments": {
+            "protocolVersion": "joydeck-control-1",
+            "requestId": "mcp-9",
+            "method": "command.execute",
+            "params": {
+              "command": {
+                "command": "new-slide"
+              }
+            },
+            "target": 2405978961201775,
+            "expectedRevision": 0
+          }
+        }
+      },
+      "response": {
+        "id": 9,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"requestId\":\"mcp-9\",\"result\":{\"canRedo\":false,\"canUndo\":true,\"dirty\":true,\"documentId\":2405978961201775,\"engineRevision\":1,\"pages\":4,\"revision\":1,\"selection\":{\"page\":1,\"shapes\":[]}}}",
+              "type": "text"
+            }
+          ],
+          "isError": false,
+          "structuredContent": {
+            "requestId": "mcp-9",
+            "result": {
+              "canRedo": false,
+              "canUndo": true,
+              "dirty": true,
+              "documentId": 2405978961201775,
+              "engineRevision": 1,
+              "pages": 4,
+              "revision": 1,
+              "selection": {
+                "page": 1,
+                "shapes": []
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "transport": "mcp",
+      "request": {
+        "jsonrpc": "2.0",
+        "id": 10,
+        "method": "tools/call",
+        "params": {
+          "name": "joydeck.control",
+          "arguments": {
+            "protocolVersion": "joydeck-control-1",
+            "requestId": "mcp-10",
+            "method": "command.validate",
+            "params": {
+              "command": {
+                "command": "undo"
+              }
+            },
+            "target": 2405978961201775,
+            "expectedRevision": 1
+          }
+        }
+      },
+      "response": {
+        "id": 10,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"requestId\":\"mcp-10\",\"result\":{\"commandSchemaVersion\":2,\"documentId\":2405978961201775,\"revision\":1,\"sideEffects\":false,\"valid\":true,\"wouldChange\":true}}",
+              "type": "text"
+            }
+          ],
+          "isError": false,
+          "structuredContent": {
+            "requestId": "mcp-10",
+            "result": {
+              "commandSchemaVersion": 2,
+              "documentId": 2405978961201775,
+              "revision": 1,
+              "sideEffects": false,
+              "valid": true,
+              "wouldChange": true
+            }
+          }
+        }
+      }
+    },
+    {
+      "transport": "mcp",
+      "request": {
+        "jsonrpc": "2.0",
+        "id": 11,
+        "method": "tools/call",
+        "params": {
+          "name": "joydeck.control",
+          "arguments": {
+            "protocolVersion": "joydeck-control-1",
+            "requestId": "mcp-11",
+            "method": "document.status",
+            "params": {}
+          }
+        }
+      },
+      "response": {
+        "id": 11,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"requestId\":\"mcp-11\",\"result\":{\"canRedo\":false,\"canUndo\":true,\"dirty\":true,\"documentId\":2405978961201775,\"engineRevision\":1,\"pages\":4,\"revision\":1,\"selection\":{\"page\":1,\"shapes\":[]}}}",
+              "type": "text"
+            }
+          ],
+          "isError": false,
+          "structuredContent": {
+            "requestId": "mcp-11",
+            "result": {
+              "canRedo": false,
+              "canUndo": true,
+              "dirty": true,
+              "documentId": 2405978961201775,
+              "engineRevision": 1,
+              "pages": 4,
+              "revision": 1,
+              "selection": {
+                "page": 1,
+                "shapes": []
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "transport": "mcp",
+      "request": {
+        "jsonrpc": "2.0",
+        "id": 12,
+        "method": "tools/call",
+        "params": {
+          "name": "joydeck.control",
+          "arguments": {
+            "protocolVersion": "joydeck-control-1",
+            "requestId": "same-undo",
+            "method": "document.undo",
+            "params": {},
+            "target": 2405978961201775,
+            "expectedRevision": 1
+          }
+        }
+      },
+      "response": {
+        "id": 12,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"requestId\":\"same-undo\",\"result\":{\"canRedo\":true,\"canUndo\":false,\"changed\":true,\"dirty\":false,\"documentId\":2405978961201775,\"engineRevision\":2,\"pages\":3,\"revision\":2,\"selection\":{\"page\":0,\"shapes\":[]}}}",
+              "type": "text"
+            }
+          ],
+          "isError": false,
+          "structuredContent": {
+            "requestId": "same-undo",
+            "result": {
+              "canRedo": true,
+              "canUndo": false,
+              "changed": true,
+              "dirty": false,
+              "documentId": 2405978961201775,
+              "engineRevision": 2,
+              "pages": 3,
+              "revision": 2,
+              "selection": {
+                "page": 0,
+                "shapes": []
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "transport": "mcp",
+      "request": {
+        "jsonrpc": "2.0",
+        "id": 13,
+        "method": "tools/call",
+        "params": {
+          "name": "joydeck.control",
+          "arguments": {
+            "protocolVersion": "joydeck-control-1",
+            "requestId": "same-undo",
+            "method": "document.undo",
+            "params": {},
+            "target": 2405978961201775,
+            "expectedRevision": 1
+          }
+        }
+      },
+      "response": {
+        "id": 13,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"requestId\":\"same-undo\",\"result\":{\"canRedo\":true,\"canUndo\":false,\"changed\":true,\"dirty\":false,\"documentId\":2405978961201775,\"engineRevision\":2,\"pages\":3,\"revision\":2,\"selection\":{\"page\":0,\"shapes\":[]}}}",
+              "type": "text"
+            }
+          ],
+          "isError": false,
+          "structuredContent": {
+            "requestId": "same-undo",
+            "result": {
+              "canRedo": true,
+              "canUndo": false,
+              "changed": true,
+              "dirty": false,
+              "documentId": 2405978961201775,
+              "engineRevision": 2,
+              "pages": 3,
+              "revision": 2,
+              "selection": {
+                "page": 0,
+                "shapes": []
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "transport": "mcp",
+      "request": {
+        "jsonrpc": "2.0",
+        "id": 14,
+        "method": "tools/call",
+        "params": {
+          "name": "joydeck.control",
+          "arguments": {
+            "protocolVersion": "joydeck-control-1",
+            "requestId": "mcp-14",
+            "method": "document.redo",
+            "params": {},
+            "target": 2405978961201775,
+            "expectedRevision": 1
+          }
+        }
+      },
+      "response": {
+        "id": 14,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"error\":{\"code\":\"operation-failed\",\"message\":\"expectedRevision missing/stale\"},\"requestId\":\"mcp-14\"}",
+              "type": "text"
+            }
+          ],
+          "isError": true,
+          "structuredContent": {
+            "error": {
+              "code": "operation-failed",
+              "message": "expectedRevision missing/stale"
+            },
+            "requestId": "mcp-14"
+          }
+        }
+      }
+    },
+    {
+      "transport": "mcp",
+      "request": {
+        "jsonrpc": "2.0",
+        "id": 15,
+        "method": "tools/call",
+        "params": {
+          "name": "joydeck.control",
+          "arguments": {
+            "protocolVersion": "joydeck-control-1",
+            "requestId": "mcp-15",
+            "method": "document.redo",
+            "params": {},
+            "target": 2405978961201775,
+            "expectedRevision": 2
+          }
+        }
+      },
+      "response": {
+        "id": 15,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"requestId\":\"mcp-15\",\"result\":{\"canRedo\":false,\"canUndo\":true,\"changed\":true,\"dirty\":true,\"documentId\":2405978961201775,\"engineRevision\":3,\"pages\":4,\"revision\":3,\"selection\":{\"page\":1,\"shapes\":[]}}}",
+              "type": "text"
+            }
+          ],
+          "isError": false,
+          "structuredContent": {
+            "requestId": "mcp-15",
+            "result": {
+              "canRedo": false,
+              "canUndo": true,
+              "changed": true,
+              "dirty": true,
+              "documentId": 2405978961201775,
+              "engineRevision": 3,
+              "pages": 4,
+              "revision": 3,
+              "selection": {
+                "page": 1,
+                "shapes": []
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "transport": "mcp",
+      "request": {
+        "jsonrpc": "2.0",
+        "id": 16,
+        "method": "tools/call",
+        "params": {
+          "name": "joydeck.control",
+          "arguments": {
+            "protocolVersion": "joydeck-control-1",
+            "requestId": "mcp-16",
+            "method": "document.save",
+            "params": {
+              "path": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-ui1-compat-wj7j45ez\\中文 空格\\mcp-saved.pptx"
+            },
+            "target": 2405978961201775,
+            "expectedRevision": 3
+          }
+        }
+      },
+      "response": {
+        "id": 16,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"requestId\":\"mcp-16\",\"result\":{\"canRedo\":false,\"canUndo\":true,\"dirty\":false,\"documentId\":2405978961201775,\"engineRevision\":3,\"pages\":4,\"revision\":4,\"selection\":{\"page\":1,\"shapes\":[]}}}",
+              "type": "text"
+            }
+          ],
+          "isError": false,
+          "structuredContent": {
+            "requestId": "mcp-16",
+            "result": {
+              "canRedo": false,
+              "canUndo": true,
+              "dirty": false,
+              "documentId": 2405978961201775,
+              "engineRevision": 3,
+              "pages": 4,
+              "revision": 4,
+              "selection": {
+                "page": 1,
+                "shapes": []
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "transport": "mcp",
+      "request": {
+        "jsonrpc": "2.0",
+        "id": 17,
+        "method": "tools/call",
+        "params": {
+          "name": "joydeck.control",
+          "arguments": {
+            "protocolVersion": "joydeck-control-1",
+            "requestId": "mcp-17",
+            "method": "document.open",
+            "params": {
+              "path": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-ui1-compat-wj7j45ez\\中文 空格\\mcp-saved.pptx"
+            }
+          }
+        }
+      },
+      "response": {
+        "id": 17,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"requestId\":\"mcp-17\",\"result\":{\"canRedo\":false,\"canUndo\":false,\"dirty\":false,\"documentId\":6420094971639609,\"engineRevision\":0,\"pages\":4,\"revision\":0,\"selection\":{\"page\":0,\"shapes\":[]}}}",
+              "type": "text"
+            }
+          ],
+          "isError": false,
+          "structuredContent": {
+            "requestId": "mcp-17",
+            "result": {
+              "canRedo": false,
+              "canUndo": false,
+              "dirty": false,
+              "documentId": 6420094971639609,
+              "engineRevision": 0,
+              "pages": 4,
+              "revision": 0,
+              "selection": {
+                "page": 0,
+                "shapes": []
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

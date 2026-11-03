@@ -163,3 +163,93 @@ fn r9_legacy_command_schema_fails_without_mutating_the_document() -> Result<(), 
     assert_eq!(before["result"], after["result"]);
     Ok(())
 }
+
+#[test]
+fn validation_and_restored_history_methods_preserve_live_state() -> Result<(), String> {
+    fn status(d: &mut Dispatcher, id: &str) -> Value {
+        d.dispatch(request(id, "document.status", None, None, json!({})))["result"].clone()
+    }
+    let root = Scratch::new()?;
+    let mut d = Dispatcher::new(&root.0)?;
+    let new = d.dispatch(request("new", "document.new", None, None, json!({})));
+    let target = new["result"]["documentId"].as_u64().ok_or("document ID")?;
+    let before = status(&mut d, "before");
+    let valid = d.dispatch(request(
+        "valid",
+        "command.validate",
+        Some(target),
+        Some(0),
+        json!({"command":{"command":"insert-text","x":10.,"y":10.,"text":"预检😀"}}),
+    ));
+    assert_eq!(valid["result"]["valid"], true);
+    assert_eq!(valid["result"]["wouldChange"], true);
+    assert_eq!(valid["result"]["sideEffects"], false);
+    assert_eq!(before, status(&mut d, "after-valid"));
+    let invalid = d.dispatch(request(
+        "invalid",
+        "command.validate",
+        Some(target),
+        Some(0),
+        json!({"command":{"command":"select","page":99,"shapes":[]}}),
+    ));
+    assert!(invalid.get("error").is_some());
+    let stale = d.dispatch(request(
+        "stale",
+        "command.validate",
+        Some(target),
+        Some(99),
+        json!({"command":{"command":"new-slide"}}),
+    ));
+    assert!(stale.get("error").is_some());
+    let legacy = d.dispatch(request(
+        "legacy",
+        "command.validate",
+        Some(target),
+        Some(0),
+        json!({"schemaVersion":1,"commandId":"page.add","arguments":{}}),
+    ));
+    assert!(legacy.get("error").is_some());
+    assert_eq!(before, status(&mut d, "after-invalid"));
+    assert_eq!(before["canUndo"], false);
+    let edit = d.dispatch(request(
+        "edit",
+        "command.execute",
+        Some(target),
+        Some(0),
+        json!({"command":{"command":"new-slide"}}),
+    ));
+    assert_eq!(edit["result"]["pages"], 2);
+    let preview_undo = d.dispatch(request(
+        "preview-undo",
+        "command.validate",
+        Some(target),
+        Some(1),
+        json!({"command":{"command":"undo"}}),
+    ));
+    assert_eq!(preview_undo["result"]["wouldChange"], true);
+    assert_eq!(status(&mut d, "after-preview")["pages"], 2);
+    let undo = request("undo", "document.undo", Some(target), Some(1), json!({}));
+    let undone = d.dispatch(undo.clone());
+    assert_eq!(undone["result"]["pages"], 1);
+    assert_eq!(undone["result"]["dirty"], false);
+    assert_eq!(d.dispatch(undo), undone);
+    let stale_redo = d.dispatch(request(
+        "stale-redo",
+        "document.redo",
+        Some(target),
+        Some(1),
+        json!({}),
+    ));
+    assert!(stale_redo.get("error").is_some());
+    let redone = d.dispatch(request(
+        "redo",
+        "document.redo",
+        Some(target),
+        Some(2),
+        json!({}),
+    ));
+    assert_eq!(redone["result"]["pages"], 2);
+    assert_eq!(redone["result"]["revision"], 3);
+    assert_eq!(redone["result"]["canUndo"], true);
+    Ok(())
+}

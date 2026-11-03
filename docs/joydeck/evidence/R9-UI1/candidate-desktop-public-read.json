@@ -1,0 +1,28 @@
+{
+  "path": "C:\\Users\\willm\\AppData\\Local\\Temp\\joyoffice-ui1-package-29vyjlsr\\中文 空格\\R9 UI1 格式 已保存.pptx",
+  "sha256": "9d9a1fe67754da0d650252ad16e2e735dde69c45501b51e14dac724f21e92b78",
+  "source_unchanged": true,
+  "pages": 3,
+  "text": "JoyDeck · 真实文稿预览",
+  "font": "Arial",
+  "size": 32,
+  "theme_color": "accent2",
+  "theme_color_range": "first character J only",
+  "changed_parts": [
+    "ppt/slides/slide1.xml"
+  ],
+  "runs": [
+    {
+      "text": "J",
+      "font": "Arial",
+      "size": 32.0,
+      "color_type": "SCHEME (2)"
+    },
+    {
+      "text": "oyDeck · 真实文稿预览",
+      "font": "Arial",
+      "size": 32.0,
+      "color_type": "None"
+    }
+  ]
+}

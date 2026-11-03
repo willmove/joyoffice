@@ -1,0 +1,5 @@
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Checking joydeck-ui-gpui v0.1.0 (D:\Coding\EditorProjects\joyoffice\crates\joydeck-ui-gpui)
+    Checking joydeck v0.8.0 (D:\Coding\EditorProjects\joyoffice\apps\joydeck)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 13.00s

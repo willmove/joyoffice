@@ -426,6 +426,13 @@ impl Viewer {
         let key = event.keystroke.key.as_str();
         let mods = event.keystroke.modifiers;
         let command = mods.control || mods.platform;
+        if let Some(larger) = format_ui::font_size_direction(command, mods.shift, key)
+            && !self.composing()
+        {
+            self.step_font_size(larger, w, cx);
+            cx.stop_propagation();
+            return;
+        }
         if self.inline.is_none() {
             let selected = self
                 .editor

@@ -1,0 +1,17 @@
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.58s
+     Running `target\debug\joyoffice-xtask.exe package joydeck --release`
+    Blocking waiting for file lock on package cache
++ C:\Applications\Python\Python314\python.exe scripts/joydeck/package-native.py --profile release
+Imported source records passed (268 files)
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+   Compiling joydeck-ui-gpui v0.1.0 (D:\Coding\EditorProjects\joyoffice\crates\joydeck-ui-gpui)
+   Compiling joydeck v0.8.0 (D:\Coding\EditorProjects\joyoffice\apps\joydeck)
+    Finished `release` profile [optimized] target(s) in 1m 50s
+    Finished `release` profile [optimized] target(s) in 0.62s
+Packaging failed: Source changed during packaging; rebuild the new source
+error: Command '['C:\\Applications\\Python\\Python314\\python.exe', 'scripts/joydeck/package-native.py', '--profile', 'release']' returned non-zero exit status 1.
+error: process didn't exit successfully: `target\debug\joyoffice-xtask.exe package joydeck --release` (exit code: 1)

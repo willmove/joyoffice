@@ -1,0 +1,10 @@
+{
+  "date": "2026-11-03",
+  "deckcraft": "installed 0.14.1",
+  "powerpoint": "installed Chinese UI",
+  "observations": [
+    "separate font and size controls",
+    "theme and standard swatches plus custom color",
+    "formatting stays in ribbon; full parity remains open"
+  ]
+}

@@ -20,6 +20,9 @@ pub const METHODS: &[&str] = &[
     "document.status",
     "document.close",
     "command.execute",
+    "command.validate",
+    "document.undo",
+    "document.redo",
     "document.save",
     "document.exchange",
     "export.start",
@@ -121,7 +124,7 @@ impl Dispatcher {
     }
     fn status(&self) -> Value {
         if let Some(e) = &self.editor {
-            json!({"documentId":self.document_id,"revision":self.revision,"engineRevision":e.session.revision(),"dirty":e.session.dirty(),"pages":e.session.model().slides.len(),"selection":e.session.selection()})
+            json!({"documentId":self.document_id,"revision":self.revision,"engineRevision":e.session.revision(),"dirty":e.session.dirty(),"canUndo":e.session.can_undo(),"canRedo":e.session.can_redo(),"pages":e.session.model().slides.len(),"selection":e.session.selection()})
         } else {
             json!({"documentId":self.document_id,"open":false})
         }
@@ -154,7 +157,12 @@ impl Dispatcher {
         }
         let read = matches!(
             r.method.as_str(),
-            "engine.commands" | "document.inspect" | "document.status" | "jobs.get" | "show.status"
+            "engine.commands"
+                | "document.inspect"
+                | "document.status"
+                | "command.validate"
+                | "jobs.get"
+                | "show.status"
         );
         if !read && (self.completed.len() >= 128 || self.completed_bytes > 12 << 20) {
             return fail(
@@ -186,7 +194,7 @@ impl Dispatcher {
         let string = |k: &str| p[k].as_str().ok_or_else(|| format!("missing string {k}"));
         if r.method == "engine.commands" {
             return Ok(
-                json!({"protocolVersion":VERSION,"commandSchemaVersion":2,"modelSchema":"joydeck-v2","legacyCommandSchemaSupported":false,"methods":METHODS,"commands":joydeck_engine::COMMANDS,"documentId":self.document_id,"transport":"headless stdio","root":self.root,"outputs":"new paths only","replay":"128 mutations / 16 MiB, same requestId and payload","attachedDesktop":false}),
+                json!({"protocolVersion":VERSION,"commandSchemaVersion":2,"modelSchema":"joydeck-v2","legacyCommandSchemaSupported":false,"methods":METHODS,"commands":joydeck_engine::COMMANDS,"compatibility":{"restoredMethods":["command.validate","document.undo","document.redo"],"commandParameters":"schema 2: params.command; target and expectedRevision required","validation":"snapshot execution, no live side effects"},"documentId":self.document_id,"transport":"headless stdio","root":self.root,"outputs":"new paths only","replay":"128 mutations / 16 MiB, same requestId and payload","attachedDesktop":false}),
             );
         }
         if r.method == "document.status" {
@@ -230,12 +238,50 @@ impl Dispatcher {
         }
         let mutating = matches!(
             r.method.as_str(),
-            "command.execute" | "document.save" | "document.close" | "document.exchange"
+            "command.execute"
+                | "document.undo"
+                | "document.redo"
+                | "document.save"
+                | "document.close"
+                | "document.exchange"
         );
-        if mutating && r.expected_revision != Some(self.revision) {
+        if (mutating || r.method == "command.validate")
+            && r.expected_revision != Some(self.revision)
+        {
             return Err("expectedRevision missing/stale".into());
         }
         match r.method.as_str() {
+            "command.validate" => {
+                let command =
+                    serde_json::from_value::<joydeck_engine::Command>(p["command"].clone())
+                        .map_err(|e| e.to_string())?;
+                let changed = self
+                    .editor
+                    .as_ref()
+                    .ok_or("no document")?
+                    .session
+                    .validate(command)?;
+                Ok(
+                    json!({"valid":true,"wouldChange":changed,"documentId":self.document_id,"revision":self.revision,"sideEffects":false,"commandSchemaVersion":2}),
+                )
+            }
+            "document.undo" | "document.redo" => {
+                let command = if r.method == "document.undo" {
+                    joydeck_engine::Command::Undo
+                } else {
+                    joydeck_engine::Command::Redo
+                };
+                let changed = self
+                    .editor
+                    .as_mut()
+                    .ok_or("no document")?
+                    .session
+                    .execute(command)?;
+                self.revision += 1;
+                let mut status = self.status();
+                status["changed"] = json!(changed);
+                Ok(status)
+            }
             "document.inspect" => {
                 let doc = self.editor.as_ref().ok_or("no document")?.display()?;
                 serde_json::to_value(doc.info).map_err(|e| e.to_string())

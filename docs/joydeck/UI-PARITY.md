@@ -17,6 +17,10 @@ R1–R7 主要交付文稿引擎、格式与平台能力的纵向验证，把路
 
 5. 同一 PPTX 的主界面对照：[DeckCraft](evidence/R8/reference/05-deckcraft-same-pptx.jpg)、[最终 JoyDeck](evidence/R8/gui/25-final-editor.jpg)。布局已接近，完整功能与控件状态尚有下表差项。
 
+## R9-UI1 后续切片
+
+2026-11-03：在 JoyOffice 内现场复查 DeckCraft 0.14.1 与本机 PowerPoint 中文界面。字体改为 GPUI Kit 可搜索已安装字体列表；字号使用独立常用值/自定义选择、增大/减小及 Ctrl+Shift+./,；颜色使用主题/标准色块、当前颜色指示和自定义六位 RGB。主题色存为 scheme 引用，保留跟随主题的能力。每项仍进入原有 text transaction；完整字体环境/混合格式指示/所有字符格式、最近文件/模板、审阅和其他差项继续保留。最终包已实测 Windows 标点归一化修复后的字号快捷键、Undo/Redo、PPTX 原生另存/独立读回/重启重开；证据为 gui/12–23。详见 [本轮证据](evidence/R9-UI1/README.md)。
+
 ## 0.8.0 对照范围
 
 | 参照范围 | 本轮变化 | 完全一致前仍需完成 | 原任务 |

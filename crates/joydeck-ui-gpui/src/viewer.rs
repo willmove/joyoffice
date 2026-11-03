@@ -58,6 +58,8 @@ mod delivery_ui;
 mod document_ui;
 #[path = "editor_actions.rs"]
 mod editing;
+#[path = "format_ui.rs"]
+mod format_ui;
 #[path = "inline_text.rs"]
 mod inline;
 #[path = "scene_benchmark.rs"]
@@ -71,6 +73,13 @@ mod slideshow;
 
 type ImageKey = (u64, usize, u32);
 pub struct Viewer {
+    font_picker: Entity<
+        gpui_kit::component::select::SelectState<
+            gpui_kit::component::select::SearchableVec<SharedString>,
+        >,
+    >,
+    font_names: Vec<SharedString>,
+    font_subscription: Option<Subscription>,
     delivery_task: Option<Task<()>>,
     delivery_cancel: joydeck_shell::Cancellation,
     delivery_busy: bool,
@@ -158,7 +167,27 @@ impl Viewer {
     fn new(dark: bool, window: &mut Window, cx: &mut Context<Self>) -> Self {
         let focus = cx.focus_handle();
         focus.focus(window, cx);
+        let mut font_names: Vec<SharedString> = cx
+            .text_system()
+            .all_font_names()
+            .into_iter()
+            .map(Into::into)
+            .collect();
+        font_names.sort_by_key(|s| s.to_lowercase());
+        font_names.dedup();
+        let font_picker = cx.new(|cx| {
+            gpui_kit::component::select::SelectState::new(
+                gpui_kit::component::select::SearchableVec::new(font_names.clone()),
+                None,
+                window,
+                cx,
+            )
+            .searchable(true)
+        });
         Self {
+            font_picker,
+            font_names,
+            font_subscription: None,
             delivery_task: None,
             delivery_cancel: Default::default(),
             delivery_busy: false,
@@ -576,6 +605,7 @@ impl Viewer {
 }
 impl Render for Viewer {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        self.sync_font_picker(window, cx);
         for image in self.retired_images.drain(..) {
             let _ = window.drop_image(image);
         }
@@ -877,6 +907,7 @@ pub fn open_window(
             let view = cx.new(|cx| Viewer::new(dark, w, cx));
             view.update(cx, |s, cx| {
                 s.install_notes(w, cx);
+                s.install_font_picker(w, cx);
                 cx.defer_in(w, |s, w, cx| s.focus.focus(w, cx));
                 s.activation = Some(cx.observe_window_activation(w, |s, w, cx| {
                     if !w.is_window_active() {
