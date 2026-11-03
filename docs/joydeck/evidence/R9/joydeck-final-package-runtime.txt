@@ -31,3 +31,5 @@ R7 show_start {"page":1,"step":0,"playing":false,"ended":false,"paused":false,"b
 R7 show_first_frame prepare_us=3720
 R7 show_state {"page":2,"step":0,"playing":false,"ended":false,"paused":false,"blank":null,"elapsed_seconds":0.0,"slide_seconds":0.0,"total_seconds":15.408336600000004,"order":[1,2,3],"previous":1,"serial":1}
 R7 show_closed frames=2
+R4 scene {"builds":4,"hits":0,"misses":24,"cpu_tiles":0,"backdrop_rasters":4,"native_paths":5,"glyphs":73,"cache_bytes":35013136,"build_micros":7241}
+R4 scene {"builds":5,"hits":6,"misses":24,"cpu_tiles":0,"backdrop_rasters":4,"native_paths":5,"glyphs":73,"cache_bytes":35013136,"build_micros":689}
