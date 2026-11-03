@@ -19,6 +19,24 @@ pub struct SlideBinding {
 fn error(s: impl Into<String>) -> PptxError {
     PptxError::Write(s.into())
 }
+fn relationship_root(pkg: &opc::Package, part: &str) -> Result<El, PptxError> {
+    let path = opc::rels_path(part);
+    if pkg.get(&path).is_some() {
+        return pkg
+            .xml(&path)
+            .map(|doc| doc.root)
+            .ok_or_else(|| error("unreadable slide relationships"));
+    }
+    // A slide without resources/layout/notes legitimately has no relationships part.
+    Ok(El {
+        name: "Relationships".into(),
+        attrs: vec![(
+            "xmlns".into(),
+            "http://schemas.openxmlformats.org/package/2006/relationships".into(),
+        )],
+        children: vec![],
+    })
+}
 // Structural table edits regenerate rows, so admit only the documented simple subset.
 // Ordinary cell text/fill edits retain the surrounding original XML and do not use this gate.
 fn simple_table_rows(e: &El) -> bool {
@@ -175,11 +193,12 @@ pub fn export_preserving(
         ));
     }
     let pkg = opc::Package::open(original)?;
+    let pres_path = pkg.presentation_path()?;
     let mut pres = pkg
-        .xml("ppt/presentation.xml")
+        .xml(&pres_path)
         .ok_or_else(|| error("missing presentation part"))?
         .root;
-    let rels = pkg.rels("ppt/presentation.xml");
+    let rels = pkg.rels(&pres_path);
     let ordered: Vec<_> = pres
         .child("sldIdLst")
         .ok_or_else(|| error("missing slide list"))?
@@ -213,7 +232,7 @@ pub fn export_preserving(
         .ok_or_else(|| error("missing content types"))?
         .root;
     let mut pres_rels = pkg
-        .xml(&opc::rels_path("ppt/presentation.xml"))
+        .xml(&opc::rels_path(&pres_path))
         .ok_or_else(|| error("missing presentation relationships"))?
         .root;
     content::globals(&pkg, &gen_pkg, base, current, &mut parts, &mut pres)?;
@@ -255,7 +274,7 @@ pub fn export_preserving(
             pres_rels.children.push(Node::El(rel_element(
                 &rid,
                 "slide",
-                &opc::relative("ppt/presentation.xml", &part),
+                &opc::relative(&pres_path, &part),
             )));
             add_override(
                 &mut ct,
@@ -604,10 +623,21 @@ pub fn export_preserving(
         target.children = nodes;
         parts.insert(part.clone(), root.to_xml().into_bytes());
         if !existing {
-            let mut slide_rels = pkg
-                .xml(&opc::rels_path(source_part))
-                .ok_or_else(|| error("missing source slide relationships"))?
-                .root;
+            let mut slide_rels = relationship_root(&pkg, source_part)?;
+            // Cloning a slide can move it out of a custom directory. Rebase internal targets.
+            for rel in pkg
+                .rels(source_part)
+                .items
+                .iter()
+                .filter(|rel| !rel.external)
+            {
+                if let Some(node) = slide_rels
+                    .elements_mut()
+                    .find(|node| node.attr("Id") == Some(&rel.id))
+                {
+                    set(node, "Target", opc::relative(&part, &rel.target));
+                }
+            }
             let notes = pkg
                 .rels(source_part)
                 .items
@@ -649,12 +679,11 @@ pub fn export_preserving(
         }
         if !added_rels.is_empty() || slide.layout != source_slide.layout {
             let path = opc::rels_path(&part);
-            let mut relationships = parts
-                .get(&path)
-                .and_then(|b| crate::xml::parse(b).ok())
-                .or_else(|| pkg.xml(&opc::rels_path(source_part)))
-                .ok_or_else(|| error("missing slide relationships"))?
-                .root;
+            let mut relationships = if let Some(bytes) = parts.get(&path) {
+                crate::xml::parse(bytes)?.root
+            } else {
+                relationship_root(&pkg, source_part)?
+            };
             relationships
                 .children
                 .extend(added_rels.into_iter().map(Node::El));
@@ -673,13 +702,10 @@ pub fn export_preserving(
         child_mut(&mut pres, "sldIdLst")
             .ok_or_else(|| error("missing slide list"))?
             .children = ids;
-        parts.insert(
-            opc::rels_path("ppt/presentation.xml"),
-            pres_rels.to_xml().into_bytes(),
-        );
+        parts.insert(opc::rels_path(&pres_path), pres_rels.to_xml().into_bytes());
     }
     if structural || current.slide_size != base.slide_size {
-        parts.insert("ppt/presentation.xml".into(), pres.to_xml().into_bytes());
+        parts.insert(pres_path, pres.to_xml().into_bytes());
     }
     // New image/chart/workbook parts also need content types without changing slide structure.
     if ct

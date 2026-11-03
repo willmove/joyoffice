@@ -1642,12 +1642,13 @@
       "source_path": "crates/pptx/src/opc.rs",
       "source_sha256": "f7905174cd984e290e231dbed1c05dcece3379233feef91ee06f6975e4267ef9",
       "target_path": "crates/joydeck-pptx/src/opc.rs",
-      "adapted_sha256": "1d50d2685221c0148676131b53dc476b684c3021fcfcbc9b70e8886c8b32ad41",
+      "adapted_sha256": "54880cfc1be748da72a043071f3f244810f6e1fa6a7d675aef6dbbb24f66bd8c",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
-        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
+        "R9: resolve root officeDocument relationship for custom part paths; retain minimal packages without requiring unchanged masters"
       ]
     },
     {
@@ -1738,12 +1739,13 @@
       "source_path": "crates/pptx/src/read.rs",
       "source_sha256": "db5e0ece9be0db36fedf36fbd6efa95d9536be8060cce414b28ee94e298640ff",
       "target_path": "crates/joydeck-pptx/src/read.rs",
-      "adapted_sha256": "30902e2e315f5531b83174bb54b49370a77f9bf3278f1dd959826cc1496f148d",
+      "adapted_sha256": "9c2cc183671fcb5f962cf67929f2af6431ce48f328dda9de331a595027450abd",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
-        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
+        "R9: resolve root officeDocument relationship for custom part paths; retain minimal packages without requiring unchanged masters"
       ]
     },
     {

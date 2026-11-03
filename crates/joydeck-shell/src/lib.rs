@@ -18,6 +18,8 @@ pub mod native;
 pub mod output;
 pub mod platform;
 pub mod playback;
+#[cfg(test)]
+mod r9_tests;
 mod recovery_io;
 pub mod show;
 pub mod show_media;
@@ -138,7 +140,7 @@ impl Default for WorkspaceState {
 
 pub fn diagnostics() -> serde_json::Value {
     serde_json::json!({
-        "product": "JoyDeck", "version": env!("CARGO_PKG_VERSION"), "stage": "R8-windows-editor-slice",
+        "product": "JoyDeck", "version": env!("CARGO_PKG_VERSION"), "stage": "R9-joyoffice-integration",
         "rust_toolchain": RUST_TOOLCHAIN, "gpui_kit": GPUI_KIT_VERSION,
         "gpui_pre": GPUI_VERSION, "gpui_fast": false,
         "os": std::env::consts::OS, "arch": std::env::consts::ARCH,

@@ -36,16 +36,16 @@
     "source_path": "scripts/verify_gpui_pre_provenance.py",
     "target_path": "scripts/verify_gpui_pre_provenance.py",
     "source_sha256": "cc8f0c60d19e9576943906043ce34ef1ad0f12fbfa4e8b5c08d647fb5d329af6",
-    "local_changes": "CRLF normalized to LF; content otherwise unchanged",
-    "adapted_sha256": "cc8f0c60d19e9576943906043ce34ef1ad0f12fbfa4e8b5c08d647fb5d329af6"
+    "local_changes": "CRLF normalized to LF; content otherwise unchanged; R9: enforce identical LF checkout bytes on Windows/Linux/macOS",
+    "adapted_sha256": "d061412aed0d0cf3242f53414bdeb7500a6b43480e6c509c88e1a7df9ce30ad8"
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
     "source_path": "scripts/gpui_pre_reviewed_deviations.json",
     "target_path": "scripts/gpui_pre_reviewed_deviations.json",
     "source_sha256": "d617723255026cf380ddb6345600ce808a4ee807d8ed4af84dbb12de299055a7",
-    "local_changes": "CRLF normalized to LF; content otherwise unchanged",
-    "adapted_sha256": "d617723255026cf380ddb6345600ce808a4ee807d8ed4af84dbb12de299055a7"
+    "local_changes": "CRLF normalized to LF; content otherwise unchanged; R9: enforce identical LF checkout bytes on Windows/Linux/macOS",
+    "adapted_sha256": "5d3826ac032e813fb983a25310023908f5e31575856fedd5b30c5d23b864afda"
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
@@ -60,8 +60,8 @@
     "source_path": "tools/xtask/src/main.rs",
     "target_path": "tools/xtask/src/main.rs",
     "source_sha256": "9553100b00664b64f237a20286eb5a7f686bda4b365faa2d7b2a607e360fc4c4",
-    "adapted_sha256": "9553100b00664b64f237a20286eb5a7f686bda4b365faa2d7b2a607e360fc4c4",
-    "local_changes": "adapt caller-workspace and Python engineering bridge for standalone JoyDeck; LF"
+    "adapted_sha256": "f296ab3ff901ee5353978db08245ff0fca1d1f13a3f08492beb0d7055dbb0cdf",
+    "local_changes": "adapt caller-workspace and Python engineering bridge for standalone JoyDeck; LF; R9: enforce identical LF checkout bytes on Windows/Linux/macOS"
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
@@ -458,8 +458,8 @@
     "source_path": "crates/joydeck-platform/src/helpers.rs",
     "target_path": "crates/joydeck-shell/src/helpers.rs",
     "source_sha256": "bfdaa2a67622fde5309842ae12d7a7be1cb6ef3dabd9efd5e7e45d9ed918e5e5",
-    "local_changes": "Owned helper lookup, isolated scratch and kill-on-drop approach adapted to Windows and canonical native paths.",
-    "adapted_sha256": "3cdc1d889a44f05012e4e1f8509e5542dc30beca9c6ca7e67f864fe407e2b8c5"
+    "local_changes": "Owned helper lookup, isolated scratch and kill-on-drop approach adapted to Windows and canonical native paths.; R9: cfg-scoped Windows command mutability",
+    "adapted_sha256": "46d102d921654109bfb7e8467fb9d602c7c1163ffa5eea4a32d935a4004804db"
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",

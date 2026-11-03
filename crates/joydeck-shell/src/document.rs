@@ -132,7 +132,7 @@ impl Document {
             .map_err(|e| format!("invalid package: {e:?}"))?;
         let mut names = BTreeSet::new();
         let mut manifest = None;
-        let mut has_presentation = false;
+        let mut has_content_types = false;
         for (i, entry) in archive.entries().iter().enumerate() {
             cancel.check()?;
             let name = &entry.name;
@@ -149,8 +149,8 @@ impl Document {
             if name == "presentation.json" {
                 manifest = Some(part.clone());
             }
-            if name == "ppt/presentation.xml" {
-                has_presentation = true;
+            if name == "[Content_Types].xml" {
+                has_content_types = true;
             }
             if name.ends_with(".xml") || name.ends_with(".rels") {
                 validate_xml(name, &part, &budget)?;
@@ -179,7 +179,7 @@ impl Document {
             }
             let (p, w) = joydeck_format::load_checked(&bytes).map_err(|e| e.to_string())?;
             ("deckcraft", p, w)
-        } else if has_presentation {
+        } else if has_content_types {
             let (p, w) = joydeck_pptx::import_checked(&bytes).map_err(|e| e.to_string())?;
             ("pptx", p, w)
         } else {

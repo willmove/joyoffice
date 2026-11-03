@@ -514,10 +514,7 @@ pub fn import_checked(bytes: &[u8]) -> Result<(Presentation, Vec<String>), PptxE
     let mut lost_slides: Vec<String> = vec![];
     let pkg = Package::open(bytes)?;
     let root_rels = pkg.rels("");
-    let pres_path = root_rels
-        .first_of("officeDocument")
-        .map(|r| r.target.clone())
-        .unwrap_or_else(|| "ppt/presentation.xml".into());
+    let pres_path = pkg.presentation_path()?;
     let pres_doc = load(&pkg, &pres_path)
         .ok_or_else(|| PptxError::NotPptx(format!("missing or unreadable {pres_path}")))?;
     let pres_el = &pres_doc.root;

@@ -3,11 +3,12 @@ use super::*;
 use joydeck_model::{LayoutId, Shape, ShapeKind};
 
 fn master_targets(pkg: &opc::Package) -> Result<Vec<String>, PptxError> {
+    let pres_path = pkg.presentation_path()?;
     let root = pkg
-        .xml("ppt/presentation.xml")
+        .xml(&pres_path)
         .ok_or_else(|| error("presentation missing"))?
         .root;
-    let rels = pkg.rels("ppt/presentation.xml");
+    let rels = pkg.rels(&pres_path);
     root.child("sldMasterIdLst")
         .ok_or_else(|| error("masters missing"))?
         .elements()
@@ -70,7 +71,12 @@ pub(super) fn globals(
     if base.masters.len() != current.masters.len() {
         return Err(error("adding/removing masters requires .joydeck Save As"));
     }
-    let masters = master_targets(pkg)?;
+    // Minimal public PPTX files may have no master parts. Do not require them when unchanged.
+    let masters = if base.masters != current.masters {
+        master_targets(pkg)?
+    } else {
+        vec![]
+    };
     for (index, (old, new)) in base.masters.iter().zip(&current.masters).enumerate() {
         if old == new {
             continue;

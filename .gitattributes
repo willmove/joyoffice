@@ -56,6 +56,9 @@ docs/joydeck/upstream-tests/** -text
 tests/fixtures/joydeck/** -text
 crates/joyoffice-ui/** text=auto eol=lf
 crates/joyoffice-opc/** text=auto eol=lf
+scripts/verify_gpui_pre_provenance.py text=auto eol=lf
+scripts/gpui_pre_reviewed_deviations.json text=auto eol=lf
+tools/xtask/src/main.rs text=auto eol=lf
 
 # R0-R8 imported evidence is a verbatim archive with recorded byte hashes.
 docs/joydeck/evidence/R[0-8]*/** -text whitespace=-blank-at-eol,-blank-at-eof,cr-at-eol

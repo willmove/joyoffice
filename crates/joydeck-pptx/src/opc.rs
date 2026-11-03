@@ -155,6 +155,17 @@ impl Package {
         };
         rels_of(&doc, part)
     }
+    /// The root relationship, rather than a conventional directory, identifies the main part.
+    pub(crate) fn presentation_path(&self) -> Result<String, PptxError> {
+        let rels = self.rels("");
+        match rels.first_of("officeDocument") {
+            Some(rel) if rel.external => Err(PptxError::NotPptx(
+                "external presentation relationship is unsupported".into(),
+            )),
+            Some(rel) => Ok(rel.target.clone()),
+            None => Ok("ppt/presentation.xml".into()),
+        }
+    }
     /// Content types: (extension defaults, part overrides).
     pub fn content_type(&self, part: &str) -> Option<String> {
         let (overrides, defaults) = self.ct_cache.get_or_init(|| {
