@@ -90,7 +90,10 @@ impl Document {
         if joydeck_legacy::sniff(&bytes) {
             let converted = joydeck_legacy::convert(&bytes, &cancel.0)
                 .map_err(|e| format!("legacy migration refused: {e}"))?;
-            let mut doc = Self::from_bytes(name, converted.pptx, cancel)?;
+            let public = Self::from_bytes(name.clone(), converted.pptx.clone(), cancel)?;
+            let mut model = public.presentation;
+            crate::legacy_semantics::apply(&mut model, &converted)?;
+            let mut doc = Self::from_model(name, model)?;
             doc.info.format = "joydeck-v1".into();
             doc.info.warnings.extend(converted.warnings);
             doc.original = bytes.into();

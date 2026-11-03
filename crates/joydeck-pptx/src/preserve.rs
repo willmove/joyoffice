@@ -504,14 +504,47 @@ pub fn export_preserving(
                     let generated = generated
                         .find("tbl")
                         .ok_or_else(|| error("missing generated table"))?;
-                    if before.cols == after.cols
+                    if before.cols.len() == after.cols.len()
                         && before.rows.len() == after.rows.len()
                         && before
                             .rows
                             .iter()
                             .zip(&after.rows)
-                            .all(|(a, b)| a.height == b.height && a.cells.len() == b.cells.len())
+                            .all(|(a, b)| a.cells.len() == b.cells.len())
                     {
+                        if before.cols != after.cols {
+                            let grid = child_mut(source, "tblGrid")
+                                .ok_or_else(|| error("table grid missing"))?;
+                            let new_grid = generated
+                                .child("tblGrid")
+                                .ok_or_else(|| error("generated grid missing"))?;
+                            for (old, new) in grid
+                                .elements_mut()
+                                .filter(|e| e.is("gridCol"))
+                                .zip(new_grid.elements().filter(|e| e.is("gridCol")))
+                            {
+                                if let Some(w) = new.attr("w") {
+                                    set(old, "w", w.into());
+                                }
+                            }
+                        }
+                        if before.style != after.style
+                            || before.first_row != after.first_row
+                            || before.band_row != after.band_row
+                        {
+                            let new = generated
+                                .child("tblPr")
+                                .ok_or_else(|| error("generated table properties missing"))?;
+                            let old = child_mut(source, "tblPr")
+                                .ok_or_else(|| error("table properties missing"))?;
+                            for name in ["firstRow", "bandRow"] {
+                                old.attrs.retain(|(k, _)| k != name);
+                                if let Some(v) = new.attr(name) {
+                                    set(old, name, v.into());
+                                }
+                            }
+                            replace(old, "tableStyleId", new.child("tableStyleId").cloned());
+                        }
                         // Text/fill edits retain untouched cells, table style and unknown table XML.
                         for (r, row) in source.elements_mut().filter(|e| e.is("tr")).enumerate() {
                             let generated_row = generated
@@ -519,6 +552,11 @@ pub fn export_preserving(
                                 .filter(|e| e.is("tr"))
                                 .nth(r)
                                 .ok_or_else(|| error("missing generated table row"))?;
+                            if before.rows[r].height != after.rows[r].height
+                                && let Some(h) = generated_row.attr("h")
+                            {
+                                set(row, "h", h.into());
+                            }
                             for (c, cell) in row.elements_mut().filter(|e| e.is("tc")).enumerate() {
                                 let a = before
                                     .cell(r, c)
@@ -562,6 +600,52 @@ pub fn export_preserving(
                                         "solidFill",
                                         g.child("tcPr").and_then(|x| x.child("solidFill")).cloned(),
                                     );
+                                }
+                                if a.borders != b.borders
+                                    || a.margins != b.margins
+                                    || a.anchor != b.anchor
+                                    || a.vertical != b.vertical
+                                {
+                                    if cell.child("tcPr").is_none() {
+                                        replace(
+                                            cell,
+                                            "tcPr",
+                                            Some(El {
+                                                name: "a:tcPr".into(),
+                                                attrs: vec![],
+                                                children: vec![],
+                                            }),
+                                        );
+                                    }
+                                    let new = g.child("tcPr").ok_or_else(|| {
+                                        error("generated cell properties missing")
+                                    })?;
+                                    let old = child_mut(cell, "tcPr")
+                                        .ok_or_else(|| error("cell properties missing"))?;
+                                    for (changed, names) in [
+                                        (
+                                            a.margins != b.margins,
+                                            &["marL", "marR", "marT", "marB"][..],
+                                        ),
+                                        (a.anchor != b.anchor, &["anchor"][..]),
+                                        (a.vertical != b.vertical, &["vert"][..]),
+                                    ] {
+                                        if changed {
+                                            for name in names {
+                                                old.attrs.retain(|(k, _)| k != name);
+                                                if let Some(v) = new.attr(name) {
+                                                    set(old, name, v.into());
+                                                }
+                                            }
+                                        }
+                                    }
+                                    for (side, name) in
+                                        ["lnL", "lnR", "lnT", "lnB"].iter().enumerate()
+                                    {
+                                        if a.borders[side] != b.borders[side] {
+                                            replace(old, name, new.child(name).cloned());
+                                        }
+                                    }
                                 }
                             }
                         }

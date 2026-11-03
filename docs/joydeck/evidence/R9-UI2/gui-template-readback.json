@@ -1,0 +1,471 @@
+{
+  "guiExeSha256": "11c2a1c809a364e3e4f536384edfb354747b21d26adb06b2a198499c51ce87f1",
+  "reader": "Python zipfile/json",
+  "nativeSha256": "b2b2940c9433418e101b2370201c5ec1c1317a14c42f1901dbb90fd0dba4966e",
+  "pages": 3,
+  "textBodies": [
+    [
+      {
+        "body": {
+          "insetL": null,
+          "insetT": null,
+          "insetR": null,
+          "insetB": null,
+          "anchor": null,
+          "anchorCtr": null,
+          "wrap": null,
+          "autofit": null,
+          "vert": null,
+          "rot": null,
+          "columns": null,
+          "colSpacing": null,
+          "warp": null,
+          "rtlCol": null,
+          "upright": null,
+          "spaceFirstLast": null
+        },
+        "paragraphs": [
+          {
+            "level": 0,
+            "runs": [
+              {
+                "text": "课程主题"
+              }
+            ],
+            "defProps": {
+              "font": "Arial",
+              "fontEa": null,
+              "fontCs": null,
+              "fontSym": null,
+              "size": 24.0,
+              "bold": null,
+              "italic": null,
+              "underline": null,
+              "underlineColor": null,
+              "strike": null,
+              "baseline": null,
+              "caps": null,
+              "spacing": null,
+              "kern": null,
+              "fill": null,
+              "outline": null,
+              "highlight": null,
+              "link": null,
+              "hover": null,
+              "lang": null,
+              "shadow": null,
+              "innerShadow": null,
+              "glow": null,
+              "reflection": null,
+              "softEdge": null,
+              "noProof": null
+            }
+          }
+        ]
+      },
+      {
+        "body": {
+          "insetL": null,
+          "insetT": null,
+          "insetR": null,
+          "insetB": null,
+          "anchor": null,
+          "anchorCtr": null,
+          "wrap": null,
+          "autofit": null,
+          "vert": null,
+          "rot": null,
+          "columns": null,
+          "colSpacing": null,
+          "warp": null,
+          "rtlCol": null,
+          "upright": null,
+          "spaceFirstLast": null
+        },
+        "paragraphs": [
+          {
+            "level": 0,
+            "runs": [
+              {
+                "text": "学习目标与适用对象"
+              }
+            ],
+            "defProps": {
+              "font": "Arial",
+              "fontEa": null,
+              "fontCs": null,
+              "fontSym": null,
+              "size": 24.0,
+              "bold": null,
+              "italic": null,
+              "underline": null,
+              "underlineColor": null,
+              "strike": null,
+              "baseline": null,
+              "caps": null,
+              "spacing": null,
+              "kern": null,
+              "fill": null,
+              "outline": null,
+              "highlight": null,
+              "link": null,
+              "hover": null,
+              "lang": null,
+              "shadow": null,
+              "innerShadow": null,
+              "glow": null,
+              "reflection": null,
+              "softEdge": null,
+              "noProof": null
+            }
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "body": {
+          "insetL": null,
+          "insetT": null,
+          "insetR": null,
+          "insetB": null,
+          "anchor": null,
+          "anchorCtr": null,
+          "wrap": null,
+          "autofit": null,
+          "vert": null,
+          "rot": null,
+          "columns": null,
+          "colSpacing": null,
+          "warp": null,
+          "rtlCol": null,
+          "upright": null,
+          "spaceFirstLast": null
+        },
+        "paragraphs": [
+          {
+            "level": 0,
+            "runs": [
+              {
+                "text": "核心概念"
+              }
+            ],
+            "defProps": {
+              "font": "Arial",
+              "fontEa": null,
+              "fontCs": null,
+              "fontSym": null,
+              "size": 24.0,
+              "bold": null,
+              "italic": null,
+              "underline": null,
+              "underlineColor": null,
+              "strike": null,
+              "baseline": null,
+              "caps": null,
+              "spacing": null,
+              "kern": null,
+              "fill": null,
+              "outline": null,
+              "highlight": null,
+              "link": null,
+              "hover": null,
+              "lang": null,
+              "shadow": null,
+              "innerShadow": null,
+              "glow": null,
+              "reflection": null,
+              "softEdge": null,
+              "noProof": null
+            }
+          }
+        ]
+      },
+      {
+        "body": {
+          "insetL": null,
+          "insetT": null,
+          "insetR": null,
+          "insetB": null,
+          "anchor": null,
+          "anchorCtr": null,
+          "wrap": null,
+          "autofit": null,
+          "vert": null,
+          "rot": null,
+          "columns": null,
+          "colSpacing": null,
+          "warp": null,
+          "rtlCol": null,
+          "upright": null,
+          "spaceFirstLast": null
+        },
+        "paragraphs": [
+          {
+            "level": 0,
+            "runs": [
+              {
+                "text": "概念说明"
+              }
+            ],
+            "defProps": {
+              "font": "Arial",
+              "fontEa": null,
+              "fontCs": null,
+              "fontSym": null,
+              "size": 24.0,
+              "bold": null,
+              "italic": null,
+              "underline": null,
+              "underlineColor": null,
+              "strike": null,
+              "baseline": null,
+              "caps": null,
+              "spacing": null,
+              "kern": null,
+              "fill": null,
+              "outline": null,
+              "highlight": null,
+              "link": null,
+              "hover": null,
+              "lang": null,
+              "shadow": null,
+              "innerShadow": null,
+              "glow": null,
+              "reflection": null,
+              "softEdge": null,
+              "noProof": null
+            }
+          },
+          {
+            "level": 0,
+            "runs": [
+              {
+                "text": "原创示例"
+              }
+            ],
+            "defProps": {
+              "font": "Arial",
+              "fontEa": null,
+              "fontCs": null,
+              "fontSym": null,
+              "size": 24.0,
+              "bold": null,
+              "italic": null,
+              "underline": null,
+              "underlineColor": null,
+              "strike": null,
+              "baseline": null,
+              "caps": null,
+              "spacing": null,
+              "kern": null,
+              "fill": null,
+              "outline": null,
+              "highlight": null,
+              "link": null,
+              "hover": null,
+              "lang": null,
+              "shadow": null,
+              "innerShadow": null,
+              "glow": null,
+              "reflection": null,
+              "softEdge": null,
+              "noProof": null
+            }
+          },
+          {
+            "level": 0,
+            "runs": [
+              {
+                "text": "练习与讨论"
+              }
+            ],
+            "defProps": {
+              "font": "Arial",
+              "fontEa": null,
+              "fontCs": null,
+              "fontSym": null,
+              "size": 24.0,
+              "bold": null,
+              "italic": null,
+              "underline": null,
+              "underlineColor": null,
+              "strike": null,
+              "baseline": null,
+              "caps": null,
+              "spacing": null,
+              "kern": null,
+              "fill": null,
+              "outline": null,
+              "highlight": null,
+              "link": null,
+              "hover": null,
+              "lang": null,
+              "shadow": null,
+              "innerShadow": null,
+              "glow": null,
+              "reflection": null,
+              "softEdge": null,
+              "noProof": null
+            }
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "body": {
+          "insetL": null,
+          "insetT": null,
+          "insetR": null,
+          "insetB": null,
+          "anchor": null,
+          "anchorCtr": null,
+          "wrap": null,
+          "autofit": null,
+          "vert": null,
+          "rot": null,
+          "columns": null,
+          "colSpacing": null,
+          "warp": null,
+          "rtlCol": null,
+          "upright": null,
+          "spaceFirstLast": null
+        },
+        "paragraphs": [
+          {
+            "level": 0,
+            "runs": [
+              {
+                "text": "课程回顾"
+              }
+            ],
+            "defProps": {
+              "font": "Arial",
+              "fontEa": null,
+              "fontCs": null,
+              "fontSym": null,
+              "size": 24.0,
+              "bold": null,
+              "italic": null,
+              "underline": null,
+              "underlineColor": null,
+              "strike": null,
+              "baseline": null,
+              "caps": null,
+              "spacing": null,
+              "kern": null,
+              "fill": null,
+              "outline": null,
+              "highlight": null,
+              "link": null,
+              "hover": null,
+              "lang": null,
+              "shadow": null,
+              "innerShadow": null,
+              "glow": null,
+              "reflection": null,
+              "softEdge": null,
+              "noProof": null
+            }
+          }
+        ]
+      },
+      {
+        "body": {
+          "insetL": null,
+          "insetT": null,
+          "insetR": null,
+          "insetB": null,
+          "anchor": null,
+          "anchorCtr": null,
+          "wrap": null,
+          "autofit": null,
+          "vert": null,
+          "rot": null,
+          "columns": null,
+          "colSpacing": null,
+          "warp": null,
+          "rtlCol": null,
+          "upright": null,
+          "spaceFirstLast": null
+        },
+        "paragraphs": [
+          {
+            "level": 0,
+            "runs": [
+              {
+                "text": "重点总结"
+              }
+            ],
+            "defProps": {
+              "font": "Arial",
+              "fontEa": null,
+              "fontCs": null,
+              "fontSym": null,
+              "size": 24.0,
+              "bold": null,
+              "italic": null,
+              "underline": null,
+              "underlineColor": null,
+              "strike": null,
+              "baseline": null,
+              "caps": null,
+              "spacing": null,
+              "kern": null,
+              "fill": null,
+              "outline": null,
+              "highlight": null,
+              "link": null,
+              "hover": null,
+              "lang": null,
+              "shadow": null,
+              "innerShadow": null,
+              "glow": null,
+              "reflection": null,
+              "softEdge": null,
+              "noProof": null
+            }
+          },
+          {
+            "level": 0,
+            "runs": [
+              {
+                "text": "课后练习"
+              }
+            ],
+            "defProps": {
+              "font": "Arial",
+              "fontEa": null,
+              "fontCs": null,
+              "fontSym": null,
+              "size": 24.0,
+              "bold": null,
+              "italic": null,
+              "underline": null,
+              "underlineColor": null,
+              "strike": null,
+              "baseline": null,
+              "caps": null,
+              "spacing": null,
+              "kern": null,
+              "fill": null,
+              "outline": null,
+              "highlight": null,
+              "link": null,
+              "hover": null,
+              "lang": null,
+              "shadow": null,
+              "innerShadow": null,
+              "glow": null,
+              "reflection": null,
+              "softEdge": null,
+              "noProof": null
+            }
+          }
+        ]
+      }
+    ]
+  ],
+  "passed": true
+}

@@ -1,0 +1,335 @@
+{
+  "cli": "D:\\Coding\\EditorProjects\\joyoffice\\dist\\joydeck\\joydeck-r9-ui2-delivery-qualified\\joydeck-cli.exe",
+  "cli_sha256": "7ea746486227a95c5ebb13aea7e27423eef91cdb5d09aeecc9885dd0ee517cc5",
+  "source_sha256": "3908ab2ead42451118627853ee5a245fe9591cd57bda14e1ebe2c808de544ffe",
+  "work": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r4-r5-gbi6c6ou\\中文 空格",
+  "checks": "public/native/reexport; independent python-pptx; embedded workbook cell B3; untouched original parts; image import; invalid commands atomic; fixed-threshold scene parity",
+  "records": [
+    {
+      "args": [
+        "content",
+        "D:\\Coding\\EditorProjects\\joyoffice\\tests\\fixtures\\joydeck\\r4-r5\\independent-complex.pptx"
+      ],
+      "exit_code": 0,
+      "stdoutSha256": "d6ff71060ba4dc27af703ac00928eeebea3bd7e76e9b6655bcb37c63b05f86e3",
+      "stdoutBytes": 913042,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0
+    },
+    {
+      "args": [
+        "inspect",
+        "D:\\Coding\\EditorProjects\\joyoffice\\tests\\fixtures\\joydeck\\r4-r5\\independent-complex.pptx"
+      ],
+      "exit_code": 0,
+      "stdoutSha256": "9f6c91e846ecc18522e95a44f655facc73ae12c33ca918f3a67d8cd78701854c",
+      "stdoutBytes": 51603,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0
+    },
+    {
+      "args": [
+        "edit",
+        "D:\\Coding\\EditorProjects\\joyoffice\\tests\\fixtures\\joydeck\\r4-r5\\independent-complex.pptx",
+        "--script",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r4-r5-gbi6c6ou\\中文 空格\\script-2.json",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r4-r5-gbi6c6ou\\中文 空格\\edited.pptx"
+      ],
+      "exit_code": 0,
+      "stdoutSha256": "68b68d0c315b32dfde46e8dd890724521aa11d63429dc11b275bfd0cd672b891",
+      "stdoutBytes": 51579,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0
+    },
+    {
+      "args": [
+        "content",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r4-r5-gbi6c6ou\\中文 空格\\edited.pptx"
+      ],
+      "exit_code": 0,
+      "stdoutSha256": "4c887bdd1b5b8f5463d0dc5b9f86598c37aa4e8911068eea3075544471ee6e8a",
+      "stdoutBytes": 817911,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0
+    },
+    {
+      "args": [
+        "render",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r4-r5-gbi6c6ou\\中文 空格\\edited.pptx",
+        "--all",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r4-r5-gbi6c6ou\\中文 空格\\render-pptx"
+      ],
+      "exit_code": 0,
+      "stdoutSha256": "932a45a1e213a3cd434fc67012ee44cd750b5c14ca105fe7f5d8c2f3aafdad8f",
+      "stdoutBytes": 105,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0
+    },
+    {
+      "args": [
+        "edit",
+        "D:\\Coding\\EditorProjects\\joyoffice\\tests\\fixtures\\joydeck\\r4-r5\\independent-complex.pptx",
+        "--script",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r4-r5-gbi6c6ou\\中文 空格\\script-5.json",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r4-r5-gbi6c6ou\\中文 空格\\edited.joydeck"
+      ],
+      "exit_code": 0,
+      "stdoutSha256": "e1bd910723c7bea0ec6075152ed91f5af57cae6e696d2f1c67da210667a5e072",
+      "stdoutBytes": 51582,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0
+    },
+    {
+      "args": [
+        "content",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r4-r5-gbi6c6ou\\中文 空格\\edited.joydeck"
+      ],
+      "exit_code": 0,
+      "stdoutSha256": "7a1efdf50ca204dffa9748839e36ad7174ba5b0248c06e5a957e613adf9da2ae",
+      "stdoutBytes": 914268,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0
+    },
+    {
+      "args": [
+        "render",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r4-r5-gbi6c6ou\\中文 空格\\edited.joydeck",
+        "--all",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r4-r5-gbi6c6ou\\中文 空格\\render-joydeck"
+      ],
+      "exit_code": 0,
+      "stdoutSha256": "73393e1f179036f8916e05ee40483fd108b68488d7496628d1e2244387d2f1d8",
+      "stdoutBytes": 108,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0
+    },
+    {
+      "args": [
+        "edit",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r4-r5-gbi6c6ou\\中文 空格\\edited.joydeck",
+        "--script",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r4-r5-gbi6c6ou\\中文 空格\\script-8.json",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r4-r5-gbi6c6ou\\中文 空格\\native-reexport.pptx"
+      ],
+      "exit_code": 0,
+      "stdoutSha256": "4f086da305fdfdb8bd21df0139fc13645aa805596e59cb46e4b5659375a2ed3c",
+      "stdoutBytes": 51364,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0
+    },
+    {
+      "args": [
+        "import-picture",
+        "D:\\Coding\\EditorProjects\\joyoffice\\tests\\fixtures\\joydeck\\r4-r5\\independent-complex.pptx",
+        "D:\\Coding\\EditorProjects\\joyoffice\\tests\\fixtures\\joydeck\\r4-r5\\shapes.png",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r4-r5-gbi6c6ou\\中文 空格\\imported.pptx"
+      ],
+      "exit_code": 0,
+      "stdoutSha256": "64ba4cc01079855a375569fc210d4deb534d8a17e265477474a48e6838ae77fb",
+      "stdoutBytes": 52026,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0
+    },
+    {
+      "args": [
+        "edit",
+        "D:\\Coding\\EditorProjects\\joyoffice\\tests\\fixtures\\joydeck\\r4-r5\\independent-complex.pptx",
+        "--script",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r4-r5-gbi6c6ou\\中文 空格\\script-10.json",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r4-r5-gbi6c6ou\\中文 空格\\rejected-10.pptx"
+      ],
+      "exit_code": 1,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 0,
+      "stderrSha256": "6d5df75970f0dcb3fff789403f2306b13f45bf45394b45052f245348527f1e81",
+      "stderrBytes": 55
+    },
+    {
+      "args": [
+        "edit",
+        "D:\\Coding\\EditorProjects\\joyoffice\\tests\\fixtures\\joydeck\\r4-r5\\independent-complex.pptx",
+        "--script",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r4-r5-gbi6c6ou\\中文 空格\\script-11.json",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r4-r5-gbi6c6ou\\中文 空格\\rejected-11.pptx"
+      ],
+      "exit_code": 1,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 0,
+      "stderrSha256": "7163d1bd3e527e05fafe425f9956c54b2973838652365da8c57bb366586137b6",
+      "stderrBytes": 55
+    },
+    {
+      "args": [
+        "edit",
+        "D:\\Coding\\EditorProjects\\joyoffice\\tests\\fixtures\\joydeck\\r4-r5\\independent-complex.pptx",
+        "--script",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r4-r5-gbi6c6ou\\中文 空格\\script-12.json",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r4-r5-gbi6c6ou\\中文 空格\\rejected-12.pptx"
+      ],
+      "exit_code": 1,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 0,
+      "stderrSha256": "f137db469d11df6c6d999efea1fea4a2bac15666b964dfe99e8bb8d8cfed6d93",
+      "stderrBytes": 38
+    },
+    {
+      "args": [
+        "edit",
+        "D:\\Coding\\EditorProjects\\joyoffice\\tests\\fixtures\\joydeck\\r4-r5\\independent-complex.pptx",
+        "--script",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r4-r5-gbi6c6ou\\中文 空格\\script-13.json",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r4-r5-gbi6c6ou\\中文 空格\\rejected-13.pptx"
+      ],
+      "exit_code": 1,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 0,
+      "stderrSha256": "a70a5c086cb31c980c5f03772b29e86671ad2b358245013c1ff7dbef4f948e57",
+      "stderrBytes": 28
+    },
+    {
+      "args": [
+        "edit",
+        "D:\\Coding\\EditorProjects\\joyoffice\\tests\\fixtures\\joydeck\\r4-r5\\independent-complex.pptx",
+        "--script",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r4-r5-gbi6c6ou\\中文 空格\\script-14.json",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r4-r5-gbi6c6ou\\中文 空格\\replacement.pptx"
+      ],
+      "exit_code": 0,
+      "stdoutSha256": "09cc81b68275eff001ca42e15518faa891cf69cec2b2ce12f9750d1ce31af93f",
+      "stdoutBytes": 51595,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0
+    },
+    {
+      "args": [
+        "recovery-list",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r4-r5-gbi6c6ou\\中文 空格\\recovery"
+      ],
+      "exit_code": 0,
+      "stdoutSha256": "eba257e81e7d3c058c37cafcb6cf61ee6106739dd59204ff7708479ff6c397fb",
+      "stdoutBytes": 529,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0
+    },
+    {
+      "args": [
+        "recover",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r4-r5-gbi6c6ou\\中文 空格\\recovery",
+        "34812-1793710714931927900-1",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r4-r5-gbi6c6ou\\中文 空格\\recovered.joydeck"
+      ],
+      "exit_code": 0,
+      "stdoutSha256": "5d2a957ea0742833cad1e60c1178b7df5823209ec29a28e95ac1066c74fbcd60",
+      "stdoutBytes": 102,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0
+    },
+    {
+      "args": [
+        "content",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r4-r5-gbi6c6ou\\中文 空格\\recovered.joydeck"
+      ],
+      "exit_code": 0,
+      "stdoutSha256": "7a1efdf50ca204dffa9748839e36ad7174ba5b0248c06e5a957e613adf9da2ae",
+      "stdoutBytes": 914268,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0
+    },
+    {
+      "args": [
+        "edit",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r4-r5-gbi6c6ou\\中文 空格\\unknown-chart.pptx",
+        "--script",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r4-r5-gbi6c6ou\\中文 空格\\script-18.json",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r4-r5-gbi6c6ou\\中文 空格\\unknown-chart-must-not-exist.pptx"
+      ],
+      "exit_code": 1,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 0,
+      "stderrSha256": "05f705f486474134f01551966f254e28454603a1f19e7a829741e87dea83f321",
+      "stderrBytes": 116
+    },
+    {
+      "args": [
+        "edit",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r4-r5-gbi6c6ou\\中文 空格\\unknown-chart.pptx",
+        "--script",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r4-r5-gbi6c6ou\\中文 空格\\script-19.json",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r4-r5-gbi6c6ou\\中文 空格\\unknown-chart-safe.joydeck"
+      ],
+      "exit_code": 0,
+      "stdoutSha256": "214861f612e11e0e829d523cb198cc0af125c1b87c31873e40d9da7177faee89",
+      "stdoutBytes": 51605,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0
+    },
+    {
+      "args": [
+        "scene-bench",
+        "D:\\Coding\\EditorProjects\\joyoffice\\tests\\fixtures\\joydeck\\r4-r5\\independent-complex.pptx",
+        "--page",
+        "1",
+        "--iterations",
+        "40",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r4-r5-gbi6c6ou\\中文 空格\\scene-1"
+      ],
+      "exit_code": 0,
+      "stdoutSha256": "bcff0675409f580954d7561c0f79e0c71f4084afbab73cd5d104cc31e36cafd7",
+      "stdoutBytes": 2450,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0
+    },
+    {
+      "args": [
+        "scene-bench",
+        "D:\\Coding\\EditorProjects\\joyoffice\\tests\\fixtures\\joydeck\\r4-r5\\independent-complex.pptx",
+        "--page",
+        "2",
+        "--iterations",
+        "40",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r4-r5-gbi6c6ou\\中文 空格\\scene-2"
+      ],
+      "exit_code": 0,
+      "stdoutSha256": "d7ed7ab8dad43c72fd44fc4052e15ab03ef11fe643f04fde1b7ec004cf72d115",
+      "stdoutBytes": 2449,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0
+    },
+    {
+      "args": [
+        "scene-bench",
+        "D:\\Coding\\EditorProjects\\joyoffice\\tests\\fixtures\\joydeck\\r4-r5\\independent-complex.pptx",
+        "--page",
+        "3",
+        "--iterations",
+        "40",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r4-r5-gbi6c6ou\\中文 空格\\scene-3"
+      ],
+      "exit_code": 0,
+      "stdoutSha256": "70fd517b20394cf0fde0fe15eca7f895410540f4ef386695df719f217aa34572",
+      "stdoutBytes": 2449,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0
+    }
+  ],
+  "fullReportSha256": "37b1f8cd3408596a73679b399f29f4e4be80c907588b2f71d3da211d5346abc2",
+  "fullReportLocalPath": "D:\\Coding\\EditorProjects\\joyoffice\\target\\r9-ui2\\delivery-cli-r4-r5-full.json",
+  "allAssertionsPassed": true
+}

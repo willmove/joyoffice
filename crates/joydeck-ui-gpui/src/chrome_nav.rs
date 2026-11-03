@@ -43,6 +43,14 @@ impl Viewer {
                                     .unwrap_or_default();
                                 div()
                                     .id(page)
+                                    .on_drag(s.slide_drag(page, cx), |drag, _, _, cx| {
+                                        cx.new(|_| organize_ui::SlideDragPreview(drag.slides.len()))
+                                    })
+                                    .on_drop(cx.listener(
+                                        move |s, drag: &organize_ui::SlideDrag, w, cx| {
+                                            s.drop_slides(drag, Some(page), w, cx)
+                                        },
+                                    ))
                                     .h(px(height + 28.))
                                     .pt_3()
                                     .pr_2()
@@ -65,7 +73,7 @@ impl Viewer {
                                         div()
                                             .rounded(px(5.))
                                             .border(px(if s.page == page { 2. } else { 1. }))
-                                            .border_color(rgb(if s.page == page {
+                                            .border_color(rgb(if s.slide_selected(page) {
                                                 palette.accent
                                             } else {
                                                 palette.border
@@ -104,14 +112,11 @@ impl Viewer {
                                                                 },
                                                             )),
                                                     )
-                                                    .on_click(cx.listener(move |s, _, w, cx| {
-                                                        if s.composing() {
-                                                            return;
-                                                        }
-                                                        s.commit_notes(w, cx);
-                                                        s.select(page, cx);
-                                                        s.focus.focus(w, cx);
-                                                    })),
+                                                    .on_click(cx.listener(
+                                                        move |s, event, w, cx| {
+                                                            s.select_slide(page, event, w, cx)
+                                                        },
+                                                    )),
                                             ),
                                     )
                             })
@@ -146,6 +151,17 @@ impl Viewer {
                                 for page in r * 3..((r + 1) * 3).min(count) {
                                     row = row.child(
                                         div()
+                                            .id(("sorter-drag", page))
+                                            .on_drag(s.slide_drag(page, cx), |drag, _, _, cx| {
+                                                cx.new(|_| {
+                                                    organize_ui::SlideDragPreview(drag.slides.len())
+                                                })
+                                            })
+                                            .on_drop(cx.listener(
+                                                move |s, drag: &organize_ui::SlideDrag, w, cx| {
+                                                    s.drop_slides(drag, Some(page), w, cx)
+                                                },
+                                            ))
                                             .flex_1()
                                             .min_w_0()
                                             .flex()
@@ -158,7 +174,7 @@ impl Viewer {
                                                     .h(px(165.))
                                                     .w_full()
                                                     .border_2()
-                                                    .border_color(rgb(if page == s.page {
+                                                    .border_color(rgb(if s.slide_selected(page) {
                                                         p.accent
                                                     } else {
                                                         p.border
@@ -185,11 +201,11 @@ impl Viewer {
                                                                 },
                                                             )),
                                                     )
-                                                    .on_click(cx.listener(move |s, _, w, cx| {
-                                                        s.select(page, cx);
-                                                        s.sorter = false;
-                                                        s.focus.focus(w, cx);
-                                                    })),
+                                                    .on_click(cx.listener(
+                                                        move |s, event, w, cx| {
+                                                            s.select_slide(page, event, w, cx)
+                                                        },
+                                                    )),
                                             )
                                             .child(
                                                 div()

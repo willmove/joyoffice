@@ -1,0 +1,55 @@
+{
+  "binarySha256": "facc1c4eceacfe351f6e97b43e81197bd3f5b25cdfd6ebf08bf76464fb717530",
+  "inputOutput": "D:\\Coding\\JoyOffice GUI 验证\\R9-UI2-20261103\\Deck-gui-qualified\\data\\format-final.pptx",
+  "pptxSha256": "6ee42a1de95d6dde12a810f67149d8939815c18a71666192e50c8f85903b3bfc",
+  "positionPoints": [
+    100,
+    80
+  ],
+  "paragraphs": [
+    {
+      "text": "混合格式验证 ABC",
+      "properties": {
+        "marL": "228600",
+        "marR": "0",
+        "indent": "-114300"
+      },
+      "lineSpacingPercent": 150000,
+      "spaceAfterPoints": 6,
+      "runs": [
+        {
+          "text": "混合",
+          "size": 28.0,
+          "font": "Arial",
+          "bold": false
+        },
+        {
+          "text": "格式验证 ABC",
+          "size": 40.0,
+          "font": "Arial",
+          "bold": true
+        }
+      ]
+    },
+    {
+      "text": "第二段：保留独立格式",
+      "properties": {
+        "marL": "228600",
+        "marR": "0",
+        "indent": "-114300"
+      },
+      "lineSpacingPercent": 150000,
+      "spaceAfterPoints": 6,
+      "runs": [
+        {
+          "text": "第二段：保留独立格式",
+          "size": 24.0,
+          "font": "Arial",
+          "bold": null
+        }
+      ]
+    }
+  ],
+  "ctrlEnterRetainsText": true,
+  "allAssertionsPassed": true
+}

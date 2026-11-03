@@ -9,6 +9,21 @@ fn execute() -> Result<(), String> {
 }
 
 fn execute_args(args: &[String]) -> Result<(), String> {
+    if let [command, base, reference] = args
+        && command == "compare"
+    {
+        let editor = joydeck_shell::editor::Editor::open(
+            std::path::Path::new(base),
+            joydeck_shell::editor::recovery_root(),
+        )?;
+        let comparison =
+            joydeck_shell::comparison::Comparison::open(&editor, std::path::Path::new(reference))?;
+        println!(
+            "{}",
+            serde_json::to_string_pretty(&comparison.report).map_err(|e| e.to_string())?
+        );
+        return Ok(());
+    }
     if let [command, input, mode_flag, mode, output_flag, output] = args
         && command == "exchange"
         && mode_flag == "--mode"

@@ -16,6 +16,58 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 static IDS: AtomicU64 = AtomicU64::new(1);
+static RECENT_WRITE: Mutex<()> = Mutex::new(());
+#[derive(Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct RecentFiles {
+    version: u32,
+    paths: Vec<PathBuf>,
+}
+pub fn recent_files(root: &Path) -> Result<Vec<PathBuf>> {
+    let file = match File::open(root.join("recent-files.v1")) {
+        Ok(file) => file,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(vec![]),
+        Err(e) => return Err(e.to_string()),
+    };
+    let mut bytes = vec![];
+    file.take(65537)
+        .read_to_end(&mut bytes)
+        .map_err(|e| e.to_string())?;
+    if bytes.len() > 65536 {
+        return Err("recent file list exceeds 64 KiB".into());
+    }
+    let record: RecentFiles = serde_json::from_slice(&bytes).map_err(|e| e.to_string())?;
+    if record.version != 1
+        || record.paths.len() > 20
+        || record.paths.iter().any(|p| !p.is_absolute())
+    {
+        return Err("unsupported recent file list".into());
+    }
+    Ok(record.paths)
+}
+pub fn remember_file(root: &Path, path: &Path) -> Result<()> {
+    let _writer = RECENT_WRITE
+        .lock()
+        .map_err(|_| "recent file writer unavailable")?;
+    let path = path.canonicalize().map_err(|e| e.to_string())?;
+    std::fs::create_dir_all(root).map_err(|e| e.to_string())?;
+    let index = root.join("recent-files.v1");
+    let expected = match fingerprint(&index) {
+        Ok(fp) => Some(fp),
+        Err(_) if !index.exists() => None,
+        Err(e) => return Err(e),
+    };
+    let mut paths = recent_files(root)?;
+    paths.retain(|p| p != &path);
+    paths.insert(0, path);
+    paths.truncate(20);
+    let bytes =
+        serde_json::to_vec(&RecentFiles { version: 1, paths }).map_err(|e| e.to_string())?;
+    if bytes.len() > 65536 {
+        return Err("recent file list exceeds 64 KiB".into());
+    }
+    save(&index, &bytes, expected).map(|_| ())
+}
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Fingerprint {
     pub size: u64,
@@ -35,6 +87,9 @@ pub fn fingerprint(path: &Path) -> Result<Fingerprint> {
     })
 }
 pub fn save(path: &Path, deck: &Deck, expected: Option<Fingerprint>) -> Result<Fingerprint> {
+    if deck.len() as u64 > MAX_FILE {
+        return Err("文件超过写入预算".into());
+    }
     if let Some(e) = &expected
         && fingerprint(path).as_ref() != Ok(e)
     {
@@ -46,14 +101,30 @@ pub fn save(path: &Path, deck: &Deck, expected: Option<Fingerprint>) -> Result<F
         stamp(),
         IDS.fetch_add(1, Ordering::Relaxed)
     ));
-    edit::save_new(&temp, deck)?;
+    // This is already a private prepare file, not a published destination.
+    // Writing it directly avoids a second hard-link publication (and a pending
+    // deleted alias on Windows) before the actual atomic commit.
+    let prepared_write = (|| {
+        let mut file = OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(&temp)
+            .map_err(|e| format!("create prepare file: {e}"))?;
+        file.write_all(deck)
+            .and_then(|_| file.sync_all())
+            .map_err(|e| format!("write prepare file: {e}"))
+    })();
+    if let Err(error) = prepared_write {
+        let _ = std::fs::remove_file(&temp);
+        return Err(error);
+    }
     let prepared = fingerprint(&temp)?;
     let result = (|| {
         if let Some(e) = expected {
             if fingerprint(path)? != e {
                 return Err("提交前检测到外部修改，请另存".into());
             }
-            std::fs::rename(&temp, path).map_err(|e| e.to_string())?;
+            crate::platform::replace_file(&temp, path)?;
         } else {
             std::fs::hard_link(&temp, path)
                 .map_err(|e| format!("无法新建目标（可能已存在）：{e}"))?;

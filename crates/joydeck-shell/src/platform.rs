@@ -96,7 +96,7 @@ pub fn publish(path: &Path, bytes: &[u8], replace: bool) -> Result<()> {
         f.sync_all().map_err(|e| e.to_string())?;
         drop(f);
         if replace {
-            std::fs::rename(&temp, path).map_err(|e| e.to_string())?
+            replace_file(&temp, path)?
         } else {
             std::fs::hard_link(&temp, path).map_err(|e| e.to_string())?
         }
@@ -104,4 +104,24 @@ pub fn publish(path: &Path, bytes: &[u8], replace: bool) -> Result<()> {
     })();
     let _ = std::fs::remove_file(temp);
     result
+}
+/// Windows indexers can briefly open a newly written file without delete sharing.
+/// Retry the atomic replacement; never remove the destination to make it succeed.
+pub(crate) fn replace_file(source: &Path, destination: &Path) -> Result<()> {
+    for attempt in 0..8 {
+        match std::fs::rename(source, destination) {
+            Ok(()) => return Ok(()),
+            Err(error) => {
+                if cfg!(windows)
+                    && error.kind() == std::io::ErrorKind::PermissionDenied
+                    && attempt < 7
+                {
+                    std::thread::sleep(std::time::Duration::from_millis(25));
+                    continue;
+                }
+                return Err(format!("atomic replacement: {error}"));
+            }
+        }
+    }
+    Err("atomic replacement did not complete".into())
 }

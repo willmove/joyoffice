@@ -68,8 +68,9 @@
     "source_path": "scripts/joydeck/package-native.py",
     "target_path": "scripts/joydeck/package-native.py",
     "source_sha256": "a4ae844b6c2488524872bc69e418673dce6cd1599530447e9efc54ab6be1398e",
-    "adapted_sha256": "bab6501d523e8f53543733a09cb4b6b7780d3cd96011c80836050650712243f7",
-    "local_changes": "adapt product packaging and Cargo artifact discovery; add source checks, selected SBOM and atomic ZIP; LF; R1 rustfmt and bounded reader/CPU-renderer/palette/notes adapters as applicable; R2 editable viewer adapter, background save/recovery, command-driven gestures, coordinate anchoring and close guard; rustfmt; R4/R5 scene/content workspace adaptation; R6/R7 adapter additions and repository rustfmt/LF normalization.; R8 native editor, clipboard or product package version adaptation; R9 host integration and explicit command schema negotiation"
+    "adapted_sha256": "2e977dda5791ec648ae117cddbb125ba28f6ac985fdcdeb9441ab4a7b6339bbf",
+    "local_changes": "adapt product packaging and Cargo artifact discovery; add source checks, selected SBOM and atomic ZIP; LF; R1 rustfmt and bounded reader/CPU-renderer/palette/notes adapters as applicable; R2 editable viewer adapter, background save/recovery, command-driven gestures, coordinate anchoring and close guard; rustfmt; R4/R5 scene/content workspace adaptation; R6/R7 adapter additions and repository rustfmt/LF normalization.; R8 native editor, clipboard or product package version adaptation; R9 host integration and explicit command schema negotiation",
+    "r9_ui2_gui_fix": "Include reviewed local platform-adapter source in package fingerprint"
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
@@ -140,24 +141,28 @@
     "source_path": "apps/joydeck/src/viewer.rs",
     "target_path": "crates/joydeck-ui-gpui/src/viewer.rs",
     "source_sha256": "249104bdece51947664a50fe4b8166f358662e78d0000ed7d0024b10fade5584",
-    "adapted_sha256": "4a2e4ebd37809a9cbe850b10e20d462bbdcdffee95c74735c625faf61ccd9b31",
-    "local_changes": "Reuse asynchronous read-only viewer, generation guards, cancellation, virtual thumbnail rail and bounded cache; adapt to DeckCraft model and shared CPU renderer; R1 branding and aspect fit; upstream validation modules deferred; R1 rustfmt and bounded reader/CPU-renderer/palette/notes adapters as applicable; R2 editable viewer adapter, background save/recovery, command-driven gestures, coordinate anchoring and close guard; rustfmt; R4/R5 scene/content workspace adaptation; R6/R7 adapter additions and repository rustfmt/LF normalization.; R8 native editor, clipboard or product package version adaptation; R9-UI1 native formatting controls and schema-2 validation/history compatibility (see slice evidence)"
+    "adapted_sha256": "16715d4e5ad7a5218a23318e7c7f1361d0c673c21c54fb1a8968c7f527d94a73",
+    "local_changes": "Reuse asynchronous read-only viewer, generation guards, cancellation, virtual thumbnail rail and bounded cache; adapt to DeckCraft model and shared CPU renderer; R1 branding and aspect fit; upstream validation modules deferred; R1 rustfmt and bounded reader/CPU-renderer/palette/notes adapters as applicable; R2 editable viewer adapter, background save/recovery, command-driven gestures, coordinate anchoring and close guard; rustfmt; R4/R5 scene/content workspace adaptation; R6/R7 adapter additions and repository rustfmt/LF normalization.; R8 native editor, clipboard or product package version adaptation; R9-UI1 native formatting controls and schema-2 validation/history compatibility (see slice evidence)",
+    "r9_ui2_adaptation": "Formatting, desktop control and reviewed preservation validation; LF source representation.",
+    "r9_ui2_gui_fix": "Synchronize every editor palette with GPUI Kit application theme during render"
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
     "source_path": "crates/joydeck-platform/src/files.rs",
     "target_path": "crates/joydeck-shell/src/platform.rs",
     "source_sha256": "fa05e64cb6b044a0db850990889d8ead4b0012339aad9133ed9cb381d1485496",
-    "adapted_sha256": "d7e69d30f473a15adb708d61749683995a3d54aaa8d1a8ac707cd4a8bed12f14",
-    "local_changes": "R2 adapt bounded IO/fingerprints and leased revision recovery to encoded JoyDeck v2 packages; recovery indexes read under bound; tests replaced by new-model integration tests; R2 editable viewer adapter, background save/recovery, command-driven gestures, coordinate anchoring and close guard; rustfmt; R4/R5 scene/content workspace adaptation; R8 native editor, clipboard or product package version adaptation"
+    "adapted_sha256": "599b633c579798ab396be8681d52fb8ab6d224242e88cf3dbbf29c23bee852ee",
+    "local_changes": "R2 adapt bounded IO/fingerprints and leased revision recovery to encoded JoyDeck v2 packages; recovery indexes read under bound; tests replaced by new-model integration tests; R2 editable viewer adapter, background save/recovery, command-driven gestures, coordinate anchoring and close guard; rustfmt; R4/R5 scene/content workspace adaptation; R8 native editor, clipboard or product package version adaptation",
+    "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained."
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
     "source_path": "crates/joydeck-shell/src/storage.rs",
     "target_path": "crates/joydeck-shell/src/storage.rs",
     "source_sha256": "a13a4e50806f4c4e6b78c75208d11325254ffed035617e56336939f1221c7ebc",
-    "adapted_sha256": "9022822f880f3363b4487eb3f49d5fa8a3f3011d68470f0cd1b61cc11ea28836",
-    "local_changes": "R2 adapt bounded IO/fingerprints and leased revision recovery to encoded JoyDeck v2 packages; recovery indexes read under bound; tests replaced by new-model integration tests; R2 editable viewer adapter, background save/recovery, command-driven gestures, coordinate anchoring and close guard; rustfmt"
+    "adapted_sha256": "215f286ee3e9b838f4005ddc891f3f6df47ee1e6561fe5a67442e6e0cc2c94fd",
+    "local_changes": "R2 adapt bounded IO/fingerprints and leased revision recovery to encoded JoyDeck v2 packages; recovery indexes read under bound; tests replaced by new-model integration tests; R2 editable viewer adapter, background save/recovery, command-driven gestures, coordinate anchoring and close guard; rustfmt",
+    "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained."
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
@@ -165,7 +170,8 @@
     "target_path": "crates/joydeck-engine/src/text.rs",
     "source_sha256": "0f5c0c5ba05a35a5f064271e1c3efd1bdf7afb959a8634b865206d9f1ed13de3",
     "local_changes": "Extract checked UTF-16/grapheme helpers; adapt composition draft to DeckCraft TextBody/edit; preserve rich runs/paragraphs, bounded drafts, no IO.",
-    "adapted_sha256": "8fab4b2e72a93242745ea7c1ec1cc5daeddb9f37e8e775e91b532ee95127be9c"
+    "adapted_sha256": "cc4d3266b629ad6871c04f5808e5ba9ffad981d3d53011582533fe3debc003ca",
+    "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained."
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
@@ -173,13 +179,15 @@
     "target_path": "crates/joydeck-ui-gpui/src/inline_text.rs",
     "source_sha256": "e6caa4311e30aaa39f91b1da6d328e8bba46ae9afcf4a890e44e43278e5ef4f4",
     "local_changes": "Adapt EntityInputHandler, selection/clipboard/composition routing to new pure engine; consume shared CPU text/table layout for all geometry; add bounded text metadata/TSV and notes Textarea flow from apps/joydeck/src/chrome.rs.; R8 native editor, clipboard or product package version adaptation; R9-UI1 native formatting controls and schema-2 validation/history compatibility (see slice evidence)",
-    "adapted_sha256": "2e7d0cac3f983710b3bbcaf4b6fcfe8f60212e14c7b83b0f745d52ffbeed72b4",
+    "adapted_sha256": "49abc3608eeacc0a0186f734f0a8b826839666967b9c66929504d5d7b25a60ce",
     "additional_sources": [
       {
         "source_path": "apps/joydeck/src/chrome.rs",
         "source_sha256": "68b6b3800e63f68f65ccab43e81304728295aa7aaa407c3ba4a46408666e6328"
       }
-    ]
+    ],
+    "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained.",
+    "r9_ui2_gui_fix": "Keep inline formatting scoped to the edited object; Ctrl+Enter commits; double-click selection and drag threshold."
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
@@ -483,7 +491,8 @@
     "target_path": "crates/joydeck-shell/src/automation.rs",
     "source_sha256": "a7b1f491133a68641318cefc9dac0dd135718d1e03c66361ae1aa974bbe97cd9",
     "local_changes": "Root, revision and replay concepts adapted to new dispatcher, selection revisions, bounded export jobs and snapshots; no old workspace state.; R9 host integration and explicit command schema negotiation; R9-UI1 native formatting controls and schema-2 validation/history compatibility (see slice evidence)",
-    "adapted_sha256": "12694c6af7f3851d2b85679668cbb955c4c8d61deb89d6c51f2608471bb869e6"
+    "adapted_sha256": "aba40a72ead38b16c9b00de34de39d9845690722f0c2dc1f3a7c46ae01896636",
+    "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained."
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
@@ -562,8 +571,9 @@
     "source_path": "apps/joydeck/src/chrome.rs",
     "target_path": "crates/joydeck-ui-gpui/src/chrome_nav.rs",
     "source_sha256": "68b6b3800e63f68f65ccab43e81304728295aa7aaa407c3ba4a46408666e6328",
-    "adapted_sha256": "88b4b08f94f6450c0ad846ca1e170711f5fd67399fbf7f8e116bd30c1355cb5a",
-    "local_changes": "R8 native Save As prompt and deferred window update pattern adapted to v2 save jobs; own notes/placeholder/navigation implementation"
+    "adapted_sha256": "5059fa88e82ee4bd45c621df13e7ec03df3379862b05ff6f5df721a7a4368a9f",
+    "local_changes": "R8 native Save As prompt and deferred window update pattern adapted to v2 save jobs; own notes/placeholder/navigation implementation",
+    "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained."
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
@@ -571,6 +581,7 @@
     "target_path": "crates/joydeck-ui-gpui/src/chrome.rs",
     "source_sha256": "efd229d2bca36c8887fa16026f4946bbe3240cd9ea9b1b9b65c8c83c11933438",
     "local_changes": "R8 per-tab bounded GPUI construction frames follow the old JoyDeck ribbon pattern; split Home into groups and keep intrinsic horizontal scroll width on default MSVC stack.",
-    "adapted_sha256": "6159aeba5633f1faa75258e2b411cd7b9e42438d426ac561a5ee943db177c940"
+    "adapted_sha256": "8cd913b897625c2f089ce9fb95bf79debb642038082aac9f2af569f84b4939d6",
+    "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained."
   }
 ]

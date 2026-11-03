@@ -15,6 +15,9 @@ def main():
     fonts = json.loads((ROOT / 'licenses/fonts/sources.json').read_text(encoding='utf-8'))
     records += [{'target_path': r['path'], 'source_sha256': r['sha256']} for r in fonts['files']]
     errors = []
+    patched = json.loads((ROOT / 'licenses/accesskit-windows/source.json').read_text(encoding='utf-8'))
+    records += [{'target_path': 'third-party/accesskit_windows/' + name,
+                 'source_sha256': digest} for name, digest in patched['files'].items()]
     for record in records:
         path = (ROOT / record['target_path']).resolve()
         if not path.is_relative_to(ROOT) or not path.is_file():

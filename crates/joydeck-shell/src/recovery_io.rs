@@ -1,7 +1,4 @@
 use std::path::Path;
-pub fn save_new(path: &Path, bytes: &[u8]) -> Result<(), String> {
-    crate::platform::publish(path, bytes, false)
-}
 pub fn save(path: &Path, bytes: &[u8]) -> Result<(), String> {
     crate::platform::publish(path, bytes, path.exists())
 }

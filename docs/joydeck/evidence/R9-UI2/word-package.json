@@ -1,0 +1,8 @@
+{
+  "archive": "dist\\joyword\\r9-ui2-window-qualified\\joyword-0.1.1-windows-x86_64.zip",
+  "archiveSha256": "23f59e9d2c2e70a3cc75e64d6be44f0df42f2502f5beb4c341de3ff16f2118b6",
+  "binarySha256": "c10593d0d91f63d138b2314586d7410030ef5178f56a9c23d8060118137fd5b3",
+  "runtime": "D:\\Coding\\JoyOffice GUI 验证\\R9-UI2-20261103\\Word-window-qualified\\joyword.exe",
+  "pid": 34608,
+  "guiQualification": "Passed on these exact packaged bytes: 100% Windows GUI, native PDF export, independent pypdf/Poppler readback and visual inspection"
+}

@@ -17,8 +17,58 @@ pub enum TextTarget {
     Notes,
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct TextEdit {
+    pub target: TextTarget,
+    pub body: TextBody,
+}
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct CellRange {
+    pub row: usize,
+    pub col: usize,
+    pub end_row: usize,
+    pub end_col: usize,
+}
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[serde(default, deny_unknown_fields)]
+pub struct CellFormat {
+    pub fill_rgb: Option<u32>,
+    pub clear_fill: bool,
+    pub borders: Option<CellBorders>,
+    pub margins: Option<[f64; 4]>,
+    pub margin_patch: Option<[Option<f64>; 4]>,
+    pub anchor: Option<joydeck_model::text::Anchor>,
+    pub vertical: Option<joydeck_model::text::TextDir>,
+}
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct CellBorders {
+    pub sides: [bool; 4],
+    pub rgb: u32,
+    pub width: f64,
+    pub remove: bool,
+}
+#[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(tag = "operation", rename_all = "kebab-case", deny_unknown_fields)]
 pub enum TableAction {
+    Format {
+        range: CellRange,
+        format: CellFormat,
+    },
+    Style {
+        name: String,
+        first_row: bool,
+        band_row: bool,
+    },
+    RowHeight {
+        row: usize,
+        height: f64,
+    },
+    ColWidth {
+        col: usize,
+        width: f64,
+    },
     InsertRow {
         at: usize,
     },
@@ -118,6 +168,7 @@ pub fn apply(st: &mut EditorSnapshot, cmd: &Command) -> Option<Result<(), String
     if !matches!(
         cmd,
         Command::SetText { .. }
+            | Command::SetTexts { .. }
             | Command::EditText { .. }
             | Command::InsertTable { .. }
             | Command::Table { .. }
@@ -131,6 +182,23 @@ fn run(st: &mut EditorSnapshot, cmd: &Command) -> Result<(), String> {
     let p = Arc::make_mut(&mut st.model);
     match cmd {
         Command::SetText { target, body } => set_body(p, page, target, body.as_ref().clone()),
+        Command::SetTexts { edits } => {
+            if edits.is_empty() || edits.len() > 256 {
+                return Err("text transaction requires 1–256 targets".into());
+            }
+            let mut bytes = 0usize;
+            for (i, edit) in edits.iter().enumerate() {
+                if edits[..i].iter().any(|prior| prior.target == edit.target) {
+                    return Err("duplicate text target".into());
+                }
+                bytes = bytes.saturating_add(edit.body.text().len());
+                if bytes > 1 << 20 {
+                    return Err("text transaction exceeds 1 MiB".into());
+                }
+                set_body(p, page, &edit.target, edit.body.clone())?;
+            }
+            Ok(())
+        }
         Command::EditText {
             target,
             start,
@@ -189,6 +257,140 @@ fn run(st: &mut EditorSnapshot, cmd: &Command) -> Result<(), String> {
                 return Err("large table editing exceeds budget".into());
             }
             match action {
+                TableAction::Style {
+                    name,
+                    first_row,
+                    band_row,
+                } => {
+                    if !table::table_styles().iter().any(|(id, _)| id == name)
+                        && !p.table_styles.iter().any(|style| &style.id == name)
+                    {
+                        return Err("unknown table style".into());
+                    }
+                    t.style = name.clone();
+                    t.first_row = *first_row;
+                    t.band_row = *band_row;
+                }
+                TableAction::RowHeight { row, height } => {
+                    if !height.is_finite() || !(4. ..=4000.).contains(height) {
+                        return Err("row height must be 4–4000 pt".into());
+                    }
+                    t.rows.get_mut(*row).ok_or("missing row")?.height = *height;
+                }
+                TableAction::ColWidth { col, width } => {
+                    if !width.is_finite() || !(4. ..=4000.).contains(width) {
+                        return Err("column width must be 4–4000 pt".into());
+                    }
+                    *t.cols.get_mut(*col).ok_or("missing column")? = *width;
+                }
+                TableAction::Format { range, format } => {
+                    if range.row > range.end_row
+                        || range.col > range.end_col
+                        || range.end_row >= t.n_rows()
+                        || range.end_col >= t.n_cols()
+                    {
+                        return Err("cell range outside table".into());
+                    }
+                    for (row, data) in t.rows.iter().enumerate() {
+                        for (col, cell) in data.cells.iter().enumerate() {
+                            if cell.is_covered() {
+                                continue;
+                            }
+                            let end_row = row.saturating_add(cell.row_span.max(1) as usize - 1);
+                            let end_col = col.saturating_add(cell.grid_span.max(1) as usize - 1);
+                            let intersects = row <= range.end_row
+                                && end_row >= range.row
+                                && col <= range.end_col
+                                && end_col >= range.col;
+                            if intersects
+                                && (row < range.row
+                                    || col < range.col
+                                    || end_row > range.end_row
+                                    || end_col > range.end_col)
+                            {
+                                return Err("select the complete merged cell".into());
+                            }
+                        }
+                    }
+                    if format.fill_rgb.is_some_and(|rgb| rgb > 0xffffff)
+                        || format.margins.is_some_and(|v| {
+                            v.iter()
+                                .any(|n| !n.is_finite() || !(0. ..=720.).contains(n))
+                        })
+                        || format.borders.as_ref().is_some_and(|b| {
+                            b.rgb > 0xffffff
+                                || !b.width.is_finite()
+                                || !(0. ..=100.).contains(&b.width)
+                        })
+                        || format.margin_patch.is_some_and(|v| {
+                            v.iter()
+                                .flatten()
+                                .any(|n| !n.is_finite() || !(0. ..=720.).contains(n))
+                        })
+                    {
+                        return Err("invalid cell color, border or margins".into());
+                    }
+                    for row in range.row..=range.end_row {
+                        for col in range.col..=range.end_col {
+                            let cell = t.cell_mut(row, col).ok_or("missing cell")?;
+                            if cell.is_covered() {
+                                continue;
+                            }
+                            if format.clear_fill {
+                                cell.fill = None;
+                            }
+                            if let Some(rgb) = format.fill_rgb {
+                                cell.fill = Some(Fill::solid(ColorRef::rgb(Rgba::rgb(
+                                    (rgb >> 16) as u8,
+                                    (rgb >> 8) as u8,
+                                    rgb as u8,
+                                ))));
+                            }
+                            if let Some(b) = &format.borders {
+                                for (side, selected) in b.sides.iter().enumerate() {
+                                    if *selected {
+                                        cell.borders[side] = if b.remove {
+                                            Some(Line {
+                                                fill: Some(Fill::None),
+                                                ..Default::default()
+                                            })
+                                        } else {
+                                            Some(Line {
+                                                fill: Some(Fill::solid(ColorRef::rgb(Rgba::rgb(
+                                                    (b.rgb >> 16) as u8,
+                                                    (b.rgb >> 8) as u8,
+                                                    b.rgb as u8,
+                                                )))),
+                                                width: Some(b.width),
+                                                ..Default::default()
+                                            })
+                                        };
+                                    }
+                                }
+                            }
+                            if let Some(v) = format.margins {
+                                cell.margins = Some(v);
+                            }
+                            if let Some(patch) = format.margin_patch
+                                && patch.iter().any(Option::is_some)
+                            {
+                                let mut margins = cell.margins.unwrap_or([7.2, 7.2, 3.6, 3.6]);
+                                for (n, value) in margins.iter_mut().zip(patch) {
+                                    if let Some(value) = value {
+                                        *n = value;
+                                    }
+                                }
+                                cell.margins = Some(margins);
+                            }
+                            if let Some(v) = format.anchor {
+                                cell.anchor = Some(v);
+                            }
+                            if let Some(v) = format.vertical {
+                                cell.vertical = Some(v);
+                            }
+                        }
+                    }
+                }
                 TableAction::InsertRow { at } if *at <= t.n_rows() && t.n_rows() < 100 => {
                     t.insert_row(*at)
                 }
@@ -260,6 +462,9 @@ fn run(st: &mut EditorSnapshot, cmd: &Command) -> Result<(), String> {
                 _ => return Err("table boundary or budget reached".into()),
             }
             if let Some(x) = &mut s.xfrm {
+                if t.width() > 32768. || t.height() > 32768. {
+                    return Err("table dimensions exceed coordinate budget".into());
+                }
                 x.w = t.width();
                 x.h = t.height();
             }

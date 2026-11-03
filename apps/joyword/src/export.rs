@@ -109,7 +109,7 @@ fn scene_pdf_with_profile(
     let selected = layout.pages()[pages].to_vec();
     render_with_profile(
         &selected,
-        std::slice::from_ref(font),
+        &crate::font_fallback::fonts(font),
         &export,
         &navigation,
         profile,

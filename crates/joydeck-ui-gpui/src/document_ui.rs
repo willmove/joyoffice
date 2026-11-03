@@ -1,9 +1,11 @@
 //! Save-before-replace workflow; asynchronous saves never discard newer edits.
 use super::*;
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub(super) enum ReplaceDocument {
     New,
     Open,
+    Path(PathBuf),
+    Template(&'static str),
 }
 impl Viewer {
     pub(super) fn confirm_replace(
@@ -28,6 +30,8 @@ impl Viewer {
         w.open_dialog(cx, move |d, _, _| {
             let save = view.clone();
             let discard = view.clone();
+            let save_action = action.clone();
+            let discard_action = action.clone();
             d.title("是否保存对演示文稿的更改？")
                 .child("保存后继续；取消可返回当前演示文稿。")
                 .child(
@@ -38,7 +42,7 @@ impl Viewer {
                             move |_, w, cx| {
                                 let _ = save.update(cx, |s, cx| {
                                     w.close_dialog(cx);
-                                    s.pending_replace = Some(action);
+                                    s.pending_replace = Some(save_action.clone());
                                     s.save(&Save, w, cx);
                                 });
                             },
@@ -50,7 +54,7 @@ impl Viewer {
                                         let _ = e.recovery.discard();
                                     }
                                     w.close_dialog(cx);
-                                    s.continue_replace(action, w, cx);
+                                    s.continue_replace(discard_action.clone(), w, cx);
                                 });
                             },
                         ))
@@ -72,6 +76,8 @@ impl Viewer {
         match action {
             ReplaceDocument::New => self.new_document(&NewDocument, w, cx),
             ReplaceDocument::Open => self.open(&Open, w, cx),
+            ReplaceDocument::Path(path) => self.load(path, cx),
+            ReplaceDocument::Template(name) => self.new_template(name, w, cx),
         }
     }
 }

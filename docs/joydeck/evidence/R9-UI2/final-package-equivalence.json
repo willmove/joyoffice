@@ -1,0 +1,35 @@
+{
+  "qualifiedDeliveryArchiveSha256": "edd2d6d924ce36b3d8d1e82144c3f39ad2f562bce07a7043421a86943cd0413b",
+  "finalArchiveSha256": "ce650696244a6795be0c04b9d050d2e6ae3ff8ad36dca97ee45d919dde28dfc8",
+  "guiExeSha256": "7c38d969aa5491e389addd2248bcde83a8bcad9fd070bc61fa52d8ba9d9f6dd5",
+  "cliExeSha256": "7ea746486227a95c5ebb13aea7e27423eef91cdb5d09aeecc9885dd0ee517cc5",
+  "allFilesPresentInBoth": 1763,
+  "changedFiles": [
+    "BUILD-INFO.json",
+    "SBOM.spdx.json",
+    "SHA256SUMS",
+    "SOURCE-HASHES.json",
+    "joydeck-media-windows.exe",
+    "joydeck-print-windows.exe",
+    "joydeck-video-windows.exe",
+    "native-helpers.json",
+    "source.json"
+  ],
+  "unchangedFileCount": 1754,
+  "guiAndCliByteIdentical": true,
+  "nativeHelpers": {
+    "sourcesCompilerAndSdkIdentical": true,
+    "priorHashes": {
+      "joydeck-print-windows.exe": "ce33cec168fe23e810eb8827724bb50ac4daa6815ca5af1a5f62c6f04ca07d11",
+      "joydeck-media-windows.exe": "e314f52013e1502d5cf97cced85b152f8631972919605ed29aa2c336311ed97b",
+      "joydeck-video-windows.exe": "fb63c2406cbd39f67cc0eb335e3160343f5be7e99d891678b6d8858fef19f997"
+    },
+    "finalHashes": {
+      "joydeck-print-windows.exe": "70ba2a3c7ac9d8ac4e58320a646741538d4f429c17dbecead160a47247db35dd",
+      "joydeck-media-windows.exe": "254ad2c07f1290cd24b6c1c4aa9d77d53be78a28be958abc8cfe6e0fb0d401a9",
+      "joydeck-video-windows.exe": "fda32e7f54a73820892024679f9df0dcce16de32e3b697203a0d223ab130cb29"
+    },
+    "guiDeviceQualification": "Not performed in this scope; no media/printing acceptance inferred"
+  },
+  "reason": "Only the registered template-test panic baseline source changed after GUI qualification; new source snapshot and generated package metadata. GUI/CLI are byte-identical; native C# helpers rebuilt with unchanged sources/compiler/SDK have new identities. Licenses and sample payloads compare byte-for-byte."
+}

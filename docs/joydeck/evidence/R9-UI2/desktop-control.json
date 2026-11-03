@@ -1,0 +1,212 @@
+{
+  "kind": "actual desktop stdio API; Windows lock screen prevents pixel/manual qualification",
+  "binarySha256": "fab10fd017c06c94c138e092c8642f4b793482e5cbe100273bd797291eca9316",
+  "allAssertionsPassed": true,
+  "transcript": [
+    {
+      "protocolVersion": "joydeck-control-1",
+      "requestId": "cap",
+      "method": "engine.commands",
+      "params": {}
+    },
+    {
+      "requestId": "cap",
+      "result": {
+        "protocolVersion": "joydeck-control-1",
+        "commandSchemaVersion": 2,
+        "modelSchema": "joydeck-v2",
+        "legacyCommandSchemaSupported": false,
+        "legacyCommandSubset": [
+          "page.add",
+          "page.copy",
+          "page.delete",
+          "page.visibility",
+          "page.reorder",
+          "page.size",
+          "object.delete",
+          "table.edit",
+          "document.design",
+          "review.edit",
+          "transaction.batch"
+        ],
+        "legacyCompatibility": "documented string commands only; action subsets are strict; not the full 16-domain v1 schema",
+        "methods": [
+          "engine.commands",
+          "document.new",
+          "document.open",
+          "document.inspect",
+          "document.check",
+          "document.compare",
+          "document.acceptObject",
+          "document.status",
+          "document.close",
+          "command.execute",
+          "command.validate",
+          "document.undo",
+          "document.redo",
+          "document.save",
+          "document.exchange",
+          "export.start",
+          "jobs.get",
+          "jobs.cancel",
+          "show.start",
+          "show.action",
+          "show.tick",
+          "show.status",
+          "show.frame"
+        ],
+        "commands": [
+          "at",
+          "workspace",
+          "batch",
+          "content",
+          "review",
+          "accept-object",
+          "insert-picture",
+          "select",
+          "paste-objects",
+          "insert-rect",
+          "insert-shape",
+          "insert-text",
+          "transform",
+          "replace-text",
+          "set-text",
+          "set-texts",
+          "edit-text",
+          "insert-table",
+          "table",
+          "delete",
+          "duplicate",
+          "bring-forward",
+          "send-backward",
+          "new-slide",
+          "duplicate-slide",
+          "delete-slide",
+          "undo",
+          "redo"
+        ],
+        "compatibility": {
+          "restoredMethods": [
+            "command.validate",
+            "document.undo",
+            "document.redo"
+          ],
+          "commandParameters": "schema 2: params.command; target and expectedRevision required",
+          "validation": "snapshot execution, no live side effects"
+        },
+        "documentId": 3054161780202592,
+        "transport": "desktop stdio",
+        "root": "\\\\?\\D:\\Coding\\JoyOffice GUI 验证\\R9-UI2-20261103\\Deck-review-final\\data",
+        "outputs": "new paths only",
+        "replay": "128 mutations / 16 MiB, same requestId and payload",
+        "attachedDesktop": true
+      }
+    },
+    {
+      "protocolVersion": "joydeck-control-1",
+      "requestId": "live-edit",
+      "method": "command.execute",
+      "target": 3054161780202592,
+      "expectedRevision": 0,
+      "params": {
+        "command": {
+          "command": "insert-text",
+          "x": 450,
+          "y": 340,
+          "text": "桌面绑定验证"
+        }
+      }
+    },
+    {
+      "requestId": "live-edit",
+      "result": {
+        "documentId": 3054161780202592,
+        "revision": 1,
+        "engineRevision": 1,
+        "dirty": true,
+        "canUndo": true,
+        "canRedo": false,
+        "pages": 2,
+        "selection": {
+          "page": 0,
+          "shapes": [
+            24
+          ]
+        }
+      }
+    },
+    {
+      "protocolVersion": "joydeck-control-1",
+      "requestId": "live-edit",
+      "method": "command.execute",
+      "target": 3054161780202592,
+      "expectedRevision": 0,
+      "params": {
+        "command": {
+          "command": "insert-text",
+          "x": 450,
+          "y": 340,
+          "text": "桌面绑定验证"
+        }
+      }
+    },
+    {
+      "requestId": "live-edit",
+      "result": {
+        "documentId": 3054161780202592,
+        "revision": 1,
+        "engineRevision": 1,
+        "dirty": true,
+        "canUndo": true,
+        "canRedo": false,
+        "pages": 2,
+        "selection": {
+          "page": 0,
+          "shapes": [
+            24
+          ]
+        }
+      }
+    },
+    {
+      "protocolVersion": "joydeck-control-1",
+      "requestId": "stale",
+      "method": "document.undo",
+      "target": 3054161780202592,
+      "expectedRevision": 0,
+      "params": {}
+    },
+    {
+      "requestId": "stale",
+      "error": {
+        "code": "operation-failed",
+        "message": "expectedRevision missing/stale"
+      }
+    },
+    {
+      "protocolVersion": "joydeck-control-1",
+      "requestId": "undo",
+      "method": "document.undo",
+      "target": 3054161780202592,
+      "expectedRevision": 1,
+      "params": {}
+    },
+    {
+      "requestId": "undo",
+      "result": {
+        "documentId": 3054161780202592,
+        "revision": 2,
+        "engineRevision": 2,
+        "dirty": false,
+        "canUndo": false,
+        "canRedo": true,
+        "pages": 2,
+        "selection": {
+          "page": 0,
+          "shapes": []
+        },
+        "changed": true
+      }
+    }
+  ]
+}

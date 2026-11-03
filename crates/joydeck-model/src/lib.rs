@@ -654,6 +654,9 @@ pub enum Background {
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 #[serde(default, rename_all = "camelCase")]
 pub struct Comment {
+    /// Stable native review identifier; empty for imported comments without one.
+    #[serde(skip_serializing_if = "String::is_empty")]
+    pub id: String,
     pub author: String,
     pub initials: String,
     pub text: String,

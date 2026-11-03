@@ -6,11 +6,16 @@ use std::{collections::BTreeMap, sync::Arc};
 mod authoring;
 mod content;
 mod history_cost;
+mod review;
+mod workspace;
+pub use review::ReviewAction;
+pub use workspace::WorkspaceAction;
 pub mod media_refs;
 pub mod transfer;
 pub use content::ContentAction;
+pub mod formatting;
 pub mod text;
-pub use authoring::{TableAction, TextTarget};
+pub use authoring::{CellBorders, CellFormat, CellRange, TableAction, TextEdit, TextTarget};
 pub use authoring::{body as text_body, set_body as set_draft_body};
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
@@ -52,8 +57,27 @@ pub struct EditorSnapshot {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(tag = "command", rename_all = "kebab-case", deny_unknown_fields)]
 pub enum Command {
+    At {
+        page: usize,
+        shapes: Vec<ShapeId>,
+        edit: Box<Command>,
+    },
+    Workspace {
+        action: WorkspaceAction,
+    },
+    Batch {
+        commands: Vec<Command>,
+    },
     Content {
         action: ContentAction,
+    },
+    Review {
+        action: ReviewAction,
+    },
+    AcceptObject {
+        page: usize,
+        target: Option<ShapeId>,
+        replacement: Option<Box<transfer::Transfer>>,
     },
     InsertPicture {
         png: Vec<u8>,
@@ -106,6 +130,9 @@ pub enum Command {
         target: TextTarget,
         body: Box<TextBody>,
     },
+    SetTexts {
+        edits: Vec<TextEdit>,
+    },
     EditText {
         target: TextTarget,
         start: usize,
@@ -136,7 +163,12 @@ pub enum Command {
 impl Command {
     pub fn id(&self) -> &'static str {
         match self {
+            Self::At { .. } => "at",
+            Self::Workspace { .. } => "workspace",
+            Self::Batch { .. } => "batch",
             Self::Content { .. } => "content",
+            Self::Review { .. } => "review",
+            Self::AcceptObject { .. } => "accept-object",
             Self::InsertPicture { .. } => "insert-picture",
             Self::Select { .. } => "select",
             Self::PasteObjects { .. } => "paste-objects",
@@ -146,6 +178,7 @@ impl Command {
             Self::Transform { .. } => "transform",
             Self::ReplaceText { .. } => "replace-text",
             Self::SetText { .. } => "set-text",
+            Self::SetTexts { .. } => "set-texts",
             Self::EditText { .. } => "edit-text",
             Self::InsertTable { .. } => "insert-table",
             Self::Table { .. } => "table",
@@ -162,7 +195,12 @@ impl Command {
     }
 }
 pub const COMMANDS: &[&str] = &[
+    "at",
+    "workspace",
+    "batch",
     "content",
+    "review",
+    "accept-object",
     "insert-picture",
     "select",
     "paste-objects",
@@ -172,6 +210,7 @@ pub const COMMANDS: &[&str] = &[
     "transform",
     "replace-text",
     "set-text",
+    "set-texts",
     "edit-text",
     "insert-table",
     "table",
@@ -295,6 +334,14 @@ impl Session {
         }
         let mut next = self.state.clone();
         apply(&mut next, cmd)?;
+        next.origins.retain(|id, origin| {
+            if let Some(slide) = next.model.slide(*id) {
+                origin.shapes.retain(|id, _| slide.shape(*id).is_some());
+                true
+            } else {
+                false
+            }
+        });
         if next.model == self.state.model && next.origins == self.state.origins {
             return Ok(false);
         }
@@ -335,6 +382,68 @@ fn next_id(p: &mut Presentation) -> std::result::Result<u32, String> {
     p.alloc_id().ok_or_else(|| "ID space exhausted".into())
 }
 fn apply(st: &mut EditorSnapshot, cmd: Command) -> std::result::Result<(), String> {
+    if let Command::At { page, shapes, edit } = cmd {
+        if matches!(
+            *edit,
+            Command::At { .. }
+                | Command::Batch { .. }
+                | Command::Select { .. }
+                | Command::Undo
+                | Command::Redo
+        ) {
+            return Err("targeted edit cannot nest selection/history/target/batch".into());
+        }
+        let page = page
+            .checked_sub(1)
+            .filter(|p| *p < st.model.slides.len())
+            .ok_or("target page missing")?;
+        let unique: std::collections::BTreeSet<_> = shapes.iter().copied().collect();
+        if unique.len() != shapes.len()
+            || shapes
+                .iter()
+                .any(|id| !st.model.slides[page].shapes.iter().any(|s| s.id == *id))
+        {
+            return Err("target shapes missing or duplicated".into());
+        }
+        st.selection = Selection { page, shapes };
+        return apply(st, *edit);
+    }
+    if let Command::Review { action } = &cmd {
+        return review::apply(st, action);
+    }
+    if let Command::AcceptObject {
+        page,
+        target,
+        replacement,
+    } = &cmd
+    {
+        let page = page
+            .checked_sub(1)
+            .filter(|p| *p < st.model.slides.len())
+            .ok_or("invalid acceptance page")?;
+        st.selection.page = page;
+        return review::accept(st, *target, replacement.as_deref());
+    }
+    if let Command::Workspace { action } = &cmd {
+        return workspace::apply(st, action);
+    }
+    if let Command::Batch { commands } = cmd {
+        if commands.is_empty()
+            || commands.len() > 256
+            || commands.iter().any(|c| {
+                matches!(
+                    c,
+                    Command::Batch { .. } | Command::Select { .. } | Command::Undo | Command::Redo
+                )
+            })
+        {
+            return Err("batch requires 1–256 non-nested edit commands".into());
+        }
+        for command in commands {
+            apply(st, command)?;
+        }
+        return Ok(());
+    }
     if let Command::PasteObjects { transfer } = &cmd {
         return transfer::paste(st, transfer);
     }
@@ -360,6 +469,8 @@ fn apply(st: &mut EditorSnapshot, cmd: Command) -> std::result::Result<(), Strin
         let mut origin = st.origins.get(&old.id).cloned();
         if matches!(cmd, Command::NewSlide) {
             slide.shapes.clear();
+            slide.comments.clear();
+            slide.hidden = false;
             slide.notes = TextBody::default();
             slide.animations.clear();
             slide.transition = None;
@@ -377,17 +488,49 @@ fn apply(st: &mut EditorSnapshot, cmd: Command) -> std::result::Result<(), Strin
                     "R2 duplicates simple slides; grouped/opaque/3D slides remain intact".into(),
                 );
             }
+            let mut cloned_ids = BTreeMap::new();
             for shape in &mut slide.shapes {
                 let old = shape.id;
                 shape.id = ShapeId(next_id(p)?);
+                cloned_ids.insert(old, shape.id);
+                shape.tags.retain(|(k, _)| k != "JoyOffice.LegacyId");
                 if let Some(o) = &mut origin
                     && let Some(source) = o.shapes.remove(&old)
                 {
                     o.shapes.insert(shape.id, source);
                 }
             }
-            slide.animations.clear();
+            for animation in &mut slide.animations {
+                animation.shape = *cloned_ids
+                    .get(&animation.shape)
+                    .ok_or("animation target cannot be cloned")?;
+                animation.trigger = animation
+                    .trigger
+                    .map(|id| {
+                        cloned_ids
+                            .get(&id)
+                            .copied()
+                            .ok_or("animation trigger cannot be cloned")
+                    })
+                    .transpose()?;
+            }
+            for (index, comment) in slide.comments.iter_mut().enumerate() {
+                comment.id = format!("comment-{}-{index}", id.0);
+                comment.shape = comment
+                    .shape
+                    .map(|id| {
+                        cloned_ids
+                            .get(&id)
+                            .copied()
+                            .ok_or("comment anchor cannot be cloned")
+                    })
+                    .transpose()?;
+                for reply in &mut comment.replies {
+                    reply.shape = comment.shape;
+                }
+            }
         }
+        slide.tags.retain(|(k, _)| k != "JoyOffice.LegacyId");
         if let Some(origin) = origin {
             st.origins.insert(id, origin);
         }
@@ -536,9 +679,25 @@ fn apply(st: &mut EditorSnapshot, cmd: Command) -> std::result::Result<(), Strin
     let slide = Arc::make_mut(&mut p.slides[page]);
     match cmd {
         Command::Delete => {
+            let removed = st.selection.shapes.clone();
             slide
                 .shapes
                 .retain(|s| !st.selection.shapes.contains(&s.id));
+            slide
+                .comments
+                .retain(|c| c.shape.is_none_or(|id| !removed.contains(&id)));
+            slide.animations.retain(|a| !removed.contains(&a.shape));
+            for animation in &mut slide.animations {
+                if animation.trigger.is_some_and(|id| removed.contains(&id)) {
+                    animation.trigger = None;
+                }
+            }
+            for shape in &mut slide.shapes {
+                if let ShapeKind::Connector { start, end } = &mut shape.kind {
+                    *start = start.filter(|(id, _)| !removed.contains(id));
+                    *end = end.filter(|(id, _)| !removed.contains(id));
+                }
+            }
             st.selection.shapes.clear();
         }
         Command::BringForward | Command::SendBackward => {

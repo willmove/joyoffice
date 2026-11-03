@@ -10,6 +10,7 @@ mod epub_ui;
 mod exchange_ui;
 mod export;
 mod field_edit;
+mod font_fallback;
 mod input_ui;
 mod io_validation;
 mod linux_files;

@@ -1,0 +1,52 @@
+Window: "format-final.pptx * - JoyDeck", App: joydeck.exe.
+	0 区域 format-final.pptx * - JoyDeck Secondary Actions: Raise
+		1 标题栏 (settable, string) Value: format-final.pptx - JoyDeck
+			2 菜单栏 系统 ID: MenuBar
+				3 菜单项 系统
+			4 按钮 最小化
+			5 按钮 最大化
+			6 按钮 关闭
+		7 按钮 文件
+		8 按钮 保存
+		9 按钮 撤销
+		10 按钮 (disabled) 重做
+		11 按钮 从头开始放映
+		12 按钮 查找文字
+		13 按钮 切换明暗主题
+		14 按钮 放映
+		15 按钮 文件
+		16 按钮 开始
+		17 按钮 插入
+		18 按钮 设计
+		19 按钮 放映
+		20 按钮 审阅
+		21 按钮 视图
+		87 按钮 表格
+		88 按钮 编辑文字
+		89 按钮 复制文字／表格
+		90 按钮 选择区域…
+		91 按钮 选择全表
+		92 按钮 行
+		93 按钮 列
+		94 按钮 表格样式
+		95 按钮 单元格底色
+		96 按钮 边框
+		97 按钮 边框设置…
+		98 按钮 合并选区
+		99 按钮 拆分单元格
+		100 按钮 垂直对齐
+		101 按钮 文字方向
+		102 按钮 行高和列宽…
+		103 按钮 单元格边距…
+		61 按钮 幻灯片 1 混合格式验证 ABC 第二段：保留独立格式
+		62 按钮 幻灯片 2
+		63 编辑 (settable, string) 演讲备注 Description: 单击此处添加备注 ID: speaker-notes
+		64 按钮 备注
+		65 按钮 普通视图
+		66 按钮 幻灯片浏览
+		67 按钮 从当前页放映
+		68 按钮 缩小
+		69 按钮 放大
+		70 按钮 适应窗口
+
+The focused UI element is 0 区域 format-final.pptx * - JoyDeck Secondary Actions: Raise.

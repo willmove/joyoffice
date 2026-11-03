@@ -1,0 +1,31 @@
+{
+  "reader": "Python JSON and independent geometry equations",
+  "scaleX": 1.1017084065474805,
+  "scaleY": 1.0999177655871375,
+  "rotationDegrees": 89.84629702729808,
+  "commonCenter": [
+    441.52960602971893,
+    255.986842493942
+  ],
+  "transforms": [
+    {
+      "x": 187.99310462633503,
+      "y": 167.75736835935936,
+      "w": 683.0592120594379,
+      "h": 175.986842493942,
+      "rot": 89.84629702729808
+    },
+    {
+      "x": 187.83164938314616,
+      "y": 14.025771736164685,
+      "w": 264.4100175713953,
+      "h": 109.99177655871375,
+      "rot": 89.84629702729808
+    }
+  ],
+  "bothObjectsScaleAndRotateAboutCommonCenter": true,
+  "passed": true,
+  "twoGuiUndoOperationsRestoreOriginalGeometryExactly": true,
+  "showToggleRestoredBothSlides": true,
+  "guiExeSha256": "facc1c4eceacfe351f6e97b43e81197bd3f5b25cdfd6ebf08bf76464fb717530"
+}

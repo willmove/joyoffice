@@ -8,7 +8,7 @@ use joydeck_engine::{
 use joydeck_model::{ShapeKind, edit as ed, resolve, text::RunKind};
 use std::ops::Range;
 pub(super) struct Inline {
-    target: TextTarget,
+    pub(super) target: TextTarget,
     pub(super) draft: Draft,
     placed: Option<joydeck_render::PlacedText>,
     affinity: joydeck_text::Affinity,
@@ -519,8 +519,32 @@ impl Viewer {
         if command && matches!(key, "s" | "z" | "y" | "q" | "o" | "n") {
             return;
         }
+        if command && key == "enter" {
+            self.end_inline(cx);
+            cx.stop_propagation();
+            return;
+        }
         if key == "tab" {
             self.next_cell(mods.shift, w, cx);
+            cx.stop_propagation();
+            return;
+        }
+        if command && matches!(key, "b" | "i" | "u") {
+            let props = self.run_props();
+            let on = match key {
+                "b" => props.bold == Some(true),
+                "i" => props.italic == Some(true),
+                _ => props.underline.as_deref().is_some_and(|s| s != "none"),
+            };
+            self.format_runs(
+                |p| match key {
+                    "b" => p.bold = Some(!on),
+                    "i" => p.italic = Some(!on),
+                    _ => p.underline = Some(if on { "none" } else { "sng" }.into()),
+                },
+                w,
+                cx,
+            );
             cx.stop_propagation();
             return;
         }
@@ -530,6 +554,7 @@ impl Viewer {
         match key {
             "escape" => self.end_inline(cx),
             "a" if command => {
+                i.draft.typing_props = None;
                 i.draft.selection = 0..value.len();
                 i.draft.reversed = false;
                 cx.notify();
@@ -556,19 +581,6 @@ impl Viewer {
                     self.paste_text(item, w, cx);
                 }
             }
-            "b" | "i" if command => {
-                let a = text::pos(&value, i.draft.selection.start);
-                let b = text::pos(&value, i.draft.selection.end);
-                let props = ed::props_at(&i.draft.body, a);
-                ed::format(&mut i.draft.body, a, b, &|p| {
-                    if key == "b" {
-                        p.bold = Some(!props.bold.unwrap_or(false))
-                    } else {
-                        p.italic = Some(!props.italic.unwrap_or(false))
-                    }
-                });
-                self.publish_inline(w, cx);
-            }
             "backspace" | "delete" => {
                 if i.draft.selection.is_empty() {
                     i.draft.selection = if key == "backspace" {
@@ -589,6 +601,45 @@ impl Viewer {
             ),
             "left" | "right" | "up" | "down" | "home" | "end" => {
                 let mut next = at;
+                if command {
+                    let (pi, ch) = text::pos(&value, at);
+                    if let Some(para) = i.draft.body.paragraphs.get(pi) {
+                        let line = para.text();
+                        let position = if key == "left" {
+                            joydeck_model::words::prev_stop(&line, ch)
+                                .map(|ch| (pi, ch))
+                                .or_else(|| {
+                                    pi.checked_sub(1).and_then(|pi| {
+                                        i.draft.body.paragraphs.get(pi).map(|p| (pi, p.char_len()))
+                                    })
+                                })
+                        } else if key == "right" {
+                            joydeck_model::words::next_stop(&line, ch)
+                                .map(|ch| (pi, ch))
+                                .or_else(|| {
+                                    (pi + 1 < i.draft.body.paragraphs.len()).then_some((pi + 1, 0))
+                                })
+                        } else if key == "home" {
+                            Some((0, 0))
+                        } else if key == "end" {
+                            i.draft
+                                .body
+                                .paragraphs
+                                .last()
+                                .map(|p| (i.draft.body.paragraphs.len() - 1, p.char_len()))
+                        } else {
+                            None
+                        };
+                        if let Some(position) = position {
+                            next = text::byte_pos(&value, position);
+                            i.draft.move_to(next, mods.shift);
+                            w.notify_text_selection_changed(&self.focus);
+                            cx.notify();
+                            cx.stop_propagation();
+                            return;
+                        }
+                    }
+                }
                 if let Some(p) = &i.placed {
                     let pos = text::pos(&value, at);
                     let pos = joydeck_text::Pos {
@@ -818,116 +869,6 @@ impl Viewer {
             self.message = "已复制文字/表格 TSV 到系统剪贴板".into();
         }
         cx.notify();
-    }
-    pub(super) fn text_table_toolbar(&self, cx: &mut Context<Self>) -> Div {
-        let disabled = self.loading || self.editor.is_none();
-        let row = self.cell.map_or(0, |(_, r, _)| r);
-        let col = self.cell.map_or(0, |(_, _, c)| c);
-        let mut bar = div()
-            .h(px(40.))
-            .flex()
-            .items_center()
-            .gap_1()
-            .px_2()
-            .child(
-                Button::new("inline-text")
-                    .label("原位文字")
-                    .disabled(disabled)
-                    .on_click(cx.listener(Self::begin_inline)),
-            )
-            .child(
-                Button::new("insert-table")
-                    .label("表格 3×3")
-                    .disabled(disabled)
-                    .on_click(cx.listener(|s, _, w, cx| {
-                        s.dispatch(
-                            Command::InsertTable {
-                                x: 80.,
-                                y: 220.,
-                                rows: 3,
-                                cols: 3,
-                                width: 480.,
-                                row_height: 40.,
-                            },
-                            w,
-                            cx,
-                        )
-                    })),
-            )
-            .child(
-                Button::new("copy-text-grid")
-                    .label("复制文字/表格")
-                    .disabled(disabled)
-                    .on_click(cx.listener(|s, _, _, cx| s.copy_grid(cx))),
-            )
-            .child(
-                Button::new("paste-text-grid")
-                    .label("粘贴")
-                    .disabled(disabled)
-                    .on_click(cx.listener(|s, _, w, cx| s.paste_grid(w, cx))),
-            )
-            .child(div().text_xs().child(if self.cell.is_some() {
-                format!("单元格 {}:{}", row + 1, col + 1)
-            } else {
-                "双击文字/单元格编辑 · Ctrl+B/I".into()
-            }));
-        if self.cell.is_some() {
-            for (id, label, action) in [
-                (
-                    "table-row-add",
-                    "加行",
-                    TableAction::InsertRow { at: row + 1 },
-                ),
-                (
-                    "table-col-add",
-                    "加列",
-                    TableAction::InsertCol { at: col + 1 },
-                ),
-                (
-                    "table-row-delete",
-                    "删行",
-                    TableAction::DeleteRow { at: row },
-                ),
-                (
-                    "table-col-delete",
-                    "删列",
-                    TableAction::DeleteCol { at: col },
-                ),
-                (
-                    "table-merge",
-                    "合并右格",
-                    TableAction::Merge {
-                        row,
-                        col,
-                        end_row: row,
-                        end_col: col + 1,
-                    },
-                ),
-                ("table-split", "拆分", TableAction::Split { row, col }),
-                (
-                    "table-fill",
-                    "底色",
-                    TableAction::Fill {
-                        row,
-                        col,
-                        rgb: 0xffe8a0,
-                    },
-                ),
-            ] {
-                bar = bar.child(Button::new(id).label(label).disabled(disabled).on_click(
-                    cx.listener(move |s, _, w, cx| {
-                        s.dispatch(
-                            Command::Table {
-                                action: action.clone(),
-                            },
-                            w,
-                            cx,
-                        )
-                    }),
-                ));
-            }
-        }
-        bar
     }
 }
 

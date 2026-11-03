@@ -64,3 +64,10 @@ tools/xtask/src/main.rs text=auto eol=lf
 docs/joydeck/evidence/R[0-8]*/** -text whitespace=-blank-at-eol,-blank-at-eof,cr-at-eol
 docs/joydeck/evidence/planning*.json -text whitespace=-blank-at-eol,-blank-at-eof,cr-at-eol
 tests/fixtures/joydeck/README-pre-r9.md -text whitespace=cr-at-eol
+
+# Keep the original bundled OFL notice byte-for-byte.
+apps/joyword/LICENSE-NotoEmoji.txt -text -whitespace
+
+# Preserve the exact reviewed AccessKit package bytes.
+third-party/accesskit_windows/** -text -whitespace
+licenses/accesskit-windows/source.json -text

@@ -1,0 +1,87 @@
+{
+  "guiExeSha256": "7c38d969aa5491e389addd2248bcde83a8bcad9fd070bc61fa52d8ba9d9f6dd5",
+  "nativeSha256": "1579ca87f3ef18e13cf437d90117fa39e786158ce13a3bb964521e002c15f90a",
+  "reopenedReviewAndTableDocument": true,
+  "commentReopenedAndSaved": {
+    "author": "作者",
+    "initials": "",
+    "text": "GUI 审阅：核对格式保留",
+    "date": "",
+    "x": 0.0,
+    "y": 0.0,
+    "resolved": false,
+    "replies": [
+      {
+        "author": "作者",
+        "initials": "",
+        "text": "已核对，格式与原文均保留",
+        "date": "",
+        "x": 0.0,
+        "y": 0.0,
+        "resolved": false,
+        "replies": [],
+        "shape": null
+      }
+    ],
+    "shape": 2
+  },
+  "slideOrder": [
+    11,
+    10
+  ],
+  "sections": [
+    {
+      "name": "GUI 表格验证节",
+      "slides": [
+        11
+      ]
+    }
+  ],
+  "passed": true,
+  "secondaryWindowClosedWithoutProcessAbort": true,
+  "lateUiaQuerySurvived": true,
+  "applicationThemeSynchronizedInRemainingWindow": true,
+  "recentFileReopened": true,
+  "mainProcess": 3584,
+  "reader": "Independent Python zipfile/json; nested native presentation JSON",
+  "formatSavedWithFinalPackagedBytes": {
+    "text": "比较后格式验证 ABC\n第二段：保留独立格式",
+    "runs": [
+      {
+        "text": "比较后",
+        "size": 32.0,
+        "font": "Arial"
+      },
+      {
+        "text": "格式验证 ABC",
+        "size": 44.0,
+        "font": "Arial"
+      },
+      {
+        "text": "第二段：保留独立格式",
+        "size": 28.0,
+        "font": "Arial"
+      }
+    ],
+    "xfrmUnchanged": {
+      "x": 100.0,
+      "y": 80.0,
+      "w": 620.0,
+      "h": 160.0
+    },
+    "paragraphLeftPt": 18,
+    "paragraphFirstLinePt": -9,
+    "paragraphAfterPt": 6,
+    "lineSpacing": 1.5,
+    "ctrlEnterRetainsText": true
+  },
+  "persistentTableRowHeightsPt": [
+    72,
+    60
+  ],
+  "persistentTableColumnWidthsPt": [
+    180,
+    180
+  ],
+  "persistentTableFirstRowColor": "ED7D31"
+}

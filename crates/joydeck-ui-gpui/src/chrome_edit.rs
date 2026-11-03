@@ -1,7 +1,7 @@
 //! Editing affordances shared by the native ribbon, dialogs and keyboard routes.
 use super::*;
 use gpui_kit::component::{Icon, Sizable, button::ButtonVariants};
-use joydeck_engine::{Command, TextTarget};
+use joydeck_engine::Command;
 use joydeck_model::{
     edit,
     text::{Align, Bullet, RunProps, TextBody},
@@ -9,23 +9,6 @@ use joydeck_model::{
 use joyoffice_ui::IconName as I;
 
 impl Viewer {
-    fn text_target(&self) -> Option<TextTarget> {
-        if let Some((shape, row, col)) = self.cell {
-            return Some(TextTarget::Cell { shape, row, col });
-        }
-        let e = self.editor.as_ref()?;
-        let shape = *e.session.selection().shapes.first()?;
-        Some(TextTarget::Shape { shape })
-    }
-    pub(super) fn selected_body(&self) -> Option<(TextTarget, TextBody)> {
-        let target = self.text_target()?;
-        let e = self.editor.as_ref()?;
-        let mut body = joydeck_engine::text_body(e.session.model(), self.page, &target).ok()?;
-        if body.paragraphs.is_empty() {
-            body.paragraphs.push(joydeck_model::Paragraph::default());
-        }
-        Some((target, body))
-    }
     pub(super) fn format_runs(
         &mut self,
         f: impl Fn(&mut RunProps),
@@ -36,24 +19,58 @@ impl Viewer {
             return;
         }
         if let Some(i) = &mut self.inline {
+            if i.draft.selection.is_empty() {
+                let text = i.draft.body.text();
+                let pos = joydeck_engine::text::pos(&text, i.draft.selection.start);
+                let mut props = i
+                    .draft
+                    .typing_props
+                    .clone()
+                    .unwrap_or_else(|| edit::props_at(&i.draft.body, pos));
+                f(&mut props);
+                i.draft.typing_props = Some(props);
+                self.focus.focus(w, cx);
+                cx.notify();
+                return;
+            }
             let text = i.draft.body.text();
             let a = joydeck_engine::text::pos(&text, i.draft.selection.start);
             let b = joydeck_engine::text::pos(&text, i.draft.selection.end);
             edit::format(&mut i.draft.body, a, b, &f);
             self.publish_inline(w, cx);
-        } else if let Some((target, mut body)) = self.selected_body() {
-            edit::format_all(&mut body, &f);
-            self.dispatch(
-                Command::SetText {
-                    target,
-                    body: Box::new(body),
-                },
-                w,
-                cx,
-            );
+        } else {
+            self.format_bodies(|body| edit::format_all(body, &f), w, cx);
+        }
+        self.focus.focus(w, cx);
+    }
+    pub(super) fn format_bodies(
+        &mut self,
+        f: impl Fn(&mut TextBody),
+        w: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
+        let Some(e) = &self.editor else { return };
+        let mut edits = vec![];
+        for target in self.format_targets() {
+            let mut body = match joydeck_engine::text_body(e.session.model(), self.page, &target) {
+                Ok(body) => body,
+                Err(error) => {
+                    self.message = error;
+                    cx.notify();
+                    return;
+                }
+            };
+            if body.paragraphs.is_empty() {
+                body.paragraphs.push(Default::default());
+            }
+            f(&mut body);
+            edits.push(joydeck_engine::TextEdit { target, body });
+        }
+        if !edits.is_empty() {
+            self.dispatch(Command::SetTexts { edits }, w, cx);
         }
     }
-    fn format_paras(
+    pub(super) fn format_paras(
         &mut self,
         f: impl Fn(&mut joydeck_model::text::ParaProps),
         w: &mut Window,
@@ -63,59 +80,42 @@ impl Viewer {
             return;
         }
         if let Some(i) = &mut self.inline {
-            let text = i.draft.body.text();
-            let a = joydeck_engine::text::pos(&text, i.draft.selection.start).0;
-            let b = joydeck_engine::text::pos(&text, i.draft.selection.end).0;
-            for p in i.draft.body.paragraphs.iter_mut().take(b + 1).skip(a) {
+            let Ok(range) =
+                joydeck_engine::formatting::paragraphs(&i.draft.body, i.draft.selection.clone())
+            else {
+                return;
+            };
+            for p in i
+                .draft
+                .body
+                .paragraphs
+                .iter_mut()
+                .take(range.end)
+                .skip(range.start)
+            {
                 f(&mut p.props);
             }
             self.publish_inline(w, cx);
-        } else if let Some((target, mut body)) = self.selected_body() {
-            for p in &mut body.paragraphs {
-                f(&mut p.props);
-            }
-            self.dispatch(
-                Command::SetText {
-                    target,
-                    body: Box::new(body),
+        } else {
+            self.format_bodies(
+                |body| {
+                    for p in &mut body.paragraphs {
+                        f(&mut p.props);
+                    }
                 },
                 w,
                 cx,
             );
         }
+        self.focus.focus(w, cx);
     }
     pub(super) fn run_props(&self) -> RunProps {
-        let (body, at) = if let Some(i) = &self.inline {
-            (
-                i.draft.body.clone(),
-                joydeck_engine::text::pos(&i.draft.body.text(), i.draft.cursor()),
-            )
-        } else {
-            let Some((_, body)) = self.selected_body() else {
-                return RunProps::default();
-            };
-            (body, (0, 0))
-        };
-        let props = edit::props_at(&body, at);
-        if self.cell.is_none()
-            && let Some(e) = &self.editor
-            && let Some(id) = e.session.selection().shapes.first()
-            && let Some(shape) = e.session.model().slides[self.page].shape(*id)
-            && let Some(ctx) = joydeck_model::resolve::Ctx::for_slide(
-                e.session.model(),
-                &e.session.model().slides[self.page],
-            )
-            && let Some(para) = body.paragraphs.get(at.0)
-        {
-            let mut resolved = joydeck_model::resolve::run(&ctx, shape, para, &props);
-            resolved.font = Some(joydeck_model::resolve::font_family(&ctx, &resolved));
-            return resolved;
-        }
-        props
+        self.formatting().run
     }
     pub(super) fn font_group(&self, cx: &mut Context<Self>) -> Div {
-        let props = self.run_props();
-        let disabled = self.selected_body().is_none() || self.loading || self.composing();
+        let state = self.formatting();
+        let disabled = state.is_empty() || self.loading || self.composing();
+        let props = state.run;
         let p = chrome::palette(self.dark);
         let mut formats = div().flex().items_center().gap(px(1.));
         for (id, label, icon, on) in [
@@ -128,6 +128,16 @@ impl Viewer {
                 props.underline.as_deref().is_some_and(|u| u != "none"),
             ),
         ] {
+            let mixed = state.mixed.contains(match id {
+                "font-bold" => "bold",
+                "font-italic" => "italic",
+                _ => "underline",
+            });
+            let accessible = if mixed {
+                format!("{label}（混合格式）")
+            } else {
+                label.into()
+            };
             formats = formats.child(
                 Button::new(id)
                     .ghost()
@@ -136,10 +146,11 @@ impl Viewer {
                     .h(px(25.))
                     .w(px(26.))
                     .rounded(px(3.))
-                    .accessibility_label(label)
-                    .tooltip(label)
+                    .accessibility_label(accessible.clone())
+                    .tooltip(accessible)
                     .disabled(disabled)
                     .when(on, |b| b.bg(rgb(p.selected)))
+                    .when(mixed, |b| b.border_1().border_color(rgb(p.accent)))
                     .on_click(cx.listener(move |s, _, w, cx| {
                         s.format_runs(
                             |p| match id {
@@ -166,10 +177,14 @@ impl Viewer {
                     cx.listener(|s, _, w, cx| s.format_runs(|p| *p = RunProps::default(), w, cx)),
                 ),
         );
-        let family = props
-            .font
-            .filter(|s| !s.starts_with('+'))
-            .unwrap_or("主题字体".into());
+        let family = props.font.filter(|s| !s.starts_with('+')).unwrap_or(
+            if state.mixed.contains("font") || state.mixed.contains("font_ea") {
+                "混合字体"
+            } else {
+                "主题字体"
+            }
+            .into(),
+        );
         let content = div()
             .flex()
             .flex_col()
@@ -230,28 +245,33 @@ impl Viewer {
         chrome::group("字体", content)
     }
     pub(super) fn paragraph_group(&self, cx: &mut Context<Self>) -> Div {
-        let disabled = self.selected_body().is_none() || self.loading;
+        let state = self.formatting();
+        let disabled = state.is_empty() || self.loading || self.composing();
+        let palette = chrome::palette(self.dark);
         let mut first = div().flex().gap(px(1.));
         for (id, label, numbered) in [("bullets", "项目符号", false), ("numbering", "编号", true)]
         {
-            first = first.child(
-                Button::new(id)
-                    .ghost()
-                    .xsmall()
-                    .icon(if numbered { I::ListOrdered } else { I::List })
-                    .h(px(25.))
-                    .w(px(28.))
-                    .accessibility_label(label)
-                    .tooltip(label)
-                    .disabled(disabled)
-                    .on_click(cx.listener(move |s, _, w, cx| {
-                        s.format_paras(
-                            |p| {
-                                p.bullet = Some(
-                                    if p.bullet
-                                        .as_ref()
-                                        .is_some_and(|b| !matches!(b, Bullet::None))
-                                    {
+            let active = if numbered {
+                matches!(state.para.bullet, Some(Bullet::AutoNum { .. }))
+            } else {
+                matches!(state.para.bullet, Some(Bullet::Char { .. }))
+            };
+            first = first
+                .child(
+                    Button::new(id)
+                        .ghost()
+                        .xsmall()
+                        .icon(if numbered { I::ListOrdered } else { I::List })
+                        .h(px(25.))
+                        .w(px(28.))
+                        .accessibility_label(label)
+                        .tooltip(label)
+                        .disabled(disabled)
+                        .when(active, |b| b.bg(rgb(palette.selected)))
+                        .on_click(cx.listener(move |s, _, w, cx| {
+                            s.format_paras(
+                                |p| {
+                                    p.bullet = Some(if active {
                                         Bullet::None
                                     } else if numbered {
                                         Bullet::AutoNum {
@@ -260,14 +280,14 @@ impl Viewer {
                                         }
                                     } else {
                                         Bullet::Char { char: "•".into() }
-                                    },
-                                );
-                            },
-                            w,
-                            cx,
-                        )
-                    })),
-            );
+                                    });
+                                },
+                                w,
+                                cx,
+                            )
+                        })),
+                )
+                .child(self.list_picker(numbered, disabled, cx));
         }
         first = first
             .child(
@@ -324,11 +344,24 @@ impl Viewer {
                     .accessibility_label(label)
                     .tooltip(label)
                     .disabled(disabled)
+                    .when(state.para.align == Some(align), |b| {
+                        b.bg(rgb(palette.selected))
+                    })
                     .on_click(cx.listener(move |s, _, w, cx| {
                         s.format_paras(|p| p.align = Some(align), w, cx)
                     })),
             );
         }
+        second = second.child(self.line_spacing_picker(disabled, cx)).child(
+            Button::new("paragraph-dialog")
+                .ghost()
+                .xsmall()
+                .label("段落…")
+                .h(px(25.))
+                .accessibility_label("段落设置")
+                .disabled(disabled)
+                .on_click(cx.listener(|s, _, w, cx| s.paragraph_dialog(w, cx))),
+        );
         chrome::group(
             "段落",
             div().flex().flex_col().gap_1().child(first).child(second),
@@ -405,7 +438,10 @@ impl Viewer {
                                     .map(|(_, i)| i.read(cx).value().to_string())
                                     .collect();
                                 match apply(s, values, w, cx) {
-                                    Ok(()) => w.close_dialog(cx),
+                                    Ok(()) => {
+                                        w.close_dialog(cx);
+                                        s.focus.focus(w, cx);
+                                    }
                                     Err(e) => error2.update(cx, |value, cx| {
                                         *value = e;
                                         cx.notify();
@@ -417,8 +453,9 @@ impl Viewer {
         });
     }
     pub(super) fn font_dialog(&mut self, w: &mut Window, cx: &mut Context<Self>) {
-        let props = self.run_props();
-        let color = match &props.fill {
+        let state = self.formatting();
+        let props = state.run;
+        let mut color = match &props.fill {
             Some(joydeck_model::Fill::Solid { color }) => self
                 .editor
                 .as_ref()
@@ -433,27 +470,50 @@ impl Viewer {
                 .unwrap_or("242424".into()),
             _ => "242424".into(),
         };
+        if state.mixed.contains("fill") {
+            color.clear();
+        }
+        let font = props.font.unwrap_or_default();
+        let size = props.size.map(|n| n.to_string()).unwrap_or_default();
+        let original = [font.clone(), size.clone(), color.clone()];
         self.fields_dialog(
             "字体",
             vec![
-                ("字体名称", props.font.unwrap_or("Microsoft YaHei".into())),
-                ("字号（磅）", props.size.unwrap_or(18.).to_string()),
+                ("字体名称（混合时留空）", font),
+                ("字号（磅，混合时留空）", size),
                 ("颜色（RGB）", color),
             ],
             w,
             cx,
-            |s, v, w, cx| {
-                let size: f64 = v[1].parse().map_err(|_| "请输入有效字号")?;
-                if !(1.0..=400.).contains(&size) || v[0].trim().is_empty() {
-                    return Err("字号须在 1–400 磅之间，字体名称不能为空".into());
-                }
-                let color = format_ui::parse_rgb(&v[2])?;
+            move |s, v, w, cx| {
+                let size = if v[1] == original[1] || v[1].trim().is_empty() {
+                    None
+                } else {
+                    let n: f64 = v[1].trim().parse().map_err(|_| "请输入有效字号")?;
+                    if !n.is_finite() || !(1. ..=400.).contains(&n) {
+                        return Err("字号须在 1–400 磅之间".into());
+                    }
+                    Some(n)
+                };
+                let color = if v[2] == original[2] || v[2].trim().is_empty() {
+                    None
+                } else {
+                    Some(format_ui::parse_rgb(&v[2])?)
+                };
+                let font = (v[0] != original[0] && !v[0].trim().is_empty())
+                    .then(|| v[0].trim().to_owned());
                 s.format_runs(
                     |p| {
-                        p.font = Some(v[0].trim().into());
-                        p.font_ea = p.font.clone();
-                        p.size = Some(size);
-                        p.fill = Some(joydeck_model::Fill::solid(color.clone()));
+                        if let Some(font) = &font {
+                            p.font = Some(font.clone());
+                            p.font_ea = p.font.clone();
+                        }
+                        if let Some(size) = size {
+                            p.size = Some(size);
+                        }
+                        if let Some(color) = &color {
+                            p.fill = Some(joydeck_model::Fill::solid(color.clone()));
+                        }
                     },
                     w,
                     cx,
@@ -554,7 +614,16 @@ impl Viewer {
         let Some(ctx) = joydeck_model::resolve::Ctx::for_slide(e.session.model(), slide) else {
             return;
         };
-        let x = joydeck_model::resolve::xfrm(&ctx, shape);
+        let mut x = joydeck_model::resolve::xfrm(&ctx, shape);
+        if e.session.selection().shapes.len() > 1
+            && let Some(b) = self.selected_bounds()
+        {
+            x.x = b.x0;
+            x.y = b.y0;
+            x.w = b.width();
+            x.h = b.height();
+            x.rot = 0.;
+        }
         self.fields_dialog(
             "大小和位置",
             vec![
@@ -576,12 +645,14 @@ impl Viewer {
                     return Err("尺寸须大于零，数值须为有限值".into());
                 }
                 s.dispatch(
-                    Command::Transform {
-                        dx: v[0] - x.x,
-                        dy: v[1] - x.y,
-                        dw: v[2] - x.w,
-                        dh: v[3] - x.h,
-                        rotation: v[4] - x.rot,
+                    Command::Workspace {
+                        action: joydeck_engine::WorkspaceAction::TransformSelection {
+                            dx: v[0] - x.x + (v[2] - x.w) / 2.,
+                            dy: v[1] - x.y + (v[3] - x.h) / 2.,
+                            scale_x: v[2] / x.w.max(1.),
+                            scale_y: v[3] / x.h.max(1.),
+                            rotation: v[4] - x.rot,
+                        },
                     },
                     w,
                     cx,

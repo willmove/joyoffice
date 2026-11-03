@@ -701,6 +701,7 @@ pub fn run(arguments: impl Iterator<Item = String>) -> Result<(), String> {
     let mut window_size = (1440., 900.);
     let mut input = None;
     let mut sample_workspace = false;
+    let mut control_root = None;
     for arg in arguments {
         match arg.as_str() {
             "--dark" => dark = true,
@@ -708,13 +709,18 @@ pub fn run(arguments: impl Iterator<Item = String>) -> Result<(), String> {
             "--sample-workspace" => sample_workspace = true,
             "--help" => {
                 println!(
-                    "JoyDeck [INPUT.pptx|INPUT.joydeck|INPUT.deckcraft] [--dark|--light] [--window-size=WIDTHxHEIGHT]\nR8 native ribbon editor, save/reopen and recovery. --sample-workspace opens the R0 UI sample."
+                    "JoyDeck [INPUT.pptx|INPUT.joydeck|INPUT.deckcraft] [--dark|--light] [--window-size=WIDTHxHEIGHT] [--control-stdio=AUTHORIZED_ROOT]\nR8 native ribbon editor, save/reopen and recovery. --sample-workspace opens the R0 UI sample."
                 );
                 return Ok(());
             }
             "--version" => {
                 println!("JoyDeck {}", env!("CARGO_PKG_VERSION"));
                 return Ok(());
+            }
+            _ if arg.starts_with("--control-stdio=") => {
+                let root = std::path::PathBuf::from(arg.trim_start_matches("--control-stdio="));
+                joydeck_shell::automation::Dispatcher::new(&root)?;
+                control_root = Some(root);
             }
             _ if arg.starts_with("--window-size=") => {
                 let value = arg.trim_start_matches("--window-size=");
@@ -733,6 +739,9 @@ pub fn run(arguments: impl Iterator<Item = String>) -> Result<(), String> {
             }
             _ => return Err(format!("unsupported argument: {arg}; use --help")),
         }
+    }
+    if sample_workspace && control_root.is_some() {
+        return Err("desktop control requires the editor workspace".into());
     }
     let preview = PreviewDeck::bundled()?;
     let failure = Rc::new(RefCell::new(None));
@@ -770,6 +779,12 @@ pub fn run(arguments: impl Iterator<Item = String>) -> Result<(), String> {
                         viewer::load_path(&view, input, cx);
                     } else {
                         viewer::new_document(&view, handle, cx);
+                    }
+                    if let Some(root) = control_root
+                        && let Err(error) =
+                            viewer::desktop_control::install(&view, handle, root, cx)
+                    {
+                        *startup_failure.borrow_mut() = Some(error);
                     }
                     handle
                 })

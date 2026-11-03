@@ -7,8 +7,8 @@ use gpui::RenderImage;
 use joyword_engine::{EditPolicy, Session};
 use joyword_foundation::Emu;
 use joyword_layout::{
-    FaceSet, FeatureSet, LayoutCancellation, LayoutInvalidation, LayoutKey, LayoutLimits,
-    LayoutReuse, LayoutSnapshot, LoadedFont, ParagraphLayoutCache, SingleFontProfile, ViewOptions,
+    FeatureSet, LayoutCancellation, LayoutInvalidation, LayoutKey, LayoutLimits, LayoutReuse,
+    LayoutSnapshot, LoadedFont, ParagraphLayoutCache, SingleFontProfile, ViewOptions,
     layout_document, layout_incremental_reviewed,
 };
 use joyword_model::RevisionView;
@@ -121,14 +121,17 @@ fn lay_out_snapshot(
 ) -> Result<LayoutSnapshot, String> {
     let layout = layout_document(
         snapshot,
-        FaceSet::uniform(font),
+        crate::font_fallback::faces(font),
         profile,
         LayoutLimits::default(),
         &LayoutCancellation::default(),
     )
     .map_err(|e| e.to_string())?;
     if !layout.diagnostics().is_empty() || layout.omitted_diagnostics() != 0 {
-        return Err("selected font cannot display the complete sample".into());
+        return Err(format!(
+            "selected font cannot display the complete sample: {:?}",
+            layout.diagnostics()
+        ));
     }
     Ok(layout)
 }
@@ -198,7 +201,7 @@ pub fn raster_pages(
         .map(|scene| {
             rasterize(
                 scene,
-                std::slice::from_ref(&source.font),
+                &crate::font_fallback::fonts(&source.font),
                 projection,
                 page_limits(MAX_CACHE_PIXELS),
                 cancellation,
@@ -941,7 +944,7 @@ pub fn layout_view(
 ) -> Result<LayoutSnapshot, String> {
     layout_document(
         view.snapshot(),
-        FaceSet::uniform(font),
+        crate::font_fallback::faces(font),
         profile,
         LayoutLimits::default(),
         cancellation,
@@ -1002,7 +1005,7 @@ pub fn layout_view_incremental_with(
     let display = joyword_layout::compatibility::with_compatible_styles(view.snapshot());
     layout_incremental_reviewed(
         &display,
-        FaceSet::uniform(font),
+        crate::font_fallback::faces(font),
         profile,
         LayoutLimits::default(),
         cancellation,
@@ -1035,7 +1038,7 @@ pub fn raster_page(
         .ok_or_else(|| RasterError::InvalidPage.to_string())?;
     let raster = rasterize(
         scene,
-        std::slice::from_ref(font),
+        &crate::font_fallback::fonts(font),
         projection,
         limits,
         cancellation,
@@ -1940,7 +1943,7 @@ mod input_pipeline_tests {
             .raster_neighborhood(joyword_render::NeighborhoodRequest {
                 identity: 1,
                 scenes: pages,
-                fonts: std::slice::from_ref(&source.font),
+                fonts: &crate::font_fallback::fonts(&source.font),
                 projection: retina,
                 focus: 0,
                 radius: 0,

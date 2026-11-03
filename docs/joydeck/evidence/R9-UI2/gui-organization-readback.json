@@ -1,0 +1,26 @@
+{
+  "nativeSha256": "302494df3148f0753ef93278e8505cd140b4b4b911d27d370d03ce78264e904e",
+  "originalSlideOrder": [
+    10,
+    11
+  ],
+  "slideOrder": [
+    11,
+    10
+  ],
+  "hidden": [
+    true,
+    false
+  ],
+  "sections": [
+    {
+      "name": "GUI 表格验证节",
+      "slides": [
+        11
+      ]
+    }
+  ],
+  "reader": "Python zipfile/json",
+  "passed": true,
+  "guiExeSha256": "facc1c4eceacfe351f6e97b43e81197bd3f5b25cdfd6ebf08bf76464fb717530"
+}

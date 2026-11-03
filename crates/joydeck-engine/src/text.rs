@@ -125,6 +125,7 @@ pub struct Draft {
     pub selection: Range<usize>,
     pub reversed: bool,
     pub marked: Option<Range<usize>>,
+    pub typing_props: Option<joydeck_model::RunProps>,
     before: Option<(TextBody, Range<usize>, bool)>,
 }
 impl Draft {
@@ -134,6 +135,7 @@ impl Draft {
             body,
             reversed: false,
             marked: None,
+            typing_props: None,
             before: None,
         }
     }
@@ -145,6 +147,7 @@ impl Draft {
         }
     }
     pub fn move_to(&mut self, at: usize, extend: bool) {
+        self.typing_props = None;
         let text = self.body.text();
         let at = snap(&text, at);
         let anchor = if self.reversed {
@@ -181,6 +184,18 @@ impl Draft {
             .transpose()?;
         let mut body = self.body.clone();
         replace(&mut body, range.clone(), &value)?;
+        if let Some(props) = &self.typing_props
+            && !value.is_empty()
+        {
+            let after = body.text();
+            ed::format(
+                &mut body,
+                pos(&after, range.start),
+                pos(&after, range.start + value.len()),
+                &|p| *p = props.clone(),
+            );
+            validate(&body)?;
+        }
         if composing && self.before.is_none() {
             self.before = Some((self.body.clone(), self.selection.clone(), self.reversed));
         }

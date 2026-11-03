@@ -1,0 +1,155 @@
+Window: "DeckCraft", App: deckcraft.exe.
+	0 区域 DeckCraft Secondary Actions: Raise
+		1 标题栏 (settable, string) Value: DeckCraft
+			2 菜单栏 系统 ID: MenuBar
+				3 菜单项 系统
+			4 按钮 最小化
+			5 按钮 最大化
+			6 按钮 关闭
+		7 区域
+			8 区域 Window title bar Secondary Actions: Raise
+			9 按钮 Home (Alt+1)
+			10 按钮 Save (Ctrl+S, Alt+2)
+			11 按钮 Export (Alt+3)
+			12 按钮 (disabled) Undo (Ctrl+Z, Alt+4)
+			13 按钮 (disabled) Redo (Ctrl+Y, Alt+5)
+			14 按钮 Start from Beginning (Ctrl+Shift+Enter, Alt+6)
+			15 按钮 Customize Quick Access Toolbar
+			16 按钮 Search commands (⇧⌘P)
+			17 按钮 Present
+			18 按钮 Comments
+			19 按钮 Light/Dark appearance
+		63 区域
+			64 按钮 File
+			65 按钮 Home
+			66 按钮 Insert
+			67 按钮 Draw
+			68 按钮 Design
+			69 按钮 Transitions
+			70 按钮 Animations
+			71 按钮 Slide Show
+			72 按钮 Record
+			73 按钮 Review
+			74 按钮 View
+			162 按钮 Shape Format
+			75 按钮 Scroll ribbon right
+			76 按钮 Paste
+			77 按钮 Paste options
+			78 按钮 Cut
+			79 按钮 Copy
+			80 按钮 Format
+			81 按钮 New Slide
+			82 按钮 New Slide options
+			83 按钮 Layout
+			84 按钮 Layout options
+			85 按钮 Reset
+			86 按钮 Section
+			87 按钮 Section options
+			88 组合框 Inter
+			89 组合框 60
+			90 按钮 Increase Font Size (Ctrl+Shift+.)
+			91 按钮 Decrease Font Size (Ctrl+Shift+,)
+			92 按钮 Clear All Formatting (Ctrl+Space)
+			93 按钮 Bold (Ctrl+B)
+			94 按钮 Italic (Ctrl+I)
+			95 按钮 Underline (Ctrl+U)
+			96 按钮 Strikethrough (Ctrl+Shift+X)
+			97 按钮 Superscript (Ctrl+Shift+=)
+			98 按钮 Subscript (Ctrl+=)
+			99 按钮 Character Spacing
+			100 按钮 Change Case
+			101 按钮 Text Highlight Color
+			102 按钮 Text Highlight Color options
+			103 按钮 Font Color
+			104 按钮 Font Color options
+			105 按钮 Font…
+			106 按钮 Bullets
+			107 按钮 Bullets options
+			108 按钮 Numbering
+			109 按钮 Numbering options
+			110 按钮 Decrease List Level (Shift+Tab)
+			111 按钮 Increase List Level (Tab)
+			112 按钮 Line Spacing
+			113 按钮 Columns
+			114 按钮 Align Left (Ctrl+L)
+			115 按钮 Center (Ctrl+E)
+			116 按钮 Align Right (Ctrl+R)
+			117 按钮 Justify (Ctrl+J)
+			118 按钮 Text Direction
+			119 按钮 Align Text
+			120 按钮 Convert to SmartArt
+			121 按钮 Paragraph…
+			122 按钮 Picture
+			123 按钮 Shapes
+			124 按钮 Text Box
+			125 按钮 Arrange
+			126 按钮 Quick Styles
+			127 按钮 Shape Fill
+			128 按钮 Shape Fill options
+			129 按钮 Shape Outline
+			130 按钮 Shape Outline options
+			131 按钮 Shape Effects
+			132 按钮 Shape Effects options
+			133 按钮 Find
+			134 按钮 Replace
+			135 按钮 Replace Fonts…
+			136 按钮 Selection Pane
+			137 按钮 Design Ideas
+		138 区域
+			139 文本 Slide 1 of 1
+			140 按钮 Language Value: English (United States)
+			141 按钮 Fit slide to current window
+			142 按钮 Zoom level Value: 109%
+			143 按钮 Zoom In
+			144 滑块 (settable, float) Zoom Value: 108.70370483398438
+			145 按钮 Zoom Out
+			146 按钮 Slide Show
+			147 按钮 Reading View
+			148 按钮 Slide Sorter
+			149 按钮 Normal
+			150 按钮 Comments
+			151 按钮 Notes
+		152 区域
+			153 区域
+				154 按钮 Slide 1
+				155 区域
+			156 分隔符 Resize panel Value: 0.16299913823604584
+			157 区域
+				158 区域
+					159 编辑 (settable, string) Description: Click to add notes
+				160 分隔符 Resize panel Value: 0.10694444179534912
+				161 区域
+		163 区域 Paragraph Secondary Actions: Raise
+			164 按钮 Close window
+			165 文本 Alignment
+			166 组合框 (settable, string) Alignment Value: Center
+			167 文本 Indentation
+			168 文本 Before text
+			169 编辑 (settable, string) Before text Value: 0
+			170 文本 in
+			171 文本 After text
+			172 编辑 (settable, string) After text Value: 0
+			173 文本 in
+			174 文本 Special
+			175 组合框 (settable, string) Special Value: None
+			176 文本 By
+			177 编辑 (settable, string) By Value: 0
+			178 文本 in
+			179 文本 Spacing
+			180 文本 Spacing before
+			181 编辑 (settable, string) Spacing before Value: 0
+			182 文本 pt
+			183 文本 Spacing after
+			184 编辑 (settable, string) Spacing after Value: 0
+			185 文本 pt
+			186 文本 Line spacing
+			187 组合框 (settable, string) Line spacing Value: Multiple
+			188 文本 At
+			189 编辑 (settable, string) At Value: 0.9
+			190 按钮 Tabs…
+			191 按钮 OK
+			192 按钮 Cancel
+
+Document text: ```
+0
+```

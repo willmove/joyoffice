@@ -10,10 +10,14 @@ pub mod automation;
     reason = "Integration assertions"
 )]
 mod automation_tests;
+pub mod comparison;
+pub mod desktop_control;
 pub mod document;
 pub mod editor;
 pub mod exchange;
 pub mod helpers;
+pub mod legacy_commands;
+mod legacy_semantics;
 pub mod native;
 pub mod output;
 pub mod platform;

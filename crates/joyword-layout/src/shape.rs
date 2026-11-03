@@ -83,6 +83,8 @@ impl FeatureSet {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct ShapedGlyph {
+    /// A fallback face for this entire shaping cluster, before scene normalization.
+    pub fallback: bool,
     pub glyph_id: u16,
     /// UTF-8 byte offset of the glyph's cluster in the shaped text.
     pub cluster: usize,
@@ -96,6 +98,7 @@ pub struct ShapedGlyph {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ShapedRun {
     pub font: FontKey,
+    pub fallback_font: Option<FontKey>,
     /// Font size as a length.
     pub size: Emu,
     pub text: String,
@@ -218,6 +221,7 @@ fn shape_with(
             missing.push(cluster);
         }
         glyphs.push(ShapedGlyph {
+            fallback: false,
             glyph_id,
             cluster,
             x: start,
@@ -229,6 +233,7 @@ fn shape_with(
     }
     ShapedRun {
         font: key,
+        fallback_font: None,
         size,
         text: text.to_owned(),
         glyphs,

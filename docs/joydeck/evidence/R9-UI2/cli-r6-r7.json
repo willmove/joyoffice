@@ -1,0 +1,2999 @@
+{
+  "cli": "D:\\Coding\\EditorProjects\\joyoffice\\dist\\joydeck\\joydeck-r9-ui2-delivery-qualified\\joydeck-cli.exe",
+  "cli_sha256": "7ea746486227a95c5ebb13aea7e27423eef91cdb5d09aeecc9885dd0ee517cc5",
+  "work": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格",
+  "fixture_hashes": {
+    "delivery-media.pptx": "2644d3e6925aa788f7a4629c9a639ecfb4a5f9ba37951135a08db35102949067",
+    "legacy-1.0.joydeck": "b01b770d75c5cf47851f8895ba916ebac000a530f1416cfc923dccfc6be044f9",
+    "legacy-1.11.joydeck": "4d8187b2f5dffeca0a9ec5c57e5e092db297f12cb48cd47b47acb3eb72e1d3ef",
+    "original-h264-aac.mp4": "98b4d61d13c8b87604f9b328c9cdfa4c9b69e9b5e5daf721e26130cbf28ec017",
+    "powerpoint-authored-motion.pptx": "4894295c02485ed37eef99e2bb93562661793a682ef0675257f5a0d7b869bfdd",
+    "README.md": "f377bf7f2bf70753efdf7d14f49b32fbaa68dfa2fc4ed36283ae7403d70691c1"
+  },
+  "records": [
+    {
+      "args": [
+        "inspect",
+        "D:\\Coding\\EditorProjects\\joyoffice\\tests\\fixtures\\joydeck\\r6-r7\\delivery-media.pptx"
+      ],
+      "exit_code": 0,
+      "stdoutSha256": "99765b48dc0ae9584f7262015b92cb051daf681588a949247f889744d0a23bf0",
+      "stdoutBytes": 17990,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0
+    },
+    {
+      "args": [
+        "migrate",
+        "D:\\Coding\\EditorProjects\\joyoffice\\tests\\fixtures\\joydeck\\r6-r7\\legacy-1.0.joydeck",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\legacy-1.0.joydeck"
+      ],
+      "exit_code": 0,
+      "stdoutSha256": "2d9bbfa9363fa0a3a3084f2c63865598e1f5b1d603f2a1f711fb1d569eeb54b1",
+      "stdoutBytes": 385940,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0
+    },
+    {
+      "args": [
+        "inspect",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\legacy-1.0.joydeck"
+      ],
+      "exit_code": 0,
+      "stdoutSha256": "c5b256c997156058e359a672fd2f921b9510e8ed5f02da106a13eb07d96348c6",
+      "stdoutBytes": 385944,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0
+    },
+    {
+      "args": [
+        "exchange",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\legacy-1.0.joydeck",
+        "--mode",
+        "preserve",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\legacy-1.0.pptx"
+      ],
+      "exit_code": 0,
+      "stdoutSha256": "e086d467c95fc077bad8d8e623af1c6197c00896cc1f1de76c6e2242e8781d11",
+      "stdoutBytes": 681,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0
+    },
+    {
+      "args": [
+        "migrate",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\legacy-1.0-original.joydeck",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\legacy-1.0-original.joydeck"
+      ],
+      "exit_code": 1,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 0,
+      "stderrSha256": "58945bac0d61395db62f8067b3a8887cf35efb04330ffb2ee8671ab90d71893c",
+      "stderrBytes": 70
+    },
+    {
+      "args": [
+        "migrate",
+        "D:\\Coding\\EditorProjects\\joyoffice\\tests\\fixtures\\joydeck\\r6-r7\\legacy-1.11.joydeck",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\legacy-1.11.joydeck"
+      ],
+      "exit_code": 0,
+      "stdoutSha256": "67c0abdcab0b0deb87eaa59c963de02976841489b940855c9df81e73600ca8b1",
+      "stdoutBytes": 1149,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0
+    },
+    {
+      "args": [
+        "inspect",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\legacy-1.11.joydeck"
+      ],
+      "exit_code": 0,
+      "stdoutSha256": "05693c1720ef528f3c75a44381234379a2632d7035d1b4eaed33296174389662",
+      "stdoutBytes": 1152,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0
+    },
+    {
+      "args": [
+        "exchange",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\legacy-1.11.joydeck",
+        "--mode",
+        "preserve",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\legacy-1.11.pptx"
+      ],
+      "exit_code": 0,
+      "stdoutSha256": "1308614eb80bd3f6e8aa58d275c744c45dfbd6e4124d8906443fc0b069bf37cf",
+      "stdoutBytes": 607,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0
+    },
+    {
+      "args": [
+        "migrate",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\legacy-1.11-original.joydeck",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\legacy-1.11-original.joydeck"
+      ],
+      "exit_code": 1,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 0,
+      "stderrSha256": "58945bac0d61395db62f8067b3a8887cf35efb04330ffb2ee8671ab90d71893c",
+      "stderrBytes": 70
+    },
+    {
+      "args": [
+        "migrate",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\future.joydeck",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\future-must-not-exist.joydeck"
+      ],
+      "exit_code": 1,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 0,
+      "stderrSha256": "c42a0139a3ff08c8f4c522e9d63a6ac2f15e810ed5a6be4033c9f23c0dc044f6",
+      "stderrBytes": 73
+    },
+    {
+      "args": [
+        "migrate",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\required.joydeck",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\required-must-not-exist.joydeck"
+      ],
+      "exit_code": 1,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 0,
+      "stderrSha256": "2aed85c121e5af0355c3e37864445521b43319e5c16f1bba521f7fc32e175108",
+      "stderrBytes": 88
+    },
+    {
+      "args": [
+        "migrate",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\unknown-field.joydeck",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\unknown-field-must-not-exist.joydeck"
+      ],
+      "exit_code": 1,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 0,
+      "stderrSha256": "37da10ac3b24005224f93f70a90bac7a312c426abd8624e1ce0e865d5f1fcf50",
+      "stderrBytes": 239
+    },
+    {
+      "args": [
+        "exchange",
+        "D:\\Coding\\EditorProjects\\joyoffice\\tests\\fixtures\\joydeck\\r6-r7\\delivery-media.pptx",
+        "--mode",
+        "preserve",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\preserve.pptx"
+      ],
+      "exit_code": 0,
+      "stdoutSha256": "9d34010eab6184b6efa39746a701506fbaba507445c6741f81d9a8adaaa84141",
+      "stdoutBytes": 333,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0
+    },
+    {
+      "args": [
+        "exchange",
+        "D:\\Coding\\EditorProjects\\joyoffice\\tests\\fixtures\\joydeck\\r6-r7\\delivery-media.pptx",
+        "--mode",
+        "regenerate",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\regenerate.pptx"
+      ],
+      "exit_code": 0,
+      "stdoutSha256": "729aef8222ec97540aeaeff915ae92de01a33ca00bfcd4c3905e7cc7ff5dc08b",
+      "stdoutBytes": 520,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0
+    },
+    {
+      "args": [
+        "exchange",
+        "D:\\Coding\\EditorProjects\\joyoffice\\tests\\fixtures\\joydeck\\r6-r7\\delivery-media.pptx",
+        "--mode",
+        "regenerate",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\regenerate.potx"
+      ],
+      "exit_code": 0,
+      "stdoutSha256": "b6c073eb0744a7cfd10e0b5430f6eef1de47a1c035ef7b3f6a438b17256fef76",
+      "stdoutBytes": 520,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0
+    },
+    {
+      "args": [
+        "exchange",
+        "D:\\Coding\\EditorProjects\\joyoffice\\tests\\fixtures\\joydeck\\r6-r7\\delivery-media.pptx",
+        "--mode",
+        "regenerate",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\regenerate.ppsx"
+      ],
+      "exit_code": 0,
+      "stdoutSha256": "b83c8161823d17602efe7e932eb25fde046b12b0a21f21236faa9bb0f371585c",
+      "stdoutBytes": 520,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0
+    },
+    {
+      "args": [
+        "export",
+        "D:\\Coding\\EditorProjects\\joyoffice\\tests\\fixtures\\joydeck\\r6-r7\\delivery-media.pptx",
+        "--format",
+        "pdf",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\pdf-slides.pdf",
+        "--layout",
+        "slides"
+      ],
+      "exit_code": 0,
+      "stdoutSha256": "68b1470a8f61f798f1e523bf1b89055b8b9fae9c7613b3588039f7ca9db3a184",
+      "stdoutBytes": 481,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0
+    },
+    {
+      "args": [
+        "export",
+        "D:\\Coding\\EditorProjects\\joyoffice\\tests\\fixtures\\joydeck\\r6-r7\\delivery-media.pptx",
+        "--format",
+        "pdf",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\pdf-notes.pdf",
+        "--layout",
+        "notes"
+      ],
+      "exit_code": 0,
+      "stdoutSha256": "c4ac4913b638e5fd2d7bb68fdbd8f4387722fe05999dd4b908b162a24dfbd428",
+      "stdoutBytes": 480,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0
+    },
+    {
+      "args": [
+        "export",
+        "D:\\Coding\\EditorProjects\\joyoffice\\tests\\fixtures\\joydeck\\r6-r7\\delivery-media.pptx",
+        "--format",
+        "pdf",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\pdf-handouts-3.pdf",
+        "--layout",
+        "handouts-3"
+      ],
+      "exit_code": 0,
+      "stdoutSha256": "2b9c948b010bda8e1d224028e4e0153b39995cf01710d680877163807e177e47",
+      "stdoutBytes": 480,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0
+    },
+    {
+      "args": [
+        "export",
+        "D:\\Coding\\EditorProjects\\joyoffice\\tests\\fixtures\\joydeck\\r6-r7\\delivery-media.pptx",
+        "--format",
+        "png",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\png-slides",
+        "--layout",
+        "slides",
+        "--transparent"
+      ],
+      "exit_code": 0,
+      "stdoutSha256": "1f93828f634e4881086bf43f3d6ba04be08a7ec91f6f47839c59f50020ebbfed",
+      "stdoutBytes": 334,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0
+    },
+    {
+      "args": [
+        "export",
+        "D:\\Coding\\EditorProjects\\joyoffice\\tests\\fixtures\\joydeck\\r6-r7\\delivery-media.pptx",
+        "--format",
+        "jpeg",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\jpeg-slides",
+        "--layout",
+        "slides"
+      ],
+      "exit_code": 0,
+      "stdoutSha256": "cc04f65a9df4c6c1525b0781036e3c7e35947540642467ad85a674f5bf4d9cd2",
+      "stdoutBytes": 335,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0
+    },
+    {
+      "args": [
+        "export",
+        "D:\\Coding\\EditorProjects\\joyoffice\\tests\\fixtures\\joydeck\\r6-r7\\delivery-media.pptx",
+        "--format",
+        "gif",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\gif-slides.gif",
+        "--layout",
+        "slides",
+        "--seconds",
+        ".5",
+        "--fps",
+        "4",
+        "--scale",
+        ".5"
+      ],
+      "exit_code": 0,
+      "stdoutSha256": "a309d67e1e24ad624f1d32be7522a41b6d13f330fc312eda9006d705ea417ebf",
+      "stdoutBytes": 334,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0
+    },
+    {
+      "args": [
+        "export",
+        "D:\\Coding\\EditorProjects\\joyoffice\\tests\\fixtures\\joydeck\\r6-r7\\delivery-media.pptx",
+        "--format",
+        "mp4",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\mp4-slides.mp4",
+        "--layout",
+        "slides",
+        "--seconds",
+        ".5",
+        "--fps",
+        "4",
+        "--scale",
+        ".5"
+      ],
+      "exit_code": 0,
+      "stdoutSha256": "a38905cd18f71df76eed9cd655b70e670d6f8aee83779d1e7e56cbc03daed651",
+      "stdoutBytes": 472,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0
+    },
+    {
+      "args": [
+        "export",
+        "D:\\Coding\\EditorProjects\\joyoffice\\tests\\fixtures\\joydeck\\r6-r7\\delivery-media.pptx",
+        "--format",
+        "outline",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\outline-slides.outline",
+        "--layout",
+        "slides"
+      ],
+      "exit_code": 0,
+      "stdoutSha256": "4cc25b479e69afe09f5f21c9daeb7c3ab47ec98fb884f28d03d8e9ef28e23898",
+      "stdoutBytes": 336,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0
+    },
+    {
+      "args": [
+        "export",
+        "D:\\Coding\\EditorProjects\\joyoffice\\tests\\fixtures\\joydeck\\r6-r7\\delivery-media.pptx",
+        "--format",
+        "rtf",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\rtf-slides.rtf",
+        "--layout",
+        "slides"
+      ],
+      "exit_code": 0,
+      "stdoutSha256": "ed23257e712fc7fa4e8c7d08a7c458a6b8172bd30f003abe583fdb6b643db35c",
+      "stdoutBytes": 332,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0
+    },
+    {
+      "args": [
+        "export",
+        "D:\\Coding\\EditorProjects\\joyoffice\\tests\\fixtures\\joydeck\\r6-r7\\delivery-media.pptx",
+        "--format",
+        "vtt",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\vtt-slides.vtt",
+        "--layout",
+        "slides"
+      ],
+      "exit_code": 0,
+      "stdoutSha256": "cd55e8645e93b93192ae8ffc70980439a4ca75c68fc480d0b67f122b448ea5fb",
+      "stdoutBytes": 332,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0
+    },
+    {
+      "args": [
+        "export",
+        "D:\\Coding\\EditorProjects\\joyoffice\\tests\\fixtures\\joydeck\\r6-r7\\delivery-media.pptx",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\invalid-26",
+        "--pages",
+        "0"
+      ],
+      "exit_code": 1,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 0,
+      "stderrSha256": "2f69d096b00ce6f860f276a18cdb89f09a142b392f5b3bf50397bf5e9439c48c",
+      "stderrBytes": 44
+    },
+    {
+      "args": [
+        "export",
+        "D:\\Coding\\EditorProjects\\joyoffice\\tests\\fixtures\\joydeck\\r6-r7\\delivery-media.pptx",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\invalid-27",
+        "--dpi",
+        "301"
+      ],
+      "exit_code": 1,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 0,
+      "stderrSha256": "3506b2549e0a08907f895c3d9399b247085ad241b50f5ef562ce525ea23ea250",
+      "stderrBytes": 59
+    },
+    {
+      "args": [
+        "export",
+        "D:\\Coding\\EditorProjects\\joyoffice\\tests\\fixtures\\joydeck\\r6-r7\\delivery-media.pptx",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\invalid-28",
+        "--scale",
+        "nan"
+      ],
+      "exit_code": 1,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 0,
+      "stderrSha256": "3506b2549e0a08907f895c3d9399b247085ad241b50f5ef562ce525ea23ea250",
+      "stderrBytes": 59
+    },
+    {
+      "args": [
+        "export",
+        "D:\\Coding\\EditorProjects\\joyoffice\\tests\\fixtures\\joydeck\\r6-r7\\delivery-media.pptx",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\invalid-29",
+        "--format",
+        "jpeg",
+        "--transparent"
+      ],
+      "exit_code": 1,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 0,
+      "stderrSha256": "0981ee7371556c227db6d494ac41916ff22ce0b9f4778c489afdbda2c5799d59",
+      "stderrBytes": 56
+    },
+    {
+      "args": [
+        "export",
+        "D:\\Coding\\EditorProjects\\joyoffice\\tests\\fixtures\\joydeck\\r6-r7\\delivery-media.pptx",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\existing.pdf"
+      ],
+      "exit_code": 1,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 0,
+      "stderrSha256": "2e33f7e4bf25ac11bf1e1b386b45407b1f8b87d6f9662498842b0908b3bbca37",
+      "stderrBytes": 39
+    },
+    {
+      "args": [
+        "media-inspect",
+        "D:\\Coding\\EditorProjects\\joyoffice\\tests\\fixtures\\joydeck\\r6-r7\\original-h264-aac.mp4"
+      ],
+      "exit_code": 0,
+      "stdoutSha256": "9ef514a152493473b1f7629c9444e1cb33413f62706353913d07a09ef7c5ae36",
+      "stdoutBytes": 171,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0
+    }
+  ],
+  "protocol": [
+    [
+      {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "tools/list",
+        "params": {}
+      },
+      {
+        "error": {
+          "code": -32002,
+          "message": "Initialize and send notifications/initialized first"
+        },
+        "id": 1,
+        "jsonrpc": "2.0"
+      }
+    ],
+    [
+      {
+        "jsonrpc": "2.0",
+        "id": 2,
+        "method": "initialize",
+        "params": {
+          "protocolVersion": "2025-11-25",
+          "capabilities": {},
+          "clientInfo": {
+            "name": "qa",
+            "version": "1"
+          }
+        }
+      },
+      {
+        "id": 2,
+        "jsonrpc": "2.0",
+        "result": {
+          "capabilities": {
+            "tools": {
+              "listChanged": false
+            }
+          },
+          "instructions": "Local headless session. New output paths only, authorized root fixed at launch. Mutations require document target/revision. Poll explicit export jobs; this server does not attach to desktop windows.",
+          "protocolVersion": "2025-11-25",
+          "serverInfo": {
+            "name": "joydeck",
+            "version": "0.8.0"
+          }
+        }
+      }
+    ],
+    [
+      {
+        "jsonrpc": "2.0",
+        "id": 3,
+        "method": "tools/list",
+        "params": {}
+      },
+      {
+        "id": 3,
+        "jsonrpc": "2.0",
+        "result": {
+          "tools": [
+            {
+              "annotations": {
+                "destructiveHint": false,
+                "idempotentHint": true,
+                "openWorldHint": false,
+                "readOnlyHint": false
+              },
+              "description": "Control a headless JoyDeck document, inspect/edit/save, export jobs and deterministic slideshow frames. Paths must be absolute and within the startup root. Protocol joydeck-control-1.",
+              "inputSchema": {
+                "additionalProperties": false,
+                "properties": {
+                  "expectedRevision": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ]
+                  },
+                  "method": {
+                    "type": "string"
+                  },
+                  "params": {
+                    "type": "object"
+                  },
+                  "protocolVersion": {
+                    "const": "joydeck-control-1",
+                    "type": "string"
+                  },
+                  "requestId": {
+                    "maxLength": 128,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "target": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "protocolVersion",
+                  "requestId",
+                  "method"
+                ],
+                "type": "object"
+              },
+              "name": "joydeck.control"
+            }
+          ]
+        }
+      }
+    ],
+    [
+      {
+        "jsonrpc": "2.0",
+        "id": 4,
+        "method": "tools/call",
+        "params": {
+          "name": "joydeck.control",
+          "arguments": {
+            "protocolVersion": "joydeck-control-1",
+            "requestId": "r-3",
+            "method": "document.open",
+            "params": {
+              "path": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\input.pptx"
+            },
+            "target": null,
+            "expectedRevision": 0
+          }
+        }
+      },
+      {
+        "id": 4,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"requestId\":\"r-3\",\"result\":{\"canRedo\":false,\"canUndo\":false,\"dirty\":false,\"documentId\":6253584295371427,\"engineRevision\":0,\"pages\":3,\"revision\":0,\"selection\":{\"page\":0,\"shapes\":[]}}}",
+              "type": "text"
+            }
+          ],
+          "isError": false,
+          "structuredContent": {
+            "requestId": "r-3",
+            "result": {
+              "canRedo": false,
+              "canUndo": false,
+              "dirty": false,
+              "documentId": 6253584295371427,
+              "engineRevision": 0,
+              "pages": 3,
+              "revision": 0,
+              "selection": {
+                "page": 0,
+                "shapes": []
+              }
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "jsonrpc": "2.0",
+        "id": 5,
+        "method": "tools/call",
+        "params": {
+          "name": "joydeck.control",
+          "arguments": {
+            "protocolVersion": "joydeck-control-1",
+            "requestId": "selection",
+            "method": "command.execute",
+            "params": {
+              "command": {
+                "command": "select",
+                "page": 1,
+                "shapes": []
+              }
+            },
+            "target": 6253584295371427,
+            "expectedRevision": 0
+          }
+        }
+      },
+      {
+        "id": 5,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"requestId\":\"selection\",\"result\":{\"canRedo\":false,\"canUndo\":false,\"dirty\":false,\"documentId\":6253584295371427,\"engineRevision\":0,\"pages\":3,\"revision\":1,\"selection\":{\"page\":0,\"shapes\":[]}}}",
+              "type": "text"
+            }
+          ],
+          "isError": false,
+          "structuredContent": {
+            "requestId": "selection",
+            "result": {
+              "canRedo": false,
+              "canUndo": false,
+              "dirty": false,
+              "documentId": 6253584295371427,
+              "engineRevision": 0,
+              "pages": 3,
+              "revision": 1,
+              "selection": {
+                "page": 0,
+                "shapes": []
+              }
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "jsonrpc": "2.0",
+        "id": 6,
+        "method": "tools/call",
+        "params": {
+          "name": "joydeck.control",
+          "arguments": {
+            "protocolVersion": "joydeck-control-1",
+            "requestId": "r-5",
+            "method": "command.execute",
+            "params": {
+              "command": {
+                "command": "insert-text",
+                "text": "stale",
+                "x": 20,
+                "y": 20
+              }
+            },
+            "target": 6253584295371427,
+            "expectedRevision": 0
+          }
+        }
+      },
+      {
+        "id": 6,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"error\":{\"code\":\"operation-failed\",\"message\":\"expectedRevision missing/stale\"},\"requestId\":\"r-5\"}",
+              "type": "text"
+            }
+          ],
+          "isError": true,
+          "structuredContent": {
+            "error": {
+              "code": "operation-failed",
+              "message": "expectedRevision missing/stale"
+            },
+            "requestId": "r-5"
+          }
+        }
+      }
+    ],
+    [
+      {
+        "jsonrpc": "2.0",
+        "id": 7,
+        "method": "tools/call",
+        "params": {
+          "name": "joydeck.control",
+          "arguments": {
+            "protocolVersion": "joydeck-control-1",
+            "requestId": "insert",
+            "method": "command.execute",
+            "params": {
+              "command": {
+                "command": "insert-text",
+                "text": "Control 中文 😀",
+                "x": 20,
+                "y": 20
+              }
+            },
+            "target": 6253584295371427,
+            "expectedRevision": 1
+          }
+        }
+      },
+      {
+        "id": 7,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"requestId\":\"insert\",\"result\":{\"canRedo\":false,\"canUndo\":true,\"dirty\":true,\"documentId\":6253584295371427,\"engineRevision\":1,\"pages\":3,\"revision\":2,\"selection\":{\"page\":0,\"shapes\":[28]}}}",
+              "type": "text"
+            }
+          ],
+          "isError": false,
+          "structuredContent": {
+            "requestId": "insert",
+            "result": {
+              "canRedo": false,
+              "canUndo": true,
+              "dirty": true,
+              "documentId": 6253584295371427,
+              "engineRevision": 1,
+              "pages": 3,
+              "revision": 2,
+              "selection": {
+                "page": 0,
+                "shapes": [
+                  28
+                ]
+              }
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "jsonrpc": "2.0",
+        "id": 8,
+        "method": "tools/call",
+        "params": {
+          "name": "joydeck.control",
+          "arguments": {
+            "protocolVersion": "joydeck-control-1",
+            "requestId": "insert",
+            "method": "command.execute",
+            "params": {
+              "command": {
+                "command": "insert-text",
+                "text": "Control 中文 😀",
+                "x": 20,
+                "y": 20
+              }
+            },
+            "target": 6253584295371427,
+            "expectedRevision": 1
+          }
+        }
+      },
+      {
+        "id": 8,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"requestId\":\"insert\",\"result\":{\"canRedo\":false,\"canUndo\":true,\"dirty\":true,\"documentId\":6253584295371427,\"engineRevision\":1,\"pages\":3,\"revision\":2,\"selection\":{\"page\":0,\"shapes\":[28]}}}",
+              "type": "text"
+            }
+          ],
+          "isError": false,
+          "structuredContent": {
+            "requestId": "insert",
+            "result": {
+              "canRedo": false,
+              "canUndo": true,
+              "dirty": true,
+              "documentId": 6253584295371427,
+              "engineRevision": 1,
+              "pages": 3,
+              "revision": 2,
+              "selection": {
+                "page": 0,
+                "shapes": [
+                  28
+                ]
+              }
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "jsonrpc": "2.0",
+        "id": 9,
+        "method": "tools/call",
+        "params": {
+          "name": "joydeck.control",
+          "arguments": {
+            "protocolVersion": "joydeck-control-1",
+            "requestId": "insert",
+            "method": "command.execute",
+            "params": {
+              "command": {
+                "command": "undo"
+              }
+            },
+            "target": 6253584295371427,
+            "expectedRevision": 2
+          }
+        }
+      },
+      {
+        "id": 9,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"error\":{\"code\":\"id-conflict\",\"message\":\"requestId reused with different arguments\"},\"requestId\":\"insert\"}",
+              "type": "text"
+            }
+          ],
+          "isError": true,
+          "structuredContent": {
+            "error": {
+              "code": "id-conflict",
+              "message": "requestId reused with different arguments"
+            },
+            "requestId": "insert"
+          }
+        }
+      }
+    ],
+    [
+      {
+        "jsonrpc": "2.0",
+        "id": 10,
+        "method": "tools/call",
+        "params": {
+          "name": "joydeck.control",
+          "arguments": {
+            "protocolVersion": "joydeck-control-1",
+            "requestId": "r-9",
+            "method": "document.inspect",
+            "params": {},
+            "target": 6253584295371427,
+            "expectedRevision": 2
+          }
+        }
+      },
+      {
+        "id": 10,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"requestId\":\"r-9\",\"result\":{\"format\":\"joydeck\",\"height_pt\":405.0,\"media\":2,\"name\":\"input.pptx\",\"read_only\":false,\"slides\":[{\"notes\":\"PRIVATE SPEAKER NOTES 1 / 中文备注：仅演示者可见。\",\"objects\":[{\"id\":2,\"kind\":\"textBox\",\"locked\":false,\"name\":\"TextBox 1\",\"table\":null,\"text\":\"R6 / R7 · 真实 PPTX 1\",\"text_body\":{\"body\":{\"anchor\":null,\"anchorCtr\":null,\"autofit\":{\"kind\":\"shape\"},\"colSpacing\":null,\"columns\":null,\"insetB\":null,\"insetL\":null,\"insetR\":null,\"insetT\":null,\"rot\":null,\"rtlCol\":null,\"spaceFirstLast\":null,\"upright\":null,\"vert\":null,\"warp\":null,\"wrap\":false},\"paragraphs\":[{\"defProps\":{\"baseline\":null,\"bold\":null,\"caps\":null,\"fill\":null,\"font\":\"Microsoft YaHei\",\"fontCs\":null,\"fontEa\":null,\"fontSym\":null,\"glow\":null,\"highlight\":null,\"hover\":null,\"innerShadow\":null,\"italic\":null,\"kern\":null,\"lang\":null,\"link\":null,\"noProof\":null,\"outline\":null,\"reflection\":null,\"shadow\":null,\"size\":30.0,\"softEdge\":null,\"spacing\":null,\"strike\":null,\"underline\":null,\"underlineColor\":null},\"level\":0,\"runs\":[{\"text\":\"R6 / R7 · 真实 PPTX 1\"}]}]},\"transform\":{\"h\":79.2,\"w\":648.0,\"x\":36.0,\"y\":28.8}},{\"id\":3,\"kind\":\"textBox\",\"locked\":false,\"name\":\"TextBox 2\",\"table\":null,\"text\":\"中文 · é · עברית · public OOXML\",\"text_body\":{\"body\":{\"anchor\":null,\"anchorCtr\":null,\"autofit\":{\"kind\":\"shape\"},\"colSpacing\":null,\"columns\":null,\"insetB\":null,\"insetL\":null,\"insetR\":null,\"insetT\":null,\"rot\":null,\"rtlCol\":null,\"spaceFirstLast\":null,\"upright\":null,\"vert\":null,\"warp\":null,\"wrap\":false},\"paragraphs\":[{\"defProps\":{\"baseline\":null,\"bold\":null,\"caps\":null,\"fill\":null,\"font\":null,\"fontCs\":null,\"fontEa\":null,\"fontSym\":null,\"glow\":null,\"highlight\":null,\"hover\":null,\"innerShadow\":null,\"italic\":null,\"kern\":null,\"lang\":null,\"link\":null,\"noProof\":null,\"outline\":null,\"reflection\":null,\"shadow\":null,\"size\":19.0,\"softEdge\":null,\"spacing\":null,\"strike\":null,\"underline\":null,\"underlineColor\":null},\"level\":0,\"runs\":[{\"text\":\"中文 · é · עברית · public OOXML\"}]}]},\"transform\":{\"h\":50.4,\"w\":648.0,\"x\":36.0,\"y\":108.0}},{\"id\":4,\"kind\":\"textBox\",\"locked\":false,\"name\":\"TextBox 3\",\"table\":null,\"text\":\"Official project documentation\",\"text_body\":{\"body\":{\"anchor\":null,\"anchorCtr\":null,\"autofit\":{\"kind\":\"shape\"},\"colSpacing\":null,\"columns\":null,\"insetB\":null,\"insetL\":null,\"insetR\":null,\"insetT\":null,\"rot\":null,\"rtlCol\":null,\"spaceFirstLast\":null,\"upright\":null,\"vert\":null,\"warp\":null,\"wrap\":false},\"paragraphs\":[{\"level\":0,\"runs\":[{\"props\":{\"baseline\":null,\"bold\":null,\"caps\":null,\"fill\":null,\"font\":null,\"fontCs\":null,\"fontEa\":null,\"fontSym\":null,\"glow\":null,\"highlight\":null,\"hover\":null,\"innerShadow\":null,\"italic\":null,\"kern\":null,\"lang\":null,\"link\":{\"action\":{\"kind\":\"url\",\"url\":\"https://example.com/joydeck\"},\"highlightClick\":false,\"tooltip\":\"\"},\"noProof\":null,\"outline\":null,\"reflection\":null,\"shadow\":null,\"size\":18.0,\"softEdge\":null,\"spacing\":null,\"strike\":null,\"underline\":null,\"underlineColor\":null},\"text\":\"Official project documentation\"}]}]},\"transform\":{\"h\":36.0,\"w\":576.0,\"x\":36.0,\"y\":324.0}},{\"id\":5,\"kind\":\"video\",\"locked\":false,\"name\":\"original-h264-aac.mp4\",\"table\":null,\"text\":null,\"text_body\":null,\"transform\":{\"h\":115.2,\"w\":288.0,\"x\":216.0,\"y\":180.0}},{\"id\":28,\"kind\":\"textBox\",\"locked\":false,\"name\":\"Text\",\"table\":null,\"text\":\"Control 中文 😀\",\"text_body\":{\"body\":{\"anchor\":null,\"anchorCtr\":null,\"autofit\":null,\"colSpacing\":null,\"columns\":null,\"insetB\":null,\"insetL\":null,\"insetR\":null,\"insetT\":null,\"rot\":null,\"rtlCol\":null,\"spaceFirstLast\":null,\"upright\":null,\"vert\":null,\"warp\":null,\"wrap\":null},\"paragraphs\":[{\"defProps\":{\"baseline\":null,\"bold\":null,\"caps\":null,\"fill\":null,\"font\":\"Arial\",\"fontCs\":null,\"fontEa\":null,\"fontSym\":null,\"glow\":null,\"highlight\":null,\"hover\":null,\"innerShadow\":null,\"italic\":null,\"kern\":null,\"lang\":null,\"link\":null,\"noProof\":null,\"outline\":null,\"reflection\":null,\"shadow\":null,\"size\":24.0,\"softEdge\":null,\"spacing\":null,\"strike\":null,\"underline\":null,\"underlineColor\":null},\"level\":0,\"runs\":[{\"text\":\"Control 中文 😀\"}]}]},\"transform\":{\"h\":80.0,\"w\":400.0,\"x\":20.0,\"y\":20.0}}],\"page\":1,\"shapes\":5,\"title\":\"R6 / R7 · 真实 PPTX 1\"},{\"notes\":\"PRIVATE SPEAKER NOTES 2 / 中文备注：仅演示者可见。\",\"objects\":[{\"id\":2,\"kind\":\"textBox\",\"locked\":false,\"name\":\"TextBox 1\",\"table\":null,\"text\":\"R6 / R7 · 真实 PPTX 2\",\"text_body\":{\"body\":{\"anchor\":null,\"anchorCtr\":null,\"autofit\":{\"kind\":\"shape\"},\"colSpacing\":null,\"columns\":null,\"insetB\":null,\"insetL\":null,\"insetR\":null,\"insetT\":null,\"rot\":null,\"rtlCol\":null,\"spaceFirstLast\":null,\"upright\":null,\"vert\":null,\"warp\":null,\"wrap\":false},\"paragraphs\":[{\"defProps\":{\"baseline\":null,\"bold\":null,\"caps\":null,\"fill\":null,\"font\":\"Microsoft YaHei\",\"fontCs\":null,\"fontEa\":null,\"fontSym\":null,\"glow\":null,\"highlight\":null,\"hover\":null,\"innerShadow\":null,\"italic\":null,\"kern\":null,\"lang\":null,\"link\":null,\"noProof\":null,\"outline\":null,\"reflection\":null,\"shadow\":null,\"size\":30.0,\"softEdge\":null,\"spacing\":null,\"strike\":null,\"underline\":null,\"underlineColor\":null},\"level\":0,\"runs\":[{\"text\":\"R6 / R7 · 真实 PPTX 2\"}]}]},\"transform\":{\"h\":79.2,\"w\":648.0,\"x\":36.0,\"y\":28.8}},{\"id\":3,\"kind\":\"textBox\",\"locked\":false,\"name\":\"TextBox 2\",\"table\":null,\"text\":\"中文 · é · עברית · public OOXML\",\"text_body\":{\"body\":{\"anchor\":null,\"anchorCtr\":null,\"autofit\":{\"kind\":\"shape\"},\"colSpacing\":null,\"columns\":null,\"insetB\":null,\"insetL\":null,\"insetR\":null,\"insetT\":null,\"rot\":null,\"rtlCol\":null,\"spaceFirstLast\":null,\"upright\":null,\"vert\":null,\"warp\":null,\"wrap\":false},\"paragraphs\":[{\"defProps\":{\"baseline\":null,\"bold\":null,\"caps\":null,\"fill\":null,\"font\":null,\"fontCs\":null,\"fontEa\":null,\"fontSym\":null,\"glow\":null,\"highlight\":null,\"hover\":null,\"innerShadow\":null,\"italic\":null,\"kern\":null,\"lang\":null,\"link\":null,\"noProof\":null,\"outline\":null,\"reflection\":null,\"shadow\":null,\"size\":19.0,\"softEdge\":null,\"spacing\":null,\"strike\":null,\"underline\":null,\"underlineColor\":null},\"level\":0,\"runs\":[{\"text\":\"中文 · é · עברית · public OOXML\"}]}]},\"transform\":{\"h\":50.4,\"w\":648.0,\"x\":36.0,\"y\":108.0}}],\"page\":2,\"shapes\":2,\"title\":\"R6 / R7 · 真实 PPTX 2\"},{\"notes\":\"PRIVATE SPEAKER NOTES 3 / 中文备注：仅演示者可见。\",\"objects\":[{\"id\":2,\"kind\":\"textBox\",\"locked\":false,\"name\":\"TextBox 1\",\"table\":null,\"text\":\"R6 / R7 · 真实 PPTX 3\",\"text_body\":{\"body\":{\"anchor\":null,\"anchorCtr\":null,\"autofit\":{\"kind\":\"shape\"},\"colSpacing\":null,\"columns\":null,\"insetB\":null,\"insetL\":null,\"insetR\":null,\"insetT\":null,\"rot\":null,\"rtlCol\":null,\"spaceFirstLast\":null,\"upright\":null,\"vert\":null,\"warp\":null,\"wrap\":false},\"paragraphs\":[{\"defProps\":{\"baseline\":null,\"bold\":null,\"caps\":null,\"fill\":null,\"font\":\"Microsoft YaHei\",\"fontCs\":null,\"fontEa\":null,\"fontSym\":null,\"glow\":null,\"highlight\":null,\"hover\":null,\"innerShadow\":null,\"italic\":null,\"kern\":null,\"lang\":null,\"link\":null,\"noProof\":null,\"outline\":null,\"reflection\":null,\"shadow\":null,\"size\":30.0,\"softEdge\":null,\"spacing\":null,\"strike\":null,\"underline\":null,\"underlineColor\":null},\"level\":0,\"runs\":[{\"text\":\"R6 / R7 · 真实 PPTX 3\"}]}]},\"transform\":{\"h\":79.2,\"w\":648.0,\"x\":36.0,\"y\":28.8}},{\"id\":3,\"kind\":\"textBox\",\"locked\":false,\"name\":\"TextBox 2\",\"table\":null,\"text\":\"中文 · é · עברית · public OOXML\",\"text_body\":{\"body\":{\"anchor\":null,\"anchorCtr\":null,\"autofit\":{\"kind\":\"shape\"},\"colSpacing\":null,\"columns\":null,\"insetB\":null,\"insetL\":null,\"insetR\":null,\"insetT\":null,\"rot\":null,\"rtlCol\":null,\"spaceFirstLast\":null,\"upright\":null,\"vert\":null,\"warp\":null,\"wrap\":false},\"paragraphs\":[{\"defProps\":{\"baseline\":null,\"bold\":null,\"caps\":null,\"fill\":null,\"font\":null,\"fontCs\":null,\"fontEa\":null,\"fontSym\":null,\"glow\":null,\"highlight\":null,\"hover\":null,\"innerShadow\":null,\"italic\":null,\"kern\":null,\"lang\":null,\"link\":null,\"noProof\":null,\"outline\":null,\"reflection\":null,\"shadow\":null,\"size\":19.0,\"softEdge\":null,\"spacing\":null,\"strike\":null,\"underline\":null,\"underlineColor\":null},\"level\":0,\"runs\":[{\"text\":\"中文 · é · עברית · public OOXML\"}]}]},\"transform\":{\"h\":50.4,\"w\":648.0,\"x\":36.0,\"y\":108.0}},{\"id\":4,\"kind\":\"textBox\",\"locked\":false,\"name\":\"TextBox 3\",\"table\":null,\"text\":\"End / 结束（隐藏的第二页应被跳过）\",\"text_body\":{\"body\":{\"anchor\":null,\"anchorCtr\":null,\"autofit\":{\"kind\":\"shape\"},\"colSpacing\":null,\"columns\":null,\"insetB\":null,\"insetL\":null,\"insetR\":null,\"insetT\":null,\"rot\":null,\"rtlCol\":null,\"spaceFirstLast\":null,\"upright\":null,\"vert\":null,\"warp\":null,\"wrap\":false},\"paragraphs\":[{\"level\":0,\"runs\":[{\"text\":\"End / 结束（隐藏的第二页应被跳过）\"}]}]},\"transform\":{\"h\":72.0,\"w\":648.0,\"x\":36.0,\"y\":216.0}}],\"page\":3,\"shapes\":3,\"title\":\"R6 / R7 · 真实 PPTX 3\"}],\"source_bytes\":0,\"warnings\":[\"Import/render compatibility: unsupported features may be approximated. Original package bytes are retained; preserving writeback validates the editable subset. Linked media is not fetched; fonts may be substituted.\"],\"width_pt\":720.0}}",
+              "type": "text"
+            }
+          ],
+          "isError": false,
+          "structuredContent": {
+            "requestId": "r-9",
+            "result": {
+              "format": "joydeck",
+              "height_pt": 405.0,
+              "media": 2,
+              "name": "input.pptx",
+              "read_only": false,
+              "slides": [
+                {
+                  "notes": "PRIVATE SPEAKER NOTES 1 / 中文备注：仅演示者可见。",
+                  "objects": [
+                    {
+                      "id": 2,
+                      "kind": "textBox",
+                      "locked": false,
+                      "name": "TextBox 1",
+                      "table": null,
+                      "text": "R6 / R7 · 真实 PPTX 1",
+                      "text_body": {
+                        "body": {
+                          "anchor": null,
+                          "anchorCtr": null,
+                          "autofit": {
+                            "kind": "shape"
+                          },
+                          "colSpacing": null,
+                          "columns": null,
+                          "insetB": null,
+                          "insetL": null,
+                          "insetR": null,
+                          "insetT": null,
+                          "rot": null,
+                          "rtlCol": null,
+                          "spaceFirstLast": null,
+                          "upright": null,
+                          "vert": null,
+                          "warp": null,
+                          "wrap": false
+                        },
+                        "paragraphs": [
+                          {
+                            "defProps": {
+                              "baseline": null,
+                              "bold": null,
+                              "caps": null,
+                              "fill": null,
+                              "font": "Microsoft YaHei",
+                              "fontCs": null,
+                              "fontEa": null,
+                              "fontSym": null,
+                              "glow": null,
+                              "highlight": null,
+                              "hover": null,
+                              "innerShadow": null,
+                              "italic": null,
+                              "kern": null,
+                              "lang": null,
+                              "link": null,
+                              "noProof": null,
+                              "outline": null,
+                              "reflection": null,
+                              "shadow": null,
+                              "size": 30.0,
+                              "softEdge": null,
+                              "spacing": null,
+                              "strike": null,
+                              "underline": null,
+                              "underlineColor": null
+                            },
+                            "level": 0,
+                            "runs": [
+                              {
+                                "text": "R6 / R7 · 真实 PPTX 1"
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      "transform": {
+                        "h": 79.2,
+                        "w": 648.0,
+                        "x": 36.0,
+                        "y": 28.8
+                      }
+                    },
+                    {
+                      "id": 3,
+                      "kind": "textBox",
+                      "locked": false,
+                      "name": "TextBox 2",
+                      "table": null,
+                      "text": "中文 · é · עברית · public OOXML",
+                      "text_body": {
+                        "body": {
+                          "anchor": null,
+                          "anchorCtr": null,
+                          "autofit": {
+                            "kind": "shape"
+                          },
+                          "colSpacing": null,
+                          "columns": null,
+                          "insetB": null,
+                          "insetL": null,
+                          "insetR": null,
+                          "insetT": null,
+                          "rot": null,
+                          "rtlCol": null,
+                          "spaceFirstLast": null,
+                          "upright": null,
+                          "vert": null,
+                          "warp": null,
+                          "wrap": false
+                        },
+                        "paragraphs": [
+                          {
+                            "defProps": {
+                              "baseline": null,
+                              "bold": null,
+                              "caps": null,
+                              "fill": null,
+                              "font": null,
+                              "fontCs": null,
+                              "fontEa": null,
+                              "fontSym": null,
+                              "glow": null,
+                              "highlight": null,
+                              "hover": null,
+                              "innerShadow": null,
+                              "italic": null,
+                              "kern": null,
+                              "lang": null,
+                              "link": null,
+                              "noProof": null,
+                              "outline": null,
+                              "reflection": null,
+                              "shadow": null,
+                              "size": 19.0,
+                              "softEdge": null,
+                              "spacing": null,
+                              "strike": null,
+                              "underline": null,
+                              "underlineColor": null
+                            },
+                            "level": 0,
+                            "runs": [
+                              {
+                                "text": "中文 · é · עברית · public OOXML"
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      "transform": {
+                        "h": 50.4,
+                        "w": 648.0,
+                        "x": 36.0,
+                        "y": 108.0
+                      }
+                    },
+                    {
+                      "id": 4,
+                      "kind": "textBox",
+                      "locked": false,
+                      "name": "TextBox 3",
+                      "table": null,
+                      "text": "Official project documentation",
+                      "text_body": {
+                        "body": {
+                          "anchor": null,
+                          "anchorCtr": null,
+                          "autofit": {
+                            "kind": "shape"
+                          },
+                          "colSpacing": null,
+                          "columns": null,
+                          "insetB": null,
+                          "insetL": null,
+                          "insetR": null,
+                          "insetT": null,
+                          "rot": null,
+                          "rtlCol": null,
+                          "spaceFirstLast": null,
+                          "upright": null,
+                          "vert": null,
+                          "warp": null,
+                          "wrap": false
+                        },
+                        "paragraphs": [
+                          {
+                            "level": 0,
+                            "runs": [
+                              {
+                                "props": {
+                                  "baseline": null,
+                                  "bold": null,
+                                  "caps": null,
+                                  "fill": null,
+                                  "font": null,
+                                  "fontCs": null,
+                                  "fontEa": null,
+                                  "fontSym": null,
+                                  "glow": null,
+                                  "highlight": null,
+                                  "hover": null,
+                                  "innerShadow": null,
+                                  "italic": null,
+                                  "kern": null,
+                                  "lang": null,
+                                  "link": {
+                                    "action": {
+                                      "kind": "url",
+                                      "url": "https://example.com/joydeck"
+                                    },
+                                    "highlightClick": false,
+                                    "tooltip": ""
+                                  },
+                                  "noProof": null,
+                                  "outline": null,
+                                  "reflection": null,
+                                  "shadow": null,
+                                  "size": 18.0,
+                                  "softEdge": null,
+                                  "spacing": null,
+                                  "strike": null,
+                                  "underline": null,
+                                  "underlineColor": null
+                                },
+                                "text": "Official project documentation"
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      "transform": {
+                        "h": 36.0,
+                        "w": 576.0,
+                        "x": 36.0,
+                        "y": 324.0
+                      }
+                    },
+                    {
+                      "id": 5,
+                      "kind": "video",
+                      "locked": false,
+                      "name": "original-h264-aac.mp4",
+                      "table": null,
+                      "text": null,
+                      "text_body": null,
+                      "transform": {
+                        "h": 115.2,
+                        "w": 288.0,
+                        "x": 216.0,
+                        "y": 180.0
+                      }
+                    },
+                    {
+                      "id": 28,
+                      "kind": "textBox",
+                      "locked": false,
+                      "name": "Text",
+                      "table": null,
+                      "text": "Control 中文 😀",
+                      "text_body": {
+                        "body": {
+                          "anchor": null,
+                          "anchorCtr": null,
+                          "autofit": null,
+                          "colSpacing": null,
+                          "columns": null,
+                          "insetB": null,
+                          "insetL": null,
+                          "insetR": null,
+                          "insetT": null,
+                          "rot": null,
+                          "rtlCol": null,
+                          "spaceFirstLast": null,
+                          "upright": null,
+                          "vert": null,
+                          "warp": null,
+                          "wrap": null
+                        },
+                        "paragraphs": [
+                          {
+                            "defProps": {
+                              "baseline": null,
+                              "bold": null,
+                              "caps": null,
+                              "fill": null,
+                              "font": "Arial",
+                              "fontCs": null,
+                              "fontEa": null,
+                              "fontSym": null,
+                              "glow": null,
+                              "highlight": null,
+                              "hover": null,
+                              "innerShadow": null,
+                              "italic": null,
+                              "kern": null,
+                              "lang": null,
+                              "link": null,
+                              "noProof": null,
+                              "outline": null,
+                              "reflection": null,
+                              "shadow": null,
+                              "size": 24.0,
+                              "softEdge": null,
+                              "spacing": null,
+                              "strike": null,
+                              "underline": null,
+                              "underlineColor": null
+                            },
+                            "level": 0,
+                            "runs": [
+                              {
+                                "text": "Control 中文 😀"
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      "transform": {
+                        "h": 80.0,
+                        "w": 400.0,
+                        "x": 20.0,
+                        "y": 20.0
+                      }
+                    }
+                  ],
+                  "page": 1,
+                  "shapes": 5,
+                  "title": "R6 / R7 · 真实 PPTX 1"
+                },
+                {
+                  "notes": "PRIVATE SPEAKER NOTES 2 / 中文备注：仅演示者可见。",
+                  "objects": [
+                    {
+                      "id": 2,
+                      "kind": "textBox",
+                      "locked": false,
+                      "name": "TextBox 1",
+                      "table": null,
+                      "text": "R6 / R7 · 真实 PPTX 2",
+                      "text_body": {
+                        "body": {
+                          "anchor": null,
+                          "anchorCtr": null,
+                          "autofit": {
+                            "kind": "shape"
+                          },
+                          "colSpacing": null,
+                          "columns": null,
+                          "insetB": null,
+                          "insetL": null,
+                          "insetR": null,
+                          "insetT": null,
+                          "rot": null,
+                          "rtlCol": null,
+                          "spaceFirstLast": null,
+                          "upright": null,
+                          "vert": null,
+                          "warp": null,
+                          "wrap": false
+                        },
+                        "paragraphs": [
+                          {
+                            "defProps": {
+                              "baseline": null,
+                              "bold": null,
+                              "caps": null,
+                              "fill": null,
+                              "font": "Microsoft YaHei",
+                              "fontCs": null,
+                              "fontEa": null,
+                              "fontSym": null,
+                              "glow": null,
+                              "highlight": null,
+                              "hover": null,
+                              "innerShadow": null,
+                              "italic": null,
+                              "kern": null,
+                              "lang": null,
+                              "link": null,
+                              "noProof": null,
+                              "outline": null,
+                              "reflection": null,
+                              "shadow": null,
+                              "size": 30.0,
+                              "softEdge": null,
+                              "spacing": null,
+                              "strike": null,
+                              "underline": null,
+                              "underlineColor": null
+                            },
+                            "level": 0,
+                            "runs": [
+                              {
+                                "text": "R6 / R7 · 真实 PPTX 2"
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      "transform": {
+                        "h": 79.2,
+                        "w": 648.0,
+                        "x": 36.0,
+                        "y": 28.8
+                      }
+                    },
+                    {
+                      "id": 3,
+                      "kind": "textBox",
+                      "locked": false,
+                      "name": "TextBox 2",
+                      "table": null,
+                      "text": "中文 · é · עברית · public OOXML",
+                      "text_body": {
+                        "body": {
+                          "anchor": null,
+                          "anchorCtr": null,
+                          "autofit": {
+                            "kind": "shape"
+                          },
+                          "colSpacing": null,
+                          "columns": null,
+                          "insetB": null,
+                          "insetL": null,
+                          "insetR": null,
+                          "insetT": null,
+                          "rot": null,
+                          "rtlCol": null,
+                          "spaceFirstLast": null,
+                          "upright": null,
+                          "vert": null,
+                          "warp": null,
+                          "wrap": false
+                        },
+                        "paragraphs": [
+                          {
+                            "defProps": {
+                              "baseline": null,
+                              "bold": null,
+                              "caps": null,
+                              "fill": null,
+                              "font": null,
+                              "fontCs": null,
+                              "fontEa": null,
+                              "fontSym": null,
+                              "glow": null,
+                              "highlight": null,
+                              "hover": null,
+                              "innerShadow": null,
+                              "italic": null,
+                              "kern": null,
+                              "lang": null,
+                              "link": null,
+                              "noProof": null,
+                              "outline": null,
+                              "reflection": null,
+                              "shadow": null,
+                              "size": 19.0,
+                              "softEdge": null,
+                              "spacing": null,
+                              "strike": null,
+                              "underline": null,
+                              "underlineColor": null
+                            },
+                            "level": 0,
+                            "runs": [
+                              {
+                                "text": "中文 · é · עברית · public OOXML"
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      "transform": {
+                        "h": 50.4,
+                        "w": 648.0,
+                        "x": 36.0,
+                        "y": 108.0
+                      }
+                    }
+                  ],
+                  "page": 2,
+                  "shapes": 2,
+                  "title": "R6 / R7 · 真实 PPTX 2"
+                },
+                {
+                  "notes": "PRIVATE SPEAKER NOTES 3 / 中文备注：仅演示者可见。",
+                  "objects": [
+                    {
+                      "id": 2,
+                      "kind": "textBox",
+                      "locked": false,
+                      "name": "TextBox 1",
+                      "table": null,
+                      "text": "R6 / R7 · 真实 PPTX 3",
+                      "text_body": {
+                        "body": {
+                          "anchor": null,
+                          "anchorCtr": null,
+                          "autofit": {
+                            "kind": "shape"
+                          },
+                          "colSpacing": null,
+                          "columns": null,
+                          "insetB": null,
+                          "insetL": null,
+                          "insetR": null,
+                          "insetT": null,
+                          "rot": null,
+                          "rtlCol": null,
+                          "spaceFirstLast": null,
+                          "upright": null,
+                          "vert": null,
+                          "warp": null,
+                          "wrap": false
+                        },
+                        "paragraphs": [
+                          {
+                            "defProps": {
+                              "baseline": null,
+                              "bold": null,
+                              "caps": null,
+                              "fill": null,
+                              "font": "Microsoft YaHei",
+                              "fontCs": null,
+                              "fontEa": null,
+                              "fontSym": null,
+                              "glow": null,
+                              "highlight": null,
+                              "hover": null,
+                              "innerShadow": null,
+                              "italic": null,
+                              "kern": null,
+                              "lang": null,
+                              "link": null,
+                              "noProof": null,
+                              "outline": null,
+                              "reflection": null,
+                              "shadow": null,
+                              "size": 30.0,
+                              "softEdge": null,
+                              "spacing": null,
+                              "strike": null,
+                              "underline": null,
+                              "underlineColor": null
+                            },
+                            "level": 0,
+                            "runs": [
+                              {
+                                "text": "R6 / R7 · 真实 PPTX 3"
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      "transform": {
+                        "h": 79.2,
+                        "w": 648.0,
+                        "x": 36.0,
+                        "y": 28.8
+                      }
+                    },
+                    {
+                      "id": 3,
+                      "kind": "textBox",
+                      "locked": false,
+                      "name": "TextBox 2",
+                      "table": null,
+                      "text": "中文 · é · עברית · public OOXML",
+                      "text_body": {
+                        "body": {
+                          "anchor": null,
+                          "anchorCtr": null,
+                          "autofit": {
+                            "kind": "shape"
+                          },
+                          "colSpacing": null,
+                          "columns": null,
+                          "insetB": null,
+                          "insetL": null,
+                          "insetR": null,
+                          "insetT": null,
+                          "rot": null,
+                          "rtlCol": null,
+                          "spaceFirstLast": null,
+                          "upright": null,
+                          "vert": null,
+                          "warp": null,
+                          "wrap": false
+                        },
+                        "paragraphs": [
+                          {
+                            "defProps": {
+                              "baseline": null,
+                              "bold": null,
+                              "caps": null,
+                              "fill": null,
+                              "font": null,
+                              "fontCs": null,
+                              "fontEa": null,
+                              "fontSym": null,
+                              "glow": null,
+                              "highlight": null,
+                              "hover": null,
+                              "innerShadow": null,
+                              "italic": null,
+                              "kern": null,
+                              "lang": null,
+                              "link": null,
+                              "noProof": null,
+                              "outline": null,
+                              "reflection": null,
+                              "shadow": null,
+                              "size": 19.0,
+                              "softEdge": null,
+                              "spacing": null,
+                              "strike": null,
+                              "underline": null,
+                              "underlineColor": null
+                            },
+                            "level": 0,
+                            "runs": [
+                              {
+                                "text": "中文 · é · עברית · public OOXML"
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      "transform": {
+                        "h": 50.4,
+                        "w": 648.0,
+                        "x": 36.0,
+                        "y": 108.0
+                      }
+                    },
+                    {
+                      "id": 4,
+                      "kind": "textBox",
+                      "locked": false,
+                      "name": "TextBox 3",
+                      "table": null,
+                      "text": "End / 结束（隐藏的第二页应被跳过）",
+                      "text_body": {
+                        "body": {
+                          "anchor": null,
+                          "anchorCtr": null,
+                          "autofit": {
+                            "kind": "shape"
+                          },
+                          "colSpacing": null,
+                          "columns": null,
+                          "insetB": null,
+                          "insetL": null,
+                          "insetR": null,
+                          "insetT": null,
+                          "rot": null,
+                          "rtlCol": null,
+                          "spaceFirstLast": null,
+                          "upright": null,
+                          "vert": null,
+                          "warp": null,
+                          "wrap": false
+                        },
+                        "paragraphs": [
+                          {
+                            "level": 0,
+                            "runs": [
+                              {
+                                "text": "End / 结束（隐藏的第二页应被跳过）"
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      "transform": {
+                        "h": 72.0,
+                        "w": 648.0,
+                        "x": 36.0,
+                        "y": 216.0
+                      }
+                    }
+                  ],
+                  "page": 3,
+                  "shapes": 3,
+                  "title": "R6 / R7 · 真实 PPTX 3"
+                }
+              ],
+              "source_bytes": 0,
+              "warnings": [
+                "Import/render compatibility: unsupported features may be approximated. Original package bytes are retained; preserving writeback validates the editable subset. Linked media is not fetched; fonts may be substituted."
+              ],
+              "width_pt": 720.0
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "jsonrpc": "2.0",
+        "id": 11,
+        "method": "tools/call",
+        "params": {
+          "name": "joydeck.control",
+          "arguments": {
+            "protocolVersion": "joydeck-control-1",
+            "requestId": "r-10",
+            "method": "document.open",
+            "params": {
+              "path": "C:\\Users\\willm\\outside.pptx"
+            },
+            "target": 6253584295371427,
+            "expectedRevision": 2
+          }
+        }
+      },
+      {
+        "id": 11,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"error\":{\"code\":\"operation-failed\",\"message\":\"unsaved document; explicit dirtyPolicy=discard required\"},\"requestId\":\"r-10\"}",
+              "type": "text"
+            }
+          ],
+          "isError": true,
+          "structuredContent": {
+            "error": {
+              "code": "operation-failed",
+              "message": "unsaved document; explicit dirtyPolicy=discard required"
+            },
+            "requestId": "r-10"
+          }
+        }
+      }
+    ],
+    [
+      {
+        "jsonrpc": "2.0",
+        "id": 12,
+        "method": "tools/call",
+        "params": {
+          "name": "joydeck.control",
+          "arguments": {
+            "protocolVersion": "joydeck-control-1",
+            "requestId": "r-11",
+            "method": "document.save",
+            "params": {
+              "path": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\control.pptx"
+            },
+            "target": 6253584295371427,
+            "expectedRevision": 2
+          }
+        }
+      },
+      {
+        "id": 12,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"requestId\":\"r-11\",\"result\":{\"canRedo\":false,\"canUndo\":true,\"dirty\":false,\"documentId\":6253584295371427,\"engineRevision\":1,\"pages\":3,\"revision\":3,\"selection\":{\"page\":0,\"shapes\":[28]}}}",
+              "type": "text"
+            }
+          ],
+          "isError": false,
+          "structuredContent": {
+            "requestId": "r-11",
+            "result": {
+              "canRedo": false,
+              "canUndo": true,
+              "dirty": false,
+              "documentId": 6253584295371427,
+              "engineRevision": 1,
+              "pages": 3,
+              "revision": 3,
+              "selection": {
+                "page": 0,
+                "shapes": [
+                  28
+                ]
+              }
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "jsonrpc": "2.0",
+        "id": 13,
+        "method": "tools/call",
+        "params": {
+          "name": "joydeck.control",
+          "arguments": {
+            "protocolVersion": "joydeck-control-1",
+            "requestId": "r-12",
+            "method": "document.exchange",
+            "params": {
+              "path": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\control-regenerated.pptx",
+              "mode": "regenerate"
+            },
+            "target": 6253584295371427,
+            "expectedRevision": 3
+          }
+        }
+      },
+      {
+        "id": 13,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"requestId\":\"r-12\",\"result\":{\"bytes\":553694,\"format\":\"pptx\",\"mode\":\"regenerate\",\"sourceUnchanged\":true,\"warnings\":[\"Import/render compatibility: unsupported features may be approximated. Original package bytes are retained; preserving writeback validates the editable subset. Linked media is not fetched; fonts may be substituted.\",\"Explicit regeneration writes the supported public model; unknown source parts, relationships and unsupported semantics are not carried over. Keep the source or .joydeck archive.\"]}}",
+              "type": "text"
+            }
+          ],
+          "isError": false,
+          "structuredContent": {
+            "requestId": "r-12",
+            "result": {
+              "bytes": 553694,
+              "format": "pptx",
+              "mode": "regenerate",
+              "sourceUnchanged": true,
+              "warnings": [
+                "Import/render compatibility: unsupported features may be approximated. Original package bytes are retained; preserving writeback validates the editable subset. Linked media is not fetched; fonts may be substituted.",
+                "Explicit regeneration writes the supported public model; unknown source parts, relationships and unsupported semantics are not carried over. Keep the source or .joydeck archive."
+              ]
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "jsonrpc": "2.0",
+        "id": 14,
+        "method": "tools/call",
+        "params": {
+          "name": "joydeck.control",
+          "arguments": {
+            "protocolVersion": "joydeck-control-1",
+            "requestId": "r-13",
+            "method": "export.start",
+            "params": {
+              "path": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\control.pdf",
+              "options": {
+                "format": "pdf",
+                "pages": [
+                  0
+                ]
+              }
+            },
+            "target": 6253584295371427,
+            "expectedRevision": 3
+          }
+        }
+      },
+      {
+        "id": 14,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"requestId\":\"r-13\",\"result\":{\"jobId\":1,\"semantics\":\"cancel before publication prevents output; commit may win a concurrent cancellation\",\"state\":\"running\"}}",
+              "type": "text"
+            }
+          ],
+          "isError": false,
+          "structuredContent": {
+            "requestId": "r-13",
+            "result": {
+              "jobId": 1,
+              "semantics": "cancel before publication prevents output; commit may win a concurrent cancellation",
+              "state": "running"
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "jsonrpc": "2.0",
+        "id": 15,
+        "method": "tools/call",
+        "params": {
+          "name": "joydeck.control",
+          "arguments": {
+            "protocolVersion": "joydeck-control-1",
+            "requestId": "r-14",
+            "method": "jobs.get",
+            "params": {
+              "jobId": 1
+            },
+            "target": 6253584295371427,
+            "expectedRevision": 3
+          }
+        }
+      },
+      {
+        "id": 15,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"requestId\":\"r-14\",\"result\":{\"cancelRequested\":false,\"documentId\":6253584295371427,\"jobId\":1,\"phase\":\"encoding\",\"revision\":3,\"state\":\"running\"}}",
+              "type": "text"
+            }
+          ],
+          "isError": false,
+          "structuredContent": {
+            "requestId": "r-14",
+            "result": {
+              "cancelRequested": false,
+              "documentId": 6253584295371427,
+              "jobId": 1,
+              "phase": "encoding",
+              "revision": 3,
+              "state": "running"
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "jsonrpc": "2.0",
+        "id": 16,
+        "method": "tools/call",
+        "params": {
+          "name": "joydeck.control",
+          "arguments": {
+            "protocolVersion": "joydeck-control-1",
+            "requestId": "r-15",
+            "method": "jobs.get",
+            "params": {
+              "jobId": 1
+            },
+            "target": 6253584295371427,
+            "expectedRevision": 3
+          }
+        }
+      },
+      {
+        "id": 16,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"requestId\":\"r-15\",\"result\":{\"cancelRequested\":false,\"documentId\":6253584295371427,\"jobId\":1,\"phase\":\"encoding\",\"revision\":3,\"state\":\"running\"}}",
+              "type": "text"
+            }
+          ],
+          "isError": false,
+          "structuredContent": {
+            "requestId": "r-15",
+            "result": {
+              "cancelRequested": false,
+              "documentId": 6253584295371427,
+              "jobId": 1,
+              "phase": "encoding",
+              "revision": 3,
+              "state": "running"
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "jsonrpc": "2.0",
+        "id": 17,
+        "method": "tools/call",
+        "params": {
+          "name": "joydeck.control",
+          "arguments": {
+            "protocolVersion": "joydeck-control-1",
+            "requestId": "r-16",
+            "method": "jobs.get",
+            "params": {
+              "jobId": 1
+            },
+            "target": 6253584295371427,
+            "expectedRevision": 3
+          }
+        }
+      },
+      {
+        "id": 17,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"requestId\":\"r-16\",\"result\":{\"cancelRequested\":false,\"documentId\":6253584295371427,\"jobId\":1,\"phase\":\"encoding\",\"revision\":3,\"state\":\"running\"}}",
+              "type": "text"
+            }
+          ],
+          "isError": false,
+          "structuredContent": {
+            "requestId": "r-16",
+            "result": {
+              "cancelRequested": false,
+              "documentId": 6253584295371427,
+              "jobId": 1,
+              "phase": "encoding",
+              "revision": 3,
+              "state": "running"
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "jsonrpc": "2.0",
+        "id": 18,
+        "method": "tools/call",
+        "params": {
+          "name": "joydeck.control",
+          "arguments": {
+            "protocolVersion": "joydeck-control-1",
+            "requestId": "r-17",
+            "method": "jobs.get",
+            "params": {
+              "jobId": 1
+            },
+            "target": 6253584295371427,
+            "expectedRevision": 3
+          }
+        }
+      },
+      {
+        "id": 18,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"requestId\":\"r-17\",\"result\":{\"cancelRequested\":false,\"documentId\":6253584295371427,\"jobId\":1,\"phase\":\"encoding\",\"revision\":3,\"state\":\"running\"}}",
+              "type": "text"
+            }
+          ],
+          "isError": false,
+          "structuredContent": {
+            "requestId": "r-17",
+            "result": {
+              "cancelRequested": false,
+              "documentId": 6253584295371427,
+              "jobId": 1,
+              "phase": "encoding",
+              "revision": 3,
+              "state": "running"
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "jsonrpc": "2.0",
+        "id": 19,
+        "method": "tools/call",
+        "params": {
+          "name": "joydeck.control",
+          "arguments": {
+            "protocolVersion": "joydeck-control-1",
+            "requestId": "r-18",
+            "method": "jobs.get",
+            "params": {
+              "jobId": 1
+            },
+            "target": 6253584295371427,
+            "expectedRevision": 3
+          }
+        }
+      },
+      {
+        "id": 19,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"requestId\":\"r-18\",\"result\":{\"cancelRequested\":false,\"documentId\":6253584295371427,\"jobId\":1,\"phase\":\"encoding\",\"revision\":3,\"state\":\"running\"}}",
+              "type": "text"
+            }
+          ],
+          "isError": false,
+          "structuredContent": {
+            "requestId": "r-18",
+            "result": {
+              "cancelRequested": false,
+              "documentId": 6253584295371427,
+              "jobId": 1,
+              "phase": "encoding",
+              "revision": 3,
+              "state": "running"
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "jsonrpc": "2.0",
+        "id": 20,
+        "method": "tools/call",
+        "params": {
+          "name": "joydeck.control",
+          "arguments": {
+            "protocolVersion": "joydeck-control-1",
+            "requestId": "r-19",
+            "method": "jobs.get",
+            "params": {
+              "jobId": 1
+            },
+            "target": 6253584295371427,
+            "expectedRevision": 3
+          }
+        }
+      },
+      {
+        "id": 20,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"requestId\":\"r-19\",\"result\":{\"cancelRequested\":false,\"documentId\":6253584295371427,\"jobId\":1,\"phase\":\"encoding\",\"revision\":3,\"state\":\"running\"}}",
+              "type": "text"
+            }
+          ],
+          "isError": false,
+          "structuredContent": {
+            "requestId": "r-19",
+            "result": {
+              "cancelRequested": false,
+              "documentId": 6253584295371427,
+              "jobId": 1,
+              "phase": "encoding",
+              "revision": 3,
+              "state": "running"
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "jsonrpc": "2.0",
+        "id": 21,
+        "method": "tools/call",
+        "params": {
+          "name": "joydeck.control",
+          "arguments": {
+            "protocolVersion": "joydeck-control-1",
+            "requestId": "r-20",
+            "method": "jobs.get",
+            "params": {
+              "jobId": 1
+            },
+            "target": 6253584295371427,
+            "expectedRevision": 3
+          }
+        }
+      },
+      {
+        "id": 21,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"requestId\":\"r-20\",\"result\":{\"cancelRequested\":false,\"documentId\":6253584295371427,\"jobId\":1,\"phase\":\"encoding\",\"revision\":3,\"state\":\"running\"}}",
+              "type": "text"
+            }
+          ],
+          "isError": false,
+          "structuredContent": {
+            "requestId": "r-20",
+            "result": {
+              "cancelRequested": false,
+              "documentId": 6253584295371427,
+              "jobId": 1,
+              "phase": "encoding",
+              "revision": 3,
+              "state": "running"
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "jsonrpc": "2.0",
+        "id": 22,
+        "method": "tools/call",
+        "params": {
+          "name": "joydeck.control",
+          "arguments": {
+            "protocolVersion": "joydeck-control-1",
+            "requestId": "r-21",
+            "method": "jobs.get",
+            "params": {
+              "jobId": 1
+            },
+            "target": 6253584295371427,
+            "expectedRevision": 3
+          }
+        }
+      },
+      {
+        "id": 22,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"requestId\":\"r-21\",\"result\":{\"cancelRequested\":false,\"documentId\":6253584295371427,\"jobId\":1,\"phase\":\"encoding\",\"revision\":3,\"state\":\"running\"}}",
+              "type": "text"
+            }
+          ],
+          "isError": false,
+          "structuredContent": {
+            "requestId": "r-21",
+            "result": {
+              "cancelRequested": false,
+              "documentId": 6253584295371427,
+              "jobId": 1,
+              "phase": "encoding",
+              "revision": 3,
+              "state": "running"
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "jsonrpc": "2.0",
+        "id": 23,
+        "method": "tools/call",
+        "params": {
+          "name": "joydeck.control",
+          "arguments": {
+            "protocolVersion": "joydeck-control-1",
+            "requestId": "r-22",
+            "method": "jobs.get",
+            "params": {
+              "jobId": 1
+            },
+            "target": 6253584295371427,
+            "expectedRevision": 3
+          }
+        }
+      },
+      {
+        "id": 23,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"requestId\":\"r-22\",\"result\":{\"cancelRequested\":false,\"documentId\":6253584295371427,\"jobId\":1,\"phase\":\"encoding\",\"revision\":3,\"state\":\"running\"}}",
+              "type": "text"
+            }
+          ],
+          "isError": false,
+          "structuredContent": {
+            "requestId": "r-22",
+            "result": {
+              "cancelRequested": false,
+              "documentId": 6253584295371427,
+              "jobId": 1,
+              "phase": "encoding",
+              "revision": 3,
+              "state": "running"
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "jsonrpc": "2.0",
+        "id": 24,
+        "method": "tools/call",
+        "params": {
+          "name": "joydeck.control",
+          "arguments": {
+            "protocolVersion": "joydeck-control-1",
+            "requestId": "r-23",
+            "method": "jobs.get",
+            "params": {
+              "jobId": 1
+            },
+            "target": 6253584295371427,
+            "expectedRevision": 3
+          }
+        }
+      },
+      {
+        "id": 24,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"requestId\":\"r-23\",\"result\":{\"cancelRequested\":false,\"documentId\":6253584295371427,\"jobId\":1,\"phase\":\"encoding\",\"revision\":3,\"state\":\"running\"}}",
+              "type": "text"
+            }
+          ],
+          "isError": false,
+          "structuredContent": {
+            "requestId": "r-23",
+            "result": {
+              "cancelRequested": false,
+              "documentId": 6253584295371427,
+              "jobId": 1,
+              "phase": "encoding",
+              "revision": 3,
+              "state": "running"
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "jsonrpc": "2.0",
+        "id": 25,
+        "method": "tools/call",
+        "params": {
+          "name": "joydeck.control",
+          "arguments": {
+            "protocolVersion": "joydeck-control-1",
+            "requestId": "r-24",
+            "method": "jobs.get",
+            "params": {
+              "jobId": 1
+            },
+            "target": 6253584295371427,
+            "expectedRevision": 3
+          }
+        }
+      },
+      {
+        "id": 25,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"requestId\":\"r-24\",\"result\":{\"cancelRequested\":false,\"documentId\":6253584295371427,\"jobId\":1,\"phase\":\"encoding\",\"revision\":3,\"state\":\"running\"}}",
+              "type": "text"
+            }
+          ],
+          "isError": false,
+          "structuredContent": {
+            "requestId": "r-24",
+            "result": {
+              "cancelRequested": false,
+              "documentId": 6253584295371427,
+              "jobId": 1,
+              "phase": "encoding",
+              "revision": 3,
+              "state": "running"
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "jsonrpc": "2.0",
+        "id": 26,
+        "method": "tools/call",
+        "params": {
+          "name": "joydeck.control",
+          "arguments": {
+            "protocolVersion": "joydeck-control-1",
+            "requestId": "r-25",
+            "method": "jobs.get",
+            "params": {
+              "jobId": 1
+            },
+            "target": 6253584295371427,
+            "expectedRevision": 3
+          }
+        }
+      },
+      {
+        "id": 26,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"requestId\":\"r-25\",\"result\":{\"cancelRequested\":false,\"documentId\":6253584295371427,\"jobId\":1,\"phase\":\"finished\",\"result\":{\"bytes\":108188,\"files\":1,\"format\":\"pdf\",\"pages\":[1],\"warnings\":[\"Import/render compatibility: unsupported features may be approximated. Original package bytes are retained; preserving writeback validates the editable subset. Linked media is not fetched; fonts may be substituted.\",\"Slide artwork is rasterized; searchable positioned glyph subsets, links and bookmarks use the shared layout. No PDF/A or tagged-PDF claim.\"]},\"revision\":3,\"state\":\"completed\"}}",
+              "type": "text"
+            }
+          ],
+          "isError": false,
+          "structuredContent": {
+            "requestId": "r-25",
+            "result": {
+              "cancelRequested": false,
+              "documentId": 6253584295371427,
+              "jobId": 1,
+              "phase": "finished",
+              "result": {
+                "bytes": 108188,
+                "files": 1,
+                "format": "pdf",
+                "pages": [
+                  1
+                ],
+                "warnings": [
+                  "Import/render compatibility: unsupported features may be approximated. Original package bytes are retained; preserving writeback validates the editable subset. Linked media is not fetched; fonts may be substituted.",
+                  "Slide artwork is rasterized; searchable positioned glyph subsets, links and bookmarks use the shared layout. No PDF/A or tagged-PDF claim."
+                ]
+              },
+              "revision": 3,
+              "state": "completed"
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "jsonrpc": "2.0",
+        "id": 27,
+        "method": "tools/call",
+        "params": {
+          "name": "joydeck.control",
+          "arguments": {
+            "protocolVersion": "joydeck-control-1",
+            "requestId": "r-26",
+            "method": "show.start",
+            "params": {},
+            "target": 6253584295371427,
+            "expectedRevision": 3
+          }
+        }
+      },
+      {
+        "id": 27,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"requestId\":\"r-26\",\"result\":{\"blank\":null,\"elapsed_seconds\":0.0,\"ended\":false,\"order\":[1,3],\"page\":1,\"paused\":false,\"playing\":false,\"previous\":null,\"serial\":0,\"slide_seconds\":0.0,\"step\":0,\"total_seconds\":0.0}}",
+              "type": "text"
+            }
+          ],
+          "isError": false,
+          "structuredContent": {
+            "requestId": "r-26",
+            "result": {
+              "blank": null,
+              "elapsed_seconds": 0.0,
+              "ended": false,
+              "order": [
+                1,
+                3
+              ],
+              "page": 1,
+              "paused": false,
+              "playing": false,
+              "previous": null,
+              "serial": 0,
+              "slide_seconds": 0.0,
+              "step": 0,
+              "total_seconds": 0.0
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "jsonrpc": "2.0",
+        "id": 28,
+        "method": "tools/call",
+        "params": {
+          "name": "joydeck.control",
+          "arguments": {
+            "protocolVersion": "joydeck-control-1",
+            "requestId": "r-27",
+            "method": "show.action",
+            "params": {
+              "action": "next"
+            },
+            "target": 6253584295371427,
+            "expectedRevision": 3
+          }
+        }
+      },
+      {
+        "id": 28,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"requestId\":\"r-27\",\"result\":{\"exit\":false,\"status\":{\"blank\":null,\"elapsed_seconds\":0.0,\"ended\":false,\"order\":[1,3],\"page\":3,\"paused\":false,\"playing\":false,\"previous\":1,\"serial\":1,\"slide_seconds\":0.0,\"step\":0,\"total_seconds\":0.0}}}",
+              "type": "text"
+            }
+          ],
+          "isError": false,
+          "structuredContent": {
+            "requestId": "r-27",
+            "result": {
+              "exit": false,
+              "status": {
+                "blank": null,
+                "elapsed_seconds": 0.0,
+                "ended": false,
+                "order": [
+                  1,
+                  3
+                ],
+                "page": 3,
+                "paused": false,
+                "playing": false,
+                "previous": 1,
+                "serial": 1,
+                "slide_seconds": 0.0,
+                "step": 0,
+                "total_seconds": 0.0
+              }
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "jsonrpc": "2.0",
+        "id": 29,
+        "method": "tools/call",
+        "params": {
+          "name": "joydeck.control",
+          "arguments": {
+            "protocolVersion": "joydeck-control-1",
+            "requestId": "r-28",
+            "method": "show.frame",
+            "params": {
+              "path": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\show.png",
+              "scale": 0.5
+            },
+            "target": 6253584295371427,
+            "expectedRevision": 3
+          }
+        }
+      },
+      {
+        "id": 29,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"requestId\":\"r-28\",\"result\":{\"bytes\":12092,\"path\":\"\\\\\\\\?\\\\C:\\\\Users\\\\willm\\\\AppData\\\\Local\\\\Temp\\\\joydeck-r6-r7-0c7fhf9t\\\\中文 空格\\\\show.png\",\"state\":{\"blank\":null,\"elapsed_seconds\":0.0,\"ended\":false,\"order\":[1,3],\"page\":3,\"paused\":false,\"playing\":false,\"previous\":1,\"serial\":1,\"slide_seconds\":0.0,\"step\":0,\"total_seconds\":0.0}}}",
+              "type": "text"
+            }
+          ],
+          "isError": false,
+          "structuredContent": {
+            "requestId": "r-28",
+            "result": {
+              "bytes": 12092,
+              "path": "\\\\?\\C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\show.png",
+              "state": {
+                "blank": null,
+                "elapsed_seconds": 0.0,
+                "ended": false,
+                "order": [
+                  1,
+                  3
+                ],
+                "page": 3,
+                "paused": false,
+                "playing": false,
+                "previous": 1,
+                "serial": 1,
+                "slide_seconds": 0.0,
+                "step": 0,
+                "total_seconds": 0.0
+              }
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "jsonrpc": "2.0",
+        "id": 30,
+        "method": "tools/call",
+        "params": {
+          "name": "joydeck.control",
+          "arguments": {
+            "protocolVersion": "joydeck-control-1",
+            "requestId": "r-29",
+            "method": "show.action",
+            "params": {
+              "action": "pause"
+            },
+            "target": 6253584295371427,
+            "expectedRevision": 3
+          }
+        }
+      },
+      {
+        "id": 30,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"requestId\":\"r-29\",\"result\":{\"exit\":false,\"status\":{\"blank\":null,\"elapsed_seconds\":0.0,\"ended\":false,\"order\":[1,3],\"page\":3,\"paused\":true,\"playing\":false,\"previous\":1,\"serial\":2,\"slide_seconds\":0.0,\"step\":0,\"total_seconds\":0.0}}}",
+              "type": "text"
+            }
+          ],
+          "isError": false,
+          "structuredContent": {
+            "requestId": "r-29",
+            "result": {
+              "exit": false,
+              "status": {
+                "blank": null,
+                "elapsed_seconds": 0.0,
+                "ended": false,
+                "order": [
+                  1,
+                  3
+                ],
+                "page": 3,
+                "paused": true,
+                "playing": false,
+                "previous": 1,
+                "serial": 2,
+                "slide_seconds": 0.0,
+                "step": 0,
+                "total_seconds": 0.0
+              }
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "jsonrpc": "2.0",
+        "id": 31,
+        "method": "tools/call",
+        "params": {
+          "name": "joydeck.control",
+          "arguments": {
+            "protocolVersion": "joydeck-control-1",
+            "requestId": "r-30",
+            "method": "show.status",
+            "params": {},
+            "target": 6253584295371427,
+            "expectedRevision": 3
+          }
+        }
+      },
+      {
+        "id": 31,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"requestId\":\"r-30\",\"result\":{\"blank\":null,\"elapsed_seconds\":0.0,\"ended\":false,\"order\":[1,3],\"page\":3,\"paused\":true,\"playing\":false,\"previous\":1,\"serial\":2,\"slide_seconds\":0.0,\"step\":0,\"total_seconds\":0.0}}",
+              "type": "text"
+            }
+          ],
+          "isError": false,
+          "structuredContent": {
+            "requestId": "r-30",
+            "result": {
+              "blank": null,
+              "elapsed_seconds": 0.0,
+              "ended": false,
+              "order": [
+                1,
+                3
+              ],
+              "page": 3,
+              "paused": true,
+              "playing": false,
+              "previous": 1,
+              "serial": 2,
+              "slide_seconds": 0.0,
+              "step": 0,
+              "total_seconds": 0.0
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "jsonrpc": "2.0",
+        "id": 32,
+        "method": "tools/call",
+        "params": {
+          "name": "joydeck.control",
+          "arguments": {
+            "protocolVersion": "joydeck-control-1",
+            "requestId": "r-31",
+            "method": "show.tick",
+            "params": {
+              "seconds": 2
+            },
+            "target": 6253584295371427,
+            "expectedRevision": 3
+          }
+        }
+      },
+      {
+        "id": 32,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"requestId\":\"r-31\",\"result\":{\"blank\":null,\"elapsed_seconds\":0.0,\"ended\":false,\"order\":[1,3],\"page\":3,\"paused\":true,\"playing\":false,\"previous\":1,\"serial\":2,\"slide_seconds\":0.0,\"step\":0,\"total_seconds\":0.0}}",
+              "type": "text"
+            }
+          ],
+          "isError": false,
+          "structuredContent": {
+            "requestId": "r-31",
+            "result": {
+              "blank": null,
+              "elapsed_seconds": 0.0,
+              "ended": false,
+              "order": [
+                1,
+                3
+              ],
+              "page": 3,
+              "paused": true,
+              "playing": false,
+              "previous": 1,
+              "serial": 2,
+              "slide_seconds": 0.0,
+              "step": 0,
+              "total_seconds": 0.0
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "jsonrpc": "2.0",
+        "id": 33,
+        "method": "tools/call",
+        "params": {
+          "name": "joydeck.control",
+          "arguments": {
+            "protocolVersion": "joydeck-control-1",
+            "requestId": "r-32",
+            "method": "show.status",
+            "params": {},
+            "target": 6253584295371427,
+            "expectedRevision": 3
+          }
+        }
+      },
+      {
+        "id": 33,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"requestId\":\"r-32\",\"result\":{\"blank\":null,\"elapsed_seconds\":0.0,\"ended\":false,\"order\":[1,3],\"page\":3,\"paused\":true,\"playing\":false,\"previous\":1,\"serial\":2,\"slide_seconds\":0.0,\"step\":0,\"total_seconds\":0.0}}",
+              "type": "text"
+            }
+          ],
+          "isError": false,
+          "structuredContent": {
+            "requestId": "r-32",
+            "result": {
+              "blank": null,
+              "elapsed_seconds": 0.0,
+              "ended": false,
+              "order": [
+                1,
+                3
+              ],
+              "page": 3,
+              "paused": true,
+              "playing": false,
+              "previous": 1,
+              "serial": 2,
+              "slide_seconds": 0.0,
+              "step": 0,
+              "total_seconds": 0.0
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "jsonrpc": "2.0",
+        "id": 34,
+        "method": "tools/call",
+        "params": {
+          "name": "joydeck.control",
+          "arguments": {
+            "protocolVersion": "joydeck-control-1",
+            "requestId": "r-33",
+            "method": "show.action",
+            "params": {
+              "action": "black"
+            },
+            "target": 6253584295371427,
+            "expectedRevision": 3
+          }
+        }
+      },
+      {
+        "id": 34,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"requestId\":\"r-33\",\"result\":{\"exit\":false,\"status\":{\"blank\":false,\"elapsed_seconds\":0.0,\"ended\":false,\"order\":[1,3],\"page\":3,\"paused\":true,\"playing\":false,\"previous\":1,\"serial\":3,\"slide_seconds\":0.0,\"step\":0,\"total_seconds\":0.0}}}",
+              "type": "text"
+            }
+          ],
+          "isError": false,
+          "structuredContent": {
+            "requestId": "r-33",
+            "result": {
+              "exit": false,
+              "status": {
+                "blank": false,
+                "elapsed_seconds": 0.0,
+                "ended": false,
+                "order": [
+                  1,
+                  3
+                ],
+                "page": 3,
+                "paused": true,
+                "playing": false,
+                "previous": 1,
+                "serial": 3,
+                "slide_seconds": 0.0,
+                "step": 0,
+                "total_seconds": 0.0
+              }
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "jsonrpc": "2.0",
+        "id": 35,
+        "method": "tools/call",
+        "params": {
+          "name": "joydeck.control",
+          "arguments": {
+            "protocolVersion": "joydeck-control-1",
+            "requestId": "r-34",
+            "method": "show.frame",
+            "params": {
+              "path": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\black.png",
+              "scale": 0.25
+            },
+            "target": 6253584295371427,
+            "expectedRevision": 3
+          }
+        }
+      },
+      {
+        "id": 35,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"requestId\":\"r-34\",\"result\":{\"bytes\":704,\"path\":\"\\\\\\\\?\\\\C:\\\\Users\\\\willm\\\\AppData\\\\Local\\\\Temp\\\\joydeck-r6-r7-0c7fhf9t\\\\中文 空格\\\\black.png\",\"state\":{\"blank\":false,\"elapsed_seconds\":0.0,\"ended\":false,\"order\":[1,3],\"page\":3,\"paused\":true,\"playing\":false,\"previous\":1,\"serial\":3,\"slide_seconds\":0.0,\"step\":0,\"total_seconds\":0.0}}}",
+              "type": "text"
+            }
+          ],
+          "isError": false,
+          "structuredContent": {
+            "requestId": "r-34",
+            "result": {
+              "bytes": 704,
+              "path": "\\\\?\\C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\black.png",
+              "state": {
+                "blank": false,
+                "elapsed_seconds": 0.0,
+                "ended": false,
+                "order": [
+                  1,
+                  3
+                ],
+                "page": 3,
+                "paused": true,
+                "playing": false,
+                "previous": 1,
+                "serial": 3,
+                "slide_seconds": 0.0,
+                "step": 0,
+                "total_seconds": 0.0
+              }
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "jsonrpc": "2.0",
+        "id": 36,
+        "method": "tools/call",
+        "params": {
+          "name": "joydeck.control",
+          "arguments": {
+            "protocolVersion": "joydeck-control-1",
+            "requestId": "r-35",
+            "method": "export.start",
+            "params": {
+              "path": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\cancel.gif",
+              "options": {
+                "format": "gif",
+                "pages": [
+                  0
+                ],
+                "seconds": 15,
+                "fps": 10,
+                "scale": 0.5
+              }
+            },
+            "target": 6253584295371427,
+            "expectedRevision": 3
+          }
+        }
+      },
+      {
+        "id": 36,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"requestId\":\"r-35\",\"result\":{\"jobId\":2,\"semantics\":\"cancel before publication prevents output; commit may win a concurrent cancellation\",\"state\":\"running\"}}",
+              "type": "text"
+            }
+          ],
+          "isError": false,
+          "structuredContent": {
+            "requestId": "r-35",
+            "result": {
+              "jobId": 2,
+              "semantics": "cancel before publication prevents output; commit may win a concurrent cancellation",
+              "state": "running"
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "jsonrpc": "2.0",
+        "id": 37,
+        "method": "tools/call",
+        "params": {
+          "name": "joydeck.control",
+          "arguments": {
+            "protocolVersion": "joydeck-control-1",
+            "requestId": "r-36",
+            "method": "jobs.cancel",
+            "params": {
+              "jobId": 2
+            },
+            "target": 6253584295371427,
+            "expectedRevision": 3
+          }
+        }
+      },
+      {
+        "id": 37,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"requestId\":\"r-36\",\"result\":{\"cancelRequested\":true,\"documentId\":6253584295371427,\"jobId\":2,\"phase\":\"encoding\",\"revision\":3,\"state\":\"running\"}}",
+              "type": "text"
+            }
+          ],
+          "isError": false,
+          "structuredContent": {
+            "requestId": "r-36",
+            "result": {
+              "cancelRequested": true,
+              "documentId": 6253584295371427,
+              "jobId": 2,
+              "phase": "encoding",
+              "revision": 3,
+              "state": "running"
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "jsonrpc": "2.0",
+        "id": 38,
+        "method": "tools/call",
+        "params": {
+          "name": "joydeck.control",
+          "arguments": {
+            "protocolVersion": "joydeck-control-1",
+            "requestId": "r-37",
+            "method": "jobs.get",
+            "params": {
+              "jobId": 2
+            },
+            "target": 6253584295371427,
+            "expectedRevision": 3
+          }
+        }
+      },
+      {
+        "id": 38,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"requestId\":\"r-37\",\"result\":{\"cancelRequested\":true,\"documentId\":6253584295371427,\"error\":\"operation cancelled\",\"jobId\":2,\"phase\":\"finished\",\"revision\":3,\"state\":\"cancelled\"}}",
+              "type": "text"
+            }
+          ],
+          "isError": false,
+          "structuredContent": {
+            "requestId": "r-37",
+            "result": {
+              "cancelRequested": true,
+              "documentId": 6253584295371427,
+              "error": "operation cancelled",
+              "jobId": 2,
+              "phase": "finished",
+              "revision": 3,
+              "state": "cancelled"
+            }
+          }
+        }
+      }
+    ]
+  ],
+  "fullReportSha256": "5141ff4b584ed819df496ad13a7b2e11e81e4296c112216baa74baa7d97893f6",
+  "fullReportLocalPath": "D:\\Coding\\EditorProjects\\joyoffice\\target\\r9-ui2\\delivery-cli-r6-r7-full.json",
+  "allAssertionsPassed": true
+}

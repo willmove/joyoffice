@@ -17,6 +17,9 @@ pub const METHODS: &[&str] = &[
     "document.new",
     "document.open",
     "document.inspect",
+    "document.check",
+    "document.compare",
+    "document.acceptObject",
     "document.status",
     "document.close",
     "command.execute",
@@ -69,6 +72,10 @@ pub struct Dispatcher {
     completed: BTreeMap<String, ([u8; 32], Value)>,
     completed_bytes: usize,
     _scratch: Scratch,
+    attached: bool,
+    attached_generation: Option<u64>,
+    attached_state: Option<[u8; 32]>,
+    comparison: Option<crate::comparison::Comparison>,
 }
 impl Dispatcher {
     pub fn new(root: &Path) -> Result<Self, String> {
@@ -87,6 +94,10 @@ impl Dispatcher {
             completed: BTreeMap::new(),
             completed_bytes: 0,
             _scratch: Scratch::new()?,
+            attached: false,
+            attached_generation: None,
+            attached_state: None,
+            comparison: None,
         })
     }
     pub fn path(&self, value: &str, write: bool) -> Result<PathBuf, String> {
@@ -116,6 +127,51 @@ impl Dispatcher {
             return Err("path outside authorized root".into());
         }
         Ok(real)
+    }
+    /// Temporarily lend this dispatcher the live GUI editor. Ownership is returned
+    /// before rendering resumes; there is no shadow editable document.
+    pub fn dispatch_attached(
+        &mut self,
+        live: &mut Option<Editor>,
+        generation: u64,
+        r: Request,
+    ) -> Value {
+        self.attached = true;
+        if self.attached_generation != Some(generation) {
+            self.comparison = None;
+            self.cancel_jobs();
+            self.show = None;
+            self.completed.clear();
+            self.completed_bytes = 0;
+            self.attached_generation = Some(generation);
+            self.attached_state = None;
+            let mut nonce = [0u8; 8];
+            if let Err(error) = getrandom::fill(&mut nonce) {
+                return json!({"requestId":r.request_id,"error":{"code":"operation-failed","message":error.to_string()}});
+            }
+            self.document_id = (u64::from_le_bytes(nonce) & ((1 << 53) - 1)).max(1);
+            self.revision = 0;
+        }
+        self.editor = live.take();
+        let state = self.live_state();
+        if self.attached_state.is_some_and(|old| old != state) {
+            self.revision += 1;
+        }
+        let response = if matches!(
+            r.method.as_str(),
+            "document.new" | "document.open" | "document.close"
+        ) {
+            json!({"requestId":r.request_id,"error":{"code":"operation-failed","message":"replace or close the attached document through its GUI"}})
+        } else {
+            self.dispatch(r)
+        };
+        self.attached_state = Some(self.live_state());
+        *live = self.editor.take();
+        response
+    }
+    fn live_state(&self) -> [u8; 32] {
+        let state = self.editor.as_ref().map(|e| json!({"revision":e.session.revision(),"selection":e.session.selection(),"source":e.source,"dirty":e.session.dirty()}));
+        Sha256::digest(json!(state).to_string().as_bytes()).into()
     }
     fn cancel_jobs(&mut self) {
         for job in self.jobs.values() {
@@ -160,6 +216,8 @@ impl Dispatcher {
             "engine.commands"
                 | "document.inspect"
                 | "document.status"
+                | "document.check"
+                | "document.compare"
                 | "command.validate"
                 | "jobs.get"
                 | "show.status"
@@ -194,7 +252,7 @@ impl Dispatcher {
         let string = |k: &str| p[k].as_str().ok_or_else(|| format!("missing string {k}"));
         if r.method == "engine.commands" {
             return Ok(
-                json!({"protocolVersion":VERSION,"commandSchemaVersion":2,"modelSchema":"joydeck-v2","legacyCommandSchemaSupported":false,"methods":METHODS,"commands":joydeck_engine::COMMANDS,"compatibility":{"restoredMethods":["command.validate","document.undo","document.redo"],"commandParameters":"schema 2: params.command; target and expectedRevision required","validation":"snapshot execution, no live side effects"},"documentId":self.document_id,"transport":"headless stdio","root":self.root,"outputs":"new paths only","replay":"128 mutations / 16 MiB, same requestId and payload","attachedDesktop":false}),
+                json!({"protocolVersion":VERSION,"commandSchemaVersion":2,"modelSchema":"joydeck-v2","legacyCommandSchemaSupported":false,"legacyCommandSubset":crate::legacy_commands::SUPPORTED,"legacyCompatibility":"documented string commands only; action subsets are strict; not the full 16-domain v1 schema","methods":METHODS,"commands":joydeck_engine::COMMANDS,"compatibility":{"restoredMethods":["command.validate","document.undo","document.redo"],"commandParameters":"schema 2: params.command; target and expectedRevision required","validation":"snapshot execution, no live side effects"},"documentId":self.document_id,"transport":if self.attached {"desktop stdio"} else {"headless stdio"},"root":self.root,"outputs":"new paths only","replay":"128 mutations / 16 MiB, same requestId and payload","attachedDesktop":self.attached}),
             );
         }
         if r.method == "document.status" {
@@ -229,6 +287,7 @@ impl Dispatcher {
             self.cancel_jobs();
             self.show = None;
             self.editor = Some(editor);
+            self.comparison = None;
             self.document_id = (u64::from_le_bytes(nonce) & ((1 << 53) - 1)).max(1);
             self.revision = 0;
             return Ok(self.status());
@@ -244,17 +303,69 @@ impl Dispatcher {
                 | "document.save"
                 | "document.close"
                 | "document.exchange"
+                | "document.acceptObject"
         );
+        if let (Some(outer), Some(inner)) = (r.expected_revision, p["expectedRevision"].as_u64())
+            && outer != inner
+        {
+            return Err("conflicting revision guards".into());
+        }
         if (mutating || r.method == "command.validate")
-            && r.expected_revision != Some(self.revision)
+            && r.expected_revision
+                .or_else(|| p["expectedRevision"].as_u64())
+                != Some(self.revision)
         {
             return Err("expectedRevision missing/stale".into());
         }
         match r.method.as_str() {
+            "document.check" => {
+                let doc = self.editor.as_ref().ok_or("no document")?.display()?;
+                Ok(
+                    json!({"documentId":self.document_id,"revision":self.revision,"warnings":doc.info.warnings,"slides":doc.info.slides.len(),"media":doc.info.media}),
+                )
+            }
+            "document.compare" => {
+                let path = self.path(string("path")?, false)?;
+                let comparison = crate::comparison::Comparison::open(
+                    self.editor.as_ref().ok_or("no document")?,
+                    &path,
+                )?;
+                let report = serde_json::to_value(&comparison.report).map_err(|e| e.to_string())?;
+                self.comparison = Some(comparison);
+                Ok(report)
+            }
+            "document.acceptObject" => {
+                let page = p["page"]
+                    .as_u64()
+                    .and_then(|n| usize::try_from(n).ok())
+                    .ok_or("missing page")?;
+                let object = p["object"]
+                    .as_u64()
+                    .and_then(|n| u32::try_from(n).ok())
+                    .map(joydeck_model::ShapeId)
+                    .ok_or("missing object")?;
+                let editor = self.editor.as_mut().ok_or("no document")?;
+                let command = self.comparison.as_ref().ok_or("compare first")?.command(
+                    editor,
+                    string("baseSha256")?,
+                    string("referenceSha256")?,
+                    page,
+                    object,
+                )?;
+                editor.session.execute(command)?;
+                self.revision += 1;
+                Ok(self.status())
+            }
             "command.validate" => {
-                let command =
+                let command = if p["command"].is_string() {
+                    crate::legacy_commands::parse(
+                        p,
+                        self.editor.as_ref().ok_or("no document")?.session.model(),
+                    )?
+                } else {
                     serde_json::from_value::<joydeck_engine::Command>(p["command"].clone())
-                        .map_err(|e| e.to_string())?;
+                        .map_err(|e| e.to_string())?
+                };
                 let changed = self
                     .editor
                     .as_ref()
@@ -287,9 +398,15 @@ impl Dispatcher {
                 serde_json::to_value(doc.info).map_err(|e| e.to_string())
             }
             "command.execute" => {
-                let command =
+                let command = if p["command"].is_string() {
+                    crate::legacy_commands::parse(
+                        p,
+                        self.editor.as_ref().ok_or("no document")?.session.model(),
+                    )?
+                } else {
                     serde_json::from_value::<joydeck_engine::Command>(p["command"].clone())
-                        .map_err(|e| e.to_string())?;
+                        .map_err(|e| e.to_string())?
+                };
                 self.editor
                     .as_mut()
                     .ok_or("no document")?
@@ -323,6 +440,7 @@ impl Dispatcher {
                 }
                 self.cancel_jobs();
                 self.editor = None;
+                self.comparison = None;
                 self.show = None;
                 Ok(self.status())
             }
