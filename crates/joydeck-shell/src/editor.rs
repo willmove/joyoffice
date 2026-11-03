@@ -73,7 +73,7 @@ impl Editor {
         e.session = Session::new(
             e.base.presentation.clone(),
             original_bindings(&e.base.presentation),
-            false,
+            true,
         );
         Ok(e)
     }

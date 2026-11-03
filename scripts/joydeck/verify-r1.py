@@ -54,7 +54,7 @@ def main():
     run(['inspect',future],expected=1)
     run(['unknown-command'],expected=1)
     diagnostics = json.loads(run(['diagnostics']))
-    assert diagnostics['stage']=='R1' and not diagnostics['cli_uses_gui']
+    assert {'pptx-read', 'deckcraft-read', 'render-png'}.issubset(diagnostics['capabilities']) and not diagnostics['cli_uses_gui']
     report={'cli':str(exe),'cli_sha256':hashlib.sha256(exe.read_bytes()).hexdigest(),'working_directory':str(work),'checks':len(records),'passed':True,'runs':records}
     args.evidence.write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
     print(f'R1 executable verification passed: {len(records)} checks; {work}')

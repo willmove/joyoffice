@@ -679,11 +679,7 @@ fn apply_theme(dark: bool, window: Option<&mut Window>, cx: &mut App) {
         window,
         cx,
     );
-    let p = if dark {
-        Palette::dark(Brand::Deck)
-    } else {
-        Palette::light(Brand::Deck)
-    };
+    let p = viewer::deck_palette(dark);
     let theme = Theme::global_mut(cx);
     theme.colors.primary = rgb(p.accent).into();
     theme.colors.primary_hover = rgb(p.accent_hover).into();
@@ -702,7 +698,7 @@ fn apply_theme(dark: bool, window: Option<&mut Window>, cx: &mut App) {
 
 pub fn run(arguments: impl Iterator<Item = String>) -> Result<(), String> {
     let mut dark = false;
-    let mut window_size = (1280., 820.);
+    let mut window_size = (1440., 900.);
     let mut input = None;
     let mut sample_workspace = false;
     for arg in arguments {
@@ -712,7 +708,7 @@ pub fn run(arguments: impl Iterator<Item = String>) -> Result<(), String> {
             "--sample-workspace" => sample_workspace = true,
             "--help" => {
                 println!(
-                    "JoyDeck [INPUT.pptx|INPUT.joydeck|INPUT.deckcraft] [--dark|--light] [--window-size=WIDTHxHEIGHT]\nR6/R7 basic editor, save/reopen and recovery. --sample-workspace opens the R0 UI sample."
+                    "JoyDeck [INPUT.pptx|INPUT.joydeck|INPUT.deckcraft] [--dark|--light] [--window-size=WIDTHxHEIGHT]\nR8 native ribbon editor, save/reopen and recovery. --sample-workspace opens the R0 UI sample."
                 );
                 return Ok(());
             }
@@ -770,7 +766,11 @@ pub fn run(arguments: impl Iterator<Item = String>) -> Result<(), String> {
             .detach();
             let result = if !sample_workspace {
                 viewer::open_window(dark, window_size, cx).map(|(handle, view)| {
-                    viewer::load_path(&view, input.unwrap_or_else(|| "@bundled".into()), cx);
+                    if let Some(input) = input {
+                        viewer::load_path(&view, input, cx);
+                    } else {
+                        viewer::new_document(&view, handle, cx);
+                    }
                     handle
                 })
             } else {

@@ -1,0 +1,18 @@
+{
+  "path": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r8-final-ibewychh\\中文 空格\\剪贴板 副本.pptx",
+  "sha256": "aa877f4a5b3a6dfe1d9be8ce39fd9e4be0c0949409abb322d2f9c37987380497",
+  "table_ids": [
+    260,
+    275
+  ],
+  "original": [
+    "能力",
+    "状态"
+  ],
+  "copy": [
+    "副本",
+    "独立"
+  ],
+  "independent_reader": "python-pptx",
+  "passed": true
+}

@@ -1,0 +1,6 @@
+Imported source records passed (267 files)
+   Compiling joydeck-ui-gpui v0.8.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-ui-gpui)
+   Compiling joydeck v0.8.0 (D:\Coding\EditorProjects\joydeck-new\apps\joydeck)
+    Finished `release` profile [optimized] target(s) in 1m 46s
+    Finished `release` profile [optimized] target(s) in 0.39s
+{"directory": "D:\\Coding\\EditorProjects\\joydeck-new\\dist\\joydeck\\joydeck-0.8.0-r8-windows-x86_64-release-1db7fba9b9", "archive": "D:\\Coding\\EditorProjects\\joydeck-new\\dist\\joydeck\\joydeck-0.8.0-r8-windows-x86_64-release-1db7fba9b9.zip", "archive_sha256": "8336702f2e78743ed6b90cfea731022103013d33d27c557571b84a5706d01781", "source_sha256": "1db7fba9b9689228d382ed0ae28e25918833ccfc3b98e3545a3c16905b1f6030", "target": "x86_64-pc-windows-msvc", "profile": "release", "sbom_packages": 455, "missing_license_texts": ["accesskit", "accesskit_consumer", "accesskit_windows", "gpui-kit", "krilla", "lyon", "lyon_algorithms", "lyon_geom", "lyon_path", "lyon_tessellation", "mac", "profiling", "profiling-procmacros", "pulp-wasm-simd-flag", "rust-i18n-macro", "rust-i18n-support", "seahash", "svg_fmt", "taffy", "zune-core", "zune-inflate", "zune-jpeg"], "signed": false}

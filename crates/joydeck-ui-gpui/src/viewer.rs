@@ -38,13 +38,24 @@ actions!(
         DeleteObject,
         CloseEditor,
         NextCell,
-        PreviousCell
+        PreviousCell,
+        SaveAs,
+        PresentStart,
+        PresentCurrent
     ]
 );
+#[path = "chrome.rs"]
+mod chrome;
+#[path = "chrome_edit.rs"]
+mod chrome_edit;
+#[path = "chrome_nav.rs"]
+mod chrome_nav;
 #[path = "content_ui.rs"]
 mod content_ui;
 #[path = "delivery_ui.rs"]
 mod delivery_ui;
+#[path = "document_ui.rs"]
+mod document_ui;
 #[path = "editor_actions.rs"]
 mod editing;
 #[path = "inline_text.rs"]
@@ -68,6 +79,11 @@ pub struct Viewer {
     retired_images: Vec<Arc<RenderImage>>,
     gpu_document: u64,
     ribbon: &'static str,
+    backstage: bool,
+    sorter: bool,
+    notes_visible: bool,
+    notes_syncing: bool,
+    notes_subscription: Option<Subscription>,
     inspector: bool,
     content_task: Option<Task<()>>,
     cpu_view: bool,
@@ -91,11 +107,13 @@ pub struct Viewer {
     pending_save_path: Option<String>,
     saving: bool,
     close_after_save: bool,
+    pending_replace: Option<document_ui::ReplaceDocument>,
+    replace_ready: bool,
     canvas_bounds: Bounds<Pixels>,
+    zoom_bounds: Bounds<Pixels>,
     drag: Option<editing::Drag>,
     activation: Option<Subscription>,
     dark: bool,
-    input: Entity<InputState>,
     focus: FocusHandle,
     deck: Option<Arc<Deck>>,
     source: Option<PathBuf>,
@@ -109,6 +127,7 @@ pub struct Viewer {
     thumbnail_errors: BTreeSet<usize>,
     thumb_busy: bool,
     scroll: UniformListScrollHandle,
+    ribbon_scroll: ScrollHandle,
     read_cancel: Arc<AtomicBool>,
     paint_cancel: Arc<AtomicBool>,
     thumbs_cancel: Arc<AtomicBool>,
@@ -137,9 +156,6 @@ fn image_of(r: Raster) -> std::result::Result<Arc<RenderImage>, String> {
 }
 impl Viewer {
     fn new(dark: bool, window: &mut Window, cx: &mut Context<Self>) -> Self {
-        let input = cx.new(|cx| {
-            InputState::new(window, cx).placeholder("输入 .pptx / .joydeck / .deckcraft 路径")
-        });
         let focus = cx.focus_handle();
         focus.focus(window, cx);
         Self {
@@ -151,7 +167,12 @@ impl Viewer {
             retired_images: vec![],
             gpu_document: 0,
             ribbon: "开始",
-            inspector: true,
+            backstage: false,
+            sorter: false,
+            notes_visible: true,
+            notes_syncing: false,
+            notes_subscription: None,
+            inspector: false,
             content_task: None,
             cpu_view: false,
             scene: None,
@@ -163,7 +184,11 @@ impl Viewer {
             scene_cancel: Arc::new(AtomicBool::new(false)),
             inline: None,
             cell: None,
-            notes_input: cx.new(|cx| TextareaState::new(window, cx).auto_grow(3, 8)),
+            notes_input: cx.new(|cx| {
+                TextareaState::new(window, cx)
+                    .placeholder("单击此处添加备注")
+                    .auto_grow(1, 3)
+            }),
             editor: None,
             save_input: cx.new(|cx| {
                 InputState::new(window, cx).placeholder("另存路径 .pptx / .joydeck（新文件）")
@@ -178,11 +203,13 @@ impl Viewer {
             pending_save_path: None,
             saving: false,
             close_after_save: false,
+            pending_replace: None,
+            replace_ready: false,
             canvas_bounds: Bounds::default(),
+            zoom_bounds: Bounds::default(),
             drag: None,
             activation: None,
             dark,
-            input,
             focus,
             deck: None,
             source: None,
@@ -196,6 +223,7 @@ impl Viewer {
             thumbnail_errors: BTreeSet::new(),
             thumb_busy: false,
             scroll: UniformListScrollHandle::new(),
+            ribbon_scroll: ScrollHandle::new(),
             read_cancel: Arc::new(AtomicBool::new(false)),
             paint_cancel: Arc::new(AtomicBool::new(false)),
             thumbs_cancel: Arc::new(AtomicBool::new(false)),
@@ -209,8 +237,8 @@ impl Viewer {
             started: Instant::now(),
         }
     }
-    fn open(&mut self, _: &Open, _: &mut Window, cx: &mut Context<Self>) {
-        if self.block_replace(cx) {
+    fn open(&mut self, _: &Open, w: &mut Window, cx: &mut Context<Self>) {
+        if self.confirm_replace(document_ui::ReplaceDocument::Open, w, cx) {
             return;
         }
         let receiver = cx.prompt_for_paths(PathPromptOptions {
@@ -229,7 +257,7 @@ impl Viewer {
                 }
                 Ok(Ok(None)) => {}
                 _ => {
-                    s.message = "文件选择器不可用；可在路径框输入文件路径".into();
+                    s.message = "无法打开文件选择器，请重新尝试".into();
                     cx.notify();
                 }
             });
@@ -296,6 +324,7 @@ impl Viewer {
                                 return;
                             }
                         };
+                        s.backstage = false;
                         s.editor = Some(editor);
                         s.paint_cancel.store(true, Ordering::Relaxed);
                         s.thumbs_cancel.store(true, Ordering::Relaxed);
@@ -326,11 +355,7 @@ impl Viewer {
                         s.thumbs_task = None;
                         s.thumbs_cancel = Arc::new(AtomicBool::new(false));
                         s.scroll.scroll_to_item(0, ScrollStrategy::Top);
-                        s.message = format!(
-                            "读取完成 · {} 页 · {} ms · R6/R7 编辑",
-                            pages,
-                            s.started.elapsed().as_millis()
-                        );
+                        s.message = format!("已打开 · {} 张幻灯片", pages);
                         eprintln!(
                             "R6/R7 opened=true pages={} elapsed_ms={}",
                             pages,
@@ -406,13 +431,13 @@ impl Viewer {
             return 1.;
         };
         let sz = window.viewport_size();
-        let inspector = if self.inspector && f32::from(sz.width) >= 1180. {
-            264.
-        } else {
-            0.
-        };
-        ((f32::from(sz.width) - 288. - inspector).max(64.) / (d.info.width_pt as f32))
-            .min((f32::from(sz.height) - 330.).max(64.) / (d.info.height_pt as f32))
+        let inspector = if self.inspector { 264. } else { 0. };
+        ((f32::from(sz.width) - self.rail_width(window) - 96. - inspector).max(64.)
+            / (d.info.width_pt as f32))
+            .min(
+                (f32::from(sz.height) - if self.notes_visible { 292. } else { 230. }).max(64.)
+                    / (d.info.height_pt as f32),
+            )
             .clamp(0.01, 4.)
     }
     fn zoom_in(&mut self, _: &ZoomIn, w: &mut Window, cx: &mut Context<Self>) {
@@ -563,11 +588,7 @@ impl Render for Viewer {
             self.gpu_cache.clear(window);
             self.benchmark = None;
         }
-        let palette = if self.dark {
-            joyoffice_ui::Palette::dark(joyoffice_ui::Brand::Deck)
-        } else {
-            joyoffice_ui::Palette::light(joyoffice_ui::Brand::Deck)
-        };
+        let palette = chrome::palette(self.dark);
         if let Some(path) = self.pending_save_path.take() {
             self.save_input
                 .update(cx, |s, cx| s.set_value(path, window, cx));
@@ -576,15 +597,19 @@ impl Render for Viewer {
             self.refresh_pending = false;
             self.sync_editor(window, cx);
         }
+        if self.replace_ready {
+            self.replace_ready = false;
+            if let Some(action) = self.pending_replace.take() {
+                self.continue_replace(action, window, cx);
+            }
+        }
+        self.sync_notes(window, cx);
         self.show_recoveries(window, cx);
         let scale = self.scale(window);
         if let Some(e) = &self.editor {
             window.set_window_title(&format!(
-                "JoyDeck · R6/R7 · {}{}",
-                self.deck
-                    .as_ref()
-                    .map(|d| d.info.name.as_str())
-                    .unwrap_or("Untitled"),
+                "{}{} - JoyDeck",
+                self.document_name(),
                 if e.session.dirty() { " *" } else { "" }
             ));
         }
@@ -601,21 +626,12 @@ impl Render for Viewer {
             }
         }
         let count = deck.as_ref().map_or(0, |d| d.info.slides.len());
-        let warning_count = deck.as_ref().map_or(0, |d| d.info.warnings.len());
-        let source = deck
-            .as_ref()
-            .map(|d| d.info.name.clone())
-            .unwrap_or_else(|| "未打开文稿".into());
         let sz = window.viewport_size();
         let aw = (f32::from(sz.width)
-            - 224.
-            - if self.inspector && f32::from(sz.width) >= 1180. {
-                264.
-            } else {
-                0.
-            })
+            - self.rail_width(window)
+            - if self.inspector { 264. } else { 0. })
         .max(64.);
-        let ah = (f32::from(sz.height) - 312.).max(64.);
+        let ah = (f32::from(sz.height) - if self.notes_visible { 234. } else { 176. }).max(64.);
         let canvas = if let Some(d) = &deck {
             let (w, h) = (
                 (d.info.width_pt as f32) * scale,
@@ -651,7 +667,7 @@ impl Render for Viewer {
                                 .w(px(w))
                                 .h(px(h))
                                 .bg(rgb(0xffffff))
-                                .shadow_lg()
+                                .shadow_sm()
                                 .overflow_hidden()
                                 .children(current.map(|(_, i)| {
                                     img(i.clone())
@@ -678,7 +694,8 @@ impl Render for Viewer {
                                     .left_0()
                                     .size_full(),
                                 )
-                                .children(self.selection_overlays(scale, palette.accent))
+                                .children(self.placeholder_overlays(scale, cx))
+                                .children(self.selection_overlays(scale, 0x7a7a7a))
                                 .on_mouse_down(
                                     MouseButton::Left,
                                     cx.listener(move |s, event, w, cx| {
@@ -758,265 +775,35 @@ impl Render for Viewer {
             .on_action(cx.listener(Self::zoom_out))
             .on_action(cx.listener(Self::fit))
             .on_action(cx.listener(Self::report))
-            .child(
-                div()
-                    .h(px(56.))
-                    .flex_shrink_0()
-                    .px_4()
-                    .flex()
-                    .items_center()
-                    .justify_between()
-                    .border_b_1()
-                    .border_color(rgb(palette.border))
-                    .child(
-                        div()
-                            .flex_1()
-                            .min_w_0()
-                            .overflow_hidden()
-                            .flex()
-                            .gap_3()
-                            .items_center()
-                            .child(
-                                div()
-                                    .flex_shrink_0()
-                                    .text_lg()
-                                    .text_color(rgb(palette.accent))
-                                    .child("JoyDeck · R6/R7"),
-                            )
-                            .child(
-                                div()
-                                    .flex_1()
-                                    .min_w_0()
-                                    .text_sm()
-                                    .text_ellipsis()
-                                    .child(source),
-                            )
-                            .child(div().text_xs().text_color(rgb(palette.accent)).child(
-                                if self.editor.as_ref().is_some_and(|e| e.session.dirty()) {
-                                    "未保存"
-                                } else {
-                                    "无修改"
-                                },
-                            )),
-                    )
-                    .child(
-                        div()
-                            .flex_shrink_0()
-                            .flex()
-                            .gap_2()
-                            .child(
-                                Button::new("open")
-                                    .label("打开文稿")
-                                    .on_click(cx.listener(|s, _, w, cx| s.open(&Open, w, cx))),
-                            )
-                            .child(
-                                Button::new("theme")
-                                    .label(if self.dark { "浅色" } else { "深色" })
-                                    .on_click(cx.listener(|s, _, w, cx| {
-                                        s.dark = !s.dark;
-                                        crate::apply_theme(s.dark, Some(w), cx);
-                                        cx.notify();
-                                    })),
-                            )
-                            .child(
-                                Button::new("scene-toggle")
-                                    .label(if self.cpu_view {
-                                        "CPU 对照"
-                                    } else {
-                                        "GPUI 场景"
-                                    })
-                                    .on_click(cx.listener(|s, _, w, cx| {
-                                        s.cpu_view = !s.cpu_view;
-                                        s.gpu_cache.clear(w);
-                                        cx.notify();
-                                    })),
-                            )
-                            .child(
-                                Button::new("scene-statistics")
-                                    .label("渲染诊断")
-                                    .on_click(cx.listener(|s, _, w, cx| s.scene_report(w, cx))),
-                            )
-                            .child(
-                                Button::new("speaker-notes")
-                                    .label("备注")
-                                    .disabled(count == 0)
-                                    .on_click(cx.listener(|s, _, w, cx| s.edit_notes(w, cx))),
-                            )
-                            .child(
-                                Button::new("compatibility")
-                                    .label(format!("兼容报告 · {warning_count}"))
-                                    .disabled(count == 0)
-                                    .on_click(cx.listener(|s, _, w, cx| s.report(&Report, w, cx))),
-                            ),
-                    ),
-            )
-            .child(
-                div()
-                    .h(px(52.))
-                    .flex_shrink_0()
-                    .flex()
-                    .items_center()
-                    .gap_2()
-                    .px_4()
-                    .child(div().flex_1().child(Input::new(&self.input)))
-                    .child(
-                        Button::new("open-path")
-                            .label("读取路径")
-                            .on_click(cx.listener(|s, _, w, cx| {
-                                let path = s.input.read(cx).value().to_string();
-                                if !path.trim().is_empty() {
-                                    s.load(PathBuf::from(path.trim().trim_matches('"')), cx);
-                                    s.focus.focus(w, cx);
-                                }
-                            })),
-                    )
-                    .child(
-                        Button::new("cancel-read")
-                            .label("取消读取")
-                            .disabled(!self.loading)
-                            .on_click(cx.listener(|s, _, w, cx| s.cancel(&Cancel, w, cx))),
-                    ),
-            )
-            .child(self.edit_toolbar(window, cx))
-            .child(
+            .on_action(cx.listener(Self::save_as))
+            .on_action(cx.listener(|s, _: &PresentStart, _, cx| s.start_show(true, false, cx)))
+            .on_action(cx.listener(|s, _: &PresentCurrent, _, cx| s.start_show(false, false, cx)))
+            .child(self.title_chrome(cx))
+            .child(self.editor_ribbon(window, cx))
+            .child(if self.backstage {
+                self.file_backstage(cx)
+            } else if self.sorter {
+                self.slide_sorter(cx)
+            } else {
                 div()
                     .flex_1()
                     .min_h_0()
                     .flex()
                     .overflow_hidden()
-                    .child(
-                        div()
-                            .w(px(224.))
-                            .h_full()
-                            .flex_shrink_0()
-                            .border_r_1()
-                            .border_color(rgb(palette.border))
-                            .child(
-                                uniform_list(
-                                    "slide-list",
-                                    count,
-                                    cx.processor(move |s, range: std::ops::Range<usize>, _, cx| {
-                                        s.request_thumbnails(range.clone(), cx);
-                                        range
-                                            .map(|p| {
-                                                let title = s
-                                                    .deck
-                                                    .as_ref()
-                                                    .map(|d| {
-                                                        d.info.slides[p]
-                                                            .title
-                                                            .chars()
-                                                            .take(80)
-                                                            .collect::<String>()
-                                                    })
-                                                    .unwrap_or_default();
-                                                div()
-                                                    .id(p)
-                                                    .h(px(144.))
-                                                    .p_3()
-                                                    .cursor_pointer()
-                                                    .bg(rgb(if s.page == p {
-                                                        palette.selected
-                                                    } else {
-                                                        palette.chrome
-                                                    }))
-                                                    .on_click(cx.listener(move |s, _, w, cx| {
-                                                        s.select(p, cx);
-                                                        s.focus.focus(w, cx);
-                                                    }))
-                                                    .child(
-                                                        div()
-                                                            .w(px(192.))
-                                                            .h(px(108.))
-                                                            .flex()
-                                                            .items_center()
-                                                            .justify_center()
-                                                            .bg(rgb(palette.canvas))
-                                                            .overflow_hidden()
-                                                            .children(s.thumbnails.get(&p).map(
-                                                                |i| {
-                                                                    img(i.clone())
-                                                                        .max_w_full()
-                                                                        .max_h_full()
-                                                                        .object_fit(
-                                                                            ObjectFit::Contain,
-                                                                        )
-                                                                },
-                                                            )),
-                                                    )
-                                                    .child(
-                                                        div().text_xs().text_ellipsis().child(
-                                                            format!("{:02}  {}", p + 1, title),
-                                                        ),
-                                                    )
-                                            })
-                                            .collect::<Vec<_>>()
-                                    }),
-                                )
-                                .track_scroll(&self.scroll)
-                                .h_full(),
-                            ),
-                    )
-                    .child(canvas)
-                    .children(
-                        (self.inspector && f32::from(window.viewport_size().width) >= 1180.)
-                            .then(|| self.content_inspector(cx)),
-                    ),
-            )
-            .child(
-                div()
-                    .h(px(44.))
-                    .flex_shrink_0()
-                    .px_4()
-                    .flex()
-                    .items_center()
-                    .justify_between()
-                    .gap_3()
-                    .border_t_1()
-                    .border_color(rgb(palette.border))
+                    .child(self.slide_rail(window, count, cx))
                     .child(
                         div()
                             .flex_1()
-                            .text_xs()
-                            .overflow_hidden()
-                            .child(self.message.clone()),
+                            .min_w_0()
+                            .flex()
+                            .flex_col()
+                            .child(canvas)
+                            .when(self.notes_visible, |d| d.child(self.notes_pane())),
                     )
-                    .child(
-                        Button::new("previous")
-                            .label("上一页")
-                            .disabled(count == 0 || self.page == 0)
-                            .on_click(cx.listener(|s, _, w, cx| s.previous(&Previous, w, cx))),
-                    )
-                    .child(format!(
-                        "{} / {count}",
-                        if count == 0 { 0 } else { self.page + 1 }
-                    ))
-                    .child(
-                        Button::new("next")
-                            .label("下一页")
-                            .disabled(count == 0 || self.page + 1 >= count)
-                            .on_click(cx.listener(|s, _, w, cx| s.next(&Next, w, cx))),
-                    )
-                    .child(
-                        Button::new("zoom-out")
-                            .label("−")
-                            .disabled(count == 0)
-                            .on_click(cx.listener(|s, _, w, cx| s.zoom_out(&ZoomOut, w, cx))),
-                    )
-                    .child(format!("{:.0}%", scale * 100.))
-                    .child(
-                        Button::new("zoom-in")
-                            .label("+")
-                            .disabled(count == 0)
-                            .on_click(cx.listener(|s, _, w, cx| s.zoom_in(&ZoomIn, w, cx))),
-                    )
-                    .child(
-                        Button::new("fit")
-                            .label("适应窗口")
-                            .disabled(count == 0)
-                            .on_click(cx.listener(|s, _, w, cx| s.fit(&Fit, w, cx))),
-                    ),
-            )
+                    .children((self.inspector).then(|| self.content_inspector(cx)))
+                    .into_any_element()
+            })
+            .child(self.status_chrome(scale, cx))
     }
 }
 pub fn bind(cx: &mut App) {
@@ -1029,8 +816,19 @@ pub fn bind(cx: &mut App) {
         ),
         KeyBinding::new("ctrl-o", Open, Some("Viewer")),
         KeyBinding::new("ctrl-s", Save, Some("Viewer")),
+        KeyBinding::new("ctrl-shift-s", SaveAs, Some("Viewer")),
+        KeyBinding::new("cmd-shift-s", SaveAs, Some("Viewer")),
+        KeyBinding::new("f5", PresentStart, Some("Viewer")),
+        KeyBinding::new("shift-f5", PresentCurrent, Some("Viewer")),
         KeyBinding::new("cmd-s", Save, Some("Viewer")),
         KeyBinding::new("ctrl-z", UndoEdit, Some("Viewer && !Input")),
+        KeyBinding::new("cmd-z", UndoEdit, Some("Viewer && !Input")),
+        KeyBinding::new("cmd-shift-z", RedoEdit, Some("Viewer && !Input")),
+        KeyBinding::new(
+            "cmd-n",
+            NewDocument,
+            Some("Viewer && !Input && !InlineText"),
+        ),
         KeyBinding::new("ctrl-y", RedoEdit, Some("Viewer && !Input")),
         KeyBinding::new("ctrl-shift-z", RedoEdit, Some("Viewer && !Input")),
         KeyBinding::new(
@@ -1075,11 +873,14 @@ pub fn open_window(
         },
         cx,
         move |w, cx| {
-            w.set_window_title("JoyDeck · R6/R7 编辑器");
+            w.set_window_title("JoyDeck");
             let view = cx.new(|cx| Viewer::new(dark, w, cx));
             view.update(cx, |s, cx| {
+                s.install_notes(w, cx);
+                cx.defer_in(w, |s, w, cx| s.focus.focus(w, cx));
                 s.activation = Some(cx.observe_window_activation(w, |s, w, cx| {
                     if !w.is_window_active() {
+                        s.commit_notes(w, cx);
                         s.end_inline(cx);
                         if s.drag.take().is_some() {
                             s.message = "失焦，手势已取消".into();
@@ -1091,6 +892,15 @@ pub fn open_window(
             let weak = view.downgrade();
             w.on_window_should_close(cx, move |w, cx| {
                 weak.update(cx, |s, cx| {
+                    if s.composing()
+                        || s.notes_input
+                            .update(cx, |i, cx| i.marked_text_range(w, cx).is_some())
+                    {
+                        s.message = "请先完成或取消组合输入".into();
+                        cx.notify();
+                        return false;
+                    }
+                    s.commit_notes(w, cx);
                     if s.editor.as_ref().is_some_and(|e| e.session.dirty()) || s.saving {
                         s.request_close(&CloseEditor, w, cx);
                         false
@@ -1128,6 +938,11 @@ pub fn quit(cx: &mut App) {
         cx.quit();
     }
 }
+pub fn new_document(view: &Entity<Viewer>, handle: AnyWindowHandle, cx: &mut App) {
+    let _ = handle.update(cx, |_, w, cx| {
+        view.update(cx, |s, cx| s.new_document(&NewDocument, w, cx))
+    });
+}
 pub fn load_path(view: &Entity<Viewer>, path: PathBuf, cx: &mut App) {
     view.update(cx, |s, cx| s.load(path, cx));
 }
@@ -1161,4 +976,23 @@ fn render_doc(
         height: r.height,
         bgra: r.pixels,
     })
+}
+
+pub(super) fn deck_palette(dark: bool) -> joyoffice_ui::Palette {
+    chrome::palette(dark)
+}
+
+impl Viewer {
+    pub(super) fn document_name(&self) -> &str {
+        let name = self
+            .deck
+            .as_ref()
+            .map(|d| d.info.name.as_str())
+            .unwrap_or("JoyDeck");
+        if self.source.is_none() && name == "Untitled.joydeck" {
+            "演示文稿1"
+        } else {
+            name
+        }
+    }
 }

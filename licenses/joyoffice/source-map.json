@@ -68,8 +68,8 @@
     "source_path": "scripts/joydeck/package-native.py",
     "target_path": "scripts/joydeck/package-native.py",
     "source_sha256": "a4ae844b6c2488524872bc69e418673dce6cd1599530447e9efc54ab6be1398e",
-    "adapted_sha256": "75d79b58da1cddb9946d4dad0078730a8f0286a021b1fd3d7a0f948bc060d0dc",
-    "local_changes": "adapt product packaging and Cargo artifact discovery; add source checks, selected SBOM and atomic ZIP; LF; R1 rustfmt and bounded reader/CPU-renderer/palette/notes adapters as applicable; R2 editable viewer adapter, background save/recovery, command-driven gestures, coordinate anchoring and close guard; rustfmt; R4/R5 scene/content workspace adaptation; R6/R7 adapter additions and repository rustfmt/LF normalization."
+    "adapted_sha256": "e2e5e5639de900ea2420c360e438c962757ff52c213cba5e018e5902f85fc51c",
+    "local_changes": "adapt product packaging and Cargo artifact discovery; add source checks, selected SBOM and atomic ZIP; LF; R1 rustfmt and bounded reader/CPU-renderer/palette/notes adapters as applicable; R2 editable viewer adapter, background save/recovery, command-driven gestures, coordinate anchoring and close guard; rustfmt; R4/R5 scene/content workspace adaptation; R6/R7 adapter additions and repository rustfmt/LF normalization.; R8 native editor, clipboard or product package version adaptation"
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
@@ -140,16 +140,16 @@
     "source_path": "apps/joydeck/src/viewer.rs",
     "target_path": "crates/joydeck-ui-gpui/src/viewer.rs",
     "source_sha256": "249104bdece51947664a50fe4b8166f358662e78d0000ed7d0024b10fade5584",
-    "adapted_sha256": "bc74ef04cc6803857c470b317e7ae2f8b4e5232b2862855cea838e2e08c208b8",
-    "local_changes": "Reuse asynchronous read-only viewer, generation guards, cancellation, virtual thumbnail rail and bounded cache; adapt to DeckCraft model and shared CPU renderer; R1 branding and aspect fit; upstream validation modules deferred; R1 rustfmt and bounded reader/CPU-renderer/palette/notes adapters as applicable; R2 editable viewer adapter, background save/recovery, command-driven gestures, coordinate anchoring and close guard; rustfmt; R4/R5 scene/content workspace adaptation; R6/R7 adapter additions and repository rustfmt/LF normalization."
+    "adapted_sha256": "088974d74ab8ac1bf61db1a4a3b9dbf66f7223c16483f3e72f2c77e1f492bf30",
+    "local_changes": "Reuse asynchronous read-only viewer, generation guards, cancellation, virtual thumbnail rail and bounded cache; adapt to DeckCraft model and shared CPU renderer; R1 branding and aspect fit; upstream validation modules deferred; R1 rustfmt and bounded reader/CPU-renderer/palette/notes adapters as applicable; R2 editable viewer adapter, background save/recovery, command-driven gestures, coordinate anchoring and close guard; rustfmt; R4/R5 scene/content workspace adaptation; R6/R7 adapter additions and repository rustfmt/LF normalization.; R8 native editor, clipboard or product package version adaptation"
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
     "source_path": "crates/joydeck-platform/src/files.rs",
     "target_path": "crates/joydeck-shell/src/platform.rs",
     "source_sha256": "fa05e64cb6b044a0db850990889d8ead4b0012339aad9133ed9cb381d1485496",
-    "adapted_sha256": "bacca62f31f6f8639e3c09f8012eb679e29e5c8da421c04325affb3ff914e27e",
-    "local_changes": "R2 adapt bounded IO/fingerprints and leased revision recovery to encoded JoyDeck v2 packages; recovery indexes read under bound; tests replaced by new-model integration tests; R2 editable viewer adapter, background save/recovery, command-driven gestures, coordinate anchoring and close guard; rustfmt; R4/R5 scene/content workspace adaptation"
+    "adapted_sha256": "d7e69d30f473a15adb708d61749683995a3d54aaa8d1a8ac707cd4a8bed12f14",
+    "local_changes": "R2 adapt bounded IO/fingerprints and leased revision recovery to encoded JoyDeck v2 packages; recovery indexes read under bound; tests replaced by new-model integration tests; R2 editable viewer adapter, background save/recovery, command-driven gestures, coordinate anchoring and close guard; rustfmt; R4/R5 scene/content workspace adaptation; R8 native editor, clipboard or product package version adaptation"
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
@@ -172,8 +172,8 @@
     "source_path": "apps/joydeck/src/canvas_text.rs",
     "target_path": "crates/joydeck-ui-gpui/src/inline_text.rs",
     "source_sha256": "e6caa4311e30aaa39f91b1da6d328e8bba46ae9afcf4a890e44e43278e5ef4f4",
-    "local_changes": "Adapt EntityInputHandler, selection/clipboard/composition routing to new pure engine; consume shared CPU text/table layout for all geometry; add bounded text metadata/TSV and notes Textarea flow from apps/joydeck/src/chrome.rs.",
-    "adapted_sha256": "9a5ab40916cd45582f5e69d43073a47fbd8e05fbff776966a34b58e2ae6e5414",
+    "local_changes": "Adapt EntityInputHandler, selection/clipboard/composition routing to new pure engine; consume shared CPU text/table layout for all geometry; add bounded text metadata/TSV and notes Textarea flow from apps/joydeck/src/chrome.rs.; R8 native editor, clipboard or product package version adaptation",
+    "adapted_sha256": "0751bdb5cfeabf36fa51f3383e9eeb4bc165dc137d928f9b252d1811be4022af",
     "additional_sources": [
       {
         "source_path": "apps/joydeck/src/chrome.rs",
@@ -194,8 +194,8 @@
     "source_path": "apps/joydeck/src/scene_canvas.rs",
     "target_path": "crates/joydeck-ui-gpui/src/scene_view.rs",
     "source_sha256": "4d948c8511b32763611b6327ea3d773b37a3ba8e6898b80e45eb0d9a6c7ef973",
-    "local_changes": "R4/R5 adapts native path/cache/retirement or asynchronous scene dispatch to the current model; no legacy document model; R4/R5 scene/content workspace adaptation",
-    "adapted_sha256": "b52147259fc8c2f3d48d7084750ea3a7f0920e1a4649f2064aa920f495899535"
+    "local_changes": "R4/R5 adapts native path/cache/retirement or asynchronous scene dispatch to the current model; no legacy document model; R4/R5 scene/content workspace adaptation; R8 native editor, clipboard or product package version adaptation",
+    "adapted_sha256": "f60924a1b91bf1ad7256c6643e07e8a640e0f28317bbfc1248aab22fd43ef805"
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
@@ -556,5 +556,21 @@
     "source_sha256": "98b4d61d13c8b87604f9b328c9cdfa4c9b69e9b5e5daf721e26130cbf28ec017",
     "local_changes": "Exact contributor-original dynamic color blocks and tone, upstream README provenance retained in fixture README.",
     "adapted_sha256": "98b4d61d13c8b87604f9b328c9cdfa4c9b69e9b5e5daf721e26130cbf28ec017"
+  },
+  {
+    "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
+    "source_path": "apps/joydeck/src/chrome.rs",
+    "target_path": "crates/joydeck-ui-gpui/src/chrome_nav.rs",
+    "source_sha256": "68b6b3800e63f68f65ccab43e81304728295aa7aaa407c3ba4a46408666e6328",
+    "adapted_sha256": "88b4b08f94f6450c0ad846ca1e170711f5fd67399fbf7f8e116bd30c1355cb5a",
+    "local_changes": "R8 native Save As prompt and deferred window update pattern adapted to v2 save jobs; own notes/placeholder/navigation implementation"
+  },
+  {
+    "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
+    "source_path": "apps/joydeck/src/ribbon.rs",
+    "target_path": "crates/joydeck-ui-gpui/src/chrome.rs",
+    "source_sha256": "efd229d2bca36c8887fa16026f4946bbe3240cd9ea9b1b9b65c8c83c11933438",
+    "local_changes": "R8 per-tab bounded GPUI construction frames follow the old JoyDeck ribbon pattern; split Home into groups and keep intrinsic horizontal scroll width on default MSVC stack.",
+    "adapted_sha256": "6159aeba5633f1faa75258e2b411cd7b9e42438d426ac561a5ee943db177c940"
   }
 ]

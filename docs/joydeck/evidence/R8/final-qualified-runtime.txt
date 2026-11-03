@@ -1,0 +1,11 @@
+JoyDeck window opened · GPUI Kit 0.8.1 / pre 0.3.10
+R6/R7 opened=true pages=3 elapsed_ms=68
+R4 scene {"builds":2,"hits":0,"misses":12,"cpu_tiles":0,"backdrop_rasters":2,"native_paths":5,"glyphs":63,"cache_bytes":21154576,"build_micros":3335}
+R4 scene {"builds":3,"hits":0,"misses":18,"cpu_tiles":0,"backdrop_rasters":3,"native_paths":5,"glyphs":63,"cache_bytes":31731864,"build_micros":3615}
+R4/R5 pointer position=Point { x: 761px, y: 321px } bounds=Bounds { origin: Point { x: 297.5px, y: 178px }, size: Size { 1081px × 608px } } point=(411.6611942190065,127.0065820352059) scale=1.1259259
+R4/R5 command=duplicate revision=1 dirty=true
+R4 scene {"builds":4,"hits":6,"misses":19,"cpu_tiles":0,"backdrop_rasters":3,"native_paths":6,"glyphs":79,"cache_bytes":31756416,"build_micros":395}
+R4/R5 checkpoint revision=1
+R4/R5 command=undo revision=2 dirty=false
+R4 scene {"builds":5,"hits":12,"misses":19,"cpu_tiles":0,"backdrop_rasters":3,"native_paths":5,"glyphs":63,"cache_bytes":31756416,"build_micros":228}
+R4/R5 checkpoint revision=2

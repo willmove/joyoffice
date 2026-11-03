@@ -1,0 +1,55 @@
+JoyDeck window opened · GPUI Kit 0.8.1 / pre 0.3.10
+R4 scene {"builds":1,"hits":0,"misses":3,"cpu_tiles":0,"backdrop_rasters":1,"native_paths":0,"glyphs":0,"cache_bytes":10515968,"build_micros":8614}
+R4/R5 checkpoint revision=0
+R4/R5 pointer position=Point { x: 837px, y: 382px } bounds=Bounds { origin: Point { x: 297.5px, y: 178px }, size: Size { 1081px × 608px } } point=(479.161195860095,181.1842149313427) scale=1.1259259
+R6/R7 raster page=1 width=2162 elapsed_ms=5 count=1
+R3 input=preedit utf16=1 marked=true
+R6/R7 raster page=1 width=2162 elapsed_ms=5 count=2
+R3 input=preedit utf16=0 marked=false
+R6/R7 raster page=1 width=2162 elapsed_ms=5 count=3
+R3 input=preedit utf16=1 marked=true
+R6/R7 raster page=1 width=2162 elapsed_ms=5 count=4
+R3 input=commit utf16=1 marked=false
+R4/R5 command=set-text revision=1 dirty=true
+R6/R7 raster page=1 width=2162 elapsed_ms=5 count=5
+R4/R5 checkpoint revision=1
+R4/R5 command=undo revision=2 dirty=false
+R4 scene {"builds":2,"hits":0,"misses":6,"cpu_tiles":0,"backdrop_rasters":2,"native_paths":0,"glyphs":0,"cache_bytes":21031936,"build_micros":2964}
+R4/R5 checkpoint revision=2
+R4/R5 command=redo revision=3 dirty=true
+R4 scene {"builds":3,"hits":2,"misses":7,"cpu_tiles":0,"backdrop_rasters":2,"native_paths":1,"glyphs":1,"cache_bytes":21034328,"build_micros":384}
+R4/R5 checkpoint revision=3
+R6/R7 raster page=1 width=2162 elapsed_ms=7 count=6
+R3 input=commit utf16=17 marked=false
+R4/R5 command=set-text revision=4 dirty=true
+R6/R7 raster page=1 width=2162 elapsed_ms=7 count=7
+R4/R5 checkpoint revision=4
+R4/R5 command=set-text revision=5 dirty=true
+R6/R7 raster page=1 width=2162 elapsed_ms=5 count=8
+R4/R5 checkpoint revision=5
+R4 scene {"builds":4,"hits":4,"misses":8,"cpu_tiles":0,"backdrop_rasters":2,"native_paths":2,"glyphs":17,"cache_bytes":21057408,"build_micros":464}
+R4/R5 command=set-text revision=6 dirty=true
+R4 scene {"builds":5,"hits":7,"misses":8,"cpu_tiles":0,"backdrop_rasters":2,"native_paths":2,"glyphs":17,"cache_bytes":21057408,"build_micros":271}
+R4/R5 checkpoint revision=6
+R4/R5 command=insert-table revision=7 dirty=true
+R4 scene {"builds":6,"hits":10,"misses":9,"cpu_tiles":1,"backdrop_rasters":2,"native_paths":2,"glyphs":17,"cache_bytes":22462064,"build_micros":1902}
+R4/R5 checkpoint revision=7
+R4/R5 pointer position=Point { x: 519px, y: 367px } bounds=Bounds { origin: Point { x: 297.5px, y: 178px }, size: Size { 1081px × 608px } } point=(196.72697846711964,167.861846186391) scale=1.1259259
+R4/R5 command=transform revision=8 dirty=true
+R4 scene {"builds":7,"hits":13,"misses":10,"cpu_tiles":2,"backdrop_rasters":2,"native_paths":2,"glyphs":17,"cache_bytes":23866720,"build_micros":2134}
+R4/R5 checkpoint revision=8
+R4/R5 pointer position=Point { x: 519px, y: 670px } bounds=Bounds { origin: Point { x: 297.5px, y: 178px }, size: Size { 1081px × 608px } } point=(196.72697846711964,436.9736948344147) scale=1.1259259
+R4/R5 pointer position=Point { x: 519px, y: 670px } bounds=Bounds { origin: Point { x: 297.5px, y: 178px }, size: Size { 1081px × 608px } } point=(196.72697846711964,436.9736948344147) scale=1.1259259
+R6/R7 raster page=1 width=2162 elapsed_ms=5 count=9
+R3 input=commit utf16=2 marked=false
+R4/R5 command=set-text revision=9 dirty=true
+R6/R7 raster page=1 width=2162 elapsed_ms=6 count=10
+R4/R5 checkpoint revision=9
+R6/R7 raster page=1 width=2162 elapsed_ms=5 count=11
+R3 input=commit utf16=2 marked=false
+R4/R5 command=set-text revision=10 dirty=true
+R6/R7 raster page=1 width=2162 elapsed_ms=9 count=12
+R4/R5 checkpoint revision=10
+R6/R7 raster page=1 width=2162 elapsed_ms=6 count=13
+R4 scene {"builds":8,"hits":16,"misses":11,"cpu_tiles":3,"backdrop_rasters":2,"native_paths":2,"glyphs":17,"cache_bytes":25271376,"build_micros":1214}
+R4/R5 saved revision=10 dirty=false path=C:\Users\willm\AppData\Local\Temp\joydeck-r8-qualified-ux39zv4d\中文 空格\R8 界面验证.pptx

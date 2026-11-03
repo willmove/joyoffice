@@ -76,7 +76,7 @@ def main():
     rows=json.loads(run(['recovery-list',recovery]));assert any(r['problem'] for r in rows) and any(r['record']['session']==session and r['problem'] is None for r in rows)
     assert (recovery/'9-9-9-1.bad').exists() and (recovery/'bad.index-bad').exists()
     assert hashlib.sha256(source.read_bytes()).hexdigest()==initial
-    diagnostics=json.loads(run(['diagnostics']));assert diagnostics['stage']=='R2' and not diagnostics['cli_uses_gui']
+    diagnostics=json.loads(run(['diagnostics']));assert {'basic-edit', 'undo-redo', 'pptx-preserving-save', 'joydeck-v2', 'recovery'}.issubset(diagnostics['capabilities']) and not diagnostics['cli_uses_gui']
     report=dict(cli=str(exe),cli_sha256=hashlib.sha256(exe.read_bytes()).hexdigest(),work=str(work),checks=len(records),passed=True,forced_crash_pid=child.pid,recovered_session=session,
                 source_sha256=initial,outputs={p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in outputs+images},runs=records)
     args.evidence.write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')

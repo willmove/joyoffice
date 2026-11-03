@@ -295,12 +295,12 @@ fn execute_args(args: &[String]) -> Result<(), String> {
     match args {
         [] => {
             println!(
-                "JoyDeck CLI · R6/R7\n  migrate LEGACY.joydeck --output NEW.joydeck\n  exchange INPUT --mode preserve|regenerate --output NEW.pptx|NEW.potx|NEW.ppsx\n  export INPUT --format pdf|png|jpeg|gif|mp4|outline|rtf|vtt --output NEW_PATH [--pages 1,3] [--dpi 144] [--scale 1] [--layout slides|notes|handouts-3|handouts-6] [--seconds 1] [--fps 10] [--transparent]\n  print INPUT | media-inspect LOCAL_MEDIA\n  control --root ABS_DIRECTORY | mcp --root ABS_DIRECTORY\n  inspect INPUT.pptx|INPUT.deckcraft\n  render INPUT --output NEW_DIRECTORY [--all|--page N] [--scale 1]\n  edit INPUT|--new --script JSON --output NEW.pptx|NEW.joydeck\n  content INPUT\n  import-picture INPUT IMAGE --output NEW.pptx|NEW.joydeck\n  scene-bench INPUT --page N --iterations N --output NEW_DIRECTORY\n  commands | recovery-list DIR | recover DIR SESSION --output NEW.joydeck\n  diagnostics | sample | --version"
+                "JoyDeck CLI · R8\n  migrate LEGACY.joydeck --output NEW.joydeck\n  exchange INPUT --mode preserve|regenerate --output NEW.pptx|NEW.potx|NEW.ppsx\n  export INPUT --format pdf|png|jpeg|gif|mp4|outline|rtf|vtt --output NEW_PATH [--pages 1,3] [--dpi 144] [--scale 1] [--layout slides|notes|handouts-3|handouts-6] [--seconds 1] [--fps 10] [--transparent]\n  print INPUT | media-inspect LOCAL_MEDIA\n  control --root ABS_DIRECTORY | mcp --root ABS_DIRECTORY\n  inspect INPUT.pptx|INPUT.deckcraft\n  render INPUT --output NEW_DIRECTORY [--all|--page N] [--scale 1]\n  edit INPUT|--new --script JSON --output NEW.pptx|NEW.joydeck\n  content INPUT\n  import-picture INPUT IMAGE --output NEW.pptx|NEW.joydeck\n  scene-bench INPUT --page N --iterations N --output NEW_DIRECTORY\n  commands | recovery-list DIR | recover DIR SESSION --output NEW.joydeck\n  diagnostics | sample | --version"
             );
         }
         [command] if command == "--help" || command == "help" => {
             println!(
-                "JoyDeck R6/R7: use joydeck-cli without arguments for the complete command list.\nUsage: joydeck-cli inspect INPUT\n       joydeck-cli render INPUT --output NEW_DIRECTORY [--all|--page N] [--scale 1]\n       joydeck-cli [diagnostics|sample|--version]\nOutputs slide-NNNN.png and inspect.json. Existing directories are refused."
+                "JoyDeck R8: use joydeck-cli without arguments for the complete command list.\nUsage: joydeck-cli inspect INPUT\n       joydeck-cli render INPUT --output NEW_DIRECTORY [--all|--page N] [--scale 1]\n       joydeck-cli [diagnostics|sample|--version]\nOutputs slide-NNNN.png and inspect.json. Existing directories are refused."
             );
         }
         [command] if command == "--version" => println!("JoyDeck {}", env!("CARGO_PKG_VERSION")),

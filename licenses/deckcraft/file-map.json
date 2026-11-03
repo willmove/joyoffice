@@ -2231,6 +2231,56 @@
       "changes": [
         "R6 PDF adaptation to official JoyOffice Krilla 0.8.2, shared glyph layout, font permissions, cancellation and page/raster budgets; notes CJK/overflow handling."
       ]
+    },
+    {
+      "source_path": "crates/engine/src/media_refs.rs",
+      "source_sha256": "2f635edb0e1d8a0325c6245434ba1eb84d2c50649b73e2109ae8e806944ce354",
+      "target_path": "crates/joydeck-engine/src/media_refs.rs",
+      "adapted_sha256": "38a7a931873198e693d820230932ff1c81b1afb7665a557cfcb6c2146d9275ba",
+      "changes": [
+        "R8: adapt typed media references / object ID and resource remapping / layout and theme tokens to pure engine or GPUI Kit; no egui dependency",
+        "rustfmt; bounded transactions, errors and clipboard serialization; original MIT attribution retained"
+      ]
+    },
+    {
+      "source_path": "crates/engine/src/cmd/edit.rs",
+      "source_sha256": "7e715a5f006693a518ff367bce66a79b7cbe9d3b985ef006f192723ae9c114b4",
+      "target_path": "crates/joydeck-engine/src/transfer.rs",
+      "adapted_sha256": "aedb9665f4e63bfa01656a63e02f7a3cce165082b9423a7646ae99f6cab7dcfa",
+      "changes": [
+        "R8: adapt typed media references / object ID and resource remapping / layout and theme tokens to pure engine or GPUI Kit; no egui dependency",
+        "rustfmt; bounded transactions, errors and clipboard serialization; original MIT attribution retained"
+      ]
+    },
+    {
+      "source_path": "crates/ui-egui/src/theme.rs",
+      "source_sha256": "d8d6f55195ac5b0c22d49ec313b716fcfab6cb2c08b3c15445b1ed1fcbe97c6a",
+      "target_path": "crates/joydeck-ui-gpui/src/chrome.rs",
+      "adapted_sha256": "6159aeba5633f1faa75258e2b411cd7b9e42438d426ac561a5ee943db177c940",
+      "changes": [
+        "R8: adapt typed media references / object ID and resource remapping / layout and theme tokens to pure engine or GPUI Kit; no egui dependency",
+        "rustfmt; bounded transactions, errors and clipboard serialization; original MIT attribution retained"
+      ]
+    },
+    {
+      "source_path": "crates/ui-egui/src/ribbon.rs",
+      "source_sha256": "036692f8a885af7b61dfcd7e065f371f46c7db67854c0df9d205c91f35d9049a",
+      "target_path": "crates/joydeck-ui-gpui/src/chrome.rs",
+      "adapted_sha256": "6159aeba5633f1faa75258e2b411cd7b9e42438d426ac561a5ee943db177c940",
+      "changes": [
+        "R8: adapt typed media references / object ID and resource remapping / layout and theme tokens to pure engine or GPUI Kit; no egui dependency",
+        "rustfmt; bounded transactions, errors and clipboard serialization; original MIT attribution retained"
+      ]
+    },
+    {
+      "source_path": "crates/ui-egui/src/widgets.rs",
+      "source_sha256": "d62cc3cce0436f1118c6486f52c5d90175aeaa79751602a89dbf01aa8d233bf9",
+      "target_path": "crates/joydeck-ui-gpui/src/chrome.rs",
+      "adapted_sha256": "6159aeba5633f1faa75258e2b411cd7b9e42438d426ac561a5ee943db177c940",
+      "changes": [
+        "R8: adapt typed media references / object ID and resource remapping / layout and theme tokens to pure engine or GPUI Kit; no egui dependency",
+        "rustfmt; bounded transactions, errors and clipboard serialization; original MIT attribution retained"
+      ]
     }
   ]
 }

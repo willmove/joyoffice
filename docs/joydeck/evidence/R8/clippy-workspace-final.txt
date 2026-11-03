@@ -1,0 +1,3 @@
+   Compiling joydeck v0.8.0 (D:\Coding\EditorProjects\joydeck-new\apps\joydeck)
+    Checking joydeck-ui-gpui v0.8.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-ui-gpui)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.98s

@@ -19,196 +19,8 @@ pub(super) enum Form {
     ImportPicture(bool),
 }
 impl Viewer {
-    pub(super) fn ribbon_tabs(&self, cx: &mut Context<Self>) -> Div {
-        let mut row = div().h(px(34.)).flex().items_center().gap_1().px_2();
-        for tab in [
-            "开始",
-            "格式",
-            "文字表格",
-            "设计",
-            "图片",
-            "图表",
-            "输出",
-            "放映",
-        ] {
-            row = row.child(
-                Button::new(tab)
-                    .label(if self.ribbon == tab {
-                        format!("● {tab}")
-                    } else {
-                        tab.into()
-                    })
-                    .on_click(cx.listener(move |s, _, _, cx| {
-                        s.ribbon = tab;
-                        cx.notify();
-                    })),
-            );
-        }
-        row.child(
-            Button::new("inspector-toggle")
-                .label("属性")
-                .on_click(cx.listener(|s, _, _, cx| {
-                    s.inspector = !s.inspector;
-                    cx.notify();
-                })),
-        )
-    }
-    pub(super) fn content_toolbar(&self, cx: &mut Context<Self>) -> Div {
-        if self.ribbon == "输出" {
-            return self.delivery_toolbar(cx);
-        }
-        let mut row = div()
-            .min_h(px(40.))
-            .flex()
-            .flex_wrap()
-            .items_center()
-            .gap_1()
-            .px_2();
-        if self.ribbon == "放映" {
-            for (label, full, presenter) in [
-                ("放映预览", false, false),
-                ("从头全屏", true, false),
-                ("演示者视图", false, true),
-            ] {
-                row = row.child(
-                    Button::new(label)
-                        .label(label)
-                        .disabled(self.editor.is_none())
-                        .on_click(cx.listener(move |s, _, _, cx| {
-                            s.end_inline(cx);
-                            if let Some(editor) = &s.editor {
-                                let model = editor.session.snapshot().model;
-                                if let Err(e) = slideshow::open(
-                                    model,
-                                    if full { None } else { Some(s.page) },
-                                    full,
-                                    presenter,
-                                    cx,
-                                ) {
-                                    s.message = e;
-                                    cx.notify();
-                                }
-                            }
-                        })),
-                );
-            }
-        }
-        let forms: &[(&str, Form)] = match self.ribbon {
-            "设计" => &[
-                ("页面背景", Form::Background),
-                ("母版背景", Form::MasterBackground),
-                ("主题颜色", Form::Accent),
-                ("主题字体", Form::Fonts),
-                ("页面尺寸", Form::Size),
-                ("文稿属性", Form::Metadata),
-            ],
-            "图片" => &[
-                ("插入图片", Form::ImportPicture(false)),
-                ("替换图片", Form::ImportPicture(true)),
-                ("裁剪 / 调整", Form::Picture),
-            ],
-            "图表" => &[
-                ("图表标题", Form::ChartTitle),
-                ("编辑数据", Form::ChartValue),
-            ],
-            _ => &[],
-        };
-        for &(label, form) in forms {
-            row = row.child(
-                Button::new(label)
-                    .label(label)
-                    .disabled(self.editor.is_none())
-                    .on_click(cx.listener(move |s, _, w, cx| s.content_form(form, w, cx))),
-            );
-        }
-        if self.ribbon == "设计" {
-            row = row.child(
-                Button::new("master-show")
-                    .label("显示 / 隐藏母版图形")
-                    .disabled(self.editor.is_none())
-                    .on_click(cx.listener(|s, _, w, cx| {
-                        if let Some(e) = &s.editor {
-                            let visible = !e.session.model().slides[s.page].show_master_shapes;
-                            s.dispatch(
-                                Command::Content {
-                                    action: ContentAction::MasterVisibility { visible },
-                                },
-                                w,
-                                cx,
-                            );
-                        }
-                    })),
-            );
-            let layouts: Vec<_> = self
-                .editor
-                .iter()
-                .flat_map(|e| e.session.model().masters.iter())
-                .flat_map(|m| m.layouts.iter())
-                .take(16)
-                .map(|l| (l.id, l.name.clone()))
-                .collect();
-            row = row.child(
-                Button::new("layout-picker")
-                    .label("选择版式")
-                    .disabled(layouts.is_empty())
-                    .on_click(cx.listener(move |s, _, w, cx| {
-                        let view = cx.entity().downgrade();
-                        let layouts = layouts.clone();
-                        w.open_dialog(cx, move |d, _, _| {
-                            let mut list = div().flex().flex_col().gap_1();
-                            for (id, name) in &layouts {
-                                let view = view.clone();
-                                let id = *id;
-                                list = list.child(
-                                    Button::new(SharedString::from(format!("layout-{}", id.0)))
-                                        .label(name.clone())
-                                        .on_click(move |_, w, cx| {
-                                            let _ = view.update(cx, |s, cx| {
-                                                w.close_dialog(cx);
-                                                s.dispatch(
-                                                    Command::Content {
-                                                        action: ContentAction::Layout { id },
-                                                    },
-                                                    w,
-                                                    cx,
-                                                );
-                                            });
-                                        }),
-                                );
-                            }
-                            d.title("选择现有母版版式").child(list)
-                        });
-                        s.message = "版式会保留幻灯片上的现有对象和显式格式".into();
-                    })),
-            );
-        }
-        if self.ribbon == "图表" {
-            for (label, kind) in [
-                ("柱形", joydeck_model::chart::ChartType::Column),
-                ("折线", joydeck_model::chart::ChartType::Line),
-                ("饼图", joydeck_model::chart::ChartType::Pie),
-            ] {
-                row = row.child(Button::new(label).label(label).on_click(cx.listener(
-                    move |s, _, w, cx| {
-                        s.dispatch(
-                            Command::Content {
-                                action: ContentAction::ChartType { chart_type: kind },
-                            },
-                            w,
-                            cx,
-                        )
-                    },
-                )));
-            }
-        }
-        row
-    }
     pub(super) fn content_inspector(&self, cx: &mut Context<Self>) -> AnyElement {
-        let p = if self.dark {
-            joyoffice_ui::Palette::dark(joyoffice_ui::Brand::Deck)
-        } else {
-            joyoffice_ui::Palette::light(joyoffice_ui::Brand::Deck)
-        };
+        let p = chrome::palette(self.dark);
         let mut panel = div()
             .id("content-inspector")
             .w(px(264.))
@@ -223,10 +35,51 @@ impl Viewer {
             .border_l_1()
             .border_color(rgb(p.border))
             .text_sm();
-        panel = panel.child(div().text_lg().child("文稿与对象"));
+        panel = panel.child(
+            div()
+                .flex()
+                .items_center()
+                .justify_between()
+                .child(div().text_lg().child("选择与格式"))
+                .child(
+                    Button::new("close-inspector")
+                        .label("×")
+                        .accessibility_label("关闭选择窗格")
+                        .on_click(cx.listener(|s, _, _, cx| {
+                            s.inspector = false;
+                            cx.notify();
+                        })),
+                ),
+        );
         if let Some(e) = &self.editor {
             let pres = e.session.model();
             let slide = &pres.slides[self.page];
+            for shape in slide.shapes.iter().rev() {
+                let id = shape.id;
+                panel = panel.child(
+                    Button::new(("object-row", id.0))
+                        .label(shape.name.clone())
+                        .w_full()
+                        .on_click(cx.listener(move |s, _, w, cx| {
+                            if s.composing() {
+                                return;
+                            }
+                            s.end_inline(cx);
+                            if let Some(e) = &mut s.editor {
+                                let _ = e.session.select(s.page, vec![id]);
+                            }
+                            s.cell = None;
+                            s.focus.focus(w, cx);
+                            cx.notify();
+                        })),
+                );
+            }
+            panel = panel.child(
+                Button::new("object-geometry")
+                    .label("大小和位置…")
+                    .disabled(e.session.selection().shapes.is_empty())
+                    .on_click(cx.listener(|s, _, w, cx| s.geometry_dialog(w, cx))),
+            );
             let layout = pres
                 .layout(slide.layout)
                 .map(|(m, l)| format!("{} / {}", m.name, l.name))
@@ -245,11 +98,7 @@ impl Viewer {
             }
             for id in &e.session.selection().shapes {
                 if let Some(s) = slide.shape(*id) {
-                    panel = panel.child(
-                        div()
-                            .font_weight(FontWeight::BOLD)
-                            .child(format!("#{} {}", id.0, s.name)),
-                    );
+                    panel = panel.child(div().font_weight(FontWeight::BOLD).child(s.name.clone()));
                     if let Some(ctx) = resolve::Ctx::for_slide(pres, slide) {
                         let x = resolve::xfrm(&ctx, s);
                         panel = panel.child(format!(
@@ -282,22 +131,6 @@ impl Viewer {
                         _ => "形状 / 文字".into(),
                     };
                     panel = panel.child(detail);
-                    if self.cpu_view {
-                        panel = panel.child("画布：CPU 对照");
-                    } else if let Some((_, scene)) = self
-                        .scene
-                        .as_ref()
-                        .filter(|(key, _)| key.0 == self.render_generation && key.1 == self.page)
-                        && let Some(node) = scene.nodes.iter().find(|n| n.id == Some(*id))
-                    {
-                        panel = panel.child(format!(
-                            "画布：{}",
-                            node.geometry
-                                .fallback
-                                .as_deref()
-                                .unwrap_or("GPUI 路径 / 字形轮廓")
-                        ));
-                    }
                 }
             }
             let shape_selected = e.session.selection().shapes.len() == 1
@@ -353,6 +186,41 @@ impl Viewer {
             return;
         }
         self.end_inline(cx);
+        if let Form::ImportPicture(replace) = form {
+            if self.editor.is_none() {
+                return;
+            }
+            let receiver = cx.prompt_for_paths(PathPromptOptions {
+                files: true,
+                directories: false,
+                multiple: false,
+                prompt: Some(
+                    if replace {
+                        "替换图片"
+                    } else {
+                        "插入图片"
+                    }
+                    .into(),
+                ),
+            });
+            let generation = self.generation;
+            let selection = self.editor.as_ref().map(|e| e.session.selection().clone());
+            self.dialog_task = Some(cx.spawn(async move |view, cx| {
+                if let Ok(Ok(Some(paths))) = receiver.await
+                    && let Some(path) = paths.into_iter().next()
+                {
+                    let _ = view.update(cx, |s, cx| {
+                        if s.generation == generation
+                            && s.editor.as_ref().map(|e| e.session.selection())
+                                == selection.as_ref()
+                        {
+                            s.import_picture(path.to_string_lossy().into_owned(), replace, cx);
+                        }
+                    });
+                }
+            }));
+            return;
+        }
         let Some(e) = &self.editor else { return };
         let pres = e.session.model();
         let slide = &pres.slides[self.page];
@@ -589,6 +457,39 @@ impl Viewer {
                         }),
                 )
         });
+    }
+    pub(super) fn paste_image(&mut self, bytes: Vec<u8>, cx: &mut Context<Self>) {
+        let generation = self.generation;
+        let selection = self.editor.as_ref().map(|e| e.session.selection().clone());
+        self.content_task = Some(cx.spawn(async move |view, cx| {
+            let result = cx
+                .background_executor()
+                .spawn(async move { joydeck_shell::platform::picture_bytes_command(bytes, false) })
+                .await;
+            let _ = view.update(cx, |s, cx| {
+                if s.generation != generation
+                    || s.editor.as_ref().map(|e| e.session.selection()) != selection.as_ref()
+                {
+                    return;
+                }
+                match result {
+                    Ok(command) => {
+                        if let Some(e) = &mut s.editor {
+                            match e.session.execute(command) {
+                                Ok(true) => {
+                                    s.refresh_pending = true;
+                                    s.checkpoint(cx);
+                                }
+                                Ok(false) => {}
+                                Err(e) => s.message = e,
+                            }
+                        }
+                    }
+                    Err(e) => s.message = e,
+                }
+                cx.notify();
+            });
+        }));
     }
     fn import_picture(&mut self, path: String, replace: bool, cx: &mut Context<Self>) {
         let generation = self.generation;

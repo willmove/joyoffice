@@ -138,13 +138,13 @@ impl Default for WorkspaceState {
 
 pub fn diagnostics() -> serde_json::Value {
     serde_json::json!({
-        "product": "JoyDeck", "version": env!("CARGO_PKG_VERSION"), "stage": "R6-R7",
+        "product": "JoyDeck", "version": env!("CARGO_PKG_VERSION"), "stage": "R8-windows-editor-slice",
         "rust_toolchain": RUST_TOOLCHAIN, "gpui_kit": GPUI_KIT_VERSION,
         "gpui_pre": GPUI_VERSION, "gpui_fast": false,
         "os": std::env::consts::OS, "arch": std::env::consts::ARCH,
-        "cli_uses_gui": false, "preview": "original bundled immutable sample",
-        "capabilities": ["native-workspace", "page-navigation", "zoom", "theme", "pptx-read", "deckcraft-read", "cpu-render", "thumbnails", "inspect", "render-png", "basic-edit", "undo-redo", "pptx-preserving-save", "joydeck-v2", "recovery", "inline-text", "native-ime", "table-edit", "text-clipboard", "table-tsv", "notes-edit", "gpui-scene", "incremental-object-cache", "scene-bench", "desktop-render-benchmark", "master-theme-edit", "picture-insert-crop-adjust", "category-chart-edit", "chart-workbook", "context-ribbon", "content-inspector", "legacy-migration-subset", "pptx-exchange", "pdf-searchable", "notes-handouts", "png-jpeg-gif", "windows-print-dialog", "slideshow", "presenter", "windows-media", "static-mp4", "title-vtt", "headless-control", "mcp-2025-11-25", "export-jobs"],
-        "pending": ["rotated-in-place-text", "image-object-clipboard", "advanced-editing", "legacy-media-review-migration", "multi-display-qualification", "full-animation-editing", "media-device-qualification", "pdf-a-tagged"]
+        "cli_uses_gui": false, "preview": "new blank document by default; original bundled sample available via CLI",
+        "capabilities": ["native-workspace", "page-navigation", "zoom", "theme", "pptx-read", "deckcraft-read", "cpu-render", "thumbnails", "inspect", "render-png", "basic-edit", "undo-redo", "pptx-preserving-save", "joydeck-v2", "recovery", "inline-text", "native-ime", "table-edit", "text-clipboard", "table-tsv", "notes-edit", "gpui-scene", "incremental-object-cache", "scene-bench", "desktop-render-benchmark", "master-theme-edit", "picture-insert-crop-adjust", "category-chart-edit", "chart-workbook", "context-ribbon", "content-inspector", "legacy-migration-subset", "pptx-exchange", "pdf-searchable", "notes-handouts", "png-jpeg-gif", "windows-print-dialog", "slideshow", "presenter", "windows-media", "static-mp4", "title-vtt", "headless-control", "mcp-2025-11-25", "export-jobs", "native-grouped-ribbon", "native-save-as", "basic-object-clipboard", "system-image-clipboard", "inline-notes", "slide-sorter-view", "selection-handles"],
+        "pending": ["rotated-in-place-text", "advanced-object-clipboard", "reference-full-ui-parity", "macos-linux-runtime-qualification", "advanced-editing", "legacy-media-review-migration", "multi-display-qualification", "full-animation-editing", "media-device-qualification", "pdf-a-tagged"]
     })
 }
 

@@ -19,9 +19,9 @@
 
 ## 当前状态
 
-2026-11-03：JoyDeck 0.7.0 / R6–R7 文件输出、放映和控制切片。新增旧 JoyDeck 基础迁移与原件附件、显式 PPTX 保留/再生交换、PDF 可检索文字/备注/讲义、PNG/JPEG/GIF、Windows 打印、静态 MP4/标题 VTT；独立放映/演示者窗口、已有动画采样、本地内嵌媒体及无界面 control/MCP/jobs。沿用 R2–R5 编辑、输入、场景和缓存。详见 [本轮验证](docs/joydeck/evidence/R6-R7/README.md) 和 [包说明](packaging/joydeck/README-r6-r7.md)。
+2026-11-03：JoyDeck 0.8.0 / R8 Windows 编辑器切片。根据本机 DeckCraft / PowerPoint 的真实界面重做原生 Ribbon、灰白画布、缩略图与备注；新增系统打开/另存、保存后切换、基础字体/段落、选择手柄、对象/系统图片剪贴板和浏览视图。沿用 R1–R7 的读取、编辑、保存、渲染、输出、放映和控制能力。详见 [R8 验证](docs/joydeck/evidence/R8/README.md)、[界面/功能对照](docs/joydeck/UI-PARITY.md) 和 [包说明](packaging/joydeck/README-r8.md)。
 
-Rust 1.98.1、GPUI Kit 0.8.1/pre 0.3.10、官方 Krilla 0.8.2 与 JoyOffice 对齐。复用旧 JoyDeck 只读迁移、放映/媒体边界和自动化方案，旧 DTO 不进入新编辑状态。完整阶段与 329 命令覆盖仍推进；旧开发包保留，源 JoyOffice/DeckCraft 未修改。
+Rust 1.98.1、GPUI Kit 0.8.1/pre 0.3.10、官方 Krilla 0.8.2 与 JoyOffice 保持一致。完整 DeckCraft/PowerPoint 功能及像素一致、R8 跨平台资格和 329 命令覆盖尚未完成；不以按钮显示替代验收。源 JoyOffice/DeckCraft 未修改，旧包保留回退。
 
 ## 构建与体验
 
@@ -33,7 +33,7 @@ cargo xtask check joydeck --headless
 cargo xtask package joydeck --release
 ```
 
-Windows 缺少 PATH 中的 CMake 时，优先使用开发脚本或 xtask，它们会定位 Visual Studio 自带的 CMake。应用默认打开真实 native 样例，可传入本地文稿路径。应用可用 `--dark` / `--light` 和 `--window-size=980x800` 指定预览窗口。`joydeck-cli diagnostics` 输出当前能力。
+Windows 缺少 PATH 中的 CMake 时，优先使用开发脚本或 xtask，它们会定位 Visual Studio 自带的 CMake。应用默认新建空白演示文稿，可传入本地文稿路径。应用可用 `--dark` / `--light` 和 `--window-size=980x800` 指定预览窗口。`joydeck-cli diagnostics` 输出当前能力。
 
 ```powershell
 .\target\debug\joydeck.exe ".\tests\fixtures\joydeck\independent.pptx"
@@ -41,7 +41,7 @@ Windows 缺少 PATH 中的 CMake 时，优先使用开发脚本或 xtask，它�
 .\target\debug\joydeck-cli.exe render ".\tests\fixtures\joydeck\independent.pptx" --output ".\rendered" --all --scale 1
 ```
 
-输出目录必须尚不存在，父目录需已存在；页码从 1 开始。详细限制见 [开发包说明](packaging/joydeck/README-r6-r7.md)。
+输出目录必须尚不存在，父目录需已存在；页码从 1 开始。详细限制见 [开发包说明](packaging/joydeck/README-r8.md)。
 
 后续应从 [TASKS](docs/joydeck/TASKS.md) 选择任务，完成后填写新证据。JoyOffice 原有里程碑和上游自评不计入新 JoyDeck 的完成状态。
 

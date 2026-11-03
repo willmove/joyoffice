@@ -6,6 +6,8 @@ use std::{collections::BTreeMap, sync::Arc};
 mod authoring;
 mod content;
 mod history_cost;
+pub mod media_refs;
+pub mod transfer;
 pub use content::ContentAction;
 pub mod text;
 pub use authoring::{TableAction, TextTarget};
@@ -65,6 +67,16 @@ pub enum Command {
     Select {
         page: usize,
         shapes: Vec<ShapeId>,
+    },
+    PasteObjects {
+        transfer: Box<transfer::Transfer>,
+    },
+    InsertShape {
+        preset: String,
+        x: f64,
+        y: f64,
+        width: f64,
+        height: f64,
     },
     InsertRect {
         x: f64,
@@ -127,7 +139,9 @@ impl Command {
             Self::Content { .. } => "content",
             Self::InsertPicture { .. } => "insert-picture",
             Self::Select { .. } => "select",
+            Self::PasteObjects { .. } => "paste-objects",
             Self::InsertRect { .. } => "insert-rect",
+            Self::InsertShape { .. } => "insert-shape",
             Self::InsertText { .. } => "insert-text",
             Self::Transform { .. } => "transform",
             Self::ReplaceText { .. } => "replace-text",
@@ -151,7 +165,9 @@ pub const COMMANDS: &[&str] = &[
     "content",
     "insert-picture",
     "select",
+    "paste-objects",
     "insert-rect",
+    "insert-shape",
     "insert-text",
     "transform",
     "replace-text",
@@ -313,6 +329,9 @@ fn next_id(p: &mut Presentation) -> std::result::Result<u32, String> {
     p.alloc_id().ok_or_else(|| "ID space exhausted".into())
 }
 fn apply(st: &mut EditorSnapshot, cmd: Command) -> std::result::Result<(), String> {
+    if let Command::PasteObjects { transfer } = &cmd {
+        return transfer::paste(st, transfer);
+    }
     if let Some(result) = content::apply(st, &cmd) {
         return result;
     }
@@ -396,8 +415,23 @@ fn apply(st: &mut EditorSnapshot, cmd: Command) -> std::result::Result<(), Strin
         y,
         width,
         height,
-    } = cmd
+    }
+    | Command::InsertShape {
+        x,
+        y,
+        width,
+        height,
+        ..
+    } = &cmd
     {
+        let preset = match &cmd {
+            Command::InsertShape { preset, .. } => preset.as_str(),
+            _ => "rect",
+        };
+        if !["rect", "roundRect", "ellipse", "triangle", "chevron"].contains(&preset) {
+            return Err("unsupported inserted shape preset".into());
+        }
+        let (x, y, width, height) = (*x, *y, *width, *height);
         let id = ShapeId(next_id(p)?);
         let (x, y, w, h) = (checked(x)?, checked(y)?, checked(width)?, checked(height)?);
         if w < 1. || h < 1. {
@@ -405,7 +439,11 @@ fn apply(st: &mut EditorSnapshot, cmd: Command) -> std::result::Result<(), Strin
         }
         Arc::make_mut(&mut p.slides[page]).shapes.push(Shape {
             id,
-            name: "Rectangle".into(),
+            name: preset.into(),
+            geom: Geom::Preset {
+                name: preset.into(),
+                adj: Default::default(),
+            },
             xfrm: Some(Xfrm::new(x, y, w, h)),
             fill: Some(Fill::solid(ColorRef::rgb(Rgba::rgb(166, 61, 36)))),
             ..Default::default()

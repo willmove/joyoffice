@@ -9,6 +9,13 @@ static IDS: AtomicU64 = AtomicU64::new(1);
 /// Read and normalize a local raster picture under the same byte/pixel budgets as the editor.
 pub fn picture_command(path: &Path, replace: bool) -> Result<joydeck_engine::Command> {
     let bytes = read_bounded(path, 16 << 20)?;
+    picture_bytes_command(bytes, replace)
+}
+/// Clipboard image bytes use the same limits and PNG normalization as file import.
+pub fn picture_bytes_command(bytes: Vec<u8>, replace: bool) -> Result<joydeck_engine::Command> {
+    if bytes.len() > 16 << 20 {
+        return Err("picture exceeds 16 MiB".into());
+    }
     let mut reader = image::ImageReader::new(std::io::Cursor::new(bytes))
         .with_guessed_format()
         .map_err(|e| e.to_string())?;

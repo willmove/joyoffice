@@ -9,76 +9,21 @@ use joydeck_model::{ShapeKind, edit as ed, resolve, text::RunKind};
 use std::ops::Range;
 pub(super) struct Inline {
     target: TextTarget,
-    draft: Draft,
+    pub(super) draft: Draft,
     placed: Option<joydeck_render::PlacedText>,
     affinity: joydeck_text::Affinity,
     anchor: Option<usize>,
 }
 impl Viewer {
     pub(super) fn edit_notes(&mut self, w: &mut Window, cx: &mut Context<Self>) {
-        if self.composing() || self.loading {
-            self.message = "请先结束组合输入或等待读取完成".into();
-            cx.notify();
+        if self.composing() {
             return;
         }
         self.end_inline(cx);
-        let value = self
-            .editor
-            .as_ref()
-            .map(|e| e.session.model().slides[self.page].notes.text())
-            .unwrap_or_default();
-        self.notes_input
-            .update(cx, |s, cx| s.set_value(value, w, cx));
-        let input = self.notes_input.clone();
-        let view = cx.entity().downgrade();
-        let page = self.page;
-        let generation = self.generation;
-        w.open_dialog(cx, move |d, _, _| {
-            let view = view.clone();
-            d.title("演讲备注")
-                .child(
-                    Textarea::new(&input)
-                        .aria_label("演讲备注草稿")
-                        .accessibility_id("notes-draft"),
-                )
-                .child(
-                    Button::new("apply-notes")
-                        .label("应用备注")
-                        .on_click(move |_, w, cx| {
-                            let _ = view.update(cx, |s, cx| {
-                                if s.notes_input
-                                    .update(cx, |i, cx| i.marked_text_range(w, cx).is_some())
-                                {
-                                    s.message = "请先结束备注的组合输入".into();
-                                    cx.notify();
-                                    return;
-                                }
-                                if s.generation != generation || s.page != page {
-                                    w.close_dialog(cx);
-                                    return;
-                                }
-                                let value = s.notes_input.read(cx).value().to_string();
-                                let Some(e) = &s.editor else { return };
-                                let mut body = e.session.model().slides[page].notes.clone();
-                                let end = body.text().len();
-                                if let Err(e) = text::replace(&mut body, 0..end, &value) {
-                                    s.message = e;
-                                    cx.notify();
-                                    return;
-                                }
-                                s.dispatch(
-                                    Command::SetText {
-                                        target: TextTarget::Notes,
-                                        body: Box::new(body),
-                                    },
-                                    w,
-                                    cx,
-                                );
-                                w.close_dialog(cx);
-                            });
-                        }),
-                )
-        });
+        self.notes_visible = true;
+        self.sync_notes(w, cx);
+        self.notes_input.update(cx, |s, cx| s.focus(w, cx));
+        cx.notify();
     }
     pub(super) fn composing(&self) -> bool {
         self.inline
@@ -155,7 +100,10 @@ impl Viewer {
             } else {
                 TextTarget::Shape { shape: id }
             };
-            let body = joydeck_engine::text_body(e.session.model(), self.page, &target)?;
+            let mut body = joydeck_engine::text_body(e.session.model(), self.page, &target)?;
+            if body.paragraphs.is_empty() {
+                body.paragraphs.push(joydeck_model::Paragraph::default());
+            }
             text::validate(&body)?;
             if body.body.rot.is_some_and(|r| r != 0.)
                 || body
@@ -178,6 +126,10 @@ impl Viewer {
         })();
         match result {
             Ok((target, body)) => {
+                self.cell = match &target {
+                    TextTarget::Cell { shape, row, col } => Some((*shape, *row, *col)),
+                    _ => None,
+                };
                 self.inline = Some(Box::new(Inline {
                     target,
                     draft: Draft::new(body),
@@ -229,7 +181,7 @@ impl Viewer {
         self.thumbs_task = None;
         cx.notify();
     }
-    fn publish_inline(&mut self, w: &mut Window, cx: &mut Context<Self>) {
+    pub(super) fn publish_inline(&mut self, w: &mut Window, cx: &mut Context<Self>) {
         if self.composing() {
             self.preview_inline(cx);
             return;
@@ -475,11 +427,77 @@ impl Viewer {
         let mods = event.keystroke.modifiers;
         let command = mods.control || mods.platform;
         if self.inline.is_none() {
+            let selected = self
+                .editor
+                .as_ref()
+                .is_some_and(|e| !e.session.selection().shapes.is_empty());
+            if selected && matches!(key, "left" | "right" | "up" | "down") {
+                let step = if mods.shift { 10. } else { 1. };
+                self.dispatch(
+                    Command::Transform {
+                        dx: if key == "left" {
+                            -step
+                        } else if key == "right" {
+                            step
+                        } else {
+                            0.
+                        },
+                        dy: if key == "up" {
+                            -step
+                        } else if key == "down" {
+                            step
+                        } else {
+                            0.
+                        },
+                        dw: 0.,
+                        dh: 0.,
+                        rotation: 0.,
+                    },
+                    w,
+                    cx,
+                );
+                cx.stop_propagation();
+                return;
+            }
+            if command && key == "d" {
+                self.dispatch(Command::Duplicate, w, cx);
+                cx.stop_propagation();
+                return;
+            }
+            if command && key == "m" {
+                self.dispatch(Command::NewSlide, w, cx);
+                cx.stop_propagation();
+                return;
+            }
+            if command && key == "x" {
+                self.clipboard_copy(true, w, cx);
+                cx.stop_propagation();
+                return;
+            }
+            if command && key == "a" {
+                if let Some(e) = &mut self.editor {
+                    let ids = e.session.model().slides[self.page]
+                        .shapes
+                        .iter()
+                        .filter(|s| !s.hidden && !s.locked)
+                        .map(|s| s.id)
+                        .collect();
+                    let _ = e.session.select(self.page, ids);
+                }
+                cx.stop_propagation();
+                cx.notify();
+                return;
+            }
+            if key == "enter" && selected {
+                self.begin_selected_text(w, cx);
+                cx.stop_propagation();
+                return;
+            }
             if command && key == "v" {
                 self.paste_grid(w, cx);
                 cx.stop_propagation();
             } else if command && key == "c" {
-                self.copy_grid(cx);
+                self.clipboard_copy(false, w, cx);
                 cx.stop_propagation();
             }
             return;
@@ -641,8 +659,34 @@ impl Viewer {
             }
             return;
         }
+        if let Some(item) = cx.read_from_clipboard()
+            && let Some(metadata) = item.metadata().filter(|s| s.len() <= 32 * 1024 * 1024)
+            && let Ok(transfer) =
+                serde_json::from_str::<joydeck_engine::transfer::Transfer>(metadata)
+        {
+            self.dispatch(
+                Command::PasteObjects {
+                    transfer: Box::new(transfer),
+                },
+                w,
+                cx,
+            );
+            return;
+        }
+        if let Some(item) = cx.read_from_clipboard()
+            && let Some(bytes) = item.entries().iter().find_map(|e| {
+                if let ClipboardEntry::Image(image) = e {
+                    Some(image.bytes.clone())
+                } else {
+                    None
+                }
+            })
+        {
+            self.paste_image(bytes, cx);
+            return;
+        }
         let Some(value) = cx.read_from_clipboard().and_then(|i| i.text()) else {
-            self.message = "剪贴板没有可用文字；图片/跨文稿对象传输待后续切片".into();
+            self.message = "剪贴板没有可用的文字、图片或 JoyDeck 对象".into();
             cx.notify();
             return;
         };
@@ -669,6 +713,67 @@ impl Viewer {
                 cx,
             );
         }
+    }
+    pub(super) fn clipboard_copy(&mut self, cut: bool, w: &mut Window, cx: &mut Context<Self>) {
+        if self.composing() {
+            return;
+        }
+        if let Some(i) = &self.inline {
+            let text = i.draft.body.text();
+            let range = i.draft.selection.clone();
+            if range.is_empty() {
+                return;
+            }
+            let a = text::pos(&text, range.start);
+            let b = text::pos(&text, range.end);
+            let body = ed::slice(&i.draft.body, a, b);
+            if let Ok(metadata) =
+                serde_json::to_string(&serde_json::json!({"joydeck-text":1,"body":body}))
+            {
+                cx.write_to_clipboard(ClipboardItem::new_string_with_metadata(
+                    text[range].into(),
+                    metadata,
+                ));
+                if cut {
+                    self.input_replace(None, "", false, None, w, cx);
+                }
+            }
+            return;
+        }
+        let Some(e) = &self.editor else {
+            return;
+        };
+        match joydeck_engine::transfer::capture(
+            e.session.model(),
+            self.page,
+            &e.session.selection().shapes,
+        )
+        .and_then(|t| serde_json::to_string(&t).map_err(|e| e.to_string()))
+        .and_then(|s| {
+            if s.len() <= 32 * 1024 * 1024 {
+                Ok(s)
+            } else {
+                Err("对象剪贴板超过 32 MiB".into())
+            }
+        }) {
+            Ok(metadata) => {
+                cx.write_to_clipboard(ClipboardItem::new_string_with_metadata(
+                    "JoyDeck 对象".into(),
+                    metadata,
+                ));
+                if cut {
+                    self.dispatch(Command::Delete, w, cx);
+                }
+                self.message = if cut {
+                    "已剪切对象"
+                } else {
+                    "已复制对象"
+                }
+                .into();
+            }
+            Err(e) => self.message = e,
+        }
+        cx.notify();
     }
     pub(super) fn copy_grid(&mut self, cx: &mut Context<Self>) {
         let Some(e) = &self.editor else { return };

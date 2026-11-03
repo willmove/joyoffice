@@ -5,7 +5,7 @@ use joydeck_model::{ShapeId, resolve};
 pub(super) struct Drag {
     pub(super) start: Point<Pixels>,
     pub(super) current: Point<Pixels>,
-    pub(super) resize: bool,
+    pub(super) resize: Option<(i8, i8)>,
     pub(super) marquee: bool,
 }
 impl Viewer {
@@ -16,7 +16,7 @@ impl Viewer {
             return true;
         }
         if self.saving || self.editor.as_ref().is_some_and(|e| e.session.dirty()) {
-            self.message = "当前文稿有未保存修改或正在保存；请先保存，或使用“放弃修改”".into();
+            self.message = "当前文稿有未保存更改或正在保存；请先保存后重试".into();
             cx.notify();
             true
         } else {
@@ -28,8 +28,19 @@ impl Viewer {
         let previous = self.deck.clone();
         if let Some(editor) = &self.editor {
             self.page = editor.session.selection().page;
+            if self
+                .cell
+                .is_some_and(|(id, _, _)| !editor.session.selection().shapes.contains(&id))
+            {
+                self.cell = None;
+            }
             match editor.display() {
-                Ok(deck) => self.deck = Some(Arc::new(deck)),
+                Ok(mut deck) => {
+                    if editor.source.is_none() && deck.info.name == "Untitled.joydeck" {
+                        deck.info.name = "演示文稿1".into();
+                    }
+                    self.deck = Some(Arc::new(deck));
+                }
                 Err(e) => self.message = e,
             }
             let text = editor
@@ -137,10 +148,7 @@ impl Viewer {
         let label = command.id();
         match editor.session.execute(command) {
             Ok(true) => {
-                self.message = format!(
-                    "修改已应用 · revision {} · Ctrl+S 保存",
-                    editor.session.revision()
-                );
+                self.message = "就绪".into();
                 eprintln!(
                     "R4/R5 command={label} revision={} dirty={}",
                     editor.session.revision(),
@@ -171,29 +179,38 @@ impl Viewer {
         self.dispatch(Command::Delete, w, cx)
     }
     pub(super) fn new_document(&mut self, _: &NewDocument, w: &mut Window, cx: &mut Context<Self>) {
-        if self.block_replace(cx) {
+        if self.confirm_replace(document_ui::ReplaceDocument::New, w, cx) {
             return;
         }
         match joydeck_shell::editor::Editor::new(joydeck_shell::editor::recovery_root()) {
             Ok(editor) => {
                 self.editor = Some(editor);
                 self.source = None;
+                self.page = 0;
+                self.zoom = None;
+                self.cell = None;
+                self.backstage = false;
                 self.generation += 1;
                 self.save_input.update(cx, |s, cx| s.set_value("", w, cx));
                 self.sync_editor(w, cx);
                 self.checkpoint(cx);
-                self.message = "新文稿 · 请指定 .joydeck 或 .pptx 保存路径".into();
+                self.message = "新演示文稿".into();
             }
             Err(e) => self.message = e,
         }
         cx.notify();
     }
     pub(super) fn save(&mut self, _: &Save, w: &mut Window, cx: &mut Context<Self>) {
-        if self.composing() {
+        if self.composing()
+            || self
+                .notes_input
+                .update(cx, |i, cx| i.marked_text_range(w, cx).is_some())
+        {
             self.message = "请先完成或取消输入法组合输入再保存".into();
             cx.notify();
             return;
         }
+        self.commit_notes(w, cx);
         self.end_inline(cx);
         if self.saving || self.loading {
             return;
@@ -209,10 +226,7 @@ impl Viewer {
             Some(PathBuf::from(text.trim().trim_matches('"')))
         };
         let Some(path) = path else {
-            self.close_after_save = false;
-            self.message = "请在保存路径框填写新 .joydeck / .pptx 文件名".into();
-            self.save_input.update(cx, |s, cx| s.focus(w, cx));
-            cx.notify();
+            self.save_as(&SaveAs, w, cx);
             return;
         };
         let job = match editor.save_job(path) {
@@ -268,6 +282,14 @@ impl Viewer {
                                 editor.session.dirty(),
                                 path.display()
                             );
+                            if s.pending_replace.is_some() {
+                                if editor.session.dirty() {
+                                    s.pending_replace = None;
+                                    s.message.push_str(" · 仍有新修改，请再次打开或新建");
+                                } else {
+                                    s.replace_ready = true;
+                                }
+                            }
                             if s.close_after_save && !editor.session.dirty() {
                                 cx.quit();
                             } else if s.close_after_save {
@@ -279,6 +301,7 @@ impl Viewer {
                     Err(e) => {
                         s.message = format!("保存失败，原文件保持不变：{e}");
                         s.close_after_save = false;
+                        s.pending_replace = None;
                     }
                 }
                 cx.notify();
@@ -292,6 +315,16 @@ impl Viewer {
         w: &mut Window,
         cx: &mut Context<Self>,
     ) {
+        if self.composing()
+            || self
+                .notes_input
+                .update(cx, |i, cx| i.marked_text_range(w, cx).is_some())
+        {
+            self.message = "请先完成或取消组合输入".into();
+            cx.notify();
+            return;
+        }
+        self.commit_notes(w, cx);
         if self.saving {
             self.close_after_save = true;
             self.message = "正在保存，完成且无新修改后关闭".into();
@@ -343,35 +376,7 @@ impl Viewer {
                 )
         });
     }
-    fn discard_edits(&mut self, w: &mut Window, cx: &mut Context<Self>) {
-        if self.saving {
-            return;
-        }
-        let view = cx.entity().downgrade();
-        w.open_dialog(cx, move |dialog, _, _| {
-            dialog
-                .title("放弃未保存修改？")
-                .child("此操作会清除当前会话的恢复快照。已保存文件不变。")
-                .child(Button::new("confirm-discard").label("确认放弃").on_click({
-                    let view = view.clone();
-                    move |_, w, cx| {
-                        let _ = view.update(cx, |s, cx| {
-                            if let Some(e) = &s.editor {
-                                let _ = e.recovery.discard();
-                            }
-                            s.editor = None;
-                            w.close_dialog(cx);
-                            if let Some(path) = s.source.clone() {
-                                s.load(path, cx)
-                            } else {
-                                s.new_document(&NewDocument, w, cx)
-                            }
-                        });
-                    }
-                }))
-        });
-    }
-    fn recover(&mut self, w: &mut Window, cx: &mut Context<Self>) {
+    pub(super) fn recover(&mut self, w: &mut Window, cx: &mut Context<Self>) {
         if self.block_replace(cx) {
             return;
         }
@@ -532,6 +537,36 @@ impl Viewer {
             "R4/R5 pointer position={:?} bounds={:?} point=({x},{y}) scale={scale}",
             event.position, self.canvas_bounds
         );
+        for shape in slide
+            .shapes
+            .iter()
+            .filter(|s| e.session.selection().shapes.contains(&s.id))
+        {
+            let b = resolve::xfrm(&ctx, shape).bounds();
+            for (hx, hy) in [
+                (-1, -1),
+                (0, -1),
+                (1, -1),
+                (-1, 0),
+                (1, 0),
+                (-1, 1),
+                (0, 1),
+                (1, 1),
+            ] {
+                let px = b.x0 + (hx as f64 + 1.) * b.width() / 2.;
+                let py = b.y0 + (hy as f64 + 1.) * b.height() / 2.;
+                if ((x - px) * scale as f64).abs() <= 7. && ((y - py) * scale as f64).abs() <= 7. {
+                    self.drag = Some(Drag {
+                        start: event.position,
+                        current: event.position,
+                        resize: Some((hx, hy)),
+                        marquee: false,
+                    });
+                    cx.notify();
+                    return;
+                }
+            }
+        }
         let id = slide
             .shapes
             .iter()
@@ -567,7 +602,14 @@ impl Viewer {
                     .map(|(r, c, _)| (id, r, c));
                 }
             }
-            if event.click_count >= 2 {
+            let empty_placeholder = self
+                .editor
+                .as_ref()
+                .and_then(|e| e.session.model().slides[self.page].shape(id))
+                .is_some_and(|s| {
+                    s.ph.is_some() && s.text.as_ref().is_some_and(|t| t.text().is_empty())
+                });
+            if event.click_count >= 2 || empty_placeholder {
                 self.begin_selected_text(w, cx);
                 return;
             }
@@ -577,7 +619,7 @@ impl Viewer {
         self.drag = Some(Drag {
             start: event.position,
             current: event.position,
-            resize: false,
+            resize: None,
             marquee: id.is_none(),
         });
         cx.notify();
@@ -637,12 +679,12 @@ impl Viewer {
             cx.notify();
         } else {
             self.dispatch(
-                if d.resize {
+                if let Some((hx, hy)) = d.resize {
                     Command::Transform {
-                        dx: 0.,
-                        dy: 0.,
-                        dw: dx,
-                        dh: dy,
+                        dx: if hx < 0 { dx } else { 0. },
+                        dy: if hy < 0 { dy } else { 0. },
+                        dw: dx * hx as f64,
+                        dh: dy * hy as f64,
                         rotation: 0.,
                     }
                 } else {
@@ -666,7 +708,7 @@ impl Viewer {
         let Some(ctx) = resolve::Ctx::for_slide(p, slide) else {
             return vec![];
         };
-        let delta = self
+        let (dx, dy, resize) = self
             .drag
             .as_ref()
             .map(|d| {
@@ -676,233 +718,83 @@ impl Viewer {
                     d.resize,
                 )
             })
-            .unwrap_or((0., 0., false));
-        e.session
+            .unwrap_or((0., 0., None));
+        let mut overlays = Vec::new();
+        for shape in e
+            .session
             .selection()
             .shapes
             .iter()
             .filter_map(|id| slide.shape(*id))
-            .map(|s| {
-                let b = resolve::xfrm(&ctx, s).bounds();
+        {
+            let b = resolve::xfrm(&ctx, shape).bounds();
+            let (mx, my, dw, dh) = if let Some((hx, hy)) = resize {
+                (
+                    if hx < 0 { dx } else { 0. },
+                    if hy < 0 { dy } else { 0. },
+                    dx * hx as f32,
+                    dy * hy as f32,
+                )
+            } else {
+                (dx, dy, 0., 0.)
+            };
+            let (x, y, w, h) = (
+                b.x0 as f32 * scale + mx,
+                b.y0 as f32 * scale + my,
+                (b.width() as f32 * scale + dw).max(1.),
+                (b.height() as f32 * scale + dh).max(1.),
+            );
+            let mut outline = div()
+                .absolute()
+                .left(px(x))
+                .top(px(y))
+                .w(px(w))
+                .h(px(h))
+                .border_1()
+                .border_color(rgb(color));
+            for (hx, hy) in [
+                (0., 0.),
+                (0.5, 0.),
+                (1., 0.),
+                (0., 0.5),
+                (1., 0.5),
+                (0., 1.),
+                (0.5, 1.),
+                (1., 1.),
+            ] {
+                outline = outline.child(
+                    div()
+                        .absolute()
+                        .left(px(hx * w - 3.5))
+                        .top(px(hy * h - 3.5))
+                        .w(px(7.))
+                        .h(px(7.))
+                        .bg(rgb(0xffffff))
+                        .border_1()
+                        .border_color(rgb(color))
+                        .rounded(px(1.)),
+                );
+            }
+            overlays.push(outline.into_any_element());
+        }
+        if let Some(d) = &self.drag
+            && d.marquee
+        {
+            let x = f32::from(d.start.x.min(d.current.x) - self.canvas_bounds.left());
+            let y = f32::from(d.start.y.min(d.current.y) - self.canvas_bounds.top());
+            overlays.push(
                 div()
                     .absolute()
-                    .left(px(b.x0 as f32 * scale + if delta.2 { 0. } else { delta.0 }))
-                    .top(px(b.y0 as f32 * scale + if delta.2 { 0. } else { delta.1 }))
-                    .w(px((b.width() as f32 * scale
-                        + if delta.2 { delta.0 } else { 0. })
-                    .max(1.)))
-                    .h(px((b.height() as f32 * scale
-                        + if delta.2 { delta.1 } else { 0. })
-                    .max(1.)))
-                    .border_2()
-                    .border_color(rgb(color))
-                    .into_any_element()
-            })
-            .collect()
-    }
-    pub(super) fn edit_toolbar(&self, _w: &mut Window, cx: &mut Context<Self>) -> Div {
-        let disabled = self.editor.is_none() || self.loading;
-        let selected = self
-            .editor
-            .as_ref()
-            .is_some_and(|e| !e.session.selection().shapes.is_empty());
-        let mut first = div()
-            .min_h(px(40.))
-            .flex()
-            .flex_wrap()
-            .items_center()
-            .gap_1()
-            .px_2();
-        first = first.child(
-            Button::new("new-document")
-                .label("新建")
-                .on_click(cx.listener(|s, _, w, cx| s.new_document(&NewDocument, w, cx))),
-        );
-        for (id, label, command, off) in [
-            (
-                "undo",
-                "撤销",
-                Command::Undo,
-                !self.editor.as_ref().is_some_and(|e| e.session.can_undo()),
-            ),
-            (
-                "redo",
-                "重做",
-                Command::Redo,
-                !self.editor.as_ref().is_some_and(|e| e.session.can_redo()),
-            ),
-            (
-                "rectangle",
-                "矩形",
-                Command::InsertRect {
-                    x: 100.,
-                    y: 260.,
-                    width: 160.,
-                    height: 90.,
-                },
-                false,
-            ),
-            ("duplicate", "复制", Command::Duplicate, !selected),
-            ("layer-forward", "上移层", Command::BringForward, !selected),
-            ("layer-backward", "下移层", Command::SendBackward, !selected),
-            ("delete", "删除", Command::Delete, !selected),
-            ("new-slide", "新页", Command::NewSlide, false),
-            ("duplicate-slide", "复制页", Command::DuplicateSlide, false),
-            ("delete-slide", "删页", Command::DeleteSlide, false),
-        ] {
-            first = first.child(
-                Button::new(id)
-                    .label(label)
-                    .disabled(disabled || off)
-                    .on_click(cx.listener(move |s, _, w, cx| s.dispatch(command.clone(), w, cx))),
+                    .left(px(x))
+                    .top(px(y))
+                    .w(px(f32::from(d.current.x - d.start.x).abs()))
+                    .h(px(f32::from(d.current.y - d.start.y).abs()))
+                    .border_1()
+                    .border_color(rgb(0xd95a1a))
+                    .bg(rgba(0xd95a1a12))
+                    .into_any_element(),
             );
         }
-        first = first.child(
-            Button::new("next-object")
-                .label("下一对象")
-                .disabled(disabled)
-                .on_click(cx.listener(|s, _, w, cx| {
-                    if let Some(e) = &s.editor {
-                        let shapes = &e.session.model().slides[s.page].shapes;
-                        if !shapes.is_empty() {
-                            let at = e
-                                .session
-                                .selection()
-                                .shapes
-                                .first()
-                                .and_then(|id| shapes.iter().position(|sh| sh.id == *id))
-                                .map_or(0, |i| (i + 1) % shapes.len());
-                            let id = shapes[at].id;
-                            s.select_object(id, false, w, cx);
-                        }
-                    }
-                })),
-        );
-        let mut second = div()
-            .h(px(40.))
-            .flex()
-            .items_center()
-            .gap_1()
-            .px_2()
-            .child(
-                div().w(px(80.)).text_xs().child(
-                    self.editor
-                        .as_ref()
-                        .map(|e| format!("选中 {}", e.session.selection().shapes.len()))
-                        .unwrap_or_default(),
-                ),
-            )
-            .child(div().flex_1().min_w_0().child(Input::new(&self.text_input)))
-            .child(
-                Button::new("insert-text")
-                    .label("插入文字")
-                    .disabled(disabled)
-                    .on_click(cx.listener(|s, _, w, cx| {
-                        let text = s.text_input.read(cx).value().to_string();
-                        s.dispatch(
-                            Command::InsertText {
-                                x: 80.,
-                                y: 100.,
-                                text: if text.is_empty() {
-                                    "新文本".into()
-                                } else {
-                                    text
-                                },
-                            },
-                            w,
-                            cx,
-                        )
-                    })),
-            )
-            .child(
-                Button::new("apply-text")
-                    .label("应用文字")
-                    .disabled(
-                        disabled
-                            || !self.editor.as_ref().is_some_and(|e| {
-                                e.session.selection().shapes.len() == 1
-                                    && e.session.model().slides[self.page]
-                                        .shape(e.session.selection().shapes[0])
-                                        .is_some_and(|s| {
-                                            s.text.is_some()
-                                                && matches!(s.kind, joydeck_model::ShapeKind::Shape)
-                                        })
-                            }),
-                    )
-                    .on_click(cx.listener(|s, _, w, cx| {
-                        let text = s.text_input.read(cx).value().to_string();
-                        s.dispatch(Command::ReplaceText { text }, w, cx)
-                    })),
-            );
-        for (id, label, dx, dy, dw, dh, rotation) in [
-            ("move-left", "←", -12., 0., 0., 0., 0.),
-            ("move-right", "→", 12., 0., 0., 0., 0.),
-            ("grow", "放大", 0., 0., 12., 8., 0.),
-            ("shrink", "缩小", 0., 0., -12., -8., 0.),
-            ("rotate", "旋转", 0., 0., 0., 0., 15.),
-        ] {
-            second = second.child(
-                Button::new(id)
-                    .label(label)
-                    .disabled(disabled || !selected)
-                    .on_click(cx.listener(move |s, _, w, cx| {
-                        s.dispatch(
-                            Command::Transform {
-                                dx,
-                                dy,
-                                dw,
-                                dh,
-                                rotation,
-                            },
-                            w,
-                            cx,
-                        )
-                    })),
-            );
-        }
-        div()
-            .flex_shrink_0()
-            .flex()
-            .flex_col()
-            .child(self.ribbon_tabs(cx))
-            .when(self.ribbon == "开始", |d| d.child(first))
-            .when(self.ribbon == "格式", |d| d.child(second))
-            .when(self.ribbon == "文字表格", |d| {
-                d.child(self.text_table_toolbar(cx))
-            })
-            .when(
-                matches!(self.ribbon, "设计" | "图片" | "图表" | "输出" | "放映"),
-                |d| d.child(self.content_toolbar(cx)),
-            )
-            .child(
-                div()
-                    .h(px(40.))
-                    .flex()
-                    .items_center()
-                    .gap_2()
-                    .px_2()
-                    .child(div().flex_1().min_w_0().child(Input::new(&self.save_input)))
-                    .child(
-                        Button::new("save-document")
-                            .label(if self.saving {
-                                "保存中"
-                            } else {
-                                "保存 / 另存"
-                            })
-                            .disabled(disabled || self.saving)
-                            .on_click(cx.listener(|s, _, w, cx| s.save(&Save, w, cx))),
-                    )
-                    .child(
-                        Button::new("recover-document")
-                            .label("恢复")
-                            .on_click(cx.listener(|s, _, w, cx| s.recover(w, cx))),
-                    )
-                    .child(
-                        Button::new("discard-document")
-                            .label("放弃修改")
-                            .disabled(self.saving)
-                            .on_click(cx.listener(|s, _, w, cx| s.discard_edits(w, cx))),
-                    ),
-            )
+        overlays
     }
 }

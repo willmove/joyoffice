@@ -1,0 +1,10 @@
+{
+  "window": {
+    "app": "process:D:\\Coding\\EditorProjects\\joydeck-new\\target\\debug\\joydeck.exe",
+    "id": 36373752,
+    "title": "GUI 已保存.pptx - JoyDeck"
+  },
+  "a11y": "Window: \"GUI 已保存.pptx - JoyDeck\", App: joydeck.exe.\n\t0 区域 GUI 已保存.pptx - JoyDeck Secondary Actions: Raise\n\t\t1 标题栏 (settable, string) Value: GUI 已保存.pptx - JoyDeck\n\t\t\t2 菜单栏 系统 ID: MenuBar\n\t\t\t\t3 菜单项 系统\n\t\t\t4 按钮 最小化\n\t\t\t5 按钮 最大化\n\t\t\t6 按钮 关闭\n\t\t7 按钮 文件\n\t\t8 按钮 保存\n\t\t9 按钮 (disabled) 撤销\n\t\t10 按钮 (disabled) 重做\n\t\t11 按钮 从头开始放映\n\t\t12 按钮 查找文字\n\t\t13 按钮 切换明暗主题\n\t\t14 按钮 放映\n\t\t15 按钮 文件\n\t\t16 按钮 开始\n\t\t17 按钮 插入\n\t\t18 按钮 设计\n\t\t19 按钮 放映\n\t\t20 按钮 审阅\n\t\t21 按钮 视图\n\t\t88 按钮 表格\n\t\t22 按钮 向左滚动功能区\n\t\t108 按钮 原位文字\n\t\t109 按钮 表格 3×3\n\t\t110 按钮 复制文字/表格\n\t\t111 按钮 粘贴\n\t\t112 按钮 加行\n\t\t113 按钮 加列\n\t\t114 按钮 删行\n\t\t115 按钮 删列\n\t\t116 按钮 合并右格\n\t\t117 按钮 拆分\n\t\t118 按钮 底色\n\t\t52 按钮 向右滚动功能区\n\t\t119 按钮 返回\n\t\t120 按钮 新建\n\t\t121 按钮 打开 · Ctrl+O\n\t\t122 按钮 保存 · Ctrl+S\n\t\t123 按钮 另存为\n\t\t124 按钮 恢复未保存文稿\n\t\t125 按钮 PDF\n\t\t126 按钮 备注 PDF\n\t\t127 按钮 讲义 PDF\n\t\t128 按钮 PNG\n\t\t129 按钮 JPEG\n\t\t130 按钮 动画 GIF\n\t\t131 按钮 静态 MP4\n\t\t132 按钮 提纲\n\t\t133 按钮 标题 VTT\n\t\t134 按钮 打印\n\t\t135 按钮 (disabled) 取消输出\n\t\t56 按钮 备注\n\t\t57 按钮 普通视图\n\t\t58 按钮 幻灯片浏览\n\t\t59 按钮 从当前页放映\n\t\t60 按钮 缩小\n\t\t61 按钮 放大\n\t\t62 按钮 适应窗口\n\nThe focused UI element is 0 区域 GUI 已保存.pptx - JoyDeck Secondary Actions: Raise.",
+  "exe_sha256": "9f2b8958e9992ba8c83f695e3a2d7ebbd5ec04a1f7110b15e817c43df9f72881",
+  "note": "800x600 file page wraps output controls. Debug default-stack Home/Insert/Design/Slideshow/Review/View/Shape/Table/File tabs rendered without crash."
+}
