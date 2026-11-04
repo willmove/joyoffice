@@ -3,9 +3,9 @@
 
 use std::path::{Path, PathBuf};
 
-/// The app's settings folder (preferences, logs, key files): macOS
-/// `~/Library/Application Support/JoyWord`, Windows `%APPDATA%\JoyWord`, otherwise
-/// `$XDG_CONFIG_HOME/joyword` or `~/.config/joyword`.
+/// The app's settings folder is `migration-preview` under the JoyWord config
+/// root: macOS `~/Library/Application Support/JoyWord`, Windows
+/// `%APPDATA%\JoyWord`, or `$XDG_CONFIG_HOME/joyword` (default `~/.config/joyword`).
 /// `JOYWORD_PROFILE_DIR` overrides the entire folder for isolated runs.
 pub fn settings_dir() -> Option<PathBuf> {
     if let Some(path) = std::env::var_os("JOYWORD_PROFILE_DIR").filter(|p| !p.is_empty()) {
@@ -13,7 +13,7 @@ pub fn settings_dir() -> Option<PathBuf> {
     }
     if cfg!(target_os = "macos") {
         std::env::var_os("HOME")
-            .map(|h| PathBuf::from(h).join("Library/Application Support/JoyWord"))
+            .map(|h| PathBuf::from(h).join("Library/Application Support/JoyWord/migration-preview"))
     } else if cfg!(windows) {
         std::env::var_os("APPDATA").map(|a| PathBuf::from(a).join("JoyWord/migration-preview"))
     } else {
