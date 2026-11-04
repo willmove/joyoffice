@@ -37,8 +37,31 @@ def write_json(path, value):
     path.write_text(json.dumps(value, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
+def path_patch_files():
+    """Include every [patch.crates-io] path crate so standalone source resolves offline.
+
+    Selected-graph snapshots only reach platform-relevant crates. A Windows-only
+    path patch such as third-party/accesskit_windows is absent on Linux/macOS,
+    but the filtered root Cargo.toml still declares the patch, so cargo metadata
+    in source_archive must find those files on every host.
+    """
+    manifest = tomllib.loads((ROOT / "Cargo.toml").read_text(encoding="utf-8"))
+    files = {}
+    for spec in manifest.get("patch", {}).get("crates-io", {}).values():
+        if not isinstance(spec, dict) or "path" not in spec:
+            continue
+        directory = ROOT / spec["path"]
+        if not directory.is_dir():
+            raise ValueError("Missing crates-io path patch: " + spec["path"])
+        for path in directory.rglob("*"):
+            if path.is_file() and "__pycache__" not in path.parts:
+                files[path.relative_to(ROOT).as_posix()] = hashlib.sha256(path.read_bytes()).hexdigest()
+    return files
+
+
 def source_snapshot(target, features):
     snapshot = sbom.snapshot(target, roots=APPLICATIONS, features=features)
+    snapshot.update(path_patch_files())
     for folder in ("tools/xtask", ".cargo"):
         for path in (ROOT / folder).rglob("*"):
             if path.is_file() and "__pycache__" not in path.parts:

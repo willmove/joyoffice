@@ -65,6 +65,38 @@ class Packaging(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, 'Missing dependency license texts'):
                     package.sbom.generate(root / 'SBOM.json', 'host', roots=project.APPLICATIONS, require_license_texts=True)
 
+
+    def test_path_patches_are_copied_into_the_standalone_source_snapshot(self):
+        files = package.path_patch_files()
+        self.assertIn("third-party/accesskit_windows/Cargo.toml", files)
+        self.assertTrue(any(name.startswith("third-party/accesskit_windows/src/") for name in files))
+        digest = files["third-party/accesskit_windows/Cargo.toml"]
+        self.assertEqual(len(digest), 64)
+        self.assertEqual(
+            digest,
+            __import__("hashlib").sha256(
+                (project.ROOT / "third-party/accesskit_windows/Cargo.toml").read_bytes()
+            ).hexdigest(),
+        )
+
+    def test_filtered_manifest_keeps_crates_io_path_patches(self):
+        source = """[workspace]
+members = ["apps/joysheet", "crates/joysheet-core"]
+default-members = ["apps/joysheet"]
+resolver = "3"
+[workspace.dependencies]
+joysheet-core = { path = "crates/joysheet-core" }
+serde_json = { version = "=1.0.154" }
+[patch.crates-io]
+accesskit_windows = { path = "third-party/accesskit_windows" }
+"""
+        members = ["apps/joysheet", "crates/joysheet-core"]
+        actual = tomllib.loads(package.filtered_manifest(source, members))
+        self.assertEqual(
+            actual["patch"]["crates-io"]["accesskit_windows"]["path"],
+            "third-party/accesskit_windows",
+        )
+
     def test_standalone_workspace_keeps_consumed_shared_crates_and_features(self):
         source = '''[workspace]
 members = ["apps/joyword", "apps/joysheet", "crates/joyoffice-opc"]
