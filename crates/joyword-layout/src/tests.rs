@@ -1274,13 +1274,8 @@ fn a_long_unbreakable_word_lays_out_in_linear_time() {
 #[test]
 fn a_megabyte_long_word_lays_out_quickly() {
     let d = long_word_beside_a_float(1_000_000);
-    let t = std::time::Instant::now();
-    lay(&d);
-    assert!(
-        t.elapsed().as_secs() < 15,
-        "a megabyte-long word took {:?}",
-        t.elapsed()
-    );
+    let seconds = cpu_cost(&mut || drop(lay(&d)));
+    assert!(seconds < 15.0, "a megabyte-long word took {seconds:.2}s");
 }
 
 /// A cluster with the given advance and kind, for the tests that measure a word by hand.
