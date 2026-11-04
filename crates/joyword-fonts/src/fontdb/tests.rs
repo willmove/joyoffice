@@ -140,6 +140,8 @@ const THAI_RUN: &str = "[D] น้ำ ค่ำ ปั้น ฝั่ง ปู
 
 #[test]
 fn a_thai_run_with_latin_falls_back_to_one_face() {
+    use skrifa::raw::TableProvider;
+
     let db = FontDb::global();
     let chars: Vec<char> = THAI_RUN.chars().filter(|c| !c.is_whitespace()).collect();
     // Needs a Thai font with Latin letters and digits (Tahoma, Leelawadee UI, Thonburi, the
@@ -160,8 +162,12 @@ fn a_thai_run_with_latin_falls_back_to_one_face() {
     for c in &chars {
         assert!(f.covers(*c), "{} covers {c}", f.family);
     }
-    // A Thai font with OpenType tables, as the per-character fallback prefers.
-    assert!(f.has_layout_tables(), "{} shapes Thai", f.family);
+    // Thai shaping supports OpenType and Apple's AAT (for example Thonburi).
+    assert!(
+        f.has_layout_tables() || f.skrifa().is_some_and(|font| font.morx().is_ok()),
+        "{} shapes Thai",
+        f.family
+    );
     // Without system fonts and without craft-fonts' Thai face (built in since craft-fonts
     // 3d9ab3a1) no bundled face covers Thai: the caller keeps the per-character path.
     let bundled = FontDb::with_font_dirs(Vec::new());
