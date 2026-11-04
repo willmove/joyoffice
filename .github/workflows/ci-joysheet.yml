@@ -31,11 +31,13 @@ jobs:
           key: ${{ runner.os }}-${{ runner.arch }}-joyoffice-joint-${{ hashFiles('Cargo.lock') }}
       - name: Joint defaults
         run: |
-          cargo clippy --workspace --all-targets --locked -- -D warnings
+          # JoyWord CI lints Word production targets. Its imported test fixtures
+          # are still exercised by both joint workspace test runs.
+          cargo clippy --workspace --exclude joyword --exclude 'joyword-*' --all-targets --locked -- -D warnings
           cargo test --workspace --locked
       - name: Joint desktop validation features
         run: |
-          cargo clippy --workspace --all-targets --locked --features joysheet/automation,joydeck/validation -- -D warnings
+          cargo clippy --workspace --exclude joyword --exclude 'joyword-*' --all-targets --locked --features joysheet/automation,joydeck/validation -- -D warnings
           cargo test --workspace --locked --features joysheet/automation,joydeck/validation
   headless:
     name: JoySheet headless and WASM

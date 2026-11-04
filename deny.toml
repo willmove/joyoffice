@@ -64,6 +64,13 @@ name = "error-code"
 version = "=3.4.0"
 allow = ["BSL-1.0"]
 
+# Mozilla root certificate data used by the JoyWord font store via rustls.
+# The exact crate's license ships with the Word distribution.
+[[licenses.exceptions]]
+name = "webpki-roots"
+version = "=1.0.11"
+allow = ["CDLA-Permissive-2.0"]
+
 [bans]
 multiple-versions = "allow"
 wildcards = "deny"

@@ -1,6 +1,6 @@
 {
   "dpi": 144,
-  "fixture_sha256": "8a9e1f0fff875dfced07b2213c5c1b0d5f791cc1800c42379a99a6b8b6eb6c9c",
+  "fixture_sha256": "6b78a6879d7f5de756cdb725a8890d6e454b3406318bf9396c6f4309ae59a3cb",
   "font": {
     "face": 0,
     "family": "Source Sans 3",
@@ -29,12 +29,12 @@
           "text": "Proof page 2Review inserted"
         }
       ],
-      "pdf_sha256": "b88e0571131d3a548c8592f2178aed5b73f16658d8acfce62ac3c96b10322a6a",
+      "pdf_sha256": "5abc7de12670395416a741849b52e7323454b869890abe2f560bf4918a750231",
       "png": [
         {
-          "file_sha256": "cc7e956713c0200a890e500eef01c7e16d22b5ff3021c17892123c87f034d7b7",
+          "file_sha256": "602c35888f955eb153caf24afe6db085cbe70ab1c7777d48e87112f03e5090aa",
           "glyphs": 42,
-          "rgba_sha256": "9b95f4ff1031efcbb3c0ca1661094a3ea4e164107a811bd5c10e1b56fe4ce0b2",
+          "rgba_sha256": "1a30af961eb18c301041607dcd9368ec19143deff82059a6bd795af4d1e90f5b",
           "size": [
             720,
             576
@@ -72,12 +72,12 @@
           "text": "Proof page 2Review removed inserted"
         }
       ],
-      "pdf_sha256": "505ce46e3b6e76dbd5471e6ea72826d1abc56706a39fffd8a92285b12e696ece",
+      "pdf_sha256": "1f61d276f36b66dbbf35bcbb4867371dd5f39e59b6ec4cc17e371abaa0e7bfa1",
       "png": [
         {
-          "file_sha256": "cc7e956713c0200a890e500eef01c7e16d22b5ff3021c17892123c87f034d7b7",
+          "file_sha256": "602c35888f955eb153caf24afe6db085cbe70ab1c7777d48e87112f03e5090aa",
           "glyphs": 42,
-          "rgba_sha256": "9b95f4ff1031efcbb3c0ca1661094a3ea4e164107a811bd5c10e1b56fe4ce0b2",
+          "rgba_sha256": "1a30af961eb18c301041607dcd9368ec19143deff82059a6bd795af4d1e90f5b",
           "size": [
             720,
             576

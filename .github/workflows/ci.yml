@@ -91,6 +91,7 @@ jobs:
           prefix="CARGO_TARGET_$(echo '${{ matrix.target }}' | tr 'a-z-' 'A-Z_')"
           export "${prefix}_LINKER=${{ matrix.linker }}"
           export "${prefix}_RUNNER=${{ matrix.runner }}"
+          export "CC_$(echo '${{ matrix.target }}' | tr '-' '_')=${{ matrix.linker }}"
           # CLI integration tests spawn target binaries through binfmt, outside Cargo's runner.
           export QEMU_LD_PREFIX="${{ matrix.sysroot }}"
           cargo xtask test joyword --headless --target ${{ matrix.target }}
