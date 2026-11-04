@@ -1274,8 +1274,17 @@ fn a_long_unbreakable_word_lays_out_in_linear_time() {
 #[test]
 fn a_megabyte_long_word_lays_out_quickly() {
     let d = long_word_beside_a_float(1_000_000);
+    // Cross-target CI counts emulator translation as CPU time too.
+    let limit = if std::env::var_os("QEMU_LD_PREFIX").is_some_and(|prefix| !prefix.is_empty()) {
+        30.0
+    } else {
+        15.0
+    };
     let seconds = cpu_cost(&mut || drop(lay(&d)));
-    assert!(seconds < 15.0, "a megabyte-long word took {seconds:.2}s");
+    assert!(
+        seconds < limit,
+        "a megabyte-long word took {seconds:.2}s (limit {limit}s)"
+    );
 }
 
 /// A cluster with the given advance and kind, for the tests that measure a word by hand.
