@@ -1262,12 +1262,11 @@ fn long_word_beside_a_float(n: usize) -> Document {
 /// the whole paragraph each time, so the layout was quadratic in the word's length.
 #[test]
 fn a_long_unbreakable_word_lays_out_in_linear_time() {
-    let (t1, tk, ratio) =
-        layout_time_ratio(long_word_beside_a_float, 50_000, &LayoutOptions::default());
-    eprintln!("t(n) {t1:.4} s, t(8n) {tk:.4} s, ratio {ratio:.1}");
-    assert!(
-        ratio < 24.0,
-        "8x the word took {ratio:.1}x the time ({t1:.4} s → {tk:.4} s): not linear"
+    linear::assert_layout_linear(
+        "long word beside a float",
+        50_000,
+        long_word_beside_a_float,
+        &LayoutOptions::default(),
     );
 }
 
@@ -1583,15 +1582,11 @@ fn long_word_with_alternating_advances_beside_a_float(n: usize) -> Document {
 /// whether it would fit the full line must not walk the word again for every line it takes.
 #[test]
 fn a_word_with_alternating_advances_lays_out_in_linear_time() {
-    let (t1, tk, ratio) = layout_time_ratio(
-        long_word_with_alternating_advances_beside_a_float,
+    linear::assert_layout_linear(
+        "word with alternating advances beside a float",
         50_000,
+        long_word_with_alternating_advances_beside_a_float,
         &LayoutOptions::default(),
-    );
-    eprintln!("t(n) {t1:.4} s, t(8n) {tk:.4} s, ratio {ratio:.1}");
-    assert!(
-        ratio < 24.0,
-        "8x the word took {ratio:.1}x the time ({t1:.4} s → {tk:.4} s): not linear"
     );
 }
 
@@ -10469,12 +10464,7 @@ fn unequal_formats_lay_out_in_linear_time() {
         d.body = vec![joyword_model::para_block(p)];
         d
     };
-    let (t1, tk, ratio) = layout_time_ratio(doc, 5_000, &LayoutOptions::default());
-    eprintln!("t(n) {t1:.4} s, t(8n) {tk:.4} s, ratio {ratio:.1}");
-    assert!(
-        ratio < 24.0,
-        "8x the runs took {ratio:.1}x the time ({t1:.4} s → {tk:.4} s): not linear"
-    );
+    linear::assert_layout_linear("unequal formats", 5_000, doc, &LayoutOptions::default());
 }
 
 #[test]

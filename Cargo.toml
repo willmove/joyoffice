@@ -251,6 +251,11 @@ debug = "line-tables-only"
 opt-level = 2
 debug = false
 
+# The layout suite measures long-input scaling. Optimize this crate even when
+# the rest of the test workspace uses the development profile.
+[profile.test.package.joyword-layout]
+opt-level = 1
+
 # Preserve JoySheet's validated development profile and recursive-stack contract.
 # Exact package overrides leave Word/Deck and shared dependencies unchanged.
 

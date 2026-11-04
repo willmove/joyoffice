@@ -45,7 +45,7 @@ pub(crate) fn assert_linear_steps<T>(
 }
 
 /// [`assert_linear_steps`] for laying out `doc(n)`.
-fn assert_layout_linear(
+pub(super) fn assert_layout_linear(
     what: &str,
     n: usize,
     doc: impl Fn(usize) -> Document,

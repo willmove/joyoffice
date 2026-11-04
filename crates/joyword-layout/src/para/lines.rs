@@ -1220,6 +1220,7 @@ impl Scan {
     fn break_long_word(&mut self, bk: &Breaker, pl: &ParaLayout) {
         let (c0, j) = (self.c0, self.j);
         let full = bk.base_right - self.row_lo;
+        crate::work::steps(1);
         self.skip = self.narrowed
             && bk.skipped < 50
             && bk.widths.get(c0).is_some_and(|w| *w <= full + 0.01);

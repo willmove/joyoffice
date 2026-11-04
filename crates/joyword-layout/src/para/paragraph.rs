@@ -1013,6 +1013,7 @@ fn keep_graphemes_whole(pl: &mut ParaLayout) {
 /// allows.
 pub(crate) fn word_widths(clusters: &[Cluster], hyph_after: &[u32]) -> Vec<f32> {
     let n = clusters.len();
+    crate::work::steps(n);
     let mut width = vec![0.0f32; n + 1];
     for k in (0..n).rev() {
         let c = &clusters[k];

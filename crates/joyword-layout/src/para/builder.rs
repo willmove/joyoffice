@@ -184,6 +184,7 @@ impl<'a> Builder<'a> {
         // Formats that never compare equal (a NaN from a hostile file) get their own styles; a capped
         // scan keeps such a bucket from turning quadratic.
         for &(i, s) in bucket.iter().rev().take(64) {
+            crate::work::steps(1);
             if s == small
                 && let Some(st) = self.styles.get(i as usize)
                 && st.face.id() == face.id()
