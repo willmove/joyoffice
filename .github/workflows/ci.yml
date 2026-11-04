@@ -78,6 +78,9 @@ jobs:
             sysroot: /usr/loongarch64-linux-gnu
     env:
       CARGO_TERM_COLOR: always
+      # Keep hostile-input timing guards meaningful under user-mode emulation.
+      CARGO_PROFILE_TEST_OPT_LEVEL: '1'
+      CARGO_PROFILE_TEST_DEBUG: '0'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Cross toolchain and QEMU user mode
