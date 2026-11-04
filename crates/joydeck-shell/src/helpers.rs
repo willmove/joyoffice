@@ -2,20 +2,24 @@
 use std::{path::PathBuf, process::Command};
 
 pub fn find(kind: &str) -> Result<PathBuf, String> {
-    if !cfg!(target_os = "windows") {
-        return Err("this build has Windows print/media adapters only".into());
-    }
     if !["print", "media", "video"].contains(&kind) {
         return Err("unknown helper".into());
     }
+    let suffix = if cfg!(target_os = "windows") {
+        "windows.exe"
+    } else if cfg!(target_os = "macos") && kind == "video" {
+        "macos"
+    } else {
+        return Err(format!("{kind} adapter is unavailable on this platform"));
+    };
     let exe = std::env::current_exe().map_err(|e| e.to_string())?;
     let path = exe
         .parent()
         .ok_or("executable directory missing")?
-        .join(format!("joydeck-{kind}-windows.exe"));
+        .join(format!("joydeck-{kind}-{suffix}"));
     if !path.is_file() {
         return Err(format!(
-            "missing adapter {}: build Windows helpers or use the complete development package",
+            "missing adapter {}: build native helpers or use the complete development package",
             path.display()
         ));
     }

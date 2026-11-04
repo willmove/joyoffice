@@ -116,10 +116,23 @@ class ProductRouting(unittest.TestCase):
             self.assertEqual(product.metadata(), metadata)
 
     def test_build_selects_only_application_entrypoints(self):
-        with patch.object(product, 'metadata', return_value=graph()), patch.object(product, 'run') as run:
+        with patch.object(product.sys, 'platform', 'linux'), \
+                patch.object(product, 'metadata', return_value=graph()), patch.object(product, 'run') as run:
             product.main(['build', 'joydeck', '--release'])
         self.assertEqual(run.call_args.args[0],
                          ['cargo', 'build', '-p', 'joydeck', '-p', 'joydeck-cli', '--locked', '--release'])
+
+    def test_macos_deck_run_builds_helper_beside_target_cli(self):
+        data = {**graph(), 'target_directory': self.root / 'target'}
+        target = 'aarch64-apple-darwin'
+        with patch.object(product.sys, 'platform', 'darwin'), \
+                patch.object(product, 'metadata', return_value=data), patch.object(product, 'run') as run:
+            product.main(['run', 'joydeck', '--headless', '--target', target, '--', 'capabilities'])
+        helper, cli = [call.args[0] for call in run.call_args_list]
+        self.assertEqual(helper, [sys.executable, 'scripts/joydeck/build-macos-helpers.py', '--output',
+                                  self.root / 'target' / target / 'debug', '--target', target])
+        self.assertEqual(cli, ['cargo', 'run', '--locked', '-p', 'joydeck-cli',
+                               '--target', target, '--', 'capabilities'])
 
     def test_sheet_release_uses_its_own_version_and_tag(self):
         self.assertEqual(product.release_target('joysheet-v0.1.4', root=self.root),

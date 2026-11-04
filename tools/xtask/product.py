@@ -183,6 +183,15 @@ def main(argv=None):
     options = (["--release"] if args.release else []) + (["--target", args.target] if args.target else [])
     if args.validation:
         options += ["--features", VALIDATION_FEATURES[args.product]]
+    if args.product == "joydeck" and sys.platform == "darwin" and args.command in {"build", "run"}:
+        target = args.target or os.environ.get("CARGO_BUILD_TARGET")
+        if target is None or target in {"aarch64-apple-darwin", "x86_64-apple-darwin"}:
+            output = Path(data["target_directory"])
+            if target:
+                output /= target
+            output /= "release" if args.release else "debug"
+            run([sys.executable, "scripts/joydeck/build-macos-helpers.py", "--output", output,
+                 *(["--target", target] if target else [])])
     if args.command in ("check", "test"):
         if extra:
             parser.error("unrecognized arguments: " + " ".join(extra))
@@ -199,6 +208,8 @@ def main(argv=None):
     elif args.command == "run":
         if args.product == "joydeck" and sys.platform == "win32" and not args.headless:
             run([sys.executable, "scripts/joydeck/build-windows-helpers.py", "--output", Path(data["target_directory"]) / ("release" if args.release else "debug")])
+        if extra[:1] == ["--"]:
+            extra = extra[1:]
         run(["cargo", "run", "--locked", "-p", PRODUCTS[args.product][1] if args.headless else PRODUCTS[args.product][0], *options, "--", *extra])
     elif args.command in ("build", "stage"):
         applications = [PRODUCTS[args.product][1]] if args.headless else list(PRODUCTS[args.product])

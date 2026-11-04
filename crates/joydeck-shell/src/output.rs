@@ -222,7 +222,7 @@ fn video(
         }
         if let Some(status) = child.try_wait().map_err(|e| e.to_string())? {
             if !status.success() {
-                return Err("Windows MP4 encoder failed; no output published".into());
+                return Err("native MP4 encoder failed; no output published".into());
             }
             break;
         }

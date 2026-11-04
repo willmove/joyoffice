@@ -120,6 +120,9 @@ def main():
         helpers = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(helpers)
         helpers.build(output)
+    elif system == 'macos':
+        subprocess.run([sys.executable, ROOT / 'scripts/joydeck/build-macos-helpers.py',
+                        '--output', output, '--target', target], check=True)
     for binary in binaries:
         shutil.copy2(binary, output / binary.name)
     for file in ['LICENSE', 'THIRD_PARTY-JOYDECK.md', 'Cargo.lock', 'rust-toolchain.toml']:
@@ -146,6 +149,7 @@ def main():
         (contents / 'MacOS').mkdir(parents=True)
         shutil.copy2(output / 'joydeck-cli', contents / 'MacOS/joydeck-cli')
         shutil.copy2(output / 'joydeck', contents / 'MacOS/JoyDeck')
+        shutil.copy2(output / 'joydeck-video-macos', contents / 'MacOS/joydeck-video-macos')
         (contents / 'Info.plist').write_bytes(plistlib.dumps({
             'CFBundleExecutable': 'JoyDeck',
             'CFBundleIdentifier': 'dev.joyoffice.joydeck',

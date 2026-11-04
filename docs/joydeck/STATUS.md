@@ -1,5 +1,7 @@
 # JoyDeck 当前状态
 
+2026-11-05 macOS ARM64 静态 MP4 已接通。移位 Release 包的 CLI 通过导出、逐帧读回和拒绝覆盖检查。嵌入媒体探测与播放仍使用 Windows 适配器，JD-705 的其他平台范围继续开放。[本机证据](../joyoffice/validation/20261105-macos-video/README.md)
+
 2026-11-05 macOS 补验。JD-801 完成。PPTX 系统文件冷启动和运行中打开、重复打开、坏文件拒绝及未保存保护已用 Release 包验证。新增原生文件与编辑菜单，实际点击撤销与重做通过。其余 R9 功能和发行任务见交接。[本机证据](../joyoffice/validation/20261105-macos-open/README.md)
 
 2026-11-04 macOS ARM64。JD-801 转为进行中。普通 Metal Release 包已在仓库外移位启动，桌面 stdio 通过复制幻灯片、撤销／重做、保存和重启重开，独立 PPTX 读回 4 页。开发 `runtime_shaders` 构建单独启动并通过相同检查。包内 CLI 通过 R1–R5 和适用的 R6–R7/MCP 检查。解锁后实屏验证鼠标选择并复制第 2 页、键盘撤销／重做／保存、正常关窗和重启重开。MP4 导出与媒体探测仍依赖 Windows 适配器，系统文件事件未切换文稿，菜单与其他平台交互继续验收。包清单列出的 49 条许可正文缺口留在 JD-807/808，JD-905–907 仍开放。[本机报告](../joyoffice/validation/20261104-macos/README.md)

@@ -36,7 +36,9 @@ def main():
         with zipfile.ZipFile(dest) as z:
             if mode=='preserve':assert z.read('vendor/retain-r6.xml')==b'<original>exact source payload</original>'
             else:assert 'vendor/retain-r6.xml' not in z.namelist() and any('Explicit regeneration' in s for s in report['warnings'])
-    for fmt,layout in [('pdf','slides'),('pdf','notes'),('pdf','handouts-3'),('png','slides'),('jpeg','slides'),('gif','slides'),('mp4','slides'),('outline','slides'),('rtf','slides'),('vtt','slides')]:
+    formats=[('pdf','slides'),('pdf','notes'),('pdf','handouts-3'),('png','slides'),('jpeg','slides'),('gif','slides'),('outline','slides'),('rtf','slides'),('vtt','slides')]
+    if sys.platform in {'win32','darwin'}:formats.append(('mp4','slides'))
+    for fmt,layout in formats:
         dest=work/(f'{fmt}-{layout}'+('' if fmt in ['png','jpeg'] else '.'+fmt));values=['export',public,'--format',fmt,'--output',dest,'--layout',layout]
         if fmt in ['gif','mp4']:values+=['--seconds','.5','--fps','4','--scale','.5']
         if fmt=='png':values+=['--transparent']
@@ -47,11 +49,19 @@ def main():
                 with Image.open(f) as im:assert im.size==(720,405);assert abs(im.info['dpi'][0]-72)<1
         if fmt=='gif':
             with Image.open(dest) as im:assert im.n_frames>=3
+        if fmt=='mp4':
+            assert any('Static' in warning for warning in report['warnings'])
+            digest=hashlib.sha256(dest.read_bytes()).hexdigest()
+            run(values,1);assert hashlib.sha256(dest.read_bytes()).hexdigest()==digest
         if fmt=='vtt':assert 'PRIVATE SPEAKER' not in dest.read_text() and dest.read_text().startswith('WEBVTT')
     for values in [['--pages','0'],['--dpi','301'],['--scale','nan'],['--format','jpeg','--transparent']]:
         dest=work/f'invalid-{len(records)}';run(['export',public,'--output',dest,*values],1);assert not dest.exists()
     existing=work/'existing.pdf';existing.write_bytes(b'keep');run(['export',public,'--output',existing],1);assert existing.read_bytes()==b'keep'
-    probe=json.loads(run(['media-inspect',source/'original-h264-aac.mp4']));assert probe['ready'] and probe['video']
+    if sys.platform=='win32':
+        probe=json.loads(run(['media-inspect',source/'original-h264-aac.mp4']));assert probe['ready'] and probe['video']
+    else:
+        run(['media-inspect',source/'original-h264-aac.mp4'],1)
+        assert 'media adapter is unavailable on this platform' in records[-1]['stderr']
     # Real MCP transport and JSON control use the same revision/replay dispatcher.
     local=work/'input.pptx';shutil.copyfile(public,local)
     proc=subprocess.Popen([str(exe),'mcp','--root',str(work)],stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True,encoding='utf-8');inbox=queue.Queue()

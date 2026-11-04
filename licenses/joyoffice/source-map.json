@@ -68,10 +68,11 @@
     "source_path": "scripts/joydeck/package-native.py",
     "target_path": "scripts/joydeck/package-native.py",
     "source_sha256": "a4ae844b6c2488524872bc69e418673dce6cd1599530447e9efc54ab6be1398e",
-    "adapted_sha256": "a0ae50839a7487b04a11a898a3b9edf37c5795961a13f5fb2de08f9e7f91176c",
+    "adapted_sha256": "75333b96c0c5a1a6456fccb2721ace0a8afde3bc6c967f44cf9dc547be3f41d5",
     "local_changes": "adapt product packaging and Cargo artifact discovery; add source checks, selected SBOM and atomic ZIP; LF; R1 rustfmt and bounded reader/CPU-renderer/palette/notes adapters as applicable; R2 editable viewer adapter, background save/recovery, command-driven gestures, coordinate anchoring and close guard; rustfmt; R4/R5 scene/content workspace adaptation; R6/R7 adapter additions and repository rustfmt/LF normalization.; R8 native editor, clipboard or product package version adaptation; R9 host integration and explicit command schema negotiation",
     "r9_ui2_gui_fix": "Include reviewed local platform-adapter source in package fingerprint",
-    "macos_document_open": "Declare the public PPTX document type as a macOS Alternate editor."
+    "macos_document_open": "Declare the public PPTX document type as a macOS Alternate editor.",
+    "macos_static_video": "Compile and package the macOS AVFoundation static MP4 helper beside the desktop and CLI binaries."
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
@@ -469,7 +470,8 @@
     "target_path": "crates/joydeck-shell/src/helpers.rs",
     "source_sha256": "bfdaa2a67622fde5309842ae12d7a7be1cb6ef3dabd9efd5e7e45d9ed918e5e5",
     "local_changes": "Owned helper lookup, isolated scratch and kill-on-drop approach adapted to Windows and canonical native paths.; R9: cfg-scoped Windows command mutability",
-    "adapted_sha256": "46d102d921654109bfb7e8467fb9d602c7c1163ffa5eea4a32d935a4004804db"
+    "adapted_sha256": "34fb1797232535967bfc8c8626e1958f5910203177522ab6b5b0527008d71ecb",
+    "macos_static_video": "Discover the bundled macOS video helper while preserving Windows adapter lookup."
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
