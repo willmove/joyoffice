@@ -1,86 +1,147 @@
-//! JoyWord typed document model (T100; ARCHITECTURE §2, ADR-003).
+//! WordCraft document model.
 //!
-//! Pure data and invariants: no GPUI, file dialogs, network or AI providers.
-//! Stories hold blocks in a persistent tree, paragraphs hold chunked text with
-//! typed runs and inline objects, and range annotations share one position
-//! space. Everything is structurally shared, so snapshots cost O(1) and an
-//! edit copies O(log n) nodes. Editing transactions, position mapping and undo
-//! belong to the engine (T101); file formats belong to the format layer (T103).
+//! A [`Document`] holds the main story (`body`) and secondary stories (`parts`: headers,
+//! footers, notes, comments, text boxes). A story is a list of [`Block`]s: paragraphs and tables;
+//! table cells hold block lists of their own. Blocks are `Arc`-shared, so cloning a document is
+//! cheap (undo snapshots, handing a frozen copy to the renderer) and edits copy only what they
+//! touch (`Arc::make_mut`).
+//!
+//! Positions ([`Pos`]) name a story, a [`Path`] to a paragraph and a byte offset in it. Paths
+//! compare in document order.
+#![deny(
+    clippy::unwrap_used,
+    clippy::expect_used,
+    clippy::panic,
+    clippy::unimplemented,
+    clippy::todo,
+    clippy::unreachable
+)]
 
-mod annotation;
+pub mod bidi;
+mod byte_store;
+pub mod cfb_guard;
+pub mod chart;
+mod cjk_numbers;
+pub mod cluster;
+pub mod collate;
+pub mod connector;
+pub mod control;
+pub mod edit;
+pub mod effects;
+pub mod encoding;
+pub mod eq;
+pub mod fields;
+pub mod fill;
+pub mod freeform;
+pub mod graphic;
+pub mod ime_text;
+pub mod legacy_form;
+pub mod line_dash;
+pub mod link;
+pub mod locale_number;
+pub mod math;
+pub mod math_edit;
+pub mod math_latex;
+pub mod math_linear;
+pub mod math_symbols;
+pub mod numbering;
+pub mod para;
+pub mod props;
+pub mod resolve;
+pub mod section;
+pub mod smart_art;
+pub mod styles;
+pub mod symbol_fonts;
+pub mod table;
+pub mod wordart;
+pub mod wrap;
+pub mod zip_guard;
+
+use std::collections::BTreeMap;
+use std::sync::Arc;
+
+use serde::{Deserialize, Serialize};
+
+pub use control::{ContentControl, ControlKind, ControlLock, ControlRange, ControlWrap};
+pub use fields::FieldRange;
+pub use numbering::{ListKind, Numbering};
+pub use para::{InlineObject, Paragraph, Run};
+pub use props::{Align, CharProps, ParaProps, Rgb, TextColor};
+pub use section::SectionProps;
+pub use styles::{Style, StyleKind, StyleSheet};
+pub use table::{Cell, Row, Table};
+
+mod review;
+
+pub use review::{
+    AUTO_TEXT_GALLERY, BuildingBlock, Comment, QUICK_PARTS_GALLERY, Revision, RevisionKind,
+};
+
 mod block;
+mod compare;
 mod document;
-mod dump;
-mod hyperlink;
-mod id;
-mod image;
-mod numbering;
-mod props;
-mod resource;
-mod revision;
-mod style;
-mod symbol_font;
-mod table_geom;
-mod text;
-mod theme;
-mod tree;
-mod validate;
+mod error;
+mod parts;
+mod position;
+mod settings;
+mod text_walk;
 
-pub use annotation::{
-    Anchor, Annotation, AnnotationKind, Bias, Comment, CommentAttribute, Position,
+pub use block::{Block, Blocks, BoxBudget, MAX_TEXT_BOX_DEPTH};
+pub use compare::para_block;
+use document::MediaIndex;
+pub use error::{DocError, Result};
+pub use parts::{
+    MAX_LINKED_BOXES, MAX_TEXT_BOX_INSET, NoteSeparators, Part, PartKind, PermRange,
+    TEXT_BOX_INSET, TextBody, free_id,
 };
-pub use block::{
-    Block, BlockSeq, BorderEdge, BorderKind, BreakKind, Cell, CellBorders, CellChangeProps,
-    CellMargins, CombineBrackets, CombineCharacters, EmphasisMark, EncloseShape, EnclosedCharacter,
-    InlineKind, InlineObject, OpaqueBlock, PageField, PageFieldKind, Paragraph, Preserved, Removed,
-    Row, RowChangeProps, RowHeight, RowHeightRule, Ruby, RubyAlign, Run, Sdt, SdtLock, SdtProps,
-    Segment, Shading, Table, TableAlign, TableChangeProps, TableLayoutKind, TableLook, TableWidth,
-    VerticalAlign, VerticalMerge,
+pub use position::{Path, Pos, StoryRef};
+pub use settings::{
+    COMPAT_MODE_CURRENT, CoreProps, CustomProp, DEFAULT_GRID, DEFAULT_HYPHENATION_ZONE,
+    LEGACY_COMPAT_MODE, PagePicture, Settings, Source, THEME_COLORS, Watermark, Zoom, ZoomFit,
 };
-pub use document::{
-    ChapterSeparator, DEFAULT_COMPATIBILITY_MODE, DocGrid, DocGridKind, Document, DocumentSettings,
-    DocumentSnapshot, DocumentVersion, EqualColumns, HeaderFooterKind,
-    NEW_DOCUMENT_COMPATIBILITY_MODE, NewspaperColumn, Orientation, PageNumbering, PageSetup,
-    Section, SectionBreak, Story, StoryKind, UnequalColumns, durable_id_from, is_strict_utc_date,
-};
-pub use dump::{DumpOptions, SemanticDifference};
-pub use hyperlink::{Hyperlink, MAX_HYPERLINK_CHARS, OpenRefusal, open_target};
-pub use id::{AnnotationId, IdAllocator, NodeId, PreservedId, ResourceId, SourceRef, StoryId};
-pub use image::{
-    AcceptedImage, AnchorWrap, DecodedImage, ImageAnchor, ImageLimits, ImageRefuse,
-    MAX_IMAGE_BYTES, MAX_IMAGE_DIMENSION, MAX_IMAGE_PIXELS, SquareWrap, TopBottomWrap, WrapSide,
-    accept_image, decode_rgba, display_extent, extent_emu, page_anchor, page_anchor_wrap,
-    sample_png_1x1, sample_png_overwide, square_wrap, top_bottom_wrap,
-};
-pub use numbering::{
-    AbstractNum, IndentEdges, LevelOverride, MAX_LEVEL, NumInstance, NumberFormat, NumberLabel,
-    NumberSuffix, NumberingLevel, NumberingProblem, NumberingStore, PlacedTab, ROMAN_MAX,
-    ResolvedLevel, displayed_paragraph, indent_edges, list_marks, list_reference, tab_positions,
-};
-pub use props::{
-    Color, FontHint, FontRef, FontSlots, Indent, Justification, Languages, LineSpacing, Measure,
-    NumberingRef, ParaProps, RunProps, Spacing, TabAlign, TabLeader, TabStop, ThemeFont, Toggle,
-    Underline, merge_tab_stops,
-};
-pub use resource::{ContentHash, Resource, ResourceTable};
-pub use revision::{
-    FormatRevision, MoveMarker, MoveSide, PreviousTableProps, RevisionKind, RevisionView,
-    TablePropsRevision, TextRevision,
-};
-pub use style::{
-    BuiltinStyle, DocDefaults, MAX_STYLE_DEPTH, ResolvedParagraph, ResolvedRun, Style, StyleChain,
-    StyleError, StyleId, StyleKind, StyleProblem, StyleSheet, TableCondition, TableConditional,
-    TableFormat, overlay_paragraph,
-};
-pub use symbol_font::{is_mapped_family, map_private_use};
-pub use table_geom::{DEFAULT_TABLE_CELL_MARGINS, TableMetrics, table_metrics};
-pub use text::{
-    CHUNK_MAX_BYTES, OBJECT_MARKER, ParagraphText, ScalarOffset, TextError, TextSummary,
-    Utf8Offset, Utf16Offset,
-};
-pub use theme::apply_tint_shade;
-pub use theme::{ThemeColorSlot, ThemeFonts, ThemeScheme};
-pub use tree::{Item, SeqTree, Summary};
-pub use validate::{
-    Diagnostic, Diagnostics, Issue, MAX_DIAGNOSTICS, MAX_NESTING, Severity, table_structure,
-};
+pub use text_walk::count_words;
+pub(crate) use text_walk::{PARA_WALK_DEPTH, walk_between};
+
+/// A document.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(default, rename_all = "camelCase")]
+pub struct Document {
+    pub body: Blocks,
+    /// Properties of the last section (OOXML's body-level `w:sectPr`).
+    pub last_section: SectionProps,
+    pub parts: BTreeMap<u32, Part>,
+    pub styles: StyleSheet,
+    pub numbering: Numbering,
+    pub comments: BTreeMap<u32, Comment>,
+    pub revisions: Vec<Revision>,
+    pub settings: Settings,
+    pub core: CoreProps,
+    /// Bibliography sources (References › Manage Sources).
+    pub sources: Vec<Source>,
+    /// Custom document properties, in file order.
+    pub custom_props: Vec<CustomProp>,
+    /// The document's own footnote separators and continuation notice.
+    #[serde(skip_serializing_if = "NoteSeparators::is_empty")]
+    pub footnote_separators: NoteSeparators,
+    /// The document's own endnote separators and continuation notice.
+    #[serde(skip_serializing_if = "NoteSeparators::is_empty")]
+    pub endnote_separators: NoteSeparators,
+    /// Embedded media (images) by key. Native JSON writes each as base64 (`byte_store.rs`).
+    #[serde(skip_serializing_if = "BTreeMap::is_empty", with = "byte_store")]
+    pub media: BTreeMap<String, Arc<Vec<u8>>>,
+    /// Source-format parts we keep verbatim for round-trip (e.g. custom XML), by part name.
+    #[serde(skip_serializing_if = "BTreeMap::is_empty", with = "byte_store")]
+    pub passthrough: BTreeMap<String, Arc<Vec<u8>>>,
+    /// The document's own building blocks (its glossary document), in file order.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub glossary: Vec<BuildingBlock>,
+    /// Lookup cache for [`Document::add_media`]; not part of the document (never saved, ignored
+    /// by `==`).
+    #[serde(skip)]
+    media_index: MediaIndex,
+}
+
+#[cfg(test)]
+mod test_log;
+#[cfg(test)]
+mod tests;

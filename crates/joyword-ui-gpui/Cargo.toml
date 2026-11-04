@@ -1,0 +1,32 @@
+[package]
+name = "joyword-ui-gpui"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+[dependencies]
+serde_json.workspace = true
+joyword-render = { path = "../joyword-render" }
+image = { workspace = true, features = ["bmp", "gif", "jpeg", "png", "tiff", "webp"] }
+gpui-kit.workspace = true
+joyoffice-ui.workspace = true
+joyword-shell.workspace = true
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+all = { level = "warn", priority = -1 }
+type_complexity = "allow"
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+todo = "deny"
+unimplemented = "deny"
+unreachable = "deny"
+
+
+[dev-dependencies]
+# Kit's aggregate test-support resolves its optional Fast backend against a
+# different proptest pin. Enable only the same host GPUI core for adapter tests.
+gpui_test = { package = "gpui-pre", version = "=0.3.10", features = ["test-support"] }

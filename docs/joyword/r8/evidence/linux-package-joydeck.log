@@ -1,0 +1,6 @@
+wsl: 检测到 localhost 代理配置，但未镜像到 WSL。NAT 模式下的 WSL 不支持 localhost 代理。
++ /usr/bin/python3 scripts/joydeck/package-native.py --profile debug
+Imported source records passed (291 files)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.50s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.27s
+{"directory": "/mnt/d/Coding/EditorProjects/joyoffice/dist/joydeck/joydeck-0.8.0-r9-linux-x86_64-debug-9b8ec37679", "archive": "/mnt/d/Coding/EditorProjects/joyoffice/dist/joydeck/joydeck-0.8.0-r9-linux-x86_64-debug-9b8ec37679.zip", "archive_sha256": "916ea25588620bfbe43a56e7afe708b90bc6e86adffb951decd40fed627ca48f", "source_sha256": "9b8ec3767916c1b71e3efced02582b47accd9909b7041a97e8f643640ce5a438", "target": "x86_64-unknown-linux-gnu", "profile": "debug", "sbom_packages": 559, "missing_license_texts": ["accesskit", "accesskit_atspi_common", "accesskit_consumer", "accesskit_unix", "gpui-kit", "harfrust", "krilla", "lyon", "lyon_algorithms", "lyon_geom", "lyon_path", "lyon_tessellation", "mac", "markdown", "pathfinder_geometry", "pathfinder_simd", "profiling", "profiling-procmacros", "pulp-wasm-simd-flag", "rust-i18n-macro", "rust-i18n-support", "seahash", "spirv", "svg_fmt", "taffy", "xim-ctext", "xim-parser", "zune-core", "zune-inflate", "zune-jpeg"], "signed": false}

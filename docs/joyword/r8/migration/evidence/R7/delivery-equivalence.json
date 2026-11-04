@@ -1,0 +1,9 @@
+{
+  "archive_sha256": "ec6eb56c13bd0d14088a1d7ce19e5aaeffe672861253e67a48a3c4f4e9918396",
+  "native_launch_pid": 24148,
+  "equivalent_executables": {
+    "joyword-cli.exe": "fa35ce4acec9107ef861d07cd076e1b3b5ee6de26b75e0186327ca8699ae951b",
+    "joyword.exe": "f46fcf1188813c8bbae6b61eaf334de92c0ce918a1c2240b3263ffba2b42d0ff"
+  },
+  "archive": "joyword-0.1.1-R7-x86_64-pc-windows-msvc-debug-c69c4f742b.zip"
+}

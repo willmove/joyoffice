@@ -1,0 +1,13 @@
+wsl: 检测到 localhost 代理配置，但未镜像到 WSL。NAT 模式下的 WSL 不支持 localhost 代理。
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on build directory
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 14.96s
++ /usr/bin/python3 scripts/package_release.py --binary /root/joyoffice-r8-target/x86_64-unknown-linux-gnu/debug/joyword --cli /root/joyoffice-r8-target/x86_64-unknown-linux-gnu/debug/joyword-cli --version 0.1.1 --profile debug --source-snapshot /root/joyoffice-r8-target/word-source-snapshot-k_rmg4af/sources.json --platform linux --arch x86_64 --out dist/joyword
+dist/joyword/joyword-0.1.1-linux-x86_64.tar.gz
+dist/joyword/joyword-0.1.1-linux-x86_64.tar.gz.sha256

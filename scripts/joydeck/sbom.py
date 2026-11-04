@@ -73,7 +73,7 @@ def source_hashes(data, packages, reached):
                          if p.is_file() and p.suffix in ('.rs', '.swift', '.toml', '.c', '.h'))
         if (directory / 'build.rs').is_file():
             files.add(directory / 'build.rs')
-    is_word = any(packages[i]['name'] == 'joyword' for i in reached)
+    is_word = any(packages[i]['name'] in ('joyword', 'joyword-cli') for i in reached)
     is_sheet = any(packages[i]['name'] == 'joysheet' for i in reached)
     if is_sheet:
         for identifier in reached & workspace:
@@ -89,9 +89,17 @@ def source_hashes(data, packages, reached):
         for identifier in reached & workspace:
             files.update(Path(packages[identifier]['manifest_path']).parent.glob('*.rc'))
     elif is_word:
-        files.update(p for p in (ROOT / 'apps/joyword/assets').rglob('*') if p.is_file())
-        files.add(ROOT / 'apps/joyword/LICENSE-NotoEmoji.txt')
-        files.add(ROOT / 'licenses/fonts/sources.json')
+        # Word embeds workspace fonts, a welcome document and dictionaries.
+        # These files and the shipped notices must follow the same snapshot
+        # check as Rust input files.
+        for folder in ('apps/joyword/assets', 'assets/fonts', 'assets/samples',
+                       'third-party/craft-libs', 'third-party/craft-i18n',
+                       'licenses/wordcraft', 'licenses/craft-libs',
+                       'licenses/craft-i18n', 'licenses/gpui', 'licenses/accesskit-windows'):
+            files.update(p for p in (ROOT / folder).rglob('*')
+                         if p.is_file() and not {'target', '.git', '__pycache__'} & set(p.relative_to(ROOT).parts))
+        files.update(ROOT / name for name in ('apps/joyword/LICENSE-NotoEmoji.txt',
+                     'licenses/fonts/sources.json', 'licenses/joyoffice/JOYWORD-R8-SOURCE.json'))
         files.update(ROOT / 'scripts/joydeck' / name for name in ('sbom.py', 'paths.py'))
         files.add(ROOT / 'scripts/package_release.py')
     else:

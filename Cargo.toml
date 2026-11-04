@@ -1,5 +1,5 @@
 [workspace]
-exclude = ["third-party/accesskit_windows"]
+exclude = ["third-party/accesskit_windows", "third-party/craft-libs"]
 members = [
     "crates/joysheet-app",
     "crates/joysheet-calc",
@@ -32,16 +32,11 @@ members = [
     "crates/joyword-doc",
     "crates/joyword-docx",
     "crates/joyword-engine",
-    "crates/joyword-epub",
-    "crates/joyword-foundation",
     "crates/joyword-layout",
     "crates/joyword-model",
     "crates/joyword-pdf",
-    "crates/joyword-protect",
     "crates/joyword-render",
-    "crates/joyword-rtf",
     "crates/joyword-shell",
-    "crates/joyword-textfmt",
     "crates/joydeck-engine",
     "crates/joydeck-pdf",
     "crates/joydeck-legacy",
@@ -59,6 +54,13 @@ members = [
     "crates/joydeck-geom",
     "crates/joydeck-model",
     "crates/joydeck-ui-gpui",
+    "crates/joyword-control-key",
+    "crates/joyword-fonts",
+    "crates/joyword-formats",
+    "crates/joyword-geom",
+    "crates/joyword-mcp",
+    "crates/joyword-metafile",
+    "crates/joyword-ui-gpui",
 ]
 default-members = [
     "crates/joysheet-app",
@@ -85,16 +87,11 @@ default-members = [
     "crates/joyword-doc",
     "crates/joyword-docx",
     "crates/joyword-engine",
-    "crates/joyword-epub",
-    "crates/joyword-foundation",
     "crates/joyword-layout",
     "crates/joyword-model",
     "crates/joyword-pdf",
-    "crates/joyword-protect",
     "crates/joyword-render",
-    "crates/joyword-rtf",
     "crates/joyword-shell",
-    "crates/joyword-textfmt",
     "crates/joydeck-shell",
     "crates/joydeck-color",
     "crates/joydeck-geom",
@@ -157,8 +154,6 @@ joyoffice-ui = { path = "crates/joyoffice-ui" }
 # forward the existing development-only shader feature; application APIs use Kit.
 gpui_platform = { package = "gpui-pre-platform", version = "=0.3.10", features = ["font-kit", "wayland", "x11"] }
 joyword-agent = { path = "crates/joyword-agent", default-features = false }
-joyword-foundation = { path = "crates/joyword-foundation" }
-joyword-epub = { path = "crates/joyword-epub" }
 joyoffice-cfb = { path = "crates/joyoffice-cfb" }
 joyoffice-drawingml = { path = "crates/joyoffice-drawingml" }
 joyoffice-omml = { path = "crates/joyoffice-omml" }
@@ -170,11 +165,8 @@ joyword-engine = { path = "crates/joyword-engine" }
 joyword-layout = { path = "crates/joyword-layout" }
 joyword-model = { path = "crates/joyword-model" }
 joyword-pdf = { path = "crates/joyword-pdf" }
-joyword-protect = { path = "crates/joyword-protect" }
 joyword-render = { path = "crates/joyword-render" }
-joyword-rtf = { path = "crates/joyword-rtf" }
 joyword-shell = { path = "crates/joyword-shell" }
-joyword-textfmt = { path = "crates/joyword-textfmt" }
 crc32fast = "=1.5.2"
 harfrust = "=0.8.4"
 krilla = { version = "=0.8.2", default-features = false }
@@ -213,6 +205,32 @@ joydeck-pptx = { path = "crates/joydeck-pptx" }
 unicode-bidi = "=0.3.18"
 vello_cpu = "=0.2.0"
 vello_common = { version = "=0.2.0", default-features = false }
+
+# JoyWord Wordcraft-derived model, layout and editor.
+joyword-mcp = { path = "crates/joyword-mcp" }
+joyword-control-key = { path = "crates/joyword-control-key" }
+joyword-proof = { package = "craft-proof", path = "third-party/craft-libs/proof" }
+craft-font-store = { path = "third-party/craft-libs/font-store" }
+craft-font-catalog = { path = "third-party/craft-libs/font-catalog" }
+joyword-fonts = { path = "crates/joyword-fonts" }
+joyword-formats = { path = "crates/joyword-formats" }
+wuff = "=0.2.9"
+brotli-decompressor = "=5.0.3"
+unicode-script = "=0.5.8"
+cfb = "=0.15.0"
+miniz_oxide = "=0.9.1"
+encoding_rs = "=0.8.42"
+chardetng = "=1.0.0"
+hmac = "=0.12.1"
+hmac-sha1 = { package = "hmac", version = "=0.13.0" }
+zeroize = "=1.9.1"
+regex-automata = { version = "=0.4.18", default-features = false, features = ["std", "syntax", "meta", "nfa-pikevm", "unicode"] }
+libc = "=0.2.186"
+joyword-geom = { path = "crates/joyword-geom" }
+joyword-metafile = { path = "crates/joyword-metafile" }
+proptest = "=1.11.0"
+joyword-ui-gpui = { path = "crates/joyword-ui-gpui" }
+
 
 [workspace.lints.rust]
 unsafe_code = "forbid"

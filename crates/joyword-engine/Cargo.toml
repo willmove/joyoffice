@@ -1,17 +1,65 @@
 [package]
 name = "joyword-engine"
-description = "JoyWord editing session: atomic transactions, position mapping and undo"
 version.workspace = true
 edition.workspace = true
-rust-version.workspace = true
-license.workspace = true
-repository.workspace = true
-publish = false
+license = "MIT OR Apache-2.0"
+description = "WordCraft engine: session, selection, undo, the command registry (every action is a command), Word's command catalog, file I/O dispatch"
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+all = { level = "warn", priority = -1 }
+type_complexity = "allow"
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+todo = "deny"
+unimplemented = "deny"
+unreachable = "deny"
+
+[features]
+# Front-end producer tests need to simulate a globally exhausted IME revision allocator. It only
+# ever makes receipt classification fail closed. Never enable this for a production build; the
+# UI's dev-dependencies enable it for its tests.
+test-support = []
 
 [dependencies]
-joyword-model.workspace = true
-regex.workspace = true
-unicode-segmentation.workspace = true
+joyword-geom = { workspace = true, features = ["image"] }
+joyword-model = { workspace = true }
+joyword-fonts = { workspace = true }
+joyword-layout = { workspace = true }
+joyword-render = { workspace = true }
+joyword-proof = { workspace = true }
+joyword-docx = { workspace = true }
+joyword-doc = { workspace = true }
+joyword-pdf = { workspace = true }
+joyword-formats = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+log = { workspace = true }
+chrono = { workspace = true }
+regex = { workspace = true }
+regex-automata = { workspace = true }
+image = { workspace = true, features = ["bmp", "gif", "jpeg", "png", "tiff", "webp"] }
+zeroize = { workspace = true }
 
-[lints]
-workspace = true
+[target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dependencies]
+# The browser clock for `now_iso` (`SystemTime::now()` panics on wasm32-unknown-unknown).
+js-sys = "0.3"
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+getrandom = { workspace = true }
+# Language packs (CP4.3): downloaded, verified and unpacked by the suite's font store.
+craft-font-store = { workspace = true }
+craft-font-catalog = { workspace = true }
+
+[target.'cfg(unix)'.dependencies]
+# O_NONBLOCK, so a path swapped for a named pipe can't block `open` (#3666).
+libc = { workspace = true }
+
+[dev-dependencies]
+encoding_rs = { workspace = true }
+zip = { workspace = true }
+cfb = { workspace = true }

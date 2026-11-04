@@ -1,21 +1,37 @@
 [package]
 name = "joyword-model"
-description = "JoyWord typed document model: stories, blocks, styles, annotations and snapshots"
 version.workspace = true
 edition.workspace = true
-rust-version.workspace = true
-license.workspace = true
-repository.workspace = true
-publish = false
+license = "MIT OR Apache-2.0"
+description = "WordCraft document model: stories, paragraphs, runs, tables, sections, styles, numbering, fields, notes, comments, revisions; edit primitives"
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+all = { level = "warn", priority = -1 }
+type_complexity = "allow"
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+todo = "deny"
+unimplemented = "deny"
+unreachable = "deny"
+
+[features]
+# Test inputs other crates' tests share (`cfb_guard::repeating_difat_sample`,
+# `zip_guard::zip64_entry_count_sample`); turned on only as a
+# dev-dependency, so never built into the app.
+test-support = []
 
 [dependencies]
-image = { workspace = true, features = ["png", "jpeg", "gif", "bmp", "tiff"] }
-joyword-foundation.workspace = true
-sha2.workspace = true
-
-[lints]
-workspace = true
+joyword-geom = { workspace = true }
+base64 = { workspace = true }
+log = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+unicode-segmentation = { workspace = true }
 
 [dev-dependencies]
-# Benchmark comparison only (examples/text_storage.rs); not a model dependency.
-ropey = "=1.6.1"
+proptest = { workspace = true }

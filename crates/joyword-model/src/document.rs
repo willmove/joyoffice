@@ -1,735 +1,1072 @@
-//! Document, stories, sections and snapshots (ARCHITECTURE §2–§3).
-//!
-//! Every field of [`Document`] is structurally shared, so [`Document::snapshot`]
-//! is O(1) and an edit copies only what it touches. The model does not enforce
-//! who may edit: the engine (T101) owns the working document and exposes only
-//! transactions; background work receives immutable [`DocumentSnapshot`]s.
+type StoryLinks<'a> = dyn Fn(&InlineObject) -> Vec<(u32, &'static [PartKind])> + 'a;
 
-use std::collections::BTreeMap;
-use std::fmt;
-use std::ops::Deref;
+use super::block::{Block, Blocks, BoxBudget};
+use super::compare::{para_block, same_blocks, same_bytes, same_glossary, same_parts};
+use super::error::{DocError, Result};
+use super::parts::{
+    MAX_LINKED_BOXES, NoteSeparators, Part, PartKind, PermRange, TextBody, free_id,
+};
+use super::position::{Path, Pos, StoryRef};
+use super::settings::{CoreProps, CustomProp, Settings};
+use super::text_walk::{TextMode, notes_and_boxes, story_word_count_of, text_of, walk};
 use std::sync::Arc;
 
-use crate::annotation::{Anchor, Annotation, AnnotationKind};
-use crate::block::{Block, BlockSeq, Paragraph};
-use crate::id::{AnnotationId, IdAllocator, NodeId, PreservedId, StoryId};
-use crate::numbering::{NumberFormat, NumberingStore};
-use crate::props::{Measure, Toggle};
-use crate::resource::ResourceTable;
-use crate::revision::MoveMarker;
-use crate::style::{Style, StyleKind, StyleSheet};
-use crate::validate::MAX_NESTING;
+use super::{
+    BTreeMap, CharProps, Document, InlineObject, Numbering, Paragraph, SectionProps, StyleSheet,
+    Table, edit, numbering, para, section,
+};
 
-/// Compatibility mode JoyWord writes into new documents (FORMAT-001).
-pub const NEW_DOCUMENT_COMPATIBILITY_MODE: u32 = 15;
-/// Mode assumed when settings omit `compatibilityMode` (ARCHITECTURE §5).
-pub const DEFAULT_COMPATIBILITY_MODE: u32 = 12;
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub enum StoryKind {
-    Body,
-    Header,
-    Footer,
-    Footnote,
-    Endnote,
-    Comment,
-    TextBox,
+/// [`Document::media`] by content, so adding media is linear in the bytes added rather than a
+/// scan of every earlier image (CWE-407). Rebuilt whenever `media` changed size behind its back;
+/// a hit is always checked against `media`, so a stale entry can at worst miss a duplicate.
+#[derive(Clone, Default)]
+pub(crate) struct MediaIndex {
+    by_bytes: std::collections::HashMap<Arc<Vec<u8>>, String>,
+    /// `media.len()` when the index last matched it.
+    len: usize,
+    /// The number after the last generated `image{n}` key, so taken names are probed once.
+    next: usize,
 }
 
-impl fmt::Display for StoryKind {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(match self {
-            StoryKind::Body => "body",
-            StoryKind::Header => "header",
-            StoryKind::Footer => "footer",
-            StoryKind::Footnote => "footnote",
-            StoryKind::Endnote => "endnote",
-            StoryKind::Comment => "comment",
-            StoryKind::TextBox => "textbox",
-        })
-    }
-}
-
-#[derive(Clone, Debug)]
-pub struct Story {
-    pub id: StoryId,
-    pub kind: StoryKind,
-    pub blocks: BlockSeq,
-}
-
-/// `w:headerReference` / `w:footerReference` types.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub enum HeaderFooterKind {
-    Default,
-    First,
-    Even,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub enum Orientation {
-    Portrait,
-    Landscape,
-}
-
-/// How a section begins relative to the previous one (`w:type`, §17.6.22).
-/// Omitted markup is [`SectionBreak::NextPage`]. [`SectionBreak::NextColumn`]
-/// is the `nextColumn` value of the same attribute: the section starts in the
-/// next column of the current page when the column geometry is unchanged.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Default)]
-pub enum SectionBreak {
-    #[default]
-    NextPage,
-    Continuous,
-    EvenPage,
-    OddPage,
-    NextColumn,
-}
-
-/// Chapter/page separators (ECMA-376 ST_ChapterSep).
-/// `hyphen` is explicitly a non-breaking hyphen, not ASCII hyphen-minus:
-/// https://c-rex.net/samples/ooxml/e1/Part4/OOXML_P4_DOCX_ST_ChapterSep_topic_ID0EEYJ2.html
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
-pub enum ChapterSeparator {
-    #[default]
-    Hyphen,
-    Period,
-    Colon,
-    EmDash,
-    EnDash,
-}
-
-impl ChapterSeparator {
-    pub fn parse(value: &str) -> Option<Self> {
-        match value {
-            "hyphen" => Some(Self::Hyphen),
-            "period" => Some(Self::Period),
-            "colon" => Some(Self::Colon),
-            "emDash" => Some(Self::EmDash),
-            "enDash" => Some(Self::EnDash),
-            _ => None,
+impl MediaIndex {
+    fn rebuild(&mut self, media: &BTreeMap<String, Arc<Vec<u8>>>) {
+        self.by_bytes.clear();
+        // The first key (in key order) of equal bytes wins, as a scan would find it.
+        for (k, v) in media.iter().rev() {
+            self.by_bytes.insert(v.clone(), k.clone());
         }
+        self.len = media.len();
+        self.next = 0;
     }
 
-    pub fn character(self) -> char {
-        match self {
-            Self::Hyphen => '\u{2011}',
-            Self::Period => '.',
-            Self::Colon => ':',
-            Self::EmDash => '\u{2014}',
-            Self::EnDash => '\u{2013}',
-        }
+    fn find(&self, media: &BTreeMap<String, Arc<Vec<u8>>>, bytes: &Vec<u8>) -> Option<String> {
+        self.by_bytes
+            .get(bytes)
+            .filter(|k| media.get(*k).is_some_and(|v| **v == *bytes))
+            .cloned()
     }
 }
 
-/// `w:pgNumType` (§17.6.12). An omitted format is decimal. An omitted
-/// start continues from the previous section (the first section starts at 1).
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct PageNumbering {
-    pub format: NumberFormat,
-    pub start: Option<i32>,
-    /// One-based built-in Heading1..9. JoyWord supports only this subset of
-    /// ST_DecimalNumber; MS-OI29500's pgNumType note requires an unsigned byte in Word.
-    pub chapter_style: Option<u8>,
-    /// Ignored without `chapter_style`. Word defaults this to hyphen, unlike
-    /// ECMA-376 which gives no default (MS-OI29500 pgNumType implementation note).
-    pub chapter_separator: ChapterSeparator,
+impl PartialEq for MediaIndex {
+    fn eq(&self, _: &Self) -> bool {
+        true
+    }
 }
 
-impl Default for PageNumbering {
+impl std::fmt::Debug for MediaIndex {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("MediaIndex")
+    }
+}
+
+impl Default for Document {
     fn default() -> Self {
-        Self {
-            format: NumberFormat::Decimal,
-            start: None,
-            chapter_style: None,
-            chapter_separator: ChapterSeparator::default(),
-        }
+        Document::new()
     }
-}
-
-/// Equal-width newspaper columns (`w:cols` with `equalWidth` true and no
-/// `w:col` children). `count` is at least 2. `space` is the gap in twips.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct EqualColumns {
-    pub count: u16,
-    pub space: i64,
-}
-
-/// One explicit newspaper column (`w:col`, ECMA-376 §17.6.3). `width` and
-/// `space` are twips. `space` is the gap after this column; layout does not
-/// place a gap after the last column.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct NewspaperColumn {
-    pub width: i64,
-    pub space: i64,
-}
-
-/// Unequal newspaper columns (`w:cols` with `equalWidth` false and one
-/// `w:col/@w:w` per column). Length is 2..=45. The `w:cols/@sep` separator
-/// flag is stored on [`Section::column_separator`], not here.
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
-pub struct UnequalColumns {
-    pub columns: Vec<NewspaperColumn>,
-}
-
-/// `w:docGrid/@w:type` (ECMA-376 §17.6.5). An omitted type is the schema
-/// value `default` and is stored as `None`, not as a line grid.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub enum DocGridKind {
-    Lines,
-    LinesAndChars,
-    SnapToChars,
-}
-
-/// `w:docGrid`. Lengths are twips as written. Layout reads a positive
-/// `line_pitch` only for [`DocGridKind::Lines`] and
-/// [`DocGridKind::LinesAndChars`]. `char_space` is kept and not applied.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct DocGrid {
-    pub kind: Option<DocGridKind>,
-    pub line_pitch: Option<i64>,
-    pub char_space: Option<i64>,
-}
-
-impl DocGrid {
-    /// Document grid per GB/T 9704-2012: linesAndChars, 22 lines × 28 chars.
-    pub fn gbt9704() -> Self {
-        Self {
-            kind: Some(DocGridKind::LinesAndChars),
-            line_pitch: Some(580),
-            char_space: Some(316),
-        }
-    }
-
-    /// Document grid for standard 20×20 manuscript paper (稿纸).
-    pub fn manuscript_20x20() -> Self {
-        Self {
-            kind: Some(DocGridKind::LinesAndChars),
-            line_pitch: Some(600),
-            char_space: Some(440),
-        }
-    }
-}
-
-/// `w:pgSz` and `w:pgMar` in source units.
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct PageSetup {
-    pub width: Measure,
-    pub height: Measure,
-    pub orientation: Orientation,
-    pub top: Measure,
-    pub right: Measure,
-    pub bottom: Measure,
-    pub left: Measure,
-    pub header: Measure,
-    pub footer: Measure,
-    pub gutter: Measure,
-}
-
-impl PageSetup {
-    /// A4 portrait with JoyWord's zh-CN new-document margins (2.54 cm top and
-    /// bottom, 3.17 cm left and right, header 1.5 cm, footer 1.75 cm). These
-    /// are product defaults (PLATFORM-008); matching a specific Word template
-    /// requires a T004 reference record.
-    pub fn a4_zh_cn() -> Self {
-        Self {
-            width: Measure::Twips(11_906),
-            height: Measure::Twips(16_838),
-            orientation: Orientation::Portrait,
-            top: Measure::Twips(1_440),
-            right: Measure::Twips(1_800),
-            bottom: Measure::Twips(1_440),
-            left: Measure::Twips(1_800),
-            header: Measure::Twips(851),
-            footer: Measure::Twips(992),
-            gutter: Measure::Twips(0),
-        }
-    }
-
-    /// A4 portrait per GB/T 9704-2012 §5.2.1 / §5.2.2:
-    /// Paper: 210 mm × 297 mm (11,906 × 16,838 twips)
-    /// Margins:
-    /// - Top (天头): 37 mm (2,098 twips)
-    /// - Bottom (地脚): 35 mm (1,984 twips)
-    /// - Left (订口): 28 mm (1,587 twips)
-    /// - Right (切口): 26 mm (1,474 twips)
-    ///
-    /// Print area (版心): 156 mm × 225 mm (8,844 × 12,756 twips)
-    pub fn a4_gbt9704() -> Self {
-        Self {
-            width: Measure::Twips(11_906),
-            height: Measure::Twips(16_838),
-            orientation: Orientation::Portrait,
-            top: Measure::Twips(2_098),
-            right: Measure::Twips(1_474),
-            bottom: Measure::Twips(1_984),
-            left: Measure::Twips(1_587),
-            header: Measure::Twips(851),
-            footer: Measure::Twips(992),
-            gutter: Measure::Twips(0),
-        }
-    }
-}
-
-/// A section. OOXML stores `w:sectPr` on the section's last paragraph and the
-/// final one at the end of the body; the model records the boundary block.
-#[derive(Clone, Debug)]
-pub struct Section {
-    pub id: NodeId,
-    /// Last top-level body block of this section; `None` for the final section.
-    pub last_block: Option<NodeId>,
-    pub page: PageSetup,
-    pub title_page: Toggle,
-    pub headers: Vec<(HeaderFooterKind, StoryId)>,
-    pub footers: Vec<(HeaderFooterKind, StoryId)>,
-    pub break_kind: SectionBreak,
-    pub numbering: PageNumbering,
-    /// `None` is one column. Equal columns wider than the page are rejected
-    /// at layout rather than stored as a single column.
-    pub columns: Option<EqualColumns>,
-    /// Explicit unequal widths. Import leaves `columns` empty when this is
-    /// set. Layout rejects a section that has both.
-    pub unequal_columns: Option<UnequalColumns>,
-    /// `w:cols/@w:sep` (ECMA-376 §17.6.4). When true, layout paints a
-    /// vertical separator line between adjacent newspaper columns of this
-    /// section. A section with fewer than two columns paints nothing.
-    pub column_separator: bool,
-    /// `None` means the section has no `w:docGrid` element.
-    pub doc_grid: Option<DocGrid>,
-    pub preserved: Option<PreservedId>,
-}
-
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
-pub struct DocumentSettings {
-    /// `compatibilityMode` as written; existing documents keep their value.
-    pub compatibility_mode: Option<u32>,
-    pub even_and_odd_headers: Toggle,
-    /// `w:trackRevisions` (ECMA-376 Part 1 §17.15.1.89). `Some(true)` makes
-    /// user typing and deleting create text revisions. It does not by itself
-    /// make the document read-only. Document protection still does.
-    pub track_revisions: Toggle,
-    /// `w:defaultTabStop`. Absent means 720 twips when layout places tabs.
-    pub default_tab_stop: Option<Measure>,
-    /// `w:attachedTemplate/@r:id`. The id is recorded and the target is never
-    /// resolved (QUALITY-005). `Some("")` means the element had no id.
-    pub attached_template: Option<Arc<str>>,
-    pub preserved: Option<PreservedId>,
-    /// `true` when every child kept only in `preserved` leaves pagination
-    /// unchanged: view and proofing state, editing aids, identifiers, or a
-    /// value import already applied. Layout refuses preserved settings
-    /// unless this is set.
-    pub preserved_layout_neutral: bool,
-}
-
-impl DocumentSettings {
-    pub fn effective_compatibility_mode(&self) -> u32 {
-        self.compatibility_mode
-            .unwrap_or(DEFAULT_COMPATIBILITY_MODE)
-    }
-}
-
-/// Monotonic document version; undo produces a new version, never an old one.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct DocumentVersion(u64);
-
-impl DocumentVersion {
-    pub fn get(self) -> u64 {
-        self.0
-    }
-}
-
-impl fmt::Display for DocumentVersion {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "v{}", self.0)
-    }
-}
-
-#[derive(Clone, Debug)]
-pub struct Document {
-    version: DocumentVersion,
-    ids: IdAllocator,
-    body: StoryId,
-    stories: Arc<BTreeMap<StoryId, Arc<Story>>>,
-    sections: Arc<Vec<Section>>,
-    styles: Arc<StyleSheet>,
-    resources: Arc<ResourceTable>,
-    annotations: Arc<BTreeMap<AnnotationId, Annotation>>,
-    settings: Arc<DocumentSettings>,
-    numbering: Arc<NumberingStore>,
-    /// Move range markers. Text revisions live on runs.
-    move_markers: Arc<Vec<MoveMarker>>,
-    /// Next `w:id` to assign. Import sets this past every id it kept.
-    next_revision: u32,
-    /// Next comment `w:id`. Word ids may be 0, so a new document starts there.
-    next_comment: u32,
-    /// Next `w14:paraId` counter. 0 is avoided; values are formatted `{:08X}`.
-    next_para: u32,
 }
 
 impl Document {
-    /// One body story holding one empty paragraph, and one section.
-    pub fn new(page: PageSetup) -> Self {
-        let mut ids = IdAllocator::default();
-        let body = ids.story();
-        let paragraph = Paragraph::new(ids.node());
-        let section = Section {
-            id: ids.node(),
-            last_block: None,
-            page,
-            title_page: None,
-            headers: Vec::new(),
-            footers: Vec::new(),
-            break_kind: SectionBreak::NextPage,
-            numbering: PageNumbering::default(),
-            columns: None,
-            unequal_columns: None,
-            column_separator: false,
-            doc_grid: None,
-            preserved: None,
-        };
-        let story = Story {
-            id: body,
-            kind: StoryKind::Body,
-            blocks: BlockSeq::from_vec(vec![paragraph.into()]),
-        };
-        Self {
-            version: DocumentVersion::default(),
-            ids,
-            body,
-            stories: Arc::new(BTreeMap::from([(body, Arc::new(story))])),
-            sections: Arc::new(vec![section]),
-            styles: Arc::default(),
-            resources: Arc::default(),
-            annotations: Arc::default(),
-            settings: Arc::default(),
-            numbering: Arc::default(),
-            move_markers: Arc::default(),
-            next_revision: 1,
-            next_comment: 0,
-            next_para: 1,
+    /// A blank document: one empty Normal paragraph, Letter, built-in styles.
+    pub fn new() -> Self {
+        Document {
+            body: vec![para_block(Paragraph::new())],
+            last_section: SectionProps::default(),
+            parts: BTreeMap::new(),
+            styles: StyleSheet::builtin(),
+            numbering: Numbering::default(),
+            comments: BTreeMap::new(),
+            revisions: Vec::new(),
+            settings: Settings::default(),
+            core: CoreProps::default(),
+            sources: Vec::new(),
+            custom_props: Vec::new(),
+            footnote_separators: NoteSeparators::default(),
+            endnote_separators: NoteSeparators::default(),
+            media: BTreeMap::new(),
+            passthrough: BTreeMap::new(),
+            glossary: Vec::new(),
+            media_index: MediaIndex::default(),
         }
     }
 
-    /// New JoyWord document: A4, a default Normal style, compatibility mode 15.
-    pub fn new_blank() -> Self {
-        let mut document = Self::new(PageSetup::a4_zh_cn());
-        let mut normal = Style::new("Normal", StyleKind::Paragraph, Some("Normal"));
-        normal.is_default = true;
-        document
-            .styles_mut()
-            .insert(normal)
-            .expect("empty style sheet");
-        document.settings_mut().compatibility_mode = Some(NEW_DOCUMENT_COMPATIBILITY_MODE);
-        document
-    }
-
-    pub fn version(&self) -> DocumentVersion {
-        self.version
-    }
-
-    /// Publishes a new version number. Called once per committed transaction.
-    pub fn advance_version(&mut self) -> DocumentVersion {
-        self.version = DocumentVersion(self.version.0.checked_add(1).expect("version overflow"));
-        self.version
-    }
-
-    /// O(1) immutable view sharing all structure with this document.
-    pub fn snapshot(&self) -> DocumentSnapshot {
-        DocumentSnapshot(self.clone())
-    }
-
-    /// Replaces every piece of content with `source`'s while keeping this
-    /// document's version counter and identifier allocator, so undo and redo
-    /// never move either backwards. The caller advances the version.
-    pub fn restore_content(&mut self, source: &Document) {
-        let version = self.version;
-        let mut ids = self.ids.clone();
-        ids.merge(&source.ids);
-        *self = source.clone();
-        self.version = version;
-        self.ids = ids;
-    }
-
-    pub fn ids(&mut self) -> &mut IdAllocator {
-        &mut self.ids
-    }
-
-    pub fn id_allocator(&self) -> &IdAllocator {
-        &self.ids
-    }
-
-    pub fn body_id(&self) -> StoryId {
-        self.body
-    }
-
-    pub fn body(&self) -> &Story {
-        self.story(self.body).expect("body story exists")
-    }
-
-    pub fn story(&self, id: StoryId) -> Option<&Story> {
-        self.stories.get(&id).map(Arc::as_ref)
-    }
-
-    pub fn stories(&self) -> impl Iterator<Item = &Story> {
-        self.stories.values().map(Arc::as_ref)
-    }
-
-    pub fn story_mut(&mut self, id: StoryId) -> Option<&mut Story> {
-        Arc::make_mut(&mut self.stories)
-            .get_mut(&id)
-            .map(Arc::make_mut)
-    }
-
-    /// Adds a story. Stories must hold at least one block (checked by validate).
-    pub fn insert_story(&mut self, kind: StoryKind, blocks: Vec<Block>) -> StoryId {
-        let id = self.ids.story();
-        let story = Story {
-            id,
-            kind,
-            blocks: BlockSeq::from_vec(blocks),
-        };
-        Arc::make_mut(&mut self.stories).insert(id, Arc::new(story));
-        id
-    }
-
-    /// Removes a story by ID.
-    pub fn remove_story(&mut self, id: StoryId) -> Option<Arc<Story>> {
-        Arc::make_mut(&mut self.stories).remove(&id)
-    }
-
-    pub fn sections(&self) -> &[Section] {
-        &self.sections
-    }
-
-    pub fn sections_mut(&mut self) -> &mut Vec<Section> {
-        Arc::make_mut(&mut self.sections)
-    }
-
-    pub fn styles(&self) -> &StyleSheet {
-        &self.styles
-    }
-
-    pub fn styles_mut(&mut self) -> &mut StyleSheet {
-        Arc::make_mut(&mut self.styles)
-    }
-
-    pub fn resources(&self) -> &ResourceTable {
-        &self.resources
-    }
-
-    pub fn resources_mut(&mut self) -> &mut ResourceTable {
-        Arc::make_mut(&mut self.resources)
-    }
-
-    pub fn settings(&self) -> &DocumentSettings {
-        &self.settings
-    }
-
-    pub fn settings_mut(&mut self) -> &mut DocumentSettings {
-        Arc::make_mut(&mut self.settings)
-    }
-
-    /// Pending row insertion markers are retained for text-only table editing.
-    /// Structural resolution and an original view are not implemented yet.
-    pub fn has_table_row_insertions(&self) -> bool {
-        fn walk(blocks: &BlockSeq) -> bool {
-            blocks.iter().any(|b| match b {
-                Block::Table(t) => t
-                    .rows
-                    .iter()
-                    .any(|r| r.insertion.is_some() || r.cells.iter().any(|c| walk(&c.blocks))),
-                Block::Sdt(s) => walk(&s.blocks),
-                _ => false,
-            })
-        }
-        self.stories().any(|s| walk(&s.blocks))
-    }
-
-    pub fn move_markers(&self) -> &[MoveMarker] {
-        &self.move_markers
-    }
-
-    pub fn move_markers_mut(&mut self) -> &mut Vec<MoveMarker> {
-        Arc::make_mut(&mut self.move_markers)
-    }
-
-    /// Remembers an imported `w:id` so the next allocated id does not reuse it.
-    pub fn note_revision_id(&mut self, id: u32) {
-        let next = id.saturating_add(1);
-        if next > self.next_revision {
-            self.next_revision = next;
-        }
-    }
-
-    /// Allocates a new revision id. `None` when the counter is exhausted.
-    pub fn allocate_revision_id(&mut self) -> Option<u32> {
-        let id = self.next_revision;
-        self.next_revision = self.next_revision.checked_add(1)?;
-        Some(id)
-    }
-
-    /// Remembers an imported comment `w:id` so the next allocated id does not reuse it.
-    pub fn note_comment_id(&mut self, id: u32) {
-        let next = id.saturating_add(1);
-        if next > self.next_comment {
-            self.next_comment = next;
-        }
-    }
-
-    /// Allocates a comment `w:id`. `None` when the counter is exhausted.
-    pub fn allocate_comment_id(&mut self) -> Option<u32> {
-        let id = self.next_comment;
-        self.next_comment = self.next_comment.checked_add(1)?;
-        Some(id)
-    }
-
-    /// Remembers an imported `w14:paraId` (hex) so a new id does not reuse it.
-    pub fn note_para_id(&mut self, para_id: &str) {
-        let Ok(id) = u32::from_str_radix(para_id, 16) else {
-            return;
-        };
-        let next = id.saturating_add(1);
-        if next > self.next_para {
-            self.next_para = next;
-        }
-    }
-
-    /// Allocates a `w14:paraId` of eight uppercase hex digits.
-    /// `None` when the counter is exhausted.
-    pub fn allocate_para_id(&mut self) -> Option<Arc<str>> {
-        if self.next_para == 0 {
-            self.next_para = 1;
-        }
-        let id = self.next_para;
-        self.next_para = self.next_para.checked_add(1)?;
-        Some(Arc::from(format!("{id:08X}")))
-    }
-
-    /// Allocates the durable id of a comment created this session
-    /// ([MS-DOCX] `w16cid:durableId`, a 32-bit integer), derived
-    /// deterministically from its fresh `w14:paraId`. JoyWord assumption
-    /// (not a Word algorithm): the value only has to be stable and
-    /// collision-free among the durable ids this document already carries;
-    /// imported GUID-shaped ids never collide with a plain decimal.
-    pub fn allocate_durable_id(&mut self, para_id: &str) -> Option<Arc<str>> {
-        let mut taken: Vec<&str> = self
-            .annotations
-            .values()
-            .filter_map(|annotation| match &annotation.kind {
-                crate::AnnotationKind::Comment(comment) => comment.durable_id.as_deref(),
-                _ => None,
+    /// A document from plain text, one paragraph per line.
+    pub fn from_text(text: &str) -> Self {
+        let mut d = Document::new();
+        d.body = text
+            .split('\n')
+            .map(|l| {
+                para_block(Paragraph::with_text(
+                    l.trim_end_matches('\r'),
+                    CharProps::default(),
+                ))
             })
             .collect();
-        let mut attempt = 0u32;
-        loop {
-            let candidate = durable_id_from(para_id, attempt).to_string();
-            if !taken.contains(&candidate.as_str()) {
-                return Some(Arc::from(candidate));
-            }
-            attempt = attempt.checked_add(1)?;
-            taken.push("");
+        d.ensure_nonempty();
+        d
+    }
+
+    fn fix_cell_blocks(bl: &mut Blocks) {
+        if bl.is_empty() || matches!(bl.last().map(|b| &**b), Some(Block::Table(_))) {
+            bl.push(para_block(Paragraph::new()));
         }
     }
 
-    pub fn numbering(&self) -> &NumberingStore {
-        &self.numbering
+    fn fix_story_blocks(bl: &mut Blocks) {
+        if !bl.iter().any(|b| matches!(**b, Block::Para(_)))
+            || matches!(bl.last().map(|b| &**b), Some(Block::Table(_)))
+        {
+            bl.push(para_block(Paragraph::new()));
+        }
+        for b in bl.iter_mut() {
+            if let Block::Table(t) = &**b {
+                let needs = t.rows.iter().any(|r| {
+                    r.cells.iter().any(|c| {
+                        c.blocks.is_empty()
+                            || matches!(c.blocks.last().map(|b| &**b), Some(Block::Table(_)))
+                    })
+                });
+                if needs && let Block::Table(t) = Arc::make_mut(b) {
+                    for r in &mut t.rows {
+                        for c in &mut r.cells {
+                            Self::fix_cell_blocks(&mut c.blocks);
+                        }
+                    }
+                }
+            }
+        }
     }
 
-    pub fn numbering_mut(&mut self) -> &mut NumberingStore {
-        Arc::make_mut(&mut self.numbering)
+    /// Every story must hold at least one paragraph, and every cell too.
+    pub fn ensure_nonempty(&mut self) {
+        Self::fix_story_blocks(&mut self.body);
+        for p in self.parts.values_mut() {
+            if p.blocks.is_empty() {
+                p.blocks.push(para_block(Paragraph::new()));
+            }
+        }
     }
 
-    pub fn annotations(&self) -> impl Iterator<Item = &Annotation> {
-        self.annotations.values()
+    /// Whether the document holds the same content as `other`: the same blocks, the same
+    /// styles, lists, settings, comments and the rest.
+    ///
+    /// The blocks are compared by address first: the document is copy-on-write, so a block
+    /// that changed was copied and has another address. Comparing them by value would walk
+    /// the whole document, and this is asked after every command.
+    ///
+    /// Every field is listed, so a new one does not build until someone decides whether a
+    /// change to it counts (the same rule the session's edit snapshot follows).
+    pub fn same_content(&self, other: &Document) -> bool {
+        let Document {
+            body,
+            last_section,
+            parts,
+            styles,
+            numbering,
+            comments,
+            revisions,
+            settings,
+            core,
+            sources,
+            custom_props,
+            footnote_separators,
+            endnote_separators,
+            media,
+            passthrough,
+            glossary,
+            media_index: _,
+        } = self;
+        let Document {
+            body: other_body,
+            last_section: other_section,
+            parts: other_parts,
+            styles: other_styles,
+            numbering: other_numbering,
+            comments: other_comments,
+            revisions: other_revisions,
+            settings: other_settings,
+            core: other_core,
+            sources: other_sources,
+            custom_props: other_props,
+            footnote_separators: other_footnotes,
+            endnote_separators: other_endnotes,
+            media: other_media,
+            passthrough: other_passthrough,
+            glossary: other_glossary,
+            media_index: _,
+        } = other;
+        same_blocks(body, other_body)
+            && same_parts(parts, other_parts)
+            && last_section == other_section
+            && styles == other_styles
+            && numbering == other_numbering
+            && comments == other_comments
+            && revisions == other_revisions
+            && settings == other_settings
+            && core == other_core
+            && sources == other_sources
+            && custom_props == other_props
+            && footnote_separators == other_footnotes
+            && endnote_separators == other_endnotes
+            && same_bytes(media, other_media)
+            && same_bytes(passthrough, other_passthrough)
+            && same_glossary(glossary, other_glossary)
     }
 
-    pub fn annotation(&self, id: AnnotationId) -> Option<&Annotation> {
-        self.annotations.get(&id)
+    pub fn story(&self, s: StoryRef) -> Option<&Blocks> {
+        match s {
+            StoryRef::Body => Some(&self.body),
+            StoryRef::Part(id) => self.parts.get(&id).map(|p| &p.blocks),
+        }
+    }
+    pub fn story_mut(&mut self, s: StoryRef) -> Result<&mut Blocks> {
+        match s {
+            StoryRef::Body => Ok(&mut self.body),
+            StoryRef::Part(id) => self
+                .parts
+                .get_mut(&id)
+                .map(|p| &mut p.blocks)
+                .ok_or(DocError::BadStory(s)),
+        }
     }
 
-    pub fn annotation_mut(&mut self, id: AnnotationId) -> Option<&mut Annotation> {
-        Arc::make_mut(&mut self.annotations).get_mut(&id)
-    }
-
-    pub fn remove_annotation(&mut self, id: AnnotationId) -> Option<Annotation> {
-        Arc::make_mut(&mut self.annotations).remove(&id)
-    }
-
-    pub fn insert_annotation(&mut self, kind: AnnotationKind, anchor: Anchor) -> AnnotationId {
-        let id = self.ids.annotation();
-        let annotation = Annotation {
-            id,
-            kind,
-            anchor,
-            source: None,
-        };
-        Arc::make_mut(&mut self.annotations).insert(id, annotation);
-        id
-    }
-
-    /// Finds a paragraph anywhere in a story, including tables and content
-    /// controls. Linear in story size; an index arrives with incremental
-    /// layout (LAYOUT-010).
-    pub fn find_paragraph(&self, story: StoryId, id: NodeId) -> Option<&Paragraph> {
-        fn search(blocks: &BlockSeq, id: NodeId, depth: usize) -> Option<&Paragraph> {
-            if depth > MAX_NESTING {
+    /// The block list that contains the block at `path`.
+    pub fn container(&self, s: StoryRef, path: &Path) -> Option<&Blocks> {
+        let mut bl = self.story(s)?;
+        let parent = path.parent();
+        if !parent.len().is_multiple_of(3) {
+            return None;
+        }
+        for ch in parent.chunks(3) {
+            let [b, r, c] = ch else { return None };
+            let Block::Table(t) = &**bl.get(*b as usize)? else {
                 return None;
-            }
-            blocks.iter().find_map(|block| match block {
-                Block::Paragraph(paragraph) => (paragraph.id() == id).then_some(paragraph.as_ref()),
-                Block::Table(table) => table
-                    .rows
-                    .iter()
-                    .flat_map(|row| row.cells.iter())
-                    .find_map(|cell| search(&cell.blocks, id, depth + 1)),
-                Block::Sdt(sdt) => search(&sdt.blocks, id, depth + 1),
-                Block::Opaque(_) => None,
-            })
+            };
+            bl = &t.rows.get(*r as usize)?.cells.get(*c as usize)?.blocks;
         }
-        search(&self.story(story)?.blocks, id, 0)
+        Some(bl)
     }
-}
 
-/// Immutable document view for background layout, export and Agent reads.
-#[derive(Clone, Debug)]
-pub struct DocumentSnapshot(Document);
-
-impl Deref for DocumentSnapshot {
-    type Target = Document;
-
-    fn deref(&self) -> &Document {
-        &self.0
+    pub fn container_mut(&mut self, s: StoryRef, path: &Path) -> Result<&mut Blocks> {
+        let bad = || DocError::BadPath(path.to_string());
+        let parent: Vec<u32> = path.parent().to_vec();
+        if !parent.len().is_multiple_of(3) {
+            return Err(bad());
+        }
+        let mut bl = self.story_mut(s)?;
+        for ch in parent.chunks(3) {
+            let [b, r, c] = ch else { return Err(bad()) };
+            let blk = bl.get_mut(*b as usize).ok_or_else(bad)?;
+            let Block::Table(t) = Arc::make_mut(blk) else {
+                return Err(bad());
+            };
+            bl = &mut t
+                .rows
+                .get_mut(*r as usize)
+                .ok_or_else(bad)?
+                .cells
+                .get_mut(*c as usize)
+                .ok_or_else(bad)?
+                .blocks;
+        }
+        Ok(bl)
     }
-}
 
-/// The strict UTC timestamp shape comments carry (`YYYY-MM-DDTHH:MM:SSZ`,
-/// the shape the engine stamps and the wild commentsExtensible parts repeat
-/// verbatim as `w16cex:dateUtc`). Anything looser is left alone rather than
-/// reinterpreted.
-pub fn is_strict_utc_date(text: &str) -> bool {
-    let bytes = text.as_bytes();
-    bytes.len() == 20
-        && bytes[..4].iter().all(u8::is_ascii_digit)
-        && bytes[4] == b'-'
-        && bytes[5..7].iter().all(u8::is_ascii_digit)
-        && bytes[7] == b'-'
-        && bytes[8..10].iter().all(u8::is_ascii_digit)
-        && bytes[10] == b'T'
-        && bytes[11..13].iter().all(u8::is_ascii_digit)
-        && bytes[13] == b':'
-        && bytes[14..16].iter().all(u8::is_ascii_digit)
-        && bytes[16] == b':'
-        && bytes[17..19].iter().all(u8::is_ascii_digit)
-        && bytes[19] == b'Z'
-}
-
-/// FNV-1a over the paraId and a zero-based attempt counter. Public so the
-/// DOCX writer derives the same value for comments created before this
-/// allocator existed.
-pub fn durable_id_from(para_id: &str, attempt: u32) -> u32 {
-    let mut hash: u32 = 0x811c_9dc5;
-    for byte in format!("{para_id}:{attempt}").bytes() {
-        hash ^= u32::from(byte);
-        hash = hash.wrapping_mul(0x0100_0193);
+    pub fn block(&self, s: StoryRef, path: &Path) -> Option<&Block> {
+        self.container(s, path)?.get(path.last()).map(|b| &**b)
     }
-    hash
+
+    pub fn para(&self, s: StoryRef, path: &Path) -> Option<&Paragraph> {
+        self.block(s, path)?.as_para()
+    }
+    pub fn para_at(&self, p: &Pos) -> Option<&Paragraph> {
+        self.para(p.story, &p.path)
+    }
+
+    pub fn para_mut(&mut self, s: StoryRef, path: &Path) -> Result<&mut Paragraph> {
+        let i = path.last();
+        let bl = self.container_mut(s, path)?;
+        match bl.get_mut(i).map(Arc::make_mut) {
+            Some(Block::Para(p)) => Ok(p),
+            _ => Err(DocError::BadPath(path.to_string())),
+        }
+    }
+
+    pub fn table(&self, s: StoryRef, path: &Path) -> Option<&Table> {
+        self.block(s, path)?.as_table()
+    }
+    pub fn table_mut(&mut self, s: StoryRef, path: &Path) -> Result<&mut Table> {
+        let i = path.last();
+        let bl = self.container_mut(s, path)?;
+        match bl.get_mut(i).map(Arc::make_mut) {
+            Some(Block::Table(t)) => Ok(t),
+            _ => Err(DocError::BadPath(path.to_string())),
+        }
+    }
+
+    /// Paths of every paragraph in a story, in document order (tables descended, depth-limited).
+    pub fn para_paths(&self, s: StoryRef) -> Vec<Path> {
+        let mut out = Vec::new();
+        if let Some(bl) = self.story(s) {
+            walk(bl, &mut Vec::new(), &mut out, 0);
+        }
+        out
+    }
+
+    /// First and last positions of a story.
+    pub fn start_of(&self, s: StoryRef) -> Pos {
+        let path = self
+            .para_paths(s)
+            .into_iter()
+            .next()
+            .unwrap_or_else(|| Path::top(0));
+        Pos {
+            story: s,
+            path,
+            off: 0,
+        }
+    }
+    pub fn end_of(&self, s: StoryRef) -> Pos {
+        let path = self.para_paths(s).pop().unwrap_or_else(|| Path::top(0));
+        let off = self.para(s, &path).map(|p| p.len()).unwrap_or(0);
+        Pos {
+            story: s,
+            path,
+            off,
+        }
+    }
+
+    /// The position just after the shape that owns text box story `part` (body first, then the
+    /// other parts), for leaving the text box.
+    pub fn text_box_anchor(&self, part: u32) -> Option<Pos> {
+        let stories = std::iter::once(StoryRef::Body).chain(
+            self.parts
+                .keys()
+                .filter(|k| **k != part)
+                .map(|k| StoryRef::Part(*k)),
+        );
+        for story in stories {
+            for path in self.para_paths(story) {
+                let Some(p) = self.para(story, &path) else {
+                    continue;
+                };
+                for (off, o) in p.objects_with_offsets() {
+                    if o.text_boxes().contains(&part) {
+                        return Some(Pos {
+                            story,
+                            path,
+                            off: off + para::OBJ.len_utf8(),
+                        });
+                    }
+                }
+            }
+        }
+        None
+    }
+
+    /// The next / previous paragraph path in document order.
+    pub fn next_para(&self, s: StoryRef, path: &Path) -> Option<Path> {
+        let all = self.para_paths(s);
+        let i = all.binary_search(path).ok()?;
+        all.get(i + 1).cloned()
+    }
+    pub fn prev_para(&self, s: StoryRef, path: &Path) -> Option<Path> {
+        let all = self.para_paths(s);
+        let i = all.binary_search(path).ok()?;
+        i.checked_sub(1).and_then(|j| all.get(j).cloned())
+    }
+
+    /// Clamp a position into the document (valid path, char boundary).
+    pub fn clamp(&self, p: &Pos) -> Pos {
+        if let Some(para) = self.para_at(p) {
+            return Pos {
+                story: p.story,
+                path: p.path.clone(),
+                off: para.clamp(p.off),
+            };
+        }
+        let story = if self.story(p.story).is_some() {
+            p.story
+        } else {
+            StoryRef::Body
+        };
+        let all = self.para_paths(story);
+        let path = all
+            .iter()
+            .rev()
+            .find(|q| **q <= p.path)
+            .or(all.first())
+            .cloned()
+            .unwrap_or_else(|| Path::top(0));
+        let off = self.para(story, &path).map(|q| q.clamp(p.off)).unwrap_or(0);
+        Pos { story, path, off }
+    }
+
+    /// The whole text of a story, paragraphs separated by `\n` (tables: cells by `\t`).
+    pub fn plain_text(&self, s: StoryRef) -> String {
+        self.story_text(s, TextMode::Plain)
+    }
+
+    /// [`Self::plain_text`] as it reads on screen: symbol-font characters (Wingdings…) as their
+    /// Unicode equivalents ([`Paragraph::shown_text`]).
+    pub fn shown_text(&self, s: StoryRef) -> String {
+        self.story_text(s, TextMode::Shown)
+    }
+
+    /// [`Self::plain_text`] without tracked-deleted runs. A deleted paragraph mark still yields `\n`.
+    pub fn final_text(&self, s: StoryRef) -> String {
+        self.story_text(s, TextMode::Final)
+    }
+
+    fn story_text(&self, s: StoryRef, mode: TextMode) -> String {
+        let mut out = String::new();
+        if let Some(bl) = self.story(s) {
+            text_of(bl, &mut out, 0, mode);
+        }
+        if out.ends_with('\n') {
+            out.pop();
+        }
+        out
+    }
+
+    /// Section properties in effect for each top-level body block (index → section number), and
+    /// the list of sections.
+    pub fn sections(&self) -> Vec<(usize, &SectionProps)> {
+        let mut v = Vec::new();
+        for (i, b) in self.body.iter().enumerate() {
+            if let Block::Para(p) = &**b
+                && let Some(s) = &p.section
+            {
+                v.push((i, &**s));
+            }
+        }
+        v.push((self.body.len().saturating_sub(1), &self.last_section));
+        v
+    }
+
+    /// The footnote (`endnote` false) or endnote options in effect in section `sect`: its own,
+    /// else the document's, else Word's defaults (footnotes at the page bottom in 1, 2, 3;
+    /// endnotes at the end of the document in i, ii, iii; numbered on through the document).
+    /// Placements that don't apply to the kind fall back to its default.
+    pub fn note_options(&self, sect: &SectionProps, endnote: bool) -> section::NoteOptions {
+        use section::NotePos;
+        let (own, doc, fmt) = if endnote {
+            (
+                &sect.endnote_pr,
+                &self.settings.endnote_pr,
+                self.settings.endnote_format,
+            )
+        } else {
+            (
+                &sect.footnote_pr,
+                &self.settings.footnote_pr,
+                self.settings.footnote_format,
+            )
+        };
+        let pos = own.pos.or(doc.pos);
+        let pos = if endnote {
+            pos.filter(|p| matches!(p, NotePos::SectEnd | NotePos::DocEnd))
+                .unwrap_or(NotePos::DocEnd)
+        } else {
+            pos.filter(|p| matches!(p, NotePos::PageBottom | NotePos::BeneathText))
+                .unwrap_or(NotePos::PageBottom)
+        };
+        section::NoteOptions {
+            pos,
+            num_fmt: own.num_fmt.unwrap_or(fmt),
+            num_start: own
+                .num_start
+                .or(doc.num_start)
+                .unwrap_or(1)
+                .clamp(1, section::MAX_NOTE_START),
+            num_restart: own.num_restart.or(doc.num_restart).unwrap_or_default(),
+        }
+    }
+
+    /// The section that contains top-level body block `block` (index into `sections()`).
+    pub fn section_index_of(&self, block: usize) -> usize {
+        self.sections()
+            .iter()
+            .position(|(end, _)| block <= *end)
+            .unwrap_or(0)
+    }
+
+    /// Mutable section properties for the section containing body block `block`.
+    pub fn section_mut(&mut self, block: usize) -> &mut SectionProps {
+        let ends: Vec<usize> = self.sections().iter().map(|(e, _)| *e).collect();
+        let idx = ends
+            .iter()
+            .position(|e| block <= *e)
+            .unwrap_or(ends.len().saturating_sub(1));
+        if idx + 1 < ends.len()
+            && let Some(e) = ends.get(idx)
+            && let Some(Block::Para(p)) = self.body.get_mut(*e).map(Arc::make_mut)
+            && let Some(s) = p.section.as_mut()
+        {
+            return s;
+        }
+        &mut self.last_section
+    }
+
+    /// Remove the section break on the mark of top-level body paragraph `block`: its section
+    /// joins the following one ([`SectionProps::absorb`]). False when there is no break there.
+    pub fn remove_section_break(&mut self, block: usize) -> bool {
+        if !matches!(self.body.get(block).map(|b| &**b), Some(Block::Para(p)) if p.section.is_some())
+        {
+            return false;
+        }
+        let Some(Block::Para(p)) = self.body.get_mut(block).map(Arc::make_mut) else {
+            return false;
+        };
+        let Some(before) = p.section.take() else {
+            return false;
+        };
+        self.section_mut(block).absorb(&before);
+        true
+    }
+
+    /// Allocate a new part id and insert the part. Part ids run out only past `u32::MAX` parts, more
+    /// than memory holds; then nothing is added and the id is 0, which [`free_id`] never gives a part.
+    pub fn add_part(&mut self, kind: PartKind, blocks: Blocks) -> u32 {
+        self.try_add_part(kind, blocks).unwrap_or(0)
+    }
+
+    /// [`Document::add_part`], or an error, adding nothing, when every part id is taken.
+    pub fn try_add_part(&mut self, kind: PartKind, blocks: Blocks) -> Result<u32> {
+        let id = free_id(
+            self.parts.keys().next_back().copied(),
+            self.parts.keys().copied(),
+            1,
+        )
+        .ok_or_else(|| DocError::Invalid("no free part id".into()))?;
+        let mut part = Part {
+            kind,
+            blocks,
+            body: TextBody::default(),
+        };
+        if part.blocks.is_empty() {
+            part.blocks.push(para_block(Paragraph::new()));
+        }
+        self.parts.insert(id, part);
+        Ok(id)
+    }
+
+    /// Count words like Word's status bar ([`crate::count_words`], plus generated numbered-list labels).
+    pub fn word_count(&self) -> usize {
+        self.story_word_count(StoryRef::Body)
+    }
+
+    /// Word's default count: the body plus its text boxes, footnotes and endnotes.
+    pub fn word_count_including_notes(&self) -> usize {
+        self.counted_stories()
+            .iter()
+            .map(|s| self.story_word_count(*s))
+            .sum()
+    }
+
+    /// Word count of one story, including generated numbered-list labels.
+    pub fn story_word_count(&self, s: StoryRef) -> usize {
+        let Some(bl) = self.story(s) else { return 0 };
+        let mut counters = numbering::Counters::default();
+        story_word_count_of(bl, &self.numbering, &self.styles, &mut counters, 0)
+    }
+
+    /// The body, then the text boxes, footnotes and endnotes it shows (nested ones too), in
+    /// document order. Headers, footers, comments and stories nothing points at aren't included.
+    pub fn counted_stories(&self) -> Vec<StoryRef> {
+        self.reachable(vec![StoryRef::Body], &notes_and_boxes)
+    }
+
+    /// The stories a reader sees, in reading order: the body, then the headers and footers in
+    /// use, each followed by the notes and text boxes it shows. Hidden stories (a removed header,
+    /// a first-page or even-page header whose option is off, a linked text box's own text) and
+    /// comment text aren't included.
+    pub fn shown_stories(&self) -> Vec<StoryRef> {
+        let followers: std::collections::BTreeSet<u32> = self
+            .text_box_chains()
+            .into_iter()
+            .flat_map(|c| c.into_iter().skip(1))
+            .collect();
+        let follow = |o: &InlineObject| {
+            let mut v = notes_and_boxes(o);
+            v.retain(|(id, _)| !followers.contains(id));
+            v
+        };
+        let mut out = self.reachable(vec![StoryRef::Body], &follow);
+        let mut seen: std::collections::BTreeSet<StoryRef> = out.iter().copied().collect();
+        let mut roots = Vec::new();
+        let mut root_seen = std::collections::BTreeSet::new();
+        let (mut headers, mut footers) =
+            (section::HeaderSet::default(), section::HeaderSet::default());
+        for (_, sec) in self.sections() {
+            // Unset versions are inherited from the previous section.
+            for (set, own) in [(&mut headers, &sec.headers), (&mut footers, &sec.footers)] {
+                set.default = own.default.or(set.default);
+                set.first = own.first.or(set.first);
+                set.even = own.even.or(set.even);
+                let first = set.first.filter(|_| sec.title_page);
+                let even = set.even.filter(|_| self.settings.even_odd_headers);
+                // By the first page each one shows on: page 1, then page 2 (even), then page 3.
+                let order = if sec.title_page {
+                    [first, even, set.default]
+                } else {
+                    [set.default, even, None]
+                };
+                for id in order.into_iter().flatten() {
+                    if self
+                        .parts
+                        .get(&id)
+                        .is_some_and(|p| matches!(p.kind, PartKind::Header | PartKind::Footer))
+                        && root_seen.insert(id)
+                    {
+                        roots.push(StoryRef::Part(id));
+                    }
+                }
+            }
+        }
+        for st in self.reachable(roots, &follow) {
+            if seen.insert(st) {
+                out.push(st);
+            }
+        }
+        out
+    }
+
+    /// Drop the text box stories no box shows any more (a deleted or cut box's text), nested
+    /// ones too. Undo snapshots and the clipboard keep their own copies. Free for a document
+    /// without text boxes; otherwise one pass over its paragraphs. Returns how many went.
+    pub fn prune_text_boxes(&mut self) -> usize {
+        if !self.parts.values().any(|p| p.kind == PartKind::TextBox) {
+            return 0;
+        }
+        let roots = std::iter::once(StoryRef::Body)
+            .chain(
+                self.parts
+                    .iter()
+                    .filter(|(_, p)| p.kind != PartKind::TextBox)
+                    .map(|(id, _)| StoryRef::Part(*id)),
+            )
+            .collect();
+        let live = self.reachable(roots, &|o| {
+            o.text_boxes()
+                .into_iter()
+                .map(|id| (id, &[PartKind::TextBox][..]))
+                .collect()
+        });
+        let before = self.parts.len();
+        self.parts
+            .retain(|id, p| p.kind != PartKind::TextBox || live.contains(&StoryRef::Part(*id)));
+        let gone = before - self.parts.len();
+        if gone > 0 {
+            // A link to a box that went ends the chain there (its id may be reused).
+            let ids: std::collections::BTreeSet<u32> = self.parts.keys().copied().collect();
+            for p in self.parts.values_mut() {
+                if p.body.next.is_some_and(|n| !ids.contains(&n)) {
+                    p.body.next = None;
+                }
+            }
+        }
+        gone
+    }
+
+    /// The chains of linked text boxes (Create Link), each in order from the box holding the
+    /// text: every chain has two or more boxes. A link to a part that isn't a text box, a box
+    /// already linked from another, or links running in a circle are ignored (those boxes show
+    /// their own text); a chain stops after [`MAX_LINKED_BOXES`].
+    pub fn text_box_chains(&self) -> Vec<Vec<u32>> {
+        let is_box = |id: u32| {
+            self.parts
+                .get(&id)
+                .is_some_and(|p| p.kind == PartKind::TextBox)
+        };
+        // Who links to whom: the first box (by id) to link to a box wins.
+        let mut prev: BTreeMap<u32, u32> = BTreeMap::new();
+        for (id, p) in &self.parts {
+            if p.kind != PartKind::TextBox {
+                continue;
+            }
+            if let Some(n) = p.body.next.filter(|n| *n != *id && is_box(*n)) {
+                prev.entry(n).or_insert(*id);
+            }
+        }
+        let next = |id: u32| {
+            self.parts
+                .get(&id)
+                .and_then(|p| p.body.next)
+                .filter(|n| prev.get(n) == Some(&id))
+        };
+        let mut out = Vec::new();
+        for (id, p) in &self.parts {
+            if p.kind != PartKind::TextBox || prev.contains_key(id) || next(*id).is_none() {
+                continue;
+            }
+            let mut chain = vec![*id];
+            let mut at = *id;
+            while let Some(n) = next(at) {
+                if chain.len() >= MAX_LINKED_BOXES || chain.contains(&n) {
+                    break;
+                }
+                chain.push(n);
+                at = n;
+            }
+            out.push(chain);
+        }
+        out
+    }
+
+    /// The chain (see [`Document::text_box_chains`]) text box `part` belongs to, if linked.
+    pub fn text_box_chain(&self, part: u32) -> Option<Vec<u32>> {
+        self.text_box_chains()
+            .into_iter()
+            .find(|c| c.contains(&part))
+    }
+
+    /// The size (width, height) of the shapes showing text boxes `ids`, in any story (a group
+    /// member's as the group stretches it).
+    pub fn text_box_sizes(
+        &self,
+        ids: &std::collections::BTreeSet<u32>,
+    ) -> BTreeMap<u32, (f32, f32)> {
+        let mut out = BTreeMap::new();
+        let stories = std::iter::once(&self.body).chain(self.parts.values().map(|p| &p.blocks));
+        for blocks in stories {
+            for b in blocks {
+                edit::each_para(b, 0, &mut |p| {
+                    for o in &p.objects {
+                        match o {
+                            InlineObject::Shape {
+                                story: Some(id),
+                                w,
+                                h,
+                                ..
+                            } if ids.contains(id) => {
+                                out.entry(*id).or_insert((*w, *h));
+                            }
+                            InlineObject::Group { w, h, .. } => {
+                                for (r, c) in o.group_rects(0.0, 0.0, *w, *h) {
+                                    if let Some(id) = c.text_box().filter(|id| ids.contains(id)) {
+                                        out.entry(id).or_insert((r[2], r[3]));
+                                    }
+                                }
+                            }
+                            _ => {}
+                        }
+                    }
+                });
+            }
+        }
+        out
+    }
+
+    /// Every inline object in reading order: the body's, with each text box's objects where the
+    /// box is (nested boxes too, within a [`BoxBudget`]).
+    pub fn objects_in_reading_order(&self, f: &mut dyn FnMut(&InlineObject)) {
+        self.walk_objects(&self.body, &mut BoxBudget::default(), &mut |p, k| {
+            if let Some(o) = p.objects.get(k) {
+                f(o);
+            }
+            true
+        });
+    }
+
+    /// Like [`Document::objects_in_reading_order`], with each object's paragraph and index;
+    /// `f` returns whether to go into the object's text box (false: the box is left out).
+    pub fn objects_in_reading_order_at(&self, f: &mut dyn FnMut(&Paragraph, usize) -> bool) {
+        self.walk_objects(&self.body, &mut BoxBudget::default(), f);
+    }
+
+    /// Like [`Document::objects_in_reading_order_at`], also giving the top-level body block each
+    /// object is in (for objects in text boxes, the block of the box's anchor).
+    pub fn objects_in_reading_order_by_block(
+        &self,
+        f: &mut dyn FnMut(usize, &Paragraph, usize) -> bool,
+    ) {
+        let mut budget = BoxBudget::default();
+        for (i, b) in self.body.iter().enumerate() {
+            self.walk_objects(std::slice::from_ref(b), &mut budget, &mut |p, k| f(i, p, k));
+        }
+    }
+
+    /// The footnotes and endnotes referenced inside text box story `part` (nested boxes too), in
+    /// reading order.
+    pub fn notes_in_text_box(&self, part: u32) -> Vec<u32> {
+        let mut out = Vec::new();
+        let mut budget = BoxBudget::default();
+        if let Some(p) = self
+            .parts
+            .get(&part)
+            .filter(|p| p.kind == PartKind::TextBox)
+            && budget.enter(part)
+        {
+            self.walk_objects(&p.blocks, &mut budget, &mut |p, k| {
+                if let Some(InlineObject::NoteRef { id, .. }) = p.objects.get(k) {
+                    out.push(*id);
+                }
+                true
+            });
+            budget.leave();
+        }
+        out
+    }
+
+    fn walk_objects(
+        &self,
+        blocks: &[Arc<Block>],
+        budget: &mut BoxBudget,
+        f: &mut dyn FnMut(&Paragraph, usize) -> bool,
+    ) {
+        for b in blocks {
+            edit::each_para(b, 0, &mut |p| {
+                for (k, o) in p.objects.iter().enumerate() {
+                    if !f(p, k) {
+                        continue;
+                    }
+                    for id in o.text_boxes() {
+                        if let Some(part) =
+                            self.parts.get(&id).filter(|p| p.kind == PartKind::TextBox)
+                            && budget.enter(id)
+                        {
+                            self.walk_objects(&part.blocks, budget, f);
+                            budget.leave();
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    /// `roots`, then every story their objects lead to (`follow`: an object's story id and the
+    /// part kinds that count), transitively, in the order found.
+    fn reachable(&self, roots: Vec<StoryRef>, follow: &StoryLinks) -> Vec<StoryRef> {
+        let mut out = roots;
+        let mut seen: std::collections::BTreeSet<StoryRef> = out.iter().copied().collect();
+        let mut i = 0;
+        while let Some(s) = out.get(i).copied() {
+            i += 1;
+            let mut found = Vec::new();
+            for b in self.story(s).into_iter().flatten() {
+                edit::each_para(b, 0, &mut |p| {
+                    found.extend(p.objects.iter().flat_map(follow));
+                });
+            }
+            for (id, kinds) in found {
+                if self.parts.get(&id).is_some_and(|p| kinds.contains(&p.kind))
+                    && seen.insert(StoryRef::Part(id))
+                {
+                    out.push(StoryRef::Part(id));
+                }
+            }
+        }
+        out
+    }
+
+    /// A drawing id no shape uses yet (for gluing a connector to a shape that has none).
+    pub fn next_shape_id(&self) -> u32 {
+        let mut max = 0u32;
+        let mut see = |o: &InlineObject| match o {
+            InlineObject::Shape { extra, .. } => max = max.max(extra.id),
+            InlineObject::Group { children, .. } => {
+                for c in children {
+                    if let InlineObject::Shape { extra, .. } = &c.obj {
+                        max = max.max(extra.id);
+                    }
+                }
+            }
+            _ => {}
+        };
+        for blocks in std::iter::once(&self.body).chain(self.parts.values().map(|p| &p.blocks)) {
+            for b in blocks {
+                edit::each_para(b, 0, &mut |p| p.objects.iter().for_each(&mut see));
+            }
+        }
+        max.saturating_add(1).max(1)
+    }
+
+    /// Change every inline object in every story (paragraphs inside tables too), copying only
+    /// the blocks whose paragraphs `wants` says have objects to change.
+    pub fn objects_mut(
+        &mut self,
+        wants: &dyn Fn(&InlineObject) -> bool,
+        f: &mut dyn FnMut(&mut InlineObject),
+    ) {
+        let mut stories: Vec<&mut Blocks> = vec![&mut self.body];
+        stories.extend(self.parts.values_mut().map(|p| &mut p.blocks));
+        for blocks in stories {
+            for b in blocks.iter_mut() {
+                let mut any = false;
+                edit::each_para(b, 0, &mut |p| any |= p.objects.iter().any(wants));
+                if any {
+                    edit::each_para_mut(Arc::make_mut(b), 0, &mut |p| {
+                        if p.objects.iter().any(wants) {
+                            p.objects.iter_mut().filter(|o| wants(o)).for_each(&mut *f);
+                            p.touch();
+                        }
+                    });
+                }
+            }
+        }
+    }
+
+    /// Repair every paragraph's runs (see [`Paragraph::normalize`]); for models from untrusted
+    /// JSON, whose run lengths may overflow, fall short or split a character.
+    pub fn normalize_runs(&mut self) {
+        let mut stories: Vec<&mut Blocks> = vec![&mut self.body];
+        stories.extend(self.parts.values_mut().map(|p| &mut p.blocks));
+        for blocks in stories {
+            for b in blocks.iter_mut() {
+                edit::each_para_mut(Arc::make_mut(b), 0, &mut Paragraph::normalize);
+            }
+        }
+    }
+
+    /// Number of paragraphs in the body (all depths).
+    pub fn paragraph_count(&self) -> usize {
+        self.para_paths(StoryRef::Body).len()
+    }
+
+    /// Add a media item; returns its key (deduplicated by content).
+    pub fn add_media(&mut self, bytes: Vec<u8>, ext: &str) -> String {
+        let ix = &mut self.media_index;
+        if ix.len != self.media.len() {
+            ix.rebuild(&self.media);
+        }
+        if let Some(k) = ix.find(&self.media, &bytes) {
+            return k;
+        }
+        if ix.by_bytes.contains_key(&bytes) {
+            // Stale (`media` was edited directly without changing its size): look again.
+            ix.rebuild(&self.media);
+            if let Some(k) = ix.find(&self.media, &bytes) {
+                return k;
+            }
+        }
+        let n = self.media.len().saturating_add(1);
+        let mut i = n.max(ix.next);
+        let mut key = format!("image{i}.{ext}");
+        while self.media.contains_key(&key) {
+            i = i.saturating_add(1);
+            key = format!("image{i}.{ext}");
+        }
+        let bytes = Arc::new(bytes);
+        self.media.insert(key.clone(), bytes.clone());
+        ix.by_bytes.entry(bytes).or_insert_with(|| key.clone());
+        ix.len = self.media.len();
+        ix.next = i.saturating_add(1);
+        key
+    }
+
+    /// The value of a custom property (names compare case-insensitively, as in Word).
+    pub fn custom_prop(&self, name: &str) -> Option<&str> {
+        self.custom_props
+            .iter()
+            .find(|p| p.name.eq_ignore_ascii_case(name))
+            .map(|p| p.value.as_str())
+    }
+
+    /// Set a custom text property, replacing one of the same name in place.
+    pub fn set_custom_prop(&mut self, name: &str, value: &str) {
+        match self
+            .custom_props
+            .iter_mut()
+            .find(|p| p.name.eq_ignore_ascii_case(name))
+        {
+            Some(p) => {
+                p.kind = "lpwstr".into();
+                p.value = value.to_string();
+            }
+            None => self.custom_props.push(CustomProp {
+                name: name.to_string(),
+                kind: "lpwstr".into(),
+                value: value.to_string(),
+                ..Default::default()
+            }),
+        }
+    }
+
+    /// Remove a custom property. Returns whether it existed.
+    pub fn remove_custom_prop(&mut self, name: &str) -> bool {
+        let n = self.custom_props.len();
+        self.custom_props
+            .retain(|p| !p.name.eq_ignore_ascii_case(name));
+        self.custom_props.len() != n
+    }
+
+    /// Ranges that stay editable while the document is protected (Restrict Editing exceptions),
+    /// in document order across every story: the [`InlineObject::PermStart`]'s id, group and
+    /// editor, its start (just after the marker) and its end (at the matching
+    /// [`InlineObject::PermEnd`], or the end of the story when it has none).
+    pub fn perm_ranges(&self) -> Vec<PermRange> {
+        let mut out: Vec<PermRange> = Vec::new();
+        let stories =
+            std::iter::once(StoryRef::Body).chain(self.parts.keys().map(|k| StoryRef::Part(*k)));
+        for story in stories {
+            // Open ranges by id, latest last (an end closes the latest open range of its id).
+            let mut open: BTreeMap<u32, Vec<usize>> = BTreeMap::new();
+            for path in self.para_paths(story) {
+                let Some(p) = self.para(story, &path) else {
+                    continue;
+                };
+                for (off, o) in p.objects_with_offsets() {
+                    match o {
+                        InlineObject::PermStart { id, group, editor } => {
+                            let start = Pos {
+                                story,
+                                path: path.clone(),
+                                off: off + para::OBJ.len_utf8(),
+                            };
+                            open.entry(*id).or_default().push(out.len());
+                            out.push(PermRange {
+                                id: *id,
+                                group: group.clone(),
+                                editor: editor.clone(),
+                                start: start.clone(),
+                                end: start,
+                            });
+                        }
+                        InlineObject::PermEnd { id } => {
+                            if let Some(i) = open.get_mut(id).and_then(Vec::pop)
+                                && let Some(r) = out.get_mut(i)
+                            {
+                                r.end = Pos {
+                                    story,
+                                    path: path.clone(),
+                                    off,
+                                };
+                            }
+                        }
+                        _ => {}
+                    }
+                }
+            }
+            // A range left open runs to the end of its story.
+            let end = self.end_of(story);
+            for i in open.into_values().flatten() {
+                if let Some(r) = out.get_mut(i) {
+                    r.end = end.clone();
+                }
+            }
+        }
+        out
+    }
+
+    /// Bookmark names in the body, in order.
+    pub fn bookmarks(&self) -> Vec<(String, Pos)> {
+        let mut out = Vec::new();
+        for path in self.para_paths(StoryRef::Body) {
+            if let Some(p) = self.para(StoryRef::Body, &path) {
+                for (off, o) in p.objects_with_offsets() {
+                    if let InlineObject::BookmarkStart { name } = o {
+                        out.push((
+                            name.clone(),
+                            Pos {
+                                story: StoryRef::Body,
+                                path: path.clone(),
+                                off,
+                            },
+                        ));
+                    }
+                }
+            }
+        }
+        out
+    }
 }

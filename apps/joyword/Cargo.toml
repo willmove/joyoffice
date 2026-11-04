@@ -4,39 +4,23 @@ version = "0.1.1"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
-repository.workspace = true
 publish = false
-
 [features]
 default = []
-# Explicit native acceptance build; inert unless JOYWORD_VALIDATION_IO_GATE=1.
-validation = []
-# Development-only escape hatch for macOS machines without the Metal compiler.
-# Release validation must also build without this feature using full Xcode.
 dev-runtime-shaders = ["gpui_platform/runtime_shaders"]
-# Opt-in AI toggle. Off unless requested, so `--no-default-features` and the
-# default build keep the editor free of the provider runtime.
-ai = ["joyword-shell/ai"]
-
 [dependencies]
-gpui-kit.workspace = true
-joyoffice-ui.workspace = true
+joyword-ui-gpui.workspace = true
 gpui_platform.workspace = true
-joyword-foundation.workspace = true
-joyword-engine.workspace = true
-joyword-model.workspace = true
-joyword-layout.workspace = true
-joyword-pdf.workspace = true
-joyword-render.workspace = true
-image.workspace = true
-joyword-shell.workspace = true
-log = "=0.4.34"
+[lints.rust]
+unsafe_code = "forbid"
 
-[dev-dependencies]
-tempfile.workspace = true
-# Already used by the pinned GPUI runtime; inspect the actual emitted nodes.
-accesskit = "=0.24.1"
-
-[lints]
-workspace = true
+[lints.clippy]
+all = { level = "warn", priority = -1 }
+type_complexity = "allow"
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+todo = "deny"
+unimplemented = "deny"
+unreachable = "deny"
 

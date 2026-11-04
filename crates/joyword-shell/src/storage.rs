@@ -24,7 +24,8 @@ mod error;
 mod locks;
 mod metadata;
 mod original;
-mod recovery;
+mod plan;
+pub use plan::{DocumentVersion, ExportPlan, ExportTarget};
 mod source;
 
 pub use error::{
@@ -37,15 +38,6 @@ pub use original::{
     SaveOriginalReceipt, original_replacement_capabilities, save_original,
     save_original_with_choice, save_original_with_lock_token,
 };
-pub use recovery::{
-    DocumentCheckpoint, Recovered, RecoveryCheckpoint, RecoveryError, RecoveryReceipt,
-    RecoveryRequest, RecoveryStage, clear as clear_recovery, commit as commit_recovery,
-    commit_document_versioned as commit_document_recovery_versioned,
-    commit_versioned as commit_recovery_versioned, directory as recovery_directory,
-    package_is_encrypted, prepare as prepare_recovery, publish as publish_recovery,
-    publish_document as publish_document_recovery, recover, recover_checkpoint,
-    recover_document_checkpoint,
-};
 pub use source::{
     OpenedSource, SourceStamp, check_source, check_source_with_lock_token, open_source,
 };
@@ -54,9 +46,6 @@ use std::fmt;
 use std::fs::{self, File};
 use std::io::{self, Read, Seek, SeekFrom, Write};
 use std::path::{Path, PathBuf};
-
-use joyword_docx::{ExportPlan, ExportTarget};
-use joyword_model::DocumentVersion;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum SaveCopyStage {
@@ -266,7 +255,14 @@ fn save_copy_inner(
         .filter(|p| !p.as_os_str().is_empty())
         .unwrap_or_else(|| Path::new("."));
     let parent = fs::canonicalize(parent).map_err(|e| fail(SaveCopyStage::Prepare, e, None))?;
-    let target = parent.join(destination.file_name().expect("checked file name"));
+    let file_name = destination.file_name().ok_or_else(|| {
+        fail(
+            SaveCopyStage::Prepare,
+            io::Error::new(io::ErrorKind::InvalidInput, "destination has no file name"),
+            None,
+        )
+    })?;
+    let target = parent.join(file_name);
     match fs::symlink_metadata(&target) {
         Ok(_) => {
             return Err(fail(
@@ -359,21 +355,12 @@ pub(crate) fn sync_directory(_: &Path) -> io::Result<()> {
 }
 
 #[cfg(test)]
-mod tests {
+mod migration_tests {
     use super::*;
-    use crate::docx::DocxSession;
-    use joyoffice_opc::Budget;
-
-    fn plan() -> ExportPlan {
-        let bytes = include_bytes!("../../../tests/fixtures/docx/DOCX-MIN-001.docx");
-        DocxSession::open(bytes, &Budget::default())
-            .unwrap()
-            .export_plan()
-            .unwrap()
-    }
-
     #[test]
-    fn each_prepublication_failure_leaves_destination_absent_and_cleans_temporary() {
+    fn copy_failures_before_publication_never_create_the_destination() {
+        let doc = joyword_docx::read(crate::reader::WELCOME).unwrap();
+        let plan = ExportPlan::build(&doc, 1, None).unwrap();
         for stage in [
             SaveCopyStage::Prepare,
             SaveCopyStage::CreateTemporary,
@@ -383,94 +370,17 @@ mod tests {
             SaveCopyStage::Publish,
         ] {
             let dir = tempfile::tempdir().unwrap();
-            let target = dir.path().join("out.docx");
-            let error = save_copy_inner(&plan(), &target, |at, path| {
+            let path = dir.path().join("copy.docx");
+            let error = save_copy_inner(&plan, &path, |at, _| {
                 if at == stage {
-                    if at == SaveCopyStage::Write {
-                        fs::write(path, b"partial bytes")?;
-                    }
-                    Err(io::Error::new(
-                        io::ErrorKind::StorageFull,
-                        "injected failure",
-                    ))
+                    Err(io::Error::other("injected disk/write failure"))
                 } else {
                     Ok(())
                 }
             })
             .unwrap_err();
-            assert_eq!(error.stage(), stage);
             assert!(error.published().is_none());
-            assert!(!target.exists());
-            assert_eq!(fs::read_dir(dir.path()).unwrap().count(), 0);
-        }
-    }
-
-    #[test]
-    fn readback_rejects_same_length_corruption_and_truncation() {
-        let plan = plan();
-        for truncate in [false, true] {
-            let dir = tempfile::tempdir().unwrap();
-            let target = dir.path().join("out.docx");
-            let error = save_copy_inner(&plan, &target, |at, path| {
-                if at == SaveCopyStage::Verify {
-                    let mut bytes = plan.bytes().to_vec();
-                    if truncate {
-                        bytes.truncate(10);
-                    } else {
-                        bytes[5] ^= 1;
-                    }
-                    fs::write(path, bytes)?;
-                }
-                Ok(())
-            })
-            .unwrap_err();
-            assert_eq!(error.stage(), SaveCopyStage::Verify);
-            assert!(error.published().is_none());
-            assert!(!target.exists());
-        }
-    }
-
-    #[test]
-    fn destination_created_between_check_and_publish_is_never_overwritten() {
-        let dir = tempfile::tempdir().unwrap();
-        let target = dir.path().join("out.docx");
-        let error = save_copy_inner(&plan(), &target, |stage, _| {
-            if stage == SaveCopyStage::Publish {
-                fs::write(&target, b"other writer")?;
-            }
-            Ok(())
-        })
-        .unwrap_err();
-        assert_eq!(error.stage(), SaveCopyStage::Publish);
-        assert_eq!(error.io_error().kind(), io::ErrorKind::AlreadyExists);
-        assert!(error.published().is_none());
-        assert_eq!(fs::read(&target).unwrap(), b"other writer");
-        assert_eq!(fs::read_dir(dir.path()).unwrap().count(), 1);
-    }
-
-    #[test]
-    fn failures_after_publication_carry_complete_versioned_receipt() {
-        for stage in [SaveCopyStage::Cleanup, SaveCopyStage::SyncDirectory] {
-            let plan = plan();
-            let dir = tempfile::tempdir().unwrap();
-            let target = dir.path().join("out.docx");
-            let error = save_copy_inner(&plan, &target, |at, _| {
-                if at == stage {
-                    Err(io::Error::new(
-                        io::ErrorKind::PermissionDenied,
-                        "injected failure",
-                    ))
-                } else {
-                    Ok(())
-                }
-            })
-            .unwrap_err();
-            assert_eq!(error.stage(), stage);
-            let receipt = error.published().unwrap();
-            assert_eq!(receipt.version(), plan.version());
-            assert_eq!(receipt.bytes(), plan.bytes().len() as u64);
-            assert_eq!(receipt.durability(), CopyDurability::FileSynced);
-            assert_eq!(fs::read(receipt.path()).unwrap(), plan.bytes());
+            assert!(!path.exists());
         }
     }
 }

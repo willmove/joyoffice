@@ -39,56 +39,18 @@ jobs:
           xcrun --find metal
       - name: Fixed Rust toolchain
         run: rustup toolchain install 1.98.1 --profile minimal --component rustfmt --component clippy
-      - name: Specifications, corpus registry and locale resources
+      - name: R8 migration documentation and fixture integrity
         run: python scripts/check_docs.py
-      - name: No-panic, layer and filesystem gates
+      - name: Crate boundaries, production lints and tests
         run: |
           python scripts/check_gates.py
           python scripts/check_gates.py --counterexample scripts/tests/fixtures/gate_counterexample.rs
-      - name: Tool logic tests
-        run: python -m unittest discover -s scripts/tests
-      - name: M7 release evidence audit (pending gates remain pending)
-        run: python scripts/check_release.py --audit --out target/m7-release-readiness.json
-      - name: Rust format
-        run: cargo fmt --all -- --check
-      - name: Headless crate tests (default workspace members)
-        run: cargo xtask test joyword --headless
-      - name: M7 fixed model/layout corpus smoke
-        run: cargo run --locked -p joyword-layout --example m7_performance -- 10 1 2
-      - name: AI off by default (T400)
-        run: |
-          cargo test -p joyword-agent --locked --offline
-          cargo test -p joyword-shell --features ai --locked --offline --test ai_toggle
-          cargo check -p joyword-engine -p joyword-model -p joyword-docx -p joyword-layout -p joyword-shell --locked --offline --no-default-features
-          cargo clippy -p joyword-agent --all-targets --locked --offline -- -D warnings
-          cargo clippy -p joyword-shell --all-targets --features ai --locked --offline -- -D warnings
-      - name: Lints
-        run: cargo xtask check joyword
-      - name: Headless application adapter tests
-        run: cargo test --locked -p joyword
-      - name: Recovery journal experiment
-        run: |
-          cargo test --manifest-path experiments/recovery-journal/Cargo.toml --locked
-          cargo fmt --manifest-path experiments/recovery-journal/Cargo.toml --all -- --check
-          cargo clippy --manifest-path experiments/recovery-journal/Cargo.toml --all-targets --locked -- -D warnings
-      - name: DOCX robustness experiment
-        run: |
-          cargo test --manifest-path experiments/docx-robustness/Cargo.toml --locked
-          cargo fmt --manifest-path experiments/docx-robustness/Cargo.toml --all -- --check
-          cargo clippy --manifest-path experiments/docx-robustness/Cargo.toml --all-targets --locked -- -D warnings
-          python -m unittest discover -s experiments/docx-robustness/tests -p "test_*.py" -v
-          cargo build --manifest-path experiments/docx-robustness/Cargo.toml --locked
-          python experiments/docx-robustness/driver.py smoke --binary experiments/docx-robustness/target/debug/joyword-docx-robustness${{ runner.os == 'Windows' && '.exe' || '' }} --out experiments/docx-robustness/target/ci-smoke
-          python experiments/docx-robustness/driver.py fuzz --binary experiments/docx-robustness/target/debug/joyword-docx-robustness${{ runner.os == 'Windows' && '.exe' || '' }} --out experiments/docx-robustness/target/ci-fuzz --seed 20261019 --iterations 200 --seconds 60 --max-corpus 128
-      # The smoke line above is W09's bounded fixed-matrix mutation run (exit 1
-      # on crash/timeout/invariant/protocol or an incomplete matrix); the fuzz
-      # line is a time/iteration-bounded corpus-expanding run whose feedback
-      # signal is the harness's own behavioral feature list. Neither is
-      # coverage-guided fuzz: no code-coverage engine is installed.
-      - name: Native application build (precompiled shaders)
-        run: cargo build -p joyword --locked
-      # GPU windows, IME, accessibility, printing and Office round-trips require
-      # separate real-machine evidence. A successful job is only a build gate.
+          python -m unittest discover -s scripts/tests
+          cargo xtask check joyword
+      - name: Build native app and CLI
+        run: cargo xtask build joyword
+      - name: Open, edit, save, reopen and export a real DOCX
+        run: python scripts/joyword/verify-r8.py target/debug/joyword-cli${{ runner.os == 'Windows' && '.exe' || '' }}
 
   # Headless crates cross-compiled for Xinchuang targets and run under QEMU
   # user mode (T005). This proves code generation and the glibc/new-world
@@ -130,72 +92,31 @@ jobs:
           export QEMU_LD_PREFIX="${{ matrix.sysroot }}"
           cargo xtask test joyword --headless --target ${{ matrix.target }}
 
-  # T003: shape original text with one OFL font, render the same page scene
-  # to PDF and read it back with poppler. Proves the scene's text and
-  # positions reach the PDF; it is not a visual or Word-compatibility check.
-  unified-pdf:
+  document-export:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
-    env:
-      CARGO_TERM_COLOR: always
-      JOYWORD_TEST_FONT: /usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc:2
-      JOYWORD_REQUIRE_TEST_FONT: '1'
-      JOYWORD_REQUIRE_QPDF: '1'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - name: Noto CJK (OFL), poppler and qpdf
+      - name: System fonts and independent PDF readers
         run: |
           sudo apt-get update
           sudo apt-get install -y fonts-noto-cjk poppler-utils qpdf
-          dpkg-query -W fonts-noto-cjk poppler-utils qpdf
-          sha256sum /usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
       - name: Fixed Rust toolchain
         run: rustup toolchain install 1.98.1 --profile minimal
-      - name: Shaping and PDF tests with the required font
-        run: cargo test --locked -p joyword-layout -p joyword-pdf -p joyword-render
-      - name: Unified scene PDF
-        run: cargo run --locked -p joyword-pdf --example unified_scene -- /usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc 2 target/unified
-      - name: Independent read-back (pdftotext)
-        run: python3 scripts/verify_unified_pdf.py target/unified
-      - name: Engine snapshot to paginated PDF and independent read-back (C05)
-        run: |
-          cargo run --locked -p joyword-pdf --example document_flow -- /usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc 2 target/document-flow
-          python3 scripts/verify_document_pdf.py target/document-flow
-      - name: CPU scenes and independent PDF raster comparison (C06)
-        run: |
-          cargo test --locked -p joyword-render --example compare_rasters
-          cargo run --locked -p joyword-render --example cpu_scene -- /usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc 2 target/cpu-scene
-          pdftoppm -r 144 -png target/cpu-scene/reference.pdf target/cpu-scene/pdf
-          for cpu in target/cpu-scene/cpu-*.png; do
-            page="${cpu##*/cpu-}"
-            cargo run --locked -p joyword-render --example compare_rasters -- "$cpu" "target/cpu-scene/pdf-$page"
-          done
-      - name: Line and page break comparison (T004)
-        run: |
-          cargo run --locked -p joyword-pdf --example unified_scene -- /usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc 2 target/unified-split split-third-line
-          python3 scripts/compare_pdf_lines.py target/unified/scene.pdf target/unified/scene.pdf
-          if python3 scripts/compare_pdf_lines.py target/unified/scene.pdf target/unified-split/scene.pdf; then
-            echo "a changed line break was not detected"; exit 1
-          fi
-      - name: Feature scene PDFs and independent read-back
-        run: |
-          cargo run --locked -p joyword-cli --example feature_scenes -- /usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc 2 target/feature-scenes
-          python3 scripts/verify_feature_pdf.py target/feature-scenes
+      - name: Build headless CLI
+        run: cargo build --locked -p joyword-cli
+      - name: Inspect exported PDF with Poppler and qpdf
+        run: python3 scripts/joyword/verify-r8.py target/debug/joyword-cli --independent-pdf --out target/r8-export
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: unified-scene-pdf
-          path: |
-            target/unified
-            target/document-flow
-            target/cpu-scene
+          name: joyword-r8-export
+          path: target/r8-export
 
   dependencies:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - name: Acceptance checklists
-        run: python3 scripts/check_acceptance.py
       - name: Fixed Rust toolchain
         run: rustup toolchain install 1.98.1 --profile minimal
       - uses: taiki-e/install-action@4cef1412cce204788f482e778a0b9187f9626a29 # v2.87.21

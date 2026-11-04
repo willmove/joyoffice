@@ -1,137 +1,42 @@
 # JoyOffice
 
-2026-11-03：JoyDeck R9 已用 0.8.0 DeckCraft/GPUI 重构替换旧实现。后续开发统一在本仓库，先读 [R9 交接](docs/joyoffice/JOYDECK-R9-HANDOFF.md)；[当前状态](docs/joydeck/STATUS.md)、[功能差距](docs/joydeck/UI-PARITY.md) 和 [任务清单](docs/joydeck/TASKS.md) 为当前依据。Word/Sheet 保持各自实现与版本。
+JoyOffice 是使用 Rust 和 GPUI Kit 的桌面 Office 套件。JoyWord 编辑 DOCX，JoySheet 编辑 XLSX，JoyDeck 编辑 PPTX。三应用在同一仓库维护，共用工具链、锁文件和公共 UI，各自有独立的版本、应用入口和开发包。
 
-JoyOffice 是 Rust + GPUI Kit 跨平台 Office 套件的 Monorepo，包含 **JoyWord** 文字处理、**JoyDeck** 演示文稿与 **JoySheet** 电子表格。Word 采用 MIT；Deck、Sheet 保留 MIT OR Apache-2.0，具体见各包 manifest 和产品许可记录。
+| 产品 | 版本 | 开发入口 |
+| --- | --- | --- |
+| JoyWord | 0.1.1 | [R8 交接、兼容表和后续任务](docs/joyoffice/JOYWORD-R8-HANDOFF.md) |
+| JoySheet | 0.1.0 | [开发入口](docs/joysheet/README.md) · [整合记录](docs/joyoffice/JOYSHEET-INTEGRATION.md) |
+| JoyDeck | 0.8.0 | [R9 交接](docs/joyoffice/JOYDECK-R9-HANDOFF.md) · [当前状态](docs/joydeck/STATUS.md) |
 
-## Monorepo 开发入口
+JoyWord R8 已在这个仓库内替换旧实现，后续工作从 R8 交接开始。旧 Word 的 [M0–M9 规格和验收](docs/joyword/README.md) 可用于核对需求与历史行为。当前开发包与平台的验证范围见各产品的交接文档。
 
-- [迁移计划、进度及继续工作的提示词](docs/joyoffice/MONOREPO-MIGRATION.md) · [实际迁移结果](docs/joyoffice/MONOREPO-RESULT.md)
-- [JoyDeck 运行与范围](docs/joydeck/README.md) · [状态](docs/joydeck/STATUS.md) · [Word 规格](docs/joyword/README.md)
-- [JoySheet 开发入口](docs/joysheet/README.md) · [状态](docs/joysheet/STATUS.md) · [Sheet 整合记录](docs/joyoffice/JOYSHEET-INTEGRATION.md) · [整合结果](docs/joyoffice/JOYSHEET-RESULT.md)
-- 应用在 `apps/`，产品模块在 `crates/joyword-*`／`crates/joydeck-*`／`crates/joysheet-*`，共享能力在 `crates/joyoffice-*`。产品共用根锁文件与工具链，分别构建、测试和发布。
+## 构建和运行
 
-从仓库根目录使用 `cargo build -p joyword --locked`、`cargo build -p joydeck --locked` 或 `cargo build -p joysheet --locked`。分产品工程入口为 `cargo xtask check joyword`、`cargo xtask check joydeck`、`cargo xtask check joysheet`，完整约定见迁移文档。
-
-下文为 JoyWord 当前功能与验证记录；不代表 JoyDeck 同时通过这些验收。
-
-**当前是可运行技术预览，JoyWord 1.0 发布门槛尚未通过。** 截至 2026-11-02，Word 全路线图为 **20 done／35 in_progress／11 planned**；其中 1.0 范围 M0–M7 为 **17 done／34 in_progress／4 planned**，仍开放 38 项。任务关闭要求实现、自动验证和对应人工验收齐备；进行中不表示尚无代码。
-
-T201 基础表格、T104 完整 DOCX 检查点恢复及 T109 打开／保存并发安全已完成。基础中文编辑、格式、另存重开、统一页面场景 PDF／CPU 光栅、可见页缓存、增量重排与 CLI 已有实现。M2 的其余办公任务、M3 审阅、M4 Agent、M5 专业文档、M6 格式与保护以及 M7 稳定发布仍分别推进；当前收口范围、证据及完整任务账本见 [M0–M7 持续收口](docs/joyword/verification/m0-m7-completion-20261102.md)和 [TASKS](docs/joyword/TASKS.md#进度总览)。
-
-当前支持边界与剩余门槛：
-
-- DOCX 仅支持已声明子集；原始包、未知部件和无法安全映射的内容保留或拒绝。复杂文档的兼容显示不代表完整 Word 分页保真。
-- 固定 Word／WPS 交换、富剪贴板、系统打印、完整结构修订、Agent 桌面接入和多格式工作流仍有开发及验收缺口。
-- T600／T601 新增有界文本格式交换计划、CLI 与桌面文本导出，可先核对损失再生成新文件，保留源件及未保存编辑状态；输入输出范围见 [文本交换指南](docs/joyword/guide/text-exchange.md)。桌面导入、Strict 和完整复杂内容转换仍开放。
-- 三端完整原生、系统 IME／DPI／读屏、实际呈现性能、安装签名和升级回退尚未完成。信创真机继续按约定非阻塞后补，未实测项明确标注。
-- M8 的邮件合并 T807 已完成，EPUB／PDF/A 的 T806 仍进行中；M9 完成的是独立规格入口。它们不替代 1.0 验收。
-
-详细实现与历史验证记录见 [IMPLEMENTATION](docs/joyword/IMPLEMENTATION.md)。
-
-## 规格与任务
-
-- [规格入口](docs/joyword/README.md) · [产品 Spec](docs/joyword/SPEC.md) · [实施 Tasks](docs/joyword/TASKS.md)
-- [架构与 ADR](docs/joyword/ARCHITECTURE.md) · [兼容矩阵](docs/joyword/COMPATIBILITY.md) · [质量门槛](docs/joyword/QUALITY.md)
-- [原生 Agent 设计](docs/joyword/AI.md) · [公开资料调研](docs/joyword/RESEARCH.md) · [独立实现与来源](docs/joyword/PROVENANCE.md)
-- [当前实施与验证记录](docs/joyword/IMPLEMENTATION.md)
-- [验收清单](docs/joyword/acceptance/README.md) · [功能指南](docs/joyword/guide/README.md)
-- [开发约定](AGENTS.md) · [历史协作归档（已停用）](docs/coordination/README.md)
-
-## 运行技术预览
-
-工具链固定 Rust 1.98.1，GPUI Kit 固定 0.8.1，对应 gpui-pre 0.3.10（Zed 快照 08cbb88a，CI 核对其来源，见 ADR-010）；提交 Cargo.lock。三端 CI（macOS 含预编译 Metal 构建、Windows、Linux x86_64 与原生 ARM64）已实际运行并通过，另在 QEMU 下运行 ARM64／LoongArch64 无界面测试；真实机器上的人工运行另行验收。GPUI 系统依赖参考 [macOS](https://zed.dev/docs/development/macos)、[Linux](https://zed.dev/docs/development/linux)、[Windows](https://zed.dev/docs/development/windows) 构建说明；JoyWord 不依赖 Zed 编辑器。
-
-Mac 开发环境缺少 Metal 编译工具时，可使用 GPUI 的运行时着色器选项：
+工具链固定 Rust 1.98.1，GPUI Kit 固定 0.8.1，GPUI Pre 固定 0.3.10。应用在 `apps/`，产品模块在 `crates/joyword-*`、`crates/joysheet-*` 和 `crates/joydeck-*`，公共模块在 `crates/joyoffice-*`。
 
 ```sh
-cargo run -p joyword --features dev-runtime-shaders --locked
+cargo xtask build joyword
+cargo xtask build joysheet
+cargo xtask build joydeck
+cargo xtask run joyword -- assets/samples/mixed-media.docx
+cargo xtask run joysheet -- --sample sales
+cargo xtask run joydeck -- tests/fixtures/joydeck/r1-preview.pptx
 ```
 
-正文需要实际 CJK 字体。自动检查 macOS 宋体 face 6、Linux Noto CJK face 2、Windows 宋体 face 0；也可设置 `JOYWORD_FONT=字体文件绝对路径:face序号`。缺失或无法完整显示样例时返回错误，不使用同名字体替代。系统字体不随仓库分发。
-
-需要本地 .app 包时，先构建，再生成开发包装：
+## 检查与打包
 
 ```sh
-cargo build -p joyword --features dev-runtime-shaders --locked
-python3 scripts/package_macos_dev.py
-open target/dev/JoyWord.app
+python scripts/check_docs.py
+python scripts/check_gates.py
+cargo xtask check joyword
+cargo xtask check joysheet
+cargo xtask check joydeck
+cargo xtask package joyword
+cargo xtask package joysheet
+cargo xtask package joydeck
 ```
 
-此包装未签名、未公证，不是发行安装包。每次修改代码后需重新构建和包装。完整 Xcode／Metal 环境及其他平台使用 `cargo run -p joyword --locked`；正式构建还必须验证不启用 dev-runtime-shaders 的路径。
+开发包在 `dist/` 下按产品分目录。Linux 需要可用的 GPUI 显示与 Vulkan 环境。macOS 原生构建、签名和文件关联的验证安排见交接文档。正式发布由 [发布工作流](.github/workflows/release.yml) 按产品路由。
 
-## 发布产物
-
-`v*` 标签推送后，`.github/workflows/release.yml` 会在 macOS（Apple Silicon）、Windows x86_64 与 Linux x86_64／ARM64 上执行 `cargo build -p joyword --release --locked`，用 `scripts/package_release.py` 打包 `joyword-<版本>-<平台>-<架构>` 压缩包并生成 `.sha256` 校验文件，挂到对应 GitHub Release。产物为未签名预览构建；发布步骤见 [发布流程](docs/joyword/release-process.md)。
-
-Linux 虚拟机若没有可用的 Vulkan 硬件，JoyWord 会在没有 `/dev/dri/renderD*` 时自动寻找 SwiftShader／lavapipe ICD，或在实际窗口打开失败后带软件 ICD 重启一次；显式设置的 `VK_ICD_FILENAMES`／`VK_DRIVER_FILES` 优先，也可用 `JOYWORD_SOFTWARE_VULKAN_ICD` 指定 JSON。找不到软件 ICD 时仍返回原来的窗口诊断，不假称成功。
-
-## 无头检查与页面输出
-
-`joyword-cli` 提供只读 `inspect`／`text`，以及统一 PageScene 的 `render` PNG 和 `convert --to pdf`。Windows 示例使用本机宋体；输出目标已存在时拒绝覆盖，重复验证请换用新路径：
-
-```sh
-cargo run -p joyword-cli --locked -- inspect tests/fixtures/docx/DOCX-SAMPLE-001.docx
-cargo run -p joyword-cli --locked -- render tests/fixtures/docx/DOCX-SAMPLE-001.docx --font C:/Windows/Fonts/simsun.ttc:0 --output target/cli-png --page 1
-cargo run -p joyword-cli --locked -- convert tests/fixtures/docx/DOCX-SAMPLE-001.docx --to pdf --font C:/Windows/Fonts/simsun.ttc:0 --output target/cli-output.pdf
-```
-
-应用内 Ctrl／Cmd+S 会先列出原件的元数据风险，默认选择另存副本；只有显式确认后才替换原件。保存期间继续输入的内容仍标为未保存。
-
-## 验证
-
-无 GPU 核心与规格检查：
-
-```sh
-python3 scripts/check_docs.py
-cargo fmt --all -- --check
-cargo test --locked
-```
-
-依赖许可与安全公告（需要 [cargo-deny](https://github.com/EmbarkStudios/cargo-deny)，策略见 deny.toml）：
-
-```sh
-cargo deny --locked --all-features check
-```
-
-T003 统一字形链路（同一字体字节整形 → 页面场景 → PDF，再用独立阅读器读回；字体需自备，例如 Linux 的 Noto CJK 或 macOS 的宋体，不随仓库分发）：
-
-```sh
-cargo run -p joyword-pdf --example unified_scene -- /usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc 2 target/unified
-python3 scripts/verify_unified_pdf.py target/unified
-```
-
-C05 文档快照 → 单节分页 → 同场景 PDF（显式预览度量，非 Word 兼容规则；独立读回需要 Poppler）：
-
-```sh
-cargo run -p joyword-pdf --example document_flow -- /usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc 2 target/document-flow
-python3 scripts/verify_document_pdf.py target/document-flow
-```
-
-额外安装 pdfplumber 后，可加 `--glyph-baselines` 独立核对全部字符的绝对基线。
-
-C06 无 GPU 页面光栅与同场景 PDF 对照（Poppler 的字体抗锯齿可能不同；按行墨迹位置与双向笔画覆盖核对）：
-
-```sh
-cargo run -p joyword-render --example cpu_scene -- /usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc 2 target/cpu-scene
-pdftoppm -r 144 -png target/cpu-scene/reference.pdf target/cpu-scene/pdf
-cargo run -p joyword-render --example compare_rasters -- target/cpu-scene/cpu-1.png target/cpu-scene/pdf-1.png
-```
-
-T100 文本存储基准：
-
-```sh
-cargo run --release -p joyword-model --example text_storage
-```
-
-Mac 开发路径静态检查：
-
-```sh
-cargo clippy --workspace --all-targets --features dev-runtime-shaders --locked -- -D warnings
-```
-
-默认 workspace 成员只含无界面的 crate（含基础库、模型、引擎、DOCX/OPC、排版/PDF/CPU 光栅、语料及外壳逻辑），使核心测试不依赖窗口和 GPU。显式使用 `-p joyword` 构建应用。语料种子与登记规则见 [tests/fixtures](tests/fixtures/README.md)；登记校验不代表格式兼容测试通过。
-
-## 实施原则
-
-从公开规范独立实现文档语义、读写、事务与分页；允许复用通用基础库。每阶段交付可运行版本，所有兼容声明附验收证据。AI 计划默认关闭并支持无 AI 构建；默认关闭的 joyword-agent 与有界替换提案正在推进（T400–T402），启动不调用 Provider。M2 的样式、编号、表格、图片等已经在进行并有自动测试。仍须关闭 M0／M1 剩余验收，尤其是 T107 所依赖的 T103／T110，以及固定 Word／WPS 对照和恢复与原件保存的人工场景。M5、M6 和 M7 已进入进行中，完整任务仍按各自验收条件收口。信创真机留待有条件时补验，不阻塞上述推进与发布。逐项依据见 [TASKS](docs/joyword/TASKS.md) 与 [IMPLEMENTATION](docs/joyword/IMPLEMENTATION.md)。
+- [仓库开发约定](AGENTS.md)
+- [Monorepo 整合记录](docs/joyoffice/MONOREPO-RESULT.md)

@@ -1,0 +1,6 @@
+   Compiling joyword-cli v0.1.1 (D:\Coding\EditorProjects\joyoffice\apps\joyword-cli)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 6.89s
++ C:\Applications\Python\Python314\python.exe scripts/package_release.py --binary D:\Coding\EditorProjects\joyoffice\target\x86_64-pc-windows-msvc\debug\joyword.exe --cli D:\Coding\EditorProjects\joyoffice\target\x86_64-pc-windows-msvc\debug\joyword-cli.exe --version 0.1.1 --profile debug --source-snapshot D:\Coding\EditorProjects\joyoffice\target\word-source-snapshot-tvsg0pw_\sources.json --platform windows --arch x86_64 --out dist/joyword
+    Blocking waiting for file lock on package cache
+dist\joyword\joyword-0.1.1-windows-x86_64.zip
+dist\joyword\joyword-0.1.1-windows-x86_64.zip.sha256

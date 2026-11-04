@@ -1,0 +1,26 @@
+{
+  "platform": "Windows x86_64",
+  "desktop_edit": {
+    "joyword": {
+      "text": "R8桌面验收",
+      "retained": [
+        "table",
+        "image"
+      ]
+    },
+    "joysheet": {
+      "cell": "C2",
+      "formula": "SUM(800,8)",
+      "value": "808"
+    },
+    "joydeck": {
+      "slide_count": 4,
+      "action": "duplicate slide 2"
+    }
+  },
+  "output_sha256": {
+    ".docx": "aa3afbab3b72851108a4df84280f6482ac34088be88098c99e65b9a98fbc76b5",
+    ".xlsx": "5435e439f570e5ead9233588b1225b58ea8d219e7b4d50a3365fe0442e30783b",
+    ".pptx": "690789ded4db77e00d7c5c1b3c410761dd235f3607ec4cfb291af82846d076e0"
+  }
+}

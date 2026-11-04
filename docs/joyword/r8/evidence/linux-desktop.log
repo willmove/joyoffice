@@ -1,0 +1,47 @@
+wsl: 检测到 localhost 代理配置，但未镜像到 WSL。NAT 模式下的 WSL 不支持 localhost 代理。
+joyword
+joysheet
+joydeck
+  71440 Sl+  /root/joyoffice-r8-target/x86_64-unknown-linux-gnu/debug/joyword -- /tmp/joyoffice-r8.NpWwsk/R8 Linux Word.docx
+  71441 Sl+  /root/joyoffice-r8-target/x86_64-unknown-linux-gnu/debug/joysheet /tmp/joyoffice-r8.NpWwsk/R8 Linux Sheet.xlsx
+  71442 Sl+  /root/joyoffice-r8-target/x86_64-unknown-linux-gnu/debug/joydeck /tmp/joyoffice-r8.NpWwsk/R8 Linux Deck.pptx
+==> /tmp/joyoffice-r8.NpWwsk/deck.log <==
+libEGL warning: failed to get driver name for fd -1
+
+libEGL warning: MESA-LOADER: failed to retrieve device information
+
+libEGL warning: failed to get driver name for fd -1
+
+MESA: error: ZINK: failed to choose pdev
+libEGL warning: egl: failed to create dri2 screen
+JoyDeck window opened · GPUI Kit 0.8.1 / pre 0.3.10
+R6/R7 opened=true pages=3 elapsed_ms=334
+R4 scene {"builds":2,"hits":0,"misses":12,"cpu_tiles":0,"backdrop_rasters":2,"native_paths":6,"glyphs":63,"cache_bytes":5387792,"build_micros":12484}
+
+==> /tmp/joyoffice-r8.NpWwsk/sheet.log <==
+Joysheet: engine initialized
+Joysheet: initializing GPUI components
+Joysheet: opening desktop window
+libEGL warning: failed to get driver name for fd -1
+
+libEGL warning: MESA-LOADER: failed to retrieve device information
+
+libEGL warning: failed to get driver name for fd -1
+
+MESA: error: ZINK: failed to choose pdev
+libEGL warning: egl: failed to create dri2 screen
+Joysheet: desktop window initialized
+
+==> /tmp/joyoffice-r8.NpWwsk/word.log <==
+libEGL warning: failed to get driver name for fd -1
+
+libEGL warning: MESA-LOADER: failed to retrieve device information
+
+libEGL warning: failed to get driver name for fd -1
+
+MESA: error: ZINK: failed to choose pdev
+libEGL warning: egl: failed to create dri2 screen
+joyword-perf {"stage":"open_worker","ms":407.858,"page":1}
+joyword-perf {"stage":"raster_worker","ms":46.324,"page":1}
+joyword-perf {"stage":"raster_installed","ms":0.000,"page":1}
+joyword-perf {"stage":"open_to_paint","ms":669.979,"page":1}

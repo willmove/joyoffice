@@ -55,16 +55,6 @@ LAYERS = {
     "joysheet": {"joysheet-ui-gpui"},
     "joysheet-cli": {"joysheet-protocol", "joysheet-engine", "joysheet-mcp", "joysheet-xlsx"},
     "joysheet-tools": {"joysheet-app", "joysheet-engine"},
-    "joyword-cli": {
-        "joyoffice-opc",
-        "joyword-docx",
-        "joyword-foundation",
-        "joyword-layout",
-        "joyword-model",
-        "joyword-pdf",
-        "joyword-render",
-        "joyword-shell",
-    },
     # R9: retained DeckCraft model / pure rendering and read-only v1 bridge.
     'joydeck': {'joydeck-ui-gpui'},
     'joydeck-anim': {'joydeck-geom', 'joydeck-model'},
@@ -84,48 +74,35 @@ LAYERS = {
     'joydeck-text': {'joydeck-color', 'joydeck-fonts', 'joydeck-geom', 'joydeck-model'},
     'joydeck-ui-gpui': {'joydeck-engine', 'joydeck-geom', 'joydeck-model', 'joydeck-render', 'joydeck-shell', 'joydeck-text', 'joyoffice-ui'},
     "joyoffice-xtask": set(),
-    "joyword-foundation": set(),
-    # T400: no document, engine, or network crate. Core crates must not depend
-    # on it; shell may, only as an optional non-default feature.
-    "joyword-agent": set(),
-    "joyword-model": {"joyword-foundation"},
-    "joyword-engine": {"joyword-model", "joyword-foundation"},
     "joyoffice-opc": set(),
     "joyoffice-ui": set(),
-    "joyword-docx": {"joyoffice-opc", "joyword-model", "joyword-foundation"},
-    "joyword-layout": {"joyword-foundation", "joyword-model"},
-    "joyword-render": {"joyword-foundation", "joyword-layout", "joyword-model"},
-    "joyword-epub": {"joyword-model", "joyoffice-opc"},
-    "joyword-pdf": {"joyword-foundation", "joyword-layout", "joyword-model"},
-    "joyword-corpus": {"joyoffice-opc"},
     "joyoffice-cfb": set(),
     "joyoffice-drawingml": set(),
     "joyoffice-omml": set(),
-    "joyword-doc": {"joyoffice-cfb", "joyword-model", "joyword-textfmt"},
-    "joyword-protect": {"joyoffice-cfb", "joyoffice-opc"},
-    "joyword-rtf": {"joyword-model", "joyword-textfmt"},
-    "joyword-textfmt": {"joyword-model"},
-    "joyword-shell": {
-        "joyoffice-opc",
-        # T600/T601 pure conversion planners; no IO, UI or network in formats.
-        "joyword-rtf",
-        "joyword-textfmt",
-        "joyword-agent",
-        "joyword-docx",
-        "joyword-epub",
-        "joyword-engine",
-        "joyword-model",
-    },
-    "joyword": {
-        "joyoffice-ui",
-        "joyword-engine",
-        "joyword-foundation",
-        "joyword-layout",
-        "joyword-model",
-        "joyword-pdf",
-        "joyword-render",
-        "joyword-shell",
-    },
+    # R8 Wordcraft model, formats, session, document host and GPUI adapter.
+    "joyword": {"joyword-ui-gpui"},
+    "joyword-agent": set(),
+    "joyword-cli": {"joyword-docx", "joyword-engine", "joyword-mcp", "joyword-shell"},
+    "joyword-control-key": set(),
+    "joyword-corpus": {"joyoffice-opc"},
+    "joyword-doc": {"joyword-geom", "joyword-model"},
+    "joyword-docx": {"joyword-geom", "joyword-model"},
+    "joyword-engine": {"joyword-doc", "joyword-docx", "joyword-fonts", "joyword-formats", "joyword-geom", "joyword-layout", "joyword-model", "joyword-pdf", "joyword-render", "craft-font-catalog", "craft-font-store", "craft-proof"},
+    "joyword-fonts": {"craft-font-catalog", "craft-font-store"},
+    "joyword-formats": {"joyword-geom", "joyword-metafile", "joyword-model"},
+    "joyword-geom": set(),
+    "joyword-layout": {"joyword-fonts", "joyword-geom", "joyword-metafile", "joyword-model", "craft-proof"},
+    "joyword-mcp": {"joyword-control-key", "joyword-engine", "joyword-model", "joyword-render"},
+    "joyword-metafile": set(),
+    "joyword-model": {"joyword-geom"},
+    "joyword-pdf": {"joyword-fonts", "joyword-geom", "joyword-layout", "joyword-metafile", "joyword-model"},
+    "joyword-render": {"joyword-fonts", "joyword-geom", "joyword-layout", "joyword-metafile", "joyword-model"},
+    "joyword-shell": {"joyoffice-opc", "joyword-docx", "joyword-engine", "joyword-fonts", "joyword-geom", "joyword-layout", "joyword-pdf", "joyword-render"},
+    "joyword-ui-gpui": {"joyoffice-ui", "joyword-render", "joyword-shell"},
+    "craft-atomic": set(),
+    "craft-font-catalog": set(),
+    "craft-font-store": {"craft-atomic", "craft-font-catalog"},
+    "craft-proof": {"craft-atomic"},
 }
 
 # Dev-dependency allowances on top of LAYERS.
@@ -145,67 +122,51 @@ DEV_LAYERS = {
     # the production zip writer correctly refuses to create these archives.
     'joydeck-pptx': {'joydeck-color', 'joydeck-geom'},
     'joydeck-shell': {'joydeck-geom', 'joydeck-text'},
-    "joyword-epub": {"joyword-docx"},
-    # apps/joyword-cli/Cargo.toml:22 -- CLI integration tests replay corpus cases.
-    "joyword-cli": {"joyword-corpus"},
-    # crates/joyword-docx/Cargo.toml -- DOCX round-trip tests read corpus
-    # originals, and the T402 mark-revision slice round-trips one AI replace
-    # through a real engine session before exporting again.
-    "joyword-docx": {
-        "joyoffice-drawingml",
-        "joyoffice-omml",
-        "joyword-corpus",
-        "joyword-engine",
-    },
-    # crates/joyword-layout/Cargo.toml:20-21 -- layout tests drive a real engine
-    # session and compare page scenes against the raster output.
-    "joyword-layout": {"joyword-engine", "joyword-render"},
-    # crates/joyword-pdf/Cargo.toml:21 -- PDF tests build documents through the engine.
-    "joyword-pdf": {"joyword-engine"},
-    # crates/joyword-render/Cargo.toml:22 -- render tests cross-check rasters
-    # against the PDF writer over one shared page scene.
-    "joyword-render": {"joyword-pdf"},
-    # crates/joyword-agent/Cargo.toml dev-dependencies — T402 accept tests apply
-    # one real engine transaction and read the revision author off the model.
-    # Production dependencies of joyword-agent stay empty, and neither the
-    # engine nor the model depends on the agent.
-    "joyword-agent": {"joyword-engine", "joyword-model"},
+    "joyword-docx": {"joyword-corpus"},  # Allow original fixture inputs in tests.
 }
 
+# Word's file operations live in the adapters and bounded document, recovery,
+# font and proofing services below. New paths require an explicit review.
 FS_ALLOW = {
-    # T600/T601 shared, bounded new-file publisher for desktop and CLI.
-    "crates/joyword-shell/src/exchange_output.rs",
-    # T600/T601: explicit input, same-directory verified temporary, no-clobber publication.
-    "apps/joyword-cli/src/exchange.rs",
-    "crates/joyword-shell/src/mail_merge.rs",
-    "crates/joyword-shell/src/epub.rs",
-    "apps/joyword-cli/src/main.rs",
-    "apps/joyword-cli/src/visual.rs",
     "crates/joyoffice-opc/src/zip.rs",
     "crates/joyoffice-opc/src/package.rs",
-    "crates/joyword-shell/src/print.rs",
-    "crates/joyword-shell/src/storage.rs",
-    "crates/joyword-shell/src/storage/source.rs",
-    "crates/joyword-shell/src/storage/original.rs",
-    "crates/joyword-shell/src/storage/locks.rs",
-    "crates/joyword-shell/src/storage/recovery.rs",
-    "crates/joyword-shell/src/storage/metadata.rs",
+    "apps/joyword-cli/src/main.rs",
+    "crates/joyword-control-key/src/lib.rs",
+    "crates/joyword-engine/src/file_access.rs",
+    "crates/joyword-engine/src/io.rs",
+    "crates/joyword-engine/src/io/safe_save.rs",
+    "crates/joyword-engine/src/recovery/desktop.rs",
+    "crates/joyword-engine/src/speech.rs",
+    "crates/joyword-fonts/build.rs",
+    "crates/joyword-fonts/src/fontdb/catalog.rs",
+    "crates/joyword-fonts/src/fontdb/fallback_data.rs",
+    "crates/joyword-fonts/src/fontdb/names.rs",
+    "crates/joyword-fonts/src/fontdb/user.rs",
+    "crates/joyword-fonts/src/ui_fallback.rs",
+    "crates/joyword-mcp/src/backend.rs",
+    "crates/joyword-shell/src/advanced.rs",
+    "crates/joyword-shell/src/authoring.rs",
+    "crates/joyword-shell/src/editing.rs",
     "crates/joyword-shell/src/prefs.rs",
-    "crates/joyword-shell/src/diag.rs",
-    "crates/joyword-shell/src/docx.rs",
-    "crates/joyword-shell/src/host.rs",
-    "crates/joyword-shell/src/input.rs",
-    "apps/joyword/src/main.rs",
-    "apps/joyword/src/document_canvas.rs",
-    "apps/joyword/src/input_ui.rs",
-    # Linux file-dialog fallback: gpui-pre-linux 0.3.9 stores `set_menus` and its
-    # XDG portal prompt can hang with no window on UKUI/X11, so this module asks
-    # for a path in-window and spawns zenity, qarma or kdialog. Same category as
-    # the already-listed `input_ui.rs`, which spawns a process to open a URL, and
-    # it cannot move to joyword-shell because the shell crate must not depend on
-    # GPUI. Allowlisted 2026-10-22 by the coordinator when the hardened scan
-    # first saw it; see GATES-REPORT.md.
-    "apps/joyword/src/linux_files.rs",
+    "crates/joyword-shell/src/reader.rs",
+    "crates/joyword-shell/src/storage.rs",
+    "crates/joyword-shell/src/storage/locks.rs",
+    "crates/joyword-shell/src/storage/metadata.rs",
+    "crates/joyword-shell/src/storage/original.rs",
+    "crates/joyword-shell/src/storage/source.rs",
+    "third-party/craft-libs/font-catalog/src/catalog.rs",
+    "third-party/craft-libs/font-catalog/src/env.rs",
+    "third-party/craft-libs/font-catalog/src/fontconfig.rs",
+    "third-party/craft-libs/font-catalog/src/scan.rs",
+    "third-party/craft-libs/font-catalog/src/suitcase.rs",
+    "third-party/craft-libs/font-catalog/src/system.rs",
+    "third-party/craft-libs/font-store/src/language_packs.rs",
+    "third-party/craft-libs/font-store/src/store.rs",
+    "third-party/craft-libs/proof/build.rs",
+    "third-party/craft-libs/proof/src/hunspell.rs",
+    "third-party/craft-libs/proof/src/lib.rs",
+    "third-party/craft-libs/proof/src/pack_lang.rs",
+    "third-party/craft-libs/proof/src/packs.rs",
 }
 
 # Each Deck adapter below has a specific IO responsibility. These are exact
@@ -272,7 +233,8 @@ AI_NET_RE = re.compile(
     r"\b(?:std::net::|TcpStream|UdpSocket|reqwest::|hyper::|ureq::|tokio::net)\b"
 )
 CORE_WITHOUT_AGENT = (
-    "crates/joyword-foundation/Cargo.toml",
+    "crates/joyword-shell/Cargo.toml",
+    "crates/joyword-ui-gpui/Cargo.toml",
     "crates/joyword-model/Cargo.toml",
     "crates/joyword-engine/Cargo.toml",
     "crates/joyword-docx/Cargo.toml",
@@ -429,7 +391,7 @@ def dependency_isolation(crate: str, deps: set[str]) -> list[str]:
             crate.startswith("joyoffice-") and other
         ):
             errors.append(f"{crate} must not depend on product package {dep}")
-        if crate not in {"joyword", "joydeck", "joysheet", "joysheet-ui-gpui", "joydeck-ui-gpui", "joyoffice-ui"} and gui_dependency(dep):
+        if crate not in {"joyword", "joyword-ui-gpui", "joydeck", "joysheet", "joysheet-ui-gpui", "joydeck-ui-gpui", "joyoffice-ui"} and gui_dependency(dep):
             errors.append(f"{crate} must remain headless; GUI dependency {dep} is forbidden")
         if crate.startswith("joysheet-") and crate not in {"joysheet-platform", "joysheet-ui-gpui"} and dep in {"rfd", "arboard", "winit", "egui", "eframe"}:
             errors.append(f"{crate} must not depend on platform/UI package {dep}")
@@ -782,7 +744,11 @@ def gated_panic_sites(crates: Path = CRATES, apps: Path = APPS, root: Path = ROO
     sites = []
     for path in rust_files(crates, apps):
         shown = rel(path, root)
-        if not panic_scope(shown):
+        # R8 uses compiler-aware production Clippy for the imported Word
+        # packages. The legacy regex also reads assertions in fixture modules.
+        word_sources = ("crates/joyword-", "apps/joyword/", "apps/joyword-cli/",
+                        "third-party/craft-libs/")
+        if (root == ROOT and shown.startswith(word_sources)) or not panic_scope(shown):
             continue
         sites.extend(panic_sites(path, root))
     return sites
@@ -908,12 +874,6 @@ def check_ai_isolation(root: Path = ROOT) -> list[str]:
         text = (root / relative).read_text(encoding="utf-8")
         if "joyword-agent" in text:
             errors.append(f"{relative} must not reference joyword-agent")
-    shell = (root / "crates/joyword-shell/Cargo.toml").read_text(encoding="utf-8")
-    if "optional = true" not in shell or "joyword-agent" not in shell:
-        errors.append("joyword-shell must depend on joyword-agent only as an optional crate")
-    default = re.search(r"(?m)^default\s*=\s*\[([^\]]*)\]", shell)
-    if default is None or "ai" in default.group(1):
-        errors.append("joyword-shell must not enable the ai feature by default")
     app = (root / "apps/joyword/Cargo.toml").read_text(encoding="utf-8")
     app_default = re.search(r"(?m)^default\s*=\s*\[([^\]]*)\]", app)
     if app_default is None or "ai" in app_default.group(1):

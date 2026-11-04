@@ -1,0 +1,32 @@
+{
+  "joyword": {
+    "archive": "dist/joyword/joyword-0.1.1-windows-x86_64.zip",
+    "archive_sha256": "69f9e4e7b9a388e84ec0feee61b36a6807f3e57ccba99141f848b8e17c42dbb8",
+    "gui": "target/r8-final-windows/joyword/joyword.exe",
+    "gui_sha256": "8068b763fec99fc1c3d372bf07ff91f5804fa96ff4a07bedfe43ab7a44214845",
+    "cli": "target/r8-final-windows/joyword/joyword-cli.exe",
+    "profile": "debug",
+    "cli_sha256": "5f33756722036cbe2934c6230a96062b81516c3eb5b3749769b52dcf4782100e",
+    "same_gui_as_desktop_reopen": true
+  },
+  "joysheet": {
+    "archive": "dist/joysheet/joysheet-0.1.0-windows-x86_64-debug.zip",
+    "archive_sha256": "e16164645987b3f42f5a7248048e11cdb61aa26ced0b8d072a2a374ff74c1ca7",
+    "gui": "target/r8-final-windows/joysheet/joysheet-0.1.0-windows-x86_64-debug/joysheet.exe",
+    "gui_sha256": "0c85858e77940f63e50975f3282615900fef90b3ea4a74061f379932bb0b4615",
+    "cli": "target/r8-final-windows/joysheet/joysheet-0.1.0-windows-x86_64-debug/joysheet-cli.exe",
+    "profile": "debug",
+    "cli_sha256": "08fba422f8dc92b135936f915eafc3bca1603c525fa1a0686a0493dd300613bb",
+    "same_gui_as_desktop_reopen": true
+  },
+  "joydeck": {
+    "archive": "dist/joydeck/joydeck-0.8.0-r9-windows-x86_64-debug-d8e22f56ec.zip",
+    "archive_sha256": "67e81a7c913ffd12e54202edd4f070be04d5c0746531c67f7ae17070038cd151",
+    "gui": "target/r8-final-windows/joydeck/joydeck-0.8.0-r9-windows-x86_64-debug-9b8ec37679/joydeck.exe",
+    "gui_sha256": "73cc32ebd1a5a1c18bdbbbb8e9feb8d738c84dd743eb8a92525ba35e6e5e6afc",
+    "cli": "target/r8-final-windows/joydeck/joydeck-0.8.0-r9-windows-x86_64-debug-9b8ec37679/joydeck-cli.exe",
+    "profile": "debug",
+    "cli_sha256": "6dac2eccc593bd43f7f1f099f4f69599534da9f8fbf84f13fee60a15f856e339",
+    "same_gui_as_desktop_reopen": true
+  }
+}

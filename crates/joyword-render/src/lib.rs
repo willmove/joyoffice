@@ -1,669 +1,1664 @@
-//! CPU consumer of the same immutable EMU scenes as PDF (ARCHITECTURE §6.2).
-//! No shaping, line breaking, system font lookup or document mutation occurs
-//! here. Monochrome, unhinted outlines use the exact supplied font bytes/face.
-pub mod cache;
-pub mod requests;
+//! WordCraft rasteriser: draws a page's display list with vello_cpu.
+#![deny(
+    clippy::unwrap_used,
+    clippy::expect_used,
+    clippy::panic,
+    clippy::unimplemented,
+    clippy::todo,
+    clippy::unreachable
+)]
 
-use std::collections::BTreeMap;
-use std::fmt;
-use std::sync::Arc;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::collections::HashMap;
+use std::sync::{Arc, Mutex, Weak};
 
-use joyword_foundation::Emu;
-use joyword_layout::{FontKey, LoadedFont, PageScene, SceneImage};
+use joyword_fonts::FontDb;
+use joyword_layout::Page;
+use joyword_layout::display::Paint;
+use joyword_layout::display::{DisplayOptions, Draw, Stroke, page_layers};
+use joyword_metafile::{Item, Picture, PlacedItem, Seg};
+use joyword_model::Document;
+use joyword_model::para::ShapeKind;
+use joyword_model::props::Rgb;
+use vello_cpu::kurbo::{self, Affine, BezPath, Shape};
+use vello_cpu::peniko;
+use vello_cpu::{Pixmap, RenderContext, Resources};
 
-pub use cache::{NeighborhoodCache, NeighborhoodRequest};
-use skrifa::instance::{LocationRef, Size};
-use skrifa::outline::{DrawSettings, OutlinePen};
-use skrifa::raw::TableProvider;
-use skrifa::{GlyphId, MetadataProvider, Tag};
-use tiny_skia::{
-    BlendMode, FillRule, FilterQuality, Paint, Path, PathBuilder, Pixmap, PixmapPaint, Transform,
+mod media;
+
+#[cfg(test)]
+use media::{
+    CACHE_BYTES, MediaCache, OVERSIZED_GLYPHS_NOTED, cacheable, decode_pixmap_within,
+    note_oversized_glyphs, shrink,
 };
+pub use media::{decode_pixmap, image_size, metafile_size};
+use media::{draw_page_picture, draw_vector, lock, pixmap_for, premul_pixmap, vector_for};
 
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub struct Projection {
-    dpi: f64,
-    zoom: f64,
-}
-impl Projection {
-    pub fn new(dpi: f64, zoom: f64) -> Result<Self, RasterError> {
-        if !dpi.is_finite()
-            || !zoom.is_finite()
-            || !(1.0..=1200.0).contains(&dpi)
-            || !(0.1..=5.0).contains(&zoom)
-        {
-            return Err(RasterError::InvalidProjection);
-        }
-        Ok(Self { dpi, zoom })
-    }
-    pub fn dpi(self) -> f64 {
-        self.dpi
-    }
-    pub fn zoom(self) -> f64 {
-        self.zoom
-    }
-    pub fn pixels(self, emu: Emu) -> f64 {
-        emu.raw() as f64 / Emu::PER_INCH as f64 * self.dpi * self.zoom
-    }
-}
+mod color_glyph;
+pub mod icon_lib;
 
-/// Caret pixels painted into a copy of one cached page. The returned buffer is
-/// the overlay; `page_bgra` is not modified, so a cache hit stays valid.
-pub fn paint_caret_overlay(
-    page_bgra: &[u8],
-    width: u32,
-    height: u32,
-    projection: Projection,
-    caret_x: Emu,
-    caret_top: Emu,
-    caret_height: Emu,
-) -> Vec<u8> {
-    let width = width as usize;
-    let height = height as usize;
-    let mut overlay = page_bgra.to_vec();
-    if width == 0 || height == 0 {
-        return overlay;
-    }
-    let x = projection
-        .pixels(caret_x)
-        .round()
-        .clamp(0.0, (width - 1) as f64) as usize;
-    let y0 = projection
-        .pixels(caret_top)
-        .round()
-        .clamp(0.0, (height - 1) as f64) as usize;
-    let y1 = projection
-        .pixels(Emu::new(caret_top.raw().saturating_add(caret_height.raw())))
-        .round()
-        .clamp(y0 as f64, height as f64) as usize;
-    for y in y0..y1.max(y0 + 1).min(height) {
-        let index = (y * width + x) * 4;
-        if index + 3 < overlay.len() {
-            overlay[index] = 0x20;
-            overlay[index + 1] = 0x40;
-            overlay[index + 2] = 0xe0;
-            overlay[index + 3] = 0xff;
-        }
-    }
-    overlay
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum RasterLimit {
-    Dimensions,
-    Pixels,
-    Fonts,
-    FontBytes,
-    Runs,
-    Glyphs,
-    Outlines,
-    Commands,
-    WorkPixels,
-    EdgeWork,
-}
-#[derive(Clone, Copy, Debug)]
-pub struct RasterLimits {
-    pub max_dimension: u32,
-    pub max_pixels: u64,
-    pub max_fonts: usize,
-    pub max_font_bytes: usize,
-    pub max_runs: usize,
-    pub max_glyphs: usize,
-    pub max_outlines: usize,
-    pub max_commands: usize,
-    pub max_work_pixels: u64,
-    pub max_edge_work: u64,
-}
-impl Default for RasterLimits {
-    fn default() -> Self {
-        Self {
-            max_dimension: 8192,
-            max_pixels: 16_777_216,
-            max_fonts: 64,
-            max_font_bytes: 256 << 20,
-            max_runs: 100_000,
-            max_glyphs: 2_000_000,
-            max_outlines: 8192,
-            max_commands: 1_000_000,
-            max_work_pixels: 268_435_456,
-            max_edge_work: 33_554_432,
-        }
-    }
-}
-impl RasterLimits {
-    fn capped(self) -> Self {
-        let h = Self::default();
-        Self {
-            max_dimension: self.max_dimension.min(h.max_dimension),
-            max_pixels: self.max_pixels.min(h.max_pixels),
-            max_fonts: self.max_fonts.min(h.max_fonts),
-            max_font_bytes: self.max_font_bytes.min(h.max_font_bytes),
-            max_runs: self.max_runs.min(h.max_runs),
-            max_glyphs: self.max_glyphs.min(h.max_glyphs),
-            max_outlines: self.max_outlines.min(h.max_outlines),
-            max_commands: self.max_commands.min(h.max_commands),
-            max_work_pixels: self.max_work_pixels.min(h.max_work_pixels),
-            max_edge_work: self.max_edge_work.min(h.max_edge_work),
-        }
-    }
-}
-#[derive(Clone, Default)]
-pub struct RasterCancellation(Arc<AtomicBool>);
-impl RasterCancellation {
-    pub fn cancel(&self) {
-        self.0.store(true, Ordering::Release);
-    }
-    pub fn is_cancelled(&self) -> bool {
-        self.0.load(Ordering::Acquire)
-    }
-    fn check(&self) -> Result<(), RasterError> {
-        if self.is_cancelled() {
-            Err(RasterError::Cancelled)
-        } else {
-            Ok(())
-        }
-    }
-}
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub enum RasterError {
-    InvalidProjection,
-    InvalidPage,
-    InvalidGeometry,
-    InvalidFont(FontKey),
-    DuplicateFont(FontKey),
-    MissingFont(FontKey),
-    UnsupportedFont(FontKey),
-    InvalidGlyph {
-        font: FontKey,
-        glyph: u16,
-    },
-    Outline {
-        font: FontKey,
-        glyph: u16,
-    },
-    /// A scene image could not be decoded. The text does not echo bytes.
-    Image(&'static str),
-    LimitExceeded(RasterLimit),
-    Allocation,
-    Cancelled,
-    Png,
-}
-impl fmt::Display for RasterError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "page raster: {self:?}")
-    }
-}
-impl std::error::Error for RasterError {}
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-pub struct RasterStats {
-    pub glyphs: usize,
-    pub outlines: usize,
-    pub commands: usize,
-    pub work_pixels: u64,
-    pub edge_work: u64,
-}
-/// Opaque RGBA8 page. Font alpha is composited over white, so the output is
-/// also suitable for image APIs expecting straight (not premultiplied) alpha.
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct RasterPage {
-    width: u32,
-    height: u32,
-    rgba: Vec<u8>,
-    stats: RasterStats,
-}
-impl RasterPage {
-    pub fn width(&self) -> u32 {
-        self.width
-    }
-    pub fn height(&self) -> u32 {
-        self.height
-    }
-    pub fn rgba(&self) -> &[u8] {
-        &self.rgba
-    }
-    pub fn stats(&self) -> RasterStats {
-        self.stats
-    }
-    /// GPUI's RenderImage consumes BGRA. Keep channel conversion explicit.
-    pub fn into_bgra(mut self) -> Vec<u8> {
-        for p in self.rgba.as_chunks_mut::<4>().0 {
-            p.swap(0, 2);
-        }
-        self.rgba
-    }
-    pub fn png(&self) -> Result<Vec<u8>, RasterError> {
-        tiny_skia::PixmapRef::from_bytes(&self.rgba, self.width, self.height)
-            .ok_or(RasterError::InvalidPage)?
-            .encode_png()
-            .map_err(|_| RasterError::Png)
-    }
-}
-
-struct Pen<'a> {
-    builder: PathBuilder,
-    commands: &'a mut usize,
-    limit: usize,
-    failure: Option<RasterError>,
-    cancellation: &'a RasterCancellation,
-}
-impl Pen<'_> {
-    fn accept(&mut self, coordinates: &[f32]) -> bool {
-        if self.failure.is_some() {
-            return false;
-        }
-        if self.cancellation.is_cancelled() {
-            self.failure = Some(RasterError::Cancelled);
-            return false;
-        }
-        if *self.commands >= self.limit {
-            self.failure = Some(RasterError::LimitExceeded(RasterLimit::Commands));
-            return false;
-        }
-        if coordinates
-            .iter()
-            .any(|v| !v.is_finite() || v.abs() > 1_000_000.0)
-        {
-            self.failure = Some(RasterError::InvalidGeometry);
-            return false;
-        }
-        *self.commands += 1;
-        true
-    }
-}
-impl OutlinePen for Pen<'_> {
-    fn move_to(&mut self, x: f32, y: f32) {
-        if self.accept(&[x, y]) {
-            self.builder.move_to(x, -y);
-        }
-    }
-    fn line_to(&mut self, x: f32, y: f32) {
-        if self.accept(&[x, y]) {
-            self.builder.line_to(x, -y);
-        }
-    }
-    fn quad_to(&mut self, x: f32, y: f32, ex: f32, ey: f32) {
-        if self.accept(&[x, y, ex, ey]) {
-            self.builder.quad_to(x, -y, ex, -ey);
-        }
-    }
-    fn curve_to(&mut self, x: f32, y: f32, x2: f32, y2: f32, ex: f32, ey: f32) {
-        if self.accept(&[x, y, x2, y2, ex, ey]) {
-            self.builder.cubic_to(x, -y, x2, -y2, ex, -ey);
-        }
-    }
-    fn close(&mut self) {
-        if self.accept(&[]) {
-            self.builder.close();
-        }
-    }
-}
-fn limit(condition: bool, which: RasterLimit) -> Result<(), RasterError> {
-    if condition {
-        Err(RasterError::LimitExceeded(which))
-    } else {
-        Ok(())
-    }
-}
-fn checked_position(a: Emu, b: Emu, projection: Projection) -> Result<f32, RasterError> {
-    let raw = a
-        .raw()
-        .checked_add(b.raw())
-        .ok_or(RasterError::InvalidGeometry)?;
-    let px = projection.pixels(Emu::new(raw));
-    if !px.is_finite() || px.abs() > 1_000_000.0 {
-        return Err(RasterError::InvalidGeometry);
-    }
-    Ok(px as f32)
-}
-
-/// Pixel size `rasterize` gives `scene` at `projection`, refused for page
-/// geometry, dimensions and total pixels exactly as `rasterize` refuses it.
-/// Nothing is allocated or drawn, so callers can budget pages up front.
-pub fn raster_size(
-    scene: &PageScene,
-    projection: Projection,
-    limits: RasterLimits,
-) -> Result<(u32, u32), RasterError> {
-    let limits = limits.capped();
-    if scene.width.raw() <= 0 || scene.height.raw() <= 0 {
-        return Err(RasterError::InvalidPage);
-    }
-    let w = projection.pixels(scene.width).ceil();
-    let h = projection.pixels(scene.height).ceil();
-    limit(
-        w > f64::from(limits.max_dimension) || h > f64::from(limits.max_dimension),
-        RasterLimit::Dimensions,
-    )?;
-    let (width, height) = (w as u32, h as u32);
-    if width == 0 || height == 0 {
-        return Err(RasterError::InvalidPage);
-    }
-    limit(
-        u64::from(width) * u64::from(height) > limits.max_pixels,
-        RasterLimit::Pixels,
-    )?;
-    Ok((width, height))
-}
-
-fn paint_image(
-    pixmap: &mut Pixmap,
-    image: &SceneImage,
-    projection: Projection,
-) -> Result<(), RasterError> {
-    let decoded =
-        joyword_model::decode_rgba(image.bytes.as_ref(), &joyword_model::ImageLimits::default())
-            .map_err(|_| RasterError::Image("image decode failed"))?;
-    let expected = (decoded.width as usize)
-        .checked_mul(decoded.height as usize)
-        .and_then(|pixels| pixels.checked_mul(4))
-        .ok_or(RasterError::Image("image decode failed"))?;
-    if decoded.rgba.len() != expected || decoded.width == 0 || decoded.height == 0 {
-        return Err(RasterError::Image("image decode failed"));
-    }
-    let mut rgba = decoded.rgba;
-    for pixel in rgba.as_chunks_mut::<4>().0 {
-        let alpha = u32::from(pixel[3]);
-        for channel in &mut pixel[..3] {
-            *channel = ((u32::from(*channel) * alpha + 127) / 255) as u8;
-        }
-    }
-    let size = tiny_skia::IntSize::from_wh(decoded.width, decoded.height)
-        .ok_or(RasterError::Image("image decode failed"))?;
-    let source = Pixmap::from_vec(rgba, size).ok_or(RasterError::Image("image decode failed"))?;
-    let dest_w = projection.pixels(image.width) as f32;
-    let dest_h = projection.pixels(image.height) as f32;
-    let x = projection.pixels(image.x) as f32;
-    let y = projection.pixels(image.y) as f32;
-    if ![dest_w, dest_h, x, y].iter().all(|value| value.is_finite())
-        || dest_w <= 0.0
-        || dest_h <= 0.0
+/// Worker threads for rasterising (0 on the web, where there are no threads).
+pub fn default_threads() -> u16 {
+    #[cfg(target_arch = "wasm32")]
     {
-        return Err(RasterError::Image("image extent rejected"));
+        0
     }
-    let transform = Transform::from_row(
-        dest_w / decoded.width as f32,
-        0.0,
-        0.0,
-        dest_h / decoded.height as f32,
-        x,
-        y,
-    );
-    pixmap.draw_pixmap(
-        0,
-        0,
-        source.as_ref(),
-        &PixmapPaint {
-            opacity: 1.0,
-            blend_mode: BlendMode::SourceOver,
-            quality: FilterQuality::Nearest,
-        },
-        transform,
-        None,
-    );
-    Ok(())
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        std::thread::available_parallelism()
+            .map(|n| (n.get().saturating_sub(1)).clamp(1, 8) as u16)
+            .unwrap_or(2)
+    }
 }
 
-/// All work is private until success. An error or cancellation never yields a
-/// partial page. Request budgets can only lower the fixed hard ceilings.
-pub fn rasterize(
-    scene: &PageScene,
-    fonts: &[LoadedFont],
-    projection: Projection,
-    limits: RasterLimits,
-    cancellation: &RasterCancellation,
-) -> Result<RasterPage, RasterError> {
-    cancellation.check()?;
-    let limits = limits.capped();
-    let (width, height) = raster_size(scene, projection, limits)?;
-    limit(fonts.len() > limits.max_fonts, RasterLimit::Fonts)?;
-    limit(
-        scene.runs.len().saturating_add(scene.images.len()) > limits.max_runs,
-        RasterLimit::Runs,
-    )?;
-    let mut by_key = BTreeMap::new();
-    let mut font_bytes = 0usize;
-    for font in fonts {
-        cancellation.check()?;
-        font_bytes = font_bytes.saturating_add(font.data().len());
-        limit(font_bytes > limits.max_font_bytes, RasterLimit::FontBytes)?;
-        if by_key.insert(font.key(), font).is_some() {
-            return Err(RasterError::DuplicateFont(font.key()));
+mod context_pool;
+
+/// Largest raster side vello_cpu handles comfortably.
+pub const MAX_SIDE: u32 = 16_000;
+
+/// A rendered image (premultiplied RGBA8, row-major).
+#[derive(Clone, Default)]
+pub struct Rendered {
+    pub width: u32,
+    pub height: u32,
+    pub pixels: Vec<u8>,
+}
+
+impl Rendered {
+    pub fn to_straight(&self) -> Vec<u8> {
+        let mut out = self.pixels.clone();
+        for px in out.as_chunks_mut::<4>().0 {
+            let a = px[3] as u32;
+            if a != 0 && a != 255 {
+                for c in px.iter_mut().take(3) {
+                    *c = ((*c as u32 * 255 + a / 2) / a).min(255) as u8;
+                }
+            }
         }
+        out
     }
-    let mut count = 0usize;
-    for run in &scene.runs {
-        if run.glyphs.is_empty() && run.text.is_empty() {
-            continue;
+    /// Whether the pixels are exactly `width`×`height` RGBA, within a page raster's budget
+    /// ([`joyword_geom::MAX_RASTER_PIXELS`]): the fields are public, so an encoder is never asked
+    /// to pad a short buffer out to a huge claimed size (or, for JPEG, to assert on a mismatch).
+    fn encodable(&self) -> bool {
+        let budget = joyword_geom::MAX_RASTER_PIXELS.saturating_mul(4);
+        joyword_geom::rgba_fits(self.width, self.height, budget)
+            && joyword_geom::rgba_bytes(self.width, self.height)
+                .is_some_and(|b| b == self.pixels.len() as u64)
+    }
+    /// PNG bytes (empty on failure, logged).
+    pub fn to_png(&self) -> Vec<u8> {
+        if !self.encodable() {
+            log::error!(
+                "PNG encode: {} bytes for {}×{} pixels",
+                self.pixels.len(),
+                self.width,
+                self.height
+            );
+            return Vec::new();
         }
-        count = count.saturating_add(run.glyphs.len());
-        limit(count > limits.max_glyphs, RasterLimit::Glyphs)?;
-        let font = by_key
-            .get(&run.font)
-            .ok_or(RasterError::MissingFont(run.font))?;
-        let face = font.font_ref();
-        // A monochrome base outline is not a correct replacement for a color
-        // glyph or bitmap/SVG font. Refuse these until their paint is supported.
-        // Legacy EBDT strikes (e.g. SimSun) may accompany scalable outlines.
-        // This explicitly unhinted outline profile uses the scalable glyphs,
-        // just as the PDF consumer does. Bitmap-only faces still fail below
-        // when an outline cannot be obtained; colored paint stays refused.
-        if [b"COLR", b"CBDT", b"sbix", b"SVG "]
+        let Some(img) = image::RgbaImage::from_raw(self.width, self.height, self.to_straight())
+        else {
+            log::error!("PNG encode: bad size {}×{}", self.width, self.height);
+            return Vec::new();
+        };
+        let mut buf = Vec::new();
+        if let Err(e) = img.write_to(&mut std::io::Cursor::new(&mut buf), image::ImageFormat::Png) {
+            log::error!("PNG encode: {e}");
+            return Vec::new();
+        }
+        buf
+    }
+    /// JPEG bytes on white (empty on failure, logged).
+    pub fn to_jpeg(&self, quality: u8) -> Vec<u8> {
+        if !self.encodable() {
+            log::error!(
+                "JPEG encode: {} bytes for {}×{} pixels",
+                self.pixels.len(),
+                self.width,
+                self.height
+            );
+            return Vec::new();
+        }
+        let rgba = self.to_straight();
+        let rgb: Vec<u8> = rgba
+            .as_chunks::<4>()
+            .0
             .iter()
-            .any(|t| face.data_for_tag(Tag::new(t)).is_some())
-        {
-            return Err(RasterError::UnsupportedFont(run.font));
-        }
-        let glyph_count = face
-            .maxp()
-            .map_err(|_| RasterError::InvalidFont(run.font))?
-            .num_glyphs();
-        let px_size = projection.pixels(run.size);
-        if run.size.raw() <= 0 || !px_size.is_finite() || px_size > 4096.0 {
-            return Err(RasterError::InvalidGeometry);
-        }
-        if run.text.is_empty() != run.glyphs.is_empty()
-            || run.glyphs.first().is_some_and(|g| g.cluster != 0)
-        {
-            return Err(RasterError::InvalidGeometry);
-        }
-        let mut previous_cluster = 0;
-        let mut pen = 0i64;
-        for glyph in &run.glyphs {
-            cancellation.check()?;
-            if glyph.glyph_id >= glyph_count {
-                return Err(RasterError::InvalidGlyph {
-                    font: run.font,
-                    glyph: glyph.glyph_id,
-                });
-            }
-            if glyph.cluster >= run.text.len() || !run.text.is_char_boundary(glyph.cluster) {
-                return Err(RasterError::InvalidGeometry);
-            }
-            // A pen may skip forward over a tab gap or the remainder a
-            // leader leaves before its stop, but it never moves backwards.
-            if glyph.cluster < previous_cluster || glyph.x.raw() < pen || glyph.advance.raw() < 0 {
-                return Err(RasterError::InvalidGeometry);
-            }
-            previous_cluster = glyph.cluster;
-            pen = glyph
-                .x
-                .raw()
-                .checked_add(glyph.advance.raw())
-                .ok_or(RasterError::InvalidGeometry)?;
-            checked_position(run.origin_x, glyph.x, projection)?;
-            checked_position(
-                run.origin_x,
-                glyph
-                    .x
-                    .checked_add(glyph.x_offset)
-                    .ok_or(RasterError::InvalidGeometry)?,
-                projection,
-            )?;
-            let y = run
-                .baseline_y
-                .raw()
-                .checked_sub(glyph.y_offset.raw())
-                .ok_or(RasterError::InvalidGeometry)?;
-            checked_position(Emu::new(y), Emu::new(0), projection)?;
-        }
+            .flat_map(|p| {
+                let a = p[3] as u32;
+                let mix = |c: u8| ((c as u32 * a + 255 * (255 - a)) / 255) as u8;
+                [mix(p[0]), mix(p[1]), mix(p[2])]
+            })
+            .collect();
+        let mut buf = Vec::new();
+        let enc =
+            image::codecs::jpeg::JpegEncoder::new_with_quality(&mut buf, quality.clamp(1, 100));
+        let _ = image::ImageEncoder::write_image(
+            enc,
+            &rgb,
+            self.width,
+            self.height,
+            image::ExtendedColorType::Rgb8,
+        );
+        buf
     }
-    let mut pixmap = Pixmap::new(width, height).ok_or(RasterError::Allocation)?;
-    pixmap.fill(tiny_skia::Color::WHITE);
-    for rect in &scene.rects {
-        let mut x = projection.pixels(rect.x);
-        let y = projection.pixels(rect.y);
-        let mut w = projection.pixels(rect.width);
-        let h = projection.pixels(rect.height);
-        if ![x, y, w, h].iter().all(|value| value.is_finite()) || w <= 0.0 || h <= 0.0 {
-            continue;
+    /// Straight RGBA at (x, y) (transparent outside).
+    pub fn pixel(&self, x: u32, y: u32) -> [u8; 4] {
+        if x >= self.width || y >= self.height {
+            return [0; 4];
         }
-        if w < 2.0 {
-            let left = x.floor();
-            let right = (x + w).ceil();
-            x = left;
-            w = (right - left).max(1.0);
+        let i = ((y as usize * self.width as usize) + x as usize) * 4;
+        let Some(p) = self.pixels.get(i..i + 4) else {
+            return [0; 4];
+        };
+        let a = p[3] as u32;
+        if a == 0 {
+            return [0; 4];
         }
-        if let Some(bounds) = tiny_skia::Rect::from_xywh(x as f32, y as f32, w as f32, h as f32) {
-            let mut fill = Paint::default();
-            fill.set_color_rgba8(rect.red, rect.green, rect.blue, 255);
-            // Font underlines can be thinner than one device pixel. Coverage
-            // antialiasing keeps them visible between pixel centres.
-            fill.anti_alias = true;
-            // The rectangle rasterizer preserves fractional edge coverage;
-            // the general path rasterizer can clip subpixel horizontal edges.
-            pixmap.fill_rect(bounds, &fill, Transform::identity(), None);
-        }
+        let un = |c: u8| ((c as u32 * 255 + a / 2) / a).min(255) as u8;
+        [un(p[0]), un(p[1]), un(p[2]), p[3]]
     }
-    for image in &scene.images {
-        paint_image(&mut pixmap, image, projection)?;
-    }
-    let mut paint = Paint {
-        anti_alias: true,
-        ..Paint::default()
+}
+
+/// Paint `p` as the context's paint (gradients in page points, under the view transform).
+fn set_paint(ctx: &mut RenderContext, p: &Paint, opts: &RenderOptions) {
+    set_paint_inked(ctx, p, |c| opts.ink(c));
+}
+
+/// [`set_paint`] with each colour passed through `ink` (a dark page's text inking, #1252).
+fn set_paint_inked(ctx: &mut RenderContext, p: &Paint, ink: impl Fn(Rgb) -> Rgb) {
+    let stops = |stops: &[(f32, Rgb, f32)]| -> Vec<peniko::ColorStop> {
+        stops
+            .iter()
+            .map(|(o, c, a)| peniko::ColorStop::from((o.clamp(0.0, 1.0), color(ink(*c), *a))))
+            .collect()
     };
-    let mut cache: BTreeMap<(FontKey, i64, u16), (Option<Path>, usize)> = BTreeMap::new();
-    let mut stats = RasterStats::default();
-    for run in &scene.runs {
-        if run.glyphs.is_empty() && run.text.is_empty() {
-            continue;
+    match p {
+        Paint::Solid(c, a) => ctx.set_paint(color(ink(*c), *a)),
+        Paint::Linear { p0, p1, stops: s } => ctx.set_paint(
+            peniko::Gradient::new_linear(
+                (f64::from(p0.0), f64::from(p0.1)),
+                (f64::from(p1.0), f64::from(p1.1)),
+            )
+            .with_stops(stops(s).as_slice()),
+        ),
+        Paint::Radial { c, r, stops: s } => ctx.set_paint(
+            peniko::Gradient::new_radial((f64::from(c.0), f64::from(c.1)), *r)
+                .with_stops(stops(s).as_slice()),
+        ),
+    }
+}
+
+fn color(c: Rgb, alpha: f32) -> peniko::Color {
+    peniko::Color::from_rgba8(c.0, c.1, c.2, (alpha.clamp(0.0, 1.0) * 255.0) as u8)
+}
+
+/// Options for a page raster.
+#[derive(Clone, Debug)]
+pub struct RenderOptions {
+    pub display: DisplayOptions,
+    /// Paper colour (page colour from Design › Page Color, else white).
+    pub paper: Rgb,
+    /// Colour for formatting marks.
+    pub mark_color: Rgb,
+    /// Thicken glyphs slightly the way macOS draws text on screen ("font smoothing"), so pages
+    /// look like they do in other Mac apps. For on-screen rasters only: exports stay exact.
+    pub text_darkening: bool,
+    /// Dark page (View › Switch Modes): every colour but pictures has its lightness inverted, so
+    /// white paper turns black and black text white while hues stay the same. Screen only.
+    pub dark: bool,
+    /// The grey that black becomes on a dark page (white paper turns this, not pure black).
+    pub dark_paper: u8,
+    /// Read Mode's Page Color: paper drawn instead of the document's page color and page
+    /// picture. `None` shows the document's page background. Screen only.
+    pub read_paper: Option<Rgb>,
+}
+
+/// Default grey for a dark page's paper.
+pub const DARK_PAPER: u8 = 0x33;
+
+/// Read Mode's Sepia paper: Word's RGB (112, 66, 20) at 80% transparency over white.
+pub const SEPIA_PAPER: Rgb = Rgb(0xE2, 0xD9, 0xD0);
+
+impl RenderOptions {
+    /// The on-screen color of the paper under `doc`'s pages: [`RenderOptions::read_paper`],
+    /// else the document's page color, else [`RenderOptions::paper`].
+    pub fn paper_of(&self, doc: &Document) -> Rgb {
+        self.ink(
+            self.read_paper
+                .or(doc.settings.page_color)
+                .unwrap_or(self.paper),
+        )
+    }
+
+    /// The on-screen colour for a document colour (see [`RenderOptions::dark`]).
+    pub fn ink(&self, c: Rgb) -> Rgb {
+        if !self.dark {
+            return c;
         }
-        paint.set_color_rgba8(run.color[0], run.color[1], run.color[2], 255);
-        let font = by_key[&run.font];
-        let outlines = font.font_ref().outline_glyphs();
-        for glyph in &run.glyphs {
-            cancellation.check()?;
-            let key = (run.font, run.size.raw(), glyph.glyph_id);
-            if !cache.contains_key(&key) {
-                limit(cache.len() >= limits.max_outlines, RasterLimit::Outlines)?;
-                let outline = outlines
-                    .get(GlyphId::new(u32::from(glyph.glyph_id)))
-                    .ok_or(RasterError::Outline {
-                        font: run.font,
-                        glyph: glyph.glyph_id,
-                    })?;
-                let before_commands = stats.commands;
-                let mut pen = Pen {
-                    builder: PathBuilder::new(),
-                    commands: &mut stats.commands,
-                    limit: limits.max_commands,
-                    failure: None,
-                    cancellation,
-                };
-                let drawn = outline.draw(
-                    DrawSettings::unhinted(
-                        Size::new(projection.pixels(run.size) as f32),
-                        LocationRef::default(),
-                    ),
-                    &mut pen,
-                );
-                if let Some(error) = pen.failure {
-                    return Err(error);
-                }
-                drawn.map_err(|_| RasterError::Outline {
-                    font: run.font,
-                    glyph: glyph.glyph_id,
-                })?;
-                cache.insert(
-                    key,
-                    (pen.builder.finish(), stats.commands - before_commands),
-                );
-                stats.outlines += 1;
-            }
-            stats.glyphs += 1;
-            let (path, commands) = &cache[&key];
-            let Some(path) = path else { continue }; // e.g. a space
-            let x = checked_position(
-                run.origin_x,
-                glyph
-                    .x
-                    .checked_add(glyph.x_offset)
-                    .ok_or(RasterError::InvalidGeometry)?,
-                projection,
-            )?;
-            let y = projection.pixels(Emu::new(
-                run.baseline_y
-                    .raw()
-                    .checked_sub(glyph.y_offset.raw())
-                    .ok_or(RasterError::InvalidGeometry)?,
-            )) as f32;
-            let bounds = path.bounds();
-            let left = (bounds.left() + x).floor().max(0.0).min(width as f32);
-            let right = (bounds.right() + x).ceil().max(0.0).min(width as f32);
-            let top = (bounds.top() + y).floor().max(0.0).min(height as f32);
-            let bottom = (bounds.bottom() + y).ceil().max(0.0).min(height as f32);
-            let work = ((right - left).max(0.0) as u64) * ((bottom - top).max(0.0) as u64);
-            stats.work_pixels = stats.work_pixels.saturating_add(work);
-            limit(
-                stats.work_pixels > limits.max_work_pixels,
-                RasterLimit::WorkPixels,
-            )?;
-            // Cached paths still incur edge processing on every fill. Charge
-            // their complexity times visible scan rows, not just pixel area.
-            if work != 0 {
-                stats.edge_work = stats.edge_work.saturating_add(
-                    (*commands as u64).saturating_mul((bottom - top).max(0.0) as u64),
-                );
-                limit(
-                    stats.edge_work > limits.max_edge_work,
-                    RasterLimit::EdgeWork,
-                )?;
-            }
-            if work != 0 {
-                let em = projection.pixels(run.size) as f32;
-                let passes = if run.bold { 2 } else { 1 };
-                for pass in 0..passes {
-                    let dx = if pass == 0 { 0.0 } else { em * 0.04 };
-                    let transform = if run.italic {
-                        // Shear about the baseline so italic leans right.
-                        Transform::from_row(1.0, 0.0, -0.2, 1.0, x + dx, y)
-                    } else {
-                        Transform::from_translate(x + dx, y)
-                    };
-                    pixmap.fill_path(path, &paint, FillRule::Winding, transform, None);
-                }
-            }
+        // Invert, then lift the blacks to the paper grey so the page isn't a black hole.
+        let Rgb(r, g, b) = invert_lightness(c);
+        let p = self.dark_paper as u32;
+        let lift = |v: u8| (p + v as u32 * (255 - p) / 255).min(255) as u8;
+        Rgb(lift(r), lift(g), lift(b))
+    }
+
+    /// The on-screen colour for a text background (highlight, character shading). A dark page
+    /// dims it toward black, keeping its hue, instead of inverting it: inverting leaves bright
+    /// hues such as yellow bright, so the white text on them can't be read (#1252). Every
+    /// colour lands dark enough for white text (WCAG contrast ≥ 4.5); yellow turns a dim olive.
+    pub fn ink_bg(&self, c: Rgb) -> Rgb {
+        if !self.dark {
+            return c;
+        }
+        let f = |v: u8| {
+            (DARK_TEXT_BG_FLOOR as u32 + v as u32 * DARK_TEXT_BG_SPAN as u32 / 255).min(255) as u8
+        };
+        Rgb(f(c.0), f(c.1), f(c.2))
+    }
+
+    /// The on-screen colour for text (or its underline) drawn on the text background `bg`, if
+    /// any. A dark page dims those backgrounds ([`RenderOptions::ink_bg`]), so the text takes the
+    /// lighter of its colour and its inverted colour (black, explicit or Automatic, turns white;
+    /// Automatic white on a dark highlight stays white), and white if that still falls short of
+    /// 4.5:1 against the dimmed background (pure blue or red on a dim olive). White always
+    /// reaches it: no dimmed background is lighter than #4A4A4A.
+    pub fn ink_text(&self, c: Rgb, bg: Option<Rgb>) -> Rgb {
+        let inked = self.ink(c);
+        let Some(bg) = bg.filter(|_| self.dark) else {
+            return inked;
+        };
+        let lighter = if c.luma() > inked.luma() { c } else { inked };
+        if contrast(lighter, self.ink_bg(bg)) >= 4.5 {
+            lighter
+        } else {
+            Rgb::WHITE
         }
     }
-    cancellation.check()?;
-    Ok(RasterPage {
-        width,
-        height,
-        rgba: pixmap.take(),
-        stats,
+}
+
+// The dim assumes the default dark paper grey (`DARK_PAPER`; the app never sets another
+// `dark_paper`): the backgrounds stay close to it and under #4A4A4A, so white text on them
+// reaches 4.5:1. Revisit both if the paper grey becomes configurable.
+/// Darkest channel of a text background on a dark page ([`RenderOptions::ink_bg`]).
+const DARK_TEXT_BG_FLOOR: u8 = 0x10;
+/// How far a full channel lifts a dark page's text background above the floor.
+const DARK_TEXT_BG_SPAN: u8 = 0x3A;
+
+/// WCAG 2 contrast ratio between two sRGB colours (1 to 21).
+fn contrast(a: Rgb, b: Rgb) -> f32 {
+    let lin = |v: u8| {
+        let s = v as f32 / 255.0;
+        if s <= 0.04045 {
+            s / 12.92
+        } else {
+            ((s + 0.055) / 1.055).powf(2.4)
+        }
+    };
+    let lum = |c: Rgb| 0.2126 * lin(c.0) + 0.7152 * lin(c.1) + 0.0722 * lin(c.2);
+    let (la, lb) = (lum(a), lum(b));
+    (la.max(lb) + 0.05) / (la.min(lb) + 0.05)
+}
+
+/// Invert HSL lightness, keeping hue and saturation: shifting every channel by
+/// `255 - max - min` maps the lightest channel to `255 - min` and the darkest to `255 - max`.
+pub fn invert_lightness(c: Rgb) -> Rgb {
+    let (r, g, b) = (c.0 as i32, c.1 as i32, c.2 as i32);
+    let d = 255 - r.max(g).max(b) - r.min(g).min(b);
+    let f = |v: i32| (v + d).clamp(0, 255) as u8;
+    Rgb(f(r), f(g), f(b))
+}
+
+impl Default for RenderOptions {
+    fn default() -> Self {
+        RenderOptions {
+            display: DisplayOptions::default(),
+            paper: Rgb::WHITE,
+            mark_color: Rgb(0x2B, 0x57, 0x9A),
+            text_darkening: false,
+            dark: false,
+            dark_paper: DARK_PAPER,
+            read_paper: None,
+        }
+    }
+}
+
+/// Render a whole page at `scale` pixels per point.
+pub fn render_page(doc: &Document, page: &Page, scale: f32, opts: &RenderOptions) -> Rendered {
+    render_page_cancellable(doc, page, scale, opts, || false).unwrap_or_default()
+}
+
+/// Cancel between drawing primitives and before submitting the CPU raster job.
+/// Vello's submitted work completes before the context is reused.
+pub fn render_page_cancellable(
+    doc: &Document,
+    page: &Page,
+    scale: f32,
+    opts: &RenderOptions,
+    cancelled: impl Fn() -> bool,
+) -> Option<Rendered> {
+    let scale = if scale.is_finite() && scale > 0.0 {
+        scale
+    } else {
+        1.0
+    };
+    let w = ((page.w * scale).ceil() as u32).clamp(1, MAX_SIDE);
+    let h = ((page.h.min(1e6) * scale).ceil() as u32).clamp(1, MAX_SIDE);
+    render_region_impl(
+        doc,
+        page,
+        w,
+        h,
+        Affine::scale(scale as f64),
+        opts,
+        joyword_geom::MAX_RASTER_PIXELS,
+        cancelled,
+    )
+}
+
+/// Render a page into a `w`×`h` raster with `view` (page points → pixels).
+pub fn render_region(
+    doc: &Document,
+    page: &Page,
+    w: u32,
+    h: u32,
+    view: Affine,
+    opts: &RenderOptions,
+) -> Rendered {
+    render_region_capped(doc, page, w, h, view, opts, joyword_geom::MAX_RASTER_PIXELS)
+}
+
+/// [`render_region`] with an explicit pixel cap (a small one in tests).
+fn render_region_capped(
+    doc: &Document,
+    page: &Page,
+    w: u32,
+    h: u32,
+    view: Affine,
+    opts: &RenderOptions,
+    max_pixels: u64,
+) -> Rendered {
+    render_region_impl(doc, page, w, h, view, opts, max_pixels, || false).unwrap_or_default()
+}
+
+#[allow(clippy::too_many_arguments)]
+fn render_region_impl(
+    doc: &Document,
+    page: &Page,
+    w: u32,
+    h: u32,
+    view: Affine,
+    opts: &RenderOptions,
+    max_pixels: u64,
+    cancelled: impl Fn() -> bool,
+) -> Option<Rendered> {
+    if cancelled() {
+        return None;
+    }
+    let (w, h) = (w.clamp(1, MAX_SIDE), h.clamp(1, MAX_SIDE));
+    let (cw, ch) = joyword_geom::fit_pixels(w, h, max_pixels);
+    // Over the cap the whole picture is drawn smaller, not cropped.
+    let view = if (cw, ch) == (w, h) {
+        view
+    } else {
+        Affine::scale_non_uniform(cw as f64 / w as f64, ch as f64 / h as f64) * view
+    };
+    let (w16, h16) = (cw as u16, ch as u16);
+    let mut ctx = context_pool::CONTEXTS.take(w16, h16);
+    ctx.set_transform(Affine::IDENTITY);
+    ctx.set_paint(color(opts.paper_of(doc), 1.0));
+    ctx.fill_rect(&kurbo::Rect::new(0.0, 0.0, w16 as f64, h16 as f64));
+    if opts.read_paper.is_none() {
+        draw_page_picture(&mut ctx, doc, page, view);
+    }
+    let visible = view
+        .inverse()
+        .transform_rect_bbox(kurbo::Rect::new(0.0, 0.0, w16 as f64, h16 as f64))
+        .inflate(40.0, 40.0);
+    if let Some(wm) = &doc.settings.watermark {
+        draw_watermark(&mut ctx, view, page, wm, opts);
+    }
+    // A dimmed layer is drawn whole, then faded once, so its overlaps don't darken.
+    let layers = page_layers(doc, page, &opts.display);
+    for (alpha, items) in layers {
+        let faded = alpha < 1.0 && !items.is_empty();
+        if faded {
+            ctx.push_opacity_layer(alpha);
+        }
+        for it in &items {
+            if cancelled() {
+                if faded {
+                    ctx.pop_layer();
+                }
+                context_pool::CONTEXTS.give_back(ctx);
+                return None;
+            }
+            draw(&mut ctx, doc, it, view, &visible, opts);
+        }
+        if faded {
+            ctx.pop_layer();
+        }
+    }
+    if cancelled() {
+        context_pool::CONTEXTS.give_back(ctx);
+        return None;
+    }
+    ctx.flush();
+    let mut pixels = vec![0u8; w16 as usize * h16 as usize * 4];
+    let mut res = Resources::new();
+    if let Some(pm) = vello_cpu::PixmapMut::new(w16, h16, &mut pixels) {
+        ctx.render(pm, &mut res);
+    }
+    context_pool::CONTEXTS.give_back(ctx);
+    Some(Rendered {
+        width: w16 as u32,
+        height: h16 as u32,
+        pixels,
     })
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    fn bgra_conversion_swaps_only_red_and_blue() {
-        let page = RasterPage {
-            width: 2,
-            height: 1,
-            rgba: vec![11, 22, 33, 255, 44, 55, 66, 255],
-            stats: RasterStats::default(),
+/// The on-screen colour behind page point (`x`, `y`): the paper (page colour), then any
+/// shading, highlight or filled shape drawn over that point, blended in drawing order. Text,
+/// pictures and turned or rotated content are left out. The caret takes its colour from this
+/// so it shows against whatever lies behind it (#299).
+pub fn background_at(doc: &Document, page: &Page, opts: &RenderOptions, x: f32, y: f32) -> Rgb {
+    let paper = opts.paper_of(doc);
+    if !(x.is_finite() && y.is_finite()) {
+        return paper;
+    }
+    let mut bg = [paper.0 as f32, paper.1 as f32, paper.2 as f32];
+    for (alpha, items) in page_layers(doc, page, &opts.display) {
+        // A faded layer: its own colour there, blended in at its opacity.
+        let mut layer = bg;
+        blend_backgrounds(&items, joyword_geom::Point::new(x, y), opts, &mut layer, 0);
+        for (v, n) in bg.iter_mut().zip(layer) {
+            *v += (n - *v) * alpha;
+        }
+    }
+    let c = |v: f32| v.round().clamp(0.0, 255.0) as u8;
+    Rgb(c(bg[0]), c(bg[1]), c(bg[2]))
+}
+
+// Sample the same inset silhouettes and paints used by the raster and PDF.
+fn soft_fill_alpha(
+    rect: joyword_geom::Rect,
+    kind: ShapeKind,
+    corner: Option<u32>,
+    radius: f32,
+    fill: &joyword_layout::display::Paint,
+    p: joyword_geom::Point,
+) -> f32 {
+    let radius = radius.min(rect.w.min(rect.h) / 2.0).max(0.0);
+    let frame = kurbo::Rect::new(
+        rect.x as f64,
+        rect.y as f64,
+        rect.right() as f64,
+        rect.bottom() as f64,
+    );
+    let point = kurbo::Point::new(p.x as f64, p.y as f64);
+    let mut opacity = 0.0;
+    for (grow, paint) in fill.soft_bands(radius) {
+        let inset = frame.inflate(grow as f64, grow as f64);
+        if inset.width() > 0.0
+            && inset.height() > 0.0
+            && kurbo::Shape::contains(&shape_path(kind, inset, corner), point)
+        {
+            opacity += (1.0 - opacity) * paint.at(p.x, p.y).1;
+        }
+    }
+    opacity
+}
+
+fn blend_backgrounds(
+    items: &[Draw],
+    p: joyword_geom::Point,
+    opts: &RenderOptions,
+    bg: &mut [f32; 3],
+    depth: u32,
+) {
+    if depth > 16 {
+        return;
+    }
+    for it in items {
+        let (color, alpha) = match it {
+            Draw::Fill {
+                rect, color, alpha, ..
+            } if rect.contains(p) => (*color, *alpha),
+            // The shape's own outline (an ellipse's corners are not inside it), in its fill's
+            // colour and opacity there (#1500: gradients and transparency).
+            Draw::Shape {
+                rect,
+                kind,
+                fill: Some(fill),
+                corner,
+                effects,
+                ..
+            } if *kind != ShapeKind::Line && rect.contains(p) && {
+                let r = kurbo::Rect::new(
+                    rect.x as f64,
+                    rect.y as f64,
+                    rect.right() as f64,
+                    rect.bottom() as f64,
+                );
+                kurbo::Shape::contains(
+                    &shape_path(*kind, r, *corner),
+                    kurbo::Point::new(p.x as f64, p.y as f64),
+                )
+            } =>
+            {
+                let (color, alpha) = fill.at(p.x, p.y);
+                let alpha = effects.sanitized().soft_edge.map_or(alpha, |radius| {
+                    soft_fill_alpha(*rect, *kind, *corner, radius, fill, p)
+                });
+                (color, alpha)
+            }
+            Draw::Clip { rect, items } if rect.contains(p) => {
+                blend_backgrounds(items, p, opts, bg, depth + 1);
+                continue;
+            }
+            Draw::Figure { draws, .. } => {
+                blend_backgrounds(draws, p, opts, bg, depth + 1);
+                continue;
+            }
+            _ => continue,
         };
-        assert_eq!(page.into_bgra(), [33, 22, 11, 255, 66, 55, 44, 255]);
+        let a = if alpha.is_finite() {
+            alpha.clamp(0.0, 1.0)
+        } else {
+            1.0
+        };
+        let c = opts.ink(color);
+        for (v, n) in bg.iter_mut().zip([c.0, c.1, c.2]) {
+            *v += (n as f32 - *v) * a;
+        }
     }
 }
+
+/// One line of `text` in `face` at `size` points, black on white, in a `w`×`h` point raster at
+/// `scale` pixels per point, starting `margin` points in with the capitals centred in `h`: a font
+/// list entry. Not the face's ascent: a font with a tall one (Amiri Quran's is 1.8 em) put the
+/// name below the row (#2570). Outlines come straight from the face, not the shared outline
+/// cache, so a face read just for the preview leaves nothing behind once dropped (#848).
+pub fn render_text_line(
+    face: &joyword_fonts::FontFace,
+    text: &str,
+    size: f32,
+    w: f32,
+    h: f32,
+    margin: f32,
+    scale: f32,
+) -> Rendered {
+    let fin = |v: f32, d: f32| if v.is_finite() && v >= 0.0 { v } else { d };
+    let (size, w, h, margin) = (
+        fin(size, 12.0).min(1000.0) as f64,
+        fin(w, 1.0),
+        fin(h, 1.0),
+        fin(margin, 0.0).min(1000.0) as f64,
+    );
+    let scale = if scale.is_finite() && scale > 0.0 {
+        scale.min(16.0)
+    } else {
+        1.0
+    };
+    let (pw, ph) = (
+        ((w * scale).ceil() as u32).clamp(1, MAX_SIDE),
+        ((h * scale).ceil() as u32).clamp(1, MAX_SIDE),
+    );
+    let (cw, ch) = joyword_geom::fit_pixels(pw, ph, joyword_geom::MAX_RASTER_PIXELS);
+    let (w16, h16) = (cw as u16, ch as u16);
+    let mut ctx = RenderContext::new_with(
+        w16,
+        h16,
+        vello_cpu::RenderSettings {
+            num_threads: 0,
+            ..Default::default()
+        },
+    );
+    ctx.set_transform(Affine::IDENTITY);
+    ctx.set_paint(color(Rgb(255, 255, 255), 1.0));
+    ctx.fill_rect(&kurbo::Rect::new(0.0, 0.0, w16 as f64, h16 as f64));
+    ctx.set_paint(color(Rgb(0, 0, 0), 1.0));
+    let upem = if face.upem.is_finite() && face.upem > 0.0 {
+        face.upem
+    } else {
+        1000.0
+    };
+    let k = size / upem;
+    let view = Affine::scale_non_uniform(cw as f64 / pw as f64, ch as f64 / ph as f64)
+        * Affine::scale(scale as f64);
+    let cap = if face.cap_height.is_finite() {
+        face.cap_height.clamp(upem * 0.3, upem)
+    } else {
+        upem * 0.7
+    };
+    let baseline = (h as f64 + cap * k) / 2.0;
+    let mut x = margin;
+    let colour = face.has_color_glyphs();
+    for g in joyword_fonts::shape(face, text, &[], |c| c) {
+        let at = view
+            * Affine::translate((x + g.x_offset as f64 * k, baseline - g.y_offset as f64 * k))
+            * Affine::scale(k);
+        if colour && let Some(d) = color_glyph::drawable(face, g.gid, size * scale as f64, false) {
+            color_glyph::draw(&mut ctx, &d, at, upem, color(Rgb(0, 0, 0), 1.0), 1.0);
+            ctx.set_paint(color(Rgb(0, 0, 0), 1.0));
+        } else {
+            ctx.set_transform(at);
+            ctx.fill_path(&face.glyph_outline(g.gid));
+        }
+        x += g.x_advance as f64 * k;
+        if x > w as f64 {
+            break;
+        }
+    }
+    ctx.flush();
+    let mut pixels = vec![0u8; w16 as usize * h16 as usize * 4];
+    let mut res = Resources::new();
+    if let Some(pm) = vello_cpu::PixmapMut::new(w16, h16, &mut pixels) {
+        ctx.render(pm, &mut res);
+    }
+    Rendered {
+        width: w16 as u32,
+        height: h16 as u32,
+        pixels,
+    }
+}
+
+fn draw_watermark(
+    ctx: &mut RenderContext,
+    view: Affine,
+    page: &Page,
+    wm: &joyword_model::Watermark,
+    opts: &RenderOptions,
+) {
+    let r = joyword_fonts::word::resolve(&wm.font, false, false);
+    let face = r.face;
+    let glyphs = joyword_fonts::shape(&face, &wm.text, &[], |c| c);
+    let upem = face.upem.max(1.0);
+    let raw_w: f64 = glyphs.iter().map(|g| g.x_advance as f64).sum::<f64>() / upem;
+    if raw_w <= 0.0 {
+        return;
+    }
+    // The document page, not a Print Markup area beside it. The text stretched over its box
+    // (Word's `v:textpath fitshape`): its advance across the box, its em down it with the em's foot
+    // on the box's bottom; the box centred on the margins and, when diagonal, turned 45°.
+    let pw = (page.w - page.markup.max(0.0)).max(1.0) as f64;
+    let [bw, bh] = wm.frame(pw as f32, page.h).map(f64::from);
+    let size = bh.min(2000.0);
+    let k = size / upem;
+    let stretch = bw / (raw_w * size);
+    let descent = (joyword_fonts::word::line_metrics(&face).1 / upem).clamp(0.0, 1.0);
+    let angle = if wm.diagonal {
+        -std::f64::consts::FRAC_PI_4
+    } else {
+        0.0
+    };
+    let b = page.body;
+    let (cx, cy) = if b.w > 0.0 && b.h > 0.0 {
+        (f64::from(b.x + b.w / 2.0), f64::from(b.y + b.h / 2.0))
+    } else {
+        (pw / 2.0, page.h.min(2000.0) as f64 / 2.0)
+    };
+    let base = Affine::translate((cx, cy))
+        * Affine::rotate(angle)
+        * Affine::translate((-bw / 2.0, bh / 2.0 - descent * bh))
+        * Affine::scale_non_uniform(stretch, 1.0);
+    ctx.set_paint(color(
+        opts.ink(wm.color),
+        if wm.semitransparent { 0.35 } else { 0.8 },
+    ));
+    let db = FontDb::global();
+    let mut x = 0.0;
+    for g in &glyphs {
+        let o = db.outline(&face, g.gid);
+        ctx.set_transform(view * base * Affine::translate((x, 0.0)) * Affine::scale(k));
+        ctx.fill_path(&o);
+        x += g.x_advance as f64 * k;
+    }
+}
+
+/// How far, in device pixels, macOS-style font smoothing pushes each side of a glyph outline out
+/// at `ppem` device pixels per em. Values from Pathfinder (MIT/Apache-2.0), which measured them
+/// against macOS: 1.21% of the pixel size horizontally and 1.25 times that vertically, each
+/// capped at 0.3 px, and no darkening past 72 px per em. We stroke the outline, which grows it
+/// evenly, so this is the mean of the two.
+pub fn stem_darkening(ppem: f64) -> f64 {
+    const FACTOR: [f64; 2] = [0.0121, 0.0121 * 1.25];
+    const MAX_PX: f64 = 0.3;
+    const MAX_PPEM: f64 = 72.0;
+    if !ppem.is_finite() || ppem <= 0.0 || ppem > MAX_PPEM {
+        return 0.0;
+    }
+    FACTOR.iter().map(|f| (ppem * f).min(MAX_PX)).sum::<f64>() / 2.0
+}
+
+/// A wavy line from `(x0, y0)` to `(x1, y1)`; at most 20 000 units long, so a huge extent can't make it endless.
+fn wave_path(x0: f64, y0: f64, x1: f64, y1: f64, amp: f64) -> BezPath {
+    let mut p = BezPath::new();
+    let (dx, dy) = (x1 - x0, y1 - y0);
+    let len = (dx * dx + dy * dy).sqrt();
+    if !len.is_finite() || len < 1e-3 {
+        return p;
+    }
+    let (ux, uy) = (dx / len, dy / len);
+    let (nx, ny) = (-uy, ux);
+    let step = amp * 2.0;
+    p.move_to((x0, y0));
+    // Past about 1e16 a step no longer changes coordinates: stop instead of pushing curves forever.
+    if x0 + ux * step == x0 && y0 + uy * step == y0 {
+        return p;
+    }
+    let mut t = 0.0;
+    let mut up = true;
+    while t < len && t < 20_000.0 {
+        let nt = (t + step).min(len);
+        if nt <= t {
+            break;
+        }
+        let mid_t = (t + nt) / 2.0;
+        let sign = if up { -1.0 } else { 1.0 };
+        let cx = x0 + ux * mid_t + nx * amp * sign;
+        let cy = y0 + uy * mid_t + ny * amp * sign;
+        let ex = x0 + ux * nt;
+        let ey = y0 + uy * nt;
+        p.quad_to((cx, cy), (ex, ey));
+        t = nt;
+        up = !up;
+    }
+    p
+}
+
+/// Most pieces one dashed stroke may be cut into; past it the stroke is drawn solid. kurbo's dash
+/// iterator makes no progress along a segment when a dash is too small next to it (it never ends),
+/// and every piece is more stroke to build.
+const MAX_DASH_PIECES: f64 = 100_000.0;
+
+/// `dashes` to stroke a path at most `len` long with, or none (solid) when they can't be drawn: a
+/// negative or non-finite length, a pattern that adds up to nothing, or more than
+/// [`MAX_DASH_PIECES`] pieces along the path.
+fn safe_dashes(dashes: impl IntoIterator<Item = f64>, len: f64) -> Vec<f64> {
+    let d: Vec<f64> = dashes
+        .into_iter()
+        .take(MAX_DASH_PIECES as usize + 1)
+        .collect();
+    let period: f64 = d.iter().sum();
+    let ok = d.iter().all(|v| v.is_finite() && *v >= 0.0)
+        && period > 0.0
+        && period.is_finite()
+        && len.is_finite();
+    // Each repeat of the pattern is up to `d.len()` pieces; a partial repeat at each end counts too.
+    if ok && (len / period + 2.0) * d.len() as f64 <= MAX_DASH_PIECES {
+        d
+    } else {
+        Vec::new()
+    }
+}
+
+/// An upper bound on `path`'s length: its control polygon's (a curve is no longer than it).
+fn path_len_bound(path: &BezPath) -> f64 {
+    let (mut len, mut at, mut start) = (0.0, kurbo::Point::ZERO, kurbo::Point::ZERO);
+    for el in path.elements() {
+        let pts: &[kurbo::Point] = match el {
+            kurbo::PathEl::MoveTo(p) => {
+                (at, start) = (*p, *p);
+                continue;
+            }
+            kurbo::PathEl::LineTo(p) => std::slice::from_ref(p),
+            kurbo::PathEl::QuadTo(a, b) => &[*a, *b],
+            kurbo::PathEl::CurveTo(a, b, c) => &[*a, *b, *c],
+            kurbo::PathEl::ClosePath => std::slice::from_ref(&start),
+        };
+        for p in pts {
+            len += at.distance(*p);
+            at = *p;
+        }
+    }
+    len
+}
+
+/// Where and how a display item is rasterized: `view` maps its current point coordinates to
+/// pixels, and `visible` is a culling area in those point coordinates.
+struct Frame<'a> {
+    doc: &'a Document,
+    opts: &'a RenderOptions,
+    view: Affine,
+    visible: &'a kurbo::Rect,
+}
+
+/// The rectangle in kurbo's terms.
+fn kurbo_rect(rect: &joyword_geom::Rect) -> kurbo::Rect {
+    kurbo::Rect::new(
+        rect.x as f64,
+        rect.y as f64,
+        rect.right() as f64,
+        rect.bottom() as f64,
+    )
+}
+
+/// Rasterize one display item with `view` mapping its current point coordinates to pixels.
+/// `visible` is a culling area in those point coordinates; nested clips intersect it and turns
+/// transform it into the child's coordinates. Shape and path strokes apply their stored caps,
+/// while ink uses its tool's round ends and joins.
+fn draw(
+    ctx: &mut RenderContext,
+    doc: &Document,
+    it: &Draw,
+    view: Affine,
+    visible: &kurbo::Rect,
+    opts: &RenderOptions,
+) {
+    let fr = Frame {
+        doc,
+        opts,
+        view,
+        visible,
+    };
+    match it {
+        Draw::Figure { draws, .. } => {
+            for d in draws {
+                draw(ctx, doc, d, view, visible, opts);
+            }
+        }
+        Draw::Fill { .. } => draw_fill(ctx, &fr, it),
+        Draw::Line { .. } => draw_line(ctx, &fr, it),
+        Draw::Glyphs { .. } => draw_glyphs(ctx, &fr, it),
+        Draw::Mark { .. } => draw_mark(ctx, &fr, it),
+        Draw::MarkText { .. } => draw_mark_text(ctx, &fr, it),
+        Draw::Image { .. } => draw_image(ctx, &fr, it),
+        Draw::Path { .. } => draw_path(ctx, &fr, it),
+        Draw::Art { .. } => draw_art(ctx, &fr, it),
+        Draw::Ink { .. } => draw_ink(ctx, &fr, it),
+        Draw::Shape { .. } => draw_shape(ctx, &fr, it),
+        Draw::Clip { rect, items } => {
+            let r = kurbo_rect(rect);
+            if !r.is_finite() || !r.overlaps(*visible) {
+                return;
+            }
+            ctx.set_transform(view);
+            ctx.push_clip_layer(&r.to_path(0.1));
+            let local = r.intersect(*visible);
+            for it in items {
+                draw(ctx, doc, it, view, &local, opts);
+            }
+            ctx.pop_layer();
+        }
+        Draw::Turned { x, y, turn, items } => {
+            let m = Affine::new(Draw::turn_matrix(*turn, *x, *y).map(f64::from));
+            let local = m.inverse().transform_rect_bbox(*visible);
+            for it in items {
+                draw(ctx, doc, it, view * m, &local, opts);
+            }
+        }
+        Draw::Rotated {
+            cx,
+            cy,
+            spin,
+            items,
+        } => {
+            let m = Affine::new(spin.matrix(*cx, *cy).map(f64::from));
+            let local = m.inverse().transform_rect_bbox(*visible);
+            for it in items {
+                draw(ctx, doc, it, view * m, &local, opts);
+            }
+        }
+    }
+}
+
+fn draw_fill(ctx: &mut RenderContext, fr: &Frame, it: &Draw) {
+    let Draw::Fill {
+        rect,
+        color: c,
+        alpha,
+        text_bg,
+    } = it
+    else {
+        return;
+    };
+    let r = kurbo_rect(rect);
+    if !r.overlaps(*fr.visible) {
+        return;
+    }
+    ctx.set_transform(fr.view);
+    ctx.set_paint(color(
+        if *text_bg {
+            fr.opts.ink_bg(*c)
+        } else {
+            fr.opts.ink(*c)
+        },
+        *alpha,
+    ));
+    ctx.fill_rect(&r);
+}
+
+fn draw_line(ctx: &mut RenderContext, fr: &Frame, it: &Draw) {
+    let Draw::Line {
+        x0,
+        y0,
+        x1,
+        y1,
+        width,
+        color: c,
+        stroke,
+        alpha,
+        text_bg,
+    } = it
+    else {
+        return;
+    };
+    ctx.set_transform(fr.view);
+    ctx.set_paint(color(fr.opts.ink_text(*c, *text_bg), *alpha));
+    let w = *width as f64;
+    let (x0, y0, x1, y1) = (*x0 as f64, *y0 as f64, *x1 as f64, *y1 as f64);
+    // Flat ends, like the PDF export and Word: a round cap sticks half the width out past
+    // every end, blobbing over the neighbouring border at a table's corners (#2892). Wavy
+    // underlines keep round ends, as the PDF draws them.
+    let mut st = kurbo::Stroke::new(w).with_caps(kurbo::Cap::Butt);
+    if let Some(d) = stroke.dashes() {
+        st = st.with_dashes(
+            0.0,
+            safe_dashes(
+                d.iter().map(|k| f64::from(*k) * w),
+                (x1 - x0).hypot(y1 - y0),
+            ),
+        );
+    }
+    let (dx, dy) = (x1 - x0, y1 - y0);
+    let len = (dx * dx + dy * dy).sqrt().max(1e-3);
+    match *stroke {
+        Stroke::Wave => {
+            let amp = (w * 1.2).max(0.8);
+            ctx.set_stroke(kurbo::Stroke::new(w * 0.8));
+            ctx.stroke_path(&wave_path(x0, y0, x1, y1, amp));
+        }
+        // Three thin lines, spaced as a double's, across the line's direction (so a vertical
+        // border's lines stand side by side).
+        Stroke::Triple => {
+            let (nx, ny) = (-dy / len * w * 1.8, dx / len * w * 1.8);
+            ctx.set_stroke(kurbo::Stroke::new(w * 0.6));
+            for k in [-1.0, 0.0, 1.0] {
+                stroke_segment(ctx, (x0, y0, x1, y1), (nx * k, ny * k));
+            }
+        }
+        Stroke::Double => {
+            let (nx, ny) = (-dy / len * w * 0.9, dx / len * w * 0.9);
+            ctx.set_stroke(kurbo::Stroke::new(w * 0.6).with_caps(kurbo::Cap::Butt));
+            stroke_segment(ctx, (x0, y0, x1, y1), (nx, ny));
+            stroke_segment(ctx, (x0, y0, x1, y1), (-nx, -ny));
+        }
+        _ => {
+            ctx.set_stroke(st);
+            stroke_segment(ctx, (x0, y0, x1, y1), (0.0, 0.0));
+        }
+    }
+}
+
+/// Stroke the line from (`x0`, `y0`) to (`x1`, `y1`), moved by (`ox`, `oy`).
+fn stroke_segment(
+    ctx: &mut RenderContext,
+    (x0, y0, x1, y1): (f64, f64, f64, f64),
+    (ox, oy): (f64, f64),
+) {
+    let mut p = BezPath::new();
+    p.move_to((x0 + ox, y0 + oy));
+    p.line_to((x1 + ox, y1 + oy));
+    ctx.stroke_path(&p);
+}
+
+fn draw_glyphs(ctx: &mut RenderContext, fr: &Frame, it: &Draw) {
+    let Draw::Glyphs {
+        face,
+        size,
+        glyphs,
+        color: c,
+        alpha,
+        synth_bold,
+        synth_italic,
+        text_bg,
+        x_scale,
+        ..
+    } = it
+    else {
+        return;
+    };
+    // Invisible glyphs (WordArt letters are drawn from their outlines) carry text only.
+    if *alpha <= 0.0 {
+        return;
+    }
+    let (view, visible, opts) = (fr.view, fr.visible, fr.opts);
+    let db = FontDb::global();
+    let k = *size as f64 / face.upem.max(1.0);
+    ctx.set_paint(color(opts.ink_text(*c, *text_bg), *alpha));
+    let skew = if *synth_italic {
+        Affine::new([1.0, 0.0, -0.21, 1.0, 0.0, 0.0])
+    } else {
+        Affine::IDENTITY
+    };
+    // Scaled letters (`w:w`): each glyph stretched across from its pen position.
+    let sx = if x_scale.is_finite() && *x_scale > 0.0 {
+        f64::from(*x_scale)
+    } else {
+        1.0
+    };
+    let skew = Affine::scale_non_uniform(sx, 1.0) * skew;
+    // Outline strokes, in font units: synthetic bold, then on-screen stem darkening (a
+    // stroke grows the outline by half its width on each side). Darkening is skipped for
+    // translucent text, where the stroke overlapping the fill would show as a darker rim.
+    let px_per_pt = view.determinant().abs().sqrt();
+    let darken_px = if opts.text_darkening && *alpha >= 1.0 {
+        stem_darkening(*size as f64 * px_per_pt)
+    } else {
+        0.0
+    };
+    let darken = if darken_px > 0.0 && k * px_per_pt > 0.0 {
+        2.0 * darken_px / (k * px_per_pt)
+    } else {
+        0.0
+    };
+    let outline_stroke = if *synth_bold { face.upem * 0.03 } else { 0.0 } + darken;
+    if outline_stroke > 0.0 {
+        let join = if darken > 0.0 {
+            kurbo::Join::Round
+        } else {
+            kurbo::Join::Miter
+        };
+        ctx.set_stroke(kurbo::Stroke::new(outline_stroke).with_join(join));
+    }
+    // Emoji and other colour glyphs (#1269) are drawn from the font's colour data.
+    let colour = face.has_color_glyphs();
+    let ppem = *size as f64 * px_per_pt;
+    for (gid, x, y) in glyphs {
+        let (gx, gy) = (*x as f64, *y as f64);
+        // Written so a NaN position is skipped too.
+        let near = gx >= visible.x0 - 100.0
+            && gx <= visible.x1
+            && gy >= visible.y0
+            && gy <= visible.y1 + 200.0;
+        if !near {
+            continue;
+        }
+        if colour && let Some(d) = color_glyph::drawable(face, *gid, ppem, true) {
+            let at = view * Affine::translate((gx, gy)) * skew * Affine::scale(k);
+            color_glyph::draw(ctx, &d, at, face.upem, color(opts.ink(*c), 1.0), *alpha);
+            ctx.set_paint(color(opts.ink(*c), *alpha));
+            continue;
+        }
+        let o = db.outline(face, *gid);
+        if o.elements().is_empty() {
+            continue;
+        }
+        ctx.set_transform(view * Affine::translate((gx, gy)) * skew * Affine::scale(k));
+        ctx.fill_path(&o);
+        if outline_stroke > 0.0 {
+            ctx.stroke_path(&o);
+        }
+    }
+}
+
+fn draw_mark(ctx: &mut RenderContext, fr: &Frame, it: &Draw) {
+    let Draw::Mark {
+        x,
+        baseline,
+        size,
+        ch,
+        color: mark,
+    } = it
+    else {
+        return;
+    };
+    let face = joyword_fonts::word::resolve("Source Sans 3", false, false).face;
+    let gid = face.glyph_for(*ch);
+    let face = if gid == 0 {
+        match FontDb::global().fallback_for(*ch, face.id()) {
+            Some(f) => joyword_fonts::FaceRef::of(&f),
+            None => return,
+        }
+    } else {
+        face
+    };
+    let gid = face.glyph_for(*ch);
+    let o = FontDb::global().outline(&face, gid);
+    let k = *size as f64 / face.upem.max(1.0);
+    ctx.set_paint(color(fr.opts.ink(mark.unwrap_or(fr.opts.mark_color)), 0.9));
+    ctx.set_transform(
+        fr.view * Affine::translate((*x as f64, *baseline as f64)) * Affine::scale(k),
+    );
+    ctx.fill_path(&o);
+}
+
+fn draw_mark_text(ctx: &mut RenderContext, fr: &Frame, it: &Draw) {
+    let Draw::MarkText {
+        x,
+        baseline,
+        size,
+        text,
+    } = it
+    else {
+        return;
+    };
+    let base_face = joyword_fonts::word::resolve("Source Sans 3", false, false).face;
+    ctx.set_paint(color(fr.opts.ink(fr.opts.mark_color), 0.9));
+    let mut gx = *x as f64;
+    for ch in text.chars() {
+        let mut face = base_face;
+        if face.glyph_for(ch) == 0
+            && let Some(f) = FontDb::global().fallback_for(ch, face.id())
+        {
+            face = joyword_fonts::FaceRef::of(&f);
+        }
+        let gid = face.glyph_for(ch);
+        let k = *size as f64 / face.upem.max(1.0);
+        let o = FontDb::global().outline(&face, gid);
+        ctx.set_transform(fr.view * Affine::translate((gx, *baseline as f64)) * Affine::scale(k));
+        ctx.fill_path(&o);
+        gx += face.advance(gid) * k;
+    }
+}
+
+fn draw_image(ctx: &mut RenderContext, fr: &Frame, it: &Draw) {
+    let Draw::Image {
+        rect,
+        media,
+        crop,
+        alpha,
+        ..
+    } = it
+    else {
+        return;
+    };
+    let (doc, view) = (fr.doc, fr.view);
+    let r = kurbo_rect(rect);
+    if !r.overlaps(*fr.visible) {
+        return;
+    }
+    if let Some(v) = vector_for(doc, media) {
+        draw_vector(ctx, &v, &r, crop, *alpha, view);
+        return;
+    }
+    let Some(pm) = pixmap_for(doc, media) else {
+        ctx.set_transform(view);
+        ctx.set_paint(color(fr.opts.ink(Rgb(0xD0, 0xD0, 0xD0)), 1.0));
+        ctx.fill_rect(&r);
+        return;
+    };
+    let (pw, ph) = (pm.width().max(1) as f64, pm.height().max(1) as f64);
+    let [cl, ct, vis_w, vis_h] = joyword_metafile::crop_window(*crop);
+    let sx = r.width() / (pw * vis_w);
+    let sy = r.height() / (ph * vis_h);
+    ctx.set_transform(view);
+    // vello_cpu panics on image paints with sampler alpha != 1, so fade through a layer.
+    let alpha = if alpha.is_finite() {
+        alpha.clamp(0.0, 1.0)
+    } else {
+        1.0
+    };
+    let faded = alpha < 1.0;
+    if faded {
+        ctx.push_opacity_layer(alpha);
+    }
+    ctx.set_paint(vello_cpu::Image {
+        image: vello_cpu::ImageSource::Pixmap(pm),
+        sampler: peniko::ImageSampler::default().with_quality(peniko::ImageQuality::Medium),
+    });
+    ctx.set_paint_transform(
+        Affine::translate((r.x0 - cl * pw * sx, r.y0 - ct * ph * sy))
+            * Affine::scale_non_uniform(sx, sy),
+    );
+    ctx.fill_rect(&r);
+    ctx.reset_paint_transform();
+    if faded {
+        ctx.pop_layer();
+    }
+}
+
+fn draw_path(ctx: &mut RenderContext, fr: &Frame, it: &Draw) {
+    let Draw::Path {
+        segs,
+        fill,
+        stroke,
+        stroke_width,
+        dash,
+        cap,
+    } = it
+    else {
+        return;
+    };
+    let path = joyword_layout::display::seg_path(segs);
+    if path.elements().is_empty() {
+        return;
+    }
+    ctx.set_transform(fr.view);
+    if let Some(f) = fill {
+        set_paint(ctx, f, fr.opts);
+        ctx.fill_path(&path);
+    }
+    if let Some(s) = stroke {
+        // Width 0 (or none) is a hairline.
+        let w = if stroke_width.is_finite() && *stroke_width > 0.0 {
+            stroke_width.clamp(0.25, 200.0)
+        } else {
+            0.75
+        };
+        ctx.set_paint(color(fr.opts.ink(*s), 1.0));
+        ctx.set_stroke(
+            kurbo::Stroke::new(w as f64)
+                .with_caps(screen_cap(*cap))
+                .with_dashes(
+                    0.0,
+                    safe_dashes(dash.iter().map(|v| f64::from(*v)), path_len_bound(&path)),
+                ),
+        );
+        ctx.stroke_path(&path);
+    }
+}
+
+fn draw_art(ctx: &mut RenderContext, fr: &Frame, it: &Draw) {
+    let Draw::Art {
+        path,
+        fx,
+        color: c,
+        alpha,
+        text_bg,
+    } = it
+    else {
+        return;
+    };
+    let Some(b) = joyword_layout::wordart::path_box(path) else {
+        return;
+    };
+    if !b.inflate(200.0, 200.0).overlaps(*fr.visible) {
+        return;
+    }
+    ctx.set_transform(fr.view);
+    for l in joyword_layout::wordart::art_layers(path, fx, *c, *alpha) {
+        // The letters read against their highlight like plain text (#1252); shadows don't.
+        let ink = |c: Rgb| {
+            if l.letters {
+                fr.opts.ink_text(c, *text_bg)
+            } else {
+                fr.opts.ink(c)
+            }
+        };
+        set_paint_inked(ctx, &l.paint, ink);
+        match l.stroke {
+            Some(w) => {
+                ctx.set_stroke(
+                    kurbo::Stroke::new(f64::from(w.clamp(0.1, 400.0)))
+                        .with_join(kurbo::Join::Round),
+                );
+                ctx.stroke_path(&l.path);
+            }
+            None => ctx.fill_path(&l.path),
+        }
+    }
+}
+
+fn draw_ink(ctx: &mut RenderContext, fr: &Frame, it: &Draw) {
+    let Draw::Ink {
+        pts,
+        color: c,
+        width,
+        alpha,
+    } = it
+    else {
+        return;
+    };
+    let Some(path) = ink_path(pts) else { return };
+    if !path
+        .bounding_box()
+        .inflate(*width as f64, *width as f64)
+        .overlaps(*fr.visible)
+    {
+        return;
+    }
+    ctx.set_transform(fr.view);
+    ctx.set_paint(color(fr.opts.ink(*c), *alpha));
+    let w = if width.is_finite() {
+        width.clamp(0.25, 200.0)
+    } else {
+        1.0
+    };
+    ctx.set_stroke(
+        kurbo::Stroke::new(w as f64)
+            .with_caps(kurbo::Cap::Round)
+            .with_join(kurbo::Join::Round),
+    );
+    ctx.stroke_path(&path);
+}
+
+/// A shape's outline and how it is painted, for its shadow, glow and soft edges.
+struct ShapeGeom {
+    r: kurbo::Rect,
+    kind: ShapeKind,
+    corner: Option<u32>,
+    can_fill: bool,
+    stroked: bool,
+}
+
+/// A shape's shadow and glow, behind it: bands of its silhouette grown by `g` points and moved
+/// by `d`, in the current paint. `sw` is the outline's width.
+fn shape_shadow_and_glow(
+    ctx: &mut RenderContext,
+    fr: &Frame,
+    (geom, sw): (&ShapeGeom, f64),
+    fx: &joyword_model::effects::ShapeEffects,
+) {
+    let r = geom.r;
+    let silhouette = |ctx: &mut RenderContext, g: f32, d: kurbo::Vec2| {
+        let g = g as f64;
+        if geom.can_fill {
+            let grow = g + if geom.stroked { sw / 2.0 } else { 0.0 };
+            let rr = r.inflate(grow, grow) + d;
+            if rr.width() > 0.0 && rr.height() > 0.0 {
+                ctx.fill_path(&shape_path(geom.kind, rr, geom.corner));
+            }
+        } else if sw + 2.0 * g > 0.05 {
+            ctx.set_stroke(kurbo::Stroke::new(sw + 2.0 * g));
+            ctx.stroke_path(&shape_path(geom.kind, r + d, geom.corner));
+        }
+    };
+    if let Some(sh) = fx.shadow {
+        let (dx, dy) = sh.offset();
+        for (g, a) in joyword_model::effects::bands(-sh.blur / 2.0, sh.blur / 2.0, sh.opacity()) {
+            ctx.set_paint(color(fr.opts.ink(sh.color), a));
+            silhouette(ctx, g, kurbo::Vec2::new(dx as f64, dy as f64));
+        }
+    }
+    if let Some(gl) = fx.glow {
+        for (g, a) in joyword_model::effects::bands(0.0, gl.size, gl.opacity()) {
+            ctx.set_paint(color(fr.opts.ink(gl.color), a));
+            silhouette(ctx, g, kurbo::Vec2::ZERO);
+        }
+    }
+}
+
+/// Soft edges: the fill fades out toward the outline (which fades with it).
+fn shape_soft_edges(
+    ctx: &mut RenderContext,
+    fr: &Frame,
+    geom: &ShapeGeom,
+    (rad, f): (f32, &Paint),
+) {
+    for (g, paint) in f.soft_bands(rad) {
+        let rr = geom.r.inflate(g as f64, g as f64);
+        if rr.width() > 0.0 && rr.height() > 0.0 {
+            set_paint(ctx, &paint, fr.opts);
+            ctx.fill_path(&shape_path(geom.kind, rr, geom.corner));
+        }
+    }
+}
+
+fn draw_shape(ctx: &mut RenderContext, fr: &Frame, it: &Draw) {
+    let Draw::Shape {
+        rect,
+        kind,
+        fill,
+        stroke,
+        stroke_width,
+        effects,
+        corner,
+        dash,
+        cap,
+    } = it
+    else {
+        return;
+    };
+    let r = kurbo_rect(rect);
+    let path = shape_path(*kind, r, *corner);
+    ctx.set_transform(fr.view);
+    let fx = effects.sanitized();
+    let geom = ShapeGeom {
+        r,
+        kind: *kind,
+        corner: *corner,
+        can_fill: *kind != ShapeKind::Line && fill.is_some(),
+        stroked: stroke.is_some(),
+    };
+    if !fx.is_empty() && (geom.can_fill || geom.stroked) {
+        let sw = if stroke_width.is_finite() {
+            stroke_width.clamp(0.25, 200.0) as f64
+        } else {
+            0.75
+        };
+        shape_shadow_and_glow(ctx, fr, (&geom, sw), &fx);
+    }
+    if let (Some(rad), Some(f), true) = (fx.soft_edge, fill, geom.can_fill) {
+        shape_soft_edges(
+            ctx,
+            fr,
+            &geom,
+            (rad.min(rect.w.min(rect.h) / 2.0).max(0.0), f),
+        );
+        return;
+    }
+    if let Some(f) = fill {
+        set_paint(ctx, f, fr.opts);
+        ctx.fill_path(&path);
+    }
+    if let Some(s) = stroke {
+        ctx.set_paint(color(fr.opts.ink(*s), 1.0));
+        ctx.set_stroke(
+            kurbo::Stroke::new(if stroke_width.is_nan() {
+                0.25
+            } else {
+                stroke_width.clamp(0.25, 200.0)
+            } as f64)
+            .with_caps(screen_cap(*cap))
+            .with_dashes(
+                0.0,
+                safe_dashes(dash.iter().map(|v| f64::from(*v)), path_len_bound(&path)),
+            ),
+        );
+        ctx.stroke_path(&path);
+    }
+}
+
+/// The line through an ink stroke's points (finite ones only); a single point is a dot.
+fn ink_path(pts: &[(f32, f32)]) -> Option<BezPath> {
+    let mut p = BezPath::new();
+    let mut last = None;
+    for &(x, y) in pts
+        .iter()
+        .filter(|(x, y)| x.is_finite() && y.is_finite() && x.abs() < 1e6 && y.abs() < 1e6)
+    {
+        let pt = (x as f64, y as f64);
+        if last.is_none() {
+            p.move_to(pt);
+        } else {
+            p.line_to(pt);
+        }
+        last = Some(pt);
+    }
+    // Only sanitized points reach the path: a tap is drawn at the one usable point.
+    let only = last?;
+    if p.elements().len() == 1 {
+        // A tap: a zero-length line, which round caps draw as a dot.
+        p.line_to(only);
+    }
+    Some(p)
+}
+
+/// Map the document cap to the raster backend without changing ink-tool stroke styles.
+fn screen_cap(cap: joyword_model::connector::LineCap) -> kurbo::Cap {
+    match cap {
+        joyword_model::connector::LineCap::Flat => kurbo::Cap::Butt,
+        joyword_model::connector::LineCap::Square => kurbo::Cap::Square,
+        joyword_model::connector::LineCap::Round => kurbo::Cap::Round,
+    }
+}
+
+/// Outline of a basic shape in a rectangle; `corner` is a rounded rectangle's
+/// ([`joyword_model::connector::ShapeExtra::corner`]).
+pub fn shape_path(kind: ShapeKind, r: kurbo::Rect, corner: Option<u32>) -> BezPath {
+    let (cx, cy) = (r.center().x, r.center().y);
+    let poly = |pts: &[(f64, f64)]| {
+        let mut p = BezPath::new();
+        for (i, (x, y)) in pts.iter().enumerate() {
+            if i == 0 {
+                p.move_to((*x, *y));
+            } else {
+                p.line_to((*x, *y));
+            }
+        }
+        p.close_path();
+        p
+    };
+    match kind {
+        // A freeform is drawn from its own paths; without them, its frame.
+        ShapeKind::Rectangle | ShapeKind::TextBox | ShapeKind::Freeform => r.to_path(0.1),
+        ShapeKind::RoundedRectangle => {
+            let radius = joyword_model::connector::corner_radius(
+                corner,
+                r.width() as f32,
+                r.height() as f32,
+            );
+            kurbo::RoundedRect::from_rect(r, f64::from(radius)).to_path(0.1)
+        }
+        ShapeKind::Ellipse => kurbo::Ellipse::from_rect(r).to_path(0.1),
+        ShapeKind::FlowchartOr => {
+            let mut p = kurbo::Ellipse::from_rect(r).to_path(0.1);
+            p.move_to((r.x0, cy));
+            p.line_to((r.x1, cy));
+            p.move_to((cx, r.y0));
+            p.line_to((cx, r.y1));
+            p
+        }
+        ShapeKind::Triangle => poly(&[(cx, r.y0), (r.x1, r.y1), (r.x0, r.y1)]),
+        ShapeKind::RightTriangle => poly(&[(r.x0, r.y0), (r.x1, r.y1), (r.x0, r.y1)]),
+        ShapeKind::Diamond => poly(&[(cx, r.y0), (r.x1, cy), (cx, r.y1), (r.x0, cy)]),
+        // DrawingML's `line`: top-left to bottom-right (flips give the other directions).
+        ShapeKind::Line => {
+            let mut p = BezPath::new();
+            p.move_to((r.x0, r.y0));
+            p.line_to((r.x1, r.y1));
+            p
+        }
+        // Connectors are drawn as paths (`Draw::Path`); this is their frame's diagonal.
+        ShapeKind::StraightConnector | ShapeKind::ElbowConnector | ShapeKind::CurvedConnector => {
+            let mut p = BezPath::new();
+            p.move_to((r.x0, r.y0));
+            p.line_to((r.x1, r.y1));
+            p
+        }
+        ShapeKind::Arrow | ShapeKind::ArrowLeft | ShapeKind::ArrowUp | ShapeKind::ArrowDown => {
+            let (w, h) = (r.width(), r.height());
+            let pts: Vec<(f64, f64)> = joyword_model::wrap::arrow_outline(kind, w as f32, h as f32)
+                .iter()
+                .map(|&(u, v)| (r.x0 + f64::from(u) * w, r.y0 + f64::from(v) * h))
+                .collect();
+            poly(&pts)
+        }
+        ShapeKind::Star => {
+            let mut pts = Vec::new();
+            for i in 0..10 {
+                let a = std::f64::consts::PI * (i as f64) / 5.0 - std::f64::consts::FRAC_PI_2;
+                let rad = if i % 2 == 0 { 1.0 } else { 0.4 };
+                pts.push((
+                    cx + a.cos() * r.width() / 2.0 * rad,
+                    cy + a.sin() * r.height() / 2.0 * rad,
+                ));
+            }
+            poly(&pts)
+        }
+        ShapeKind::Heart => {
+            let (w, h) = (r.width(), r.height());
+            let mut p = BezPath::new();
+            p.move_to((cx, r.y0 + h * 0.3));
+            p.curve_to((cx, r.y0), (r.x0, r.y0), (r.x0, r.y0 + h * 0.3));
+            p.curve_to(
+                (r.x0, r.y0 + h * 0.6),
+                (cx - w * 0.1, r.y0 + h * 0.75),
+                (cx, r.y1),
+            );
+            p.curve_to(
+                (cx + w * 0.1, r.y0 + h * 0.75),
+                (r.x1, r.y0 + h * 0.6),
+                (r.x1, r.y0 + h * 0.3),
+            );
+            p.curve_to((r.x1, r.y0), (cx, r.y0), (cx, r.y0 + h * 0.3));
+            p.close_path();
+            p
+        }
+    }
+}
+
+/// Render the page `area` (points) at `scale` px/pt — for previews and thumbnails.
+pub fn render_area(
+    doc: &Document,
+    page: &Page,
+    area: joyword_geom::Rect,
+    scale: f32,
+    opts: &RenderOptions,
+) -> Rendered {
+    let joyword_geom::Rect { x, y, w, h } = area;
+    let scale = if scale.is_finite() && scale > 0.0 {
+        scale
+    } else {
+        1.0
+    };
+    let pw = ((w * scale).ceil() as u32).clamp(1, MAX_SIDE);
+    let ph = ((h * scale).ceil() as u32).clamp(1, MAX_SIDE);
+    let view = Affine::scale(scale as f64) * Affine::translate((-x as f64, -y as f64));
+    render_region(doc, page, pw, ph, view, opts)
+}
+
+/// Draw `items` (page points) alone, on nothing, over the page `area` (points) at `scale` px/pt:
+/// no paper, no watermark. A dragged object's preview.
+pub fn render_items(
+    doc: &Document,
+    items: &[Draw],
+    area: joyword_geom::Rect,
+    scale: f32,
+    opts: &RenderOptions,
+) -> Rendered {
+    let joyword_geom::Rect { x, y, w, h } = area;
+    let scale = if scale.is_finite() && scale > 0.0 {
+        scale
+    } else {
+        1.0
+    };
+    let (pw, ph) = (
+        ((w * scale).ceil() as u32).clamp(1, MAX_SIDE),
+        ((h * scale).ceil() as u32).clamp(1, MAX_SIDE),
+    );
+    let (cw, ch) = joyword_geom::fit_pixels(pw, ph, joyword_geom::MAX_RASTER_PIXELS);
+    let (w16, h16) = (cw as u16, ch as u16);
+    let view = Affine::scale_non_uniform(cw as f64 / pw as f64, ch as f64 / ph as f64)
+        * Affine::scale(scale as f64)
+        * Affine::translate((-x as f64, -y as f64));
+    let mut ctx = RenderContext::new_with(
+        w16,
+        h16,
+        vello_cpu::RenderSettings {
+            num_threads: 0,
+            ..Default::default()
+        },
+    );
+    let visible = view
+        .inverse()
+        .transform_rect_bbox(kurbo::Rect::new(0.0, 0.0, w16 as f64, h16 as f64))
+        .inflate(40.0, 40.0);
+    for it in items {
+        draw(&mut ctx, doc, it, view, &visible, opts);
+    }
+    ctx.flush();
+    let mut pixels = vec![0u8; w16 as usize * h16 as usize * 4];
+    let mut res = Resources::new();
+    if let Some(pm) = vello_cpu::PixmapMut::new(w16, h16, &mut pixels) {
+        ctx.render(pm, &mut res);
+    }
+    Rendered {
+        width: w16 as u32,
+        height: h16 as u32,
+        pixels,
+    }
+}
+
+#[cfg(test)]
+mod tests;
+
+#[cfg(test)]
+mod cache_tests;
+
+#[cfg(test)]
+mod fill_alpha_tests;
+
+pub mod requests;

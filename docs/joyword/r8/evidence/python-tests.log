@@ -1,0 +1,19 @@
+Verified joyword-0.1.0-linux-x86_64.tar.gz: c6ea576c31dc9812979d62d02f915bd4eb7300c9744ae8f4d1db7a7d24ec9d2b
+Verified joyword-0.1.0-linux-aarch64.tar.gz: b14cd62ac27cb2fc0e9a354a80cfcc34988c88344a71f5429332d1a352faeae2
+Verified joyword-0.1.0-macos-aarch64.zip: 1b45a58eaca4ee58d3633793d625606748fa23d188ea94d8833655ffaffd55b9
+Verified joyword-0.1.0-windows-x86_64.zip: 78b5d470930befe665a647c0265ce67bef0945931a4402efec9afb7edf37ea9b
+Verified joydeck-0.1.0-linux-x86_64-release.zip: 6702721d4482f5bfd6c07426b9152b59b6f379643d4f3e69086ae567adc63717
+Verified joydeck-0.1.0-linux-aarch64-release.zip: 2aba9df4219a679e0d5c7ba59e56fd0b5ac29b6dd030c986de8f6c7dd86cab09
+Verified joydeck-0.1.0-macos-aarch64-release.zip: 364757cadcaeaf94f1c9b6a589eb174bc458aaf29c7c99dc20ada80b414e1599
+Verified joydeck-0.1.0-windows-x86_64-release.zip: 1009580c9b13c702cdc46e84200a1fdbe4f2cd964c2af9391786884d95d8284f
+Verified joysheet-0.1.0-linux-x86_64-release.zip: 562dbe9639f1c7ce2b18aadb80990c3243b9c8955a859b85b9a06388144ef969
+Verified joysheet-0.1.0-linux-aarch64-release.zip: fc91210b3dd5fcf13792bdfb5d34a477fac87f2f47b298e216101c79ee2c20b8
+Verified joysheet-0.1.0-macos-aarch64-release.zip: 5864f2e14fa7f48f8da432e78af8efa2c6c184981248cf4917eb59d8f502d478
+Verified joysheet-0.1.0-windows-x86_64-release.zip: 593602992c49f217bdc00a441c3d79d5ef09de70cb6e51987528e68b3fc11e97
+Verified joydeck-0.1.0-linux-x86_64-release.zip: 6702721d4482f5bfd6c07426b9152b59b6f379643d4f3e69086ae567adc63717
+Verified joydeck-0.1.0-linux-aarch64-release.zip: 2aba9df4219a679e0d5c7ba59e56fd0b5ac29b6dd030c986de8f6c7dd86cab09
+....s............s......................................................................................................................................
+----------------------------------------------------------------------
+Ran 152 tests in 52.442s
+
+OK (skipped=2)

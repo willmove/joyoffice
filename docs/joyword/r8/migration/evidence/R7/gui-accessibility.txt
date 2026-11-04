@@ -1,0 +1,77 @@
+Window: "1000-pages.docx — JoyWord", App: joyword.exe.
+	0 区域 1000-pages.docx — JoyWord Secondary Actions: Raise
+		1 标题栏 (settable, string) Value: 1000-pages.docx — JoyWord
+			2 菜单栏 系统 ID: MenuBar
+				3 菜单项 系统
+			4 按钮 最小化
+			5 按钮 最大化
+			6 按钮 关闭
+		7 按钮 新建
+		8 按钮 打开
+		9 按钮 保存
+		10 按钮 (disabled) 撤销
+		11 按钮 (disabled) 重做
+		12 按钮 搜索命令
+		13 按钮 EN
+		14 按钮 切换外观
+		15 选项卡 功能区
+			16 选项卡项目 (selectable) 文件
+			17 选项卡项目 (selectable) 开始
+			18 选项卡项目 (selectable) 插入
+			19 选项卡项目 (selectable) 布局
+			20 选项卡项目 (selectable) 引用
+			21 选项卡项目 (selectable) 邮件
+			22 选项卡项目 (selectable) 审阅
+			23 选项卡项目 (selectable) 视图
+			24 选项卡项目 (selectable) 自动化
+			25 选项卡项目 (selectable) 表格
+			26 选项卡项目 (selectable) 图片
+		27 按钮 粘贴
+		28 按钮 (disabled) 剪切
+		29 按钮 (disabled) 复制
+		30 按钮 格式刷
+		31 按钮 连续刷
+		32 组合框 (settable, string) 字体选择 Value: Aptos
+		33 按钮 12 磅 ▾
+		34 按钮 字体设置
+		35 按钮 加粗 (Ctrl+B)
+		36 按钮 斜体 (Ctrl+I)
+		37 按钮 下划线 (Ctrl+U)
+		38 按钮 删除线
+		39 按钮 下标
+		40 按钮 上标
+		41 按钮 字色 ▾
+		42 按钮 高亮 ▾
+		43 按钮 左对齐 (Ctrl+L)
+		44 按钮 居中 (Ctrl+E)
+		45 按钮 右对齐 (Ctrl+R)
+		46 按钮 两端对齐 (Ctrl+J)
+		47 按钮 项目符号
+		48 按钮 编号
+		49 按钮 减少缩进
+		50 按钮 增加缩进
+		51 按钮 编号样式 ▾
+		52 按钮 行距 ▾
+		53 按钮 边框 ▾
+		54 按钮 底纹 ▾
+		55 按钮 分页 ▾
+		56 按钮 段落设置
+		57 按钮 正文样式 (Ctrl+Shift+N)
+		58 按钮 标题 1 (Ctrl+Alt+1)
+		59 按钮 快速样式 ▾
+		60 按钮 标题 2 (Ctrl+Alt+2)
+		61 按钮 清除格式
+		62 按钮 样式面板
+		63 按钮 (disabled) 查找
+		64 按钮 (disabled) 替换
+		65 按钮 上一页
+		66 按钮 下一页
+		67 编辑 (settable, string) 文档正文 Value: 第 1 页 · JoyWord performance
+		68 状态
+			69 按钮 −
+			70 按钮 100%
+			71 按钮 +
+
+Document text: ```
+第 1 页 · JoyWord performance
+```

@@ -1,364 +1,194 @@
-//! Inspection, page output and local mail merge. Inspection projects the body, not
-//! Word's final/revision view. Importer owns ECMA-376 parsing and preservation.
-use std::ffi::OsString;
-use std::io::{Read, Write};
-use std::process::ExitCode;
+use joyword_shell::reader::{Reader, publish_new};
+use std::{
+    ffi::OsString,
+    path::{Path, PathBuf},
+    process::ExitCode,
+    sync::atomic::AtomicBool,
+};
 
-use joyoffice_opc::Budget;
-use joyword_model::{Block, BlockSeq, BreakKind, InlineKind, Paragraph, RevisionView, Segment};
-use serde_json::{Value, json};
-
-const MAX_INPUT: u64 = 32 << 20;
-const MAX_TEXT: usize = 1 << 20;
-const HELP: &str = concat!(
-    "joyword-cli inspect|text [--max-text-bytes N] [--compatibility] [--] FILE\n",
-    "joyword-cli render FILE --font PATH:FACE --output DIR [--dpi N] [--page N]\n",
-    "joyword-cli convert FILE --to pdf|pdfa-2b --font PATH:FACE --output FILE.pdf\n",
-    "joyword-cli merge --template FILE.docx --data FILE.csv [--map FIELD=COLUMN] ",
-    "(--preview-row N | --output-parent DIR)\n",
-    "joyword-cli epub FILE.docx (--plan | --output FILE.epub [--accept-losses]) [--title TEXT] [--language TAG] [--modified UTC]\n",
-    "joyword-cli exchange FILE --from docx|txt|markdown|html|rtf --to docx|txt|markdown|html|rtf (--plan | --output FILE --accept-losses)\n",
-    "Options may also follow FILE; -- ends option parsing.\n",
-    "Inspection keeps the source unchanged; text N is UTF-8 bytes (0..1048576), default 1048576.\n",
-    "Projection: imported main body, INCLUDING hidden text; deleted revisions,\n",
-    "comments and other stories excluded; inserted/moveTo text included.\n",
-    "Unsupported XML is preserved by import but omitted from text.\n",
-    "inspect: schema 1 JSON, partial and truncated are independent.\n",
-    "--compatibility: include model compatibility flags; no document content beyond the requested projection.\n",
-    "text: UTF-8 stdout; projection/partial/truncated JSON on stderr.\n",
-    "render: deterministic CPU PNG pages from the unified PageScene.\n",
-    "convert: searchable PDF from that same scene; other targets are refused.\n",
-    "render/convert JSON is schema 1 and reports omitted_blocks.\n",
-    "Opaque body blocks are skipped, counted, and take no page geometry.\n",
-    "Exit: 0 complete within projection; 2 error; 3 text truncated.\n",
-);
-
-mod epub;
-mod exchange;
-mod merge;
-mod visual;
-
-/// Recursively re-insert every JSON object's keys in ascending order.
-///
-/// `serde_json::Map` is a sorted `BTreeMap` in a default-member build, but
-/// `cargo test --workspace` pulls in `apps/joyword`, whose `gpui-pre`
-/// dependency enables `serde_json/preserve_order`; feature unification then
-/// switches the shared build to an insertion-ordered `IndexMap` and the CLI's
-/// golden output bytes would silently change with it (T210 requires
-/// byte-identical output for identical input). Sorting through a `BTreeMap`
-/// makes the serialized key order identical under every feature combination:
-/// a no-op for `BTreeMap`, canonical for `IndexMap`.
-pub(crate) fn canonicalize_keys(value: &mut Value) {
-    match value {
-        Value::Array(items) => {
-            for item in items {
-                canonicalize_keys(item);
+fn argument(args: &[OsString], index: usize) -> Result<&str, String> {
+    args.get(index)
+        .and_then(|s| s.to_str())
+        .ok_or_else(|| "Missing or invalid argument; use --help".into())
+}
+fn path(args: &[OsString], index: usize) -> Result<PathBuf, String> {
+    args.get(index)
+        .map(PathBuf::from)
+        .ok_or_else(|| "Missing path; use --help".into())
+}
+fn run() -> Result<(), String> {
+    let args: Vec<_> = std::env::args_os().skip(1).collect();
+    let command = args.first().and_then(|s| s.to_str()).unwrap_or("--help");
+    let cancel = AtomicBool::new(false);
+    match command {
+        "mcp" => {
+            let (mut read, mut write) = (None, None);
+            let mut i = 1;
+            while i < args.len() {
+                match argument(&args, i)? {
+                    "--automation-read-root" => read = Some(path(&args, i + 1)?),
+                    "--automation-write-root" => write = Some(path(&args, i + 1)?),
+                    other => return Err(format!("Unknown MCP option: {other}")),
+                }
+                i += 2;
             }
-        }
-        Value::Object(map) => {
-            let sorted: std::collections::BTreeMap<String, Value> = std::mem::take(map)
-                .into_iter()
-                .map(|(key, mut item)| {
-                    canonicalize_keys(&mut item);
-                    (key, item)
-                })
-                .collect();
-            for (key, item) in sorted {
-                map.insert(key, item);
+            let roots = joyword_engine::file_access::AutomationRoots::new(
+                read.as_deref(),
+                write.as_deref(),
+            )?
+            .ok_or("MCP requires an explicit --automation-read-root or --automation-write-root")?;
+            if !joyword_engine::file_access::confine_process(roots.clone()) {
+                return Err("Automation roots already set".into());
             }
+            let backend = joyword_mcp::Headless::default().with_automation_roots(Some(roots));
+            joyword_mcp::Server::new(Box::new(backend))
+                .serve(std::io::stdin().lock(), std::io::stdout().lock())
+                .map_err(|e| e.to_string())?;
         }
-        Value::Number(_) | Value::String(_) | Value::Bool(_) | Value::Null => {}
-    }
-}
-
-enum Options {
-    Text(TextOptions),
-    Visual(visual::Options),
-    Merge(merge::Options),
-    Epub(epub::Options),
-    Exchange(exchange::Options),
-}
-
-struct TextOptions {
-    inspect: bool,
-    path: OsString,
-    limit: usize,
-    compatibility: bool,
-}
-
-fn options() -> Result<Option<Options>, &'static str> {
-    let mut args = std::env::args_os().skip(1);
-    let Some(command) = args.next() else {
-        return Err("missing command; use --help");
-    };
-    if command == "--help" || command == "-h" {
-        return if args.next().is_none() {
-            Ok(None)
-        } else {
-            Err("unexpected arguments")
-        };
-    }
-    if command == "epub" {
-        return epub::options(args).map(|options| options.map(Options::Epub));
-    }
-    if command == "exchange" {
-        return exchange::options(args).map(|options| options.map(Options::Exchange));
-    }
-    if command == "merge" {
-        return merge::options(args).map(|options| options.map(Options::Merge));
-    }
-    let visual = if command == "render" {
-        Some(visual::Command::Render)
-    } else if command == "convert" {
-        Some(visual::Command::Convert)
-    } else {
-        None
-    };
-    if let Some(command) = visual {
-        return visual::options(command, args).map(|options| options.map(Options::Visual));
-    }
-    let inspect = if command == "inspect" {
-        true
-    } else if command == "text" {
-        false
-    } else {
-        return Err("unsupported command; use inspect, text, render or convert");
-    };
-    let mut path = None;
-    let mut limit = MAX_TEXT;
-    let mut budget_seen = false;
-    let mut compatibility = false;
-    let mut positional_only = false;
-    while let Some(arg) = args.next() {
-        if !positional_only && arg == "--" {
-            positional_only = true;
-        } else if !positional_only && (arg == "--help" || arg == "-h") {
-            return if path.is_none() && !budget_seen && args.next().is_none() {
-                Ok(None)
-            } else {
-                Err("unexpected arguments")
+        "--version" | "-V" => println!("JoyWord {}", env!("CARGO_PKG_VERSION")),
+        "--help" | "-h" => println!(
+            "JoyWord\ncommands | capabilities | inspect INPUT.docx | text INPUT.docx\nconvert INPUT OUTPUT.pdf|.png|.txt|.md|.html|.rtf|.odt|.tex|.xml|.docx\nrender INPUT.docx OUTPUT.png [--page 1] [--scale 1.333]\nsample OUTPUT.docx\nmcp --automation-read-root DIR [--automation-write-root DIR]\nrun INPUT.docx --cmd COMMAND=JSON [--save NEW.docx]\nOutputs must be new paths; desktop editing and safe DOCX save are available."
+        ),
+        "capabilities" => println!(
+            "{}",
+            serde_json::json!({"product":"joyword","stage":"R8","desktop":"gpui-kit","docxOpen":true,"readOnlyDesktop":false,"documentEditing":true,"ribbonFormatting":true,"stylePanel":true,"formatPainter":true,"tableEditing":true,"pictureEditing":true,"references":true,"comments":true,"trackChanges":true,"compare":true,"mailMerge":true,"formatExchange":true,"sessionMacros":true,"mcpStdio":true,"mcpDesktopBridge":false,"pdfExport":true,"headlessEngine":true,"save":"CLI new output only"})
+        ),
+        "commands" => {
+            let session =
+                joyword_engine::Session::new(joyword_engine::blank_document(&Default::default()));
+            println!("{}", session.registry.describe());
+        }
+        "sample" => {
+            let doc = joyword_engine::sample::sample_document();
+            let bytes = joyword_docx::write(&doc).map_err(|e| e.to_string())?;
+            publish_new(&path(&args, 1)?, &bytes)?;
+        }
+        "inspect" | "text" => {
+            let inputs = match &args[1..] {
+                [end, rest @ ..] if end == "--" => rest,
+                rest => rest,
             };
-        } else if !positional_only && arg == "--compatibility" {
-            if compatibility {
-                return Err("duplicate compatibility option");
+            let [input] = inputs else {
+                return Err(format!("Usage: {command} [--] INPUT.docx"));
+            };
+            if inputs.len() == args.len() - 1 && input.to_string_lossy().starts_with('-') {
+                return Err(format!("Usage: {command} [--] INPUT.docx"));
             }
-            compatibility = true;
-        } else if !positional_only && arg == "--max-text-bytes" {
-            if budget_seen {
-                return Err("duplicate text budget");
+            let reader = Reader::open(Path::new(input), &cancel)?;
+            let inspection = reader.inspection();
+            if command == "text" {
+                print!("{}", inspection.text);
+            } else {
+                println!(
+                    "{}",
+                    serde_json::to_string_pretty(&inspection).map_err(|e| e.to_string())?
+                );
             }
-            budget_seen = true;
-            limit = args
-                .next()
-                .and_then(|value| value.to_str().and_then(|s| s.parse().ok()))
-                .filter(|value| *value <= MAX_TEXT)
-                .ok_or("invalid text budget (0..1048576)")?;
-        } else if !positional_only && arg.as_encoded_bytes().starts_with(b"-") {
-            return Err("unknown option; use -- before a path starting with '-'");
-        } else if path.replace(arg).is_some() {
-            return Err("unexpected arguments");
         }
-    }
-    let path = path.ok_or("missing DOCX path")?;
-    Ok(Some(Options::Text(TextOptions {
-        inspect,
-        path,
-        limit,
-        compatibility,
-    })))
-}
-
-struct Text {
-    value: String,
-    limit: usize,
-    truncated: bool,
-    omitted_objects: usize,
-    paragraphs: usize,
-}
-impl Text {
-    fn push(&mut self, ch: char) {
-        if self.truncated {
-            return;
-        }
-        if self.value.len() + ch.len_utf8() > self.limit {
-            self.truncated = true;
-        } else {
-            self.value.push(ch);
-        }
-    }
-    /// Deleted and moved-out runs are left out, inline objects included, so
-    /// the text matches the `deleted_revisions` and `moved_from_revisions`
-    /// exclusions the projection declares.
-    fn paragraph(&mut self, paragraph: &Paragraph) {
-        let mut shown = paragraph.runs().iter().flat_map(|run| {
-            let visible = run
-                .revision
-                .as_ref()
-                .is_none_or(|mark| mark.kind.visible_in(RevisionView::Final));
-            std::iter::repeat_n(visible, run.len)
-        });
-        for segment in paragraph.segments() {
-            match segment {
-                Segment::Text(value) => {
-                    for ch in value.chars() {
-                        if shown.next().unwrap_or(true) {
-                            self.push(ch);
+        "convert" | "render" => {
+            let reader = Reader::open(&path(&args, 1)?, &cancel)?;
+            let output = path(&args, 2)?;
+            let ext = output
+                .extension()
+                .and_then(|s| s.to_str())
+                .unwrap_or("")
+                .to_ascii_lowercase();
+            let bytes = if command == "render" || ext == "png" {
+                let mut page = 0;
+                let mut scale = 96.0 / 72.0;
+                let mut i = 3;
+                while i < args.len() {
+                    match argument(&args, i)? {
+                        "--page" => {
+                            page = argument(&args, i + 1)?
+                                .parse::<usize>()
+                                .ok()
+                                .and_then(|p| p.checked_sub(1))
+                                .ok_or("Page is 1-based")?
                         }
-                    }
-                }
-                Segment::Inline(object) => {
-                    if !shown.next().unwrap_or(true) {
-                        continue;
-                    }
-                    match object.kind {
-                        InlineKind::Break(BreakKind::Line) => self.push('\n'),
-                        InlineKind::Break(_) => self.push('\u{000c}'),
-                        _ => self.omitted_objects += 1,
-                    }
-                }
-            }
-        }
-    }
-    fn blocks(&mut self, blocks: &BlockSeq) {
-        for block in blocks.iter() {
-            match block {
-                Block::Paragraph(paragraph) => {
-                    if self.paragraphs != 0 {
-                        self.push('\n');
-                    }
-                    self.paragraphs += 1;
-                    self.paragraph(paragraph);
-                }
-                Block::Table(table) => {
-                    for row in &table.rows {
-                        for cell in &row.cells {
-                            self.blocks(&cell.blocks);
+                        "--scale" => {
+                            scale = argument(&args, i + 1)?
+                                .parse::<f32>()
+                                .map_err(|e| e.to_string())?
                         }
+                        other => return Err(format!("Unknown render option {other}")),
                     }
+                    i += 2;
                 }
-                Block::Sdt(sdt) => self.blocks(&sdt.blocks),
-                Block::Opaque(_) => self.omitted_objects += 1,
-            }
+                let bytes = reader.raster(page, scale, &cancel)?.to_png();
+                if bytes.is_empty() {
+                    return Err("PNG encoding failed".into());
+                }
+                bytes
+            } else {
+                if args.len() != 3 {
+                    return Err("Usage: convert INPUT OUTPUT".into());
+                }
+                reader.export_job(&ext, false)?.bytes()?
+            };
+            publish_new(&output, &bytes)?;
+            println!(
+                "{}",
+                serde_json::json!({"output":output,"pages":reader.summary.pages.len(),"fingerprint":reader.summary.fingerprint})
+            );
         }
+        "run" => {
+            let mut reader = Reader::open(&path(&args, 1)?, &cancel)?;
+            let mut save = None;
+            let mut i = 2;
+            while i < args.len() {
+                match argument(&args, i)? {
+                    "--cmd" => {
+                        let spec = argument(&args, i + 1)?;
+                        let (id, json) = spec.split_once('=').unwrap_or((spec, "{}"));
+                        let params = serde_json::from_str(json).map_err(|e| e.to_string())?;
+                        reader.execute(id, &params)?;
+                    }
+                    "--save" => save = Some(path(&args, i + 1)?),
+                    other => return Err(format!("Unknown run option {other}")),
+                }
+                i += 2;
+            }
+            if let Some(output) = save {
+                if !Path::new(&output)
+                    .extension()
+                    .is_some_and(|s| s.eq_ignore_ascii_case("docx"))
+                {
+                    return Err("--save requires a new DOCX path".into());
+                }
+                publish_new(
+                    &output,
+                    &joyword_docx::write(&reader.engine().doc).map_err(|e| e.to_string())?,
+                )?;
+            }
+            println!(
+                "{}",
+                serde_json::to_string(&reader.inspection()).map_err(|e| e.to_string())?
+            );
+        }
+        other => return Err(format!("Unsupported command: {other}")),
     }
+    Ok(())
 }
-
-fn execute_text(options: TextOptions) -> Result<u8, &'static str> {
-    if !std::fs::metadata(&options.path)
-        .map_err(|_| "cannot inspect input")?
-        .is_file()
-    {
-        return Err("input must be a regular file");
-    }
-    let file = std::fs::File::open(&options.path).map_err(|_| "cannot open input")?;
-    if !file
-        .metadata()
-        .map_err(|_| "cannot inspect input")?
-        .is_file()
-    {
-        return Err("input must be a regular file");
-    }
-    let mut bytes = Vec::new();
-    file.take(MAX_INPUT + 1)
-        .read_to_end(&mut bytes)
-        .map_err(|_| "cannot read input")?;
-    if bytes.len() as u64 > MAX_INPUT {
-        return Err("input exceeds 32 MiB budget");
-    }
-    let budget = Budget {
-        max_entries: 1024,
-        max_part_bytes: 16 << 20,
-        max_total_bytes: 64 << 20,
-        max_xml_depth: 128,
-        max_xml_nodes: 1_000_000,
-        max_relationships: 4096,
-        ..Budget::default()
-    };
-    // Deliberately avoid echoing attacker-controlled package paths/XML in errors.
-    let imported = joyword_docx::import(&bytes, &budget)
-        .map_err(|_| "DOCX refused: invalid, unsupported or over budget")?;
-    let mut text = Text {
-        value: String::new(),
-        limit: options.limit,
-        truncated: false,
-        omitted_objects: 0,
-        paragraphs: 0,
-    };
-    text.blocks(&imported.document.body().blocks);
-    let preserved = imported.backing.fragments().count();
-    let report = json!({
-        "schema_version": 1,
-        "projection": {
-            "name": "imported-main-body",
-            "hidden_text": "included",
-            "deleted_revisions": "excluded",
-            "inserted_revisions": "included",
-            "moved_to_revisions": "included",
-            "moved_from_revisions": "excluded",
-            "comments": "excluded",
-            "other_stories": "excluded",
-            "unsupported_xml": "omitted-preserved-in-source",
-            "paragraph_separator": "LF",
-            "cell_separator": "paragraph-LF",
-            "line_break": "LF",
-            "page_column_break": "FF",
-        },
-        "partial": preserved != 0 || !imported.diagnostics.is_empty() || text.omitted_objects != 0,
-        "truncated": text.truncated,
-        "text_bytes_limit": options.limit,
-        "text_bytes": text.value.len(),
-        "paragraphs": text.paragraphs,
-        "omitted_objects": text.omitted_objects,
-        "preserved_fragments": preserved,
-        "diagnostics": { "reported": imported.diagnostics.len(), "suppressed": imported.diagnostics.suppressed() },
-        "read_only": imported.editability.is_read_only(),
-    });
-    let mut report = report;
-    if options.compatibility {
-        report["compatibility"] = json!({
-            "style_approximation_required": joyword_layout::compatibility::has_style_approximations(&imported.document.snapshot()),
-        });
-    }
-    if options.inspect {
-        report["text"] = json!(text.value);
-    }
-    canonicalize_keys(&mut report);
-    let mut stdout = std::io::stdout().lock();
-    if options.inspect {
-        serde_json::to_writer(&mut stdout, &report).map_err(|_| "cannot write JSON")?;
-        stdout.write_all(b"\n").map_err(|_| "cannot write stdout")?;
-    } else {
-        let mut stderr = std::io::stderr().lock();
-        serde_json::to_writer(&mut stderr, &report)
-            .map_err(|_| "cannot write projection metadata")?;
-        stderr.write_all(b"\n").map_err(|_| "cannot write stderr")?;
-        stderr.flush().map_err(|_| "cannot flush stderr")?;
-        stdout
-            .write_all(text.value.as_bytes())
-            .map_err(|_| "cannot write stdout")?;
-    }
-    stdout.flush().map_err(|_| "cannot flush stdout")?;
-    Ok(if text.truncated { 3 } else { 0 })
-}
-
 fn main() -> ExitCode {
-    let result = match options() {
-        Ok(Some(Options::Text(options))) => execute_text(options),
-        Ok(Some(Options::Visual(options))) => visual::execute(options),
-        Ok(Some(Options::Merge(options))) => merge::execute(options),
-        Ok(Some(Options::Epub(options))) => epub::execute(options),
-        Ok(Some(Options::Exchange(options))) => exchange::execute(options),
-        Ok(None) => std::io::stdout()
-            .write_all(HELP.as_bytes())
-            .map(|()| 0)
-            .map_err(|_| "cannot write help"),
-        Err(error) => Err(error),
-    };
+    // Match the desktop's separation of document work from its entry thread.
+    // Debug builds can exhaust the default Windows main stack while loading
+    // bounded nested OOXML and laying out the first page.
+    let result = std::thread::Builder::new()
+        .name("joyword-cli".into())
+        .stack_size(8 * 1024 * 1024)
+        .spawn(|| joyword_shell::reader::guarded(run))
+        .map_err(|error| format!("Cannot start JoyWord worker: {error}"))
+        .and_then(|worker| {
+            worker
+                .join()
+                .map_err(|_| "JoyWord worker failed".to_string())?
+        });
     match result {
-        Ok(code) => ExitCode::from(code),
+        Ok(()) => ExitCode::SUCCESS,
         Err(error) => {
-            let _ = writeln!(std::io::stderr().lock(), "joyword-cli: {error}");
-            ExitCode::from(2)
+            eprintln!("{error}");
+            ExitCode::FAILURE
         }
     }
 }

@@ -1,0 +1,12 @@
+wsl: 检测到 localhost 代理配置，但未镜像到 WSL。NAT 模式下的 WSL 不支持 localhost 代理。
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
++ /usr/bin/python3 scripts/joysheet/package.py --profile debug --output /root/joyoffice-r8-final-dist/joysheet-0.1.0-linux-x86_64-debug
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.11s
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
++ dpkg-deb --build --root-owner-group /root/joyoffice-r8-final-dist/joysheet-0.1.0-linux-x86_64-debug/debian /root/joyoffice-r8-final-dist/joysheet-0.1.0-linux-x86_64-debug.deb
+dpkg-deb: building package 'joysheet' in '/root/joyoffice-r8-final-dist/joysheet-0.1.0-linux-x86_64-debug.deb'.
++ tar -czf /root/joyoffice-r8-final-dist/joysheet-0.1.0-linux-x86_64-debug-appdir.tar.gz -C /root/joyoffice-r8-final-dist/joysheet-0.1.0-linux-x86_64-debug Joysheet.AppDir
+/root/joyoffice-r8-final-dist/joysheet-0.1.0-linux-x86_64-debug

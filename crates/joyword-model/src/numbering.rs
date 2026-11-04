@@ -1,1294 +1,859 @@
-//! Numbering definitions and list labels (ECMA-376 Part 1 §17.9).
-//!
-//! An abstract numbering definition holds up to nine levels. A numbering
-//! instance points at one abstract definition and may override a level's
-//! start, or the whole level. Paragraphs name an instance and a level with
-//! `w:numPr`; a style may do the same, and a direct `numId` of 0 suppresses
-//! the style. `numStyleLink` and `styleLink` are kept and not followed.
-//!
-//! Counter values follow the level's start and `lvlRestart`. The first use
-//! after a restart displays `start` (or `startOverride`). A `%n` reference
-//! to a level that has not been used displays that level's start and does
-//! not consume it. Formats outside the set this module can render are
-//! errors. A label longer than [`LABEL_CHAR_BUDGET`] scalar values is
-//! [`NumberingProblem::Unrenderable`], as are non-positive letters, roman
-//! numerals and heavenly stems. The label is never a decimal fallback.
+//! Lists: abstract numbering definitions (9 levels each), numbering instances, and the counter
+//! state used to compute list labels.
 
-use std::collections::BTreeMap;
-use std::fmt;
-use std::sync::Arc;
+use std::collections::HashMap;
 
-use crate::block::{Block, Paragraph};
-use crate::document::Document;
-use crate::id::NodeId;
-use crate::props::{
-    FontRef, FontSlots, Indent, Measure, NumberingRef, ParaProps, RunProps, TabStop,
-};
-use crate::style::overlay_paragraph;
-use crate::symbol_font::{self, is_mapped_family};
+use serde::{Deserialize, Serialize};
 
-/// Highest `ilvl` ECMA-376 defines (0..=8).
-pub const MAX_LEVEL: u8 = 8;
+use crate::props::{Align, CharProps};
+use crate::section::NumFormat;
+use crate::{DocError, free_id};
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
-pub enum NumberFormat {
-    Decimal,
-    LowerLetter,
-    UpperLetter,
-    LowerRoman,
-    UpperRoman,
-    ChineseCounting,
-    IdeographTraditional,
-    ChineseLegalSimplified,
-    /// `w:numFmt` `none`: the level contributes an empty string.
-    None,
-    /// `w:numFmt` `bullet`: the label is the literal `w:lvlText` after `%%`.
-    Bullet,
-    /// A token this slice does not render. The original token is kept.
-    Other(Arc<str>),
-}
-
-impl NumberFormat {
-    pub fn parse(token: &str) -> Self {
-        match token {
-            "decimal" => Self::Decimal,
-            "lowerLetter" => Self::LowerLetter,
-            "upperLetter" => Self::UpperLetter,
-            "lowerRoman" => Self::LowerRoman,
-            "upperRoman" => Self::UpperRoman,
-            "chineseCounting" => Self::ChineseCounting,
-            "ideographTraditional" => Self::IdeographTraditional,
-            "chineseLegalSimplified" => Self::ChineseLegalSimplified,
-            "none" => Self::None,
-            "bullet" => Self::Bullet,
-            other => Self::Other(Arc::from(other)),
-        }
-    }
-
-    /// Draws `value` with this format. `None` when the format or the value
-    /// is outside the set this slice can render, including an empty `none`.
-    pub fn render(&self, value: i32) -> Option<String> {
-        render_format(0, self, value)
-            .ok()
-            .filter(|text| !text.is_empty())
-    }
-
-    /// The `w:numFmt` token (§17.18.59) this format was parsed from. An
-    /// unmapped token keeps its original spelling, so writing it back does
-    /// not invent a format.
-    pub fn token(&self) -> Arc<str> {
-        match self {
-            Self::Decimal => Arc::from("decimal"),
-            Self::LowerLetter => Arc::from("lowerLetter"),
-            Self::UpperLetter => Arc::from("upperLetter"),
-            Self::LowerRoman => Arc::from("lowerRoman"),
-            Self::UpperRoman => Arc::from("upperRoman"),
-            Self::ChineseCounting => Arc::from("chineseCounting"),
-            Self::IdeographTraditional => Arc::from("ideographTraditional"),
-            Self::ChineseLegalSimplified => Arc::from("chineseLegalSimplified"),
-            Self::None => Arc::from("none"),
-            Self::Bullet => Arc::from("bullet"),
-            Self::Other(token) => Arc::clone(token),
-        }
-    }
-}
-
-/// `w:suff`. Omitted in the source means a tab.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub enum NumberSuffix {
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase")]
+pub enum LevelSuffix {
+    #[default]
     Tab,
     Space,
     Nothing,
 }
 
-impl NumberSuffix {
-    pub fn parse(token: &str) -> Option<Self> {
-        match token {
-            "tab" => Some(Self::Tab),
-            "space" => Some(Self::Space),
-            "nothing" => Some(Self::Nothing),
-            _ => None,
-        }
-    }
-
-    /// The `w:suff` token (§17.18.88) this suffix was parsed from.
-    pub fn token(self) -> &'static str {
-        match self {
-            Self::Tab => "tab",
-            Self::Space => "space",
-            Self::Nothing => "nothing",
-        }
-    }
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(default, rename_all = "camelCase")]
+pub struct Level {
+    pub start: u32,
+    pub format: NumFormat,
+    /// Label template: `%1.`, `%1.%2.`, or the bullet character.
+    pub text: String,
+    pub align: Align,
+    /// Left indent of the text, points.
+    pub indent: f32,
+    /// Hanging indent (label sits this far left of `indent`), points.
+    pub hanging: f32,
+    pub suffix: LevelSuffix,
+    /// Label formatting (bullet font etc.).
+    pub chr: CharProps,
+    /// Restart after a higher level (true = after any higher level, the default).
+    pub restart: bool,
+    /// Restart only after this level (1-based, Word's `w:lvlRestart`): a level 3 that restarts
+    /// after level 1 keeps counting across level 2 items. `None` restarts after the level just
+    /// above. Ignored when `restart` is false.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub restart_after: Option<u8>,
+    /// The tab stop that follows the number (Word's "Add tab stop at"), points from the
+    /// paragraph's left edge.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tab: Option<f32>,
+    /// Show all levels as decimal (legal numbering).
+    pub legal: bool,
+    /// Paragraph style linked to this level (e.g. Heading 1 for outline numbering).
+    pub style: Option<String>,
 }
 
-/// One numbering level. `para` carries the level's indent and tab stops;
-/// other paragraph properties on the level are left unresolved.
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct NumberingLevel {
-    pub start: i32,
-    pub format: NumberFormat,
-    /// `w:lvlText`. `%1` is level 0.
-    pub text: Arc<str>,
-    /// `w:lvlRestart`. `None` means the element was omitted: the level
-    /// restarts when the previous level is used. `Some(0)` never restarts.
-    /// `Some(n)` restarts when level `n - 1` is used.
-    pub restart: Option<u8>,
-    pub suffix: NumberSuffix,
-    pub para: ParaProps,
-    /// Level `w:rPr`. Size, bold and the named font are used for the label.
-    pub run: RunProps,
-    /// `w:lvlPicBulletId`. The label is refused; no glyph is invented.
-    pub picture: Option<u32>,
-    /// `w:pStyle`, `w:legacy`, `w:isLgl`, `w:lvlJc` or another child this
-    /// slice does not apply. The numbering part bytes stay in the package.
-    pub unmodeled: bool,
-}
-
-impl NumberingLevel {
-    pub fn new(format: NumberFormat, text: &str) -> Self {
-        Self {
-            start: 0,
-            format,
-            text: Arc::from(text),
-            restart: None,
-            suffix: NumberSuffix::Tab,
-            para: ParaProps::default(),
-            run: RunProps::default(),
-            picture: None,
-            unmodeled: false,
+impl Default for Level {
+    fn default() -> Self {
+        Level {
+            start: 1,
+            format: NumFormat::Decimal,
+            text: "%1.".into(),
+            align: Align::Left,
+            indent: 36.0,
+            hanging: 18.0,
+            suffix: LevelSuffix::Tab,
+            chr: CharProps::default(),
+            restart: true,
+            restart_after: None,
+            tab: None,
+            legal: false,
+            style: None,
         }
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct LevelOverride {
-    pub level: u8,
-    pub start_override: Option<i32>,
-    pub replacement: Option<NumberingLevel>,
-}
-
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
+#[serde(default)]
 pub struct AbstractNum {
     pub id: u32,
-    pub levels: [Option<NumberingLevel>; 9],
-    pub num_style_link: Option<Arc<str>>,
-    pub style_link: Option<Arc<str>>,
-    pub unmodeled: bool,
+    pub name: Option<String>,
+    pub levels: Vec<Level>,
+    /// Word's list identity (`w:nsid`, 8 hex digits), which it uses to match lists across
+    /// documents (paste, compare); kept from the file.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub nsid: Option<String>,
+    /// The list template the definition came from (`w:tmpl`); kept from the file.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tmpl: Option<String>,
+    /// `w:multiLevelType` from the file (`singleLevel`, `multilevel`, `hybridMultilevel`);
+    /// `None`: derived from the levels.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub multi_level_type: Option<String>,
 }
 
-impl AbstractNum {
-    pub fn new(id: u32) -> Self {
-        Self {
-            id,
-            levels: std::array::from_fn(|_| None),
-            num_style_link: None,
-            style_link: None,
-            unmodeled: false,
-        }
-    }
-
-    fn linked(&self) -> bool {
-        self.num_style_link.is_some() || self.style_link.is_some()
-    }
-}
-
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct NumInstance {
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
+#[serde(default, rename_all = "camelCase")]
+pub struct Num {
     pub id: u32,
     pub abstract_id: u32,
-    pub overrides: Vec<LevelOverride>,
+    /// Per-level start overrides (level, start).
+    pub start_overrides: Vec<(u8, u32)>,
+    /// Levels this list defines itself instead of taking them from its abstract list (level,
+    /// definition): Word's `w:lvlOverride/w:lvl`.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub level_overrides: Vec<(u8, Level)>,
 }
 
-/// `numbering.xml` as far as labels and level paragraph properties need it.
-/// The part itself is never regenerated from this store.
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
-pub struct NumberingStore {
-    abstracts: Vec<AbstractNum>,
-    instances: Vec<NumInstance>,
-    pub unmodeled: bool,
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
+#[serde(default)]
+pub struct Numbering {
+    pub abstracts: Vec<AbstractNum>,
+    pub nums: Vec<Num>,
 }
 
-impl NumberingStore {
-    pub fn is_empty(&self) -> bool {
-        self.abstracts.is_empty() && self.instances.is_empty() && !self.unmodeled
-    }
+/// Built-in list kinds for the Bullets / Numbering / Multilevel galleries.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum ListKind {
+    /// • ○ ▪ repeating.
+    Bullet,
+    /// A specific bullet character.
+    BulletChar(char),
+    /// 1. a. i.
+    Numbered,
+    /// 1) a) i)
+    NumberedParen,
+    /// I. A. 1.
+    Outline,
+    /// A. B. C.
+    UpperLetter,
+    /// a) b) c)
+    LowerLetter,
+    /// a. b. c.
+    LowerLetterDot,
+    /// i. ii. iii.
+    LowerRoman,
+    /// 1. 1.1. 1.1.1.
+    Legal,
+}
 
-    pub fn abstracts(&self) -> &[AbstractNum] {
-        &self.abstracts
-    }
-
-    pub fn instances(&self) -> &[NumInstance] {
-        &self.instances
-    }
-
-    pub fn insert_abstract(&mut self, abstract_num: AbstractNum) -> bool {
-        if self.abstracts.iter().any(|item| item.id == abstract_num.id) {
-            return false;
-        }
-        self.abstracts.push(abstract_num);
-        true
-    }
-
-    pub fn insert_instance(&mut self, instance: NumInstance) -> bool {
-        if self.instances.iter().any(|item| item.id == instance.id) {
-            return false;
-        }
-        self.instances.push(instance);
-        true
-    }
-
-    /// Returns a level-0 bullet instance, creating one when none exists.
-    ///
-    /// The created label is U+2022, a tab suffix, and a hanging indent of
-    /// 720 twips with 360 twips of hanging. Those distances are a JoyWord
-    /// preset, not a measurement taken from Word. One undo of the command
-    /// that calls this restores the previous store. Export appends a created
-    /// definition to `numbering.xml`; it still refuses a store whose
-    /// existing entries were modified.
-    pub fn ensure_bullet(&mut self) -> u32 {
-        if let Some(id) = self.instances.iter().find_map(|instance| {
-            let abstract_num = self
-                .abstracts
-                .iter()
-                .find(|item| item.id == instance.abstract_id)?;
-            if abstract_num.linked() {
-                return None;
-            }
-            let level = abstract_num.levels[0].as_ref()?;
-            (level.format == NumberFormat::Bullet && level.picture.is_none()).then_some(instance.id)
-        }) {
-            return id;
-        }
-        let abstract_id = self
-            .abstracts
-            .iter()
-            .map(|item| item.id)
-            .max()
-            .unwrap_or(0)
-            .saturating_add(1);
-        let mut level = NumberingLevel::new(NumberFormat::Bullet, "\u{2022}");
-        level.start = 1;
-        level.para.indent.start = Some(Measure::Twips(720));
-        level.para.indent.hanging = Some(Measure::Twips(360));
-        let mut abstract_num = AbstractNum::new(abstract_id);
-        abstract_num.levels[0] = Some(level);
-        self.insert_abstract(abstract_num);
-        let id = self
-            .instances
-            .iter()
-            .map(|item| item.id)
-            .max()
-            .unwrap_or(0)
-            .saturating_add(1);
-        self.insert_instance(NumInstance {
-            id,
-            abstract_id,
-            overrides: Vec::new(),
-        });
-        id
-    }
-
-    pub fn instance(&self, id: u32) -> Option<&NumInstance> {
-        self.instances.iter().find(|item| item.id == id)
-    }
-
-    pub fn abstracts_mut(&mut self) -> &mut [AbstractNum] {
-        &mut self.abstracts
-    }
-
-    fn abstract_num(&self, id: u32) -> Option<&AbstractNum> {
-        self.abstracts.iter().find(|item| item.id == id)
-    }
-
-    /// The level a paragraph displays, after instance overrides.
-    pub fn resolved_level(
-        &self,
-        num_id: u32,
-        ilvl: u8,
-    ) -> Result<ResolvedLevel<'_>, NumberingProblem> {
-        if ilvl > MAX_LEVEL {
-            return Err(NumberingProblem::LevelRange(ilvl));
-        }
-        let Some(instance) = self.instance(num_id) else {
-            return Err(NumberingProblem::MissingInstance(num_id));
-        };
-        let Some(abstract_num) = self.abstract_num(instance.abstract_id) else {
-            return Err(NumberingProblem::MissingAbstract(num_id));
-        };
-        if abstract_num.linked() {
-            return Err(NumberingProblem::UnresolvedLink(num_id));
-        }
-        let override_ = instance.overrides.iter().find(|item| item.level == ilvl);
-        let level = override_
-            .and_then(|item| item.replacement.as_ref())
-            .or(abstract_num.levels[ilvl as usize].as_ref())
-            .ok_or(NumberingProblem::MissingLevel {
-                num_id,
-                level: ilvl,
-            })?;
-        Ok(ResolvedLevel {
-            level,
-            start_override: override_.and_then(|item| item.start_override),
+impl ListKind {
+    pub fn parse(s: &str) -> Option<ListKind> {
+        Some(match s {
+            "bullet" => ListKind::Bullet,
+            "numbered" | "number" => ListKind::Numbered,
+            "numberedParen" => ListKind::NumberedParen,
+            "outline" => ListKind::Outline,
+            "upperLetter" => ListKind::UpperLetter,
+            "lowerLetter" => ListKind::LowerLetter,
+            "lowerLetterDot" => ListKind::LowerLetterDot,
+            "lowerRoman" => ListKind::LowerRoman,
+            "legal" | "multilevel" => ListKind::Legal,
+            s if s.chars().count() == 1 => ListKind::BulletChar(s.chars().next()?),
+            _ => return None,
         })
     }
-}
-
-pub struct ResolvedLevel<'a> {
-    pub level: &'a NumberingLevel,
-    pub start_override: Option<i32>,
-}
-
-impl ResolvedLevel<'_> {
-    fn initial(&self) -> i32 {
-        self.start_override.unwrap_or(self.level.start)
+    pub fn is_bullet(self) -> bool {
+        matches!(self, ListKind::Bullet | ListKind::BulletChar(_))
     }
 }
 
-/// Why a paragraph has no list label. Layout records this and does not
-/// invent a marker.
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub enum NumberingProblem {
-    MissingInstance(u32),
-    MissingAbstract(u32),
-    MissingLevel {
-        num_id: u32,
-        level: u8,
-    },
-    /// `w:numStyleLink` or `w:styleLink` is not followed.
-    UnresolvedLink(u32),
-    UnsupportedFormat {
-        num_id: u32,
-        format: Arc<str>,
-    },
-    /// Non-positive where the format has no glyph, or a label longer than
-    /// [`LABEL_CHAR_BUDGET`].
-    Unrenderable {
-        num_id: u32,
-        value: i32,
-    },
-    /// `w:lvlPicBulletId` names a picture. No replacement glyph is drawn.
-    PictureBullet {
-        num_id: u32,
-    },
-    LevelRange(u8),
+/// The bullet a level of a plain bulleted list shows: • ○ ▪ repeating (`level` is zero-based).
+pub fn default_bullet(level: usize) -> char {
+    ['•', '○', '▪'][level % 3]
 }
 
-impl fmt::Display for NumberingProblem {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::MissingInstance(id) => write!(f, "numbering instance {id} is missing"),
-            Self::MissingAbstract(id) => {
-                write!(f, "numbering instance {id} has no abstract numbering")
-            }
-            Self::MissingLevel { num_id, level } => {
-                write!(f, "numbering instance {num_id} has no level {level}")
-            }
-            Self::UnresolvedLink(id) => {
-                write!(f, "numbering instance {id} style link is unresolved")
-            }
-            Self::UnsupportedFormat { num_id, format } => {
-                write!(
-                    f,
-                    "numbering instance {num_id} format {format} is unsupported"
-                )
-            }
-            Self::Unrenderable { num_id, value } => {
-                write!(f, "numbering instance {num_id} cannot render {value}")
-            }
-            Self::PictureBullet { num_id } => {
-                write!(f, "numbering instance {num_id} picture bullet is not drawn")
-            }
-            Self::LevelRange(level) => write!(f, "numbering level {level} is outside 0..=8"),
-        }
+fn bullet_level(i: usize, c: char) -> Level {
+    Level {
+        format: NumFormat::Bullet,
+        text: c.to_string(),
+        indent: 36.0 * (i as f32 + 1.0),
+        hanging: 18.0,
+        chr: CharProps {
+            font: match c {
+                '•' | '▪' | '○' => Some("Arial".into()),
+                // Plain text characters (a dash bullet) use the paragraph's font.
+                c if c.is_ascii() || c == '–' => None,
+                _ => Some("Segoe UI Symbol".into()),
+            },
+            ..CharProps::default()
+        },
+        ..Level::default()
     }
 }
 
-/// The marker drawn before a paragraph. Indent and tabs come from the
-/// resolved paragraph, which already includes the level.
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct NumberLabel {
-    pub text: String,
-    pub suffix: NumberSuffix,
-    /// Level `w:sz`, when the level specifies one. The body size is used otherwise.
-    pub size: Option<Measure>,
-    /// Level `w:b` when it is explicitly on. The label does not inherit body bold.
-    pub bold: bool,
-}
-
-/// Direct `w:numPr`, or the paragraph style's, ignoring `numId` 0.
-pub fn list_reference(document: &Document, paragraph: &Paragraph) -> Option<NumberingRef> {
-    if let Some(direct) = paragraph.props.numbering {
-        return (direct.num_id != 0).then_some(direct);
-    }
-    let resolved = document
-        .styles()
-        .resolve_paragraph(paragraph.style.as_ref(), &ParaProps::default());
-    resolved.props.numbering.filter(|item| item.num_id != 0)
-}
-
-/// Document defaults, then the style, then the numbering level's indent and
-/// tabs, then direct paragraph properties.
-pub fn displayed_paragraph(document: &Document, paragraph: &Paragraph) -> ParaProps {
-    let mut props = document
-        .styles()
-        .resolve_paragraph(paragraph.style.as_ref(), &ParaProps::default())
-        .props;
-    let reference = if let Some(direct) = paragraph.props.numbering {
-        (direct.num_id != 0).then_some(direct)
-    } else {
-        props.numbering.filter(|item| item.num_id != 0)
-    };
-    if let Some(reference) = reference
-        && let Ok(resolved) = document
-            .numbering()
-            .resolved_level(reference.num_id, reference.level)
-    {
-        let layer = ParaProps {
-            indent: resolved.level.para.indent,
-            tabs: resolved.level.para.tabs.clone(),
-            ..ParaProps::default()
-        };
-        overlay_paragraph(&mut props, &layer);
-    }
-    overlay_paragraph(&mut props, &paragraph.props);
-    props
-}
-
-/// One label per numbered paragraph in the body, in document order.
-/// Counters are per numbering instance and follow restart rules.
-pub fn list_marks(document: &Document) -> BTreeMap<NodeId, Result<NumberLabel, NumberingProblem>> {
-    let mut counters: BTreeMap<u32, [Option<i32>; 9]> = BTreeMap::new();
-    let mut marks = BTreeMap::new();
-    walk_paragraphs(&document.body().blocks, &mut |paragraph| {
-        let Some(reference) = list_reference(document, paragraph) else {
-            return;
-        };
-        let label = label_one(document, &mut counters, reference);
-        marks.insert(paragraph.id(), label);
-    });
-    marks
-}
-
-fn label_one(
-    document: &Document,
-    counters: &mut BTreeMap<u32, [Option<i32>; 9]>,
-    reference: NumberingRef,
-) -> Result<NumberLabel, NumberingProblem> {
-    let (initial, suffix, template, format, picture, size, bold, fonts) = {
-        let resolved = document
-            .numbering()
-            .resolved_level(reference.num_id, reference.level)?;
-        (
-            resolved.initial(),
-            resolved.level.suffix,
-            Arc::clone(&resolved.level.text),
-            resolved.level.format.clone(),
-            resolved.level.picture,
-            resolved.level.run.size,
-            resolved.level.run.bold == Some(true),
-            resolved.level.run.fonts.clone(),
-        )
-    };
-    let state = counters.entry(reference.num_id).or_insert([None; 9]);
-    restart_deeper(document, reference.num_id, reference.level, state)?;
-    let next = match state[reference.level as usize] {
-        None => initial,
-        Some(value) => value.saturating_add(1),
-    };
-    state[reference.level as usize] = Some(next);
-    if picture.is_some() {
-        return Err(NumberingProblem::PictureBullet {
-            num_id: reference.num_id,
-        });
-    }
-    if let NumberFormat::Other(token) = format {
-        return Err(NumberingProblem::UnsupportedFormat {
-            num_id: reference.num_id,
-            format: token,
-        });
-    }
-    let raw = if matches!(format, NumberFormat::Bullet) {
-        bullet_literal(&template)
-    } else {
-        substitute(&template, |slot| {
-            render_slot(document, reference.num_id, slot, state)
-        })?
-    };
-    let text = map_label_font(&fonts, &raw);
-    Ok(NumberLabel {
-        text,
-        suffix,
-        size,
-        bold,
-    })
-}
-
-fn map_label_font(fonts: &FontSlots, text: &str) -> String {
-    for slot in [&fonts.ascii, &fonts.h_ansi, &fonts.east_asia] {
-        if let Some(FontRef::Named(name)) = slot
-            && is_mapped_family(name)
-        {
-            return symbol_font::map_private_use(name, text);
-        }
-    }
-    text.to_owned()
-}
-
-/// `%%` becomes `%`. A bullet's `%n` stays literal text.
-fn bullet_literal(template: &str) -> String {
-    let mut out = String::new();
-    let mut chars = template.chars().peekable();
-    while let Some(ch) = chars.next() {
-        if ch == '%' && chars.peek().copied() == Some('%') {
-            chars.next();
-            out.push('%');
-        } else {
-            out.push(ch);
-        }
-    }
-    out
-}
-
-fn restart_deeper(
-    document: &Document,
-    num_id: u32,
-    used: u8,
-    state: &mut [Option<i32>; 9],
-) -> Result<(), NumberingProblem> {
-    for deeper in (used + 1)..=MAX_LEVEL {
-        let Ok(resolved) = document.numbering().resolved_level(num_id, deeper) else {
-            continue;
-        };
-        let reset = match resolved.level.restart {
-            None => deeper == used + 1,
-            Some(0) => false,
-            Some(trigger) => trigger.saturating_sub(1) == used,
-        };
-        if reset {
-            state[deeper as usize] = None;
-        }
-    }
-    Ok(())
-}
-
-fn render_slot(
-    document: &Document,
-    num_id: u32,
-    ilvl: u8,
-    state: &[Option<i32>; 9],
-) -> Result<String, NumberingProblem> {
-    let resolved = document.numbering().resolved_level(num_id, ilvl)?;
-    let value = state[ilvl as usize].unwrap_or_else(|| resolved.initial());
-    render_format(num_id, &resolved.level.format, value)
-}
-
-fn substitute(
-    template: &str,
-    mut value: impl FnMut(u8) -> Result<String, NumberingProblem>,
-) -> Result<String, NumberingProblem> {
-    let mut out = String::new();
-    let mut chars = template.chars().peekable();
-    while let Some(ch) = chars.next() {
-        if ch == '%' {
-            match chars.peek().copied() {
-                Some('%') => {
-                    chars.next();
-                    out.push('%');
+/// Nine levels for a list kind.
+pub fn levels_for(kind: ListKind) -> Vec<Level> {
+    (0..9)
+        .map(|i| {
+            let ind = 36.0 * (i as f32 + 1.0);
+            let cyc = |a: NumFormat, b: NumFormat, c: NumFormat| match i % 3 {
+                0 => a,
+                1 => b,
+                _ => c,
+            };
+            let lvl = |format: NumFormat, text: String| Level {
+                format,
+                text,
+                indent: ind,
+                hanging: 18.0,
+                ..Level::default()
+            };
+            let n = i + 1;
+            match kind {
+                ListKind::Bullet => bullet_level(i, default_bullet(i)),
+                ListKind::BulletChar(c) => {
+                    bullet_level(i, if i == 0 { c } else { default_bullet(i) })
                 }
-                Some(digit) if ('1'..='9').contains(&digit) => {
-                    chars.next();
-                    out.push_str(&value(digit as u8 - b'1')?);
+                ListKind::Numbered => lvl(
+                    cyc(
+                        NumFormat::Decimal,
+                        NumFormat::LowerLetter,
+                        NumFormat::LowerRoman,
+                    ),
+                    format!("%{n}."),
+                ),
+                ListKind::NumberedParen => lvl(
+                    cyc(
+                        NumFormat::Decimal,
+                        NumFormat::LowerLetter,
+                        NumFormat::LowerRoman,
+                    ),
+                    format!("%{n})"),
+                ),
+                ListKind::UpperLetter => lvl(
+                    cyc(
+                        NumFormat::UpperLetter,
+                        NumFormat::LowerLetter,
+                        NumFormat::LowerRoman,
+                    ),
+                    format!("%{n}."),
+                ),
+                ListKind::LowerLetter => lvl(
+                    cyc(
+                        NumFormat::LowerLetter,
+                        NumFormat::LowerRoman,
+                        NumFormat::Decimal,
+                    ),
+                    format!("%{n})"),
+                ),
+                ListKind::LowerLetterDot => lvl(
+                    cyc(
+                        NumFormat::LowerLetter,
+                        NumFormat::LowerRoman,
+                        NumFormat::Decimal,
+                    ),
+                    format!("%{n}."),
+                ),
+                ListKind::LowerRoman => lvl(
+                    cyc(
+                        NumFormat::LowerRoman,
+                        NumFormat::LowerLetter,
+                        NumFormat::Decimal,
+                    ),
+                    format!("%{n}."),
+                ),
+                ListKind::Outline => {
+                    let f = [
+                        NumFormat::UpperRoman,
+                        NumFormat::UpperLetter,
+                        NumFormat::Decimal,
+                        NumFormat::LowerLetter,
+                        NumFormat::LowerRoman,
+                    ]
+                    .get(i)
+                    .copied()
+                    .unwrap_or(NumFormat::Decimal);
+                    lvl(f, format!("%{n}."))
                 }
-                _ => out.push('%'),
-            }
-        } else {
-            out.push(ch);
-        }
-    }
-    Ok(out)
-}
-
-fn render_format(
-    num_id: u32,
-    format: &NumberFormat,
-    value: i32,
-) -> Result<String, NumberingProblem> {
-    let unsupported = || NumberingProblem::UnsupportedFormat {
-        num_id,
-        format: format.token(),
-    };
-    let unrenderable = || NumberingProblem::Unrenderable { num_id, value };
-    match format {
-        NumberFormat::Decimal => Ok(value.to_string()),
-        NumberFormat::None => Ok(String::new()),
-        NumberFormat::Bullet => Ok(String::new()),
-        NumberFormat::Other(_) => Err(unsupported()),
-        NumberFormat::LowerLetter => letter(value, false).ok_or_else(unrenderable),
-        NumberFormat::UpperLetter => letter(value, true).ok_or_else(unrenderable),
-        NumberFormat::LowerRoman => roman(value, false).ok_or_else(unrenderable),
-        NumberFormat::UpperRoman => roman(value, true).ok_or_else(unrenderable),
-        NumberFormat::ChineseCounting => chinese_counting(value).ok_or_else(unrenderable),
-        NumberFormat::ChineseLegalSimplified => {
-            chinese_legal_simplified(value).ok_or_else(unrenderable)
-        }
-        NumberFormat::IdeographTraditional => ideograph(value).ok_or_else(unrenderable),
-    }
-}
-
-/// One numbering label may not exceed this many Unicode scalar values.
-///
-/// ECMA-376 §17.18.59 does not cap letter repeats or additive roman
-/// thousands. This bound keeps an untrusted `i32` counter from allocating
-/// a multi-megabyte label. It is a JoyWord input budget, not a clause.
-const LABEL_CHAR_BUDGET: usize = 256;
-
-/// Largest value whose classical form repeats a symbol at most three times
-/// (`MMMCMXCIX`). Positive values above this keep the same additive table,
-/// so 4000 is `MMMM`, until the label would pass [`LABEL_CHAR_BUDGET`].
-/// Zero and negative values stay unrenderable. Vinculum forms are not used.
-pub const ROMAN_MAX: i32 = 3999;
-
-fn letter(value: i32, upper: bool) -> Option<String> {
-    if value < 1 {
-        return None;
-    }
-    let index = (value - 1) % 26;
-    let repeat = (value - 1) / 26 + 1;
-    let base = if upper { b'A' } else { b'a' };
-    repeated(char::from(base + index as u8), repeat)
-}
-
-fn repeated(ch: char, repeat: i32) -> Option<String> {
-    if !(1..=LABEL_CHAR_BUDGET as i32).contains(&repeat) {
-        return None;
-    }
-    Some(ch.to_string().repeat(repeat as usize))
-}
-
-fn roman(value: i32, upper: bool) -> Option<String> {
-    if value < 1 {
-        return None;
-    }
-    const PARTS: [(i32, &str); 13] = [
-        (1000, "m"),
-        (900, "cm"),
-        (500, "d"),
-        (400, "cd"),
-        (100, "c"),
-        (90, "xc"),
-        (50, "l"),
-        (40, "xl"),
-        (10, "x"),
-        (9, "ix"),
-        (5, "v"),
-        (4, "iv"),
-        (1, "i"),
-    ];
-    let mut rest = value;
-    let mut out = String::new();
-    for (amount, glyph) in PARTS {
-        while rest >= amount {
-            if out.len() + glyph.len() > LABEL_CHAR_BUDGET {
-                return None;
-            }
-            out.push_str(glyph);
-            rest -= amount;
-        }
-    }
-    if upper {
-        out.make_ascii_uppercase();
-    }
-    Some(out)
-}
-
-const IDEAGRAPH: [char; 10] = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
-
-/// Heavenly stems. The §17.18.59 example lists the ten stems and stops.
-/// Past 10 this repeats a stem the way the same clause's letter example
-/// repeats a letter: 11 is 甲甲, 12 is 乙乙, 21 is 甲甲甲. That continuation
-/// is a JoyWord assumption, not a sentence in the example, and not a Word
-/// observation. Zero and negative values stay unrenderable.
-fn ideograph(value: i32) -> Option<String> {
-    if value < 1 {
-        return None;
-    }
-    let index = (value - 1) % 10;
-    let repeat = (value - 1) / 10 + 1;
-    repeated(IDEAGRAPH[index as usize], repeat)
-}
-
-fn chinese_counting(value: i32) -> Option<String> {
-    const DIGITS: [&str; 10] = ["零", "一", "二", "三", "四", "五", "六", "七", "八", "九"];
-    const UNITS: [&str; 4] = ["", "十", "百", "千"];
-    chinese_group(value, &DIGITS, &UNITS, "万")
-}
-
-fn chinese_legal_simplified(value: i32) -> Option<String> {
-    const DIGITS: [&str; 10] = ["零", "壹", "贰", "叁", "肆", "伍", "陆", "柒", "捌", "玖"];
-    const UNITS: [&str; 4] = ["", "拾", "佰", "仟"];
-    chinese_group(value, &DIGITS, &UNITS, "万")
-}
-
-/// Chinese counting for every non-negative `i32`.
-///
-/// The §17.18.59 example is 一, 二, 三 and the place-value spellings already
-/// used through 万. This continues that grouping with 亿 so a positive `i32`
-/// fits. A skipped group, or a group whose thousands digit is 0, inserts one
-/// 零. Tens from 10 to 19 omit the leading 一 only when 十 is the first
-/// character of the whole number. The value 0 is the same 零 digit used
-/// between places, not a second code point. Negative values are not rendered.
-fn chinese_group(value: i32, digits: &[&str; 10], units: &[&str; 4], wan: &str) -> Option<String> {
-    if value < 0 {
-        return None;
-    }
-    if value == 0 {
-        return within_budget(digits[0].to_owned());
-    }
-    let value = value as u32;
-    let groups = [
-        (value / 100_000_000, "亿"),
-        ((value % 100_000_000) / 10_000, wan),
-        (value % 10_000, ""),
-    ];
-    let mut out = String::new();
-    let mut started = false;
-    let mut pending_zero = false;
-    for (group, unit) in groups {
-        if group == 0 {
-            if started {
-                pending_zero = true;
-            }
-            continue;
-        }
-        if pending_zero || (started && group < 1000) {
-            out.push_str(digits[0]);
-            pending_zero = false;
-        }
-        out.push_str(&chinese_section(group, digits, units, !started));
-        out.push_str(unit);
-        started = true;
-    }
-    within_budget(out)
-}
-
-fn within_budget(text: String) -> Option<String> {
-    (text.chars().count() <= LABEL_CHAR_BUDGET).then_some(text)
-}
-
-fn chinese_section(
-    value: u32,
-    digits: &[&str; 10],
-    units: &[&str; 4],
-    omit_leading_ten: bool,
-) -> String {
-    let mut places = [0u32; 4];
-    let mut rest = value;
-    for place in &mut places {
-        *place = rest % 10;
-        rest /= 10;
-    }
-    let mut out = String::new();
-    let mut started = false;
-    let mut pending_zero = false;
-    for index in (0..4).rev() {
-        let digit = places[index];
-        if digit == 0 {
-            if started {
-                pending_zero = true;
-            }
-            continue;
-        }
-        if pending_zero {
-            out.push_str(digits[0]);
-            pending_zero = false;
-        }
-        let leading_ten = omit_leading_ten && !started && index == 1 && digit == 1;
-        if !leading_ten {
-            out.push_str(digits[digit as usize]);
-        }
-        if index > 0 {
-            out.push_str(units[index]);
-        }
-        started = true;
-    }
-    out
-}
-
-fn walk_paragraphs(blocks: &crate::block::BlockSeq, visit: &mut dyn FnMut(&Paragraph)) {
-    for block in blocks.iter() {
-        match block {
-            Block::Paragraph(paragraph) => visit(paragraph),
-            Block::Table(table) => {
-                for row in &table.rows {
-                    for cell in &row.cells {
-                        walk_paragraphs(&cell.blocks, visit);
+                ListKind::Legal => {
+                    let text: String = (1..=n).map(|k| format!("%{k}.")).collect();
+                    Level {
+                        format: NumFormat::Decimal,
+                        text,
+                        indent: 18.0 + 25.0 * i as f32,
+                        hanging: 18.0 + 7.0 * i as f32,
+                        ..Level::default()
                     }
                 }
             }
-            Block::Sdt(sdt) => walk_paragraphs(&sdt.blocks, visit),
-            Block::Opaque(_) => {}
+        })
+        .collect()
+}
+
+impl Numbering {
+    pub fn num(&self, id: u32) -> Option<&Num> {
+        self.nums.iter().find(|n| n.id == id)
+    }
+    pub fn abstract_of(&self, num: u32) -> Option<&AbstractNum> {
+        let n = self.num(num)?;
+        self.abstracts.iter().find(|a| a.id == n.abstract_id)
+    }
+    /// Whether a paragraph in list `num` at `level` gets a label ([`Counters::next_label`] gives
+    /// one), without counting it.
+    pub fn shows_label(&self, num: u32, level: u8) -> bool {
+        self.abstract_of(num).is_some()
+            && self
+                .level(num, level.min(8))
+                .is_some_and(|d| d.format != NumFormat::None)
+    }
+    pub fn level(&self, num: u32, level: u8) -> Option<&Level> {
+        if let Some((_, l)) = self
+            .num(num)?
+            .level_overrides
+            .iter()
+            .find(|(i, _)| *i == level)
+        {
+            return Some(l);
         }
+        self.abstract_of(num)?.levels.get(level as usize)
     }
-}
-
-/// Indent used when placing a list label and the body that follows it.
-pub fn indent_edges(indent: &Indent) -> Option<IndentEdges> {
-    let edge = |measure: Option<crate::props::Measure>| match measure {
-        None => Some(0),
-        Some(measure) => measure.absolute().map(|length| length.raw()),
-    };
-    Some(IndentEdges {
-        start: edge(indent.start)?,
-        end: edge(indent.end)?,
-        first_line: edge(indent.first_line)?,
-        hanging: edge(indent.hanging)?,
-    })
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct IndentEdges {
-    pub start: i64,
-    pub end: i64,
-    pub first_line: i64,
-    pub hanging: i64,
-}
-
-impl IndentEdges {
-    pub fn moves_text(self) -> bool {
-        self.start != 0 || self.end != 0 || self.first_line != 0 || self.hanging != 0
+    /// Create a new list of `kind`; returns the `num` id. List ids run out only past `u32::MAX`
+    /// lists, more than memory holds; then nothing is added and the id is 0, "no list".
+    pub fn add_list(&mut self, kind: ListKind) -> u32 {
+        self.try_add_list(kind).unwrap_or(0)
     }
-}
-
-/// Resolved custom tab stops plus the default interval's continuation.
-/// Positions are absolute EMU from the content left. `num` is reported as
-/// left. Clear stops are not positions.
-pub fn tab_positions(stops: &[TabStop], interval: i64, limit: i64) -> Option<Vec<PlacedTab>> {
-    if interval <= 0 {
-        return None;
+    /// [`Numbering::add_list`], or an error, adding nothing, when list ids are all taken.
+    pub fn try_add_list(&mut self, kind: ListKind) -> crate::Result<u32> {
+        self.try_add_levels(None, levels_for(kind))
     }
-    let mut custom = Vec::new();
-    for stop in stops {
-        if matches!(stop.align, crate::props::TabAlign::Clear) {
-            continue;
-        }
-        let position = stop.position.absolute()?;
-        custom.push(PlacedTab {
-            position: position.raw(),
-            align: stop.align,
-            leader: stop.leader,
+    /// A new list definition (`name`, `levels`) and a `num` for it; returns the `num` id. Both ids
+    /// are [`free_id`]s, so the largest ids a file can hold don't make them collide with its lists;
+    /// an error, adding nothing, when they are all taken.
+    pub fn try_add_levels(
+        &mut self,
+        name: Option<String>,
+        levels: Vec<Level>,
+    ) -> crate::Result<u32> {
+        let aid = free_id(
+            self.abstracts.iter().map(|a| a.id).max(),
+            self.abstracts.iter().map(|a| a.id),
+            0,
+        );
+        let (Some(aid), Some(nid)) = (aid, self.free_num_id()) else {
+            return Err(DocError::Invalid("no free list id".into()));
+        };
+        self.abstracts.push(AbstractNum {
+            id: aid,
+            name,
+            levels,
+            ..Default::default()
         });
+        self.nums.push(Num {
+            id: nid,
+            abstract_id: aid,
+            ..Default::default()
+        });
+        Ok(nid)
     }
-    custom.sort_by_key(|stop| stop.position);
-    let rightmost = custom.last().map(|stop| stop.position);
-    let mut position = match rightmost {
-        None => interval,
-        Some(after) => {
-            let remainder = after % interval;
-            if remainder == 0 {
-                after + interval
-            } else {
-                after - remainder + interval
+    /// A `num` id no list has (`num` 0 means "no list"), `None` when they are all taken.
+    fn free_num_id(&self) -> Option<u32> {
+        free_id(
+            self.nums.iter().map(|n| n.id).max(),
+            self.nums.iter().map(|n| n.id),
+            1,
+        )
+    }
+    /// A new `num` that restarts numbering of an existing list (`None`: no such list, or list ids
+    /// are all taken).
+    pub fn restart(&mut self, num: u32) -> Option<u32> {
+        let source = self.num(num)?;
+        let a = source.abstract_id;
+        let level_overrides = source.level_overrides.clone();
+        let nid = self.free_num_id()?;
+        // Every level starts again at its own effective start, so a level this list defines itself keeps its start.
+        let levels = self
+            .abstracts
+            .iter()
+            .find(|x| x.id == a)
+            .map_or(0, |x| x.levels.len());
+        let start_overrides = (0..levels)
+            .filter_map(|i| self.level(num, i as u8).map(|l| (i as u8, l.start)))
+            .collect();
+        self.nums.push(Num {
+            id: nid,
+            abstract_id: a,
+            start_overrides,
+            level_overrides,
+        });
+        Some(nid)
+    }
+    /// Find an existing list whose first level matches `kind`, so consecutive bullet clicks reuse it.
+    pub fn find_kind(&self, kind: ListKind) -> Option<u32> {
+        let want = levels_for(kind);
+        let first = want.first()?;
+        self.nums
+            .iter()
+            .find(|n| {
+                self.abstract_of(n.id)
+                    .and_then(|a| a.levels.first())
+                    .is_some_and(|l| l.format == first.format && l.text == first.text)
+            })
+            .map(|n| n.id)
+    }
+}
+
+/// Running list counters while walking a document in order.
+#[derive(Default, Debug, Clone)]
+pub struct Counters {
+    /// Per abstract list: current value per level.
+    state: HashMap<u32, [u32; 9]>,
+    /// Which levels of which nums have started: a num's start override for a level applies
+    /// once, when that level of that num is first used (ECMA-376 Part 1, 17.9.27 startOverride).
+    seen: HashMap<(u32, u8), bool>,
+    /// Per abstract list: whether each level has counted yet (a value of 0 can be a real count when a
+    /// level starts at 0).
+    flags: HashMap<u32, [LevelFlags; 9]>,
+}
+
+/// Whether a level has counted yet, and the value its next item takes if a start override says so.
+#[derive(Default, Debug, Clone, Copy)]
+struct LevelFlags {
+    started: bool,
+    first: Option<u32>,
+}
+
+impl Counters {
+    /// The current value of each level of `num`'s list (0 for a level not counted yet).
+    pub fn values(&self, numbering: &Numbering, num: u32) -> Option<[u32; 9]> {
+        let abs = numbering.abstract_of(num)?;
+        Some(self.state.get(&abs.id).copied().unwrap_or([0; 9]))
+    }
+
+    /// Advance the counter for `num`/`level` and return the label (`"1."`, `"a)"`, `"•"`).
+    pub fn next_label(
+        &mut self,
+        numbering: &Numbering,
+        num: u32,
+        level: u8,
+    ) -> Option<(String, Level)> {
+        let n = numbering.num(num)?;
+        let abs = numbering.abstract_of(num)?;
+        let lv = (level as usize).min(8);
+        // This list's own definition of a level wins over its abstract list's.
+        let level_def = |k: usize| numbering.level(num, k as u8);
+        let def = level_def(lv)?.clone();
+        // A "none" level shows no label at all (Word's numFmt none) — not even its text.
+        if def.format == NumFormat::None {
+            return None;
+        }
+        let st = self.state.entry(abs.id).or_insert([0; 9]);
+        let fl = self.flags.entry(abs.id).or_default();
+        // Only this level's override, not the num's others: the counters are shared by every
+        // num of the abstract list, so restarting its other levels here would renumber
+        // paragraphs of the other nums. A heading style can use one num for levels 1-4 and
+        // another, with start overrides on every level, for 5-9; its first level-5 heading
+        // must not restart the chapter count.
+        if let std::collections::hash_map::Entry::Vacant(e) = self.seen.entry((num, lv as u8)) {
+            e.insert(true);
+            if let Some((_, start)) = n.start_overrides.iter().find(|(l, _)| *l as usize == lv)
+                && let (Some(s), Some(f)) = (st.get_mut(lv), fl.get_mut(lv))
+            {
+                *s = 0;
+                *f = LevelFlags {
+                    started: false,
+                    first: Some(*start),
+                };
             }
         }
-    };
-    let end = limit.max(position);
-    while position <= end {
-        custom.push(PlacedTab {
-            position,
-            align: crate::props::TabAlign::Left,
-            leader: crate::props::TabLeader::None,
-        });
-        position = position.saturating_add(interval);
+        // A level above that hasn't counted yet counts its first number here, as in Word: after
+        // 1.1 and 1.2 with no level-1 item before them, the next level-1 item is 2, whether or not
+        // the deeper level's text shows it.
+        for (k, (v, f)) in st.iter_mut().zip(fl.iter_mut()).enumerate().take(lv) {
+            if f.started {
+                continue;
+            }
+            let start = match self.seen.entry((num, k as u8)) {
+                std::collections::hash_map::Entry::Vacant(e) => {
+                    e.insert(true);
+                    n.start_overrides
+                        .iter()
+                        .find(|(l, _)| *l as usize == k)
+                        .map(|(_, s)| *s)
+                }
+                std::collections::hash_map::Entry::Occupied(_) => None,
+            };
+            *v = start
+                .or(f.first)
+                .unwrap_or_else(|| level_def(k).map_or(1, |l| l.start));
+            *f = LevelFlags {
+                started: true,
+                first: None,
+            };
+        }
+        if let (Some(v), Some(f)) = (st.get_mut(lv), fl.get_mut(lv)) {
+            *v = if f.started {
+                v.saturating_add(1)
+            } else {
+                f.first.unwrap_or(def.start)
+            };
+            *f = LevelFlags {
+                started: true,
+                first: None,
+            };
+        }
+        // Deeper levels restart, unless they never restart or only restart after a level above
+        // this one (Word's lvlRestart).
+        for (d, (deeper, f)) in st.iter_mut().zip(fl.iter_mut()).enumerate().skip(lv + 1) {
+            let restarts = level_def(d)
+                .is_none_or(|l| l.restart && l.restart_after.is_none_or(|k| lv < k as usize));
+            if restarts {
+                *deeper = 0;
+                *f = LevelFlags::default();
+            }
+        }
+        let vals = *st;
+        let started = *fl;
+        if def.format == NumFormat::Bullet {
+            return Some((def.text.clone(), def));
+        }
+        let mut label = String::new();
+        // Word's level text is short; .docx and the lists command already cap it at 64.
+        let mut chars = def.text.chars().take(MAX_LEVEL_TEXT).peekable();
+        while let Some(c) = chars.next() {
+            if c == '%'
+                && let Some(d) = chars.peek().and_then(|d| d.to_digit(10))
+            {
+                chars.next();
+                let k = (d as usize).saturating_sub(1).min(8);
+                let val = vals.get(k).copied().unwrap_or(0);
+                let counted = started.get(k).is_some_and(|f| f.started);
+                let val = if counted {
+                    val
+                } else {
+                    level_def(k).map(|l| l.start).unwrap_or(1)
+                };
+                // Legal numbering (w:isLgl) shows every level in Arabic digits, whatever its own
+                // format (二 of a Chinese outline becomes 2 in "2.1").
+                let fmt = match level_def(k).map(|l| l.format).unwrap_or(NumFormat::Decimal) {
+                    NumFormat::DecimalZero => NumFormat::DecimalZero,
+                    _ if def.legal => NumFormat::Decimal,
+                    f => f,
+                };
+                label.push_str(&fmt.format(val));
+                if label.len() > MAX_LABEL_BYTES {
+                    break;
+                }
+            } else {
+                label.push(c);
+            }
+        }
+        Some((label, def))
     }
-    Some(custom)
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct PlacedTab {
-    pub position: i64,
-    pub align: crate::props::TabAlign,
-    pub leader: crate::props::TabLeader,
-}
+/// Longest level text (in characters) expanded into a list label.
+const MAX_LEVEL_TEXT: usize = 64;
+/// Labels stop growing once they pass this many bytes.
+const MAX_LABEL_BYTES: usize = 256;
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::sync::Arc;
 
-    use crate::props::{FontRef, Measure, TabAlign, TabLeader};
-    use crate::text::TextError;
-
-    fn render(format: NumberFormat, value: i32) -> Result<String, NumberingProblem> {
-        render_format(0, &format, value)
+    #[test]
+    fn a_huge_level_text_gives_a_bounded_label() {
+        let mut n = Numbering::default();
+        let id = n.add_list(ListKind::Numbered);
+        let huge = Level {
+            format: NumFormat::UpperRoman,
+            text: "%1".repeat(30_000),
+            start: u32::MAX,
+            ..Level::default()
+        };
+        if let Some(num) = n.nums.iter_mut().find(|x| x.id == id) {
+            num.level_overrides = vec![(0, huge)];
+        }
+        let mut c = Counters::default();
+        let label = c.next_label(&n, id, 0).unwrap().0;
+        assert!(label.len() <= 512, "label is {} bytes", label.len());
+        assert!(label.starts_with("MMMM"));
     }
 
     #[test]
-    fn chinese_counting_and_legal_follow_place_value() -> Result<(), NumberingProblem> {
-        let counting = NumberFormat::ChineseCounting;
-        let legal = NumberFormat::ChineseLegalSimplified;
-        assert_eq!(render(counting.clone(), 1)?, "一");
-        assert_eq!(render(counting.clone(), 4)?, "四");
-        assert_eq!(render(counting.clone(), 10)?, "十");
-        assert_eq!(render(counting.clone(), 11)?, "十一");
-        assert_eq!(render(counting.clone(), 20)?, "二十");
-        assert_eq!(render(counting.clone(), 101)?, "一百零一");
-        assert_eq!(render(counting.clone(), 110)?, "一百一十");
-        assert_eq!(render(counting.clone(), 1001)?, "一千零一");
-        assert_eq!(render(counting.clone(), 1010)?, "一千零一十");
-        assert_eq!(render(counting.clone(), 10_001)?, "一万零一");
-        assert_eq!(render(counting.clone(), 10_010)?, "一万零一十");
-        assert_eq!(render(counting.clone(), 10_100)?, "一万零一百");
-        assert_eq!(render(counting.clone(), 11_000)?, "一万一千");
-        assert_eq!(render(legal.clone(), 1)?, "壹");
-        assert_eq!(render(legal.clone(), 10)?, "拾");
-        assert_eq!(render(legal.clone(), 11)?, "拾壹");
-        assert_eq!(render(legal.clone(), 20)?, "贰拾");
-        assert_eq!(render(legal.clone(), 101)?, "壹佰零壹");
-        assert_eq!(render(counting.clone(), 0)?, "零");
-        assert_eq!(render(legal.clone(), 0)?, "零");
-        assert_eq!(render(counting.clone(), 100_000)?, "十万");
-        assert_eq!(render(counting.clone(), 100_010)?, "十万零一十");
-        assert_eq!(render(counting.clone(), 101_000)?, "十万一千");
-        assert_eq!(render(counting.clone(), 1_000_000)?, "一百万");
-        assert_eq!(render(counting.clone(), 100_000_000)?, "一亿");
-        assert_eq!(render(counting.clone(), 100_010_000)?, "一亿零一万");
-        assert_eq!(render(counting.clone(), 101_000_000)?, "一亿零一百万");
-        assert_eq!(render(counting.clone(), 100_000_001)?, "一亿零一");
-        assert_eq!(render(counting.clone(), 110_000_000)?, "一亿一千万");
-        assert_eq!(render(counting.clone(), 1_000_000_000)?, "十亿");
+    fn a_list_s_own_level_definitions_win() {
+        // A specification's article numbers: level 1 counts parts with no label of its own, level 2
+        // shows "part.article" with a zero-padded article (Word's lvlOverride/lvl).
+        let mut n = Numbering::default();
+        let id = n.add_list(ListKind::Numbered);
+        let lvl = |format, text: &str| Level {
+            format,
+            text: text.into(),
+            ..Level::default()
+        };
+        if let Some(num) = n.nums.iter_mut().find(|x| x.id == id) {
+            num.level_overrides = vec![
+                (1, lvl(NumFormat::Decimal, "")),
+                (2, lvl(NumFormat::DecimalZero, "%2.%3")),
+            ];
+        }
+        let mut c = Counters::default();
+        assert_eq!(c.next_label(&n, id, 1).unwrap().0, "");
+        assert_eq!(c.next_label(&n, id, 2).unwrap().0, "1.01");
+        assert_eq!(c.next_label(&n, id, 2).unwrap().0, "1.02");
+        assert_eq!(c.next_label(&n, id, 1).unwrap().0, "");
+        assert_eq!(c.next_label(&n, id, 2).unwrap().0, "2.01");
+        // Levels it doesn't define still come from the abstract list; level 0 took its first number
+        // with the first level-1 item, so this is its second.
+        assert_eq!(c.next_label(&n, id, 0).unwrap().0, "2.");
         assert_eq!(
-            render(counting.clone(), 2_147_483_647)?,
-            "二十一亿四千七百四十八万三千六百四十七"
+            n.level(id, 2).map(|l| l.format),
+            Some(NumFormat::DecimalZero)
         );
-        assert_eq!(render(legal.clone(), 100_000)?, "拾万");
-        assert_eq!(render(legal, 100_000_000)?, "壹亿");
-        assert!(render(counting, -1).is_err());
-        Ok(())
     }
 
     #[test]
-    fn letters_roman_and_ideographs_follow_the_repeat_and_the_label_budget()
-    -> Result<(), NumberingProblem> {
-        assert_eq!(render(NumberFormat::LowerLetter, 1)?, "a");
-        assert_eq!(render(NumberFormat::LowerLetter, 26)?, "z");
-        assert_eq!(render(NumberFormat::LowerLetter, 27)?, "aa");
-        assert_eq!(render(NumberFormat::LowerLetter, 54)?, "bbb");
-        assert_eq!(render(NumberFormat::UpperLetter, 27)?, "AA");
+    fn a_start_override_restarts_only_its_own_level_of_a_shared_list() {
+        // One abstract list numbers the headings through two nums: one for levels 1-4, and one
+        // restarting every level (startOverride 1 on 0..8) for levels 5-9, first used deep in
+        // chapter 2. Chapter 3 is still chapter 3, and the deep heading counts from 1.
+        let mut n = Numbering::default();
+        let chapters = n.add_list(ListKind::Legal);
+        let abs = n.abstract_of(chapters).map(|a| a.id).unwrap();
+        let deep = chapters + 1;
+        n.nums.push(Num {
+            id: deep,
+            abstract_id: abs,
+            start_overrides: (0..9).map(|l| (l, 1)).collect(),
+            ..Num::default()
+        });
+        let mut c = Counters::default();
+        let mut l = |num, lv| c.next_label(&n, num, lv).unwrap().0;
+        assert_eq!(l(chapters, 0), "1.");
+        assert_eq!(l(chapters, 0), "2.");
+        assert_eq!(l(chapters, 1), "2.1.");
+        assert_eq!(l(chapters, 2), "2.1.1.");
+        assert_eq!(l(chapters, 3), "2.1.1.1.");
         assert_eq!(
-            render(NumberFormat::LowerLetter, 26 * 64 + 1)?,
-            "a".repeat(65)
+            l(deep, 4),
+            "2.1.1.1.1.",
+            "the deep num restarts only level 5"
+        );
+        assert_eq!(l(deep, 4), "2.1.1.1.2.");
+        assert_eq!(l(chapters, 0), "3.", "and not the chapter count");
+        assert_eq!(l(chapters, 1), "3.1.");
+    }
+
+    #[test]
+    fn levels_restart_only_after_their_restart_level() {
+        let mut n = Numbering::default();
+        let id = n.add_list(ListKind::Legal);
+        if let Some(a) = n.abstracts.first_mut() {
+            // Level 3 restarts only after level 1; level 2 never restarts.
+            a.levels[2].restart_after = Some(1);
+            a.levels[2].text = "(%3)".into();
+            a.levels[1].restart = false;
+        }
+        let mut c = Counters::default();
+        let mut l = |lv| c.next_label(&n, id, lv).unwrap().0;
+        assert_eq!(l(0), "1.");
+        assert_eq!(l(1), "1.1.");
+        assert_eq!(l(2), "(1)");
+        assert_eq!(l(1), "1.2.");
+        assert_eq!(l(2), "(2)", "level 2 doesn't restart level 3");
+        assert_eq!(l(0), "2.");
+        assert_eq!(l(1), "2.3.", "level 2 never restarts");
+        assert_eq!(l(2), "(1)", "level 1 restarts level 3");
+    }
+
+    #[test]
+    fn a_deeper_item_first_counts_the_levels_above_it() {
+        // Measured in Word: a level above that hasn't counted yet takes its first number at the
+        // first deeper item, whether or not that item's text shows it.
+        let labels_with =
+            |starts: [u32; 3], texts: [&str; 3], overrides: &[(u8, u32)], seq: &[u8]| {
+                let mut n = Numbering::default();
+                let id = n.add_list(ListKind::Legal);
+                if let Some(a) = n.abstracts.first_mut() {
+                    for (l, (s, t)) in a.levels.iter_mut().zip(starts.into_iter().zip(texts)) {
+                        l.start = s;
+                        l.text = t.into();
+                    }
+                }
+                if let Some(num) = n.nums.iter_mut().find(|x| x.id == id) {
+                    num.start_overrides = overrides.to_vec();
+                }
+                let mut c = Counters::default();
+                seq.iter()
+                    .map(|lv| c.next_label(&n, id, *lv).unwrap().0)
+                    .collect::<Vec<_>>()
+            };
+        let labels =
+            |starts: [u32; 3], texts: [&str; 3], seq: &[u8]| labels_with(starts, texts, &[], seq);
+        let std = ["%1.", "%1.%2.", "%1.%2.%3."];
+        assert_eq!(
+            labels([1, 1, 1], std, &[1, 1, 0, 0]),
+            ["1.1.", "1.2.", "2.", "3."]
         );
         assert_eq!(
-            render(
-                NumberFormat::LowerLetter,
-                26 * (LABEL_CHAR_BUDGET as i32 - 1) + 1
-            )?,
-            "a".repeat(LABEL_CHAR_BUDGET)
+            labels([10, 1, 1], std, &[1, 1, 1, 1, 0, 0]),
+            ["10.1.", "10.2.", "10.3.", "10.4.", "11.", "12."]
         );
-        assert!(render(NumberFormat::LowerLetter, 26 * LABEL_CHAR_BUDGET as i32 + 1).is_err());
-        assert_eq!(render(NumberFormat::UpperLetter, 2)?, "B");
-        assert!(render(NumberFormat::LowerLetter, 0).is_err());
-        assert_eq!(render(NumberFormat::LowerRoman, 4)?, "iv");
-        assert_eq!(render(NumberFormat::UpperRoman, 1994)?, "MCMXCIV");
-        assert_eq!(render(NumberFormat::UpperRoman, ROMAN_MAX)?, "MMMCMXCIX");
-        assert_eq!(render(NumberFormat::LowerRoman, ROMAN_MAX + 1)?, "mmmm");
-        assert_eq!(render(NumberFormat::UpperRoman, 5000)?, "MMMMM");
         assert_eq!(
-            render(NumberFormat::LowerRoman, 1000 * LABEL_CHAR_BUDGET as i32)?.len(),
-            LABEL_CHAR_BUDGET
+            labels([1, 1, 1], ["%1.", "(%2)", "%1.%2.%3."], &[1, 1, 0, 0]),
+            ["(1)", "(2)", "2.", "3."]
         );
-        assert!(
-            render(
-                NumberFormat::LowerRoman,
-                1000 * (LABEL_CHAR_BUDGET as i32 + 1)
-            )
-            .is_err()
-        );
-        assert!(render(NumberFormat::UpperRoman, 0).is_err());
-        assert!(render(NumberFormat::LowerRoman, -3).is_err());
-        assert_eq!(render(NumberFormat::IdeographTraditional, 1)?, "甲");
-        assert_eq!(render(NumberFormat::IdeographTraditional, 10)?, "癸");
-        assert_eq!(render(NumberFormat::IdeographTraditional, 11)?, "甲甲");
-        assert_eq!(render(NumberFormat::IdeographTraditional, 12)?, "乙乙");
-        assert_eq!(render(NumberFormat::IdeographTraditional, 20)?, "癸癸");
-        assert_eq!(render(NumberFormat::IdeographTraditional, 21)?, "甲甲甲");
-        assert!(render(NumberFormat::IdeographTraditional, 0).is_err());
-        assert!(
-            render(
-                NumberFormat::IdeographTraditional,
-                10 * LABEL_CHAR_BUDGET as i32 + 1
-            )
-            .is_err()
-        );
-        assert!(matches!(
-            render(NumberFormat::parse("ordinal"), 1),
-            Err(NumberingProblem::UnsupportedFormat { .. })
-        ));
-        assert_eq!(render(NumberFormat::None, 4)?, "");
-        assert_eq!(render(NumberFormat::Decimal, 0)?, "0");
-        Ok(())
-    }
-
-    #[test]
-    fn bullets_use_lvl_text_and_picture_bullets_advance_without_a_glyph() -> Result<(), TextError> {
-        let mut document = Document::new(crate::PageSetup::a4_zh_cn());
-        let mut bullet = NumberingLevel::new(NumberFormat::Bullet, "\u{F0B7}%%");
-        bullet.start = 1;
-        bullet.run.fonts.ascii = Some(FontRef::Named(Arc::from("Symbol")));
-        bullet.run.size = Some(Measure::HalfPoints(28));
-        bullet.run.bold = Some(true);
-        let mut picture = NumberingLevel::new(NumberFormat::Decimal, "%1");
-        picture.start = 1;
-        picture.picture = Some(4);
-        picture.run.fonts.h_ansi = Some(FontRef::Named(Arc::from("Wingdings")));
-        let mut follow = NumberingLevel::new(NumberFormat::Decimal, "%1");
-        follow.start = 1;
-        let mut abstract_num = AbstractNum::new(1);
-        abstract_num.levels[0] = Some(picture);
-        abstract_num.levels[1] = Some(follow);
-        document.numbering_mut().insert_abstract(abstract_num);
-        let mut plain = AbstractNum::new(2);
-        plain.levels[0] = Some(bullet);
-        document.numbering_mut().insert_abstract(plain);
-        document.numbering_mut().insert_instance(NumInstance {
-            id: 5,
-            abstract_id: 1,
-            overrides: Vec::new(),
-        });
-        document.numbering_mut().insert_instance(NumInstance {
-            id: 6,
-            abstract_id: 2,
-            overrides: Vec::new(),
-        });
-        paragraph(&mut document, "pic", 0)?;
-        paragraph(&mut document, "pic2", 0)?;
-        let mut shown = Paragraph::new(document.ids().node());
-        shown.insert_text(crate::ScalarOffset(0), "next")?;
-        shown.props = Arc::new(ParaProps {
-            numbering: Some(NumberingRef {
-                num_id: 5,
-                level: 1,
-            }),
-            ..ParaProps::default()
-        });
-        let mut marked = Paragraph::new(document.ids().node());
-        marked.insert_text(crate::ScalarOffset(0), "dot")?;
-        marked.props = Arc::new(ParaProps {
-            numbering: Some(NumberingRef {
-                num_id: 6,
-                level: 0,
-            }),
-            ..ParaProps::default()
-        });
-        let body = document.body_id();
-        let Some(story) = document.story_mut(body) else {
-            return Err(TextError::OutOfBounds { offset: 0, len: 0 });
-        };
-        let mut blocks: Vec<Block> = story.blocks.iter().cloned().collect();
-        blocks.push(shown.into());
-        blocks.push(marked.into());
-        story.blocks = crate::block::BlockSeq::from_vec(blocks);
-        let marks = list_marks(&document);
-        let values: Vec<_> = marks.values().collect();
-        assert!(matches!(
-            values[0],
-            Err(NumberingProblem::PictureBullet { num_id: 5 })
-        ));
-        assert!(matches!(
-            values[1],
-            Err(NumberingProblem::PictureBullet { .. })
-        ));
-        let Ok(counted) = values[2].as_ref() else {
-            return Err(TextError::OutOfBounds {
-                offset: 2,
-                len: values.len(),
-            });
-        };
-        assert_eq!(counted.text, "2");
-        let Ok(label) = values[3].as_ref() else {
-            return Err(TextError::OutOfBounds {
-                offset: 3,
-                len: values.len(),
-            });
-        };
-        assert_eq!(label.text, "\u{2022}%");
-        assert_eq!(label.size, Some(Measure::HalfPoints(28)));
-        assert!(label.bold);
-        assert_eq!(document.numbering_mut().ensure_bullet(), 6);
-        let mut fresh = NumberingStore::default();
-        let created = fresh.ensure_bullet();
-        assert_eq!(created, fresh.ensure_bullet());
-        assert_eq!(fresh.instances().len(), 1);
-        Ok(())
-    }
-
-    fn level(format: NumberFormat, text: &str, start: i32) -> NumberingLevel {
-        let mut level = NumberingLevel::new(format, text);
-        level.start = start;
-        level
-    }
-
-    fn two_level_document(restart: Option<u8>) -> (Document, u32) {
-        let mut abstract_num = AbstractNum::new(1);
-        abstract_num.levels[0] = Some(level(NumberFormat::Decimal, "%1", 1));
-        let mut second = level(NumberFormat::Decimal, "%1.%2", 1);
-        second.restart = restart;
-        abstract_num.levels[1] = Some(second);
-        abstract_num.levels[2] = Some(level(NumberFormat::Decimal, "%3", 1));
-        let mut document = Document::new(crate::PageSetup::a4_zh_cn());
-        document.numbering_mut().insert_abstract(abstract_num);
-        document.numbering_mut().insert_instance(NumInstance {
-            id: 5,
-            abstract_id: 1,
-            overrides: vec![LevelOverride {
-                level: 0,
-                start_override: Some(3),
-                replacement: None,
-            }],
-        });
-        (document, 5)
-    }
-
-    fn paragraph(document: &mut Document, text: &str, level: u8) -> Result<(), TextError> {
-        let mut paragraph = Paragraph::new(document.ids().node());
-        paragraph.insert_text(crate::ScalarOffset(0), text)?;
-        paragraph.props = Arc::new(ParaProps {
-            numbering: Some(NumberingRef { num_id: 5, level }),
-            ..ParaProps::default()
-        });
-        let Some(story) = document.story_mut(document.body_id()) else {
-            return Ok(());
-        };
-        let mut blocks: Vec<Block> = story.blocks.iter().cloned().collect();
-        if blocks.len() == 1
-            && blocks[0]
-                .as_paragraph()
-                .is_some_and(|item| item.props.numbering.is_none() && item.is_empty())
-        {
-            blocks.clear();
-        }
-        blocks.push(paragraph.into());
-        story.blocks = crate::block::BlockSeq::from_vec(blocks);
-        Ok(())
-    }
-
-    fn labels(document: &Document) -> Result<Vec<String>, NumberingProblem> {
-        let mut texts = Vec::new();
-        for item in list_marks(document).values() {
-            texts.push(item.as_ref().map_err(Clone::clone)?.text.clone());
-        }
-        Ok(texts)
-    }
-
-    #[test]
-    fn counters_restart_only_the_level_that_names_the_trigger() -> Result<(), NumberingProblem> {
-        let (mut document, _) = two_level_document(None);
-        for (text, level) in [
-            ("a", 0),
-            ("b", 1),
-            ("c", 1),
-            ("d", 2),
-            ("e", 0),
-            ("f", 2),
-            ("g", 1),
-        ] {
-            paragraph(&mut document, text, level)
-                .map_err(|_| NumberingProblem::LevelRange(level))?;
-        }
-        // startOverride 3. Level 2 restarts only when level 1 is used, so the
-        // second level-0 item does not reset it.
         assert_eq!(
-            labels(&document)?,
-            ["3", "3.1", "3.2", "1", "4", "2", "4.1"]
+            labels([1, 1, 1], std, &[2, 1, 0, 1]),
+            ["1.1.1.", "1.2.", "2.", "2.1."]
         );
-        Ok(())
+        assert_eq!(
+            labels([1, 1, 1], ["%1.", "%1.%2.", "(%3)"], &[2, 1, 0]),
+            ["(1)", "1.2.", "2."]
+        );
+        assert_eq!(
+            labels([1, 1, 1], std, &[0, 2, 1, 0]),
+            ["1.", "1.1.1.", "1.2.", "2."]
+        );
+        // The num's own start for the level above counts in its place, as the level's start does.
+        assert_eq!(
+            labels_with([1, 1, 1], std, &[(0, 10)], &[1, 1, 0]),
+            ["10.1.", "10.2.", "11."]
+        );
+        assert_eq!(
+            labels_with([1, 1, 1], std, &[(0, 5)], &[1, 0, 1]),
+            ["5.1.", "6.", "6.1."]
+        );
+        // A level-1 item after the first deeper ones restarts level 2 below it, as usual.
+        assert_eq!(
+            labels([1, 1, 1], std, &[1, 1, 0, 1, 1, 0, 2]),
+            ["1.1.", "1.2.", "2.", "2.1.", "2.2.", "3.", "3.1.1."]
+        );
     }
 
     #[test]
-    fn an_unused_higher_level_displays_its_start_without_incrementing()
-    -> Result<(), NumberingProblem> {
-        let (mut document, _) = two_level_document(None);
-        for (text, level) in [("a", 1), ("b", 1), ("c", 0)] {
-            paragraph(&mut document, text, level)
-                .map_err(|_| NumberingProblem::LevelRange(level))?;
+    fn a_level_starting_at_zero_counts_up() {
+        let mut n = Numbering::default();
+        let id = n.add_list(ListKind::Numbered);
+        if let Some(a) = n.abstracts.first_mut() {
+            a.levels[0].start = 0;
         }
-        // Level 0's startOverride is 3, shown twice before it is consumed.
-        assert_eq!(labels(&document)?, ["3.1", "3.2", "3"]);
-        Ok(())
+        let mut c = Counters::default();
+        let labels: Vec<String> = (0..4).map(|_| c.next_label(&n, id, 0).unwrap().0).collect();
+        assert_eq!(labels, ["0.", "1.", "2.", "3."]);
     }
 
     #[test]
-    fn a_style_link_is_preserved_unresolved() -> Result<(), NumberingProblem> {
-        let (mut document, _) = two_level_document(None);
-        document
-            .numbering_mut()
-            .abstracts_mut()
-            .iter_mut()
-            .for_each(|item| item.num_style_link = Some(Arc::from("List")));
-        paragraph(&mut document, "a", 0).map_err(|_| NumberingProblem::LevelRange(0))?;
-        let marks = list_marks(&document);
-        let Some(Err(NumberingProblem::UnresolvedLink(5))) = marks.values().next() else {
-            return Err(NumberingProblem::UnresolvedLink(0));
+    fn a_start_override_of_one_or_zero_is_honoured() {
+        let mut n = Numbering::default();
+        let id = n.add_list(ListKind::Numbered);
+        if let Some(a) = n.abstracts.first_mut() {
+            a.levels[0].start = 5;
+        }
+        if let Some(num) = n.nums.iter_mut().find(|x| x.id == id) {
+            num.start_overrides = vec![(0, 1)];
+        }
+        let mut c = Counters::default();
+        let labels: Vec<String> = (0..2).map(|_| c.next_label(&n, id, 0).unwrap().0).collect();
+        assert_eq!(labels, ["1.", "2."]);
+
+        if let Some(num) = n.nums.iter_mut().find(|x| x.id == id) {
+            num.start_overrides = vec![(0, 0)];
+        }
+        let mut c = Counters::default();
+        let labels: Vec<String> = (0..3).map(|_| c.next_label(&n, id, 0).unwrap().0).collect();
+        assert_eq!(labels, ["0.", "1.", "2."]);
+    }
+
+    #[test]
+    fn numbered_labels() {
+        let mut n = Numbering::default();
+        let id = n.add_list(ListKind::Numbered);
+        let mut c = Counters::default();
+        assert_eq!(c.next_label(&n, id, 0).unwrap().0, "1.");
+        assert_eq!(c.next_label(&n, id, 0).unwrap().0, "2.");
+        assert_eq!(c.next_label(&n, id, 1).unwrap().0, "a.");
+        assert_eq!(c.next_label(&n, id, 1).unwrap().0, "b.");
+        assert_eq!(c.next_label(&n, id, 0).unwrap().0, "3.");
+        assert_eq!(c.next_label(&n, id, 1).unwrap().0, "a.");
+        assert!(c.next_label(&n, 999, 0).is_none());
+    }
+
+    #[test]
+    fn east_asian_labels_and_legal_numbering() {
+        // A Chinese outline: 第一章, then "一、" items, and a legal level showing 1.1.
+        let mut n = Numbering::default();
+        let id = n.add_list(ListKind::Numbered);
+        if let Some(a) = n.abstracts.first_mut() {
+            a.levels[0] = Level {
+                format: NumFormat::ChineseCounting,
+                text: "第%1章".into(),
+                ..Level::default()
+            };
+            a.levels[1] = Level {
+                format: NumFormat::ChineseCounting,
+                text: "%2、".into(),
+                ..Level::default()
+            };
+            a.levels[2] = Level {
+                format: NumFormat::ChineseCounting,
+                text: "%1.%2.%3".into(),
+                legal: true,
+                ..Level::default()
+            };
+            a.levels[3] = Level {
+                format: NumFormat::ChineseCounting,
+                text: "（%4）".into(),
+                ..Level::default()
+            };
+        }
+        let mut c = Counters::default();
+        let mut l = |lv| c.next_label(&n, id, lv).unwrap().0;
+        assert_eq!(l(0), "第一章");
+        assert_eq!(l(1), "一、");
+        assert_eq!(l(1), "二、");
+        assert_eq!(l(1), "三、");
+        assert_eq!(l(2), "1.3.1", "legal numbering is decimal on every level");
+        assert_eq!(l(3), "（一）");
+        for _ in 0..9 {
+            l(3);
+        }
+        assert_eq!(l(3), "（十一）");
+        assert_eq!(l(0), "第二章");
+    }
+
+    #[test]
+    fn legal_labels() {
+        let mut n = Numbering::default();
+        let id = n.add_list(ListKind::Legal);
+        let mut c = Counters::default();
+        assert_eq!(c.next_label(&n, id, 0).unwrap().0, "1.");
+        assert_eq!(c.next_label(&n, id, 1).unwrap().0, "1.1.");
+        assert_eq!(c.next_label(&n, id, 2).unwrap().0, "1.1.1.");
+        assert_eq!(c.next_label(&n, id, 1).unwrap().0, "1.2.");
+    }
+
+    #[test]
+    fn restart_and_bullets() {
+        let mut n = Numbering::default();
+        let id = n.add_list(ListKind::Numbered);
+        let mut c = Counters::default();
+        c.next_label(&n, id, 0);
+        c.next_label(&n, id, 0);
+        let r = n.restart(id).unwrap();
+        assert_eq!(c.next_label(&n, r, 0).unwrap().0, "1.");
+        let b = n.add_list(ListKind::Bullet);
+        assert_eq!(c.next_label(&n, b, 0).unwrap().0, "•");
+        assert_eq!(n.find_kind(ListKind::Bullet), Some(b));
+    }
+
+    #[test]
+    fn restart_keeps_the_list_s_own_level_definitions() {
+        let mut n = Numbering::default();
+        let id = n.add_list(ListKind::Numbered);
+        let own = Level {
+            format: NumFormat::UpperRoman,
+            text: "Part %1".into(),
+            indent: 90.0,
+            hanging: 40.0,
+            start: 5,
+            ..Level::default()
         };
-        Ok(())
-    }
-
-    #[test]
-    fn num_id_zero_suppresses_a_style_list() -> Result<(), &'static str> {
-        let (mut document, _) = two_level_document(None);
-        let mut style = crate::Style::new("List", crate::StyleKind::Paragraph, Some("List"));
-        style.para.numbering = Some(NumberingRef {
-            num_id: 5,
-            level: 0,
-        });
-        if document.styles_mut().insert(style).is_err() {
-            return Err("style");
+        if let Some(num) = n.nums.iter_mut().find(|x| x.id == id) {
+            num.level_overrides.push((0, own.clone()));
         }
-        let mut paragraph = Paragraph::new(document.ids().node());
-        paragraph.style = Some(crate::StyleId::new("List"));
-        paragraph.props = Arc::new(ParaProps {
-            numbering: Some(NumberingRef {
-                num_id: 0,
-                level: 0,
-            }),
-            ..ParaProps::default()
-        });
-        let Some(story) = document.story_mut(document.body_id()) else {
-            return Err("body");
-        };
-        story.blocks = crate::block::BlockSeq::from_vec(vec![paragraph.into()]);
-        if !list_marks(&document).is_empty() {
-            return Err("suppressed list still has a label");
-        }
-        Ok(())
-    }
-
-    #[test]
-    fn clear_removes_a_tab_and_a_later_stop_replaces_it() {
-        let inherited = [TabStop {
-            position: Measure::Twips(720),
-            align: TabAlign::Left,
-            leader: TabLeader::Dot,
-        }];
-        let cleared = crate::props::merge_tab_stops(
-            &inherited,
-            &[TabStop {
-                position: Measure::Twips(720),
-                align: TabAlign::Clear,
-                leader: TabLeader::None,
-            }],
-        );
-        assert!(cleared.is_empty());
-        let replaced = crate::props::merge_tab_stops(
-            &inherited,
-            &[TabStop {
-                position: Measure::Twips(720),
-                align: TabAlign::Right,
-                leader: TabLeader::Hyphen,
-            }],
-        );
-        assert_eq!(replaced.len(), 1);
-        assert_eq!(replaced[0].align, TabAlign::Right);
-        assert_eq!(replaced[0].leader, TabLeader::Hyphen);
+        let r = n.restart(id).unwrap();
+        assert_eq!(n.num(r).unwrap().level_overrides, vec![(0, own.clone())]);
+        assert_eq!(n.level(r, 0), Some(&own));
+        let mut c = Counters::default();
+        assert_eq!(c.next_label(&n, r, 0).unwrap().0, "Part V");
     }
 }

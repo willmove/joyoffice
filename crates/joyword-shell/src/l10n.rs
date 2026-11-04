@@ -308,21 +308,22 @@ impl Catalog {
 
     /// Shipped catalog for `locale`; resources are validated by tests.
     pub fn shipped(locale: Locale) -> &'static Catalog {
-        static CATALOGS: OnceLock<Vec<Catalog>> = OnceLock::new();
-        let catalogs = CATALOGS.get_or_init(|| {
-            Locale::ALL
-                .iter()
-                .map(|&locale| {
-                    Catalog::parse(locale, locale.resource()).unwrap_or_else(|issues| {
-                        panic!("invalid {} resource: {issues:?}", locale.tag())
-                    })
-                })
-                .collect()
-        });
-        &catalogs[Locale::ALL
-            .iter()
-            .position(|&l| l == locale)
-            .expect("shipped locale")]
+        static CHINESE: OnceLock<Catalog> = OnceLock::new();
+        static ENGLISH: OnceLock<Catalog> = OnceLock::new();
+        let cache = match locale {
+            Locale::ZhCn => &CHINESE,
+            Locale::En => &ENGLISH,
+        };
+        cache.get_or_init(|| match Catalog::parse(locale, locale.resource()) {
+            Ok(catalog) => catalog,
+            Err(issues) => {
+                eprintln!("Invalid {} resource: {issues:?}", locale.tag());
+                Catalog {
+                    locale,
+                    messages: BTreeMap::new(),
+                }
+            }
+        })
     }
 
     pub fn locale(&self) -> Locale {

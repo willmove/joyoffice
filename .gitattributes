@@ -68,6 +68,22 @@ tests/fixtures/joydeck/README-pre-r9.md -text whitespace=cr-at-eol
 # Keep the original bundled OFL notice byte-for-byte.
 apps/joyword/LICENSE-NotoEmoji.txt -text -whitespace
 
+# R8 code uses one byte representation across platforms. Imported assets
+# and source archives retain the upstream bytes recorded in their notices.
+apps/joyword*/Cargo.toml text eol=lf
+apps/joyword*/src/** text=auto eol=lf
+crates/joyword-*/** text=auto eol=lf
+scripts/joyword/** text=auto eol=lf
+assets/fonts/** -text
+assets/samples/** -text
+third-party/craft-libs/** -text
+third-party/craft-i18n/** -text
+licenses/craft-libs/** -text
+licenses/craft-i18n/** -text
+licenses/gpui/** -text
+licenses/wordcraft/** -text
+docs/joyword/r8/migration/** -text whitespace=cr-at-eol,-blank-at-eof,-blank-at-eol
+
 # Preserve the exact reviewed AccessKit package bytes.
 third-party/accesskit_windows/** -text -whitespace
 licenses/accesskit-windows/source.json -text

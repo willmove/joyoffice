@@ -1,0 +1,9 @@
++ C:\Applications\Python\Python314\python.exe scripts/joysheet/package.py --profile debug
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.07s
++ pwsh.exe -NoProfile -File scripts/joysheet/package-windows.ps1 -Directory D:\Coding\EditorProjects\joyoffice\dist\joysheet\joysheet-0.1.0-windows-x86_64-debug -Output D:\Coding\EditorProjects\joyoffice\dist\joysheet\joysheet-0.1.0-windows-x86_64-debug-setup.exe
+
+Name                                            Length
+----                                            ------
+joysheet-0.1.0-windows-x86_64-debug-setup.exe 33683781
+
+D:\Coding\EditorProjects\joyoffice\dist\joysheet\joysheet-0.1.0-windows-x86_64-debug

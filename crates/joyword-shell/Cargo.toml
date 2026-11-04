@@ -1,38 +1,41 @@
 [package]
 name = "joyword-shell"
-description = "JoyWord application shell without UI: commands, localization, preferences and open documents"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
-repository.workspace = true
 publish = false
-
-[features]
-default = []
-# Opt-in AI runtime. Core editing stays available with `--no-default-features`
-# and with the default build, which does not enable this feature.
-ai = ["dep:joyword-agent"]
-
 [dependencies]
-crc32fast.workspace = true
-joyword-agent = { workspace = true, optional = true }
-joyoffice-opc.workspace = true
 joyword-docx.workspace = true
-joyword-engine.workspace = true
-joyword-model.workspace = true
-joyword-epub.workspace = true
-joyword-rtf.workspace = true
-joyword-textfmt.workspace = true
+joyword-fonts.workspace = true
+joyword-geom.workspace = true
 rustix.workspace = true
-tempfile.workspace = true
 unicode-segmentation.workspace = true
+serde.workspace = true
+tempfile.workspace = true
+joyword-engine = { path = "../joyword-engine" }
+joyword-layout = { path = "../joyword-layout" }
+joyword-render = { path = "../joyword-render" }
+joyword-pdf = { path = "../joyword-pdf" }
+joyoffice-opc.workspace = true
+sha2.workspace = true
+serde_json.workspace = true
+[dev-dependencies]
+tempfile.workspace = true
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+all = { level = "warn", priority = -1 }
+type_complexity = "allow"
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+todo = "deny"
+unimplemented = "deny"
+unreachable = "deny"
 
 [target.'cfg(unix)'.dependencies]
 xattr.workspace = true
-
 [target.'cfg(windows)'.dependencies]
 winsafe.workspace = true
-
-[lints]
-workspace = true

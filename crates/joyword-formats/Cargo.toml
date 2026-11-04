@@ -1,0 +1,40 @@
+[package]
+name = "joyword-formats"
+version.workspace = true
+edition.workspace = true
+license = "MIT OR Apache-2.0"
+description = "WordCraft import/export: plain text, Markdown, HTML, RTF, OpenDocument Text and LaTeX"
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+all = { level = "warn", priority = -1 }
+type_complexity = "allow"
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+todo = "deny"
+unimplemented = "deny"
+unreachable = "deny"
+
+[dependencies]
+joyword-model = { workspace = true }
+joyword-geom = { workspace = true, features = ["image"] }
+joyword-metafile = { workspace = true }
+image = { workspace = true, features = ["bmp", "gif", "jpeg", "png", "tiff", "webp"] }
+quick-xml = { workspace = true }
+zip = { workspace = true }
+cfb = { workspace = true }
+encoding_rs = { workspace = true }
+chardetng = { workspace = true }
+log = { workspace = true }
+chrono = { workspace = true }
+
+[target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dependencies]
+# The browser clock (`SystemTime::now()` panics on wasm32-unknown-unknown): ODT change dates.
+js-sys = "0.3"
+
+[dev-dependencies]
+joyword-model = { workspace = true, features = ["test-support"] }
+proptest = { workspace = true }

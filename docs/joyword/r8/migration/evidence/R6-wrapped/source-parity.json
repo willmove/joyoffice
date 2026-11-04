@@ -1,0 +1,24 @@
+{
+  "source_files": 813,
+  "cargo_lock_sha256": "aba03966280cee4b302130d4be6d3e91a303b87e4fa761948c255ad24dcd0858",
+  "builds": [
+    {
+      "target": "x86_64-pc-windows-msvc",
+      "build_host": "x86_64-pc-windows-msvc",
+      "archive_sha256": "ab1d2f1e80bf0b1b0e59c5957c7eed0ed032d8b7bed60a45a9bb288795e8b448",
+      "source_fingerprint": "cb149a83b4631fcd6311f75673b915aaafafd35c2a91aae3e591543a1acc557f"
+    },
+    {
+      "target": "x86_64-unknown-linux-gnu",
+      "build_host": "x86_64-unknown-linux-gnu",
+      "archive_sha256": "ad4385d794ca61f3b072f7bb66bf2d952bb1f89652ea022adc01fce86354954c",
+      "source_fingerprint": "cb149a83b4631fcd6311f75673b915aaafafd35c2a91aae3e591543a1acc557f"
+    },
+    {
+      "target": "aarch64-unknown-linux-gnu",
+      "build_host": "x86_64-unknown-linux-gnu",
+      "archive_sha256": "4e2c114249d84e8f675ed6b6a121f3ef627dee53a26c0d5be78d4a7ea0bc4da9",
+      "source_fingerprint": "cb149a83b4631fcd6311f75673b915aaafafd35c2a91aae3e591543a1acc557f"
+    }
+  ]
+}

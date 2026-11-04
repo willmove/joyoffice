@@ -1,0 +1,1633 @@
+{
+  "schema_version": 1,
+  "updated_on": "2026-11-04",
+  "product": "joyword",
+  "status_values": [
+    "planned",
+    "in_progress",
+    "implemented",
+    "verified",
+    "accepted"
+  ],
+  "phases": [
+    {
+      "id": "R0",
+      "title": "来源冻结和迁移基线",
+      "gate": "JW-099",
+      "demo": "记录旧 JoyWord 与 Wordcraft 的可复现实例和构建基线，为 R1 提供固定输入。"
+    },
+    {
+      "id": "R1",
+      "title": "可启动的 GPUI 桌面外壳",
+      "gate": "JW-199",
+      "demo": "运行 joyword，看到 JoyOffice 风格的窗口、菜单、功能区、空白页面和状态栏。"
+    },
+    {
+      "id": "R2",
+      "title": "复用内核和真实文档阅读",
+      "gate": "JW-299",
+      "demo": "在 GPUI 窗口打开真实 DOCX，翻页、滚动、缩放，并用 CLI 导出和独立读回 PDF。"
+    },
+    {
+      "id": "R3",
+      "title": "可日常输入和安全保存",
+      "gate": "JW-399",
+      "demo": "中文输入与格式混排，撤销重做，保存 DOCX、重启重开，再演示恢复和保存失败。"
+    },
+    {
+      "id": "R4",
+      "title": "常用文档编辑界面",
+      "gate": "JW-499",
+      "demo": "编辑带标题、编号、表格、图片、页眉页脚的中文报告，保存重开并导出 PDF。"
+    },
+    {
+      "id": "R5",
+      "title": "高级功能和两来源能力对齐",
+      "gate": "JW-599",
+      "demo": "演示审阅合同、带目录和脚注的报告、邮件合并、多窗口及自动化，并核对能力矩阵。"
+    },
+    {
+      "id": "R6",
+      "title": "渲染和响应性能优化",
+      "gate": "JW-699",
+      "demo": "比较同一 Release 文档的输入呈现延迟、滚动帧时间、页面质量、RSS 和显存。"
+    },
+    {
+      "id": "R7",
+      "title": "跨平台和分发验收",
+      "gate": "JW-799",
+      "demo": "分别展示 Windows、macOS、Linux 原生窗口和输入；为可用环境提供对应开发包。"
+    },
+    {
+      "id": "R8",
+      "title": "替换宿主 JoyWord 和回归交接",
+      "gate": "JW-899",
+      "demo": "从 JoyOffice 构建并启动新的 JoyWord，同时运行 JoyDeck 和 JoySheet 回归及替换回退演练。"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "JW-001",
+      "phase": "R0",
+      "title": "冻结来源与许可",
+      "status": "verified",
+      "depends_on": [],
+      "delivery": "记录 Wordcraft 源码指纹、JoyOffice HEAD、文件许可和资产归属；保留两份来源的原始声明。",
+      "acceptance": "无 Git 的 Wordcraft 使用完整迁移输入清单与散列；来源可复核。",
+      "implementation_note": "evidence/R0/intake.json; source and license inventories frozen; all imported files have provenance.",
+      "evidence": [
+        "evidence/R0/README.md"
+      ]
+    },
+    {
+      "id": "JW-002",
+      "phase": "R0",
+      "title": "建立功能和命令并集",
+      "status": "in_progress",
+      "depends_on": [
+        "JW-001"
+      ],
+      "delivery": "导出 Wordcraft 注册表、现 JoyWord 命令、CLI、AI 开关和自动化契约，生成逐项能力矩阵。",
+      "acceptance": "每项有来源、参数、UI 入口、测试、目标阶段和明确状态；不沿用历史完成率。",
+      "implementation_note": "Static extraction only: 631 Wordcraft declarations and 112 host constants; runtime/feature union pending.",
+      "evidence": [
+        "evidence/R0/README.md"
+      ]
+    },
+    {
+      "id": "JW-003",
+      "phase": "R0",
+      "title": "固定 GPUI 依赖集合",
+      "status": "in_progress",
+      "depends_on": [
+        "JW-001"
+      ],
+      "delivery": "锁定 Kit、GPUI、公共 UI、AccessKit 补丁、provenance 规则及默认和发布 feature 图。",
+      "acceptance": "与宿主来源和实际 features 一致；记录 Kit 传递启用 runtime_shaders 的事实。",
+      "implementation_note": "Version/source/feature and local patch alignment verified; full upstream provenance network check pending.",
+      "evidence": [
+        "evidence/R0/README.md"
+      ]
+    },
+    {
+      "id": "JW-004",
+      "phase": "R0",
+      "title": "解决核心依赖冲突方案",
+      "status": "verified",
+      "depends_on": [
+        "JW-003"
+      ],
+      "delivery": "对 HarfRust、Skrifa、PDF fork、zip、base64、外部 craft-libs 做最小编译和读回试验。",
+      "acceptance": "确定宿主精确版本下的适配方案；不将 Wordcraft 的根 krilla patch 全局搬入宿主。",
+      "implementation_note": "宿主字体/PDF/ZIP/crypto pins 已通过完整核心测试；stock Krilla 适配无全局 patch；三产品仅完成依赖解析。",
+      "evidence": [
+        "evidence/R2/README.md"
+      ]
+    },
+    {
+      "id": "JW-005",
+      "phase": "R0",
+      "title": "冻结语料和参考输出",
+      "status": "planned",
+      "depends_on": [
+        "JW-001"
+      ],
+      "delivery": "合并可再分发的原生测试语料，增加中文、复杂表格、修订、未知 XML、密码和超大文件。",
+      "acceptance": "每个样例有哈希、许可、预期文字/结构/页数及参考来源；原件只读。"
+    },
+    {
+      "id": "JW-006",
+      "phase": "R0",
+      "title": "复现来源构建",
+      "status": "in_progress",
+      "depends_on": [
+        "JW-003"
+      ],
+      "delivery": "分别执行原 Wordcraft 与宿主 Word 的相关构建和测试，记录缺少的数据包、字体、工具。",
+      "acceptance": "真实结果分开列为通过、失败、未验证；metadata 通过不能算编译通过。",
+      "implementation_note": "Host headless checks pass 1216 tests; original Wordcraft Git dependency update timed out; migrated subset independently verified.",
+      "evidence": [
+        "evidence/R0/README.md"
+      ]
+    },
+    {
+      "id": "JW-007",
+      "phase": "R0",
+      "title": "建立构建和证据约定",
+      "status": "verified",
+      "depends_on": [
+        "JW-003"
+      ],
+      "delivery": "规划 joyword 产品工程命令、包目录、日志、截图、性能原始数据和源码指纹。",
+      "acceptance": "明确各阶段的构建入口、输出目录和失败退出行为。",
+      "implementation_note": "Product check/build/run/native packaging verified on Windows; package SHA-256 and external-path launch recorded in evidence/R1/package-validation.json.",
+      "evidence": [
+        "evidence/R0/README.md"
+      ]
+    },
+    {
+      "id": "JW-008",
+      "phase": "R0",
+      "title": "明确旧数据迁移契约",
+      "status": "in_progress",
+      "depends_on": [
+        "JW-002"
+      ],
+      "delivery": "登记偏好、最近文件、恢复日志、AI 设置、文件关联及 CLI 参数的旧路径和格式。",
+      "acceptance": "规定自动读取、只读导入、保留或显式不支持；不覆盖旧恢复数据。",
+      "implementation_note": "Reused preferences.conf schema and unknown keys; isolated migration-preview output; recovery/AI/legacy settings migration pending.",
+      "evidence": [
+        "evidence/R0/README.md"
+      ]
+    },
+    {
+      "id": "JW-009",
+      "phase": "R0",
+      "title": "验证渲染和输入接入边界",
+      "status": "in_progress",
+      "depends_on": [
+        "JW-004"
+      ],
+      "delivery": "用定位字形、同名字体不同字节、中文混排及 UTF-16 组合输入样例试验适配接口。",
+      "acceptance": "确定 R2 的 CPU 页面路径与后续原生绘制入口；问题进入任务清单。",
+      "implementation_note": "CPU 页面、CJK 混排、真实图片及 PDF 接口已验证；字形身份专门探针和 UTF-16/IME 留待后续。",
+      "evidence": [
+        "evidence/R2/README.md"
+      ]
+    },
+    {
+      "id": "JW-099",
+      "phase": "R0",
+      "title": "验收来源基线",
+      "status": "planned",
+      "depends_on": [
+        "JW-002",
+        "JW-004",
+        "JW-005",
+        "JW-006",
+        "JW-007",
+        "JW-008",
+        "JW-009"
+      ],
+      "delivery": "归档基线报告、功能并集和锁定的迁移输入。",
+      "acceptance": "固定输入可复现；迁移障碍有明确处理任务后进入 R1。"
+    },
+    {
+      "id": "JW-101",
+      "phase": "R1",
+      "title": "创建目标 Cargo workspace",
+      "status": "verified",
+      "depends_on": [
+        "JW-099"
+      ],
+      "delivery": "创建 apps/joyword、apps/joyword-cli、joyword-shell、joyword-ui-gpui，沿用宿主工具链与 lint。",
+      "acceptance": "包和二进制均使用 joyword 命名，默认桌面图不含 egui。",
+      "implementation_note": "Workspace, GUI/CLI/shell/UI crates, exact toolchain and no-egui graph compile on Windows.",
+      "evidence": [
+        "evidence/R1/README.md"
+      ]
+    },
+    {
+      "id": "JW-102",
+      "phase": "R1",
+      "title": "复用公共 UI 和 Kit 控件",
+      "status": "verified",
+      "depends_on": [
+        "JW-101"
+      ],
+      "delivery": "按固定来源引入 joyoffice-ui，复用 Word 配色、metrics、图标和 Kit 表单/弹层。",
+      "acceptance": "独立阶段只有一份公共 UI 实现，主题与宿主实测一致。",
+      "implementation_note": "Exact host joyoffice-ui and patched AccessKit reused, Kit button/assets used, palette test passes.",
+      "evidence": [
+        "evidence/R1/README.md"
+      ]
+    },
+    {
+      "id": "JW-103",
+      "phase": "R1",
+      "title": "落地产品工程命令",
+      "status": "verified",
+      "depends_on": [
+        "JW-101"
+      ],
+      "delivery": "实现 check/test/build/run/package joyword 及 --headless，沿用宿主产品选择逻辑。",
+      "acceptance": "Windows 自动定位所需工具；裸 cargo 与产品构建选择口径有文档。",
+      "implementation_note": "Product check/build/run/native packaging verified on Windows; package SHA-256 and external-path launch recorded in evidence/R1/package-validation.json.",
+      "evidence": [
+        "evidence/R1/README.md"
+      ]
+    },
+    {
+      "id": "JW-104",
+      "phase": "R1",
+      "title": "接入窗口生命周期",
+      "status": "in_progress",
+      "depends_on": [
+        "JW-102"
+      ],
+      "delivery": "适配启动、退出、菜单、错误呈现、窗口尺寸、键盘焦点及日志。",
+      "acceptance": "启动或关闭失败可诊断；无生产 unwrap/expect/panic 路径。",
+      "implementation_note": "Native window/open/close tested on Windows; remaining diagnostic/window-preference coverage pending.",
+      "evidence": [
+        "evidence/R1/README.md"
+      ]
+    },
+    {
+      "id": "JW-105",
+      "phase": "R1",
+      "title": "移植界面布局",
+      "status": "implemented",
+      "depends_on": [
+        "JW-102"
+      ],
+      "delivery": "从现 JoyWord 的 ui、chrome、ribbon 和 file 模块迁移布局与交互外观。",
+      "acceptance": "支持窗口缩放及溢出；未接入命令清楚禁用，不显示虚假成功。",
+      "implementation_note": "Header, six tabs, disabled controls, File page and blank A4 preview implemented; smaller window validation pending.",
+      "evidence": [
+        "evidence/R1/README.md"
+      ]
+    },
+    {
+      "id": "JW-106",
+      "phase": "R1",
+      "title": "迁移设置和语言入口",
+      "status": "implemented",
+      "depends_on": [
+        "JW-008",
+        "JW-104"
+      ],
+      "delivery": "复用可解耦的 prefs、l10n、diag，先覆盖简体中文、英文和浅深主题。",
+      "acceptance": "配置目录隔离；读取旧设置不改写原文件；文档缩放不改变 chrome 尺寸。",
+      "implementation_note": "Native language/theme switching and preference restoration after package restart verified; broader legacy-settings and platform coverage remain open.",
+      "evidence": [
+        "evidence/R1/README.md"
+      ]
+    },
+    {
+      "id": "JW-107",
+      "phase": "R1",
+      "title": "建立 UI 动作适配接口",
+      "status": "implemented",
+      "depends_on": [
+        "JW-002",
+        "JW-105"
+      ],
+      "delivery": "定义查询能力、命令执行、对话框请求和结果通知的 UI 与 shell 边界。",
+      "acceptance": "界面不直接改文档；后续内核替换不要求重写布局。",
+      "implementation_note": "Single preview command registry provides enabled/rejected operations; full EditorHost binding belongs to R2.",
+      "evidence": [
+        "evidence/R1/README.md"
+      ]
+    },
+    {
+      "id": "JW-108",
+      "phase": "R1",
+      "title": "建立桌面产物冒烟",
+      "status": "in_progress",
+      "depends_on": [
+        "JW-103",
+        "JW-104"
+      ],
+      "delivery": "接入 Windows 首窗和三端编译任务，建立阶段开发包。",
+      "acceptance": "从仓库外含中文和空格的目录启动 Windows 包并留截图。",
+      "implementation_note": "Windows build and native window passed; macOS/Linux GUI builds not run.",
+      "evidence": [
+        "evidence/R1/README.md"
+      ]
+    },
+    {
+      "id": "JW-199",
+      "phase": "R1",
+      "title": "交付 GPUI 外壳预览",
+      "status": "in_progress",
+      "depends_on": [
+        "JW-105",
+        "JW-106",
+        "JW-107",
+        "JW-108"
+      ],
+      "delivery": "发布到本地 dist/joyword/R1 的可运行开发包和演示记录。",
+      "acceptance": "窗口可操作且退出正常；不将示例空白页算成真实编辑。",
+      "implementation_note": "Runnable Windows outer-shell slice delivered; R0 and cross-platform gates remain open.",
+      "evidence": [
+        "evidence/R1/README.md"
+      ]
+    },
+    {
+      "id": "JW-201",
+      "phase": "R2",
+      "title": "迁入几何模型和字体模块",
+      "status": "verified",
+      "depends_on": [
+        "JW-199",
+        "JW-004"
+      ],
+      "delivery": "按 R0 已验证的宿主依赖适配迁入 geom、doc、fonts、metafile，改包名和路径并保留来源。",
+      "acceptance": "模型和字形测试通过；现 joyword-foundation 仅保留真正需要的稳定基础能力。",
+      "implementation_note": "完整几何/模型/字体/metafile 迁入，保留来源测试；系统字体与中文回退在 Windows 验证。",
+      "evidence": [
+        "evidence/R2/README.md"
+      ]
+    },
+    {
+      "id": "JW-202",
+      "phase": "R2",
+      "title": "迁入布局和场景接口",
+      "status": "verified",
+      "depends_on": [
+        "JW-201"
+      ],
+      "delivery": "迁入 layout、显示列表、缓存、命中测试和分页回归，形成可独立编译的布局层。",
+      "acceptance": "布局与字形测试通过；模型和布局依赖图不含窗口框架。",
+      "implementation_note": "布局、显示列表、分页与命中测试闭包已迁入，完整测试通过，无窗口依赖。",
+      "evidence": [
+        "evidence/R2/README.md"
+      ]
+    },
+    {
+      "id": "JW-203",
+      "phase": "R2",
+      "title": "迁入编辑和格式渲染闭包",
+      "status": "verified",
+      "depends_on": [
+        "JW-202"
+      ],
+      "delivery": "一次迁入 engine/registry/撤销/typing 与 docx、docbin、formats、render、pdf 的完整闭包，应用 R0 适配。",
+      "acceptance": "完整编辑命令走单一 Session；本切片完成即整体可编译，不留未解析依赖。",
+      "implementation_note": "完整 Session/registry/undo/typing 及格式、光栅、PDF 闭包可构建；651 项真实运行时命令，桌面编辑尚未连接。",
+      "evidence": [
+        "evidence/R2/README.md"
+      ]
+    },
+    {
+      "id": "JW-204",
+      "phase": "R2",
+      "title": "完成共享依赖适配",
+      "status": "verified",
+      "depends_on": [
+        "JW-202",
+        "JW-203"
+      ],
+      "delivery": "复核已应用的宿主字体/PDF/通用库适配，完成统一锁图；外部库精确固定并登记。",
+      "acceptance": "PDF 失败写入、字形/Unicode 映射和恶意输入回归通过；根 patch 不污染 Deck/Sheet。",
+      "implementation_note": "宿主 pins、ZIP9/双 digest HMAC/stock Krilla 适配通过回归；PDF unwind、Unicode 和图片独立读回；三产品编译尚未验证。",
+      "evidence": [
+        "evidence/R2/README.md"
+      ]
+    },
+    {
+      "id": "JW-205",
+      "phase": "R2",
+      "title": "迁移构建资源",
+      "status": "verified",
+      "depends_on": [
+        "JW-203"
+      ],
+      "delivery": "重接 build.rs、字体清单、craft-i18n 语言数据和贡献者声明输入路径。",
+      "acceptance": "缺少可选包时可构建并声明能力；声明完整功能的包具有所需数据。",
+      "implementation_note": "来源 OFL 字体及固定 craft-i18n 数据接入离线构建、保留归属；CJK 依赖安装字体，未声明完整字体包。",
+      "evidence": [
+        "evidence/R2/README.md"
+      ]
+    },
+    {
+      "id": "JW-206",
+      "phase": "R2",
+      "title": "提供无界面 CLI",
+      "status": "in_progress",
+      "depends_on": [
+        "JW-203",
+        "JW-204"
+      ],
+      "delivery": "迁移 convert、inspect、run、commands、parity，复用现 CLI 的有效契约。",
+      "acceptance": "无 GPU 可运行；命令清单由实际 registry 生成；旧参数有兼容表。",
+      "implementation_note": "inspect/commands/run/render/convert CLI 已实现；新输出只写新路径。完整旧 CLI 参数兼容和 parity 尚未完成。",
+      "evidence": [
+        "evidence/R2/README.md"
+      ]
+    },
+    {
+      "id": "JW-207",
+      "phase": "R2",
+      "title": "实现单内核 shell 适配器",
+      "status": "implemented",
+      "depends_on": [
+        "JW-107",
+        "JW-203"
+      ],
+      "delivery": "实现 EditorHost 对 Session、选区、能力、快照、历史及版本的映射。",
+      "acceptance": "UI、CLI 和后续 MCP 共享执行路径；没有第二份可编辑文档。",
+      "implementation_note": "Reader 唯一 Session 和 DocLayout 快照接到 CLI/只读 UI；选区、历史和编辑能力 UI 映射留待 R3。",
+      "evidence": [
+        "evidence/R2/README.md"
+      ]
+    },
+    {
+      "id": "JW-208",
+      "phase": "R2",
+      "title": "接入异步打开和布局",
+      "status": "implemented",
+      "depends_on": [
+        "JW-204",
+        "JW-207"
+      ],
+      "delivery": "复用现 CanvasPipeline 的代次、取消、过期结果拒绝和视口调度机制。",
+      "acceptance": "连续打开、取消、关闭和迟到任务不会替换新文档。",
+      "implementation_note": "后台打开/布局/光栅、取消代次、迟到拒绝和缓存预算落地，原生打开与拒绝旧 ticket 测试通过；全文排版中段不可抢占。",
+      "evidence": [
+        "evidence/R2/README.md"
+      ]
+    },
+    {
+      "id": "JW-209",
+      "phase": "R2",
+      "title": "实现真实页面显示",
+      "status": "verified",
+      "depends_on": [
+        "JW-208"
+      ],
+      "delivery": "让 Wordcraft 显示列表经 CPU 光栅和 GPUI RenderImage 显示，复用可见页缓存调度。",
+      "acceptance": "正文、表格、图片真实可见；滚动/缩放/页定位正确，屏幕与导出共用同一场景。",
+      "implementation_note": "真实 DOCX 中文/正文/表格/图片、翻页/缩放经 CPU → GPUI RenderImage 展示；共享场景导出 PDF 并独立读回。",
+      "evidence": [
+        "evidence/R2/README.md"
+      ]
+    },
+    {
+      "id": "JW-210",
+      "phase": "R2",
+      "title": "建立宿主整合演练",
+      "status": "verified",
+      "depends_on": [
+        "JW-204",
+        "JW-206"
+      ],
+      "delivery": "在临时集成工作区试放候选 Word，使用宿主唯一公共库及根锁解析。",
+      "acceptance": "三产品依赖可解析；列出尚未编译通过的冲突，不改宿主 main。",
+      "implementation_note": "临时宿主副本解析 Word/Deck/Sheet 共 63 成员、924 包；未修改宿主；三产品编译尚未执行。",
+      "evidence": [
+        "evidence/R2/README.md"
+      ]
+    },
+    {
+      "id": "JW-211",
+      "phase": "R2",
+      "title": "固定渲染性能起点",
+      "status": "planned",
+      "depends_on": [
+        "JW-209"
+      ],
+      "delivery": "采集来源 egui 与新 GPUI 的同文档、同字体、同硬件 Release 基准。",
+      "acceptance": "区分导入、排版、光栅、上传及实际呈现；保留原始数据。"
+    },
+    {
+      "id": "JW-299",
+      "phase": "R2",
+      "title": "交付文档阅读预览",
+      "status": "implemented",
+      "depends_on": [
+        "JW-205",
+        "JW-206",
+        "JW-209",
+        "JW-210",
+        "JW-211"
+      ],
+      "delivery": "打包真实 DOCX 阅读器、CLI 和 PDF 样例。",
+      "acceptance": "语料可打开和滚动；PDF 独立读回通过；只读范围明确。",
+      "implementation_note": "交付 R2 Windows Debug 阅读开发包、CLI 和样例；Release 性能对照、完整 CLI 兼容及跨平台验收仍开放，因此不标整个阶段 accepted。",
+      "evidence": [
+        "evidence/R2/README.md"
+      ]
+    },
+    {
+      "id": "JW-301",
+      "phase": "R3",
+      "title": "统一位置和选择换算",
+      "status": "verified",
+      "depends_on": [
+        "JW-299"
+      ],
+      "delivery": "适配 UTF-8 字节、UTF-16、Unicode 标量、字素簇、story/path 和视图位置。",
+      "acceptance": "中文、代理对、emoji ZWJ、组合字符与跨段选择不拆字符。",
+      "implementation_note": "UTF-16/可见 UTF-8/存储位置映射已接入；代理对、组合字符、ZWJ 与跨段替换测试通过；IME 周边文本有界，未声明完整跨 story 平台 surrounding context。",
+      "evidence": [
+        "evidence/R3/README.md"
+      ]
+    },
+    {
+      "id": "JW-302",
+      "phase": "R3",
+      "title": "接入原生 IME",
+      "status": "implemented",
+      "depends_on": [
+        "JW-301"
+      ],
+      "delivery": "复用 GPUI EntityInputHandler 接线，接入 Wordcraft 的 IME revision/receipt 和组合事务。",
+      "acceptance": "预编辑、候选框、提交/取消、焦点切换和迟到回调均正确且不重复提交。",
+      "implementation_note": "接入实际 GPUI EntityInputHandler 和候选位置回调，复用宿主注册/失焦接线；预编辑/提交/取消及旧文档迟到回调通过 GPUI 集成测试。R7 最终包补验 Windows 原生候选窗取消、提交及保存重开。macOS/Linux 未验证。",
+      "evidence": [
+        "evidence/R3/README.md"
+      ]
+    },
+    {
+      "id": "JW-303",
+      "phase": "R3",
+      "title": "实现键盘编辑",
+      "status": "verified",
+      "depends_on": [
+        "JW-301",
+        "JW-207"
+      ],
+      "delivery": "绑定输入、Enter、删除、Tab、移动和扩选，保持 Wordcraft typing 命令语义。",
+      "acceptance": "基本编辑和只读拒绝测试通过；事件不同时经两个输入路径提交。",
+      "implementation_note": "正文字符唯一走原生输入回调，Enter/删除/Tab/移动扩选走内核命令；禁止 key-down 重复插字，源 typing/hostile 参数回归保留。",
+      "evidence": [
+        "evidence/R3/README.md"
+      ]
+    },
+    {
+      "id": "JW-304",
+      "phase": "R3",
+      "title": "实现命中与指针选择",
+      "status": "implemented",
+      "depends_on": [
+        "JW-301",
+        "JW-209"
+      ],
+      "delivery": "接入单击、拖选、双击、滚动扩选和页面坐标换算。",
+      "acceptance": "100%/125%/200% DPI 和缩放后选择/光标位置与字形一致。",
+      "implementation_note": "指针命中、单击/拖选/双击单词/三击段落与键盘扩选接入同一布局；缩放几何共用场景，100%/125%/200% DPI 全矩阵尚未验收。",
+      "evidence": [
+        "evidence/R3/README.md"
+      ]
+    },
+    {
+      "id": "JW-305",
+      "phase": "R3",
+      "title": "移植撤销分组",
+      "status": "verified",
+      "depends_on": [
+        "JW-302",
+        "JW-303"
+      ],
+      "delivery": "复用内核撤销，适配连续输入、IME、格式和视图选择边界。",
+      "acceptance": "一次组合输入一次撤销；取消对话框不留历史；撤销后重做稳定。",
+      "implementation_note": "预编辑通过内核快照恢复，取消不留历史，提交一次撤销；撤销/重做及 emoji/跨段场景通过自动测试和桌面操作。",
+      "evidence": [
+        "evidence/R3/README.md"
+      ]
+    },
+    {
+      "id": "JW-306",
+      "phase": "R3",
+      "title": "接入文本和图片剪贴板",
+      "status": "in_progress",
+      "depends_on": [
+        "JW-303"
+      ],
+      "delivery": "复用现系统剪贴板平台接线，映射原生格式并保留文字替代。",
+      "acceptance": "跨应用复制粘贴测试通过，图片解码有预算；富文本继续由 JW-408 完成。",
+      "implementation_note": "已接 GPUI 原生纯文本剪贴板及 Home 按钮/快捷键；原生图片粘贴与完整富文本保留 R4。",
+      "evidence": [
+        "evidence/R3/README.md"
+      ]
+    },
+    {
+      "id": "JW-307",
+      "phase": "R3",
+      "title": "适配安全保存管线",
+      "status": "verified",
+      "depends_on": [
+        "JW-204",
+        "JW-208"
+      ],
+      "delivery": "复用现 storage 的来源戳、冲突检查、临时文件、校验和替换机制，连接新内核输出。",
+      "acceptance": "保存成功后独立重开；失败/磁盘满/外部修改不损坏原件或清除新 dirty。",
+      "implementation_note": "迁入宿主来源戳/锁/元数据/同步临时文件/读回/原子发布/ReplaceFileW；原件和副本故障注入、外部修改、锁、晚到保存与独立重开通过。Windows 原件替换需应用内显式元数据确认。",
+      "evidence": [
+        "evidence/R3/README.md"
+      ]
+    },
+    {
+      "id": "JW-308",
+      "phase": "R3",
+      "title": "完善新建打开关闭流程",
+      "status": "implemented",
+      "depends_on": [
+        "JW-305",
+        "JW-307"
+      ],
+      "delivery": "接入保存、另存、放弃、取消、最近文件和窗口关闭状态机。",
+      "acceptance": "取消即保留原会话；打开期间输入、关闭时迟到保存均有竞争回归。",
+      "implementation_note": "新建/打开/关闭保护未保存会话，支持保存/另存/放弃/取消及版本绑定的保存后继续；取消后恢复编辑焦点已通过回归和最终包 Ctrl+S 验证。最近文件和完整打开期间输入排队仍待补齐。",
+      "evidence": [
+        "evidence/R3/README.md"
+      ]
+    },
+    {
+      "id": "JW-309",
+      "phase": "R3",
+      "title": "移植恢复与检查点",
+      "status": "implemented",
+      "depends_on": [
+        "JW-307",
+        "JW-008"
+      ],
+      "delivery": "以新模型快照生成版本化恢复日志，保留旧日志，只读迁移已验证格式。",
+      "acceptance": "异常退出后恢复已提交文字；损坏日志不崩溃，旧日志不可静默删除。",
+      "implementation_note": "接内核恢复工作线程到 migration-preview/r3-recovery，预编辑不写恢复副本，旧恢复目录不改写；原生异常退出/损坏恢复档全链验收未完成。",
+      "evidence": [
+        "evidence/R3/README.md"
+      ]
+    },
+    {
+      "id": "JW-310",
+      "phase": "R3",
+      "title": "实现光标和选区叠加",
+      "status": "verified",
+      "depends_on": [
+        "JW-304",
+        "JW-305"
+      ],
+      "delivery": "将光标、选区和 IME 预编辑独立于页面像素缓存，绑定布局版本。",
+      "acceptance": "光标闪烁不触发整页重排/光栅；旧字形上不显示新版本选区。",
+      "implementation_note": "光标/选区/预编辑下划线独立于页面缓存，光标闪烁不重排，输入后定位当前光标。修正叠加层绝对定位，实际绘制页面/视口/光标断言与原生高亮截图通过；旧代次页面丢弃。",
+      "evidence": [
+        "evidence/R3/README.md"
+      ]
+    },
+    {
+      "id": "JW-311",
+      "phase": "R3",
+      "title": "完成编辑主线回归",
+      "status": "in_progress",
+      "depends_on": [
+        "JW-302",
+        "JW-305",
+        "JW-306",
+        "JW-307",
+        "JW-308",
+        "JW-309",
+        "JW-310"
+      ],
+      "delivery": "执行中文输入、撤销、保存重开和故障注入端到端用例。",
+      "acceptance": "原 Wordcraft typing/hostile params 与现 JoyWord 安全保存契约均有对应证据。",
+      "implementation_note": "输入/撤销/保存重开与故障注入已有自动和桌面证据；R7 补验 Windows 原生 IME 候选窗。三端输入、恢复与图片剪贴板尚未全覆盖。",
+      "evidence": [
+        "evidence/R3/README.md"
+      ]
+    },
+    {
+      "id": "JW-312",
+      "phase": "R3",
+      "title": "复测宿主和三端输入接口",
+      "status": "in_progress",
+      "depends_on": [
+        "JW-210",
+        "JW-311"
+      ],
+      "delivery": "重新演练宿主依赖和 Word 构建，执行可用平台原生 IME。",
+      "acceptance": "构建与真机状态分开记录；尚无真机的平台不标已验证。",
+      "implementation_note": "在只读宿主副本完成三产品解析及候选 Word/CLI cargo check；宿主 Deck/Sheet 本轮未重编译，macOS/Linux 真机 IME 未验证。",
+      "evidence": [
+        "evidence/R3/README.md"
+      ]
+    },
+    {
+      "id": "JW-399",
+      "phase": "R3",
+      "title": "交付最小可用编辑器",
+      "status": "implemented",
+      "depends_on": [
+        "JW-311",
+        "JW-312"
+      ],
+      "delivery": "提供 R3 桌面包、编辑演示、故障演示及已知范围。",
+      "acceptance": "可以完成真实中文文档的输入—保存—重开，不只是 UI 演示。",
+      "implementation_note": "交付 R3 Windows Debug DOCX 编辑包，文本输入、选区、Undo/Redo、安全 Save/Save As 接入；原生候选窗和阶段剩余资格单列。",
+      "evidence": [
+        "evidence/R3/README.md"
+      ]
+    },
+    {
+      "id": "JW-401",
+      "phase": "R4",
+      "title": "迁移 Home 功能区",
+      "status": "in_progress",
+      "depends_on": [
+        "JW-399"
+      ],
+      "delivery": "按 registry 映射常用命令、启用态、混合格式状态和快捷键提示。",
+      "acceptance": "鼠标、键盘、命令面板执行同一命令；选区变更后状态立即正确。",
+      "implementation_note": "Home 字体/段落/基础样式已按引擎命令接线，混合状态缓存随选区/撤销失效；快捷键共用命令并显示提示，保护/组合输入原因沿用内核。完整命令面板与其余 Home 编辑区仍待实现。",
+      "evidence": [
+        "evidence/R4/README.md"
+      ]
+    },
+    {
+      "id": "JW-402",
+      "phase": "R4",
+      "title": "实现字符格式控件",
+      "status": "verified",
+      "depends_on": [
+        "JW-401"
+      ],
+      "delivery": "复用字体、字号、颜色和格式弹层，连接粗斜体、下划线、删除线和高亮。",
+      "acceptance": "混合选区、连续输入格式和一次撤销正确。",
+      "implementation_note": "复用宿主 Kit 字体搜索、字号/颜色/高亮弹层及字体表单；B/I/U/删除线/上下标接现有命令。混合选区、连续输入格式、字体切换一次撤销、DOCX 读回和桌面字体/字号/颜色操作通过。修复导入后字体目录刷新及未安装字体的显示。",
+      "evidence": [
+        "evidence/R4/README.md"
+      ]
+    },
+    {
+      "id": "JW-403",
+      "phase": "R4",
+      "title": "实现段落格式对话框",
+      "status": "verified",
+      "depends_on": [
+        "JW-401"
+      ],
+      "delivery": "复用对齐、缩进、行距、段间距、边框底纹和分页选项表单。",
+      "acceptance": "预览和应用可区分；取消无修改；保存后格式保留。",
+      "implementation_note": "复用宿主 Input/Dialog 字段表单与校验；对齐、起始/结束/首行缩进、行距/段前后间距，另有边框/底纹/分页选项弹层。表单 draft 不改文档，仅变化字段一次 para.set，取消与无效输入不留修改；保存重开和一次撤销回归通过。无实时文档预览，复杂 RTL/DPI 原生资格尚待补齐。",
+      "evidence": [
+        "evidence/R4/README.md"
+      ]
+    },
+    {
+      "id": "JW-404",
+      "phase": "R4",
+      "title": "实现样式面板与格式刷",
+      "status": "verified",
+      "depends_on": [
+        "JW-402",
+        "JW-403"
+      ],
+      "delivery": "复用现样式面板外观，连接新内核样式继承、样式应用和格式刷。",
+      "acceptance": "继承、局部覆盖、混合格式及撤销通过。",
+      "implementation_note": "已接完整样式任务窗格：搜索和虚拟列表、段落/字符样式新建应用修改删除、名称/继承/后续样式、字体段落格式、按选区更新、恢复继承和快速样式显隐；单次/连续格式刷及 Esc、快捷键。新增继承循环/重复名拒绝、字符样式 DOCX 往返和一次撤销测试通过。Windows 已实际验证自定义段落样式新建/修改/搜索、格式刷一次撤销/重做、连续刷 Esc 和保存重开；字符样式及继承异常主要由集成测试验证。",
+      "evidence": [
+        "evidence/R4-authoring/README.md"
+      ]
+    },
+    {
+      "id": "JW-405",
+      "phase": "R4",
+      "title": "实现编号和项目符号",
+      "status": "in_progress",
+      "depends_on": [
+        "JW-403"
+      ],
+      "delivery": "实现多级列表、重启、缩进和编号下拉；接入现有排版规则。",
+      "acceptance": "跨段编号更新正确，DOCX 重开保持层级。",
+      "implementation_note": "已接项目符号、编号、五种编号样式和缩进；最终桌面包的字母编号已保存重开并独立检查 numbering.xml。多级设置、重启编号和复杂嵌套 UI 尚待补齐。",
+      "evidence": [
+        "evidence/R4/README.md"
+      ]
+    },
+    {
+      "id": "JW-406",
+      "phase": "R4",
+      "title": "实现查找替换和导航",
+      "status": "planned",
+      "depends_on": [
+        "JW-401"
+      ],
+      "delivery": "复用查找栏、大纲和结果列表，接入正则、范围及替换事务。",
+      "acceptance": "跨 run、CJK、组合字符和全部替换的撤销测试通过。"
+    },
+    {
+      "id": "JW-407",
+      "phase": "R4",
+      "title": "实现页面设置",
+      "status": "planned",
+      "depends_on": [
+        "JW-403"
+      ],
+      "delivery": "接入纸张、方向、页边距、分节、分栏和分页符界面。",
+      "acceptance": "屏幕与 PDF 页几何相同；缩放不会改变分页。"
+    },
+    {
+      "id": "JW-408",
+      "phase": "R4",
+      "title": "实现富文本粘贴",
+      "status": "planned",
+      "depends_on": [
+        "JW-306",
+        "JW-402"
+      ],
+      "delivery": "复用富剪贴板的解析与预算契约，适配 HTML/RTF/内部片段。",
+      "acceptance": "与 Office/浏览器互贴并验证列表、链接、表格；不可信内容有界。"
+    },
+    {
+      "id": "JW-409",
+      "phase": "R4",
+      "title": "实现页眉页脚和页码",
+      "status": "planned",
+      "depends_on": [
+        "JW-407"
+      ],
+      "delivery": "移植页眉页脚进入/退出、首页/奇偶页及页码设置。",
+      "acceptance": "视图选择不改正文选区，分页与保存重开正确。"
+    },
+    {
+      "id": "JW-410",
+      "phase": "R4",
+      "title": "实现基础表格编辑",
+      "status": "verified",
+      "depends_on": [
+        "JW-401"
+      ],
+      "delivery": "移植插入网格、行列增删、单元格选择、合并拆分和键盘导航。",
+      "acceptance": "表格结构不变量、撤销和 DOCX 重开通过。",
+      "implementation_note": "已接 6×6 插入网格及有界行列表单、行列增删、单元格/行/列/表选择、合并拆分与已有 Tab 导航。新表格 DOCX 往返与撤销、全产品来源结构测试通过；Windows 已实际验证插表、中文输入、合并拆分、最终包 Tab/Shift+Tab 正反导航及保存重开；修复 Kit Root 抢占 Tab 并保留表单焦点导航。导航仍沿用源内核编辑版本/dirty 语义，待优化。",
+      "evidence": [
+        "evidence/R4-authoring/README.md"
+      ]
+    },
+    {
+      "id": "JW-411",
+      "phase": "R4",
+      "title": "实现表格属性和拖动",
+      "status": "verified",
+      "depends_on": [
+        "JW-410"
+      ],
+      "delivery": "移植边框、底纹、宽高、对齐、跨页行及列宽拖动。",
+      "acceptance": "嵌套、合并单元格和分页复杂样例有回归。",
+      "implementation_note": "已接表格属性、单元格边距、边框/底纹、对齐/自动调整/均分、表格样式选择、边界/整体缩放及移动。GPUI 拖动只在松开提交一次，撤销回到原列宽；来源合并/嵌套/分页回归通过。Windows 已实际验证底纹、合并拆分、列宽拖动及保存重开；三端/DPI 和复杂分页/嵌套原生鼠标矩阵待验收。",
+      "evidence": [
+        "evidence/R4-authoring/README.md"
+      ]
+    },
+    {
+      "id": "JW-412",
+      "phase": "R4",
+      "title": "实现图片与绕排",
+      "status": "verified",
+      "depends_on": [
+        "JW-401"
+      ],
+      "delivery": "实现插图、大小裁剪、定位、锚点、绕排和替代文字交互。",
+      "acceptance": "拖动预览取消不改文档；保存重开与 PDF 位置一致。",
+      "implementation_note": "已接异步有界图片导入/替换、对象选择、大小/裁剪、定位/环绕、旋转翻转、替代文字、校正/透明度/颜色及重置。图片拖动预览、Esc 取消、单次撤销和过期版本拒绝通过 GPUI 测试；新包 DOCX 往返及含图 PDF 独立读回通过。Windows 已实际验证文件框导入、大小/裁剪/替代文字/环绕和手柄缩放，保存退出后最终包新进程重开及独立 OOXML/PDF 检查通过；复杂旋转及三端/DPI 未验收。",
+      "evidence": [
+        "evidence/R4-authoring/README.md"
+      ]
+    },
+    {
+      "id": "JW-413",
+      "phase": "R4",
+      "title": "实现标尺和视图控制",
+      "status": "planned",
+      "depends_on": [
+        "JW-403",
+        "JW-407"
+      ],
+      "delivery": "复用标尺、缩放、格式标记、隐藏文字及视图切换控件。",
+      "acceptance": "标尺与页面坐标一致；视图选项按排版影响参与缓存键。"
+    },
+    {
+      "id": "JW-414",
+      "phase": "R4",
+      "title": "实现打印预览与 PDF 入口",
+      "status": "planned",
+      "depends_on": [
+        "JW-307",
+        "JW-407"
+      ],
+      "delivery": "复用导出对话框，消费当前稳定场景进行 PDF 和打印到文件。",
+      "acceptance": "可检索文本、链接和页范围正确；系统打印资格单列 JW-705。"
+    },
+    {
+      "id": "JW-415",
+      "phase": "R4",
+      "title": "完成常用流程和宿主演练",
+      "status": "in_progress",
+      "depends_on": [
+        "JW-404",
+        "JW-405",
+        "JW-406",
+        "JW-408",
+        "JW-409",
+        "JW-411",
+        "JW-412",
+        "JW-413",
+        "JW-414"
+      ],
+      "delivery": "录制中文报告流程，执行两来源常用功能回归并演练宿主构建。",
+      "acceptance": "功能矩阵中本阶段每一项均有自动测试或人工记录。",
+      "implementation_note": "本轮字体/常用文本格式/段落主线通过自动回归及仓库外桌面编辑、保存、重开；隔离宿主三产品解析和候选 Word/CLI check 通过。其余 R4 文档工作流及 Deck/Sheet 本轮编译未覆盖。",
+      "evidence": [
+        "evidence/R4/README.md"
+      ]
+    },
+    {
+      "id": "JW-499",
+      "phase": "R4",
+      "title": "交付常用编辑预览",
+      "status": "implemented",
+      "depends_on": [
+        "JW-415"
+      ],
+      "delivery": "提供 R4 桌面开发包、样本文档和导出 PDF。",
+      "acceptance": "常用工作流可完成，未接入的高级功能仍有明确入口状态。",
+      "implementation_note": "已交付 R4 字体和段落编辑 Windows Debug 预览、真实 UI 生成的 DOCX 与独立 PDF；本轮用户要求的文本/字体/段落功能可用。完整 R4 表格图片、页面设置、页眉页脚、富粘贴等仍未接入，不标阶段 accepted。",
+      "evidence": [
+        "evidence/R4/README.md"
+      ]
+    },
+    {
+      "id": "JW-501",
+      "phase": "R5",
+      "title": "实现书签超链接和交叉引用",
+      "status": "in_progress",
+      "depends_on": [
+        "JW-499"
+      ],
+      "delivery": "迁移插入、编辑、定位和更新界面。 本轮：R5 已接入书签与交叉引用；超链接完整编辑及 PDF 链接验收待补。 证据：evidence/R5/。",
+      "acceptance": "往返保存及 PDF 链接有回归；外部链接按既有平台边界打开。"
+    },
+    {
+      "id": "JW-502",
+      "phase": "R5",
+      "title": "实现目录和题注",
+      "status": "verified",
+      "depends_on": [
+        "JW-501"
+      ],
+      "delivery": "接入目录更新、题注、图表目录和域切换交互。 本轮：R5 已接入目录生成/更新、题注、表目录、索引与域更新；内核 DOCX 往返测试通过，完整交互矩阵继续补齐。 证据：evidence/R5/。",
+      "acceptance": "编辑后更新结果和页码可核对，不把旧结果当更新成功。"
+    },
+    {
+      "id": "JW-503",
+      "phase": "R5",
+      "title": "实现脚注尾注和引文",
+      "status": "in_progress",
+      "depends_on": [
+        "JW-501"
+      ],
+      "delivery": "接入脚注/尾注编辑、引文样式、文献库及 Zotero 适配。 本轮：R5 脚注尾注、来源管理、引文样式及书目已接入；脚注在最终开发包的桌面插入、另存和重开已验证；Zotero 适配及断线矩阵待补。 证据：evidence/R5/。",
+      "acceptance": "导航、撤销、导出、断线和来源命令语义均有验证。"
+    },
+    {
+      "id": "JW-504",
+      "phase": "R5",
+      "title": "实现批注工作流",
+      "status": "in_progress",
+      "depends_on": [
+        "JW-499"
+      ],
+      "delivery": "复用现批注面板与样式，适配新增、回复、编辑、解决和定位。 本轮：R5 批注、回复、编辑、解决/重新打开和删除已接线；最终开发包已通过桌面新增批注、回复、另存和新进程重开，DOCX 锚点和线程父子关系已核对。 证据：evidence/R5/。",
+      "acceptance": "批注 ID、作者和范围保存重开正确，非法 ID 原子拒绝。"
+    },
+    {
+      "id": "JW-505",
+      "phase": "R5",
+      "title": "实现修订和比较",
+      "status": "in_progress",
+      "depends_on": [
+        "JW-504"
+      ],
+      "delivery": "接入修订记录、显示投影、接受拒绝、文档比较与导航。 本轮：R5 修订、标记投影、接受/拒绝及比较/合并已接线；正文/表格差异与 DOCX 往返通过，最终开发包桌面接受插入修订并保存重开已通过；复杂故事范围比较待补。 证据：evidence/R5/。",
+      "acceptance": "各投影不变量、移动/格式修订的实际支持范围有用例和明示。"
+    },
+    {
+      "id": "JW-506",
+      "phase": "R5",
+      "title": "实现公式和文本框",
+      "status": "planned",
+      "depends_on": [
+        "JW-499"
+      ],
+      "delivery": "迁移公式、特殊符号、文本框及相关上下文控件。",
+      "acceptance": "内核支持的对象可编辑和撤销，未知对象不会因 UI 进入而丢失。"
+    },
+    {
+      "id": "JW-507",
+      "phase": "R5",
+      "title": "实现绘图和复杂对象控件",
+      "status": "planned",
+      "depends_on": [
+        "JW-412",
+        "JW-506"
+      ],
+      "delivery": "移植形状、WordArt、旋转分组和 Ink 等来源已有能力的交互。",
+      "acceptance": "逐类标记支持度；图表、SmartArt、OLE 等来源长尾缺口不伪装已实现。"
+    },
+    {
+      "id": "JW-508",
+      "phase": "R5",
+      "title": "实现邮件合并",
+      "status": "in_progress",
+      "depends_on": [
+        "JW-499"
+      ],
+      "delivery": "复用现向导、收件人/模板映射与预览，接入新内核合并命令。 本轮：R5 CSV/TSV/Excel/OpenDocument 收件人、工作表选择、筛选排序、域、预览和合并副本已接线；限制 1000 条/32 MiB 估算展开；模板保留及输出拒绝覆盖通过，最终开发包已验证 CSV 筛选、两条记录预览及两页 DOCX 合并后新进程重开。 证据：evidence/R5/。",
+      "acceptance": "实际支持的数据源、分页和批量输出有独立读回测试。"
+    },
+    {
+      "id": "JW-509",
+      "phase": "R5",
+      "title": "迁移格式交换界面",
+      "status": "in_progress",
+      "depends_on": [
+        "JW-204",
+        "JW-499"
+      ],
+      "delivery": "接入 TXT/MD/HTML/RTF/ODT/LaTeX/.doc 及现 JoyWord EPUB/WPS 等能力的逐项适配。 本轮：R5 多格式打开及 DOCX/PDF/TXT/Markdown/HTML/RTF/ODT/LaTeX/Word XML 副本导出已接入；实包 CLI 导出及重开通过，桌面 RTF 导出经实包 CLI 读回；.doc 为只读导入，EPUB/WPS 待适配。 证据：evidence/R5/。",
+      "acceptance": "每种格式列读取/写入/保真限制；缺失的现有能力须补齐或保留明确差距。"
+    },
+    {
+      "id": "JW-510",
+      "phase": "R5",
+      "title": "适配保护和密码文档",
+      "status": "planned",
+      "depends_on": [
+        "JW-307",
+        "JW-509"
+      ],
+      "delivery": "连接密码交互、只读和受保护编辑策略，保留宏部件且不执行。",
+      "acceptance": "错误密码、取消、预算和保存权限测试通过；不能绕过原有保护。"
+    },
+    {
+      "id": "JW-511",
+      "phase": "R5",
+      "title": "迁移拼写语法与语言包",
+      "status": "planned",
+      "depends_on": [
+        "JW-205",
+        "JW-499"
+      ],
+      "delivery": "复用 craft-proof 及可复用的校对面板，适配用户词典和语言数据包。",
+      "acceptance": "语言包缺失/安装/取消有测试；普通启动不隐式联网或下载。"
+    },
+    {
+      "id": "JW-512",
+      "phase": "R5",
+      "title": "补齐界面语言与 RTL",
+      "status": "planned",
+      "depends_on": [
+        "JW-106",
+        "JW-511"
+      ],
+      "delivery": "复用两来源翻译数据，迁移区域格式、快捷键文本和需要的 RTL 布局。",
+      "acceptance": "来源已支持语言逐项记录状态，不宣称仅切换标签即完成本地化。"
+    },
+    {
+      "id": "JW-513",
+      "phase": "R5",
+      "title": "实现多文档多视图",
+      "status": "planned",
+      "depends_on": [
+        "JW-308",
+        "JW-499"
+      ],
+      "delivery": "适配 Session 多文档和新窗口/拆分，复用现最近文件与窗口管理交互。",
+      "acceptance": "每视图选择和滚动独立，共用文档只维护一份撤销与保存状态。"
+    },
+    {
+      "id": "JW-514",
+      "phase": "R5",
+      "title": "保留现 AI 关闭和提案契约",
+      "status": "planned",
+      "depends_on": [
+        "JW-207",
+        "JW-505"
+      ],
+      "delivery": "复用 joyword-agent 的默认关闭、授权、代次、取消和提案提交边界。",
+      "acceptance": "默认/无 AI 构建可用；旧提案不得在文档或权限变化后写入；不扩展新 Provider 范围。"
+    },
+    {
+      "id": "JW-515",
+      "phase": "R5",
+      "title": "迁移 MCP 和桌面控制",
+      "status": "in_progress",
+      "depends_on": [
+        "JW-206",
+        "JW-513"
+      ],
+      "delivery": "迁入 MCP、control-key 与桌面 bridge，适配现协议并提供能力查询。 本轮：迁入完整 MCP/control-key，实包 stdio JSON-RPC、工具执行/保存和根目录越界拒绝通过；默认无网络监听，实时 GPUI 桥接及其认证尚未实现。 证据：evidence/R5/。",
+      "acceptance": "CLI、MCP 和 UI 同一路径执行；认证、会话目标、权限根和过期版本拒绝通过。"
+    },
+    {
+      "id": "JW-516",
+      "phase": "R5",
+      "title": "补齐设置与长尾对话框",
+      "status": "in_progress",
+      "depends_on": [
+        "JW-002",
+        "JW-512",
+        "JW-513"
+      ],
+      "delivery": "逐项迁移文件 Backstage、模板、打印选项、校对/段落等来源已有设置。 本轮：复用 JoyOffice Kit 版本绑定表单；R5 增加用户信息与单位入口；完整设置与长尾对话框待补。 证据：evidence/R5/。",
+      "acceptance": "功能矩阵中的每个来源 UI 项都有目标入口或明确未完成任务。"
+    },
+    {
+      "id": "JW-599",
+      "phase": "R5",
+      "title": "验收功能并集预览",
+      "status": "in_progress",
+      "depends_on": [
+        "JW-502",
+        "JW-503",
+        "JW-505",
+        "JW-507",
+        "JW-508",
+        "JW-509",
+        "JW-510",
+        "JW-511",
+        "JW-512",
+        "JW-513",
+        "JW-514",
+        "JW-515",
+        "JW-516"
+      ],
+      "delivery": "交付 R5 包并核对两来源功能和自动化并集。 本轮：R5 五类主要功能已有可构建桌面实现；本机 Word Home 2024 外观对齐进行中。最终 Windows 包已完成代表性原生编辑、另存与重开、合并及 RTF 导出验证；完整能力并集与跨平台验收仍待推进。 证据：evidence/R5/。",
+      "acceptance": "新增实现状态与测试、原生验收分列；未完成必保留功能不能被总体验收掩盖。"
+    },
+    {
+      "id": "JW-601",
+      "phase": "R6",
+      "title": "建立持续性能采样",
+      "status": "in_progress",
+      "depends_on": [
+        "JW-211"
+      ],
+      "delivery": "固定 10/100/1000 页语料、字体和硬件，记录实际呈现的 p50/p95/p99。",
+      "acceptance": "冷/热启动、导入、布局、光栅、上传和呈现分别计时；各版本可复现。",
+      "implementation_note": "固定 10/100/1000 页 DOCX，新增同机 Windows Release 首段/末段输入、分页和 GPUI 提交分位。物理呈现、上传和更大样本待补。"
+    },
+    {
+      "id": "JW-602",
+      "phase": "R6",
+      "title": "整理只读页面场景接口",
+      "status": "in_progress",
+      "depends_on": [
+        "JW-209"
+      ],
+      "delivery": "保留内核显示列表和字体/原文映射，为多个绘制后端提供只读场景。",
+      "acceptance": "屏幕、CPU 金样和 PDF 不重新分页或重新整形。",
+      "implementation_note": "桌面 CPU 光栅按文档版本复用只读布局和文档快照。PDF 仍按自身参数排版。"
+    },
+    {
+      "id": "JW-603",
+      "phase": "R6",
+      "title": "优化视口和缓存",
+      "status": "in_progress",
+      "depends_on": [
+        "JW-208",
+        "JW-602"
+      ],
+      "delivery": "复用邻页预取、内存预算、LRU、缩放缓存及后台优先级。",
+      "acceptance": "百页与千页滚动不全量光栅；淘汰与取消不安装过期页面。",
+      "implementation_note": "前缀索引、跨缩放 LRU、取消及版本校验落地。Windows 千页滚动与缩放锚点通过，长时压力及快速并发切换待验。"
+    },
+    {
+      "id": "JW-604",
+      "phase": "R6",
+      "title": "验证原生字形绘制",
+      "status": "planned",
+      "depends_on": [
+        "JW-009",
+        "JW-602"
+      ],
+      "delivery": "验证 GPUI paint_glyph、字节/face/axes 身份映射、合字、彩色 emoji 和旋转。",
+      "acceptance": "不能按字体名猜测 FontId；证明一致后再将对应场景切到原生后端。"
+    },
+    {
+      "id": "JW-605",
+      "phase": "R6",
+      "title": "适配路径图片和裁剪",
+      "status": "planned",
+      "depends_on": [
+        "JW-602"
+      ],
+      "delivery": "接入原生路径、图片、透明、变换及嵌套裁剪；复杂项保留场景级 CPU 回退。",
+      "acceptance": "逐类图形与 CPU/PDF 参考对照；回退不改变布局或损坏文字检索。"
+    },
+    {
+      "id": "JW-606",
+      "phase": "R6",
+      "title": "优化图像上传和叠加",
+      "status": "in_progress",
+      "depends_on": [
+        "JW-603",
+        "JW-310"
+      ],
+      "delivery": "复用纹理、减少全页拷贝和重传，完善光标/选择/拖动独立叠加。",
+      "acceptance": "空闲和光标闪烁不持续上传；缩放期间显存有上限。",
+      "implementation_note": "复用 GPUI 页面图像，单页增量编辑仅失效修改页。光标选区独立绘制，实际 GPU 上传次数和显存待测。"
+    },
+    {
+      "id": "JW-607",
+      "phase": "R6",
+      "title": "优化增量排版与取消",
+      "status": "in_progress",
+      "depends_on": [
+        "JW-202",
+        "JW-601"
+      ],
+      "delivery": "检验缓存失效、首段/末段编辑和大对象场景，异步任务携带版本与预算。",
+      "acceptance": "增量与全量结果等价；旧任务不会长时间阻塞新的输入。",
+      "implementation_note": "千页单页内的单行及多行段落在各行垂直度量稳定时复用分页，输出和全量一致。跨页、改变行数、表格和域仍完整分页。"
+    },
+    {
+      "id": "JW-608",
+      "phase": "R6",
+      "title": "验证性能与保真取舍",
+      "status": "in_progress",
+      "depends_on": [
+        "JW-603",
+        "JW-604",
+        "JW-605",
+        "JW-606",
+        "JW-607"
+      ],
+      "delivery": "用相同环境比较来源 egui、GPUI CPU 页面和原生绘制路径。",
+      "acceptance": "显示质量、功能、延迟与内存一起报告，不以命令耗时代替呈现。",
+      "implementation_note": "增加 Windows Release 优化前后输入与 CLI 样本，Windows 原生 IME、撤销、重做和另存重开复验通过。egui/原生绘制与物理呈现待补。"
+    },
+    {
+      "id": "JW-609",
+      "phase": "R6",
+      "title": "锁定后端选择与回退",
+      "status": "in_progress",
+      "depends_on": [
+        "JW-608"
+      ],
+      "delivery": "按实测选择默认页面后端并记录适用平台和未支持场景。",
+      "acceptance": "原生路径未达标可保留优化 CPU 页面默认，但性能目标不能因此标完成。",
+      "implementation_note": "当前默认 Vello CPU 光栅与 GPUI 图像合成。后端比较及发行资格待测。"
+    },
+    {
+      "id": "JW-610",
+      "phase": "R6",
+      "title": "建立性能回归门槛",
+      "status": "in_progress",
+      "depends_on": [
+        "JW-609"
+      ],
+      "delivery": "将稳定场景的预算和允许波动接入阶段检查。",
+      "acceptance": "跨机器不直接比较；性能退化有原始样本和可定位阶段。",
+      "implementation_note": "保存 Windows Release 的千页单行、已折行段落各阶段样本。真实屏幕呈现和稳定硬件的 CI 门槛待补。"
+    },
+    {
+      "id": "JW-699",
+      "phase": "R6",
+      "title": "交付性能验证预览",
+      "status": "in_progress",
+      "depends_on": [
+        "JW-610"
+      ],
+      "delivery": "输出 R6 开发包和对比报告。",
+      "acceptance": "满足约定预算的项目有实测；剩余性能差距保留任务和平台状态。",
+      "implementation_note": "交付 Windows Release 开发包和千页单行及多行编辑对照。复杂 DOCX 的延迟、物理呈现和显存预算继续验证。"
+    },
+    {
+      "id": "JW-701",
+      "phase": "R7",
+      "title": "建立三端构建矩阵",
+      "status": "in_progress",
+      "depends_on": [
+        "JW-199"
+      ],
+      "delivery": "从 R1 起构建 Windows MSVC、macOS 和 Linux GUI，并保留 core/CLI 无界面任务。",
+      "acceptance": "每阶段状态按目标分别记录；交叉编译不当作真机运行。",
+      "implementation_note": "Windows x64 和 Linux x64 Release 原生目标构建及包校验通过。Linux ARM64 Release 交叉构建、打包及 QEMU CLI 验证通过。macOS 暂缓。"
+    },
+    {
+      "id": "JW-702",
+      "phase": "R7",
+      "title": "验证 Windows 桌面行为",
+      "status": "in_progress",
+      "depends_on": [
+        "JW-399",
+        "JW-701"
+      ],
+      "delivery": "测试中文 IME、DPI、多屏、拖放、剪贴板、文件对话框和原生关闭。",
+      "acceptance": "含 patched AccessKit 的窗口关闭与读屏回归，不丢编辑或重复销毁 HWND。",
+      "implementation_note": "Windows 原生拼音候选取消、提交、另存、关闭和重开通过。拖放、多屏/DPI 和读屏应用待验。"
+    },
+    {
+      "id": "JW-703",
+      "phase": "R7",
+      "title": "验证 macOS 桌面行为",
+      "status": "in_progress",
+      "depends_on": [
+        "JW-399",
+        "JW-701"
+      ],
+      "delivery": "测试 Cmd 菜单、中文 IME、Retina、多窗口、对话框和 VoiceOver。",
+      "acceptance": "记录实际 shader 模式与启动环境；开发 runtime shader 不充当发行资格。",
+      "implementation_note": "本轮暂缓。此前 macOS ARM64 和 x64 锁定依赖解析通过，实际构建和 VoiceOver 验收待补。"
+    },
+    {
+      "id": "JW-704",
+      "phase": "R7",
+      "title": "验证 Linux 桌面行为",
+      "status": "in_progress",
+      "depends_on": [
+        "JW-399",
+        "JW-701"
+      ],
+      "delivery": "测试 Wayland/X11、Fcitx/IBus、字体回退、Portal 和手工路径退路。",
+      "acceptance": "Portal 缺失不会静默失败或阻塞 UI；分别记录两个显示协议。",
+      "implementation_note": "Ubuntu 24.04 WSL2 Release 和 WSLg Wayland/X11 启动通过。新包完成千页桌面编辑、保存及新进程重开。独立 Linux 桌面、IME、Portal 与 Orca 待验。"
+    },
+    {
+      "id": "JW-705",
+      "phase": "R7",
+      "title": "接入和验证系统打印",
+      "status": "planned",
+      "depends_on": [
+        "JW-414",
+        "JW-701"
+      ],
+      "delivery": "复用 print-via-PDF 调度，适配真实系统打印对话框与设备参数。",
+      "acceptance": "取消、页范围、打印机错误有记录；打印到文件不等于系统打印通过。"
+    },
+    {
+      "id": "JW-706",
+      "phase": "R7",
+      "title": "验证文档无障碍",
+      "status": "in_progress",
+      "depends_on": [
+        "JW-302",
+        "JW-304",
+        "JW-701"
+      ],
+      "delivery": "适配现 text_accessibility 的结构、selection、action 和焦点，补齐键盘遍历。",
+      "acceptance": "正文可被读屏访问，不能只暴露一张页面图片；三端读屏各自记状态。",
+      "implementation_note": "Windows UI Automation 已读取正文活动段落和多行段落中的键盘选区。全文导航和读屏应用待验。"
+    },
+    {
+      "id": "JW-707",
+      "phase": "R7",
+      "title": "验证 ARM 和信创目标",
+      "status": "in_progress",
+      "depends_on": [
+        "JW-701",
+        "JW-704"
+      ],
+      "delivery": "沿用宿主 ARM64/LoongArch64 构建与 QEMU 核心检查，验证可用设备的 GL/窗口退路。",
+      "acceptance": "GPU 窗口与 CPU 页面回退区别明确；信创真机缺席按宿主约定非阻塞待补验。",
+      "implementation_note": "交付 Linux ARM64 Release 交叉 ZIP。QEMU CLI 通过读 DOCX、PNG 和千页编辑保存重开。ARM64 真机桌面与 LoongArch64 待验。"
+    },
+    {
+      "id": "JW-708",
+      "phase": "R7",
+      "title": "实现安装包与文件关联",
+      "status": "in_progress",
+      "depends_on": [
+        "JW-103",
+        "JW-701"
+      ],
+      "delivery": "复用宿主打包入口和产品版本策略，提供安装/便携、图标、关联及更新回退。",
+      "acceptance": "各产品版本独立；阶段包使用相同 joyword 应用身份并隔离试用配置。",
+      "implementation_note": "交付 Windows x64、Linux x64、Linux ARM64 未签名便携 Release ZIP。安装器、文件关联和更新回退待实现。"
+    },
+    {
+      "id": "JW-709",
+      "phase": "R7",
+      "title": "核对许可证和供应链",
+      "status": "in_progress",
+      "depends_on": [
+        "JW-004",
+        "JW-205",
+        "JW-708"
+      ],
+      "delivery": "复用 provenance、cargo-deny、NOTICE 和 SBOM 流程，补齐新外部数据与库声明。",
+      "acceptance": "保留实际引入源码许可，不把全仓标签改为 MIT 代替逐文件义务。",
+      "implementation_note": "包内含锁定依赖、来源和许可清单、构建信息与 SHA-256。完整 SBOM 及 cargo-deny 资格待补。"
+    },
+    {
+      "id": "JW-710",
+      "phase": "R7",
+      "title": "验证 shader 和签名发行条件",
+      "status": "in_progress",
+      "depends_on": [
+        "JW-003",
+        "JW-703",
+        "JW-708"
+      ],
+      "delivery": "核实实际 feature 图、资源打包和 shader 编译，执行可用平台的签名/公证验证。",
+      "acceptance": "没有凭据或环境时明确包为未签名开发版；不改变宿主依赖规避问题。",
+      "implementation_note": "macOS CI 配置 Metal 工具链检查，远程构建、签名和公证资格待验。当前包为 Windows 未签名开发版。"
+    },
+    {
+      "id": "JW-799",
+      "phase": "R7",
+      "title": "交付平台资格记录",
+      "status": "in_progress",
+      "depends_on": [
+        "JW-702",
+        "JW-703",
+        "JW-704",
+        "JW-705",
+        "JW-706",
+        "JW-707",
+        "JW-708",
+        "JW-709",
+        "JW-710"
+      ],
+      "delivery": "提供各平台开发包、验证表和公开限制。",
+      "acceptance": "通过、未验证和实际缺陷逐项分开；信创真机待补验不阻塞其他结项。",
+      "implementation_note": "已提供 Windows x64、Linux x64 桌面验收以及 ARM64 交叉包和 QEMU CLI 验收。ARM64 真机和独立 Linux 桌面待验，macOS 暂缓。"
+    },
+    {
+      "id": "JW-801",
+      "phase": "R8",
+      "title": "准备可恢复整合基线",
+      "status": "planned",
+      "depends_on": [
+        "JW-599",
+        "JW-699"
+      ],
+      "delivery": "记录实施时最新宿主 HEAD、备份旧 Word 源码/开发包、配置与恢复样本。",
+      "acceptance": "备份可独立读取和恢复；保留历史来源，不直接覆盖 main。"
+    },
+    {
+      "id": "JW-802",
+      "phase": "R8",
+      "title": "完成宿主目录和名称映射",
+      "status": "planned",
+      "depends_on": [
+        "JW-801"
+      ],
+      "delivery": "替换 apps/joyword、apps/joyword-cli 和实际迁移的 joyword-* 包，处理名称与路径冲突。",
+      "acceptance": "宿主只出现一个 joyword 产品；不向 JoyDeck/JoySheet 引入产品间依赖。"
+    },
+    {
+      "id": "JW-803",
+      "phase": "R8",
+      "title": "复用唯一公共库",
+      "status": "planned",
+      "depends_on": [
+        "JW-802"
+      ],
+      "delivery": "用宿主唯一 joyoffice-ui/OPC/CFB/DrawingML/OMML 替换临时快照或容器适配。",
+      "acceptance": "公共库保持格式中立，新增能力有使用方回归；无重复 fork 留在产品目录。"
+    },
+    {
+      "id": "JW-804",
+      "phase": "R8",
+      "title": "统一根依赖和 feature 图",
+      "status": "planned",
+      "depends_on": [
+        "JW-803"
+      ],
+      "delivery": "整合 Cargo.lock、patch、resolver、profiles 及 provenance，禁止无关依赖升级。",
+      "acceptance": "默认、全 workspace、无 AI 和验证 feature 组合均检查，GPUI 来源一致。"
+    },
+    {
+      "id": "JW-805",
+      "phase": "R8",
+      "title": "迁移构建测试和打包工具",
+      "status": "planned",
+      "depends_on": [
+        "JW-804"
+      ],
+      "delivery": "接入宿主 xtask、CI、质量门禁、语料与产品版本/tag 路由。",
+      "acceptance": "旧 Word 专用金样和结构门禁按新模型实质重建，不通过放宽或删除掩盖回归。"
+    },
+    {
+      "id": "JW-806",
+      "phase": "R8",
+      "title": "验证数据迁移与回退",
+      "status": "planned",
+      "depends_on": [
+        "JW-008",
+        "JW-309",
+        "JW-805"
+      ],
+      "delivery": "演练偏好、恢复、最近文件、文件关联及升级失败后的回退。",
+      "acceptance": "原 DOCX 和旧恢复数据保留；回退包能启动，无法转换的旧数据有明确路径。"
+    },
+    {
+      "id": "JW-807",
+      "phase": "R8",
+      "title": "完成三产品联合回归",
+      "status": "planned",
+      "depends_on": [
+        "JW-804",
+        "JW-805"
+      ],
+      "delivery": "运行 Word/Deck/Sheet 各自检查、全 workspace 测试/Clippy 及 AI 组合回归。",
+      "acceptance": "记录实际通过数、忽略项和平台；任何共享库修改覆盖使用方。"
+    },
+    {
+      "id": "JW-808",
+      "phase": "R8",
+      "title": "核对旧功能和协议并集",
+      "status": "planned",
+      "depends_on": [
+        "JW-002",
+        "JW-806",
+        "JW-807"
+      ],
+      "delivery": "对照 JW-002 逐项复测原 Wordcraft 与现 JoyWord 的必保留流程和命令契约。",
+      "acceptance": "未覆盖功能保留差距和任务；构建成功不能替代功能无回退验收。"
+    },
+    {
+      "id": "JW-809",
+      "phase": "R8",
+      "title": "生成宿主桌面包并操作",
+      "status": "planned",
+      "depends_on": [
+        "JW-799",
+        "JW-807"
+      ],
+      "delivery": "从整合分支生成正式目录结构的开发包，在仓库外启动并完整操作。",
+      "acceptance": "安装包与实际源码指纹一致；运行 JoyWord、Deck、Sheet 的核心流程。"
+    },
+    {
+      "id": "JW-810",
+      "phase": "R8",
+      "title": "移除迁移期重复实现",
+      "status": "planned",
+      "depends_on": [
+        "JW-808",
+        "JW-809"
+      ],
+      "delivery": "删除经证明不再需要的临时适配、重复公共库和生产 egui 路径。",
+      "acceptance": "保留必要的只读旧数据转换；没有第二套长期可编辑模型。"
+    },
+    {
+      "id": "JW-811",
+      "phase": "R8",
+      "title": "更新交接和维护入口",
+      "status": "planned",
+      "depends_on": [
+        "JW-810"
+      ],
+      "delivery": "更新宿主 AGENTS、docs/joyword、状态、任务、构建说明、许可和来源记录。",
+      "acceptance": "以后仅在 JoyOffice 继续开发；当前独立目录有清楚的归档说明。"
+    },
+    {
+      "id": "JW-812",
+      "phase": "R8",
+      "title": "完成候选替换与回退演练",
+      "status": "planned",
+      "depends_on": [
+        "JW-806",
+        "JW-808",
+        "JW-809",
+        "JW-811"
+      ],
+      "delivery": "准备可审查差异、最终证据、候选包及可执行回退步骤。",
+      "acceptance": "合入与发布遵循实施时授权和仓库规则；缺项不能被迁移完成掩盖。"
+    },
+    {
+      "id": "JW-899",
+      "phase": "R8",
+      "title": "验收宿主替换",
+      "status": "planned",
+      "depends_on": [
+        "JW-812"
+      ],
+      "delivery": "在获准的整合流程中切换到新 JoyWord，记录实际合入点和保留差距。",
+      "acceptance": "宿主构建/运行成立，必保留功能无未接受回退；平台未验证项保持可见。"
+    }
+  ]
+}

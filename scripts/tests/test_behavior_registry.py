@@ -106,6 +106,7 @@ class BehaviorRegistryTest(unittest.TestCase):
             path.write_text(json.dumps(data), encoding="utf-8")
             return check_docs.validate_behavior_registry(path, names, required)
 
+    @unittest.skipIf((check_docs.DOCS / "r8").is_dir(), "The registry describes the pre-R8 implementation")
     def test_repo_registry_is_valid_and_every_test_exists(self):
         problems, count = check_docs.validate_behavior_registry(
             check_docs.DOCS / "behavior_registry.json",

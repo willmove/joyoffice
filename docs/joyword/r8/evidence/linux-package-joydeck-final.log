@@ -1,0 +1,11 @@
+wsl: 检测到 localhost 代理配置，但未镜像到 WSL。NAT 模式下的 WSL 不支持 localhost 代理。
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
++ /usr/bin/python3 scripts/joydeck/package-native.py --profile debug
+Imported source records passed (291 files)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.96s
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.74s
+{"directory": "/mnt/d/Coding/EditorProjects/joyoffice/dist/joydeck/joydeck-0.8.0-r9-linux-x86_64-debug-d8e22f56ec", "archive": "/mnt/d/Coding/EditorProjects/joyoffice/dist/joydeck/joydeck-0.8.0-r9-linux-x86_64-debug-d8e22f56ec.zip", "archive_sha256": "a0504eb4509481aa87293e36665903d315a6de9b1e00fd87e5d8824219de9662", "source_sha256": "d8e22f56ec8a3c0687af8faf4b72e02f5b7cc90170e21b389a36fecf91d2bc66", "target": "x86_64-unknown-linux-gnu", "profile": "debug", "sbom_packages": 559, "missing_license_texts": ["accesskit", "accesskit_atspi_common", "accesskit_consumer", "accesskit_unix", "gpui-kit", "harfrust", "krilla", "lyon", "lyon_algorithms", "lyon_geom", "lyon_path", "lyon_tessellation", "mac", "markdown", "pathfinder_geometry", "pathfinder_simd", "profiling", "profiling-procmacros", "pulp-wasm-simd-flag", "rust-i18n-macro", "rust-i18n-support", "seahash", "spirv", "svg_fmt", "taffy", "xim-ctext", "xim-parser", "zune-core", "zune-inflate", "zune-jpeg"], "signed": false}

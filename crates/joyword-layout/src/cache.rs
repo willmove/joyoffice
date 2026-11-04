@@ -1,1693 +1,242 @@
-//! Paragraph layout cache and incremental pagination (T208, LAYOUT-010).
-//!
-//! A fitted paragraph is reused when its content, resolved style, available
-//! width, shaping face and profile inputs match. Page number, footnote number
-//! and wrap identity join that key only when the paragraph actually depends
-//! on them, so a paragraph that does not can move between pages and still hit.
-//! Pagination restarts at the earliest invalidated paragraph (walking back a
-//! keep-next chain) and copies the previous snapshot once a later page
-//! boundary matches. Feedback that repeats a state or exhausts its pass
-//! budget returns [`LayoutError::Unstable`] and does not publish the
-//! temporary pages, unless every body page field has a cached result.
-//! That case draws the cache once and notes `PageFieldCached`.
-
-use std::collections::{BTreeSet, HashMap, HashSet};
-
-use joyword_foundation::Emu;
-use joyword_model::{
-    Anchor, AnnotationKind, Block, Document, DocumentSnapshot, DocumentVersion, LineSpacing,
-    NodeId, NumberLabel, NumberSuffix, NumberingProblem, Paragraph, RevisionView, ScalarOffset,
-    StyleId, StyleKind, StyleSheet,
-};
-use sha2::{Digest, Sha256};
-
-use crate::document::{
-    FittedParagraph, LayoutSnapshot, PageGeometry, ParagraphAnchor, PlaceStop, SceneViews,
-    WorkSpent, apply_section, assemble, dominant_slot, fit_paragraph, open_snapshot, preflight,
-    record_fit,
-};
-use crate::style_paint;
-use crate::view::ViewOptions;
-use crate::{
-    FaceSet, FontKey, FontSlot, LayoutCancellation, LayoutError, LayoutLimits, SingleFontProfile,
+use super::ctx::Outlines;
+use super::placed::Placed;
+use super::{
+    Arc, Blocks, Document, Hash, HashMap, HashSet, Hasher, HideDeleted, InlineObject,
+    LayoutOptions, Page, ParaLayout, Paragraph, SectionProps, StoryRef, ViewMode, fields, styleref,
 };
 
-/// Passes spent resolving page-number / footnote / wrap feedback.
-pub const MAX_LAYOUT_PASSES: usize = 8;
-
-/// Default resident cap for fitted paragraphs. One entry larger than the cap
-/// is not stored; eviction drops the least recently used entries that are
-/// not required by the current pass. Oversized scans cannot evict their own
-/// upcoming hits and turn every subsequent pass into a complete cache miss.
-pub const DEFAULT_CACHE_BUDGET: usize = 32 << 20;
-
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-pub struct DependencyFlags {
-    pub page_number: bool,
-    pub footnote_number: bool,
-    pub wrap: bool,
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub(crate) struct Key {
+    pub(crate) rev: u64,
+    pub(crate) width: u32,
+    pub(crate) label: Option<String>,
+    pub(crate) page: Option<(u32, u32, u32, u32, u64, joyword_model::section::NumFormat)>,
+    /// The pages a split paragraph's fields are on after its first (`FieldCtx::page_from`).
+    pub(crate) page_from: u64,
+    pub(crate) table: u64,
+    pub(crate) notes: u64,
+    pub(crate) excl: u64,
+    pub(crate) eq: u32,
+    pub(crate) read_spacing: Option<u32>,
+    pub(crate) grid: (u32, u32, u32, bool),
+    pub(crate) fit: bool,
+    /// Heights of the paragraph's inline boxes that resize to fit their text.
+    pub(crate) fitted: u64,
+    pub(crate) hide_deleted: HideDeleted,
+    /// STYLEREF results in headers and footers ([`FieldCtx::styleref_key`]).
+    pub(crate) sref: u64,
+    /// The word being typed in this paragraph, left without a spelling squiggle.
+    pub(crate) typing: Option<(usize, usize)>,
 }
 
-impl DependencyFlags {
-    pub fn any(self) -> bool {
-        self.page_number || self.footnote_number || self.wrap
+/// Memoised paragraph layouts.
+#[derive(Default)]
+pub struct LayoutCache {
+    pub(crate) paras: HashMap<Key, Arc<ParaLayout>>,
+    /// Narrowest and widest content of paragraphs measured for table autofit ([`Ctx::para_measured`]).
+    pub(crate) measures: HashMap<Key, (f32, f32)>,
+    /// Outlines of pictures' opaque pixels (Tight and Through wrapping), by media key, the
+    /// media's bytes (address and length) and crop. Kept from one layout to the next, so each
+    /// entry holds a weak reference to its bytes: their allocation isn't freed while the entry is
+    /// kept, so no other picture's bytes can come to have its address ([`Outlines`]).
+    pub(crate) outlines: Outlines,
+    pub(crate) env: u64,
+    pub(crate) previous: Option<super::incremental::Previous>,
+    pub(crate) used: HashSet<Key>,
+    /// The STYLEREF style index of the last pass and what it was built from: the body blocks
+    /// (shared, so an edited block is a different pointer) and `env` (styles and numbering). Kept
+    /// while both are unchanged, so headers using STYLEREF don't rebuild it on every pass.
+    pub(crate) styleref: Option<(Blocks, u64, Arc<styleref::StyleIndex>)>,
+    pub hits: u64,
+    pub misses: u64,
+}
+
+impl LayoutCache {
+    pub fn new() -> Self {
+        Self::default()
     }
-}
-
-/// Values supplied by pagination. Ignored fields are the ones the paragraph
-/// does not depend on.
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
-pub struct ExternalContext {
-    pub page_number: u32,
-    pub footnote_number: u32,
-    pub wrap: u64,
-    /// `PAGE` after `w:pgNumType/@w:start`. Zero is the unset seed.
-    pub displayed_page: i64,
-    pub num_pages: u32,
-    pub section_pages: u32,
-    /// Rendered chapter label and separator of the owning physical page.
-    /// Part of feedback equality and the paragraph key, not a cached field result.
-    pub chapter_prefix: Option<std::sync::Arc<str>>,
-    /// Draw the stored field result instead of a live number.
-    pub force_cache: bool,
-}
-
-/// What a transaction asked layout to drop. The app maps an engine ChangeSet
-/// into this set; layout does not depend on the engine crate.
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
-pub struct LayoutInvalidation {
-    pub paragraphs: BTreeSet<NodeId>,
-    pub inserted: BTreeSet<NodeId>,
-    pub removed: BTreeSet<NodeId>,
-    pub moved: BTreeSet<NodeId>,
-    pub styles: BTreeSet<StyleId>,
-    /// `w:docDefaults` changed. Every paragraph's resolved style is stale.
-    pub defaults_changed: bool,
-}
-
-/// External values that actually participate in a cache key. `None` means
-/// the paragraph does not depend on that input, so two pages still collide.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
-pub struct ExternalKey {
-    page_number: Option<u32>,
-    footnote_number: Option<u32>,
-    wrap: Option<u64>,
-    displayed_page: Option<i64>,
-    num_pages: Option<u32>,
-    section_pages: Option<u32>,
-    chapter_prefix: Option<[u8; 32]>,
-    force_cache: Option<bool>,
-}
-
-pub fn external_key(flags: DependencyFlags, context: ExternalContext) -> ExternalKey {
-    ExternalKey {
-        page_number: flags.page_number.then_some(context.page_number),
-        footnote_number: flags.footnote_number.then_some(context.footnote_number),
-        wrap: flags.wrap.then_some(context.wrap),
-        displayed_page: flags.page_number.then_some(context.displayed_page),
-        num_pages: flags.page_number.then_some(context.num_pages),
-        section_pages: flags.page_number.then_some(context.section_pages),
-        chapter_prefix: context
-            .chapter_prefix
-            .as_ref()
-            .filter(|_| flags.page_number)
-            .map(|text| digest(text.as_bytes())),
-        force_cache: flags.page_number.then_some(context.force_cache),
+    pub fn len(&self) -> usize {
+        self.paras.len()
     }
-}
-
-/// Styles whose resolved properties change when `changed` changes: the
-/// styles themselves, anything that `basedOn`s them, and styles linked to them.
-pub fn affected_style_closure(
-    sheet: &StyleSheet,
-    changed: &BTreeSet<StyleId>,
-) -> BTreeSet<StyleId> {
-    let mut affected = changed.clone();
-    let mut grew = true;
-    while grew {
-        grew = false;
-        let snapshot: Vec<StyleId> = affected.iter().cloned().collect();
-        for style in sheet.iter() {
-            if affected.contains(&style.id) {
-                continue;
-            }
-            let chain = sheet.chain(&style.id);
-            let hit = chain.styles.iter().any(|item| {
-                snapshot.iter().any(|id| id == &item.id)
-                    || item
-                        .link
-                        .as_ref()
-                        .is_some_and(|link| snapshot.iter().any(|id| id == link))
-            });
-            if hit {
-                affected.insert(style.id.clone());
-                grew = true;
-            }
-        }
+    pub fn is_empty(&self) -> bool {
+        self.paras.is_empty()
     }
-    affected
-}
-
-/// Paragraphs whose fitted lines must not be treated as unchanged.
-pub fn invalidated_paragraphs(
-    document: &Document,
-    invalidation: &LayoutInvalidation,
-) -> BTreeSet<NodeId> {
-    let mut ids = BTreeSet::new();
-    ids.extend(invalidation.paragraphs.iter().copied());
-    ids.extend(invalidation.inserted.iter().copied());
-    ids.extend(invalidation.moved.iter().copied());
-    if invalidation.defaults_changed {
-        for block in document.body().blocks.iter() {
-            ids.insert(block.id());
-        }
-        return ids;
-    }
-    if invalidation.styles.is_empty() {
-        return ids;
-    }
-    let affected = affected_style_closure(document.styles(), &invalidation.styles);
-    for block in document.body().blocks.iter() {
-        let Some(paragraph) = block.as_paragraph() else {
-            continue;
-        };
-        if paragraph_uses(document.styles(), paragraph, &affected) {
-            ids.insert(paragraph.id());
-        }
-    }
-    ids
-}
-
-fn paragraph_uses(sheet: &StyleSheet, paragraph: &Paragraph, affected: &BTreeSet<StyleId>) -> bool {
-    if let Some(id) = &paragraph.style {
-        if chain_hits(sheet, id, affected) {
-            return true;
-        }
-    } else if sheet
-        .default_of(StyleKind::Paragraph)
-        .is_some_and(|style| affected.contains(&style.id) || chain_hits(sheet, &style.id, affected))
-    {
-        return true;
-    }
-    for run in paragraph.runs() {
-        if let Some(id) = &run.style {
-            if chain_hits(sheet, id, affected) {
-                return true;
-            }
-        } else if sheet.default_of(StyleKind::Character).is_some_and(|style| {
-            affected.contains(&style.id) || chain_hits(sheet, &style.id, affected)
-        }) {
-            return true;
-        }
-    }
-    false
-}
-
-fn chain_hits(sheet: &StyleSheet, id: &StyleId, affected: &BTreeSet<StyleId>) -> bool {
-    sheet
-        .chain(id)
-        .styles
-        .iter()
-        .any(|style| affected.contains(&style.id))
-}
-
-/// Field instructions that name PAGE / NUMPAGES or a footnote reference.
-/// Layout still rejects annotations in preflight; the flag exists so the key
-/// cannot forget the dependency once those paragraphs are accepted.
-pub fn paragraph_dependencies(document: &Document, paragraph: &Paragraph) -> DependencyFlags {
-    let mut flags = DependencyFlags::default();
-    for annotation in document.annotations() {
-        let AnnotationKind::Field { separator } = &annotation.kind else {
-            continue;
-        };
-        let Anchor::Range { start, end } = &annotation.anchor else {
-            continue;
-        };
-        if start.paragraph != paragraph.id() {
-            continue;
-        }
-        let instruction = instruction_text(paragraph, start.offset, separator.as_ref(), end);
-        let upper = instruction.to_ascii_uppercase();
-        if has_token(&upper, "PAGE")
-            || has_token(&upper, "NUMPAGES")
-            || has_token(&upper, "SECTIONPAGES")
-        {
-            flags.page_number = true;
-        }
-        if has_token(&upper, "FOOTNOTE") || has_token(&upper, "NOTEREF") {
-            flags.footnote_number = true;
-        }
-    }
-    if paragraph
-        .inlines()
-        .iter()
-        .any(|inline| matches!(inline.kind, joyword_model::InlineKind::PageField(_)))
-    {
-        flags.page_number = true;
-    }
-    flags
-}
-
-fn instruction_text(
-    paragraph: &Paragraph,
-    start: ScalarOffset,
-    separator: Option<&joyword_model::Position>,
-    end: &joyword_model::Position,
-) -> String {
-    let chars: Vec<char> = paragraph.plain_text(|_| String::new()).chars().collect();
-    let from = start.0.min(chars.len());
-    let to = separator
-        .filter(|position| position.paragraph == paragraph.id())
-        .map(|position| position.offset.0)
-        .or_else(|| (end.paragraph == paragraph.id()).then_some(end.offset.0))
-        .unwrap_or(chars.len())
-        .min(chars.len());
-    if from >= to {
-        String::new()
-    } else {
-        chars[from..to].iter().collect()
-    }
-}
-
-fn has_token(upper: &str, token: &str) -> bool {
-    upper
-        .split(|ch: char| !ch.is_ascii_alphanumeric())
-        .any(|word| word == token)
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-struct ProfileFitKey {
-    size: i64,
-    kerning: bool,
-    liga: bool,
-    calt: bool,
-    leading: Option<i64>,
-    /// Twips of the single-spacing line grid. `None` when that grid is not used.
-    line_pitch: Option<i64>,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-struct MixedFaces {
-    ascii: FontKey,
-    h_ansi: FontKey,
-    east_asia: FontKey,
-    complex: FontKey,
-    fallback: FontKey,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-struct FontEnvKey {
-    shaping: FontKey,
-    mixed: Option<MixedFaces>,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-struct ParagraphCacheKey {
-    content: [u8; 32],
-    resolved_style: [u8; 32],
-    available_width: i64,
-    /// Zero for one column or equal columns. Uneven widths mix every column
-    /// so a fit for one row of columns is not reused for another.
-    column_mix: i64,
-    font: FontEnvKey,
-    profile: ProfileFitKey,
-    external: ExternalKey,
-    /// `RevisionView` discriminant. Final and markup can share visible text
-    /// and still paint different decorations, so the view is its own field.
-    revision_view: u8,
-    /// Zero when the paragraph has no text revision. Otherwise the run marks.
-    revisions: [u8; 32],
-    /// Hidden text and field codes change the shaped string. Formatting marks
-    /// do not, so they stay off this key and are drawn when the line is placed.
-    show_hidden: bool,
-    field_codes: bool,
-}
-
-struct CacheEntry {
-    fit: FittedParagraph,
-    bytes: usize,
-    stamp: u64,
-}
-
-struct Flow {
-    version: DocumentVersion,
-    content: [u8; 32],
-    font: FontKey,
-    profile: SingleFontProfile,
-    limits: LayoutLimits,
-    views: SceneViews,
-    ids: Vec<NodeId>,
-    keys: Vec<ParagraphCacheKey>,
-    starts: Vec<ParagraphAnchor>,
-}
-
-/// Resident fitted paragraphs plus the flow of the last successful snapshot.
-pub struct ParagraphLayoutCache {
-    budget: usize,
-    used: usize,
-    clock: u64,
-    map: HashMap<ParagraphCacheKey, CacheEntry>,
-    flow: Option<Flow>,
-}
-
-impl Default for ParagraphLayoutCache {
-    fn default() -> Self {
-        Self::with_budget(DEFAULT_CACHE_BUDGET)
-    }
-}
-
-impl ParagraphLayoutCache {
-    pub fn with_budget(budget: usize) -> Self {
-        Self {
-            budget,
-            used: 0,
-            clock: 0,
-            map: HashMap::new(),
-            flow: None,
-        }
-    }
-
-    pub fn resident_bytes(&self) -> usize {
-        self.used
-    }
-
     pub fn clear(&mut self) {
-        self.map.clear();
-        self.used = 0;
-        self.flow = None;
+        self.paras.clear();
+        self.measures.clear();
+        self.outlines.clear();
+        self.styleref = None;
+        self.previous = None;
     }
 
-    fn touch(&mut self, key: &ParagraphCacheKey) {
-        self.clock = self.clock.saturating_add(1);
-        if let Some(entry) = self.map.get_mut(key) {
-            entry.stamp = self.clock;
-        }
-    }
-
-    #[cfg(test)]
-    fn insert(&mut self, key: ParagraphCacheKey, fit: FittedParagraph) {
-        self.insert_protected(key, fit, &HashSet::new());
-    }
-
-    fn insert_protected(
-        &mut self,
-        key: ParagraphCacheKey,
-        fit: FittedParagraph,
-        protected: &HashSet<ParagraphCacheKey>,
-    ) {
-        let bytes = fit_bytes(&fit);
-        if bytes > self.budget {
-            return;
-        }
-        if let Some(old) = self.map.remove(&key) {
-            self.used = self.used.saturating_sub(old.bytes);
-        }
-        self.evict_for(bytes, protected);
-        if self.used.saturating_add(bytes) > self.budget {
-            return;
-        }
-        self.clock = self.clock.saturating_add(1);
-        self.used = self.used.saturating_add(bytes);
-        self.map.insert(
-            key,
-            CacheEntry {
-                fit,
-                bytes,
-                stamp: self.clock,
-            },
-        );
-    }
-
-    fn evict_for(&mut self, extra: usize, protected: &HashSet<ParagraphCacheKey>) {
-        while self.used.saturating_add(extra) > self.budget && !self.map.is_empty() {
-            let oldest = self
-                .map
+    /// The STYLEREF style index for `doc`, rebuilt only when the body or the styles changed.
+    pub(crate) fn style_index(&mut self, doc: &Document) -> Arc<styleref::StyleIndex> {
+        if let Some((body, env, ix)) = &self.styleref
+            && *env == self.env
+            && body.len() == doc.body.len()
+            && body
                 .iter()
-                .filter(|(key, _)| !protected.contains(key))
-                .min_by_key(|(_, entry)| entry.stamp)
-                .map(|(key, _)| *key);
-            let Some(key) = oldest else {
-                break;
-            };
-            if let Some(entry) = self.map.remove(&key) {
-                self.used = self.used.saturating_sub(entry.bytes);
-            }
+                .zip(doc.body.iter())
+                .all(|(a, b)| Arc::ptr_eq(a, b))
+        {
+            return ix.clone();
         }
-    }
-
-    fn cloned(&mut self, key: &ParagraphCacheKey) -> Option<FittedParagraph> {
-        if !self.map.contains_key(key) {
-            return None;
-        }
-        self.touch(key);
-        self.map.get(key).map(|entry| entry.fit.clone())
+        let ix = Arc::new(styleref::StyleIndex::build(doc));
+        self.styleref = Some((doc.body.to_vec(), self.env, ix.clone()));
+        ix
     }
 }
 
-fn fit_bytes(fit: &FittedParagraph) -> usize {
-    let mut bytes = std::mem::size_of::<FittedParagraph>();
-    for line in &fit.lines {
-        bytes = bytes.saturating_add(line.run.text.len());
-        bytes = bytes.saturating_add(
-            line.run
-                .glyphs
-                .len()
-                .saturating_mul(std::mem::size_of::<crate::ShapedGlyph>()),
-        );
-        bytes = bytes.saturating_add(line.clusters.len().saturating_mul(48));
-        bytes = bytes.saturating_add(line.run.missing.len().saturating_mul(8));
-    }
-    bytes
-        .saturating_add(fit.diagnostics.len().saturating_mul(64))
-        .max(1)
+pub(crate) fn hash_of<T: Hash>(t: &T) -> u64 {
+    let mut h = std::collections::hash_map::DefaultHasher::new();
+    t.hash(&mut h);
+    h.finish()
 }
 
-/// One step of the feedback loop. The snapshot from a step that does not
-/// match `assumed` is dropped; only a stable step is returned.
-pub fn run_layout_passes<T, S, F>(seed: T, mut step: F) -> Result<S, LayoutError>
-where
-    T: Clone + Eq,
-    F: FnMut(&T) -> Result<(S, T), LayoutError>,
-{
-    let mut assumed = seed;
-    let mut seen = Vec::new();
-    for _ in 0..MAX_LAYOUT_PASSES {
-        if seen.iter().any(|item| item == &assumed) {
-            return Err(LayoutError::Unstable);
-        }
-        seen.push(assumed.clone());
-        let (snapshot, produced) = step(&assumed)?;
-        if produced == assumed {
-            return Ok(snapshot);
-        }
-        assumed = produced;
-    }
-    Err(LayoutError::Unstable)
+pub(crate) fn env_hash(doc: &Document, opts: &LayoutOptions) -> u64 {
+    let s = serde_json::to_string(&(
+        &doc.styles,
+        &doc.numbering,
+        doc.settings.default_tab,
+        &doc.settings.footnote_format,
+    ))
+    .unwrap_or_default();
+    // Outline view lays paragraphs out changed (no indents; plain without text formatting).
+    let outline =
+        (opts.view == ViewMode::Outline).then(|| opts.outline.as_ref().is_some_and(|o| o.plain));
+    let mut h = std::collections::hash_map::DefaultHasher::new();
+    s.hash(&mut h);
+    opts.show_hidden.hash(&mut h);
+    opts.hide_deleted.hash(&mut h);
+    opts.hide_marked.hash(&mut h);
+    opts.deletions_in_balloons.hash(&mut h);
+    opts.proofing.hash(&mut h);
+    opts.numeral.hash(&mut h);
+    opts.field_codes.hash(&mut h);
+    opts.proof.hash(&mut h);
+    joyword_proof::dictionary_generation().hash(&mut h);
+    hyphenation_key(doc).hash(&mut h);
+    outline.hash(&mut h);
+    opts.filename.hash(&mut h);
+    opts.filepath.hash(&mut h);
+    h.finish()
 }
 
-/// Cache, previous snapshot and invalidation for one incremental layout.
-pub struct LayoutReuse<'a> {
-    pub cache: &'a mut ParagraphLayoutCache,
-    pub previous: Option<&'a LayoutSnapshot>,
-    pub invalidation: &'a LayoutInvalidation,
-}
-
-/// Lay out `document`, reusing [`LayoutReuse`]. The geometry matches
-/// [`crate::layout_document`] for the same snapshot;
-/// [`crate::LayoutStats::shape_calls`] counts only shaping done on this call.
-pub fn layout_incremental(
-    document: &DocumentSnapshot,
-    faces: FaceSet<'_>,
-    profile: SingleFontProfile,
-    limits: LayoutLimits,
-    cancellation: &LayoutCancellation,
-    reuse: LayoutReuse<'_>,
-) -> Result<LayoutSnapshot, LayoutError> {
-    layout_incremental_views(
-        document,
-        faces,
-        profile,
-        limits,
-        cancellation,
-        reuse,
-        SceneViews::standard(),
+/// The hyphenation settings, hashable (the zone as its bits).
+fn hyphenation_key(doc: &Document) -> (bool, u32, bool, u32) {
+    let s = &doc.settings;
+    (
+        s.auto_hyphenation,
+        s.hyphenation_zone.to_bits(),
+        s.hyphenate_caps,
+        s.consecutive_hyphen_limit,
     )
 }
 
-/// [`layout_incremental`] with an explicit revision projection. The paragraph
-/// cache key includes the view, so a Final fit is not reused as markup.
-pub fn layout_incremental_viewed(
-    document: &DocumentSnapshot,
-    faces: FaceSet<'_>,
-    profile: SingleFontProfile,
-    limits: LayoutLimits,
-    cancellation: &LayoutCancellation,
-    reuse: LayoutReuse<'_>,
-    revision: RevisionView,
-) -> Result<LayoutSnapshot, LayoutError> {
-    layout_incremental_views(
-        document,
-        faces,
-        profile,
-        limits,
-        cancellation,
-        reuse,
-        SceneViews::revision(revision),
-    )
-}
-
-/// [`layout_incremental`] with a revision projection and view options.
-/// The paragraph cache key includes both, so a Final fit is not reused as
-/// markup and formatting marks do not reuse a hidden-text fit.
-#[allow(clippy::too_many_arguments)]
-pub fn layout_incremental_reviewed(
-    document: &DocumentSnapshot,
-    faces: FaceSet<'_>,
-    profile: SingleFontProfile,
-    limits: LayoutLimits,
-    cancellation: &LayoutCancellation,
-    reuse: LayoutReuse<'_>,
-    revision: RevisionView,
-    options: ViewOptions,
-) -> Result<LayoutSnapshot, LayoutError> {
-    layout_incremental_views(
-        document,
-        faces,
-        profile,
-        limits,
-        cancellation,
-        reuse,
-        crate::document::SceneViews::pair(revision, options),
-    )
-}
-
-/// [`layout_incremental`] with the view options stored on the snapshot key.
-pub fn layout_incremental_with_view(
-    document: &DocumentSnapshot,
-    faces: FaceSet<'_>,
-    profile: SingleFontProfile,
-    limits: LayoutLimits,
-    cancellation: &LayoutCancellation,
-    reuse: LayoutReuse<'_>,
-    options: ViewOptions,
-) -> Result<LayoutSnapshot, LayoutError> {
-    layout_incremental_views(
-        document,
-        faces,
-        profile,
-        limits,
-        cancellation,
-        reuse,
-        SceneViews::options(options),
-    )
-}
-
-fn layout_incremental_views(
-    document: &DocumentSnapshot,
-    faces: FaceSet<'_>,
-    profile: SingleFontProfile,
-    limits: LayoutLimits,
-    cancellation: &LayoutCancellation,
-    reuse: LayoutReuse<'_>,
-    views: SceneViews,
-) -> Result<LayoutSnapshot, LayoutError> {
-    // A table row is not a body paragraph. Rows split across pages and header
-    // rows repeat, so copying a paragraph suffix would not match a full
-    // layout. Documents that contain a table stay on the full placement.
-    // Opaque blocks are skipped by that full layout and by the paragraph
-    // path below.
-    if document
-        .body()
-        .blocks
-        .iter()
-        .any(|block| matches!(block, Block::Table(_)))
-    {
-        return crate::document::layout_with_views(
-            document,
-            faces,
-            profile,
-            limits,
-            cancellation,
-            views,
-        );
-    }
-    let LayoutReuse {
-        cache,
-        previous,
-        invalidation,
-    } = reuse;
-    cancellation.check()?;
-    profile.validate()?;
-    let limits = limits.capped();
-    let geometry = preflight(document, profile, limits, cancellation, views.options)?;
-    let flow_ok = match (&cache.flow, previous) {
-        (Some(flow), Some(previous)) => flow_matches(flow, previous, faces, profile, limits, views),
-        _ => false,
-    };
-    let seed = seed_page_contexts(document);
-    let settled = run_layout_passes(seed, |assumed| {
-        layout_pass(
-            cache,
-            PassInput {
-                document,
-                faces,
-                profile,
-                limits,
-                geometry,
-                cancellation,
-                previous: previous.filter(|_| flow_ok),
-                invalidation,
-                assumed,
-                views,
-            },
-        )
-    });
-    let snapshot = match settled {
-        Ok(snapshot) => snapshot,
-        Err(LayoutError::Unstable) if body_fields_have_cache(document) => {
-            let forced = forced_cache_contexts(document);
-            let (snapshot, _) = layout_pass(
-                cache,
-                PassInput {
-                    document,
-                    faces,
-                    profile,
-                    limits,
-                    geometry,
-                    cancellation,
-                    previous: previous.filter(|_| flow_ok),
-                    invalidation,
-                    assumed: &forced,
-                    views,
-                },
-            )?;
-            snapshot
-        }
-        Err(error) => return Err(error),
-    };
-    remember_flow(cache, &snapshot, document, faces, profile, limits, views);
-    Ok(snapshot)
-}
-
-fn flow_matches(
-    flow: &Flow,
-    previous: &LayoutSnapshot,
-    faces: FaceSet<'_>,
-    profile: SingleFontProfile,
-    limits: LayoutLimits,
-    views: SceneViews,
-) -> bool {
-    previous.key().version == flow.version
-        && previous.key().content_hash() == flow.content
-        && previous.key().font == flow.font
-        && previous.key().profile == flow.profile
-        && previous.key().view == views.options
-        && previous.key().revision_view == views.revision
-        && faces.ascii.key() == flow.font
-        && limits == flow.limits
-        && profile == flow.profile
-        && flow.views == views
-}
-
-fn remember_flow(
-    cache: &mut ParagraphLayoutCache,
-    snapshot: &LayoutSnapshot,
-    document: &Document,
-    faces: FaceSet<'_>,
-    profile: SingleFontProfile,
-    limits: LayoutLimits,
-    views: SceneViews,
-) {
-    let mut ids = Vec::new();
-    let mut keys = Vec::new();
-    let mut starts = Vec::new();
-    let marks = joyword_model::list_marks(document);
-    let plans = crate::pages::section_plans(document).unwrap_or_default();
-    for (index, block) in document.body().blocks.iter().enumerate() {
-        let Some(paragraph) = block.as_paragraph() else {
-            continue;
-        };
-        let deps = paragraph_dependencies(document, paragraph);
-        let context = context_of(snapshot, paragraph.id(), deps);
-        let width = crate::pages::plan_for(&plans, index)
-            .map(|plan| plan.fit_width.raw())
-            .unwrap_or_else(|| snapshot.geometry().content_width().raw());
-        let column_mix = crate::pages::plan_for(&plans, index)
-            .map(|plan| crate::pages::column_mix(&plan.columns))
-            .unwrap_or(0);
-        let key = paragraph_key(
-            document,
-            paragraph,
-            faces,
-            profile,
-            width,
-            column_mix,
-            context,
-            marks.get(&paragraph.id()),
-            views,
-        );
-        let anchor = snapshot
-            .lines()
-            .iter()
-            .position(|line| line.paragraph == paragraph.id())
-            .map(|line| ParagraphAnchor {
-                line,
-                page: snapshot.lines()[line].page,
-                top: snapshot.lines()[line].top.raw()
-                    - style_paint::flow(document, paragraph)
-                        .map(|flow| flow.before)
-                        .unwrap_or(Emu::new(0))
-                        .raw(),
-            });
-        let Some(anchor) = anchor else {
-            continue;
-        };
-        ids.push(paragraph.id());
-        keys.push(key);
-        starts.push(anchor);
-    }
-    cache.flow = Some(Flow {
-        version: snapshot.key().version,
-        content: snapshot.key().content_hash(),
-        font: faces.ascii.key(),
-        profile,
-        limits,
-        views,
-        ids,
-        keys,
-        starts,
-    });
-}
-
-fn context_of(snapshot: &LayoutSnapshot, id: NodeId, deps: DependencyFlags) -> ExternalContext {
-    if !deps.any() {
-        return ExternalContext::default();
-    }
-    let line = snapshot.lines().iter().find(|line| line.paragraph == id);
-    let page = line
-        .map(|line| {
-            u32::try_from(line.page)
-                .unwrap_or(u32::MAX)
-                .saturating_add(1)
-        })
-        .unwrap_or(1);
-    let section = line
-        .and_then(|line| snapshot.page_box(line.page).map(|(_, section)| section))
-        .unwrap_or(0);
-    let mut context = ExternalContext::default();
-    if deps.page_number {
-        context.page_number = page;
-        context.displayed_page = line
-            .map(|line| snapshot.displayed_page(line.page))
-            .unwrap_or(0);
-        context.num_pages = u32::try_from(snapshot.page_count()).unwrap_or(u32::MAX);
-        context.section_pages = snapshot.section_page_count(section);
-        context.chapter_prefix = line.and_then(|line| snapshot.chapter_prefix(line.page));
-    }
-    if deps.footnote_number {
-        context.footnote_number = 1;
-    }
-    context
-}
-
-pub(crate) fn seed_page_contexts(document: &Document) -> Vec<ExternalContext> {
-    document
-        .body()
-        .blocks
-        .iter()
-        .map(|block| page_seed(document, block, false))
-        .collect()
-}
-
-pub(crate) fn forced_cache_contexts(document: &Document) -> Vec<ExternalContext> {
-    document
-        .body()
-        .blocks
-        .iter()
-        .map(|block| page_seed(document, block, true))
-        .collect()
-}
-
-fn page_seed(document: &Document, block: &Block, force_cache: bool) -> ExternalContext {
-    let Some(paragraph) = block.as_paragraph() else {
-        return ExternalContext::default();
-    };
-    if !paragraph_dependencies(document, paragraph).page_number {
-        return ExternalContext::default();
-    }
-    ExternalContext {
-        page_number: 1,
-        displayed_page: 1,
-        num_pages: 1,
-        section_pages: 1,
-        force_cache,
-        ..ExternalContext::default()
-    }
-}
-
-pub(crate) fn body_fields_have_cache(document: &Document) -> bool {
-    let mut any = false;
-    for block in document.body().blocks.iter() {
-        let Some(paragraph) = block.as_paragraph() else {
-            continue;
-        };
-        for inline in paragraph.inlines() {
-            let joyword_model::InlineKind::PageField(field) = &inline.kind else {
-                continue;
-            };
-            any = true;
-            if field.cached.is_none() {
-                return false;
-            }
-        }
-    }
-    any
-}
-
-pub(crate) fn contexts_after(
-    document: &Document,
-    snapshot: &LayoutSnapshot,
-) -> Vec<ExternalContext> {
-    document
-        .body()
-        .blocks
-        .iter()
-        .map(|block| {
-            let Some(paragraph) = block.as_paragraph() else {
-                return ExternalContext::default();
-            };
-            context_of(
-                snapshot,
-                paragraph.id(),
-                paragraph_dependencies(document, paragraph),
+pub(crate) fn has_page_fields(p: &Paragraph) -> bool {
+    p.objects.iter().any(|o| match o {
+        InlineObject::Field { instr, .. } => {
+            matches!(
+                fields::field_name(instr).as_str(),
+                "PAGE" | "NUMPAGES" | "SECTIONPAGES" | "SECTION" | "PAGEREF"
             )
-        })
-        .collect()
-}
-
-struct PassInput<'a> {
-    document: &'a DocumentSnapshot,
-    faces: FaceSet<'a>,
-    profile: SingleFontProfile,
-    limits: LayoutLimits,
-    geometry: PageGeometry,
-    cancellation: &'a LayoutCancellation,
-    previous: Option<&'a LayoutSnapshot>,
-    invalidation: &'a LayoutInvalidation,
-    assumed: &'a [ExternalContext],
-    views: SceneViews,
-}
-
-fn layout_pass(
-    cache: &mut ParagraphLayoutCache,
-    input: PassInput<'_>,
-) -> Result<(LayoutSnapshot, Vec<ExternalContext>), LayoutError> {
-    let PassInput {
-        document,
-        faces,
-        profile,
-        limits,
-        geometry,
-        cancellation,
-        previous,
-        invalidation,
-        assumed,
-        views,
-    } = input;
-    let invalid = invalidated_paragraphs(document, invalidation);
-    // Clone the previous flow before the cache is mutated. A hit or a miss
-    // both borrow `cache` exclusively.
-    let stored = cache
-        .flow
-        .as_ref()
-        .filter(|_| previous.is_some())
-        .map(|flow| (flow.ids.clone(), flow.keys.clone(), flow.starts.clone()));
-    let plans = crate::pages::section_plans(document)?;
-    let mut result = open_snapshot(document, faces, profile, limits, geometry, views)?;
-    let mut prepared = Vec::new();
-    let mut deps = Vec::new();
-    let mut same = Vec::new();
-    let marks = joyword_model::list_marks(document);
-    // Compute keys once before admitting misses. Entries needed anywhere in
-    // this pass stay resident; stale entries (including changed content,
-    // styles, fonts and field contexts) remain normal LRU eviction candidates.
-    // If the working set exceeds the cap, uncached fits are still used for
-    // placement, but cannot evict the unchanged fits we are about to reuse.
-    let keys: Vec<_> = document
-        .body()
-        .blocks
-        .iter()
-        .enumerate()
-        .map(|(index, block)| {
-            let Some(paragraph) = block.as_paragraph() else {
-                return Ok(None);
-            };
-            cancellation.check()?;
-            let flags = paragraph_dependencies(document, paragraph);
-            let context = if flags.any() {
-                assumed.get(index).cloned().unwrap_or_default()
-            } else {
-                ExternalContext::default()
-            };
-            let plan = crate::pages::plan_for(&plans, index).ok_or(LayoutError::InvalidDocument)?;
-            Ok(Some(paragraph_key(
-                document,
-                paragraph,
-                faces,
-                profile,
-                plan.fit_width.raw(),
-                crate::pages::column_mix(&plan.columns),
-                context,
-                marks.get(&paragraph.id()),
-                views,
-            )))
-        })
-        .collect::<Result<_, LayoutError>>()?;
-    let protected = keys.iter().flatten().copied().collect();
-    let mut total_lines = 0usize;
-    let mut charged_shapes = 0usize;
-    let mut charged_bytes = 0usize;
-    let mut charged_glyphs = 0usize;
-    // Header-only chapter fields also depend on body heading placement. Do
-    // not copy a previous page suffix solely because its fitted text matches.
-    let mut any_deps = document
-        .sections()
-        .iter()
-        .any(|section| section.numbering.chapter_style.is_some());
-    let mut rank = 0usize;
-    for (index, block) in document.body().blocks.iter().enumerate() {
-        cancellation.check()?;
-        let Some(paragraph) = block.as_paragraph() else {
-            if matches!(block, Block::Opaque(_)) {
-                result.omit_opaque_block();
-                deps.push(DependencyFlags::default());
-                continue;
-            }
-            return Err(LayoutError::Unsupported {
-                node: Some(block.id()),
-                feature: "non-paragraph block",
-            });
-        };
-        let flags = paragraph_dependencies(document, paragraph);
-        any_deps |= flags.any();
-        let context = if flags.any() {
-            assumed.get(index).cloned().unwrap_or_default()
-        } else {
-            ExternalContext::default()
-        };
-        let plan = crate::pages::plan_for(&plans, index).ok_or(LayoutError::InvalidDocument)?;
-        let key = keys[index].ok_or(LayoutError::InvalidDocument)?;
-        // Flow vectors are paragraph-rank. `index` is the body block index
-        // and is only used for section geometry.
-        let unchanged = stored.as_ref().is_some_and(|(ids, keys, _)| {
-            ids.get(rank) == Some(&paragraph.id())
-                && keys.get(rank) == Some(&key)
-                && !invalid.contains(&paragraph.id())
-        });
-        let remaining_shapes = limits.max_shape_calls.saturating_sub(charged_shapes);
-        if remaining_shapes == 0 {
-            return Err(LayoutError::LimitExceeded(crate::LayoutLimit::ShapeCalls));
         }
-        let numbering = document
-            .sections()
-            .get(plan.section)
-            .map(|section| section.numbering.clone())
-            .unwrap_or_default();
-        let fitted = if let Some(hit) = cache.cloned(&key) {
-            if hit.shape_calls > remaining_shapes
-                || charged_bytes.saturating_add(hit.shaped_bytes) > limits.max_shaped_bytes
-                || total_lines.saturating_add(hit.lines.len()) > limits.max_lines
-                || charged_glyphs.saturating_add(hit.glyphs) > limits.max_glyphs
-            {
-                return Err(limit_for_hit(
-                    hit.shape_calls > remaining_shapes,
-                    charged_bytes.saturating_add(hit.shaped_bytes) > limits.max_shaped_bytes,
-                    total_lines.saturating_add(hit.lines.len()) > limits.max_lines,
-                ));
-            }
-            result.stats_mut().cache_hits += 1;
-            adopt(hit, document, paragraph)?
-        } else {
-            let piece_widths = plan.columns.uneven().then(|| plan.columns.widths());
-            let fitted = fit_paragraph(
-                document,
-                paragraph,
-                faces,
-                profile,
-                plan.geometry,
-                plan.fit_width,
-                piece_widths,
-                limits,
-                WorkSpent {
-                    shapes: charged_shapes,
-                    bytes: charged_bytes,
-                    glyphs: charged_glyphs,
-                    lines: total_lines,
-                },
-                cancellation,
-                marks.get(&paragraph.id()),
-                views,
-                None,
-                context,
-                &numbering,
-            )?;
-            cache.insert_protected(key, fitted.clone(), &protected);
-            result.stats_mut().shape_calls += fitted.shape_calls;
-            result.stats_mut().shaped_bytes += fitted.shaped_bytes;
-            fitted
-        };
-        let fitted = {
-            let mut fitted = fitted;
-            apply_section(&mut fitted, document, &plans, index);
-            if fitted.used_field_cache {
-                result.note_once(crate::document::LayoutNote::PageFieldCached {
-                    paragraph: fitted.id,
-                });
-            }
-            fitted
-        };
-        record_fit(&mut result, &fitted);
-        charged_shapes += fitted.shape_calls;
-        charged_bytes += fitted.shaped_bytes;
-        charged_glyphs += fitted.glyphs;
-        total_lines += fitted.lines.len();
-        result.stats_mut().glyphs += fitted.glyphs;
-        deps.push(flags);
-        same.push(unchanged);
-        prepared.push(fitted);
-        rank += 1;
-    }
-    walk_back_keep_next(document, &mut same);
-    // The separator rules of each source page, from the current section
-    // specs: if a spec changed since `previous`, the counts disagree with the
-    // source pages and the copy validation fails, falling back to a full
-    // placement rather than copying stale ink.
-    let separator_counts: Vec<usize> = previous
-        .map(|previous| {
-            (0..previous.pages().len())
-                .map(|page| {
-                    previous
-                        .page_box(page)
-                        .and_then(|(geometry, section)| {
-                            document.sections().get(section).map(|section| {
-                                crate::pages::separator_rects(section, &geometry).len()
-                            })
-                        })
-                        .unwrap_or(0)
-                })
-                .collect()
-        })
-        .unwrap_or_default();
-    let stop = match (previous, stored.as_ref()) {
-        (Some(previous), Some((_, _, starts))) if starts.len() == prepared.len() && !any_deps => {
-            Some(PlaceStop {
-                previous,
-                starts,
-                same: &same,
-                place_from: 0,
-                separator_counts: &separator_counts,
-            })
-        }
-        _ => None,
-    };
-    let mut snapshot = assemble(result, prepared, cancellation, stop)?;
-    crate::document::finish_stories(&mut snapshot, document, faces, profile, cancellation)?;
-    let produced = produced_contexts(document, &snapshot, &deps);
-    Ok((snapshot, produced))
-}
-
-fn adopt(
-    mut hit: FittedParagraph,
-    document: &Document,
-    paragraph: &Paragraph,
-) -> Result<FittedParagraph, LayoutError> {
-    let flow = style_paint::flow(document, paragraph)?;
-    hit.id = paragraph.id();
-    hit.len = paragraph.len();
-    hit.before = flow.before;
-    hit.after = flow.after;
-    hit.group_height = None;
-    hit.keep_next = flow.keep_next;
-    hit.keep_lines = flow.keep_lines;
-    hit.widow_control = flow.widow_control;
-    hit.page_break_before = flow.page_break_before;
-    hit.justification = flow.justification;
-    Ok(hit)
-}
-
-fn limit_for_hit(shapes: bool, bytes: bool, lines: bool) -> LayoutError {
-    if shapes {
-        LayoutError::LimitExceeded(crate::LayoutLimit::ShapeCalls)
-    } else if bytes {
-        LayoutError::LimitExceeded(crate::LayoutLimit::ShapedBytes)
-    } else if lines {
-        LayoutError::LimitExceeded(crate::LayoutLimit::Lines)
-    } else {
-        LayoutError::LimitExceeded(crate::LayoutLimit::Glyphs)
-    }
-}
-
-fn produced_contexts(
-    document: &Document,
-    snapshot: &LayoutSnapshot,
-    deps: &[DependencyFlags],
-) -> Vec<ExternalContext> {
-    document
-        .body()
-        .blocks
-        .iter()
-        .enumerate()
-        .map(|(index, block)| {
-            let flags = deps.get(index).copied().unwrap_or_default();
-            if !flags.any() {
-                return ExternalContext::default();
-            }
-            let Some(paragraph) = block.as_paragraph() else {
-                return ExternalContext::default();
-            };
-            context_of(snapshot, paragraph.id(), flags)
-        })
-        .collect()
-}
-
-fn paragraph_has_page_break(paragraph: &Paragraph) -> bool {
-    paragraph.inlines().iter().any(|inline| {
-        matches!(
-            inline.kind,
-            joyword_model::InlineKind::Break(joyword_model::BreakKind::Page)
-        )
+        _ => false,
     })
 }
 
-fn walk_back_keep_next(document: &Document, same: &mut [bool]) {
-    let paragraphs: Vec<(usize, &Paragraph)> = document
-        .body()
-        .blocks
-        .iter()
-        .enumerate()
-        .filter_map(|(block_index, block)| {
-            block
-                .as_paragraph()
-                .map(|paragraph| (block_index, paragraph))
-        })
-        .collect();
-    let plans = crate::pages::section_plans(document).unwrap_or_default();
-    let mut index = same.iter().position(|flag| !flag).unwrap_or(same.len());
-    while index > 0 && index <= paragraphs.len() {
-        let (_, previous) = paragraphs[index - 1];
-        let here_breaks = paragraphs
-            .get(index)
-            .is_some_and(|(block_index, paragraph)| {
-                style_paint::flow(document, paragraph).is_ok_and(|flow| flow.page_break_before)
-                    || paragraph_has_page_break(paragraph)
-                    || crate::pages::section_break_before(&plans, *block_index)
-            })
-            || paragraph_has_page_break(previous);
-        let previous_keeps = style_paint::flow(document, previous).is_ok_and(|flow| flow.keep_next);
-        if previous_keeps && !here_breaks {
-            same[index - 1] = false;
-            index -= 1;
-        } else {
-            break;
+/// Does `p` show a PAGE field, whose result is the number of the page it lands on?
+pub(crate) fn has_page_number_fields(p: &Paragraph) -> bool {
+    p.objects.iter().any(
+        |o| matches!(o, InlineObject::Field { instr, .. } if fields::field_name(instr) == "PAGE"),
+    )
+}
+
+/// Does `p` show a page total, which depends on how many pages the document has?
+pub(crate) fn has_total_fields(p: &Paragraph) -> bool {
+    p.objects.iter().any(|o| match o {
+        InlineObject::Field { instr, .. } => matches!(
+            fields::field_name(instr).as_str(),
+            "NUMPAGES" | "SECTIONPAGES"
+        ),
+        _ => false,
+    })
+}
+
+/// Page totals: of the document, and of each section (by index).
+#[derive(Clone, Debug, PartialEq)]
+pub(crate) struct Totals {
+    pub(crate) pages: u32,
+    sections: Vec<u32>,
+}
+
+impl Totals {
+    /// What a first pass assumes: one page.
+    pub(crate) fn first_guess(sections: usize) -> Totals {
+        Totals {
+            pages: 1,
+            sections: vec![1; sections],
         }
     }
-}
-
-#[allow(clippy::too_many_arguments)]
-fn paragraph_key(
-    document: &Document,
-    paragraph: &Paragraph,
-    faces: FaceSet<'_>,
-    profile: SingleFontProfile,
-    available_width: i64,
-    column_mix: i64,
-    context: ExternalContext,
-    mark: Option<&Result<NumberLabel, NumberingProblem>>,
-    views: SceneViews,
-) -> ParagraphCacheKey {
-    let marked = crate::pages::marked_text(document, paragraph);
-    let text = paragraph.plain_text(|_| String::new());
-    // The same string `fit_paragraph` shapes. A hidden run changes line
-    // breaks, so the cache cannot key the full paragraph text.
-    let projected = crate::revision_view::project(paragraph, views.revision, false)
-        .ok()
-        .flatten();
-    let slot_text = projected
-        .as_ref()
-        .map(|item| item.text.as_str())
-        .unwrap_or(&text);
-    let content_source = projected
-        .as_ref()
-        .map(|item| item.text.as_str())
-        .unwrap_or(marked.as_str());
-    let slot = dominant_slot(slot_text);
-    let mixed = slot != FontSlot::Ascii;
-    let flags = paragraph_dependencies(document, paragraph);
-    ParagraphCacheKey {
-        content: digest(content_source.as_bytes()),
-        resolved_style: resolved_style(document, paragraph, mark),
-        available_width,
-        column_mix,
-        font: FontEnvKey {
-            shaping: faces.face(slot).key(),
-            mixed: mixed.then_some(MixedFaces {
-                ascii: faces.ascii.key(),
-                h_ansi: faces.h_ansi.key(),
-                east_asia: faces.east_asia.key(),
-                complex: faces.complex.key(),
-                fallback: faces.fallback.key(),
-            }),
-        },
-        profile: ProfileFitKey {
-            size: profile.size.raw(),
-            kerning: profile.features.kerning,
-            liga: profile.features.standard_ligatures,
-            calt: profile.features.contextual_alternates,
-            leading: uses_profile_leading(document, paragraph).then_some(profile.leading.raw()),
-            line_pitch: single_pitch_twips(document, paragraph),
-        },
-        external: external_key(flags, context),
-        revision_view: match views.revision {
-            RevisionView::FinalWithMarkup => 0,
-            RevisionView::Final => 1,
-            RevisionView::Original => 2,
-            RevisionView::Simple => 3,
-        },
-        revisions: revision_digest(paragraph),
-        show_hidden: views.options.show_hidden,
-        field_codes: views.options.field_codes,
-    }
-}
-
-fn revision_digest(paragraph: &Paragraph) -> [u8; 32] {
-    if paragraph.runs().iter().all(|run| run.revision.is_none()) {
-        return [0; 32];
-    }
-    let mut hash = Sha256::new();
-    for run in paragraph.runs() {
-        hash.update((run.len as u64).to_le_bytes());
-        match &run.revision {
-            Some(revision) => hash.update(format!("{revision:?}").as_bytes()),
-            None => hash.update(b"-"),
+    /// Count each section on every page containing its body, including a shared continuous
+    /// start page. The page owner still selects headers and footers; empty sections count one.
+    pub(crate) fn of(pages: &[Page], sections: &[(usize, &SectionProps)]) -> Totals {
+        let mut per = vec![0u32; sections.len()];
+        for page in pages {
+            let mut present = HashSet::from([page.section]);
+            for item in &page.items {
+                let path = match item {
+                    Placed::Lines {
+                        story: StoryRef::Body,
+                        path,
+                        ..
+                    }
+                    | Placed::Image {
+                        story: StoryRef::Body,
+                        path,
+                        ..
+                    }
+                    | Placed::Graphic {
+                        story: StoryRef::Body,
+                        path,
+                        ..
+                    }
+                    | Placed::Object {
+                        story: StoryRef::Body,
+                        path,
+                        ..
+                    }
+                    | Placed::Cell {
+                        story: StoryRef::Body,
+                        table: path,
+                        ..
+                    } => path,
+                    _ => continue,
+                };
+                let Some(&block) = path.0.first() else {
+                    continue;
+                };
+                present.insert(sections.partition_point(|(end, _)| *end < block as usize));
+            }
+            for section in present {
+                if let Some(n) = per.get_mut(section) {
+                    *n = n.saturating_add(1);
+                }
+            }
+        }
+        for n in &mut per {
+            *n = (*n).max(1);
+        }
+        Totals {
+            pages: u32::try_from(pages.len()).unwrap_or(u32::MAX).max(1),
+            sections: per,
         }
     }
-    hash.finalize().into()
-}
-
-fn uses_profile_leading(document: &Document, paragraph: &Paragraph) -> bool {
-    match style_paint::flow(document, paragraph) {
-        Ok(flow) => !matches!(flow.line, Some(LineSpacing::Auto(240))),
-        Err(_) => true,
+    pub(crate) fn section(&self, si: usize) -> u32 {
+        self.sections.get(si).copied().unwrap_or(1)
     }
 }
 
-fn single_pitch_twips(document: &Document, paragraph: &Paragraph) -> Option<i64> {
-    let flow = style_paint::flow(document, paragraph).ok()?;
-    if !matches!(flow.line, Some(LineSpacing::Auto(240))) || flow.snap_to_grid == Some(false) {
-        return None;
-    }
-    let grid =
-        crate::document::section_for(document, paragraph.id()).and_then(|section| section.doc_grid);
-    crate::cjk::snapped_pitch_twips(grid).ok()
-}
-
-fn resolved_style(
-    document: &Document,
-    paragraph: &Paragraph,
-    mark: Option<&Result<NumberLabel, NumberingProblem>>,
-) -> [u8; 32] {
-    let mut hash = Sha256::new();
-    let styles = document.styles();
-    if paragraph_dependencies(document, paragraph).page_number {
-        let numbering = crate::document::section_for(document, paragraph.id())
-            .map(|section| &section.numbering);
-        hash.update(format!("{numbering:?}").as_bytes());
-    }
-    hash.update(format!("{:?}", paragraph.props).as_bytes());
-    let interval = match document.settings().default_tab_stop {
-        None => 720 * Emu::PER_TWIP,
-        Some(measure) => measure.absolute().map(|length| length.raw()).unwrap_or(0),
-    };
-    hash.update(interval.to_le_bytes());
-    match mark {
-        None => hash.update([0]),
-        Some(Ok(label)) => {
-            hash.update([1]);
-            hash.update(label.text.as_bytes());
-            hash.update([match label.suffix {
-                NumberSuffix::Tab => 0,
-                NumberSuffix::Space => 1,
-                NumberSuffix::Nothing => 2,
-            }]);
-            hash.update(
-                label
-                    .size
-                    .map(|size| size.to_string())
-                    .unwrap_or_default()
-                    .as_bytes(),
-            );
-            hash.update([u8::from(label.bold)]);
-        }
-        Some(Err(problem)) => {
-            hash.update([2]);
-            hash.update(problem.to_string().as_bytes());
-        }
-    }
-    hash.update(format!("{:?}", paragraph.mark_props).as_bytes());
-    hash_used(
-        &mut hash,
-        styles,
-        paragraph.style.as_ref(),
-        StyleKind::Paragraph,
-    );
-    hash.update(format!("{:?}", styles.defaults.para).as_bytes());
-    hash.update(format!("{:?}", styles.defaults.run).as_bytes());
-    hash.update(format!("{:?}", styles.theme()).as_bytes());
-    for run in paragraph.runs() {
-        hash.update(format!("{:?}", run.props).as_bytes());
-        hash_used(&mut hash, styles, run.style.as_ref(), StyleKind::Character);
-    }
-    hash.finalize().into()
-}
-
-fn hash_used(hash: &mut Sha256, sheet: &StyleSheet, id: Option<&StyleId>, kind: StyleKind) {
-    if let Some(id) = id {
-        hash_chain(hash, sheet, id);
-    } else if let Some(style) = sheet.default_of(kind) {
-        hash_chain(hash, sheet, &style.id);
-    }
-}
-
-fn hash_chain(hash: &mut Sha256, sheet: &StyleSheet, id: &StyleId) {
-    let chain = sheet.chain(id);
-    for style in &chain.styles {
-        hash.update(style.id.as_str().as_bytes());
-        hash.update(format!("{:?}", style.para).as_bytes());
-        hash.update(format!("{:?}", style.run).as_bytes());
-        if let Some(link) = &style.link {
-            hash.update(link.as_str().as_bytes());
-        }
-    }
-}
-
-fn digest(bytes: &[u8]) -> [u8; 32] {
-    let mut hash = Sha256::new();
-    hash.update((bytes.len() as u64).to_le_bytes());
-    hash.update(bytes);
-    hash.finalize().into()
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::FontKey;
-    use crate::document::FittedParagraph;
-    use joyword_foundation::Emu;
-    use joyword_model::{BlockSeq, Document, PageSetup, Paragraph, Style, StyleKind};
-    use std::sync::Arc;
-
-    fn blank_fit(document: &mut Document) -> FittedParagraph {
-        FittedParagraph {
-            id: document.ids().node(),
-            len: 0,
-            lines: Vec::new(),
-            diagnostics: Vec::new(),
-            omitted: 0,
-            shape_calls: 1,
-            shaped_bytes: 4,
-            glyphs: 1,
-            before: Emu::new(0),
-            after: Emu::new(0),
-            line_box: Emu::new(1),
-            height: Emu::new(1),
-            group_height: None,
-            keep_next: false,
-            keep_lines: false,
-            widow_control: false,
-            page_break_before: false,
-            justification: None,
-            baseline: Emu::new(0),
-            geometry: PageGeometry {
-                width: Emu::new(11_906 * Emu::PER_TWIP),
-                height: Emu::new(16_838 * Emu::PER_TWIP),
-                left: Emu::new(1_800 * Emu::PER_TWIP),
-                top: Emu::new(1_440 * Emu::PER_TWIP),
-                right: Emu::new(1_800 * Emu::PER_TWIP),
-                bottom: Emu::new(1_440 * Emu::PER_TWIP),
-                header: Emu::new(851 * Emu::PER_TWIP),
-                footer: Emu::new(992 * Emu::PER_TWIP),
-            },
-            section_index: 0,
-            section_break_before: false,
-            section_edge: crate::pages::SectionEdge::Same,
-            column_count: 1,
-            column_gap: 0,
-            column_width: 1,
-            column_spec: crate::pages::ColumnSpec::single(1),
-            column_breaks: false,
-            section_id: document.ids().node(),
-            page_start: None,
-            used_field_cache: false,
-            piece_breaks: Vec::new(),
-            piece_lines: Vec::new(),
-            trailing_breaks: 0,
-            spans: Vec::new(),
-            frame_x: Emu::new(0),
-            frame_width: Emu::new(1),
-            pinned: false,
-        }
-    }
-
-    fn key_for(external: ExternalKey) -> ParagraphCacheKey {
-        ParagraphCacheKey {
-            content: [1; 32],
-            resolved_style: [2; 32],
-            available_width: 100,
-            column_mix: 0,
-            font: FontEnvKey {
-                shaping: FontKey::from_raw_parts([0; 32], 0),
-                mixed: None,
-            },
-            profile: ProfileFitKey {
-                size: 12,
-                kerning: false,
-                liga: false,
-                calt: false,
-                leading: None,
-                line_pitch: None,
-            },
-            external,
-            revision_view: 0,
-            revisions: [0; 32],
-            show_hidden: false,
-            field_codes: false,
-        }
-    }
-
-    #[test]
-    fn omitting_a_live_page_dependency_reuses_another_pages_fit() {
-        let mut document = Document::new(PageSetup::a4_zh_cn());
-        let page1 = ExternalContext {
-            page_number: 1,
-            ..ExternalContext::default()
-        };
-        let page2 = ExternalContext {
-            page_number: 2,
-            ..ExternalContext::default()
-        };
-        let live = DependencyFlags {
-            page_number: true,
-            ..DependencyFlags::default()
-        };
-        let on_page_1 = key_for(external_key(live, page1.clone()));
-        let on_page_2 = key_for(external_key(live, page2.clone()));
-        assert_ne!(on_page_1, on_page_2);
-        let mut cache = ParagraphLayoutCache::default();
-        cache.insert(on_page_1, blank_fit(&mut document));
-        assert!(cache.cloned(&on_page_2).is_none());
-        // Dropping the flag makes both pages one key, so page 2 reads page 1.
-        let forgotten = DependencyFlags::default();
-        let stale_page_1 = key_for(external_key(forgotten, page1));
-        let stale_page_2 = key_for(external_key(forgotten, page2));
-        assert_eq!(stale_page_1, stale_page_2);
-        let mut stale = ParagraphLayoutCache::default();
-        let stored = blank_fit(&mut document);
-        let stored_id = stored.id;
-        stale.insert(stale_page_1, stored);
-        let hit = stale.cloned(&stale_page_2);
-        assert_eq!(hit.as_ref().map(|fitted| fitted.id), Some(stored_id));
-    }
-
-    #[test]
-    fn cache_evicts_to_stay_inside_its_budget() {
-        let mut document = Document::new(PageSetup::a4_zh_cn());
-        let first = blank_fit(&mut document);
-        let bytes = fit_bytes(&first);
-        let mut cache = ParagraphLayoutCache::with_budget(bytes);
-        let first_key = key_for(ExternalKey::default());
-        cache.insert(first_key, first);
-        assert_eq!(cache.resident_bytes(), bytes);
-        let mut second_key = key_for(ExternalKey::default());
-        second_key.content = [9; 32];
-        cache.insert(second_key, blank_fit(&mut document));
-        assert!(cache.resident_bytes() <= bytes);
-        assert!(cache.cloned(&first_key).is_none());
-        assert!(cache.cloned(&second_key).is_some());
-        let mut huge = ParagraphLayoutCache::with_budget(bytes.saturating_sub(1));
-        huge.insert(first_key, blank_fit(&mut document));
-        assert_eq!(huge.resident_bytes(), 0);
-    }
-
-    #[test]
-    fn oversized_scans_preserve_upcoming_hits_but_evict_stale_keys() {
-        let mut document = Document::new(PageSetup::a4_zh_cn());
-        let fit = blank_fit(&mut document);
-        let bytes = fit_bytes(&fit);
-        let mut cache = ParagraphLayoutCache::with_budget(bytes);
-        let first = key_for(ExternalKey::default());
-        let mut second = first;
-        second.content = [7; 32];
-        cache.insert(second, fit);
-        let active = HashSet::from([first, second]);
-        for _ in 0..3 {
-            // A prefix miss cannot evict a suffix that this pass needs next.
-            cache.insert_protected(first, blank_fit(&mut document), &active);
-            assert!(cache.cloned(&second).is_some());
-            assert!(cache.resident_bytes() <= bytes);
-        }
-        // A style/content/context change makes the old key expendable again.
-        cache.insert_protected(first, blank_fit(&mut document), &HashSet::from([first]));
-        assert!(cache.cloned(&first).is_some());
-        assert!(cache.cloned(&second).is_none());
-        assert!(cache.resident_bytes() <= bytes);
-    }
-
-    #[test]
-    fn chapter_feedback_and_key_follow_the_rendered_prefix() -> Result<(), LayoutError> {
-        let flags = DependencyFlags {
-            page_number: true,
-            ..Default::default()
-        };
-        let before = ExternalContext {
-            displayed_page: 1,
-            chapter_prefix: Some(Arc::from("IV\u{2011}")),
-            ..Default::default()
-        };
-        let after = ExternalContext {
-            chapter_prefix: Some(Arc::from("V\u{2011}")),
-            ..before.clone()
-        };
-        assert_ne!(
-            external_key(flags, before.clone()),
-            external_key(flags, after.clone())
-        );
-        assert_eq!(
-            external_key(DependencyFlags::default(), before.clone()),
-            external_key(DependencyFlags::default(), after.clone())
-        );
-        let mut passes = 0;
-        let result = run_layout_passes(before, |_| {
-            passes += 1;
-            Ok((passes, after.clone()))
-        })?;
-        assert_eq!(result, 2);
-        Ok(())
-    }
-
-    #[test]
-    fn chapter_codes_and_cached_results_do_not_get_a_live_prefix() {
-        use joyword_model::{PageField, PageFieldKind, PageNumbering};
-        let field = PageField::with_cache(PageFieldKind::Page, "stored");
-        let mut context = ExternalContext {
-            chapter_prefix: Some(Arc::from("IV:")),
-            displayed_page: 2,
-            ..Default::default()
-        };
-        assert_eq!(
-            crate::pages::render_field(&field, &PageNumbering::default(), &context, true),
-            ("PAGE".to_owned(), false)
-        );
-        context.force_cache = true;
-        assert_eq!(
-            crate::pages::render_field(&field, &PageNumbering::default(), &context, false),
-            ("stored".to_owned(), true)
-        );
-        context.force_cache = false;
-        let numbering = PageNumbering {
-            format: joyword_model::NumberFormat::Other(Arc::from("unknown")),
-            ..Default::default()
-        };
-        assert_eq!(
-            crate::pages::render_field(&field, &numbering, &context, false),
-            ("stored".to_owned(), true)
-        );
-    }
-
-    #[test]
-    fn repeated_feedback_is_unstable_and_unpublished() {
-        let result = run_layout_passes(0u8, |assumed| {
-            let produced = if *assumed == 0 { 1 } else { 0 };
-            Ok((*assumed, produced))
-        });
-        assert!(matches!(result, Err(LayoutError::Unstable)));
-    }
-
-    #[test]
-    fn style_closure_reaches_dependents_and_not_the_rest() {
-        let mut document = Document::new(PageSetup::a4_zh_cn());
-        let mut parent = Style::new("Parent", StyleKind::Paragraph, Some("Parent"));
-        parent.is_default = true;
-        let mut child = Style::new("Child", StyleKind::Paragraph, Some("Child"));
-        child.based_on = Some(parent.id.clone());
-        let mut linked = Style::new("Linked", StyleKind::Character, Some("Linked"));
-        linked.link = Some(parent.id.clone());
-        let other = Style::new("Other", StyleKind::Paragraph, Some("Other"));
-        assert!(document.styles_mut().insert(parent.clone()).is_ok());
-        assert!(document.styles_mut().insert(child.clone()).is_ok());
-        assert!(document.styles_mut().insert(linked.clone()).is_ok());
-        assert!(document.styles_mut().insert(other.clone()).is_ok());
-        let mut changed = BTreeSet::new();
-        changed.insert(parent.id.clone());
-        let affected = affected_style_closure(document.styles(), &changed);
-        assert!(affected.contains(&parent.id));
-        assert!(affected.contains(&child.id));
-        assert!(affected.contains(&linked.id));
-        assert!(!affected.contains(&other.id));
-
-        let story = document.body_id();
-        let mut using_child = Paragraph::new(document.ids().node());
-        using_child.style = Some(child.id.clone());
-        assert!(
-            using_child
-                .push_text("子样式", None, Arc::default())
-                .is_ok()
-        );
-        let mut using_other = Paragraph::new(document.ids().node());
-        using_other.style = Some(other.id.clone());
-        assert!(using_other.push_text("其他", None, Arc::default()).is_ok());
-        let mut bare = Paragraph::new(document.ids().node());
-        assert!(bare.push_text("默认", None, Arc::default()).is_ok());
-        let installed = document.story_mut(story).map(|body| {
-            body.blocks = BlockSeq::from_vec(vec![
-                using_child.clone().into(),
-                using_other.clone().into(),
-                bare.clone().into(),
-            ]);
-            true
-        });
-        assert_eq!(installed, Some(true));
-        let invalidation = LayoutInvalidation {
-            styles: changed,
-            ..LayoutInvalidation::default()
-        };
-        let ids = invalidated_paragraphs(&document, &invalidation);
-        assert!(ids.contains(&using_child.id()));
-        assert!(ids.contains(&bare.id()));
-        assert!(!ids.contains(&using_other.id()));
-    }
-
-    #[test]
-    fn defaults_change_invalidates_every_paragraph() {
-        let mut document = Document::new(PageSetup::a4_zh_cn());
-        let story = document.body_id();
-        let mut first = Paragraph::new(document.ids().node());
-        assert!(first.push_text("甲", None, Arc::default()).is_ok());
-        let mut second = Paragraph::new(document.ids().node());
-        assert!(second.push_text("乙", None, Arc::default()).is_ok());
-        let first_id = first.id();
-        let second_id = second.id();
-        let installed = document.story_mut(story).map(|body| {
-            body.blocks = BlockSeq::from_vec(vec![first.into(), second.into()]);
-            true
-        });
-        assert_eq!(installed, Some(true));
-        let ids = invalidated_paragraphs(
-            &document,
-            &LayoutInvalidation {
-                defaults_changed: true,
-                ..LayoutInvalidation::default()
-            },
-        );
-        assert!(ids.contains(&first_id) && ids.contains(&second_id));
-    }
-}
+/// The most extra layout passes for page totals in the body: a total that changes the page
+/// count (its digits pushing text to another page) is tried again, this many times at most.
+pub(crate) const MAX_TOTAL_PASSES: usize = 3;

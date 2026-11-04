@@ -1,0 +1,27 @@
+{
+  "archive_sha256": "1ef68ad58c67cd388a8f0aa362de9a23aa13d13466cae47ec1d95b7495e673c3",
+  "source_docx_sha256": "172b76a93b400d3222bb722fed1ff8868632c50357c1b1eb30390d6eca681116",
+  "saved_docx": "D:\\Coding\\JoyWord验证\\R7 开发包\\R7-千页原生验收.docx",
+  "saved_docx_sha256": "09a0894ee8ab6774642325849fd6ff96cd8587bc7ad8ba8e26d3b1b52234c75e",
+  "pages_after_save": 1000,
+  "original_unchanged": true,
+  "native": {
+    "package_window_pid": 16988,
+    "reopen_window_pid": 9992,
+    "zoom_anchor_percent": [
+      100,
+      110,
+      100
+    ],
+    "ime_preedit_cancelled": "x'y'z",
+    "ime_candidate": "你",
+    "saved_tail": "measurement.你",
+    "ui_automation": "Active paragraph as editable text, value persisted after process restart",
+    "after_save_before_exit_memory_bytes": {
+      "working_set": 983642112,
+      "peak_working_set": 1030610944,
+      "private": 901513216
+    }
+  },
+  "independent_docx_xml_readback": true
+}

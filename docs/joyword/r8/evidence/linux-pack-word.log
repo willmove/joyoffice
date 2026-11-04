@@ -1,0 +1,5 @@
+wsl: 检测到 localhost 代理配置，但未镜像到 WSL。NAT 模式下的 WSL 不支持 localhost 代理。
+    Blocking waiting for file lock on build directory
+   Compiling joyword-cli v0.1.1 (/mnt/d/Coding/EditorProjects/joyoffice/apps/joyword-cli)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 4m 29s
+error: Source inputs changed during the build; rebuild under a new output name. {"added": [], "removed": [], "changed": ["apps/joyword-cli/Cargo.toml", "crates/joyword-shell/Cargo.toml", "scripts/joydeck/sbom.py"]}

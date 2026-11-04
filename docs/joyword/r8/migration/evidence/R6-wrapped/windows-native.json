@@ -1,0 +1,13 @@
+{
+  "same_fixture_copies_unchanged": true,
+  "fixture_sha256": "0f8a59fcb68ae504e409d35ec396b42e388f08458ba6f1e54672967aff0e54f2",
+  "saved_docx": "D:\\Coding\\JoyWord验证\\R6 多行复验\\R6-多行实包验收.docx",
+  "saved_sha256": "091fe96408bceb87322005fa59598b1eb144470ee40dda90ee8faeb8f221a77f",
+  "pages": 1000,
+  "tail": "测abd你adghk你",
+  "uia_selection": "你adghk",
+  "native_ime": "你",
+  "undo_redo": true,
+  "new_process_reopened": true,
+  "independent_ooxml_readback": true
+}

@@ -124,7 +124,7 @@ class LayerGate(TempTree):
         self.write(
             "crates/joyword-docx/Cargo.toml",
             '[package]\nname = "joyword-docx"\n\n[dependencies]\n'
-            "joyoffice-opc.workspace = true\n\n[dev-dependencies]\n"
+            "joyword-geom.workspace = true\n\n[dev-dependencies]\n"
             "joyword-corpus.workspace = true\njoyword-model.workspace = true\n",
         )
         self.assertEqual(self.layers(), [])
@@ -534,27 +534,15 @@ class FilesystemGate(TempTree):
         self.assertEqual(errors, [], "FS_ALLOW changed; re-review the allowlist")
 
     def test_repo_files_below_a_test_module_are_really_scanned(self):
-        """Integration: the old `split("#[cfg(test)]")[0]` truncation hid most of
-        these files; the hardened scan sees the production code below."""
+        """The scanner still sees production imports and code around inline tests."""
         for relative in (
-            "crates/joyword-shell/src/storage/source.rs",
-            "crates/joyword-engine/src/session.rs",
-            "apps/joyword/src/linux_files.rs",
+            "crates/joyword-shell/src/prefs.rs",
+            "crates/joyword-shell/src/lib.rs",
         ):
             text = (ROOT / relative).read_text(encoding="utf-8")
-            visible = len(check_gates.production_lines(text))
-            truncated = text.split("#[cfg(test)]", 1)[0].count("\n") + 1
-            self.assertGreaterEqual(visible, truncated, relative)
-        # `linux_files.rs` carries its marker late, so it only gains from the
-        # extended regex; these two had nearly the whole file discarded.
-        for relative in (
-            "crates/joyword-shell/src/storage/source.rs",
-            "crates/joyword-engine/src/session.rs",
-        ):
-            text = (ROOT / relative).read_text(encoding="utf-8")
-            visible = len(check_gates.production_lines(text))
-            truncated = text.split("#[cfg(test)]", 1)[0].count("\n") + 1
-            self.assertGreater(visible, truncated * 4, relative)
+            lines = check_gates.production_lines(text)
+            self.assertTrue(any("pub struct" in line for _, line in lines), relative)
+            self.assertFalse(any("    #[test]" in line for _, line in lines), relative)
 
 
 class CounterexampleCommand(TempTree):

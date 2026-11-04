@@ -1,0 +1,187 @@
+{
+  "repository": "https://github.com/storytold/craft-i18n",
+  "files": [
+    {
+      "repository": "craft-i18n",
+      "commit": "059cbf95c2a3eb95d637ca8584faca1129d17f48",
+      "path": "ATTRIBUTION.md",
+      "target": "third-party/craft-i18n/ATTRIBUTION.md",
+      "sha256": "b2f42557659412731a24e8b49d72d6bc1772d73abc3c0a1c55e8df598fda7b43"
+    },
+    {
+      "repository": "craft-i18n",
+      "commit": "059cbf95c2a3eb95d637ca8584faca1129d17f48",
+      "path": "LICENSE-APACHE",
+      "target": "third-party/craft-i18n/LICENSE-APACHE",
+      "sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594"
+    },
+    {
+      "repository": "craft-i18n",
+      "commit": "059cbf95c2a3eb95d637ca8584faca1129d17f48",
+      "path": "LICENSE-MIT",
+      "target": "third-party/craft-i18n/LICENSE-MIT",
+      "sha256": "55c6959261d5cc6c6234c7e636383c2d1ea65b21abcddc181fad1c8a2d2bea5b"
+    },
+    {
+      "repository": "craft-i18n",
+      "commit": "059cbf95c2a3eb95d637ca8584faca1129d17f48",
+      "path": "language-data/README.md",
+      "target": "third-party/craft-i18n/language-data/README.md",
+      "sha256": "093cc1a4f7f7749c58e710e205ace53bfa8b2b2d00732093d83c915a7f73b1af"
+    },
+    {
+      "repository": "craft-i18n",
+      "commit": "059cbf95c2a3eb95d637ca8584faca1129d17f48",
+      "path": "language-data/de/hyphenation.pat",
+      "target": "third-party/craft-i18n/language-data/de/hyphenation.pat",
+      "sha256": "374ad1ce3263f8a2791ec070ef9b516c532dae64456f3fb656e617e8ae53a9d3"
+    },
+    {
+      "repository": "craft-i18n",
+      "commit": "059cbf95c2a3eb95d637ca8584faca1129d17f48",
+      "path": "language-data/en-au/LICENCE-SCOWL.txt",
+      "target": "third-party/craft-i18n/language-data/en-au/LICENCE-SCOWL.txt",
+      "sha256": "1c1dfb5a2331ec9492b9692917760aff5aaadbb6a4c71dc1fd6eb70a82f185ca"
+    },
+    {
+      "repository": "craft-i18n",
+      "commit": "059cbf95c2a3eb95d637ca8584faca1129d17f48",
+      "path": "language-data/en-au/spelling.aff",
+      "target": "third-party/craft-i18n/language-data/en-au/spelling.aff",
+      "sha256": "ac336f168b018b45aa15ce510184632980dbc80841b599713f46be456e70dc6f"
+    },
+    {
+      "repository": "craft-i18n",
+      "commit": "059cbf95c2a3eb95d637ca8584faca1129d17f48",
+      "path": "language-data/en-au/spelling.dic",
+      "target": "third-party/craft-i18n/language-data/en-au/spelling.dic",
+      "sha256": "2252ef7866813727361b62017fede34da7888e7ab278163055cb931bcb368189"
+    },
+    {
+      "repository": "craft-i18n",
+      "commit": "059cbf95c2a3eb95d637ca8584faca1129d17f48",
+      "path": "language-data/en-ca/LICENCE-SCOWL.txt",
+      "target": "third-party/craft-i18n/language-data/en-ca/LICENCE-SCOWL.txt",
+      "sha256": "e9c5ac6a3bbd051172c85b558e0471b96f9a13f941cfe468d41893bdeb745933"
+    },
+    {
+      "repository": "craft-i18n",
+      "commit": "059cbf95c2a3eb95d637ca8584faca1129d17f48",
+      "path": "language-data/en-ca/spelling.aff",
+      "target": "third-party/craft-i18n/language-data/en-ca/spelling.aff",
+      "sha256": "aea72d514c3cddf174c4a5370472ea71ad996ff85e275e98bc70b6e173e2f8ec"
+    },
+    {
+      "repository": "craft-i18n",
+      "commit": "059cbf95c2a3eb95d637ca8584faca1129d17f48",
+      "path": "language-data/en-ca/spelling.dic",
+      "target": "third-party/craft-i18n/language-data/en-ca/spelling.dic",
+      "sha256": "0f0c1251da839f68a894fc26e5cb20e689932e19c27ae7067f35d21362c910a6"
+    },
+    {
+      "repository": "craft-i18n",
+      "commit": "059cbf95c2a3eb95d637ca8584faca1129d17f48",
+      "path": "language-data/en-gb/LICENCE-SCOWL.txt",
+      "target": "third-party/craft-i18n/language-data/en-gb/LICENCE-SCOWL.txt",
+      "sha256": "72827bd23b623a253f7928657d68a7b020eea3c7ab8bdfbb1e61323bc8b010c4"
+    },
+    {
+      "repository": "craft-i18n",
+      "commit": "059cbf95c2a3eb95d637ca8584faca1129d17f48",
+      "path": "language-data/en-gb/spelling.aff",
+      "target": "third-party/craft-i18n/language-data/en-gb/spelling.aff",
+      "sha256": "e5478627cc7413a2874134b518c9a3dc667a8886414c72ed47eea65185bd3a88"
+    },
+    {
+      "repository": "craft-i18n",
+      "commit": "059cbf95c2a3eb95d637ca8584faca1129d17f48",
+      "path": "language-data/en-gb/spelling.dic",
+      "target": "third-party/craft-i18n/language-data/en-gb/spelling.dic",
+      "sha256": "4fdb00d235ac2f0634f455f757ba15036261f1557e1b693ac264ee42dbd7c7eb"
+    },
+    {
+      "repository": "craft-i18n",
+      "commit": "059cbf95c2a3eb95d637ca8584faca1129d17f48",
+      "path": "language-data/en-us/LICENCE-SCOWL.txt",
+      "target": "third-party/craft-i18n/language-data/en-us/LICENCE-SCOWL.txt",
+      "sha256": "d63c711523fc9504fb71e1278489c6d7bb8cafcba75158c107cd17844955470f"
+    },
+    {
+      "repository": "craft-i18n",
+      "commit": "059cbf95c2a3eb95d637ca8584faca1129d17f48",
+      "path": "language-data/en-us/en-extra.txt",
+      "target": "third-party/craft-i18n/language-data/en-us/en-extra.txt",
+      "sha256": "33805dd7fce89e5f07f53b9ad969165251ead0058a339910e9009bfbc86ddd57"
+    },
+    {
+      "repository": "craft-i18n",
+      "commit": "059cbf95c2a3eb95d637ca8584faca1129d17f48",
+      "path": "language-data/en-us/en-us.dic",
+      "target": "third-party/craft-i18n/language-data/en-us/en-us.dic",
+      "sha256": "66ce9023847dd2cfc5c6ad14b83aaab94e58607fe95258f4f3ac431a23df63f1"
+    },
+    {
+      "repository": "craft-i18n",
+      "commit": "059cbf95c2a3eb95d637ca8584faca1129d17f48",
+      "path": "language-data/en-us/en-variants.txt",
+      "target": "third-party/craft-i18n/language-data/en-us/en-variants.txt",
+      "sha256": "94d8c694ee7067515041921d2f0bb1f8623718d6eb7f563e19e173425dc551ec"
+    },
+    {
+      "repository": "craft-i18n",
+      "commit": "059cbf95c2a3eb95d637ca8584faca1129d17f48",
+      "path": "language-data/en-us/hyphenation.pat",
+      "target": "third-party/craft-i18n/language-data/en-us/hyphenation.pat",
+      "sha256": "0ad447633731c6c9faaf02ac1b327934eaac8aab23f658624d6c67ffe44b88b8"
+    },
+    {
+      "repository": "craft-i18n",
+      "commit": "059cbf95c2a3eb95d637ca8584faca1129d17f48",
+      "path": "language-data/en-us/spelling.aff",
+      "target": "third-party/craft-i18n/language-data/en-us/spelling.aff",
+      "sha256": "526e1dc32d1c0e8806dd72809c017b5546f2104b08b9424a4c47311aca526cca"
+    },
+    {
+      "repository": "craft-i18n",
+      "commit": "059cbf95c2a3eb95d637ca8584faca1129d17f48",
+      "path": "language-data/en-us/spelling.dic",
+      "target": "third-party/craft-i18n/language-data/en-us/spelling.dic",
+      "sha256": "ab012ae86ce4b46b60db5b150869288de9c4a87bc747911764e582125b1b961e"
+    },
+    {
+      "repository": "craft-i18n",
+      "commit": "059cbf95c2a3eb95d637ca8584faca1129d17f48",
+      "path": "language-data/it/hyphenation.pat",
+      "target": "third-party/craft-i18n/language-data/it/hyphenation.pat",
+      "sha256": "6ce56ed6ed2ca7c0688838e366e6595e0429f984f4fc6e96ec045cebb1e76a47"
+    },
+    {
+      "repository": "craft-i18n",
+      "commit": "059cbf95c2a3eb95d637ca8584faca1129d17f48",
+      "path": "language-data/manifest.toml",
+      "target": "third-party/craft-i18n/language-data/manifest.toml",
+      "sha256": "d441b54fa7981f6122c041c92c078854fd006e2152b4a28f605b792151026d3e"
+    },
+    {
+      "repository": "craft-i18n",
+      "commit": "059cbf95c2a3eb95d637ca8584faca1129d17f48",
+      "path": "language-data/pl/hyphenation.pat",
+      "target": "third-party/craft-i18n/language-data/pl/hyphenation.pat",
+      "sha256": "83ddbbd21bc06a44bc4f4a4c49c38782e809cff5f026b764c044daa29e818843"
+    },
+    {
+      "repository": "craft-i18n",
+      "commit": "059cbf95c2a3eb95d637ca8584faca1129d17f48",
+      "path": "language-data/pt/hyphenation.pat",
+      "target": "third-party/craft-i18n/language-data/pt/hyphenation.pat",
+      "sha256": "c110a39e501db372d1d755e1c64464321a2efa7d8e9617f66001000389b941f2"
+    },
+    {
+      "repository": "craft-i18n",
+      "commit": "059cbf95c2a3eb95d637ca8584faca1129d17f48",
+      "path": "language-data/ru/ru-extra.txt",
+      "target": "third-party/craft-i18n/language-data/ru/ru-extra.txt",
+      "sha256": "12ca009a9b4d4b62a0f6d561f0a17d9b5aab2d6794c77d42cdf139a9831e9505"
+    }
+  ]
+}

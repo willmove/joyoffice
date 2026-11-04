@@ -1,0 +1,5 @@
++ C:\Applications\Python\Python314\python.exe scripts/joydeck/package-native.py --profile debug
+Imported source records passed (291 files)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.45s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.71s
+{"directory": "D:\\Coding\\EditorProjects\\joyoffice\\dist\\joydeck\\joydeck-0.8.0-r9-windows-x86_64-debug-d8e22f56ec", "archive": "D:\\Coding\\EditorProjects\\joyoffice\\dist\\joydeck\\joydeck-0.8.0-r9-windows-x86_64-debug-d8e22f56ec.zip", "archive_sha256": "67e81a7c913ffd12e54202edd4f070be04d5c0746531c67f7ae17070038cd151", "source_sha256": "d8e22f56ec8a3c0687af8faf4b72e02f5b7cc90170e21b389a36fecf91d2bc66", "target": "x86_64-pc-windows-msvc", "profile": "debug", "sbom_packages": 456, "missing_license_texts": ["accesskit", "accesskit_consumer", "gpui-kit", "krilla", "lyon", "lyon_algorithms", "lyon_geom", "lyon_path", "lyon_tessellation", "mac", "profiling", "profiling-procmacros", "pulp-wasm-simd-flag", "rust-i18n-macro", "rust-i18n-support", "seahash", "svg_fmt", "taffy", "zune-core", "zune-inflate", "zune-jpeg"], "signed": false}

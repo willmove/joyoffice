@@ -1,0 +1,178 @@
+{
+  "cargo_lock_sha256": "cf832b9deee21784e09c3f60082b56a0ae9c8f0279a55889b8db2337384350f0",
+  "exact_shared_pins": {
+    "gpui-kit": [
+      "0.8.1"
+    ],
+    "gpui-base": [
+      "0.8.1"
+    ],
+    "gpui-component": [
+      "0.8.1"
+    ],
+    "gpui-kit-assets": [
+      "0.8.1"
+    ],
+    "gpui-pre": [
+      "0.3.10"
+    ],
+    "gpui-pre-platform": [
+      "0.3.10"
+    ],
+    "accesskit_windows": [
+      "0.34.0"
+    ],
+    "krilla": [
+      "0.8.2"
+    ]
+  },
+  "removed_registry_identities": [
+    [
+      "ropey",
+      "1.6.1"
+    ]
+  ],
+  "added_registry_identities": [
+    [
+      "alloc-no-stdlib",
+      "2.0.4"
+    ],
+    [
+      "alloc-stdlib",
+      "0.2.4"
+    ],
+    [
+      "base64",
+      "0.23.1"
+    ],
+    [
+      "brotli",
+      "8.0.4"
+    ],
+    [
+      "brotli-decompressor",
+      "5.0.3"
+    ],
+    [
+      "cfb",
+      "0.15.0"
+    ],
+    [
+      "chardetng",
+      "1.0.0"
+    ],
+    [
+      "cmov",
+      "0.5.4"
+    ],
+    [
+      "ctutils",
+      "0.4.8"
+    ],
+    [
+      "fearless_simd",
+      "1.2.0"
+    ],
+    [
+      "filetime",
+      "0.2.29"
+    ],
+    [
+      "font-types",
+      "0.10.1"
+    ],
+    [
+      "fontique",
+      "0.7.0"
+    ],
+    [
+      "hayro-ccitt",
+      "0.3.0"
+    ],
+    [
+      "hayro-ccitt",
+      "0.4.0"
+    ],
+    [
+      "hayro-cmap",
+      "0.1.1"
+    ],
+    [
+      "hayro-interpret",
+      "0.7.0"
+    ],
+    [
+      "hayro-jbig2",
+      "0.3.1"
+    ],
+    [
+      "hayro-jpeg2000",
+      "0.3.5"
+    ],
+    [
+      "hayro-postscript",
+      "0.2.0"
+    ],
+    [
+      "hayro-syntax",
+      "0.7.2"
+    ],
+    [
+      "hmac",
+      "0.13.0"
+    ],
+    [
+      "moxcms",
+      "0.8.1"
+    ],
+    [
+      "read-fonts",
+      "0.35.0"
+    ],
+    [
+      "ruzstd",
+      "0.9.1"
+    ],
+    [
+      "tar",
+      "0.4.46"
+    ],
+    [
+      "unicode-normalization",
+      "0.1.26"
+    ],
+    [
+      "ureq",
+      "3.5.1"
+    ],
+    [
+      "ureq-proto",
+      "0.7.1"
+    ],
+    [
+      "utf8-zero",
+      "0.8.1"
+    ],
+    [
+      "webpki-roots",
+      "1.0.11"
+    ],
+    [
+      "wuff",
+      "0.2.9"
+    ]
+  ],
+  "isolated_products": {
+    "joyword": [
+      "joyoffice-opc",
+      "joyoffice-ui"
+    ],
+    "joysheet": [
+      "joyoffice-ui"
+    ],
+    "joydeck": [
+      "joyoffice-opc",
+      "joyoffice-ui"
+    ]
+  }
+}

@@ -1,126 +1,209 @@
-//! DOCX import and conservative text export (T103; ARCHITECTURE §3 ImportResult,
-//! §5 format layer).
+//! WordCraft DOCX reader and writer (ECMA-376 / ISO/IEC 29500 WordprocessingML).
 //!
-//! [`import`] reads a WordprocessingML package from untrusted bytes through
-//! `joyoffice-opc` (budgets, strict ZIP, part names, relationships) and maps
-//! the declared subset into a [`joyword_model::Document`]:
-//!
-//! - body paragraphs with text (`xml:space` honoured), tabs and breaks;
-//! - basic paragraph and run properties in source units, paragraph and
-//!   character style references, and the paragraph mark's properties;
-//! - style definitions and document defaults; built-in styles are found by
-//!   canonical `w:name` through the model, never by `w:styleId`;
-//! - page size, margins, title page, section break, page-number format and
-//!   start, equal and explicit unequal columns, and default/first/even header and footer stories
-//!   (`PAGE` / `NUMPAGES` / `SECTIONPAGES` simple and complex fields in the
-//!   body and those stories);
-//! - settings: `compatibilityMode` as written (absent stays `None`, which the
-//!   model interprets as 12; the new-document value 15 is never imposed),
-//!   revision tracking (`w:trackRevisions` is stored and does not by itself
-//!   lock the document), document protection, even and odd headers, the
-//!   default tab stop, and `w:attachedTemplate`'s relationship id (recorded,
-//!   never resolved). The settings element is preserved only when a child
-//!   has no model field. The settings part still round-trips verbatim.
-//!
-//! Everything else is kept, not dropped: the original file and every part's
-//! exact bytes live in the [`PackageBacking`], and each element the model
-//! does not interpret is registered as a [`Fragment`] with its byte range and
-//! namespace context. A block or paragraph holding such content is locked in
-//! [`Editability`]; document protection, table structure revisions, format
-//! revisions inside tables, unsatisfied `mc:MustUnderstand` and unknown
-//! non-ignorable namespaces make the whole document read-only. Plain
-//! `w:ins` / `w:del` / move markup and paragraph or run `w:pPrChange` /
-//! `w:rPrChange` outside tables are modeled. `w:trackRevisions` is a
-//! setting, not a read-only reason. External relationship targets are recorded
-//! and classified, never resolved or accessed. Strict documents are refused.
-//!
-//! [`plan_export`] supports text changes within existing paragraphs and
-//! character formatting boundaries, and splitting, merging, inserting and
-//! removing plain body paragraphs with default formatting. Unknown markup and
-//! parts stay intact; unsupported edits are refused. The plan is versioned and
-//! re-imported under the same budget. Exact copies retain the original
-//! container; edited output explicitly reports regenerated ZIP metadata. Each
-//! successful plan also keeps the backing's original package bytes as a
-//! private origin ([`ExportPlan::origin_bytes`]). That binding is those
-//! bytes, not a document version and not a caller-supplied substitute. No
-//! file-system save is done.
-//! Numbering definitions (`abstractNum`, `num`, level overrides) and
-//! paragraph or style tab stops are mapped. `numbering.xml` is never
-//! rewritten. An edited header or footer story is written back into the
-//! `word/header*.xml` or `word/footer*.xml` part it was imported from, and
-//! into that part's relationships part when the rewrite allocates a new
-//! external hyperlink id. Unchanged story parts keep their original bytes.
-//! A story with no part, or markup this exporter cannot represent, is
-//! refused. A `w:tbl` is
-//! mapped only when every element is in the typed subset (grid, rows, cells,
-//! merge state, `nil`/`single` borders and clear shading); anything else keeps
-//! the whole table as an opaque block. Comments (`comments.xml`, range
-//! markers, commentsExtended, commentsIds and commentsExtensible) are mapped.
-//! Content controls, notes and fields as annotations remain unmapped.
-//! A `w:bookmarkStart` / `w:bookmarkEnd` pair in the body, a header, a
-//! footer, or a comment becomes a bookmark annotation whose name is kept
-//! exactly, so PDF named destinations can resolve it. The marker bytes stay
-//! in the package. An accepted bookmark does not lock its paragraph. An
-//! unchanged export copies the original package; an edit that keeps the
-//! bookmark in the part it was imported from splices those marker bytes back
-//! at the model offsets. Body markers stay in `document.xml`. Header, footer,
-//! and comment markers stay in their own parts. Removing, renaming,
-//! detaching, or moving a bookmark into a different part is refused. A
-//! comment bookmark whose comment is detached is not inserted. Opaque-table and
-//! column bookmarks are diagnosed and are not annotations; their paragraphs
-//! stay locked so an edit cannot drop the markers. An inline still picture
-//! (`w:drawing`/`wp:inline` or `w:pict`) whose relationship points at a raster
-//! part inside the image budget becomes an image resource. A page-absolute
-//! `wp:anchor` with `wp:wrapNone`, page-relative `wp:wrapSquare`, or
-//! page-relative `wp:wrapTopAndBottom` in front of the text is placed on the
-//! page. `wp:wrapTight` and `wp:wrapThrough` are approximated as that square.
-//! Behind-document anchors, non-page positions, OLE, SVG and remote targets
-//! stay preserved and are not fetched or run.
-//! Export does not rewrite media parts: a new image resource is refused.
-//! A simple `w:hyperlink` (`r:id` and/or `w:anchor`, runs of text and tabs)
-//! is mapped onto its runs. The external target is stored and never fetched.
-//! Export keeps that link on a text patch. A changed link is rewritten, and a
-//! new relationship is appended to `word/_rels/document.xml.rels` only when
-//! the rewrite emits a fresh id. A link that cannot be written is refused;
-//! it is not dropped. A tooltip, drawing or other child stays preserved.
-//!
-//! Sources: ECMA-376 Part 1 (5th edition, Transitional) §11.3.10, §17.2,
-//! §17.3, §17.6, §17.7, §17.13.5, §17.13.6.1 `bookmarkEnd`, §17.13.6.2
-//! `bookmarkStart`, §17.15; Part 2 (OPC); Part 3 (Markup Compatibility);
-//! [MS-DOCX] for `compatSetting`. See the W01 report for the clause list.
+//! [`read`] turns a `.docx` package into a [`joyword_model::Document`]; [`write`] does the
+//! reverse. Both are written from the public specification. The reader is lenient (unknown
+//! markup is skipped, bad numbers fall back to defaults) and bounded (zip entry sizes, total
+//! decompressed size, XML depth and element counts are capped), so hostile input yields an
+//! error or a best-effort document, never a panic.
+#![deny(
+    clippy::unwrap_used,
+    clippy::expect_used,
+    clippy::panic,
+    clippy::unimplemented,
+    clippy::todo,
+    clippy::unreachable
+)]
 
-mod backing;
-mod binding;
-mod body;
-mod bookmark;
-mod comment;
-mod export;
-mod hyperlink;
-mod images;
-mod import;
-mod ns;
-mod numbering;
-mod preview;
-mod props;
-mod result;
-mod revision;
-mod settings;
-mod table;
-mod text_document;
+mod bibliography;
+mod chart_spec;
+mod crypt;
+mod custom;
+mod flat;
+mod fonts;
+mod package;
+mod read;
+mod smart_art;
+#[cfg(test)]
+mod test_log;
+mod units;
+mod wordml2003;
+mod wordml2003_write;
+mod write;
 mod xml;
 
-pub use backing::{Fragment, PackageBacking, PreservedReason};
-pub use binding::ExportBinding;
-pub use bookmark::{MAX_IMPORTED_BOOKMARK_NAME_BYTES, MAX_IMPORTED_BOOKMARKS};
-pub use export::{ExportError, ExportMode, ExportPlan, ExportTarget, ExportWarning, plan_export};
-pub use import::import;
-pub use ns::{
-    MC, R, REL_NUMBERING, REL_OFFICE_DOCUMENT, REL_OFFICE_DOCUMENT_STRICT, REL_SETTINGS,
-    REL_STYLES, W, W_STRICT,
+pub use bibliography::{MAX_SOURCES, Sources, read_sources};
+pub use chart_spec::{chart_items, chart_xml};
+pub use crypt::{
+    DEFAULT_SPIN_COUNT, MAX_PASSWORD_CHARS, PasswordCheck, check_password,
+    check_protection_password, decrypt, encrypt, encrypt_standard_for_tests,
+    encrypt_with_spin_count, is_encrypted, protection_hash,
 };
-pub use preview::{TextPreviewError, TextPreviewLimits, text_preview};
-pub use result::{
-    Diagnostic, DiagnosticKind, Diagnostics, Editability, ImageOutcome, ImportError, ImportResult,
-    MAX_DIAGNOSTICS, ReadOnlyReason, Severity,
-};
-pub use text_document::create_text_document;
+pub use flat::{XmlKind, sniff_xml, write as write_flat};
+pub use fonts::{EmbeddedFont, embedded_fonts};
+pub use read::{AltChunk, ChunkImporter, ReadOptions, read};
+pub use smart_art::smart_art_items;
+pub use wordml2003_write::write as write_wordml2003;
+pub use write::{write, write_as};
+
+/// Largest `.xml` file read as a Word XML document.
+pub const MAX_XML_FILE: usize = 1 << 30;
+
+/// Read a Word XML file (`.xml`): a Word XML Document (Flat OPC, the whole package in one XML
+/// file) or a Word 2003 XML Document (WordprocessingML 2003), told apart by the root element.
+/// Any other XML gives [`DocxError::NotWordXml`].
+pub fn read_xml(bytes: &[u8]) -> Result<joyword_model::Document, DocxError> {
+    if bytes.len() > MAX_XML_FILE {
+        return Err(DocxError::Limit(format!(
+            "XML file of {} bytes",
+            bytes.len()
+        )));
+    }
+    match sniff_xml(bytes) {
+        XmlKind::FlatOpc => flat::read(bytes),
+        XmlKind::WordMl2003 => wordml2003::read(bytes),
+        XmlKind::Other => Err(DocxError::NotWordXml),
+    }
+}
+
+/// The title (`dc:title`) in a package's core properties part (`docProps/core.xml`, ECMA-376
+/// Part 2 §11), trimmed; `None` when the part can't be read or has no title. Only the package's
+/// directory and at most `max_part` bytes of that part are inflated: for listing templates by
+/// name without unpacking the whole package. A package over 64 MiB, or one declaring more entries
+/// than `MAX_ENTRIES` (20,000), has none (#3660).
+pub fn package_title<R: std::io::Read>(package: R, max_part: u64) -> Option<String> {
+    use std::io::Read;
+    const MAX_PACKAGE: u64 = 64 << 20;
+    let mut bytes = Vec::new();
+    package.take(MAX_PACKAGE + 1).read_to_end(&mut bytes).ok()?;
+    if bytes.len() as u64 > MAX_PACKAGE {
+        return None;
+    }
+    joyword_model::zip_guard::check(&bytes, package::MAX_ENTRIES as u64).ok()?;
+    let mut zip = zip::ZipArchive::new(std::io::Cursor::new(bytes)).ok()?;
+    let part = zip.by_name("docProps/core.xml").ok()?;
+    let mut xml = Vec::new();
+    part.take(max_part).read_to_end(&mut xml).ok()?;
+    let root = xml::parse(&xml).ok()?;
+    let title = root.child("dc:title")?.text();
+    let title = title.trim();
+    (!title.is_empty()).then(|| title.to_string())
+}
+
+/// What [`DocxError::PasswordRequired`] says.
+pub const PASSWORD_REQUIRED: &str = "this document is protected with a password";
+/// What [`DocxError::WrongPassword`] says.
+pub const WRONG_PASSWORD: &str = "the password is incorrect";
+
+/// The `a:ext` URI under a Drawing Canvas's `wpc:extLst` that holds its turn and flips as an
+/// `a:xfrm` (`rot`, `flipH`, `flipV`). Neither the canvas schema nor `wp:anchor` carries a
+/// transform, so this rides in the extension list Word and other readers skip.
+pub(crate) const CANVAS_SPIN_EXT: &str = "urn:wordcraft:canvas-xfrm";
+
+/// Read a package that may be password-protected ([`is_encrypted`]): it is decrypted with
+/// `password` first. An encrypted package without a password gives
+/// [`DocxError::PasswordRequired`]; a wrong one, [`DocxError::WrongPassword`].
+pub fn read_with_password(
+    bytes: &[u8],
+    password: Option<&str>,
+) -> Result<joyword_model::Document, DocxError> {
+    read_with(
+        bytes,
+        &ReadOptions {
+            password,
+            ..Default::default()
+        },
+    )
+}
+
+/// Read a package with options: the password of an encrypted one ([`read_with_password`]) and
+/// an importer for `w:altChunk` content in formats other than WordprocessingML (see
+/// [`ChunkImporter`]).
+pub fn read_with(bytes: &[u8], opts: &ReadOptions) -> Result<joyword_model::Document, DocxError> {
+    if is_encrypted(bytes) {
+        let package = zeroize::Zeroizing::new(decrypt(bytes, opts.password)?);
+        return read::read_package(&package, opts.chunks);
+    }
+    read::read_package(bytes, opts.chunks)
+}
+
+/// Which kind of WordprocessingML package to write. The main part's content type differs per
+/// kind, and Word refuses a file whose content type doesn't match its extension.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum Flavor {
+    /// `.docx`
+    #[default]
+    Document,
+    /// `.docm`: may carry a VBA project.
+    MacroDocument,
+    /// `.dotx`
+    Template,
+    /// `.dotm`: may carry a VBA project.
+    MacroTemplate,
+}
+
+impl Flavor {
+    /// The flavour a file extension (without the dot, any case) names.
+    pub fn from_ext(ext: &str) -> Option<Flavor> {
+        match ext.to_ascii_lowercase().as_str() {
+            "docx" => Some(Flavor::Document),
+            "docm" => Some(Flavor::MacroDocument),
+            "dotx" => Some(Flavor::Template),
+            "dotm" => Some(Flavor::MacroTemplate),
+            _ => None,
+        }
+    }
+
+    /// Content type of the main document part.
+    pub fn main_content_type(self) -> &'static str {
+        match self {
+            Flavor::Document => {
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"
+            }
+            Flavor::MacroDocument => "application/vnd.ms-word.document.macroEnabled.main+xml",
+            Flavor::Template => {
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.template.main+xml"
+            }
+            Flavor::MacroTemplate => {
+                "application/vnd.ms-word.template.macroEnabledTemplate.main+xml"
+            }
+        }
+    }
+
+    /// Can this package hold macros?
+    pub fn macros(self) -> bool {
+        matches!(self, Flavor::MacroDocument | Flavor::MacroTemplate)
+    }
+}
+
+/// Errors from reading or writing a DOCX package.
+#[derive(Debug, thiserror::Error, Clone, PartialEq)]
+pub enum DocxError {
+    /// The bytes are not a readable zip archive.
+    #[error("not a valid zip package: {0}")]
+    Zip(String),
+    /// A required part is absent.
+    #[error("missing part: {0}")]
+    MissingPart(String),
+    /// A part is not well-formed XML.
+    #[error("malformed XML: {0}")]
+    Xml(String),
+    /// The input exceeds a safety limit (size, nesting, element count).
+    #[error("limit exceeded: {0}")]
+    Limit(String),
+    /// The package is readable but isn't a WordprocessingML document.
+    #[error("not a Word document: {0}")]
+    NotWord(String),
+    /// An `.xml` file that is neither a Word XML Document (Flat OPC) nor Word 2003 XML.
+    #[error("not a Word XML document")]
+    NotWordXml,
+    /// The package is encrypted and no password was given.
+    #[error("{}", PASSWORD_REQUIRED)]
+    PasswordRequired,
+    /// The password doesn't open the package.
+    #[error("{}", WRONG_PASSWORD)]
+    WrongPassword,
+    /// The package is encrypted in a way WordCraft can't read, or its encryption data is damaged
+    /// (or encrypting failed).
+    #[error("encrypted document: {0}")]
+    Encryption(String),
+}

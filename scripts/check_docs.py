@@ -426,8 +426,48 @@ def validate():
     return 0
 
 
+def validate_r8():
+    # The old spec and evidence remain available against the pre-R8 tree.
+    handoff = ROOT / "docs/joyoffice/JOYWORD-R8-HANDOFF.md"
+    for path in [ROOT / "README.md", ROOT / "AGENTS.md", DOCS / "README.md", handoff]:
+        for target in re.findall(r"(?<!!)\[[^\]]*\]\(([^)]+)\)", path.read_text(encoding="utf-8")):
+            parsed = urlsplit(target.strip("<>"))
+            if not parsed.scheme and parsed.path:
+                local_file(path.parent, unquote(parsed.path), str(path.relative_to(ROOT)))
+
+    archive = DOCS / "r8/migration/docs/joyword"
+    plan = json.loads((archive / "tasks.json").read_text(encoding="utf-8"))
+    tasks = {task["id"]: task for task in plan["tasks"]}
+    check(plan["product"] == "joyword" and len(tasks) == len(plan["tasks"]),
+          "JoyWord migration plan is missing or contains duplicate tasks")
+    graph = {key: task["depends_on"] for key, task in tasks.items()}
+    from graphlib import CycleError, TopologicalSorter
+    try:
+        check(set(TopologicalSorter(graph).static_order()) == set(tasks),
+              "JoyWord migration plan references an unknown task")
+    except CycleError:
+        errors.append("JoyWord migration plan contains a dependency cycle")
+    for phase in plan["phases"]:
+        check(tasks.get(phase["gate"], {}).get("phase") == phase["id"],
+              f"{phase['id']} has no matching gate")
+    for sample in json.loads((ROOT / "assets/samples/SOURCE.json").read_text(encoding="utf-8")):
+        path = local_file(ROOT / "assets/samples", sample["file"], "JoyWord sample")
+        check(hashlib.sha256(path.read_bytes()).hexdigest() == sample["sha256"],
+              f"JoyWord sample SHA-256 mismatch: {sample['file']}")
+    for workflow in (ROOT / ".github/workflows").glob("*.yml"):
+        for action in re.findall(r"^\s*(?:-\s*)?uses:\s*([^\s#]+)",
+                                 workflow.read_text(encoding="utf-8"), re.M):
+            check(action.startswith("./") or bool(re.fullmatch(r"[\w.-]+/[\w./-]+@[0-9a-f]{40}", action)),
+                  f"{workflow.name}: action is not pinned: {action}")
+    for error in errors:
+        print(f"ERROR: {error}", file=sys.stderr)
+    if not errors:
+        print(f"OK: R8 documentation, {len(tasks)} historical tasks, sample hashes and workflow action pins")
+    return bool(errors)
+
+
 if __name__ == "__main__":
     try:
-        sys.exit(validate())
+        sys.exit(validate_r8() if (DOCS / "r8").is_dir() else validate())
     except (KeyError, TypeError, ValueError, OSError) as error:
         sys.exit(f"ERROR: malformed or missing metadata: {error}")

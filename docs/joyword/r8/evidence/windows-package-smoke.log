@@ -1,0 +1,2 @@
+{"checks": ["inspect", "text", "unicode edit", "reopen", "OOXML", "no-clobber", "invalid DOCX", "render", "PDF"], "input_sha256": "8e55503dbfd2de7e209ca3494d678919e48f52780e51ba06f8456a944b2aac7f", "pages": 1, "independent_pdf": false}
+{"mutations": 64, "accepted": 21, "rejected": 43}

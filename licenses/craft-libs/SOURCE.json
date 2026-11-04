@@ -1,0 +1,895 @@
+{
+  "repository": "https://github.com/storytold/craft-libs",
+  "files": [
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/Cargo.toml",
+      "target": "third-party/craft-libs/proof/Cargo.toml",
+      "sha256": "6fd3a5c366ca9513bbd4d4c2446a0cfbd7439346aa6b12436df13d0b3b94364f",
+      "modified": false,
+      "target_sha256": "6fd3a5c366ca9513bbd4d4c2446a0cfbd7439346aa6b12436df13d0b3b94364f"
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/README.md",
+      "target": "third-party/craft-libs/proof/README.md",
+      "sha256": "693ad21bbef11fabaf0ce10860afa6d06b7646af95d5779f0c4f119681615d94",
+      "modified": false,
+      "target_sha256": "693ad21bbef11fabaf0ce10860afa6d06b7646af95d5779f0c4f119681615d94"
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/build.rs",
+      "target": "third-party/craft-libs/proof/build.rs",
+      "sha256": "8e8b1b1fdc39e93f6f798e5209b58f6ae981f13a01b34b906b5f7bb88bd680da",
+      "modified": true,
+      "target_sha256": "c7e38f266b75f172cc17f2bd639357a4ce8064ba8cdb2d4c46f0b95244dfbada",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/data/en-extra.txt",
+      "target": "third-party/craft-libs/proof/data/en-extra.txt",
+      "sha256": "33805dd7fce89e5f07f53b9ad969165251ead0058a339910e9009bfbc86ddd57",
+      "modified": false,
+      "target_sha256": "33805dd7fce89e5f07f53b9ad969165251ead0058a339910e9009bfbc86ddd57"
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/data/en-words.dic",
+      "target": "third-party/craft-libs/proof/data/en-words.dic",
+      "sha256": "c3c68df42fc999b41f67f44a25f4c68afbd81178ddb9d11048c45112c99f4ea6",
+      "modified": false,
+      "target_sha256": "c3c68df42fc999b41f67f44a25f4c68afbd81178ddb9d11048c45112c99f4ea6"
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/examples/affix_check.rs",
+      "target": "third-party/craft-libs/proof/examples/affix_check.rs",
+      "sha256": "06d901477156692e67b398d0414cca103babc0c66b0beb0e68f46a3ba309a0e7",
+      "modified": true,
+      "target_sha256": "03f982257ed31e647d9d4666eac948d7c44a4bf10569e1b31b401d2a37b960d6",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/examples/en_words.rs",
+      "target": "third-party/craft-libs/proof/examples/en_words.rs",
+      "sha256": "085810f30fc290e160a09adf2eb7e3d548b6e3acce3424c5a50394d9e01cdc26",
+      "modified": true,
+      "target_sha256": "66ee0b82edde333af9eba7f20836c668a6dc3304ad2bfe6b477d531e31500f6d",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/affix.rs",
+      "target": "third-party/craft-libs/proof/src/affix.rs",
+      "sha256": "8962c6ca57c9621421d99c924c1cec610f76168428449e318a2aeb1e06051df3",
+      "modified": true,
+      "target_sha256": "244c4d74513bcb66f3c47dd49a967519306613d5d5604cf0523d5e390e83a9f1",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/affix/compound.rs",
+      "target": "third-party/craft-libs/proof/src/affix/compound.rs",
+      "sha256": "1e53d8b59d9873d82e651df73cd686b32f44d7eccb368c7c73f49f535e4285f1",
+      "modified": true,
+      "target_sha256": "05d2edd331637b4f38d757d28e1ec1c1f27aa821b22a32c3a9c7049ea53f351d",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/affix_suggest.rs",
+      "target": "third-party/craft-libs/proof/src/affix_suggest.rs",
+      "sha256": "4c39ed382531386a97467a04802e69c6255581bd7ea816697b241e9c20d3ebff",
+      "modified": true,
+      "target_sha256": "12b86166fc71929ef888a7c6466a2295214599e836f26cd75104b0bcc313d6ef",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/bg.rs",
+      "target": "third-party/craft-libs/proof/src/bg.rs",
+      "sha256": "7bb7de0590ca2f963c0e75d008a206ad65536ae9e76f7739be8b9b569418ecc1",
+      "modified": true,
+      "target_sha256": "2f6404928fbaf3354843f1883a34af1106b502c5b133deeb8af9627e347bd716",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/cs/grammar.rs",
+      "target": "third-party/craft-libs/proof/src/cs/grammar.rs",
+      "sha256": "263f25209a3ab11a5868e6b11dec63c21f1eed26c9c996fbe25b7f4e5ea3b852",
+      "modified": true,
+      "target_sha256": "140a2300255fe40c9bc1deb877442ab9882f6fea24ac9ba463fb6f5436471e81",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/cs/mod.rs",
+      "target": "third-party/craft-libs/proof/src/cs/mod.rs",
+      "sha256": "90a318097160e6560391955f0fb099eb28c5334b321136eee128086296cca64c",
+      "modified": true,
+      "target_sha256": "2404a4337bca6ac0fef0a5f7ef85f651a96824647f95d1bd40f1a7c52c2f1b8d",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/cs/suggest.rs",
+      "target": "third-party/craft-libs/proof/src/cs/suggest.rs",
+      "sha256": "d2ca56e0fbca4596018c156ba750fe22d88e96b9f10ac32007fb8d1b4fdab3e4",
+      "modified": true,
+      "target_sha256": "54e5ad4e90b25df66c599a7153fc51199ff6090b21b6977909437d4476cf9a04",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/cs/test_dict.rs",
+      "target": "third-party/craft-libs/proof/src/cs/test_dict.rs",
+      "sha256": "9e39c9a69cffb3e8a96e9a873d58efa4023201a2e18ec0f0c10af098d2140f3c",
+      "modified": false,
+      "target_sha256": "9e39c9a69cffb3e8a96e9a873d58efa4023201a2e18ec0f0c10af098d2140f3c"
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/dict.rs",
+      "target": "third-party/craft-libs/proof/src/dict.rs",
+      "sha256": "7b3fdf8c0459023df01d18496efcdaee141a243387e8cac193e2b172f07d2d47",
+      "modified": true,
+      "target_sha256": "560b67b9b6bd50358e0b250b60bbe19cc7209bae5870ab993cb7153176c71c28",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/en_variants.rs",
+      "target": "third-party/craft-libs/proof/src/en_variants.rs",
+      "sha256": "41740058da18b94adabda0bf9750878fdb5322ae49165f89ce4167d9056e1ee0",
+      "modified": true,
+      "target_sha256": "858f83a73f38489d1da266913fbf609d3656511ad7b7b159e1687184171d0c6b",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/english.rs",
+      "target": "third-party/craft-libs/proof/src/english.rs",
+      "sha256": "3fea8460848ec16c09aae5e84ddc439d1821df35e26bb7cf1fd880cc9130e3c0",
+      "modified": true,
+      "target_sha256": "372668b13131326097a863b3d051942a8327bc96eb79588adfd63a9c93bf5ca0",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/es/grammar.rs",
+      "target": "third-party/craft-libs/proof/src/es/grammar.rs",
+      "sha256": "c934f6040835ee0d5218c861bf6fc19983db29faafab44c2f244f5d1f48f897a",
+      "modified": true,
+      "target_sha256": "db4b175a794df5c9cc1d0cf0ad13cef21003a338ace6b6e9702de698fd6d5c2b",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/es/mod.rs",
+      "target": "third-party/craft-libs/proof/src/es/mod.rs",
+      "sha256": "722577445325d871fe33cb9b85d4180d654a6b925b1e4b75d1c60bf6f47f1ba4",
+      "modified": true,
+      "target_sha256": "6bc15cdaed734feb1b960ffa8883fee6281ba6ea64512419f9cb5a96dd3fb19f",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/es/suggest.rs",
+      "target": "third-party/craft-libs/proof/src/es/suggest.rs",
+      "sha256": "e215174de9418b141655075b2c86944e80a18337acbcf7b3aca6d31a5b2dab13",
+      "modified": true,
+      "target_sha256": "cbf381eea8e7752ddf8782b9babf504dcca284ae964ef37fc5c743b119515a97",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/es/test_dict.rs",
+      "target": "third-party/craft-libs/proof/src/es/test_dict.rs",
+      "sha256": "503f094152a9da9be638ade3ee5319ad3551d4dd434414af406a0da31c585e8b",
+      "modified": true,
+      "target_sha256": "55ae585be818b0f86802784f08c1af75b60305f4dc9a9f6843b92a0656f7f47b",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/es/voseo.rs",
+      "target": "third-party/craft-libs/proof/src/es/voseo.rs",
+      "sha256": "30591fe51b6e00aaa02cf64ab129ccd9c05d112826f7b16b410995aceb6ab44a",
+      "modified": true,
+      "target_sha256": "fe68990e7e64233a5a99185caa7e39b3b10fb75cd188a8ed514a4f8a31727965",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/hr/grammar.rs",
+      "target": "third-party/craft-libs/proof/src/hr/grammar.rs",
+      "sha256": "4378a15d4c81b14e50d3d303f862d8a2bf20e9a37115475c2d2c2d34a42ec68b",
+      "modified": true,
+      "target_sha256": "516fa20180814f0ab9b01fe7fb12bb339708877cf5f9a2792e65eab52bd66fec",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/hr/mod.rs",
+      "target": "third-party/craft-libs/proof/src/hr/mod.rs",
+      "sha256": "4b3c9da31b811d41233e34bcccded3fe49f753a968eb730b720e607f81cbb26f",
+      "modified": true,
+      "target_sha256": "cb93f5ec00e6d7ad3f0925ccff0cc63fe827edf0bf1576f41af23827aeba4e23",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/hr/suggest.rs",
+      "target": "third-party/craft-libs/proof/src/hr/suggest.rs",
+      "sha256": "1a98fe63495525fbfb64fdea2a134c31c43e1b7ca6a73a9cb028217580ad4b58",
+      "modified": true,
+      "target_sha256": "620980c1d5f3e2e3f4e91e9af3700317e0dde993cc7eae0158cbc2378ac01ab9",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/hr/test_dict.rs",
+      "target": "third-party/craft-libs/proof/src/hr/test_dict.rs",
+      "sha256": "d192af1f449745c0d925c6ab623b649ccef406a8cb216e942df626ec00470629",
+      "modified": false,
+      "target_sha256": "d192af1f449745c0d925c6ab623b649ccef406a8cb216e942df626ec00470629"
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/hunspell.rs",
+      "target": "third-party/craft-libs/proof/src/hunspell.rs",
+      "sha256": "346ed140820ea8bf14ef9c8864c8bb09555c9aa4e608ff9a081ef04c4bcd46f9",
+      "modified": true,
+      "target_sha256": "7b544e4784a4b7ad5ea94c2b0e3806547273693a7a464f5c31b6cc89a6ad2945",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/hyphen.rs",
+      "target": "third-party/craft-libs/proof/src/hyphen.rs",
+      "sha256": "786121168b85aee158f7e3b524cc6a9e49f92e1ccb8475600ae14095765959fa",
+      "modified": true,
+      "target_sha256": "e1a2157cb85f81c4070b4333a1a007058206df966ee688ef80b58828de45e9f0",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/id/grammar.rs",
+      "target": "third-party/craft-libs/proof/src/id/grammar.rs",
+      "sha256": "ea871e4c8fa69e9e7be11b48f48bf0e864fbcde2f00c2e5d7834563b39aa68d3",
+      "modified": true,
+      "target_sha256": "710dee77db6f2515c074719c0be07ff4001798a0411a6e66561ac28fff73cb6f",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/id/mod.rs",
+      "target": "third-party/craft-libs/proof/src/id/mod.rs",
+      "sha256": "16606cb2700e5985d34bfa60b098167deae63d7240ef9e67fe9e706ce51dda05",
+      "modified": true,
+      "target_sha256": "3a430a24e3022f5d1d5797b4dcb5f076305c8021a38440cda44e1639f13e1942",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/id/suggest.rs",
+      "target": "third-party/craft-libs/proof/src/id/suggest.rs",
+      "sha256": "7099a908eb8f5dff54b9e53c84328cd417fbcf1a53811afaee7989283d285c95",
+      "modified": true,
+      "target_sha256": "b9088330da0668550d8a4d7272f1dfd1d4e87817af13f21363fa633b4594df8a",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/id/test_dict.rs",
+      "target": "third-party/craft-libs/proof/src/id/test_dict.rs",
+      "sha256": "d6fee962872a3e885607bc38f3c597317f705bbee987a32377f34ce9e5fa0d99",
+      "modified": false,
+      "target_sha256": "d6fee962872a3e885607bc38f3c597317f705bbee987a32377f34ce9e5fa0d99"
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/it/grammar.rs",
+      "target": "third-party/craft-libs/proof/src/it/grammar.rs",
+      "sha256": "9192c47b68e8a216e55fc19a5ed0915c312e183e9effe1dd5a0dc33dac3eacf5",
+      "modified": true,
+      "target_sha256": "2cbefc6ab8f7ec3969ff2a312e78f1913fbd0da71b90ad3991062d6afe6aa2f2",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/it/mod.rs",
+      "target": "third-party/craft-libs/proof/src/it/mod.rs",
+      "sha256": "38873bb2ef3ce8c1c0f67426edf20dc7275b7fecc32edb6ee6e157b7a0143326",
+      "modified": true,
+      "target_sha256": "a12132287a6bd36f9f7503c059b4d7a09d7544a9fe93af796b5c839c67f25da1",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/it/suggest.rs",
+      "target": "third-party/craft-libs/proof/src/it/suggest.rs",
+      "sha256": "0afd28f22280f48713bada5173e318ffb8242e2ef1fdb2b07298bd4a98126343",
+      "modified": true,
+      "target_sha256": "e19ed91a8ebf9ab13a5f867e942134a52748d5ba93e2b138aad79db675342968",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/it/test_dict.rs",
+      "target": "third-party/craft-libs/proof/src/it/test_dict.rs",
+      "sha256": "a4bb544c9485cecfea7c6a3d7a65edece74b67702c41279ed5075517b6b50be1",
+      "modified": false,
+      "target_sha256": "a4bb544c9485cecfea7c6a3d7a65edece74b67702c41279ed5075517b6b50be1"
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/lang.rs",
+      "target": "third-party/craft-libs/proof/src/lang.rs",
+      "sha256": "b04e0d81f640bf45c96ed55d93ad4c24bb243a99c8693cf39bcd4405ab49eda1",
+      "modified": true,
+      "target_sha256": "8c664f877fc9610e75d01485f3815b6e816d7ba99c3a53220718b60277cc92d2",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/lib.rs",
+      "target": "third-party/craft-libs/proof/src/lib.rs",
+      "sha256": "3fb1db1dd5af3ecebbe2eec2b1d122ca825203f7cd76b101bab336db3ca0ed49",
+      "modified": true,
+      "target_sha256": "848c2db93b55699f5d9474cf8df472ea1f3d84224afab27d6a9b9c9c3e43703d",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/no_data.rs",
+      "target": "third-party/craft-libs/proof/src/no_data.rs",
+      "sha256": "b4323ed8134c55c28fc39e0ccf753619d335cc9893d13dfee3b3522757edc72a",
+      "modified": true,
+      "target_sha256": "cd8abecd61d476cc2018b225bb2d81f00bf2f26cb3aa443d401d93a8f9f83aed",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/pack_lang.rs",
+      "target": "third-party/craft-libs/proof/src/pack_lang.rs",
+      "sha256": "36e1d1072608ed9e8a374e358d0430dcc0ed8b60df52906ce64f3fb3103a2451",
+      "modified": true,
+      "target_sha256": "576710282de4a76ad32e7df94fafb9a26faf86be4f9656dd5784326002a523f0",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/packs.rs",
+      "target": "third-party/craft-libs/proof/src/packs.rs",
+      "sha256": "92093ab2198e5ecde158cf41972a451baf6e44f4cf3de22793db4f1438622dc4",
+      "modified": true,
+      "target_sha256": "0ff02887f3bea51751dd15b62d948f4adc8ee293c91462921514b8847c6464cb",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/patterns.rs",
+      "target": "third-party/craft-libs/proof/src/patterns.rs",
+      "sha256": "cb4dbc5869c7da89290efe1f02e52a19b7d49f164c7f26cfb2bf280bb7c6927f",
+      "modified": true,
+      "target_sha256": "00ec51e89f95e7858ec9d94586180fac2f1428d4167beed14c578c321f2ab115",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/pl/grammar.rs",
+      "target": "third-party/craft-libs/proof/src/pl/grammar.rs",
+      "sha256": "5f0bafcb7dffc83822879d844af58799d6557fceb8e9090b7aba9834f310cb3f",
+      "modified": true,
+      "target_sha256": "f02803c32d2951f9163ad5224890b1f57355fe3c7be9c32e7588b5751e184cfe",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/pl/mod.rs",
+      "target": "third-party/craft-libs/proof/src/pl/mod.rs",
+      "sha256": "1e17b2c85add82e72bff3e9d444eac908d7826edc8f2399f7e27c7b7859e87c7",
+      "modified": true,
+      "target_sha256": "b6c1f89e09837b5d9d6ddb42144b394d19f3aa1d02c00a06763966b3602ce0ea",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/pl/suggest.rs",
+      "target": "third-party/craft-libs/proof/src/pl/suggest.rs",
+      "sha256": "467d4e48b6adeef62bc3e0734e59a3956d5064bb0da3fffd674ccf09f11f68c6",
+      "modified": true,
+      "target_sha256": "f5b97b1bc6f03873caaf993c22a9391ce9c4382844ab111d88c4ef8f2ba25afc",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/pl/test_dict.rs",
+      "target": "third-party/craft-libs/proof/src/pl/test_dict.rs",
+      "sha256": "dc75919d0272835fbc9005cf1619dc56ced40662bde0673f242af0cda02a0c1c",
+      "modified": false,
+      "target_sha256": "dc75919d0272835fbc9005cf1619dc56ced40662bde0673f242af0cda02a0c1c"
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/pt/grammar.rs",
+      "target": "third-party/craft-libs/proof/src/pt/grammar.rs",
+      "sha256": "97ceb5b43f8715d7af949635e2f995d06727ef34248661ee469582231b4734f8",
+      "modified": true,
+      "target_sha256": "f4b151444671a62cd10ccfe8537acc437fe115fe6b6aee91d8d8e85cb5f0aa6c",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/pt/mod.rs",
+      "target": "third-party/craft-libs/proof/src/pt/mod.rs",
+      "sha256": "a8f459fd39fea50cca66262a136c4cebbaae1ff0698a5656dabc343096a57c78",
+      "modified": true,
+      "target_sha256": "109696c8dba189c01b437b59c1741ebed43f82718dffcbcf4ad7c47502f179b1",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/pt/suggest.rs",
+      "target": "third-party/craft-libs/proof/src/pt/suggest.rs",
+      "sha256": "5b50e3872dcca9e2f02dfd860f09b5d915ca595ded9c016a1fe1c19705abea28",
+      "modified": true,
+      "target_sha256": "7be635c24db371ecbeaeb4b53ecac43c8723e73b05ba65362b5a55888a1d6eb0",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/pt/test_dict.rs",
+      "target": "third-party/craft-libs/proof/src/pt/test_dict.rs",
+      "sha256": "b3dab5be4917c4ffc339a37bc638b5be4f9fa14c8849f714dd76491180ec0aaf",
+      "modified": false,
+      "target_sha256": "b3dab5be4917c4ffc339a37bc638b5be4f9fa14c8849f714dd76491180ec0aaf"
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/ru/extra.rs",
+      "target": "third-party/craft-libs/proof/src/ru/extra.rs",
+      "sha256": "306bd55cdf97a7a852917bb660c4f512d752700852309acf88e70e24dd38c328",
+      "modified": true,
+      "target_sha256": "ccbdab4befd8f86b671ff96c56f6b13dca2d762c46df2d0f89378904c59ce89f",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/ru/grammar.rs",
+      "target": "third-party/craft-libs/proof/src/ru/grammar.rs",
+      "sha256": "94eccca5052dd343333246282c173b5ed334f96aacb2a3a979c0ecdbb7268b2f",
+      "modified": true,
+      "target_sha256": "2e4e9acf2b312ca249f02d0ade87ad7eb119bd761bb5503fddf973ba88872088",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/ru/hyphen.rs",
+      "target": "third-party/craft-libs/proof/src/ru/hyphen.rs",
+      "sha256": "febb865d262a19a8e541c9a4afcd21c46015047234405099d842d59a0e1bf1c8",
+      "modified": true,
+      "target_sha256": "29ceb7731149f409295f76b18ee7b67d3c5e51b176cc01d4360be5d3ddf88f6d",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/ru/mod.rs",
+      "target": "third-party/craft-libs/proof/src/ru/mod.rs",
+      "sha256": "a639af93c95614baea246e22ee2bfc79a436581d62beee4f611a71cfaef77fe1",
+      "modified": true,
+      "target_sha256": "dabdd3c3694d003335564ea4cceaa483807e08636c06d088658b510ebd2b50d1",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/ru/suggest.rs",
+      "target": "third-party/craft-libs/proof/src/ru/suggest.rs",
+      "sha256": "00d508fb0cb6383fc53b3a937a6633f3ac245ce575a698a65bcce96a4e9f3528",
+      "modified": true,
+      "target_sha256": "8de6baaf91ab93a1394a78829078f86ef673bb329e3239f37a6c94f1cd6dc353",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/ru/test_dict.rs",
+      "target": "third-party/craft-libs/proof/src/ru/test_dict.rs",
+      "sha256": "7b38baa6a271cbe2138c94a0f08d36068d5efed313ecf35ab7ccfdc22a3b92af",
+      "modified": false,
+      "target_sha256": "7b38baa6a271cbe2138c94a0f08d36068d5efed313ecf35ab7ccfdc22a3b92af"
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/scowl.rs",
+      "target": "third-party/craft-libs/proof/src/scowl.rs",
+      "sha256": "b212e9f91201962300b7f453f897b5962ffdc0a12c9345015adec0f5300cd29f",
+      "modified": true,
+      "target_sha256": "3973f5c9bca3051adff33200f9216e36a72f2433791ca9cc33a4d04a6ea95b7d",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/slot.rs",
+      "target": "third-party/craft-libs/proof/src/slot.rs",
+      "sha256": "b26d643d425cfffb23fbb799bdf1bf3efa00edbbf389c8e54327b055523a745a",
+      "modified": true,
+      "target_sha256": "6acb1c8839c71dae22f7b31bb1608039e040eba19d64a97248dd9ad5dcc3cc39",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/spelling.rs",
+      "target": "third-party/craft-libs/proof/src/spelling.rs",
+      "sha256": "d4eb46d4cc43a80b09ff4964473f49836d95a32019de450da0fd555795511d4a",
+      "modified": true,
+      "target_sha256": "9d8dd340db4303842668c5b1d1f23f6e6ca7e90b447c788552ee496fb98ed033",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/tr/dict.rs",
+      "target": "third-party/craft-libs/proof/src/tr/dict.rs",
+      "sha256": "3072d79679b0fd849ab4a5820f22bded0ad0edc347d9446ccb742f5f102e64c0",
+      "modified": true,
+      "target_sha256": "1f6f10dff96909025b5199bc3d2d167c56023d4d59b39cc4a59f4fd7e23e71a2",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/tr/grammar.rs",
+      "target": "third-party/craft-libs/proof/src/tr/grammar.rs",
+      "sha256": "e278b7515512fef894dee36a89d4daa5b091977203f384e6bee49e3c49c0bc97",
+      "modified": true,
+      "target_sha256": "0744206f97885c0b1227b526b33db244a1d3a395c8c43ad8aa7e05063e49ae31",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/tr/hyphen.rs",
+      "target": "third-party/craft-libs/proof/src/tr/hyphen.rs",
+      "sha256": "18b92f9c780013f9362233927ffc518b8e91fed06e7249d201b27e4ee14527bb",
+      "modified": true,
+      "target_sha256": "38de587fe70e48381c284f6e3d7a36d91ba816b5fb2ea2bfe6586ecd2570bbde",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/tr/mod.rs",
+      "target": "third-party/craft-libs/proof/src/tr/mod.rs",
+      "sha256": "a2b90d9b2e838e2c2de5c6667db6819941465febbc8eae8fb6b41c0635c385f3",
+      "modified": true,
+      "target_sha256": "4b1121f0f7a89ab7488911b94a89599eb9555e180cb270bbaf8f0e8dbcb3d4f9",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/tr/suggest.rs",
+      "target": "third-party/craft-libs/proof/src/tr/suggest.rs",
+      "sha256": "516717341a25a122cedae593e0eea7eb0944c81bcf49e89cb6a0761955b1095f",
+      "modified": true,
+      "target_sha256": "83e2240a575671aac6785b75b5f905dbe90c67378b664aa559b71a1d399a8ceb",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/tr/test_dict.rs",
+      "target": "third-party/craft-libs/proof/src/tr/test_dict.rs",
+      "sha256": "2568db701670f5bfcca57ca3a23f39d49357828e2b1f8df132d3e41e477460b0",
+      "modified": false,
+      "target_sha256": "2568db701670f5bfcca57ca3a23f39d49357828e2b1f8df132d3e41e477460b0"
+    },
+    {
+      "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
+      "path": "crates/proof/src/vi.rs",
+      "target": "third-party/craft-libs/proof/src/vi.rs",
+      "sha256": "630be241be91070ada045eacf15a7da257f431199c11fa4d0ee593e0789f5355",
+      "modified": true,
+      "target_sha256": "0ae9a9e54b41dec443cdf55bc723a539decbd9e7080390f247692776de09be94",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "762a06a4c6b48b522b7d4de84a87917ef90265e6",
+      "path": "crates/font-store/Cargo.toml",
+      "target": "third-party/craft-libs/font-store/Cargo.toml",
+      "sha256": "59433f5b9007345dad9735553133948c357b3394aae804bc9035b31b6b1f41b3",
+      "modified": true,
+      "target_sha256": "d33951186e3d72eeeded2a3a315cf0109740964bcab5095ff835ebd44add082c",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "762a06a4c6b48b522b7d4de84a87917ef90265e6",
+      "path": "crates/font-store/README.md",
+      "target": "third-party/craft-libs/font-store/README.md",
+      "sha256": "99cef13dfdde514735e532deaa4f51c6be5ff660dd9c96990b39c4234751323b",
+      "modified": false,
+      "target_sha256": "99cef13dfdde514735e532deaa4f51c6be5ff660dd9c96990b39c4234751323b"
+    },
+    {
+      "commit": "762a06a4c6b48b522b7d4de84a87917ef90265e6",
+      "path": "crates/font-store/index/indexes/google-fonts.json.gz",
+      "target": "third-party/craft-libs/font-store/index/indexes/google-fonts.json.gz",
+      "sha256": "62d1d5645417a691e4710f6d1b895f925284ea9c804de268a97432bd67e9c1f6",
+      "modified": false,
+      "target_sha256": "62d1d5645417a691e4710f6d1b895f925284ea9c804de268a97432bd67e9c1f6"
+    },
+    {
+      "commit": "762a06a4c6b48b522b7d4de84a87917ef90265e6",
+      "path": "crates/font-store/index/indexes/noto.json.gz",
+      "target": "third-party/craft-libs/font-store/index/indexes/noto.json.gz",
+      "sha256": "0d467fb79bcd3afe10350ed3caba2ff57af02aedbc413292e06bc78c02994999",
+      "modified": false,
+      "target_sha256": "0d467fb79bcd3afe10350ed3caba2ff57af02aedbc413292e06bc78c02994999"
+    },
+    {
+      "commit": "762a06a4c6b48b522b7d4de84a87917ef90265e6",
+      "path": "crates/font-store/index/sources.json",
+      "target": "third-party/craft-libs/font-store/index/sources.json",
+      "sha256": "4b0c2b9cdec1885027dc3316cdc013ccfbc0d63b6ed9950138d762afaff72e23",
+      "modified": false,
+      "target_sha256": "4b0c2b9cdec1885027dc3316cdc013ccfbc0d63b6ed9950138d762afaff72e23"
+    },
+    {
+      "commit": "762a06a4c6b48b522b7d4de84a87917ef90265e6",
+      "path": "crates/font-store/src/http.rs",
+      "target": "third-party/craft-libs/font-store/src/http.rs",
+      "sha256": "b0e480c3397719e1dc1e4c175b157d79502ecf2335cef2f8c353c5315f538d2a",
+      "modified": true,
+      "target_sha256": "d62dca5dea2a8dd632050ebca695c8eaa62b5a18938263642416f29acbedd51d",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "762a06a4c6b48b522b7d4de84a87917ef90265e6",
+      "path": "crates/font-store/src/index.rs",
+      "target": "third-party/craft-libs/font-store/src/index.rs",
+      "sha256": "9589adf0dd6214d219466437bdc4179c91d259ca91a92d507813b6e9213814b1",
+      "modified": true,
+      "target_sha256": "bcd257d34f5a61edbbf079368ce277d42ed18416bd9ca9efb3a73eb947d9768a",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "762a06a4c6b48b522b7d4de84a87917ef90265e6",
+      "path": "crates/font-store/src/language_packs.rs",
+      "target": "third-party/craft-libs/font-store/src/language_packs.rs",
+      "sha256": "651d0b225f48adb65d6295dff414779973fd716da623733565377c6357541072",
+      "modified": true,
+      "target_sha256": "0e49d00b5bb42d2d64babfff560b416f7fe1e8337a53f0c570cb24bdf44818cc",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "762a06a4c6b48b522b7d4de84a87917ef90265e6",
+      "path": "crates/font-store/src/language_packs/tests.rs",
+      "target": "third-party/craft-libs/font-store/src/language_packs/tests.rs",
+      "sha256": "07185242f43712ade339e0ec7e59d335bb130f17543d30f4f86f048dca20899c",
+      "modified": true,
+      "target_sha256": "13c60c6f9e7068d2dbe052073999d52a3d8e782342c9004e507688dc9f48e77b",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "762a06a4c6b48b522b7d4de84a87917ef90265e6",
+      "path": "crates/font-store/src/lib.rs",
+      "target": "third-party/craft-libs/font-store/src/lib.rs",
+      "sha256": "44c950cb251a21f3204c7dfe1be8a5dda9fafc95506ccfce21fdbf73a8ee00ec",
+      "modified": true,
+      "target_sha256": "0eeb9489786ba8764d00264ab8faea4937677b8f98443b0667e89b30f492496c",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "762a06a4c6b48b522b7d4de84a87917ef90265e6",
+      "path": "crates/font-store/src/pin.rs",
+      "target": "third-party/craft-libs/font-store/src/pin.rs",
+      "sha256": "9db63ce4d32513549c3d9924d0fe6398fd00776114b4f5616d27f885eb7dfcb9",
+      "modified": true,
+      "target_sha256": "710e5962273cf844c013a6a1b1364e94a8bca1ce7a38e89baa6d82c19fb5c3fb",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "762a06a4c6b48b522b7d4de84a87917ef90265e6",
+      "path": "crates/font-store/src/source.rs",
+      "target": "third-party/craft-libs/font-store/src/source.rs",
+      "sha256": "16025e56205e04116cf8d762ab22c69e2b5e69339e5765e393e99da27041a640",
+      "modified": true,
+      "target_sha256": "165da7a0bd71060870224134dfa29db45255f1fbd8fbaadc8417654f8ca26035",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "762a06a4c6b48b522b7d4de84a87917ef90265e6",
+      "path": "crates/font-store/src/sources.rs",
+      "target": "third-party/craft-libs/font-store/src/sources.rs",
+      "sha256": "d86722636c4af428773e98e3a9d2e4428a6538d070f44bbf9dbec32395ed88c0",
+      "modified": true,
+      "target_sha256": "569de5dceef92a42ce2eb92c0004113f714a1937b191825532f2903a89507bb9",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "762a06a4c6b48b522b7d4de84a87917ef90265e6",
+      "path": "crates/font-store/src/store.rs",
+      "target": "third-party/craft-libs/font-store/src/store.rs",
+      "sha256": "fc5a6572293f0aede3d0f7111800225d4f30ec53a3ddf89d28a8e58587a1a0dd",
+      "modified": true,
+      "target_sha256": "dd0b9c3f17147463c0cb97652bccee48f1e902969f54de9023d0eebc90f0d9d1",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "762a06a4c6b48b522b7d4de84a87917ef90265e6",
+      "path": "crates/font-store/src/tests.rs",
+      "target": "third-party/craft-libs/font-store/src/tests.rs",
+      "sha256": "d94639175ab6f9b1e3257d118e4a00e12666658d571fed3ca30a575a98513167",
+      "modified": true,
+      "target_sha256": "7a87e749d41a07ba5dff11d784c0f97a9e660b40a721f04b125530fae1a839e7",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "762a06a4c6b48b522b7d4de84a87917ef90265e6",
+      "path": "crates/font-store/src/verify.rs",
+      "target": "third-party/craft-libs/font-store/src/verify.rs",
+      "sha256": "2ccba988cddb83d133c2650d478d6e139cfec8b13079aa84f1f7dc3bed198389",
+      "modified": true,
+      "target_sha256": "a4098ddda24883a87daf629ebf38679e989ce2628809291c361123b004fde16b",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "762a06a4c6b48b522b7d4de84a87917ef90265e6",
+      "path": "crates/font-catalog/Cargo.toml",
+      "target": "third-party/craft-libs/font-catalog/Cargo.toml",
+      "sha256": "d1e8035202d9f38b0047cd2cd9e56e9250e0c155105de02c5c111de5a43526ff",
+      "modified": true,
+      "target_sha256": "46b2c4eba8fb90ecdad0651176d19f292b5b9f2d862c412dd066802521b49234",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "762a06a4c6b48b522b7d4de84a87917ef90265e6",
+      "path": "crates/font-catalog/README.md",
+      "target": "third-party/craft-libs/font-catalog/README.md",
+      "sha256": "fd0066cd051a9f635d0e720c8e10d6d1826fbe8b0c796017be67211160172133",
+      "modified": false,
+      "target_sha256": "fd0066cd051a9f635d0e720c8e10d6d1826fbe8b0c796017be67211160172133"
+    },
+    {
+      "commit": "762a06a4c6b48b522b7d4de84a87917ef90265e6",
+      "path": "crates/font-catalog/examples/fonts.rs",
+      "target": "third-party/craft-libs/font-catalog/examples/fonts.rs",
+      "sha256": "a97560d7ecb8b19222a7d8ee97cf129c739fe8374a18adbe664cbadf911b7c6a",
+      "modified": true,
+      "target_sha256": "29c5e95aecac1ea1cd8b6a7707a8db2b4c54c08d208888e498e978201d0567ab",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "762a06a4c6b48b522b7d4de84a87917ef90265e6",
+      "path": "crates/font-catalog/src/catalog.rs",
+      "target": "third-party/craft-libs/font-catalog/src/catalog.rs",
+      "sha256": "4c1e7e33b25af8a5a95ca4380c879a735550ab2a23c10747742c86e60db7164f",
+      "modified": true,
+      "target_sha256": "e26512dcb04ce2f69986c30436c50a93d6e1ed95ffabe14d036afc1a03d37f5f",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "762a06a4c6b48b522b7d4de84a87917ef90265e6",
+      "path": "crates/font-catalog/src/env.rs",
+      "target": "third-party/craft-libs/font-catalog/src/env.rs",
+      "sha256": "f2b0352970012ef6ad60f012ed5a9e9699b859c1cc9d66272abf73822381583d",
+      "modified": true,
+      "target_sha256": "f0f6dad72a36f4401097f0c8902c04b8f3b2feedfac3aa97fe649b308d9d7142",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "762a06a4c6b48b522b7d4de84a87917ef90265e6",
+      "path": "crates/font-catalog/src/fontconfig.rs",
+      "target": "third-party/craft-libs/font-catalog/src/fontconfig.rs",
+      "sha256": "ecf2d97515d5114776c47b6b92ac6f12870bc9b0f1b0bb46e6d8e951370bb0cd",
+      "modified": true,
+      "target_sha256": "db1573332197974b3d2b2c9fb3fb45b3cd21aaa3be0ce3863aa1c709e0570e23",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "762a06a4c6b48b522b7d4de84a87917ef90265e6",
+      "path": "crates/font-catalog/src/lib.rs",
+      "target": "third-party/craft-libs/font-catalog/src/lib.rs",
+      "sha256": "4888ab6140434979891fcdfc3db2dc07ea131c57739809a672346169c81c9805",
+      "modified": true,
+      "target_sha256": "d782fcbbb1ae67b768369bd5a0fa6c2eb397cf32657cc53610ac25a343b10ecc",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "762a06a4c6b48b522b7d4de84a87917ef90265e6",
+      "path": "crates/font-catalog/src/registry.rs",
+      "target": "third-party/craft-libs/font-catalog/src/registry.rs",
+      "sha256": "beee70c7aff8537338f8681081af3aacf108caea37690684f9559e65ac1ac0ff",
+      "modified": true,
+      "target_sha256": "ba5bfb874c095ac08405a1f0dbf79cf13f2cb111edf68f8977b0107adc11af00",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "762a06a4c6b48b522b7d4de84a87917ef90265e6",
+      "path": "crates/font-catalog/src/scan.rs",
+      "target": "third-party/craft-libs/font-catalog/src/scan.rs",
+      "sha256": "01b64f28683553435a96ac7e74e244e4397b67e9a0b9e7c12e492419d09c4b84",
+      "modified": true,
+      "target_sha256": "4f49bfef9f82c60181606718de94ec15d336e1f18b12d5df82e7442fdb4cbc2e",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "762a06a4c6b48b522b7d4de84a87917ef90265e6",
+      "path": "crates/font-catalog/src/suitcase.rs",
+      "target": "third-party/craft-libs/font-catalog/src/suitcase.rs",
+      "sha256": "0f88968702e149a21853b075d09738cf668619857b00bec7467eeaed6ffff787",
+      "modified": true,
+      "target_sha256": "a861fe6da10643637673dfbf0b0904694c98fb1579b19de6af1902ee51256499",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "762a06a4c6b48b522b7d4de84a87917ef90265e6",
+      "path": "crates/font-catalog/src/system.rs",
+      "target": "third-party/craft-libs/font-catalog/src/system.rs",
+      "sha256": "77b0288f681326c10ffd571358a1ec670d43d0b3cef1a779444debf9250a84e6",
+      "modified": true,
+      "target_sha256": "224b51bb85b662c1cf5dfe68c9bd444092c61db39d55b93bf81b86657348ee8e",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "762a06a4c6b48b522b7d4de84a87917ef90265e6",
+      "path": "crates/font-catalog/src/tests.rs",
+      "target": "third-party/craft-libs/font-catalog/src/tests.rs",
+      "sha256": "1980f045ab44a7ff81f618e81ed509f7b6e8a7ea7e5a75c37895541e8fc71ae0",
+      "modified": true,
+      "target_sha256": "f479e9907a5a4393d6071ee4e62e029e2285fbd22e07fdaa5f06f400c039a69b",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "762a06a4c6b48b522b7d4de84a87917ef90265e6",
+      "path": "crates/atomic/Cargo.toml",
+      "target": "third-party/craft-libs/atomic/Cargo.toml",
+      "sha256": "132c06636b8592118aa304f07c3dec0aaf65dd604c68f6d8f76b9561dbc7e1fe",
+      "modified": false,
+      "target_sha256": "132c06636b8592118aa304f07c3dec0aaf65dd604c68f6d8f76b9561dbc7e1fe"
+    },
+    {
+      "commit": "762a06a4c6b48b522b7d4de84a87917ef90265e6",
+      "path": "crates/atomic/README.md",
+      "target": "third-party/craft-libs/atomic/README.md",
+      "sha256": "d64e0b37e3c57166669ea0293009a3bf6f97d148bd5230bd329102e3f20cbca5",
+      "modified": false,
+      "target_sha256": "d64e0b37e3c57166669ea0293009a3bf6f97d148bd5230bd329102e3f20cbca5"
+    },
+    {
+      "commit": "762a06a4c6b48b522b7d4de84a87917ef90265e6",
+      "path": "crates/atomic/src/lib.rs",
+      "target": "third-party/craft-libs/atomic/src/lib.rs",
+      "sha256": "a2dce3d4125cc26dfbe26a387f2d033264ccc3ea25e64b39b63a7cd1805f431a",
+      "modified": true,
+      "target_sha256": "c9f6b55bdafc15b667e5446ded520343d26bec98e1fe0bdaa2650b2686ec3348",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "762a06a4c6b48b522b7d4de84a87917ef90265e6",
+      "path": "crates/atomic/tests/atomic_tests.rs",
+      "target": "third-party/craft-libs/atomic/tests/atomic_tests.rs",
+      "sha256": "883a61d02af5d5f358f40158d0563babf0b95d1b9c5d471f85167316c9938ed6",
+      "modified": true,
+      "target_sha256": "b79b3c353f3ce363b82578ecfee0dfed5852b2d7e6b72631bf4c7a20cb68b735",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "762a06a4c6b48b522b7d4de84a87917ef90265e6",
+      "path": "crates/atomic/tests/permissions.rs",
+      "target": "third-party/craft-libs/atomic/tests/permissions.rs",
+      "sha256": "71cfcf79669b3acba2bdac6292ad0aa86437fc2be89fcc85cfdf333f134743fc",
+      "modified": true,
+      "target_sha256": "b0c7c5c7c379af5b25ad7bdec5ed9de33c1dbcfe4edac76879c29c3e896fb0dd",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+    },
+    {
+      "commit": "92d392cff132eaf53e13afff77f38b5c11b73aa0",
+      "path": "crates/pdf/src/write.rs",
+      "target": "crates/joyword-pdf/src/backend.rs",
+      "sha256": "4941fceeaef92f15dd345890ce353fd1c68715743a8289b41c2bbc12457acf03",
+      "modified": true,
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md.",
+      "target_sha256": "662d679376ebeff0769ea5e4dcd76a4a02a256fd3c24b2f7d8f5f6858fdcde12"
+    }
+  ]
+}

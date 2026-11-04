@@ -1,0 +1,106 @@
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
++ C:\Applications\Python\Python314\python.exe scripts/joydeck/package-native.py --profile debug
+Imported source records passed (291 files)
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+   Compiling joydeck v0.8.0 (D:\Coding\EditorProjects\joyoffice\apps\joydeck)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 5.82s
+    Blocking waiting for file lock on build directory
+   Compiling proc-macro2 v1.0.107
+   Compiling arrayvec v0.7.8
+   Compiling bitflags v2.13.2
+   Compiling foldhash v0.2.0
+   Compiling num-traits v0.2.19
+   Compiling log v0.4.34
+   Compiling serde_json v1.0.154
+   Compiling typenum v1.20.1
+   Compiling once_cell v1.21.4
+   Compiling either v1.19.0
+   Compiling strict-num v0.1.1
+   Compiling getrandom v0.3.4
+   Compiling png v0.18.1
+   Compiling pdf-writer v0.15.0
+   Compiling hashbrown v0.17.1
+   Compiling rayon v1.12.0
+   Compiling polycool v0.4.0
+   Compiling generic-array v0.14.7
+   Compiling indexmap v2.14.2
+   Compiling moxcms v0.7.11
+   Compiling euclid v0.22.14
+   Compiling chrono v0.4.45
+   Compiling float-cmp v0.9.0
+   Compiling block-buffer v0.10.4
+   Compiling crypto-common v0.1.7
+   Compiling quote v1.0.47
+   Compiling digest v0.10.7
+   Compiling syn v3.0.9
+   Compiling syn v2.0.119
+   Compiling guillotiere v0.7.0
+   Compiling zip v9.0.0
+   Compiling sha2 v0.10.9
+   Compiling synstructure v0.14.0
+   Compiling bytemuck_derive v1.12.1
+   Compiling thiserror-impl v2.0.21
+   Compiling zerofrom-derive v0.1.8
+   Compiling yoke-derive v0.8.4
+   Compiling serde_derive v1.0.228
+   Compiling zerocopy-derive v0.8.62
+   Compiling zerofrom v0.1.8
+   Compiling bytemuck v1.25.2
+   Compiling yoke v0.8.3
+   Compiling font-types v0.11.3
+   Compiling font-types v0.12.6
+   Compiling color v0.3.3
+   Compiling tiny-skia-path v0.12.0
+   Compiling thiserror v2.0.21
+   Compiling read-fonts v0.39.2
+   Compiling read-fonts v0.41.0
+   Compiling zerocopy v0.8.62
+   Compiling serde v1.0.228
+   Compiling smallvec v1.16.3
+   Compiling joydeck-color v0.1.0 (D:\Coding\EditorProjects\joyoffice\crates\joydeck-color)
+   Compiling kurbo v0.13.1
+   Compiling joydeck-geom v0.1.0 (D:\Coding\EditorProjects\joyoffice\crates\joydeck-geom)
+   Compiling peniko v0.6.1
+   Compiling vello_common v0.2.0
+   Compiling joydeck-model v0.1.0 (D:\Coding\EditorProjects\joyoffice\crates\joydeck-model)
+   Compiling half v2.7.1
+   Compiling tiff v0.10.3
+   Compiling skrifa v0.42.1
+   Compiling harfrust v0.8.4
+   Compiling write-fonts v0.48.1
+   Compiling image v0.25.9
+   Compiling skrifa v0.44.0
+   Compiling joydeck-fonts v0.1.0 (D:\Coding\EditorProjects\joyoffice\crates\joydeck-fonts)
+   Compiling joydeck-metafile v0.1.0 (D:\Coding\EditorProjects\joyoffice\crates\joydeck-metafile)
+   Compiling glifo v0.3.0
+   Compiling vello_cpu v0.2.0
+   Compiling joydeck-text v0.1.0 (D:\Coding\EditorProjects\joyoffice\crates\joydeck-text)
+   Compiling joydeck-anim v0.1.0 (D:\Coding\EditorProjects\joyoffice\crates\joydeck-anim)
+   Compiling subsetter v0.2.6
+   Compiling krilla v0.8.2
+   Compiling joydeck-render v0.1.0 (D:\Coding\EditorProjects\joyoffice\crates\joydeck-render)
+   Compiling joydeck-engine v0.1.0 (D:\Coding\EditorProjects\joyoffice\crates\joydeck-engine)
+   Compiling joydeck-legacy v0.1.0 (D:\Coding\EditorProjects\joyoffice\crates\joydeck-legacy)
+   Compiling joydeck-format v0.1.0 (D:\Coding\EditorProjects\joyoffice\crates\joydeck-format)
+   Compiling joydeck-pptx v0.1.0 (D:\Coding\EditorProjects\joyoffice\crates\joydeck-pptx)
+   Compiling joydeck-pdf v0.1.0 (D:\Coding\EditorProjects\joyoffice\crates\joydeck-pdf)
+   Compiling joydeck-shell v0.1.0 (D:\Coding\EditorProjects\joyoffice\crates\joydeck-shell)
+   Compiling joydeck-cli v0.8.0 (D:\Coding\EditorProjects\joyoffice\apps\joydeck-cli)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1m 23s
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+{"directory": "D:\\Coding\\EditorProjects\\joyoffice\\dist\\joydeck\\joydeck-0.8.0-r9-windows-x86_64-debug-6c34e74c4b", "archive": "D:\\Coding\\EditorProjects\\joyoffice\\dist\\joydeck\\joydeck-0.8.0-r9-windows-x86_64-debug-6c34e74c4b.zip", "archive_sha256": "b95c84611728e566a7f6b698757da63e9472be13a4ec3f805bfec00ba036ea39", "source_sha256": "6c34e74c4b877776b6b0dbf4b3372357fe162619bacbda54312dced095955b40", "target": "x86_64-pc-windows-msvc", "profile": "debug", "sbom_packages": 456, "missing_license_texts": ["accesskit", "accesskit_consumer", "gpui-kit", "krilla", "lyon", "lyon_algorithms", "lyon_geom", "lyon_path", "lyon_tessellation", "mac", "profiling", "profiling-procmacros", "pulp-wasm-simd-flag", "rust-i18n-macro", "rust-i18n-support", "seahash", "svg_fmt", "taffy", "zune-core", "zune-inflate", "zune-jpeg"], "signed": false}

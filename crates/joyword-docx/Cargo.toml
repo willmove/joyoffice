@@ -1,25 +1,48 @@
 [package]
 name = "joyword-docx"
-description = "DOCX import and conservative text export with original-package backing (T103)"
 version.workspace = true
 edition.workspace = true
-rust-version.workspace = true
-license.workspace = true
-repository.workspace = true
-publish = false
+license = "MIT OR Apache-2.0"
+description = "WordCraft DOCX (OOXML WordprocessingML) reader and writer"
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+all = { level = "warn", priority = -1 }
+type_complexity = "allow"
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+todo = "deny"
+unimplemented = "deny"
+unreachable = "deny"
 
 [dependencies]
-joyoffice-opc.workspace = true
-joyword-model.workspace = true
-quick-xml.workspace = true
+joyword-model = { workspace = true }
+joyword-geom = { workspace = true }
+quick-xml = { workspace = true }
+zip = { workspace = true }
+thiserror = { workspace = true }
+log = { workspace = true }
+chrono = { workspace = true }
+unicode-bidi = { workspace = true }
+cfb = { workspace = true }
+aes = { workspace = true }
+sha1 = { workspace = true }
+sha2 = { workspace = true }
+hmac = { workspace = true }
+hmac-sha1 = { workspace = true }
+base64 = { workspace = true }
+getrandom = { workspace = true }
+zeroize = { workspace = true }
+
+# The browser's `crypto.getRandomValues` for the salts and keys of encrypted saves.
+[target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dependencies]
+getrandom = { workspace = true, features = ["wasm_js"] }
 
 [dev-dependencies]
-joyoffice-drawingml.workspace = true
-joyoffice-omml.workspace = true
-joyword-corpus.workspace = true
-# T402 mark-revision tests round-trip one AI replace through a real engine
-# session before exporting again; see scripts/check_gates.py DEV_LAYERS.
-joyword-engine.workspace = true
-
-[lints]
-workspace = true
+joyword-model = { workspace = true, features = ["test-support"] }
+proptest = { workspace = true }
+image = { workspace = true, features = ["bmp", "gif", "jpeg", "png", "tiff", "webp"] }
+zip = { workspace = true }

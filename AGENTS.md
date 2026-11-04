@@ -2,6 +2,11 @@
 
 适用于整个仓库，用户明确指令优先。
 
+## JoyWord 当前入口（R8）
+
+- JoyWord 后续开发、测试和打包都在本 JoyOffice 仓库进行。从 [R8 交接](docs/joyoffice/JOYWORD-R8-HANDOFF.md) 开始，旧 M0–M9 规格和证据按替换前的基线查阅。
+- `joyword-shell` 和桌面／CLI 共用同一个编辑会话。公共 GPUI Kit、`joyoffice-ui`、OPC 与 AccessKit 补丁由宿主管理。涉及旧 CLI 或恢复格式时先核对交接中的兼容表。
+
 ## JoyDeck 当前入口（R9）
 
 - 用户已授权用 0.8.0 的 DeckCraft/GPUI 重构替换旧 JoyDeck。以后仅在本 JoyOffice 仓库开发；原 joydeck-new 目录已退出开发。开始 Deck 任务须先读 `docs/joyoffice/JOYDECK-R9-HANDOFF.md`、`docs/joydeck/STATUS.md`、`docs/joydeck/TASKS.md` 和 `docs/joydeck/UI-PARITY.md`。
@@ -13,7 +18,7 @@
 - 可由当前会话直接完成任务，也可由协调者按任务边界并行派工多个 Agent；是否单会话或并发以加快交付为准，不强制某一种。
 - 并发时：每个 Agent 独占一条任务分支与明确文件／模块范围，互不改对方工作区；共享文档（如 `TASKS.md`、`IMPLEMENTATION.md`）只追加本任务证据、改本任务状态与进度表中与本任务相关的计数，合并前对最新 `main` 做 merge（禁止强推、禁止 rebase 已推送历史）。
 - 开始前检查工作目录、git status、分支和 HEAD；按用户指定分支工作，未指定时从最新 `main` 开任务分支；独立 worktree 可选。
-- 按需阅读 docs/joyword/ 下的 SPEC.md、ARCHITECTURE.md、QUALITY.md、TASKS.md 和 IMPLEMENTATION.md；docs/coordination/ 仅供历史查证，其中旧的固定派工／文件独占表不再生效，由当次任务说明划定范围。
+- 旧 Word 规格以及 docs/coordination/ 供历史查证。由当次任务划定改动范围。
 - 本仓库为 Word／Deck／Sheet 的 Monorepo。开始 Deck 工作先读 `docs/joyoffice/MONOREPO-MIGRATION.md`、迁移结果记录与 `docs/joydeck/STATUS.md`；开始 Sheet 工作先读 `docs/joyoffice/JOYSHEET-INTEGRATION.md`、`docs/joysheet/README.md`、`STATUS.md` 和 `MIGRATION.md`。在本仓库开发，不回到旧独立目录。应用位于 `apps/`，产品模块位于 `crates/joyword-*`／`crates/joydeck-*`／`crates/joysheet-*`，跨产品模块位于 `crates/joyoffice-*`，禁止产品应用互相依赖。
 - 只修改任务相关内容，保留已有未提交修改；必要时同步相关文档。提交、推送按用户或协调者要求执行，不强推。
 - 提交信息一律用英文书写（2026-10-18 用户明确）。

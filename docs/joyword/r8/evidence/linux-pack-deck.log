@@ -1,0 +1,121 @@
+wsl: 检测到 localhost 代理配置，但未镜像到 WSL。NAT 模式下的 WSL 不支持 localhost 代理。
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
++ /usr/bin/python3 scripts/joydeck/package-native.py --profile debug
+Imported source records passed (291 files)
+    Blocking waiting for file lock on build directory
+   Compiling zerovec v0.11.8
+   Compiling percent-encoding v2.3.2
+   Compiling form_urlencoded v1.2.2
+   Compiling serde_urlencoded v0.7.1
+   Compiling tinystr v0.8.4
+   Compiling potential_utf v0.1.6
+   Compiling icu_collections v2.3.0
+   Compiling icu_locale_core v2.3.0
+   Compiling icu_provider v2.3.1
+   Compiling icu_properties v2.3.0
+   Compiling icu_normalizer v2.3.0
+   Compiling idna_adapter v1.2.2
+   Compiling idna v1.1.0
+   Compiling url v2.5.8
+   Compiling gpui-pre-http-client v0.3.10
+   Compiling gpui-pre v0.3.10
+   Compiling gpui-pre-wgpu v0.3.10
+   Compiling gpui-base v0.8.1
+   Compiling gpui-kit-assets v0.8.1
+   Compiling gpui-pre-linux v0.3.10
+   Compiling gpui-component v0.8.1
+   Compiling gpui-pre-platform v0.3.10
+   Compiling gpui-kit v0.8.1
+   Compiling joyoffice-ui v0.1.0 (/mnt/d/Coding/EditorProjects/joyoffice/crates/joyoffice-ui)
+   Compiling joydeck-ui-gpui v0.1.0 (/mnt/d/Coding/EditorProjects/joyoffice/crates/joydeck-ui-gpui)
+   Compiling joydeck v0.8.0 (/mnt/d/Coding/EditorProjects/joyoffice/apps/joydeck)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 9m 54s
+    Blocking waiting for file lock on build directory
+   Compiling proc-macro2 v1.0.107
+   Compiling arrayvec v0.7.8
+   Compiling num-traits v0.2.19
+   Compiling bitflags v2.13.2
+   Compiling polycool v0.4.0
+   Compiling foldhash v0.2.0
+   Compiling hashbrown v0.17.1
+   Compiling quote v1.0.47
+   Compiling syn v3.0.9
+   Compiling syn v2.0.119
+   Compiling serde_json v1.0.154
+   Compiling log v0.4.34
+   Compiling png v0.18.1
+   Compiling indexmap v2.14.2
+   Compiling typenum v1.20.1
+   Compiling moxcms v0.7.11
+   Compiling generic-array v0.14.7
+   Compiling synstructure v0.14.0
+   Compiling euclid v0.22.14
+   Compiling once_cell v1.21.4
+   Compiling guillotiere v0.7.0
+   Compiling crypto-common v0.1.7
+   Compiling block-buffer v0.10.4
+   Compiling digest v0.10.7
+   Compiling either v1.19.0
+   Compiling sha2 v0.10.9
+   Compiling zip v9.0.0
+   Compiling bytemuck_derive v1.12.1
+   Compiling thiserror-impl v2.0.21
+   Compiling bytemuck v1.25.2
+   Compiling font-types v0.11.3
+   Compiling read-fonts v0.39.2
+   Compiling serde_derive v1.0.228
+   Compiling thiserror v2.0.21
+   Compiling zerocopy-derive v0.8.62
+   Compiling skrifa v0.42.1
+   Compiling zerocopy v0.8.62
+   Compiling serde v1.0.228
+   Compiling smallvec v1.16.3
+   Compiling kurbo v0.13.1
+   Compiling joydeck-geom v0.1.0 (/mnt/d/Coding/EditorProjects/joyoffice/crates/joydeck-geom)
+   Compiling joydeck-color v0.1.0 (/mnt/d/Coding/EditorProjects/joyoffice/crates/joydeck-color)
+   Compiling half v2.7.1
+   Compiling tiff v0.10.3
+   Compiling joydeck-model v0.1.0 (/mnt/d/Coding/EditorProjects/joyoffice/crates/joydeck-model)
+   Compiling font-types v0.12.6
+   Compiling color v0.3.3
+   Compiling peniko v0.6.1
+   Compiling read-fonts v0.41.0
+   Compiling image v0.25.9
+   Compiling vello_common v0.2.0
+   Compiling harfrust v0.8.4
+   Compiling skrifa v0.44.0
+   Compiling zerofrom-derive v0.1.8
+   Compiling glifo v0.3.0
+   Compiling joydeck-fonts v0.1.0 (/mnt/d/Coding/EditorProjects/joyoffice/crates/joydeck-fonts)
+   Compiling zerofrom v0.1.8
+   Compiling write-fonts v0.48.1
+   Compiling yoke-derive v0.8.4
+   Compiling rayon v1.12.0
+   Compiling chrono v0.4.45
+   Compiling strict-num v0.1.1
+   Compiling libc v0.2.186
+   Compiling yoke v0.8.3
+   Compiling joydeck-text v0.1.0 (/mnt/d/Coding/EditorProjects/joyoffice/crates/joydeck-text)
+   Compiling pdf-writer v0.15.0
+   Compiling tiny-skia-path v0.12.0
+   Compiling subsetter v0.2.6
+   Compiling vello_cpu v0.2.0
+   Compiling joydeck-metafile v0.1.0 (/mnt/d/Coding/EditorProjects/joyoffice/crates/joydeck-metafile)
+   Compiling joydeck-anim v0.1.0 (/mnt/d/Coding/EditorProjects/joyoffice/crates/joydeck-anim)
+   Compiling float-cmp v0.9.0
+   Compiling getrandom v0.3.4
+   Compiling krilla v0.8.2
+   Compiling joydeck-render v0.1.0 (/mnt/d/Coding/EditorProjects/joyoffice/crates/joydeck-render)
+   Compiling joydeck-legacy v0.1.0 (/mnt/d/Coding/EditorProjects/joyoffice/crates/joydeck-legacy)
+   Compiling joydeck-pdf v0.1.0 (/mnt/d/Coding/EditorProjects/joyoffice/crates/joydeck-pdf)
+   Compiling joydeck-pptx v0.1.0 (/mnt/d/Coding/EditorProjects/joyoffice/crates/joydeck-pptx)
+   Compiling joydeck-engine v0.1.0 (/mnt/d/Coding/EditorProjects/joyoffice/crates/joydeck-engine)
+   Compiling joydeck-format v0.1.0 (/mnt/d/Coding/EditorProjects/joyoffice/crates/joydeck-format)
+   Compiling joydeck-shell v0.1.0 (/mnt/d/Coding/EditorProjects/joyoffice/crates/joydeck-shell)
+   Compiling joydeck-cli v0.8.0 (/mnt/d/Coding/EditorProjects/joyoffice/apps/joydeck-cli)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1m 52s
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+Packaging failed: Source changed during packaging; rebuild the new source
+error: Command '['/usr/bin/python3', 'scripts/joydeck/package-native.py', '--profile', 'debug']' returned non-zero exit status 1.

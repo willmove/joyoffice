@@ -33,6 +33,9 @@ Not a 1.0 product; DOCX declared subset only. MIT license.
 
 Docs and system requirements:
 https://github.com/willmove/joyoffice#readme
+Open a bundled sample through File > Open or pass its path to joyword.
+通过「文件 → 打开」或启动参数打开 samples 目录内的 DOCX。
+Run joyword-cli --help for headless editing and export.
 macOS: unsigned; right-click the app and choose Open to bypass Gatekeeper.
 macOS：未签名；右键 App 选择「打开」以绕过 Gatekeeper。
 Windows: unsigned; SmartScreen may require "More info -> Run anyway".
@@ -73,6 +76,7 @@ def write_sidecar(asset: Path) -> Path:
 
 def zip_entry(name: str, executable: bool) -> zipfile.ZipInfo:
     info = zipfile.ZipInfo(name)
+    info.compress_type = zipfile.ZIP_DEFLATED
     info.external_attr = ((stat.S_IFREG | (0o755 if executable else 0o644)) << 16)
     return info
 
@@ -80,7 +84,8 @@ def zip_entry(name: str, executable: bool) -> zipfile.ZipInfo:
 def make_zip(entries, asset: Path):
     with zipfile.ZipFile(asset, "w", zipfile.ZIP_DEFLATED) as archive:
         for arcname, source, executable in entries:
-            archive.writestr(zip_entry(arcname, executable), source.read_bytes())
+            with source.open("rb") as handle, archive.open(zip_entry(arcname, executable), "w") as member:
+                shutil.copyfileobj(handle, member)
 
 
 def make_tar_gz(entries, asset: Path):
@@ -158,6 +163,15 @@ def main() -> int:
             "binarySha256": sha256(binary), "cliSha256": sha256(args.cli) if args.cli else None, "cargoLockSha256": dependency["lockSha256"],
             "dependencyPackages": dependency["packages"], "sourceSnapshotVerified": args.source_snapshot is not None, "officialSignatureVerified": False}, indent=2) + "\n", encoding='utf-8')
         materials = [("README-joyword.txt", readme, False), ("LICENSE", root / "LICENSE", False)]
+        for name in ("craft-i18n", "craft-libs", "gpui", "wordcraft", "accesskit-windows"):
+            materials.extend((p.relative_to(root).as_posix(), p, False)
+                             for p in sorted((root / "licenses" / name).rglob("*")) if p.is_file())
+        materials.append(("licenses/joyoffice/JOYWORD-R8-SOURCE.json",
+                          root / "licenses/joyoffice/JOYWORD-R8-SOURCE.json", False))
+        materials.extend((f"licenses/fonts/{p.name}", p, False)
+                         for p in sorted((root / "assets/fonts").glob("OFL-*")) if p.is_file())
+        materials.extend((f"samples/{p.name}", p, False)
+                         for p in sorted((root / "assets/samples").iterdir()) if p.is_file())
         materials.extend((p.relative_to(staging).as_posix(), p, False)
                          for p in sorted(staging.rglob("*"))
                          if p.is_file() and p != readme)

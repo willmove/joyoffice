@@ -1,0 +1,107 @@
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
++ cargo fmt -p joyoffice-opc -p joyoffice-ui -p joyword -p joyword-agent -p joyword-cli -p joyword-control-key -p joyword-corpus -p joyword-doc -p joyword-docx -p joyword-engine -p joyword-fonts -p joyword-formats -p joyword-geom -p joyword-layout -p joyword-mcp -p joyword-metafile -p joyword-model -p joyword-pdf -p joyword-render -p joyword-shell -p joyword-ui-gpui -- --check
++ cargo clippy -p joyoffice-opc -p joyoffice-ui -p joyword -p joyword-agent -p joyword-cli -p joyword-control-key -p joyword-corpus -p joyword-doc -p joyword-docx -p joyword-engine -p joyword-fonts -p joyword-formats -p joyword-geom -p joyword-layout -p joyword-mcp -p joyword-metafile -p joyword-model -p joyword-pdf -p joyword-render -p joyword-shell -p joyword-ui-gpui --lib --bins --locked -- -D warnings
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.63s
++ cargo test -p joyoffice-opc -p joyoffice-ui -p joyword -p joyword-agent -p joyword-cli -p joyword-control-key -p joyword-corpus -p joyword-doc -p joyword-docx -p joyword-engine -p joyword-fonts -p joyword-formats -p joyword-geom -p joyword-layout -p joyword-mcp -p joyword-metafile -p joyword-model -p joyword-pdf -p joyword-render -p joyword-shell -p joyword-ui-gpui --locked
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+   Compiling gpui-component v0.8.1
+   Compiling joyword-agent v0.1.0 (D:\Coding\EditorProjects\joyoffice\crates\joyword-agent)
+   Compiling gpui-kit v0.8.1
+   Compiling joyoffice-ui v0.1.0 (D:\Coding\EditorProjects\joyoffice\crates\joyoffice-ui)
+   Compiling joyword-ui-gpui v0.1.0 (D:\Coding\EditorProjects\joyoffice\crates\joyword-ui-gpui)
+   Compiling joyword v0.1.1 (D:\Coding\EditorProjects\joyoffice\apps\joyword)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 53.60s
+     Running unittests src\lib.rs (target\x86_64-pc-windows-msvc\debug\deps\joyoffice_opc-73769d59cf0c421e.exe)
+
+running 3 tests
+test part::tests::accepts_valid_names_and_rejects_unsafe_ones ... ok
+test part::tests::references_resolve_without_escaping_the_root ... ok
+test part::tests::relationships_parts_map_to_their_sources ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\package.rs (target\x86_64-pc-windows-msvc\debug\deps\package-4fe9f34579b30b32.exe)
+
+running 9 tests
+test external_targets_are_classified_conservatively ... ok
+test stored_items_round_trip_through_the_writer ... ok
+test reads_a_minimal_package_and_keeps_exact_bytes ... ok
+test relationships_resolve_relative_targets_and_never_follow_external_ones ... ok
+test rejects_lying_and_overlapping_archives ... ok
+test rejects_unsafe_part_names ... ok
+test rejects_hostile_xml_before_expansion ... ok
+test budgets_stop_bombs_before_inflation ... ok
+test mutation_smoke_never_panics ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.17s
+
+     Running unittests src\lib.rs (target\x86_64-pc-windows-msvc\debug\deps\joyoffice_ui-c7d323c98c77987e.exe)
+
+running 1 test
+test tests::reading_and_action_colors_remain_legible_across_brands_and_modes ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\main.rs (target\x86_64-pc-windows-msvc\debug\deps\joyword-c3c3a0f66b79ad6e.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\lib.rs (target\x86_64-pc-windows-msvc\debug\deps\joyword_agent-c957c05fff5633fd.exe)
+
+running 7 tests
+test document::tests::regression_push_checks_version_exhaustion_without_mutation ... ok
+test scoped::tests::regression_snapshot_restart_refuses_tools_and_context ... ok
+test scoped::tests::regression_snapshot_stop_refuses_tools_and_context ... ok
+test scoped::tests::regression_snapshot_disable_refuses_tools_and_context ... ok
+test scoped::tests::regression_completion_snapshot_gate_changes_never_send_or_return_stale_content ... ok
+test document::tests::regression_push_checks_total_text_budget_including_separators ... ok
+test document::tests::regression_push_checks_local_budgets_without_mutation ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests\contract.rs (target\x86_64-pc-windows-msvc\debug\deps\contract-6a962c364781c938.exe)
+
+running 18 tests
+test admin_force_disable_blocks_enable_and_requests ... ok
+test duplicate_proposal_is_admitted_once_and_apply_is_blocked ... ok
+test http_transport_redacts_the_credential_and_records_one_exchange ... ok
+test delete_credential_fails_closed_without_a_call ... ok
+test disabled_complete_does_not_touch_the_provider ... ok
+test enabled_startup_still_makes_zero_provider_requests ... ok
+test fake_provider_honors_cancel_and_does_not_debug_the_prompt ... ok
+test first_launch_startup_makes_zero_provider_requests ... ok
+test kill_switch_bumps_generation_and_rejects_old_tickets ... ok
+test missing_credential_offline_and_rate_limit_do_not_admit_a_commit ... ok
+test stale_commit_after_kill_switch_is_rejected ... ok
+test provider_and_endpoint_allowlists_refuse_before_transport ... ok
+test os_policy_backends_are_stubs_and_tools_do_not_run ... ok
+test config_defaults_round_trip_and_reject_secrets ... ok
+test telemetry_defaults_off_and_never_counts_an_upload ... ok
+test system_credential_store_is_a_stub ... ok
+test core_manifests_do_not_name_the_agent_crate ... FAILED
+test disable_and_commit_are_mutually_exclusive ... ok
+
+failures:
+
+---- core_manifests_do_not_name_the_agent_crate stdout ----
+
+thread 'core_manifests_do_not_name_the_agent_crate' (29768) panicked at crates\joyword-agent\tests\contract.rs:455:60:
+crates/joyword-foundation/Cargo.toml: Os { code: 2, kind: NotFound, message: "系统找不到指定的文件。" }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    core_manifests_do_not_name_the_agent_crate
+
+test result: FAILED. 17 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+error: test failed, to rerun pass `-p joyword-agent --test contract`
+error: Command '['cargo', 'test', '-p', 'joyoffice-opc', '-p', 'joyoffice-ui', '-p', 'joyword', '-p', 'joyword-agent', '-p', 'joyword-cli', '-p', 'joyword-control-key', '-p', 'joyword-corpus', '-p', 'joyword-doc', '-p', 'joyword-docx', '-p', 'joyword-engine', '-p', 'joyword-fonts', '-p', 'joyword-formats', '-p', 'joyword-geom', '-p', 'joyword-layout', '-p', 'joyword-mcp', '-p', 'joyword-metafile', '-p', 'joyword-model', '-p', 'joyword-pdf', '-p', 'joyword-render', '-p', 'joyword-shell', '-p', 'joyword-ui-gpui', '--locked']' returned non-zero exit status 101.

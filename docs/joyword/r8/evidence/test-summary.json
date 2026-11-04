@@ -1,0 +1,56 @@
+{
+  "windows": {
+    "word_product_checks": {
+      "passed": 3482,
+      "failed": 0,
+      "ignored": 2
+    },
+    "deck_sheet_selected_regression": {
+      "passed": 962,
+      "failed": 0,
+      "ignored": 0
+    },
+    "python": {
+      "tests": 152,
+      "skipped_legacy": 2,
+      "failures": 0
+    },
+    "default_file_associations": {
+      ".docx": "Word.Document.12",
+      ".xlsx": "Excel.Sheet.12",
+      ".pptx": "PowerPoint.Show.12"
+    },
+    "desktop_package_reopen": {
+      "joyword": "DOCX text, table, image, legacy EN preference",
+      "joysheet": "XLSX C2 formula and display 808",
+      "joydeck": "PPTX four slides including duplicated slide 2"
+    }
+  },
+  "linux_x64": {
+    "runtime": "Ubuntu WSL2 / WSLg; Vulkan llvmpipe",
+    "joint_build": true,
+    "desktop_launch": [
+      "joyword",
+      "joysheet",
+      "joydeck"
+    ],
+    "packages_verified": [
+      "joyword",
+      "joysheet",
+      "joydeck"
+    ],
+    "sheet_debian_control": {
+      "package": "joysheet",
+      "version": "0.1.0",
+      "architecture": "amd64"
+    },
+    "reopen_checks": {
+      "joyword": "DOCX edits, OOXML, PNG, PDF and 64 mutations",
+      "joysheet": "C2 808",
+      "joydeck": "four slides"
+    }
+  },
+  "macos": {
+    "status": "deferred"
+  }
+}

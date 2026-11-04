@@ -8,7 +8,7 @@
 
 use std::fmt::Write as _;
 use std::fs;
-use std::io::{self, Write as _};
+use std::io::{self, Read as _, Write as _};
 use std::path::{Path, PathBuf};
 
 use crate::l10n::Locale;
@@ -276,6 +276,9 @@ pub fn default_config_dir() -> Option<PathBuf> {
             .filter(|value| !value.is_empty())
             .map(PathBuf::from)
     };
+    if let Some(path) = env("JOYWORD_CONFIG_DIR") {
+        return Some(path);
+    }
     if cfg!(target_os = "macos") {
         env("HOME").map(|home| home.join("Library/Application Support/JoyWord"))
     } else if cfg!(target_os = "windows") {
@@ -298,6 +301,35 @@ impl PrefsStore {
 
     pub fn path(&self) -> PathBuf {
         self.dir.join(FILE_NAME)
+    }
+
+    /// Use the old installation's defaults until this editor saves its own
+    /// preferences. Reading the old file never invokes corruption recovery.
+    pub fn load_with_legacy(&self, legacy_dir: &Path, fallback: Locale) -> Loaded {
+        if !self
+            .path()
+            .symlink_metadata()
+            .is_err_and(|error| error.kind() == io::ErrorKind::NotFound)
+        {
+            return self.load(fallback);
+        }
+
+        const LIMIT: u64 = 256 * 1024;
+        let mut text = String::new();
+        let legacy = fs::File::open(legacy_dir.join(FILE_NAME))
+            .and_then(|file| file.take(LIMIT + 1).read_to_string(&mut text));
+        if legacy.is_ok()
+            && text.len() as u64 <= LIMIT
+            && let Ok((prefs, notices, schema)) = parse(&text, fallback)
+            && schema <= SCHEMA
+        {
+            return Loaded {
+                prefs,
+                notices,
+                writable: true,
+            };
+        }
+        self.load(fallback)
     }
 
     /// Loads preferences; see the module documentation. `fallback` chooses
@@ -334,9 +366,17 @@ impl PrefsStore {
             },
             Err(()) => {
                 let backup = self.backup_path();
-                // Keep the damaged file; if even copying fails, refuse to
-                // overwrite it later.
-                let copied = fs::write(&backup, &bytes).is_ok();
+                // create_new also protects a backup created by another process.
+                // Exhaustion or a competing writer preserves the original read-only.
+                let copied = fs::OpenOptions::new()
+                    .write(true)
+                    .create_new(true)
+                    .open(&backup)
+                    .and_then(|mut file| {
+                        file.write_all(&bytes)?;
+                        file.sync_all()
+                    })
+                    .is_ok();
                 Loaded {
                     prefs: Preferences::defaults_for(fallback),
                     notices: vec![PrefsNotice::Corrupt { backup }],
@@ -347,10 +387,10 @@ impl PrefsStore {
     }
 
     fn backup_path(&self) -> PathBuf {
-        (0..)
+        (0..1024)
             .map(|n| self.dir.join(format!("preferences.corrupt-{n}.conf")))
             .find(|candidate| !candidate.exists())
-            .expect("an unused backup name exists")
+            .unwrap_or_else(|| self.dir.join("preferences.corrupt-1023.conf"))
     }
 
     /// Writes atomically: a temporary file in the same directory, flushed,
@@ -380,6 +420,51 @@ impl PrefsStore {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn legacy_preferences_are_read_only_and_active_preferences_win() -> io::Result<()> {
+        let dir = tempfile::tempdir()?;
+        let legacy = dir.path().join(FILE_NAME);
+        let old = "schema=1\nui.locale=en\nauthor.name=R8 reviewer\nfuture.key=retained\n";
+        fs::write(&legacy, old)?;
+        let store = PrefsStore::new(dir.path().join("migration-preview"));
+        let mut loaded = store.load_with_legacy(dir.path(), Locale::ZhCn);
+        assert_eq!(loaded.prefs.ui_locale, Locale::En);
+        assert_eq!(loaded.prefs.author_name, "R8 reviewer");
+        assert!(!store.path().exists());
+        loaded.prefs.ui_locale = Locale::ZhCn;
+        store.save(&loaded)?;
+        let active = store.load_with_legacy(dir.path(), Locale::En);
+        assert_eq!(active.prefs.ui_locale, Locale::ZhCn);
+        assert_eq!(
+            active.prefs.unknown,
+            [("future.key".into(), "retained".into())]
+        );
+        assert_eq!(fs::read_to_string(&legacy)?, old);
+        Ok(())
+    }
+
+    #[test]
+    fn exhausted_backup_names_preserve_original_and_existing_backups() {
+        let dir = tempfile::tempdir().unwrap();
+        let store = PrefsStore::new(dir.path());
+        fs::write(store.path(), [0xff, 0xfe]).unwrap();
+        for n in 0..1024 {
+            fs::write(
+                dir.path().join(format!("preferences.corrupt-{n}.conf")),
+                "keep",
+            )
+            .unwrap();
+        }
+        let loaded = store.load(Locale::ZhCn);
+        assert!(!loaded.writable);
+        assert!(store.save(&loaded).is_err());
+        assert_eq!(fs::read(store.path()).unwrap(), [0xff, 0xfe]);
+        assert_eq!(
+            fs::read_to_string(dir.path().join("preferences.corrupt-1023.conf")).unwrap(),
+            "keep"
+        );
+    }
 
     fn temp_dir(name: &str) -> PathBuf {
         let dir = std::env::temp_dir().join(format!("joyword-prefs-{name}-{}", std::process::id()));

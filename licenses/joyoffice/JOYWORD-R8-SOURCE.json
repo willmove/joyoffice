@@ -1,0 +1,465 @@
+{
+  "repository": "https://github.com/willmove/joyoffice",
+  "commit": "00fb06872d38bbbfc26f4dbc3404d6810b72aabb",
+  "files": [
+    {
+      "source": "rust-toolchain.toml",
+      "target": "rust-toolchain.toml",
+      "sha256": "1b709d1ecd0da76c2ff745c56244fc358045d70d50a7aaf8b0c63c0dc94cf558",
+      "modified": false
+    },
+    {
+      "source": "crates/joyoffice-ui/Cargo.toml",
+      "target": "crates/joyoffice-ui/Cargo.toml",
+      "sha256": "b142babb482b11493bbdb1287156714b1506d6d78eda6f1bfa1be91835346be8",
+      "modified": false
+    },
+    {
+      "source": "crates/joyoffice-ui/src/lib.rs",
+      "target": "crates/joyoffice-ui/src/lib.rs",
+      "sha256": "acad6ff295610ae704278806d57f7ec92fc25bdcc867d18015abf930b55030b9",
+      "modified": false
+    },
+    {
+      "source": "crates/joyword-shell/src/l10n.rs",
+      "target": "crates/joyword-shell/src/l10n.rs",
+      "sha256": "e11eaa24ce636b67e4e2fb39f672403c358ae511c94a8978d73dd221e7a4571f",
+      "modified": true,
+      "changes": "Replaced production panic/expect; bounded backup-name search with create_new; added exhaustion regression."
+    },
+    {
+      "source": "crates/joyword-shell/src/prefs.rs",
+      "target": "crates/joyword-shell/src/prefs.rs",
+      "sha256": "aa937f6169fd0bf9a0aadb0306f0d55709822827d2dd7200648389c8e715df73",
+      "modified": true,
+      "changes": "Replaced production panic/expect; bounded backup-name search with create_new; added exhaustion regression."
+    },
+    {
+      "source": "crates/joyword-shell/locales/en.lang",
+      "target": "crates/joyword-shell/locales/en.lang",
+      "sha256": "2370c21a9614b2c51794a91328bf28cd0ca753f626c7482abf682805da7258e9",
+      "modified": false
+    },
+    {
+      "source": "crates/joyword-shell/locales/zh-CN.lang",
+      "target": "crates/joyword-shell/locales/zh-CN.lang",
+      "sha256": "a1fc86a3c295044b74f1bb8e712c25a10dc52906f500c7aedf2e8bd107938616",
+      "modified": false
+    },
+    {
+      "source": "third-party/accesskit_windows/.cargo_vcs_info.json",
+      "target": "third-party/accesskit_windows/.cargo_vcs_info.json",
+      "sha256": "7b556e30d8d54e863f20727b9547512b6955849fc5d6c1819b01301c8a0bd764",
+      "modified": false
+    },
+    {
+      "source": "third-party/accesskit_windows/Cargo.lock",
+      "target": "third-party/accesskit_windows/Cargo.lock",
+      "sha256": "70a312c4f55d542975526756f464f6869411557f979c79ceff46b7899e97ccba",
+      "modified": false
+    },
+    {
+      "source": "third-party/accesskit_windows/Cargo.toml",
+      "target": "third-party/accesskit_windows/Cargo.toml",
+      "sha256": "baad411ffb33b69d13765a538db985128def773bc93e6722183c34efcd5289b2",
+      "modified": false
+    },
+    {
+      "source": "third-party/accesskit_windows/Cargo.toml.orig",
+      "target": "third-party/accesskit_windows/Cargo.toml.orig",
+      "sha256": "71d45e050aab4e968e634c93e161f7fd3609d8b783374ca07e52e3f4b619bd97",
+      "modified": false
+    },
+    {
+      "source": "third-party/accesskit_windows/CHANGELOG.md",
+      "target": "third-party/accesskit_windows/CHANGELOG.md",
+      "sha256": "a30775fb0f1a725f3e001db5182e8b88a7a39c6b4e4b6c0e07e02cf38432b1e3",
+      "modified": false
+    },
+    {
+      "source": "third-party/accesskit_windows/LICENSE-APACHE",
+      "target": "third-party/accesskit_windows/LICENSE-APACHE",
+      "sha256": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a",
+      "modified": false
+    },
+    {
+      "source": "third-party/accesskit_windows/LICENSE-MIT",
+      "target": "third-party/accesskit_windows/LICENSE-MIT",
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3",
+      "modified": false
+    },
+    {
+      "source": "third-party/accesskit_windows/README.md",
+      "target": "third-party/accesskit_windows/README.md",
+      "sha256": "622db8e92d711b64279a91e25ae9345959c82bb4d47157dbf5c3a6a53f80f6d6",
+      "modified": false
+    },
+    {
+      "source": "third-party/accesskit_windows/examples/hello_world.rs",
+      "target": "third-party/accesskit_windows/examples/hello_world.rs",
+      "sha256": "5a7dc1b1856e08773367c9c5ec7a857e4ad60afda0cb460852fb0c4573132e4c",
+      "modified": false
+    },
+    {
+      "source": "third-party/accesskit_windows/src/adapter.rs",
+      "target": "third-party/accesskit_windows/src/adapter.rs",
+      "sha256": "6519a7e59a380c8afadca814fd998d0697e91ad8be94da8e11ac8e5580d47edf",
+      "modified": false
+    },
+    {
+      "source": "third-party/accesskit_windows/src/context.rs",
+      "target": "third-party/accesskit_windows/src/context.rs",
+      "sha256": "c449012e7742ccb469aa95368f8f7a527d7f2e3eb911f7e5115bca26528e8cb4",
+      "modified": false
+    },
+    {
+      "source": "third-party/accesskit_windows/src/filters.rs",
+      "target": "third-party/accesskit_windows/src/filters.rs",
+      "sha256": "744374b547065b153123c80028f129f5c6bb53052660205e1a2f231c3e169f64",
+      "modified": false
+    },
+    {
+      "source": "third-party/accesskit_windows/src/lib.rs",
+      "target": "third-party/accesskit_windows/src/lib.rs",
+      "sha256": "8a6f20ed5354c9834d88a59091c764f65aa31359f81c57386fe06e9d806e9396",
+      "modified": false
+    },
+    {
+      "source": "third-party/accesskit_windows/src/node.rs",
+      "target": "third-party/accesskit_windows/src/node.rs",
+      "sha256": "0c6ddddcbc258a08a727e1704bdbb34da9158793d493b9b8c761a24e181c3f4a",
+      "modified": false
+    },
+    {
+      "source": "third-party/accesskit_windows/src/subclass.rs",
+      "target": "third-party/accesskit_windows/src/subclass.rs",
+      "sha256": "69bb742d5451f2cff1c2110e77782948cb751aaad3302c5b1453ebf8b3d20a9e",
+      "modified": false
+    },
+    {
+      "source": "third-party/accesskit_windows/src/text.rs",
+      "target": "third-party/accesskit_windows/src/text.rs",
+      "sha256": "a7b54f64423df4599dd744df65227b0822003c604ee1e84f57b5a20f7093cb7c",
+      "modified": false
+    },
+    {
+      "source": "third-party/accesskit_windows/src/util.rs",
+      "target": "third-party/accesskit_windows/src/util.rs",
+      "sha256": "a9d6c759a8eb19e927bfe3ccc0d3ec6d697e1e794f695b76379a3442756cf069",
+      "modified": false
+    },
+    {
+      "source": "third-party/accesskit_windows/src/window_handle.rs",
+      "target": "third-party/accesskit_windows/src/window_handle.rs",
+      "sha256": "dec1d78c81784a18c50f066e89d57d0fe02a7c9199a11e47a0833f8b9113d8c2",
+      "modified": false
+    },
+    {
+      "source": "third-party/accesskit_windows/src/tests/mod.rs",
+      "target": "third-party/accesskit_windows/src/tests/mod.rs",
+      "sha256": "5ea818811560d2af26cade33f7ec162c5f718ee62b2c9b3dd3dc822677d30409",
+      "modified": false
+    },
+    {
+      "source": "third-party/accesskit_windows/src/tests/simple.rs",
+      "target": "third-party/accesskit_windows/src/tests/simple.rs",
+      "sha256": "8bd3eb20e258f2a9d5379671f5c3b4121623a66a95f6acfa9f70412323c87691",
+      "modified": false
+    },
+    {
+      "source": "third-party/accesskit_windows/src/tests/subclassed.rs",
+      "target": "third-party/accesskit_windows/src/tests/subclassed.rs",
+      "sha256": "0987f1d442d1b57657f17fac6a9623ae012603531f47afcb31ff6ca73cb8e932",
+      "modified": false
+    },
+    {
+      "source": "LICENSE",
+      "target": "licenses/joyoffice/LICENSE",
+      "sha256": "507699be1a533254e00494aafb31153582e9ffa8a27ec0f7f11639217f816b1d",
+      "modified": false
+    },
+    {
+      "source": "LICENSE",
+      "target": "LICENSE",
+      "sha256": "507699be1a533254e00494aafb31153582e9ffa8a27ec0f7f11639217f816b1d",
+      "modified": false
+    },
+    {
+      "source": "tools/xtask/src/main.rs",
+      "target": "tools/xtask/src/main.rs",
+      "sha256": "f296ab3ff901ee5353978db08245ff0fca1d1f13a3f08492beb0d7055dbb0cdf",
+      "modified": true
+    },
+    {
+      "source": "crates/joyoffice-opc/Cargo.toml",
+      "target": "crates/joyoffice-opc/Cargo.toml",
+      "sha256": "c5b0fbc5a8904f9edfa1d573afb80775fcb56125a0f723ddee512dca7bf4abb2",
+      "modified": false,
+      "changes": "Unmodified host OPC container validation and budgets."
+    },
+    {
+      "source": "crates/joyoffice-opc/src/budget.rs",
+      "target": "crates/joyoffice-opc/src/budget.rs",
+      "sha256": "f855c0df3c7aae8d4c883d17b5261d9adb3f4edeb845ef834a0396af28b54fe2",
+      "modified": false,
+      "changes": "Unmodified host OPC container validation and budgets."
+    },
+    {
+      "source": "crates/joyoffice-opc/src/lib.rs",
+      "target": "crates/joyoffice-opc/src/lib.rs",
+      "sha256": "34a3166790e5d968e1767c77d1be57d43541181c43f210559dbc269054004b86",
+      "modified": false,
+      "changes": "Unmodified host OPC container validation and budgets."
+    },
+    {
+      "source": "crates/joyoffice-opc/src/package.rs",
+      "target": "crates/joyoffice-opc/src/package.rs",
+      "sha256": "d7c9b288c39b1ddfeaf6cbad863b0dd473ec9957cf32f7825115918a84d07277",
+      "modified": false,
+      "changes": "Unmodified host OPC container validation and budgets."
+    },
+    {
+      "source": "crates/joyoffice-opc/src/part.rs",
+      "target": "crates/joyoffice-opc/src/part.rs",
+      "sha256": "69e4f7af305ca98f7a57e4e639c145c9f0cf948445ff018e85967b85cf8aa1db",
+      "modified": false,
+      "changes": "Unmodified host OPC container validation and budgets."
+    },
+    {
+      "source": "crates/joyoffice-opc/src/xml.rs",
+      "target": "crates/joyoffice-opc/src/xml.rs",
+      "sha256": "ba14d800c74e07bb2f75eeb355c99f1ca79bfa763b59913c22fcdb7fccc8ee4f",
+      "modified": false,
+      "changes": "Unmodified host OPC container validation and budgets."
+    },
+    {
+      "source": "crates/joyoffice-opc/src/zip.rs",
+      "target": "crates/joyoffice-opc/src/zip.rs",
+      "sha256": "8f8d3cbe288d3f6193d589314bc20115bbc7e5e26fcba2d66ebe44612f5c2a60",
+      "modified": false,
+      "changes": "Unmodified host OPC container validation and budgets."
+    },
+    {
+      "source": "crates/joyoffice-opc/tests/package.rs",
+      "target": "crates/joyoffice-opc/tests/package.rs",
+      "sha256": "63c9db86db6f792524a8827e9be621b856e3436d1d39d358c1d5a7a6a86f09b3",
+      "modified": false,
+      "changes": "Unmodified host OPC container validation and budgets."
+    },
+    {
+      "source": "tests/fixtures/docx/DOCX-SAMPLE-001.docx",
+      "target": "assets/samples/welcome.docx",
+      "sha256": "a767d121341c12a26721ded803f4401f77ff54bc411383328ccc5fd1db91cd2d",
+      "modified": false,
+      "changes": "Host original test corpus; Chinese bilingual text."
+    },
+    {
+      "source": "crates/joyword-render/src/requests.rs",
+      "target": "crates/joyword-render/src/requests.rs",
+      "sha256": "3a7d080bc27f06803d5a580100402067c66ee1ebd5709f5a67c0d7d9d007e7f0",
+      "modified": true,
+      "changes": "Generic serial/key identity retained; renew overflow returns None; removed host LayoutKey coupling; new race/overflow regressions."
+    },
+    {
+      "source": "apps/joyword/src/document_canvas.rs",
+      "target": "crates/joyword-ui-gpui/src/document_view.rs",
+      "sha256": "4d482f12c4cc20e0a334107de8c8a6f50f4f0afdda53cd919572b32549828623",
+      "modified": true,
+      "changes": "Reuses generation gating, stale rejection, bounded viewport raster scheduling. Adapted to Wordcraft Session and page scene."
+    },
+    {
+      "source": "apps/joyword/src/input_ui.rs",
+      "target": "crates/joyword-ui-gpui/src/document_view.rs",
+      "sha256": "596b7d4f79e6e760276ad1784d7abc1b6635038d5c9f29a52bb7966743f327bc",
+      "modified": true,
+      "changes": "Native GPUI prompt_for_paths receiver handling adapted into one R2 canvas."
+    },
+    {
+      "source": "crates/joyword-shell/src/storage/source.rs",
+      "target": "crates/joyword-shell/src/storage/source.rs",
+      "sha256": "e4be0181b739d432b61af070d5498774ad120c37afff6ca5144024e69897ea06",
+      "modified": true,
+      "changes": "Host source stamp/locks/metadata/verified temp publication/ReplaceFileW pipelines retained; new single-engine export/version adapter; production expect replaced; source/metadata tests retained and new-engine fault tests added."
+    },
+    {
+      "source": "crates/joyword-shell/src/storage/metadata.rs",
+      "target": "crates/joyword-shell/src/storage/metadata.rs",
+      "sha256": "ab12aa54f7fcd489dfc30c767d085902013a4b406575dbeece58893523060887",
+      "modified": true,
+      "changes": "Host source stamp/locks/metadata/verified temp publication/ReplaceFileW pipelines retained; new single-engine export/version adapter; production expect replaced; source/metadata tests retained and new-engine fault tests added."
+    },
+    {
+      "source": "crates/joyword-shell/src/storage/locks.rs",
+      "target": "crates/joyword-shell/src/storage/locks.rs",
+      "sha256": "b6e21ed906a906c77a527c26b8da173200dbf4c0abc4ab7c63abeab2e68421b6",
+      "modified": true,
+      "changes": "Host source stamp/locks/metadata/verified temp publication/ReplaceFileW pipelines retained; new single-engine export/version adapter; production expect replaced; source/metadata tests retained and new-engine fault tests added."
+    },
+    {
+      "source": "crates/joyword-shell/src/storage/error.rs",
+      "target": "crates/joyword-shell/src/storage/error.rs",
+      "sha256": "f9a42b3af85a025ce2bee3f9171100ad673b7bb523c3cba37636767aed187bf6",
+      "modified": true,
+      "changes": "Host source stamp/locks/metadata/verified temp publication/ReplaceFileW pipelines retained; new single-engine export/version adapter; production expect replaced; source/metadata tests retained and new-engine fault tests added."
+    },
+    {
+      "source": "crates/joyword-shell/src/storage/original.rs",
+      "target": "crates/joyword-shell/src/storage/original.rs",
+      "sha256": "497cea155891e3907b73a7da6dd8fa2ba57421758936d10f07eeca655951ffcd",
+      "modified": true,
+      "changes": "Host source stamp/locks/metadata/verified temp publication/ReplaceFileW pipelines retained; new single-engine export/version adapter; production expect replaced; source/metadata tests retained and new-engine fault tests added."
+    },
+    {
+      "source": "crates/joyword-shell/src/storage.rs",
+      "target": "crates/joyword-shell/src/storage.rs",
+      "sha256": "ba92e316a990f3b50ae7c60a61d95865c67f82014ebfb552cedc5eafde19e94f",
+      "modified": true,
+      "changes": "Host source stamp/locks/metadata/verified temp publication/ReplaceFileW pipelines retained; new single-engine export/version adapter; production expect replaced; source/metadata tests retained and new-engine fault tests added."
+    },
+    {
+      "source": "apps/joyword/src/input_ui.rs",
+      "target": "crates/joyword-ui-gpui/src/input.rs",
+      "sha256": "596b7d4f79e6e760276ad1784d7abc1b6635038d5c9f29a52bb7966743f327bc",
+      "modified": true,
+      "changes": "GPUI EntityInputHandler signatures, ElementInputHandler registration, UTF-16 coordinate callbacks, focus/activation cancel and pointer/overlay wiring adapted to the single Wordcraft Session. Each document has an epoch-bound input entity."
+    },
+    {
+      "source": "crates/joyword-shell/src/input.rs",
+      "target": "crates/joyword-shell/src/editing.rs",
+      "sha256": "95e4c0478d5a52a5b061d7062fe5aa3a6074fbecba70e9da63c688b237a9597a",
+      "modified": true,
+      "changes": "Exact UTF-16 boundary conversion and composition/dirty/version contracts adapted; engine snapshots provide one IME undo group without a second editable model."
+    },
+    {
+      "source": "crates/joydeck-ui-gpui/src/format_ui.rs",
+      "target": "crates/joyword-ui-gpui/src/formatting.rs",
+      "sha256": "63511b284dafceeeea3a0ce4671c0ade4b69868fcd005414d3fcfdc2af240053",
+      "modified": true,
+      "changes": "R4: adapt host GPUI Kit searchable font Select, size/color/spacing Popover choices, blank-preserving field validation, document/revision-bound Input forms and focus return; bind to the single Wordcraft engine commands instead of the host legacy model. Shared joyoffice-ui palette/controls remain unchanged."
+    },
+    {
+      "source": "crates/joydeck-ui-gpui/src/paragraph_ui.rs",
+      "target": "crates/joyword-ui-gpui/src/formatting.rs",
+      "sha256": "38f7e6633643974486b47699cc08f7d1cdbde921fee7613bc003afae1b34196a",
+      "modified": true,
+      "changes": "R4: adapt host GPUI Kit searchable font Select, size/color/spacing Popover choices, blank-preserving field validation, document/revision-bound Input forms and focus return; bind to the single Wordcraft engine commands instead of the host legacy model. Shared joyoffice-ui palette/controls remain unchanged."
+    },
+    {
+      "source": "crates/joydeck-ui-gpui/src/chrome_edit.rs",
+      "target": "crates/joyword-ui-gpui/src/formatting.rs",
+      "sha256": "7e92c6ded40baad52908571ad03e3e348e11cb3a84fa05c8839cb2727735e32f",
+      "modified": true,
+      "changes": "R4: adapt host GPUI Kit searchable font Select, size/color/spacing Popover choices, blank-preserving field validation, document/revision-bound Input forms and focus return; bind to the single Wordcraft engine commands instead of the host legacy model. Shared joyoffice-ui palette/controls remain unchanged."
+    },
+    {
+      "source": "apps/joyword/src/chrome_ui.rs",
+      "target": "crates/joyword-ui-gpui/src/formatting.rs",
+      "sha256": "575b7c0d30aaeb843531c1f4aec7b0308487d551f9d8b9debd6a9450cf4dd1d0",
+      "modified": true,
+      "changes": "R4: adapt host GPUI Kit searchable font Select, size/color/spacing Popover choices, blank-preserving field validation, document/revision-bound Input forms and focus return; bind to the single Wordcraft engine commands instead of the host legacy model. Shared joyoffice-ui palette/controls remain unchanged."
+    },
+    {
+      "source": "apps/joyword/src/main.rs",
+      "target": "crates/joyword-ui-gpui/src/styles.rs",
+      "sha256": "f21c15d492b65a0bc8cc5464ce18607161b64fda8e963373402bf2fcc912b445",
+      "modified": true,
+      "changes": "R4 authoring: adapt style task pane, virtual uniform_list, version-bound Kit Input/Dialog, table forms and asynchronous native asset picker to the single Wordcraft Session. Shared host palette/controls are retained; legacy editable model is not imported."
+    },
+    {
+      "source": "apps/joyword/src/ui/shell.rs",
+      "target": "crates/joyword-ui-gpui/src/styles.rs",
+      "sha256": "f0ecc2f127923fda5bed35412280dc5950c587a1525313362957a947b0f263ed",
+      "modified": true,
+      "changes": "R4 authoring: adapt style task pane, virtual uniform_list, version-bound Kit Input/Dialog, table forms and asynchronous native asset picker to the single Wordcraft Session. Shared host palette/controls are retained; legacy editable model is not imported."
+    },
+    {
+      "source": "crates/joydeck-ui-gpui/src/chrome_nav.rs",
+      "target": "crates/joyword-ui-gpui/src/styles.rs",
+      "sha256": "5059fa88e82ee4bd45c621df13e7ec03df3379862b05ff6f5df721a7a4368a9f",
+      "modified": true,
+      "changes": "R4 authoring: adapt style task pane, virtual uniform_list, version-bound Kit Input/Dialog, table forms and asynchronous native asset picker to the single Wordcraft Session. Shared host palette/controls are retained; legacy editable model is not imported."
+    },
+    {
+      "source": "crates/joydeck-ui-gpui/src/table_ui.rs",
+      "target": "crates/joyword-ui-gpui/src/objects.rs",
+      "sha256": "832b3988442702c77337102eb699121a47f8243c007679807c568301383ac82b",
+      "modified": true,
+      "changes": "R4 authoring: adapt style task pane, virtual uniform_list, version-bound Kit Input/Dialog, table forms and asynchronous native asset picker to the single Wordcraft Session. Shared host palette/controls are retained; legacy editable model is not imported."
+    },
+    {
+      "source": "crates/joydeck-ui-gpui/src/content_ui.rs",
+      "target": "crates/joyword-ui-gpui/src/objects.rs",
+      "sha256": "001fae94bf327ddd2cf1e5c985f3b87ee294c05133f4c6c838d586734e250066",
+      "modified": true,
+      "changes": "R4 authoring: adapt style task pane, virtual uniform_list, version-bound Kit Input/Dialog, table forms and asynchronous native asset picker to the single Wordcraft Session. Shared host palette/controls are retained; legacy editable model is not imported."
+    },
+    {
+      "source": "apps/joyword/src/mail_merge_ui.rs",
+      "target": "crates/joyword-ui-gpui/src/advanced.rs",
+      "sha256": "71b19dc02a098384fa5a437e3952e5a153e5d63af8276eccc70bb1830fe44080",
+      "modified": true,
+      "changes": "R5 native picker and bounded background recipients import adapted with identity/revision/selection checks; use single migrated Session."
+    },
+    {
+      "source": "apps/joyword/src/exchange_ui.rs",
+      "target": "crates/joyword-ui-gpui/src/advanced.rs",
+      "sha256": "e85e188a9df65ac5f103fd525d8fcffb3cc61ed6dc38fb6ee22d02203c9b4423",
+      "modified": true,
+      "changes": "R5 frozen copy-export jobs adapted; destination is new-only and live document stays dirty."
+    },
+    {
+      "source": "apps/joyword/src/ui/ribbon.rs",
+      "target": "crates/joyword-ui-gpui/src/advanced.rs",
+      "sha256": "a3af5bbe989a6be69a001b1f280bf0e7a648e07d2f27462cd335dc704aac4f70",
+      "modified": true,
+      "changes": "Reuse shared GPUI Kit buttons/icons and group captions, adapted for installed Word Home 2024 reference."
+    },
+    {
+      "source": "crates/joysheet-ui-gpui/src/ribbon.rs",
+      "target": "crates/joyword-ui-gpui/src/lib.rs",
+      "sha256": "99e4edbc3117a4385736a8b19847b2cdb4b36f83e4f3e6a8ec1defe40b7fa2fb",
+      "modified": true,
+      "changes": "R6: adapt JoySheet header, focus, selected ribbon tabs, and shared Sheet palette for JoyWord."
+    },
+    {
+      "source": "crates/joysheet-ui-gpui/src/desktop.rs",
+      "target": "crates/joyword-ui-gpui/src/command_search.rs",
+      "sha256": "3d2a11ff2f19804e5dd91704a57e1fe2b5db69effa7d78f11fc215aa8669b263",
+      "modified": true,
+      "changes": "R6: adapt searchable desktop commands and shared input controls to the JoyWord command set."
+    },
+    {
+      "source": "apps/joyword/src/text_accessibility.rs",
+      "target": "crates/joyword-ui-gpui/src/text_accessibility.rs",
+      "sha256": "46f73f6e8a23f49ea8e423c92848f1e1dfb8eb206ee42b6468ec72f188a64956",
+      "modified": true,
+      "changes": "R7: adapt AccessKit TextRun, synthetic IDs and UTF-16/Unicode selection mapping to the active Reader paragraph."
+    },
+    {
+      "source": "scripts/verify_release_assets.py",
+      "target": "scripts/verify_preview.py",
+      "sha256": "a652e34e052d67c5654cb7b0346d045b20d0ba7bfa5e0ef6fca464c4fbe644c5",
+      "modified": true,
+      "changes": "R7: adapt native executable format and architecture checks to portable development archives."
+    },
+    {
+      "source": ".github/workflows/ci-joysheet.yml",
+      "target": ".github/workflows/joyword-preview.yml",
+      "sha256": "805d1b0ccd777391fe8e8a1610d78081276144f5ffca30e87d6d2beacdb23ccc",
+      "modified": true,
+      "changes": "R7: reuse pinned actions, native runners and dependencies for JoyWord developer artifacts."
+    }
+  ],
+  "adapted_tools": [
+    {
+      "source": "tools/xtask/product.py",
+      "functions": [
+        "metadata",
+        "product_packages",
+        "native_environment",
+        "run"
+      ],
+      "changes": "Retained product-selection/environment logic; scoped commands to JoyWord and added native preview packaging."
+    }
+  ]
+}

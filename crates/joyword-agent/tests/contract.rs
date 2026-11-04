@@ -440,7 +440,7 @@ fn os_policy_backends_are_stubs_and_tools_do_not_run() {
 fn core_manifests_do_not_name_the_agent_crate() {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     for rel in [
-        "crates/joyword-foundation/Cargo.toml",
+        "crates/joyword-geom/Cargo.toml",
         "crates/joyword-model/Cargo.toml",
         "crates/joyword-engine/Cargo.toml",
         "crates/joyword-docx/Cargo.toml",
@@ -449,17 +449,14 @@ fn core_manifests_do_not_name_the_agent_crate() {
         "crates/joyword-render/Cargo.toml",
         "crates/joyoffice-opc/Cargo.toml",
         "crates/joyword-corpus/Cargo.toml",
+        "crates/joyword-shell/Cargo.toml",
+        "crates/joyword-ui-gpui/Cargo.toml",
         "apps/joyword-cli/Cargo.toml",
         "apps/joyword/Cargo.toml",
     ] {
         let text = std::fs::read_to_string(root.join(rel)).expect(rel);
         assert!(!text.contains("joyword-agent"), "{rel}");
     }
-    let shell =
-        std::fs::read_to_string(root.join("crates/joyword-shell/Cargo.toml")).expect("shell");
-    assert!(shell.contains("joyword-agent"));
-    assert!(shell.contains("optional = true"));
-    assert!(shell.contains("default = []"));
 }
 
 #[test]

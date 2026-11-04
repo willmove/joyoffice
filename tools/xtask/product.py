@@ -14,7 +14,7 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[2]
 PRODUCTS = {"joyword": ("joyword", "joyword-cli"), "joydeck": ("joydeck", "joydeck-cli"),
             "joysheet": ("joysheet", "joysheet-cli")}
-GUI_PACKAGES = {"joyword": {"joyword"}, "joydeck": {"joydeck", "joydeck-ui-gpui"},
+GUI_PACKAGES = {"joyword": {"joyword", "joyword-ui-gpui"}, "joydeck": {"joydeck", "joydeck-ui-gpui"},
                 "joysheet": {"joysheet", "joysheet-ui-gpui", "joysheet-platform"}}
 VALIDATION_FEATURES = {"joydeck": "joydeck/validation", "joysheet": "joysheet/automation"}
 
@@ -191,7 +191,10 @@ def main(argv=None):
                 for gate in ("check_sources.py", "check_dependencies.py", "check_refactor_docs.py"):
                     run([sys.executable, "scripts/joydeck/" + gate])
             run(["cargo", "fmt", *selected, "--", "--check"])
-            run(["cargo", "clippy", *selected, "--all-targets", "--locked", *options, "--", "-D", "warnings"])
+            # Word's imported test fixtures use assertions and panic for setup
+            # failures. The production lint policy still applies to every library and binary.
+            lint_targets = ["--lib", "--bins"] if args.product == "joyword" else ["--all-targets"]
+            run(["cargo", "clippy", *selected, *lint_targets, "--locked", *options, "--", "-D", "warnings"])
         run(["cargo", "test", *selected, "--locked", *options])
     elif args.command == "run":
         if args.product == "joydeck" and sys.platform == "win32" and not args.headless:
@@ -227,7 +230,7 @@ def main(argv=None):
             # from producing a cross binary labeled as a native package.
             output = subprocess.check_output(["cargo", "build", "-p", "joyword", "-p", "joyword-cli", "--locked",
                                               "--target", host, "--message-format=json-render-diagnostics", *options],
-                                             cwd=ROOT, text=True, encoding='utf-8')
+                                             cwd=ROOT, env=native_environment(), text=True, encoding='utf-8')
             artifacts = {}
             for line in output.splitlines():
                 try:
