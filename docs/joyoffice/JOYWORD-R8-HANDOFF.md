@@ -48,10 +48,10 @@ V1/V2 以原 DOCX 为基线，保留相同前后文并通过 R8 编辑事务重�
 | --- | --- | --- |
 | P0 | 旧数据与安全（JW-806/812） | 旧目录发现、作者名设置、最近文档、自动恢复间隔和新建纸张预设已接入。继续复杂旧日志差分与偏好界面实屏复验。 |
 | P0 | CLI 与格式兼容（JW-808） | 按上表迁移旧 `render`、`convert`、`merge`、`exchange`，扩展 schema 1 诊断差分，再核对 EPUB、打印、桌面控制和 Agent 授权。 |
-| P1 | Word/WPS 双向往返（R5/R6） | 记录应用版本，用含表格、图片、页眉、修订和未知 OOXML 的语料分别往返两次，检查打开、编辑和部件保留。 |
-| P1 | 千页 DOCX 性能复验（R5/R6） | macOS ARM64 Release CLI 已通过 5 轮打开、末页编辑、保存重开和渲染，记录布局耗时与 RSS。继续实屏首屏、键盘到绘制、跨对象编辑及同条件基线比较。[千页验证](../joyword/r8/VALIDATION.md#千页-docx) |
+| P1 | Word/WPS 双向往返（R5/R6） | macOS 上 Word 和 WPS 各通过两轮正文、表格、图片、页眉和修订往返。无包关系的额外 XML 在普通保存中丢失，完整未知部件保真仍开放。[实机证据](validation/20261105-macos-desktop/README.md#word-和-wps-双向往返) |
+| P1 | 千页 DOCX 性能复验（R5/R6） | macOS ARM64 Release CLI 已通过 5 轮打开、末页编辑、保存重开和渲染。桌面首屏和末页 15 次键盘输入至 GPUI 提交已测。继续物理呈现、跨对象编辑和同条件基线比较。[千页验证](../joyword/r8/VALIDATION.md#千页-docx) |
 | P1 | 公共基础（JW-803） | 评估 DOCX 包层、CFB/DrawingML/OMML 和字体服务在共享库中的复用。用格式保真与性能回归验证逐项收敛。 |
-| P1 | 平台与发布（R7/R8） | macOS ARM64 Release 构建、移位启动、首屏、键鼠编辑及保存重开已验证。DOCX 系统冷启动与运行中打开已通过，原生文件对话框的完整往返继续待验。继续 Linux x64/ARM64 原生、Windows 中文 IME/读屏、高 DPI、Linux 无障碍及安装器、文件关联、签名与卸载。[macOS 记录](validation/20261104-macos/README.md) |
+| P1 | 平台与发布（R7/R8） | macOS ARM64 Release 构建、移位启动、首屏、键鼠编辑及保存重开已验证。DOCX 系统冷启动与运行中打开、原生打开和另存为面板的取消及确认均通过。继续 Linux x64/ARM64 原生、Windows 中文 IME/读屏、高 DPI、Linux 无障碍及安装器、文件关联、签名与卸载。[macOS 对话框补验](validation/20261105-macos-desktop/README.md#原生文件对话框) |
 
 R8 各项功能和平台分别记录证据。独立版的通过记录、联合编译和三应用冒烟均有独立范围。
 

@@ -1,0 +1,173 @@
+{
+  "joywordCliSha256": "7cf913a95ee6517c56d85341bc3f1f46dd179b44c5a1c9aee7ec84c2d8fd2eb5",
+  "word": {
+    "version": "16.114.1",
+    "original": {
+      "sha256": "72137de5f4556d19a4ba6d0b47d2cb010e8c3f1a9278f2d5572e1a0d42ca93be",
+      "tableCount": 1,
+      "mediaSha256": [
+        "cfac8d7bb9369fb706efb88168458a498861abd15f39726c7ef2cd7275b60b14"
+      ],
+      "headerPageField": true,
+      "insertions": 1,
+      "deletions": 1,
+      "opaqueSha256": "24bfc8fd95a4f084f8fb8c0eb3556d57f9d969f23fe67c57189df77aacaa0a9f",
+      "text": "Layout proofCell leftCell rightReview inserted"
+    },
+    "rounds": [
+      {
+        "external": {
+          "sha256": "c4e6580ca2b6e6004918b6d59aac27ae57f5a8b7de8159889a00f6f05f66f1be",
+          "tableCount": 1,
+          "mediaSha256": [
+            "cfac8d7bb9369fb706efb88168458a498861abd15f39726c7ef2cd7275b60b14"
+          ],
+          "headerPageField": true,
+          "insertions": 1,
+          "deletions": 1,
+          "opaqueSha256": null,
+          "text": "EXTERNAL-WORD-1Layout proofCell leftCell rightReview inserted"
+        },
+        "joyword": {
+          "sha256": "6974b868bbede6a5474e1334a2499fb2563c6eb67d63420731f1fd3185ee2f7f",
+          "tableCount": 1,
+          "mediaSha256": [
+            "cfac8d7bb9369fb706efb88168458a498861abd15f39726c7ef2cd7275b60b14"
+          ],
+          "headerPageField": true,
+          "insertions": 1,
+          "deletions": 1,
+          "opaqueSha256": null,
+          "text": "EXTERNAL-WORD-1Layout proofCell leftCell rightReview inserted JOYWORD-WORD-1"
+        }
+      },
+      {
+        "external": {
+          "sha256": "e58db8e896ae6ba94c2bdd802ad5cd35c03d3594c4c117c23914aedc17b77cd1",
+          "tableCount": 1,
+          "mediaSha256": [
+            "cfac8d7bb9369fb706efb88168458a498861abd15f39726c7ef2cd7275b60b14"
+          ],
+          "headerPageField": true,
+          "insertions": 1,
+          "deletions": 1,
+          "opaqueSha256": null,
+          "text": "EXTERNAL-WORD-2EXTERNAL-WORD-1Layout proofCell leftCell rightReview inserted JOYWORD-WORD-1"
+        },
+        "joyword": {
+          "sha256": "951bfd01d398b438217917c5ee76b1f04b157fcf5ab5474c0ac0901acf217843",
+          "tableCount": 1,
+          "mediaSha256": [
+            "cfac8d7bb9369fb706efb88168458a498861abd15f39726c7ef2cd7275b60b14"
+          ],
+          "headerPageField": true,
+          "insertions": 1,
+          "deletions": 1,
+          "opaqueSha256": null,
+          "text": "EXTERNAL-WORD-2EXTERNAL-WORD-1Layout proofCell leftCell rightReview inserted JOYWORD-WORD-1 JOYWORD-WORD-2"
+        }
+      }
+    ],
+    "finalReopen": {
+      "sha256": "b81f3b9c6910bb6cd4b793896533fb6b9f0e239b87ee50c0cb305dd797e52644",
+      "tableCount": 1,
+      "mediaSha256": [
+        "cfac8d7bb9369fb706efb88168458a498861abd15f39726c7ef2cd7275b60b14"
+      ],
+      "headerPageField": true,
+      "insertions": 1,
+      "deletions": 1,
+      "opaqueSha256": null,
+      "text": "FINAL-REOPEN-WORDEXTERNAL-WORD-2EXTERNAL-WORD-1Layout proofCell leftCell rightReview inserted JOYWORD-WORD-1 JOYWORD-WORD-2"
+    }
+  },
+  "wps": {
+    "version": "12.1.29181",
+    "original": {
+      "sha256": "72137de5f4556d19a4ba6d0b47d2cb010e8c3f1a9278f2d5572e1a0d42ca93be",
+      "tableCount": 1,
+      "mediaSha256": [
+        "cfac8d7bb9369fb706efb88168458a498861abd15f39726c7ef2cd7275b60b14"
+      ],
+      "headerPageField": true,
+      "insertions": 1,
+      "deletions": 1,
+      "opaqueSha256": "24bfc8fd95a4f084f8fb8c0eb3556d57f9d969f23fe67c57189df77aacaa0a9f",
+      "text": "Layout proofCell leftCell rightReview inserted"
+    },
+    "rounds": [
+      {
+        "external": {
+          "sha256": "341cd4d0ae27c3a0383894cb255157491c4c0d7ab7c06f3f4ba377f43c199e72",
+          "tableCount": 1,
+          "mediaSha256": [
+            "cfac8d7bb9369fb706efb88168458a498861abd15f39726c7ef2cd7275b60b14",
+            "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          ],
+          "headerPageField": true,
+          "insertions": 1,
+          "deletions": 1,
+          "opaqueSha256": null,
+          "text": "EXTERNAL-WPS-1Layout proofCell leftCell rightReview inserted"
+        },
+        "joyword": {
+          "sha256": "89787e392b3f52b4e6315641d47dd13f5ef7887812753b07ccc4b3d995f70185",
+          "tableCount": 1,
+          "mediaSha256": [
+            "cfac8d7bb9369fb706efb88168458a498861abd15f39726c7ef2cd7275b60b14"
+          ],
+          "headerPageField": true,
+          "insertions": 1,
+          "deletions": 1,
+          "opaqueSha256": null,
+          "text": "EXTERNAL-WPS-1Layout proofCell leftCell rightReview inserted JOYWORD-WPS-1"
+        }
+      },
+      {
+        "external": {
+          "sha256": "0270d82a4b0b49b6940e7d30682ec8ec98a9933cc73648a079badadf543f8b60",
+          "tableCount": 1,
+          "mediaSha256": [
+            "cfac8d7bb9369fb706efb88168458a498861abd15f39726c7ef2cd7275b60b14",
+            "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          ],
+          "headerPageField": true,
+          "insertions": 1,
+          "deletions": 1,
+          "opaqueSha256": null,
+          "text": "EXTERNAL-WPS-2EXTERNAL-WPS-1Layout proofCell leftCell rightReview inserted JOYWORD-WPS-1"
+        },
+        "joyword": {
+          "sha256": "f7fc489a11c4fcc515e2f90ed76da8b9e6b681aa2bf3555ebef8ce740d3f65ff",
+          "tableCount": 1,
+          "mediaSha256": [
+            "cfac8d7bb9369fb706efb88168458a498861abd15f39726c7ef2cd7275b60b14"
+          ],
+          "headerPageField": true,
+          "insertions": 1,
+          "deletions": 1,
+          "opaqueSha256": null,
+          "text": "EXTERNAL-WPS-2EXTERNAL-WPS-1Layout proofCell leftCell rightReview inserted JOYWORD-WPS-1 JOYWORD-WPS-2"
+        }
+      }
+    ],
+    "finalReopen": {
+      "sha256": "3d7eb519fd16420e3e517748b5e39440bfa78465ac28e736c4322297fc614e15",
+      "tableCount": 1,
+      "mediaSha256": [
+        "cfac8d7bb9369fb706efb88168458a498861abd15f39726c7ef2cd7275b60b14",
+        "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      ],
+      "headerPageField": true,
+      "insertions": 1,
+      "deletions": 1,
+      "opaqueSha256": null,
+      "text": "FINAL-REOPEN-WPSEXTERNAL-WPS-2EXTERNAL-WPS-1Layout proofCell leftCell rightReview inserted JOYWORD-WPS-1 JOYWORD-WPS-2"
+    }
+  },
+  "unknownPartControl": {
+    "beforeSha256": "24bfc8fd95a4f084f8fb8c0eb3556d57f9d969f23fe67c57189df77aacaa0a9f",
+    "unlinkedAfterJoyWordEdit": null,
+    "linkedAfterJoyWordEdit": "24bfc8fd95a4f084f8fb8c0eb3556d57f9d969f23fe67c57189df77aacaa0a9f"
+  }
+}

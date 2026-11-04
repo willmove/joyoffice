@@ -1,0 +1,22 @@
+[
+  {
+    "product": "word",
+    "sourceSha256": "b492e73d5a58c27cceabc5fd73a4d9031de2c57a8e437f799b3dcb89e8110459",
+    "outputSha256": "4eea9e98ee76760fb9ef4af7f6b3fd56fabb8527fc6d9405d44c4b7883ade77c",
+    "binarySha256": "b8c0ce1e1813ab9b8069be883438b737450774107cb9a7ffb1db1f38d019f5b8",
+    "openedViaPanel": true,
+    "openCancelled": true,
+    "saveAsCancelled": true,
+    "savedViaPanel": true
+  },
+  {
+    "product": "deck",
+    "sourceSha256": "d6f81497635b517ae63c071f987d3da57449072939630456303871474950e691",
+    "outputSha256": "6f910f601f020fa7a603ccda943c5b1dfe6bc156ae2435b18626d22e2c662e10",
+    "binarySha256": "53198da76f5636f7f68013a17abc8cfd938ce6b7872e39cea9856463732715a9",
+    "openedViaPanel": true,
+    "openCancelled": true,
+    "saveAsCancelled": true,
+    "savedViaPanel": true
+  }
+]

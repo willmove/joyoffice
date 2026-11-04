@@ -1,0 +1,316 @@
+{
+  "fixtureSha256": "b492e73d5a58c27cceabc5fd73a4d9031de2c57a8e437f799b3dcb89e8110459",
+  "fixtureBytes": 3954,
+  "binarySha256": "b8c0ce1e1813ab9b8069be883438b737450774107cb9a7ffb1db1f38d019f5b8",
+  "hardware": "Apple M4",
+  "macOS": "27.2",
+  "runs": [
+    {
+      "open_worker": [
+        {
+          "stage": "open_worker",
+          "ms": 71.153,
+          "page": 1
+        }
+      ],
+      "open_to_paint": [
+        {
+          "stage": "open_to_paint",
+          "ms": 140.722,
+          "page": 1
+        }
+      ],
+      "edit_layout": [
+        {
+          "stage": "edit_layout",
+          "ms": 0.453,
+          "page": 1
+        },
+        {
+          "stage": "edit_layout",
+          "ms": 0.32,
+          "page": 1
+        },
+        {
+          "stage": "edit_layout",
+          "ms": 0.348,
+          "page": 1
+        },
+        {
+          "stage": "edit_layout",
+          "ms": 0.311,
+          "page": 1
+        },
+        {
+          "stage": "edit_layout",
+          "ms": 0.332,
+          "page": 1
+        }
+      ],
+      "edit_callback": [
+        {
+          "stage": "edit_callback",
+          "ms": 2.904,
+          "page": 1
+        },
+        {
+          "stage": "edit_callback",
+          "ms": 0.57,
+          "page": 1
+        },
+        {
+          "stage": "edit_callback",
+          "ms": 0.587,
+          "page": 1
+        },
+        {
+          "stage": "edit_callback",
+          "ms": 0.531,
+          "page": 1
+        },
+        {
+          "stage": "edit_callback",
+          "ms": 0.571,
+          "page": 1
+        }
+      ],
+      "edit_to_paint": [
+        {
+          "stage": "edit_to_paint",
+          "ms": 41.098,
+          "page": 1000
+        },
+        {
+          "stage": "edit_to_paint",
+          "ms": 16.775,
+          "page": 1000
+        },
+        {
+          "stage": "edit_to_paint",
+          "ms": 13.048,
+          "page": 1000
+        },
+        {
+          "stage": "edit_to_paint",
+          "ms": 17.27,
+          "page": 1000
+        },
+        {
+          "stage": "edit_to_paint",
+          "ms": 13.37,
+          "page": 1000
+        }
+      ],
+      "maxSampledRssBytes": 231718912
+    },
+    {
+      "open_worker": [
+        {
+          "stage": "open_worker",
+          "ms": 77.773,
+          "page": 1
+        }
+      ],
+      "open_to_paint": [
+        {
+          "stage": "open_to_paint",
+          "ms": 114.708,
+          "page": 1
+        }
+      ],
+      "edit_layout": [
+        {
+          "stage": "edit_layout",
+          "ms": 0.307,
+          "page": 1
+        },
+        {
+          "stage": "edit_layout",
+          "ms": 0.268,
+          "page": 1
+        },
+        {
+          "stage": "edit_layout",
+          "ms": 0.314,
+          "page": 1
+        },
+        {
+          "stage": "edit_layout",
+          "ms": 0.26,
+          "page": 1
+        },
+        {
+          "stage": "edit_layout",
+          "ms": 0.335,
+          "page": 1
+        }
+      ],
+      "edit_callback": [
+        {
+          "stage": "edit_callback",
+          "ms": 0.476,
+          "page": 1
+        },
+        {
+          "stage": "edit_callback",
+          "ms": 0.5,
+          "page": 1
+        },
+        {
+          "stage": "edit_callback",
+          "ms": 0.529,
+          "page": 1
+        },
+        {
+          "stage": "edit_callback",
+          "ms": 0.439,
+          "page": 1
+        },
+        {
+          "stage": "edit_callback",
+          "ms": 0.555,
+          "page": 1
+        }
+      ],
+      "edit_to_paint": [
+        {
+          "stage": "edit_to_paint",
+          "ms": 24.685,
+          "page": 1000
+        },
+        {
+          "stage": "edit_to_paint",
+          "ms": 15.885,
+          "page": 1000
+        },
+        {
+          "stage": "edit_to_paint",
+          "ms": 17.826,
+          "page": 1000
+        },
+        {
+          "stage": "edit_to_paint",
+          "ms": 15.904,
+          "page": 1000
+        },
+        {
+          "stage": "edit_to_paint",
+          "ms": 20.227,
+          "page": 1000
+        }
+      ],
+      "maxSampledRssBytes": 231391232
+    },
+    {
+      "open_worker": [
+        {
+          "stage": "open_worker",
+          "ms": 71.566,
+          "page": 1
+        }
+      ],
+      "open_to_paint": [
+        {
+          "stage": "open_to_paint",
+          "ms": 113.025,
+          "page": 1
+        }
+      ],
+      "edit_layout": [
+        {
+          "stage": "edit_layout",
+          "ms": 0.288,
+          "page": 1
+        },
+        {
+          "stage": "edit_layout",
+          "ms": 0.296,
+          "page": 1
+        },
+        {
+          "stage": "edit_layout",
+          "ms": 0.3,
+          "page": 1
+        },
+        {
+          "stage": "edit_layout",
+          "ms": 0.293,
+          "page": 1
+        },
+        {
+          "stage": "edit_layout",
+          "ms": 0.369,
+          "page": 1
+        }
+      ],
+      "edit_callback": [
+        {
+          "stage": "edit_callback",
+          "ms": 0.456,
+          "page": 1
+        },
+        {
+          "stage": "edit_callback",
+          "ms": 0.537,
+          "page": 1
+        },
+        {
+          "stage": "edit_callback",
+          "ms": 0.509,
+          "page": 1
+        },
+        {
+          "stage": "edit_callback",
+          "ms": 0.511,
+          "page": 1
+        },
+        {
+          "stage": "edit_callback",
+          "ms": 0.583,
+          "page": 1
+        }
+      ],
+      "edit_to_paint": [
+        {
+          "stage": "edit_to_paint",
+          "ms": 27.592,
+          "page": 1000
+        },
+        {
+          "stage": "edit_to_paint",
+          "ms": 16.76,
+          "page": 1000
+        },
+        {
+          "stage": "edit_to_paint",
+          "ms": 13.309,
+          "page": 1000
+        },
+        {
+          "stage": "edit_to_paint",
+          "ms": 15.51,
+          "page": 1000
+        },
+        {
+          "stage": "edit_to_paint",
+          "ms": 16.929,
+          "page": 1000
+        }
+      ],
+      "maxSampledRssBytes": 231211008
+    }
+  ],
+  "open_to_paint": {
+    "medianMs": 114.708,
+    "maxMs": 140.722
+  },
+  "edit_layout": {
+    "medianMs": 0.311,
+    "maxMs": 0.453
+  },
+  "edit_to_paint": {
+    "medianMs": 16.775,
+    "maxMs": 41.098
+  },
+  "maximumSampledRssBytes": 231718912
+}

@@ -88,12 +88,14 @@ JoySheet 的 Debian 打包在 WSL 的 ext4 内完成，保留 Debian 控制目�
 | 重开另存稿 | 63.0 ms | 40.9 MiB |
 | 打开及渲染末页 PNG | 68.5 ms | 46.5 MiB |
 
-布局中位数为首次 53.1 ms、最后一个字符 0.13 ms。该语料覆盖跨行正文，旧 R6 的 Windows 实屏指标单独保留。macOS 的键盘事件至 GPUI 绘制、物理呈现和跨对象编辑未完成。复现用 `python3 scripts/joyword/verify-r8-long-doc.py CLI NEW_REPORT.json`。[五轮原始样本](evidence/macos-long-doc.json)
+布局中位数为首次 53.1 ms、最后一个字符 0.13 ms。该语料覆盖跨行正文，旧 R6 的 Windows 实屏指标单独保留。复现用 `python3 scripts/joyword/verify-r8-long-doc.py CLI NEW_REPORT.json`。[五轮原始样本](evidence/macos-long-doc.json)
+
+桌面补验在相同千页样例第 1,000 页记录了 15 次真实键盘输入至 GPUI 绘制提交，中位数 16.8 ms，最大值 41.1 ms。Word 16.114.1 和 WPS 12.1.29181 各完成两轮双向正文与结构往返，额外无包关系 XML 的保留仍有差距。物理屏幕呈现、跨对象编辑及同机基线继续待验。[桌面补验](../../joyoffice/validation/20261105-macos-desktop/README.md)
 
 ## 待验
 
-- macOS 原生打开／另存对话框的完整往返、IME 与读屏待验。DOCX 系统文件打开已完成补验。集成后的 Linux ARM64 原生桌面、信创真机与托管 CI 待验。
-- Windows 拼音和读屏沿用独立版证据，R8 包复验、完整 Word/WPS 互通、安装器安装／卸载与文件关联见 [交接任务](../../joyoffice/JOYWORD-R8-HANDOFF.md)。
+- macOS DOCX 系统打开和原生打开／另存为面板均已实测。macOS IME 与读屏、集成后的 Linux ARM64 原生桌面、信创真机与托管 CI 待验。[原生对话框补验](../../joyoffice/validation/20261105-macos-desktop/README.md#原生文件对话框)
+- Windows 拼音和读屏沿用独立版证据，R8 包复验、Word/WPS 的未知部件保真、安装器安装／卸载与文件关联见 [交接任务](../../joyoffice/JOYWORD-R8-HANDOFF.md)。
 - 复杂旧恢复语料、固定金样和覆盖引导 fuzz 的迁移，以及剩余 CLI/API 和 Agent 的差距见交接中的接口表。
 - JoyDeck 开发包的清单列出了未自动收集到的依赖许可文本，发布验收时仍需补齐对应记录。
 

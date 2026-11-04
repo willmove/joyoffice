@@ -1,5 +1,7 @@
 # JoyDeck 当前状态
 
+2026-11-05 macOS ARM64 原生打开和另存为面板的取消及确认已实测。选择另一份 PPTX 后窗口切换，另存的 PPTX 独立读回三页。另存时的扩展名切换一致性待核对。[桌面证据](../joyoffice/validation/20261105-macos-desktop/README.md#原生文件对话框)
+
 2026-11-05 macOS ARM64 静态 MP4 已接通。移位 Release 包的 CLI 通过导出、逐帧读回和拒绝覆盖检查。嵌入媒体探测与播放仍使用 Windows 适配器，JD-705 的其他平台范围继续开放。[本机证据](../joyoffice/validation/20261105-macos-video/README.md)
 
 2026-11-05 开发包许可复核。按包内 SPDX 索引统计，macOS ARM64 的 13 个实际缺口已补齐 8 个依赖版本，严格检查仍报告 5 个。JD-807/808 继续开放。[复核与包指纹](../joyoffice/validation/20261105-macos-video/README.md#开发包许可复核)
