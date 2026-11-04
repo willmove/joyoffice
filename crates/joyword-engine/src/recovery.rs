@@ -27,7 +27,19 @@ impl Session {
         root: std::path::PathBuf,
         wake: std::sync::Arc<dyn Fn() + Send + Sync>,
     ) -> Result<(), String> {
-        self.recovery = Some(Recovery::start(root, wake)?);
+        self.enable_recovery_with_interval(root, wake, Some(desktop::DEFAULT_INTERVAL))
+    }
+
+    /// Set the cadence of local recovery snapshots. With no interval the store
+    /// can still enumerate and restore existing copies and clean up obsolete ones.
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn enable_recovery_with_interval(
+        &mut self,
+        root: std::path::PathBuf,
+        wake: std::sync::Arc<dyn Fn() + Send + Sync>,
+        interval: Option<std::time::Duration>,
+    ) -> Result<(), String> {
+        self.recovery = Some(Recovery::start(root, wake, interval)?);
         Ok(())
     }
     /// Copies left by an earlier run (or another window's documents that have closed), newest

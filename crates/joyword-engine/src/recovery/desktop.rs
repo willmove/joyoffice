@@ -8,7 +8,7 @@ use std::path::{Path, PathBuf};
 use std::sync::{Arc, mpsc};
 use std::time::{Duration, Instant};
 
-const INTERVAL: Duration = Duration::from_secs(10);
+pub(super) const DEFAULT_INTERVAL: Duration = Duration::from_secs(10);
 const MAX_BYTES: u64 = 256 << 20;
 const MAX_RECORDS: usize = 128;
 const MAX_FILES: usize = 16;
@@ -487,7 +487,7 @@ pub(crate) struct Request {
 pub(crate) struct Slot {
     pub id: Option<String>,
     pub revision: Option<u64>,
-    pub due: Instant,
+    pub scheduled_from: Instant,
     /// A failed discard of this document's copy is tried again from then on.
     pub retry: Option<Instant>,
 }
@@ -496,7 +496,7 @@ impl Default for Slot {
         Self {
             id: None,
             revision: None,
-            due: Instant::now() + INTERVAL,
+            scheduled_from: Instant::now(),
             retry: None,
         }
     }
@@ -506,7 +506,7 @@ impl Slot {
     pub fn adopt(&mut self, id: String, revision: u64) {
         self.id = Some(id);
         self.revision = Some(revision);
-        self.due = Instant::now() + INTERVAL;
+        self.scheduled_from = Instant::now();
         self.retry = None;
     }
 }
@@ -537,13 +537,13 @@ impl Slot {
             } => {
                 let now = Instant::now();
                 if *discard {
-                    self.retry = Some(now + INTERVAL);
+                    self.retry = Some(now + DEFAULT_INTERVAL);
                 } else if !permanent {
                     // A transient failure (a lock, an I/O error) is retried at the next
                     // interval; one the snapshot itself causes waits for the next edit.
                     self.revision = None;
                 }
-                self.due = now + INTERVAL;
+                self.scheduled_from = now;
             }
             _ => {}
         }
@@ -570,13 +570,18 @@ pub(crate) struct Recovery {
     pub busy: bool,
     pub error: Option<String>,
     alive: bool,
+    interval: Option<Duration>,
     /// Records of closed documents waiting to be deleted, and whether that is queued.
     closed: Vec<(String, bool)>,
     /// A loaded copy that replaces its (untouched blank) document once that document is active.
     pub held: Option<(Box<Snapshot>, Request)>,
 }
 impl Recovery {
-    pub fn start(root: PathBuf, wake: Arc<dyn Fn() + Send + Sync>) -> Result<Self, String> {
+    pub fn start(
+        root: PathBuf,
+        wake: Arc<dyn Fn() + Send + Sync>,
+        interval: Option<Duration>,
+    ) -> Result<Self, String> {
         let (tx, jobs) = mpsc::sync_channel(1);
         let (events, rx) = mpsc::channel();
         std::thread::Builder::new()
@@ -659,6 +664,7 @@ impl Recovery {
             busy: true,
             error: None,
             alive: true,
+            interval,
             closed: Vec::new(),
             held: None,
         })
@@ -795,7 +801,12 @@ impl Recovery {
                 }
                 continue;
             }
-            if d.slot.revision == Some(d.rev) || now < d.slot.due {
+            let Some(interval) = self.interval else {
+                continue;
+            };
+            if d.slot.revision == Some(d.rev)
+                || now.saturating_duration_since(d.slot.scheduled_from) < interval
+            {
                 continue;
             }
             let id = match &d.slot.id {
@@ -823,7 +834,7 @@ impl Recovery {
             ))?;
             d.slot.id = Some(id);
             d.slot.revision = Some(d.rev);
-            d.slot.due = now + INTERVAL;
+            d.slot.scheduled_from = now;
             return Ok(());
         }
         Ok(())
@@ -844,7 +855,9 @@ impl Recovery {
             (false, Some(_)) => Some(slot.retry.map_or(min, |t| t.saturating_duration_since(now))),
             (false, None) => None,
             (true, _) if slot.revision == Some(rev) => None,
-            (true, _) => Some(slot.due.saturating_duration_since(now)),
+            (true, _) => self.interval.map(|interval| {
+                interval.saturating_sub(now.saturating_duration_since(slot.scheduled_from))
+            }),
         })
         .min()
         .map(|d| d.max(min))

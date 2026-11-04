@@ -237,7 +237,9 @@ impl JoyWord {
                         if let Some(old) = this.canvas.reader.as_mut() {
                             old.finish_recovery(!old.is_dirty());
                         }
-                        if let Err(e) = reader.enable_desktop_recovery() {
+                        if let Err(e) = reader
+                            .enable_desktop_recovery_with_interval(this.shell.recovery_interval())
+                        {
                             this.shell.notice = Some(e);
                         } else if let Some(notice) = reader.recovery_notice {
                             this.shell.notice = Some(notice.into());

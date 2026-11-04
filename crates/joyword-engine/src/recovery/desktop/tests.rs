@@ -76,7 +76,7 @@ fn session(root: &Path) -> Session {
 /// Every open document's interval has passed.
 fn due_now(s: &mut Session) {
     for d in s.recovery_docs() {
-        d.slot.due = Instant::now();
+        d.slot.scheduled_from = Instant::now() - DEFAULT_INTERVAL;
     }
 }
 fn save_now(s: &mut Session) {
@@ -94,6 +94,54 @@ fn records(root: &Path) -> Vec<String> {
         .collect();
     ids.sort();
     ids
+}
+
+#[test]
+fn configured_interval_controls_recovery_deadlines_and_writes() {
+    let profile = Temp::new();
+    let interval = Duration::from_secs(60);
+    let mut s = Session::new(Document::new());
+    s.enable_recovery_with_interval(profile.0.clone(), Arc::new(|| {}), Some(interval))
+        .unwrap();
+    settle(&mut s);
+    s.run("document.setText", &json!({"text": "Draft"}))
+        .unwrap();
+    due_now(&mut s);
+    assert!(
+        s.recovery_wait()
+            .is_some_and(|wait| wait > Duration::from_secs(30))
+    );
+    s.recovery_tick();
+    assert!(records(&profile.0).is_empty());
+    s.recovery_slot.scheduled_from = Instant::now() - interval;
+    s.recovery_tick();
+    settle(&mut s);
+    assert_eq!(records(&profile.0).len(), 1);
+    assert!(s.recovery_wait().is_none());
+}
+
+#[test]
+fn disabled_interval_keeps_prior_recovery_discoverable_without_writing_new_copies() {
+    let profile = Temp::new();
+    let mut previous = session(&profile.0);
+    previous
+        .run("document.setText", &json!({"text": "Prior draft"}))
+        .unwrap();
+    save_now(&mut previous);
+    let prior = records(&profile.0);
+    drop(previous);
+
+    let mut s = Session::new(Document::new());
+    s.enable_recovery_with_interval(profile.0.clone(), Arc::new(|| {}), None)
+        .unwrap();
+    settle(&mut s);
+    assert_eq!(s.recovery_documents().len(), 1);
+    s.run("document.setText", &json!({"text": "New edit"}))
+        .unwrap();
+    due_now(&mut s);
+    s.recovery_tick();
+    assert!(s.recovery_wait().is_none());
+    assert_eq!(records(&profile.0), prior);
 }
 
 /// #3140: a save that lands right before the app closes can race the process exiting before

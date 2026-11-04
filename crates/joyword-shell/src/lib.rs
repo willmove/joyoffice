@@ -101,6 +101,11 @@ impl Default for Shell {
 }
 
 impl Shell {
+    pub fn recovery_interval(&self) -> Option<std::time::Duration> {
+        let minutes = self.preferences.as_ref()?.prefs.autosave_minutes;
+        (minutes > 0).then(|| std::time::Duration::from_secs(u64::from(minutes) * 60))
+    }
+
     pub fn review_author(&self) -> &str {
         self.preferences
             .as_ref()

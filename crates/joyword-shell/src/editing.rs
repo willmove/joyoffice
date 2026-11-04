@@ -141,6 +141,19 @@ impl Reader {
         }
         Ok(())
     }
+    pub fn enable_desktop_recovery_with_interval(
+        &mut self,
+        interval: Option<std::time::Duration>,
+    ) -> Result<(), String> {
+        if let Some(root) = crate::prefs::default_config_dir() {
+            self.session.enable_recovery_with_interval(
+                root.join("migration-preview/r3-recovery"),
+                Arc::new(|| {}),
+                interval,
+            )?;
+        }
+        Ok(())
+    }
     pub fn recovery_tick(&mut self) {
         if self.is_composing() {
             return;

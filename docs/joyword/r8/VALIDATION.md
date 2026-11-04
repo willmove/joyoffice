@@ -69,6 +69,8 @@ JoySheet 的 Debian 打包在 WSL 的 ext4 内完成，保留 Debian 控制目�
 
 2026-11-05 复验覆盖 DOCX 系统文件打开、旧恢复目录扫描、覆盖引导解码和固定渲染金样，见 [macOS 补验](../../joyoffice/validation/20261105-macos-open/README.md)。
 
+同日在 macOS ARM64 执行 `cargo xtask check joyword`，格式检查、生产 Clippy 通过，3,494 项测试通过、2 项忽略。恢复模块 26 项通过。新增用例验证 60 秒配置在第 10 秒不会写入、到期写入，以及关闭周期写入后仍可发现已有草稿。桌面通过当前偏好文件或旧目录回退读取 `autosave.minutes`。本轮使用自动测试验证调度，实屏等待周期尚未复验。
+
 ## 待验
 
 - macOS 原生打开／另存对话框的完整往返、IME 与读屏待验。DOCX 系统文件打开已完成补验。集成后的 Linux ARM64 原生桌面、信创真机与托管 CI 待验。
