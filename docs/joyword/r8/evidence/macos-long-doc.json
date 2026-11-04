@@ -1,127 +1,127 @@
 {
   "fixtureSha256": "b492e73d5a58c27cceabc5fd73a4d9031de2c57a8e437f799b3dcb89e8110459",
-  "binarySha256": "31fd6d95c899ffc6d15d63041a7d74ee3c539b7b884da828feb44274c9035594",
+  "binarySha256": "7cf913a95ee6517c56d85341bc3f1f46dd179b44c5a1c9aee7ec84c2d8fd2eb5",
   "pages": 1000,
   "runs": [
     {
       "open": {
-        "wallMs": 89.367,
-        "maxRssBytes": 42303488
+        "wallMs": 61.539,
+        "maxRssBytes": 42319872
       },
       "editSave": {
-        "wallMs": 75.488,
-        "maxRssBytes": 44924928
+        "wallMs": 67.903,
+        "maxRssBytes": 45023232
       },
       "reopen": {
-        "wallMs": 62.419,
-        "maxRssBytes": 42991616
+        "wallMs": 62.214,
+        "maxRssBytes": 42811392
       },
       "renderLastPage": {
-        "wallMs": 77.196,
-        "maxRssBytes": 48873472
+        "wallMs": 66.731,
+        "maxRssBytes": 48627712
       },
-      "openLayoutMs": 67.84175,
-      "finalEditLayoutMs": 0.12320799999999821
+      "openLayoutMs": 52.216666,
+      "finalEditLayoutMs": 0.1288329999999931
     },
     {
       "open": {
-        "wallMs": 60.04,
-        "maxRssBytes": 42483712
+        "wallMs": 61.942,
+        "maxRssBytes": 42319872
       },
       "editSave": {
-        "wallMs": 64.989,
-        "maxRssBytes": 44974080
+        "wallMs": 67.143,
+        "maxRssBytes": 45187072
       },
       "reopen": {
-        "wallMs": 60.44,
-        "maxRssBytes": 42975232
+        "wallMs": 62.991,
+        "maxRssBytes": 42827776
       },
       "renderLastPage": {
-        "wallMs": 65.297,
-        "maxRssBytes": 48611328
+        "wallMs": 68.534,
+        "maxRssBytes": 48807936
       },
-      "openLayoutMs": 51.73845800000001,
-      "finalEditLayoutMs": 0.1266249999999971
+      "openLayoutMs": 53.233084000000005,
+      "finalEditLayoutMs": 0.1286659999999955
     },
     {
       "open": {
-        "wallMs": 58.749,
-        "maxRssBytes": 42237952
+        "wallMs": 61.781,
+        "maxRssBytes": 42319872
       },
       "editSave": {
-        "wallMs": 64.825,
-        "maxRssBytes": 45170688
-      },
-      "reopen": {
-        "wallMs": 60.576,
-        "maxRssBytes": 43057152
-      },
-      "renderLastPage": {
-        "wallMs": 65.269,
-        "maxRssBytes": 48447488
-      },
-      "openLayoutMs": 50.400625,
-      "finalEditLayoutMs": 0.1326659999999933
-    },
-    {
-      "open": {
-        "wallMs": 59.805,
-        "maxRssBytes": 42303488
-      },
-      "editSave": {
-        "wallMs": 64.956,
+        "wallMs": 70.573,
         "maxRssBytes": 45154304
       },
       "reopen": {
-        "wallMs": 60.337,
-        "maxRssBytes": 42991616
+        "wallMs": 63.215,
+        "maxRssBytes": 42893312
       },
       "renderLastPage": {
-        "wallMs": 64.031,
-        "maxRssBytes": 48857088
+        "wallMs": 71.334,
+        "maxRssBytes": 48709632
       },
-      "openLayoutMs": 51.415334,
-      "finalEditLayoutMs": 0.12812500000001137
+      "openLayoutMs": 53.064042,
+      "finalEditLayoutMs": 0.13466600000000284
     },
     {
       "open": {
-        "wallMs": 58.606,
-        "maxRssBytes": 42287104
+        "wallMs": 64.186,
+        "maxRssBytes": 42319872
       },
       "editSave": {
-        "wallMs": 65.077,
-        "maxRssBytes": 45137920
+        "wallMs": 69.125,
+        "maxRssBytes": 44990464
       },
       "reopen": {
-        "wallMs": 60.043,
-        "maxRssBytes": 43008000
+        "wallMs": 62.415,
+        "maxRssBytes": 42827776
       },
       "renderLastPage": {
-        "wallMs": 65.239,
-        "maxRssBytes": 48660480
+        "wallMs": 69.268,
+        "maxRssBytes": 48283648
       },
-      "openLayoutMs": 50.552083,
-      "finalEditLayoutMs": 0.12545800000000185
+      "openLayoutMs": 54.639041,
+      "finalEditLayoutMs": 0.12733399999999762
+    },
+    {
+      "open": {
+        "wallMs": 60.994,
+        "maxRssBytes": 42352640
+      },
+      "editSave": {
+        "wallMs": 69.051,
+        "maxRssBytes": 44892160
+      },
+      "reopen": {
+        "wallMs": 63.739,
+        "maxRssBytes": 42811392
+      },
+      "renderLastPage": {
+        "wallMs": 66.792,
+        "maxRssBytes": 48578560
+      },
+      "openLayoutMs": 52.120542,
+      "finalEditLayoutMs": 0.13983400000000046
     }
   ],
   "summary": {
     "open": {
-      "medianWallMs": 59.805,
-      "peakRssBytes": 42483712
+      "medianWallMs": 61.781,
+      "peakRssBytes": 42352640
     },
     "editSave": {
-      "medianWallMs": 64.989,
-      "peakRssBytes": 45170688
+      "medianWallMs": 69.051,
+      "peakRssBytes": 45187072
     },
     "reopen": {
-      "medianWallMs": 60.44,
-      "peakRssBytes": 43057152
+      "medianWallMs": 62.991,
+      "peakRssBytes": 42893312
     },
     "renderLastPage": {
-      "medianWallMs": 65.269,
-      "peakRssBytes": 48873472
+      "medianWallMs": 68.534,
+      "peakRssBytes": 48807936
     },
-    "medianOpenLayoutMs": 51.415334,
-    "medianLastEditLayoutMs": 0.1266249999999971
+    "medianOpenLayoutMs": 53.064042,
+    "medianLastEditLayoutMs": 0.1288329999999931
   }
 }

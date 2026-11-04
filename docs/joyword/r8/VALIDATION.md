@@ -75,18 +75,20 @@ JoySheet 的 Debian 打包在 WSL 的 ext4 内完成，保留 Debian 控制目�
 
 「用户信息与单位」通过活动配置持久化当前作者名与度量单位。自动回归覆盖旧配置读取、中文作者、毫米设置、未知键保留、受保护文稿拒绝更改作者及配置写入失败时保留原会话。macOS ARM64 的全量 JoyWord 检查通过 3,496 项，2 项忽略。该表单的实屏应用及所有版式面板的单位显示仍待核对。
 
+`cargo xtask package joyword --release --out dist/joyword/r8-macos-preferences` 构建的归档 SHA-256 为 `cd90ab5dfd97672e448d309b08e16e7c90c64f78c0d0a0de1f538483e6fc37c8`。解包到仓库外中文空格路径后，混合媒体 DOCX 往返、拒绝覆盖、PNG、PDF 结构和文本读回均通过。64 个确定性损坏变体中 21 个解析、43 个拒绝。含修订、页眉、图片和额外 XML 部件的 JWREC003 快照恢复后与快照字节一致，两份正文投影不符的日志均拒绝另存。
+
 ### 千页 DOCX
 
 2026-11-05 在 Apple M4、24 GiB 内存、macOS 27.2 上用解包后的 ARM64 Release CLI 执行 5 轮。脚本从最小 DOCX 构造固定 1,000 页语料，末段自然换行。每轮打开原件，在末页逐字符追加 `adghk`，保存新 DOCX、重开、检查 OOXML 尾段并渲染末页。每轮页数均为 1,000，原件散列一致。
 
 | 阶段 | 进程耗时中位数 | 峰值 RSS |
 | --- | ---: | ---: |
-| 打开并返回会话信息 | 59.8 ms | 40.5 MiB |
-| 打开、编辑及另存 | 65.0 ms | 43.1 MiB |
-| 重开另存稿 | 60.4 ms | 41.1 MiB |
-| 打开及渲染末页 PNG | 65.3 ms | 46.6 MiB |
+| 打开并返回会话信息 | 61.8 ms | 40.4 MiB |
+| 打开、编辑及另存 | 69.1 ms | 43.1 MiB |
+| 重开另存稿 | 63.0 ms | 40.9 MiB |
+| 打开及渲染末页 PNG | 68.5 ms | 46.5 MiB |
 
-布局中位数为首次 51.4 ms、最后一个字符 0.13 ms。该语料覆盖跨行正文，旧 R6 的 Windows 实屏指标单独保留。macOS 的键盘事件至 GPUI 绘制、物理呈现和跨对象编辑未完成。复现用 `python3 scripts/joyword/verify-r8-long-doc.py CLI NEW_REPORT.json`。[五轮原始样本](evidence/macos-long-doc.json)
+布局中位数为首次 53.1 ms、最后一个字符 0.13 ms。该语料覆盖跨行正文，旧 R6 的 Windows 实屏指标单独保留。macOS 的键盘事件至 GPUI 绘制、物理呈现和跨对象编辑未完成。复现用 `python3 scripts/joyword/verify-r8-long-doc.py CLI NEW_REPORT.json`。[五轮原始样本](evidence/macos-long-doc.json)
 
 ## 待验
 
