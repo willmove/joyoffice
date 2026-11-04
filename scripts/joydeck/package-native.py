@@ -146,7 +146,19 @@ def main():
         (contents / 'MacOS').mkdir(parents=True)
         shutil.copy2(output / 'joydeck-cli', contents / 'MacOS/joydeck-cli')
         shutil.copy2(output / 'joydeck', contents / 'MacOS/JoyDeck')
-        (contents / 'Info.plist').write_bytes(plistlib.dumps({'CFBundleExecutable': 'JoyDeck', 'CFBundleIdentifier': 'dev.joyoffice.joydeck', 'CFBundleName': 'JoyDeck', 'CFBundleVersion': version, 'CFBundlePackageType': 'APPL'}))
+        (contents / 'Info.plist').write_bytes(plistlib.dumps({
+            'CFBundleExecutable': 'JoyDeck',
+            'CFBundleIdentifier': 'dev.joyoffice.joydeck',
+            'CFBundleName': 'JoyDeck',
+            'CFBundleVersion': version,
+            'CFBundlePackageType': 'APPL',
+            'CFBundleDocumentTypes': [{
+                'CFBundleTypeName': 'PowerPoint presentation',
+                'CFBundleTypeRole': 'Editor',
+                'LSHandlerRank': 'Alternate',
+                'LSItemContentTypes': ['org.openxmlformats.presentationml.presentation'],
+            }],
+        }))
     # Preserve the host's SPDX/build metadata contract for release verification.
     import sbom as suite_sbom
     dependency_info = suite_sbom.generate(output / 'SBOM.spdx.json', target, args.profile,

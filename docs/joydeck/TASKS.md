@@ -147,7 +147,7 @@ R7 当前切片：独立观众/演示者窗口、已有动画/触发/转场采�
 | 状态 | ID | 任务与交付 | 完成条件 | 前置 |
 | --- | --- | --- | --- | --- |
 | 进行中 | JD-800 | Windows MSVC 工程、字体/文件/对话框、默认栈、打包和 a11y 回归 | 保留默认栈启动所有布局；真实激活 a11y；中文空格路径与仓库外运行 | R7 |
-| 待开始 | JD-801 | macOS Metal、菜单/文件事件、App 资源与应用生命周期 | 正常发布构建与开发 runtime_shaders 分开验证；实际 App 移位启动 | R7 |
+| 完成 | JD-801 | macOS Metal、菜单/文件事件、App 资源与应用生命周期 | 正常发布构建与开发 runtime_shaders 分开验证；实际 App 移位启动。[首次本机验证](../joyoffice/validation/20261104-macos/README.md) · [系统文件打开与菜单补验](../joyoffice/validation/20261105-macos-open/README.md) | R7 |
 | 待开始 | JD-802 | Linux Wayland/X11、字体与图形后端诊断、桌面集成 | 本机窗口/IME/文件流程；按实际后端验证 Vulkan/可用 GL/软件驱动路径 | R7 |
 | 待开始 | JD-803 | ARM64 等架构、UOS/麒麟/LoongArch 构建及无界面验证 | 编译、QEMU、真机分别标注；信创真机待条件具备后补验，不虚报通过 | JD-802 |
 | 进行中 | JD-804 | 键盘全流程、本地化、对比度、读屏、焦点与高 DPI | 窄窗口/高 DPI 无关键控件不可达；系统 IME 和读屏有平台记录 | JD-800–JD-802 |

@@ -938,6 +938,25 @@ pub fn bind(cx: &mut App) {
         KeyBinding::new("ctrl-0", Fit, Some("Viewer && !Input && !InlineText")),
     ]);
 }
+#[cfg(target_os = "macos")]
+pub(super) fn bind_native_menus(cx: &mut App) {
+    cx.set_menus([
+        Menu::new("JoyDeck").items([MenuItem::action("退出 JoyDeck", super::Quit)]),
+        Menu::new("文件").items([
+            MenuItem::action("新建", NewDocument),
+            MenuItem::action("打开…", Open),
+            MenuItem::action("保存", Save),
+            MenuItem::action("另存为…", SaveAs),
+            MenuItem::separator(),
+            MenuItem::action("关闭", CloseEditor),
+        ]),
+        Menu::new("编辑").items([
+            MenuItem::action("撤销", UndoEdit),
+            MenuItem::action("重做", RedoEdit),
+        ]),
+    ]);
+}
+
 pub fn open_window(
     dark: bool,
     dimensions: (f32, f32),
@@ -1016,6 +1035,40 @@ struct ActiveEditor {
     view: WeakEntity<Viewer>,
 }
 impl Global for ActiveEditor {}
+
+#[cfg(target_os = "macos")]
+pub fn open_system_document(path: PathBuf, dark: bool, dimensions: (f32, f32), cx: &mut App) {
+    if let Some(active) = cx.try_global::<ActiveEditor>().cloned()
+        && matches!(
+            active.window.update(cx, |_, w, cx| {
+                w.activate_window();
+                cx.activate(true);
+                active.view.update(cx, |s, cx| {
+                    if s.source.as_deref() != Some(path.as_path())
+                        && !s.confirm_replace(
+                            document_ui::ReplaceDocument::Path(path.clone()),
+                            w,
+                            cx,
+                        )
+                    {
+                        s.load(path.clone(), cx);
+                    }
+                })
+            }),
+            Ok(Ok(()))
+        )
+    {
+        return;
+    }
+    match open_window(dark, dimensions, cx) {
+        Ok((_, view)) => {
+            load_path(&view, path, cx);
+            cx.activate(true);
+        }
+        Err(error) => eprintln!("JoyDeck could not open a window for the document: {error}"),
+    }
+}
+
 pub fn quit(cx: &mut App) {
     if let Some(active) = cx.try_global::<ActiveEditor>().cloned() {
         let _ = active.window.update(cx, |_, w, cx| {

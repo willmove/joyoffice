@@ -15,6 +15,7 @@ use std::{
 
 pub(super) enum OpenSource {
     File(PathBuf),
+    LegacyRecovery(PathBuf),
     Welcome,
     Blank,
 }
@@ -200,12 +201,24 @@ impl JoyWord {
         self.canvas.cancel = cancel.clone();
         self.canvas.loading = true;
         self.shell.notice = None;
+        let from_legacy = matches!(&source, OpenSource::LegacyRecovery(_));
         let work = cx.background_executor().spawn(async move {
-            match source {
-                OpenSource::File(path) => Reader::open(&path, &cancel),
-                OpenSource::Welcome => Reader::from_bytes("JoyWord 欢迎.docx", WELCOME, &cancel),
-                OpenSource::Blank => Reader::blank(&cancel),
-            }
+            // Platform executor threads can have a smaller stack than the nested DOCX
+            // importer and layout require, particularly in debug builds.
+            std::thread::Builder::new()
+                .name("joyword-desktop-open".into())
+                .stack_size(8 * 1024 * 1024)
+                .spawn(move || match source {
+                    OpenSource::File(path) => Reader::open(&path, &cancel),
+                    OpenSource::LegacyRecovery(path) => Reader::recover_legacy(&path, &cancel),
+                    OpenSource::Welcome => {
+                        Reader::from_bytes("JoyWord 欢迎.docx", WELCOME, &cancel)
+                    }
+                    OpenSource::Blank => Reader::blank(&cancel),
+                })
+                .map_err(|error| format!("Cannot start desktop document open: {error}"))?
+                .join()
+                .map_err(|_| "Desktop document open worker failed".to_string())?
         });
         self.canvas.load_task = Some(cx.spawn(async move |view, cx| {
             let result = work.await;
@@ -217,6 +230,10 @@ impl JoyWord {
                 perf::sample("open_worker", started, 0);
                 match result {
                     Ok(mut reader) => {
+                        if from_legacy {
+                            this.legacy_recovery = None;
+                        }
+                        reader.set_review_author(this.shell.review_author());
                         if let Some(old) = this.canvas.reader.as_mut() {
                             old.finish_recovery(!old.is_dirty());
                         }
@@ -224,6 +241,12 @@ impl JoyWord {
                             this.shell.notice = Some(e);
                         } else if let Some(notice) = reader.recovery_notice {
                             this.shell.notice = Some(notice.into());
+                        }
+                        if let Some(path) = reader.source_path()
+                            && let Err(error) = this.shell.remember_document(path)
+                            && this.shell.notice.is_none()
+                        {
+                            this.shell.notice = Some(error);
                         }
                         let Some(epoch) = this.canvas.epoch.checked_add(1) else {
                             this.shell.notice = Some("Document generation exhausted".into());

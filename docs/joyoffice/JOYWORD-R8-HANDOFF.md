@@ -14,8 +14,8 @@
 | 契约 | R8 状态与迁移方式 |
 | --- | --- |
 | 产品、文件打开 | 保留 `JoyWord`、`joyword` 和产品版本 0.1.1。桌面接受 Unicode 文档路径与 `-- PATH`。Windows 本机的 DOCX 默认处理程序为 `Word.Document.12`。便携包通过桌面「打开」或命令行接收路径，安装器注册和系统默认切换留待发布验收。macOS bundle id 保留 `dev.joyoffice.joyword`。 |
-| 偏好 | 配置根仍为 Windows `%APPDATA%/JoyWord`、Linux `$XDG_CONFIG_HOME/joyword` 或 `~/.config/joyword`、macOS `~/Library/Application Support/JoyWord`。可用 `JOYWORD_CONFIG_DIR` 隔离验证。活动文件为 `migration-preview/preferences.conf`，缺失时只读旧根目录的 `preferences.conf`。语言和迁移版主题生效。作者、近期文件、单位、页面预设和旧自动保存间隔目前保留在配置数据中，对应 UI 与行为待接。 |
-| 恢复与原件保存 | 桌面「打开」或 `joyword -- PATH.jwr` 可读旧日志，CLI 为 `recover [--] JOURNAL [--save NEW.docx]`。打开任一标准槽名会检查整个目录。日志以只读方式打开，恢复进入独立 R8 编辑会话，用户选择新 DOCX 路径后才写入副本并读回。完整快照正文核对通过且未经编辑时原样另存。当前恢复目录继续使用 `migration-preview/r3-recovery`。旧配置目录的启动扫描待接。 |
+| 偏好 | 配置根仍为 Windows `%APPDATA%/JoyWord`、Linux `$XDG_CONFIG_HOME/joyword` 或 `~/.config/joyword`、macOS `~/Library/Application Support/JoyWord`。可用 `JOYWORD_CONFIG_DIR` 隔离验证。活动文件为 `migration-preview/preferences.conf`，缺失时只读旧根目录的 `preferences.conf`。语言和迁移版主题生效。作者名接入审阅，最近文档接入文件页。作者设置界面、单位、页面预设和旧自动保存间隔的行为继续待接。 |
+| 恢复与原件保存 | 桌面「打开」或 `joyword -- PATH.jwr` 可读旧日志，CLI 为 `recover [--] JOURNAL [--save NEW.docx]`。打开任一标准槽名会检查整个目录。日志以只读方式打开，恢复进入独立 R8 编辑会话，用户选择新 DOCX 路径后才写入副本并读回。完整快照正文核对通过且未经编辑时原样另存。当前恢复目录继续使用 `migration-preview/r3-recovery`。启动会检查旧配置目录的已发布日志，用户可从恢复提示显式打开副本。 |
 | CLI 与自动化 | `inspect\|text [--max-text-bytes N] [--compatibility] [--] PATH` 恢复 schema 1、UTF-8 字节上限和退出码 0/2/3。R8 的会话检查与原始正文可用 `inspect\|text --session [--] PATH`。新增命令仍可用 `render INPUT OUTPUT.png --page 1`、`convert INPUT OUTPUT.pdf` 和 `run INPUT --cmd COMMAND=JSON --save NEW.docx`。MCP 为有显式目录边界的 stdio，旧桌面验证控制协议与桌面桥接待接。 |
 | 格式与 AI | 新引擎包含 DOCX、PDF、图像和若干文本格式的交换，也提供编辑、引用、审阅和合并命令。旧 CLI 的 EPUB、PDF/A-2b、独立 merge/exchange 参数、系统打印完整流程和旧 Agent 桌面集成列为兼容项。`joyword-agent` 保留独立契约测试，旧引擎事务适配器待重接。 |
 | 旧验证门禁 | 当前 CI 使用新布局、渲染、内核与保存测试、实际 DOCX 往返、独立 PDF 读回，以及确定性损坏输入。覆盖引导 fuzz、固定金样和旧编辑行为登记对应旧 API，在替换前基线复现。恢复这些门禁是后续任务。 |
@@ -37,18 +37,21 @@ V1/V2 以原 DOCX 为基线，保留相同前后文并通过 R8 编辑事务重�
 
 旧 `inspect` 的诊断由原导入器生成。本轮已对齐已验证语料的字段值和正文。复杂字段、嵌套兼容标记及未覆盖的诊断分类继续做旧新版差分。
 
+## 已验证的 R8 门禁
+
+- JW-805/807/809/899 的 DOCX ZIP/XML 和 `JWREC001/2/3` 解码已接入覆盖引导 fuzz 与持续 CI 门禁。macOS 复跑 81 次探针无失败。[复验](validation/20261105-macos-open/README.md)
+- JW-807 的固定字体字节、face 与 144 DPI PNG／PDF 金样已核对审阅、表格、图片和字段，新增 macOS CI 比对。[复验](validation/20261105-macos-open/README.md)
+
 ## 下一步
 
 | 优先级 | 任务 | 完成条件 |
 | --- | --- | --- |
-| P0 | 旧数据与安全（JW-806/812） | 扩展含复杂字段、媒体、修订与未知 XML 的恢复样例。接入旧恢复目录发现，以及作者、近期文件和自动保存设置。 |
+| P0 | 旧数据与安全（JW-806/812） | 旧目录发现、已保存的作者名和最近文档已接入。继续复杂旧日志差分、作者设置界面及旧自动保存间隔。 |
 | P0 | CLI 与格式兼容（JW-808） | 按上表迁移旧 `render`、`convert`、`merge`、`exchange`，扩展 schema 1 诊断差分，再核对 EPUB、打印、桌面控制和 Agent 授权。 |
-| P0 | 覆盖引导 fuzz（JW-805/807/809/899） | 将 DOCX ZIP/XML 和 `JWREC001/2/3` 解码接入覆盖引导 fuzz。保留最小崩溃样例、复现命令和持续 CI 门禁。 |
-| P0 | 固定渲染金样（JW-807） | 固定字体字节、face、DPI 与页面场景，对 PNG 和 PDF 几何／文本做可重复差分，登记审阅、表格、图片和字段样例。 |
 | P1 | Word/WPS 双向往返（R5/R6） | 记录应用版本，用含表格、图片、页眉、修订和未知 OOXML 的语料分别往返两次，检查打开、编辑和部件保留。 |
 | P1 | 千页 DOCX 性能复验（R5/R6） | 固定语料与硬件环境，记录首屏、跨行／对象编辑重排、输入到绘制延迟及峰值内存，并与旧记录比对。 |
 | P1 | 公共基础（JW-803） | 评估 DOCX 包层、CFB/DrawingML/OMML 和字体服务在共享库中的复用。用格式保真与性能回归验证逐项收敛。 |
-| P1 | 平台与发布（R7/R8） | 复测 Linux x64 与 ARM64 原生、Windows 中文 IME/读屏、高 DPI、Linux 无障碍。补齐安装器、文件关联、签名与卸载。macOS 原生构建与运行待验。 |
+| P1 | 平台与发布（R7/R8） | macOS ARM64 Release 构建、移位启动、首屏、键鼠编辑及保存重开已验证。DOCX 系统冷启动与运行中打开已通过，原生文件对话框的完整往返继续待验。继续 Linux x64/ARM64 原生、Windows 中文 IME/读屏、高 DPI、Linux 无障碍及安装器、文件关联、签名与卸载。[macOS 记录](validation/20261104-macos/README.md) |
 
 R8 各项功能和平台分别记录证据。独立版的通过记录、联合编译和三应用冒烟均有独立范围。
 

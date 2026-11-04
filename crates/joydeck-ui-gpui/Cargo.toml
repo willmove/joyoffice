@@ -19,6 +19,11 @@ joydeck-shell.workspace = true
 serde_json = { workspace = true, features = ["float_roundtrip"] }
 serde.workspace = true
 image = { workspace = true, features = ["png", "jpeg", "webp", "gif", "tiff", "bmp"] }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+async-channel.workspace = true
+url.workspace = true
+
 [features]
 validation = []
 dev-runtime-shaders = ["gpui_platform/runtime_shaders"]

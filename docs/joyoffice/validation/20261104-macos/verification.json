@@ -1,0 +1,483 @@
+{
+  "date": "2026-11-04",
+  "sourceCommit": "6adc61472e8b5dd65410c76c4d0e3c85b1b4fe85",
+  "branch": "codex/macos-validation-20261104",
+  "platform": {
+    "system": "macOS",
+    "version": "27.2",
+    "build": "26B123",
+    "model": "Mac mini",
+    "chip": "Apple M4",
+    "memoryGB": 24,
+    "target": "aarch64-apple-darwin",
+    "rust": "1.98.1",
+    "xcode": "27.2 (27B52)",
+    "metalToolchain": "27B47"
+  },
+  "localEvidenceDirectory": "target/macos-validation-20261104",
+  "tests": {
+    "joyword": {
+      "headless": {
+        "exit": 0,
+        "passed": 3483,
+        "failed": 0,
+        "ignored": 2
+      },
+      "productCheck": {
+        "exit": 0,
+        "passed": 3492,
+        "failed": 0,
+        "ignored": 2
+      }
+    },
+    "joydeck": {
+      "headless": {
+        "exit": 0,
+        "passed": 891,
+        "failed": 0,
+        "ignored": 0
+      },
+      "productCheck": {
+        "exit": 0,
+        "passed": 894,
+        "failed": 0,
+        "ignored": 0
+      }
+    },
+    "joysheet": {
+      "headless": {
+        "exit": 0,
+        "passed": 1383,
+        "failed": 0,
+        "ignored": 1
+      },
+      "productCheck": {
+        "exit": 0,
+        "passed": 1400,
+        "failed": 0,
+        "ignored": 1
+      }
+    }
+  },
+  "productPackageExits": {
+    "joyword": 0,
+    "joydeck": 0,
+    "joysheet": 0
+  },
+  "artifacts": {
+    "joyword": [
+      {
+        "file": "dist/joyword/macos-validation-20261104/joyword-0.1.1-macos-aarch64.zip",
+        "sha256": "973c7710d74bab766705ffd66754900efac71f920d2254cb376c3417887b596b",
+        "bytes": 41068884
+      },
+      {
+        "file": "target/macos-validation-20261104/joyword-archive/JoyWord.app/Contents/MacOS/joyword",
+        "sha256": "4f286b5c7860a1dbd4f5f492dd4b8335ac5134229e2d9af26a1fe6d0b982ea29",
+        "bytes": 56742832
+      },
+      {
+        "file": "target/macos-validation-20261104/joyword-archive/JoyWord.app/Contents/MacOS/joyword-cli",
+        "sha256": "ae873e6dab7a67768ef8ee16637deb15b0358cb632a9a3f6d7010b3e7dc8d743",
+        "bytes": 36326288
+      }
+    ],
+    "joydeck": [
+      {
+        "file": "dist/joydeck/joydeck-0.8.0-r9-macos-aarch64-release-20261104.zip",
+        "sha256": "eba1da07a4a2e0d054ce7e8778130b9f10e5f841b60b87bc024376df2e0dd2ae",
+        "bytes": 57649346
+      },
+      {
+        "file": "target/macos-validation-20261104/joydeck-archive/joydeck-0.8.0-r9-macos-aarch64-release-20261104/JoyDeck.app/Contents/MacOS/JoyDeck",
+        "sha256": "fd3b3f8395ca554858a1ae313771a86e32b41ced7ec815e351ce9e546dbd105a",
+        "bytes": 44815104
+      },
+      {
+        "file": "target/macos-validation-20261104/joydeck-archive/joydeck-0.8.0-r9-macos-aarch64-release-20261104/JoyDeck.app/Contents/MacOS/joydeck-cli",
+        "sha256": "a41d24b3738781435cba4e26e37002f2facbd7b5db0a954aa0a994e8ef66a481",
+        "bytes": 21182928
+      }
+    ],
+    "joysheet": [
+      {
+        "file": "dist/joysheet/macos-validation-20261104.dmg",
+        "sha256": "1a2285a3ecfac735371b89443009d9d81a36c5e8cd1b0efcc93ec651cba6853b",
+        "bytes": 35882898
+      },
+      {
+        "file": "target/macos-validation-20261104/joysheet-archive/Joysheet.app/Contents/MacOS/joysheet",
+        "sha256": "7dcc36e5373da86989d18d5c0d711c07a0c7e2d86d3feab90733dc98f8734e5b",
+        "bytes": 35008480
+      },
+      {
+        "file": "target/macos-validation-20261104/joysheet-archive/Joysheet.app/Contents/MacOS/joysheet-cli",
+        "sha256": "6a546c9545ed30c467ee36af378d3a46139c266a6d0210e45cc1759f9e123721",
+        "bytes": 12916592
+      }
+    ]
+  },
+  "additionalSheetArchives": [
+    {
+      "file": "dist/joysheet/macos-validation-20261104.zip",
+      "sha256": "ff87f0e9f44f83d9278eeaf9324558bd8c2fda5a074c0648a8e57723b8e25e89",
+      "bytes": 61283276
+    },
+    {
+      "file": "dist/joysheet/macos-validation-20261104-source.zip",
+      "sha256": "7346e5c4d55f5055e225e4aac923b66c8ca5bdcffd849681677a1b0257ed4836",
+      "bytes": 11524368
+    }
+  ],
+  "deckLicenseCollection": {
+    "resolvedPackages": 465,
+    "registryRecordsMissingLicenseText": [
+      "accesskit",
+      "accesskit_consumer",
+      "accesskit_macos",
+      "block",
+      "block2",
+      "dispatch2",
+      "gpui-kit",
+      "krilla",
+      "lyon",
+      "lyon_algorithms",
+      "lyon_geom",
+      "lyon_path",
+      "lyon_tessellation",
+      "mac",
+      "malloc_buf",
+      "markdown",
+      "objc-sys",
+      "objc2",
+      "objc2",
+      "objc2-app-kit",
+      "objc2-app-kit",
+      "objc2-cloud-kit",
+      "objc2-core-data",
+      "objc2-core-foundation",
+      "objc2-core-graphics",
+      "objc2-core-image",
+      "objc2-core-services",
+      "objc2-core-text",
+      "objc2-core-video",
+      "objc2-encode",
+      "objc2-foundation",
+      "objc2-foundation",
+      "objc2-metal",
+      "objc2-quartz-core",
+      "objc2-security",
+      "objc2-user-notifications",
+      "pathfinder_geometry",
+      "pathfinder_simd",
+      "profiling",
+      "profiling-procmacros",
+      "pulp-wasm-simd-flag",
+      "rust-i18n-macro",
+      "rust-i18n-support",
+      "seahash",
+      "svg_fmt",
+      "taffy",
+      "zune-core",
+      "zune-inflate",
+      "zune-jpeg"
+    ]
+  },
+  "packageExercises": {
+    "wordCli": [
+      {
+        "checks": [
+          "inspect",
+          "text",
+          "unicode edit",
+          "reopen",
+          "OOXML",
+          "no-clobber",
+          "invalid DOCX",
+          "render",
+          "PDF"
+        ],
+        "input_sha256": "8e55503dbfd2de7e209ca3494d678919e48f52780e51ba06f8456a944b2aac7f",
+        "pages": 1,
+        "independent_pdf": false
+      },
+      {
+        "mutations": 64,
+        "accepted": 21,
+        "rejected": 43
+      }
+    ],
+    "wordPdfReadback": {
+      "strictReader": "pypdf 6.10.0",
+      "pages": 1,
+      "pagePt": [
+        595.3,
+        841.9
+      ],
+      "unicodeMarkerFoundByPoppler": true
+    },
+    "deckCliR1ToR5": {
+      "r1": {
+        "exit": 0,
+        "invocations": 28
+      },
+      "r2": {
+        "exit": 0,
+        "invocations": 20
+      },
+      "r3": {
+        "exit": 0,
+        "invocations": 20
+      },
+      "r4-r5": {
+        "exit": 0,
+        "invocations": 23
+      }
+    },
+    "deckCliR6R7": {
+      "stockScriptExit": 1,
+      "macosAdjustedExit": 0,
+      "cliCalls": 32,
+      "mcpResponses": 60,
+      "explicitlyUnsupported": [
+        "MP4 export",
+        "media-inspect"
+      ]
+    },
+    "sheetCli": {
+      "passed": true,
+      "cachedValue": 808,
+      "formula": "=SUM(800,8)",
+      "inputUnchanged": true,
+      "cliVersion": "joysheet-cli 0.1.0"
+    }
+  },
+  "desktopEvidence": {
+    "screenLockedDuringRecordedRuns": true,
+    "word": {
+      "passed": true,
+      "binarySha256": "4f286b5c7860a1dbd4f5f492dd4b8335ac5134229e2d9af26a1fe6d0b982ea29",
+      "runs": [
+        {
+          "input": "valid",
+          "sourceUnchanged": true,
+          "openWorkerCallback": true,
+          "desktopRecoveryInitialized": true,
+          "stages": [
+            "open_worker"
+          ]
+        },
+        {
+          "input": "truncated",
+          "sourceUnchanged": true,
+          "openWorkerCallback": true,
+          "desktopRecoveryInitialized": false,
+          "stages": [
+            "open_worker"
+          ]
+        }
+      ]
+    },
+    "deck": {
+      "passed": true,
+      "binarySha256": "fd3b3f8395ca554858a1ae313771a86e32b41ced7ec815e351ce9e546dbd105a",
+      "requests": [
+        "engine.commands",
+        "document.status",
+        "command.validate",
+        "document.status",
+        "command.execute",
+        "command.execute",
+        "document.undo",
+        "document.redo",
+        "document.save",
+        "document.status",
+        "document.status"
+      ],
+      "sourceUnchanged": true,
+      "savedOOXMLPages": 4,
+      "reopenPages": 4,
+      "savedSha256": "329bee33f7cce1e4995a1358ae86fb6fbffe242fbc35226009013019200ab946"
+    },
+    "sheet": {
+      "openedThroughSystemEvent": true,
+      "launchWindowTitles": [
+        "Joysheet"
+      ],
+      "openedWindowTitles": [
+        "Joysheet",
+        "中文 空格.xlsx — Joysheet"
+      ],
+      "repeatWindowTitles": [
+        "中文 空格.xlsx — Joysheet",
+        "中文 空格.xlsx — Joysheet"
+      ],
+      "repeatWindowCount": 2,
+      "nativeSmokeExit": 1,
+      "nativeSmokeError": "ui.screenshot: screenshot timed out before a current frame became available",
+      "syntheticControlOnlyPassed": true,
+      "automationBinarySha256": "eb538da1a41a7f9080a0afa8fa4ae10864406be866ca69cb721fb0c638bdf8d4",
+      "syntheticControlOnlyChecks": [
+        "native sales window and chart state",
+        "Unicode/emoji, pointer/text input and dependent formula recalculation",
+        "platform keyboard undo and redo",
+        "synthetic composition blocks premature Enter; commit retains UTF-16 text",
+        "system clipboard and relative formula references",
+        "registered function completion and calculation",
+        "freeze, zoom and real formatting form",
+        "cancelled close retains unsaved edits",
+        "Chinese/space path XLSX save, close, reopen and retained formulas/text"
+      ]
+    }
+  },
+  "pythonTools": {
+    "passed": 150,
+    "skipped": 2
+  },
+  "deckRuntimeShadersBuildExit": 0,
+  "evidenceSha256": {
+    "joyword-headless.log": "0730cea5d7a67262dea95c678aa5cd2465fecee6c25f909daf190db5ce9468cb",
+    "joydeck-headless.log": "74e1eeccdd6614eab2f3a5760b1b0897ca779da1808e0f5f173148d7f227b635",
+    "joysheet-headless.log": "3f2ae59e98e6687000a4f2bea8f9ae58be127baabe0e533795ab24b4175130ad",
+    "joyword-check.log": "81101c9afe9645fd1326627474e666c590da600933e697a9df7eb3a0194a237d",
+    "joydeck-check.log": "cfda10f7384a0ef85787cbfc7bcf7f9d4d6cc9fb3380554fc2ee1daa456155d6",
+    "joysheet-check.log": "cacdfc45bc850ea9d932a6c775307411b97de75afd01f554a05a0aac73e8f34b",
+    "joyword-package.log": "872acfd0f774e709cc9b4de287cd11a58545114d8f899446bb732a673387687c",
+    "joydeck-package.log": "6f256242711a1644a33e26e4343e9b6c8ff4ea06d5d59d0d3d55041bb7a20250",
+    "joysheet-package.log": "3c7a8108b151c29892afcecbe800a605c844fb61369c0c8a4dfb29d3524782f8",
+    "joyword-archive-sha.log": "d87c99f06d45a1cc67ac707b6bbc803498cb22375c37ee6d7553636ffeb523b2",
+    "joydeck-archive-sha.log": "e480ac5b82396c812b211d837ff9bf78ede3cab8964b89391f23ad30924df67e",
+    "sheet-archives.log": "625e1a77923b3d7ef4e107d93ca4b2452cf5d559584a28e6aca7d6656450ff6a",
+    "joysheet-archive-check.log": "747588abf3c5e0e0b3da4006e85839d93aeb6d0e75ee17387a6ef611912b2cd9",
+    "sheet-codesign.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "word-cli.log": "1c7da492336363238e01266af8d0d2194dfd4a0baf8d8fa7612eb8cff8fbb7db",
+    "word-pdf-struct.log": "ea989e45350f2676469fba2e2b5d07821ba994b7e4527e311661651dabacdc14",
+    "deck-cli-r6-r7.log": "fba321c62a3d9ae06760e051b1a94c28ec5acab4f34f666504e99f9374a5232a",
+    "deck-cli-r6-r7-macos.json": "edee2e9068edf89eba0552471b94cd4ea92010ecc845658be3b41db1d7fb1b93",
+    "sheet-cli.log": "99733abaefbfe8e3124899a8778914a88db0f8025d40e642b62a40b0d403b533",
+    "word-native-load.json": "210b0ec90fa948d85b6dc1404803021cbdfa4a777a761342426cf6a38ee66155",
+    "deck-desktop.json": "4f2f14d432260ffcf1529f9299cc8ab297113585937f98b67c52172a2a0811e5",
+    "joysheet-gui-event/report.json": "727fc8d954cd9997255005fdb4ed63dc5af249b1cfe1908ae125232e83d8eb46",
+    "sheet-native-smoke.log": "af73c2a79d35262c09a387ae6b29cee99553c677371906a804a9ca31020ac8be",
+    "sheet-native-control-only/report.json": "56af136a665fb628ff8350b989eea10fe41b627f56ca70179dd8ea4b3f3bc1bd",
+    "gates.log": "740fc9fd4acc627380b7e0e1889a4ad7685933d263d118c4f83e0b79b5eca1ef",
+    "python-tests.log": "24b2e023e5f8d669a2f0349bc62c304e4c5c9b7e27c7cf59cf0204394201f717",
+    "deck-runtime-shaders.log": "95a1bd2b39167515ce98eb2c692e3b6a385f541db2b1106826c66239c3e279e6",
+    "deck-runtime-native.json": "ed951d64327dfb9ef6bc2d0fa837769fc49d872d0c45362bbf48a3cbbd868e84",
+    "word-native-confirm/report.json": "a71eb9d64bd04d9b1f7ec8cdfbc0b8965cab37cc1c50014e6918b97b6823bf51",
+    "deck-native-recheck/report.json": "e2e313ca04cc1a4edb8cc7c29b2a8f6cfe6f8678537381daf629510843aa506d",
+    "sheet-native-recheck/report.json": "d22649399782571eb3f69a4c296ecb1b94cca242badfba8fce20c0bb14032a35",
+    "word-system-open-abc/report.json": "059306282b5ca2c8031d67cf6debef402cf160c48cd7bd68adb041e893ee9849",
+    "deck-system-open/report.json": "9d092414f1d2ec0c77f3a6f1bc0260969b28d4b0f0ca7720af6e88a2495254dd",
+    "joysheet-unlocked-event/report.json": "301f87c07e2d516ec3cce70734844105a779878c0d4abff9ea841b36dc2b30b3",
+    "sheet-unlocked-smoke/report.json": "4c949fa76270465b10660eaa7874620d6d693aed9cd6dc505c27cacb77289f61",
+    "word-native-panel/report.json": "0c67e8adfd1fd5c890536e15737555246a6b38a2feba368aa4d8f91e28b35bd2"
+  },
+  "deckRuntimeShadersDesktop": {
+    "passed": true,
+    "screenLocked": true,
+    "binarySha256": "6e302a848f7362fce9c4477af5f5b58e7204571a78abe48ec045a41e9e3a7847",
+    "savedOOXMLPages": 4,
+    "reopenPages": 4,
+    "sourceUnchanged": true,
+    "exit": 0
+  },
+  "unlockedDesktop": {
+    "eventSource": "macOS mouse and keyboard events targeted at the relocated Release apps",
+    "inputSourceDuringTextEntry": "com.apple.keylayout.ABC",
+    "inputSourceRestored": true,
+    "releaseApps": {
+      "joyword": {
+        "passed": true,
+        "binarySha256": "4f286b5c7860a1dbd4f5f492dd4b8335ac5134229e2d9af26a1fe6d0b982ea29",
+        "menus": "Apple, JoyWord, View",
+        "checks": {
+          "cancelledReplacementLeftSourceUntouched": true,
+          "docxMarker": "MacGuiWord",
+          "tableRetained": true,
+          "mediaRetained": true,
+          "fixtureUnchanged": true,
+          "savedSha256": "7c89d6263452481cdb2bad9f1f142b898df2ac367d9627198aa56171d7a028ab",
+          "closeWindowExit": 0,
+          "independentReopenReadback": true,
+          "reopenCloseWindowExit": 0,
+          "keyboardUndoRedoVisualReadback": true
+        },
+        "screenReadback": "中文 空格.docx — JoyWord"
+      },
+      "joydeck": {
+        "passed": true,
+        "binarySha256": "fd3b3f8395ca554858a1ae313771a86e32b41ced7ec815e351ce9e546dbd105a",
+        "menus": "Apple, JoyDeck",
+        "checks": {
+          "keyboardUndoRedo": true,
+          "savedPages": 4,
+          "duplicatedSecondSlide": true,
+          "savedSha256": "fc1d4b72626569a1203384d69e5d32b19cfb567d0cee70b243317c8895875629",
+          "closeWindowExit": 0,
+          "independentReopenReadback": true,
+          "reopenCloseWindowExit": 0
+        },
+        "screenReadback": "中文 空格.pptx - JoyDeck"
+      },
+      "joysheet": {
+        "passed": true,
+        "binarySha256": "7dcc36e5373da86989d18d5c0d711c07a0c7e2d86d3feab90733dc98f8734e5b",
+        "menus": "Apple, Joysheet, Edit",
+        "checks": {
+          "savedFormula": "SUM(800,8)",
+          "savedValue": 808,
+          "savedSha256": "844133dc3530912538ccd23c2fedc267ade1511d967e95da9ab19d7318b289f9",
+          "closeWindowExit": 0,
+          "independentReopenReadback": true,
+          "reopenCloseWindowExit": 0
+        },
+        "screenReadback": "Joysheet"
+      }
+    },
+    "launchServicesEvent": {
+      "joyword": {
+        "argvTitles": "启动.docx — JoyWord",
+        "eventTitles": "启动.docx — JoyWord",
+        "openedThroughEvent": false
+      },
+      "joydeck": {
+        "argvTitles": "启动.pptx - JoyDeck",
+        "eventTitles": "启动.pptx - JoyDeck",
+        "openedThroughEvent": false
+      },
+      "joysheet": {
+        "openedWorkbookVisibleInAppRibbon": true,
+        "windowTitleReportedAfterEvent": "Joysheet"
+      }
+    },
+    "wordNativeDialogs": {
+      "openPanelDisplayed": true,
+      "openSelectionConfirmed": false,
+      "saveAsRoundTripConfirmed": false
+    },
+    "sheetAutomation": {
+      "passed": true,
+      "binarySha256": "eb538da1a41a7f9080a0afa8fa4ae10864406be866ca69cb721fb0c638bdf8d4",
+      "checks": [
+        "native sales window, charts and window screenshot",
+        "Unicode/emoji, pointer/text input and dependent formula recalculation",
+        "platform keyboard undo and redo",
+        "synthetic composition blocks premature Enter; commit retains UTF-16 text",
+        "system clipboard and relative formula references",
+        "registered function completion and calculation",
+        "freeze, zoom and real formatting form",
+        "cancelled close retains unsaved edits",
+        "Chinese/space path XLSX save, close, reopen and retained formulas/text"
+      ],
+      "captures": 3
+    },
+    "screenshots": {
+      "gui/joydeck-reopen.png": "38a1966afd3ad21bb7018fa90a553993a16b7f2bf3fd0f576d0fb329cc3b74fa",
+      "gui/joysheet-automation-format.png": "317a1d1f7115b51bc8d82cff86890c7c12fea5245b715f1baef09be142b9e1f4",
+      "gui/joysheet-reopen.png": "183b3beb63b05eff04c806185ef5a843a9409ea2a99d12d4471b51ef3db1e791",
+      "gui/joyword-reopen.png": "0b124038188ebc7f352c36168eb2c5ca8501790d83cee6992426e5d385231f01",
+      "gui/joyword-replace-confirmation.png": "93409906bf12b67671221768eeab3d4a45a4e4de87c09276d51f92b5fa0cfc41"
+    }
+  }
+}

@@ -63,6 +63,7 @@ struct JoyWord {
     confirm_discard: bool,
     replace_confirm: Option<(u64, u64)>,
     pending_open: Option<OpenSource>,
+    legacy_recovery: Option<std::path::PathBuf>,
     close_pending: bool,
     save_task: Option<gpui::Task<()>>,
     saving: bool,
@@ -135,6 +136,7 @@ impl JoyWord {
             confirm_discard: false,
             replace_confirm: None,
             pending_open: None,
+            legacy_recovery: None,
             close_pending: false,
             save_task: None,
             saving: false,
@@ -717,7 +719,34 @@ impl JoyWord {
                         .child(div().text_color(rgb(p.muted)).text_size(px(13.0)).child(tr(
                             "已支持正文编辑、中文输入、撤销重做和 DOCX 保存。",
                             "Text editing, native input, Undo/Redo and DOCX saving are available.",
-                        ))),
+                        )))
+                        .when(!self.shell.recent_documents().is_empty(), |panel| {
+                            panel.child(tr("最近文档", "Recent documents")).child(
+                                div()
+                                    .id("recent-documents")
+                                    .max_h(px(240.0))
+                                    .overflow_y_scroll()
+                                    .flex()
+                                    .flex_col()
+                                    .children(
+                                        self.shell.recent_documents().iter().enumerate().map(
+                                            |(index, path)| {
+                                                let path = path.clone();
+                                                Button::new(("recent-document", index))
+                                                    .ghost()
+                                                    .label(path.display().to_string())
+                                                    .disabled(self.saving || self.close_pending)
+                                                    .on_click(cx.listener(move |this, _, _, cx| {
+                                                        this.begin_open(
+                                                            OpenSource::File(path.clone()),
+                                                            cx,
+                                                        );
+                                                    }))
+                                            },
+                                        ),
+                                    ),
+                            )
+                        }),
                 );
         }
         self.document_workspace(cx)
@@ -855,6 +884,29 @@ impl Render for JoyWord {
                     )),
             );
         }
+        if let Some(path) = self.legacy_recovery.as_ref() {
+            let path = path.clone();
+            content = content.child(
+                div()
+                    .p_2()
+                    .bg(rgb(p.selected))
+                    .flex()
+                    .gap_3()
+                    .items_center()
+                    .child(self.shell.tr(
+                        "发现旧版恢复日志。恢复后请另存为 DOCX。",
+                        "A legacy recovery journal was found. Save As after restoring.",
+                    ))
+                    .child(
+                        Button::new("recover-legacy")
+                            .label(self.shell.tr("恢复旧版副本", "Recover legacy copy"))
+                            .disabled(self.saving || self.canvas.loading || self.close_pending)
+                            .on_click(cx.listener(move |this, _, _, cx| {
+                                this.begin_open(OpenSource::LegacyRecovery(path.clone()), cx);
+                            })),
+                    ),
+            );
+        }
         if self.replace_confirm.is_some() {
             content=content.child(div().p_3().bg(rgb(p.selected)).flex().flex_col().gap_2()
                 .child(self.shell.tr("替换原文件：当前组件无法验证文件所有者、ACL 与全部扩展属性。建议另存副本。","Replace original: ownership, ACLs and all extended attributes cannot be verified. Save a copy is recommended."))
@@ -962,9 +1014,29 @@ fn bind_document_keys(cx: &mut App) {
 }
 
 pub fn run() {
-    gpui_kit::application()
+    let application = gpui_kit::application();
+    #[cfg(target_os = "macos")]
+    let open_requests = {
+        let (send, receive) = async_channel::bounded(16);
+        application.on_open_urls(move |urls| {
+            // This editor has one document window. Use the first supported file in a batch.
+            let path = urls.iter().find_map(|value| {
+                let path = url::Url::parse(value).ok()?.to_file_path().ok()?;
+                path.extension()
+                    .is_some_and(|ext| ext.eq_ignore_ascii_case("docx"))
+                    .then_some(path)
+            });
+            if let Some(path) = path
+                && send.try_send(path).is_err()
+            {
+                eprintln!("JoyWord could not queue a macOS document open request");
+            }
+        });
+        receive
+    };
+    application
         .with_assets(gpui_kit::assets::AllAssets)
-        .run(|cx: &mut App| {
+        .run(move |cx: &mut App| {
             gpui_kit::init(cx);
             bind_document_keys(cx);
 
@@ -1041,6 +1113,19 @@ pub fn run() {
                     });
                     view.update(cx, |this, cx| {
                         this.start_blink(cx);
+                        cx.spawn(async |view, cx| {
+                            let path = cx
+                                .background_executor()
+                                .spawn(async { joyword_shell::legacy_recovery_directory() })
+                                .await;
+                            if let Some(path) = path {
+                                let _ = view.update(cx, |this, cx| {
+                                    this.legacy_recovery = Some(path);
+                                    cx.notify();
+                                });
+                            }
+                        })
+                        .detach();
                         let focus = this.focus.clone();
                         this.subscriptions.push(
                             cx.on_blur(&focus, window, |v, window, cx| {
@@ -1060,6 +1145,8 @@ pub fn run() {
                         .map(OpenSource::File)
                         .unwrap_or(OpenSource::Welcome);
                     view.update(cx, |this, cx| this.begin_open(source, cx));
+                    #[cfg(target_os = "macos")]
+                    listen_for_system_open(&view, window, cx, open_requests);
                     view
                 },
             );
@@ -1069,6 +1156,50 @@ pub fn run() {
             }
             cx.activate(true);
         });
+}
+
+#[cfg(target_os = "macos")]
+fn listen_for_system_open(
+    view: &gpui::Entity<JoyWord>,
+    window: &Window,
+    cx: &App,
+    requests: async_channel::Receiver<std::path::PathBuf>,
+) {
+    let handle = window.window_handle();
+    let view = view.downgrade();
+    cx.spawn(async move |cx| {
+        while let Ok(path) = requests.recv().await {
+            let opened = cx.update(|cx| {
+                handle.update(cx, |_, window, cx| {
+                    window.activate_window();
+                    cx.activate(true);
+                    view.update(cx, |this, cx| {
+                        if this.saving || this.close_pending {
+                            this.shell.notice = Some(
+                                this.shell.tr(
+                                    "请先完成保存或关闭，再重新打开文档。",
+                                    "Finish saving or closing before retrying the open request.",
+                                ).into(),
+                            );
+                            cx.notify();
+                        } else if this
+                            .canvas
+                            .reader
+                            .as_ref()
+                            .and_then(|reader| reader.source_path())
+                            != Some(path.as_path())
+                        {
+                            this.begin_open(OpenSource::File(path), cx);
+                        }
+                    })
+                })
+            });
+            if !matches!(opened, Ok(Ok(()))) {
+                break;
+            }
+        }
+    })
+    .detach();
 }
 
 /// Match the JoyOffice launch convention, including an optional `--` before

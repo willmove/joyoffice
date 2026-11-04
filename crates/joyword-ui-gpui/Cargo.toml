@@ -12,6 +12,11 @@ image = { workspace = true, features = ["bmp", "gif", "jpeg", "png", "tiff", "we
 gpui-kit.workspace = true
 joyoffice-ui.workspace = true
 joyword-shell.workspace = true
+
+[target.'cfg(target_os = "macos")'.dependencies]
+async-channel.workspace = true
+url.workspace = true
+
 [lints.rust]
 unsafe_code = "forbid"
 

@@ -114,6 +114,12 @@ def app_bundle(binary: Path, version: str, staging: Path) -> Path:
             "CFBundleShortVersionString": version,
             "CFBundleVersion": "1",
             "NSHighResolutionCapable": True,
+            "CFBundleDocumentTypes": [{
+                "CFBundleTypeName": "Word document",
+                "CFBundleTypeRole": "Editor",
+                "LSHandlerRank": "Alternate",
+                "LSItemContentTypes": ["org.openxmlformats.wordprocessingml.document"],
+            }],
         }, handle)
     return bundle
 

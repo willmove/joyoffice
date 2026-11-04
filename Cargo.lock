@@ -3883,6 +3883,7 @@ dependencies = [
 name = "joydeck-ui-gpui"
 version = "0.1.0"
 dependencies = [
+ "async-channel",
  "gpui-kit",
  "gpui-pre-platform",
  "image",
@@ -3895,6 +3896,7 @@ dependencies = [
  "joyoffice-ui",
  "serde",
  "serde_json",
+ "url",
 ]
 
 [[package]]
@@ -4417,6 +4419,7 @@ dependencies = [
 name = "joyword-ui-gpui"
 version = "0.1.0"
 dependencies = [
+ "async-channel",
  "gpui-kit",
  "gpui-pre",
  "image",
@@ -4424,6 +4427,7 @@ dependencies = [
  "joyword-render",
  "joyword-shell",
  "serde_json",
+ "url",
 ]
 
 [[package]]

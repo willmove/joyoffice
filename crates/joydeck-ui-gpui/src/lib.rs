@@ -746,12 +746,37 @@ pub fn run(arguments: impl Iterator<Item = String>) -> Result<(), String> {
     let preview = PreviewDeck::bundled()?;
     let failure = Rc::new(RefCell::new(None));
     let startup_failure = failure.clone();
-    gpui_kit::application()
+    let application = gpui_kit::application();
+    #[cfg(target_os = "macos")]
+    let open_requests = {
+        let (send, receive) = async_channel::bounded(16);
+        if !sample_workspace {
+            application.on_open_urls(move |urls| {
+                let path = urls.iter().find_map(|value| {
+                    let path = url::Url::parse(value).ok()?.to_file_path().ok()?;
+                    path.extension()
+                        .is_some_and(|ext| ext.eq_ignore_ascii_case("pptx"))
+                        .then_some(path)
+                });
+                if let Some(path) = path
+                    && send.try_send(path).is_err()
+                {
+                    eprintln!("JoyDeck could not queue a macOS document open request");
+                }
+            });
+        }
+        receive
+    };
+    application
         .with_assets(gpui_kit::assets::AllAssets)
         .run(move |cx| {
             gpui_kit::init(cx);
             apply_theme(dark, None, cx);
             viewer::bind(cx);
+            #[cfg(target_os = "macos")]
+            if !sample_workspace {
+                viewer::bind_native_menus(cx);
+            }
             cx.on_action(move |_: &Quit, cx| {
                 if sample_workspace {
                     cx.quit()
@@ -811,6 +836,17 @@ pub fn run(arguments: impl Iterator<Item = String>) -> Result<(), String> {
                 Ok(_) => {
                     eprintln!("JoyDeck window opened · GPUI Kit 0.8.1 / pre 0.3.10");
                     cx.activate(true);
+                    #[cfg(target_os = "macos")]
+                    if !sample_workspace {
+                        cx.spawn(async move |cx| {
+                            while let Ok(path) = open_requests.recv().await {
+                                cx.update(|cx| {
+                                    viewer::open_system_document(path, dark, window_size, cx);
+                                });
+                            }
+                        })
+                        .detach();
+                    }
                 }
                 Err(error) => {
                     *startup_failure.borrow_mut() = Some(error.to_string());

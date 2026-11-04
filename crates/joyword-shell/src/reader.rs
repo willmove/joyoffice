@@ -99,6 +99,12 @@ fn visual_command(id: &str) -> bool {
     )
 }
 impl Reader {
+    pub fn set_review_author(&mut self, author: &str) {
+        if !author.is_empty() {
+            self.session.author = author.to_owned();
+        }
+    }
+
     pub fn presentation_revision(&self) -> u64 {
         self.presentation
     }

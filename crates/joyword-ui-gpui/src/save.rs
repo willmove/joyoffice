@@ -196,6 +196,14 @@ impl JoyWord {
                                     )
                                     .into(),
                             );
+                            if let Some(path) = reader.source_path()
+                                && let Err(error) = v.shell.remember_document(path)
+                            {
+                                v.shell.notice = Some(format!(
+                                    "{} {error}",
+                                    v.shell.tr("文档已保存。", "Document saved.")
+                                ));
+                            }
                             if !reader.is_dirty() && v.confirm_discard {
                                 v.confirm_discard = false;
                                 if v.close_pending {

@@ -3,7 +3,7 @@ use joyword_engine::doc::{Document, Pos, StoryRef, para};
 use std::{
     fs::{self, File},
     io::{self, Read},
-    path::Path,
+    path::{Path, PathBuf},
     sync::{Arc, atomic::AtomicBool},
 };
 
@@ -13,6 +13,18 @@ const MAX_PACKAGE: usize = 96 << 20;
 const MAX_TEXT: usize = 32 << 20;
 const MAX_RECORD: usize = MAX_PACKAGE + MAX_TEXT + 49;
 const OBJECT_MARKER: char = '\u{fdd0}';
+
+/// Locate the prior desktop's published journals without creating or changing any files.
+pub fn legacy_recovery_directory() -> Option<PathBuf> {
+    let directory = std::env::var_os("JOYWORD_RECOVERY_DIR")
+        .filter(|path| !path.is_empty())
+        .map(PathBuf::from)
+        .or_else(|| crate::prefs::default_config_dir().map(|root| root.join("recovery")))?;
+    [SINGLE, SLOTS[0], SLOTS[1]]
+        .iter()
+        .any(|name| fs::symlink_metadata(directory.join(name)).is_ok_and(|m| m.is_file()))
+        .then_some(directory)
+}
 
 #[derive(PartialEq, Eq)]
 struct Record {

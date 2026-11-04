@@ -1,5 +1,9 @@
 # JoyDeck 当前状态
 
+2026-11-05 macOS 补验。JD-801 完成。PPTX 系统文件冷启动和运行中打开、重复打开、坏文件拒绝及未保存保护已用 Release 包验证。新增原生文件与编辑菜单，实际点击撤销与重做通过。其余 R9 功能和发行任务见交接。[本机证据](../joyoffice/validation/20261105-macos-open/README.md)
+
+2026-11-04 macOS ARM64。JD-801 转为进行中。普通 Metal Release 包已在仓库外移位启动，桌面 stdio 通过复制幻灯片、撤销／重做、保存和重启重开，独立 PPTX 读回 4 页。开发 `runtime_shaders` 构建单独启动并通过相同检查。包内 CLI 通过 R1–R5 和适用的 R6–R7/MCP 检查。解锁后实屏验证鼠标选择并复制第 2 页、键盘撤销／重做／保存、正常关窗和重启重开。MP4 导出与媒体探测仍依赖 Windows 适配器，系统文件事件未切换文稿，菜单与其他平台交互继续验收。包清单列出的 49 条许可正文缺口留在 JD-807/808，JD-905–907 仍开放。[本机报告](../joyoffice/validation/20261104-macos/README.md)
+
 2026-11-03 R9：按用户明确要求，将 0.8.0 DeckCraft/GPUI 重构整合到 JoyOffice，替换 apps/joydeck、apps/joydeck-cli 与相关产品 crate。今后仅在 JoyOffice 内继续开发，原 joydeck-new 目录退出开发。当前整合、回归、备份和剩余任务见 [R9 交接](../joyoffice/JOYDECK-R9-HANDOFF.md) 与 [R9 验证](evidence/R9/README.md)。
 
 2026-11-03 R9-UI2：PR #121 已合入 `6689c6e`；PR #119 经 20 项 CI 全绿后按用户授权合入 `8002f27`，仅保留 QEMU 子进程 runner 增量。当前分支 `codex/joydeck-r9-ui-compat`，非草稿 [PR #122](https://github.com/willmove/joyoffice/pull/122) 已提交，CI 见 PR 实时状态，已同步该 main。混合格式、段落／表格控件、整体变换／页面组织、最近／模板／多窗口、旧审阅／媒体语义、比较接受和显式桌面控制已新增实现与自动回归；最终 Deck 894、Word 1,318 项通过，联合 3,596 通过／0 失败／1 忽略。Word emoji 最终包 GUI／独立 PDF 回读已通过；Deck 格式／表格／审阅等 GUI 已独立读回；额外发现的模板／UIA 关闭竞态／主题同步已修复；最终包格式保存、审阅／最近重开、跨窗口主题和关闭补验通过，UOS 输入法按用户最新安排留待之后进入该环境验证。完整旧 16 领域、UI 一致与 JD-906 继续开放，详见 [本轮范围与证据](evidence/R9-UI2/README.md)。下段保留 R9-UI1 历史基线。

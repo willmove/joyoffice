@@ -68,9 +68,10 @@
     "source_path": "scripts/joydeck/package-native.py",
     "target_path": "scripts/joydeck/package-native.py",
     "source_sha256": "a4ae844b6c2488524872bc69e418673dce6cd1599530447e9efc54ab6be1398e",
-    "adapted_sha256": "2e977dda5791ec648ae117cddbb125ba28f6ac985fdcdeb9441ab4a7b6339bbf",
+    "adapted_sha256": "a0ae50839a7487b04a11a898a3b9edf37c5795961a13f5fb2de08f9e7f91176c",
     "local_changes": "adapt product packaging and Cargo artifact discovery; add source checks, selected SBOM and atomic ZIP; LF; R1 rustfmt and bounded reader/CPU-renderer/palette/notes adapters as applicable; R2 editable viewer adapter, background save/recovery, command-driven gestures, coordinate anchoring and close guard; rustfmt; R4/R5 scene/content workspace adaptation; R6/R7 adapter additions and repository rustfmt/LF normalization.; R8 native editor, clipboard or product package version adaptation; R9 host integration and explicit command schema negotiation",
-    "r9_ui2_gui_fix": "Include reviewed local platform-adapter source in package fingerprint"
+    "r9_ui2_gui_fix": "Include reviewed local platform-adapter source in package fingerprint",
+    "macos_document_open": "Declare the public PPTX document type as a macOS Alternate editor."
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
@@ -141,10 +142,11 @@
     "source_path": "apps/joydeck/src/viewer.rs",
     "target_path": "crates/joydeck-ui-gpui/src/viewer.rs",
     "source_sha256": "249104bdece51947664a50fe4b8166f358662e78d0000ed7d0024b10fade5584",
-    "adapted_sha256": "16715d4e5ad7a5218a23318e7c7f1361d0c673c21c54fb1a8968c7f527d94a73",
+    "adapted_sha256": "44f515158f1fa84aca39e21cb828679e8756b759574ed7b477c7e35a2e07b7ac",
     "local_changes": "Reuse asynchronous read-only viewer, generation guards, cancellation, virtual thumbnail rail and bounded cache; adapt to DeckCraft model and shared CPU renderer; R1 branding and aspect fit; upstream validation modules deferred; R1 rustfmt and bounded reader/CPU-renderer/palette/notes adapters as applicable; R2 editable viewer adapter, background save/recovery, command-driven gestures, coordinate anchoring and close guard; rustfmt; R4/R5 scene/content workspace adaptation; R6/R7 adapter additions and repository rustfmt/LF normalization.; R8 native editor, clipboard or product package version adaptation; R9-UI1 native formatting controls and schema-2 validation/history compatibility (see slice evidence)",
     "r9_ui2_adaptation": "Formatting, desktop control and reviewed preservation validation; LF source representation.",
-    "r9_ui2_gui_fix": "Synchronize every editor palette with GPUI Kit application theme during render"
+    "r9_ui2_gui_fix": "Synchronize every editor palette with GPUI Kit application theme during render",
+    "macos_document_open": "Route macOS file events through the active editor and the existing replace guard. Register native File and Edit menus using editor actions."
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",

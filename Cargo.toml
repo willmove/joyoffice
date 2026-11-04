@@ -131,6 +131,7 @@ sha1 = { version = "=0.11.0", default-features = false }
 rfd = "=0.17.2"
 arboard = "=3.7.0"
 url = "=2.5.8"
+async-channel = "=2.5.0"
 joydeck-model = { path = "crates/joydeck-model" }
 joydeck-engine = { path = "crates/joydeck-engine" }
 joydeck-shell = { path = "crates/joydeck-shell" }

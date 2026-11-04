@@ -61,9 +61,17 @@ Ubuntu WSL2 联合构建三应用及 CLI。使用 WSLg 和 Mesa 软件 Vulkan �
 
 JoySheet 的 Debian 打包在 WSL 的 ext4 内完成，保留 Debian 控制目录权限。使用 `cargo xtask package joysheet --output <ext4 目标目录>` 可复现该路径。Debian 控制元数据为 `joysheet 0.1.0 amd64`。两个平台的 JoySheet 源码包都保留了工作区使用的 AccessKit 路径补丁。
 
+## macOS ARM64
+
+2026-11-04 在 Apple M4 上完成普通 Metal Release 构建和开发包校验。移位后的包内桌面程序创建原生窗口，通过启动参数处理中文空格路径。有效 DOCX 初始化 Reader 和隔离恢复目录，截断输入完成打开作业后未初始化 Reader。解锁后核对首屏的混合文字、表格和三色图片。鼠标定位并用键盘插入文本，撤销后标记消失、重做后恢复。普通保存显示替换确认，取消时源副本散列不变，确认后关窗并重启，独立核对正文、表格和媒体。
+
+包内 CLI 完成混合媒体 DOCX 编辑、另存和重开，独立检查表格与媒体部件、源文件散列和拒绝覆盖。PNG 与普通 PDF 导出通过，独立 PDF 解析及 Poppler 文本读回通过。64 个确定性损坏变体中 21 个可解析，43 个干净拒绝。[本机报告与包指纹](../../joyoffice/validation/20261104-macos/README.md)
+
+2026-11-05 复验覆盖 DOCX 系统文件打开、旧恢复目录扫描、覆盖引导解码和固定渲染金样，见 [macOS 补验](../../joyoffice/validation/20261105-macos-open/README.md)。
+
 ## 待验
 
-- macOS 原生构建与桌面运行按约定待验。集成后的 Linux ARM64 原生桌面、信创真机与托管 CI 待验。
+- macOS 原生打开／另存对话框的完整往返、IME 与读屏待验。DOCX 系统文件打开已完成补验。集成后的 Linux ARM64 原生桌面、信创真机与托管 CI 待验。
 - Windows 拼音和读屏沿用独立版证据，R8 包复验、完整 Word/WPS 互通、安装器安装／卸载与文件关联见 [交接任务](../../joyoffice/JOYWORD-R8-HANDOFF.md)。
 - 复杂旧恢复语料、固定金样和覆盖引导 fuzz 的迁移，以及剩余 CLI/API 和 Agent 的差距见交接中的接口表。
 - JoyDeck 开发包的清单列出了未自动收集到的依赖许可文本，发布验收时仍需补齐对应记录。

@@ -9,7 +9,7 @@ pub mod prefs;
 pub mod reader;
 pub mod storage;
 
-pub use legacy_recovery::validate_legacy_recovery_record;
+pub use legacy_recovery::{legacy_recovery_directory, validate_legacy_recovery_record};
 
 use l10n::Locale;
 use prefs::{Loaded, PrefsStore};
@@ -101,6 +101,34 @@ impl Default for Shell {
 }
 
 impl Shell {
+    pub fn review_author(&self) -> &str {
+        self.preferences
+            .as_ref()
+            .map_or("", |loaded| loaded.prefs.author_name.trim())
+    }
+
+    pub fn recent_documents(&self) -> &[std::path::PathBuf] {
+        self.preferences
+            .as_ref()
+            .map_or(&[], |loaded| loaded.prefs.recent.as_slice())
+    }
+
+    pub fn remember_document(&mut self, path: &std::path::Path) -> Result<(), String> {
+        if let Some(loaded) = &mut self.preferences
+            && loaded
+                .prefs
+                .recent
+                .first()
+                .is_none_or(|first| first != path)
+        {
+            loaded.prefs.add_recent(path.to_path_buf());
+            if loaded.writable {
+                self.persist()?;
+            }
+        }
+        Ok(())
+    }
+
     pub fn tr(&self, zh: &'static str, en: &'static str) -> &'static str {
         if self.locale == Locale::ZhCn { zh } else { en }
     }

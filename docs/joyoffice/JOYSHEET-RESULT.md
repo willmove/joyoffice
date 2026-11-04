@@ -71,4 +71,4 @@ macOS CI 在[首次整合](https://github.com/willmove/joyoffice/actions/runs/41
 
 ## 保留的验收项
 
-本机实测平台为 Windows x64。macOS/Linux 的实际 GUI、正式签名/公证、真实系统 IME、多显示器/系统 DPI、读屏语音、物理打印设备与 GPU 呈现性能仍未验证。CI 构建或合成输入不代替这些验收；信创真机按仓库约定后补，不阻塞工程整合。本次不将原 M8 或产品功能矩阵整体改为完成。
+本次整合的原始实测平台为 Windows x64。后续 macOS ARM64 实测已覆盖 Release DMG 校验、移位启动、系统文件打开事件、实屏键鼠和包内 XLSX 往返，见 [2026-11-04 本机记录](validation/20261104-macos/README.md)。其余 macOS/Linux 桌面交互、正式签名与公证、系统 IME、多显示器与 DPI、读屏语音、物理打印和 GPU 呈现性能继续待验。信创真机按仓库约定后补，M8 全量验收仍开放。
