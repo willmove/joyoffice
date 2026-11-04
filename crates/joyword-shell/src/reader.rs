@@ -173,9 +173,19 @@ impl Reader {
         })
     }
     pub fn blank(cancel: &AtomicBool) -> Result<Self, String> {
+        Self::blank_with_preset(None, cancel)
+    }
+    pub fn blank_with_preset(
+        preset: Option<crate::prefs::PagePreset>,
+        cancel: &AtomicBool,
+    ) -> Result<Self, String> {
+        let region = joyword_geom::Region {
+            letter: preset.map(|paper| paper == crate::prefs::PagePreset::Letter),
+            ..Default::default()
+        };
         Self::with_document(
             "Untitled",
-            joyword_engine::blank_document(&Default::default()),
+            joyword_engine::blank_document(&region),
             "blank".into(),
             None,
             cancel,

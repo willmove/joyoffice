@@ -202,6 +202,7 @@ impl JoyWord {
         self.canvas.loading = true;
         self.shell.notice = None;
         let from_legacy = matches!(&source, OpenSource::LegacyRecovery(_));
+        let new_page = self.shell.new_page_preset();
         let work = cx.background_executor().spawn(async move {
             // Platform executor threads can have a smaller stack than the nested DOCX
             // importer and layout require, particularly in debug builds.
@@ -214,7 +215,7 @@ impl JoyWord {
                     OpenSource::Welcome => {
                         Reader::from_bytes("JoyWord 欢迎.docx", WELCOME, &cancel)
                     }
-                    OpenSource::Blank => Reader::blank(&cancel),
+                    OpenSource::Blank => Reader::blank_with_preset(new_page, &cancel),
                 })
                 .map_err(|error| format!("Cannot start desktop document open: {error}"))?
                 .join()

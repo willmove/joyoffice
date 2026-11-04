@@ -106,6 +106,12 @@ impl Shell {
         (minutes > 0).then(|| std::time::Duration::from_secs(u64::from(minutes) * 60))
     }
 
+    pub fn new_page_preset(&self) -> Option<prefs::PagePreset> {
+        self.preferences
+            .as_ref()
+            .map(|loaded| loaded.prefs.new_page)
+    }
+
     pub fn review_author(&self) -> &str {
         self.preferences
             .as_ref()
@@ -233,6 +239,40 @@ mod tests {
         assert_eq!(shell.zoom, 200);
         shell.execute("file.new")?;
         assert_eq!(shell.document_number, 2);
+        Ok(())
+    }
+
+    #[test]
+    fn saved_page_preset_applies_to_new_documents() -> Result<(), Box<dyn std::error::Error>> {
+        let root = tempfile::tempdir()?;
+        let legacy = root.path().join("preferences.conf");
+        let store = PrefsStore::new(root.path().join("migration-preview"));
+        let cancel = std::sync::atomic::AtomicBool::new(false);
+        let settings = "schema=1\nui.locale=en\nnew.page=A4\n";
+        std::fs::write(&legacy, settings)?;
+        let mut active = store.load_with_legacy(root.path(), Locale::ZhCn);
+        let shell = Shell {
+            preferences: Some(active.clone()),
+            ..isolated()
+        };
+        let a4 = reader::Reader::blank_with_preset(shell.new_page_preset(), &cancel)?;
+        assert!((a4.summary.pages[0].width - 595.28).abs() < 0.05);
+        assert!((a4.summary.pages[0].height - 841.89).abs() < 0.05);
+        let destination = root.path().join("A4.docx");
+        a4.save_job(destination.clone(), true)?.run()?;
+        let reopened = reader::Reader::open(&destination, &cancel)?;
+        assert!((reopened.summary.pages[0].width - 595.28).abs() < 0.05);
+
+        active.prefs.new_page = prefs::PagePreset::Letter;
+        store.save(&active)?;
+        let shell = Shell {
+            preferences: Some(store.load_with_legacy(root.path(), Locale::ZhCn)),
+            ..isolated()
+        };
+        let letter = reader::Reader::blank_with_preset(shell.new_page_preset(), &cancel)?;
+        assert_eq!(letter.summary.pages[0].width, 612.0);
+        assert_eq!(letter.summary.pages[0].height, 792.0);
+        assert_eq!(std::fs::read_to_string(legacy)?, settings);
         Ok(())
     }
 }
