@@ -12,3 +12,9 @@
 ## 回归范围
 
 三个产品的 `cargo xtask check` 均通过格式检查、Clippy 和测试。JoyDeck 894 项通过，JoyWord 3,494 项通过、2 项忽略，JoySheet 1,400 项通过、1 项忽略。工程路由单测 15 项通过。Windows 和 Intel Mac 的新包尚未在对应机器复验，桌面导出入口尚未实屏复验。
+
+## 开发包许可复核
+
+同日在 `joydeck-0.8.0-macos-license-audit.zip` 中复核 465 个依赖索引项。原报告列出的 49 项统计的是 Cargo 源包内未发现的文件。按包内 `dependency-licenses/index.json` 与实际文件核对，已有补充文本后原缺口为 13 个依赖版本。新增 Krilla、Lyon 和 objc2 系列共 8 个版本的许可及适用通知，13 份文件与上游固定提交的 SHA-256 一致。每个版本目录包含 `SOURCES.json`。
+
+新包 SHA-256 为 `22a109bebb57c40468b6a99915ed38d7442fa5eece00a247d02556bff62de813`，源码快照为 `7a5658e84ae23c78d402aa4e8984d0094cbd502f784e5c5ede6716036a352411`。解包后校验包内清单，另以 `require_license_texts=True` 执行严格检查，确认当前 5 个版本的缺口。`block@0.1.6`、`mac@0.1.1`、`malloc_buf@0.0.6` 的发布源码标签未找到对应正文。`pathfinder_geometry@0.5.1` 与 `seahash@4.1.0` 的 Cargo 归档所指提交未取得可核对的正文。JD-807/808 保持开放。

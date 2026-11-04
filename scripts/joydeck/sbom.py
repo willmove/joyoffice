@@ -190,12 +190,11 @@ def generate(output, target, profile='release', roots=('joydeck', 'joydeck-cli')
         license_index.append({'name': p['name'], 'version': p['version'], 'declared': p.get('license'),
                               'texts': sorted(set(copied)), 'workspace': p.get('source') is None})
         objects.append(row)
-    if require_license_texts:
-        missing = [row['name'] + '@' + row['version'] for row in license_index
-                   if not any(Path(name).name.upper().startswith(('LICENSE', 'LICENCE', 'COPYING', 'NOTICE', 'UNLICENSE'))
-                              for name in row['texts'])]
-        if missing:
-            raise ValueError('Missing dependency license texts: ' + ', '.join(missing))
+    missing = [row['name'] + '@' + row['version'] for row in license_index
+               if not any(Path(name).name.upper().startswith(('LICENSE', 'LICENCE', 'COPYING', 'NOTICE', 'UNLICENSE'))
+                          for name in row['texts'])]
+    if require_license_texts and missing:
+        raise ValueError('Missing dependency license texts: ' + ', '.join(missing))
     relationships = [{'spdxElementId': 'SPDXRef-DOCUMENT', 'relationshipType': 'DESCRIBES',
                       'relatedSpdxElement': ids[i]} for i in sorted(root_ids)]
     relationships += [{'spdxElementId': ids[a], 'relationshipType': 'DEPENDS_ON',
@@ -213,6 +212,7 @@ def generate(output, target, profile='release', roots=('joydeck', 'joydeck-cli')
     return {'packages': len(objects), 'lockSha256': lock, 'target': target, 'profile': profile,
             'roots': list(roots), 'features': list(features),
             'licenseTextsVerified': require_license_texts,
+            'missingLicenseTexts': missing,
             'sourceHashes': source_hashes(data, packages, reached)}
 
 if __name__ == '__main__':

@@ -180,7 +180,7 @@ def main():
     (output / 'SHA256SUMS').write_text(''.join(f'{value}  {key}\n' for key, value in hashes.items()), encoding='utf-8')
     create_archive(output, archive)
     archive.with_suffix('.zip.sha256').write_text(f'{sha256(archive)}  {archive.name}\n', encoding='utf-8')
-    report = {'directory': str(output), 'archive': str(archive), 'archive_sha256': sha256(archive), 'source_sha256': before['sha256'], 'target': target, 'profile': args.profile, 'sbom_packages': len(dependencies), 'missing_license_texts': [r['name'] for r in license_records if r['source'] and not r['license_texts']], 'signed': False}
+    report = {'directory': str(output), 'archive': str(archive), 'archive_sha256': sha256(archive), 'source_sha256': before['sha256'], 'target': target, 'profile': args.profile, 'sbom_packages': len(dependencies), 'missing_license_texts': dependency_info['missingLicenseTexts'], 'signed': False}
     (ROOT / 'docs/joydeck/evidence/R9/package.json').write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
     print(json.dumps(report, ensure_ascii=False))
 

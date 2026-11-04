@@ -49,6 +49,7 @@ class Packaging(unittest.TestCase):
                     patch.object(package.sbom, 'graph', return_value=graph):
                 result = package.sbom.generate(root / 'SBOM.json', 'host', roots=project.APPLICATIONS, require_license_texts=True)
             self.assertTrue(result['licenseTextsVerified'])
+            self.assertEqual(result['missingLicenseTexts'], [])
             self.assertEqual((root / 'dependency-licenses/fake-native-1.0.0/LICENSE.txt').read_bytes(), text)
 
     def test_wrong_version_and_provenance_alone_do_not_satisfy_text_requirement(self):
