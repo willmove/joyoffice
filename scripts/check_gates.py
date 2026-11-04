@@ -86,7 +86,7 @@ LAYERS = {
     "joyword-control-key": set(),
     "joyword-corpus": {"joyoffice-opc"},
     "joyword-doc": {"joyword-geom", "joyword-model"},
-    "joyword-docx": {"joyword-geom", "joyword-model"},
+    "joyword-docx": {"joyoffice-opc", "joyword-geom", "joyword-model"},
     "joyword-engine": {"joyword-doc", "joyword-docx", "joyword-fonts", "joyword-formats", "joyword-geom", "joyword-layout", "joyword-model", "joyword-pdf", "joyword-render", "craft-font-catalog", "craft-font-store", "craft-proof"},
     "joyword-fonts": {"craft-font-catalog", "craft-font-store"},
     "joyword-formats": {"joyword-geom", "joyword-metafile", "joyword-model"},
@@ -131,6 +131,7 @@ FS_ALLOW = {
     "crates/joyoffice-opc/src/zip.rs",
     "crates/joyoffice-opc/src/package.rs",
     "apps/joyword-cli/src/main.rs",
+    "apps/joyword-cli/src/inspect.rs",  # bounded, read-only legacy CLI input
     "crates/joyword-control-key/src/lib.rs",
     "crates/joyword-engine/src/file_access.rs",
     "crates/joyword-engine/src/io.rs",
@@ -147,6 +148,7 @@ FS_ALLOW = {
     "crates/joyword-shell/src/advanced.rs",
     "crates/joyword-shell/src/authoring.rs",
     "crates/joyword-shell/src/editing.rs",
+    "crates/joyword-shell/src/legacy_recovery.rs",  # read-only journal and shared lock
     "crates/joyword-shell/src/prefs.rs",
     "crates/joyword-shell/src/reader.rs",
     "crates/joyword-shell/src/storage.rs",

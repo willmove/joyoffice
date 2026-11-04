@@ -19,6 +19,22 @@ pub const MAX_CACHE_PIXELS: u64 = 16_777_216;
 pub const MAX_PAGE_PIXELS: u64 = 4_194_304;
 pub const WELCOME: &[u8] = include_bytes!("../../../assets/samples/welcome.docx");
 
+/// Apply the desktop host's untrusted Word container limits before import.
+pub fn preflight_word_package(bytes: &[u8]) -> Result<(), String> {
+    if bytes.len() as u64 > MAX_INPUT_BYTES {
+        return Err("DOCX exceeds 64 MiB".into());
+    }
+    let budget = joyoffice_opc::Budget {
+        max_part_bytes: 64 << 20,
+        max_total_bytes: 256 << 20,
+        max_xml_nodes: 4_000_000,
+        ..Default::default()
+    };
+    joyoffice_opc::Package::read(bytes, &budget)
+        .map(|_| ())
+        .map_err(|e| format!("DOCX container: {e}"))
+}
+
 #[derive(Clone, Debug, serde::Serialize)]
 pub struct PageSize {
     pub width: f32,
@@ -46,6 +62,8 @@ pub struct Reader {
     pub(crate) layout: Arc<DocLayout>,
     pub(crate) composition: Option<crate::editing::Composition>,
     pub(crate) source: Option<crate::storage::SourceStamp>,
+    pub(crate) recovered_package: Option<(u64, Arc<[u8]>)>,
+    pub recovery_notice: Option<&'static str>,
     pub summary: Summary,
     pub(crate) presentation: u64,
 }
@@ -96,6 +114,9 @@ impl Reader {
     pub fn open(path: &Path, cancel: &AtomicBool) -> Result<Self, String> {
         guarded(|| {
             check_cancel(cancel)?;
+            if crate::advanced::extension(path) == "jwr" {
+                return Self::recover_legacy(path, cancel);
+            }
             if !crate::advanced::IMPORTS.contains(&crate::advanced::extension(path).as_str()) {
                 return Err("此格式尚未接入桌面导入".into());
             }
@@ -127,19 +148,12 @@ impl Reader {
             if bytes.len() as u64 > MAX_INPUT_BYTES {
                 return Err("DOCX exceeds 64 MiB".into());
             }
-            let budget = joyoffice_opc::Budget {
-                max_part_bytes: 64 << 20,
-                max_total_bytes: 256 << 20,
-                max_xml_nodes: 4_000_000,
-                ..Default::default()
-            };
             // Host OPC validates the untrusted container; Word-specific semantics stay in the engine.
             let ext = crate::advanced::extension(Path::new(name));
             if joyword_engine::io::is_word_package(&ext)
                 || (ext.is_empty() && bytes.starts_with(b"PK\x03\x04"))
             {
-                joyoffice_opc::Package::read(bytes, &budget)
-                    .map_err(|e| format!("DOCX container: {e}"))?;
+                preflight_word_package(bytes)?;
             }
             check_cancel(cancel)?;
             let doc = joyword_engine::io::open_bytes(name, bytes)?;
@@ -205,6 +219,8 @@ impl Reader {
             layout,
             composition: None,
             source: None,
+            recovered_package: None,
+            recovery_notice: None,
             summary,
             presentation: 0,
         })
@@ -281,6 +297,8 @@ impl Reader {
         if self.session.document_id() != identity {
             // Commands creating a new active document cannot inherit an old source stamp.
             self.source = None;
+            self.recovered_package = None;
+            self.recovery_notice = None;
             self.summary.name = "Untitled".into();
         }
         if self.session.rev() != before

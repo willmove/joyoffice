@@ -351,10 +351,11 @@ impl Reader {
             return Err("Save requires a DOCX path".into());
         }
         if !new_file
-            && self
-                .source_path()
-                .and_then(|p| std::fs::canonicalize(p).ok())
-                != std::fs::canonicalize(&destination).ok()
+            && (self.source.is_none()
+                || self
+                    .source_path()
+                    .and_then(|p| std::fs::canonicalize(p).ok())
+                    != std::fs::canonicalize(&destination).ok())
         {
             return Err("Original save path does not match the opened source".into());
         }
@@ -363,6 +364,11 @@ impl Reader {
             doc: self.session.doc.clone(),
             version: self.session.rev(),
             source: self.source.clone(),
+            recovered_package: self
+                .recovered_package
+                .as_ref()
+                .filter(|(revision, _)| *revision == self.session.rev())
+                .map(|(_, bytes)| bytes.clone()),
             destination,
             new_file,
             confirmed: false,
@@ -383,6 +389,8 @@ impl Reader {
             .unwrap_or_default();
         self.session.path = Some(receipt.stamp.path().to_path_buf());
         self.source = Some(receipt.stamp);
+        self.recovered_package = None;
+        self.recovery_notice = None;
     }
 }
 pub struct SaveJob {
@@ -390,6 +398,7 @@ pub struct SaveJob {
     doc: joyword_engine::doc::Document,
     version: u64,
     source: Option<SourceStamp>,
+    recovered_package: Option<Arc<[u8]>>,
     pub destination: PathBuf,
     new_file: bool,
     confirmed: bool,
@@ -408,7 +417,11 @@ impl SaveJob {
     pub fn run(self) -> Result<SaveReceipt, String> {
         guarded(|| {
             let origin = self.source.as_ref().map(|s| Arc::from(s.bytes()));
-            let plan = ExportPlan::build(&self.doc, self.version, origin)?;
+            let plan = if let Some(bytes) = self.recovered_package {
+                ExportPlan::from_recovered_package(&bytes, self.version)?
+            } else {
+                ExportPlan::build(&self.doc, self.version, origin)?
+            };
             if self.new_file {
                 storage::save_export_copy(&plan, &self.destination).map_err(|e| e.to_string())?;
             } else {

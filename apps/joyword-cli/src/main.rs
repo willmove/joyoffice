@@ -1,3 +1,5 @@
+mod inspect;
+
 use joyword_shell::reader::{Reader, publish_new};
 use std::{
     ffi::OsString,
@@ -16,8 +18,7 @@ fn path(args: &[OsString], index: usize) -> Result<PathBuf, String> {
         .map(PathBuf::from)
         .ok_or_else(|| "Missing path; use --help".into())
 }
-fn run() -> Result<(), String> {
-    let args: Vec<_> = std::env::args_os().skip(1).collect();
+fn run(args: &[OsString]) -> Result<(), String> {
     let command = args.first().and_then(|s| s.to_str()).unwrap_or("--help");
     let cancel = AtomicBool::new(false);
     match command {
@@ -25,9 +26,9 @@ fn run() -> Result<(), String> {
             let (mut read, mut write) = (None, None);
             let mut i = 1;
             while i < args.len() {
-                match argument(&args, i)? {
-                    "--automation-read-root" => read = Some(path(&args, i + 1)?),
-                    "--automation-write-root" => write = Some(path(&args, i + 1)?),
+                match argument(args, i)? {
+                    "--automation-read-root" => read = Some(path(args, i + 1)?),
+                    "--automation-write-root" => write = Some(path(args, i + 1)?),
                     other => return Err(format!("Unknown MCP option: {other}")),
                 }
                 i += 2;
@@ -47,7 +48,7 @@ fn run() -> Result<(), String> {
         }
         "--version" | "-V" => println!("JoyWord {}", env!("CARGO_PKG_VERSION")),
         "--help" | "-h" => println!(
-            "JoyWord\ncommands | capabilities | inspect INPUT.docx | text INPUT.docx\nconvert INPUT OUTPUT.pdf|.png|.txt|.md|.html|.rtf|.odt|.tex|.xml|.docx\nrender INPUT.docx OUTPUT.png [--page 1] [--scale 1.333]\nsample OUTPUT.docx\nmcp --automation-read-root DIR [--automation-write-root DIR]\nrun INPUT.docx --cmd COMMAND=JSON [--save NEW.docx]\nOutputs must be new paths; desktop editing and safe DOCX save are available."
+            "JoyWord\ncommands | capabilities | inspect|text [--max-text-bytes N] [--compatibility] [--] INPUT.docx\ninspect|text --session [--] INPUT\nrecover JOURNAL [--save NEW.docx]\nconvert INPUT OUTPUT.pdf|.png|.txt|.md|.html|.rtf|.odt|.tex|.xml|.docx\nrender INPUT.docx OUTPUT.png [--page 1] [--scale 1.333]\nsample OUTPUT.docx\nmcp --automation-read-root DIR [--automation-write-root DIR]\nrun INPUT.docx --cmd COMMAND=JSON [--save NEW.docx]\nOutputs must be new paths; desktop editing and safe DOCX save are available."
         ),
         "capabilities" => println!(
             "{}",
@@ -61,18 +62,18 @@ fn run() -> Result<(), String> {
         "sample" => {
             let doc = joyword_engine::sample::sample_document();
             let bytes = joyword_docx::write(&doc).map_err(|e| e.to_string())?;
-            publish_new(&path(&args, 1)?, &bytes)?;
+            publish_new(&path(args, 1)?, &bytes)?;
         }
         "inspect" | "text" => {
-            let inputs = match &args[1..] {
+            let inputs = match &args[2..] {
                 [end, rest @ ..] if end == "--" => rest,
                 rest => rest,
             };
             let [input] = inputs else {
-                return Err(format!("Usage: {command} [--] INPUT.docx"));
+                return Err(format!("Usage: {command} --session [--] INPUT"));
             };
-            if inputs.len() == args.len() - 1 && input.to_string_lossy().starts_with('-') {
-                return Err(format!("Usage: {command} [--] INPUT.docx"));
+            if inputs.len() == args.len() - 2 && input.to_string_lossy().starts_with('-') {
+                return Err(format!("Usage: {command} --session [--] INPUT"));
             }
             let reader = Reader::open(Path::new(input), &cancel)?;
             let inspection = reader.inspection();
@@ -86,8 +87,8 @@ fn run() -> Result<(), String> {
             }
         }
         "convert" | "render" => {
-            let reader = Reader::open(&path(&args, 1)?, &cancel)?;
-            let output = path(&args, 2)?;
+            let reader = Reader::open(&path(args, 1)?, &cancel)?;
+            let output = path(args, 2)?;
             let ext = output
                 .extension()
                 .and_then(|s| s.to_str())
@@ -98,16 +99,16 @@ fn run() -> Result<(), String> {
                 let mut scale = 96.0 / 72.0;
                 let mut i = 3;
                 while i < args.len() {
-                    match argument(&args, i)? {
+                    match argument(args, i)? {
                         "--page" => {
-                            page = argument(&args, i + 1)?
+                            page = argument(args, i + 1)?
                                 .parse::<usize>()
                                 .ok()
                                 .and_then(|p| p.checked_sub(1))
                                 .ok_or("Page is 1-based")?
                         }
                         "--scale" => {
-                            scale = argument(&args, i + 1)?
+                            scale = argument(args, i + 1)?
                                 .parse::<f32>()
                                 .map_err(|e| e.to_string())?
                         }
@@ -132,19 +133,41 @@ fn run() -> Result<(), String> {
                 serde_json::json!({"output":output,"pages":reader.summary.pages.len(),"fingerprint":reader.summary.fingerprint})
             );
         }
+        "recover" => {
+            let mut inputs = &args[1..];
+            if inputs.first().is_some_and(|arg| arg == "--") {
+                inputs = &inputs[1..];
+            }
+            let (journal, output) = match inputs {
+                [journal] => (journal, None),
+                [journal, flag, output] if flag == "--save" => (journal, Some(output)),
+                _ => return Err("Usage: recover [--] JOURNAL [--save NEW.docx]".into()),
+            };
+            let reader = Reader::recover_legacy(Path::new(journal), &cancel)?;
+            if let Some(notice) = reader.recovery_notice {
+                eprintln!("{notice}");
+            }
+            if let Some(output) = output {
+                reader.save_job(PathBuf::from(output), true)?.run()?;
+            }
+            println!(
+                "{}",
+                serde_json::to_string(&reader.inspection()).map_err(|e| e.to_string())?
+            );
+        }
         "run" => {
-            let mut reader = Reader::open(&path(&args, 1)?, &cancel)?;
+            let mut reader = Reader::open(&path(args, 1)?, &cancel)?;
             let mut save = None;
             let mut i = 2;
             while i < args.len() {
-                match argument(&args, i)? {
+                match argument(args, i)? {
                     "--cmd" => {
-                        let spec = argument(&args, i + 1)?;
+                        let spec = argument(args, i + 1)?;
                         let (id, json) = spec.split_once('=').unwrap_or((spec, "{}"));
                         let params = serde_json::from_str(json).map_err(|e| e.to_string())?;
                         reader.execute(id, &params)?;
                     }
-                    "--save" => save = Some(path(&args, i + 1)?),
+                    "--save" => save = Some(path(args, i + 1)?),
                     other => return Err(format!("Unknown run option {other}")),
                 }
                 i += 2;
@@ -177,7 +200,27 @@ fn main() -> ExitCode {
     let result = std::thread::Builder::new()
         .name("joyword-cli".into())
         .stack_size(8 * 1024 * 1024)
-        .spawn(|| joyword_shell::reader::guarded(run))
+        .spawn(|| {
+            let args: Vec<_> = std::env::args_os().skip(1).collect();
+            let command = args.first().and_then(|arg| arg.to_str());
+            let legacy_inspection = matches!(command, Some("inspect" | "text"))
+                && args.get(1).is_none_or(|arg| arg != "--session");
+            if legacy_inspection {
+                let result = joyword_shell::reader::guarded(|| {
+                    inspect::run(command == Some("inspect"), &args[1..]).map_err(str::to_owned)
+                });
+                Ok(match result {
+                    Ok(status) => status,
+                    Err(error) => {
+                        use std::io::Write;
+                        let _ = writeln!(std::io::stderr().lock(), "joyword-cli: {error}");
+                        2
+                    }
+                })
+            } else {
+                joyword_shell::reader::guarded(|| run(&args)).map(|()| 0)
+            }
+        })
         .map_err(|error| format!("Cannot start JoyWord worker: {error}"))
         .and_then(|worker| {
             worker
@@ -185,7 +228,7 @@ fn main() -> ExitCode {
                 .map_err(|_| "JoyWord worker failed".to_string())?
         });
     match result {
-        Ok(()) => ExitCode::SUCCESS,
+        Ok(code) => ExitCode::from(code),
         Err(error) => {
             eprintln!("{error}");
             ExitCode::FAILURE

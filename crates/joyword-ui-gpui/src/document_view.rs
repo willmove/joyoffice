@@ -222,6 +222,8 @@ impl JoyWord {
                         }
                         if let Err(e) = reader.enable_desktop_recovery() {
                             this.shell.notice = Some(e);
+                        } else if let Some(notice) = reader.recovery_notice {
+                            this.shell.notice = Some(notice.into());
                         }
                         let Some(epoch) = this.canvas.epoch.checked_add(1) else {
                             this.shell.notice = Some("Document generation exhausted".into());
@@ -272,7 +274,8 @@ impl JoyWord {
             _ => {
                 let _ = view.update(cx, |this, cx| {
                     this.shell.notice = Some(
-                        "File dialog failed; a DOCX path can also be passed on startup.".into(),
+                        "File dialog failed; a DOCX or .jwr path can also be passed on startup."
+                            .into(),
                     );
                     cx.notify();
                 });

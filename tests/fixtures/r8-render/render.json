@@ -1,0 +1,98 @@
+{
+  "dpi": 144,
+  "fixture_sha256": "8a9e1f0fff875dfced07b2213c5c1b0d5f791cc1800c42379a99a6b8b6eb6c9c",
+  "font": {
+    "face": 0,
+    "family": "Source Sans 3",
+    "sha256": "4644c81b86ec9caaa76b634889968ed3c4f4f52f054855933acc7c2b21e53b0f",
+    "style": "Regular"
+  },
+  "views": {
+    "final": {
+      "pdf": [
+        {
+          "glyph_origins_sha256": "1d4894847bfde9c5d1b59d5ca3583b83eda2ae06cbfaac546c8bd022db2ddd20",
+          "images": 1,
+          "page_centipoints": [
+            36000,
+            28800
+          ],
+          "text": "Proof page 1Layout proofCell leftCell right"
+        },
+        {
+          "glyph_origins_sha256": "694415c6b42569451a1590bb4b7657d028172e9ebc18c4c32f5eb44f7e283761",
+          "images": 0,
+          "page_centipoints": [
+            36000,
+            28800
+          ],
+          "text": "Proof page 2Review inserted"
+        }
+      ],
+      "pdf_sha256": "b88e0571131d3a548c8592f2178aed5b73f16658d8acfce62ac3c96b10322a6a",
+      "png": [
+        {
+          "file_sha256": "cc7e956713c0200a890e500eef01c7e16d22b5ff3021c17892123c87f034d7b7",
+          "glyphs": 42,
+          "rgba_sha256": "9b95f4ff1031efcbb3c0ca1661094a3ea4e164107a811bd5c10e1b56fe4ce0b2",
+          "size": [
+            720,
+            576
+          ]
+        },
+        {
+          "file_sha256": "d0d591a4fa4ba344449f8da8eb84b8cfd85655892b4317e3c31ea0dc9627d58a",
+          "glyphs": 27,
+          "rgba_sha256": "32d00ab2ef630cfc35ea0cd76e37fd4b792ee0462935137ee8063d4b820131cc",
+          "size": [
+            720,
+            576
+          ]
+        }
+      ]
+    },
+    "review": {
+      "pdf": [
+        {
+          "glyph_origins_sha256": "1d4894847bfde9c5d1b59d5ca3583b83eda2ae06cbfaac546c8bd022db2ddd20",
+          "images": 1,
+          "page_centipoints": [
+            36000,
+            28800
+          ],
+          "text": "Proof page 1Layout proofCell leftCell right"
+        },
+        {
+          "glyph_origins_sha256": "96411aff261609660d492d5f8180554cec4730518542f54d830baab70c97c537",
+          "images": 0,
+          "page_centipoints": [
+            36000,
+            28800
+          ],
+          "text": "Proof page 2Review removed inserted"
+        }
+      ],
+      "pdf_sha256": "505ce46e3b6e76dbd5471e6ea72826d1abc56706a39fffd8a92285b12e696ece",
+      "png": [
+        {
+          "file_sha256": "cc7e956713c0200a890e500eef01c7e16d22b5ff3021c17892123c87f034d7b7",
+          "glyphs": 42,
+          "rgba_sha256": "9b95f4ff1031efcbb3c0ca1661094a3ea4e164107a811bd5c10e1b56fe4ce0b2",
+          "size": [
+            720,
+            576
+          ]
+        },
+        {
+          "file_sha256": "7a32b0694ad71ef06856106bfcfe5620e142421a90e5f3ce23b9c2eed7213deb",
+          "glyphs": 35,
+          "rgba_sha256": "88224ff73160d9ff45be149c7c3b531e958dc6cd6166fe342928b5892b945a37",
+          "size": [
+            720,
+            576
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -4,9 +4,12 @@ pub mod authoring;
 pub mod editing;
 pub mod formatting;
 pub mod l10n;
+mod legacy_recovery;
 pub mod prefs;
 pub mod reader;
 pub mod storage;
+
+pub use legacy_recovery::validate_legacy_recovery_record;
 
 use l10n::Locale;
 use prefs::{Loaded, PrefsStore};

@@ -15,19 +15,38 @@
 | --- | --- |
 | 产品、文件打开 | 保留 `JoyWord`、`joyword` 和产品版本 0.1.1。桌面接受 Unicode 文档路径与 `-- PATH`。Windows 本机的 DOCX 默认处理程序为 `Word.Document.12`。便携包通过桌面「打开」或命令行接收路径，安装器注册和系统默认切换留待发布验收。macOS bundle id 保留 `dev.joyoffice.joyword`。 |
 | 偏好 | 配置根仍为 Windows `%APPDATA%/JoyWord`、Linux `$XDG_CONFIG_HOME/joyword` 或 `~/.config/joyword`、macOS `~/Library/Application Support/JoyWord`。可用 `JOYWORD_CONFIG_DIR` 隔离验证。活动文件为 `migration-preview/preferences.conf`，缺失时只读旧根目录的 `preferences.conf`。语言和迁移版主题生效。作者、近期文件、单位、页面预设和旧自动保存间隔目前保留在配置数据中，对应 UI 与行为待接。 |
-| 恢复与原件保存 | 编辑副本先写入并读回核对。替换原件需要确认所有者、ACL 和扩展属性风险。新恢复数据在 `migration-preview/r3-recovery`。旧 `recovery-*.jwr` 和旧恢复工作流使用替换前版本打开后另存 DOCX，再由 R8 接续。旧 journal 的自动迁移和恢复故障演练待验。 |
-| CLI 与自动化 | `inspect [--] PATH`、`text [--] PATH` 可用。JSON 结构为新的会话检查结果，旧 schema、`--max-text-bytes`、`--compatibility` 及旧输出选项待做适配。新调用为 `render INPUT OUTPUT.png --page 1`、`convert INPUT OUTPUT.pdf` 和 `run INPUT --cmd COMMAND=JSON --save NEW.docx`。MCP 为有显式目录边界的 stdio，旧桌面验证控制协议与桌面桥接待接。 |
+| 恢复与原件保存 | 桌面「打开」或 `joyword -- PATH.jwr` 可读旧日志，CLI 为 `recover [--] JOURNAL [--save NEW.docx]`。打开任一标准槽名会检查整个目录。日志以只读方式打开，恢复进入独立 R8 编辑会话，用户选择新 DOCX 路径后才写入副本并读回。完整快照正文核对通过且未经编辑时原样另存。当前恢复目录继续使用 `migration-preview/r3-recovery`。旧配置目录的启动扫描待接。 |
+| CLI 与自动化 | `inspect\|text [--max-text-bytes N] [--compatibility] [--] PATH` 恢复 schema 1、UTF-8 字节上限和退出码 0/2/3。R8 的会话检查与原始正文可用 `inspect\|text --session [--] PATH`。新增命令仍可用 `render INPUT OUTPUT.png --page 1`、`convert INPUT OUTPUT.pdf` 和 `run INPUT --cmd COMMAND=JSON --save NEW.docx`。MCP 为有显式目录边界的 stdio，旧桌面验证控制协议与桌面桥接待接。 |
 | 格式与 AI | 新引擎包含 DOCX、PDF、图像和若干文本格式的交换，也提供编辑、引用、审阅和合并命令。旧 CLI 的 EPUB、PDF/A-2b、独立 merge/exchange 参数、系统打印完整流程和旧 Agent 桌面集成列为兼容项。`joyword-agent` 保留独立契约测试，旧引擎事务适配器待重接。 |
 | 旧验证门禁 | 当前 CI 使用新布局、渲染、内核与保存测试、实际 DOCX 往返、独立 PDF 读回，以及确定性损坏输入。覆盖引导 fuzz、固定金样和旧编辑行为登记对应旧 API，在替换前基线复现。恢复这些门禁是后续任务。 |
+
+### 旧恢复格式
+
+`JWREC001` 为 `recovery.jwr` 的基线 DOCX 与 UTF-8 正文。双槽 `JWREC002` 增加代数、文档版本与丢弃记录，`JWREC003` 再附加完整快照。整条记录用 CRC-32 校验。读取时共享锁只使用目录里现有的锁文件。选择最高有效代数，单槽损坏时显示降级提示，同代冲突、全部双槽损坏、丢弃记录和快照正文不匹配会报错。嵌入的基线或快照足以恢复，源 DOCX 路径无需可用。
+
+V1/V2 以原 DOCX 为基线，保留相同前后文并通过 R8 编辑事务重放正文差异。当前对涉及内联对象、跨表格单元格、已识别的保护或不支持内容的重放给出拒绝诊断。大型包仍受 R8 读入预算限制。V3 按正文投影核对快照。旧模型与 R8 模型对复杂字段和部分对象的表示差异可能导致核对拒绝，此类场景待扩展语料。恢复后继续编辑并保存走当前 DOCX 写入器，首次原样另存可保留完整快照包。
+
+### 其余旧 CLI 接口
+
+| 旧调用 | 可适配项 | 仍需补齐 |
+| --- | --- | --- |
+| `render FILE --font PATH:FACE --output DIR [--dpi N] [--page N]` | R8 有单页 PNG，`--page` 同为一基页号，DPI 可换算为 `--scale`。 | 指定字体及 face、全页目录输出和文件命名、无覆盖发布、旧报告与固定像素金样。 |
+| `convert FILE --to pdf\|pdfa-2b --font PATH:FACE --output FILE.pdf` | 普通 PDF 可用 R8 的 `convert INPUT OUTPUT.pdf`。 | PDF/A-2b 和 `--archive-year`、显式字体与嵌入约束、旧 schema 和确定性输出。 |
+| `merge --template DOCX --data CSV [--map FIELD=COLUMN] (--preview-row N\|--output-parent DIR)` | R8 编辑会话已有收件人导入、映射、筛选和合并导出，可接旧参数解析。 | 旧行号、CSV 和列错误契约、逐收件人文件命名与整批安全发布、旧预览和报告。 |
+| `exchange FILE --from FORMAT --to FORMAT (--plan\|--output FILE [--accept-losses])` | R8 导入／导出层已有 DOCX、TXT、Markdown、HTML、RTF 和新文件发布。 | 显式源格式、只读计划、损失清单、确认后导出及 schema 1；扩展名转换不足以承接这些契约。 |
+
+旧 `inspect` 的诊断由原导入器生成。本轮已对齐已验证语料的字段值和正文。复杂字段、嵌套兼容标记及未覆盖的诊断分类继续做旧新版差分。
 
 ## 下一步
 
 | 优先级 | 任务 | 完成条件 |
 | --- | --- | --- |
-| P0 | 旧数据与安全（JW-806/812） | 用真实旧偏好、旧恢复日志及已保存 DOCX 演练迁入、回退和异常恢复。让作者、近期文件和自动保存设置接入实际会话。校验旧构建回读新 DOCX 的支持范围。 |
-| P0 | CLI 与格式兼容（JW-808） | 逐项迁移外部脚本依赖的旧 CLI 参数、JSON schema、退出码和桌面控制协议。按原始语料核对 EPUB、PDF/A、打印、保护、未知 OOXML 保真与 Agent 授权。 |
-| P0 | CI 与耐久验证（JW-805/807/809/899） | 在托管 CI 重跑三产品与交叉架构门禁，移植覆盖引导 fuzz、图像金样和行为登记。将原件冲突、恶意 ZIP/XML、长文档与跨产品三开纳入可重复验收。 |
-| P1 | 性能与呈现（R5/R6） | 修复字段混排字形差异，用千页样例重测对象和跨行编辑的全量重排、输入到绘制延迟及内存。补齐复杂 DOCX 的 Word/WPS 双向往返。 |
+| P0 | 旧数据与安全（JW-806/812） | 扩展含复杂字段、媒体、修订与未知 XML 的恢复样例。接入旧恢复目录发现，以及作者、近期文件和自动保存设置。 |
+| P0 | CLI 与格式兼容（JW-808） | 按上表迁移旧 `render`、`convert`、`merge`、`exchange`，扩展 schema 1 诊断差分，再核对 EPUB、打印、桌面控制和 Agent 授权。 |
+| P0 | 覆盖引导 fuzz（JW-805/807/809/899） | 将 DOCX ZIP/XML 和 `JWREC001/2/3` 解码接入覆盖引导 fuzz。保留最小崩溃样例、复现命令和持续 CI 门禁。 |
+| P0 | 固定渲染金样（JW-807） | 固定字体字节、face、DPI 与页面场景，对 PNG 和 PDF 几何／文本做可重复差分，登记审阅、表格、图片和字段样例。 |
+| P1 | Word/WPS 双向往返（R5/R6） | 记录应用版本，用含表格、图片、页眉、修订和未知 OOXML 的语料分别往返两次，检查打开、编辑和部件保留。 |
+| P1 | 千页 DOCX 性能复验（R5/R6） | 固定语料与硬件环境，记录首屏、跨行／对象编辑重排、输入到绘制延迟及峰值内存，并与旧记录比对。 |
 | P1 | 公共基础（JW-803） | 评估 DOCX 包层、CFB/DrawingML/OMML 和字体服务在共享库中的复用。用格式保真与性能回归验证逐项收敛。 |
 | P1 | 平台与发布（R7/R8） | 复测 Linux x64 与 ARM64 原生、Windows 中文 IME/读屏、高 DPI、Linux 无障碍。补齐安装器、文件关联、签名与卸载。macOS 原生构建与运行待验。 |
 

@@ -4209,6 +4209,7 @@ dependencies = [
  "hmac 0.12.1",
  "hmac 0.13.0",
  "image",
+ "joyoffice-opc",
  "joyword-geom",
  "joyword-model",
  "log",
@@ -4389,6 +4390,10 @@ dependencies = [
 name = "joyword-shell"
 version = "0.1.0"
 dependencies = [
+ "crc32fast",
+ "hayro-cmap",
+ "hayro-interpret",
+ "hayro-syntax",
  "joyoffice-opc",
  "joyword-docx",
  "joyword-engine",
@@ -4397,6 +4402,7 @@ dependencies = [
  "joyword-layout",
  "joyword-pdf",
  "joyword-render",
+ "kurbo 0.13.1",
  "rustix",
  "serde",
  "serde_json",

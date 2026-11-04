@@ -31,16 +31,16 @@ def run(binary, *args, expected=0):
 
 def verify(binary, source, work, independent_pdf):
     original = hashlib.sha256(source.read_bytes()).hexdigest()
-    before = json.loads(run(binary, "inspect", "--", source).stdout)
+    before = json.loads(run(binary, "inspect", "--session", "--", source).stdout)
     require(before["pages"] and "JoyWord" in before["text"], "Sample has no rendered text")
-    require(run(binary, "text", source).stdout.strip() == before["text"].strip(),
+    require(run(binary, "text", "--session", source).stdout.strip() == before["text"].strip(),
             "Plain text and inspect disagree")
 
     output = work / "R8 文档.docx"
     result = json.loads(run(binary, "run", source, "--cmd", "caret.docEnd", "--cmd",
                             "text.insert=" + json.dumps({"text": MARKER}), "--save", output).stdout)
     require(MARKER in result["text"], "Edit did not reach the session")
-    reopened = json.loads(run(binary, "inspect", output).stdout)
+    reopened = json.loads(run(binary, "inspect", "--session", output).stdout)
     require(MARKER in reopened["text"] and reopened["pages"], "Edit did not survive reopening")
     with ZipFile(output) as package:
         tree = ET.fromstring(package.read("word/document.xml"))
@@ -54,7 +54,7 @@ def verify(binary, source, work, independent_pdf):
     require(refusal.stderr and output.read_bytes() == saved, "Existing output was changed")
     invalid = work / "invalid.docx"
     invalid.write_bytes(b"PK\x03\x04 truncated package")
-    require(run(binary, "inspect", invalid, expected=1).stderr, "Invalid package was not diagnosed")
+    require(run(binary, "inspect", "--session", invalid, expected=1).stderr, "Invalid package was not diagnosed")
     require(hashlib.sha256(source.read_bytes()).hexdigest() == original, "Input DOCX was changed")
 
     png, pdf = work / "page.png", work / "document.pdf"
@@ -113,7 +113,7 @@ def verify_mutations(binary, source, work, count):
             with ZipFile(mutant, "w", ZIP_DEFLATED) as output:
                 for part, value in parts.items():
                     output.writestr(part, replacement if part == name else value)
-        result = subprocess.run([binary, "inspect", mutant], capture_output=True, text=True,
+        result = subprocess.run([binary, "inspect", "--session", mutant], capture_output=True, text=True,
                                 encoding="utf-8", timeout=10, check=False)
         require("failed internally" not in result.stderr and "panicked at" not in result.stderr,
                 f"Mutation {case} triggered a panic: {result.stderr}")

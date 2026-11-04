@@ -19,8 +19,13 @@ joyword-render = { path = "../joyword-render" }
 joyword-pdf = { path = "../joyword-pdf" }
 joyoffice-opc.workspace = true
 sha2.workspace = true
+crc32fast.workspace = true
 serde_json.workspace = true
 [dev-dependencies]
+hayro-cmap = "=0.1.1"
+hayro-interpret = { version = "=0.7.0", default-features = false, features = ["embed-fonts"] }
+hayro-syntax = "=0.7.2"
+kurbo.workspace = true
 tempfile.workspace = true
 [lints.rust]
 unsafe_code = "forbid"

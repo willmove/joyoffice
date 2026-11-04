@@ -431,16 +431,29 @@ pub fn parse(bytes: &[u8]) -> Result<El, DocxError> {
 /// [`parse`] with `extra` namespaces (prefix, URI) mapped to canonical prefixes first, so a
 /// related vocabulary (WordprocessingML 2003) reads with the prefixes the reader knows.
 pub fn parse_ns(bytes: &[u8], extra: &[(&'static str, &str)]) -> Result<El, DocxError> {
-    parse_with(bytes, extra, false)
+    parse_with(bytes, extra, false, MAX_DEPTH, MAX_ELEMENTS)
 }
 
 /// [`parse`] for a part whose loss would be silent data loss (the main document): a mismatched end
 /// tag or an element left open at the end of the data is an error, not a cue to stop reading.
 pub fn parse_strict(bytes: &[u8]) -> Result<El, DocxError> {
-    parse_with(bytes, &[], true)
+    parse_with(bytes, &[], true, MAX_DEPTH, MAX_ELEMENTS)
 }
 
-fn parse_with(bytes: &[u8], extra: &[(&'static str, &str)], strict: bool) -> Result<El, DocxError> {
+pub(super) fn parse_bounded(bytes: &[u8], depth: usize, events: usize) -> Result<El, DocxError> {
+    if std::str::from_utf8(bytes).is_err() {
+        return Err(DocxError::Xml("invalid UTF-8".into()));
+    }
+    parse_with(bytes, &[], true, depth, events)
+}
+
+fn parse_with(
+    bytes: &[u8],
+    extra: &[(&'static str, &str)],
+    strict: bool,
+    depth: usize,
+    limit: usize,
+) -> Result<El, DocxError> {
     // UTF-16 (with a BOM) is transcoded to UTF-8; a UTF-8 BOM is stripped.
     let transcoded = utf16_to_utf8(bytes);
     let bytes = match &transcoded {
@@ -458,12 +471,24 @@ fn parse_with(bytes: &[u8], extra: &[(&'static str, &str)], strict: bool) -> Res
     let mut stack: Vec<El> = Vec::new();
     let mut root: Option<El> = None;
     let mut count = 0usize;
+    let bounded_projection = limit != MAX_ELEMENTS;
     let mut buf = Vec::new();
     loop {
         buf.clear();
         let (res, ev) = r
             .read_resolved_event_into(&mut buf)
             .map_err(|e| DocxError::Xml(e.to_string()))?;
+        if bounded_projection {
+            count += 1;
+            if count > limit {
+                return Err(DocxError::Limit("too many XML events".into()));
+            }
+            if matches!(ev, Event::DocType(_)) || matches!(res, ResolveResult::Unknown(_)) {
+                return Err(DocxError::Xml(
+                    "unsupported XML declaration or namespace".into(),
+                ));
+            }
+        }
         let el_prefix = match &res {
             ResolveResult::Bound(ns) => Some(prefix_for(ns.as_ref(), extra)),
             _ => None,
@@ -473,9 +498,11 @@ fn parse_with(bytes: &[u8], extra: &[(&'static str, &str)], strict: bool) -> Res
                 if strict && root.is_some() && stack.is_empty() {
                     return Err(DocxError::Xml("more than one root element".into()));
                 }
-                count += 1;
-                if count > MAX_ELEMENTS {
-                    return Err(DocxError::Limit("too many XML elements".into()));
+                if !bounded_projection {
+                    count += 1;
+                    if count > limit {
+                        return Err(DocxError::Limit("too many XML elements".into()));
+                    }
                 }
                 let local = String::from_utf8_lossy(e.local_name().as_ref()).into_owned();
                 let name = match el_prefix {
@@ -487,13 +514,17 @@ fn parse_with(bytes: &[u8], extra: &[(&'static str, &str)], strict: bool) -> Res
                     attrs: Vec::new(),
                     kids: Vec::new(),
                 };
-                for a in e.attributes().with_checks(false) {
+                for a in e.attributes().with_checks(bounded_projection) {
                     if el.attrs.len() >= MAX_ATTRS {
                         return Err(DocxError::Limit(
                             "too many attributes on one element".into(),
                         ));
                     }
-                    let Ok(a) = a else { continue };
+                    let a = match a {
+                        Ok(a) => a,
+                        Err(e) if bounded_projection => return Err(DocxError::Xml(e.to_string())),
+                        Err(_) => continue,
+                    };
                     let key = a.key;
                     let raw_key = key.as_ref();
                     if raw_key == b"xmlns" || raw_key.starts_with(b"xmlns:") {
@@ -509,6 +540,7 @@ fn parse_with(bytes: &[u8], extra: &[(&'static str, &str)], strict: bool) -> Res
                     };
                     let val = match a.normalized_value(XmlVersion::Explicit1_0) {
                         Ok(v) => v.into_owned(),
+                        Err(e) if bounded_projection => return Err(DocxError::Xml(e.to_string())),
                         Err(_) => String::from_utf8_lossy(&a.value).into_owned(),
                     };
                     // Requires contains namespace prefixes, not feature names. Resolve them while
@@ -541,10 +573,10 @@ fn parse_with(bytes: &[u8], extra: &[(&'static str, &str)], strict: bool) -> Res
                     };
                     el.attrs.push((aname, val));
                 }
+                if stack.len() >= depth && (bounded_projection || matches!(ev, Event::Start(_))) {
+                    return Err(DocxError::Limit("XML nesting too deep".into()));
+                }
                 if matches!(ev, Event::Start(_)) {
-                    if stack.len() >= MAX_DEPTH {
-                        return Err(DocxError::Limit("XML nesting too deep".into()));
-                    }
                     stack.push(el);
                 } else {
                     attach(&mut stack, &mut root, el);

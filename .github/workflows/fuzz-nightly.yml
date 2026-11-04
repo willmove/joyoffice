@@ -1,4 +1,4 @@
-name: Nightly DOCX mutation checks
+name: JoyWord decode fuzz
 
 on:
   schedule:
@@ -8,14 +8,16 @@ on:
     paths:
       - 'crates/joyword-docx/**'
       - 'crates/joyword-shell/**'
+      - 'crates/joyoffice-opc/**'
+      - 'experiments/docx-robustness/driver.py'
+      - 'experiments/docx-robustness/seeds/**'
+      - 'scripts/joyword/fuzz-r8.py'
       - 'scripts/joyword/verify-r8.py'
       - '.github/workflows/fuzz-nightly.yml'
 
 permissions:
   contents: read
 
-# Current reader smoke. The legacy coverage-guided harness targets the
-# pre-R8 model; see docs/joyoffice/JOYWORD-R8-HANDOFF.md.
 jobs:
   docx-mutations:
     runs-on: ubuntu-24.04
@@ -31,3 +33,42 @@ jobs:
         run: cargo build --locked -p joyword-cli
       - name: Bounded malformed DOCX campaign
         run: python3 scripts/joyword/verify-r8.py target/debug/joyword-cli --mutations 128
+
+  decode-coverage:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2022]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Fixed Rust toolchain with LLVM coverage tools
+        run: rustup toolchain install 1.98.1 --profile minimal --component llvm-tools
+      - name: Build instrumented decoder
+        shell: pwsh
+        run: |
+          $env:CARGO_TARGET_DIR = Join-Path $PWD 'target/r8-fuzz-cov'
+          $env:CARGO_INCREMENTAL = '0'
+          $env:CARGO_PROFILE_DEV_DEBUG = '0'
+          $env:RUSTFLAGS = '-C instrument-coverage'
+          $env:LLVM_PROFILE_FILE = Join-Path $env:CARGO_TARGET_DIR 'build-profiles/%p-%m.profraw'
+          New-Item (Split-Path $env:LLVM_PROFILE_FILE) -ItemType Directory -Force
+          cargo build --locked -p joyword-shell --example r8_decode_probe
+      - name: Coverage-guided DOCX and legacy journal campaign
+        shell: pwsh
+        run: |
+          $probe = if ($IsWindows) { 'r8_decode_probe.exe' } else { 'r8_decode_probe' }
+          $iterations = if ($env:GITHUB_EVENT_NAME -eq 'pull_request') { 48 } else { 120 }
+          python scripts/joyword/fuzz-r8.py "target/r8-fuzz-cov/debug/examples/$probe" --out target/r8-fuzz --iterations $iterations
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: joyword-decode-coverage-${{ matrix.os }}
+          path: |
+            target/r8-fuzz/summary.json
+            target/r8-fuzz/failure.*
+            target/r8-fuzz/minimized.input

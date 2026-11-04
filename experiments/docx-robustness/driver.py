@@ -421,7 +421,8 @@ def locate_llvm_tools(profdata=None, cov=None):
                     host = line.split(' ', 1)[1].strip()
             if not host:
                 raise ValueError('rustc -vV did not report a host triple')
-        path = Path(sysroot) / 'lib' / 'rustlib' / host / 'bin' / name
+        executable = name + ('.exe' if os.name == 'nt' else '')
+        path = Path(sysroot) / 'lib' / 'rustlib' / host / 'bin' / executable
         if not path.is_file():
             raise ValueError(
                 '{} not found at {}; install it from the Rust toolchain with '
@@ -463,7 +464,10 @@ def coverage_toolchain(args):
         'rustc_version': short_rustc_version(rustc_text),
     }
 
-COVERAGE_IGNORE = ('/registry/', '/git/checkouts/', '/rustc/', 'docx-robustness')
+COVERAGE_IGNORE = (
+    r'[/\\]registry[/\\]', r'[/\\]git[/\\]checkouts[/\\]',
+    r'[/\\]rustc[/\\]', r'[/\\]third-party[/\\]', 'docx-robustness',
+)
 
 def _run_tool(command, timeout):
     result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=timeout)

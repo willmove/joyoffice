@@ -1,0 +1,209 @@
+{
+  "date": "2026-11-04",
+  "integration_start": "c42060e1e2d27e0a5684c9fbd0931740f968919c",
+  "legacy_baseline": "00fb06872d38bbbfc26f4dbc3404d6810b72aabb",
+  "fixture_sha256_before_and_after": {
+    "snapshot.docx": "850549119aa2240572c4ab1df71534573146916f0eb3d031a1e5e7f51fb83188",
+    "source.docx": "7f234d546783332adac448fecd8132cd0dc71900fa208e0b94021b33bdaf8cfb",
+    "broken/recovery-a.jwr": "1b5ed0e43e4b311d52126e692b656037b1a0389eeec8e6edc44b1948aa30b7ba",
+    "broken/recovery-b.jwr": "f89d35628ca37797e40fee01aba650428df6dd0eabc7fb11334e8722c79980ea",
+    "broken/recovery.jwr": "a84ad7597f1065676bd46b6903f609e48b87367ac3b24c66a093413a4443de76",
+    "broken/recovery.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "conflict/recovery-a.jwr": "9eb820401e96184a429d029faa72e7a30dd1f6fda3d147b081a93bfd1fa77905",
+    "conflict/recovery-b.jwr": "10a3653d45175da52286309842ca03b1a82e16cecf5dddc288f74973256b8f99",
+    "conflict/recovery.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "discarded/recovery-a.jwr": "c6542cd561904c1b53943f2a90ffb14dd71258e00810ecac28240324c170031c",
+    "discarded/recovery-b.jwr": "786e6bb38cca7243f679a83d56d3cd04d883d5c0b69d545c54e82b59295d8c1b",
+    "discarded/recovery.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "dual/recovery-a.jwr": "9eb820401e96184a429d029faa72e7a30dd1f6fda3d147b081a93bfd1fa77905",
+    "dual/recovery-b.jwr": "786e6bb38cca7243f679a83d56d3cd04d883d5c0b69d545c54e82b59295d8c1b",
+    "dual/recovery.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "fallback/recovery-a.jwr": "9eb820401e96184a429d029faa72e7a30dd1f6fda3d147b081a93bfd1fa77905",
+    "fallback/recovery-b.jwr": "f89d35628ca37797e40fee01aba650428df6dd0eabc7fb11334e8722c79980ea",
+    "fallback/recovery.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "mismatch/recovery-a.jwr": "e28ef1aad3da5e9d4a6a424ceabea7be08dd82fc77a1eb4b1e8a81611e782279",
+    "mismatch/recovery.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rich/recovery-a.jwr": "5e137407afc5257d5fe63b0e0e87121cf77d3571f3ece71059f04c7bce02a242",
+    "rich/recovery-b.jwr": "fa70b9f34dcb4bb8fe18b64b64f6c3fe1909b29a28b98aa17811fbd83e90214b",
+    "rich/recovery.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "single/recovery.jwr": "a84ad7597f1065676bd46b6903f609e48b87367ac3b24c66a093413a4443de76",
+    "source-missing/recovery-a.jwr": "10a3653d45175da52286309842ca03b1a82e16cecf5dddc288f74973256b8f99",
+    "source-missing/recovery.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "tests": {
+    "windows_joyword_fmt_clippy_tests": {
+      "passed": 3482,
+      "failed": 0,
+      "ignored": 2
+    },
+    "windows_joysheet_joydeck_tests": {
+      "passed": 962,
+      "failed": 0,
+      "ignored": 0
+    },
+    "legacy_baseline_commands_and_recovery_tests": {
+      "passed": 18,
+      "failed": 0,
+      "ignored": 0
+    },
+    "legacy_baseline_visual_merge_exchange_tests": {
+      "passed": 12,
+      "failed": 0,
+      "ignored": 0
+    },
+    "legacy_inspect_text_tests_against_r8_windows_package": {
+      "passed": 9,
+      "failed": 0,
+      "ignored": 0
+    }
+  },
+  "recovered_docx_part_bytes_equal_across_platforms": true,
+  "windows_x64": {
+    "cli": "1e53995bfb9955c6db79e469a26673eaaad15823dab21c56b536d6737eb8d914",
+    "legacy_cli_differences": {
+      "DOCX-MIN-001.docx": [],
+      "DOCX-MIN-002.docx": [],
+      "DOCX-MIN-003.docx": [],
+      "DOCX-MIN-004.docx": [],
+      "DOCX-MIN-005.docx": [],
+      "DOCX-SAMPLE-001.docx": [],
+      "DOCX-FEAT-T200-NUM.docx": [],
+      "DOCX-FEAT-T201-TABLE.docx": [],
+      "DOCX-FEAT-T202-PAGES.docx": [],
+      "DOCX-FEAT-T203-IMAGES.docx": [],
+      "DOCX-FEAT-T300-REVIEW.docx": [],
+      "handbook.docx": [],
+      "mixed-media.docx": [],
+      "welcome.docx": []
+    },
+    "recovered_docx": {
+      "single": "e5037dcf816acf8f420027009f90a4730d37a9f4debbb753dcf8e42c1185acb2",
+      "dual": "14e3478b103932ded43404ad70a6c3a4ad4bbf51719e4a2825b7861b2ada611e",
+      "rich": "850549119aa2240572c4ab1df71534573146916f0eb3d031a1e5e7f51fb83188",
+      "fallback": "79d9c8eb6fcaa46275573281a1800e28d703ca7795b2a9047ad11bb0898f777c",
+      "source-missing": "14e3478b103932ded43404ad70a6c3a4ad4bbf51719e4a2825b7861b2ada611e"
+    },
+    "refusals": [
+      "broken",
+      "discarded",
+      "mismatch",
+      "conflict",
+      "overwrite"
+    ],
+    "archive": "dist/joyword/r8-compat-final/joyword-0.1.1-windows-x86_64.zip",
+    "archive_sha256": "af7402dccc3b2f1ce405b1c28bed4922ea2ddae7bd6f0e8d77cda45e880e2c72",
+    "gui_sha256": "9528833cfe6f9d2cdd0bf3900df191c210045c391ad794b864d3c6011eefdd86",
+    "desktop": {
+      "opened": "JWREC003",
+      "confirmed_save": true,
+      "restarted_reopened": true,
+      "recovered_docx_sha256": "850549119aa2240572c4ab1df71534573146916f0eb3d031a1e5e7f51fb83188"
+    },
+    "session": [
+      {
+        "checks": [
+          "inspect",
+          "text",
+          "unicode edit",
+          "reopen",
+          "OOXML",
+          "no-clobber",
+          "invalid DOCX",
+          "render",
+          "PDF"
+        ],
+        "input_sha256": "8e55503dbfd2de7e209ca3494d678919e48f52780e51ba06f8456a944b2aac7f",
+        "pages": 1,
+        "independent_pdf": false
+      },
+      {
+        "mutations": 64,
+        "accepted": 21,
+        "rejected": 43
+      }
+    ],
+    "cross_product": {
+      "joysheet": {
+        "archive": "dist/joysheet/joysheet-0.1.0-windows-x86_64-debug.zip",
+        "archive_sha256": "e16164645987b3f42f5a7248048e11cdb61aa26ced0b8d072a2a374ff74c1ca7",
+        "gui_sha256": "0c85858e77940f63e50975f3282615900fef90b3ea4a74061f379932bb0b4615",
+        "sample": "Windows-quality.xlsx, Sheet1 A1=打印边界, B3=24"
+      },
+      "joydeck": {
+        "archive": "dist/joydeck/joydeck-0.8.0-r9-windows-x86_64-debug-d8e22f56ec.zip",
+        "archive_sha256": "67e81a7c913ffd12e54202edd4f070be04d5c0746531c67f7ae17070038cd151",
+        "gui_sha256": "73cc32ebd1a5a1c18bdbbbb8e9feb8d738c84dd743eb8a92525ba35e6e5e6afc",
+        "sample": "r1-preview.pptx, 3 slides"
+      }
+    }
+  },
+  "linux_x64_wslg": {
+    "joyword": {
+      "archive": "dist/joyword/r8-compat-final/joyword-0.1.1-linux-x86_64.tar.gz",
+      "sha256": "938f53ea02c5871ad512abaa42f5230f5f6b7054fce00718ab7611686075793f",
+      "gui_sha256": "48abcfcb838720d5ef93ea5fddd7dfcbd4974249f6a76ea44be012f8e928c040",
+      "cli_sha256": "ef5146a6ebb1d80e44cbae922ab7f6a52ae1fe9eeb19d355a05ceb488c4325ae",
+      "compat": {
+        "cli": "ef5146a6ebb1d80e44cbae922ab7f6a52ae1fe9eeb19d355a05ceb488c4325ae",
+        "recovered_docx": {
+          "single": "dc28d387d99dff0b2e5ef509a9c393fbc6e458dc386e963c03461932056ff2cb",
+          "dual": "eef21b006e165dc918c16c67062788e7deffc9b3289da2d6c1452a7534c389eb",
+          "rich": "850549119aa2240572c4ab1df71534573146916f0eb3d031a1e5e7f51fb83188",
+          "fallback": "4ac9b9c3162583032a39fd68ccc6ca8af018cacdbf0d269e63b98733f06019c4",
+          "source-missing": "eef21b006e165dc918c16c67062788e7deffc9b3289da2d6c1452a7534c389eb"
+        },
+        "refusals": [
+          "broken",
+          "discarded",
+          "mismatch",
+          "conflict",
+          "overwrite"
+        ]
+      },
+      "session": [
+        {
+          "checks": [
+            "inspect",
+            "text",
+            "unicode edit",
+            "reopen",
+            "OOXML",
+            "no-clobber",
+            "invalid DOCX",
+            "render",
+            "PDF"
+          ],
+          "input_sha256": "8e55503dbfd2de7e209ca3494d678919e48f52780e51ba06f8456a944b2aac7f",
+          "pages": 1,
+          "independent_pdf": false
+        },
+        {
+          "mutations": 64,
+          "accepted": 21,
+          "rejected": 43
+        }
+      ],
+      "desktop": "open_to_paint",
+      "desktop_reopened_recovered_copy": true
+    },
+    "joysheet": {
+      "archive": "dist/joysheet/joysheet-0.1.0-linux-x86_64-debug.zip",
+      "sha256": "892fe859f96c76679b11a1dfbb426fe17c732519e7aabe54582a79781928d90e",
+      "gui_sha256": "ff1be7d5c60f3da5ef263f5abb6e3dcc05ac7b4fb57e22a00257410de4591830",
+      "cli_sha256": "762a988656b04b50df4c73790e58d4c2b7c01d8b30ae6dbe96c3e83a4d614b5d",
+      "cli_B3": 24,
+      "desktop": "desktop window initialized",
+      "desktop_sample_visible": "Windows-quality.xlsx, Sheet1 A1=打印边界, B3=24"
+    },
+    "joydeck": {
+      "archive": "dist/joydeck/joydeck-0.8.0-r9-linux-x86_64-debug-d8e22f56ec.zip",
+      "sha256": "a0504eb4509481aa87293e36665903d315a6de9b1e00fd87e5d8824219de9662",
+      "gui_sha256": "998f295c704f827aedd25c7bc0f0c19982845507187668e188062c63315dc2ed",
+      "cli_sha256": "c5b47a0baf018d5bd3114a7263b5bfb116b42e5aa2d386a67b03f662e62c9e2e",
+      "cli_slides": 3,
+      "desktop": "opened=true pages=3",
+      "desktop_sample_visible": "r1-preview.pptx, 3 slides"
+    }
+  },
+  "macos": "pending"
+}

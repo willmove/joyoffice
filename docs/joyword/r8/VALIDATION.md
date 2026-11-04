@@ -2,6 +2,41 @@
 
 2026-11-04 在 JoyOffice 的 `codex/joyword-r8-integration` 工作树执行。测试输入均为仓库自带样例或其副本。平台结果按本次集成重新记录。
 
+## 旧恢复与 CLI 兼容切片
+
+开发起点为 `c42060e1`。旧行为以 `00fb06872d38bbbfc26f4dbc3404d6810b72aabb` 的独立工作树复现。验证和包内执行结果见 [兼容性证据](evidence/legacy-compat.json)。
+
+| 开发包 | 解包后验证 |
+| --- | --- |
+| `dist/joyword/r8-compat-final/joyword-0.1.1-windows-x86_64.zip` | Windows x64、PowerShell 7。桌面打开 V3，显示 Unicode 正文、粗体和表格，确认另存后关闭并重启打开同一 DOCX。另存文件与旧快照 SHA-256 一致。JoySheet 显示 XLSX 样例的 Sheet1 及「打印边界」，JoyDeck 显示 PPTX 三页缩略图及第一页。 |
+| `dist/joyword/r8-compat-final/joyword-0.1.1-linux-x86_64.tar.gz` | Ubuntu WSL2 x64，WSLg 软件渲染。检查 ELF、动态链接和归档 SHA-256。JoyWord 从 V3 日志绘制首屏，包内 CLI 另存，桌面重开核对正文和表格。JoySheet 显示 XLSX 样例，CLI 读回 B3 为 24。JoyDeck 显示三页 PPTX，运行日志和 CLI 页数一致。 |
+
+两包的 CLI 均验证了 V1 单文件、V2 双槽最高代数、V3 富文本、单槽 CRC 损坏回退、源 DOCX 删除后恢复、另存和重开。截断与 CRC 损坏并存、同代冲突、丢弃记录、快照正文不匹配和覆盖请求均被拒绝。恢复前后逐个比对旧日志、锁文件及仍存在的源 DOCX 的 SHA-256。R8 会话路径另跑 DOCX 编辑／重开、PNG 和普通 PDF 导出、64 个确定性损坏变体，21 个可解析、43 个干净拒绝。
+
+旧版和 Windows 最终包的 schema 1 逐字段对照覆盖 14 个 DOCX，包含最小语料、表格／分页／图片／修订、中文混合媒体和 handbook。文本和报告字段均一致。两包也检查了参数前后位置、`--` 字面文件名、可选兼容字段、UTF-8 截断、错误流与状态码。以最终 Windows 包为子进程重跑了旧 `commands.rs` 中 9 项 `inspect`／`text` 测试，旧 `render`／`convert` 的缺参断言从该次重跑剔除。旧版自身另通过恢复测试和 `visual`、`font_refusal`、`mail_merge`、`exchange` 测试。余下接口迁移见 [R8 交接](../../joyoffice/JOYWORD-R8-HANDOFF.md)。
+
+### 复现命令
+
+在 JoyOffice 根目录用 PowerShell 7 生成旧样例。V2/V3 由旧版写入器和桌面 Office 会话生成，V1 采用旧版解码测试中的编码。
+
+```powershell
+$repo = (Get-Location).Path
+$baseline = Join-Path $repo 'target/r8-compat-baseline'
+git worktree add --detach $baseline 00fb06872d38bbbfc26f4dbc3404d6810b72aabb
+New-Item "$baseline/crates/joyword-shell/examples" -ItemType Directory -Force
+Copy-Item scripts/joyword/legacy-recovery-fixtures.rs "$baseline/crates/joyword-shell/examples/"
+Push-Location $baseline
+$env:CARGO_TARGET_DIR = Join-Path $repo 'target/r8-baseline-build'
+cargo test --locked -p joyword-cli --test commands -p joyword-shell --test recovery_document --test recovery_formatted_text
+cargo run --locked -p joyword-shell --example legacy-recovery-fixtures -- "$repo/target/r8-compat-fixtures"
+Remove-Item Env:CARGO_TARGET_DIR
+Pop-Location
+```
+
+在 Windows 和 Linux 各自执行 `cargo xtask package joyword --out dist/joyword/r8-compat-final`，解包后用 `python scripts/joyword/verify-r8-compat.py CLI FIXTURES NEW_RESULTS` 验证，Windows 加 `--baseline OLD_CLI` 做旧新版对照。运行 `python scripts/joyword/verify-r8.py CLI --mutations 64` 核对 R8 会话和导出。归档路径下配有 SHA-256 文件。
+
+Windows 执行 `cargo xtask check joyword --target x86_64-pc-windows-msvc`，格式检查和生产 Clippy 通过，JoyWord Rust 测试 3,482 通过、2 忽略。跨产品执行 `cargo test --locked --target x86_64-pc-windows-msvc -p joysheet-engine -p joysheet-xlsx -p joydeck-shell -p joydeck-pptx`，962 项通过。文档与边界门禁 `python scripts/check_docs.py`、`python scripts/check_gates.py` 均通过。
+
 ## Windows x64
 
 三个原生应用和 CLI 从同一工作区联合编译。三个便携开发包分别解压，桌面应用同时运行。最终归档中的 GUI 可执行文件与执行桌面重开检查的文件哈希一致。
@@ -30,6 +65,6 @@ JoySheet 的 Debian 打包在 WSL 的 ext4 内完成，保留 Debian 控制目�
 
 - macOS 原生构建与桌面运行按约定待验。集成后的 Linux ARM64 原生桌面、信创真机与托管 CI 待验。
 - Windows 拼音和读屏沿用独立版证据，R8 包复验、完整 Word/WPS 互通、安装器安装／卸载与文件关联见 [交接任务](../../joyoffice/JOYWORD-R8-HANDOFF.md)。
-- 旧恢复文件的兼容、固定金样和覆盖引导 fuzz 的迁移，以及旧 CLI/API 和 Agent 的差距见交接中的接口表。
+- 复杂旧恢复语料、固定金样和覆盖引导 fuzz 的迁移，以及剩余 CLI/API 和 Agent 的差距见交接中的接口表。
 - JoyDeck 开发包的清单列出了未自动收集到的依赖许可文本，发布验收时仍需补齐对应记录。
 

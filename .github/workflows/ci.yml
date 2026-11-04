@@ -51,6 +51,9 @@ jobs:
         run: cargo xtask build joyword
       - name: Open, edit, save, reopen and export a real DOCX
         run: python scripts/joyword/verify-r8.py target/debug/joyword-cli${{ runner.os == 'Windows' && '.exe' || '' }}
+      - name: Fixed-font PNG and PDF goldens
+        if: matrix.os == 'windows-2022' || matrix.os == 'ubuntu-24.04'
+        run: cargo run --locked -p joyword-shell --example r8_render_goldens -- target/r8-render-ci
 
   # Headless crates cross-compiled for Xinchuang targets and run under QEMU
   # user mode (T005). This proves code generation and the glibc/new-world

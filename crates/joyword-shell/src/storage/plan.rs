@@ -26,6 +26,30 @@ pub struct ExportPlan {
     version: DocumentVersion,
 }
 impl ExportPlan {
+    // Only for bytes already checked and opened by the legacy recovery reader.
+    pub(crate) fn from_recovered_package(bytes: &[u8], version: u64) -> Result<Self, String> {
+        use joyoffice_opc::Target;
+        let package =
+            joyoffice_opc::Package::read(bytes, &Default::default()).map_err(|e| e.to_string())?;
+        let main = package.relationships(None).iter().find_map(|rel| {
+            if rel.kind.ends_with("/officeDocument")
+                && let Target::Internal(name) = &rel.target
+            {
+                return package.part(name.as_str());
+            }
+            None
+        });
+        if main.and_then(|part| part.content_type.as_deref())
+            != Some(joyword_docx::Flavor::Document.main_content_type())
+        {
+            return Err("Recovery copy requires a DOCX package".into());
+        }
+        Ok(Self {
+            bytes: bytes.to_vec(),
+            origin: None,
+            version: DocumentVersion(version),
+        })
+    }
     pub fn build(
         doc: &joyword_engine::doc::Document,
         version: u64,

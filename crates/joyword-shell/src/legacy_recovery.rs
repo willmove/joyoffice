@@ -1,0 +1,401 @@
+use crate::reader::{Reader, check_cancel, guarded};
+use joyword_engine::doc::{Document, Pos, StoryRef, para};
+use std::{
+    fs::{self, File},
+    io::{self, Read},
+    path::Path,
+    sync::{Arc, atomic::AtomicBool},
+};
+
+const SLOTS: [&str; 2] = ["recovery-a.jwr", "recovery-b.jwr"];
+const SINGLE: &str = "recovery.jwr";
+const MAX_PACKAGE: usize = 96 << 20;
+const MAX_TEXT: usize = 32 << 20;
+const MAX_RECORD: usize = MAX_PACKAGE + MAX_TEXT + 49;
+const OBJECT_MARKER: char = '\u{fdd0}';
+
+#[derive(PartialEq, Eq)]
+struct Record {
+    generation: u64,
+    version: Option<u64>,
+    content: Option<Checkpoint>,
+}
+
+#[derive(PartialEq, Eq)]
+struct Checkpoint {
+    baseline: Vec<u8>,
+    text: String,
+    snapshot: Option<Vec<u8>>,
+}
+
+fn invalid(message: &'static str) -> io::Error {
+    io::Error::new(io::ErrorKind::InvalidData, message)
+}
+
+fn open_regular(path: &Path) -> io::Result<Option<File>> {
+    match fs::symlink_metadata(path) {
+        Ok(meta) if meta.is_file() => File::open(path).map(Some),
+        Ok(_) => Err(invalid("recovery path is not a regular file")),
+        Err(e) if e.kind() == io::ErrorKind::NotFound => Ok(None),
+        Err(e) => Err(e),
+    }
+}
+
+fn blob<'a>(input: &mut &'a [u8], limit: usize) -> io::Result<&'a [u8]> {
+    let len = input
+        .split_off(..8)
+        .and_then(|n| n.try_into().ok())
+        .map(u64::from_le_bytes)
+        .ok_or_else(|| invalid("truncated recovery length"))?;
+    if len > limit as u64 {
+        return Err(invalid("recovery blob exceeds budget"));
+    }
+    input
+        .split_off(..len as usize)
+        .ok_or_else(|| invalid("truncated recovery blob"))
+}
+
+fn decode(bytes: &[u8], single: bool) -> io::Result<Record> {
+    if bytes.len() > MAX_RECORD {
+        return Err(invalid("recovery file exceeds budget"));
+    }
+    let (body, crc) = bytes
+        .split_last_chunk::<4>()
+        .ok_or_else(|| invalid("truncated recovery header"))?;
+    let (magic, mut input) = body
+        .split_first_chunk::<8>()
+        .ok_or_else(|| invalid("truncated recovery header"))?;
+    if !matches!(
+        (single, magic),
+        (true, b"JWREC001") | (false, b"JWREC002" | b"JWREC003")
+    ) {
+        return Err(invalid("unsupported recovery header"));
+    }
+    if crc32fast::hash(body) != u32::from_le_bytes(*crc) {
+        return Err(invalid("recovery checksum mismatch"));
+    }
+    let (generation, version) = if single {
+        (0, None)
+    } else {
+        let header = input
+            .split_off(..17)
+            .ok_or_else(|| invalid("truncated recovery generation"))?;
+        let generation = u64::from_le_bytes(
+            header[..8]
+                .try_into()
+                .map_err(|_| invalid("recovery generation"))?,
+        );
+        let version = u64::from_le_bytes(
+            header[9..]
+                .try_into()
+                .map_err(|_| invalid("recovery version"))?,
+        );
+        if generation == 0 {
+            return Err(invalid("zero recovery generation"));
+        }
+        let version = match header[8] {
+            0 if version == 0 => None,
+            1 => Some(version),
+            2 if version == 0 && input.is_empty() => {
+                return Ok(Record {
+                    generation,
+                    version: None,
+                    content: None,
+                });
+            }
+            _ => return Err(invalid("invalid recovery kind or version")),
+        };
+        (generation, version)
+    };
+    let baseline = blob(&mut input, MAX_PACKAGE)?;
+    let text = std::str::from_utf8(blob(&mut input, MAX_TEXT)?)
+        .map_err(|_| invalid("recovery text is not UTF-8"))?;
+    let snapshot = if magic == b"JWREC003" {
+        let bytes = blob(&mut input, MAX_PACKAGE)?;
+        if bytes.is_empty() {
+            return Err(invalid("empty recovery snapshot"));
+        }
+        Some(bytes)
+    } else {
+        None
+    };
+    if !input.is_empty() {
+        return Err(invalid("trailing recovery bytes"));
+    }
+    for package in std::iter::once(baseline).chain(snapshot) {
+        if joyword_docx::is_encrypted(package)
+            || matches!(
+                joyoffice_opc::ZipArchive::new(package, &Default::default()),
+                Err(joyoffice_opc::ZipError::Unsupported(message)) if message.contains("encrypted")
+            )
+        {
+            return Err(invalid("encrypted recovery package"));
+        }
+    }
+    Ok(Record {
+        generation,
+        version,
+        content: Some(Checkpoint {
+            baseline: baseline.to_vec(),
+            text: text.to_owned(),
+            snapshot: snapshot.map(<[u8]>::to_vec),
+        }),
+    })
+}
+
+/// Validate the bytes of one legacy record without consulting the filesystem.
+pub fn validate_legacy_recovery_record(bytes: &[u8], single: bool) -> io::Result<()> {
+    decode(bytes, single).map(|_| ())
+}
+
+fn read_record(path: &Path, single: bool) -> io::Result<Option<Record>> {
+    let Some(file) = open_regular(path)? else {
+        return Ok(None);
+    };
+    if file.metadata()?.len() > MAX_RECORD as u64 {
+        return Err(invalid("recovery file exceeds budget"));
+    }
+    let mut bytes = Vec::new();
+    file.take(MAX_RECORD as u64 + 1).read_to_end(&mut bytes)?;
+    if bytes.len() > MAX_RECORD {
+        return Err(invalid("recovery file exceeds budget"));
+    }
+    decode(&bytes, single).map(Some)
+}
+
+fn select(path: &Path, cancel: &AtomicBool) -> Result<(Checkpoint, bool), String> {
+    let directory = if path.is_dir() {
+        path
+    } else {
+        let name = path.file_name().and_then(|name| name.to_str());
+        if !name.is_some_and(|name| name == SINGLE || SLOTS.contains(&name)) {
+            return Err("Select a legacy journal directory or recovery[-a|-b].jwr".into());
+        }
+        path.parent().unwrap_or(Path::new("."))
+    };
+    // Hold the existing writer's lock while inspecting both slots. Never create a lock.
+    let lock = open_regular(&directory.join("recovery.lock")).map_err(|e| e.to_string())?;
+    if let Some(file) = &lock {
+        file.try_lock_shared()
+            .map_err(|e| format!("Cannot lock the legacy journal for reading: {e}"))?;
+    }
+    let result = select_locked(directory, cancel);
+    if let Some(file) = lock {
+        let _ = file.unlock();
+    }
+    result
+}
+
+fn select_locked(directory: &Path, cancel: &AtomicBool) -> Result<(Checkpoint, bool), String> {
+    let mut selected: Option<Record> = None;
+    let mut damaged = Vec::new();
+    for name in SLOTS {
+        check_cancel(cancel)?;
+        match read_record(&directory.join(name), false) {
+            Ok(Some(candidate)) => {
+                if let Some(current) = &selected
+                    && candidate.generation == current.generation
+                    && &candidate != current
+                {
+                    return Err("Conflicting recovery records at the same generation".into());
+                }
+                if selected
+                    .as_ref()
+                    .is_none_or(|current| candidate.generation > current.generation)
+                {
+                    selected = Some(candidate);
+                }
+            }
+            Ok(None) => {}
+            Err(e)
+                if matches!(
+                    e.kind(),
+                    io::ErrorKind::InvalidData | io::ErrorKind::UnexpectedEof
+                ) =>
+            {
+                damaged.push(format!("{name}: {e}"));
+            }
+            Err(e) => return Err(format!("{name}: {e}")),
+        }
+    }
+    if selected.is_none() {
+        if !damaged.is_empty() {
+            return Err(format!(
+                "No valid published recovery generation ({})",
+                damaged.join(", ")
+            ));
+        }
+        selected =
+            read_record(&directory.join(SINGLE), true).map_err(|e| format!("{SINGLE}: {e}"))?;
+    }
+    let record = selected.ok_or("No published recovery checkpoint")?;
+    let content = record.content.ok_or("Recovery was explicitly discarded")?;
+    Ok((content, !damaged.is_empty()))
+}
+
+struct BodyText {
+    text: String,
+    starts: Vec<(usize, Pos)>,
+}
+
+fn projected_chars(
+    paragraph: &joyword_engine::doc::Paragraph,
+) -> impl Iterator<Item = (usize, char)> {
+    let mut objects = paragraph.objects.iter();
+    paragraph
+        .text
+        .char_indices()
+        .filter_map(move |(offset, ch)| {
+            let projected = match ch {
+                para::OBJ if objects.next().is_some_and(para::InlineObject::is_marker) => {
+                    return None;
+                }
+                para::OBJ | para::LINE_BREAK | para::PAGE_BREAK | para::COLUMN_BREAK => {
+                    OBJECT_MARKER
+                }
+                ch => ch,
+            };
+            Some((offset, projected))
+        })
+}
+
+impl BodyText {
+    fn new(doc: &Document) -> Result<Self, String> {
+        let mut result = Self {
+            text: String::new(),
+            starts: Vec::new(),
+        };
+        for path in doc.para_paths(StoryRef::Body) {
+            let paragraph = doc
+                .para(StoryRef::Body, &path)
+                .ok_or("Missing recovery paragraph")?;
+            if !result.starts.is_empty() {
+                result.text.push('\n');
+            }
+            result
+                .starts
+                .push((result.text.len(), Pos::new(StoryRef::Body, path, 0)));
+            for (_, projected) in projected_chars(paragraph) {
+                result.text.push(projected);
+                if result.text.len() > MAX_TEXT {
+                    return Err("Recovery body text exceeds budget".into());
+                }
+            }
+        }
+        Ok(result)
+    }
+
+    fn position(&self, doc: &Document, offset: usize) -> Result<Pos, String> {
+        let index = self.starts.partition_point(|(start, _)| *start <= offset);
+        let (start, position) = self
+            .starts
+            .get(index.saturating_sub(1))
+            .ok_or("Missing recovery position")?;
+        let paragraph = doc.para_at(position).ok_or("Missing recovery paragraph")?;
+        let mut relative = offset - start;
+        for (byte, ch) in projected_chars(paragraph) {
+            if relative == 0 {
+                return Ok(Pos {
+                    off: byte,
+                    ..position.clone()
+                });
+            }
+            relative = relative
+                .checked_sub(ch.len_utf8())
+                .ok_or("Invalid recovery character boundary")?;
+        }
+        if relative != 0 {
+            return Err("Recovery range does not match the baseline".into());
+        }
+        Ok(Pos {
+            off: paragraph.len(),
+            ..position.clone()
+        })
+    }
+}
+
+fn replay(reader: &mut Reader, current: BodyText, text: &str) -> Result<(), String> {
+    let prefix: usize = current
+        .text
+        .chars()
+        .zip(text.chars())
+        .take_while(|(a, b)| a == b)
+        .map(|(ch, _)| ch.len_utf8())
+        .sum();
+    let suffix: usize = current.text[prefix..]
+        .chars()
+        .rev()
+        .zip(text[prefix..].chars().rev())
+        .take_while(|(a, b)| a == b)
+        .map(|(ch, _)| ch.len_utf8())
+        .sum();
+    let end = current.text.len() - suffix;
+    let replacement = &text[prefix..text.len() - suffix];
+    if current.text[prefix..end].contains(OBJECT_MARKER) || replacement.contains(OBJECT_MARKER) {
+        return Err("Text-only recovery cannot replay changes to inline objects".into());
+    }
+    let (start, end) = (
+        current.position(&reader.session.doc, prefix)?,
+        current.position(&reader.session.doc, end)?,
+    );
+    if start.path.parent() != end.path.parent() {
+        return Err("Text-only recovery cannot replay across table cells".into());
+    }
+    reader.select_positions(start, end)?;
+    reader.replace_text(None, replacement)?;
+    if BodyText::new(&reader.session.doc)?.text != text {
+        return Err("Text recovery replay does not match checkpoint".into());
+    }
+    Ok(())
+}
+
+impl Reader {
+    /// Recover an independent document from a legacy journal directory or published slot.
+    pub fn recover_legacy(path: &Path, cancel: &AtomicBool) -> Result<Self, String> {
+        // Recovery nests the DOCX importer and the engine's edit/layout path.
+        // The Windows GPUI worker pool can use the 1 MiB default stack.
+        std::thread::scope(|scope| {
+            std::thread::Builder::new()
+                .name("joyword-legacy-recovery".into())
+                .stack_size(8 * 1024 * 1024)
+                .spawn_scoped(scope, || Self::read_legacy_checkpoint(path, cancel))
+                .map_err(|e| format!("Cannot start legacy recovery worker: {e}"))?
+                .join()
+                .map_err(|_| "Legacy recovery worker failed".to_owned())?
+        })
+    }
+
+    fn read_legacy_checkpoint(path: &Path, cancel: &AtomicBool) -> Result<Self, String> {
+        guarded(|| {
+            let (checkpoint, degraded) = select(path, cancel)?;
+            check_cancel(cancel)?;
+            let rich = checkpoint.snapshot.is_some();
+            let package = checkpoint.snapshot.unwrap_or(checkpoint.baseline);
+            let mut reader = Self::from_bytes("Recovered.docx", &package, cancel)
+                .map_err(|e| format!("Legacy recovery DOCX: {e}"))?;
+            let body = BodyText::new(&reader.session.doc)?;
+            if body.text == checkpoint.text {
+                reader.recovered_package = Some((reader.session.rev(), Arc::from(package)));
+            } else if rich {
+                return Err("Recovery snapshot body text mismatch".into());
+            } else {
+                // Re-exporting a text checkpoint needs to preserve the baseline
+                // structure. Refuse known unsupported content instead of
+                // silently dropping it during regeneration.
+                let baseline = joyword_docx::legacy_inspection::project(&package, 0)?;
+                if baseline.read_only || baseline.preserved_fragments != 0 {
+                    return Err("Text-only recovery baseline contains protected or unsupported content".into());
+                }
+                replay(&mut reader, body, &checkpoint.text)?;
+            }
+            check_cancel(cancel)?;
+            reader.session.dirty = true;
+            reader.recovery_notice = Some(if degraded {
+                "A legacy recovery slot is damaged. An earlier valid checkpoint was opened. Save as a new DOCX."
+            } else {
+                "Legacy checkpoint opened. Save as a new DOCX to keep the recovered document."
+            });
+            Ok(reader)
+        }).map_err(|e| format!("Legacy recovery: {e}"))
+    }
+}
