@@ -35,13 +35,22 @@ impl Units {
         }
     }
 
-    fn parse(tag: &str) -> Option<Self> {
+    pub fn parse(tag: &str) -> Option<Self> {
         match tag {
-            "cm" => Some(Units::Centimeters),
-            "mm" => Some(Units::Millimeters),
-            "in" | "inch" => Some(Units::Inches),
-            "pt" => Some(Units::Points),
+            "cm" | "centimeters" => Some(Units::Centimeters),
+            "mm" | "millimeters" => Some(Units::Millimeters),
+            "in" | "inch" | "inches" => Some(Units::Inches),
+            "pt" | "points" => Some(Units::Points),
             _ => None,
+        }
+    }
+
+    pub(crate) fn engine_unit(self) -> joyword_geom::Unit {
+        match self {
+            Self::Centimeters => joyword_geom::Unit::Centimeters,
+            Self::Millimeters => joyword_geom::Unit::Millimeters,
+            Self::Inches => joyword_geom::Unit::Inches,
+            Self::Points => joyword_geom::Unit::Points,
         }
     }
 }
@@ -403,13 +412,13 @@ impl PrefsStore {
             ));
         }
         fs::create_dir_all(&self.dir)?;
-        let temporary = self.dir.join(format!(".{FILE_NAME}.tmp"));
-        {
-            let mut file = fs::File::create(&temporary)?;
-            file.write_all(serialize(&loaded.prefs).as_bytes())?;
-            file.sync_all()?;
-        }
-        fs::rename(&temporary, self.path())
+        let mut temporary = tempfile::NamedTempFile::new_in(&self.dir)?;
+        temporary.write_all(serialize(&loaded.prefs).as_bytes())?;
+        temporary.as_file().sync_all()?;
+        temporary
+            .persist(self.path())
+            .map_err(|error| error.error)?;
+        Ok(())
     }
 
     pub fn dir(&self) -> &Path {

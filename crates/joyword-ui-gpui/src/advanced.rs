@@ -869,8 +869,12 @@ impl JoyWord {
                                 .unwrap_or_default(),
                         ),
                         (
-                            "单位（centimeters / inches / points）",
-                            "centimeters".into(),
+                            "单位（centimeters / millimeters / inches / points）",
+                            self.canvas
+                                .reader
+                                .as_ref()
+                                .map(|r| super::forms::show(&json!(r.engine().units())))
+                                .unwrap_or_default(),
                         ),
                     ],
                 ),
@@ -1075,10 +1079,10 @@ impl JoyWord {
                 }
                 Ok(match id {
                     "general-options" => {
-                        if !["centimeters", "inches", "points"].contains(&v[1].trim()) {
-                            return Err("请选择 centimeters / inches / points".into());
+                        if joyword_shell::prefs::Units::parse(v[1].trim()).is_none() {
+                            return Err("请选择 centimeters / millimeters / inches / points".into());
                         }
-                        json!({"author":required(v,0)?,"units":v[1]})
+                        json!({"author":required(v,0)?,"units":v[1].trim()})
                     }
                     "refs-mark-entry" => json!({"entry":required(v,0)?,"subentry":v[1]}),
                     "refs-mark-authority" => json!({"entry":required(v,0)?}),
@@ -1166,6 +1170,16 @@ impl JoyWord {
                 })
             },
             move |v, args, w, cx| {
+                if id == "general-options" {
+                    let author = args["author"].as_str().ok_or("请输入用户名")?;
+                    let units = args["units"]
+                        .as_str()
+                        .and_then(joyword_shell::prefs::Units::parse)
+                        .ok_or("请选择有效的单位")?;
+                    let reader = v.canvas.reader.as_mut().ok_or("文档当前不可用")?;
+                    v.shell.save_general_preferences(reader, author, units)?;
+                    return Ok(json!({}));
+                }
                 if id == "exchange-export" || id == "merge-finish" {
                     v.output_copy(args, id == "merge-finish", cx)?;
                     Ok(json!({"queued":true}))

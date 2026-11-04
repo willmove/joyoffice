@@ -31,12 +31,17 @@ pub fn normalize_author(name: &str) -> Result<String, CmdError> {
     Ok(name.to_string())
 }
 
+/// Validate an author change for the active document without changing the session.
+pub fn validate_author(s: &Session, name: &str) -> Result<String, CmdError> {
+    super::protect::check_user_name(s)?;
+    normalize_author(name)
+}
+
 /// Sets the user name that new tracked changes and comments are recorded under. The name is
 /// normalised by [`normalize_author`].
 /// A protected document refuses it: the name is the identity its exceptions are checked against.
 pub(crate) fn set_author(s: &mut Session, v: &Value) -> CmdResult {
-    super::protect::check_user_name(s)?;
-    s.author = normalize_author(p::req_str(v, "name")?)?;
+    s.author = validate_author(s, p::req_str(v, "name")?)?;
     let mut r = sel_result(s)?;
     if let Some(o) = r.as_object_mut() {
         o.insert("name".into(), json!(s.author));

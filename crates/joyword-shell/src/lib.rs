@@ -118,6 +118,46 @@ impl Shell {
             .map_or("", |loaded| loaded.prefs.author_name.trim())
     }
 
+    pub fn apply_session_preferences(&self, reader: &mut reader::Reader) {
+        reader.set_review_author(self.review_author());
+        if let Some(loaded) = &self.preferences {
+            reader.session.prefs.units = Some(loaded.prefs.units.engine_unit());
+        }
+    }
+
+    pub fn save_general_preferences(
+        &mut self,
+        reader: &mut reader::Reader,
+        author: &str,
+        units: prefs::Units,
+    ) -> Result<(), String> {
+        if reader.is_composing() {
+            return Err("Finish or cancel the composition first".into());
+        }
+        let (Some(store), Some(loaded)) = (&self.store, &self.preferences) else {
+            return Err("Preferences directory unavailable".into());
+        };
+        let mut updated = loaded.clone();
+        let author = if author != reader.engine().author {
+            let normalized = joyword_engine::cmd::file::validate_author(reader.engine(), author)
+                .map_err(|e| e.to_string())?;
+            updated.prefs.author_name = normalized.clone();
+            Some(normalized)
+        } else {
+            None
+        };
+        updated.prefs.units = units;
+        store
+            .save(&updated)
+            .map_err(|e| format!("Preferences: {e}"))?;
+        self.preferences = Some(updated);
+        if let Some(author) = author {
+            reader.set_review_author(&author);
+        }
+        reader.session.prefs.units = Some(units.engine_unit());
+        Ok(())
+    }
+
     pub fn recent_documents(&self) -> &[std::path::PathBuf] {
         self.preferences
             .as_ref()
@@ -273,6 +313,60 @@ mod tests {
         assert_eq!(letter.summary.pages[0].width, 612.0);
         assert_eq!(letter.summary.pages[0].height, 792.0);
         assert_eq!(std::fs::read_to_string(legacy)?, settings);
+        Ok(())
+    }
+
+    #[test]
+    fn general_preferences_apply_after_successful_save() -> Result<(), Box<dyn std::error::Error>> {
+        let root = tempfile::tempdir()?;
+        let legacy = root.path().join("preferences.conf");
+        let settings = "schema=1\nauthor.name=Before\nunits=pt\nfuture.key=keep\n";
+        std::fs::write(&legacy, settings)?;
+        let store = PrefsStore::new(root.path().join("migration-preview"));
+        let mut shell = Shell {
+            preferences: Some(store.load_with_legacy(root.path(), Locale::ZhCn)),
+            store: Some(store),
+            ..isolated()
+        };
+        let cancel = std::sync::atomic::AtomicBool::new(false);
+        let mut reader = reader::Reader::blank(&cancel)?;
+        shell.apply_session_preferences(&mut reader);
+        assert_eq!(reader.engine().author, "Before");
+        assert_eq!(reader.engine().units(), joyword_geom::Unit::Points);
+
+        shell.save_general_preferences(&mut reader, "  审阅者  ", prefs::Units::Millimeters)?;
+        assert_eq!(reader.engine().author, "审阅者");
+        assert_eq!(reader.engine().units(), joyword_geom::Unit::Millimeters);
+        assert!(!reader.is_dirty());
+        let active = root.path().join("migration-preview/preferences.conf");
+        let saved = std::fs::read_to_string(&active)?;
+        assert!(saved.contains("author.name=审阅者\n"));
+        assert!(saved.contains("units=mm\n"));
+        assert!(saved.contains("future.key=keep\n"));
+        assert_eq!(std::fs::read_to_string(legacy)?, settings);
+
+        reader.execute("review.restrict", &serde_json::json!({"mode": "readOnly"}))?;
+        assert!(
+            shell
+                .save_general_preferences(&mut reader, "Unauthorized", prefs::Units::Inches)
+                .is_err()
+        );
+        assert_eq!(reader.engine().author, "审阅者");
+        assert_eq!(reader.engine().units(), joyword_geom::Unit::Millimeters);
+        assert_eq!(std::fs::read_to_string(&active)?, saved);
+
+        let mut new_reader = reader::Reader::blank(&cancel)?;
+        shell.apply_session_preferences(&mut new_reader);
+        std::fs::remove_file(&active)?;
+        std::fs::create_dir(&active)?;
+        assert!(
+            shell
+                .save_general_preferences(&mut new_reader, "Unwritten", prefs::Units::Centimeters)
+                .is_err()
+        );
+        assert_eq!(shell.review_author(), "审阅者");
+        assert_eq!(new_reader.engine().author, "审阅者");
+        assert_eq!(new_reader.engine().units(), joyword_geom::Unit::Millimeters);
         Ok(())
     }
 }

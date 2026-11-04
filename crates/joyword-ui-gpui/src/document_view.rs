@@ -234,7 +234,7 @@ impl JoyWord {
                         if from_legacy {
                             this.legacy_recovery = None;
                         }
-                        reader.set_review_author(this.shell.review_author());
+                        this.shell.apply_session_preferences(&mut reader);
                         if let Some(old) = this.canvas.reader.as_mut() {
                             old.finish_recovery(!old.is_dirty());
                         }
