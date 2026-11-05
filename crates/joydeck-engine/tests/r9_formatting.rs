@@ -455,3 +455,25 @@ fn slide_copy_remaps_review_and_animation_targets_without_losing_the_timeline() 
     session.execute(Command::NewSlide).unwrap();
     assert!(session.model().slides[1].comments.is_empty());
 }
+
+#[test]
+fn native_field_edits_are_atomic_even_inside_a_utf16_range() -> Result<(), String> {
+    let mut d = Draft::new(TextBody::from_text("A😀Z"));
+    d.move_to("A😀".len(), false);
+    d.insert_field("datetime1", "2026/11/05", Some("zh-CN"))?;
+    assert_eq!(d.body.text(), "A😀2026/11/05Z");
+    let with_field = d.body.clone();
+    assert!(matches!(
+        d.body.paragraphs[0].runs[1].kind,
+        joydeck_model::text::RunKind::Field { .. }
+    ));
+    d.select_utf16(5..6)?;
+    assert_eq!(&d.body.text()[d.selection.clone()], "2026/11/05");
+    d.replace(None, "ni", true, None)?;
+    assert_eq!(d.body.text(), "A😀niZ");
+    d.cancel();
+    assert_eq!(d.body, with_field);
+    d.replace(Some(11..12), "", false, None)?;
+    assert_eq!(d.body.text(), "A😀Z");
+    Ok(())
+}

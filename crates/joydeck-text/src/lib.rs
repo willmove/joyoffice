@@ -137,10 +137,17 @@ pub struct TextLayout {
 struct ResolvedParagraph {
     text: String,
     bytes: Vec<usize>,
+    fields: Vec<FieldSpan>,
+}
+
+#[derive(Clone, Debug)]
+struct FieldSpan {
+    source: std::ops::Range<usize>,
+    rendered: std::ops::Range<usize>,
 }
 
 impl ResolvedParagraph {
-    fn from_cells(cells: &[style::Cell]) -> Self {
+    fn from_cells(cells: &[style::Cell], fields: Vec<FieldSpan>) -> Self {
         let mut text = String::new();
         let mut bytes = Vec::with_capacity(cells.len() + 1);
         for cell in cells {
@@ -148,11 +155,90 @@ impl ResolvedParagraph {
             text.push(cell.ch);
         }
         bytes.push(text.len());
-        Self { text, bytes }
+        Self {
+            text,
+            bytes,
+            fields,
+        }
+    }
+
+    fn project(&self, pos: usize, to_rendered: bool, affinity: Affinity) -> usize {
+        let (mut from, mut to) = (0, 0);
+        for field in &self.fields {
+            let (a, b) = if to_rendered {
+                (&field.source, &field.rendered)
+            } else {
+                (&field.rendered, &field.source)
+            };
+            if pos < a.start {
+                break;
+            }
+            if pos <= a.end {
+                return if (a.is_empty() && affinity == Affinity::Downstream)
+                    || (!a.is_empty() && pos - a.start >= a.end - pos)
+                {
+                    b.end
+                } else {
+                    b.start
+                };
+            }
+            (from, to) = (a.end, b.end);
+        }
+        to + pos.saturating_sub(from)
     }
 }
 
 impl TextLayout {
+    /// Convert a document position to the displayed field text's layout position.
+    pub fn rendered_position(&self, pos: Pos, affinity: Affinity) -> Pos {
+        Pos {
+            ch: self
+                .resolved_paragraphs
+                .get(pos.para)
+                .map_or(pos.ch, |p| p.project(pos.ch, true, affinity)),
+            ..pos
+        }
+    }
+
+    /// Hit-test offsets are in the rendered paragraph. A field maps to its closest source edge.
+    pub fn source_position(&self, pos: Pos, affinity: Affinity) -> Pos {
+        Pos {
+            ch: self
+                .resolved_paragraphs
+                .get(pos.para)
+                .map_or(pos.ch, |p| p.project(pos.ch, false, affinity)),
+            ..pos
+        }
+    }
+
+    /// A visual arrow that lands inside a field moves across the whole displayed field.
+    pub fn across_field(&self, from: Pos, to: Pos, affinity: Affinity) -> (Pos, Affinity) {
+        let Some(field) = self.resolved_paragraphs.get(to.para).and_then(|p| {
+            p.fields
+                .iter()
+                .find(|f| f.rendered.start < to.ch && to.ch < f.rendered.end)
+        }) else {
+            return (to, affinity);
+        };
+        if (from.para, from.ch) <= (to.para, field.rendered.start) {
+            (
+                Pos {
+                    ch: field.rendered.end,
+                    ..to
+                },
+                Affinity::Upstream,
+            )
+        } else {
+            (
+                Pos {
+                    ch: field.rendered.start,
+                    ..to
+                },
+                Affinity::Downstream,
+            )
+        }
+    }
+
     /// The actual characters used for layout, including resolved fields and explicit breaks.
     pub fn paragraph_text(&self, paragraph: usize) -> Option<&str> {
         self.resolved_paragraphs

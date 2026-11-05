@@ -1166,6 +1166,42 @@ fn field_shape(kind: Option<&str>, saved: &str) -> Shape {
 }
 
 #[test]
+fn editable_field_geometry_maps_expansion_and_contraction() {
+    use joydeck_model::text::Run;
+    use joydeck_text::{Affinity, Pos};
+
+    for (saved, number, displayed) in [("99", 1, "1"), ("9", 123, "123")] {
+        let mut shape = field_shape(Some("slidenum"), saved);
+        let body = shape.text.as_mut().unwrap();
+        body.paragraphs[0].runs.insert(0, Run::new("A"));
+        body.paragraphs[0].runs.push(Run::new("Z"));
+        let mut deck = deck_with(vec![shape]);
+        deck.first_slide_number = number;
+        let placed = crate::editable_text(&deck, 0, joydeck_model::ShapeId(1), None).unwrap();
+        let layout = &placed.layout;
+        let pos = |ch| Pos { para: 0, ch };
+        assert_eq!(
+            layout.paragraph_text(0),
+            Some(format!("A{displayed}Z").as_str())
+        );
+        assert_eq!(
+            layout.rendered_position(pos(1 + saved.len()), Affinity::Upstream),
+            pos(1 + displayed.len())
+        );
+        assert_eq!(
+            layout.source_position(pos(2 + displayed.len()), Affinity::Downstream),
+            pos(2 + saved.len())
+        );
+        if displayed.len() > 1 {
+            assert_eq!(
+                layout.across_field(pos(1), pos(2), Affinity::Downstream),
+                (pos(1 + displayed.len()), Affinity::Upstream)
+            );
+        }
+    }
+}
+
+#[test]
 fn date_fields_show_the_date_in_their_format() {
     use joydeck_text::datetime::DateTime;
     let fri = DateTime::new(2026, 10, 9, 20, 5, 7);

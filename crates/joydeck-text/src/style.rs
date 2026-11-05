@@ -101,6 +101,7 @@ impl Cell {
 
 pub(crate) struct ParaShaped {
     pub(crate) cells: Vec<Cell>,
+    pub(crate) fields: Vec<super::FieldSpan>,
     pub(crate) styles: Vec<Style>,
     pub(crate) faces: Vec<Arc<FontFace>>,
     pub(crate) props: ParaProps,

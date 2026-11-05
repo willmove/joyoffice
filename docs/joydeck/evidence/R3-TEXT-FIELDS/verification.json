@@ -1,0 +1,77 @@
+{
+  "environment": {
+    "os": "macOS 27.2",
+    "hardware": "Apple M4",
+    "target": "aarch64-apple-darwin",
+    "displayScale": 1
+  },
+  "package": {
+    "archive": "joydeck-0.8.0-r3-text-fields.zip",
+    "sha256": "2c41798e2fa1081aa84af078b3bbfd7c45a6468fc602782ceb7a41f3711d1650",
+    "sourceSha256": "ea79505ec7a5d5766da6ccbeb8f073d0cd55e902b1757c503c58df28c6df8bd5",
+    "profile": "release",
+    "payloadFilesVerified": 1805
+  },
+  "product": {
+    "passed": 919,
+    "failed": 0,
+    "ignored": 0
+  },
+  "cliRegressions": {
+    "r1": 28,
+    "r2": 20,
+    "r3": 20,
+    "r4-r5": 23
+  },
+  "commandRegistry": {
+    "upstreamIds": 329,
+    "inventorySha256": "849c1f4d1d88992100aa04ff346530e980f1bcc9756cbd154480e881feace9f5"
+  },
+  "desktop": {
+    "binarySha256": "222e20e47065c1dc2f2bfa51b36fb05e905f3f9ac2e82c420059d3d6be462eee",
+    "cliSha256": "96d1f19021f5eb850e8644d3ed0a0f49f3ec6e9bed5a2d9446d74feb8b31f7b6",
+    "checks": [
+      {
+        "check": "An imported five-character cache is rendered as the live slide number",
+        "recognized": "No. 1 | New:"
+      },
+      {
+        "check": "Ribbon insertion adds a second field and a visual arrow crosses the original field atomically",
+        "recognized": "No. 1! | New: 1",
+        "revisions": [
+          1,
+          2
+        ]
+      },
+      {
+        "check": "The short date is a localized native field; one Backspace removes it and Undo restores it",
+        "value": "2026/11/5",
+        "revisions": [
+          3,
+          4,
+          5
+        ]
+      },
+      {
+        "check": "Native Save As preserves the embedded source; preserving PPTX retains exact original field XML and allocates unique new IDs"
+      },
+      {
+        "check": "The reordered PPTX opens in a new process and both slide numbers render as 3",
+        "recognized": "No. 3! | New: 3"
+      }
+    ],
+    "screenshots": {
+      "01-imported-live-number.png": "329c116df858a08d4749b0833e9b05179d0af221625a9bfe4495a717730a8a33",
+      "02-atomic-number-caret.png": "2a33d49e25ca1b463f58c8378b8850325de3bec3f447b2c3fb95e91ed4ce637d",
+      "03-date-format-menu.png": "a56e5a88f5073ca7750c086f45e04c8bfd9364f9de84da29237d9fd5125904a9",
+      "04-dynamic-date.png": "152d610bee6da4494062822b87909168c1dc9944c51f117b0a1ed7ed684a3c7d",
+      "05-reopened-pptx.png": "d16b3059c663b1f5cc9c735c23d121e563ac2b9f7a42eabaeeddf22d4ecfb97b",
+      "06-reordered-live-numbers.png": "a3d0bbf84338a1df9315ba0297f821a081982e6856fd57cc83bcba7c9640fc5a"
+    },
+    "fixtureSha256": "930d92b27c851ae47e527a3e388b16c5ab3c7277ea442688d3cf59531ac3495f",
+    "nativeSha256": "888cde1003f4cbc050329bb2cce9a100857efc29ea164cf4f3b5a5fb7c35e81d",
+    "pptxSha256": "8daa33f25fa86bc0e788dcae6ddf0b61110015fadd3d87169e5fe18ad8a80c97",
+    "reorderedSha256": "361f0271cb4312e5b0edf262b56c9d54b359e7ddde970cf7bc672ee7617c65de",
+    "passed": true
+  }
+}
