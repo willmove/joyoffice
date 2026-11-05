@@ -28,14 +28,14 @@
 | 完成 | JD-101 | 替换 fonts 的 epaint_default_fonts，接入受控字体字节与系统发现 | 新依赖闭包无 egui/epaint；字体缺失有诊断；样例可确定性渲染 | JD-100 |
 | 完成 | JD-102 | 接入 OPC 结构与预算，支持 PPTX/.deckcraft 受限导入和兼容报告 | 拒绝 ZIP 重复项、越界/超预算输入；保留未知内容；仅正确识别的格式可打开 | JD-100 |
 | 完成 | JD-103 | 保留 CPU 参考渲染，提供页渲染、缩略图和图像资源缓存 | 与上游同输入/字体基线对照；不通过隐藏对象消除差异 | JD-101、JD-102 |
-| 已实现待验收 | JD-104 | 异步打开、取消、文档切换与 revision 校验 | 坏文件/取消保留原工作区；旧请求迟到不覆盖新文稿。macOS Release 坏文件及后续有效请求已复验。[证据](evidence/R9-FILE-COMPAT/README.md#实屏复验) | JD-102 |
+| 完成 | JD-104 | 异步打开、取消、文档切换与 revision 校验 | macOS Release 实测取消、请求竞争和坏文件；原编辑会话、修订和恢复记录保留，旧请求不覆盖新文稿。[证据](evidence/R1-OPEN-REVISION/README.md) | JD-102 |
 | 完成 | JD-105 | GPUI 显示真实页面、页列表、虚拟化缩略图、适应窗口和缩放 | 页序/比例/DPI 正确；大文稿不一次性生成所有缩略图 | JD-103、JD-104 |
-| 已实现待验收 | JD-106 | CLI inspect/render/commands 与查看器查询使用相同核心 | 无窗口可读回语义和输出图片；CLI 闭包无 GPUI；查询无编辑副作用 | JD-100–JD-104 |
+| 完成 | JD-106 | CLI inspect/render/commands 与查看器查询使用相同核心 | 包内 CLI 读回语义、输出 PNG 和共享引擎命令，查询不改原件，锁定闭包无 GPUI。[证据](evidence/R1-OPEN-REVISION/README.md) | JD-100–JD-104 |
 | 已实现待验收 | JD-107 | 迁移模型/格式/渲染相关测试并建立最小视觉基线 | 语义比较与独立 PNG 检查有结果；静态命令清单与运行时 registry 核对 | JD-105、JD-106 |
 | 已实现待验收 | JD-108 | R1 桌面包和真实文件查看验收 | 打开、翻页、缩放、取消、坏文件与 CLI 读回均有当次证据 | JD-107 |
 
 
-R1 本轮交付为真实文稿只读查看切片：JD-100–103、105 的 Windows 实现与回归见 [R1 记录](evidence/R1/README.md)。JD-104 已接入取消 token/generation 与原文稿保留，持续运行中取消、迟到请求竞争仍需专项验收；JD-106 的 inspect/render 已交付，commands registry 随 R2 engine 接回；JD-107 的格式/渲染测试与视觉基线已建立，329 条编辑命令 registry 对照保留到 R2。JD-108 的 Windows 包可实际体验，跨平台及上述剩余验收不冒充完成。
+R1 原 Windows 查看包及视觉基线见 [R1 记录](evidence/R1/README.md)。JD-104 的运行中取消、迟到请求和修订保留，以及 JD-106 的包内查询、渲染和共享命令注册表已从当前 macOS Release 复验。JD-107 的 329 条编辑命令对应仍待核对，JD-108 继续保留完整查看包的验收条件。[最新复验](evidence/R1-OPEN-REVISION/README.md)
 
 ## R2 基础编辑与文件闭环
 

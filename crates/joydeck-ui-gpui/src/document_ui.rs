@@ -3,7 +3,6 @@ use super::*;
 #[derive(Clone)]
 pub(super) enum ReplaceDocument {
     New,
-    Open,
     Path(PathBuf),
     Template(&'static str),
 }
@@ -26,6 +25,9 @@ impl Viewer {
         if !self.editor.as_ref().is_some_and(|e| e.session.dirty()) {
             return false;
         }
+        let generation = self.generation;
+        let read_request = self.read_request;
+        let revision = self.editor.as_ref().map(|e| e.session.revision());
         let view = cx.entity().downgrade();
         w.open_dialog(cx, move |d, _, _| {
             let save = view.clone();
@@ -42,6 +44,16 @@ impl Viewer {
                             move |_, w, cx| {
                                 let _ = save.update(cx, |s, cx| {
                                     w.close_dialog(cx);
+                                    if generation != s.generation
+                                        || read_request != s.read_request
+                                        || revision
+                                            != s.editor.as_ref().map(|e| e.session.revision())
+                                    {
+                                        return;
+                                    }
+                                    if s.loading {
+                                        s.stop_read();
+                                    }
                                     s.pending_replace = Some(save_action.clone());
                                     s.save(&Save, w, cx);
                                 });
@@ -50,10 +62,21 @@ impl Viewer {
                         .child(Button::new("replace-discard").label("不保存").on_click(
                             move |_, w, cx| {
                                 let _ = discard.update(cx, |s, cx| {
+                                    w.close_dialog(cx);
+                                    if generation != s.generation
+                                        || read_request != s.read_request
+                                        || revision
+                                            != s.editor.as_ref().map(|e| e.session.revision())
+                                    {
+                                        return;
+                                    }
+                                    if let ReplaceDocument::Path(path) = &discard_action {
+                                        s.load_path_with_discard(path.clone(), true, cx);
+                                        return;
+                                    }
                                     if let Some(e) = s.editor.take() {
                                         let _ = e.recovery.discard();
                                     }
-                                    w.close_dialog(cx);
                                     s.continue_replace(discard_action.clone(), w, cx);
                                 });
                             },
@@ -75,7 +98,6 @@ impl Viewer {
     ) {
         match action {
             ReplaceDocument::New => self.new_document(&NewDocument, w, cx),
-            ReplaceDocument::Open => self.open(&Open, w, cx),
             ReplaceDocument::Path(path) => self.load(path, cx),
             ReplaceDocument::Template(name) => self.new_template(name, w, cx),
         }

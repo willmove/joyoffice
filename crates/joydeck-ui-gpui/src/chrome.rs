@@ -1003,6 +1003,15 @@ impl Viewer {
                         self.message.clone()
                     }),
             )
+            .when(self.loading, |bar| {
+                bar.child(
+                    Button::new("cancel-open")
+                        .ghost()
+                        .xsmall()
+                        .label("取消打开")
+                        .on_click(cx.listener(|s, _, _, cx| s.cancel_read(cx))),
+                )
+            })
             .child(
                 Button::new("status-notes")
                     .ghost()

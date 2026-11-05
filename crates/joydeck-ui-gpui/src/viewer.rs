@@ -153,6 +153,7 @@ pub struct Viewer {
     page: usize,
     zoom: Option<f32>,
     generation: u64,
+    read_request: u64,
     render_generation: u64,
     image: Option<(ImageKey, Arc<RenderImage>)>,
     pending: Option<ImageKey>,
@@ -279,6 +280,7 @@ impl Viewer {
             page: 0,
             zoom: None,
             generation: 0,
+            read_request: 0,
             render_generation: 0,
             image: None,
             pending: None,
@@ -301,97 +303,147 @@ impl Viewer {
         }
     }
     fn open(&mut self, _: &Open, w: &mut Window, cx: &mut Context<Self>) {
-        if self.confirm_replace(document_ui::ReplaceDocument::Open, w, cx) {
-            return;
-        }
         let receiver = cx.prompt_for_paths(PathPromptOptions {
             files: true,
             directories: false,
             multiple: false,
             prompt: Some("打开文稿".into()),
         });
+        let window = w.window_handle();
+        let read_request = self.read_request;
         self.dialog_task = Some(cx.spawn(async move |view, cx| {
             let result = receiver.await;
-            let _ = view.update(cx, |s, cx| match result {
-                Ok(Ok(Some(paths))) => {
-                    if let Some(p) = paths.into_iter().next() {
-                        s.load(p, cx);
+            let _ = window.update(cx, |_, w, cx| {
+                let _ = view.update(cx, |s, cx| {
+                    if s.read_request != read_request {
+                        return;
                     }
-                }
-                Ok(Ok(None)) => {}
-                _ => {
-                    s.message = "无法打开文件选择器，请重新尝试".into();
-                    cx.notify();
-                }
+                    match result {
+                        Ok(Ok(Some(paths))) => {
+                            if let Some(path) = paths.into_iter().next() {
+                                s.open_path(path, w, cx);
+                            }
+                        }
+                        Ok(Ok(None)) => {}
+                        _ => {
+                            s.message = "无法打开文件选择器，请重新尝试".into();
+                            cx.notify();
+                        }
+                    }
+                });
             });
         }));
     }
+    pub(super) fn open_path(&mut self, path: PathBuf, w: &mut Window, cx: &mut Context<Self>) {
+        if !self.confirm_replace(document_ui::ReplaceDocument::Path(path.clone()), w, cx) {
+            self.load(path, cx);
+        }
+    }
+    pub(super) fn stop_read(&mut self) {
+        self.read_cancel.store(true, Ordering::Relaxed);
+        self.read_request += 1;
+        self.read_task = None;
+        self.loading = false;
+    }
+    pub(super) fn start_read(&mut self) -> (u64, joydeck_shell::Cancellation) {
+        self.stop_read();
+        self.read_cancel = Arc::new(AtomicBool::new(false));
+        self.loading = true;
+        (
+            self.read_request,
+            joydeck_shell::Cancellation::from_flag(self.read_cancel.clone()),
+        )
+    }
     fn load(&mut self, path: PathBuf, cx: &mut Context<Self>) {
-        if self.block_replace(cx) {
+        self.load_path_with_discard(path, false, cx);
+    }
+    pub(super) fn load_path_with_discard(
+        &mut self,
+        path: PathBuf,
+        discard: bool,
+        cx: &mut Context<Self>,
+    ) {
+        if !discard && self.block_replace(cx) {
             return;
         }
-        self.delivery_cancel.cancel();
+        if self.saving || self.composing() {
+            return;
+        }
         self.end_inline(cx);
-        self.cell = None;
-        self.cell_range = None;
-        self.slide_selection.clear();
-        self.slide_anchor = None;
-
-        self.read_cancel.store(true, Ordering::Relaxed);
-        let cancel = Arc::new(AtomicBool::new(false));
-        self.read_cancel = cancel.clone();
-        self.generation += 1;
-        let generation = self.generation;
-        self.loading = true;
+        let revision = self.editor.as_ref().map(|e| e.session.revision());
+        let (request, cancel) = self.start_read();
         self.started = Instant::now();
         self.message = "正在后台读取、检查文稿… 可取消；当前文稿继续可浏览".into();
+        eprintln!("R6/R7 open_started=true request={request}");
         self.read_task = Some(cx.spawn(async move |view, cx| {
             let source = path.clone();
             let result = cx
                 .background_executor()
                 .spawn(async move {
-                    if source == std::path::Path::new("@bundled") {
+                    let root = joydeck_shell::editor::recovery_root();
+                    let editor = if source == std::path::Path::new("@bundled") {
                         joydeck_shell::Document::from_bytes(
                             "r1-preview.deckcraft".into(),
                             include_bytes!("../../../tests/fixtures/joydeck/r1-preview.deckcraft")
                                 .to_vec(),
-                            &joydeck_shell::Cancellation::from_flag(cancel),
+                            &cancel,
                         )
                         .and_then(|doc| {
-                            joydeck_shell::editor::Editor::from_document(
-                                doc,
-                                joydeck_shell::editor::recovery_root(),
+                            joydeck_shell::editor::Editor::from_document_cancellable(
+                                doc, root, &cancel,
                             )
                         })
                     } else {
-                        if cancel.load(Ordering::Relaxed) {
-                            return Err("operation cancelled".into());
-                        }
-                        joydeck_shell::editor::Editor::open(
-                            &source,
-                            joydeck_shell::editor::recovery_root(),
-                        )
-                    }
+                        joydeck_shell::editor::Editor::prepare_open(&source, root, &cancel)
+                    }?;
+                    let deck = editor.display()?;
+                    cancel.check()?;
+                    Ok::<_, String>((editor, deck))
                 })
                 .await;
             let _ = view.update(cx, |s, cx| {
-                if s.generation != generation {
+                if s.read_request != request {
                     eprintln!("R6/R7 stale_open_discarded=true");
                     return;
                 }
                 s.loading = false;
                 match result {
-                    Ok(editor) => {
-                        let deck = match editor.display() {
-                            Ok(d) => d,
-                            Err(e) => {
-                                s.message = e;
-                                cx.notify();
-                                return;
-                            }
-                        };
+                    Ok((editor, deck)) => {
+                        if revision != s.editor.as_ref().map(|e| e.session.revision())
+                            || s.composing()
+                            || s.saving
+                        {
+                            s.message = "打开请求已过期 · 当前文稿保持不变".into();
+                            cx.notify();
+                            return;
+                        }
+                        s.delivery_cancel.cancel();
+                        s.generation += 1;
+                        s.cell = None;
+                        s.cell_range = None;
+                        s.slide_selection.clear();
+                        s.slide_anchor = None;
+                        s.drag = None;
                         s.backstage = false;
-                        s.editor = Some(editor);
+                        let recent = editor
+                            .source
+                            .clone()
+                            .map(|p| (editor.recovery.root.clone(), p));
+                        let previous = s.editor.replace(editor);
+                        cx.background_executor()
+                            .spawn(async move {
+                                if discard && let Some(previous) = &previous {
+                                    let _ = previous.recovery.discard();
+                                }
+                                drop(previous);
+                                if let Some((root, path)) = recent
+                                    && let Err(e) =
+                                        joydeck_shell::storage::remember_file(&root, &path)
+                                {
+                                    eprintln!("JoyDeck recent file update failed: {e}");
+                                }
+                            })
+                            .detach();
                         s.paint_cancel.store(true, Ordering::Relaxed);
                         s.thumbs_cancel.store(true, Ordering::Relaxed);
                         s.render_generation += 1;
@@ -402,10 +454,9 @@ impl Viewer {
                         } else {
                             Some(path.clone())
                         };
-                        let default = if path
-                            .extension()
-                            .is_some_and(|e| e == "pptx" || e == "joydeck")
-                        {
+                        let default = if path.extension().is_some_and(|e| {
+                            e.eq_ignore_ascii_case("pptx") || e.eq_ignore_ascii_case("joydeck")
+                        }) {
                             path.to_string_lossy().into_owned()
                         } else {
                             "".to_string()
@@ -438,22 +489,21 @@ impl Viewer {
         }));
         cx.notify();
     }
-    fn cancel(&mut self, _: &Cancel, _: &mut Window, cx: &mut Context<Self>) {
-        if self.inline.is_some() {
-            self.cancel_inline(cx);
-            return;
-        }
-        if self.drag.take().is_some() {
-            self.message = "手势已取消，未修改文稿".into();
-            cx.notify();
-            return;
-        }
+    pub(super) fn cancel_read(&mut self, cx: &mut Context<Self>) {
         if self.loading {
-            self.read_cancel.store(true, Ordering::Relaxed);
-            self.generation += 1;
-            self.loading = false;
-            self.read_task = None;
+            self.stop_read();
             self.message = "已取消读取 · 当前文稿保持不变".into();
+            eprintln!("R6/R7 open_cancelled=true");
+            cx.notify();
+        }
+    }
+    fn cancel(&mut self, _: &Cancel, _: &mut Window, cx: &mut Context<Self>) {
+        if self.loading {
+            self.cancel_read(cx);
+        } else if self.inline.is_some() {
+            self.cancel_inline(cx);
+        } else if self.drag.take().is_some() {
+            self.message = "手势已取消，未修改文稿".into();
             cx.notify();
         }
     }
@@ -1044,14 +1094,8 @@ pub fn open_system_document(path: PathBuf, dark: bool, dimensions: (f32, f32), c
                 w.activate_window();
                 cx.activate(true);
                 active.view.update(cx, |s, cx| {
-                    if s.source.as_deref() != Some(path.as_path())
-                        && !s.confirm_replace(
-                            document_ui::ReplaceDocument::Path(path.clone()),
-                            w,
-                            cx,
-                        )
-                    {
-                        s.load(path.clone(), cx);
+                    if s.loading || s.source.as_deref() != Some(path.as_path()) {
+                        s.open_path(path.clone(), w, cx);
                     }
                 })
             }),

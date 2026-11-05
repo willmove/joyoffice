@@ -1,6 +1,6 @@
 //! File transactions and recoverable snapshots. All methods are background work.
-use crate::document::MAX_INPUT as MAX_FILE;
 use crate::recovery_io as edit;
+use crate::{Cancellation, document::MAX_INPUT as MAX_FILE};
 type Result<T> = std::result::Result<T, String>;
 type Deck = Vec<u8>;
 use serde::{Deserialize, Serialize};
@@ -74,17 +74,43 @@ pub struct Fingerprint {
     pub sha256: String,
 }
 pub fn fingerprint(path: &Path) -> Result<Fingerprint> {
+    fingerprint_cancellable(path, &Cancellation::default())
+}
+pub(crate) fn fingerprint_cancellable(path: &Path, cancel: &Cancellation) -> Result<Fingerprint> {
+    cancel.check()?;
     let f = File::open(path).map_err(|e| e.to_string())?;
     let mut f = f.take(MAX_FILE + 1);
-    let mut bytes = Vec::new();
-    f.read_to_end(&mut bytes).map_err(|e| e.to_string())?;
-    if bytes.len() as u64 > MAX_FILE {
-        return Err("文件超过预算".into());
+    let mut buffer = [0; 64 * 1024];
+    let mut hash = Sha256::new();
+    let mut size = 0;
+    loop {
+        cancel.check()?;
+        let read = match f.read(&mut buffer) {
+            Ok(read) => read,
+            Err(error) if error.kind() == std::io::ErrorKind::Interrupted => continue,
+            Err(error) => return Err(error.to_string()),
+        };
+        if read == 0 {
+            break;
+        }
+        size += read as u64;
+        if size > MAX_FILE {
+            return Err("文件超过预算".into());
+        }
+        hash.update(&buffer[..read]);
     }
     Ok(Fingerprint {
-        size: bytes.len() as u64,
-        sha256: format!("{:x}", Sha256::digest(&bytes)),
+        size,
+        sha256: format!("{:x}", hash.finalize()),
     })
+}
+impl Fingerprint {
+    pub(crate) fn of_bytes(bytes: &[u8]) -> Self {
+        Self {
+            size: bytes.len() as u64,
+            sha256: format!("{:x}", Sha256::digest(bytes)),
+        }
+    }
 }
 pub fn save(path: &Path, deck: &Deck, expected: Option<Fingerprint>) -> Result<Fingerprint> {
     if deck.len() as u64 > MAX_FILE {

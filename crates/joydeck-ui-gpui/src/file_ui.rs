@@ -47,13 +47,7 @@ impl Viewer {
                             .tooltip(tip)
                             .h(px(26.))
                             .on_click(cx.listener(move |s, _, w, cx| {
-                                if !s.confirm_replace(
-                                    document_ui::ReplaceDocument::Path(path.clone()),
-                                    w,
-                                    cx,
-                                ) {
-                                    s.load(path.clone(), cx);
-                                }
+                                s.open_path(path.clone(), w, cx);
                             })),
                     );
                 }
@@ -109,6 +103,7 @@ impl Viewer {
         let result = template_editor(name, joydeck_shell::editor::recovery_root());
         match result {
             Ok(editor) => {
+                self.stop_read();
                 self.editor = Some(editor);
                 self.source = None;
                 self.page = 0;

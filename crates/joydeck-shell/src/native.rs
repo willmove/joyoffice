@@ -23,6 +23,13 @@ pub struct Loaded {
     pub manifest: Manifest,
 }
 pub fn parts(bytes: &[u8]) -> Result<BTreeMap<String, Vec<u8>>, String> {
+    parts_cancellable(bytes, &Cancellation::default())
+}
+pub(crate) fn parts_cancellable(
+    bytes: &[u8],
+    cancel: &Cancellation,
+) -> Result<BTreeMap<String, Vec<u8>>, String> {
+    cancel.check()?;
     if bytes.len() as u64 > MAX_INPUT {
         return Err("native input exceeds 64 MiB".into());
     }
@@ -36,6 +43,7 @@ pub fn parts(bytes: &[u8]) -> Result<BTreeMap<String, Vec<u8>>, String> {
         .map_err(|e| format!("invalid native package: {e:?}"))?;
     let mut entries = BTreeMap::new();
     for (i, e) in z.entries().iter().enumerate() {
+        cancel.check()?;
         if e.name.contains(['\\', ':'])
             || e.name
                 .split('/')
@@ -77,7 +85,7 @@ pub fn sniff(bytes: &[u8]) -> bool {
         })
 }
 pub fn load(bytes: &[u8], cancel: &Cancellation) -> Result<Loaded, String> {
-    let mut entries = parts(bytes)?;
+    let mut entries = parts_cancellable(bytes, cancel)?;
     if entries.remove("mimetype").as_deref() != Some(b"application/vnd.joyoffice.joydeck+zip") {
         return Err("not a JoyDeck package".into());
     }
@@ -112,6 +120,7 @@ pub fn load(bytes: &[u8], cancel: &Cancellation) -> Result<Loaded, String> {
         return Err("source format/binding mismatch".into());
     }
     for (slide_id, origin) in &manifest.origins {
+        cancel.check()?;
         let slide = doc
             .presentation
             .slide(*slide_id)
