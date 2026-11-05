@@ -664,13 +664,14 @@
       "source_path": "crates/fonts/src/tests.rs",
       "source_sha256": "c1254bc95688d66447fed92140e3ed27d19691ca52d1a72112f3594fafe646bd",
       "target_path": "crates/joydeck-fonts/src/tests.rs",
-      "adapted_sha256": "b89c61d07a1bb9aadb33bc44393feeeac75e951914925f095e829381d58a8e08",
+      "adapted_sha256": "3094c73188ab4729e06c5a4acc381b0d87ffbad1b2250406f919e30af57ba30b",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
-        "Exact font bytes, face and variation identity with live system font refresh"
+        "Exact font bytes, face and variation identity with live system font refresh",
+        "Windows catalog refresh test: brief sleep before same-length file replace"
       ]
     },
     {
