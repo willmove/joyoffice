@@ -91,14 +91,14 @@ Word CI 还暴露出原基线也存在的两份独立实验锁漂移，已仅补
 | 基础画布手势 | macOS 1× 及 2× HiDPI 实际窗口已复验旋转命中、框选、多选、窗口外捕获、Esc／失焦取消及单次事务。2× backing 由 macOS 虚拟显示器提供。JD-202／203 已完成。[证据](../joydeck/evidence/R2-POINTER/README.md) |
 | 常用编辑命令 | JD-208 已从 macOS Release 验证菜单、Ribbon、快捷键和状态栏。预检与执行共用引擎，包内 CLI 逐步验证对象、层级、页序和历史。[证据](../joydeck/evidence/R2-COMMAND-STATE/README.md) |
 | R2 编辑器开发包 | JD-209 已在整合保存发布和编辑改动的 macOS ARM64 Release 包上验证。真实窗口和独立 CLI 均复验保存重开与强制终止恢复，原件散列保持。[证据](../joydeck/evidence/R2-EDITOR-PACKAGE/README.md) |
-| 共用文字排版 | JD-300 已用 macOS Release 复验混排、字段、链接和组合缩放。编辑、静态画布与 PDF 使用同一排版数据。JD-301 已复验文件字体变化、face 冲突与实际替代。[字体环境](../joydeck/evidence/R3-FONT-ENVIRONMENT/README.md) · JD-302 已实测旋转／竖排原位输入、滚动和 PPTX 另存。[原位编辑](../joydeck/evidence/R3-TRANSFORMED-TEXT/README.md)。[证据](../joydeck/evidence/R3-SHARED-LAYOUT/README.md) |
+| 共用文字排版 | JD-300 已用 macOS Release 复验混排、字段、链接和组合缩放。编辑、静态画布与 PDF 使用同一排版数据。JD-301 已复验文件字体变化、face 冲突与实际替代。[字体环境](../joydeck/evidence/R3-FONT-ENVIRONMENT/README.md) · JD-302 已实测旋转／竖排原位输入、滚动和 PPTX 另存。[原位编辑](../joydeck/evidence/R3-TRANSFORMED-TEXT/README.md) · JD-303 已实测 Unicode 范围与 macOS 拼音候选。[原生输入](../joydeck/evidence/R3-NATIVE-UNICODE/README.md)。[证据](../joydeck/evidence/R3-SHARED-LAYOUT/README.md) |
 | 旧偏好、最近文件、比较接受/图片依赖、完整设计与审阅 | 新增有界最近文件、原创模板、基础比较接受、旧批注／回复／解决／媒体／链接／放映配置迁移及审阅 GUI；完整设计／母版／偏好与复杂内容仍缺，不能沿用旧 done |
 
 使用机器接口时先查询能力，不只看 envelope 字符串。新旧未覆盖功能属于实际产品差距，不是仅等待硬件验收。完整“旧功能无回退”验收（JD-906）仍开放，不能因导入和构建成功而关闭。
 
 ## 后续任务及建议顺序
 
-1. **最高优先：继续 UI 与日常编辑对齐。** 用户的 DeckCraft/PowerPoint 完整一致目标仍未实现。按 JD-303–308、JD-501–508、JD-804，继续原生字体/颜色选择器、完整 Ribbon/图库/表格控件、旋转与多选、最近文件/模板、多窗口、母版/审阅等。主参照仍为本机 DeckCraft，PowerPoint 辅助核对中文流程。每个切片都构建并实际操作窗口。
+1. **最高优先：继续 UI 与日常编辑对齐。** 用户的 DeckCraft/PowerPoint 完整一致目标仍未实现。按 JD-304–308、JD-501–508、JD-804，继续原生字体/颜色选择器、完整 Ribbon/图库/表格控件、旋转与多选、最近文件/模板、多窗口、母版/审阅等。主参照仍为本机 DeckCraft，PowerPoint 辅助核对中文流程。每个切片都构建并实际操作窗口。
 2. **旧功能与自动化缺项：** JD-506、JD-706、JD-906，恢复比较/逐对象接受、原有设计/审阅行为与旧命令契约；先补有语义的回归和能力协商，再接 UI/MCP，不能建立第二个长期可编辑模型。
 3. **渲染与性能：** JD-408、JD-806，固定真实 release 文稿/字体/屏幕条件，记录实际呈现、缓存、RSS/显存与 p95/p99；不能用命令耗时代替显示延迟。
 4. **平台资格：** JD-800–804。macOS ARM64 普通 Metal Release、移位启动、首屏和 PPTX 键鼠编辑往返已验证。PPTX 系统冷启动和运行中打开、文件／编辑菜单、原生打开与另存为面板的取消及确认均有实机证据。另存扩展名修复已从移位 Release App 实测。继续 Linux/ARM、原生 IME、读屏、DPI、设备与多屏。信创真机按条件补验。[最新复验](../joydeck/evidence/R9-FILE-COMPAT/README.md#实屏复验)

@@ -45,6 +45,19 @@ pub fn snap(text: &str, at: usize) -> usize {
         .unwrap_or(0)
 }
 
+/// First grapheme boundary at or after this byte offset.
+pub fn ceil_grapheme(text: &str, at: usize) -> usize {
+    if snap(text, at) == at {
+        at
+    } else {
+        next(text, at)
+    }
+}
+
+fn normalize_newlines(value: &str) -> String {
+    value.replace("\r\n", "\n").replace('\r', "\n")
+}
+
 pub fn validate(body: &TextBody) -> Result<(), String> {
     if body.text().len() > 65536
         || body.paragraphs.len() > 4096
@@ -162,6 +175,50 @@ impl Draft {
         };
         self.reversed = extend && at < anchor;
     }
+
+    /// Change the native selection without bisecting a committed grapheme.
+    pub fn select_utf16(&mut self, range: Range<usize>) -> Result<(), String> {
+        let value = self.body.text();
+        let range = utf16_range(&value, range).ok_or("invalid UTF-16 selection range")?;
+        let selection = self.editable_range(&value, range);
+        if self.selection != selection {
+            self.typing_props = None;
+        }
+        self.selection = selection;
+        self.reversed = false;
+        Ok(())
+    }
+
+    /// Translate an AppKit setMarkedText range to document UTF-16 coordinates.
+    pub fn marked_relative_range(&self, range: Range<usize>) -> Option<Range<usize>> {
+        let start = self.marked.as_ref().map_or(0, |marked| {
+            let value = self.body.text();
+            to_utf16(&value, marked.start..marked.start).start
+        });
+        Some(start.checked_add(range.start)?..start.checked_add(range.end)?)
+    }
+
+    fn editable_range(&self, value: &str, range: Range<usize>) -> Range<usize> {
+        let in_mark = |at| {
+            self.marked
+                .as_ref()
+                .is_some_and(|r| r.start <= at && at <= r.end)
+        };
+        let start = if in_mark(range.start) {
+            range.start
+        } else {
+            snap(value, range.start)
+        };
+        let end = if range.is_empty() {
+            start
+        } else if in_mark(range.end) {
+            range.end
+        } else {
+            ceil_grapheme(value, range.end)
+        };
+        start..end
+    }
+
     pub fn replace(
         &mut self,
         range: Option<Range<usize>>,
@@ -171,19 +228,28 @@ impl Draft {
     ) -> Result<(), String> {
         let text = self.body.text();
         let range = match range {
-            Some(r) => utf16_range(&text, r).ok_or("invalid UTF-16 replacement range")?,
+            Some(r) => self.editable_range(
+                &text,
+                utf16_range(&text, r).ok_or("invalid UTF-16 replacement range")?,
+            ),
             None => self.marked.clone().unwrap_or(self.selection.clone()),
         };
         if composing && value.is_empty() && self.before.is_some() {
             self.cancel();
             return Ok(());
         }
-        let value = value.replace("\r\n", "\n").replace('\r', "\n");
         let selected = selection
-            .map(|r| utf16_range(&value, r).ok_or("invalid preedit selection"))
-            .transpose()?;
+            .map(|r| utf16_range(value, r).ok_or("invalid preedit selection"))
+            .transpose()?
+            .map(|r| {
+                normalize_newlines(&value[..r.start]).len()
+                    ..normalize_newlines(&value[..r.end]).len()
+            });
+        let value = normalize_newlines(value);
         let mut body = self.body.clone();
-        replace(&mut body, range.clone(), &value)?;
+        if text.get(range.clone()) != Some(value.as_str()) {
+            replace(&mut body, range.clone(), &value)?;
+        }
         if let Some(props) = &self.typing_props
             && !value.is_empty()
         {
@@ -205,7 +271,7 @@ impl Draft {
         self.reversed = false;
         self.marked = composing.then_some(range.start..end);
         if !composing {
-            self.before = None;
+            self.settle();
         }
         Ok(())
     }
@@ -220,5 +286,7 @@ impl Draft {
     pub fn settle(&mut self) {
         self.before = None;
         self.marked = None;
+        let value = self.body.text();
+        self.selection = self.editable_range(&value, self.selection.clone());
     }
 }
