@@ -14,6 +14,7 @@ pub(super) struct Advanced {
     pub(super) key: Option<(u64, u64, u64, &'static str)>,
     task: Option<gpui::Task<()>>,
     epoch: u64,
+    pub(super) checked_export: super::export::CheckedExport,
 }
 
 fn text(v: &Value, k: &str) -> String {

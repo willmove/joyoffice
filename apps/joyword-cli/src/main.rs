@@ -1,3 +1,4 @@
+mod epub;
 mod exchange;
 mod inspect;
 mod merge;
@@ -59,9 +60,12 @@ fn run(args: &[OsString]) -> Result<(), String> {
                 .map_err(|e| e.to_string())?;
         }
         "--version" | "-V" => println!("JoyWord {}", env!("CARGO_PKG_VERSION")),
-        "--help" | "-h" => println!(
-            "JoyWord\ncommands | capabilities | inspect|text [--max-text-bytes N] [--compatibility] [--] INPUT.docx\ninspect|text --session [--] INPUT\nrecover JOURNAL [--save NEW.docx]\nconvert INPUT OUTPUT.pdf|.png|.txt|.md|.html|.rtf|.odt|.tex|.xml|.docx\nrender INPUT.docx OUTPUT.png [--page 1] [--scale 1.333]\nrender INPUT.docx --font PATH:FACE --output DIR [--dpi N] [--page N]\nconvert INPUT.docx --to pdf|pdfa-2b --font PATH:FACE --output FILE.pdf [--archive-year YYYY]\nmerge --template DOCX --data CSV [--map FIELD=COLUMN] (--preview-row N | --output-parent DIR)\nexchange INPUT --from FORMAT --to FORMAT (--plan | --output FILE [--accept-losses])\nsample OUTPUT.docx\nmcp --automation-read-root DIR [--automation-write-root DIR]\nrun INPUT.docx --cmd COMMAND=JSON [--save NEW.docx]\nOutputs must be new paths; desktop editing and safe DOCX save are available."
-        ),
+        "--help" | "-h" => {
+            println!(
+                "JoyWord\ncommands | capabilities | inspect|text [--max-text-bytes N] [--compatibility] [--] INPUT.docx\ninspect|text --session [--] INPUT\nrecover JOURNAL [--save NEW.docx]\nconvert INPUT OUTPUT.pdf|.png|.txt|.md|.html|.rtf|.odt|.tex|.xml|.docx\nrender INPUT.docx OUTPUT.png [--page 1] [--scale 1.333]\nrender INPUT.docx --font PATH:FACE --output DIR [--dpi N] [--page N]\nconvert INPUT.docx --to pdf|pdfa-2b --font PATH:FACE --output FILE.pdf [--archive-year YYYY]\nmerge --template DOCX --data CSV [--map FIELD=COLUMN] (--preview-row N | --output-parent DIR)\nexchange INPUT --from FORMAT --to FORMAT (--plan | --output FILE [--accept-losses])\nsample OUTPUT.docx\nmcp --automation-read-root DIR [--automation-write-root DIR]\nrun INPUT.docx --cmd COMMAND=JSON [--save NEW.docx]\nOutputs must be new paths; desktop editing and safe DOCX save are available."
+            );
+            println!("{}", epub::USAGE);
+        }
         "capabilities" => println!(
             "{}",
             serde_json::json!({"product":"joyword","stage":"R8","desktop":"gpui-kit","docxOpen":true,"readOnlyDesktop":false,"documentEditing":true,"ribbonFormatting":true,"stylePanel":true,"formatPainter":true,"tableEditing":true,"pictureEditing":true,"references":true,"comments":true,"trackChanges":true,"compare":true,"mailMerge":true,"formatExchange":true,"sessionMacros":true,"mcpStdio":true,"mcpDesktopBridge":false,"pdfExport":true,"headlessEngine":true,"save":"CLI new output only"})
@@ -219,8 +223,12 @@ fn main() -> ExitCode {
                 && args.get(1).is_none_or(|arg| arg != "--session");
             let legacy_visual =
                 matches!(command, Some("render" | "convert")) && visual::is_legacy(&args[1..]);
-            if legacy_inspection || legacy_visual || matches!(command, Some("exchange" | "merge")) {
+            if legacy_inspection
+                || legacy_visual
+                || matches!(command, Some("epub" | "exchange" | "merge"))
+            {
                 let result = joyword_shell::reader::guarded(|| match command {
+                    Some("epub") => epub::run(&args[1..]),
                     Some("exchange") => exchange::run(&args[1..]),
                     Some("merge") => merge::run(&args[1..]),
                     Some("render") => visual::run(visual::Command::Render, &args[1..]),

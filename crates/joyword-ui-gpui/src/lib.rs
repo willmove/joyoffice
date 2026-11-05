@@ -1,14 +1,17 @@
 mod advanced;
 mod command_search;
 mod document_view;
+mod export;
 mod formatting;
 mod forms;
 mod gestures;
 mod input;
 mod objects;
 mod page_index;
+mod page_setup;
 mod perf;
 mod save;
+mod search;
 mod styles;
 mod text_accessibility;
 use document_view::{DocumentCanvas, OpenSource};
@@ -28,6 +31,9 @@ actions!(
     joyword,
     [
         SearchCommands,
+        FindDocument,
+        ReplaceDocument,
+        GoToPage,
         Quit,
         NewDocument,
         OpenDocument,
@@ -338,29 +344,6 @@ impl JoyWord {
             .a11y_synthetic_children(|builder| builder.parent_node().set_disabled())
             .child(text)
     }
-    fn group(&self, title: &'static str, labels: &[&'static str]) -> gpui::Div {
-        let p = self.palette();
-        div()
-            .flex()
-            .flex_col()
-            .justify_between()
-            .h(px(78.0))
-            .px_3()
-            .border_r_1()
-            .border_color(rgb(p.separator))
-            .child(
-                div()
-                    .flex()
-                    .gap_1()
-                    .children(labels.iter().map(|label| self.unavailable(label))),
-            )
-            .child(
-                div()
-                    .text_size(px(11.0))
-                    .text_color(rgb(p.muted))
-                    .child(title),
-            )
-    }
     fn header(&self, cx: &mut Context<Self>) -> gpui::Div {
         let p = self.palette();
         let tr = |zh, en| self.shell.tr(zh, en);
@@ -573,10 +556,7 @@ impl JoyWord {
                         ),
                 )
                 .child(self.home_format_groups(cx))
-                .child(self.group(
-                    tr("编辑", "Editing"),
-                    &[tr("查找", "Find"), tr("替换", "Replace")],
-                )),
+                .child(self.search_ribbon(cx)),
             1 => groups.child(
                 div()
                     .flex()
@@ -594,15 +574,7 @@ impl JoyWord {
                     .child(self.unavailable(tr("页码", "Page number")))
                     .child(self.unavailable(tr("符号", "Symbol"))),
             ),
-            2 => groups.child(self.group(
-                tr("页面设置", "Page setup"),
-                &[
-                    tr("页边距", "Margins"),
-                    tr("方向", "Orientation"),
-                    tr("纸张", "Size"),
-                    tr("分栏", "Columns"),
-                ],
-            )),
+            2 => groups.child(self.page_setup_ribbon(cx)),
             3 => groups.child(self.references_ribbon(cx)),
             4 => groups.child(self.review_ribbon(cx)),
             8 => groups.child(self.mailings_ribbon(cx)),
@@ -676,6 +648,24 @@ impl JoyWord {
                                 .on_click(cx.listener(|v, _, w, cx| {
                                     v.file_page = false;
                                     v.advanced_action("exchange-export", w, cx);
+                                })),
+                        )
+                        .child(
+                            Button::new("export-epub")
+                                .ghost()
+                                .label(tr("导出 EPUB…", "Export EPUB…"))
+                                .disabled(self.canvas.reader.is_none() || self.canvas.loading)
+                                .on_click(cx.listener(|v, _, w, cx| {
+                                    v.start_checked_export(export::Format::Epub, w, cx);
+                                })),
+                        )
+                        .child(
+                            Button::new("export-pdfa")
+                                .ghost()
+                                .label(tr("导出 PDF/A-2b…", "Export PDF/A-2b…"))
+                                .disabled(self.canvas.reader.is_none() || self.canvas.loading)
+                                .on_click(cx.listener(|v, _, w, cx| {
+                                    v.start_checked_export(export::Format::Archive, w, cx);
                                 })),
                         )
                         .child(self.button(
@@ -793,6 +783,9 @@ impl Render for JoyWord {
                 }
             }))
             .on_action(cx.listener(|v, _: &SearchCommands, w, cx| v.open_command_search(w, cx)))
+            .on_action(cx.listener(|v, _: &FindDocument, w, cx| v.open_find(false, w, cx)))
+            .on_action(cx.listener(|v, _: &ReplaceDocument, w, cx| v.open_find(true, w, cx)))
+            .on_action(cx.listener(|v, _: &GoToPage, w, cx| v.open_go_to(w, cx)))
             .on_action(cx.listener(|v, _: &DocumentTab, w, cx| v.document_tab(false, w, cx)))
             .on_action(cx.listener(|v, _: &DocumentBackTab, w, cx| v.document_tab(true, w, cx)))
             .on_action(
@@ -1010,6 +1003,10 @@ fn bind_document_keys(cx: &mut App) {
     cx.bind_keys([
         KeyBinding::new("tab", DocumentTab, Some("JoyWordEditor")),
         KeyBinding::new("shift-tab", DocumentBackTab, Some("JoyWordEditor")),
+        KeyBinding::new("ctrl-f", FindDocument, Some("JoyWordEditor")),
+        KeyBinding::new("cmd-f", FindDocument, Some("JoyWordEditor")),
+        KeyBinding::new("ctrl-h", ReplaceDocument, Some("JoyWordEditor")),
+        KeyBinding::new("f5", GoToPage, Some("JoyWordEditor")),
     ]);
 }
 

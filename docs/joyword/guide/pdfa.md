@@ -4,4 +4,6 @@ CLI 支持 `convert FILE.docx --to pdfa-2b --archive-year YEAR --font PATH:FACE 
 
 归档沿用屏幕页面场景，启用 ICC、XMP 和 PDF/A-2b 验证。缺字体、不可嵌入、场景无效、遗漏块、验证失败或目标已存在都会拒绝；原 DOCX 不被改写。普通 `--to pdf` 保持原来的无日期默认行为。
 
-导出 JSON 标明目标与 independent_conformance_verified=false。需要独立工具验证实际输出，例如 veraPDF `--flavour 2b --format json NEW.pdf`；本轮样例的独立验证和真实显示见 [报告](../verification/m8-archive-20261030.md)。该配置不表示 PDF/UA 或完整结构阅读顺序合规。桌面文件菜单现提供“导出 PDF/A-2b…”：先确认 UTC 当前归档年份、字体许可与独立验证边界，再选择新的 .pdf 路径。取消不写文件；确认期间文档或版本变化则放弃本次导出。使用当前已稳定的页面场景，遗漏对象、缺字、嵌入限制或验证失败会拒绝输出。桌面入口已有无头回归，本轮因 GUI native pipe 不可用尚未完成真实窗口验收。
+导出 JSON 的 `independent_conformance_verified` 为 `false`。可用独立工具验证实际输出，例如 veraPDF `--flavour 2b --format json NEW.pdf`。本轮样例覆盖 PDF/A-2b 归档规则，PDF/UA 与完整结构阅读顺序另行验收。[R8 验证记录](../r8/VALIDATION.md#windows-格式与编辑复验2026-11-05)
+
+桌面「文件」页提供「导出 PDF/A-2b…」。先确认当前 UTC 归档年份和字体嵌入许可，再选择新的 `.pdf` 路径。桌面用当前会话文档快照排版，包括尚未保存的已提交编辑。取消不会写文件，确认或选路径时遇到文档变化需要重新导出。缺字、字体限制、图片解码或归档验证失败时拒绝输出。桌面归档路径已有独立产物校验，实屏验收仍待补。

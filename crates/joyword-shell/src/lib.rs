@@ -2,6 +2,7 @@
 pub mod advanced;
 pub mod authoring;
 pub mod editing;
+pub mod epub;
 pub mod formatting;
 pub mod l10n;
 mod legacy_recovery;

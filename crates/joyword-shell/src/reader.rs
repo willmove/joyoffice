@@ -395,6 +395,19 @@ impl RasterScene {
 
 /// New output only. The host tempfile pipeline synchronizes before no-clobber publication.
 pub fn publish_new(path: &Path, bytes: &[u8]) -> Result<(), String> {
+    publish(path, bytes, None)
+}
+
+pub(crate) fn publish_verified(
+    path: &Path,
+    bytes: &[u8],
+    cancel: &AtomicBool,
+) -> Result<(), String> {
+    check_cancel(cancel)?;
+    publish(path, bytes, Some(cancel))
+}
+
+fn publish(path: &Path, bytes: &[u8], verify: Option<&AtomicBool>) -> Result<(), String> {
     let parent = path
         .parent()
         .filter(|p| !p.as_os_str().is_empty())
@@ -402,6 +415,10 @@ pub fn publish_new(path: &Path, bytes: &[u8]) -> Result<(), String> {
     let mut temporary = tempfile::NamedTempFile::new_in(parent).map_err(|e| e.to_string())?;
     temporary.write_all(bytes).map_err(|e| e.to_string())?;
     temporary.as_file().sync_all().map_err(|e| e.to_string())?;
+    if let Some(cancel) = verify {
+        crate::storage::verify_bytes(temporary.as_file_mut(), bytes).map_err(|e| e.to_string())?;
+        check_cancel(cancel)?;
+    }
     temporary
         .persist_noclobber(path)
         .map_err(|e| e.to_string())?;

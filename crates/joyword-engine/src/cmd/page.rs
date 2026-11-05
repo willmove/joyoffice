@@ -41,6 +41,12 @@ pub fn specs() -> Vec<CommandSpec> {
             .params(r#"{"from"?: Pos (default: the caret)} → the next word at a line end that could be hyphenated: {"word", "pos", "points": [char index], "suggest": char index} or {"done": true}"#)
             .pure(),
         CommandSpec::new("layout.pageSetup", "Page Setup", "Layout › Page Setup", |s, v| {
+            if let Some(geometry) = v.get("geometry") {
+                if v.get("section").is_some() {
+                    return Err(CmdError::Params("use geometry or section".into()));
+                }
+                return page_geometry(s, geometry);
+            }
             if let Some(props) = v.get("section") {
                 let mut new: SectionProps = serde_json::from_value(props.clone()).map_err(|e| CmdError::Params(e.to_string()))?;
                 validate_section(&mut new)?;
@@ -49,7 +55,7 @@ pub fn specs() -> Vec<CommandSpec> {
             s.push_ui_request(json!({"open": "pageSetup"}));
             Ok(serde_json::to_value(sect(s)).unwrap_or(Value::Null))
         })
-        .params(r#"{"section"?: SectionProps} (replaces the whole section, headers and footers included; checked like Size, Margins, Columns, Line Numbers, Footnotes and Page Borders: non-finite numbers and margins that leave no room for text are refused; page sides 7.2–1584 pt, 1–12 columns with 0–300 pt gaps, header/footer/gutter 0–1584 pt, page border width 0.25–6 pt and distance 0–31 pt, note start 1–32767, line numbers start 1–32767, countBy 1–100, distance 0–1584 pt are clamped)"#),
+        .params(r#"{"section"?: SectionProps, "geometry"?: {"width"?: pt, "height"?: pt, "top"?: pt, "bottom"?: pt, "left"?: pt, "right"?: pt, "landscape"?: bool, "columns"?: 1–12}} (section replaces the whole section, headers and footers included; geometry changes only supplied page settings in the section(s) of the selection)"#),
         CommandSpec::new("layout.verticalAlign", "Vertical Alignment", "Layout › Page Setup › Layout", |s, v| {
             let va = joyword_model::section::PageVAlign::parse(p::str(v, "value").unwrap_or_default());
             with_sect(s, |x| x.valign = va)
@@ -321,22 +327,32 @@ pub fn sect(s: &Session) -> SectionProps {
         .unwrap_or_default()
 }
 
-/// The last block of each section of the selection.
-fn selected_section_ends(s: &Session) -> Vec<usize> {
+fn selected_sections(
+    s: &Session,
+    sections: &[(usize, &SectionProps)],
+) -> std::ops::RangeInclusive<usize> {
     let (a, b) = s.sel.ordered();
-    let ends: Vec<usize> = s.doc.sections().iter().map(|(e, _)| *e).collect();
     if a.story != joyword_model::StoryRef::Body || b.story != joyword_model::StoryRef::Body {
         let i = section_index_of_focus(s);
-        return vec![ends.get(i).copied().unwrap_or(0)];
+        return i..=i;
     }
     let (i0, i1) = (
         a.path.0.first().copied().unwrap_or(0) as usize,
         b.path.0.first().copied().unwrap_or(0) as usize,
     );
-    let first = ends.iter().position(|e| i0 <= *e).unwrap_or(0);
-    let last = ends.iter().position(|e| i1 <= *e).unwrap_or(first);
-    (first..=last)
-        .map(|k| ends.get(k).copied().unwrap_or(0))
+    let first = sections.iter().position(|(end, _)| i0 <= *end).unwrap_or(0);
+    let last = sections
+        .iter()
+        .position(|(end, _)| i1 <= *end)
+        .unwrap_or(first);
+    first..=last
+}
+
+/// The last block of each section of the selection.
+fn selected_section_ends(s: &Session) -> Vec<usize> {
+    let sections = s.doc.sections();
+    selected_sections(s, &sections)
+        .map(|k| sections.get(k).map_or(0, |(end, _)| *end))
         .collect()
 }
 
@@ -517,6 +533,102 @@ pub fn columns_preset_at(s: &Session) -> Option<&'static str> {
         (3, _) if equal => Some("three"),
         _ => None,
     }
+}
+
+#[derive(serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+struct PageGeometry {
+    width: Option<f32>,
+    height: Option<f32>,
+    top: Option<f32>,
+    bottom: Option<f32>,
+    left: Option<f32>,
+    right: Option<f32>,
+    landscape: Option<bool>,
+    columns: Option<u32>,
+}
+
+fn page_geometry(s: &mut Session, value: &Value) -> CmdResult {
+    let g: PageGeometry = serde_json::from_value(value.clone())
+        .map_err(|error| CmdError::Params(error.to_string()))?;
+    if [g.width, g.height]
+        .into_iter()
+        .flatten()
+        .any(|n| !(MIN_PAGE_SIDE..=MAX_PAGE_SIDE).contains(&n))
+        || [g.top, g.bottom, g.left, g.right]
+            .into_iter()
+            .flatten()
+            .any(|n| !(0.0..=MAX_PAGE_SIDE).contains(&n))
+        || g.columns.is_some_and(|n| !(1..=12).contains(&n))
+    {
+        return Err(CmdError::Params("page geometry is out of range".into()));
+    }
+    let sections = s.doc.sections();
+    let mut changes = Vec::new();
+    for index in selected_sections(s, &sections) {
+        let Some(&(end, old)) = sections.get(index) else {
+            continue;
+        };
+        let mut new = old.clone();
+        if let Some(landscape) = g.landscape {
+            new.set_landscape(landscape);
+        }
+        new.page_w = g.width.unwrap_or(new.page_w);
+        new.page_h = g.height.unwrap_or(new.page_h);
+        if (g.width.is_some() || g.height.is_some()) && new.page_w != new.page_h {
+            let landscape = new.page_w > new.page_h;
+            if g.landscape.is_some_and(|wanted| wanted != landscape) {
+                return Err(CmdError::Params(
+                    "page dimensions disagree with orientation".into(),
+                ));
+            }
+            new.landscape = landscape;
+        }
+        new.margin_top = g.top.unwrap_or(new.margin_top);
+        new.margin_bottom = g.bottom.unwrap_or(new.margin_bottom);
+        new.margin_left = g.left.unwrap_or(new.margin_left);
+        new.margin_right = g.right.unwrap_or(new.margin_right);
+        if let Some(count) = g.columns.filter(|count| *count != new.columns.count) {
+            new.columns.count = count;
+            new.columns.widths.clear();
+        }
+        if &new == old {
+            continue;
+        }
+        let cols = &new.columns;
+        if !margins_fit(
+            (new.page_w, new.page_h),
+            (
+                new.margin_top,
+                new.margin_bottom,
+                new.margin_left,
+                new.margin_right,
+            ),
+            new.gutter,
+        ) || (cols.widths.is_empty()
+            && cols.space * cols.count.saturating_sub(1) as f32 + 18.0 * cols.count as f32
+                > new.text_width())
+        {
+            return Err(CmdError::Params(
+                "margins or columns leave no room for text".into(),
+            ));
+        }
+        changes.push(((index + 1 < sections.len()).then_some(end), new));
+    }
+    for (end, new) in changes {
+        if let Some(block) = end {
+            if let Ok(p) = s
+                .doc
+                .para_mut(StoryRef::Body, &joyword_model::Path::top(block))
+                && let Some(section) = p.section.as_deref_mut()
+            {
+                *section = new;
+            }
+        } else {
+            s.doc.last_section = new;
+        }
+    }
+    Ok(serde_json::to_value(sect(s)).unwrap_or(Value::Null))
 }
 
 /// Checks a whole section handed to `layout.pageSetup` by the rules of Size, Margins, Columns,

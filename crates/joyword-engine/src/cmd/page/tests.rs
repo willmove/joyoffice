@@ -10,6 +10,36 @@ fn with_section(f: impl Fn(&mut Value)) -> Value {
     json!({"section": v})
 }
 
+#[test]
+fn geometry_patch_checks_all_selected_sections_before_editing() {
+    let mut s = doc();
+    let first = SectionProps {
+        header: 27.0,
+        ..SectionProps::default()
+    };
+    s.doc
+        .para_mut(StoryRef::Body, &joyword_model::Path::top(0))
+        .unwrap()
+        .section = Some(Box::new(first));
+    s.doc.last_section.margin_right = 170.0;
+    s.doc.last_section.header = 39.0;
+    s.run("select.all", &json!({})).unwrap();
+    let original = s.doc.clone();
+    let geometry = |left| json!({"geometry":{"width": 250.0, "left": left}});
+    assert!(s.run("layout.pageSetup", &geometry(60.0)).is_err());
+    assert_eq!(s.doc, original);
+    s.run("layout.pageSetup", &geometry(30.0)).unwrap();
+    let sections = s.doc.sections();
+    assert_eq!((sections[0].1.page_w, sections[1].1.page_w), (250.0, 250.0));
+    assert_eq!((sections[0].1.header, sections[1].1.header), (27.0, 39.0));
+    assert_eq!(
+        (sections[0].1.margin_left, sections[1].1.margin_left),
+        (30.0, 30.0)
+    );
+    s.run("edit.undo", &json!({})).unwrap();
+    assert_eq!(s.doc, original);
+}
+
 /// `layout.pageSetup {section}` checks the values like the dedicated commands do.
 #[test]
 fn page_setup_section_is_validated() {

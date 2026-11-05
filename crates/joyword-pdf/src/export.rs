@@ -11,6 +11,28 @@ use super::{
 /// deletions are left out, as in Word's "No Markup" view. With `comments` each page carries the
 /// markup area with the comment balloons.
 pub fn export(doc: &Document, opts: &PdfOptions) -> Result<Vec<u8>, PdfError> {
+    export_document(doc, opts, None)
+}
+
+/// Archive the final document using the standard page layout and strict font embedding.
+pub fn export_archival(doc: &Document, year: u16) -> Result<Vec<u8>, PdfError> {
+    if !(1..=9999).contains(&year) {
+        return Err(PdfError::Write("invalid archive year".into()));
+    }
+    export_document(
+        doc,
+        &PdfOptions::default(),
+        Some(Fixed {
+            archive_year: Some(year),
+        }),
+    )
+}
+
+fn export_document(
+    doc: &Document,
+    opts: &PdfOptions,
+    fixed: Option<Fixed>,
+) -> Result<Vec<u8>, PdfError> {
     write::guard(|| {
         let lo = LayoutOptions {
             hide_deleted: !opts.include_markup,
@@ -19,7 +41,7 @@ pub fn export(doc: &Document, opts: &PdfOptions) -> Result<Vec<u8>, PdfError> {
             ..Default::default()
         };
         let lay = layout(doc, &mut LayoutCache::new(), &lo);
-        export_layout_inner(doc, &lay, opts, None)
+        export_layout_inner(doc, &lay, opts, fixed)
     })
 }
 
@@ -173,6 +195,14 @@ fn write_attempt(
         let Some(page) = lay.pages.get(pi) else {
             return Err(PdfError::BadPage(pi.saturating_add(1)));
         };
+        if fixed.is_some()
+            && (!page.w.is_finite() || !page.h.is_finite() || page.w <= 0.0 || page.h <= 0.0)
+        {
+            return Err(PdfError::Write(format!(
+                "page {} has invalid geometry",
+                pi + 1
+            )));
+        }
         let fit = Fit::of(page, opts.paper);
         let size = Size::from_wh(clamp_side(fit.paper_w), clamp_side(fit.paper_h))
             .ok_or(PdfError::NoPages)?;

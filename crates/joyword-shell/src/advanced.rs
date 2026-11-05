@@ -44,6 +44,14 @@ pub fn extension(path: &Path) -> String {
         .to_ascii_lowercase()
 }
 impl Reader {
+    /// Snapshot the current document for a copy export, including unsaved edits.
+    pub fn export_snapshot(&self) -> Result<Document, String> {
+        if self.is_composing() {
+            return Err("请先完成或取消输入法组合".into());
+        }
+        Ok(self.session.doc.clone())
+    }
+
     pub fn advanced_query(&mut self, id: &str) -> Result<Value, String> {
         if !matches!(
             id,
@@ -138,6 +146,62 @@ impl Reader {
                 .collect::<Result<_, String>>()?;
             validate_macro(&steps)?;
         }
+        Ok(())
+    }
+}
+
+pub struct ArchivalPdf(Vec<u8>);
+
+impl ArchivalPdf {
+    pub fn prepare(doc: &Document, year: u16) -> Result<Self, String> {
+        let bytes = joyword_pdf::export_archival(doc, year).map_err(|error| error.to_string())?;
+        if bytes.len() > 256 << 20 {
+            return Err("PDF/A output exceeds 256 MiB".into());
+        }
+        Ok(Self(bytes))
+    }
+
+    pub fn publish(&self, path: &Path, cancel: &AtomicBool) -> Result<(), String> {
+        if extension(path) != "pdf" {
+            return Err("PDF/A destination must end in .pdf".into());
+        }
+        crate::reader::publish_verified(path, &self.0, cancel)
+    }
+}
+
+#[cfg(test)]
+mod archival_tests {
+    use super::*;
+    use std::sync::atomic::Ordering;
+
+    #[test]
+    fn archive_uses_unsaved_text_and_publishes_only_to_new_paths() -> Result<(), String> {
+        let cancel = AtomicBool::new(false);
+        let mut reader = Reader::blank(&cancel)?;
+        reader.execute("text.insert", &json!({"text": "Unsaved archival snapshot"}))?;
+        let revision = reader.engine().rev();
+        let doc = reader.export_snapshot()?;
+        assert!(
+            doc.plain_text(StoryRef::Body)
+                .contains("Unsaved archival snapshot")
+        );
+        let archive = ArchivalPdf::prepare(&doc, 2026)?;
+        assert_eq!(reader.engine().rev(), revision);
+        assert!(archive.0.starts_with(b"%PDF-1.7"));
+        let directory = tempfile::tempdir().map_err(|e| e.to_string())?;
+        let path = directory.path().join("archive.pdf");
+        cancel.store(true, Ordering::Release);
+        assert!(archive.publish(&path, &cancel).is_err());
+        assert!(!path.exists());
+        cancel.store(false, Ordering::Release);
+        assert!(
+            archive
+                .publish(&path.with_extension("txt"), &cancel)
+                .is_err()
+        );
+        archive.publish(&path, &cancel)?;
+        assert!(archive.publish(&path, &cancel).is_err());
+        assert_eq!(std::fs::read(&path).map_err(|e| e.to_string())?, archive.0);
         Ok(())
     }
 }

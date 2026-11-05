@@ -20,6 +20,7 @@ pub struct Projection {
     pub diagnostics: usize,
     pub read_only: bool,
     pub unsigned_docx: bool,
+    pub unsupported_body: bool,
     pub style_approximation_required: bool,
 }
 
@@ -122,8 +123,13 @@ impl Body {
                     {
                         self.omit(true, false);
                     } else {
-                        for cell in child.children("w:tr").flat_map(|row| row.children("w:tc")) {
-                            self.blocks(cell);
+                        for row in child.children("w:tr") {
+                            if row.els().any(|e| !word_member("trPr tblPrEx tc", &e.name)) {
+                                self.report.unsupported_body = true;
+                            }
+                            for cell in row.children("w:tc") {
+                                self.blocks(cell);
+                            }
                         }
                     }
                 }
@@ -349,6 +355,7 @@ pub fn project(bytes: &[u8], limit: usize) -> Result<Projection, &'static str> {
                             )
                         })
                 }),
+            unsupported_body: false,
             style_approximation_required: false,
         },
         limit,
@@ -359,6 +366,7 @@ pub fn project(bytes: &[u8], limit: usize) -> Result<Projection, &'static str> {
         projection.report.diagnostics += 1;
     }
     projection.blocks(body);
+    projection.report.unsupported_body |= projection.report.preserved_fragments != 0;
     projection.finish_part();
     projection.report.paragraphs = projection.report.paragraphs.max(1);
     for rel in package.relationships(Some(name)) {

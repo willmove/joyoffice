@@ -105,6 +105,15 @@ impl Exporter<'_> {
         if glyphs.is_empty() {
             return;
         }
+        if self.strict_fonts && glyphs.iter().any(|(gid, _, _)| *gid == 0) {
+            self.font_error.get_or_insert_with(|| {
+                super::PdfError::Write(format!(
+                    "font {} {} is missing a glyph",
+                    face.family, face.style
+                ))
+            });
+            return;
+        }
         if !glyphs.iter().all(|(_, x, y)| ok(*x) && ok(*y)) {
             return;
         }
@@ -238,6 +247,15 @@ impl Exporter<'_> {
     ) {
         let face = joyword_fonts::word::resolve(&t.font, t.bold, t.italic).face;
         let shaped = joyword_fonts::shape(&face, &t.text, &[], |c| c);
+        if self.strict_fonts && shaped.iter().any(|glyph| glyph.gid == 0) {
+            self.font_error.get_or_insert_with(|| {
+                super::PdfError::Write(format!(
+                    "font {} {} is missing a glyph",
+                    face.family, face.style
+                ))
+            });
+            return;
+        }
         let glyphs: Vec<_> = shaped
             .iter()
             .map(|g| {

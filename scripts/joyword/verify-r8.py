@@ -8,7 +8,7 @@ import random
 import subprocess
 import tempfile
 import xml.etree.ElementTree as ET
-from zipfile import ZIP_DEFLATED, ZipFile
+from zipfile import ZIP_DEFLATED, ZIP_STORED, ZipFile
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -157,6 +157,8 @@ def main():
     def verify_all(work):
         verify(args.binary, args.sample, work, args.independent_pdf)
         verify_legacy_commands(args.binary, work, args.independent_pdf)
+        verify_epub(args.binary, work)
+        verify_page_setup(args.binary, args.sample, work)
         if args.mutations:
             verify_mutations(args.binary, args.sample, work, args.mutations)
 
@@ -166,6 +168,91 @@ def main():
     else:
         with tempfile.TemporaryDirectory(prefix="joyword-r8-") as work:
             verify_all(Path(work))
+
+
+def verify_epub(binary, work):
+    fixtures = ROOT / "tests/fixtures"
+    xhtml = "{http://www.w3.org/1999/xhtml}"
+    options = ("--title", "中文 & EPUB", "--language", "zh-CN", "--modified", "2026-11-05T10:30:00Z")
+    for source in (fixtures / "epub/book.docx", fixtures / "mail-merge/template.docx"):
+        original = source.read_bytes()
+        command = ("epub", source, *options)
+        output = work / f"{source.stem}.epub"
+        plan = json.loads(run(binary, *command, "--plan").stdout)
+        require(plan["schema_version"] == 1 and plan["writes"] == 0 and plan["losses"],
+                "EPUB plan did not disclose losses")
+        run(binary, *command, "--output", output, expected=2)
+        require(not output.exists(), "EPUB wrote without acceptance")
+        result = json.loads(run(binary, *command, "--output", output, "--accept-losses").stdout)
+        original_output = output.read_bytes()
+        require(result["writes"] == 1 and result["bytes"] == len(original_output),
+                "EPUB report disagrees with file")
+        duplicate = work / f"{source.stem}-copy.epub"
+        run(binary, *command, "--output", duplicate, "--accept-losses")
+        require(duplicate.read_bytes() == original_output, "EPUB changed with identical input")
+        run(binary, *command, "--output", output, "--accept-losses", expected=2)
+        require(output.read_bytes() == original_output and source.read_bytes() == original,
+                "EPUB overwrote an existing file")
+        with ZipFile(output) as epub, ZipFile(source) as docx:
+            mime = epub.infolist()[0]
+            require(mime.filename == "mimetype" and mime.compress_type == ZIP_STORED
+                    and not mime.extra and epub.read(mime) == b"application/epub+zip"
+                    and epub.testzip() is None, "Invalid EPUB container")
+            content = ET.fromstring(epub.read("EPUB/content.xhtml"))
+            nav = ET.fromstring(epub.read("EPUB/nav.xhtml"))
+            ncx = ET.fromstring(epub.read("EPUB/toc.ncx"))
+            targets = [a.attrib["href"] for a in nav.iter(xhtml + "a")]
+            ids = {element.get("id") for element in content.iter()}
+            require(targets == [e.attrib["src"] for e in ncx.iter() if e.tag.endswith("}content")]
+                    and all(t == "content.xhtml" or t.partition("#")[2] in ids for t in targets),
+                    "EPUB navigation targets disagree")
+            original_xml = ET.fromstring(docx.read("word/document.xml"))
+            paragraphs = content.findall(f".//{xhtml}body//*")
+            tags = {xhtml + "p", *(xhtml + f"h{i}" for i in range(1, 7))}
+            original_text = [
+                "".join(e.text or "" for e in p.findall(".//w:t", WORD))
+                for p in original_xml.findall(".//w:p", WORD)
+            ]
+            require(["".join(e.itertext()) for e in paragraphs if e.tag in tags] == original_text,
+                    "EPUB paragraph text or order changed")
+            require(sorted(epub.read(n) for n in epub.namelist() if n.startswith("EPUB/images/")) ==
+                    sorted(docx.read(n) for n in docx.namelist() if n.startswith("word/media/")),
+                    "EPUB image bytes changed")
+    reviewed = fixtures / "feature/DOCX-FEAT-T300-REVIEW.docx"
+    run(binary, "epub", reviewed, "--plan", *options, expected=2)
+    run(binary, "epub", fixtures / "epub/book.docx", "--plan", "--modified",
+        "2026-02-29T10:30:00Z", expected=2)
+    unknown = work / "epub-unknown.docx"
+    with ZipFile(fixtures / "epub/book.docx") as source, ZipFile(unknown, "w", ZIP_DEFLATED) as output:
+        for name in source.namelist():
+            data = source.read(name)
+            if name == "word/document.xml":
+                require(b"<w:body>" in data, "EPUB fixture has no body")
+                data = data.replace(b"<w:body>", b"<w:body><w:unknownBody/>", 1)
+            output.writestr(name, data)
+    refusal = run(binary, "epub", unknown, "--plan", expected=2)
+    require("restricted or unsupported DOCX" in refusal.stderr, "Unknown body was not diagnosed")
+    print(json.dumps({"epub_checks": ["review and no-clobber", "determinism", "text and images",
+                                     "navigation and ZIP", "revisions, unknown body and invalid metadata"]}))
+
+
+def verify_page_setup(binary, source, work):
+    document = work / "page-setup.docx"
+    geometry = {"width": 720, "height": 540, "landscape": True, "left": 54, "columns": 2}
+    layout = "layout.pageSetup=" + json.dumps({"geometry": geometry})
+    result = json.loads(run(binary, "run", source, "--cmd", layout, "--save", document).stdout)
+    zoom = json.loads(run(binary, "run", document, "--cmd", 'view.zoom={"value":175}').stdout)
+    require(result["pages"] == zoom["pages"] and result["pages"][0] == {"width": 720, "height": 540},
+            "Page size changed after reopening or zooming")
+    with ZipFile(document) as archive:
+        xml = ET.fromstring(archive.read("word/document.xml"))
+        section = xml.find(".//w:body/w:sectPr", WORD)
+        attr = f'{{{WORD["w"]}}}'
+        require(section.find("w:cols", WORD).get(attr + "num") == "2"
+                and section.find("w:pgMar", WORD).get(attr + "left") == "1080",
+                "Page setup did not survive in OOXML")
+    run(binary, "convert", document, work / "page-setup.pdf")
+    print(json.dumps({"page_setup": result["pages"], "zoom_percent": 175, "columns": 2}))
 
 
 def verify_mutations(binary, source, work, count):

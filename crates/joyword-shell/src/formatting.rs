@@ -57,6 +57,55 @@ impl Reader {
             self.engine().why_disabled(command)
         }
     }
+
+    pub fn page_setup_values(&self) -> ([String; 6], bool, u32) {
+        let s = self.engine();
+        let page = joyword_engine::cmd::page::sect(s);
+        let lengths = [
+            page.page_w,
+            page.page_h,
+            page.margin_top,
+            page.margin_bottom,
+            page.margin_left,
+            page.margin_right,
+        ]
+        .map(|length| s.format_length(length));
+        (lengths, page.landscape, page.columns.count)
+    }
+}
+
+pub fn page_setup_parameters(
+    values: &[String],
+    units: joyword_geom::Unit,
+) -> Result<Value, String> {
+    let mut geometry = serde_json::Map::new();
+    for (key, value) in ["width", "height", "top", "bottom", "left", "right"]
+        .into_iter()
+        .zip(values)
+    {
+        if !value.trim().is_empty() {
+            let points = joyword_geom::parse_measure(value, units)
+                .ok_or("请输入有效尺寸，例如 25 mm、2.5 cm 或 72 pt")?;
+            geometry.insert(key.into(), json!(points));
+        }
+    }
+    if let Some(value) = values.get(6).map(|v| v.trim()).filter(|v| !v.is_empty()) {
+        let landscape = match value.to_ascii_lowercase().as_str() {
+            "portrait" | "纵向" => false,
+            "landscape" | "横向" => true,
+            _ => return Err("请输入纵向或横向（portrait / landscape）".into()),
+        };
+        geometry.insert("landscape".into(), json!(landscape));
+    }
+    if let Some(value) = values.get(7).map(|v| v.trim()).filter(|v| !v.is_empty()) {
+        let columns = value
+            .parse::<u32>()
+            .ok()
+            .filter(|n| (1..=12).contains(n))
+            .ok_or("请输入 1–12 栏")?;
+        geometry.insert("columns".into(), json!(columns));
+    }
+    Ok(json!({ "geometry": geometry }))
 }
 pub fn font_families() -> Vec<String> {
     joyword_fonts::FontDb::global().families_in("zh-hans")
@@ -265,5 +314,40 @@ mod tests {
             f.paragraph["lineSpacing"],
             json!({"rule":"multiple","value":1.5})
         );
+    }
+    #[test]
+    fn page_setup_applies_measurements_atomically_and_survives_reopen() -> Result<(), String> {
+        let cancel = AtomicBool::new(false);
+        let mut r = Reader::blank(&cancel)?;
+        let before = r.engine().doc.last_section.clone();
+        let args = page_setup_parameters(
+            &["", "", "25", "1 in", "", "", "横向", "2"].map(String::from),
+            joyword_geom::Unit::Millimeters,
+        )?;
+        r.execute("layout.pageSetup", &args)?;
+        let page = &r.engine().doc.last_section;
+        assert!(page.landscape);
+        assert_eq!((page.page_w, page.page_h), (before.page_h, before.page_w));
+        assert!((page.margin_top - 70.86614).abs() < 0.001);
+        assert_eq!(page.margin_bottom, 72.0);
+        assert_eq!(page.columns.count, 2);
+        let edited = page.clone();
+        let revision = r.engine().rev();
+        assert!(
+            r.execute("layout.pageSetup", &json!({"geometry":{"left":1500}}))
+                .is_err()
+        );
+        assert_eq!(r.engine().rev(), revision);
+        assert_eq!(r.engine().doc.last_section, edited);
+        let dir = tempfile::tempdir().map_err(|error| error.to_string())?;
+        let path = dir.path().join("page-setup.docx");
+        r.save_job(path.clone(), true)?.run()?;
+        let reopened = Reader::open(&path, &cancel)?;
+        assert_eq!(reopened.engine().doc.last_section.columns.count, 2);
+        assert!((reopened.summary.pages[0].width - edited.page_w).abs() < 0.05);
+        assert!((reopened.summary.pages[0].height - edited.page_h).abs() < 0.05);
+        r.execute("edit.undo", &json!({}))?;
+        assert_eq!(r.engine().doc.last_section, before);
+        Ok(())
     }
 }

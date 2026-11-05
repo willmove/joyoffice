@@ -17,7 +17,7 @@
 | 偏好 | 配置根仍为 Windows `%APPDATA%/JoyWord`、Linux `$XDG_CONFIG_HOME/joyword` 或 `~/.config/joyword`、macOS `~/Library/Application Support/JoyWord`。可用 `JOYWORD_CONFIG_DIR` 隔离验证。活动文件为 `migration-preview/preferences.conf`，缺失时只读旧根目录的 `preferences.conf`。语言和迁移版主题生效。作者名接入审阅，最近文档接入文件页。开发工具的「用户信息与单位」保存作者和度量单位，新会话读取这两项。各版式面板中的度量字段仍需逐项核对。桌面自动恢复按 `autosave.minutes` 写入草稿，默认 10 分钟，0 停止周期写入且可继续发现既有草稿。桌面新建空白页使用 `new.page` 的 A4 或 Letter 预设。 |
 | 恢复与原件保存 | 桌面「打开」或 `joyword -- PATH.jwr` 可读旧日志，CLI 为 `recover [--] JOURNAL [--save NEW.docx]`。打开任一标准槽名会检查整个目录。日志以只读方式打开，恢复进入独立 R8 编辑会话，用户选择新 DOCX 路径后才写入副本并读回。完整快照正文核对通过且未经编辑时原样另存。当前恢复目录继续使用 `migration-preview/r3-recovery`。启动会检查旧配置目录的已发布日志，用户可从恢复提示显式打开副本。 |
 | CLI 与自动化 | `inspect\|text [--max-text-bytes N] [--compatibility] [--] PATH` 恢复 schema 1、UTF-8 字节上限和退出码 0/2/3。R8 的会话检查与原始正文可用 `inspect\|text --session [--] PATH`。新增命令仍可用 `render INPUT OUTPUT.png --page 1`、`convert INPUT OUTPUT.pdf` 和 `run INPUT --cmd COMMAND=JSON --save NEW.docx`。MCP 为有显式目录边界的 stdio，旧桌面验证控制协议与桌面桥接待接。 |
-| 格式与 AI | 新引擎包含 DOCX、PDF、图像和若干文本格式的交换，也提供编辑、引用、审阅和合并命令。显式字体的 PDF/A-2b 及独立 `merge`、`exchange` 已接入 CLI。EPUB、桌面 PDF/A、系统打印完整流程和旧 Agent 桌面集成仍开放。`joyword-agent` 保留独立契约测试，旧引擎事务适配器待重接。 |
+| 格式与 AI | 新引擎包含 DOCX、PDF、图像和若干文本格式的交换，也提供编辑、引用、审阅和合并命令。CLI 已接入显式字体的 PDF/A-2b 和独立 `merge`、`exchange`、`epub`。桌面从当前编辑会话导出 EPUB 和 PDF/A-2b 副本。系统打印完整流程和旧 Agent 桌面集成仍开放。`joyword-agent` 保留独立契约测试，旧引擎事务适配器待重接。 |
 | 旧验证门禁 | 当前 CI 使用新布局、渲染、内核与保存测试、实际 DOCX 往返、独立 PDF 读回、确定性损坏输入、覆盖引导 fuzz 和固定渲染金样。旧编辑行为登记对应替换前 API，在历史基线复现。 |
 
 ### 旧恢复格式
@@ -34,6 +34,7 @@ V1/V2 以原 DOCX 为基线，保留相同前后文并通过 R8 编辑事务重�
 | `convert FILE --to pdf\|pdfa-2b --font PATH:FACE --output FILE.pdf` | 使用显式字体，PDF/A-2b 要求 `--archive-year YYYY`。字体不允许嵌入、缺字或写入失败时拒绝发布。 | 归档合规按实际产物独立验证，继续扩展字体和语料矩阵。 |
 | `merge --template DOCX --data CSV [--map FIELD=COLUMN] (--preview-row N\|--output-parent DIR)` | `{{field}}` 模板、严格 UTF-8 CSV、从 1 开始的预览及每条一份 `letter-NNNN.docx`。在独立新目录生成，出错清理已写文件。 | 桌面 R5 使用 Word MERGEFIELD 工作流。旧模板的更多故事范围、复杂格式和跨平台复跑待验。 |
 | `exchange FILE --from FORMAT --to FORMAT (--plan\|--output FILE [--accept-losses])` | 支持 DOCX、TXT、Markdown、HTML、RTF 的段落子集。只读计划报告损失；拒绝未确认损失、隐藏内容和覆盖。 | 复杂结构及格式往返差分、桌面损失确认。 |
+| `epub FILE (--plan\|--output NEW.epub --accept-losses)` | 输出 EPUB 3.3 重排正文、标题导航、简单表格及内嵌 PNG／JPEG。保留 schema 1 计划、显式接受转换损失和禁止覆盖。支持 `--title`、`--language`、`--modified`。 | 更多 DOCX 差分语料、真实阅读器和桌面导出面板。[EPUB 指南](../joyword/guide/epub.md) |
 
 旧 `inspect` 的诊断由原导入器生成。本轮已对齐已验证语料的字段值和正文。复杂字段、嵌套兼容标记及未覆盖的诊断分类继续做旧新版差分。
 
@@ -47,7 +48,8 @@ V1/V2 以原 DOCX 为基线，保留相同前后文并通过 R8 编辑事务重�
 | 优先级 | 任务 | 完成条件 |
 | --- | --- | --- |
 | P0 | 旧数据与安全（JW-806/812） | 旧目录发现、作者名设置、最近文档、自动恢复间隔和新建纸张预设已接入。继续复杂旧日志差分与偏好界面实屏复验。 |
-| P0 | CLI 与格式兼容（JW-808） | 四条旧 CLI 已接入并在 Windows 回归。继续 EPUB、桌面归档与打印、桌面控制、Agent 授权和 schema 1 复杂语料差分。 |
+| P0 | CLI 与格式兼容（JW-808） | 旧 CLI 子集已在 Windows 回归。EPUB 与桌面归档有独立产物校验。继续原生导出复验、系统打印、桌面控制、Agent 授权和 schema 1 复杂语料差分。 |
+| P1 | 常用编辑（JW-406/JW-407） | 已有查找替换、跳页和页面设置入口。继续查找范围、结果列表、大纲、高级分栏与分节和原生交互验证。 |
 | P1 | Word/WPS 双向往返（R5/R6） | macOS 上 Word 和 WPS 各通过两轮正文、表格、图片、页眉和修订往返。JoyWord 已自动验证保留合规的独立厂商 XML，Word 与 WPS 的普通保存仍有移除该部件的实测记录。[实机证据](validation/20261105-macos-desktop/README.md#word-和-wps-双向往返) |
 | P1 | 千页 DOCX 性能复验（R5/R6） | macOS ARM64 Release CLI 已通过 5 轮打开、末页编辑、保存重开和渲染。桌面首屏和末页 15 次键盘输入至 GPUI 提交已测。继续物理呈现、跨对象编辑和同条件基线比较。[千页验证](../joyword/r8/VALIDATION.md#千页-docx) |
 | P1 | 公共基础（JW-803） | 评估 DOCX 包层、CFB/DrawingML/OMML 和字体服务在共享库中的复用。用格式保真与性能回归验证逐项收敛。 |

@@ -63,6 +63,15 @@ impl Exporter<'_> {
         self.fonts
             .entry(face.id())
             .or_insert_with(|| {
+                if strict && !face.permits_subset_embedding() {
+                    font_error.get_or_insert_with(|| {
+                        PdfError::Write(format!(
+                            "font {} {} does not allow subset embedding",
+                            face.family, face.style
+                        ))
+                    });
+                    return (*face, None);
+                }
                 let variations = face.is_variable().then_some(face.coords.as_slice());
                 let font = match write::font(face.data(), face.index(), variations) {
                     Ok(font) => Some(font),
@@ -108,6 +117,11 @@ impl Exporter<'_> {
         let v = build_vector(bytes).map(Arc::new);
         if v.is_none() {
             log::warn!("PDF: metafile `{key}` could not be read");
+            if self.strict_fonts {
+                self.font_error.get_or_insert_with(|| {
+                    PdfError::Write("metafile could not be rendered".into())
+                });
+            }
         }
         self.vectors.insert(key.to_string(), v.clone());
         v
@@ -120,6 +134,10 @@ impl Exporter<'_> {
         let img = self.doc.media.get(key).and_then(load_image);
         if img.is_none() {
             log::warn!("PDF: picture `{key}` could not be decoded");
+            if self.strict_fonts {
+                self.font_error
+                    .get_or_insert_with(|| PdfError::Write("picture could not be decoded".into()));
+            }
         }
         self.images.insert(key.to_string(), img.clone());
         img

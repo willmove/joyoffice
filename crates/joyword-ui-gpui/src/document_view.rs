@@ -196,6 +196,7 @@ impl JoyWord {
             self.shell.notice = Some("Open generation exhausted".into());
             return;
         };
+        self.advanced.checked_export = Default::default();
         self.canvas.cancel.store(true, Ordering::Release);
         let cancel = Arc::new(AtomicBool::new(false));
         self.canvas.cancel = cancel.clone();

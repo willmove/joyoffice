@@ -112,6 +112,31 @@ JoySheet 的 Debian 打包在 WSL 的 ext4 内完成，保留 Debian 控制目�
 
 Windows 桌面复验时，computer-use 的 Windows 原生管道两次返回 `os error 2`。WSL2 的 `JoyWord-R7-Ubuntu` 实例引用的 `ext4.vhdx` 路径不存在，返回 `ERROR_PATH_NOT_FOUND`。本轮的 Windows IME、读屏、实屏交互及 Linux 原生验收保持待验。之前的原生报告按当时的产物与环境保留。
 
+## Windows 格式与编辑复验（2026-11-05）
+
+在 `69880cc8` 派生的 `codex/joyword-r8-export-compat` 分支使用 Windows x64、Rust 1.98.1 和 PowerShell 7。`cargo xtask check joyword --target x86_64-pc-windows-msvc` 通过格式检查、生产 Clippy 和 3,492 项 Rust 测试，2 项按原设置忽略。`cargo xtask build joyword --target x86_64-pc-windows-msvc` 及文档、边界门禁均通过。
+
+| 范围 | 自动验证 |
+| --- | --- |
+| EPUB CLI | `python scripts/joyword/verify-r8.py CLI --out NEW_DIR --mutations 64` 验证零写入计划、明确接受损失、输出字节可复现、原件保留、拒绝覆盖、无效日期、修订和未知正文拒绝。对历史 EPUB 书稿及中文邮件模板逐段对照 DOCX 文本，核对图片原字节、ZIP 首项及导航目标。 |
+| EPUB 3.3 | EPUBCheck 5.4.0 独立校验 `book.epub` 和 `template.epub`。两份均为零错误、零警告。[EPUBCheck 5.4.0](https://github.com/w3c/epubcheck/releases/tag/v5.4.0) |
+| 桌面归档 | 用桌面入口共用的 `ArchivalPdf::prepare` 和 `publish` 从 R8 会话写出测试副本。veraPDF 1.30.2 的 PDF/A-2b 配置通过 144 条规则，失败规则和失败检查均为 0。pypdf 6.21.2 严格读回并核对文本。外壳用例覆盖未保存编辑快照、取消、后缀、拒绝覆盖和读回。 |
+| 归档与 EPUB 确认 | GPUI 无头用例确认修改文档或取消后，请求不再有效。实际路径选择前后都复查文档标识、编辑版本和呈现版本。 |
+| 查找与替换（JW-406） | GPUI 无头用例从实际根视图触发 Ctrl+F、Ctrl+H 与 F5。跨格式 run 的中文和组合字符可全部替换并一次撤销。 |
+| 页面设置（JW-407） | 外壳和引擎用例覆盖度量单位、方向、栏数、无效页边距的原子拒绝、跨节修改时保留各节已有属性、撤销与 DOCX 保存重开。CLI 验证 175% 缩放保持 720 × 540 pt，并核对分栏和页边距的 OOXML 写出。pypdf 独立读回相同的 PDF 页框。 |
+
+同一 CLI 复跑 64 个确定性 DOCX 损坏变体，21 个解析、43 个干净拒绝。
+
+本轮独立校验产物的 SHA-256 如下。
+
+| 产物 | SHA-256 |
+| --- | --- |
+| `book.epub` | `6abf5512580111f7f681481efb9b26393f36edcc5b93d514702b8f9da146b061` |
+| `template.epub` | `1c9400d68ac0c17f756f8bb69d74232fa3850431011437bce68f3825a0315657` |
+| `desktop-archive.pdf` | `e1fd7e5447e352c072d68691d540fadc9ec105e414e1a3a7f3aba4d7d33aeab9` |
+
+本轮的 Windows computer-use 原生管道仍返回 `os error 2`，注册的 WSL2 实例仍缺少 `ext4.vhdx`。桌面导出确认、原生文件选择、阅读器显示、新编辑入口的实屏操作及 Linux 原生行为保持待验。
+
 ## 待验
 
 - macOS DOCX 系统打开和原生打开／另存为面板均已实测。macOS IME 与读屏、集成后的 Linux ARM64 原生桌面、信创真机与托管 CI 待验。[原生对话框补验](../../joyoffice/validation/20261105-macos-desktop/README.md#原生文件对话框)
