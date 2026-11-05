@@ -108,6 +108,7 @@ impl Session {
             page_hint,
             registry,
             author: "JoyWord User".into(),
+            agent_edit: false,
             initials: String::new(),
             painter: None,
             status: String::new(),

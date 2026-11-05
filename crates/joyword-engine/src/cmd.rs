@@ -216,22 +216,32 @@ pub fn new_revision(s: &mut Session, kind: RevisionKind) -> u32 {
     let date = now_iso();
     // Never one end of a move, nor the deletion a cut may still turn into one.
     let held = s.pending_move.as_ref().map(|m| m.rev);
-    if let Some((i, _)) = s.doc.revisions.iter().enumerate().rev().find(|(i, r)| {
-        r.kind == kind
-            && r.author == s.author
-            && r.date == date
-            && r.move_name.is_none()
-            && held != Some(*i as u32)
-    }) {
+    if !s.agent_edit
+        && let Some((i, _)) = s.doc.revisions.iter().enumerate().rev().find(|(i, r)| {
+            r.kind == kind
+                && r.author == s.author
+                && r.date == date
+                && r.move_name.is_none()
+                && held != Some(*i as u32)
+        })
+    {
         return i as u32;
     }
     s.doc.revisions.push(Revision {
         kind,
-        author: s.author.clone(),
+        author: revision_author(s).to_owned(),
         date,
         move_name: None,
     });
     (s.doc.revisions.len() - 1) as u32
+}
+
+fn revision_author(s: &Session) -> &str {
+    if s.agent_edit {
+        "JoyWord AI"
+    } else {
+        &s.author
+    }
 }
 
 /// Whether the paragraph at `path` is followed by another paragraph in the same container (so
@@ -348,7 +358,7 @@ pub(crate) fn track_delete_as(
     b: &Pos,
     rid: u32,
 ) -> Result<TrackDeleteEffect, CmdError> {
-    let author = s.author.clone();
+    let author = revision_author(s).to_owned();
     let mut changed = false;
     // Remove text this author inserted (it never existed for the reader); mark the rest.
     let paths = s.doc.paths_between(a, b);

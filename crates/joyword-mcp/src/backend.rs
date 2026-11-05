@@ -35,6 +35,7 @@ pub struct Remote {
     connected: bool,
     /// The connection leads to the app's 127.0.0.1: requests carry the control key.
     send_key: bool,
+    document_only: bool,
     /// The control key, looked up once per connection (the app picks a new one at every start).
     key: Option<String>,
     find_key: KeyFinder,
@@ -133,6 +134,7 @@ impl Remote {
             next_id: 1,
             connected: false,
             send_key: false,
+            document_only: false,
             key: None,
             find_key,
         };
@@ -152,9 +154,16 @@ impl Remote {
             next_id: 1,
             connected: false,
             send_key: false,
+            document_only: false,
             key: None,
             find_key: Box::new(find_key),
         }
+    }
+
+    /// The R8 desktop bridge offers document operations without remote UI gestures.
+    pub fn document_only(mut self) -> Self {
+        self.document_only = true;
+        self
     }
 
     /// The address the app is reached at, as given.
@@ -323,7 +332,7 @@ impl Backend for Remote {
     }
 
     fn has_ui(&self) -> bool {
-        true
+        !self.document_only
     }
 
     fn describe(&self) -> String {

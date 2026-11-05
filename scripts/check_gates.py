@@ -98,7 +98,7 @@ LAYERS = {
     "joyword-pdf": {"joyword-fonts", "joyword-geom", "joyword-layout", "joyword-metafile", "joyword-model"},
     "joyword-render": {"joyword-fonts", "joyword-geom", "joyword-layout", "joyword-metafile", "joyword-model"},
     "joyword-shell": {"joyoffice-opc", "joyword-docx", "joyword-engine", "joyword-fonts", "joyword-geom", "joyword-layout", "joyword-pdf", "joyword-render"},
-    "joyword-ui-gpui": {"joyoffice-ui", "joyword-render", "joyword-shell"},
+    "joyword-ui-gpui": {"joyoffice-ui", "joyword-render", "joyword-shell", "joyword-agent"},
     "craft-atomic": set(),
     "craft-font-catalog": set(),
     "craft-font-store": {"craft-atomic", "craft-font-catalog"},
@@ -150,6 +150,7 @@ FS_ALLOW = {
     "crates/joyword-shell/src/editing.rs",
     "crates/joyword-shell/src/legacy_recovery.rs",  # read-only journal and shared lock
     "crates/joyword-shell/src/prefs.rs",
+    "crates/joyword-shell/src/printing.rs",  # private temporary PDF/bitmaps and Windows print helper
     "crates/joyword-shell/src/reader.rs",
     "crates/joyword-shell/src/storage.rs",
     "crates/joyword-shell/src/storage/locks.rs",
@@ -236,7 +237,6 @@ AI_NET_RE = re.compile(
 )
 CORE_WITHOUT_AGENT = (
     "crates/joyword-shell/Cargo.toml",
-    "crates/joyword-ui-gpui/Cargo.toml",
     "crates/joyword-model/Cargo.toml",
     "crates/joyword-engine/Cargo.toml",
     "crates/joyword-docx/Cargo.toml",
@@ -878,8 +878,14 @@ def check_ai_isolation(root: Path = ROOT) -> list[str]:
             errors.append(f"{relative} must not reference joyword-agent")
     app = (root / "apps/joyword/Cargo.toml").read_text(encoding="utf-8")
     app_default = re.search(r"(?m)^default\s*=\s*\[([^\]]*)\]", app)
-    if app_default is None or "ai" in app_default.group(1):
+    ui = (root / "crates/joyword-ui-gpui/Cargo.toml").read_text(encoding="utf-8")
+    ui_default = re.search(r"(?m)^default\s*=\s*\[([^\]]*)\]", ui)
+    if app_default is None or re.search(r'"(?:ai|agent)"', app_default.group(1)) or (
+        ui_default and re.search(r'"(?:ai|agent)"', ui_default.group(1))
+    ):
         errors.append("joyword must not enable the ai feature by default")
+    if not re.search(r'(?m)^joyword-agent\s*=\s*\{[^}\n]*optional\s*=\s*true[^}\n]*\}', ui):
+        errors.append("joyword-ui-gpui may only use the optional Agent dependency")
     agent_src = root / "crates/joyword-agent"
     if not agent_src.is_dir():
         errors.append("joyword-agent crate is missing")

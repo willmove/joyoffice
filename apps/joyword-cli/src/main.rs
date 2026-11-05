@@ -36,6 +36,22 @@ fn run(args: &[OsString]) -> Result<(), String> {
     let cancel = AtomicBool::new(false);
     match command {
         "mcp" => {
+            if let [_, flag, address] = args
+                && flag == "--connect"
+            {
+                let addr: std::net::SocketAddrV4 = address
+                    .to_str()
+                    .ok_or("invalid control address")?
+                    .parse()
+                    .map_err(|_| "use 127.0.0.1:PORT")?;
+                if *addr.ip() != std::net::Ipv4Addr::LOCALHOST || addr.port() == 0 {
+                    return Err("use 127.0.0.1:PORT".into());
+                }
+                let backend = joyword_mcp::Remote::lazy(&addr.to_string()).document_only();
+                return joyword_mcp::Server::new(Box::new(backend))
+                    .serve(std::io::stdin().lock(), std::io::stdout().lock())
+                    .map_err(|e| e.to_string());
+            }
             let (mut read, mut write) = (None, None);
             let mut i = 1;
             while i < args.len() {
@@ -65,10 +81,11 @@ fn run(args: &[OsString]) -> Result<(), String> {
                 "JoyWord\ncommands | capabilities | inspect|text [--max-text-bytes N] [--compatibility] [--] INPUT.docx\ninspect|text --session [--] INPUT\nrecover JOURNAL [--save NEW.docx]\nconvert INPUT OUTPUT.pdf|.png|.txt|.md|.html|.rtf|.odt|.tex|.xml|.docx\nrender INPUT.docx OUTPUT.png [--page 1] [--scale 1.333]\nrender INPUT.docx --font PATH:FACE --output DIR [--dpi N] [--page N]\nconvert INPUT.docx --to pdf|pdfa-2b --font PATH:FACE --output FILE.pdf [--archive-year YYYY]\nmerge --template DOCX --data CSV [--map FIELD=COLUMN] (--preview-row N | --output-parent DIR)\nexchange INPUT --from FORMAT --to FORMAT (--plan | --output FILE [--accept-losses])\nsample OUTPUT.docx\nmcp --automation-read-root DIR [--automation-write-root DIR]\nrun INPUT.docx --cmd COMMAND=JSON [--save NEW.docx]\nOutputs must be new paths; desktop editing and safe DOCX save are available."
             );
             println!("{}", epub::USAGE);
+            println!("mcp --connect 127.0.0.1:PORT");
         }
         "capabilities" => println!(
             "{}",
-            serde_json::json!({"product":"joyword","stage":"R8","desktop":"gpui-kit","docxOpen":true,"readOnlyDesktop":false,"documentEditing":true,"ribbonFormatting":true,"stylePanel":true,"formatPainter":true,"tableEditing":true,"pictureEditing":true,"references":true,"comments":true,"trackChanges":true,"compare":true,"mailMerge":true,"formatExchange":true,"sessionMacros":true,"mcpStdio":true,"mcpDesktopBridge":false,"pdfExport":true,"headlessEngine":true,"save":"CLI new output only"})
+            serde_json::json!({"product":"joyword","stage":"R8","desktop":"gpui-kit","docxOpen":true,"readOnlyDesktop":false,"documentEditing":true,"ribbonFormatting":true,"stylePanel":true,"formatPainter":true,"tableEditing":true,"pictureEditing":true,"references":true,"comments":true,"trackChanges":true,"compare":true,"mailMerge":true,"formatExchange":true,"sessionMacros":true,"mcpStdio":true,"mcpDesktopBridge":true,"mcpDesktopUiAutomation":false,"pdfExport":true,"headlessEngine":true,"save":"CLI new output only"})
         ),
         "commands" => {
             let session =

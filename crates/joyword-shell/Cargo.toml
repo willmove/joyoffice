@@ -44,3 +44,4 @@ unreachable = "deny"
 xattr.workspace = true
 [target.'cfg(windows)'.dependencies]
 winsafe.workspace = true
+windows = { version = "=0.62.2", features = ["Data_Pdf", "Storage", "Storage_Streams", "Foundation"] }

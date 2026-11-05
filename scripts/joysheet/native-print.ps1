@@ -1,5 +1,5 @@
 #Requires -Version 7.0
-param([Parameter(Mandatory)][string]$Directory,[switch]$Validate,[double]$Width=793.7,[double]$Height=1122.5,[double]$OriginX=24,[double]$OriginY=24,[double]$MarginRight=24,[double]$MarginBottom=24,[int]$FromPage=1,[int]$ToPage=0,[string]$ExportXps,[int]$OwnerProcessId=0)
+param([Parameter(Mandatory)][string]$Directory,[switch]$Validate,[double]$Width=793.7,[double]$Height=1122.5,[double]$OriginX=24,[double]$OriginY=24,[double]$MarginRight=24,[double]$MarginBottom=24,[int]$FromPage=1,[int]$ToPage=0,[string]$ExportXps,[int]$OwnerProcessId=0,[string]$JobName='Joysheet')
 $ErrorActionPreference='Stop'
 Add-Type -AssemblyName PresentationFramework,PresentationCore,WindowsBase,System.Printing,ReachFramework
 if(!$Validate -and $OwnerProcessId -gt 0){
@@ -65,6 +65,6 @@ if(!$area){throw 'Printer did not provide its imageable area'}
 $from=1;$to=$pages.Count
 if($dialog.PageRangeSelection -eq [System.Windows.Controls.PageRangeSelection]::UserPages){$from=$dialog.PageRange.PageFrom;$to=$dialog.PageRange.PageTo}
 $document=New-PrintDocument $paperWidth $paperHeight $area.OriginWidth $area.OriginHeight $area.ExtentWidth $area.ExtentHeight $from $to
-$dialog.PrintDocument($document.DocumentPaginator,'Joysheet')
+$dialog.PrintDocument($document.DocumentPaginator,$JobName)
 @{outcome='submitted';queueSubmitted=$true;pages=$to-$from+1}|ConvertTo-Json -Compress
 

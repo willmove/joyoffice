@@ -137,6 +137,22 @@ Windows 桌面复验时，computer-use 的 Windows 原生管道两次返回 `os 
 
 本轮的 Windows computer-use 原生管道仍返回 `os error 2`，注册的 WSL2 实例仍缺少 `ext4.vhdx`。桌面导出确认、原生文件选择、阅读器显示、新编辑入口的实屏操作及 Linux 原生行为保持待验。
 
+## Windows 系统集成与回退复验（2026-11-05）
+
+在 `d31c0ce3` 派生的 `codex/joyword-r8-system-integration` 分支开发，使用 Windows x64、Rust 1.98.1 和 PowerShell 7。`cargo xtask check joyword --target x86_64-pc-windows-msvc` 的格式检查、生产 Clippy 和 3,495 项 Rust 测试通过，2 项按原设置忽略。文档与边界门禁通过，另有 58 项 Python 门禁用例通过。
+
+| 范围 | 实现与验证 |
+| --- | --- |
+| JW-414/JW-705 系统打印 | 两页会话选择第 2 页，经 PDF、WinRT 位图和 WPF 分页器得到 1 页，非法页范围拒绝。WinRT 接收设备独立像素，导出后按实际像素复查并在超限时缩小重试。独立辅助进程的系统窗口标题为「打印」，进程在提交前结束。Windows computer-use 原生管道返回 `os error 2`，桌面实屏入口、对话框取消、实际提交和出纸待验。[WinRT 输出尺寸契约](https://learn.microsoft.com/en-us/uwp/api/windows.data.pdf.pdfpagerenderoptions.destinationwidth) |
+| JW-515 桌面控制 | 从仓库外启动候选包。拒绝缺少和错误密钥、错误文档、旧版本和文件命令。正确请求写入一次，`joyword-cli mcp --connect 127.0.0.1:PORT` 的 stdio 工具从活动桌面会话读回中文标记。 |
+| JW-514 本地 Agent | `agent` feature 提供本地提案。可选构建的 Clippy 与 11 项 GPUI crate 测试通过，覆盖默认关闭、切换开关后拒绝旧代次、拒绝变更选区、确认前只读、阻止直接命令和重复接受、带 AI 作者的修订及一次撤销。网络 Provider 及其流式取消、真实策略／凭据和桌面实屏待验。 |
+| JW-806 复杂恢复 | V2 用例在含图片和表格的 DOCX 上重放两处局部编辑，检查媒体保留、DOCX 保存重开及旧日志字节。复杂字段投影和跨结构的文本重放继续单列。 |
+| JW-801/JW-812 便携回退 | `python scripts/joyword/verify-r8-rollback.py PREVIOUS.zip CANDIDATE.zip FIXTURES NEW_DIR` 在仓库外的中文路径完成坏包拒绝、换版、V3 快照原样另存和旧版回退。旧 GUI 可启动，旧 CLI 可重开原件和恢复副本，5 个输入文件的 SHA-256 与系统 DOCX 默认关联保持一致。正式安装器、注册、签名与卸载仍待验。 |
+
+旧便携包 SHA-256 为 `78f4a4de98556279164230667a845e247ef26d37627a911738d3bead3132e09a`。候选包由 `cargo xtask package joyword --out dist/joyword/r8-system-verified` 生成，SHA-256 为 `093a284fdee8a7dd45fd287ecc56d0a4de53a9c74741d605537943eca90b4032`。JoyDeck 和 JoySheet 指定模块的联合回归共 965 项通过。共享 WPF 打印辅助程序独立通过选页分页验证。
+
+候选包 CLI 复跑兼容脚本。14 份 DOCX 与 `00fb0687` 的检查结果一致，5 条旧恢复路径成功读回，4 种损坏或丢弃情形及覆盖请求被拒绝。64 个确定性变体中 21 个解析、43 个干净拒绝。
+
 ## 待验
 
 - macOS DOCX 系统打开和原生打开／另存为面板均已实测。macOS IME 与读屏、集成后的 Linux ARM64 原生桌面、信创真机与托管 CI 待验。[原生对话框补验](../../joyoffice/validation/20261105-macos-desktop/README.md#原生文件对话框)

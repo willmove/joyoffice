@@ -7,6 +7,7 @@ license.workspace = true
 publish = false
 [features]
 default = []
+agent = ["joyword-ui-gpui/agent"]
 dev-runtime-shaders = ["gpui_platform/runtime_shaders"]
 [dependencies]
 joyword-ui-gpui.workspace = true

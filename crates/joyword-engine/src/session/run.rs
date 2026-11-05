@@ -33,6 +33,14 @@ struct ElsewhereContext {
 }
 
 impl Session {
+    /// Apply text after the host has accepted an authenticated Agent proposal.
+    pub fn apply_agent_proposal(&mut self, text: &str) -> Result<Value, CmdError> {
+        self.agent_edit = true;
+        let result = self.run("text.applyAgentProposal", &serde_json::json!({"text":text}));
+        self.agent_edit = false;
+        result
+    }
+
     fn leave_math_for_command(&mut self, id: &str) {
         if self.math.is_some()
             && (id.starts_with("text.")
@@ -108,7 +116,12 @@ impl Session {
         // Macro recording and Repeat.
         let record = !matches!(
             id,
-            "tools.recordMacro" | "tools.macros" | "edit.undo" | "edit.redo" | "edit.repeat"
+            "tools.recordMacro"
+                | "tools.macros"
+                | "edit.undo"
+                | "edit.redo"
+                | "edit.repeat"
+                | "text.applyAgentProposal"
         ) && (spec.mutates || id.starts_with("caret.") || id.starts_with("select."));
         // A password never lands in a recorded macro or Repeat.
         let kept = || {
@@ -121,7 +134,12 @@ impl Session {
         if record && let Some((_, steps)) = self.recording.as_mut() {
             steps.push((id.to_string(), kept()));
         }
-        if spec.mutates && !matches!(id, "edit.undo" | "edit.redo" | "edit.repeat") {
+        if spec.mutates
+            && !matches!(
+                id,
+                "edit.undo" | "edit.redo" | "edit.repeat" | "text.applyAgentProposal"
+            )
+        {
             self.last_command = Some((id.to_string(), kept()));
         }
         // Typing, caret movement and selection outside the equation commands leave the equation.

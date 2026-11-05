@@ -326,35 +326,79 @@ impl BodyText {
     }
 }
 
-fn replay(reader: &mut Reader, current: BodyText, text: &str) -> Result<(), String> {
-    let prefix: usize = current
-        .text
+fn diff<'a>(before: &str, after: &'a str) -> (usize, usize, &'a str) {
+    let prefix: usize = before
         .chars()
-        .zip(text.chars())
+        .zip(after.chars())
         .take_while(|(a, b)| a == b)
         .map(|(ch, _)| ch.len_utf8())
         .sum();
-    let suffix: usize = current.text[prefix..]
+    let suffix: usize = before[prefix..]
         .chars()
         .rev()
-        .zip(text[prefix..].chars().rev())
+        .zip(after[prefix..].chars().rev())
         .take_while(|(a, b)| a == b)
         .map(|(ch, _)| ch.len_utf8())
         .sum();
-    let end = current.text.len() - suffix;
-    let replacement = &text[prefix..text.len() - suffix];
-    if current.text[prefix..end].contains(OBJECT_MARKER) || replacement.contains(OBJECT_MARKER) {
-        return Err("Text-only recovery cannot replay changes to inline objects".into());
+    (
+        prefix,
+        before.len() - suffix,
+        &after[prefix..after.len() - suffix],
+    )
+}
+
+fn replay(reader: &mut Reader, current: BodyText, text: &str) -> Result<(), String> {
+    let mut edits = Vec::new();
+    let mut lines = text.split('\n');
+    // When paragraph boundaries are stable, disjoint local edits can preserve
+    // the table cells and inline objects between them.
+    for (index, old) in current.text.split('\n').enumerate() {
+        let Some(new) = lines.next() else {
+            edits.clear();
+            break;
+        };
+        if old != new {
+            let (start, end, insert) = diff(old, new);
+            if (start == 0 && end == old.len()) || edits.len() == 128 {
+                edits.clear();
+                break;
+            }
+            let base = current.starts[index].0;
+            edits.push((base + start, base + end, insert));
+        }
     }
-    let (start, end) = (
-        current.position(&reader.session.doc, prefix)?,
-        current.position(&reader.session.doc, end)?,
-    );
-    if start.path.parent() != end.path.parent() {
-        return Err("Text-only recovery cannot replay across table cells".into());
+    if edits.len() < 2 || lines.next().is_some() {
+        edits = vec![diff(&current.text, text)];
     }
-    reader.select_positions(start, end)?;
-    reader.replace_text(None, replacement)?;
+    let positions = edits
+        .into_iter()
+        .map(|(start, end, replacement)| {
+            if current.text[start..end].contains(OBJECT_MARKER)
+                || replacement.contains(OBJECT_MARKER)
+            {
+                return Err("Text-only recovery cannot replay changes to inline objects".into());
+            }
+            let crossed = current
+                .starts
+                .partition_point(|(offset, _)| *offset <= start)
+                ..current.starts.partition_point(|(offset, _)| *offset <= end);
+            let start = current.position(&reader.session.doc, start)?;
+            let end = current.position(&reader.session.doc, end)?;
+            let parent = start.path.parent();
+            if parent != end.path.parent()
+                || current.starts[crossed]
+                    .iter()
+                    .any(|(_, pos)| pos.path.parent() != parent)
+            {
+                return Err("Text-only recovery cannot replay across table cells".into());
+            }
+            Ok((start, end, replacement))
+        })
+        .collect::<Result<Vec<_>, String>>()?;
+    for (start, end, replacement) in positions.into_iter().rev() {
+        reader.select_positions(start, end)?;
+        reader.replace_text(None, replacement)?;
+    }
     if BodyText::new(&reader.session.doc)?.text != text {
         return Err("Text recovery replay does not match checkpoint".into());
     }
@@ -395,7 +439,7 @@ impl Reader {
                 // structure. Refuse known unsupported content instead of
                 // silently dropping it during regeneration.
                 let baseline = joyword_docx::legacy_inspection::project(&package, 0)?;
-                if baseline.read_only || baseline.preserved_fragments != 0 {
+                if baseline.read_only || baseline.unsupported_body {
                     return Err("Text-only recovery baseline contains protected or unsupported content".into());
                 }
                 replay(&mut reader, body, &checkpoint.text)?;
@@ -409,5 +453,46 @@ impl Reader {
             });
             Ok(reader)
         }).map_err(|e| format!("Legacy recovery: {e}"))
+    }
+}
+
+#[cfg(test)]
+#[allow(clippy::unwrap_used)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn replays_disjoint_changes_around_objects_and_table_cells() {
+        let cancel = AtomicBool::new(false);
+        let baseline = include_bytes!("../../../assets/samples/mixed-media.docx");
+        let reader = Reader::from_bytes("fixture.docx", baseline, &cancel).unwrap();
+        let current = BodyText::new(&reader.session.doc).unwrap();
+        assert!(current.text.contains(OBJECT_MARKER));
+        let target =
+            current
+                .text
+                .replacen("阅读验证", "恢复验证", 1)
+                .replacen("R2 阅读器", "R8 阅读器", 1);
+        let media = reader.session.doc.media.clone();
+        let dir = tempfile::tempdir().unwrap();
+        let slot = dir.path().join("recovery-a.jwr");
+        let mut record = b"JWREC002".to_vec();
+        record.extend_from_slice(&1_u64.to_le_bytes());
+        record.extend_from_slice(&[0; 9]);
+        for bytes in [baseline.as_slice(), target.as_bytes()] {
+            record.extend_from_slice(&(bytes.len() as u64).to_le_bytes());
+            record.extend_from_slice(bytes);
+        }
+        record.extend_from_slice(&crc32fast::hash(&record).to_le_bytes());
+        fs::write(&slot, &record).unwrap();
+        let reader = Reader::recover_legacy(&slot, &cancel).unwrap();
+        assert_eq!(BodyText::new(&reader.session.doc).unwrap().text, target);
+        assert_eq!(reader.session.doc.media, media);
+        let saved = dir.path().join("recovered.docx");
+        reader.save_job(saved.clone(), true).unwrap().run().unwrap();
+        let roundtrip = joyword_docx::read(&fs::read(saved).unwrap()).unwrap();
+        assert_eq!(BodyText::new(&roundtrip).unwrap().text, target);
+        assert_eq!(roundtrip.media, media);
+        assert_eq!(fs::read(slot).unwrap(), record);
     }
 }

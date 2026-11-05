@@ -29,6 +29,19 @@ use unicode::{ins_char, insert_code, toggle_unicode};
 pub fn specs() -> Vec<CommandSpec> {
     vec![
         CommandSpec::new("text.insert", "Type Text", "Editing", insert).params(r#"{"text": string, "raw"?: bool, "paragraphs"?: bool} (paragraphs: each line a paragraph, one undo step, at most 10000 lines)"#),
+        CommandSpec::new("text.applyAgentProposal", "Apply Reviewed Replacement", "Editing", |s, v| {
+            let text = p::req_str(v, "text")?;
+            if s.sel.is_collapsed() || text.len() > 24 * 1024
+                || text.chars().any(|ch| ch.is_control() || matches!(ch, OBJ | '\u{fdd0}' | '\u{2028}' | '\u{2029}'))
+            {
+                return Err(CmdError::Params("select text and provide a plain single-line replacement".into()));
+            }
+            let track = std::mem::replace(&mut s.doc.settings.track_changes, true);
+            let result = super::paste_text(s, text);
+            s.doc.settings.track_changes = track;
+            result?;
+            sel_result(s)
+        }).when(|s| (!s.agent_edit).then_some("requires a reviewed Agent proposal")),
         CommandSpec::new("text.newParagraph", "New Paragraph", "Editing", new_paragraph).key("Enter"),
         CommandSpec::new("text.lineBreak", "Line Break", "Editing", |s, _| ins_char(s, '\n')).key("Shift+Enter"),
         CommandSpec::new("text.pageBreak", "Page Break", "Insert › Pages", |s, _| ins_char(s, PAGE_BREAK)).key("Mod+Enter"),

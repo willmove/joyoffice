@@ -1,5 +1,10 @@
 mod advanced;
+#[cfg(feature = "agent")]
+mod agent;
+#[cfg(feature = "agent")]
+mod agent_port;
 mod command_search;
+mod control;
 mod document_view;
 mod export;
 mod formatting;
@@ -10,6 +15,8 @@ mod objects;
 mod page_index;
 mod page_setup;
 mod perf;
+#[cfg(windows)]
+mod printing;
 mod save;
 mod search;
 mod styles;
@@ -73,6 +80,10 @@ struct JoyWord {
     close_pending: bool,
     save_task: Option<gpui::Task<()>>,
     saving: bool,
+    #[cfg(feature = "agent")]
+    agent: agent_port::LocalAgent,
+    #[cfg(windows)]
+    printing: bool,
     caret_on: bool,
     blink: Option<gpui::Task<()>>,
     subscriptions: Vec<gpui::Subscription>,
@@ -146,6 +157,10 @@ impl JoyWord {
             close_pending: false,
             save_task: None,
             saving: false,
+            #[cfg(feature = "agent")]
+            agent: Default::default(),
+            #[cfg(windows)]
+            printing: false,
             caret_on: true,
             blink: None,
             subscriptions: vec![font_subscription, style_subscription, command_subscription],
@@ -556,7 +571,13 @@ impl JoyWord {
                         ),
                 )
                 .child(self.home_format_groups(cx))
-                .child(self.search_ribbon(cx)),
+                .child(self.search_ribbon(cx))
+                .when(cfg!(feature = "agent"), |group| {
+                    #[cfg(feature = "agent")]
+                    return group.child(self.agent_controls(cx));
+                    #[cfg(not(feature = "agent"))]
+                    group
+                }),
             1 => groups.child(
                 div()
                     .flex()
@@ -668,6 +689,22 @@ impl JoyWord {
                                     v.start_checked_export(export::Format::Archive, w, cx);
                                 })),
                         )
+                        .when(cfg!(windows), |menu| {
+                            #[cfg(windows)]
+                            return menu.child(
+                                Button::new("system-print")
+                                    .ghost()
+                                    .label(tr("打印…", "Print…"))
+                                    .disabled(
+                                        self.canvas.reader.is_none()
+                                            || self.canvas.loading
+                                            || self.printing,
+                                    )
+                                    .on_click(cx.listener(|v, _, w, cx| v.open_print(w, cx))),
+                            );
+                            #[cfg(not(windows))]
+                            menu
+                        })
                         .child(self.button(
                             "open-file",
                             tr("打开文档", "Open document"),
@@ -1138,9 +1175,11 @@ pub fn run() {
                             },
                         ));
                     });
-                    let source = startup_document(std::env::args_os().skip(1))
-                        .map(OpenSource::File)
-                        .unwrap_or(OpenSource::Welcome);
+                    let (port, source) = startup_options(std::env::args_os().skip(1));
+                    if let Some(port) = port {
+                        control::install(port, &view, window, cx);
+                    }
+                    let source = source.map(OpenSource::File).unwrap_or(OpenSource::Welcome);
                     view.update(cx, |this, cx| this.begin_open(source, cx));
                     #[cfg(target_os = "macos")]
                     listen_for_system_open(&view, window, cx, open_requests);
@@ -1201,16 +1240,24 @@ fn listen_for_system_open(
 
 /// Match the JoyOffice launch convention, including an optional `--` before
 /// a file name that starts with a hyphen.
-fn startup_document(
+fn startup_options(
     args: impl IntoIterator<Item = std::ffi::OsString>,
-) -> Option<std::path::PathBuf> {
+) -> (Option<u16>, Option<std::path::PathBuf>) {
     let mut options = true;
-    for arg in args {
+    let mut port = None;
+    let mut path = None;
+    let mut args = args.into_iter();
+    while let Some(arg) = args.next() {
         if options && arg == "--" {
             options = false;
-        } else if !options || !arg.to_string_lossy().starts_with('-') {
-            return Some(arg.into());
+        } else if options && arg == "--control" {
+            port = args
+                .next()
+                .and_then(|v| v.to_str()?.parse().ok())
+                .filter(|p| *p != 0);
+        } else if path.is_none() && (!options || !arg.to_string_lossy().starts_with('-')) {
+            path = Some(arg.into());
         }
     }
-    None
+    (port, path)
 }

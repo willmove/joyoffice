@@ -4411,6 +4411,7 @@ dependencies = [
  "sha2 0.10.9",
  "tempfile",
  "unicode-segmentation",
+ "windows 0.62.2",
  "winsafe",
  "xattr",
 ]
@@ -4424,6 +4425,7 @@ dependencies = [
  "gpui-pre",
  "image",
  "joyoffice-ui",
+ "joyword-agent",
  "joyword-render",
  "joyword-shell",
  "serde_json",

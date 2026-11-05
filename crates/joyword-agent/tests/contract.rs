@@ -450,13 +450,20 @@ fn core_manifests_do_not_name_the_agent_crate() {
         "crates/joyoffice-opc/Cargo.toml",
         "crates/joyword-corpus/Cargo.toml",
         "crates/joyword-shell/Cargo.toml",
-        "crates/joyword-ui-gpui/Cargo.toml",
         "apps/joyword-cli/Cargo.toml",
         "apps/joyword/Cargo.toml",
     ] {
         let text = std::fs::read_to_string(root.join(rel)).expect(rel);
         assert!(!text.contains("joyword-agent"), "{rel}");
     }
+    let desktop = std::fs::read_to_string(root.join("crates/joyword-ui-gpui/Cargo.toml")).unwrap();
+    assert!(
+        desktop
+            .lines()
+            .any(|line| line.starts_with("joyword-agent") && line.contains("optional = true"))
+    );
+    let app = std::fs::read_to_string(root.join("apps/joyword/Cargo.toml")).unwrap();
+    assert!(app.lines().any(|line| line == "default = []"));
 }
 
 #[test]

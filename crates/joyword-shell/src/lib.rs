@@ -8,6 +8,8 @@ pub mod l10n;
 mod legacy_recovery;
 pub mod mail_merge;
 pub mod prefs;
+pub mod printing;
+pub mod proposal_target;
 pub mod reader;
 pub mod storage;
 pub mod visual;

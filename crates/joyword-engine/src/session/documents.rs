@@ -258,6 +258,7 @@ impl Session {
             clip_history: _,
             registry: _,
             author: _,
+            agent_edit: _,
             initials: _,
             painter: _,
             status: _,

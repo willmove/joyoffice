@@ -1,8 +1,8 @@
 //! JoyWord's MCP server (Model Context Protocol, JSON-RPC 2.0 over stdio).
 //!
-//! The R5 CLI exposes Headless over stdio with explicit filesystem roots. The migrated
-//! Remote adapter is retained for future host integration; this desktop does not yet
-//! expose a control channel.
+//! The CLI exposes Headless over stdio with explicit filesystem roots.
+//! The Remote adapter also reaches a desktop that explicitly enables the
+//! authenticated loopback document channel.
 #![deny(
     clippy::unwrap_used,
     clippy::expect_used,
@@ -26,7 +26,7 @@ use joyword_engine::file_access::{self, AutomationRoots};
 use serde_json::{Value, json};
 
 /// Methods that need the desktop app.
-pub const NEEDS_APP: &str = "needs the desktop app: the real-time GPUI bridge is not available in this R5 build; use headless document tools";
+pub const NEEDS_APP: &str = "needs the desktop app with UI automation support";
 
 /// An in-process session.
 pub struct Headless {
