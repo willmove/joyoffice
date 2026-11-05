@@ -1020,6 +1020,11 @@ fn push_cell_glyphs(
             push_tatweel(r, p.faces.get(cell.face), cell, (cl, kash), pos);
         }
         for (gid, gx, gy) in &cell.glyphs {
+            if *gid == 0 && joydeck_fonts::is_font_ignorable(cell.ch) {
+                // Keep the shaped advance and caret, without drawing .notdef for whitespace
+                // or a formatting control when the selected face has no mapping.
+                continue;
+            }
             r.glyphs.push((*gid, cl + kash + gx, base_y + gy));
             r.cells.push((ci, cell.ch));
         }

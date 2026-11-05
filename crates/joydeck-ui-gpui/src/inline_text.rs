@@ -14,6 +14,16 @@ pub(super) struct Inline {
     affinity: joydeck_text::Affinity,
     anchor: Option<usize>,
 }
+impl Inline {
+    fn reflow(&mut self, model: &joydeck_model::Presentation, page: usize) {
+        let (id, cell) = match self.target {
+            TextTarget::Shape { shape } => (shape, None),
+            TextTarget::Cell { shape, row, col } => (shape, Some((row, col))),
+            TextTarget::Notes => return,
+        };
+        self.placed = joydeck_render::editable_text(model, page, id, cell);
+    }
+}
 impl Viewer {
     pub(super) fn edit_notes(&mut self, w: &mut Window, cx: &mut Context<Self>) {
         if self.composing() {
@@ -156,12 +166,7 @@ impl Viewer {
             self.message = e;
             return;
         }
-        let (id, cell) = match i.target {
-            TextTarget::Shape { shape } => (shape, None),
-            TextTarget::Cell { shape, row, col } => (shape, Some((row, col))),
-            TextTarget::Notes => return,
-        };
-        i.placed = joydeck_render::editable_text(&model, self.page, id, cell);
+        i.reflow(&model, self.page);
         match Deck::from_model(
             self.deck
                 .as_ref()
@@ -180,6 +185,13 @@ impl Viewer {
         self.thumb_busy = false;
         self.thumbs_task = None;
         cx.notify();
+    }
+
+    pub(super) fn refresh_inline_layout(&mut self) {
+        let (Some(i), Some(deck)) = (&mut self.inline, &self.deck) else {
+            return;
+        };
+        i.reflow(&deck.presentation, self.page);
     }
     pub(super) fn publish_inline(&mut self, w: &mut Window, cx: &mut Context<Self>) {
         if self.composing() {

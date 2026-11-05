@@ -96,7 +96,8 @@ mod slideshow;
 #[path = "table_ui.rs"]
 mod table_ui;
 
-type ImageKey = (u64, usize, u32);
+// Document generation, page, raster width, font environment.
+type ImageKey = (u64, usize, u32, u64);
 pub struct Viewer {
     comparison: Option<joydeck_shell::comparison::Comparison>,
     compare_task: Option<Task<()>>,
@@ -111,6 +112,7 @@ pub struct Viewer {
     >,
     font_names: Vec<SharedString>,
     font_subscription: Option<Subscription>,
+    font_task: Option<Task<()>>,
     delivery_task: Option<Task<()>>,
     delivery_cancel: joydeck_shell::Cancellation,
     delivery_busy: bool,
@@ -204,17 +206,9 @@ impl Viewer {
     fn new(dark: bool, window: &mut Window, cx: &mut Context<Self>) -> Self {
         let focus = cx.focus_handle();
         focus.focus(window, cx);
-        let mut font_names: Vec<SharedString> = cx
-            .text_system()
-            .all_font_names()
-            .into_iter()
-            .map(Into::into)
-            .collect();
-        font_names.sort_by_key(|s| s.to_lowercase());
-        font_names.dedup();
         let font_picker = cx.new(|cx| {
             gpui_kit::component::select::SelectState::new(
-                gpui_kit::component::select::SearchableVec::new(font_names.clone()),
+                gpui_kit::component::select::SearchableVec::new(Vec::new()),
                 None,
                 window,
                 cx,
@@ -229,8 +223,9 @@ impl Viewer {
             recent_paths: Ok(vec![]),
             recent_task: None,
             font_picker,
-            font_names,
+            font_names: Vec::new(),
             font_subscription: None,
+            font_task: None,
             delivery_task: None,
             delivery_cancel: Default::default(),
             delivery_busy: false,
@@ -624,7 +619,12 @@ impl Viewer {
         let Some(deck) = self.deck.clone() else {
             return;
         };
-        let key = (self.render_generation, self.page, width);
+        let key = (
+            self.render_generation,
+            self.page,
+            width,
+            joydeck_fonts::FontDb::global().environment_revision(),
+        );
         if self.image.as_ref().is_some_and(|(k, _)| *k == key) {
             self.pending = Some(key);
             return;
@@ -643,7 +643,11 @@ impl Viewer {
                 .spawn(async move { render_doc(&deck, key.1, key.2, &cancel).and_then(image_of) })
                 .await;
             let _ = view.update(cx, |s, cx| {
-                if s.pending != Some(key) || s.render_generation != key.0 || s.page != key.1 {
+                if s.pending != Some(key)
+                    || s.render_generation != key.0
+                    || s.page != key.1
+                    || joydeck_fonts::FontDb::global().environment_revision() != key.3
+                {
                     return;
                 }
                 // Keep key until another request; render failure must not cause an infinite retry loop.
@@ -681,6 +685,7 @@ impl Viewer {
         }
         self.thumb_busy = true;
         let generation = self.render_generation;
+        let font_revision = joydeck_fonts::FontDb::global().environment_revision();
         let cancel = self.thumbs_cancel.clone();
         self.thumbs_task = Some(cx.spawn(async move |view, cx| {
             let result = cx
@@ -700,6 +705,11 @@ impl Viewer {
                 if s.render_generation != generation {
                     return;
                 }
+                s.thumb_busy = false;
+                if joydeck_fonts::FontDb::global().environment_revision() != font_revision {
+                    cx.notify();
+                    return;
+                }
                 for (p, r) in result {
                     let Ok(image) = r.and_then(image_of) else {
                         s.thumbnail_errors.insert(p);
@@ -713,7 +723,6 @@ impl Viewer {
                     }
                     s.thumbnails.insert(p, image);
                 }
-                s.thumb_busy = false;
                 cx.notify();
             });
         }));
@@ -797,6 +806,7 @@ impl Render for Viewer {
                 (self.cpu_view || self.inline.is_some())
                     && (key.0 == self.render_generation || self.inline.is_some())
                     && key.1 == self.page
+                    && key.3 == joydeck_fonts::FontDb::global().environment_revision()
             });
             div()
                 .id("page-viewport")

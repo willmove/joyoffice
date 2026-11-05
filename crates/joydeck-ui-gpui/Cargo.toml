@@ -8,6 +8,7 @@ publish = false
 
 [dependencies]
 joydeck-engine.workspace = true
+joydeck-fonts.workspace = true
 joydeck-model.workspace = true
 joydeck-geom.workspace = true
 joydeck-render.workspace = true

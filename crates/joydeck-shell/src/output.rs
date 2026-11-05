@@ -76,6 +76,15 @@ pub fn export(
     if path.exists() {
         return Err("output must be a new path".into());
     }
+    let fonts = joydeck_fonts::FontDb::global();
+    let font_revision = fonts.environment_revision();
+    let check_fonts = || {
+        if fonts.environment_revision() == font_revision {
+            Ok(())
+        } else {
+            Err("font environment changed during export; retry with the current fonts".to_string())
+        }
+    };
     let mut report = Report {
         format: opts.format.clone(),
         pages: selected.iter().map(|p| p + 1).collect(),
@@ -103,6 +112,7 @@ pub fn export(
                     return Err("image output exceeds 64 MiB".into());
                 }
                 cancel.check()?;
+                check_fonts()?;
                 let file = path.join(format!(
                     "slide-{:04}.{}",
                     page + 1,
@@ -113,6 +123,7 @@ pub fn export(
                 report.files += 1;
             }
             cancel.check()?;
+            check_fonts()?;
             Ok(())
         })();
         if let Err(e) = result {
@@ -151,6 +162,7 @@ pub fn export(
         return Err("output exceeds 64 MiB".into());
     }
     cancel.check()?;
+    check_fonts()?;
     storage::save(path, &bytes, None)?;
     report.bytes = bytes.len();
     report.files = 1;

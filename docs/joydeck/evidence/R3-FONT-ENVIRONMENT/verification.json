@@ -1,0 +1,89 @@
+{
+  "binarySha256": "6fd218360cf1925c1c84193b34c9627f2b5b09cee7c328489ce3abff965e9e28",
+  "cliSha256": "bea5c15e43197764135a2a409a57d29a0fe8605bc2121041583147b7c9368c3e",
+  "checks": [
+    "Atomic replacement of a same-name, equal-size font file rewrapped the GPUI canvas and thumbnail without editing the document",
+    "The same live replacement invalidated the cached CPU raster",
+    "Font replacement preserved the active inline selection, and one keyboard replacement committed exactly one edit",
+    "The searchable desktop font picker followed the addition and removal of a collection",
+    "Independent packaged CLI reported the actual fallback after removal and source PPTX bytes stayed unchanged"
+  ],
+  "screenshots": {
+    "01-gpui-narrow.png": "237089d0f408012a0f459b01a1d34a55431f3d7d3a9737d418044bfd71fa5ef7",
+    "02-gpui-wide.png": "afb51e5e7b5d192fcd20340fad721f2683aae39cc12805d37bd73eff3fcafe83",
+    "03-cpu-wide.png": "71354a9ac0bbf362c9401d1c65421a72b11f1ab1070b967cbef4455e70010a7b",
+    "04-cpu-narrow.png": "4979a774f56b845972a9ff14696fb4ecf49b06dd43fc6f9c4a1f5146b92501b9",
+    "05-inline-narrow.png": "8d210bd7a8715d629c6baf37f19b12c49e787dd6bd61cecb94019f8bf85a6f5a",
+    "06-inline-wide.png": "8a5b1a715ad4d88f77b80e2c71e566b66d1957fd5927c238bea41f69069731ac",
+    "07-inline-edit.png": "efb3eecf90fbcd3651b364d476b8045c74b23a83c132b4a30d20b40a04a9643d",
+    "08-picker-installed.png": "2f814b4e5389782fc2a56139903756cf2776b1e0078ca6377008c3cad1fed526",
+    "09-picker-removed.png": "8b11c38fc0bdb3e4dbc3f92694555432af9dbe750b1a8f34176cb006ae6fe10d"
+  },
+  "sourceSha256": "3cb92e95b182ecf99b67949b56f4dab641aa1e2988dad7ba2a796ab3836d8a01",
+  "fixtureFonts": {
+    "narrow": "31cd5c3f5dd1ef2377172fc6236d8a42323d10f98963b2ff3aff4608b8e8bce9",
+    "wide": "175abbf78e5c342bbef7edf97db096e0c6b25b078dbff7f3e107bf27f9b74234"
+  },
+  "collisionReport": "Font name collision: JoyDeck Font Environment Test (Regular). Selected [31cd5c3f5dd1ef2377172fc6236d8a42323d10f98963b2ff3aff4608b8e8bce9/0]; 1 distinct alternative(s) [175abbf78e5c342bbef7edf97db096e0c6b25b078dbff7f3e107bf27f9b74234/0].",
+  "backingScale": 1.0,
+  "narrowVisibleGlyphs": 8,
+  "narrowGlyphPixelsAndHeight": [
+    [
+      4230,
+      29
+    ],
+    [
+      82,
+      4
+    ]
+  ],
+  "wideGlyphPixelsAndHeight": [
+    [
+      7080,
+      81
+    ],
+    [
+      188,
+      15
+    ]
+  ],
+  "fontPickerItemsWhenInstalled": 1,
+  "fontPickerItemsAfterRemoval": 0,
+  "substitutionReport": "Font substitution: JoyDeck Font Environment Test (Regular) → Calibri (Regular) [ea801e1f869b55464339058b1d4263d07cc074a18e20aa3ee1d07901423dee53/0].",
+  "passed": true,
+  "package": {
+    "archive": "joydeck-0.8.0-r3-fonts-final.zip",
+    "sha256": "ebbf25a3c9293c4791a9a603f8d805400d40e9ac709557074bdd82bcd5d1d17b",
+    "sourceSha256": "ac398fde952ecef48b1bd12a8fb2b07ade9fbc146822fa6cd42aa420a0d530b6",
+    "target": "aarch64-apple-darwin",
+    "profile": "release",
+    "verifiedPayloadFiles": 1805
+  },
+  "tests": {
+    "joydeck": [
+      909,
+      0,
+      0
+    ],
+    "workspace": [
+      5802,
+      0,
+      3
+    ],
+    "packagedCli": {
+      "R1": 28,
+      "R1Registry": 329,
+      "R2": 20,
+      "R3": 20
+    }
+  },
+  "sharedPdfLayoutRegression": {
+    "groupedVsPlainSearchWordCount": 14,
+    "groupedVsPlainBboxMaxDeltaPt": 0.0,
+    "popplerCpuMeanChannelError": [
+      0.459749,
+      0.304896,
+      0.304896
+    ]
+  }
+}

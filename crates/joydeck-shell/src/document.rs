@@ -400,7 +400,7 @@ fn audit_model(
     for master in &p.masters {
         for set in [&master.theme.fonts.major, &master.theme.fonts.minor] {
             for family in [&set.latin, &set.ea, &set.cs] {
-                requested.insert(family.clone());
+                requested.insert((family.clone(), "Regular"));
             }
         }
         shapes.extend(master.shapes.iter().map(|s| (s, 0)));
@@ -428,7 +428,14 @@ fn audit_model(
                         .into_iter()
                         .flatten()
                     {
-                        requested.insert(family.clone());
+                        let style =
+                            match (props.bold.unwrap_or(false), props.italic.unwrap_or(false)) {
+                                (true, true) => "Bold Italic",
+                                (true, false) => "Bold",
+                                (false, true) => "Italic",
+                                (false, false) => "Regular",
+                            };
+                        requested.insert((family.clone(), style));
                     }
                 }
             }
@@ -445,15 +452,36 @@ fn audit_model(
         }
     }
     let fonts = joydeck_fonts::FontDb::global();
-    for family in requested
+    for (family, style) in requested
         .iter()
-        .filter(|f| !f.is_empty() && !f.starts_with('+'))
-        .take(256)
+        .filter(|(family, _)| !family.is_empty() && !family.starts_with('+'))
+        .take(128)
     {
         cancel.check()?;
-        if !fonts.has_family(family) {
+        let resolved = fonts.document_match(family, style);
+        if resolved.substituted {
             warnings.push(format!(
-                "Font family unavailable: {family}; renderer will substitute it."
+                "Font substitution: {family} ({style}) → {} ({}) [{}].",
+                resolved.face.family,
+                resolved.face.style,
+                resolved.face.identity()
+            ));
+        }
+        if !resolved.conflicts.is_empty() {
+            let alternatives = resolved
+                .conflicts
+                .iter()
+                .take(4)
+                .map(ToString::to_string)
+                .collect::<Vec<_>>()
+                .join(", ");
+            warnings.push(format!(
+                "Font name collision: {} ({}). Selected [{}]; {} distinct alternative(s) [{}].",
+                resolved.face.family,
+                resolved.face.style,
+                resolved.face.identity(),
+                resolved.conflicts.len(),
+                alternatives
             ));
         }
     }
