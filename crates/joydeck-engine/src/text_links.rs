@@ -1,28 +1,10 @@
 //! Range-scoped click actions on ordinary text runs.
+use super::runs;
 use joydeck_model::{
     TextBody,
     text::{Hyperlink, Run, RunKind},
 };
 use std::ops::Range;
-
-fn runs(body: &TextBody) -> impl Iterator<Item = (Range<usize>, &Run)> {
-    let mut offset = 0;
-    body.paragraphs.iter().flat_map(move |paragraph| {
-        let mut start = offset;
-        offset += paragraph
-            .runs
-            .iter()
-            .map(|r| r.content().len())
-            .sum::<usize>()
-            + 1;
-        paragraph.runs.iter().map(move |run| {
-            let end = start + run.content().len();
-            let range = start..end;
-            start = end;
-            (range, run)
-        })
-    })
-}
 
 #[derive(Debug, PartialEq)]
 pub struct Selection {

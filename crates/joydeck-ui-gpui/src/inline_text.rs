@@ -63,8 +63,8 @@ impl Inline {
         scale: f32,
     ) -> Option<usize> {
         let p = self.placed.as_ref()?;
-        let pos = layout_pos(value, self.draft.cursor());
         let layout = &p.layout;
+        let pos = layout_pos(layout, value, self.draft.cursor(), self.affinity);
         let motion = match key {
             "left" => Some((-1., 0.)),
             "right" => Some((1., 0.)),
@@ -77,8 +77,13 @@ impl Inline {
             Some(Motion::Along { forward }) => {
                 self.desired_inline_x = None;
                 if !extend && !self.draft.selection.is_empty() {
-                    let a = layout_pos(value, self.draft.selection.start);
-                    let b = layout_pos(value, self.draft.selection.end);
+                    let a = layout_pos(
+                        layout,
+                        value,
+                        self.draft.selection.start,
+                        Affinity::Downstream,
+                    );
+                    let b = layout_pos(layout, value, self.draft.selection.end, Affinity::Upstream);
                     let a_line = layout.line_index(a, Affinity::Downstream);
                     let b_line = layout.line_index(b, Affinity::Upstream);
                     let reversed = a_line == b_line
@@ -92,7 +97,13 @@ impl Inline {
                         (a, Affinity::Downstream)
                     }
                 } else {
-                    layout.move_caret(pos, self.affinity, forward, joydeck_text::MoveMode::Visual)
+                    let (candidate, affinity) = layout.move_caret(
+                        pos,
+                        self.affinity,
+                        forward,
+                        joydeck_text::MoveMode::Visual,
+                    );
+                    layout.across_field(pos, candidate, affinity)
                 }
             }
             Some(Motion::Across { down }) => {
@@ -113,13 +124,19 @@ impl Inline {
             }
         };
         self.affinity = affinity;
-        Some(text::byte_pos(value, (next.para, next.ch)))
+        let source = layout.source_position(next, affinity);
+        Some(text::byte_pos(value, (source.para, source.ch)))
     }
 }
 
-fn layout_pos(value: &str, at: usize) -> Pos {
+fn layout_pos(
+    layout: &joydeck_text::TextLayout,
+    value: &str,
+    at: usize,
+    affinity: Affinity,
+) -> Pos {
     let (para, ch) = text::pos(value, at);
-    Pos { para, ch }
+    layout.rendered_position(Pos { para, ch }, affinity)
 }
 
 impl Viewer {
@@ -221,13 +238,12 @@ impl Viewer {
             if body.body.warp.is_some() {
                 return Err("艺术字变形尚无原位编辑几何".into());
             }
-            if body
-                .paragraphs
-                .iter()
-                .flat_map(|p| &p.runs)
-                .any(|r| matches!(r.kind, RunKind::Field { .. } | RunKind::Math { .. }))
-            {
-                return Err("动态字段/公式保持原样；请先转换后再编辑".into());
+            if body.paragraphs.iter().flat_map(|p| &p.runs).any(|r| {
+                matches!(r.kind, RunKind::Math { .. })
+                    || (matches!(r.kind, RunKind::Field { .. })
+                        && (r.text.is_empty() || r.text.contains(['\n', '\r', '\u{b}'])))
+            }) {
+                return Err("此文字框包含公式或无法原位编辑的字段".into());
             }
             Ok((target, body))
         })();
@@ -418,7 +434,9 @@ impl Viewer {
     fn inline_hit(&self, p: Point<Pixels>, scale: f32) -> Option<(usize, Affinity)> {
         let i = self.inline.as_ref()?;
         let local = i.geometry(self.canvas_bounds, scale)?.local(p);
-        let (pos, affinity) = i.placed.as_ref()?.layout.hit_affinity(local);
+        let layout = &i.placed.as_ref()?.layout;
+        let (pos, affinity) = layout.hit_affinity(local);
+        let pos = layout.source_position(pos, affinity);
         let at = text::byte_pos(&i.draft.body.text(), (pos.para, pos.ch));
         Some((at, affinity))
     }
@@ -522,9 +540,18 @@ impl Viewer {
             return;
         };
         let value = i.draft.body.text();
-        let a = layout_pos(&value, i.draft.selection.start);
-        let b = layout_pos(&value, i.draft.selection.end);
-        let caret = i.caret_rect(layout_pos(&value, i.draft.cursor()), i.affinity, scale);
+        let a = layout_pos(
+            &p.layout,
+            &value,
+            i.draft.selection.start,
+            Affinity::Downstream,
+        );
+        let b = layout_pos(&p.layout, &value, i.draft.selection.end, Affinity::Upstream);
+        let caret = i.caret_rect(
+            layout_pos(&p.layout, &value, i.draft.cursor(), i.affinity),
+            i.affinity,
+            scale,
+        );
         let focused = self.focus.is_focused(w);
         if let Some(caret) = caret.filter(|_| focused) {
             let target = geo.bounds(caret);
@@ -550,8 +577,8 @@ impl Viewer {
                 geo.paint(caret, rgb(0x176fca), w);
             }
             if let Some(marked) = &i.draft.marked {
-                let a = layout_pos(&value, marked.start);
-                let b = layout_pos(&value, marked.end);
+                let a = layout_pos(&p.layout, &value, marked.start, Affinity::Downstream);
+                let b = layout_pos(&p.layout, &value, marked.end, Affinity::Upstream);
                 for (x0, x1, y) in p.layout.composition_underlines(a, b) {
                     let rect = joydeck_geom::Rect::new(x0, y, x1, y + 1. / f64::from(scale));
                     geo.paint(rect, rgb(0x176fca), w);
@@ -1161,12 +1188,14 @@ impl EntityInputHandler for Viewer {
         let i = self.inline.as_ref()?;
         let p = i.placed.as_ref()?;
         let value = i.draft.body.text();
-        let r = text::utf16_range(&value, r)?;
+        let r = i
+            .draft
+            .editable_range(&value, text::utf16_range(&value, r)?);
         let scale = self.scale(w);
         let geo = i.geometry(canvas, scale)?;
-        let start = layout_pos(&value, text::snap(&value, r.start));
+        let start = layout_pos(&p.layout, &value, r.start, Affinity::Downstream);
         if !r.is_empty() {
-            let end = layout_pos(&value, text::ceil_grapheme(&value, r.end));
+            let end = layout_pos(&p.layout, &value, r.end, Affinity::Upstream);
             if let Some(line) = p
                 .layout
                 .line_index(start, Affinity::Downstream)
@@ -1217,8 +1246,9 @@ impl EntityInputHandler for Viewer {
         if r.is_empty() {
             return Vec::new();
         }
-        let start = layout_pos(&value, text::snap(&value, r.start));
-        let end = layout_pos(&value, text::ceil_grapheme(&value, r.end));
+        let r = i.draft.editable_range(&value, r);
+        let start = layout_pos(&placed.layout, &value, r.start, Affinity::Downstream);
+        let end = layout_pos(&placed.layout, &value, r.end, Affinity::Upstream);
         placed
             .layout
             .selection_rects(start, end)
@@ -1239,7 +1269,8 @@ impl EntityInputHandler for Viewer {
         if !canvas.contains(&p) || !layout.bounds().contains(local) {
             return None;
         }
-        let pos = layout.hit(local);
+        let (pos, affinity) = layout.hit_affinity(local);
+        let pos = layout.source_position(pos, affinity);
         let value = i.draft.body.text();
         let at = text::byte_pos(&value, (pos.para, pos.ch));
         Some(text::to_utf16(&value, at..at).start)

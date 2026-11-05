@@ -142,14 +142,14 @@ handout.placeholders,action,Handout Placeholders,crates/engine/src/cmd/design.rs
 insert.actionButton,action,Action Buttons,crates/engine/src/cmd/insert.rs,152,R5,待分类,待验证,,
 insert.audio,action,Audio from File…,crates/engine/src/cmd/insert.rs,92,R5,待分类,待验证,,
 insert.chart,action,Chart…,crates/engine/src/cmd/insert.rs,83,R5,待分类,待验证,,
-insert.dateTime,action,Date & Time,crates/engine/src/cmd/insert.rs,96,R5,待分类,待验证,,
+insert.dateTime,action,Date & Time,crates/engine/src/cmd/insert.rs,96,R5,已接入文本框内动态日期和时间；固定日期及整份页脚开放,macOS 短日期实屏、撤销和两种格式另存；13 种格式自动测试,插入 / 字段 / 日期和时间,docs/joydeck/evidence/R3-TEXT-FIELDS/README.md
 insert.hyperlink,action,Link,crates/engine/src/cmd/insert.rs,115,R5,已接入既有文字选区的网页、邮件与页内链接，支持编辑、移除与屏幕提示,macOS 桌面与两种格式独立读回；页序变化及放映跳转通过,插入 / 链接；Cmd/Ctrl+K,docs/joydeck/evidence/R3-TEXT-LINKS/README.md
 insert.icon,action,Icons,crates/engine/src/cmd/insert.rs,43,R5,待分类,待验证,,
 insert.icons,query,Icon Gallery,crates/engine/src/cmd/insert.rs,52,R5,待分类,待验证,,
 insert.photoAlbum,action,Photo Album…,crates/engine/src/cmd/insert.rs,64,R5,待分类,待验证,,
 insert.photoAlbumEdit,action,Edit Photo Album…,crates/engine/src/cmd/insert.rs,73,R5,待分类,待验证,,
 insert.picture,action,Picture from File…,crates/engine/src/cmd/insert.rs,55,R5,基础插入已接入；完整上游图库与交互未验收,CLI/公开格式独立读取通过；桌面子集见记录；完整命令待覆盖,插入 / 原生图片选择,docs/joydeck/evidence/R8/README.md; docs/joydeck/UI-PARITY.md
-insert.slideNumber,action,Slide Number,crates/engine/src/cmd/insert.rs,95,R5,待分类,待验证,,
+insert.slideNumber,action,Slide Number,crates/engine/src/cmd/insert.rs,95,R5,已接入文本框内动态幻灯片编号；应用到全部页面开放,macOS 实屏插入、光标及重排后页码；PPTX 独立 XML 验证,插入 / 字段 / 幻灯片编号,docs/joydeck/evidence/R3-TEXT-FIELDS/README.md
 insert.smartArt,action,SmartArt,crates/engine/src/cmd/insert.rs,143,R5,待分类,待验证,,
 insert.symbol,action,Symbol,crates/engine/src/cmd/insert.rs,105,R5,待分类,待验证,,
 insert.table,action,Table…,crates/engine/src/cmd/insert.rs,82,R5,基础插入已接入；完整上游图库与交互未验收,待验证,插入 / 原生图片选择,docs/joydeck/evidence/R8/README.md; docs/joydeck/UI-PARITY.md

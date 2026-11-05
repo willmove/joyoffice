@@ -96,6 +96,8 @@ mod selection_format;
 mod slideshow;
 #[path = "table_ui.rs"]
 mod table_ui;
+#[path = "text_field_ui.rs"]
+mod text_field_ui;
 #[path = "text_layout_ui.rs"]
 mod text_layout_ui;
 #[path = "text_link_ui.rs"]

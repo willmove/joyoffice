@@ -793,27 +793,29 @@
       "source_path": "crates/text/src/layout.rs",
       "source_sha256": "f7e5603ebd9908f0e769373d1e67c26a219162bdefeb49b31e9fe0e310bde0de",
       "target_path": "crates/joydeck-text/src/layout.rs",
-      "adapted_sha256": "978dec8ad1920b1ea013222ec1eb4bdd95b90cf8cf93e39474659e506e2892f7",
+      "adapted_sha256": "b0c2457def780c86c146e2cc450bbc5363f0b05f67e1bec354884ffb7f4815e5",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
         "Preserve invisible whitespace while reporting missing visible glyphs"
-      ]
+      ],
+      "dynamic_text_fields": "Support atomic dynamic text fields, native authoring, and separate rendered/source offsets."
     },
     {
       "source_path": "crates/text/src/lib.rs",
       "source_sha256": "6f6f1a44aac8f2bbd6c2251b323a06833b8f055e0fdd1933b103e49d29ee27b5",
       "target_path": "crates/joydeck-text/src/lib.rs",
-      "adapted_sha256": "8c09c0c656b24868d93ff44f1d58cf6d2764d473213c68a642773b2fb27e220b",
+      "adapted_sha256": "205e8598a4d98daeffa58b6db547599bf170a9f812eaa74508c60e299590fe2a",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
         "Use the text layout transform for rotated and vertical editing, hit testing and caret visibility"
-      ]
+      ],
+      "dynamic_text_fields": "Support atomic dynamic text fields, native authoring, and separate rendered/source offsets."
     },
     {
       "source_path": "crates/text/src/run.rs",
@@ -831,25 +833,27 @@
       "source_path": "crates/text/src/shape.rs",
       "source_sha256": "bcf5387e01f74c46a213f193e071416a2bfb45362d03dc87d2d30e13e3a0a5c4",
       "target_path": "crates/joydeck-text/src/shape.rs",
-      "adapted_sha256": "902892d263880a7c6f5e261b1a1b6c163bc855ac3f8a5ed5cdc293593b8d5b81",
+      "adapted_sha256": "da22e6ea1d7708661c0f748e595e6fb68e65c0cdf3ea76d84de3d4b57da27d35",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
-      ]
+      ],
+      "dynamic_text_fields": "Support atomic dynamic text fields, native authoring, and separate rendered/source offsets."
     },
     {
       "source_path": "crates/text/src/style.rs",
       "source_sha256": "70acfdd0669a06539701d0081cf7194d51df8bbdc4aad93564d3578d2539a579",
       "target_path": "crates/joydeck-text/src/style.rs",
-      "adapted_sha256": "fb45b7bf700a95a3d7fd88ffc9159f8cd81d0201b5f9d621b1af5c9ed8fcb9da",
+      "adapted_sha256": "230e562af94848a045dad04698f70e76f90cd7f26005acf6e2314c03a50a392c",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
-      ]
+      ],
+      "dynamic_text_fields": "Support atomic dynamic text fields, native authoring, and separate rendered/source offsets."
     },
     {
       "source_path": "crates/text/src/symbol.rs",
@@ -1413,13 +1417,14 @@
       "source_path": "crates/render/src/tests.rs",
       "source_sha256": "597d0d476a1c774f659cff05c2ac10ea35a55d10f2d3e51582a0110b8b304535",
       "target_path": "crates/joydeck-render/src/tests.rs",
-      "adapted_sha256": "a621053e7c2f038ae491897a3148f1ea0398961178848b7865fce063cb50287c",
+      "adapted_sha256": "143aead23b6c22f8db9613b9a995993fb25e1b816bdbfa3d4f473dddff48c552",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
-      ]
+      ],
+      "dynamic_text_fields": "Support atomic dynamic text fields, native authoring, and separate rendered/source offsets."
     },
     {
       "source_path": "crates/render/src/tests_wild.rs",
@@ -1789,13 +1794,14 @@
       "source_path": "crates/pptx/src/write/dml.rs",
       "source_sha256": "eafa305488e0835c0527442229b658aab38d407f1d5f90eabf5ef341a372d683",
       "target_path": "crates/joydeck-pptx/src/write/dml.rs",
-      "adapted_sha256": "8006a9c83e44d95042a82ef45eb19c3cd1f2e80af4127e3550af9202e8de38a3",
+      "adapted_sha256": "f5c85130409a95c6d939896cdd8c5be3566b6f61e1da2f8328b9999cf71dcf24",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
-      ]
+      ],
+      "dynamic_text_fields": "Support atomic dynamic text fields, native authoring, and separate rendered/source offsets."
     },
     {
       "source_path": "crates/pptx/src/write/shapes.rs",
@@ -1837,14 +1843,15 @@
       "source_path": "crates/pptx/src/write.rs",
       "source_sha256": "ca721cabd36b0853a69a1f2e69cf02211100fe1b4f499ced1c066a3321a92e65",
       "target_path": "crates/joydeck-pptx/src/write.rs",
-      "adapted_sha256": "c921ff73b86d1c3bff23693804c77f1b09d247f62ba542e127a2f10b1f47c00a",
+      "adapted_sha256": "f2cecab87583e89da0bf07086a27478c905a908a7d63062fda2e9861420f9468",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
         "R4/R5 scene/content/workbook/font-revision adaptation, exact JoyOffice dependency reuse"
-      ]
+      ],
+      "dynamic_text_fields": "Support atomic dynamic text fields, native authoring, and separate rendered/source offsets."
     },
     {
       "source_path": "crates/pptx/src/xml.rs",
@@ -2279,7 +2286,7 @@
       "source_path": "crates/ui-egui/src/theme.rs",
       "source_sha256": "d8d6f55195ac5b0c22d49ec313b716fcfab6cb2c08b3c15445b1ed1fcbe97c6a",
       "target_path": "crates/joydeck-ui-gpui/src/chrome.rs",
-      "adapted_sha256": "467e8fe26422e6f78977cdd53260b9a18a1e9a0ab07ce6d988a33d4fdec0acb4",
+      "adapted_sha256": "84dce319b5beecbcd96bb9d8942a1ccf7a1f77beb341e25d75a15991ed714dc8",
       "changes": [
         "R8: adapt typed media references / object ID and resource remapping / layout and theme tokens to pure engine or GPUI Kit; no egui dependency",
         "rustfmt; bounded transactions, errors and clipboard serialization; original MIT attribution retained",
@@ -2288,13 +2295,14 @@
       ],
       "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained.",
       "text_box_layout": "Expose native text-box layout controls on the contextual formatting ribbon.",
-      "text_hyperlinks": "Expose the native text-link editor and removal in the Insert ribbon."
+      "text_hyperlinks": "Expose the native text-link editor and removal in the Insert ribbon.",
+      "dynamic_text_fields": "Support atomic dynamic text fields, native authoring, and separate rendered/source offsets."
     },
     {
       "source_path": "crates/ui-egui/src/ribbon.rs",
       "source_sha256": "036692f8a885af7b61dfcd7e065f371f46c7db67854c0df9d205c91f35d9049a",
       "target_path": "crates/joydeck-ui-gpui/src/chrome.rs",
-      "adapted_sha256": "467e8fe26422e6f78977cdd53260b9a18a1e9a0ab07ce6d988a33d4fdec0acb4",
+      "adapted_sha256": "84dce319b5beecbcd96bb9d8942a1ccf7a1f77beb341e25d75a15991ed714dc8",
       "changes": [
         "R8: adapt typed media references / object ID and resource remapping / layout and theme tokens to pure engine or GPUI Kit; no egui dependency",
         "rustfmt; bounded transactions, errors and clipboard serialization; original MIT attribution retained",
@@ -2303,13 +2311,14 @@
       ],
       "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained.",
       "text_box_layout": "Expose native text-box layout controls on the contextual formatting ribbon.",
-      "text_hyperlinks": "Expose the native text-link editor and removal in the Insert ribbon."
+      "text_hyperlinks": "Expose the native text-link editor and removal in the Insert ribbon.",
+      "dynamic_text_fields": "Support atomic dynamic text fields, native authoring, and separate rendered/source offsets."
     },
     {
       "source_path": "crates/ui-egui/src/widgets.rs",
       "source_sha256": "d62cc3cce0436f1118c6486f52c5d90175aeaa79751602a89dbf01aa8d233bf9",
       "target_path": "crates/joydeck-ui-gpui/src/chrome.rs",
-      "adapted_sha256": "467e8fe26422e6f78977cdd53260b9a18a1e9a0ab07ce6d988a33d4fdec0acb4",
+      "adapted_sha256": "84dce319b5beecbcd96bb9d8942a1ccf7a1f77beb341e25d75a15991ed714dc8",
       "changes": [
         "R8: adapt typed media references / object ID and resource remapping / layout and theme tokens to pure engine or GPUI Kit; no egui dependency",
         "rustfmt; bounded transactions, errors and clipboard serialization; original MIT attribution retained",
@@ -2318,7 +2327,8 @@
       ],
       "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained.",
       "text_box_layout": "Expose native text-box layout controls on the contextual formatting ribbon.",
-      "text_hyperlinks": "Expose the native text-link editor and removal in the Insert ribbon."
+      "text_hyperlinks": "Expose the native text-link editor and removal in the Insert ribbon.",
+      "dynamic_text_fields": "Support atomic dynamic text fields, native authoring, and separate rendered/source offsets."
     }
   ]
 }

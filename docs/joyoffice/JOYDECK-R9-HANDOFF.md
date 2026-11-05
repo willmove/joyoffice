@@ -93,7 +93,7 @@ Word CI 还暴露出原基线也存在的两份独立实验锁漂移，已仅补
 | R2 编辑器开发包 | JD-209 已在整合保存发布和编辑改动的 macOS ARM64 Release 包上验证。真实窗口和独立 CLI 均复验保存重开与强制终止恢复，原件散列保持。[证据](../joydeck/evidence/R2-EDITOR-PACKAGE/README.md) |
 | 共用文字排版 | JD-300 已用 macOS Release 复验混排、字段、链接和组合缩放。编辑、静态画布与 PDF 使用同一排版数据。JD-301 已复验文件字体变化、face 冲突与实际替代。JD-302 已实测旋转／竖排原位输入、滚动和 PPTX 另存。JD-303 已实测 Unicode 范围与 macOS 拼音候选。JD-304 已实测简体拼音与 ABC 重音组合的提交、取消、切页、失焦及恢复。[排版](../joydeck/evidence/R3-SHARED-LAYOUT/README.md) · [字体环境](../joydeck/evidence/R3-FONT-ENVIRONMENT/README.md) · [原位编辑](../joydeck/evidence/R3-TRANSFORMED-TEXT/README.md) · [原生输入](../joydeck/evidence/R3-NATIVE-UNICODE/README.md) · [组合生命周期](../joydeck/evidence/R3-IME-LIFECYCLE/README.md) |
 | 旧偏好、最近文件、比较接受/图片依赖、完整设计与审阅 | 新增有界最近文件、原创模板、基础比较接受、旧批注／回复／解决／媒体／链接／放映配置迁移及审阅 GUI；完整设计／母版／偏好与复杂内容仍缺，不能沿用旧 done |
-| 文字框布局与链接 | JD-305 已接入文字方向、分栏、对齐、边距、换行与溢出缩小，以及已有文字的网页、邮件和页内链接编辑。已核对的入口见命令矩阵。动态字段、插入带链接的显示文字及其余字符／段落命令继续开放。[布局验收](../joydeck/evidence/R3-TEXT-LAYOUT/README.md) · [文字链接验收](../joydeck/evidence/R3-TEXT-LINKS/README.md) |
+| 文字框布局、链接与字段 | JD-305 已接入文字方向、分栏、对齐、边距、换行、溢出缩小、已有文字链接及文本框内动态编号和日期／时间。已核对的入口见命令矩阵。固定日期、整份页脚、插入带链接的显示文字及其余字符／段落命令继续开放。[布局验收](../joydeck/evidence/R3-TEXT-LAYOUT/README.md) · [文字链接验收](../joydeck/evidence/R3-TEXT-LINKS/README.md) · [动态字段验收](../joydeck/evidence/R3-TEXT-FIELDS/README.md) |
 
 使用机器接口时先查询能力，不只看 envelope 字符串。新旧未覆盖功能属于实际产品差距，不是仅等待硬件验收。完整“旧功能无回退”验收（JD-906）仍开放，不能因导入和构建成功而关闭。
 

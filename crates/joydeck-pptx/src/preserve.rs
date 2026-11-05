@@ -11,6 +11,8 @@ use std::{
 };
 #[path = "preserve_content.rs"]
 mod content;
+#[path = "preserve_fields.rs"]
+mod fields;
 #[path = "preserve_links.rs"]
 mod links;
 pub struct SlideBinding {
@@ -195,6 +197,7 @@ fn patch_text(
     before: Option<&TextBody>,
     after: Option<&TextBody>,
     relationships: &mut links::Relationships<'_>,
+    field_ids: &mut fields::Ids<'_>,
 ) -> Result<(), PptxError> {
     if patch_text_layout(source, generated, before, after)? {
         return Ok(());
@@ -215,6 +218,22 @@ fn patch_text(
         }
         return Ok(());
     }
+    if let (Some(before), Some(after)) = (before, after)
+        && fields::patch(source, generated, before, after, field_ids)?
+    {
+        if before.body != after.body {
+            let layout = TextBody {
+                body: after.body.clone(),
+                ..before.clone()
+            };
+            if !patch_text_layout(source, generated, Some(before), Some(&layout))? {
+                return Err(error(
+                    "field text layout cannot be preserved; save .joydeck instead",
+                ));
+            }
+        }
+        return Ok(());
+    }
     let replacement = generated.child("txBody").cloned();
     if [source.child("txBody"), replacement.as_ref()]
         .into_iter()
@@ -224,6 +243,10 @@ fn patch_text(
         return Err(error(
             "combined linked text and content changes require .joydeck Save As",
         ));
+    }
+    let mut replacement = replacement;
+    if let Some(body) = &mut replacement {
+        field_ids.reassign_tree(body);
     }
     replace(source, "txBody", replacement);
     Ok(())
@@ -584,6 +607,7 @@ pub fn export_preserving(
             );
         }
         let mut added_rels = vec![];
+        let mut field_ids = fields::Ids::new(&root, part);
         let source_relationships = pkg.rels(source_part);
         let generated_relationships = gen_pkg.rels(&generated_part);
         let occupied = pkg
@@ -677,6 +701,7 @@ pub fn export_preserving(
                         old.text.as_ref(),
                         shape.text.as_ref(),
                         &mut link_relationships,
+                        &mut field_ids,
                     )?;
                 }
                 if let (
@@ -762,6 +787,7 @@ pub fn export_preserving(
                                         Some(&a.text),
                                         Some(&b.text),
                                         &mut link_relationships,
+                                        &mut field_ids,
                                     )?;
                                 }
                                 if a.fill != b.fill
@@ -856,6 +882,7 @@ pub fn export_preserving(
                                 &generated_relationships,
                                 &generated_slides,
                             )?;
+                            field_ids.reassign_tree(&mut row);
                             source.children.push(Node::El(row));
                         }
                     }
@@ -868,6 +895,7 @@ pub fn export_preserving(
                     &generated_relationships,
                     &generated_slides,
                 )?;
+                field_ids.reassign_tree(&mut e);
                 e
             };
             // Generated shapes only reference existing theme or explicit colors; R2 inserts no new media.
@@ -898,6 +926,9 @@ pub fn export_preserving(
         )
         .ok_or_else(|| error("missing shape tree"))?;
         target.children = nodes;
+        if !existing {
+            field_ids.reassign_tree(&mut root);
+        }
         parts.insert(part.clone(), root.to_xml().into_bytes());
         if !existing {
             let mut slide_rels = relationship_root(&pkg, source_part)?;

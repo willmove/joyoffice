@@ -87,6 +87,7 @@ pub struct Exp<'a> {
 pub struct Out {
     pub name: String,
     pub rels: RelsOut,
+    field_seq: usize,
 }
 
 impl Out {
@@ -94,7 +95,13 @@ impl Out {
         Out {
             name: name.to_string(),
             rels: RelsOut::default(),
+            field_seq: 0,
         }
+    }
+
+    fn next_field_id(&mut self) -> String {
+        self.field_seq += 1;
+        crate::tables::guid(&format!("{}:field:{}", self.name, self.field_seq))
     }
 }
 
