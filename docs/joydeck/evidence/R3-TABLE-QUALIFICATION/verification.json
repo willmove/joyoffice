@@ -1,0 +1,77 @@
+{
+  "environment": {
+    "os": "macOS 27.2",
+    "hardware": "Apple M4",
+    "target": "aarch64-apple-darwin",
+    "displayScale": 1
+  },
+  "package": {
+    "archive": "joydeck-0.8.0-r3-text-fields.zip",
+    "sha256": "2c41798e2fa1081aa84af078b3bbfd7c45a6468fc602782ceb7a41f3711d1650",
+    "sourceSha256": "ea79505ec7a5d5766da6ccbeb8f073d0cd55e902b1757c503c58df28c6df8bd5",
+    "profile": "release",
+    "payloadFilesVerified": 1805
+  },
+  "product": {
+    "passed": 919,
+    "failed": 0,
+    "ignored": 0
+  },
+  "cliRegressions": {
+    "r1": 28,
+    "r2": 20,
+    "r3": 20,
+    "r4-r5": 23
+  },
+  "commandRegistry": {
+    "upstreamIds": 329,
+    "inventorySha256": "1b447a21c83c179c78c309e1b9be2534cb94db3255d67d2364401c06f4b109ac"
+  },
+  "desktop": {
+    "binarySha256": "222e20e47065c1dc2f2bfa51b36fb05e905f3f9ac2e82c420059d3d6be462eee",
+    "cliSha256": "96d1f19021f5eb850e8644d3ed0a0f49f3ec6e9bed5a2d9446d74feb8b31f7b6",
+    "checks": [
+      {
+        "check": "Invalid table size leaves history untouched; native Ribbon adds one 3×3 table",
+        "revisions": [
+          0,
+          1
+        ]
+      },
+      {
+        "check": "Row and column insertion and deletion each commit a single history entry",
+        "revision": 5
+      },
+      {
+        "check": "Actual Shift+click selects a rectangular range and merges it",
+        "revision": 6
+      },
+      {
+        "check": "Real system Pinyin is one edit; Tab skips the merged-covered cell and Shift+Tab returns to the anchor",
+        "revision": 9
+      },
+      {
+        "check": "Split/Undo/Redo preserve cell text; range shading and table style affect the intended cells",
+        "revision": 14
+      },
+      {
+        "check": "Both formats reopen in the packaged CLI; independent public PPTX verifies table text, shading and untouched source slide"
+      }
+    ],
+    "screenshots": {
+      "01-invalid-table-size.png": "5a33dab071d258714a99bc5e25c7cca1be0fead7464ef85315eaf03dc688d3e4",
+      "02-row-column-history.png": "5507a054fd3bde717d83153898fd7e4391ea5e4240f95ded01b1090fbe1aef1e",
+      "03-pointer-range.png": "1e8d374462ae2818acde5369bd6e3e06dfc098d46fc850f6f91b153d9b083de0",
+      "04-merged.png": "4d53b63a9b30e6289ab7dbec4e8315f35f787d481662503848f2f633ff918bbd",
+      "05-native-pinyin-candidate.png": "86347c07a7178bcebc826d5c9a53aebfca9d6d01953c72ce040cbcf7eaf0721e",
+      "06-merged-cell-navigation.png": "24f1354c63ac3c30e6ab5254b74bb16c63a1ba4e0651dac3bd400978dcad6114",
+      "07-style-and-fill.png": "25272163a77cb5acd3ddc2e67eedb5cbe3d2b5fc8f6c85518bdb7a44971e3a71",
+      "08-reopened-pptx.png": "7b0ee811a56fd9e3bcd68b3a1d370df0e37b39a0c6f9abcce782430c5b4d2bf5",
+      "09-reopened-native.png": "3ebf5c5d4771b1e48dcaae74bab77f6cc662cebcaca5c180e6581d0f74aa5ce7"
+    },
+    "fixtureSha256": "5e4984491efcade24073802e2a95060f32ba0414b50b70a158242e4e875b820f",
+    "nativeSha256": "3654defde9443b0881dd8cae42c24554d305b33f425244b6a93a7d5767959e69",
+    "pptxSha256": "89a422a6d054b58dc9c7afca5aa7b6b08af887d9b72aed0b6a93da14322a95fb",
+    "passed": true
+  }
+}

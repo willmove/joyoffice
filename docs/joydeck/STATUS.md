@@ -1,5 +1,7 @@
 # JoyDeck 当前状态
 
+2026-11-05 完成 JD-306。macOS Release 实测插入表格、行列增删、合并与拆分、矩形选区、样式和底色。系统拼音单次提交，Tab 跳过覆盖格，Shift+Tab 返回合并锚格。另存两种格式后从独立桌面进程重开，包内 CLI 与公开 PPTX 独立读取一致。[表格验收](evidence/R3-TABLE-QUALIFICATION/README.md)
+
 2026-11-05 推进 JD-305。「插入」支持在文本框内新增动态幻灯片编号和日期／时间字段。macOS Release 实测字段整体移动、删除与撤销、两种格式另存，以及重排后页码更新。PPTX 保留保存维持已有字段原始 XML 与 ID。JoyDeck 产品检查 919 项通过，JD-305 继续开放。[动态字段证据](evidence/R3-TEXT-FIELDS/README.md)
 
 2026-11-05 推进 JD-305。文字选区可新增、编辑和移除网页、邮件与页内链接。PPTX 保留保存维持原有字符样式、其他链接和未知扩展。macOS Release 实测放映点击从第 1 页直接跳至第 3 页，页序改变后的目标也有自动回归。JD-305 继续开放。[文字链接证据](evidence/R3-TEXT-LINKS/README.md)
