@@ -985,10 +985,11 @@ impl EntityInputHandler for Viewer {
         _: &mut Window,
         _: &mut Context<Self>,
     ) -> Option<String> {
+        *actual = None;
         let t = self.inline.as_ref()?.draft.body.text();
-        let r = text::utf16_range(&t, r)?;
-        *actual = Some(text::to_utf16(&t, r.clone()));
-        Some(t[r].into())
+        let bytes = text::utf16_range(&t, r.clone())?;
+        *actual = Some(r);
+        Some(t[bytes].into())
     }
     fn selected_text_range(
         &mut self,
@@ -1004,10 +1005,10 @@ impl EntityInputHandler for Viewer {
     }
     fn set_selected_text_range(&mut self, r: Range<usize>, w: &mut Window, cx: &mut Context<Self>) {
         if let Some(i) = &mut self.inline
-            && let Some(r) = text::utf16_range(&i.draft.body.text(), r)
+            && i.draft.select_utf16(r).is_ok()
         {
-            i.draft.selection = r;
-            i.draft.reversed = false;
+            i.affinity = Affinity::Downstream;
+            i.desired_inline_x = None;
             w.notify_text_selection_changed(&self.focus);
             cx.notify();
         }
@@ -1031,9 +1032,10 @@ impl EntityInputHandler for Viewer {
         ))
     }
     fn unmark_text(&mut self, w: &mut Window, cx: &mut Context<Self>) {
-        if let Some(i) = &mut self.inline {
-            i.draft.settle();
-        }
+        let Some(i) = self.inline.as_mut().filter(|i| i.draft.marked.is_some()) else {
+            return;
+        };
+        i.draft.settle();
         self.publish_inline(w, cx);
         w.notify_text_input_changed(&self.focus);
     }
@@ -1054,12 +1056,25 @@ impl EntityInputHandler for Viewer {
         w: &mut Window,
         cx: &mut Context<Self>,
     ) {
+        let r = if cfg!(target_os = "macos")
+            && let Some(relative) = r.as_ref()
+            && let Some(i) = &self.inline
+        {
+            let Some(absolute) = i.draft.marked_relative_range(relative.clone()) else {
+                self.message = "输入法替换范围超出文稿".into();
+                cx.notify();
+                return;
+            };
+            Some(absolute)
+        } else {
+            r
+        };
         self.input_replace(r, s, true, selected, w, cx);
     }
     fn bounds_for_range(
         &mut self,
         r: Range<usize>,
-        _: Bounds<Pixels>,
+        canvas: Bounds<Pixels>,
         w: &mut Window,
         _: &mut Context<Self>,
     ) -> Option<Bounds<Pixels>> {
@@ -1068,13 +1083,29 @@ impl EntityInputHandler for Viewer {
         let value = i.draft.body.text();
         let r = text::utf16_range(&value, r)?;
         let scale = self.scale(w);
-        let geo = i.geometry(self.canvas_bounds, scale)?;
-        let start = layout_pos(&value, r.start);
-        let end = layout_pos(&value, r.end);
-        if start != end
-            && let Some(first) = p.layout.selection_rects(start, end).first()
-        {
-            return Some(geo.bounds(*first));
+        let geo = i.geometry(canvas, scale)?;
+        let start = layout_pos(&value, text::snap(&value, r.start));
+        if !r.is_empty() {
+            let end = layout_pos(&value, text::ceil_grapheme(&value, r.end));
+            if let Some(line) = p
+                .layout
+                .line_index(start, Affinity::Downstream)
+                .and_then(|line| p.layout.lines.get(line))
+            {
+                let to = if end.para == line.para {
+                    end.ch
+                } else {
+                    line.end
+                };
+                if let Some((x0, x1)) = line.span(start.ch, to) {
+                    return Some(geo.bounds(joydeck_geom::Rect::new(
+                        x0,
+                        line.top,
+                        x1,
+                        line.bottom,
+                    )));
+                }
+            }
         }
         let affinity = if r.start == i.draft.cursor() {
             i.affinity
@@ -1083,13 +1114,54 @@ impl EntityInputHandler for Viewer {
         };
         Some(geo.bounds(i.caret_rect(start, affinity, scale)?))
     }
+    fn selection_bounds_for_range(
+        &mut self,
+        r: Range<usize>,
+        canvas: Bounds<Pixels>,
+        w: &mut Window,
+        _: &mut Context<Self>,
+    ) -> Vec<Bounds<Pixels>> {
+        let Some(i) = &self.inline else {
+            return Vec::new();
+        };
+        let Some(placed) = &i.placed else {
+            return Vec::new();
+        };
+        let Some(geo) = i.geometry(canvas, self.scale(w)) else {
+            return Vec::new();
+        };
+        let value = i.draft.body.text();
+        let Some(r) = text::utf16_range(&value, r) else {
+            return Vec::new();
+        };
+        if r.is_empty() {
+            return Vec::new();
+        }
+        let start = layout_pos(&value, text::snap(&value, r.start));
+        let end = layout_pos(&value, text::ceil_grapheme(&value, r.end));
+        placed
+            .layout
+            .selection_rects(start, end)
+            .into_iter()
+            .map(|rect| geo.bounds(rect))
+            .collect()
+    }
     fn character_index_for_point(
         &mut self,
         p: Point<Pixels>,
         w: &mut Window,
         _: &mut Context<Self>,
     ) -> Option<usize> {
-        let (at, _) = self.inline_hit(p, self.scale(w))?;
-        Some(text::to_utf16(&self.inline.as_ref()?.draft.body.text(), at..at).start)
+        let i = self.inline.as_ref()?;
+        let canvas = self.canvas_bounds.intersect(&self.page_scroll.bounds());
+        let layout = &i.placed.as_ref()?.layout;
+        let local = i.geometry(self.canvas_bounds, self.scale(w))?.local(p);
+        if !canvas.contains(&p) || !layout.bounds().contains(local) {
+            return None;
+        }
+        let pos = layout.hit(local);
+        let value = i.draft.body.text();
+        let at = text::byte_pos(&value, (pos.para, pos.ch));
+        Some(text::to_utf16(&value, at..at).start)
     }
 }

@@ -180,8 +180,9 @@
     "target_path": "crates/joydeck-engine/src/text.rs",
     "source_sha256": "0f5c0c5ba05a35a5f064271e1c3efd1bdf7afb959a8634b865206d9f1ed13de3",
     "local_changes": "Extract checked UTF-16/grapheme helpers; adapt composition draft to DeckCraft TextBody/edit; preserve rich runs/paragraphs, bounded drafts, no IO.",
-    "adapted_sha256": "cc4d3266b629ad6871c04f5808e5ba9ffad981d3d53011582533fe3debc003ca",
-    "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained."
+    "adapted_sha256": "9f6ebfbb36eba0701e8156ab9a63901d6a74177e13d5187c44bb24acee7f9603",
+    "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained.",
+    "native_text_ranges": "Protect committed graphemes, normalize native composition offsets and project input range geometry."
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
@@ -189,7 +190,7 @@
     "target_path": "crates/joydeck-ui-gpui/src/inline_text.rs",
     "source_sha256": "e6caa4311e30aaa39f91b1da6d328e8bba46ae9afcf4a890e44e43278e5ef4f4",
     "local_changes": "Adapt EntityInputHandler, selection/clipboard/composition routing to new pure engine; consume shared CPU text/table layout for all geometry; add bounded text metadata/TSV and notes Textarea flow from apps/joydeck/src/chrome.rs.; R8 native editor, clipboard or product package version adaptation; R9-UI1 native formatting controls and schema-2 validation/history compatibility (see slice evidence)",
-    "adapted_sha256": "e6080feaf2063abc18441e492ade7a12742908f733f466d49c3f63bad38dcef1",
+    "adapted_sha256": "aadf023940d36fc6a4ca71d25ca4f5728f6619e0ab8d85aae448c77e6d3cfc39",
     "additional_sources": [
       {
         "source_path": "apps/joydeck/src/chrome.rs",
@@ -200,7 +201,8 @@
     "r9_ui2_gui_fix": "Keep inline formatting scoped to the edited object; Ctrl+Enter commits; double-click selection and drag threshold.",
     "shared_document_view": "Separate window selection and state from the shared editor session and preserve revision guards.",
     "font_environment": "Refresh font selection, editor geometry and rendering caches when installed font files change.",
-    "transformed_inline_text": "Use the text layout transform for rotated and vertical editing, hit testing and caret visibility"
+    "transformed_inline_text": "Use the text layout transform for rotated and vertical editing, hit testing and caret visibility",
+    "native_text_ranges": "Protect committed graphemes, normalize native composition offsets and project input range geometry."
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",

@@ -44,6 +44,7 @@ impl Viewer {
         };
         if let Ok(pending) = control.receive.try_recv() {
             let previous_selection = self.editor.as_ref().map(|e| e.session.selection().clone());
+            let previous_model = self.editor.as_ref().map(|e| e.session.model_snapshot());
             let composing = self.composing()
                 || self
                     .notes_input
@@ -67,10 +68,12 @@ impl Viewer {
                     pending.request.clone(),
                 )
             };
+            // The viewer can intentionally differ from the engine during inline preedit.
+            // Only an actual engine change can invalidate that draft.
             let changed = self.editor.as_ref().is_some_and(|e| {
-                self.deck
+                previous_model
                     .as_ref()
-                    .is_none_or(|d| &d.presentation != e.session.model())
+                    .is_none_or(|before| !Arc::ptr_eq(before, &e.session.model_snapshot()))
             });
             let selection_changed =
                 previous_selection != self.editor.as_ref().map(|e| e.session.selection().clone());

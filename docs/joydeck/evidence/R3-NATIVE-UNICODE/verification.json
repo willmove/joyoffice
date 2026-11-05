@@ -1,0 +1,82 @@
+{
+  "binarySha256": "46982058b2ba3603fec72dad8657eddd985c6142fb23ae053e216307bd281d50",
+  "cliSha256": "5a18f2e6f6ed9ece4ca27ebb0fdec8e0cafd894a5ecfad4beb5f222cf7263a91",
+  "checks": [
+    "Backspace deleted a non-BMP scalar, forward Delete removed a combining cluster, and a native Unicode paste replaced a complete emoji ZWJ sequence in three edits",
+    "Real macOS Pinyin candidates followed two insertion points, including after zoom, and each composition committed once",
+    "One undo and redo applied the second composition and independent packaged CLI read back both saved shapes"
+  ],
+  "screenshots": {
+    "01-unicode-selection.png": "9569cf1dfd791c13359326fc462e1fb492fda815bd52d5df3873a5145af5fe5c",
+    "02-unicode-replacement.png": "d51b8663e47e3d728631d57f05263c304f9e34f23a955a18deb1a7e46ebedc7b",
+    "03-first-caret.png": "5d72dfa7ca926181a899b86865ea0ae73d4c404d66be2d8ff047cc7960279dfd",
+    "03-first-candidate.png": "d6421647eef4a3a07823fe355cb3173cc8bb92cb95a4ba6732635b0dd8486226",
+    "04-first-commit.png": "71cacd66f64fff8132b79b283d1b5ce475cd3586cc7edcd801d238dda65585e0",
+    "05-second-zoomed-caret.png": "b332bd942802b0874642f3a6226de0a44bec7cc276c0ef4cbd2b3b81adf53214",
+    "05-second-zoomed-candidate.png": "184c836a0d92bad115f1c23ec2823043e8d66411eed743d1c2ea0dbeb5e10214",
+    "06-saved.png": "2672f5cdf3a40129ea114e4fa709d8f518a7ec3865afe7ef5c2c1222d8913ea4"
+  },
+  "candidates": [
+    {
+      "source": "com.apple.inputmethod.SCIM.ITABC",
+      "selectedItemOrigin": [
+        748,
+        452
+      ],
+      "highlightPixels": 590,
+      "screenCaretBottom": [
+        762.49,
+        443
+      ],
+      "offsetFromCaretBottom": [
+        -14.49,
+        9
+      ]
+    },
+    {
+      "source": "com.apple.inputmethod.SCIM.ITABC",
+      "selectedItemOrigin": [
+        1164,
+        716
+      ],
+      "highlightPixels": 617,
+      "screenCaretBottom": [
+        1178.5,
+        705
+      ],
+      "offsetFromCaretBottom": [
+        -14.5,
+        11
+      ]
+    }
+  ],
+  "sourceSha256": "fea97fd6af79e2c74d21ec02202c1d3b2ee2a081e0af2a2d9fc22245e4028b49",
+  "backingScale": 1.0,
+  "savedSha256": "720cb89869ea2cacec11a4c669a48059b85fbb9edbaf4416a399606e897ef841",
+  "passed": true,
+  "productTests": {
+    "passed": 914,
+    "failed": 0,
+    "ignored": 0
+  },
+  "package": {
+    "archive": "joydeck-0.8.0-r3-unicode-final.zip",
+    "archiveSha256": "3e99bbdfd471fa7800ccb41b8860d6ae194764f7a7728dc95473d96cff74d5f6",
+    "sourceSha256": "8680df3129ce63552ac58ce4dae9a60b54e6c506328c8ce2daf5915141962dae",
+    "target": "aarch64-apple-darwin",
+    "profile": "release",
+    "verifiedPayloadFiles": 1805
+  },
+  "packagedCliChecks": {
+    "R1": 28,
+    "registry": 329,
+    "R2": 20,
+    "R3": 20
+  },
+  "nativeControlsWhileMarked": {
+    "requests": 2,
+    "busyReplies": 2,
+    "engineCommitsBeforeSelection": 0,
+    "commitsAfterEachSelection": 1
+  }
+}

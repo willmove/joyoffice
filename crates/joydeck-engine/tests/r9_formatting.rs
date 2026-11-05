@@ -222,6 +222,70 @@ fn typing_style_survives_composition_cancel_without_changing_existing_text() {
     assert!(d.typing_props.is_none());
 }
 
+#[test]
+fn native_ranges_keep_surrogates_and_committed_graphemes_intact() -> Result<(), String> {
+    use joydeck_engine::text::{to_utf16, utf16_range};
+
+    let initial = "A😀e\u{301}👩‍💻Z";
+    let mut draft = Draft::new(TextBody::from_text(initial));
+    draft.select_utf16(4..5)?;
+    assert_eq!(&initial[draft.selection.clone()], "e\u{301}");
+    assert_eq!(to_utf16(initial, draft.selection.clone()), 3..5);
+    assert_eq!(utf16_range(initial, 1..3).map(|r| &initial[r]), Some("😀"));
+    assert_eq!(
+        utf16_range(initial, 4..5).map(|r| &initial[r]),
+        Some("\u{301}")
+    );
+    assert!(draft.select_utf16(2..2).is_err());
+    assert!(draft.replace(Some(2..3), "", false, None).is_err());
+    assert_eq!(draft.body.text(), initial);
+    assert_eq!(&initial[draft.selection.clone()], "e\u{301}");
+
+    draft.select_utf16(4..4)?;
+    assert_eq!(to_utf16(initial, draft.selection.clone()), 3..3);
+    draft.replace(Some(7..8), "", false, None)?;
+    assert_eq!(draft.body.text(), "A😀e\u{301}Z");
+    draft.replace(Some(4..5), "é", false, None)?;
+    assert_eq!(draft.body.text(), "A😀éZ");
+    Ok(())
+}
+
+#[test]
+fn appkit_mark_ranges_are_relative_and_preserve_preedit_scalar_ranges() -> Result<(), String> {
+    let mut draft = Draft::new(TextBody::from_text("A😀Z"));
+    draft.select_utf16(3..3)?;
+    draft.replace(None, "e\u{301}x", true, Some(1..2))?;
+    let value = draft.body.text();
+    assert_eq!(&value[draft.selection.clone()], "\u{301}");
+    let absolute = draft.marked_relative_range(1..2).ok_or("range overflow")?;
+    assert_eq!(absolute, 4..5);
+    assert!(
+        draft
+            .marked_relative_range(usize::MAX..usize::MAX)
+            .is_none()
+    );
+    draft.replace(Some(absolute), "\u{300}", true, None)?;
+    assert_eq!(draft.body.text(), "A😀e\u{300}xZ");
+    draft.replace(None, "\u{301}", false, None)?;
+    assert_eq!(draft.body.text(), "A😀e\u{301}xZ");
+    assert!(draft.marked.is_none());
+    Ok(())
+}
+
+#[test]
+fn preedit_selection_survives_newline_normalization_and_cancellation() -> Result<(), String> {
+    let mut draft = Draft::new(TextBody::from_text("before"));
+    draft.replace(None, "a\r\n😀", true, Some(3..5))?;
+    let value = draft.body.text();
+    assert_eq!(value, "a\n😀");
+    assert_eq!(&value[draft.selection.clone()], "😀");
+    draft.cancel();
+    assert_eq!(draft.body.text(), "before");
+    assert_eq!(draft.selection, 0..6);
+    assert!(draft.marked.is_none());
+    Ok(())
+}
+
 mod selection_summary {
     use joydeck_engine::formatting::*;
     use joydeck_model::{Run, RunProps, TextBody, text::Align};
