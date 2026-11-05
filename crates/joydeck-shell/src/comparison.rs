@@ -4,7 +4,10 @@ use joydeck_engine::{Command, transfer};
 use joydeck_model::{Presentation, ShapeId};
 use serde::Serialize;
 use sha2::{Digest, Sha256};
-use std::{collections::BTreeSet, path::Path};
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    path::Path,
+};
 
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -26,6 +29,7 @@ pub struct Report {
 pub struct Comparison {
     pub report: Report,
     reference: Document,
+    reference_pages: Vec<usize>,
 }
 pub fn digest(p: &Presentation) -> Result<String, String> {
     let mut hash = Sha256::new();
@@ -46,9 +50,38 @@ impl Comparison {
     }
     pub fn from_model(p: &Presentation, reference: Document) -> Result<Self, String> {
         let q = &reference.presentation;
+        let reference_by_id: BTreeMap<_, _> = q
+            .slides
+            .iter()
+            .enumerate()
+            .map(|(page, slide)| (slide.id, page))
+            .collect();
+        // Only treat the two sequences as a permutation when both contain the
+        // same unique IDs. Otherwise retain positional comparison.
+        let paired: Option<Vec<_>> = p
+            .slides
+            .iter()
+            .map(|slide| reference_by_id.get(&slide.id).copied())
+            .collect();
+        let reference_pages = paired
+            .filter(|pages| {
+                pages.len() == q.slides.len()
+                    && pages.iter().collect::<BTreeSet<_>>().len() == pages.len()
+            })
+            .unwrap_or_else(|| (0..p.slides.len().max(q.slides.len())).collect());
         let mut differences = vec![];
-        for page in 0..p.slides.len().max(q.slides.len()) {
-            let (Some(left), Some(right)) = (p.slides.get(page), q.slides.get(page)) else {
+        if reference_pages.iter().copied().ne(0..reference_pages.len()) {
+            differences.push(Difference {
+                page: 0,
+                object: None,
+                kind: "slide-order",
+                acceptable: false,
+                reason: Some("slide order is report-only".into()),
+            });
+        }
+        for (page, &reference_page) in reference_pages.iter().enumerate() {
+            let (Some(left), Some(right)) = (p.slides.get(page), q.slides.get(reference_page))
+            else {
                 differences.push(Difference {
                     page: page + 1,
                     object: None,
@@ -89,7 +122,7 @@ impl Comparison {
                 let same = a == b
                     && transfer::capture(p, page, &[id])
                         .ok()
-                        .zip(transfer::capture(q, page, &[id]).ok())
+                        .zip(transfer::capture(q, reference_page, &[id]).ok())
                         .is_none_or(|(a, b)| {
                             serde_json::to_vec(&a).ok() == serde_json::to_vec(&b).ok()
                         });
@@ -104,7 +137,7 @@ impl Comparison {
                 let reason = if a.is_some_and(|s| s.locked) {
                     Some("object is locked".into())
                 } else if b.is_some() {
-                    transfer::capture(q, page, &[id]).err()
+                    transfer::capture(q, reference_page, &[id]).err()
                 } else {
                     None
                 };
@@ -155,6 +188,7 @@ impl Comparison {
                 truncated,
             },
             reference,
+            reference_pages,
         })
     }
     pub fn command(
@@ -183,7 +217,7 @@ impl Comparison {
         } else {
             Some(Box::new(transfer::capture(
                 &self.reference.presentation,
-                page - 1,
+                self.reference_pages[page - 1],
                 &[object],
             )?))
         };

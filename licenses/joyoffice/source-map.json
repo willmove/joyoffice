@@ -496,8 +496,9 @@
     "target_path": "crates/joydeck-shell/src/automation.rs",
     "source_sha256": "a7b1f491133a68641318cefc9dac0dd135718d1e03c66361ae1aa974bbe97cd9",
     "local_changes": "Root, revision and replay concepts adapted to new dispatcher, selection revisions, bounded export jobs and snapshots; no old workspace state.; R9 host integration and explicit command schema negotiation; R9-UI1 native formatting controls and schema-2 validation/history compatibility (see slice evidence)",
-    "adapted_sha256": "aba40a72ead38b16c9b00de34de39d9845690722f0c2dc1f3a7c46ae01896636",
-    "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained."
+    "adapted_sha256": "8cbed617269fe2d27845e82d3cf423775ce65ac73ae0b6b67e88f922b863746b",
+    "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained.",
+    "r9_legacy_batch": "Resolve legacy edits against the active session snapshot for validation and commit."
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
@@ -576,9 +577,10 @@
     "source_path": "apps/joydeck/src/chrome.rs",
     "target_path": "crates/joydeck-ui-gpui/src/chrome_nav.rs",
     "source_sha256": "68b6b3800e63f68f65ccab43e81304728295aa7aaa407c3ba4a46408666e6328",
-    "adapted_sha256": "5059fa88e82ee4bd45c621df13e7ec03df3379862b05ff6f5df721a7a4368a9f",
+    "adapted_sha256": "d2410a2281406f6d6c8d535523be8fb81f1883465f8a4d6ee85e160dfc061c85",
     "local_changes": "R8 native Save As prompt and deferred window update pattern adapted to v2 save jobs; own notes/placeholder/navigation implementation",
-    "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained."
+    "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained.",
+    "r9_save_as": "Leave the macOS Save As suggestion extensionless and submit the selected path directly."
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",

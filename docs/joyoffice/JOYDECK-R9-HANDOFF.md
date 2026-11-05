@@ -84,7 +84,7 @@ Word CI 还暴露出原基线也存在的两份独立实验锁漂移，已仅补
 | 旧 document.undo/redo | R9-UI1 恢复同名方法，真实历史/重放/过期修订检查；仍须 target 与顶层 expectedRevision；command.execute 的 undo/redo 同样可用 |
 | 旧 document.export | 新 export.start + jobs.get/cancel；输出只允许新路径。静态 MP4 使用 Windows 或 macOS 本机编码器，macOS ARM64 已从移位 Release 包导出并独立解码。嵌入媒体探测与播放的 macOS 移植继续开放。[本机证据](validation/20261105-macos-video/README.md) |
 | command.validate | R9-UI1 恢复：params 接受 schema 2 或已广告的旧字符串子集；快照执行真实引擎与预算/历史检查，返回 valid/wouldChange/sideEffects=false；不修改活文稿，完整旧 16 领域未实现 |
-| 旧 document.check/compare/acceptObject 等 | R9-UI2 恢复实际兼容报告、按页序比较与双摘要保护的基础对象接受／单步撤销；复杂组／媒体／跨页匹配仍缺 |
+| 旧 document.check/compare/acceptObject 等 | 支持兼容报告、双摘要保护的基础对象接受／单步撤销。相同稳定页 ID 集合重排后按 ID 比较并接受对象；其他情况按页序比较。复杂组／媒体和页 ID 变化后的跨页匹配继续开放。[复验](../joydeck/evidence/R9-FILE-COMPAT/README.md) |
 | 旧桌面远程绑定/多窗口 | CLI/MCP 默认独立 headless；R9-UI2 显式 --control-stdio=AUTHORIZED_ROOT 绑定该窗口唯一 Editor，attachedDesktop=true，限制修订／重放／组合输入／拖动／保存和文稿代次；新窗口独立生命周期。桌面 MCP 分发与完整旧 16 领域仍缺 |
 | 旧偏好、最近文件、比较接受/图片依赖、完整设计与审阅 | 新增有界最近文件、原创模板、基础比较接受、旧批注／回复／解决／媒体／链接／放映配置迁移及审阅 GUI；完整设计／母版／偏好与复杂内容仍缺，不能沿用旧 done |
 
@@ -95,7 +95,7 @@ Word CI 还暴露出原基线也存在的两份独立实验锁漂移，已仅补
 1. **最高优先：继续 UI 与日常编辑对齐。** 用户的 DeckCraft/PowerPoint 完整一致目标仍未实现。按 JD-208、JD-301–308、JD-501–508、JD-804，继续原生字体/颜色选择器、完整 Ribbon/图库/表格控件、旋转与多选、最近文件/模板、多窗口、母版/审阅等。主参照仍为本机 DeckCraft，PowerPoint 辅助核对中文流程。每个切片都构建并实际操作窗口。
 2. **旧功能与自动化缺项：** JD-506、JD-706、JD-906，恢复比较/逐对象接受、原有设计/审阅行为与旧命令契约；先补有语义的回归和能力协商，再接 UI/MCP，不能建立第二个长期可编辑模型。
 3. **渲染与性能：** JD-408、JD-806，固定真实 release 文稿/字体/屏幕条件，记录实际呈现、缓存、RSS/显存与 p95/p99；不能用命令耗时代替显示延迟。
-4. **平台资格：** JD-800–804。macOS ARM64 普通 Metal Release、移位启动、首屏和 PPTX 键鼠编辑往返已验证。PPTX 系统冷启动和运行中打开、文件／编辑菜单、原生打开与另存为面板的取消及确认均有实机证据。继续核对扩展名切换、Linux/ARM、原生 IME、读屏、DPI、设备与多屏。信创真机按条件补验。[原生对话框补验](validation/20261105-macos-desktop/README.md#原生文件对话框)
+4. **平台资格：** JD-800–804。macOS ARM64 普通 Metal Release、移位启动、首屏和 PPTX 键鼠编辑往返已验证。PPTX 系统冷启动和运行中打开、文件／编辑菜单、原生打开与另存为面板的取消及确认均有实机证据。另存扩展名修复已从移位 Release App 实测。继续 Linux/ARM、原生 IME、读屏、DPI、设备与多屏。信创真机按条件补验。[最新复验](../joydeck/evidence/R9-FILE-COMPAT/README.md#实屏复验)
 5. **分发：** JD-807/808，正式安装/关联/升级回退、签名/公证、缺失许可全文与完整 SBOM 再分发审阅。macOS ARM64 开发包按实际 SPDX 索引核对，补齐 8 个版本后仍有 5 个缺口。[复核与包指纹](validation/20261105-macos-video/README.md#开发包许可复核)
 
 R4–R8 未完成项和 329 条命令的原始范围继续保留。任务状态、实际测试数、包指纹、PR/CI 状态以 [R9 验证](../joydeck/evidence/R9/README.md) 为准，不重复使用 R8/旧 M* 包作新验证。

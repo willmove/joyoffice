@@ -3,6 +3,20 @@ use super::*;
 use gpui_kit::component::{button::ButtonVariants, input::InputEvent};
 use joydeck_engine::{Command, TextTarget};
 
+fn save_as_name(source: Option<&std::path::Path>) -> String {
+    let name = source
+        .and_then(std::path::Path::file_stem)
+        .map(|stem| format!("{} - 副本", stem.to_string_lossy()))
+        .unwrap_or_else(|| "演示文稿".into());
+    if cfg!(target_os = "macos") {
+        // AppKit can keep an extension from the suggestion outside the editable stem.
+        // The selected path gets the native default after the panel returns.
+        name.replace('.', "．")
+    } else {
+        format!("{name}.joydeck")
+    }
+}
+
 impl Viewer {
     pub(super) fn rail_width(&self, w: &Window) -> f32 {
         if f32::from(w.viewport_size().width) < 1100. {
@@ -376,12 +390,7 @@ impl Viewer {
             .as_ref()
             .and_then(|p| p.parent())
             .unwrap_or_else(|| std::path::Path::new("."));
-        let name = self
-            .source
-            .as_ref()
-            .and_then(|p| p.file_stem())
-            .map(|s| format!("{} - 副本.joydeck", s.to_string_lossy()))
-            .unwrap_or("演示文稿.joydeck".into());
+        let name = save_as_name(self.source.as_deref());
         let rx = cx.prompt_for_new_path(base, Some(&name));
         let window = w.window_handle();
         let generation = self.generation;
@@ -398,7 +407,7 @@ impl Viewer {
                         s.save_input.update(cx, |i, cx| {
                             i.set_value(path.to_string_lossy().to_string(), w, cx)
                         });
-                        s.save(&Save, w, cx);
+                        s.save_to(Some(path), w, cx);
                         s.backstage = false;
                     });
                 });
@@ -419,5 +428,19 @@ impl Viewer {
                 });
             }
         }));
+    }
+}
+
+#[cfg(all(test, target_os = "macos"))]
+mod tests {
+    use super::save_as_name;
+    use std::path::Path;
+
+    #[test]
+    fn macos_save_as_suggestions_have_no_extension() {
+        for source in [None, Some(Path::new("季度总结.v2.pptx"))] {
+            let suggestion = save_as_name(source);
+            assert!(Path::new(&suggestion).extension().is_none());
+        }
     }
 }

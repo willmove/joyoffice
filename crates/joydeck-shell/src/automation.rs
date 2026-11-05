@@ -360,7 +360,7 @@ impl Dispatcher {
                 let command = if p["command"].is_string() {
                     crate::legacy_commands::parse(
                         p,
-                        self.editor.as_ref().ok_or("no document")?.session.model(),
+                        &self.editor.as_ref().ok_or("no document")?.session,
                     )?
                 } else {
                     serde_json::from_value::<joydeck_engine::Command>(p["command"].clone())
@@ -401,7 +401,7 @@ impl Dispatcher {
                 let command = if p["command"].is_string() {
                     crate::legacy_commands::parse(
                         p,
-                        self.editor.as_ref().ok_or("no document")?.session.model(),
+                        &self.editor.as_ref().ok_or("no document")?.session,
                     )?
                 } else {
                     serde_json::from_value::<joydeck_engine::Command>(p["command"].clone())
