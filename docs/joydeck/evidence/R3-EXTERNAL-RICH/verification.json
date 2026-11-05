@@ -1,0 +1,152 @@
+{
+  "environment": {
+    "os": "macOS 27.2",
+    "hardware": "Apple M4",
+    "target": "aarch64-apple-darwin",
+    "displayScale": 1
+  },
+  "package": {
+    "archive": "joydeck-0.8.0-r3-external-rich-verified.zip",
+    "sha256": "e9d41d150d75a8d0e804ba0602271c15d5324f76cc4e7484a681f9af58b0662c",
+    "sourceSha256": "e7f51bc4e0b3a7ffc8a782413ee1311779c511b7d54a594aa296f157deaa04db",
+    "profile": "release",
+    "payloadFilesVerified": 1805
+  },
+  "product": {
+    "passed": 924,
+    "failed": 0,
+    "ignored": 0
+  },
+  "cliRegressions": {
+    "r1": 28,
+    "r2": 20,
+    "r3": 20,
+    "r4-r5": 23
+  },
+  "commandRegistry": {
+    "upstreamIds": 329,
+    "inventorySha256": "bb3ed4404abbf22e0b0ce820e3eb86962abe5079c86f6fd52c9d84612f112cea"
+  },
+  "windowsCrossCheck": {
+    "target": "x86_64-pc-windows-msvc",
+    "crates": [
+      "joydeck-ui-gpui",
+      "joydeck-cli"
+    ],
+    "passed": true,
+    "nativeDesktop": "pending"
+  },
+  "desktop": {
+    "binarySha256": "5d7a10d3dda9f3738619bd3a14070e65584d3b33221c0441ea94329efca7a5cb",
+    "cliSha256": "a9ae3ddf13a3f86f47a6f53f4a2ca74c59b4b6786fe8be97f8a41c84b939e768",
+    "checks": [
+      {
+        "check": "AppKit HTML and plain text select HTML, preserve Unicode and styled links, and undo/redo in one edit",
+        "revisions": [
+          1,
+          2,
+          3
+        ]
+      },
+      {
+        "check": "RTF-only clipboard creates an editable rich text box; an independent public PPTX reader finds its styles and link",
+        "revisions": [
+          1,
+          2,
+          3
+        ]
+      },
+      {
+        "check": "Native Open panels load both saved formats into independent desktop processes with the verified styling and links"
+      },
+      {
+        "check": "Nonvisible HTML falls through to RTF; malformed RTF falls through to the independent plain representation",
+        "revisions": [
+          1,
+          2
+        ]
+      }
+    ],
+    "screenshots": {
+      "01-html-inline.png": "ac899d5f0b2c28c4c791a029f54d06fd1461d0e0ef8f07fd7575603d33ae9c81",
+      "02-rtf-canvas.png": "3509c90a91331a5b231fa41eaea1ff0d6daf8a36cad9649d01ecd2574ec6fc11",
+      "03-native-html-reopen.png": "8f4278cfa1f83f46350fe3ae4b3f3b72e4def1accb3e476d57ae405efc84e5ca",
+      "04-public-rtf-reopen.png": "4f0dd75a6c2b9bb422e099b218b11dd3345be5a7e0f0b1c6cbc75a7d60652eac",
+      "05-fallback-order.png": "94bfe03be41c5bf72d28c6dc6627a6dcf2684d81182b5da48a6bbf13ee790d5b"
+    },
+    "fixtureSha256": {
+      "外部网页样例.pptx": "5245183d7c211ded9cf284f62bc144ad2f72b1303af1a1bb1fc1811ae2966be2",
+      "外部 RTF 样例.pptx": "5245183d7c211ded9cf284f62bc144ad2f72b1303af1a1bb1fc1811ae2966be2"
+    },
+    "passed": true,
+    "htmlNativeSha256": "5f1eba4ad2e7325fcb2bf8504f203c15780d92c4a40effac0256d9ff5f70cddd",
+    "rtfPptxSha256": "aed69c59d7455f71e398c8bb02a78a35945eae610a2ed9b0c00acf81cd32fa11"
+  },
+  "basicClipboardRegression": {
+    "passed": true,
+    "checks": [
+      {
+        "check": "Independent windows exchange styled text through the actual system clipboard; AppKit plain text and single-step Undo also pass",
+        "revisions": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      {
+        "check": "Cut refuses an unsupported chart, leaving both the source and the earlier object clipboard intact",
+        "revision": 0
+      },
+      {
+        "check": "Multi-object paste keeps the independent table and image and is a single undoable transaction",
+        "revisions": [
+          6,
+          7,
+          8
+        ]
+      },
+      {
+        "check": "A PNG supplied by independent AppKit code is imported once; one Undo removes only that image",
+        "revisions": [
+          9,
+          10,
+          11
+        ]
+      },
+      {
+        "check": "Independent PPTX confirms bold Unicode, remapped objects, the original PNG reused by both relationships and the new system PNG",
+        "mediaParts": [
+          "ppt/media/image1.png",
+          "ppt/media/joydeck-1-image2.png"
+        ],
+        "pictureTargets": [
+          "../media/image1.png",
+          "../media/image1.png",
+          "../media/joydeck-1-image2.png"
+        ]
+      }
+    ],
+    "pptxSha256": "8c406f97b03acfb22a6b9b29468e16b4eb823cfc418094d3b524488816171fdb"
+  },
+  "debugNativeReopen": {
+    "reproducedInPriorDebugBundle": true,
+    "priorBinarySha256": "d4b2197541c70e8c8f50e9911635b5c34fff638360db3794ba9853aefaea9809",
+    "priorExitCode": -4,
+    "fault": "Stack guard hit during RunProps deserialization on the background open path",
+    "releaseReopenPassed": true,
+    "sampleSha256": "5f1eba4ad2e7325fcb2bf8504f203c15780d92c4a40effac0256d9ff5f70cddd"
+  },
+  "jointProductRegression": {
+    "passed": 5824,
+    "failed": 0,
+    "ignored": 0,
+    "testThreads": 2,
+    "features": [
+      "joysheet/automation",
+      "joydeck/validation"
+    ]
+  }
+}

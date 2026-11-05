@@ -1,10 +1,42 @@
 //! Document-local link references on data received from the system clipboard.
-use crate::{media_refs, transfer::Transfer};
+use crate::{
+    Command, media_refs,
+    transfer::{PASTE_OFFSET, Transfer},
+};
 use joydeck_model::{
-    Presentation, ShapeKind, TextBody,
+    Presentation, Shape, ShapeKind, TextBody, Xfrm,
     text::{Action, Hyperlink, RunProps, safe_url},
 };
 use std::collections::BTreeSet;
+
+/// Insert an external formatted fragment as a new canvas text box in one transaction.
+pub fn text_box(mut body: TextBody) -> Command {
+    for paragraph in &mut body.paragraphs {
+        paragraph
+            .def_props
+            .font
+            .get_or_insert_with(|| "Arial".into());
+        paragraph.def_props.size.get_or_insert(24.);
+    }
+    Command::PasteObjects {
+        transfer: Box::new(Transfer {
+            joydeck_objects: 1,
+            shapes: vec![Shape {
+                name: "Text".into(),
+                xfrm: Some(Xfrm::new(
+                    80. - PASTE_OFFSET,
+                    100. - PASTE_OFFSET,
+                    400.,
+                    80.,
+                )),
+                text: Some(body),
+                text_box: true,
+                ..Default::default()
+            }],
+            media: vec![],
+        }),
+    }
+}
 
 struct LinkScope<'a> {
     document: Option<&'a Presentation>,

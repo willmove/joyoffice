@@ -1501,7 +1501,7 @@
       "source_path": "crates/format/Cargo.toml",
       "source_sha256": "a3bc629279e17b7c45e818c15eb7394a21735c66285841715d010d664c7cc72c",
       "target_path": "crates/joydeck-format/Cargo.toml",
-      "adapted_sha256": "6e59093f0b04bb0bc67bfeebbe139079ff6285019781ffd3e446710bf8e74f0a",
+      "adapted_sha256": "9842ceb29a4109b8ea39a0309ce1e01dd5e7c031f82cc2a2577b31bbca326f6f",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -1549,7 +1549,7 @@
       "source_path": "crates/format/src/lib.rs",
       "source_sha256": "b22413e017a2ce81282870713d06d22f085b32ec520af6afdcd6a7fc58b18d4e",
       "target_path": "crates/joydeck-format/src/lib.rs",
-      "adapted_sha256": "23ed175d703d419d83842143531f5f061d9e41936ca13666ad7cf11dd96e6d19",
+      "adapted_sha256": "a4ec00264b0e2ab1e83a87c1d38b896c9ae6a0cfa4f96646d76f6d629b86ad8e",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -2276,7 +2276,7 @@
       "source_path": "crates/engine/src/cmd/edit.rs",
       "source_sha256": "7e715a5f006693a518ff367bce66a79b7cbe9d3b985ef006f192723ae9c114b4",
       "target_path": "crates/joydeck-engine/src/transfer.rs",
-      "adapted_sha256": "aedb9665f4e63bfa01656a63e02f7a3cce165082b9423a7646ae99f6cab7dcfa",
+      "adapted_sha256": "b0b7efc9e57808f769091f0940e7cd93b29701e98d02f77c5df429ae6806a7d8",
       "changes": [
         "R8: adapt typed media references / object ID and resource remapping / layout and theme tokens to pure engine or GPUI Kit; no egui dependency",
         "rustfmt; bounded transactions, errors and clipboard serialization; original MIT attribution retained"

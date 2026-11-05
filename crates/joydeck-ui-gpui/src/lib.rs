@@ -13,6 +13,7 @@ use joyoffice_ui::{Brand, Palette, metrics};
 use std::{cell::RefCell, rc::Rc};
 
 mod layout;
+mod native_clipboard;
 mod viewer;
 use layout::WorkspaceLayout;
 

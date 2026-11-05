@@ -433,12 +433,20 @@ impl Viewer {
         }
     }
 
-    fn paste_text(&mut self, item: ClipboardItem, w: &mut Window, cx: &mut Context<Self>) {
+    fn paste_text(&mut self, item: Option<ClipboardItem>, w: &mut Window, cx: &mut Context<Self>) {
         let rich = item
-            .metadata()
+            .as_ref()
+            .and_then(ClipboardItem::metadata)
             .filter(|m| m.len() <= 1024 * 1024)
             .and_then(|m| serde_json::from_str::<TextClipboard>(m).ok())
-            .filter(|m| m.version == 1);
+            .filter(|m| m.version == 1)
+            .or_else(|| {
+                crate::native_clipboard::rich_text().map(|body| TextClipboard {
+                    version: 1,
+                    document: None,
+                    body,
+                })
+            });
         if let Some(TextClipboard {
             document, mut body, ..
         }) = rich
@@ -475,7 +483,7 @@ impl Viewer {
                     cx.notify();
                 }
             }
-        } else if let Some(value) = item.text() {
+        } else if let Some(value) = item.and_then(|item| item.text()) {
             self.input_replace(None, &value, false, None, w, cx);
         }
     }
@@ -912,9 +920,7 @@ impl Viewer {
     pub(super) fn paste_grid(&mut self, w: &mut Window, cx: &mut Context<Self>) {
         let item = cx.read_from_clipboard();
         if self.inline.is_some() {
-            if let Some(item) = item {
-                self.paste_text(item, w, cx);
-            }
+            self.paste_text(item, w, cx);
             return;
         }
         if let Some(item) = &item
@@ -952,6 +958,12 @@ impl Viewer {
             })
         {
             self.paste_image(bytes, cx);
+            return;
+        }
+        if self.cell.is_none()
+            && let Some(body) = crate::native_clipboard::rich_text()
+        {
+            self.dispatch(clipboard::text_box(body), w, cx);
             return;
         }
         let Some(value) = item.and_then(|i| i.text()) else {
