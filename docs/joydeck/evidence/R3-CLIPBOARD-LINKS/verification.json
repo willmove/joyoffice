@@ -1,0 +1,135 @@
+{
+  "environment": {
+    "os": "macOS 27.2",
+    "hardware": "Apple M4",
+    "target": "aarch64-apple-darwin",
+    "displayScale": 1
+  },
+  "package": {
+    "archive": "joydeck-0.8.0-r3-clipboard-links-scoped.zip",
+    "sha256": "e5613ba7ccb03cd3ec48550242e8e567400470dfbe969d95de588972f94d403c",
+    "sourceSha256": "62c21b409cb3a53af1a6d488a82d7b0cf0dfb454250658a33ee04237821fa3fa",
+    "profile": "release",
+    "payloadFilesVerified": 1805
+  },
+  "product": {
+    "passed": 921,
+    "failed": 0,
+    "ignored": 0
+  },
+  "cliRegressions": {
+    "r1": 28,
+    "r2": 20,
+    "r3": 20,
+    "r4-r5": 23
+  },
+  "commandRegistry": {
+    "upstreamIds": 329,
+    "inventorySha256": "6b854284387f400fcc14599a8513cb7c217fdbe2a0c12d9ee95636a8c73e4659"
+  },
+  "desktop": {
+    "binarySha256": "05a3d6f98ac79c76842662410d5f7de5b081515bda9aaa3fb6cb86a86a7af3f3",
+    "cliSha256": "5675c7ec23454cc728523c73a765f43ca457fa0e6ebbc3708619aa0e95b17057",
+    "checks": [
+      {
+        "check": "A native text copy keeps click, hover and web links when pasted into the second window of the same live document",
+        "revision": 1
+      },
+      {
+        "check": "Object paste retains the same-document shape action and linked text after native Save As",
+        "revision": 2
+      },
+      {
+        "check": "A different document preserves bold text and the web URL while dropping source-local click and hover links; Undo and Redo each act once",
+        "revisions": [
+          1,
+          2,
+          3
+        ]
+      },
+      {
+        "check": "Publicly read native model confirms an identical numeric page ID in the unrelated destination does not receive the shape action",
+        "collidingSlideId": 11,
+        "revision": 4
+      },
+      {
+        "check": "Legacy object metadata from the previous Release still pastes, with unverified local links safely removed",
+        "revision": 1
+      }
+    ],
+    "screenshots": {
+      "01-shared-view-before.png": "822709bcd1d15154f49f937753d4c8737408d73502ee6c2b5134a4685856f633",
+      "02-shared-view-linked-text.png": "128a8875344cdbf630b3a0f6f9cc99dd1b2321cd2828f456057c6febad128140",
+      "03-same-document-object.png": "57c6f1f1c004c43e6721af2dc6bbf410428d368ef203ae52e00e235769e544c2",
+      "04-cross-document-text.png": "e0b0c6f565aab6703109ee37a0382ef0b8b91bee14a8391060c82566cabd53b4",
+      "05-cross-document-object.png": "03496babc107592b7d30e1947953edbf077ccbaeebfe1ae469e1b2bbb609bcb5",
+      "06-reopened-destination.png": "9809b321180c9dcfdedb35b3230b7bca53c89607ef3aee0c8ba9bad9f574daf7",
+      "07-legacy-object-paste.png": "809321d77f1a1c37f4b874591d27732789d5cd9f3c6b1dfceb22a8c7ed4b4e4e"
+    },
+    "fixtureSha256": {
+      "剪贴板来源.pptx": "c91a0fcc8da1edd2b9f9ea46710b795f8490adf7d4abbb69426015e13eb00d6f",
+      "剪贴板目标.pptx": "5245183d7c211ded9cf284f62bc144ad2f72b1303af1a1bb1fc1811ae2966be2"
+    },
+    "passed": true,
+    "sameDocumentSha256": "b8f6753d1a7eb4ce9a02f11bbd1a8dd59b62e4ff313ae14da70a0cdbd9a46c4b",
+    "crossDocumentSha256": "b0597c88546aff0e48685e20279b3ed3241ccea51dbc2cb4635bb4e6ed4d1ec7"
+  },
+  "basicClipboardRegression": {
+    "passed": true,
+    "checks": [
+      {
+        "check": "Independent windows exchange styled text through the actual system clipboard; AppKit plain text and single-step Undo also pass",
+        "revisions": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      {
+        "check": "Cut refuses an unsupported chart, leaving both the source and the earlier object clipboard intact",
+        "revision": 0
+      },
+      {
+        "check": "Multi-object paste keeps the independent table and image and is a single undoable transaction",
+        "revisions": [
+          6,
+          7,
+          8
+        ]
+      },
+      {
+        "check": "A PNG supplied by independent AppKit code is imported once; one Undo removes only that image",
+        "revisions": [
+          9,
+          10,
+          11
+        ]
+      },
+      {
+        "check": "Independent PPTX confirms bold Unicode, remapped objects, the original PNG reused by both relationships and the new system PNG",
+        "mediaParts": [
+          "ppt/media/image1.png",
+          "ppt/media/joydeck-1-image2.png"
+        ],
+        "pictureTargets": [
+          "../media/image1.png",
+          "../media/image1.png",
+          "../media/joydeck-1-image2.png"
+        ]
+      }
+    ],
+    "pptxSha256": "8c406f97b03acfb22a6b9b29468e16b4eb823cfc418094d3b524488816171fdb"
+  },
+  "jointProductRegression": {
+    "features": [
+      "joysheet/automation",
+      "joydeck/validation"
+    ],
+    "passed": 5821,
+    "failed": 0,
+    "ignored": 0
+  }
+}

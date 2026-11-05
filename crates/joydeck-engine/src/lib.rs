@@ -13,6 +13,7 @@ mod review;
 mod workspace;
 pub use review::ReviewAction;
 pub use workspace::WorkspaceAction;
+pub mod clipboard;
 pub mod media_refs;
 pub mod transfer;
 pub use content::ContentAction;
