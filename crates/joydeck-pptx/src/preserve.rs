@@ -4,7 +4,7 @@ use crate::{
     PptxError, opc,
     xml::{El, Node},
 };
-use joydeck_model::{Presentation, ShapeId, SlideId};
+use joydeck_model::{Presentation, ShapeId, SlideId, TextBody};
 use std::{
     collections::BTreeMap,
     io::{Cursor, Read, Write},
@@ -97,6 +97,122 @@ fn replace(e: &mut El, local: &str, new: Option<El>) {
             Node::El(new),
         );
     }
+}
+
+/// A layout edit has no reason to rewrite existing paragraphs, links or extensions.
+fn patch_text_layout(
+    source: &mut El,
+    generated: &El,
+    before: Option<&TextBody>,
+    after: Option<&TextBody>,
+) -> Result<bool, PptxError> {
+    let (Some(before), Some(after)) = (before, after) else {
+        return Ok(false);
+    };
+    if before.paragraphs != after.paragraphs
+        || before.list_style != after.list_style
+        || before.body.warp != after.body.warp
+        || before.body.warp_adj != after.body.warp_adj
+    {
+        return Ok(false);
+    }
+    let old = &before.body;
+    let new = &after.body;
+    let Some(original) = child_mut(source, "txBody").and_then(|tx| child_mut(tx, "bodyPr")) else {
+        return Err(error("missing original text layout; save .joydeck instead"));
+    };
+    let updated = generated
+        .path(&["txBody", "bodyPr"])
+        .ok_or_else(|| error("missing generated text layout"))?;
+    for (changed, attr) in [
+        (old.rot != new.rot, "rot"),
+        (old.vert != new.vert, "vert"),
+        (old.wrap != new.wrap, "wrap"),
+        (old.inset_l != new.inset_l, "lIns"),
+        (old.inset_t != new.inset_t, "tIns"),
+        (old.inset_r != new.inset_r, "rIns"),
+        (old.inset_b != new.inset_b, "bIns"),
+        (old.columns != new.columns, "numCol"),
+        (old.col_spacing != new.col_spacing, "spcCol"),
+        (old.rtl_col != new.rtl_col, "rtlCol"),
+        (old.anchor != new.anchor, "anchor"),
+        (old.anchor_ctr != new.anchor_ctr, "anchorCtr"),
+        (old.upright != new.upright, "upright"),
+        (
+            old.space_first_last != new.space_first_last,
+            "spcFirstLastPara",
+        ),
+    ] {
+        if changed {
+            if let Some(value) = updated.attr(attr) {
+                original.set_attr(attr, value);
+            } else {
+                original.attrs.retain(|(name, _)| name != attr);
+            }
+        }
+    }
+    if old.autofit != new.autofit {
+        let fit = |e: &El| matches!(e.local(), "noAutofit" | "normAutofit" | "spAutoFit");
+        let prefix = original.prefix();
+        let at = original.children.iter().position(|node| {
+            matches!(node,
+            Node::El(e) if fit(e) && (e.prefix() == prefix || e.prefix() == "a"))
+        });
+        if original.elements().filter(|e| fit(e)).count() != usize::from(at.is_some()) {
+            return Err(error("ambiguous text autofit XML; save .joydeck instead"));
+        }
+        if let Some(at) = at {
+            if matches!(&original.children[at], Node::El(e) if e.children.iter().any(|node|
+                !matches!(node, Node::Text(value) if value.trim().is_empty()))
+                || e.attrs.iter().any(|(name, _)| !matches!(name.as_str(), "fontScale" | "lnSpcReduction")))
+            {
+                return Err(error("text autofit has extensions; save .joydeck instead"));
+            }
+            original.children.remove(at);
+        }
+        if let Some(replacement) = updated.elements().find(|e| fit(e)) {
+            let at = at.unwrap_or_else(|| {
+                original
+                    .children
+                    .iter()
+                    .position(|node| {
+                        matches!(node,
+                    Node::El(e) if matches!(e.local(), "scene3d" | "sp3d" | "extLst"))
+                    })
+                    .unwrap_or(original.children.len())
+            });
+            original.children.insert(at, Node::El(replacement.clone()));
+        }
+    }
+    Ok(true)
+}
+
+#[cfg(test)]
+#[test]
+fn layout_patch_keeps_the_original_text_tree_and_extensions() -> Result<(), PptxError> {
+    use joydeck_model::text::{AutoFit, TextDir};
+
+    let original = br#"<p:sp><p:txBody><a:bodyPr wrap="square" numCol="1" ext:extra="test"><a:spAutoFit/><a:extLst><a:ext uri="other"/></a:extLst></a:bodyPr><a:lstStyle/><a:p><a:r><a:rPr><a:hlinkClick r:id="rId7"/></a:rPr><a:t>linked</a:t></a:r></a:p></p:txBody></p:sp>"#;
+    let generated = br#"<p:sp><p:txBody><a:bodyPr vert="eaVert" numCol="2"><a:noAutofit/></a:bodyPr></p:txBody></p:sp>"#;
+    let mut source = crate::xml::parse(original)?.root;
+    let generated = crate::xml::parse(generated)?.root;
+    let mut before = TextBody::from_text("linked");
+    before.body.columns = Some(1);
+    before.body.autofit = Some(AutoFit::Shape);
+    let mut after = before.clone();
+    after.body.columns = Some(2);
+    after.body.vert = Some(TextDir::EaVertical);
+    after.body.autofit = Some(AutoFit::None);
+
+    assert!(patch_text_layout(
+        &mut source,
+        &generated,
+        Some(&before),
+        Some(&after)
+    )?);
+    let expected = br#"<p:sp><p:txBody><a:bodyPr wrap="square" numCol="2" ext:extra="test" vert="eaVert"><a:noAutofit/><a:extLst><a:ext uri="other"/></a:extLst></a:bodyPr><a:lstStyle/><a:p><a:r><a:rPr><a:hlinkClick r:id="rId7"/></a:rPr><a:t>linked</a:t></a:r></a:p></p:txBody></p:sp>"#;
+    assert_eq!(source, crate::xml::parse(expected)?.root);
+    Ok(())
 }
 fn tree(e: &El) -> Option<&El> {
     e.path(&["cSld", "spTree"])
@@ -483,7 +599,14 @@ pub fn export_preserving(
                         }
                     }
                 }
-                if shape.text != old.text {
+                if shape.text != old.text
+                    && !patch_text_layout(
+                        &mut e,
+                        generated,
+                        old.text.as_ref(),
+                        shape.text.as_ref(),
+                    )?
+                {
                     if generated.find("hlinkClick").is_some()
                         || generated.find("hlinkMouseOver").is_some()
                     {

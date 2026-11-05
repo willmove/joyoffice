@@ -95,6 +95,8 @@ mod selection_format;
 mod slideshow;
 #[path = "table_ui.rs"]
 mod table_ui;
+#[path = "text_layout_ui.rs"]
+mod text_layout_ui;
 
 // Document generation, page, raster width, font environment.
 type ImageKey = (u64, usize, u32, u64);

@@ -712,6 +712,7 @@ impl Viewer {
             ))
             .child(self.font_group(cx))
             .child(self.paragraph_group(cx))
+            .child(self.text_layout_group(cx))
             .child(group(
                 "大小与位置",
                 row()

@@ -1,5 +1,7 @@
 # JoyDeck 当前状态
 
+2026-11-05 推进 JD-305。「形状格式」新增文字方向、分栏、垂直对齐、边距、换行和溢出缩小。macOS Release 已复验实屏操作、单步撤销和两种格式保存。PPTX 保留保存只更新布局属性，保留段落、链接关系和未知扩展。命令矩阵登记已验证的范围，JD-305 继续开放。[文字布局证据](evidence/R3-TEXT-LAYOUT/README.md)
+
 2026-11-05 完成 JD-304。修复点击缩略图时原生拼音草稿被写入原页的问题。macOS Release 实测系统拼音与 ABC 重音组合的提交、取消、切页、失焦、撤销和重做。组合中强制终止后，包内 CLI 只恢复已提交的修订。JoyDeck 产品检查 915 项通过。[组合生命周期证据](evidence/R3-IME-LIFECYCLE/README.md)
 
 2026-11-05 完成 JD-303。macOS Release 实测非 BMP、组合字素、emoji ZWJ 删除替换及两处系统拼音候选。组合期间的忙态查询保留草稿，每次选词只提交一次，保存后独立读回。JoyDeck 产品检查 914 项通过。[原生输入证据](evidence/R3-NATIVE-UNICODE/README.md)

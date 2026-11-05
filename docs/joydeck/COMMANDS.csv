@@ -91,16 +91,16 @@ format.align,action,Align,crates/engine/src/cmd/format.rs,146,R3,基础段落格
 format.alignCenter,action,Center,crates/engine/src/cmd/format.rs,165,R3,基础段落格式已接入；完整列表/复杂文字行为未验收,待验证,开始 / 段落,docs/joydeck/evidence/R8/README.md; docs/joydeck/UI-PARITY.md
 format.alignLeft,action,Align Left,crates/engine/src/cmd/format.rs,164,R3,基础段落格式已接入；完整列表/复杂文字行为未验收,待验证,开始 / 段落,docs/joydeck/evidence/R8/README.md; docs/joydeck/UI-PARITY.md
 format.alignRight,action,Align Right,crates/engine/src/cmd/format.rs,166,R3,基础段落格式已接入；完整列表/复杂文字行为未验收,待验证,开始 / 段落,docs/joydeck/evidence/R8/README.md; docs/joydeck/UI-PARITY.md
-format.anchor,action,Align Text,crates/engine/src/cmd/format.rs,225,R3,待分类,待验证,,
-format.autofit,action,Autofit,crates/engine/src/cmd/format.rs,244,R3,待分类,待验证,,
+format.anchor,action,Align Text,crates/engine/src/cmd/format.rs,225,R3,已接入文字框垂直对齐，实测底端对齐,macOS 桌面保存和 PPTX / JoyDeck v2 独立读回,形状格式 / 文字对齐,docs/joydeck/evidence/R3-TEXT-LAYOUT/README.md
+format.autofit,action,Autofit,crates/engine/src/cmd/format.rs,244,R3,已接入关闭自动调整与溢出缩小；随文字调整形状仍开放,macOS 桌面保存和 PPTX / JoyDeck v2 独立读回,形状格式 / 自动调整,docs/joydeck/evidence/R3-TEXT-LAYOUT/README.md
 format.bold,action,Bold,crates/engine/src/cmd/format.rs,43,R3,基础字符格式已接入；完整字体与复杂文字行为未验收,待验证,开始 / 字体 / 原位文字,docs/joydeck/evidence/R8/README.md; docs/joydeck/UI-PARITY.md
 format.bullets,action,Bullets,crates/engine/src/cmd/format.rs,168,R3,基础段落格式已接入；完整列表/复杂文字行为未验收,待验证,开始 / 段落,docs/joydeck/evidence/R8/README.md; docs/joydeck/UI-PARITY.md
 format.caps,action,Caps,crates/engine/src/cmd/format.rs,107,R3,待分类,待验证,,
 format.case,action,Change Case,crates/engine/src/cmd/format.rs,98,R3,待分类,待验证,,
 format.clear,action,Clear All Formatting,crates/engine/src/cmd/format.rs,117,R3,基础字符格式已接入；完整字体与复杂文字行为未验收,待验证,开始 / 字体 / 原位文字,docs/joydeck/evidence/R8/README.md; docs/joydeck/UI-PARITY.md
 format.color,action,Font Color,crates/engine/src/cmd/format.rs,69,R3,基础字符格式已接入；完整字体与复杂文字行为未验收,待验证,开始 / 字体 / 原位文字,docs/joydeck/evidence/R8/README.md; docs/joydeck/UI-PARITY.md
-format.columns,action,Columns,crates/engine/src/cmd/format.rs,235,R3,待分类,待验证,,
-format.direction,action,Text Direction,crates/engine/src/cmd/format.rs,226,R3,待分类,待验证,,
+format.columns,action,Columns,crates/engine/src/cmd/format.rs,235,R3,已接入预设栏数、自定义栏数、栏间距及列顺序,macOS 桌面保存和 PPTX / JoyDeck v2 独立读回,形状格式 / 分栏,docs/joydeck/evidence/R3-TEXT-LAYOUT/README.md
+format.direction,action,Text Direction,crates/engine/src/cmd/format.rs,226,R3,已接入七种文字方向，实测水平与中文竖排,macOS 桌面保存和 PPTX / JoyDeck v2 独立读回,形状格式 / 文字方向,docs/joydeck/evidence/R3-TEXT-LAYOUT/README.md
 format.font,action,Font,crates/engine/src/cmd/format.rs,65,R3,基础字符格式已接入；完整字体与复杂文字行为未验收,待验证,开始 / 字体 / 原位文字,docs/joydeck/evidence/R8/README.md; docs/joydeck/UI-PARITY.md
 format.fontDialog,action,Font…,crates/engine/src/cmd/format.rs,118,R3,基础字符格式已接入；完整字体与复杂文字行为未验收,待验证,开始 / 字体 / 原位文字,docs/joydeck/evidence/R8/README.md; docs/joydeck/UI-PARITY.md
 format.grow,action,Increase Font Size,crates/engine/src/cmd/format.rs,67,R3,待分类,待验证,,
@@ -111,7 +111,7 @@ format.justify,action,Justify,crates/engine/src/cmd/format.rs,167,R3,基础段�
 format.language,action,Language,crates/engine/src/cmd/format.rs,79,R3,待分类,待验证,,
 format.languageAll,action,Language for All Text,crates/engine/src/cmd/format.rs,88,R3,待分类,待验证,,
 format.lineSpacing,action,Line Spacing,crates/engine/src/cmd/format.rs,188,R3,待分类,待验证,,
-format.margins,action,Text Box Margins,crates/engine/src/cmd/format.rs,246,R3,待分类,待验证,,
+format.margins,action,Text Box Margins,crates/engine/src/cmd/format.rs,246,R3,已接入四侧边距与混合选区的局部更新,macOS 桌面保存和 PPTX / JoyDeck v2 独立读回,形状格式 / 文字边距,docs/joydeck/evidence/R3-TEXT-LAYOUT/README.md
 format.numbering,action,Numbering,crates/engine/src/cmd/format.rs,177,R3,基础段落格式已接入；完整列表/复杂文字行为未验收,待验证,开始 / 段落,docs/joydeck/evidence/R8/README.md; docs/joydeck/UI-PARITY.md
 format.outdent,action,Decrease List Level,crates/engine/src/cmd/format.rs,187,R3,基础段落格式已接入；完整列表/复杂文字行为未验收,待验证,开始 / 段落,docs/joydeck/evidence/R8/README.md; docs/joydeck/UI-PARITY.md
 format.painter,noundo,Format Painter,crates/engine/src/cmd/format.rs,255,R3,待分类,待验证,,
@@ -133,7 +133,7 @@ format.textShadow,action,Text Shadow,crates/engine/src/cmd/format.rs,127,R3,待�
 format.textTransparency,action,Text Transparency,crates/engine/src/cmd/format.rs,70,R3,待分类,待验证,,
 format.textWarp,action,Text Transform,crates/engine/src/cmd/format.rs,137,R3,待分类,待验证,,
 format.underline,action,Underline,crates/engine/src/cmd/format.rs,45,R3,基础字符格式已接入；完整字体与复杂文字行为未验收,待验证,开始 / 字体 / 原位文字,docs/joydeck/evidence/R8/README.md; docs/joydeck/UI-PARITY.md
-format.wrap,action,Wrap Text in Shape,crates/engine/src/cmd/format.rs,245,R3,待分类,待验证,,
+format.wrap,action,Wrap Text in Shape,crates/engine/src/cmd/format.rs,245,R3,已接入文字框的换行模式，实测关闭换行,macOS 桌面保存和 PPTX / JoyDeck v2 独立读回,形状格式 / 自动调整,docs/joydeck/evidence/R3-TEXT-LAYOUT/README.md
 guide.add,action,Add Guide,crates/engine/src/cmd/arrange.rs,15,R5,待分类,待验证,,
 guide.delete,action,Delete Guide,crates/engine/src/cmd/arrange.rs,25,R5,待分类,待验证,,
 guide.list,query,Guides,crates/engine/src/cmd/arrange.rs,26,R5,待分类,待验证,,
