@@ -139,6 +139,10 @@ fn font_catalog_refresh_retires_old_bytes_and_detects_same_name_collisions() {
     assert_eq!(db.revision(), revision);
     assert_eq!(db.environment_revision(), environment);
 
+    // Windows FILETIME for new files tracks the system timer (~15.6ms). Same-length
+    // delete+recreate inside one tick keeps FileStamp equal (create-time tunneling + identical
+    // LastWriteTime), so the catalog refresh would be skipped. Wait out one tick before replacing.
+    std::thread::sleep(std::time::Duration::from_millis(50));
     fs::remove_file(&first).unwrap();
     fs::write(&first, wide).unwrap();
     db.load_system_fonts();
