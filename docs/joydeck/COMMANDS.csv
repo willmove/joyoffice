@@ -52,12 +52,12 @@ design.variant,action,Variants,crates/engine/src/cmd/design.rs,56,R5,待分类,�
 design.variants,query,Variant Gallery,crates/engine/src/cmd/design.rs,57,R5,待分类,待验证,,
 document.inspect,query,Inspect Presentation,crates/engine/src/cmd/inspect.rs,13,R5,待分类,待验证,,
 draw.inkToShape,action,Ink to Shape,crates/engine/src/cmd/shape.rs,50,R5,待分类,待验证,,
-edit.copy,noundo,Copy,crates/engine/src/cmd/edit.rs,21,R2,基础对象/嵌入图片/表格子集已接入；组/未知扩展/Office 互换未覆盖,待验证,开始 / Ctrl+C、X、V,docs/joydeck/evidence/R8/README.md; docs/joydeck/UI-PARITY.md
-edit.cut,action,Cut,crates/engine/src/cmd/edit.rs,20,R2,基础对象/嵌入图片/表格子集已接入；组/未知扩展/Office 互换未覆盖,待验证,开始 / Ctrl+C、X、V,docs/joydeck/evidence/R8/README.md; docs/joydeck/UI-PARITY.md
+edit.copy,noundo,Copy,crates/engine/src/cmd/edit.rs,21,R2,已实测文字选区及基础图片／表格复制；复杂对象与外部互换开放,macOS 跨进程系统剪贴板实测；字重与资源读回,开始 / Cmd/Ctrl+C,docs/joydeck/evidence/R3-CLIPBOARD/README.md
+edit.cut,action,Cut,crates/engine/src/cmd/edit.rs,20,R2,基础对象与文字剪切已接入；本轮覆盖不支持对象的失败路径,macOS 不支持的图表剪切保留源对象及先前剪贴板,开始 / Cmd/Ctrl+X,docs/joydeck/evidence/R3-CLIPBOARD/README.md
 edit.delete,action,Delete,crates/engine/src/cmd/edit.rs,42,R2,待分类,待验证,,
 edit.deselect,noundo,Deselect,crates/engine/src/cmd/edit.rs,44,R2,待分类,待验证,,
 edit.duplicate,action,Duplicate,crates/engine/src/cmd/edit.rs,41,R2,基础事务已接入；完整上游命令兼容未验收,待验证,开始 / 快速访问 / 快捷键,docs/joydeck/evidence/R8/README.md; docs/joydeck/UI-PARITY.md
-edit.paste,action,Paste,crates/engine/src/cmd/edit.rs,22,R2,基础对象/嵌入图片/表格子集已接入；组/未知扩展/Office 互换未覆盖,待验证,开始 / Ctrl+C、X、V,docs/joydeck/evidence/R8/README.md; docs/joydeck/UI-PARITY.md
+edit.paste,action,Paste,crates/engine/src/cmd/edit.rs,22,R2,已实测系统文本、内部富文字、PNG 及基础对象；跨文稿页内链接仍开放,macOS 单步撤销与公开 PPTX 独立读回；原图片部件复用,开始 / Cmd/Ctrl+V,docs/joydeck/evidence/R3-CLIPBOARD/README.md
 edit.pasteSpecial,action,Paste Special,crates/engine/src/cmd/edit.rs,31,R2,待分类,待验证,,
 edit.pasteText,action,Paste and Match Formatting,crates/engine/src/cmd/edit.rs,40,R2,待分类,待验证,,
 edit.redo,noundo,Redo,crates/engine/src/cmd/edit.rs,19,R2,基础事务已接入；完整上游命令兼容未验收,待验证,开始 / 快速访问 / 快捷键,docs/joydeck/evidence/R8/README.md; docs/joydeck/UI-PARITY.md
