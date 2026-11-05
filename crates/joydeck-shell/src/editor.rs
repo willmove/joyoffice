@@ -55,19 +55,24 @@ pub fn recovery_root() -> PathBuf {
 }
 impl Editor {
     pub fn open(path: &Path, root: PathBuf) -> Result<Self, String> {
-        let before = storage::fingerprint(path)?;
-        let doc = Document::open(path, &Cancellation::default())?;
-        if storage::fingerprint(path)? != before {
-            return Err("file changed during open".into());
-        }
-        let mut editor = Self::from_document(doc, root)?;
-        editor.source = Some(path.to_path_buf());
-        editor.fingerprint = Some(before);
+        let mut editor = Self::prepare_open(path, root, &Cancellation::default())?;
         if let Err(error) = storage::remember_file(&editor.recovery.root, path) {
             editor
                 .import_warnings
                 .push(format!("最近文件记录未更新：{error}"));
         }
+        Ok(editor)
+    }
+    /// Parse and verify a candidate without recording an open in recent files.
+    pub fn prepare_open(path: &Path, root: PathBuf, cancel: &Cancellation) -> Result<Self, String> {
+        let doc = Document::open(path, cancel)?;
+        let parsed = Fingerprint::of_bytes(&doc.original);
+        let mut editor = Self::from_document_cancellable(doc, root, cancel)?;
+        if storage::fingerprint_cancellable(path, cancel)? != parsed {
+            return Err("file changed during open".into());
+        }
+        editor.source = Some(path.to_path_buf());
+        editor.fingerprint = Some(parsed);
         Ok(editor)
     }
     pub fn new(root: PathBuf) -> Result<Self, String> {
@@ -83,26 +88,30 @@ impl Editor {
         Ok(e)
     }
     pub fn from_document(doc: Document, root: PathBuf) -> Result<Self, String> {
+        Self::from_document_cancellable(doc, root, &Cancellation::default())
+    }
+    pub fn from_document_cancellable(
+        doc: Document,
+        root: PathBuf,
+        cancel: &Cancellation,
+    ) -> Result<Self, String> {
+        cancel.check()?;
         let mut import_warnings = doc.info.warnings.clone();
         let mut template = doc.original.clone();
         let migration = if doc.info.format == "joydeck-v1" {
-            Some(joydeck_legacy::convert(
-                &doc.original,
-                &std::sync::atomic::AtomicBool::new(false),
-            )?)
+            Some(joydeck_legacy::convert(&doc.original, cancel.flag())?)
         } else {
             None
         };
         let (model, origins, base) = if doc.info.format == "joydeck" {
-            let n = native::load(&doc.original, &Cancellation::default())?;
-            let base =
-                Document::from_bytes("original source".into(), n.source, &Cancellation::default())?;
+            let n = native::load(&doc.original, cancel)?;
+            let base = Document::from_bytes("original source".into(), n.source, cancel)?;
             (n.model, n.manifest.origins, base)
         } else if let Some(converted) = &migration {
             let base = Document::from_bytes(
                 "legacy public conversion.pptx".into(),
                 converted.pptx.clone(),
-                &Cancellation::default(),
+                cancel,
             )?;
             let mut model = base.presentation.clone();
             crate::legacy_semantics::apply(&mut model, converted)?;
@@ -116,7 +125,7 @@ impl Editor {
         };
         let session = Session::new(model, origins, true);
         if native::sniff(&template) {
-            let entries = native::parts(&template)?;
+            let entries = native::parts_cancellable(&template, cancel)?;
             if let Some(report) = entries.get("migration/report.json") {
                 let report: serde_json::Value =
                     serde_json::from_slice(report).map_err(|e| e.to_string())?;
@@ -130,9 +139,10 @@ impl Editor {
             }
         }
         if let Some(converted) = migration {
+            cancel.check()?;
             let bytes =
                 native::encode(&session.snapshot(), &base.original, &base.info.format, None)?;
-            let mut entries = native::parts(&bytes)?;
+            let mut entries = native::parts_cancellable(&bytes, cancel)?;
             entries.insert(
                 "migration/legacy-original.joydeck".into(),
                 template.to_vec(),
@@ -143,6 +153,7 @@ impl Editor {
             );
             template = native::pack(entries)?.into();
         }
+        cancel.check()?;
         Ok(Self {
             session,
             source: None,

@@ -18,6 +18,9 @@ pub(crate) static RENDER_LOCK: Mutex<()> = Mutex::new(());
 #[derive(Clone, Default)]
 pub struct Cancellation(Arc<AtomicBool>);
 impl Cancellation {
+    pub(crate) fn flag(&self) -> &AtomicBool {
+        &self.0
+    }
     pub fn from_flag(flag: Arc<AtomicBool>) -> Self {
         Self(flag)
     }
@@ -69,9 +72,20 @@ impl Document {
             return Err("input exceeds 64 MiB".into());
         }
         let mut bytes = Vec::new();
-        file.take(MAX_INPUT + 1)
-            .read_to_end(&mut bytes)
-            .map_err(|e| e.to_string())?;
+        let mut input = file.take(MAX_INPUT + 1);
+        let mut buffer = [0; 64 * 1024];
+        loop {
+            cancel.check()?;
+            let read = match input.read(&mut buffer) {
+                Ok(read) => read,
+                Err(error) if error.kind() == std::io::ErrorKind::Interrupted => continue,
+                Err(error) => return Err(error.to_string()),
+            };
+            if read == 0 {
+                break;
+            }
+            bytes.extend_from_slice(&buffer[..read]);
+        }
         Self::from_bytes(
             path.file_name()
                 .unwrap_or_default()
@@ -88,7 +102,7 @@ impl Document {
         }
         cancel.check()?;
         if joydeck_legacy::sniff(&bytes) {
-            let converted = joydeck_legacy::convert(&bytes, &cancel.0)
+            let converted = joydeck_legacy::convert(&bytes, cancel.flag())
                 .map_err(|e| format!("legacy migration refused: {e}"))?;
             let public = Self::from_bytes(name.clone(), converted.pptx.clone(), cancel)?;
             let mut model = public.presentation;
@@ -103,7 +117,9 @@ impl Document {
         if crate::native::sniff(&bytes) {
             let native = crate::native::load(&bytes, cancel)?;
             let mut doc = Self::from_model(name, native.model)?;
-            if let Some(report) = crate::native::parts(&bytes)?.get("migration/report.json") {
+            if let Some(report) =
+                crate::native::parts_cancellable(&bytes, cancel)?.get("migration/report.json")
+            {
                 let report: serde_json::Value =
                     serde_json::from_slice(report).map_err(|e| e.to_string())?;
                 if let Some(warnings) = report["warnings"].as_array() {
@@ -163,6 +179,7 @@ impl Document {
         let mut zip =
             zip::ZipArchive::new(std::io::Cursor::new(&bytes)).map_err(|e| e.to_string())?;
         for i in 0..zip.len() {
+            cancel.check()?;
             if zip
                 .by_index(i)
                 .map_err(|e| e.to_string())?

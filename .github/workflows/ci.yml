@@ -19,7 +19,8 @@ jobs:
         # ubuntu-24.04-arm: native ARM64 build of the GPUI app (T005).
         os: [macos-15, windows-2022, ubuntu-24.04, ubuntu-24.04-arm]
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 45
+    # The Windows job also compiles the fixed-font examples after the product build.
+    timeout-minutes: ${{ matrix.os == 'windows-2022' && 60 || 45 }}
     env:
       CARGO_TERM_COLOR: always
     steps:

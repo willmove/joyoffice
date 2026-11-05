@@ -4,6 +4,8 @@
 
 当前依据依次为根 AGENTS.md、本文、[Deck 状态](../joydeck/STATUS.md)、[98 项任务](../joydeck/TASKS.md)、[UI 差距](../joydeck/UI-PARITY.md)、[329 命令范围](../joydeck/COMMANDS.csv) 与 [R9 验证](../joydeck/evidence/R9/README.md)。旧 M0–M14 状态见 [替换前状态](../joydeck/STATUS-pre-r9.md)，仅作历史基线。
 
+2026-11-05 已复核 R0 的 JD-007/008，并完成 JD-104/106。文件读取代次与当前文稿代次分离，失败或取消保持当前会话、恢复和最近文件。正在推进保存事务、运行时命令对照和后续阶段验收。[R0 复核](../joydeck/evidence/R0/README.md#任务验收复核) · [R1 复验](../joydeck/evidence/R1-OPEN-REVISION/README.md)
+
 [PR #120](https://github.com/willmove/joyoffice/pull/120) 已按用户明确授权于 2026-11-03 合入 main，合并提交 `3691d4dea11df473c95f94af9718cc699cd984f8`，合入前 21 项检查全部通过。源仓库 9 个提交继续保留为宿主祖先。后续从最新 main 开切片，不重新迁移。[PR #121](https://github.com/willmove/joyoffice/pull/121) 已合入 main `6689c6e`；R9-UI1 是历史切片，见 [R9-UI1 验证](../joydeck/evidence/R9-UI1/README.md)。当前分支与 R9-UI2 证据见下节。
 
 R9 整合基线联合回归为 3,573 通过、0 失败、1 项原计时测试忽略，Deck check 为 873 通过；R9-UI1 最新检查为 **联合 3,575 通过、0 失败、1 忽略，Deck 875 通过**。新 Release 包、Word/Sheet 开发包和旧软件回退包均已实际构建，且在仓库外中文/空格路径运行。多平台 PR 检查和 JD-906 完整旧功能验收以任务表/实时 PR 为准，当前工程替换不代表整个 R9 已关闭。

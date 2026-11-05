@@ -201,6 +201,7 @@ impl Viewer {
         }
         match joydeck_shell::editor::Editor::new(joydeck_shell::editor::recovery_root()) {
             Ok(editor) => {
+                self.stop_read();
                 self.editor = Some(editor);
                 self.source = None;
                 self.page = 0;
@@ -477,20 +478,22 @@ impl Viewer {
                                         return;
                                     }
                                     w.close_dialog(cx);
-                                    let generation = s.generation;
-                                    s.loading = true;
+                                    let (request, cancel) = s.start_read();
                                     s.read_task = Some(cx.spawn(async move |view, cx| {
                                         let result = cx
                                             .background_executor()
                                             .spawn(async move {
-                                                joydeck_shell::editor::Editor::restore(
-                                                    joydeck_shell::editor::recovery_root(),
-                                                    &record,
-                                                )
+                                                let editor =
+                                                    joydeck_shell::editor::Editor::restore(
+                                                        joydeck_shell::editor::recovery_root(),
+                                                        &record,
+                                                    )?;
+                                                cancel.check()?;
+                                                Ok::<_, String>(editor)
                                             })
                                             .await;
                                         let _ = view.update(cx, |s, cx| {
-                                            if s.generation != generation {
+                                            if s.read_request != request {
                                                 return;
                                             }
                                             s.loading = false;

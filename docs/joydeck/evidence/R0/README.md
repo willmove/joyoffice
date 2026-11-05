@@ -28,3 +28,9 @@
 ## 未覆盖范围
 
 macOS/Linux 原生编译/运行、远端 CI、真实文稿读取/编辑、GPUI 文稿场景、完整 IME/读屏/字体/多屏矩阵、端到端性能与正式发行资格尚未完成。宿主演练只验证 R0 GUI/CLI 编译，不是现有 JoyDeck 全功能替换或 Word/Sheet 联合回归。
+
+## 任务验收复核
+
+2026-11-05 复核 JD-007。临时宿主使用隔离 clone 和锁文件成功编译 GUI/CLI，原仓库保留。[宿主演练结果](host-check.json)；当前 JoyOffice 中的 JoyDeck CI 已覆盖 Windows、macOS、Linux x64 与 ARM64 的锁定构建和验证特性测试，另有 headless 来源、依赖与 CLI 隔离检查。PR #125 在合并提交 `edd627f` 前的 20 项检查全绿。平台实屏资格仍由 R8 对应任务记录。[CI 记录](https://github.com/willmove/joyoffice/actions/runs/41975304897)
+
+JD-008 的原 R0 Windows Release 包在仓库外中文空格路径启动，保留归档散列、二进制散列与紧凑窗口截图。R0 Debug 窗口记录了导航、明暗主题和面板。这些场景覆盖当时的公共 UI 外壳。[包记录](package.json) · [移位启动](standalone-launch.json) · [Release 窗口](09-final-release-980.png) · [导航](02-navigation.png) · [暗色](03-workspace-dark.png) · [关于面板](07-about.png)

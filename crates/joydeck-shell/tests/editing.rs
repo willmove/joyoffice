@@ -38,6 +38,37 @@ fn zip(parts: BTreeMap<String, Vec<u8>>) -> Vec<u8> {
     z.finish().unwrap().into_inner()
 }
 #[test]
+fn prepared_open_uses_the_parsed_file_fingerprint_without_publishing_recent() {
+    let root = work();
+    let recovery = root.join("recovery");
+    let path = root.join("document.pptx");
+    std::fs::write(&path, PPTX).unwrap();
+    let cancel = Cancellation::default();
+    cancel.cancel();
+    assert_eq!(
+        Editor::prepare_open(&path, recovery.clone(), &cancel)
+            .err()
+            .as_deref(),
+        Some("operation cancelled")
+    );
+    let e = Editor::prepare_open(&path, recovery.clone(), &Cancellation::default()).unwrap();
+    assert_eq!(
+        e.fingerprint,
+        Some(joydeck_shell::storage::fingerprint(&path).unwrap())
+    );
+    assert!(
+        joydeck_shell::storage::recent_files(&recovery)
+            .unwrap()
+            .is_empty()
+    );
+    Editor::open(&path, recovery.clone()).unwrap();
+    assert_eq!(
+        joydeck_shell::storage::recent_files(&recovery).unwrap(),
+        vec![path.canonicalize().unwrap()]
+    );
+    std::fs::remove_dir_all(root).unwrap();
+}
+#[test]
 fn text_transform_save_reopen_and_untouched_parts_preserved() {
     let root = work();
     let mut e = editor(&root);

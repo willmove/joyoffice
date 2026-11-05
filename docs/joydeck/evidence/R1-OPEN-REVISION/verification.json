@@ -1,0 +1,74 @@
+{
+  "base": "69880cc",
+  "package": {
+    "archive": "joydeck-0.8.0-open-revision.zip",
+    "archive_sha256": "b0cc24901f53e1ace3f76fe2820ae1ea615d12f7b9a1ffa7df0488a340167daa",
+    "source_sha256": "2024d1d9cf88f76185c343a9f2072c982537d9aa62fbe06224693d2029e7e674",
+    "target": "aarch64-apple-darwin",
+    "profile": "release",
+    "sbom_packages": 465,
+    "missing_license_texts": [
+      "block@0.1.6",
+      "mac@0.1.1",
+      "malloc_buf@0.0.6",
+      "pathfinder_geometry@0.5.1",
+      "seahash@4.1.0"
+    ],
+    "signed": false
+  },
+  "packageFilesVerified": 1805,
+  "readRace": {
+    "binarySha256": "82f627b1dbedaecd70f654d8ffb8e906ed9c89ae24b28fb2b1b2e1332cf84004",
+    "cliSha256": "9ed2a5a72e139af7fa7150b32ed2435ff9b95f5d803d389b707df79c39550baf",
+    "checks": [
+      "Status-bar Cancel cancelled an active read without changing the current document ID, revision or recent files",
+      "Newer LaunchServices request superseded the running read; old result stayed out"
+    ],
+    "heavyFixture": {
+      "bytes": 217658,
+      "sha256": "5a39c74bc98345e056ecfb63bf19287a071d58b5ce7a3afb3d30da4f5d61b070",
+      "inspectSeconds": 0.615,
+      "objects": 18015
+    }
+  },
+  "dirtyDocument": {
+    "binarySha256": "82f627b1dbedaecd70f654d8ffb8e906ed9c89ae24b28fb2b1b2e1332cf84004",
+    "cliSha256": "9ed2a5a72e139af7fa7150b32ed2435ff9b95f5d803d389b707df79c39550baf",
+    "checks": [
+      "Cancelling the native picker preserved the dirty editor without a discard prompt",
+      "Discard followed by a corrupt candidate preserved the dirty editor and recovery",
+      "Retained editor still undid the prior edit; all input hashes stayed unchanged"
+    ],
+    "heavyFixture": {
+      "bytes": 217658,
+      "sha256": "d8e1c5a1bf3c2f513e3859133ab95cf3e9f55847fb7843ef06d675cdfeee4033",
+      "inspectSeconds": 1.104,
+      "objects": 18015
+    },
+    "dirtyScreenshotSha256": "f95ee14ec1307e006e3c214bd12b4ea882056c701f0ce779610f0db32fab86d5"
+  },
+  "cli": {
+    "checks": 28,
+    "commands": 28,
+    "registrySha256": "45ae80fd493a85228a508dcfd80cb145e950233dd0137ba3456cb8f97764caa7",
+    "guiDependencies": false
+  },
+  "systemOpen": {
+    "checks": [
+      "cold LaunchServices document event with Unicode, spaces, #, %, uppercase extension",
+      "warm LaunchServices document event switched the running app",
+      "repeat open kept one window",
+      "truncated package left the current document open",
+      "valid request after invalid input and unchanged source hashes",
+      "native File and Edit menus, Edit Undo and Redo dispatch",
+      "warm request preserved the dirty document and did not write either source"
+    ],
+    "passed": true
+  },
+  "deckCheck": {
+    "passed": 899,
+    "failed": 0,
+    "ignored": 0,
+    "strictClippy": true
+  }
+}
