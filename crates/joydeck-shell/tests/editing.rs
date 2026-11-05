@@ -238,6 +238,43 @@ fn external_changes_and_existing_save_as_targets_are_not_overwritten() {
     assert_eq!(std::fs::read(dest).unwrap(), b"retain me");
 }
 #[test]
+fn concurrent_saves_from_one_fingerprint_publish_only_one_result() {
+    use joydeck_shell::storage::{fingerprint, save};
+    use std::sync::Barrier;
+
+    let root = work();
+    let path = root.join("shared.joydeck");
+    let original = vec![0; 2 * 1024 * 1024];
+    std::fs::write(&path, &original).unwrap();
+    let expected = fingerprint(&path).unwrap();
+    let writes = [vec![1; original.len()], vec![2; original.len()]];
+    let ready = Barrier::new(writes.len());
+    let results = std::thread::scope(|scope| {
+        let jobs = writes.each_ref().map(|bytes| {
+            let expected = expected.clone();
+            let path = &path;
+            let ready = &ready;
+            scope.spawn(move || {
+                ready.wait();
+                save(path, bytes, Some(expected))
+            })
+        });
+        jobs.map(|job| job.join().unwrap())
+    });
+    let [success] = results
+        .iter()
+        .enumerate()
+        .filter_map(|(index, result)| result.is_ok().then_some(index))
+        .collect::<Vec<_>>()[..]
+    else {
+        panic!("expected exactly one published save, got {results:?}");
+    };
+    assert_eq!(std::fs::read(&path).unwrap(), writes[success]);
+    assert_eq!(std::fs::read_dir(&root).unwrap().count(), 1);
+    std::fs::remove_dir_all(root).unwrap();
+}
+
+#[test]
 fn invalid_destination_retains_original_and_session_dirty() {
     let root = work();
     let mut e = editor(&root);
