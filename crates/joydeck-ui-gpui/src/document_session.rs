@@ -11,6 +11,7 @@ use std::{
 pub(super) struct SharedDocument {
     editor: Option<Editor>,
     identity: Option<PathBuf>,
+    pub(super) clipboard_token: Option<[u8; 16]>,
     views: Rc<Cell<usize>>,
     saving: Rc<Cell<bool>>,
     checkpoint_task: Option<Task<()>>,
@@ -25,6 +26,7 @@ impl SharedDocument {
         let document = cx.new(|_| Self {
             editor: Some(editor),
             identity,
+            clipboard_token: joydeck_shell::platform::random_token().ok(),
             views: Rc::default(),
             saving: Rc::default(),
             checkpoint_task: None,

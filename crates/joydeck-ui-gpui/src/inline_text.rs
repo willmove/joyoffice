@@ -2,16 +2,36 @@
 //! Layout, caret, hit and selection use the shared DeckCraft renderer, not a second shaper.
 use super::*;
 use joydeck_engine::{
-    Command, TableAction, TextTarget,
+    Command, TableAction, TextTarget, clipboard,
     text::{self, Draft},
+    transfer::{self, Transfer},
 };
-use joydeck_model::{ShapeKind, edit as ed, resolve, text::RunKind};
+use joydeck_model::{Presentation, ShapeKind, TextBody, edit as ed, resolve, text::RunKind};
 use joydeck_text::{Affinity, Pos};
+use serde::{Deserialize, Serialize};
 use std::ops::Range;
 
 #[path = "inline_text/geometry.rs"]
 mod geometry;
 use geometry::{Geometry, Motion, reveal_offset};
+
+type ClipboardToken = [u8; 16];
+
+#[derive(Deserialize, Serialize)]
+struct TextClipboard {
+    #[serde(rename = "joydeck-text")]
+    version: u32,
+    #[serde(default)]
+    document: Option<ClipboardToken>,
+    body: TextBody,
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+struct ObjectClipboard {
+    document: Option<ClipboardToken>,
+    transfer: Transfer,
+}
 
 pub(super) struct Inline {
     pub(super) target: TextTarget,
@@ -391,18 +411,42 @@ impl Viewer {
         }
         w.notify_text_input_changed(&self.focus);
     }
+    fn clipboard_document(
+        &self,
+        source: Option<ClipboardToken>,
+        cx: &App,
+    ) -> Option<&Presentation> {
+        let editor = self.editor.as_ref()?;
+        let local = editor.document.read(cx).clipboard_token?;
+        (source == Some(local)).then_some(editor.session.model())
+    }
+
+    fn show_paste_scope_result(
+        &mut self,
+        adjusted: bool,
+        before: Option<u64>,
+        cx: &mut Context<Self>,
+    ) {
+        if adjusted && self.editor.as_ref().map(|e| e.session.revision()) != before {
+            self.message = "已粘贴。无法在目标文稿使用的链接或链接声音已移除".into();
+            cx.notify();
+        }
+    }
+
     fn paste_text(&mut self, item: ClipboardItem, w: &mut Window, cx: &mut Context<Self>) {
         let rich = item
             .metadata()
             .filter(|m| m.len() <= 1024 * 1024)
-            .and_then(|m| serde_json::from_str::<serde_json::Value>(m).ok())
-            .filter(|m| m["joydeck-text"] == 1)
-            .and_then(|m| {
-                serde_json::from_value::<joydeck_model::TextBody>(m["body"].clone()).ok()
-            });
-        if let Some(body) = rich {
+            .and_then(|m| serde_json::from_str::<TextClipboard>(m).ok())
+            .filter(|m| m.version == 1);
+        if let Some(TextClipboard {
+            document, mut body, ..
+        }) = rich
+        {
             let result = (|| {
                 text::validate(&body)?;
+                let adjusted =
+                    clipboard::scope_text(&mut body, self.clipboard_document(document, cx))?;
                 let i = self.inline.as_mut().ok_or("not editing text")?;
                 let value = i.draft.body.text();
                 if value.len().saturating_sub(i.draft.selection.len()) + body.text().len() > 65536 {
@@ -418,10 +462,14 @@ impl Viewer {
                 i.draft.body = draft;
                 i.draft.selection = at..at;
                 i.draft.reversed = false;
-                Ok::<_, String>(())
+                Ok::<_, String>(adjusted)
             })();
             match result {
-                Ok(()) => self.publish_inline(w, cx),
+                Ok(adjusted) => {
+                    let before = self.editor.as_ref().map(|e| e.session.revision());
+                    self.publish_inline(w, cx);
+                    self.show_paste_scope_result(adjusted, before, cx);
+                }
                 Err(e) => {
                     self.message = e;
                     cx.notify();
@@ -624,6 +672,18 @@ impl Viewer {
             cx.stop_propagation();
             return;
         }
+        if command && matches!(key, "c" | "x" | "v") && !self.composing() {
+            if key == "v" {
+                self.paste_grid(w, cx);
+            } else {
+                self.clipboard_copy(key == "x", w, cx);
+            }
+            if self.inline.is_some() {
+                w.notify_text_input_changed(&self.focus);
+            }
+            cx.stop_propagation();
+            return;
+        }
         if self.inline.is_none() {
             let basic = match (command, mods.shift, key) {
                 (true, false, "z") => Some(BasicEdit::Undo),
@@ -673,11 +733,6 @@ impl Viewer {
                 cx.stop_propagation();
                 return;
             }
-            if command && key == "x" {
-                self.clipboard_copy(true, w, cx);
-                cx.stop_propagation();
-                return;
-            }
             if command && key == "a" {
                 if let Some(e) = &mut self.editor {
                     let ids = e.session.model().slides[self.page]
@@ -696,13 +751,6 @@ impl Viewer {
                 self.begin_selected_text(w, cx);
                 cx.stop_propagation();
                 return;
-            }
-            if command && key == "v" {
-                self.paste_grid(w, cx);
-                cx.stop_propagation();
-            } else if command && key == "c" {
-                self.clipboard_copy(false, w, cx);
-                cx.stop_propagation();
             }
             return;
         }
@@ -758,28 +806,6 @@ impl Viewer {
                 i.affinity = Affinity::Downstream;
                 i.desired_inline_x = None;
                 cx.notify();
-            }
-            "c" | "x" if command => {
-                if !i.draft.selection.is_empty() {
-                    let a = text::pos(&value, i.draft.selection.start);
-                    let b = text::pos(&value, i.draft.selection.end);
-                    let body = ed::slice(&i.draft.body, a, b);
-                    let metadata =
-                        serde_json::to_string(&serde_json::json!({"joydeck-text":1,"body":body}))
-                            .unwrap_or_default();
-                    cx.write_to_clipboard(ClipboardItem::new_string_with_metadata(
-                        value[i.draft.selection.clone()].into(),
-                        metadata,
-                    ));
-                    if key == "x" {
-                        self.input_replace(None, "", false, None, w, cx);
-                    }
-                }
-            }
-            "v" if command => {
-                if let Some(item) = cx.read_from_clipboard() {
-                    self.paste_text(item, w, cx);
-                }
             }
             "backspace" | "delete" => {
                 if i.draft.selection.is_empty() {
@@ -884,17 +910,28 @@ impl Viewer {
         }
     }
     pub(super) fn paste_grid(&mut self, w: &mut Window, cx: &mut Context<Self>) {
+        let item = cx.read_from_clipboard();
         if self.inline.is_some() {
-            if let Some(item) = cx.read_from_clipboard() {
+            if let Some(item) = item {
                 self.paste_text(item, w, cx);
             }
             return;
         }
-        if let Some(item) = cx.read_from_clipboard()
+        if let Some(item) = &item
             && let Some(metadata) = item.metadata().filter(|s| s.len() <= 32 * 1024 * 1024)
-            && let Ok(transfer) =
-                serde_json::from_str::<joydeck_engine::transfer::Transfer>(metadata)
+            && let Ok(ObjectClipboard {
+                document,
+                mut transfer,
+            }) = serde_json::from_str(metadata).or_else(|_| {
+                serde_json::from_str(metadata).map(|transfer| ObjectClipboard {
+                    document: None,
+                    transfer,
+                })
+            })
         {
+            let adjusted =
+                clipboard::scope_objects(&mut transfer, self.clipboard_document(document, cx));
+            let before = self.editor.as_ref().map(|e| e.session.revision());
             self.dispatch(
                 Command::PasteObjects {
                     transfer: Box::new(transfer),
@@ -902,9 +939,10 @@ impl Viewer {
                 w,
                 cx,
             );
+            self.show_paste_scope_result(adjusted, before, cx);
             return;
         }
-        if let Some(item) = cx.read_from_clipboard()
+        if let Some(item) = &item
             && let Some(bytes) = item.entries().iter().find_map(|e| {
                 if let ClipboardEntry::Image(image) = e {
                     Some(image.bytes.clone())
@@ -916,7 +954,7 @@ impl Viewer {
             self.paste_image(bytes, cx);
             return;
         }
-        let Some(value) = cx.read_from_clipboard().and_then(|i| i.text()) else {
+        let Some(value) = item.and_then(|i| i.text()) else {
             self.message = "剪贴板没有可用的文字、图片或 JoyDeck 对象".into();
             cx.notify();
             return;
@@ -949,6 +987,8 @@ impl Viewer {
         if self.composing() {
             return;
         }
+        let Some(e) = &self.editor else { return };
+        let document = e.document.read(cx).clipboard_token;
         if let Some(i) = &self.inline {
             let text = i.draft.body.text();
             let range = i.draft.selection.clone();
@@ -958,9 +998,11 @@ impl Viewer {
             let a = text::pos(&text, range.start);
             let b = text::pos(&text, range.end);
             let body = ed::slice(&i.draft.body, a, b);
-            if let Ok(metadata) =
-                serde_json::to_string(&serde_json::json!({"joydeck-text":1,"body":body}))
-            {
+            if let Ok(metadata) = serde_json::to_string(&TextClipboard {
+                version: 1,
+                document,
+                body,
+            }) {
                 cx.write_to_clipboard(ClipboardItem::new_string_with_metadata(
                     text[range].into(),
                     metadata,
@@ -971,27 +1013,23 @@ impl Viewer {
             }
             return;
         }
-        let Some(e) = &self.editor else {
-            return;
-        };
         if cut && let Some(reason) = self.basic_edit_unavailable(BasicEdit::Delete, cx) {
             self.message = reason.to_string();
             cx.notify();
             return;
         }
-        match joydeck_engine::transfer::capture(
-            e.session.model(),
-            self.page,
-            &e.session.selection().shapes,
-        )
-        .and_then(|t| serde_json::to_string(&t).map_err(|e| e.to_string()))
-        .and_then(|s| {
-            if s.len() <= 32 * 1024 * 1024 {
-                Ok(s)
-            } else {
-                Err("对象剪贴板超过 32 MiB".into())
-            }
-        }) {
+        match transfer::capture(e.session.model(), self.page, &e.session.selection().shapes)
+            .and_then(|transfer| {
+                serde_json::to_string(&ObjectClipboard { document, transfer })
+                    .map_err(|e| e.to_string())
+            })
+            .and_then(|s| {
+                if s.len() <= 32 * 1024 * 1024 {
+                    Ok(s)
+                } else {
+                    Err("对象剪贴板超过 32 MiB".into())
+                }
+            }) {
             Ok(metadata) => {
                 if cut {
                     let before = self.editor.as_ref().map(|e| e.session.revision());

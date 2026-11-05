@@ -163,7 +163,7 @@
     "source_path": "crates/joydeck-platform/src/files.rs",
     "target_path": "crates/joydeck-shell/src/platform.rs",
     "source_sha256": "fa05e64cb6b044a0db850990889d8ead4b0012339aad9133ed9cb381d1485496",
-    "adapted_sha256": "599b633c579798ab396be8681d52fb8ab6d224242e88cf3dbbf29c23bee852ee",
+    "adapted_sha256": "9cdbf7189b723fd7af2115d8875f5a010167121670e342d1d52d943b0306dca5",
     "local_changes": "R2 adapt bounded IO/fingerprints and leased revision recovery to encoded JoyDeck v2 packages; recovery indexes read under bound; tests replaced by new-model integration tests; R2 editable viewer adapter, background save/recovery, command-driven gestures, coordinate anchoring and close guard; rustfmt; R4/R5 scene/content workspace adaptation; R8 native editor, clipboard or product package version adaptation",
     "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained."
   },
@@ -197,7 +197,7 @@
     "target_path": "crates/joydeck-ui-gpui/src/inline_text.rs",
     "source_sha256": "e6caa4311e30aaa39f91b1da6d328e8bba46ae9afcf4a890e44e43278e5ef4f4",
     "local_changes": "Adapt EntityInputHandler, selection/clipboard/composition routing to new pure engine; consume shared CPU text/table layout for all geometry; add bounded text metadata/TSV and notes Textarea flow from apps/joydeck/src/chrome.rs.; R8 native editor, clipboard or product package version adaptation; R9-UI1 native formatting controls and schema-2 validation/history compatibility (see slice evidence)",
-    "adapted_sha256": "a7eb977a2cfb070a11588fcbabd78d707c8ba5da396b067a7b65d705436156d9",
+    "adapted_sha256": "9eddd00b9803b8c4287d67edc494c7f8b70718f08adff30d1e25612f27ea479d",
     "additional_sources": [
       {
         "source_path": "apps/joydeck/src/chrome.rs",

@@ -6,6 +6,14 @@ use std::{
     sync::atomic::{AtomicU64, Ordering},
 };
 static IDS: AtomicU64 = AtomicU64::new(1);
+
+/// A process-independent identifier for ephemeral document capabilities.
+pub fn random_token() -> Result<[u8; 16]> {
+    let mut nonce = [0u8; 16];
+    getrandom::fill(&mut nonce).map_err(|e| e.to_string())?;
+    Ok(nonce)
+}
+
 /// Read and normalize a local raster picture under the same byte/pixel budgets as the editor.
 pub fn picture_command(path: &Path, replace: bool) -> Result<joydeck_engine::Command> {
     let bytes = read_bounded(path, 16 << 20)?;
@@ -45,8 +53,7 @@ pub fn picture_bytes_command(bytes: Vec<u8>, replace: bool) -> Result<joydeck_en
 /// Random names prevent concurrent allocations from colliding on coarse or adjusted wall clocks.
 pub fn private_directory(label: &str) -> Result<PathBuf> {
     for _ in 0..8 {
-        let mut nonce = [0u8; 16];
-        getrandom::fill(&mut nonce).map_err(|e| e.to_string())?;
+        let nonce = random_token()?;
         let suffix = nonce.iter().map(|b| format!("{b:02x}")).collect::<String>();
         let path =
             std::env::temp_dir().join(format!("joydeck-{label}-{}-{suffix}", std::process::id()));

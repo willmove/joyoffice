@@ -11,6 +11,91 @@ fn session() -> Session {
     let p = Presentation::default();
     Session::new(p.clone(), original_bindings(&p), true)
 }
+
+#[test]
+fn clipboard_links_require_document_identity_and_a_live_target() {
+    use joydeck_engine::{
+        clipboard,
+        transfer::{Resource, Transfer},
+    };
+    use joydeck_model::{
+        MediaId, Shape, SlideId,
+        text::{Action, Hyperlink, Run},
+    };
+
+    let p = Presentation::default();
+    let slide = p.slides[0].id;
+    let link = |action| Hyperlink {
+        action,
+        tooltip: "tooltip".into(),
+        highlight_click: false,
+        sound: None,
+        stop_sound: false,
+        zoom_return: None,
+    };
+    let mut rich = TextBody::from_text("linked");
+    let paragraph = &mut rich.paragraphs[0];
+    paragraph.runs[0].props.link = Some(link(Action::Slide { slide }));
+    paragraph.runs[0].props.bold = Some(true);
+    paragraph.end_props.hover = Some(link(Action::Slide {
+        slide: SlideId(u32::MAX),
+    }));
+    let mut external = link(Action::Url {
+        url: "https://example.org/".into(),
+    });
+    external.sound = Some(MediaId(u32::MAX));
+    let mut run = Run::new(" web");
+    run.props.link = Some(external);
+    paragraph.runs.push(run);
+
+    let mut same = rich.clone();
+    assert!(clipboard::scope_text(&mut same, Some(&p)).unwrap());
+    let runs = &same.paragraphs[0].runs;
+    assert_eq!(runs[0].props.link, rich.paragraphs[0].runs[0].props.link);
+    assert!(runs[1].props.link.as_ref().unwrap().sound.is_none());
+    assert!(same.paragraphs[0].end_props.hover.is_none());
+
+    let mut foreign = rich.clone();
+    assert!(clipboard::scope_text(&mut foreign, None).unwrap());
+    assert_eq!(foreign.text(), rich.text());
+    let runs = &foreign.paragraphs[0].runs;
+    assert!(runs[0].props.link.is_none());
+    assert_eq!(runs[0].props.bold, Some(true));
+    assert!(matches!(
+        runs[1].props.link.as_ref().unwrap().action,
+        Action::Url { .. }
+    ));
+
+    let mut click = link(Action::Slide { slide });
+    click.sound = Some(MediaId(3));
+    let sound = |id| Resource {
+        id,
+        name: "sound.wav".into(),
+        content_type: "audio/wav".into(),
+        data: vec![1],
+    };
+    let mut transfer = Transfer {
+        joydeck_objects: 1,
+        shapes: vec![Shape {
+            click: Some(click),
+            text: Some(rich),
+            ..Default::default()
+        }],
+        media: vec![sound(MediaId(3)), sound(MediaId(u32::MAX))],
+    };
+    assert!(clipboard::scope_objects(&mut transfer, None));
+    let shape = &transfer.shapes[0];
+    assert!(shape.click.is_none());
+    let runs = &shape.text.as_ref().unwrap().paragraphs[0].runs;
+    assert!(runs[0].props.link.is_none());
+    assert_eq!(
+        runs[1].props.link.as_ref().unwrap().sound,
+        Some(MediaId(u32::MAX))
+    );
+    assert_eq!(transfer.media.len(), 1);
+    assert_eq!(transfer.media[0].id, MediaId(u32::MAX));
+}
+
 #[test]
 fn slide_order_and_group_transform_preserve_references_and_undo() {
     use joydeck_engine::WorkspaceAction;
