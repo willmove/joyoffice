@@ -227,6 +227,74 @@ fn migrated_review_media_links_and_original_bytes_survive_native_reopen() {
     assert_eq!(parts["migration/legacy-original.joydeck"], bytes);
 }
 #[test]
+fn comparison_pairs_reordered_slides_before_accepting_objects() {
+    use joydeck_engine::Command;
+    use joydeck_shell::{Document, comparison::Comparison};
+    let root = platform::private_directory("r9-compare-reordered").unwrap();
+    let mut editor = Editor::new(root.join("recovery")).unwrap();
+    editor
+        .session
+        .execute(Command::InsertText {
+            x: 20.,
+            y: 50.,
+            text: "first".into(),
+        })
+        .unwrap();
+    let id = editor.session.selection().shapes[0];
+    editor.session.execute(Command::NewSlide).unwrap();
+    editor
+        .session
+        .execute(Command::InsertText {
+            x: 20.,
+            y: 50.,
+            text: "second".into(),
+        })
+        .unwrap();
+    let before = editor.session.model().clone();
+    let mut moved = before.clone();
+    moved.slides.swap(0, 1);
+    std::sync::Arc::make_mut(&mut moved.slides[1])
+        .shape_mut(id)
+        .unwrap()
+        .text = Some(joydeck_model::TextBody::from_text("first edited"));
+    let reference = Document::from_model("reordered".into(), moved).unwrap();
+    let comparison = Comparison::new(&editor, reference).unwrap();
+    assert_eq!(comparison.report.differences.len(), 2);
+    let order = &comparison.report.differences[0];
+    assert_eq!((order.kind, order.acceptable), ("slide-order", false));
+    let diff = &comparison.report.differences[1];
+    assert_eq!(
+        (diff.page, diff.object, diff.acceptable),
+        (1, Some(id), true)
+    );
+    let command = comparison
+        .command(
+            &editor,
+            &comparison.report.base_sha256,
+            &comparison.report.reference_sha256,
+            1,
+            id,
+        )
+        .unwrap();
+    editor.session.execute(command).unwrap();
+    let edited = editor.session.model();
+    assert_eq!(edited.slides[0].id, before.slides[0].id);
+    assert_eq!(
+        edited.slides[0]
+            .shape(id)
+            .unwrap()
+            .text
+            .as_ref()
+            .unwrap()
+            .text(),
+        "first edited"
+    );
+    assert_eq!(edited.slides[1], before.slides[1]);
+    editor.session.execute(Command::Undo).unwrap();
+    assert_eq!(editor.session.model(), &before);
+}
+
+#[test]
 fn comparison_accepts_one_object_atomically_and_refuses_stale_results() {
     let root = platform::private_directory("r9-compare").unwrap();
     let mut editor = Editor::new(root.join("recovery")).unwrap();

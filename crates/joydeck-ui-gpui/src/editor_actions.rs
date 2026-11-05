@@ -220,6 +220,14 @@ impl Viewer {
         cx.notify();
     }
     pub(super) fn save(&mut self, _: &Save, w: &mut Window, cx: &mut Context<Self>) {
+        self.save_to(None, w, cx);
+    }
+    pub(super) fn save_to(
+        &mut self,
+        selected: Option<PathBuf>,
+        w: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
         if self.composing()
             || self
                 .notes_input
@@ -235,15 +243,18 @@ impl Viewer {
             return;
         }
         let Some(editor) = &self.editor else { return };
-        let text = self.save_input.read(cx).value().to_string();
-        let path = if text.trim().is_empty() {
-            editor
-                .source
-                .clone()
-                .filter(|p| p.extension().is_some_and(|e| e == "pptx" || e == "joydeck"))
-        } else {
-            Some(PathBuf::from(text.trim().trim_matches('"')))
-        };
+        let path = selected.or_else(|| {
+            let text = self.save_input.read(cx).value().to_string();
+            if text.trim().is_empty() {
+                editor.source.clone().filter(|p| {
+                    p.extension().is_some_and(|e| {
+                        e.eq_ignore_ascii_case("pptx") || e.eq_ignore_ascii_case("joydeck")
+                    })
+                })
+            } else {
+                Some(PathBuf::from(text.trim().trim_matches('"')))
+            }
+        });
         let Some(path) = path else {
             self.save_as(&SaveAs, w, cx);
             return;

@@ -54,6 +54,13 @@ pub struct EditorSnapshot {
     pub selection: Selection,
     pub content_id: u64,
 }
+impl EditorSnapshot {
+    /// Stage a resolved edit without changing a live session or allocating undo history.
+    pub fn stage_edit(&mut self, command: Command) -> std::result::Result<(), String> {
+        apply(self, command)?;
+        check_model_budget(&self.model)
+    }
+}
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(tag = "command", rename_all = "kebab-case", deny_unknown_fields)]
 pub enum Command {
@@ -345,16 +352,7 @@ impl Session {
         if next.model == self.state.model && next.origins == self.state.origins {
             return Ok(false);
         }
-        if next.model.slides.len() > 1000 {
-            return Err("page budget exceeded".into());
-        }
-        let mut count = 0;
-        for s in &next.model.slides {
-            walk(&s.shapes, &mut |_, _| count += 1);
-        }
-        if count > 20_000 {
-            return Err("shape budget exceeded".into());
-        }
+        check_model_budget(&next.model)?;
         next.content_id = self.next_content;
         self.next_content += 1;
         let cost = history_cost::undo_cost(&self.state.model, &next.model);
@@ -370,6 +368,19 @@ impl Session {
         }
         Ok(true)
     }
+}
+fn check_model_budget(model: &Presentation) -> std::result::Result<(), String> {
+    if model.slides.len() > 1000 {
+        return Err("page budget exceeded".into());
+    }
+    let mut count = 0;
+    for slide in &model.slides {
+        walk(&slide.shapes, &mut |_, _| count += 1);
+    }
+    if count > 20_000 {
+        return Err("shape budget exceeded".into());
+    }
+    Ok(())
 }
 fn checked(v: f64) -> std::result::Result<f64, String> {
     if v.is_finite() && v.abs() <= 32768. {

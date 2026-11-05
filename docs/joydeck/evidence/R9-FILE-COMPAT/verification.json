@@ -1,0 +1,175 @@
+{
+  "archive_sha256": "6d7b2b09544f85372e5b0cdf20b9a6beae85ceeb8429dfc93329797505bdd8c9",
+  "source_sha256": "feab8b9510467e4f386ac9716f11136a3645ac99a8278e6f2a5da10b5dd89838",
+  "target": "aarch64-apple-darwin",
+  "profile": "release",
+  "sbom_packages": 465,
+  "missing_license_texts": [
+    "block@0.1.6",
+    "mac@0.1.1",
+    "malloc_buf@0.0.6",
+    "pathfinder_geometry@0.5.1",
+    "seahash@4.1.0"
+  ],
+  "signed": false,
+  "features": [
+    "joydeck/validation"
+  ],
+  "verifiedFiles": 1805,
+  "archive": "joydeck-0.8.0-r9-closeout.zip",
+  "cliRuns": [
+    {
+      "phase": "r1",
+      "calls": 28,
+      "reportSha256": "77c4d8844863e6e96ae2a1739d48ce335105de6b31c7992e7c3a9a34912a33b2"
+    },
+    {
+      "phase": "r2",
+      "calls": 20,
+      "reportSha256": "4abe677eee331b8677c3113c39980b9695cbe6e3d70a353cde98d83d6c76b6e9"
+    },
+    {
+      "phase": "r3",
+      "calls": 20,
+      "reportSha256": "780550cc99864240454f57047619867eeb4cb615df040baeac2134b046a3f6b2"
+    },
+    {
+      "phase": "r4-r5",
+      "calls": 23,
+      "reportSha256": "38b5864fd20df9eef5fbc86f2e1511e0c31d4d1e229779759e1dbee59bf1e853"
+    },
+    {
+      "phase": "r6-r7",
+      "calls": 33,
+      "reportSha256": "ea141159a959b6a45920f36254ce254fe0b74ebfe4d282160846f09ee07b2b4f"
+    }
+  ],
+  "r6R7McpResponses": 43,
+  "deckCheck": {
+    "passed": 898,
+    "failed": 0,
+    "ignored": 0
+  },
+  "workspaceTests": {
+    "command": "cargo test --workspace --locked --features joydeck/validation,joysheet/automation",
+    "passed": 5790,
+    "failed": 0,
+    "ignored": [
+      "recalc::tests::recalc_with_range_formulas_scales_linearly",
+      "recovery_format::native_json_size_with_a_large_picture",
+      "fontdb::tests::kai_contours_include_complete_character_body"
+    ]
+  },
+  "nativeSaveAs": {
+    "binarySha256": "93e56832153f11f1d659239e5fdca0ac2d6f1ce2b9765de5329217ff964df740",
+    "sourceSha256": "d6f81497635b517ae63c071f987d3da57449072939630456303871474950e691",
+    "checks": [
+      {
+        "cancelled": true,
+        "sourceUnchanged": true
+      },
+      {
+        "enteredName": "r9-export.pptx",
+        "publishedName": "r9-export.pptx",
+        "sha256": "6f910f601f020fa7a603ccda943c5b1dfe6bc156ae2435b18626d22e2c662e10",
+        "sourceUnchanged": true,
+        "slides": 3,
+        "suggestedName": "示例．v2 - 副本"
+      },
+      {
+        "enteredName": "r9-package.joydeck",
+        "publishedName": "r9-package.joydeck",
+        "sha256": "028961b7ea4e1b4932eb3354be5133605f09aed2b1b6d9755ffff986ebdbfa79",
+        "sourceUnchanged": true,
+        "slides": 3,
+        "suggestedName": "示例．v2 - 副本"
+      },
+      {
+        "enteredName": "r9-no-suffix",
+        "publishedName": "r9-no-suffix.joydeck",
+        "sha256": "028961b7ea4e1b4932eb3354be5133605f09aed2b1b6d9755ffff986ebdbfa79",
+        "sourceUnchanged": true,
+        "slides": 3,
+        "suggestedName": "示例．v2 - 副本"
+      },
+      {
+        "enteredName": "r9-2026.final.PPTX",
+        "publishedName": "r9-2026.final.PPTX",
+        "sha256": "6f910f601f020fa7a603ccda943c5b1dfe6bc156ae2435b18626d22e2c662e10",
+        "sourceUnchanged": true,
+        "slides": 3,
+        "suggestedName": "示例．v2 - 副本"
+      }
+    ]
+  },
+  "systemOpen": {
+    "binarySha256": "93e56832153f11f1d659239e5fdca0ac2d6f1ce2b9765de5329217ff964df740",
+    "passed": true,
+    "checks": [
+      "cold LaunchServices document event with Unicode, spaces, #, %, uppercase extension",
+      "warm LaunchServices document event switched the running app",
+      "repeat open kept one window",
+      "truncated package left the current document open",
+      "valid request after invalid input and unchanged source hashes",
+      "native File and Edit menus, Edit Undo and Redo dispatch",
+      "warm request preserved the dirty document and did not write either source"
+    ]
+  },
+  "legacyControl": {
+    "binarySha256": "485f874a300f821203deecbf47241ff6a5ec5ba281d8193fe7ddb87671e5f9df",
+    "calls": [
+      {
+        "method": "document.new",
+        "revision": null,
+        "expected": "result"
+      },
+      {
+        "method": "document.status",
+        "revision": null,
+        "expected": "result"
+      },
+      {
+        "method": "command.validate",
+        "revision": 0,
+        "expected": "result"
+      },
+      {
+        "method": "document.status",
+        "revision": null,
+        "expected": "result"
+      },
+      {
+        "method": "command.execute",
+        "revision": 0,
+        "expected": "error"
+      },
+      {
+        "method": "document.status",
+        "revision": null,
+        "expected": "result"
+      },
+      {
+        "method": "command.execute",
+        "revision": 0,
+        "expected": "result"
+      },
+      {
+        "method": "document.save",
+        "revision": 1,
+        "expected": "result"
+      },
+      {
+        "method": "document.undo",
+        "revision": 2,
+        "expected": "result"
+      },
+      {
+        "method": "document.inspect",
+        "revision": null,
+        "expected": "result"
+      }
+    ],
+    "savedSlides": 2,
+    "undoSlides": 1
+  }
+}

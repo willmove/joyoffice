@@ -1,6 +1,8 @@
 # JoyDeck 当前状态
 
-2026-11-05 macOS ARM64 原生打开和另存为面板的取消及确认已实测。选择另一份 PPTX 后窗口切换，另存的 PPTX 独立读回三页。另存时的扩展名切换一致性待核对。[桌面证据](../joyoffice/validation/20261105-macos-desktop/README.md#原生文件对话框)
+2026-11-05 R9 文件与旧控制复验。macOS 原生另存扩展名已修复，四种名称在移位 Release 包中成功落盘并独立读回。旧批次按更新后的页序执行，迁移表格字符串 ID 已接通，比较支持对相同稳定页 ID 集合重排后的对象接受。系统文件打开、坏文件恢复和未保存保护已在当次包复验。各父任务按剩余验收条件保留。[验证记录](evidence/R9-FILE-COMPAT/README.md)
+
+2026-11-05 macOS ARM64 原生打开和另存为面板的取消及确认已实测。选择另一份 PPTX 后窗口切换，另存的 PPTX 独立读回三页。扩展名问题首次在本次补验发现。[桌面证据](../joyoffice/validation/20261105-macos-desktop/README.md#原生文件对话框)
 
 2026-11-05 macOS ARM64 静态 MP4 已接通。移位 Release 包的 CLI 通过导出、逐帧读回和拒绝覆盖检查。嵌入媒体探测与播放仍使用 Windows 适配器，JD-705 的其他平台范围继续开放。[本机证据](../joyoffice/validation/20261105-macos-video/README.md)
 

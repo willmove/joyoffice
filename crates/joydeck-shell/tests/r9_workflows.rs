@@ -3,7 +3,7 @@ use joydeck_engine::{Command, ReviewAction, Session, WorkspaceAction, original_b
 use joydeck_model::{Presentation, ShapeKind};
 use serde_json::{Value, json};
 fn legacy(session: &mut Session, value: Value) {
-    let command = joydeck_shell::legacy_commands::parse(&value, session.model()).unwrap();
+    let command = joydeck_shell::legacy_commands::parse(&value, session).unwrap();
     session.execute(command).unwrap();
 }
 #[test]
@@ -119,9 +119,83 @@ fn advertised_legacy_commands_edit_the_real_model_and_keep_review_references_val
         "media.edit",
     ] {
         let before = s.snapshot();
-        assert!(
-            joydeck_shell::legacy_commands::parse(&json!({"command":name}), s.model()).is_err()
-        );
+        assert!(joydeck_shell::legacy_commands::parse(&json!({"command":name}), &s).is_err());
         assert_eq!(s.model(), before.model.as_ref());
+    }
+}
+
+#[test]
+fn legacy_batch_uses_updated_indices_and_undoes_as_one_edit() {
+    let model = Presentation::default();
+    let mut session = Session::new(model.clone(), original_bindings(&model), true);
+    let first = model.slides[0].id;
+    let invalid = json!({"command":"transaction.batch","commands":[
+        {"command":"page.add"},
+        {"command":"document.design","action":{"type":"notes","value":[2,"invalid"]}}
+    ]});
+    assert!(joydeck_shell::legacy_commands::parse(&invalid, &session).is_err());
+    assert_eq!(session.revision(), 0);
+    assert_eq!(session.model(), &model);
+    let batch = json!({"command":"transaction.batch","commands":[
+        {"command":"page.add"},
+        {"command":"transaction.batch","commands":[
+            {"command":"page.reorder","pages":[1],"target":0},
+            {"command":"page.visibility","pages":[0]},
+            {"command":"document.design","action":{"type":"notes","value":[0,"moved page"]}}
+        ]}
+    ]});
+    let command = joydeck_shell::legacy_commands::parse(&batch, &session).unwrap();
+    assert!(session.validate(command.clone()).unwrap());
+    assert_eq!(session.model(), &model);
+    assert!(session.execute(command).unwrap());
+    assert_eq!(session.revision(), 1);
+    assert_eq!(session.model().slides[1].id, first);
+    assert!(session.model().slides[0].hidden);
+    assert_eq!(session.model().slides[0].notes.text(), "moved page");
+    assert!(session.model().slides[1].notes.text().is_empty());
+    session.execute(Command::Undo).unwrap();
+    assert_eq!(session.model(), &model);
+    assert!(!session.can_undo());
+}
+
+#[test]
+fn legacy_table_string_ids_and_out_of_range_pages_are_checked() {
+    let model = Presentation::default();
+    let mut session = Session::new(model.clone(), original_bindings(&model), true);
+    session
+        .execute(Command::InsertTable {
+            x: 20.,
+            y: 20.,
+            rows: 2,
+            cols: 2,
+            width: 200.,
+            row_height: 40.,
+        })
+        .unwrap();
+    let id = session.selection().shapes[0];
+    let mut saved_model = session.model().clone();
+    std::sync::Arc::make_mut(&mut saved_model.slides[0])
+        .shape_mut(id)
+        .unwrap()
+        .tags
+        .push(("JoyOffice.LegacyId".into(), "table-old".into()));
+    let mut session = Session::new(saved_model.clone(), original_bindings(&saved_model), true);
+    for object in [json!("table-old"), json!(id.0.to_string()), json!(id.0)] {
+        legacy(
+            &mut session,
+            json!({"command":"table.edit","page":0,"object":object,
+            "action":{"type":"rowHeight","value":[0,70.]}}),
+        );
+    }
+    let ShapeKind::Table(table) = &session.model().slides[0].shape(id).unwrap().kind else {
+        unreachable!()
+    };
+    assert_eq!(table.rows[0].height, 70.);
+    for input in [
+        json!({"command":"table.edit","page":usize::MAX,"object":"table-old",
+            "action":{"type":"rowHeight","value":[0,80.]}}),
+        json!({"command":"document.design","action":{"type":"notes","value":[usize::MAX,"overflow"]}}),
+    ] {
+        assert!(joydeck_shell::legacy_commands::parse(&input, &session).is_err());
     }
 }

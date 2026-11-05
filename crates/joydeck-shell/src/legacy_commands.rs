@@ -1,6 +1,7 @@
 //! Explicit subset of the documented v1 command parameters, translated into v2 edits.
 use joydeck_engine::{
-    Command, ContentAction, ReviewAction, TableAction, TextTarget, WorkspaceAction,
+    Command, ContentAction, EditorSnapshot, ReviewAction, Session, TableAction, TextTarget,
+    WorkspaceAction,
 };
 use joydeck_model::{Presentation, ShapeId};
 use serde_json::Value;
@@ -36,16 +37,85 @@ fn f(v: &Value) -> Result<f64, String> {
 fn text(v: &Value) -> Result<String, String> {
     v.as_str().map(str::to_owned).ok_or("missing text".into())
 }
-pub fn parse(p: &Value, model: &Presentation) -> Result<Command, String> {
-    parse_inner(p, model, 0)
+pub fn parse(p: &Value, session: &Session) -> Result<Command, String> {
+    if p["command"] != "transaction.batch" {
+        return parse_edit(p, session.model());
+    }
+    let mut snapshot = session.snapshot();
+    let mut commands = Vec::new();
+    collect_batch(p, &mut snapshot, &mut commands, 0)?;
+    Ok(Command::Batch { commands })
 }
-fn parse_inner(p: &Value, model: &Presentation, depth: usize) -> Result<Command, String> {
+fn collect_batch(
+    p: &Value,
+    snapshot: &mut EditorSnapshot,
+    commands: &mut Vec<Command>,
+    depth: usize,
+) -> Result<(), String> {
     if depth > 0 && p.get("expectedRevision").is_some() {
         return Err("nested revision guards are not supported; use the outer request guard".into());
     }
     if depth > 16 {
         return Err("legacy batch depth exceeds 16".into());
     }
+    if p["command"] != "transaction.batch" {
+        let edits = match parse_edit(p, &snapshot.model)? {
+            Command::Batch { commands } => commands,
+            edit => vec![edit],
+        };
+        if commands.len() + edits.len() > 256 {
+            return Err("flattened batch exceeds 256 commands".into());
+        }
+        for edit in edits {
+            snapshot.stage_edit(edit.clone())?;
+            commands.push(edit);
+        }
+        return Ok(());
+    }
+    if p.as_object().is_none_or(|p| {
+        p.keys()
+            .any(|k| !matches!(k.as_str(), "command" | "commands" | "expectedRevision"))
+    }) {
+        return Err("unknown legacy command field".into());
+    }
+    let values = p["commands"]
+        .as_array()
+        .filter(|v| !v.is_empty() && v.len() <= 256)
+        .ok_or("legacy batch requires 1–256 commands")?;
+    for value in values {
+        collect_batch(value, snapshot, commands, depth + 1)?;
+    }
+    Ok(())
+}
+fn table_shape(slide: &joydeck_model::Slide, object: &Value) -> Result<ShapeId, String> {
+    if let Some(legacy) = object.as_str() {
+        let mut matches = slide.shapes.iter().filter(|shape| {
+            shape
+                .tags
+                .iter()
+                .any(|(key, value)| key == "JoyOffice.LegacyId" && value == legacy)
+        });
+        if let Some(shape) = matches.next() {
+            if matches.next().is_some() {
+                return Err("ambiguous legacy table id".into());
+            }
+            return Ok(shape.id);
+        }
+    }
+    let id = object
+        .as_str()
+        .and_then(|id| id.parse::<u32>().ok())
+        .or_else(|| object.as_u64().and_then(|id| u32::try_from(id).ok()))
+        .map(ShapeId)
+        .ok_or("missing legacy table id")?;
+    slide
+        .shapes
+        .iter()
+        .find(|shape| shape.id == id)
+        .map(|shape| shape.id)
+        .ok_or("table object outside page".into())
+}
+fn parse_edit(p: &Value, model: &Presentation) -> Result<Command, String> {
     let id = p["command"].as_str().ok_or("missing legacy command")?;
     let allowed = match id {
         "page.add" => vec![],
@@ -55,7 +125,6 @@ fn parse_inner(p: &Value, model: &Presentation, depth: usize) -> Result<Command,
         "object.delete" => vec!["page", "objects"],
         "table.edit" => vec!["page", "object", "action"],
         "document.design" | "review.edit" => vec!["action"],
-        "transaction.batch" => vec!["commands"],
         _ => {
             return Err(
                 "legacy command is outside the advertised subset; original state unchanged".into(),
@@ -150,8 +219,8 @@ fn parse_inner(p: &Value, model: &Presentation, depth: usize) -> Result<Command,
         }
         "table.edit" => {
             let page = number(p, "page")?;
-            let shape =
-                ShapeId(u32::try_from(number(p, "object")?).map_err(|_| "invalid shape id")?);
+            let slide = model.slides.get(page).ok_or("page outside document")?;
+            let shape = table_shape(slide, &p["object"])?;
             let action = &p["action"];
             let value = &action["value"];
             if action
@@ -225,7 +294,13 @@ fn parse_inner(p: &Value, model: &Presentation, depth: usize) -> Result<Command,
                 return Err("invalid design action fields".into());
             }
             match action["type"].as_str().ok_or("missing design action type")? {
-                "notes" => at(n(&value[0])?, vec![], Command::SetText { target: TextTarget::Notes, body: Box::new(joydeck_model::TextBody::from_text(&text(&value[1])?)) }),
+                "notes" => {
+                    let page = n(&value[0])?;
+                    if page >= model.slides.len() {
+                        return Err("page outside document".into());
+                    }
+                    at(page, vec![], Command::SetText { target: TextTarget::Notes, body: Box::new(joydeck_model::TextBody::from_text(&text(&value[1])?)) })
+                }
 
                 _ => return Err("legacy theme/layout/field design action requires schema 2; no values discarded".into()),
             }
@@ -344,23 +419,6 @@ fn parse_inner(p: &Value, model: &Presentation, depth: usize) -> Result<Command,
                 }
                 _ => return Err("unsupported legacy review action".into()),
             }
-        }
-        "transaction.batch" => {
-            let values = p["commands"]
-                .as_array()
-                .filter(|v| !v.is_empty() && v.len() <= 256)
-                .ok_or("legacy batch requires 1–256 commands")?;
-            let mut commands = vec![];
-            for value in values {
-                match parse_inner(value, model, depth + 1)? {
-                    Command::Batch { commands: nested } => commands.extend(nested),
-                    command => commands.push(command),
-                };
-                if commands.len() > 256 {
-                    return Err("flattened batch exceeds 256 commands".into());
-                }
-            }
-            Command::Batch { commands }
         }
         _ => return Err("unsupported legacy command".into()),
     })
