@@ -49,7 +49,7 @@ JD-107 已从新的移位包核对 329 条静态 ID、实际协议注册表和�
 | 完成 | JD-203 | 新建文稿/页面、插入基础形状、移动/缩放/旋转、删除、复制和图层 | macOS Release 桌面操作修改真实模型，选择、对象 ID、层级及场景同步。[证据](evidence/R2-POINTER/README.md#jd-203-基础编辑) | JD-202 |
 | 完成 | JD-204 | 保持 undo/redo、事务合并、ID 与失败原子性 | 一次手势单次撤销；失败不污染历史；撤销后 UI 字段与 dirty 正确 | JD-200、JD-203 |
 | 完成 | JD-205 | 定义并实现新 .joydeck 主版本、能力声明和受限 writer/reader | 新格式自己往返；旧读取器明确拒绝；未知必需特性不可覆盖；不是简单改后缀 | JD-102、JD-200 |
-| 已实现待验收 | JD-206 | 复用保存指纹/原子写/另存、关闭提示和保存期间继续编辑语义 | macOS 原生另存扩展名已修复并实测；模拟写入/替换失败和外部修改保留原件；保存 revision 之后的编辑仍 dirty。[证据](evidence/R9-FILE-COMPAT/README.md#实屏复验) | JD-205 |
+| 完成 | JD-206 | 复用保存指纹/原子写/另存、关闭提示和保存期间继续编辑语义 | 并发保存只发布一份，替换失败和外部改动保留原件；后续编辑仍 dirty；macOS 关闭取消和另存读回已实测。[证据](evidence/R2-SAVE-PUBLICATION/README.md) | JD-205 |
 | 完成 | JD-207 | 复用恢复日志、恢复列表、崩溃后重开与坏记录隔离 | 强制终止后的受控恢复场景可重现；未来版本/坏恢复文件不破坏有效文件 | JD-206 |
 | 完成 | JD-208 | 接入常用 Ribbon、菜单、快捷键、状态栏和命令 enabled | macOS 原生菜单、Ribbon、快捷键和状态栏与引擎预检对齐，CLI 逐步核对模型和历史。[证据](evidence/R2-COMMAND-STATE/README.md) | JD-201–JD-204 |
 | 已实现待验收 | JD-209 | R2 编辑器开发包 | 新建→插入→拖动→保存→重开→undo/redo→恢复，实际窗口和 CLI 独立读回均通过 | JD-204–JD-208 |
@@ -174,7 +174,7 @@ R8 当前推进 Windows 编辑器与可搬移开发包切片，并纠正工程�
 | 完成 | JD-902 | 公共库快照回接宿主，合并必要公共 UI/OPC 增量 | 仓库只有一套公共实现；所有使用方 API/行为得到验证 | JD-901 |
 | 完成 | JD-903 | 合并 workspace/根 Cargo.lock、feature 与工具链 | GPUI 单一基线；版本/来源/checksum 可审计；无 egui 闭包；无整体无关升级 | JD-902 |
 | 完成 | JD-904 | 更新产品工具、layers/IO/panic、provenance、文档/许可和 CI | 新增 crate/IO 均登记；不放宽为目录级忽略；独立产品版本/标签保持 | JD-903 |
-| 已实现待验收 | JD-905 | Deck 全量、Word/Sheet 使用方与联合 feature 回归 | 三产品分别 build/check/test/package；CLI 闭包无 GPUI；合并 CI 通过 | JD-904 |
+| 已实现待验收 | JD-905 | Deck 全量、Word/Sheet 使用方与联合 feature 回归 | 三产品分别 build/check/test/package；CLI 闭包无 GPUI；合并 CI 通过。本机三产品验证已完成。[证据](evidence/R9-WORKSPACE/README.md) | JD-904 |
 | 进行中 | JD-906 | 旧文件、旧自动化、完整命令矩阵及现有 JoyDeck 功能无回退验收 | 所有迁移范围内未延期项完成；延期逐项有归属；用户文稿无静默损失 | JD-600、JD-706、JD-905 |
 | 已实现待验收 | JD-907 | 新宿主包、仓库外运行、回退演练和新状态文档 | 能从 JoyOffice 构建/体验新产品；旧证据保留历史原义；更换失败可恢复旧包 | JD-906 |
 | 完成 | JD-908 | 按 JoyOffice 仓库规则完成 PR/CI/替换交付 | 最终来源和版本清楚，公共库与锁文件唯一，验收及剩余项可追溯 | JD-907 |

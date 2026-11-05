@@ -12,6 +12,8 @@
 
 2026-11-05 完成 R0 验收复核。JD-007 的隔离宿主演练与 Windows/macOS/Linux CI 编译门禁已有证据，JD-008 的原 R0 Windows 开发包启动、导航/面板/主题及产物指纹已对照，任务状态更新为完成。[R0 复核](evidence/R0/README.md#任务验收复核)
 
+2026-11-05 完成 JD-206。同进程保存只允许一份冲突结果发布，macOS 实测替换失败、外部改动、取消关闭和另存读回。三产品本机联合回归 5,791 项通过，开发包均已验证；JD-905 的合并 CI 继续跟踪。[保存复验](evidence/R2-SAVE-PUBLICATION/README.md) · [联合回归](evidence/R9-WORKSPACE/README.md)
+
 2026-11-05 R9 文件与旧控制复验。macOS 原生另存扩展名已修复，四种名称在移位 Release 包中成功落盘并独立读回。旧批次按更新后的页序执行，迁移表格字符串 ID 已接通，比较支持对相同稳定页 ID 集合重排后的对象接受。系统文件打开、坏文件恢复和未保存保护已在当次包复验。各父任务按剩余验收条件保留。[验证记录](evidence/R9-FILE-COMPAT/README.md)
 
 2026-11-05 macOS ARM64 原生打开和另存为面板的取消及确认已实测。选择另一份 PPTX 后窗口切换，另存的 PPTX 独立读回三页。扩展名问题首次在本次补验发现。[桌面证据](../joyoffice/validation/20261105-macos-desktop/README.md#原生文件对话框)
