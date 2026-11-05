@@ -175,6 +175,7 @@ pub struct Viewer {
     thumbnail_errors: BTreeSet<usize>,
     thumb_busy: bool,
     scroll: UniformListScrollHandle,
+    page_scroll: ScrollHandle,
     ribbon_scroll: ScrollHandle,
     read_cancel: Arc<AtomicBool>,
     paint_cancel: Arc<AtomicBool>,
@@ -296,6 +297,7 @@ impl Viewer {
             thumbnail_errors: BTreeSet::new(),
             thumb_busy: false,
             scroll: UniformListScrollHandle::new(),
+            page_scroll: ScrollHandle::new(),
             ribbon_scroll: ScrollHandle::new(),
             read_cancel: Arc::new(AtomicBool::new(false)),
             paint_cancel: Arc::new(AtomicBool::new(false)),
@@ -818,6 +820,7 @@ impl Render for Viewer {
                 .min_w_0()
                 .min_h_0()
                 .overflow_scroll()
+                .track_scroll(&self.page_scroll)
                 .bg(rgb(palette.canvas))
                 .child(
                     div()
@@ -922,9 +925,6 @@ impl Render for Viewer {
             .on_key_down(cx.listener(Self::inline_key))
             .on_action(cx.listener(Self::new_document))
             .on_action(cx.listener(Self::request_close))
-            .on_mouse_move(cx.listener(move |s, event, _, cx| {
-                s.inline_move(event, scale, cx);
-            }))
             .on_action(cx.listener(Self::open))
             .on_action(cx.listener(Self::cancel))
             .on_action(cx.listener(Self::previous))
@@ -1030,9 +1030,9 @@ pub fn bind(cx: &mut App) {
         KeyBinding::new("right", Next, Some("Viewer && !Input && !InlineText")),
         KeyBinding::new("home", First, Some("Viewer && !Input && !InlineText")),
         KeyBinding::new("end", Last, Some("Viewer && !Input && !InlineText")),
-        KeyBinding::new("ctrl-=", ZoomIn, Some("Viewer && !Input && !InlineText")),
-        KeyBinding::new("ctrl--", ZoomOut, Some("Viewer && !Input && !InlineText")),
-        KeyBinding::new("ctrl-0", Fit, Some("Viewer && !Input && !InlineText")),
+        KeyBinding::new("ctrl-=", ZoomIn, Some("Viewer && !Input")),
+        KeyBinding::new("ctrl--", ZoomOut, Some("Viewer && !Input")),
+        KeyBinding::new("ctrl-0", Fit, Some("Viewer && !Input")),
     ]);
 }
 #[cfg(target_os = "macos")]

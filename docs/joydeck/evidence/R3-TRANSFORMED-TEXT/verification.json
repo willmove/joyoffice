@@ -1,0 +1,55 @@
+{
+  "binarySha256": "783ba9d184cb505d6d440ac70ccb60d717e0e8dbff058d3f8e08b1f45880db03",
+  "cliSha256": "9d5197c45d22ca57f59d0a718c5f8c388e53b8b20c9ca4f908e0494bf6ff3c0c",
+  "checks": [
+    "The 33 degree shape and minus 10 degree body produced a tilted selection; clicking its leading edge and moving right inserted after A",
+    "At the larger zoom the viewport panned on both axes to the active rotated caret",
+    "East Asian vertical text selected vertically and Down moved along the text before the native keyboard edit",
+    "The vert270 cell used Up as its inline direction, preserved its neighbor and round-tripped one undo/redo",
+    "Native PPTX Save As preserved all rotations, vertical modes and the original file, with an independent XML and CLI readback"
+  ],
+  "screenshots": {
+    "01-rotated-selection.png": "f7a7cdcc385dda7a75b576465d579254f15b0722bed3ea14a68fd84d3e7f2459",
+    "02-rotated-hit.png": "ba3de1b8cd0e2622a8623e46bfe3e5b0fa7790b4f6259fcff7e431d149df6f84",
+    "03-caret-after-scroll.png": "9e89c2002a2dd169ef3aeec0b05954fc73b38cc15ff2a88965284b6da5f2174d",
+    "04-east-asian-vertical.png": "722d7271f731e2c632b03269a8a52a2ecf99bfbc1beb405a3679b7b6416b2316",
+    "05-east-asian-vertical-edit.png": "ca9a52ed14b7b5a8cea1f5ef309d82dca0004c48935d7f079bf7bb41a27df9d1",
+    "06-reverse-vertical-cell.png": "0289093688a668c795bcea06602f02f14cc76ff1607d3fb3e6167eff9d8552f4",
+    "07-reverse-vertical-cell-edit.png": "b3eda0f97a2f5b62c5b1fdbed347392eb11ff81c09861b8008e4b958da4ff953"
+  },
+  "sourceSha256": "57d5ee89684cfb77af22c60da3ad576a0fc0d301e22d002f11a6ffd32a968eef",
+  "backingScale": 1.0,
+  "rotatedSelectionAngleDegrees": 23.21,
+  "maxRasterWidthDuringZoom": 1668,
+  "zoomedCaretPixels": 23,
+  "zoomedCaretBounds": [
+    1247,
+    734,
+    1270,
+    788
+  ],
+  "savedSha256": "503656ec4bac85bfd00cc3b8f3212fe24302fbdeaf09e252e9aebac919f4a136",
+  "passed": true,
+  "productTests": {
+    "passed": 911,
+    "failed": 0,
+    "ignored": 0
+  },
+  "packagedCliChecks": {
+    "R1": 28,
+    "registry": 329,
+    "R2": 20,
+    "R3": 20
+  },
+  "package": {
+    "archive": "joydeck-0.8.0-r3-transform-final.zip",
+    "archiveSha256": "ebb2d5a32d51aa1e917ab4196091721ee29f57e81f51d64903e365d6811adfe6",
+    "sourceSha256": "546f361993d9a9bc7b4be1a2deffcf485978cc4a7a178ed9cb9e46e2af0fe65e",
+    "target": "aarch64-apple-darwin",
+    "profile": "release",
+    "verifiedPayloadFiles": 1805
+  },
+  "displayModes": [
+    "Current: [1920, 1080, 1920, 1080]"
+  ]
+}

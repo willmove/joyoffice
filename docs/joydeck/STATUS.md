@@ -1,5 +1,7 @@
 # JoyDeck 当前状态
 
+2026-11-05 完成 JD-302。macOS Release 实测旋转与竖排选区、指针命中、方向键、插入点滚动和 PPTX 另存读回。产品检查 911 项通过，1×/2× 坐标回归通过，2× 实屏另行复验。[原位编辑证据](evidence/R3-TRANSFORMED-TEXT/README.md)
+
 2026-11-05 完成 JD-301。macOS Release 实测同名字体热替换、画布与缩略图刷新、原位选区及 TTC 搜索。包内 CLI 报告选中的 face、冲突和实际替代。JoyDeck 909 项、三产品联合 5,802 项通过。[字体环境证据](evidence/R3-FONT-ENVIRONMENT/README.md)
 
 2026-11-05 完成 JD-300。修复 PDF 搜索层的动态字段、链接与组合缩放坐标。macOS 实测混排编辑和保存回读，Poppler 验证 14 个组合与普通文本搜索词的边界一致。906 项产品测试通过。[排版证据](evidence/R3-SHARED-LAYOUT/README.md)

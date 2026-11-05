@@ -739,7 +739,7 @@ impl Viewer {
                 });
             if event.click_count >= 2 || empty_placeholder {
                 self.select_object(id, false, w, cx);
-                self.begin_selected_text(w, cx);
+                self.start_inline_at(event, w, cx);
                 return;
             }
             if !event.modifiers.shift
@@ -797,6 +797,10 @@ impl Viewer {
     }
 
     fn pointer_move(&mut self, event: &MouseMoveEvent, w: &mut Window, cx: &mut Context<Self>) {
+        if self.inline_move(event, w, cx) {
+            cx.stop_propagation();
+            return;
+        }
         let Some(drag) = &self.drag else { return };
         if !event.dragging() || !self.gesture_current(drag, w) {
             self.drag = None;
@@ -809,6 +813,7 @@ impl Viewer {
     }
 
     fn pointer_up(&mut self, event: &MouseUpEvent, w: &mut Window, cx: &mut Context<Self>) {
+        self.finish_inline_pointer();
         let Some(drag) = self.drag.take() else { return };
         cx.stop_propagation();
         cx.notify();
