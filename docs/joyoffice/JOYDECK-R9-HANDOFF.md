@@ -90,6 +90,7 @@ Word CI 还暴露出原基线也存在的两份独立实验锁漂移，已仅补
 | 旧桌面远程绑定/多窗口 | CLI/MCP 默认独立 headless。显式 `--control-stdio=AUTHORIZED_ROOT` 绑定窗口视图，修订、重放、组合输入、拖动和文稿代次仍受约束。同文稿的多个视图共享 Editor、撤销、保存和恢复，选区与缩放独立。桌面 MCP 分发与完整旧 16 领域仍缺。[共享视图复验](../joydeck/evidence/R2-SHARED-DOCUMENT/README.md) |
 | 基础画布手势 | macOS 1× 已复验旋转命中、框选、多选、窗口外捕获、Esc/失焦取消及单次事务。JD-203 基础编辑已通过。JD-202 继续等待 2× Retina/HiDPI 实屏。[证据](../joydeck/evidence/R2-POINTER/README.md) |
 | 常用编辑命令 | JD-208 已从 macOS Release 验证菜单、Ribbon、快捷键和状态栏。预检与执行共用引擎，包内 CLI 逐步验证对象、层级、页序和历史。[证据](../joydeck/evidence/R2-COMMAND-STATE/README.md) |
+| R2 编辑器开发包 | JD-209 已在整合保存发布和编辑改动的 macOS ARM64 Release 包上验证。真实窗口和独立 CLI 均复验保存重开与强制终止恢复，原件散列保持。[证据](../joydeck/evidence/R2-EDITOR-PACKAGE/README.md) |
 | 旧偏好、最近文件、比较接受/图片依赖、完整设计与审阅 | 新增有界最近文件、原创模板、基础比较接受、旧批注／回复／解决／媒体／链接／放映配置迁移及审阅 GUI；完整设计／母版／偏好与复杂内容仍缺，不能沿用旧 done |
 
 使用机器接口时先查询能力，不只看 envelope 字符串。新旧未覆盖功能属于实际产品差距，不是仅等待硬件验收。完整“旧功能无回退”验收（JD-906）仍开放，不能因导入和构建成功而关闭。

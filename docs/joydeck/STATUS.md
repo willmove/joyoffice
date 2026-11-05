@@ -1,5 +1,7 @@
 # JoyDeck 当前状态
 
+2026-11-05 完成 JD-209。整合保存发布修复后的 macOS ARM64 Release 包，从实际新建、插入、拖动、另存和重开，验证到重开后的撤销、重做和强制终止恢复。桌面与包内 CLI 独立读回一致，原件散列保持，产品检查 904 项通过。[编辑器包验收](evidence/R2-EDITOR-PACKAGE/README.md)
+
 2026-11-05 完成 JD-208。常用撤销、页与对象编辑、层级操作使用同一引擎预检。实测原生菜单与 Ribbon 的禁用状态、无选择 Delete 提示、快捷键和独立 CLI 对照。产品检查 903 项通过。[命令状态证据](evidence/R2-COMMAND-STATE/README.md)
 
 2026-11-05 完成 JD-203。macOS Release 实测新建文稿和页面、插入形状、层级、副本、删除和撤销。JD-202 已修正旋转命中、手柄锚点和窗口级指针捕获，1× 实屏确认 Esc 与失焦取消不写入编辑历史，拖到窗口外释放只提交一次。2× Retina/HiDPI 实屏继续待验收。JoyDeck 产品检查 902 项通过。[手势与基础编辑证据](evidence/R2-POINTER/README.md)
