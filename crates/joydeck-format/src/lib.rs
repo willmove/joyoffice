@@ -12,6 +12,7 @@
 #![forbid(unsafe_code)]
 
 mod chart_parts;
+pub mod clipboard;
 mod finite;
 pub mod rtf;
 

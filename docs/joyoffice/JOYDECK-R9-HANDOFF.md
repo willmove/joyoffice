@@ -95,7 +95,7 @@ Word CI 还暴露出原基线也存在的两份独立实验锁漂移，已仅补
 | 旧偏好、最近文件、比较接受/图片依赖、完整设计与审阅 | 新增有界最近文件、原创模板、基础比较接受、旧批注／回复／解决／媒体／链接／放映配置迁移及审阅 GUI；完整设计／母版／偏好与复杂内容仍缺，不能沿用旧 done |
 | 文字框布局、链接与字段 | JD-305 已接入文字方向、分栏、对齐、边距、换行、溢出缩小、已有文字链接及文本框内动态编号和日期／时间。已核对的入口见命令矩阵。固定日期、整份页脚、插入带链接的显示文字及其余字符／段落命令继续开放。[布局验收](../joydeck/evidence/R3-TEXT-LAYOUT/README.md) · [文字链接验收](../joydeck/evidence/R3-TEXT-LINKS/README.md) · [动态字段验收](../joydeck/evidence/R3-TEXT-FIELDS/README.md) |
 | 表格 | JD-306 已从 macOS Release 验证尺寸检查、插入、矩形选区、结构编辑、样式、系统拼音和键盘导航，两种格式均经另存与独立进程重开。[表格证据](../joydeck/evidence/R3-TABLE-QUALIFICATION/README.md) |
-| 剪贴板 | JD-307 已在 macOS Release 验证纯文本、内部富文字、外部 PNG 与基础跨文稿对象。PPTX 保留保存复用内容类型与字节均相同的图片部件。同文稿编辑会话标记用于保留有效的页内引用。跨文稿复制保留文字、样式和网页链接，移除源页动作并提示。外部富文本格式、富文字图片资源和完整 Office 对象继续开放。[剪贴板证据](../joydeck/evidence/R3-CLIPBOARD/README.md) · [链接范围](../joydeck/evidence/R3-CLIPBOARD-LINKS/README.md) |
+| 剪贴板 | JD-307 已在 macOS Release 验证纯文本、内部富文字、外部 PNG 与基础跨文稿对象。PPTX 保留保存复用内容类型与字节均相同的图片部件。同文稿编辑会话标记用于保留有效的页内引用。跨文稿复制保留文字、样式和网页链接，移除源页动作并提示。外部 HTML／RTF 已在 macOS Release 验证系统粘贴、段落与常用样式、网页链接、回退和两种格式另存。Windows 实屏、Linux 原生富格式、富文字图片资源和完整 Office 对象继续开放。[剪贴板证据](../joydeck/evidence/R3-CLIPBOARD/README.md) · [链接范围](../joydeck/evidence/R3-CLIPBOARD-LINKS/README.md) · [外部富文本](../joydeck/evidence/R3-EXTERNAL-RICH/README.md) |
 
 使用机器接口时先查询能力，不只看 envelope 字符串。新旧未覆盖功能属于实际产品差距，不是仅等待硬件验收。完整“旧功能无回退”验收（JD-906）仍开放，不能因导入和构建成功而关闭。
 

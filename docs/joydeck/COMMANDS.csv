@@ -57,7 +57,7 @@ edit.cut,action,Cut,crates/engine/src/cmd/edit.rs,20,R2,基础对象与文字剪
 edit.delete,action,Delete,crates/engine/src/cmd/edit.rs,42,R2,待分类,待验证,,
 edit.deselect,noundo,Deselect,crates/engine/src/cmd/edit.rs,44,R2,待分类,待验证,,
 edit.duplicate,action,Duplicate,crates/engine/src/cmd/edit.rs,41,R2,基础事务已接入；完整上游命令兼容未验收,待验证,开始 / 快速访问 / 快捷键,docs/joydeck/evidence/R8/README.md; docs/joydeck/UI-PARITY.md
-edit.paste,action,Paste,crates/engine/src/cmd/edit.rs,22,R2,已实测系统文本、内部富文字、PNG 及基础对象；按文稿范围处理页内链接,macOS 单步撤销、双窗口、跨文稿与旧对象粘贴；PPTX 图片复用,开始 / Cmd/Ctrl+V,docs/joydeck/evidence/R3-CLIPBOARD/README.md; docs/joydeck/evidence/R3-CLIPBOARD-LINKS/README.md
+edit.paste,action,Paste,crates/engine/src/cmd/edit.rs,22,R2,已实测系统文本、内部富文字、PNG 及基础对象，按文稿范围处理页内链接,macOS 验证单步撤销、双窗口、跨文稿、旧对象和外部 HTML／RTF 粘贴。PPTX 图片复用与公开读回通过,开始 / Cmd/Ctrl+V,docs/joydeck/evidence/R3-CLIPBOARD/README.md; docs/joydeck/evidence/R3-CLIPBOARD-LINKS/README.md; docs/joydeck/evidence/R3-EXTERNAL-RICH/README.md
 edit.pasteSpecial,action,Paste Special,crates/engine/src/cmd/edit.rs,31,R2,待分类,待验证,,
 edit.pasteText,action,Paste and Match Formatting,crates/engine/src/cmd/edit.rs,40,R2,待分类,待验证,,
 edit.redo,noundo,Redo,crates/engine/src/cmd/edit.rs,19,R2,基础事务已接入；完整上游命令兼容未验收,待验证,开始 / 快速访问 / 快捷键,docs/joydeck/evidence/R8/README.md; docs/joydeck/UI-PARITY.md

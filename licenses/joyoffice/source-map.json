@@ -197,7 +197,7 @@
     "target_path": "crates/joydeck-ui-gpui/src/inline_text.rs",
     "source_sha256": "e6caa4311e30aaa39f91b1da6d328e8bba46ae9afcf4a890e44e43278e5ef4f4",
     "local_changes": "Adapt EntityInputHandler, selection/clipboard/composition routing to new pure engine; consume shared CPU text/table layout for all geometry; add bounded text metadata/TSV and notes Textarea flow from apps/joydeck/src/chrome.rs.; R8 native editor, clipboard or product package version adaptation; R9-UI1 native formatting controls and schema-2 validation/history compatibility (see slice evidence)",
-    "adapted_sha256": "9eddd00b9803b8c4287d67edc494c7f8b70718f08adff30d1e25612f27ea479d",
+    "adapted_sha256": "77068e4e03b030afe891b82789f0a84c463a1f14ae281ce02aa1f8530d474c25",
     "additional_sources": [
       {
         "source_path": "apps/joydeck/src/chrome.rs",
