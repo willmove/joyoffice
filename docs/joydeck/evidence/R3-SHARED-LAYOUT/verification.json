@@ -1,0 +1,59 @@
+{
+  "binarySha256": "3b5fd346a9406fca700fd83f4712d0d834acdbbdbec69e24885891119be51378",
+  "cliSha256": "ade7019e91c2773af0d9ce08130a424236c1bd36c31b15d273f8c43e1f11cb35",
+  "checks": [
+    "GPUI and CPU windows both display the mixed-script wrapped text within the same canvas region",
+    "Native inline selection and keyboard insert preserved CJK, Arabic, combining accent, emoji, and paragraph tail through one undo/redo",
+    "Native Save As kept the original PPTX and the packaged CLI read back the exact edited text and formatting"
+  ],
+  "screenshots": {
+    "01-gpui-mixed-layout.png": "3e9439e61cf4fc1e97c69da268be538fbbba8eaad5e25bc3ccb16747d333484c",
+    "02-cpu-mixed-layout.png": "2045e0f7b7bf98bf143e10a0a26efb6ac9a388b1df699f8f16b3fc35c55c5bc3",
+    "03-inline-mixed-selection.png": "a01979ff61c05cd308ad1ba3598a745871d12b98895fc82f08b069f7ef5e1d3f",
+    "04-inline-mixed-edit.png": "8e9ba6fefc01ddeda808f16e42f39711c81a668648b0725f8dcdb37661afbd4c",
+    "05-saved-mixed-layout.png": "44284792820bcbe52b7dab82fbc3b0512eada8bb7669fc9e486bdecbf2d26bcf"
+  },
+  "sourceSha256": "824ca28773a9fdee6cfa70b1587747aa48418c28ee231e8c2bea215cce5c8d11",
+  "guiMixedTextCropMeanChannelError": 1.05721,
+  "editedSha256": "d43b666e9001c14cfc561d6edd041faf56e2c198db3214929b59c11b293fe118",
+  "passed": true,
+  "package": {
+    "archive_sha256": "e690288e79ed76608207da6c896adcc0b1e1fcc2d742f580e3a69128c04772af",
+    "source_sha256": "fa79946bb2b3552f8e0e77461571415d921142d170684a07708cd322d775d632",
+    "target": "aarch64-apple-darwin",
+    "profile": "release",
+    "verifiedPayloadFiles": 1805
+  },
+  "tests": {
+    "passed": 906,
+    "failed": 0,
+    "ignored": 0
+  },
+  "cliChecks": {
+    "r1": 28,
+    "r2": 20,
+    "r3": 20,
+    "upstreamCommandIds": 329
+  },
+  "pdf": {
+    "passed": true,
+    "cliSha256": "ade7019e91c2773af0d9ce08130a424236c1bd36c31b15d273f8c43e1f11cb35",
+    "sourceSha256": "824ca28773a9fdee6cfa70b1587747aa48418c28ee231e8c2bea215cce5c8d11",
+    "pdfSha256": "40648657e9f7711092de9f87f59280075ef7b752afa74ec898c2bfb4476f1da9",
+    "oldPdfSha256": "c9f524ffa48f3c9bc85eef0f225b7fbb1b85578e15f701313e02b47625e9474e",
+    "groupedVsPlainSearchWordCount": 14,
+    "groupedVsPlainBboxMaxDeltaPt": 0.0,
+    "popplerCpuMeanChannelError": [
+      0.459749,
+      0.304896,
+      0.304896
+    ],
+    "resolvedField": "1 FIELDTAILVISIBLE",
+    "url": "https://example.invalid/joydeck-field-layout",
+    "extractedPages": [
+      "ALPHA 中文 مرحباé 😀 visual ordering and\nwrapping\nSECOND paragraph for line and cluster\nchecks\n\n\n\n\n1 FIELDTAILVISIBLE\n",
+      "GROUPED TEXT has the same width\nand fixed size\nALIGNED WORDS and wrapped lines\n",
+      "GROUPED TEXT has the same width\nand fixed size\nALIGNED WORDS and wrapped lines"
+    ]
+  }
+}

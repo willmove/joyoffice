@@ -130,6 +130,49 @@ pub struct TextLayout {
     /// Per paragraph: whether a caret may stand at each character offset 0..=len (grapheme
     /// boundaries), for logical caret movement.
     pub boundaries: Vec<Vec<bool>>,
+    resolved_paragraphs: Vec<ResolvedParagraph>,
+}
+
+#[derive(Clone, Debug, Default)]
+struct ResolvedParagraph {
+    text: String,
+    bytes: Vec<usize>,
+}
+
+impl ResolvedParagraph {
+    fn from_cells(cells: &[style::Cell]) -> Self {
+        let mut text = String::new();
+        let mut bytes = Vec::with_capacity(cells.len() + 1);
+        for cell in cells {
+            bytes.push(text.len());
+            text.push(cell.ch);
+        }
+        bytes.push(text.len());
+        Self { text, bytes }
+    }
+}
+
+impl TextLayout {
+    /// The actual characters used for layout, including resolved fields and explicit breaks.
+    pub fn paragraph_text(&self, paragraph: usize) -> Option<&str> {
+        self.resolved_paragraphs
+            .get(paragraph)
+            .map(|p| p.text.as_str())
+    }
+
+    /// Logical text of a laid-out glyph run. Run indices refer to the resolved paragraph.
+    pub fn run_text(&self, run: &GlyphRun) -> &str {
+        let Some(paragraph) = self.resolved_paragraphs.get(run.para) else {
+            return "";
+        };
+        let (Some(&start), Some(&end)) = (
+            paragraph.bytes.get(run.chars.0),
+            paragraph.bytes.get(run.chars.1),
+        ) else {
+            return "";
+        };
+        paragraph.text.get(start..end).unwrap_or_default()
+    }
 }
 
 /// Which side of a boundary a caret belongs to: `Downstream` sticks to the character after it

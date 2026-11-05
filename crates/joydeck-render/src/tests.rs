@@ -5323,3 +5323,145 @@ fn a_shape_whose_outline_is_not_finite_is_not_drawable() {
     quad.paths[0].path = path;
     assert!(!crate::geometry::drawable(&quad, m, 100.0, 50.0));
 }
+
+#[test]
+fn editable_and_placed_text_share_mixed_wrap_and_group_geometry() {
+    use joydeck_model::text::AutoFit;
+
+    let mut body = TextBody::from_text(
+        "Latin 中文 مرحبا e\u{301} 🎉 words wrap onto the next line.\nSecond paragraph 中文.",
+    );
+    body.body.autofit = Some(AutoFit::Shrink {
+        font_scale: Some(0.82),
+        line_reduction: 0.07,
+    });
+    body.body.columns = Some(2);
+    body.body.col_spacing = Some(8.);
+    for para in &mut body.paragraphs {
+        para.def_props.size = Some(22.);
+        for run in &mut para.runs {
+            run.props.size = Some(22.);
+        }
+    }
+    let shape = Shape {
+        id: ShapeId(602),
+        xfrm: Some(Xfrm::new(75., 85., 225., 90.)),
+        text: Some(body.clone()),
+        ..Default::default()
+    };
+    let plain = deck_with(vec![shape.clone()]);
+    let child = Shape {
+        xfrm: Some(Xfrm::new(0., 0., 56.25, 45.)),
+        ..shape
+    };
+    let grouped = deck_with(vec![Shape {
+        id: ShapeId(601),
+        xfrm: Some(Xfrm::new(75., 85., 225., 90.)),
+        kind: ShapeKind::Group {
+            children: vec![child],
+            child: Xfrm::new(0., 0., 56.25, 45.),
+        },
+        ..Default::default()
+    }]);
+    let editor = crate::editable_text(&plain, 0, ShapeId(602), None).unwrap();
+    assert_eq!(editor.layout.font_scale, 0.82);
+    assert_eq!(editor.layout.line_reduction, 0.07);
+    assert!(editor.layout.lines.len() > body.paragraphs.len());
+    assert!(editor.layout.lines.iter().any(|line| line.column == 1));
+    assert!(
+        editor
+            .layout
+            .lines
+            .iter()
+            .flat_map(|line| &line.levels)
+            .any(|level| level % 2 == 1)
+    );
+    let paragraph = editor.layout.paragraph_text(0).unwrap();
+    assert!(paragraph.contains("中文 مرحبا e\u{301} 🎉"));
+    let combining = paragraph.chars().position(|c| c == '\u{301}').unwrap();
+    assert!(!editor.layout.boundaries[0][combining]);
+    for pres in [&plain, &grouped] {
+        let placed = place_slide(pres, 0).texts.pop().unwrap();
+        assert_eq!(placed.transform, editor.transform);
+        assert_eq!(placed.layout.lines.len(), editor.layout.lines.len());
+        for (a, b) in placed.layout.lines.iter().zip(&editor.layout.lines) {
+            assert_eq!(
+                (a.para, a.start, a.end, a.column),
+                (b.para, b.start, b.end, b.column)
+            );
+            assert_eq!(a.caret_x, b.caret_x);
+            assert_eq!(a.baseline, b.baseline);
+        }
+        assert_eq!(placed.layout.runs.len(), editor.layout.runs.len());
+        for (a, b) in placed.layout.runs.iter().zip(&editor.layout.runs) {
+            assert_eq!(a.face.id(), b.face.id());
+            assert_eq!(a.glyphs, b.glyphs);
+            assert_eq!(a.cells, b.cells);
+        }
+    }
+    let opts = RenderOpts::default();
+    assert_eq!(
+        render_slide(&plain, 0, &opts).pixels,
+        render_slide(&grouped, 0, &opts).pixels
+    );
+}
+
+#[test]
+fn resolved_field_text_and_following_wrapped_link_keep_their_own_ranges() {
+    use joydeck_model::text::{Action, Hyperlink, Run, RunKind};
+
+    let mut body = TextBody::default();
+    let mut field = Run::new("0");
+    field.kind = RunKind::Field {
+        field: "datetime1".into(),
+    };
+    let mut link = Run::new("LINK");
+    link.props.link = Some(Hyperlink {
+        action: Action::FirstSlide,
+        tooltip: String::new(),
+        highlight_click: false,
+        sound: None,
+        stop_sound: false,
+        zoom_return: None,
+    });
+    body.paragraphs.push(joydeck_model::text::Paragraph {
+        runs: vec![field, link],
+        ..Default::default()
+    });
+    let p = deck_with(vec![Shape {
+        id: ShapeId(602),
+        xfrm: Some(Xfrm::new(70., 90., 140., 100.)),
+        text: Some(body),
+        ..Default::default()
+    }]);
+    let placed = crate::place_slide_with_fields(
+        &p,
+        0,
+        &RenderOpts {
+            date_text: Some("EXPANDED DATE ".into()),
+            ..Default::default()
+        },
+    );
+    let text = &placed.texts[0];
+    assert_eq!(text.layout.paragraph_text(0), Some("EXPANDED DATE LINK"));
+    let run = text
+        .layout
+        .runs
+        .iter()
+        .find(|run| run.link && !run.glyphs.is_empty())
+        .unwrap();
+    assert_eq!(text.layout.run_text(run), "LINK");
+    assert_eq!(run.source_run, Some(1));
+    let line = text
+        .layout
+        .lines
+        .iter()
+        .find(|line| line.start <= run.chars.0 && run.chars.0 < line.end)
+        .unwrap();
+    assert!(
+        line.start > 0,
+        "the linked run should wrap to the next line"
+    );
+    assert_eq!(placed.links.len(), 1);
+    assert_eq!(placed.links[0].rect.y0, line.top + 90.);
+}

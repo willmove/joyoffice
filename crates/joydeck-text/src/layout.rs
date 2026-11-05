@@ -6,9 +6,9 @@ use super::run::{Deco, DecoLine, GlyphRun};
 use super::shape::{SUB_SUPER, Upright, shape_para};
 use super::style::{Cell, Opts, ParaShaped, Style, spacing_pts};
 use super::{
-    Align, Anchor, Arc, AutoFit, BodyProps, Bullet, Caps, Ctx, FontFace, LineInfo, Rect, Shape,
-    Spacing, Strike, TextBody, TextDir, TextLayout, bidi, joins_following, joins_preceding,
-    resolve,
+    Align, Anchor, Arc, AutoFit, BodyProps, Bullet, Caps, Ctx, FontFace, LineInfo, Rect,
+    ResolvedParagraph, Shape, Spacing, Strike, TextBody, TextDir, TextLayout, bidi,
+    joins_following, joins_preceding, resolve,
 };
 
 #[cfg(test)]
@@ -366,6 +366,10 @@ pub(crate) fn layout_scaled(
             }
             b
         })
+        .collect();
+    out.resolved_paragraphs = shaped_paras
+        .iter()
+        .map(|p| ResolvedParagraph::from_cells(&p.cells))
         .collect();
     // Merge adjacent decorations of the same colour on the same line.
     out.decos = merge_decos(std::mem::take(&mut out.decos));
@@ -874,6 +878,7 @@ fn emit_bullet(
         fake_italic: false,
         outline: None,
         para: line.para,
+        source_run: None,
         chars: (0, 0),
         link: false,
         alpha: st.alpha,
@@ -911,6 +916,7 @@ fn new_run(cell: &Cell, st: &Style, face: &Arc<FontFace>, para: usize, pos: &Cel
         fake_italic: st.fake_italic,
         outline: st.outline,
         para,
+        source_run: Some(cell.style),
         chars: (pos.ci, pos.ci + 1),
         link: st.link,
         alpha: st.alpha,
