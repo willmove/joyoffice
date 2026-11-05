@@ -128,3 +128,54 @@ fn clipboard_keeps_resolved_placeholder_position_as_regular_shape() {
     assert!(clip.shapes[0].xfrm.is_some());
     assert!(clip.shapes[0].text.is_some());
 }
+
+#[test]
+fn basic_edit_preflight_matches_execution_for_independent_window_selections() {
+    let mut model = Presentation::default();
+    let locked = ShapeId(model.alloc_id().unwrap());
+    let front = ShapeId(model.alloc_id().unwrap());
+    let page = Arc::make_mut(&mut model.slides[0]);
+    page.shapes.extend([
+        Shape {
+            id: locked,
+            locked: true,
+            ..Default::default()
+        },
+        Shape {
+            id: front,
+            ..Default::default()
+        },
+    ]);
+    let mut session = session(model);
+    let initial = session.snapshot();
+    for (shapes, command, expected) in [
+        (vec![], Command::Delete, Err("select an object first")),
+        (
+            vec![locked],
+            Command::Duplicate,
+            Err("selected object is locked"),
+        ),
+        (vec![front], Command::BringForward, Ok(false)),
+        (vec![front], Command::SendBackward, Ok(true)),
+        (vec![], Command::DeleteSlide, Err("keep at least one slide")),
+        (vec![], Command::Undo, Ok(false)),
+        (vec![], Command::NewSlide, Ok(true)),
+    ] {
+        let selection = joydeck_engine::Selection { page: 0, shapes };
+        let preview = session.validate_for_selection(&selection, command.clone());
+        let expected = expected.map_err(str::to_string);
+        assert_eq!(preview, expected);
+        let mut candidate = session.clone();
+        candidate.select(selection.page, selection.shapes).unwrap();
+        assert_eq!(candidate.execute(command), expected);
+        assert_eq!(session.model(), initial.model.as_ref());
+        assert_eq!(session.selection(), &initial.selection);
+        assert!(!session.dirty() && !session.can_undo() && !session.can_redo());
+        assert_eq!(session.revision(), 0);
+    }
+    session.execute(Command::NewSlide).unwrap();
+    assert_eq!(session.validate(Command::Undo), Ok(true));
+    assert_eq!(session.validate(Command::Redo), Ok(false));
+    session.execute(Command::Undo).unwrap();
+    assert_eq!(session.validate(Command::Redo), Ok(true));
+}

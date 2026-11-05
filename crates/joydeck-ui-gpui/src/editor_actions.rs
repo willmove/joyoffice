@@ -228,20 +228,6 @@ impl Viewer {
             }
         }
     }
-    pub(super) fn undo_edit(&mut self, _: &UndoEdit, w: &mut Window, cx: &mut Context<Self>) {
-        self.dispatch(Command::Undo, w, cx)
-    }
-    pub(super) fn redo_edit(&mut self, _: &RedoEdit, w: &mut Window, cx: &mut Context<Self>) {
-        self.dispatch(Command::Redo, w, cx)
-    }
-    pub(super) fn delete_object(
-        &mut self,
-        _: &DeleteObject,
-        w: &mut Window,
-        cx: &mut Context<Self>,
-    ) {
-        self.dispatch(Command::Delete, w, cx)
-    }
     pub(super) fn new_document(&mut self, _: &NewDocument, w: &mut Window, cx: &mut Context<Self>) {
         if self.confirm_replace(document_ui::ReplaceDocument::New, w, cx) {
             return;
@@ -275,20 +261,18 @@ impl Viewer {
         w: &mut Window,
         cx: &mut Context<Self>,
     ) {
-        if self.composing()
-            || self
-                .notes_input
+        let reason = self.save_unavailable().or_else(|| {
+            self.notes_input
                 .update(cx, |i, cx| i.marked_text_range(w, cx).is_some())
-        {
-            self.message = "请先完成或取消输入法组合输入再保存".into();
+                .then_some("请先完成或取消输入法组合输入再保存")
+        });
+        if let Some(reason) = reason {
+            self.message = reason.into();
             cx.notify();
             return;
         }
         self.commit_notes(w, cx);
         self.end_inline(cx);
-        if self.is_saving() || self.loading {
-            return;
-        }
         let Some(editor) = &self.editor else { return };
         let path = selected.or_else(|| {
             let text = self.save_input.read(cx).value().to_string();
