@@ -152,7 +152,7 @@ insert.picture,action,Picture from File…,crates/engine/src/cmd/insert.rs,55,R5
 insert.slideNumber,action,Slide Number,crates/engine/src/cmd/insert.rs,95,R5,已接入文本框内动态幻灯片编号；应用到全部页面开放,macOS 实屏插入、光标及重排后页码；PPTX 独立 XML 验证,插入 / 字段 / 幻灯片编号,docs/joydeck/evidence/R3-TEXT-FIELDS/README.md
 insert.smartArt,action,SmartArt,crates/engine/src/cmd/insert.rs,143,R5,待分类,待验证,,
 insert.symbol,action,Symbol,crates/engine/src/cmd/insert.rs,105,R5,待分类,待验证,,
-insert.table,action,Table…,crates/engine/src/cmd/insert.rs,82,R5,基础插入已接入；完整上游图库与交互未验收,待验证,插入 / 原生图片选择,docs/joydeck/evidence/R8/README.md; docs/joydeck/UI-PARITY.md
+insert.table,action,Table…,crates/engine/src/cmd/insert.rs,82,R5,表格插入对话框及行列尺寸校验,3×3 插入与无效尺寸实屏；PPTX 与原生重开,插入 / 表格,docs/joydeck/evidence/R3-TABLE-QUALIFICATION/README.md
 insert.textBox,action,Text Box,crates/engine/src/cmd/insert.rs,54,R5,基础插入已接入；完整上游图库与交互未验收,待验证,插入 / 原生图片选择,docs/joydeck/evidence/R8/README.md; docs/joydeck/UI-PARITY.md
 insert.video,action,Video from File…,crates/engine/src/cmd/insert.rs,93,R5,待分类,待验证,,
 insert.wordArt,action,WordArt,crates/engine/src/cmd/insert.rs,94,R5,待分类,待验证,,
@@ -283,25 +283,25 @@ smartArt.toShapes,action,Convert to Shapes,crates/engine/src/cmd/smartart.rs,243
 smartArt.toText,action,Convert to Text,crates/engine/src/cmd/smartart.rs,234,R5,待分类,待验证,,
 table.borders,action,Borders,crates/engine/src/cmd/table.rs,88,R3,待分类,待验证,,
 table.cellAlign,action,Align Cell Text,crates/engine/src/cmd/table.rs,106,R3,待分类,待验证,,
-table.cellFill,action,Shading,crates/engine/src/cmd/table.rs,79,R3,待分类,待验证,,
+table.cellFill,action,Shading,crates/engine/src/cmd/table.rs,79,R3,对单元格及矩形选区应用底色,macOS 浅黄实屏；独立公开 PPTX 读回,表格 / 单元格底色,docs/joydeck/evidence/R3-TABLE-QUALIFICATION/README.md
 table.cellMargins,action,Cell Margins,crates/engine/src/cmd/table.rs,97,R3,待分类,待验证,,
 table.columnWidth,action,Width,crates/engine/src/cmd/table.rs,119,R3,待分类,待验证,,
-table.deleteColumn,action,Delete Columns,crates/engine/src/cmd/table.rs,45,R3,待分类,待验证,,
-table.deleteRow,action,Delete Rows,crates/engine/src/cmd/table.rs,39,R3,待分类,待验证,,
+table.deleteColumn,action,Delete Columns,crates/engine/src/cmd/table.rs,45,R3,删除当前列,macOS 实屏；维度与单次修订核对,表格 / 列,docs/joydeck/evidence/R3-TABLE-QUALIFICATION/README.md
+table.deleteRow,action,Delete Rows,crates/engine/src/cmd/table.rs,39,R3,删除当前行,macOS 实屏；维度与单次修订核对,表格 / 行,docs/joydeck/evidence/R3-TABLE-QUALIFICATION/README.md
 table.distributeColumns,action,Distribute Columns,crates/engine/src/cmd/table.rs,116,R3,待分类,待验证,,
 table.distributeRows,action,Distribute Rows,crates/engine/src/cmd/table.rs,115,R3,待分类,待验证,,
 table.drawLine,action,Draw Table,crates/engine/src/cmd/table.rs,129,R3,待分类,待验证,,
 table.eraseLine,action,Table Eraser,crates/engine/src/cmd/table.rs,138,R3,待分类,待验证,,
 table.insertColumnLeft,action,Insert Left,crates/engine/src/cmd/table.rs,27,R3,待分类,待验证,,
-table.insertColumnRight,action,Insert Right,crates/engine/src/cmd/table.rs,33,R3,待分类,待验证,,
+table.insertColumnRight,action,Insert Right,crates/engine/src/cmd/table.rs,33,R3,在当前列或选区右侧插入一列,macOS 实屏；维度与单次修订核对,表格 / 列,docs/joydeck/evidence/R3-TABLE-QUALIFICATION/README.md
 table.insertRowAbove,action,Insert Above,crates/engine/src/cmd/table.rs,15,R3,待分类,待验证,,
-table.insertRowBelow,action,Insert Below,crates/engine/src/cmd/table.rs,21,R3,待分类,待验证,,
-table.merge,action,Merge Cells,crates/engine/src/cmd/table.rs,51,R3,待分类,待验证,,
+table.insertRowBelow,action,Insert Below,crates/engine/src/cmd/table.rs,21,R3,在当前行或选区下方插入一行,macOS 实屏；维度与单次修订核对,表格 / 行,docs/joydeck/evidence/R3-TABLE-QUALIFICATION/README.md
+table.merge,action,Merge Cells,crates/engine/src/cmd/table.rs,51,R3,合并矩形选区,macOS Shift+点选及合并实屏；覆盖格和 Tab 导航核对,表格 / 合并选区,docs/joydeck/evidence/R3-TABLE-QUALIFICATION/README.md
 table.options,action,Table Style Options,crates/engine/src/cmd/table.rs,70,R3,待分类,待验证,,
 table.rowHeight,action,Height,crates/engine/src/cmd/table.rs,128,R3,待分类,待验证,,
-table.selectCells,noundo,Select Cells,crates/engine/src/cmd/table.rs,147,R3,待分类,待验证,,
-table.split,action,Split Cells,crates/engine/src/cmd/table.rs,52,R3,待分类,待验证,,
-table.style,action,Table Styles,crates/engine/src/cmd/table.rs,61,R3,待分类,待验证,,
+table.selectCells,noundo,Select Cells,crates/engine/src/cmd/table.rs,147,R3,Shift+点选矩形区域；也有区域对话框,macOS 点选矩形实屏；合并范围和底色范围核对,画布 / Shift+点选,docs/joydeck/evidence/R3-TABLE-QUALIFICATION/README.md
+table.split,action,Split Cells,crates/engine/src/cmd/table.rs,52,R3,拆分已合并单元格,macOS 拆分／撤销／重做实屏；文字持久化,表格 / 拆分单元格,docs/joydeck/evidence/R3-TABLE-QUALIFICATION/README.md
+table.style,action,Table Styles,crates/engine/src/cmd/table.rs,61,R3,应用内置表格样式,macOS 实屏；浅色主题色样式及另存核对,表格 / 表格样式,docs/joydeck/evidence/R3-TABLE-QUALIFICATION/README.md
 text.autocorrect,noundo,AutoCorrect Options,crates/engine/src/cmd/text.rs,55,R3,待分类,待验证,,
 text.commit,noundo,Commit Composition,crates/engine/src/cmd/text.rs,77,R3,基础文字和组合输入已接入；完整快捷键/复杂文字未验收,待验证,原位文字 / 系统 IME,docs/joydeck/evidence/R8/README.md; docs/joydeck/UI-PARITY.md
 text.delete,action,Delete Text,crates/engine/src/cmd/text.rs,86,R3,待分类,待验证,,
