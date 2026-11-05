@@ -17,8 +17,8 @@
 | 完成 | JD-004 | 复用现有 JoyDeck 布局，接入公共配色、Ribbon、缩略图区、画布、属性区和状态栏 | 可交互窗口；明暗模式；控件有独立身份；尚未实现动作明确禁用 | JD-002、JD-003 |
 | 完成 | JD-005 | 建立产品 xtask、pwsh 开发脚本、诊断 CLI 与日志 | build/check/run/package 选择正确产品；CLI 实际报告工具链/后端等诊断；错误返回非零 | JD-001 |
 | 完成 | JD-006 | 固化原创样例、测试字体输入、基准规模与证据结构 | 样例有来源/hash；CPU/GUI/端到端测量口径区分；资源受预算约束 | JD-000 |
-| 已实现待验收 | JD-007 | 建立 Windows/macOS/Linux CI 编译和临时 JoyOffice 宿主接入演练 | 检查 GPUI 来源、feature/锁漂移；旧 JoyOffice 不被修改；环境缺项有记录 | JD-003、JD-005 |
-| 已实现待验收 | JD-008 | 打包并实际启动 R0 JoyDeck | 当次包打开公共 UI 外壳、导航/面板/主题可体验；记录二进制与截图，不冒充编辑器已完成 | JD-004–JD-007 |
+| 完成 | JD-007 | 建立 Windows/macOS/Linux CI 编译和临时 JoyOffice 宿主接入演练 | 检查 GPUI 来源、feature/锁漂移；隔离宿主演练与三平台编译有记录。[证据](evidence/R0/README.md#任务验收复核) | JD-003、JD-005 |
+| 完成 | JD-008 | 打包并实际启动 R0 JoyDeck | R0 Windows 原生包启动公共 UI 外壳，导航/面板/主题有实屏证据，包与可执行文件均有散列。[证据](evidence/R0/README.md#任务验收复核) | JD-004–JD-007 |
 
 ## R1 核心迁移与真实文稿查看
 
