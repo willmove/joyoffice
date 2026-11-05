@@ -1,0 +1,67 @@
+{
+  "binarySha256": "0f12c24959298c846bc6f6f5f54787dc5235881fc4d1fd1dc7bd220ca1e21b00",
+  "cliSha256": "431a2a6cf7e26e058238c140bb9d9b71cdfdeef01d1b48edcec62a014306235d",
+  "checks": [
+    {
+      "check": "Command+K adds one hyperlink across two differently formatted runs; invalid URL and page leave history untouched",
+      "revisions": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "check": "Independent OOXML and python-pptx confirm the web URL, tooltip, styles and original opaque XML"
+    },
+    {
+      "check": "The caret expands an existing link across run boundaries; editing to a mailto address survives native v2 Save As",
+      "revision": 4
+    },
+    {
+      "check": "A slide-number link is saved as a real internal slide relationship",
+      "revision": 5
+    },
+    {
+      "check": "Clicking the linked text in the reopened slideshow skips slide 2 and navigates directly to slide 3"
+    },
+    {
+      "check": "Removing a link from the reopened PPTX leaves the separate original link, original formatting and opaque XML intact"
+    }
+  ],
+  "screenshots": {
+    "01-unsafe-destination.png": "c809220ff66a1d4bbe750326031322cb236bc9a714dc06629a03cbc323c4f086",
+    "01b-invalid-slide-number.png": "447c2ecc6907f0768d04930f40982e2455ef25183e4e94125e324f750bbc2a89",
+    "02-web-link.png": "d06bd66d9c4346d041c7e2ce9aae8419856427a72d0d0689dc687bd82a07f594",
+    "03-internal-link-in-show.png": "12d7452964700d38e979033dc2ecce22eaa2abe3eae0664652be4ca0cd196a91",
+    "04-link-destination.png": "df351749bbc2ffabb67c139af63326b3a4e4a1acc49e2158042e1c4563a8b140",
+    "05-removed-link.png": "e70a76beb996c92572c5ce60a8dd59eb65a0eb6c7132583a0b397122799d6dee"
+  },
+  "fixtureSha256": "02e03de0cbb7bbcd42e36029eee7d76a97c02b247c19dbc6e18ddf16e58bec1b",
+  "webSha256": "32b82628c8ad87d9cf5507da400a4381497eba06615734965f663c36dae44f5e",
+  "nativeSha256": "36dc1a2263db8c84b5330aca39bb5e8e394af1144797a6c50a18b0131932b573",
+  "internalSha256": "75f11edde90f1563f845eeaf313e7f26373d5b86a240f7aa13a533d8c56a8125",
+  "removedSha256": "56b98b57999a35a51d492da34fde7e8f191164e704406720466f44378b7045ff",
+  "passed": true,
+  "package": {
+    "archive": "joydeck-0.8.0-r3-text-links-desktop.zip",
+    "archiveSha256": "85c810fe8cd9199345960e87a052279d01820e1314fc6f60f0b9c83f98c0d662",
+    "sourceSha256": "8364de744b043354466543c0def60d0246917288f5773b4cb4ead8bb017e45a1",
+    "target": "aarch64-apple-darwin",
+    "profile": "release",
+    "verifiedPayloadFiles": 1805
+  },
+  "productTests": {
+    "passed": 917,
+    "failed": 0,
+    "ignored": 0
+  },
+  "packagedCliChecks": {
+    "R1": 28,
+    "R2": 20,
+    "R3": 20,
+    "R4-R5": 23,
+    "registry": 329
+  },
+  "inventorySha256": "fc073d8ea94501c50554f5bad1cb28e0af698eed7f43bc82c7af8b2c55564d59"
+}

@@ -2,6 +2,9 @@
 use joydeck_model::{TextBody, edit as ed};
 use std::ops::Range;
 use unicode_segmentation::UnicodeSegmentation;
+
+#[path = "text_links.rs"]
+pub mod links;
 pub fn byte_at_utf16(text: &str, offset: usize) -> Option<usize> {
     let mut n = 0;
     for (i, c) in text.char_indices() {

@@ -144,7 +144,7 @@
     "source_path": "apps/joydeck/src/viewer.rs",
     "target_path": "crates/joydeck-ui-gpui/src/viewer.rs",
     "source_sha256": "249104bdece51947664a50fe4b8166f358662e78d0000ed7d0024b10fade5584",
-    "adapted_sha256": "debeab255550b0f632d8043bb81df5a8ab0a72443792b19de657e20644aa39d1",
+    "adapted_sha256": "db1d7628e369d3caf84e658423e4d5b79cf687322e951887e2caa51a6e1c163c",
     "local_changes": "Reuse asynchronous read-only viewer, generation guards, cancellation, virtual thumbnail rail and bounded cache; adapt to DeckCraft model and shared CPU renderer; R1 branding and aspect fit; upstream validation modules deferred; R1 rustfmt and bounded reader/CPU-renderer/palette/notes adapters as applicable; R2 editable viewer adapter, background save/recovery, command-driven gestures, coordinate anchoring and close guard; rustfmt; R4/R5 scene/content workspace adaptation; R6/R7 adapter additions and repository rustfmt/LF normalization.; R8 native editor, clipboard or product package version adaptation; R9-UI1 native formatting controls and schema-2 validation/history compatibility (see slice evidence)",
     "r9_ui2_adaptation": "Formatting, desktop control and reviewed preservation validation; LF source representation.",
     "r9_ui2_gui_fix": "Synchronize every editor palette with GPUI Kit application theme during render",
@@ -154,7 +154,8 @@
     "font_environment": "Refresh font selection, editor geometry and rendering caches when installed font files change.",
     "transformed_inline_text": "Use the text layout transform for rotated and vertical editing, hit testing and caret visibility",
     "ime_lifecycle": "Cancel the inline composition in mouse-down capture before changing selection or focus.",
-    "text_box_layout": "Register the native text-box layout module."
+    "text_box_layout": "Register the native text-box layout module.",
+    "text_hyperlinks": "Register the native text-link editor and its desktop shortcuts."
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
@@ -182,10 +183,11 @@
     "target_path": "crates/joydeck-engine/src/text.rs",
     "source_sha256": "0f5c0c5ba05a35a5f064271e1c3efd1bdf7afb959a8634b865206d9f1ed13de3",
     "local_changes": "Extract checked UTF-16/grapheme helpers; adapt composition draft to DeckCraft TextBody/edit; preserve rich runs/paragraphs, bounded drafts, no IO.",
-    "adapted_sha256": "e7629352b20137ad264f146b1491b2ac4bd54ae1d9fa32a5dec7f94229904b08",
+    "adapted_sha256": "71a2cdbabebabcf29f4142af97ee9981ef020fd7a3403b911791faf07076cb55",
     "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained.",
     "native_text_ranges": "Protect committed graphemes, normalize native composition offsets and project input range geometry.",
-    "ime_lifecycle": "Treat repeated empty preedit as an idempotent reset of the original body and selection."
+    "ime_lifecycle": "Treat repeated empty preedit as an idempotent reset of the original body and selection.",
+    "text_hyperlinks": "Expose range-scoped click-link editing through the text engine."
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
@@ -480,8 +482,9 @@
     "target_path": "crates/joydeck-ui-gpui/src/slideshow.rs",
     "source_sha256": "ba57a296c7911ccd7767e4b655906fb1cc9b479ccc0f4e442f00e878acb1e17c",
     "local_changes": "Audience/presenter ownership, separate clocks/windows and media worker adapted to new immutable model; new GPUI controls, frame guards and CPU rendering.",
-    "adapted_sha256": "74554122e08623e62d300dc8ae660d9695df9555f73842ad95b9e7d8b2ca1aa3",
-    "font_environment": "Refresh font selection, editor geometry and rendering caches when installed font files change."
+    "adapted_sha256": "82403b24a1375c24a356ad3f960bfdf25ecd708c103b82302c1b22297bcf0bb7",
+    "font_environment": "Refresh font selection, editor geometry and rendering caches when installed font files change.",
+    "text_hyperlinks": "Dispatch a validated URL returned by the slide show click player."
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
@@ -607,10 +610,11 @@
     "target_path": "crates/joydeck-ui-gpui/src/chrome.rs",
     "source_sha256": "efd229d2bca36c8887fa16026f4946bbe3240cd9ea9b1b9b65c8c83c11933438",
     "local_changes": "R8 per-tab bounded GPUI construction frames follow the old JoyDeck ribbon pattern; split Home into groups and keep intrinsic horizontal scroll width on default MSVC stack.",
-    "adapted_sha256": "590d9e476503861825dbeb2daa66287c6b3648270a83ec108749fa61c6cc62b3",
+    "adapted_sha256": "467e8fe26422e6f78977cdd53260b9a18a1e9a0ab07ce6d988a33d4fdec0acb4",
     "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained.",
     "cancellable_open": "Add an explicit cancel action to the status bar while opening a document.",
     "shared_document_view": "Separate window selection and state from the shared editor session and preserve revision guards.",
-    "text_box_layout": "Expose native text-box layout controls on the contextual formatting ribbon."
+    "text_box_layout": "Expose native text-box layout controls on the contextual formatting ribbon.",
+    "text_hyperlinks": "Expose the native text-link editor and removal in the Insert ribbon."
   }
 ]
