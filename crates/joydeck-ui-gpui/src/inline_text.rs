@@ -16,11 +16,17 @@ use geometry::{Geometry, Motion, reveal_offset};
 pub(super) struct Inline {
     pub(super) target: TextTarget,
     pub(super) draft: Draft,
+    native_commit: Option<NativeCommit>,
     placed: Option<joydeck_render::PlacedText>,
     affinity: Affinity,
     pointer_selecting: bool,
     desired_inline_x: Option<f64>,
     last_caret: Option<(joydeck_geom::Rect, Bounds<Pixels>, f32, u64)>,
+}
+
+struct NativeCommit {
+    before_commit: Draft,
+    _task: Task<()>,
 }
 impl Inline {
     fn reflow(&mut self, model: &joydeck_model::Presentation, page: usize) {
@@ -130,7 +136,7 @@ impl Viewer {
     pub(super) fn composing(&self) -> bool {
         self.inline
             .as_ref()
-            .is_some_and(|i| i.draft.marked.is_some())
+            .is_some_and(|i| i.draft.marked.is_some() || i.native_commit.is_some())
     }
     pub(super) fn end_inline(&mut self, cx: &mut Context<Self>) {
         if self.inline.take().is_some() {
@@ -147,13 +153,26 @@ impl Viewer {
         }
     }
     pub(super) fn cancel_inline(&mut self, cx: &mut Context<Self>) {
-        if self.composing() {
-            if let Some(i) = &mut self.inline {
-                i.draft.cancel();
-            }
-            self.preview_inline(cx);
-        } else {
+        if !self.cancel_composition(cx) {
             self.end_inline(cx);
+        }
+    }
+    fn cancel_composition(&mut self, cx: &mut Context<Self>) -> bool {
+        if !self.composing() {
+            return false;
+        }
+        if let Some(i) = &mut self.inline {
+            if let Some(commit) = i.native_commit.take() {
+                i.draft = commit.before_commit;
+            }
+            i.draft.cancel();
+        }
+        self.preview_inline(cx);
+        true
+    }
+    pub(super) fn cancel_composition_on_pointer(&mut self, w: &mut Window, cx: &mut Context<Self>) {
+        if self.cancel_composition(cx) {
+            w.notify_text_input_changed(&self.focus);
         }
     }
     pub(super) fn begin_inline(&mut self, _: &ClickEvent, w: &mut Window, cx: &mut Context<Self>) {
@@ -221,6 +240,7 @@ impl Viewer {
                 self.inline = Some(Box::new(Inline {
                     target,
                     draft: Draft::new(body),
+                    native_commit: None,
                     placed: None,
                     affinity: Affinity::Downstream,
                     pointer_selecting: false,
@@ -291,6 +311,36 @@ impl Viewer {
         self.image = previous_image;
         self.inline = Some(i);
         self.preview_inline(cx);
+    }
+    fn finish_native_commit(&mut self, w: &mut Window, cx: &mut Context<Self>) {
+        let Some(i) = self.inline.as_mut().filter(|i| i.native_commit.is_some()) else {
+            return;
+        };
+        if !w.is_window_active() || !self.focus.is_focused(w) {
+            self.end_inline(cx);
+            return;
+        }
+        i.native_commit.take();
+        self.publish_inline(w, cx);
+        w.notify_text_input_changed(&self.focus);
+    }
+    fn stage_native_commit(&mut self, draft: Draft, w: &Window, cx: &Context<Self>) {
+        // AppKit and GPUI's Linux backends can finish a mark before delivering the
+        // mouse down that ended it. Let that event cancel before publishing to history.
+        let Some(i) = &mut self.inline else { return };
+        let before_commit = std::mem::replace(&mut i.draft, draft);
+        i.affinity = Affinity::Downstream;
+        i.desired_inline_x = None;
+        let task = cx.spawn_in(w, async move |view, cx| {
+            cx.update(|w, cx| {
+                view.update(cx, |s, cx| s.finish_native_commit(w, cx)).ok();
+            })
+            .ok();
+        });
+        i.native_commit = Some(NativeCommit {
+            before_commit,
+            _task: task,
+        });
     }
     fn input_replace(
         &mut self,
@@ -1032,12 +1082,12 @@ impl EntityInputHandler for Viewer {
         ))
     }
     fn unmark_text(&mut self, w: &mut Window, cx: &mut Context<Self>) {
-        let Some(i) = self.inline.as_mut().filter(|i| i.draft.marked.is_some()) else {
+        let Some(i) = self.inline.as_ref().filter(|i| i.draft.marked.is_some()) else {
             return;
         };
-        i.draft.settle();
-        self.publish_inline(w, cx);
-        w.notify_text_input_changed(&self.focus);
+        let mut draft = i.draft.clone();
+        draft.settle();
+        self.stage_native_commit(draft, w, cx);
     }
     fn replace_text_in_range(
         &mut self,
@@ -1046,6 +1096,29 @@ impl EntityInputHandler for Viewer {
         w: &mut Window,
         cx: &mut Context<Self>,
     ) {
+        self.finish_native_commit(w, cx);
+        // Pinned GPUI maps a Windows composition reset and a Linux removal of the
+        // mark to empty replacement callbacks. Ordinary editor deletes use input_replace.
+        if s.is_empty()
+            && ((cfg!(target_os = "windows") && r.is_none())
+                || (cfg!(target_os = "linux") && r.is_some() && r == self.marked_text_range(w, cx)))
+        {
+            if self.cancel_composition(cx) {
+                w.notify_text_input_changed(&self.focus);
+            }
+            return;
+        }
+        if let Some(i) = self.inline.as_ref().filter(|i| i.draft.marked.is_some()) {
+            let mut draft = i.draft.clone();
+            match draft.replace(r, s, false, None) {
+                Ok(()) => self.stage_native_commit(draft, w, cx),
+                Err(e) => {
+                    self.message = e;
+                    cx.notify();
+                }
+            }
+            return;
+        }
         self.input_replace(r, s, false, None, w, cx);
     }
     fn replace_and_mark_text_in_range(
@@ -1056,6 +1129,13 @@ impl EntityInputHandler for Viewer {
         w: &mut Window,
         cx: &mut Context<Self>,
     ) {
+        self.finish_native_commit(w, cx);
+        if s.is_empty() {
+            if self.cancel_composition(cx) {
+                w.notify_text_input_changed(&self.focus);
+            }
+            return;
+        }
         let r = if cfg!(target_os = "macos")
             && let Some(relative) = r.as_ref()
             && let Some(i) = &self.inline

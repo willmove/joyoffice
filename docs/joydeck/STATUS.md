@@ -1,5 +1,7 @@
 # JoyDeck 当前状态
 
+2026-11-05 完成 JD-304。修复点击缩略图时原生拼音草稿被写入原页的问题。macOS Release 实测系统拼音与 ABC 重音组合的提交、取消、切页、失焦、撤销和重做。组合中强制终止后，包内 CLI 只恢复已提交的修订。JoyDeck 产品检查 915 项通过。[组合生命周期证据](evidence/R3-IME-LIFECYCLE/README.md)
+
 2026-11-05 完成 JD-303。macOS Release 实测非 BMP、组合字素、emoji ZWJ 删除替换及两处系统拼音候选。组合期间的忙态查询保留草稿，每次选词只提交一次，保存后独立读回。JoyDeck 产品检查 914 项通过。[原生输入证据](evidence/R3-NATIVE-UNICODE/README.md)
 
 2026-11-05 完成 JD-302。macOS Release 实测旋转与竖排选区、指针命中、方向键、插入点滚动和 PPTX 另存读回。产品检查 911 项通过，1×/2× 坐标回归通过，2× 实屏另行复验。[原位编辑证据](evidence/R3-TRANSFORMED-TEXT/README.md)

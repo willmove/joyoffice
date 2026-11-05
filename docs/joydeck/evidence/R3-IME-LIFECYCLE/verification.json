@@ -1,0 +1,117 @@
+{
+  "binarySha256": "1302dbb6d25670309e2f11186daf70feb83b14e0a37a55b475eee6b2d7ab893a",
+  "cliSha256": "5a18f2e6f6ed9ece4ca27ebb0fdec8e0cafd894a5ecfad4beb5f222cf7263a91",
+  "checks": [
+    {
+      "check": "Repeated real marked updates followed by two Escape presses preserve revision, selection history and original text",
+      "revision": 0
+    },
+    {
+      "check": "Clicking slide 2 dismisses the real Pinyin candidate and leaves both slides unchanged",
+      "page": 1,
+      "revision": 0
+    },
+    {
+      "check": "Moving focus to a separate AppKit process and back discards live Pinyin without touching history",
+      "revision": 0
+    },
+    {
+      "check": "Each confirmed Pinyin candidate is one edit, including two legitimate identical words; menu Undo and Redo affect one edit each",
+      "revisions": [
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "check": "ABC Option+E enters real AppKit marked text, E commits é once, Undo and Redo restore exact text",
+      "revisions": [
+        5,
+        6,
+        7
+      ]
+    },
+    {
+      "check": "Native Save As and independent packaged CLI readback preserve the committed text on both slides"
+    },
+    {
+      "check": "Killing the test process during live Pinyin recovers only the last committed revision; source and saved package hashes stay fixed",
+      "revision": 8
+    }
+  ],
+  "screenshots": {
+    "01-pinyin-candidates.png": "11a7f271fbd619e5356ca2154940db7732844b176230c5ae3fe5270510f27424",
+    "02-slide-switch.png": "f1b1e8511e3000759ec691d5ee26aac4c9198b1185fd47da207b834d89d66c04",
+    "03-abc-dead-key.png": "ae540c5a6644e78c128caa38e2ca38d0f924407693bac6c78709d5a5d8ae7c7a",
+    "04-abc-commit.png": "ef13bd94f53add8ae1c5219cc1dfc692292411ab1a28b3efcc25d071bb9db68e",
+    "05-saved.png": "29cc9db864e67a0f057c8c6401aae92437ae6f71aa27371de81a5c510ac78e77",
+    "06-active-preedit-before-crash.png": "8f6956c1cf9e9adf4b2a2eb7fd9e3e1335c8fc8960a580dd5f03e3167ab97d8e"
+  },
+  "fixtureSha256": "f194b3415cd45529b6f97944aae4bf4e115abcf240adf09ed597024d3e8123c7",
+  "savedSha256": "0d72428f6bca3176ae8c206f385a4c06776f76df28610e32bd6a954ea1b87232",
+  "recoveredSha256": "68cd9e558347d79a59b1074529a82e2c678cf522caccb740c880c118f5d5f27d",
+  "passed": true,
+  "productTests": {
+    "passed": 915,
+    "failed": 0,
+    "ignored": 0
+  },
+  "package": {
+    "archive": "joydeck-0.8.0-r3-ime-lifecycle.zip",
+    "archiveSha256": "cf26e4569441f41bde92bcba6c8cc3ffafad739474fface295de2ba7ad4877a9",
+    "sourceSha256": "5c6568942d220fdf604dc4351d10b096ca36e7940eae601bcdca41ee5bcffd1a",
+    "target": "aarch64-apple-darwin",
+    "profile": "release",
+    "verifiedPayloadFiles": 1805
+  },
+  "packagedCliChecks": {
+    "R1": 28,
+    "R2": 20,
+    "R3": 20,
+    "registry": 329
+  },
+  "previousBuildSlideSwitch": {
+    "scenario": "switch",
+    "before": 0,
+    "marked": "busy",
+    "after": 1,
+    "page": 1,
+    "afterError": null,
+    "texts": [
+      "ni",
+      "Second: 原文"
+    ]
+  },
+  "unicodeGuiRegression": [
+    "Backspace deleted a non-BMP scalar, forward Delete removed a combining cluster, and a native Unicode paste replaced a complete emoji ZWJ sequence in three edits",
+    "Real macOS Pinyin candidates followed two insertion points, including after zoom, and each composition committed once",
+    "One undo and redo applied the second composition and independent packaged CLI read back both saved shapes"
+  ],
+  "explicitConfirmation": [
+    {
+      "scenario": "return",
+      "before": 0,
+      "marked": "busy",
+      "after": 1,
+      "page": 0,
+      "afterError": null,
+      "texts": [
+        "ni",
+        "Second: 原文"
+      ]
+    },
+    {
+      "scenario": "double-click-candidate",
+      "before": 0,
+      "marked": "busy",
+      "after": 1,
+      "page": 0,
+      "afterError": null,
+      "texts": [
+        "尼",
+        "Second: 原文"
+      ]
+    }
+  ]
+}
