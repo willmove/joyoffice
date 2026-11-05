@@ -6,13 +6,21 @@ use joydeck_engine::{
     text::{self, Draft},
 };
 use joydeck_model::{ShapeKind, edit as ed, resolve, text::RunKind};
+use joydeck_text::{Affinity, Pos};
 use std::ops::Range;
+
+#[path = "inline_text/geometry.rs"]
+mod geometry;
+use geometry::{Geometry, Motion, reveal_offset};
+
 pub(super) struct Inline {
     pub(super) target: TextTarget,
     pub(super) draft: Draft,
     placed: Option<joydeck_render::PlacedText>,
-    affinity: joydeck_text::Affinity,
-    anchor: Option<usize>,
+    affinity: Affinity,
+    pointer_selecting: bool,
+    desired_inline_x: Option<f64>,
+    last_caret: Option<(joydeck_geom::Rect, Bounds<Pixels>, f32, u64)>,
 }
 impl Inline {
     fn reflow(&mut self, model: &joydeck_model::Presentation, page: usize) {
@@ -22,8 +30,92 @@ impl Inline {
             TextTarget::Notes => return,
         };
         self.placed = joydeck_render::editable_text(model, page, id, cell);
+        self.desired_inline_x = None;
+    }
+
+    fn geometry(&self, canvas: Bounds<Pixels>, scale: f32) -> Option<Geometry> {
+        Geometry::new(self.placed.as_ref()?.transform, canvas, scale)
+    }
+
+    fn caret_rect(&self, pos: Pos, affinity: Affinity, scale: f32) -> Option<joydeck_geom::Rect> {
+        let (x, top, bottom) = self.placed.as_ref()?.layout.caret_drawn(pos, affinity)?;
+        // One logical pixel thick at every zoom, including a rotated or vertical caret.
+        Some(joydeck_geom::Rect::new(
+            x,
+            top,
+            x + 1. / f64::from(scale),
+            bottom,
+        ))
+    }
+
+    fn navigate(
+        &mut self,
+        key: &str,
+        value: &str,
+        extend: bool,
+        canvas: Bounds<Pixels>,
+        scale: f32,
+    ) -> Option<usize> {
+        let p = self.placed.as_ref()?;
+        let pos = layout_pos(value, self.draft.cursor());
+        let layout = &p.layout;
+        let motion = match key {
+            "left" => Some((-1., 0.)),
+            "right" => Some((1., 0.)),
+            "up" => Some((0., -1.)),
+            "down" => Some((0., 1.)),
+            _ => None,
+        }
+        .and_then(|(x, y)| self.geometry(canvas, scale).map(|g| g.arrow(x, y)));
+        let (next, affinity) = match motion {
+            Some(Motion::Along { forward }) => {
+                self.desired_inline_x = None;
+                if !extend && !self.draft.selection.is_empty() {
+                    let a = layout_pos(value, self.draft.selection.start);
+                    let b = layout_pos(value, self.draft.selection.end);
+                    let a_line = layout.line_index(a, Affinity::Downstream);
+                    let b_line = layout.line_index(b, Affinity::Upstream);
+                    let reversed = a_line == b_line
+                        && layout
+                            .caret_drawn(a, Affinity::Downstream)
+                            .zip(layout.caret_drawn(b, Affinity::Upstream))
+                            .is_some_and(|(start, end)| start.0 > end.0);
+                    if forward != reversed {
+                        (b, Affinity::Upstream)
+                    } else {
+                        (a, Affinity::Downstream)
+                    }
+                } else {
+                    layout.move_caret(pos, self.affinity, forward, joydeck_text::MoveMode::Visual)
+                }
+            }
+            Some(Motion::Across { down }) => {
+                let x = layout.caret_drawn(pos, self.affinity)?.0;
+                let x = *self.desired_inline_x.get_or_insert(x);
+                layout.cross_line(pos, self.affinity, down, x)
+            }
+            None => {
+                self.desired_inline_x = None;
+                match key {
+                    "home" => (
+                        layout.line_bounds_affine(pos, self.affinity).0,
+                        Affinity::Downstream,
+                    ),
+                    "end" => layout.line_end_caret(pos, self.affinity),
+                    _ => return None,
+                }
+            }
+        };
+        self.affinity = affinity;
+        Some(text::byte_pos(value, (next.para, next.ch)))
     }
 }
+
+fn layout_pos(value: &str, at: usize) -> Pos {
+    let (para, ch) = text::pos(value, at);
+    Pos { para, ch }
+}
+
 impl Viewer {
     pub(super) fn edit_notes(&mut self, w: &mut Window, cx: &mut Context<Self>) {
         if self.composing() {
@@ -86,16 +178,8 @@ impl Viewer {
             let ctx =
                 resolve::Ctx::for_slide(e.session.model(), &e.session.model().slides[self.page])
                     .ok_or("缺少版式")?;
-            let x = resolve::xfrm(&ctx, s);
-            let bp = resolve::body(&ctx, s);
-            if x.rot != 0.
-                || bp.rot.is_some_and(|r| r != 0.)
-                || bp.warp.is_some()
-                || bp
-                    .vert
-                    .is_some_and(|v| v != joydeck_model::text::TextDir::Horizontal)
-            {
-                return Err("本切片原位输入支持水平未旋转文字；此对象仍可保留、浏览和另存".into());
+            if resolve::body(&ctx, s).warp.is_some() {
+                return Err("艺术字变形尚无原位编辑几何".into());
             }
             let target = if matches!(s.kind, ShapeKind::Table(_)) {
                 let (_, r, c) = self
@@ -115,14 +199,8 @@ impl Viewer {
                 body.paragraphs.push(joydeck_model::Paragraph::default());
             }
             text::validate(&body)?;
-            if body.body.rot.is_some_and(|r| r != 0.)
-                || body
-                    .body
-                    .vert
-                    .is_some_and(|v| v != joydeck_model::text::TextDir::Horizontal)
-                || (matches!(&target,TextTarget::Cell{row,col,..} if matches!(&s.kind,ShapeKind::Table(t) if t.cell(*row,*col).is_some_and(|c|c.vertical.is_some_and(|v|v != joydeck_model::text::TextDir::Horizontal)))))
-            {
-                return Err("竖排/旋转单元格文字暂不支持原位输入；源内容保留".into());
+            if body.body.warp.is_some() {
+                return Err("艺术字变形尚无原位编辑几何".into());
             }
             if body
                 .paragraphs
@@ -144,8 +222,10 @@ impl Viewer {
                     target,
                     draft: Draft::new(body),
                     placed: None,
-                    affinity: joydeck_text::Affinity::Downstream,
-                    anchor: None,
+                    affinity: Affinity::Downstream,
+                    pointer_selecting: false,
+                    desired_inline_x: None,
+                    last_caret: None,
                 }));
                 self.drag = None;
                 self.preview_inline(cx);
@@ -224,6 +304,8 @@ impl Viewer {
         let Some(i) = &mut self.inline else { return };
         match i.draft.replace(r, value, mark, selection) {
             Ok(()) => {
+                i.affinity = Affinity::Downstream;
+                i.desired_inline_x = None;
                 eprintln!(
                     "R3 input={} utf16={} marked={}",
                     if mark { "preedit" } else { "commit" },
@@ -283,16 +365,31 @@ impl Viewer {
             self.input_replace(None, &value, false, None, w, cx);
         }
     }
-    fn inline_hit(&self, p: Point<Pixels>, scale: f32) -> Option<usize> {
+    fn inline_hit(&self, p: Point<Pixels>, scale: f32) -> Option<(usize, Affinity)> {
         let i = self.inline.as_ref()?;
-        let placed = i.placed.as_ref()?;
-        let p = joydeck_geom::Point::new(
-            f32::from(p.x - self.canvas_bounds.left()) as f64 / scale as f64,
-            f32::from(p.y - self.canvas_bounds.top()) as f64 / scale as f64,
-        );
-        let pos = placed.layout.hit(placed.transform.inverse() * p);
-        Some(text::byte_pos(&i.draft.body.text(), (pos.para, pos.ch)))
+        let local = i.geometry(self.canvas_bounds, scale)?.local(p);
+        let (pos, affinity) = i.placed.as_ref()?.layout.hit_affinity(local);
+        let at = text::byte_pos(&i.draft.body.text(), (pos.para, pos.ch));
+        Some((at, affinity))
     }
+
+    pub(super) fn start_inline_at(
+        &mut self,
+        event: &MouseDownEvent,
+        w: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
+        self.begin_selected_text(w, cx);
+        if let Some((at, affinity)) = self.inline_hit(event.position, self.scale(w))
+            && let Some(i) = &mut self.inline
+        {
+            i.draft.move_to(at, false);
+            i.affinity = affinity;
+            i.pointer_selecting = true;
+            w.notify_text_selection_changed(&self.focus);
+        }
+    }
+
     pub(super) fn inline_pointer(
         &mut self,
         event: &MouseDownEvent,
@@ -300,77 +397,67 @@ impl Viewer {
         w: &mut Window,
         cx: &mut Context<Self>,
     ) -> bool {
-        if self.inline.is_none() {
+        let Some(i) = self.inline.as_ref() else {
             return false;
-        }
-        if self.composing() {
+        };
+        if i.draft.marked.is_some() {
             return true;
         }
-        let in_box = self
-            .inline
-            .as_ref()
-            .and_then(|i| i.placed.as_ref())
-            .is_some_and(|p| {
-                let q = joydeck_geom::Point::new(
-                    f32::from(event.position.x - self.canvas_bounds.left()) as f64 / scale as f64,
-                    f32::from(event.position.y - self.canvas_bounds.top()) as f64 / scale as f64,
-                );
-                p.layout.inner.contains(p.transform.inverse() * q)
+        let in_box = i
+            .geometry(self.canvas_bounds, scale)
+            .zip(i.placed.as_ref())
+            .is_some_and(|(g, p)| {
+                let q = g.local(event.position);
+                p.layout.inner.contains(q) || p.layout.bounds().contains(q)
             });
         if !in_box {
             self.end_inline(cx);
             return false;
         }
-        if let Some(at) = self.inline_hit(event.position, scale)
+        if let Some((at, affinity)) = self.inline_hit(event.position, scale)
             && let Some(i) = &mut self.inline
         {
             i.draft.move_to(at, event.modifiers.shift);
-            i.anchor = Some(i.draft.selection.start);
+            i.affinity = affinity;
+            i.desired_inline_x = None;
+            i.pointer_selecting = true;
         }
         self.focus.focus(w, cx);
         w.notify_text_selection_changed(&self.focus);
         cx.notify();
         true
     }
+
+    pub(super) fn finish_inline_pointer(&mut self) {
+        if let Some(i) = &mut self.inline {
+            i.pointer_selecting = false;
+        }
+    }
+
     pub(super) fn inline_move(
         &mut self,
         event: &MouseMoveEvent,
-        scale: f32,
+        w: &mut Window,
         cx: &mut Context<Self>,
     ) -> bool {
-        if self.inline.is_none() {
+        if !self.inline.as_ref().is_some_and(|i| i.pointer_selecting) {
             return false;
         }
-        if event.dragging()
-            && !self.composing()
-            && let Some(at) = self.inline_hit(event.position, scale)
+        if !event.dragging() || !w.is_window_active() || self.composing() {
+            self.finish_inline_pointer();
+            return false;
+        }
+        if let Some((at, affinity)) = self.inline_hit(event.position, self.scale(w))
             && let Some(i) = &mut self.inline
-            && let Some(anchor) = i.anchor
         {
-            i.draft.selection = anchor.min(at)..anchor.max(at);
-            i.draft.reversed = at < anchor;
+            i.draft.move_to(at, true);
+            i.affinity = affinity;
+            w.notify_text_selection_changed(&self.focus);
             cx.notify();
         }
         true
     }
-    fn screen_rect(
-        &self,
-        p: &joydeck_render::PlacedText,
-        rect: joydeck_geom::Rect,
-        scale: f32,
-    ) -> Bounds<Pixels> {
-        let b = p.transform.transform_rect_bbox(rect);
-        Bounds::new(
-            point(
-                self.canvas_bounds.left() + px(b.x0 as f32 * scale),
-                self.canvas_bounds.top() + px(b.y0 as f32 * scale),
-            ),
-            size(
-                px((b.width() as f32 * scale).max(1.5)),
-                px((b.height() as f32 * scale).max(1.5)),
-            ),
-        )
-    }
+
     pub(super) fn paint_inline(
         &mut self,
         bounds: Bounds<Pixels>,
@@ -379,46 +466,49 @@ impl Viewer {
         cx: &mut Context<Self>,
     ) {
         self.canvas_bounds = bounds;
-        let Some(i) = &self.inline else { return };
+        let Some(i) = &mut self.inline else { return };
         let Some(p) = &i.placed else { return };
+        let Some(geo) = i.geometry(bounds, scale) else {
+            return;
+        };
         let value = i.draft.body.text();
-        let a = text::pos(&value, i.draft.selection.start);
-        let b = text::pos(&value, i.draft.selection.end);
-        let a = joydeck_text::Pos { para: a.0, ch: a.1 };
-        let b = joydeck_text::Pos { para: b.0, ch: b.1 };
+        let a = layout_pos(&value, i.draft.selection.start);
+        let b = layout_pos(&value, i.draft.selection.end);
+        let caret = i.caret_rect(layout_pos(&value, i.draft.cursor()), i.affinity, scale);
+        let focused = self.focus.is_focused(w);
+        if let Some(caret) = caret.filter(|_| focused) {
+            let target = geo.bounds(caret);
+            let viewport = self.page_scroll.bounds();
+            // Keep manual scrolling independent. An actual caret/reflow, zoom or viewport change
+            // requests a pan; a changed slide origin from the wheel alone does not.
+            let key = (caret, viewport, scale, self.render_generation);
+            if i.last_caret != Some(key) {
+                i.last_caret = Some(key);
+                let offset = self.page_scroll.offset();
+                let next = reveal_offset(target, viewport, offset, self.page_scroll.max_offset());
+                if next != offset {
+                    self.page_scroll.set_offset(next);
+                    w.request_animation_frame();
+                }
+            }
+        }
         w.with_content_mask(Some(ContentMask { bounds }), |w| {
             for rect in p.layout.selection_rects(a, b) {
-                w.paint_quad(fill(self.screen_rect(p, rect, scale), rgba(0x2299ff55)));
+                geo.paint(rect, rgba(0x2299ff55), w);
             }
-            let at = text::pos(&value, i.draft.cursor());
-            if let Some((x, top, bottom)) = p.layout.caret_at(
-                joydeck_text::Pos {
-                    para: at.0,
-                    ch: at.1,
-                },
-                i.affinity,
-            ) && self.focus.is_focused(w)
-            {
-                w.paint_quad(fill(
-                    self.screen_rect(p, joydeck_geom::Rect::new(x, top, x + 1., bottom), scale),
-                    rgb(0x176fca),
-                ));
+            if let Some(caret) = caret.filter(|_| focused) {
+                geo.paint(caret, rgb(0x176fca), w);
             }
             if let Some(marked) = &i.draft.marked {
-                let a = text::pos(&value, marked.start);
-                let b = text::pos(&value, marked.end);
-                for (x0, x1, y) in p.layout.composition_underlines(
-                    joydeck_text::Pos { para: a.0, ch: a.1 },
-                    joydeck_text::Pos { para: b.0, ch: b.1 },
-                ) {
-                    w.paint_quad(fill(
-                        self.screen_rect(p, joydeck_geom::Rect::new(x0, y, x1, y + 1.), scale),
-                        rgb(0x176fca),
-                    ));
+                let a = layout_pos(&value, marked.start);
+                let b = layout_pos(&value, marked.end);
+                for (x0, x1, y) in p.layout.composition_underlines(a, b) {
+                    let rect = joydeck_geom::Rect::new(x0, y, x1, y + 1. / f64::from(scale));
+                    geo.paint(rect, rgb(0x176fca), w);
                 }
             }
         });
-        if self.focus.is_focused(w) {
+        if focused {
             w.handle_input(
                 &self.focus,
                 ElementInputHandler::new(bounds, cx.entity()),
@@ -578,6 +668,7 @@ impl Viewer {
             cx.stop_propagation();
             return;
         }
+        let scale = self.scale(w);
         let Some(i) = &mut self.inline else { return };
         let value = i.draft.body.text();
         let at = i.draft.cursor();
@@ -587,6 +678,8 @@ impl Viewer {
                 i.draft.typing_props = None;
                 i.draft.selection = 0..value.len();
                 i.draft.reversed = false;
+                i.affinity = Affinity::Downstream;
+                i.desired_inline_x = None;
                 cx.notify();
             }
             "c" | "x" if command => {
@@ -663,6 +756,8 @@ impl Viewer {
                         if let Some(position) = position {
                             next = text::byte_pos(&value, position);
                             i.draft.move_to(next, mods.shift);
+                            i.affinity = Affinity::Downstream;
+                            i.desired_inline_x = None;
                             w.notify_text_selection_changed(&self.focus);
                             cx.notify();
                             cx.stop_propagation();
@@ -670,39 +765,10 @@ impl Viewer {
                         }
                     }
                 }
-                if let Some(p) = &i.placed {
-                    let pos = text::pos(&value, at);
-                    let pos = joydeck_text::Pos {
-                        para: pos.0,
-                        ch: pos.1,
-                    };
-                    let moved = match key {
-                        "left" | "right" => {
-                            let (pos, affinity) = p.layout.move_caret(
-                                pos,
-                                i.affinity,
-                                key == "right",
-                                joydeck_text::MoveMode::Visual,
-                            );
-                            i.affinity = affinity;
-                            pos
-                        }
-                        "up" | "down" => p.layout.vertical(
-                            pos,
-                            key == "down",
-                            p.layout.caret(pos).map_or(0., |c| c.0),
-                        ),
-                        "home" => p.layout.line_bounds(pos).0,
-                        _ => p.layout.line_bounds(pos).1,
-                    };
-                    next = text::byte_pos(&value, (moved.para, moved.ch));
-                }
-                if !mods.shift && !i.draft.selection.is_empty() {
-                    if key == "left" {
-                        next = i.draft.selection.start;
-                    } else if key == "right" {
-                        next = i.draft.selection.end;
-                    }
+                if let Some(position) =
+                    i.navigate(key, &value, mods.shift, self.canvas_bounds, scale)
+                {
+                    next = position;
                 }
                 i.draft.move_to(next, mods.shift);
                 w.notify_text_selection_changed(&self.focus);
@@ -1001,12 +1067,21 @@ impl EntityInputHandler for Viewer {
         let p = i.placed.as_ref()?;
         let value = i.draft.body.text();
         let r = text::utf16_range(&value, r)?;
-        let pos = text::pos(&value, r.start);
-        let (x, a, b) = p.layout.caret(joydeck_text::Pos {
-            para: pos.0,
-            ch: pos.1,
-        })?;
-        Some(self.screen_rect(p, joydeck_geom::Rect::new(x, a, x + 1., b), self.scale(w)))
+        let scale = self.scale(w);
+        let geo = i.geometry(self.canvas_bounds, scale)?;
+        let start = layout_pos(&value, r.start);
+        let end = layout_pos(&value, r.end);
+        if start != end
+            && let Some(first) = p.layout.selection_rects(start, end).first()
+        {
+            return Some(geo.bounds(*first));
+        }
+        let affinity = if r.start == i.draft.cursor() {
+            i.affinity
+        } else {
+            Affinity::Downstream
+        };
+        Some(geo.bounds(i.caret_rect(start, affinity, scale)?))
     }
     fn character_index_for_point(
         &mut self,
@@ -1014,7 +1089,7 @@ impl EntityInputHandler for Viewer {
         w: &mut Window,
         _: &mut Context<Self>,
     ) -> Option<usize> {
-        let at = self.inline_hit(p, self.scale(w))?;
+        let (at, _) = self.inline_hit(p, self.scale(w))?;
         Some(text::to_utf16(&self.inline.as_ref()?.draft.body.text(), at..at).start)
     }
 }

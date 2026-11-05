@@ -144,14 +144,15 @@
     "source_path": "apps/joydeck/src/viewer.rs",
     "target_path": "crates/joydeck-ui-gpui/src/viewer.rs",
     "source_sha256": "249104bdece51947664a50fe4b8166f358662e78d0000ed7d0024b10fade5584",
-    "adapted_sha256": "4dae317f7e5ef69d627250ecfc8e583a32ad0fafd3eaf8ef0f40dff94bcb7922",
+    "adapted_sha256": "c36a8c4ba85bad383f76c3ef50af29268a4271744d5071d858455c2dad29e0aa",
     "local_changes": "Reuse asynchronous read-only viewer, generation guards, cancellation, virtual thumbnail rail and bounded cache; adapt to DeckCraft model and shared CPU renderer; R1 branding and aspect fit; upstream validation modules deferred; R1 rustfmt and bounded reader/CPU-renderer/palette/notes adapters as applicable; R2 editable viewer adapter, background save/recovery, command-driven gestures, coordinate anchoring and close guard; rustfmt; R4/R5 scene/content workspace adaptation; R6/R7 adapter additions and repository rustfmt/LF normalization.; R8 native editor, clipboard or product package version adaptation; R9-UI1 native formatting controls and schema-2 validation/history compatibility (see slice evidence)",
     "r9_ui2_adaptation": "Formatting, desktop control and reviewed preservation validation; LF source representation.",
     "r9_ui2_gui_fix": "Synchronize every editor palette with GPUI Kit application theme during render",
     "macos_document_open": "Route macOS file events through the active editor and the existing replace guard. Register native File and Edit menus using editor actions.",
     "cancellable_open": "Separate request and document generations, cancel superseded reads, and defer replacement and recent-file registration until acceptance.",
     "shared_document_view": "Separate window selection and state from the shared editor session and preserve revision guards.",
-    "font_environment": "Refresh font selection, editor geometry and rendering caches when installed font files change."
+    "font_environment": "Refresh font selection, editor geometry and rendering caches when installed font files change.",
+    "transformed_inline_text": "Use the text layout transform for rotated and vertical editing, hit testing and caret visibility"
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
@@ -188,7 +189,7 @@
     "target_path": "crates/joydeck-ui-gpui/src/inline_text.rs",
     "source_sha256": "e6caa4311e30aaa39f91b1da6d328e8bba46ae9afcf4a890e44e43278e5ef4f4",
     "local_changes": "Adapt EntityInputHandler, selection/clipboard/composition routing to new pure engine; consume shared CPU text/table layout for all geometry; add bounded text metadata/TSV and notes Textarea flow from apps/joydeck/src/chrome.rs.; R8 native editor, clipboard or product package version adaptation; R9-UI1 native formatting controls and schema-2 validation/history compatibility (see slice evidence)",
-    "adapted_sha256": "555bd857a4f3d0bc67fac74179acb2bf8728f26d38b753f13e6527d687a2c3bf",
+    "adapted_sha256": "e6080feaf2063abc18441e492ade7a12742908f733f466d49c3f63bad38dcef1",
     "additional_sources": [
       {
         "source_path": "apps/joydeck/src/chrome.rs",
@@ -198,7 +199,8 @@
     "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained.",
     "r9_ui2_gui_fix": "Keep inline formatting scoped to the edited object; Ctrl+Enter commits; double-click selection and drag threshold.",
     "shared_document_view": "Separate window selection and state from the shared editor session and preserve revision guards.",
-    "font_environment": "Refresh font selection, editor geometry and rendering caches when installed font files change."
+    "font_environment": "Refresh font selection, editor geometry and rendering caches when installed font files change.",
+    "transformed_inline_text": "Use the text layout transform for rotated and vertical editing, hit testing and caret visibility"
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",

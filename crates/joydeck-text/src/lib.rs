@@ -376,33 +376,43 @@ impl TextLayout {
     /// Nearest caret position for a point, with the affinity that keeps the caret on the side of
     /// the character that was hit (bidi text has two carets at a direction change).
     pub fn hit_affinity(&self, p: Point) -> (Pos, Affinity) {
-        let mut best: Option<&LineInfo> = None;
-        for l in &self.lines {
-            if p.y >= l.top && p.y < l.bottom {
-                // In multi-column bodies pick the line whose column contains x.
-                if best.is_none()
-                    || p.x
-                        >= l.extent
-                            .0
-                            .min(l.caret_x.first().copied().unwrap_or(l.extent.0))
-                            - 4.0
-                {
-                    best = Some(l);
-                }
+        let distance = |l: &LineInfo| {
+            let x0 = l
+                .extent
+                .0
+                .min(l.caret_x.first().copied().unwrap_or(l.extent.0));
+            let x1 = l
+                .extent
+                .1
+                .max(l.caret_x.last().copied().unwrap_or(l.extent.1));
+            let dx = (x0 - p.x).max(p.x - x1).max(0.);
+            let dy = (l.top - p.y).max(p.y - l.bottom).max(0.);
+            (dy, dx)
+        };
+        // First choose a line per column. Within a column a point past the last letter
+        // still belongs to that line. Compare both axes only when choosing the column.
+        let mut columns = std::collections::BTreeMap::new();
+        for line in &self.lines {
+            let (dy, dx) = distance(line);
+            let current = columns.entry(line.column).or_insert((line, dy, dx));
+            if dy
+                .total_cmp(&current.1)
+                .then(dx.total_cmp(&current.2))
+                .is_lt()
+            {
+                *current = (line, dy, dx);
             }
         }
-        let l = match best {
-            Some(l) => l,
-            None => {
-                let first = self.lines.first();
-                let last = self.lines.last();
-                match (first, last) {
-                    (Some(f), _) if p.y < f.top => f,
-                    (_, Some(l)) => l,
-                    _ => return (Pos::default(), Affinity::Downstream),
-                }
-            }
+        let Some((line, _, _)) = columns
+            .into_values()
+            .min_by(|a, b| a.1.hypot(a.2).total_cmp(&b.1.hypot(b.2)))
+        else {
+            return (Pos::default(), Affinity::Downstream);
         };
+        Self::hit_line(line, p.x)
+    }
+
+    fn hit_line(l: &LineInfo, x: f64) -> (Pos, Affinity) {
         let mut gs: Vec<(f64, f64, usize, usize, bool)> = l
             .graphemes()
             .into_iter()
@@ -423,24 +433,24 @@ impl TextLayout {
         gs.sort_by(|x, y| x.0.total_cmp(&y.0));
         let hit = gs
             .iter()
-            .find(|g| p.x >= g.0 && p.x <= g.1 && g.1 > g.0)
+            .find(|g| x >= g.0 && x <= g.1 && g.1 > g.0)
             .copied();
         let (g, left_half) = match hit {
-            Some(g) => (g, p.x < (g.0 + g.1) / 2.0),
+            Some(g) => (g, x < (g.0 + g.1) / 2.0),
             None => match (gs.first().copied(), gs.last().copied()) {
-                (Some(f), _) if p.x < f.0 => (f, true),
-                (_, Some(z)) if p.x > z.1 => (z, false),
+                (Some(f), _) if x < f.0 => (f, true),
+                (_, Some(z)) if x > z.1 => (z, false),
                 // Between zero-width graphemes: the nearest one.
                 _ => match gs
                     .iter()
                     .min_by(|a, b| {
-                        ((a.0 + a.1) / 2.0 - p.x)
+                        ((a.0 + a.1) / 2.0 - x)
                             .abs()
-                            .total_cmp(&((b.0 + b.1) / 2.0 - p.x).abs())
+                            .total_cmp(&((b.0 + b.1) / 2.0 - x).abs())
                     })
                     .copied()
                 {
-                    Some(g) => (g, p.x < (g.0 + g.1) / 2.0),
+                    Some(g) => (g, x < (g.0 + g.1) / 2.0),
                     None => {
                         return (
                             Pos {
@@ -710,6 +720,26 @@ impl TextLayout {
         }
         h.ch = h.ch.clamp(l.start, l.end);
         (h, Affinity::Downstream)
+    }
+
+    /// Move across visible lines in the layout's unrotated coordinates. Stacked and Mongolian
+    /// layouts can place their logical next line above the current one in this space.
+    pub fn cross_line(&self, pos: Pos, affinity: Affinity, down: bool, x: f64) -> (Pos, Affinity) {
+        let Some(line) = self
+            .line_index(pos, affinity)
+            .and_then(|i| self.lines.get(i))
+        else {
+            return (pos, affinity);
+        };
+        let distance = |other: &LineInfo| {
+            let dy = other.baseline - line.baseline;
+            if down { dy } else { -dy }
+        };
+        self.lines
+            .iter()
+            .filter(|other| other.column == line.column && distance(other) > 0.)
+            .min_by(|a, b| distance(a).total_cmp(&distance(b)))
+            .map_or((pos, affinity), |other| Self::hit_line(other, x))
     }
     /// Start/end of the visual line containing `pos` (logical: Home/End).
     pub fn line_bounds(&self, pos: Pos) -> (Pos, Pos) {

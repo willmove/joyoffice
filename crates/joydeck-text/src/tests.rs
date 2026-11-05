@@ -2169,6 +2169,22 @@ fn mongolian_lines_run_left_to_right_and_stacked_letters_stand_one_em_apart() {
     // the right; mongolianVert mirrors the line places, so the first line shows on the left.
     assert!(v.lines[0].top < v.lines[1].top);
     assert!(m.lines[0].top > m.lines[1].top);
+    for (layout, down) in [(&v, true), (&m, false)] {
+        let at = Pos { para: 0, ch: 1 };
+        let x = layout.caret(at).unwrap().0;
+        assert_eq!(
+            layout.cross_line(at, Affinity::Downstream, down, x).0.para,
+            1
+        );
+        assert_eq!(layout.cross_line(at, Affinity::Downstream, !down, x).0, at);
+        let between = (layout.lines[0].baseline + layout.lines[1].baseline) / 2.;
+        assert_eq!(
+            layout
+                .hit(Point::new(x, (between + layout.lines[0].baseline) / 2.))
+                .para,
+            0
+        );
+    }
     let mid = (m.inner.y0 + m.inner.y1) / 2.0;
     assert!(
         ((m.lines[0].top + m.lines[0].bottom) / 2.0 - mid

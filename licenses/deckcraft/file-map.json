@@ -806,12 +806,13 @@
       "source_path": "crates/text/src/lib.rs",
       "source_sha256": "6f6f1a44aac8f2bbd6c2251b323a06833b8f055e0fdd1933b103e49d29ee27b5",
       "target_path": "crates/joydeck-text/src/lib.rs",
-      "adapted_sha256": "3f60d46970b9bc5131788d66dfefd1ffaff40377bef475c223ce76c939538508",
+      "adapted_sha256": "8c09c0c656b24868d93ff44f1d58cf6d2764d473213c68a642773b2fb27e220b",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
-        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
+        "Use the text layout transform for rotated and vertical editing, hit testing and caret visibility"
       ]
     },
     {
@@ -866,13 +867,14 @@
       "source_path": "crates/text/src/tests.rs",
       "source_sha256": "0c590583364dc4eddd26d838f4ab5f54c966525b5ed23cf78ec21577580a7cc8",
       "target_path": "crates/joydeck-text/src/tests.rs",
-      "adapted_sha256": "00a192c69cf71f5bf185f8b33044708d03477fbb0c0387e1445ee8944adffee8",
+      "adapted_sha256": "bef500777a8b07f9913ff764d31fced89331d2edc799e9f442aebe79d6cf5cae",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
-        "Preserve invisible whitespace while reporting missing visible glyphs"
+        "Preserve invisible whitespace while reporting missing visible glyphs",
+        "Use the text layout transform for rotated and vertical editing, hit testing and caret visibility"
       ]
     },
     {
