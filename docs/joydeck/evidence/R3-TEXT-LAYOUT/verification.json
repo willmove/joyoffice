@@ -1,0 +1,72 @@
+{
+  "binarySha256": "03c5c09c4b49bb233eab3240b9b211367aa277345c2d9e2dde79b5b7d60b9a0c",
+  "cliSha256": "a1ee399d0d459588c419744d5393e9863e2bc36f4744f5a68ba6e36683db6eac",
+  "checks": [
+    {
+      "check": "East Asian vertical text is applied from the native menu as one edit with Undo and Redo",
+      "revisions": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "check": "Column presets, validated custom count and spacing, and RTL column order each apply as one edit",
+      "revisions": [
+        5,
+        6,
+        7
+      ]
+    },
+    {
+      "check": "One multi-selection edit patches only the left inset with one Undo and Redo",
+      "revisions": [
+        11,
+        12,
+        13
+      ]
+    },
+    {
+      "check": "Native v2 Save As retains layout properties and embeds the original source byte for byte"
+    },
+    {
+      "check": "Independent OOXML and python-pptx verify body properties, unchanged paragraph XML, unchanged link relationships, and opaque layout extension"
+    },
+    {
+      "check": "A second packaged GUI process reopens the saved file with identical text and source bytes unchanged"
+    }
+  ],
+  "screenshots": {
+    "01-east-asian-vertical.png": "2b51838507a70db4456a59936a8b7f4115de7b49a564328400bd2e05e0ae683b",
+    "02-invalid-column-count.png": "3916fde3f771b00a8d928218c01e594772f574613b9eb9607eedfc88b0d6dd44",
+    "03-right-to-left-columns.png": "feb1c56e1c9b3512ef31d74acc157f84d2a6cdf88831b6e5fd5b25ba60e53f3e",
+    "04-mixed-margins.png": "3f9d139c8b61f775e75404bc319be7d88822ca8233c1025d54e9e2503f9503fa",
+    "05-saved.png": "297e4772552e8dd5e6965784e933a0844acfcb05d92234ea833b3926747a21d7",
+    "06-reopened.png": "a2662769b417c49cc2395eca08e3d1c512b9665798ca951668f1ee6710294b12"
+  },
+  "fixtureSha256": "8b6d034d8dcb6a803b394bfe93374cdc47d3a817fbf49947c7235cfcbc9328e3",
+  "nativeSha256": "e934dcda259b281669175c738421c1c80473bea2fca3feb759cd72507440b714",
+  "savedSha256": "fb4280e4e34170ae49bd1f0fde97f9d9783da8e95658873e9c8a27810cc69b57",
+  "passed": true,
+  "package": {
+    "archive": "joydeck-0.8.0-r3-text-layout.zip",
+    "archiveSha256": "b330f2acc0c58df2adbcbb82fb9de6e497f3b47716dbe2da28bc8b983df45821",
+    "sourceSha256": "a44ca5be679b19bf1ec4ead70b5e52d3e85f4bad72ebd48aad60b7e22f35f5d3",
+    "target": "aarch64-apple-darwin",
+    "profile": "release",
+    "verifiedPayloadFiles": 1805
+  },
+  "productTests": {
+    "passed": 916,
+    "failed": 0,
+    "ignored": 0
+  },
+  "packagedCliChecks": {
+    "R1": 28,
+    "R2": 20,
+    "R3": 20,
+    "R4-R5": 23,
+    "registry": 329
+  },
+  "inventorySha256": "eb4019338e5ed0d8ae561608fce11dff7664d478a2eb1d7c1f0f8f8f2e085491"
+}

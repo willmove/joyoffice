@@ -49,6 +49,14 @@ impl Viewer {
         w: &mut Window,
         cx: &mut Context<Self>,
     ) {
+        if self.loading || self.composing() {
+            return;
+        }
+        if let Some(i) = &mut self.inline {
+            f(&mut i.draft.body);
+            self.publish_inline(w, cx);
+            return;
+        }
         let Some(e) = &self.editor else { return };
         let mut edits = vec![];
         for target in self.format_targets() {
