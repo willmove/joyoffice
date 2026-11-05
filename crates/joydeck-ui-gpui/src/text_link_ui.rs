@@ -1,0 +1,191 @@
+//! Edit the selected text's click link through the document's normal text transaction.
+use super::*;
+use gpui_kit::component::{Sizable, button::ButtonVariants};
+use joydeck_engine::text::links;
+use joydeck_model::{
+    Presentation,
+    text::{Action, Hyperlink, safe_url},
+};
+
+const ADDRESS: &str = "链接地址（网页、邮件或 #页码）";
+const TOOLTIP: &str = "屏幕提示（可选）";
+
+fn address(action: &Action, document: &Presentation) -> Option<String> {
+    match action {
+        Action::Url { url } => Some(url.clone()),
+        Action::Slide { slide } => Some(format!("#{}", document.slide_index(*slide)? + 1)),
+        _ => None,
+    }
+}
+
+fn parse_address(value: &str, document: &Presentation) -> Result<Action, String> {
+    let value = value.trim();
+    if let Some(page) = value.strip_prefix('#') {
+        let index = page.parse::<usize>().ok().and_then(|n| n.checked_sub(1));
+        let slide = index
+            .and_then(|index| document.slides.get(index))
+            .ok_or("请输入有效页码，如 #2")?;
+        return Ok(Action::Slide { slide: slide.id });
+    }
+    if value.len() > 2048
+        || value.chars().any(|c| c.is_control() || c.is_whitespace())
+        || !safe_url(value)
+        || url::Url::parse(value).is_err()
+    {
+        return Err("请输入 HTTP／HTTPS、mailto 地址或 #页码".into());
+    }
+    Ok(Action::Url { url: value.into() })
+}
+
+impl Viewer {
+    pub(super) fn text_link_group(&self, cx: &mut Context<Self>) -> Div {
+        let disabled = self.loading
+            || self.composing()
+            || self.benchmark.is_some()
+            || self.format_targets().len() != 1;
+        chrome::group(
+            "链接",
+            div()
+                .flex()
+                .flex_col()
+                .gap_1()
+                .child(
+                    Button::new("insert-text-link")
+                        .ghost()
+                        .xsmall()
+                        .h(px(25.))
+                        .label("链接…")
+                        .disabled(disabled)
+                        .on_click(
+                            cx.listener(|s, _, w, cx| s.edit_text_link(&EditTextLink, w, cx)),
+                        ),
+                )
+                .child(
+                    Button::new("remove-text-link")
+                        .ghost()
+                        .xsmall()
+                        .h(px(25.))
+                        .label("移除链接")
+                        .disabled(disabled)
+                        .on_click(cx.listener(|s, _, w, cx| s.remove_text_link(w, cx))),
+                ),
+        )
+    }
+
+    fn link_scope(&mut self, w: &mut Window, cx: &mut Context<Self>) -> Option<links::Selection> {
+        if self.loading || self.composing() || self.benchmark.is_some() {
+            return None;
+        }
+        if self.inline.is_none() && self.format_targets().len() == 1 {
+            self.begin_selected_text(w, cx);
+        }
+        let scope = self
+            .inline
+            .as_ref()
+            .and_then(|i| links::selection(&i.draft.body, i.draft.selection.clone()));
+        if scope.is_none() {
+            self.message = "请先选择需要链接的文字".into();
+            cx.notify();
+        }
+        scope
+    }
+
+    pub(super) fn edit_text_link(
+        &mut self,
+        _: &EditTextLink,
+        w: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
+        let Some(scope) = self.link_scope(w, cx) else {
+            return;
+        };
+        let (Some(i), Some(editor)) = (&self.inline, &self.editor) else {
+            return;
+        };
+        let mut original = String::new();
+        let mut tooltip = String::new();
+        if let Some(link) = &scope.common {
+            let Some(initial) = address(&link.action, editor.session.model()) else {
+                self.message = "当前链接使用其他动作，可移除后重新设置".into();
+                cx.notify();
+                return;
+            };
+            original = initial;
+            tooltip.clone_from(&link.tooltip);
+        }
+        let target = i.target.clone();
+        let selection = i.draft.selection.clone();
+        let page = self.page;
+        self.fields_dialog(
+            "编辑文字链接",
+            vec![(ADDRESS, original.clone()), (TOOLTIP, tooltip)],
+            w,
+            cx,
+            move |s, values, w, cx| {
+                if s.page != page
+                    || s.loading
+                    || s.composing()
+                    || s.benchmark.is_some()
+                    || !s
+                        .inline
+                        .as_ref()
+                        .is_some_and(|i| i.target == target && i.draft.selection == selection)
+                {
+                    return Err("文字选区已变化，请重新打开此对话框".into());
+                }
+                let document = s.editor.as_ref().ok_or("文稿已关闭")?.session.model();
+                let action = if values[0] == original
+                    && let Some(link) = &scope.common
+                {
+                    link.action.clone()
+                } else {
+                    parse_address(&values[0], document)?
+                };
+                if values[1].len() > 1024 || values[1].chars().any(char::is_control) {
+                    return Err("屏幕提示超出长度或包含控制字符".into());
+                }
+                let mut link = scope.common.clone().unwrap_or(Hyperlink {
+                    action: action.clone(),
+                    tooltip: String::new(),
+                    highlight_click: false,
+                    sound: None,
+                    stop_sound: false,
+                    zoom_return: None,
+                });
+                if link.action != action {
+                    link.zoom_return = None;
+                }
+                link.action = action;
+                link.tooltip.clone_from(&values[1]);
+                s.apply_text_link(scope.range.clone(), Some(&link), w, cx)
+            },
+        );
+    }
+
+    fn remove_text_link(&mut self, w: &mut Window, cx: &mut Context<Self>) {
+        if let Some(scope) = self.link_scope(w, cx)
+            && scope.has_link
+            && let Err(error) = self.apply_text_link(scope.range, None, w, cx)
+        {
+            self.message = error;
+            cx.notify();
+        }
+    }
+
+    fn apply_text_link(
+        &mut self,
+        range: std::ops::Range<usize>,
+        link: Option<&Hyperlink>,
+        w: &mut Window,
+        cx: &mut Context<Self>,
+    ) -> Result<(), String> {
+        let i = self.inline.as_mut().ok_or("文字选区已关闭")?;
+        let after = links::apply(&i.draft.body, range, link)?;
+        if after != i.draft.body {
+            i.draft.body = after;
+            i.draft.typing_props = None;
+            self.publish_inline(w, cx);
+        }
+        Ok(())
+    }
+}

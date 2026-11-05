@@ -174,6 +174,12 @@ impl Player {
         }
         let placed = joydeck_render::place_slide(&self.model, self.state.slide);
         let tl = ShowState::timeline(&self.model, self.state.slide);
+        let text_hits: std::collections::BTreeMap<_, _> = placed
+            .links
+            .into_iter()
+            .filter(|link| link.text && link.rect.contains((x, y)))
+            .map(|link| (link.shape, link.link.action))
+            .collect();
         let shapes = placed
             .shapes
             .into_iter()
@@ -181,8 +187,11 @@ impl Player {
                 id: s.id,
                 parent: s.parent,
                 is_group: s.is_group,
-                link: s.link.map(|l| l.action),
-                under_pointer: s.rect.contains((x, y)),
+                link: text_hits
+                    .get(&s.id)
+                    .cloned()
+                    .or_else(|| s.link.map(|l| l.action)),
+                under_pointer: s.rect.contains((x, y)) || text_hits.contains_key(&s.id),
             })
             .collect::<Vec<_>>();
         let old = self.state.slide;

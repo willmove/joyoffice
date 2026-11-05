@@ -2279,7 +2279,7 @@
       "source_path": "crates/ui-egui/src/theme.rs",
       "source_sha256": "d8d6f55195ac5b0c22d49ec313b716fcfab6cb2c08b3c15445b1ed1fcbe97c6a",
       "target_path": "crates/joydeck-ui-gpui/src/chrome.rs",
-      "adapted_sha256": "590d9e476503861825dbeb2daa66287c6b3648270a83ec108749fa61c6cc62b3",
+      "adapted_sha256": "467e8fe26422e6f78977cdd53260b9a18a1e9a0ab07ce6d988a33d4fdec0acb4",
       "changes": [
         "R8: adapt typed media references / object ID and resource remapping / layout and theme tokens to pure engine or GPUI Kit; no egui dependency",
         "rustfmt; bounded transactions, errors and clipboard serialization; original MIT attribution retained",
@@ -2287,13 +2287,14 @@
         "Connect independent windows to the shared document session"
       ],
       "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained.",
-      "text_box_layout": "Expose native text-box layout controls on the contextual formatting ribbon."
+      "text_box_layout": "Expose native text-box layout controls on the contextual formatting ribbon.",
+      "text_hyperlinks": "Expose the native text-link editor and removal in the Insert ribbon."
     },
     {
       "source_path": "crates/ui-egui/src/ribbon.rs",
       "source_sha256": "036692f8a885af7b61dfcd7e065f371f46c7db67854c0df9d205c91f35d9049a",
       "target_path": "crates/joydeck-ui-gpui/src/chrome.rs",
-      "adapted_sha256": "590d9e476503861825dbeb2daa66287c6b3648270a83ec108749fa61c6cc62b3",
+      "adapted_sha256": "467e8fe26422e6f78977cdd53260b9a18a1e9a0ab07ce6d988a33d4fdec0acb4",
       "changes": [
         "R8: adapt typed media references / object ID and resource remapping / layout and theme tokens to pure engine or GPUI Kit; no egui dependency",
         "rustfmt; bounded transactions, errors and clipboard serialization; original MIT attribution retained",
@@ -2301,13 +2302,14 @@
         "Connect independent windows to the shared document session"
       ],
       "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained.",
-      "text_box_layout": "Expose native text-box layout controls on the contextual formatting ribbon."
+      "text_box_layout": "Expose native text-box layout controls on the contextual formatting ribbon.",
+      "text_hyperlinks": "Expose the native text-link editor and removal in the Insert ribbon."
     },
     {
       "source_path": "crates/ui-egui/src/widgets.rs",
       "source_sha256": "d62cc3cce0436f1118c6486f52c5d90175aeaa79751602a89dbf01aa8d233bf9",
       "target_path": "crates/joydeck-ui-gpui/src/chrome.rs",
-      "adapted_sha256": "590d9e476503861825dbeb2daa66287c6b3648270a83ec108749fa61c6cc62b3",
+      "adapted_sha256": "467e8fe26422e6f78977cdd53260b9a18a1e9a0ab07ce6d988a33d4fdec0acb4",
       "changes": [
         "R8: adapt typed media references / object ID and resource remapping / layout and theme tokens to pure engine or GPUI Kit; no egui dependency",
         "rustfmt; bounded transactions, errors and clipboard serialization; original MIT attribution retained",
@@ -2315,7 +2317,8 @@
         "Connect independent windows to the shared document session"
       ],
       "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained.",
-      "text_box_layout": "Expose native text-box layout controls on the contextual formatting ribbon."
+      "text_box_layout": "Expose native text-box layout controls on the contextual formatting ribbon.",
+      "text_hyperlinks": "Expose the native text-link editor and removal in the Insert ribbon."
     }
   ]
 }

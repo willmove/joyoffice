@@ -272,7 +272,20 @@ impl Render for Audience {
             .on_key_down(cx.listener(|s,e:&KeyDownEvent,w,cx|{s.navigation(&e.keystroke.key,w,cx);cx.stop_propagation();}))
             .on_mouse_down(MouseButton::Left,cx.listener(|s,e:&MouseDownEvent,_,cx|{
                 if s.pen {if s.ink.len()<256 {s.ink.push(vec![(f32::from(e.position.x-s.origin.x)/s.scale,f32::from(e.position.y-s.origin.y)/s.scale)]);s.drawing=true;}}
-                else if !s.laser && let Ok(mut r)=s.shared.lock(){let old=r.player.state.slide;let _=r.player.click(f64::from(f32::from(e.position.x-s.origin.x)/s.scale),f64::from(f32::from(e.position.y-s.origin.y)/s.scale));r.changed_page(old);}
+                else if !s.laser {
+                    let opened = s.shared.lock().ok().and_then(|mut r| {
+                        let old = r.player.state.slide;
+                        let result = r.player.click(
+                            f64::from(f32::from(e.position.x - s.origin.x) / s.scale),
+                            f64::from(f32::from(e.position.y - s.origin.y) / s.scale),
+                        );
+                        r.changed_page(old);
+                        result.ok().flatten()
+                    });
+                    if let Some(url) = opened {
+                        cx.open_url(&url);
+                    }
+                }
                 cx.notify();
             }))
             .on_mouse_move(cx.listener(|s,e:&MouseMoveEvent,_,cx|{s.pointer=e.position;

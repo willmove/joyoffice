@@ -173,3 +173,108 @@ fn formatting_existing_pptx_cells_keeps_margins_borders_style_flags_and_dimensio
         Some(1.5)
     );
 }
+
+#[test]
+fn preserving_text_links_follow_the_target_after_slide_reorder() {
+    use joydeck_engine::{TextTarget, WorkspaceAction, text::links};
+    use joydeck_model::text::{Action, Hyperlink};
+
+    let root = platform::private_directory("r9-text-link-reorder").unwrap();
+    let mut original = Editor::new(root.join("original")).unwrap();
+    original.session.execute(Command::NewSlide).unwrap();
+    original.session.select(0, vec![]).unwrap();
+    original
+        .session
+        .execute(Command::InsertText {
+            x: 20.,
+            y: 30.,
+            text: "A😀 target".into(),
+        })
+        .unwrap();
+    let shape = original.session.selection().shapes[0];
+    original.session.select(1, vec![]).unwrap();
+    original
+        .session
+        .execute(Command::InsertText {
+            x: 20.,
+            y: 30.,
+            text: "Destination".into(),
+        })
+        .unwrap();
+    let input = root.join("source.pptx");
+    original.save_job(input.clone()).unwrap().run().unwrap();
+    let original_bytes = std::fs::read(&input).unwrap();
+
+    let mut editor = Editor::open(&input, root.join("recovery")).unwrap();
+    let first = editor.session.model().slides[0].id;
+    let second = editor.session.model().slides[1].id;
+    editor.session.select(0, vec![shape]).unwrap();
+    let target = TextTarget::Shape { shape };
+    let original_body = joydeck_engine::text_body(editor.session.model(), 0, &target).unwrap();
+    let link = Hyperlink {
+        action: Action::Slide { slide: second },
+        tooltip: "Follow the slide ID".into(),
+        highlight_click: false,
+        sound: None,
+        stop_sound: false,
+        zoom_return: None,
+    };
+    let body = links::apply(&original_body, 1..5, Some(&link)).unwrap();
+    let scope = links::selection(&body, 5..5).unwrap();
+    assert_eq!(scope.range, 1..5);
+    assert_eq!(scope.common, Some(link.clone()));
+    assert_eq!(links::apply(&body, 1..5, None).unwrap(), original_body);
+    editor
+        .session
+        .execute(Command::SetText {
+            target,
+            body: Box::new(body),
+        })
+        .unwrap();
+    editor
+        .session
+        .execute(Command::Workspace {
+            action: WorkspaceAction::ReorderSlides {
+                slides: vec![second],
+                before: Some(first),
+            },
+        })
+        .unwrap();
+    let output = root.join("reordered.pptx");
+    editor.save_job(output.clone()).unwrap().run().unwrap();
+    let doc = Document::open(&output, &Cancellation::default()).unwrap();
+    assert!(
+        doc.presentation.slides[0]
+            .shapes
+            .iter()
+            .any(|s| { s.text.as_ref().is_some_and(|t| t.text() == "Destination") })
+    );
+    let source = doc.presentation.slides[1]
+        .shape(shape)
+        .unwrap()
+        .text
+        .as_ref()
+        .unwrap();
+    let linked = &source.paragraphs[0].runs[1];
+    assert_eq!(source.text(), "A😀 target");
+    assert_eq!(linked.text, "😀");
+    let action = linked.props.link.as_ref().unwrap();
+    assert_eq!(
+        action.action,
+        Action::Slide {
+            slide: doc.presentation.slides[0].id
+        }
+    );
+    assert_eq!(action.tooltip, link.tooltip);
+    let rect = joydeck_render::place_slide(&doc.presentation, 1)
+        .links
+        .into_iter()
+        .find(|link| link.text && link.shape == shape)
+        .unwrap()
+        .rect;
+    let mut show =
+        joydeck_shell::show::Player::new(doc.presentation.into(), Some(1), None).unwrap();
+    assert_eq!(show.click(rect.center().x, rect.center().y).unwrap(), None);
+    assert_eq!(show.state.slide, 0);
+    assert_eq!(std::fs::read(input).unwrap(), original_bytes);
+}

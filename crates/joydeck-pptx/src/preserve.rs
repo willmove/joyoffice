@@ -11,6 +11,8 @@ use std::{
 };
 #[path = "preserve_content.rs"]
 mod content;
+#[path = "preserve_links.rs"]
+mod links;
 pub struct SlideBinding {
     pub slide: SlideId,
     pub source: SlideId,
@@ -187,6 +189,46 @@ fn patch_text_layout(
     Ok(true)
 }
 
+fn patch_text(
+    source: &mut El,
+    generated: &El,
+    before: Option<&TextBody>,
+    after: Option<&TextBody>,
+    relationships: &mut links::Relationships<'_>,
+) -> Result<(), PptxError> {
+    if patch_text_layout(source, generated, before, after)? {
+        return Ok(());
+    }
+    if links::patch(source, before, after, relationships)? {
+        if let (Some(before), Some(after)) = (before, after)
+            && before.body != after.body
+        {
+            let layout = TextBody {
+                body: after.body.clone(),
+                ..before.clone()
+            };
+            if !patch_text_layout(source, generated, Some(before), Some(&layout))? {
+                return Err(error(
+                    "linked text layout cannot be preserved; save .joydeck instead",
+                ));
+            }
+        }
+        return Ok(());
+    }
+    let replacement = generated.child("txBody").cloned();
+    if [source.child("txBody"), replacement.as_ref()]
+        .into_iter()
+        .flatten()
+        .any(|tx| tx.find("hlinkClick").is_some() || tx.find("hlinkMouseOver").is_some())
+    {
+        return Err(error(
+            "combined linked text and content changes require .joydeck Save As",
+        ));
+    }
+    replace(source, "txBody", replacement);
+    Ok(())
+}
+
 #[cfg(test)]
 #[test]
 fn layout_patch_keeps_the_original_text_tree_and_extensions() -> Result<(), PptxError> {
@@ -360,24 +402,35 @@ pub fn export_preserving(
         .unwrap_or(255)
         .checked_add(1)
         .ok_or_else(|| error("slide ID space exhausted"))?;
+    let mut destinations = BTreeMap::new();
+    let mut generated_slides = BTreeMap::new();
     for (index, slide) in current.slides.iter().enumerate() {
         let binding = bindings
             .iter()
             .find(|b| b.slide == slide.id)
             .ok_or_else(|| error("new slides must originate from an existing layout"))?;
-        let source_index = base
+        let source = base
             .slides
             .iter()
             .position(|s| s.id == binding.source)
             .ok_or_else(|| error("missing original slide"))?;
-        let source_slide = &base.slides[source_index];
-        let (source_id, source_part) = &ordered[source_index];
-        let existing = slide.id == source_slide.id;
-        let part = if existing {
-            source_part.clone()
+        let part = if slide.id == binding.source {
+            ordered[source].1.clone()
         } else {
             unique(&parts, "ppt/slides", slide.id.0)
         };
+        destinations.insert(slide.id, (source, part));
+        generated_slides.insert(format!("ppt/slides/slide{}.xml", index + 1), slide.id);
+    }
+    for (index, slide) in current.slides.iter().enumerate() {
+        let binding = bindings
+            .iter()
+            .find(|b| b.slide == slide.id)
+            .ok_or_else(|| error("new slides must originate from an existing layout"))?;
+        let (source_index, part) = &destinations[&slide.id];
+        let source_slide = &base.slides[*source_index];
+        let (source_id, source_part) = &ordered[*source_index];
+        let existing = slide.id == source_slide.id;
         let mut id = source_id.clone();
         if !existing {
             set(&mut id, "id", next_file_id.to_string());
@@ -390,11 +443,11 @@ pub fn export_preserving(
             pres_rels.children.push(Node::El(rel_element(
                 &rid,
                 "slide",
-                &opc::relative(&pres_path, &part),
+                &opc::relative(&pres_path, part),
             )));
             add_override(
                 &mut ct,
-                &part,
+                part,
                 "application/vnd.openxmlformats-officedocument.presentationml.slide+xml",
             );
         }
@@ -497,8 +550,9 @@ pub fn export_preserving(
         let old_tree = tree(&root)
             .ok_or_else(|| error("missing source shape tree"))?
             .clone();
+        let generated_part = format!("ppt/slides/slide{}.xml", index + 1);
         let generated_root = gen_pkg
-            .xml(&format!("ppt/slides/slide{}.xml", index + 1))
+            .xml(&generated_part)
             .ok_or_else(|| error("missing generated slide"))?
             .root;
         let gen_tree =
@@ -530,6 +584,16 @@ pub fn export_preserving(
             );
         }
         let mut added_rels = vec![];
+        let source_relationships = pkg.rels(source_part);
+        let generated_relationships = gen_pkg.rels(&generated_part);
+        let occupied = pkg
+            .xml(&opc::rels_path(source_part))
+            .map_or_else(Default::default, |doc| {
+                doc.root
+                    .elements()
+                    .filter_map(|e| e.attr("Id").map(str::to_owned))
+                    .collect()
+            });
         // Any unbound drawing on a touched page is refused rather than silently removed.
         for e in old_tree
             .elements()
@@ -548,6 +612,13 @@ pub fn export_preserving(
             .cloned()
             .collect();
         for shape in &slide.shapes {
+            let mut link_relationships = links::Relationships {
+                source: &source_relationships,
+                occupied: &occupied,
+                part,
+                destinations: &destinations,
+                added: &mut added_rels,
+            };
             let generated = gen_tree
                 .elements()
                 .find(|e| node_id(e) == Some(shape.id))
@@ -599,22 +670,14 @@ pub fn export_preserving(
                         }
                     }
                 }
-                if shape.text != old.text
-                    && !patch_text_layout(
+                if shape.text != old.text {
+                    patch_text(
                         &mut e,
                         generated,
                         old.text.as_ref(),
                         shape.text.as_ref(),
-                    )?
-                {
-                    if generated.find("hlinkClick").is_some()
-                        || generated.find("hlinkMouseOver").is_some()
-                    {
-                        return Err(error(
-                            "edited hyperlink relationships require .joydeck Save As",
-                        ));
-                    }
-                    replace(&mut e, "txBody", generated.child("txBody").cloned());
+                        &mut link_relationships,
+                    )?;
                 }
                 if let (
                     joydeck_model::ShapeKind::Table(before),
@@ -693,14 +756,13 @@ pub fn export_preserving(
                                     .nth(c)
                                     .ok_or_else(|| error("missing generated cell"))?;
                                 if a.text != b.text {
-                                    if g.find("hlinkClick").is_some()
-                                        || g.find("hlinkMouseOver").is_some()
-                                    {
-                                        return Err(error(
-                                            "edited cell hyperlinks require .joydeck Save As",
-                                        ));
-                                    }
-                                    replace(cell, "txBody", g.child("txBody").cloned());
+                                    patch_text(
+                                        cell,
+                                        g,
+                                        Some(&a.text),
+                                        Some(&b.text),
+                                        &mut link_relationships,
+                                    )?;
                                 }
                                 if a.fill != b.fill
                                     || a.grid_span != b.grid_span
@@ -787,18 +849,26 @@ pub fn export_preserving(
                         source
                             .children
                             .retain(|n| !matches!(n,Node::El(e) if e.is("tr")));
-                        source.children.extend(
-                            generated
-                                .elements()
-                                .filter(|e| e.is("tr"))
-                                .cloned()
-                                .map(Node::El),
-                        );
+                        for row in generated.elements().filter(|e| e.is("tr")) {
+                            let mut row = row.clone();
+                            link_relationships.rebind_new_shape(
+                                &mut row,
+                                &generated_relationships,
+                                &generated_slides,
+                            )?;
+                            source.children.push(Node::El(row));
+                        }
                     }
                 }
                 e
             } else {
-                generated.clone()
+                let mut e = generated.clone();
+                link_relationships.rebind_new_shape(
+                    &mut e,
+                    &generated_relationships,
+                    &generated_slides,
+                )?;
+                e
             };
             // Generated shapes only reference existing theme or explicit colors; R2 inserts no new media.
             let old = binding
@@ -811,8 +881,8 @@ pub fn export_preserving(
                 old,
                 shape,
                 &gen_pkg,
-                &format!("ppt/slides/slide{}.xml", index + 1),
-                &part,
+                &generated_part,
+                part,
                 &mut parts,
                 &mut ct,
                 &mut added_rels,
@@ -842,7 +912,7 @@ pub fn export_preserving(
                     .elements_mut()
                     .find(|node| node.attr("Id") == Some(&rel.id))
                 {
-                    set(node, "Target", opc::relative(&part, &rel.target));
+                    set(node, "Target", opc::relative(part, &rel.target));
                 }
             }
             let notes = pkg
@@ -869,7 +939,7 @@ pub fn export_preserving(
                     .elements_mut()
                     .find(|r| r.attr("Id") == Some(&notes.id))
                 {
-                    set(r, "Target", opc::relative(&part, &new_notes));
+                    set(r, "Target", opc::relative(part, &new_notes));
                 }
                 let mut notes_rels = pkg
                     .xml(&opc::rels_path(&notes.target))
@@ -877,15 +947,15 @@ pub fn export_preserving(
                     .root;
                 for r in notes_rels.elements_mut() {
                     if r.attr("Type").is_some_and(|t| t.ends_with("/slide")) {
-                        set(r, "Target", opc::relative(&new_notes, &part));
+                        set(r, "Target", opc::relative(&new_notes, part));
                     }
                 }
                 parts.insert(opc::rels_path(&new_notes), notes_rels.to_xml().into_bytes());
             }
-            parts.insert(opc::rels_path(&part), slide_rels.to_xml().into_bytes());
+            parts.insert(opc::rels_path(part), slide_rels.to_xml().into_bytes());
         }
         if !added_rels.is_empty() || slide.layout != source_slide.layout {
-            let path = opc::rels_path(&part);
+            let path = opc::rels_path(part);
             let mut relationships = if let Some(bytes) = parts.get(&path) {
                 crate::xml::parse(bytes)?.root
             } else {
@@ -900,7 +970,7 @@ pub fn export_preserving(
                     .elements_mut()
                     .find(|r| r.attr("Type").is_some_and(|t| t.ends_with("/slideLayout")))
                     .ok_or_else(|| error("layout relationship missing"))?;
-                set(rel, "Target", opc::relative(&part, &target));
+                set(rel, "Target", opc::relative(part, &target));
             }
             parts.insert(path, relationships.to_xml().into_bytes());
         }

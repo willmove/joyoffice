@@ -31,6 +31,7 @@ actions!(
         ZoomOut,
         Fit,
         Report,
+        EditTextLink,
         Save,
         UndoEdit,
         RedoEdit,
@@ -97,6 +98,8 @@ mod slideshow;
 mod table_ui;
 #[path = "text_layout_ui.rs"]
 mod text_layout_ui;
+#[path = "text_link_ui.rs"]
+mod text_link_ui;
 
 // Document generation, page, raster width, font environment.
 type ImageKey = (u64, usize, u32, u64);
@@ -929,6 +932,7 @@ impl Render for Viewer {
             .on_action(cx.listener(|s, _: &PreviousCell, w, cx| s.next_cell(true, w, cx)))
             .on_key_down(cx.listener(Self::inline_key))
             .on_action(cx.listener(Self::new_document))
+            .on_action(cx.listener(Self::edit_text_link))
             .on_action(cx.listener(Self::request_close))
             .on_action(cx.listener(Self::open))
             .on_action(cx.listener(Self::cancel))
@@ -1028,6 +1032,8 @@ pub fn bind(cx: &mut App) {
         KeyBinding::new("ctrl-q", CloseEditor, Some("Viewer")),
         KeyBinding::new("cmd-q", CloseEditor, Some("Viewer")),
         KeyBinding::new("cmd-o", Open, Some("Viewer")),
+        KeyBinding::new("ctrl-k", EditTextLink, Some("Viewer && !Input")),
+        KeyBinding::new("cmd-k", EditTextLink, Some("Viewer && !Input")),
         KeyBinding::new("escape", Cancel, Some("Viewer")),
         KeyBinding::new("pageup", Previous, Some("Viewer && !Input && !InlineText")),
         KeyBinding::new("pagedown", Next, Some("Viewer && !Input && !InlineText")),

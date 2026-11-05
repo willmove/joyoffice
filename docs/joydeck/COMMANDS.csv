@@ -143,7 +143,7 @@ insert.actionButton,action,Action Buttons,crates/engine/src/cmd/insert.rs,152,R5
 insert.audio,action,Audio from File…,crates/engine/src/cmd/insert.rs,92,R5,待分类,待验证,,
 insert.chart,action,Chart…,crates/engine/src/cmd/insert.rs,83,R5,待分类,待验证,,
 insert.dateTime,action,Date & Time,crates/engine/src/cmd/insert.rs,96,R5,待分类,待验证,,
-insert.hyperlink,action,Link,crates/engine/src/cmd/insert.rs,115,R5,待分类,待验证,,
+insert.hyperlink,action,Link,crates/engine/src/cmd/insert.rs,115,R5,已接入既有文字选区的网页、邮件与页内链接，支持编辑、移除与屏幕提示,macOS 桌面与两种格式独立读回；页序变化及放映跳转通过,插入 / 链接；Cmd/Ctrl+K,docs/joydeck/evidence/R3-TEXT-LINKS/README.md
 insert.icon,action,Icons,crates/engine/src/cmd/insert.rs,43,R5,待分类,待验证,,
 insert.icons,query,Icon Gallery,crates/engine/src/cmd/insert.rs,52,R5,待分类,待验证,,
 insert.photoAlbum,action,Photo Album…,crates/engine/src/cmd/insert.rs,64,R5,待分类,待验证,,
