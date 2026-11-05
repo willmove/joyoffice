@@ -195,8 +195,9 @@ impl Viewer {
         }
         self.end_inline(cx);
         let Some(editor) = &self.editor else { return };
-        let model = editor.session.snapshot().model;
+        let model = editor.session.model_snapshot();
         let generation = self.generation;
+        let revision = editor.session.revision();
         let receiver = cx.prompt_for_paths(PathPromptOptions {
             files: true,
             directories: false,
@@ -215,7 +216,11 @@ impl Viewer {
                     })
                     .await;
                 let _ = view.update_in(cx, |s, w, cx| {
-                    if s.generation != generation {
+                    if s.generation != generation
+                        || s.editor
+                            .as_ref()
+                            .is_none_or(|e| e.session.revision() != revision)
+                    {
                         return;
                     }
                     match result {
@@ -286,8 +291,8 @@ impl Viewer {
                                             .zip(s.editor.as_ref())
                                             .ok_or("比较结果不可用".into())
                                             .and_then(|(comparison, editor)| {
-                                                comparison.command(
-                                                    editor,
+                                                comparison.command_for_model(
+                                                    editor.session.model(),
                                                     &base,
                                                     &reference,
                                                     page,

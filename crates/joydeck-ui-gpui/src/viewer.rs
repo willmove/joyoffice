@@ -56,6 +56,8 @@ mod content_ui;
 mod delivery_ui;
 #[path = "desktop_control.rs"]
 pub(super) mod desktop_control;
+#[path = "document_session.rs"]
+mod document_session;
 #[path = "document_ui.rs"]
 mod document_ui;
 #[path = "editor_actions.rs"]
@@ -114,6 +116,7 @@ pub struct Viewer {
     slide_anchor: Option<joydeck_model::SlideId>,
     notes_visible: bool,
     notes_syncing: bool,
+    notes_loaded: Option<(u64, joydeck_model::SlideId, String)>,
     notes_subscription: Option<Subscription>,
     inspector: bool,
     content_task: Option<Task<()>>,
@@ -129,11 +132,11 @@ pub struct Viewer {
     cell: Option<(ShapeId, usize, usize)>,
     cell_range: Option<(ShapeId, joydeck_engine::CellRange)>,
     notes_input: Entity<TextareaState>,
-    editor: Option<joydeck_shell::editor::Editor>,
+    editor: Option<document_session::ViewEditor>,
+    document_observer: Option<Subscription>,
     save_input: Entity<InputState>,
     text_input: Entity<InputState>,
     save_task: Option<Task<()>>,
-    checkpoint_task: Option<Task<()>>,
     recovery_rows: Option<Vec<joydeck_shell::storage::Entry>>,
     refresh_pending: bool,
     pending_save_path: Option<String>,
@@ -233,6 +236,7 @@ impl Viewer {
             slide_anchor: None,
             notes_visible: true,
             notes_syncing: false,
+            notes_loaded: None,
             notes_subscription: None,
             inspector: false,
             content_task: None,
@@ -253,6 +257,7 @@ impl Viewer {
                     .auto_grow(1, 3)
             }),
             editor: None,
+            document_observer: None,
             save_input: cx.new(|cx| {
                 InputState::new(window, cx).placeholder("另存路径 .pptx / .joydeck（新文件）")
             }),
@@ -260,7 +265,6 @@ impl Viewer {
                 InputState::new(window, cx).placeholder("选中文字对象后，在这里修改并应用")
             }),
             save_task: None,
-            checkpoint_task: None,
             recovery_rows: None,
             refresh_pending: false,
             pending_save_path: None,
@@ -366,7 +370,7 @@ impl Viewer {
         if !discard && self.block_replace(cx) {
             return;
         }
-        if self.saving || self.composing() {
+        if self.is_saving() || self.composing() {
             return;
         }
         self.end_inline(cx);
@@ -396,9 +400,10 @@ impl Viewer {
                     } else {
                         joydeck_shell::editor::Editor::prepare_open(&source, root, &cancel)
                     }?;
+                    let identity = editor.source_identity();
                     let deck = editor.display()?;
                     cancel.check()?;
-                    Ok::<_, String>((editor, deck))
+                    Ok::<_, String>((editor, deck, identity))
                 })
                 .await;
             let _ = view.update(cx, |s, cx| {
@@ -408,15 +413,46 @@ impl Viewer {
                 }
                 s.loading = false;
                 match result {
-                    Ok((editor, deck)) => {
+                    Ok((editor, deck, identity)) => {
                         if revision != s.editor.as_ref().map(|e| e.session.revision())
                             || s.composing()
-                            || s.saving
+                            || s.is_saving()
                         {
                             s.message = "打开请求已过期 · 当前文稿保持不变".into();
                             cx.notify();
                             return;
                         }
+                        let recent = editor
+                            .source
+                            .clone()
+                            .map(|p| (editor.recovery.root.clone(), p));
+                        let (document, deck) = if let Some(existing) = identity
+                            .as_deref()
+                            .and_then(|path| document_session::SharedDocument::find(path, cx))
+                            .filter(|candidate| {
+                                s.editor.as_ref().is_none_or(|current| {
+                                    current.document != *candidate || current.has_other_views()
+                                })
+                            }) {
+                            cx.background_executor()
+                                .spawn(async move { drop(editor) })
+                                .detach();
+                            let display = existing.read(cx).display();
+                            (existing, display)
+                        } else {
+                            (
+                                document_session::SharedDocument::create(editor, identity, cx),
+                                Ok(deck),
+                            )
+                        };
+                        let deck = match deck {
+                            Ok(deck) => deck,
+                            Err(error) => {
+                                s.message = error;
+                                cx.notify();
+                                return;
+                            }
+                        };
                         s.delivery_cancel.cancel();
                         s.generation += 1;
                         s.cell = None;
@@ -425,17 +461,9 @@ impl Viewer {
                         s.slide_anchor = None;
                         s.drag = None;
                         s.backstage = false;
-                        let recent = editor
-                            .source
-                            .clone()
-                            .map(|p| (editor.recovery.root.clone(), p));
-                        let previous = s.editor.replace(editor);
+                        s.attach_document(document, None, discard, cx);
                         cx.background_executor()
                             .spawn(async move {
-                                if discard && let Some(previous) = &previous {
-                                    let _ = previous.recovery.discard();
-                                }
-                                drop(previous);
                                 if let Some((root, path)) = recent
                                     && let Err(e) =
                                         joydeck_shell::storage::remember_file(&root, &path)
@@ -449,19 +477,6 @@ impl Viewer {
                         s.render_generation += 1;
                         let pages = deck.info.slides.len();
                         s.deck = Some(Arc::new(deck));
-                        s.source = if path == std::path::Path::new("@bundled") {
-                            None
-                        } else {
-                            Some(path.clone())
-                        };
-                        let default = if path.extension().is_some_and(|e| {
-                            e.eq_ignore_ascii_case("pptx") || e.eq_ignore_ascii_case("joydeck")
-                        }) {
-                            path.to_string_lossy().into_owned()
-                        } else {
-                            "".to_string()
-                        };
-                        s.pending_save_path = Some(default);
                         s.page = 0;
                         s.zoom = None;
                         s.image = None;
@@ -702,7 +717,7 @@ impl Render for Viewer {
         if self.close_ready {
             self.close_ready = false;
             cx.defer_in(window, |s, w, _| {
-                if !s.saving && s.editor.as_ref().is_none_or(|e| !e.session.dirty()) {
+                if !s.is_saving() && !s.requires_save_prompt() {
                     w.remove_window();
                 }
             });
@@ -1059,7 +1074,7 @@ pub fn open_window(
                         return false;
                     }
                     s.commit_notes(w, cx);
-                    if s.editor.as_ref().is_some_and(|e| e.session.dirty()) || s.saving {
+                    if s.requires_save_prompt() || s.is_saving() {
                         s.request_close(&CloseEditor, w, cx);
                         false
                     } else {

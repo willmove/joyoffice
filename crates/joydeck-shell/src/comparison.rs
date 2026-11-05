@@ -199,9 +199,19 @@ impl Comparison {
         page: usize,
         object: ShapeId,
     ) -> Result<Command, String> {
+        self.command_for_model(editor.session.model(), base, reference, page, object)
+    }
+    pub fn command_for_model(
+        &self,
+        model: &Presentation,
+        base: &str,
+        reference: &str,
+        page: usize,
+        object: ShapeId,
+    ) -> Result<Command, String> {
         if base != self.report.base_sha256
             || reference != self.report.reference_sha256
-            || digest(editor.session.model())? != base
+            || digest(model)? != base
         {
             return Err("comparison is stale; compare again".into());
         }

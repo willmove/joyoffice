@@ -54,6 +54,9 @@ pub fn recovery_root() -> PathBuf {
     base.join("joyoffice/joydeck/recovery-v2")
 }
 impl Editor {
+    pub fn source_identity(&self) -> Option<PathBuf> {
+        self.source.as_deref().and_then(canonical_source)
+    }
     pub fn open(path: &Path, root: PathBuf) -> Result<Self, String> {
         let mut editor = Self::prepare_open(path, root, &Cancellation::default())?;
         if let Err(error) = storage::remember_file(&editor.recovery.root, path) {
@@ -229,6 +232,9 @@ impl Editor {
         // Restoring never overwrites a potentially changed source; user chooses a new destination.
         Ok(e)
     }
+}
+pub fn canonical_source(path: &Path) -> Option<PathBuf> {
+    path.canonicalize().ok()
 }
 impl SaveJob {
     pub fn native_bytes(&self) -> Result<Vec<u8>, String> {

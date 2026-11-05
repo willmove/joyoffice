@@ -15,7 +15,7 @@ impl Viewer {
             return;
         }
         let Some(e) = &self.editor else { return };
-        let model = e.session.snapshot().model;
+        let model = e.session.model_snapshot();
         let cache = self.scene_cache.clone();
         let scale = f64::from(width) / model.slide_size.width;
         let cancel = Arc::new(AtomicBool::new(false));

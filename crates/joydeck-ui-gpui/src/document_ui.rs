@@ -17,12 +17,12 @@ impl Viewer {
             || self
                 .notes_input
                 .update(cx, |s, cx| s.marked_text_range(w, cx).is_some())
-            || self.saving
+            || self.is_saving()
         {
             return true;
         }
         self.commit_notes(w, cx);
-        if !self.editor.as_ref().is_some_and(|e| e.session.dirty()) {
+        if !self.requires_save_prompt() {
             return false;
         }
         let generation = self.generation;
@@ -75,7 +75,7 @@ impl Viewer {
                                         return;
                                     }
                                     if let Some(e) = s.editor.take() {
-                                        let _ = e.recovery.discard();
+                                        e.discard(cx);
                                     }
                                     s.continue_replace(discard_action.clone(), w, cx);
                                 });

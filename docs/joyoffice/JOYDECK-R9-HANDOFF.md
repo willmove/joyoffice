@@ -87,7 +87,7 @@ Word CI 还暴露出原基线也存在的两份独立实验锁漂移，已仅补
 | 旧 document.export | 新 export.start + jobs.get/cancel；输出只允许新路径。静态 MP4 使用 Windows 或 macOS 本机编码器，macOS ARM64 已从移位 Release 包导出并独立解码。嵌入媒体探测与播放的 macOS 移植继续开放。[本机证据](validation/20261105-macos-video/README.md) |
 | command.validate | R9-UI1 恢复：params 接受 schema 2 或已广告的旧字符串子集；快照执行真实引擎与预算/历史检查，返回 valid/wouldChange/sideEffects=false；不修改活文稿，完整旧 16 领域未实现 |
 | 旧 document.check/compare/acceptObject 等 | 支持兼容报告、双摘要保护的基础对象接受／单步撤销。相同稳定页 ID 集合重排后按 ID 比较并接受对象；其他情况按页序比较。复杂组／媒体和页 ID 变化后的跨页匹配继续开放。[复验](../joydeck/evidence/R9-FILE-COMPAT/README.md) |
-| 旧桌面远程绑定/多窗口 | CLI/MCP 默认独立 headless；R9-UI2 显式 --control-stdio=AUTHORIZED_ROOT 绑定该窗口唯一 Editor，attachedDesktop=true，限制修订／重放／组合输入／拖动／保存和文稿代次；新窗口独立生命周期。桌面 MCP 分发与完整旧 16 领域仍缺 |
+| 旧桌面远程绑定/多窗口 | CLI/MCP 默认独立 headless。显式 `--control-stdio=AUTHORIZED_ROOT` 绑定窗口视图，修订、重放、组合输入、拖动和文稿代次仍受约束。同文稿的多个视图共享 Editor、撤销、保存和恢复，选区与缩放独立。桌面 MCP 分发与完整旧 16 领域仍缺。[共享视图复验](../joydeck/evidence/R2-SHARED-DOCUMENT/README.md) |
 | 旧偏好、最近文件、比较接受/图片依赖、完整设计与审阅 | 新增有界最近文件、原创模板、基础比较接受、旧批注／回复／解决／媒体／链接／放映配置迁移及审阅 GUI；完整设计／母版／偏好与复杂内容仍缺，不能沿用旧 done |
 
 使用机器接口时先查询能力，不只看 envelope 字符串。新旧未覆盖功能属于实际产品差距，不是仅等待硬件验收。完整“旧功能无回退”验收（JD-906）仍开放，不能因导入和构建成功而关闭。

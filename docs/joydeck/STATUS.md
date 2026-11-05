@@ -1,5 +1,7 @@
 # JoyDeck 当前状态
 
+2026-11-05 完成 JD-201。「视图」新增「新建文稿视图」，同一规范化路径在多个窗口共享编辑、撤销、保存和恢复，各窗口保持独立的页选与缩放。三窗口实测及过期读取拒绝通过，JoyDeck 产品检查 900 项通过。[共享文稿证据](evidence/R2-SHARED-DOCUMENT/README.md)
+
 2026-11-05 完成 JD-107、JD-108、JD-200。CLI、control、MCP 注册表与 329 条上游静态 ID 已对照。移位后的 macOS Release 包通过打开、翻页、缩放、取消、坏文件和 CLI 读回。引擎与文件服务的隔离及 R2 的 20 次 CLI 调用已复验。逐命令功能覆盖继续跟踪 JD-509。[证据](evidence/R1-VIEWER-AUDIT/README.md)
 
 2026-11-05 完成 JD-104 和 JD-106。macOS Release 实测打开中取消、新请求取代慢请求、坏文件后保留未保存文稿及撤销。当前文稿 ID、修订和恢复快照保持一致。包内 CLI 语义、PNG 和命令查询通过，CLI 依赖隔离通过。[R1 复验](evidence/R1-OPEN-REVISION/README.md)

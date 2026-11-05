@@ -29,7 +29,7 @@ impl Viewer {
             cx.notify();
             return true;
         }
-        if self.saving || self.editor.as_ref().is_some_and(|e| e.session.dirty()) {
+        if self.is_saving() || self.requires_save_prompt() {
             self.message = "当前文稿有未保存更改或正在保存；请先保存后重试".into();
             cx.notify();
             true
@@ -51,7 +51,7 @@ impl Viewer {
             self.slide_selection
                 .retain(|id| editor.session.model().slide(*id).is_some());
             if self.cell_range.is_some_and(|(id, range)| !editor.session.selection().shapes.contains(&id) || !matches!(editor.session.model().slides[self.page].shape(id).map(|s| &s.kind), Some(joydeck_model::ShapeKind::Table(t)) if range.end_row < t.n_rows() && range.end_col < t.n_cols())) { self.cell_range = None; }
-            match editor.display() {
+            match editor.display(cx) {
                 Ok(mut deck) => {
                     if editor.source.is_none() && deck.info.name == "Untitled.joydeck" {
                         deck.info.name = "演示文稿1".into();
@@ -106,9 +106,11 @@ impl Viewer {
     pub(super) fn checkpoint(&mut self, cx: &mut Context<Self>) {
         let Some(editor) = &self.editor else { return };
         let dirty = editor.session.dirty();
-        let job = editor.checkpoint_job();
+        let Some(job) = editor.checkpoint_job(cx) else {
+            return;
+        };
         let generation = self.generation;
-        self.checkpoint_task = Some(cx.spawn(async move |view, cx| {
+        let task = cx.spawn(async move |view, cx| {
             cx.background_executor()
                 .timer(std::time::Duration::from_millis(250))
                 .await;
@@ -135,7 +137,8 @@ impl Viewer {
                     }
                 }
             });
-        }));
+        });
+        editor.set_checkpoint_task(task, cx);
     }
     pub(super) fn dispatch(
         &mut self,
@@ -163,7 +166,7 @@ impl Viewer {
             return;
         };
         let label = command.id();
-        match editor.session.execute(command) {
+        match editor.execute(command, cx) {
             Ok(true) => {
                 self.message = "就绪".into();
                 eprintln!(
@@ -202,8 +205,7 @@ impl Viewer {
         match joydeck_shell::editor::Editor::new(joydeck_shell::editor::recovery_root()) {
             Ok(editor) => {
                 self.stop_read();
-                self.editor = Some(editor);
-                self.source = None;
+                self.attach_new_editor(editor, cx);
                 self.page = 0;
                 self.zoom = None;
                 self.cell = None;
@@ -240,7 +242,7 @@ impl Viewer {
         }
         self.commit_notes(w, cx);
         self.end_inline(cx);
-        if self.saving || self.loading {
+        if self.is_saving() || self.loading {
             return;
         }
         let Some(editor) = &self.editor else { return };
@@ -260,7 +262,7 @@ impl Viewer {
             self.save_as(&SaveAs, w, cx);
             return;
         };
-        let job = match editor.save_job(path) {
+        let job = match editor.begin_save(path, cx) {
             Ok(j) => j,
             Err(e) => {
                 self.message = e;
@@ -274,7 +276,12 @@ impl Viewer {
         self.save_task = Some(cx.spawn(async move |view, cx| {
             let result = cx
                 .background_executor()
-                .spawn(async move { job.run() })
+                .spawn(async move {
+                    job.run().map(|saved| {
+                        let identity = joydeck_shell::editor::canonical_source(&saved.path);
+                        (saved, identity)
+                    })
+                })
                 .await;
             let _ = view.update(cx, |s, cx| {
                 if s.generation != generation {
@@ -282,12 +289,12 @@ impl Viewer {
                 }
                 s.saving = false;
                 match result {
-                    Ok(saved) => {
+                    Ok((saved, identity)) => {
                         let revision = saved.revision;
                         let path = saved.path.clone();
                         let warning = saved.warning.clone();
                         if let Some(editor) = &mut s.editor {
-                            editor.apply_saved(saved);
+                            editor.finish_save(Some((saved, identity)), cx);
                             if let Some(doc) = &mut s.deck {
                                 Arc::make_mut(doc).info.name = path
                                     .file_name()
@@ -330,6 +337,9 @@ impl Viewer {
                         }
                     }
                     Err(e) => {
+                        if let Some(editor) = &mut s.editor {
+                            editor.finish_save(None, cx);
+                        }
                         s.message = format!("保存失败，原文件保持不变：{e}");
                         s.close_after_save = false;
                         s.pending_replace = None;
@@ -362,10 +372,12 @@ impl Viewer {
             cx.notify();
             return;
         }
-        if !self.editor.as_ref().is_some_and(|e| e.session.dirty()) {
+        if !self.requires_save_prompt() {
             w.remove_window();
             return;
         }
+        let generation = self.generation;
+        let revision = self.editor.as_ref().map(|e| e.session.revision());
         let weak = cx.entity().downgrade();
         let discard = weak.clone();
         let save = weak;
@@ -382,6 +394,9 @@ impl Viewer {
                             move |_, w, cx| {
                                 let _ = view.update(cx, |s, cx| {
                                     w.close_dialog(cx);
+                                    if generation != s.generation || s.is_saving() {
+                                        return;
+                                    }
                                     s.close_after_save = true;
                                     s.save(&Save, w, cx);
                                 });
@@ -391,10 +406,17 @@ impl Viewer {
                             let view = discard.clone();
                             move |_, w, cx| {
                                 let _ = view.update(cx, |s, cx| {
-                                    if let Some(e) = &s.editor {
-                                        let _ = e.recovery.discard();
-                                    }
                                     w.close_dialog(cx);
+                                    if generation != s.generation
+                                        || s.is_saving()
+                                        || revision
+                                            != s.editor.as_ref().map(|e| e.session.revision())
+                                    {
+                                        return;
+                                    }
+                                    if let Some(editor) = s.editor.take() {
+                                        editor.discard(cx);
+                                    }
                                     w.remove_window();
                                 });
                             }
@@ -478,6 +500,7 @@ impl Viewer {
                                         return;
                                     }
                                     w.close_dialog(cx);
+                                    let revision = s.editor.as_ref().map(|e| e.session.revision());
                                     let (request, cancel) = s.start_read();
                                     s.read_task = Some(cx.spawn(async move |view, cx| {
                                         let result = cx
@@ -497,10 +520,17 @@ impl Viewer {
                                                 return;
                                             }
                                             s.loading = false;
+                                            if revision
+                                                != s.editor.as_ref().map(|e| e.session.revision())
+                                            {
+                                                s.message =
+                                                    "当前文稿已变更，请重新选择恢复记录".into();
+                                                cx.notify();
+                                                return;
+                                            }
                                             match result {
                                                 Ok(editor) => {
-                                                    s.editor = Some(editor);
-                                                    s.source = None;
+                                                    s.attach_new_editor(editor, cx);
                                                     s.generation += 1;
                                                     s.refresh_pending = true;
                                                     s.pending_save_path = Some(String::new());

@@ -144,12 +144,13 @@
     "source_path": "apps/joydeck/src/viewer.rs",
     "target_path": "crates/joydeck-ui-gpui/src/viewer.rs",
     "source_sha256": "249104bdece51947664a50fe4b8166f358662e78d0000ed7d0024b10fade5584",
-    "adapted_sha256": "511dd801b58c915574a8ed97d6fee1f96445265c6da26c52d072e43fb606f514",
+    "adapted_sha256": "b0def33005e7541951ffa4af7f0ca7fd8ead90404829ab4f91ea7455dbd44cc9",
     "local_changes": "Reuse asynchronous read-only viewer, generation guards, cancellation, virtual thumbnail rail and bounded cache; adapt to DeckCraft model and shared CPU renderer; R1 branding and aspect fit; upstream validation modules deferred; R1 rustfmt and bounded reader/CPU-renderer/palette/notes adapters as applicable; R2 editable viewer adapter, background save/recovery, command-driven gestures, coordinate anchoring and close guard; rustfmt; R4/R5 scene/content workspace adaptation; R6/R7 adapter additions and repository rustfmt/LF normalization.; R8 native editor, clipboard or product package version adaptation; R9-UI1 native formatting controls and schema-2 validation/history compatibility (see slice evidence)",
     "r9_ui2_adaptation": "Formatting, desktop control and reviewed preservation validation; LF source representation.",
     "r9_ui2_gui_fix": "Synchronize every editor palette with GPUI Kit application theme during render",
     "macos_document_open": "Route macOS file events through the active editor and the existing replace guard. Register native File and Edit menus using editor actions.",
-    "cancellable_open": "Separate request and document generations, cancel superseded reads, and defer replacement and recent-file registration until acceptance."
+    "cancellable_open": "Separate request and document generations, cancel superseded reads, and defer replacement and recent-file registration until acceptance.",
+    "shared_document_view": "Separate window selection and state from the shared editor session and preserve revision guards."
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
@@ -185,7 +186,7 @@
     "target_path": "crates/joydeck-ui-gpui/src/inline_text.rs",
     "source_sha256": "e6caa4311e30aaa39f91b1da6d328e8bba46ae9afcf4a890e44e43278e5ef4f4",
     "local_changes": "Adapt EntityInputHandler, selection/clipboard/composition routing to new pure engine; consume shared CPU text/table layout for all geometry; add bounded text metadata/TSV and notes Textarea flow from apps/joydeck/src/chrome.rs.; R8 native editor, clipboard or product package version adaptation; R9-UI1 native formatting controls and schema-2 validation/history compatibility (see slice evidence)",
-    "adapted_sha256": "49abc3608eeacc0a0186f734f0a8b826839666967b9c66929504d5d7b25a60ce",
+    "adapted_sha256": "8f2a9e37077fa029a33acf562ce501d8d8c42be9df9feaabe233f1173ea3912a",
     "additional_sources": [
       {
         "source_path": "apps/joydeck/src/chrome.rs",
@@ -193,7 +194,8 @@
       }
     ],
     "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained.",
-    "r9_ui2_gui_fix": "Keep inline formatting scoped to the edited object; Ctrl+Enter commits; double-click selection and drag threshold."
+    "r9_ui2_gui_fix": "Keep inline formatting scoped to the edited object; Ctrl+Enter commits; double-click selection and drag threshold.",
+    "shared_document_view": "Separate window selection and state from the shared editor session and preserve revision guards."
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
@@ -209,7 +211,8 @@
     "target_path": "crates/joydeck-ui-gpui/src/scene_view.rs",
     "source_sha256": "4d948c8511b32763611b6327ea3d773b37a3ba8e6898b80e45eb0d9a6c7ef973",
     "local_changes": "R4/R5 adapts native path/cache/retirement or asynchronous scene dispatch to the current model; no legacy document model; R4/R5 scene/content workspace adaptation; R8 native editor, clipboard or product package version adaptation",
-    "adapted_sha256": "f60924a1b91bf1ad7256c6643e07e8a640e0f28317bbfc1248aab22fd43ef805"
+    "adapted_sha256": "8b7b4bd3a1e801f68d49b767817c676dce2d21a85c852f9fa657e05f196b8e70",
+    "shared_document_view": "Separate window selection and state from the shared editor session and preserve revision guards."
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
@@ -579,10 +582,11 @@
     "source_path": "apps/joydeck/src/chrome.rs",
     "target_path": "crates/joydeck-ui-gpui/src/chrome_nav.rs",
     "source_sha256": "68b6b3800e63f68f65ccab43e81304728295aa7aaa407c3ba4a46408666e6328",
-    "adapted_sha256": "d2410a2281406f6d6c8d535523be8fb81f1883465f8a4d6ee85e160dfc061c85",
+    "adapted_sha256": "87891bf70be1329eb159fbba8d2bb8c7185702713d494875431c9d634d3c31fd",
     "local_changes": "R8 native Save As prompt and deferred window update pattern adapted to v2 save jobs; own notes/placeholder/navigation implementation",
     "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained.",
-    "r9_save_as": "Leave the macOS Save As suggestion extensionless and submit the selected path directly."
+    "r9_save_as": "Leave the macOS Save As suggestion extensionless and submit the selected path directly.",
+    "shared_document_view": "Separate window selection and state from the shared editor session and preserve revision guards."
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
@@ -590,8 +594,9 @@
     "target_path": "crates/joydeck-ui-gpui/src/chrome.rs",
     "source_sha256": "efd229d2bca36c8887fa16026f4946bbe3240cd9ea9b1b9b65c8c83c11933438",
     "local_changes": "R8 per-tab bounded GPUI construction frames follow the old JoyDeck ribbon pattern; split Home into groups and keep intrinsic horizontal scroll width on default MSVC stack.",
-    "adapted_sha256": "af1fa93826a8d66a24f2e9c3a0bc40e8dbd878f347bf0a4b9eae62885c477a69",
+    "adapted_sha256": "a86bed135130b68c90c5cc54757c6a0a226822297262e9c221e4df424de552f2",
     "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained.",
-    "cancellable_open": "Add an explicit cancel action to the status bar while opening a document."
+    "cancellable_open": "Add an explicit cancel action to the status bar while opening a document.",
+    "shared_document_view": "Separate window selection and state from the shared editor session and preserve revision guards."
   }
 ]

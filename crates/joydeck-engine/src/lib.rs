@@ -47,6 +47,22 @@ pub struct Selection {
     pub page: usize,
     pub shapes: Vec<ShapeId>,
 }
+impl Selection {
+    pub fn checked(
+        model: &Presentation,
+        page: usize,
+        shapes: Vec<ShapeId>,
+    ) -> std::result::Result<Self, String> {
+        let slide = model.slides.get(page).ok_or("page outside document")?;
+        if shapes
+            .iter()
+            .any(|id| !slide.shapes.iter().any(|shape| shape.id == *id))
+        {
+            return Err("select top-level shapes only".into());
+        }
+        Ok(Self { page, shapes })
+    }
+}
 #[derive(Clone, Debug)]
 pub struct EditorSnapshot {
     pub model: Arc<Presentation>,
@@ -270,6 +286,9 @@ impl Session {
     pub fn model(&self) -> &Presentation {
         &self.state.model
     }
+    pub fn model_snapshot(&self) -> Arc<Presentation> {
+        self.state.model.clone()
+    }
     pub fn selection(&self) -> &Selection {
         &self.state.selection
     }
@@ -289,18 +308,7 @@ impl Session {
         self.saved = Some(content_id);
     }
     pub fn select(&mut self, page: usize, shapes: Vec<ShapeId>) -> std::result::Result<(), String> {
-        let slide = self
-            .model()
-            .slides
-            .get(page)
-            .ok_or("page outside document")?;
-        if shapes
-            .iter()
-            .any(|id| !slide.shapes.iter().any(|s| s.id == *id))
-        {
-            return Err("select top-level shapes only".into());
-        }
-        self.state.selection = Selection { page, shapes };
+        self.state.selection = Selection::checked(self.model(), page, shapes)?;
         Ok(())
     }
     /// Execute against a copy-on-write snapshot, including real history and budget checks.

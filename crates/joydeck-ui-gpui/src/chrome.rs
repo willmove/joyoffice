@@ -130,7 +130,7 @@ impl Viewer {
                     .icon(I::Save)
                     .accessibility_label("保存")
                     .tooltip("保存 · Ctrl+S")
-                    .disabled(self.editor.is_none() || self.saving)
+                    .disabled(self.editor.is_none() || self.is_saving())
                     .on_click(cx.listener(|s, _, w, cx| s.save(&Save, w, cx))),
             )
             .child(
@@ -846,6 +846,12 @@ impl Viewer {
                     ),
             ))
             .child(group(
+                "窗口",
+                tool("shared-view", I::PanelsTopLeft, "新建文稿视图", 0x2e6fd8)
+                    .disabled(self.editor.is_none() || self.loading)
+                    .on_click(cx.listener(|s, _, _, cx| s.new_shared_view(cx))),
+            ))
+            .child(group(
                 "显示",
                 row()
                     .child(
@@ -997,7 +1003,7 @@ impl Viewer {
                     .text_color(rgb(p.muted))
                     .child(if self.loading {
                         "正在打开文稿…".into()
-                    } else if self.saving {
+                    } else if self.is_saving() {
                         "正在保存…".into()
                     } else {
                         self.message.clone()
@@ -1135,7 +1141,7 @@ impl Viewer {
         self.end_inline(cx);
         if let Some(e) = &self.editor
             && let Err(error) = slideshow::open(
-                e.session.snapshot().model,
+                e.session.model_snapshot(),
                 if first { None } else { Some(self.page) },
                 true,
                 presenter,

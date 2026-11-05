@@ -56,7 +56,7 @@ impl Viewer {
         };
         let Some(e) = &self.editor else { return };
         self.benchmark = Some(Box::new(Benchmark {
-            model: e.session.snapshot().model,
+            model: e.session.model_snapshot(),
             scene: scene.clone(),
             page: self.page,
             id,

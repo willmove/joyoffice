@@ -33,7 +33,7 @@ impl Viewer {
     pub(super) fn end_inline(&mut self, cx: &mut Context<Self>) {
         if self.inline.take().is_some() {
             if let Some(e) = &self.editor {
-                match e.display() {
+                match e.display(cx) {
                     Ok(d) => self.deck = Some(Arc::new(d)),
                     Err(e) => self.message = e,
                 }
