@@ -1,5 +1,7 @@
 # JoyDeck 当前状态
 
+2026-11-05 完成 JD-206。同进程保存只允许一份冲突结果发布，macOS 实测替换失败、外部改动、取消关闭和另存读回。三产品本机联合回归 5,791 项通过，开发包均已验证；JD-905 的合并 CI 继续跟踪。[保存复验](evidence/R2-SAVE-PUBLICATION/README.md) · [联合回归](evidence/R9-WORKSPACE/README.md)
+
 2026-11-05 完成 JD-104 和 JD-106。macOS Release 实测打开中取消、新请求取代慢请求、坏文件后保留未保存文稿及撤销。当前文稿 ID、修订和恢复快照保持一致。包内 CLI 语义、PNG 和命令查询通过，CLI 依赖隔离通过。[R1 复验](evidence/R1-OPEN-REVISION/README.md)
 
 2026-11-05 完成 R0 验收复核。JD-007 的隔离宿主演练与 Windows/macOS/Linux CI 编译门禁已有证据，JD-008 的原 R0 Windows 开发包启动、导航/面板/主题及产物指纹已对照，任务状态更新为完成。[R0 复核](evidence/R0/README.md#任务验收复核)
