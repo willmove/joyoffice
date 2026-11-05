@@ -786,7 +786,7 @@
       "source_path": "crates/text/src/layout.rs",
       "source_sha256": "f7e5603ebd9908f0e769373d1e67c26a219162bdefeb49b31e9fe0e310bde0de",
       "target_path": "crates/joydeck-text/src/layout.rs",
-      "adapted_sha256": "8c4e150480c24a964dc2304d8f1b4f635b4ce237bbe1d71691d9b2b8ad258a29",
+      "adapted_sha256": "bf73e61c341ccc46d4a627d13087c2ecd3d90b7c53a9d21f18bf7bc22e621a9c",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -798,7 +798,7 @@
       "source_path": "crates/text/src/lib.rs",
       "source_sha256": "6f6f1a44aac8f2bbd6c2251b323a06833b8f055e0fdd1933b103e49d29ee27b5",
       "target_path": "crates/joydeck-text/src/lib.rs",
-      "adapted_sha256": "591c769318fb30961195eb10b9b4eabc67372347cefd70f5e04c770f85022091",
+      "adapted_sha256": "3f60d46970b9bc5131788d66dfefd1ffaff40377bef475c223ce76c939538508",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -810,7 +810,7 @@
       "source_path": "crates/text/src/run.rs",
       "source_sha256": "50d92fd41ff511f27e09e681297dc05f881ce68c01097a1c0722cb505ca6b953",
       "target_path": "crates/joydeck-text/src/run.rs",
-      "adapted_sha256": "7ac1b564d1bb2a827f2ebe1ae1f71771460714cc9182e43894504d692e16f99f",
+      "adapted_sha256": "b1cc6b490aad73191dfb1427ab780e43056f7a9b2085b115cbb14fef0c3904df",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -1194,7 +1194,7 @@
       "source_path": "crates/render/src/lib.rs",
       "source_sha256": "34736a5334491485d5026bfec7642fe44146d59332ea09a176ed0a10b3d1aa5b",
       "target_path": "crates/joydeck-render/src/lib.rs",
-      "adapted_sha256": "6c043d126ac472e0853f100e0397fc610701bbb2bbf3145f84470eb33864941f",
+      "adapted_sha256": "ae17730a55bda9a60be18ece7aded3ba85d9e30e71d47078ffec53754e2c4e4e",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -1305,7 +1305,7 @@
       "source_path": "crates/render/src/placed.rs",
       "source_sha256": "f2851a72da1ed824bfadafcc409a6ebbaa9a711671021ebdb4d46696d0f31f0c",
       "target_path": "crates/joydeck-render/src/placed.rs",
-      "adapted_sha256": "3a0870daca0b1e9fef99b6a9479f2f5a333dbb52bda7643de4b4a0e81c418137",
+      "adapted_sha256": "c243e47c95def28730f5b5d7122b4fcd1f63aa30c3da1e2e85310e6b8bf27646",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -1354,7 +1354,7 @@
       "source_path": "crates/render/src/renderer.rs",
       "source_sha256": "6c42227ce19c97d04122d572f0a8b64f2866ade5de7df47660fe2c6066cefa65",
       "target_path": "crates/joydeck-render/src/renderer.rs",
-      "adapted_sha256": "6b529497747afe5fbf821342c2e3ddcbe6ba6020d23ca0a55e07d46b58677ce0",
+      "adapted_sha256": "6ff2d06852b1fae5b60b7ffff6ecdaa1a6c15d9dfcddc713b8e1b07bac77d390",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -1402,7 +1402,7 @@
       "source_path": "crates/render/src/tests.rs",
       "source_sha256": "597d0d476a1c774f659cff05c2ac10ea35a55d10f2d3e51582a0110b8b304535",
       "target_path": "crates/joydeck-render/src/tests.rs",
-      "adapted_sha256": "13d065daaa635a795044d3094a32e94acb7286759a5299f228a15447a5d6c1f5",
+      "adapted_sha256": "a621053e7c2f038ae491897a3148f1ea0398961178848b7865fce063cb50287c",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -1426,7 +1426,7 @@
       "source_path": "crates/render/src/text_draw.rs",
       "source_sha256": "50217a4b99adbffe34de7718973bc636bd91108df89bf25136b46739fce662be",
       "target_path": "crates/joydeck-render/src/text_draw.rs",
-      "adapted_sha256": "ba91bc146b4aa0a3d7dcf364e2a2ec320864786f2c60823fa5bd243885a81b9b",
+      "adapted_sha256": "74f83d7b754baeb8ca506722572cac2d2b67a1542adbf78925de31a4299fc328",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -2239,7 +2239,7 @@
       "source_path": "crates/pdf/src/lib.rs",
       "source_sha256": "54e202f2aaefab915db9ac755fe7d8dc4c14a214f17acfb950a664951987040c",
       "target_path": "crates/joydeck-pdf/src/lib.rs",
-      "adapted_sha256": "b943d8458c54bed4b45933b9d355671f18645aae807b1fd1fa4309559ee03e60",
+      "adapted_sha256": "cabc98b60e724f995e60990dd72616e010888c05c6a6ece5adf1c6d9a6974f03",
       "changes": [
         "R6 PDF adaptation to official JoyOffice Krilla 0.8.2, shared glyph layout, font permissions, cancellation and page/raster budgets; notes CJK/overflow handling."
       ]

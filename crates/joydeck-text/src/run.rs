@@ -18,6 +18,8 @@ pub struct GlyphRun {
     pub outline: Option<(Rgba, f64)>,
     /// Paragraph and character range this run covers (for hyperlinks, selection colours).
     pub para: usize,
+    /// Model run that supplied this style, absent for synthetic markers such as bullets.
+    pub source_run: Option<usize>,
     pub chars: (usize, usize),
     pub link: bool,
     /// Opacity of the fill on top of `color`'s own alpha (0 for no fill).

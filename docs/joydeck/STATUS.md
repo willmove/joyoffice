@@ -1,5 +1,7 @@
 # JoyDeck 当前状态
 
+2026-11-05 完成 JD-300。修复 PDF 搜索层的动态字段、链接与组合缩放坐标。macOS 实测混排编辑和保存回读，Poppler 验证 14 个组合与普通文本搜索词的边界一致。906 项产品测试通过。[排版证据](evidence/R3-SHARED-LAYOUT/README.md)
+
 2026-11-05 完成 JD-209。整合保存发布修复后的 macOS ARM64 Release 包，从实际新建、插入、拖动、另存和重开，验证到重开后的撤销、重做和强制终止恢复。桌面与包内 CLI 独立读回一致，原件散列保持，产品检查 904 项通过。[编辑器包验收](evidence/R2-EDITOR-PACKAGE/README.md)
 
 2026-11-05 完成 JD-208。常用撤销、页与对象编辑、层级操作使用同一引擎预检。实测原生菜单与 Ribbon 的禁用状态、无选择 Delete 提示、快捷键和独立 CLI 对照。产品检查 903 项通过。[命令状态证据](evidence/R2-COMMAND-STATE/README.md)

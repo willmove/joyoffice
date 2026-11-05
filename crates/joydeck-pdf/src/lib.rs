@@ -217,6 +217,7 @@ fn export_inner(
     let mut ex = Exporter {
         pres,
         opts,
+        field_time: joydeck_text::datetime::DateTime::now_local(),
         fonts: HashMap::new(),
         backdrops: Backdrops::default(),
     };
@@ -421,23 +422,14 @@ pub fn master_text_pieces(
             let Some(g) = run.glyphs.first() else {
                 continue;
             };
-            let text: String = pt
-                .body
-                .paragraphs
-                .get(run.para)
-                .map(|p| p.runs.iter().map(|r| r.text.as_str()).collect::<String>())
-                .unwrap_or_default()
-                .chars()
-                .skip(run.chars.0)
-                .take(run.chars.1.saturating_sub(run.chars.0))
-                .collect();
+            let text = pt.layout.run_text(run);
             if text.trim().is_empty() {
                 continue;
             }
             let p = pt.transform * kurbo::Point::new(g.1, g.2);
             out.push(TextPiece {
                 at: (p.x * kx, p.y * ky),
-                text,
+                text: text.to_owned(),
                 size: run.size * ky,
                 color: run.color,
                 bold: run.fake_bold || run.face.weight >= 600.0,
@@ -541,6 +533,7 @@ pub fn handout_boxes(per_page: u8, paper: (f64, f64), aspect: f64) -> Vec<Rect> 
 struct Exporter<'a> {
     pres: &'a Presentation,
     opts: &'a PdfOptions,
+    field_time: Option<joydeck_text::datetime::DateTime>,
     fonts: HashMap<u32, Font>,
     backdrops: Backdrops,
 }
@@ -709,6 +702,7 @@ impl Exporter<'_> {
         let ropts = RenderOpts {
             scale,
             threads: 4,
+            now: self.field_time,
             ..Default::default()
         };
         // Two rasters per slide: the backdrop (background, master and layout graphics) is the same
@@ -762,7 +756,7 @@ impl Exporter<'_> {
         }
         if self.opts.text_layer {
             let view = Affine::translate((b.x0, b.y0)) * Affine::scale(k);
-            for pt in joydeck_render::place_slide(pres, i).texts {
+            for pt in joydeck_render::place_slide_with_fields(pres, i, &ropts).texts {
                 self.text_layer(s, &pt, view, false)?;
             }
             let _ = sh;
@@ -782,22 +776,13 @@ impl Exporter<'_> {
             if run.glyphs.is_empty() || run.size <= 0.0 {
                 continue;
             }
-            let text: String = pt
-                .body
-                .paragraphs
-                .get(run.para)
-                .map(|p| p.runs.iter().map(|r| r.text.as_str()).collect::<String>())
-                .unwrap_or_default()
-                .chars()
-                .skip(run.chars.0)
-                .take(run.chars.1.saturating_sub(run.chars.0))
-                .collect();
+            let text = pt.layout.run_text(run);
             if text.trim().is_empty() {
                 continue;
             }
             let font = self.font(&run.face)?;
             let n = run.glyphs.len();
-            let ranges = glyph_text_ranges(&text, run.chars, &run.cells, n);
+            let ranges = glyph_text_ranges(text, run.chars, &run.cells, n);
             let (x0, y0) = (run.glyphs[0].1, run.glyphs[0].2);
             let kg: Vec<KrillaGlyph> = run
                 .glyphs
@@ -836,7 +821,7 @@ impl Exporter<'_> {
                 Point::from_xy(0.0, 0.0),
                 &kg,
                 font,
-                &text,
+                text,
                 run.size as f32,
                 false,
             );
@@ -851,7 +836,11 @@ impl Exporter<'_> {
         let k = b.width() / pres.slide_size.width.max(1.0);
         let view = Affine::translate((b.x0, b.y0)) * Affine::scale(k);
         let mut out = Vec::new();
-        for l in joydeck_render::place_slide(pres, i).links {
+        let fields = RenderOpts {
+            now: self.field_time,
+            ..Default::default()
+        };
+        for l in joydeck_render::place_slide_with_fields(pres, i, &fields).links {
             let r = view.transform_rect_bbox(l.rect).intersect(b);
             let Some(rect) =
                 krilla::geom::Rect::from_ltrb(r.x0 as f32, r.y0 as f32, r.x1 as f32, r.y1 as f32)

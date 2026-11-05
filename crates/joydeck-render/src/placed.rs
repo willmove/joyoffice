@@ -87,6 +87,15 @@ pub struct Placed {
 
 /// Text and links of slide `index` (master and layout graphics first, as rendered).
 pub fn place_slide(pres: &Presentation, index: usize) -> Placed {
+    place_slide_with_fields(pres, index, &crate::RenderOpts::default())
+}
+
+/// Placement with the same date/time fields as a companion raster render.
+pub fn place_slide_with_fields(
+    pres: &Presentation,
+    index: usize,
+    opts: &crate::RenderOpts,
+) -> Placed {
     let mut out = Placed::default();
     let Some(slide) = pres.slides.get(index) else {
         return out;
@@ -97,7 +106,7 @@ pub fn place_slide(pres: &Presentation, index: usize) -> Placed {
     let fields = SlideFields::new(
         pres.slide_number(index),
         pres.header_footer.footer_text.clone(),
-        &crate::RenderOpts::default(),
+        opts,
     );
     let (show_layout, show_master) = resolve::show_master_shapes(slide, rctx.layout);
     if show_master {
@@ -256,7 +265,12 @@ fn place(
             let Some(body) = s.text.as_ref().filter(|b| !b.is_empty()) else {
                 return;
             };
-            let tr = shape_geometry(s, x.w, x.h).text_rect;
+            let (w, h, m) = if depth > 0 {
+                crate::text_draw::group_text_space(m, m, x.w, x.h)
+            } else {
+                (x.w, x.h, m)
+            };
+            let tr = shape_geometry(s, w, h).text_rect;
             place_text(out, rctx, fields, s.id, s, body, tr, m);
         }
     }
@@ -292,13 +306,17 @@ fn place_text(
         .iter()
         .filter(|r| r.link && !r.glyphs.is_empty())
     {
-        let Some(link) = run_link(body, run.para, run.chars.0) else {
+        let Some(link) = run
+            .source_run
+            .and_then(|i| body.paragraphs.get(run.para)?.runs.get(i))
+            .and_then(|r| r.props.link.clone())
+        else {
             continue;
         };
         let Some(line) = layout
             .lines
             .iter()
-            .find(|l| l.para == run.para && l.start <= run.chars.0 && run.chars.0 <= l.end)
+            .find(|l| l.para == run.para && l.start <= run.chars.0 && run.chars.0 < l.end)
         else {
             continue;
         };
@@ -320,20 +338,6 @@ fn place_text(
         transform: m,
         body: body.clone(),
     });
-}
-
-/// The hyperlink of the model run containing character `at` of paragraph `para`.
-fn run_link(body: &TextBody, para: usize, at: usize) -> Option<Hyperlink> {
-    let p = body.paragraphs.get(para)?;
-    let mut pos = 0;
-    for r in &p.runs {
-        let n = r.char_len();
-        if at < pos + n.max(1) {
-            return r.props.link.clone();
-        }
-        pos += n;
-    }
-    None
 }
 
 /// The outlines of shape `s`'s text as drawn, in the space `m` maps shape-local points to, and
