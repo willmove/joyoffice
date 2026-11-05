@@ -75,8 +75,7 @@ impl Viewer {
         let delta = self
             .drag
             .as_ref()
-            .filter(|d| d.resize.is_none() && !d.marquee)
-            .map(|d| d.current - d.start)
+            .map(editing::Drag::move_preview)
             .unwrap_or_default();
         let moved = self
             .editor

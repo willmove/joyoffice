@@ -144,7 +144,7 @@
     "source_path": "apps/joydeck/src/viewer.rs",
     "target_path": "crates/joydeck-ui-gpui/src/viewer.rs",
     "source_sha256": "249104bdece51947664a50fe4b8166f358662e78d0000ed7d0024b10fade5584",
-    "adapted_sha256": "b0def33005e7541951ffa4af7f0ca7fd8ead90404829ab4f91ea7455dbd44cc9",
+    "adapted_sha256": "0c441f8de51f0db1cbb0e9728c697afab21faed8533ea39d522881ce1f24d532",
     "local_changes": "Reuse asynchronous read-only viewer, generation guards, cancellation, virtual thumbnail rail and bounded cache; adapt to DeckCraft model and shared CPU renderer; R1 branding and aspect fit; upstream validation modules deferred; R1 rustfmt and bounded reader/CPU-renderer/palette/notes adapters as applicable; R2 editable viewer adapter, background save/recovery, command-driven gestures, coordinate anchoring and close guard; rustfmt; R4/R5 scene/content workspace adaptation; R6/R7 adapter additions and repository rustfmt/LF normalization.; R8 native editor, clipboard or product package version adaptation; R9-UI1 native formatting controls and schema-2 validation/history compatibility (see slice evidence)",
     "r9_ui2_adaptation": "Formatting, desktop control and reviewed preservation validation; LF source representation.",
     "r9_ui2_gui_fix": "Synchronize every editor palette with GPUI Kit application theme during render",
@@ -211,7 +211,7 @@
     "target_path": "crates/joydeck-ui-gpui/src/scene_view.rs",
     "source_sha256": "4d948c8511b32763611b6327ea3d773b37a3ba8e6898b80e45eb0d9a6c7ef973",
     "local_changes": "R4/R5 adapts native path/cache/retirement or asynchronous scene dispatch to the current model; no legacy document model; R4/R5 scene/content workspace adaptation; R8 native editor, clipboard or product package version adaptation",
-    "adapted_sha256": "8b7b4bd3a1e801f68d49b767817c676dce2d21a85c852f9fa657e05f196b8e70",
+    "adapted_sha256": "aae30c71b2bd394a72dcfac4555775fc1b38c992f24ffffbaeea2f75eb51283a",
     "shared_document_view": "Separate window selection and state from the shared editor session and preserve revision guards."
   },
   {

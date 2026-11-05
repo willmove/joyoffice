@@ -779,7 +779,7 @@ impl Render for Viewer {
             - if self.inspector { 264. } else { 0. })
         .max(64.);
         let ah = (f32::from(sz.height) - if self.notes_visible { 234. } else { 176. }).max(64.);
-        let canvas = if let Some(d) = &deck {
+        let slide_canvas = if let Some(d) = &deck {
             let (w, h) = (
                 (d.info.width_pt as f32) * scale,
                 (d.info.height_pt as f32) * scale,
@@ -831,7 +831,8 @@ impl Render for Viewer {
                                             let paint = cx.processor(move |s, bounds, w, cx| {
                                                 s.paint_scene(bounds, scale, w);
                                                 s.paint_benchmark(bounds, scale, w, cx);
-                                                s.paint_inline(bounds, scale, w, cx)
+                                                s.paint_inline(bounds, scale, w, cx);
+                                                s.paint_selection_frame(bounds, scale, w);
                                             });
                                             move |bounds, _, w, cx| paint(bounds, w, cx)
                                         },
@@ -903,15 +904,9 @@ impl Render for Viewer {
             .on_action(cx.listener(Self::new_document))
             .on_action(cx.listener(Self::delete_object))
             .on_action(cx.listener(Self::request_close))
-            .on_mouse_move(cx.listener(move |s, event, _, cx| s.pointer_move(event, scale, cx)))
-            .on_mouse_up(
-                MouseButton::Left,
-                cx.listener(move |s, event, w, cx| s.pointer_up(event, scale, w, cx)),
-            )
-            .on_mouse_up_out(
-                MouseButton::Left,
-                cx.listener(move |s, event, w, cx| s.pointer_up(event, scale, w, cx)),
-            )
+            .on_mouse_move(cx.listener(move |s, event, _, cx| {
+                s.inline_move(event, scale, cx);
+            }))
             .on_action(cx.listener(Self::open))
             .on_action(cx.listener(Self::cancel))
             .on_action(cx.listener(Self::previous))
@@ -925,6 +920,14 @@ impl Render for Viewer {
             .on_action(cx.listener(Self::save_as))
             .on_action(cx.listener(|s, _: &PresentStart, _, cx| s.start_show(true, false, cx)))
             .on_action(cx.listener(|s, _: &PresentCurrent, _, cx| s.start_show(false, false, cx)))
+            .child(
+                canvas(|_, _, _| (), {
+                    let capture = cx.processor(|s, (), w, cx| s.capture_gesture(w, cx));
+                    move |_, (), w, cx| capture((), w, cx)
+                })
+                .absolute()
+                .size_full(),
+            )
             .child(self.title_chrome(cx))
             .child(self.editor_ribbon(window, cx))
             .child(if self.backstage {
@@ -944,7 +947,7 @@ impl Render for Viewer {
                             .min_w_0()
                             .flex()
                             .flex_col()
-                            .child(canvas)
+                            .child(slide_canvas)
                             .when(self.notes_visible, |d| d.child(self.notes_pane())),
                     )
                     .children((self.inspector).then(|| self.content_inspector(cx)))
