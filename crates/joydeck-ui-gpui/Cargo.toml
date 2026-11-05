@@ -20,10 +20,10 @@ joydeck-shell.workspace = true
 serde_json = { workspace = true, features = ["float_roundtrip"] }
 serde.workspace = true
 image = { workspace = true, features = ["png", "jpeg", "webp", "gif", "tiff", "bmp"] }
+url.workspace = true
 
 [target.'cfg(target_os = "macos")'.dependencies]
 async-channel.workspace = true
-url.workspace = true
 
 [features]
 validation = []
