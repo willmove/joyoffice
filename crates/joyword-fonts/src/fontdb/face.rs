@@ -210,6 +210,14 @@ impl FontFace {
     pub fn index(&self) -> u32 {
         self.index
     }
+
+    /// Whether this face permits the PDF writer to embed a subset of its outlines.
+    pub fn permits_subset_embedding(&self) -> bool {
+        use skrifa::raw::TableProvider;
+        self.skrifa()
+            .and_then(|font| font.os2().ok())
+            .is_none_or(|os2| os2.fs_type() & 0x302 == 0)
+    }
     /// Unique id of this face within the process.
     pub fn id(&self) -> u32 {
         self.id

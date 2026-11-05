@@ -319,6 +319,33 @@ pub(crate) fn write_parts(
         }
     }
 
+    // Preserve standalone vendor XML without introducing a relationship to it.
+    if let Some(manifest) = doc.passthrough.get(crate::package::ISOLATED_XML) {
+        let mut names: std::collections::HashSet<_> = entries
+            .iter()
+            .map(|(name, _)| name.to_ascii_lowercase())
+            .collect();
+        for (name, kind) in String::from_utf8_lossy(manifest)
+            .lines()
+            .filter_map(|line| line.split_once('\t'))
+        {
+            if crate::package::isolated_xml_name(name)
+                && crate::package::isolated_xml_type(kind)
+                && let Some(bytes) = doc.passthrough.get(name)
+                && names.insert(name.to_ascii_lowercase())
+            {
+                push_part(
+                    &mut entries,
+                    &mut overrides,
+                    name,
+                    bytes.to_vec(),
+                    kind,
+                    PartRels::default(),
+                );
+            }
+        }
+    }
+
     // Main part goes first in the zip after content types.
     entries.insert(0, ("word/document.xml".into(), body));
     overrides.insert(

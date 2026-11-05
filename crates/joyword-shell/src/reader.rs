@@ -408,6 +408,21 @@ pub fn publish_new(path: &Path, bytes: &[u8]) -> Result<(), String> {
     Ok(())
 }
 
+/// Publish encoded pages after checking for collisions across the batch.
+pub fn publish_rasters(directory: &Path, artifacts: &[(PathBuf, Vec<u8>)]) -> Result<(), String> {
+    if artifacts
+        .iter()
+        .any(|(path, _)| path.symlink_metadata().is_ok())
+    {
+        return Err("output already exists".into());
+    }
+    std::fs::create_dir_all(directory).map_err(|error| error.to_string())?;
+    for (path, bytes) in artifacts {
+        publish_new(path, bytes)?;
+    }
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

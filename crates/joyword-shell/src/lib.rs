@@ -5,9 +5,11 @@ pub mod editing;
 pub mod formatting;
 pub mod l10n;
 mod legacy_recovery;
+pub mod mail_merge;
 pub mod prefs;
 pub mod reader;
 pub mod storage;
+pub mod visual;
 
 pub use legacy_recovery::{legacy_recovery_directory, validate_legacy_recovery_record};
 

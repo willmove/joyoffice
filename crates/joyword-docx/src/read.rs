@@ -380,6 +380,7 @@ fn read_opened_in(
     r.read_glossary(&rels);
     r.keep_custom_xml(&root_rels, &rels);
     r.keep_unmodelled(&root, &root_rels, &rels);
+    pkg.keep_isolated_xml(&mut r.doc);
     if !r.embedded.parts.is_empty() {
         let manifest = r.embedded.to_bytes();
         r.doc

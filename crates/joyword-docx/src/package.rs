@@ -146,6 +146,41 @@ pub fn font_table_key<V>(parts: &BTreeMap<String, V>) -> Option<&str> {
 /// Custom XML roots kept by the package (P) or main document (D): `owner\ttype\tpart`.
 /// Their opaque bytes and related parts use the same bounded manifest as embedded objects.
 pub const CUSTOM_XML_ROOTS: &str = "wordcraft:customXml.roots";
+
+/// Opaque, unlinked vendor XML parts and their declared content types.
+pub(crate) const ISOLATED_XML: &str = "wordcraft:isolatedXml.parts";
+
+pub(crate) fn isolated_xml_name(name: &str) -> bool {
+    let lower = name.to_ascii_lowercase();
+    lower.contains('/')
+        && lower.ends_with(".xml")
+        && ![
+            "word/",
+            "docprops/",
+            "customxml/",
+            "_xmlsignatures/",
+            "_rels/",
+        ]
+        .iter()
+        .any(|prefix| lower.starts_with(prefix))
+        && lower.split('/').all(|segment| {
+            !segment.is_empty()
+                && !segment.ends_with('.')
+                && segment != "_rels"
+                && segment
+                    .bytes()
+                    .all(|b| b.is_ascii_alphanumeric() || matches!(b, b'.' | b'_' | b'-'))
+        })
+}
+
+pub(crate) fn isolated_xml_type(content_type: &str) -> bool {
+    manifest_field_ok(content_type)
+        && (matches!(content_type, "application/xml" | "text/xml")
+            || (content_type.starts_with("application/")
+                && content_type.ends_with("+xml")
+                && !content_type.starts_with("application/vnd.openxmlformats-")
+                && !content_type.starts_with("application/vnd.ms-")))
+}
 /// The original `word/settings.xml` when it holds settings the model doesn't (merged into on
 /// save by `write::settings_merge`). Not a package part: WordCraft's own bookkeeping.
 pub const SETTINGS_ORIG: &str = "wordcraft:settings.orig";
@@ -273,6 +308,43 @@ pub struct Package {
 }
 
 impl Package {
+    pub(crate) fn keep_isolated_xml(&self, doc: &mut joyword_model::Document) {
+        let candidates: Vec<_> = self
+            .files
+            .iter()
+            .filter(|(name, _)| isolated_xml_name(name))
+            .collect();
+        if candidates.is_empty() {
+            return;
+        }
+        let incoming: HashSet<_> = rel_targets(&self.files)
+            .into_iter()
+            .map(|name| name.to_ascii_lowercase())
+            .collect();
+        let types = ContentTypes::read(self);
+        let mut manifest = String::new();
+        for (name, bytes) in candidates {
+            let (dir, file) = split_dir(name);
+            if incoming.contains(&name.to_ascii_lowercase())
+                || self
+                    .canonical(&format!("{dir}/_rels/{file}.rels"))
+                    .is_some()
+            {
+                continue;
+            }
+            let Some(content_type) = types.of(name).filter(|kind| isolated_xml_type(kind)) else {
+                continue;
+            };
+            doc.passthrough.insert(name.clone(), bytes.clone());
+            use std::fmt::Write;
+            let _ = writeln!(manifest, "{name}\t{content_type}");
+        }
+        if !manifest.is_empty() {
+            doc.passthrough
+                .insert(ISOLATED_XML.into(), Arc::new(manifest.into_bytes()));
+        }
+    }
+
     pub fn open(bytes: &[u8]) -> Result<Package, DocxError> {
         Package::open_limited(bytes, MAX_PART, MAX_TOTAL)
     }

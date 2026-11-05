@@ -1,0 +1,136 @@
+{
+  "platform": "Windows x64",
+  "buildProfile": "debug",
+  "archive": "dist/joyword/r8-compatibility-20261105-134046/joyword-0.1.1-windows-x86_64.zip",
+  "archiveSha256": "78f4a4de98556279164230667a845e247ef26d37627a911738d3bead3132e09a",
+  "cliSha256": "04dd1ff3053c765bf2958f5ff6bc80f1276d01ac44408baff25ffa0944086440",
+  "schema1ComparedFixtures": 14,
+  "legacyRecovery": {
+    "recoveredDocx": {
+      "single": "e5037dcf816acf8f420027009f90a4730d37a9f4debbb753dcf8e42c1185acb2",
+      "dual": "14e3478b103932ded43404ad70a6c3a4ad4bbf51719e4a2825b7861b2ada611e",
+      "rich": "850549119aa2240572c4ab1df71534573146916f0eb3d031a1e5e7f51fb83188",
+      "fallback": "79d9c8eb6fcaa46275573281a1800e28d703ca7795b2a9047ad11bb0898f777c",
+      "source-missing": "14e3478b103932ded43404ad70a6c3a4ad4bbf51719e4a2825b7861b2ada611e"
+    },
+    "refusals": [
+      "broken",
+      "discarded",
+      "mismatch",
+      "conflict",
+      "overwrite"
+    ]
+  },
+  "malformedDocx": {
+    "cases": 64,
+    "accepted": 21,
+    "rejected": 43
+  },
+  "pdfa": {
+    "validator": "veraPDF 1.30.2",
+    "validatorSha256": "287cc9c9757f99dcff4a2d39b68268245b48103fb6af443162d5a29df2afa332",
+    "reader": "pypdf 6.21.2",
+    "cjkFontSha256": "1526ac24375f51f6eb73bc2d3f8072dbe4a80a3a65217677c9d9a84f67dab2ab",
+    "cjkFontFace": 0,
+    "archiveYear": 2026,
+    "cases": [
+      {
+        "source": "verify-r8.py generated portable text PDF",
+        "sourceSha256": "39eb63fd2d6ef39d3e6a3182830f3fe641a66bb69a1aaacd9aae1302c5c73a6c",
+        "pdfSha256": "39eb63fd2d6ef39d3e6a3182830f3fe641a66bb69a1aaacd9aae1302c5c73a6c",
+        "pages": 1,
+        "extractedCharacters": 33,
+        "validatorExit": 0,
+        "compliant": true,
+        "passedRules": 144,
+        "failedRules": 0,
+        "passedChecks": 631,
+        "failedChecks": 0
+      },
+      {
+        "source": "tests/fixtures/mail-merge/template.docx",
+        "sourceSha256": "c3cbf602775fca89940bfb5b8bb476d2bcedd49db84126e14468267e76dc40f4",
+        "exportExit": 0,
+        "pdfSha256": "bdf997e7aaccd48b521b7da4340811ce7aa861523511b0265d4a90b36fa9d977",
+        "pages": 1,
+        "extractedCharacters": 50,
+        "validatorExit": 0,
+        "compliant": true,
+        "passedRules": 144,
+        "failedRules": 0,
+        "passedChecks": 795,
+        "failedChecks": 0
+      },
+      {
+        "source": "tests/fixtures/feature/DOCX-FEAT-T200-NUM.docx",
+        "sourceSha256": "aa4e048f7ae24d0e54e40efa12df9ad82156dd7c29e8e9643620e0f1d039d16f",
+        "exportExit": 0,
+        "pdfSha256": "3485e8d95ab932d8545ae0dca03ad78a383e6f50862a3dfe848ba2429707bcbc",
+        "pages": 1,
+        "extractedCharacters": 84,
+        "validatorExit": 0,
+        "compliant": true,
+        "passedRules": 144,
+        "failedRules": 0,
+        "passedChecks": 1186,
+        "failedChecks": 0
+      },
+      {
+        "source": "tests/fixtures/feature/DOCX-FEAT-T201-TABLE.docx",
+        "sourceSha256": "4c2c0dfa18d4e28b8b33a2d6229d541aa926c6e526a037b2de9820ac03cc0627",
+        "exportExit": 0,
+        "pdfSha256": "435914b593fff2bbc01543731644366c4708f50e955fc28bf15073c1666ae229",
+        "pages": 1,
+        "extractedCharacters": 45,
+        "validatorExit": 0,
+        "compliant": true,
+        "passedRules": 144,
+        "failedRules": 0,
+        "passedChecks": 1252,
+        "failedChecks": 0
+      },
+      {
+        "source": "tests/fixtures/feature/DOCX-FEAT-T202-PAGES.docx",
+        "sourceSha256": "0ccd14e577a4542df875f25382612dd9ab7b746e9f94bfb9f58c3b9acc50a538",
+        "exportExit": 0,
+        "pdfSha256": "c97536b8006e65144fc87dcb3185875803f4d1e3574f3480daf2a732c47916d3",
+        "pages": 1,
+        "extractedCharacters": 42,
+        "validatorExit": 0,
+        "compliant": true,
+        "passedRules": 144,
+        "failedRules": 0,
+        "passedChecks": 806,
+        "failedChecks": 0
+      },
+      {
+        "source": "tests/fixtures/feature/DOCX-FEAT-T203-IMAGES.docx",
+        "sourceSha256": "b923dce820988bc59fb805543b2428d5eca3e3a1ca8a2dd0c9d08e1dd260b8b7",
+        "exportExit": 0,
+        "pdfSha256": "2ee0a5e9593c7c73f87ba6c500f6a5c26e0c1cc4195597576bbd3fdc46dbe69f",
+        "pages": 1,
+        "extractedCharacters": 14,
+        "validatorExit": 0,
+        "compliant": true,
+        "passedRules": 144,
+        "failedRules": 0,
+        "passedChecks": 879,
+        "failedChecks": 0
+      },
+      {
+        "source": "tests/fixtures/feature/DOCX-FEAT-T300-REVIEW.docx",
+        "sourceSha256": "859e9995d7ef017e8811b8d1e9ea0442227f084c8ca33def3702ddc59267d001",
+        "exportExit": 0,
+        "pdfSha256": "782cc46e6ecffa4b394cbb714333e9e2a9813ee79a1479f4dd3225dab82e51ef",
+        "pages": 1,
+        "extractedCharacters": 22,
+        "validatorExit": 0,
+        "compliant": true,
+        "passedRules": 144,
+        "failedRules": 0,
+        "passedChecks": 645,
+        "failedChecks": 0
+      }
+    ]
+  }
+}

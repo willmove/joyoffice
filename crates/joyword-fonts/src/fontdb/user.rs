@@ -544,6 +544,9 @@ impl FontDb {
     /// (`___WRD_EMBED_SUB_46`), and the text asks for it by the table's name (#2240). Returns how
     /// many faces were added.
     pub fn add_document_fonts(&self, files: Vec<(Vec<u8>, String)>) -> usize {
+        if self.single_face {
+            return 0;
+        }
         let added = self.add_fonts(
             files
                 .into_iter()

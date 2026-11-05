@@ -1,6 +1,6 @@
 # JoyWord 规格与实施入口
 
-当前 JoyWord 的开发、兼容范围和验证以 [R8 交接](../joyoffice/JOYWORD-R8-HANDOFF.md) 为入口。下文与所列 M0–M9 文档记录替换前的实现和验收基线。
+当前 JoyWord 的开发、兼容范围和验证以 [R8 交接](../joyoffice/JOYWORD-R8-HANDOFF.md) 为入口，进展记在 [宿主任务状态](r8/STATUS.md)。下文与所列 M0–M9 文档记录替换前的实现和验收基线。
 
 文档基线：2026-10-17，版本 0.3。产品：JoyWord；套件：JoyOffice。
 

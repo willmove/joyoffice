@@ -44,9 +44,12 @@ use names::{MAX_NAME_CHARS, file_face_names, font_faces, mini_font, name};
 #[cfg(test)]
 pub(crate) use names::{last_resort_face, legacy_family};
 
+static GLOBAL: std::sync::OnceLock<FontDb> = std::sync::OnceLock::new();
+
 /// Process-wide font database.
 pub struct FontDb {
     faces: RwLock<Vec<Arc<FontFace>>>,
+    single_face: bool,
     outlines: Mutex<HashMap<(u32, u32), Arc<BezPath>>>,
     /// Fallback faces found per (character, excluded face), valid while the face count is the
     /// one stored (faces are only ever added). Layout asks once per uncovered character, and the
@@ -118,8 +121,17 @@ impl FontDb {
                 }
             }
         }
+        Self::from_faces(faces, font_dirs, false)
+    }
+
+    fn from_faces(
+        faces: Vec<Arc<FontFace>>,
+        font_dirs: Vec<std::path::PathBuf>,
+        single_face: bool,
+    ) -> Self {
         Self {
             faces: RwLock::new(faces),
+            single_face,
             outlines: Mutex::new(HashMap::new()),
             fallbacks: RwLock::new(FallbackCache::default()),
             run_fallbacks: RwLock::new(RunFallbackCache::default()),
@@ -134,7 +146,7 @@ impl FontDb {
             loading: Mutex::new(()),
             #[cfg(not(target_arch = "wasm32"))]
             sys: Mutex::new(SysFallback {
-                enabled: true,
+                enabled: !single_face,
                 ..Default::default()
             }),
             #[cfg(not(target_arch = "wasm32"))]
@@ -174,8 +186,30 @@ impl FontDb {
     /// first time a lookup by family name needs them (or ahead of time by
     /// [`FontDb::scan_in_background`]).
     pub fn global() -> &'static FontDb {
-        static DB: std::sync::OnceLock<FontDb> = std::sync::OnceLock::new();
-        DB.get_or_init(|| FontDb::with_font_dirs(system_font_dirs()))
+        GLOBAL.get_or_init(|| FontDb::with_font_dirs(system_font_dirs()))
+    }
+
+    /// Select one explicit OpenType face before a standalone exporter starts layout.
+    /// System, bundled and document-supplied fallback fonts are excluded in this mode.
+    pub fn init_export_face(bytes: Vec<u8>, index: u32) -> Result<FaceRef, &'static str> {
+        let parsed = skrifa::FontRef::from_index(&bytes, index)
+            .map_err(|_| "invalid or unsupported font face")?;
+        let (family, style, legacy) = face_names(&parsed).ok_or("font face has no usable name")?;
+        let legacy = legacy.unwrap_or_else(|| family.clone());
+        let face = make_face(
+            FontBytes::Owned(Arc::new(bytes)),
+            index,
+            family,
+            style,
+            legacy,
+            Vec::new(),
+        )
+        .ok_or("invalid or unsupported font face")?;
+        let face = Arc::new(face);
+        GLOBAL
+            .set(Self::from_faces(vec![face.clone()], Vec::new(), true))
+            .map_err(|_| "font database already initialized")?;
+        Ok(FaceRef::of(&face))
     }
 
     fn read_faces(&self) -> std::sync::RwLockReadGuard<'_, Vec<Arc<FontFace>>> {

@@ -19,6 +19,7 @@ pub struct Projection {
     pub preserved_fragments: usize,
     pub diagnostics: usize,
     pub read_only: bool,
+    pub unsigned_docx: bool,
     pub style_approximation_required: bool,
 }
 
@@ -332,6 +333,22 @@ pub fn project(bytes: &[u8], limit: usize) -> Result<Projection, &'static str> {
             preserved_fragments: 0,
             diagnostics: package.diagnostics().len() + external,
             read_only: root.attr("mc:MustUnderstand").is_some(),
+            unsigned_docx: part.content_type.as_deref() == Some(MAIN[0])
+                && !package
+                    .relationships(None)
+                    .iter()
+                    .any(|rel| rel.kind.contains("/digital-signature/"))
+                && !package.parts().any(|part| {
+                    part.name
+                        .as_str()
+                        .to_ascii_lowercase()
+                        .starts_with("/_xmlsignatures/")
+                        || part.content_type.as_deref().is_some_and(|kind| {
+                            kind.starts_with(
+                                "application/vnd.openxmlformats-package.digital-signature",
+                            )
+                        })
+                }),
             style_approximation_required: false,
         },
         limit,

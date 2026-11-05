@@ -90,6 +90,36 @@ fn edited_cycles(input: &BTreeMap<String, Vec<u8>>, check: impl Fn(&BTreeMap<Str
 }
 
 #[test]
+fn unlinked_vendor_xml_keeps_exact_bytes_and_type_after_edits() {
+    let mut input = fixture();
+    let opaque = b"<?xml version=\"1.0\"?><vendor><![CDATA[exact bytes]]></vendor>";
+    input.insert("vendor/opaque.xml".into(), opaque.to_vec());
+    input.insert(
+        "[Content_Types].xml".into(),
+        text(&input, "[Content_Types].xml").replace(
+            "</Types>",
+            r#"<Override PartName="/vendor/opaque.xml" ContentType="application/vnd.example.data+xml"/></Types>"#,
+        ).into_bytes(),
+    );
+    input.insert("vendor/with-rels.xml".into(), opaque.to_vec());
+    input.insert(
+        "vendor/_rels/with-rels.xml.rels".into(),
+        rels(&[]).into_bytes(),
+    );
+    edited_cycles(&input, |parts| {
+        assert_eq!(parts["vendor/opaque.xml"], opaque);
+        assert!(text(parts, "[Content_Types].xml").contains("application/vnd.example.data+xml"));
+        assert!(
+            !parts
+                .keys()
+                .filter(|name| name.ends_with(".rels"))
+                .any(|name| text(parts, name).contains("opaque.xml"))
+        );
+        assert!(!parts.contains_key("vendor/with-rels.xml"));
+    });
+}
+
+#[test]
 fn bound_store_bytes_properties_and_relationships_survive_two_edited_saves() {
     edited_cycles(&fixture(), |p| {
         let document = text(p, "word/document.xml");

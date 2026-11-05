@@ -31,6 +31,7 @@ pub(crate) struct Exporter<'a> {
     /// Embedded fonts by face id (`None`: krilla can't read it).
     pub(crate) fonts: HashMap<u32, (FaceRef, Option<Font>)>,
     pub(crate) font_error: Option<PdfError>,
+    pub(crate) strict_fonts: bool,
     /// Faces whose glyphs are drawn as outlines because krilla can't subset them.
     pub(crate) outlined: &'a HashSet<u32>,
     pub(crate) cmaps: HashMap<u32, Arc<HashMap<u32, char>>>,
@@ -58,6 +59,7 @@ impl Exporter<'_> {
             return None;
         }
         let font_error = &mut self.font_error;
+        let strict = self.strict_fonts;
         self.fonts
             .entry(face.id())
             .or_insert_with(|| {
@@ -65,7 +67,7 @@ impl Exporter<'_> {
                 let font = match write::font(face.data(), face.index(), variations) {
                     Ok(font) => Some(font),
                     // Keep WordCraft's existing policy: unreadable faces are skipped.
-                    Err(WriteError::InvalidFont) => None,
+                    Err(WriteError::InvalidFont) if !strict => None,
                     Err(error) => {
                         // Allocation, validation or backend failures must fail the export,
                         // rather than return a PDF with missing text.

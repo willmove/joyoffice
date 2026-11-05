@@ -1,0 +1,105 @@
+{
+  "fixtureSha256": "7161af7572b2f438c55bf3b0a93949caa2efdab827b9321a7b2774c399983919",
+  "binarySha256": "e58bc01f0039251b383e6e992fb21548463ac05aac6dce412504838be2af05bc",
+  "pages": 1000,
+  "runs": [
+    {
+      "open": {
+        "wallMs": 207.645
+      },
+      "editSave": {
+        "wallMs": 219.522
+      },
+      "reopen": {
+        "wallMs": 199.094
+      },
+      "renderLastPage": {
+        "wallMs": 206.452
+      },
+      "openLayoutMs": 177.87400000000002,
+      "finalEditLayoutMs": 1.193099999999987
+    },
+    {
+      "open": {
+        "wallMs": 186.861
+      },
+      "editSave": {
+        "wallMs": 222.249
+      },
+      "reopen": {
+        "wallMs": 230.559
+      },
+      "renderLastPage": {
+        "wallMs": 215.098
+      },
+      "openLayoutMs": 160.02790000000002,
+      "finalEditLayoutMs": 1.3897000000000332
+    },
+    {
+      "open": {
+        "wallMs": 193.796
+      },
+      "editSave": {
+        "wallMs": 209.724
+      },
+      "reopen": {
+        "wallMs": 205.992
+      },
+      "renderLastPage": {
+        "wallMs": 203.138
+      },
+      "openLayoutMs": 166.9561,
+      "finalEditLayoutMs": 1.006699999999995
+    },
+    {
+      "open": {
+        "wallMs": 189.349
+      },
+      "editSave": {
+        "wallMs": 229.724
+      },
+      "reopen": {
+        "wallMs": 213.383
+      },
+      "renderLastPage": {
+        "wallMs": 221.627
+      },
+      "openLayoutMs": 162.2516,
+      "finalEditLayoutMs": 1.1064000000000078
+    },
+    {
+      "open": {
+        "wallMs": 203.828
+      },
+      "editSave": {
+        "wallMs": 213.641
+      },
+      "reopen": {
+        "wallMs": 201.047
+      },
+      "renderLastPage": {
+        "wallMs": 214.437
+      },
+      "openLayoutMs": 176.3631,
+      "finalEditLayoutMs": 1.130899999999997
+    }
+  ],
+  "summary": {
+    "open": {
+      "medianWallMs": 193.796
+    },
+    "editSave": {
+      "medianWallMs": 219.522
+    },
+    "reopen": {
+      "medianWallMs": 205.992
+    },
+    "renderLastPage": {
+      "medianWallMs": 214.437
+    },
+    "medianOpenLayoutMs": 166.9561,
+    "medianLastEditLayoutMs": 1.130899999999997
+  },
+  "platform": "Windows x64 debug",
+  "measured": "CLI process wall time, no memory sampling"
+}

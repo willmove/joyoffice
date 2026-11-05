@@ -71,7 +71,7 @@ mod paint;
 mod picture;
 mod tags;
 
-pub use export::{export, export_layout};
+pub use export::{export, export_fixed_layout, export_layout};
 #[cfg(test)]
 use exporter::Exporter;
 #[cfg(test)]

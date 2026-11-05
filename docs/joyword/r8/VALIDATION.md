@@ -92,10 +92,30 @@ JoySheet 的 Debian 打包在 WSL 的 ext4 内完成，保留 Debian 控制目�
 
 桌面补验在相同千页样例第 1,000 页记录了 15 次真实键盘输入至 GPUI 绘制提交，中位数 16.8 ms，最大值 41.1 ms。Word 16.114.1 和 WPS 12.1.29181 各完成两轮双向正文与结构往返，额外无包关系 XML 的保留仍有差距。物理屏幕呈现、跨对象编辑及同机基线继续待验。[桌面补验](../../joyoffice/validation/20261105-macos-desktop/README.md)
 
+## Windows 兼容性复验（2026-11-05）
+
+在 `099bce42` 派生的 `codex/joyword-r8-completion` 分支使用 Rust 1.98.1、PowerShell 7 和 Windows x64。用 `cargo xtask package joyword` 构建调试开发包，核对 ZIP 校验值后解包到仓库外的中文空格路径，以下 CLI 回归使用包内二进制。[归档和验证证据](evidence/windows-cli-compatibility.json)
+
+| 范围 | 自动验证 |
+| --- | --- |
+| 产品测试 | `cargo xtask check joyword --target x86_64-pc-windows-msvc` 通过格式检查、生产 Clippy 和 3,487 项 Rust 测试，2 项按原设置忽略。 |
+| 旧命令 | `python scripts/joyword/verify-r8.py CLI --mutations 64` 通过现有 DOCX 往返、PNG／PDF 导出及新增的合并、格式交换、显式字体和归档测试。64 个损坏样例中 21 个解析、43 个干净拒绝。旧版与 R8 的第 3 条邮件预览 JSON 逐字节一致，三份合并结果均独立重开。 |
+| 恢复与 schema 1 | 包内 CLI 对照 `00fb0687` 的 CLI，14 份 DOCX 的 `inspect` 和 `text` 结果一致。5 条恢复路径读回，4 种损坏或丢弃情形及覆盖请求均拒绝，旧日志及其源文件的散列一致。 |
+| 格式交换 | 明确源格式、只读损失计划、未确认时返回 2、隐藏 HTML 拒绝、确认后发布以及不覆盖通过。转换保留段落文字和目标格式支持的基本字符属性。 |
+| 显式字体 | PNG 按指定 face 和 144 DPI 导出，报告中的字体散列与实际字节一致。缺字、已有文件拒绝，PDF/A-2b 同输入和年份重复导出字节一致。另用 `r8_render_goldens` 复核现有 144 DPI PNG／PDF 金样，全部匹配。 |
+| PDF/A-2b | veraPDF 1.30.2 检查英文样例、中文邮件模板、编号、表格、分页、图片和修订共 7 份产物。每份通过 144 条规则，失败规则与失败检查均为 0。pypdf 6.21.2 严格读回每份 PDF，英文与中文邮件模板核对提取文字。 |
+| DOCX 保真 | 两次独立编辑、写出和重开保留 `vendor/opaque.xml` 的原字节与内容类型，不合成关系。当前覆盖无入站或出站关系、合法路径、且位于标准 Word／签名部件目录之外的厂商 XML。 |
+| 三产品回归 | `cargo test --locked --target x86_64-pc-windows-msvc -p joysheet-engine -p joysheet-xlsx -p joydeck-shell -p joydeck-pptx` 通过 962 项。 |
+| 工具与文档 | `check_docs.py`、`check_gates.py` 和门禁反例通过。Python 共运行 152 项，2 项按原设置跳过。 |
+
+使用千页脚本的同一语料生成器，在 Windows x64 调试 CLI 上执行 5 轮打开、末页逐字编辑、保存、重开和渲染。每轮仍为 1,000 页，源 DOCX 散列一致。进程耗时中位数分别为 193.8、219.5、206.0 和 214.4 ms，最后一个字符的布局中位数为 1.13 ms。本轮采集 CLI 进程耗时，物理呈现和峰值内存待测。[原始样本](evidence/windows-long-doc.json)
+
+Windows 桌面复验时，computer-use 的 Windows 原生管道两次返回 `os error 2`。WSL2 的 `JoyWord-R7-Ubuntu` 实例引用的 `ext4.vhdx` 路径不存在，返回 `ERROR_PATH_NOT_FOUND`。本轮的 Windows IME、读屏、实屏交互及 Linux 原生验收保持待验。之前的原生报告按当时的产物与环境保留。
+
 ## 待验
 
 - macOS DOCX 系统打开和原生打开／另存为面板均已实测。macOS IME 与读屏、集成后的 Linux ARM64 原生桌面、信创真机与托管 CI 待验。[原生对话框补验](../../joyoffice/validation/20261105-macos-desktop/README.md#原生文件对话框)
 - Windows 拼音和读屏沿用独立版证据，R8 包复验、Word/WPS 的未知部件保真、安装器安装／卸载与文件关联见 [交接任务](../../joyoffice/JOYWORD-R8-HANDOFF.md)。
-- 复杂旧恢复语料、固定金样和覆盖引导 fuzz 的迁移，以及剩余 CLI/API 和 Agent 的差距见交接中的接口表。
+- 复杂旧恢复语料、旧新版固定金样差分、剩余 CLI/API 和 Agent 的差距见 [宿主任务状态](STATUS.md)。
 - JoyDeck 开发包的清单列出了未自动收集到的依赖许可文本，发布验收时仍需补齐对应记录。
 

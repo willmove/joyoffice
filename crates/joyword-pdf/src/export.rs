@@ -19,7 +19,7 @@ pub fn export(doc: &Document, opts: &PdfOptions) -> Result<Vec<u8>, PdfError> {
             ..Default::default()
         };
         let lay = layout(doc, &mut LayoutCache::new(), &lo);
-        export_layout_inner(doc, &lay, opts)
+        export_layout_inner(doc, &lay, opts, None)
     })
 }
 
@@ -29,13 +29,33 @@ pub fn export_layout(
     lay: &DocLayout,
     opts: &PdfOptions,
 ) -> Result<Vec<u8>, PdfError> {
-    write::guard(|| export_layout_inner(doc, lay, opts))
+    write::guard(|| export_layout_inner(doc, lay, opts, None))
+}
+
+/// Export with strict font embedding and deterministic metadata. An archive year
+/// selects PDF/A-2b and provides the archive's explicit creation date.
+pub fn export_fixed_layout(
+    doc: &Document,
+    lay: &DocLayout,
+    opts: &PdfOptions,
+    archive_year: Option<u16>,
+) -> Result<Vec<u8>, PdfError> {
+    if archive_year.is_some_and(|year| !(1..=9999).contains(&year)) {
+        return Err(PdfError::Write("invalid archive year".into()));
+    }
+    write::guard(|| export_layout_inner(doc, lay, opts, Some(Fixed { archive_year })))
+}
+
+#[derive(Clone, Copy)]
+struct Fixed {
+    archive_year: Option<u16>,
 }
 
 fn export_layout_inner(
     doc: &Document,
     lay: &DocLayout,
     opts: &PdfOptions,
+    fixed: Option<Fixed>,
 ) -> Result<Vec<u8>, PdfError> {
     let pages: Vec<usize> = match &opts.pages {
         Some(v) => {
@@ -53,10 +73,12 @@ fn export_layout_inner(
     // the whole export. Draw that font's glyphs as outlines instead and write the document again.
     let mut outlined = HashSet::new();
     loop {
-        match write_attempt(doc, lay, opts, &pages, &outlined)? {
+        match write_attempt(doc, lay, opts, &pages, &outlined, fixed)? {
             Attempt::Done(bytes) => return Ok(bytes),
             Attempt::BadFont(id, msg)
-                if outlined.len() < MAX_OUTLINED_FONTS && outlined.insert(id) =>
+                if fixed.is_none()
+                    && outlined.len() < MAX_OUTLINED_FONTS
+                    && outlined.insert(id) =>
             {
                 log::warn!("PDF: {msg}; its text is drawn as outlines");
             }
@@ -81,10 +103,21 @@ fn write_attempt(
     opts: &PdfOptions,
     pages: &[usize],
     outlined: &HashSet<u32>,
+    fixed: Option<Fixed>,
 ) -> Result<Attempt, PdfError> {
+    let archive_year = fixed.and_then(|profile| profile.archive_year);
+    let configuration = if archive_year.is_some() {
+        krilla::configure::ConfigurationBuilder::new()
+            .with_archival_validator(krilla::configure::Archival::A2_B)
+            .finish()
+            .map_err(|error| PdfError::Write(format!("{error:?}")))?
+    } else {
+        Default::default()
+    };
     let settings = krilla::SerializeSettings {
         compress_content_streams: opts.compress,
         enable_tagging: opts.tagged,
+        configuration,
         ..Default::default()
     };
     let language = doc
@@ -93,7 +126,27 @@ fn write_attempt(
         .lang
         .clone()
         .filter(|l| !l.is_empty() && l.is_ascii());
-    let mut writer = Writer::new_with_language(settings, metadata(doc, opts), language);
+    let mut metadata = metadata(doc, opts);
+    if fixed.is_some() {
+        metadata.created = archive_year
+            .or_else(|| {
+                super::metadata::parse_iso(&doc.core.created)
+                    .is_none()
+                    .then_some(1970)
+            })
+            .map(|year| {
+                super::DateTime::new(year)
+                    .month(1)
+                    .day(1)
+                    .hour(0)
+                    .minute(0)
+                    .second(0)
+                    .utc_offset_hour(0)
+                    .utc_offset_minute(0)
+            })
+            .or(metadata.created);
+    }
+    let mut writer = Writer::new_with_language(settings, metadata, language);
     let pdf = writer.document_mut();
 
     let mut ex = Exporter {
@@ -103,6 +156,7 @@ fn write_attempt(
         out_index: pages.iter().enumerate().map(|(o, p)| (*p, o)).collect(),
         fonts: HashMap::new(),
         font_error: None,
+        strict_fonts: fixed.is_some(),
         outlined,
         cmaps: HashMap::new(),
         images: HashMap::new(),

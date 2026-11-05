@@ -2383,6 +2383,7 @@ fn bookmark_destination_is_the_page_of_its_start() {
         out_index: pages.iter().enumerate().map(|(o, p)| (*p, o)).collect(),
         fonts: HashMap::new(),
         font_error: None,
+        strict_fonts: false,
         outlined: &outlined,
         cmaps: HashMap::new(),
         images: HashMap::new(),

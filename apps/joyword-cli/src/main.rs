@@ -1,4 +1,7 @@
+mod exchange;
 mod inspect;
+mod merge;
+mod visual;
 
 use joyword_shell::reader::{Reader, publish_new};
 use std::{
@@ -7,6 +10,15 @@ use std::{
     process::ExitCode,
     sync::atomic::AtomicBool,
 };
+
+fn report(mut value: serde_json::Value) -> Result<(), String> {
+    use std::io::Write;
+    inspect::canonicalize_keys(&mut value);
+    let mut output = std::io::stdout().lock();
+    serde_json::to_writer(&mut output, &value).map_err(|error| error.to_string())?;
+    writeln!(output).map_err(|error| error.to_string())?;
+    output.flush().map_err(|error| error.to_string())
+}
 
 fn argument(args: &[OsString], index: usize) -> Result<&str, String> {
     args.get(index)
@@ -48,7 +60,7 @@ fn run(args: &[OsString]) -> Result<(), String> {
         }
         "--version" | "-V" => println!("JoyWord {}", env!("CARGO_PKG_VERSION")),
         "--help" | "-h" => println!(
-            "JoyWord\ncommands | capabilities | inspect|text [--max-text-bytes N] [--compatibility] [--] INPUT.docx\ninspect|text --session [--] INPUT\nrecover JOURNAL [--save NEW.docx]\nconvert INPUT OUTPUT.pdf|.png|.txt|.md|.html|.rtf|.odt|.tex|.xml|.docx\nrender INPUT.docx OUTPUT.png [--page 1] [--scale 1.333]\nsample OUTPUT.docx\nmcp --automation-read-root DIR [--automation-write-root DIR]\nrun INPUT.docx --cmd COMMAND=JSON [--save NEW.docx]\nOutputs must be new paths; desktop editing and safe DOCX save are available."
+            "JoyWord\ncommands | capabilities | inspect|text [--max-text-bytes N] [--compatibility] [--] INPUT.docx\ninspect|text --session [--] INPUT\nrecover JOURNAL [--save NEW.docx]\nconvert INPUT OUTPUT.pdf|.png|.txt|.md|.html|.rtf|.odt|.tex|.xml|.docx\nrender INPUT.docx OUTPUT.png [--page 1] [--scale 1.333]\nrender INPUT.docx --font PATH:FACE --output DIR [--dpi N] [--page N]\nconvert INPUT.docx --to pdf|pdfa-2b --font PATH:FACE --output FILE.pdf [--archive-year YYYY]\nmerge --template DOCX --data CSV [--map FIELD=COLUMN] (--preview-row N | --output-parent DIR)\nexchange INPUT --from FORMAT --to FORMAT (--plan | --output FILE [--accept-losses])\nsample OUTPUT.docx\nmcp --automation-read-root DIR [--automation-write-root DIR]\nrun INPUT.docx --cmd COMMAND=JSON [--save NEW.docx]\nOutputs must be new paths; desktop editing and safe DOCX save are available."
         ),
         "capabilities" => println!(
             "{}",
@@ -205,9 +217,17 @@ fn main() -> ExitCode {
             let command = args.first().and_then(|arg| arg.to_str());
             let legacy_inspection = matches!(command, Some("inspect" | "text"))
                 && args.get(1).is_none_or(|arg| arg != "--session");
-            if legacy_inspection {
-                let result = joyword_shell::reader::guarded(|| {
-                    inspect::run(command == Some("inspect"), &args[1..]).map_err(str::to_owned)
+            let legacy_visual =
+                matches!(command, Some("render" | "convert")) && visual::is_legacy(&args[1..]);
+            if legacy_inspection || legacy_visual || matches!(command, Some("exchange" | "merge")) {
+                let result = joyword_shell::reader::guarded(|| match command {
+                    Some("exchange") => exchange::run(&args[1..]),
+                    Some("merge") => merge::run(&args[1..]),
+                    Some("render") => visual::run(visual::Command::Render, &args[1..]),
+                    Some("convert") => visual::run(visual::Command::Convert, &args[1..]),
+                    _ => {
+                        inspect::run(command == Some("inspect"), &args[1..]).map_err(str::to_owned)
+                    }
                 });
                 Ok(match result {
                     Ok(status) => status,
