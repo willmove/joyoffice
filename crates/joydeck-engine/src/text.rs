@@ -133,6 +133,7 @@ pub fn replace(body: &mut TextBody, range: Range<usize>, value: &str) -> Result<
     validate(body)
 }
 /// A composition draft owns the body and selection; only settle/commit may publish it.
+#[derive(Clone)]
 pub struct Draft {
     pub body: TextBody,
     pub selection: Range<usize>,
@@ -226,6 +227,10 @@ impl Draft {
         composing: bool,
         selection: Option<Range<usize>>,
     ) -> Result<(), String> {
+        if composing && value.is_empty() {
+            self.cancel();
+            return Ok(());
+        }
         let text = self.body.text();
         let range = match range {
             Some(r) => self.editable_range(
@@ -234,10 +239,6 @@ impl Draft {
             ),
             None => self.marked.clone().unwrap_or(self.selection.clone()),
         };
-        if composing && value.is_empty() && self.before.is_some() {
-            self.cancel();
-            return Ok(());
-        }
         let selected = selection
             .map(|r| utf16_range(value, r).ok_or("invalid preedit selection"))
             .transpose()?

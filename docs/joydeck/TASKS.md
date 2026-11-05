@@ -66,14 +66,14 @@ JD-201 随后完成。共享文稿、独立视图、过期结果和包内读回�
 | 完成 | JD-301 | 字体环境、字节/face/variation、替代报告与缓存键 | macOS Release 验证同名字体冲突、替代 face、文件热替换后的 GPUI／CPU／缩略图／原位布局刷新与字体搜索，回归覆盖 TTC、可变轴和缺字。[证据](evidence/R3-FONT-ENVIRONMENT/README.md) | JD-101、JD-300 |
 | 完成 | JD-302 | 原位文字绘制、caret、选择区、命中、滚动和旋转文本适配 | macOS Release 实测旋转、竖排、单元格、缩放滚动和 PPTX 回读。1×/2× 坐标回归通过，2× 实屏按平台继续复验。[证据](evidence/R3-TRANSFORMED-TEXT/README.md) | JD-300、JD-301 |
 | 完成 | JD-303 | 适配 EntityInputHandler、UTF-16/UTF-8/cluster 范围与 surrounding text | macOS Release 实测非 BMP、组合字素、ZWJ 删除替换及两处真实拼音候选，组合选词单次提交并保存读回。[证据](evidence/R3-NATIVE-UNICODE/README.md) | JD-302 |
-| 已实现待验收 | JD-304 | 系统 IME 提交、取消、重复事件、切页、失焦和撤销 | 真实系统拼音和至少一个额外组合输入场景；preedit 不污染持久化历史 | JD-303 |
+| 完成 | JD-304 | 系统 IME 提交、取消、重复事件、切页、失焦和撤销 | macOS Release 实测系统简体拼音与 ABC 重音组合。选词单次提交，切页和失焦保留原文，崩溃恢复只读回已提交修订。[证据](evidence/R3-IME-LIFECYCLE/README.md) | JD-303 |
 | 已实现待验收 | JD-305 | 字符/段落格式、列表、字段、超链接、竖排/分栏等文字能力的 UI | 以命令矩阵逐项迁移；源内容、格式、撤销和持久化正确 | JD-300–JD-304 |
 | 已实现待验收 | JD-306 | 表格插入、行列/合并、样式、单元格选择/文字/键盘导航 | 表格系统 IME、格式与保存重开可验证；边界操作有回归 | JD-304 |
 | 已实现待验收 | JD-307 | 纯文本、图片、对象与富剪贴板平台适配 | 复制来源可识别，跨文稿依赖映射正确；单次粘贴可单次撤销 | JD-201、JD-303 |
 | 已实现待验收 | JD-308 | 焦点、快捷键优先级、表单草稿同步与输入实体唯一性 | 备注/高级表单同时显示无重复 a11y 节点；同步不递归执行文档命令 | JD-304、JD-305 |
 | 已实现待验收 | JD-309 | R3 包与文字/表格系统输入回归 | 原位文字、备注、表格的提交/取消/undo/redo/保存重开和截图通过 | JD-305–JD-308 |
 
-R3 本轮交付水平未旋转文字/单元格与备注的基础输入切片，复用同一 CPU 排版并接入原生 EntityInputHandler。最终 release 已完成此基础范围的 Windows 桌面验收：标题/单元格/备注真实系统拼音、组合取消/单步 undo/redo、富文字和 TSV 剪贴板、Tab/Shift+Tab、PPTX/v2 保存重开和独立公开格式读取均通过。已实现范围不等于全部完成条件：全部格式入口、图片/跨文稿对象剪贴板、复杂焦点/IME 竞争及跨平台验收仍保留；JD-301 的文件字体监测与身份复验见 [字体环境证据](evidence/R3-FONT-ENVIRONMENT/README.md)。JD-302 的旋转、竖排和插入点滚动见 [原位编辑证据](evidence/R3-TRANSFORMED-TEXT/README.md)。JD-303 的原生 Unicode、候选坐标与事务见 [输入证据](evidence/R3-NATIVE-UNICODE/README.md)。基础切片见 [R3 记录](evidence/R3/README.md)。
+R3 本轮交付水平未旋转文字/单元格与备注的基础输入切片，复用同一 CPU 排版并接入原生 EntityInputHandler。最终 release 已完成此基础范围的 Windows 桌面验收：标题/单元格/备注真实系统拼音、组合取消/单步 undo/redo、富文字和 TSV 剪贴板、Tab/Shift+Tab、PPTX/v2 保存重开和独立公开格式读取均通过。全部格式入口、图片/跨文稿对象剪贴板、表格/备注焦点竞争及跨平台验收仍保留。JD-301 的文件字体监测与身份复验见 [字体环境证据](evidence/R3-FONT-ENVIRONMENT/README.md)。JD-302 的旋转、竖排和插入点滚动见 [原位编辑证据](evidence/R3-TRANSFORMED-TEXT/README.md)。JD-303 的原生 Unicode、候选坐标与事务见 [输入证据](evidence/R3-NATIVE-UNICODE/README.md)。JD-304 的 macOS 原位切页、失焦、组合与恢复见 [生命周期证据](evidence/R3-IME-LIFECYCLE/README.md)。基础切片见 [R3 记录](evidence/R3/README.md)。
 
 ## R4 GPUI 场景与实际性能
 

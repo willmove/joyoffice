@@ -916,6 +916,9 @@ impl Render for Viewer {
             } else {
                 "sans-serif"
             })
+            .capture_any_mouse_down(
+                cx.listener(|s, _, w, cx| s.cancel_composition_on_pointer(w, cx)),
+            )
             .when(self.save_unavailable().is_none(), |d| {
                 d.on_action(cx.listener(Self::save))
                     .on_action(cx.listener(Self::save_as))

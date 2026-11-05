@@ -286,6 +286,41 @@ fn preedit_selection_survives_newline_normalization_and_cancellation() -> Result
     Ok(())
 }
 
+#[test]
+fn repeated_preedit_and_reset_preserve_selection_and_committed_text() -> Result<(), String> {
+    let mut draft = Draft::new(TextBody::from_text("A😀Z"));
+    draft.move_to(5, false);
+    draft.move_to(1, true);
+    let original = draft.body.clone();
+    for _ in 0..2 {
+        draft.replace(None, "", true, None)?;
+        assert_eq!(draft.body, original);
+        assert_eq!(draft.selection, 1..5);
+        assert!(draft.reversed);
+        assert!(draft.marked.is_none());
+    }
+    for _ in 0..2 {
+        draft.replace(None, "ni", true, Some(2..2))?;
+        assert_eq!(draft.body.text(), "AniZ");
+        assert_eq!(draft.marked, Some(1..3));
+    }
+    for _ in 0..2 {
+        draft.replace(None, "", true, None)?;
+        assert_eq!(draft.body, original);
+        assert_eq!(draft.selection, 1..5);
+        assert!(draft.reversed);
+        assert!(draft.marked.is_none());
+    }
+    draft.replace(None, "ni", true, None)?;
+    draft.replace(None, "你", false, None)?;
+    draft.replace(None, "", true, None)?;
+    assert_eq!(draft.body.text(), "A你Z");
+    assert!(draft.marked.is_none());
+    draft.replace(Some(1..2), "", false, None)?;
+    assert_eq!(draft.body.text(), "AZ");
+    Ok(())
+}
+
 mod selection_summary {
     use joydeck_engine::formatting::*;
     use joydeck_model::{Run, RunProps, TextBody, text::Align};
