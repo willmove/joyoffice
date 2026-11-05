@@ -45,7 +45,7 @@ JD-107 已从新的移位包核对 329 条静态 ID、实际协议注册表和�
 | --- | --- | --- | --- | --- |
 | 完成 | JD-200 | 将 Session 的内存编辑与 IO/恢复/导出编排拆到 engine、shell、platform | 锁定引擎闭包隔离、精确文件级 IO 门禁与同包 R2 命令／恢复复验通过。[证据](evidence/R1-VIEWER-AUDIT/README.md#jd-200-引擎与-io-边界) | R1 |
 | 完成 | JD-201 | 定义 EditorSnapshot、选择/命令状态、单一提交入口和后台版本协议 | macOS 三窗口共享编辑、撤销及保存，选页和缩放独立；控制端读取同一修订，过期后台结果已实测拒绝。[证据](evidence/R2-SHARED-DOCUMENT/README.md) | JD-200 |
-| 已实现待验收 | JD-202 | 选择、框选、多选、命中、坐标转换、指针捕获与手势取消 | macOS 1× 实测多档缩放、旋转、框选、窗口外捕获及 Esc／失焦取消，拖动一次提交。待用 2× Retina/HiDPI 复跑。[证据](evidence/R2-POINTER/README.md#jd-202-手势) | JD-201 |
+| 完成 | JD-202 | 选择、框选、多选、命中、坐标转换、指针捕获与手势取消 | macOS 1× 与 2× HiDPI 实际窗口通过多档缩放、旋转、框选、窗口外捕获及 Esc／失焦取消。拖动只提交一次，单步撤销／重做恢复几何。[2× 证据](evidence/R2-POINTER/README.md#hidpi-2x-复验) | JD-201 |
 | 完成 | JD-203 | 新建文稿/页面、插入基础形状、移动/缩放/旋转、删除、复制和图层 | macOS Release 桌面操作修改真实模型，选择、对象 ID、层级及场景同步。[证据](evidence/R2-POINTER/README.md#jd-203-基础编辑) | JD-202 |
 | 完成 | JD-204 | 保持 undo/redo、事务合并、ID 与失败原子性 | 一次手势单次撤销；失败不污染历史；撤销后 UI 字段与 dirty 正确 | JD-200、JD-203 |
 | 完成 | JD-205 | 定义并实现新 .joydeck 主版本、能力声明和受限 writer/reader | 新格式自己往返；旧读取器明确拒绝；未知必需特性不可覆盖；不是简单改后缀 | JD-102、JD-200 |

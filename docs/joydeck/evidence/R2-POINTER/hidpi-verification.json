@@ -1,0 +1,111 @@
+{
+  "environment": {
+    "os": "macOS 27.2",
+    "hardware": "Apple M4",
+    "display": "macOS CoreGraphics virtual display, real AppKit window",
+    "logicalSize": [
+      1920,
+      1080
+    ],
+    "pixelSize": [
+      3840,
+      2160
+    ],
+    "backingScale": 2,
+    "originalDisplayRestored": true
+  },
+  "package": {
+    "archive": "joydeck-0.8.0-r2-completion.zip",
+    "sha256": "90352604a2db7c2cf33db396d08d1e71211123198f7fc050f7b4f8ce6f61f71b",
+    "sourceSha256": "758d4f90992fdcafbc0a40d218e79ca5e296a7a49cba459d0e506d18975181df",
+    "sourceCommit": "023a365e96f2821fab31b53f4856415eb053be61",
+    "target": "aarch64-apple-darwin",
+    "profile": "release",
+    "payloadFilesVerified": 1805,
+    "binarySha256": "79617f8f1cc8b4cee0fb709e6abbd0ca42e3537b204485b8ff894427f9f53b9c",
+    "cliSha256": "d69a8293b5bbe91902c8b6b020df6c50c28a13ebbfd0085d18b4ba84116c356d"
+  },
+  "product": {
+    "passed": 904,
+    "failed": 0,
+    "ignored": 0
+  },
+  "cli": {
+    "r1": 28,
+    "r2": 20,
+    "upstreamCommandIds": 329,
+    "commandInventorySha256": "121bf71c130bd61d4ad4fa6db2bae6c23b5decfb7e25a5c50eac92e7a7dc4075"
+  },
+  "desktop": {
+    "gestures2x": [
+      "Overlapping oval and rectangle select by painted geometry and stack order; Shift toggle and additive marquee preserve stable IDs",
+      "Rotated corners do not hit or enter a marquee; Esc cancels drag and marquee without a revision, undo or dirty change",
+      "Real app deactivation cancels a held drag before the later mouse-up",
+      "At reduced zoom, oriented resize follows the dragged grip, fixes the opposite corner, and commits exactly one undo/redo step",
+      "Rotation handle follows the rotated outline and Shift snaps about the same center",
+      "Window capture receives move and release outside the slide; two selected IDs move in one edit and the fixture stays unchanged",
+      "The operating system routes a held pointer release beyond the editor window back to the originating gesture",
+      "Native New, New Slide, Shape Gallery, layer commands, duplicate, Delete and Undo edit the live model and preserve stable IDs"
+    ],
+    "canvases": {
+      "fit": {
+        "x": 604.0,
+        "y": 308.5,
+        "zoom": 0.9875,
+        "backingScale": 2.0
+      },
+      "zoomed-out": {
+        "x": 724.0,
+        "y": 376.0,
+        "zoom": 0.7375,
+        "backingScale": 2.0
+      },
+      "editing": {
+        "x": 604.0,
+        "y": 308.5,
+        "zoom": 0.9875,
+        "backingScale": 2.0
+      }
+    },
+    "seedSha256": "9a8b07fab2939ed99a311b345205acc4aca349da11a158ff32c7d52db04a7666",
+    "viewer": [
+      "Cold open of uppercase PPTX in Unicode and space path; viewer and CLI slide semantics agree",
+      "Real thumbnail clicks navigated 1 → 2 → 3 → 1 → 2",
+      "Zoom out visibly reduced the page width; Fit restored the original width and retained selection",
+      "Cancelling the native picker retained page two and the document identity",
+      "Cancelling an in-progress read retained page two, document ID and revision",
+      "Malformed PPTX left the previously selected page available",
+      "A separate desktop process cold-opened a real DeckCraft file; viewer and CLI agreed on all three pages"
+    ],
+    "editorAndRecovery": [
+      "Native New → New Slide → Insert Shape → drag → single-step Undo/Redo preserved stable object ID and transform",
+      "Native Save As, normal Close and process restart preserved the saved geometry; the bundled CLI read it independently",
+      "After reopening, Undo returned the new edit to the saved clean state and Redo restored the same unsaved ID",
+      "Forced termination released the recovery lease; the CLI restored the unsaved second object while the source hash stayed fixed",
+      "The editor recovery chooser restored the exact snapshot, and native Save As published a separate file with the same two object IDs"
+    ]
+  },
+  "screenshots": {
+    "hidpi-01-marquee.png": {
+      "sha256": "37eab2add8fbbff51e6e1b1e8b39136c7b96a58b16e7b570c641791403d7770d",
+      "sizePixels": [
+        2560,
+        1764
+      ]
+    },
+    "hidpi-05-rotated-resize.png": {
+      "sha256": "9fd7e613c0385a6d0c67849660375ecb04f55c471ee50ab48a827c334d694b21",
+      "sizePixels": [
+        2560,
+        1764
+      ]
+    },
+    "hidpi-07-captured-outside-slide.png": {
+      "sha256": "db20b3cf6a1a38185d8f65a64ce695f4c409e5a798d54b542e7743c72e8ccf62",
+      "sizePixels": [
+        2560,
+        1764
+      ]
+    }
+  }
+}
