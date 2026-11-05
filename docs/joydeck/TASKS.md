@@ -31,17 +31,19 @@
 | 完成 | JD-104 | 异步打开、取消、文档切换与 revision 校验 | macOS Release 实测取消、请求竞争和坏文件；原编辑会话、修订和恢复记录保留，旧请求不覆盖新文稿。[证据](evidence/R1-OPEN-REVISION/README.md) | JD-102 |
 | 完成 | JD-105 | GPUI 显示真实页面、页列表、虚拟化缩略图、适应窗口和缩放 | 页序/比例/DPI 正确；大文稿不一次性生成所有缩略图 | JD-103、JD-104 |
 | 完成 | JD-106 | CLI inspect/render/commands 与查看器查询使用相同核心 | 包内 CLI 读回语义、输出 PNG 和共享引擎命令，查询不改原件，锁定闭包无 GPUI。[证据](evidence/R1-OPEN-REVISION/README.md) | JD-100–JD-104 |
-| 已实现待验收 | JD-107 | 迁移模型/格式/渲染相关测试并建立最小视觉基线 | 语义比较与独立 PNG 检查有结果；静态命令清单与运行时 registry 核对 | JD-105、JD-106 |
-| 已实现待验收 | JD-108 | R1 桌面包和真实文件查看验收 | 打开、翻页、缩放、取消、坏文件与 CLI 读回均有当次证据 | JD-107 |
+| 完成 | JD-107 | 迁移模型/格式/渲染相关测试并建立最小视觉基线 | 329 个静态 ID 与 CLI、control、MCP 注册表逐项核对，独立 PPTX 结构与输出 PNG 像素复验通过。[证据](evidence/R1-VIEWER-AUDIT/README.md) | JD-105、JD-106 |
+| 完成 | JD-108 | R1 桌面包和真实文件查看验收 | 移位 macOS Release 包通过打开、翻页、缩放、取消、坏文件与 CLI 独立读回。[证据](evidence/R1-VIEWER-AUDIT/README.md#jd-108-当次查看包) | JD-107 |
 
 
-R1 原 Windows 查看包及视觉基线见 [R1 记录](evidence/R1/README.md)。JD-104 的运行中取消、迟到请求和修订保留，以及 JD-106 的包内查询、渲染和共享命令注册表已从当前 macOS Release 复验。JD-107 的 329 条编辑命令对应仍待核对，JD-108 继续保留完整查看包的验收条件。[最新复验](evidence/R1-OPEN-REVISION/README.md)
+R1 原 Windows 查看包及视觉基线见 [R1 记录](evidence/R1/README.md)。JD-104 的运行中取消、迟到请求和修订保留，以及 JD-106 的包内查询、渲染和共享命令注册表已从 macOS Release 复验。[文件打开复验](evidence/R1-OPEN-REVISION/README.md)
+
+JD-107 已从新的移位包核对 329 条静态 ID、实际协议注册表和独立 PNG，核对脚本接入 CI。JD-108 从同一包完成实际查看与错误路径验收。逐命令的功能与 UI 验收由 JD-509 跟踪。[命令与查看证据](evidence/R1-VIEWER-AUDIT/README.md)
 
 ## R2 基础编辑与文件闭环
 
 | 状态 | ID | 任务与交付 | 完成条件 | 前置 |
 | --- | --- | --- | --- | --- |
-| 已实现待验收 | JD-200 | 将 Session 的内存编辑与 IO/恢复/导出编排拆到 engine、shell、platform | 命令语义保持；engine 无文件/对话框/导出服务依赖；IO 门禁无大范围豁免 | R1 |
+| 完成 | JD-200 | 将 Session 的内存编辑与 IO/恢复/导出编排拆到 engine、shell、platform | 锁定引擎闭包隔离、精确文件级 IO 门禁与同包 R2 命令／恢复复验通过。[证据](evidence/R1-VIEWER-AUDIT/README.md#jd-200-引擎与-io-边界) | R1 |
 | 已实现待验收 | JD-201 | 定义 EditorSnapshot、选择/命令状态、单一提交入口和后台版本协议 | UI/CLI 同状态；旧结果丢弃；多窗口共享文档且视图状态独立 | JD-200 |
 | 已实现待验收 | JD-202 | 选择、框选、多选、命中、坐标转换、指针捕获与手势取消 | 缩放/DPI/旋转下正确；取消不产生脏编辑；拖动只提交一个事务 | JD-201 |
 | 已实现待验收 | JD-203 | 新建文稿/页面、插入基础形状、移动/缩放/旋转、删除、复制和图层 | 桌面操作修改真实新模型；选择与场景同步 | JD-202 |

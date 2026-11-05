@@ -1,5 +1,7 @@
 # JoyDeck 当前状态
 
+2026-11-05 完成 JD-107、JD-108、JD-200。CLI、control、MCP 注册表与 329 条上游静态 ID 已对照。移位后的 macOS Release 包通过打开、翻页、缩放、取消、坏文件和 CLI 读回。引擎与文件服务的隔离及 R2 的 20 次 CLI 调用已复验。逐命令功能覆盖继续跟踪 JD-509。[证据](evidence/R1-VIEWER-AUDIT/README.md)
+
 2026-11-05 完成 JD-104 和 JD-106。macOS Release 实测打开中取消、新请求取代慢请求、坏文件后保留未保存文稿及撤销。当前文稿 ID、修订和恢复快照保持一致。包内 CLI 语义、PNG 和命令查询通过，CLI 依赖隔离通过。[R1 复验](evidence/R1-OPEN-REVISION/README.md)
 
 2026-11-05 完成 R0 验收复核。JD-007 的隔离宿主演练与 Windows/macOS/Linux CI 编译门禁已有证据，JD-008 的原 R0 Windows 开发包启动、导航/面板/主题及产物指纹已对照，任务状态更新为完成。[R0 复核](evidence/R0/README.md#任务验收复核)
