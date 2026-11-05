@@ -104,8 +104,7 @@ impl Viewer {
         match result {
             Ok(editor) => {
                 self.stop_read();
-                self.editor = Some(editor);
-                self.source = None;
+                self.attach_new_editor(editor, cx);
                 self.page = 0;
                 self.zoom = None;
                 self.cell = None;

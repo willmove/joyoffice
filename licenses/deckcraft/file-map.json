@@ -2268,11 +2268,12 @@
       "source_path": "crates/ui-egui/src/theme.rs",
       "source_sha256": "d8d6f55195ac5b0c22d49ec313b716fcfab6cb2c08b3c15445b1ed1fcbe97c6a",
       "target_path": "crates/joydeck-ui-gpui/src/chrome.rs",
-      "adapted_sha256": "af1fa93826a8d66a24f2e9c3a0bc40e8dbd878f347bf0a4b9eae62885c477a69",
+      "adapted_sha256": "aa58b30ff468afda926a69727e9ae194e47a33c8b451eebbf4a4932a481af14d",
       "changes": [
         "R8: adapt typed media references / object ID and resource remapping / layout and theme tokens to pure engine or GPUI Kit; no egui dependency",
         "rustfmt; bounded transactions, errors and clipboard serialization; original MIT attribution retained",
-        "Status-bar control for cancelling an active document open"
+        "Status-bar control for cancelling an active document open",
+        "Connect independent windows to the shared document session"
       ],
       "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained."
     },
@@ -2280,11 +2281,12 @@
       "source_path": "crates/ui-egui/src/ribbon.rs",
       "source_sha256": "036692f8a885af7b61dfcd7e065f371f46c7db67854c0df9d205c91f35d9049a",
       "target_path": "crates/joydeck-ui-gpui/src/chrome.rs",
-      "adapted_sha256": "af1fa93826a8d66a24f2e9c3a0bc40e8dbd878f347bf0a4b9eae62885c477a69",
+      "adapted_sha256": "aa58b30ff468afda926a69727e9ae194e47a33c8b451eebbf4a4932a481af14d",
       "changes": [
         "R8: adapt typed media references / object ID and resource remapping / layout and theme tokens to pure engine or GPUI Kit; no egui dependency",
         "rustfmt; bounded transactions, errors and clipboard serialization; original MIT attribution retained",
-        "Status-bar control for cancelling an active document open"
+        "Status-bar control for cancelling an active document open",
+        "Connect independent windows to the shared document session"
       ],
       "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained."
     },
@@ -2292,11 +2294,12 @@
       "source_path": "crates/ui-egui/src/widgets.rs",
       "source_sha256": "d62cc3cce0436f1118c6486f52c5d90175aeaa79751602a89dbf01aa8d233bf9",
       "target_path": "crates/joydeck-ui-gpui/src/chrome.rs",
-      "adapted_sha256": "af1fa93826a8d66a24f2e9c3a0bc40e8dbd878f347bf0a4b9eae62885c477a69",
+      "adapted_sha256": "aa58b30ff468afda926a69727e9ae194e47a33c8b451eebbf4a4932a481af14d",
       "changes": [
         "R8: adapt typed media references / object ID and resource remapping / layout and theme tokens to pure engine or GPUI Kit; no egui dependency",
         "rustfmt; bounded transactions, errors and clipboard serialization; original MIT attribution retained",
-        "Status-bar control for cancelling an active document open"
+        "Status-bar control for cancelling an active document open",
+        "Connect independent windows to the shared document session"
       ],
       "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained."
     }

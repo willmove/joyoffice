@@ -194,7 +194,7 @@ impl Viewer {
         if self.delivery_busy {
             return;
         }
-        let model = editor.session.snapshot().model;
+        let model = editor.session.model_snapshot();
         let revision = editor.session.revision();
         let generation = self.generation;
         self.delivery_cancel = Default::default();

@@ -87,14 +87,17 @@ Word CI 还暴露出原基线也存在的两份独立实验锁漂移，已仅补
 | 旧 document.export | 新 export.start + jobs.get/cancel；输出只允许新路径。静态 MP4 使用 Windows 或 macOS 本机编码器，macOS ARM64 已从移位 Release 包导出并独立解码。嵌入媒体探测与播放的 macOS 移植继续开放。[本机证据](validation/20261105-macos-video/README.md) |
 | command.validate | R9-UI1 恢复：params 接受 schema 2 或已广告的旧字符串子集；快照执行真实引擎与预算/历史检查，返回 valid/wouldChange/sideEffects=false；不修改活文稿，完整旧 16 领域未实现 |
 | 旧 document.check/compare/acceptObject 等 | 支持兼容报告、双摘要保护的基础对象接受／单步撤销。相同稳定页 ID 集合重排后按 ID 比较并接受对象；其他情况按页序比较。复杂组／媒体和页 ID 变化后的跨页匹配继续开放。[复验](../joydeck/evidence/R9-FILE-COMPAT/README.md) |
-| 旧桌面远程绑定/多窗口 | CLI/MCP 默认独立 headless；R9-UI2 显式 --control-stdio=AUTHORIZED_ROOT 绑定该窗口唯一 Editor，attachedDesktop=true，限制修订／重放／组合输入／拖动／保存和文稿代次；新窗口独立生命周期。桌面 MCP 分发与完整旧 16 领域仍缺 |
+| 旧桌面远程绑定/多窗口 | CLI/MCP 默认独立 headless。显式 `--control-stdio=AUTHORIZED_ROOT` 绑定窗口视图，修订、重放、组合输入、拖动和文稿代次仍受约束。同文稿的多个视图共享 Editor、撤销、保存和恢复，选区与缩放独立。桌面 MCP 分发与完整旧 16 领域仍缺。[共享视图复验](../joydeck/evidence/R2-SHARED-DOCUMENT/README.md) |
+| 基础画布手势 | macOS 1× 及 2× HiDPI 实际窗口已复验旋转命中、框选、多选、窗口外捕获、Esc／失焦取消及单次事务。2× backing 由 macOS 虚拟显示器提供。JD-202／203 已完成。[证据](../joydeck/evidence/R2-POINTER/README.md) |
+| 常用编辑命令 | JD-208 已从 macOS Release 验证菜单、Ribbon、快捷键和状态栏。预检与执行共用引擎，包内 CLI 逐步验证对象、层级、页序和历史。[证据](../joydeck/evidence/R2-COMMAND-STATE/README.md) |
+| R2 编辑器开发包 | JD-209 已在整合保存发布和编辑改动的 macOS ARM64 Release 包上验证。真实窗口和独立 CLI 均复验保存重开与强制终止恢复，原件散列保持。[证据](../joydeck/evidence/R2-EDITOR-PACKAGE/README.md) |
 | 旧偏好、最近文件、比较接受/图片依赖、完整设计与审阅 | 新增有界最近文件、原创模板、基础比较接受、旧批注／回复／解决／媒体／链接／放映配置迁移及审阅 GUI；完整设计／母版／偏好与复杂内容仍缺，不能沿用旧 done |
 
 使用机器接口时先查询能力，不只看 envelope 字符串。新旧未覆盖功能属于实际产品差距，不是仅等待硬件验收。完整“旧功能无回退”验收（JD-906）仍开放，不能因导入和构建成功而关闭。
 
 ## 后续任务及建议顺序
 
-1. **最高优先：继续 UI 与日常编辑对齐。** 用户的 DeckCraft/PowerPoint 完整一致目标仍未实现。按 JD-208、JD-301–308、JD-501–508、JD-804，继续原生字体/颜色选择器、完整 Ribbon/图库/表格控件、旋转与多选、最近文件/模板、多窗口、母版/审阅等。主参照仍为本机 DeckCraft，PowerPoint 辅助核对中文流程。每个切片都构建并实际操作窗口。
+1. **最高优先：继续 UI 与日常编辑对齐。** 用户的 DeckCraft/PowerPoint 完整一致目标仍未实现。按 JD-301–308、JD-501–508、JD-804，继续原生字体/颜色选择器、完整 Ribbon/图库/表格控件、旋转与多选、最近文件/模板、多窗口、母版/审阅等。主参照仍为本机 DeckCraft，PowerPoint 辅助核对中文流程。每个切片都构建并实际操作窗口。
 2. **旧功能与自动化缺项：** JD-506、JD-706、JD-906，恢复比较/逐对象接受、原有设计/审阅行为与旧命令契约；先补有语义的回归和能力协商，再接 UI/MCP，不能建立第二个长期可编辑模型。
 3. **渲染与性能：** JD-408、JD-806，固定真实 release 文稿/字体/屏幕条件，记录实际呈现、缓存、RSS/显存与 p95/p99；不能用命令耗时代替显示延迟。
 4. **平台资格：** JD-800–804。macOS ARM64 普通 Metal Release、移位启动、首屏和 PPTX 键鼠编辑往返已验证。PPTX 系统冷启动和运行中打开、文件／编辑菜单、原生打开与另存为面板的取消及确认均有实机证据。另存扩展名修复已从移位 Release App 实测。继续 Linux/ARM、原生 IME、读屏、DPI、设备与多屏。信创真机按条件补验。[最新复验](../joydeck/evidence/R9-FILE-COMPAT/README.md#实屏复验)

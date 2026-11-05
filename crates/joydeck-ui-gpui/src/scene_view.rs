@@ -15,7 +15,7 @@ impl Viewer {
             return;
         }
         let Some(e) = &self.editor else { return };
-        let model = e.session.snapshot().model;
+        let model = e.session.model_snapshot();
         let cache = self.scene_cache.clone();
         let scale = f64::from(width) / model.slide_size.width;
         let cancel = Arc::new(AtomicBool::new(false));
@@ -75,8 +75,7 @@ impl Viewer {
         let delta = self
             .drag
             .as_ref()
-            .filter(|d| d.resize.is_none() && !d.marquee)
-            .map(|d| d.current - d.start)
+            .map(editing::Drag::move_preview)
             .unwrap_or_default();
         let moved = self
             .editor

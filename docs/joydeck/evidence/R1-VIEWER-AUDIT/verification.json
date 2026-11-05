@@ -1,0 +1,109 @@
+{
+  "runtimeBase": "ce8bd67",
+  "package": {
+    "archive": "joydeck-0.8.0-r1-viewer-audit.zip",
+    "archive_sha256": "28f88c34caf10f0bd0ff6e28cd840317d5c4e88c2e1835b2c58d9a6dbba6d878",
+    "source_sha256": "fccc5ed7454af7d5c6d027e00d8764ac7870795cbc6f637cd8b42c2c2a5ac655",
+    "target": "aarch64-apple-darwin",
+    "profile": "release",
+    "sbom_packages": 465,
+    "missing_license_texts": [
+      "block@0.1.6",
+      "mac@0.1.1",
+      "malloc_buf@0.0.6",
+      "pathfinder_geometry@0.5.1",
+      "seahash@4.1.0"
+    ],
+    "signed": false
+  },
+  "packageFilesVerified": 1805,
+  "cliChecks": 28,
+  "cliSha256": "9ed2a5a72e139af7fa7150b32ed2435ff9b95f5d803d389b707df79c39550baf",
+  "independentPptx": {
+    "sha256": "6e3aa914dd5f40cd261ab35ceff2f1b584f100fa0ffb0569f6cb9af53bed6933",
+    "packageSlideCount": 3,
+    "parsedSlideCount": 3,
+    "slide2HasPictureAndTable": true
+  },
+  "independentPng": {
+    "sha256": "3c825ea69747b57e2251f2ec106ade0f7146e46478288091be348e66fd341939",
+    "decoder": "AppKit NSBitmapImageRep raw samples",
+    "width": 960,
+    "height": 540,
+    "samples": [
+      {
+        "x": 80,
+        "y": 240,
+        "rgba": [
+          34,
+          111,
+          76,
+          255
+        ]
+      },
+      {
+        "x": 330,
+        "y": 220,
+        "rgba": [
+          232,
+          193,
+          112,
+          255
+        ]
+      }
+    ]
+  },
+  "deckCheck": {
+    "passed": 899,
+    "failed": 0,
+    "ignored": 0,
+    "strictClippy": true
+  },
+  "viewer": {
+    "binarySha256": "82f627b1dbedaecd70f654d8ffb8e906ed9c89ae24b28fb2b1b2e1332cf84004",
+    "cliSha256": "9ed2a5a72e139af7fa7150b32ed2435ff9b95f5d803d389b707df79c39550baf",
+    "checks": [
+      "Cold open of uppercase PPTX in Unicode and space path; viewer and CLI slide semantics agree",
+      "Real thumbnail clicks navigated 1 → 2 → 3 → 1 → 2",
+      "Zoom out visibly reduced the page width; Fit restored the original width and retained selection",
+      "Cancelling the native picker retained page two and the document identity",
+      "Cancelling an in-progress read retained page two, document ID and revision",
+      "Malformed PPTX left the previously selected page available",
+      "Native picker switched to a real DeckCraft file; viewer and CLI agreed on all three pages"
+    ],
+    "screenshots": {
+      "01-page2-fit.png": "fba1b11c6b8ee15d326ed2e81d2973a6f00f4bcb98c694dfb071fd4bc84d5e4f",
+      "02-page2-zoom-out.png": "38f8c466a87b92cb14333bc37c9a6cd68f90d3826ce5f51ab1bdcd3b88c0dba1",
+      "04-corrupt-file-retains-page2.png": "b9884848936047400c1e29f092feb9a65297748fcd364cf944e182c880f875d8",
+      "05-deckcraft-open.png": "854adf10bfd4dfe887d68da21cf8e296f0ab5d9fc4bbda2f62751a7686f91e67"
+    },
+    "slowFixture": {
+      "sha256": "10dd1428e9572bfeb771aad1b88c166cd8557fc3aabc243aef50060067e0eb3c",
+      "objects": 18015
+    },
+    "paperWidthPoints": [
+      775,
+      539,
+      775
+    ],
+    "allInputHashesUnchanged": true,
+    "fitRestoredSameImage": true,
+    "escape": {
+      "verified": true,
+      "canvasFocused": true,
+      "rightArrowNavigationVerifiedBeforeCancel": true,
+      "sessionUnchanged": true
+    }
+  },
+  "r2EngineBoundary": {
+    "headlessCliChecks": 20,
+    "crashRecoveryPassed": true,
+    "engineLocalNormalAndBuildClosure": [
+      "joydeck-color",
+      "joydeck-engine",
+      "joydeck-geom",
+      "joydeck-model"
+    ],
+    "dependencyAndIoGatesPassed": true
+  }
+}

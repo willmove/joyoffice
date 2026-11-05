@@ -51,11 +51,18 @@ impl Viewer {
                 || self
                     .text_input
                     .update(cx, |i, cx| i.marked_text_range(w, cx).is_some());
-            let response = if self.loading || self.saving || composing || self.drag.is_some() {
+            let response = if self.loading || self.is_saving() || composing || self.drag.is_some() {
                 serde_json::json!({"requestId":pending.request.request_id,"error":{"code":"busy","message":"desktop is loading, saving, composing or dragging; retry with a new requestId"}})
+            } else if let Some(editor) = &mut self.editor {
+                editor.dispatch_attached(
+                    &mut control.dispatcher,
+                    self.generation,
+                    pending.request.clone(),
+                    cx,
+                )
             } else {
                 control.dispatcher.dispatch_attached(
-                    &mut self.editor,
+                    &mut None,
                     self.generation,
                     pending.request.clone(),
                 )
