@@ -2,7 +2,10 @@
 //! One transaction entry point for desktop and CLI. No file, renderer or window services.
 use joydeck_model::{text::RunKind, *};
 use serde::{Deserialize, Serialize};
-use std::{collections::BTreeMap, sync::Arc};
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    sync::Arc,
+};
 mod authoring;
 mod content;
 mod history_cost;
@@ -46,6 +49,26 @@ pub fn original_bindings(p: &Presentation) -> Origins {
 pub struct Selection {
     pub page: usize,
     pub shapes: Vec<ShapeId>,
+}
+impl Selection {
+    pub fn checked(
+        model: &Presentation,
+        page: usize,
+        shapes: Vec<ShapeId>,
+    ) -> std::result::Result<Self, String> {
+        let slide = model.slides.get(page).ok_or("page outside document")?;
+        let mut missing: BTreeSet<_> = shapes.iter().copied().collect();
+        for shape in &slide.shapes {
+            if missing.is_empty() {
+                break;
+            }
+            missing.remove(&shape.id);
+        }
+        if !missing.is_empty() {
+            return Err("select top-level shapes only".into());
+        }
+        Ok(Self { page, shapes })
+    }
 }
 #[derive(Clone, Debug)]
 pub struct EditorSnapshot {
@@ -270,6 +293,9 @@ impl Session {
     pub fn model(&self) -> &Presentation {
         &self.state.model
     }
+    pub fn model_snapshot(&self) -> Arc<Presentation> {
+        self.state.model.clone()
+    }
     pub fn selection(&self) -> &Selection {
         &self.state.selection
     }
@@ -289,24 +315,44 @@ impl Session {
         self.saved = Some(content_id);
     }
     pub fn select(&mut self, page: usize, shapes: Vec<ShapeId>) -> std::result::Result<(), String> {
-        let slide = self
-            .model()
-            .slides
-            .get(page)
-            .ok_or("page outside document")?;
-        if shapes
-            .iter()
-            .any(|id| !slide.shapes.iter().any(|s| s.id == *id))
-        {
-            return Err("select top-level shapes only".into());
-        }
-        self.state.selection = Selection { page, shapes };
+        self.state.selection = Selection::checked(self.model(), page, shapes)?;
         Ok(())
     }
     /// Execute against a copy-on-write snapshot, including real history and budget checks.
     /// The live document, selection, save marker and undo/redo stacks remain unchanged.
     pub fn validate(&self, cmd: Command) -> std::result::Result<bool, String> {
-        self.clone().execute(cmd)
+        self.validate_from(&self.state.selection, cmd)
+    }
+    /// Validate a command against a window's selection without changing the shared session.
+    pub fn validate_for_selection(
+        &self,
+        selection: &Selection,
+        cmd: Command,
+    ) -> std::result::Result<bool, String> {
+        let selection = Selection::checked(self.model(), selection.page, selection.shapes.clone())?;
+        self.validate_from(&selection, cmd)
+    }
+    fn validate_from(
+        &self,
+        selection: &Selection,
+        cmd: Command,
+    ) -> std::result::Result<bool, String> {
+        if let Command::Select { page, shapes } = cmd {
+            Selection::checked(
+                self.model(),
+                page.checked_sub(1).ok_or("pages start at 1")?,
+                shapes,
+            )?;
+            return Ok(false);
+        }
+        if self.model().slides.get(selection.page).is_none() {
+            return Err("no active slide".into());
+        }
+        match cmd {
+            Command::Undo => Ok(self.can_undo()),
+            Command::Redo => Ok(self.can_redo()),
+            _ => self.prepare_edit(selection, cmd).map(|next| next.is_some()),
+        }
     }
     pub fn execute(&mut self, cmd: Command) -> std::result::Result<bool, String> {
         if let Command::Select { page, shapes } = cmd {
@@ -339,20 +385,9 @@ impl Session {
             self.revision += 1;
             return Ok(true);
         }
-        let mut next = self.state.clone();
-        apply(&mut next, cmd)?;
-        next.origins.retain(|id, origin| {
-            if let Some(slide) = next.model.slide(*id) {
-                origin.shapes.retain(|id, _| slide.shape(*id).is_some());
-                true
-            } else {
-                false
-            }
-        });
-        if next.model == self.state.model && next.origins == self.state.origins {
+        let Some(mut next) = self.prepare_edit(&self.state.selection, cmd)? else {
             return Ok(false);
-        }
-        check_model_budget(&next.model)?;
+        };
         next.content_id = self.next_content;
         self.next_content += 1;
         let cost = history_cost::undo_cost(&self.state.model, &next.model);
@@ -367,6 +402,29 @@ impl Session {
             cost = cost.saturating_sub(self.undo.remove(0).cost);
         }
         Ok(true)
+    }
+
+    fn prepare_edit(
+        &self,
+        selection: &Selection,
+        cmd: Command,
+    ) -> std::result::Result<Option<EditorSnapshot>, String> {
+        let mut next = self.state.clone();
+        next.selection = selection.clone();
+        apply(&mut next, cmd)?;
+        next.origins.retain(|id, origin| {
+            if let Some(slide) = next.model.slide(*id) {
+                origin.shapes.retain(|id, _| slide.shape(*id).is_some());
+                true
+            } else {
+                false
+            }
+        });
+        if next.model == self.state.model && next.origins == self.state.origins {
+            return Ok(None);
+        }
+        check_model_budget(&next.model)?;
+        Ok(Some(next))
     }
 }
 fn check_model_budget(model: &Presentation) -> std::result::Result<(), String> {
@@ -635,21 +693,22 @@ fn apply(st: &mut EditorSnapshot, cmd: Command) -> std::result::Result<(), Strin
         st.selection.shapes = vec![id];
         return Ok(());
     }
+    let selected: BTreeSet<_> = st.selection.shapes.iter().copied().collect();
     if p.slides[page]
         .shapes
         .iter()
-        .any(|s| s.locked && st.selection.shapes.contains(&s.id))
+        .any(|s| s.locked && selected.contains(&s.id))
     {
         return Err("selected object is locked".into());
     }
-    if st.selection.shapes.is_empty() {
+    if selected.is_empty() {
         return Err("select an object first".into());
     }
     if matches!(cmd, Command::Duplicate) {
         let old = p.slides[page]
             .shapes
             .iter()
-            .filter(|s| st.selection.shapes.contains(&s.id))
+            .filter(|s| selected.contains(&s.id))
             .cloned()
             .collect::<Vec<_>>();
         let slide_id = p.slides[page].id;
@@ -684,29 +743,27 @@ fn apply(st: &mut EditorSnapshot, cmd: Command) -> std::result::Result<(), Strin
         p.slides[page]
             .shapes
             .iter()
+            .filter(|s| matches!(cmd, Command::Transform { .. }) && selected.contains(&s.id))
             .map(|s| (s.id, resolve::xfrm(&ctx, s)))
             .collect::<BTreeMap<_, _>>()
     };
     let slide = Arc::make_mut(&mut p.slides[page]);
     match cmd {
         Command::Delete => {
-            let removed = st.selection.shapes.clone();
-            slide
-                .shapes
-                .retain(|s| !st.selection.shapes.contains(&s.id));
+            slide.shapes.retain(|s| !selected.contains(&s.id));
             slide
                 .comments
-                .retain(|c| c.shape.is_none_or(|id| !removed.contains(&id)));
-            slide.animations.retain(|a| !removed.contains(&a.shape));
+                .retain(|c| c.shape.is_none_or(|id| !selected.contains(&id)));
+            slide.animations.retain(|a| !selected.contains(&a.shape));
             for animation in &mut slide.animations {
-                if animation.trigger.is_some_and(|id| removed.contains(&id)) {
+                if animation.trigger.is_some_and(|id| selected.contains(&id)) {
                     animation.trigger = None;
                 }
             }
             for shape in &mut slide.shapes {
                 if let ShapeKind::Connector { start, end } = &mut shape.kind {
-                    *start = start.filter(|(id, _)| !removed.contains(id));
-                    *end = end.filter(|(id, _)| !removed.contains(id));
+                    *start = start.filter(|(id, _)| !selected.contains(id));
+                    *end = end.filter(|(id, _)| !selected.contains(id));
                 }
             }
             st.selection.shapes.clear();
@@ -720,8 +777,7 @@ fn apply(st: &mut EditorSnapshot, cmd: Command) -> std::result::Result<(), Strin
             };
             for i in indices {
                 let j = if forward { i + 1 } else { i - 1 };
-                if st.selection.shapes.contains(&slide.shapes[i].id)
-                    && !st.selection.shapes.contains(&slide.shapes[j].id)
+                if selected.contains(&slide.shapes[i].id) && !selected.contains(&slide.shapes[j].id)
                 {
                     slide.shapes.swap(i, j);
                 }
@@ -737,11 +793,7 @@ fn apply(st: &mut EditorSnapshot, cmd: Command) -> std::result::Result<(), Strin
             for v in [dx, dy, dw, dh, rotation] {
                 checked(v)?;
             }
-            for s in slide
-                .shapes
-                .iter_mut()
-                .filter(|s| st.selection.shapes.contains(&s.id))
-            {
+            for s in slide.shapes.iter_mut().filter(|s| selected.contains(&s.id)) {
                 if s.locked {
                     return Err("object is locked".into());
                 }

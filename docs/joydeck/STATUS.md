@@ -1,10 +1,20 @@
 # JoyDeck 当前状态
 
-2026-11-05 完成 JD-206。同进程保存只允许一份冲突结果发布，macOS 实测替换失败、外部改动、取消关闭和另存读回。三产品本机联合回归 5,791 项通过，开发包均已验证；JD-905 的合并 CI 继续跟踪。[保存复验](evidence/R2-SAVE-PUBLICATION/README.md) · [联合回归](evidence/R9-WORKSPACE/README.md)
+2026-11-05 完成 JD-209。整合保存发布修复后的 macOS ARM64 Release 包，从实际新建、插入、拖动、另存和重开，验证到重开后的撤销、重做和强制终止恢复。桌面与包内 CLI 独立读回一致，原件散列保持，产品检查 904 项通过。[编辑器包验收](evidence/R2-EDITOR-PACKAGE/README.md)
+
+2026-11-05 完成 JD-208。常用撤销、页与对象编辑、层级操作使用同一引擎预检。实测原生菜单与 Ribbon 的禁用状态、无选择 Delete 提示、快捷键和独立 CLI 对照。产品检查 903 项通过。[命令状态证据](evidence/R2-COMMAND-STATE/README.md)
+
+2026-11-05 完成 JD-203。macOS Release 实测新建文稿和页面、插入形状、层级、副本、删除和撤销。JD-202 已修正旋转命中、手柄锚点和窗口级指针捕获，1× 实屏确认 Esc 与失焦取消不写入编辑历史，拖到窗口外释放只提交一次。2× Retina/HiDPI 实屏继续待验收。JoyDeck 产品检查 902 项通过。[手势与基础编辑证据](evidence/R2-POINTER/README.md)
+
+2026-11-05 完成 JD-201。「视图」新增「新建文稿视图」，同一规范化路径在多个窗口共享编辑、撤销、保存和恢复，各窗口保持独立的页选与缩放。三窗口实测及过期读取拒绝通过，JoyDeck 产品检查 900 项通过。[共享文稿证据](evidence/R2-SHARED-DOCUMENT/README.md)
+
+2026-11-05 完成 JD-107、JD-108、JD-200。CLI、control、MCP 注册表与 329 条上游静态 ID 已对照。移位后的 macOS Release 包通过打开、翻页、缩放、取消、坏文件和 CLI 读回。引擎与文件服务的隔离及 R2 的 20 次 CLI 调用已复验。逐命令功能覆盖继续跟踪 JD-509。[证据](evidence/R1-VIEWER-AUDIT/README.md)
 
 2026-11-05 完成 JD-104 和 JD-106。macOS Release 实测打开中取消、新请求取代慢请求、坏文件后保留未保存文稿及撤销。当前文稿 ID、修订和恢复快照保持一致。包内 CLI 语义、PNG 和命令查询通过，CLI 依赖隔离通过。[R1 复验](evidence/R1-OPEN-REVISION/README.md)
 
 2026-11-05 完成 R0 验收复核。JD-007 的隔离宿主演练与 Windows/macOS/Linux CI 编译门禁已有证据，JD-008 的原 R0 Windows 开发包启动、导航/面板/主题及产物指纹已对照，任务状态更新为完成。[R0 复核](evidence/R0/README.md#任务验收复核)
+
+2026-11-05 完成 JD-206。同进程保存只允许一份冲突结果发布，macOS 实测替换失败、外部改动、取消关闭和另存读回。三产品本机联合回归 5,791 项通过，开发包均已验证；JD-905 的合并 CI 继续跟踪。[保存复验](evidence/R2-SAVE-PUBLICATION/README.md) · [联合回归](evidence/R9-WORKSPACE/README.md)
 
 2026-11-05 R9 文件与旧控制复验。macOS 原生另存扩展名已修复，四种名称在移位 Release 包中成功落盘并独立读回。旧批次按更新后的页序执行，迁移表格字符串 ID 已接通，比较支持对相同稳定页 ID 集合重排后的对象接受。系统文件打开、坏文件恢复和未保存保护已在当次包复验。各父任务按剩余验收条件保留。[验证记录](evidence/R9-FILE-COMPAT/README.md)
 

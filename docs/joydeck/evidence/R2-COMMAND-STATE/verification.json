@@ -1,0 +1,136 @@
+{
+  "binarySha256": "ff18364c13c2e67e1efd2f2b313164200c8ff443c01c35af632312edae80f60a",
+  "cliSha256": "5a4a987caeaf3ca426f62d8bd77b08dddf93d38ab4806cc1fd31d5a9527ecd19",
+  "states": [
+    {
+      "command": {
+        "command": "undo"
+      },
+      "validation": false,
+      "gui": {
+        "page": 0,
+        "shapes": []
+      }
+    },
+    {
+      "command": {
+        "command": "delete"
+      },
+      "validation": "select an object first",
+      "gui": {
+        "page": 0,
+        "shapes": []
+      }
+    },
+    {
+      "command": {
+        "command": "delete-slide"
+      },
+      "validation": "keep at least one slide",
+      "gui": {
+        "page": 0,
+        "shapes": []
+      }
+    },
+    {
+      "command": {
+        "command": "duplicate"
+      },
+      "validation": "select an object first",
+      "gui": {
+        "page": 0,
+        "shapes": []
+      }
+    },
+    {
+      "command": {
+        "command": "bring-forward"
+      },
+      "validation": "select an object first",
+      "gui": {
+        "page": 0,
+        "shapes": []
+      }
+    },
+    {
+      "command": {
+        "command": "bring-forward"
+      },
+      "validation": false,
+      "gui": {
+        "page": 0,
+        "shapes": [
+          263
+        ]
+      }
+    },
+    {
+      "command": {
+        "command": "send-backward"
+      },
+      "validation": true,
+      "gui": {
+        "page": 0,
+        "shapes": [
+          263
+        ]
+      }
+    },
+    {
+      "command": {
+        "command": "bring-forward"
+      },
+      "validation": true,
+      "gui": {
+        "page": 0,
+        "shapes": [
+          263
+        ]
+      }
+    }
+  ],
+  "screenshots": {
+    "01-clean-command-state.png": "fe3c6a6eef656f981f72ab71b5bdf9e69bb46e97c363423224d1393f05359c5b",
+    "02-disabled-shortcut-reason.png": "49102c0c120bf5729dea791fc7cb836b063a82d2c9048273f58cb0b25724238f",
+    "03-layer-boundary.png": "d87f9450f36f6ce3bce927db9ed34852e2b80048b31fb2d9db615328a11b1981",
+    "04-last-slide-protected.png": "5900cdfa71091ed2944082efa56617d0856e374fef83f2e50723cfbe5cf022da",
+    "05-native-save.png": "486d8f9b0e62be4307db208ab6fbc7dda302ad090c077893e77f38317c1e0011"
+  },
+  "seedSha256": "9a8b07fab2939ed99a311b345205acc4aca349da11a158ff32c7d52db04a7666",
+  "disabledShortcutStatus": "请先选择对象",
+  "savedSha256": "5561803d8b5ce1b4f8addecd6ffcde51268ddddaecb9d5bf8024fd68bab5db07",
+  "modelState": {
+    "pages": 1,
+    "shapes": 4
+  },
+  "passed": true,
+  "package": {
+    "archive_sha256": "a8c620fec2ecd6ff267afbae3f8692c8133629995d132c6de05b618bcdc4b745",
+    "source_sha256": "ed425f5c8d716742e5629ac0a9b495c3a8af9ecd8295dc33593b93afb1d11cc5",
+    "target": "aarch64-apple-darwin",
+    "profile": "release",
+    "verifiedPayloadFiles": 1805
+  },
+  "tests": {
+    "passed": 903,
+    "failed": 0,
+    "ignored": 0
+  },
+  "cliChecks": {
+    "r1": 28,
+    "r2": 20,
+    "r3": 20,
+    "upstreamCommandIds": 329
+  },
+  "nativeOperations": [
+    "menu: send backward",
+    "Ribbon: bring forward",
+    "keyboard: duplicate",
+    "menu: delete object",
+    "menu: undo",
+    "keyboard: redo",
+    "menu: duplicate slide",
+    "Ribbon: delete slide",
+    "menu: save with independent packaged CLI readback"
+  ]
+}

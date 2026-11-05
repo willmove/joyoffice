@@ -96,6 +96,15 @@ fn col() -> Div {
 }
 
 impl Viewer {
+    fn basic_button(&self, button: Button, edit: BasicEdit, cx: &mut Context<Self>) -> Button {
+        let button = if let Some(reason) = self.basic_edit_unavailable(edit, cx) {
+            button.tooltip(reason).disabled(true)
+        } else {
+            button
+        };
+        button.on_click(cx.listener(move |s, _, w, cx| s.run_basic_edit(edit, w, cx)))
+    }
+
     pub(super) fn title_chrome(&self, cx: &mut Context<Self>) -> Div {
         let p = palette(self.dark);
         let dirty = self.editor.as_ref().is_some_and(|e| e.session.dirty());
@@ -130,28 +139,32 @@ impl Viewer {
                     .icon(I::Save)
                     .accessibility_label("保存")
                     .tooltip("保存 · Ctrl+S")
-                    .disabled(self.editor.is_none() || self.saving)
+                    .disabled(self.save_unavailable().is_some())
                     .on_click(cx.listener(|s, _, w, cx| s.save(&Save, w, cx))),
             )
             .child(
-                Button::new("quick-undo")
-                    .ghost()
-                    .xsmall()
-                    .icon(I::Undo2)
-                    .accessibility_label("撤销")
-                    .tooltip("撤销 · Ctrl+Z")
-                    .disabled(!self.editor.as_ref().is_some_and(|e| e.session.can_undo()))
-                    .on_click(cx.listener(|s, _, w, cx| s.undo_edit(&UndoEdit, w, cx))),
+                self.basic_button(
+                    Button::new("quick-undo")
+                        .ghost()
+                        .xsmall()
+                        .icon(I::Undo2)
+                        .accessibility_label("撤销")
+                        .tooltip("撤销 · Ctrl+Z"),
+                    BasicEdit::Undo,
+                    cx,
+                ),
             )
             .child(
-                Button::new("quick-redo")
-                    .ghost()
-                    .xsmall()
-                    .icon(I::Redo2)
-                    .accessibility_label("重做")
-                    .tooltip("重做 · Ctrl+Y")
-                    .disabled(!self.editor.as_ref().is_some_and(|e| e.session.can_redo()))
-                    .on_click(cx.listener(|s, _, w, cx| s.redo_edit(&RedoEdit, w, cx))),
+                self.basic_button(
+                    Button::new("quick-redo")
+                        .ghost()
+                        .xsmall()
+                        .icon(I::Redo2)
+                        .accessibility_label("重做")
+                        .tooltip("重做 · Ctrl+Y"),
+                    BasicEdit::Redo,
+                    cx,
+                ),
             )
             .child(
                 Button::new("quick-present")
@@ -353,7 +366,7 @@ impl Viewer {
             .child(self.font_group(cx))
             .child(self.paragraph_group(cx))
             .child(self.home_drawing(cx, disabled))
-            .child(self.home_arrange(cx, selected));
+            .child(self.home_arrange(cx));
         bar
     }
     #[inline(never)]
@@ -370,7 +383,12 @@ impl Viewer {
                     col()
                         .child(
                             small("cut", I::Scissors, "剪切")
-                                .disabled(!selected)
+                                .disabled(
+                                    self.inline.is_none()
+                                        && self
+                                            .basic_edit_unavailable(BasicEdit::Delete, cx)
+                                            .is_some(),
+                                )
                                 .on_click(cx.listener(|s, _, w, cx| {
                                     s.clipboard_copy(true, w, cx);
                                 })),
@@ -380,15 +398,11 @@ impl Viewer {
                                 cx.listener(|s, _, w, cx| s.clipboard_copy(false, w, cx)),
                             ),
                         )
-                        .child(
-                            small("duplicate", I::CopyPlus, "创建副本")
-                                .disabled(!selected)
-                                .on_click(
-                                    cx.listener(|s, _, w, cx| {
-                                        s.dispatch(Command::Duplicate, w, cx)
-                                    }),
-                                ),
-                        ),
+                        .child(self.basic_button(
+                            small("duplicate", I::CopyPlus, "创建副本"),
+                            BasicEdit::Duplicate,
+                            cx,
+                        )),
                 ),
         )
     }
@@ -397,11 +411,11 @@ impl Viewer {
         group(
             "幻灯片",
             row()
-                .child(
-                    tool("new-slide", I::GalleryVerticalEnd, "新建幻灯片", 0x2ea36f)
-                        .disabled(disabled)
-                        .on_click(cx.listener(|s, _, w, cx| s.dispatch(Command::NewSlide, w, cx))),
-                )
+                .child(self.basic_button(
+                    tool("new-slide", I::GalleryVerticalEnd, "新建幻灯片", 0x2ea36f),
+                    BasicEdit::NewSlide,
+                    cx,
+                ))
                 .child(
                     col()
                         .child(
@@ -409,37 +423,16 @@ impl Viewer {
                                 .disabled(disabled)
                                 .on_click(cx.listener(|s, _, w, cx| s.layout_gallery(w, cx))),
                         )
-                        .child(
-                            small("duplicate-slide", I::Copy, "复制幻灯片")
-                                .disabled(disabled)
-                                .on_click(cx.listener(|s, _, w, cx| {
-                                    s.dispatch(
-                                        Command::Workspace {
-                                            action:
-                                                joydeck_engine::WorkspaceAction::DuplicateSlides {
-                                                    slides: s.selected_slides(),
-                                                },
-                                        },
-                                        w,
-                                        cx,
-                                    )
-                                })),
-                        )
-                        .child(
-                            small("delete-slide", I::Trash, "删除幻灯片")
-                                .disabled(disabled)
-                                .on_click(cx.listener(|s, _, w, cx| {
-                                    s.dispatch(
-                                        Command::Workspace {
-                                            action: joydeck_engine::WorkspaceAction::DeleteSlides {
-                                                slides: s.selected_slides(),
-                                            },
-                                        },
-                                        w,
-                                        cx,
-                                    )
-                                })),
-                        ),
+                        .child(self.basic_button(
+                            small("duplicate-slide", I::Copy, "复制幻灯片"),
+                            BasicEdit::DuplicateSlides,
+                            cx,
+                        ))
+                        .child(self.basic_button(
+                            small("delete-slide", I::Trash, "删除幻灯片"),
+                            BasicEdit::DeleteSlides,
+                            cx,
+                        )),
                 ),
         )
     }
@@ -468,24 +461,20 @@ impl Viewer {
         )
     }
     #[inline(never)]
-    fn home_arrange(&self, cx: &mut Context<Self>, selected: bool) -> Div {
+    fn home_arrange(&self, cx: &mut Context<Self>) -> Div {
         group(
             "排列",
             col()
-                .child(
-                    small("forward", I::BringToFront, "上移一层")
-                        .disabled(!selected)
-                        .on_click(
-                            cx.listener(|s, _, w, cx| s.dispatch(Command::BringForward, w, cx)),
-                        ),
-                )
-                .child(
-                    small("backward", I::SendToBack, "下移一层")
-                        .disabled(!selected)
-                        .on_click(
-                            cx.listener(|s, _, w, cx| s.dispatch(Command::SendBackward, w, cx)),
-                        ),
-                )
+                .child(self.basic_button(
+                    small("forward", I::BringToFront, "上移一层"),
+                    BasicEdit::BringForward,
+                    cx,
+                ))
+                .child(self.basic_button(
+                    small("backward", I::SendToBack, "下移一层"),
+                    BasicEdit::SendBackward,
+                    cx,
+                ))
                 .child(
                     small("selection", I::PanelRight, "选择窗格").on_click(cx.listener(
                         |s, _, _, cx| {
@@ -503,13 +492,16 @@ impl Viewer {
         bar = bar
             .child(group(
                 "幻灯片",
-                tool(
-                    "insert-slide",
-                    I::GalleryVerticalEnd,
-                    "新建幻灯片",
-                    0x2ea36f,
-                )
-                .on_click(cx.listener(|s, _, w, cx| s.dispatch(Command::NewSlide, w, cx))),
+                self.basic_button(
+                    tool(
+                        "insert-slide",
+                        I::GalleryVerticalEnd,
+                        "新建幻灯片",
+                        0x2ea36f,
+                    ),
+                    BasicEdit::NewSlide,
+                    cx,
+                ),
             ))
             .child(group(
                 "表格",
@@ -846,6 +838,12 @@ impl Viewer {
                     ),
             ))
             .child(group(
+                "窗口",
+                tool("shared-view", I::PanelsTopLeft, "新建文稿视图", 0x2e6fd8)
+                    .disabled(self.editor.is_none() || self.loading)
+                    .on_click(cx.listener(|s, _, _, cx| s.new_shared_view(cx))),
+            ))
+            .child(group(
                 "显示",
                 row()
                     .child(
@@ -997,7 +995,7 @@ impl Viewer {
                     .text_color(rgb(p.muted))
                     .child(if self.loading {
                         "正在打开文稿…".into()
-                    } else if self.saving {
+                    } else if self.is_saving() {
                         "正在保存…".into()
                     } else {
                         self.message.clone()
@@ -1135,7 +1133,7 @@ impl Viewer {
         self.end_inline(cx);
         if let Some(e) = &self.editor
             && let Err(error) = slideshow::open(
-                e.session.snapshot().model,
+                e.session.model_snapshot(),
                 if first { None } else { Some(self.page) },
                 true,
                 presenter,

@@ -1,0 +1,55 @@
+[
+  {
+    "command": "select",
+    "page": 1,
+    "shapes": [
+      258,
+      259
+    ]
+  },
+  {
+    "command": "delete"
+  },
+  {
+    "command": "insert-rect",
+    "x": 110,
+    "y": 90,
+    "width": 165,
+    "height": 100
+  },
+  {
+    "command": "insert-shape",
+    "preset": "ellipse",
+    "x": 145,
+    "y": 100,
+    "width": 120,
+    "height": 80
+  },
+  {
+    "command": "content",
+    "action": {
+      "kind": "shape-fill",
+      "rgb": 2590152
+    }
+  },
+  {
+    "command": "insert-rect",
+    "x": 380,
+    "y": 210,
+    "width": 160,
+    "height": 85
+  },
+  {
+    "command": "transform",
+    "dx": 0,
+    "dy": 0,
+    "rotation": 45
+  },
+  {
+    "command": "insert-rect",
+    "x": 650,
+    "y": 335,
+    "width": 125,
+    "height": 85
+  }
+]

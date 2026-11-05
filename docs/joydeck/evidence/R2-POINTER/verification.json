@@ -1,0 +1,76 @@
+{
+  "binarySha256": "61b6b6546b5f739ee08feb63c9f34e7affcf882f380a5a51629d86a4ee1e4572",
+  "cliSha256": "fd34f6db585adcfff072215f1668b6d6cc6ee77004290d05b330f6b9862b1e48",
+  "checks": [
+    "Overlapping oval and rectangle select by painted geometry and stack order; Shift toggle and additive marquee preserve stable IDs",
+    "Rotated corners do not hit or enter a marquee; Esc cancels drag and marquee without a revision, undo or dirty change",
+    "Real app deactivation cancels a held drag before the later mouse-up",
+    "At reduced zoom, oriented resize follows the dragged grip, fixes the opposite corner, and commits exactly one undo/redo step",
+    "Rotation handle follows the rotated outline and Shift snaps about the same center",
+    "Window capture receives move and release outside the slide; two selected IDs move in one edit and the fixture stays unchanged",
+    "The operating system routes a held pointer release beyond the editor window back to the originating gesture",
+    "Native New, New Slide, Shape Gallery, layer commands, duplicate, Delete and Undo edit the live model and preserve stable IDs"
+  ],
+  "screenshots": {
+    "01-marquee.png": "38bae7516a2b4c6f030909078a51502dc83c78533633b3a19c0bcf79c56ca6e4",
+    "02-rotated-grips.png": "bc9f3289f5c6808bf5bd26644b4de9e53a8d951a98f4f09d6623efac9ad575b4",
+    "03-drag-preview.png": "2739d7b3af0798ccdbdaf10b69a4e0a2296b9f0fb5a38960535f4f181ad1f5bf",
+    "04-escape-cancel.png": "4a21a879251871feafd7ea54b1deb00d719af019e48912faf00ee900d5464529",
+    "05-rotated-resize.png": "4a28da0610d75eab930992d063a6a0a0f6cfbfc253961211c7a608ac27059729",
+    "06-shift-rotation.png": "9bcf232493aa15c7b43c6e70d90089c052ef75d6317737df92fb5905e29ac634",
+    "07-captured-outside-slide.png": "5d36c38d96a39f797b3b0d3771112cf10ec6930116ed435fab377073aeae2161",
+    "08-basic-edit.png": "1c1612ef8a1d003fb1384c97c6295e9dffe2a2bd19c8e3e1628d859b4a0479ff",
+    "09-undo-delete.png": "9314c00aea8ab134bf0c5ae0f8701e15ba8200619713a97b3f4304f8a826e361"
+  },
+  "seedSha256": "9a8b07fab2939ed99a311b345205acc4aca349da11a158ff32c7d52db04a7666",
+  "canvases": {
+    "fit": {
+      "x": 604.0,
+      "y": 308.0,
+      "zoom": 0.9875,
+      "backingScale": 1.0
+    },
+    "zoomed-out": {
+      "x": 724.0,
+      "y": 376.0,
+      "zoom": 0.7375,
+      "backingScale": 1.0
+    },
+    "editing": {
+      "x": 604.0,
+      "y": 308.0,
+      "zoom": 0.9875,
+      "backingScale": 1.0
+    }
+  },
+  "passed": true,
+  "package": {
+    "archive_sha256": "7d76265df91d88fe5ce65686b1d976fb02b87a85b86e1c3a0425a98a9bfeba24",
+    "source_sha256": "257a59c9c0b0e194f920e50303be092a1d58f5fca40dbcb14a0ce972f9be3b63",
+    "target": "aarch64-apple-darwin",
+    "profile": "release",
+    "verifiedPayloadFiles": 1805
+  },
+  "tests": {
+    "passed": 902,
+    "failed": 0,
+    "ignored": 0
+  },
+  "cliChecks": {
+    "r1": 28,
+    "r2": 20,
+    "upstreamCommandIds": 329
+  },
+  "displayCoverage": {
+    "nativeBackingScales": [
+      1.0
+    ],
+    "automatedLogicalZoomScales": [
+      0.5,
+      1.0,
+      2.0,
+      4.0
+    ],
+    "pending": "Retina/HiDPI 2x native pointer verification"
+  }
+}

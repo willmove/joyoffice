@@ -1,0 +1,62 @@
+{
+  "base": "4a9dd9b",
+  "package": {
+    "archive": "joydeck-0.8.0-shared-document.zip",
+    "archive_sha256": "4432921f0cdb70bffaf6a0fb460916fdcab1c65b02e5a3ff3366d24d8a1162d6",
+    "source_sha256": "e35888973e6a6cebec4bf55fec54bd7a3e02c83b1ea70dbcc9e60ef5969420db",
+    "target": "aarch64-apple-darwin",
+    "profile": "release",
+    "sbom_packages": 465,
+    "missing_license_texts": [
+      "block@0.1.6",
+      "mac@0.1.1",
+      "malloc_buf@0.0.6",
+      "pathfinder_geometry@0.5.1",
+      "seahash@4.1.0"
+    ],
+    "signed": false
+  },
+  "payloadFilesVerified": 1805,
+  "productCheck": {
+    "passed": 900,
+    "failed": 0,
+    "ignored": 0,
+    "strictClippy": true
+  },
+  "packagedCli": {
+    "r1Checks": 28,
+    "r2Checks": 20,
+    "forcedCrashRecoveryPassed": true,
+    "registryStaticIds": 329
+  },
+  "gui": {
+    "binarySha256": "340bbd371e744047d37f8388d821912fdd5a9044a4bed0aae238b1145c47c2b3",
+    "cliSha256": "fd34f6db585adcfff072215f1668b6d6cc6ee77004290d05b330f6b9862b1e48",
+    "checks": [
+      "View ribbon opened the same document in two windows; page and zoom stayed independent",
+      "Second view edit advanced the authoritative revision; an older control request was rejected",
+      "Reorder and cross-window undo/redo preserved the peer's selected slide by stable ID",
+      "Saving in the second view updated both filenames and the shared saved marker; bundled CLI read back all four pages",
+      "A peer edit during a slower file read rejected the stale result and kept the candidate out of recent files",
+      "Reopening the same canonical path joined the live document; closing a peer retained unsaved changes in the other views"
+    ],
+    "screenshots": {
+      "03-reordered-second-view.png": "5e7a6192eb9034048e3f238d30f1fa1319d848713dbe8509ba396e612c7bd1ef",
+      "05-saved-first-view.png": "0a2a38b5f9c370887e0b61cbe16afedd29c5be37a005e9af769d6a6f65761ffa",
+      "06-saved-second-view.png": "b02f9943ce9c8285c05ab00bb1f4f68b9dbc7507cd3528feda7269447f467f8b",
+      "07-reopened-shared-file.png": "98ed05158fdc508ebd80c3a6136a13634ae73b2e8d6631e3b59d706f8a30c1df",
+      "08-peer-edit-rejects-stale-open.png": "12fa6a548624e5cd9b7db44af58760b88fce4be5bb6418a6da61ff89f7cc6d53"
+    },
+    "paperWidths": {
+      "first": [
+        932,
+        932
+      ],
+      "second": [
+        775,
+        539
+      ]
+    },
+    "savedSha256": "43d2558604e8ada72b2021fb75feca5fc6b296944705102b1a10e9c8fd52ac7c"
+  }
+}

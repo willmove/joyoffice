@@ -1,0 +1,66 @@
+{
+  "binarySha256": "79617f8f1cc8b4cee0fb709e6abbd0ca42e3537b204485b8ff894427f9f53b9c",
+  "cliSha256": "d69a8293b5bbe91902c8b6b020df6c50c28a13ebbfd0085d18b4ba84116c356d",
+  "screenshots": {
+    "01-inserted-rectangle.png": "24ae0b1521f4609251623d552463dd1bd51879b0132dda0f741743541832a2f7",
+    "02-dragged-rectangle.png": "650f085703dd00a918649e1e1653c1acdaee3ad6c594fd44e3d33e49856e68c7",
+    "03-saved-clean.png": "4e7acc75bf162577d8d7607deb6dcd3512bcc6a486f38844c68e95f4a0376df0",
+    "04-reopened.png": "5e39ac8161a287d622eb0cd30a2cdc3c350d4cb4e5a62a9f0d1f4da39cafa1d4",
+    "05-dirty-before-crash.png": "4f569b4d05eb35bf112b71e27b9534f6e419420e1b8dc74a69354254078707af",
+    "06-recovery-choice.png": "b4723ca31230350c13590f2be9e450e2a240e76ac6ee9e0da782e5a21935109f",
+    "07-recovered-objects.png": "a38efc408ec958718a87e5722abfed65b2b98cca9955848b24638740306a86c6",
+    "08-recovered-save.png": "c19863f8762f30d1c1c313a139ac63a1dfc69266ccec5ccc7e582e7e062ef481"
+  },
+  "checks": [
+    "Native New → New Slide → Insert Shape → drag → single-step Undo/Redo preserved stable object ID and transform",
+    "Native Save As, normal Close and process restart preserved the saved geometry; the bundled CLI read it independently",
+    "After reopening, Undo returned the new edit to the saved clean state and Redo restored the same unsaved ID",
+    "Forced termination released the recovery lease; the CLI restored the unsaved second object while the source hash stayed fixed",
+    "The editor recovery chooser restored the exact snapshot, and native Save As published a separate file with the same two object IDs"
+  ],
+  "originalSha256": "b8cef87645cdbf90fc313f8b7cc9b61a9e939837e69d40cce98e02f3dc395e95",
+  "crashCheckpoint": {
+    "revision": 3,
+    "activeBeforeKill": true,
+    "availableAfterKill": true
+  },
+  "cliRecoverySha256": "7c3a307c17ca86c1edb333732c1443b0e5b9219bdcee7d23c70b1251de61929c",
+  "recoveredSha256": "7c3a307c17ca86c1edb333732c1443b0e5b9219bdcee7d23c70b1251de61929c",
+  "geometry": {
+    "original": {
+      "x": 100.0,
+      "y": 140.0,
+      "w": 200.0,
+      "h": 120.0
+    },
+    "dragged": {
+      "x": 177.97468260300695,
+      "y": 193.67088542804373,
+      "w": 200.0,
+      "h": 120.0
+    },
+    "restoredObjectIds": [
+      261,
+      262
+    ]
+  },
+  "passed": true,
+  "package": {
+    "archive_sha256": "2ff5b3be34ce741f3b594b12d04dec095216bb89d2b9ddad19a9520cec2bbbcf",
+    "source_sha256": "45183cc90cab9dfeefba147c34ab899832e53837a979c56540b97affb824d18d",
+    "target": "aarch64-apple-darwin",
+    "profile": "release",
+    "verifiedPayloadFiles": 1805
+  },
+  "tests": {
+    "passed": 904,
+    "failed": 0,
+    "ignored": 0
+  },
+  "cliChecks": {
+    "r1": 28,
+    "r2": 20,
+    "r3": 20,
+    "upstreamCommandIds": 329
+  }
+}

@@ -204,15 +204,22 @@ impl Viewer {
                 ),
             });
             let generation = self.generation;
-            let selection = self.editor.as_ref().map(|e| e.session.selection().clone());
+            let selection = self
+                .editor
+                .as_ref()
+                .map(|e| (e.session.revision(), e.session.selection().clone()));
             self.dialog_task = Some(cx.spawn(async move |view, cx| {
                 if let Ok(Ok(Some(paths))) = receiver.await
                     && let Some(path) = paths.into_iter().next()
                 {
                     let _ = view.update(cx, |s, cx| {
                         if s.generation == generation
-                            && s.editor.as_ref().map(|e| e.session.selection())
-                                == selection.as_ref()
+                            && s.editor
+                                .as_ref()
+                                .map(|e| (e.session.revision(), e.session.selection()))
+                                == selection
+                                    .as_ref()
+                                    .map(|(revision, selection)| (*revision, selection))
                         {
                             s.import_picture(path.to_string_lossy().into_owned(), replace, cx);
                         }
@@ -386,6 +393,7 @@ impl Viewer {
         let view = cx.entity().downgrade();
         let generation = self.generation;
         let selection = e.session.selection().clone();
+        let revision = e.session.revision();
         let error = cx.new(|_| String::new());
         let form_height = (f32::from(w.viewport_size().height) - 240.).max(160.);
         w.open_dialog(cx, move |d, _, cx| {
@@ -430,9 +438,10 @@ impl Viewer {
                             let parsed = parse(form, &values);
                             let _ = view.update(cx, |s, cx| {
                                 if s.generation != generation
-                                    || s.editor
-                                        .as_ref()
-                                        .is_none_or(|e| *e.session.selection() != selection)
+                                    || s.editor.as_ref().is_none_or(|e| {
+                                        e.session.revision() != revision
+                                            || *e.session.selection() != selection
+                                    })
                                 {
                                     w.close_dialog(cx);
                                     return;
@@ -460,7 +469,10 @@ impl Viewer {
     }
     pub(super) fn paste_image(&mut self, bytes: Vec<u8>, cx: &mut Context<Self>) {
         let generation = self.generation;
-        let selection = self.editor.as_ref().map(|e| e.session.selection().clone());
+        let selection = self
+            .editor
+            .as_ref()
+            .map(|e| (e.session.revision(), e.session.selection().clone()));
         self.content_task = Some(cx.spawn(async move |view, cx| {
             let result = cx
                 .background_executor()
@@ -468,14 +480,19 @@ impl Viewer {
                 .await;
             let _ = view.update(cx, |s, cx| {
                 if s.generation != generation
-                    || s.editor.as_ref().map(|e| e.session.selection()) != selection.as_ref()
+                    || s.editor
+                        .as_ref()
+                        .map(|e| (e.session.revision(), e.session.selection()))
+                        != selection
+                            .as_ref()
+                            .map(|(revision, selection)| (*revision, selection))
                 {
                     return;
                 }
                 match result {
                     Ok(command) => {
                         if let Some(e) = &mut s.editor {
-                            match e.session.execute(command) {
+                            match e.execute(command, cx) {
                                 Ok(true) => {
                                     s.refresh_pending = true;
                                     s.checkpoint(cx);
@@ -493,7 +510,10 @@ impl Viewer {
     }
     fn import_picture(&mut self, path: String, replace: bool, cx: &mut Context<Self>) {
         let generation = self.generation;
-        let selection = self.editor.as_ref().map(|e| e.session.selection().clone());
+        let selection = self
+            .editor
+            .as_ref()
+            .map(|e| (e.session.revision(), e.session.selection().clone()));
         self.content_task = Some(cx.spawn(async move |view, cx| {
             let result = cx
                 .background_executor()
@@ -506,14 +526,19 @@ impl Viewer {
                 .await;
             let _ = view.update(cx, |s, cx| {
                 if s.generation != generation
-                    || s.editor.as_ref().map(|e| e.session.selection()) != selection.as_ref()
+                    || s.editor
+                        .as_ref()
+                        .map(|e| (e.session.revision(), e.session.selection()))
+                        != selection
+                            .as_ref()
+                            .map(|(revision, selection)| (*revision, selection))
                 {
                     return;
                 }
                 match result {
                     Ok(command) => {
                         if let Some(e) = &mut s.editor {
-                            match e.session.execute(command) {
+                            match e.execute(command, cx) {
                                 Ok(true) => {
                                     s.refresh_pending = true;
                                     s.checkpoint(cx);

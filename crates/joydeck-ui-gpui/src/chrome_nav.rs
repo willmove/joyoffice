@@ -338,19 +338,31 @@ impl Viewer {
             );
     }
     pub(super) fn sync_notes(&mut self, w: &mut Window, cx: &mut Context<Self>) {
-        let value = self
+        if self
+            .notes_input
+            .update(cx, |s, cx| s.marked_text_range(w, cx).is_some())
+        {
+            return;
+        }
+        let loaded = self
             .editor
             .as_ref()
-            .map(|e| e.session.model().slides[self.page].notes.text())
+            .and_then(|e| e.session.model().slides.get(self.page))
+            .map(|slide| (self.generation, slide.id, slide.notes.text()));
+        if self.notes_loaded == loaded && self.notes_input.read(cx).focus_handle(cx).is_focused(w) {
+            return;
+        }
+        let value = loaded
+            .as_ref()
+            .map(|(_, _, value)| value.as_str())
             .unwrap_or_default();
-        if self.notes_input.read(cx).value().as_ref() != value
-            && !self.notes_input.read(cx).focus_handle(cx).is_focused(w)
-        {
+        if self.notes_input.read(cx).value().as_ref() != value {
             self.notes_syncing = true;
             self.notes_input
                 .update(cx, |i, cx| i.set_value(value, w, cx));
             self.notes_syncing = false;
         }
+        self.notes_loaded = loaded;
     }
     pub(super) fn commit_notes(&mut self, w: &mut Window, cx: &mut Context<Self>) {
         if self.notes_syncing
@@ -362,11 +374,25 @@ impl Viewer {
         }
         let Some(e) = &self.editor else { return };
         let value = self.notes_input.read(cx).value().to_string();
-        let mut body = e.session.model().slides[self.page].notes.clone();
-        if value == body.text() {
+        let Some(slide) = e.session.model().slides.get(self.page) else {
+            return;
+        };
+        let previous = slide.notes.text();
+        if value == previous {
             return;
         }
-        let end = body.text().len();
+        if self
+            .notes_loaded
+            .as_ref()
+            .is_none_or(|(generation, page, original)| {
+                *generation != self.generation || *page != slide.id || *original != previous
+            })
+        {
+            self.sync_notes(w, cx);
+            return;
+        }
+        let mut body = slide.notes.clone();
+        let end = previous.len();
         if let Err(error) = joydeck_engine::text::replace(&mut body, 0..end, &value) {
             self.message = error;
             return;
@@ -379,9 +405,12 @@ impl Viewer {
             w,
             cx,
         );
+        self.sync_notes(w, cx);
     }
     pub(super) fn save_as(&mut self, _: &SaveAs, w: &mut Window, cx: &mut Context<Self>) {
-        if self.composing() || self.saving || self.loading || self.editor.is_none() {
+        if let Some(reason) = self.save_unavailable() {
+            self.message = reason.into();
+            cx.notify();
             return;
         }
         self.commit_notes(w, cx);

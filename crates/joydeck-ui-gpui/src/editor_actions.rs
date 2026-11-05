@@ -2,13 +2,57 @@
 use super::*;
 use joydeck_engine::Command;
 use joydeck_model::{ShapeId, resolve};
-pub(super) struct Drag {
-    pub(super) start: Point<Pixels>,
-    pub(super) current: Point<Pixels>,
-    pub(super) resize: Option<(i8, i8)>,
-    pub(super) rotate: bool,
-    pub(super) marquee: bool,
+#[path = "pointer_geometry.rs"]
+mod pointer_geometry;
+use pointer_geometry::{Frame, GRIPS, ROTATION_OFFSET, Transform, grip};
+
+enum Gesture {
+    Marquee { extend: bool },
+    Transform { frame: Frame, kind: Transform },
 }
+
+pub(super) struct Drag {
+    start: Point<Pixels>,
+    current: Point<Pixels>,
+    canvas: Bounds<Pixels>,
+    scale: f32,
+    revision: u64,
+    shift: bool,
+    gesture: Gesture,
+}
+
+impl Drag {
+    fn point(&self, position: Point<Pixels>) -> joydeck_geom::Point {
+        page_point(position, self.canvas, self.scale)
+    }
+
+    fn delta(&self, position: Point<Pixels>) -> joydeck_geom::Vec2 {
+        self.point(position) - self.point(self.start)
+    }
+
+    pub(super) fn move_preview(&self) -> Point<Pixels> {
+        if matches!(
+            self.gesture,
+            Gesture::Transform {
+                kind: Transform::Move,
+                ..
+            }
+        ) {
+            self.current - self.start
+        } else {
+            Point::default()
+        }
+    }
+}
+
+fn page_point(position: Point<Pixels>, canvas: Bounds<Pixels>, scale: f32) -> joydeck_geom::Point {
+    let scale = f64::from(scale);
+    joydeck_geom::Point::new(
+        f64::from(f32::from(position.x - canvas.left())) / scale,
+        f64::from(f32::from(position.y - canvas.top())) / scale,
+    )
+}
+
 impl Viewer {
     pub(super) fn selected_bounds(&self) -> Option<joydeck_model::Rect> {
         let e = self.editor.as_ref()?;
@@ -29,7 +73,7 @@ impl Viewer {
             cx.notify();
             return true;
         }
-        if self.saving || self.editor.as_ref().is_some_and(|e| e.session.dirty()) {
+        if self.is_saving() || self.requires_save_prompt() {
             self.message = "当前文稿有未保存更改或正在保存；请先保存后重试".into();
             cx.notify();
             true
@@ -51,7 +95,7 @@ impl Viewer {
             self.slide_selection
                 .retain(|id| editor.session.model().slide(*id).is_some());
             if self.cell_range.is_some_and(|(id, range)| !editor.session.selection().shapes.contains(&id) || !matches!(editor.session.model().slides[self.page].shape(id).map(|s| &s.kind), Some(joydeck_model::ShapeKind::Table(t)) if range.end_row < t.n_rows() && range.end_col < t.n_cols())) { self.cell_range = None; }
-            match editor.display() {
+            match editor.display(cx) {
                 Ok(mut deck) => {
                     if editor.source.is_none() && deck.info.name == "Untitled.joydeck" {
                         deck.info.name = "演示文稿1".into();
@@ -106,9 +150,11 @@ impl Viewer {
     pub(super) fn checkpoint(&mut self, cx: &mut Context<Self>) {
         let Some(editor) = &self.editor else { return };
         let dirty = editor.session.dirty();
-        let job = editor.checkpoint_job();
+        let Some(job) = editor.checkpoint_job(cx) else {
+            return;
+        };
         let generation = self.generation;
-        self.checkpoint_task = Some(cx.spawn(async move |view, cx| {
+        let task = cx.spawn(async move |view, cx| {
             cx.background_executor()
                 .timer(std::time::Duration::from_millis(250))
                 .await;
@@ -135,7 +181,8 @@ impl Viewer {
                     }
                 }
             });
-        }));
+        });
+        editor.set_checkpoint_task(task, cx);
     }
     pub(super) fn dispatch(
         &mut self,
@@ -163,7 +210,7 @@ impl Viewer {
             return;
         };
         let label = command.id();
-        match editor.session.execute(command) {
+        match editor.execute(command, cx) {
             Ok(true) => {
                 self.message = "就绪".into();
                 eprintln!(
@@ -181,20 +228,6 @@ impl Viewer {
             }
         }
     }
-    pub(super) fn undo_edit(&mut self, _: &UndoEdit, w: &mut Window, cx: &mut Context<Self>) {
-        self.dispatch(Command::Undo, w, cx)
-    }
-    pub(super) fn redo_edit(&mut self, _: &RedoEdit, w: &mut Window, cx: &mut Context<Self>) {
-        self.dispatch(Command::Redo, w, cx)
-    }
-    pub(super) fn delete_object(
-        &mut self,
-        _: &DeleteObject,
-        w: &mut Window,
-        cx: &mut Context<Self>,
-    ) {
-        self.dispatch(Command::Delete, w, cx)
-    }
     pub(super) fn new_document(&mut self, _: &NewDocument, w: &mut Window, cx: &mut Context<Self>) {
         if self.confirm_replace(document_ui::ReplaceDocument::New, w, cx) {
             return;
@@ -202,8 +235,7 @@ impl Viewer {
         match joydeck_shell::editor::Editor::new(joydeck_shell::editor::recovery_root()) {
             Ok(editor) => {
                 self.stop_read();
-                self.editor = Some(editor);
-                self.source = None;
+                self.attach_new_editor(editor, cx);
                 self.page = 0;
                 self.zoom = None;
                 self.cell = None;
@@ -229,20 +261,18 @@ impl Viewer {
         w: &mut Window,
         cx: &mut Context<Self>,
     ) {
-        if self.composing()
-            || self
-                .notes_input
+        let reason = self.save_unavailable().or_else(|| {
+            self.notes_input
                 .update(cx, |i, cx| i.marked_text_range(w, cx).is_some())
-        {
-            self.message = "请先完成或取消输入法组合输入再保存".into();
+                .then_some("请先完成或取消输入法组合输入再保存")
+        });
+        if let Some(reason) = reason {
+            self.message = reason.into();
             cx.notify();
             return;
         }
         self.commit_notes(w, cx);
         self.end_inline(cx);
-        if self.saving || self.loading {
-            return;
-        }
         let Some(editor) = &self.editor else { return };
         let path = selected.or_else(|| {
             let text = self.save_input.read(cx).value().to_string();
@@ -260,7 +290,7 @@ impl Viewer {
             self.save_as(&SaveAs, w, cx);
             return;
         };
-        let job = match editor.save_job(path) {
+        let job = match editor.begin_save(path, cx) {
             Ok(j) => j,
             Err(e) => {
                 self.message = e;
@@ -274,7 +304,12 @@ impl Viewer {
         self.save_task = Some(cx.spawn(async move |view, cx| {
             let result = cx
                 .background_executor()
-                .spawn(async move { job.run() })
+                .spawn(async move {
+                    job.run().map(|saved| {
+                        let identity = joydeck_shell::editor::canonical_source(&saved.path);
+                        (saved, identity)
+                    })
+                })
                 .await;
             let _ = view.update(cx, |s, cx| {
                 if s.generation != generation {
@@ -282,12 +317,12 @@ impl Viewer {
                 }
                 s.saving = false;
                 match result {
-                    Ok(saved) => {
+                    Ok((saved, identity)) => {
                         let revision = saved.revision;
                         let path = saved.path.clone();
                         let warning = saved.warning.clone();
                         if let Some(editor) = &mut s.editor {
-                            editor.apply_saved(saved);
+                            editor.finish_save(Some((saved, identity)), cx);
                             if let Some(doc) = &mut s.deck {
                                 Arc::make_mut(doc).info.name = path
                                     .file_name()
@@ -330,6 +365,9 @@ impl Viewer {
                         }
                     }
                     Err(e) => {
+                        if let Some(editor) = &mut s.editor {
+                            editor.finish_save(None, cx);
+                        }
                         s.message = format!("保存失败，原文件保持不变：{e}");
                         s.close_after_save = false;
                         s.pending_replace = None;
@@ -362,10 +400,12 @@ impl Viewer {
             cx.notify();
             return;
         }
-        if !self.editor.as_ref().is_some_and(|e| e.session.dirty()) {
+        if !self.requires_save_prompt() {
             w.remove_window();
             return;
         }
+        let generation = self.generation;
+        let revision = self.editor.as_ref().map(|e| e.session.revision());
         let weak = cx.entity().downgrade();
         let discard = weak.clone();
         let save = weak;
@@ -382,6 +422,9 @@ impl Viewer {
                             move |_, w, cx| {
                                 let _ = view.update(cx, |s, cx| {
                                     w.close_dialog(cx);
+                                    if generation != s.generation || s.is_saving() {
+                                        return;
+                                    }
                                     s.close_after_save = true;
                                     s.save(&Save, w, cx);
                                 });
@@ -391,10 +434,17 @@ impl Viewer {
                             let view = discard.clone();
                             move |_, w, cx| {
                                 let _ = view.update(cx, |s, cx| {
-                                    if let Some(e) = &s.editor {
-                                        let _ = e.recovery.discard();
-                                    }
                                     w.close_dialog(cx);
+                                    if generation != s.generation
+                                        || s.is_saving()
+                                        || revision
+                                            != s.editor.as_ref().map(|e| e.session.revision())
+                                    {
+                                        return;
+                                    }
+                                    if let Some(editor) = s.editor.take() {
+                                        editor.discard(cx);
+                                    }
                                     w.remove_window();
                                 });
                             }
@@ -478,6 +528,7 @@ impl Viewer {
                                         return;
                                     }
                                     w.close_dialog(cx);
+                                    let revision = s.editor.as_ref().map(|e| e.session.revision());
                                     let (request, cancel) = s.start_read();
                                     s.read_task = Some(cx.spawn(async move |view, cx| {
                                         let result = cx
@@ -497,10 +548,17 @@ impl Viewer {
                                                 return;
                                             }
                                             s.loading = false;
+                                            if revision
+                                                != s.editor.as_ref().map(|e| e.session.revision())
+                                            {
+                                                s.message =
+                                                    "当前文稿已变更，请重新选择恢复记录".into();
+                                                cx.notify();
+                                                return;
+                                            }
                                             match result {
                                                 Ok(editor) => {
-                                                    s.editor = Some(editor);
-                                                    s.source = None;
+                                                    s.attach_new_editor(editor, cx);
                                                     s.generation += 1;
                                                     s.refresh_pending = true;
                                                     s.pending_save_path = Some(String::new());
@@ -531,6 +589,11 @@ impl Viewer {
         } else {
             ids.push(id);
         }
+        self.select_objects(ids, w, cx);
+    }
+
+    fn select_objects(&mut self, ids: Vec<ShapeId>, w: &mut Window, cx: &mut Context<Self>) {
+        let Some(e) = &mut self.editor else { return };
         let _ = e.session.select(self.page, ids);
         let text = e
             .session
@@ -544,6 +607,43 @@ impl Viewer {
         self.text_input.update(cx, |s, cx| s.set_value(text, w, cx));
         cx.notify();
     }
+    fn selection_frame(&self) -> Option<Frame> {
+        let editor = self.editor.as_ref()?;
+        let model = editor.session.model();
+        let slide = model.slides.get(self.page)?;
+        let ctx = resolve::Ctx::for_slide(model, slide)?;
+        Frame::new(
+            editor
+                .session
+                .selection()
+                .shapes
+                .iter()
+                .filter_map(|id| slide.shape(*id))
+                .filter(|shape| !shape.hidden && !shape.locked)
+                .map(|shape| resolve::xfrm(&ctx, shape)),
+        )
+    }
+
+    fn start_drag(
+        &mut self,
+        event: &MouseDownEvent,
+        scale: f32,
+        gesture: Gesture,
+        cx: &mut Context<Self>,
+    ) {
+        let Some(editor) = &self.editor else { return };
+        self.drag = Some(Drag {
+            start: event.position,
+            current: event.position,
+            canvas: self.canvas_bounds,
+            scale,
+            revision: editor.session.revision(),
+            shift: event.modifiers.shift,
+            gesture,
+        });
+        cx.notify();
+    }
+
     pub(super) fn pointer_down(
         &mut self,
         event: &MouseDownEvent,
@@ -551,11 +651,12 @@ impl Viewer {
         w: &mut Window,
         cx: &mut Context<Self>,
     ) {
+        self.drag = None;
         if self.inline_pointer(event, scale, w, cx) {
             return;
         }
         self.focus.focus(w, cx);
-        if self.loading {
+        if self.loading || self.benchmark.is_some() {
             return;
         }
         let Some(e) = &self.editor else { return };
@@ -564,61 +665,20 @@ impl Viewer {
         let Some(ctx) = resolve::Ctx::for_slide(p, slide) else {
             return;
         };
-        let x = f32::from(event.position.x - self.canvas_bounds.origin.x) as f64 / scale as f64;
-        let y = f32::from(event.position.y - self.canvas_bounds.origin.y) as f64 / scale as f64;
-        eprintln!(
-            "R4/R5 pointer position={:?} bounds={:?} point=({x},{y}) scale={scale}",
-            event.position, self.canvas_bounds
-        );
-        if let Some(b) = self.selected_bounds() {
-            if ((x - b.center().x) * scale as f64).abs() <= 8.
-                && ((y - b.y0) * scale as f64 + 24.).abs() <= 8.
-            {
-                self.drag = Some(Drag {
-                    start: event.position,
-                    current: event.position,
-                    resize: None,
-                    rotate: true,
-                    marquee: false,
-                });
-                cx.notify();
-                return;
-            }
-            for (hx, hy) in [
-                (-1, -1),
-                (0, -1),
-                (1, -1),
-                (-1, 0),
-                (1, 0),
-                (-1, 1),
-                (0, 1),
-                (1, 1),
-            ] {
-                let px = b.x0 + (hx as f64 + 1.) * b.width() / 2.;
-                let py = b.y0 + (hy as f64 + 1.) * b.height() / 2.;
-                if ((x - px) * scale as f64).abs() <= 7. && ((y - py) * scale as f64).abs() <= 7. {
-                    self.drag = Some(Drag {
-                        start: event.position,
-                        current: event.position,
-                        resize: Some((hx, hy)),
-                        rotate: false,
-                        marquee: false,
-                    });
-                    cx.notify();
-                    return;
-                }
-            }
+        let point = page_point(event.position, self.canvas_bounds, scale);
+        let scale_f64 = f64::from(scale);
+        if let Some(frame) = self.selection_frame()
+            && let Some(kind) = frame.handle(point, scale_f64)
+        {
+            self.start_drag(event, scale, Gesture::Transform { frame, kind }, cx);
+            return;
         }
         let id = slide
             .shapes
             .iter()
             .rev()
             .filter(|s| !s.hidden && !s.locked)
-            .find(|s| {
-                let t = resolve::xfrm(&ctx, s);
-                let q = t.affine().inverse() * joydeck_geom::Point::new(x, y);
-                q.x >= 0. && q.y >= 0. && q.x <= t.w && q.y <= t.h
-            })
+            .find(|shape| pointer_geometry::hits(&ctx, shape, point, 3. / scale_f64))
             .map(|s| s.id);
         if let Some(id) = id {
             let extend_cell = event.modifiers.shift
@@ -641,8 +701,7 @@ impl Viewer {
                     && let Some(ctx) = resolve::Ctx::for_slide(p, slide)
                 {
                     let fields = joydeck_text::NoFields;
-                    let point =
-                        resolve::xfrm(&ctx, s).affine().inverse() * joydeck_geom::Point::new(x, y);
+                    let point = resolve::xfrm(&ctx, s).affine().inverse() * point;
                     self.cell = joydeck_render::table_cell_rects(
                         t,
                         &joydeck_render::table_row_heights(&ctx, t, &fields),
@@ -683,122 +742,161 @@ impl Viewer {
                 self.begin_selected_text(w, cx);
                 return;
             }
-        } else if let Some(e) = &mut self.editor {
-            let _ = e.session.select(self.page, vec![]);
-            self.cell = None;
-            self.cell_range = None;
-        }
-        self.drag = Some(Drag {
-            start: event.position,
-            current: event.position,
-            resize: None,
-            rotate: false,
-            marquee: id.is_none(),
-        });
-        cx.notify();
-    }
-    pub(super) fn pointer_move(
-        &mut self,
-        event: &MouseMoveEvent,
-        scale: f32,
-        cx: &mut Context<Self>,
-    ) {
-        if self.inline_move(event, scale, cx) {
-            return;
-        }
-        if let Some(d) = &mut self.drag {
-            d.current = event.position;
-            cx.notify();
-        }
-    }
-    pub(super) fn pointer_up(
-        &mut self,
-        event: &MouseUpEvent,
-        scale: f32,
-        w: &mut Window,
-        cx: &mut Context<Self>,
-    ) {
-        let Some(d) = self.drag.take() else { return };
-        let pixels_x = f32::from(event.position.x - d.start.x);
-        let pixels_y = f32::from(event.position.y - d.start.y);
-        if d.resize.is_none() && !d.rotate && pixels_x.hypot(pixels_y) < 6. {
-            cx.notify();
-            return;
-        }
-        let dx = f32::from(event.position.x - d.start.x) as f64 / scale as f64;
-        let dy = f32::from(event.position.y - d.start.y) as f64 / scale as f64;
-        if dx.abs() + dy.abs() < 1. {
-            cx.notify();
-            return;
-        }
-        if d.marquee {
-            if let Some(e) = &mut self.editor {
-                let p = e.session.model();
-                let slide = &p.slides[self.page];
-                if let Some(ctx) = resolve::Ctx::for_slide(p, slide) {
-                    let a = joydeck_geom::Point::new(
-                        f32::from(d.start.x - self.canvas_bounds.origin.x) as f64 / scale as f64,
-                        f32::from(d.start.y - self.canvas_bounds.origin.y) as f64 / scale as f64,
-                    );
-                    let rect =
-                        joydeck_model::Rect::from_points(a, a + joydeck_geom::Vec2::new(dx, dy));
-                    let ids = slide
-                        .shapes
-                        .iter()
-                        .filter(|s| {
-                            !s.hidden
-                                && !s.locked
-                                && rect.intersect(resolve::xfrm(&ctx, s).bounds()).area() > 0.
-                        })
-                        .map(|s| s.id)
-                        .collect();
-                    let _ = e.session.select(self.page, ids);
-                }
-            }
-            cx.notify();
-        } else {
-            let Some(bounds) = self.selected_bounds() else {
-                return;
-            };
-            let (tx, ty, sx, sy, angle) = if d.rotate {
-                let center = bounds.center();
-                let ax = f32::from(d.start.x - self.canvas_bounds.origin.x) as f64 / scale as f64
-                    - center.x;
-                let ay = f32::from(d.start.y - self.canvas_bounds.origin.y) as f64 / scale as f64
-                    - center.y;
-                let mut angle = ((ay + dy).atan2(ax + dx) - ay.atan2(ax)).to_degrees();
-                if event.modifiers.shift {
-                    angle = (angle / 15.).round() * 15.;
-                }
-                (0., 0., 1., 1., angle)
-            } else if let Some((hx, hy)) = d.resize {
-                let width = (bounds.width() + dx * hx as f64).max(1.);
-                let height = (bounds.height() + dy * hy as f64).max(1.);
-                (
-                    if hx == 0 { 0. } else { dx / 2. },
-                    if hy == 0 { 0. } else { dy / 2. },
-                    width / bounds.width().max(1.),
-                    height / bounds.height().max(1.),
-                    0.,
-                )
-            } else {
-                (dx, dy, 1., 1., 0.)
-            };
-            self.dispatch(
-                Command::Workspace {
-                    action: joydeck_engine::WorkspaceAction::TransformSelection {
-                        dx: tx,
-                        dy: ty,
-                        scale_x: sx,
-                        scale_y: sy,
-                        rotation: angle,
+            if !event.modifiers.shift
+                && let Some(frame) = self.selection_frame()
+            {
+                self.start_drag(
+                    event,
+                    scale,
+                    Gesture::Transform {
+                        frame,
+                        kind: Transform::Move,
                     },
+                    cx,
+                );
+            }
+        } else {
+            self.start_drag(
+                event,
+                scale,
+                Gesture::Marquee {
+                    extend: event.modifiers.shift,
                 },
-                w,
                 cx,
             );
         }
     }
+
+    fn gesture_current(&self, drag: &Drag, w: &Window) -> bool {
+        w.is_window_active()
+            && !self.loading
+            && !self.backstage
+            && !self.sorter
+            && drag.scale == self.scale(w)
+            && drag.canvas == self.canvas_bounds
+            && self
+                .editor
+                .as_ref()
+                .is_some_and(|e| e.session.revision() == drag.revision)
+    }
+
+    pub(super) fn capture_gesture(&self, w: &mut Window, cx: &mut Context<Self>) {
+        // Window capture phase runs even over other controls or outside the slide's hitbox.
+        let move_listener = cx.listener(Self::pointer_move);
+        w.on_mouse_event(move |event: &MouseMoveEvent, phase, w, cx| {
+            if phase == DispatchPhase::Capture {
+                move_listener(event, w, cx);
+            }
+        });
+        let up_listener = cx.listener(Self::pointer_up);
+        w.on_mouse_event(move |event: &MouseUpEvent, phase, w, cx| {
+            if phase == DispatchPhase::Capture && event.button == MouseButton::Left {
+                up_listener(event, w, cx);
+            }
+        });
+    }
+
+    fn pointer_move(&mut self, event: &MouseMoveEvent, w: &mut Window, cx: &mut Context<Self>) {
+        let Some(drag) = &self.drag else { return };
+        if !event.dragging() || !self.gesture_current(drag, w) {
+            self.drag = None;
+        } else if let Some(drag) = &mut self.drag {
+            drag.current = event.position;
+            drag.shift = event.modifiers.shift;
+            cx.stop_propagation();
+        }
+        cx.notify();
+    }
+
+    fn pointer_up(&mut self, event: &MouseUpEvent, w: &mut Window, cx: &mut Context<Self>) {
+        let Some(drag) = self.drag.take() else { return };
+        cx.stop_propagation();
+        cx.notify();
+        if !self.gesture_current(&drag, w) {
+            return;
+        }
+        let distance = event.position - drag.start;
+        let moved = f32::from(distance.x).hypot(f32::from(distance.y)) >= 4.;
+        match drag.gesture {
+            Gesture::Marquee { extend } => {
+                let mut ids = if extend {
+                    let Some(editor) = &self.editor else { return };
+                    editor.session.selection().shapes.clone()
+                } else {
+                    Vec::new()
+                };
+                if moved {
+                    let Some(editor) = &self.editor else { return };
+                    let model = editor.session.model();
+                    let slide = &model.slides[self.page];
+                    let Some(ctx) = resolve::Ctx::for_slide(model, slide) else {
+                        return;
+                    };
+                    let rect = joydeck_geom::Rect::from_points(
+                        drag.point(drag.start),
+                        drag.point(event.position),
+                    );
+                    let mut included: BTreeSet<_> = ids.iter().copied().collect();
+                    for shape in &slide.shapes {
+                        if !shape.hidden
+                            && !shape.locked
+                            && pointer_geometry::intersects(resolve::xfrm(&ctx, shape), rect)
+                            && included.insert(shape.id)
+                        {
+                            ids.push(shape.id);
+                        }
+                    }
+                }
+                self.cell = None;
+                self.cell_range = None;
+                self.select_objects(ids, w, cx);
+            }
+            Gesture::Transform { frame, kind } if moved => {
+                let next = frame.preview(kind, drag.delta(event.position), event.modifiers.shift);
+                if let Some(command) = frame.command(next) {
+                    self.dispatch(command, w, cx);
+                }
+            }
+            Gesture::Transform { .. } => {}
+        }
+    }
+
+    pub(super) fn paint_selection_frame(&self, bounds: Bounds<Pixels>, scale: f32, w: &mut Window) {
+        let Some(frame) = self.visible_selection_frame() else {
+            return;
+        };
+        let to_window = |p: joydeck_geom::Point| {
+            bounds.origin + point(px(p.x as f32 * scale), px(p.y as f32 * scale))
+        };
+        let mut path = PathBuilder::stroke(px(1.));
+        path.move_to(to_window(grip(frame, -1, -1, 0.)));
+        for (x, y) in [(1, -1), (1, 1), (-1, 1), (-1, -1)] {
+            path.line_to(to_window(grip(frame, x, y, 0.)));
+        }
+        path.move_to(to_window(grip(frame, 0, -1, 0.)));
+        path.line_to(to_window(grip(
+            frame,
+            0,
+            -1,
+            ROTATION_OFFSET / f64::from(scale),
+        )));
+        if let Ok(path) = path.build() {
+            w.paint_path(path, rgb(0x7a7a7a));
+        }
+    }
+
+    fn visible_selection_frame(&self) -> Option<joydeck_geom::Xfrm> {
+        match &self.drag {
+            Some(drag) => match drag.gesture {
+                Gesture::Transform { frame, kind } => {
+                    Some(frame.preview(kind, drag.delta(drag.current), drag.shift))
+                }
+                Gesture::Marquee { .. } => self.selection_frame().map(|frame| frame.bounds),
+            },
+            None => self.selection_frame().map(|frame| frame.bounds),
+        }
+    }
+
     pub(super) fn selection_overlays(&self, scale: f32, color: u32) -> Vec<AnyElement> {
         let Some(e) = &self.editor else { return vec![] };
         let p = e.session.model();
@@ -806,17 +904,6 @@ impl Viewer {
         let Some(ctx) = resolve::Ctx::for_slide(p, slide) else {
             return vec![];
         };
-        let (dx, dy, resize) = self
-            .drag
-            .as_ref()
-            .map(|d| {
-                (
-                    f32::from(d.current.x - d.start.x),
-                    f32::from(d.current.y - d.start.y),
-                    d.resize,
-                )
-            })
-            .unwrap_or((0., 0., None));
         let mut overlays = Vec::new();
         for shape in slide
             .shapes
@@ -866,80 +953,40 @@ impl Viewer {
                 }
             }
         }
-        if let Some(b) = self.selected_bounds() {
-            let (mx, my, dw, dh) = if let Some((hx, hy)) = resize {
-                (
-                    if hx < 0 { dx } else { 0. },
-                    if hy < 0 { dy } else { 0. },
-                    dx * hx as f32,
-                    dy * hy as f32,
-                )
-            } else {
-                (dx, dy, 0., 0.)
-            };
-            let (x, y, w, h) = (
-                b.x0 as f32 * scale + mx,
-                b.y0 as f32 * scale + my,
-                (b.width() as f32 * scale + dw).max(1.),
-                (b.height() as f32 * scale + dh).max(1.),
-            );
-            let mut outline = div()
-                .absolute()
-                .left(px(x))
-                .top(px(y))
-                .w(px(w))
-                .h(px(h))
-                .border_1()
-                .border_color(rgb(color));
-            outline = outline
-                .child(
+        if let Some(frame) = self.visible_selection_frame() {
+            for (x, y) in GRIPS {
+                let p = grip(frame, x, y, 0.);
+                overlays.push(
                     div()
                         .absolute()
-                        .left(px(w / 2. - 0.5))
-                        .top(px(-24.))
-                        .w(px(1.))
-                        .h(px(24.))
-                        .bg(rgb(color)),
-                )
-                .child(
-                    div()
-                        .absolute()
-                        .left(px(w / 2. - 5.))
-                        .top(px(-29.))
-                        .w(px(10.))
-                        .h(px(10.))
-                        .rounded_full()
-                        .bg(rgb(0xffffff))
-                        .border_1()
-                        .border_color(rgb(color)),
-                );
-            for (hx, hy) in [
-                (0., 0.),
-                (0.5, 0.),
-                (1., 0.),
-                (0., 0.5),
-                (1., 0.5),
-                (0., 1.),
-                (0.5, 1.),
-                (1., 1.),
-            ] {
-                outline = outline.child(
-                    div()
-                        .absolute()
-                        .left(px(hx * w - 3.5))
-                        .top(px(hy * h - 3.5))
+                        .left(px(p.x as f32 * scale - 3.5))
+                        .top(px(p.y as f32 * scale - 3.5))
                         .w(px(7.))
                         .h(px(7.))
                         .bg(rgb(0xffffff))
                         .border_1()
                         .border_color(rgb(color))
-                        .rounded(px(1.)),
+                        .rounded(px(1.))
+                        .into_any_element(),
                 );
             }
-            overlays.push(outline.into_any_element());
+            let p = grip(frame, 0, -1, ROTATION_OFFSET / f64::from(scale));
+            overlays.push(
+                div()
+                    .absolute()
+                    .left(px(p.x as f32 * scale - 5.))
+                    .top(px(p.y as f32 * scale - 5.))
+                    .w(px(10.))
+                    .h(px(10.))
+                    .rounded_full()
+                    .bg(rgb(0xffffff))
+                    .border_1()
+                    .border_color(rgb(color))
+                    .into_any_element(),
+            );
         }
         if let Some(d) = &self.drag
-            && d.marquee
+            && matches!(d.gesture, Gesture::Marquee { .. })
         {
             let x = f32::from(d.start.x.min(d.current.x) - self.canvas_bounds.left());
             let y = f32::from(d.start.y.min(d.current.y) - self.canvas_bounds.top());

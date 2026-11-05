@@ -47,6 +47,8 @@ jobs:
           fi
       - name: Independent CLI build
         run: cargo build --locked -p joydeck-cli
+      - name: R1 static and runtime command reconciliation
+        run: python scripts/joydeck/verify-r1-registry.py --cli target/debug/joydeck-cli
   desktop:
     name: JoyDeck desktop (${{ matrix.os }})
     strategy:
