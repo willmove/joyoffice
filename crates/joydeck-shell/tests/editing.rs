@@ -373,6 +373,41 @@ fn simple_slide_structure_and_picture_copy_round_trip_in_public_pptx() {
     );
 }
 #[test]
+fn preserving_save_reuses_the_existing_pasted_picture_part() {
+    let root = work();
+    let source = editor(&root);
+    let page = 1;
+    let image = source.session.model().slides[page]
+        .shapes
+        .iter()
+        .find(|s| matches!(s.kind, joydeck_model::ShapeKind::Picture { .. }))
+        .unwrap();
+    let transfer =
+        joydeck_engine::transfer::capture(source.session.model(), page, &[image.id]).unwrap();
+    let mut destination = editor(&work());
+    destination.session.select(0, vec![]).unwrap();
+    destination
+        .session
+        .execute(Command::PasteObjects {
+            transfer: Box::new(transfer),
+        })
+        .unwrap();
+    let output = root.join("pasted-picture.pptx");
+    destination.save_job(output.clone()).unwrap().run().unwrap();
+
+    let media = |bytes| {
+        parts(bytes)
+            .into_iter()
+            .filter(|(path, _)| path.starts_with("ppt/media/"))
+            .collect::<BTreeMap<_, _>>()
+    };
+    assert_eq!(media(&std::fs::read(&output).unwrap()), media(PPTX));
+    let reopened = Document::open(&output, &Cancellation::default()).unwrap();
+    assert_eq!(reopened.presentation.media.len(), 1);
+    assert_eq!(reopened.presentation.slides[0].shapes.len(), 5);
+}
+
+#[test]
 fn recovery_leases_corruption_and_restore_without_overwriting_source() {
     let root = work();
     let recovery_root = root.join("recovery");

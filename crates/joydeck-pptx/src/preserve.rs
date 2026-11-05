@@ -427,6 +427,7 @@ pub fn export_preserving(
         .ok_or_else(|| error("slide ID space exhausted"))?;
     let mut destinations = BTreeMap::new();
     let mut generated_slides = BTreeMap::new();
+    let mut pictures = content::Pictures::new(&pkg);
     for (index, slide) in current.slides.iter().enumerate() {
         let binding = bindings
             .iter()
@@ -898,7 +899,6 @@ pub fn export_preserving(
                 field_ids.reassign_tree(&mut e);
                 e
             };
-            // Generated shapes only reference existing theme or explicit colors; R2 inserts no new media.
             let old = binding
                 .shapes
                 .get(&shape.id)
@@ -914,6 +914,7 @@ pub fn export_preserving(
                 &mut parts,
                 &mut ct,
                 &mut added_rels,
+                &mut pictures,
             )?;
             if let Some(nv) = find_mut(&mut e, "cNvPr") {
                 set(nv, "id", shape.id.0.to_string());

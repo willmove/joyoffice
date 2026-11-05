@@ -1,6 +1,10 @@
 //! Targeted R5 XML updates. Unknown surrounding XML and untouched parts are retained.
 use super::*;
 use joydeck_model::{LayoutId, Shape, ShapeKind};
+use std::{
+    collections::HashMap,
+    hash::{BuildHasher, RandomState},
+};
 
 fn master_targets(pkg: &opc::Package) -> Result<Vec<String>, PptxError> {
     let pres_path = pkg.presentation_path()?;
@@ -278,6 +282,72 @@ fn import_part(
     }
     Ok(target)
 }
+
+pub(super) struct Pictures<'a> {
+    source: &'a opc::Package,
+    fingerprint: RandomState,
+    parts: Option<HashMap<(String, u64), Vec<String>>>,
+}
+
+impl<'a> Pictures<'a> {
+    pub(super) fn new(source: &'a opc::Package) -> Self {
+        Self {
+            source,
+            fingerprint: RandomState::new(),
+            parts: None,
+        }
+    }
+
+    fn target(
+        &mut self,
+        generated: &opc::Package,
+        source: &str,
+        parts: &mut BTreeMap<String, Vec<u8>>,
+        ct: &mut El,
+    ) -> Result<String, PptxError> {
+        let Some((kind, bytes)) = generated.content_type(source).zip(generated.get(source)) else {
+            return Err(error(
+                "generated picture part is missing data or a content type",
+            ));
+        };
+        if !kind.starts_with("image/")
+            || bytes.len() > 32 << 20
+            || generated.get(&opc::rels_path(source)).is_some()
+        {
+            return import_part(generated, source, parts, ct, &mut BTreeMap::new(), 0);
+        }
+        // Index once per save, on the first edited picture. Only independent,
+        // byte-identical images of the same declared type can share a part.
+        let index = self.parts.get_or_insert_with(|| {
+            let mut index = HashMap::<_, Vec<_>>::new();
+            for (path, data) in parts.iter() {
+                if data.len() <= 32 << 20
+                    && self.source.original_name(path) == Some(path.as_str())
+                    && let Some(kind) = self.source.content_type(path)
+                    && kind.starts_with("image/")
+                    && self.source.get(&opc::rels_path(path)).is_none()
+                {
+                    let key = (kind, self.fingerprint.hash_one(data.as_slice()));
+                    index.entry(key).or_default().push(path.clone());
+                }
+            }
+            index
+        });
+        let candidates = index
+            .entry((kind, self.fingerprint.hash_one(bytes)))
+            .or_default();
+        if let Some(path) = candidates
+            .iter()
+            .find(|path| parts.get(*path).is_some_and(|data| data == bytes))
+        {
+            return Ok(path.clone());
+        }
+        let target = import_part(generated, source, parts, ct, &mut BTreeMap::new(), 0)?;
+        candidates.push(target.clone());
+        Ok(target)
+    }
+}
+
 #[allow(clippy::too_many_arguments)]
 pub(super) fn shape(
     target: &mut El,
@@ -290,6 +360,7 @@ pub(super) fn shape(
     parts: &mut BTreeMap<String, Vec<u8>>,
     ct: &mut El,
     rels: &mut Vec<El>,
+    pictures: &mut Pictures<'_>,
 ) -> Result<(), PptxError> {
     if let Some(old) = old
         && (new.fill != old.fill || new.geom != old.geom)
@@ -381,14 +452,18 @@ pub(super) fn shape(
     if relationship.external {
         return Err(error("edited linked resources need .joydeck Save As"));
     }
-    let destination = import_part(
-        pkg,
-        &relationship.target,
-        parts,
-        ct,
-        &mut BTreeMap::new(),
-        0,
-    )?;
+    let destination = if local == "blip" && relationship.kind == "image" {
+        pictures.target(pkg, &relationship.target, parts, ct)?
+    } else {
+        import_part(
+            pkg,
+            &relationship.target,
+            parts,
+            ct,
+            &mut BTreeMap::new(),
+            0,
+        )?
+    };
     let mut id = format!("rIdJoyDeckContent{}", new.id.0);
     while rels.iter().any(|r| r.attr("Id") == Some(&id))
         || parts
