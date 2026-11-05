@@ -426,6 +426,18 @@ impl Viewer {
         let key = event.keystroke.key.as_str();
         let mods = event.keystroke.modifiers;
         let command = mods.control || mods.platform;
+        // GPUI omits disabled native actions from key dispatch. Report the same reason
+        // when a shortcut falls through to the canvas instead of the native action.
+        if command
+            && !mods.alt
+            && key == "s"
+            && let Some(reason) = self.save_unavailable()
+        {
+            self.message = reason.into();
+            cx.notify();
+            cx.stop_propagation();
+            return;
+        }
         if let Some(larger) = format_ui::font_size_direction(command, mods.shift, key)
             && !self.composing()
         {
@@ -434,6 +446,22 @@ impl Viewer {
             return;
         }
         if self.inline.is_none() {
+            let basic = match (command, mods.shift, key) {
+                (true, false, "z") => Some(BasicEdit::Undo),
+                (true, true, "z") => Some(BasicEdit::Redo),
+                (true, false, "y") if mods.control => Some(BasicEdit::Redo),
+                (true, false, "d") => Some(BasicEdit::Duplicate),
+                (true, false, "m") => Some(BasicEdit::NewSlide),
+                (false, false, "delete") => Some(BasicEdit::Delete),
+                _ => None,
+            };
+            if !mods.alt
+                && let Some(edit) = basic
+            {
+                self.run_basic_edit(edit, w, cx);
+                cx.stop_propagation();
+                return;
+            }
             let selected = self
                 .editor
                 .as_ref()
@@ -463,16 +491,6 @@ impl Viewer {
                     w,
                     cx,
                 );
-                cx.stop_propagation();
-                return;
-            }
-            if command && key == "d" {
-                self.dispatch(Command::Duplicate, w, cx);
-                cx.stop_propagation();
-                return;
-            }
-            if command && key == "m" {
-                self.dispatch(Command::NewSlide, w, cx);
                 cx.stop_propagation();
                 return;
             }
@@ -801,6 +819,11 @@ impl Viewer {
         let Some(e) = &self.editor else {
             return;
         };
+        if cut && let Some(reason) = self.basic_edit_unavailable(BasicEdit::Delete, cx) {
+            self.message = reason.to_string();
+            cx.notify();
+            return;
+        }
         match joydeck_engine::transfer::capture(
             e.session.model(),
             self.page,
@@ -815,13 +838,17 @@ impl Viewer {
             }
         }) {
             Ok(metadata) => {
+                if cut {
+                    let before = self.editor.as_ref().map(|e| e.session.revision());
+                    self.run_basic_edit(BasicEdit::Delete, w, cx);
+                    if self.editor.as_ref().map(|e| e.session.revision()) == before {
+                        return;
+                    }
+                }
                 cx.write_to_clipboard(ClipboardItem::new_string_with_metadata(
                     "JoyDeck 对象".into(),
                     metadata,
                 ));
-                if cut {
-                    self.dispatch(Command::Delete, w, cx);
-                }
                 self.message = if cut {
                     "已剪切对象"
                 } else {

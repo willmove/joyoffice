@@ -34,6 +34,12 @@ actions!(
         Save,
         UndoEdit,
         RedoEdit,
+        AddSlide,
+        DuplicateObject,
+        DuplicateSlides,
+        DeleteSlides,
+        MoveForward,
+        MoveBackward,
         NewDocument,
         DeleteObject,
         CloseEditor,
@@ -44,6 +50,9 @@ actions!(
         PresentCurrent
     ]
 );
+#[path = "basic_edit.rs"]
+mod basic_edit;
+use basic_edit::BasicEdit;
 #[path = "chrome.rs"]
 mod chrome;
 #[path = "chrome_edit.rs"]
@@ -877,8 +886,7 @@ impl Render for Viewer {
                 )
                 .into_any_element()
         };
-        div()
-            .id("viewer")
+        self.register_basic_actions(div().id("viewer"), cx)
             .key_context("Viewer")
             .when(self.inline.is_some(), |d| {
                 d.key_context("Viewer InlineText")
@@ -895,14 +903,14 @@ impl Render for Viewer {
             } else {
                 "sans-serif"
             })
-            .on_action(cx.listener(Self::save))
+            .when(self.save_unavailable().is_none(), |d| {
+                d.on_action(cx.listener(Self::save))
+                    .on_action(cx.listener(Self::save_as))
+            })
             .on_action(cx.listener(|s, _: &NextCell, w, cx| s.next_cell(false, w, cx)))
             .on_action(cx.listener(|s, _: &PreviousCell, w, cx| s.next_cell(true, w, cx)))
             .on_key_down(cx.listener(Self::inline_key))
-            .on_action(cx.listener(Self::undo_edit))
-            .on_action(cx.listener(Self::redo_edit))
             .on_action(cx.listener(Self::new_document))
-            .on_action(cx.listener(Self::delete_object))
             .on_action(cx.listener(Self::request_close))
             .on_mouse_move(cx.listener(move |s, event, _, cx| {
                 s.inline_move(event, scale, cx);
@@ -917,7 +925,6 @@ impl Render for Viewer {
             .on_action(cx.listener(Self::zoom_out))
             .on_action(cx.listener(Self::fit))
             .on_action(cx.listener(Self::report))
-            .on_action(cx.listener(Self::save_as))
             .on_action(cx.listener(|s, _: &PresentStart, _, cx| s.start_show(true, false, cx)))
             .on_action(cx.listener(|s, _: &PresentCurrent, _, cx| s.start_show(false, false, cx)))
             .child(
@@ -982,6 +989,18 @@ pub fn bind(cx: &mut App) {
         KeyBinding::new("ctrl-y", RedoEdit, Some("Viewer && !Input")),
         KeyBinding::new("ctrl-shift-z", RedoEdit, Some("Viewer && !Input")),
         KeyBinding::new(
+            "cmd-d",
+            DuplicateObject,
+            Some("Viewer && !Input && !InlineText"),
+        ),
+        KeyBinding::new(
+            "ctrl-d",
+            DuplicateObject,
+            Some("Viewer && !Input && !InlineText"),
+        ),
+        KeyBinding::new("cmd-m", AddSlide, Some("Viewer && !Input && !InlineText")),
+        KeyBinding::new("ctrl-m", AddSlide, Some("Viewer && !Input && !InlineText")),
+        KeyBinding::new(
             "delete",
             DeleteObject,
             Some("Viewer && !Input && !InlineText"),
@@ -1021,6 +1040,16 @@ pub(super) fn bind_native_menus(cx: &mut App) {
         Menu::new("编辑").items([
             MenuItem::action("撤销", UndoEdit),
             MenuItem::action("重做", RedoEdit),
+            MenuItem::separator(),
+            MenuItem::action("创建对象副本", DuplicateObject),
+            MenuItem::action("删除对象", DeleteObject),
+            MenuItem::action("上移一层", MoveForward),
+            MenuItem::action("下移一层", MoveBackward),
+        ]),
+        Menu::new("幻灯片").items([
+            MenuItem::action("新建幻灯片", AddSlide),
+            MenuItem::action("复制幻灯片", DuplicateSlides),
+            MenuItem::action("删除幻灯片", DeleteSlides),
         ]),
     ]);
 }

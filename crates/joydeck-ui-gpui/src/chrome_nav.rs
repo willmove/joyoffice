@@ -408,7 +408,9 @@ impl Viewer {
         self.sync_notes(w, cx);
     }
     pub(super) fn save_as(&mut self, _: &SaveAs, w: &mut Window, cx: &mut Context<Self>) {
-        if self.composing() || self.is_saving() || self.loading || self.editor.is_none() {
+        if let Some(reason) = self.save_unavailable() {
+            self.message = reason.into();
+            cx.notify();
             return;
         }
         self.commit_notes(w, cx);

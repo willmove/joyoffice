@@ -3,7 +3,10 @@ use super::*;
 use joydeck_engine::{Command, Selection, Session};
 use joydeck_model::{Presentation, SlideId};
 use joydeck_shell::editor::{Editor, SaveJob, Saved};
-use std::{cell::Cell, rc::Rc};
+use std::{
+    cell::{Cell, RefCell},
+    rc::Rc,
+};
 
 pub(super) struct SharedDocument {
     editor: Option<Editor>,
@@ -57,8 +60,12 @@ pub(super) struct ViewSession {
     selection: Selection,
     revision: u64,
     dirty: bool,
-    can_undo: bool,
-    can_redo: bool,
+    basic_edits: RefCell<BTreeMap<BasicEdit, BasicEditPreview>>,
+}
+
+struct BasicEditPreview {
+    slides: Vec<SlideId>,
+    result: Result<bool, String>,
 }
 
 impl ViewSession {
@@ -68,8 +75,7 @@ impl ViewSession {
             selection,
             revision: session.revision(),
             dirty: session.dirty(),
-            can_undo: session.can_undo(),
-            can_redo: session.can_redo(),
+            basic_edits: RefCell::default(),
         }
     }
     pub(super) fn model(&self) -> &Presentation {
@@ -87,15 +93,15 @@ impl ViewSession {
     pub(super) fn dirty(&self) -> bool {
         self.dirty
     }
-    pub(super) fn can_undo(&self) -> bool {
-        self.can_undo
-    }
-    pub(super) fn can_redo(&self) -> bool {
-        self.can_redo
-    }
     pub(super) fn select(&mut self, page: usize, shapes: Vec<ShapeId>) -> Result<(), String> {
-        self.selection = Selection::checked(&self.model, page, shapes)?;
+        self.set_selection(Selection::checked(&self.model, page, shapes)?);
         Ok(())
+    }
+    fn set_selection(&mut self, selection: Selection) {
+        if self.selection != selection {
+            self.selection = selection;
+            self.basic_edits.get_mut().clear();
+        }
     }
 }
 
@@ -175,10 +181,46 @@ impl ViewEditor {
 
     pub(super) fn refresh(&mut self, cx: &App) {
         if let Some(editor) = self.document.read(cx).editor.as_ref() {
-            let selection = remap_selection(&self.session, editor.session.model());
-            self.session = ViewSession::new(&editor.session, selection);
+            if editor.session.revision() != self.session.revision {
+                let selection = remap_selection(&self.session, editor.session.model());
+                self.session = ViewSession::new(&editor.session, selection);
+            } else {
+                self.session.dirty = editor.session.dirty();
+            }
             self.source.clone_from(&editor.source);
         }
+    }
+
+    pub(super) fn validate_basic_edit(
+        &self,
+        edit: BasicEdit,
+        slides: &[SlideId],
+        cx: &App,
+    ) -> Result<bool, String> {
+        let editor = self
+            .document
+            .read(cx)
+            .editor
+            .as_ref()
+            .ok_or("document is closed")?;
+        if editor.session.revision() != self.session.revision {
+            return Err("文稿在另一窗口中更新，请重试".into());
+        }
+        let mut cache = self.session.basic_edits.borrow_mut();
+        if let Some(preview) = cache.get(&edit).filter(|preview| preview.slides == slides) {
+            return preview.result.clone();
+        }
+        let result = editor
+            .session
+            .validate_for_selection(&self.session.selection, edit.command(slides.to_vec()));
+        cache.insert(
+            edit,
+            BasicEditPreview {
+                slides: slides.to_vec(),
+                result: result.clone(),
+            },
+        );
+        result
     }
 
     pub(super) fn execute(&mut self, command: Command, cx: &mut App) -> Result<bool, String> {
@@ -311,7 +353,7 @@ impl ViewEditor {
         });
         self.refresh(cx);
         if let Some(selection) = selection {
-            self.session.selection = selection;
+            self.session.set_selection(selection);
         }
         response
     }
