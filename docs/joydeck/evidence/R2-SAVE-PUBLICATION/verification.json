@@ -1,0 +1,53 @@
+{
+  "base": "69880cc",
+  "package": {
+    "archive": "joydeck-0.8.0-save-publication.zip",
+    "archive_sha256": "c9a9794de7fcfddce660359229ecfa5468270b67d6808cdd09ca4652a6edd6ed",
+    "source_sha256": "d12427dc51e49b849eed532858307558d49e21c6d2f75163edd6fa485bc66fdf",
+    "target": "aarch64-apple-darwin",
+    "profile": "release",
+    "sbom_packages": 465,
+    "missing_license_texts": [
+      "block@0.1.6",
+      "mac@0.1.1",
+      "malloc_buf@0.0.6",
+      "pathfinder_geometry@0.5.1",
+      "seahash@4.1.0"
+    ],
+    "signed": false
+  },
+  "gui": {
+    "binarySha256": "4ecf099644f1a31d1d4001cf6cc414390fe82b3c258f559d5ad2cf26fe55fb0b",
+    "cliSha256": "e33996349a77e3323947b25a494b15283a814ef18c4a81a34136a15e3362cb15",
+    "checks": [
+      {
+        "case": "OS rejected atomic replacement of immutable fixture",
+        "originalUnchanged": true,
+        "dirtyAndRevisionUnchanged": true,
+        "imageSha256": "1882435f4a83b06521560f59dea048302bde00db859daa718052453e19db8df7"
+      },
+      {
+        "case": "External change rejected before publication",
+        "externalBytesUnchanged": true,
+        "dirtyAndRevisionUnchanged": true,
+        "imageSha256": "0692a910f48e13b4e537830b3d7c687534d50e9817582032e36188d99945065c"
+      },
+      {
+        "case": "Cancelled dirty close preserved editor and revision"
+      },
+      {
+        "case": "Native Save As saved four pages to a new JoyDeck file",
+        "savedSha256": "ddc891849428e758985d773e0cd3ebbbe522348f2185b9696c4ee639090fe3c8"
+      }
+    ]
+  },
+  "editingTests": 15,
+  "strictShellClippy": true,
+  "packageFilesVerified": 1805,
+  "deckCheck": {
+    "passed": 899,
+    "failed": 0,
+    "ignored": 0,
+    "strictClippy": true
+  }
+}

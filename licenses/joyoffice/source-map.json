@@ -164,9 +164,10 @@
     "source_path": "crates/joydeck-shell/src/storage.rs",
     "target_path": "crates/joydeck-shell/src/storage.rs",
     "source_sha256": "a13a4e50806f4c4e6b78c75208d11325254ffed035617e56336939f1221c7ebc",
-    "adapted_sha256": "215f286ee3e9b838f4005ddc891f3f6df47ee1e6561fe5a67442e6e0cc2c94fd",
+    "adapted_sha256": "95a29a5f86992ca60d3c1091b7cb87de10c7a4f5de61c4ce5cd367cbe145d313",
     "local_changes": "R2 adapt bounded IO/fingerprints and leased revision recovery to encoded JoyDeck v2 packages; recovery indexes read under bound; tests replaced by new-model integration tests; R2 editable viewer adapter, background save/recovery, command-driven gestures, coordinate anchoring and close guard; rustfmt",
-    "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained."
+    "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained.",
+    "concurrent_save": "Serialize in-process publication under the optimistic fingerprint guard and clean up only owned staging files."
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",

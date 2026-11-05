@@ -1,0 +1,89 @@
+{
+  "commit": "ce8bd679bf054ecf9d9a5ce133c5a4a7b5844e79",
+  "platform": "macOS 27.2 / aarch64-apple-darwin",
+  "deckCheck": {
+    "passed": 899,
+    "failed": 0,
+    "ignored": 0
+  },
+  "wordCheck": {
+    "passed": 3497,
+    "failed": 0,
+    "ignored": 2
+  },
+  "sheetCheck": {
+    "passed": 1400,
+    "failed": 0,
+    "ignored": 1
+  },
+  "joint": {
+    "passed": 5791,
+    "failed": 0,
+    "ignored": 3
+  },
+  "packages": {
+    "word": {
+      "archive": "joyword-0.1.1-macos-aarch64.zip",
+      "archiveSha256": "c711708ac6fc4cf1b68394490322dfa0b8419a0b1c35258a6cdd990ef9d1c517",
+      "zipEntriesChecked": 942,
+      "manifestFilesChecked": 0,
+      "guiSha256": "b1512c66b9f113879d7f9e6d93d3a01afa74e79f1a6bb914ab30a073bc91caaf",
+      "cliSha256": "b66c891150f1777ccf8742031be5115ed3904ef9d154009664163854eafb4520",
+      "build": {
+        "product": "joyword",
+        "version": "0.1.1",
+        "target": "aarch64-apple-darwin",
+        "profile": "release",
+        "packageRoots": [
+          "joyword",
+          "joyword-cli"
+        ],
+        "binarySha256": "b1512c66b9f113879d7f9e6d93d3a01afa74e79f1a6bb914ab30a073bc91caaf",
+        "cliSha256": "b66c891150f1777ccf8742031be5115ed3904ef9d154009664163854eafb4520",
+        "cargoLockSha256": "b75224b1cbc9cc3b7c18cb60da0315422de06c76764007ab2ad9d91d86974b77",
+        "dependencyPackages": 507,
+        "sourceSnapshotVerified": true,
+        "officialSignatureVerified": false
+      }
+    },
+    "sheet": {
+      "archive": "sheet-package.zip",
+      "archiveSha256": "c2ffcc3004c6d76ebfe5cf94fdb512029cb1ad673fc61125be8ab0c2c87440ea",
+      "zipEntriesChecked": 2559,
+      "manifestFilesChecked": 2558,
+      "guiSha256": "88b46709f57f88ad5d3b00b4ab743d1d1876b7d3f34d9028c41a7643b6fef0f1",
+      "cliSha256": "70a734b2bb60d37b7baa28f1d8772c2e05125bb1e3be0ac9eaf0c283e5b9183d",
+      "build": {
+        "version": "0.1.0",
+        "target": "aarch64-apple-darwin",
+        "profile": "release",
+        "packageRoots": [
+          "joysheet",
+          "joysheet-cli"
+        ],
+        "features": [],
+        "sourceSnapshotVerified": true,
+        "officialSignatureVerified": false,
+        "cargoLockSha256": "b75224b1cbc9cc3b7c18cb60da0315422de06c76764007ab2ad9d91d86974b77",
+        "sourceGraphSha256": "4395f472a6df53a5bf39e284b506afc7705b1f06367098bd3361ec7f4727f57c"
+      }
+    },
+    "deck": {
+      "archive": "joydeck-0.8.0-open-revision.zip",
+      "archive_sha256": "b0cc24901f53e1ace3f76fe2820ae1ea615d12f7b9a1ffa7df0488a340167daa",
+      "source_sha256": "2024d1d9cf88f76185c343a9f2072c982537d9aa62fbe06224693d2029e7e674",
+      "target": "aarch64-apple-darwin",
+      "profile": "release",
+      "sbom_packages": 465,
+      "missing_license_texts": [
+        "block@0.1.6",
+        "mac@0.1.1",
+        "malloc_buf@0.0.6",
+        "pathfinder_geometry@0.5.1",
+        "seahash@4.1.0"
+      ],
+      "signed": false,
+      "payloadFilesChecked": 1805
+    }
+  }
+}

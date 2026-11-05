@@ -17,6 +17,7 @@ use std::{
 };
 static IDS: AtomicU64 = AtomicU64::new(1);
 static RECENT_WRITE: Mutex<()> = Mutex::new(());
+static SAVE_PUBLICATION: Mutex<()> = Mutex::new(());
 #[derive(Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 struct RecentFiles {
@@ -104,22 +105,22 @@ pub fn save(path: &Path, deck: &Deck, expected: Option<Fingerprint>) -> Result<F
     // This is already a private prepare file, not a published destination.
     // Writing it directly avoids a second hard-link publication (and a pending
     // deleted alias on Windows) before the actual atomic commit.
-    let prepared_write = (|| {
-        let mut file = OpenOptions::new()
-            .write(true)
-            .create_new(true)
-            .open(&temp)
-            .map_err(|e| format!("create prepare file: {e}"))?;
+    let mut file = OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(&temp)
+        .map_err(|e| format!("create prepare file: {e}"))?;
+    let result = (|| {
         file.write_all(deck)
             .and_then(|_| file.sync_all())
-            .map_err(|e| format!("write prepare file: {e}"))
-    })();
-    if let Err(error) = prepared_write {
-        let _ = std::fs::remove_file(&temp);
-        return Err(error);
-    }
-    let prepared = fingerprint(&temp)?;
-    let result = (|| {
+            .map_err(|e| format!("write prepare file: {e}"))?;
+        drop(file);
+        let prepared = fingerprint(&temp)?;
+        // Compare and publish under the same guard for concurrent saves in
+        // this process. Encoding and writing private staging can overlap.
+        let _publication = SAVE_PUBLICATION
+            .lock()
+            .map_err(|_| "save publication lock unavailable")?;
         if let Some(e) = expected {
             if fingerprint(path)? != e {
                 return Err("提交前检测到外部修改，请另存".into());
@@ -128,7 +129,6 @@ pub fn save(path: &Path, deck: &Deck, expected: Option<Fingerprint>) -> Result<F
         } else {
             std::fs::hard_link(&temp, path)
                 .map_err(|e| format!("无法新建目标（可能已存在）：{e}"))?;
-            let _ = std::fs::remove_file(&temp);
         }
         Ok(prepared)
     })();
