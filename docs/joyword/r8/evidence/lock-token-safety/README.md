@@ -39,3 +39,12 @@ Platform limits: non-Unix builds add regular-handle/path checks and size/mtime c
 A regression was first run against the prior implementation and failed: with a valid older record in slot A and a directory in slot B, `select_locked` returned the older record. Non-regular paths and detected opening races used `InvalidData`, the same category as checksum/format damage, so the selector treated filesystem uncertainty as permission to fall back.
 
 These path errors now use a non-data error category and abort selection. Deterministic tests cover directory, FIFO and symbolic-link slots; the prior replacement tests also assert their errors cannot enter the damaged-record fallback branch. A separate checksum-corruption test confirms that supported fallback still returns the older record with the damaged-record flag and leaves both files unchanged. The initial failing test and subsequent passing suite demonstrate the behavioral difference. All 83 shell tests and strict all-target Clippy passed, along with formatting and repository/documentation checks.
+
+
+## Save-time future-schema guard
+
+A failing-before regression confirmed that a process holding a writable configuration could overwrite a newer-schema file published after its load. Saving now uses the same bounded regular-file reader to inspect the current target before creating its temporary file and again before publication. Any recognized `schema` declaration above this editor's version rejects the save, even when other future syntax is not parseable or the file has conflicting schema declarations. A stale writable flag is no longer sufficient to downgrade such a file. Read failures and special/oversized targets also refuse publication.
+
+The regression checks the newer file remains byte-identical and no extra files are left. Additional coverage tests unknown future syntax and conflicting declarations. Existing corruption backup/migration and normal repeated-save behavior remain covered by the shell suite. This is a best-effort schema guard, not an atomic compare-and-swap or same-schema conflict merge: a writer can still race the final check and rename, and concurrent same-schema updates are not resolved by this slice. Existing intentionally backed-up corrupt configurations keep their repair behavior.
+
+Future-schema slice validation: 85 joyword-shell tests passed; strict all-target Clippy, formatting, repository and documentation gates passed. The pre-fix stale-schema test failed as expected, then passed after the guard was added. No real-device validation was performed.

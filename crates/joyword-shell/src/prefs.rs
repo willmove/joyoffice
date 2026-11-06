@@ -331,6 +331,25 @@ fn open_preferences(path: &Path) -> io::Result<fs::File> {
     Ok(file)
 }
 
+fn read_preferences(path: &Path) -> io::Result<Vec<u8>> {
+    let file = open_preferences(path)?;
+    if file.metadata()?.len() > MAX_BYTES as u64 {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "preferences exceed 256 KiB",
+        ));
+    }
+    let mut bytes = Vec::new();
+    file.take(MAX_BYTES as u64 + 1).read_to_end(&mut bytes)?;
+    if bytes.len() > MAX_BYTES {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "preferences exceed 256 KiB",
+        ));
+    }
+    Ok(bytes)
+}
+
 pub struct PrefsStore {
     dir: PathBuf,
 }
@@ -376,25 +395,7 @@ impl PrefsStore {
     /// defaults (normally the system UI language).
     pub fn load(&self, fallback: Locale) -> Loaded {
         let path = self.path();
-        let read = || -> io::Result<Vec<u8>> {
-            let file = open_preferences(&path)?;
-            if file.metadata()?.len() > MAX_BYTES as u64 {
-                return Err(io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    "preferences exceed 256 KiB",
-                ));
-            }
-            let mut bytes = Vec::new();
-            file.take(MAX_BYTES as u64 + 1).read_to_end(&mut bytes)?;
-            if bytes.len() > MAX_BYTES {
-                return Err(io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    "preferences exceed 256 KiB",
-                ));
-            }
-            Ok(bytes)
-        };
-        let bytes = match read() {
+        let bytes = match read_preferences(&path) {
             Ok(bytes) => bytes,
             Err(error) => {
                 // A missing target behind a symlink is not a missing config.
@@ -462,6 +463,41 @@ impl PrefsStore {
             .unwrap_or_else(|| self.dir.join("preferences.corrupt-1023.conf"))
     }
 
+    // The loaded writable flag is only a past observation: a newer installation
+    // can publish preferences while this process remains open.
+    fn check_current_schema(&self) -> io::Result<()> {
+        let path = self.path();
+        let bytes = match read_preferences(&path) {
+            Ok(bytes) => bytes,
+            Err(error)
+                if error.kind() == io::ErrorKind::NotFound
+                    && path
+                        .symlink_metadata()
+                        .is_err_and(|e| e.kind() == io::ErrorKind::NotFound) =>
+            {
+                return Ok(());
+            }
+            Err(error) => return Err(error),
+        };
+        if let Ok(text) = std::str::from_utf8(&bytes)
+            && text
+                .lines()
+                .filter_map(|line| line.split_once('='))
+                .any(|(key, value)| {
+                    key.trim() == "schema"
+                        && unescape(value.trim_end_matches('\r'))
+                            .and_then(|value| value.parse::<u32>().ok())
+                            .is_some_and(|schema| schema > SCHEMA)
+                })
+        {
+            return Err(io::Error::new(
+                io::ErrorKind::PermissionDenied,
+                "preferences now belong to a newer JoyWord; reload before saving",
+            ));
+        }
+        Ok(())
+    }
+
     /// Writes atomically: a temporary file in the same directory, flushed,
     /// then renamed over the original.
     pub fn save(&self, loaded: &Loaded) -> io::Result<()> {
@@ -478,10 +514,12 @@ impl PrefsStore {
                 "preferences exceed 256 KiB",
             ));
         }
+        self.check_current_schema()?;
         fs::create_dir_all(&self.dir)?;
         let mut temporary = tempfile::NamedTempFile::new_in(&self.dir)?;
         temporary.write_all(serialized.as_bytes())?;
         temporary.as_file().sync_all()?;
+        self.check_current_schema()?;
         temporary
             .persist(self.path())
             .map_err(|error| error.error)?;
@@ -809,6 +847,39 @@ mod tests {
             fs::read_to_string(&target)?,
             "schema=1\nauthor.name=Reader\n"
         );
+        Ok(())
+    }
+
+    #[test]
+    fn stale_writable_preferences_cannot_overwrite_a_newer_schema() -> io::Result<()> {
+        let dir = tempfile::tempdir()?;
+        let store = PrefsStore::new(dir.path());
+        let mut loaded = store.load(Locale::En);
+        store.save(&loaded)?;
+        loaded.prefs.author_name = "old editor".into();
+        let future = "schema=99\nfuture.important=keep\n";
+        fs::write(store.path(), future)?;
+        assert!(loaded.writable);
+        assert!(store.save(&loaded).is_err());
+        assert_eq!(fs::read_to_string(store.path())?, future);
+        assert_eq!(fs::read_dir(dir.path())?.count(), 1);
+        Ok(())
+    }
+
+    #[test]
+    fn save_guard_recognizes_future_schema_even_when_new_syntax_is_unknown() -> io::Result<()> {
+        for future in [
+            "schema=99\nnew syntax without equals\n",
+            "schema=1\nschema=99\n",
+        ] {
+            let dir = tempfile::tempdir()?;
+            let store = PrefsStore::new(dir.path());
+            let loaded = store.load(Locale::En);
+            fs::write(store.path(), future)?;
+            assert!(store.save(&loaded).is_err());
+            assert_eq!(fs::read_to_string(store.path())?, future);
+            assert_eq!(fs::read_dir(dir.path())?.count(), 1);
+        }
         Ok(())
     }
 }
