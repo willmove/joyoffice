@@ -89,3 +89,27 @@ fn malformed_and_oversized_fragments_do_not_escape_the_budget() {
     assert_eq!(body.text(), "visible");
     assert!(body.paragraphs[0].runs[0].props.link.is_none());
 }
+
+#[test]
+fn rtf_hidden_text_is_scoped_and_explicitly_reset() {
+    for (input, expected) in [
+        (r"{\rtf1 Before{\v secret{nested}}After}", "BeforeAfter"),
+        (r"{\rtf1 \v secret{\v0 Visible}secret\v0 End}", "VisibleEnd"),
+        (r"{\rtf1 \b\v secret\plain Visible}", "Visible"),
+    ] {
+        let body = import_rtf(input.as_bytes()).expect("visible RTF text");
+        assert_eq!(body.text(), expected, "{input}");
+        assert_ne!(body.paragraphs[0].runs[0].props.bold, Some(true));
+    }
+}
+
+#[test]
+fn rtf_hidden_unicode_and_breaks_do_not_leak_into_visible_text() {
+    let body = import_rtf(
+        br"{\rtf1\ansi\uc1 Before{\v \'e9\u20013?\u-10179?\u-8704?\tab\line\par\emdash}After\line End}",
+    )
+    .expect("visible RTF text");
+    assert_eq!(body.text(), "BeforeAfter\u{b}End");
+    assert_eq!(body.paragraphs.len(), 1);
+    assert!(import_rtf(br"{\rtf1\v secret}").is_none());
+}

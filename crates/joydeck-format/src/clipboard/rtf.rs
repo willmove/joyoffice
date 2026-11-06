@@ -29,6 +29,7 @@ struct State {
     font: Option<i32>,
     align: Option<Align>,
     uc: usize,
+    hidden: bool,
     starred: bool,
     first: bool,
 }
@@ -164,6 +165,9 @@ impl Reader {
     fn text(&mut self, value: &str) {
         match self.state.dest {
             Destination::Text => {
+                if self.state.hidden {
+                    return;
+                }
                 let mut props = self.state.props.clone();
                 if let Some(font) = self
                     .state
@@ -301,6 +305,7 @@ impl Reader {
             "fs" if (2..=800).contains(&number) => {
                 self.state.props.size = Some(f64::from(number) / 2.0)
             }
+            "v" => self.state.hidden = active,
             "b" => self.state.props.bold = Some(active),
             "i" => self.state.props.italic = Some(active),
             "ul" | "ulnone" | "uldb" => {
@@ -342,14 +347,15 @@ impl Reader {
             "plain" => {
                 self.state.props = RunProps::default();
                 self.state.font = None;
+                self.state.hidden = false;
             }
             "pard" => self.state.align = None,
             "ql" => self.state.align = Some(Align::Left),
             "qc" => self.state.align = Some(Align::Center),
             "qr" => self.state.align = Some(Align::Right),
             "qj" => self.state.align = Some(Align::Justify),
-            "par" => self.out.paragraph(),
-            "line" => self.out.soft_break(&self.state.props),
+            "par" if !self.state.hidden => self.out.paragraph(),
+            "line" if !self.state.hidden => self.out.soft_break(&self.state.props),
             "tab" => self.text("\t"),
             "uc" => self.state.uc = number.clamp(0, 16) as usize,
             "u" => self.unicode(number),

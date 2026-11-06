@@ -22,3 +22,16 @@ Linux 使用 GPUI 实际选择的显示后端。X11 需要 PATH 中的 `xclip`�
 Linux JoyDeck 产品构建、严格 Clippy 和产品测试通过，默认和 `validation` 两套测试各通过 927 项。三产品单线程回归为 5,831 通过、3 忽略、1 失败。失败来自 JoyWord 的 Linux 安全扩展属性测试。独立探测确认当前环境可设置并直接读取 `security.selinux`，但列举扩展属性时没有返回该名称。
 
 Debug 版从后台打开本轮生成的原生项目会在反序列化 `RunProps` 时触发线程栈保护。上一切片的 Debug 二进制也复现，当前 Release 原生打开通过。该样例用于后续修复和回归。[Debug 重开复现样例](debug-reopen-sample.joydeck)
+
+
+## RTF 隐藏文字自动回归
+
+2026-11-06，Linux x86_64 无桌面环境，基于主干 `7b37ad4c884706087983d352d4a11148040de02a`。此次仅验证共享 RTF 解析器，不沿用以上历史桌面验收结果。
+
+原解析器忽略 `\v`，将隐藏字符作为可见内容导入。两项新增测试先在原实现失败：`Before{\v secret{nested}}After` 得到 `BeforesecretnestedAfter`，隐藏代码页字符、中文、emoji 和换行也进入输出。修复后隐藏状态随组继承／恢复，`\v0` 和 `\plain` 恢复可见文本；隐藏字符与隐藏段落／软换行不进入导入模型。字符属性含义依据 [Microsoft Text Object Model 的 RTF 对照表](https://learn.microsoft.com/en-us/windows/win32/controls/about-text-object-model)，实现未复制其他编辑器代码。
+
+- `cargo test -p joydeck-format -p joydeck-pptx`：45 + 60 项通过，0 失败、0 忽略，包含两项新增回归。保留现有代码页、字符样式、链接、安全协议和输入预算测试。
+- `cargo clippy -p joydeck-format -p joydeck-pptx --all-targets -- -D warnings`、`cargo fmt --all --check`、`python3 scripts/check_docs.py` 均通过。Rust 使用 1.98.1，测试和检查关闭 debug 信息及增量编译。
+- 单独 `cargo test -p joydeck-format` 遇到既有依赖配置问题：`zip` 启用 `deflate-flate2` 却未选压缩后端。本轮使用产品已有 `joydeck-pptx` 依赖提供的 `flate2/rust_backend`；未修改依赖或锁文件。
+- 纯隐藏 RTF 仍返回无可用富文本，调用方会继续既有纯文本回退。纯文本由来源应用提供，本修复不保证该回退内容也隐藏。因此这是 RTF 内容兼容修复，不是整个剪贴板链路的隐私保证。
+- 当前修复未运行 macOS／Windows／物理 Linux／Wayland 系统剪贴板与桌面粘贴、撤销、保存重开验收；JD-307 继续开放。
