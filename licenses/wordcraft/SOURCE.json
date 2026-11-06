@@ -1279,8 +1279,8 @@
       "source": "crates/docx/tests/it/main.rs",
       "target": "crates/joyword-docx/tests/it/main.rs",
       "source_sha256": "dbcba1e0cfa1c9bc92ea17cf446252eedf1111c7acaa4048ca93f9844b0580ba",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Preserve imported theme XML and its complete dependency graph; patch only unambiguous model-owned theme attributes, retaining script fonts and unknown content.",
-      "adapted_sha256": "59e44684c05629de5cf1029d65ff2a9b20688173b396c87ade51c344548e7ba5"
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Preserve imported theme XML and its complete dependency graph; patch only unambiguous model-owned theme attributes, retaining script fonts and unknown content. Add real-Word effective paragraph/character style round-trip regression.",
+      "adapted_sha256": "9b6cb7bff09d5ad07a2c18b98e27712d0e963f5838b4d862c8d50a757616422f"
     },
     {
       "source": "crates/docx/tests/it/malformed.rs",
