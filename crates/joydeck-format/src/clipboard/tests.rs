@@ -239,3 +239,31 @@ fn recognized_hiding_survives_parse_and_output_failure_for_text_paste() {
     assert!(import_rtf_for_paste(br"{\rtf1 ordinary unclosed").is_none());
     assert!(import_html(text.as_bytes()).is_none());
 }
+
+#[test]
+fn fully_hidden_html_consumes_paste_without_rtf_or_plain_fallback() {
+    for html in [
+        "<span hidden>secret</span>",
+        "<span style='display:none'>secret</span>",
+        "<div style='visibility:hidden'><b>secret</b></div>",
+        "<span hidden>secret",
+    ] {
+        let mut fallback = false;
+        let body = import_html(html.as_bytes())
+            .or_else(|| {
+                fallback = true;
+                import_rtf_for_paste(br"{\rtf1 secret}")
+            })
+            .expect("consume recognized hidden HTML");
+        assert!(!fallback, "{html}");
+        assert!(body.is_empty(), "{html}");
+    }
+    assert_eq!(
+        import_html(b"Visible<span hidden>secret</span> remainder")
+            .expect("visible remainder")
+            .text(),
+        "Visible remainder"
+    );
+    assert!(import_html(b"<span></span>").is_none());
+    assert!(import_html(b"<head><title>metadata</title></head>").is_none());
+}

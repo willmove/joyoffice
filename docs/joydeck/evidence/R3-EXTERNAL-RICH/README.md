@@ -76,3 +76,11 @@ Debug 版从后台打开本轮生成的原生项目会在反序列化 `RunProps`
 - 轻量 Cargo 测试宿主直接包含生产 Linux 剪贴板适配器：5 项通过。四种 RTF MIME／别名同时覆盖有效和损坏的隐藏输入，验证不读取下一种表示。宿主只重导出相同 format 模块，未调用真实系统剪贴板。
 - 当前无桌面环境，未验收真实选区、撤销历史、macOS／Windows／Wayland 系统粘贴；JD-307 仍开放。
 - `RUST_FONTCONFIG_DLOPEN=1 cargo clippy --locked -p joydeck-format -p joydeck-pptx -p joydeck-ui-gpui --all-targets -- -D warnings`、fmt、文档与 291 项来源指纹检查通过；未修改依赖或锁文件。
+
+## JD-307：普通粘贴的纯隐藏 HTML（2026-11-06）
+
+在 #152 的解析失败保护之上，补齐正常解析但没有可见内容的 HTML。修复前 `<span hidden>secret</span>` 返回 `None`，可继续读取 RTF／纯文本而暴露隐藏文字；已由回归复现。现在一旦识别显式隐藏且没有可见内容，返回 `Some(empty)` 消费粘贴，保留现有调用者的无编辑／不回退契约。
+
+覆盖 `hidden`、`display:none`、`visibility:hidden`、未闭合隐藏标签及可见/隐藏混合内容；纯空标签和只有 head 元数据的 HTML 仍可正常回退。Linux、Windows 和 macOS 的现有普通粘贴入口共用这一导入函数，未更改平台代码。此检查不覆盖尚未支持的外部样式表或完整 CSS 层叠。
+
+验证命令：`cargo test --locked -p joydeck-format -p joyoffice-opc`，62 项测试通过；相同包的严格库 Clippy、格式、文档、来源指纹和工程门禁通过。OPC 包提供产品构建使用的压缩后端 feature；单独编译 format 的首次尝试因未选择 flate2 后端而失败，未为此更改依赖。该修复以模拟回退验证，不声称原生剪贴板窗口或真实设备已验收。
