@@ -51,3 +51,15 @@ phases: 103/48, then 0/48). Effective original-theme styles also match. All sour
 SHA-256 values remained unchanged. See `color-binding-results.json`; detailed
 local packages/logs are under `/workspace/joyword-compat-validation/style-color-bindings`.
 This is model/import/save evidence, not an independent visual rendering oracle.
+
+## Combined validation
+
+- 2,004 tests passed: DOCX 136 unit + 399 integration; engine 1,160 unit +
+  43 integration; model 266. One pre-existing recovery-size measurement ignored.
+- Strict model/DOCX/engine library Clippy passed. Existing all-target DOCX test
+  lint backlog is not claimed resolved.
+- Desktop `joyword` and `joyword-cli` cargo check passed with dynamic fontconfig.
+- Workspace formatting, docs, 291 imported-source records and 1,463-file
+  architectural gates passed; whitespace check passed with CRLF provenance data.
+- Prerequisite #156 remained open at `7bac2e60`, with four queued workflows.
+  No old workflow was restarted or canceled.
