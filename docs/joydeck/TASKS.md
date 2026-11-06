@@ -157,7 +157,7 @@ R7 当前切片：独立观众/演示者窗口、已有动画/触发/转场采�
 | 进行中 | JD-804 | 键盘全流程、本地化、对比度、读屏、焦点与高 DPI | 窄窗口/高 DPI 无关键控件不可达；系统 IME 和读屏有平台记录 | JD-800–JD-802 |
 | 进行中 | JD-805 | 解析/保存/恢复/后台任务的故障注入与长时间编辑压力 | Windows 复跑检查点进程终止、恢复副本读回和源文稿校验。其余取消／失败组合和长时间压力继续开放。[P2 验证](../joyoffice/validation/20261106-p2/README.md) | JD-607、JD-707 |
 | 待开始 | JD-806 | 三平台性能、字体、显存/内存和大型文稿资格化 | 使用固定 release 场景与真实呈现；目标未达有具体定位和处理任务 | JD-408、JD-800–JD-802 |
-| 进行中 | JD-807 | 统一开发包、图标/资源、关联/卸载、许可/SBOM/hash 与诊断 | Windows 开发包已移位验证并补齐 `clipboard-win@5.4.3` 的许可，仍缺两个版本正文。macOS ARM64 上次包的五项缺口保留。[Windows 包](../joyoffice/validation/20261106-p2/README.md#joydeck-windows-开发包) · [macOS 复核](../joyoffice/validation/20261105-macos-video/README.md#开发包许可复核) | JD-800–JD-803 |
+| 进行中 | JD-807 | 统一开发包、图标/资源、关联/卸载、许可/SBOM/hash 与诊断 | Windows 开发包已移位验证并补齐 `clipboard-win@5.4.3` 的许可，仍缺两个版本正文。macOS ARM64 上次包的五项缺口保留。补充许可清单哈希现已强制核对，当前 Linux 源树盘点 559 包、9 项正文缺口，[完整性校验](evidence/R9-LICENSE-INTEGRITY/README.md)。[Windows 包](../joyoffice/validation/20261106-p2/README.md#joydeck-windows-开发包) · [macOS 复核](../joyoffice/validation/20261105-macos-video/README.md#开发包许可复核) | JD-800–JD-803 |
 | 进行中 | JD-808 | 版本、joydeck-v* 发布路由、签名/公证/升级回退流程 | 未签名开发包可交付；正式发行资格单独记录；有实际回退演练 | JD-807 |
 | 进行中 | JD-809 | R8 平台开发包与资格化报告 | 已实测平台可复现构建/启动；未覆盖平台和硬件条件准确登记 | JD-804–JD-808 |
 
