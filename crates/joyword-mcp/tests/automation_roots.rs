@@ -4,7 +4,7 @@
 //! exported only inside the write root; paths that leave a root (`..`, another folder, a sibling
 //! with the same prefix, a link) are refused, and nothing is written outside.
 
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use joyword_engine::file_access::AutomationRoots;
 use joyword_mcp::{Headless, Server};
@@ -22,10 +22,12 @@ const PNG: &[u8] = &[
 /// A fresh folder holding `in` (the read root, with `a.txt`, `people.csv` and `pic.png`), `out` (the
 /// write root), `outside` (with `secret.txt`) and `in2`, and a server confined to `in` and `out`
 /// (either may be left out).
-fn confined(tag: &str, read: bool, write: bool) -> (Server, PathBuf) {
-    let base = std::env::temp_dir().join(format!("wc-mcp-roots-{tag}-{}", std::process::id()));
-    assert!(base.is_absolute() && base.starts_with(std::env::temp_dir()));
-    assert!(!base.exists(), "test root must be fresh");
+fn confined(tag: &str, read: bool, write: bool) -> (Server, tempfile::TempDir) {
+    let directory = tempfile::Builder::new()
+        .prefix(&format!("wc-mcp-roots-{tag}-"))
+        .tempdir()
+        .unwrap();
+    let base = directory.path();
     for d in ["in", "out", "outside", "in2"] {
         std::fs::create_dir_all(base.join(d)).unwrap();
     }
@@ -44,7 +46,7 @@ fn confined(tag: &str, read: bool, write: bool) -> (Server, PathBuf) {
     .unwrap();
     (
         Server::new(Box::new(Headless::default().with_automation_roots(roots))),
-        base,
+        directory,
     )
 }
 
@@ -91,7 +93,8 @@ fn run(server: &mut Server, command: &str, params: Value) -> (bool, String) {
 
 #[test]
 fn files_open_only_from_inside_the_read_root() {
-    let (mut server, base) = confined("open", true, true);
+    let (mut server, directory) = confined("open", true, true);
+    let base = directory.path();
     let sep = std::path::MAIN_SEPARATOR;
     ok(
         &mut server,
@@ -139,7 +142,8 @@ fn files_open_only_from_inside_the_read_root() {
 
 #[test]
 fn commands_that_read_a_path_are_held_to_the_read_root() {
-    let (mut server, base) = confined("reads", true, true);
+    let (mut server, directory) = confined("reads", true, true);
+    let base = directory.path();
     let outside = s(&base.join("outside/secret.txt"));
     // The injected-document scenario from the issue: pull a file in from outside, then read it back.
     for (command, params) in [
@@ -203,7 +207,8 @@ fn commands_that_read_a_path_are_held_to_the_read_root() {
 
 #[test]
 fn saves_and_exports_go_only_into_the_write_root() {
-    let (mut server, base) = confined("write", true, true);
+    let (mut server, directory) = confined("write", true, true);
+    let base = directory.path();
     let sep = std::path::MAIN_SEPARATOR;
     ok(&mut server, "type_text", json!({"text": "Hello"}));
 
@@ -322,7 +327,8 @@ fn saves_and_exports_go_only_into_the_write_root() {
 
 #[test]
 fn a_root_left_out_grants_none_of_its_access() {
-    let (mut server, base) = confined("read-only", true, false);
+    let (mut server, directory) = confined("read-only", true, false);
+    let base = directory.path();
     ok(
         &mut server,
         "open_document",
@@ -342,7 +348,8 @@ fn a_root_left_out_grants_none_of_its_access() {
     );
     assert!(!base.join("out/doc.docx").exists());
 
-    let (mut server, base) = confined("write-only", false, true);
+    let (mut server, directory) = confined("write-only", false, true);
+    let base = directory.path();
     refused(
         &mut server,
         "open_document",
@@ -358,7 +365,8 @@ fn a_root_left_out_grants_none_of_its_access() {
 
 #[test]
 fn links_out_of_a_root_are_refused() {
-    let (mut server, base) = confined("links", true, true);
+    let (mut server, directory) = confined("links", true, true);
+    let base = directory.path();
     #[cfg(unix)]
     let linked = std::os::unix::fs::symlink(base.join("outside"), base.join("out/away")).is_ok()
         && std::os::unix::fs::symlink(base.join("outside/secret.txt"), base.join("in/leak.txt"))
@@ -409,7 +417,8 @@ fn names(dir: &Path) -> Vec<String> {
 fn a_link_outside_the_write_root_into_it_is_not_written() {
     // #3735: the link's target is inside the write root, but a save replaces the link itself,
     // and its temporary file would sit beside it, outside.
-    let (mut server, base) = confined("link-in", true, true);
+    let (mut server, directory) = confined("link-in", true, true);
+    let base = directory.path();
     std::fs::write(base.join("out/doc.docx"), "inside").unwrap();
     std::os::unix::fs::symlink(base.join("out/doc.docx"), base.join("outside/alias.docx")).unwrap();
     let before = names(&base.join("outside"));

@@ -8,4 +8,6 @@ IO/进程按 `scripts/check_gates.py` 的 `DECK_FS_REVIEW` 逐文件登记：CLI
 
 未适配的 DeckCraft tests-upstream 从 crate 移至 [只读档案](../joydeck/upstream-tests/README.md)，保持字节及来源映射；不编译、不计作已通过测试。现行及反例门禁、Python 工具测试继续执行。
 
+2026-11-06 为 `crates/joydeck-ui-gpui/src/native_clipboard_linux.rs` 补充逐文件登记。该适配器读取当前显示后端的富剪贴板 MIME，子进程只调用 `xclip` 或 `wl-paste`，复用 400 毫秒与 1 MiB 上限并回收失败进程。新增的 7 项 panic 基线条目均属于现有测试断言。[剪贴板验证](../joydeck/evidence/R3-EXTERNAL-RICH/README.md)
+
 公共 OPC 只把几个已校验字节长度/绝对路径不变量的 expect 改为错误返回/安全分支；接口与预算不变。共享 UI 实现没有内容变化。锁文件只新增新渲染器需要的精确依赖，既有 registry 包版本/来源/checksum 未变。完整回归与当前限制见 [R9 验证](../joydeck/evidence/R9/README.md)。

@@ -9,14 +9,17 @@ use std::{
     time::{Duration, Instant},
 };
 
-const EDIT_COMMANDS: &[&str] = &[
+const COMMANDS: &[&str] = &[
     "text.insert",
     "edit.undo",
     "edit.redo",
     "select.all",
     "caret.docStart",
     "caret.docEnd",
+    "edit.goto",
+    "view.zoom",
 ];
+const VIEW_COMMANDS: &[&str] = &["edit.goto", "view.zoom"];
 const METHODS: &[&str] = &[
     "capabilities",
     "engine.commands",
@@ -191,12 +194,12 @@ impl JoyWord {
         let p = &request["params"];
         if method == "capabilities" {
             return Ok(
-                json!({"methods":METHODS,"commands":EDIT_COMMANDS,"fileAccess":false,"uiAutomation":false,"versionRequired":true}),
+                json!({"methods":METHODS,"commands":COMMANDS,"fileAccess":false,"uiAutomation":true,"uiCommands":VIEW_COMMANDS,"versionRequired":true}),
             );
         }
         if method == "engine.commands" {
             return Ok(json!(
-                EDIT_COMMANDS
+                COMMANDS
                     .iter()
                     .map(|id| json!({"id":id}))
                     .collect::<Vec<_>>()
@@ -221,7 +224,7 @@ impl JoyWord {
             }
             "engine.execute" | "command" => {
                 let cmd = p["command"].as_str().ok_or("missing command")?;
-                if !EDIT_COMMANDS.contains(&cmd) {
+                if !COMMANDS.contains(&cmd) {
                     return Err("command is outside the desktop control allowlist".into());
                 }
                 if p["doc"].as_u64().or_else(|| p["params"]["doc"].as_u64()) != Some(doc)
@@ -235,10 +238,25 @@ impl JoyWord {
                 if w.has_active_dialog(cx) || reader.is_composing() {
                     return Err("finish the active dialog or composition first".into());
                 }
-                let args = if cmd == "text.insert" {
-                    json!({"text":p["params"]["text"].as_str().ok_or("missing text")?})
-                } else {
-                    json!({})
+                let args = match cmd {
+                    "text.insert" => {
+                        json!({"text":p["params"]["text"].as_str().ok_or("missing text")?})
+                    }
+                    "edit.goto" => {
+                        let page = p["params"]["page"]
+                            .as_u64()
+                            .filter(|page| (1..=reader.summary.pages.len() as u64).contains(page))
+                            .ok_or("page must name an existing page")?;
+                        json!({"page":page})
+                    }
+                    "view.zoom" => {
+                        let value = p["params"]["value"]
+                            .as_f64()
+                            .filter(|value| (10.0..=500.0).contains(value))
+                            .ok_or("zoom must be 10–500 percent")?;
+                        json!({"value":value})
+                    }
+                    _ => json!({}),
                 };
                 self.try_edit(cmd, &args, w, cx)
             }

@@ -805,8 +805,14 @@ mod tests {
         std::fs::write(&path, b"0123456789").unwrap();
         xattr::set(&path, "user.joyword-m1", b"kept").unwrap();
         xattr::set(&path, "user.security.note", b"also").unwrap();
-        let marker = b"v";
-        let planted = xattr::set(&path, "security.selinux", marker).is_ok();
+        let _ = xattr::set(&path, "security.selinux", b"v");
+        // Some filesystems accept setting an attribute that listxattr hides
+        // from the caller. The observer can classify only the listed names.
+        let mut listed: Vec<_> = xattr::list(&path)
+            .unwrap()
+            .filter(|name| is_kernel_security_xattr(name))
+            .collect();
+        listed.sort();
         let observed = observe(&path).unwrap();
         assert!(
             observed
@@ -833,23 +839,8 @@ mod tests {
             loss,
             ReplacementBlocker::UnpreservableMetadata(MetadataItem::ExtendedAttributes)
         )));
-        if planted {
-            assert!(
-                observed
-                    .kernel_xattrs
-                    .iter()
-                    .any(|name| name == "security.selinux")
-            );
-        }
-        if let Ok(listed) = xattr::list(&path) {
-            for name in listed {
-                if is_kernel_security_xattr(&name) {
-                    assert!(
-                        observed.kernel_xattrs.iter().any(|got| got == &name),
-                        "{name:?}"
-                    );
-                }
-            }
-        }
+        let mut classified = observed.kernel_xattrs;
+        classified.sort();
+        assert_eq!(classified, listed);
     }
 }

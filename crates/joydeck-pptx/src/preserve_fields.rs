@@ -1,6 +1,6 @@
-//! Patch field-bearing paragraphs while retaining original XML for unchanged runs.
+//! Patch field-bearing or linked paragraphs, retaining original XML for unchanged runs.
 use super::*;
-use joydeck_model::text::{Paragraph, Run, RunKind};
+use joydeck_model::text::{Action, Paragraph, Run, RunKind, RunProps};
 use std::collections::{BTreeSet, VecDeque};
 
 pub(super) struct Ids<'a> {
@@ -48,11 +48,10 @@ impl<'a> Ids<'a> {
     }
 }
 
-fn has_field(body: &TextBody) -> bool {
-    body.paragraphs
-        .iter()
-        .flat_map(|p| &p.runs)
-        .any(|r| matches!(r.kind, RunKind::Field { .. }))
+fn has_field_or_link(body: &TextBody) -> bool {
+    body.paragraphs.iter().flat_map(|p| &p.runs).any(|r| {
+        matches!(r.kind, RunKind::Field { .. }) || r.props.link.is_some() || r.props.hover.is_some()
+    })
 }
 
 fn field_key(run: &Run) -> Option<(&str, &str)> {
@@ -103,7 +102,7 @@ fn attrs_in(element: &El, allowed: &[&str]) -> bool {
         .all(|(key, _)| allowed.contains(&key.as_str()))
 }
 
-fn simple_props(props: &El) -> bool {
+fn simple_props(props: &El, model: &RunProps) -> bool {
     attrs_in(
         props,
         &[
@@ -128,12 +127,27 @@ fn simple_props(props: &El) -> bool {
                             && color.elements().next().is_none()
                     })
             }
+            "hlinkClick" | "hlinkMouseOver" => {
+                let link = if style.is("hlinkClick") {
+                    &model.link
+                } else {
+                    &model.hover
+                };
+                link.as_ref().is_some_and(|link| {
+                    matches!(link.action, Action::Url { .. } | Action::Slide { .. })
+                        && link.sound.is_none()
+                        && link.zoom_return.is_none()
+                }) && attrs_in(
+                    style,
+                    &["r:id", "action", "tooltip", "highlightClick", "endSnd"],
+                ) && style.elements().next().is_none()
+            }
             _ => false,
         }
     })
 }
 
-fn simple_run(run: &El) -> bool {
+fn simple_run(run: &El, model: &Run) -> bool {
     // Reuse opaque runs when unchanged. Rewriting a changed run is allowed only
     // when the model can carry all of its formatting.
     attrs_in(run, if run.is("fld") { &["id", "type"] } else { &[] })
@@ -141,7 +155,7 @@ fn simple_run(run: &El) -> bool {
             child.prefix() == run.prefix()
                 && match child.local() {
                     "t" => attrs_in(child, &["xml:space"]) && child.elements().next().is_none(),
-                    "rPr" => simple_props(child),
+                    "rPr" => simple_props(child, &model.props),
                     _ => false,
                 }
         })
@@ -153,6 +167,7 @@ fn patch_para(
     old: &Paragraph,
     new: &Paragraph,
     ids: &mut Ids<'_>,
+    relationships: &mut links::Relationships<'_>,
 ) -> Result<(), PptxError> {
     if old.level != new.level || old.props != new.props || old.def_props != new.def_props {
         return Err(error(
@@ -160,12 +175,19 @@ fn patch_para(
         ));
     }
     let end_props = if old.end_props != new.end_props {
-        if raw.child("endParaRPr").is_some_and(|p| !simple_props(p)) {
+        if raw
+            .child("endParaRPr")
+            .is_some_and(|p| !simple_props(p, &old.end_props))
+        {
             return Err(error(
                 "field edit would rewrite opaque end formatting; save .joydeck instead",
             ));
         }
-        Some(generated.child("endParaRPr").cloned())
+        let mut end = generated.child("endParaRPr").cloned();
+        if let Some(end) = &mut end {
+            relationships.rebind_generated(end)?;
+        }
+        Some(end)
     } else {
         None
     };
@@ -210,11 +232,7 @@ fn patch_para(
             replacement.push(Node::El(existing[i].1.clone()));
         } else {
             let mut element = generated[i].1.clone();
-            if element.find("hlinkClick").is_some() || element.find("hlinkMouseOver").is_some() {
-                return Err(error(
-                    "combined field and linked text edits require .joydeck Save As",
-                ));
-            }
+            relationships.rebind_generated(&mut element)?;
             if element.is("fld") {
                 ids.assign(&mut element);
             }
@@ -226,7 +244,7 @@ fn patch_para(
         .enumerate()
         .take(old_end)
         .skip(prefix)
-        .any(|(i, (_, node))| !kept.contains(&i) && !simple_run(node))
+        .any(|(i, (_, node))| !kept.contains(&i) && !simple_run(node, &old.runs[i]))
     {
         return Err(error(
             "field edit would rewrite opaque text formatting; save .joydeck instead",
@@ -266,8 +284,9 @@ pub(super) fn patch(
     old: &TextBody,
     new: &TextBody,
     ids: &mut Ids<'_>,
+    relationships: &mut links::Relationships<'_>,
 ) -> Result<bool, PptxError> {
-    if !has_field(old) && !has_field(new) {
+    if !has_field_or_link(old) && !has_field_or_link(new) {
         return Ok(false);
     }
     if old.list_style != new.list_style || old.paragraphs.len() != new.paragraphs.len() {
@@ -294,7 +313,7 @@ pub(super) fn patch(
         .zip(old.paragraphs.iter().zip(&new.paragraphs))
     {
         if old != new {
-            patch_para(raw, generated, old, new, ids)?;
+            patch_para(raw, generated, old, new, ids, relationships)?;
         }
     }
     Ok(true)

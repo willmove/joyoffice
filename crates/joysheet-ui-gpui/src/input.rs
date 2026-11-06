@@ -4,6 +4,10 @@ use joysheet_engine::{core::CellRef, display};
 use serde_json::json;
 
 impl Desktop {
+    pub(crate) fn paste_parameters(&mut self) -> serde_json::Value {
+        self.clipboard.read_external().map_or_else(|| json!({}), |content| json!({"external":true, "text":content.text, "html":content.html}))
+    }
+
     pub fn composing(&mut self, window: &mut Window, cx: &mut Context<Self>) -> bool {
         self.editor.update(cx, |s, cx| s.marked_text_range(window, cx).is_some())
             || self.formula.update(cx, |s, cx| s.marked_text_range(window, cx).is_some())
@@ -69,11 +73,7 @@ impl Desktop {
         if self.draft.is_some() || !self.editor.read(cx).focus_handle(cx).is_focused(window) {
             return;
         }
-        let params = if command == "edit.paste" {
-            self.clipboard.read_external().map(|text| json!({"text":text})).unwrap_or_else(|| json!({}))
-        } else {
-            json!({"html":true})
-        };
+        let params = if command == "edit.paste" { self.paste_parameters() } else { json!({"html":true}) };
         self.issue(command, params, After::None, cx);
         cx.stop_propagation();
     }
@@ -618,8 +618,7 @@ impl Desktop {
                 return;
             }
             if key == "v" {
-                let text = self.clipboard.read_external();
-                let params = text.map(|text| json!({"text":text})).unwrap_or_else(|| json!({}));
+                let params = self.paste_parameters();
                 self.issue("edit.paste", params, After::None, cx);
                 cx.stop_propagation();
                 return;

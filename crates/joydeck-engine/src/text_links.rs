@@ -62,6 +62,20 @@ pub fn selection(body: &TextBody, mut range: Range<usize>) -> Option<Selection> 
     })
 }
 
+/// A single-line label can be changed without replacing fields or breaks.
+pub fn plain_label(body: &TextBody, range: Range<usize>) -> Option<String> {
+    let text = body.text();
+    let label = text.get(range.clone())?;
+    if label.chars().any(char::is_control)
+        || runs(body).any(|(span, run)| {
+            span.start < range.end && range.start < span.end && run.kind != RunKind::Text
+        })
+    {
+        return None;
+    }
+    Some(label.to_owned())
+}
+
 pub fn apply(
     body: &TextBody,
     range: Range<usize>,

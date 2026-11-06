@@ -143,7 +143,7 @@ pub fn specs() -> Vec<CommandSpec> {
         .key(super::mac_or("Mod+Shift+G / Mod+PageUp", "Mod+PageUp"))
         .params(r#"{"text"?: string, "matchCase"?: bool, "wholeWord"?: bool, "regex"?: bool}"#)
         .pure(),
-        CommandSpec::new("edit.replace", "Replace", "Home › Editing", replace).params(r#"{"text": string, "with": string, …options of edit.replaceAll}"#),
+        CommandSpec::new("edit.replace", "Replace", "Home › Editing", replace).params(r#"{"text": string, "with": string, …options of edit.find}"#),
         // Ctrl+H, Home › Replace: the Find and Replace dialog on its Replace tab (#712). Opening
         // it changes nothing, so it is its own command and never marks the document edited.
         CommandSpec::new("edit.findReplace", "Find and Replace", "Home › Editing", |s, v| {
@@ -159,7 +159,7 @@ pub fn specs() -> Vec<CommandSpec> {
         .params(r#"{"tab"?: "find|replace|goto" (default replace)}"#)
         .pure(),
         CommandSpec::new("edit.replaceAll", "Replace All", "Home › Editing › Replace", replace_all)
-            .params(r#"{"text": string, "with": string (^p ^t ^& ^c …; \\1 with wildcards; with regex also $1 ${n} ${name} $0 $$ \\1 \\n (paragraph mark) \\t), …options of edit.find}"#),
+            .params(r#"{"text": string, "with": string (^p ^t ^& ^c …; \\1 with wildcards; with regex also $1 ${n} ${name} $0 $$ \\1 \\n (paragraph mark) \\t), …options of edit.find, "in"?: "main|selection"}"#),
         CommandSpec::new("edit.goto", "Go To", "Home › Editing › Find", goto)
             .key("Mod+Alt+G / F5")
             .params(r#"{"page"?: n, "pageBy"?: int (pages forward, negative back, from the caret's page), "bookmark"?: string (selects its text), "paragraph"?: n}; none opens Find and Replace on its Go To tab"#)
@@ -902,9 +902,20 @@ fn replace(s: &mut Session, v: &Value) -> CmdResult {
 /// the replacement (`^p`) splits the paragraph.
 fn replace_all(s: &mut Session, v: &Value) -> CmdResult {
     need_query(s, v)?;
+    let within = match v.get("in").map(Value::as_str) {
+        None | Some(Some("main")) => None,
+        Some(Some("selection")) if !s.sel.is_collapsed() => Some(s.sel.ordered()),
+        Some(Some("selection")) => {
+            return Err(CmdError::Params("`in: selection` needs a selection".into()));
+        }
+        _ => return Err(CmdError::Params("`in` is main or selection".into())),
+    };
     read_opts(s, v);
     let story = s.sel.focus.story;
-    let results = search_full(s, story, true)?;
+    let mut results = search_full(s, story, true)?;
+    if let Some((a, b)) = &within {
+        results.retain(|found| &found.a >= a && &found.b <= b);
+    }
     let n = results.len();
     super::controls::check_deletions(s, story, results.iter().map(|f| (&f.a, &f.b)))?;
     for Found { a, b, rep } in results.into_iter().rev() {

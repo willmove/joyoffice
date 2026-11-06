@@ -28,7 +28,7 @@ V1/V2 以原 DOCX 为基线，在段落边界保持且各处都有共同前后�
 
 ### 桌面控制、打印与本地提案
 
-- 桌面用 `joyword --control PORT -- INPUT.docx` 显式开启，仅监听 `127.0.0.1`。调用者和应用共用环境变量 `JOYWORD_CONTROL_KEY`，配置为 32–128 位可打印 ASCII，建议使用新生成的随机密钥。TCP 沿用一行 JSON 的 `id/method/params/key` 和 `id/ok/result|error`。先调用 `capabilities` 查询范围，再由 `document.inspect` 取 `doc` 和 `version`。编辑请求必须附上这两项。MCP 客户端入口为 `joyword-cli mcp --connect 127.0.0.1:PORT`，`execute` 可在命令参数中提供这两项。当前允许插入文字、撤销／重做、全选及移动到文首／文末。文件访问、远程界面操作及自动生成密钥文件留待后续。
+- 桌面用 `joyword --control PORT -- INPUT.docx` 显式开启，仅监听 `127.0.0.1`。调用者和应用共用环境变量 `JOYWORD_CONTROL_KEY`，配置为 32–128 位可打印 ASCII，建议使用新生成的随机密钥。TCP 沿用一行 JSON 的 `id/method/params/key` 和 `id/ok/result|error`。先调用 `capabilities` 查询范围，再由 `document.inspect` 取 `doc` 和 `version`。编辑和视图操作都必须附上这两项。MCP 客户端入口为 `joyword-cli mcp --connect 127.0.0.1:PORT`。当前允许插入文字、撤销／重做、全选和移动到文首／文末，`uiCommands` 声明 `edit.goto` 的现有页码和 `view.zoom` 的 10–500 数值百分比。文件访问、通用界面控制和自动生成密钥文件留待后续。
 - Windows 的「文件 → 打印」从当前页面场景生成所选页，单次最多 32 页。PowerShell 7 启动 Windows 打印对话框，打印机和设备选项在系统对话框中选择。返回取消、队列提交或驱动错误，队列提交与实际出纸分别验收。
 - 用 `cargo build --locked -p joyword --features agent` 构建本地提案入口。默认关闭，显式启用后可对单个普通正文段落中的选区录入替换稿。确认前显示前后文字，接受时核对文档、版本、选区、授权代次和有效期。接受落为一条可撤销的编辑事务，修订作者为 `JoyWord AI`。该入口使用本地录入的提案，Provider 与凭据集成仍开放。
 
@@ -55,7 +55,7 @@ V1/V2 以原 DOCX 为基线，在段落边界保持且各处都有共同前后�
 | --- | --- | --- |
 | P0 | 旧数据与安全（JW-806/812） | Windows 便携包已实测坏包拒绝、切换中失败复原和主动回退。V3 已覆盖多种字段快照的精确核对。继续其他对象与旧数据差分、偏好实屏及正式安装与文件关联回退。 |
 | P0 | CLI 与格式兼容（JW-808） | 19 份 schema 1 报告与旧 CLI 一致。Windows EPUB 实屏导出与独立验证通过，已实屏打开系统打印框。继续原生归档导出、打印取消结果与队列提交、远程界面操作及 Agent Provider／凭据。 |
-| P1 | 常用编辑（JW-406/JW-407） | 已有查找替换、跳页和页面设置入口。继续查找范围、结果列表、大纲、高级分栏与分节和原生交互验证。 |
+| P1 | 常用编辑（JW-406/JW-407） | 查找对话框增加正文／当前选区的匹配列表，点击结果定位。大纲导航列出正文标题。布局页增加不等宽分栏、应用范围和更多分节符。继续选区内替换和原生交互验证。[P1 验证](../joyword/r8/VALIDATION.md#windows-p1-常用编辑和桌面控制2026-11-06) |
 | P1 | Word/WPS 双向往返（R5/R6） | macOS 上 Word 和 WPS 各通过两轮正文、表格、图片、页眉和修订往返。JoyWord 已自动验证保留合规的独立厂商 XML，Word 与 WPS 的普通保存仍有移除该部件的实测记录。[实机证据](validation/20261105-macos-desktop/README.md#word-和-wps-双向往返) |
 | P1 | 千页 DOCX 性能复验（R5/R6） | macOS ARM64 Release CLI 已通过 5 轮打开、末页编辑、保存重开和渲染。桌面首屏和末页 15 次键盘输入至 GPUI 提交已测。继续物理呈现、跨对象编辑和同条件基线比较。[千页验证](../joyword/r8/VALIDATION.md#千页-docx) |
 | P1 | 公共基础（JW-803） | 评估 DOCX 包层、CFB/DrawingML/OMML 和字体服务在共享库中的复用。用格式保真与性能回归验证逐项收敛。 |

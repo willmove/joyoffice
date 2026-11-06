@@ -542,6 +542,20 @@ fn slide_copy_remaps_review_and_animation_targets_without_losing_the_timeline() 
 }
 
 #[test]
+fn link_label_is_editable_only_for_plain_single_line_ranges() -> Result<(), String> {
+    let mut draft = Draft::new(TextBody::from_text("显示😀"));
+    let label = joydeck_engine::text::links::plain_label(&draft.body, draft.selection.clone());
+    assert_eq!(label.as_deref(), Some("显示😀"));
+    draft.move_to(draft.body.text().len(), false);
+    let start = draft.cursor();
+    draft.insert_field("datetime1", "2026/11/06", Some("zh-CN"))?;
+    assert!(joydeck_engine::text::links::plain_label(&draft.body, start..draft.cursor()).is_none());
+    let multi = TextBody::from_text("first\nsecond");
+    assert!(joydeck_engine::text::links::plain_label(&multi, 0..multi.text().len()).is_none());
+    Ok(())
+}
+
+#[test]
 fn native_field_edits_are_atomic_even_inside_a_utf16_range() -> Result<(), String> {
     let mut d = Draft::new(TextBody::from_text("A😀Z"));
     d.move_to("A😀".len(), false);

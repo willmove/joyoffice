@@ -1,5 +1,9 @@
 # Joysheet 实施状态
 
+2026-11-06 推进 M3.3。键盘和功能区粘贴一并读取外部纯文本与 HTML，使用两种格式判断是否仍为内部副本。Windows 用原生 CF_HTML 行片段实测，单元格显示 `Rp12,500.00`，公式栏显示 `12500`，独立 XLSX 读回确认数值类型和货币格式。实际桌面 Excel 复制的货币样例只提供显示文字和样式，JoySheet 保留文字。Excel 数值交换、LibreOffice 和多窗口矩阵继续验收。[迁移矩阵](MIGRATION.md)
+
+同日复验 M6.4／W8，质量样例显示三页原生预览，系统打印对话框打开。Microsoft Print to PDF 和实体队列的输出仍待验证。[Windows 质量记录](WINDOWS-QUALITY.md)
+
 2026-11-04 macOS ARM64 增量。普通 Metal Release 包已完成构建，DMG 校验及只读挂载通过。移位后的应用接收中文空格 XLSX 路径的 macOS 文件打开事件。包内 CLI 写入公式并重开，独立 OOXML 读回公式与缓存值。解锁后首屏与键鼠公式编辑、保存和重开通过，M8 引擎冒烟及完整 9 组桌面合成输入与截图也通过。系统 IME、读屏、显示器和正式签名继续待验。[本机报告](../joyoffice/validation/20261104-macos/README.md)
 
 2026-11-01 UOS 25 x86_64 增量：产品检查 1400 项通过、1 项忽略，桌面／CLI debug 构建和 10 组原生 GUI 回归通过；新增文件权限、Linux 截图能力声明已修复。原生回归使用 X11 窗口截图和合成输入，不等于系统 IME、Wayland、读屏或 M8 全矩阵通过。逐项证据与边界见 [UOS 三产品验证](../joyoffice/validation/20261101-uos/README.md)。

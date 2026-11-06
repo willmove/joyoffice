@@ -278,3 +278,75 @@ fn preserving_text_links_follow_the_target_after_slide_reorder() {
     assert_eq!(show.state.slide, 0);
     assert_eq!(std::fs::read(input).unwrap(), original_bytes);
 }
+
+#[test]
+fn preserving_save_keeps_fixed_date_and_rebinds_a_new_link_in_the_same_text() {
+    use joydeck_engine::{
+        TextTarget,
+        text::{Draft, links},
+    };
+    use joydeck_model::text::{Action, Hyperlink, RunKind};
+
+    let root = platform::private_directory("r9-fixed-date-link-save").unwrap();
+    let input = root.join("source.pptx");
+    let source = include_bytes!("../../../tests/fixtures/joydeck/r1-preview.pptx");
+    std::fs::write(&input, source).unwrap();
+    let mut editor = Editor::open(&input, root.join("recovery")).unwrap();
+    let model = editor.session.model();
+    let shape = model.slides[0]
+        .shapes
+        .iter()
+        .find(|shape| {
+            shape
+                .text
+                .as_ref()
+                .is_some_and(|text| text.text() == "JOYOFFICE / R1")
+        })
+        .unwrap()
+        .id;
+    let target = TextTarget::Shape { shape };
+    let link = Hyperlink {
+        action: Action::Slide {
+            slide: model.slides[1].id,
+        },
+        tooltip: "Go to slide 2".into(),
+        highlight_click: false,
+        sound: None,
+        stop_sound: false,
+        zoom_return: None,
+    };
+    let mut draft = Draft::new(joydeck_engine::text_body(model, 0, &target).unwrap());
+    draft.move_to(draft.body.text().len(), false);
+    draft.replace(None, " 2026/11/6", false, None).unwrap();
+    let start = draft.cursor();
+    draft.replace(None, " 前往第二页", false, None).unwrap();
+    let body = links::apply(&draft.body, start..draft.cursor(), Some(&link)).unwrap();
+    editor.session.select(0, vec![shape]).unwrap();
+    editor
+        .session
+        .execute(Command::SetText {
+            target,
+            body: Box::new(body),
+        })
+        .unwrap();
+    let output = root.join("linked.pptx");
+    editor.save_job(output.clone()).unwrap().run().unwrap();
+    let doc = Document::open(&output, &Cancellation::default()).unwrap();
+    let body = doc.presentation.slides[0]
+        .shape(shape)
+        .unwrap()
+        .text
+        .as_ref()
+        .unwrap();
+    assert_eq!(body.text(), "JOYOFFICE / R1 2026/11/6 前往第二页");
+    let runs = &body.paragraphs[0].runs;
+    assert!(runs.iter().all(|run| run.kind == RunKind::Text));
+    let link = runs.iter().find_map(|run| run.props.link.as_ref()).unwrap();
+    assert_eq!(
+        link.action,
+        Action::Slide {
+            slide: doc.presentation.slides[1].id
+        }
+    );
+    assert_eq!(std::fs::read(input).unwrap(), source);
+}

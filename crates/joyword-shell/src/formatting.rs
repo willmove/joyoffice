@@ -72,6 +72,28 @@ impl Reader {
         .map(|length| s.format_length(length));
         (lengths, page.landscape, page.columns.count)
     }
+
+    pub fn section_columns(&self) -> joyword_engine::doc::section::Columns {
+        joyword_engine::cmd::page::sect(self.engine()).columns
+    }
+
+    pub fn outline_entries(&self) -> Vec<(String, Value)> {
+        let doc = &self.engine().doc;
+        joyword_layout::outline::levels(doc)
+            .into_iter()
+            .zip(&doc.body)
+            .enumerate()
+            .filter_map(|(block, (level, body))| {
+                if !(1..=9).contains(&level) {
+                    return None;
+                }
+                let text: String = body.as_para()?.plain_text().chars().take(120).collect();
+                let at = joyword_engine::doc::Pos::body(block, 0);
+                Some((format!("{level} · {text}"), json!({"anchor":at,"focus":at})))
+            })
+            .take(200)
+            .collect()
+    }
 }
 
 pub fn page_setup_parameters(
@@ -107,6 +129,58 @@ pub fn page_setup_parameters(
     }
     Ok(json!({ "geometry": geometry }))
 }
+
+pub fn column_parameters(values: &[String], units: joyword_geom::Unit) -> Result<Value, String> {
+    let [count, space, separator, widths, apply] = values else {
+        return Err("Invalid columns form".into());
+    };
+    let count = count
+        .trim()
+        .parse::<u32>()
+        .ok()
+        .filter(|n| (1..=12).contains(n))
+        .ok_or("请输入 1–12 栏 / Enter 1–12 columns")?;
+    let gap = |value: &str| {
+        joyword_geom::parse_measure(value, units)
+            .filter(|n| (0.0..=300.0).contains(n))
+            .ok_or("请输入 0–300 pt 的栏间距 / Enter a gap between 0 and 300 pt")
+    };
+    let separator = match separator.trim().to_ascii_lowercase().as_str() {
+        "yes" | "是" => true,
+        "no" | "否" => false,
+        _ => return Err("请输入是或否 / Enter yes or no".into()),
+    };
+    let apply = match apply.trim().to_ascii_lowercase().as_str() {
+        "section" | "本节" => "section",
+        "document" | "整篇文档" => "document",
+        "forward" | "插入点之后" => "forward",
+        "selection" | "所选文字" => "selection",
+        _ => return Err("请选择有效的应用范围 / Enter a valid scope".into()),
+    };
+    let mut args =
+        json!({"count":count, "space":gap(space)?, "separator":separator, "apply":apply});
+    if !widths.trim().is_empty() {
+        let mut columns = Vec::new();
+        for item in widths.split('|').take(13) {
+            let (width, after) = item.split_once('/').unwrap_or((item, ""));
+            let width = joyword_geom::parse_measure(width, units)
+                .filter(|n| *n >= 18.0)
+                .ok_or("栏宽至少为 18 pt / Column width must be at least 18 pt")?;
+            let after = if after.trim().is_empty() {
+                0.0
+            } else {
+                gap(after)?
+            };
+            columns.push((width, after));
+        }
+        if columns.len() != count as usize {
+            return Err("栏宽条目数必须等于栏数 / Enter one width per column".into());
+        }
+        args["widths"] = json!(columns);
+    }
+    Ok(args)
+}
+
 pub fn font_families() -> Vec<String> {
     joyword_fonts::FontDb::global().families_in("zh-hans")
 }
@@ -348,6 +422,45 @@ mod tests {
         assert!((reopened.summary.pages[0].height - edited.page_h).abs() < 0.05);
         r.execute("edit.undo", &json!({}))?;
         assert_eq!(r.engine().doc.last_section, before);
+        Ok(())
+    }
+
+    #[test]
+    fn advanced_columns_and_even_section_break_survive_docx_roundtrip() -> Result<(), String> {
+        let cancel = AtomicBool::new(false);
+        let mut reader = Reader::blank(&cancel)?;
+        reader.execute("text.insert", &json!({"text":"First"}))?;
+        reader.execute("layout.break", &json!({"kind":"evenPage"}))?;
+        reader.execute("text.insert", &json!({"text":"Second"}))?;
+        let args = column_parameters(
+            &["2", "36 pt", "是", "100 pt/20 pt | 120 pt", "本节"].map(String::from),
+            joyword_geom::Unit::Millimeters,
+        )?;
+        reader.execute("layout.columns", &args)?;
+        let columns = reader.section_columns();
+        assert_eq!(columns.widths, [(100.0, 20.0), (120.0, 0.0)]);
+        assert!(columns.separator);
+        assert!(
+            column_parameters(
+                &["2", "36 pt", "yes", "100 pt", "section"].map(String::from),
+                joyword_geom::Unit::Millimeters,
+            )
+            .is_err()
+        );
+        let dir = tempfile::tempdir().map_err(|error| error.to_string())?;
+        let path = dir.path().join("advanced-columns.docx");
+        reader.save_job(path.clone(), true)?.run()?;
+        let reopened = Reader::open(&path, &cancel)?;
+        let sections = reopened.engine().doc.sections();
+        assert_eq!(sections.len(), 2);
+        assert_eq!(sections[0].1.columns.count, 1);
+        assert_eq!(
+            sections[1].1.start,
+            joyword_engine::doc::section::SectionStart::EvenPage
+        );
+        assert_eq!(sections[1].1.columns, columns);
+        reader.execute("edit.undo", &json!({}))?;
+        assert_eq!(reader.section_columns().count, 1);
         Ok(())
     }
 }

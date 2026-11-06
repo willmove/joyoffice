@@ -904,7 +904,26 @@ fn columns(s: &mut Session, v: &Value) -> CmdResult {
     } else {
         "section"
     };
-    match p::str(v, "apply").unwrap_or(default) {
+    let apply = p::str(v, "apply").unwrap_or(default);
+    if !cols.widths.is_empty() {
+        let sections = s.doc.sections();
+        let indices = selected_sections(s, &sections);
+        let scope = match apply {
+            "document" => 0..=sections.len().saturating_sub(1),
+            "forward" => *indices.start()..=*indices.start(),
+            _ => indices,
+        };
+        let width: f32 = cols.widths.iter().map(|(width, gap)| width + gap).sum();
+        if scope
+            .filter_map(|i| sections.get(i))
+            .any(|(_, section)| width > section.text_width() + 1.0)
+        {
+            return Err(CmdError::Params(
+                "columns are wider than the text in an affected section".into(),
+            ));
+        }
+    }
+    match apply {
         "section" => with_sect(s, |x| x.columns = cols.clone()),
         "document" => {
             let ends: Vec<usize> = s.doc.sections().iter().map(|(e, _)| *e).collect();

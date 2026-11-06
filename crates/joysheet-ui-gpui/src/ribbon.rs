@@ -6,7 +6,7 @@ use serde_json::json;
 impl Desktop {
     fn run_ribbon_command(&mut self, command: &str, w: &mut Window, cx: &mut Context<Self>) {
         let params = if command == "edit.paste" {
-            self.clipboard.read_external().map(|text| json!({"text":text})).unwrap_or_else(|| json!({}))
+            self.paste_parameters()
         } else if command == "edit.copy" || command == "edit.cut" {
             json!({"html":true})
         } else {

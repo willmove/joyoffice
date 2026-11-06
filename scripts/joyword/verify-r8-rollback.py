@@ -118,6 +118,19 @@ def verify_control(bin_dir, env, source):
         before = inspect["result"]
         capabilities = request(port, "capabilities", key=key)["result"]
         assert capabilities["versionRequired"] and not capabilities["fileAccess"]
+        if capabilities["uiAutomation"]:
+            assert set(capabilities["uiCommands"]) == {"edit.goto", "view.zoom"}
+            target = {"doc": before["doc"], "version": before["version"]}
+            for command, invalid, valid in [
+                ("edit.goto", {"page": 0}, {"page": 1}),
+                ("view.zoom", {"value": "onePage"}, {"value": 125}),
+            ]:
+                params = {**target, "command": command}
+                assert not request(port, "engine.execute", {**params, "params": invalid}, key)["ok"]
+                reply = request(port, "engine.execute", {**params, "params": valid}, key)
+                assert reply["ok"], reply
+                if command == "view.zoom":
+                    assert reply["result"]["zoom"] == 1.25
         args = {"doc": before["doc"], "version": before["version"], "command": "text.insert",
                 "params": {"text": "R8 控制验证 "}}
         assert not request(port, "engine.execute", {**args, "doc": before["doc"] + 1}, key)["ok"]

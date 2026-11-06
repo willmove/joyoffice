@@ -67,7 +67,7 @@ JD-201 随后完成。共享文稿、独立视图、过期结果和包内读回�
 | 完成 | JD-302 | 原位文字绘制、caret、选择区、命中、滚动和旋转文本适配 | macOS Release 实测旋转、竖排、单元格、缩放滚动和 PPTX 回读。1×/2× 坐标回归通过，2× 实屏按平台继续复验。[证据](evidence/R3-TRANSFORMED-TEXT/README.md) | JD-300、JD-301 |
 | 完成 | JD-303 | 适配 EntityInputHandler、UTF-16/UTF-8/cluster 范围与 surrounding text | macOS Release 实测非 BMP、组合字素、ZWJ 删除替换及两处真实拼音候选，组合选词单次提交并保存读回。[证据](evidence/R3-NATIVE-UNICODE/README.md) | JD-302 |
 | 完成 | JD-304 | 系统 IME 提交、取消、重复事件、切页、失焦和撤销 | macOS Release 实测系统简体拼音与 ABC 重音组合。选词单次提交，切页和失焦保留原文，崩溃恢复只读回已提交修订。[证据](evidence/R3-IME-LIFECYCLE/README.md) | JD-303 |
-| 进行中 | JD-305 | 字符/段落格式、列表、字段、超链接、竖排/分栏等文字能力的 UI | 以命令矩阵逐项迁移；源内容、格式、撤销和持久化正确。macOS Release 已复验文字框布局和既有文字选区的网页、邮件及页内链接编辑。文本框内动态页码和日期／时间字段已实测插入、编辑、撤销与另存；固定日期、整份页脚、插入链接显示文字及其余格式命令继续开放。[布局](evidence/R3-TEXT-LAYOUT/README.md) · [文字链接](evidence/R3-TEXT-LINKS/README.md) · [动态字段](evidence/R3-TEXT-FIELDS/README.md) | JD-300–JD-304 |
+| 进行中 | JD-305 | 字符/段落格式、列表、字段、超链接、竖排/分栏等文字能力的 UI | 逐项迁移命令，验证源内容、格式、撤销和持久化。macOS 已实测布局、链接编辑与动态字段。Windows 已实屏插入固定日期及页内链接显示文字，并单步撤销。相同语料的 PPTX 保留另存与重开通过自动回归。整份页脚及其余格式命令继续开放。[当前状态](STATUS.md) · [动态字段](evidence/R3-TEXT-FIELDS/README.md) | JD-300–JD-304 |
 | 完成 | JD-306 | 表格插入、行列/合并、样式、单元格选择/文字/键盘导航 | macOS Release 实测插入、行列增删、矩形选区、合并／拆分、样式／底色、系统拼音、Tab／Shift+Tab 和两种格式保存重开。无效尺寸与合并覆盖格有边界复验。[证据](evidence/R3-TABLE-QUALIFICATION/README.md) | JD-304 |
 | 进行中 | JD-307 | 纯文本、图片、对象与富剪贴板平台适配 | macOS 已复验纯文本、内部富文字、外部 PNG、基础对象跨文稿和单步撤销，修复 PPTX 图片部件重复。已修复跨文稿页内链接误绑定，同文稿双窗口保留链接，跨文稿保留文字、样式和网页链接。macOS 已实测外部 HTML／RTF 字符格式、链接、单步撤销及保存重开。Windows 实屏、Linux 原生富格式、富文字图片资源和完整 Office 对象交换继续开放。[基础剪贴板](evidence/R3-CLIPBOARD/README.md) · [链接范围](evidence/R3-CLIPBOARD-LINKS/README.md) · [外部富文本](evidence/R3-EXTERNAL-RICH/README.md) | JD-201、JD-303 |
 | 已实现待验收 | JD-308 | 焦点、快捷键优先级、表单草稿同步与输入实体唯一性 | 备注/高级表单同时显示无重复 a11y 节点；同步不递归执行文档命令 | JD-304、JD-305 |
@@ -118,7 +118,7 @@ R6 的预算、原件保护和新 schema 已在 R1/R2 实施。这里收口旧�
 | --- | --- | --- | --- | --- |
 | 进行中 | JD-600 | .joydeck schema 1.0–1.11 的 legacy DTO、能力检查与一次性转换 | 覆盖资源/source/主题/备注/表格/图表/动画/审阅和 ID；未知/未来必需特性不静默丢失 | R5、JD-205 |
 | 进行中 | JD-601 | .deckcraft 与历史原生输入导入、媒体/图表 sidecar 映射 | 同一上游文件独立读回比对；原件保留；另存新格式并可重开 | JD-600 |
-| 进行中 | JD-602 | PPTX 保留写回与新建导出两条路径，兼容/损失报告 | 未知 XML/关系/部件保留；无法映射的编辑不能保留写回；副本与原件区分 | JD-102、JD-500–JD-507 |
+| 进行中 | JD-602 | PPTX 保留写回与新建导出两条路径，兼容/损失报告 | 未知 XML、关系与部件保留。正文与链接同改时重绑新增链接关系并保留未改运行节点，遇到无法保真的改动拒绝。固定日期和新链接的保留另存及重开已有回归。[当前状态](STATUS.md) | JD-102、JD-500–JD-507 |
 | 待开始 | JD-603 | 接入共享 DrawingML 适用部分并收口格式分层 | 先核对 API、默认值、单位和 roundtrip 契约；不为统一而降低保留能力 | JD-602 |
 | 进行中 | JD-604 | PDF 后端与统一场景对齐、字体子集、文本/链接、备注/讲义 | 独立 PDF 阅读器检查页几何、可检索 Unicode 与嵌字；消除 Krilla 来源冲突 | JD-400、JD-003 |
 | 进行中 | JD-605 | PNG/JPEG、动画 GIF、提纲及已支持文本输出 | 页范围、尺寸、透明/背景、时序和错误路径可验证；与 UI/CLI 一致 | JD-604 |

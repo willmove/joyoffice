@@ -395,6 +395,30 @@ fn unequal_columns_with_a_line_between() {
 
 /// Apply to: the whole document, or from the caret on (a continuous section break first).
 #[test]
+fn applying_unequal_columns_rejects_a_narrower_section_atomically() {
+    let mut s = doc();
+    s.run("layout.break", &json!({"kind":"nextPage"})).unwrap();
+    s.run("layout.margins", &json!({"left":200,"right":200}))
+        .unwrap();
+    s.run("caret.docStart", &json!({})).unwrap();
+    let revision = s.rev();
+    assert!(
+        s.run(
+            "layout.columns",
+            &json!({"widths":[[150,20],[150,0]],"apply":"document"}),
+        )
+        .is_err()
+    );
+    assert_eq!(s.rev(), revision);
+    assert!(
+        s.doc
+            .sections()
+            .iter()
+            .all(|(_, section)| section.columns.count == 1)
+    );
+}
+
+#[test]
 fn columns_apply_to_the_document_or_from_the_caret_on() {
     let mut s = doc();
     s.run("layout.break", &json!({"kind": "nextPage"})).unwrap();

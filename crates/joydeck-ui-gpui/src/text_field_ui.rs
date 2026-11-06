@@ -1,4 +1,4 @@
-//! Insert a native text field using the ordinary canvas text transaction.
+//! Insert a native field or fixed date using the ordinary canvas text transaction.
 use super::*;
 use gpui_kit::component::{Sizable, button::ButtonVariants, popover::Popover};
 use joydeck_text::datetime::{DATE_KINDS, DateTime, field_text};
@@ -53,22 +53,43 @@ impl Viewer {
                     let label = sample
                         .as_ref()
                         .map_or_else(|| name.to_owned(), |sample| format!("{name} · {sample}"));
-                    let popup = popup.clone();
-                    let view = view.clone();
-                    list = list.child(
-                        Button::new(("date-field-type", i))
-                            .ghost()
-                            .xsmall()
-                            .label(label)
-                            .accessibility_label(name)
-                            .disabled(sample.is_none())
-                            .on_click(move |_, w, cx| {
-                                let _ = popup.update(cx, |p, cx| p.dismiss(w, cx));
-                                let _ = view.update(cx, |s, cx| {
-                                    s.insert_text_field(kind, Some(lang), w, cx)
-                                });
-                            }),
-                    );
+                    let (dynamic_popup, dynamic_view) = (popup.clone(), view.clone());
+                    let (fixed_popup, fixed_view) = (popup.clone(), view.clone());
+                    let row = div()
+                        .flex()
+                        .gap_1()
+                        .child(
+                            Button::new(("date-field-type", i))
+                                .ghost()
+                                .xsmall()
+                                .label(label)
+                                .accessibility_label(name)
+                                .disabled(sample.is_none())
+                                .on_click(move |_, w, cx| {
+                                    let _ = dynamic_popup.update(cx, |p, cx| p.dismiss(w, cx));
+                                    let _ = dynamic_view.update(cx, |s, cx| {
+                                        s.insert_text_field(kind, Some(lang), None, w, cx)
+                                    });
+                                }),
+                        )
+                        .child(
+                            Button::new(("fixed-date-type", i))
+                                .ghost()
+                                .xsmall()
+                                .label("固定")
+                                .accessibility_label(format!("固定{name}"))
+                                .disabled(sample.is_none())
+                                .on_click(move |_, w, cx| {
+                                    let Some(value) = sample.as_deref() else {
+                                        return;
+                                    };
+                                    let _ = fixed_popup.update(cx, |p, cx| p.dismiss(w, cx));
+                                    let _ = fixed_view.update(cx, |s, cx| {
+                                        s.insert_text_field(kind, Some(lang), Some(value), w, cx)
+                                    });
+                                }),
+                        );
+                    list = list.child(row);
                 }
                 list
             });
@@ -85,9 +106,9 @@ impl Viewer {
                         .h(px(25.))
                         .label("幻灯片编号")
                         .disabled(disabled)
-                        .on_click(
-                            cx.listener(|s, _, w, cx| s.insert_text_field("slidenum", None, w, cx)),
-                        ),
+                        .on_click(cx.listener(|s, _, w, cx| {
+                            s.insert_text_field("slidenum", None, None, w, cx)
+                        })),
                 )
                 .child(date),
         )
@@ -104,6 +125,7 @@ impl Viewer {
         &mut self,
         kind: &str,
         lang: Option<&str>,
+        fixed: Option<&str>,
         w: &mut Window,
         cx: &mut Context<Self>,
     ) {
@@ -111,7 +133,9 @@ impl Viewer {
             return;
         }
         let Some(e) = &self.editor else { return };
-        let value = if kind == "slidenum" {
+        let value = if let Some(value) = fixed {
+            Some(value.to_owned())
+        } else if kind == "slidenum" {
             Some(e.session.model().slide_number(self.page).to_string())
         } else {
             DateTime::now_local().and_then(|now| field_text(kind, lang, now))
@@ -131,7 +155,12 @@ impl Viewer {
         let Some(inline) = &mut self.inline else {
             return;
         };
-        match inline.draft.insert_field(kind, &value, lang) {
+        let result = if fixed.is_some() {
+            inline.draft.replace(None, &value, false, None)
+        } else {
+            inline.draft.insert_field(kind, &value, lang)
+        };
+        match result {
             Ok(()) => {
                 self.publish_inline(w, cx);
                 self.focus.focus(w, cx);

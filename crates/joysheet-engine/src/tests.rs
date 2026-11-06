@@ -84,6 +84,22 @@ fn pasted_currency_text_keeps_the_number_from_the_clipboard_html() {
 }
 
 #[test]
+fn external_html_takes_precedence_over_the_same_internal_display_text() {
+    let mut s = s();
+    s.execute("cell.set", json!({"cell":"A1", "input":"Rp10,000.00"})).unwrap();
+    let copy = s.execute("edit.copy", json!({"range":"A1", "html":true})).unwrap();
+    let text = copy["text"].as_str().unwrap();
+    let html = r#"<tr><td x:num="10000">Rp10,000.00</td></tr>"#;
+    s.execute("edit.paste", json!({"at":"B1", "text":text, "html":html})).unwrap();
+    assert_eq!(v(&s, "B1"), Value::text("Rp10,000.00"));
+    s.execute("edit.paste", json!({"at":"C1", "text":text, "html":html, "external":true})).unwrap();
+    assert_eq!(v(&s, "C1"), Value::number(10000.0));
+    s.execute("edit.undo", json!({})).unwrap();
+    assert!(v(&s, "C1").is_empty());
+    assert_eq!(v(&s, "B1"), Value::text("Rp10,000.00"));
+}
+
+#[test]
 fn pasting_html_with_huge_spans_reads_only_the_text_shape() {
     // #2171: a web page's clipboard HTML with enormous colspan/rowspan crashed paste (OOM). The
     // HTML is now read only as far as the tab-separated text reaches; its numbers still apply.

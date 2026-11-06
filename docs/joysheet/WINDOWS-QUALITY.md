@@ -9,6 +9,8 @@
 | W7 辅助功能 | 实际 Windows UIA 经 AccessKit 读取中文值并聚焦合并格；完整行列索引/跨度、只读/隐藏公式描述、可见节点预算和冻结裁剪；修复虚拟节点漏乘 DPI；175% 的 UIA 矩形与实际客户区坐标对照 | Narrator/NVDA 的实际语音、浏览、提示顺序及键盘操作 |
 | W8 打印 | 原生“取消”按钮 UIA 调用及重试、关闭预览时保留打印文档；拒绝过期文档/工作表快照；关闭后后台预览不复活；页码范围、纸张可打印区域、有限栅格预算、损坏 PDF 清理；真实 WPF 分页输出 XPS，无队列提交 | Microsoft Print to PDF 的实际输出、实体打印机/驱动、份数与纸张方向 |
 
+2026-11-06 用隔离副本打开 `Windows-quality.xlsx`，原生窗口显示三页预览，系统打印对话框打开。Windows 枚举到 Microsoft Print to PDF，但本轮未能从对话框确认所选队列和提交，也未生成驱动输出。PRINT-2 和 PRINT-3 保持待验。
+
 分项证据：[W5](evidence/W5.json)、[W6](evidence/W6.json)、[W7](evidence/W7.json)、[原生 UIA](evidence/W7-uia.json)、[W8](evidence/W8.json)。编译、合成事件、真实平台提供程序和打印队列分别记录，不能相互替代。
 
 ## 直接试用与自动回归

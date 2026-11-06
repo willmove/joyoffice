@@ -219,7 +219,7 @@ fn patch_text(
         return Ok(());
     }
     if let (Some(before), Some(after)) = (before, after)
-        && fields::patch(source, generated, before, after, field_ids)?
+        && fields::patch(source, generated, before, after, field_ids, relationships)?
     {
         if before.body != after.body {
             let layout = TextBody {
@@ -639,6 +639,8 @@ pub fn export_preserving(
         for shape in &slide.shapes {
             let mut link_relationships = links::Relationships {
                 source: &source_relationships,
+                generated: &generated_relationships,
+                generated_slides: &generated_slides,
                 occupied: &occupied,
                 part,
                 destinations: &destinations,
@@ -878,11 +880,7 @@ pub fn export_preserving(
                             .retain(|n| !matches!(n,Node::El(e) if e.is("tr")));
                         for row in generated.elements().filter(|e| e.is("tr")) {
                             let mut row = row.clone();
-                            link_relationships.rebind_new_shape(
-                                &mut row,
-                                &generated_relationships,
-                                &generated_slides,
-                            )?;
+                            link_relationships.rebind_generated(&mut row)?;
                             field_ids.reassign_tree(&mut row);
                             source.children.push(Node::El(row));
                         }
@@ -891,11 +889,7 @@ pub fn export_preserving(
                 e
             } else {
                 let mut e = generated.clone();
-                link_relationships.rebind_new_shape(
-                    &mut e,
-                    &generated_relationships,
-                    &generated_slides,
-                )?;
+                link_relationships.rebind_generated(&mut e)?;
                 field_ids.reassign_tree(&mut e);
                 e
             };

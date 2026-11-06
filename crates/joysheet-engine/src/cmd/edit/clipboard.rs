@@ -149,9 +149,11 @@ pub(super) enum What {
 }
 
 pub(super) fn paste(s: &mut Session, p: &Json) -> Result<Json> {
-    // External text (from the system clipboard) when it differs from ours.
+    // The desktop may observe an external copy with the same display text.
+    // Clients without that provenance keep the original text comparison.
     if let Some(text) = str_param(p, "text")
-        && s.clipboard.as_ref().is_none_or(|c| c.text.trim_end_matches(['\r', '\n']) != text.trim_end_matches(['\r', '\n']))
+        && (p.get("external").and_then(Json::as_bool) == Some(true)
+            || s.clipboard.as_ref().is_none_or(|c| c.text.trim_end_matches(['\r', '\n']) != text.trim_end_matches(['\r', '\n'])))
     {
         return paste_text(s, p, text);
     }

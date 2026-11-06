@@ -4337,6 +4337,7 @@ dependencies = [
  "joyword-render",
  "log",
  "serde_json",
+ "tempfile",
 ]
 
 [[package]]

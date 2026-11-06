@@ -178,6 +178,9 @@ FS_ALLOW = {
 # Detailed review and validation-only sites: docs/joyoffice/JOYDECK-GATE-AUDIT.md.
 DECK_FS_REVIEW = {'tools/xtask/src/main.rs': 'product engineering subprocess invocation', 'apps/joydeck-cli/src/main.rs': 'explicit source/output/control CLI paths', 'apps/joydeck-cli/src/scene_bench.rs': 'bounded CPU benchmark output to a new directory', 'crates/joydeck-fonts/build.rs': 'read registered font manifests and emit OUT_DIR Rust assets; test fixture IO', 'crates/joydeck-fonts/src/fontdb.rs': 'read-only system font discovery and bounded registered font bytes; no redistribution', 'crates/joydeck-shell/src/document.rs': 'bounded user-selected document read and new raster output publication', 'crates/joydeck-shell/src/platform.rs': 'private temp paths, bounded media reads, image decoding and atomic file publishing', 'crates/joydeck-shell/src/helpers.rs': 'owned platform helper subprocess and private temporary lifetime', 'crates/joydeck-shell/src/playback.rs': 'bounded owned media input/frame files and cancellation', 'crates/joydeck-shell/src/control.rs': 'local control descriptor and authenticated loopback IO', 'crates/joydeck-shell/src/storage.rs': 'document save, source fingerprint, recovery and lease IO', 'crates/joydeck-shell/src/output.rs': 'new output directories, verified PDF/image/GIF/video publication and cleanup of owned staging', 'crates/joydeck-shell/src/video.rs': 'bounded owned encoder helper and private staging'}
 
+DECK_FS_REVIEW["crates/joydeck-ui-gpui/src/native_clipboard_linux.rs"] = (
+    "read clipboard MIME offers via owned xclip or wl-paste child with time and output budgets"
+)
 FS_ALLOW.update(DECK_FS_REVIEW)
 
 # Exact imported Sheet adapters, reviewed in JOYSHEET-GATE-AUDIT.md. Pure model,

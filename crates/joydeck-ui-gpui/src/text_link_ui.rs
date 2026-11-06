@@ -9,6 +9,7 @@ use joydeck_model::{
 
 const ADDRESS: &str = "链接地址（网页、邮件或 #页码）";
 const TOOLTIP: &str = "屏幕提示（可选）";
+const LABEL: &str = "显示文字";
 
 fn address(action: &Action, document: &Presentation) -> Option<String> {
     match action {
@@ -72,17 +73,27 @@ impl Viewer {
         )
     }
 
-    fn link_scope(&mut self, w: &mut Window, cx: &mut Context<Self>) -> Option<links::Selection> {
+    fn link_scope(
+        &mut self,
+        insert: bool,
+        w: &mut Window,
+        cx: &mut Context<Self>,
+    ) -> Option<links::Selection> {
         if self.loading || self.composing() || self.benchmark.is_some() {
             return None;
         }
         if self.inline.is_none() && self.format_targets().len() == 1 {
             self.begin_selected_text(w, cx);
         }
-        let scope = self
-            .inline
-            .as_ref()
-            .and_then(|i| links::selection(&i.draft.body, i.draft.selection.clone()));
+        let scope = self.inline.as_ref().and_then(|i| {
+            links::selection(&i.draft.body, i.draft.selection.clone()).or_else(|| {
+                (insert && i.draft.selection.is_empty()).then(|| links::Selection {
+                    range: i.draft.selection.clone(),
+                    common: None,
+                    has_link: false,
+                })
+            })
+        });
         if scope.is_none() {
             self.message = "请先选择需要链接的文字".into();
             cx.notify();
@@ -96,7 +107,7 @@ impl Viewer {
         w: &mut Window,
         cx: &mut Context<Self>,
     ) {
-        let Some(scope) = self.link_scope(w, cx) else {
+        let Some(scope) = self.link_scope(true, w, cx) else {
             return;
         };
         let (Some(i), Some(editor)) = (&self.inline, &self.editor) else {
@@ -116,9 +127,15 @@ impl Viewer {
         let target = i.target.clone();
         let selection = i.draft.selection.clone();
         let page = self.page;
+        let revision = editor.session.revision();
+        let label = links::plain_label(&i.draft.body, scope.range.clone());
+        let mut fields = vec![(ADDRESS, original.clone()), (TOOLTIP, tooltip)];
+        if let Some(label) = &label {
+            fields.push((LABEL, label.clone()));
+        }
         self.fields_dialog(
             "编辑文字链接",
-            vec![(ADDRESS, original.clone()), (TOOLTIP, tooltip)],
+            fields,
             w,
             cx,
             move |s, values, w, cx| {
@@ -133,7 +150,11 @@ impl Viewer {
                 {
                     return Err("文字选区已变化，请重新打开此对话框".into());
                 }
-                let document = s.editor.as_ref().ok_or("文稿已关闭")?.session.model();
+                let editor = s.editor.as_ref().ok_or("文稿已关闭")?;
+                if editor.session.revision() != revision {
+                    return Err("文稿已变化，请重新打开此对话框".into());
+                }
+                let document = editor.session.model();
                 let action = if values[0] == original
                     && let Some(link) = &scope.common
                 {
@@ -157,15 +178,25 @@ impl Viewer {
                 }
                 link.action = action;
                 link.tooltip.clone_from(&values[1]);
-                s.apply_text_link(scope.range.clone(), Some(&link), w, cx)
+                let replacement = values.get(2).filter(|value| label.as_ref() != Some(value));
+                if scope.range.is_empty() && replacement.is_none() {
+                    return Err("请输入显示文字".into());
+                }
+                s.apply_text_link(
+                    scope.range.clone(),
+                    Some(&link),
+                    replacement.map(String::as_str),
+                    w,
+                    cx,
+                )
             },
         );
     }
 
     fn remove_text_link(&mut self, w: &mut Window, cx: &mut Context<Self>) {
-        if let Some(scope) = self.link_scope(w, cx)
+        if let Some(scope) = self.link_scope(false, w, cx)
             && scope.has_link
-            && let Err(error) = self.apply_text_link(scope.range, None, w, cx)
+            && let Err(error) = self.apply_text_link(scope.range, None, None, w, cx)
         {
             self.message = error;
             cx.notify();
@@ -176,14 +207,30 @@ impl Viewer {
         &mut self,
         range: std::ops::Range<usize>,
         link: Option<&Hyperlink>,
+        replacement: Option<&str>,
         w: &mut Window,
         cx: &mut Context<Self>,
     ) -> Result<(), String> {
         let i = self.inline.as_mut().ok_or("文字选区已关闭")?;
-        let after = links::apply(&i.draft.body, range, link)?;
+        let mut draft = i.draft.clone();
+        let range = if let Some(label) = replacement {
+            if label.trim().is_empty() || label.len() > 4096 || label.chars().any(char::is_control)
+            {
+                return Err("显示文字不能为空、超过 4096 字节或包含控制字符".into());
+            }
+            let start = range.start;
+            draft.selection = range;
+            draft.typing_props = None;
+            draft.replace(None, label, false, None)?;
+            start..draft.cursor()
+        } else {
+            range
+        };
+        let after = links::apply(&draft.body, range, link)?;
         if after != i.draft.body {
-            i.draft.body = after;
-            i.draft.typing_props = None;
+            draft.body = after;
+            draft.typing_props = None;
+            i.draft = draft;
             self.publish_inline(w, cx);
         }
         Ok(())

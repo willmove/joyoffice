@@ -35,7 +35,12 @@ pub(crate) fn table_cells(html: &str, max_rows: usize, max_cols: usize) -> Vec<V
         return grid.rows;
     }
     let mut cell: Option<OpenCell> = None;
-    let mut in_table = false;
+    // Windows CF_HTML can return just a table's fragment, starting at a
+    // row or cell because the enclosing table lies outside StartFragment.
+    let mut in_table = html.trim_start().strip_prefix('<').is_some_and(|first| {
+        let end = first.find(|ch: char| ch.is_ascii_whitespace() || ch == '>').unwrap_or(first.len());
+        ["tr", "td", "th"].iter().any(|tag| first[..end].eq_ignore_ascii_case(tag))
+    });
     let mut rest = html;
     while !rest.is_empty() && !grid.full {
         let Some(lt) = rest.find('<') else {

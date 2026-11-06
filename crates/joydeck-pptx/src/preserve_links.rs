@@ -5,6 +5,8 @@ use std::ops::Range;
 
 pub(super) struct Relationships<'a> {
     pub source: &'a opc::Rels,
+    pub generated: &'a opc::Rels,
+    pub generated_slides: &'a BTreeMap<String, SlideId>,
     pub occupied: &'a std::collections::BTreeSet<String>,
     pub part: &'a str,
     pub destinations: &'a BTreeMap<SlideId, (usize, String)>,
@@ -63,18 +65,14 @@ impl Relationships<'_> {
     }
 
     /// A new shape comes from the generated document, so its link IDs must be imported.
-    pub(super) fn rebind_new_shape(
-        &mut self,
-        element: &mut El,
-        generated: &opc::Rels,
-        slides: &BTreeMap<String, SlideId>,
-    ) -> Result<(), PptxError> {
+    pub(super) fn rebind_generated(&mut self, element: &mut El) -> Result<(), PptxError> {
         if element.prefix() == "a" && matches!(element.local(), "hlinkClick" | "hlinkMouseOver") {
             if element.child("snd").is_some() {
                 return Err(error("linked sounds require .joydeck Save As"));
             }
             if let Some(id) = element.attr("r:id").filter(|s| !s.is_empty()) {
-                let rel = generated
+                let rel = self
+                    .generated
                     .get(id)
                     .ok_or_else(|| error("generated hyperlink relationship missing"))?;
                 let rebound = match (rel.kind.as_str(), rel.external) {
@@ -82,7 +80,8 @@ impl Relationships<'_> {
                         self.add("hyperlink", &rel.target, true)
                     }
                     ("slide", false) => self.slide(
-                        *slides
+                        *self
+                            .generated_slides
                             .get(&opc::norm(&rel.target))
                             .ok_or_else(|| error("generated hyperlink slide missing"))?,
                     )?,
@@ -97,7 +96,7 @@ impl Relationships<'_> {
         }
         if !element.is("extLst") {
             for child in element.elements_mut() {
-                self.rebind_new_shape(child, generated, slides)?;
+                self.rebind_generated(child)?;
             }
         }
         Ok(())

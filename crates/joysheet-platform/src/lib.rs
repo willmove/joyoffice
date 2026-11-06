@@ -120,8 +120,15 @@ pub async fn pick_save(name: &str) -> Option<PathBuf> {
 pub struct Clipboard {
     inner: Option<arboard::Clipboard>,
 }
+
+#[derive(PartialEq, Eq)]
+pub struct ClipboardContent {
+    pub text: String,
+    pub html: Option<String>,
+}
+
 // Windows on the same engine share its rich clipboard, even with separate native handles.
-static LAST_WRITTEN: std::sync::Mutex<Option<String>> = std::sync::Mutex::new(None);
+static LAST_WRITTEN: std::sync::Mutex<Option<ClipboardContent>> = std::sync::Mutex::new(None);
 impl Clipboard {
     fn native(&mut self) -> Result<&mut arboard::Clipboard, String> {
         if self.inner.is_none() {
@@ -134,12 +141,18 @@ impl Clipboard {
             Some(html) => self.native()?.set_html(html, Some(text)).map_err(|e| e.to_string())?,
             None => self.native()?.set_text(text).map_err(|e| e.to_string())?,
         }
-        *LAST_WRITTEN.lock().unwrap_or_else(std::sync::PoisonError::into_inner) = Some(text.into());
+        *LAST_WRITTEN.lock().unwrap_or_else(std::sync::PoisonError::into_inner) =
+            Some(ClipboardContent { text: text.into(), html: html.map(str::to_owned) });
         Ok(())
     }
-    pub fn read_external(&mut self) -> Option<String> {
-        let text = self.native().ok()?.get_text().ok()?;
-        // The engine's richer clipboard is authoritative while the OS still holds our copy.
-        if LAST_WRITTEN.lock().unwrap_or_else(std::sync::PoisonError::into_inner).as_ref() == Some(&text) { None } else { Some(text) }
+    pub fn read_external(&mut self) -> Option<ClipboardContent> {
+        let native = self.native().ok()?;
+        let text = native.get_text().ok()?;
+        let html = native.get().html().ok().filter(|html| html.len() <= 16 * 1024 * 1024);
+        let content = ClipboardContent { text, html };
+        // Preserve the in-process workbook clipboard while both exported
+        // flavors still match. Identical display text can have different HTML.
+        let last = LAST_WRITTEN.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
+        (last.as_ref() != Some(&content)).then_some(content)
     }
 }
