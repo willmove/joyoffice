@@ -1076,6 +1076,20 @@ pub fn export(p: &Presentation, main_ct: &str) -> Result<Vec<u8>, PptxError> {
     x.pkg.finish()
 }
 
+fn placeholder_visibility(w: &mut W, flags: Option<&joydeck_model::PlaceholderVisibility>) {
+    if let Some(flags) = flags {
+        let value = |v: Option<bool>| v.map(|b| if b { "1" } else { "0" });
+        w.empty(
+            "p:hf",
+            A::new()
+                .o("dt", value(flags.date))
+                .o("ftr", value(flags.footer))
+                .o("hdr", value(flags.header))
+                .o("sldNum", value(flags.slide_number)),
+        );
+    }
+}
+
 fn layout_xml(x: &mut Exp, o: &mut Out, l: &Layout) -> Vec<u8> {
     let mut w = W::new();
     root_open(
@@ -1088,6 +1102,7 @@ fn layout_xml(x: &mut Exp, o: &mut Out, l: &Layout) -> Vec<u8> {
     );
     csld(&mut w, x, o, &l.name, l.background.as_ref(), &l.shapes, &[]);
     clr_map_ovr(&mut w, l.color_map.as_deref());
+    placeholder_visibility(&mut w, l.placeholder_visibility.as_ref());
     ext_list(&mut w, ext_children(l.raw_ext.as_deref()).as_deref());
     w.close("p:sldLayout");
     w.finish()
@@ -1103,6 +1118,7 @@ fn master_xml(x: &mut Exp, o: &mut Out, m: &Master, layouts: &[(u64, String)]) -
         w.empty("p:sldLayoutId", A::new().a("id", id).a("r:id", rid));
     }
     w.close("p:sldLayoutIdLst");
+    placeholder_visibility(&mut w, m.placeholder_visibility.as_ref());
     w.open0("p:txStyles");
     let (dt, db, dother) = defaults::master_styles();
     let pick = |s: &joydeck_model::text::ListStyle, d: joydeck_model::text::ListStyle| {
