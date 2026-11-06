@@ -319,3 +319,122 @@ fn unused_fragment_paragraph_resource_is_not_committed() {
     s.execute(draft.finish()).unwrap();
     assert_eq!(s.model().media, before.model.media);
 }
+
+fn hyperlink(action: joydeck_model::text::Action) -> joydeck_model::text::Hyperlink {
+    joydeck_model::text::Hyperlink {
+        action,
+        tooltip: String::new(),
+        highlight_click: false,
+        sound: None,
+        stop_sound: false,
+        zoom_return: None,
+    }
+}
+
+#[test]
+fn foreign_slide_collision_and_malicious_links_fail_without_mutation() {
+    use joydeck_model::text::Action;
+    let (s, body, resources) = setup();
+    let mut draft = text_resources::Draft::begin(&s.snapshot(), TextTarget::Notes).unwrap();
+    let at = draft.paste(0..0, &body, &resources).unwrap();
+    let before = serde_json::to_vec(&draft.clone().finish()).unwrap();
+    for action in [
+        Action::Slide {
+            slide: s.model().slides[0].id,
+        },
+        Action::CustomShow {
+            name: "colliding show".into(),
+            returns: true,
+        },
+        Action::PlayMedia,
+        Action::Program {
+            path: "/never-executed".into(),
+        },
+        Action::Url {
+            url: "javascript:alert(1)".into(),
+        },
+        Action::Url {
+            url: "file:///never-opened".into(),
+        },
+        Action::Url {
+            url: "https://example.org/\ncommand".into(),
+        },
+    ] {
+        let mut foreign = body.clone();
+        foreign.paragraphs[0].runs[0].props.link = Some(hyperlink(action));
+        assert!(draft.paste(at..at, &foreign, &resources).is_err());
+        assert_eq!(serde_json::to_vec(&draft.clone().finish()).unwrap(), before);
+    }
+}
+
+#[test]
+fn hover_defaults_list_links_and_sound_are_checked_before_insertion() {
+    use joydeck_model::text::Action;
+    let (s, body, resources) = setup();
+    let mut draft = text_resources::Draft::begin(&s.snapshot(), TextTarget::Notes).unwrap();
+    let before = serde_json::to_vec(&draft.clone().finish()).unwrap();
+    for location in 0..6 {
+        let mut foreign = body.clone();
+        let mut link = hyperlink(Action::Url {
+            url: "https://example.org/".into(),
+        });
+        match location {
+            0 => link.sound = Some(resources[0].id),
+            1 => link.zoom_return = Some(s.model().slides[0].id),
+            _ => {
+                link.action = Action::Program {
+                    path: "/never-executed".into(),
+                }
+            }
+        }
+        match location {
+            0 | 1 => foreign.paragraphs[0].runs[0].props.link = Some(link),
+            2 => foreign.paragraphs[0].runs[0].props.hover = Some(link),
+            3 => foreign.paragraphs[0].def_props.link = Some(link),
+            4 => foreign.paragraphs[0].end_props.hover = Some(link),
+            _ => {
+                foreign.list_style.levels.resize_with(1, Default::default);
+                foreign.list_style.levels[0]
+                    .get_or_insert_with(Default::default)
+                    .run
+                    .link = Some(link)
+            }
+        }
+        assert!(draft.paste(0..0, &foreign, &resources).is_err());
+        assert_eq!(serde_json::to_vec(&draft.clone().finish()).unwrap(), before);
+    }
+}
+
+#[test]
+fn safe_links_and_existing_local_links_survive_commit_undo_redo() {
+    use joydeck_model::text::Action;
+    let (mut s, mut body, resources) = setup();
+    let local = hyperlink(Action::Slide {
+        slide: s.model().slides[0].id,
+    });
+    let mut existing = TextBody::from_text("destination ");
+    existing.paragraphs[0].runs[0].props.link = Some(local.clone());
+    s.execute(Command::SetText {
+        target: TextTarget::Notes,
+        body: Box::new(existing),
+    })
+    .unwrap();
+    let before = s.snapshot();
+    let mut draft = text_resources::Draft::begin(&before, TextTarget::Notes).unwrap();
+    let safe = hyperlink(Action::Url {
+        url: "https://example.org/image".into(),
+    });
+    body.paragraphs[0].runs[0].props.link = Some(safe.clone());
+    body.paragraphs[0].runs[0].props.hover = Some(hyperlink(Action::NextSlide));
+    let at = draft.body().text().len();
+    draft.paste(at..at, &body, &resources).unwrap();
+    s.execute(draft.finish()).unwrap();
+    let runs = &s.model().slides[0].notes.paragraphs[0].runs;
+    assert!(runs.iter().any(|r| r.props.link.as_ref() == Some(&local)));
+    assert!(runs.iter().any(|r| r.props.link.as_ref() == Some(&safe)));
+    let after = s.model().clone();
+    s.execute(Command::Undo).unwrap();
+    assert_eq!(s.model(), before.model.as_ref());
+    s.execute(Command::Redo).unwrap();
+    assert_eq!(s.model(), &after);
+}

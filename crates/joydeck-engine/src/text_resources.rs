@@ -162,6 +162,8 @@ impl Draft {
 
     /// Paste a separately scoped fragment at a UTF-8 byte range using the existing
     /// rich-text insertion semantics (including its paragraph formatting rules).
+    /// Incoming document-local links, sounds and unsafe actions are rejected;
+    /// this API cannot prove source-document identity from a numeric ID.
     /// On failure the entire draft is unchanged. Returned offset is the new caret.
     pub fn paste(
         &mut self,
@@ -170,6 +172,7 @@ impl Draft {
         resources: &[Resource],
     ) -> Result<usize, String> {
         validate(fragment, resources)?;
+        crate::clipboard::validate_foreign_text_links(fragment)?;
         let value = self.body.text();
         if range.start > range.end
             || range.end > value.len()
