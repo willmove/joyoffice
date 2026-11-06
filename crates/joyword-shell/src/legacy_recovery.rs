@@ -44,10 +44,12 @@ fn invalid(message: &'static str) -> io::Error {
     io::Error::new(io::ErrorKind::InvalidData, message)
 }
 
+// Filesystem uncertainty is not corrupt journal data: selection must stop,
+// rather than fall back to an older generation that may have been discarded.
 fn open_regular(path: &Path) -> io::Result<Option<File>> {
     match fs::symlink_metadata(path) {
         Ok(meta) if meta.is_file() => open_checked_regular(path, &meta).map(Some),
-        Ok(_) => Err(invalid("recovery path is not a regular file")),
+        Ok(_) => Err(io::Error::other("recovery path is not a regular file")),
         Err(e) if e.kind() == io::ErrorKind::NotFound => Ok(None),
         Err(e) => Err(e),
     }
@@ -71,7 +73,9 @@ fn open_checked_regular(path: &Path, before: &fs::Metadata) -> io::Result<File> 
     let opened = file.metadata()?;
     let after = fs::symlink_metadata(path)?;
     if !before.is_file() || !opened.is_file() || !after.is_file() {
-        return Err(invalid("recovery path changed or is not a regular file"));
+        return Err(io::Error::other(
+            "recovery path changed or is not a regular file",
+        ));
     }
     #[cfg(unix)]
     {
@@ -88,7 +92,7 @@ fn open_checked_regular(path: &Path, before: &fs::Metadata) -> io::Result<File> 
             )
         };
         if identity(before) != identity(&opened) || identity(before) != identity(&after) {
-            return Err(invalid("recovery file changed while opening"));
+            return Err(io::Error::other("recovery file changed while opening"));
         }
     }
     #[cfg(not(unix))]
@@ -97,7 +101,7 @@ fn open_checked_regular(path: &Path, before: &fs::Metadata) -> io::Result<File> 
         || before.modified()? != opened.modified()?
         || before.modified()? != after.modified()?
     {
-        return Err(invalid("recovery file changed while opening"));
+        return Err(io::Error::other("recovery file changed while opening"));
     }
     Ok(file)
 }
@@ -688,7 +692,13 @@ mod tests {
             if mode != 1 {
                 assert_eq!(fs::read(&path)?, b"replaced");
             }
-            assert!(open_checked_regular(&path, &before).is_err());
+            let error = open_checked_regular(&path, &before)
+                .err()
+                .ok_or_else(|| invalid("replacement accepted"))?;
+            assert!(!matches!(
+                error.kind(),
+                io::ErrorKind::InvalidData | io::ErrorKind::UnexpectedEof
+            ));
             assert_eq!(fs::read(&original)?, b"original");
             assert_eq!(fs::read(&target)?, b"replaced");
             if mode == 1 {
@@ -696,6 +706,52 @@ mod tests {
             }
             assert_eq!(fs::read_dir(dir.path())?.count(), 3);
         }
+        Ok(())
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn nonregular_slot_must_not_resurrect_an_older_generation() -> io::Result<()> {
+        use rustix::fs::{CWD, Mode, mkfifoat};
+        use std::os::unix::fs::symlink;
+        let baseline = include_bytes!("../../../assets/samples/mixed-media.docx");
+        for mode in 0..3 {
+            let dir = tempfile::tempdir()?;
+            let old = journal(baseline, "older text", None);
+            fs::write(dir.path().join(SLOTS[0]), &old)?;
+            let suspect = dir.path().join(SLOTS[1]);
+            match mode {
+                0 => fs::create_dir(&suspect)?,
+                1 => mkfifoat(CWD, &suspect, Mode::RUSR | Mode::WUSR)?,
+                _ => symlink(dir.path().join(SLOTS[0]), &suspect)?,
+            }
+            let result = select_locked(dir.path(), &AtomicBool::new(false));
+            assert!(
+                result.is_err(),
+                "must not fall back through nonregular slot {mode}"
+            );
+            assert_eq!(fs::read(dir.path().join(SLOTS[0]))?, old);
+            assert_eq!(fs::read_dir(dir.path())?.count(), 2);
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn checksum_damage_still_allows_reported_older_generation_fallback() -> io::Result<()> {
+        let dir = tempfile::tempdir()?;
+        let baseline = include_bytes!("../../../assets/samples/mixed-media.docx");
+        let old = journal(baseline, "older text", None);
+        fs::write(dir.path().join(SLOTS[0]), &old)?;
+        let mut corrupt = journal(baseline, "newer text", None);
+        if let Some(byte) = corrupt.last_mut() {
+            *byte ^= 1;
+        }
+        fs::write(dir.path().join(SLOTS[1]), &corrupt)?;
+        let (checkpoint, damaged) =
+            select_locked(dir.path(), &AtomicBool::new(false)).map_err(io::Error::other)?;
+        assert_eq!(checkpoint.text, "older text");
+        assert!(damaged);
+        assert_eq!(fs::read(dir.path().join(SLOTS[1]))?, corrupt);
         Ok(())
     }
 }
