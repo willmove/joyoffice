@@ -29,7 +29,8 @@ fn import_with_policy(bytes: &[u8], table: bool) -> Option<TextBody> {
     let mut tokenizer = Tokenizer::new(Sink::default(), Default::default());
     let _ = tokenizer.feed(&mut input);
     tokenizer.end();
-    if table && tokenizer.sink.saw_hidden {
+    if tokenizer.sink.saw_hidden && (table || tokenizer.sink.out.overflow) {
+        // An output/depth limit must not undo a recognized hiding decision.
         return Some(TextBody::default());
     }
     if tokenizer.sink.out.overflow {

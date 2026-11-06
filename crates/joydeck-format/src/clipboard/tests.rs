@@ -138,14 +138,16 @@ fn hidden_rtf_consumes_paste_without_exposing_plain_text_fallback() {
             .text(),
         "Visible"
     );
-    for input in [br"{\rtf1\v unclosed".as_slice(), br"{\rtf1}", br"not RTF"] {
+    for input in [
+        br"{\rtf1 ordinary unclosed".as_slice(),
+        br"{\rtf1}",
+        br"not RTF",
+    ] {
         assert!(
             import_rtf_for_paste(input).is_none(),
             "unusable RTF still falls back"
         );
     }
-    let excessive = format!(r"{{\rtf1\v hidden\v0 {}}}", "x".repeat(MAX_TEXT + 1));
-    assert!(import_rtf_for_paste(excessive.as_bytes()).is_none());
 }
 
 #[test]
@@ -209,4 +211,31 @@ fn table_hiding_cannot_be_undone_by_later_output_budget_failure() {
             .is_empty()
     );
     assert!(import_html_for_table(text.as_bytes()).is_none());
+}
+
+#[test]
+fn recognized_hiding_survives_parse_and_output_failure_for_text_paste() {
+    for input in [
+        br"{\rtf1\v unclosed".as_slice(),
+        br"{\rtf1 Visible{\v secret}",
+        br"{\rtf1\v secret\v0\bin999 short}",
+    ] {
+        assert_eq!(
+            import_rtf_for_paste(input).map(|b| b.is_empty()),
+            Some(true)
+        );
+    }
+    let text = "x".repeat(MAX_TEXT + 1);
+    let rtf = format!(r"{{\rtf1\v secret\v0 {text}}}");
+    assert_eq!(
+        import_rtf_for_paste(rtf.as_bytes()).map(|b| b.is_empty()),
+        Some(true)
+    );
+    let html = format!("<span hidden>secret</span>{text}");
+    assert_eq!(
+        import_html(html.as_bytes()).map(|b| b.is_empty()),
+        Some(true)
+    );
+    assert!(import_rtf_for_paste(br"{\rtf1 ordinary unclosed").is_none());
+    assert!(import_html(text.as_bytes()).is_none());
 }

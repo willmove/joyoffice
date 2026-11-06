@@ -8,7 +8,7 @@ pub fn import(bytes: &[u8]) -> Option<TextBody> {
     import_for_paste(bytes).filter(|body| !body.is_empty())
 }
 
-/// Like `import`, but an explicitly hidden, otherwise empty fragment returns
+/// Like `import`, but recognized hiding followed by empty output or a parse error returns
 /// `Some(empty)`. Paste callers must consume it without editing or falling back
 /// to the provider's plain text, which may contain the hidden characters.
 pub fn import_for_paste(bytes: &[u8]) -> Option<TextBody> {
@@ -28,9 +28,9 @@ fn import_with_policy(bytes: &[u8], table: bool) -> Option<TextBody> {
     }
     let mut reader = Reader::default();
     let result = reader.read(input);
-    if table && reader.saw_hidden {
+    if reader.saw_hidden && (table || result.is_none()) {
         // Once hiding is recognized, a later syntax/budget error must not
-        // re-enable the provider's potentially unfiltered TSV.
+        // re-enable the provider's potentially unfiltered text or TSV.
         Some(TextBody::default())
     } else {
         result
