@@ -38,6 +38,35 @@ class ComplexCorpus(unittest.TestCase):
                 else:
                     self.assertNotEqual(corpus.invariant(changed, kind), original)
 
+    def test_chart_and_smartart_graph_corruption_is_detected(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            corpus.generate(root)
+            for kind, payload in [('chart', 'word/embeddings/workbook.xlsx'),
+                                  ('smartart', 'word/diagrams/layout1.xml')]:
+                source = root / f'{kind}.docx'
+                expected = corpus.invariant(source, kind)
+                with zipfile.ZipFile(source) as z:
+                    original = {n: z.read(n) for n in z.namelist()}
+                for mutation in ('missing', 'changed', 'content-type'):
+                    parts = dict(original)
+                    if mutation == 'missing':
+                        del parts[payload]
+                    elif mutation == 'changed':
+                        parts[payload] += b' changed'
+                    else:
+                        parts['[Content_Types].xml'] = parts['[Content_Types].xml'].replace(
+                            b'application/vnd.openxmlformats-officedocument.', b'application/synthetic-wrong.')
+                    output = root / f'{kind}-{mutation}.docx'
+                    with zipfile.ZipFile(output, 'w') as z:
+                        for name, data in parts.items():
+                            z.writestr(name, data)
+                    if mutation == 'missing':
+                        with self.assertRaises(KeyError):
+                            corpus.invariant(output, kind)
+                    else:
+                        self.assertNotEqual(corpus.invariant(output, kind), expected)
+
 
 if __name__ == '__main__':
     unittest.main()
