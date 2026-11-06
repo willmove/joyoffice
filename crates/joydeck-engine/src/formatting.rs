@@ -1,4 +1,4 @@
-//! Read-only summaries of the effective formatting in a half-open text selection.
+//! Formatting helpers and effective style summaries for half-open text selections.
 use crate::text;
 use joydeck_model::{Paragraph, RunProps, TextBody, text::ParaProps};
 use std::{collections::BTreeSet, ops::Range};
@@ -166,4 +166,15 @@ pub fn summarize(
         }
     }
     Ok(out)
+}
+
+/// Clear visual character overrides without changing navigation or proofing semantics.
+pub fn clear_character_format(props: &mut RunProps) {
+    *props = RunProps {
+        link: props.link.take(),
+        hover: props.hover.take(),
+        lang: props.lang.take(),
+        no_proof: props.no_proof,
+        ..Default::default()
+    };
 }

@@ -4,7 +4,9 @@
 //! fails: a damaged file falls back to defaults, is kept beside the original
 //! name and is reported; a file from a newer JoyWord is used read-only so an
 //! older build never overwrites it; legacy keys are migrated. Unknown keys
-//! are kept and written back. Saving replaces the file atomically.
+//! are kept and written back. Unreadable or oversized files use read-only
+//! defaults. Reads and serialized saves are limited to 256 KiB. Saving
+//! replaces the file atomically.
 
 use std::fmt::Write as _;
 use std::fs;
@@ -16,6 +18,7 @@ use crate::l10n::Locale;
 pub const SCHEMA: u32 = 1;
 const FILE_NAME: &str = "preferences.conf";
 const MAX_RECENT: usize = 10;
+const MAX_BYTES: usize = 256 * 1024;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Units {
@@ -123,6 +126,11 @@ impl Preferences {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum PrefsNotice {
+    /// The file could not be safely read; defaults are used without allowing
+    /// a later save to replace the unobserved original.
+    Unreadable {
+        reason: String,
+    },
     /// The file was unreadable; defaults are in use and the original was
     /// copied to `backup`.
     Corrupt {
@@ -323,12 +331,11 @@ impl PrefsStore {
             return self.load(fallback);
         }
 
-        const LIMIT: u64 = 256 * 1024;
         let mut text = String::new();
         let legacy = fs::File::open(legacy_dir.join(FILE_NAME))
-            .and_then(|file| file.take(LIMIT + 1).read_to_string(&mut text));
+            .and_then(|file| file.take(MAX_BYTES as u64 + 1).read_to_string(&mut text));
         if legacy.is_ok()
-            && text.len() as u64 <= LIMIT
+            && text.len() <= MAX_BYTES
             && let Ok((prefs, notices, schema)) = parse(&text, fallback)
             && schema <= SCHEMA
         {
@@ -345,13 +352,42 @@ impl PrefsStore {
     /// defaults (normally the system UI language).
     pub fn load(&self, fallback: Locale) -> Loaded {
         let path = self.path();
-        let bytes = match fs::read(&path) {
+        let read = || -> io::Result<Vec<u8>> {
+            let file = fs::File::open(&path)?;
+            if file.metadata()?.len() > MAX_BYTES as u64 {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    "preferences exceed 256 KiB",
+                ));
+            }
+            let mut bytes = Vec::new();
+            file.take(MAX_BYTES as u64 + 1).read_to_end(&mut bytes)?;
+            if bytes.len() > MAX_BYTES {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    "preferences exceed 256 KiB",
+                ));
+            }
+            Ok(bytes)
+        };
+        let bytes = match read() {
             Ok(bytes) => bytes,
-            Err(_) => {
+            Err(error) => {
+                // A missing target behind a symlink is not a missing config.
+                let missing = error.kind() == io::ErrorKind::NotFound
+                    && path
+                        .symlink_metadata()
+                        .is_err_and(|e| e.kind() == io::ErrorKind::NotFound);
                 return Loaded {
                     prefs: Preferences::defaults_for(fallback),
-                    notices: Vec::new(),
-                    writable: true,
+                    notices: if missing {
+                        Vec::new()
+                    } else {
+                        vec![PrefsNotice::Unreadable {
+                            reason: error.to_string(),
+                        }]
+                    },
+                    writable: missing,
                 };
             }
         };
@@ -408,12 +444,19 @@ impl PrefsStore {
         if !loaded.writable {
             return Err(io::Error::new(
                 io::ErrorKind::PermissionDenied,
-                "preferences belong to a newer JoyWord or could not be backed up",
+                "preferences could not be safely read, belong to a newer JoyWord, or could not be backed up",
+            ));
+        }
+        let serialized = serialize(&loaded.prefs);
+        if serialized.len() > MAX_BYTES {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "preferences exceed 256 KiB",
             ));
         }
         fs::create_dir_all(&self.dir)?;
         let mut temporary = tempfile::NamedTempFile::new_in(&self.dir)?;
-        temporary.write_all(serialize(&loaded.prefs).as_bytes())?;
+        temporary.write_all(serialized.as_bytes())?;
         temporary.as_file().sync_all()?;
         temporary
             .persist(self.path())
@@ -427,8 +470,120 @@ impl PrefsStore {
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used, reason = "Test setup and assertions")]
+#[allow(clippy::panic, reason = "Test assertions")]
 mod tests {
     use super::*;
+
+    #[test]
+    fn oversized_preferences_are_preserved_read_only_without_backups() -> io::Result<()> {
+        let dir = tempfile::tempdir()?;
+        let store = PrefsStore::new(dir.path());
+        let original = format!("schema=1\nfuture.key={}\n", "x".repeat(MAX_BYTES));
+        fs::write(store.path(), &original)?;
+        let loaded = store.load(Locale::En);
+        assert!(!loaded.writable);
+        assert!(matches!(
+            &loaded.notices[..],
+            [PrefsNotice::Unreadable { .. }]
+        ));
+        assert_eq!(
+            store.save(&loaded).unwrap_err().kind(),
+            io::ErrorKind::PermissionDenied
+        );
+        assert_eq!(fs::read_to_string(store.path())?, original);
+        assert_eq!(fs::read_dir(dir.path())?.count(), 1);
+        Ok(())
+    }
+
+    #[test]
+    fn preferences_at_the_read_limit_are_accepted() -> io::Result<()> {
+        let dir = tempfile::tempdir()?;
+        let store = PrefsStore::new(dir.path());
+        let mut original = String::from("schema=1\nauthor.name=At limit\n#");
+        original.extend(std::iter::repeat_n('x', MAX_BYTES - original.len()));
+        fs::write(store.path(), original)?;
+        let loaded = store.load(Locale::En);
+        assert!(loaded.writable);
+        assert!(loaded.notices.is_empty());
+        assert_eq!(loaded.prefs.author_name, "At limit");
+        Ok(())
+    }
+
+    #[test]
+    fn oversized_save_neither_replaces_existing_config_nor_creates_a_directory() -> io::Result<()> {
+        let dir = tempfile::tempdir()?;
+        for exists in [true, false] {
+            let store =
+                PrefsStore::new(dir.path().join(if exists { "existing" } else { "missing" }));
+            let mut loaded = store.load(Locale::En);
+            if exists {
+                store.save(&loaded)?;
+            }
+            let original = fs::read(store.path()).ok();
+            loaded.prefs.author_name = "x".repeat(MAX_BYTES);
+            assert_eq!(
+                store.save(&loaded).unwrap_err().kind(),
+                io::ErrorKind::InvalidInput
+            );
+            assert_eq!(fs::read(store.path()).ok(), original);
+            assert_eq!(store.dir().exists(), exists);
+        }
+        Ok(())
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn unreadable_preferences_cannot_be_replaced_with_defaults() -> io::Result<()> {
+        use std::os::unix::fs::PermissionsExt;
+        let dir = tempfile::tempdir()?;
+        let store = PrefsStore::new(dir.path());
+        let original = "schema=1\nauthor.name=Preserve me\n";
+        fs::write(store.path(), original)?;
+        fs::set_permissions(store.path(), fs::Permissions::from_mode(0o000))?;
+        let denied = fs::File::open(store.path()).is_err();
+        let loaded = store.load(Locale::En);
+        fs::set_permissions(store.path(), fs::Permissions::from_mode(0o600))?;
+        // Privileged runners may bypass mode bits; the directory-error test
+        // below still verifies the read-failure contract on those runners.
+        if denied {
+            assert!(!loaded.writable);
+            assert!(store.save(&loaded).is_err());
+            assert_eq!(fs::read_to_string(store.path())?, original);
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn unreadable_config_path_is_not_treated_as_a_missing_file() -> io::Result<()> {
+        let dir = tempfile::tempdir()?;
+        let store = PrefsStore::new(dir.path());
+        fs::create_dir(store.path())?;
+        let loaded = store.load(Locale::En);
+        assert!(!loaded.writable);
+        assert!(matches!(
+            &loaded.notices[..],
+            [PrefsNotice::Unreadable { .. }]
+        ));
+        assert!(store.save(&loaded).is_err());
+        assert!(store.path().is_dir());
+        Ok(())
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn dangling_config_link_is_preserved_read_only() -> io::Result<()> {
+        let dir = tempfile::tempdir()?;
+        let store = PrefsStore::new(dir.path());
+        let missing = dir.path().join("missing.conf");
+        std::os::unix::fs::symlink(&missing, store.path())?;
+        let loaded = store.load(Locale::En);
+        assert!(!loaded.writable);
+        assert!(store.save(&loaded).is_err());
+        assert_eq!(fs::read_link(store.path())?, missing);
+        assert!(!missing.exists());
+        Ok(())
+    }
 
     #[test]
     fn legacy_preferences_are_read_only_and_active_preferences_win() -> io::Result<()> {

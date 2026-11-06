@@ -281,6 +281,7 @@ pub fn font_parameters(values: &[String]) -> Result<Value, String> {
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used, reason = "Test setup and assertions")]
 mod tests {
     use super::*;
     use std::sync::atomic::AtomicBool;

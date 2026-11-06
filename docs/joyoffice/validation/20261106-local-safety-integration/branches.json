@@ -1,0 +1,111 @@
+{
+  "main": "aac15f2f9078fa5a0ff784575d9f296fd3a35c9c",
+  "integrationCodeCommit": "f341f5f5297f5cbd6d837b14fa164052fab7724c",
+  "branches": [
+    {
+      "branch": "feat/joydeck-existing-footer-command",
+      "commit": "522ccc1134b3ca3056b83144c150a703ddf61af4",
+      "remoteSameName": null,
+      "pushState": "local-only",
+      "includedInIntegration": true
+    },
+    {
+      "branch": "feat/joydeck-r3-integration",
+      "commit": "a86bd58c00e367c3bfab66d12d51a1b615225760",
+      "remoteSameName": null,
+      "pushState": "local-only",
+      "includedInIntegration": true
+    },
+    {
+      "branch": "fix/joydeck-character-input-priority",
+      "commit": "0a75f6f33a5d8ea606f89d75ffc9c78d63c79708",
+      "remoteSameName": null,
+      "pushState": "local-only",
+      "includedInIntegration": true
+    },
+    {
+      "branch": "fix/joydeck-clear-format-links",
+      "commit": "de1ffe92871c55300754295268d2b51f7342f4d4",
+      "remoteSameName": null,
+      "pushState": "local-only",
+      "includedInIntegration": true
+    },
+    {
+      "branch": "fix/joydeck-footer-import-summary",
+      "commit": "d28049dc419031d255fa0fac3e059725d4cdb6a9",
+      "remoteSameName": null,
+      "pushState": "local-only",
+      "includedInIntegration": true
+    },
+    {
+      "branch": "fix/joydeck-license-provenance-check",
+      "commit": "abb85451bf1b0b57ba6002adf0db06a0792253b1",
+      "remoteSameName": null,
+      "pushState": "local-only",
+      "includedInIntegration": true
+    },
+    {
+      "branch": "fix/joydeck-rtf-hidden-text",
+      "commit": "6ab3f94aca9fb414016c0d1e2bb315180d856980",
+      "remoteSameName": null,
+      "pushState": "local-only",
+      "includedInIntegration": true
+    },
+    {
+      "branch": "fix/joyoffice-safety-integration",
+      "commit": "f341f5f5297f5cbd6d837b14fa164052fab7724c",
+      "remoteSameName": null,
+      "pushState": "local-only",
+      "includedInIntegration": true
+    },
+    {
+      "branch": "fix/joyword-async-recovery-identity",
+      "commit": "9fd13c8a9981f6f9e73318c0ae1a3e5a89139582",
+      "remoteSameName": "9fd13c8a9981f6f9e73318c0ae1a3e5a89139582",
+      "pushState": "pushed-identical",
+      "includedInIntegration": true
+    },
+    {
+      "branch": "fix/joyword-compat-report-gate",
+      "commit": "1b31441aaf2f7d4eb01d4402f76e0117083336d4",
+      "remoteSameName": "1b31441aaf2f7d4eb01d4402f76e0117083336d4",
+      "pushState": "pushed-identical",
+      "includedInIntegration": true
+    },
+    {
+      "branch": "fix/joyword-p0-integration",
+      "commit": "854304cef7a3a737f23e907bbd3068ccf745c495",
+      "remoteSameName": null,
+      "pushState": "local-only",
+      "includedInIntegration": true
+    },
+    {
+      "branch": "fix/joyword-preferences-read-safety",
+      "commit": "6bf74d08dce63c9400d8253a2305e0d2cc252de5",
+      "remoteSameName": "6bf74d08dce63c9400d8253a2305e0d2cc252de5",
+      "pushState": "pushed-identical",
+      "includedInIntegration": true
+    },
+    {
+      "branch": "fix/joyword-recovery-object-regressions",
+      "commit": "7e3eadde8120231c41b52e37252992fcb50a896f",
+      "remoteSameName": "7e3eadde8120231c41b52e37252992fcb50a896f",
+      "pushState": "pushed-identical",
+      "includedInIntegration": true
+    },
+    {
+      "branch": "fix/joyword-rollback-verification",
+      "commit": "8508faefe3467ef2c0da5a8b7868f5b0bf524503",
+      "remoteSameName": "8508faefe3467ef2c0da5a8b7868f5b0bf524503",
+      "pushState": "pushed-identical",
+      "includedInIntegration": true
+    },
+    {
+      "branch": "work",
+      "commit": "7b37ad4c884706087983d352d4a11148040de02a",
+      "remoteSameName": null,
+      "pushState": "local-only",
+      "includedInIntegration": true
+    }
+  ]
+}

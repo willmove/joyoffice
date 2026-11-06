@@ -359,3 +359,52 @@ crates/joydeck-ui-gpui/src/native_clipboard_linux.rs:153:.expect("redo")
 crates/joydeck-ui-gpui/src/native_clipboard_linux.rs:170:.expect("RTF fallback");
 crates/joydeck-ui-gpui/src/native_clipboard_linux.rs:186:import_offer("text/plain;charset=utf-8\n", |_| panic!(
 crates/joydeck-ui-gpui/src/native_clipboard_linux.rs:199:read(&mut exact, deadline()).expect("bounded output").len(),
+
+# R3 integration: reviewed test-only assertions for footer round trips, format semantics, and hidden clipboard fallback.
+crates/joydeck-pptx/src/footer_tests.rs:16:id: ShapeId(p.alloc_id().unwrap()),
+crates/joydeck-pptx/src/footer_tests.rs:35:second.id = SlideId(p.alloc_id().unwrap());
+crates/joydeck-pptx/src/footer_tests.rs:42:export(&p).unwrap()
+crates/joydeck-pptx/src/footer_tests.rs:50:let p = import(&fixture()).unwrap();
+crates/joydeck-pptx/src/footer_tests.rs:58:p.slides[1].shapes[0].text.as_ref().unwrap().text(),
+crates/joydeck-pptx/src/footer_tests.rs:62:p.slides[1].shapes[1].text.as_ref().unwrap().paragraphs[0].runs[0].kind,
+crates/joydeck-pptx/src/footer_tests.rs:71:let base = import(&source).unwrap();
+crates/joydeck-pptx/src/footer_tests.rs:85:.unwrap()
+crates/joydeck-pptx/src/footer_tests.rs:89:let saved = export_preserving(&source, &base, &current, &bindings).unwrap();
+crates/joydeck-pptx/src/footer_tests.rs:90:let reopened = import(&saved).unwrap();
+crates/joydeck-pptx/src/footer_tests.rs:94:let original_pkg = crate::opc::Package::open(&source).unwrap();
+crates/joydeck-pptx/src/footer_tests.rs:95:let saved_pkg = crate::opc::Package::open(&saved).unwrap();
+crates/joydeck-pptx/src/footer_tests.rs:100:assert_eq!(import(&source).unwrap(), base);
+crates/joydeck-pptx/src/footer_tests.rs:110:let p = import(&fixture_with_date(&format)).unwrap();
+crates/joydeck-pptx/src/footer_tests.rs:114:let p = import(&fixture_with_date("slidenum")).unwrap();
+crates/joydeck-shell/src/r9_tests.rs:127:let id = ShapeId(p.alloc_id().unwrap());
+crates/joydeck-shell/src/r9_tests.rs:153:let source = joydeck_pptx::export(&p).unwrap();
+crates/joydeck-shell/src/r9_tests.rs:154:let baseline = joydeck_pptx::import(&source).unwrap();
+crates/joydeck-shell/src/r9_tests.rs:155:let shape = baseline.slides[0].shapes.last().unwrap();
+crates/joydeck-shell/src/r9_tests.rs:157:let original = shape.text.clone().unwrap();
+crates/joydeck-shell/src/r9_tests.rs:169:.unwrap();
+crates/joydeck-shell/src/r9_tests.rs:181:joydeck_pptx::export_preserving(&source, &baseline, &snapshot.model, &bindings).unwrap();
+crates/joydeck-shell/src/r9_tests.rs:182:let native = joydeck_format::save(&snapshot.model).unwrap();
+crates/joydeck-shell/src/r9_tests.rs:184:joydeck_pptx::import(&public).unwrap(),
+crates/joydeck-shell/src/r9_tests.rs:185:joydeck_format::load(&native).unwrap(),
+crates/joydeck-shell/src/r9_tests.rs:190:.unwrap()
+crates/joydeck-shell/src/r9_tests.rs:193:.unwrap();
+crates/joydeck-shell/src/r9_tests.rs:203:assert_eq!(joydeck_pptx::import(&source).unwrap(), baseline);
+crates/joydeck-shell/src/r9_tests.rs:216:slide.id = SlideId(p.alloc_id().unwrap());
+crates/joydeck-shell/src/r9_tests.rs:234:id: ShapeId(p.alloc_id().unwrap()),
+crates/joydeck-shell/src/r9_tests.rs:250:let source = joydeck_pptx::export(&p).unwrap();
+crates/joydeck-shell/src/r9_tests.rs:251:let base = joydeck_pptx::import(&source).unwrap();
+crates/joydeck-shell/src/r9_tests.rs:256:.unwrap();
+crates/joydeck-shell/src/r9_tests.rs:257:assert!(session.execute(cmd).unwrap());
+crates/joydeck-shell/src/r9_tests.rs:269:joydeck_pptx::export_preserving(&source, &base, &snapshot.model, &bindings).unwrap();
+crates/joydeck-shell/src/r9_tests.rs:270:let native = joydeck_format::save(&snapshot.model).unwrap();
+crates/joydeck-shell/src/r9_tests.rs:271:assert_eq!(joydeck_format::load(&native).unwrap(), *snapshot.model);
+crates/joydeck-shell/src/r9_tests.rs:272:let reopened = joydeck_pptx::import(&public).unwrap();
+crates/joydeck-shell/src/r9_tests.rs:278:expected.text.as_mut().unwrap().paragraphs[0].runs[0].text =
+crates/joydeck-shell/src/r9_tests.rs:285:part(&source, "ppt/slides/slide3.xml").unwrap(),
+crates/joydeck-shell/src/r9_tests.rs:286:part(&public, "ppt/slides/slide3.xml").unwrap()
+crates/joydeck-shell/src/r9_tests.rs:288:assert!(session.execute(Command::Undo).unwrap());
+crates/joydeck-shell/src/r9_tests.rs:290:assert!(session.execute(Command::Redo).unwrap());
+crates/joydeck-ui-gpui/src/native_clipboard_linux.rs:226:.expect("hidden RTF consumes paste");
+crates/joydeck-ui-gpui/src/native_clipboard_linux.rs:239:.expect("hidden HTML");
+crates/joydeck-ui-gpui/src/native_clipboard_linux.rs:249:.expect("hidden RTF after invalid HTML");
+crates/joydeck-ui-gpui/src/native_clipboard_linux.rs:258:.expect("ordinary HTML allows original TSV");

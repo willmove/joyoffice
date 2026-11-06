@@ -355,6 +355,7 @@ pub(crate) fn sync_directory(_: &Path) -> io::Result<()> {
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used, reason = "Test setup and assertions")]
 mod migration_tests {
     use super::*;
     #[test]

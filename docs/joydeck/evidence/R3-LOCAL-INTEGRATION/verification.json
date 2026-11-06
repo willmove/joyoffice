@@ -1,0 +1,34 @@
+{
+  "source_head": "c55ac6f40c92f1e044869e1ff938f335bffc46cf",
+  "main": "7b37ad4c884706087983d352d4a11148040de02a",
+  "environment": "Linux x86_64, Rust 1.98.1; headless",
+  "runs": [
+    {
+      "log": "joydeck-r3-combined-tests.log",
+      "passed": 203,
+      "failed": 0,
+      "ignored": 0,
+      "sha256": "55bde6d2f126f91c05c1ea5542e11b8edd7b2c64bfe26c2da4bff6fc14fed6cd"
+    },
+    {
+      "log": "joydeck-r3-linux-tests.log",
+      "passed": 5,
+      "failed": 0,
+      "ignored": 0,
+      "sha256": "d341cbf9d476ae10552eb75ee42d2b36a7048dde966080fffa93ece322420985"
+    },
+    {
+      "log": "joydeck-r3-key-tests.log",
+      "passed": 3,
+      "failed": 0,
+      "ignored": 0,
+      "sha256": "6cb54ba96ec701d9daa1266c8b55aabe5f7ee4719dbb9006bddee7a53410602e"
+    }
+  ],
+  "limits": [
+    "No actual desktop or reference product acceptance",
+    "No macOS/Windows compilation in this batch",
+    "No PR, push or main merge",
+    "No add-missing-footer command or new UI"
+  ]
+}

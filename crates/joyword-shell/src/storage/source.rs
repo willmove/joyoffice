@@ -778,6 +778,8 @@ pub(crate) fn verify_current(source: &SourceStamp) -> Result<(), SaveOriginalErr
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used, reason = "Test setup and assertions")]
+#[allow(clippy::panic, reason = "Test assertions")]
 mod tests {
     use super::*;
 

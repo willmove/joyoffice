@@ -1,0 +1,77 @@
+{
+  "date": "2026-11-06",
+  "platform": "Linux x86_64 container",
+  "rust": "1.98.1",
+  "tested_code_commit": "00fa7a83cffd908187403e372075fca2af03051d",
+  "base_commit": "7b37ad4c884706087983d352d4a11148040de02a",
+  "integrated_commits": [
+    "9fd13c8a9981f6f9e73318c0ae1a3e5a89139582",
+    "6bf74d08dce63c9400d8253a2305e0d2cc252de5",
+    "7e3eadde8120231c41b52e37252992fcb50a896f",
+    "1b31441aaf2f7d4eb01d4402f76e0117083336d4",
+    "8508faefe3467ef2c0da5a8b7868f5b0bf524503"
+  ],
+  "local_only": true,
+  "checks": {
+    "cargo test --locked -p joyword-shell": {
+      "passed": 72,
+      "failed": 0,
+      "ignored": 0
+    },
+    "python3 -m unittest discover -s scripts/tests": {
+      "run": 161,
+      "skipped": 2,
+      "failed": 0
+    },
+    "cargo test --locked -p joyword-cli": {
+      "passed": 0,
+      "note": "CLI target compiled; no unit tests are defined in this target"
+    },
+    "cargo build --locked -p joyword-cli": "passed",
+    "cargo clippy --locked -p joyword-shell --lib -- -D warnings": "passed",
+    "cargo fmt --all --check": "passed",
+    "python3 scripts/check_docs.py": "passed",
+    "python3 scripts/joyword/verify-r8.py target/debug/joyword-cli --mutations 64 --out target/p0-integration-verification": {
+      "passed": [
+        "inspect",
+        "text",
+        "Unicode edit",
+        "DOCX reopen and OOXML",
+        "no-clobber",
+        "invalid DOCX refusal",
+        "PNG",
+        "PDF",
+        "merge preview and batch",
+        "exchange loss gate",
+        "explicit face and missing glyph",
+        "deterministic PDF/A-2b",
+        "EPUB content and refusal checks",
+        "page setup"
+      ],
+      "mutations": {
+        "total": 64,
+        "accepted": 21,
+        "rejected": 43
+      },
+      "qpdf_independent_validation": false
+    },
+    "pdftotext target/p0-integration-verification/document.pdf -": "saved edit marker extracted"
+  },
+  "sha256": {
+    "target/debug/joyword-cli": "d85c57a3b20a9e9fd9db6631873bd78e754a6cae4f8cddef03b7dd132f07b85e",
+    "target/p0-integration-verification/R8 文档.docx": "6b6eda2e0553fec2ba15d4e4576e3a5bf08200f9169b83e21ad730698ae90de0",
+    "target/p0-integration-verification/document.pdf": "c450fc3e8be8cacee4422c95119fd91118cfba15fe0613d7cd46b06936884617",
+    "target/p0-integration-verification/page.png": "1fc83cf33f0023a92cde8faeadf7ad939bcba0bb276bdc1fa79c057b52b18d28"
+  },
+  "not_verified": [
+    "remote CI",
+    "Windows/macOS native sessions",
+    "desktop recovery and real crash",
+    "installer and file association rollback",
+    "old/new legacy binary differential",
+    "qpdf structural validation and independent PDF/A conformance"
+  ],
+  "known_limitations": [
+    "The earlier all-targets Clippy attempt found pre-existing test and example warnings; production-library Clippy is the checked gate."
+  ]
+}

@@ -25,6 +25,8 @@ def selected_graph(data, trees):
                 raise ValueError('Unrecognized Cargo dependency tree row: ' + line)
             depth, name, version = int(match[1]), match[2], match[3]
             candidates = identifiers.get((name, version), [])
+            if not candidates:
+                raise ValueError('Missing package identity in selected graph: ' + name)
             if len(candidates) != 1:
                 raise ValueError('Ambiguous package identity in selected graph: ' + name)
             identifier = candidates[0]
@@ -39,8 +41,11 @@ def selected_graph(data, trees):
 
 
 def graph(target, roots=('joydeck', 'joydeck-cli'), features=()):
+    # Keep the identity catalog unfiltered: cross-target build dependencies run
+    # on the host. Target-only metadata can omit them. cargo tree below remains
+    # the authority for selected normal/build packages and edges.
     data = json.loads(subprocess.check_output(
-        ['cargo', 'metadata', '--locked', '--offline', '--filter-platform', target,
+        ['cargo', 'metadata', '--locked', '--offline',
          '--format-version', '1', *(['--features', ','.join(features)] if features else [])],
         cwd=ROOT, text=True, encoding='utf-8'))
     trees = []
@@ -123,6 +128,50 @@ def require_unchanged_sources(before, after):
                          json.dumps({'added': added, 'removed': removed, 'changed': changed}))
 
 
+def verified_supplement_files(folder):
+    """Check recorded bytes; this does not establish license applicability or authenticity."""
+    if folder.is_symlink():
+        raise ValueError('Symlink dependency notice supplement: ' + str(folder))
+    if not folder.is_dir():
+        return {}
+    files = {p.name: p for p in folder.iterdir() if p.is_file() or p.is_symlink()}
+    if any(p.is_symlink() for p in files.values()):
+        raise ValueError('Symlink in dependency notice supplement: ' + str(folder))
+    manifest = files.get('SOURCES.json')
+    if manifest is None:
+        return {p: None for p in files.values()}
+    if not 0 < manifest.stat().st_size <= 2 * 1024 * 1024:
+        raise ValueError('Invalid notice provenance size: ' + str(manifest))
+    raw = manifest.read_bytes()
+    try:
+        records = json.loads(raw)
+    except (ValueError, UnicodeError) as error:
+        raise ValueError('Invalid notice provenance JSON: ' + str(manifest)) from error
+    if not isinstance(records, list) or not records:
+        raise ValueError('Notice provenance must be a nonempty list: ' + str(manifest))
+    hashes = {manifest: hashlib.sha256(raw).hexdigest()}
+    names = {'SOURCES.json'}
+    for record in records:
+        if not isinstance(record, dict):
+            raise ValueError('Invalid notice provenance record: ' + str(manifest))
+        name, digest = record.get('file'), record.get('sha256')
+        if (not isinstance(name, str) or not name or name in {'.', '..'}
+                or any(c in name for c in '/\\:') or name in names
+                or not isinstance(digest, str) or not re.fullmatch(r'[0-9a-fA-F]{64}', digest)):
+            raise ValueError('Invalid or duplicate notice provenance file/hash: ' + str(manifest))
+        names.add(name)
+        path = files.get(name)
+        if path is None or not 0 < path.stat().st_size <= 2 * 1024 * 1024:
+            raise ValueError('Missing or invalid recorded dependency notice: ' + str(folder / name))
+        digest = digest.lower()
+        if hashlib.sha256(path.read_bytes()).hexdigest() != digest:
+            raise ValueError('Dependency notice hash mismatch: ' + str(path))
+        hashes[path] = digest
+    if set(files) != names:
+        raise ValueError('Unrecorded files in dependency notice supplement: ' + str(folder))
+    return hashes
+
+
 def generate(output, target, profile='release', roots=('joydeck', 'joydeck-cli'), features=(), require_license_texts=False):
     product = roots[0].split('-')[0] if roots else 'joydeck'
     data, packages, reached, edges, root_ids = graph(target, roots, features)
@@ -167,15 +216,15 @@ def generate(output, target, profile='release', roots=('joydeck', 'joydeck-cli')
             else:
                 candidates.append(ROOT / 'LICENSE')
         supplement = LICENSES / 'dependency-notices' / (p['name'] + '-' + p['version'])
-        if supplement.is_dir():
-            candidates.extend(v for v in supplement.iterdir() if v.is_file())
+        supplement_hashes = verified_supplement_files(supplement)
+        candidates.extend(supplement_hashes)
         if product == 'joysheet':
             supplement = ROOT / 'docs/joysheet/third-party' / p['name']
             versioned = supplement / p['version']
             if versioned.is_dir():
                 supplement = versioned
-            if supplement.is_dir():
-                candidates.extend(v for v in supplement.iterdir() if v.is_file())
+            supplement_hashes.update(verified_supplement_files(supplement))
+            candidates.extend(supplement_hashes)
         copied = []
         for candidate in sorted(set(candidates)):
             if not candidate.is_file() or not 0 < candidate.stat().st_size <= 2 * 1024 * 1024:
@@ -186,6 +235,9 @@ def generate(output, target, profile='release', roots=('joydeck', 'joydeck-cli')
             destination = folder / relative
             destination.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(candidate, destination)
+            expected = supplement_hashes.get(candidate)
+            if expected and hashlib.sha256(destination.read_bytes()).hexdigest() != expected:
+                raise ValueError('Dependency notice hash mismatch after copy: ' + str(candidate))
             copied.append(destination.relative_to(output.parent).as_posix())
         license_index.append({'name': p['name'], 'version': p['version'], 'declared': p.get('license'),
                               'texts': sorted(set(copied)), 'workspace': p.get('source') is None})

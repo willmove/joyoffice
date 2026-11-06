@@ -345,6 +345,7 @@ pub fn source_params(v: &[String]) -> Result<Value, String> {
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used, reason = "Test setup and assertions")]
 mod tests {
     use super::*;
     fn blank() -> Reader {

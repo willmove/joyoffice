@@ -4,7 +4,9 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+import stat
 import struct
+import unicodedata
 import sys
 import tarfile
 import zipfile
@@ -50,6 +52,49 @@ def executable_header(stream, platform, arch):
         raise ValueError(f'invalid {platform} {arch} executable header')
 
 
+def validate_members(members, is_zip, root, platform):
+    """Validate names/types before opening any member; never extract to disk."""
+    paths = {}
+    for item in members:
+        name = item.filename if is_zip else item.name
+        if is_zip:
+            kind = stat.S_IFMT(item.external_attr >> 16)
+            directory = item.is_dir()
+            if (item.orig_filename != name or kind not in (0, stat.S_IFREG, stat.S_IFDIR)
+                    or (kind == stat.S_IFDIR and not directory)
+                    or (kind == stat.S_IFREG and directory)):
+                raise ValueError('Unsafe ZIP member type or name: ' + repr(name))
+        else:
+            directory = item.isdir()
+            if item.type not in (tarfile.REGTYPE, tarfile.AREGTYPE, tarfile.DIRTYPE) or item.sparse is not None:
+                raise ValueError('Unsafe TAR member type: ' + repr(name))
+        # Strip only the one optional directory terminator, not repeated slashes.
+        normalized = name[:-1] if directory and name.endswith('/') else name
+        parts = normalized.split('/')
+        if (not normalized or any(c in name for c in '\\:')
+                or any(ord(c) < 32 or ord(c) == 127 for c in name)
+                or any(p in ('', '.', '..') for p in parts)):
+            raise ValueError('Unsafe archive path: ' + repr(name))
+        if root and normalized != root.rstrip('/') and not normalized.startswith(root):
+            raise ValueError('Archive member outside package root: ' + repr(name))
+        if root and normalized == root.rstrip('/') and not directory:
+            raise ValueError('Package root must be a directory')
+        if platform == 'windows':
+            devices = {'CON', 'PRN', 'AUX', 'NUL', 'CONIN$', 'CONOUT$'}
+            devices.update(prefix + suffix for prefix in ('COM', 'LPT') for suffix in '123456789¹²³')
+            if any(p.endswith(('.', ' ')) or any(c in p for c in '<>"|?*')
+                   or p.split('.')[0].upper() in devices for p in parts):
+                raise ValueError('Unsafe Windows archive path: ' + repr(name))
+        key = unicodedata.normalize('NFC', normalized).casefold() if platform != 'linux' else normalized
+        if key in paths:
+            raise ValueError('Duplicate or aliased archive path: ' + repr(name))
+        paths[key] = directory
+    for name in paths:
+        parts = name.split('/')
+        if any(paths.get('/'.join(parts[:i])) is False for i in range(1, len(parts))):
+            raise ValueError('Archive file used as parent directory: ' + repr(name))
+
+
 def verify_archive(path, product, version, platform, arch):
     is_zip = path.name.endswith('.zip')
     archive = zipfile.ZipFile(path) if is_zip else tarfile.open(path, 'r:gz')
@@ -58,6 +103,8 @@ def verify_archive(path, product, version, platform, arch):
         names = [item.filename if is_zip else item.name for item in members]
         if len(names) != len(set(names)):
             raise ValueError(f'{path.name}: duplicate archive entries')
+        root = path.name[:-4] + '/' if product in {'joydeck', 'joysheet'} else ''
+        validate_members(members, is_zip, root, platform)
         index = dict(zip(names, members))
 
         def read_file(name):
@@ -69,7 +116,6 @@ def verify_archive(path, product, version, platform, arch):
                 raise ValueError(f'{path.name}: unable to read {name}')
             return stream
 
-        root = path.name[:-4] + '/' if product in {'joydeck', 'joysheet'} else ''
         with read_file(root + 'BUILD-INFO.json') as stream:
             info = json.load(stream)
         if (info.get('version') != version or info.get('target') != TARGETS[platform, arch]

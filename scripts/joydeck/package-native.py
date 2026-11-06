@@ -70,7 +70,8 @@ def build_binary(package, profile, validation=False):
 
 
 def sbom(target):
-    metadata = json.loads(subprocess.check_output(['cargo', 'metadata', '--locked', '--offline', '--filter-platform', target, '--format-version', '1'], cwd=ROOT, encoding='utf-8'))
+    # Include host build-dependency identities; the target tree selects membership.
+    metadata = json.loads(subprocess.check_output(['cargo', 'metadata', '--locked', '--offline', '--format-version', '1'], cwd=ROOT, encoding='utf-8'))
     tree = subprocess.check_output(['cargo', 'tree', '--locked', '--offline', '--target', target, '-p', 'joydeck', '-p', 'joydeck-cli', '--edges', 'normal,build', '--prefix', 'none', '--format', '{p}'], cwd=ROOT, encoding='utf-8')
     selected = set()
     for line in tree.splitlines():

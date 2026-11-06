@@ -1,4 +1,6 @@
 //! Read the standard external rich flavors beside GPUI's existing clipboard data.
+//! `Some(empty)` consumes hidden content: do not edit or fall back to plain text.
+//! Table mode refuses any explicitly hidden content in the selected rich format.
 #[cfg(not(target_os = "linux"))]
 use joydeck_model::TextBody;
 #[cfg(target_os = "linux")]
@@ -10,14 +12,28 @@ use joydeck_shell::clipboard_import::{self, MAX_INPUT};
 pub(super) use linux::rich_text;
 
 #[cfg(any(target_os = "macos", target_os = "windows"))]
-fn parse(html: Option<Vec<u8>>, rtf: Option<Vec<u8>>) -> Option<TextBody> {
+fn parse(html: Option<Vec<u8>>, rtf: Option<Vec<u8>>, table: bool) -> Option<TextBody> {
     html.as_deref()
-        .and_then(clipboard_import::import_html)
-        .or_else(|| rtf.as_deref().and_then(clipboard_import::import_rtf))
+        .and_then(|bytes| {
+            if table {
+                clipboard_import::import_html_for_table(bytes)
+            } else {
+                clipboard_import::import_html(bytes)
+            }
+        })
+        .or_else(|| {
+            rtf.as_deref().and_then(|bytes| {
+                if table {
+                    clipboard_import::import_rtf_for_table(bytes)
+                } else {
+                    clipboard_import::import_rtf_for_paste(bytes)
+                }
+            })
+        })
 }
 
 #[cfg(target_os = "macos")]
-pub(super) fn rich_text(_compositor: &str) -> Option<TextBody> {
+pub(super) fn rich_text(_compositor: &str, table: bool) -> Option<TextBody> {
     use objc2_app_kit::NSPasteboard;
     use objc2_foundation::NSString;
     let board = NSPasteboard::generalPasteboard();
@@ -31,11 +47,11 @@ pub(super) fn rich_text(_compositor: &str) -> Option<TextBody> {
     if board.changeCount() != stamp {
         return None;
     }
-    parse(html, rtf)
+    parse(html, rtf, table)
 }
 
 #[cfg(target_os = "windows")]
-pub(super) fn rich_text(_compositor: &str) -> Option<TextBody> {
+pub(super) fn rich_text(_compositor: &str, table: bool) -> Option<TextBody> {
     let (html, rtf) = {
         let _board = clipboard_win::Clipboard::new_attempts(2).ok()?;
         let read = |kind| {
@@ -51,10 +67,10 @@ pub(super) fn rich_text(_compositor: &str) -> Option<TextBody> {
         };
         (read("HTML Format"), read("Rich Text Format"))
     };
-    parse(html, rtf)
+    parse(html, rtf, table)
 }
 
 #[cfg(not(any(target_os = "macos", target_os = "windows", target_os = "linux")))]
-pub(super) fn rich_text(_compositor: &str) -> Option<TextBody> {
+pub(super) fn rich_text(_compositor: &str, _table: bool) -> Option<TextBody> {
     None
 }

@@ -181,9 +181,9 @@ impl Viewer {
                 .accessibility_label("清除字符格式")
                 .tooltip("清除字符格式")
                 .disabled(disabled)
-                .on_click(
-                    cx.listener(|s, _, w, cx| s.format_runs(|p| *p = RunProps::default(), w, cx)),
-                ),
+                .on_click(cx.listener(|s, _, w, cx| {
+                    s.format_runs(joydeck_engine::formatting::clear_character_format, w, cx)
+                })),
         );
         let family = props.font.filter(|s| !s.starts_with('+')).unwrap_or(
             if state.mixed.contains("font") || state.mixed.contains("font_ea") {
