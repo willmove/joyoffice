@@ -144,29 +144,8 @@ fn set_fonts(s: &mut Session, heading: &str, body: &str) {
 }
 
 fn set_accent(s: &mut Session, accent: Rgb) {
-    for st in &mut s.doc.styles.styles {
-        if st.id.starts_with("Heading")
-            && st.id.len() == 8
-            && st.id.as_bytes().get(7).is_some_and(|d| *d <= b'5')
-            || st.id == "IntenseQuote"
-            || st.id == "IntenseEmphasis"
-            || st.id == "IntenseReference"
-        {
-            if !st
-                .chr
-                .theme_color
-                .as_ref()
-                .is_some_and(|b| b.valid_for(st.chr.color))
-            {
-                st.chr.set_fixed_color(Some(TextColor::Rgb(accent)));
-            }
-            if let Some(b) = st.para.borders.as_mut() {
-                for e in [&mut b.top, &mut b.bottom].into_iter().flatten() {
-                    e.color = Some(accent);
-                }
-            }
-        }
-    }
+    // Fixed style text and borders are explicit formatting. Only properties with
+    // coherent theme bindings may follow this palette change.
     if let Some(c) = s.doc.settings.theme_colors.get_mut(4) {
         *c = accent;
     }

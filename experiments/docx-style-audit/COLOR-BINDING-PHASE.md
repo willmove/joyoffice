@@ -66,3 +66,6 @@ This is model/import/save evidence, not an independent visual rendering oracle.
 
 Follow-up: [fixed style fonts and EA/CS audit](FIXED-STYLE-PHASE.md) removes the
 legacy unbound Latin-font replacement heuristic; the other limitations above remain.
+
+Follow-up: [fixed style colors](FIXED-COLOR-PHASE.md) removes the old unbound
+text/border recoloring heuristic; literal built-in colors remain fixed.

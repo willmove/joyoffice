@@ -2556,8 +2556,8 @@
       "source": "crates/engine/src/cmd/design.rs",
       "target": "crates/joyword-engine/src/cmd/design.rs",
       "source_sha256": "858f8733e6bc44a58e4684594a4a109421cce912be49bda2910d95760465117a",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Preserve supported Latin theme-font bindings separately from resolved fonts; detach explicit font overrides and source-format imports; retain bindings through snapshots, DOCX saves and theme-font commands. Preserve run color theme references and modifier attributes; detach explicit color edits and refresh coherent bindings when themes change. Bind newly constructed built-in Latin fonts explicitly; preserve unbound style/default fonts during theme changes.",
-      "adapted_sha256": "905c85fd9e3ea2dfd9c1b0eec5c0615aa6bd4d87fa369dd4b919ef3bcebe2299"
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Preserve supported Latin theme-font bindings separately from resolved fonts; detach explicit font overrides and source-format imports; retain bindings through snapshots, DOCX saves and theme-font commands. Preserve run color theme references and modifier attributes; detach explicit color edits and refresh coherent bindings when themes change. Bind newly constructed built-in Latin fonts explicitly; preserve unbound style/default fonts during theme changes. Preserve fixed style text and border colors during theme changes; refresh only coherent color bindings.",
+      "adapted_sha256": "c87adf3a68a1b68d17f7103ace3a8caa9e9efbfa6c007238c4680b5bbcd19b0d"
     },
     {
       "source": "crates/engine/src/cmd/draw.rs",

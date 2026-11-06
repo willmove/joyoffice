@@ -66,3 +66,6 @@ EA/CS visual behavior remain unverified.
 
 Follow-up: [opaque script-font preservation](SCRIPT-FONT-PHASE.md) preserves the
 EA/CS references and hint attributes counted above; full script-theme resolution remains outside this phase.
+
+Follow-up: [fixed style colors](FIXED-COLOR-PHASE.md) removes the old unbound
+text/border recoloring heuristic; literal built-in colors remain fixed.
