@@ -1,0 +1,22 @@
+{
+  "source_head": "c9de6577791626e3f125640d52e1d827a63c8b6c",
+  "main": "aac15f2f9078fa5a0ff784575d9f296fd3a35c9c",
+  "command": "cargo test -p joydeck-engine -p joydeck-shell -p joydeck-format -p joydeck-pptx -p joyword-shell -p joysheet-engine",
+  "passed": 852,
+  "failed": 0,
+  "ignored": 0,
+  "log_sha256": "4e9b3b2c64a500d941688d4463a1d98339fa4303cff75095d98623ff37abc5cc",
+  "python": {
+    "run": 152,
+    "skipped": 2,
+    "failures": 0
+  },
+  "panic_baseline_added_test_occurrences": 47,
+  "limitations": [
+    "Targeted cross-product tests, not full workspace suite",
+    "No real desktop acceptance",
+    "No Windows/macOS compilation",
+    "No new footer UI or add-missing-footer command",
+    "Local only"
+  ]
+}

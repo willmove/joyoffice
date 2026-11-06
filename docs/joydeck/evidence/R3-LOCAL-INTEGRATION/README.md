@@ -34,3 +34,13 @@
 - 直接包含生产 Linux 剪贴板模块的轻量 Cargo 测试宿主：**5 通过**；重新编译并包含生产按键分流模块的 Rust 测试宿主：**3 通过**。两者均为无桌面测试，不计作系统输入验收。
 - `RUST_FONTCONFIG_DLOPEN=1 cargo clippy -p joydeck-engine -p joydeck-shell -p joydeck-format -p joydeck-pptx -p joydeck-ui-gpui --all-targets -- -D warnings`、`cargo fmt --all --check`、`python3 scripts/check_docs.py` 通过。
 - 测试和检查关闭 debug 信息／增量编译；Fontconfig 动态加载配置仅用于缺少开发文件的环境编译检查。验证源码提交及日志摘要见 [verification.json](verification.json)。所有分支均保留，JoyWord 整合分支未改动。
+
+## 工作期间的主干更新
+
+首次组合验证后发现远程 main 更新到 `aac15f2f9078fa5a0ff784575d9f296fd3a35c9c`，已通过合并提交 `c9de6577` 纳入本地分支。其 JoyDeck 改动涉及导出进度和任务释放，未覆盖本批页脚实现；源码无冲突，STATUS 冲突保留双方记录。新增锁文件条目来自该主干提交的 JoyWord UI 对已有 `arboard`／`clipboard-win` 包的引用，没有升级依赖版本。
+
+前述旧主干组合结果保留为阶段证据；最新主干合并后的验证另行记录，不能把旧结果视为新 HEAD 的验收。上游 Windows 的跨产品结果见 [P2 记录](../../../joyoffice/validation/20261106-p2/README.md)，仅引用来源记录，不视为本地整合分支的实测。
+
+工程门禁复验发现新增测试断言缺少 panic 基线条目。逐项确认 47 个位置均位于新增的页脚／格式语义／剪贴板测试中后，追加精确条目，未放宽生产代码或扫描范围。修复后 `python3 -m unittest discover -s scripts/tests` 运行 152 项、跳过 2 项、无失败，`python3 scripts/check_gates.py` 通过（1452 个 Rust 文件）。
+
+最新 main 合入后的定向跨产品复验：`cargo test -p joydeck-engine -p joydeck-shell -p joydeck-format -p joydeck-pptx -p joyword-shell -p joysheet-engine` **852 项通过，0 失败、0 忽略**；上述 JoyDeck 严格 Clippy 再次通过。此项覆盖所列包，不是全仓测试；没有把上游 Windows 的 5,820 项计入本地结果。证据见 [latest-main-verification.json](latest-main-verification.json)。最终 fmt、文档及工程门禁检查通过。
