@@ -185,3 +185,117 @@ fn footer_summary_counts_multiple_placeholders_and_enforces_target_budget() {
     assert_eq!(summary.pages_without_footer, 1);
     assert_eq!(summary.text, None);
 }
+
+fn insertable_deck() -> Presentation {
+    use joydeck_model::{LayoutType, PlaceholderVisibility};
+    let mut p = deck();
+    let master = Arc::make_mut(&mut p.masters[0]);
+    master.placeholder_visibility = Some(PlaceholderVisibility {
+        footer: Some(true),
+        ..Default::default()
+    });
+    let layout = master
+        .layouts
+        .iter_mut()
+        .find(|l| l.id == p.slides[2].layout)
+        .unwrap();
+    layout.kind = LayoutType::TitleAndContent;
+    layout.placeholder_visibility = master.placeholder_visibility.clone();
+    p
+}
+fn add_command() -> Command {
+    serde_json::from_str(r#"{"command":"add-missing-footer-text","text":"New footer 中文"}"#)
+        .unwrap()
+}
+#[test]
+fn missing_footer_insertion_is_selected_page_only_with_one_undo() {
+    let mut p = insertable_deck();
+    // An unrelated page uses a different, unclassified layout and stays untouched.
+    Arc::make_mut(&mut p.slides[0]).layout = p.masters[0].layouts[1].id;
+    let mut s = session(p.clone());
+    s.select(2, vec![]).unwrap();
+    let selection = s.selection().clone();
+    assert!(s.validate(add_command()).unwrap());
+    assert_eq!(s.model(), &p);
+    assert!(s.execute(add_command()).unwrap());
+    assert_eq!(s.selection(), &selection);
+    assert_eq!(s.model().slides[..2], p.slides[..2]);
+    assert_eq!(s.model().masters, p.masters);
+    assert_eq!(s.model().header_footer, p.header_footer);
+    let footer = &s.model().slides[2].shapes[0];
+    assert_eq!(footer.ph_type(), Some(PhType::Footer));
+    assert_eq!(footer.text.as_ref().unwrap().text(), "New footer 中文");
+    let changed = s.model().clone();
+    assert!(s.execute(add_command()).is_err());
+    assert_eq!(s.model(), &changed);
+    assert_eq!(s.revision(), 1);
+    assert!(s.execute(Command::Undo).unwrap());
+    assert_eq!(s.model(), &p);
+    assert!(!s.can_undo());
+    assert!(s.execute(Command::Redo).unwrap());
+    assert_eq!(s.model(), &changed);
+}
+#[test]
+fn missing_footer_rejects_ambiguity_without_touching_document_or_history() {
+    for mode in 0..16 {
+        let mut p = insertable_deck();
+        let layout_id = p.slides[2].layout;
+        let master = Arc::make_mut(&mut p.masters[0]);
+        let layout = master
+            .layouts
+            .iter_mut()
+            .find(|l| l.id == layout_id)
+            .unwrap();
+        let i = layout
+            .shapes
+            .iter()
+            .position(|s| s.ph_type() == Some(PhType::Footer))
+            .unwrap();
+        match mode {
+            0 => layout.placeholder_visibility = None,
+            1 => layout.placeholder_visibility.as_mut().unwrap().footer = Some(false),
+            2 => layout.shapes.push(layout.shapes[i].clone()),
+            3 => layout.shapes[i].xfrm = None,
+            4 => layout.shapes[i].locked = true,
+            5 => layout.shapes[i].raw_ext = Some("<unknown/>".into()),
+            6 => layout.kind = joydeck_model::LayoutType::Title,
+            7 => layout.shapes[i].xfrm.as_mut().unwrap().w = f64::NAN,
+            8 => master.placeholder_visibility = None,
+            9 => {
+                let duplicate = layout.clone();
+                master.layouts.push(duplicate);
+            }
+            10 => {
+                layout.shapes.remove(i);
+            }
+            11 => master.raw_ext = Some("<unknown/>".into()),
+            12 => layout.shapes[i].hidden = true,
+            13 => {
+                let mut body = TextBody::from_text("Field");
+                body.paragraphs[0].runs[0].kind = RunKind::Field {
+                    field: "footer".into(),
+                };
+                layout.shapes[i].text = Some(body);
+            }
+            14 => {
+                let child = layout.shapes[i].clone();
+                layout.shapes[i].ph = None;
+                layout.shapes[i].kind = ShapeKind::Group {
+                    children: vec![child],
+                    child: Default::default(),
+                };
+            }
+            _ => p.next_id = u32::MAX,
+        }
+        let mut s = session(p.clone());
+        s.select(2, vec![]).unwrap();
+        assert!(s.execute(add_command()).is_err(), "mode {mode}");
+        // NaN does not compare equal to itself: compare serialized snapshots.
+        assert_eq!(
+            serde_json::to_vec(s.model()).unwrap(),
+            serde_json::to_vec(&p).unwrap()
+        );
+        assert_eq!(s.revision(), 0);
+        assert!(!s.can_undo());
+    }
+}
