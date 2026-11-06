@@ -370,6 +370,7 @@ impl Reader {
         self.edit_command("insert.picture", &serde_json::json!({"data": data}))
     }
     pub fn save_job(&self, destination: PathBuf, new_file: bool) -> Result<SaveJob, String> {
+        self.require_editable_source()?;
         if self.is_composing() {
             return Err("Finish or cancel the input-method composition before saving".into());
         }

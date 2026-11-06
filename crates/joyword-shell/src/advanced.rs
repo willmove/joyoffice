@@ -96,6 +96,9 @@ impl Reader {
         self.select_positions(a, b)
     }
     pub fn export_job(&self, ext: &str, markup: bool) -> Result<OutputJob, String> {
+        if ext == "docx" {
+            self.require_editable_source()?;
+        }
         if self.is_composing() {
             return Err("请先完成或取消输入法组合".into());
         }
@@ -110,6 +113,7 @@ impl Reader {
         })
     }
     pub fn merge_job(&self, current: bool) -> Result<OutputJob, String> {
+        self.require_editable_source()?;
         if self.is_composing() || self.session.merge.rows.is_empty() {
             return Err("请先选择收件人并完成输入".into());
         }

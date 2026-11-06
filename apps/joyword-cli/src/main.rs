@@ -190,6 +190,7 @@ fn run(args: &[OsString]) -> Result<(), String> {
         }
         "run" => {
             let mut reader = Reader::open(&path(args, 1)?, &cancel)?;
+            reader.require_editable_source()?;
             let mut save = None;
             let mut i = 2;
             while i < args.len() {

@@ -1152,7 +1152,8 @@
       "source": "crates/docx/src/xml.rs",
       "target": "crates/joyword-docx/src/xml.rs",
       "source_sha256": "900d8b593dcda591459a29fce096d2c00c3c77ac620fc486b6af7e24f49436bc",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md."
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Expose the existing namespace vocabulary internally for legacy read-only inspection; namespace mapping behavior is unchanged.",
+      "adapted_sha256": "32f1f2a6829f2ba9c17b3e03fc95fcf1fce3112fc46ad17139b57d2d21fedf86"
     },
     {
       "source": "crates/docx/tests/it/alt_chunks.rs",

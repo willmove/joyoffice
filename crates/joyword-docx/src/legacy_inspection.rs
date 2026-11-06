@@ -1,5 +1,7 @@
 //! Schema 1 read-only body projection for the pre-R8 CLI.
 //! The source package is never rewritten. See JOYWORD-R8-HANDOFF.md for projection limits.
+mod namespaces;
+
 use crate::xml::{self, El};
 use joyoffice_opc::{Budget, Package, Part, Target};
 
@@ -457,7 +459,8 @@ fn project_body(
             omitted_objects: 0,
             preserved_fragments: 0,
             diagnostics: package.diagnostics().len() + external,
-            read_only: root.attr("mc:MustUnderstand").is_some(),
+            read_only: root.attr("mc:MustUnderstand").is_some()
+                || namespaces::requires_read_only(&part.data)?,
             unsigned_docx: part.content_type.as_deref() == Some(MAIN[0])
                 && !package
                     .relationships(None)
@@ -540,4 +543,21 @@ fn project_body(
     }
     let compatible = compatible && !projection.report.read_only;
     Ok((projection.report, compatible))
+}
+
+#[cfg(test)]
+mod namespace_regressions {
+    #[test]
+    fn non_ignorable_unknown_namespaces_keep_legacy_read_only() -> Result<(), &'static str> {
+        for bytes in [
+            include_bytes!("../../../experiments/docx-robustness/seeds/unknown-namespace.docx")
+                .as_slice(),
+            include_bytes!("../../../experiments/docx-robustness/seeds/xml-depth.docx").as_slice(),
+        ] {
+            let report = super::project(bytes, 1 << 20)?;
+            assert!(report.read_only);
+            assert!(report.unsupported_body);
+        }
+        Ok(())
+    }
 }
