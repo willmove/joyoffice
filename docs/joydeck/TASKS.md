@@ -69,7 +69,7 @@ JD-201 随后完成。共享文稿、独立视图、过期结果和包内读回�
 | 完成 | JD-304 | 系统 IME 提交、取消、重复事件、切页、失焦和撤销 | macOS Release 实测系统简体拼音与 ABC 重音组合。选词单次提交，切页和失焦保留原文，崩溃恢复只读回已提交修订。[证据](evidence/R3-IME-LIFECYCLE/README.md) | JD-303 |
 | 进行中 | JD-305 | 字符/段落格式、列表、字段、超链接、竖排/分栏等文字能力的 UI | 逐项迁移命令，验证源内容、格式、撤销和持久化。macOS 已实测布局、链接编辑与动态字段。Windows 已实屏插入固定日期及页内链接显示文字，并单步撤销。相同语料的 PPTX 保留另存与重开通过自动回归。整份页脚及其余格式命令继续开放。[当前状态](STATUS.md) · [动态字段](evidence/R3-TEXT-FIELDS/README.md) | JD-300–JD-304 |
 | 完成 | JD-306 | 表格插入、行列/合并、样式、单元格选择/文字/键盘导航 | macOS Release 实测插入、行列增删、矩形选区、合并／拆分、样式／底色、系统拼音、Tab／Shift+Tab 和两种格式保存重开。无效尺寸与合并覆盖格有边界复验。[证据](evidence/R3-TABLE-QUALIFICATION/README.md) | JD-304 |
-| 进行中 | JD-307 | 纯文本、图片、对象与富剪贴板平台适配 | macOS 已复验纯文本、内部富文字、外部 PNG、基础对象跨文稿和单步撤销，修复 PPTX 图片部件重复。已修复跨文稿页内链接误绑定，同文稿双窗口保留链接，跨文稿保留文字、样式和网页链接。macOS 已实测外部 HTML／RTF 字符格式、链接、单步撤销及保存重开。RTF 隐藏文字过滤已通过无桌面回归，当前修复的原生剪贴板复验待完成。Windows 实屏、Linux 原生富格式、富文字图片资源和完整 Office 对象交换继续开放。[基础剪贴板](evidence/R3-CLIPBOARD/README.md) · [链接范围](evidence/R3-CLIPBOARD-LINKS/README.md) · [外部富文本](evidence/R3-EXTERNAL-RICH/README.md) | JD-201、JD-303 |
+| 进行中 | JD-307 | 纯文本、图片、对象与富剪贴板平台适配 | macOS 已复验纯文本、内部富文字、外部 PNG、基础对象跨文稿和单步撤销，修复 PPTX 图片部件重复。已修复跨文稿页内链接误绑定，同文稿双窗口保留链接，跨文稿保留文字、样式和网页链接。macOS 已实测外部 HTML／RTF 字符格式、链接、单步撤销及保存重开。RTF 隐藏文字过滤和纯隐藏内容终止回退已通过无桌面回归，当前修复的原生剪贴板复验待完成。Windows 实屏、Linux 原生富格式、富文字图片资源和完整 Office 对象交换继续开放。[基础剪贴板](evidence/R3-CLIPBOARD/README.md) · [链接范围](evidence/R3-CLIPBOARD-LINKS/README.md) · [外部富文本](evidence/R3-EXTERNAL-RICH/README.md) | JD-201、JD-303 |
 | 已实现待验收 | JD-308 | 焦点、快捷键优先级、表单草稿同步与输入实体唯一性 | 备注/高级表单同时显示无重复 a11y 节点；同步不递归执行文档命令 | JD-304、JD-305 |
 | 已实现待验收 | JD-309 | R3 包与文字/表格系统输入回归 | 原位文字、备注、表格的提交/取消/undo/redo/保存重开和截图通过 | JD-305–JD-308 |
 

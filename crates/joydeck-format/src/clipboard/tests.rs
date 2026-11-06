@@ -113,3 +113,37 @@ fn rtf_hidden_unicode_and_breaks_do_not_leak_into_visible_text() {
     assert_eq!(body.paragraphs.len(), 1);
     assert!(import_rtf(br"{\rtf1\v secret}").is_none());
 }
+
+#[test]
+fn hidden_rtf_consumes_paste_without_exposing_plain_text_fallback() {
+    for input in [
+        br"{\rtf1\v secret}".as_slice(),
+        br"{\rtf1{\v secret}\v0}",
+        br"{\rtf1\v\line\par}",
+    ] {
+        let mut fallback_called = false;
+        let body = import_rtf_for_paste(input)
+            .or_else(|| {
+                fallback_called = true;
+                None
+            })
+            .expect("hidden RTF consumes paste");
+        assert!(body.is_empty());
+        assert!(!fallback_called);
+        assert!(import_rtf(input).is_none(), "legacy import contract");
+    }
+    assert_eq!(
+        import_rtf_for_paste(br"{\rtf1{\v secret}Visible}")
+            .expect("visible remainder")
+            .text(),
+        "Visible"
+    );
+    for input in [br"{\rtf1\v unclosed".as_slice(), br"{\rtf1}", br"not RTF"] {
+        assert!(
+            import_rtf_for_paste(input).is_none(),
+            "unusable RTF still falls back"
+        );
+    }
+    let excessive = format!(r"{{\rtf1\v hidden\v0 {}}}", "x".repeat(MAX_TEXT + 1));
+    assert!(import_rtf_for_paste(excessive.as_bytes()).is_none());
+}

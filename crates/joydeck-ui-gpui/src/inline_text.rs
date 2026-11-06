@@ -451,6 +451,11 @@ impl Viewer {
             document, mut body, ..
         }) = rich
         {
+            if body.is_empty() {
+                self.message = "剪贴板没有可见文字，未粘贴".into();
+                cx.notify();
+                return;
+            }
             let result = (|| {
                 text::validate(&body)?;
                 let adjusted =
@@ -960,11 +965,16 @@ impl Viewer {
             self.paste_image(bytes, cx);
             return;
         }
-        if self.cell.is_none()
-            && let Some(body) = crate::native_clipboard::rich_text(cx.compositor_name())
-        {
-            self.dispatch(clipboard::text_box(body), w, cx);
-            return;
+        if let Some(body) = crate::native_clipboard::rich_text(cx.compositor_name()) {
+            if body.is_empty() {
+                self.message = "剪贴板没有可见文字，未粘贴".into();
+                cx.notify();
+                return;
+            }
+            if self.cell.is_none() {
+                self.dispatch(clipboard::text_box(body), w, cx);
+                return;
+            }
         }
         let Some(value) = item.and_then(|i| i.text()) else {
             self.message = "剪贴板没有可用的文字、图片或 JoyDeck 对象".into();

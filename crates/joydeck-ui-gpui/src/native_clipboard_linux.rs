@@ -1,5 +1,6 @@
 //! GPUI exposes plain text and images on Linux. Read rich MIME offers using
 //! the clipboard helper for the compositor that actually owns the window.
+//! Preserve `Some(empty)` from hidden RTF to stop lower-priority representations.
 use joydeck_model::TextBody;
 use joydeck_shell::clipboard_import::{self, MAX_INPUT};
 use rustix::event::{PollFd, PollFlags, Timespec, poll};
@@ -44,9 +45,9 @@ fn import_offer(offers: &str, mut read: impl FnMut(&str) -> Option<Vec<u8>>) -> 
             "text/html",
             clipboard_import::import_html as fn(&[u8]) -> Option<TextBody>,
         ),
-        ("text/rtf", clipboard_import::import_rtf),
-        ("application/rtf", clipboard_import::import_rtf),
-        ("application/x-rtf", clipboard_import::import_rtf),
+        ("text/rtf", clipboard_import::import_rtf_for_paste),
+        ("application/rtf", clipboard_import::import_rtf_for_paste),
+        ("application/x-rtf", clipboard_import::import_rtf_for_paste),
     ] {
         // Prefer the canonical target, then try provider-specific parameters.
         let canonical = types.clone().find(|mime| *mime == kind);
@@ -188,6 +189,27 @@ mod tests {
             ))
             .is_none()
         );
+    }
+
+    #[test]
+    fn hidden_rtf_stops_alias_and_plain_text_fallback() {
+        for kind in [
+            "text/rtf",
+            "application/rtf",
+            "application/x-rtf",
+            "text/rtf;charset=utf-8",
+        ] {
+            let offers = format!("{kind}\napplication/x-rtf;alternative=yes\ntext/plain\n");
+            let body = import_offer(&offers, |mime| {
+                assert_eq!(
+                    mime, kind,
+                    "must not try another representation after hidden RTF"
+                );
+                Some(br"{\rtf1\v secret}".to_vec())
+            })
+            .expect("hidden RTF consumes paste");
+            assert!(body.is_empty());
+        }
     }
 
     #[test]

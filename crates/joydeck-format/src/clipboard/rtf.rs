@@ -5,6 +5,13 @@ use std::collections::BTreeMap;
 
 /// Import an RTF clipboard fragment without loading embedded objects or local resources.
 pub fn import(bytes: &[u8]) -> Option<TextBody> {
+    import_for_paste(bytes).filter(|body| !body.is_empty())
+}
+
+/// Like `import`, but an explicitly hidden, otherwise empty fragment returns
+/// `Some(empty)`. Paste callers must consume it without editing or falling back
+/// to the provider's plain text, which may contain the hidden characters.
+pub fn import_for_paste(bytes: &[u8]) -> Option<TextBody> {
     let input = bytes.trim_ascii_start();
     if bytes.len() > MAX_INPUT || !crate::rtf::sniff_rtf(input) {
         return None;
@@ -35,6 +42,7 @@ struct State {
 }
 
 struct Reader {
+    saw_hidden: bool,
     stack: Vec<State>,
     state: State,
     out: Fragment,
@@ -53,6 +61,7 @@ struct Reader {
 impl Default for Reader {
     fn default() -> Self {
         Self {
+            saw_hidden: false,
             stack: Vec::new(),
             state: State {
                 uc: 1,
@@ -102,7 +111,13 @@ impl Reader {
                     }
                     self.fallback = 0;
                     if self.stack.is_empty() {
-                        return self.out.finish();
+                        if self.out.overflow {
+                            return None;
+                        }
+                        return self
+                            .out
+                            .finish()
+                            .or_else(|| self.saw_hidden.then(TextBody::default));
                     }
                 }
                 b'\\' => {
@@ -305,7 +320,10 @@ impl Reader {
             "fs" if (2..=800).contains(&number) => {
                 self.state.props.size = Some(f64::from(number) / 2.0)
             }
-            "v" => self.state.hidden = active,
+            "v" => {
+                self.state.hidden = active;
+                self.saw_hidden |= active;
+            }
             "b" => self.state.props.bold = Some(active),
             "i" => self.state.props.italic = Some(active),
             "ul" | "ulnone" | "uldb" => {

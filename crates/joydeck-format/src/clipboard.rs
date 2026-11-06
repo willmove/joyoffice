@@ -5,7 +5,7 @@ mod rtf;
 mod tests;
 
 pub use html::import as import_html;
-pub use rtf::import as import_rtf;
+pub use rtf::{import as import_rtf, import_for_paste as import_rtf_for_paste};
 
 use joydeck_model::{
     ColorRef, Fill, Paragraph, Rgba, TextBody,

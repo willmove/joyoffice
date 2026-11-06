@@ -33,5 +33,23 @@ Debug 版从后台打开本轮生成的原生项目会在反序列化 `RunProps`
 - `cargo test -p joydeck-format -p joydeck-pptx`：45 + 60 项通过，0 失败、0 忽略，包含两项新增回归。保留现有代码页、字符样式、链接、安全协议和输入预算测试。
 - `cargo clippy -p joydeck-format -p joydeck-pptx --all-targets -- -D warnings`、`cargo fmt --all --check`、`python3 scripts/check_docs.py` 均通过。Rust 使用 1.98.1，测试和检查关闭 debug 信息及增量编译。
 - 单独 `cargo test -p joydeck-format` 遇到既有依赖配置问题：`zip` 启用 `deflate-flate2` 却未选压缩后端。本轮使用产品已有 `joydeck-pptx` 依赖提供的 `flate2/rust_backend`；未修改依赖或锁文件。
-- 纯隐藏 RTF 仍返回无可用富文本，调用方会继续既有纯文本回退。纯文本由来源应用提供，本修复不保证该回退内容也隐藏。因此这是 RTF 内容兼容修复，不是整个剪贴板链路的隐私保证。
+- 首批修复仍把纯隐藏 RTF 当作无可用富文本并回退；后续修复见下节。
 - 当前修复未运行 macOS／Windows／物理 Linux／Wayland 系统剪贴板与桌面粘贴、撤销、保存重开验收；JD-307 继续开放。
+
+
+## 纯隐藏 RTF 的回退边界
+
+同一分支在 `cbc3f6617fe7b752f68b3ef0f09503c16798e91c` 基础上继续修复：有效 RTF 明确启用隐藏属性且无可见内容时，粘贴应消费该输入，不读取来源应用的纯文本替代内容，也不删除当前选区或新建空文本框。这是依据已有隐藏文字过滤行为确定的产品处理，不要求来源应用的不同剪贴板表示互相一致。
+
+新增 `import_rtf_for_paste` 保留三种结果：有可见内容、已解析的隐藏空内容、不可用。原 `import_rtf` 的非空导入契约保留。macOS／Windows 适配器及 Linux 的 RTF MIME 别名路径使用新接口；原位、画布和表格入口消费隐藏空内容后直接返回并提示。Linux 不继续尝试其他 RTF 别名或纯文本。
+
+解析回归覆盖纯隐藏、组作用域恢复、隐藏换行、可见剩余文字、空 RTF、损坏输入及超限输出。损坏、超限、缺失 RTF 仍保持原回退行为；HTML 优先策略保持不变。混合可见／隐藏内容的表格 TSV 路径仍使用来源应用的纯文本，未在本批改变其列分隔语义。上述边界不能视为任意来源剪贴板的完整隐私保证。
+
+当前代码的原生系统剪贴板、选区保持、表格与画布无操作行为仍需真实桌面复验；未宣称完成 JD-307 验收。
+
+验证结果：
+
+- `cargo test -p joydeck-format -p joydeck-pptx`：46 + 60 项通过，0 失败、0 忽略；对应严格 Clippy 通过。
+- 临时轻量 Cargo 测试宿主直接以 `#[path]` 包含生产 `native_clipboard_linux.rs`，使用真实 `joydeck-format`、`joydeck-model`、`joydeck-engine` 和 `rustix`；仅把 `joydeck_shell::clipboard_import` 重导出映射到相同的 format 模块，避免引入 GUI 链接。生产模块原有和新增的 4 项测试全部运行通过，覆盖隐藏 RTF 四种 MIME／别名、HTML 优先与引擎撤销重做、普通回退、辅助进程输出／超时预算。宿主未调用实际系统剪贴板。
+- 常规桌面 `cargo check` 因环境缺少 `fontconfig.pc` 失败；使用依赖官方支持的 `RUST_FONTCONFIG_DLOPEN=1 cargo check -p joydeck-ui-gpui --tests` 后通过。相同配置下 `cargo clippy -p joydeck-ui-gpui --all-targets -- -D warnings` 通过。此项是 Linux 编译检查，不是桌面运行或其他平台编译结果。
+- `cargo fmt --all --check`、`python3 scripts/check_docs.py` 通过。依赖及锁文件未修改。

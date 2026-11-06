@@ -1,4 +1,5 @@
 //! Read the standard external rich flavors beside GPUI's existing clipboard data.
+//! `Some(empty)` consumes explicitly hidden RTF: do not edit or fall back to plain text.
 #[cfg(not(target_os = "linux"))]
 use joydeck_model::TextBody;
 #[cfg(target_os = "linux")]
@@ -13,7 +14,10 @@ pub(super) use linux::rich_text;
 fn parse(html: Option<Vec<u8>>, rtf: Option<Vec<u8>>) -> Option<TextBody> {
     html.as_deref()
         .and_then(clipboard_import::import_html)
-        .or_else(|| rtf.as_deref().and_then(clipboard_import::import_rtf))
+        .or_else(|| {
+            rtf.as_deref()
+                .and_then(clipboard_import::import_rtf_for_paste)
+        })
 }
 
 #[cfg(target_os = "macos")]
