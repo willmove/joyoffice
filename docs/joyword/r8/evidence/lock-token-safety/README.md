@@ -21,4 +21,15 @@ The current and legacy preference loaders opened paths before checking their fil
 
 Unix regressions create real FIFOs without writers. The current-file case returns unreadable, read-only defaults and refuses saving; the legacy case falls back to the missing current configuration without changing or deleting the FIFO. Both leave their directories unchanged. A regular-file symlink regression confirms its existing contents can still be loaded. All 79 joyword-shell tests and strict all-target Clippy passed; fmt, source fingerprint recording, documentation and repository gates passed. Non-Unix opens retain their platform implementation; this does not claim Windows named-pipe race protection or real-device acceptance.
 
-The legacy recovery journal's separate check-then-open boundary was inspected but is not modified by this focused preference fix. Further race hardening there remains open.
+The legacy recovery journal's separate check-then-open boundary was initially left open; the following slice addresses its Unix replacement cases.
+
+
+## Legacy recovery checked-open follow-up
+
+The old recovery reader called `symlink_metadata` and then `File::open` by pathname. The gap also applied to `recovery.lock`. Deterministic regression tests retain the first metadata observation, replace the path, and call the checked-open helper: the previous read primitive follows a replacement symlink or reads a replacement regular inode. A replaced FIFO could block before the journal byte budget or cancellation check.
+
+Unix opens now use `NOFOLLOW | NONBLOCK | CLOEXEC`, require a regular opened handle and regular final path, and compare device/inode/size/mtime/ctime across the pre-open observation, handle and post-open path. The returned handle supplies the existing bounded journal read; the journal codec, generation selection, writer lock and record budgets are unchanged. Initial absence still returns `None`; initial non-regular entries remain errors. Unstable opens fail conservatively and never delete, rename or rewrite journals.
+
+Two new tests cover normal/missing/directory behavior and deterministic replacement by symlink, FIFO, or same-length regular file, checking original/target bytes and directory entries remain intact. All 81 shell tests passed, including existing V1/V2/V3 recovery, fields, images/tables, and original-save preservation regressions. Strict all-target Clippy, formatting and repository/documentation checks passed.
+
+Platform limits: non-Unix builds add regular-handle/path checks and size/mtime comparison, but retain their existing open primitive; this does not prove protection against Windows reparse-point or named-pipe races. Unix `NOFOLLOW` applies to the final path component. A handle pins the opened object; this does not freeze its contents against an uncooperative concurrent writer. Existing shared-lock, bounded-read, checksum and snapshot validation remain necessary. No real-device acceptance is claimed.

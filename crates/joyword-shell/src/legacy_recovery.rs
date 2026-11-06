@@ -46,11 +46,60 @@ fn invalid(message: &'static str) -> io::Error {
 
 fn open_regular(path: &Path) -> io::Result<Option<File>> {
     match fs::symlink_metadata(path) {
-        Ok(meta) if meta.is_file() => File::open(path).map(Some),
+        Ok(meta) if meta.is_file() => open_checked_regular(path, &meta).map(Some),
         Ok(_) => Err(invalid("recovery path is not a regular file")),
         Err(e) if e.kind() == io::ErrorKind::NotFound => Ok(None),
         Err(e) => Err(e),
     }
+}
+
+// Keep the metadata-to-open boundary explicit so replacement can be tested
+// deterministically without racing threads or timing-sensitive sleeps.
+fn open_checked_regular(path: &Path, before: &fs::Metadata) -> io::Result<File> {
+    #[cfg(unix)]
+    let file: File = {
+        use rustix::fs::{Mode, OFlags, open};
+        open(
+            path,
+            OFlags::RDONLY | OFlags::NOFOLLOW | OFlags::NONBLOCK | OFlags::CLOEXEC,
+            Mode::empty(),
+        )?
+        .into()
+    };
+    #[cfg(not(unix))]
+    let file = File::open(path)?;
+    let opened = file.metadata()?;
+    let after = fs::symlink_metadata(path)?;
+    if !before.is_file() || !opened.is_file() || !after.is_file() {
+        return Err(invalid("recovery path changed or is not a regular file"));
+    }
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::MetadataExt;
+        let identity = |m: &fs::Metadata| {
+            (
+                m.dev(),
+                m.ino(),
+                m.len(),
+                m.mtime(),
+                m.mtime_nsec(),
+                m.ctime(),
+                m.ctime_nsec(),
+            )
+        };
+        if identity(before) != identity(&opened) || identity(before) != identity(&after) {
+            return Err(invalid("recovery file changed while opening"));
+        }
+    }
+    #[cfg(not(unix))]
+    if before.len() != opened.len()
+        || before.len() != after.len()
+        || before.modified()? != opened.modified()?
+        || before.modified()? != after.modified()?
+    {
+        return Err(invalid("recovery file changed while opening"));
+    }
+    Ok(file)
 }
 
 fn blob<'a>(input: &mut &'a [u8], limit: usize) -> io::Result<&'a [u8]> {
@@ -598,5 +647,55 @@ mod tests {
         assert_eq!(BodyText::new(&roundtrip).unwrap().text, target);
         assert_eq!(roundtrip.media, media);
         assert_eq!(fs::read(slot).unwrap(), record);
+    }
+
+    #[test]
+    fn regular_recovery_open_keeps_missing_and_handle_read_contract() -> io::Result<()> {
+        let dir = tempfile::tempdir()?;
+        let path = dir.path().join("recovery-a.jwr");
+        assert!(open_regular(&path)?.is_none());
+        fs::write(&path, b"original")?;
+        let mut file = open_regular(&path)?.ok_or_else(|| invalid("file missing"))?;
+        let mut bytes = Vec::new();
+        file.read_to_end(&mut bytes)?;
+        assert_eq!(bytes, b"original");
+        assert!(open_regular(dir.path()).is_err());
+        assert_eq!(fs::read(&path)?, b"original");
+        Ok(())
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn checked_recovery_open_rejects_replacement_after_metadata() -> io::Result<()> {
+        use rustix::fs::{CWD, Mode, mkfifoat};
+        use std::os::unix::fs::{FileTypeExt, symlink};
+        for mode in 0..3 {
+            let dir = tempfile::tempdir()?;
+            let path = dir.path().join("recovery-a.jwr");
+            let original = dir.path().join("original.jwr");
+            let target = dir.path().join("replacement.jwr");
+            fs::write(&path, b"original")?;
+            fs::write(&target, b"replaced")?;
+            let before = fs::symlink_metadata(&path)?;
+            fs::rename(&path, &original)?;
+            match mode {
+                0 => symlink(&target, &path)?,
+                1 => mkfifoat(CWD, &path, Mode::RUSR | Mode::WUSR)?,
+                _ => fs::copy(&target, &path).map(|_| ())?,
+            }
+            // The old File::open path follows the symlink or reads the new inode.
+            // Do not run the old FIFO open: it blocks without a writer.
+            if mode != 1 {
+                assert_eq!(fs::read(&path)?, b"replaced");
+            }
+            assert!(open_checked_regular(&path, &before).is_err());
+            assert_eq!(fs::read(&original)?, b"original");
+            assert_eq!(fs::read(&target)?, b"replaced");
+            if mode == 1 {
+                assert!(fs::symlink_metadata(&path)?.file_type().is_fifo());
+            }
+            assert_eq!(fs::read_dir(dir.path())?.count(), 3);
+        }
+        Ok(())
     }
 }
