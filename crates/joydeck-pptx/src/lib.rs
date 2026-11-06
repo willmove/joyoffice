@@ -209,3 +209,6 @@ mod import_theme_tests {
         assert!(crate::import_theme(&out.finish().unwrap().into_inner()).is_err());
     }
 }
+
+#[cfg(test)]
+mod footer_tests;

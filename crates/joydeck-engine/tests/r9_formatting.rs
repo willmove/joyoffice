@@ -576,3 +576,93 @@ fn native_field_edits_are_atomic_even_inside_a_utf16_range() -> Result<(), Strin
     assert_eq!(d.body.text(), "A😀Z");
     Ok(())
 }
+
+#[test]
+fn clear_character_format_preserves_actions_and_proofing_through_undo() {
+    use joydeck_model::{
+        RunProps, Shape, edit,
+        text::{Action, Hyperlink, Run, RunKind},
+    };
+    use std::sync::Arc;
+    let mut p = Presentation::default();
+    let target_slide = p.slides[0].id;
+    let link = |action| Hyperlink {
+        action,
+        tooltip: "Keep this tooltip".into(),
+        highlight_click: true,
+        sound: None,
+        stop_sound: false,
+        zoom_return: None,
+    };
+    let props = RunProps {
+        bold: Some(true),
+        size: Some(32.),
+        underline: Some("dbl".into()),
+        link: Some(link(Action::Url {
+            url: "https://example.org/".into(),
+        })),
+        hover: Some(link(Action::Slide {
+            slide: target_slide,
+        })),
+        lang: Some("zh-CN".into()),
+        no_proof: Some(true),
+        ..Default::default()
+    };
+    let expected = RunProps {
+        link: props.link.clone(),
+        hover: props.hover.clone(),
+        lang: props.lang.clone(),
+        no_proof: props.no_proof,
+        ..Default::default()
+    };
+    let mut body = TextBody::from_text("中文😀 link");
+    body.paragraphs[0].runs[0].props = props.clone();
+    body.paragraphs[0].runs.push(Run {
+        kind: RunKind::Field {
+            field: "slidenum".into(),
+        },
+        ..Run::with("1", props)
+    });
+    let id = ShapeId(p.alloc_id().unwrap());
+    Arc::make_mut(&mut p.slides[0]).shapes.push(Shape {
+        id,
+        text: Some(body.clone()),
+        ..Default::default()
+    });
+    let mut s = Session::new(p.clone(), original_bindings(&p), true);
+    let mut cleared = body.clone();
+    edit::format_all(
+        &mut cleared,
+        &joydeck_engine::formatting::clear_character_format,
+    );
+    assert_eq!(cleared.text(), body.text());
+    for (after, before) in cleared.paragraphs[0]
+        .runs
+        .iter()
+        .zip(&body.paragraphs[0].runs)
+    {
+        assert_eq!(after.props, expected);
+        assert_eq!(after.kind, before.kind);
+    }
+    assert!(
+        s.execute(Command::SetTexts {
+            edits: vec![TextEdit {
+                target: TextTarget::Shape { shape: id },
+                body: cleared.clone(),
+            }]
+        })
+        .unwrap()
+    );
+    assert_eq!(s.revision(), 1);
+    assert_eq!(
+        s.model().slides[0].shape(id).unwrap().text.as_ref(),
+        Some(&cleared)
+    );
+    assert!(s.execute(Command::Undo).unwrap());
+    assert_eq!(s.model(), &p);
+    assert!(s.execute(Command::Redo).unwrap());
+    assert_eq!(
+        s.model().slides[0].shape(id).unwrap().text.as_ref(),
+        Some(&cleared)
+    );
+}

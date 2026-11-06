@@ -1,5 +1,6 @@
 //! GPUI exposes plain text and images on Linux. Read rich MIME offers using
 //! the clipboard helper for the compositor that actually owns the window.
+//! Preserve `Some(empty)` from hidden content to stop lower-priority representations.
 use joydeck_model::TextBody;
 use joydeck_shell::clipboard_import::{self, MAX_INPUT};
 use rustix::event::{PollFd, PollFlags, Timespec, poll};
@@ -10,7 +11,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-pub(crate) fn rich_text(compositor: &str) -> Option<TextBody> {
+pub(crate) fn rich_text(compositor: &str, table: bool) -> Option<TextBody> {
     let deadline = Instant::now() + Duration::from_millis(400);
     let (helper, args, list, target) = match compositor {
         "X11" => (
@@ -29,7 +30,7 @@ pub(crate) fn rich_text(compositor: &str) -> Option<TextBody> {
     };
     let bytes = read(Command::new(helper).args(args).args(list), deadline)?;
     let offers = std::str::from_utf8(&bytes).ok()?;
-    import_offer(offers, |mime| {
+    import_offer_with_policy(offers, table, |mime| {
         read(
             Command::new(helper).args(args).args([target, mime]),
             deadline,
@@ -37,16 +38,32 @@ pub(crate) fn rich_text(compositor: &str) -> Option<TextBody> {
     })
 }
 
-fn import_offer(offers: &str, mut read: impl FnMut(&str) -> Option<Vec<u8>>) -> Option<TextBody> {
+#[cfg(test)]
+fn import_offer(offers: &str, read: impl FnMut(&str) -> Option<Vec<u8>>) -> Option<TextBody> {
+    import_offer_with_policy(offers, false, read)
+}
+
+fn import_offer_with_policy(
+    offers: &str,
+    table: bool,
+    mut read: impl FnMut(&str) -> Option<Vec<u8>>,
+) -> Option<TextBody> {
+    let html = if table {
+        clipboard_import::import_html_for_table
+    } else {
+        clipboard_import::import_html
+    };
+    let rtf = if table {
+        clipboard_import::import_rtf_for_table
+    } else {
+        clipboard_import::import_rtf_for_paste
+    };
     let types = offers.lines().map(str::trim);
     for (kind, import) in [
-        (
-            "text/html",
-            clipboard_import::import_html as fn(&[u8]) -> Option<TextBody>,
-        ),
-        ("text/rtf", clipboard_import::import_rtf),
-        ("application/rtf", clipboard_import::import_rtf),
-        ("application/x-rtf", clipboard_import::import_rtf),
+        ("text/html", html as fn(&[u8]) -> Option<TextBody>),
+        ("text/rtf", rtf),
+        ("application/rtf", rtf),
+        ("application/x-rtf", rtf),
     ] {
         // Prefer the canonical target, then try provider-specific parameters.
         let canonical = types.clone().find(|mime| *mime == kind);
@@ -187,6 +204,66 @@ mod tests {
                 "plain text belongs to GPUI"
             ))
             .is_none()
+        );
+    }
+
+    #[test]
+    fn hidden_rtf_stops_alias_and_plain_text_fallback() {
+        for kind in [
+            "text/rtf",
+            "application/rtf",
+            "application/x-rtf",
+            "text/rtf;charset=utf-8",
+        ] {
+            let offers = format!("{kind}\napplication/x-rtf;alternative=yes\ntext/plain\n");
+            let body = import_offer(&offers, |mime| {
+                assert_eq!(
+                    mime, kind,
+                    "must not try another representation after hidden RTF"
+                );
+                Some(br"{\rtf1\v secret}".to_vec())
+            })
+            .expect("hidden RTF consumes paste");
+            assert!(body.is_empty());
+        }
+    }
+
+    #[test]
+    fn table_policy_keeps_priority_and_stops_hidden_tsv_fallback() {
+        let offers = "text/html\ntext/rtf\ntext/plain\n";
+        let hidden_html = b"Visible<span hidden>secret</span>";
+        let body = import_offer_with_policy(offers, true, |mime| {
+            assert_eq!(mime, "text/html", "hidden HTML must consume the paste");
+            Some(hidden_html.to_vec())
+        })
+        .expect("hidden HTML");
+        assert!(body.is_empty());
+        let body = import_offer_with_policy(offers, true, |mime| {
+            assert_ne!(mime, "text/plain");
+            Some(if mime == "text/html" {
+                vec![0xff]
+            } else {
+                br"{\rtf1 Visible{\v secret}Other}".to_vec()
+            })
+        })
+        .expect("hidden RTF after invalid HTML");
+        assert!(body.is_empty());
+        let body = import_offer_with_policy(offers, true, |mime| {
+            assert_eq!(
+                mime, "text/html",
+                "usable HTML remains higher priority than RTF"
+            );
+            Some(b"<b>A</b> B".to_vec())
+        })
+        .expect("ordinary HTML allows original TSV");
+        assert_eq!(body.text(), "A B");
+        assert!(
+            import_offer_with_policy(offers, true, |mime| {
+                assert_ne!(mime, "text/plain");
+                Some(vec![0xff])
+            })
+            .is_none(),
+            "unusable formats retain ordinary GPUI fallback"
         );
     }
 

@@ -5,11 +5,36 @@ use std::collections::BTreeMap;
 
 /// Import an RTF clipboard fragment without loading embedded objects or local resources.
 pub fn import(bytes: &[u8]) -> Option<TextBody> {
+    import_for_paste(bytes).filter(|body| !body.is_empty())
+}
+
+/// Like `import`, but an explicitly hidden, otherwise empty fragment returns
+/// `Some(empty)`. Paste callers must consume it without editing or falling back
+/// to the provider's plain text, which may contain the hidden characters.
+pub fn import_for_paste(bytes: &[u8]) -> Option<TextBody> {
+    import_with_policy(bytes, false)
+}
+
+/// Consume hidden RTF without permitting a table TSV fallback. Empty means
+/// refuse the paste: the visible fragment cannot preserve arbitrary table cells.
+pub fn import_for_table(bytes: &[u8]) -> Option<TextBody> {
+    import_with_policy(bytes, true)
+}
+
+fn import_with_policy(bytes: &[u8], table: bool) -> Option<TextBody> {
     let input = bytes.trim_ascii_start();
     if bytes.len() > MAX_INPUT || !crate::rtf::sniff_rtf(input) {
         return None;
     }
-    Reader::default().read(input)
+    let mut reader = Reader::default();
+    let result = reader.read(input);
+    if table && reader.saw_hidden {
+        // Once hiding is recognized, a later syntax/budget error must not
+        // re-enable the provider's potentially unfiltered TSV.
+        Some(TextBody::default())
+    } else {
+        result
+    }
 }
 
 #[derive(Clone, Copy, Default, PartialEq, Eq)]
@@ -29,11 +54,13 @@ struct State {
     font: Option<i32>,
     align: Option<Align>,
     uc: usize,
+    hidden: bool,
     starred: bool,
     first: bool,
 }
 
 struct Reader {
+    saw_hidden: bool,
     stack: Vec<State>,
     state: State,
     out: Fragment,
@@ -52,6 +79,7 @@ struct Reader {
 impl Default for Reader {
     fn default() -> Self {
         Self {
+            saw_hidden: false,
             stack: Vec::new(),
             state: State {
                 uc: 1,
@@ -73,7 +101,7 @@ impl Default for Reader {
 }
 
 impl Reader {
-    fn read(mut self, mut input: &[u8]) -> Option<TextBody> {
+    fn read(&mut self, mut input: &[u8]) -> Option<TextBody> {
         while let Some((&byte, tail)) = input.split_first() {
             input = tail;
             match byte {
@@ -101,7 +129,12 @@ impl Reader {
                     }
                     self.fallback = 0;
                     if self.stack.is_empty() {
-                        return self.out.finish();
+                        if self.out.overflow {
+                            return None;
+                        }
+                        return std::mem::take(&mut self.out)
+                            .finish()
+                            .or_else(|| self.saw_hidden.then(TextBody::default));
                     }
                 }
                 b'\\' => {
@@ -164,6 +197,9 @@ impl Reader {
     fn text(&mut self, value: &str) {
         match self.state.dest {
             Destination::Text => {
+                if self.state.hidden {
+                    return;
+                }
                 let mut props = self.state.props.clone();
                 if let Some(font) = self
                     .state
@@ -301,6 +337,10 @@ impl Reader {
             "fs" if (2..=800).contains(&number) => {
                 self.state.props.size = Some(f64::from(number) / 2.0)
             }
+            "v" => {
+                self.state.hidden = active;
+                self.saw_hidden |= active;
+            }
             "b" => self.state.props.bold = Some(active),
             "i" => self.state.props.italic = Some(active),
             "ul" | "ulnone" | "uldb" => {
@@ -342,14 +382,15 @@ impl Reader {
             "plain" => {
                 self.state.props = RunProps::default();
                 self.state.font = None;
+                self.state.hidden = false;
             }
             "pard" => self.state.align = None,
             "ql" => self.state.align = Some(Align::Left),
             "qc" => self.state.align = Some(Align::Center),
             "qr" => self.state.align = Some(Align::Right),
             "qj" => self.state.align = Some(Align::Justify),
-            "par" => self.out.paragraph(),
-            "line" => self.out.soft_break(&self.state.props),
+            "par" if !self.state.hidden => self.out.paragraph(),
+            "line" if !self.state.hidden => self.out.soft_break(&self.state.props),
             "tab" => self.text("\t"),
             "uc" => self.state.uc = number.clamp(0, 16) as usize,
             "u" => self.unicode(number),
