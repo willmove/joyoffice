@@ -218,6 +218,18 @@ fn unescape(value: &str) -> Option<String> {
     Some(out)
 }
 
+// A recognizable future declaration takes precedence over old syntax and
+// conflicting earlier declarations. Share this policy across load/migrate/save.
+fn declared_future_schema(text: &str) -> Option<u32> {
+    text.lines()
+        .filter_map(|line| line.split_once('='))
+        .filter(|(key, _)| key.trim() == "schema")
+        .filter_map(|(_, value)| unescape(value.trim_end_matches('\r')))
+        .filter_map(|value| value.parse::<u32>().ok())
+        .filter(|schema| *schema > SCHEMA)
+        .max()
+}
+
 /// Parses file content. `Err(())` means the file as a whole is unusable.
 fn parse(text: &str, fallback: Locale) -> Result<(Preferences, Vec<PrefsNotice>, u32), ()> {
     let mut entries = Vec::new();
@@ -470,6 +482,7 @@ impl PrefsStore {
             .and_then(|file| file.take(MAX_BYTES as u64 + 1).read_to_string(&mut text));
         if legacy.is_ok()
             && text.len() <= MAX_BYTES
+            && declared_future_schema(&text).is_none()
             && let Ok((prefs, notices, schema)) = parse(&text, fallback)
             && schema <= SCHEMA
         {
@@ -516,17 +529,21 @@ impl PrefsStore {
         let parsed = std::str::from_utf8(&bytes)
             .map_err(|_| ())
             .and_then(|text| parse(text, fallback));
+        if let Some(schema) = std::str::from_utf8(&bytes)
+            .ok()
+            .and_then(declared_future_schema)
+        {
+            let (prefs, mut notices, _) =
+                parsed.unwrap_or_else(|()| (Preferences::defaults_for(fallback), Vec::new(), 0));
+            notices.push(PrefsNotice::Newer { schema });
+            return Loaded {
+                prefs,
+                notices,
+                writable: false,
+                baseline: Baseline::new(path, Some(bytes)),
+            };
+        }
         match parsed {
-            Ok((prefs, notices, schema)) if schema > SCHEMA => {
-                let mut notices = notices;
-                notices.push(PrefsNotice::Newer { schema });
-                Loaded {
-                    prefs,
-                    notices,
-                    writable: false,
-                    baseline: Baseline::new(path, Some(bytes)),
-                }
-            }
             Ok((prefs, notices, _)) => Loaded {
                 prefs,
                 notices,
@@ -616,15 +633,7 @@ impl PrefsStore {
             Err(error) => return Err(error),
         };
         if let Ok(text) = std::str::from_utf8(&bytes)
-            && text
-                .lines()
-                .filter_map(|line| line.split_once('='))
-                .any(|(key, value)| {
-                    key.trim() == "schema"
-                        && unescape(value.trim_end_matches('\r'))
-                            .and_then(|value| value.parse::<u32>().ok())
-                            .is_some_and(|schema| schema > SCHEMA)
-                })
+            && declared_future_schema(text).is_some()
         {
             return Err(io::Error::new(
                 io::ErrorKind::PermissionDenied,
@@ -1206,6 +1215,39 @@ mod tests {
         assert_eq!(fs::read(backup)?, original);
         assert_eq!(fs::read(store.path())?, original);
         assert_eq!(fs::metadata(backup)?.permissions().mode() & 0o077, 0);
+        Ok(())
+    }
+    #[test]
+    fn future_preferences_remain_read_only_even_with_unrecognized_syntax() -> io::Result<()> {
+        for original in [
+            "schema=99\nfuture syntax without equals\n",
+            "schema=1\nauthor.name=Future\nschema=99\n",
+        ] {
+            let dir = tempfile::tempdir()?;
+            let store = PrefsStore::new(dir.path());
+            fs::write(store.path(), original)?;
+            let loaded = store.load(Locale::En);
+            assert!(!loaded.writable);
+            assert!(loaded.notices.contains(&PrefsNotice::Newer { schema: 99 }));
+            assert_eq!(fs::read_to_string(store.path())?, original);
+            assert_eq!(fs::read_dir(dir.path())?.count(), 1);
+            assert!(store.save(&loaded).is_err());
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn legacy_preferences_with_a_future_declaration_are_not_migrated() -> io::Result<()> {
+        let dir = tempfile::tempdir()?;
+        let legacy = dir.path().join("legacy");
+        fs::create_dir(&legacy)?;
+        let original = "schema=1\nauthor.name=Future owner\nschema=99\n";
+        fs::write(legacy.join(FILE_NAME), original)?;
+        let store = PrefsStore::new(dir.path().join("current"));
+        let loaded = store.load_with_legacy(&legacy, Locale::En);
+        assert_eq!(loaded.prefs, Preferences::defaults_for(Locale::En));
+        assert_eq!(fs::read_to_string(legacy.join(FILE_NAME))?, original);
+        assert!(!store.path().exists());
         Ok(())
     }
 }

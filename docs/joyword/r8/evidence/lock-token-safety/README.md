@@ -86,3 +86,13 @@ A further regression reproduced permission widening during corruption recovery: 
 The Unix regression failed before the fix (group/other permission mask was `044`) and checks that the backup preserves the exact bytes without granting group/other access. This does not change existing backups or claim Windows ACL validation; platform runtime and non-cooperating-writer limits above still apply.
 
 Validation: all 95 shell tests passed under `umask 022`, including the new permission regression. Strict all-target shell/desktop Clippy, fmt, documentation, source fingerprints and repository gates passed on Linux. Original provenance hashes remain unchanged; only the adapted preferences fingerprint and change record were updated.
+
+## Consistent future-schema loading and legacy migration
+
+Two new regressions failed before this follow-up: a current file declaring a future schema followed by unknown syntax was treated as corrupt and writable, while a legacy file with `schema=1` followed by `schema=99` supplied values for migration. The existing save guard already refused future declarations, so load/migration policy was inconsistent with persistence.
+
+A shared detector now gives any recognized future declaration precedence, selecting the highest declared future version. Current files remain read-only with a newer-version notice even if the old parser cannot understand their syntax; no corruption backup is created. Parseable values can still be read, otherwise defaults are used. Legacy files with a future declaration are not migrated; the missing current store follows its normal defaults behavior and the legacy bytes remain untouched. Save-time checks retain the same conservative policy. This does not claim support for future formats with no recognizable schema declaration or invalid encoding.
+
+Validation: all 97 shell tests passed, including both initially failing regressions and existing migration/save-guard cases. No real-window/device or Windows/macOS runtime acceptance is added.
+
+Strict all-target shell/desktop Clippy, fmt, documentation, 291 source fingerprints and repository gates passed. The original source hash is retained and the adapted preferences fingerprint is updated.
