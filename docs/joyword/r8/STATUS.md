@@ -22,6 +22,14 @@
 
 R8 各平台、包及本轮自动验证见 [Windows P0 验证](VALIDATION.md#windows-p0-字段兼容与便携回退2026-11-06) 与 [验证记录](VALIDATION.md)。旧 CLI 的命令、范围和差距见 [交接兼容表](../../joyoffice/JOYWORD-R8-HANDOFF.md#已迁入的旧-cli-接口)。
 
+### JW-806 Linux 旧日志对象安全回归（2026-11-06）
+
+在 Linux x64 容器安装 Rust 1.98.1 后，直接运行 `Reader::recover_legacy` 验证混合媒体 DOCX 的 V2/V3 日志。新增反例覆盖 V2 删除或插入内联对象标记、合并不同表格单元格：均拒绝，原 DOCX、日志和既有锁文件字节不变，目录未新增文件。V3 精确匹配时另存副本与快照逐字节一致，正文失配时拒绝恢复。原有 V2 多处编辑回归增加中文与 emoji，保存重开后正文和媒体保持一致。
+
+`cargo test --locked -p joyword-shell` 在本轮通过 64 项测试（含 4 项恢复测试）；未修改生产恢复逻辑。本轮覆盖 headless Rust 路径，不替代桌面旧日志交互、其他复杂对象差分、真实崩溃、正式安装和文件关联回退，JW-806/812 保持部分验证。
+
+全仓 `cargo fmt --all --check`、文档完整性检查及生产库 `cargo clippy --locked -p joyword-shell --lib -- -D warnings` 通过。额外尝试 `cargo clippy --locked -p joyword-shell --all-targets -- -D warnings` 未通过：未修改的测试模块存在 `unwrap_used` 等告警，`r8_render_goldens` 示例有冗余 `f64::from`。这超出当前 JoyWord xtask 的生产 `--lib --bins` lint 范围，本批不扩大到清理无关测试和示例。
+
 ## R0–R7 待完成范围
 
 | 阶段 | 当前宿主进展 | 仍需关闭的验收范围 |
