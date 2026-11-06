@@ -91,6 +91,85 @@ fn some_face_always_resolves() {
 }
 
 #[test]
+fn face_identity_distinguishes_file_collection_index_and_effective_axes() {
+    let db = FontDb::with_font_dirs(Vec::new());
+    let bytes = include_bytes!("../tests/fixtures/environment.ttc");
+    assert_eq!(db.add_font(bytes.to_vec()), 2);
+    assert_eq!(db.add_font(bytes.to_vec()), 0);
+    let regular = db.face("JoyDeck Font Environment Test Collection", "Regular");
+    let family = "JoyDeck Font Environment Test Variable";
+    let variable = db.face(family, "Regular");
+    assert_eq!(regular.identity().sha256, variable.identity().sha256);
+    assert_eq!(
+        (regular.identity().index, variable.identity().index),
+        (0, 1)
+    );
+    let default = db.face(family, "Regular {wdth:100,wght:400}");
+    assert_eq!(variable.identity(), default.identity());
+    let wide = db.face(family, "Regular {wdth:125,wght:650}");
+    let reordered = db.face(family, "Regular {wght:650,wdth:150}");
+    assert_eq!(wide.identity(), reordered.identity());
+    assert_ne!(wide.identity(), variable.identity());
+    assert!(wide.advance(wide.glyph_for('A')) > variable.advance(variable.glyph_for('A')));
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+#[test]
+fn font_catalog_refresh_retires_old_bytes_and_detects_same_name_collisions() {
+    use std::fs;
+    const FAMILY: &str = "JoyDeck Font Environment Test";
+    let narrow = include_bytes!("../tests/fixtures/environment-narrow.ttf");
+    let wide = include_bytes!("../tests/fixtures/environment-wide.ttf");
+    assert_eq!(narrow.len(), wide.len());
+    let dir = std::env::temp_dir().join(format!("joydeck-font-environment-{}", std::process::id()));
+    fs::create_dir_all(&dir).unwrap();
+    let first = dir.join("a.ttf");
+    let second = dir.join("b.ttf");
+    fs::write(&first, narrow).unwrap();
+    fs::write(&second, wide).unwrap();
+    let db = FontDb::with_font_dirs(vec![dir.clone()]);
+    let matched = db.document_match(FAMILY, "Regular");
+    assert!(!matched.substituted);
+    assert_eq!(matched.face.data(), narrow);
+    assert_eq!(matched.conflicts.len(), 1);
+    assert_eq!(matched.face.advance(matched.face.glyph_for('A')), 620.);
+    let environment = db.environment_revision();
+    let revision = db.revision();
+    db.load_system_fonts();
+    assert_eq!(db.revision(), revision);
+    assert_eq!(db.environment_revision(), environment);
+
+    // Windows FILETIME for new files tracks the system timer (~15.6ms). Same-length
+    // delete+recreate inside one tick keeps FileStamp equal (create-time tunneling + identical
+    // LastWriteTime), so the catalog refresh would be skipped. Wait out one tick before replacing.
+    std::thread::sleep(std::time::Duration::from_millis(50));
+    fs::remove_file(&first).unwrap();
+    fs::write(&first, wide).unwrap();
+    db.load_system_fonts();
+    assert!(db.revision() > revision);
+    assert!(db.environment_revision() > environment);
+    let next = db.document_match(FAMILY, "Regular");
+    assert_eq!(next.face.data(), wide);
+    assert_eq!(next.face.advance(next.face.glyph_for('A')), 900.);
+    assert_eq!(next.face.identity(), &matched.conflicts[0]);
+    assert!(next.conflicts.is_empty());
+    assert_eq!(
+        matched.face.data(),
+        narrow,
+        "old layouts retain their immutable font"
+    );
+
+    fs::remove_dir_all(&dir).unwrap();
+    db.load_system_fonts();
+    assert!(!db.families().iter().any(|family| family == FAMILY));
+    assert!(db.document_match(FAMILY, "Regular").substituted);
+    assert!(
+        !db.outline(&next.face, 0).elements().is_empty(),
+        "empty .notdef gets a visible glyph"
+    );
+}
+
+#[test]
 fn filtered_fallback_continues_after_a_rejected_loaded_face() {
     let db = FontDb::with_font_dirs(Vec::new());
     db.set_system_fallback(false);

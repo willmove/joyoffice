@@ -1,5 +1,9 @@
 # JoyDeck 当前状态
 
+2026-11-05 完成 JD-301。macOS Release 实测同名字体热替换、画布与缩略图刷新、原位选区及 TTC 搜索。包内 CLI 报告选中的 face、冲突和实际替代。JoyDeck 909 项、三产品联合 5,802 项通过。[字体环境证据](evidence/R3-FONT-ENVIRONMENT/README.md)
+
+2026-11-05 完成 JD-300。修复 PDF 搜索层的动态字段、链接与组合缩放坐标。macOS 实测混排编辑和保存回读，Poppler 验证 14 个组合与普通文本搜索词的边界一致。906 项产品测试通过。[排版证据](evidence/R3-SHARED-LAYOUT/README.md)
+
 2026-11-05 完成 JD-202，R0–R2 共 28 项全部完成。整合分支的 macOS ARM64 Release 包在 2× HiDPI 虚拟显示器上通过真实窗口手势复验，另在 1× 桌面通过 R1 查看和 R2 保存重开与恢复。JoyDeck 产品检查 904 项、包内 CLI R1／R2 共 48 项通过，329 条静态命令 ID 已复核。[当次验收](evidence/R2-POINTER/README.md#hidpi-2x-复验)
 
 2026-11-05 完成 JD-209。整合保存发布修复后的 macOS ARM64 Release 包，从实际新建、插入、拖动、另存和重开，验证到重开后的撤销、重做和强制终止恢复。桌面与包内 CLI 独立读回一致，原件散列保持，产品检查 904 项通过。[编辑器包验收](evidence/R2-EDITOR-PACKAGE/README.md)

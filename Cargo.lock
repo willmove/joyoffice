@@ -3726,6 +3726,7 @@ dependencies = [
  "harfrust 0.8.4",
  "kurbo 0.13.1",
  "log",
+ "sha2 0.10.9",
  "skrifa 0.42.1",
  "unicode-bidi",
 ]
@@ -3888,6 +3889,7 @@ dependencies = [
  "gpui-pre-platform",
  "image",
  "joydeck-engine",
+ "joydeck-fonts",
  "joydeck-geom",
  "joydeck-model",
  "joydeck-render",

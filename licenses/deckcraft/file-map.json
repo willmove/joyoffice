@@ -586,49 +586,54 @@
       "source_path": "crates/fonts/Cargo.toml",
       "source_sha256": "a194d97837f02d615456d5cd181ba03ac4c462a99b9fd1cd04038e7d3b114fd7",
       "target_path": "crates/joydeck-fonts/Cargo.toml",
-      "adapted_sha256": "aceca10a8e0055247d0e1c944cb9a670810768df81560ea34e120d29d435abcc",
+      "adapted_sha256": "de769f9acbe1142590676e27f2a5167b9567ecf87a71be0fdb122a9f241f6493",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
-        "R9: host workspace feature wiring and sole shared-library implementation"
+        "R9: host workspace feature wiring and sole shared-library implementation",
+        "Exact font bytes, face and variation identity with live system font refresh"
       ]
     },
     {
       "source_path": "crates/fonts/src/fallback.rs",
       "source_sha256": "c21cdaa0e7fc744abe781f402ad0e99ec288f7354db5b0680dfb8428c4d99882",
       "target_path": "crates/joydeck-fonts/src/fallback.rs",
-      "adapted_sha256": "cc31d57adbf23331769209421f333e0a56e88ca419a725fa0f29b2dca2fa530e",
+      "adapted_sha256": "232f559f55e01090ecc97d1e8d5b3837e9a0c19499c2fd018197f31293e00246",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
-        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
+        "Preserve invisible whitespace while reporting missing visible glyphs"
       ]
     },
     {
       "source_path": "crates/fonts/src/fontdb.rs",
       "source_sha256": "bce2264f3781c38b8ee60c3e3b39322c5d42a6d9236c01f835297dfb957869bd",
       "target_path": "crates/joydeck-fonts/src/fontdb.rs",
-      "adapted_sha256": "94603051970db23111bdc45f148d7b24977ad28c2b251e07e3459ead5a608e9f",
+      "adapted_sha256": "564197dbb29562ad527a03bf251905559f6dc503c7ac935c9d2a433fc8ec9772",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
-        "R4/R5 scene/content/workbook/font-revision adaptation, exact JoyOffice dependency reuse"
+        "R4/R5 scene/content/workbook/font-revision adaptation, exact JoyOffice dependency reuse",
+        "Exact font bytes, face and variation identity with live system font refresh"
       ]
     },
     {
       "source_path": "crates/fonts/src/lib.rs",
       "source_sha256": "e308aad6f535be7a88b91eeef87243b752e2b32500a85ac92086684200fff819",
       "target_path": "crates/joydeck-fonts/src/lib.rs",
-      "adapted_sha256": "b9061e1f1fce7c815224cbfdbe7dc59bbffe2f6598249f4f705d7de0a908c6f9",
+      "adapted_sha256": "057e3ebce0f0ee9d18e4b37f8d18e95a7211939b124239fca82a3a2500d6f8fb",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
-        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
+        "Exact font bytes, face and variation identity with live system font refresh",
+        "Preserve invisible whitespace while reporting missing visible glyphs"
       ]
     },
     {
@@ -659,12 +664,14 @@
       "source_path": "crates/fonts/src/tests.rs",
       "source_sha256": "c1254bc95688d66447fed92140e3ed27d19691ca52d1a72112f3594fafe646bd",
       "target_path": "crates/joydeck-fonts/src/tests.rs",
-      "adapted_sha256": "086e4e86cb6e6aa3df502f3cdebc7042ae9e6eb71c6fdcae42a88728dc394f86",
+      "adapted_sha256": "3094c73188ab4729e06c5a4acc381b0d87ffbad1b2250406f919e30af57ba30b",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
-        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
+        "Exact font bytes, face and variation identity with live system font refresh",
+        "Windows catalog refresh test: brief sleep before same-length file replace"
       ]
     },
     {
@@ -786,19 +793,20 @@
       "source_path": "crates/text/src/layout.rs",
       "source_sha256": "f7e5603ebd9908f0e769373d1e67c26a219162bdefeb49b31e9fe0e310bde0de",
       "target_path": "crates/joydeck-text/src/layout.rs",
-      "adapted_sha256": "8c4e150480c24a964dc2304d8f1b4f635b4ce237bbe1d71691d9b2b8ad258a29",
+      "adapted_sha256": "978dec8ad1920b1ea013222ec1eb4bdd95b90cf8cf93e39474659e506e2892f7",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
-        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
+        "Preserve invisible whitespace while reporting missing visible glyphs"
       ]
     },
     {
       "source_path": "crates/text/src/lib.rs",
       "source_sha256": "6f6f1a44aac8f2bbd6c2251b323a06833b8f055e0fdd1933b103e49d29ee27b5",
       "target_path": "crates/joydeck-text/src/lib.rs",
-      "adapted_sha256": "591c769318fb30961195eb10b9b4eabc67372347cefd70f5e04c770f85022091",
+      "adapted_sha256": "3f60d46970b9bc5131788d66dfefd1ffaff40377bef475c223ce76c939538508",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -810,7 +818,7 @@
       "source_path": "crates/text/src/run.rs",
       "source_sha256": "50d92fd41ff511f27e09e681297dc05f881ce68c01097a1c0722cb505ca6b953",
       "target_path": "crates/joydeck-text/src/run.rs",
-      "adapted_sha256": "7ac1b564d1bb2a827f2ebe1ae1f71771460714cc9182e43894504d692e16f99f",
+      "adapted_sha256": "b1cc6b490aad73191dfb1427ab780e43056f7a9b2085b115cbb14fef0c3904df",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -858,12 +866,13 @@
       "source_path": "crates/text/src/tests.rs",
       "source_sha256": "0c590583364dc4eddd26d838f4ab5f54c966525b5ed23cf78ec21577580a7cc8",
       "target_path": "crates/joydeck-text/src/tests.rs",
-      "adapted_sha256": "abce553d5dbe6c9a52f71f492e5cedbaeba22922f24727da2ed9798247415eea",
+      "adapted_sha256": "00a192c69cf71f5bf185f8b33044708d03477fbb0c0387e1445ee8944adffee8",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
-        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
+        "Preserve invisible whitespace while reporting missing visible glyphs"
       ]
     },
     {
@@ -1194,7 +1203,7 @@
       "source_path": "crates/render/src/lib.rs",
       "source_sha256": "34736a5334491485d5026bfec7642fe44146d59332ea09a176ed0a10b3d1aa5b",
       "target_path": "crates/joydeck-render/src/lib.rs",
-      "adapted_sha256": "6c043d126ac472e0853f100e0397fc610701bbb2bbf3145f84470eb33864941f",
+      "adapted_sha256": "ae17730a55bda9a60be18ece7aded3ba85d9e30e71d47078ffec53754e2c4e4e",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -1305,7 +1314,7 @@
       "source_path": "crates/render/src/placed.rs",
       "source_sha256": "f2851a72da1ed824bfadafcc409a6ebbaa9a711671021ebdb4d46696d0f31f0c",
       "target_path": "crates/joydeck-render/src/placed.rs",
-      "adapted_sha256": "3a0870daca0b1e9fef99b6a9479f2f5a333dbb52bda7643de4b4a0e81c418137",
+      "adapted_sha256": "c243e47c95def28730f5b5d7122b4fcd1f63aa30c3da1e2e85310e6b8bf27646",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -1354,7 +1363,7 @@
       "source_path": "crates/render/src/renderer.rs",
       "source_sha256": "6c42227ce19c97d04122d572f0a8b64f2866ade5de7df47660fe2c6066cefa65",
       "target_path": "crates/joydeck-render/src/renderer.rs",
-      "adapted_sha256": "6b529497747afe5fbf821342c2e3ddcbe6ba6020d23ca0a55e07d46b58677ce0",
+      "adapted_sha256": "6ff2d06852b1fae5b60b7ffff6ecdaa1a6c15d9dfcddc713b8e1b07bac77d390",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -1402,7 +1411,7 @@
       "source_path": "crates/render/src/tests.rs",
       "source_sha256": "597d0d476a1c774f659cff05c2ac10ea35a55d10f2d3e51582a0110b8b304535",
       "target_path": "crates/joydeck-render/src/tests.rs",
-      "adapted_sha256": "13d065daaa635a795044d3094a32e94acb7286759a5299f228a15447a5d6c1f5",
+      "adapted_sha256": "a621053e7c2f038ae491897a3148f1ea0398961178848b7865fce063cb50287c",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -1426,7 +1435,7 @@
       "source_path": "crates/render/src/text_draw.rs",
       "source_sha256": "50217a4b99adbffe34de7718973bc636bd91108df89bf25136b46739fce662be",
       "target_path": "crates/joydeck-render/src/text_draw.rs",
-      "adapted_sha256": "ba91bc146b4aa0a3d7dcf364e2a2ec320864786f2c60823fa5bd243885a81b9b",
+      "adapted_sha256": "74f83d7b754baeb8ca506722572cac2d2b67a1542adbf78925de31a4299fc328",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -2239,7 +2248,7 @@
       "source_path": "crates/pdf/src/lib.rs",
       "source_sha256": "54e202f2aaefab915db9ac755fe7d8dc4c14a214f17acfb950a664951987040c",
       "target_path": "crates/joydeck-pdf/src/lib.rs",
-      "adapted_sha256": "b943d8458c54bed4b45933b9d355671f18645aae807b1fd1fa4309559ee03e60",
+      "adapted_sha256": "cabc98b60e724f995e60990dd72616e010888c05c6a6ece5adf1c6d9a6974f03",
       "changes": [
         "R6 PDF adaptation to official JoyOffice Krilla 0.8.2, shared glyph layout, font permissions, cancellation and page/raster budgets; notes CJK/overflow handling."
       ]

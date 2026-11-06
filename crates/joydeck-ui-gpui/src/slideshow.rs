@@ -40,6 +40,7 @@ struct Audience {
     image: Option<Arc<RenderImage>>,
     retired: Vec<Arc<RenderImage>>,
     key: Option<(u64, usize, usize, u64)>,
+    font_revision: u64,
     busy: bool,
     task: Option<Task<()>>,
     clock: Option<Task<()>>,
@@ -161,11 +162,13 @@ impl Audience {
         if media_on && !model.paused && r.status["paused"] != true {
             key.3 = (model.total * 10.) as u64;
         }
-        if self.key == Some(key) {
+        let font_revision = joydeck_fonts::FontDb::global().environment_revision();
+        if self.key == Some(key) && self.font_revision == font_revision {
             return;
         }
         drop(r);
         self.key = Some(key);
+        self.font_revision = font_revision;
         self.busy = true;
         let media = self.media.clone();
         let cancel = self.cancel.clone();
@@ -192,7 +195,9 @@ impl Audience {
                     return;
                 }
                 let current = s.shared.lock().ok().map(|r| r.player.frame_key());
-                if !current.is_some_and(|k| (k.0, k.1, k.2) == (key.0, key.1, key.2)) {
+                if !current.is_some_and(|k| (k.0, k.1, k.2) == (key.0, key.1, key.2))
+                    || joydeck_fonts::FontDb::global().environment_revision() != font_revision
+                {
                     s.key = None;
                     cx.notify();
                     return;
@@ -465,6 +470,7 @@ pub(super) fn open(
                     image: None,
                     retired: vec![],
                     key: None,
+                    font_revision: 0,
                     busy: false,
                     task: None,
                     clock: None,

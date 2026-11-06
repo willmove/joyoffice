@@ -72,7 +72,7 @@ LAYERS = {
     'joydeck-render': {'joydeck-anim', 'joydeck-color', 'joydeck-fonts', 'joydeck-geom', 'joydeck-metafile', 'joydeck-model', 'joydeck-text'},
     'joydeck-shell': {'joydeck-anim', 'joydeck-engine', 'joydeck-fonts', 'joydeck-format', 'joydeck-legacy', 'joydeck-model', 'joydeck-pdf', 'joydeck-pptx', 'joydeck-render', 'joyoffice-opc'},
     'joydeck-text': {'joydeck-color', 'joydeck-fonts', 'joydeck-geom', 'joydeck-model'},
-    'joydeck-ui-gpui': {'joydeck-engine', 'joydeck-geom', 'joydeck-model', 'joydeck-render', 'joydeck-shell', 'joydeck-text', 'joyoffice-ui'},
+    'joydeck-ui-gpui': {'joydeck-engine', 'joydeck-fonts', 'joydeck-geom', 'joydeck-model', 'joydeck-render', 'joydeck-shell', 'joydeck-text', 'joyoffice-ui'},
     "joyoffice-xtask": set(),
     "joyoffice-opc": set(),
     "joyoffice-ui": set(),

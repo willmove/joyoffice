@@ -1,7 +1,12 @@
 use super::*;
 impl Viewer {
     pub(super) fn request_scene(&mut self, width: u32, cx: &mut Context<Self>) {
-        let key = (self.render_generation, self.page, width);
+        let key = (
+            self.render_generation,
+            self.page,
+            width,
+            joydeck_fonts::FontDb::global().environment_revision(),
+        );
         if self
             .scene
             .as_ref()
@@ -36,6 +41,7 @@ impl Viewer {
                 s.scene_busy = false;
                 if key.0 != s.render_generation
                     || key.1 != s.page
+                    || key.3 != joydeck_fonts::FontDb::global().environment_revision()
                     || s.scene_cancel.load(Ordering::Relaxed)
                 {
                     s.scene_pending = None;
@@ -69,7 +75,10 @@ impl Viewer {
         let Some((key, scene)) = &self.scene else {
             return;
         };
-        if key.0 != self.render_generation || key.1 != self.page {
+        if key.0 != self.render_generation
+            || key.1 != self.page
+            || key.3 != joydeck_fonts::FontDb::global().environment_revision()
+        {
             return;
         }
         let delta = self
@@ -99,7 +108,20 @@ impl Viewer {
                     .map(|r| format!("{:?}: {r}", n.id))
             })
             .collect();
-        let value = serde_json::json!({"view": if self.cpu_view {"cpu"}else{"gpui-scene"}, "scene":scene,"gpui":self.gpu_cache.stats,"fallbacks":reasons,"timing":"CPU build / draw submission, not presentation latency"});
+        let glyphs = self
+            .scene
+            .iter()
+            .flat_map(|(_, scene)| &scene.nodes)
+            .flat_map(|node| node.geometry.glyphs.iter().map(move |glyph| (node, glyph)));
+        let missing: Vec<_> = glyphs
+            .filter(|(_, glyph)| glyph.glyph == 0)
+            .take(64)
+            .map(|(node, glyph)| {
+                serde_json::json!({"shape":node.id, "paragraph":glyph.paragraph,
+                "characterRange":glyph.chars, "font":glyph.face.identity().to_string()})
+            })
+            .collect();
+        let value = serde_json::json!({"view": if self.cpu_view {"cpu"}else{"gpui-scene"}, "scene":scene,"gpui":self.gpu_cache.stats,"fallbacks":reasons,"missingGlyphs":missing,"timing":"CPU build / draw submission, not presentation latency"});
         let report = serde_json::to_string_pretty(&value).unwrap_or_default();
         eprintln!("R4 diagnostics {value}");
         let view = cx.entity().downgrade();

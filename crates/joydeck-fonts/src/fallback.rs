@@ -23,7 +23,7 @@ const TEXT_SELECTOR: char = '\u{FE0E}';
 const KEYCAP: char = '\u{20E3}';
 
 /// Characters that never decide a face: they're drawn by whatever face the cluster gets.
-fn ignorable(c: char) -> bool {
+pub fn is_font_ignorable(c: char) -> bool {
     c.is_whitespace()
         || c.is_control()
         || matches!(c as u32, 0x200B..=0x200F | 0x202A..=0x202E | 0x2060..=0x2069 | 0xFE00..=0xFE0F | 0xFEFF | 0xE0100..=0xE01EF)
@@ -99,7 +99,9 @@ pub fn is_emoji_cluster(cluster: &[char]) -> bool {
 
 /// Does `face` draw every character of the cluster?
 pub fn covers_cluster(face: &FontFace, cluster: &[char]) -> bool {
-    cluster.iter().all(|c| ignorable(*c) || face.covers(*c))
+    cluster
+        .iter()
+        .all(|c| is_font_ignorable(*c) || face.covers(*c))
 }
 
 /// Installed families tried by name for a script after the bundled face, before scanning every
@@ -156,7 +158,7 @@ impl FontDb {
             {
                 return f.clone();
             }
-            if let Some(key) = cluster.iter().copied().find(|c| !ignorable(*c))
+            if let Some(key) = cluster.iter().copied().find(|c| !is_font_ignorable(*c))
                 && let Some(f) = self.color_face_for(key, cluster)
             {
                 return f;
@@ -168,7 +170,7 @@ impl FontDb {
         // Text presentation (U+FE0E) and keycaps: a plain face, not a colour emoji one.
         let text_style = cluster.contains(&TEXT_SELECTOR) || cluster.contains(&KEYCAP);
         if text_style
-            && let Some(key) = cluster.iter().copied().find(|c| !ignorable(*c))
+            && let Some(key) = cluster.iter().copied().find(|c| !is_font_ignorable(*c))
             && let Some(f) = self.plain_face_for(key, cluster)
         {
             return f;
@@ -179,7 +181,7 @@ impl FontDb {
                 .cloned()
                 .unwrap_or_else(|| self.face(crate::DEFAULT_FAMILY, style))
         };
-        let Some(key) = cluster.iter().copied().find(|c| !ignorable(*c)) else {
+        let Some(key) = cluster.iter().copied().find(|c| !is_font_ignorable(*c)) else {
             return first();
         };
         let script = cluster.iter().find_map(|c| script_of(*c));

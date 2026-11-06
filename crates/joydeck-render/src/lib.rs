@@ -63,7 +63,7 @@ pub use morph_text::TextMorph;
 pub use pattern::{is_fg as pattern_is_fg, presets as pattern_presets, tile as pattern_tile};
 pub use placed::{
     Placed, PlacedLink, PlacedShape, PlacedText, editable_text, place_master_texts, place_slide,
-    text_outline,
+    place_slide_with_fields, text_outline,
 };
 pub use table::cell_body as table_cell_body;
 pub use table::cell_rects as table_cell_rects;

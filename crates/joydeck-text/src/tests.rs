@@ -58,6 +58,28 @@ fn wraps_long_text_into_lines() {
 }
 
 #[test]
+fn missing_visible_glyphs_keep_notdef_but_unmapped_spaces_stay_blank() {
+    let db = FontDb::global();
+    db.add_font(
+        include_bytes!("../../joydeck-fonts/tests/fixtures/environment-narrow.ttf").to_vec(),
+    );
+    let (p, mut sh) = setup("A A\u{10FFFD}", 400., 160.);
+    let para = &mut sh.text.as_mut().unwrap().paragraphs[0];
+    para.props.bullet = Some(Bullet::None);
+    para.runs[0].props.font = Some("JoyDeck Font Environment Test".into());
+    let layout = lay(&p, &sh, 400., 160.);
+    let glyphs: Vec<_> = layout
+        .runs
+        .iter()
+        .flat_map(|run| run.glyphs.iter().zip(&run.cells))
+        .map(|((id, _, _), (_, ch))| (*id, *ch))
+        .collect();
+    assert!(!glyphs.iter().any(|&(id, ch)| id == 0 && ch == ' '));
+    assert!(glyphs.contains(&(0, '\u{10FFFD}')));
+    assert!(layout.lines[0].caret_x[2] > layout.lines[0].caret_x[1]);
+}
+
+#[test]
 fn bullets_are_drawn_for_body_text() {
     let (p, sh) = setup("One\nTwo", 600.0, 300.0);
     let l = lay(&p, &sh, 600.0, 300.0);

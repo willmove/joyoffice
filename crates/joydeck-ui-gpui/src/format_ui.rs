@@ -148,6 +148,70 @@ impl Viewer {
                     s.focus.focus(w, cx);
                 }
             }));
+        let fonts = joydeck_fonts::FontDb::global();
+        fonts.monitor_system_fonts();
+        self.font_task = Some(cx.spawn_in(w, async move |view, cx| {
+            let mut previous = None;
+            loop {
+                let revision = fonts.environment_revision();
+                if previous != Some(revision) {
+                    let names = cx
+                        .background_executor()
+                        .spawn(async move { fonts.families() })
+                        .await;
+                    if view
+                        .update_in(cx, |s, w, cx| {
+                            s.apply_font_environment(names, previous.is_some(), w, cx);
+                        })
+                        .is_err()
+                    {
+                        break;
+                    }
+                    previous = Some(revision);
+                }
+                cx.background_executor()
+                    .timer(std::time::Duration::from_millis(500))
+                    .await;
+            }
+        }));
+    }
+
+    fn apply_font_environment(
+        &mut self,
+        names: Vec<String>,
+        changed: bool,
+        w: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
+        self.font_names = names.into_iter().map(Into::into).collect();
+        self.font_picker.update(cx, |s, cx| {
+            s.set_items(
+                gpui_kit::component::select::SearchableVec::new(self.font_names.clone()),
+                w,
+                cx,
+            );
+        });
+        if changed {
+            self.render_generation += 1;
+            self.scene_cancel.store(true, Ordering::Relaxed);
+            self.scene = None;
+            self.scene_pending = None;
+            self.scene_cache = Arc::default();
+            self.gpu_cache.clear(w);
+            self.paint_cancel.store(true, Ordering::Relaxed);
+            self.pending = None;
+            self.retired_images
+                .extend(self.image.take().map(|(_, image)| image));
+            self.retired_images
+                .extend(std::mem::take(&mut self.thumbnails).into_values());
+            self.thumbs_cancel.store(true, Ordering::Relaxed);
+            self.thumbs_cancel = Arc::new(AtomicBool::new(false));
+            self.thumbs_task = None;
+            self.thumb_busy = false;
+            self.thumbnail_errors.clear();
+            self.refresh_inline_layout();
+        }
+        cx.notify();
     }
 
     // Programmatic synchronization does not emit Confirm. Keep an active search intact.
