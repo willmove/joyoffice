@@ -141,33 +141,6 @@ fn set_fonts(s: &mut Session, heading: &str, body: &str) {
     if let Some(pending) = s.pending.as_mut() {
         pending.refresh_theme_font(heading, body);
     }
-    if !s
-        .doc
-        .styles
-        .default_chr
-        .theme_font
-        .as_ref()
-        .is_some_and(|b| b.valid_for(s.doc.styles.default_chr.font.as_deref()))
-    {
-        s.doc.styles.default_chr.set_fixed_font(Some(body.into()));
-    }
-    for st in &mut s.doc.styles.styles {
-        if st
-            .chr
-            .theme_font
-            .as_ref()
-            .is_some_and(|b| b.valid_for(st.chr.font.as_deref()))
-        {
-            continue;
-        }
-        if let Some(f) = &st.chr.font
-            && (f == styles::HEADING_FONT || st.id.starts_with("Heading") || st.id == "Title")
-        {
-            st.chr.set_fixed_font(Some(heading.into()));
-        } else if st.chr.font.is_some() && st.chr.font.as_deref() != Some(heading) {
-            st.chr.set_fixed_font(Some(body.into()));
-        }
-    }
 }
 
 fn set_accent(s: &mut Session, accent: Rgb) {

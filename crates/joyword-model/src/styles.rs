@@ -960,6 +960,24 @@ impl StyleSheet {
             ..Default::default()
         });
         s.styles.extend(table_styles());
+        // These are our own newly constructed defaults, so the theme intent is known.
+        // Never infer this intent later from imported style IDs or a matching font name.
+        for props in std::iter::once(&mut s.default_chr)
+            .chain(s.styles.iter_mut().map(|style| &mut style.chr))
+        {
+            if let Some(font) = &props.font {
+                let kind = match font.as_str() {
+                    HEADING_FONT => "major",
+                    BODY_FONT => "minor",
+                    _ => continue,
+                };
+                props.theme_font = Some(crate::props::ThemeFont {
+                    ascii: Some(format!("{kind}Ascii")),
+                    h_ansi: Some(format!("{kind}HAnsi")),
+                    resolved: font.clone(),
+                });
+            }
+        }
         s
     }
 

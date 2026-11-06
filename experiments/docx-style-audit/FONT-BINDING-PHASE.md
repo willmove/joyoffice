@@ -81,3 +81,6 @@ The desktop and CLI hosts also passed `cargo check --locked -p joyword -p joywor
 on Linux (fontconfig dynamic loading enabled). This is compilation, not a window
 or device acceptance. A later fixed font declaration in malformed duplicate
 `w:rFonts` input now clears an earlier binding rather than reusing stale metadata.
+
+Follow-up: [fixed style fonts and EA/CS audit](FIXED-STYLE-PHASE.md) removes the
+legacy unbound Latin-font replacement heuristic; the other limitations above remain.

@@ -63,3 +63,6 @@ This is model/import/save evidence, not an independent visual rendering oracle.
   architectural gates passed; whitespace check passed with CRLF provenance data.
 - Prerequisite #156 remained open at `7bac2e60`, with four queued workflows.
   No old workflow was restarted or canceled.
+
+Follow-up: [fixed style fonts and EA/CS audit](FIXED-STYLE-PHASE.md) removes the
+legacy unbound Latin-font replacement heuristic; the other limitations above remain.

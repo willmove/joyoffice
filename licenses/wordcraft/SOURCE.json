@@ -352,7 +352,8 @@
       "source": "crates/doc/src/styles.rs",
       "target": "crates/joyword-model/src/styles.rs",
       "source_sha256": "18928a308d1ec0b7081d89cf3e15fe20b8649fdd166d5081ffd93614c2ead9d8",
-      "changes": "Package/module naming and explicit source license only; formatter may normalize whitespace."
+      "changes": "Package/module naming and explicit source license only; formatter may normalize whitespace. Bind newly constructed built-in Latin fonts explicitly; preserve unbound style/default fonts during theme changes.",
+      "adapted_sha256": "9fcf018f334ebf7b01beae49265df18740841b0226a042cafa3e1bb96daa568b"
     },
     {
       "source": "crates/doc/src/symbol_fonts.rs",
@@ -2554,8 +2555,8 @@
       "source": "crates/engine/src/cmd/design.rs",
       "target": "crates/joyword-engine/src/cmd/design.rs",
       "source_sha256": "858f8733e6bc44a58e4684594a4a109421cce912be49bda2910d95760465117a",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Preserve supported Latin theme-font bindings separately from resolved fonts; detach explicit font overrides and source-format imports; retain bindings through snapshots, DOCX saves and theme-font commands. Preserve run color theme references and modifier attributes; detach explicit color edits and refresh coherent bindings when themes change.",
-      "adapted_sha256": "b6d659645e90c1d40c29da18f8a7138a868bda65a7ba53abe929445bd1ccf59a"
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Preserve supported Latin theme-font bindings separately from resolved fonts; detach explicit font overrides and source-format imports; retain bindings through snapshots, DOCX saves and theme-font commands. Preserve run color theme references and modifier attributes; detach explicit color edits and refresh coherent bindings when themes change. Bind newly constructed built-in Latin fonts explicitly; preserve unbound style/default fonts during theme changes.",
+      "adapted_sha256": "905c85fd9e3ea2dfd9c1b0eec5c0615aa6bd4d87fa369dd4b919ef3bcebe2299"
     },
     {
       "source": "crates/engine/src/cmd/draw.rs",

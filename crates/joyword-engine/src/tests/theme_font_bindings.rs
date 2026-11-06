@@ -74,3 +74,119 @@ fn font_command_detaches_same_value_and_undo_restores_binding() {
             .is_some()
     );
 }
+
+#[test]
+fn fixed_style_fonts_and_defaults_survive_theme_commands_and_undo() {
+    let mut doc = Document::new();
+    doc.styles
+        .default_chr
+        .set_fixed_font(Some("Fixed body".into()));
+    let heading = doc
+        .styles
+        .styles
+        .iter_mut()
+        .find(|s| s.id == "Heading1")
+        .unwrap();
+    // Even the exact old built-in name does not establish theme intent.
+    heading
+        .chr
+        .set_fixed_font(Some(joyword_model::styles::HEADING_FONT.into()));
+    let original = doc.clone();
+    let mut s = Session::new(doc);
+    s.run(
+        "design.themeFonts",
+        &json!({"heading":"New heading","body":"New body"}),
+    )
+    .unwrap();
+    assert_eq!(s.doc.styles.default_chr.font.as_deref(), Some("Fixed body"));
+    assert_eq!(
+        s.doc
+            .styles
+            .styles
+            .iter()
+            .find(|s| s.id == "Heading1")
+            .unwrap()
+            .chr
+            .font
+            .as_deref(),
+        Some(joyword_model::styles::HEADING_FONT)
+    );
+    let saved = joyword_docx::read(&joyword_docx::write(&s.doc).unwrap()).unwrap();
+    assert_eq!(saved.styles.default_chr.font.as_deref(), Some("Fixed body"));
+    s.undo();
+    assert_eq!(s.doc, original);
+}
+
+#[test]
+fn new_document_theme_fonts_follow_declared_roles_after_roundtrip() {
+    let doc = Document::new();
+    let doc = joyword_docx::read(&joyword_docx::write(&doc).unwrap()).unwrap();
+    let mut s = Session::new(doc);
+    s.run(
+        "design.themeFonts",
+        &json!({"heading":"New heading","body":"New body"}),
+    )
+    .unwrap();
+    assert_eq!(s.doc.styles.default_chr.font.as_deref(), Some("New body"));
+    for (id, expected) in [
+        ("Heading1", "New heading"),
+        ("Heading3", "New body"),
+        ("Title", "New heading"),
+    ] {
+        assert_eq!(
+            s.doc
+                .styles
+                .styles
+                .iter()
+                .find(|s| s.id == id)
+                .unwrap()
+                .chr
+                .font
+                .as_deref(),
+            Some(expected)
+        );
+    }
+}
+
+#[test]
+fn word_corpus_fixed_latin_and_explicit_script_fonts_are_not_replaced() {
+    for name in [
+        "breaks/word_keepnext.docx",
+        "breaks/word_nogrid.docx",
+        "breaks/word_widow4.docx",
+        "interop/word_edited.docx",
+        "interop/wordresaved/DOCX-MIN-001.docx",
+        "interop/wordresaved/DOCX-MIN-002.docx",
+        "interop/wordresaved/DOCX-MIN-003.docx",
+        "interop/wordresaved/DOCX-MIN-004.docx",
+        "interop/wordresaved/DOCX-SAMPLE-001.docx",
+    ] {
+        let bytes = std::fs::read(
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join("../../tests/fixtures/reference/word2024")
+                .join(name),
+        )
+        .unwrap();
+        let doc = joyword_docx::read(&bytes).unwrap();
+        let before = doc.styles.clone();
+        let mut s = Session::new(doc);
+        s.run(
+            "design.themeFonts",
+            &json!({"heading":"New heading","body":"New body"}),
+        )
+        .unwrap();
+        for (old, new) in std::iter::once((&before.default_chr, &s.doc.styles.default_chr)).chain(
+            before
+                .styles
+                .iter()
+                .zip(&s.doc.styles.styles)
+                .map(|(a, b)| (&a.chr, &b.chr)),
+        ) {
+            if old.theme_font.is_none() {
+                assert_eq!(old.font, new.font, "{name}");
+            }
+            assert_eq!(old.font_ea, new.font_ea, "{name}");
+            assert_eq!(old.font_cs, new.font_cs, "{name}");
+        }
+    }
+}
