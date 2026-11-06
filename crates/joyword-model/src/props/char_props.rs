@@ -355,6 +355,12 @@ pub struct CharProps {
     /// inherit, then `font`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub font_ea: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub font_ea_theme: Option<super::ScriptFontRef>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub font_cs_theme: Option<super::ScriptFontRef>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub font_hint: Option<String>,
     /// Complex-script size, points (`w:szCs`). `None` leaves the inherited value unchanged.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub size_cs: Option<f32>,
@@ -475,6 +481,15 @@ pub struct NumChange {
 }
 
 impl CharProps {
+    pub fn set_fixed_ea_font(&mut self, font: Option<String>) {
+        self.font_ea = font;
+        self.font_ea_theme = None;
+    }
+    pub fn set_fixed_cs_font(&mut self, font: Option<String>) {
+        self.font_cs = font;
+        self.font_cs_theme = None;
+    }
+
     /// Explicit color formatting detaches the binding even for a same-value edit.
     pub fn set_fixed_color(&mut self, color: Option<TextColor>) {
         self.color = color;
@@ -562,7 +577,15 @@ impl CharProps {
     }
 
     fn minus_script_style(&mut self, base: &CharProps) {
-        drop_same_fields!(self, base; cs, font_cs, font_ea, size_cs, bold_cs, italic_cs, lang_bidi, lang_ea, east_asian_layout);
+        if self.font_ea == base.font_ea && self.font_ea_theme == base.font_ea_theme {
+            self.font_ea = None;
+            self.font_ea_theme = None;
+        }
+        if self.font_cs == base.font_cs && self.font_cs_theme == base.font_cs_theme {
+            self.font_cs = None;
+            self.font_cs_theme = None;
+        }
+        drop_same_fields!(self, base; cs, font_hint, size_cs, bold_cs, italic_cs, lang_bidi, lang_ea, east_asian_layout);
     }
 
     fn minus_document_marks(&mut self, base: &CharProps) {
@@ -608,7 +631,37 @@ impl CharProps {
     }
 
     fn overlay_script_style(&mut self, patch: &CharProps) {
-        overlay_fields!(self, patch; cs, font_cs, font_ea, size_cs, bold_cs, italic_cs, lang_bidi, lang_ea, east_asian_layout);
+        if patch.font_ea.is_some() || patch.font_ea_theme.is_some() {
+            self.font_ea_theme = patch
+                .font_ea_theme
+                .clone()
+                .filter(|b| b.fixed == patch.font_ea);
+        }
+        if patch.font_cs.is_some() || patch.font_cs_theme.is_some() {
+            self.font_cs_theme = patch
+                .font_cs_theme
+                .clone()
+                .filter(|b| b.fixed == patch.font_cs);
+        }
+        overlay_fields!(self, patch; cs, font_cs, font_ea, font_hint, size_cs, bold_cs, italic_cs, lang_bidi, lang_ea, east_asian_layout);
+        // Layout still uses the inherited fixed fallback. Keep the opaque reference
+        // coherent with that effective fallback when combining property layers.
+        if patch
+            .font_ea_theme
+            .as_ref()
+            .is_some_and(|b| b.fixed == patch.font_ea)
+            && let Some(binding) = self.font_ea_theme.as_mut()
+        {
+            binding.fixed = self.font_ea.clone();
+        }
+        if patch
+            .font_cs_theme
+            .as_ref()
+            .is_some_and(|b| b.fixed == patch.font_cs)
+            && let Some(binding) = self.font_cs_theme.as_mut()
+        {
+            binding.fixed = self.font_cs.clone();
+        }
     }
 
     fn overlay_document_marks(&mut self, patch: &CharProps) {

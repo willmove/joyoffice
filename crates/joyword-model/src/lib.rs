@@ -146,3 +146,6 @@ pub struct Document {
 mod test_log;
 #[cfg(test)]
 mod tests;
+
+/// Saving must refuse rather than discard unsupported or transferred opaque font metadata.
+pub const UNSUPPORTED_FONT_METADATA: &str = "joyword:unsupported-font-metadata";

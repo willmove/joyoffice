@@ -59,6 +59,15 @@ pub fn rpr_inner(w: &mut W, c: &CharProps) {
     if let Some(cs) = &c.font_cs {
         fonts.push(("w:cs", cs));
     }
+    if let Some(b) = c.font_ea_theme.as_ref().filter(|b| b.fixed == c.font_ea) {
+        fonts.push(("w:eastAsiaTheme", &b.value));
+    }
+    if let Some(b) = c.font_cs_theme.as_ref().filter(|b| b.fixed == c.font_cs) {
+        fonts.push(("w:cstheme", &b.value));
+    }
+    if let Some(hint) = &c.font_hint {
+        fonts.push(("w:hint", hint));
+    }
     if !fonts.is_empty() {
         w.empty("w:rFonts", &fonts);
     }

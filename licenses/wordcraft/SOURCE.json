@@ -120,8 +120,8 @@
       "source": "crates/doc/src/edit.rs",
       "target": "crates/joyword-model/src/edit.rs",
       "source_sha256": "83a22e2c1414c5d02b933edca0b1a07d83a6a2791e719aa6ee5993184df1e521",
-      "changes": "Package/module naming and explicit source license only; formatter may normalize whitespace. Preserve supported Latin theme-font bindings separately from resolved fonts; detach explicit font overrides and source-format imports; retain bindings through snapshots, DOCX saves and theme-font commands.",
-      "adapted_sha256": "775957ddd8ecd2ce4c416f6d26d6ac15e294524fb22c3f4d7857512804272ad9"
+      "changes": "Package/module naming and explicit source license only; formatter may normalize whitespace. Preserve supported Latin theme-font bindings separately from resolved fonts; detach explicit font overrides and source-format imports; retain bindings through snapshots, DOCX saves and theme-font commands. Retain opaque EA/CS theme references and font hints; detach explicit script-font edits and refuse unsupported metadata or unresolved cross-theme transfers on DOCX save.",
+      "adapted_sha256": "48ee8e7551ce35a4d467b28cafe024aba83b978ae6cc633b175fdbb6c94d5d29"
     },
     {
       "source": "crates/doc/src/effects.rs",
@@ -187,8 +187,8 @@
       "source": "crates/doc/src/lib.rs",
       "target": "crates/joyword-model/src/lib.rs",
       "source_sha256": "1f421656dfaeb8d06e695ec8b707130af492b2570eec15897cd5038827561096",
-      "changes": "Package/module naming and explicit source license only; formatter may normalize whitespace. Preserve supported Latin theme-font bindings separately from resolved fonts; detach explicit font overrides and source-format imports; retain bindings through snapshots, DOCX saves and theme-font commands.",
-      "adapted_sha256": "82257dacc3ab573ac56d131e244a9ce58294e226295b580f84aaf088a9152581"
+      "changes": "Package/module naming and explicit source license only; formatter may normalize whitespace. Preserve supported Latin theme-font bindings separately from resolved fonts; detach explicit font overrides and source-format imports; retain bindings through snapshots, DOCX saves and theme-font commands. Retain opaque EA/CS theme references and font hints; detach explicit script-font edits and refuse unsupported metadata or unresolved cross-theme transfers on DOCX save.",
+      "adapted_sha256": "88e241ab521c832e455cfa99428f61a90f9157047df480739b7ed8f99c4ebf2d"
     },
     {
       "source": "crates/doc/src/line_dash.rs",
@@ -290,8 +290,8 @@
       "source": "crates/doc/src/props/char_props.rs",
       "target": "crates/joyword-model/src/props/char_props.rs",
       "source_sha256": "d32b4c40797f84be4c051ec58fd7349d11ecd79aa40d3a83f329c77dfc25c366",
-      "changes": "Package/module naming and explicit source license only; formatter may normalize whitespace. Preserve supported Latin theme-font bindings separately from resolved fonts; detach explicit font overrides and source-format imports; retain bindings through snapshots, DOCX saves and theme-font commands. Preserve run color theme references and modifier attributes; detach explicit color edits and refresh coherent bindings when themes change.",
-      "adapted_sha256": "3702fa7e646e2efc36a5bd370e0e44f5d30ddc68178ca206834bc05d39670ae9"
+      "changes": "Package/module naming and explicit source license only; formatter may normalize whitespace. Preserve supported Latin theme-font bindings separately from resolved fonts; detach explicit font overrides and source-format imports; retain bindings through snapshots, DOCX saves and theme-font commands. Preserve run color theme references and modifier attributes; detach explicit color edits and refresh coherent bindings when themes change. Retain opaque EA/CS theme references and font hints; detach explicit script-font edits and refuse unsupported metadata or unresolved cross-theme transfers on DOCX save.",
+      "adapted_sha256": "5b90bbfaa38afd1cb968d0e8918b3337ba54e64a3e6aabbd59df140c9a50b984"
     },
     {
       "source": "crates/doc/src/props/color.rs",
@@ -315,8 +315,8 @@
       "source": "crates/doc/src/props.rs",
       "target": "crates/joyword-model/src/props.rs",
       "source_sha256": "139dfb7aa54d791059ba934d96346a1cb804613b0b7e6f9bfcfce4de7a6b9d6b",
-      "changes": "Package/module naming and explicit source license only; formatter may normalize whitespace. Preserve supported Latin theme-font bindings separately from resolved fonts; detach explicit font overrides and source-format imports; retain bindings through snapshots, DOCX saves and theme-font commands. Preserve run color theme references and modifier attributes; detach explicit color edits and refresh coherent bindings when themes change.",
-      "adapted_sha256": "9a3f77a3624587c2c326d99b95344c08ab1012677832aed9331c4b5a92566091"
+      "changes": "Package/module naming and explicit source license only; formatter may normalize whitespace. Preserve supported Latin theme-font bindings separately from resolved fonts; detach explicit font overrides and source-format imports; retain bindings through snapshots, DOCX saves and theme-font commands. Preserve run color theme references and modifier attributes; detach explicit color edits and refresh coherent bindings when themes change. Retain opaque EA/CS theme references and font hints; detach explicit script-font edits and refuse unsupported metadata or unresolved cross-theme transfers on DOCX save.",
+      "adapted_sha256": "2225cf9841237fdfa7db046e276b64a1ab662bc2b0fe1fd0a06a6da4062066e9"
     },
     {
       "source": "crates/doc/src/resolve.rs",
@@ -1115,7 +1115,8 @@
       "source": "crates/docx/src/read.rs",
       "target": "crates/joyword-docx/src/read.rs",
       "source_sha256": "3dbb884ca4f7143a63a94e76aa5aa6b3b1c4e522a591e901fae9c0c2ae19ddf0",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md."
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Retain opaque EA/CS theme references and font hints; detach explicit script-font edits and refuse unsupported metadata or unresolved cross-theme transfers on DOCX save.",
+      "adapted_sha256": "536e89b08bf1ef2bc9743526952c75b431ed7fd23faa58e194f71b9b699bf8ea"
     },
     {
       "source": "crates/docx/src/smart_art.rs",
@@ -1284,8 +1285,8 @@
       "source": "crates/docx/tests/it/main.rs",
       "target": "crates/joyword-docx/tests/it/main.rs",
       "source_sha256": "dbcba1e0cfa1c9bc92ea17cf446252eedf1111c7acaa4048ca93f9844b0580ba",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Preserve imported theme XML and its complete dependency graph; patch only unambiguous model-owned theme attributes, retaining script fonts and unknown content. Add real-Word effective paragraph/character style round-trip regression. Preserve supported Latin theme-font bindings separately from resolved fonts; detach explicit font overrides and source-format imports; retain bindings through snapshots, DOCX saves and theme-font commands. Preserve run color theme references and modifier attributes; detach explicit color edits and refresh coherent bindings when themes change.",
-      "adapted_sha256": "e5244b76fa887a5f0aaab85d84549d9f5234588484ea451afdcb85c6a4c32619"
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Preserve imported theme XML and its complete dependency graph; patch only unambiguous model-owned theme attributes, retaining script fonts and unknown content. Add real-Word effective paragraph/character style round-trip regression. Preserve supported Latin theme-font bindings separately from resolved fonts; detach explicit font overrides and source-format imports; retain bindings through snapshots, DOCX saves and theme-font commands. Preserve run color theme references and modifier attributes; detach explicit color edits and refresh coherent bindings when themes change. Retain opaque EA/CS theme references and font hints; detach explicit script-font edits and refuse unsupported metadata or unresolved cross-theme transfers on DOCX save.",
+      "adapted_sha256": "6a4ef1ee028eac88e1b23b440743ba363ce648201184df3b46b383e8887ed91b"
     },
     {
       "source": "crates/docx/tests/it/malformed.rs",
@@ -1321,8 +1322,8 @@
       "source": "crates/docx/tests/it/roundtrip.rs",
       "target": "crates/joyword-docx/tests/it/roundtrip.rs",
       "source_sha256": "8c730c94af45ef8b810912ab32f2485eb397fc2ae42a18766c8e7794a3d44dfa",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Preserve supported Latin theme-font bindings separately from resolved fonts; detach explicit font overrides and source-format imports; retain bindings through snapshots, DOCX saves and theme-font commands. Preserve run color theme references and modifier attributes; detach explicit color edits and refresh coherent bindings when themes change.",
-      "adapted_sha256": "5db2d4e5020c42b159313a10020812c9471a9d532e0ad1f247562fc02f92a422"
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Preserve supported Latin theme-font bindings separately from resolved fonts; detach explicit font overrides and source-format imports; retain bindings through snapshots, DOCX saves and theme-font commands. Preserve run color theme references and modifier attributes; detach explicit color edits and refresh coherent bindings when themes change. Retain opaque EA/CS theme references and font hints; detach explicit script-font edits and refuse unsupported metadata or unresolved cross-theme transfers on DOCX save.",
+      "adapted_sha256": "33cc0fcf5b312fbfee09b19e83151046ac0747384847e1f38651e0a0e86609fb"
     },
     {
       "source": "crates/docx/tests/it/row_property_exceptions.rs",
@@ -1474,8 +1475,8 @@
       "source": "crates/docx/src/read/props.rs",
       "target": "crates/joyword-docx/src/read/props.rs",
       "source_sha256": "5455976dedff93de5b3c016a8a810d21dda44f19b7d50c25d542d1d665a791e3",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Preserve supported Latin theme-font bindings separately from resolved fonts; detach explicit font overrides and source-format imports; retain bindings through snapshots, DOCX saves and theme-font commands. Preserve run color theme references and modifier attributes; detach explicit color edits and refresh coherent bindings when themes change.",
-      "adapted_sha256": "38c6116c6fb87082a99a4986d89674ca885931bbb68c7bee6bec07cb242f672c"
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Preserve supported Latin theme-font bindings separately from resolved fonts; detach explicit font overrides and source-format imports; retain bindings through snapshots, DOCX saves and theme-font commands. Preserve run color theme references and modifier attributes; detach explicit color edits and refresh coherent bindings when themes change. Retain opaque EA/CS theme references and font hints; detach explicit script-font edits and refuse unsupported metadata or unresolved cross-theme transfers on DOCX save.",
+      "adapted_sha256": "cbeab13cd45e1cda60ea119ddfbc61aea1869881b77cc1185ae1df5176c9b3d6"
     },
     {
       "source": "crates/docx/src/read/sdt.rs",
@@ -1548,15 +1549,15 @@
       "source": "crates/docx/src/write/parts.rs",
       "target": "crates/joyword-docx/src/write/parts.rs",
       "source_sha256": "a6ed33f9c32756bac29f64cfe694e8c05f2d3d156da0d429f433eab562407e6e",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Preserve imported theme XML and its complete dependency graph; patch only unambiguous model-owned theme attributes, retaining script fonts and unknown content.",
-      "adapted_sha256": "8c5593e7c834e0a606134ba72a20f0b6370336fbcc9a745c6805f27ff6583ed6"
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Preserve imported theme XML and its complete dependency graph; patch only unambiguous model-owned theme attributes, retaining script fonts and unknown content. Retain opaque EA/CS theme references and font hints; detach explicit script-font edits and refuse unsupported metadata or unresolved cross-theme transfers on DOCX save.",
+      "adapted_sha256": "3b5ae1fe80672e22cc0184e3ded9f45673eed5c272bbe6054329807ba853c8dc"
     },
     {
       "source": "crates/docx/src/write/props.rs",
       "target": "crates/joyword-docx/src/write/props.rs",
       "source_sha256": "979b2ef2cad2e50ffa29112f77b6b8e6319498c1e3c58cbab2db94f93d659c6b",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Preserve supported Latin theme-font bindings separately from resolved fonts; detach explicit font overrides and source-format imports; retain bindings through snapshots, DOCX saves and theme-font commands. Preserve run color theme references and modifier attributes; detach explicit color edits and refresh coherent bindings when themes change.",
-      "adapted_sha256": "4a342be1196b9fc47c7c191bbf9ad1e29508b32d034ee48a0115d327f42f53b1"
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Preserve supported Latin theme-font bindings separately from resolved fonts; detach explicit font overrides and source-format imports; retain bindings through snapshots, DOCX saves and theme-font commands. Preserve run color theme references and modifier attributes; detach explicit color edits and refresh coherent bindings when themes change. Retain opaque EA/CS theme references and font hints; detach explicit script-font edits and refuse unsupported metadata or unresolved cross-theme transfers on DOCX save.",
+      "adapted_sha256": "ad81601ac4a1bd79b9b85f6c73c9be0fb09bb66acfe59dd7abf52a30a2184de6"
     },
     {
       "source": "crates/docx/src/write/sdt.rs",
@@ -2610,8 +2611,8 @@
       "source": "crates/engine/src/cmd/format.rs",
       "target": "crates/joyword-engine/src/cmd/format.rs",
       "source_sha256": "4afe88272cbbcc2329a4b9d33f6f2258f9f63a66142477f273cd5ce2ce23bd05",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. R4 adds an additive mixed-toggle metadata array to format.state; existing command and boolean semantics retained. Preserve supported Latin theme-font bindings separately from resolved fonts; detach explicit font overrides and source-format imports; retain bindings through snapshots, DOCX saves and theme-font commands. Preserve run color theme references and modifier attributes; detach explicit color edits and refresh coherent bindings when themes change.",
-      "adapted_sha256": "a7831bbc35fa5ca6be534ef54240d64e9eacc0707db7330365ae0694923e4613"
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. R4 adds an additive mixed-toggle metadata array to format.state; existing command and boolean semantics retained. Preserve supported Latin theme-font bindings separately from resolved fonts; detach explicit font overrides and source-format imports; retain bindings through snapshots, DOCX saves and theme-font commands. Preserve run color theme references and modifier attributes; detach explicit color edits and refresh coherent bindings when themes change. Retain opaque EA/CS theme references and font hints; detach explicit script-font edits and refuse unsupported metadata or unresolved cross-theme transfers on DOCX save.",
+      "adapted_sha256": "42b1fa4c78b3cfd883c8f5a1ef38e27adab00beb9ca8fa0e6eb0e8c7c3d14799"
     },
     {
       "source": "crates/engine/src/cmd/index.rs",
@@ -3136,8 +3137,8 @@
       "source": "crates/engine/src/cmd/para/styles.rs",
       "target": "crates/joyword-engine/src/cmd/para/styles.rs",
       "source_sha256": "f10fa6201ec3c2da17df0015ce232a277ea8e4c9ca45352adbfee95afcf47527",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. R4 authoring: paragraph/character style creation, validated same-kind/cycle-free inheritance, style reset to inherited formatting; painter copies resolved inherited character formatting. Existing 651 registry commands preserved. Preserve supported Latin theme-font bindings separately from resolved fonts; detach explicit font overrides and source-format imports; retain bindings through snapshots, DOCX saves and theme-font commands. Preserve run color theme references and modifier attributes; detach explicit color edits and refresh coherent bindings when themes change.",
-      "adapted_sha256": "025a6162dfb6350730c0065ae1039e2b806443a130396392304127b59cd96cfb"
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. R4 authoring: paragraph/character style creation, validated same-kind/cycle-free inheritance, style reset to inherited formatting; painter copies resolved inherited character formatting. Existing 651 registry commands preserved. Preserve supported Latin theme-font bindings separately from resolved fonts; detach explicit font overrides and source-format imports; retain bindings through snapshots, DOCX saves and theme-font commands. Preserve run color theme references and modifier attributes; detach explicit color edits and refresh coherent bindings when themes change. Retain opaque EA/CS theme references and font hints; detach explicit script-font edits and refuse unsupported metadata or unresolved cross-theme transfers on DOCX save.",
+      "adapted_sha256": "0a3a0e6de3b08f3ddd21882e00eb146543062cc24efce8a95339107b4db6ad21"
     },
     {
       "source": "crates/engine/src/cmd/para/tabs_borders.rs",

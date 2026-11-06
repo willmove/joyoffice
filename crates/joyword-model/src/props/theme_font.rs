@@ -30,6 +30,14 @@ impl ThemeFont {
     }
 }
 
+/// Opaque EA/CS reference; the fixed fallback is a coherence guard, not a resolved theme font.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ScriptFontRef {
+    pub value: String,
+    pub fixed: Option<String>,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -98,5 +106,43 @@ mod tests {
             paragraph.is_some_and(|p| p.runs[0].props.font.as_deref() == Some("Old")
                 && p.runs[0].props.theme_font.is_none())
         );
+    }
+}
+
+#[cfg(test)]
+mod script_tests {
+    use super::*;
+    use crate::props::CharProps;
+    #[test]
+    fn opaque_script_overlays_keep_fallback_and_explicit_overrides() -> Result<(), serde_json::Error>
+    {
+        let base = CharProps {
+            font_ea: Some("Fallback".into()),
+            ..Default::default()
+        };
+        let patch = CharProps {
+            font_ea_theme: Some(ScriptFontRef {
+                value: "future".into(),
+                fixed: None,
+            }),
+            font_hint: Some("future-hint".into()),
+            ..Default::default()
+        };
+        let bound = base.overlaid(&patch);
+        assert_eq!(bound.font_ea.as_deref(), Some("Fallback"));
+        assert_eq!(
+            bound.font_ea_theme.as_ref().map(|b| b.fixed.as_ref()),
+            Some(bound.font_ea.as_ref())
+        );
+        let mut fixed = bound.clone();
+        fixed.set_fixed_ea_font(bound.font_ea.clone());
+        assert_eq!(bound.clone().overlaid(&fixed.clone().minus(&bound)), fixed);
+        assert!(bound.clone().minus(&bound).font_ea_theme.is_none());
+        let bytes = serde_json::to_vec(&bound)?;
+        assert_eq!(serde_json::from_slice::<CharProps>(&bytes)?, bound);
+        let old: CharProps = serde_json::from_str("{}")?;
+        assert!(old.font_ea_theme.is_none());
+        assert!(old.font_hint.is_none());
+        Ok(())
     }
 }

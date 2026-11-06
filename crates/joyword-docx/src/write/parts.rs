@@ -15,6 +15,15 @@ pub(crate) fn write_parts(
     doc: &Document,
     flavor: Flavor,
 ) -> Result<Vec<(String, Vec<u8>)>, DocxError> {
+    if doc
+        .passthrough
+        .contains_key(joyword_model::UNSUPPORTED_FONT_METADATA)
+    {
+        return Err(crate::DocxError::Xml(
+            "Cannot safely save unsupported font metadata or transferred unresolved script fonts"
+                .into(),
+        ));
+    }
     // A range field must be whole in the file: drop markers that lost their partner in editing.
     let balanced;
     let doc = if doc.has_unbalanced_field_ranges() {

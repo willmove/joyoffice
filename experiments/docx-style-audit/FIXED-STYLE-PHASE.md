@@ -63,3 +63,6 @@ EA/CS visual behavior remain unverified.
   All observed checks were queued, with no reruns/cancellations requested.
 - Desktop/CLI compilation was verified in the preceding phase; this narrow
   follow-up reran model/DOCX/engine checks, not native desktop acceptance.
+
+Follow-up: [opaque script-font preservation](SCRIPT-FONT-PHASE.md) preserves the
+EA/CS references and hint attributes counted above; full script-theme resolution remains outside this phase.

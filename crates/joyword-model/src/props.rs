@@ -24,7 +24,7 @@ mod table_props;
 mod theme_color;
 mod theme_font;
 pub use theme_color::ThemeColor;
-pub use theme_font::ThemeFont;
+pub use theme_font::{ScriptFontRef, ThemeFont};
 
 pub use char_props::{
     CharProps, CombineBrackets, DEFAULT_FONT_SIZE, EastAsianLayout, Highlight, Ligatures,

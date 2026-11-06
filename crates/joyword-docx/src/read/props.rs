@@ -67,6 +67,7 @@ use crate::xml::El;
 /// Context for property reading: theme fonts and colours, and style id aliases.
 #[derive(Default)]
 pub struct PropCtx {
+    pub unsupported_rfonts: std::cell::Cell<bool>,
     pub major_font: String,
     pub minor_font: String,
     /// The theme's complex-script fonts (`a:cs`), which the `…Bidi` theme slots fall back on.
@@ -333,18 +334,47 @@ impl PropCtx {
                             resolved,
                         });
                     }
-                    // The complex-script font (Persian, Arabic, Hebrew text). A `w:cstheme` font is
-                    // left to inherit: the theme's per-script fonts aren't read.
+                    // Retain script references as opaque metadata; do not invent script selection.
                     c.font_cs = k
                         .attr("w:cs")
                         .filter(|f| !f.is_empty() && f.len() < 256)
                         .map(str::to_string);
-                    // The East Asian font (Chinese, Japanese, Korean text). A `w:eastAsiaTheme` font
-                    // is left to inherit, like `w:cstheme`.
                     c.font_ea = k
                         .attr("w:eastAsia")
                         .filter(|f| !f.is_empty() && f.len() < 256)
                         .map(str::to_string);
+                    c.font_cs_theme =
+                        k.attr("w:cstheme")
+                            .map(|value| joyword_model::props::ScriptFontRef {
+                                value: value.into(),
+                                fixed: c.font_cs.clone(),
+                            });
+                    c.font_ea_theme = k.attr("w:eastAsiaTheme").map(|value| {
+                        joyword_model::props::ScriptFontRef {
+                            value: value.into(),
+                            fixed: c.font_ea.clone(),
+                        }
+                    });
+                    c.font_hint = k.attr("w:hint").map(str::to_string);
+                    let owned = [
+                        "ascii",
+                        "hAnsi",
+                        "eastAsia",
+                        "cs",
+                        "asciiTheme",
+                        "hAnsiTheme",
+                        "eastAsiaTheme",
+                        "cstheme",
+                        "hint",
+                    ];
+                    if k.attrs.iter().any(|(key, _)| {
+                        !owned
+                            .iter()
+                            .any(|name| key == name || key == &format!("w:{name}"))
+                    }) || !k.kids.is_empty()
+                    {
+                        self.unsupported_rfonts.set(true);
+                    }
                 }
                 "w:b" => c.bold = Some(on_off(k)),
                 "w:bCs" => c.bold_cs = Some(on_off(k)),

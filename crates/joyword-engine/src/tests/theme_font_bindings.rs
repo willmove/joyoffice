@@ -190,3 +190,52 @@ fn word_corpus_fixed_latin_and_explicit_script_fonts_are_not_replaced() {
         }
     }
 }
+
+#[test]
+fn explicit_script_font_commands_detach_only_target_and_undo_restores() {
+    use joyword_model::props::ScriptFontRef;
+    let mut doc = Document::new();
+    doc.body = vec![para_block(Paragraph::with_text(
+        "Text",
+        CharProps {
+            font_ea: Some("Fixed EA".into()),
+            font_cs: Some("Fixed CS".into()),
+            font_ea_theme: Some(ScriptFontRef {
+                value: "majorEastAsia".into(),
+                fixed: Some("Fixed EA".into()),
+            }),
+            font_cs_theme: Some(ScriptFontRef {
+                value: "minorBidi".into(),
+                fixed: Some("Fixed CS".into()),
+            }),
+            font_hint: Some("eastAsia".into()),
+            ..Default::default()
+        },
+    ))]
+    .into();
+    let mut s = Session::new(doc);
+    s.sel.anchor = s.doc.start_of(StoryRef::Body);
+    s.sel.focus = s.doc.end_of(StoryRef::Body);
+    let before = s.doc.clone();
+    s.run("format.font", &json!({"eastAsia":"Fixed EA"}))
+        .unwrap();
+    let props = &s.doc.body[0].as_para().unwrap().runs[0].props;
+    assert!(props.font_ea_theme.is_none());
+    assert!(props.font_cs_theme.is_some());
+    assert_eq!(props.font_hint.as_deref(), Some("eastAsia"));
+    s.undo();
+    assert_eq!(s.doc, before);
+    s.run("format.font", &json!({"name":"Fixed CS"})).unwrap();
+    let props = &s.doc.body[0].as_para().unwrap().runs[0].props;
+    assert!(props.font_cs_theme.is_none());
+    assert!(props.font_ea_theme.is_some());
+    let saved = joyword_docx::read(&joyword_docx::write(&s.doc).unwrap()).unwrap();
+    assert!(
+        saved.body[0].as_para().unwrap().runs[0]
+            .props
+            .font_ea_theme
+            .is_some()
+    );
+    s.undo();
+    assert_eq!(s.doc, before);
+}

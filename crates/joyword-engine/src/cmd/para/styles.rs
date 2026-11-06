@@ -70,15 +70,17 @@ pub(super) fn apply_style(s: &mut Session, v: &Value) -> CmdResult {
             let len = para.len();
             para.format(0, len, &|c| {
                 c.set_fixed_font(None);
-                c.font_cs = None;
-                c.font_ea = None;
+                c.set_fixed_cs_font(None);
+                c.font_hint = None;
+                c.set_fixed_ea_font(None);
                 c.size = None;
                 c.size_cs = None;
                 c.set_fixed_color(None);
             })?;
             para.mark.set_fixed_font(None);
-            para.mark.font_cs = None;
-            para.mark.font_ea = None;
+            para.mark.set_fixed_cs_font(None);
+            para.mark.font_hint = None;
+            para.mark.set_fixed_ea_font(None);
             para.mark.size = None;
             para.mark.size_cs = None;
             para.mark.set_fixed_color(None);

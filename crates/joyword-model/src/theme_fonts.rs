@@ -13,7 +13,11 @@ fn transform(props: &mut CharProps, edit: &dyn Fn(&mut CharProps), depth: usize)
 
 fn blocks(blocks: &mut Blocks, edit: &dyn Fn(&mut CharProps)) {
     let relevant = |props: &CharProps| {
-        props.theme_font.is_some() || props.theme_color.is_some() || props.fmt_change.is_some()
+        props.font_ea_theme.is_some()
+            || props.font_cs_theme.is_some()
+            || props.theme_font.is_some()
+            || props.theme_color.is_some()
+            || props.fmt_change.is_some()
     };
     for block in blocks.iter_mut() {
         let mut any = false;
@@ -54,10 +58,20 @@ impl Document {
 
     /// Freeze source font and color formatting when moving content to another theme.
     pub(crate) fn detach_theme_fonts(&mut self) {
+        let unresolved = std::cell::Cell::new(false);
         self.transform_theme_fonts(&|props| {
+            unresolved.set(
+                unresolved.get() || props.font_ea_theme.is_some() || props.font_cs_theme.is_some(),
+            );
             props.theme_font = None;
             props.theme_color = None;
         });
+        if unresolved.get() {
+            self.passthrough.insert(
+                crate::UNSUPPORTED_FONT_METADATA.into(),
+                Arc::new(Vec::new()),
+            );
+        }
     }
 
     fn transform_theme_fonts(&mut self, edit: &dyn Fn(&mut CharProps)) {

@@ -394,6 +394,12 @@ fn read_opened_in(
         keep_glued_ids(&mut r.doc, &r.glued);
     }
     let (left, bytes, graphic) = (r.chunks.left, r.chunks.bytes, r.chunks.graphic);
+    if r.pc.unsupported_rfonts.get() {
+        r.doc.passthrough.insert(
+            joyword_model::UNSUPPORTED_FONT_METADATA.into(),
+            Arc::new(Vec::new()),
+        );
+    }
     let mut doc = r.doc;
     doc.ensure_nonempty();
     Ok((doc, left, bytes, graphic))

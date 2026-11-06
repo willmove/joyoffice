@@ -1289,6 +1289,15 @@ impl Document {
     fn adopt_in(&mut self, mut src: Document, keep_styles: bool, perms: &mut u32) -> Fragment {
         // Imported formatting is resolved against the source theme, not this document's.
         src.detach_theme_fonts();
+        if src
+            .passthrough
+            .contains_key(crate::UNSUPPORTED_FONT_METADATA)
+        {
+            self.passthrough.insert(
+                crate::UNSUPPORTED_FONT_METADATA.into(),
+                Arc::new(Vec::new()),
+            );
+        }
         let mut renamed = BTreeMap::new();
         let mut default_style = None;
         if keep_styles {
