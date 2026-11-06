@@ -36,7 +36,7 @@ cargo xtask package joysheet
 cargo xtask package joydeck
 ```
 
-开发包在 `dist/` 下按产品分目录。Linux 需要可用的 GPUI 显示与 Vulkan 环境。macOS 原生构建、签名和文件关联的验证安排见交接文档。正式发布由 [发布工作流](.github/workflows/release.yml) 按产品路由。
+开发包在 `dist/` 下按产品分目录。Linux 需要可用的 GPUI 显示与 Vulkan 环境。JoyDeck 的外部 HTML／RTF 粘贴在 X11 上使用 `xclip`，在 Wayland 上使用 `wl-clipboard` 提供的 `wl-paste`。请将对应命令安装到 PATH。macOS 原生构建、签名和文件关联的验证安排见交接文档。正式发布由 [发布工作流](.github/workflows/release.yml) 按产品路由。
 
 - [仓库开发约定](AGENTS.md)
 - [Monorepo 整合记录](docs/joyoffice/MONOREPO-RESULT.md)

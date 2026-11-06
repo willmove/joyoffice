@@ -1,7 +1,13 @@
 //! Read the standard external rich flavors beside GPUI's existing clipboard data.
+#[cfg(not(target_os = "linux"))]
 use joydeck_model::TextBody;
+#[cfg(target_os = "linux")]
+#[path = "native_clipboard_linux.rs"]
+mod linux;
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 use joydeck_shell::clipboard_import::{self, MAX_INPUT};
+#[cfg(target_os = "linux")]
+pub(super) use linux::rich_text;
 
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 fn parse(html: Option<Vec<u8>>, rtf: Option<Vec<u8>>) -> Option<TextBody> {
@@ -11,7 +17,7 @@ fn parse(html: Option<Vec<u8>>, rtf: Option<Vec<u8>>) -> Option<TextBody> {
 }
 
 #[cfg(target_os = "macos")]
-pub(super) fn rich_text() -> Option<TextBody> {
+pub(super) fn rich_text(_compositor: &str) -> Option<TextBody> {
     use objc2_app_kit::NSPasteboard;
     use objc2_foundation::NSString;
     let board = NSPasteboard::generalPasteboard();
@@ -29,7 +35,7 @@ pub(super) fn rich_text() -> Option<TextBody> {
 }
 
 #[cfg(target_os = "windows")]
-pub(super) fn rich_text() -> Option<TextBody> {
+pub(super) fn rich_text(_compositor: &str) -> Option<TextBody> {
     let (html, rtf) = {
         let _board = clipboard_win::Clipboard::new_attempts(2).ok()?;
         let read = |kind| {
@@ -48,7 +54,7 @@ pub(super) fn rich_text() -> Option<TextBody> {
     parse(html, rtf)
 }
 
-#[cfg(not(any(target_os = "macos", target_os = "windows")))]
-pub(super) fn rich_text() -> Option<TextBody> {
+#[cfg(not(any(target_os = "macos", target_os = "windows", target_os = "linux")))]
+pub(super) fn rich_text(_compositor: &str) -> Option<TextBody> {
     None
 }
