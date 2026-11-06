@@ -1,0 +1,97 @@
+[
+  {
+    "package": "accesskit_atspi_common@0.19.1",
+    "crateSha256": "023da0e5097f46df7092d5280b02efb9bbf8d93298daeced42652463e357d636",
+    "vcsCommit": "c88605b96d04431f9c3c792464a0f2f253480e94",
+    "upstreamManifest": "https://raw.githubusercontent.com/AccessKit/accesskit/c88605b96d04431f9c3c792464a0f2f253480e94/platforms/atspi-common/Cargo.toml",
+    "upstreamVersion": "0.19.1",
+    "files": [
+      {
+        "file": "LICENSE-APACHE",
+        "url": "https://raw.githubusercontent.com/AccessKit/accesskit/c88605b96d04431f9c3c792464a0f2f253480e94/LICENSE-APACHE",
+        "sha256": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a"
+      },
+      {
+        "file": "LICENSE-MIT",
+        "url": "https://raw.githubusercontent.com/AccessKit/accesskit/c88605b96d04431f9c3c792464a0f2f253480e94/LICENSE-MIT",
+        "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3"
+      }
+    ]
+  },
+  {
+    "package": "accesskit_unix@0.22.1",
+    "crateSha256": "03e156ed3802e35eefe894ef2671bc6c889303d8a7e110b5e1b48f504b91362f",
+    "vcsCommit": "c88605b96d04431f9c3c792464a0f2f253480e94",
+    "upstreamManifest": "https://raw.githubusercontent.com/AccessKit/accesskit/c88605b96d04431f9c3c792464a0f2f253480e94/platforms/unix/Cargo.toml",
+    "upstreamVersion": "0.22.1",
+    "files": [
+      {
+        "file": "LICENSE-APACHE",
+        "url": "https://raw.githubusercontent.com/AccessKit/accesskit/c88605b96d04431f9c3c792464a0f2f253480e94/LICENSE-APACHE",
+        "sha256": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a"
+      },
+      {
+        "file": "LICENSE-MIT",
+        "url": "https://raw.githubusercontent.com/AccessKit/accesskit/c88605b96d04431f9c3c792464a0f2f253480e94/LICENSE-MIT",
+        "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3"
+      }
+    ]
+  },
+  {
+    "package": "harfrust@0.5.2",
+    "crateSha256": "9da2e5ae821f6e96664977bf974d6d6a2d6682f9ccee23e62ec1d134246845f9",
+    "vcsCommit": "efdae3142ab76a2f1524d72cff9e3dfdc5afd7ca",
+    "upstreamManifest": "https://raw.githubusercontent.com/harfbuzz/harfrust/efdae3142ab76a2f1524d72cff9e3dfdc5afd7ca/harfrust/Cargo.toml",
+    "upstreamVersion": "0.5.2",
+    "files": [
+      {
+        "file": "LICENSE",
+        "url": "https://raw.githubusercontent.com/harfbuzz/harfrust/efdae3142ab76a2f1524d72cff9e3dfdc5afd7ca/LICENSE",
+        "sha256": "3a7c3f0b887abb7c638faf022d29257418458614c6724b120ceeffb279f9c7d2"
+      }
+    ],
+    "workspaceManifest": "https://raw.githubusercontent.com/harfbuzz/harfrust/efdae3142ab76a2f1524d72cff9e3dfdc5afd7ca/Cargo.toml"
+  },
+  {
+    "package": "spirv@0.4.0+sdk-1.4.341.0",
+    "crateSha256": "d9571ea910ebd84c86af4b3ed27f9dbdc6ad06f17c5f96146b2b671e2976744f",
+    "vcsCommit": "8afc3d0ac8e158128cd1410bb2e4b4c26ab11bb4",
+    "upstreamManifest": "https://raw.githubusercontent.com/gfx-rs/rspirv/8afc3d0ac8e158128cd1410bb2e4b4c26ab11bb4/spirv/Cargo.toml",
+    "upstreamVersion": "0.4.0+sdk-1.4.341.0",
+    "files": [
+      {
+        "file": "LICENSE",
+        "url": "https://raw.githubusercontent.com/gfx-rs/rspirv/8afc3d0ac8e158128cd1410bb2e4b4c26ab11bb4/LICENSE",
+        "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+      }
+    ]
+  },
+  {
+    "package": "xim-ctext@0.3.0",
+    "crateSha256": "2ac61a7062c40f3c37b6e82eeeef835d5cc7824b632a72784a89b3963c33284c",
+    "vcsCommit": "65f77e44524ba487285a63aac4080faf2c05b4ed",
+    "upstreamManifest": "https://raw.githubusercontent.com/Riey/xim-rs/65f77e44524ba487285a63aac4080faf2c05b4ed/xim-ctext/Cargo.toml",
+    "upstreamVersion": "0.3.0",
+    "files": [
+      {
+        "file": "LICENSE",
+        "url": "https://raw.githubusercontent.com/Riey/xim-rs/65f77e44524ba487285a63aac4080faf2c05b4ed/LICENSE",
+        "sha256": "efa1224931b98468f5005f77285457f8d2eab0a77a15941aa10abbab1ae9a74e"
+      }
+    ]
+  },
+  {
+    "package": "xim-parser@0.2.2",
+    "crateSha256": "5dcee45f89572d5a65180af3a84e7ddb24f5ea690a6d3aa9de231281544dd7b7",
+    "vcsCommit": "7300de35a111de2df1a694bf70454532a8419685",
+    "upstreamManifest": "https://raw.githubusercontent.com/Riey/xim-rs/7300de35a111de2df1a694bf70454532a8419685/xim-parser/Cargo.toml",
+    "upstreamVersion": "0.2.2",
+    "files": [
+      {
+        "file": "LICENSE",
+        "url": "https://raw.githubusercontent.com/Riey/xim-rs/7300de35a111de2df1a694bf70454532a8419685/LICENSE",
+        "sha256": "efa1224931b98468f5005f77285457f8d2eab0a77a15941aa10abbab1ae9a74e"
+      }
+    ]
+  }
+]
