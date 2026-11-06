@@ -207,15 +207,17 @@ pub(crate) fn write_parts(
         &format!("{CT_WML}settings+xml"),
         settings_rels,
     );
-    rels.add(rt::THEME, "theme/theme1.xml", false);
-    push_part(
-        &mut entries,
-        &mut overrides,
-        "word/theme/theme1.xml",
-        theme_xml(doc),
-        "application/vnd.openxmlformats-officedocument.theme+xml",
-        PartRels::default(),
-    );
+    if !wr.embeds.theme(doc, &mut rels)? {
+        rels.add(rt::THEME, "theme/theme1.xml", false);
+        push_part(
+            &mut entries,
+            &mut overrides,
+            "word/theme/theme1.xml",
+            theme_xml(doc),
+            "application/vnd.openxmlformats-officedocument.theme+xml",
+            PartRels::default(),
+        );
+    }
 
     wr.embeds.font_table(&mut rels);
 

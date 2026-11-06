@@ -1146,7 +1146,8 @@
       "source": "crates/docx/src/write.rs",
       "target": "crates/joyword-docx/src/write.rs",
       "source_sha256": "c38c5a60f0a2cc3e0194260eed1b414cc32c828b31105784dbef0314e40e1550",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md."
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Preserve imported theme XML and its complete dependency graph; patch only unambiguous model-owned theme attributes, retaining script fonts and unknown content.",
+      "adapted_sha256": "f7d171cf04bc536b58e8417253fc3981b9d05f2a29105895b564d534f43f3039"
     },
     {
       "source": "crates/docx/src/xml.rs",
@@ -1278,7 +1279,8 @@
       "source": "crates/docx/tests/it/main.rs",
       "target": "crates/joyword-docx/tests/it/main.rs",
       "source_sha256": "dbcba1e0cfa1c9bc92ea17cf446252eedf1111c7acaa4048ca93f9844b0580ba",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md."
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Preserve imported theme XML and its complete dependency graph; patch only unambiguous model-owned theme attributes, retaining script fonts and unknown content.",
+      "adapted_sha256": "59e44684c05629de5cf1029d65ff2a9b20688173b396c87ade51c344548e7ba5"
     },
     {
       "source": "crates/docx/tests/it/malformed.rs",
@@ -1428,7 +1430,8 @@
       "source": "crates/docx/src/read/embed.rs",
       "target": "crates/joyword-docx/src/read/embed.rs",
       "source_sha256": "d21c2fcb97a6d8bc216897a6e20e8d28d77b3e4a91db3d2f20df2f18af1b4a11",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md."
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Preserve imported theme XML and its complete dependency graph; patch only unambiguous model-owned theme attributes, retaining script fonts and unknown content.",
+      "adapted_sha256": "2717064d9035370c3f4b791535bf9b4277917fd813f26c395e08847acb1aa69b"
     },
     {
       "source": "crates/docx/src/read/freeform.rs",
@@ -1458,7 +1461,8 @@
       "source": "crates/docx/src/read/parts.rs",
       "target": "crates/joyword-docx/src/read/parts.rs",
       "source_sha256": "4766f0ee955e9c49e02f9e3fdd608bc42d004788e06aaa83df45486aed4a7e0b",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md."
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Preserve imported theme XML and its complete dependency graph; patch only unambiguous model-owned theme attributes, retaining script fonts and unknown content.",
+      "adapted_sha256": "85d5825d0ff7acd1149c3d6a2e506c12cf550b7913b2d7aa14de1883dc8dbf6d"
     },
     {
       "source": "crates/docx/src/read/props.rs",
@@ -1518,7 +1522,8 @@
       "source": "crates/docx/src/write/embed.rs",
       "target": "crates/joyword-docx/src/write/embed.rs",
       "source_sha256": "66ece035c2be0ed10573a55532d04b4c09a15e442a6189fb15a2e7569a9772a8",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md."
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Preserve imported theme XML and its complete dependency graph; patch only unambiguous model-owned theme attributes, retaining script fonts and unknown content.",
+      "adapted_sha256": "94eaa4d506983bffbad1564d296aa2df92e9629f86acf55e7bc0ad41a2e9408a"
     },
     {
       "source": "crates/docx/src/write/glossary.rs",
@@ -1536,7 +1541,8 @@
       "source": "crates/docx/src/write/parts.rs",
       "target": "crates/joyword-docx/src/write/parts.rs",
       "source_sha256": "a6ed33f9c32756bac29f64cfe694e8c05f2d3d156da0d429f433eab562407e6e",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md."
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Preserve imported theme XML and its complete dependency graph; patch only unambiguous model-owned theme attributes, retaining script fonts and unknown content.",
+      "adapted_sha256": "8c5593e7c834e0a606134ba72a20f0b6370336fbcc9a745c6805f27ff6583ed6"
     },
     {
       "source": "crates/docx/src/write/props.rs",
@@ -1554,7 +1560,8 @@
       "source": "crates/docx/src/write/settings.rs",
       "target": "crates/joyword-docx/src/write/settings.rs",
       "source_sha256": "aa28c0e4a887cb8de38d99be5e3ea7a6a571b90e1f72410429232286a420925e",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md."
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Preserve imported theme XML and its complete dependency graph; patch only unambiguous model-owned theme attributes, retaining script fonts and unknown content.",
+      "adapted_sha256": "52c243a249dfa61f6a9ae645eab42de5e8363887cb5bf466d2e87b39dfaffb41"
     },
     {
       "source": "crates/docx/src/write/settings_merge.rs",

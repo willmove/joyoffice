@@ -121,6 +121,50 @@ impl<'d> EmbedWriter<'d> {
         }
     }
 
+    /// Reattach the original theme and its dependency graph, patching only edited fields.
+    pub fn theme(
+        &mut self,
+        doc: &joyword_model::Document,
+        rels: &mut PartRels,
+    ) -> Result<bool, crate::DocxError> {
+        let Some(source) = self.passthrough.get(super::theme_merge::SOURCE) else {
+            return Ok(false);
+        };
+        let root = std::str::from_utf8(source)
+            .map_err(|_| crate::DocxError::Xml("Invalid preserved theme path".into()))?
+            .to_string();
+        let missing = || crate::DocxError::MissingPart("Preserved theme or baseline".into());
+        let original = self.passthrough.get(&root).ok_or_else(missing)?;
+        let baseline = self
+            .passthrough
+            .get(super::theme_merge::BASELINE)
+            .ok_or_else(missing)?;
+        let mut pending = vec![root.clone()];
+        let mut visited = HashSet::new();
+        while let Some(part) = pending.pop() {
+            if !visited.insert(part.clone()) {
+                continue;
+            }
+            if visited.len() > MAX_EMBEDDED_PARTS || !self.available(&part) {
+                return Err(missing());
+            }
+            let info = self.manifest.parts.get(&part).ok_or_else(missing)?;
+            pending.extend(
+                info.rels
+                    .iter()
+                    .filter(|r| !r.external)
+                    .map(|r| r.target.clone()),
+            );
+        }
+        let patched = super::theme_merge::merge(original, baseline, &super::theme_xml(doc))?;
+        self.scrubbed.insert(root.clone(), patched);
+        let name = self
+            .copy_tree(&root, &mut HashMap::new(), &mut Vec::new())
+            .ok_or_else(missing)?;
+        rels.add(rt::THEME, &relative(STORY_PART, &name), false);
+        Ok(true)
+    }
+
     /// Reserve the names of the media files this writer writes.
     pub fn reserve_media<'a>(&mut self, files: impl Iterator<Item = &'a String>) {
         for f in files {

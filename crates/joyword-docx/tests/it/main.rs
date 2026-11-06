@@ -40,3 +40,5 @@ mod undefined_style;
 mod vml_shapes;
 mod word_xml;
 mod wordml2003_write;
+
+mod theme_preservation;
