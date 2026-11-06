@@ -114,3 +114,91 @@ fn automatic_footer_date_summary_keeps_field_identifiers_and_ignores_other_field
     let p = import(&fixture_with_date("slidenum")).unwrap();
     assert!(p.header_footer.date_format.is_empty());
 }
+
+fn with_layout_footer_flag(
+    source: &[u8],
+    enabled: bool,
+) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+    use std::io::{Cursor, Read, Write};
+    let mut input = zip::ZipArchive::new(Cursor::new(source))?;
+    let mut output = zip::ZipWriter::new(Cursor::new(Vec::new()));
+    for i in 0..input.len() {
+        let mut entry = input.by_index(i)?;
+        let name = entry.name()?.into_owned();
+        let mut bytes = Vec::new();
+        entry.read_to_end(&mut bytes)?;
+        if name.starts_with("ppt/slideLayouts/slideLayout") && name.ends_with(".xml") {
+            let xml = String::from_utf8(bytes)?;
+            assert!(!xml.contains("<p:hf"));
+            bytes = xml
+                .replace(
+                    "</p:sldLayout>",
+                    &format!("<p:hf ftr=\"{}\"/></p:sldLayout>", u8::from(enabled)),
+                )
+                .into_bytes();
+        }
+        output.start_file(name, zip::write::SimpleFileOptions::default())?;
+        output.write_all(&bytes)?;
+    }
+    Ok(output.finish()?.into_inner())
+}
+
+#[test]
+fn layout_footer_visibility_is_retained_during_unrelated_slide_edit()
+-> Result<(), Box<dyn std::error::Error>> {
+    let mut p = Presentation::default();
+    Arc::make_mut(&mut p.slides[0]).shapes.clear();
+    let layout = p
+        .masters
+        .iter()
+        .flat_map(|m| &m.layouts)
+        .find(|l| l.id == p.slides[0].layout)
+        .ok_or("layout missing")?;
+    let footers: Vec<_> = layout
+        .shapes
+        .iter()
+        .filter(|s| s.ph_type() == Some(PhType::Footer))
+        .collect();
+    assert_eq!(footers.len(), 1);
+    assert!(footers[0].xfrm.is_some());
+    let plain = export(&p)?;
+    let disabled = with_layout_footer_flag(&plain, false)?;
+    let enabled = with_layout_footer_flag(&plain, true)?;
+    // Diagnostic only: equality is today's limitation, not a desired model contract.
+    println!(
+        "footer_visibility_probe: opposite_flags_have_equal_models={}",
+        import(&disabled)? == import(&enabled)?
+    );
+    for source in [disabled, enabled] {
+        let base = import(&source)?;
+        assert!(base.slides[0].shapes.is_empty());
+        let bindings = [SlideBinding {
+            slide: base.slides[0].id,
+            source: base.slides[0].id,
+            shapes: Default::default(),
+        }];
+        let mut current = base.clone();
+        Arc::make_mut(&mut current.slides[0]).name = "Renamed slide".into();
+        let saved = export_preserving(&source, &base, &current, &bindings)?;
+        let original_pkg = crate::opc::Package::open(&source)?;
+        let layout_xml = std::str::from_utf8(
+            original_pkg
+                .get("ppt/slideLayouts/slideLayout1.xml")
+                .ok_or("source layout missing")?,
+        )?;
+        assert!(layout_xml.contains("<p:hf ftr="));
+        let saved_pkg = crate::opc::Package::open(&saved)?;
+        assert_eq!(
+            original_pkg
+                .get("ppt/slideLayouts/slideLayout1.xml")
+                .ok_or("source layout missing")?,
+            saved_pkg
+                .get("ppt/slideLayouts/slideLayout1.xml")
+                .ok_or("saved layout missing")?
+        );
+        let reopened = import(&saved)?;
+        assert!(reopened.slides[0].shapes.is_empty());
+        assert_eq!(reopened.slides[0].name, "Renamed slide");
+    }
+    Ok(())
+}

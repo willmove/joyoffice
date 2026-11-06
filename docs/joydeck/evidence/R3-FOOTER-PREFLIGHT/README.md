@@ -32,3 +32,15 @@ UI 已有依据的安全默认：打开或取消不提交命令；混合状态�
 引擎/会话回归 **94 项通过，0 失败、0 忽略**，其中包含既有原生/PPTX 往返与撤销回归。新增测试验证混合/空/统一文字、误导性摘要、只读状态、一页多个占位符、目标预算，以及查询与命令对复杂内容拒绝原因一致。引擎、shell、UI 三 crate 全目标严格 Clippy、fmt、来源与工程门禁通过。
 
 [UI-PARITY.md](../../UI-PARITY.md) 要求“后续 UI 改动须先观察真实产品，再实现、构建、通过真实窗口操作并对照截图”。本环境没有实际桌面与参照产品会话，因此未新增 UI，也不将引擎接口或编译通过描述为桌面验收。完整页脚对话框、补建缺失页脚、日期/页码开关、标题页隐藏、备注/讲义以及真实设备互操作仍开放。仅本地提交，未推送或创建 PR。
+
+## 保守补建策略的安全验证：暂停在只读查询
+
+用户选择“仅当前版式有唯一有效页脚时补建，不确定则拒绝”后，继续检查发现当前模型不足以证明有效性。Open XML 的 `p:hf` 可位于 slide layout/master，`ftr` 控制页脚占位符启用；不能仅按占位符数量判断。[Microsoft 的 HeaderFooter 说明](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.presentation.headerfooter?view=openxml-3.0.1)
+
+可重复对照：从默认文稿导出 PPTX，移除页内形状但保留当前版式唯一、带明确 xfrm 的 Footer；分别向版式加入 `<p:hf ftr="0"/>` 和 `<p:hf ftr="1"/>`。实际 `import` 得到完全相等的 Presentation（测试诊断输出 `opposite_flags_have_equal_models=true`）。`read_layout` 当前只读取形状、色彩映射及 extLst，Layout 无版式级 hf 状态。也就是说，即便几何唯一且明确，模型也不能区分禁用与启用。
+
+新增 `layout_footer_visibility_is_retained_during_unrelated_slide_edit` 回归：两种开关分别导入，修改幻灯片名称后执行保留导出；版式 XML 字节保持，重开仍无页内形状。模型相等仅作为诊断输出，不写成应永久成立的断言，以免阻碍未来正确建模。
+
+因此本批按约定停在只读查询，**没有实现补建命令或 UI**。需要先保留并解析布局/母版 hf 状态及其来源，定义继承和禁用规则，再解决重复/缺失母版、未知关系和原始 XML 的拒绝条件。混合版式、补建撤销及补建 PPTX 往返尚未实现或验收；现有编辑命令的撤销测试不能代替这些验收。
+
+本批 PPTX、engine、shell 相关回归 158 项通过；新增对照测试独立复跑通过；PPTX 全目标严格 Clippy 与工程门禁通过。未改生产模型、依赖或原始来源指纹。
