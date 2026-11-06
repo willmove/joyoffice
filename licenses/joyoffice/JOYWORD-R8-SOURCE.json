@@ -293,7 +293,8 @@
       "target": "crates/joyword-shell/src/storage/locks.rs",
       "sha256": "b6e21ed906a906c77a527c26b8da173200dbf4c0abc4ab7c63abeab2e68421b6",
       "modified": true,
-      "changes": "Host source stamp/locks/metadata/verified temp publication/ReplaceFileW pipelines retained; new single-engine export/version adapter; production expect replaced; source/metadata tests retained and new-engine fault tests added."
+      "changes": "Host source stamp/locks/metadata/verified temp publication/ReplaceFileW pipelines retained; new single-engine export/version adapter; production expect replaced; source/metadata tests retained and new-engine fault tests added. Lock ownership now rejects symbolic links and bounds token reads; Unix opens use NOFOLLOW/NONBLOCK and identity checks.",
+      "adapted_sha256": "ccba1b628af000a87d8f3d48d71fd66d4f3c4f155d89d6fba37a004933bf674f"
     },
     {
       "source": "crates/joyword-shell/src/storage/error.rs",
