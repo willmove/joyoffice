@@ -1662,15 +1662,34 @@ fn read_core(root: &El, p: &mut Properties) {
     }
 }
 
-/// Which footer placeholders the slides show.
+/// Summary of slide-local placeholders for dialog defaults, not an instruction
+/// to replace each slide's own text or fields. Mixed decks retain their content.
 fn header_footer(p: &Presentation) -> HeaderFooter {
     let mut hf = HeaderFooter::default();
     for s in &p.slides {
         for sh in &s.shapes {
             match sh.ph_type() {
                 Some(PhType::SlideNum) => hf.slide_number = true,
+                Some(PhType::Header) => hf.header = true,
                 Some(PhType::Date) => {
                     hf.date = true;
+                    if hf.date_format.is_empty()
+                        && let Some(t) = &sh.text
+                        && let Some(field) =
+                            t.paragraphs
+                                .iter()
+                                .flat_map(|p| &p.runs)
+                                .find_map(|r| match &r.kind {
+                                    joydeck_model::text::RunKind::Field { field }
+                                        if field.starts_with("datetime") =>
+                                    {
+                                        Some(field)
+                                    }
+                                    _ => None,
+                                })
+                    {
+                        hf.date_format.clone_from(field);
+                    }
                     if let Some(t) = &sh.text
                         && !t
                             .paragraphs
