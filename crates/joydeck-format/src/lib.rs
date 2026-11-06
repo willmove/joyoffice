@@ -12,6 +12,7 @@
 #![forbid(unsafe_code)]
 
 mod chart_parts;
+pub mod clipboard;
 mod finite;
 pub mod rtf;
 
@@ -42,6 +43,8 @@ const MAX_ENTRY: u64 = 2 << 30;
 const MAX_TOTAL_MEDIA: u64 = 4 << 30;
 /// Media items and chart sidecar parts one file may list.
 const MAX_MEDIA_ITEMS: usize = 100_000;
+/// Debug Serde frames for shapes and rich text exceed some host worker stacks.
+const MANIFEST_STACK_SIZE: usize = 16 * 1024 * 1024;
 
 /// What one load may inflate.
 #[derive(Clone, Copy)]
@@ -190,7 +193,16 @@ fn load_within(bytes: &[u8], budget: Budget) -> Result<(Presentation, Vec<String
         .map_err(|e| FormatError::NotOurs(e.to_string()))?;
     let json = read_entry(&mut z, "presentation.json")
         .map_err(|_| FormatError::NotOurs("no presentation.json".into()))?;
-    let m = parse_manifest(&json)?;
+    // Keep decoding and historical repair retries on one stack of known size.
+    // serde_json's nesting limit and the file budgets still apply.
+    let m = std::thread::scope(|scope| {
+        std::thread::Builder::new()
+            .stack_size(MANIFEST_STACK_SIZE)
+            .spawn_scoped(scope, || parse_manifest(&json))
+            .map_err(|e| FormatError::Damaged(format!("cannot start manifest decoder: {e}")))?
+            .join()
+            .map_err(|_| FormatError::Damaged("manifest decoder panicked".into()))?
+    })?;
     if m.format != "deckcraft" {
         return Err(FormatError::NotOurs(m.format));
     }
@@ -417,11 +429,11 @@ fn failure(src: &[u8]) -> std::result::Result<Manifest, (String, (usize, usize))
 /// nearest first, and a patch is kept only if the parse then gets further. (Files saved since
 /// [`finite::Finite`] never contain such `null`s; this reads older ones.)
 fn parse_manifest(json: &[u8]) -> Result<Manifest> {
-    let mut src = json.to_vec();
-    let mut last = match failure(&src) {
+    let mut last = match failure(json) {
         Ok(m) => return Ok(m),
         Err(f) => f,
     };
+    let mut src = json.to_vec();
     let mut budget = MAX_REPARSE_BYTES;
     'fixes: for _ in 0..MAX_NULL_FIXES {
         let (msg, pos) = &last;

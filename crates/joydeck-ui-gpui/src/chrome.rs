@@ -524,6 +524,8 @@ impl Viewer {
                 tool("insert-textbox", I::TextCursorInput, "文本框", 0x2e6fd8)
                     .on_click(cx.listener(|s, _, w, cx| s.insert_textbox(w, cx))),
             ))
+            .child(self.text_link_group(cx))
+            .child(self.text_field_group(cx))
             .child(group(
                 "演讲备注",
                 tool("insert-notes", I::NotebookPen, "备注", 0xe3b21c)
@@ -712,6 +714,7 @@ impl Viewer {
             ))
             .child(self.font_group(cx))
             .child(self.paragraph_group(cx))
+            .child(self.text_layout_group(cx))
             .child(group(
                 "大小与位置",
                 row()

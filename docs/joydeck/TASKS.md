@@ -65,15 +65,15 @@ JD-201 随后完成。共享文稿、独立视图、过期结果和包内读回�
 | 完成 | JD-300 | 迁移统一文字布局、bidi、换行、autofit、段落和 cluster 数据 | macOS 编辑、CPU/GPUI 静态显示与 PDF 独立读回复验通过，混排尾部、动态字段、组合缩放和链接保留。[证据](evidence/R3-SHARED-LAYOUT/README.md) | R2 |
 | 完成 | JD-301 | 字体环境、字节/face/variation、替代报告与缓存键 | macOS Release 验证同名字体冲突、替代 face、文件热替换后的 GPUI／CPU／缩略图／原位布局刷新与字体搜索，回归覆盖 TTC、可变轴和缺字。[证据](evidence/R3-FONT-ENVIRONMENT/README.md) | JD-101、JD-300 |
 | 完成 | JD-302 | 原位文字绘制、caret、选择区、命中、滚动和旋转文本适配 | macOS Release 实测旋转、竖排、单元格、缩放滚动和 PPTX 回读。1×/2× 坐标回归通过，2× 实屏按平台继续复验。[证据](evidence/R3-TRANSFORMED-TEXT/README.md) | JD-300、JD-301 |
-| 已实现待验收 | JD-303 | 适配 EntityInputHandler、UTF-16/UTF-8/cluster 范围与 surrounding text | 非 BMP、组合字符、删除替换和候选框位置正确；所有输入仍进引擎事务 | JD-302 |
-| 已实现待验收 | JD-304 | 系统 IME 提交、取消、重复事件、切页、失焦和撤销 | 真实系统拼音和至少一个额外组合输入场景；preedit 不污染持久化历史 | JD-303 |
-| 已实现待验收 | JD-305 | 字符/段落格式、列表、字段、超链接、竖排/分栏等文字能力的 UI | 以命令矩阵逐项迁移；源内容、格式、撤销和持久化正确 | JD-300–JD-304 |
-| 已实现待验收 | JD-306 | 表格插入、行列/合并、样式、单元格选择/文字/键盘导航 | 表格系统 IME、格式与保存重开可验证；边界操作有回归 | JD-304 |
-| 已实现待验收 | JD-307 | 纯文本、图片、对象与富剪贴板平台适配 | 复制来源可识别，跨文稿依赖映射正确；单次粘贴可单次撤销 | JD-201、JD-303 |
+| 完成 | JD-303 | 适配 EntityInputHandler、UTF-16/UTF-8/cluster 范围与 surrounding text | macOS Release 实测非 BMP、组合字素、ZWJ 删除替换及两处真实拼音候选，组合选词单次提交并保存读回。[证据](evidence/R3-NATIVE-UNICODE/README.md) | JD-302 |
+| 完成 | JD-304 | 系统 IME 提交、取消、重复事件、切页、失焦和撤销 | macOS Release 实测系统简体拼音与 ABC 重音组合。选词单次提交，切页和失焦保留原文，崩溃恢复只读回已提交修订。[证据](evidence/R3-IME-LIFECYCLE/README.md) | JD-303 |
+| 进行中 | JD-305 | 字符/段落格式、列表、字段、超链接、竖排/分栏等文字能力的 UI | 以命令矩阵逐项迁移；源内容、格式、撤销和持久化正确。macOS Release 已复验文字框布局和既有文字选区的网页、邮件及页内链接编辑。文本框内动态页码和日期／时间字段已实测插入、编辑、撤销与另存；固定日期、整份页脚、插入链接显示文字及其余格式命令继续开放。[布局](evidence/R3-TEXT-LAYOUT/README.md) · [文字链接](evidence/R3-TEXT-LINKS/README.md) · [动态字段](evidence/R3-TEXT-FIELDS/README.md) | JD-300–JD-304 |
+| 完成 | JD-306 | 表格插入、行列/合并、样式、单元格选择/文字/键盘导航 | macOS Release 实测插入、行列增删、矩形选区、合并／拆分、样式／底色、系统拼音、Tab／Shift+Tab 和两种格式保存重开。无效尺寸与合并覆盖格有边界复验。[证据](evidence/R3-TABLE-QUALIFICATION/README.md) | JD-304 |
+| 进行中 | JD-307 | 纯文本、图片、对象与富剪贴板平台适配 | macOS 已复验纯文本、内部富文字、外部 PNG、基础对象跨文稿和单步撤销，修复 PPTX 图片部件重复。已修复跨文稿页内链接误绑定，同文稿双窗口保留链接，跨文稿保留文字、样式和网页链接。macOS 已实测外部 HTML／RTF 字符格式、链接、单步撤销及保存重开。Windows 实屏、Linux 原生富格式、富文字图片资源和完整 Office 对象交换继续开放。[基础剪贴板](evidence/R3-CLIPBOARD/README.md) · [链接范围](evidence/R3-CLIPBOARD-LINKS/README.md) · [外部富文本](evidence/R3-EXTERNAL-RICH/README.md) | JD-201、JD-303 |
 | 已实现待验收 | JD-308 | 焦点、快捷键优先级、表单草稿同步与输入实体唯一性 | 备注/高级表单同时显示无重复 a11y 节点；同步不递归执行文档命令 | JD-304、JD-305 |
 | 已实现待验收 | JD-309 | R3 包与文字/表格系统输入回归 | 原位文字、备注、表格的提交/取消/undo/redo/保存重开和截图通过 | JD-305–JD-308 |
 
-R3 本轮交付水平未旋转文字/单元格与备注的基础输入切片，复用同一 CPU 排版并接入原生 EntityInputHandler。最终 release 已完成此基础范围的 Windows 桌面验收：标题/单元格/备注真实系统拼音、组合取消/单步 undo/redo、富文字和 TSV 剪贴板、Tab/Shift+Tab、PPTX/v2 保存重开和独立公开格式读取均通过。已实现范围不等于全部完成条件：全部格式入口、图片/跨文稿对象剪贴板、复杂焦点/IME 竞争及跨平台验收仍保留；JD-301 的文件字体监测与身份复验见 [字体环境证据](evidence/R3-FONT-ENVIRONMENT/README.md)。JD-302 的旋转、竖排和插入点滚动见 [原位编辑证据](evidence/R3-TRANSFORMED-TEXT/README.md)。基础切片见 [R3 记录](evidence/R3/README.md)。
+R3 本轮交付水平未旋转文字/单元格与备注的基础输入切片，复用同一 CPU 排版并接入原生 EntityInputHandler。最终 release 已完成此基础范围的 Windows 桌面验收：标题/单元格/备注真实系统拼音、组合取消/单步 undo/redo、富文字和 TSV 剪贴板、Tab/Shift+Tab、PPTX/v2 保存重开和独立公开格式读取均通过。全部格式入口、图片/跨文稿对象剪贴板、表格/备注焦点竞争及跨平台验收仍保留。JD-301 的文件字体监测与身份复验见 [字体环境证据](evidence/R3-FONT-ENVIRONMENT/README.md)。JD-302 的旋转、竖排和插入点滚动见 [原位编辑证据](evidence/R3-TRANSFORMED-TEXT/README.md)。JD-303 的原生 Unicode、候选坐标与事务见 [输入证据](evidence/R3-NATIVE-UNICODE/README.md)。JD-304 的 macOS 原位切页、失焦、组合与恢复见 [生命周期证据](evidence/R3-IME-LIFECYCLE/README.md)。基础切片见 [R3 记录](evidence/R3/README.md)。
 
 ## R4 GPUI 场景与实际性能
 
@@ -123,7 +123,7 @@ R6 的预算、原件保护和新 schema 已在 R1/R2 实施。这里收口旧�
 | 进行中 | JD-604 | PDF 后端与统一场景对齐、字体子集、文本/链接、备注/讲义 | 独立 PDF 阅读器检查页几何、可检索 Unicode 与嵌字；消除 Krilla 来源冲突 | JD-400、JD-003 |
 | 进行中 | JD-605 | PNG/JPEG、动画 GIF、提纲及已支持文本输出 | 页范围、尺寸、透明/背景、时序和错误路径可验证；与 UI/CLI 一致 | JD-604 |
 | 进行中 | JD-606 | 打印内容与平台打印对话框，取消/失败/缺 helper 行为 | 每平台独立验证；取消无文件/文档副作用；未支持平台明确报告 | JD-604 |
-| 进行中 | JD-607 | 原生格式未来版本、缺资源/损坏/未知字段与保存冲突故障矩阵 | 保留/只读/拒绝有契约；旧读取器拒绝新能力；压缩/XML/图片预算均生效 | JD-600–JD-606 |
+| 进行中 | JD-607 | 原生格式未来版本、缺资源/损坏/未知字段与保存冲突故障矩阵 | 保留/只读/拒绝有契约，旧读取器拒绝新能力，压缩/XML/图片预算均生效。macOS Debug 后台重开富文字项目触发反序列化线程栈保护，已保留样例。[复现](evidence/R3-EXTERNAL-RICH/README.md) | JD-600–JD-606 |
 | 进行中 | JD-608 | 公开文件交换和旧新应用对照语料 | 自建/获授权语料登记；外部阅读器实际读回；公开内容不以私有 model 再导入冒充 | JD-607 |
 | 进行中 | JD-609 | R6 文件迁移与输出包 | 旧 .joydeck 另存、PPTX 保留/新建、PDF/图片/讲义和打印场景有证据 | JD-608 |
 

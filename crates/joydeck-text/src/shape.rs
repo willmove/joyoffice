@@ -25,6 +25,7 @@ pub(crate) fn shape_para(
         let face = db.face("Inter", "Regular");
         return ParaShaped {
             cells: vec![],
+            fields: vec![],
             styles: vec![],
             faces: vec![],
             props: ParaProps::default(),
@@ -44,6 +45,8 @@ pub(crate) fn shape_para(
     // The logical paragraph: its text and each character's style.
     let mut text = String::new();
     let mut char_style: Vec<usize> = vec![];
+    let mut fields = vec![];
+    let mut source_start = 0;
     for run in &para.runs {
         let rp = resolve::run(ctx, shape, para, &run.props);
         let st = make_style(ctx, &rp, scale, opts.prompt_color);
@@ -58,7 +61,16 @@ pub(crate) fn shape_para(
         };
         let si = styles.len();
         styles.push(st);
-        char_style.extend(std::iter::repeat_n(si, t.chars().count()));
+        let n = t.chars().count();
+        let source_end = source_start + run.char_len();
+        if matches!(run.kind, RunKind::Field { .. }) {
+            fields.push(super::FieldSpan {
+                source: source_start..source_end,
+                rendered: char_style.len()..char_style.len() + n,
+            });
+        }
+        char_style.extend(std::iter::repeat_n(si, n));
+        source_start = source_end;
         text.push_str(&t);
     }
     let cells = shape_cells(ctx, &text, &char_style, &styles, &mut faces, rtl, vertical);
@@ -139,6 +151,7 @@ pub(crate) fn shape_para(
     };
     ParaShaped {
         cells,
+        fields,
         styles,
         faces,
         props,

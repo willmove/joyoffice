@@ -1,5 +1,6 @@
 #![forbid(unsafe_code)]
 //! Headless workspace state. Preview data is immutable and is not a document editor model.
+pub use joydeck_format::clipboard as clipboard_import;
 use serde::{Deserialize, Serialize};
 pub mod automation;
 #[cfg(test)]

@@ -4,13 +4,17 @@ use crate::{
     PptxError, opc,
     xml::{El, Node},
 };
-use joydeck_model::{Presentation, ShapeId, SlideId};
+use joydeck_model::{Presentation, ShapeId, SlideId, TextBody};
 use std::{
     collections::BTreeMap,
     io::{Cursor, Read, Write},
 };
 #[path = "preserve_content.rs"]
 mod content;
+#[path = "preserve_fields.rs"]
+mod fields;
+#[path = "preserve_links.rs"]
+mod links;
 pub struct SlideBinding {
     pub slide: SlideId,
     pub source: SlideId,
@@ -97,6 +101,183 @@ fn replace(e: &mut El, local: &str, new: Option<El>) {
             Node::El(new),
         );
     }
+}
+
+/// A layout edit has no reason to rewrite existing paragraphs, links or extensions.
+fn patch_text_layout(
+    source: &mut El,
+    generated: &El,
+    before: Option<&TextBody>,
+    after: Option<&TextBody>,
+) -> Result<bool, PptxError> {
+    let (Some(before), Some(after)) = (before, after) else {
+        return Ok(false);
+    };
+    if before.paragraphs != after.paragraphs
+        || before.list_style != after.list_style
+        || before.body.warp != after.body.warp
+        || before.body.warp_adj != after.body.warp_adj
+    {
+        return Ok(false);
+    }
+    let old = &before.body;
+    let new = &after.body;
+    let Some(original) = child_mut(source, "txBody").and_then(|tx| child_mut(tx, "bodyPr")) else {
+        return Err(error("missing original text layout; save .joydeck instead"));
+    };
+    let updated = generated
+        .path(&["txBody", "bodyPr"])
+        .ok_or_else(|| error("missing generated text layout"))?;
+    for (changed, attr) in [
+        (old.rot != new.rot, "rot"),
+        (old.vert != new.vert, "vert"),
+        (old.wrap != new.wrap, "wrap"),
+        (old.inset_l != new.inset_l, "lIns"),
+        (old.inset_t != new.inset_t, "tIns"),
+        (old.inset_r != new.inset_r, "rIns"),
+        (old.inset_b != new.inset_b, "bIns"),
+        (old.columns != new.columns, "numCol"),
+        (old.col_spacing != new.col_spacing, "spcCol"),
+        (old.rtl_col != new.rtl_col, "rtlCol"),
+        (old.anchor != new.anchor, "anchor"),
+        (old.anchor_ctr != new.anchor_ctr, "anchorCtr"),
+        (old.upright != new.upright, "upright"),
+        (
+            old.space_first_last != new.space_first_last,
+            "spcFirstLastPara",
+        ),
+    ] {
+        if changed {
+            if let Some(value) = updated.attr(attr) {
+                original.set_attr(attr, value);
+            } else {
+                original.attrs.retain(|(name, _)| name != attr);
+            }
+        }
+    }
+    if old.autofit != new.autofit {
+        let fit = |e: &El| matches!(e.local(), "noAutofit" | "normAutofit" | "spAutoFit");
+        let prefix = original.prefix();
+        let at = original.children.iter().position(|node| {
+            matches!(node,
+            Node::El(e) if fit(e) && (e.prefix() == prefix || e.prefix() == "a"))
+        });
+        if original.elements().filter(|e| fit(e)).count() != usize::from(at.is_some()) {
+            return Err(error("ambiguous text autofit XML; save .joydeck instead"));
+        }
+        if let Some(at) = at {
+            if matches!(&original.children[at], Node::El(e) if e.children.iter().any(|node|
+                !matches!(node, Node::Text(value) if value.trim().is_empty()))
+                || e.attrs.iter().any(|(name, _)| !matches!(name.as_str(), "fontScale" | "lnSpcReduction")))
+            {
+                return Err(error("text autofit has extensions; save .joydeck instead"));
+            }
+            original.children.remove(at);
+        }
+        if let Some(replacement) = updated.elements().find(|e| fit(e)) {
+            let at = at.unwrap_or_else(|| {
+                original
+                    .children
+                    .iter()
+                    .position(|node| {
+                        matches!(node,
+                    Node::El(e) if matches!(e.local(), "scene3d" | "sp3d" | "extLst"))
+                    })
+                    .unwrap_or(original.children.len())
+            });
+            original.children.insert(at, Node::El(replacement.clone()));
+        }
+    }
+    Ok(true)
+}
+
+fn patch_text(
+    source: &mut El,
+    generated: &El,
+    before: Option<&TextBody>,
+    after: Option<&TextBody>,
+    relationships: &mut links::Relationships<'_>,
+    field_ids: &mut fields::Ids<'_>,
+) -> Result<(), PptxError> {
+    if patch_text_layout(source, generated, before, after)? {
+        return Ok(());
+    }
+    if links::patch(source, before, after, relationships)? {
+        if let (Some(before), Some(after)) = (before, after)
+            && before.body != after.body
+        {
+            let layout = TextBody {
+                body: after.body.clone(),
+                ..before.clone()
+            };
+            if !patch_text_layout(source, generated, Some(before), Some(&layout))? {
+                return Err(error(
+                    "linked text layout cannot be preserved; save .joydeck instead",
+                ));
+            }
+        }
+        return Ok(());
+    }
+    if let (Some(before), Some(after)) = (before, after)
+        && fields::patch(source, generated, before, after, field_ids)?
+    {
+        if before.body != after.body {
+            let layout = TextBody {
+                body: after.body.clone(),
+                ..before.clone()
+            };
+            if !patch_text_layout(source, generated, Some(before), Some(&layout))? {
+                return Err(error(
+                    "field text layout cannot be preserved; save .joydeck instead",
+                ));
+            }
+        }
+        return Ok(());
+    }
+    let replacement = generated.child("txBody").cloned();
+    if [source.child("txBody"), replacement.as_ref()]
+        .into_iter()
+        .flatten()
+        .any(|tx| tx.find("hlinkClick").is_some() || tx.find("hlinkMouseOver").is_some())
+    {
+        return Err(error(
+            "combined linked text and content changes require .joydeck Save As",
+        ));
+    }
+    let mut replacement = replacement;
+    if let Some(body) = &mut replacement {
+        field_ids.reassign_tree(body);
+    }
+    replace(source, "txBody", replacement);
+    Ok(())
+}
+
+#[cfg(test)]
+#[test]
+fn layout_patch_keeps_the_original_text_tree_and_extensions() -> Result<(), PptxError> {
+    use joydeck_model::text::{AutoFit, TextDir};
+
+    let original = br#"<p:sp><p:txBody><a:bodyPr wrap="square" numCol="1" ext:extra="test"><a:spAutoFit/><a:extLst><a:ext uri="other"/></a:extLst></a:bodyPr><a:lstStyle/><a:p><a:r><a:rPr><a:hlinkClick r:id="rId7"/></a:rPr><a:t>linked</a:t></a:r></a:p></p:txBody></p:sp>"#;
+    let generated = br#"<p:sp><p:txBody><a:bodyPr vert="eaVert" numCol="2"><a:noAutofit/></a:bodyPr></p:txBody></p:sp>"#;
+    let mut source = crate::xml::parse(original)?.root;
+    let generated = crate::xml::parse(generated)?.root;
+    let mut before = TextBody::from_text("linked");
+    before.body.columns = Some(1);
+    before.body.autofit = Some(AutoFit::Shape);
+    let mut after = before.clone();
+    after.body.columns = Some(2);
+    after.body.vert = Some(TextDir::EaVertical);
+    after.body.autofit = Some(AutoFit::None);
+
+    assert!(patch_text_layout(
+        &mut source,
+        &generated,
+        Some(&before),
+        Some(&after)
+    )?);
+    let expected = br#"<p:sp><p:txBody><a:bodyPr wrap="square" numCol="2" ext:extra="test" vert="eaVert"><a:noAutofit/><a:extLst><a:ext uri="other"/></a:extLst></a:bodyPr><a:lstStyle/><a:p><a:r><a:rPr><a:hlinkClick r:id="rId7"/></a:rPr><a:t>linked</a:t></a:r></a:p></p:txBody></p:sp>"#;
+    assert_eq!(source, crate::xml::parse(expected)?.root);
+    Ok(())
 }
 fn tree(e: &El) -> Option<&El> {
     e.path(&["cSld", "spTree"])
@@ -244,24 +425,36 @@ pub fn export_preserving(
         .unwrap_or(255)
         .checked_add(1)
         .ok_or_else(|| error("slide ID space exhausted"))?;
+    let mut destinations = BTreeMap::new();
+    let mut generated_slides = BTreeMap::new();
+    let mut pictures = content::Pictures::new(&pkg);
     for (index, slide) in current.slides.iter().enumerate() {
         let binding = bindings
             .iter()
             .find(|b| b.slide == slide.id)
             .ok_or_else(|| error("new slides must originate from an existing layout"))?;
-        let source_index = base
+        let source = base
             .slides
             .iter()
             .position(|s| s.id == binding.source)
             .ok_or_else(|| error("missing original slide"))?;
-        let source_slide = &base.slides[source_index];
-        let (source_id, source_part) = &ordered[source_index];
-        let existing = slide.id == source_slide.id;
-        let part = if existing {
-            source_part.clone()
+        let part = if slide.id == binding.source {
+            ordered[source].1.clone()
         } else {
             unique(&parts, "ppt/slides", slide.id.0)
         };
+        destinations.insert(slide.id, (source, part));
+        generated_slides.insert(format!("ppt/slides/slide{}.xml", index + 1), slide.id);
+    }
+    for (index, slide) in current.slides.iter().enumerate() {
+        let binding = bindings
+            .iter()
+            .find(|b| b.slide == slide.id)
+            .ok_or_else(|| error("new slides must originate from an existing layout"))?;
+        let (source_index, part) = &destinations[&slide.id];
+        let source_slide = &base.slides[*source_index];
+        let (source_id, source_part) = &ordered[*source_index];
+        let existing = slide.id == source_slide.id;
         let mut id = source_id.clone();
         if !existing {
             set(&mut id, "id", next_file_id.to_string());
@@ -274,11 +467,11 @@ pub fn export_preserving(
             pres_rels.children.push(Node::El(rel_element(
                 &rid,
                 "slide",
-                &opc::relative(&pres_path, &part),
+                &opc::relative(&pres_path, part),
             )));
             add_override(
                 &mut ct,
-                &part,
+                part,
                 "application/vnd.openxmlformats-officedocument.presentationml.slide+xml",
             );
         }
@@ -381,8 +574,9 @@ pub fn export_preserving(
         let old_tree = tree(&root)
             .ok_or_else(|| error("missing source shape tree"))?
             .clone();
+        let generated_part = format!("ppt/slides/slide{}.xml", index + 1);
         let generated_root = gen_pkg
-            .xml(&format!("ppt/slides/slide{}.xml", index + 1))
+            .xml(&generated_part)
             .ok_or_else(|| error("missing generated slide"))?
             .root;
         let gen_tree =
@@ -414,6 +608,17 @@ pub fn export_preserving(
             );
         }
         let mut added_rels = vec![];
+        let mut field_ids = fields::Ids::new(&root, part);
+        let source_relationships = pkg.rels(source_part);
+        let generated_relationships = gen_pkg.rels(&generated_part);
+        let occupied = pkg
+            .xml(&opc::rels_path(source_part))
+            .map_or_else(Default::default, |doc| {
+                doc.root
+                    .elements()
+                    .filter_map(|e| e.attr("Id").map(str::to_owned))
+                    .collect()
+            });
         // Any unbound drawing on a touched page is refused rather than silently removed.
         for e in old_tree
             .elements()
@@ -432,6 +637,13 @@ pub fn export_preserving(
             .cloned()
             .collect();
         for shape in &slide.shapes {
+            let mut link_relationships = links::Relationships {
+                source: &source_relationships,
+                occupied: &occupied,
+                part,
+                destinations: &destinations,
+                added: &mut added_rels,
+            };
             let generated = gen_tree
                 .elements()
                 .find(|e| node_id(e) == Some(shape.id))
@@ -484,14 +696,14 @@ pub fn export_preserving(
                     }
                 }
                 if shape.text != old.text {
-                    if generated.find("hlinkClick").is_some()
-                        || generated.find("hlinkMouseOver").is_some()
-                    {
-                        return Err(error(
-                            "edited hyperlink relationships require .joydeck Save As",
-                        ));
-                    }
-                    replace(&mut e, "txBody", generated.child("txBody").cloned());
+                    patch_text(
+                        &mut e,
+                        generated,
+                        old.text.as_ref(),
+                        shape.text.as_ref(),
+                        &mut link_relationships,
+                        &mut field_ids,
+                    )?;
                 }
                 if let (
                     joydeck_model::ShapeKind::Table(before),
@@ -570,14 +782,14 @@ pub fn export_preserving(
                                     .nth(c)
                                     .ok_or_else(|| error("missing generated cell"))?;
                                 if a.text != b.text {
-                                    if g.find("hlinkClick").is_some()
-                                        || g.find("hlinkMouseOver").is_some()
-                                    {
-                                        return Err(error(
-                                            "edited cell hyperlinks require .joydeck Save As",
-                                        ));
-                                    }
-                                    replace(cell, "txBody", g.child("txBody").cloned());
+                                    patch_text(
+                                        cell,
+                                        g,
+                                        Some(&a.text),
+                                        Some(&b.text),
+                                        &mut link_relationships,
+                                        &mut field_ids,
+                                    )?;
                                 }
                                 if a.fill != b.fill
                                     || a.grid_span != b.grid_span
@@ -664,20 +876,29 @@ pub fn export_preserving(
                         source
                             .children
                             .retain(|n| !matches!(n,Node::El(e) if e.is("tr")));
-                        source.children.extend(
-                            generated
-                                .elements()
-                                .filter(|e| e.is("tr"))
-                                .cloned()
-                                .map(Node::El),
-                        );
+                        for row in generated.elements().filter(|e| e.is("tr")) {
+                            let mut row = row.clone();
+                            link_relationships.rebind_new_shape(
+                                &mut row,
+                                &generated_relationships,
+                                &generated_slides,
+                            )?;
+                            field_ids.reassign_tree(&mut row);
+                            source.children.push(Node::El(row));
+                        }
                     }
                 }
                 e
             } else {
-                generated.clone()
+                let mut e = generated.clone();
+                link_relationships.rebind_new_shape(
+                    &mut e,
+                    &generated_relationships,
+                    &generated_slides,
+                )?;
+                field_ids.reassign_tree(&mut e);
+                e
             };
-            // Generated shapes only reference existing theme or explicit colors; R2 inserts no new media.
             let old = binding
                 .shapes
                 .get(&shape.id)
@@ -688,11 +909,12 @@ pub fn export_preserving(
                 old,
                 shape,
                 &gen_pkg,
-                &format!("ppt/slides/slide{}.xml", index + 1),
-                &part,
+                &generated_part,
+                part,
                 &mut parts,
                 &mut ct,
                 &mut added_rels,
+                &mut pictures,
             )?;
             if let Some(nv) = find_mut(&mut e, "cNvPr") {
                 set(nv, "id", shape.id.0.to_string());
@@ -705,6 +927,9 @@ pub fn export_preserving(
         )
         .ok_or_else(|| error("missing shape tree"))?;
         target.children = nodes;
+        if !existing {
+            field_ids.reassign_tree(&mut root);
+        }
         parts.insert(part.clone(), root.to_xml().into_bytes());
         if !existing {
             let mut slide_rels = relationship_root(&pkg, source_part)?;
@@ -719,7 +944,7 @@ pub fn export_preserving(
                     .elements_mut()
                     .find(|node| node.attr("Id") == Some(&rel.id))
                 {
-                    set(node, "Target", opc::relative(&part, &rel.target));
+                    set(node, "Target", opc::relative(part, &rel.target));
                 }
             }
             let notes = pkg
@@ -746,7 +971,7 @@ pub fn export_preserving(
                     .elements_mut()
                     .find(|r| r.attr("Id") == Some(&notes.id))
                 {
-                    set(r, "Target", opc::relative(&part, &new_notes));
+                    set(r, "Target", opc::relative(part, &new_notes));
                 }
                 let mut notes_rels = pkg
                     .xml(&opc::rels_path(&notes.target))
@@ -754,15 +979,15 @@ pub fn export_preserving(
                     .root;
                 for r in notes_rels.elements_mut() {
                     if r.attr("Type").is_some_and(|t| t.ends_with("/slide")) {
-                        set(r, "Target", opc::relative(&new_notes, &part));
+                        set(r, "Target", opc::relative(&new_notes, part));
                     }
                 }
                 parts.insert(opc::rels_path(&new_notes), notes_rels.to_xml().into_bytes());
             }
-            parts.insert(opc::rels_path(&part), slide_rels.to_xml().into_bytes());
+            parts.insert(opc::rels_path(part), slide_rels.to_xml().into_bytes());
         }
         if !added_rels.is_empty() || slide.layout != source_slide.layout {
-            let path = opc::rels_path(&part);
+            let path = opc::rels_path(part);
             let mut relationships = if let Some(bytes) = parts.get(&path) {
                 crate::xml::parse(bytes)?.root
             } else {
@@ -777,7 +1002,7 @@ pub fn export_preserving(
                     .elements_mut()
                     .find(|r| r.attr("Type").is_some_and(|t| t.ends_with("/slideLayout")))
                     .ok_or_else(|| error("layout relationship missing"))?;
-                set(rel, "Target", opc::relative(&part, &target));
+                set(rel, "Target", opc::relative(part, &target));
             }
             parts.insert(path, relationships.to_xml().into_bytes());
         }

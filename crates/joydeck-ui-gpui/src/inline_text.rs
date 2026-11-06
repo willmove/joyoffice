@@ -2,25 +2,51 @@
 //! Layout, caret, hit and selection use the shared DeckCraft renderer, not a second shaper.
 use super::*;
 use joydeck_engine::{
-    Command, TableAction, TextTarget,
+    Command, TableAction, TextTarget, clipboard,
     text::{self, Draft},
+    transfer::{self, Transfer},
 };
-use joydeck_model::{ShapeKind, edit as ed, resolve, text::RunKind};
+use joydeck_model::{Presentation, ShapeKind, TextBody, edit as ed, resolve, text::RunKind};
 use joydeck_text::{Affinity, Pos};
+use serde::{Deserialize, Serialize};
 use std::ops::Range;
 
 #[path = "inline_text/geometry.rs"]
 mod geometry;
 use geometry::{Geometry, Motion, reveal_offset};
 
+type ClipboardToken = [u8; 16];
+
+#[derive(Deserialize, Serialize)]
+struct TextClipboard {
+    #[serde(rename = "joydeck-text")]
+    version: u32,
+    #[serde(default)]
+    document: Option<ClipboardToken>,
+    body: TextBody,
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+struct ObjectClipboard {
+    document: Option<ClipboardToken>,
+    transfer: Transfer,
+}
+
 pub(super) struct Inline {
     pub(super) target: TextTarget,
     pub(super) draft: Draft,
+    native_commit: Option<NativeCommit>,
     placed: Option<joydeck_render::PlacedText>,
     affinity: Affinity,
     pointer_selecting: bool,
     desired_inline_x: Option<f64>,
     last_caret: Option<(joydeck_geom::Rect, Bounds<Pixels>, f32, u64)>,
+}
+
+struct NativeCommit {
+    before_commit: Draft,
+    _task: Task<()>,
 }
 impl Inline {
     fn reflow(&mut self, model: &joydeck_model::Presentation, page: usize) {
@@ -57,8 +83,8 @@ impl Inline {
         scale: f32,
     ) -> Option<usize> {
         let p = self.placed.as_ref()?;
-        let pos = layout_pos(value, self.draft.cursor());
         let layout = &p.layout;
+        let pos = layout_pos(layout, value, self.draft.cursor(), self.affinity);
         let motion = match key {
             "left" => Some((-1., 0.)),
             "right" => Some((1., 0.)),
@@ -71,8 +97,13 @@ impl Inline {
             Some(Motion::Along { forward }) => {
                 self.desired_inline_x = None;
                 if !extend && !self.draft.selection.is_empty() {
-                    let a = layout_pos(value, self.draft.selection.start);
-                    let b = layout_pos(value, self.draft.selection.end);
+                    let a = layout_pos(
+                        layout,
+                        value,
+                        self.draft.selection.start,
+                        Affinity::Downstream,
+                    );
+                    let b = layout_pos(layout, value, self.draft.selection.end, Affinity::Upstream);
                     let a_line = layout.line_index(a, Affinity::Downstream);
                     let b_line = layout.line_index(b, Affinity::Upstream);
                     let reversed = a_line == b_line
@@ -86,7 +117,13 @@ impl Inline {
                         (a, Affinity::Downstream)
                     }
                 } else {
-                    layout.move_caret(pos, self.affinity, forward, joydeck_text::MoveMode::Visual)
+                    let (candidate, affinity) = layout.move_caret(
+                        pos,
+                        self.affinity,
+                        forward,
+                        joydeck_text::MoveMode::Visual,
+                    );
+                    layout.across_field(pos, candidate, affinity)
                 }
             }
             Some(Motion::Across { down }) => {
@@ -107,13 +144,19 @@ impl Inline {
             }
         };
         self.affinity = affinity;
-        Some(text::byte_pos(value, (next.para, next.ch)))
+        let source = layout.source_position(next, affinity);
+        Some(text::byte_pos(value, (source.para, source.ch)))
     }
 }
 
-fn layout_pos(value: &str, at: usize) -> Pos {
+fn layout_pos(
+    layout: &joydeck_text::TextLayout,
+    value: &str,
+    at: usize,
+    affinity: Affinity,
+) -> Pos {
     let (para, ch) = text::pos(value, at);
-    Pos { para, ch }
+    layout.rendered_position(Pos { para, ch }, affinity)
 }
 
 impl Viewer {
@@ -130,7 +173,7 @@ impl Viewer {
     pub(super) fn composing(&self) -> bool {
         self.inline
             .as_ref()
-            .is_some_and(|i| i.draft.marked.is_some())
+            .is_some_and(|i| i.draft.marked.is_some() || i.native_commit.is_some())
     }
     pub(super) fn end_inline(&mut self, cx: &mut Context<Self>) {
         if self.inline.take().is_some() {
@@ -147,13 +190,26 @@ impl Viewer {
         }
     }
     pub(super) fn cancel_inline(&mut self, cx: &mut Context<Self>) {
-        if self.composing() {
-            if let Some(i) = &mut self.inline {
-                i.draft.cancel();
-            }
-            self.preview_inline(cx);
-        } else {
+        if !self.cancel_composition(cx) {
             self.end_inline(cx);
+        }
+    }
+    fn cancel_composition(&mut self, cx: &mut Context<Self>) -> bool {
+        if !self.composing() {
+            return false;
+        }
+        if let Some(i) = &mut self.inline {
+            if let Some(commit) = i.native_commit.take() {
+                i.draft = commit.before_commit;
+            }
+            i.draft.cancel();
+        }
+        self.preview_inline(cx);
+        true
+    }
+    pub(super) fn cancel_composition_on_pointer(&mut self, w: &mut Window, cx: &mut Context<Self>) {
+        if self.cancel_composition(cx) {
+            w.notify_text_input_changed(&self.focus);
         }
     }
     pub(super) fn begin_inline(&mut self, _: &ClickEvent, w: &mut Window, cx: &mut Context<Self>) {
@@ -202,13 +258,12 @@ impl Viewer {
             if body.body.warp.is_some() {
                 return Err("艺术字变形尚无原位编辑几何".into());
             }
-            if body
-                .paragraphs
-                .iter()
-                .flat_map(|p| &p.runs)
-                .any(|r| matches!(r.kind, RunKind::Field { .. } | RunKind::Math { .. }))
-            {
-                return Err("动态字段/公式保持原样；请先转换后再编辑".into());
+            if body.paragraphs.iter().flat_map(|p| &p.runs).any(|r| {
+                matches!(r.kind, RunKind::Math { .. })
+                    || (matches!(r.kind, RunKind::Field { .. })
+                        && (r.text.is_empty() || r.text.contains(['\n', '\r', '\u{b}'])))
+            }) {
+                return Err("此文字框包含公式或无法原位编辑的字段".into());
             }
             Ok((target, body))
         })();
@@ -221,6 +276,7 @@ impl Viewer {
                 self.inline = Some(Box::new(Inline {
                     target,
                     draft: Draft::new(body),
+                    native_commit: None,
                     placed: None,
                     affinity: Affinity::Downstream,
                     pointer_selecting: false,
@@ -292,6 +348,36 @@ impl Viewer {
         self.inline = Some(i);
         self.preview_inline(cx);
     }
+    fn finish_native_commit(&mut self, w: &mut Window, cx: &mut Context<Self>) {
+        let Some(i) = self.inline.as_mut().filter(|i| i.native_commit.is_some()) else {
+            return;
+        };
+        if !w.is_window_active() || !self.focus.is_focused(w) {
+            self.end_inline(cx);
+            return;
+        }
+        i.native_commit.take();
+        self.publish_inline(w, cx);
+        w.notify_text_input_changed(&self.focus);
+    }
+    fn stage_native_commit(&mut self, draft: Draft, w: &Window, cx: &Context<Self>) {
+        // AppKit and GPUI's Linux backends can finish a mark before delivering the
+        // mouse down that ended it. Let that event cancel before publishing to history.
+        let Some(i) = &mut self.inline else { return };
+        let before_commit = std::mem::replace(&mut i.draft, draft);
+        i.affinity = Affinity::Downstream;
+        i.desired_inline_x = None;
+        let task = cx.spawn_in(w, async move |view, cx| {
+            cx.update(|w, cx| {
+                view.update(cx, |s, cx| s.finish_native_commit(w, cx)).ok();
+            })
+            .ok();
+        });
+        i.native_commit = Some(NativeCommit {
+            before_commit,
+            _task: task,
+        });
+    }
     fn input_replace(
         &mut self,
         r: Option<Range<usize>>,
@@ -325,18 +411,50 @@ impl Viewer {
         }
         w.notify_text_input_changed(&self.focus);
     }
-    fn paste_text(&mut self, item: ClipboardItem, w: &mut Window, cx: &mut Context<Self>) {
+    fn clipboard_document(
+        &self,
+        source: Option<ClipboardToken>,
+        cx: &App,
+    ) -> Option<&Presentation> {
+        let editor = self.editor.as_ref()?;
+        let local = editor.document.read(cx).clipboard_token?;
+        (source == Some(local)).then_some(editor.session.model())
+    }
+
+    fn show_paste_scope_result(
+        &mut self,
+        adjusted: bool,
+        before: Option<u64>,
+        cx: &mut Context<Self>,
+    ) {
+        if adjusted && self.editor.as_ref().map(|e| e.session.revision()) != before {
+            self.message = "已粘贴。无法在目标文稿使用的链接或链接声音已移除".into();
+            cx.notify();
+        }
+    }
+
+    fn paste_text(&mut self, item: Option<ClipboardItem>, w: &mut Window, cx: &mut Context<Self>) {
         let rich = item
-            .metadata()
+            .as_ref()
+            .and_then(ClipboardItem::metadata)
             .filter(|m| m.len() <= 1024 * 1024)
-            .and_then(|m| serde_json::from_str::<serde_json::Value>(m).ok())
-            .filter(|m| m["joydeck-text"] == 1)
-            .and_then(|m| {
-                serde_json::from_value::<joydeck_model::TextBody>(m["body"].clone()).ok()
+            .and_then(|m| serde_json::from_str::<TextClipboard>(m).ok())
+            .filter(|m| m.version == 1)
+            .or_else(|| {
+                crate::native_clipboard::rich_text().map(|body| TextClipboard {
+                    version: 1,
+                    document: None,
+                    body,
+                })
             });
-        if let Some(body) = rich {
+        if let Some(TextClipboard {
+            document, mut body, ..
+        }) = rich
+        {
             let result = (|| {
                 text::validate(&body)?;
+                let adjusted =
+                    clipboard::scope_text(&mut body, self.clipboard_document(document, cx))?;
                 let i = self.inline.as_mut().ok_or("not editing text")?;
                 let value = i.draft.body.text();
                 if value.len().saturating_sub(i.draft.selection.len()) + body.text().len() > 65536 {
@@ -352,23 +470,29 @@ impl Viewer {
                 i.draft.body = draft;
                 i.draft.selection = at..at;
                 i.draft.reversed = false;
-                Ok::<_, String>(())
+                Ok::<_, String>(adjusted)
             })();
             match result {
-                Ok(()) => self.publish_inline(w, cx),
+                Ok(adjusted) => {
+                    let before = self.editor.as_ref().map(|e| e.session.revision());
+                    self.publish_inline(w, cx);
+                    self.show_paste_scope_result(adjusted, before, cx);
+                }
                 Err(e) => {
                     self.message = e;
                     cx.notify();
                 }
             }
-        } else if let Some(value) = item.text() {
+        } else if let Some(value) = item.and_then(|item| item.text()) {
             self.input_replace(None, &value, false, None, w, cx);
         }
     }
     fn inline_hit(&self, p: Point<Pixels>, scale: f32) -> Option<(usize, Affinity)> {
         let i = self.inline.as_ref()?;
         let local = i.geometry(self.canvas_bounds, scale)?.local(p);
-        let (pos, affinity) = i.placed.as_ref()?.layout.hit_affinity(local);
+        let layout = &i.placed.as_ref()?.layout;
+        let (pos, affinity) = layout.hit_affinity(local);
+        let pos = layout.source_position(pos, affinity);
         let at = text::byte_pos(&i.draft.body.text(), (pos.para, pos.ch));
         Some((at, affinity))
     }
@@ -472,9 +596,18 @@ impl Viewer {
             return;
         };
         let value = i.draft.body.text();
-        let a = layout_pos(&value, i.draft.selection.start);
-        let b = layout_pos(&value, i.draft.selection.end);
-        let caret = i.caret_rect(layout_pos(&value, i.draft.cursor()), i.affinity, scale);
+        let a = layout_pos(
+            &p.layout,
+            &value,
+            i.draft.selection.start,
+            Affinity::Downstream,
+        );
+        let b = layout_pos(&p.layout, &value, i.draft.selection.end, Affinity::Upstream);
+        let caret = i.caret_rect(
+            layout_pos(&p.layout, &value, i.draft.cursor(), i.affinity),
+            i.affinity,
+            scale,
+        );
         let focused = self.focus.is_focused(w);
         if let Some(caret) = caret.filter(|_| focused) {
             let target = geo.bounds(caret);
@@ -500,8 +633,8 @@ impl Viewer {
                 geo.paint(caret, rgb(0x176fca), w);
             }
             if let Some(marked) = &i.draft.marked {
-                let a = layout_pos(&value, marked.start);
-                let b = layout_pos(&value, marked.end);
+                let a = layout_pos(&p.layout, &value, marked.start, Affinity::Downstream);
+                let b = layout_pos(&p.layout, &value, marked.end, Affinity::Upstream);
                 for (x0, x1, y) in p.layout.composition_underlines(a, b) {
                     let rect = joydeck_geom::Rect::new(x0, y, x1, y + 1. / f64::from(scale));
                     geo.paint(rect, rgb(0x176fca), w);
@@ -544,6 +677,18 @@ impl Viewer {
             && !self.composing()
         {
             self.step_font_size(larger, w, cx);
+            cx.stop_propagation();
+            return;
+        }
+        if command && matches!(key, "c" | "x" | "v") && !self.composing() {
+            if key == "v" {
+                self.paste_grid(w, cx);
+            } else {
+                self.clipboard_copy(key == "x", w, cx);
+            }
+            if self.inline.is_some() {
+                w.notify_text_input_changed(&self.focus);
+            }
             cx.stop_propagation();
             return;
         }
@@ -596,11 +741,6 @@ impl Viewer {
                 cx.stop_propagation();
                 return;
             }
-            if command && key == "x" {
-                self.clipboard_copy(true, w, cx);
-                cx.stop_propagation();
-                return;
-            }
             if command && key == "a" {
                 if let Some(e) = &mut self.editor {
                     let ids = e.session.model().slides[self.page]
@@ -619,13 +759,6 @@ impl Viewer {
                 self.begin_selected_text(w, cx);
                 cx.stop_propagation();
                 return;
-            }
-            if command && key == "v" {
-                self.paste_grid(w, cx);
-                cx.stop_propagation();
-            } else if command && key == "c" {
-                self.clipboard_copy(false, w, cx);
-                cx.stop_propagation();
             }
             return;
         }
@@ -681,28 +814,6 @@ impl Viewer {
                 i.affinity = Affinity::Downstream;
                 i.desired_inline_x = None;
                 cx.notify();
-            }
-            "c" | "x" if command => {
-                if !i.draft.selection.is_empty() {
-                    let a = text::pos(&value, i.draft.selection.start);
-                    let b = text::pos(&value, i.draft.selection.end);
-                    let body = ed::slice(&i.draft.body, a, b);
-                    let metadata =
-                        serde_json::to_string(&serde_json::json!({"joydeck-text":1,"body":body}))
-                            .unwrap_or_default();
-                    cx.write_to_clipboard(ClipboardItem::new_string_with_metadata(
-                        value[i.draft.selection.clone()].into(),
-                        metadata,
-                    ));
-                    if key == "x" {
-                        self.input_replace(None, "", false, None, w, cx);
-                    }
-                }
-            }
-            "v" if command => {
-                if let Some(item) = cx.read_from_clipboard() {
-                    self.paste_text(item, w, cx);
-                }
             }
             "backspace" | "delete" => {
                 if i.draft.selection.is_empty() {
@@ -807,17 +918,26 @@ impl Viewer {
         }
     }
     pub(super) fn paste_grid(&mut self, w: &mut Window, cx: &mut Context<Self>) {
+        let item = cx.read_from_clipboard();
         if self.inline.is_some() {
-            if let Some(item) = cx.read_from_clipboard() {
-                self.paste_text(item, w, cx);
-            }
+            self.paste_text(item, w, cx);
             return;
         }
-        if let Some(item) = cx.read_from_clipboard()
+        if let Some(item) = &item
             && let Some(metadata) = item.metadata().filter(|s| s.len() <= 32 * 1024 * 1024)
-            && let Ok(transfer) =
-                serde_json::from_str::<joydeck_engine::transfer::Transfer>(metadata)
+            && let Ok(ObjectClipboard {
+                document,
+                mut transfer,
+            }) = serde_json::from_str(metadata).or_else(|_| {
+                serde_json::from_str(metadata).map(|transfer| ObjectClipboard {
+                    document: None,
+                    transfer,
+                })
+            })
         {
+            let adjusted =
+                clipboard::scope_objects(&mut transfer, self.clipboard_document(document, cx));
+            let before = self.editor.as_ref().map(|e| e.session.revision());
             self.dispatch(
                 Command::PasteObjects {
                     transfer: Box::new(transfer),
@@ -825,9 +945,10 @@ impl Viewer {
                 w,
                 cx,
             );
+            self.show_paste_scope_result(adjusted, before, cx);
             return;
         }
-        if let Some(item) = cx.read_from_clipboard()
+        if let Some(item) = &item
             && let Some(bytes) = item.entries().iter().find_map(|e| {
                 if let ClipboardEntry::Image(image) = e {
                     Some(image.bytes.clone())
@@ -839,7 +960,13 @@ impl Viewer {
             self.paste_image(bytes, cx);
             return;
         }
-        let Some(value) = cx.read_from_clipboard().and_then(|i| i.text()) else {
+        if self.cell.is_none()
+            && let Some(body) = crate::native_clipboard::rich_text()
+        {
+            self.dispatch(clipboard::text_box(body), w, cx);
+            return;
+        }
+        let Some(value) = item.and_then(|i| i.text()) else {
             self.message = "剪贴板没有可用的文字、图片或 JoyDeck 对象".into();
             cx.notify();
             return;
@@ -872,6 +999,8 @@ impl Viewer {
         if self.composing() {
             return;
         }
+        let Some(e) = &self.editor else { return };
+        let document = e.document.read(cx).clipboard_token;
         if let Some(i) = &self.inline {
             let text = i.draft.body.text();
             let range = i.draft.selection.clone();
@@ -881,9 +1010,11 @@ impl Viewer {
             let a = text::pos(&text, range.start);
             let b = text::pos(&text, range.end);
             let body = ed::slice(&i.draft.body, a, b);
-            if let Ok(metadata) =
-                serde_json::to_string(&serde_json::json!({"joydeck-text":1,"body":body}))
-            {
+            if let Ok(metadata) = serde_json::to_string(&TextClipboard {
+                version: 1,
+                document,
+                body,
+            }) {
                 cx.write_to_clipboard(ClipboardItem::new_string_with_metadata(
                     text[range].into(),
                     metadata,
@@ -894,27 +1025,23 @@ impl Viewer {
             }
             return;
         }
-        let Some(e) = &self.editor else {
-            return;
-        };
         if cut && let Some(reason) = self.basic_edit_unavailable(BasicEdit::Delete, cx) {
             self.message = reason.to_string();
             cx.notify();
             return;
         }
-        match joydeck_engine::transfer::capture(
-            e.session.model(),
-            self.page,
-            &e.session.selection().shapes,
-        )
-        .and_then(|t| serde_json::to_string(&t).map_err(|e| e.to_string()))
-        .and_then(|s| {
-            if s.len() <= 32 * 1024 * 1024 {
-                Ok(s)
-            } else {
-                Err("对象剪贴板超过 32 MiB".into())
-            }
-        }) {
+        match transfer::capture(e.session.model(), self.page, &e.session.selection().shapes)
+            .and_then(|transfer| {
+                serde_json::to_string(&ObjectClipboard { document, transfer })
+                    .map_err(|e| e.to_string())
+            })
+            .and_then(|s| {
+                if s.len() <= 32 * 1024 * 1024 {
+                    Ok(s)
+                } else {
+                    Err("对象剪贴板超过 32 MiB".into())
+                }
+            }) {
             Ok(metadata) => {
                 if cut {
                     let before = self.editor.as_ref().map(|e| e.session.revision());
@@ -985,10 +1112,11 @@ impl EntityInputHandler for Viewer {
         _: &mut Window,
         _: &mut Context<Self>,
     ) -> Option<String> {
+        *actual = None;
         let t = self.inline.as_ref()?.draft.body.text();
-        let r = text::utf16_range(&t, r)?;
-        *actual = Some(text::to_utf16(&t, r.clone()));
-        Some(t[r].into())
+        let bytes = text::utf16_range(&t, r.clone())?;
+        *actual = Some(r);
+        Some(t[bytes].into())
     }
     fn selected_text_range(
         &mut self,
@@ -1004,10 +1132,10 @@ impl EntityInputHandler for Viewer {
     }
     fn set_selected_text_range(&mut self, r: Range<usize>, w: &mut Window, cx: &mut Context<Self>) {
         if let Some(i) = &mut self.inline
-            && let Some(r) = text::utf16_range(&i.draft.body.text(), r)
+            && i.draft.select_utf16(r).is_ok()
         {
-            i.draft.selection = r;
-            i.draft.reversed = false;
+            i.affinity = Affinity::Downstream;
+            i.desired_inline_x = None;
             w.notify_text_selection_changed(&self.focus);
             cx.notify();
         }
@@ -1031,11 +1159,12 @@ impl EntityInputHandler for Viewer {
         ))
     }
     fn unmark_text(&mut self, w: &mut Window, cx: &mut Context<Self>) {
-        if let Some(i) = &mut self.inline {
-            i.draft.settle();
-        }
-        self.publish_inline(w, cx);
-        w.notify_text_input_changed(&self.focus);
+        let Some(i) = self.inline.as_ref().filter(|i| i.draft.marked.is_some()) else {
+            return;
+        };
+        let mut draft = i.draft.clone();
+        draft.settle();
+        self.stage_native_commit(draft, w, cx);
     }
     fn replace_text_in_range(
         &mut self,
@@ -1044,6 +1173,29 @@ impl EntityInputHandler for Viewer {
         w: &mut Window,
         cx: &mut Context<Self>,
     ) {
+        self.finish_native_commit(w, cx);
+        // Pinned GPUI maps a Windows composition reset and a Linux removal of the
+        // mark to empty replacement callbacks. Ordinary editor deletes use input_replace.
+        if s.is_empty()
+            && ((cfg!(target_os = "windows") && r.is_none())
+                || (cfg!(target_os = "linux") && r.is_some() && r == self.marked_text_range(w, cx)))
+        {
+            if self.cancel_composition(cx) {
+                w.notify_text_input_changed(&self.focus);
+            }
+            return;
+        }
+        if let Some(i) = self.inline.as_ref().filter(|i| i.draft.marked.is_some()) {
+            let mut draft = i.draft.clone();
+            match draft.replace(r, s, false, None) {
+                Ok(()) => self.stage_native_commit(draft, w, cx),
+                Err(e) => {
+                    self.message = e;
+                    cx.notify();
+                }
+            }
+            return;
+        }
         self.input_replace(r, s, false, None, w, cx);
     }
     fn replace_and_mark_text_in_range(
@@ -1054,27 +1206,65 @@ impl EntityInputHandler for Viewer {
         w: &mut Window,
         cx: &mut Context<Self>,
     ) {
+        self.finish_native_commit(w, cx);
+        if s.is_empty() {
+            if self.cancel_composition(cx) {
+                w.notify_text_input_changed(&self.focus);
+            }
+            return;
+        }
+        let r = if cfg!(target_os = "macos")
+            && let Some(relative) = r.as_ref()
+            && let Some(i) = &self.inline
+        {
+            let Some(absolute) = i.draft.marked_relative_range(relative.clone()) else {
+                self.message = "输入法替换范围超出文稿".into();
+                cx.notify();
+                return;
+            };
+            Some(absolute)
+        } else {
+            r
+        };
         self.input_replace(r, s, true, selected, w, cx);
     }
     fn bounds_for_range(
         &mut self,
         r: Range<usize>,
-        _: Bounds<Pixels>,
+        canvas: Bounds<Pixels>,
         w: &mut Window,
         _: &mut Context<Self>,
     ) -> Option<Bounds<Pixels>> {
         let i = self.inline.as_ref()?;
         let p = i.placed.as_ref()?;
         let value = i.draft.body.text();
-        let r = text::utf16_range(&value, r)?;
+        let r = i
+            .draft
+            .editable_range(&value, text::utf16_range(&value, r)?);
         let scale = self.scale(w);
-        let geo = i.geometry(self.canvas_bounds, scale)?;
-        let start = layout_pos(&value, r.start);
-        let end = layout_pos(&value, r.end);
-        if start != end
-            && let Some(first) = p.layout.selection_rects(start, end).first()
-        {
-            return Some(geo.bounds(*first));
+        let geo = i.geometry(canvas, scale)?;
+        let start = layout_pos(&p.layout, &value, r.start, Affinity::Downstream);
+        if !r.is_empty() {
+            let end = layout_pos(&p.layout, &value, r.end, Affinity::Upstream);
+            if let Some(line) = p
+                .layout
+                .line_index(start, Affinity::Downstream)
+                .and_then(|line| p.layout.lines.get(line))
+            {
+                let to = if end.para == line.para {
+                    end.ch
+                } else {
+                    line.end
+                };
+                if let Some((x0, x1)) = line.span(start.ch, to) {
+                    return Some(geo.bounds(joydeck_geom::Rect::new(
+                        x0,
+                        line.top,
+                        x1,
+                        line.bottom,
+                    )));
+                }
+            }
         }
         let affinity = if r.start == i.draft.cursor() {
             i.affinity
@@ -1083,13 +1273,56 @@ impl EntityInputHandler for Viewer {
         };
         Some(geo.bounds(i.caret_rect(start, affinity, scale)?))
     }
+    fn selection_bounds_for_range(
+        &mut self,
+        r: Range<usize>,
+        canvas: Bounds<Pixels>,
+        w: &mut Window,
+        _: &mut Context<Self>,
+    ) -> Vec<Bounds<Pixels>> {
+        let Some(i) = &self.inline else {
+            return Vec::new();
+        };
+        let Some(placed) = &i.placed else {
+            return Vec::new();
+        };
+        let Some(geo) = i.geometry(canvas, self.scale(w)) else {
+            return Vec::new();
+        };
+        let value = i.draft.body.text();
+        let Some(r) = text::utf16_range(&value, r) else {
+            return Vec::new();
+        };
+        if r.is_empty() {
+            return Vec::new();
+        }
+        let r = i.draft.editable_range(&value, r);
+        let start = layout_pos(&placed.layout, &value, r.start, Affinity::Downstream);
+        let end = layout_pos(&placed.layout, &value, r.end, Affinity::Upstream);
+        placed
+            .layout
+            .selection_rects(start, end)
+            .into_iter()
+            .map(|rect| geo.bounds(rect))
+            .collect()
+    }
     fn character_index_for_point(
         &mut self,
         p: Point<Pixels>,
         w: &mut Window,
         _: &mut Context<Self>,
     ) -> Option<usize> {
-        let (at, _) = self.inline_hit(p, self.scale(w))?;
-        Some(text::to_utf16(&self.inline.as_ref()?.draft.body.text(), at..at).start)
+        let i = self.inline.as_ref()?;
+        let canvas = self.canvas_bounds.intersect(&self.page_scroll.bounds());
+        let layout = &i.placed.as_ref()?.layout;
+        let local = i.geometry(self.canvas_bounds, self.scale(w))?.local(p);
+        if !canvas.contains(&p) || !layout.bounds().contains(local) {
+            return None;
+        }
+        let (pos, affinity) = layout.hit_affinity(local);
+        let pos = layout.source_position(pos, affinity);
+        let value = i.draft.body.text();
+        let at = text::byte_pos(&value, (pos.para, pos.ch));
+        Some(text::to_utf16(&value, at..at).start)
     }
 }

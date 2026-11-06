@@ -7,6 +7,8 @@ use std::{
     result::Result,
 };
 
+pub(crate) const PASTE_OFFSET: f64 = 18.;
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Transfer {
@@ -212,8 +214,8 @@ pub(super) fn paste(st: &mut EditorSnapshot, t: &Transfer) -> Result<(), String>
         s.id = ShapeId(next_id(p)?);
         map.insert(old, s.id);
         if let Some(x) = &mut s.xfrm {
-            x.x += 18.;
-            x.y += 18.;
+            x.x += PASTE_OFFSET;
+            x.y += PASTE_OFFSET;
         }
     }
     for s in &mut shapes {

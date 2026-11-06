@@ -1,0 +1,116 @@
+{
+  "environment": {
+    "os": "macOS 27.2",
+    "hardware": "Apple M4",
+    "target": "aarch64-apple-darwin",
+    "displayScale": 1
+  },
+  "package": {
+    "archive": "joydeck-0.8.0-r3-clipboard.zip",
+    "sha256": "bb0c720c218672bdd54f7c740dc075c197a7caf7ff2c2596d5a437d541c1e2fb",
+    "sourceSha256": "f1cf888e050d47efb576580ff5724f6e4f2aba9a9e468cf9354226ebdc4625f8",
+    "profile": "release",
+    "payloadFilesVerified": 1805
+  },
+  "product": {
+    "passed": 920,
+    "failed": 0,
+    "ignored": 0
+  },
+  "cliRegressions": {
+    "r1": 28,
+    "r2": 20,
+    "r3": 20,
+    "r4-r5": 23
+  },
+  "commandRegistry": {
+    "upstreamIds": 329,
+    "inventorySha256": "69dba362936d516ab0462330c586e4d524126c9f2b825909aef1aac01265c78b"
+  },
+  "desktop": {
+    "binarySha256": "0666eb7833cd41bd44bd8d847586eeb97d6903bbe328b39df01583506545e3dd",
+    "cliSha256": "d1f757e7e47b263f43ca504d988b7bbcac2887f787220488bb83e9be2e9e6d17",
+    "checks": [
+      {
+        "check": "Independent windows exchange styled text through the actual system clipboard; AppKit plain text and single-step Undo also pass",
+        "revisions": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      {
+        "check": "Cut refuses an unsupported chart, leaving both the source and the earlier object clipboard intact",
+        "revision": 0
+      },
+      {
+        "check": "Multi-object paste keeps the independent table and image and is a single undoable transaction",
+        "revisions": [
+          6,
+          7,
+          8
+        ]
+      },
+      {
+        "check": "A PNG supplied by independent AppKit code is imported once; one Undo removes only that image",
+        "revisions": [
+          9,
+          10,
+          11
+        ]
+      },
+      {
+        "check": "Independent PPTX confirms bold Unicode, remapped objects, the original PNG reused by both relationships and the new system PNG",
+        "mediaParts": [
+          "ppt/media/image1.png",
+          "ppt/media/joydeck-1-image2.png"
+        ],
+        "pictureTargets": [
+          "../media/image1.png",
+          "../media/image1.png",
+          "../media/joydeck-1-image2.png"
+        ]
+      }
+    ],
+    "screenshots": {
+      "01-rich-text-cross-document.png": "22ba942ac5c176d56366b8714f12e4686696a4566bf9f5a1df5be47cc4ef4cd1",
+      "02-unsupported-cut.png": "cb5ec467711e79458476bb2e66e04c508198cad18822189c09797ca2e381430b",
+      "03-cross-document-objects.png": "aea4c474545c7a986a52cf5e34ae083ed27facdb8542e963183a49904453442a",
+      "04-native-image.png": "1e7218952a6ad78568c13d0bd37dde41a64a10676897abe6d0cebffceb100650",
+      "05-saved-transfer.png": "7b93f051d71a9320da8b26978e31f697f9f4f7e6574b2c2bf951e8fc9c63827e"
+    },
+    "fixtureSha256": {
+      "剪贴板来源.pptx": "cb86cbd6c33cd59cd0c4902bcfc3910aaccae0e96cf94fe60808af33cb23ced6",
+      "剪贴板目标.pptx": "5d4b1e9b8a6d4237231d1a26e18a177a14d3782b432e295be9473af33ff9808b"
+    },
+    "pptxSha256": "8c406f97b03acfb22a6b9b29468e16b4eb823cfc418094d3b524488816171fdb",
+    "passed": true
+  },
+  "openCrossDocumentLinkDefect": {
+    "binarySha256": "222e20e47065c1dc2f2bfa51b36fb05e905f3f9ac2e82c420059d3d6be462eee",
+    "cliSha256": "96d1f19021f5eb850e8644d3ed0a0f49f3ec6e9bed5a2d9446d74feb8b31f7b6",
+    "checks": [
+      {
+        "check": "Cross-document rich paste stores the source link against the unrelated destination slide with the same ID",
+        "sourceLink": {
+          "action": {
+            "kind": "slide",
+            "slide": 11
+          },
+          "tooltip": "",
+          "highlightClick": false
+        },
+        "destinationSlideId": 11
+      }
+    ],
+    "screenshots": {},
+    "fixtureSha256": {
+      "剪贴板来源.pptx": "850e4738744a0539f7f55dab5b729783acc536fac8eb65671a3099976e174b46",
+      "剪贴板目标.pptx": "80d69508fa497fde63567629475914f072b8ffdecc76f176049ed5ae48bc8fea"
+    },
+    "reproduced": true
+  }
+}

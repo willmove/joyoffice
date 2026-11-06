@@ -1,5 +1,23 @@
 # JoyDeck 当前状态
 
+2026-11-05 推进 JD-307。macOS Release 通过系统剪贴板读取外部 HTML／RTF，保留常用字符格式、安全网页链接和段落。原位粘贴与画布新建文本框均单步撤销，另存和独立读回复验通过。JoyDeck 产品检查 924 项通过。[外部富文本证据](evidence/R3-EXTERNAL-RICH/README.md)
+
+2026-11-05 推进 JD-307。修复富文字和对象跨文稿粘贴时的页内链接误绑定。同文稿的两个窗口实测保留页内动作，跨文稿在保留样式和网页链接的同时移除源文稿引用。旧对象剪贴板与单步撤销／重做已复验，JoyDeck 产品检查 921 项通过。[链接范围证据](evidence/R3-CLIPBOARD-LINKS/README.md)
+
+2026-11-05 推进 JD-307。macOS Release 实测系统纯文本、内部富文字、外部 PNG、跨文稿图片和表格，以及单次粘贴的撤销。修复 PPTX 保留保存时重复写入相同图片部件，公开格式独立读回证实两张图复用原部件。跨文稿页内链接误绑定已复现并继续跟踪。JoyDeck 产品检查 920 项通过。[剪贴板证据](evidence/R3-CLIPBOARD/README.md)
+
+2026-11-05 完成 JD-306。macOS Release 实测插入表格、行列增删、合并与拆分、矩形选区、样式和底色。系统拼音单次提交，Tab 跳过覆盖格，Shift+Tab 返回合并锚格。另存两种格式后从独立桌面进程重开，包内 CLI 与公开 PPTX 独立读取一致。[表格验收](evidence/R3-TABLE-QUALIFICATION/README.md)
+
+2026-11-05 推进 JD-305。「插入」支持在文本框内新增动态幻灯片编号和日期／时间字段。macOS Release 实测字段整体移动、删除与撤销、两种格式另存，以及重排后页码更新。PPTX 保留保存维持已有字段原始 XML 与 ID。JoyDeck 产品检查 919 项通过，JD-305 继续开放。[动态字段证据](evidence/R3-TEXT-FIELDS/README.md)
+
+2026-11-05 推进 JD-305。文字选区可新增、编辑和移除网页、邮件与页内链接。PPTX 保留保存维持原有字符样式、其他链接和未知扩展。macOS Release 实测放映点击从第 1 页直接跳至第 3 页，页序改变后的目标也有自动回归。JD-305 继续开放。[文字链接证据](evidence/R3-TEXT-LINKS/README.md)
+
+2026-11-05 推进 JD-305。「形状格式」新增文字方向、分栏、垂直对齐、边距、换行和溢出缩小。macOS Release 已复验实屏操作、单步撤销和两种格式保存。PPTX 保留保存只更新布局属性，保留段落、链接关系和未知扩展。命令矩阵登记已验证的范围，JD-305 继续开放。[文字布局证据](evidence/R3-TEXT-LAYOUT/README.md)
+
+2026-11-05 完成 JD-304。修复点击缩略图时原生拼音草稿被写入原页的问题。macOS Release 实测系统拼音与 ABC 重音组合的提交、取消、切页、失焦、撤销和重做。组合中强制终止后，包内 CLI 只恢复已提交的修订。JoyDeck 产品检查 915 项通过。[组合生命周期证据](evidence/R3-IME-LIFECYCLE/README.md)
+
+2026-11-05 完成 JD-303。macOS Release 实测非 BMP、组合字素、emoji ZWJ 删除替换及两处系统拼音候选。组合期间的忙态查询保留草稿，每次选词只提交一次，保存后独立读回。JoyDeck 产品检查 914 项通过。[原生输入证据](evidence/R3-NATIVE-UNICODE/README.md)
+
 2026-11-05 完成 JD-302。macOS Release 实测旋转与竖排选区、指针命中、方向键、插入点滚动和 PPTX 另存读回。产品检查 911 项通过，1×/2× 坐标回归通过，2× 实屏另行复验。[原位编辑证据](evidence/R3-TRANSFORMED-TEXT/README.md)
 
 2026-11-05 完成 JD-301。macOS Release 实测同名字体热替换、画布与缩略图刷新、原位选区及 TTC 搜索。包内 CLI 报告选中的 face、冲突和实际替代。JoyDeck 909 项、三产品联合 5,802 项通过。[字体环境证据](evidence/R3-FONT-ENVIRONMENT/README.md)

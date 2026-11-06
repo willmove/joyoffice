@@ -369,7 +369,7 @@ pub(crate) fn layout_scaled(
         .collect();
     out.resolved_paragraphs = shaped_paras
         .iter()
-        .map(|p| ResolvedParagraph::from_cells(&p.cells))
+        .map(|p| ResolvedParagraph::from_cells(&p.cells, p.fields.clone()))
         .collect();
     // Merge adjacent decorations of the same colour on the same line.
     out.decos = merge_decos(std::mem::take(&mut out.decos));

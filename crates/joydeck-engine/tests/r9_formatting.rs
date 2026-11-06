@@ -11,6 +11,91 @@ fn session() -> Session {
     let p = Presentation::default();
     Session::new(p.clone(), original_bindings(&p), true)
 }
+
+#[test]
+fn clipboard_links_require_document_identity_and_a_live_target() {
+    use joydeck_engine::{
+        clipboard,
+        transfer::{Resource, Transfer},
+    };
+    use joydeck_model::{
+        MediaId, Shape, SlideId,
+        text::{Action, Hyperlink, Run},
+    };
+
+    let p = Presentation::default();
+    let slide = p.slides[0].id;
+    let link = |action| Hyperlink {
+        action,
+        tooltip: "tooltip".into(),
+        highlight_click: false,
+        sound: None,
+        stop_sound: false,
+        zoom_return: None,
+    };
+    let mut rich = TextBody::from_text("linked");
+    let paragraph = &mut rich.paragraphs[0];
+    paragraph.runs[0].props.link = Some(link(Action::Slide { slide }));
+    paragraph.runs[0].props.bold = Some(true);
+    paragraph.end_props.hover = Some(link(Action::Slide {
+        slide: SlideId(u32::MAX),
+    }));
+    let mut external = link(Action::Url {
+        url: "https://example.org/".into(),
+    });
+    external.sound = Some(MediaId(u32::MAX));
+    let mut run = Run::new(" web");
+    run.props.link = Some(external);
+    paragraph.runs.push(run);
+
+    let mut same = rich.clone();
+    assert!(clipboard::scope_text(&mut same, Some(&p)).unwrap());
+    let runs = &same.paragraphs[0].runs;
+    assert_eq!(runs[0].props.link, rich.paragraphs[0].runs[0].props.link);
+    assert!(runs[1].props.link.as_ref().unwrap().sound.is_none());
+    assert!(same.paragraphs[0].end_props.hover.is_none());
+
+    let mut foreign = rich.clone();
+    assert!(clipboard::scope_text(&mut foreign, None).unwrap());
+    assert_eq!(foreign.text(), rich.text());
+    let runs = &foreign.paragraphs[0].runs;
+    assert!(runs[0].props.link.is_none());
+    assert_eq!(runs[0].props.bold, Some(true));
+    assert!(matches!(
+        runs[1].props.link.as_ref().unwrap().action,
+        Action::Url { .. }
+    ));
+
+    let mut click = link(Action::Slide { slide });
+    click.sound = Some(MediaId(3));
+    let sound = |id| Resource {
+        id,
+        name: "sound.wav".into(),
+        content_type: "audio/wav".into(),
+        data: vec![1],
+    };
+    let mut transfer = Transfer {
+        joydeck_objects: 1,
+        shapes: vec![Shape {
+            click: Some(click),
+            text: Some(rich),
+            ..Default::default()
+        }],
+        media: vec![sound(MediaId(3)), sound(MediaId(u32::MAX))],
+    };
+    assert!(clipboard::scope_objects(&mut transfer, None));
+    let shape = &transfer.shapes[0];
+    assert!(shape.click.is_none());
+    let runs = &shape.text.as_ref().unwrap().paragraphs[0].runs;
+    assert!(runs[0].props.link.is_none());
+    assert_eq!(
+        runs[1].props.link.as_ref().unwrap().sound,
+        Some(MediaId(u32::MAX))
+    );
+    assert_eq!(transfer.media.len(), 1);
+    assert_eq!(transfer.media[0].id, MediaId(u32::MAX));
+}
+
 #[test]
 fn slide_order_and_group_transform_preserve_references_and_undo() {
     use joydeck_engine::WorkspaceAction;
@@ -222,6 +307,105 @@ fn typing_style_survives_composition_cancel_without_changing_existing_text() {
     assert!(d.typing_props.is_none());
 }
 
+#[test]
+fn native_ranges_keep_surrogates_and_committed_graphemes_intact() -> Result<(), String> {
+    use joydeck_engine::text::{to_utf16, utf16_range};
+
+    let initial = "A😀e\u{301}👩‍💻Z";
+    let mut draft = Draft::new(TextBody::from_text(initial));
+    draft.select_utf16(4..5)?;
+    assert_eq!(&initial[draft.selection.clone()], "e\u{301}");
+    assert_eq!(to_utf16(initial, draft.selection.clone()), 3..5);
+    assert_eq!(utf16_range(initial, 1..3).map(|r| &initial[r]), Some("😀"));
+    assert_eq!(
+        utf16_range(initial, 4..5).map(|r| &initial[r]),
+        Some("\u{301}")
+    );
+    assert!(draft.select_utf16(2..2).is_err());
+    assert!(draft.replace(Some(2..3), "", false, None).is_err());
+    assert_eq!(draft.body.text(), initial);
+    assert_eq!(&initial[draft.selection.clone()], "e\u{301}");
+
+    draft.select_utf16(4..4)?;
+    assert_eq!(to_utf16(initial, draft.selection.clone()), 3..3);
+    draft.replace(Some(7..8), "", false, None)?;
+    assert_eq!(draft.body.text(), "A😀e\u{301}Z");
+    draft.replace(Some(4..5), "é", false, None)?;
+    assert_eq!(draft.body.text(), "A😀éZ");
+    Ok(())
+}
+
+#[test]
+fn appkit_mark_ranges_are_relative_and_preserve_preedit_scalar_ranges() -> Result<(), String> {
+    let mut draft = Draft::new(TextBody::from_text("A😀Z"));
+    draft.select_utf16(3..3)?;
+    draft.replace(None, "e\u{301}x", true, Some(1..2))?;
+    let value = draft.body.text();
+    assert_eq!(&value[draft.selection.clone()], "\u{301}");
+    let absolute = draft.marked_relative_range(1..2).ok_or("range overflow")?;
+    assert_eq!(absolute, 4..5);
+    assert!(
+        draft
+            .marked_relative_range(usize::MAX..usize::MAX)
+            .is_none()
+    );
+    draft.replace(Some(absolute), "\u{300}", true, None)?;
+    assert_eq!(draft.body.text(), "A😀e\u{300}xZ");
+    draft.replace(None, "\u{301}", false, None)?;
+    assert_eq!(draft.body.text(), "A😀e\u{301}xZ");
+    assert!(draft.marked.is_none());
+    Ok(())
+}
+
+#[test]
+fn preedit_selection_survives_newline_normalization_and_cancellation() -> Result<(), String> {
+    let mut draft = Draft::new(TextBody::from_text("before"));
+    draft.replace(None, "a\r\n😀", true, Some(3..5))?;
+    let value = draft.body.text();
+    assert_eq!(value, "a\n😀");
+    assert_eq!(&value[draft.selection.clone()], "😀");
+    draft.cancel();
+    assert_eq!(draft.body.text(), "before");
+    assert_eq!(draft.selection, 0..6);
+    assert!(draft.marked.is_none());
+    Ok(())
+}
+
+#[test]
+fn repeated_preedit_and_reset_preserve_selection_and_committed_text() -> Result<(), String> {
+    let mut draft = Draft::new(TextBody::from_text("A😀Z"));
+    draft.move_to(5, false);
+    draft.move_to(1, true);
+    let original = draft.body.clone();
+    for _ in 0..2 {
+        draft.replace(None, "", true, None)?;
+        assert_eq!(draft.body, original);
+        assert_eq!(draft.selection, 1..5);
+        assert!(draft.reversed);
+        assert!(draft.marked.is_none());
+    }
+    for _ in 0..2 {
+        draft.replace(None, "ni", true, Some(2..2))?;
+        assert_eq!(draft.body.text(), "AniZ");
+        assert_eq!(draft.marked, Some(1..3));
+    }
+    for _ in 0..2 {
+        draft.replace(None, "", true, None)?;
+        assert_eq!(draft.body, original);
+        assert_eq!(draft.selection, 1..5);
+        assert!(draft.reversed);
+        assert!(draft.marked.is_none());
+    }
+    draft.replace(None, "ni", true, None)?;
+    draft.replace(None, "你", false, None)?;
+    draft.replace(None, "", true, None)?;
+    assert_eq!(draft.body.text(), "A你Z");
+    assert!(draft.marked.is_none());
+    draft.replace(Some(1..2), "", false, None)?;
+    assert_eq!(draft.body.text(), "AZ");
+    Ok(())
+}
+
 mod selection_summary {
     use joydeck_engine::formatting::*;
     use joydeck_model::{Run, RunProps, TextBody, text::Align};
@@ -355,4 +539,26 @@ fn slide_copy_remaps_review_and_animation_targets_without_losing_the_timeline() 
     assert_eq!(session.model(), &original);
     session.execute(Command::NewSlide).unwrap();
     assert!(session.model().slides[1].comments.is_empty());
+}
+
+#[test]
+fn native_field_edits_are_atomic_even_inside_a_utf16_range() -> Result<(), String> {
+    let mut d = Draft::new(TextBody::from_text("A😀Z"));
+    d.move_to("A😀".len(), false);
+    d.insert_field("datetime1", "2026/11/05", Some("zh-CN"))?;
+    assert_eq!(d.body.text(), "A😀2026/11/05Z");
+    let with_field = d.body.clone();
+    assert!(matches!(
+        d.body.paragraphs[0].runs[1].kind,
+        joydeck_model::text::RunKind::Field { .. }
+    ));
+    d.select_utf16(5..6)?;
+    assert_eq!(&d.body.text()[d.selection.clone()], "2026/11/05");
+    d.replace(None, "ni", true, None)?;
+    assert_eq!(d.body.text(), "A😀niZ");
+    d.cancel();
+    assert_eq!(d.body, with_field);
+    d.replace(Some(11..12), "", false, None)?;
+    assert_eq!(d.body.text(), "A😀Z");
+    Ok(())
 }

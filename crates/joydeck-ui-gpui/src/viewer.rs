@@ -31,6 +31,7 @@ actions!(
         ZoomOut,
         Fit,
         Report,
+        EditTextLink,
         Save,
         UndoEdit,
         RedoEdit,
@@ -95,6 +96,12 @@ mod selection_format;
 mod slideshow;
 #[path = "table_ui.rs"]
 mod table_ui;
+#[path = "text_field_ui.rs"]
+mod text_field_ui;
+#[path = "text_layout_ui.rs"]
+mod text_layout_ui;
+#[path = "text_link_ui.rs"]
+mod text_link_ui;
 
 // Document generation, page, raster width, font environment.
 type ImageKey = (u64, usize, u32, u64);
@@ -916,6 +923,9 @@ impl Render for Viewer {
             } else {
                 "sans-serif"
             })
+            .capture_any_mouse_down(
+                cx.listener(|s, _, w, cx| s.cancel_composition_on_pointer(w, cx)),
+            )
             .when(self.save_unavailable().is_none(), |d| {
                 d.on_action(cx.listener(Self::save))
                     .on_action(cx.listener(Self::save_as))
@@ -924,6 +934,7 @@ impl Render for Viewer {
             .on_action(cx.listener(|s, _: &PreviousCell, w, cx| s.next_cell(true, w, cx)))
             .on_key_down(cx.listener(Self::inline_key))
             .on_action(cx.listener(Self::new_document))
+            .on_action(cx.listener(Self::edit_text_link))
             .on_action(cx.listener(Self::request_close))
             .on_action(cx.listener(Self::open))
             .on_action(cx.listener(Self::cancel))
@@ -1023,6 +1034,8 @@ pub fn bind(cx: &mut App) {
         KeyBinding::new("ctrl-q", CloseEditor, Some("Viewer")),
         KeyBinding::new("cmd-q", CloseEditor, Some("Viewer")),
         KeyBinding::new("cmd-o", Open, Some("Viewer")),
+        KeyBinding::new("ctrl-k", EditTextLink, Some("Viewer && !Input")),
+        KeyBinding::new("cmd-k", EditTextLink, Some("Viewer && !Input")),
         KeyBinding::new("escape", Cancel, Some("Viewer")),
         KeyBinding::new("pageup", Previous, Some("Viewer && !Input && !InlineText")),
         KeyBinding::new("pagedown", Next, Some("Viewer && !Input && !InlineText")),

@@ -1013,8 +1013,8 @@ pub fn text_body(w: &mut W, x: &mut Exp, o: &mut Out, tag: &str, tb: &TextBody, 
     if tb.paragraphs.is_empty() {
         w.empty0("a:p");
     }
-    for (pi, p) in tb.paragraphs.iter().enumerate() {
-        paragraph(w, x, o, p, math, pi);
+    for p in &tb.paragraphs {
+        paragraph(w, x, o, p, math);
     }
     w.close(tag);
 }
@@ -1036,13 +1036,13 @@ fn run_text(w: &mut W, x: &mut Exp, o: &mut Out, text: &str, props: &RunProps) {
     }
 }
 
-pub fn paragraph(w: &mut W, x: &mut Exp, o: &mut Out, p: &Paragraph, math: bool, index: usize) {
+pub fn paragraph(w: &mut W, x: &mut Exp, o: &mut Out, p: &Paragraph, math: bool) {
     w.open0("a:p");
     let def = (p.def_props != RunProps::default()).then_some(&p.def_props);
     if p.level > 0 || !is_default_ppr(&p.props) || def.is_some() {
         ppr(w, x, o, "a:pPr", Some(p.level), &p.props, def);
     }
-    for (ri, r) in p.runs.iter().enumerate() {
+    for r in &p.runs {
         match &r.kind {
             RunKind::Text => run_text(w, x, o, &r.text, &r.props),
             RunKind::Break => {
@@ -1051,7 +1051,7 @@ pub fn paragraph(w: &mut W, x: &mut Exp, o: &mut Out, p: &Paragraph, math: bool,
                 w.close("a:br");
             }
             RunKind::Field { field } => {
-                let id = crate::tables::guid(&format!("{}:{index}:{ri}:{field}", o.name));
+                let id = o.next_field_id();
                 let ty = (!field.is_empty()
                     && field.chars().all(|c| c.is_ascii_alphanumeric() || c == '-'))
                 .then_some(field.as_str());
