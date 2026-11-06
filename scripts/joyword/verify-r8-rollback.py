@@ -11,8 +11,12 @@ import shutil
 import socket
 import subprocess
 import time
-import winreg
 from zipfile import ZipFile
+
+
+def require(condition, message):
+    if not condition:
+        raise ValueError(message)
 
 
 def digest(path):
@@ -54,6 +58,8 @@ def candidate_in_place(install, staged, previous, retired):
 
 
 def association():
+    import winreg
+
     name = r"Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.docx\UserChoice"
     try:
         with winreg.OpenKey(winreg.HKEY_CURRENT_USER, name) as key:
@@ -76,7 +82,8 @@ def request(port, method, params=None, key=None):
         sock.sendall(json.dumps(payload).encode() + b"\n")
         with sock.makefile("rb") as reader:
             reply = json.loads(reader.readline(16 << 20))
-    assert reply["id"] == 1
+    require(reply["id"] == 1,
+            'Control response has an unexpected request ID')
     return reply
 
 
@@ -103,7 +110,8 @@ def verify_control(bin_dir, env, source):
     try:
         limit = time.monotonic() + 30
         while True:
-            assert app.poll() is None, f"JoyWord exited with {app.returncode}"
+            require(app.poll() is None,
+                    f"JoyWord exited with {app.returncode}")
             try:
                 inspect = request(port, "document.inspect", key=key)
                 if inspect["ok"]:
@@ -113,45 +121,60 @@ def verify_control(bin_dir, env, source):
             if time.monotonic() >= limit:
                 raise TimeoutError("Control never exposed an active document")
             time.sleep(.2)
-        assert request(port, "document.inspect")["error"] == "unauthorized"
-        assert request(port, "document.inspect", key="0" * 64)["error"] == "unauthorized"
+        require(request(port, "document.inspect")["error"] == "unauthorized",
+                'Control did not reject a missing key')
+        require(request(port, "document.inspect", key="0" * 64)["error"] == "unauthorized",
+                'Control did not reject an incorrect key')
         before = inspect["result"]
         capabilities = request(port, "capabilities", key=key)["result"]
-        assert capabilities["versionRequired"] and not capabilities["fileAccess"]
+        require(capabilities["versionRequired"] and not capabilities["fileAccess"],
+                'Control version or file-access contract changed')
         if capabilities["uiAutomation"]:
-            assert set(capabilities["uiCommands"]) == {"edit.goto", "view.zoom"}
+            require(set(capabilities["uiCommands"]) == {"edit.goto", "view.zoom"},
+                    'Unexpected UI command capabilities')
             target = {"doc": before["doc"], "version": before["version"]}
             for command, invalid, valid in [
                 ("edit.goto", {"page": 0}, {"page": 1}),
                 ("view.zoom", {"value": "onePage"}, {"value": 125}),
             ]:
                 params = {**target, "command": command}
-                assert not request(port, "engine.execute", {**params, "params": invalid}, key)["ok"]
+                require(not request(port, "engine.execute", {**params, "params": invalid}, key)["ok"],
+                        'Control accepted invalid UI parameters')
                 reply = request(port, "engine.execute", {**params, "params": valid}, key)
-                assert reply["ok"], reply
+                require(reply["ok"],
+                        reply)
                 if command == "view.zoom":
-                    assert reply["result"]["zoom"] == 1.25
+                    require(reply["result"]["zoom"] == 1.25,
+                            'Control returned an incorrect zoom')
         args = {"doc": before["doc"], "version": before["version"], "command": "text.insert",
                 "params": {"text": "R8 控制验证 "}}
-        assert not request(port, "engine.execute", {**args, "doc": before["doc"] + 1}, key)["ok"]
-        assert not request(port, "engine.execute", {**args, "command": "file.open"}, key)["ok"]
-        assert request(port, "engine.execute", args, key)["ok"]
-        assert not request(port, "engine.execute", args, key)["ok"]
+        require(not request(port, "engine.execute", {**args, "doc": before["doc"] + 1}, key)["ok"],
+                'Control accepted the wrong document')
+        require(not request(port, "engine.execute", {**args, "command": "file.open"}, key)["ok"],
+                'Control accepted file access')
+        require(request(port, "engine.execute", args, key)["ok"],
+                'Control rejected a valid edit')
+        require(not request(port, "engine.execute", args, key)["ok"],
+                'Control accepted a stale document version')
         after = request(port, "document.inspect", key=key)["result"]
-        assert after["text"].count("R8 控制验证 ") == 1 and after["version"] != before["version"]
+        require(after["text"].count("R8 控制验证 ") == 1 and after["version"] != before["version"],
+                'Edit text or document version did not advance exactly once')
         mcp = {"jsonrpc": "2.0", "id": 1, "method": "tools/call",
                "params": {"name": "inspect_document", "arguments": {}}}
         output = subprocess.check_output(
             [bin_dir / "joyword-cli.exe", "mcp", "--connect", f"127.0.0.1:{port}"],
             input=json.dumps(mcp) + "\n", cwd=bin_dir, env=env, encoding="utf-8", timeout=15)
         response = json.loads(output)
-        assert not response["result"].get("isError", False)
-        assert "R8 控制验证 " in response["result"]["content"][0]["text"]
+        require(not response["result"].get("isError", False),
+                'MCP returned an error')
+        require("R8 控制验证 " in response["result"]["content"][0]["text"],
+                'MCP did not read back the edit')
     finally:
         stop(app)
 
 
 def verify(previous, candidate, fixtures, work):
+    require(os.name == "nt", "Full rollback verification requires Windows")
     work.mkdir(parents=True)
     install = work / "install"
     previous_hash = read_package(previous, install)
@@ -177,12 +200,14 @@ def verify(previous, candidate, fixtures, work):
     try:
         read_package(bad, work / "failed-stage")
     except ValueError:
-        assert all(digest(install / name) == sha for name, sha in old_binaries.items())
+        require(all(digest(install / name) == sha for name, sha in old_binaries.items()),
+                'Damaged package changed installed binaries')
     else:
         raise AssertionError("Damaged package was accepted")
     stage = work / "staged"
     candidate_hash = read_package(candidate, stage)
-    assert previous_hash != candidate_hash
+    require(previous_hash != candidate_hash,
+            'Candidate must differ from previous package')
     previous_dir = work / "previous"
     retired = work / "candidate"
     # A disappeared stage fails after the live directory has been renamed.
@@ -190,24 +215,33 @@ def verify(previous, candidate, fixtures, work):
         with candidate_in_place(install, work / "missing-stage", previous_dir, retired):
             raise AssertionError("Missing stage was promoted")
     except FileNotFoundError:
-        assert all(digest(install / name) == sha for name, sha in old_binaries.items())
-        assert not previous_dir.exists() and not retired.exists()
+        require(all(digest(install / name) == sha for name, sha in old_binaries.items()),
+                'Failed promotion did not restore installed binaries')
+        require(not previous_dir.exists() and not retired.exists(),
+                'Failed promotion left rollback directories')
     with candidate_in_place(install, stage, previous_dir, retired):
         verify_control(install, env, source)
         restored = work / "恢复 副本.docx"
         cli(install, env, "recover", recovery, "--save", restored)
-        assert digest(restored) == digest(fixtures / "snapshot.docx")
-    assert all(digest(install / name) == sha for name, sha in old_binaries.items())
-    assert cli(install, env, "inspect", "--session", source)["text"] == before
-    assert cli(install, env, "inspect", "--session", restored)["pages"]
+        require(digest(restored) == digest(fixtures / "snapshot.docx"),
+                'Recovered snapshot changed')
+    require(all(digest(install / name) == sha for name, sha in old_binaries.items()),
+            'Rollback did not restore installed binaries')
+    require(cli(install, env, "inspect", "--session", source)["text"] == before,
+            'Rolled-back CLI changed source text')
+    require(cli(install, env, "inspect", "--session", restored)["pages"],
+            'Rolled-back CLI could not reopen recovered document')
     app = start(install / "joyword.exe", env, "--", source)
     try:
         time.sleep(2)
-        assert app.poll() is None, f"Rolled-back app exited with {app.returncode}"
+        require(app.poll() is None,
+                f"Rolled-back app exited with {app.returncode}")
     finally:
         stop(app)
-    assert all(digest(p) == fingerprint for p, fingerprint in original.items())
-    assert association() == default_app
+    require(all(digest(p) == fingerprint for p, fingerprint in original.items()),
+            'Original documents, preferences or recovery files changed')
+    require(association() == default_app,
+            'DOCX default application changed')
     return {"previous_sha256": previous_hash, "candidate_sha256": candidate_hash,
             "rollback_gui_started": True, "control_and_mcp": True,
             "promotion_failure_restored_previous": True,

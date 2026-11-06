@@ -463,6 +463,115 @@ impl Reader {
 mod tests {
     use super::*;
 
+    fn journal(baseline: &[u8], text: &str, snapshot: Option<&[u8]>) -> Vec<u8> {
+        let mut record = if snapshot.is_some() {
+            b"JWREC003".to_vec()
+        } else {
+            b"JWREC002".to_vec()
+        };
+        record.extend_from_slice(&1_u64.to_le_bytes());
+        record.extend_from_slice(&[0; 9]);
+        for bytes in [baseline, text.as_bytes()].into_iter().chain(snapshot) {
+            record.extend_from_slice(&(bytes.len() as u64).to_le_bytes());
+            record.extend_from_slice(bytes);
+        }
+        record.extend_from_slice(&crc32fast::hash(&record).to_le_bytes());
+        record
+    }
+
+    fn assert_refused_without_changing_source(baseline: &[u8], text: &str, diagnostic: &str) {
+        let dir = tempfile::tempdir().unwrap();
+        let source = dir.path().join("source.docx");
+        let slot = dir.path().join("recovery-a.jwr");
+        let lock = dir.path().join("recovery.lock");
+        let record = journal(baseline, text, None);
+        fs::write(&source, baseline).unwrap();
+        fs::write(&slot, &record).unwrap();
+        fs::write(&lock, b"existing lock").unwrap();
+        let result = Reader::recover_legacy(&slot, &AtomicBool::new(false));
+        assert!(result.is_err());
+        assert!(result.err().unwrap().contains(diagnostic));
+        assert_eq!(fs::read(&source).unwrap(), baseline);
+        assert_eq!(fs::read(&slot).unwrap(), record);
+        assert_eq!(fs::read(&lock).unwrap(), b"existing lock");
+        assert_eq!(fs::read_dir(dir.path()).unwrap().count(), 3);
+    }
+
+    #[test]
+    fn refuses_text_checkpoint_removing_or_inserting_an_inline_object() {
+        let baseline = include_bytes!("../../../assets/samples/mixed-media.docx");
+        let reader = Reader::from_bytes("fixture.docx", baseline, &AtomicBool::new(false)).unwrap();
+        let current = BodyText::new(&reader.session.doc).unwrap();
+        assert!(current.text.contains(OBJECT_MARKER));
+        let removed = current.text.replacen(OBJECT_MARKER, "", 1);
+        let inserted = format!("{}{OBJECT_MARKER}", current.text);
+        for target in [removed, inserted] {
+            assert_refused_without_changing_source(baseline, &target, "inline objects");
+        }
+    }
+
+    #[test]
+    fn refuses_text_checkpoint_joining_different_table_cells() {
+        let baseline = include_bytes!("../../../assets/samples/mixed-media.docx");
+        let reader = Reader::from_bytes("fixture.docx", baseline, &AtomicBool::new(false)).unwrap();
+        let current = BodyText::new(&reader.session.doc).unwrap();
+        let boundary = current
+            .starts
+            .windows(2)
+            .find(|pair| {
+                let left = pair[0].1.path.parent();
+                let right = pair[1].1.path.parent();
+                !left.is_empty() && !right.is_empty() && left != right
+            })
+            .unwrap()[1]
+            .0;
+        let mut target = current.text;
+        assert_eq!(&target[boundary - 1..boundary], "\n");
+        target.remove(boundary - 1);
+        assert_refused_without_changing_source(baseline, &target, "across table cells");
+    }
+
+    #[test]
+    fn rich_object_snapshot_is_preserved_exactly_and_mismatch_is_refused() {
+        let baseline = include_bytes!("../../../assets/samples/mixed-media.docx");
+        let cancel = AtomicBool::new(false);
+        let reader = Reader::from_bytes("fixture.docx", baseline, &cancel).unwrap();
+        let text = BodyText::new(&reader.session.doc).unwrap().text;
+        assert!(text.contains(OBJECT_MARKER));
+        for matched in [true, false] {
+            let dir = tempfile::tempdir().unwrap();
+            let slot = dir.path().join("recovery-a.jwr");
+            let saved = dir.path().join("recovered.docx");
+            let checkpoint = if matched {
+                text.clone()
+            } else {
+                format!("{text}!")
+            };
+            let record = journal(baseline, &checkpoint, Some(baseline));
+            fs::write(&slot, &record).unwrap();
+            let recovered = Reader::recover_legacy(&slot, &cancel);
+            if matched {
+                recovered
+                    .unwrap()
+                    .save_job(saved.clone(), true)
+                    .unwrap()
+                    .run()
+                    .unwrap();
+                assert_eq!(fs::read(&saved).unwrap(), baseline);
+            } else {
+                assert!(recovered.is_err());
+                assert!(
+                    recovered
+                        .err()
+                        .unwrap()
+                        .contains("snapshot body text mismatch")
+                );
+                assert!(!saved.exists());
+            }
+            assert_eq!(fs::read(&slot).unwrap(), record);
+        }
+    }
+
     #[test]
     fn replays_disjoint_changes_around_objects_and_table_cells() {
         let cancel = AtomicBool::new(false);
@@ -470,22 +579,15 @@ mod tests {
         let reader = Reader::from_bytes("fixture.docx", baseline, &cancel).unwrap();
         let current = BodyText::new(&reader.session.doc).unwrap();
         assert!(current.text.contains(OBJECT_MARKER));
-        let target =
-            current
-                .text
-                .replacen("阅读验证", "恢复验证", 1)
-                .replacen("R2 阅读器", "R8 阅读器", 1);
+        let target = current.text.replacen("阅读验证", "恢复😀验证", 1).replacen(
+            "R2 阅读器",
+            "R8 恢复📝阅读器",
+            1,
+        );
         let media = reader.session.doc.media.clone();
         let dir = tempfile::tempdir().unwrap();
         let slot = dir.path().join("recovery-a.jwr");
-        let mut record = b"JWREC002".to_vec();
-        record.extend_from_slice(&1_u64.to_le_bytes());
-        record.extend_from_slice(&[0; 9]);
-        for bytes in [baseline.as_slice(), target.as_bytes()] {
-            record.extend_from_slice(&(bytes.len() as u64).to_le_bytes());
-            record.extend_from_slice(bytes);
-        }
-        record.extend_from_slice(&crc32fast::hash(&record).to_le_bytes());
+        let record = journal(baseline, &target, None);
         fs::write(&slot, &record).unwrap();
         let reader = Reader::recover_legacy(&slot, &cancel).unwrap();
         assert_eq!(BodyText::new(&reader.session.doc).unwrap().text, target);

@@ -34,6 +34,16 @@ def inspect(cli, path, *flags):
     return json.loads(run(cli, "inspect", path, *flags).stdout)
 
 
+def compare_reports(current, baseline, label):
+    """Require the entire schema-1 contract, including added or removed keys."""
+    missing = object()
+    differences = sorted(key for key in current.keys() | baseline.keys()
+                         if current.get(key, missing) != baseline.get(key, missing))
+    require(not differences,
+            f"legacy report differs: {label}: {', '.join(differences)}")
+    return differences
+
+
 def verify_fields(cli, baseline, source, work):
     def fld(kind):
         return f'<w:r><w:fldChar w:fldCharType="{kind}"/></w:r>'
@@ -75,8 +85,7 @@ def verify_fields(cli, baseline, source, work):
             require((report["text"], report["omitted_objects"], report["preserved_fragments"])
                     == (f"left {value} right", objects, preserved), f"field projection: {name}")
             if baseline:
-                require(report == inspect(baseline, sample, "--compatibility"),
-                        f"legacy field report differs: {name}")
+                compare_reports(report, inspect(baseline, sample, "--compatibility"), name)
             if name not in checkpoints:
                 continue
             package = sample.read_bytes()
@@ -117,8 +126,7 @@ def verify(cli, fixtures, work, baseline):
         require(report["schema_version"] == 1 and sha(path) == before, f"schema/source: {path}")
         if baseline:
             old = inspect(baseline, path, "--compatibility")
-            comparison[path.name] = sorted(k for k in old if old[k] != report[k])
-            require(old["text"] == report["text"], f"legacy projection differs: {path}")
+            comparison[path.relative_to(ROOT).as_posix()] = compare_reports(report, old, path)
 
     literal = work / "--max-text-bytes"
     shutil.copyfile(fixtures / "source.docx", literal)
@@ -179,7 +187,8 @@ def verify(cli, fixtures, work, baseline):
                          for p in fixtures.rglob("*") if p.is_file()},
             "legacy logs, locks or source DOCX changed")
     fields = verify_fields(cli, baseline, fixtures / "source.docx", work)
-    return {"cli": sha(cli), "legacy_cli_differences": comparison, "fields": fields,
+    return {"cli": sha(cli), "baseline_cli": sha(baseline) if baseline else None,
+            "legacy_cli_differences": comparison, "fields": fields,
             "recovered_docx": recovery, "fixture_hashes": original,
             "refusals": [*failures, "overwrite"]}
 

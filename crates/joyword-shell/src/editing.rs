@@ -159,8 +159,17 @@ impl Reader {
             return;
         }
         let before = self.session.rev();
+        let identity = self.session.document_id();
         self.session.recovery_tick();
-        if before != self.session.rev() {
+        let replaced = identity != self.session.document_id();
+        if replaced {
+            // Revisions are local to a document: a restored draft can start
+            // at the same revision as the document it replaces or parks.
+            self.recovered_package = None;
+            self.recovery_notice = None;
+            self.summary.name = "Untitled".into();
+        }
+        if replaced || before != self.session.rev() {
             self.refresh();
             self.source = None;
         }
@@ -584,6 +593,105 @@ mod tests {
 mod additional_input_tests {
     use super::*;
     use std::sync::atomic::AtomicBool;
+
+    fn settle_recovery(reader: &mut Reader) {
+        let deadline = std::time::Instant::now() + std::time::Duration::from_secs(5);
+        loop {
+            reader.recovery_tick();
+            if reader.session.recovery_ready() && !reader.session.recovery_busy() {
+                assert!(reader.session.recovery_error().is_none());
+                break;
+            }
+            assert!(
+                std::time::Instant::now() < deadline,
+                "recovery worker timed out"
+            );
+            std::thread::sleep(std::time::Duration::from_millis(2));
+        }
+    }
+
+    fn restore_another_document(reader: &mut Reader, root: &Path) {
+        let id = "0123456789abcdef0123456789abcdef";
+        let directory = root.join(id);
+        std::fs::create_dir_all(&directory).unwrap();
+        let doc = joyword_engine::doc::Document::from_text("Recovered draft, not the old document");
+        let snapshot = json!({"version":1, "generation":1,
+            "info":{"id":id, "name":"Draft", "savedAt":"2026-11-06T00:00:00Z"},
+            "document":doc});
+        std::fs::write(
+            directory.join("snapshot-1.json"),
+            serde_json::to_vec(&snapshot).unwrap(),
+        )
+        .unwrap();
+        reader
+            .session
+            .enable_recovery_with_interval(root.to_owned(), Arc::new(|| {}), None)
+            .unwrap();
+        settle_recovery(reader);
+        let identity = reader.session.document_id();
+        let revision = reader.session.rev();
+        reader
+            .execute("file.recover", &json!({"restore":id}))
+            .unwrap();
+        settle_recovery(reader);
+        assert_ne!(reader.session.document_id(), identity);
+        assert_eq!(
+            reader.session.rev(),
+            revision,
+            "exercise equal revisions across documents"
+        );
+        assert_eq!(reader.body_text(), "Recovered draft, not the old document");
+    }
+
+    #[test]
+    fn async_restore_cannot_reuse_a_previous_documents_source() {
+        let dir = tempfile::tempdir().unwrap();
+        let original = dir.path().join("original.docx");
+        let bytes = joyword_docx::write(&joyword_engine::doc::Document::from_text(
+            "Original document",
+        ))
+        .unwrap();
+        std::fs::write(&original, &bytes).unwrap();
+        let mut reader = Reader::open(&original, &AtomicBool::new(false)).unwrap();
+        let presentation = reader.presentation_revision();
+        restore_another_document(&mut reader, &dir.path().join("recovery"));
+        assert!(reader.source_path().is_none());
+        assert!(reader.save_job(original.clone(), false).is_err());
+        assert!(reader.presentation_revision() > presentation);
+        assert_eq!(reader.summary.name, "Untitled");
+        assert_eq!(std::fs::read(original).unwrap(), bytes);
+    }
+
+    #[test]
+    fn async_restore_cannot_save_a_previous_legacy_snapshot() {
+        let dir = tempfile::tempdir().unwrap();
+        let original_text = "Legacy checkpoint";
+        let bytes =
+            joyword_docx::write(&joyword_engine::doc::Document::from_text(original_text)).unwrap();
+        let mut record = b"JWREC003".to_vec();
+        record.extend_from_slice(&1_u64.to_le_bytes());
+        record.extend_from_slice(&[0; 9]);
+        for part in [bytes.as_slice(), original_text.as_bytes(), bytes.as_slice()] {
+            record.extend_from_slice(&(part.len() as u64).to_le_bytes());
+            record.extend_from_slice(part);
+        }
+        record.extend_from_slice(&crc32fast::hash(&record).to_le_bytes());
+        let slot = dir.path().join("recovery-a.jwr");
+        std::fs::write(&slot, &record).unwrap();
+        let mut reader = Reader::recover_legacy(&slot, &AtomicBool::new(false)).unwrap();
+        assert!(reader.recovered_package.is_some());
+        restore_another_document(&mut reader, &dir.path().join("recovery"));
+        let saved = dir.path().join("restored.docx");
+        let receipt = reader.save_job(saved.clone(), true).unwrap().run().unwrap();
+        let reopened = Reader::open(&saved, &AtomicBool::new(false)).unwrap();
+        assert_eq!(reopened.body_text(), reader.body_text());
+        assert!(reader.recovered_package.is_none());
+        assert!(reader.recovery_notice.is_none());
+        reader.apply_save(receipt);
+        assert!(!reader.is_dirty());
+        assert_eq!(std::fs::read(slot).unwrap(), record);
+    }
+
     #[test]
     fn empty_mark_cancels_and_cross_paragraph_composition_replaces_atomically() {
         let mut r = Reader::blank(&AtomicBool::new(false)).unwrap();
