@@ -5,9 +5,11 @@ import hashlib
 import json
 from pathlib import Path
 import shutil
+import struct
 import subprocess
 import xml.etree.ElementTree as ET
-from zipfile import ZipFile
+from zipfile import ZIP_DEFLATED, ZipFile
+import zlib
 
 ROOT = Path(__file__).resolve().parents[2]
 WORD = {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"}
@@ -30,6 +32,73 @@ def run(cli, *args, cwd=None, expected=0):
 
 def inspect(cli, path, *flags):
     return json.loads(run(cli, "inspect", path, *flags).stdout)
+
+
+def verify_fields(cli, baseline, source, work):
+    def fld(kind):
+        return f'<w:r><w:fldChar w:fldCharType="{kind}"/></w:r>'
+
+    def code(value):
+        return f'<w:r><w:instrText xml:space="preserve">{value}</w:instrText></w:r>'
+
+    def text(value):
+        return f'<w:r><w:t>{value}</w:t></w:r>'
+
+    begin, separate, end = (fld(kind) for kind in ("begin", "separate", "end"))
+    page = begin + code(" PA") + code(r"GE \* MERGEFORMAT ") + separate + text("7") + end
+    outer = begin + code(" IF ")
+    cases = {
+        "page": (page, "", 1, 0),
+        "page-without-cache": (begin + code(" SECTIONPAGES ") + end, "", 1, 0),
+        "nested": (outer + page + separate + text("yes") + end, "yes", 5, 4),
+        "bad-cache": (begin + code(" PAGE ") + separate + '<w:r><w:tab/></w:r>' + text("7") + end,
+                      "\t7", 4, 4),
+        "opaque-simple": ('<w:fldSimple w:instr="ADDIN TEST">' + text("cache") + "</w:fldSimple>",
+                          "", 1, 1),
+    }
+    marker = "\ufdd0"
+    checkpoints = {"page": marker, "nested": marker * 4 + "yes" + marker,
+                   "opaque-simple": marker}
+    with ZipFile(source) as template:
+        for name, (fields, value, objects, preserved) in cases.items():
+            sample = work / f"field-{name}.docx"
+            body = ('<w:p><w:r><w:t xml:space="preserve">left </w:t></w:r>' + fields
+                    + '<w:r><w:t xml:space="preserve"> right</w:t></w:r></w:p>'
+                    + '<w:sectPr><w:pgSz w:w="12240" w:h="15840"/>'
+                    + '<w:pgMar w:top="1440" w:bottom="1440" w:left="1440" w:right="1440"'
+                    + ' w:header="720" w:footer="720" w:gutter="0"/></w:sectPr>')
+            xml = f'<w:document xmlns:w="{WORD["w"]}"><w:body>{body}</w:body></w:document>'
+            with ZipFile(sample, "x", ZIP_DEFLATED) as package:
+                for part in template.namelist():
+                    package.writestr(part, xml if part == "word/document.xml" else template.read(part))
+            report = inspect(cli, sample, "--compatibility")
+            require((report["text"], report["omitted_objects"], report["preserved_fragments"])
+                    == (f"left {value} right", objects, preserved), f"field projection: {name}")
+            if baseline:
+                require(report == inspect(baseline, sample, "--compatibility"),
+                        f"legacy field report differs: {name}")
+            if name not in checkpoints:
+                continue
+            package = sample.read_bytes()
+            checkpoint = f"left {checkpoints[name]} right"
+            for matched, journal_text in [(True, checkpoint), (False, checkpoint + "!")]:
+                directory = work / f"{name}-{'matched' if matched else 'mismatch'}"
+                directory.mkdir()
+                slot = directory / "recovery-a.jwr"
+                payload = b"JWREC003" + struct.pack("<QBQ", 1, 1, 1)
+                for value in (package, journal_text.encode(), package):
+                    payload += struct.pack("<Q", len(value)) + value
+                slot.write_bytes(payload + struct.pack("<I", zlib.crc32(payload)))
+                before = sha(slot)
+                recovered = directory / "recovered.docx"
+                run(cli, "recover", slot, "--save", recovered, expected=0 if matched else 1)
+                if matched:
+                    require(recovered.read_bytes() == package, f"snapshot changed: {name}")
+                else:
+                    require(not recovered.exists(), f"mismatch published: {name}")
+                require(sha(slot) == before and sample.read_bytes() == package,
+                        f"source changed: {name}")
+    return {"schema_1": list(cases), "exact_v3_and_mismatch": list(checkpoints)}
 
 
 def verify(cli, fixtures, work, baseline):
@@ -109,7 +178,8 @@ def verify(cli, fixtures, work, baseline):
     require(original == {p.relative_to(fixtures).as_posix(): sha(p)
                          for p in fixtures.rglob("*") if p.is_file()},
             "legacy logs, locks or source DOCX changed")
-    return {"cli": sha(cli), "legacy_cli_differences": comparison,
+    fields = verify_fields(cli, baseline, fixtures / "source.docx", work)
+    return {"cli": sha(cli), "legacy_cli_differences": comparison, "fields": fields,
             "recovered_docx": recovery, "fixture_hashes": original,
             "refusals": [*failures, "overwrite"]}
 

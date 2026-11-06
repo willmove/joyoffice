@@ -153,6 +153,22 @@ Windows 桌面复验时，computer-use 的 Windows 原生管道两次返回 `os 
 
 候选包 CLI 复跑兼容脚本。14 份 DOCX 与 `00fb0687` 的检查结果一致，5 条旧恢复路径成功读回，4 种损坏或丢弃情形及覆盖请求被拒绝。64 个确定性变体中 21 个解析、43 个干净拒绝。
 
+## Windows P0 字段兼容与便携回退（2026-11-06）
+
+在 `0e9bac55` 基线上用 Rust 1.98.1 和 PowerShell 7 构建 Windows x64 调试候选包。使用 `cargo xtask package joyword --out dist/joyword/p0-field-compat-final`。候选 ZIP 的 SHA-256 为 `824eb2befaa86e1849be56ad39ce2528cd5be0a0014b281e354bdf459b2f0c88`。
+
+`cargo xtask check joyword --target x86_64-pc-windows-msvc` 通过格式检查、生产 Clippy 和 3,495 项 Rust 测试，2 项按原设置忽略。文档检查通过。
+
+| 任务 | 当次验证 |
+| --- | --- |
+| JW-806、JW-808 字段与恢复 | 仓库外中文空格路径的包内 CLI 与旧版 `00fb0687` 比较 14 份既有 DOCX 和 5 份生成的字段 DOCX，schema 1 报告逐字段一致。生成语料含拆分指令、无缓存页码、嵌套字段、非纯文本缓存和未识别简单字段。3 组 V3 字段快照通过原样另存，正文失配均拒绝发布，日志和 DOCX 输入保持原字节。5 条已有旧恢复成功路径、损坏、丢弃、冲突与覆盖拒绝均复跑。 |
+| JW-808 格式与桌面 | 包内 `verify-r8.py` 通过 DOCX／PNG／PDF、邮件合并、转换损失确认、PDF/A-2b 和 EPUB 回归。64 个变体中 21 个解析、43 个干净拒绝。用同一轮代码的桌面构建实屏从「文件」确认 EPUB 转换差异并在原生保存框写入副本。独立 XML 读回确认正文、表格和图片，EPUBCheck 5.4.0 返回零错误、零警告。产物 SHA-256 为 `54307b5dbd867d2f3cf7dc291fc269c628a8efc400ec2a1d7e1689f60c1c6ca7`。Windows 实屏打开了系统打印框，取消状态回传、队列提交和出纸尚未验证。 |
+| JW-812 便携换版 | 使用已存档的 `78f4a4de…` 旧 ZIP。坏包校验失败。模拟旧目录已移开、候选目录消失，旧 GUI 和 CLI 均恢复。实际切换后，候选包的认证控制和 MCP 读回通过，V3 快照原样另存。主动回退后旧 GUI 启动，旧 CLI 读回原件和恢复副本。5 个输入文件的 SHA-256 与 Windows DOCX 默认关联保持一致。 |
+
+可复跑入口为 `scripts/joyword/verify-r8-compat.py CLI FIXTURES OUT --baseline LEGACY_CLI` 和 `scripts/joyword/verify-r8-rollback.py PREVIOUS.zip CANDIDATE.zip FIXTURES OUT`。旧日志由 `scripts/joyword/legacy-recovery-fixtures.rs` 在 `00fb0687` 生成。
+
+P0 总验收仍开放。正式安装、系统注册与回退，原生归档导出实屏、打印取消结果与实际队列，远程界面操作及 Agent Provider／凭据需继续验证。全仓 `check_gates.py` 在基线的 JoyDeck Linux 剪贴板文件报出进程访问登记和测试断言登记问题。
+
 ## 待验
 
 - macOS DOCX 系统打开和原生打开／另存为面板均已实测。macOS IME 与读屏、集成后的 Linux ARM64 原生桌面、信创真机与托管 CI 待验。[原生对话框补验](../../joyoffice/validation/20261105-macos-desktop/README.md#原生文件对话框)

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Exercise the Windows portable upgrade and rollback in an isolated directory."""
 import argparse
+from contextlib import contextmanager
 import hashlib
 import json
 import os
@@ -20,19 +21,36 @@ def digest(path):
 
 
 def read_package(archive, destination):
-    fingerprint = digest(archive)
     expected = archive.with_name(archive.name + ".sha256").read_text(encoding="ascii").split()[0]
-    if fingerprint != expected.lower():
-        raise ValueError(f"Package checksum mismatch: {archive.name}")
-    with ZipFile(archive) as package:
-        with_targets = ("joyword.exe", "joyword-cli.exe")
-        if any(package.namelist().count(name) != 1 for name in with_targets):
-            raise ValueError("Package must contain exactly one GUI and one CLI binary")
-        destination.mkdir()
-        for name in with_targets:
-            with package.open(name) as source, (destination / name).open("xb") as target:
-                shutil.copyfileobj(source, target)
+    with archive.open("rb") as stream:
+        fingerprint = hashlib.file_digest(stream, "sha256").hexdigest()
+        if fingerprint != expected.lower():
+            raise ValueError(f"Package checksum mismatch: {archive.name}")
+        stream.seek(0)
+        with ZipFile(stream) as package:
+            with_targets = ("joyword.exe", "joyword-cli.exe")
+            if any(package.namelist().count(name) != 1 for name in with_targets):
+                raise ValueError("Package must contain exactly one GUI and one CLI binary")
+            destination.mkdir()
+            for name in with_targets:
+                with package.open(name) as source, (destination / name).open("xb") as target:
+                    shutil.copyfileobj(source, target)
     return fingerprint
+
+
+@contextmanager
+def candidate_in_place(install, staged, previous, retired):
+    install.rename(previous)
+    try:
+        staged.rename(install)
+    except OSError:
+        previous.rename(install)
+        raise
+    try:
+        yield
+    finally:
+        install.rename(retired)
+        previous.rename(install)
 
 
 def association():
@@ -124,7 +142,7 @@ def verify(previous, candidate, fixtures, work):
     work.mkdir(parents=True)
     install = work / "install"
     previous_hash = read_package(previous, install)
-    old_exe = digest(install / "joyword.exe")
+    old_binaries = {name: digest(install / name) for name in ("joyword.exe", "joyword-cli.exe")}
     profile = work / "用户 配置"
     profile.mkdir()
     preferences = profile / "preferences.conf"
@@ -146,23 +164,27 @@ def verify(previous, candidate, fixtures, work):
     try:
         read_package(bad, work / "failed-stage")
     except ValueError:
-        assert digest(install / "joyword.exe") == old_exe
+        assert all(digest(install / name) == sha for name, sha in old_binaries.items())
     else:
         raise AssertionError("Damaged package was accepted")
     stage = work / "staged"
     candidate_hash = read_package(candidate, stage)
     assert previous_hash != candidate_hash
-    saved = install.rename(work / "previous")
-    stage.rename(install)
+    previous_dir = work / "previous"
+    retired = work / "candidate"
+    # A disappeared stage fails after the live directory has been renamed.
     try:
+        with candidate_in_place(install, work / "missing-stage", previous_dir, retired):
+            raise AssertionError("Missing stage was promoted")
+    except FileNotFoundError:
+        assert all(digest(install / name) == sha for name, sha in old_binaries.items())
+        assert not previous_dir.exists() and not retired.exists()
+    with candidate_in_place(install, stage, previous_dir, retired):
         verify_control(install, env, source)
         restored = work / "恢复 副本.docx"
         cli(install, env, "recover", recovery, "--save", restored)
         assert digest(restored) == digest(fixtures / "snapshot.docx")
-    finally:
-        install.rename(work / "candidate")
-        saved.rename(install)
-    assert digest(install / "joyword.exe") == old_exe
+    assert all(digest(install / name) == sha for name, sha in old_binaries.items())
     assert cli(install, env, "inspect", "--session", source)["text"] == before
     assert cli(install, env, "inspect", "--session", restored)["pages"]
     app = start(install / "joyword.exe", env, "--", source)
@@ -175,6 +197,7 @@ def verify(previous, candidate, fixtures, work):
     assert association() == default_app
     return {"previous_sha256": previous_hash, "candidate_sha256": candidate_hash,
             "rollback_gui_started": True, "control_and_mcp": True,
+            "promotion_failure_restored_previous": True,
             "originals_unchanged": len(original), "system_default_unchanged": True}
 
 

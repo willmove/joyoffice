@@ -4,6 +4,7 @@ use crate::xml::{self, El};
 use joyoffice_opc::{Budget, Package, Part, Target};
 
 const REL: &str = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/";
+const OBJECT_MARKER: &str = "\u{fdd0}";
 const MAIN: &[&str] = &[
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml",
     "application/vnd.openxmlformats-officedocument.wordprocessingml.template.main+xml",
@@ -29,6 +30,9 @@ struct Body {
     limit: usize,
     property_fragments: usize,
     layout_hint: bool,
+    recovery: bool,
+    recovery_supported: bool,
+    saw_field: bool,
 }
 
 impl Body {
@@ -50,8 +54,22 @@ impl Body {
     }
 
     fn preserve(&mut self) {
+        self.recovery_supported = false;
         self.report.preserved_fragments += 1;
         self.report.diagnostics += 1;
+    }
+
+    fn field(&mut self, supported: bool) {
+        self.saw_field = true;
+        if self.recovery {
+            self.push(OBJECT_MARKER);
+        } else {
+            self.omit(!supported, !supported);
+        }
+    }
+
+    fn line_break(&mut self, text: &str) {
+        self.push(if self.recovery { OBJECT_MARKER } else { text });
     }
 
     fn properties(&mut self, el: &El) {
@@ -114,7 +132,7 @@ impl Body {
                         self.push("\n");
                     }
                     self.report.paragraphs += 1;
-                    self.inlines(child);
+                    self.field_inlines(child);
                 }
                 "w:tbl" => {
                     if child
@@ -140,89 +158,115 @@ impl Body {
         }
     }
 
+    fn field_inlines(&mut self, el: &El) {
+        let children: Vec<_> = el.els().collect();
+        let mut remaining = children.as_slice();
+        while let Some((child, rest)) = remaining.split_first() {
+            if let Some(count) = complex_page_field(remaining) {
+                self.field(true);
+                // The schema-1 inspection can summarize this field, but
+                // text-only replay cannot guarantee its original run markup.
+                self.report.unsupported_body |= !self.recovery;
+                remaining = &remaining[count..];
+            } else {
+                self.inline(child);
+                remaining = rest;
+            }
+        }
+    }
+
     fn inlines(&mut self, el: &El) {
         for child in el.els() {
-            match child.name.as_str() {
-                "w:r" => self.inlines(child),
-                "w:hyperlink" => {
-                    if child
-                        .attrs
-                        .iter()
-                        .any(|(key, _)| !matches!(key.as_str(), "r:id" | "w:anchor"))
-                        || child
-                            .children("w:r")
-                            .flat_map(El::els)
-                            .any(|item| !word_member("rPr t tab", &item.name))
-                    {
-                        self.preserve();
-                    }
-                    self.inlines(child);
+            self.inline(child);
+        }
+    }
+
+    fn inline(&mut self, child: &El) {
+        match child.name.as_str() {
+            "w:r" => self.inlines(child),
+            "w:hyperlink" => {
+                if child
+                    .attrs
+                    .iter()
+                    .any(|(key, _)| !matches!(key.as_str(), "r:id" | "w:anchor"))
+                    || child
+                        .children("w:r")
+                        .flat_map(El::els)
+                        .any(|item| !word_member("rPr t tab", &item.name))
+                {
+                    self.preserve();
                 }
-                "w:ins" | "w:moveTo" => {
-                    if !revision_metadata(child) {
-                        self.preserve();
-                    }
-                    self.inlines(child);
+                self.inlines(child);
+            }
+            "w:ins" | "w:moveTo" => {
+                if !revision_metadata(child) {
+                    self.preserve();
                 }
-                "w:del" | "w:moveFrom" => {
-                    if !revision_metadata(child) {
-                        self.omit(true, true);
-                    }
+                self.field_inlines(child);
+            }
+            "w:del" | "w:moveFrom" => {
+                if !revision_metadata(child) {
+                    self.omit(true, true);
                 }
-                "w:delText" | "w:delInstrText" => {}
-                "w:pPr" | "w:rPr" => self.properties(child),
-                "w:bookmarkStart"
-                | "w:bookmarkEnd"
-                | "w:commentRangeStart"
-                | "w:commentRangeEnd"
-                | "w:commentReference"
-                | "w:moveFromRangeStart"
-                | "w:moveFromRangeEnd"
-                | "w:moveToRangeStart"
-                | "w:moveToRangeEnd" => {}
-                "w:t" if child.els().next().is_none() => {
-                    let text = child.text();
-                    let xml_space = [' ', '\t', '\r', '\n'];
-                    if child.attr("xml:space") != Some("preserve")
-                        && (text.starts_with(xml_space) || text.ends_with(xml_space))
-                    {
-                        self.report.diagnostics += 1;
-                    }
-                    if text.contains('\u{fdd0}') {
-                        self.omit(true, true);
-                    } else {
-                        self.push(&text);
-                    }
+            }
+            "w:delText" | "w:delInstrText" => {}
+            "w:pPr" | "w:rPr" => self.properties(child),
+            "w:bookmarkStart"
+            | "w:bookmarkEnd"
+            | "w:commentRangeStart"
+            | "w:commentRangeEnd"
+            | "w:commentReference"
+            | "w:moveFromRangeStart"
+            | "w:moveFromRangeEnd"
+            | "w:moveToRangeStart"
+            | "w:moveToRangeEnd" => {}
+            "w:t" if child.els().next().is_none() => {
+                let text = child.text();
+                let xml_space = [' ', '\t', '\r', '\n'];
+                if child.attr("xml:space") != Some("preserve")
+                    && (text.starts_with(xml_space) || text.ends_with(xml_space))
+                {
+                    self.report.diagnostics += 1;
                 }
-                "w:tab" if child.attrs.is_empty() => self.push("\t"),
-                "w:cr" => self.push("\n"),
-                "w:br" if child.attr("w:clear").is_none_or(|value| value == "none") => {
-                    match child.attr("w:type") {
-                        Some("page" | "column") => self.push("\x0c"),
-                        None | Some("textWrapping") => self.push("\n"),
-                        _ => self.omit(true, true),
-                    }
+                if text.contains('\u{fdd0}') {
+                    self.omit(true, true);
+                } else {
+                    self.push(&text);
                 }
-                "w:softHyphen" => self.push("\u{ad}"),
-                "w:noBreakHyphen" => self.push("\u{2011}"),
-                "w:lastRenderedPageBreak" => self.layout_hint = true,
-                "w:drawing" | "w:pict" => {
-                    let represented =
-                        child.find("a:blip").is_some() || child.find("v:imagedata").is_some();
+            }
+            "w:tab" if child.attrs.is_empty() => self.push("\t"),
+            "w:cr" => self.line_break("\n"),
+            "w:br" if child.attr("w:clear").is_none_or(|value| value == "none") => {
+                match child.attr("w:type") {
+                    Some("page" | "column") => self.line_break("\x0c"),
+                    None | Some("textWrapping") => self.line_break("\n"),
+                    _ => self.omit(true, true),
+                }
+            }
+            "w:softHyphen" => self.push("\u{ad}"),
+            "w:noBreakHyphen" => self.push("\u{2011}"),
+            "w:lastRenderedPageBreak" => self.layout_hint = true,
+            "w:drawing" | "w:pict" => {
+                let represented =
+                    child.find("a:blip").is_some() || child.find("v:imagedata").is_some();
+                if self.recovery && represented {
+                    self.push(OBJECT_MARKER);
+                } else {
                     self.omit(!represented, !represented);
                 }
-                "w:fldSimple" => {
-                    let supported = child.attr("w:instr").is_some_and(page_field);
-                    self.omit(!supported, !supported);
-                }
-                "w:sdt" => {
-                    self.preserve();
-                    if let Some(content) = child.child("w:sdtContent") {
-                        self.inlines(content);
-                    }
-                }
-                _ => self.omit(true, true),
             }
+            "w:fldSimple" => {
+                let supported = child.attr("w:instr").is_some_and(page_field);
+                self.field(supported);
+            }
+            "w:fldChar" | "w:instrText" if child.els().next().is_none() => self.field(false),
+            "w:sdt" => {
+                self.preserve();
+                if let Some(content) = child.child("w:sdtContent") {
+                    self.inlines(content);
+                }
+            }
+            _ => self.omit(true, true),
         }
     }
 
@@ -263,7 +307,7 @@ fn revision_metadata(el: &El) -> bool {
 }
 
 fn page_field(instruction: &str) -> bool {
-    let mut words = instruction.split_ascii_whitespace();
+    let mut words = instruction.split_whitespace();
     words.next().is_some_and(|word| {
         ["PAGE", "NUMPAGES", "SECTIONPAGES"]
             .iter()
@@ -280,6 +324,66 @@ fn page_field(instruction: &str) -> bool {
     }
 }
 
+fn field_char(run: &El, kind: &str) -> bool {
+    if run.name != "w:r" {
+        return false;
+    }
+    let mut leaves = run.els().filter(|leaf| leaf.name != "w:rPr");
+    leaves.next().is_some_and(|leaf| {
+        leaf.name == "w:fldChar"
+            && leaf.attrs.len() == 1
+            && leaf.attr("w:fldCharType") == Some(kind)
+            && leaf.els().next().is_none()
+            && leaves.next().is_none()
+    })
+}
+
+// The legacy projection treats a PAGE, NUMPAGES or SECTIONPAGES field as
+// one object when its instruction and cache occupy consecutive plain runs.
+fn complex_page_field(children: &[&El]) -> Option<usize> {
+    if !field_char(children.first()?, "begin") {
+        return None;
+    }
+    let mut instruction = String::new();
+    let mut index = 1;
+    while let Some(run) = children.get(index) {
+        if field_char(run, "separate") || field_char(run, "end") {
+            break;
+        }
+        let mut code = run.els().filter(|leaf| leaf.name != "w:rPr").peekable();
+        if run.name != "w:r" || code.peek().is_none() {
+            return None;
+        }
+        for leaf in code {
+            if leaf.name != "w:instrText" || leaf.els().next().is_some() {
+                return None;
+            }
+            instruction.push_str(&leaf.text());
+        }
+        index += 1;
+    }
+    if !page_field(&instruction) {
+        return None;
+    }
+    if field_char(children.get(index)?, "separate") {
+        index += 1;
+        while let Some(run) = children.get(index) {
+            if field_char(run, "end") {
+                break;
+            }
+            if run.name != "w:r"
+                || run.els().any(|leaf| {
+                    leaf.name != "w:rPr" && (leaf.name != "w:t" || leaf.els().next().is_some())
+                })
+            {
+                return None;
+            }
+            index += 1;
+        }
+    }
+    field_char(children.get(index)?, "end").then_some(index + 1)
+}
+
 fn parse(part: &Part, budget: &Budget) -> Result<El, &'static str> {
     xml::parse_bounded(
         &part.data,
@@ -290,6 +394,21 @@ fn parse(part: &Part, budget: &Budget) -> Result<El, &'static str> {
 }
 
 pub fn project(bytes: &[u8], limit: usize) -> Result<Projection, &'static str> {
+    project_body(bytes, limit, false).map(|(report, _)| report)
+}
+
+/// Match a rich legacy checkpoint whose field representation differs from
+/// the current model. This projection is for exact snapshot verification only.
+pub fn matches_recovery_body(bytes: &[u8], text: &str) -> bool {
+    project_body(bytes, text.len(), true)
+        .is_ok_and(|(report, compatible)| compatible && !report.truncated && report.text == text)
+}
+
+fn project_body(
+    bytes: &[u8],
+    limit: usize,
+    recovery: bool,
+) -> Result<(Projection, bool), &'static str> {
     let budget = Budget {
         max_entries: 1024,
         max_part_bytes: 16 << 20,
@@ -361,11 +480,17 @@ pub fn project(bytes: &[u8], limit: usize) -> Result<Projection, &'static str> {
         limit,
         property_fragments: 0,
         layout_hint: false,
+        recovery,
+        recovery_supported: true,
+        saw_field: false,
     };
     if projection.report.read_only {
         projection.report.diagnostics += 1;
     }
     projection.blocks(body);
+    let compatible = projection.recovery_supported
+        && projection.saw_field
+        && !projection.report.unsupported_body;
     projection.report.unsupported_body |= projection.report.preserved_fragments != 0;
     projection.finish_part();
     projection.report.paragraphs = projection.report.paragraphs.max(1);
@@ -413,5 +538,6 @@ pub fn project(bytes: &[u8], limit: usize) -> Result<Projection, &'static str> {
             _ => projection.report.diagnostics += 1,
         }
     }
-    Ok(projection.report)
+    let compatible = compatible && !projection.report.read_only;
+    Ok((projection.report, compatible))
 }

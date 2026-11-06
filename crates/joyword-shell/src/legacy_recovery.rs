@@ -430,7 +430,9 @@ impl Reader {
             let mut reader = Self::from_bytes("Recovered.docx", &package, cancel)
                 .map_err(|e| format!("Legacy recovery DOCX: {e}"))?;
             let body = BodyText::new(&reader.session.doc)?;
-            if body.text == checkpoint.text {
+            if body.text == checkpoint.text
+                || (rich && joyword_docx::legacy_inspection::matches_recovery_body(&package, &checkpoint.text))
+            {
                 reader.recovered_package = Some((reader.session.rev(), Arc::from(package)));
             } else if rich {
                 return Err("Recovery snapshot body text mismatch".into());
