@@ -163,11 +163,11 @@ pub enum Command {
         target: TextTarget,
         body: Box<TextBody>,
     },
-    /// Update existing simple footer placeholders across slides without adding any.
     /// Add a missing footer only to the selected page, after conservative preflight.
     AddMissingFooterText {
         text: String,
     },
+    /// Update existing simple footer placeholders across slides without adding any.
     SetExistingFooterText {
         text: String,
     },
