@@ -7,6 +7,16 @@ use joydeck_model::text::{Align, Strike};
 
 /// Read plain HTML or a Windows CF_HTML payload. Offsets count UTF-8 bytes.
 pub fn import(bytes: &[u8]) -> Option<TextBody> {
+    import_with_policy(bytes, false)
+}
+
+/// Refuse table TSV fallback when the selected HTML explicitly hides content.
+/// `Some(empty)` consumes the paste without changing the target table.
+pub fn import_for_table(bytes: &[u8]) -> Option<TextBody> {
+    import_with_policy(bytes, true)
+}
+
+fn import_with_policy(bytes: &[u8], table: bool) -> Option<TextBody> {
     if bytes.len() > MAX_INPUT {
         return None;
     }
@@ -19,6 +29,12 @@ pub fn import(bytes: &[u8]) -> Option<TextBody> {
     let mut tokenizer = Tokenizer::new(Sink::default(), Default::default());
     let _ = tokenizer.feed(&mut input);
     tokenizer.end();
+    if table && tokenizer.sink.saw_hidden {
+        return Some(TextBody::default());
+    }
+    if tokenizer.sink.out.overflow {
+        return None;
+    }
     tokenizer.sink.out.finish()
 }
 
@@ -52,6 +68,7 @@ fn fragment(html: &str) -> &str {
 
 #[derive(Default)]
 struct Sink {
+    saw_hidden: bool,
     out: Fragment,
     stack: Vec<Frame>,
     pending_space: bool,
@@ -63,6 +80,7 @@ struct Frame {
     props: RunProps,
     align: Option<Align>,
     hidden: bool,
+    explicit_hidden: bool,
     pre: bool,
 }
 
@@ -139,6 +157,7 @@ impl Sink {
                 | "svg"
                 | "math"
         ) || attr("hidden").is_some();
+        frame.explicit_hidden |= attr("hidden").is_some();
         frame.pre |= name == "pre";
         match name {
             "b" | "strong" => frame.props.bold = Some(true),
@@ -166,6 +185,7 @@ impl Sink {
         {
             style(&mut frame, key.trim(), val.trim());
         }
+        self.saw_hidden |= frame.explicit_hidden;
         if !frame.hidden {
             if block(name) {
                 self.block_boundary();
@@ -305,8 +325,14 @@ fn style(frame: &mut Frame, key: &str, value: &str) {
     let key = key.to_ascii_lowercase();
     let val = value.to_ascii_lowercase();
     match key.as_str() {
-        "display" if val == "none" => frame.hidden = true,
-        "visibility" if val == "hidden" => frame.hidden = true,
+        "display" if val == "none" => {
+            frame.hidden = true;
+            frame.explicit_hidden = true;
+        }
+        "visibility" if val == "hidden" => {
+            frame.hidden = true;
+            frame.explicit_hidden = true;
+        }
         "white-space" if matches!(val.as_str(), "pre" | "pre-wrap") => frame.pre = true,
         "font-family" => frame.props.font = font(value).or(frame.props.font.take()),
         "font-size" => {

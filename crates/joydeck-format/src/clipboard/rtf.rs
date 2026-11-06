@@ -12,11 +12,29 @@ pub fn import(bytes: &[u8]) -> Option<TextBody> {
 /// `Some(empty)`. Paste callers must consume it without editing or falling back
 /// to the provider's plain text, which may contain the hidden characters.
 pub fn import_for_paste(bytes: &[u8]) -> Option<TextBody> {
+    import_with_policy(bytes, false)
+}
+
+/// Consume hidden RTF without permitting a table TSV fallback. Empty means
+/// refuse the paste: the visible fragment cannot preserve arbitrary table cells.
+pub fn import_for_table(bytes: &[u8]) -> Option<TextBody> {
+    import_with_policy(bytes, true)
+}
+
+fn import_with_policy(bytes: &[u8], table: bool) -> Option<TextBody> {
     let input = bytes.trim_ascii_start();
     if bytes.len() > MAX_INPUT || !crate::rtf::sniff_rtf(input) {
         return None;
     }
-    Reader::default().read(input)
+    let mut reader = Reader::default();
+    let result = reader.read(input);
+    if table && reader.saw_hidden {
+        // Once hiding is recognized, a later syntax/budget error must not
+        // re-enable the provider's potentially unfiltered TSV.
+        Some(TextBody::default())
+    } else {
+        result
+    }
 }
 
 #[derive(Clone, Copy, Default, PartialEq, Eq)]
@@ -83,7 +101,7 @@ impl Default for Reader {
 }
 
 impl Reader {
-    fn read(mut self, mut input: &[u8]) -> Option<TextBody> {
+    fn read(&mut self, mut input: &[u8]) -> Option<TextBody> {
         while let Some((&byte, tail)) = input.split_first() {
             input = tail;
             match byte {
@@ -114,8 +132,7 @@ impl Reader {
                         if self.out.overflow {
                             return None;
                         }
-                        return self
-                            .out
+                        return std::mem::take(&mut self.out)
                             .finish()
                             .or_else(|| self.saw_hidden.then(TextBody::default));
                     }

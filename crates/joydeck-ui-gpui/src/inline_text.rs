@@ -441,10 +441,12 @@ impl Viewer {
             .and_then(|m| serde_json::from_str::<TextClipboard>(m).ok())
             .filter(|m| m.version == 1)
             .or_else(|| {
-                crate::native_clipboard::rich_text(cx.compositor_name()).map(|body| TextClipboard {
-                    version: 1,
-                    document: None,
-                    body,
+                crate::native_clipboard::rich_text(cx.compositor_name(), false).map(|body| {
+                    TextClipboard {
+                        version: 1,
+                        document: None,
+                        body,
+                    }
                 })
             });
         if let Some(TextClipboard {
@@ -965,9 +967,16 @@ impl Viewer {
             self.paste_image(bytes, cx);
             return;
         }
-        if let Some(body) = crate::native_clipboard::rich_text(cx.compositor_name()) {
+        if let Some(body) =
+            crate::native_clipboard::rich_text(cx.compositor_name(), self.cell.is_some())
+        {
             if body.is_empty() {
-                self.message = "剪贴板没有可见文字，未粘贴".into();
+                self.message = if self.cell.is_some() {
+                    "剪贴板含隐藏内容，无法安全粘贴到表格。请先在来源应用移除隐藏内容"
+                } else {
+                    "剪贴板没有可见文字，未粘贴"
+                }
+                .into();
                 cx.notify();
                 return;
             }

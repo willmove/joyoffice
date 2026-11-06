@@ -4,8 +4,11 @@ mod rtf;
 #[cfg(test)]
 mod tests;
 
-pub use html::import as import_html;
-pub use rtf::{import as import_rtf, import_for_paste as import_rtf_for_paste};
+pub use html::{import as import_html, import_for_table as import_html_for_table};
+pub use rtf::{
+    import as import_rtf, import_for_paste as import_rtf_for_paste,
+    import_for_table as import_rtf_for_table,
+};
 
 use joydeck_model::{
     ColorRef, Fill, Paragraph, Rgba, TextBody,

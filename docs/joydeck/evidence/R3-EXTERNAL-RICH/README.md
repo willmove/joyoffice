@@ -43,7 +43,7 @@ Debug 版从后台打开本轮生成的原生项目会在反序列化 `RunProps`
 
 新增 `import_rtf_for_paste` 保留三种结果：有可见内容、已解析的隐藏空内容、不可用。原 `import_rtf` 的非空导入契约保留。macOS／Windows 适配器及 Linux 的 RTF MIME 别名路径使用新接口；原位、画布和表格入口消费隐藏空内容后直接返回并提示。Linux 不继续尝试其他 RTF 别名或纯文本。
 
-解析回归覆盖纯隐藏、组作用域恢复、隐藏换行、可见剩余文字、空 RTF、损坏输入及超限输出。损坏、超限、缺失 RTF 仍保持原回退行为；HTML 优先策略保持不变。混合可见／隐藏内容的表格 TSV 路径仍使用来源应用的纯文本，未在本批改变其列分隔语义。上述边界不能视为任意来源剪贴板的完整隐私保证。
+解析回归覆盖纯隐藏、组作用域恢复、隐藏换行、可见剩余文字、空 RTF、损坏输入及超限输出。损坏、超限、缺失 RTF 仍保持原回退行为；HTML 优先策略保持不变。当时混合可见／隐藏内容的表格 TSV 路径仍使用来源应用的纯文本，后续保护见下节。上述边界不能视为任意来源剪贴板的完整隐私保证。
 
 当前代码的原生系统剪贴板、选区保持、表格与画布无操作行为仍需真实桌面复验；未宣称完成 JD-307 验收。
 
@@ -53,3 +53,15 @@ Debug 版从后台打开本轮生成的原生项目会在反序列化 `RunProps`
 - 临时轻量 Cargo 测试宿主直接以 `#[path]` 包含生产 `native_clipboard_linux.rs`，使用真实 `joydeck-format`、`joydeck-model`、`joydeck-engine` 和 `rustix`；仅把 `joydeck_shell::clipboard_import` 重导出映射到相同的 format 模块，避免引入 GUI 链接。生产模块原有和新增的 4 项测试全部运行通过，覆盖隐藏 RTF 四种 MIME／别名、HTML 优先与引擎撤销重做、普通回退、辅助进程输出／超时预算。宿主未调用实际系统剪贴板。
 - 常规桌面 `cargo check` 因环境缺少 `fontconfig.pc` 失败；使用依赖官方支持的 `RUST_FONTCONFIG_DLOPEN=1 cargo check -p joydeck-ui-gpui --tests` 后通过。相同配置下 `cargo clippy -p joydeck-ui-gpui --all-targets -- -D warnings` 通过。此项是 Linux 编译检查，不是桌面运行或其他平台编译结果。
 - `cargo fmt --all --check`、`python3 scripts/check_docs.py` 通过。依赖及锁文件未修改。
+
+
+## 混合隐藏内容的表格 TSV 保护
+
+在 `b6a60163a02fe212588e1dd6f200a1a9f01c746f` 基础上继续检查发现：表格入口读取富文本后仍使用提供方 TSV，混合隐藏内容可能重新出现。当前解析器不能可靠恢复任意 HTML／RTF 表格的单元格边界，因此不把过滤后的普通文字伪装成完整 TSV；改为在所选富格式明确含隐藏内容时拒绝表格粘贴，提示先在来源应用移除隐藏内容。拒绝分支不派发表格编辑命令，不修改选区或撤销历史。
+
+- 表格模式的 RTF 解析识别组内 `\v`，HTML 解析识别 `hidden`、`display:none`、`visibility:hidden`。无论剩余文字是否非空，都返回消费此次粘贴的空结果。普通 HTML 的 `head`／`title` 等元数据不触发该策略；已有正文导入不变。
+- HTML 优先于 RTF；所选 HTML 明确隐藏内容时不继续读 RTF。HTML 不可用时可读 RTF，隐藏 RTF 不继续读其他 MIME 别名或 TSV。未发现显式隐藏的可用富格式仍允许使用原始 TSV，保留来源应用的列分隔。
+- 一旦解析器识别显式隐藏，即使之后 RTF 语法损坏或输出预算超限，也消费并拒绝此次表格粘贴。未识别隐藏的解析失败、输入在解析前已超限、辅助程序不可用／超时、缺失富格式仍沿用既有纯文本回退；不同格式之间不作内容一致性比较。外部 CSS、其他未支持的隐藏语义以及较低优先级格式的隐藏内容不在本次保证范围，不能视为任意来源的完整防泄露机制。
+- 当前修复仍未进行 macOS／Windows／Wayland／物理 Linux 的实际剪贴板与表格无操作验收。JD-307 保持进行中。
+
+验证：`cargo test -p joydeck-format -p joydeck-pptx` 共 48 + 60 项通过；前述直接包含生产 Linux 适配器的轻量测试宿主共 5 项通过。新增回归覆盖混合隐藏 RTF、三种 HTML 显式隐藏方式、普通 HTML 元数据、普通 TSV 回退、HTML 优先与坏 HTML 后的隐藏 RTF 阻断，以及已识别隐藏后语法损坏／输出超限仍然拒绝。使用 `RUST_FONTCONFIG_DLOPEN=1` 的三个相关 crate 严格 Clippy（`--all-targets -- -D warnings`）、fmt 和文档检查通过。这些结果不替代真实桌面验收。

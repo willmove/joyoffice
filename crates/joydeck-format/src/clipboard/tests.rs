@@ -147,3 +147,66 @@ fn hidden_rtf_consumes_paste_without_exposing_plain_text_fallback() {
     let excessive = format!(r"{{\rtf1\v hidden\v0 {}}}", "x".repeat(MAX_TEXT + 1));
     assert!(import_rtf_for_paste(excessive.as_bytes()).is_none());
 }
+
+#[test]
+fn table_import_refuses_mixed_hidden_content_but_preserves_normal_fallback() {
+    let rtf = br"{\rtf1 Visible\tab{\v secret}Other\par Next}";
+    assert_eq!(
+        import_rtf_for_paste(rtf).expect("visible text").text(),
+        "Visible\tOther\nNext"
+    );
+    assert!(
+        import_rtf_for_table(rtf)
+            .expect("consume unsafe table paste")
+            .is_empty()
+    );
+    for html in [
+        r"<table><tr><td>Visible</td><td hidden>secret</td></tr></table>",
+        r#"Visible<span style="display:none">secret</span>Other"#,
+        r#"Visible<span style="visibility:hidden">secret</span>Other"#,
+        r"<span hidden>secret</span>",
+    ] {
+        assert!(
+            import_html_for_table(html.as_bytes())
+                .expect("consume unsafe table paste")
+                .is_empty()
+        );
+    }
+    let html = b"<html><head><title>Metadata</title></head><body><table><tr><td>A</td><td>B</td></tr></table></body></html>";
+    assert!(
+        !import_html_for_table(html)
+            .expect("ordinary HTML must not block TSV")
+            .is_empty()
+    );
+    assert!(
+        !import_rtf_for_table(br"{\rtf1 A\tab B}")
+            .expect("ordinary RTF")
+            .is_empty()
+    );
+    assert!(
+        import_rtf_for_table(br"{\rtf1\v malformed")
+            .expect("recognized hiding blocks even malformed RTF")
+            .is_empty()
+    );
+    assert!(import_rtf_for_table(br"{\rtf1 malformed").is_none());
+    assert!(import_html_for_table(&[0xff]).is_none());
+    assert!(import_html_for_table(&vec![b'x'; MAX_INPUT + 1]).is_none());
+}
+
+#[test]
+fn table_hiding_cannot_be_undone_by_later_output_budget_failure() {
+    let text = "x".repeat(MAX_TEXT + 1);
+    let rtf = format!(r"{{\rtf1\v secret\v0 {text}}}");
+    assert!(
+        import_rtf_for_table(rtf.as_bytes())
+            .expect("hidden RTF consumes overflow")
+            .is_empty()
+    );
+    let html = format!("<span hidden>secret</span>{text}");
+    assert!(
+        import_html_for_table(html.as_bytes())
+            .expect("hidden HTML consumes overflow")
+            .is_empty()
+    );
+    assert!(import_html_for_table(text.as_bytes()).is_none());
+}
