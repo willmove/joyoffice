@@ -307,6 +307,30 @@ pub fn default_config_dir() -> Option<PathBuf> {
     }
 }
 
+// Opening first can block indefinitely on a FIFO before the byte budget is
+// checked. Unix nonblocking open also handles replacement after a path check.
+fn open_preferences(path: &Path) -> io::Result<fs::File> {
+    #[cfg(unix)]
+    let file: fs::File = {
+        use rustix::fs::{Mode, OFlags, open};
+        open(
+            path,
+            OFlags::RDONLY | OFlags::NONBLOCK | OFlags::CLOEXEC,
+            Mode::empty(),
+        )?
+        .into()
+    };
+    #[cfg(not(unix))]
+    let file = fs::File::open(path)?;
+    if !file.metadata()?.is_file() {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "preferences are not a regular file",
+        ));
+    }
+    Ok(file)
+}
+
 pub struct PrefsStore {
     dir: PathBuf,
 }
@@ -332,7 +356,7 @@ impl PrefsStore {
         }
 
         let mut text = String::new();
-        let legacy = fs::File::open(legacy_dir.join(FILE_NAME))
+        let legacy = open_preferences(&legacy_dir.join(FILE_NAME))
             .and_then(|file| file.take(MAX_BYTES as u64 + 1).read_to_string(&mut text));
         if legacy.is_ok()
             && text.len() <= MAX_BYTES
@@ -353,7 +377,7 @@ impl PrefsStore {
     pub fn load(&self, fallback: Locale) -> Loaded {
         let path = self.path();
         let read = || -> io::Result<Vec<u8>> {
-            let file = fs::File::open(&path)?;
+            let file = open_preferences(&path)?;
             if file.metadata()?.len() > MAX_BYTES as u64 {
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidData,
@@ -729,5 +753,62 @@ mod tests {
                 .contains("schema=1\n")
         );
         let _ = fs::remove_dir_all(dir);
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn fifo_preferences_do_not_block_or_become_writable() -> io::Result<()> {
+        use rustix::fs::{CWD, Mode, mkfifoat};
+        use std::os::unix::fs::FileTypeExt;
+        let dir = tempfile::tempdir()?;
+        let store = PrefsStore::new(dir.path());
+        mkfifoat(CWD, store.path(), Mode::RUSR | Mode::WUSR)?;
+        let loaded = store.load(Locale::En);
+        assert!(!loaded.writable);
+        assert!(matches!(
+            loaded.notices.as_slice(),
+            [PrefsNotice::Unreadable { .. }]
+        ));
+        assert!(store.save(&loaded).is_err());
+        assert!(fs::symlink_metadata(store.path())?.file_type().is_fifo());
+        assert_eq!(fs::read_dir(dir.path())?.count(), 1);
+        Ok(())
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn legacy_fifo_preferences_fall_back_without_touching_the_legacy_path() -> io::Result<()> {
+        use rustix::fs::{CWD, Mode, mkfifoat};
+        use std::os::unix::fs::FileTypeExt;
+        let legacy = tempfile::tempdir()?;
+        let current = tempfile::tempdir()?;
+        let path = legacy.path().join(FILE_NAME);
+        mkfifoat(CWD, &path, Mode::RUSR | Mode::WUSR)?;
+        let store = PrefsStore::new(current.path());
+        let loaded = store.load_with_legacy(legacy.path(), Locale::En);
+        assert_eq!(loaded.prefs, Preferences::defaults_for(Locale::En));
+        assert!(loaded.writable); // only the missing current file may be created
+        assert!(!store.path().exists());
+        assert!(fs::symlink_metadata(&path)?.file_type().is_fifo());
+        assert_eq!(fs::read_dir(legacy.path())?.count(), 1);
+        Ok(())
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn regular_preferences_symlink_keeps_existing_read_compatibility() -> io::Result<()> {
+        let dir = tempfile::tempdir()?;
+        let target = dir.path().join("regular.conf");
+        fs::write(&target, "schema=1\nauthor.name=Reader\n")?;
+        let store = PrefsStore::new(dir.path());
+        std::os::unix::fs::symlink(&target, store.path())?;
+        let loaded = store.load(Locale::En);
+        assert!(loaded.writable);
+        assert_eq!(loaded.prefs.author_name, "Reader");
+        assert_eq!(
+            fs::read_to_string(&target)?,
+            "schema=1\nauthor.name=Reader\n"
+        );
+        Ok(())
     }
 }

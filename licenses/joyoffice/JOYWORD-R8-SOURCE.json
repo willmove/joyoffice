@@ -32,7 +32,8 @@
       "target": "crates/joyword-shell/src/prefs.rs",
       "sha256": "aa937f6169fd0bf9a0aadb0306f0d55709822827d2dd7200648389c8e715df73",
       "modified": true,
-      "changes": "Replaced production panic/expect; bounded backup-name search with create_new; added exhaustion regression."
+      "changes": "Replaced production panic/expect; bounded backup-name search with create_new; added exhaustion regression. Current and legacy preference reads reject non-regular handles; Unix nonblocking opens prevent FIFO startup hangs while retaining regular symlink read compatibility.",
+      "adapted_sha256": "a0668a2063293e6b34907126e4bedb74ce9265920931e033daefca6e269f82d1"
     },
     {
       "source": "crates/joyword-shell/locales/en.lang",

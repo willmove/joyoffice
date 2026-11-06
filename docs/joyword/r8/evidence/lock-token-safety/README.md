@@ -13,3 +13,12 @@ Limits: this is not a cross-platform proof against every filesystem race. The no
 ## Footer assessment before switching priority
 
 PR #148 distinguishes recognized explicit layout/master footer flags, but absent and unrecognized `p:hf` both remain `None`. `HeaderFooter.hide_on_title` has no complete PPTX read/write/render contract in the inspected code. Therefore this batch does not infer implicit enablement, change existing documents, or relax the conservative title-page rejection in PR #149. Those model semantics and real-window UI validation remain open.
+
+
+## Preference special-file follow-up
+
+The current and legacy preference loaders opened paths before checking their file type. A FIFO with no writer can therefore block startup before the 256 KiB read limit is reached. Both entry points now use a regular-handle check; Unix opens are nonblocking so FIFO opens cannot wait for a writer. Regular-file symbolic links retain their existing read compatibility (unlike owned-lock paths, where a symlink is not proof of ownership).
+
+Unix regressions create real FIFOs without writers. The current-file case returns unreadable, read-only defaults and refuses saving; the legacy case falls back to the missing current configuration without changing or deleting the FIFO. Both leave their directories unchanged. A regular-file symlink regression confirms its existing contents can still be loaded. All 79 joyword-shell tests and strict all-target Clippy passed; fmt, source fingerprint recording, documentation and repository gates passed. Non-Unix opens retain their platform implementation; this does not claim Windows named-pipe race protection or real-device acceptance.
+
+The legacy recovery journal's separate check-then-open boundary was inspected but is not modified by this focused preference fix. Further race hardening there remains open.
