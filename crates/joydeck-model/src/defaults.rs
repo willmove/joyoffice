@@ -293,6 +293,7 @@ pub fn build_master(size: Size, theme: Theme, first_id: u32) -> (Master, u32) {
     let mut lay = |b: &mut B, name: &str, kind: LayoutType, shapes: Vec<Shape>| {
         b.next += 1;
         layouts.push(Layout {
+            placeholder_visibility: None,
             id: LayoutId(b.next),
             name: name.into(),
             kind,
@@ -732,6 +733,7 @@ pub fn build_master(size: Size, theme: Theme, first_id: u32) -> (Master, u32) {
     let (title_style, body_style, other_style) = master_styles();
     b.next += 1;
     let master = Master {
+        placeholder_visibility: None,
         id: MasterId(b.next),
         name: theme.name.clone(),
         theme,
