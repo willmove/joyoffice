@@ -1,0 +1,16 @@
+[
+  {
+    "case": "parent_path",
+    "outcome": "accepted",
+    "fixtureOnly": true,
+    "extracted": false,
+    "executed": false
+  },
+  {
+    "case": "symlink",
+    "outcome": "accepted",
+    "fixtureOnly": true,
+    "extracted": false,
+    "executed": false
+  }
+]

@@ -1,0 +1,123 @@
+[
+  {
+    "package": "block@0.1.6",
+    "crateSha256": "0d8c1fef690941d3e7788d328517591fecc684c084084702d6ff1641e993699a",
+    "crateFiles": [
+      "Cargo.toml",
+      "README.md",
+      "src/lib.rs",
+      "src/test_utils.rs"
+    ],
+    "status": "unresolved; no license text added",
+    "tagCommit": "47178790cfc9d4a8b092051d8b413b78bd31254a",
+    "tagFiles": [
+      ".gitignore",
+      ".travis.yml",
+      "Cargo.toml",
+      "README.md",
+      "src/lib.rs",
+      "src/test_utils.rs",
+      "test_utils/Cargo.toml",
+      "test_utils/block_utils.c",
+      "test_utils/build.rs",
+      "test_utils/lib.rs",
+      "tests-ios/prelude.rs",
+      "travis_install.sh",
+      "travis_test.sh"
+    ],
+    "manifestSha256": "24df2f33b48c9e756a4f864f882c1ab07a159b6c2b790f45af2e8162499b6719"
+  },
+  {
+    "package": "malloc_buf@0.0.6",
+    "crateSha256": "62bb907fe88d54d8d9ce32a3cceab4218ed2f6b7d35617cafe9adf84e43919cb",
+    "crateFiles": [
+      "Cargo.toml",
+      "src/lib.rs"
+    ],
+    "status": "unresolved; no license text added",
+    "tagCommit": "a7811e5f4c6f9685dd57ad9bfe34e9bf6b0ba4f9",
+    "tagFiles": [
+      ".gitignore",
+      "Cargo.toml",
+      "src/lib.rs"
+    ],
+    "manifestSha256": "1c70c91688d9850272e43cee9b189ffe3fe667151d7caf576a36a720f8b28194"
+  },
+  {
+    "package": "mac@0.1.1",
+    "crateSha256": "c41e0c4fef86961ac6d6f8a82609f55f31b05e4fce149ac5710e439df7619ba4",
+    "crateFiles": [
+      ".gitignore",
+      ".travis.yml",
+      "Cargo.toml",
+      "README.md",
+      "src/cfg.rs",
+      "src/format.rs",
+      "src/inspect.rs",
+      "src/lib.rs",
+      "src/matches.rs",
+      "src/mem.rs",
+      "src/syntax_ext.rs",
+      "src/test.rs"
+    ],
+    "status": "unresolved; no license text added",
+    "tagCommit": "66afc663b68a65633ea165c742b5a9c6734581c2",
+    "tagFiles": [
+      ".gitignore",
+      ".travis.yml",
+      "Cargo.toml",
+      "README.md",
+      "src/cfg.rs",
+      "src/format.rs",
+      "src/inspect.rs",
+      "src/lib.rs",
+      "src/matches.rs",
+      "src/mem.rs",
+      "src/syntax_ext.rs",
+      "src/test.rs"
+    ],
+    "manifestSha256": "6d465c5e5a4b3e197049e9fb7393b2f996c1c654e6ded700afce046fac2f7969"
+  },
+  {
+    "package": "pathfinder_geometry@0.5.1",
+    "crateSha256": "0b7b7e7b4ea703700ce73ebf128e1450eb69c3a8329199ffbfb9b2a0418e5ad3",
+    "crateFiles": [
+      ".cargo_vcs_info.json",
+      "Cargo.toml",
+      "Cargo.toml.orig",
+      "src/angle.rs",
+      "src/lib.rs",
+      "src/line_segment.rs",
+      "src/rect.rs",
+      "src/transform2d.rs",
+      "src/transform3d.rs",
+      "src/unit_vector.rs",
+      "src/util.rs",
+      "src/vector.rs"
+    ],
+    "status": "unresolved; no license text added"
+  },
+  {
+    "package": "seahash@4.1.0",
+    "crateSha256": "1c107b6f4780854c8b126e228ea8869f4d7b71260f962fefb57b996b8959ba6b",
+    "crateFiles": [
+      ".cargo_vcs_info.json",
+      ".gitignore",
+      ".gitlab-ci.yml",
+      "Cargo.toml",
+      "Cargo.toml.orig",
+      "README.md",
+      "benches/bench.rs",
+      "logo.png",
+      "src/buffer.rs",
+      "src/helper.rs",
+      "src/impl_std.rs",
+      "src/lib.rs",
+      "src/reference.rs",
+      "src/stream.rs",
+      "tests/chunking.rs",
+      "tests/quickchecks.rs"
+    ],
+    "status": "unresolved; no license text added"
+  }
+]
