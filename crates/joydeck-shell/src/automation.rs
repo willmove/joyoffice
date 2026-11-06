@@ -31,6 +31,7 @@ pub const METHODS: &[&str] = &[
     "export.start",
     "jobs.get",
     "jobs.cancel",
+    "jobs.release",
     "show.start",
     "show.action",
     "show.tick",
@@ -258,10 +259,21 @@ impl Dispatcher {
         if r.method == "document.status" {
             return Ok(self.status());
         }
-        if matches!(r.method.as_str(), "jobs.get" | "jobs.cancel") {
+        if matches!(
+            r.method.as_str(),
+            "jobs.get" | "jobs.cancel" | "jobs.release"
+        ) {
             let id = p["jobId"].as_u64().ok_or("missing jobId")?;
-            let job = self.jobs.get_mut(&id).ok_or("job missing")?;
+            let job = self.jobs.get(&id).ok_or("job missing")?;
             let mut status = job.status.lock().map_err(|_| "job status unavailable")?;
+            if r.method == "jobs.release" {
+                if status["state"] == "running" {
+                    return Err("cannot release a running job".into());
+                }
+                drop(status);
+                self.jobs.remove(&id);
+                return Ok(json!({"jobId":id,"released":true}));
+            }
             if r.method == "jobs.cancel" && status["state"] == "running" {
                 job.cancel.cancel();
                 status["cancelRequested"] = json!(true);
@@ -451,7 +463,10 @@ impl Dispatcher {
                 let doc = self.editor.as_ref().ok_or("no document")?.display()?;
                 output::pages(&doc, &opts)?;
                 if self.jobs.len() >= 16 {
-                    return Err("16 retained jobs limit; start a new session".into());
+                    return Err(
+                        "16 retained jobs limit; release finished jobs or start a new session"
+                            .into(),
+                    );
                 }
                 let running = self
                     .jobs
@@ -469,11 +484,21 @@ impl Dispatcher {
                     json!({"jobId":id,"documentId":self.document_id,"revision":self.revision,"state":"running","phase":"preparing","cancelRequested":false}),
                 ));
                 let state = status.clone();
-                let thread = std::thread::spawn(move || {
-                    if let Ok(mut s) = state.lock() {
-                        s["phase"] = json!("encoding");
-                    }
-                    let result = output::export(&doc, &path, &opts, &token);
+                let thread = std::thread::Builder::new().name("joydeck-export".into()).spawn(move || {
+                    let progress = |update| {
+                        if let Ok(mut status) = state.lock() {
+                            match update {
+                                output::Progress::Encoding => status["phase"] = json!("encoding"),
+                                output::Progress::Units { completed, total, unit } => {
+                                    status["progress"] = json!({"completed":completed,"total":total,"unit":unit});
+                                }
+                                output::Progress::Publishing => status["phase"] = json!("publishing"),
+                            }
+                        }
+                    };
+                    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                        output::export_with_progress(&doc, &path, &opts, &token, &progress)
+                    })).unwrap_or_else(|_| Err("export worker failed".into()));
                     if let Ok(mut s) = state.lock() {
                         match result {
                             Ok(report) => {
@@ -491,7 +516,7 @@ impl Dispatcher {
                         }
                         s["phase"] = json!("finished");
                     }
-                });
+                }).map_err(|error| error.to_string())?;
                 self.jobs.insert(
                     id,
                     Job {

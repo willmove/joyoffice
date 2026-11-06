@@ -291,7 +291,13 @@ impl Desktop {
         cx.spawn_in(window, async move |this, cx| {
             loop {
                 cx.background_executor().timer(Duration::from_millis(16)).await;
-                if this.update_in(cx, |this, window, cx| this.poll(window, cx)).is_err() {
+                if this
+                    .update_in(cx, |this, window, cx| {
+                        this.poll(window, cx);
+                        this.auto_scroll_drag(window, cx);
+                    })
+                    .is_err()
+                {
                     break;
                 }
             }
@@ -487,7 +493,6 @@ impl Desktop {
             self.outline_fonts_ready = true;
             cx.notify();
         }
-        self.auto_scroll_drag(cx);
         self.recovery_tick(window, cx);
         if self.window_id == self.snapshot.active_window {
             let urls = cx.global::<crate::OpenRequests>().0.lock().unwrap_or_else(std::sync::PoisonError::into_inner).try_recv().ok();

@@ -12,6 +12,59 @@ fn reopen(r: &Reader) -> Reader {
     r.save_job(path.clone(), true).unwrap().run().unwrap();
     Reader::open(&path, &AtomicBool::new(false)).unwrap()
 }
+
+#[test]
+fn header_and_footer_workflow_restores_body_selection_and_round_trips() {
+    use joyword_engine::doc::{StoryRef, para::InlineObject};
+
+    let mut reader = blank();
+    cmd(
+        &mut reader,
+        "document.setText",
+        json!({"text":"Body selection"}),
+    );
+    cmd(&mut reader, "select.text", json!({"text":"selection"}));
+    let body = reader.engine().sel.clone();
+    cmd(
+        &mut reader,
+        "layout.differentFirstPage",
+        json!({"value":true}),
+    );
+    cmd(
+        &mut reader,
+        "layout.differentOddEven",
+        json!({"value":true}),
+    );
+    cmd(&mut reader, "insert.editHeader", json!({}));
+    cmd(&mut reader, "text.insert", json!({"text":"首页页眉"}));
+    cmd(&mut reader, "insert.editFooter", json!({"page":0}));
+    cmd(&mut reader, "text.insert", json!({"text":"Page "}));
+    cmd(
+        &mut reader,
+        "insert.pageNumber",
+        json!({"position":"current"}),
+    );
+    cmd(&mut reader, "insert.closeHeader", json!({}));
+    assert_eq!(reader.engine().sel, body);
+
+    let back = reopen(&reader);
+    assert_eq!(back.header_footer_flags(), (true, true));
+    let doc = &back.engine().doc;
+    assert_eq!(doc.plain_text(StoryRef::Body), "Body selection");
+    let section = &doc.last_section;
+    let header = section.headers.first.and_then(|id| doc.parts.get(&id));
+    let footer = section.footers.first.and_then(|id| doc.parts.get(&id));
+    assert!(
+        header
+            .and_then(|part| part.blocks.first())
+            .and_then(|block| block.as_para())
+            .is_some_and(|para| para.text == "首页页眉")
+    );
+    assert!(footer.and_then(|part| part.blocks.first()).and_then(|block| block.as_para()).is_some_and(|para| {
+        para.text.starts_with("Page ") && para.objects.iter().any(|object| matches!(object, InlineObject::Field { instr, .. } if instr == "PAGE"))
+    }));
+}
+
 #[test]
 fn style_inheritance_character_styles_and_roundtrip() {
     let mut r = blank();

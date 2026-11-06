@@ -353,6 +353,13 @@ impl Reader {
     pub fn edit_command(&mut self, id: &str, params: &serde_json::Value) -> Result<(), String> {
         self.execute(id, params).map(|_| ())
     }
+    pub fn paste_clipboard_image(&mut self, bytes: &[u8]) -> Result<(), String> {
+        if bytes.len() > 16 * 1024 * 1024 {
+            return Err("Clipboard image exceeds 16 MiB".into());
+        }
+        let data = joyword_engine::cmd::insert::base64_encode(bytes);
+        self.edit_command("insert.picture", &serde_json::json!({"data": data}))
+    }
     pub fn save_job(&self, destination: PathBuf, new_file: bool) -> Result<SaveJob, String> {
         if self.is_composing() {
             return Err("Finish or cancel the input-method composition before saving".into());

@@ -3,6 +3,7 @@ mod advanced;
 mod agent;
 #[cfg(feature = "agent")]
 mod agent_port;
+mod clipboard;
 mod command_search;
 mod control;
 mod document_view;
@@ -10,6 +11,7 @@ mod export;
 mod formatting;
 mod forms;
 mod gestures;
+mod header_footer;
 mod input;
 mod objects;
 mod page_index;
@@ -592,7 +594,7 @@ impl JoyWord {
                             .disabled(!self.format_ready("insert.picture"))
                             .on_click(cx.listener(|v, _, w, cx| v.pick_picture(false, w, cx))),
                     )
-                    .child(self.unavailable(tr("页码", "Page number")))
+                    .child(self.header_footer_ribbon(cx))
                     .child(self.unavailable(tr("符号", "Symbol"))),
             ),
             2 => groups.child(self.page_setup_ribbon(cx)),
@@ -610,6 +612,21 @@ impl JoyWord {
                     .child(self.button("zoom-out-ribbon", "−", "view.zoom_out", cx))
                     .child(self.button("zoom-reset-ribbon", "100%", "view.zoom_reset", cx))
                     .child(self.button("zoom-in-ribbon", "+", "view.zoom_in", cx))
+                    .child(
+                        self.author_button(
+                            "formatting-marks",
+                            tr("显示格式标记 ¶", "Formatting marks ¶"),
+                            "view.marks",
+                            serde_json::json!({}),
+                            cx,
+                        )
+                        .selected(
+                            self.canvas
+                                .reader
+                                .as_ref()
+                                .is_some_and(|r| r.engine().view.marks),
+                        ),
+                    )
                     .child(self.button(
                         "theme-ribbon",
                         tr("切换外观", "Appearance"),
@@ -691,17 +708,29 @@ impl JoyWord {
                         )
                         .when(cfg!(windows), |menu| {
                             #[cfg(windows)]
-                            return menu.child(
-                                Button::new("system-print")
-                                    .ghost()
-                                    .label(tr("打印…", "Print…"))
-                                    .disabled(
-                                        self.canvas.reader.is_none()
-                                            || self.canvas.loading
-                                            || self.printing,
-                                    )
-                                    .on_click(cx.listener(|v, _, w, cx| v.open_print(w, cx))),
-                            );
+                            return menu
+                                .child(
+                                    Button::new("print-preview")
+                                        .ghost()
+                                        .label(tr("打印预览…", "Print preview…"))
+                                        .disabled(
+                                            self.canvas.reader.is_none() || self.canvas.loading,
+                                        )
+                                        .on_click(
+                                            cx.listener(|v, _, w, cx| v.open_print_preview(w, cx)),
+                                        ),
+                                )
+                                .child(
+                                    Button::new("system-print")
+                                        .ghost()
+                                        .label(tr("打印…", "Print…"))
+                                        .disabled(
+                                            self.canvas.reader.is_none()
+                                                || self.canvas.loading
+                                                || self.printing,
+                                        )
+                                        .on_click(cx.listener(|v, _, w, cx| v.open_print(w, cx))),
+                                );
                             #[cfg(not(windows))]
                             menu
                         })

@@ -2,17 +2,44 @@
 use crate::reader::{RasterScene, Reader};
 use serde_json::json;
 
+#[derive(Clone)]
 pub struct PrintJob {
     scene: RasterScene,
     pages: Vec<usize>,
 }
 
 impl Reader {
+    fn print_scene(&self) -> RasterScene {
+        let mut scene = self.scene();
+        if scene.options.display.marks {
+            // Formatting marks can expose hidden text and change the screen pagination.
+            scene.layout = self
+                .engine()
+                .export_layout_with(scene.options.display.markup);
+        }
+        scene
+    }
+
+    #[cfg(windows)]
+    pub fn print_preview_job(&self) -> Result<(PrintJob, usize), String> {
+        if self.is_composing() {
+            return Err("Finish or cancel the composition before previewing".into());
+        }
+        let scene = self.print_scene();
+        let engine = self.engine();
+        let page = scene
+            .layout
+            .caret_on(&engine.sel.focus, engine.page_hint)
+            .map_or(0, |caret| caret.page);
+        let pages = (0..scene.layout.pages.len()).collect();
+        Ok((PrintJob { scene, pages }, page))
+    }
+
     pub fn print_job(&self, pages: &str) -> Result<PrintJob, String> {
         if self.is_composing() {
             return Err("Finish or cancel the composition before printing".into());
         }
-        let scene = self.scene();
+        let scene = self.print_scene();
         let plan =
             joyword_engine::print::plan(&json!({"pages":pages}), scene.layout.pages.len(), (0, 0))
                 .map_err(|e| e.to_string())?;
@@ -27,6 +54,26 @@ impl Reader {
 }
 
 impl PrintJob {
+    #[cfg(windows)]
+    pub fn page_count(&self) -> usize {
+        self.pages.len()
+    }
+
+    #[cfg(windows)]
+    pub fn preview_png(&self, index: usize) -> Result<Vec<u8>, String> {
+        use std::fs;
+        let page = *self.pages.get(index).ok_or("Page is out of range")?;
+        let one = Self {
+            scene: self.scene.clone(),
+            pages: vec![page],
+        };
+        let dir = tempfile::tempdir().map_err(|e| e.to_string())?;
+        let pdf = dir.path().join("document.pdf");
+        fs::write(&pdf, one.pdf(false)?).map_err(|e| e.to_string())?;
+        render_windows_pdf(&pdf, 1).map_err(|e| e.to_string())?;
+        fs::read(dir.path().join("page-1.png")).map_err(|e| e.to_string())
+    }
+
     pub fn pdf(&self, links: bool) -> Result<Vec<u8>, String> {
         let bytes = joyword_pdf::export_layout(
             &self.scene.doc,
@@ -181,6 +228,18 @@ mod tests {
         reader.execute("text.insert", &json!({"text":"First page"}))?;
         reader.execute("text.pageBreak", &json!({}))?;
         reader.execute("text.insert", &json!({"text":"Second page"}))?;
+        let (preview, page) = reader.print_preview_job()?;
+        assert_eq!((preview.page_count(), page), (2, 1));
+        let first = preview.preview_png(0)?;
+        let second = preview.preview_png(1)?;
+        assert_ne!(first, second);
+        assert!(joyword_geom::picture::probe(&second).is_ok());
+        assert!(preview.preview_png(2).is_err());
+        let revision = reader.engine().rev();
+        reader.execute("view.marks", &json!({"value":true}))?;
+        assert_eq!(reader.engine().rev(), revision);
+        assert!(reader.scene().options.display.marks);
+        assert_eq!(reader.print_preview_job()?.0.preview_png(1)?, second);
         let dir = tempfile::tempdir().map_err(|e| e.to_string())?;
         let pdf = dir.path().join("document.pdf");
         fs::write(&pdf, reader.print_job("2")?.pdf(false)?).map_err(|e| e.to_string())?;

@@ -1121,6 +1121,7 @@ impl Desktop {
         }
         if let Some(draft) = self.draft.as_ref() {
             if draft.text.starts_with('=') && (cell != draft.cell || self.view().is_some_and(|v| v.sheet != draft.sheet)) {
+                let cell = self.view().and_then(|v| v.sheet()).and_then(|sheet| sheet.merge_at(cell)).map_or(cell, |merge| merge.start);
                 let inline = draft.inline;
                 let input = if inline { self.editor.clone() } else { self.formula.clone() };
                 let start = input.read(cx).selected_range().start;
@@ -1146,7 +1147,7 @@ impl Desktop {
                 return;
             }
             self.select(cell, event.modifiers.shift, cx);
-            self.drag_anchor = Some(cell);
+            self.drag_anchor = Some(self.selection().anchor);
             self.focus_grid(window, cx);
             if event.click_count >= 2 {
                 self.begin_edit(None, true, window, cx);
@@ -1155,10 +1156,13 @@ impl Desktop {
         cx.stop_propagation();
     }
     fn grid_mouse_move(&mut self, event: &MouseMoveEvent, window: &mut Window, cx: &mut Context<Self>) {
-        if self.validation_prompt.is_some() || self.confirm_close || self.palette_open || self.preview.is_some() {
+        if self.validation_prompt.is_some() || self.confirm_close || self.trust_request.is_some() || self.palette_open || self.preview.is_some() {
             return;
         }
         if !event.dragging() {
+            self.edge_drag = None;
+            self.drag_anchor = None;
+            self.reference_pick = None;
             return;
         }
         let x = f32::from(event.position.x - self.grid_bounds.origin.x);
@@ -1174,39 +1178,50 @@ impl Desktop {
             cx.notify();
             return;
         }
-        let reference_prefix = self.reference_text("");
-        if let Some(pick) = self.reference_pick.as_mut() {
-            if let Some(cell) = self.layout.hit(x, y) {
-                let text = format!("{reference_prefix}{}", RangeRef::new(pick.anchor, cell).a1());
-                if text != pick.text {
-                    let input = if pick.inline { self.editor.clone() } else { self.formula.clone() };
-                    let old = pick.range.clone();
-                    pick.range.end = pick.range.start + text.len();
-                    pick.text = text.clone();
-                    input.update(cx, |input, cx| {
-                        input.set_selected_range(old, cx);
-                        input.replace_text_in_range(None, &text, window, cx);
-                        input.focus(window, cx);
-                    });
-                }
-            }
-            return;
-        }
         if self.bar_drag.is_some() {
             self.move_scrollbar(x, y, cx);
             return;
         }
-        if let (Some(anchor), Some(cell)) = (self.drag_anchor, self.layout.hit(x, y)) {
-            if self.draft.is_some() {
+        if let Some(cell) = self.layout.hit(x, y) {
+            self.update_grid_drag_target(cell, window, cx);
+        }
+    }
+    pub(crate) fn update_grid_drag_target(&mut self, cell: CellRef, window: &mut Window, cx: &mut Context<Self>) {
+        if let Some(mut pick) = self.reference_pick.take() {
+            let text = self.reference_text(&RangeRef::new(pick.anchor, cell).a1());
+            let input = if pick.inline { self.editor.clone() } else { self.formula.clone() };
+            let updated = input.update(cx, |input, cx| {
+                if input.value().get(pick.range.clone()) != Some(pick.text.as_str()) || input.marked_text_range(window, cx).is_some() {
+                    return false;
+                }
+                if text != pick.text {
+                    input.set_selected_range(pick.range.clone(), cx);
+                    input.replace_text_in_range(None, &text, window, cx);
+                    input.focus(window, cx);
+                }
+                true
+            });
+            if updated {
+                pick.range.end = pick.range.start + text.len();
+                pick.text = text;
+                self.reference_pick = Some(pick);
+            }
+            return;
+        }
+        if let Some(anchor) = self.drag_anchor
+            && self.draft.is_none()
+            && let Some(sheet) = self.view().and_then(|view| view.sheet())
+        {
+            let mut selection = joysheet_engine::Selection::at(anchor);
+            selection.extend_to(cell);
+            selection.expand_merges(sheet);
+            let current = self.selection();
+            if current.current() == selection.current() && current.active == anchor {
                 return;
             }
-            let range = RangeRef::new(anchor, cell);
-            if self.selection().current() == range {
-                return;
-            }
-            let selection = joysheet_engine::Selection::range(range);
+            let range = selection.a1();
             self.local_selection = Some(selection);
-            self.issue("selection.set", json!({"range":range.a1(),"active":anchor.a1()}), After::None, cx);
+            self.issue("selection.set", json!({"range":range,"active":anchor.a1()}), After::None, cx);
         }
     }
     fn move_scrollbar(&mut self, x: f32, y: f32, cx: &mut Context<Self>) {

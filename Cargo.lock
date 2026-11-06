@@ -4429,7 +4429,9 @@ dependencies = [
 name = "joyword-ui-gpui"
 version = "0.1.0"
 dependencies = [
+ "arboard",
  "async-channel",
+ "clipboard-win",
  "gpui-kit",
  "gpui-pre",
  "image",

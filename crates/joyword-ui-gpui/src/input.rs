@@ -252,23 +252,6 @@ impl JoyWord {
     ) {
         self.apply_input(window, cx, |reader| reader.edit_command(id, args));
     }
-    pub(super) fn clipboard(&mut self, id: &str, window: &mut Window, cx: &mut Context<Self>) {
-        if id == "edit.paste" {
-            if let Some(text) = cx.read_from_clipboard().and_then(|c| c.text()) {
-                self.apply_input(window, cx, |r| r.replace_text(None, &text));
-            }
-        } else {
-            self.engine_command("edit.copy", &serde_json::json!({}), window, cx);
-            if let Some(r) = &self.canvas.reader {
-                cx.write_to_clipboard(gpui::ClipboardItem::new_string(
-                    r.engine().clipboard_text.clone(),
-                ));
-            }
-            if id == "edit.cut" {
-                self.engine_command("edit.cut", &serde_json::json!({}), window, cx);
-            }
-        }
-    }
     pub(super) fn document_key(
         &mut self,
         event: &gpui::KeyDownEvent,

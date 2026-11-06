@@ -1,6 +1,7 @@
 use crate::desktop::{Desktop, Pending};
 use gpui_kit::{prelude::*, *};
-use joysheet_app::geometry::{COL_HEADER, ROW_HEADER};
+use joysheet_app::geometry::{COL_HEADER, GridLayout, ROW_HEADER, SheetGeometry};
+use joysheet_engine::{core::CellRef, model::Sheet};
 use serde_json::json;
 
 #[derive(Clone, Copy)]
@@ -52,6 +53,36 @@ pub struct DimensionDrag {
     pub sheet: usize,
     pub revision: u64,
 }
+
+fn scrolled_drag_target(sheet: &Sheet, geometry: &SheetGeometry, layout: &GridLayout, x: f32, y: f32) -> Option<((f64, f64), Option<CellRef>)> {
+    if layout.width <= ROW_HEADER + 2. || layout.height <= COL_HEADER + 2. {
+        return None;
+    }
+    let speed = |position, start, end, step: f64| {
+        if end <= start {
+            0.
+        } else if position < start + 16. {
+            -step
+        } else if position > end - 16. {
+            step
+        } else {
+            0.
+        }
+    };
+    let dx = speed(x, ROW_HEADER, layout.width, 12.);
+    let dy = speed(y, COL_HEADER, layout.height, 16.);
+    if dx == 0. && dy == 0. {
+        return None;
+    }
+    let next = GridLayout::new(sheet, geometry, layout.scroll_x + dx, layout.scroll_y + dy, layout.width, layout.height);
+    let scroll = (next.scroll_x, next.scroll_y);
+    if scroll == (layout.scroll_x, layout.scroll_y) {
+        return None;
+    }
+    let hit = next.hit(x.clamp(ROW_HEADER + 1., next.width - 1.), y.clamp(COL_HEADER + 1., next.height - 1.));
+    Some((scroll, hit))
+}
+
 impl Desktop {
     pub fn begin_dimension_drag(&mut self, x: f32, y: f32, window: &mut Window, cx: &mut Context<Self>) -> bool {
         if self.draft.is_some() {
@@ -99,7 +130,7 @@ impl Desktop {
         }
         cx.notify();
     }
-    pub fn auto_scroll_drag(&mut self, cx: &mut Context<Self>) {
+    pub fn auto_scroll_drag(&mut self, window: &mut Window, cx: &mut Context<Self>) {
         if self.validation_prompt.is_some() || self.confirm_close || self.trust_request.is_some() || self.palette_open || self.preview.is_some() {
             self.edge_drag = None;
             return;
@@ -109,36 +140,43 @@ impl Desktop {
             return;
         }
         let Some((x, y)) = self.edge_drag else { return };
-        let dx = if x < ROW_HEADER + 16. {
-            -12.
-        } else if x > self.layout.width - 16. {
-            12.
-        } else {
-            0.
-        };
-        let dy = if y < COL_HEADER + 16. {
-            -16.
-        } else if y > self.layout.height - 16. {
-            16.
-        } else {
-            0.
-        };
-        if dx != 0. || dy != 0. {
-            self.scroll.0 = (self.scroll.0 + dx).max(0.);
-            self.scroll.1 = (self.scroll.1 + dy).max(0.);
-            if self.reference_pick.is_none()
-                && let (Some(anchor), Some(cell)) = (
-                    self.drag_anchor,
-                    self.layout.hit(x.clamp(ROW_HEADER + 1., self.layout.width - 1.), y.clamp(COL_HEADER + 1., self.layout.height - 1.)),
-                )
-            {
-                let range = joysheet_engine::core::RangeRef::new(anchor, cell);
-                if self.selection().current() != range {
-                    self.local_selection = Some(joysheet_engine::Selection::range(range));
-                    self.issue("selection.set", json!({"range":range.a1(),"active":anchor.a1()}), Default::default(), cx);
-                }
-            }
-            cx.notify();
+        let Some(sheet) = self.view().and_then(|view| view.sheet()) else { return };
+        let Some(geometry) = self.geometry.as_ref() else { return };
+        // The next target must come from the same scroll position that will be painted.
+        let Some((scroll, hit)) = scrolled_drag_target(sheet, geometry, &self.layout, x, y) else { return };
+        self.scroll = scroll;
+        if let Some(cell) = hit {
+            self.update_grid_drag_target(cell, window, cx);
         }
+        cx.notify();
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[::core::prelude::v1::test]
+    fn stationary_edge_drag_advances_the_target_in_the_scrolled_pane() -> Result<(), &'static str> {
+        let mut sheet = Sheet::new("Frozen");
+        sheet.freeze = Some((1, 1));
+        sheet.zoom = 125;
+        let geometry = SheetGeometry::new(&sheet);
+        let (width, height) = (300., 180.);
+        let mut layout = GridLayout::new(&sheet, &geometry, 0., 0., width, height);
+        let initial = layout.hit(width - 1., height - 1.).ok_or("initial cell missing")?;
+        let mut endpoint = initial;
+        for _ in 0..8 {
+            let (scroll, hit) = scrolled_drag_target(&sheet, &geometry, &layout, width + 8., height + 8.).ok_or("drag did not scroll")?;
+            layout = GridLayout::new(&sheet, &geometry, scroll.0, scroll.1, width, height);
+            endpoint = hit.ok_or("scrolled cell missing")?;
+            assert_eq!(layout.hit(width - 1., height - 1.), Some(endpoint));
+            assert_eq!(layout.hit(ROW_HEADER + 4., COL_HEADER + 4.), Some(CellRef::new(0, 0)));
+        }
+        assert!(endpoint.row > initial.row);
+        assert!(endpoint.col > initial.col);
+        let tiny = GridLayout::new(&sheet, &geometry, 0., 0., ROW_HEADER + 1., height);
+        assert!(scrolled_drag_target(&sheet, &geometry, &tiny, width, height).is_none());
+        Ok(())
     }
 }
