@@ -48,3 +48,14 @@ A failing-before regression confirmed that a process holding a writable configur
 The regression checks the newer file remains byte-identical and no extra files are left. Additional coverage tests unknown future syntax and conflicting declarations. Existing corruption backup/migration and normal repeated-save behavior remain covered by the shell suite. This is a best-effort schema guard, not an atomic compare-and-swap or same-schema conflict merge: a writer can still race the final check and rename, and concurrent same-schema updates are not resolved by this slice. Existing intentionally backed-up corrupt configurations keep their repair behavior.
 
 Future-schema slice validation: 85 joyword-shell tests passed; strict all-target Clippy, formatting, repository and documentation gates passed. The pre-fix stale-schema test failed as expected, then passed after the guard was added. No real-device validation was performed.
+
+
+## Same-schema stale-session conflicts
+
+A failing-before test confirmed data loss: two sessions load the same schema-1 file; the second saves its new author, then the first overwrites it with stale preferences. Each `Loaded` now privately retains its absolute store path and the exact bytes observed, or verified initial absence. Save compares the current bounded read with that observation before preparing the temporary file and again before publishing. A mismatch or deleted target returns an error without changing the file. Cross-store saves are rejected. Successful publication advances only that `Loaded` observation so normal repeated saves work; cloning copies the observation instead of sharing updates with stale sessions. An in-memory mutex protects observation access without changing the existing `save(&Loaded)` call pattern.
+
+Tests cover two independently loaded sessions, a stale clone, repeated successful saves, same-length external changes, external deletion, and cross-store misuse. Existing missing-file creation, legacy migration and corrupt-file repair remain covered. All 88 shell tests passed.
+
+This is platform-neutral stale-state detection tested on Linux, **not a complete cross-process transaction**. There is no new interprocess lock or atomic compare-and-swap: overlapping writers can still both pass the final check before either rename. The in-memory mutex only serializes use of one `Loaded` observation. A future complete solution needs a verified cooperative locking/publication protocol, including lock lifetime, crash recovery and platform-specific replacement behavior. Windows/macOS CI and real-device validation remain separate.
+
+Same-schema slice checks: strict all-target Clippy for both `joyword-shell` and the desktop `joyword` application passed on Linux (`RUST_FONTCONFIG_DLOPEN=1`), as did fmt, repository and documentation checks. The unchanged `save(&Loaded)` callers compile; no GUI acceptance is inferred from this.

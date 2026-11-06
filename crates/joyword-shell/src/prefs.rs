@@ -12,6 +12,7 @@ use std::fmt::Write as _;
 use std::fs;
 use std::io::{self, Read as _, Write as _};
 use std::path::{Path, PathBuf};
+use std::sync::Mutex;
 
 use crate::l10n::Locale;
 
@@ -155,7 +156,35 @@ pub struct Loaded {
     pub notices: Vec<PrefsNotice>,
     /// When false, `save` refuses to overwrite the file.
     pub writable: bool,
+    baseline: Baseline,
 }
+
+// Each cloned editing session keeps its own observation. Successful saves
+// advance only that session, never bless an independently edited stale clone.
+type Observation = (PathBuf, Option<Vec<u8>>);
+#[derive(Debug, Default)]
+struct Baseline(Mutex<Option<Observation>>);
+impl Baseline {
+    fn new(path: PathBuf, bytes: Option<Vec<u8>>) -> Self {
+        Self(Mutex::new(
+            std::path::absolute(path).ok().map(|path| (path, bytes)),
+        ))
+    }
+    fn snapshot(&self) -> Option<Observation> {
+        self.0.lock().ok().and_then(|value| value.clone())
+    }
+}
+impl Clone for Baseline {
+    fn clone(&self) -> Self {
+        Self(Mutex::new(self.snapshot()))
+    }
+}
+impl PartialEq for Baseline {
+    fn eq(&self, other: &Self) -> bool {
+        self.snapshot() == other.snapshot()
+    }
+}
+impl Eq for Baseline {}
 
 fn escape(value: &str) -> String {
     let mut out = String::with_capacity(value.len());
@@ -386,6 +415,7 @@ impl PrefsStore {
                 prefs,
                 notices,
                 writable: true,
+                baseline: Baseline::new(self.path(), None),
             };
         }
         self.load(fallback)
@@ -413,6 +443,11 @@ impl PrefsStore {
                         }]
                     },
                     writable: missing,
+                    baseline: if missing {
+                        Baseline::new(path, None)
+                    } else {
+                        Baseline::default()
+                    },
                 };
             }
         };
@@ -427,12 +462,14 @@ impl PrefsStore {
                     prefs,
                     notices,
                     writable: false,
+                    baseline: Baseline::new(path, Some(bytes)),
                 }
             }
             Ok((prefs, notices, _)) => Loaded {
                 prefs,
                 notices,
                 writable: true,
+                baseline: Baseline::new(path, Some(bytes)),
             },
             Err(()) => {
                 let backup = self.backup_path();
@@ -451,6 +488,7 @@ impl PrefsStore {
                     prefs: Preferences::defaults_for(fallback),
                     notices: vec![PrefsNotice::Corrupt { backup }],
                     writable: copied,
+                    baseline: Baseline::new(path, Some(bytes)),
                 }
             }
         }
@@ -461,6 +499,35 @@ impl PrefsStore {
             .map(|n| self.dir.join(format!("preferences.corrupt-{n}.conf")))
             .find(|candidate| !candidate.exists())
             .unwrap_or_else(|| self.dir.join("preferences.corrupt-1023.conf"))
+    }
+
+    fn check_observation(&self, observation: &Observation) -> io::Result<()> {
+        let path = self.path();
+        if std::path::absolute(&path)? != observation.0 {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "preferences belong to another store",
+            ));
+        }
+        let current = match read_preferences(&path) {
+            Ok(bytes) => Some(bytes),
+            Err(error)
+                if error.kind() == io::ErrorKind::NotFound
+                    && path
+                        .symlink_metadata()
+                        .is_err_and(|e| e.kind() == io::ErrorKind::NotFound) =>
+            {
+                None
+            }
+            Err(error) => return Err(error),
+        };
+        if current != observation.1 {
+            return Err(io::Error::new(
+                io::ErrorKind::AlreadyExists,
+                "preferences changed since loading; reload before saving",
+            ));
+        }
+        Ok(())
     }
 
     // The loaded writable flag is only a past observation: a newer installation
@@ -514,15 +581,26 @@ impl PrefsStore {
                 "preferences exceed 256 KiB",
             ));
         }
+        let mut baseline = loaded
+            .baseline
+            .0
+            .lock()
+            .map_err(|_| io::Error::other("preferences baseline unavailable"))?;
+        let observation = baseline
+            .as_mut()
+            .ok_or_else(|| io::Error::other("preferences baseline unavailable"))?;
+        self.check_observation(observation)?;
         self.check_current_schema()?;
         fs::create_dir_all(&self.dir)?;
         let mut temporary = tempfile::NamedTempFile::new_in(&self.dir)?;
         temporary.write_all(serialized.as_bytes())?;
         temporary.as_file().sync_all()?;
+        self.check_observation(observation)?;
         self.check_current_schema()?;
         temporary
             .persist(self.path())
             .map_err(|error| error.error)?;
+        observation.1 = Some(serialized.into_bytes());
         Ok(())
     }
 
@@ -879,6 +957,71 @@ mod tests {
             assert!(store.save(&loaded).is_err());
             assert_eq!(fs::read_to_string(store.path())?, future);
             assert_eq!(fs::read_dir(dir.path())?.count(), 1);
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn stale_same_schema_save_keeps_completed_external_changes() -> io::Result<()> {
+        let dir = tempfile::tempdir()?;
+        let store = PrefsStore::new(dir.path());
+        fs::write(store.path(), "schema=1\nauthor.name=First\n")?;
+        let mut stale = store.load(Locale::En);
+        let mut other = store.load(Locale::En);
+        other.prefs.author_name = "Second".into();
+        store.save(&other)?;
+        let external = fs::read(store.path())?;
+        stale.prefs.author_name = "Stale".into();
+        assert!(store.save(&stale).is_err());
+        assert_eq!(fs::read(store.path())?, external);
+        Ok(())
+    }
+
+    #[test]
+    fn successful_saves_advance_only_the_current_sessions_baseline() -> io::Result<()> {
+        let dir = tempfile::tempdir()?;
+        let store = PrefsStore::new(dir.path());
+        let mut active = store.load(Locale::En);
+        let mut stale = active.clone();
+        active.prefs.author_name = "One".into();
+        store.save(&active)?;
+        active.prefs.author_name = "Two".into();
+        store.save(&active)?;
+        let expected = fs::read(store.path())?;
+        stale.prefs.author_name = "Old".into();
+        assert!(store.save(&stale).is_err());
+        assert_eq!(fs::read(store.path())?, expected);
+        assert_eq!(fs::read_dir(dir.path())?.count(), 1);
+        Ok(())
+    }
+
+    #[test]
+    fn changed_deleted_or_cross_store_preferences_are_not_overwritten() -> io::Result<()> {
+        for mode in 0..3 {
+            let dir = tempfile::tempdir()?;
+            let store = PrefsStore::new(dir.path());
+            let original = "schema=1\nauthor.name=One\n";
+            fs::write(store.path(), original)?;
+            let loaded = store.load(Locale::En);
+            match mode {
+                0 => {
+                    let changed = "schema=1\nauthor.name=Two\n";
+                    assert_eq!(original.len(), changed.len());
+                    fs::write(store.path(), changed)?;
+                    assert!(store.save(&loaded).is_err());
+                    assert_eq!(fs::read_to_string(store.path())?, changed);
+                }
+                1 => {
+                    fs::remove_file(store.path())?;
+                    assert!(store.save(&loaded).is_err());
+                    assert!(!store.path().exists());
+                }
+                _ => {
+                    let other = PrefsStore::new(dir.path().join("other"));
+                    assert!(other.save(&loaded).is_err());
+                    assert!(!other.dir().exists());
+                }
+            }
         }
         Ok(())
     }
