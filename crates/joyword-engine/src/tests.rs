@@ -18986,3 +18986,5 @@ fn page_down_extends_a_selection_that_ends_in_collapsed_outline_text() {
 }
 
 mod theme_font_bindings;
+
+mod theme_color_bindings;

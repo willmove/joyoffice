@@ -80,7 +80,20 @@ pub fn rpr_inner(w: &mut W, c: &CharProps) {
     toggle(w, "w:webHidden", c.web_hidden);
     match c.color {
         Some(TextColor::Auto) => w.val("w:color", "auto"),
-        Some(TextColor::Rgb(rgb)) => w.val("w:color", &rgb.hex()),
+        Some(TextColor::Rgb(rgb)) => {
+            let value = rgb.hex();
+            let mut attrs = vec![("w:val", value.as_str())];
+            if let Some(binding) = c.theme_color.as_ref().filter(|b| b.valid_for(c.color)) {
+                attrs.push(("w:themeColor", binding.name.as_str()));
+                if let Some(tint) = &binding.tint {
+                    attrs.push(("w:themeTint", tint.as_str()));
+                }
+                if let Some(shade) = &binding.shade {
+                    attrs.push(("w:themeShade", shade.as_str()));
+                }
+            }
+            w.empty("w:color", &attrs);
+        }
         None => {}
     }
     if let Some(s) = c.spacing {

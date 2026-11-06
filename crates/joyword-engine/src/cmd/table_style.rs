@@ -582,7 +582,7 @@ fn region(r: &Value, f: &mut PartFormat) -> Result<(), CmdError> {
         f.fill = color_param(r, "fill")?;
     }
     if r.get("color").is_some() {
-        chr.color = color_param(r, "color")?.map(TextColor::Rgb);
+        chr.set_fixed_color(color_param(r, "color")?.map(TextColor::Rgb));
     }
     if let Some(b) = p::bool(r, "bold") {
         chr.bold = Some(b);

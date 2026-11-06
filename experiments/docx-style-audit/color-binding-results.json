@@ -1,0 +1,65 @@
+[
+  {
+    "path": "tests/fixtures/reference/word2024/breaks/word_keepnext.docx",
+    "source_sha256": "38a1a4b2293b06c57e29993d43ecefb347ff5291779b288b2d363a9d0e87323e",
+    "source_unchanged": true,
+    "styles": 31,
+    "changed_theme_differences": []
+  },
+  {
+    "path": "tests/fixtures/reference/word2024/breaks/word_nogrid.docx",
+    "source_sha256": "6f8122f75590db68e3e10347b8cf8592c117c4bedc647b735ce2276ddb6bf52f",
+    "source_unchanged": true,
+    "styles": 31,
+    "changed_theme_differences": []
+  },
+  {
+    "path": "tests/fixtures/reference/word2024/breaks/word_widow4.docx",
+    "source_sha256": "7b1b1f985a54f541dde8969b1e7bcb750385ca278a82bef6323891a67c369f25",
+    "source_unchanged": true,
+    "styles": 31,
+    "changed_theme_differences": []
+  },
+  {
+    "path": "tests/fixtures/reference/word2024/interop/word_edited.docx",
+    "source_sha256": "721f55c7f23b35cd8c01f193fb1e122044b39b7e5debf405eb5035ea4da7e27c",
+    "source_unchanged": true,
+    "styles": 2,
+    "changed_theme_differences": []
+  },
+  {
+    "path": "tests/fixtures/reference/word2024/interop/wordresaved/DOCX-MIN-001.docx",
+    "source_sha256": "fd3c7dd66a1a4c0a47b782c42cedb0fbee7995e53dc138d98f245a231f2ae199",
+    "source_unchanged": true,
+    "styles": 2,
+    "changed_theme_differences": []
+  },
+  {
+    "path": "tests/fixtures/reference/word2024/interop/wordresaved/DOCX-MIN-002.docx",
+    "source_sha256": "60f8b884661652ebc4b04b86015400f27eccb28f45dc730eb729569beb823a8d",
+    "source_unchanged": true,
+    "styles": 3,
+    "changed_theme_differences": []
+  },
+  {
+    "path": "tests/fixtures/reference/word2024/interop/wordresaved/DOCX-MIN-003.docx",
+    "source_sha256": "76cbe2501e169f529e186da110a8ec9d949b1b65471ab8d051a171acb1de5c15",
+    "source_unchanged": true,
+    "styles": 2,
+    "changed_theme_differences": []
+  },
+  {
+    "path": "tests/fixtures/reference/word2024/interop/wordresaved/DOCX-MIN-004.docx",
+    "source_sha256": "50a8c19d57286b6ce0f25b07572f5c35e8bae1718cf3f65f7c38b5a529ecd441",
+    "source_unchanged": true,
+    "styles": 2,
+    "changed_theme_differences": []
+  },
+  {
+    "path": "tests/fixtures/reference/word2024/interop/wordresaved/DOCX-SAMPLE-001.docx",
+    "source_sha256": "2a38c05b5c26ab70f09ed4e355ccdbd1794c7cefb39b009a44b4d2d63dd2bb7f",
+    "source_unchanged": true,
+    "styles": 2,
+    "changed_theme_differences": []
+  }
+]

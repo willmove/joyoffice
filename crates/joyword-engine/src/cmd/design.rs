@@ -179,7 +179,14 @@ fn set_accent(s: &mut Session, accent: Rgb) {
             || st.id == "IntenseEmphasis"
             || st.id == "IntenseReference"
         {
-            st.chr.color = Some(TextColor::Rgb(accent));
+            if !st
+                .chr
+                .theme_color
+                .as_ref()
+                .is_some_and(|b| b.valid_for(st.chr.color))
+            {
+                st.chr.set_fixed_color(Some(TextColor::Rgb(accent)));
+            }
             if let Some(b) = st.para.borders.as_mut() {
                 for e in [&mut b.top, &mut b.bottom].into_iter().flatten() {
                     e.color = Some(accent);
@@ -189,6 +196,13 @@ fn set_accent(s: &mut Session, accent: Rgb) {
     }
     if let Some(c) = s.doc.settings.theme_colors.get_mut(4) {
         *c = accent;
+    }
+    refresh_colors(s);
+}
+fn refresh_colors(s: &mut Session) {
+    s.doc.refresh_theme_colors();
+    if let Some(pending) = s.pending.as_mut() {
+        pending.refresh_theme_color(&s.doc.settings.theme_colors);
     }
 }
 
@@ -208,6 +222,7 @@ fn theme(s: &mut Session, v: &Value) -> CmdResult {
         }
     }
     s.doc.settings.theme_colors = colors;
+    refresh_colors(s);
     sel_result(s)
 }
 

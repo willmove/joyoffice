@@ -21,7 +21,9 @@ mod char_props;
 mod color;
 mod para_props;
 mod table_props;
+mod theme_color;
 mod theme_font;
+pub use theme_color::ThemeColor;
 pub use theme_font::ThemeFont;
 
 pub use char_props::{

@@ -365,6 +365,7 @@ impl PropCtx {
                 "w:snapToGrid" => c.snap_to_grid = Some(on_off(k)),
                 "w:rtl" => c.rtl = Some(on_off(k)),
                 "w:color" => {
+                    c.theme_color = None;
                     c.color = match (
                         self.theme_color(k, "w:themeColor", "w:themeTint", "w:themeShade"),
                         k.attr("w:val"),
@@ -373,6 +374,19 @@ impl PropCtx {
                         (None, Some(v)) if v.eq_ignore_ascii_case("auto") => Some(TextColor::Auto),
                         (None, Some(v)) => Rgb::parse(v).map(TextColor::Rgb),
                         (None, None) => None,
+                    };
+                    if let (Some(name), Some(TextColor::Rgb(resolved))) =
+                        (k.attr("w:themeColor"), c.color)
+                        && let Some(slot) =
+                            joyword_model::props::ThemeColor::slot(name, self.color_map.as_ref())
+                    {
+                        c.theme_color = Some(joyword_model::props::ThemeColor {
+                            name: name.into(),
+                            slot,
+                            resolved,
+                            tint: k.attr("w:themeTint").map(str::to_string),
+                            shade: k.attr("w:themeShade").map(str::to_string),
+                        });
                     }
                 }
                 "w:spacing" => c.spacing = tw(k, "w:val").map(|v| v.clamp(-1584.0, 1584.0)),

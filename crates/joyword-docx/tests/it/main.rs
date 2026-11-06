@@ -45,4 +45,5 @@ mod theme_preservation;
 
 mod effective_styles;
 
+mod theme_color_bindings;
 mod theme_font_bindings;

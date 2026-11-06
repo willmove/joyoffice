@@ -74,14 +74,14 @@ pub(super) fn apply_style(s: &mut Session, v: &Value) -> CmdResult {
                 c.font_ea = None;
                 c.size = None;
                 c.size_cs = None;
-                c.color = None;
+                c.set_fixed_color(None);
             })?;
             para.mark.set_fixed_font(None);
             para.mark.font_cs = None;
             para.mark.font_ea = None;
             para.mark.size = None;
             para.mark.size_cs = None;
-            para.mark.color = None;
+            para.mark.set_fixed_color(None);
         }
     }
     s.pending = None;

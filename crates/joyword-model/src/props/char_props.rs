@@ -286,6 +286,8 @@ pub struct CharProps {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub color: Option<TextColor>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub theme_color: Option<super::ThemeColor>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub highlight: Option<Highlight>,
     /// Character shading (background fill).
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -473,6 +475,27 @@ pub struct NumChange {
 }
 
 impl CharProps {
+    /// Explicit color formatting detaches the binding even for a same-value edit.
+    pub fn set_fixed_color(&mut self, color: Option<TextColor>) {
+        self.color = color;
+        self.theme_color = None;
+    }
+    pub fn refresh_theme_color(&mut self, colors: &[Rgb]) -> bool {
+        let Some(binding) = self
+            .theme_color
+            .as_mut()
+            .filter(|b| b.valid_for(self.color))
+        else {
+            return false;
+        };
+        let Some(value) = binding.resolve(colors) else {
+            return false;
+        };
+        self.color = Some(TextColor::Rgb(value));
+        binding.resolved = value;
+        true
+    }
+
     /// Set or clear an explicit font, even if it equals the currently resolved theme font.
     pub fn set_fixed_font(&mut self, font: Option<String>) {
         self.font = font;
@@ -522,11 +545,15 @@ impl CharProps {
     }
 
     fn minus_text_style(&mut self, base: &CharProps) {
+        if self.color == base.color && self.theme_color == base.theme_color {
+            self.color = None;
+            self.theme_color = None;
+        }
         if self.font == base.font && self.theme_font == base.theme_font {
             self.font = None;
             self.theme_font = None;
         }
-        drop_same_fields!(self, base; style, sym_font, size, bold, italic, underline, underline_color, strike, double_strike, color, highlight,
+        drop_same_fields!(self, base; style, sym_font, size, bold, italic, underline, underline_color, strike, double_strike, highlight,
             shading, border, vert_align, caps, small_caps, hidden, spacing, scale, position, kern, outline, shadow, emboss, engrave, lang, no_proof, rtl);
     }
 
@@ -559,6 +586,13 @@ impl CharProps {
     }
 
     fn overlay_text_style(&mut self, patch: &CharProps) {
+        if patch.color.is_some() {
+            self.theme_color = patch
+                .theme_color
+                .as_ref()
+                .filter(|b| b.valid_for(patch.color))
+                .cloned();
+        }
         if patch.font.is_some() {
             self.theme_font = patch
                 .theme_font

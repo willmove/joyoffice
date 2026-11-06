@@ -1,4 +1,4 @@
-//! Refresh layout's cached Latin theme font without detaching the imported binding.
+//! Refresh cached theme fonts/colors without detaching imported bindings.
 use crate::{Blocks, Document, props::CharProps};
 use std::sync::Arc;
 
@@ -12,7 +12,9 @@ fn transform(props: &mut CharProps, edit: &dyn Fn(&mut CharProps), depth: usize)
 }
 
 fn blocks(blocks: &mut Blocks, edit: &dyn Fn(&mut CharProps)) {
-    let relevant = |props: &CharProps| props.theme_font.is_some() || props.fmt_change.is_some();
+    let relevant = |props: &CharProps| {
+        props.theme_font.is_some() || props.theme_color.is_some() || props.fmt_change.is_some()
+    };
     for block in blocks.iter_mut() {
         let mut any = false;
         crate::edit::each_para(block, 0, &mut |p| {
@@ -34,6 +36,14 @@ fn blocks(blocks: &mut Blocks, edit: &dyn Fn(&mut CharProps)) {
 }
 
 impl Document {
+    /// Refresh bound run colors after changing the document palette.
+    pub fn refresh_theme_colors(&mut self) {
+        let colors = self.settings.theme_colors.clone();
+        self.transform_theme_fonts(&|props| {
+            props.refresh_theme_color(&colors);
+        });
+    }
+
     /// Refresh live stories, style regions and list definitions after changing theme fonts.
     /// Kept glossary entries are not rewritten just to refresh a layout cache.
     pub fn refresh_theme_fonts(&mut self, major: &str, minor: &str) {
@@ -42,10 +52,11 @@ impl Document {
         });
     }
 
-    /// Freeze source formatting when moving content to a document with another theme.
+    /// Freeze source font and color formatting when moving content to another theme.
     pub(crate) fn detach_theme_fonts(&mut self) {
         self.transform_theme_fonts(&|props| {
             props.theme_font = None;
+            props.theme_color = None;
         });
     }
 
