@@ -25,6 +25,8 @@ def selected_graph(data, trees):
                 raise ValueError('Unrecognized Cargo dependency tree row: ' + line)
             depth, name, version = int(match[1]), match[2], match[3]
             candidates = identifiers.get((name, version), [])
+            if not candidates:
+                raise ValueError('Missing package identity in selected graph: ' + name)
             if len(candidates) != 1:
                 raise ValueError('Ambiguous package identity in selected graph: ' + name)
             identifier = candidates[0]
@@ -39,8 +41,11 @@ def selected_graph(data, trees):
 
 
 def graph(target, roots=('joydeck', 'joydeck-cli'), features=()):
+    # Keep the identity catalog unfiltered: cross-target build dependencies run
+    # on the host. Target-only metadata can omit them. cargo tree below remains
+    # the authority for selected normal/build packages and edges.
     data = json.loads(subprocess.check_output(
-        ['cargo', 'metadata', '--locked', '--offline', '--filter-platform', target,
+        ['cargo', 'metadata', '--locked', '--offline',
          '--format-version', '1', *(['--features', ','.join(features)] if features else [])],
         cwd=ROOT, text=True, encoding='utf-8'))
     trees = []

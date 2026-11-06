@@ -54,3 +54,16 @@ Windows 最近一次包记录仍报告 458 包、缺 `mac@0.1.1` 和 `seahash@4.
 Linux 特有的这批缺口来自 AccessKit Unix、cosmic-text/harfrust、Naga/SPIR-V 和 zed-xim；pathfinder_geometry 经 zed-font-kit 引入，在 macOS 图也存在。mac（宏库，名称并非 macOS 平台限制）经 HTML/XML 依赖引入，seahash 经 gpui-pre 引入。Windows 本次 452 包是当前默认特性的源图盘点，不能与历史 458 包记录等同或据此声称历史安装包已修复。
 
 本批复验：6 项完整性专项通过（覆盖现在全部 54 份来源清单）；脚本全量 158 项、跳过 2 项、无失败；共享 JoySheet 打包回归 7 项通过。Cargo.lock、依赖版本和已有整合分支均未更改。新增 macOS 身份歧义是后续可修复工程事项；三项缺失正文、完整严格打包、签名与设备验收仍开放。
+
+
+## 跨目标构建依赖身份修复
+
+后续确认此前 `core_detect` “歧义”实际是 metadata 身份缺失。Cargo.lock 只有 registry `core_detect@1.0.0` 一条；Linux x86_64 主机为 macOS ARM64 目标运行的构建依赖链选中了它（经 serde-saphyr → encoding_rs_io → encoding_rs）。encoding_rs 将 core_detect 声明为 x86/x86_64 依赖，`cargo tree --target aarch64-apple-darwin --edges normal,build` 包含主机构建图，而 `cargo metadata --filter-platform aarch64-apple-darwin` 排除了该身份。不能从目标过滤的 metadata 直接推断完整构建依赖目录。
+
+共享 SPDX 生成器和 JoyDeck 原生打包的辅助清单现在读取不按目标过滤的 metadata 身份目录，继续仅按目标 `cargo tree` 的 normal/build 图选择包与边。没有把整个 workspace 或其他平台的包写入 SBOM；未知身份、真正同名同版本多来源歧义仍拒绝，缺失身份另报 Missing。离线使用需要先缓存完整锁定 metadata 所需包，可用 `cargo fetch --locked` 准备；本次已下载锁定依赖，未修改锁文件或版本。
+
+新增 3 项测试先在旧代码复现失败，随后通过：跨目标保留主机构建依赖并排除未选包、原生打包清单同样保留、缺失与多来源歧义继续拒绝。全量脚本 **161 项、跳过 2 项、无失败**；共享 JoySheet 打包 **7 项通过**。
+
+[实际三目标复验](cross-target-fixed.json)：Linux 559 包/3 项缺口、Windows 452 包/2 项缺口保持不变；macOS ARM64 在本 Linux 主机上得到 463 包，缺 `block@0.1.6`、`mac@0.1.1`、`malloc_buf@0.0.6`、`pathfinder_geometry@0.5.1`、`seahash@4.1.0`。原生打包辅助清单也实际返回 463 包并保留 core_detect。三个目标的严格许可阶段均拒绝、未输出严格 SBOM。没有跳过许可正文检查，没有补写这五项来源。
+
+这些是当前 Linux 主机的跨目标源依赖图验证，主机构建依赖会随构建主机变化，不等同于 macOS 真机构建清单、安装包签名或设备验收。本次未构建或发布安装包；许可来源限制及发布 PR 等待状态保持不变。
