@@ -27,12 +27,13 @@ control 请求如下，输出含 requestId 和 result 或 error。文稿 ID 在 
 | document.close | 要求 target/expectedRevision；脏文稿要求 dirtyPolicy=discard |
 | export.start | path 和 options（format/pages/scale/dpi/layout/transparent/seconds/fps）；返回 jobId |
 | jobs.get/cancel | jobId；轮询 state/phase/cancelRequested/result/error；无需文稿 target |
+| jobs.release | jobId；释放已结束的任务记录和工作线程，已发布文件仍保留；运行中返回错误 |
 | show.start | 可选 1-based page 或已有 custom 名称；要 target，保存不可变文稿快照 |
 | show.action | action=next/previous/goto/pause/black/white，goto 带 1-based page |
 | show.tick | seconds=0..3600，确定性采样；暂停时冻结，不使用系统时钟 |
 | show.status/frame | frame 带新 path 和 scale=.05..4，输出 PNG；此无界面帧不含系统媒体解码层 |
 
-路径必须绝对且规范化后在 root 内；拒绝 `..`、ADS、越界链接、新输出路径已存在等情况。每行最多 1 MiB，响应最多 4 MiB；最多两个并发导出、16 个保留 job。异步编码阶段为 preparing/encoding/finished，尚无可靠百分比。取消在文件发布前生效；发布已经赢得并发竞争时可返回 completed。结束会话会取消并 join 自有任务。
+路径必须绝对且规范化后在 root 内；拒绝 `..`、ADS、越界链接、新输出路径已存在等情况。每行最多 1 MiB，响应最多 4 MiB，最多两个并发导出、16 个保留任务。单文件导出报告 preparing、encoding、publishing、finished 阶段。PNG／JPEG 和 GIF 另返回 `progress`，含 completed、total、unit，单位分别是 pages 和 frames。单文件发布前取消可阻止发布，目录导出取消会清理本次已写入的图片。发布已经赢得并发竞争时可返回 completed。结束会话会取消并 join 自有任务。
 
 变更请求按 requestId 和精确序列化载荷去重，重试使用完全相同请求；不同参数复用同一 ID 会拒绝。最多保留 128 次变更与有界响应，不淘汰已执行 ID；满后启动新会话。只读轮询不占变更账本。无界面放映动作也受该上限约束，不适合作为无限时高频流。
 

@@ -182,6 +182,10 @@ JoyDeck 与 JoySheet 的本轮范围见 [Deck 状态](../../joydeck/STATUS.md) �
 
 Windows x64 产品检查通过 JoyWord 3,497 项、JoyDeck 926 项和 JoySheet 1,397 项。全工作区联合启用 `joydeck/validation`、`joysheet/automation` 和 `joyword/agent` 后通过 5,817 项，3 项忽略。托管 CI、其他目标的组合及 Agent 的真实 Provider 调用继续开放。
 
+## Windows P2 剪贴板、页眉页脚和打印预览（2026-11-06）
+
+JW-306／408／409／413／414 的实现范围、Windows PDF 渲染回归和桌面工具限制见 [P2 验证](../../joyoffice/validation/20261106-p2/README.md)。
+
 ## 待验
 
 - macOS DOCX 系统打开和原生打开／另存为面板均已实测。macOS IME 与读屏、集成后的 Linux ARM64 原生桌面、信创真机与托管 CI 待验。[原生对话框补验](../../joyoffice/validation/20261105-macos-desktop/README.md#原生文件对话框)

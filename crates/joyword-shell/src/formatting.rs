@@ -77,6 +77,14 @@ impl Reader {
         joyword_engine::cmd::page::sect(self.engine()).columns
     }
 
+    pub fn header_footer_flags(&self) -> (bool, bool) {
+        let session = self.engine();
+        (
+            joyword_engine::cmd::page::sect(session).title_page,
+            session.doc.settings.even_odd_headers,
+        )
+    }
+
     pub fn outline_entries(&self) -> Vec<(String, Value)> {
         let doc = &self.engine().doc;
         joyword_layout::outline::levels(doc)

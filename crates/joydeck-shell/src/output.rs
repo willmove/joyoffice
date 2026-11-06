@@ -39,6 +39,17 @@ pub struct Report {
     pub bytes: usize,
     pub warnings: Vec<String>,
 }
+
+pub(crate) enum Progress {
+    Encoding,
+    Units {
+        completed: usize,
+        total: usize,
+        unit: &'static str,
+    },
+    Publishing,
+}
+
 pub fn pages(doc: &Document, opts: &Options) -> Result<Vec<usize>, String> {
     let pages = opts
         .pages
@@ -68,6 +79,16 @@ pub fn export(
     opts: &Options,
     cancel: &Cancellation,
 ) -> Result<Report, String> {
+    export_with_progress(doc, path, opts, cancel, &|_| {})
+}
+
+pub(crate) fn export_with_progress(
+    doc: &Document,
+    path: &Path,
+    opts: &Options,
+    cancel: &Cancellation,
+    progress: &impl Fn(Progress),
+) -> Result<Report, String> {
     let selected = pages(doc, opts)?;
     if opts.transparent && opts.format != "png" {
         return Err("transparent background applies only to PNG".into());
@@ -76,6 +97,16 @@ pub fn export(
     if path.exists() {
         return Err("output must be a new path".into());
     }
+    if matches!(opts.format.as_str(), "png" | "jpeg" | "mp4")
+        && selected
+            .iter()
+            .collect::<std::collections::BTreeSet<_>>()
+            .len()
+            != selected.len()
+    {
+        return Err("duplicate pages are not supported in raster or MP4 output".into());
+    }
+    progress(Progress::Encoding);
     let fonts = joydeck_fonts::FontDb::global();
     let font_revision = fonts.environment_revision();
     let check_fonts = || {
@@ -97,6 +128,11 @@ pub fn export(
         std::fs::create_dir(path).map_err(|e| e.to_string())?;
         let mut created = vec![];
         let result = (|| {
+            progress(Progress::Units {
+                completed: 0,
+                total: selected.len(),
+                unit: "pages",
+            });
             for &page in &selected {
                 let image = doc.render_output(page, opts.scale, opts.transparent, cancel)?;
                 let bytes = if opts.format == "png" {
@@ -121,6 +157,11 @@ pub fn export(
                 storage::save(&file, &bytes, None)?;
                 created.push(file);
                 report.files += 1;
+                progress(Progress::Units {
+                    completed: report.files,
+                    total: selected.len(),
+                    unit: "pages",
+                });
             }
             cancel.check()?;
             check_fonts()?;
@@ -154,13 +195,14 @@ pub fn export(
             .map_err(|e| e.to_string())?
         }
         "outline" | "rtf" | "vtt" => text(doc, &selected, &opts.format, opts.seconds)?,
-        "gif" => gif(doc, &selected, opts, cancel)?,
+        "gif" => gif(doc, &selected, opts, cancel, progress)?,
         "mp4" => video(doc, &selected, opts, cancel)?,
         _ => return Err("unsupported export format (pdf/png/jpeg/gif/mp4/outline/rtf/vtt)".into()),
     };
     if bytes.len() > 64 << 20 {
         return Err("output exceeds 64 MiB".into());
     }
+    progress(Progress::Publishing);
     cancel.check()?;
     check_fonts()?;
     storage::save(path, &bytes, None)?;
@@ -320,6 +362,7 @@ fn gif(
     pages: &[usize],
     opts: &Options,
     cancel: &Cancellation,
+    progress: &impl Fn(Progress),
 ) -> Result<Vec<u8>, String> {
     let frames = (opts.seconds * f64::from(opts.fps)).ceil() as u32;
     let w = (doc.info.width_pt * opts.scale).ceil();
@@ -341,11 +384,24 @@ fn gif(
         encoder
             .set_repeat(image::codecs::gif::Repeat::Infinite)
             .map_err(|e| e.to_string())?;
-        for &p in pages {
+        let total = frames as usize * pages.len();
+        progress(Progress::Units {
+            completed: 0,
+            total,
+            unit: "frames",
+        });
+        for (page_index, &p) in pages.iter().enumerate() {
             let timeline = joydeck_anim::ShowState::timeline(&doc.presentation, p);
+            let start = (page_index as f64 * opts.seconds * 100.).round() as u32;
+            let end = ((page_index + 1) as f64 * opts.seconds * 100.).round() as u32;
+            let duration = end - start;
             for frame in 0..frames {
                 cancel.check()?;
-                let time = f64::from(frame) / f64::from(opts.fps);
+                // GIF stores whole centiseconds. Distribute rounding over the slide,
+                // so its final frame ends at the rounded requested boundary.
+                let at = (duration * frame + frames / 2) / frames;
+                let next = (duration * (frame + 1) + frames / 2) / frames;
+                let time = f64::from(at) / 100.;
                 let state = |id| crate::output::shape_state(&timeline, id, time);
                 let panics = joydeck_render::panics_caught();
                 let gif_times = doc.presentation.slides[p]
@@ -375,9 +431,14 @@ fn gif(
                         pixels,
                         0,
                         0,
-                        image::Delay::from_numer_denom_ms(1000, opts.fps),
+                        image::Delay::from_numer_denom_ms((next - at) * 10, 1),
                     ))
                     .map_err(|e| e.to_string())?;
+                progress(Progress::Units {
+                    completed: page_index * frames as usize + frame as usize + 1,
+                    total,
+                    unit: "frames",
+                });
             }
         }
     }

@@ -21,6 +21,12 @@ joyword-shell.workspace = true
 [target.'cfg(target_os = "macos")'.dependencies]
 url.workspace = true
 
+[target.'cfg(any(target_os = "linux", target_os = "macos"))'.dependencies]
+arboard.workspace = true
+
+[target.'cfg(target_os = "windows")'.dependencies]
+clipboard-win = "=5.4.3"
+
 [lints.rust]
 unsafe_code = "forbid"
 

@@ -2462,6 +2462,28 @@ fn paste_special_html_and_rtf_keep_bold() {
 }
 
 #[test]
+fn external_paste_does_not_use_a_matching_internal_fragment() {
+    let mut s = s();
+    run(&mut s, "document.setText", json!({"text":"same"}));
+    run(&mut s, "select.all", json!({}));
+    run(&mut s, "format.bold", json!({}));
+    run(&mut s, "edit.copy", json!({}));
+    run(&mut s, "caret.docEnd", json!({}));
+    run(
+        &mut s,
+        "edit.paste",
+        json!({"external":true, "text":"same", "html":"<p><i>same</i></p>"}),
+    );
+    assert_eq!(text(&s), "samesame");
+    assert!(bold_at(&s, 0, 0));
+    assert!(!bold_at(&s, 0, 4));
+    run(&mut s, "edit.undo", json!({}));
+    run(&mut s, "edit.paste", json!({}));
+    assert_eq!(text(&s), "samesame");
+    assert!(bold_at(&s, 0, 4));
+}
+
+#[test]
 fn paste_special_respects_track_changes_and_brings_lists() {
     let mut s = s();
     run(&mut s, "review.trackChanges", json!({"value": true}));

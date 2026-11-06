@@ -96,6 +96,7 @@ fn visual_command(id: &str) -> bool {
             | "mailings.filterRecipients"
             | "mailings.sortRecipients"
             | "view.fieldCodes"
+            | "view.marks"
     )
 }
 impl Reader {
@@ -112,6 +113,7 @@ impl Reader {
         joyword_render::RenderOptions {
             display: joyword_layout::display::DisplayOptions {
                 markup: self.session.view.show_markup,
+                marks: self.session.view.marks,
                 ..Default::default()
             },
             ..Default::default()

@@ -88,6 +88,8 @@ def main():
     parser.add_argument('--profile', choices=['debug', 'release'], default='release')
     parser.add_argument('--name')
     parser.add_argument('--validation', action='store_true')
+    parser.add_argument('--evidence', type=Path, default=ROOT / 'docs/joydeck/evidence/R9/package.json',
+                        help='Write the build report to a separate path for qualification runs')
     parser.add_argument('--release-layout', action='store_true', help='Use the suite release archive contract; native development packages retain R9 source fingerprints.')
     args = parser.parse_args()
     if args.name and not re.fullmatch(r'joydeck-[a-zA-Z0-9.+-]+', args.name):
@@ -181,7 +183,7 @@ def main():
     create_archive(output, archive)
     archive.with_suffix('.zip.sha256').write_text(f'{sha256(archive)}  {archive.name}\n', encoding='utf-8')
     report = {'directory': str(output), 'archive': str(archive), 'archive_sha256': sha256(archive), 'source_sha256': before['sha256'], 'target': target, 'profile': args.profile, 'sbom_packages': len(dependencies), 'missing_license_texts': dependency_info['missingLicenseTexts'], 'signed': False}
-    (ROOT / 'docs/joydeck/evidence/R9/package.json').write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+    args.evidence.write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
     print(json.dumps(report, ensure_ascii=False))
 
 

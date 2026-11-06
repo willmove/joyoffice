@@ -54,6 +54,18 @@ def main():
             digest=hashlib.sha256(dest.read_bytes()).hexdigest()
             run(values,1);assert hashlib.sha256(dest.read_bytes()).hexdigest()==digest
         if fmt=='vtt':assert 'PRIVATE SPEAKER' not in dest.read_text() and dest.read_text().startswith('WEBVTT')
+    fractional=work/'fractional.gif'
+    run(['export',public,'--format','gif','--output',fractional,'--pages','3,1','--seconds','.27','--fps','13','--scale','.25'])
+    with Image.open(fractional) as im:
+        assert im.n_frames==8
+        delays=[]
+        for frame in range(im.n_frames):
+            im.seek(frame)
+            delays.append(im.info['duration'])
+        assert min(delays)>0 and sum(delays[:4])==sum(delays[4:])==270,delays
+    duplicate=work/'duplicate-images'
+    run(['export',public,'--format','png','--output',duplicate,'--pages','1,1'],1)
+    assert not duplicate.exists()
     for values in [['--pages','0'],['--dpi','301'],['--scale','nan'],['--format','jpeg','--transparent']]:
         dest=work/f'invalid-{len(records)}';run(['export',public,'--output',dest,*values],1);assert not dest.exists()
     existing=work/'existing.pdf';existing.write_bytes(b'keep');run(['export',public,'--output',existing],1);assert existing.read_bytes()==b'keep'
@@ -95,6 +107,17 @@ def main():
             if state['state']!='running':break
             time.sleep(.03)
         assert state['state']=='completed',state
+        release=call('jobs.release',dict(jobId=job),rid='release-pdf')
+        assert release['result']==dict(jobId=job,released=True)
+        assert call('jobs.release',dict(jobId=job),rid='release-pdf')==release
+        assert 'error' in call('jobs.get',dict(jobId=job))
+        image_job=call('export.start',dict(path=str(work/'control-images'),options=dict(format='png',pages=[2,0],scale=.25)))['result']['jobId']
+        for _ in range(150):
+            state=call('jobs.get',dict(jobId=image_job))['result']
+            if state['state']!='running':break
+            time.sleep(.03)
+        assert state['state']=='completed' and state['progress']==dict(completed=2,total=2,unit='pages'),state
+        assert state['result']['pages']==[3,1]
         show=call('show.start')['result'];assert show['order']==[1,3]
         assert call('show.action',dict(action='next'))['result']['status']['page']==3
         call('show.frame',dict(path=str(work/'show.png'),scale=.5));call('show.action',dict(action='pause'));a=call('show.status')['result'];call('show.tick',dict(seconds=2));b=call('show.status')['result'];assert a['total_seconds']==b['total_seconds']
