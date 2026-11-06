@@ -1,0 +1,96 @@
+{
+  "codeCommit": "f341f5f5297f5cbd6d837b14fa164052fab7724c",
+  "rust": {
+    "passed": 863,
+    "failed": 0,
+    "ignored": 0,
+    "scope": [
+      "joyword-shell",
+      "joydeck-engine",
+      "joydeck-shell",
+      "joydeck-format",
+      "joydeck-pptx",
+      "joysheet-engine"
+    ]
+  },
+  "python": {
+    "run": 179,
+    "skipped": 2,
+    "failed": 0
+  },
+  "sheetPackaging": 7,
+  "linuxClipboardHarness": 5,
+  "keyRouting": 3,
+  "clippy": {
+    "wordShellLib": "passed",
+    "deckFiveCratesAllTargets": "passed",
+    "extraWordAllTargets": "failed: test fixture unwrap/panic and example conversions; production scope unchanged"
+  },
+  "sourceAdaptationsUpdated": 4,
+  "sourceGateFiles": 291,
+  "rustGateFiles": 1452,
+  "logs": {
+    "rust-tests": {
+      "sha256": "48f2c3baf6977a9d7bc2cff3ff1a9c2a83a8ad52bc4d47ad7f6759291d072262",
+      "bytes": 67564
+    },
+    "python-tests": {
+      "sha256": "bb38db5ca8e71d00aea06d81dcd222546ca771945120b1b1861a1295c55779d1",
+      "bytes": 1879
+    },
+    "sheet-tests": {
+      "sha256": "4190e6532da5d52050bd5ea71ff40310f4ffe0846610b4b159650675a5a9c2b2",
+      "bytes": 105
+    },
+    "clipboard": {
+      "sha256": "3d8e37922b24adc4569440c5a5aaaccd0ab5fe9dcbfefc8ea2f003c21059d3c8",
+      "bytes": 2008
+    },
+    "key-route": {
+      "sha256": "aac4f66deb3d23121c75555fac6d105113634857a2ff47761a401fb5632c783e",
+      "bytes": 393
+    },
+    "word-clippy": {
+      "sha256": "4d6147d13ec661297824cd731bda1aadd91fa2588ac0c35443669bcff929322e",
+      "bytes": 538
+    },
+    "deck-clippy": {
+      "sha256": "c5315e54545021012f8fbe8e9ee2c028c0b8cf1825e7b691923f7261311dc636",
+      "bytes": 220
+    },
+    "fmt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "gates": {
+      "sha256": "4e30f1983ee56d702eb0b15984ffee168795a829d2be72f766e2868aa12cc5a1",
+      "bytes": 27
+    },
+    "sources": {
+      "sha256": "2c71a2b79a21e3ea13ce919f1048f3e3d8f9a4e66e35aadafea6e36c16b7fc14",
+      "bytes": 43
+    },
+    "dependencies": {
+      "sha256": "da7c63edd5f62d475c26a9aee6df02b9af637aea256572ae9a70db6a989c25a7",
+      "bytes": 56
+    },
+    "refactor": {
+      "sha256": "6a12348653fe7d1db8922d5e20cdf464a9bf9c4fc691ee8d9a111aa8335dc8f7",
+      "bytes": 41
+    },
+    "inventory": {
+      "sha256": "8cf8e4802ca1330c70960cce206724f34c56235c9beb44333b475dd0785091b4",
+      "bytes": 267
+    },
+    "clippy": {
+      "sha256": "6cdec87e097353dfc4f4846c7682e289db7610d4257e1550d3f0197827abd02a",
+      "bytes": 110241
+    }
+  },
+  "limitations": [
+    "Headless Linux only; no Windows/macOS build or physical-device validation",
+    "Targeted integration tests, not full workspace CI",
+    "Strict license checks still reject all three inventory targets",
+    "Original branches retained; no push, PR or publication"
+  ]
+}
