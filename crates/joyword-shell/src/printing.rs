@@ -105,7 +105,8 @@ impl PrintJob {
             include_str!("../../../scripts/joysheet/native-print.ps1"),
         )
         .map_err(|e| e.to_string())?;
-        let output = Command::new("pwsh.exe")
+        let mut command = Command::new("pwsh.exe");
+        command
             .env_remove("JOYWORD_CONTROL_KEY")
             .args(["-NoProfile", "-STA", "-File"])
             .arg(script)
@@ -117,9 +118,11 @@ impl PrintJob {
                 "-JobName",
                 "JoyWord",
             ])
-            .creation_flags(0x08000000)
-            .output()
-            .map_err(|e| format!("PowerShell 7 print dialog: {e}"))?;
+            .creation_flags(0x08000000);
+        // Includes time spent in the native dialog. No automatic retry: a
+        // timeout after submission cannot establish that the queue is empty.
+        let output =
+            crate::print_process::run(&mut command, std::time::Duration::from_secs(15 * 60))?;
         decode_dialog_result(
             output.status.success(),
             &output.stdout,
