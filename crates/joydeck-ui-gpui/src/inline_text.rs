@@ -13,6 +13,8 @@ use std::ops::Range;
 
 #[path = "inline_text/geometry.rs"]
 mod geometry;
+#[path = "inline_text/key_route.rs"]
+mod key_route;
 use geometry::{Geometry, Motion, reveal_offset};
 
 type ClipboardToken = [u8; 16];
@@ -660,7 +662,16 @@ impl Viewer {
         }
         let key = event.keystroke.key.as_str();
         let mods = event.keystroke.modifiers;
-        let command = mods.control || mods.platform;
+        let command = match key_route::route(
+            event.prefer_character_input,
+            mods.control,
+            mods.platform,
+            mods.alt,
+        ) {
+            key_route::KeyRoute::NativeText => return,
+            key_route::KeyRoute::Command => true,
+            key_route::KeyRoute::Plain => false,
+        };
         // GPUI omits disabled native actions from key dispatch. Report the same reason
         // when a shortcut falls through to the canvas instead of the native action.
         if command
