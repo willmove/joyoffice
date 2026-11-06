@@ -170,17 +170,19 @@ impl Shell {
     }
 
     pub fn remember_document(&mut self, path: &std::path::Path) -> Result<(), String> {
-        if let Some(loaded) = &mut self.preferences
+        if let Some(loaded) = &self.preferences
             && loaded
                 .prefs
                 .recent
                 .first()
                 .is_none_or(|first| first != path)
         {
-            loaded.prefs.add_recent(path.to_path_buf());
-            if loaded.writable {
-                self.persist()?;
+            let mut updated = loaded.clone();
+            updated.prefs.add_recent(path.to_path_buf());
+            if updated.writable {
+                updated = self.persist_candidate(updated)?;
             }
+            self.preferences = Some(updated);
         }
         Ok(())
     }
@@ -208,6 +210,7 @@ impl Shell {
                 )
                 .into());
         }
+        let previous_appearance = (self.locale, self.dark);
         match id {
             "file.new" => {
                 self.document_number = self
@@ -228,13 +231,23 @@ impl Shell {
             }
             _ => return Err(format!("Command is not implemented: {id}")),
         }
-        if matches!(id, "view.theme" | "view.language") {
-            self.persist()?;
+        if matches!(id, "view.theme" | "view.language")
+            && let Err(error) = self.persist()
+        {
+            (self.locale, self.dark) = previous_appearance;
+            return Err(error);
         }
         Ok(())
     }
     fn persist(&mut self) -> Result<(), String> {
-        if let (Some(store), Some(loaded)) = (&self.store, &mut self.preferences) {
+        if let Some(loaded) = &self.preferences {
+            self.preferences = Some(self.persist_candidate(loaded.clone())?);
+        }
+        Ok(())
+    }
+
+    fn persist_candidate(&self, mut loaded: Loaded) -> Result<Loaded, String> {
+        if let Some(store) = &self.store {
             loaded.prefs.ui_locale = self.locale;
             loaded.prefs.unknown.retain(|(k, _)| k != "preview.theme");
             loaded.prefs.unknown.push((
@@ -242,10 +255,10 @@ impl Shell {
                 if self.dark { "dark" } else { "light" }.into(),
             ));
             store
-                .save(loaded)
+                .save(&loaded)
                 .map_err(|e| format!("Preferences: {e}"))?;
         }
-        Ok(())
+        Ok(loaded)
     }
 }
 
@@ -372,6 +385,88 @@ mod tests {
         assert_eq!(shell.review_author(), "审阅者");
         assert_eq!(new_reader.engine().author, "审阅者");
         assert_eq!(new_reader.engine().units(), joyword_geom::Unit::Millimeters);
+        Ok(())
+    }
+
+    #[test]
+    fn failed_appearance_save_keeps_shell_and_preferences_unchanged()
+    -> Result<(), Box<dyn std::error::Error>> {
+        for command in ["view.theme", "view.language"] {
+            let root = tempfile::tempdir()?;
+            let store = PrefsStore::new(root.path());
+            let path = store.path();
+            std::fs::write(&path, "schema=1\nui.locale=zh-CN\n")?;
+            let mut shell = Shell {
+                preferences: Some(store.load(Locale::ZhCn)),
+                store: Some(store),
+                ..isolated()
+            };
+            let before = shell.preferences.clone();
+            let external = "schema=1\nauthor.name=External\n";
+            std::fs::write(&path, external)?;
+            assert!(shell.execute(command).is_err());
+            assert_eq!(shell.locale, Locale::ZhCn);
+            assert!(!shell.dark);
+            assert_eq!(shell.preferences, before);
+            assert_eq!(std::fs::read_to_string(&path)?, external);
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn failed_recent_save_can_retry_the_same_path_after_lock_release()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let root = tempfile::tempdir()?;
+        let store = PrefsStore::new(root.path());
+        let path = store.path();
+        let mut shell = Shell {
+            preferences: Some(store.load(Locale::ZhCn)),
+            store: Some(store),
+            ..isolated()
+        };
+        let lock = std::fs::OpenOptions::new()
+            .read(true)
+            .write(true)
+            .create(true)
+            .truncate(false)
+            .open(root.path().join(".preferences-save.lock"))?;
+        lock.try_lock()?;
+        let recent = root.path().join("document.docx");
+        assert!(shell.remember_document(&recent).is_err());
+        assert!(shell.recent_documents().is_empty());
+        assert!(!path.exists());
+        drop(lock);
+        shell.remember_document(&recent)?;
+        assert_eq!(shell.recent_documents(), std::slice::from_ref(&recent));
+        let reloaded = PrefsStore::new(root.path()).load(Locale::ZhCn);
+        assert_eq!(reloaded.prefs.recent, [recent]);
+        Ok(())
+    }
+
+    #[test]
+    fn appearance_commands_commit_and_persist_repeated_successful_changes()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let root = tempfile::tempdir()?;
+        let store = PrefsStore::new(root.path());
+        let mut shell = Shell {
+            preferences: Some(store.load(Locale::ZhCn)),
+            store: Some(store),
+            ..isolated()
+        };
+        shell.execute("view.theme")?;
+        assert!(shell.dark);
+        shell.execute("view.language")?;
+        assert_eq!(shell.locale, Locale::En);
+        shell.execute("view.theme")?;
+        assert!(!shell.dark);
+        let reloaded = PrefsStore::new(root.path()).load(Locale::ZhCn);
+        assert_eq!(reloaded.prefs.ui_locale, Locale::En);
+        assert!(
+            reloaded
+                .prefs
+                .unknown
+                .contains(&("preview.theme".into(), "light".into()))
+        );
         Ok(())
     }
 }
