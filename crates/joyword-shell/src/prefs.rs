@@ -18,6 +18,7 @@ use crate::l10n::Locale;
 
 pub const SCHEMA: u32 = 1;
 const FILE_NAME: &str = "preferences.conf";
+const SAVE_LOCK: &str = ".preferences-save.lock";
 const MAX_RECENT: usize = 10;
 const MAX_BYTES: usize = 256 * 1024;
 
@@ -379,6 +380,67 @@ fn read_preferences(path: &Path) -> io::Result<Vec<u8>> {
     Ok(bytes)
 }
 
+// Permanent sidecar: deleting it on unlock would permit split-inode locks.
+// Each save opens a fresh handle and tries exactly once; Drop releases the lock.
+fn acquire_save_lock(directory: &Path) -> io::Result<fs::File> {
+    let path = directory.join(SAVE_LOCK);
+    #[cfg(unix)]
+    let file: fs::File = {
+        use rustix::fs::{Mode, OFlags, open};
+        open(
+            &path,
+            OFlags::RDWR | OFlags::CREATE | OFlags::NOFOLLOW | OFlags::NONBLOCK | OFlags::CLOEXEC,
+            Mode::RUSR | Mode::WUSR,
+        )?
+        .into()
+    };
+    #[cfg(not(unix))]
+    let file = {
+        let mut options = fs::OpenOptions::new();
+        options.read(true).write(true).create(true).truncate(false);
+        #[cfg(windows)]
+        {
+            use std::os::windows::fs::OpenOptionsExt;
+            options
+                .custom_flags(winsafe::co::FILE_FLAG::OPEN_REPARSE_POINT.raw())
+                .share_mode(
+                    winsafe::co::FILE_SHARE::READ.raw() | winsafe::co::FILE_SHARE::WRITE.raw(),
+                );
+        }
+        options.open(&path)?
+    };
+    let metadata = file.metadata()?;
+    if !metadata.is_file() || !fs::symlink_metadata(&path)?.is_file() {
+        return Err(io::Error::other(
+            "preferences save lock is not a regular file",
+        ));
+    }
+    #[cfg(windows)]
+    {
+        use std::os::windows::fs::MetadataExt;
+        if metadata.file_attributes() & winsafe::co::FILE_ATTRIBUTE::REPARSE_POINT.raw() != 0 {
+            return Err(io::Error::other("preferences save lock is a reparse point"));
+        }
+    }
+    file.try_lock()?;
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::MetadataExt;
+        let current = fs::symlink_metadata(&path)?;
+        if !current.is_file()
+            || metadata.nlink() != 1
+            || current.nlink() != 1
+            || metadata.dev() != current.dev()
+            || metadata.ino() != current.ino()
+        {
+            return Err(io::Error::other(
+                "preferences save lock changed while opening",
+            ));
+        }
+    }
+    Ok(file)
+}
+
 pub struct PrefsStore {
     dir: PathBuf,
 }
@@ -592,6 +654,10 @@ impl PrefsStore {
         self.check_observation(observation)?;
         self.check_current_schema()?;
         fs::create_dir_all(&self.dir)?;
+        let _save_lock = acquire_save_lock(&self.dir)?;
+        // Another cooperating process may have published after our preflight.
+        self.check_observation(observation)?;
+        self.check_current_schema()?;
         let mut temporary = tempfile::NamedTempFile::new_in(&self.dir)?;
         temporary.write_all(serialized.as_bytes())?;
         temporary.as_file().sync_all()?;
@@ -940,7 +1006,7 @@ mod tests {
         assert!(loaded.writable);
         assert!(store.save(&loaded).is_err());
         assert_eq!(fs::read_to_string(store.path())?, future);
-        assert_eq!(fs::read_dir(dir.path())?.count(), 1);
+        assert_eq!(fs::read_dir(dir.path())?.count(), 2);
         Ok(())
     }
 
@@ -991,7 +1057,7 @@ mod tests {
         stale.prefs.author_name = "Old".into();
         assert!(store.save(&stale).is_err());
         assert_eq!(fs::read(store.path())?, expected);
-        assert_eq!(fs::read_dir(dir.path())?.count(), 1);
+        assert_eq!(fs::read_dir(dir.path())?.count(), 2);
         Ok(())
     }
 
@@ -1022,6 +1088,97 @@ mod tests {
                     assert!(!other.dir().exists());
                 }
             }
+        }
+        Ok(())
+    }
+
+    // Subprocess entry: no environment variable means an ordinary no-op test.
+    #[test]
+    fn preference_lock_child() -> io::Result<()> {
+        let Some(directory) = std::env::var_os("JOYWORD_TEST_PREF_LOCK_DIR") else {
+            return Ok(());
+        };
+        let _lock = acquire_save_lock(Path::new(&directory))?;
+        println!("PREFERENCE_LOCK_READY");
+        io::stdout().flush()?;
+        let mut line = String::new();
+        io::stdin().read_line(&mut line)?;
+        Ok(())
+    }
+
+    #[test]
+    fn separate_process_lock_refuses_save_and_crash_releases_it() -> io::Result<()> {
+        use std::io::BufRead;
+        use std::process::{Command, Stdio};
+        let dir = tempfile::tempdir()?;
+        let store = PrefsStore::new(dir.path());
+        let original = "schema=1\nauthor.name=Before\n";
+        fs::write(store.path(), original)?;
+        let mut loaded = store.load(Locale::En);
+        loaded.prefs.author_name = "After".into();
+        let mut child = Command::new(std::env::current_exe()?)
+            .args([
+                "--exact",
+                "prefs::tests::preference_lock_child",
+                "--nocapture",
+            ])
+            .env("JOYWORD_TEST_PREF_LOCK_DIR", dir.path())
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .spawn()?;
+        let stdout = child
+            .stdout
+            .take()
+            .ok_or_else(|| io::Error::other("missing child stdout"))?;
+        let (send, receive) = std::sync::mpsc::channel();
+        std::thread::spawn(move || {
+            for line in io::BufReader::new(stdout).lines().map_while(Result::ok) {
+                if line.contains("PREFERENCE_LOCK_READY") {
+                    let _ = send.send(());
+                    break;
+                }
+            }
+        });
+        if receive
+            .recv_timeout(std::time::Duration::from_secs(10))
+            .is_err()
+        {
+            let _ = child.kill();
+            let _ = child.wait();
+            return Err(io::Error::other("lock subprocess did not become ready"));
+        }
+        let result = store.save(&loaded);
+        child.kill()?;
+        child.wait()?;
+        assert_eq!(
+            result.err().map(|e| e.kind()),
+            Some(io::ErrorKind::WouldBlock)
+        );
+        assert_eq!(fs::read_to_string(store.path())?, original);
+        store.save(&loaded)?;
+        assert_eq!(store.load(Locale::En).prefs.author_name, "After");
+        assert!(dir.path().join(SAVE_LOCK).is_file());
+        Ok(())
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn unsafe_save_lock_paths_refuse_without_touching_preferences() -> io::Result<()> {
+        use rustix::fs::{CWD, Mode, mkfifoat};
+        for mode in 0..3 {
+            let dir = tempfile::tempdir()?;
+            let store = PrefsStore::new(dir.path());
+            let original = "schema=1\nauthor.name=Keep\n";
+            fs::write(store.path(), original)?;
+            let loaded = store.load(Locale::En);
+            let lock = dir.path().join(SAVE_LOCK);
+            match mode {
+                0 => std::os::unix::fs::symlink(store.path(), &lock)?,
+                1 => mkfifoat(CWD, &lock, Mode::RUSR | Mode::WUSR)?,
+                _ => fs::create_dir(&lock)?,
+            }
+            assert!(store.save(&loaded).is_err());
+            assert_eq!(fs::read_to_string(store.path())?, original);
         }
         Ok(())
     }
