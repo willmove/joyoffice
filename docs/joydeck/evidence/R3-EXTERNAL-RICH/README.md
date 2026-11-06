@@ -13,6 +13,12 @@
 
 JoyDeck 产品检查 924 项通过，0 失败、0 忽略。三产品联合验证通过 5,824 项。新增自动回归覆盖 CF_HTML 字节偏移、格式和安全链接、RTF 中文代码页与 emoji、损坏与超限输入。包内 CLI 验证 R1、R2、R3、R4/R5 的 28、20、20、23 次调用和 329 条命令注册表。同一 Release 包重复验证纯文本、内部富文字、PNG、跨文稿对象、失败剪切和公开 PPTX 图片复用。
 
-Windows 接入标准 `HTML Format` 与 `Rich Text Format` 读取。macOS 上以 `x86_64-pc-windows-msvc` 交叉检查桌面 crate 和 CLI 通过，Windows 桌面实屏待验收。Linux 原生富格式、CSS 样式表、内联图片、RTFD 和完整 Office 对象交换继续由 JD-307 追踪。
+Windows 接入标准 `HTML Format` 与 `Rich Text Format` 读取。macOS 上以 `x86_64-pc-windows-msvc` 交叉检查桌面 crate 和 CLI 通过，Windows 桌面实屏待验收。Linux 物理桌面及 Wayland 实测、CSS 样式表、内联图片、RTFD 和完整 Office 对象交换继续由 JD-307 追踪。
+
+Linux 使用 GPUI 实际选择的显示后端。X11 需要 PATH 中的 `xclip`（CLIPBOARD selection），Wayland 需要 `wl-clipboard` 提供的 `wl-paste`（常规 selection）。适配器只读取提供方公开的 HTML／RTF MIME 类型，复用共享解析器。辅助程序不可用、合成器拒绝读取、超时或富格式无可用内容时，沿用 GPUI 的纯文本回退。Wayland 的可读性取决于合成器的数据控制协议或 `wl-paste` 的兼容路径。XWayland 的 DISPLAY 不会改变 GPUI 已选择的后端。富格式读取共用 400 毫秒时间预算，JoyDeck 每次接收的辅助程序输出最多 1 MiB。
+
+2026-11-06，Linux x86_64 在 Xvfb 和 Mesa lavapipe 下运行 JoyDeck 桌面构建。独立 Tk 进程提供多格式剪贴板，通过 Ctrl+V 验证画布粘贴的 HTML 优先、RTF 回退、纯文本回退，以及原位 HTML 粘贴。一次画布或原位富文本粘贴只增加一次编辑修订，单步撤销成功，画布重做成功。保存的 PPTX 通过独立 `python-pptx` 和 JoyDeck CLI 读回，验证中文、emoji、粗体、斜体和非法链接剥离。该结果覆盖虚拟 X11 桌面。Wayland 合成器在验证环境无法建立 Unix socket，Wayland、物理 Linux 桌面及 macOS／Windows 桌面复验均未运行。
+
+Linux JoyDeck 产品构建、严格 Clippy 和产品测试通过，默认和 `validation` 两套测试各通过 927 项。三产品单线程回归为 5,831 通过、3 忽略、1 失败。失败来自 JoyWord 的 Linux 安全扩展属性测试。独立探测确认当前环境可设置并直接读取 `security.selinux`，但列举扩展属性时没有返回该名称。
 
 Debug 版从后台打开本轮生成的原生项目会在反序列化 `RunProps` 时触发线程栈保护。上一切片的 Debug 二进制也复现，当前 Release 原生打开通过。该样例用于后续修复和回归。[Debug 重开复现样例](debug-reopen-sample.joydeck)

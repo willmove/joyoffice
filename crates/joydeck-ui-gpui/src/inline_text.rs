@@ -441,7 +441,7 @@ impl Viewer {
             .and_then(|m| serde_json::from_str::<TextClipboard>(m).ok())
             .filter(|m| m.version == 1)
             .or_else(|| {
-                crate::native_clipboard::rich_text().map(|body| TextClipboard {
+                crate::native_clipboard::rich_text(cx.compositor_name()).map(|body| TextClipboard {
                     version: 1,
                     document: None,
                     body,
@@ -961,7 +961,7 @@ impl Viewer {
             return;
         }
         if self.cell.is_none()
-            && let Some(body) = crate::native_clipboard::rich_text()
+            && let Some(body) = crate::native_clipboard::rich_text(cx.compositor_name())
         {
             self.dispatch(clipboard::text_box(body), w, cx);
             return;
