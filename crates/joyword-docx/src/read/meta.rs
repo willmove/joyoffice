@@ -390,6 +390,7 @@ impl Reader<'_> {
                 "cp:keywords" => c.keywords = t,
                 "dc:description" => c.description = t,
                 "cp:lastModifiedBy" => c.last_modified_by = t,
+                "cp:lastPrinted" => c.last_printed = t,
                 "cp:revision" => c.revision = u32_of(&t).unwrap_or(0),
                 "dcterms:created" => c.created = t,
                 "dcterms:modified" => c.modified = t,
