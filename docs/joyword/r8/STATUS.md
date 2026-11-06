@@ -39,6 +39,11 @@ Linux x64、Rust 1.98.1 下 11 项偏好测试通过，包括不可读文件、�
 `cargo test --locked -p joyword-shell` 在本轮通过 64 项测试（含 4 项恢复测试）；未修改生产恢复逻辑。本轮覆盖 headless Rust 路径，不替代桌面旧日志交互、其他复杂对象差分、真实崩溃、正式安装和文件关联回退，JW-806/812 保持部分验证。
 
 全仓 `cargo fmt --all --check`、文档完整性检查及生产库 `cargo clippy --locked -p joyword-shell --lib -- -D warnings` 通过。额外尝试 `cargo clippy --locked -p joyword-shell --all-targets -- -D warnings` 未通过：未修改的测试模块存在 `unwrap_used` 等告警，`r8_render_goldens` 示例有冗余 `f64::from`。这超出当前 JoyWord xtask 的生产 `--lib --bins` lint 范围，本批不扩大到清理无关测试和示例。
+### JW-808 旧 CLI 差分门禁补强（2026-11-06）
+
+`scripts/joyword/verify-r8-compat.py --baseline` 对普通语料也强制比较完整 schema 1 报告，诊断字段变化、增加或缺失均失败；此前普通语料只要求正文一致，其他差异仅记录。报告以仓库相对路径区分同名语料，并记录旧 CLI 的 SHA-256；未提供基线时 `baseline_cli` 为 null，不代表旧新版差分通过。字段专项使用同一比较规则。
+
+`scripts/tests/test_joyword_compat.py` 通过替代 CLI 响应运行真实语料比较入口，覆盖正文相同但遗漏对象、保留片段、只读状态变化及字段增删的反例。该文件由既有四平台 CI 的脚本测试发现。本轮本地通过 4 项测试；容器没有 Rust 工具链或产品二进制，未重跑真实旧新版 CLI、原生界面、正式安装及文件关联回退，JW-806/808/812 状态保持部分验证。
 
 ## R0–R7 待完成范围
 
