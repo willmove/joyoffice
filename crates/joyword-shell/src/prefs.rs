@@ -537,9 +537,16 @@ impl PrefsStore {
                 let backup = self.backup_path();
                 // create_new also protects a backup created by another process.
                 // Exhaustion or a competing writer preserves the original read-only.
-                let copied = fs::OpenOptions::new()
-                    .write(true)
-                    .create_new(true)
+                let mut options = fs::OpenOptions::new();
+                options.write(true).create_new(true);
+                #[cfg(unix)]
+                {
+                    use std::os::unix::fs::OpenOptionsExt;
+                    // Backups contain the original private preferences. Restrict
+                    // access at creation, before any bytes are written.
+                    options.mode(0o600);
+                }
+                let copied = options
                     .open(&backup)
                     .and_then(|mut file| {
                         file.write_all(&bytes)?;
@@ -1180,6 +1187,25 @@ mod tests {
             assert!(store.save(&loaded).is_err());
             assert_eq!(fs::read_to_string(store.path())?, original);
         }
+        Ok(())
+    }
+    #[cfg(unix)]
+    #[test]
+    fn corrupt_preferences_backup_does_not_grant_group_or_other_access() -> io::Result<()> {
+        use std::os::unix::fs::PermissionsExt;
+        let dir = tempfile::tempdir()?;
+        let store = PrefsStore::new(dir.path());
+        let original = b"private damaged preferences without an equals sign";
+        fs::write(store.path(), original)?;
+        fs::set_permissions(store.path(), fs::Permissions::from_mode(0o600))?;
+        let loaded = store.load(Locale::En);
+        assert!(loaded.writable);
+        let [PrefsNotice::Corrupt { backup }] = &loaded.notices[..] else {
+            return Err(io::Error::other("expected corruption backup"));
+        };
+        assert_eq!(fs::read(backup)?, original);
+        assert_eq!(fs::read(store.path())?, original);
+        assert_eq!(fs::metadata(backup)?.permissions().mode() & 0o077, 0);
         Ok(())
     }
 }

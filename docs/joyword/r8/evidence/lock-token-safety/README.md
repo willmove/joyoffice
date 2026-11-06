@@ -78,3 +78,11 @@ Two failing-before regressions exposed a shell transaction problem: theme/langua
 Persistence now operates on a cloned candidate and publishes it into the shell only after save succeeds. Appearance commands restore their previous locale/theme on failure; recent paths remain unchanged after a failed writable save, so the same path can be retried after lock release. Existing read-only in-memory recent behavior is retained. Tests cover conflicting appearance saves, real lock contention followed by same-path retry/reload, and repeated successful appearance changes. No UI controls or layout were changed; these are command-state tests, not real-window acceptance.
 
 All 94 shell tests passed. Strict all-target shell/desktop Clippy, formatting and repository/documentation checks passed after correcting a test assertion style. Latest main remained aac15f2f; this slice modifies only the shell coordinator and this evidence, without touching the Deck branches.
+
+## Private corruption backups on Unix
+
+A further regression reproduced permission widening during corruption recovery: an original `0600` preferences file was copied with the default creation mode, producing a group/other-readable backup under `umask 022`. Preferences can include author details, recent document paths and unknown values. The backup now requests `0600` at exclusive creation, before any bytes are written; no post-write permission window is introduced. The existing create-new collision protection, byte-for-byte backup, original preservation, sync and read-only-on-backup-failure behavior remain intact.
+
+The Unix regression failed before the fix (group/other permission mask was `044`) and checks that the backup preserves the exact bytes without granting group/other access. This does not change existing backups or claim Windows ACL validation; platform runtime and non-cooperating-writer limits above still apply.
+
+Validation: all 95 shell tests passed under `umask 022`, including the new permission regression. Strict all-target shell/desktop Clippy, fmt, documentation, source fingerprints and repository gates passed on Linux. Original provenance hashes remain unchanged; only the adapted preferences fingerprint and change record were updated.
