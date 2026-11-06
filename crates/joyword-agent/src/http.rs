@@ -6,8 +6,8 @@ use std::sync::Mutex;
 
 use crate::credential::Secret;
 use crate::provider::{
-    CallCounter, Capabilities, CompletionRequest, CompletionResponse, LogCredential, Provider,
-    ProviderError, ProviderId,
+    CallCounter, CancelFlag, Capabilities, CompletionRequest, CompletionResponse, LogCredential,
+    Provider, ProviderError, ProviderId,
 };
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -61,6 +61,19 @@ pub struct Outbound<'a> {
 
 pub trait Transport: Send + Sync {
     fn exchange(&self, call: &Outbound<'_>) -> Result<Vec<u8>, ProviderError>;
+
+    /// Override to observe cancellation during I/O and close owned connections.
+    /// The compatibility default cannot interrupt a blocking `exchange`.
+    fn exchange_cancellable(
+        &self,
+        call: &Outbound<'_>,
+        cancel: &CancelFlag,
+    ) -> Result<Vec<u8>, ProviderError> {
+        if cancel.is_cancelled() {
+            return Err(ProviderError::Cancelled);
+        }
+        self.exchange(call)
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -178,7 +191,13 @@ impl<T: Transport> Provider for HttpProvider<T> {
             body: request.prompt,
             authorization: request.credential,
         };
-        let bytes = self.transport.exchange(&call)?;
+        let result = self.transport.exchange_cancellable(&call, request.cancel);
+        // Even legacy/non-cooperative transports must not publish a late result.
+        // This cannot revoke bytes already sent or replace the gate's commit check.
+        if request.cancel.is_cancelled() {
+            return Err(ProviderError::Cancelled);
+        }
+        let bytes = result?;
         let text = String::from_utf8(bytes).map_err(|_| ProviderError::InvalidToolParams)?;
         Ok(CompletionResponse { text })
     }
