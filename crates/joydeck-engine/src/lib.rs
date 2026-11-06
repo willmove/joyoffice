@@ -8,6 +8,7 @@ use std::{
 };
 mod authoring;
 mod content;
+mod footer;
 mod history_cost;
 mod review;
 mod workspace;
@@ -161,6 +162,10 @@ pub enum Command {
         target: TextTarget,
         body: Box<TextBody>,
     },
+    /// Update existing simple footer placeholders across slides without adding any.
+    SetExistingFooterText {
+        text: String,
+    },
     SetTexts {
         edits: Vec<TextEdit>,
     },
@@ -210,6 +215,7 @@ impl Command {
             Self::ReplaceText { .. } => "replace-text",
             Self::SetText { .. } => "set-text",
             Self::SetTexts { .. } => "set-texts",
+            Self::SetExistingFooterText { .. } => "set-existing-footer-text",
             Self::EditText { .. } => "edit-text",
             Self::InsertTable { .. } => "insert-table",
             Self::Table { .. } => "table",
@@ -452,6 +458,9 @@ fn next_id(p: &mut Presentation) -> std::result::Result<u32, String> {
     p.alloc_id().ok_or_else(|| "ID space exhausted".into())
 }
 fn apply(st: &mut EditorSnapshot, cmd: Command) -> std::result::Result<(), String> {
+    if let Command::SetExistingFooterText { text } = &cmd {
+        return footer::set_existing(st, text);
+    }
     if let Command::At { page, shapes, edit } = cmd {
         if matches!(
             *edit,
