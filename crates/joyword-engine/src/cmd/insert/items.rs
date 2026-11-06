@@ -238,7 +238,7 @@ pub(super) fn symbol(s: &mut Session, v: &Value) -> CmdResult {
         if u32::from(ch) <= 0xFFFF && (font_is_symbol || private_use) {
             props.sym_font = Some(font.to_string());
         } else {
-            props.font = Some(font.to_string());
+            props.set_fixed_font(Some(font.to_string()));
         }
         s.pending = Some(props);
         r = type_text(s, ch.encode_utf8(&mut buf));

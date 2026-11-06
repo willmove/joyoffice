@@ -4,7 +4,10 @@ This audit runs on the theme-preservation change in PR #156 (`7bac2e60`), which
 keeps the theme itself. It identifies a separate loss in the styles that refer to
 that theme. It is a local follow-up, not a completed production fix.
 
-## Results
+The subsequent [Latin font phase](FONT-BINDING-PHASE.md) fixes the font portion;
+the baseline findings below remain historical evidence. Colors are still open.
+
+## Baseline results
 
 For nine existing real-Word fixtures, 106 paragraph/character styles have identical
 JoyWord-resolved character and paragraph properties before and after a no-edit

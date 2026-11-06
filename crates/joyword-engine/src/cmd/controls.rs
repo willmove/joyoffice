@@ -917,7 +917,7 @@ fn toggle_check_box(s: &mut Session, v: &Value) -> CmdResult {
     };
     let mut props = content_base(s, &r);
     if !font.is_empty() {
-        props.font = Some(font.clone());
+        props.set_fixed_font(Some(font.clone()));
     }
     set_content(s, &r, &ch.to_string(), &props)?;
     if let Some(c) = s.doc.control_mut(&r.start) {

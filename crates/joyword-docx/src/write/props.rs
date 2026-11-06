@@ -30,7 +30,28 @@ pub fn rpr_inner(w: &mut W, c: &CharProps) {
     // Emit only explicit properties so absent values keep inheriting from the style chain.
     let mut fonts: Vec<(&str, &str)> = Vec::new();
     if let Some(f) = &c.font {
-        fonts.extend([("w:ascii", f.as_str()), ("w:hAnsi", f.as_str())]);
+        // An imported hAnsi-only theme reference must not acquire a fixed ASCII
+        // override, which would take precedence when reopening.
+        if !c
+            .theme_font
+            .as_ref()
+            .is_some_and(|b| b.valid_for(c.font.as_deref()) && b.ascii.is_none())
+        {
+            fonts.push(("w:ascii", f.as_str()));
+        }
+        fonts.push(("w:hAnsi", f.as_str()));
+    }
+    if let Some(binding) = c
+        .theme_font
+        .as_ref()
+        .filter(|b| b.valid_for(c.font.as_deref()))
+    {
+        if let Some(slot) = binding.ascii.as_deref() {
+            fonts.push(("w:asciiTheme", slot));
+        }
+        if let Some(slot) = binding.h_ansi.as_deref() {
+            fonts.push(("w:hAnsiTheme", slot));
+        }
     }
     if let Some(ea) = &c.font_ea {
         fonts.push(("w:eastAsia", ea));

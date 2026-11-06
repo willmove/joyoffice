@@ -260,6 +260,9 @@ pub struct CharProps {
     pub style: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub font: Option<String>,
+    /// Original Latin theme references; explicit font formatting clears this binding.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub theme_font: Option<super::ThemeFont>,
     /// The symbol's own font (OOXML `w:sym/@w:font`, ECMA-376 §17.3.3.30), set on a symbol
     /// character from a `w:sym` or Insert › Symbol: it is shown in this font whatever `font` is,
     /// so changing the text's font keeps the symbol. `None` = the run's font.
@@ -470,6 +473,34 @@ pub struct NumChange {
 }
 
 impl CharProps {
+    /// Set or clear an explicit font, even if it equals the currently resolved theme font.
+    pub fn set_fixed_font(&mut self, font: Option<String>) {
+        self.font = font;
+        self.theme_font = None;
+    }
+
+    /// Refresh a live Latin theme binding after the theme's font pair changes.
+    pub fn refresh_theme_font(&mut self, major: &str, minor: &str) -> bool {
+        let Some(binding) = self
+            .theme_font
+            .as_mut()
+            .filter(|b| b.valid_for(self.font.as_deref()))
+        else {
+            return false;
+        };
+        let Some(slot) = binding.ascii.as_deref().or(binding.h_ansi.as_deref()) else {
+            return false;
+        };
+        let value = if slot.starts_with("major") {
+            major
+        } else {
+            minor
+        };
+        self.font = Some(value.to_string());
+        binding.resolved = value.to_string();
+        true
+    }
+
     /// The same formatting outside a hyperlink: no link target, and no "Hyperlink" character
     /// style that came with it. What a paragraph mark or text typed next to a link gets.
     pub fn unlinked(&self) -> CharProps {
@@ -491,7 +522,11 @@ impl CharProps {
     }
 
     fn minus_text_style(&mut self, base: &CharProps) {
-        drop_same_fields!(self, base; style, font, sym_font, size, bold, italic, underline, underline_color, strike, double_strike, color, highlight,
+        if self.font == base.font && self.theme_font == base.theme_font {
+            self.font = None;
+            self.theme_font = None;
+        }
+        drop_same_fields!(self, base; style, sym_font, size, bold, italic, underline, underline_color, strike, double_strike, color, highlight,
             shading, border, vert_align, caps, small_caps, hidden, spacing, scale, position, kern, outline, shadow, emboss, engrave, lang, no_proof, rtl);
     }
 
@@ -524,6 +559,12 @@ impl CharProps {
     }
 
     fn overlay_text_style(&mut self, patch: &CharProps) {
+        if patch.font.is_some() {
+            self.theme_font = patch
+                .theme_font
+                .clone()
+                .filter(|b| b.valid_for(patch.font.as_deref()));
+        }
         overlay_fields!(self, patch; style, font, sym_font, size, bold, italic, underline, underline_color, strike, double_strike, color, highlight,
             shading, border, vert_align, caps, small_caps, hidden, spacing, scale, position, kern, outline, shadow, emboss, engrave, lang, no_proof, rtl);
     }

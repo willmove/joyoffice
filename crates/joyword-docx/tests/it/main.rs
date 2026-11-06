@@ -44,3 +44,5 @@ mod wordml2003_write;
 mod theme_preservation;
 
 mod effective_styles;
+
+mod theme_font_bindings;

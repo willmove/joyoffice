@@ -120,11 +120,10 @@ pub fn level_from(mut l: Level, i: usize, v: &Value) -> Level {
         None => {}
     }
     match v.get("font") {
-        Some(Value::Null) => l.chr.font = None,
-        Some(Value::String(s)) => {
-            l.chr.font =
-                Some(s.chars().take(64).collect()).filter(|s: &String| !s.trim().is_empty())
-        }
+        Some(Value::Null) => l.chr.set_fixed_font(None),
+        Some(Value::String(s)) => l.chr.set_fixed_font(
+            Some(s.chars().take(64).collect()).filter(|s: &String| !s.trim().is_empty()),
+        ),
         _ => {}
     }
     if let Some(b) = p::bool(v, "bold") {

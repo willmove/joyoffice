@@ -137,14 +137,35 @@ pub fn specs() -> Vec<CommandSpec> {
 fn set_fonts(s: &mut Session, heading: &str, body: &str) {
     s.doc.settings.major_font = heading.into();
     s.doc.settings.minor_font = body.into();
-    s.doc.styles.default_chr.font = Some(body.into());
+    s.doc.refresh_theme_fonts(heading, body);
+    if let Some(pending) = s.pending.as_mut() {
+        pending.refresh_theme_font(heading, body);
+    }
+    if !s
+        .doc
+        .styles
+        .default_chr
+        .theme_font
+        .as_ref()
+        .is_some_and(|b| b.valid_for(s.doc.styles.default_chr.font.as_deref()))
+    {
+        s.doc.styles.default_chr.set_fixed_font(Some(body.into()));
+    }
     for st in &mut s.doc.styles.styles {
+        if st
+            .chr
+            .theme_font
+            .as_ref()
+            .is_some_and(|b| b.valid_for(st.chr.font.as_deref()))
+        {
+            continue;
+        }
         if let Some(f) = &st.chr.font
             && (f == styles::HEADING_FONT || st.id.starts_with("Heading") || st.id == "Title")
         {
-            st.chr.font = Some(heading.into());
+            st.chr.set_fixed_font(Some(heading.into()));
         } else if st.chr.font.is_some() && st.chr.font.as_deref() != Some(heading) {
-            st.chr.font = Some(body.into());
+            st.chr.set_fixed_font(Some(body.into()));
         }
     }
 }

@@ -301,6 +301,8 @@ impl PropCtx {
                         .map(|v| self.style_id(v))
                 }
                 "w:rFonts" => {
+                    // A later font declaration supersedes the earlier binding as well as its value.
+                    c.theme_font = None;
                     // A theme font supersedes the fixed font beside it (`w:asciiTheme` over
                     // `w:ascii`, `w:hAnsiTheme` over `w:hAnsi`).
                     let named = |a: &str| k.attr(a).filter(|f| !f.is_empty()).map(str::to_string);
@@ -313,6 +315,24 @@ impl PropCtx {
                         .or_else(|| named("w:ascii"))
                         .or_else(|| themed("w:hAnsiTheme"))
                         .or_else(|| named("w:hAnsi"));
+                    let reference = |key: &str| {
+                        k.attr(key)
+                            .filter(|slot| joyword_model::props::ThemeFont::supported(slot))
+                            .map(str::to_string)
+                    };
+                    let ascii = reference("w:asciiTheme");
+                    let h_ansi = reference("w:hAnsiTheme");
+                    // When a fixed ASCII font wins over hAnsiTheme, retain that explicit
+                    // precedence; this initial binding model only covers theme-selected Latin fonts.
+                    if (ascii.is_some() || (named("w:ascii").is_none() && h_ansi.is_some()))
+                        && let Some(resolved) = c.font.clone()
+                    {
+                        c.theme_font = Some(joyword_model::props::ThemeFont {
+                            ascii,
+                            h_ansi,
+                            resolved,
+                        });
+                    }
                     // The complex-script font (Persian, Arabic, Hebrew text). A `w:cstheme` font is
                     // left to inherit: the theme's per-script fonts aren't read.
                     c.font_cs = k

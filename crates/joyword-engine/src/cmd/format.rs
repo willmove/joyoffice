@@ -394,7 +394,7 @@ fn font(s: &mut Session, v: &Value) -> CmdResult {
     });
     apply(s, &|c| {
         if let Some(n) = &name {
-            c.font = Some(n.clone());
+            c.set_fixed_font(Some(n.clone()));
             c.font_cs = Some(n.clone());
         }
         if let Some(n) = &ea {

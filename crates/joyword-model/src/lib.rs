@@ -85,6 +85,7 @@ mod parts;
 mod position;
 mod settings;
 mod text_walk;
+mod theme_fonts;
 
 pub use block::{Block, Blocks, BoxBudget, MAX_TEXT_BOX_DEPTH};
 pub use compare::para_block;

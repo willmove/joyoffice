@@ -621,12 +621,12 @@ fn region(r: &Value, f: &mut PartFormat) -> Result<(), CmdError> {
     match r.get("font") {
         None => {}
         // Null or empty: the part's font is inherited again.
-        Some(Value::Null) => chr.font = None,
-        Some(Value::String(n)) => {
-            chr.font = Some(n.trim())
+        Some(Value::Null) => chr.set_fixed_font(None),
+        Some(Value::String(n)) => chr.set_fixed_font(
+            Some(n.trim())
                 .filter(|n| !n.is_empty())
-                .map(|n| n.chars().take(256).collect())
-        }
+                .map(|n| n.chars().take(256).collect()),
+        ),
         Some(_) => return Err(CmdError::Params("`font` is a name or null".into())),
     }
     let name = |k: &str| -> Result<Option<Option<&str>>, CmdError> {

@@ -21,6 +21,8 @@ mod char_props;
 mod color;
 mod para_props;
 mod table_props;
+mod theme_font;
+pub use theme_font::ThemeFont;
 
 pub use char_props::{
     CharProps, CombineBrackets, DEFAULT_FONT_SIZE, EastAsianLayout, Highlight, Ligatures,
