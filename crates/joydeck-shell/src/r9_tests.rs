@@ -113,3 +113,92 @@ fn r9_custom_part_paths_survive_edit_undo_redo_and_slide_duplication() -> Result
     assert!(part(&saved, "ppt/presentation.xml").is_err());
     Ok(())
 }
+
+#[test]
+#[allow(clippy::unwrap_used, reason = "Test assertions")]
+fn clear_character_format_preserves_links_in_native_and_preserving_pptx_save() {
+    use joydeck_engine::{TextEdit, TextTarget, formatting::clear_character_format};
+    use joydeck_model::{
+        Presentation, Shape, ShapeId, TextBody, edit,
+        text::{Action, Hyperlink},
+    };
+    use std::sync::Arc;
+    let mut p = Presentation::default();
+    let id = ShapeId(p.alloc_id().unwrap());
+    let mut body = TextBody::from_text("中文😀 linked text");
+    let props = &mut body.paragraphs[0].runs[0].props;
+    let link = |action| Hyperlink {
+        action,
+        tooltip: "keep tooltip".into(),
+        highlight_click: true,
+        sound: None,
+        stop_sound: false,
+        zoom_return: None,
+    };
+    props.link = Some(link(Action::Url {
+        url: "https://example.org/clear-format".into(),
+    }));
+    props.hover = Some(link(Action::Slide {
+        slide: p.slides[0].id,
+    }));
+    props.lang = Some("zh-CN".into());
+    props.no_proof = Some(true);
+    props.bold = Some(true);
+    props.size = Some(32.);
+    Arc::make_mut(&mut p.slides[0]).shapes.push(Shape {
+        id,
+        text: Some(body),
+        ..Default::default()
+    });
+    let source = joydeck_pptx::export(&p).unwrap();
+    let baseline = joydeck_pptx::import(&source).unwrap();
+    let shape = baseline.slides[0].shapes.last().unwrap();
+    let target = TextTarget::Shape { shape: shape.id };
+    let original = shape.text.clone().unwrap();
+    let before_props = original.paragraphs[0].runs[0].props.clone();
+    let mut cleared = original.clone();
+    edit::format_all(&mut cleared, &clear_character_format);
+    let mut session = Session::new(baseline.clone(), original_bindings(&baseline), true);
+    session
+        .execute(Command::SetTexts {
+            edits: vec![TextEdit {
+                target,
+                body: cleared.clone(),
+            }],
+        })
+        .unwrap();
+    let snapshot = session.snapshot();
+    let bindings: Vec<_> = snapshot
+        .origins
+        .iter()
+        .map(|(slide, origin)| joydeck_pptx::SlideBinding {
+            slide: *slide,
+            source: origin.slide,
+            shapes: origin.shapes.clone(),
+        })
+        .collect();
+    let public =
+        joydeck_pptx::export_preserving(&source, &baseline, &snapshot.model, &bindings).unwrap();
+    let native = joydeck_format::save(&snapshot.model).unwrap();
+    for reopened in [
+        joydeck_pptx::import(&public).unwrap(),
+        joydeck_format::load(&native).unwrap(),
+    ] {
+        let body = reopened.slides[0]
+            .shapes
+            .last()
+            .unwrap()
+            .text
+            .as_ref()
+            .unwrap();
+        assert_eq!(body.text(), original.text());
+        let props = &body.paragraphs[0].runs[0].props;
+        assert_eq!(props.link, before_props.link);
+        assert_eq!(props.hover, before_props.hover);
+        assert_eq!(props.lang, before_props.lang);
+        assert_eq!(props.no_proof, before_props.no_proof);
+        assert_ne!(props.bold, Some(true));
+        assert_ne!(props.size, Some(32.));
+    }
+    assert_eq!(joydeck_pptx::import(&source).unwrap(), baseline);
+}
