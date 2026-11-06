@@ -1,5 +1,5 @@
 #![allow(clippy::unwrap_used, reason = "Test assertions")]
-use joydeck_engine::{Command, Session, original_bindings};
+use joydeck_engine::{Command, Session, existing_footer_summary, original_bindings};
 use joydeck_model::{
     PhType, Placeholder, Presentation, Shape, ShapeId, ShapeKind, SlideId, TextBody,
     text::{Run, RunKind},
@@ -89,7 +89,8 @@ fn unsupported_footer_on_later_page_leaves_every_page_and_history_unchanged() {
             }
         }
         let mut s = session(p.clone());
-        assert!(s.execute(command()).is_err());
+        let summary_error = existing_footer_summary(&p).unwrap_err();
+        assert_eq!(s.execute(command()).unwrap_err(), summary_error);
         assert_eq!(s.model(), &p);
         assert_eq!(s.revision(), 0);
         assert!(!s.can_undo());
@@ -136,4 +137,51 @@ fn footer_target_and_output_budgets_fail_atomically() {
         assert_eq!(s.revision(), 0);
         assert!(!s.can_undo());
     }
+}
+
+#[test]
+fn footer_summary_distinguishes_mixed_empty_and_uniform_without_mutation() {
+    let mut p = deck();
+    p.header_footer.footer_text = "Misleading document summary".into();
+    let mut s = session(p.clone());
+    s.select(2, vec![]).unwrap();
+    let summary = existing_footer_summary(s.model()).unwrap();
+    assert_eq!(summary.text, None);
+    assert_eq!(summary.targets, 2);
+    assert_eq!(summary.pages_with_footer, 2);
+    assert_eq!(summary.pages_without_footer, 1);
+    assert_eq!(s.model(), &p);
+    assert_eq!(s.selection().page, 2);
+    assert_eq!(s.revision(), 0);
+    assert!(!s.can_undo());
+    for value in ["", "相同页脚"] {
+        for slide in &mut p.slides[..2] {
+            Arc::make_mut(slide).shapes[0].text = Some(TextBody::from_text(value));
+        }
+        assert_eq!(
+            existing_footer_summary(&p).unwrap().text.as_deref(),
+            Some(value)
+        );
+    }
+    assert!(existing_footer_summary(&Presentation::default()).is_err());
+}
+
+#[test]
+fn footer_summary_counts_multiple_placeholders_and_enforces_target_budget() {
+    let mut p = deck();
+    let template = p.slides[0].shapes[0].clone();
+    let mut shapes = vec![];
+    for _ in 0..257 {
+        let mut shape = template.clone();
+        shape.id = ShapeId(p.alloc_id().unwrap());
+        shapes.push(shape);
+    }
+    Arc::make_mut(&mut p.slides[0]).shapes = shapes;
+    assert!(existing_footer_summary(&p).is_err());
+    Arc::make_mut(&mut p.slides[0]).shapes.truncate(2);
+    let summary = existing_footer_summary(&p).unwrap();
+    assert_eq!(summary.targets, 3);
+    assert_eq!(summary.pages_with_footer, 2);
+    assert_eq!(summary.pages_without_footer, 1);
+    assert_eq!(summary.text, None);
 }

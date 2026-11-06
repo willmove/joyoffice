@@ -9,6 +9,7 @@ use std::{
 mod authoring;
 mod content;
 mod footer;
+pub use footer::{ExistingFooterSummary, existing_footer_summary};
 mod history_cost;
 mod review;
 mod workspace;
