@@ -92,10 +92,18 @@ pub struct BootReport {
 struct Flight<'a> {
     gate: &'a AiGate,
     ticket: Admission,
+    registry: &'a Mutex<Vec<Arc<CancelFlag>>>,
+    cancel: Arc<CancelFlag>,
 }
 
 impl Drop for Flight<'_> {
     fn drop(&mut self) {
+        // Match registration/stop lock order; never hold this during provider I/O.
+        let mut active = self
+            .registry
+            .lock()
+            .unwrap_or_else(|error| error.into_inner());
+        active.retain(|cancel| !Arc::ptr_eq(cancel, &self.cancel));
         let _ = self.gate.finish_request(self.ticket);
     }
 }
@@ -103,6 +111,7 @@ impl Drop for Flight<'_> {
 /// The AI session shell. `document_mutations` is always zero in this milestone.
 pub struct AgentRuntime {
     gate: AiGate,
+    active: Mutex<Vec<Arc<CancelFlag>>>,
     config: AiConfig,
     policy: AdminPolicy,
     provider: Box<dyn Provider>,
@@ -128,6 +137,7 @@ impl AgentRuntime {
         let telemetry = Telemetry::new(config.telemetry_enabled);
         Self {
             gate,
+            active: Mutex::new(Vec::new()),
             config,
             policy,
             provider,
@@ -319,11 +329,23 @@ impl AgentRuntime {
         {
             return Err(AgentError::Prompt);
         }
-        let ticket = self.gate.begin_request().map_err(AgentError::Gate)?;
-        let _flight = Flight {
-            gate: &self.gate,
-            ticket,
+        let flight = {
+            // Admission and registration are atomic with respect to begin_stop.
+            let mut active = self
+                .active
+                .lock()
+                .map_err(|_| AgentError::Gate(GateError::Poisoned))?;
+            let ticket = self.gate.begin_request().map_err(AgentError::Gate)?;
+            let cancel = Arc::new(CancelFlag::new());
+            active.push(Arc::clone(&cancel));
+            Flight {
+                gate: &self.gate,
+                ticket,
+                registry: &self.active,
+                cancel,
+            }
         };
+        let ticket = flight.ticket;
         self.preflight()?;
         let credential = self.load_credential()?;
         self.gate.decide_result(ticket).map_err(AgentError::Gate)?;
@@ -346,11 +368,10 @@ impl AgentRuntime {
             return Err(AgentError::Gate(GateError::Poisoned));
         }
         self.invocations.fetch_add(1, Ordering::SeqCst);
-        let cancel = CancelFlag::new();
         let request = CompletionRequest {
             prompt,
             generation: ticket.generation(),
-            cancel: &cancel,
+            cancel: &flight.cancel,
             credential: credential.as_ref(),
         };
         let response = self
@@ -445,8 +466,19 @@ impl AgentRuntime {
         self.gate.phase().map_err(AgentError::Gate)
     }
 
+    /// Concurrent shutdown phase: block new requests and notify every admitted
+    /// request. The owner commits Disabled after joining its request workers.
+    /// Non-cooperative providers still require a bounded transport timeout.
     pub fn begin_stop(&self) -> Result<(), AgentError> {
-        self.gate.begin_stop().map_err(AgentError::Gate)
+        let active = self
+            .active
+            .lock()
+            .map_err(|_| AgentError::Gate(GateError::Poisoned))?;
+        self.gate.begin_stop().map_err(AgentError::Gate)?;
+        for cancel in active.iter() {
+            cancel.cancel();
+        }
+        Ok(())
     }
 
     /// Linearization point. Clears the user preference and bumps generation.
@@ -460,5 +492,183 @@ impl AgentRuntime {
         let generation = self.gate.kill_switch().map_err(AgentError::Gate)?;
         self.config.user_enabled = false;
         Ok(generation)
+    }
+}
+
+#[cfg(test)]
+mod cancellation_tests {
+    use super::*;
+    use crate::{Capabilities, MemoryCredentialStore, ProviderSelection};
+    use std::sync::Barrier;
+    use std::thread;
+
+    struct HeldProvider {
+        entered: Arc<Barrier>,
+        release: Arc<Barrier>,
+    }
+    impl Provider for HeldProvider {
+        fn capabilities(&self) -> Capabilities {
+            Capabilities {
+                streaming: false,
+                tools: false,
+            }
+        }
+        fn calls(&self) -> u64 {
+            0
+        }
+        fn complete(
+            &self,
+            request: &CompletionRequest<'_>,
+        ) -> Result<CompletionResponse, ProviderError> {
+            self.entered.wait();
+            self.release.wait();
+            assert!(request.cancel.is_cancelled());
+            Err(ProviderError::Cancelled)
+        }
+    }
+
+    fn runtime(provider: Box<dyn Provider>) -> AgentRuntime {
+        let mut config = AiConfig::default();
+        config.user_enabled = true;
+        config.provider = ProviderSelection::named("fake").unwrap();
+        AgentRuntime::new(
+            config,
+            AdminPolicy::unmanaged(),
+            provider,
+            Box::new(MemoryCredentialStore::new()),
+        )
+    }
+
+    #[test]
+    fn concurrent_stop_cancels_all_requests_and_workers_join_before_disable() {
+        let entered = Arc::new(Barrier::new(3));
+        let release = Arc::new(Barrier::new(3));
+        let mut runtime = runtime(Box::new(HeldProvider {
+            entered: entered.clone(),
+            release: release.clone(),
+        }));
+        thread::scope(|scope| {
+            let first = scope.spawn(|| runtime.complete("first"));
+            let second = scope.spawn(|| runtime.complete("second"));
+            entered.wait();
+            assert_eq!(runtime.active.lock().unwrap().len(), 2);
+            runtime.begin_stop().unwrap();
+            runtime.begin_stop().unwrap();
+            release.wait();
+            assert_eq!(first.join().unwrap().unwrap_err().kind(), "cancelled");
+            assert_eq!(second.join().unwrap().unwrap_err().kind(), "cancelled");
+        });
+        assert!(runtime.active.lock().unwrap().is_empty());
+        assert!(runtime.complete("after stop").is_err());
+        let old_generation = runtime.generation().unwrap();
+        runtime.kill_switch().unwrap();
+        assert_ne!(runtime.generation().unwrap(), old_generation);
+        runtime.set_user_enabled(true).unwrap();
+        assert_eq!(runtime.phase().unwrap(), AiPhase::EnabledIdle);
+        assert!(runtime.active.lock().unwrap().is_empty());
+    }
+
+    #[test]
+    fn completed_failed_and_unwound_requests_remove_registration() {
+        struct ReturnsOrPanics;
+        impl Provider for ReturnsOrPanics {
+            fn capabilities(&self) -> Capabilities {
+                Capabilities {
+                    streaming: false,
+                    tools: false,
+                }
+            }
+            fn calls(&self) -> u64 {
+                0
+            }
+            fn complete(
+                &self,
+                request: &CompletionRequest<'_>,
+            ) -> Result<CompletionResponse, ProviderError> {
+                assert!(!request.cancel.is_cancelled());
+                match request.prompt {
+                    "panic" => panic!("synthetic provider panic"),
+                    "error" => Err(ProviderError::Offline),
+                    _ => Ok(CompletionResponse {
+                        text: "synthetic".into(),
+                    }),
+                }
+            }
+        }
+        let mut runtime = runtime(Box::new(ReturnsOrPanics));
+        assert!(runtime.complete("success").is_ok());
+        assert!(runtime.complete("error").is_err());
+        assert!(
+            std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| runtime.complete("panic")))
+                .is_err()
+        );
+        assert!(runtime.active.lock().unwrap().is_empty());
+        runtime.begin_stop().unwrap();
+        runtime.commit_disabled().unwrap();
+        runtime.set_user_enabled(true).unwrap();
+        assert!(runtime.complete("fresh generation").is_ok());
+        assert!(runtime.active.lock().unwrap().is_empty());
+    }
+
+    #[test]
+    fn stop_racing_admission_leaves_no_registered_request() {
+        for _ in 0..32 {
+            let runtime = runtime(Box::new(
+                crate::FakeProvider::scripted(
+                    "fake",
+                    vec![crate::Script::Reply("synthetic".into())],
+                )
+                .unwrap(),
+            ));
+            let start = Barrier::new(2);
+            thread::scope(|scope| {
+                let worker = scope.spawn(|| {
+                    start.wait();
+                    let _ = runtime.complete("race");
+                });
+                start.wait();
+                runtime.begin_stop().unwrap();
+                worker.join().unwrap();
+            });
+            assert!(runtime.active.lock().unwrap().is_empty());
+            assert!(runtime.complete("after shutdown").is_err());
+        }
+    }
+    #[test]
+    fn stop_during_credential_lookup_prevents_provider_dispatch() {
+        struct HeldCredentials {
+            entered: Arc<Barrier>,
+            release: Arc<Barrier>,
+        }
+        impl CredentialStore for HeldCredentials {
+            fn get(&self, _: &str) -> Result<Option<Secret>, CredentialError> {
+                self.entered.wait();
+                self.release.wait();
+                Ok(Some(Secret::new("synthetic-token").unwrap()))
+            }
+            fn put(&self, _: &str, _: Secret) -> Result<(), CredentialError> {
+                unreachable!()
+            }
+            fn delete(&self, _: &str) -> Result<(), CredentialError> {
+                unreachable!()
+            }
+        }
+        let entered = Arc::new(Barrier::new(2));
+        let release = Arc::new(Barrier::new(2));
+        let mut runtime = runtime(Box::new(crate::FakeProvider::bomb()));
+        runtime.config.credential_slot = Some("synthetic-slot".into());
+        runtime.credentials = Box::new(HeldCredentials {
+            entered: entered.clone(),
+            release: release.clone(),
+        });
+        thread::scope(|scope| {
+            let worker = scope.spawn(|| runtime.complete("synthetic prompt"));
+            entered.wait();
+            runtime.begin_stop().unwrap();
+            release.wait();
+            assert!(worker.join().unwrap().is_err());
+        });
+        assert_eq!(runtime.provider_calls(), 0);
+        assert!(runtime.active.lock().unwrap().is_empty());
     }
 }
