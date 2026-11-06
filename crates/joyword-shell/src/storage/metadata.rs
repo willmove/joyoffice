@@ -496,6 +496,7 @@ fn acl_present(path: &Path) -> Result<AclSeen, io::Error> {
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used, reason = "Test setup and assertions")]
 mod tests {
     use super::*;
 

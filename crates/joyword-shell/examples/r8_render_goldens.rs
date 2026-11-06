@@ -228,10 +228,7 @@ fn pdf_report(bytes: Vec<u8>, markup: bool) -> Result<Vec<Value>> {
                 .into());
             }
             let rect = page.media_box();
-            let dimensions = [
-                centipoints(f64::from(rect.width())),
-                centipoints(f64::from(rect.height())),
-            ];
+            let dimensions = [centipoints(rect.width()), centipoints(rect.height())];
             if dimensions != [36000, 28800] {
                 return Err(format!("unexpected PDF page dimensions: {dimensions:?}").into());
             }

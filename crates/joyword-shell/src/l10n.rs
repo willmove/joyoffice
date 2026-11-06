@@ -417,6 +417,7 @@ pub fn check_parity(catalogs: &[&Catalog]) -> Vec<L10nIssue> {
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used, reason = "Test setup and assertions")]
 mod tests {
     use super::*;
 

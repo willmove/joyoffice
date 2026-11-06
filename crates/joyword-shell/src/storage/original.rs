@@ -1073,6 +1073,7 @@ fn pre_exchange_hook(target: &Path) -> io::Result<()> {
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used, reason = "Test setup and assertions")]
 mod migration_tests {
     use super::*;
     fn plan(source: &SourceStamp) -> ExportPlan {

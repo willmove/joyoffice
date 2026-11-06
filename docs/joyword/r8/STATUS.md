@@ -4,6 +4,8 @@
 
 ## R8
 
+2026-11-06 本地整合后修复 shell 示例的冗余转换，并将测试构造/断言 lint 例外限定到已有测试模块。`joyword-shell` 全目标严格 Clippy 与 73 项测试通过，生产 deny 规则保持不变；未进行本批真实设备验收或发布。[验证与剩余阻碍](../../joyoffice/validation/20261106-local-safety-integration/word-clippy-followup.md)
+
 | 任务 | 宿主状态 | 证据或剩余条件 |
 | --- | --- | --- |
 | JW-801 可恢复基线 | 部分验证 | 已在独立工作树复现 `00fb0687` 并生成旧日志。另有 Windows 旧 R8 便携包和隔离的回退演练。替换前 GUI 及正式安装器待验。 |

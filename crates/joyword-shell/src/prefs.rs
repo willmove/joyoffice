@@ -470,6 +470,11 @@ impl PrefsStore {
 }
 
 #[cfg(test)]
+#[allow(
+    clippy::unwrap_used,
+    clippy::panic,
+    reason = "Test setup and assertions"
+)]
 mod tests {
     use super::*;
 

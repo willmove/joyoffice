@@ -27,6 +27,8 @@ Word 的 `editing.rs` 与最新主干自动合并，无代码冲突；唯一手�
 - 曾额外尝试将 Word 测试和示例纳入 `--all-targets -D warnings`，未通过：测试代码 unwrap/panic 与 `r8_render_goldens` 示例转换报错。仓库 `tools/xtask/product.py` 明确对 Word 使用库/二进制 lint 范围。本轮遵循该规则对受影响 shell 库复验，不更改 lint 策略，也不把额外检查称为通过。
 - 三目标依赖盘点在整合源码上重新执行，见 [清单](dependency-inventory.json)：Linux 559 包/3 项缺正文，Windows 452 包/2 项，Linux 主机的 macOS ARM64 图 463 包/5 项；严格许可门禁均拒绝且未产生严格 SBOM。Cargo.lock 与 main 一致。
 
+此前额外 Word shell 全目标 Clippy 失败已在后续小范围修复并复验通过，见 [跟进及外部阻碍](word-clippy-followup.md)。上述初次运行记录保留，不将新结果追溯改写为当时已通过。
+
 ## 尚未验收
 
 Word 真机磁盘故障/恢复与 Windows/macOS 场景；Deck 系统剪贴板、真实键盘焦点、完整页脚 UI 与新增缺失页脚；完整跨平台构建、签名、公证、真实设备和发布载荷验收仍开放。Linux 上选择其他目标的依赖图不等于对应设备构建或验收。

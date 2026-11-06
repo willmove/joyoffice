@@ -194,4 +194,5 @@ pub fn picture_crop(v: &[String]) -> Result<Value, String> {
 
 #[cfg(test)]
 #[path = "authoring_tests.rs"]
+#[allow(clippy::unwrap_used, reason = "Test setup and assertions")]
 mod tests;

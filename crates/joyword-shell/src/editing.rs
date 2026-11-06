@@ -484,6 +484,7 @@ impl SaveJob {
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used, reason = "Test setup and assertions")]
 mod tests {
     use super::*;
     use crate::reader::{Reader, WELCOME};
@@ -590,6 +591,7 @@ mod tests {
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used, reason = "Test setup and assertions")]
 mod additional_input_tests {
     use super::*;
     use std::sync::atomic::AtomicBool;

@@ -443,6 +443,7 @@ pub fn publish_rasters(directory: &Path, artifacts: &[(PathBuf, Vec<u8>)]) -> Re
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used, reason = "Test setup and assertions")]
 mod tests {
     use super::*;
     #[test]
