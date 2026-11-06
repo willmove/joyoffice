@@ -163,6 +163,10 @@ pub enum Command {
         target: TextTarget,
         body: Box<TextBody>,
     },
+    /// Fill all missing slide footers atomically, preserving existing footers.
+    AddAllMissingFooterText {
+        text: String,
+    },
     /// Add a missing footer only to the selected page, after conservative preflight.
     AddMissingFooterText {
         text: String,
@@ -220,6 +224,7 @@ impl Command {
             Self::ReplaceText { .. } => "replace-text",
             Self::SetText { .. } => "set-text",
             Self::SetTexts { .. } => "set-texts",
+            Self::AddAllMissingFooterText { .. } => "add-all-missing-footer-text",
             Self::AddMissingFooterText { .. } => "add-missing-footer-text",
             Self::SetExistingFooterText { .. } => "set-existing-footer-text",
             Self::EditText { .. } => "edit-text",
@@ -464,6 +469,9 @@ fn next_id(p: &mut Presentation) -> std::result::Result<u32, String> {
     p.alloc_id().ok_or_else(|| "ID space exhausted".into())
 }
 fn apply(st: &mut EditorSnapshot, cmd: Command) -> std::result::Result<(), String> {
+    if let Command::AddAllMissingFooterText { text } = &cmd {
+        return footer::add_all_missing(st, text);
+    }
     if let Command::AddMissingFooterText { text } = &cmd {
         return footer::add_missing(st, text);
     }

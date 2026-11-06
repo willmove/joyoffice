@@ -244,3 +244,34 @@ pub(super) fn add_missing(st: &mut EditorSnapshot, value: &str) -> Result<(), St
     Arc::make_mut(&mut model.slides[page]).shapes.push(shape);
     Ok(())
 }
+
+/// Fill absent footers only; a single unsafe target rejects the complete operation.
+pub(super) fn add_all_missing(st: &mut EditorSnapshot, value: &str) -> Result<(), String> {
+    if value.len() > 65536 || value.chars().any(char::is_control) {
+        return Err("footer text must be a single line of at most 64 KiB".into());
+    }
+    let mut pages = Vec::new();
+    for (page, slide) in st.model.slides.iter().enumerate() {
+        // Even grouped/complex existing footers are left intact, never duplicated.
+        let mut exists = false;
+        walk(&slide.shapes, &mut |shape, _| {
+            exists |= shape.ph_type() == Some(PhType::Footer);
+        });
+        if !exists {
+            pages.push(page);
+            if pages.len() > 256 || value.len().saturating_mul(pages.len()) > 1 << 20 {
+                return Err("footer insertion exceeds 256 targets or 1 MiB".into());
+            }
+        }
+    }
+    // Stage separately so even direct snapshot callers never see a partial edit.
+    let mut draft = st.clone();
+    for page in pages {
+        draft.selection.page = page;
+        draft.selection.shapes.clear();
+        add_missing(&mut draft, value).map_err(|error| format!("page {}: {error}", page + 1))?;
+    }
+    crate::check_model_budget(&draft.model)?;
+    st.model = draft.model;
+    Ok(())
+}

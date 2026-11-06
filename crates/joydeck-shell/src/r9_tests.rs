@@ -294,13 +294,20 @@ fn existing_footer_command_roundtrips_without_flattening_page_styles_or_dates() 
 #[test]
 fn missing_footer_insert_roundtrips_imported_pptx_without_changing_other_pages()
 -> Result<(), Box<dyn std::error::Error>> {
+    footer_insertion_roundtrip(false)?;
+    footer_insertion_roundtrip(true)
+}
+
+fn footer_insertion_roundtrip(all: bool) -> Result<(), Box<dyn std::error::Error>> {
     use joydeck_model::{LayoutType, PhType, PlaceholderVisibility, Presentation, SlideId};
     use std::sync::Arc;
     let mut p = Presentation::default();
     Arc::make_mut(&mut p.slides[0]).shapes.clear();
     let mut second = (*p.slides[0]).clone();
     second.id = SlideId(p.alloc_id().ok_or("ID allocation failed")?);
-    second.layout = p.masters[0].layouts[1].id;
+    if !all {
+        second.layout = p.masters[0].layouts[1].id;
+    }
     p.slides.push(Arc::new(second));
     let master = Arc::make_mut(&mut p.masters[0]);
     master.placeholder_visibility = Some(PlaceholderVisibility {
@@ -317,8 +324,11 @@ fn missing_footer_insert_roundtrips_imported_pptx_without_changing_other_pages()
     let source = joydeck_pptx::export(&p)?;
     let base = joydeck_pptx::import(&source)?;
     let mut session = Session::new(base.clone(), original_bindings(&base), true);
-    session.execute(Command::AddMissingFooterText {
-        text: "Inserted 中文😀".into(),
+    let text = "Inserted 中文😀".into();
+    session.execute(if all {
+        Command::AddAllMissingFooterText { text }
+    } else {
+        Command::AddMissingFooterText { text }
     })?;
     let snapshot = session.snapshot();
     let bindings: Vec<_> = snapshot
@@ -343,8 +353,24 @@ fn missing_footer_insert_roundtrips_imported_pptx_without_changing_other_pages()
     );
     assert_eq!(footer.ph, snapshot.model.slides[0].shapes[0].ph);
     assert_eq!(footer.xfrm, snapshot.model.slides[0].shapes[0].xfrm);
+    if all {
+        assert_eq!(reopened.slides[1].shapes.len(), 1);
+        assert_eq!(reopened.slides[1].shapes[0].ph_type(), Some(PhType::Footer));
+        assert_eq!(
+            reopened.slides[1].shapes[0]
+                .text
+                .as_ref()
+                .ok_or("second footer missing")?
+                .text(),
+            "Inserted 中文😀"
+        );
+    } else {
+        assert_eq!(
+            part(&source, "ppt/slides/slide2.xml")?,
+            part(&public, "ppt/slides/slide2.xml")?
+        );
+    }
     for name in [
-        "ppt/slides/slide2.xml",
         "ppt/slideLayouts/slideLayout1.xml",
         "ppt/slideMasters/slideMaster1.xml",
     ] {

@@ -299,3 +299,90 @@ fn missing_footer_rejects_ambiguity_without_touching_document_or_history() {
         assert!(!s.can_undo());
     }
 }
+
+fn all_command(value: &str) -> Command {
+    Command::AddAllMissingFooterText { text: value.into() }
+}
+#[test]
+fn all_missing_footers_preserve_existing_differences_and_undo_together() {
+    let mut p = insertable_deck();
+    let mut extra = (*p.slides[2]).clone();
+    extra.id = SlideId(p.alloc_id().unwrap());
+    p.slides.push(Arc::new(extra));
+    // A grouped footer also counts as existing and must not be duplicated.
+    let shape = &mut Arc::make_mut(&mut p.slides[0]).shapes[0];
+    let child = shape.clone();
+    shape.ph = None;
+    shape.kind = ShapeKind::Group {
+        children: vec![child],
+        child: Default::default(),
+    };
+    // Even a locked existing footer is not overwritten or treated as missing.
+    Arc::make_mut(&mut p.slides[1]).shapes[0].locked = true;
+    let mut s = session(p.clone());
+    s.select(1, vec![p.slides[1].shapes[0].id]).unwrap();
+    let selection = s.selection().clone();
+    assert!(s.validate(all_command("Shared")).unwrap());
+    assert_eq!(s.model(), &p);
+    assert!(s.execute(all_command("Shared")).unwrap());
+    assert_eq!(s.model().slides[..2], p.slides[..2]);
+    assert_eq!(s.selection(), &selection);
+    for slide in &s.model().slides[2..] {
+        assert_eq!(slide.shapes.len(), 1);
+        assert_eq!(slide.shapes[0].text.as_ref().unwrap().text(), "Shared");
+    }
+    assert_ne!(
+        s.model().slides[2].shapes[0].id,
+        s.model().slides[3].shapes[0].id
+    );
+    let changed = s.model().clone();
+    assert!(!s.execute(all_command("Do not overwrite")).unwrap());
+    assert_eq!(s.model(), &changed);
+    assert_eq!(s.revision(), 1);
+    assert!(s.execute(Command::Undo).unwrap());
+    assert_eq!(s.model(), &p);
+    assert!(!s.can_undo());
+    assert!(s.execute(Command::Redo).unwrap());
+    assert_eq!(s.model(), &changed);
+}
+#[test]
+fn all_missing_footers_reject_later_unsafe_page_atomically() {
+    let mut p = insertable_deck();
+    let mut extra = (*p.slides[2]).clone();
+    extra.id = SlideId(p.alloc_id().unwrap());
+    extra.layout = p.masters[0].layouts[1].id; // unknown visibility
+    p.slides.push(Arc::new(extra));
+    let mut s = session(p.clone());
+    assert!(
+        s.execute(all_command("Shared"))
+            .unwrap_err()
+            .contains("page 4")
+    );
+    assert_eq!(s.model(), &p);
+    assert_eq!(s.revision(), 0);
+    assert!(!s.can_undo());
+    let mut snapshot = s.snapshot();
+    assert!(snapshot.stage_edit(all_command("Shared")).is_err());
+    assert_eq!(*snapshot.model, p);
+}
+#[test]
+fn all_missing_footers_enforce_target_text_and_output_budgets() {
+    for (count, text) in [
+        (257, "x".into()),
+        (17, "x".repeat(65536)),
+        (1, "bad\ntext".into()),
+    ] {
+        let mut p = insertable_deck();
+        let template = (*p.slides[2]).clone();
+        p.slides.clear();
+        for _ in 0..count {
+            let mut slide = template.clone();
+            slide.id = SlideId(p.alloc_id().unwrap());
+            p.slides.push(Arc::new(slide));
+        }
+        let mut s = session(p.clone());
+        assert!(s.execute(all_command(&text)).is_err());
+        assert_eq!(s.model(), &p);
+        assert!(!s.can_undo());
+    }
+}
