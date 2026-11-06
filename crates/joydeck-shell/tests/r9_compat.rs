@@ -5,6 +5,45 @@ use joydeck_shell::{
     platform,
 };
 use serde_json::json;
+
+#[test]
+fn native_rich_text_opens_on_a_small_worker_stack() {
+    use joydeck_model::text::Action;
+    use joydeck_shell::{Cancellation, Document};
+
+    let sample = include_bytes!(
+        "../../../docs/joydeck/evidence/R3-EXTERNAL-RICH/debug-reopen-sample.joydeck"
+    );
+    let doc = std::thread::Builder::new()
+        .stack_size(512 * 1024)
+        .spawn(|| {
+            Document::from_bytes(
+                "rich.joydeck".into(),
+                sample.to_vec(),
+                &Cancellation::default(),
+            )
+        })
+        .unwrap()
+        .join()
+        .unwrap()
+        .unwrap();
+
+    assert_eq!(&*doc.original, sample);
+    let rich_text = doc.presentation.slides[0]
+        .shapes
+        .iter()
+        .filter_map(|shape| shape.text.as_ref())
+        .find(|text| text.text() == "网页😀 Azure Web Local\n第二行")
+        .unwrap();
+    let runs = &rich_text.paragraphs[0].runs;
+    assert_eq!(runs[0].props.bold, Some(true));
+    assert_eq!(runs[1].props.italic, Some(true));
+    assert!(matches!(
+        &runs[2].props.link.as_ref().unwrap().action,
+        Action::Url { url } if url == "https://example.org/rich?a=1&b=2"
+    ));
+}
+
 #[test]
 fn comparison_reports_resources_and_uneditable_metadata_instead_of_false_equality() {
     use joydeck_model::{MediaId, MediaItem, Presentation};

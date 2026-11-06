@@ -1549,7 +1549,7 @@
       "source_path": "crates/format/src/lib.rs",
       "source_sha256": "b22413e017a2ce81282870713d06d22f085b32ec520af6afdcd6a7fc58b18d4e",
       "target_path": "crates/joydeck-format/src/lib.rs",
-      "adapted_sha256": "a4ec00264b0e2ab1e83a87c1d38b896c9ae6a0cfa4f96646d76f6d629b86ad8e",
+      "adapted_sha256": "eb745ecff8c0782c516702ab1e2626fc5083c40f1f6c483fd2cb96224a98f08a",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
