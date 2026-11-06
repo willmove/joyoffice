@@ -32,6 +32,13 @@ R8 各平台、包及本轮自动验证见 [Windows P0 验证](VALIDATION.md#win
 修复活动偏好文件读取失败时仍允许把默认值写回的问题。只有确认文件不存在才允许新建；无法读取、超限及悬空符号链接使用默认值但保持只读，并返回 `Unreadable` 原因。活动配置读取与旧配置迁移统一为 256 KiB 上限，读取增长超过上限也拒绝；保存前验证序列化大小，避免写出下次无法读取的配置。原有损坏文件备份、未知字段保留和新 schema 只读契约不变。
 
 Linux x64、Rust 1.98.1 下 11 项偏好测试通过，包括不可读文件、目录错误、悬空链接、恰好达到上限、超限读取和超限保存不改原件；本机以非 root 用户运行，不可读文件用例实际覆盖权限拒绝。完整 `joyword-shell` 67 项测试、生产库 Clippy、全仓格式及文档检查通过。本轮未执行桌面偏好面板、Windows/macOS 权限场景或正式安装回退，JW-806/812 仍为部分验证。
+### JW-806 Linux 旧日志对象安全回归（2026-11-06）
+
+在 Linux x64 容器安装 Rust 1.98.1 后，直接运行 `Reader::recover_legacy` 验证混合媒体 DOCX 的 V2/V3 日志。新增反例覆盖 V2 删除或插入内联对象标记、合并不同表格单元格：均拒绝，原 DOCX、日志和既有锁文件字节不变，目录未新增文件。V3 精确匹配时另存副本与快照逐字节一致，正文失配时拒绝恢复。原有 V2 多处编辑回归增加中文与 emoji，保存重开后正文和媒体保持一致。
+
+`cargo test --locked -p joyword-shell` 在本轮通过 64 项测试（含 4 项恢复测试）；未修改生产恢复逻辑。本轮覆盖 headless Rust 路径，不替代桌面旧日志交互、其他复杂对象差分、真实崩溃、正式安装和文件关联回退，JW-806/812 保持部分验证。
+
+全仓 `cargo fmt --all --check`、文档完整性检查及生产库 `cargo clippy --locked -p joyword-shell --lib -- -D warnings` 通过。额外尝试 `cargo clippy --locked -p joyword-shell --all-targets -- -D warnings` 未通过：未修改的测试模块存在 `unwrap_used` 等告警，`r8_render_goldens` 示例有冗余 `f64::from`。这超出当前 JoyWord xtask 的生产 `--lib --bins` lint 范围，本批不扩大到清理无关测试和示例。
 
 ## R0–R7 待完成范围
 
