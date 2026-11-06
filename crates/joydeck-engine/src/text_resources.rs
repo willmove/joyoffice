@@ -130,3 +130,115 @@ pub(crate) fn apply(
     });
     authoring::set_body(p, page, target, remapped)
 }
+
+/// Private resource namespace for a complete text editing draft. No model writes
+/// occur until `finish` is executed. Document-local links must already be scoped.
+#[derive(Clone, Debug)]
+pub struct Draft {
+    slide: joydeck_model::SlideId,
+    target: TextTarget,
+    expected: TextBody,
+    body: TextBody,
+    resources: Vec<Resource>,
+}
+
+impl Draft {
+    pub fn begin(snapshot: &EditorSnapshot, target: TextTarget) -> Result<Self, String> {
+        let body = authoring::body(&snapshot.model, snapshot.selection.page, &target)?;
+        let resources = capture(&snapshot.model, &body)?;
+        let slide = snapshot.model.slides[snapshot.selection.page].id;
+        Ok(Self {
+            slide,
+            target,
+            expected: body.clone(),
+            body,
+            resources,
+        })
+    }
+
+    pub fn body(&self) -> &TextBody {
+        &self.body
+    }
+
+    /// Paste a separately scoped fragment at a UTF-8 byte range using the existing
+    /// rich-text insertion semantics (including its paragraph formatting rules).
+    /// On failure the entire draft is unchanged. Returned offset is the new caret.
+    pub fn paste(
+        &mut self,
+        range: std::ops::Range<usize>,
+        fragment: &TextBody,
+        resources: &[Resource],
+    ) -> Result<usize, String> {
+        validate(fragment, resources)?;
+        let value = self.body.text();
+        if range.start > range.end
+            || range.end > value.len()
+            || !value.is_char_boundary(range.start)
+            || !value.is_char_boundary(range.end)
+        {
+            return Err("invalid UTF-8 replacement range".into());
+        }
+        let range = text::field_range(&self.body, range);
+        if value
+            .len()
+            .saturating_sub(range.len())
+            .saturating_add(fragment.text().len())
+            > 65536
+        {
+            return Err("text body exceeds editing budget".into());
+        }
+        let mut staged = self.resources.clone();
+        let mut used: BTreeSet<_> = staged.iter().map(|r| r.id).collect();
+        let mut mapping = BTreeMap::new();
+        for resource in resources {
+            let id = if let Some(existing) = staged
+                .iter()
+                .find(|r| r.content_type == resource.content_type && r.data == resource.data)
+            {
+                existing.id
+            } else {
+                let mut next = 1u32;
+                while used.contains(&MediaId(next)) {
+                    next = next.checked_add(1).ok_or("draft media ID exhausted")?;
+                }
+                let id = MediaId(next);
+                let mut copy = resource.clone();
+                copy.id = id;
+                staged.push(copy);
+                used.insert(id);
+                id
+            };
+            mapping.insert(resource.id, id);
+        }
+        let mut fragment = fragment.clone();
+        media_refs::visit_mut::text(&mut fragment, &mut |id| {
+            if let Some(mapped) = mapping.get(id) {
+                *id = *mapped;
+            }
+        });
+        let mut body = self.body.clone();
+        let a = text::pos(&value, range.start);
+        let b = text::pos(&value, range.end);
+        joydeck_model::edit::delete(&mut body, a, b);
+        let caret = joydeck_model::edit::insert_body(&mut body, a, &fragment);
+        let retained = refs(&body);
+        staged.retain(|resource| retained.contains(&resource.id));
+        validate(&body, &staged)?;
+        let at = text::byte_pos(&body.text(), caret);
+        self.body = body;
+        self.resources = staged;
+        Ok(at)
+    }
+
+    /// Retains the original target guard, even after several pastes. Execute once
+    /// to publish the entire draft as one undoable edit; drop to cancel.
+    pub fn finish(self) -> Command {
+        Command::SetTextWithResources {
+            slide: self.slide,
+            target: self.target,
+            expected: Box::new(self.expected),
+            body: Box::new(self.body),
+            resources: self.resources,
+        }
+    }
+}

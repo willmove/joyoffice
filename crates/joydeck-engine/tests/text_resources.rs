@@ -206,3 +206,116 @@ fn shape_and_cell_transactions_roundtrip_command_and_history() {
         assert_eq!(s.model(), &after);
     }
 }
+
+#[test]
+fn mixed_sources_repeated_paste_cancel_and_single_undo() {
+    let (mut s, mut body, resources) = setup();
+    // Destination owns the same ID but different bytes.
+    s.execute(Command::SetText {
+        target: TextTarget::Notes,
+        body: Box::new(body.clone()),
+    })
+    .unwrap();
+    let before = s.snapshot();
+    let mut draft = text_resources::Draft::begin(&before, TextTarget::Notes).unwrap();
+    // Use a second paragraph to exercise the existing paragraph/bullet paste rules.
+    body.paragraphs.push(body.paragraphs[0].clone());
+    let mut second = resources.clone();
+    second[0].data = vec![4, 5, 6];
+    let mut at = draft.body().text().len();
+    at = draft.paste(at..at, &body, &resources).unwrap();
+    at = draft.paste(at..at, &body, &second).unwrap();
+    draft.paste(at..at, &body, &resources).unwrap();
+    assert_eq!(s.model(), before.model.as_ref());
+    drop(draft.clone()); // Cancelling a draft has no model/history effect.
+    assert_eq!(s.model(), before.model.as_ref());
+    s.execute(draft.finish()).unwrap();
+    assert_eq!(
+        s.model().media.len(),
+        3,
+        "repeated source reuses staged bytes"
+    );
+    let notes = &s.model().slides[0].notes;
+    let mut data = std::collections::BTreeSet::new();
+    joydeck_engine::media_refs::visit::text(notes, &mut |id| {
+        data.insert(s.model().media(*id).unwrap().data.as_ref().clone());
+    });
+    assert_eq!(
+        data,
+        [vec![1, 2, 3], vec![4, 5, 6], vec![9, 8, 7]]
+            .into_iter()
+            .collect()
+    );
+    let after = s.model().clone();
+    s.execute(Command::Undo).unwrap();
+    assert_eq!(s.model(), before.model.as_ref());
+    s.execute(Command::Redo).unwrap();
+    assert_eq!(s.model(), &after);
+}
+
+#[test]
+fn failed_paste_preserves_draft_and_original_stale_guard() {
+    let (mut s, body, resources) = setup();
+    let before = s.snapshot();
+    let mut draft = text_resources::Draft::begin(&before, TextTarget::Notes).unwrap();
+    let at = draft.paste(0..0, &body, &resources).unwrap();
+    let encoded = serde_json::to_vec(&draft.clone().finish()).unwrap();
+    assert!(
+        draft
+            .paste(usize::MAX..usize::MAX, &body, &resources)
+            .is_err()
+    );
+    assert!(draft.paste(at..at, &body, &[]).is_err());
+    // Each envelope is legal on its own, but their combined byte budget is not.
+    let mut large = resources.clone();
+    large[0].data = vec![8; 16 * 1024 * 1024];
+    assert!(draft.paste(at..at, &body, &large).is_err());
+    assert_eq!(
+        serde_json::to_vec(&draft.clone().finish()).unwrap(),
+        encoded
+    );
+    s.execute(Command::SetText {
+        target: TextTarget::Notes,
+        body: Box::new(TextBody::from_text("intervening edit")),
+    })
+    .unwrap();
+    let newer = s.snapshot();
+    assert!(s.execute(draft.finish()).is_err());
+    assert_eq!(s.model(), newer.model.as_ref());
+}
+
+#[test]
+fn replacement_preserves_inherited_picture_formatting_resources() {
+    let (mut s, body, resources) = setup();
+    let before = s.snapshot();
+    let mut draft = text_resources::Draft::begin(&before, TextTarget::Notes).unwrap();
+    draft.paste(0..0, &body, &resources).unwrap();
+    let end = draft.body().text().len();
+    draft
+        .paste(0..end, &TextBody::from_text("plain replacement"), &[])
+        .unwrap();
+    s.execute(draft.finish()).unwrap();
+    assert_eq!(s.model().media.len(), before.model.media.len() + 1);
+    let mut refs = 0;
+    joydeck_engine::media_refs::visit::text(&s.model().slides[0].notes, &mut |id| {
+        assert!(s.model().media(*id).is_some());
+        refs += 1;
+    });
+    assert!(
+        refs > 0,
+        "existing insertion rules preserve inherited formatting"
+    );
+    assert_eq!(s.model().slides[0].notes.text(), "plain replacement");
+}
+
+#[test]
+fn unused_fragment_paragraph_resource_is_not_committed() {
+    let (mut s, mut body, resources) = setup();
+    body.paragraphs[0].runs[0].props.fill = None;
+    let before = s.snapshot();
+    let mut draft = text_resources::Draft::begin(&before, TextTarget::Notes).unwrap();
+    // Existing insertion rules retain destination first-paragraph formatting.
+    draft.paste(0..0, &body, &resources).unwrap();
+    s.execute(draft.finish()).unwrap();
+    assert_eq!(s.model().media, before.model.media);
+}
