@@ -1,0 +1,23 @@
+{
+  "packages": 559,
+  "lockSha256": "3e907b89519f07c4e9d239a3ff19db20b1ac203039bff07e2487f6b4efae834e",
+  "target": "x86_64-unknown-linux-gnu",
+  "profile": "release",
+  "roots": [
+    "joydeck",
+    "joydeck-cli"
+  ],
+  "features": [],
+  "licenseTextsVerified": false,
+  "missingLicenseTexts": [
+    "accesskit_atspi_common@0.19.1",
+    "accesskit_unix@0.22.1",
+    "harfrust@0.5.2",
+    "mac@0.1.1",
+    "pathfinder_geometry@0.5.1",
+    "seahash@4.1.0",
+    "spirv@0.4.0+sdk-1.4.341.0",
+    "xim-ctext@0.3.0",
+    "xim-parser@0.2.2"
+  ]
+}

@@ -1,0 +1,16 @@
+[
+  {
+    "case": "parent_path",
+    "outcome": "ValueError: Unsafe archive path: 'joydeck-0.1.0-linux-x86_64-release/../escape'",
+    "fixtureOnly": true,
+    "extracted": false,
+    "executed": false
+  },
+  {
+    "case": "symlink",
+    "outcome": "ValueError: Unsafe ZIP member type or name: 'joydeck-0.1.0-linux-x86_64-release/link'",
+    "fixtureOnly": true,
+    "extracted": false,
+    "executed": false
+  }
+]
