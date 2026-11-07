@@ -12,11 +12,13 @@ use std::fmt::Write as _;
 use std::fs;
 use std::io::{self, Read as _, Write as _};
 use std::path::{Path, PathBuf};
+use std::sync::Mutex;
 
 use crate::l10n::Locale;
 
 pub const SCHEMA: u32 = 1;
 const FILE_NAME: &str = "preferences.conf";
+const SAVE_LOCK: &str = ".preferences-save.lock";
 const MAX_RECENT: usize = 10;
 const MAX_BYTES: usize = 256 * 1024;
 
@@ -155,7 +157,35 @@ pub struct Loaded {
     pub notices: Vec<PrefsNotice>,
     /// When false, `save` refuses to overwrite the file.
     pub writable: bool,
+    baseline: Baseline,
 }
+
+// Each cloned editing session keeps its own observation. Successful saves
+// advance only that session, never bless an independently edited stale clone.
+type Observation = (PathBuf, Option<Vec<u8>>);
+#[derive(Debug, Default)]
+struct Baseline(Mutex<Option<Observation>>);
+impl Baseline {
+    fn new(path: PathBuf, bytes: Option<Vec<u8>>) -> Self {
+        Self(Mutex::new(
+            std::path::absolute(path).ok().map(|path| (path, bytes)),
+        ))
+    }
+    fn snapshot(&self) -> Option<Observation> {
+        self.0.lock().ok().and_then(|value| value.clone())
+    }
+}
+impl Clone for Baseline {
+    fn clone(&self) -> Self {
+        Self(Mutex::new(self.snapshot()))
+    }
+}
+impl PartialEq for Baseline {
+    fn eq(&self, other: &Self) -> bool {
+        self.snapshot() == other.snapshot()
+    }
+}
+impl Eq for Baseline {}
 
 fn escape(value: &str) -> String {
     let mut out = String::with_capacity(value.len());
@@ -186,6 +216,18 @@ fn unescape(value: &str) -> Option<String> {
         }
     }
     Some(out)
+}
+
+// A recognizable future declaration takes precedence over old syntax and
+// conflicting earlier declarations. Share this policy across load/migrate/save.
+fn declared_future_schema(text: &str) -> Option<u32> {
+    text.lines()
+        .filter_map(|line| line.split_once('='))
+        .filter(|(key, _)| key.trim() == "schema")
+        .filter_map(|(_, value)| unescape(value.trim_end_matches('\r')))
+        .filter_map(|value| value.parse::<u32>().ok())
+        .filter(|schema| *schema > SCHEMA)
+        .max()
 }
 
 /// Parses file content. `Err(())` means the file as a whole is unusable.
@@ -307,6 +349,110 @@ pub fn default_config_dir() -> Option<PathBuf> {
     }
 }
 
+// Opening first can block indefinitely on a FIFO before the byte budget is
+// checked. Unix nonblocking open also handles replacement after a path check.
+fn open_preferences(path: &Path) -> io::Result<fs::File> {
+    #[cfg(unix)]
+    let file: fs::File = {
+        use rustix::fs::{Mode, OFlags, open};
+        open(
+            path,
+            OFlags::RDONLY | OFlags::NONBLOCK | OFlags::CLOEXEC,
+            Mode::empty(),
+        )?
+        .into()
+    };
+    #[cfg(not(unix))]
+    let file = fs::File::open(path)?;
+    if !file.metadata()?.is_file() {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "preferences are not a regular file",
+        ));
+    }
+    Ok(file)
+}
+
+fn read_preferences(path: &Path) -> io::Result<Vec<u8>> {
+    let file = open_preferences(path)?;
+    if file.metadata()?.len() > MAX_BYTES as u64 {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "preferences exceed 256 KiB",
+        ));
+    }
+    let mut bytes = Vec::new();
+    file.take(MAX_BYTES as u64 + 1).read_to_end(&mut bytes)?;
+    if bytes.len() > MAX_BYTES {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "preferences exceed 256 KiB",
+        ));
+    }
+    Ok(bytes)
+}
+
+// Permanent sidecar: deleting it on unlock would permit split-inode locks.
+// Each save opens a fresh handle and tries exactly once; Drop releases the lock.
+fn acquire_save_lock(directory: &Path) -> io::Result<fs::File> {
+    let path = directory.join(SAVE_LOCK);
+    #[cfg(unix)]
+    let file: fs::File = {
+        use rustix::fs::{Mode, OFlags, open};
+        open(
+            &path,
+            OFlags::RDWR | OFlags::CREATE | OFlags::NOFOLLOW | OFlags::NONBLOCK | OFlags::CLOEXEC,
+            Mode::RUSR | Mode::WUSR,
+        )?
+        .into()
+    };
+    #[cfg(not(unix))]
+    let file = {
+        let mut options = fs::OpenOptions::new();
+        options.read(true).write(true).create(true).truncate(false);
+        #[cfg(windows)]
+        {
+            use std::os::windows::fs::OpenOptionsExt;
+            options
+                .custom_flags(winsafe::co::FILE_FLAG::OPEN_REPARSE_POINT.raw())
+                .share_mode(
+                    winsafe::co::FILE_SHARE::READ.raw() | winsafe::co::FILE_SHARE::WRITE.raw(),
+                );
+        }
+        options.open(&path)?
+    };
+    let metadata = file.metadata()?;
+    if !metadata.is_file() || !fs::symlink_metadata(&path)?.is_file() {
+        return Err(io::Error::other(
+            "preferences save lock is not a regular file",
+        ));
+    }
+    #[cfg(windows)]
+    {
+        use std::os::windows::fs::MetadataExt;
+        if metadata.file_attributes() & winsafe::co::FILE_ATTRIBUTE::REPARSE_POINT.raw() != 0 {
+            return Err(io::Error::other("preferences save lock is a reparse point"));
+        }
+    }
+    file.try_lock()?;
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::MetadataExt;
+        let current = fs::symlink_metadata(&path)?;
+        if !current.is_file()
+            || metadata.nlink() != 1
+            || current.nlink() != 1
+            || metadata.dev() != current.dev()
+            || metadata.ino() != current.ino()
+        {
+            return Err(io::Error::other(
+                "preferences save lock changed while opening",
+            ));
+        }
+    }
+    Ok(file)
+}
+
 pub struct PrefsStore {
     dir: PathBuf,
 }
@@ -332,10 +478,11 @@ impl PrefsStore {
         }
 
         let mut text = String::new();
-        let legacy = fs::File::open(legacy_dir.join(FILE_NAME))
+        let legacy = open_preferences(&legacy_dir.join(FILE_NAME))
             .and_then(|file| file.take(MAX_BYTES as u64 + 1).read_to_string(&mut text));
         if legacy.is_ok()
             && text.len() <= MAX_BYTES
+            && declared_future_schema(&text).is_none()
             && let Ok((prefs, notices, schema)) = parse(&text, fallback)
             && schema <= SCHEMA
         {
@@ -343,6 +490,7 @@ impl PrefsStore {
                 prefs,
                 notices,
                 writable: true,
+                baseline: Baseline::new(self.path(), None),
             };
         }
         self.load(fallback)
@@ -352,25 +500,7 @@ impl PrefsStore {
     /// defaults (normally the system UI language).
     pub fn load(&self, fallback: Locale) -> Loaded {
         let path = self.path();
-        let read = || -> io::Result<Vec<u8>> {
-            let file = fs::File::open(&path)?;
-            if file.metadata()?.len() > MAX_BYTES as u64 {
-                return Err(io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    "preferences exceed 256 KiB",
-                ));
-            }
-            let mut bytes = Vec::new();
-            file.take(MAX_BYTES as u64 + 1).read_to_end(&mut bytes)?;
-            if bytes.len() > MAX_BYTES {
-                return Err(io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    "preferences exceed 256 KiB",
-                ));
-            }
-            Ok(bytes)
-        };
-        let bytes = match read() {
+        let bytes = match read_preferences(&path) {
             Ok(bytes) => bytes,
             Err(error) => {
                 // A missing target behind a symlink is not a missing config.
@@ -388,34 +518,52 @@ impl PrefsStore {
                         }]
                     },
                     writable: missing,
+                    baseline: if missing {
+                        Baseline::new(path, None)
+                    } else {
+                        Baseline::default()
+                    },
                 };
             }
         };
         let parsed = std::str::from_utf8(&bytes)
             .map_err(|_| ())
             .and_then(|text| parse(text, fallback));
+        if let Some(schema) = std::str::from_utf8(&bytes)
+            .ok()
+            .and_then(declared_future_schema)
+        {
+            let (prefs, mut notices, _) =
+                parsed.unwrap_or_else(|()| (Preferences::defaults_for(fallback), Vec::new(), 0));
+            notices.push(PrefsNotice::Newer { schema });
+            return Loaded {
+                prefs,
+                notices,
+                writable: false,
+                baseline: Baseline::new(path, Some(bytes)),
+            };
+        }
         match parsed {
-            Ok((prefs, notices, schema)) if schema > SCHEMA => {
-                let mut notices = notices;
-                notices.push(PrefsNotice::Newer { schema });
-                Loaded {
-                    prefs,
-                    notices,
-                    writable: false,
-                }
-            }
             Ok((prefs, notices, _)) => Loaded {
                 prefs,
                 notices,
                 writable: true,
+                baseline: Baseline::new(path, Some(bytes)),
             },
             Err(()) => {
                 let backup = self.backup_path();
                 // create_new also protects a backup created by another process.
                 // Exhaustion or a competing writer preserves the original read-only.
-                let copied = fs::OpenOptions::new()
-                    .write(true)
-                    .create_new(true)
+                let mut options = fs::OpenOptions::new();
+                options.write(true).create_new(true);
+                #[cfg(unix)]
+                {
+                    use std::os::unix::fs::OpenOptionsExt;
+                    // Backups contain the original private preferences. Restrict
+                    // access at creation, before any bytes are written.
+                    options.mode(0o600);
+                }
+                let copied = options
                     .open(&backup)
                     .and_then(|mut file| {
                         file.write_all(&bytes)?;
@@ -426,6 +574,7 @@ impl PrefsStore {
                     prefs: Preferences::defaults_for(fallback),
                     notices: vec![PrefsNotice::Corrupt { backup }],
                     writable: copied,
+                    baseline: Baseline::new(path, Some(bytes)),
                 }
             }
         }
@@ -436,6 +585,62 @@ impl PrefsStore {
             .map(|n| self.dir.join(format!("preferences.corrupt-{n}.conf")))
             .find(|candidate| !candidate.exists())
             .unwrap_or_else(|| self.dir.join("preferences.corrupt-1023.conf"))
+    }
+
+    fn check_observation(&self, observation: &Observation) -> io::Result<()> {
+        let path = self.path();
+        if std::path::absolute(&path)? != observation.0 {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "preferences belong to another store",
+            ));
+        }
+        let current = match read_preferences(&path) {
+            Ok(bytes) => Some(bytes),
+            Err(error)
+                if error.kind() == io::ErrorKind::NotFound
+                    && path
+                        .symlink_metadata()
+                        .is_err_and(|e| e.kind() == io::ErrorKind::NotFound) =>
+            {
+                None
+            }
+            Err(error) => return Err(error),
+        };
+        if current != observation.1 {
+            return Err(io::Error::new(
+                io::ErrorKind::AlreadyExists,
+                "preferences changed since loading; reload before saving",
+            ));
+        }
+        Ok(())
+    }
+
+    // The loaded writable flag is only a past observation: a newer installation
+    // can publish preferences while this process remains open.
+    fn check_current_schema(&self) -> io::Result<()> {
+        let path = self.path();
+        let bytes = match read_preferences(&path) {
+            Ok(bytes) => bytes,
+            Err(error)
+                if error.kind() == io::ErrorKind::NotFound
+                    && path
+                        .symlink_metadata()
+                        .is_err_and(|e| e.kind() == io::ErrorKind::NotFound) =>
+            {
+                return Ok(());
+            }
+            Err(error) => return Err(error),
+        };
+        if let Ok(text) = std::str::from_utf8(&bytes)
+            && declared_future_schema(text).is_some()
+        {
+            return Err(io::Error::new(
+                io::ErrorKind::PermissionDenied,
+                "preferences now belong to a newer JoyWord; reload before saving",
+            ));
+        }
+        Ok(())
     }
 
     /// Writes atomically: a temporary file in the same directory, flushed,
@@ -454,13 +659,30 @@ impl PrefsStore {
                 "preferences exceed 256 KiB",
             ));
         }
+        let mut baseline = loaded
+            .baseline
+            .0
+            .lock()
+            .map_err(|_| io::Error::other("preferences baseline unavailable"))?;
+        let observation = baseline
+            .as_mut()
+            .ok_or_else(|| io::Error::other("preferences baseline unavailable"))?;
+        self.check_observation(observation)?;
+        self.check_current_schema()?;
         fs::create_dir_all(&self.dir)?;
+        let _save_lock = acquire_save_lock(&self.dir)?;
+        // Another cooperating process may have published after our preflight.
+        self.check_observation(observation)?;
+        self.check_current_schema()?;
         let mut temporary = tempfile::NamedTempFile::new_in(&self.dir)?;
         temporary.write_all(serialized.as_bytes())?;
         temporary.as_file().sync_all()?;
+        self.check_observation(observation)?;
+        self.check_current_schema()?;
         temporary
             .persist(self.path())
             .map_err(|error| error.error)?;
+        observation.1 = Some(serialized.into_bytes());
         Ok(())
     }
 
@@ -729,5 +951,303 @@ mod tests {
                 .contains("schema=1\n")
         );
         let _ = fs::remove_dir_all(dir);
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn fifo_preferences_do_not_block_or_become_writable() -> io::Result<()> {
+        use crate::test_support::make_fifo;
+        use std::os::unix::fs::FileTypeExt;
+        let dir = tempfile::tempdir()?;
+        let store = PrefsStore::new(dir.path());
+        make_fifo(&store.path())?;
+        let loaded = store.load(Locale::En);
+        assert!(!loaded.writable);
+        assert!(matches!(
+            loaded.notices.as_slice(),
+            [PrefsNotice::Unreadable { .. }]
+        ));
+        assert!(store.save(&loaded).is_err());
+        assert!(fs::symlink_metadata(store.path())?.file_type().is_fifo());
+        assert_eq!(fs::read_dir(dir.path())?.count(), 1);
+        Ok(())
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn legacy_fifo_preferences_fall_back_without_touching_the_legacy_path() -> io::Result<()> {
+        use crate::test_support::make_fifo;
+        use std::os::unix::fs::FileTypeExt;
+        let legacy = tempfile::tempdir()?;
+        let current = tempfile::tempdir()?;
+        let path = legacy.path().join(FILE_NAME);
+        make_fifo(&path)?;
+        let store = PrefsStore::new(current.path());
+        let loaded = store.load_with_legacy(legacy.path(), Locale::En);
+        assert_eq!(loaded.prefs, Preferences::defaults_for(Locale::En));
+        assert!(loaded.writable); // only the missing current file may be created
+        assert!(!store.path().exists());
+        assert!(fs::symlink_metadata(&path)?.file_type().is_fifo());
+        assert_eq!(fs::read_dir(legacy.path())?.count(), 1);
+        Ok(())
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn regular_preferences_symlink_keeps_existing_read_compatibility() -> io::Result<()> {
+        let dir = tempfile::tempdir()?;
+        let target = dir.path().join("regular.conf");
+        fs::write(&target, "schema=1\nauthor.name=Reader\n")?;
+        let store = PrefsStore::new(dir.path());
+        std::os::unix::fs::symlink(&target, store.path())?;
+        let loaded = store.load(Locale::En);
+        assert!(loaded.writable);
+        assert_eq!(loaded.prefs.author_name, "Reader");
+        assert_eq!(
+            fs::read_to_string(&target)?,
+            "schema=1\nauthor.name=Reader\n"
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn stale_writable_preferences_cannot_overwrite_a_newer_schema() -> io::Result<()> {
+        let dir = tempfile::tempdir()?;
+        let store = PrefsStore::new(dir.path());
+        let mut loaded = store.load(Locale::En);
+        store.save(&loaded)?;
+        loaded.prefs.author_name = "old editor".into();
+        let future = "schema=99\nfuture.important=keep\n";
+        fs::write(store.path(), future)?;
+        assert!(loaded.writable);
+        assert!(store.save(&loaded).is_err());
+        assert_eq!(fs::read_to_string(store.path())?, future);
+        assert_eq!(fs::read_dir(dir.path())?.count(), 2);
+        Ok(())
+    }
+
+    #[test]
+    fn save_guard_recognizes_future_schema_even_when_new_syntax_is_unknown() -> io::Result<()> {
+        for future in [
+            "schema=99\nnew syntax without equals\n",
+            "schema=1\nschema=99\n",
+        ] {
+            let dir = tempfile::tempdir()?;
+            let store = PrefsStore::new(dir.path());
+            let loaded = store.load(Locale::En);
+            fs::write(store.path(), future)?;
+            assert!(store.save(&loaded).is_err());
+            assert_eq!(fs::read_to_string(store.path())?, future);
+            assert_eq!(fs::read_dir(dir.path())?.count(), 1);
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn stale_same_schema_save_keeps_completed_external_changes() -> io::Result<()> {
+        let dir = tempfile::tempdir()?;
+        let store = PrefsStore::new(dir.path());
+        fs::write(store.path(), "schema=1\nauthor.name=First\n")?;
+        let mut stale = store.load(Locale::En);
+        let mut other = store.load(Locale::En);
+        other.prefs.author_name = "Second".into();
+        store.save(&other)?;
+        let external = fs::read(store.path())?;
+        stale.prefs.author_name = "Stale".into();
+        assert!(store.save(&stale).is_err());
+        assert_eq!(fs::read(store.path())?, external);
+        Ok(())
+    }
+
+    #[test]
+    fn successful_saves_advance_only_the_current_sessions_baseline() -> io::Result<()> {
+        let dir = tempfile::tempdir()?;
+        let store = PrefsStore::new(dir.path());
+        let mut active = store.load(Locale::En);
+        let mut stale = active.clone();
+        active.prefs.author_name = "One".into();
+        store.save(&active)?;
+        active.prefs.author_name = "Two".into();
+        store.save(&active)?;
+        let expected = fs::read(store.path())?;
+        stale.prefs.author_name = "Old".into();
+        assert!(store.save(&stale).is_err());
+        assert_eq!(fs::read(store.path())?, expected);
+        assert_eq!(fs::read_dir(dir.path())?.count(), 2);
+        Ok(())
+    }
+
+    #[test]
+    fn changed_deleted_or_cross_store_preferences_are_not_overwritten() -> io::Result<()> {
+        for mode in 0..3 {
+            let dir = tempfile::tempdir()?;
+            let store = PrefsStore::new(dir.path());
+            let original = "schema=1\nauthor.name=One\n";
+            fs::write(store.path(), original)?;
+            let loaded = store.load(Locale::En);
+            match mode {
+                0 => {
+                    let changed = "schema=1\nauthor.name=Two\n";
+                    assert_eq!(original.len(), changed.len());
+                    fs::write(store.path(), changed)?;
+                    assert!(store.save(&loaded).is_err());
+                    assert_eq!(fs::read_to_string(store.path())?, changed);
+                }
+                1 => {
+                    fs::remove_file(store.path())?;
+                    assert!(store.save(&loaded).is_err());
+                    assert!(!store.path().exists());
+                }
+                _ => {
+                    let other = PrefsStore::new(dir.path().join("other"));
+                    assert!(other.save(&loaded).is_err());
+                    assert!(!other.dir().exists());
+                }
+            }
+        }
+        Ok(())
+    }
+
+    // Subprocess entry: no environment variable means an ordinary no-op test.
+    #[test]
+    fn preference_lock_child() -> io::Result<()> {
+        let Some(directory) = std::env::var_os("JOYWORD_TEST_PREF_LOCK_DIR") else {
+            return Ok(());
+        };
+        let _lock = acquire_save_lock(Path::new(&directory))?;
+        println!("PREFERENCE_LOCK_READY");
+        io::stdout().flush()?;
+        let mut line = String::new();
+        io::stdin().read_line(&mut line)?;
+        Ok(())
+    }
+
+    #[test]
+    fn separate_process_lock_refuses_save_and_crash_releases_it() -> io::Result<()> {
+        use std::io::BufRead;
+        use std::process::{Command, Stdio};
+        let dir = tempfile::tempdir()?;
+        let store = PrefsStore::new(dir.path());
+        let original = "schema=1\nauthor.name=Before\n";
+        fs::write(store.path(), original)?;
+        let mut loaded = store.load(Locale::En);
+        loaded.prefs.author_name = "After".into();
+        let mut child = Command::new(std::env::current_exe()?)
+            .args([
+                "--exact",
+                "prefs::tests::preference_lock_child",
+                "--nocapture",
+            ])
+            .env("JOYWORD_TEST_PREF_LOCK_DIR", dir.path())
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .spawn()?;
+        let stdout = child
+            .stdout
+            .take()
+            .ok_or_else(|| io::Error::other("missing child stdout"))?;
+        let (send, receive) = std::sync::mpsc::channel();
+        std::thread::spawn(move || {
+            for line in io::BufReader::new(stdout).lines().map_while(Result::ok) {
+                if line.contains("PREFERENCE_LOCK_READY") {
+                    let _ = send.send(());
+                    break;
+                }
+            }
+        });
+        if receive
+            .recv_timeout(std::time::Duration::from_secs(10))
+            .is_err()
+        {
+            let _ = child.kill();
+            let _ = child.wait();
+            return Err(io::Error::other("lock subprocess did not become ready"));
+        }
+        let result = store.save(&loaded);
+        child.kill()?;
+        child.wait()?;
+        assert_eq!(
+            result.err().map(|e| e.kind()),
+            Some(io::ErrorKind::WouldBlock)
+        );
+        assert_eq!(fs::read_to_string(store.path())?, original);
+        store.save(&loaded)?;
+        assert_eq!(store.load(Locale::En).prefs.author_name, "After");
+        assert!(dir.path().join(SAVE_LOCK).is_file());
+        Ok(())
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn unsafe_save_lock_paths_refuse_without_touching_preferences() -> io::Result<()> {
+        use crate::test_support::make_fifo;
+        for mode in 0..3 {
+            let dir = tempfile::tempdir()?;
+            let store = PrefsStore::new(dir.path());
+            let original = "schema=1\nauthor.name=Keep\n";
+            fs::write(store.path(), original)?;
+            let loaded = store.load(Locale::En);
+            let lock = dir.path().join(SAVE_LOCK);
+            match mode {
+                0 => std::os::unix::fs::symlink(store.path(), &lock)?,
+                1 => make_fifo(&lock)?,
+                _ => fs::create_dir(&lock)?,
+            }
+            assert!(store.save(&loaded).is_err());
+            assert_eq!(fs::read_to_string(store.path())?, original);
+        }
+        Ok(())
+    }
+    #[cfg(unix)]
+    #[test]
+    fn corrupt_preferences_backup_does_not_grant_group_or_other_access() -> io::Result<()> {
+        use std::os::unix::fs::PermissionsExt;
+        let dir = tempfile::tempdir()?;
+        let store = PrefsStore::new(dir.path());
+        let original = b"private damaged preferences without an equals sign";
+        fs::write(store.path(), original)?;
+        fs::set_permissions(store.path(), fs::Permissions::from_mode(0o600))?;
+        let loaded = store.load(Locale::En);
+        assert!(loaded.writable);
+        let [PrefsNotice::Corrupt { backup }] = &loaded.notices[..] else {
+            return Err(io::Error::other("expected corruption backup"));
+        };
+        assert_eq!(fs::read(backup)?, original);
+        assert_eq!(fs::read(store.path())?, original);
+        assert_eq!(fs::metadata(backup)?.permissions().mode() & 0o077, 0);
+        Ok(())
+    }
+    #[test]
+    fn future_preferences_remain_read_only_even_with_unrecognized_syntax() -> io::Result<()> {
+        for original in [
+            "schema=99\nfuture syntax without equals\n",
+            "schema=1\nauthor.name=Future\nschema=99\n",
+        ] {
+            let dir = tempfile::tempdir()?;
+            let store = PrefsStore::new(dir.path());
+            fs::write(store.path(), original)?;
+            let loaded = store.load(Locale::En);
+            assert!(!loaded.writable);
+            assert!(loaded.notices.contains(&PrefsNotice::Newer { schema: 99 }));
+            assert_eq!(fs::read_to_string(store.path())?, original);
+            assert_eq!(fs::read_dir(dir.path())?.count(), 1);
+            assert!(store.save(&loaded).is_err());
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn legacy_preferences_with_a_future_declaration_are_not_migrated() -> io::Result<()> {
+        let dir = tempfile::tempdir()?;
+        let legacy = dir.path().join("legacy");
+        fs::create_dir(&legacy)?;
+        let original = "schema=1\nauthor.name=Future owner\nschema=99\n";
+        fs::write(legacy.join(FILE_NAME), original)?;
+        let store = PrefsStore::new(dir.path().join("current"));
+        let loaded = store.load_with_legacy(&legacy, Locale::En);
+        assert_eq!(loaded.prefs, Preferences::defaults_for(Locale::En));
+        assert_eq!(fs::read_to_string(legacy.join(FILE_NAME))?, original);
+        assert!(!store.path().exists());
+        Ok(())
     }
 }
