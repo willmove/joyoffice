@@ -10,7 +10,8 @@
 //! other JoyWord lock, every Office `~$` file, and an unreadable lock stay
 //! conflicts. `open_source` never passes a token.
 
-use std::fs;
+use std::fs::{self, File};
+use std::io::{self, Read};
 use std::path::{Path, PathBuf};
 
 use super::error::{LockKind, LockState, SaveOriginalError};
@@ -131,11 +132,111 @@ fn joyword_lock_is_own(path: &Path, owner_token: Option<&str>) -> bool {
     let Some(token) = owner_token.filter(|token| !token.is_empty()) else {
         return false;
     };
-    let Ok(metadata) = fs::metadata(path) else {
-        return false;
-    };
-    if !metadata.is_file() || metadata.len() != token.len() as u64 {
-        return false;
+    read_own_lock(path, token).unwrap_or(false)
+}
+
+fn open_lock(path: &Path) -> io::Result<File> {
+    #[cfg(unix)]
+    {
+        use rustix::fs::{Mode, OFlags, open};
+        // A lock replaced after lstat must not redirect the read or block on a FIFO.
+        Ok(open(
+            path,
+            OFlags::RDONLY | OFlags::NOFOLLOW | OFlags::NONBLOCK | OFlags::CLOEXEC,
+            Mode::empty(),
+        )?
+        .into())
     }
-    fs::read_to_string(path).ok().as_deref() == Some(token)
+    #[cfg(not(unix))]
+    {
+        File::open(path)
+    }
+}
+
+fn read_own_lock(path: &Path, token: &str) -> io::Result<bool> {
+    let before = fs::symlink_metadata(path)?;
+    if !before.is_file() || before.len() != token.len() as u64 {
+        return Ok(false);
+    }
+    let file = open_lock(path)?;
+    let opened = file.metadata()?;
+    if !opened.is_file() || opened.len() != before.len() {
+        return Ok(false);
+    }
+    let matches = matching_token(file, token)?;
+    let after = fs::symlink_metadata(path)?;
+    if !after.is_file() || after.len() != before.len() {
+        return Ok(false);
+    }
+    #[cfg(unix)]
+    {
+        use super::source::SourceIdentity;
+        if SourceIdentity::capture(&before) != SourceIdentity::capture(&opened)
+            || SourceIdentity::capture(&before) != SourceIdentity::capture(&after)
+        {
+            return Ok(false);
+        }
+    }
+    Ok(matches)
+}
+
+fn matching_token(reader: impl Read, token: &str) -> io::Result<bool> {
+    let mut bytes = Vec::new();
+    // A concurrent writer can grow the file after metadata inspection. Never
+    // let lock verification allocate/read beyond the expected token plus one.
+    reader
+        .take((token.len() as u64).saturating_add(1))
+        .read_to_end(&mut bytes)?;
+    Ok(bytes == token.as_bytes())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn only_complete_nonempty_regular_lock_tokens_are_owned()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let dir = tempfile::tempdir()?;
+        let path = dir.path().join("lock");
+        fs::write(&path, "owner-token")?;
+        assert!(joyword_lock_is_own(&path, Some("owner-token")));
+        for token in [None, Some(""), Some("owner"), Some("other-token")] {
+            assert!(!joyword_lock_is_own(&path, token));
+        }
+        fs::write(&path, "owner-token-extra")?;
+        assert!(!joyword_lock_is_own(&path, Some("owner-token")));
+        assert!(!joyword_lock_is_own(dir.path(), Some("owner-token")));
+        Ok(())
+    }
+
+    #[test]
+    fn growing_lock_read_stops_after_token_length_plus_one() -> io::Result<()> {
+        assert!(!matching_token(io::repeat(b'x'), "x")?);
+        assert!(matching_token(io::Cursor::new(b"owner"), "owner")?);
+        Ok(())
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn symlink_to_matching_token_remains_a_conflicting_lock()
+    -> Result<(), Box<dyn std::error::Error>> {
+        use std::os::unix::fs::symlink;
+        let dir = tempfile::tempdir()?;
+        let target = dir.path().join("token");
+        fs::write(&target, "owner-token")?;
+        let lock = dir.path().join(joyword_lock_name("document.docx"));
+        symlink(&target, &lock)?;
+        assert!(!joyword_lock_is_own(&lock, Some("owner-token")));
+        assert!(open_lock(&lock).is_err());
+        let findings = scan_directory(
+            dir.path(),
+            std::ffi::OsStr::new("document.docx"),
+            Some("owner-token"),
+        )?;
+        assert_eq!(findings.len(), 1);
+        assert_eq!(findings[0].path, lock);
+        assert_eq!(fs::read_to_string(&target)?, "owner-token");
+        Ok(())
+    }
 }

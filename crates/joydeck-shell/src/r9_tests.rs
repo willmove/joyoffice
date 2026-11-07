@@ -290,3 +290,95 @@ fn existing_footer_command_roundtrips_without_flattening_page_styles_or_dates() 
     assert!(session.execute(Command::Redo).unwrap());
     assert_eq!(session.model(), snapshot.model.as_ref());
 }
+
+#[test]
+fn missing_footer_insert_roundtrips_imported_pptx_without_changing_other_pages()
+-> Result<(), Box<dyn std::error::Error>> {
+    footer_insertion_roundtrip(false)?;
+    footer_insertion_roundtrip(true)
+}
+
+fn footer_insertion_roundtrip(all: bool) -> Result<(), Box<dyn std::error::Error>> {
+    use joydeck_model::{LayoutType, PhType, PlaceholderVisibility, Presentation, SlideId};
+    use std::sync::Arc;
+    let mut p = Presentation::default();
+    Arc::make_mut(&mut p.slides[0]).shapes.clear();
+    let mut second = (*p.slides[0]).clone();
+    second.id = SlideId(p.alloc_id().ok_or("ID allocation failed")?);
+    if !all {
+        second.layout = p.masters[0].layouts[1].id;
+    }
+    p.slides.push(Arc::new(second));
+    let master = Arc::make_mut(&mut p.masters[0]);
+    master.placeholder_visibility = Some(PlaceholderVisibility {
+        footer: Some(true),
+        ..Default::default()
+    });
+    let layout = master
+        .layouts
+        .iter_mut()
+        .find(|l| l.id == p.slides[0].layout)
+        .ok_or("layout missing")?;
+    layout.kind = LayoutType::TitleAndContent;
+    layout.placeholder_visibility = master.placeholder_visibility.clone();
+    let source = joydeck_pptx::export(&p)?;
+    let base = joydeck_pptx::import(&source)?;
+    let mut session = Session::new(base.clone(), original_bindings(&base), true);
+    let text = "Inserted 中文😀".into();
+    session.execute(if all {
+        Command::AddAllMissingFooterText { text }
+    } else {
+        Command::AddMissingFooterText { text }
+    })?;
+    let snapshot = session.snapshot();
+    let bindings: Vec<_> = snapshot
+        .origins
+        .iter()
+        .map(|(slide, origin)| joydeck_pptx::SlideBinding {
+            slide: *slide,
+            source: origin.slide,
+            shapes: origin.shapes.clone(),
+        })
+        .collect();
+    let public = joydeck_pptx::export_preserving(&source, &base, &snapshot.model, &bindings)?;
+    let native = joydeck_format::save(&snapshot.model)?;
+    assert_eq!(joydeck_format::load(&native)?, *snapshot.model);
+    let reopened = joydeck_pptx::import(&public)?;
+    let footer = &reopened.slides[0].shapes[0];
+    assert_eq!(reopened.slides[0].shapes.len(), 1);
+    assert_eq!(footer.ph_type(), Some(PhType::Footer));
+    assert_eq!(
+        footer.text.as_ref().ok_or("footer text missing")?.text(),
+        "Inserted 中文😀"
+    );
+    assert_eq!(footer.ph, snapshot.model.slides[0].shapes[0].ph);
+    assert_eq!(footer.xfrm, snapshot.model.slides[0].shapes[0].xfrm);
+    if all {
+        assert_eq!(reopened.slides[1].shapes.len(), 1);
+        assert_eq!(reopened.slides[1].shapes[0].ph_type(), Some(PhType::Footer));
+        assert_eq!(
+            reopened.slides[1].shapes[0]
+                .text
+                .as_ref()
+                .ok_or("second footer missing")?
+                .text(),
+            "Inserted 中文😀"
+        );
+    } else {
+        assert_eq!(
+            part(&source, "ppt/slides/slide2.xml")?,
+            part(&public, "ppt/slides/slide2.xml")?
+        );
+    }
+    for name in [
+        "ppt/slideLayouts/slideLayout1.xml",
+        "ppt/slideMasters/slideMaster1.xml",
+    ] {
+        assert_eq!(part(&source, name)?, part(&public, name)?);
+    }
+    assert!(session.execute(Command::Undo)?);
+    assert_eq!(session.model(), &base);
+    assert!(session.execute(Command::Redo)?);
+    assert_eq!(session.model(), snapshot.model.as_ref());
+    Ok(())
+}

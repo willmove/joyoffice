@@ -1370,6 +1370,7 @@ fn read_master(
     let part = Part::new(pkg, path, doc);
     let root = &doc.root;
     let mut m = Master {
+        placeholder_visibility: placeholder_visibility(root),
         id: MasterId(0),
         preserve: root.bool("preserve").unwrap_or(false),
         ..Default::default()
@@ -1449,9 +1450,57 @@ fn read_master(
     m
 }
 
+// Only recognize the standard attribute-only subset. Unknown/invalid/duplicate
+// data remains unclassified, so callers cannot infer permission to create a footer.
+fn placeholder_visibility(root: &El) -> Option<joydeck_model::PlaceholderVisibility> {
+    let mut elements = root.children_named("hf");
+    let hf = elements.next()?;
+    const PRESENTATION_NS: &str = "http://schemas.openxmlformats.org/presentationml/2006/main";
+    let bound = hf
+        .attrs
+        .iter()
+        .chain(root.attrs.iter())
+        .find(|(name, _)| name == "xmlns:p");
+    if hf.name != "p:hf" || bound.is_none_or(|(_, value)| value != PRESENTATION_NS) {
+        return None;
+    }
+    if elements.next().is_some()
+        || hf.children.iter().any(|child| match child {
+            crate::xml::Node::El(_) => true,
+            crate::xml::Node::Text(text) => !text.trim().is_empty(),
+        })
+    {
+        return None;
+    }
+    let mut flags = joydeck_model::PlaceholderVisibility::default();
+    let mut seen = HashSet::new();
+    for (name, value) in &hf.attrs {
+        if name == "xmlns" || name.starts_with("xmlns:") {
+            continue;
+        }
+        if !seen.insert(name) {
+            return None;
+        }
+        let target = match name.as_str() {
+            "dt" => &mut flags.date,
+            "ftr" => &mut flags.footer,
+            "hdr" => &mut flags.header,
+            "sldNum" => &mut flags.slide_number,
+            _ => return None,
+        };
+        *target = Some(match value.trim() {
+            "true" | "1" => true,
+            "false" | "0" => false,
+            _ => return None,
+        });
+    }
+    Some(flags)
+}
+
 fn read_layout(imp: &mut Imp, part: &Part, doc: &Doc) -> Layout {
     let root = &doc.root;
     let mut l = Layout {
+        placeholder_visibility: placeholder_visibility(root),
         id: LayoutId(imp.alloc()),
         kind: LayoutType::from_xml(root.attr("type").unwrap_or("cust")),
         show_master_shapes: root.bool("showMasterSp").unwrap_or(true),
