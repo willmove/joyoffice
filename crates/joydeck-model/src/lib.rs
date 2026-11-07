@@ -795,6 +795,9 @@ impl LayoutType {
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 #[serde(default, rename_all = "camelCase")]
 pub struct Layout {
+    /// Recognized layout/master header-footer flags; does not resolve inheritance.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub placeholder_visibility: Option<PlaceholderVisibility>,
     pub id: LayoutId,
     pub name: String,
     pub kind: LayoutType,
@@ -808,6 +811,18 @@ pub struct Layout {
     pub color_map: Option<Vec<(String, String)>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub raw_ext: Option<String>,
+}
+
+/// Explicit, recognized `p:hf` attributes on a layout or master.
+/// Missing attributes use the Open XML default of true within this element.
+/// An absent owner field means no recognized element, not permission to add shapes.
+#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
+#[serde(default, rename_all = "camelCase")]
+pub struct PlaceholderVisibility {
+    pub date: Option<bool>,
+    pub footer: Option<bool>,
+    pub header: Option<bool>,
+    pub slide_number: Option<bool>,
 }
 
 /// Which placeholders slides show in the footer row (Header & Footer dialog).
@@ -829,6 +844,9 @@ pub struct HeaderFooter {
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 #[serde(default, rename_all = "camelCase")]
 pub struct Master {
+    /// Recognized layout/master header-footer flags; does not resolve inheritance.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub placeholder_visibility: Option<PlaceholderVisibility>,
     pub id: MasterId,
     pub name: String,
     pub theme: Theme,
@@ -1168,11 +1186,12 @@ impl Presentation {
     }
     /// Add media bytes, reusing an identical existing item.
     pub fn add_media(&mut self, name: &str, content_type: &str, data: Vec<u8>) -> Option<MediaId> {
-        if let Some(m) = self
-            .media
-            .iter()
-            .find(|m| m.data.len() == data.len() && *m.data == data)
-        {
+        if let Some(m) = self.media.iter().find(|m| {
+            m.link.is_none()
+                && m.content_type == content_type
+                && m.data.len() == data.len()
+                && *m.data == data
+        }) {
             return Some(m.id);
         }
         let id = MediaId(self.alloc_id()?);

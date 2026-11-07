@@ -215,16 +215,21 @@ mod tests {
             "application/x-rtf",
             "text/rtf;charset=utf-8",
         ] {
-            let offers = format!("{kind}\napplication/x-rtf;alternative=yes\ntext/plain\n");
-            let body = import_offer(&offers, |mime| {
-                assert_eq!(
-                    mime, kind,
-                    "must not try another representation after hidden RTF"
-                );
-                Some(br"{\rtf1\v secret}".to_vec())
-            })
-            .expect("hidden RTF consumes paste");
-            assert!(body.is_empty());
+            for input in [
+                br"{\rtf1\v secret}".as_slice(),
+                br"{\rtf1\v unclosed",
+                br"{\rtf1 Visible{\v secret}",
+            ] {
+                let offers = format!("{kind}\napplication/x-rtf;alternative=yes\ntext/plain\n");
+                let body = import_offer(&offers, |mime| {
+                    assert_eq!(
+                        mime, kind,
+                        "must not try another representation after hidden RTF"
+                    );
+                    Some(input.to_vec())
+                });
+                assert_eq!(body.map(|body| body.is_empty()), Some(true));
+            }
         }
     }
 

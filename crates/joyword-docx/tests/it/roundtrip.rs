@@ -4599,3 +4599,18 @@ fn drop_cap_options_round_trip() {
         (Some(4), Some(true), None, None)
     );
 }
+
+/// A no-edit save must not erase Word's recorded print timestamp.
+#[test]
+fn word_print_timestamp_survives_regenerated_save() {
+    let source =
+        include_bytes!("../../../../tests/fixtures/reference/word2024/breaks/word_keepnext.docx");
+    let expected = "<cp:lastPrinted>2026-10-17T21:42:00Z</cp:lastPrinted>";
+    assert!(part_xml(source, "docProps/core.xml").contains(expected));
+    let document = joyword_docx::read(source).expect("read Word fixture");
+    let saved = joyword_docx::write(&document).expect("save Word fixture");
+    assert!(part_xml(&saved, "docProps/core.xml").contains(expected));
+    let reopened = joyword_docx::read(&saved).expect("reopen saved fixture");
+    let resaved = joyword_docx::write(&reopened).expect("save again");
+    assert!(part_xml(&resaved, "docProps/core.xml").contains(expected));
+}

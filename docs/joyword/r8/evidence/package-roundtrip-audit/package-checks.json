@@ -1,0 +1,179 @@
+[
+  {
+    "path": "docs/joyoffice/validation/20261102-t109/native/01-cancelled-a.docx",
+    "dangling_relationships": [],
+    "changed_binary_parts": []
+  },
+  {
+    "path": "docs/joyoffice/validation/20261102-t109/native/02-save-n.docx",
+    "dangling_relationships": [],
+    "changed_binary_parts": []
+  },
+  {
+    "path": "docs/joyoffice/validation/20261102-t109/native/03-save-later.docx",
+    "dangling_relationships": [],
+    "changed_binary_parts": []
+  },
+  {
+    "path": "docs/joyoffice/validation/20261102-t109/native/04-late-b-copy.docx",
+    "dangling_relationships": [],
+    "changed_binary_parts": []
+  },
+  {
+    "path": "docs/joyoffice/validation/20261102-t109/native/05-current-c.docx",
+    "dangling_relationships": [],
+    "changed_binary_parts": []
+  },
+  {
+    "path": "docs/joyoffice/validation/20261102-t109/native/initial.docx",
+    "dangling_relationships": [],
+    "changed_binary_parts": []
+  },
+  {
+    "path": "docs/joyoffice/validation/20261102-t109/native/other.docx",
+    "dangling_relationships": [],
+    "changed_binary_parts": []
+  },
+  {
+    "path": "docs/joyoffice/validation/20261102-t109/native/slow-a.docx",
+    "dangling_relationships": [],
+    "changed_binary_parts": []
+  },
+  {
+    "path": "docs/joyoffice/validation/20261102-t109/native/slow-b.docx",
+    "dangling_relationships": [],
+    "changed_binary_parts": []
+  },
+  {
+    "path": "docs/joyword/validation/20261102-export-availability/samples/synthetic-compat.docx",
+    "dangling_relationships": [],
+    "changed_binary_parts": []
+  },
+  {
+    "path": "experiments/docx-robustness/seeds/alternate-content.docx",
+    "dangling_relationships": [],
+    "changed_binary_parts": []
+  },
+  {
+    "path": "experiments/docx-robustness/seeds/revision.docx",
+    "dangling_relationships": [],
+    "changed_binary_parts": []
+  },
+  {
+    "path": "tests/fixtures/reference/word2024/breaks/word_keepnext.docx",
+    "dangling_relationships": [],
+    "changed_binary_parts": [],
+    "script_font_mappings": [
+      94,
+      0
+    ],
+    "last_printed": [
+      "2026-10-17T21:42:00Z",
+      null
+    ]
+  },
+  {
+    "path": "tests/fixtures/reference/word2024/breaks/word_nogrid.docx",
+    "dangling_relationships": [],
+    "changed_binary_parts": [],
+    "script_font_mappings": [
+      94,
+      0
+    ],
+    "last_printed": [
+      null,
+      null
+    ]
+  },
+  {
+    "path": "tests/fixtures/reference/word2024/breaks/word_widow4.docx",
+    "dangling_relationships": [],
+    "changed_binary_parts": [],
+    "script_font_mappings": [
+      94,
+      0
+    ],
+    "last_printed": [
+      null,
+      null
+    ]
+  },
+  {
+    "path": "tests/fixtures/reference/word2024/interop/word_edited.docx",
+    "dangling_relationships": [],
+    "changed_binary_parts": [],
+    "script_font_mappings": [
+      94,
+      0
+    ],
+    "last_printed": [
+      null,
+      null
+    ]
+  },
+  {
+    "path": "tests/fixtures/reference/word2024/interop/wordresaved/DOCX-MIN-001.docx",
+    "dangling_relationships": [],
+    "changed_binary_parts": [],
+    "script_font_mappings": [
+      94,
+      0
+    ],
+    "last_printed": [
+      null,
+      null
+    ]
+  },
+  {
+    "path": "tests/fixtures/reference/word2024/interop/wordresaved/DOCX-MIN-002.docx",
+    "dangling_relationships": [],
+    "changed_binary_parts": [],
+    "script_font_mappings": [
+      94,
+      0
+    ],
+    "last_printed": [
+      null,
+      null
+    ]
+  },
+  {
+    "path": "tests/fixtures/reference/word2024/interop/wordresaved/DOCX-MIN-003.docx",
+    "dangling_relationships": [],
+    "changed_binary_parts": [],
+    "script_font_mappings": [
+      94,
+      0
+    ],
+    "last_printed": [
+      null,
+      null
+    ]
+  },
+  {
+    "path": "tests/fixtures/reference/word2024/interop/wordresaved/DOCX-MIN-004.docx",
+    "dangling_relationships": [],
+    "changed_binary_parts": [],
+    "script_font_mappings": [
+      94,
+      0
+    ],
+    "last_printed": [
+      null,
+      null
+    ]
+  },
+  {
+    "path": "tests/fixtures/reference/word2024/interop/wordresaved/DOCX-SAMPLE-001.docx",
+    "dangling_relationships": [],
+    "changed_binary_parts": [],
+    "script_font_mappings": [
+      94,
+      0
+    ],
+    "last_printed": [
+      null,
+      null
+    ]
+  }
+]

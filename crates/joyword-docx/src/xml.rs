@@ -184,7 +184,7 @@ const STRICT: &[(&str, &str)] = &[
     ("m", "http://purl.oclc.org/ooxml/officeDocument/math"),
 ];
 
-fn prefix_for(uri: &[u8], extra: &[(&'static str, &str)]) -> &'static str {
+pub(super) fn prefix_for(uri: &[u8], extra: &[(&'static str, &str)]) -> &'static str {
     if let Some((p, _)) = extra.iter().find(|(_, u)| u.as_bytes() == uri) {
         return p;
     }

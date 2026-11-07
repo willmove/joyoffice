@@ -21,6 +21,7 @@ pub mod transfer;
 pub use content::ContentAction;
 pub mod formatting;
 pub mod text;
+pub mod text_resources;
 pub use authoring::{CellBorders, CellFormat, CellRange, TableAction, TextEdit, TextTarget};
 pub use authoring::{body as text_body, set_body as set_draft_body};
 
@@ -163,6 +164,21 @@ pub enum Command {
         target: TextTarget,
         body: Box<TextBody>,
     },
+    SetTextWithResources {
+        slide: SlideId,
+        target: TextTarget,
+        expected: Box<TextBody>,
+        body: Box<TextBody>,
+        resources: Vec<transfer::Resource>,
+    },
+    /// Fill all missing slide footers atomically, preserving existing footers.
+    AddAllMissingFooterText {
+        text: String,
+    },
+    /// Add a missing footer only to the selected page, after conservative preflight.
+    AddMissingFooterText {
+        text: String,
+    },
     /// Update existing simple footer placeholders across slides without adding any.
     SetExistingFooterText {
         text: String,
@@ -215,7 +231,10 @@ impl Command {
             Self::Transform { .. } => "transform",
             Self::ReplaceText { .. } => "replace-text",
             Self::SetText { .. } => "set-text",
+            Self::SetTextWithResources { .. } => "set-text-with-resources",
             Self::SetTexts { .. } => "set-texts",
+            Self::AddAllMissingFooterText { .. } => "add-all-missing-footer-text",
+            Self::AddMissingFooterText { .. } => "add-missing-footer-text",
             Self::SetExistingFooterText { .. } => "set-existing-footer-text",
             Self::EditText { .. } => "edit-text",
             Self::InsertTable { .. } => "insert-table",
@@ -459,6 +478,12 @@ fn next_id(p: &mut Presentation) -> std::result::Result<u32, String> {
     p.alloc_id().ok_or_else(|| "ID space exhausted".into())
 }
 fn apply(st: &mut EditorSnapshot, cmd: Command) -> std::result::Result<(), String> {
+    if let Command::AddAllMissingFooterText { text } = &cmd {
+        return footer::add_all_missing(st, text);
+    }
+    if let Command::AddMissingFooterText { text } = &cmd {
+        return footer::add_missing(st, text);
+    }
     if let Command::SetExistingFooterText { text } = &cmd {
         return footer::set_existing(st, text);
     }
@@ -523,6 +548,16 @@ fn apply(st: &mut EditorSnapshot, cmd: Command) -> std::result::Result<(), Strin
             apply(st, command)?;
         }
         return Ok(());
+    }
+    if let Command::SetTextWithResources {
+        slide,
+        target,
+        expected,
+        body,
+        resources,
+    } = &cmd
+    {
+        return text_resources::apply(st, *slide, target, expected, body, resources);
     }
     if let Command::PasteObjects { transfer } = &cmd {
         return transfer::paste(st, transfer);

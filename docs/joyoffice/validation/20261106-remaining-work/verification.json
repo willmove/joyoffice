@@ -1,0 +1,16 @@
+{
+  "scope": "linux-cli-only",
+  "previous_cli_sha256": "91fdd13712eb4d9d93773d03ec7411d30a7003c3bb45436d194c4a9e100eabb8",
+  "candidate_cli_sha256": "6303c656f251f732c6b630e58ad7afcb083896444059c108c78ce715dc1ef323",
+  "missing_stage_restored_previous": true,
+  "candidate_process_failure_restored_previous": true,
+  "successful_promotion_and_rollback": true,
+  "exact_v3_snapshot": true,
+  "old_cli_reads_source_and_recovery": true,
+  "isolated_originals_unchanged": 5,
+  "fixtures_unchanged": 26,
+  "gui_verified": false,
+  "installer_verified": false,
+  "file_association_verified": false,
+  "release_package_verified": false
+}

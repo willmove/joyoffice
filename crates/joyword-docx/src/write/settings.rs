@@ -469,6 +469,7 @@ pub(super) fn core_xml(doc: &Document) -> Vec<u8> {
         ("cp:keywords", &c.keywords),
         ("dc:description", &c.description),
         ("cp:lastModifiedBy", &last_modified_by),
+        ("cp:lastPrinted", &c.last_printed),
         ("cp:category", &c.category),
     ] {
         if !v.is_empty() {

@@ -195,11 +195,9 @@ pub(super) fn paste(st: &mut EditorSnapshot, t: &Transfer) -> Result<(), String>
     let p = Arc::make_mut(&mut st.model);
     let mut media_map = BTreeMap::new();
     for m in &t.media {
-        let id = if let Some(existing) = p
-            .media
-            .iter()
-            .find(|v| v.content_type == m.content_type && v.data.as_ref() == &m.data)
-        {
+        let id = if let Some(existing) = p.media.iter().find(|v| {
+            v.link.is_none() && v.content_type == m.content_type && v.data.as_ref() == &m.data
+        }) {
             existing.id
         } else {
             p.add_media(&m.name, &m.content_type, m.data.clone())

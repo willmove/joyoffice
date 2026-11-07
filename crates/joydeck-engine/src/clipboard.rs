@@ -53,7 +53,7 @@ impl LinkScope<'_> {
                 .document
                 .is_some_and(|doc| doc.custom_shows.iter().any(|show| show.name == *name)),
             Action::PlayMedia => self.document.is_some(),
-            Action::Url { url } => safe_url(url),
+            Action::Url { url } => safe_url(url) && !url.chars().any(char::is_control),
             Action::Program { .. } => false,
             Action::NextSlide
             | Action::PreviousSlide
@@ -147,4 +147,22 @@ pub fn scope_objects(transfer: &mut Transfer, document: Option<&Presentation>) -
         transfer.media.retain(|part| retained.contains(&part.id));
     }
     scope.adjusted
+}
+
+/// Reject incoming draft links whose meaning cannot be established without a
+/// verified source document. Do not strip or silently retarget user content.
+pub(crate) fn validate_foreign_text_links(body: &TextBody) -> Result<(), String> {
+    let mut checked = body.clone();
+    let mut scope = LinkScope {
+        document: None,
+        transfer_media: false,
+        adjusted: false,
+    };
+    scope.text(&mut checked);
+    if scope.adjusted {
+        return Err(
+            "incoming text has unsafe or document-local links; scope them before paste".into(),
+        );
+    }
+    Ok(())
 }
