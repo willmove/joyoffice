@@ -151,13 +151,17 @@ mod tests {
     fn refuses_zero_deadline_and_reports_launch_failure() {
         assert!(run(&mut command("hang"), Duration::ZERO).is_err());
         let dir = tempfile::tempdir().unwrap();
-        assert!(
-            run(
-                &mut Command::new(dir.path().join("missing-helper")),
-                Duration::from_secs(1)
-            )
-            .unwrap_err()
-            .contains("launch failed")
-        );
+        match run(
+            &mut Command::new(dir.path().join("missing-helper")),
+            Duration::from_secs(1),
+        ) {
+            Err(message) => assert!(message.contains("launch failed")),
+            // QEMU user emulation launches a wrapper that exits 127 instead of
+            // surfacing exec ENOENT from spawn.
+            Ok(output) => {
+                assert_eq!(output.status.code(), Some(127));
+                assert!(output.stdout.is_empty() && output.stderr.is_empty());
+            }
+        }
     }
 }
