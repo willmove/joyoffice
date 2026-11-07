@@ -302,6 +302,41 @@ impl Reader<'_> {
         true
     }
 
+    /// Check that retaining the theme did not drop a relationship or dependency.
+    pub(super) fn theme_tree_complete(&self, root: &str) -> bool {
+        let mut todo = vec![root.to_string()];
+        let mut seen = HashSet::new();
+        while let Some(path) = todo.pop() {
+            if !seen.insert(path.clone()) {
+                continue;
+            }
+            if seen.len() > MAX_EMBEDDED_PARTS {
+                return false;
+            }
+            let Some(kept) = self.embedded.parts.get(&path) else {
+                return false;
+            };
+            let source = self.pkg.rels(&path);
+            if source.list.len() != kept.rels.len()
+                || source.list.iter().zip(&kept.rels).any(|(a, b)| {
+                    a.id != b.id
+                        || a.kind != b.kind
+                        || a.target != b.target
+                        || a.external != b.external
+                })
+            {
+                return false;
+            }
+            todo.extend(
+                kept.rels
+                    .iter()
+                    .filter(|r| !r.external)
+                    .map(|r| r.target.clone()),
+            );
+        }
+        true
+    }
+
     /// Keep one part's bytes and content type (not its relationships).
     fn keep_part(&mut self, part: &str) -> bool {
         let lower = part.to_ascii_lowercase();

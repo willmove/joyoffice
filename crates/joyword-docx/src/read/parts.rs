@@ -285,6 +285,29 @@ impl Reader<'_> {
         self.pc.major_font = self.doc.settings.major_font.clone();
         self.pc.minor_font = self.doc.settings.minor_font.clone();
         self.pc.theme = self.doc.settings.theme_colors.clone();
+        let baseline = crate::write::theme_xml(&self.doc);
+        // Flat OPC removes the standalone XML declaration from embedded XML parts.
+        let body = baseline.splitn(2, |b| *b == b'\n').nth(1);
+        if self
+            .pkg
+            .get(path)
+            .is_some_and(|bytes| bytes == baseline.as_slice() || Some(bytes) == body)
+            && self.pkg.rels(path).list.is_empty()
+        {
+            return;
+        }
+        self.doc.passthrough.insert(
+            crate::write::theme_merge::SOURCE.into(),
+            Arc::new(path.as_bytes().to_vec()),
+        );
+        // Never silently publish a partial dependency graph after a budget or missing-part
+        // failure. A missing baseline makes the writer explicitly refuse this theme.
+        if self.keep_part_tree(path) && self.theme_tree_complete(path) {
+            self.doc.passthrough.insert(
+                crate::write::theme_merge::BASELINE.into(),
+                Arc::new(baseline),
+            );
+        }
     }
 
     /// `w:settings/w:clrSchemeMapping`: which scheme colour text1, background1… stand for. Also

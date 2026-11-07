@@ -4,6 +4,8 @@ mod bidi;
 mod embed;
 mod glossary;
 mod settings_merge;
+pub(crate) mod theme_merge;
+pub(crate) use settings::theme_xml;
 pub(crate) use settings_merge::has_unowned as settings_has_unowned;
 mod math;
 mod props;

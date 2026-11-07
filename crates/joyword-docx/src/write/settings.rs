@@ -339,7 +339,7 @@ pub(super) fn write_comment_ids(
     );
 }
 
-pub(super) fn theme_xml(doc: &Document) -> Vec<u8> {
+pub(crate) fn theme_xml(doc: &Document) -> Vec<u8> {
     let s = &doc.settings;
     let names = [
         "dk1", "lt1", "dk2", "lt2", "accent1", "accent2", "accent3", "accent4", "accent5",
