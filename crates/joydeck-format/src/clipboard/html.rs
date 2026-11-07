@@ -6,6 +6,7 @@ use html5ever::tokenizer::{
 use joydeck_model::text::{Align, Strike};
 
 /// Read plain HTML or a Windows CF_HTML payload. Offsets count UTF-8 bytes.
+/// Explicitly hidden-only content consumes the paste as `Some(empty)`.
 pub fn import(bytes: &[u8]) -> Option<TextBody> {
     import_with_policy(bytes, false)
 }
@@ -29,13 +30,19 @@ fn import_with_policy(bytes: &[u8], table: bool) -> Option<TextBody> {
     let mut tokenizer = Tokenizer::new(Sink::default(), Default::default());
     let _ = tokenizer.feed(&mut input);
     tokenizer.end();
-    if table && tokenizer.sink.saw_hidden {
+    if tokenizer.sink.saw_hidden && (table || tokenizer.sink.out.overflow) {
+        // An output/depth limit must not undo a recognized hiding decision.
         return Some(TextBody::default());
     }
     if tokenizer.sink.out.overflow {
         return None;
     }
-    tokenizer.sink.out.finish()
+    let hidden = tokenizer.sink.saw_hidden;
+    tokenizer.sink.out.finish().or_else(|| {
+        // A parsed hiding decision must also win when no visible runs remain.
+        // None would allow another rich flavor or plain text to expose them.
+        hidden.then(TextBody::default)
+    })
 }
 
 fn fragment(html: &str) -> &str {
