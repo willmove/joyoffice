@@ -119,6 +119,20 @@ fn with_layout_footer_flag(
     source: &[u8],
     enabled: bool,
 ) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+    with_visibility_xml(
+        source,
+        "ppt/slideLayouts/slideLayout",
+        "p:sldLayout",
+        &format!("<p:hf ftr=\"{}\"/>", u8::from(enabled)),
+    )
+}
+
+fn with_visibility_xml(
+    source: &[u8],
+    prefix: &str,
+    tag: &str,
+    fragment: &str,
+) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
     use std::io::{Cursor, Read, Write};
     let mut input = zip::ZipArchive::new(Cursor::new(source))?;
     let mut output = zip::ZipWriter::new(Cursor::new(Vec::new()));
@@ -127,14 +141,11 @@ fn with_layout_footer_flag(
         let name = entry.name()?.into_owned();
         let mut bytes = Vec::new();
         entry.read_to_end(&mut bytes)?;
-        if name.starts_with("ppt/slideLayouts/slideLayout") && name.ends_with(".xml") {
+        if name.starts_with(prefix) && name.ends_with(".xml") {
             let xml = String::from_utf8(bytes)?;
             assert!(!xml.contains("<p:hf"));
             bytes = xml
-                .replace(
-                    "</p:sldLayout>",
-                    &format!("<p:hf ftr=\"{}\"/></p:sldLayout>", u8::from(enabled)),
-                )
+                .replace(&format!("</{tag}>"), &format!("{fragment}</{tag}>"))
                 .into_bytes();
         }
         output.start_file(name, zip::write::SimpleFileOptions::default())?;
@@ -164,11 +175,7 @@ fn layout_footer_visibility_is_retained_during_unrelated_slide_edit()
     let plain = export(&p)?;
     let disabled = with_layout_footer_flag(&plain, false)?;
     let enabled = with_layout_footer_flag(&plain, true)?;
-    // Diagnostic only: equality is today's limitation, not a desired model contract.
-    println!(
-        "footer_visibility_probe: opposite_flags_have_equal_models={}",
-        import(&disabled)? == import(&enabled)?
-    );
+    assert_ne!(import(&disabled)?, import(&enabled)?);
     for source in [disabled, enabled] {
         let base = import(&source)?;
         assert!(base.slides[0].shapes.is_empty());
@@ -200,5 +207,103 @@ fn layout_footer_visibility_is_retained_during_unrelated_slide_edit()
         assert!(reopened.slides[0].shapes.is_empty());
         assert_eq!(reopened.slides[0].name, "Renamed slide");
     }
+    Ok(())
+}
+
+#[test]
+fn explicit_master_and_layout_visibility_survives_native_and_pptx_roundtrips()
+-> Result<(), Box<dyn std::error::Error>> {
+    let plain = export(&Presentation::default())?;
+    let master = with_visibility_xml(
+        &plain,
+        "ppt/slideMasters/slideMaster",
+        "p:sldMaster",
+        "<p:hf dt=\"false\" ftr=\"0\" hdr=\"true\" sldNum=\"1\"/>",
+    )?;
+    let source = with_layout_footer_flag(&master, true)?;
+    let model = import(&source)?;
+    let master_flags = model.masters[0]
+        .placeholder_visibility
+        .as_ref()
+        .ok_or("master flags missing")?;
+    assert_eq!(master_flags.date, Some(false));
+    assert_eq!(master_flags.footer, Some(false));
+    assert_eq!(master_flags.header, Some(true));
+    assert_eq!(master_flags.slide_number, Some(true));
+    let layout_flags = model.masters[0].layouts[0]
+        .placeholder_visibility
+        .as_ref()
+        .ok_or("layout flags missing")?;
+    assert_eq!(layout_flags.footer, Some(true));
+    assert_eq!(layout_flags.date, None);
+    let native: Presentation = serde_json::from_slice(&serde_json::to_vec(&model)?)?;
+    assert_eq!(native, model);
+    let reopened = import(&export(&model)?)?;
+    assert_eq!(
+        reopened.masters[0].placeholder_visibility.as_ref(),
+        Some(master_flags)
+    );
+    assert_eq!(
+        reopened.masters[0].layouts[0]
+            .placeholder_visibility
+            .as_ref(),
+        Some(layout_flags)
+    );
+    assert_ne!(
+        import(&with_layout_footer_flag(&plain, false)?)?,
+        import(&with_layout_footer_flag(&plain, true)?)?
+    );
+    Ok(())
+}
+
+#[test]
+fn unrecognized_layout_visibility_is_not_treated_as_permission()
+-> Result<(), Box<dyn std::error::Error>> {
+    let plain = export(&Presentation::default())?;
+    for fragment in [
+        "<p:hf ftr=\"maybe\"/>",
+        "<p:hf ftr=\"1\" custom=\"yes\"/>",
+        "<p:hf><p:extLst/></p:hf>",
+        "<p:hf/><p:hf/>",
+        "<p:hf xmlns:p=\"urn:not-presentation\" ftr=\"1\"/>",
+    ] {
+        let source = with_visibility_xml(
+            &plain,
+            "ppt/slideLayouts/slideLayout",
+            "p:sldLayout",
+            fragment,
+        )?;
+        let model = import(&source)?;
+        assert!(model.masters[0].layouts[0].placeholder_visibility.is_none());
+        let mut current = model.clone();
+        Arc::make_mut(&mut current.slides[0]).name = "Safe rename".into();
+        let bindings = [SlideBinding {
+            slide: model.slides[0].id,
+            source: model.slides[0].id,
+            shapes: Default::default(),
+        }];
+        let saved = export_preserving(&source, &model, &current, &bindings)?;
+        let original = crate::opc::Package::open(&source)?;
+        let reopened = crate::opc::Package::open(&saved)?;
+        assert_eq!(
+            original.get("ppt/slideLayouts/slideLayout1.xml"),
+            reopened.get("ppt/slideLayouts/slideLayout1.xml")
+        );
+    }
+    let empty = import(&with_visibility_xml(
+        &plain,
+        "ppt/slideLayouts/slideLayout",
+        "p:sldLayout",
+        "<p:hf/>",
+    )?)?;
+    assert_eq!(
+        empty.masters[0].layouts[0].placeholder_visibility,
+        Some(Default::default())
+    );
+    assert!(
+        import(&plain)?.masters[0].layouts[0]
+            .placeholder_visibility
+            .is_none()
+    );
     Ok(())
 }
