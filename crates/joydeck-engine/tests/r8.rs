@@ -179,3 +179,68 @@ fn basic_edit_preflight_matches_execution_for_independent_window_selections() {
     session.execute(Command::Undo).unwrap();
     assert_eq!(session.validate(Command::Redo), Ok(true));
 }
+
+#[test]
+fn embedded_clipboard_image_never_reuses_a_linked_destination_resource() {
+    let mut source = Presentation::default();
+    let bytes = vec![1, 2, 3];
+    let media = source
+        .add_media("source.png", "image/png", bytes.clone())
+        .unwrap();
+    let id = ShapeId(source.alloc_id().unwrap());
+    Arc::make_mut(&mut source.slides[0]).shapes.push(Shape {
+        id,
+        xfrm: Some(Xfrm::new(0., 0., 80., 60.)),
+        kind: ShapeKind::Picture {
+            fill: PictureFill {
+                media,
+                ..Default::default()
+            },
+        },
+        ..Default::default()
+    });
+    let captured = transfer::capture(&source, 0, &[id]).unwrap();
+    let mut target = Presentation::default();
+    let linked = target
+        .add_media("linked.png", "image/png", bytes.clone())
+        .unwrap();
+    target
+        .media
+        .iter_mut()
+        .find(|m| m.id == linked)
+        .unwrap()
+        .link = Some("file:///unavailable/synthetic.png".into());
+    let wrong_type = target
+        .add_media("opaque.bin", "application/octet-stream", bytes.clone())
+        .unwrap();
+    assert_ne!(wrong_type, linked);
+    let mut s = session(target);
+    let before = s.snapshot();
+    for _ in 0..2 {
+        s.execute(Command::PasteObjects {
+            transfer: Box::new(captured.clone()),
+        })
+        .unwrap();
+        let ShapeKind::Picture { fill } = &s.model().slides[0].shapes.last().unwrap().kind else {
+            panic!("missing picture")
+        };
+        let pasted = s.model().media(fill.media).unwrap();
+        assert_ne!(pasted.id, linked);
+        assert!(
+            pasted.link.is_none(),
+            "embedded transfer must remain embedded"
+        );
+        assert_eq!(pasted.data.as_ref(), &bytes);
+    }
+    assert_eq!(
+        s.model().media.len(),
+        3,
+        "second paste reuses embedded bytes only"
+    );
+    assert!(s.model().media(linked).unwrap().link.is_some());
+    s.execute(Command::Undo).unwrap();
+    s.execute(Command::Undo).unwrap();
+    assert_eq!(s.model(), before.model.as_ref());
+    s.execute(Command::Redo).unwrap();
+    assert_eq!(s.model().media.len(), 3);
+}
