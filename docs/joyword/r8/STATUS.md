@@ -74,3 +74,7 @@ Linux x64、Rust 1.98.1 下 11 项偏好测试通过，包括不可读文件、�
 | R7 平台与分发 | Windows、macOS 和 WSLg 开发验证分别记录。JW-705 接入 Windows 打印入口。JW-708 增加 Windows 便携换版与回退流程。 | Windows 本轮 IME／读屏／高 DPI，macOS IME／VoiceOver，Linux 原生显示协议、输入和无障碍，实屏打印取消、真实队列、其他平台打印、安装、关联、签名及卸载。信创真机按宿主约定后补。 |
 
 系统集成进展见 [Windows 系统集成与回退复验](VALIDATION.md#windows-系统集成与回退复验2026-11-05)。此前的格式与旧 CLI 证据分别见 [Windows 格式与编辑复验](VALIDATION.md#windows-格式与编辑复验2026-11-05) 和 [Windows 兼容性复验](VALIDATION.md#windows-兼容性复验2026-11-05)。
+
+### JW-812 Linux CLI 隔离回退（2026-11-06）
+
+新增 Linux CLI-only 换版验证入口，实测旧版与当前 main CLI 的失败复原、成功换版后回退、V3 快照逐字节恢复和旧版读回；5 个隔离原文件及 26 个语料文件未改变。验证范围不包含发布包、安装器、关联和真实窗口，不将 JW-812 标为完成。详见[剩余任务与实测证据](../../joyoffice/validation/20261106-remaining-work/README.md)。

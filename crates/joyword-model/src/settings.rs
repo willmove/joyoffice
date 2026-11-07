@@ -61,6 +61,9 @@ pub struct CoreProps {
     pub last_modified_by: String,
     pub created: String,
     pub modified: String,
+    /// Original print timestamp; saving does not imply that the document was printed.
+    #[serde(skip_serializing_if = "String::is_empty")]
+    pub last_printed: String,
     pub revision: u32,
 }
 

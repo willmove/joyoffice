@@ -1186,11 +1186,12 @@ impl Presentation {
     }
     /// Add media bytes, reusing an identical existing item.
     pub fn add_media(&mut self, name: &str, content_type: &str, data: Vec<u8>) -> Option<MediaId> {
-        if let Some(m) = self
-            .media
-            .iter()
-            .find(|m| m.data.len() == data.len() && *m.data == data)
-        {
+        if let Some(m) = self.media.iter().find(|m| {
+            m.link.is_none()
+                && m.content_type == content_type
+                && m.data.len() == data.len()
+                && *m.data == data
+        }) {
             return Some(m.id);
         }
         let id = MediaId(self.alloc_id()?);

@@ -151,6 +151,7 @@ FS_ALLOW = {
     "crates/joyword-shell/src/legacy_recovery.rs",  # read-only journal and shared lock
     "crates/joyword-shell/src/prefs.rs",
     "crates/joyword-shell/src/printing.rs",  # private temporary PDF/bitmaps and Windows print helper
+    "crates/joyword-shell/src/print_process.rs",  # owned anonymous helper stdout/stderr files, bounded reads
     "crates/joyword-shell/src/reader.rs",
     "crates/joyword-shell/src/storage.rs",
     "crates/joyword-shell/src/storage/locks.rs",

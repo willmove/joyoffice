@@ -60,14 +60,27 @@ impl fmt::Display for CredentialError {
 
 impl std::error::Error for CredentialError {}
 
-/// Replace exact occurrences of `secrets` with `[redacted]`.
+/// Redact the union of overlapping exact matches in the original text.
+/// Inserted markers are never searched, so secret order cannot expose fragments
+/// or rewrite a marker. Empty secrets are ignored; other text is preserved.
 pub fn redact(text: &str, secrets: &[&str]) -> String {
-    let mut out = text.to_owned();
-    for secret in secrets {
-        if secret.is_empty() {
-            continue;
+    let mut out = String::with_capacity(text.len());
+    let mut covered_until = 0;
+    for (offset, ch) in text.char_indices() {
+        let match_end = secrets
+            .iter()
+            .filter(|secret| !secret.is_empty() && text[offset..].starts_with(**secret))
+            .map(|secret| offset + secret.len())
+            .max()
+            .unwrap_or(offset);
+        if offset >= covered_until {
+            if match_end > offset {
+                out.push_str("[redacted]");
+            } else {
+                out.push(ch);
+            }
         }
-        out = out.replace(secret, "[redacted]");
+        covered_until = covered_until.max(match_end);
     }
     out
 }

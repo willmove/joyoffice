@@ -105,7 +105,8 @@ impl PrintJob {
             include_str!("../../../scripts/joysheet/native-print.ps1"),
         )
         .map_err(|e| e.to_string())?;
-        let output = Command::new("pwsh.exe")
+        let mut command = Command::new("pwsh.exe");
+        command
             .env_remove("JOYWORD_CONTROL_KEY")
             .args(["-NoProfile", "-STA", "-File"])
             .arg(script)
@@ -117,23 +118,57 @@ impl PrintJob {
                 "-JobName",
                 "JoyWord",
             ])
-            .creation_flags(0x08000000)
-            .output()
-            .map_err(|e| format!("PowerShell 7 print dialog: {e}"))?;
-        if !output.status.success() {
-            return Err(String::from_utf8_lossy(&output.stderr)
-                .trim()
-                .chars()
-                .take(2000)
-                .collect());
-        }
-        let reply: serde_json::Value =
-            serde_json::from_slice(&output.stdout).map_err(|e| e.to_string())?;
-        match (reply["outcome"].as_str(), reply["queueSubmitted"].as_bool()) {
-            (Some("submitted"), Some(true)) => Ok(true),
-            (Some("cancelled"), Some(false)) => Ok(false),
-            _ => Err("Invalid print dialog result".into()),
-        }
+            .creation_flags(0x08000000);
+        // Includes time spent in the native dialog. No automatic retry: a
+        // timeout after submission cannot establish that the queue is empty.
+        let output =
+            crate::print_process::run(&mut command, std::time::Duration::from_secs(15 * 60))?;
+        decode_dialog_result(
+            output.status.success(),
+            &output.stdout,
+            &output.stderr,
+            self.pages.len(),
+        )
+    }
+}
+
+// Also compiled in non-Windows tests; it never launches a process or queue.
+#[cfg(any(windows, test))]
+fn decode_dialog_result(
+    success: bool,
+    stdout: &[u8],
+    stderr: &[u8],
+    selected_pages: usize,
+) -> Result<bool, String> {
+    if !success {
+        let message: String = String::from_utf8_lossy(stderr)
+            .trim()
+            .chars()
+            .take(2000)
+            .collect();
+        return Err(if message.is_empty() {
+            "Print dialog process failed".into()
+        } else {
+            message
+        });
+    }
+    #[derive(serde::Deserialize)]
+    #[serde(deny_unknown_fields)]
+    struct Reply {
+        outcome: String,
+        #[serde(rename = "queueSubmitted")]
+        queue_submitted: bool,
+        pages: Option<usize>,
+    }
+    let invalid = || "Invalid print dialog result".to_string();
+    if stdout.len() > 4096 || !(1..=32).contains(&selected_pages) {
+        return Err(invalid());
+    }
+    let reply: Reply = serde_json::from_slice(stdout).map_err(|_| invalid())?;
+    match (reply.outcome.as_str(), reply.queue_submitted, reply.pages) {
+        ("submitted", true, Some(pages)) if (1..=selected_pages).contains(&pages) => Ok(true),
+        ("cancelled", false, None) => Ok(false),
+        _ => Err(invalid()),
     }
 }
 
@@ -217,6 +252,81 @@ mod tests {
         assert_eq!(job.pages, [1]);
         assert!(job.pdf(true)?.starts_with(b"%PDF-"));
         assert_eq!(reader.engine().rev(), version);
+        Ok(())
+    }
+
+    #[test]
+    fn native_reply_distinguishes_submission_cancellation_and_process_failure() {
+        assert_eq!(
+            decode_dialog_result(
+                true,
+                br#"{"outcome":"submitted","queueSubmitted":true,"pages":2}"#,
+                b"",
+                3
+            ),
+            Ok(true)
+        );
+        assert_eq!(
+            decode_dialog_result(
+                true,
+                br#"{"outcome":"cancelled","queueSubmitted":false}"#,
+                b"",
+                3
+            ),
+            Ok(false)
+        );
+        // Process failure wins even if stdout claims cancellation or success.
+        for outcome in [
+            br#"{"outcome":"cancelled","queueSubmitted":false}"#.as_slice(),
+            br#"{"outcome":"submitted","queueSubmitted":true,"pages":1}"#,
+        ] {
+            assert!(decode_dialog_result(false, outcome, b"", 1).is_err());
+        }
+        assert_eq!(
+            decode_dialog_result(false, b"", b"  synthetic failure  ", 1),
+            Err("synthetic failure".into())
+        );
+    }
+
+    #[test]
+    fn native_reply_rejects_inconsistent_or_malformed_queue_claims() {
+        for reply in [
+            r#"{"outcome":"submitted","queueSubmitted":false,"pages":1}"#,
+            r#"{"outcome":"cancelled","queueSubmitted":true}"#,
+            r#"{"outcome":"cancelled","queueSubmitted":false,"pages":1}"#,
+            r#"{"outcome":"submitted","queueSubmitted":true}"#,
+            r#"{"outcome":"submitted","queueSubmitted":true,"pages":0}"#,
+            r#"{"outcome":"submitted","queueSubmitted":true,"pages":3}"#,
+            r#"{"outcome":"submitted","queueSubmitted":true,"pages":-1}"#,
+            r#"{"outcome":"submitted","queueSubmitted":true,"pages":1.5}"#,
+            r#"{"outcome":"submitted","queueSubmitted":true,"queueSubmitted":false,"pages":1}"#,
+            r#"{"outcome":"validated","queueSubmitted":false}"#,
+            r#"{"outcome":"cancelled","queueSubmitted":false} trailing"#,
+            r#"{"outcome":"cancelled","queueSubmitted":"false"}"#,
+        ] {
+            assert!(
+                decode_dialog_result(true, reply.as_bytes(), b"", 2).is_err(),
+                "{reply}"
+            );
+        }
+        assert!(decode_dialog_result(true, &[b' '; 4097], b"", 2).is_err());
+        assert!(decode_dialog_result(true, &[255], b"", 2).is_err());
+    }
+
+    #[test]
+    fn print_snapshot_is_stable_after_edit_and_formatting_marks_do_not_change_pdf()
+    -> Result<(), String> {
+        let mut reader = Reader::blank(&AtomicBool::new(false))?;
+        reader.execute("text.insert", &json!({"text":"Unpublished print snapshot"}))?;
+        let job = reader.print_job("")?;
+        let before = job.pdf(false)?;
+        let revision = reader.engine().rev();
+        reader.execute("view.marks", &json!({"value":true}))?;
+        assert_eq!(reader.print_job("")?.pdf(false)?, before);
+        assert_eq!(reader.engine().rev(), revision);
+        reader.execute("text.insert", &json!({"text":" later edit"}))?;
+        assert_eq!(job.pdf(false)?, before);
+        assert_ne!(reader.print_job("")?.pdf(false)?, before);
         Ok(())
     }
 

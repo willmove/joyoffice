@@ -278,7 +278,7 @@
       "source_path": "crates/model/src/lib.rs",
       "source_sha256": "4b5a99b737768e630d877382837063a3f43ca12f9385ee8834e9437ed53b16d2",
       "target_path": "crates/joydeck-model/src/lib.rs",
-      "adapted_sha256": "acc8fc054e6b20023b61e87adf09cb730ac5cb3e4ad2c750c07e3071bf0d660c",
+      "adapted_sha256": "5bada5c9253a383da476bb80cc01811e3a2c9743ec85941d699b78889396f008",
       "changes": [
         "crate/import namespace deckcraft -> joydeck",
         "LF normalization",
@@ -286,6 +286,7 @@
         "rustfmt using repository Unix newline policy",
         "test-only assertion lint allowances; production no-panic guards retained",
         "scoped Clippy style allowances preserve imported public representations",
+        "JD-307: deduplicate embedded media only against embedded resources with matching content type and bytes",
         "preserve recognized layout and master header/footer visibility flags without resolving inheritance"
       ],
       "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained."
@@ -2282,10 +2283,11 @@
       "source_path": "crates/engine/src/cmd/edit.rs",
       "source_sha256": "7e715a5f006693a518ff367bce66a79b7cbe9d3b985ef006f192723ae9c114b4",
       "target_path": "crates/joydeck-engine/src/transfer.rs",
-      "adapted_sha256": "b0b7efc9e57808f769091f0940e7cd93b29701e98d02f77c5df429ae6806a7d8",
+      "adapted_sha256": "d4e10bc13c5a300d3564a7f17e5799e84b3b5226a5b62139247a75596cd67fe0",
       "changes": [
         "R8: adapt typed media references / object ID and resource remapping / layout and theme tokens to pure engine or GPUI Kit; no egui dependency",
-        "rustfmt; bounded transactions, errors and clipboard serialization; original MIT attribution retained"
+        "rustfmt; bounded transactions, errors and clipboard serialization; original MIT attribution retained",
+        "JD-307: deduplicate embedded media only against embedded resources with matching content type and bytes"
       ]
     },
     {
