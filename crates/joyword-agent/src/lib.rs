@@ -36,6 +36,7 @@ mod replace;
 mod runtime;
 mod scope;
 mod scoped;
+mod task_owner;
 mod telemetry;
 mod tools;
 
@@ -77,5 +78,6 @@ pub use scoped::{
     MAX_STRUCTURE_NODES, SearchHits, SelectionText, StructureNode, StructureProjection, ToolCall,
     ToolError, ToolOutput, ToolSession,
 };
+pub use task_owner::{AgentTaskOwner, TaskError, TaskPoll};
 pub use telemetry::Telemetry;
 pub use tools::{ApplyBlocked, ChangeProposal, ToolId, ToolUnavailable};
