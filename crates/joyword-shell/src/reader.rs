@@ -142,6 +142,18 @@ impl Reader {
             Ok(result)
         })
     }
+    /// Check the exact captured source before command editing or DOCX regeneration.
+    /// This does not re-read a path that may have changed after opening.
+    pub fn require_editable_source(&self) -> Result<(), String> {
+        if let Some(source) = &self.source
+            && joyword_engine::io::is_word_package(&crate::advanced::extension(source.path()))
+            && joyword_docx::legacy_inspection::project(source.bytes(), 0)?.read_only
+        {
+            return Err("Source DOCX requires read-only handling; command editing and regenerated saves are refused".into());
+        }
+        Ok(())
+    }
+
     pub fn from_bytes(name: &str, bytes: &[u8], cancel: &AtomicBool) -> Result<Self, String> {
         Self::load_bytes(name, bytes, None, cancel)
     }
