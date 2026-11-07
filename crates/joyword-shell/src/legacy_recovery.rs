@@ -671,7 +671,7 @@ mod tests {
     #[cfg(unix)]
     #[test]
     fn checked_recovery_open_rejects_replacement_after_metadata() -> io::Result<()> {
-        use rustix::fs::{CWD, Mode, mkfifoat};
+        use crate::test_support::make_fifo;
         use std::os::unix::fs::{FileTypeExt, symlink};
         for mode in 0..3 {
             let dir = tempfile::tempdir()?;
@@ -684,7 +684,7 @@ mod tests {
             fs::rename(&path, &original)?;
             match mode {
                 0 => symlink(&target, &path)?,
-                1 => mkfifoat(CWD, &path, Mode::RUSR | Mode::WUSR)?,
+                1 => make_fifo(&path)?,
                 _ => fs::copy(&target, &path).map(|_| ())?,
             }
             // The old File::open path follows the symlink or reads the new inode.
@@ -712,7 +712,7 @@ mod tests {
     #[cfg(unix)]
     #[test]
     fn nonregular_slot_must_not_resurrect_an_older_generation() -> io::Result<()> {
-        use rustix::fs::{CWD, Mode, mkfifoat};
+        use crate::test_support::make_fifo;
         use std::os::unix::fs::symlink;
         let baseline = include_bytes!("../../../assets/samples/mixed-media.docx");
         for mode in 0..3 {
@@ -722,7 +722,7 @@ mod tests {
             let suspect = dir.path().join(SLOTS[1]);
             match mode {
                 0 => fs::create_dir(&suspect)?,
-                1 => mkfifoat(CWD, &suspect, Mode::RUSR | Mode::WUSR)?,
+                1 => make_fifo(&suspect)?,
                 _ => symlink(dir.path().join(SLOTS[0]), &suspect)?,
             }
             let result = select_locked(dir.path(), &AtomicBool::new(false));

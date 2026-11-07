@@ -470,3 +470,28 @@ mod tests {
         Ok(())
     }
 }
+
+#[cfg(all(test, unix))]
+mod test_support {
+    /// rustix::mkfifoat is not exported on Apple targets. Use the system utility
+    /// for test fixtures on Unix, keeping FIFO coverage enabled on macOS too.
+    pub(crate) fn make_fifo(path: &std::path::Path) -> std::io::Result<()> {
+        if !path.is_absolute() {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidInput,
+                "FIFO fixture path must be absolute",
+            ));
+        }
+        let output = std::process::Command::new("/usr/bin/mkfifo")
+            .args(["-m", "600"])
+            .arg(path)
+            .output()?;
+        if !output.status.success() {
+            return Err(std::io::Error::other(format!(
+                "mkfifo fixture failed: {}",
+                String::from_utf8_lossy(&output.stderr)
+            )));
+        }
+        Ok(())
+    }
+}

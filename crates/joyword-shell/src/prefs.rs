@@ -956,11 +956,11 @@ mod tests {
     #[cfg(unix)]
     #[test]
     fn fifo_preferences_do_not_block_or_become_writable() -> io::Result<()> {
-        use rustix::fs::{CWD, Mode, mkfifoat};
+        use crate::test_support::make_fifo;
         use std::os::unix::fs::FileTypeExt;
         let dir = tempfile::tempdir()?;
         let store = PrefsStore::new(dir.path());
-        mkfifoat(CWD, store.path(), Mode::RUSR | Mode::WUSR)?;
+        make_fifo(&store.path())?;
         let loaded = store.load(Locale::En);
         assert!(!loaded.writable);
         assert!(matches!(
@@ -976,12 +976,12 @@ mod tests {
     #[cfg(unix)]
     #[test]
     fn legacy_fifo_preferences_fall_back_without_touching_the_legacy_path() -> io::Result<()> {
-        use rustix::fs::{CWD, Mode, mkfifoat};
+        use crate::test_support::make_fifo;
         use std::os::unix::fs::FileTypeExt;
         let legacy = tempfile::tempdir()?;
         let current = tempfile::tempdir()?;
         let path = legacy.path().join(FILE_NAME);
-        mkfifoat(CWD, &path, Mode::RUSR | Mode::WUSR)?;
+        make_fifo(&path)?;
         let store = PrefsStore::new(current.path());
         let loaded = store.load_with_legacy(legacy.path(), Locale::En);
         assert_eq!(loaded.prefs, Preferences::defaults_for(Locale::En));
@@ -1180,7 +1180,7 @@ mod tests {
     #[cfg(unix)]
     #[test]
     fn unsafe_save_lock_paths_refuse_without_touching_preferences() -> io::Result<()> {
-        use rustix::fs::{CWD, Mode, mkfifoat};
+        use crate::test_support::make_fifo;
         for mode in 0..3 {
             let dir = tempfile::tempdir()?;
             let store = PrefsStore::new(dir.path());
@@ -1190,7 +1190,7 @@ mod tests {
             let lock = dir.path().join(SAVE_LOCK);
             match mode {
                 0 => std::os::unix::fs::symlink(store.path(), &lock)?,
-                1 => mkfifoat(CWD, &lock, Mode::RUSR | Mode::WUSR)?,
+                1 => make_fifo(&lock)?,
                 _ => fs::create_dir(&lock)?,
             }
             assert!(store.save(&loaded).is_err());
