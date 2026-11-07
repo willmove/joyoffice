@@ -404,7 +404,6 @@ crates/joydeck-shell/src/r9_tests.rs:285:part(&source, "ppt/slides/slide3.xml").
 crates/joydeck-shell/src/r9_tests.rs:286:part(&public, "ppt/slides/slide3.xml").unwrap()
 crates/joydeck-shell/src/r9_tests.rs:288:assert!(session.execute(Command::Undo).unwrap());
 crates/joydeck-shell/src/r9_tests.rs:290:assert!(session.execute(Command::Redo).unwrap());
-crates/joydeck-ui-gpui/src/native_clipboard_linux.rs:226:.expect("hidden RTF consumes paste");
 crates/joydeck-ui-gpui/src/native_clipboard_linux.rs:239:.expect("hidden HTML");
 crates/joydeck-ui-gpui/src/native_clipboard_linux.rs:249:.expect("hidden RTF after invalid HTML");
 crates/joydeck-ui-gpui/src/native_clipboard_linux.rs:258:.expect("ordinary HTML allows original TSV");
