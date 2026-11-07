@@ -316,10 +316,16 @@ mod tests {
     #[test]
     fn print_snapshot_is_stable_after_edit_and_formatting_marks_do_not_change_pdf()
     -> Result<(), String> {
-        let mut reader = Reader::blank(&AtomicBool::new(false))?;
+        // Blank documents otherwise use the export clock for PDF dates/IDs.
+        // Fix the input metadata so full-byte assertions test content, not time.
+        let mut document = joyword_engine::blank_document(&Default::default());
+        document.core.created = "2026-01-01T00:00:00Z".into();
+        let source = joyword_docx::write(&document).map_err(|e| e.to_string())?;
+        let mut reader = Reader::from_bytes("print snapshot", &source, &AtomicBool::new(false))?;
         reader.execute("text.insert", &json!({"text":"Unpublished print snapshot"}))?;
         let job = reader.print_job("")?;
         let before = job.pdf(false)?;
+        std::thread::sleep(std::time::Duration::from_millis(1100));
         let revision = reader.engine().rev();
         reader.execute("view.marks", &json!({"value":true}))?;
         assert_eq!(reader.print_job("")?.pdf(false)?, before);
