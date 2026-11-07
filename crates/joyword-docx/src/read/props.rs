@@ -67,6 +67,7 @@ use crate::xml::El;
 /// Context for property reading: theme fonts and colours, and style id aliases.
 #[derive(Default)]
 pub struct PropCtx {
+    pub unsupported_rfonts: std::cell::Cell<bool>,
     pub major_font: String,
     pub minor_font: String,
     /// The theme's complex-script fonts (`a:cs`), which the `…Bidi` theme slots fall back on.
@@ -301,6 +302,8 @@ impl PropCtx {
                         .map(|v| self.style_id(v))
                 }
                 "w:rFonts" => {
+                    // A later font declaration supersedes the earlier binding as well as its value.
+                    c.theme_font = None;
                     // A theme font supersedes the fixed font beside it (`w:asciiTheme` over
                     // `w:ascii`, `w:hAnsiTheme` over `w:hAnsi`).
                     let named = |a: &str| k.attr(a).filter(|f| !f.is_empty()).map(str::to_string);
@@ -313,18 +316,65 @@ impl PropCtx {
                         .or_else(|| named("w:ascii"))
                         .or_else(|| themed("w:hAnsiTheme"))
                         .or_else(|| named("w:hAnsi"));
-                    // The complex-script font (Persian, Arabic, Hebrew text). A `w:cstheme` font is
-                    // left to inherit: the theme's per-script fonts aren't read.
+                    let reference = |key: &str| {
+                        k.attr(key)
+                            .filter(|slot| joyword_model::props::ThemeFont::supported(slot))
+                            .map(str::to_string)
+                    };
+                    let ascii = reference("w:asciiTheme");
+                    let h_ansi = reference("w:hAnsiTheme");
+                    // When a fixed ASCII font wins over hAnsiTheme, retain that explicit
+                    // precedence; this initial binding model only covers theme-selected Latin fonts.
+                    if (ascii.is_some() || (named("w:ascii").is_none() && h_ansi.is_some()))
+                        && let Some(resolved) = c.font.clone()
+                    {
+                        c.theme_font = Some(joyword_model::props::ThemeFont {
+                            ascii,
+                            h_ansi,
+                            resolved,
+                        });
+                    }
+                    // Retain script references as opaque metadata; do not invent script selection.
                     c.font_cs = k
                         .attr("w:cs")
                         .filter(|f| !f.is_empty() && f.len() < 256)
                         .map(str::to_string);
-                    // The East Asian font (Chinese, Japanese, Korean text). A `w:eastAsiaTheme` font
-                    // is left to inherit, like `w:cstheme`.
                     c.font_ea = k
                         .attr("w:eastAsia")
                         .filter(|f| !f.is_empty() && f.len() < 256)
                         .map(str::to_string);
+                    c.font_cs_theme =
+                        k.attr("w:cstheme")
+                            .map(|value| joyword_model::props::ScriptFontRef {
+                                value: value.into(),
+                                fixed: c.font_cs.clone(),
+                            });
+                    c.font_ea_theme = k.attr("w:eastAsiaTheme").map(|value| {
+                        joyword_model::props::ScriptFontRef {
+                            value: value.into(),
+                            fixed: c.font_ea.clone(),
+                        }
+                    });
+                    c.font_hint = k.attr("w:hint").map(str::to_string);
+                    let owned = [
+                        "ascii",
+                        "hAnsi",
+                        "eastAsia",
+                        "cs",
+                        "asciiTheme",
+                        "hAnsiTheme",
+                        "eastAsiaTheme",
+                        "cstheme",
+                        "hint",
+                    ];
+                    if k.attrs.iter().any(|(key, _)| {
+                        !owned
+                            .iter()
+                            .any(|name| key == name || key == &format!("w:{name}"))
+                    }) || !k.kids.is_empty()
+                    {
+                        self.unsupported_rfonts.set(true);
+                    }
                 }
                 "w:b" => c.bold = Some(on_off(k)),
                 "w:bCs" => c.bold_cs = Some(on_off(k)),
@@ -345,6 +395,7 @@ impl PropCtx {
                 "w:snapToGrid" => c.snap_to_grid = Some(on_off(k)),
                 "w:rtl" => c.rtl = Some(on_off(k)),
                 "w:color" => {
+                    c.theme_color = None;
                     c.color = match (
                         self.theme_color(k, "w:themeColor", "w:themeTint", "w:themeShade"),
                         k.attr("w:val"),
@@ -353,6 +404,19 @@ impl PropCtx {
                         (None, Some(v)) if v.eq_ignore_ascii_case("auto") => Some(TextColor::Auto),
                         (None, Some(v)) => Rgb::parse(v).map(TextColor::Rgb),
                         (None, None) => None,
+                    };
+                    if let (Some(name), Some(TextColor::Rgb(resolved))) =
+                        (k.attr("w:themeColor"), c.color)
+                        && let Some(slot) =
+                            joyword_model::props::ThemeColor::slot(name, self.color_map.as_ref())
+                    {
+                        c.theme_color = Some(joyword_model::props::ThemeColor {
+                            name: name.into(),
+                            slot,
+                            resolved,
+                            tint: k.attr("w:themeTint").map(str::to_string),
+                            shade: k.attr("w:themeShade").map(str::to_string),
+                        });
                     }
                 }
                 "w:spacing" => c.spacing = tw(k, "w:val").map(|v| v.clamp(-1584.0, 1584.0)),

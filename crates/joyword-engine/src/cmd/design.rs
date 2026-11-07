@@ -137,37 +137,24 @@ pub fn specs() -> Vec<CommandSpec> {
 fn set_fonts(s: &mut Session, heading: &str, body: &str) {
     s.doc.settings.major_font = heading.into();
     s.doc.settings.minor_font = body.into();
-    s.doc.styles.default_chr.font = Some(body.into());
-    for st in &mut s.doc.styles.styles {
-        if let Some(f) = &st.chr.font
-            && (f == styles::HEADING_FONT || st.id.starts_with("Heading") || st.id == "Title")
-        {
-            st.chr.font = Some(heading.into());
-        } else if st.chr.font.is_some() && st.chr.font.as_deref() != Some(heading) {
-            st.chr.font = Some(body.into());
-        }
+    s.doc.refresh_theme_fonts(heading, body);
+    if let Some(pending) = s.pending.as_mut() {
+        pending.refresh_theme_font(heading, body);
     }
 }
 
 fn set_accent(s: &mut Session, accent: Rgb) {
-    for st in &mut s.doc.styles.styles {
-        if st.id.starts_with("Heading")
-            && st.id.len() == 8
-            && st.id.as_bytes().get(7).is_some_and(|d| *d <= b'5')
-            || st.id == "IntenseQuote"
-            || st.id == "IntenseEmphasis"
-            || st.id == "IntenseReference"
-        {
-            st.chr.color = Some(TextColor::Rgb(accent));
-            if let Some(b) = st.para.borders.as_mut() {
-                for e in [&mut b.top, &mut b.bottom].into_iter().flatten() {
-                    e.color = Some(accent);
-                }
-            }
-        }
-    }
+    // Fixed style text and borders are explicit formatting. Only properties with
+    // coherent theme bindings may follow this palette change.
     if let Some(c) = s.doc.settings.theme_colors.get_mut(4) {
         *c = accent;
+    }
+    refresh_colors(s);
+}
+fn refresh_colors(s: &mut Session) {
+    s.doc.refresh_theme_colors();
+    if let Some(pending) = s.pending.as_mut() {
+        pending.refresh_theme_color(&s.doc.settings.theme_colors);
     }
 }
 
@@ -187,6 +174,7 @@ fn theme(s: &mut Session, v: &Value) -> CmdResult {
         }
     }
     s.doc.settings.theme_colors = colors;
+    refresh_colors(s);
     sel_result(s)
 }
 

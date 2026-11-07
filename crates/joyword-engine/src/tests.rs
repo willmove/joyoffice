@@ -18984,3 +18984,7 @@ fn page_down_extends_a_selection_that_ends_in_collapsed_outline_text() {
         "to a place the outline shows"
     );
 }
+
+mod theme_font_bindings;
+
+mod theme_color_bindings;

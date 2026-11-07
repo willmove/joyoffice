@@ -30,13 +30,43 @@ pub fn rpr_inner(w: &mut W, c: &CharProps) {
     // Emit only explicit properties so absent values keep inheriting from the style chain.
     let mut fonts: Vec<(&str, &str)> = Vec::new();
     if let Some(f) = &c.font {
-        fonts.extend([("w:ascii", f.as_str()), ("w:hAnsi", f.as_str())]);
+        // An imported hAnsi-only theme reference must not acquire a fixed ASCII
+        // override, which would take precedence when reopening.
+        if !c
+            .theme_font
+            .as_ref()
+            .is_some_and(|b| b.valid_for(c.font.as_deref()) && b.ascii.is_none())
+        {
+            fonts.push(("w:ascii", f.as_str()));
+        }
+        fonts.push(("w:hAnsi", f.as_str()));
+    }
+    if let Some(binding) = c
+        .theme_font
+        .as_ref()
+        .filter(|b| b.valid_for(c.font.as_deref()))
+    {
+        if let Some(slot) = binding.ascii.as_deref() {
+            fonts.push(("w:asciiTheme", slot));
+        }
+        if let Some(slot) = binding.h_ansi.as_deref() {
+            fonts.push(("w:hAnsiTheme", slot));
+        }
     }
     if let Some(ea) = &c.font_ea {
         fonts.push(("w:eastAsia", ea));
     }
     if let Some(cs) = &c.font_cs {
         fonts.push(("w:cs", cs));
+    }
+    if let Some(b) = c.font_ea_theme.as_ref().filter(|b| b.fixed == c.font_ea) {
+        fonts.push(("w:eastAsiaTheme", &b.value));
+    }
+    if let Some(b) = c.font_cs_theme.as_ref().filter(|b| b.fixed == c.font_cs) {
+        fonts.push(("w:cstheme", &b.value));
+    }
+    if let Some(hint) = &c.font_hint {
+        fonts.push(("w:hint", hint));
     }
     if !fonts.is_empty() {
         w.empty("w:rFonts", &fonts);
@@ -59,7 +89,20 @@ pub fn rpr_inner(w: &mut W, c: &CharProps) {
     toggle(w, "w:webHidden", c.web_hidden);
     match c.color {
         Some(TextColor::Auto) => w.val("w:color", "auto"),
-        Some(TextColor::Rgb(rgb)) => w.val("w:color", &rgb.hex()),
+        Some(TextColor::Rgb(rgb)) => {
+            let value = rgb.hex();
+            let mut attrs = vec![("w:val", value.as_str())];
+            if let Some(binding) = c.theme_color.as_ref().filter(|b| b.valid_for(c.color)) {
+                attrs.push(("w:themeColor", binding.name.as_str()));
+                if let Some(tint) = &binding.tint {
+                    attrs.push(("w:themeTint", tint.as_str()));
+                }
+                if let Some(shade) = &binding.shade {
+                    attrs.push(("w:themeShade", shade.as_str()));
+                }
+            }
+            w.empty("w:color", &attrs);
+        }
         None => {}
     }
     if let Some(s) = c.spacing {

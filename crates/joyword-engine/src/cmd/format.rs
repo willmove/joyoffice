@@ -394,11 +394,11 @@ fn font(s: &mut Session, v: &Value) -> CmdResult {
     });
     apply(s, &|c| {
         if let Some(n) = &name {
-            c.font = Some(n.clone());
-            c.font_cs = Some(n.clone());
+            c.set_fixed_font(Some(n.clone()));
+            c.set_fixed_cs_font(Some(n.clone()));
         }
         if let Some(n) = &ea {
-            c.font_ea = Some(n.clone());
+            c.set_fixed_ea_font(Some(n.clone()));
         }
     })
 }
@@ -493,7 +493,7 @@ fn color(s: &mut Session, v: &Value) -> CmdResult {
     let c = p::req_str(v, "color")?;
     let tc = TextColor::parse(c)
         .ok_or_else(|| CmdError::Params("color must be RRGGBB or auto".into()))?;
-    apply(s, &|x| x.color = Some(tc))
+    apply(s, &|x| x.set_fixed_color(Some(tc)))
 }
 
 /// `format.underlineColor`: the underline's own colour (`w:u w:color`), or `auto` to drop it so the

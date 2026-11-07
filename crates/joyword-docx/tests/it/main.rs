@@ -42,3 +42,9 @@ mod word_xml;
 mod wordml2003_write;
 
 mod theme_preservation;
+
+mod effective_styles;
+
+mod script_font_preservation;
+mod theme_color_bindings;
+mod theme_font_bindings;

@@ -260,6 +260,9 @@ pub struct CharProps {
     pub style: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub font: Option<String>,
+    /// Original Latin theme references; explicit font formatting clears this binding.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub theme_font: Option<super::ThemeFont>,
     /// The symbol's own font (OOXML `w:sym/@w:font`, ECMA-376 §17.3.3.30), set on a symbol
     /// character from a `w:sym` or Insert › Symbol: it is shown in this font whatever `font` is,
     /// so changing the text's font keeps the symbol. `None` = the run's font.
@@ -282,6 +285,8 @@ pub struct CharProps {
     pub double_strike: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub color: Option<TextColor>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub theme_color: Option<super::ThemeColor>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub highlight: Option<Highlight>,
     /// Character shading (background fill).
@@ -350,6 +355,12 @@ pub struct CharProps {
     /// inherit, then `font`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub font_ea: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub font_ea_theme: Option<super::ScriptFontRef>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub font_cs_theme: Option<super::ScriptFontRef>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub font_hint: Option<String>,
     /// Complex-script size, points (`w:szCs`). `None` leaves the inherited value unchanged.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub size_cs: Option<f32>,
@@ -470,6 +481,64 @@ pub struct NumChange {
 }
 
 impl CharProps {
+    pub fn set_fixed_ea_font(&mut self, font: Option<String>) {
+        self.font_ea = font;
+        self.font_ea_theme = None;
+    }
+    pub fn set_fixed_cs_font(&mut self, font: Option<String>) {
+        self.font_cs = font;
+        self.font_cs_theme = None;
+    }
+
+    /// Explicit color formatting detaches the binding even for a same-value edit.
+    pub fn set_fixed_color(&mut self, color: Option<TextColor>) {
+        self.color = color;
+        self.theme_color = None;
+    }
+    pub fn refresh_theme_color(&mut self, colors: &[Rgb]) -> bool {
+        let Some(binding) = self
+            .theme_color
+            .as_mut()
+            .filter(|b| b.valid_for(self.color))
+        else {
+            return false;
+        };
+        let Some(value) = binding.resolve(colors) else {
+            return false;
+        };
+        self.color = Some(TextColor::Rgb(value));
+        binding.resolved = value;
+        true
+    }
+
+    /// Set or clear an explicit font, even if it equals the currently resolved theme font.
+    pub fn set_fixed_font(&mut self, font: Option<String>) {
+        self.font = font;
+        self.theme_font = None;
+    }
+
+    /// Refresh a live Latin theme binding after the theme's font pair changes.
+    pub fn refresh_theme_font(&mut self, major: &str, minor: &str) -> bool {
+        let Some(binding) = self
+            .theme_font
+            .as_mut()
+            .filter(|b| b.valid_for(self.font.as_deref()))
+        else {
+            return false;
+        };
+        let Some(slot) = binding.ascii.as_deref().or(binding.h_ansi.as_deref()) else {
+            return false;
+        };
+        let value = if slot.starts_with("major") {
+            major
+        } else {
+            minor
+        };
+        self.font = Some(value.to_string());
+        binding.resolved = value.to_string();
+        true
+    }
+
     /// The same formatting outside a hyperlink: no link target, and no "Hyperlink" character
     /// style that came with it. What a paragraph mark or text typed next to a link gets.
     pub fn unlinked(&self) -> CharProps {
@@ -491,7 +560,15 @@ impl CharProps {
     }
 
     fn minus_text_style(&mut self, base: &CharProps) {
-        drop_same_fields!(self, base; style, font, sym_font, size, bold, italic, underline, underline_color, strike, double_strike, color, highlight,
+        if self.color == base.color && self.theme_color == base.theme_color {
+            self.color = None;
+            self.theme_color = None;
+        }
+        if self.font == base.font && self.theme_font == base.theme_font {
+            self.font = None;
+            self.theme_font = None;
+        }
+        drop_same_fields!(self, base; style, sym_font, size, bold, italic, underline, underline_color, strike, double_strike, highlight,
             shading, border, vert_align, caps, small_caps, hidden, spacing, scale, position, kern, outline, shadow, emboss, engrave, lang, no_proof, rtl);
     }
 
@@ -500,7 +577,15 @@ impl CharProps {
     }
 
     fn minus_script_style(&mut self, base: &CharProps) {
-        drop_same_fields!(self, base; cs, font_cs, font_ea, size_cs, bold_cs, italic_cs, lang_bidi, lang_ea, east_asian_layout);
+        if self.font_ea == base.font_ea && self.font_ea_theme == base.font_ea_theme {
+            self.font_ea = None;
+            self.font_ea_theme = None;
+        }
+        if self.font_cs == base.font_cs && self.font_cs_theme == base.font_cs_theme {
+            self.font_cs = None;
+            self.font_cs_theme = None;
+        }
+        drop_same_fields!(self, base; cs, font_hint, size_cs, bold_cs, italic_cs, lang_bidi, lang_ea, east_asian_layout);
     }
 
     fn minus_document_marks(&mut self, base: &CharProps) {
@@ -524,6 +609,19 @@ impl CharProps {
     }
 
     fn overlay_text_style(&mut self, patch: &CharProps) {
+        if patch.color.is_some() {
+            self.theme_color = patch
+                .theme_color
+                .as_ref()
+                .filter(|b| b.valid_for(patch.color))
+                .cloned();
+        }
+        if patch.font.is_some() {
+            self.theme_font = patch
+                .theme_font
+                .clone()
+                .filter(|b| b.valid_for(patch.font.as_deref()));
+        }
         overlay_fields!(self, patch; style, font, sym_font, size, bold, italic, underline, underline_color, strike, double_strike, color, highlight,
             shading, border, vert_align, caps, small_caps, hidden, spacing, scale, position, kern, outline, shadow, emboss, engrave, lang, no_proof, rtl);
     }
@@ -533,7 +631,37 @@ impl CharProps {
     }
 
     fn overlay_script_style(&mut self, patch: &CharProps) {
-        overlay_fields!(self, patch; cs, font_cs, font_ea, size_cs, bold_cs, italic_cs, lang_bidi, lang_ea, east_asian_layout);
+        if patch.font_ea.is_some() || patch.font_ea_theme.is_some() {
+            self.font_ea_theme = patch
+                .font_ea_theme
+                .clone()
+                .filter(|b| b.fixed == patch.font_ea);
+        }
+        if patch.font_cs.is_some() || patch.font_cs_theme.is_some() {
+            self.font_cs_theme = patch
+                .font_cs_theme
+                .clone()
+                .filter(|b| b.fixed == patch.font_cs);
+        }
+        overlay_fields!(self, patch; cs, font_cs, font_ea, font_hint, size_cs, bold_cs, italic_cs, lang_bidi, lang_ea, east_asian_layout);
+        // Layout still uses the inherited fixed fallback. Keep the opaque reference
+        // coherent with that effective fallback when combining property layers.
+        if patch
+            .font_ea_theme
+            .as_ref()
+            .is_some_and(|b| b.fixed == patch.font_ea)
+            && let Some(binding) = self.font_ea_theme.as_mut()
+        {
+            binding.fixed = self.font_ea.clone();
+        }
+        if patch
+            .font_cs_theme
+            .as_ref()
+            .is_some_and(|b| b.fixed == patch.font_cs)
+            && let Some(binding) = self.font_cs_theme.as_mut()
+        {
+            binding.fixed = self.font_cs.clone();
+        }
     }
 
     fn overlay_document_marks(&mut self, patch: &CharProps) {

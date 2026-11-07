@@ -86,6 +86,11 @@ fn tiny_png() -> Vec<u8> {
 #[test]
 fn every_char_prop_round_trips() {
     let all = CharProps {
+        theme_font: None,
+        font_ea_theme: None,
+        font_cs_theme: None,
+        font_hint: None,
+        theme_color: None,
         style: Some("Strong".into()),
         font: Some("Georgia".into()),
         // The symbol's own font: the run is written as `w:sym` characters (#2036).

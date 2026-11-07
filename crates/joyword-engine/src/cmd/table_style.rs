@@ -582,7 +582,7 @@ fn region(r: &Value, f: &mut PartFormat) -> Result<(), CmdError> {
         f.fill = color_param(r, "fill")?;
     }
     if r.get("color").is_some() {
-        chr.color = color_param(r, "color")?.map(TextColor::Rgb);
+        chr.set_fixed_color(color_param(r, "color")?.map(TextColor::Rgb));
     }
     if let Some(b) = p::bool(r, "bold") {
         chr.bold = Some(b);
@@ -621,12 +621,12 @@ fn region(r: &Value, f: &mut PartFormat) -> Result<(), CmdError> {
     match r.get("font") {
         None => {}
         // Null or empty: the part's font is inherited again.
-        Some(Value::Null) => chr.font = None,
-        Some(Value::String(n)) => {
-            chr.font = Some(n.trim())
+        Some(Value::Null) => chr.set_fixed_font(None),
+        Some(Value::String(n)) => chr.set_fixed_font(
+            Some(n.trim())
                 .filter(|n| !n.is_empty())
-                .map(|n| n.chars().take(256).collect())
-        }
+                .map(|n| n.chars().take(256).collect()),
+        ),
         Some(_) => return Err(CmdError::Params("`font` is a name or null".into())),
     }
     let name = |k: &str| -> Result<Option<Option<&str>>, CmdError> {

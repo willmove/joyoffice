@@ -32,6 +32,7 @@ impl Fragment {
     pub fn to_document(&self) -> Document {
         let mut d = Document::new();
         d.body = self.blocks.iter().cloned().map(Arc::new).collect();
+        d.detach_theme_fonts();
         d
     }
     /// Whether the fragment holds an equation (in tables too), which a copy also puts on the
@@ -1286,6 +1287,17 @@ impl Document {
     /// [`Self::adopt_with`], its permission range ids from at least `perms` on (and past ours);
     /// `perms` moves past them.
     fn adopt_in(&mut self, mut src: Document, keep_styles: bool, perms: &mut u32) -> Fragment {
+        // Imported formatting is resolved against the source theme, not this document's.
+        src.detach_theme_fonts();
+        if src
+            .passthrough
+            .contains_key(crate::UNSUPPORTED_FONT_METADATA)
+        {
+            self.passthrough.insert(
+                crate::UNSUPPORTED_FONT_METADATA.into(),
+                Arc::new(Vec::new()),
+            );
+        }
         let mut renamed = BTreeMap::new();
         let mut default_style = None;
         if keep_styles {
