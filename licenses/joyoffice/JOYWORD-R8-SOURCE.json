@@ -32,7 +32,8 @@
       "target": "crates/joyword-shell/src/prefs.rs",
       "sha256": "aa937f6169fd0bf9a0aadb0306f0d55709822827d2dd7200648389c8e715df73",
       "modified": true,
-      "changes": "Replaced production panic/expect; bounded backup-name search with create_new; added exhaustion regression."
+      "changes": "Replaced production panic/expect; bounded backup-name search with create_new; added exhaustion regression. Current and legacy preference reads reject non-regular handles; Unix nonblocking opens prevent FIFO startup hangs while retaining regular symlink read compatibility. Recheck declared future schema before saving to prevent stale writable state from downgrading newer preferences. Keep independent exact-byte load/save observations to reject completed external edits, deletion, and cross-store saves. Serialize cooperating preference writers with a persistent nonblocking OS-lock sidecar and crash-release regression. Create corruption backups with owner-only Unix permissions before writing private preference bytes. Share future-schema detection across loading, legacy migration and save checks, including unknown syntax and conflicting declarations.",
+      "adapted_sha256": "42da1cf5d920833bdf871364495197c9401c2d2234e7485aba3140f97e1dafbb"
     },
     {
       "source": "crates/joyword-shell/locales/en.lang",
@@ -293,7 +294,8 @@
       "target": "crates/joyword-shell/src/storage/locks.rs",
       "sha256": "b6e21ed906a906c77a527c26b8da173200dbf4c0abc4ab7c63abeab2e68421b6",
       "modified": true,
-      "changes": "Host source stamp/locks/metadata/verified temp publication/ReplaceFileW pipelines retained; new single-engine export/version adapter; production expect replaced; source/metadata tests retained and new-engine fault tests added."
+      "changes": "Host source stamp/locks/metadata/verified temp publication/ReplaceFileW pipelines retained; new single-engine export/version adapter; production expect replaced; source/metadata tests retained and new-engine fault tests added. Lock ownership now rejects symbolic links and bounds token reads; Unix opens use NOFOLLOW/NONBLOCK and identity checks.",
+      "adapted_sha256": "ccba1b628af000a87d8f3d48d71fd66d4f3c4f155d89d6fba37a004933bf674f"
     },
     {
       "source": "crates/joyword-shell/src/storage/error.rs",

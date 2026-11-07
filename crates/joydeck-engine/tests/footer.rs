@@ -185,3 +185,204 @@ fn footer_summary_counts_multiple_placeholders_and_enforces_target_budget() {
     assert_eq!(summary.pages_without_footer, 1);
     assert_eq!(summary.text, None);
 }
+
+fn insertable_deck() -> Presentation {
+    use joydeck_model::{LayoutType, PlaceholderVisibility};
+    let mut p = deck();
+    let master = Arc::make_mut(&mut p.masters[0]);
+    master.placeholder_visibility = Some(PlaceholderVisibility {
+        footer: Some(true),
+        ..Default::default()
+    });
+    let layout = master
+        .layouts
+        .iter_mut()
+        .find(|l| l.id == p.slides[2].layout)
+        .unwrap();
+    layout.kind = LayoutType::TitleAndContent;
+    layout.placeholder_visibility = master.placeholder_visibility.clone();
+    p
+}
+fn add_command() -> Command {
+    serde_json::from_str(r#"{"command":"add-missing-footer-text","text":"New footer 中文"}"#)
+        .unwrap()
+}
+#[test]
+fn missing_footer_insertion_is_selected_page_only_with_one_undo() {
+    let mut p = insertable_deck();
+    // An unrelated page uses a different, unclassified layout and stays untouched.
+    Arc::make_mut(&mut p.slides[0]).layout = p.masters[0].layouts[1].id;
+    let mut s = session(p.clone());
+    s.select(2, vec![]).unwrap();
+    let selection = s.selection().clone();
+    assert!(s.validate(add_command()).unwrap());
+    assert_eq!(s.model(), &p);
+    assert!(s.execute(add_command()).unwrap());
+    assert_eq!(s.selection(), &selection);
+    assert_eq!(s.model().slides[..2], p.slides[..2]);
+    assert_eq!(s.model().masters, p.masters);
+    assert_eq!(s.model().header_footer, p.header_footer);
+    let footer = &s.model().slides[2].shapes[0];
+    assert_eq!(footer.ph_type(), Some(PhType::Footer));
+    assert_eq!(footer.text.as_ref().unwrap().text(), "New footer 中文");
+    let changed = s.model().clone();
+    assert!(s.execute(add_command()).is_err());
+    assert_eq!(s.model(), &changed);
+    assert_eq!(s.revision(), 1);
+    assert!(s.execute(Command::Undo).unwrap());
+    assert_eq!(s.model(), &p);
+    assert!(!s.can_undo());
+    assert!(s.execute(Command::Redo).unwrap());
+    assert_eq!(s.model(), &changed);
+}
+#[test]
+fn missing_footer_rejects_ambiguity_without_touching_document_or_history() {
+    for mode in 0..16 {
+        let mut p = insertable_deck();
+        let layout_id = p.slides[2].layout;
+        let master = Arc::make_mut(&mut p.masters[0]);
+        let layout = master
+            .layouts
+            .iter_mut()
+            .find(|l| l.id == layout_id)
+            .unwrap();
+        let i = layout
+            .shapes
+            .iter()
+            .position(|s| s.ph_type() == Some(PhType::Footer))
+            .unwrap();
+        match mode {
+            0 => layout.placeholder_visibility = None,
+            1 => layout.placeholder_visibility.as_mut().unwrap().footer = Some(false),
+            2 => layout.shapes.push(layout.shapes[i].clone()),
+            3 => layout.shapes[i].xfrm = None,
+            4 => layout.shapes[i].locked = true,
+            5 => layout.shapes[i].raw_ext = Some("<unknown/>".into()),
+            6 => layout.kind = joydeck_model::LayoutType::Title,
+            7 => layout.shapes[i].xfrm.as_mut().unwrap().w = f64::NAN,
+            8 => master.placeholder_visibility = None,
+            9 => {
+                let duplicate = layout.clone();
+                master.layouts.push(duplicate);
+            }
+            10 => {
+                layout.shapes.remove(i);
+            }
+            11 => master.raw_ext = Some("<unknown/>".into()),
+            12 => layout.shapes[i].hidden = true,
+            13 => {
+                let mut body = TextBody::from_text("Field");
+                body.paragraphs[0].runs[0].kind = RunKind::Field {
+                    field: "footer".into(),
+                };
+                layout.shapes[i].text = Some(body);
+            }
+            14 => {
+                let child = layout.shapes[i].clone();
+                layout.shapes[i].ph = None;
+                layout.shapes[i].kind = ShapeKind::Group {
+                    children: vec![child],
+                    child: Default::default(),
+                };
+            }
+            _ => p.next_id = u32::MAX,
+        }
+        let mut s = session(p.clone());
+        s.select(2, vec![]).unwrap();
+        assert!(s.execute(add_command()).is_err(), "mode {mode}");
+        // NaN does not compare equal to itself: compare serialized snapshots.
+        assert_eq!(
+            serde_json::to_vec(s.model()).unwrap(),
+            serde_json::to_vec(&p).unwrap()
+        );
+        assert_eq!(s.revision(), 0);
+        assert!(!s.can_undo());
+    }
+}
+
+fn all_command(value: &str) -> Command {
+    Command::AddAllMissingFooterText { text: value.into() }
+}
+#[test]
+fn all_missing_footers_preserve_existing_differences_and_undo_together() {
+    let mut p = insertable_deck();
+    let mut extra = (*p.slides[2]).clone();
+    extra.id = SlideId(p.alloc_id().unwrap());
+    p.slides.push(Arc::new(extra));
+    // A grouped footer also counts as existing and must not be duplicated.
+    let shape = &mut Arc::make_mut(&mut p.slides[0]).shapes[0];
+    let child = shape.clone();
+    shape.ph = None;
+    shape.kind = ShapeKind::Group {
+        children: vec![child],
+        child: Default::default(),
+    };
+    // Even a locked existing footer is not overwritten or treated as missing.
+    Arc::make_mut(&mut p.slides[1]).shapes[0].locked = true;
+    let mut s = session(p.clone());
+    s.select(1, vec![p.slides[1].shapes[0].id]).unwrap();
+    let selection = s.selection().clone();
+    assert!(s.validate(all_command("Shared")).unwrap());
+    assert_eq!(s.model(), &p);
+    assert!(s.execute(all_command("Shared")).unwrap());
+    assert_eq!(s.model().slides[..2], p.slides[..2]);
+    assert_eq!(s.selection(), &selection);
+    for slide in &s.model().slides[2..] {
+        assert_eq!(slide.shapes.len(), 1);
+        assert_eq!(slide.shapes[0].text.as_ref().unwrap().text(), "Shared");
+    }
+    assert_ne!(
+        s.model().slides[2].shapes[0].id,
+        s.model().slides[3].shapes[0].id
+    );
+    let changed = s.model().clone();
+    assert!(!s.execute(all_command("Do not overwrite")).unwrap());
+    assert_eq!(s.model(), &changed);
+    assert_eq!(s.revision(), 1);
+    assert!(s.execute(Command::Undo).unwrap());
+    assert_eq!(s.model(), &p);
+    assert!(!s.can_undo());
+    assert!(s.execute(Command::Redo).unwrap());
+    assert_eq!(s.model(), &changed);
+}
+#[test]
+fn all_missing_footers_reject_later_unsafe_page_atomically() {
+    let mut p = insertable_deck();
+    let mut extra = (*p.slides[2]).clone();
+    extra.id = SlideId(p.alloc_id().unwrap());
+    extra.layout = p.masters[0].layouts[1].id; // unknown visibility
+    p.slides.push(Arc::new(extra));
+    let mut s = session(p.clone());
+    assert!(
+        s.execute(all_command("Shared"))
+            .unwrap_err()
+            .contains("page 4")
+    );
+    assert_eq!(s.model(), &p);
+    assert_eq!(s.revision(), 0);
+    assert!(!s.can_undo());
+    let mut snapshot = s.snapshot();
+    assert!(snapshot.stage_edit(all_command("Shared")).is_err());
+    assert_eq!(*snapshot.model, p);
+}
+#[test]
+fn all_missing_footers_enforce_target_text_and_output_budgets() {
+    for (count, text) in [
+        (257, "x".into()),
+        (17, "x".repeat(65536)),
+        (1, "bad\ntext".into()),
+    ] {
+        let mut p = insertable_deck();
+        let template = (*p.slides[2]).clone();
+        p.slides.clear();
+        for _ in 0..count {
+            let mut slide = template.clone();
+            slide.id = SlideId(p.alloc_id().unwrap());
+            p.slides.push(Arc::new(slide));
+        }
+        let mut s = session(p.clone());
+        assert!(s.execute(all_command(&text)).is_err());
+        assert_eq!(s.model(), &p);
+        assert!(!s.can_undo());
+    }
+}
