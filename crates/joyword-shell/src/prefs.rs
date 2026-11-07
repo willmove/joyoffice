@@ -394,7 +394,18 @@ fn read_preferences(path: &Path) -> io::Result<Vec<u8>> {
 
 // Permanent sidecar: deleting it on unlock would permit split-inode locks.
 // Each save opens a fresh handle and tries exactly once; Drop releases the lock.
-fn acquire_save_lock(directory: &Path) -> io::Result<fs::File> {
+struct SaveLock(fs::File);
+
+impl Drop for SaveLock {
+    fn drop(&mut self) {
+        // A child may inherit this open-file description between fork and exec.
+        // Closing just our handle need not release its lock; explicitly unlock
+        // when this transaction ends, without waiting for unrelated children.
+        let _ = self.0.unlock();
+    }
+}
+
+fn acquire_save_lock(directory: &Path) -> io::Result<SaveLock> {
     let path = directory.join(SAVE_LOCK);
     #[cfg(unix)]
     let file: fs::File = {
@@ -435,6 +446,7 @@ fn acquire_save_lock(directory: &Path) -> io::Result<fs::File> {
         }
     }
     file.try_lock()?;
+    let lock = SaveLock(file);
     #[cfg(unix)]
     {
         use std::os::unix::fs::MetadataExt;
@@ -450,7 +462,7 @@ fn acquire_save_lock(directory: &Path) -> io::Result<fs::File> {
             ));
         }
     }
-    Ok(file)
+    Ok(lock)
 }
 
 pub struct PrefsStore {
@@ -1105,6 +1117,26 @@ mod tests {
                 }
             }
         }
+        Ok(())
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn completed_save_releases_lock_even_with_an_inherited_handle() -> io::Result<()> {
+        let dir = tempfile::tempdir()?;
+        let store = PrefsStore::new(dir.path());
+        let loaded = store.load(Locale::En);
+        let lock = acquire_save_lock(dir.path())?;
+        // A duplicate models the shared open-file description inherited across
+        // fork before CLOEXEC closes it in a concurrently launched child.
+        let inherited = lock.0.try_clone()?;
+        assert_eq!(
+            store.save(&loaded).err().map(|e| e.kind()),
+            Some(io::ErrorKind::WouldBlock)
+        );
+        drop(lock);
+        store.save(&loaded)?;
+        drop(inherited);
         Ok(())
     }
 
