@@ -15,15 +15,26 @@ const MAX_RECORD: usize = MAX_PACKAGE + MAX_TEXT + 49;
 const OBJECT_MARKER: char = '\u{fdd0}';
 
 /// Locate the prior desktop's published journals without creating or changing any files.
+/// A latest generation explicitly discarded by the user is not offered again.
 pub fn legacy_recovery_directory() -> Option<PathBuf> {
     let directory = std::env::var_os("JOYWORD_RECOVERY_DIR")
         .filter(|path| !path.is_empty())
         .map(PathBuf::from)
         .or_else(|| crate::prefs::default_config_dir().map(|root| root.join("recovery")))?;
-    [SINGLE, SLOTS[0], SLOTS[1]]
+    offer_legacy_recovery(directory)
+}
+
+fn offer_legacy_recovery(directory: PathBuf) -> Option<PathBuf> {
+    let exists = [SINGLE, SLOTS[0], SLOTS[1]]
         .iter()
-        .any(|name| fs::symlink_metadata(directory.join(name)).is_ok_and(|m| m.is_file()))
-        .then_some(directory)
+        .any(|name| fs::symlink_metadata(directory.join(name)).is_ok_and(|m| m.is_file()));
+    if !exists {
+        return None;
+    }
+    match select(&directory, &AtomicBool::new(false)) {
+        Ok(None) => None,
+        Ok(Some(_)) | Err(_) => Some(directory),
+    }
 }
 
 #[derive(PartialEq, Eq)]
@@ -228,7 +239,7 @@ fn read_record(path: &Path, single: bool) -> io::Result<Option<Record>> {
     decode(&bytes, single).map(Some)
 }
 
-fn select(path: &Path, cancel: &AtomicBool) -> Result<(Checkpoint, bool), String> {
+fn select(path: &Path, cancel: &AtomicBool) -> Result<Option<(Checkpoint, bool)>, String> {
     let directory = if path.is_dir() {
         path
     } else {
@@ -251,7 +262,10 @@ fn select(path: &Path, cancel: &AtomicBool) -> Result<(Checkpoint, bool), String
     result
 }
 
-fn select_locked(directory: &Path, cancel: &AtomicBool) -> Result<(Checkpoint, bool), String> {
+fn select_locked(
+    directory: &Path,
+    cancel: &AtomicBool,
+) -> Result<Option<(Checkpoint, bool)>, String> {
     let mut selected: Option<Record> = None;
     let mut damaged = Vec::new();
     for name in SLOTS {
@@ -294,8 +308,10 @@ fn select_locked(directory: &Path, cancel: &AtomicBool) -> Result<(Checkpoint, b
             read_record(&directory.join(SINGLE), true).map_err(|e| format!("{SINGLE}: {e}"))?;
     }
     let record = selected.ok_or("No published recovery checkpoint")?;
-    let content = record.content.ok_or("Recovery was explicitly discarded")?;
-    Ok((content, !damaged.is_empty()))
+    let Some(content) = record.content else {
+        return Ok(None);
+    };
+    Ok(Some((content, !damaged.is_empty())))
 }
 
 struct BodyText {
@@ -476,7 +492,8 @@ impl Reader {
 
     fn read_legacy_checkpoint(path: &Path, cancel: &AtomicBool) -> Result<Self, String> {
         guarded(|| {
-            let (checkpoint, degraded) = select(path, cancel)?;
+            let (checkpoint, degraded) = select(path, cancel)?
+                .ok_or("Recovery was explicitly discarded")?;
             check_cancel(cancel)?;
             let rich = checkpoint.snapshot.is_some();
             let package = checkpoint.snapshot.unwrap_or(checkpoint.baseline);
@@ -528,6 +545,15 @@ mod tests {
             record.extend_from_slice(&(bytes.len() as u64).to_le_bytes());
             record.extend_from_slice(bytes);
         }
+        record.extend_from_slice(&crc32fast::hash(&record).to_le_bytes());
+        record
+    }
+
+    fn discarded(generation: u64) -> Vec<u8> {
+        let mut record = b"JWREC002".to_vec();
+        record.extend_from_slice(&generation.to_le_bytes());
+        record.push(2);
+        record.extend_from_slice(&0_u64.to_le_bytes());
         record.extend_from_slice(&crc32fast::hash(&record).to_le_bytes());
         record
     }
@@ -654,6 +680,49 @@ mod tests {
     }
 
     #[test]
+    fn startup_does_not_offer_an_explicitly_discarded_latest_generation() -> io::Result<()> {
+        let dir = tempfile::tempdir()?;
+        let old = journal(
+            include_bytes!("../../../assets/samples/mixed-media.docx"),
+            "old checkpoint",
+            None,
+        );
+        let latest = discarded(2);
+        fs::write(dir.path().join(SLOTS[0]), &old)?;
+        fs::write(dir.path().join(SLOTS[1]), &latest)?;
+
+        assert_eq!(offer_legacy_recovery(dir.path().to_path_buf()), None);
+        let result = Reader::recover_legacy(dir.path(), &AtomicBool::new(false));
+        assert!(
+            result
+                .err()
+                .unwrap()
+                .contains("Recovery was explicitly discarded")
+        );
+        assert_eq!(fs::read(dir.path().join(SLOTS[0]))?, old);
+        assert_eq!(fs::read(dir.path().join(SLOTS[1]))?, latest);
+        Ok(())
+    }
+
+    #[test]
+    fn startup_still_offers_a_published_checkpoint() -> io::Result<()> {
+        let dir = tempfile::tempdir()?;
+        let record = journal(
+            include_bytes!("../../../assets/samples/mixed-media.docx"),
+            "published checkpoint",
+            None,
+        );
+        fs::write(dir.path().join(SLOTS[0]), &record)?;
+
+        assert_eq!(
+            offer_legacy_recovery(dir.path().to_path_buf()),
+            Some(dir.path().to_path_buf())
+        );
+        assert_eq!(fs::read(dir.path().join(SLOTS[0]))?, record);
+        Ok(())
+    }
+
+    #[test]
     fn regular_recovery_open_keeps_missing_and_handle_read_contract() -> io::Result<()> {
         let dir = tempfile::tempdir()?;
         let path = dir.path().join("recovery-a.jwr");
@@ -747,8 +816,9 @@ mod tests {
             *byte ^= 1;
         }
         fs::write(dir.path().join(SLOTS[1]), &corrupt)?;
-        let (checkpoint, damaged) =
-            select_locked(dir.path(), &AtomicBool::new(false)).map_err(io::Error::other)?;
+        let (checkpoint, damaged) = select_locked(dir.path(), &AtomicBool::new(false))
+            .map_err(io::Error::other)?
+            .unwrap();
         assert_eq!(checkpoint.text, "older text");
         assert!(damaged);
         assert_eq!(fs::read(dir.path().join(SLOTS[1]))?, corrupt);
