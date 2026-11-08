@@ -468,6 +468,21 @@ impl JoyWord {
                     ),
                 )
                 .child(
+                    self.author_button(
+                        "formatting-marks",
+                        tr("显示格式标记 ¶", "Formatting marks ¶"),
+                        "view.marks",
+                        json!({}),
+                        cx,
+                    )
+                    .selected(
+                        self.canvas
+                            .reader
+                            .as_ref()
+                            .is_some_and(|r| r.engine().view.marks),
+                    ),
+                )
+                .child(
                     Button::new("paragraph-dialog")
                         .ghost()
                         .xsmall()

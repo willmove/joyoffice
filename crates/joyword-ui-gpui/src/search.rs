@@ -99,7 +99,7 @@ impl JoyWord {
         });
     }
 
-    fn select_navigation_entry(
+    pub(super) fn select_navigation_entry(
         &mut self,
         document: u64,
         revision: u64,

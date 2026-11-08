@@ -19,10 +19,12 @@ mod page_setup;
 mod perf;
 #[cfg(windows)]
 mod printing;
+mod ribbon;
 mod save;
 mod search;
 mod styles;
 mod text_accessibility;
+mod view_ribbon;
 use document_view::{DocumentCanvas, OpenSource};
 // GPUI desktop reader, sharing JoyOffice visual components.
 use gpui::component::button::{Button, ButtonVariants};
@@ -185,9 +187,9 @@ impl JoyWord {
     }
     fn palette(&self) -> Palette {
         if self.shell.dark {
-            Palette::dark(Brand::Sheet)
+            Palette::dark(Brand::Word)
         } else {
-            Palette::light(Brand::Sheet)
+            Palette::light(Brand::Word)
         }
     }
     fn execute(&mut self, id: &str, window: &mut Window, cx: &mut Context<Self>) {
@@ -265,6 +267,15 @@ impl JoyWord {
             }
             _ => {}
         }
+        if matches!(id, "view.zoom_in" | "view.zoom_out" | "view.zoom_reset") {
+            let value = match id {
+                "view.zoom_in" => self.shell.zoom.saturating_add(10).min(500),
+                "view.zoom_out" => self.shell.zoom.saturating_sub(10).max(10),
+                _ => 100,
+            };
+            self.run_format("view.zoom", &serde_json::json!({"value":value}), window, cx);
+            return;
+        }
         match self.shell.execute(id) {
             Ok(()) => {
                 self.shell.notice = None;
@@ -305,6 +316,7 @@ impl JoyWord {
             _ => label.clone(),
         };
         let enabled = match command {
+            "view.zoom_in" | "view.zoom_out" | "view.zoom_reset" => self.format_ready("view.zoom"),
             "edit.undo" => self.canvas.reader.as_ref().is_some_and(|r| r.can_undo()),
             "edit.redo" => self.canvas.reader.as_ref().is_some_and(|r| r.can_redo()),
             "edit.copy" | "edit.cut" => self
@@ -500,11 +512,12 @@ impl JoyWord {
             .flex()
             .items_center()
             .overflow_x_scroll()
-            .h(px(88.0))
+            .h(px(if self.tab == 5 { 76.0 } else { 88.0 }))
             .flex_shrink_0()
             .bg(rgb(p.surface))
             .border_b_1()
-            .border_color(rgb(p.border));
+            .border_color(rgb(p.border))
+            .when(self.tab == 5, |group| group.bg(rgb(p.chrome)));
         groups = match self.tab {
             0 => groups
                 .child(
@@ -604,36 +617,8 @@ impl JoyWord {
             9 => groups.child(self.developer_ribbon(cx)),
             6 => groups.child(self.table_tools(cx)),
             7 => groups.child(self.picture_tools(cx)),
-            _ => groups.child(
-                div()
-                    .flex()
-                    .px_4()
-                    .gap_2()
-                    .child(self.button("zoom-out-ribbon", "−", "view.zoom_out", cx))
-                    .child(self.button("zoom-reset-ribbon", "100%", "view.zoom_reset", cx))
-                    .child(self.button("zoom-in-ribbon", "+", "view.zoom_in", cx))
-                    .child(
-                        self.author_button(
-                            "formatting-marks",
-                            tr("显示格式标记 ¶", "Formatting marks ¶"),
-                            "view.marks",
-                            serde_json::json!({}),
-                            cx,
-                        )
-                        .selected(
-                            self.canvas
-                                .reader
-                                .as_ref()
-                                .is_some_and(|r| r.engine().view.marks),
-                        ),
-                    )
-                    .child(self.button(
-                        "theme-ribbon",
-                        tr("切换外观", "Appearance"),
-                        "view.theme",
-                        cx,
-                    )),
-            ),
+            5 => groups.child(self.view_ribbon(cx)),
+            _ => groups,
         };
         div()
             .flex()
@@ -811,6 +796,7 @@ impl JoyWord {
 
 impl Render for JoyWord {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        self.sync_view_zoom();
         self.prepare_canvas(window, cx);
         self.sync_format(window, cx);
         self.sync_advanced();
@@ -901,8 +887,10 @@ impl Render for JoyWord {
             .on_action(cx.listener(|this, _: &ToggleLanguage, window, cx| {
                 this.execute("view.language", window, cx)
             }))
-            .child(self.header(cx))
-            .child(self.ribbon(cx));
+            .when(!self.view_focus(), |el| {
+                el.child(self.header(cx)).child(self.ribbon(cx))
+            })
+            .when(self.view_focus(), |el| el.child(self.focus_bar(cx)));
         if self
             .canvas
             .reader
@@ -1024,9 +1012,14 @@ impl Render for JoyWord {
                     .flex()
                     .flex_1()
                     .min_h_0()
+                    .when(self.view_navigation(), |s| {
+                        s.child(self.navigation_panel(cx))
+                    })
                     .child(self.workspace(cx))
-                    .when(self.styles_open, |s| s.child(self.styles_panel(cx)))
-                    .when(self.advanced.pane.is_some(), |s| {
+                    .when(self.styles_open && !self.view_focus(), |s| {
+                        s.child(self.styles_panel(cx))
+                    })
+                    .when(self.advanced.pane.is_some() && !self.view_focus(), |s| {
                         s.child(self.advanced_panel(cx))
                     }),
             )

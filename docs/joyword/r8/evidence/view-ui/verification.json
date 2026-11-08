@@ -1,0 +1,163 @@
+{
+  "date": "2026-11-08",
+  "source_head": "bea40ce0ecfa343597fbae7c9d362c3de5a311bd",
+  "branch": "feat/joyword-view-ribbon",
+  "working_tree": "Native GUI evidence was captured before commit with earlier Insert and Layout work present. The requested commit is isolated to View and its shared button prerequisite; other work remains uncommitted.",
+  "platform": {
+    "os": "Darwin",
+    "architecture": "arm64",
+    "native_scope": "macOS app windows with synthesized input; no physical keyboard, IME or screen-reader certification"
+  },
+  "reference": {
+    "product": "Microsoft Word for Mac",
+    "version": "16.114.4",
+    "build": "16.114.26110224",
+    "window_pixels": [
+      1432,
+      720
+    ],
+    "capture": "word-view.png",
+    "zoom_dialog": "Click did not open an observable dialog; no dialog visual parity claimed."
+  },
+  "candidate": {
+    "product": "JoyWord",
+    "version": "0.1.1",
+    "profile": "dev",
+    "window_pixels": [
+      1440,
+      932
+    ],
+    "binary_sha256": "cc3db1837d6655012a1d9e846ae339bd8220d2a617d4877b28fdd5c8113f0627",
+    "preview_app_sha256": "cc3db1837d6655012a1d9e846ae339bd8220d2a617d4877b28fdd5c8113f0627",
+    "source_sha256": {
+      "crates/joyword-ui-gpui/src/lib.rs": "5a34127846db0076ab67c372de034a3357f19bd07fa7276cba9ee7ab6bf91aeb",
+      "crates/joyword-ui-gpui/src/view_ribbon.rs": "aee787a831c4e91097ded18ed4e45a7694e84c215414d121c7a50db91a1d87e0",
+      "crates/joyword-ui-gpui/src/ribbon.rs": "82ad8cb3ed9051be8f68bf0b604d6f1df2d3b24fa0bc322063fb454cc94dc8e9",
+      "crates/joyword-ui-gpui/src/document_view.rs": "5a32510c7723a01c8cf90808fd12b26d7c632e7fd82aae8c9cdee9d56e1b000e",
+      "crates/joyword-ui-gpui/src/input.rs": "c5fe7c2842f9813be1b1fd4c45b301e566fd5ac9fc48b1e5ce72e11c8014bb21",
+      "crates/joyword-ui-gpui/src/search.rs": "d8adeb79812a83753e85e21104f2a94cc13a14e0885fbef644672f21946697a0",
+      "crates/joyword-ui-gpui/src/formatting.rs": "1f33cc04e8f03cdea9c9103ca3de0542d774399a26198890b73511f28458b2cc"
+    },
+    "capture_scope": "Final View screenshot and launch/focus-exit smoke use final binary. Other native captures precede the final Escape/IME priority-only correction; rendering is unchanged."
+  },
+  "comparison": {
+    "common_crop_width": 1120,
+    "pixel_scale": 1,
+    "rows": [
+      {
+        "label": "Microsoft Word for Mac 16.114.4",
+        "capture": "word-view.png",
+        "crop": [
+          0,
+          61,
+          1120,
+          137
+        ]
+      },
+      {
+        "label": "JoyWord - previously running build",
+        "capture": "joyword-before.png",
+        "crop": [
+          0,
+          116,
+          1120,
+          204
+        ]
+      },
+      {
+        "label": "JoyWord - updated View ribbon",
+        "capture": "joyword-view-final.png",
+        "crop": [
+          0,
+          116,
+          1120,
+          192
+        ]
+      }
+    ],
+    "whole_window_or_pixel_parity_claimed": false,
+    "baseline_note": "Before screenshot is the pre-existing running binary, not a reconstruction of all initially dirty source changes."
+  },
+  "checks": {
+    "product_build": "passed; build-final.log",
+    "product_check": {
+      "command": "cargo xtask check joyword",
+      "passed": 3614,
+      "failed": 0,
+      "ignored": 2,
+      "scope": "Before final Escape/IME priority adjustment; check-final.log"
+    },
+    "final_ui_tests": {
+      "command": "cargo test --locked -p joyword-ui-gpui",
+      "passed": 17,
+      "failed": 0,
+      "ignored": 0,
+      "log": "ui-final.log"
+    },
+    "final_strict_clippy": "passed; cargo clippy --locked -p joyword-ui-gpui --lib --bins -- -D warnings; clippy-final.log",
+    "final_format": "passed; cargo fmt -p joyword-ui-gpui -- --check",
+    "docs": "passed",
+    "gates": "passed (1478 Rust files)",
+    "git_diff_check": "passed"
+  },
+  "native_verified": [
+    "View ribbon layout",
+    "Ruler toggle and screen ruler",
+    "Grid at 100%, one-page and page-width zoom; integer pixel fix",
+    "Heading pane populated after temporary Heading 1 and entry clicked",
+    "Zoom 900 rejected and 125% accepted",
+    "Focus and Escape exit, including final binary smoke",
+    "Macro menu opens existing pane and dismisses after selection",
+    "English and dark display",
+    "Disabled controls during unsaved-change confirmation"
+  ],
+  "automated_verified": [
+    "Fit by actual page/viewport geometry and 10–500 limits",
+    "View changes leave document revision and dirty state unchanged",
+    "Shared zoom with status controls and leaving fit mode",
+    "Escape cancels platform composition before leaving Focus"
+  ],
+  "not_implemented": [
+    "Web Layout",
+    "Outline view",
+    "Draft view",
+    "Immersive Reader",
+    "Multiple pages in one row",
+    "New Window",
+    "Arrange All",
+    "Split",
+    "Switch Windows",
+    "Editable ruler and vertical ruler",
+    "Full Word navigation and zoom dialog"
+  ],
+  "not_verified": [
+    "Windows and Linux native UI",
+    "Narrow windows and additional DPI",
+    "Real IME and physical keyboard",
+    "Full screen-reader flow",
+    "Complete Word pixel parity",
+    "Word VBA compatibility"
+  ],
+  "raw_evidence_directory": "artifacts/joyword-view-ui-20261108/",
+  "commit_snapshot": {
+    "base": "bea40ce0ecfa343597fbae7c9d362c3de5a311bd",
+    "description": "View-only integration against the base, with the necessary shared button presentation and Word palette. Pending Insert, Layout, README and related changes are excluded.",
+    "source_sha256": {
+      "crates/joyword-ui-gpui/src/lib.rs": "434250314c6947c2922ec3619b7be104d3aabe8ef7c21aa1f0304f738976962a",
+      "crates/joyword-ui-gpui/src/view_ribbon.rs": "aee787a831c4e91097ded18ed4e45a7694e84c215414d121c7a50db91a1d87e0",
+      "crates/joyword-ui-gpui/src/ribbon.rs": "711f1c505a91eb34dabc22e5f04c14f5d5f787233815ecdc7c69597090bc1960",
+      "crates/joyword-ui-gpui/src/document_view.rs": "5a32510c7723a01c8cf90808fd12b26d7c632e7fd82aae8c9cdee9d56e1b000e",
+      "crates/joyword-ui-gpui/src/input.rs": "c5fe7c2842f9813be1b1fd4c45b301e566fd5ac9fc48b1e5ce72e11c8014bb21",
+      "crates/joyword-ui-gpui/src/search.rs": "d8adeb79812a83753e85e21104f2a94cc13a14e0885fbef644672f21946697a0",
+      "crates/joyword-ui-gpui/src/formatting.rs": "1f33cc04e8f03cdea9c9103ca3de0542d774399a26198890b73511f28458b2cc"
+    },
+    "product_check": {
+      "command": "cargo xtask check joyword",
+      "passed": 3608,
+      "failed": 0,
+      "ignored": 2,
+      "log": "artifacts/joyword-view-ui-20261108/commit-check.log"
+    },
+    "native_gui": "Prior screenshots were captured on the combined workspace; the isolated commit snapshot was validated with the product check."
+  }
+}

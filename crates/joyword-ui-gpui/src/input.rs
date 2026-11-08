@@ -303,6 +303,16 @@ impl JoyWord {
             }
             return;
         }
+        if key == "escape" && self.view_focus() {
+            self.run_format(
+                "view.focus",
+                &serde_json::json!({"value":false}),
+                window,
+                cx,
+            );
+            cx.stop_propagation();
+            return;
+        }
         if mods.control || mods.platform {
             if mods.shift && !mods.alt && (key == "c" || key == "v") {
                 let _ = self.try_edit(
@@ -616,9 +626,13 @@ impl JoyWord {
             canvas(
                 move |bounds, _, cx| {
                     owner.update(cx, |v, cx| {
+                        let resized = v.viewport_bounds.is_none_or(|old| {
+                            (f32::from(old.size.width - bounds.size.width)).abs() >= 1.0
+                                || (f32::from(old.size.height - bounds.size.height)).abs() >= 1.0
+                        });
                         v.viewport_bounds = Some(bounds);
                         let height = f32::from(bounds.size.height).max(1.0);
-                        if (v.canvas.viewport - height).abs() >= 1.0 {
+                        if resized {
                             v.canvas.viewport = height;
                             cx.notify();
                         }

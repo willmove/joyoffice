@@ -638,7 +638,12 @@ impl JoyWord {
                             .h(px(18.0))
                             .text_size(px(11.0))
                             .text_color(rgb(p.muted))
-                            .child(format!("{} {}", self.shell.tr("第", "Page"), index + 1)),
+                            .when(reader.engine().view.ruler, |el| {
+                                el.child(self.page_ruler(index))
+                            })
+                            .when(!reader.engine().view.ruler, |el| {
+                                el.child(format!("{} {}", self.shell.tr("第", "Page"), index + 1))
+                            }),
                     )
                     .child(
                         div()
@@ -649,6 +654,9 @@ impl JoyWord {
                             .shadow_md()
                             .relative()
                             .child(content)
+                            .when(reader.engine().view.gridlines, |el| {
+                                el.child(self.page_grid(index))
+                            })
                             .child(self.page_input(index, cx)),
                     )
             }))
