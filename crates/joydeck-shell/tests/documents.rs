@@ -73,8 +73,8 @@ fn pptx_larger_than_the_old_file_part_and_total_limits_opens_in_the_editor() {
     std::fs::remove_dir_all(root).unwrap();
 }
 #[test]
-fn input_limit_is_300_mib_and_larger_files_are_rejected_before_reading() {
-    assert_eq!(joydeck_shell::document::MAX_INPUT, 300 << 20);
+fn input_limit_is_500_mib_and_larger_files_are_rejected_before_reading() {
+    assert_eq!(joydeck_shell::document::MAX_INPUT, 500 << 20);
     let root = joydeck_shell::platform::private_directory("oversized-pptx").unwrap();
     let path = root.join("oversized.pptx");
     let file = std::fs::File::create(&path).unwrap();
@@ -82,7 +82,7 @@ fn input_limit_is_300_mib_and_larger_files_are_rejected_before_reading() {
         .unwrap();
     assert_eq!(
         Document::open(&path, &Cancellation::default()).unwrap_err_text(),
-        "input exceeds 300 MiB"
+        "input exceeds 500 MiB"
     );
     drop(file);
     std::fs::remove_dir_all(root).unwrap();

@@ -11,7 +11,7 @@ use std::{
     },
 };
 
-pub const MAX_INPUT: u64 = 300 << 20;
+pub const MAX_INPUT: u64 = 500 << 20;
 pub(crate) const MAX_NATIVE_INPUT: u64 = 64 << 20;
 const MAX_PPTX_TOTAL: u64 = 2 * MAX_INPUT;
 const MAX_PIXELS: u64 = 16_000_000;
@@ -71,7 +71,7 @@ impl Document {
         cancel.check()?;
         let file = std::fs::File::open(path).map_err(|e| format!("{}: {e}", path.display()))?;
         if file.metadata().map_err(|e| e.to_string())?.len() > MAX_INPUT {
-            return Err("input exceeds 300 MiB".into());
+            return Err("input exceeds 500 MiB".into());
         }
         let mut bytes = Vec::new();
         let mut input = file.take(MAX_INPUT + 1);
@@ -100,7 +100,7 @@ impl Document {
 
     pub fn from_bytes(name: String, bytes: Vec<u8>, cancel: &Cancellation) -> Result<Self, String> {
         if bytes.len() as u64 > MAX_INPUT {
-            return Err("input exceeds 300 MiB".into());
+            return Err("input exceeds 500 MiB".into());
         }
         cancel.check()?;
         if joydeck_legacy::sniff(&bytes) {
