@@ -1,0 +1,113 @@
+{
+  "date": "2026-11-08",
+  "source_head": "84e3e6fc7ada5a5562f38d46c0d94de0a3c6c017",
+  "source_changes": "uncommitted task changes on feat/joyword-insert-ribbon; earlier README edit retained",
+  "platform": {
+    "system": "Darwin",
+    "architecture": "arm64",
+    "scope": "native macOS windows with synthesized input; no physical keyboard or screen-reader certification"
+  },
+  "reference": {
+    "product": "Microsoft Word for Mac",
+    "version": "16.114.4",
+    "build": "16.114.26110224",
+    "window_pixels": [
+      1120,
+      720
+    ],
+    "screenshots": "local ignored artifacts/joyword-insert-ui-20261108/01-word-insert.png through 04-word-text.png"
+  },
+  "candidate": {
+    "product": "JoyWord",
+    "version": "0.1.1",
+    "profile": "dev",
+    "window_pixels": [
+      1440,
+      932
+    ],
+    "binary_sha256": "abb4080cb314d4a054998a1fd80f906d88542e6fc156b12ab03a7688c19d7c86",
+    "source_sha256": {
+      "crates/joyword-ui-gpui/src/insert.rs": "9e63deecf8a7a16f92a06e376bd02347ceede0e518ebcd4c53e6a3ec99f80601",
+      "crates/joyword-ui-gpui/src/lib.rs": "e16638bc95c567166f27a72195f2f1b14616936c4fa434f1a3df7313547413a1",
+      "crates/joyword-ui-gpui/src/objects.rs": "992c54022a54db3897c47e7951b8cb03942306b621c7dbc9918e5f2cf2c9c772",
+      "crates/joyword-ui-gpui/src/save.rs": "78cb7c54d866a8f53aae60e19fb3853aeb56914ec19867abec6315ff4efac031"
+    }
+  },
+  "comparison": {
+    "common_crop_width": 1120,
+    "scale": 1,
+    "full_pixel_parity_claimed": false
+  },
+  "validation": {
+    "product_check": {
+      "command": "cargo xtask check joyword",
+      "passed": 3607,
+      "failed": 0,
+      "ignored": 2
+    },
+    "ui_tests": {
+      "command": "cargo test --locked -p joyword-ui-gpui",
+      "passed": 11
+    },
+    "save_stack": {
+      "caller_stack_bytes": 524288,
+      "save_stack_bytes": 8388608,
+      "case": "table_save_and_readback_from_small_executor_stack",
+      "result": "passed"
+    },
+    "native_table_save_reopen": "passed after fixing the observed small-stack crash",
+    "independent_ooxml": "one 2-row, 3-column table and edited cell text retained",
+    "independent_cli": "inspect --session passed",
+    "extra_all_targets_clippy": "failed: 95 existing test-module lint findings; production product lint passed",
+    "format": "cargo fmt -p joyword-ui-gpui -- --check: passed",
+    "production_clippy": "cargo clippy --locked -p joyword-ui-gpui --lib --bins -- -D warnings: passed",
+    "architecture_gates": "python3 scripts/check_gates.py: passed (1475 Rust files)",
+    "documentation": "python3 scripts/check_docs.py: passed",
+    "diff_whitespace": "git diff --check: passed"
+  },
+  "committed_screenshot_sha256": {
+    "insert-dark.png": "ebefb483c930ca06073523990fb18175665f8eabb77e18119251a154d9a5434b",
+    "insert-light.png": "60d5a734c504bdeeaf7a4aec6b8aacf630393b58d3d54ce8711e6095c8a09841",
+    "insert-links.png": "3dbcfcd359c019f8f081c2db89fa53fc1dcd1c3bf2441ec42c5db57101e93919",
+    "insert-text.png": "74f08a798651cac041120d9ef068c5519691c4874767e8d096bc0fab27a24e59"
+  },
+  "local_artifact_sha256": {
+    "01-word-insert.png": "8f577df3cdbc436ebced1956ef308c8d4599ec7b3f41c288f733970bf3dffd14",
+    "02-word-pages.png": "fc97b8ac6fcb356c85d96bd0e430dbfa608b5cd2055f928ac17831078d765d83",
+    "03-word-links.png": "6534fbf3da39cb6d2e8993a3fe5b5a6cb58a2cce0bece9c7cb24e2f3b964650a",
+    "04-word-text.png": "6f19be44b869b283716b545eac6552d08b83624cb7eacaddcada1779338468d1",
+    "05-joyword-insert-before.png": "866003b9d8977e7b91d27c952ff82f7f3728ff953c9eff78b7d572f7dce24170",
+    "06-joyword-insert-first-pass.png": "29765bb2af4fd87fe954630438fd3f198587d75177dcb416df5b76c8b09f2709",
+    "07-joyword-insert-final.png": "4e8818457411e8379a683bf7293f4042c5f07272c4d94b803278bc6c2425c681",
+    "08-joyword-pages.png": "6ff4a63b2bb78246af333ffd88db5ca2b07236ff8761603ed9d2b948911a89d4",
+    "09-chart-inserted.png": "c3b2403eae2762fc7448a0acb4e84af74a663181b664803f47b33478b2d546d7",
+    "10-table-grid.png": "382e7ea030e901b459dc2dc7028862274a6ec57199b1eb5cc280209bc6365cad",
+    "11-table-inserted.png": "b9d55bd7c71860dd6e04e1daa857ff0136aa3cdf78b7a3b87802de5b55368657",
+    "12-table-saved.png": "bf8c812f87f019e94ccb48691c7fffd5d86b2f89df4198ff763d9969c7444363",
+    "13-table-reopened.png": "ff62faf3680fe8ab0dfd597e37b6643ac53aaaa236a05a4aebfe3102a558e272",
+    "14-insert-english.png": "6a5b797dd5bce8969a7411c8e89714395bcda63867a338bd1b55c41bd83c8c89",
+    "15-insert-dark.png": "ebefb483c930ca06073523990fb18175665f8eabb77e18119251a154d9a5434b",
+    "16-insert-links-final.png": "3dbcfcd359c019f8f081c2db89fa53fc1dcd1c3bf2441ec42c5db57101e93919",
+    "17-insert-text-final.png": "74f08a798651cac041120d9ef068c5519691c4874767e8d096bc0fab27a24e59",
+    "18-page-number.png": "41a36cf350028c54a95f17a2c602422c20c03ac06fcfd683ed736c258ad20b7e",
+    "19-joyword-insert-final.png": "60d5a734c504bdeeaf7a4aec6b8aacf630393b58d3d54ce8711e6095c8a09841",
+    "build.log": "aff9393b24372cdab0f4e3b6849d216df00abe8aa0af19331d9a885a0b48af44",
+    "final-build.log": "ada9e88826946272cb99732a57d1047fab06efc7e7cdd44dde213352257ab821",
+    "final-product-check.log": "d5bdf946e2bcf1b37e97f966e7ce2cb36ed5f48245452bb43d6f354a0fa49e75",
+    "final-ui-tests.log": "a1dd2888af2a04ed531817a82bcf0a9fb038662bfadee8561cbdf62bb38c1ec2",
+    "image-tools-install.log": "de220ff6f3686781b928d25a5ce189a83edddceab34635a46dfa7bf6526421e0",
+    "insert-ribbon-comparison.png": "86902d6adb984552fefd01a48a86b1308b582c0c3b150726cbe654731a49143a",
+    "insert-table-qa.docx": "792fa640c9f7b55d6e2e7a2edf5eac6aa82a8d0431144020fb30637af28d94b9",
+    "product-check.log": "09d9917fc4a6394c43872b0962f5652ccaea20ab8ec519a654b118e0f87f1b69",
+    "release-build.log": "6361ef7ab9038192d1fd0cb89549fdcbab64bc26f166a471f15225fd02bb7a88",
+    "save-stack-test.log": "a8cdb0953ee99472ba95dfd9c22244be02b66bc1618431aabff80673dfc7fd40",
+    "ui-clippy.log": "ef4409693067e79962808882382f840d1e14e394f61dd4fbd3a98ea244094303",
+    "ui-production-clippy.log": "89ab3d5b2267bbf0c1171c97bf99bf4671b136be56050b5f3db04503f7c401a8"
+  },
+  "limits": [
+    "Full Word galleries and native-dialog parity",
+    "Unsupported 3D/media/screenshot/WordArt/OLE/number controls remain disabled",
+    "700px windows, other DPI/monitors, full keyboard and screen-reader acceptance",
+    "Windows/Linux native execution"
+  ]
+}

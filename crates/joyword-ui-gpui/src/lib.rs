@@ -13,6 +13,7 @@ mod forms;
 mod gestures;
 mod header_footer;
 mod input;
+mod insert;
 mod objects;
 mod page_index;
 mod page_setup;
@@ -364,15 +365,6 @@ impl JoyWord {
             )
             .child(label)
     }
-    fn unavailable(&self, text: &'static str) -> gpui::Stateful<gpui::Div> {
-        joyoffice_ui::control(self.palette(), false, false)
-            .id(SharedString::from(format!("disabled-{text}")))
-            .role(gpui::Role::Button)
-            .aria_label(text)
-            .aria_description("Not available in this preview")
-            .a11y_synthetic_children(|builder| builder.parent_node().set_disabled())
-            .child(text)
-    }
     fn header(&self, cx: &mut Context<Self>) -> gpui::Div {
         let p = self.palette();
         let tr = |zh, en| self.shell.tr(zh, en);
@@ -512,12 +504,16 @@ impl JoyWord {
             .flex()
             .items_center()
             .overflow_x_scroll()
-            .h(px(if self.tab == 5 { 76.0 } else { 88.0 }))
+            .h(px(if matches!(self.tab, 1 | 5) {
+                76.0
+            } else {
+                88.0
+            }))
             .flex_shrink_0()
             .bg(rgb(p.surface))
             .border_b_1()
             .border_color(rgb(p.border))
-            .when(self.tab == 5, |group| group.bg(rgb(p.chrome)));
+            .when(matches!(self.tab, 1 | 5), |group| group.bg(rgb(p.chrome)));
         groups = match self.tab {
             0 => groups
                 .child(
@@ -593,23 +589,7 @@ impl JoyWord {
                     #[cfg(not(feature = "agent"))]
                     group
                 }),
-            1 => groups.child(
-                div()
-                    .flex()
-                    .px_4()
-                    .gap_2()
-                    .child(self.table_grid(cx))
-                    .child(
-                        Button::new("insert-picture-ribbon")
-                            .ghost()
-                            .xsmall()
-                            .label("图片…")
-                            .disabled(!self.format_ready("insert.picture"))
-                            .on_click(cx.listener(|v, _, w, cx| v.pick_picture(false, w, cx))),
-                    )
-                    .child(self.header_footer_ribbon(cx))
-                    .child(self.unavailable(tr("符号", "Symbol"))),
-            ),
+            1 => groups.child(self.insert_ribbon(cx)),
             2 => groups.child(self.page_setup_ribbon(cx)),
             3 => groups.child(self.references_ribbon(cx)),
             4 => groups.child(self.review_ribbon(cx)),

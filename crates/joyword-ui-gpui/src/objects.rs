@@ -58,6 +58,9 @@ impl JoyWord {
     }
     pub(super) fn table_grid(&self, cx: &mut Context<Self>) -> impl IntoElement {
         let view = cx.entity().downgrade();
+        let title = self.shell.tr("选择表格行列", "Insert Table");
+        let more = self.shell.tr("更多行列…", "Insert Table…");
+        let border = self.palette().muted;
         let target = self.canvas.reader.as_ref().map(|r| {
             (
                 r.engine().document_id(),
@@ -66,20 +69,13 @@ impl JoyWord {
             )
         });
         Popover::new("table-insert-grid")
-            .trigger(
-                Button::new("insert-table-grid")
-                    .ghost()
-                    .xsmall()
-                    .label("表格 ▾")
-                    .accessibility_label("插入表格")
-                    .disabled(!self.format_ready("insert.table")),
-            )
+            .trigger(self.insert_table_trigger())
             .content(move |_, _, cx| {
                 let popup = cx.entity().downgrade();
-                let mut grid = div().flex().flex_col().gap_1().child("选择表格行列");
-                for r in 1usize..=6 {
+                let mut grid = div().flex().flex_col().gap_1().child(title);
+                for r in 1usize..=8 {
                     let mut row = div().flex().gap_1();
-                    for c in 1usize..=6 {
+                    for c in 1usize..=10 {
                         let view = view.clone();
                         let popup = popup.clone();
                         let target = target.clone();
@@ -87,9 +83,12 @@ impl JoyWord {
                             Button::new(("insert-grid-cell", r * 10 + c))
                                 .ghost()
                                 .xsmall()
-                                .w(px(26.))
-                                .h(px(24.))
-                                .label("□")
+                                .w(px(20.))
+                                .h(px(20.))
+                                .p_0()
+                                .rounded(px(1.))
+                                .border_1()
+                                .border_color(rgb(border))
                                 .tooltip(format!("{r} 行 × {c} 列"))
                                 .accessibility_label(format!("插入 {r} 行 {c} 列表格"))
                                 .on_click(move |_, w, cx| {
@@ -123,7 +122,7 @@ impl JoyWord {
                     Button::new("insert-table-more")
                         .ghost()
                         .xsmall()
-                        .label("更多行列…")
+                        .label(more)
                         .on_click(move |_, w, cx| {
                             let _ = popup.update(cx, |p, cx| p.dismiss(w, cx));
                             let _ = view.update(cx, |v, cx| v.insert_table_form(w, cx));
