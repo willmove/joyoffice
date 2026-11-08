@@ -32,12 +32,17 @@ impl Reader {
             })
             .collect();
         let mut paragraph = rows.first().cloned().unwrap_or(json!({}));
+        let mut mixed = Vec::new();
         if let Some(fields) = paragraph.as_object_mut() {
             for (key, value) in fields.iter_mut() {
                 if rows.iter().any(|r| &r[key] != value) {
                     *value = Value::Null;
+                    mixed.push(key.clone());
                 }
             }
+        }
+        if let Some(fields) = paragraph.as_object_mut() {
+            fields.insert("mixed".into(), json!(mixed));
         }
         let numbering = serde_json::from_value(paragraph["numbering"].clone()).unwrap_or(None);
         let list = joyword_engine::cmd::para::list_buttons(&s.doc, numbering);

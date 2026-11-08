@@ -62,6 +62,8 @@ impl Reader {
                 | "link.targets"
                 | "tools.macros"
                 | "mailings.checkErrors"
+                | "arrange.selectionPane"
+                | "layout.section"
         ) {
             return Err("Unsupported read query".into());
         }
@@ -354,6 +356,31 @@ mod tests {
     use super::*;
     fn blank() -> Reader {
         Reader::blank(&AtomicBool::new(false)).unwrap()
+    }
+    #[test]
+    fn layout_and_selection_queries_preserve_composition_and_document_revision() {
+        let mut r = blank();
+        run(&mut r, "insert.shape", json!({"kind":"rectangle"}));
+        run(&mut r, "caret.docEnd", json!({}));
+        r.mark_text(None, "pinyin", None).unwrap();
+        let revision = r.engine().rev();
+        let presentation = r.presentation_revision();
+        let body = r.body_text();
+        assert!(r.advanced_query("layout.section").unwrap()["pageW"].is_number());
+        let objects = r.advanced_query("arrange.selectionPane").unwrap();
+        assert_eq!(objects.as_array().unwrap().len(), 1);
+        assert!(r.is_composing());
+        assert_eq!(r.engine().rev(), revision);
+        assert_eq!(r.presentation_revision(), presentation);
+        assert_eq!(r.body_text(), body);
+        assert!(r.advanced_query("layout.margins").is_err());
+        r.cancel_composition();
+        run(
+            &mut r,
+            "select.objects",
+            json!({"index":objects[0]["index"]}),
+        );
+        assert!(r.formatting_disabled("arrange.rotate").is_none());
     }
     fn run(r: &mut Reader, id: &str, args: Value) -> Value {
         r.execute(id, &args).unwrap()

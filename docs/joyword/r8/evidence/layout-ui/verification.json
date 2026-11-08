@@ -1,0 +1,124 @@
+{
+  "date": "2026-11-08",
+  "source_head": "84e3e6fc7ada5a5562f38d46c0d94de0a3c6c017",
+  "source_changes": "uncommitted task changes on feat/joyword-layout-ribbon; earlier README and Insert work preserved",
+  "platform": {
+    "os": "Darwin",
+    "architecture": "arm64",
+    "native_scope": "macOS app windows, synthesized input; no physical keyboard, IME, or screen-reader certification"
+  },
+  "reference": {
+    "product": "Microsoft Word for Mac",
+    "version": "16.114.4",
+    "build": "16.114.26110224",
+    "window_pixels": [
+      1120,
+      720
+    ],
+    "accepted_local_captures": [
+      "01-word-layout.png",
+      "02-word-margins.png"
+    ],
+    "rejected_captures": [
+      "03-word-breaks.png",
+      "03-word-columns.png"
+    ],
+    "rejection_reason": "Native detached popup capture was scaled and garbled; not used as visual evidence. Accessibility labels were inspected."
+  },
+  "candidate": {
+    "product": "JoyWord",
+    "version": "0.1.1",
+    "profile": "dev",
+    "window_pixels": [
+      1440,
+      932
+    ],
+    "binary_sha256": "58c5efed724ff86973ca11e4e70e23cd0497beaa23ec10bc0e32499628c4b030",
+    "source_sha256": {
+      "crates/joyword-ui-gpui/src/layout_ribbon.rs": "dba00fac99d546c2e77d4b7baee40516ef06755f663973a57fc20169efc530d0",
+      "crates/joyword-ui-gpui/src/ribbon.rs": "3383e6615f15272aacec7026a1d81fc3810b3b4a119e56ac3c3c2bb42ca3dd23",
+      "crates/joyword-ui-gpui/src/lib.rs": "458478217e9724aca85ebb50e06c6237bdfd1dbd2a4cc3e1d22473ceb49971e8",
+      "crates/joyword-ui-gpui/src/insert.rs": "2aadc4086eec238fd59dd4d6f564ecd2c450152634efa84085b7ffbee9ccc72f",
+      "crates/joyword-ui-gpui/src/page_setup.rs": "8f71e253f6995a3cb00958c05c69a1ccb68c295b7fe29e42a46754be7aa17a18",
+      "crates/joyword-ui-gpui/src/advanced.rs": "9bed223eb83426dc91012e555851a624da5d5c1db78fa342be69b6b8200d222d",
+      "crates/joyword-shell/src/advanced.rs": "e1ba7a7cdcd26ef888d0aaf6ebdec840f4611d02a0ca8114d9606eb107865afe",
+      "crates/joyword-shell/src/formatting.rs": "7c87fd80eebcfd8be328741f0d9d10ef44349b9815b66d730e0eb55b85990926"
+    }
+  },
+  "comparison": {
+    "common_crop_width": 1120,
+    "pixel_scale": 1,
+    "word_crop": [
+      0,
+      61,
+      1120,
+      137
+    ],
+    "before_crop": [
+      0,
+      116,
+      1120,
+      204
+    ],
+    "after_crop": [
+      0,
+      116,
+      1120,
+      192
+    ],
+    "full_pixel_parity_claimed": false
+  },
+  "checks": {
+    "product_build": "passed",
+    "product_check": "passed",
+    "passed": 3610,
+    "failed": 0,
+    "ignored": 2,
+    "strict_clippy_scope": "production --lib --bins, as defined by xtask",
+    "ui_tests": 13,
+    "gates": "passed (1477 Rust files)",
+    "docs": "passed",
+    "diff_whitespace": "passed"
+  },
+  "native": {
+    "behavior_build": "same Layout implementation before final English caption-width adjustment",
+    "final_build_recheck": [
+      "English long captions complete",
+      "Left indent input, increment, undo",
+      "Chinese light and dark states",
+      "Margins menu",
+      "Discard confirmation disables commands"
+    ],
+    "save_and_reopen": "layout-ui-qa.docx",
+    "docx_sha256": "43504fef161ed94b6e69e937f1a0aa997fef9f3f785e6c7e45667aac50c64669",
+    "independent_inspection_sha256": "8f95ea43decc1d10ba889230dfc1db595d79f022fb2337806c6d07bf135ee45b",
+    "verified_values": {
+      "sections": 2,
+      "orientation": "landscape",
+      "columns": 2,
+      "left_indent_twip": 720,
+      "space_before_twip": 240,
+      "space_after_twip": 360,
+      "shape_rotation": 5400000,
+      "shape_wrap": "square",
+      "line_numbers": "continuous",
+      "automatic_hyphenation": true
+    },
+    "fixed_native_issue": "Kit NumberInput and Input both claimed one focus handle; composed a non-focus-owning spinbutton frame around a single text focus owner"
+  },
+  "artifacts_sha256": {
+    "layout-comparison.png": "f9ad5da90e3a9f31f7e642a1d058c216b1133dffb7d1c3da1cbe0d9df2d34fd3",
+    "layout-dark.png": "6ab9cc633e5233c2cefaf08ffa7a21da83b5c6dbecca9c2895c0af6c8e0bf99d",
+    "layout-english.png": "5210899f53bd904866d5ae3f7353068506a72bea724ac7f8d2f4b473f772dc88",
+    "layout-light.png": "83634ea988245b5b0ed8d7533c7dacf25364b2a439ec58cbeef2fc41df5fe7bf",
+    "layout-margins.png": "752e081b9bfb0fe9948d6497d05ed40d6e77e13401b3c71d8a4575f24cfd9041",
+    "layout-object-pane.png": "5f6d9cb1c13f47c9360c2add7c7f0f9e28f8525fc25d79190c2779bd5749d6bf"
+  },
+  "local_evidence_directory": "/Users/willm/Coding/joyoffice/artifacts/joyword-layout-ui-20261108",
+  "remaining": [
+    "true object z-order",
+    "manual hyphenation UI",
+    "full Word menus, previews, selection-pane editing and dialogs",
+    "narrow windows, other DPI and native Windows/Linux acceptance"
+  ]
+}

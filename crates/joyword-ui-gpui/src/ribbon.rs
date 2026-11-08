@@ -2,6 +2,16 @@
 use super::*;
 use gpui::component::Icon;
 use joyoffice_ui::IconName;
+use joyword_shell::editing::DocPos;
+
+#[derive(Clone, PartialEq)]
+pub(super) struct Target {
+    document: u64,
+    revision: u64,
+    presentation: u64,
+    anchor: DocPos,
+    focus: DocPos,
+}
 
 #[derive(Clone, Copy)]
 pub(super) struct Tool {
@@ -41,6 +51,16 @@ impl Tool {
 }
 
 impl JoyWord {
+    pub(super) fn ribbon_target(&self) -> Option<Target> {
+        let r = self.canvas.reader.as_ref()?;
+        Some(Target {
+            document: r.engine().document_id(),
+            revision: r.engine().rev(),
+            presentation: r.presentation_revision(),
+            anchor: r.engine().sel.anchor.clone(),
+            focus: r.engine().sel.focus.clone(),
+        })
+    }
     pub(super) fn ribbon_tool(
         &self,
         id: impl Into<gpui::ElementId>,

@@ -14,6 +14,7 @@ mod gestures;
 mod header_footer;
 mod input;
 mod insert;
+mod layout_ribbon;
 mod objects;
 mod page_index;
 mod page_setup;
@@ -107,6 +108,7 @@ struct JoyWord {
     asset_epoch: u64,
     gesture: Option<gestures::Gesture>,
     advanced: advanced::Advanced,
+    layout: layout_ribbon::LayoutControls,
 }
 
 impl JoyWord {
@@ -140,6 +142,13 @@ impl JoyWord {
             &command_search,
             |_, _, _: &gpui::component::input::InputEvent, cx| cx.notify(),
         );
+        let layout = layout_ribbon::LayoutControls::new(window, cx);
+        let mut subscriptions = vec![font_subscription, style_subscription, command_subscription];
+        for (index, input) in layout.inputs.iter().enumerate() {
+            subscriptions.push(cx.subscribe_in(input, window, move |v, _, event, w, cx| {
+                v.layout_input_event(index, event, w, cx);
+            }));
+        }
         let shell = Shell::default();
         if shell.dark {
             gpui::component::Theme::change(gpui::component::ThemeMode::Dark, Some(window), cx);
@@ -168,7 +177,7 @@ impl JoyWord {
             printing: false,
             caret_on: true,
             blink: None,
-            subscriptions: vec![font_subscription, style_subscription, command_subscription],
+            subscriptions,
             viewport_bounds: None,
             reveal_input: false,
             font_picker,
@@ -184,6 +193,7 @@ impl JoyWord {
             asset_epoch: 0,
             gesture: None,
             advanced: advanced::Advanced::default(),
+            layout,
         }
     }
     fn palette(&self) -> Palette {
@@ -504,7 +514,7 @@ impl JoyWord {
             .flex()
             .items_center()
             .overflow_x_scroll()
-            .h(px(if matches!(self.tab, 1 | 5) {
+            .h(px(if matches!(self.tab, 1 | 2 | 5) {
                 76.0
             } else {
                 88.0
@@ -513,7 +523,9 @@ impl JoyWord {
             .bg(rgb(p.surface))
             .border_b_1()
             .border_color(rgb(p.border))
-            .when(matches!(self.tab, 1 | 5), |group| group.bg(rgb(p.chrome)));
+            .when(matches!(self.tab, 1 | 2 | 5), |group| {
+                group.bg(rgb(p.chrome))
+            });
         groups = match self.tab {
             0 => groups
                 .child(
@@ -590,14 +602,14 @@ impl JoyWord {
                     group
                 }),
             1 => groups.child(self.insert_ribbon(cx)),
-            2 => groups.child(self.page_setup_ribbon(cx)),
+            2 => groups.child(self.layout_ribbon(cx)),
             3 => groups.child(self.references_ribbon(cx)),
             4 => groups.child(self.review_ribbon(cx)),
+            5 => groups.child(self.view_ribbon(cx)),
             8 => groups.child(self.mailings_ribbon(cx)),
             9 => groups.child(self.developer_ribbon(cx)),
             6 => groups.child(self.table_tools(cx)),
             7 => groups.child(self.picture_tools(cx)),
-            5 => groups.child(self.view_ribbon(cx)),
             _ => groups,
         };
         div()
@@ -779,6 +791,9 @@ impl Render for JoyWord {
         self.sync_view_zoom();
         self.prepare_canvas(window, cx);
         self.sync_format(window, cx);
+        if self.tab == 2 {
+            self.sync_layout_controls(window, cx);
+        }
         self.sync_advanced();
         window.set_window_title(&self.document_title());
         let p = self.palette();

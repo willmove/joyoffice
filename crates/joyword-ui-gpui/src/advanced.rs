@@ -513,7 +513,7 @@ impl JoyWord {
                 self.large_advanced("exchange-export", "导出副本", IconName::FileText, cx),
             ))
     }
-    fn open_advanced(&mut self, pane: &'static str, cx: &mut Context<Self>) {
+    pub(super) fn open_advanced(&mut self, pane: &'static str, cx: &mut Context<Self>) {
         self.advanced.pane = Some(pane);
         self.advanced.key = None;
         self.advanced.pick = None;
@@ -542,6 +542,7 @@ impl JoyWord {
             "批注" => r.advanced_query("review.comments"),
             "修订" => r.advanced_query("review.changes"),
             "注释" => r.advanced_query("references.notes"),
+            "对象" => r.advanced_query("arrange.selectionPane"),
             _ => r.advanced_query("tools.macros"),
         };
         match result {
@@ -748,6 +749,30 @@ impl JoyWord {
         w: &mut Window,
         cx: &mut Context<Self>,
     ) {
+        if pane == "对象" {
+            let key = self.canvas.reader.as_ref().map(|r| {
+                (
+                    r.engine().document_id(),
+                    r.engine().rev(),
+                    r.presentation_revision(),
+                    "对象",
+                )
+            });
+            if key != self.advanced.key {
+                self.advanced.key = None;
+                cx.notify();
+                return;
+            }
+            if let Some(item) = self.advanced.items.get(index).cloned()
+                && let Err(error) =
+                    self.try_edit("select.objects", &json!({"index":item["index"]}), w, cx)
+            {
+                self.shell.notice = Some(error);
+            }
+            self.advanced.pick = Some(index);
+            cx.notify();
+            return;
+        }
         self.advanced.pick = Some(index);
         if let Some(s) = self.advanced.items.get(index).cloned() {
             if s.get("start").is_some() {
