@@ -1,6 +1,20 @@
 //! Save/close continuation wiring follows JoyOffice's version-bound asynchronous jobs.
 use super::*;
 use std::path::PathBuf;
+
+fn run_desktop_save(
+    job: joyword_shell::editing::SaveJob,
+) -> Result<joyword_shell::editing::SaveReceipt, String> {
+    // Saving verifies the result with the same nested DOCX reader used by open.
+    // macOS executor workers have too little stack for that reader in debug builds.
+    std::thread::Builder::new()
+        .name("joyword-desktop-save".into())
+        .stack_size(8 * 1024 * 1024)
+        .spawn(move || job.run())
+        .map_err(|error| format!("Cannot start desktop document save: {error}"))?
+        .join()
+        .map_err(|_| "Desktop document save worker failed".to_string())?
+}
 impl JoyWord {
     pub(super) fn request_close(&mut self, _: &mut Window, cx: &mut Context<Self>) {
         if self.saving {
@@ -174,7 +188,9 @@ impl JoyWord {
                 .tr("正在校验并保存 DOCX…", "Verifying and saving DOCX…")
                 .into(),
         );
-        let work = cx.background_executor().spawn(async move { job.run() });
+        let work = cx
+            .background_executor()
+            .spawn(async move { run_desktop_save(job) });
         self.save_task = Some(cx.spawn(async move |view, cx| {
             let result = work.await;
             let _ = view.update(cx, |v, cx| {
@@ -229,5 +245,50 @@ impl JoyWord {
             });
         }));
         cx.notify();
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::run_desktop_save;
+    use joyword_shell::reader::Reader;
+    use std::{path::PathBuf, sync::atomic::AtomicBool};
+
+    struct OutputDirectory(PathBuf);
+    impl Drop for OutputDirectory {
+        fn drop(&mut self) {
+            let _ = std::fs::remove_dir_all(&self.0);
+        }
+    }
+
+    #[test]
+    fn table_save_and_readback_from_small_executor_stack() -> Result<(), Box<dyn std::error::Error>>
+    {
+        let suffix = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)?
+            .as_nanos();
+        let directory =
+            std::env::temp_dir().join(format!("joyword-save-{}-{suffix}", std::process::id()));
+        std::fs::create_dir(&directory)?;
+        let output = OutputDirectory(directory);
+        let path = output.0.join("table.docx");
+        let cancel = AtomicBool::new(false);
+        let mut reader = Reader::blank(&cancel)?;
+        reader.execute("insert.table", &serde_json::json!({"rows":2,"cols":3}))?;
+        reader.replace_text(None, "Small-stack table save 中文")?;
+        let job = reader.save_job(path.clone(), true)?;
+        let receipt = std::thread::Builder::new()
+            .stack_size(512 * 1024)
+            .spawn(move || run_desktop_save(job))?
+            .join()
+            .map_err(|_| "Small-stack caller failed")??;
+        reader.apply_save(receipt);
+        assert!(!reader.is_dirty());
+        let reopened = Reader::open(&path, &cancel)?;
+        assert!(reopened.body_text().contains("Small-stack table save 中文"));
+        let original = std::fs::read(&path)?;
+        assert!(run_desktop_save(reader.save_job(path.clone(), true)?).is_err());
+        assert_eq!(std::fs::read(path)?, original);
+        Ok(())
     }
 }
