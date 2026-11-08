@@ -24,6 +24,69 @@ fn load(bytes: &[u8]) -> Result<Document, String> {
         &Cancellation::default(),
     )
 }
+fn pptx_with_part(base: &[u8], name: &str, bytes: &[u8]) -> Vec<u8> {
+    let mut source = zip::ZipArchive::new(Cursor::new(base)).unwrap();
+    let mut output = zip::ZipWriter::new(Cursor::new(Vec::new()));
+    for index in 0..source.len() {
+        let mut entry = source.by_index(index).unwrap();
+        output
+            .start_file(
+                entry.name().unwrap(),
+                zip::write::SimpleFileOptions::default().compression_method(entry.compression()),
+            )
+            .unwrap();
+        std::io::copy(&mut entry, &mut output).unwrap();
+    }
+    output
+        .start_file(
+            name,
+            zip::write::SimpleFileOptions::default()
+                .compression_method(zip::CompressionMethod::Stored),
+        )
+        .unwrap();
+    output.write_all(bytes).unwrap();
+    output.finish().unwrap().into_inner()
+}
+#[test]
+fn pptx_larger_than_the_old_file_part_and_total_limits_opens_in_the_editor() {
+    let large = pptx_with_part(PPTX, "ppt/media/large.bin", &vec![0x5a; (128 << 20) + 1]);
+    assert!(large.len() as u64 > 64 << 20);
+    assert!(large.len() as u64 <= joydeck_shell::document::MAX_INPUT);
+    let root = joydeck_shell::platform::private_directory("large-pptx").unwrap();
+    let path = root.join("large.pptx");
+    std::fs::write(&path, large).unwrap();
+    let doc = Document::open(&path, &Cancellation::default()).unwrap();
+    assert_eq!(doc.info.format, "pptx");
+    assert_eq!(doc.info.slides.len(), 3);
+    drop(doc);
+    let editor = joydeck_shell::editor::Editor::prepare_open(
+        &path,
+        root.join("recovery"),
+        &Cancellation::default(),
+    )
+    .unwrap();
+    assert_eq!(
+        editor.base.info.source_bytes,
+        std::fs::metadata(&path).unwrap().len() as usize
+    );
+    drop(editor);
+    std::fs::remove_dir_all(root).unwrap();
+}
+#[test]
+fn input_limit_is_300_mib_and_larger_files_are_rejected_before_reading() {
+    assert_eq!(joydeck_shell::document::MAX_INPUT, 300 << 20);
+    let root = joydeck_shell::platform::private_directory("oversized-pptx").unwrap();
+    let path = root.join("oversized.pptx");
+    let file = std::fs::File::create(&path).unwrap();
+    file.set_len(joydeck_shell::document::MAX_INPUT + 1)
+        .unwrap();
+    assert_eq!(
+        Document::open(&path, &Cancellation::default()).unwrap_err_text(),
+        "input exceeds 300 MiB"
+    );
+    drop(file);
+    std::fs::remove_dir_all(root).unwrap();
+}
 #[test]
 fn public_formats_are_sniffed_from_bytes_and_original_is_preserved() {
     for (bytes, format) in [(NATIVE, "deckcraft"), (PPTX, "pptx")] {

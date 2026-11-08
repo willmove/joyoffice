@@ -11,7 +11,9 @@ use std::{
     },
 };
 
-pub const MAX_INPUT: u64 = 64 << 20;
+pub const MAX_INPUT: u64 = 300 << 20;
+pub(crate) const MAX_NATIVE_INPUT: u64 = 64 << 20;
+const MAX_PPTX_TOTAL: u64 = 2 * MAX_INPUT;
 const MAX_PIXELS: u64 = 16_000_000;
 pub(crate) static RENDER_LOCK: Mutex<()> = Mutex::new(());
 
@@ -69,7 +71,7 @@ impl Document {
         cancel.check()?;
         let file = std::fs::File::open(path).map_err(|e| format!("{}: {e}", path.display()))?;
         if file.metadata().map_err(|e| e.to_string())?.len() > MAX_INPUT {
-            return Err("input exceeds 64 MiB".into());
+            return Err("input exceeds 300 MiB".into());
         }
         let mut bytes = Vec::new();
         let mut input = file.take(MAX_INPUT + 1);
@@ -98,7 +100,7 @@ impl Document {
 
     pub fn from_bytes(name: String, bytes: Vec<u8>, cancel: &Cancellation) -> Result<Self, String> {
         if bytes.len() as u64 > MAX_INPUT {
-            return Err("input exceeds 64 MiB".into());
+            return Err("input exceeds 300 MiB".into());
         }
         cancel.check()?;
         if joydeck_legacy::sniff(&bytes) {
@@ -139,10 +141,11 @@ impl Document {
         if joydeck_pptx::is_encrypted(&bytes) {
             return Err("encrypted Office files are not supported; decrypt a copy first".into());
         }
+        let pptx = joydeck_pptx::sniff(&bytes);
         let budget = joyoffice_opc::Budget {
             max_entries: 4096,
-            max_part_bytes: 8 << 20,
-            max_total_bytes: 128 << 20,
+            max_part_bytes: if pptx { MAX_INPUT } else { 8 << 20 },
+            max_total_bytes: if pptx { MAX_PPTX_TOTAL } else { 128 << 20 },
             max_xml_depth: 128,
             max_xml_nodes: 1_000_000,
             ..Default::default()

@@ -1,5 +1,5 @@
 //! JoyDeck v2: explicit capabilities, model payload and exact source package for preservation.
-use crate::{Cancellation, Document, document::MAX_INPUT};
+use crate::{Cancellation, Document, document::MAX_NATIVE_INPUT};
 use joydeck_engine::{EditorSnapshot, Origins};
 use serde::{Deserialize, Serialize};
 use std::{
@@ -30,7 +30,7 @@ pub(crate) fn parts_cancellable(
     cancel: &Cancellation,
 ) -> Result<BTreeMap<String, Vec<u8>>, String> {
     cancel.check()?;
-    if bytes.len() as u64 > MAX_INPUT {
+    if bytes.len() as u64 > MAX_NATIVE_INPUT {
         return Err("native input exceeds 64 MiB".into());
     }
     let budget = joyoffice_opc::Budget {
@@ -61,7 +61,7 @@ pub(crate) fn parts_cancellable(
     Ok(entries)
 }
 pub fn sniff(bytes: &[u8]) -> bool {
-    if !bytes.starts_with(b"PK") || bytes.len() as u64 > MAX_INPUT {
+    if !bytes.starts_with(b"PK") || bytes.len() as u64 > MAX_NATIVE_INPUT {
         return false;
     }
     let budget = joyoffice_opc::Budget {
@@ -187,7 +187,7 @@ pub fn encode(
 pub(crate) fn pack(mut entries: BTreeMap<String, Vec<u8>>) -> Result<Vec<u8>, String> {
     entries.remove("mimetype");
     if entries.len() + 1 > 4096
-        || entries.values().any(|b| b.len() as u64 > MAX_INPUT)
+        || entries.values().any(|b| b.len() as u64 > MAX_NATIVE_INPUT)
         || entries.values().map(|b| b.len() as u64).sum::<u64>() > 128 << 20
     {
         return Err("project/recovery payload exceeds native part budget".into());
@@ -213,7 +213,7 @@ pub(crate) fn pack(mut entries: BTreeMap<String, Vec<u8>>) -> Result<Vec<u8>, St
         z.write_all(&bytes).map_err(|e| e.to_string())?;
     }
     let bytes = z.finish().map_err(|e| e.to_string())?.into_inner();
-    if bytes.len() as u64 > MAX_INPUT {
+    if bytes.len() as u64 > MAX_NATIVE_INPUT {
         return Err("native output exceeds 64 MiB".into());
     }
     Ok(bytes)
