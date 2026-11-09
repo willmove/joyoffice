@@ -1,6 +1,7 @@
 //! Insert a native field or fixed date using the ordinary canvas text transaction.
 use super::*;
 use gpui_kit::component::{Sizable, button::ButtonVariants, popover::Popover};
+use joydeck_engine::{Command, existing_footer_summary};
 use joydeck_text::datetime::{DATE_KINDS, DateTime, field_text};
 
 const DATE_LABELS: [&str; 13] = [
@@ -23,7 +24,114 @@ fn date_language(index: usize) -> &'static str {
     if index == 0 { "zh-CN" } else { "en-US" }
 }
 
+#[derive(Clone, Copy)]
+enum FooterScope {
+    CurrentMissing,
+    AllMissing,
+    Existing,
+}
+
+impl FooterScope {
+    fn label(self) -> &'static str {
+        match self {
+            Self::CurrentMissing => "为当前缺失页脚的幻灯片添加",
+            Self::AllMissing => "为所有缺失页脚的幻灯片添加",
+            Self::Existing => "更新全稿已有页脚",
+        }
+    }
+
+    fn command(self, text: String) -> Command {
+        match self {
+            Self::CurrentMissing => Command::AddMissingFooterText { text },
+            Self::AllMissing => Command::AddAllMissingFooterText { text },
+            Self::Existing => Command::SetExistingFooterText { text },
+        }
+    }
+}
+
 impl Viewer {
+    #[inline(never)]
+    pub(super) fn footer_group(&self, cx: &mut Context<Self>) -> Div {
+        let view = cx.entity().downgrade();
+        let disabled = self.editor.is_none() || self.loading || self.composing();
+        chrome::group(
+            "页脚",
+            Popover::new("footer-menu")
+                .trigger(
+                    Button::new("insert-footer")
+                        .ghost()
+                        .small()
+                        .label("页脚…")
+                        .disabled(disabled),
+                )
+                .content(move |_, _, cx| {
+                    let popup = cx.entity().downgrade();
+                    div().flex().flex_col().gap_1().children(
+                        [
+                            FooterScope::CurrentMissing,
+                            FooterScope::AllMissing,
+                            FooterScope::Existing,
+                        ]
+                        .into_iter()
+                        .enumerate()
+                        .map(|(index, scope)| {
+                            let popup = popup.clone();
+                            let view = view.clone();
+                            Button::new(("footer-scope", index))
+                                .ghost()
+                                .small()
+                                .label(scope.label())
+                                .on_click(move |_, w, cx| {
+                                    let _ = popup.update(cx, |p, cx| p.dismiss(w, cx));
+                                    let _ = view.update(cx, |s, cx| s.footer_dialog(scope, w, cx));
+                                })
+                        }),
+                    )
+                }),
+        )
+    }
+
+    fn footer_dialog(&mut self, scope: FooterScope, w: &mut Window, cx: &mut Context<Self>) {
+        let Some(editor) = &self.editor else { return };
+        let page = editor.session.selection().page;
+        let (label, text) = if matches!(scope, FooterScope::Existing) {
+            match existing_footer_summary(editor.session.model()) {
+                Ok(summary) => match summary.text {
+                    Some(text) => ("页脚文字", text),
+                    None => ("现有页脚文字不同，请输入统一文字", String::new()),
+                },
+                Err(error) => {
+                    self.message = error;
+                    cx.notify();
+                    return;
+                }
+            }
+        } else {
+            ("页脚文字", String::new())
+        };
+        self.fields_dialog(
+            scope.label(),
+            vec![(label, text)],
+            w,
+            cx,
+            move |s, mut values, w, cx| {
+                if matches!(scope, FooterScope::CurrentMissing)
+                    && s.editor.as_ref().map(|e| e.session.selection().page) != Some(page)
+                {
+                    return Err("当前幻灯片已变化，请重新打开此对话框".into());
+                }
+                let text = values.remove(0);
+                if text.trim().is_empty() {
+                    return Err("请输入页脚文字".into());
+                }
+                if !s.try_dispatch(scope.command(text), w, cx)? {
+                    return Err("没有需要更改的页脚".into());
+                }
+                Ok(())
+            },
+        );
+    }
+
     #[inline(never)]
     pub(super) fn text_field_group(&self, cx: &mut Context<Self>) -> Div {
         let disabled = !self.can_insert_text_field();

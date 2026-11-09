@@ -1,5 +1,7 @@
 # Joysheet 实施状态
 
+2026-11-09 Windows P1 补验 M3.3。在实际 Excel 和 JoySheet 窗口双向复制整数、小数及文本，JoySheet 单步撤销／重做，独立 XLSX 读回确认双方保存的类型和值。货币、日期、公式、LibreOffice 和多窗口组合继续验收。[本机验证](../joyoffice/validation/20261109-v012/README.md#p1)
+
 2026-11-06 推进 P2。M2.2／M3.1 的边缘拖选使用滚动后的坐标，适用于普通选区及公式引用，并保护已变化的草稿。Windows 生产 GPUI 回归通过 19 个场景，覆盖公式焦点、M6.1 图表及 M7.1／M7.2 分析和审阅。真实触控板、GPU 呈现延迟和更复杂模型仍开放。[P2 验证](../joyoffice/validation/20261106-p2/README.md)
 
 2026-11-06 推进 M3.3。键盘和功能区粘贴一并读取外部纯文本与 HTML，使用两种格式判断是否仍为内部副本。Windows 用原生 CF_HTML 行片段实测，单元格显示 `Rp12,500.00`，公式栏显示 `12500`，独立 XLSX 读回确认数值类型和货币格式。实际桌面 Excel 复制的货币样例只提供显示文字和样式，JoySheet 保留文字。Excel 数值交换、LibreOffice 和多窗口矩阵继续验收。[迁移矩阵](MIGRATION.md)

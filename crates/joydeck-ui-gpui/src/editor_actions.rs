@@ -190,43 +190,44 @@ impl Viewer {
         window: &mut Window,
         cx: &mut Context<Self>,
     ) {
-        if self.benchmark.is_some() {
-            self.message = "性能对照进行中；完成后可以继续编辑".into();
+        if let Err(error) = self.try_dispatch(command, window, cx) {
+            self.message = error;
             cx.notify();
-            return;
+        }
+    }
+
+    pub(super) fn try_dispatch(
+        &mut self,
+        command: Command,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) -> Result<bool, String> {
+        if self.benchmark.is_some() {
+            return Err("性能对照进行中；完成后可以继续编辑".into());
         }
         if self.composing() {
-            self.message = "请先完成或取消输入法组合输入".into();
-            cx.notify();
-            return;
+            return Err("请先完成或取消输入法组合输入".into());
         }
         self.end_inline(cx);
         if self.loading {
-            self.message = "正在读取，请稍后编辑".into();
-            cx.notify();
-            return;
+            return Err("正在读取，请稍后编辑".into());
         }
         let Some(editor) = &mut self.editor else {
-            return;
+            return Ok(false);
         };
         let label = command.id();
-        match editor.execute(command, cx) {
-            Ok(true) => {
-                self.message = "就绪".into();
-                eprintln!(
-                    "R4/R5 command={label} revision={} dirty={}",
-                    editor.session.revision(),
-                    editor.session.dirty()
-                );
-                self.sync_editor(window, cx);
-                self.checkpoint(cx);
-            }
-            Ok(false) => {}
-            Err(e) => {
-                self.message = e;
-                cx.notify();
-            }
+        let changed = editor.execute(command, cx)?;
+        if changed {
+            self.message = "就绪".into();
+            eprintln!(
+                "R4/R5 command={label} revision={} dirty={}",
+                editor.session.revision(),
+                editor.session.dirty()
+            );
+            self.sync_editor(window, cx);
+            self.checkpoint(cx);
         }
+        Ok(changed)
     }
     pub(super) fn new_document(&mut self, _: &NewDocument, w: &mut Window, cx: &mut Context<Self>) {
         if self.confirm_replace(document_ui::ReplaceDocument::New, w, cx) {

@@ -53,7 +53,8 @@ impl JoyWord {
                     tr("本节", "section").into(),
                 ),
             ],
-            true,
+            // The column command takes a complete setting, including the default scope.
+            false,
             move |values| column_parameters(values, units),
             w,
             cx,
@@ -97,5 +98,44 @@ impl JoyWord {
             w,
             cx,
         );
+    }
+}
+
+#[cfg(test)]
+#[allow(clippy::unwrap_used, reason = "GUI regression setup and assertions")]
+mod tests {
+    use super::*;
+    use gpui::{TestAppContext, component::WindowExt};
+    use joyword_shell::reader::Reader;
+    use std::sync::atomic::AtomicBool;
+
+    #[gpui::test]
+    fn columns_form_submits_unchanged_required_fields(cx: &mut TestAppContext) {
+        cx.update(gpui_kit::init);
+        let mut editor = None;
+        let (_, cx) = cx.add_window_view(|w, cx| {
+            let view = cx.new(|cx| JoyWord::new(w, cx));
+            editor = Some(view.clone());
+            gpui::base::Root::new(view, w, cx)
+        });
+        let view = editor.unwrap();
+        cx.update(|w, cx| {
+            view.update(cx, |v, cx| {
+                let reader = Reader::blank(&AtomicBool::new(false)).unwrap();
+                let document = reader.engine().document_id();
+                v.canvas.reader = Some(reader);
+                v.install_input(document, cx);
+                v.open_columns(w, cx);
+            });
+            assert!(w.has_active_dialog(cx));
+            w.draw(cx).clear(cx);
+        });
+        let actions = cx.debug_bounds("authoring-actions").unwrap();
+        // Apply is the last button in the right-aligned action row.
+        cx.simulate_click(
+            gpui::point(actions.right() - px(24.), actions.center().y),
+            gpui::Modifiers::default(),
+        );
+        cx.update(|w, cx| assert!(!w.has_active_dialog(cx)));
     }
 }

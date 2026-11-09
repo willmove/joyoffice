@@ -146,6 +146,7 @@ impl JoyWord {
                         .flex()
                         .justify_end()
                         .gap_2()
+                        .debug_selector(|| "authoring-actions".into())
                         .child(
                             Button::new("cancel-authoring")
                                 .ghost()

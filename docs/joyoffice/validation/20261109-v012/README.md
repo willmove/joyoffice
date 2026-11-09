@@ -24,3 +24,18 @@
 `cargo metadata --offline --locked --no-deps --format-version 1` 确认 60 个第一方工作区包均为 `0.1.2`。按名称、版本、来源和校验和比较锁文件，868 项外部依赖记录保持原值。产品 GUI 与 CLI 继承同一版本。三个产品标签各自路由到 `0.1.2`，保留历史标签解析。16 项产品工程脚本测试通过，覆盖工作区版本继承及旧的显式版本解析。
 
 Windows x64 使用 `joydeck/validation,joysheet/automation,joyword/agent` 跑全仓锁定测试，5,964 项通过，3 项既有忽略。以相同功能组合运行生产库和二进制严格 Clippy，通过。仓库格式、文档、边界和导入来源门禁通过。
+
+## P1
+
+| 任务 | Windows 原生验收 | 剩余范围 |
+| --- | --- | --- |
+| JW-406 查找与替换 | 在测试 DOCX 中查找「文」，结果列表显示两处。点击第二处定位到「正文」。替换选区内全部时只改变所选命中，选区外的「文本」不变。单步撤销恢复原文。以 `DOCX-MIN-002` 从正文点击一级大纲项，光标跳回标题。 | 更广标题层级、输入法与读屏矩阵继续验证。 |
+| JW-407 页面设置 | 「更多分栏」先复现默认「本节」被表单作为空值提交。修复后保留预填项，444 pt 的超宽组合被原子拒绝，150 pt／24 pt 间距／240 pt 的组合成功。画布出现分隔线。另存后独立 XML 核对宽度和间距、分隔线及正文，CLI 重开一页，输入文件字节一致。新增 GPUI 根窗口回归覆盖默认字段提交。 | 更多应用范围、分节语料及其他桌面矩阵继续验证。 |
+| JD-305 页脚 | 对照本机 DeckCraft 0.15.8 的 Insert → Header & Footer，以及 PowerPoint 中文页眉和页脚的当前页／全部应用。JoyDeck 提供当前缺失页、全部缺失页和更新已有页脚三种独立操作。三页样本实际拒绝重复补建，单页补建保留已有页，批量填入剩余页，混合文字可显式统一且能单步撤销。另存的 PPTX 经独立 XML 核对，每页恰好有一个页脚，分别保留原值、中文单页值和批量值。CLI 成功重开。 | 隐式继承、标题页开关、清除入口、完整页眉／日期设置及其他字符与段落能力继续开放。 |
+| M3.3 Excel 剪贴板 | 通过真实窗口键盘在 Excel 和 JoySheet 间双向复制同一整数、小数和文本。JoySheet 原生 Ctrl+Z／Ctrl+Y 撤销与重做。两个应用各自保存 XLSX 后，独立 ZIP/XML 核对数值类型 `12500`、`3.5` 和共享字符串 `alpha`。 | Excel 的货币、日期、公式及丰富格式和 LibreOffice、多窗口矩阵继续验收。 |
+
+JoyDeck 另存 PPTX 的 SHA-256 为 `66fcf05b9a322fa6a54d823a73654856ec36ae0c896a08ecae8d4768f608e377`。JoyWord 另存 DOCX 为 `b6cbc585950bb2097388a450e6c6020526dc21ccfbda649379b8ac799dbbc86f`。JoySheet 另存 XLSX 为 `6b1cd870702fd0454036915693ab930b318e8a4f3f1e9e67f5b7bc8a93bebce7`。
+
+JoyWord Windows `cargo xtask check joyword --target x86_64-pc-windows-msvc` 通过 3,597 项测试及生产代码严格 Clippy，2 项既有忽略。JoyDeck Windows `cargo xtask check joydeck --validation --target x86_64-pc-windows-msvc` 通过 973 项测试及全目标严格 Clippy。JoySheet 的 M3 Windows 桌面冒烟也通过。M3 冒烟使用应用内 GPUI 测试事件，Excel 双向剪贴板证据来自另外的原生键盘操作。
+
+JoyDeck Windows 开发 ZIP 的 SHA-256 为 `7567b8c007f3b6e020a0ac83af3821e638fed58f5968e5b675d26517b8f3a581`。包内桌面、CLI 及 README 都报告 0.1.2。SBOM 仍记录 `mac@0.1.1` 和 `seahash@4.1.0` 的许可正文缺口。JoySheet Windows 桌面及 CLI 已实际报告 0.1.2，本轮宿主没有 NSIS 编译器，未生成新的 Windows 安装器。

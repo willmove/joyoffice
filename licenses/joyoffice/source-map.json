@@ -621,12 +621,13 @@
     "target_path": "crates/joydeck-ui-gpui/src/chrome.rs",
     "source_sha256": "efd229d2bca36c8887fa16026f4946bbe3240cd9ea9b1b9b65c8c83c11933438",
     "local_changes": "R8 per-tab bounded GPUI construction frames follow the old JoyDeck ribbon pattern; split Home into groups and keep intrinsic horizontal scroll width on default MSVC stack.",
-    "adapted_sha256": "84dce319b5beecbcd96bb9d8942a1ccf7a1f77beb341e25d75a15991ed714dc8",
+    "adapted_sha256": "4739274c415118a1ac0d3e2331f239bdcef4317ead3da06d2abba0d049c53c56",
     "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained.",
     "cancellable_open": "Add an explicit cancel action to the status bar while opening a document.",
     "shared_document_view": "Separate window selection and state from the shared editor session and preserve revision guards.",
     "text_box_layout": "Expose native text-box layout controls on the contextual formatting ribbon.",
     "text_hyperlinks": "Expose the native text-link editor and removal in the Insert ribbon.",
-    "dynamic_text_fields": "Support atomic dynamic text fields, native authoring, and separate rendered/source offsets."
+    "dynamic_text_fields": "Support atomic dynamic text fields, native authoring, and separate rendered/source offsets.",
+    "footer_menu": "Expose the existing atomic slide footer commands through the Insert ribbon."
   }
 ]
