@@ -6,7 +6,7 @@ after `cargo build -p joyword --release --locked`:
 
     python3 scripts/package_release.py \
         --binary target/release/joyword \
-        --version 0.1.2 --platform macos --arch aarch64 --out dist
+        --version 0.1.3 --platform macos --arch aarch64 --out dist
 
 The archive name is the updater-facing contract: joyword-<version>-<platform>-<arch>.
 Existing archives are refused rather than overwritten, matching the CLI convention.

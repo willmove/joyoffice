@@ -18,6 +18,10 @@ on:
         description: Version declared by the selected application manifest
         required: true
         type: string
+      create_tag:
+        description: From main, create the product tag after verifying all packages
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -54,12 +58,22 @@ jobs:
             python tools/xtask/product.py release-version --tag "$RELEASE_REF" --github-output "$GITHUB_OUTPUT"
           fi
       - name: Verify tag points to this checkout
+        if: github.event_name == 'push' || !inputs.create_tag
         env:
           RELEASE_TAG: ${{ steps.version.outputs.tag }}
         shell: bash
         run: |
           git fetch --no-tags origin "refs/tags/$RELEASE_TAG"
           test "$(git rev-parse 'FETCH_HEAD^{commit}')" = "$(git rev-parse HEAD)"
+      - name: Verify release notes and tag creation scope
+        env:
+          RELEASE_TAG: ${{ steps.version.outputs.tag }}
+          CREATE_TAG: ${{ inputs.create_tag }}
+        shell: bash
+        run: |
+          if [ "$CREATE_TAG" = true ]; then
+            test "$GITHUB_REF" = refs/heads/main
+          fi
           test -s "docs/releases/$RELEASE_TAG.md"
   package:
     name: Package ${{ needs.resolve.outputs.product }} (${{ matrix.platform }} ${{ matrix.arch }})
@@ -157,6 +171,21 @@ jobs:
           RELEASE_PRODUCT: ${{ needs.resolve.outputs.product }}
           RELEASE_VERSION: ${{ needs.resolve.outputs.version }}
         run: python scripts/verify_release_assets.py dist "$RELEASE_PRODUCT" "$RELEASE_VERSION"
+      - name: Create or verify the release tag for this commit
+        if: github.event_name == 'workflow_dispatch' && inputs.create_tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ needs.resolve.outputs.tag }}
+        shell: bash
+        run: |
+          ref="refs/tags/$RELEASE_TAG"
+          if git ls-remote --exit-code origin "$ref"; then
+            git fetch --no-tags origin "$ref"
+            test "$(git rev-parse 'FETCH_HEAD^{commit}')" = "$GITHUB_SHA"
+          else
+            test "$?" = 2
+            gh api "repos/$GITHUB_REPOSITORY/git/refs" -f ref="$ref" -f sha="$GITHUB_SHA"
+          fi
       - name: Create or resume a curated preview draft
         env:
           GH_TOKEN: ${{ github.token }}

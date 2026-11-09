@@ -1,6 +1,6 @@
 # JoyWord 规格与实施入口
 
-[下载 JoyWord v0.1.2 预览版](https://github.com/willmove/joyoffice/releases/tag/joyword-v0.1.2) · [按系统选择软件包](../../README.md#下载与安装)
+[下载 JoyWord v0.1.3 预览版](https://github.com/willmove/joyoffice/releases/tag/joyword-v0.1.3) · [按系统选择软件包](../../README.md#下载与安装)
 
 当前 JoyWord 的开发、兼容范围和验证以 [R8 交接](../joyoffice/JOYWORD-R8-HANDOFF.md) 为入口，进展记在 [宿主任务状态](r8/STATUS.md)。下文与所列 M0–M9 文档记录替换前的实现和验收基线。
 

@@ -6,7 +6,7 @@ JoyOffice 中使用 `cargo xtask package joysheet --release` 生成普通预览�
 pwsh -NoProfile -File scripts/joysheet/dev.ps1 xtask check joysheet --validation
 pwsh -NoProfile -File scripts/joysheet/dev.ps1 xtask smoke joysheet --stage M8
 pwsh -NoProfile -File scripts/joysheet/dev.ps1 xtask package joysheet --release --validation
-pwsh -NoProfile -File scripts/joysheet/installer-smoke.ps1 -Installer dist/joysheet/joysheet-0.1.2-windows-x86_64-release-validation-setup.exe
+pwsh -NoProfile -File scripts/joysheet/installer-smoke.ps1 -Installer dist/joysheet/joysheet-0.1.3-windows-x86_64-release-validation-setup.exe
 ```
 
 包名按产品版本、宿主系统、架构、profile 和可选 validation 后缀生成。GUI/CLI 版本必须一致，Windows 版本资源与安装器读取产品版本。构建前后比较实际源码输入哈希；已有输出目录不能覆盖。资源、脚本、开发文档、版权原文随包携带；正式发布路由为 `joysheet-v*`，本次迁移不创建发布或标签。

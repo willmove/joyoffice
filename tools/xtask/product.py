@@ -252,7 +252,7 @@ def main(argv=None):
             if not all(name in artifacts for name in PRODUCTS[args.product]):
                 raise ValueError("Cargo did not report both product executable artifacts")
             system = {"Darwin": "macos", "Windows": "windows", "Linux": "linux"}[platform.system()]
-            architecture = {"arm64": "aarch64", "aarch64": "aarch64", "AMD64": "x86_64", "x86_64": "x86_64"}[platform.machine()]
+            architecture = host.split("-", 1)[0]
             binary = Path(artifacts["joyword"])
             sbom.require_unchanged_sources(baseline, sbom.snapshot(host, roots=PRODUCTS[args.product]))
             with tempfile.TemporaryDirectory(prefix="word-source-snapshot-", dir=data["target_directory"]) as temporary:

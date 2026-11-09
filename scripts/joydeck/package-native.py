@@ -110,7 +110,7 @@ def main():
     if before != source_snapshot():
         raise ValueError('Source changed during packaging; rebuild the new source')
     system = {'Windows': 'windows', 'Darwin': 'macos', 'Linux': 'linux'}[platform.system()]
-    arch = {'AMD64': 'x86_64', 'x86_64': 'x86_64', 'arm64': 'aarch64', 'aarch64': 'aarch64'}[platform.machine()]
+    arch = target.split('-', 1)[0]
     if args.release_layout and args.profile != 'release':
         raise ValueError('The suite release layout requires the release profile')
     name = args.name or (f'joydeck-{version}-{system}-{arch}-release' if args.release_layout else None) or output_name(version, system, arch, args.profile, before['sha256'])

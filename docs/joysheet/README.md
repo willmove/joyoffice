@@ -2,9 +2,9 @@
 
 <img src="../../assets/brand/joysheet.svg" width="56" height="56" alt="JoySheet">
 
-[下载 JoySheet v0.1.2 预览版](https://github.com/willmove/joyoffice/releases/tag/joysheet-v0.1.2) · [按系统选择安装器或便携包](../../README.md#下载与安装)
+[下载 JoySheet v0.1.3 预览版](https://github.com/willmove/joyoffice/releases/tag/joysheet-v0.1.3) · [按系统选择安装器或便携包](../../README.md#下载与安装)
 
-Rust + GPUI 电子表格应用，现接入 JoyOffice Monorepo。应用和 CLI 继承 JoyOffice 统一版本 **0.1.2**，功能基线为 **M8-preview6**；全量迁移与人工验收仍按 [状态](STATUS.md)和[任务矩阵](MIGRATION.md)跟踪。本次工程整合不关闭原有未完成里程碑。
+Rust + GPUI 电子表格应用，现接入 JoyOffice Monorepo。应用和 CLI 继承 JoyOffice 统一版本 **0.1.3**，功能基线为 **M8-preview6**；全量迁移与人工验收仍按 [状态](STATUS.md)和[任务矩阵](MIGRATION.md)跟踪。本次工程整合不关闭原有未完成里程碑。
 
 桌面打开受密码保护的 XLSX 时会提示输入密码，可在输错后重试或取消。编辑后用「另存为」选择新文件，保存的是未加密副本。解密会话保护源文件路径，另存前暂停该工作簿的自动恢复副本。
 

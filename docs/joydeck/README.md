@@ -1,6 +1,6 @@
 # JoyDeck
 
-[下载 JoyDeck v0.1.2 预览版](https://github.com/willmove/joyoffice/releases/tag/joydeck-v0.1.2) · [按系统选择软件包](../../README.md#下载与安装)
+[下载 JoyDeck v0.1.3 预览版](https://github.com/willmove/joyoffice/releases/tag/joydeck-v0.1.3) · [按系统选择软件包](../../README.md#下载与安装)
 
 当前版本使用 R9 编辑器，支持 PPTX 和原生 `.joydeck` v2 文稿。开发从 [R9 交接](../joyoffice/JOYDECK-R9-HANDOFF.md)和[当前状态](STATUS.md)开始。
 

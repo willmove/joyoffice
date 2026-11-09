@@ -3675,7 +3675,7 @@ dependencies = [
 
 [[package]]
 name = "joydeck"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "embed-resource",
  "joydeck-ui-gpui",
@@ -3683,7 +3683,7 @@ dependencies = [
 
 [[package]]
 name = "joydeck-anim"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "joydeck-geom",
  "joydeck-model",
@@ -3692,7 +3692,7 @@ dependencies = [
 
 [[package]]
 name = "joydeck-cli"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "joydeck-engine",
  "joydeck-model",
@@ -3704,14 +3704,14 @@ dependencies = [
 
 [[package]]
 name = "joydeck-color"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "serde",
 ]
 
 [[package]]
 name = "joydeck-engine"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "image",
  "joydeck-model",
@@ -3722,7 +3722,7 @@ dependencies = [
 
 [[package]]
 name = "joydeck-fonts"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "harfrust 0.8.4",
  "kurbo 0.13.1",
@@ -3734,7 +3734,7 @@ dependencies = [
 
 [[package]]
 name = "joydeck-format"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "encoding_rs",
  "html5ever",
@@ -3747,7 +3747,7 @@ dependencies = [
 
 [[package]]
 name = "joydeck-geom"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "kurbo 0.13.1",
  "serde",
@@ -3755,7 +3755,7 @@ dependencies = [
 
 [[package]]
 name = "joydeck-legacy"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "base64 0.22.1",
  "image",
@@ -3771,7 +3771,7 @@ dependencies = [
 
 [[package]]
 name = "joydeck-metafile"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "image",
  "kurbo 0.13.1",
@@ -3780,7 +3780,7 @@ dependencies = [
 
 [[package]]
 name = "joydeck-model"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "joydeck-color",
  "joydeck-geom",
@@ -3792,7 +3792,7 @@ dependencies = [
 
 [[package]]
 name = "joydeck-pdf"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "joydeck-fonts",
  "joydeck-model",
@@ -3807,7 +3807,7 @@ dependencies = [
 
 [[package]]
 name = "joydeck-pptx"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "flate2",
  "image",
@@ -3823,7 +3823,7 @@ dependencies = [
 
 [[package]]
 name = "joydeck-render"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "image",
  "joydeck-anim",
@@ -3845,7 +3845,7 @@ dependencies = [
 
 [[package]]
 name = "joydeck-shell"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "base64 0.22.1",
  "getrandom 0.3.4",
@@ -3871,7 +3871,7 @@ dependencies = [
 
 [[package]]
 name = "joydeck-text"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "chrono",
  "joydeck-color",
@@ -3885,7 +3885,7 @@ dependencies = [
 
 [[package]]
 name = "joydeck-ui-gpui"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "async-channel",
  "clipboard-win",
@@ -3910,25 +3910,25 @@ dependencies = [
 
 [[package]]
 name = "joyoffice-cfb"
-version = "0.1.2"
+version = "0.1.3"
 
 [[package]]
 name = "joyoffice-drawingml"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "quick-xml",
 ]
 
 [[package]]
 name = "joyoffice-omml"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "quick-xml",
 ]
 
 [[package]]
 name = "joyoffice-opc"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "crc32fast",
  "flate2",
@@ -3937,21 +3937,21 @@ dependencies = [
 
 [[package]]
 name = "joyoffice-ui"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "gpui-kit",
 ]
 
 [[package]]
 name = "joyoffice-xtask"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "tempfile",
 ]
 
 [[package]]
 name = "joysheet"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "embed-resource",
  "joysheet-ui-gpui",
@@ -3959,7 +3959,7 @@ dependencies = [
 
 [[package]]
 name = "joysheet-app"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "async-channel",
  "getrandom 0.4.3",
@@ -3972,7 +3972,7 @@ dependencies = [
 
 [[package]]
 name = "joysheet-calc"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "joysheet-core",
  "joysheet-formula",
@@ -3984,7 +3984,7 @@ dependencies = [
 
 [[package]]
 name = "joysheet-chart"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "joysheet-calc",
  "joysheet-core",
@@ -3995,7 +3995,7 @@ dependencies = [
 
 [[package]]
 name = "joysheet-cli"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "joysheet-engine",
  "joysheet-mcp",
@@ -4009,7 +4009,7 @@ dependencies = [
 
 [[package]]
 name = "joysheet-core"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "chrono",
  "js-sys",
@@ -4020,7 +4020,7 @@ dependencies = [
 
 [[package]]
 name = "joysheet-engine"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "image",
  "joysheet-calc",
@@ -4041,7 +4041,7 @@ dependencies = [
 
 [[package]]
 name = "joysheet-formula"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "joysheet-core",
  "serde",
@@ -4050,7 +4050,7 @@ dependencies = [
 
 [[package]]
 name = "joysheet-functions"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "joysheet-core",
  "regex",
@@ -4058,7 +4058,7 @@ dependencies = [
 
 [[package]]
 name = "joysheet-mcp"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "joysheet-engine",
  "log",
@@ -4067,7 +4067,7 @@ dependencies = [
 
 [[package]]
 name = "joysheet-model"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "joysheet-core",
  "joysheet-formula",
@@ -4079,18 +4079,18 @@ dependencies = [
 
 [[package]]
 name = "joysheet-numfmt"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "joysheet-core",
 ]
 
 [[package]]
 name = "joysheet-pdf"
-version = "0.1.2"
+version = "0.1.3"
 
 [[package]]
 name = "joysheet-platform"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "arboard",
  "rfd",
@@ -4103,7 +4103,7 @@ dependencies = [
 
 [[package]]
 name = "joysheet-protocol"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "serde",
  "serde_json",
@@ -4111,7 +4111,7 @@ dependencies = [
 
 [[package]]
 name = "joysheet-tools"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "joysheet-app",
  "joysheet-engine",
@@ -4121,7 +4121,7 @@ dependencies = [
 
 [[package]]
 name = "joysheet-ui-gpui"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "gpui-base",
  "gpui-kit",
@@ -4143,7 +4143,7 @@ dependencies = [
 
 [[package]]
 name = "joysheet-xlsx"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "aes 0.9.3",
  "flate2",
@@ -4159,7 +4159,7 @@ dependencies = [
 
 [[package]]
 name = "joyword"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "embed-resource",
  "gpui-pre-platform",
@@ -4168,11 +4168,11 @@ dependencies = [
 
 [[package]]
 name = "joyword-agent"
-version = "0.1.2"
+version = "0.1.3"
 
 [[package]]
 name = "joyword-cli"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "joyword-docx",
  "joyword-engine",
@@ -4183,18 +4183,18 @@ dependencies = [
 
 [[package]]
 name = "joyword-control-key"
-version = "0.1.2"
+version = "0.1.3"
 
 [[package]]
 name = "joyword-corpus"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "joyoffice-opc",
 ]
 
 [[package]]
 name = "joyword-doc"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "cfb",
  "chrono",
@@ -4211,7 +4211,7 @@ dependencies = [
 
 [[package]]
 name = "joyword-docx"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "aes 0.9.3",
  "base64 0.22.1",
@@ -4237,7 +4237,7 @@ dependencies = [
 
 [[package]]
 name = "joyword-engine"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "cfb",
  "chrono",
@@ -4270,7 +4270,7 @@ dependencies = [
 
 [[package]]
 name = "joyword-fonts"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "brotli-decompressor",
  "harfrust 0.8.4",
@@ -4284,7 +4284,7 @@ dependencies = [
 
 [[package]]
 name = "joyword-formats"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "cfb",
  "chardetng",
@@ -4303,7 +4303,7 @@ dependencies = [
 
 [[package]]
 name = "joyword-geom"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "image",
  "serde",
@@ -4311,7 +4311,7 @@ dependencies = [
 
 [[package]]
 name = "joyword-layout"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "craft-proof",
  "image",
@@ -4331,7 +4331,7 @@ dependencies = [
 
 [[package]]
 name = "joyword-mcp"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "joyword-control-key",
  "joyword-engine",
@@ -4344,7 +4344,7 @@ dependencies = [
 
 [[package]]
 name = "joyword-metafile"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "kurbo 0.13.1",
  "thiserror 2.0.21",
@@ -4352,7 +4352,7 @@ dependencies = [
 
 [[package]]
 name = "joyword-model"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "base64 0.22.1",
  "joyword-geom",
@@ -4366,7 +4366,7 @@ dependencies = [
 
 [[package]]
 name = "joyword-pdf"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "chrono",
  "hayro-cmap",
@@ -4387,7 +4387,7 @@ dependencies = [
 
 [[package]]
 name = "joyword-render"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "image",
  "joyword-fonts",
@@ -4401,7 +4401,7 @@ dependencies = [
 
 [[package]]
 name = "joyword-shell"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "crc32fast",
  "hayro-cmap",
@@ -4429,7 +4429,7 @@ dependencies = [
 
 [[package]]
 name = "joyword-ui-gpui"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "arboard",
  "async-channel",
