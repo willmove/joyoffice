@@ -132,6 +132,11 @@ fn piece_bytes(p: &Piece) -> Vec<u8> {
 
 /// A document whose main text is the given pieces (extra subdocument text may follow).
 fn text_doc(main: &[Piece], extra: &[Piece], ccp_hdd: u32) -> Vec<u8> {
+    let (word, table) = text_streams(main, extra, ccp_hdd);
+    cfb_file(&[("WordDocument", &word), ("0Table", &table)])
+}
+
+fn text_streams(main: &[Piece], extra: &[Piece], ccp_hdd: u32) -> (Vec<u8>, Vec<u8>) {
     let all: Vec<Piece> = main.iter().chain(extra.iter()).cloned().collect();
     let ccp_text: u32 = main.iter().map(|p| p.text.chars().count() as u32).sum();
     let mut word = vec![0u8; TEXT_FC as usize];
@@ -151,7 +156,7 @@ fn text_doc(main: &[Piece], extra: &[Piece], ccp_hdd: u32) -> Vec<u8> {
         ..Default::default()
     };
     word[..fib_bytes(&spec).len()].copy_from_slice(&fib_bytes(&spec));
-    cfb_file(&[("WordDocument", &word), ("0Table", &table)])
+    (word, table)
 }
 
 fn body_texts(doc: &joyword_model::Document) -> Vec<String> {
@@ -3544,6 +3549,43 @@ fn cfb_file_in(
             .expect("cfb write");
     }
     comp.into_inner().into_inner()
+}
+
+#[test]
+fn zeroed_minifat_is_only_ignored_when_unused() {
+    let piece = Piece {
+        compressed: false,
+        text: "Legacy DOC body\r".into(),
+    };
+    let (mut word, mut table) = text_streams(&[piece], &[], 0);
+    word.resize(4096, 0);
+    table.resize(4096, 0);
+    let bytes = cfb_file_in(
+        cfb::Version::V3,
+        &[("WordDocument", &word), ("0Table", &table)],
+        &[("SmallStream", &[0; 128])],
+    );
+    assert_eq!(body_texts(&read(&bytes).unwrap()), ["Legacy DOC body"]);
+
+    let mut compound = cfb::CompoundFile::open(std::io::Cursor::new(bytes.clone())).unwrap();
+    compound.remove_stream("/ObjectPool/SmallStream").unwrap();
+    let mut unused = compound.into_inner().into_inner();
+    let sector_offset = |bytes: &[u8], field| {
+        let id = u32::from_le_bytes(bytes[field..field + 4].try_into().unwrap());
+        (id as usize + 1) * 512
+    };
+    // Keep the root mini stream as textutil does, with no small streams in the directory.
+    let root = sector_offset(&unused, 0x30);
+    unused[root + 0x78..root + 0x80].copy_from_slice(&128u64.to_le_bytes());
+    let minifat = sector_offset(&unused, 0x3C);
+    unused[minifat..minifat + 512].fill(0);
+    assert!(cfb::CompoundFile::open(std::io::Cursor::new(&unused)).is_err());
+    assert_eq!(body_texts(&read(&unused).unwrap()), ["Legacy DOC body"]);
+
+    let mut used = bytes;
+    let minifat = sector_offset(&used, 0x3C);
+    used[minifat..minifat + 512].fill(0);
+    assert!(matches!(read(&used), Err(super::DocbinError::Container(_))));
 }
 
 /// #3642 review: valid compound files pass the guard and open, so it refuses only the hostile

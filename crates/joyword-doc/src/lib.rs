@@ -15,6 +15,7 @@
     clippy::unreachable
 )]
 
+mod container;
 mod crypt;
 mod drawing;
 mod fib;
@@ -43,6 +44,7 @@ use joyword_model::section::HeaderSet;
 use joyword_model::styles::StyleSheet;
 use joyword_model::{Document, PartKind};
 
+use container::open_container;
 use fkp::Bins;
 use piece::{PieceTable, PrmRef};
 use sprm::Prl;
@@ -204,13 +206,6 @@ pub fn is_encrypted(bytes: &[u8]) -> bool {
         return false;
     };
     stream(&mut comp, "WordDocument").is_some_and(|w| fib::peek_encryption(&w).is_some())
-}
-
-/// Open the compound file around a `.doc`, after [`joyword_model::cfb_guard::check`].
-fn open_container(bytes: &[u8]) -> Result<cfb::CompoundFile<std::io::Cursor<&[u8]>>, DocbinError> {
-    joyword_model::cfb_guard::check(bytes).map_err(DocbinError::Container)?;
-    cfb::CompoundFile::open(std::io::Cursor::new(bytes))
-        .map_err(|e| DocbinError::Container(e.to_string()))
 }
 
 /// Read a `.doc` (Word 97-2003 binary) file into a [`Document`]. A password-protected file

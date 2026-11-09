@@ -1,5 +1,7 @@
 # JoyWord 宿主任务状态
 
+2026-11-09 修复旧版 DOC 打开兼容性。常规复合文件解析失败时，只对整扇区填零、且没有任何非空小流使用的单扇区 MiniFAT 尝试兼容读取。回退只在内存视图中调整文件头。Windows 用桌面活动会话和 CLI 核对附件的两段正文，另存 DOCX 后重开核对一致，原件 SHA-256 一致。合成回归覆盖仍有小流使用损坏 MiniFAT 时的拒绝行为。[MS-CFB §2.4](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-cfb/c5d235f7-b73c-4ec5-bf8d-5c08306cd023)
+
 2026-11-09「文件 → 导出」增加独立格式入口，覆盖参考图的 13 种格式，并保留 EPUB 和 PDF/A-2b。两种 Word XML 分别写出 Flat OPC 和 Word 2003 XML。PNG 保存当前可见页。OTT 使用模板包类型，FODT 使用单文件 XML 与内嵌图片，沿用现有 ODT 转换范围。导出使用当前编辑快照并拒绝覆盖。Windows 已实屏写出 PDF、Word 2003 XML、OTT、FODT 和 PNG，含图片与表格的 ODT、OTT、FODT 样例通过 ODF 1.3 结构校验。FODT 导入和第三方应用的复杂文档往返仍待验证。[ODF 包规范](https://docs.oasis-open.org/office/OpenDocument/v1.3/os/part2-packages/OpenDocument-v1.3-os-part2-packages.html) · [ODF XML 规范](https://docs.oasis-open.org/office/OpenDocument/v1.3/os/part3-schema/OpenDocument-v1.3-os-part3-schema.html)
 
 2026-11-09「文件」页按用户参考图调整为左侧导航与右侧工作区，使用 JoyWord 浅色和深色配色。开始页展示可编辑模板和最近文档，新建页提供完整模板列表。Windows 实屏已验证模板新建、最近文档重开、窄窗换行与滚动、关闭文档、Esc 返回和中英文切换。macOS、Linux 和实际打印未实测。
