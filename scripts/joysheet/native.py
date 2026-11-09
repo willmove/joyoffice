@@ -18,8 +18,6 @@ def bundle(directory, version):
         run(["pwsh.exe", "-NoProfile", "-File", "scripts/joysheet/package-windows.ps1",
              "-Directory", str(directory), "-Output", str(directory.parent / (directory.name + "-setup.exe"))])
     elif system == "Darwin":
-        if target != "aarch64-apple-darwin":
-            raise ValueError("Initial macOS distribution requires Apple Silicon")
         app = directory / "Joysheet.app/Contents"
         binaries = app / "MacOS"
         binaries.mkdir(parents=True)

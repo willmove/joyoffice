@@ -24,11 +24,12 @@ def binary(platform, arch):
         struct.pack_into('<H', header, 18, {'x86_64': 62, 'aarch64': 183}[arch])
     elif platform == 'macos':
         header[:4] = b'\xcf\xfa\xed\xfe'
-        struct.pack_into('<I', header, 4, 0x0100000c)
+        struct.pack_into('<I', header, 4, {'x86_64': 0x01000007, 'aarch64': 0x0100000c}[arch])
     else:
         header[:2] = b'MZ'
         struct.pack_into('<I', header, 60, 64)
-        header[64:70] = b'PE\0\0\x64\x86'
+        header[64:68] = b'PE\0\0'
+        struct.pack_into('<H', header, 68, {'x86_64': 0x8664, 'aarch64': 0xaa64}[arch])
     return bytes(header)
 
 
@@ -99,6 +100,12 @@ class ReleaseAssets(unittest.TestCase):
         for platform, arch in assets.MATRIX:
             kwargs = override if (platform, arch) == ('linux', 'x86_64') else {}
             package(self.directory, product, '0.1.0', platform, arch, **kwargs)
+            if product == 'joysheet':
+                name = assets.installer_filename('0.1.0', platform, arch)
+                installer = self.directory / name
+                installer.write_bytes(b'installer fixture')
+                (self.directory / (name + '.sha256')).write_text(
+                    f'{assets.digest_file(installer)}  {name}\n', encoding='ascii')
 
     def test_all_products_accept_complete_platform_matrices(self):
         for product in ('joyword', 'joydeck', 'joysheet'):
@@ -125,6 +132,16 @@ class ReleaseAssets(unittest.TestCase):
     def test_sheet_cannot_publish_a_package_without_its_cli(self):
         self.matrix('joysheet', missing_cli=True)
         with self.assertRaisesRegex(ValueError, 'missing file .*joysheet-cli'):
+            assets.verify_assets(self.directory, 'joysheet', '0.1.0')
+
+    def test_sheet_cannot_publish_a_missing_or_corrupted_installer(self):
+        self.matrix('joysheet')
+        installer = self.directory / assets.installer_filename('0.1.0', 'windows', 'aarch64')
+        installer.write_bytes(b'corrupted')
+        with self.assertRaisesRegex(ValueError, 'setup.exe: SHA-256 sidecar'):
+            assets.verify_assets(self.directory, 'joysheet', '0.1.0')
+        installer.unlink()
+        with self.assertRaisesRegex(ValueError, 'asset set differs'):
             assets.verify_assets(self.directory, 'joysheet', '0.1.0')
 
     def test_rejects_missing_platform_and_bad_checksum(self):

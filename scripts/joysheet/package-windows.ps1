@@ -7,6 +7,11 @@ if(!(Test-Path -LiteralPath (Join-Path $payload 'joysheet.exe'))){throw 'Missing
 $metadata=Get-Content -LiteralPath (Join-Path $payload 'BUILD.json') -Raw -Encoding utf8 | ConvertFrom-Json
 $version=[string]$metadata.version
 if($version -notmatch '^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$'){throw 'Invalid product version'}
+$runtimeArch=switch($metadata.target){
+    'x86_64-pc-windows-msvc' {'x64'}
+    'aarch64-pc-windows-msvc' {'arm64'}
+    default {throw "Unsupported Windows target: $($metadata.target)"}
+}
 $displayName="JoySheet $version preview"
 $compiler=$env:JOYSHEET_NSIS
 if(!$compiler){$compiler=Join-Path $workspace 'artifacts/joysheet/tools/nsis-3.11/makensis.exe'}
@@ -14,11 +19,12 @@ if(!(Test-Path -LiteralPath $compiler)){$found=Get-Command makensis.exe -ErrorAc
 if(!(Test-Path -LiteralPath $compiler)){throw 'Install NSIS or set JOYSHEET_NSIS to makensis.exe. See docs/joysheet/PACKAGING.md.'}
 $vswhere=Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio/Installer/vswhere.exe'
 if(Test-Path -LiteralPath $vswhere){
-    $vs=& $vswhere -latest -products '*' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+    $component=if($runtimeArch -eq 'arm64'){'Microsoft.VisualStudio.Component.VC.Tools.ARM64'}else{'Microsoft.VisualStudio.Component.VC.Tools.x86.x64'}
+    $vs=& $vswhere -latest -products '*' -requires $component -property installationPath
     if($vs){
         $redistributables=Get-ChildItem -LiteralPath (Join-Path $vs 'VC/Redist/MSVC') -Directory |Sort-Object Name -Descending
         foreach($redist in $redistributables){
-            $crt=Get-ChildItem -LiteralPath (Join-Path $redist.FullName 'x64') -Directory -Filter 'Microsoft.VC*.CRT' -ErrorAction SilentlyContinue|Select-Object -First 1
+            $crt=Get-ChildItem -LiteralPath (Join-Path $redist.FullName $runtimeArch) -Directory -Filter 'Microsoft.VC*.CRT' -ErrorAction SilentlyContinue|Select-Object -First 1
             if($crt){Get-ChildItem -LiteralPath $crt.FullName -Filter '*.dll' |Copy-Item -Destination $payload;break}
         }
     }

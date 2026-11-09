@@ -71,14 +71,18 @@ jobs:
           - {os: ubuntu-24.04, platform: linux, arch: x86_64}
           - {os: ubuntu-24.04-arm, platform: linux, arch: aarch64}
           - {os: macos-15, platform: macos, arch: aarch64}
+          - {os: macos-15-intel, platform: macos, arch: x86_64}
           - {os: windows-2022, platform: windows, arch: x86_64}
+          - {os: windows-11-arm, platform: windows, arch: aarch64}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 120
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
         with:
-          python-version: '3.12'
+          # 3.12.10 is the newest Windows ARM64 binary in setup-python's 3.12 series.
+          python-version: ${{ matrix.os == 'windows-11-arm' && '3.12.10' || '3.12' }}
+          architecture: ${{ matrix.arch == 'aarch64' && 'arm64' || 'x64' }}
       - name: Linux system libraries
         if: runner.os == 'Linux'
         run: |
@@ -106,11 +110,17 @@ jobs:
         env:
           RELEASE_PRODUCT: ${{ needs.resolve.outputs.product }}
         run: |
-          if [ "${{ needs.resolve.outputs.product }}" = "joydeck" ]; then
+          if [ "$RELEASE_PRODUCT" = "joydeck" ]; then
             cargo xtask package joydeck --release --release-layout
           else
-            cargo xtask package ${{ needs.resolve.outputs.product }} --release
+            if [ "$RELEASE_PRODUCT" = "joysheet" ] && [ "$RUNNER_OS" = "macOS" ]; then
+              export MACOSX_DEPLOYMENT_TARGET=15.0
+            fi
+            cargo xtask package "$RELEASE_PRODUCT" --release
           fi
+      - name: Verify and checksum the Sheet installer
+        if: needs.resolve.outputs.product == 'joysheet'
+        run: python scripts/verify_release_assets.py dist/joysheet joysheet "${{ needs.resolve.outputs.version }}" --prepare-installer "${{ matrix.platform }}" "${{ matrix.arch }}"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: release-${{ needs.resolve.outputs.product }}-${{ matrix.platform }}-${{ matrix.arch }}
@@ -121,6 +131,12 @@ jobs:
             dist/${{ needs.resolve.outputs.product }}/${{ needs.resolve.outputs.product }}-${{ needs.resolve.outputs.version }}-${{ matrix.platform }}-${{ matrix.arch }}.tar.gz.sha256
             dist/${{ needs.resolve.outputs.product }}/${{ needs.resolve.outputs.product }}-${{ needs.resolve.outputs.version }}-${{ matrix.platform }}-${{ matrix.arch }}-release.zip
             dist/${{ needs.resolve.outputs.product }}/${{ needs.resolve.outputs.product }}-${{ needs.resolve.outputs.version }}-${{ matrix.platform }}-${{ matrix.arch }}-release.zip.sha256
+            dist/${{ needs.resolve.outputs.product }}/${{ needs.resolve.outputs.product }}-${{ needs.resolve.outputs.version }}-${{ matrix.platform }}-${{ matrix.arch }}-release-setup.exe
+            dist/${{ needs.resolve.outputs.product }}/${{ needs.resolve.outputs.product }}-${{ needs.resolve.outputs.version }}-${{ matrix.platform }}-${{ matrix.arch }}-release-setup.exe.sha256
+            dist/${{ needs.resolve.outputs.product }}/${{ needs.resolve.outputs.product }}-${{ needs.resolve.outputs.version }}-${{ matrix.platform }}-${{ matrix.arch }}-release.dmg
+            dist/${{ needs.resolve.outputs.product }}/${{ needs.resolve.outputs.product }}-${{ needs.resolve.outputs.version }}-${{ matrix.platform }}-${{ matrix.arch }}-release.dmg.sha256
+            dist/${{ needs.resolve.outputs.product }}/${{ needs.resolve.outputs.product }}-${{ needs.resolve.outputs.version }}-${{ matrix.platform }}-${{ matrix.arch }}-release.deb
+            dist/${{ needs.resolve.outputs.product }}/${{ needs.resolve.outputs.product }}-${{ needs.resolve.outputs.version }}-${{ matrix.platform }}-${{ matrix.arch }}-release.deb.sha256
           if-no-files-found: error
   publish:
     name: Verify and publish selected product

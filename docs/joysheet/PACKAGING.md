@@ -21,9 +21,9 @@ JoySheet 的青绿四格 LOGO 随包位于 [assets/brand/joysheet.svg](../../ass
 
 可用的 VC++ app-local runtime DLL 从 VS Redist 目录复制。Windows 原生打印对话框需要 PowerShell 7；工作簿查看、编辑、PDF 导出不需要终端。设置 `JOYSHEET_WINDOWS_SIGN_THUMBPRINT` 可接入发行者证书和 signtool；未配置证书的预览包保持未签名。
 
-## macOS Apple Silicon
+## macOS
 
-在 macOS 15+ arm64 主机运行相同入口，生成 `Joysheet.app`、Info.plist、ICNS、配套 CLI 和 DMG。默认仅 ad-hoc 签名；发行者签名使用 `JOYSHEET_MAC_SIGN_IDENTITY`，公证使用已有 `JOYSHEET_NOTARY_PROFILE`。命令失败即停止打包。构建 CI 与实际原生 GUI 验收分别记录。
+在 macOS 15 或更新的 Apple Silicon 或 Intel 主机运行相同入口，生成当前主机架构的 `Joysheet.app`、Info.plist、ICNS、配套 CLI 和 DMG。默认仅 ad-hoc 签名。发行者签名使用 `JOYSHEET_MAC_SIGN_IDENTITY`，公证使用已有 `JOYSHEET_NOTARY_PROFILE`。命令失败即停止打包。构建 CI 与实际原生 GUI 验收分别记录。
 
 ## Ubuntu 24.04 x64 / ARM64
 

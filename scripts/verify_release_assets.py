@@ -7,18 +7,20 @@ from pathlib import Path
 import plistlib
 import stat
 import struct
+import subprocess
 import unicodedata
 import sys
 import tarfile
 import zipfile
 
 
-MATRIX = (('linux', 'x86_64'), ('linux', 'aarch64'),
-          ('macos', 'aarch64'), ('windows', 'x86_64'))
 TARGETS = {('linux', 'x86_64'): 'x86_64-unknown-linux-gnu',
            ('linux', 'aarch64'): 'aarch64-unknown-linux-gnu',
            ('macos', 'aarch64'): 'aarch64-apple-darwin',
-           ('windows', 'x86_64'): 'x86_64-pc-windows-msvc'}
+           ('macos', 'x86_64'): 'x86_64-apple-darwin',
+           ('windows', 'x86_64'): 'x86_64-pc-windows-msvc',
+           ('windows', 'aarch64'): 'aarch64-pc-windows-msvc'}
+MATRIX = tuple(TARGETS)
 BRAND = Path(__file__).resolve().parents[1] / 'assets/brand'
 MAC_APPS = {'joyword': 'JoyWord', 'joydeck': 'JoyDeck', 'joysheet': 'Joysheet'}
 
@@ -29,8 +31,15 @@ def filename(product, version, platform, arch):
     return f'{product}-{version}-{platform}-{arch}{suffix}'
 
 
+def installer_filename(version, platform, arch):
+    suffix = {'windows': '-setup.exe', 'macos': '.dmg', 'linux': '.deb'}[platform]
+    return f'joysheet-{version}-{platform}-{arch}-release{suffix}'
+
+
 def expected_files(product, version):
     assets = [filename(product, version, *pair) for pair in MATRIX]
+    if product == 'joysheet':
+        assets += [installer_filename(version, *pair) for pair in MATRIX]
     return set(assets + [name + '.sha256' for name in assets])
 
 
@@ -41,16 +50,18 @@ def executable_header(stream, platform, arch):
         valid = (len(header) >= 20 and header[:6] == b'\x7fELF\x02\x01'
                  and struct.unpack_from('<H', header, 18)[0] == machine)
     elif platform == 'macos':
+        cpu_type = {'x86_64': 0x01000007, 'aarch64': 0x0100000c}[arch]
         valid = (len(header) >= 8 and header[:4] == b'\xcf\xfa\xed\xfe'
-                 and struct.unpack_from('<I', header, 4)[0] == 0x0100000c)
+                 and struct.unpack_from('<I', header, 4)[0] == cpu_type)
     else:
+        machine = {'x86': 0x014c, 'x86_64': 0x8664, 'aarch64': 0xaa64}[arch]
         valid = False
         if len(header) >= 64 and header[:2] == b'MZ':
             offset = struct.unpack_from('<I', header, 60)[0]
             if offset <= 1024 * 1024:
                 stream.seek(offset)
                 pe = stream.read(6)
-                valid = pe == b'PE\0\0\x64\x86'
+                valid = pe == b'PE\0\0' + struct.pack('<H', machine)
     if not valid:
         raise ValueError(f'invalid {platform} {arch} executable header')
 
@@ -180,20 +191,46 @@ def verify_branding(read_file, root, product, platform):
                 raise ValueError(f'Incorrect desktop icon or launcher reference: {desktop}')
 
 
+def digest_file(path):
+    with path.open('rb') as stream:
+        return hashlib.file_digest(stream, 'sha256').hexdigest()
+
+
+def prepare_installer(directory, version, platform, arch):
+    path = directory / installer_filename(version, platform, arch)
+    if platform == 'macos':
+        subprocess.run(['hdiutil', 'verify', str(path)], check=True)
+    elif platform == 'linux':
+        control = subprocess.check_output(['dpkg-deb', '--field', str(path)], text=True)
+        deb_arch = {'x86_64': 'amd64', 'aarch64': 'arm64'}[arch]
+        if not {'Package: joysheet', f'Version: {version}', f'Architecture: {deb_arch}'}.issubset(control.splitlines()):
+            raise ValueError(f'{path.name}: inconsistent Debian package metadata')
+    else:
+        # NSIS uses a 32-bit bootstrapper for both payload architectures.
+        with path.open('rb') as stream:
+            executable_header(stream, platform, 'x86')
+    path.with_name(path.name + '.sha256').write_text(
+        f'{digest_file(path)}  {path.name}\n', encoding='ascii')
+
+
 def verify_assets(directory, product, version):
     expected = expected_files(product, version)
     actual = {p.name for p in directory.iterdir() if p.is_file()}
     if actual != expected:
         raise ValueError(f'asset set differs: missing={sorted(expected - actual)}, unexpected={sorted(actual - expected)}')
-    for platform, arch in MATRIX:
-        path = directory / filename(product, version, platform, arch)
-        with path.open('rb') as stream:
-            digest = hashlib.file_digest(stream, 'sha256').hexdigest()
+    for name in sorted(expected):
+        if name.endswith('.sha256'):
+            continue
+        path = directory / name
+        digest = digest_file(path)
         sidecar = (directory / (path.name + '.sha256')).read_text(encoding='ascii').split()
         if sidecar != [digest, path.name]:
             raise ValueError(f'{path.name}: SHA-256 sidecar does not match')
+        print(f'Verified checksum for {path.name}: {digest}')
+    for platform, arch in MATRIX:
+        path = directory / filename(product, version, platform, arch)
         verify_archive(path, product, version, platform, arch)
-        print(f'Verified {path.name}: {digest}')
+        print(f'Verified archive contents for {path.name}')
 
 
 def main():
@@ -201,12 +238,19 @@ def main():
     parser.add_argument('directory', type=Path)
     parser.add_argument('product', choices=['joyword', 'joydeck', 'joysheet'])
     parser.add_argument('version')
+    parser.add_argument('--prepare-installer', nargs=2, metavar=('PLATFORM', 'ARCH'))
     args = parser.parse_args()
-    verify_assets(args.directory, args.product, args.version)
+    if args.prepare_installer:
+        pair = tuple(args.prepare_installer)
+        if args.product != 'joysheet' or pair not in MATRIX:
+            parser.error('Installer preparation requires JoySheet and a release platform/architecture')
+        prepare_installer(args.directory, args.version, *pair)
+    else:
+        verify_assets(args.directory, args.product, args.version)
 
 
 if __name__ == '__main__':
     try:
         main()
-    except (ValueError, OSError, json.JSONDecodeError, zipfile.BadZipFile, tarfile.TarError) as error:
+    except (ValueError, OSError, subprocess.CalledProcessError, zipfile.BadZipFile, tarfile.TarError) as error:
         sys.exit(str(error))

@@ -24,6 +24,9 @@ class ArchiveMembers(unittest.TestCase):
                     for name, kind in entries:
                         name = name.replace('$ROOT/', prefix)
                         item = zipfile.ZipInfo(name)
+                        # Preserve the raw fixture name when ZipInfo normalizes
+                        # Windows separators during construction.
+                        item.filename = name
                         item.external_attr = (kind | 0o755) << 16
                         archive.writestr(item, b'' if name.endswith('/') else b'fixture')
             else:

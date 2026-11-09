@@ -1,10 +1,14 @@
 # JoyDeck
 
-本产品现于 JoyOffice Monorepo 维护。首先阅读[新的开发入口](DEVELOPMENT.md)、[迁移计划](../joyoffice/MONOREPO-MIGRATION.md)和[模块边界](../joyoffice/ARCHITECTURE.md)。以下 M0–M14 为原独立项目的实施记录，迁移后的命令与验证以新开发入口和迁移结果为准。
+[下载 JoyDeck v0.1.2 预览版](https://github.com/willmove/joyoffice/releases/tag/joydeck-v0.1.2) · [按系统选择软件包](../../README.md#下载与安装)
+
+当前版本使用 R9 编辑器，支持 PPTX 和原生 `.joydeck` v2 文稿。开发从 [R9 交接](../joyoffice/JOYDECK-R9-HANDOFF.md)和[当前状态](STATUS.md)开始。
 
 离线优先的 Rust + GPUI 桌面演示应用。按[净室实现规范](01-clean-room.md)，依据用户需求、公开标准与自建样例独立开发。
 
-当前：M13本机资格化/偏好/发布维护与M14静态页MP4、离线比较/对象接受、标题VTT已交付；122项Rust测试及本机GUI/前序回归见[36](36-m13-implementation-report.md)、[37](37-m14-implementation-report.md)。完整三平台Beta与其余功能池仍开放。[最新开发包（旧归档：joydeck-m14-final-darwin-arm64.zip）](../joyoffice/JOYDECK-ARCHIVES.md)。
+## M0–M14 历史记录
+
+M13 本机资格化、偏好和发布维护，以及 M14 静态页 MP4、离线比较、对象接受与标题 VTT 的旧实现见 [M13 报告](36-m13-implementation-report.md)、[M14 报告](37-m14-implementation-report.md)和[历史开发包索引](../joyoffice/JOYDECK-ARCHIVES.md)。当前版本的验收以 [R9 状态](STATUS.md)为准。
 
 M9/M10基线：M9七类基础图表/图示与M10动画/演示者软件子项已实现，按本机PowerPoint重构功能区和工作区；102项测试、系统拼音、Office实际编辑重读及最终包验证见 [31](31-m9-implementation-report.md)、[32](32-m10-implementation-report.md)。[M10历史开发包（旧归档：joydeck-m10-validated-darwin-arm64.zip）](../joyoffice/JOYDECK-ARCHIVES.md) 支持双击JoyDeck.app；完整双屏/三平台/MVP及前序开放条件见 [STATUS](STATUS.md)。
 
