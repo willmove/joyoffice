@@ -1,4 +1,4 @@
-//! OpenDocument Text (`.odt`, ODF 1.3).
+//! OpenDocument Text (ODF 1.3), including template packages and flat XML exports.
 //!
 //! Export writes `mimetype` (stored, first), `META-INF/manifest.xml`, `content.xml` (paragraphs,
 //! `text:h` headings with outline levels, spans with automatic text styles, links, bookmarks,
@@ -48,6 +48,7 @@ pub use import::{import, parse};
 #[cfg(test)]
 use limits::MAX_XML_DEPTH;
 pub use package::export;
+pub(crate) use package::{export_flat, export_template};
 use styles::Styles;
 #[cfg(test)]
 use writer::x;

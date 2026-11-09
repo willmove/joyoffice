@@ -147,6 +147,56 @@ fn frames_sharing_a_picture_all_show_it() {
 }
 
 #[test]
+fn template_package_and_flat_xml_preserve_text_and_images() {
+    let png = [b"\x89PNG\r\n\x1a\n".as_slice(), &[7u8; 300]].concat();
+    let content = format!(
+        r#"<office:document-content {NS_T}><office:body><office:text><text:p>正文 &amp; text<draw:frame svg:width="1in" svg:height="1in"><draw:image xlink:href="Pictures/a.png"/></draw:frame></text:p></office:text></office:body></office:document-content>"#
+    );
+    let doc = import(&zip_of(&[
+        ("content.xml", content.as_bytes()),
+        ("Pictures/a.png", &png),
+    ]))
+    .unwrap();
+
+    let template = export_template(&doc).unwrap();
+    let mut package = archive(&template);
+    let mimetype = "application/vnd.oasis.opendocument.text-template";
+    let first = package.by_index(0).unwrap();
+    assert_eq!(first.name().unwrap(), "mimetype");
+    assert_eq!(first.compression(), zip::CompressionMethod::Stored);
+    drop(first);
+    assert_eq!(
+        read_entry(&mut package, "mimetype").unwrap(),
+        mimetype.as_bytes()
+    );
+    let manifest = read_entry(&mut package, "META-INF/manifest.xml").unwrap();
+    assert!(
+        String::from_utf8(manifest)
+            .unwrap()
+            .contains(&format!("manifest:media-type=\"{mimetype}\""))
+    );
+    assert_eq!(
+        import(&template)
+            .unwrap()
+            .plain_text(joyword_model::StoryRef::Body),
+        doc.plain_text(joyword_model::StoryRef::Body)
+    );
+    assert_eq!(import(&template).unwrap().media.len(), 1);
+
+    let flat = String::from_utf8(export_flat(&doc).unwrap()).unwrap();
+    assert!(flat.contains("<office:document "));
+    assert!(flat.contains("office:mimetype=\"application/vnd.oasis.opendocument.text\""));
+    assert!(flat.contains("正文 &amp; text"));
+    assert!(flat.contains("<style:page-layout "));
+    assert_eq!(flat.matches("<office:automatic-styles>").count(), 1);
+    assert!(flat.contains(&format!(
+        "<office:binary-data>{}</office:binary-data>",
+        model::base64_encode(&png)
+    )));
+    assert!(!flat.contains("Pictures/"));
+}
+
+#[test]
 fn embedded_formula_object_reads_its_mathml() {
     // #3099: LibreOffice saves an equation as a `draw:object` (a formula sub-document whose
     // own `content.xml` is MathML) plus a `draw:image` replacement preview in LibreOffice's

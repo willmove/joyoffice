@@ -1065,7 +1065,7 @@ impl JoyWord {
                     "file.saveAs",
                     vec![
                         (
-                            "格式（docx / pdf / txt / md / html / rtf / odt / tex / xml）",
+                            "格式（docx / pdf / txt / md / html / rtf / odt / ott / fodt / tex / xml）",
                             "pdf".into(),
                         ),
                         ("保留标记与批注（是 / 否，仅适用支持的格式）", "否".into()),

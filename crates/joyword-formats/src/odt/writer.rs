@@ -43,6 +43,7 @@ pub(super) fn pt(v: f32) -> String {
 
 /// A section that starts a page: the master page it uses and where page numbering restarts.
 type SecStart = (String, Option<u32>);
+const MAX_FLAT_IMAGE_BYTES: usize = 64 << 20;
 
 #[derive(Default)]
 pub(super) struct Writer {
@@ -69,6 +70,8 @@ pub(super) struct Writer {
     /// Cell styles by (shading, vertical-alignment).
     cell_styles: Vec<(Option<Rgb>, Option<VAlign>)>,
     pub(super) pictures: Vec<(String, std::sync::Arc<Vec<u8>>, String)>,
+    /// Raw inline image bytes, including repeated occurrences. None for packages.
+    flat_image_bytes: Option<usize>,
     /// `text:changed-region` elements written so far.
     pub(super) regions: Vec<String>,
     /// The insertion open in the body, and its region id.
@@ -139,6 +142,18 @@ fn parent_style(k: Kind) -> &'static str {
 }
 
 impl Writer {
+    pub(super) fn new(flat: bool) -> Self {
+        Self {
+            flat_image_bytes: flat.then_some(0),
+            ..Self::default()
+        }
+    }
+
+    pub(super) fn flat_image_budget_exceeded(&self) -> bool {
+        self.flat_image_bytes
+            .is_some_and(|bytes| bytes > MAX_FLAT_IMAGE_BYTES)
+    }
+
     fn text_style(&mut self, f: &Fmt) -> Option<String> {
         let props = text_props(f);
         if props.is_empty() {
@@ -435,10 +450,23 @@ impl Writer {
                     let href = self.picture(img);
                     let n = self.pictures.len();
                     out.push_str(&format!(
-                        "<draw:frame draw:name=\"Image{n}\" text:anchor-type=\"as-char\" svg:width=\"{}\" svg:height=\"{}\" draw:z-index=\"0\"><draw:image xlink:href=\"{href}\" xlink:type=\"simple\" xlink:show=\"embed\" xlink:actuate=\"onLoad\"/>",
+                        "<draw:frame draw:name=\"Image{n}\" text:anchor-type=\"as-char\" svg:width=\"{}\" svg:height=\"{}\" draw:z-index=\"0\">",
                         pt(img.w),
                         pt(img.h)
                     ));
+                    if let Some(bytes) = &mut self.flat_image_bytes {
+                        *bytes = bytes.saturating_add(img.data.len());
+                        if *bytes <= MAX_FLAT_IMAGE_BYTES {
+                            // ODF 1.3 Part 3 §10.4.5 embeds images in flat XML.
+                            out.push_str("<draw:image><office:binary-data>");
+                            out.push_str(&model::base64_encode(&img.data));
+                            out.push_str("</office:binary-data></draw:image>");
+                        }
+                    } else {
+                        out.push_str(&format!(
+                            "<draw:image xlink:href=\"{href}\" xlink:type=\"simple\" xlink:show=\"embed\" xlink:actuate=\"onLoad\"/>"
+                        ));
+                    }
                     if !img.alt.is_empty() {
                         out.push_str(&format!("<svg:desc>{}</svg:desc>", x(&img.alt)));
                     }
@@ -700,7 +728,7 @@ impl Writer {
     }
 
     pub(super) fn automatic_styles(&self) -> String {
-        let mut s = String::from("<office:automatic-styles>");
+        let mut s = String::new();
         for (props, n) in &self.text_styles {
             s.push_str(&format!("<style:style style:name=\"{n}\" style:family=\"text\"><style:text-properties{props}/></style:style>"));
         }
@@ -776,7 +804,6 @@ impl Writer {
         for st in &self.section_styles {
             s.push_str(st);
         }
-        s.push_str("</office:automatic-styles>");
         s
     }
 }

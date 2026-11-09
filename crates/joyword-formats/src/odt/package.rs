@@ -1,6 +1,10 @@
 use super::writer::{NS, Writer, pt, x};
 use super::{Columns, Cursor, Document, FBlock, Meta, SectionProps, SectionStart, Write, model};
 
+const XML: &str = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+const TEXT: &str = "application/vnd.oasis.opendocument.text";
+const TEMPLATE: &str = "application/vnd.oasis.opendocument.text-template";
+
 /// `style:columns` (ODF 1.3 §17.12) of equal columns with their gap and, when on, the line between.
 fn columns_xml(c: &Columns) -> String {
     let sep = if c.separator {
@@ -17,10 +21,8 @@ fn columns_xml(c: &Columns) -> String {
 
 /// One master page per entry of `pages` (name, setup), each with its own page layout `pm1`, `pm2`…
 /// (§16.5, §16.9); the first is the default one, "Standard".
-fn styles_xml(pages: &[(String, joyword_model::SectionProps)], body_font: &str) -> String {
-    let mut s = format!(
-        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<office:document-styles {NS}><office:styles>"
-    );
+fn styles_xml(pages: &[(String, SectionProps)], body_font: &str) -> (String, String, String) {
+    let mut s = String::from("<office:styles>");
     s.push_str(&format!(
         "<style:default-style style:family=\"paragraph\"><style:paragraph-properties fo:margin-bottom=\"8pt\"/><style:text-properties fo:font-family=\"'{}'\" fo:font-size=\"12pt\"/></style:default-style>",
         x(body_font)
@@ -40,7 +42,9 @@ fn styles_xml(pages: &[(String, joyword_model::SectionProps)], body_font: &str) 
     s.push_str("<style:style style:name=\"Title\" style:family=\"paragraph\" style:parent-style-name=\"Standard\" style:class=\"chapter\"><style:text-properties fo:font-size=\"28pt\"/></style:style>");
     s.push_str("<style:style style:name=\"Quotations\" style:family=\"paragraph\" style:parent-style-name=\"Standard\" style:class=\"html\"><style:paragraph-properties fo:margin-left=\"36pt\" fo:margin-right=\"36pt\"/><style:text-properties fo:font-style=\"italic\" fo:color=\"#404040\"/></style:style>");
     s.push_str(&format!("<style:style style:name=\"Preformatted_20_Text\" style:display-name=\"Preformatted Text\" style:family=\"paragraph\" style:parent-style-name=\"Standard\" style:class=\"html\"><style:paragraph-properties fo:margin-top=\"0pt\" fo:margin-bottom=\"0pt\"/><style:text-properties fo:font-family=\"'{}'\" style:font-family-generic=\"modern\" style:font-pitch=\"fixed\" fo:font-size=\"10pt\"/></style:style>", model::MONO_FONT));
-    s.push_str("</office:styles><office:automatic-styles>");
+    s.push_str("</office:styles>");
+    let common = s;
+    let mut s = String::new();
     for (i, (_, sec)) in pages.iter().enumerate() {
         // A page of several columns carries them in its layout.
         let cols = if sec.columns.count > 1 {
@@ -60,7 +64,8 @@ fn styles_xml(pages: &[(String, joyword_model::SectionProps)], body_font: &str) 
             if sec.page_w > sec.page_h { "landscape" } else { "portrait" }
         ));
     }
-    s.push_str("</office:automatic-styles><office:master-styles>");
+    let automatic = s;
+    let mut s = String::from("<office:master-styles>");
     for (i, (name, _)) in pages.iter().enumerate() {
         s.push_str(&format!(
             "<style:master-page style:name=\"{}\" style:page-layout-name=\"pm{}\"/>",
@@ -68,14 +73,12 @@ fn styles_xml(pages: &[(String, joyword_model::SectionProps)], body_font: &str) 
             i + 1
         ));
     }
-    s.push_str("</office:master-styles></office:document-styles>\n");
-    s
+    s.push_str("</office:master-styles>");
+    (common, automatic, s)
 }
 
 fn meta_xml(m: &Meta) -> String {
-    let mut s = format!(
-        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<office:document-meta {NS}><office:meta><meta:generator>WordCraft</meta:generator>"
-    );
+    let mut s = String::from("<office:meta><meta:generator>WordCraft</meta:generator>");
     if !m.title.is_empty() {
         s.push_str(&format!("<dc:title>{}</dc:title>", x(&m.title)));
     }
@@ -109,7 +112,7 @@ fn meta_xml(m: &Meta) -> String {
             x(m.created.trim_end_matches('Z'))
         ));
     }
-    s.push_str("</office:meta></office:document-meta>\n");
+    s.push_str("</office:meta>");
     s
 }
 
@@ -138,8 +141,20 @@ fn flow_sections(
 
 /// Write an `.odt` package.
 pub fn export(doc: &Document) -> Result<Vec<u8>, String> {
+    export_as(doc, TEXT, false)
+}
+
+pub(crate) fn export_template(doc: &Document) -> Result<Vec<u8>, String> {
+    export_as(doc, TEMPLATE, false)
+}
+
+pub(crate) fn export_flat(doc: &Document) -> Result<Vec<u8>, String> {
+    export_as(doc, TEXT, true)
+}
+
+fn export_as(doc: &Document, mime: &str, flat: bool) -> Result<Vec<u8>, String> {
     let flow = model::from_doc_tracked(doc);
-    let mut w = Writer::default();
+    let mut w = Writer::new(flat);
     let mut body = String::new();
     let sections = flow_sections(&flow.blocks, &doc.last_section);
     // One master page per section that starts a page; the first one is "Standard".
@@ -202,20 +217,34 @@ pub fn export(doc: &Document) -> Result<Vec<u8>, String> {
             w.regions.concat()
         )
     };
-    let content = format!(
-        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<office:document-content {NS}>{}<office:body><office:text>\n{tracked}{body}</office:text></office:body></office:document-content>\n",
-        w.automatic_styles()
-    );
     let body_font = doc
         .styles
         .default_chr
         .font
         .clone()
         .unwrap_or_else(|| joyword_model::styles::BODY_FONT.to_string());
-    let styles = styles_xml(&pages, &body_font);
+    let (common, page_styles, masters) = styles_xml(&pages, &body_font);
+    let automatic = w.automatic_styles();
     let meta = meta_xml(&flow.meta);
-    let mut manifest = String::from(
-        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\" manifest:version=\"1.3\">\n<manifest:file-entry manifest:full-path=\"/\" manifest:version=\"1.3\" manifest:media-type=\"application/vnd.oasis.opendocument.text\"/>\n<manifest:file-entry manifest:full-path=\"content.xml\" manifest:media-type=\"text/xml\"/>\n<manifest:file-entry manifest:full-path=\"styles.xml\" manifest:media-type=\"text/xml\"/>\n<manifest:file-entry manifest:full-path=\"meta.xml\" manifest:media-type=\"text/xml\"/>\n",
+    let body = format!("<office:body><office:text>\n{tracked}{body}</office:text></office:body>");
+    // ODF 1.3 Part 3 §3.1.2: a flat document combines content, styles and metadata.
+    if flat {
+        if w.flat_image_budget_exceeded() {
+            return Err("FODT embedded images exceed the ODF image budget".into());
+        }
+        return Ok(format!(
+            "{XML}<office:document {NS} office:mimetype=\"{mime}\">{meta}{common}<office:automatic-styles>{page_styles}{automatic}</office:automatic-styles>{masters}{body}</office:document>\n"
+        ).into_bytes());
+    }
+    let content = format!(
+        "{XML}<office:document-content {NS}><office:automatic-styles>{automatic}</office:automatic-styles>{body}</office:document-content>\n"
+    );
+    let styles = format!(
+        "{XML}<office:document-styles {NS}>{common}<office:automatic-styles>{page_styles}</office:automatic-styles>{masters}</office:document-styles>\n"
+    );
+    let meta = format!("{XML}<office:document-meta {NS}>{meta}</office:document-meta>\n");
+    let mut manifest = format!(
+        "{XML}<manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\" manifest:version=\"1.3\">\n<manifest:file-entry manifest:full-path=\"/\" manifest:version=\"1.3\" manifest:media-type=\"{mime}\"/>\n<manifest:file-entry manifest:full-path=\"content.xml\" manifest:media-type=\"text/xml\"/>\n<manifest:file-entry manifest:full-path=\"styles.xml\" manifest:media-type=\"text/xml\"/>\n<manifest:file-entry manifest:full-path=\"meta.xml\" manifest:media-type=\"text/xml\"/>\n",
     );
     for (name, _, mime) in &w.pictures {
         manifest.push_str(&format!(
@@ -233,8 +262,7 @@ pub fn export(doc: &Document) -> Result<Vec<u8>, String> {
     let deflated = zip::write::SimpleFileOptions::default()
         .compression_method(zip::CompressionMethod::Deflated);
     z.start_file("mimetype", stored).map_err(err)?;
-    z.write_all(b"application/vnd.oasis.opendocument.text")
-        .map_err(ioerr)?;
+    z.write_all(mime.as_bytes()).map_err(ioerr)?;
     for (name, data) in [
         ("META-INF/manifest.xml", manifest.as_bytes()),
         ("content.xml", content.as_bytes()),
