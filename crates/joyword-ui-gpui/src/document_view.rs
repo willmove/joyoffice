@@ -18,6 +18,12 @@ pub(super) enum OpenSource {
     LegacyRecovery(PathBuf),
     Welcome,
     Blank,
+    Template { name: String, bytes: &'static [u8] },
+}
+
+pub(super) enum DocumentChange {
+    Open(OpenSource),
+    Close,
 }
 #[derive(Clone, PartialEq)]
 struct RasterKey {
@@ -162,6 +168,7 @@ impl JoyWord {
             Some(reader) if reader.summary.name != "Untitled" => {
                 format!("{} — JoyWord", reader.summary.name)
             }
+            None if self.file_page => "JoyWord".to_owned(),
             _ => self.shell.title(),
         };
         if self.canvas.reader.as_ref().is_some_and(|r| r.is_dirty()) {
@@ -177,20 +184,43 @@ impl JoyWord {
         self.canvas.failed.clear();
     }
     pub(super) fn begin_open(&mut self, source: OpenSource, cx: &mut Context<Self>) {
+        self.begin_document_change(DocumentChange::Open(source), cx);
+    }
+    pub(super) fn begin_document_change(&mut self, change: DocumentChange, cx: &mut Context<Self>) {
         if self
             .canvas
             .reader
             .as_ref()
             .is_some_and(|r| r.is_dirty() || r.is_composing())
         {
-            self.pending_open = Some(source);
+            self.pending_document = Some(change);
             self.confirm_discard = true;
             cx.notify();
             return;
         }
-        self.open_unchecked(source, cx);
+        self.apply_document_change(change, cx);
     }
-    pub(super) fn open_unchecked(&mut self, source: OpenSource, cx: &mut Context<Self>) {
+    pub(super) fn apply_document_change(&mut self, change: DocumentChange, cx: &mut Context<Self>) {
+        match change {
+            DocumentChange::Open(source) => self.open_unchecked(source, cx),
+            DocumentChange::Close => {
+                self.cancel_open(cx);
+                self.advanced.checked_export = Default::default();
+                if let Some(mut reader) = self.canvas.reader.take() {
+                    reader.finish_recovery(true);
+                }
+                self.canvas.invalidate_scene();
+                self.clear_images(cx);
+                self.input = None;
+                self.page_bounds.clear();
+                self.viewport_bounds = None;
+                self.shell.notice = None;
+                self.file_page = true;
+                self.select_file_section(FileSection::Home, cx);
+            }
+        }
+    }
+    fn open_unchecked(&mut self, source: OpenSource, cx: &mut Context<Self>) {
         let started = perf::start();
         let Some(ticket) = self.canvas.load_gate.renew(()) else {
             self.shell.notice = Some("Open generation exhausted".into());
@@ -217,6 +247,9 @@ impl JoyWord {
                         Reader::from_bytes("JoyWord 欢迎.docx", WELCOME, &cancel)
                     }
                     OpenSource::Blank => Reader::blank_with_preset(new_page, &cancel),
+                    OpenSource::Template { name, bytes } => {
+                        Reader::from_bytes(&name, bytes, &cancel)
+                    }
                 })
                 .map_err(|error| format!("Cannot start desktop document open: {error}"))?
                 .join()
@@ -510,20 +543,22 @@ impl JoyWord {
             });
         }));
     }
+    pub(super) fn current_page(&self) -> usize {
+        self.canvas
+            .range(
+                (-f32::from(self.scroll.offset().y)).max(0.0),
+                self.shell.zoom,
+            )
+            .start
+    }
+
     pub(super) fn document_status(&self) -> String {
         if self.canvas.loading {
             return self.shell.tr("正在打开文档…", "Opening document…").into();
         }
         match &self.canvas.reader {
             Some(reader) => {
-                let current = self
-                    .canvas
-                    .range(
-                        (-f32::from(self.scroll.offset().y)).max(0.0),
-                        self.shell.zoom,
-                    )
-                    .start
-                    + 1;
+                let current = self.current_page() + 1;
                 format!(
                     "{} {current} / {} · {} · {}",
                     self.shell.tr("页", "Page"),

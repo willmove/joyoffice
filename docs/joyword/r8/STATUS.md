@@ -1,5 +1,9 @@
 # JoyWord 宿主任务状态
 
+2026-11-09「文件 → 导出」增加独立格式入口，覆盖参考图的 13 种格式，并保留 EPUB 和 PDF/A-2b。两种 Word XML 分别写出 Flat OPC 和 Word 2003 XML。PNG 保存当前可见页。OTT 使用模板包类型，FODT 使用单文件 XML 与内嵌图片，沿用现有 ODT 转换范围。导出使用当前编辑快照并拒绝覆盖。Windows 已实屏写出 PDF、Word 2003 XML、OTT、FODT 和 PNG，含图片与表格的 ODT、OTT、FODT 样例通过 ODF 1.3 结构校验。FODT 导入和第三方应用的复杂文档往返仍待验证。[ODF 包规范](https://docs.oasis-open.org/office/OpenDocument/v1.3/os/part2-packages/OpenDocument-v1.3-os-part2-packages.html) · [ODF XML 规范](https://docs.oasis-open.org/office/OpenDocument/v1.3/os/part3-schema/OpenDocument-v1.3-os-part3-schema.html)
+
+2026-11-09「文件」页按用户参考图调整为左侧导航与右侧工作区，使用 JoyWord 浅色和深色配色。开始页展示可编辑模板和最近文档，新建页提供完整模板列表。Windows 实屏已验证模板新建、最近文档重开、窄窗换行与滚动、关闭文档、Esc 返回和中英文切换。macOS、Linux 和实际打印未实测。
+
 2026-11-09 Windows P1 续验 JW-515。认证控制新增字面查找、单页和页宽适配，实屏确认查找高亮与画布缩放。TCP 与 MCP 回归覆盖密钥、文档版本和文件访问边界。通用界面控制仍开放。[本机验证](../../joyoffice/validation/20261109-p1-followup/README.md)
 
 2026-11-09 Windows P1 实屏通过正文命中列表、第二项定位、选区内替换、单步撤销及一级大纲跳转。修复「更多分栏」误清空未改动的必填值，默认本节的分栏表单已通过 GPUI 回归、实屏保存和独立 XML 读回。JW-406／407 的其余范围仍开放。[验收记录](../../joyoffice/validation/20261109-v012/README.md#p1)

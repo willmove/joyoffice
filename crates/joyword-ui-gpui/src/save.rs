@@ -16,6 +16,16 @@ fn run_desktop_save(
         .map_err(|_| "Desktop document save worker failed".to_string())?
 }
 impl JoyWord {
+    pub(super) fn save_available(&self) -> bool {
+        !self.saving
+            && !self.canvas.loading
+            && self
+                .canvas
+                .reader
+                .as_ref()
+                .is_some_and(|r| !r.is_composing())
+    }
+
     pub(super) fn request_close(&mut self, _: &mut Window, cx: &mut Context<Self>) {
         if self.saving {
             self.shell.notice = Some(
@@ -34,7 +44,7 @@ impl JoyWord {
         {
             self.confirm_discard = true;
             self.close_pending = true;
-            self.pending_open = None;
+            self.pending_document = None;
             cx.notify();
         } else {
             if let Some(r) = self.canvas.reader.as_mut() {
@@ -54,8 +64,8 @@ impl JoyWord {
         if self.close_pending {
             self.close_pending = false;
             cx.quit();
-        } else if let Some(source) = self.pending_open.take() {
-            self.open_unchecked(source, cx);
+        } else if let Some(change) = self.pending_document.take() {
+            self.apply_document_change(change, cx);
         }
     }
     pub(super) fn save_document(&mut self, save_as: bool, cx: &mut Context<Self>) {
@@ -227,8 +237,8 @@ impl JoyWord {
                                         r.finish_recovery(false);
                                     }
                                     cx.quit();
-                                } else if let Some(source) = v.pending_open.take() {
-                                    v.open_unchecked(source, cx);
+                                } else if let Some(change) = v.pending_document.take() {
+                                    v.apply_document_change(change, cx);
                                 }
                             }
                         }
@@ -250,15 +260,46 @@ impl JoyWord {
 
 #[cfg(test)]
 mod tests {
-    use super::run_desktop_save;
+    use super::*;
+    use gpui::TestAppContext;
     use joyword_shell::reader::Reader;
-    use std::{path::PathBuf, sync::atomic::AtomicBool};
+    use std::sync::atomic::AtomicBool;
 
     struct OutputDirectory(PathBuf);
     impl Drop for OutputDirectory {
         fn drop(&mut self) {
             let _ = std::fs::remove_dir_all(&self.0);
         }
+    }
+
+    #[gpui::test]
+    fn closing_dirty_document_can_be_cancelled_or_discarded(cx: &mut TestAppContext) {
+        cx.update(gpui_kit::init);
+        let (view, cx) = cx.add_window_view(JoyWord::new);
+        cx.update(|window, cx| {
+            view.update(cx, |v, cx| {
+                let mut reader = Reader::blank(&AtomicBool::new(false)).unwrap();
+                reader.replace_text(None, "Unsaved changes").unwrap();
+                let document_id = reader.engine().document_id();
+                v.canvas.reader = Some(reader);
+                v.open_file_page(window, cx);
+
+                v.begin_document_change(DocumentChange::Close, cx);
+                assert!(v.confirm_discard);
+                v.execute("file.keep", window, cx);
+                assert_eq!(
+                    v.canvas.reader.as_ref().unwrap().engine().document_id(),
+                    document_id
+                );
+                assert!(v.pending_document.is_none());
+
+                v.begin_document_change(DocumentChange::Close, cx);
+                v.discard_pending(window, cx);
+                assert!(!v.confirm_discard);
+                assert!(v.canvas.reader.is_none());
+                assert!(v.file_page);
+            });
+        });
     }
 
     #[test]

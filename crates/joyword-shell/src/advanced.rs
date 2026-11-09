@@ -1,5 +1,5 @@
 //! R5 views and output jobs over the existing Session; no second editable model.
-use crate::reader::{MAX_INPUT_BYTES, Reader, publish_new};
+use crate::reader::{MAX_INPUT_BYTES, RasterScene, Reader, publish_verified};
 use joyword_engine::{
     Session,
     doc::{Document, StoryRef},
@@ -9,7 +9,7 @@ use std::{
     fs::File,
     io::Read,
     path::{Path, PathBuf},
-    sync::atomic::AtomicBool,
+    sync::{Arc, atomic::AtomicBool},
 };
 
 pub fn bounded_text(s: &str, max: usize) -> Result<String, String> {
@@ -32,10 +32,10 @@ pub fn read_local(path: &Path, max: u64) -> Result<Vec<u8>, String> {
 }
 pub const IMPORTS: &[&str] = &[
     "docx", "docm", "dotx", "dotm", "doc", "dot", "txt", "md", "markdown", "html", "htm", "mht",
-    "mhtml", "rtf", "odt", "tex", "latex", "xml",
+    "mhtml", "rtf", "odt", "ott", "tex", "latex", "xml",
 ];
 pub const EXPORTS: &[&str] = &[
-    "docx", "pdf", "txt", "md", "html", "rtf", "odt", "tex", "xml",
+    "docx", "pdf", "txt", "md", "html", "rtf", "odt", "ott", "fodt", "tex", "xml",
 ];
 pub fn extension(path: &Path) -> String {
     path.extension()
@@ -111,8 +111,19 @@ impl Reader {
             doc: self.session.doc.clone(),
             ext: ext.into(),
             markup,
+            word2003: false,
+            recovered: self
+                .recovered_package
+                .as_ref()
+                .filter(|(revision, _)| ext == "docx" && *revision == self.session.rev())
+                .map(|(_, bytes)| bytes.clone()),
             merge: None,
         })
+    }
+    pub fn word2003_export_job(&self) -> Result<OutputJob, String> {
+        let mut job = self.export_job("xml", false)?;
+        job.word2003 = true;
+        Ok(job)
     }
     pub fn merge_job(&self, current: bool) -> Result<OutputJob, String> {
         self.require_editable_source()?;
@@ -126,6 +137,8 @@ impl Reader {
             doc: self.session.doc.clone(),
             ext: "docx".into(),
             markup: false,
+            word2003: false,
+            recovered: None,
             merge: Some((self.session.merge.clone(), current)),
         })
     }
@@ -257,10 +270,15 @@ pub struct OutputJob {
     doc: Document,
     ext: String,
     markup: bool,
+    word2003: bool,
+    recovered: Option<Arc<[u8]>>,
     merge: Option<(joyword_engine::cmd::mailings::MergeState, bool)>,
 }
 impl OutputJob {
     pub fn bytes(self) -> Result<Vec<u8>, String> {
+        if let Some(bytes) = self.recovered {
+            return Ok(bytes.to_vec());
+        }
         let mut doc = self.doc;
         if let Some((merge, current)) = self.merge {
             // Bound expansion before cloning a template per record. A counting writer
@@ -302,24 +320,63 @@ impl OutputJob {
         let opts = joyword_engine::io::ExportOptions {
             markup: self.markup,
             comments: self.markup,
+            word2003: self.word2003,
             ..Default::default()
         };
         joyword_engine::io::save_bytes_opts(&format!("copy.{}", self.ext), &doc, &opts)
     }
-    pub fn publish(self, path: PathBuf) -> Result<PathBuf, String> {
-        if extension(&path) != self.ext {
-            return Err(format!("输出文件需要 .{} 扩展名", self.ext));
-        }
+    pub fn prepare(self) -> Result<PreparedCopy, String> {
+        let ext = self.ext.clone();
         let bytes = self.bytes()?;
-        if bytes.len() as u64 > 256 << 20 {
-            return Err("输出超过 256 MiB 开发预算".into());
+        let copy = PreparedCopy::new(ext, bytes)?;
+        if copy.ext == "docx" {
+            Reader::from_bytes("copy.docx", &copy.bytes, &AtomicBool::new(false))?;
         }
-        if extension(&path) == "docx" {
-            Reader::from_bytes("copy.docx", &bytes, &AtomicBool::new(false))?;
-        }
-        publish_new(&path, &bytes)?;
+        Ok(copy)
+    }
+
+    pub fn publish(self, path: PathBuf) -> Result<PathBuf, String> {
+        require_extension(&path, &self.ext)?;
+        self.prepare()?.publish(&path, &AtomicBool::new(false))?;
         Ok(path)
     }
+}
+
+pub struct PreparedCopy {
+    ext: String,
+    bytes: Vec<u8>,
+}
+
+impl PreparedCopy {
+    fn new(ext: String, bytes: Vec<u8>) -> Result<Self, String> {
+        if bytes.len() > 256 << 20 {
+            return Err("输出超过 256 MiB 开发预算".into());
+        }
+        Ok(Self { ext, bytes })
+    }
+
+    pub fn publish(&self, path: &Path, cancel: &AtomicBool) -> Result<(), String> {
+        require_extension(path, &self.ext)?;
+        publish_verified(path, &self.bytes, cancel)
+    }
+}
+
+impl RasterScene {
+    pub fn prepare_page_image(
+        &self,
+        page: usize,
+        cancel: &AtomicBool,
+    ) -> Result<PreparedCopy, String> {
+        let png = self.raster_cancellable(page, 2.0, cancel)?.to_png();
+        PreparedCopy::new("png".into(), png)
+    }
+}
+
+fn require_extension(path: &Path, ext: &str) -> Result<(), String> {
+    if extension(path) != ext {
+        return Err(format!("输出文件需要 .{ext} 扩展名"));
+    }
+    Ok(())
 }
 pub fn recipients(path: &Path) -> Result<Value, String> {
     let ext = extension(path);
@@ -357,6 +414,48 @@ mod tests {
     fn blank() -> Reader {
         Reader::blank(&AtomicBool::new(false)).unwrap()
     }
+
+    #[test]
+    fn desktop_copy_formats_keep_unsaved_text_and_distinguish_xml_variants() -> Result<(), String> {
+        let cancel = AtomicBool::new(false);
+        let mut reader = blank();
+        reader.execute("text.insert", &json!({"text": "Export marker 中文"}))?;
+        let version = reader.engine().rev();
+        for ext in EXPORTS {
+            let copy = reader.export_job(ext, false)?.prepare()?;
+            assert_eq!(&copy.ext, ext);
+            assert!(!copy.bytes.is_empty(), "{ext}");
+        }
+        let flat = reader.export_job("xml", false)?.prepare()?;
+        let legacy = reader.word2003_export_job()?.prepare()?;
+        assert_eq!(legacy.ext, flat.ext);
+        assert_ne!(legacy.bytes, flat.bytes);
+        for copy in [legacy, flat] {
+            let reopened = Reader::from_bytes("copy.xml", &copy.bytes, &cancel)?;
+            assert!(reopened.body_text().contains("Export marker 中文"));
+        }
+        let image = reader.scene().prepare_page_image(0, &cancel)?;
+        assert!(image.bytes.starts_with(b"\x89PNG\r\n\x1a\n"));
+        assert!(reader.scene().prepare_page_image(1, &cancel).is_err());
+        let dir = tempfile::tempdir().map_err(|e| e.to_string())?;
+        let path = dir.path().join("page.png");
+        image.publish(&path, &cancel)?;
+        assert!(image.publish(&path, &cancel).is_err());
+        assert!(
+            image
+                .publish(&dir.path().join("page.xml"), &cancel)
+                .is_err()
+        );
+        cancel.store(true, std::sync::atomic::Ordering::Release);
+        let cancelled = dir.path().join("cancelled.png");
+        assert!(image.publish(&cancelled, &cancel).is_err());
+        assert!(!cancelled.exists());
+        assert_eq!(reader.engine().rev(), version);
+        assert!(reader.is_dirty());
+        assert!(reader.source_path().is_none());
+        Ok(())
+    }
+
     #[test]
     fn layout_and_selection_queries_preserve_composition_and_document_revision() {
         let mut r = blank();

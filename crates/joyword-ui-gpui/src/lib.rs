@@ -8,6 +8,7 @@ mod command_search;
 mod control;
 mod document_view;
 mod export;
+mod file_page;
 mod formatting;
 mod forms;
 mod gestures;
@@ -27,7 +28,8 @@ mod search;
 mod styles;
 mod text_accessibility;
 mod view_ribbon;
-use document_view::{DocumentCanvas, OpenSource};
+use document_view::{DocumentCanvas, DocumentChange, OpenSource};
+use file_page::FileSection;
 // GPUI desktop reader, sharing JoyOffice visual components.
 use gpui::component::button::{Button, ButtonVariants};
 use gpui::component::{Disableable, Selectable, Sizable};
@@ -74,14 +76,15 @@ struct JoyWord {
     scroll: ScrollHandle,
     tab: usize,
     file_page: bool,
-    about: bool,
+    file_section: FileSection,
+    file_scroll: ScrollHandle,
     canvas: DocumentCanvas,
     input: Option<gpui::Entity<input::InputBridge>>,
     page_bounds: std::collections::BTreeMap<usize, Bounds<gpui::Pixels>>,
     dragging: bool,
     confirm_discard: bool,
     replace_confirm: Option<(u64, u64)>,
-    pending_open: Option<OpenSource>,
+    pending_document: Option<DocumentChange>,
     legacy_recovery: Option<std::path::PathBuf>,
     close_pending: bool,
     save_task: Option<gpui::Task<()>>,
@@ -159,14 +162,15 @@ impl JoyWord {
             scroll: ScrollHandle::new(),
             tab: 0,
             file_page: false,
-            about: false,
+            file_section: FileSection::default(),
+            file_scroll: ScrollHandle::new(),
             canvas: DocumentCanvas::default(),
             input: None,
             page_bounds: Default::default(),
             dragging: false,
             confirm_discard: false,
             replace_confirm: None,
-            pending_open: None,
+            pending_document: None,
             legacy_recovery: None,
             close_pending: false,
             save_task: None,
@@ -245,7 +249,7 @@ impl JoyWord {
             }
             "file.keep" => {
                 self.confirm_discard = false;
-                self.pending_open = None;
+                self.pending_document = None;
                 self.close_pending = false;
                 window.focus(&self.focus, cx);
                 cx.notify();
@@ -335,15 +339,7 @@ impl JoyWord {
                 .reader
                 .as_ref()
                 .is_some_and(|r| !r.engine().sel.is_collapsed()),
-            "file.save" | "file.save_as" => {
-                !self.saving
-                    && !self.canvas.loading
-                    && self
-                        .canvas
-                        .reader
-                        .as_ref()
-                        .is_some_and(|r| !r.is_composing())
-            }
+            "file.save" | "file.save_as" => self.save_available(),
             _ => true,
         };
         if !enabled {
@@ -468,14 +464,16 @@ impl JoyWord {
                     .enumerate()
                     .map(|(position, (index, zh, en))| {
                         let label = tr(zh, en);
-                        let active =
-                            index.map_or(self.file_page, |i| !self.file_page && self.tab == i);
-                        let activate = move |v: &mut JoyWord| {
-                            v.file_page = index.is_none();
-                            if let Some(index) = index {
-                                v.tab = index;
-                            }
-                        };
+                        let active = index == Some(self.tab);
+                        let activate =
+                            move |v: &mut JoyWord, w: &mut Window, cx: &mut Context<Self>| {
+                                if let Some(index) = index {
+                                    v.tab = index;
+                                    cx.notify();
+                                } else {
+                                    v.open_file_page(w, cx);
+                                }
+                            };
                         div()
                             .id(("ribbon-tab", position))
                             .role(gpui::Role::Tab)
@@ -495,17 +493,15 @@ impl JoyWord {
                             })
                             .focus(move |el| el.bg(rgb(p.hover)))
                             .child(label)
-                            .on_click(cx.listener(move |v, _, _, cx| {
-                                activate(v);
-                                cx.notify();
+                            .on_click(cx.listener(move |v, _, w, cx| {
+                                activate(v, w, cx);
                             }))
-                            .on_key_down(cx.listener(move |v, e: &gpui::KeyDownEvent, _, cx| {
+                            .on_key_down(cx.listener(move |v, e: &gpui::KeyDownEvent, w, cx| {
                                 match e.keystroke.key.as_str() {
-                                    "enter" | "space" => activate(v),
+                                    "enter" | "space" => activate(v, w, cx),
                                     _ => return,
                                 }
                                 cx.stop_propagation();
-                                cx.notify();
                             }))
                     }),
             );
@@ -619,171 +615,6 @@ impl JoyWord {
             .child(tab_row)
             .child(groups)
     }
-    fn workspace(&self, cx: &mut Context<Self>) -> gpui::Div {
-        let p = self.palette();
-        let tr = |zh, en| self.shell.tr(zh, en);
-        if self.file_page {
-            return div()
-                .flex()
-                .flex_1()
-                .p_8()
-                .gap_8()
-                .bg(rgb(p.canvas))
-                .child(
-                    div()
-                        .w(px(180.0))
-                        .flex()
-                        .flex_col()
-                        .gap_3()
-                        .child(
-                            div()
-                                .text_size(px(28.0))
-                                .font_weight(gpui::FontWeight::SEMIBOLD)
-                                .child(tr("文件", "File")),
-                        )
-                        .child(
-                            Button::new("about")
-                                .ghost()
-                                .label(tr("关于 JoyWord", "About JoyWord"))
-                                .on_click(cx.listener(|v, _, _, cx| {
-                                    v.about = !v.about;
-                                    cx.notify();
-                                })),
-                        )
-                        .child(self.button(
-                            "new-file",
-                            tr("新建文档", "New document"),
-                            "file.new",
-                            cx,
-                        ))
-                        .child(
-                            Button::new("export-file")
-                                .ghost()
-                                .label("导出副本")
-                                .on_click(cx.listener(|v, _, w, cx| {
-                                    v.file_page = false;
-                                    v.advanced_action("exchange-export", w, cx);
-                                })),
-                        )
-                        .child(
-                            Button::new("export-epub")
-                                .ghost()
-                                .label(tr("导出 EPUB…", "Export EPUB…"))
-                                .disabled(self.canvas.reader.is_none() || self.canvas.loading)
-                                .on_click(cx.listener(|v, _, w, cx| {
-                                    v.start_checked_export(export::Format::Epub, w, cx);
-                                })),
-                        )
-                        .child(
-                            Button::new("export-pdfa")
-                                .ghost()
-                                .label(tr("导出 PDF/A-2b…", "Export PDF/A-2b…"))
-                                .disabled(self.canvas.reader.is_none() || self.canvas.loading)
-                                .on_click(cx.listener(|v, _, w, cx| {
-                                    v.start_checked_export(export::Format::Archive, w, cx);
-                                })),
-                        )
-                        .when(cfg!(windows), |menu| {
-                            #[cfg(windows)]
-                            return menu
-                                .child(
-                                    Button::new("print-preview")
-                                        .ghost()
-                                        .label(tr("打印预览…", "Print preview…"))
-                                        .disabled(
-                                            self.canvas.reader.is_none() || self.canvas.loading,
-                                        )
-                                        .on_click(
-                                            cx.listener(|v, _, w, cx| v.open_print_preview(w, cx)),
-                                        ),
-                                )
-                                .child(
-                                    Button::new("system-print")
-                                        .ghost()
-                                        .label(tr("打印…", "Print…"))
-                                        .disabled(
-                                            self.canvas.reader.is_none()
-                                                || self.canvas.loading
-                                                || self.printing,
-                                        )
-                                        .on_click(cx.listener(|v, _, w, cx| v.open_print(w, cx))),
-                                );
-                            #[cfg(not(windows))]
-                            menu
-                        })
-                        .child(self.button(
-                            "open-file",
-                            tr("打开文档", "Open document"),
-                            "file.open",
-                            cx,
-                        )),
-                )
-                .child(
-                    div()
-                        .flex()
-                        .flex_col()
-                        .gap_4()
-                        .child(
-                            div()
-                                .text_size(px(24.0))
-                                .child(tr("从空白页开始", "Start with a blank page")),
-                        )
-                        .child(
-                            joyoffice_ui::card(p)
-                                .w(px(220.0))
-                                .h(px(260.0))
-                                .p_5()
-                                .child(
-                                    div()
-                                        .h(px(170.0))
-                                        .bg(rgb(0xffffff))
-                                        .border_1()
-                                        .border_color(rgb(p.border)),
-                                )
-                                .child(
-                                    Button::new("new-card")
-                                        .primary()
-                                        .label(tr("空白文档", "Blank document"))
-                                        .on_click(cx.listener(|this, _, window, cx| {
-                                            this.execute("file.new", window, cx)
-                                        })),
-                                ),
-                        )
-                        .child(div().text_color(rgb(p.muted)).text_size(px(13.0)).child(tr(
-                            "已支持正文编辑、中文输入、撤销重做和 DOCX 保存。",
-                            "Text editing, native input, Undo/Redo and DOCX saving are available.",
-                        )))
-                        .when(!self.shell.recent_documents().is_empty(), |panel| {
-                            panel.child(tr("最近文档", "Recent documents")).child(
-                                div()
-                                    .id("recent-documents")
-                                    .max_h(px(240.0))
-                                    .overflow_y_scroll()
-                                    .flex()
-                                    .flex_col()
-                                    .children(
-                                        self.shell.recent_documents().iter().enumerate().map(
-                                            |(index, path)| {
-                                                let path = path.clone();
-                                                Button::new(("recent-document", index))
-                                                    .ghost()
-                                                    .label(path.display().to_string())
-                                                    .disabled(self.saving || self.close_pending)
-                                                    .on_click(cx.listener(move |this, _, _, cx| {
-                                                        this.begin_open(
-                                                            OpenSource::File(path.clone()),
-                                                            cx,
-                                                        );
-                                                    }))
-                                            },
-                                        ),
-                                    ),
-                            )
-                        }),
-                );
-        }
-        self.document_workspace(cx)
-    }
 }
 
 impl Render for JoyWord {
@@ -812,7 +643,7 @@ impl Render for JoyWord {
             .when(self.canvas.reader.is_none() || self.file_page, |el| {
                 el.track_focus(&self.focus)
             })
-            .key_context(if self.focus.is_focused(window) {
+            .key_context(if !self.file_page && self.focus.is_focused(window) {
                 "JoyWord JoyWordEditor"
             } else {
                 "JoyWord"
@@ -862,9 +693,20 @@ impl Render for JoyWord {
                 cx.listener(|this, _: &Paste, window, cx| this.clipboard("edit.paste", window, cx)),
             )
             .on_action(cx.listener(|this, _: &Quit, window, cx| this.request_close(window, cx)))
-            .on_key_down(
-                cx.listener(|this, event, window, cx| this.document_key(event, window, cx)),
-            )
+            .on_key_down(cx.listener(|this, event: &gpui::KeyDownEvent, window, cx| {
+                if this.file_page && event.keystroke.key == "escape" {
+                    if this.confirm_discard {
+                        this.execute("file.keep", window, cx);
+                    } else if this.replace_confirm.is_some() {
+                        this.execute("file.cancel_replace", window, cx);
+                    } else {
+                        this.return_to_document(window, cx);
+                    }
+                    cx.stop_propagation();
+                } else {
+                    this.document_key(event, window, cx);
+                }
+            }))
             .on_action(
                 cx.listener(|this, _: &ZoomIn, window, cx| {
                     this.execute("view.zoom_in", window, cx)
@@ -882,15 +724,16 @@ impl Render for JoyWord {
             .on_action(cx.listener(|this, _: &ToggleLanguage, window, cx| {
                 this.execute("view.language", window, cx)
             }))
-            .when(!self.view_focus(), |el| {
+            .when(!self.file_page && !self.view_focus(), |el| {
                 el.child(self.header(cx)).child(self.ribbon(cx))
             })
             .when(self.view_focus(), |el| el.child(self.focus_bar(cx)));
-        if self
-            .canvas
-            .reader
-            .as_ref()
-            .is_some_and(|r| r.engine().painter.is_some())
+        if !self.file_page
+            && self
+                .canvas
+                .reader
+                .as_ref()
+                .is_some_and(|r| r.engine().painter.is_some())
         {
             content = content.child(
                 div()
@@ -900,12 +743,13 @@ impl Render for JoyWord {
                     .child("格式刷已开启：拖选目标文字或单击目标段落；Esc 结束。"),
             );
         }
-        if self
-            .canvas
-            .reader
-            .as_ref()
-            .and_then(|r| r.recovery_first())
-            .is_some()
+        if !self.file_page
+            && self
+                .canvas
+                .reader
+                .as_ref()
+                .and_then(|r| r.recovery_first())
+                .is_some()
         {
             content = content.child(
                 div()
@@ -926,7 +770,9 @@ impl Render for JoyWord {
                     )),
             );
         }
-        if let Some(path) = self.legacy_recovery.as_ref() {
+        if !self.file_page
+            && let Some(path) = self.legacy_recovery.as_ref()
+        {
             let path = path.clone();
             content = content.child(
                 div()
@@ -989,21 +835,29 @@ impl Render for JoyWord {
                     )),
             );
         }
-        if self.about {
+        if self.file_page && self.canvas.loading {
             content = content.child(
                 div()
-                    .p_4()
+                    .px_4()
+                    .py_1()
+                    .flex()
+                    .gap_3()
+                    .items_center()
                     .bg(rgb(p.selected))
-                    .text_color(rgb(p.accent))
-                    .child(concat!(
-                        "JoyWord ",
-                        env!("CARGO_PKG_VERSION"),
-                        " · DOCX editor · JoyOffice shared UI"
+                    .child(self.document_status())
+                    .child(self.button(
+                        "file-cancel-open",
+                        self.shell.tr("取消", "Cancel"),
+                        "file.cancel_open",
+                        cx,
                     )),
             );
         }
         if let Some(note) = &self.shell.notice {
             content = content.child(div().p_3().bg(rgb(p.selected)).child(note.clone()));
+        }
+        if self.file_page {
+            return content.child(self.render_file_page(cx));
         }
         content
             .child(
@@ -1014,7 +868,7 @@ impl Render for JoyWord {
                     .when(self.view_navigation(), |s| {
                         s.child(self.navigation_panel(cx))
                     })
-                    .child(self.workspace(cx))
+                    .child(self.document_workspace(cx))
                     .when(self.styles_open && !self.view_focus(), |s| {
                         s.child(self.styles_panel(cx))
                     })
