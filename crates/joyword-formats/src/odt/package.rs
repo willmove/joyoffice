@@ -153,7 +153,7 @@ pub(crate) fn export_flat(doc: &Document) -> Result<Vec<u8>, String> {
 }
 
 fn export_as(doc: &Document, mime: &str, flat: bool) -> Result<Vec<u8>, String> {
-    let flow = model::from_doc_tracked(doc);
+    let flow = model::from_doc_odf(doc);
     let mut w = Writer::new(flat);
     let mut body = String::new();
     let sections = flow_sections(&flow.blocks, &doc.last_section);

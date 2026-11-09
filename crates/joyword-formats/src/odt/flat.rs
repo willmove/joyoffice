@@ -15,6 +15,7 @@ use super::{
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub(super) enum Section {
     Metadata,
+    Fonts,
     Styles,
     Automatic,
     Masters,
@@ -25,6 +26,7 @@ impl Section {
     fn of(local: &[u8]) -> Option<Self> {
         Some(match local {
             b"meta" => Self::Metadata,
+            b"font-face-decls" => Self::Fonts,
             b"styles" => Self::Styles,
             b"automatic-styles" => Self::Automatic,
             b"master-styles" => Self::Masters,
@@ -37,7 +39,7 @@ impl Section {
 pub(super) struct FlatDocument<'a> {
     bytes: &'a [u8],
     root: BytesStart<'a>,
-    sections: [Option<Range<usize>>; 5],
+    sections: [Option<Range<usize>>; 6],
 }
 
 fn office_name<'a>(resolver: &NamespaceResolver, name: QName<'a>) -> Option<&'a [u8]> {
@@ -53,7 +55,7 @@ impl<'a> FlatDocument<'a> {
         std::str::from_utf8(bytes).map_err(|_| "FODT requires UTF-8 XML")?;
         let mut reader = NsReader::from_reader(bytes);
         let mut root = None;
-        let mut sections = [const { None }; 5];
+        let mut sections = [const { None }; 6];
         let mut section = None;
         let mut depth = 0;
         let mut text = false;

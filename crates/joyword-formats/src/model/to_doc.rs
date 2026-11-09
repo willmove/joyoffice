@@ -13,7 +13,11 @@ use super::{
 pub fn char_props(f: &Fmt) -> CharProps {
     let on = |b: bool| if b { Some(true) } else { None };
     CharProps {
-        bold: on(f.bold),
+        bold: if f.normal_weight {
+            Some(false)
+        } else {
+            on(f.bold)
+        },
         italic: on(f.italic),
         underline: if f.underline {
             Some(Underline::Single)
@@ -301,7 +305,7 @@ impl<'a> Builder<'a> {
                         w,
                         h,
                         alt: img.alt.clone(),
-                        float: Default::default(),
+                        float: img.placement.as_deref().cloned().unwrap_or_default(),
                         crop: [0.0; 4],
                         ole: None,
                     };
@@ -538,6 +542,7 @@ impl<'a> Builder<'a> {
                         shading: c.shading,
                         borders: c.borders,
                         valign: c.valign,
+                        margins: c.margins,
                         ..Default::default()
                     },
                     blocks,

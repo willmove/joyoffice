@@ -71,6 +71,7 @@ fn fmt_of(doc: &Document, cp: &CharProps, in_code: bool) -> Fmt {
     let code = !in_code && e.font.as_deref().is_some_and(is_mono);
     Fmt {
         bold: e.bold.unwrap_or(false),
+        normal_weight: false,
         italic: e.italic.unwrap_or(false),
         underline: e.underline.is_some_and(|u| u != Underline::None) && e.link.is_none(),
         strike: e.strike.unwrap_or(false) || e.double_strike.unwrap_or(false),
@@ -179,13 +180,49 @@ fn media_ext(key: &str, data: &[u8]) -> String {
 /// A document paragraph as flow paragraphs: a page break character inside the text ends the
 /// paragraph, and the text after it starts a new one that carries `page_break`.
 pub fn flow_paras(doc: &Document, p: &Paragraph) -> Vec<Para> {
-    flow_paras_in(doc, p, false)
+    flow_paras_in(doc, p, FlowMode::Plain)
 }
 
-/// [`flow_paras`]; `tracked` keeps tracked changes: deleted text stays, and text carries its
-/// insertion and deletion marks.
-fn flow_paras_in(doc: &Document, p: &Paragraph, tracked: bool) -> Vec<Para> {
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum FlowMode {
+    Plain,
+    Tracked,
+    Odf,
+}
+
+fn flow_paras_in(doc: &Document, p: &Paragraph, mode: FlowMode) -> Vec<Para> {
+    let tracked = mode != FlowMode::Plain;
+    let odf = mode == FlowMode::Odf;
+    let layout = odf.then(|| doc.styles.resolve_para(&p.props));
+    let spacing = layout.as_ref().map_or(Spacing::default(), |l| Spacing {
+        before: Some(l.space_before),
+        after: Some(l.space_after),
+        line: Some(l.line_spacing),
+        left: Some(l.indent_left),
+        right: Some(l.indent_right),
+        first: Some(l.indent_first),
+        ..Spacing::default()
+    });
     let (kind, list) = para_kind(doc, p);
+    let in_code = kind == Kind::Code;
+    let resolve = |props| {
+        let mut f = fmt_of(doc, props, in_code);
+        if odf {
+            let c = doc.styles.resolve_char(p.props.style.as_deref(), props);
+            f.size = Some(c.size);
+            f.bold = c.bold;
+            f.normal_weight = !c.bold;
+            f.italic = c.italic;
+            f.color = match c.color {
+                TextColor::Rgb(c) => Some(c),
+                _ => Some(joyword_model::Rgb(0, 0, 0)),
+            };
+            if !f.code {
+                f.font = super::kept_font(&c.font);
+            }
+        }
+        f
+    };
     let mut done: Vec<Para> = Vec::new();
     let borders = if kind == Kind::Rule {
         None
@@ -195,11 +232,12 @@ fn flow_paras_in(doc: &Document, p: &Paragraph, tracked: bool) -> Vec<Para> {
     let mut out = Para {
         kind,
         list,
-        align: p.props.align,
+        align: layout.as_ref().map(|l| l.align).or(p.props.align),
         page_break: p.props.page_break_before.unwrap_or(false),
-        keep_next: p.props.keep_next.unwrap_or(false),
+        keep_next: layout.as_ref().is_some_and(|l| l.keep_next)
+            || p.props.keep_next.unwrap_or(false),
         inlines: Vec::new(),
-        spacing: Spacing::default(),
+        spacing,
         borders,
         section: None,
         mark_ins: None,
@@ -207,7 +245,6 @@ fn flow_paras_in(doc: &Document, p: &Paragraph, tracked: bool) -> Vec<Para> {
         fmt_change: None,
         mark: None,
     };
-    let in_code = kind == Kind::Code;
     let mut k = 0usize;
     for (range, props) in p.run_ranges() {
         let Some(text) = p.text.get(range.clone()) else {
@@ -216,13 +253,13 @@ fn flow_paras_in(doc: &Document, p: &Paragraph, tracked: bool) -> Vec<Para> {
         // Deleted objects and page breaks stay out even when tracking: the flow has no marks for them.
         let hidden = props.hidden.unwrap_or(false) || props.del.is_some();
         let hidden_text = props.hidden.unwrap_or(false) || (props.del.is_some() && !tracked);
-        let mut f = fmt_of(doc, props, in_code);
+        let mut f = resolve(props);
         if tracked {
             (f.ins, f.del) = rev_marks(doc, props);
             f.fmt_change = props.fmt_change.as_deref().map(|c| {
                 Box::new(FmtChange {
                     mark: rev_mark(doc, c.rev),
-                    old: fmt_of(doc, &c.old, in_code),
+                    old: resolve(&c.old),
                 })
             });
         }
@@ -234,11 +271,12 @@ fn flow_paras_in(doc: &Document, p: &Paragraph, tracked: bool) -> Vec<Para> {
                     let next = Para {
                         kind,
                         list: None,
-                        align: p.props.align,
+                        align: layout.as_ref().map(|l| l.align).or(p.props.align),
                         page_break: true,
-                        keep_next: p.props.keep_next.unwrap_or(false),
+                        keep_next: layout.as_ref().is_some_and(|l| l.keep_next)
+                            || p.props.keep_next.unwrap_or(false),
                         inlines: Vec::new(),
-                        spacing: Spacing::default(),
+                        spacing,
                         borders,
                         section: None,
                         mark_ins: None,
@@ -273,7 +311,12 @@ fn flow_paras_in(doc: &Document, p: &Paragraph, tracked: bool) -> Vec<Para> {
             match obj {
                 Some(
                     o @ InlineObject::Image {
-                        media, w, h, alt, ..
+                        media,
+                        w,
+                        h,
+                        alt,
+                        float,
+                        ..
                     },
                 ) => {
                     if !buf.is_empty() {
@@ -284,6 +327,8 @@ fn flow_paras_in(doc: &Document, p: &Paragraph, tracked: bool) -> Vec<Para> {
                     let alt = if o.is_decorative() { "" } else { alt.as_str() };
                     match doc.media.get(media) {
                         Some(data) => out.inlines.push(Inline::Image(Img {
+                            placement: (odf && *float != Default::default())
+                                .then(|| Box::new(float.clone())),
                             data: data.clone(),
                             ext: media_ext(media, data),
                             w: *w,
@@ -348,6 +393,9 @@ fn flow_paras_in(doc: &Document, p: &Paragraph, tracked: bool) -> Vec<Para> {
             out.push_text(&buf, &f);
         }
     }
+    if odf {
+        out.mark = Some(Box::new(resolve(&p.mark)));
+    }
     if tracked {
         let (ins, del) = rev_marks(doc, &p.mark);
         (out.mark_ins, out.mark_del) = (ins.map(Box::new), del.map(Box::new));
@@ -374,20 +422,18 @@ fn flow_paras_in(doc: &Document, p: &Paragraph, tracked: bool) -> Vec<Para> {
     done
 }
 
-fn flow_blocks(doc: &Document, bl: &Blocks, depth: usize, tracked: bool) -> Vec<FBlock> {
+fn flow_blocks(doc: &Document, bl: &Blocks, depth: usize, mode: FlowMode) -> Vec<FBlock> {
     let mut out = Vec::new();
     for b in bl {
         match &**b {
-            Block::Para(p) => {
-                out.extend(flow_paras_in(doc, p, tracked).into_iter().map(FBlock::Para))
-            }
+            Block::Para(p) => out.extend(flow_paras_in(doc, p, mode).into_iter().map(FBlock::Para)),
             Block::Table(t) if depth < MAX_DEPTH => {
-                out.push(FBlock::Table(flow_table(doc, t, depth, tracked)))
+                out.push(FBlock::Table(flow_table(doc, t, depth, mode)))
             }
             Block::Table(t) => {
                 for r in &t.rows {
                     for c in &r.cells {
-                        out.extend(flow_blocks(doc, &c.blocks, depth, tracked));
+                        out.extend(flow_blocks(doc, &c.blocks, depth, mode));
                     }
                 }
             }
@@ -396,7 +442,16 @@ fn flow_blocks(doc: &Document, bl: &Blocks, depth: usize, tracked: bool) -> Vec<
     out
 }
 
-fn flow_table(doc: &Document, t: &Table, depth: usize, tracked: bool) -> FTable {
+fn flow_table(doc: &Document, t: &Table, depth: usize, mode: FlowMode) -> FTable {
+    let margins = (mode == FlowMode::Odf).then(|| {
+        t.props
+            .cell_margins
+            .or_else(|| {
+                let style = doc.styles.table_style(t.props.style.as_deref()?)?;
+                style.parts.cell_margins
+            })
+            .unwrap_or([0.0, 5.4, 0.0, 5.4])
+    });
     let mut rows = Vec::new();
     for (ri, r) in t.rows.iter().enumerate() {
         let header = r.props.header || (ri == 0 && t.props.look.header_row && t.rows.len() > 1);
@@ -417,7 +472,7 @@ fn flow_table(doc: &Document, t: &Table, depth: usize, tracked: bool) -> FTable 
                 }
             }
             cells.push(Cell {
-                blocks: flow_blocks(doc, &c.blocks, depth + 1, tracked),
+                blocks: flow_blocks(doc, &c.blocks, depth + 1, mode),
                 colspan: c.span() as u32,
                 rowspan,
                 covered: c.props.vmerge == VMerge::Continue,
@@ -425,6 +480,7 @@ fn flow_table(doc: &Document, t: &Table, depth: usize, tracked: bool) -> FTable 
                 shading: c.props.shading,
                 borders: c.props.borders,
                 valign: c.props.valign,
+                margins: margins.map(|defaults| c.props.resolved_margins(defaults)),
                 width: None,
             });
         }
@@ -448,19 +504,23 @@ fn flow_table(doc: &Document, t: &Table, depth: usize, tracked: bool) -> FTable 
 
 /// The document body as a flow.
 pub fn from_doc(doc: &Document) -> Flow {
-    flow_of(doc, false)
+    flow_of(doc, FlowMode::Plain)
 }
 
 /// [`from_doc`] keeping tracked changes: deleted text stays, and text carries its insertion and
 /// deletion marks ([`Fmt::ins`], [`Fmt::del`]), for formats that can write revisions (RTF).
 pub fn from_doc_tracked(doc: &Document) -> Flow {
-    flow_of(doc, true)
+    flow_of(doc, FlowMode::Tracked)
 }
 
-fn flow_of(doc: &Document, tracked: bool) -> Flow {
+pub(crate) fn from_doc_odf(doc: &Document) -> Flow {
+    flow_of(doc, FlowMode::Odf)
+}
+
+fn flow_of(doc: &Document, mode: FlowMode) -> Flow {
     let c = &doc.core;
     Flow {
-        blocks: flow_blocks(doc, &doc.body, 0, tracked),
+        blocks: flow_blocks(doc, &doc.body, 0, mode),
         meta: Meta {
             title: c.title.clone(),
             author: c.creator.clone(),

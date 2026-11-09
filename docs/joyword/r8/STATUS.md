@@ -1,5 +1,9 @@
 # JoyWord 宿主任务状态
 
+2026-11-09 补齐 ODT、OTT、FODT 往返的标题字重与字号、段前段后和行距、图片锚点与偏移、单元格四边内边距及逐边线型、线宽与颜色。修复 Writer 重存时嵌入在图片节点内的空段落被当成正文、导致图片和后续表格下移的问题。ODF 文件从 JoyWord 的有效版式生成，表格按合并边框模型写出。[ODF 1.3 XML 规范](https://docs.oasis-open.org/office/OpenDocument/v1.3/os/part3-schema/OpenDocument-v1.3-os-part3-schema.html)
+
+本机 Windows LibreOffice Writer 26.8.2.2 对两份样本的三种格式各做两轮往返，检查 XML、图片字节和 Writer 渲染。主样本保留了 14 pt 粗体标题、继承的 115% 行距、段前段后、内嵌 PNG 的位置和尺寸、浮动 PNG 的锚点与单侧绕排、表格合并及四边内边距。实线、虚线、点线与等分双线的颜色和渲染线宽一致。标题字形总宽缩短约 0.64 pt，表格文字纵坐标变化约 0.06 pt。第二份样本确认，不等宽双线的两道线与间隙会被均分，浮动图片两侧不等的绕排留白会取平均，图片坐标保留。独立页锚、旋转图片和自定义绕排轮廓未验。Windows 构建、严格 Clippy 和 formats 的 306 项测试通过。产品全量检查仍停在改动前已复现的 `joyword-layout` 分页断言。[LibreOffice Writer 转换过滤器](https://help.libreoffice.org/latest/en-GB/text/shared/guide/convertfilters.html)
+
 2026-11-09 JoyWord 的桌面与 CLI 可打开 FODT，导入正文、内嵌图片、表格及现有 ODF 转换覆盖的版式。Windows 实屏打开 JoyWord 导出的 FODT，修改正文并从「文件 → 导出 → 平面 OpenDocument 文本」写出副本，经 LibreOffice 保存后用 JoyWord 重开确认修改保留。普通「保存」仍使用 DOCX 副本流程。FODT 支持最多 64 MiB 的 UTF-8 XML，外链图片不会被读取。[ODF 独立 XML 与内嵌数据](https://docs.oasis-open.org/office/OpenDocument/v1.3/os/part3-schema/OpenDocument-v1.3-os-part3-schema.html)
 
 Windows 上用 LibreOffice Writer 26.8.2.2 对 ODT、OTT、FODT 各做两轮往返。两页样本的 PNG 字节与显示尺寸、表格正文与跨列合并、Letter 横向纸张、四边页边距和显式分页均保留。修复窄表在 Writer 中被拉伸至正文宽度及无边框表格出现网格。对比 Writer 的实际渲染，标题字号和字重、段间距、图片位置与单元格内边距仍有差异。验证范围为此样本，复杂表格边框和浮动图片的精确还原尚未验证。[LibreOffice Writer 转换过滤器](https://help.libreoffice.org/latest/en-GB/text/shared/guide/convertfilters.html)

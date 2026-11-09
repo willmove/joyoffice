@@ -298,6 +298,96 @@ fn odf_round_trip_keeps_narrow_tables_and_borderless_cells() {
 }
 
 #[test]
+fn odf_round_trip_keeps_typography_spacing_and_object_layout() {
+    use joyword_model::{
+        Block, StoryRef,
+        para::{Anchor, InlineObject, Wrap, WrapText},
+        props::{BorderStyle, LineSpacing},
+    };
+
+    let png = [b"\x89PNG\r\n\x1a\n".as_slice(), &[7u8; 300]].concat();
+    let image = model::base64_encode(&png);
+    let xml = format!(
+        r##"<office:document {NS_T} xmlns:draw="urn:oasis:names:tc:opendocument:xmlns:drawing:1.0" xmlns:svg="urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0" office:mimetype="application/vnd.oasis.opendocument.text">
+          <office:font-face-decls><style:font-face style:name="FontAlias" svg:font-family="Liberation Sans"/></office:font-face-decls>
+          <office:styles>
+            <style:style style:name="Heading_20_1" style:family="paragraph">
+              <style:text-properties fo:font-size="19pt" fo:font-weight="bold" style:font-name="FontAlias"/>
+              <style:paragraph-properties fo:margin-top="10pt" fo:margin-bottom="6pt" fo:line-height="125%"/>
+            </style:style>
+          </office:styles>
+          <office:automatic-styles>
+            <style:style style:name="Regular" style:family="text"><style:text-properties fo:font-weight="normal"/></style:style>
+            <style:style style:name="Photo" style:family="graphic"><style:graphic-properties style:wrap="left"
+              style:horizontal-pos="from-left" style:horizontal-rel="page-content" style:vertical-pos="from-top"
+              style:vertical-rel="page" fo:margin-left="8pt" fo:margin-right="8pt"/></style:style>
+            <style:style style:name="Cell" style:family="table-cell"><style:table-cell-properties
+              fo:padding="3pt" fo:padding-left="9pt" fo:border-bottom="1.5pt dashed #123456"/></style:style>
+          </office:automatic-styles>
+          <office:body><office:text>
+            <text:h text:style-name="Heading_20_1" text:outline-level="1">Bold <text:span text:style-name="Regular">Regular</text:span></text:h>
+            <text:p><draw:frame draw:style-name="Photo" text:anchor-type="paragraph" svg:x="180pt" svg:y="72pt" svg:width="60pt" svg:height="30pt">
+              <draw:image><office:binary-data>{image}</office:binary-data><text:p/></draw:image>
+            </draw:frame>Body text after the image.</text:p>
+            <table:table><table:table-column table:default-cell-style-name="Cell"/>
+              <table:table-row><table:table-cell><text:p>Cell</text:p></table:table-cell></table:table-row>
+            </table:table>
+          </office:text></office:body>
+        </office:document>"##
+    );
+    let doc = import_flat(xml.as_bytes()).unwrap();
+    let odt = import(&export(&doc).unwrap()).unwrap();
+    let ott = import(&export_template(&doc).unwrap()).unwrap();
+    let fodt = import_flat(&export_flat(&doc).unwrap()).unwrap();
+    for d in [&doc, &odt, &ott, &fodt] {
+        let heading = d
+            .para(StoryRef::Body, &joyword_model::Path::top(0))
+            .unwrap();
+        let mut runs = heading
+            .run_ranges()
+            .map(|(_, cp)| d.styles.resolve_char(heading.props.style.as_deref(), cp));
+        let bold = runs.next().unwrap();
+        let normal = runs.next().unwrap();
+        assert_eq!((bold.size, normal.size), (19.0, 19.0));
+        assert_eq!(bold.font, "Liberation Sans");
+        assert!(bold.bold && !normal.bold);
+        assert_eq!(heading.props.space_before, Some(10.0));
+        assert_eq!(heading.props.space_after, Some(6.0));
+        assert_eq!(
+            heading.props.line_spacing,
+            Some(LineSpacing::Multiple(1.25))
+        );
+
+        let photo = d
+            .para(StoryRef::Body, &joyword_model::Path::top(1))
+            .unwrap();
+        assert!(photo.text.ends_with("Body text after the image."));
+        let InlineObject::Image { float, .. } = &photo.objects[0] else {
+            panic!("expected floating picture")
+        };
+        assert_eq!(
+            (float.wrap, float.wrap_text),
+            (Wrap::Square, WrapText::Left)
+        );
+        assert_eq!((float.h_rel, float.v_rel), (Anchor::Margin, Anchor::Page));
+        assert_eq!((float.x, float.y, float.dist), (180.0, 72.0, 8.0));
+
+        let Block::Table(table) = d.body[2].as_ref() else {
+            panic!("expected table")
+        };
+        let cell = &table.rows[0].cells[0].props;
+        assert_eq!(cell.margins, Some([3.0, 9.0, 3.0, 3.0]));
+        let borders = cell.borders.unwrap();
+        assert!(!borders.top.unwrap().is_visible());
+        let bottom = borders.bottom.unwrap();
+        assert_eq!(
+            (bottom.style, bottom.width, bottom.color),
+            (BorderStyle::Dashed, 1.5, Some(super::Rgb(0x12, 0x34, 0x56)))
+        );
+    }
+}
+
+#[test]
 fn embedded_formula_object_reads_its_mathml() {
     // #3099: LibreOffice saves an equation as a `draw:object` (a formula sub-document whose
     // own `content.xml` is MathML) plus a `draw:image` replacement preview in LibreOffice's

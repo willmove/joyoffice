@@ -77,6 +77,8 @@ struct TableB {
     /// Widths in points of the `table:table-column`s so far, 0 where the style gives none.
     widths: Vec<f32>,
     bordered: bool,
+    column_styles: Vec<Option<String>>,
+    row_style: Option<String>,
 }
 
 impl TableB {
@@ -157,6 +159,7 @@ pub(super) struct Body<'a> {
         String,
         Option<(String, bool)>,
     )>,
+    placement: Option<Box<joyword_model::para::Float>>,
     inline_images: bool,
     image_at: Option<usize>,
     image_base64: Option<String>,
@@ -215,6 +218,7 @@ impl<'a> Body<'a> {
             skip: 0,
             depth: 0,
             frame: None,
+            placement: None,
             inline_images,
             image_at: None,
             image_base64: None,
@@ -347,27 +351,18 @@ impl Body<'_> {
 
     fn start_para(&mut self, style: Option<&str>, heading: Option<u8>) {
         self.end_para();
-        let (mut kind, align, mut pb, rule, keep_next, base) = style
-            .map(|s| self.styles.para(s))
-            .unwrap_or((Kind::Normal, None, false, false, false, Fmt::default()));
+        let (mut p, base) = self.styles.para(style.unwrap_or("Standard"));
         // The section break starts the new page; no page break besides.
         if let Some(next) = style.and_then(|s| self.page_section(s))
             && self.break_section(next)
         {
-            pb = false;
+            p.page_break = false;
         }
         if let Some(h) = heading {
-            kind = Kind::Heading(h.clamp(1, 6));
+            p.kind = Kind::Heading(h.clamp(1, 6));
         }
-        let mut p = Para {
-            kind,
-            align,
-            page_break: pb,
-            keep_next,
-            ..Default::default()
-        };
-        if rule && kind == Kind::Normal {
-            p.kind = Kind::Rule;
+        if base != Fmt::default() {
+            p.mark = Some(Box::new(base.clone()));
         }
         if let Some(lv) = self.lists.len().checked_sub(1)
             && self.lists.last().is_some_and(|l| l.1)
@@ -441,14 +436,11 @@ impl Body<'_> {
         if p.kind == Kind::Rule && !p.is_empty() {
             p.kind = Kind::Normal;
         }
-        if matches!(p.kind, Kind::Code | Kind::Heading(_) | Kind::Title) {
+        if p.kind == Kind::Code {
             for i in &mut p.inlines {
                 if let Inline::Text(_, f) = i {
-                    if p.kind == Kind::Code {
-                        f.code = false;
-                        f.font = None;
-                    }
-                    f.size = None;
+                    f.code = false;
+                    f.font = None;
                 }
             }
         }
@@ -511,6 +503,9 @@ impl Body<'_> {
             }
             return;
         }
+        if self.frame.is_some() {
+            return;
+        }
         let Some(p) = &self.para else {
             return;
         };
@@ -556,11 +551,17 @@ impl Body<'_> {
             return;
         }
         if q == "office:binary-data" {
-            if self.image_at == self.depth.checked_sub(1) {
+            if self.inline_images && self.image_at == self.depth.checked_sub(1) {
                 self.image_base64 = Some(String::new());
             } else {
                 self.skip = 1;
             }
+            return;
+        }
+        // Writer may put a caption paragraph inside draw:image. It belongs to the
+        // image payload and must never split the paragraph that anchors the frame.
+        if self.image_at.is_some() {
+            self.skip = 1;
             return;
         }
         if self.info_at.is_some() {
@@ -673,6 +674,8 @@ impl Body<'_> {
                     hcover: 0,
                     widths: Vec::new(),
                     bordered: false,
+                    column_styles: Vec::new(),
+                    row_style: None,
                 });
             }
             "table-column" => {
@@ -686,16 +689,16 @@ impl Body<'_> {
                 if let Some(t) = self.tables.last_mut() {
                     let room = joyword_model::table::MAX_COLS.saturating_sub(t.widths.len());
                     t.widths.extend(std::iter::repeat_n(w, n.min(room)));
-                    t.bordered |= get(a, "table:default-cell-style-name")
-                        .is_some_and(|s| self.styles.cell_bordered(s));
+                    let default = get(a, "table:default-cell-style-name").map(str::to_string);
+                    t.column_styles
+                        .extend(std::iter::repeat_n(default, n.min(room)));
                 }
             }
             "table-row" => {
                 if let Some(t) = self.tables.last_mut() {
                     t.row.clear();
                     t.hcover = 0;
-                    t.bordered |= get(a, "table:default-cell-style-name")
-                        .is_some_and(|s| self.styles.cell_bordered(s));
+                    t.row_style = get(a, "table:default-cell-style-name").map(str::to_string);
                 }
             }
             "table-cell" => {
@@ -708,19 +711,33 @@ impl Body<'_> {
                     .and_then(|v| v.trim().parse::<u32>().ok())
                     .unwrap_or(1)
                     .clamp(1, 1000);
-                let shading =
-                    get(a, "table:style-name").and_then(|s| self.styles.cell_background(s));
-                let valign = get(a, "table:style-name").and_then(|s| self.styles.cell_valign(s));
+                let style = get(a, "table:style-name")
+                    .or_else(|| {
+                        let t = self.tables.last()?;
+                        let col = t
+                            .row
+                            .iter()
+                            .map(|cell| cell.colspan as usize)
+                            .sum::<usize>();
+                        t.row_style
+                            .as_deref()
+                            .or_else(|| t.column_styles.get(col)?.as_deref())
+                    })
+                    .unwrap_or("");
+                let shading = self.styles.cell_background(style);
+                let valign = self.styles.cell_valign(style);
+                let (borders, margins) = self.styles.cell_layout(style);
                 if let Some(t) = self.tables.last_mut() {
                     t.hcover = span as usize - 1;
-                    t.bordered |=
-                        get(a, "table:style-name").is_some_and(|s| self.styles.cell_bordered(s));
+                    t.bordered |= borders.any_visible();
                 }
                 self.cells.push(Cell {
                     colspan: span,
                     rowspan: rows,
                     shading,
                     valign,
+                    borders: Some(borders),
+                    margins: Some(margins),
                     ..Default::default()
                 });
                 self.containers.push(Vec::new());
@@ -744,16 +761,19 @@ impl Body<'_> {
             "frame" => {
                 let w = get(a, "svg:width").and_then(length);
                 let h = get(a, "svg:height").and_then(length);
+                let props = self.styles.graphic(get(a, "draw:style-name").unwrap_or(""));
+                let placement = super::placement::read(a, &props);
+                self.placement = (placement != Default::default()).then(|| Box::new(placement));
                 self.frame = Some((w, h, None, String::new(), None));
             }
             "image" => {
-                if let Some(fr) = &mut self.frame
-                    && fr.2.is_none()
-                    && fr.4.is_none()
-                {
-                    if self.inline_images {
-                        self.image_at = Some(self.depth);
-                    } else if let Some(href) = get(a, "xlink:href") {
+                if let Some(fr) = &mut self.frame {
+                    self.image_at = Some(self.depth);
+                    if !self.inline_images
+                        && fr.2.is_none()
+                        && fr.4.is_none()
+                        && let Some(href) = get(a, "xlink:href")
+                    {
                         fr.2 = (self.zip)(href.trim_start_matches("./"));
                     }
                 }
@@ -1051,7 +1071,10 @@ impl Body<'_> {
         if q == "office:binary-data"
             && let Some(encoded) = self.image_base64.take()
         {
-            if let Some(frame) = &mut self.frame {
+            if let Some(frame) = &mut self.frame
+                && frame.2.is_none()
+                && frame.4.is_none()
+            {
                 frame.2 = model::base64_decode(&encoded);
             }
             return;
@@ -1165,9 +1188,12 @@ impl Body<'_> {
                 if let Some((w, h, img, alt, eq)) = self.frame.take() {
                     let inline = match eq {
                         Some((linear, display)) => Some(Inline::Equation { linear, display }),
-                        None => img
-                            .and_then(|data| make_img(data, w, h, alt.trim()))
-                            .map(Inline::Image),
+                        None => img.and_then(|data| make_img(data, w, h, alt.trim())).map(
+                            |mut image| {
+                                image.placement = self.placement.take();
+                                Inline::Image(image)
+                            },
+                        ),
                     };
                     if let Some(inline) = inline {
                         if self.para.is_none() {

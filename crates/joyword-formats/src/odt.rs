@@ -59,6 +59,7 @@ use xml::length;
 use xml::{Ev, get};
 
 mod page_parts;
+mod placement;
 
 #[cfg(test)]
 mod tests;

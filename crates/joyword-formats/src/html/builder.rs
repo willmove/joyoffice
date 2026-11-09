@@ -1395,6 +1395,7 @@ impl<'r> Builder<'r> {
                     header: name == "th",
                     shading,
                     borders: cell_borders(&css),
+                    margins: None,
                     valign,
                     width: if colspan == 1 {
                         cell_width(&css, attrs)

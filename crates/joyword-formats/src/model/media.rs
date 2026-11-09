@@ -74,6 +74,7 @@ pub fn sized_img(
         w = 468.0;
     }
     Img {
+        placement: None,
         data,
         ext: ext.to_string(),
         w: w.clamp(1.0, 1584.0),

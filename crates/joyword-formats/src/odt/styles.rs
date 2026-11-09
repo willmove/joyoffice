@@ -1,5 +1,9 @@
+use joyword_model::props::{Border, BorderStyle, Borders, LineSpacing};
+
+use super::placement;
 use super::xml::{Attrs, Ev, Xml, get, length, local, stream};
-use super::{Align, Arc, Columns, Fmt, HashMap, Kind, Rgb, VAlign, model};
+use super::{Align, Arc, Columns, Fmt, HashMap, Kind, Para, Rgb, VAlign, model};
+use model::Spacing;
 
 // ---------------------------------------------------------------------------------------------
 // Import
@@ -25,6 +29,9 @@ impl FmtDelta {
             ($($k:ident),*) => { $( if let Some(v) = self.$k.clone() { f.$k = v; } )* };
         }
         set!(bold, italic, underline, strike, sup, sub, code);
+        if let Some(bold) = self.bold {
+            f.normal_weight = !bold;
+        }
         if self.color.is_some() {
             f.color = self.color;
         }
@@ -56,7 +63,10 @@ struct StyleInfo {
     cell_background: Option<Rgb>,
     /// `style:vertical-align` of a table-cell style's `style:table-cell-properties`.
     cell_valign: Option<VAlign>,
-    cell_bordered: Option<bool>,
+    cell_borders: [Option<Border>; 4],
+    cell_padding: [Option<f32>; 4],
+    spacing: Spacing,
+    graphic: Attrs,
     /// `style:column-width` of a table-column style's `style:table-column-properties`, in points.
     column_width: Option<f32>,
     /// `style:master-page-name` of a paragraph or table style: its paragraphs (tables) start a
@@ -90,8 +100,15 @@ pub(super) fn column_sep(a: &Attrs) -> bool {
     get(a, "style:style") != Some("none")
 }
 
-fn default_font(a: &Attrs) -> Option<String> {
-    let family = get(a, "fo:font-family").or_else(|| get(a, "style:font-name"))?;
+fn family<'a>(a: &'a Attrs, aliases: &'a HashMap<String, String>) -> Option<&'a str> {
+    get(a, "fo:font-family").or_else(|| {
+        let name = get(a, "style:font-name")?;
+        Some(aliases.get(name).map_or(name, String::as_str))
+    })
+}
+
+fn default_font(a: &Attrs, aliases: &HashMap<String, String>) -> Option<String> {
+    let family = family(a, aliases)?;
     let family = family
         .split(',')
         .next()
@@ -101,7 +118,7 @@ fn default_font(a: &Attrs) -> Option<String> {
     (!family.is_empty() && !model::is_mono(family)).then(|| family.to_string())
 }
 
-fn text_properties(a: &Attrs, style: &mut StyleInfo) {
+fn text_properties(a: &Attrs, aliases: &HashMap<String, String>, style: &mut StyleInfo) {
     let fmt = &mut style.fmt;
     let is_bold = |weight: &str| {
         let weight = weight.trim();
@@ -152,7 +169,7 @@ fn text_properties(a: &Attrs, style: &mut StyleInfo) {
     {
         fmt.size = Some(size);
     }
-    if let Some(family) = get(a, "fo:font-family").or_else(|| get(a, "style:font-name")) {
+    if let Some(family) = family(a, aliases) {
         let family = family
             .split(',')
             .next()
@@ -177,6 +194,8 @@ pub(super) struct Styles {
     pub(super) lists: HashMap<String, Vec<bool>>,
     /// Font of `style:default-style` for paragraphs (the document default, ODF 1.3 §16.4).
     default_font: Option<String>,
+    default_para: StyleInfo,
+    font_aliases: HashMap<String, String>,
 }
 
 impl Styles {
@@ -205,12 +224,21 @@ impl Styles {
                 "default-style" if q.starts_with("style:") => {
                     in_default = get(&a, "style:family") == Some("paragraph")
                 }
+                "font-face" if q == "style:font-face" => {
+                    if let (Some(name), Some(family)) =
+                        (get(&a, "style:name"), get(&a, "svg:font-family"))
+                    {
+                        self.font_aliases
+                            .insert(name.to_string(), family.to_string());
+                    }
+                }
                 "text-properties" if in_default && cur.is_none() => {
-                    self.default_font = default_font(&a);
+                    self.default_font = default_font(&a, &self.font_aliases);
+                    text_properties(&a, &self.font_aliases, &mut self.default_para);
                 }
                 "text-properties" => {
                     if let Some((_, s)) = &mut cur {
-                        text_properties(&a, s);
+                        text_properties(&a, &self.font_aliases, s);
                     }
                 }
                 "table-properties" => {
@@ -227,28 +255,23 @@ impl Styles {
                         s.column_width = Some(w);
                     }
                 }
+                "graphic-properties" => {
+                    if let Some((_, s)) = &mut cur {
+                        s.graphic = a
+                            .into_iter()
+                            .filter(|(key, _)| placement::supported_property(key))
+                            .collect();
+                    }
+                }
                 "table-cell-properties" => {
                     if let Some((_, s)) = &mut cur {
-                        let borders = [
-                            "fo:border",
-                            "fo:border-top",
-                            "fo:border-right",
-                            "fo:border-bottom",
-                            "fo:border-left",
-                        ];
-                        let mut declared = borders
-                            .into_iter()
-                            .filter_map(|key| get(&a, key))
-                            .peekable();
-                        if declared.peek().is_some() {
-                            s.cell_bordered = Some(declared.any(|border| {
-                                border.split_ascii_whitespace().next().is_some_and(|width| {
-                                    width != "none"
-                                        && width != "hidden"
-                                        && length(width).is_none_or(|v| v > 0.0)
-                                })
-                            }));
-                        }
+                        let all = get(&a, "fo:border");
+                        s.cell_borders = ["top", "left", "bottom", "right"].map(|side| {
+                            get(&a, &format!("fo:border-{side}"))
+                                .or(all)
+                                .and_then(border)
+                        });
+                        s.cell_padding = placement::margins(&a, "padding");
                         if let Some(c) = get(&a, "fo:background-color").and_then(model::parse_color)
                         {
                             s.cell_background = Some(c);
@@ -264,7 +287,11 @@ impl Styles {
                     }
                 }
                 "paragraph-properties" => {
+                    if in_default && cur.is_none() {
+                        self.default_para.spacing = spacing(&a);
+                    }
                     if let Some((_, s)) = &mut cur {
+                        s.spacing = spacing(&a);
                         s.align = match get(&a, "fo:text-align")
                             .map(|v| v.trim().to_ascii_lowercase())
                             .as_deref()
@@ -418,24 +445,51 @@ impl Styles {
         self.chain(name).iter().find_map(|(_, s)| s.cell_valign)
     }
 
-    pub(super) fn cell_bordered(&self, name: &str) -> bool {
-        self.chain(name)
-            .iter()
-            .find_map(|(_, s)| s.cell_bordered)
-            .unwrap_or(false)
+    pub(super) fn cell_layout(&self, name: &str) -> (Borders, [f32; 4]) {
+        let chain = self.chain(name);
+        let side = |i: usize| {
+            Some(
+                chain
+                    .iter()
+                    .find_map(|(_, s)| s.cell_borders[i])
+                    .unwrap_or_default(),
+            )
+        };
+        let margins = std::array::from_fn(|i| {
+            chain
+                .iter()
+                .find_map(|(_, s)| s.cell_padding[i])
+                .unwrap_or(0.0)
+        });
+        (
+            Borders {
+                top: side(0),
+                left: side(1),
+                bottom: side(2),
+                right: side(3),
+                ..Borders::default()
+            },
+            margins,
+        )
     }
 
-    /// Paragraph kind, alignment, page break, rule, keep-with-next and base formatting. The text formatting of
-    /// every style in the chain applies (automatic and common, ODF 1.3 §16.2 inheritance), except
-    /// the style that gives the paragraph its kind and that style's ancestors: their formatting
-    /// is the kind's own look (a heading's size and colour), not direct formatting. `Standard`,
-    /// the default paragraph style, holds document defaults and is left out too.
-    pub(super) fn para(&self, name: &str) -> (Kind, Option<Align>, bool, bool, bool, Fmt) {
+    pub(super) fn graphic(&self, name: &str) -> Attrs {
+        let mut attrs = Attrs::new();
+        for (_, style) in self.chain(name) {
+            for (key, val) in &style.graphic {
+                if get(&attrs, key).is_none() {
+                    attrs.push((key.clone(), val.clone()));
+                }
+            }
+        }
+        attrs
+    }
+
+    /// Resolve the source style chain before mapping the heading role to a JoyWord style.
+    pub(super) fn para(&self, name: &str) -> (Para, Fmt) {
         let chain = self.chain(name);
         let mut kind = Kind::Normal;
-        let mut kind_at = chain.len();
-        for (i, (n, s)) in chain.iter().enumerate() {
-            kind_at = i;
+        for (n, s) in &chain {
             let dn = s
                 .display
                 .as_deref()
@@ -464,29 +518,109 @@ impl Styles {
                 kind = Kind::Heading(o.min(6));
                 break;
             }
-            kind_at = chain.len();
         }
         let align = chain.iter().find_map(|(_, s)| s.align);
         let pb = chain
             .iter()
             .take_while(|(_, s)| s.auto)
             .any(|(_, s)| s.page_break);
-        let rule = chain.iter().any(|(_, s)| s.border_bottom);
-        let mut f = Fmt::default();
-        for (_, s) in chain
-            .iter()
-            .take(kind_at)
-            .rev()
-            .filter(|(n, s)| s.auto || *n != "Standard")
-        {
+        if kind == Kind::Normal && chain.iter().any(|(_, s)| s.border_bottom) {
+            kind = Kind::Rule;
+        }
+        let mut f = Fmt {
+            normal_weight: matches!(kind, Kind::Heading(_) | Kind::Title),
+            ..Fmt::default()
+        };
+        self.default_para.fmt.apply(&mut f);
+        for (_, s) in chain.iter().rev() {
             s.fmt.apply(&mut f);
         }
-        // Like the text formatting, the kind style's own `fo:keep-with-next` (a heading's) is the kind's look, not direct formatting.
-        let keep_next = chain
-            .iter()
-            .take(kind_at)
-            .find_map(|(_, s)| s.keep_next)
-            .unwrap_or(false);
-        (kind, align, pb, rule, keep_next, f)
+        let pick = |property: fn(&Spacing) -> Option<f32>| {
+            chain
+                .iter()
+                .find_map(|(_, s)| property(&s.spacing))
+                .or_else(|| property(&self.default_para.spacing))
+                .or(Some(0.0))
+        };
+        let spacing = Spacing {
+            before: pick(|s| s.before),
+            after: pick(|s| s.after),
+            left: pick(|s| s.left),
+            right: pick(|s| s.right),
+            first: pick(|s| s.first),
+            line: Some(
+                chain
+                    .iter()
+                    .find_map(|(_, s)| s.spacing.line)
+                    .or(self.default_para.spacing.line)
+                    .unwrap_or_default(),
+            ),
+            ..Spacing::default()
+        };
+        let keep_next = chain.iter().find_map(|(_, s)| s.keep_next).unwrap_or(false);
+        (
+            Para {
+                kind,
+                align,
+                page_break: pb,
+                keep_next,
+                spacing,
+                ..Para::default()
+            },
+            f,
+        )
     }
+}
+
+fn spacing(a: &Attrs) -> Spacing {
+    let read = |name| {
+        get(a, name)
+            .and_then(length)
+            .map(|v| v.clamp(-1584.0, 1584.0))
+    };
+    let margin = read("fo:margin");
+    let line = get(a, "fo:line-height").and_then(|v| {
+        if v == "normal" {
+            return Some(LineSpacing::default());
+        }
+        if let Some(pct) = v.strip_suffix('%') {
+            let n = pct.parse::<f32>().ok().filter(|n| n.is_finite())?;
+            return Some(LineSpacing::Multiple((n / 100.0).clamp(0.01, 20.0)));
+        }
+        length(v).map(|v| LineSpacing::Exactly(v.clamp(0.1, 1584.0)))
+    });
+    Spacing {
+        before: read("fo:margin-top").or(margin).map(|v| v.max(0.0)),
+        after: read("fo:margin-bottom").or(margin).map(|v| v.max(0.0)),
+        left: read("fo:margin-left").or(margin),
+        right: read("fo:margin-right").or(margin),
+        first: read("fo:text-indent"),
+        line: line.or_else(|| {
+            read("style:line-height-at-least").map(|v| LineSpacing::AtLeast(v.max(0.0)))
+        }),
+        ..Spacing::default()
+    }
+}
+
+fn border(value: &str) -> Option<Border> {
+    let mut parts = value.split_ascii_whitespace();
+    let first = parts.next()?;
+    if matches!(first, "none" | "hidden") {
+        return Some(Border::default());
+    }
+    let width = length(first)?.clamp(0.0, 1584.0);
+    let style = match parts.next()? {
+        "none" | "hidden" => BorderStyle::None,
+        "dotted" => BorderStyle::Dotted,
+        "dashed" => BorderStyle::Dashed,
+        "dash-dot" | "dash-dot-dot" => BorderStyle::DotDash,
+        "double" | "double-thin" => BorderStyle::Double,
+        _ => BorderStyle::Single,
+    };
+    Some(Border {
+        style,
+        width,
+        color: parts.next().and_then(model::parse_color),
+        space: 0.0,
+    })
 }

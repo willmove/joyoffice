@@ -227,6 +227,9 @@ pub(crate) fn import_flat(bytes: &[u8]) -> Result<Document, String> {
     let automatic = flat.section(Section::Automatic);
     let masters = flat.section(Section::Masters);
     let mut styles = Styles::default();
+    if let Some(fonts) = flat.section(Section::Fonts) {
+        styles.read(fonts, false);
+    }
     if let Some(common) = flat.section(Section::Styles) {
         styles.read(common, false);
     }

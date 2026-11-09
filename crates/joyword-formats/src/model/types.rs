@@ -95,6 +95,8 @@ pub(crate) fn begin_import() {
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Fmt {
     pub bold: bool,
+    /// Explicit normal weight, overriding an inherited bold heading.
+    pub normal_weight: bool,
     pub italic: bool,
     pub underline: bool,
     pub strike: bool,
@@ -140,6 +142,7 @@ pub struct RevMark {
 /// An embedded picture.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Img {
+    pub placement: Option<Box<joyword_model::para::Float>>,
     pub data: Arc<Vec<u8>>,
     /// File extension (`png`, `jpeg`…).
     pub ext: String,
@@ -378,6 +381,7 @@ pub struct Cell {
     /// The cell's own borders (RTF `\clbrdr…`), drawn whatever the table's style.
     pub borders: Option<joyword_model::props::Borders>,
     pub valign: Option<VAlign>,
+    pub margins: Option<[f32; 4]>,
     /// The width, points, the source gives a cell spanning one column (HTML): see
     /// [`FTable::widths_from_cells`].
     pub width: Option<f32>,
@@ -394,6 +398,7 @@ impl Default for Cell {
             shading: None,
             borders: None,
             valign: None,
+            margins: None,
             width: None,
         }
     }

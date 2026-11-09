@@ -51,6 +51,7 @@ pub(super) struct Writer {
     text_styles: Vec<(String, String)>,
     /// Automatic paragraph styles: (parent, properties XML, master page) → name.
     para_styles: Vec<((String, String, String), String)>,
+    graphic_styles: Vec<String>,
     /// List styles: level kinds.
     list_styles: Vec<[bool; 9]>,
     /// Table styles: (name, column widths).
@@ -67,8 +68,7 @@ pub(super) struct Writer {
     last_list: Option<String>,
     /// The page the block being written starts.
     master: Option<SecStart>,
-    /// Cell styles by (shading, vertical alignment, borderless table).
-    cell_styles: Vec<(Option<Rgb>, Option<VAlign>, bool)>,
+    cell_styles: Vec<String>,
     pub(super) pictures: Vec<(String, std::sync::Arc<Vec<u8>>, String)>,
     /// Raw inline image bytes, including repeated occurrences. None for packages.
     flat_image_bytes: Option<usize>,
@@ -88,6 +88,8 @@ fn text_props(f: &Fmt) -> String {
     let mut p = String::new();
     if f.bold {
         p.push_str(" fo:font-weight=\"bold\" style:font-weight-asian=\"bold\" style:font-weight-complex=\"bold\"");
+    } else if f.normal_weight {
+        p.push_str(r#" fo:font-weight="normal" style:font-weight-asian="normal" style:font-weight-complex="normal""#);
     }
     if f.italic {
         p.push_str(" fo:font-style=\"italic\" style:font-style-asian=\"italic\" style:font-style-complex=\"italic\"");
@@ -199,11 +201,46 @@ impl Writer {
         if p.kind == Kind::Rule {
             props.push_str(" fo:border-bottom=\"0.75pt solid #a0a0a0\" fo:padding-bottom=\"1pt\"");
         }
+        let sp = p.spacing;
+        for (name, value) in [
+            ("fo:margin-top", sp.before),
+            ("fo:margin-bottom", sp.after),
+            ("fo:margin-left", sp.left),
+            ("fo:margin-right", sp.right),
+            ("fo:text-indent", sp.first),
+        ] {
+            if let Some(value) = value {
+                props.push_str(&format!(r#" {name}="{}""#, pt(value)));
+            }
+        }
+        use joyword_model::props::LineSpacing;
+        match sp.line {
+            Some(LineSpacing::Multiple(n)) => {
+                props.push_str(&format!(r#" fo:line-height="{:.2}%""#, n * 100.0))
+            }
+            Some(LineSpacing::Exactly(n)) => {
+                props.push_str(&format!(r#" fo:line-height="{}""#, pt(n)))
+            }
+            Some(LineSpacing::AtLeast(n)) => {
+                props.push_str(&format!(r#" style:line-height-at-least="{}""#, pt(n)))
+            }
+            None => {}
+        }
+        let mark = p.mark.as_deref().map(text_props).unwrap_or_default();
         let master = start.map(|(m, _)| m.clone()).unwrap_or_default();
-        if props.is_empty() && master.is_empty() {
+        if props.is_empty() && master.is_empty() && mark.is_empty() {
             return parent;
         }
-        let key = (parent, props, master);
+        let mark = if mark.is_empty() {
+            String::new()
+        } else {
+            format!("<style:text-properties{mark}/>")
+        };
+        let key = (
+            parent,
+            format!("<style:paragraph-properties{props}/>{mark}"),
+            master,
+        );
         if let Some((_, n)) = self.para_styles.iter().find(|(k, _)| *k == key) {
             return n.clone();
         }
@@ -449,10 +486,20 @@ impl Writer {
                 Inline::Image(img) => {
                     let href = self.picture(img);
                     let n = self.pictures.len();
+                    let default = joyword_model::para::Float::default();
+                    let placement = img.placement.as_deref().unwrap_or(&default);
+                    let (anchor, props) = super::placement::write(placement);
+                    let style = if props.is_empty() {
+                        String::new()
+                    } else {
+                        let n = style_index(&mut self.graphic_styles, props);
+                        format!(r#" draw:style-name="Graphic{n}""#)
+                    };
                     out.push_str(&format!(
-                        "<draw:frame draw:name=\"Image{n}\" text:anchor-type=\"as-char\" svg:width=\"{}\" svg:height=\"{}\" draw:z-index=\"0\">",
+                        r#"<draw:frame draw:name="Image{n}"{anchor}{style} svg:width="{}" svg:height="{}" draw:z-index="{}">"#,
                         pt(img.w),
-                        pt(img.h)
+                        pt(img.h),
+                        placement.z
                     ));
                     if let Some(bytes) = &mut self.flat_image_bytes {
                         *bytes = bytes.saturating_add(img.data.len());
@@ -642,21 +689,41 @@ impl Writer {
         }
     }
 
-    fn cell_style(
-        &mut self,
-        shading: Option<Rgb>,
-        valign: Option<VAlign>,
-        borderless: bool,
-    ) -> String {
-        let key = (shading, valign, borderless);
-        let k = match self.cell_styles.iter().position(|s| *s == key) {
-            Some(k) => k,
-            None => {
-                self.cell_styles.push(key);
-                self.cell_styles.len() - 1
-            }
+    fn cell_style(&mut self, c: &model::Cell, borderless: bool) -> String {
+        use joyword_model::props::{Border, Borders};
+        let mut props = String::new();
+        if let Some(bg) = c.shading {
+            props.push_str(&format!(
+                r##" fo:background-color="#{}""##,
+                bg.hex().to_ascii_lowercase()
+            ));
+        }
+        if let Some(va) = c.valign {
+            let va = match va {
+                VAlign::Top => "top",
+                VAlign::Center => "middle",
+                VAlign::Bottom => "bottom",
+            };
+            props.push_str(&format!(r#" style:vertical-align="{va}""#));
+        }
+        let fallback = if borderless {
+            Border::default()
+        } else {
+            Border::single(0.5)
         };
-        format!("Cell{}", k + 1)
+        let borders = c.borders.unwrap_or_else(|| Borders::box_(fallback));
+        for ((side, edge), padding) in ["top", "left", "bottom", "right"]
+            .into_iter()
+            .zip([borders.top, borders.left, borders.bottom, borders.right])
+            .zip(c.margins.unwrap_or([4.0; 4]))
+        {
+            let border = border_xml(edge.unwrap_or_default());
+            props.push_str(&format!(
+                r#" fo:border-{side}="{border}" fo:padding-{side}="{}""#,
+                pt(padding)
+            ));
+        }
+        format!("Cell{}", style_index(&mut self.cell_styles, props))
     }
 
     fn table(&mut self, t: &FTable, out: &mut String, depth: usize) {
@@ -700,7 +767,7 @@ impl Writer {
                     }
                     continue;
                 }
-                let st = self.cell_style(c.shading, c.valign, t.borderless);
+                let st = self.cell_style(c, t.borderless);
                 let mut attrs = format!(" table:style-name=\"{st}\" office:value-type=\"string\"");
                 if span > 1 {
                     attrs.push_str(&format!(" table:number-columns-spanned=\"{span}\""));
@@ -744,7 +811,7 @@ impl Writer {
                 format!(" style:master-page-name=\"{}\"", x(master))
             };
             s.push_str(&format!(
-                "<style:style style:name=\"{n}\" style:family=\"paragraph\" style:parent-style-name=\"{parent}\"{master}><style:paragraph-properties{props}/></style:style>"
+                "<style:style style:name=\"{n}\" style:family=\"paragraph\" style:parent-style-name=\"{parent}\"{master}>{props}</style:style>"
             ));
         }
         for (i, kinds) in self.list_styles.iter().enumerate() {
@@ -781,7 +848,7 @@ impl Writer {
             };
             // ODF §20.414: margins alignment expands to the full text width.
             s.push_str(&format!(
-                "<style:style style:name=\"Table{tn}\" style:family=\"table\"{master}><style:table-properties style:width=\"{}\" table:align=\"left\"{number}/></style:style>",
+                "<style:style style:name=\"Table{tn}\" style:family=\"table\"{master}><style:table-properties style:width=\"{}\" table:align=\"left\" table:border-model=\"collapsing\"{number}/></style:style>",
                 pt(total)
             ));
             for (c, w) in widths.iter().enumerate() {
@@ -792,29 +859,19 @@ impl Writer {
                 ));
             }
         }
-        for (i, (sh, va, borderless)) in self.cell_styles.iter().enumerate() {
-            let bg = sh
-                .map(|c| format!(" fo:background-color=\"#{}\"", c.hex().to_ascii_lowercase()))
-                .unwrap_or_default();
-            let va_str = match va {
-                Some(VAlign::Top) => " style:vertical-align=\"top\"",
-                Some(VAlign::Center) => " style:vertical-align=\"middle\"",
-                Some(VAlign::Bottom) => " style:vertical-align=\"bottom\"",
-                None => "",
-            };
-            let border = if *borderless {
-                "none"
-            } else {
-                "0.5pt solid #000000"
-            };
+        for (i, props) in self.cell_styles.iter().enumerate() {
             s.push_str(&format!(
-                "<style:style style:name=\"Cell{}\" style:family=\"table-cell\"><style:table-cell-properties fo:padding=\"4pt\" fo:border=\"{border}\"{bg}{va_str}/></style:style>",
+                r#"<style:style style:name="Cell{}" style:family="table-cell"><style:table-cell-properties{props}/></style:style>"#,
                 i + 1
             ));
         }
-        for st in &self.section_styles {
-            s.push_str(st);
+        for (i, props) in self.graphic_styles.iter().enumerate() {
+            s.push_str(&format!(
+                r#"<style:style style:name="Graphic{}" style:family="graphic"><style:graphic-properties{props}/></style:style>"#,
+                i + 1
+            ));
         }
+        s.push_str(&self.section_styles.concat());
         s
     }
 }
@@ -937,4 +994,32 @@ fn now_unix() -> i64 {
             0
         }
     }
+}
+
+fn style_index(styles: &mut Vec<String>, props: String) -> usize {
+    if let Some(index) = styles.iter().position(|p| *p == props) {
+        return index + 1;
+    }
+    styles.push(props);
+    styles.len()
+}
+
+fn border_xml(border: joyword_model::props::Border) -> String {
+    use joyword_model::props::BorderStyle;
+    if !border.is_visible() {
+        return "none".into();
+    }
+    let style = match border.style {
+        BorderStyle::Double | BorderStyle::Triple => "double",
+        BorderStyle::Dotted => "dotted",
+        BorderStyle::Dashed => "dashed",
+        BorderStyle::DotDash => "dash-dot",
+        _ => "solid",
+    };
+    let color = border
+        .color
+        .unwrap_or(Rgb(0, 0, 0))
+        .hex()
+        .to_ascii_lowercase();
+    format!("{} {style} #{color}", pt(border.width))
 }

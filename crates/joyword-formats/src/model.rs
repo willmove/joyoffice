@@ -23,6 +23,7 @@ mod to_doc;
 mod types;
 
 pub use color::parse_color;
+pub(crate) use from_doc::from_doc_odf;
 pub use from_doc::{ListCounter, flow_paras, from_doc, from_doc_tracked, is_mono, para_kind};
 pub use media::{
     base64_decode, base64_encode, data_uri, decode_bounded, image_px, make_img, mime_of,
