@@ -194,6 +194,107 @@ fn template_package_and_flat_xml_preserve_text_and_images() {
         model::base64_encode(&png)
     )));
     assert!(!flat.contains("Pictures/"));
+    let reopened = import_flat(flat.as_bytes()).unwrap();
+    assert_eq!(
+        reopened.plain_text(joyword_model::StoryRef::Body),
+        doc.plain_text(joyword_model::StoryRef::Body)
+    );
+    assert_eq!(reopened.media.len(), 1);
+}
+
+#[test]
+fn flat_xml_resolves_namespace_aliases_and_embeds_only_local_data() {
+    let png = [b"\x89PNG\r\n\x1a\n".as_slice(), &[7u8; 300]].concat();
+    let encoded = model::base64_encode(&png);
+    let (first, second) = encoded.split_at(40);
+    let xml = format!(
+        r#"<o:document xmlns:o="urn:oasis:names:tc:opendocument:xmlns:office:1.0"
+            xmlns="urn:oasis:names:tc:opendocument:xmlns:text:1.0"
+            xmlns:s="urn:oasis:names:tc:opendocument:xmlns:style:1.0"
+            xmlns:f="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0"
+            xmlns:d="urn:oasis:names:tc:opendocument:xmlns:drawing:1.0"
+            xmlns:g="urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0"
+            xmlns:l="http://www.w3.org/1999/xlink"
+            xmlns:fake="urn:unrelated"
+            o:mimetype="application/vnd.oasis.opendocument.text">
+          <o:automatic-styles><s:page-layout s:name="p1"><s:page-layout-properties
+            f:page-width="11in" f:page-height="8.5in" f:margin-left="0.75in" f:margin-right="1.25in"/>
+          </s:page-layout></o:automatic-styles>
+          <o:master-styles><s:master-page s:name="Default" s:page-layout-name="p1"/></o:master-styles>
+          <o:body><o:text><p>正文<d:frame g:width="2in" g:height="1in">
+            <d:image l:href="https://example.invalid/picture.png">
+              <o:binary-data>{first}
+                {second}</o:binary-data>
+            </d:image></d:frame><d:frame><d:image l:href="file:///image.png"/></d:frame></p>
+            <fake:p><fake:binary-data>Ignored text</fake:binary-data></fake:p>
+          </o:text></o:body>
+        </o:document>"#
+    );
+    let doc = import_flat(xml.as_bytes()).unwrap();
+    assert!(
+        doc.plain_text(joyword_model::StoryRef::Body)
+            .contains("正文")
+    );
+    assert!(
+        !doc.plain_text(joyword_model::StoryRef::Body)
+            .contains(first)
+    );
+    assert_eq!(doc.media.len(), 1);
+    assert_eq!(doc.last_section.page_w, 792.0);
+    assert_eq!(doc.last_section.page_h, 612.0);
+    assert_eq!(doc.last_section.margin_left, 54.0);
+    assert_eq!(doc.last_section.margin_right, 90.0);
+}
+
+#[test]
+fn flat_xml_rejects_wrong_type_truncation_and_doctype() {
+    let root = r#"<office:document xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" office:mimetype="application/vnd.oasis.opendocument.text">"#;
+    for xml in [
+        "<unrelated/>".to_string(),
+        format!("{root}<office:body><office:text/>"),
+        format!("{root}<office:body><office:spreadsheet/></office:body></office:document>"),
+        format!("{root}<office:body/><office:body><office:text/></office:body></office:document>"),
+        format!(
+            "<!DOCTYPE office:document SYSTEM 'https://example.invalid/test.dtd'>{root}<office:body><office:text/></office:body></office:document>"
+        ),
+        format!("{root}<office:body><office:text/></office:body></office:document>trailing"),
+    ] {
+        assert!(import_flat(xml.as_bytes()).is_err(), "{xml}");
+    }
+}
+
+#[test]
+fn odf_round_trip_keeps_narrow_tables_and_borderless_cells() {
+    let content = format!(
+        r#"<office:document-content {NS_T}>
+          <office:automatic-styles>
+            <style:style style:name="Col" style:family="table-column"><style:table-column-properties style:column-width="72pt"/></style:style>
+            <style:style style:name="Invisible" style:family="table-cell"><style:table-cell-properties fo:border="none"/></style:style>
+            <style:style style:name="Visible" style:family="table-cell"><style:table-cell-properties fo:border-bottom="1pt solid #000000"/></style:style>
+          </office:automatic-styles>
+          <office:body><office:text>
+            <table:table><table:table-column table:style-name="Col" table:default-cell-style-name="Invisible"/>
+              <table:table-row><table:table-cell><text:p>Plain</text:p></table:table-cell></table:table-row></table:table>
+            <table:table><table:table-column table:style-name="Col" table:default-cell-style-name="Visible"/>
+              <table:table-row><table:table-cell><text:p>Grid</text:p></table:table-cell></table:table-row></table:table>
+          </office:text></office:body>
+        </office:document-content>"#
+    );
+    let bytes = zip_of(&[("content.xml", content.as_bytes())]);
+    let output = export(&import(&bytes).unwrap()).unwrap();
+    let mut zip = archive(&output);
+    let xml = String::from_utf8(read_entry(&mut zip, "content.xml").unwrap()).unwrap();
+    assert!(xml.contains("style:width=\"72pt\" table:align=\"left\""));
+    let round_trip = parse(&output).unwrap();
+    let tables: Vec<_> = round_trip
+        .blocks
+        .iter()
+        .filter_map(|block| match block {
+            FBlock::Table(table) => Some((table.widths.as_slice(), table.borderless)),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(tables, [(&[72.0][..], true), (&[72.0][..], false)]);
 }
 
 #[test]

@@ -1,6 +1,9 @@
 /// Largest zip entry we inflate.
 pub(super) const MAX_ENTRY: u64 = 256 << 20;
 
+/// Matches the desktop reader's maximum input size for a standalone XML file.
+pub(super) const MAX_FLAT_BYTES: usize = 64 << 20;
+
 /// Deepest element nesting handled in content.xml.
 pub(super) const MAX_XML_DEPTH: usize = 512;
 

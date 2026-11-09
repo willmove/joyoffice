@@ -1,7 +1,8 @@
 use super::body::Body;
+use super::flat::{FlatDocument, Section};
 use super::limits::{MAX_ENTRY, MAX_SECTIONS};
 use super::styles::{Styles, column_sep, columns_of};
-use super::xml::{Attrs, Ev, events, get, length, local};
+use super::xml::{Attrs, Ev, Xml, get, length, local, stream};
 use super::{
     Columns, Cursor, Document, FBlock, Flow, HashMap, Meta, Para, Read, SectionProps, model,
     page_parts,
@@ -69,13 +70,18 @@ impl Pictures {
     }
 }
 
+#[cfg(test)]
 pub(super) fn read_meta(xml: &[u8]) -> Meta {
+    read_metadata(xml.into())
+}
+
+fn read_metadata(xml: Xml<'_>) -> Meta {
     let mut m = Meta::default();
     let mut cur: Option<String> = None;
     let mut keywords: Vec<String> = Vec::new();
     let mut creator = String::new();
     let mut mod_date = String::new();
-    events(xml, |ev| match ev {
+    stream(xml, |ev| match ev {
         Ev::Start(q, _) => cur = Some(q),
         Ev::End(_) => cur = None,
         Ev::Text(t) => match cur.as_deref() {
@@ -128,18 +134,15 @@ fn parse_full(bytes: &[u8]) -> Result<(Flow, SectionProps), String> {
 }
 
 /// [`parse_full`], plus whether change tracking is on (`None`: the document has no tracked changes).
-fn parse_tracked(
-    bytes: &[u8],
-) -> Result<
-    (
-        Flow,
-        SectionProps,
-        Option<bool>,
-        Option<String>,
-        page_parts::Parts,
-    ),
-    String,
-> {
+type ParsedText = (
+    Flow,
+    SectionProps,
+    Option<bool>,
+    Option<String>,
+    page_parts::Parts,
+);
+
+fn parse_tracked(bytes: &[u8]) -> Result<ParsedText, String> {
     joyword_model::zip_guard::check(bytes, crate::MAX_ZIP_ENTRIES)
         .map_err(|e| format!("ODT: {e}"))?;
     let mut z = zip::ZipArchive::new(Cursor::new(bytes))
@@ -158,12 +161,12 @@ fn parse_tracked(
     let mut pages = Pages::default();
     let styles_xml = read_entry(&mut z, "styles.xml");
     if let Some(s) = &styles_xml {
-        styles.read(s, false);
-        pages = read_pages(s);
+        styles.read(s.as_slice().into(), false);
+        pages = read_pages([s.as_slice().into()]);
     }
-    styles.read(&content, true);
+    styles.read(content.as_slice().into(), true);
     let meta = read_entry(&mut z, "meta.xml")
-        .map(|m| read_meta(&m))
+        .map(|m| read_metadata(m.as_slice().into()))
         .unwrap_or_default();
     let mut pictures = Pictures::new(MAX_ENTRY);
     let mut fetch = |path: &str| -> Option<Vec<u8>> {
@@ -172,10 +175,28 @@ fn parse_tracked(
     };
     let parts = styles_xml
         .as_deref()
-        .map(|x| page_parts::read(x, &styles, &mut pages, &mut fetch))
+        .map(|x| page_parts::read(x.into(), &styles, &mut pages, &mut fetch))
         .unwrap_or_default();
-    let mut body = Body::new(&styles, &pages, &mut fetch);
-    events(&content, |ev| body.feed(ev));
+    Ok(parse_body(
+        content.as_slice().into(),
+        &styles,
+        &pages,
+        meta,
+        parts,
+        &mut fetch,
+    ))
+}
+
+fn parse_body(
+    content: Xml<'_>,
+    styles: &Styles,
+    pages: &Pages,
+    meta: Meta,
+    parts: page_parts::Parts,
+    fetch: &mut dyn FnMut(&str) -> Option<Vec<u8>>,
+) -> ParsedText {
+    let mut body = Body::new(styles, pages, fetch, content.root.is_some());
+    stream(content, |ev| body.feed(ev));
     let mut blocks = body.take_blocks();
     // An open section with nothing in it (after a column section at the end) isn't one: the
     // section before it ends the document.
@@ -190,13 +211,44 @@ fn parse_tracked(
         blocks.push(FBlock::Para(Para::default()));
     }
     let track = body.track;
-    Ok((Flow { blocks, meta }, last, track, styles.doc_font(), parts))
+    (Flow { blocks, meta }, last, track, styles.doc_font(), parts)
 }
 
 /// Parse an `.odt` package into a document.
 pub fn import(bytes: &[u8]) -> Result<Document, String> {
     model::begin_import();
-    let (flow, last, track, font, parts) = parse_tracked(bytes)?;
+    Ok(into_document(parse_tracked(bytes)?))
+}
+
+/// Parse a standalone OpenDocument XML text file. Image references never fetch external data.
+pub(crate) fn import_flat(bytes: &[u8]) -> Result<Document, String> {
+    model::begin_import();
+    let flat = FlatDocument::open(bytes)?;
+    let automatic = flat.section(Section::Automatic);
+    let masters = flat.section(Section::Masters);
+    let mut styles = Styles::default();
+    if let Some(common) = flat.section(Section::Styles) {
+        styles.read(common, false);
+    }
+    if let Some(automatic) = automatic {
+        styles.read(automatic, true);
+    }
+    let mut pages = read_pages([automatic, masters].into_iter().flatten());
+    let mut fetch = |_: &str| None;
+    let parts = masters
+        .map(|xml| page_parts::read(xml, &styles, &mut pages, &mut fetch))
+        .unwrap_or_default();
+    let meta = flat
+        .section(Section::Metadata)
+        .map(read_metadata)
+        .unwrap_or_default();
+    let body = flat.section(Section::Body).ok_or("FODT body is missing")?;
+    Ok(into_document(parse_body(
+        body, &styles, &pages, meta, parts, &mut fetch,
+    )))
+}
+
+fn into_document((flow, last, track, font, parts): ParsedText) -> Document {
     let mut doc = model::to_doc(&flow);
     if font.is_some() {
         doc.styles.default_chr.font = font;
@@ -206,7 +258,7 @@ pub fn import(bytes: &[u8]) -> Result<Document, String> {
     if let Some(t) = track {
         doc.settings.track_changes = t;
     }
-    Ok(doc)
+    doc
 }
 
 /// The page setup of each master page in `styles.xml` (ODF 1.3 §16.9), and of the first one,
@@ -218,52 +270,54 @@ pub(super) struct Pages {
     pub(super) first_name: Option<String>,
 }
 
-fn read_pages(xml: &[u8]) -> Pages {
+fn read_pages<'a>(sections: impl IntoIterator<Item = Xml<'a>>) -> Pages {
     let mut layouts: HashMap<String, (Attrs, Option<Columns>)> = HashMap::new();
     let mut cur: Option<String> = None;
     let mut masters: Vec<(String, String)> = Vec::new();
-    events(xml, |ev| match ev {
-        Ev::Start(q, a) => match local(&q) {
-            "page-layout" if q.starts_with("style:") => {
-                cur = get(&a, "style:name").map(String::from)
-            }
-            "page-layout-properties" => {
-                if let Some(n) = &cur
-                    && layouts.len() < MAX_SECTIONS
-                {
-                    layouts.insert(n.clone(), (a, None));
+    for xml in sections {
+        stream(xml, |ev| match ev {
+            Ev::Start(q, a) => match local(&q) {
+                "page-layout" if q.starts_with("style:") => {
+                    cur = get(&a, "style:name").map(String::from)
+                }
+                "page-layout-properties" => {
+                    if let Some(n) = &cur
+                        && layouts.len() < MAX_SECTIONS
+                    {
+                        layouts.insert(n.clone(), (a, None));
+                    }
+                }
+                "columns" if q.starts_with("style:") => {
+                    if let Some(l) = cur.as_ref().and_then(|n| layouts.get_mut(n)) {
+                        l.1 = Some(columns_of(&a));
+                    }
+                }
+                "column-sep" => {
+                    if let Some(c) = cur
+                        .as_ref()
+                        .and_then(|n| layouts.get_mut(n))
+                        .and_then(|l| l.1.as_mut())
+                    {
+                        c.separator = column_sep(&a);
+                    }
+                }
+                "master-page" if masters.len() < MAX_SECTIONS => {
+                    if let (Some(n), Some(l)) =
+                        (get(&a, "style:name"), get(&a, "style:page-layout-name"))
+                    {
+                        masters.push((n.to_string(), l.to_string()));
+                    }
+                }
+                _ => {}
+            },
+            Ev::End(q) => {
+                if local(&q) == "page-layout" {
+                    cur = None;
                 }
             }
-            "columns" if q.starts_with("style:") => {
-                if let Some(l) = cur.as_ref().and_then(|n| layouts.get_mut(n)) {
-                    l.1 = Some(columns_of(&a));
-                }
-            }
-            "column-sep" => {
-                if let Some(c) = cur
-                    .as_ref()
-                    .and_then(|n| layouts.get_mut(n))
-                    .and_then(|l| l.1.as_mut())
-                {
-                    c.separator = column_sep(&a);
-                }
-            }
-            "master-page" if masters.len() < MAX_SECTIONS => {
-                if let (Some(n), Some(l)) =
-                    (get(&a, "style:name"), get(&a, "style:page-layout-name"))
-                {
-                    masters.push((n.to_string(), l.to_string()));
-                }
-            }
-            _ => {}
-        },
-        Ev::End(q) => {
-            if local(&q) == "page-layout" {
-                cur = None;
-            }
-        }
-        Ev::Text(_) => {}
-    });
+            Ev::Text(_) => {}
+        });
+    }
     let mut pages = Pages::default();
     for (name, layout) in masters {
         let Some((a, cols)) = layouts.get(&layout) else {
@@ -287,7 +341,7 @@ fn read_pages(xml: &[u8]) -> Pages {
 /// Replace `sec` with the page setup of the first master page in `styles.xml`, if any.
 #[cfg(test)]
 pub(super) fn apply_page_layout(xml: &[u8], sec: &mut SectionProps) {
-    if let Some(first) = read_pages(xml).first {
+    if let Some(first) = read_pages([xml.into()]).first {
         *sec = first;
     }
 }

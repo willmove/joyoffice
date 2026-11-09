@@ -232,9 +232,13 @@ fn export_as(doc: &Document, mime: &str, flat: bool) -> Result<Vec<u8>, String> 
         if w.flat_image_budget_exceeded() {
             return Err("FODT embedded images exceed the ODF image budget".into());
         }
-        return Ok(format!(
+        let output = format!(
             "{XML}<office:document {NS} office:mimetype=\"{mime}\">{meta}{common}<office:automatic-styles>{page_styles}{automatic}</office:automatic-styles>{masters}{body}</office:document>\n"
-        ).into_bytes());
+        ).into_bytes();
+        if output.len() > super::limits::MAX_FLAT_BYTES {
+            return Err("FODT output exceeds 64 MiB".into());
+        }
+        return Ok(output);
     }
     let content = format!(
         "{XML}<office:document-content {NS}><office:automatic-styles>{automatic}</office:automatic-styles>{body}</office:document-content>\n"

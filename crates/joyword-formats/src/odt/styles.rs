@@ -1,4 +1,4 @@
-use super::xml::{Attrs, Ev, events, get, length, local};
+use super::xml::{Attrs, Ev, Xml, get, length, local, stream};
 use super::{Align, Arc, Columns, Fmt, HashMap, Kind, Rgb, VAlign, model};
 
 // ---------------------------------------------------------------------------------------------
@@ -56,6 +56,7 @@ struct StyleInfo {
     cell_background: Option<Rgb>,
     /// `style:vertical-align` of a table-cell style's `style:table-cell-properties`.
     cell_valign: Option<VAlign>,
+    cell_bordered: Option<bool>,
     /// `style:column-width` of a table-column style's `style:table-column-properties`, in points.
     column_width: Option<f32>,
     /// `style:master-page-name` of a paragraph or table style: its paragraphs (tables) start a
@@ -179,12 +180,12 @@ pub(super) struct Styles {
 }
 
 impl Styles {
-    pub(super) fn read(&mut self, xml: &[u8], auto_section_is_auto: bool) {
+    pub(super) fn read(&mut self, xml: Xml<'_>, auto_section_is_auto: bool) {
         let mut in_auto = false;
         let mut cur: Option<(String, StyleInfo)> = None;
         let mut in_default = false;
         let mut list: Option<(String, Vec<bool>)> = None;
-        events(xml, |ev| match ev {
+        stream(xml, |ev| match ev {
             Ev::Start(q, a) => match local(&q) {
                 "automatic-styles" => in_auto = true,
                 "style" if q.starts_with("style:") => {
@@ -228,6 +229,26 @@ impl Styles {
                 }
                 "table-cell-properties" => {
                     if let Some((_, s)) = &mut cur {
+                        let borders = [
+                            "fo:border",
+                            "fo:border-top",
+                            "fo:border-right",
+                            "fo:border-bottom",
+                            "fo:border-left",
+                        ];
+                        let mut declared = borders
+                            .into_iter()
+                            .filter_map(|key| get(&a, key))
+                            .peekable();
+                        if declared.peek().is_some() {
+                            s.cell_bordered = Some(declared.any(|border| {
+                                border.split_ascii_whitespace().next().is_some_and(|width| {
+                                    width != "none"
+                                        && width != "hidden"
+                                        && length(width).is_none_or(|v| v > 0.0)
+                                })
+                            }));
+                        }
                         if let Some(c) = get(&a, "fo:background-color").and_then(model::parse_color)
                         {
                             s.cell_background = Some(c);
@@ -395,6 +416,13 @@ impl Styles {
     /// Vertical alignment of a table-cell style (whole chain).
     pub(super) fn cell_valign(&self, name: &str) -> Option<VAlign> {
         self.chain(name).iter().find_map(|(_, s)| s.cell_valign)
+    }
+
+    pub(super) fn cell_bordered(&self, name: &str) -> bool {
+        self.chain(name)
+            .iter()
+            .find_map(|(_, s)| s.cell_bordered)
+            .unwrap_or(false)
     }
 
     /// Paragraph kind, alignment, page break, rule, keep-with-next and base formatting. The text formatting of

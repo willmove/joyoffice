@@ -1,6 +1,6 @@
 use super::import::Pages;
 use super::limits::{
-    MAX_INFO_CHARS, MAX_OPEN_INSERTIONS, MAX_REGIONS, MAX_SECTIONS, MAX_XML_DEPTH,
+    MAX_FLAT_BYTES, MAX_INFO_CHARS, MAX_OPEN_INSERTIONS, MAX_REGIONS, MAX_SECTIONS, MAX_XML_DEPTH,
 };
 use super::styles::Styles;
 use super::xml::{Attrs, Ev, events, get, length, local};
@@ -76,6 +76,7 @@ struct TableB {
     hcover: usize,
     /// Widths in points of the `table:table-column`s so far, 0 where the style gives none.
     widths: Vec<f32>,
+    bordered: bool,
 }
 
 impl TableB {
@@ -89,7 +90,7 @@ impl TableB {
         FTable {
             rows: self.rows,
             widths,
-            borderless: false,
+            borderless: !self.bordered,
         }
     }
 }
@@ -156,6 +157,9 @@ pub(super) struct Body<'a> {
         String,
         Option<(String, bool)>,
     )>,
+    inline_images: bool,
+    image_at: Option<usize>,
+    image_base64: Option<String>,
     in_desc: bool,
     /// The master pages' page setups.
     pages: &'a Pages,
@@ -191,6 +195,7 @@ impl<'a> Body<'a> {
         styles: &'a Styles,
         pages: &'a Pages,
         zip: &'a mut dyn FnMut(&str) -> Option<Vec<u8>>,
+        inline_images: bool,
     ) -> Self {
         let page = pages.first.clone().unwrap_or_default();
         Body {
@@ -210,6 +215,9 @@ impl<'a> Body<'a> {
             skip: 0,
             depth: 0,
             frame: None,
+            inline_images,
+            image_at: None,
+            image_base64: None,
             in_desc: false,
             pages,
             sec: page.clone(),
@@ -478,6 +486,14 @@ impl Body<'_> {
         if self.skip > 0 || !self.in_text {
             return;
         }
+        if let Some(data) = &mut self.image_base64 {
+            // The flat XML file is already capped; do not let a single payload
+            // allocate a larger buffer even if its text arrives in fragments.
+            if data.len().saturating_add(t.len()) <= MAX_FLAT_BYTES {
+                data.push_str(t);
+            }
+            return;
+        }
         if self.info_at.is_some() {
             if let (Some(field), Some((_, r))) = (self.info_field, &mut self.region) {
                 let s = if field { &mut r.author } else { &mut r.date };
@@ -524,6 +540,10 @@ impl Body<'_> {
 
     fn start(&mut self, q: &str, a: &Attrs) {
         self.depth += 1;
+        if self.image_base64.is_some() {
+            self.skip += 1;
+            return;
+        }
         if q == "office:text" {
             self.in_text = true;
             return;
@@ -533,6 +553,14 @@ impl Body<'_> {
             return;
         }
         if !self.in_text {
+            return;
+        }
+        if q == "office:binary-data" {
+            if self.image_at == self.depth.checked_sub(1) {
+                self.image_base64 = Some(String::new());
+            } else {
+                self.skip = 1;
+            }
             return;
         }
         if self.info_at.is_some() {
@@ -644,6 +672,7 @@ impl Body<'_> {
                     row: Vec::new(),
                     hcover: 0,
                     widths: Vec::new(),
+                    bordered: false,
                 });
             }
             "table-column" => {
@@ -657,12 +686,16 @@ impl Body<'_> {
                 if let Some(t) = self.tables.last_mut() {
                     let room = joyword_model::table::MAX_COLS.saturating_sub(t.widths.len());
                     t.widths.extend(std::iter::repeat_n(w, n.min(room)));
+                    t.bordered |= get(a, "table:default-cell-style-name")
+                        .is_some_and(|s| self.styles.cell_bordered(s));
                 }
             }
             "table-row" => {
                 if let Some(t) = self.tables.last_mut() {
                     t.row.clear();
                     t.hcover = 0;
+                    t.bordered |= get(a, "table:default-cell-style-name")
+                        .is_some_and(|s| self.styles.cell_bordered(s));
                 }
             }
             "table-cell" => {
@@ -680,6 +713,8 @@ impl Body<'_> {
                 let valign = get(a, "table:style-name").and_then(|s| self.styles.cell_valign(s));
                 if let Some(t) = self.tables.last_mut() {
                     t.hcover = span as usize - 1;
+                    t.bordered |=
+                        get(a, "table:style-name").is_some_and(|s| self.styles.cell_bordered(s));
                 }
                 self.cells.push(Cell {
                     colspan: span,
@@ -712,13 +747,15 @@ impl Body<'_> {
                 self.frame = Some((w, h, None, String::new(), None));
             }
             "image" => {
-                if let Some(href) = get(a, "xlink:href")
-                    && let Some(fr) = &mut self.frame
+                if let Some(fr) = &mut self.frame
                     && fr.2.is_none()
                     && fr.4.is_none()
                 {
-                    let path = href.trim_start_matches("./");
-                    fr.2 = (self.zip)(path);
+                    if self.inline_images {
+                        self.image_at = Some(self.depth);
+                    } else if let Some(href) = get(a, "xlink:href") {
+                        fr.2 = (self.zip)(href.trim_start_matches("./"));
+                    }
                 }
             }
             // An embedded object (ODF 1.3 §10.4.3): a formula sub-document's `content.xml` holds
@@ -988,6 +1025,10 @@ impl Body<'_> {
 
     fn end(&mut self, q: &str) {
         self.depth = self.depth.saturating_sub(1);
+        if self.image_base64.is_some() && self.skip > 0 {
+            self.skip -= 1;
+            return;
+        }
         if q == "office:text" {
             if self.del.is_some() {
                 // Unclosed deleted content (hostile): drop it.
@@ -1006,6 +1047,17 @@ impl Body<'_> {
         }
         if !self.in_text {
             return;
+        }
+        if q == "office:binary-data"
+            && let Some(encoded) = self.image_base64.take()
+        {
+            if let Some(frame) = &mut self.frame {
+                frame.2 = model::base64_decode(&encoded);
+            }
+            return;
+        }
+        if q == "draw:image" && self.image_at == Some(self.depth + 1) {
+            self.image_at = None;
         }
         if let Some(d) = self.info_at {
             if self.depth < d {

@@ -43,7 +43,7 @@ pub(super) fn pt(v: f32) -> String {
 
 /// A section that starts a page: the master page it uses and where page numbering restarts.
 type SecStart = (String, Option<u32>);
-const MAX_FLAT_IMAGE_BYTES: usize = 64 << 20;
+const MAX_FLAT_IMAGE_BYTES: usize = super::limits::MAX_FLAT_BYTES / 4 * 3;
 
 #[derive(Default)]
 pub(super) struct Writer {
@@ -67,8 +67,8 @@ pub(super) struct Writer {
     last_list: Option<String>,
     /// The page the block being written starts.
     master: Option<SecStart>,
-    /// Cell styles by (shading, vertical-alignment).
-    cell_styles: Vec<(Option<Rgb>, Option<VAlign>)>,
+    /// Cell styles by (shading, vertical alignment, borderless table).
+    cell_styles: Vec<(Option<Rgb>, Option<VAlign>, bool)>,
     pub(super) pictures: Vec<(String, std::sync::Arc<Vec<u8>>, String)>,
     /// Raw inline image bytes, including repeated occurrences. None for packages.
     flat_image_bytes: Option<usize>,
@@ -642,8 +642,13 @@ impl Writer {
         }
     }
 
-    fn cell_style(&mut self, shading: Option<Rgb>, valign: Option<VAlign>) -> String {
-        let key = (shading, valign);
+    fn cell_style(
+        &mut self,
+        shading: Option<Rgb>,
+        valign: Option<VAlign>,
+        borderless: bool,
+    ) -> String {
+        let key = (shading, valign, borderless);
         let k = match self.cell_styles.iter().position(|s| *s == key) {
             Some(k) => k,
             None => {
@@ -695,7 +700,7 @@ impl Writer {
                     }
                     continue;
                 }
-                let st = self.cell_style(c.shading, c.valign);
+                let st = self.cell_style(c.shading, c.valign, t.borderless);
                 let mut attrs = format!(" table:style-name=\"{st}\" office:value-type=\"string\"");
                 if span > 1 {
                     attrs.push_str(&format!(" table:number-columns-spanned=\"{span}\""));
@@ -774,8 +779,9 @@ impl Writer {
                 ),
                 None => (String::new(), String::new()),
             };
+            // ODF §20.414: margins alignment expands to the full text width.
             s.push_str(&format!(
-                "<style:style style:name=\"Table{tn}\" style:family=\"table\"{master}><style:table-properties style:width=\"{}\" table:align=\"margins\"{number}/></style:style>",
+                "<style:style style:name=\"Table{tn}\" style:family=\"table\"{master}><style:table-properties style:width=\"{}\" table:align=\"left\"{number}/></style:style>",
                 pt(total)
             ));
             for (c, w) in widths.iter().enumerate() {
@@ -786,7 +792,7 @@ impl Writer {
                 ));
             }
         }
-        for (i, (sh, va)) in self.cell_styles.iter().enumerate() {
+        for (i, (sh, va, borderless)) in self.cell_styles.iter().enumerate() {
             let bg = sh
                 .map(|c| format!(" fo:background-color=\"#{}\"", c.hex().to_ascii_lowercase()))
                 .unwrap_or_default();
@@ -796,8 +802,13 @@ impl Writer {
                 Some(VAlign::Bottom) => " style:vertical-align=\"bottom\"",
                 None => "",
             };
+            let border = if *borderless {
+                "none"
+            } else {
+                "0.5pt solid #000000"
+            };
             s.push_str(&format!(
-                "<style:style style:name=\"Cell{}\" style:family=\"table-cell\"><style:table-cell-properties fo:padding=\"4pt\" fo:border=\"0.5pt solid #000000\"{bg}{va_str}/></style:style>",
+                "<style:style style:name=\"Cell{}\" style:family=\"table-cell\"><style:table-cell-properties fo:padding=\"4pt\" fo:border=\"{border}\"{bg}{va_str}/></style:style>",
                 i + 1
             ));
         }

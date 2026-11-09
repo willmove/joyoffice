@@ -4,7 +4,10 @@ use std::collections::HashSet;
 
 use joyword_model::{Document, Part, PartKind};
 
-use super::{Body, Ev, FBlock, Pages, SectionProps, Styles, events, get, model};
+use super::{
+    Body, Ev, FBlock, Pages, SectionProps, Styles, get, model,
+    xml::{Xml, stream},
+};
 
 /// Most XML events kept for all headers and footers together; a slot past it is left out.
 const MAX_EVENTS: usize = 1 << 20;
@@ -64,7 +67,7 @@ pub(super) struct Parts {
 /// page's section as part id 1, 2, … in order, so the sections the body starts carry them.
 /// [`add`] puts those parts into the document.
 pub(super) fn read(
-    xml: &[u8],
+    xml: Xml<'_>,
     styles: &Styles,
     pages: &mut Pages,
     fetch: &mut dyn FnMut(&str) -> Option<Vec<u8>>,
@@ -75,7 +78,7 @@ pub(super) fn read(
     let mut slot: Option<(usize, bool)> = None;
     let mut seen = HashSet::new();
     let mut room = MAX_EVENTS;
-    events(xml, |ev| {
+    stream(xml, |ev| {
         if let Some((depth, keep)) = &mut slot {
             match &ev {
                 Ev::End(_) if *depth == 0 => {
@@ -119,7 +122,7 @@ pub(super) fn read(
     let none = Pages::default();
     let mut out = Parts::default();
     for (name, kind, evs) in found {
-        let mut reader = Body::new(styles, &none, fetch);
+        let mut reader = Body::new(styles, &none, fetch, xml.root.is_some());
         reader.in_text = true;
         for ev in evs {
             reader.feed(ev);

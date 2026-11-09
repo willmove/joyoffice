@@ -38,7 +38,7 @@ pub const MAX_ZIP_ENTRIES: u64 = 20_000;
 /// Extensions this crate handles.
 pub const EXTENSIONS: &[&str] = &[
     "txt", "text", "md", "markdown", "html", "htm", "xhtml", "mht", "mhtml", "rtf", "odt", "tex",
-    "latex", "ltx", "ott",
+    "latex", "ltx", "ott", "fodt",
 ];
 
 /// Import `bytes` in the format named by `ext` (no dot, any case). `None` = not our format.
@@ -51,6 +51,7 @@ pub fn import(ext: &str, bytes: &[u8]) -> Option<Result<Document, String>> {
         "mht" | "mhtml" => Ok(mht::import(bytes)),
         "rtf" => rtf::import(bytes),
         "odt" | "ott" => odt::import(bytes),
+        "fodt" => odt::import_flat(bytes),
         "tex" | "latex" | "ltx" => Ok(latex::import(bytes)),
         _ => return None,
     };

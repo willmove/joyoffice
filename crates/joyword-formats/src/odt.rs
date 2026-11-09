@@ -7,8 +7,8 @@
 //! bytes under `Pictures/`, page breaks), `styles.xml` (Standard, Heading 1–6, Title,
 //! Quotations, Preformatted Text, page layout) and `meta.xml`.
 //!
-//! Import reads the same subset back from `content.xml` / `styles.xml` (style inheritance
-//! resolved, both automatic and common styles), skipping notes, annotations, text boxes and drawing shapes.
+//! Import reads the same subset back from packages or standalone FODT XML, including automatic
+//! and common styles. Notes, annotations, text boxes and drawing shapes are outside this subset.
 //!
 //! Tracked changes (ODF 1.3 Part 3 §5.5) go both ways: `text:tracked-changes` holds one
 //! `text:changed-region` per change; an insertion is the body text between
@@ -33,6 +33,7 @@ use crate::model::{
 };
 
 mod body;
+mod flat;
 mod import;
 mod limits;
 mod package;
@@ -42,6 +43,7 @@ mod xml;
 
 use body::Body;
 use import::Pages;
+pub(crate) use import::import_flat;
 #[cfg(test)]
 use import::{Pictures, apply_page_layout, read_entry, read_meta};
 pub use import::{import, parse};
@@ -54,7 +56,7 @@ use styles::Styles;
 use writer::x;
 #[cfg(test)]
 use xml::length;
-use xml::{Ev, events, get};
+use xml::{Ev, get};
 
 mod page_parts;
 

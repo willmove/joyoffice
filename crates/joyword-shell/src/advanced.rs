@@ -32,7 +32,7 @@ pub fn read_local(path: &Path, max: u64) -> Result<Vec<u8>, String> {
 }
 pub const IMPORTS: &[&str] = &[
     "docx", "docm", "dotx", "dotm", "doc", "dot", "txt", "md", "markdown", "html", "htm", "mht",
-    "mhtml", "rtf", "odt", "ott", "tex", "latex", "xml",
+    "mhtml", "rtf", "odt", "ott", "fodt", "tex", "latex", "xml",
 ];
 pub const EXPORTS: &[&str] = &[
     "docx", "pdf", "txt", "md", "html", "rtf", "odt", "ott", "fodt", "tex", "xml",

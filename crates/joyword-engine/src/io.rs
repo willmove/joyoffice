@@ -23,6 +23,7 @@ pub const OPEN_EXTS: &[&str] = &[
     "rtf",
     "odt",
     "ott",
+    "fodt",
     "tex",
     "latex",
     "ltx",
