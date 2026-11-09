@@ -67,9 +67,9 @@ JD-201 随后完成。共享文稿、独立视图、过期结果和包内读回�
 | 完成 | JD-302 | 原位文字绘制、caret、选择区、命中、滚动和旋转文本适配 | macOS Release 实测旋转、竖排、单元格、缩放滚动和 PPTX 回读。1×/2× 坐标回归通过，2× 实屏按平台继续复验。[证据](evidence/R3-TRANSFORMED-TEXT/README.md) | JD-300、JD-301 |
 | 完成 | JD-303 | 适配 EntityInputHandler、UTF-16/UTF-8/cluster 范围与 surrounding text | macOS Release 实测非 BMP、组合字素、ZWJ 删除替换及两处真实拼音候选，组合选词单次提交并保存读回。[证据](evidence/R3-NATIVE-UNICODE/README.md) | JD-302 |
 | 完成 | JD-304 | 系统 IME 提交、取消、重复事件、切页、失焦和撤销 | macOS Release 实测系统简体拼音与 ABC 重音组合。选词单次提交，切页和失焦保留原文，崩溃恢复只读回已提交修订。[证据](evidence/R3-IME-LIFECYCLE/README.md) | JD-303 |
-| 进行中 | JD-305 | 字符/段落格式、列表、字段、超链接、竖排/分栏等文字能力的 UI | 逐项迁移命令，验证源内容、格式、撤销和持久化。macOS 已实测布局、链接编辑与动态字段。Windows 已实屏插入固定日期及页内链接显示文字，并单步撤销。相同语料的 PPTX 保留另存与重开通过自动回归。清除字符格式已修复语义属性丢失，撤销与保存回归见[证据](evidence/R3-CLEAR-CHARACTER-FORMAT/README.md)。页眉／自动日期摘要读回与逐页页脚保留写回已补回归，[页脚基础证据](evidence/R3-FOOTER-IMPORT/README.md)。已增加批量更新已有普通页脚文字的引擎命令，保留页内样式、无页脚页并支持单步撤销，[范围与验证](evidence/R3-EXISTING-FOOTER-COMMAND/README.md)。已补已有页脚混合状态与覆盖数只读查询，[UI 前置校验](evidence/R3-FOOTER-PREFLIGHT/README.md)。版式／母版的显式页脚开关已加入模型并覆盖本机与 PPTX 往返，[可见性元数据证据](evidence/R3-FOOTER-VISIBILITY/README.md)。已实现严格预检的当前页与全部缺失页补建命令及原子拒绝／撤销／PPTX 往返，[保守补建证据](evidence/R3-FOOTER-INSERTION/README.md)。Windows 插入功能区已实测三种页脚事务、撤销与 PPTX 另存，[本机验收](../joyoffice/validation/20261109-v012/README.md#p1)。隐式继承、显示开关、清除入口及其余格式命令继续开放。[当前状态](STATUS.md) · [动态字段](evidence/R3-TEXT-FIELDS/README.md) | JD-300–JD-304 |
+| 进行中 | JD-305 | 字符/段落格式、列表、字段、超链接、竖排/分栏等文字能力的 UI | 逐项迁移命令，验证源内容、格式、撤销和持久化。macOS 已实测布局、链接编辑与动态字段。Windows 已实屏插入固定日期及页内链接显示文字，并单步撤销。相同语料的 PPTX 保留另存与重开通过自动回归。清除字符格式已修复语义属性丢失，撤销与保存回归见[证据](evidence/R3-CLEAR-CHARACTER-FORMAT/README.md)。页眉／自动日期摘要读回与逐页页脚保留写回已补回归，[页脚基础证据](evidence/R3-FOOTER-IMPORT/README.md)。已增加批量更新已有普通页脚文字的引擎命令，保留页内样式、无页脚页并支持单步撤销，[范围与验证](evidence/R3-EXISTING-FOOTER-COMMAND/README.md)。已补已有页脚混合状态与覆盖数只读查询，[UI 前置校验](evidence/R3-FOOTER-PREFLIGHT/README.md)。版式／母版的显式页脚开关已加入模型并覆盖本机与 PPTX 往返，[可见性元数据证据](evidence/R3-FOOTER-VISIBILITY/README.md)。已实现严格预检的当前页与全部缺失页补建命令及原子拒绝／撤销／PPTX 往返，[保守补建证据](evidence/R3-FOOTER-INSERTION/README.md)。Windows 插入功能区已实测三种页脚事务、撤销与 PPTX 另存，[本机验收](../joyoffice/validation/20261109-v012/README.md#p1)。清空全稿已有页脚文字、取消、撤销重做与 PPTX 持久化已在 Windows 复验，[P1 续验](../joyoffice/validation/20261109-p1-followup/README.md)。隐式继承、显示开关及其余格式命令继续开放。[当前状态](STATUS.md) · [动态字段](evidence/R3-TEXT-FIELDS/README.md) | JD-300–JD-304 |
 | 完成 | JD-306 | 表格插入、行列/合并、样式、单元格选择/文字/键盘导航 | macOS Release 实测插入、行列增删、矩形选区、合并／拆分、样式／底色、系统拼音、Tab／Shift+Tab 和两种格式保存重开。无效尺寸与合并覆盖格有边界复验。[证据](evidence/R3-TABLE-QUALIFICATION/README.md) | JD-304 |
-| 进行中 | JD-307 | 纯文本、图片、对象与富剪贴板平台适配 | macOS 已复验纯文本、内部富文字、外部 PNG、基础对象跨文稿和单步撤销，修复 PPTX 图片部件重复。已修复跨文稿页内链接误绑定，同文稿双窗口保留链接，跨文稿保留文字、样式和网页链接。macOS 已实测外部 HTML／RTF 字符格式、链接、单步撤销及保存重开。RTF 隐藏文字过滤、纯隐藏内容终止回退及混合隐藏内容的表格 TSV 保护已通过无桌面回归，当前修复的原生剪贴板复验待完成。Windows 实屏、Linux 原生富格式、富文字图片资源和完整 Office 对象交换继续开放。[基础剪贴板](evidence/R3-CLIPBOARD/README.md) · [链接范围](evidence/R3-CLIPBOARD-LINKS/README.md) · [外部富文本](evidence/R3-EXTERNAL-RICH/README.md) | JD-201、JD-303 |
+| 进行中 | JD-307 | 纯文本、图片、对象与富剪贴板平台适配 | macOS 已复验纯文本、内部富文字、外部 PNG、基础对象跨文稿和单步撤销，修复 PPTX 图片部件重复。已修复跨文稿页内链接误绑定，同文稿双窗口保留链接，跨文稿保留文字、样式和网页链接。macOS 已实测外部 HTML／RTF 字符格式、链接、单步撤销及保存重开。RTF 隐藏文字过滤、纯隐藏内容终止回退及混合隐藏内容的表格 TSV 保护已通过无桌面回归，当前修复的原生剪贴板复验待完成。Windows 已验证从 Microsoft Word 向画布粘贴粗体、颜色与斜体、撤销重做及 PowerPoint 重开，[P1 续验](../joyoffice/validation/20261109-p1-followup/README.md)。Windows 原位与表格、物理 Linux 和 Wayland、富文字图片资源和完整 Office 对象交换继续开放。[基础剪贴板](evidence/R3-CLIPBOARD/README.md) · [链接范围](evidence/R3-CLIPBOARD-LINKS/README.md) · [外部富文本](evidence/R3-EXTERNAL-RICH/README.md) | JD-201、JD-303 |
 | 已实现待验收 | JD-308 | 焦点、快捷键优先级、表单草稿同步与输入实体唯一性 | 备注/高级表单同时显示无重复 a11y 节点；同步不递归执行文档命令。已修复原始按键回调忽略字符输入优先标记的问题，分流回归与 Linux 编译通过，真实键盘仍待验收。[按键优先级](evidence/R3-KEYBOARD-PRIORITY/README.md) | JD-304、JD-305 |
 | 已实现待验收 | JD-309 | R3 包与文字/表格系统输入回归 | 原位文字、备注、表格的提交/取消/undo/redo/保存重开和截图通过 | JD-305–JD-308 |
 
@@ -118,13 +118,13 @@ R6 的预算、原件保护和新 schema 已在 R1/R2 实施。这里收口旧�
 | --- | --- | --- | --- | --- |
 | 进行中 | JD-600 | .joydeck schema 1.0–1.11 的 legacy DTO、能力检查与一次性转换 | 覆盖资源/source/主题/备注/表格/图表/动画/审阅和 ID；未知/未来必需特性不静默丢失 | R5、JD-205 |
 | 进行中 | JD-601 | .deckcraft 与历史原生输入导入、媒体/图表 sidecar 映射 | 同一上游文件独立读回比对；原件保留；另存新格式并可重开 | JD-600 |
-| 进行中 | JD-602 | PPTX 保留写回与新建导出两条路径，兼容/损失报告 | 未知 XML、关系与部件保留。正文与链接同改时重绑新增链接关系并保留未改运行节点，遇到无法保真的改动拒绝。固定日期和新链接的保留另存及重开已有回归。[当前状态](STATUS.md) | JD-102、JD-500–JD-507 |
+| 进行中 | JD-602 | PPTX 保留写回与新建导出两条路径，兼容/损失报告 | 未知 XML、关系与部件保留。正文与链接同改时重绑新增链接关系并保留未改运行节点，遇到无法保真的改动拒绝。固定日期和新链接的保留另存及重开已有回归。保留形状树组属性和扩展位置，PowerPoint 实测打开新的三页产物。[P1 续验](../joyoffice/validation/20261109-p1-followup/README.md) · [当前状态](STATUS.md) | JD-102、JD-500–JD-507 |
 | 待开始 | JD-603 | 接入共享 DrawingML 适用部分并收口格式分层 | 先核对 API、默认值、单位和 roundtrip 契约；不为统一而降低保留能力 | JD-602 |
 | 进行中 | JD-604 | PDF 后端与统一场景对齐、字体子集、文本/链接、备注/讲义 | 独立 PDF 阅读器检查页几何、可检索 Unicode 与嵌字；消除 Krilla 来源冲突 | JD-400、JD-003 |
 | 进行中 | JD-605 | PNG/JPEG、动画 GIF、提纲及已支持文本输出 | 页范围、尺寸、透明/背景、时序和错误路径可验证。GIF 分配整百分之一秒帧延时，图片导出拒绝重复页，已独立解码复验。桌面和 CLI 同参数核对继续开放。[P2 验证](../joyoffice/validation/20261106-p2/README.md) | JD-604 |
 | 进行中 | JD-606 | 打印内容与平台打印对话框，取消/失败/缺 helper 行为 | 每平台独立验证；取消无文件/文档副作用；未支持平台明确报告 | JD-604 |
 | 进行中 | JD-607 | 原生格式未来版本、缺资源/损坏/未知字段与保存冲突故障矩阵 | 保留/只读/拒绝有契约，旧读取器拒绝新能力，压缩/XML/图片预算均生效。macOS Debug 后台重开富文字项目触发反序列化线程栈保护，已保留样例。[复现](evidence/R3-EXTERNAL-RICH/README.md) | JD-600–JD-606 |
-| 进行中 | JD-608 | 公开文件交换和旧新应用对照语料 | 自建/获授权语料登记；外部阅读器实际读回；公开内容不以私有 model 再导入冒充 | JD-607 |
+| 进行中 | JD-608 | 公开文件交换和旧新应用对照语料 | 自建／获授权语料登记；PowerPoint 已独立打开页脚清空与 Office 富文本样本，其他外部阅读器和旧版交换继续覆盖。[P1 续验](../joyoffice/validation/20261109-p1-followup/README.md) | JD-607 |
 | 进行中 | JD-609 | R6 文件迁移与输出包 | 旧 .joydeck 另存、PPTX 保留/新建、PDF/图片/讲义和打印场景有证据 | JD-608 |
 
 R6 当前切片：1.0–1.11 私有 DTO 能力检查/基础迁移和原件附件、PPTX 保留/再生副本、官方 Krilla PDF 可检索字形/链接/书签/备注/讲义、PNG/JPEG/GIF/提纲/RTF、Windows 打印对话框。旧媒体/审阅/放映链接迁移、完整格式保真和多平台打印仍待完成。见 [R6/R7 验证](evidence/R6-R7/README.md)。
@@ -174,7 +174,7 @@ R8 当前推进 Windows 编辑器与可搬移开发包切片，并纠正工程�
 | 完成 | JD-902 | 公共库快照回接宿主，合并必要公共 UI/OPC 增量 | 仓库只有一套公共实现；所有使用方 API/行为得到验证 | JD-901 |
 | 完成 | JD-903 | 合并 workspace/根 Cargo.lock、feature 与工具链 | GPUI 单一基线；版本/来源/checksum 可审计；无 egui 闭包；无整体无关升级 | JD-902 |
 | 完成 | JD-904 | 更新产品工具、layers/IO/panic、provenance、文档/许可和 CI | 新增 crate/IO 均登记；不放宽为目录级忽略；独立产品版本/标签保持 | JD-903 |
-| 已实现待验收 | JD-905 | Deck 全量、Word/Sheet 使用方与联合 feature 回归 | 三产品分别 build/check/test/package；CLI 闭包无 GPUI；合并 CI 通过。本机三产品验证已完成。[证据](evidence/R9-WORKSPACE/README.md) | JD-904 |
+| 已实现待验收 | JD-905 | Deck 全量、Word/Sheet 使用方与联合 feature 回归 | 三产品分别 build/check/test/package；CLI 闭包无 GPUI；合并 CI 通过。本机三产品验证已完成。Windows v0.1.2 的产品检查与联合功能组合已复跑，合并 CI 和同提交的完整打包仍待验。[P1 续验](../joyoffice/validation/20261109-p1-followup/README.md#自动验证) · [证据](evidence/R9-WORKSPACE/README.md) | JD-904 |
 | 进行中 | JD-906 | 旧文件、旧自动化、完整命令矩阵及现有 JoyDeck 功能无回退验收 | 所有迁移范围内未延期项完成；延期逐项有归属；用户文稿无静默损失 | JD-600、JD-706、JD-905 |
 | 已实现待验收 | JD-907 | 新宿主包、仓库外运行、回退演练和新状态文档 | Windows 候选包与旧包已校验，仓库外 CLI 回退与切回通过，候选桌面复制和撤销通过。旧版实屏和依赖 JD-906 的完整矩阵继续开放。[P2 包验证](../joyoffice/validation/20261106-p2/README.md#joydeck-windows-开发包) | JD-906 |
 | 完成 | JD-908 | 按 JoyOffice 仓库规则完成 PR/CI/替换交付 | 最终来源和版本清楚，公共库与锁文件唯一，验收及剩余项可追溯 | JD-907 |

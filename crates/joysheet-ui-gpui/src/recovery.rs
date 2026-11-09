@@ -38,7 +38,7 @@ impl Desktop {
                 self.snapshot
                     .windows
                     .iter()
-                    .filter(|w| seen.insert(w.doc))
+                    .filter(|w| !w.decrypted_unsaved && seen.insert(w.doc))
                     .filter_map(|w| {
                         let drafts: Vec<_> = r.drafts.values().filter(|d| d["doc"].as_u64() == Some(w.doc)).cloned().collect();
                         if !enabled || (!w.dirty && drafts.is_empty()) {

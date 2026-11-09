@@ -16,10 +16,19 @@ const COMMANDS: &[&str] = &[
     "select.all",
     "caret.docStart",
     "caret.docEnd",
+    "edit.find",
     "edit.goto",
     "view.zoom",
+    "view.onePage",
+    "view.pageWidth",
 ];
-const VIEW_COMMANDS: &[&str] = &["edit.goto", "view.zoom"];
+const VIEW_COMMANDS: &[&str] = &[
+    "edit.find",
+    "edit.goto",
+    "view.zoom",
+    "view.onePage",
+    "view.pageWidth",
+];
 const METHODS: &[&str] = &[
     "capabilities",
     "engine.commands",
@@ -241,6 +250,16 @@ impl JoyWord {
                 let args = match cmd {
                     "text.insert" => {
                         json!({"text":p["params"]["text"].as_str().ok_or("missing text")?})
+                    }
+                    "edit.find" => {
+                        let text = p["params"]["text"]
+                            .as_str()
+                            .filter(|text| !text.is_empty() && text.len() <= 1024)
+                            .ok_or("find text must contain 1–1024 UTF-8 bytes")?;
+                        // A remote find is literal regardless of the last desktop search mode.
+                        json!({"text":text,"special":false,"regex":false,"wildcards":false,
+                            "matchCase":false,"wholeWord":false,"matchPrefix":false,"matchSuffix":false,
+                            "ignorePunct":false,"ignoreSpace":false})
                     }
                     "edit.goto" => {
                         let page = p["params"]["page"]

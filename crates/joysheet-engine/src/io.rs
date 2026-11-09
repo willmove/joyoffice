@@ -275,6 +275,10 @@ pub fn source_path(path: &str) -> Option<std::path::PathBuf> {
     std::path::absolute(path).ok()
 }
 
+pub(crate) fn resolved_path(path: &std::path::Path) -> Option<std::path::PathBuf> {
+    std::fs::canonicalize(path).ok()
+}
+
 /// Save As CSV/Text writes "the text and values as they are displayed in cells" with "all
 /// characters in each cell" (Microsoft Support, *Excel formatting and features that are not
 /// transferred to other file formats*): number formats applied, never column-width `#####`.

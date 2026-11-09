@@ -180,6 +180,7 @@ pub struct DocState {
     pub undo: Vec<HistoryEntry>,
     pub redo: Vec<HistoryEntry>,
     pub path: Option<String>,
+    encrypted_origin: Option<EncryptedOrigin>,
     pub saved: Arc<Workbook>,
     pub revision: u64,
     /// Identifies this open workbook for the rest of the session: it never changes while the
@@ -206,6 +207,12 @@ pub struct DocState {
     /// The references `edit.goTo` with `record: true` went to in this document, newest first,
     /// without names, each area written with its sheet (`Sheet1!B14:C22,Sheet1!F19:G30`).
     pub go_to_recent: Vec<String>,
+}
+
+#[derive(Clone, Debug)]
+enum EncryptedOrigin {
+    File { path: std::path::PathBuf, resolved: Option<std::path::PathBuf> },
+    Bytes,
 }
 
 static NEXT_UID: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(1);
@@ -267,6 +274,11 @@ fn trim_to_budget(history: &mut Vec<HistoryEntry>, byte_budget: usize) {
 }
 
 impl DocState {
+    /// Plaintext recovery must wait until the user explicitly saves a decrypted workbook.
+    pub fn decrypted_unsaved(&self) -> bool {
+        self.encrypted_origin.is_some() && self.path.is_none()
+    }
+
     /// A document for `wb`, which came from where `trust` says: [`Trust::FromFile`] for anything
     /// read from bytes (a file, a download, a recovery copy), [`Trust::Local`] only for a workbook
     /// made in this session.
@@ -301,6 +313,7 @@ impl DocState {
             sheet_selections: vec![],
             unlocked_ranges: vec![],
             content_kind: None,
+            encrypted_origin: None,
             scripts_trusted,
             trust,
             go_to_recent: vec![],

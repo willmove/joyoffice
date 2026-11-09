@@ -4416,6 +4416,7 @@ fn encrypted_workbooks_open_with_their_password() {
     assert_eq!(r["title"], "Secret.xlsx");
     assert_eq!(v(&s, "A1"), Value::Number(42.0));
     assert_eq!(s.doc().unwrap().path, None);
+    assert!(s.doc().unwrap().decrypted_unsaved());
     // The notice belongs in the info bar, not a message box.
     assert!(!s.take_ui_requests().iter().any(|r| matches!(r, crate::UiRequest::Message(_))));
     let journal = serde_json::to_string(&s.journal).unwrap();
@@ -4435,13 +4436,25 @@ fn a_decrypted_workbook_never_overwrites_its_encrypted_original() {
     std::fs::write(&path, &bytes).unwrap();
 
     let mut s = s();
-    s.execute("file.open", json!({"path": path, "password": PW})).unwrap();
+    s.execute("file.open", json!({"path": path, "password": PW, "base64": null})).unwrap();
     assert_eq!(s.doc().unwrap().path, None);
+    assert!(s.doc().unwrap().decrypted_unsaved());
     s.take_ui_requests();
     s.execute("cell.set", json!({"cell": "A1", "input": "43"})).unwrap();
     s.execute("file.save", json!({})).unwrap();
     assert!(s.take_ui_requests().iter().any(|r| matches!(r, crate::UiRequest::Dialog(name, _) if name == "saveAs")));
+    let alias = dir.join(".").join("Secret.xlsx");
+    assert!(s.execute("file.saveAs", json!({"path": alias})).is_err());
+    for command in ["file.exportPdf", "file.print"] {
+        assert!(s.execute(command, json!({"path": path})).is_err(), "{command}");
+    }
     assert_eq!(std::fs::read(&path).unwrap(), bytes, "the encrypted original is untouched");
+    let copy = dir.join("Decrypted.xlsx");
+    s.execute("file.saveAs", json!({"path": copy})).unwrap();
+    assert!(!s.doc().unwrap().decrypted_unsaved());
+    assert_eq!(joysheet_xlsx::sniff(&std::fs::read(copy).unwrap()), joysheet_xlsx::Format::Xlsx);
+    assert!(s.execute("file.save", json!({"path": path})).is_err());
+    assert_eq!(std::fs::read(&path).unwrap(), bytes);
     std::fs::remove_dir_all(dir).unwrap();
 }
 

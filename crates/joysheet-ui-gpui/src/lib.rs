@@ -20,6 +20,7 @@ mod object_tools;
 mod objects;
 mod outline_text;
 mod palette;
+mod password;
 mod performance;
 mod printing;
 mod recovery;
@@ -101,12 +102,21 @@ pub struct LaunchOptions {
 pub fn run(options: LaunchOptions) -> Result<(), String> {
     outline_text::start();
     let engine = EngineClient::start()?;
-    let initial = if let Some(path) = options.path {
-        engine.execute("file.open", serde_json::json!({"path":path}))?
+    let pending_password = if let Some(path) = options.path {
+        match engine.execute("file.open", serde_json::json!({"path":path}))?.result {
+            Ok(_) => None,
+            Err(error) if password::needs_password(&path, &error) => {
+                engine.execute("file.new", serde_json::json!({}))?.result?;
+                Some(path)
+            }
+            Err(error) => return Err(error),
+        }
     } else {
-        engine.execute("file.new", options.sample.map(|sample| serde_json::json!({"sample":sample})).unwrap_or_else(|| serde_json::json!({})))?
+        engine
+            .execute("file.new", options.sample.map(|sample| serde_json::json!({"sample":sample})).unwrap_or_else(|| serde_json::json!({})))?
+            .result?;
+        None
     };
-    initial.result?;
     eprintln!("Joysheet: engine initialized");
     let server = options.control.map(|port| joysheet_app::control::ControlServer::start(port, engine.clone())).transpose()?;
     let recovery_service = std::sync::Arc::new(joysheet_app::recovery::RecoveryService::start(joysheet_platform::config_dir().join("recovery"))?);
@@ -133,6 +143,7 @@ pub fn run(options: LaunchOptions) -> Result<(), String> {
         });
         cx.set_global(SharedPreferences(preferences.clone()));
         cx.set_global(OpenRequests(std::sync::Mutex::new(open_requests)));
+        cx.set_global(password::PasswordRequests(pending_password.into_iter().map(|path| (path, false)).collect()));
         cx.set_menus([
             Menu::new("File").items([
                 MenuItem::action("New", NewWorkbook),

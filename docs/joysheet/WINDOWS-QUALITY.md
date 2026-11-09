@@ -34,6 +34,8 @@ pwsh -NoProfile -File scripts/joysheet/desktop-smoke.ps1 -Stage M1 -WindowsQuali
 
 ## 人工验收步骤
 
+2026-11-09 用独立工作簿复验 W8。原生预览显示一页，系统打印框成功打开。窗口控制仅捕获到部分对话框，取消回传与打印队列输出继续验收。[本机记录](../joyoffice/validation/20261109-p1-followup/README.md)
+
 以下均为**待人工验收**，请逐条记录“通过/失败/未测”。不要仅凭自动回归勾选。建议使用样例副本，先记录 Windows build、应用包版本、显示器分辨率/排列/缩放、输入法与读屏版本、打印机及驱动。
 
 | 编号 | 操作步骤 | 预期结果与留存证据 |

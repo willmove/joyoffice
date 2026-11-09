@@ -4,6 +4,8 @@
 
 Rust + GPUI 电子表格应用，现接入 JoyOffice Monorepo。应用和 CLI 继承 JoyOffice 统一版本 **0.1.2**，功能基线为 **M8-preview6**；全量迁移与人工验收仍按 [状态](STATUS.md)和[任务矩阵](MIGRATION.md)跟踪。本次工程整合不关闭原有未完成里程碑。
 
+桌面打开受密码保护的 XLSX 时会提示输入密码，可在输错后重试或取消。编辑后用「另存为」选择新文件，保存的是未加密副本。解密会话保护源文件路径，另存前暂停该工作簿的自动恢复副本。
+
 计算、工作簿、公式、XLSX/ODS/XLS/XLSB、图表、PDF、引擎与 MCP 来源于 GridCraft 0.12.1，已机械更名为产品包名。原始版权、双许可证、来源哈希和必要适配记录保留，参见 [ATTRIBUTION](ATTRIBUTION.md)、[原始来源](upstream-source.json)和[核心适配](UPSTREAM-PATCHES.md)。
 
 ## 开发入口

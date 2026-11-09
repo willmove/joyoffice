@@ -85,6 +85,7 @@ pub enum After {
     Save(bool),
     Open,
     OpenPaths(Vec<String>),
+    NativeOpen(String),
     Close(bool),
     CloseSaved,
     Recovered(Value),
@@ -667,6 +668,11 @@ impl Desktop {
                                 self.edit_clock = None;
                                 self.edit_fence = None;
                             }
+                            if let After::NativeOpen(path) = pending.after
+                                && self.queue_password(path, &error, cx)
+                            {
+                                continue;
+                            }
                             self.alert(error);
                         }
                         Ok(value) => {
@@ -789,6 +795,7 @@ impl Desktop {
             self.issue("file.save", json!({}), After::None, cx);
         }
         self.refresh_ime_geometry(window, cx);
+        self.show_pending_password(window, cx);
         self.performance.applied(self.snapshot.sequence);
         self.poll_control(window, cx);
         if self.daily_group == 16 && self.engine.tasks().iter().any(|t| matches!(t.state.as_str(), "running" | "cancelling")) {
@@ -868,9 +875,10 @@ impl Desktop {
             After::Open => self.pick_open_now(window, cx),
             After::OpenPaths(paths) => {
                 for path in paths {
-                    self.issue("file.open", json!({"path":path}), After::None, cx);
+                    self.open_native_path(path, None, cx);
                 }
             }
+            After::NativeOpen(_) => {}
             After::Close(force) => self.close(force, window, cx),
             After::CloseSaved => {
                 if self.view().is_some_and(|v| v.dirty) {
@@ -902,7 +910,10 @@ impl Desktop {
     fn pick_open_now(&mut self, window: &mut Window, cx: &mut Context<Self>) {
         cx.spawn_in(window, async move |this, cx| {
             if let Some(path) = joysheet_platform::pick_open().await {
-                let _ = this.update_in(cx, |this, _, cx| this.issue("file.open", json!({"path":path}), After::None, cx));
+                let _ = this.update_in(cx, |this, _, cx| match path.into_os_string().into_string() {
+                    Ok(path) => this.open_native_path(path, None, cx),
+                    Err(_) => this.alert("无法读取文件路径 / Cannot read the selected file path"),
+                });
             }
         })
         .detach();
@@ -1447,7 +1458,7 @@ impl Render for Desktop {
                 list = list.child(div().id(("recent", index)).cursor_pointer().p_2().text_sm().child(path.clone()).on_click(cx.listener(
                     move |this, _, window, cx| {
                         this.recent_open = false;
-                        this.commit(After::Command("file.open".into(), json!({"path":path})), window, cx);
+                        this.commit(After::OpenPaths(vec![path.clone()]), window, cx);
                     },
                 )));
             }

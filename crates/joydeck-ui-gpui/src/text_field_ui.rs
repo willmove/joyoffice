@@ -29,6 +29,7 @@ enum FooterScope {
     CurrentMissing,
     AllMissing,
     Existing,
+    ClearExisting,
 }
 
 impl FooterScope {
@@ -37,6 +38,7 @@ impl FooterScope {
             Self::CurrentMissing => "为当前缺失页脚的幻灯片添加",
             Self::AllMissing => "为所有缺失页脚的幻灯片添加",
             Self::Existing => "更新全稿已有页脚",
+            Self::ClearExisting => "清空全稿已有页脚文字",
         }
     }
 
@@ -44,7 +46,7 @@ impl FooterScope {
         match self {
             Self::CurrentMissing => Command::AddMissingFooterText { text },
             Self::AllMissing => Command::AddAllMissingFooterText { text },
-            Self::Existing => Command::SetExistingFooterText { text },
+            Self::Existing | Self::ClearExisting => Command::SetExistingFooterText { text },
         }
     }
 }
@@ -71,6 +73,7 @@ impl Viewer {
                             FooterScope::CurrentMissing,
                             FooterScope::AllMissing,
                             FooterScope::Existing,
+                            FooterScope::ClearExisting,
                         ]
                         .into_iter()
                         .enumerate()
@@ -94,12 +97,18 @@ impl Viewer {
     fn footer_dialog(&mut self, scope: FooterScope, w: &mut Window, cx: &mut Context<Self>) {
         let Some(editor) = &self.editor else { return };
         let page = editor.session.selection().page;
-        let (label, text) = if matches!(scope, FooterScope::Existing) {
+        let fields = if matches!(scope, FooterScope::Existing | FooterScope::ClearExisting) {
             match existing_footer_summary(editor.session.model()) {
-                Ok(summary) => match summary.text {
-                    Some(text) => ("页脚文字", text),
-                    None => ("现有页脚文字不同，请输入统一文字", String::new()),
-                },
+                Ok(summary) => {
+                    if matches!(scope, FooterScope::ClearExisting) {
+                        Vec::new()
+                    } else {
+                        vec![match summary.text {
+                            Some(text) => ("页脚文字", text),
+                            None => ("现有页脚文字不同，请输入统一文字", String::new()),
+                        }]
+                    }
+                }
                 Err(error) => {
                     self.message = error;
                     cx.notify();
@@ -107,21 +116,25 @@ impl Viewer {
                 }
             }
         } else {
-            ("页脚文字", String::new())
+            vec![("页脚文字", String::new())]
         };
         self.fields_dialog(
-            scope.label(),
-            vec![(label, text)],
+            if matches!(scope, FooterScope::ClearExisting) {
+                "清空全稿已有页脚文字？保留页脚占位框。"
+            } else {
+                scope.label()
+            },
+            fields,
             w,
             cx,
-            move |s, mut values, w, cx| {
+            move |s, values, w, cx| {
                 if matches!(scope, FooterScope::CurrentMissing)
                     && s.editor.as_ref().map(|e| e.session.selection().page) != Some(page)
                 {
                     return Err("当前幻灯片已变化，请重新打开此对话框".into());
                 }
-                let text = values.remove(0);
-                if text.trim().is_empty() {
+                let text = values.into_iter().next().unwrap_or_default();
+                if !matches!(scope, FooterScope::ClearExisting) && text.trim().is_empty() {
                     return Err("请输入页脚文字".into());
                 }
                 if !s.try_dispatch(scope.command(text), w, cx)? {

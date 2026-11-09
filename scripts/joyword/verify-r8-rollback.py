@@ -136,8 +136,11 @@ def verify_control(bin_dir, env, source):
         capabilities = request(port, "capabilities", key=key)["result"]
         require(capabilities["versionRequired"] and not capabilities["fileAccess"],
                 'Control version or file-access contract changed')
+        ui_commands = set(capabilities.get("uiCommands", []))
         if capabilities["uiAutomation"]:
-            require(set(capabilities["uiCommands"]) == {"edit.goto", "view.zoom"},
+            legacy_ui = {"edit.goto", "view.zoom"}
+            navigation_ui = legacy_ui | {"edit.find", "view.onePage", "view.pageWidth"}
+            require(ui_commands in (legacy_ui, navigation_ui),
                     'Unexpected UI command capabilities')
             target = {"doc": before["doc"], "version": before["version"]}
             for command, invalid, valid in [
@@ -153,6 +156,11 @@ def verify_control(bin_dir, env, source):
                 if command == "view.zoom":
                     require(reply["result"]["zoom"] == 1.25,
                             'Control returned an incorrect zoom')
+            for command, mode in [("view.onePage", "onePage"), ("view.pageWidth", "pageWidth")]:
+                if command in ui_commands:
+                    reply = request(port, "engine.execute", {**target, "command": command}, key)
+                    require(reply["ok"] and reply["result"]["fit"] == mode,
+                            'Control returned an incorrect fit mode')
         args = {"doc": before["doc"], "version": before["version"], "command": "text.insert",
                 "params": {"text": "R8 控制验证 "}}
         require(not request(port, "engine.execute", {**args, "doc": before["doc"] + 1}, key)["ok"],
@@ -166,6 +174,19 @@ def verify_control(bin_dir, env, source):
         after = request(port, "document.inspect", key=key)["result"]
         require(after["text"].count("R8 控制验证 ") == 1 and after["version"] != before["version"],
                 'Edit text or document version did not advance exactly once')
+        if "edit.find" in ui_commands:
+            find = {"doc": after["doc"], "version": after["version"], "command": "edit.find"}
+            for invalid in (None, "", "字" * 400):
+                reply = request(port, "engine.execute", {**find, "params": {"text": invalid}}, key)
+                require(not reply["ok"], 'Control accepted invalid find text')
+            query = {**find, "params": {"text": "R8 控制验证 ", "with": "must not replace"}}
+            require(not request(port, "engine.execute", {**query, "version": before["version"]}, key)["ok"],
+                    'Control accepted a stale search')
+            reply = request(port, "engine.execute", query, key)
+            require(reply["ok"] and reply["result"]["count"] == 1, 'Control did not find the inserted text')
+            observed = request(port, "document.inspect", key=key)["result"]
+            require(all(observed[field] == after[field] for field in ("doc", "version", "text")),
+                    'Find changed document text or revision')
         mcp = {"jsonrpc": "2.0", "id": 1, "method": "tools/call",
                "params": {"name": "inspect_document", "arguments": {}}}
         output = subprocess.check_output(

@@ -1,5 +1,7 @@
 # JD-307 外部 HTML 与 RTF 粘贴
 
+2026-11-09 在 Windows 实屏验证 Microsoft Word 向 JoyDeck 画布粘贴粗体、斜体和颜色，单步撤销重做及 PowerPoint 重开通过。Windows 仅 RTF 提供方、原位和表格的富内容仍开放。[Windows 续验](../../../joyoffice/validation/20261109-p1-followup/README.md)
+
 2026-11-05，Apple M4／macOS 27.2，1× 实屏。仓库外解压 ARM64 Release 验收包 `joydeck-0.8.0-r3-external-rich-verified.zip`，1805 项载荷散列一致。归档 SHA-256 为 `e9d41d150d75a8d0e804ba0602271c15d5324f76cc4e7484a681f9af58b0662c`。[输入文稿](fixture.pptx) · [HTML 样例](web-fragment.html) · [RTF 样例](office-fragment.rtf) · [验证数据](verification.json)
 
 外部文字粘贴按 HTML、RTF、纯文本顺序取可用数据。原位粘贴修改当前选区，画布空白处粘贴创建可编辑文本框。内部富文字、对象、图片和表格 TSV 继续沿用各自路径。HTML 只提取剪贴板片段与支持的静态样式，RTF 处理组内格式、常用代码页和 UTF-16 单元。网页与邮件链接经过现有协议白名单。解析在内存中完成，只处理剪贴板输入，受输入大小、嵌套深度、输出文字与 run 数量约束。[AppKit 剪贴板格式](https://developer.apple.com/documentation/appkit/nspasteboard/pasteboardtype) · [Windows CF_HTML](https://learn.microsoft.com/en-us/windows/win32/dataxchg/html-clipboard-format) · [HTML 分词标准](https://html.spec.whatwg.org/multipage/parsing.html#tokenization) · [Microsoft RTF 规范引用](https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-wordswcf/a9968e4b-4603-41a5-bfa6-280d4e4d0685)

@@ -283,6 +283,9 @@ fn tree(e: &El) -> Option<&El> {
     e.path(&["cSld", "spTree"])
 }
 fn node_id(e: &El) -> Option<ShapeId> {
+    if matches!(e.local(), "nvGrpSpPr" | "grpSpPr" | "extLst") {
+        return None;
+    }
     e.find("cNvPr").and_then(|e| e.u32("id")).map(ShapeId)
 }
 fn read_parts(bytes: &[u8]) -> Result<BTreeMap<String, Vec<u8>>, PptxError> {
@@ -633,7 +636,7 @@ pub fn export_preserving(
         let mut nodes: Vec<Node> = old_tree
             .children
             .iter()
-            .filter(|n| !matches!(n,Node::El(e) if node_id(e).is_some()))
+            .filter(|n| !matches!(n,Node::El(e) if e.is("extLst") || node_id(e).is_some()))
             .cloned()
             .collect();
         for shape in &slide.shapes {
@@ -915,6 +918,14 @@ pub fn export_preserving(
             }
             nodes.push(Node::El(e));
         }
+        // The shape tree starts with its group properties and ends with optional extensions.
+        nodes.extend(
+            old_tree
+                .elements()
+                .filter(|e| e.is("extLst"))
+                .cloned()
+                .map(Node::El),
+        );
         let target = child_mut(
             child_mut(&mut root, "cSld").ok_or_else(|| error("missing cSld"))?,
             "spTree",

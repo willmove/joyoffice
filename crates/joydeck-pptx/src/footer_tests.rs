@@ -66,8 +66,14 @@ fn footer_summary_keeps_header_and_automatic_date_format_without_flattening_slid
     );
 }
 #[test]
-fn changing_one_footer_preserves_other_slide_and_automatic_date() {
-    let source = fixture();
+fn changing_one_footer_preserves_other_slide_and_automatic_date()
+-> Result<(), Box<dyn std::error::Error>> {
+    let source = with_visibility_xml(
+        &fixture(),
+        "ppt/slides/slide",
+        "p:spTree",
+        r#"<p:extLst><p:ext uri="urn:joydeck:test"><test:data xmlns:test="urn:joydeck:test"/></p:ext></p:extLst>"#,
+    )?;
     let base = import(&source).unwrap();
     let bindings: Vec<_> = base
         .slides
@@ -93,11 +99,35 @@ fn changing_one_footer_preserves_other_slide_and_automatic_date() {
     assert_eq!(reopened.slides[1], base.slides[1]);
     let original_pkg = crate::opc::Package::open(&source).unwrap();
     let saved_pkg = crate::opc::Package::open(&saved).unwrap();
+    let before = original_pkg
+        .xml("ppt/slides/slide1.xml")
+        .ok_or("missing input slide")?;
+    let after = saved_pkg
+        .xml("ppt/slides/slide1.xml")
+        .ok_or("missing output slide")?;
+    let before = before
+        .root
+        .path(&["cSld", "spTree"])
+        .ok_or("missing input shape tree")?;
+    let after = after
+        .root
+        .path(&["cSld", "spTree"])
+        .ok_or("missing output shape tree")?;
+    assert_eq!(
+        after.elements().next().map(|e| e.local()),
+        Some("nvGrpSpPr")
+    );
+    assert_eq!(after.elements().nth(1).map(|e| e.local()), Some("grpSpPr"));
+    assert_eq!(after.elements().last().map(|e| e.local()), Some("extLst"));
+    for tag in ["nvGrpSpPr", "grpSpPr", "extLst"] {
+        assert_eq!(after.child(tag), before.child(tag));
+    }
     assert_eq!(
         original_pkg.get("ppt/slides/slide2.xml"),
         saved_pkg.get("ppt/slides/slide2.xml")
     );
     assert_eq!(import(&source).unwrap(), base);
+    Ok(())
 }
 
 #[test]

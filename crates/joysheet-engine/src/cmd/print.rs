@@ -173,8 +173,12 @@ fn build_pdf(s: &Session, p: &Json, cmd: &str) -> Result<(Vec<u8>, usize)> {
 }
 
 pub(crate) fn export_pdf(s: &mut Session, p: &Json) -> Result<Json> {
+    let path = str_param(p, "path").filter(|x| !x.is_empty());
+    if let Some(path) = path {
+        super::file::protect_encrypted_origin(s.doc()?, path)?;
+    }
     let (bytes, pages) = build_pdf(s, p, "file.exportPdf")?;
-    match str_param(p, "path").filter(|x| !x.is_empty()) {
+    match path {
         Some(path) => {
             crate::io::write_file(path, &bytes)?;
             Ok(json!({"pages": pages, "bytes": bytes.len(), "path": path}))
@@ -184,9 +188,13 @@ pub(crate) fn export_pdf(s: &mut Session, p: &Json) -> Result<Json> {
 }
 
 fn print(s: &mut Session, p: &Json) -> Result<Json> {
+    let path = str_param(p, "path").filter(|x| !x.is_empty());
+    if let Some(path) = path {
+        super::file::protect_encrypted_origin(s.doc()?, path)?;
+    }
     let (bytes, pages) = build_pdf(s, p, "file.print")?;
     let mut out = json!({"pages": pages, "bytes": bytes.len(), "base64": crate::io::base64_encode(&bytes)});
-    if let Some(path) = str_param(p, "path").filter(|x| !x.is_empty()) {
+    if let Some(path) = path {
         crate::io::write_file(path, &bytes)?;
         out["path"] = json!(path);
     }

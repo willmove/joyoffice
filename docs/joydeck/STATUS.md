@@ -1,5 +1,7 @@
 # JoyDeck 当前状态
 
+2026-11-09 Windows P1 续验 JD-305、JD-307、JD-602 与 JD-608。插入功能区新增清空全稿已有页脚文字，实屏验证确认、取消、单步撤销和重做。PPTX 保留写回保留形状树非可视组属性和扩展位置。Microsoft Word 的粗体、斜体和颜色经系统剪贴板粘贴，PowerPoint 直接打开另存的三页 PPTX。[本机验证](../joyoffice/validation/20261109-p1-followup/README.md)
+
 当前工作区版本为 v0.1.2。JoyDeck 桌面、CLI 和组件统一继承 JoyOffice 工作区版本，仍使用 `joydeck-v*` 标签独立打包。历史重构包 0.8.0 用户换版时需显式选择 0.1.2。[R9 交接](../joyoffice/JOYDECK-R9-HANDOFF.md)
 
 2026-11-09 推进 JD-305。「插入」页脚支持当前缺失页、全部缺失页和更新已有页脚三种事务。Windows 已通过重复拒绝、单页与批量补建、混合值更新、撤销和 PPTX 另存读回。页眉、隐式继承、显示开关及其他文字能力继续开放。[本机验收](../joyoffice/validation/20261109-v012/README.md#p1)

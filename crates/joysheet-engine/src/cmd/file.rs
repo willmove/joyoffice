@@ -3,7 +3,7 @@
 use serde_json::{Value as Json, json};
 
 use super::*;
-use crate::DocState;
+use crate::{DocState, EncryptedOrigin};
 
 pub fn specs() -> Vec<CommandSpec> {
     vec![
@@ -44,7 +44,8 @@ fn new_workbook(s: &mut Session, p: &Json) -> Result<Json> {
 }
 
 fn open(s: &mut Session, p: &Json) -> Result<Json> {
-    let (name, bytes) = if let Some(b) = str_param(p, "base64") {
+    let base64 = str_param(p, "base64");
+    let (name, bytes) = if let Some(b) = base64 {
         (str_param(p, "name").unwrap_or("Book.xlsx").to_string(), crate::io::base64_decode(b).ok_or_else(|| bad("file.open", "invalid base64"))?)
     } else if let Some(path) = str_param(p, "path") {
         // Already open? Switch to it.
@@ -75,18 +76,26 @@ fn open(s: &mut Session, p: &Json) -> Result<Json> {
     } else {
         std::path::Path::new(&name).file_name().and_then(std::ffi::OsStr::to_str).unwrap_or("Book").to_string()
     };
-    // An import has no save target: ordinary Save must ask for a new destination. Neither does a
-    // workbook decrypted with its password, so Save never replaces the encrypted original with
-    // an unprotected copy.
+    // Imports and decrypted workbooks have no default save target.
     let path = str_param(p, "path").filter(|_| !imported && !encrypted).map(str::to_string);
     // Replace an untouched blank Book1 like Excel does.
     if s.documents().len() == 1
-        && s.active().is_some_and(|d| d.path.is_none() && !d.is_dirty() && d.undo.is_empty() && d.wb.sheets.iter().all(|sh| sh.cells.is_empty()))
+        && s.active().is_some_and(|d| {
+            d.path.is_none() && !d.decrypted_unsaved() && !d.is_dirty() && d.undo.is_empty() && d.wb.sheets.iter().all(|sh| sh.cells.is_empty())
+        })
     {
         s.close_document(0);
     }
     // Someone else may have made the file: its active content asks before it runs.
     let mut doc = DocState::new(wb, path, title, crate::Trust::FromFile);
+    if encrypted {
+        doc.encrypted_origin = Some(
+            str_param(p, "path")
+                .filter(|_| base64.is_none())
+                .and_then(crate::io::source_path)
+                .map_or(EncryptedOrigin::Bytes, |path| EncryptedOrigin::File { resolved: crate::io::resolved_path(&path), path }),
+        );
+    }
     if crate::io::FileKind::from_path(&name).is_none() && joysheet_xlsx::sniff(&bytes) == joysheet_xlsx::Format::Xlsx {
         doc.content_kind = Some(crate::io::FileKind::Xlsx);
     }
@@ -120,6 +129,7 @@ fn save(s: &mut Session, p: &Json) -> Result<Json> {
         return super::print::export_pdf(s, &json!({"path": path}));
     }
     let d = s.doc_mut()?;
+    protect_encrypted_origin(d, &path)?;
     // The document's own file keeps the format its content had when opened; any other path
     // goes by its extension. Relative paths to linked workbooks are rewritten for the new folder.
     let kind = crate::io::FileKind::from_path(&path).or(d.content_kind.filter(|_| d.path.as_deref() == Some(path.as_str())));
@@ -191,9 +201,20 @@ fn export(s: &mut Session, p: &Json, ext: &str) -> Result<Json> {
         wb.set_active_sheet(target_sheet(s, p)?);
     }
     let target = if path.ends_with(&format!(".{ext}")) { path.clone() } else { format!("{path}.{ext}") };
+    protect_encrypted_origin(d, &target)?;
     let bytes = crate::io::save_bytes(&wb, &target)?;
     crate::io::write_file(&target, &bytes)?;
     Ok(json!({"path": target, "bytes": bytes.len()}))
+}
+
+pub(super) fn protect_encrypted_origin(d: &DocState, path: &str) -> Result<()> {
+    if let Some(EncryptedOrigin::File { path: source, resolved }) = &d.encrypted_origin
+        && let Some(target) = crate::io::source_path(path)
+        && (source == &target || resolved.as_ref().is_some_and(|source| crate::io::resolved_path(&target).as_ref() == Some(source)))
+    {
+        return Err(EngineError::Other("Choose a different destination to preserve the encrypted original.".into()));
+    }
+    Ok(())
 }
 
 fn properties(s: &mut Session, p: &Json) -> Result<Json> {
