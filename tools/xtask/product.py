@@ -10,6 +10,7 @@ import re
 import subprocess
 import sys
 import tempfile
+import tomllib
 
 ROOT = Path(__file__).resolve().parents[2]
 PRODUCTS = {"joyword": ("joyword", "joyword-cli"), "joydeck": ("joydeck", "joydeck-cli"),
@@ -21,17 +22,14 @@ VALIDATION_FEATURES = {"joydeck": "joydeck/validation", "joysheet": "joysheet/au
 def manifest_version(product, root=ROOT):
     if product not in {name for pair in PRODUCTS.values() for name in pair}:
         raise ValueError("unknown application: " + product)
-    text = (Path(root) / "apps" / product / "Cargo.toml").read_text(encoding="utf-8")
-    section = re.search(r"(?ms)^\[package\]\s*(.*?)(?=^\[|\Z)", text)
-    found = re.search(r'^version\s*=\s*"([^"]+)"', section[1] if section else "", re.M)
-    if found:
-        return found[1]
-    if section and re.search(r"^version\.workspace\s*=\s*true", section[1], re.M):
-        workspace = (Path(root) / "Cargo.toml").read_text(encoding="utf-8")
-        section = re.search(r"(?ms)^\[workspace\.package\]\s*(.*?)(?=^\[|\Z)", workspace)
-        found = re.search(r'^version\s*=\s*"([^"]+)"', section[1] if section else "", re.M)
-        if found:
-            return found[1]
+    root = Path(root)
+    with (root / "apps" / product / "Cargo.toml").open("rb") as manifest:
+        version = tomllib.load(manifest).get("package", {}).get("version")
+    if version == {"workspace": True}:
+        with (root / "Cargo.toml").open("rb") as manifest:
+            version = tomllib.load(manifest).get("workspace", {}).get("package", {}).get("version")
+    if isinstance(version, str) and version:
+        return version
     raise ValueError("missing product version: " + product)
 
 def release_target(tag=None, product=None, version=None, root=ROOT):

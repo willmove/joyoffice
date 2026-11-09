@@ -57,6 +57,16 @@ class ProductRouting(unittest.TestCase):
         self.assertEqual(product.manifest_version('joydeck', self.root), '0.1.3')
         self.assertEqual(product.manifest_version('joyword', self.root), '0.2.1')
 
+    def test_workspace_version_routes_each_product_tag(self):
+        for name, apps in product.PRODUCTS.items():
+            for app in apps:
+                (self.root / 'apps' / app / 'Cargo.toml').write_text(
+                    '[package]\nversion.workspace = true\n', encoding='utf-8')
+            with self.subTest(product=name):
+                tag = f'{name}-v9.9.9'
+                self.assertEqual(product.release_target(tag, root=self.root),
+                                 {'product': name, 'version': '9.9.9', 'tag': tag})
+
     def test_legacy_tags_route_only_to_word(self):
         self.assertEqual(product.release_target('v0.2.1', root=self.root),
                          {'product': 'joyword', 'version': '0.2.1', 'tag': 'v0.2.1'})

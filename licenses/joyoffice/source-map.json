@@ -4,8 +4,8 @@
     "source_path": "crates/joyoffice-ui/Cargo.toml",
     "target_path": "crates/joyoffice-ui/Cargo.toml",
     "source_sha256": "567500515b66356c40ea3e65f11f160093b88f78edf1a834ae138e7047a52da9",
-    "local_changes": "CRLF normalized to LF; content otherwise unchanged",
-    "adapted_sha256": "b142babb482b11493bbdb1287156714b1506d6d78eda6f1bfa1be91835346be8"
+    "local_changes": "CRLF normalized to LF; inherit the unified JoyOffice workspace version",
+    "adapted_sha256": "337e196c510c1068ad77c50efc86978ab27e958dbdb095be1a0494bda73ea58b"
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
@@ -68,9 +68,10 @@
     "source_path": "scripts/joydeck/package-native.py",
     "target_path": "scripts/joydeck/package-native.py",
     "source_sha256": "a4ae844b6c2488524872bc69e418673dce6cd1599530447e9efc54ab6be1398e",
-    "adapted_sha256": "5d42a4a530fd9d191cc146e0b11acad65077f72de63fef2c8b862b9dedda6406",
+    "adapted_sha256": "e62d123c294ebb478db3d3cb8cae06175be26e03b047059f168af0f6bea81b3b",
     "local_changes": "adapt product packaging and Cargo artifact discovery; add source checks, selected SBOM and atomic ZIP; LF; R1 rustfmt and bounded reader/CPU-renderer/palette/notes adapters as applicable; R2 editable viewer adapter, background save/recovery, command-driven gestures, coordinate anchoring and close guard; rustfmt; R4/R5 scene/content workspace adaptation; R6/R7 adapter additions and repository rustfmt/LF normalization.; R8 native editor, clipboard or product package version adaptation; R9 host integration and explicit command schema negotiation",
     "r9_ui2_gui_fix": "Include reviewed local platform-adapter source in package fingerprint",
+    "unified_version": "Resolve the host workspace package version and render it in the bundled README",
     "macos_document_open": "Declare the public PPTX document type as a macOS Alternate editor.",
     "macos_static_video": "Compile and package the macOS AVFoundation static MP4 helper beside the desktop and CLI binaries.",
     "dependency_license_report": "Report versioned missing license texts from the packaged SPDX index, including pinned upstream supplements.",

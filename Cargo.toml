@@ -101,7 +101,7 @@ default-members = [
 resolver = "3"
 
 [workspace.package]
-version = "0.1.0"
+version = "0.1.2"
 edition = "2024"
 rust-version = "1.98"
 license = "MIT"
@@ -158,15 +158,15 @@ joyword-agent = { path = "crates/joyword-agent", default-features = false }
 joyoffice-cfb = { path = "crates/joyoffice-cfb" }
 joyoffice-drawingml = { path = "crates/joyoffice-drawingml" }
 joyoffice-omml = { path = "crates/joyoffice-omml" }
-joyoffice-opc = { version = "=0.1.0", path = "crates/joyoffice-opc" }
+joyoffice-opc = { version = "=0.1.2", path = "crates/joyoffice-opc" }
 joyword-corpus = { path = "crates/joyword-corpus" }
-joyword-doc = { version = "=0.1.0", path = "crates/joyword-doc" }
-joyword-docx = { version = "=0.1.0", path = "crates/joyword-docx" }
-joyword-engine = { version = "=0.1.0", path = "crates/joyword-engine" }
-joyword-layout = { version = "=0.1.0", path = "crates/joyword-layout" }
-joyword-model = { version = "=0.1.0", path = "crates/joyword-model" }
-joyword-pdf = { version = "=0.1.0", path = "crates/joyword-pdf" }
-joyword-render = { version = "=0.1.0", path = "crates/joyword-render" }
+joyword-doc = { version = "=0.1.2", path = "crates/joyword-doc" }
+joyword-docx = { version = "=0.1.2", path = "crates/joyword-docx" }
+joyword-engine = { version = "=0.1.2", path = "crates/joyword-engine" }
+joyword-layout = { version = "=0.1.2", path = "crates/joyword-layout" }
+joyword-model = { version = "=0.1.2", path = "crates/joyword-model" }
+joyword-pdf = { version = "=0.1.2", path = "crates/joyword-pdf" }
+joyword-render = { version = "=0.1.2", path = "crates/joyword-render" }
 joyword-shell = { path = "crates/joyword-shell" }
 crc32fast = "=1.5.2"
 harfrust = "=0.8.4"
@@ -213,8 +213,8 @@ joyword-control-key = { path = "crates/joyword-control-key" }
 joyword-proof = { version = "=0.1.0", package = "craft-proof", path = "third-party/craft-libs/proof" }
 craft-font-store = { version = "=0.1.0", path = "third-party/craft-libs/font-store" }
 craft-font-catalog = { version = "=0.1.0", path = "third-party/craft-libs/font-catalog" }
-joyword-fonts = { version = "=0.1.0", path = "crates/joyword-fonts" }
-joyword-formats = { version = "=0.1.0", path = "crates/joyword-formats" }
+joyword-fonts = { version = "=0.1.2", path = "crates/joyword-fonts" }
+joyword-formats = { version = "=0.1.2", path = "crates/joyword-formats" }
 wuff = "=0.2.9"
 brotli-decompressor = "=5.0.3"
 unicode-script = "=0.5.8"
@@ -227,8 +227,8 @@ hmac-sha1 = { package = "hmac", version = "=0.13.0" }
 zeroize = "=1.9.1"
 regex-automata = { version = "=0.4.18", default-features = false, features = ["std", "syntax", "meta", "nfa-pikevm", "unicode"] }
 libc = "=0.2.186"
-joyword-geom = { version = "=0.1.0", path = "crates/joyword-geom" }
-joyword-metafile = { version = "=0.1.0", path = "crates/joyword-metafile" }
+joyword-geom = { version = "=0.1.2", path = "crates/joyword-geom" }
+joyword-metafile = { version = "=0.1.2", path = "crates/joyword-metafile" }
 proptest = "=1.11.0"
 joyword-ui-gpui = { path = "crates/joyword-ui-gpui" }
 

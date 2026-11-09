@@ -74,6 +74,13 @@ def cli(bin_dir, env, *args):
     return json.loads(output)
 
 
+def inspect_text(bin_dir, env, source):
+    # The distributed 0.1.1 package predates the explicit --session flag.
+    text = cli(bin_dir, env, "inspect", "--", source).get("text")
+    require(isinstance(text, str), 'CLI inspection did not return text')
+    return text
+
+
 def request(port, method, params=None, key=None):
     payload = {"id": 1, "method": method, "params": params or {}}
     if key is not None:
@@ -192,7 +199,9 @@ def verify(previous, candidate, fixtures, work):
     env.pop("JOYWORD_CONTROL_KEY", None)
     env.pop("JOYWORD_PROFILE_DIR", None)
     default_app = association()
-    before = cli(install, env, "inspect", "--session", source)["text"]
+    before = inspect_text(install, env, source)
+    expected_recovery = inspect_text(install, env, fixtures / "snapshot.docx")
+    require(expected_recovery.strip(), 'Recovery fixture text is empty')
     # The failed update is rejected before replacing the active payload.
     bad = work / "damaged.zip"
     bad.write_bytes(b"invalid candidate")
@@ -227,10 +236,10 @@ def verify(previous, candidate, fixtures, work):
                 'Recovered snapshot changed')
     require(all(digest(install / name) == sha for name, sha in old_binaries.items()),
             'Rollback did not restore installed binaries')
-    require(cli(install, env, "inspect", "--session", source)["text"] == before,
+    require(inspect_text(install, env, source) == before,
             'Rolled-back CLI changed source text')
-    require(cli(install, env, "inspect", "--session", restored)["pages"],
-            'Rolled-back CLI could not reopen recovered document')
+    require(inspect_text(install, env, restored) == expected_recovery,
+            'Rolled-back CLI changed recovered document text')
     app = start(install / "joyword.exe", env, "--", source)
     try:
         time.sleep(2)

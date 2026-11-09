@@ -2,7 +2,7 @@
 
 <img src="../../assets/brand/joysheet.svg" width="56" height="56" alt="JoySheet">
 
-Rust + GPUI 电子表格应用，现接入 JoyOffice Monorepo。应用和 CLI 版本为 **0.1.0**，功能基线为 **M8-preview6**；全量迁移与人工验收仍按 [状态](STATUS.md)和[任务矩阵](MIGRATION.md)跟踪。本次工程整合不关闭原有未完成里程碑。
+Rust + GPUI 电子表格应用，现接入 JoyOffice Monorepo。应用和 CLI 继承 JoyOffice 统一版本 **0.1.2**，功能基线为 **M8-preview6**；全量迁移与人工验收仍按 [状态](STATUS.md)和[任务矩阵](MIGRATION.md)跟踪。本次工程整合不关闭原有未完成里程碑。
 
 计算、工作簿、公式、XLSX/ODS/XLS/XLSB、图表、PDF、引擎与 MCP 来源于 GridCraft 0.12.1，已机械更名为产品包名。原始版权、双许可证、来源哈希和必要适配记录保留，参见 [ATTRIBUTION](ATTRIBUTION.md)、[原始来源](upstream-source.json)和[核心适配](UPSTREAM-PATCHES.md)。
 

@@ -15,6 +15,13 @@ SPEC.loader.exec_module(rollback)
 
 
 class Rollback(unittest.TestCase):
+    def test_inspects_a_release_cli_without_session_option(self):
+        with patch.object(rollback, "cli", side_effect=[{"text": "original"}, {"pages": []}]) as cli:
+            self.assertEqual(rollback.inspect_text(Path("old"), {}, Path("source.docx")), "original")
+            cli.assert_called_once_with(Path("old"), {}, "inspect", "--", Path("source.docx"))
+            with self.assertRaisesRegex(ValueError, "did not return text"):
+                rollback.inspect_text(Path("old"), {}, Path("source.docx"))
+
     def test_validation_failure_restores_previous(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

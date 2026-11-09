@@ -31,12 +31,12 @@ PR #121 已按用户要求合入 main `6689c6e`。PR #119 已整理为 QEMU 子�
 
 ## 当前模块和依赖
 
-- GUI / CLI 为唯一的 `apps/joydeck`、`apps/joydeck-cli`，应用名称均为 joydeck，版本 0.8.0。
+- GUI／CLI 为 `apps/joydeck`、`apps/joydeck-cli`，当前继承 JoyOffice 统一版本 0.1.2。导入时的重构版本为 0.8.0。
 - 唯一可编辑模型是 `joydeck-model`，命令在 `joydeck-engine`；纯格式/呈现为 `format/pptx/geom/color/text/anim/metafile/render/pdf`；`fonts` 隔离系统字体发现；`shell` 负责文稿、恢复、文件/媒体/helper、输出与自动化；`ui-gpui` 负责原生界面。
 - 旧 `joydeck-formats/scene/export/platform` 已移除。`joydeck-legacy` 只是私有、只读 DTO/OOXML 转换桥，不能作为第二个编辑引擎。
 - 公共 `joyoffice-ui` 和 `joyoffice-opc` 只有宿主一套实现；UI 内容没有变化，OPC 仅保留错误返回改进，接口与预算不变。
 - 共用根 Cargo.toml / Cargo.lock / Rust 1.98.1、edition 2024、resolver 3；GPUI Kit 0.8.1 / pre 0.3.10、官方 Krilla 0.8.2 不变，没有 egui。新增十个 registry 包来自原重构渲染器，既有包版本/来源/checksum 无变动，见 [锁差异](../joydeck/evidence/R9/lock-delta.json)。
-- Word 0.1.1、Sheet 0.1.0 和宿主内部库元数据保持原值；本次没有发布三产品新版本。产品仍使用各自的版本、标签与打包入口。
+- 整合当时保留 Word 0.1.1 与 Sheet 0.1.0。当前各产品和宿主内部库统一使用 0.1.2，继续采用各自的标签与打包入口。
 
 ## 在这里构建和验证
 

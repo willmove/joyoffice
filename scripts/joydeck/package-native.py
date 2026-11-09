@@ -10,13 +10,12 @@ import re
 import shutil
 import subprocess
 import sys
-import tomllib
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / 'tools/xtask'))
 sys.path.insert(0, str(ROOT / 'scripts'))
-from product import native_environment  # noqa: E402
+from product import manifest_version, native_environment  # noqa: E402
 from product_icons import BRAND, bundle_icon, copy_logo, linux_launcher  # noqa: E402
 
 
@@ -98,8 +97,8 @@ def main():
     args = parser.parse_args()
     if args.name and not re.fullmatch(r'joydeck-[a-zA-Z0-9.+-]+', args.name):
         parser.error('--name must be a simple joydeck- package name')
-    version = tomllib.loads((ROOT / 'apps/joydeck/Cargo.toml').read_text(encoding='utf-8'))['package']['version']
-    cli_version = tomllib.loads((ROOT / 'apps/joydeck-cli/Cargo.toml').read_text(encoding='utf-8'))['package']['version']
+    version = manifest_version('joydeck')
+    cli_version = manifest_version('joydeck-cli')
     if version != cli_version:
         raise ValueError('Application and CLI versions must match')
     subprocess.run([sys.executable, ROOT / 'scripts/joydeck/check_sources.py'], cwd=ROOT, env=native_environment(), check=True)
@@ -134,7 +133,8 @@ def main():
     for file in ['LICENSE', 'THIRD_PARTY-JOYDECK.md', 'Cargo.lock', 'rust-toolchain.toml']:
         shutil.copy2(ROOT / file, output / file)
     shutil.copytree(ROOT / 'licenses', output / 'licenses')
-    shutil.copy2(ROOT / 'packaging/joydeck/README-r9.md', output / 'README.md')
+    readme = (ROOT / 'packaging/joydeck/README-r9.md').read_text(encoding='utf-8')
+    (output / 'README.md').write_text(readme.replace('@VERSION@', version), encoding='utf-8')
     shutil.copytree(ROOT / 'tests/fixtures/joydeck', output / 'samples')
     copy_logo(output, 'joydeck')
     license_records = []

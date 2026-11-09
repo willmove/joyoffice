@@ -1,4 +1,4 @@
-# JoyDeck 0.8.0 · JoyOffice R9 开发包
+# JoyDeck @VERSION@ · JoyOffice R9 开发包
 
 解压后在 Windows 运行 joydeck.exe，在 macOS 打开 JoyDeck.app。产品在 JoyOffice 单一 workspace 构建，保留 GPUI Kit 0.8.1 / pre 0.3.10 与 Rust 1.98.1；不依赖旧 joydeck-new 工作目录。Word/Sheet 不包含在本包内，也不是运行依赖。
 

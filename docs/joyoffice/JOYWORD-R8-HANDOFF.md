@@ -16,7 +16,7 @@
 
 | 契约 | R8 状态与迁移方式 |
 | --- | --- |
-| 产品、文件打开 | 保留 `JoyWord`、`joyword` 和产品版本 0.1.1。桌面接受 Unicode 文档路径与 `-- PATH`。Windows 本机的 DOCX 默认处理程序为 `Word.Document.12`。便携包通过桌面「打开」或命令行接收路径，安装器注册和系统默认切换留待发布验收。macOS bundle id 保留 `dev.joyoffice.joyword`。 |
+| 产品、文件打开 | 保留 `JoyWord`、`joyword`，应用和 CLI 使用 JoyOffice 统一版本 0.1.2。桌面接受 Unicode 文档路径与 `-- PATH`。Windows 本机的 DOCX 默认处理程序为 `Word.Document.12`。便携包通过桌面「打开」或命令行接收路径，安装器注册和系统默认切换留待发布验收。macOS bundle id 保留 `dev.joyoffice.joyword`。 |
 | 偏好 | 配置根仍为 Windows `%APPDATA%/JoyWord`、Linux `$XDG_CONFIG_HOME/joyword` 或 `~/.config/joyword`、macOS `~/Library/Application Support/JoyWord`。可用 `JOYWORD_CONFIG_DIR` 隔离验证。活动文件为 `migration-preview/preferences.conf`，缺失时只读旧根目录的 `preferences.conf`。语言和迁移版主题生效。作者名接入审阅，最近文档接入文件页。开发工具的「用户信息与单位」保存作者和度量单位，新会话读取这两项。各版式面板中的度量字段仍需逐项核对。桌面自动恢复按 `autosave.minutes` 写入草稿，默认 10 分钟，0 停止周期写入且可继续发现既有草稿。桌面新建空白页使用 `new.page` 的 A4 或 Letter 预设。 |
 | 恢复与原件保存 | 桌面「打开」或 `joyword -- PATH.jwr` 可读旧日志，CLI 为 `recover [--] JOURNAL [--save NEW.docx]`。打开任一标准槽名会检查整个目录。日志以只读方式打开，恢复进入独立 R8 编辑会话，用户选择新 DOCX 路径后才写入副本并读回。完整快照正文核对通过且未经编辑时原样另存。当前恢复目录继续使用 `migration-preview/r3-recovery`。启动会检查旧配置目录的已发布日志，用户可从恢复提示显式打开副本。 |
 | CLI 与自动化 | `inspect\|text [--max-text-bytes N] [--compatibility] [--] PATH` 恢复 schema 1、UTF-8 字节上限和退出码 0/2/3。R8 会话检查用 `inspect\|text --session [--] PATH`。无界面 MCP 继续使用显式目录边界。桌面可通过 `--control PORT` 启用认证后的活动文档操作，详见下文。 |
@@ -56,8 +56,8 @@ V1/V2 以原 DOCX 为基线，在段落边界保持且各处都有共同前后�
 
 | 优先级 | 任务 | 完成条件 |
 | --- | --- | --- |
-| P0 | 旧数据与安全（JW-806/812） | Windows 便携包已实测坏包拒绝、切换中失败复原和主动回退。V3 已覆盖多种字段快照的精确核对。继续其他对象与旧数据差分、偏好实屏及正式安装与文件关联回退。 |
-| P0 | CLI 与格式兼容（JW-808） | 19 份 schema 1 报告与旧 CLI 一致。Windows EPUB 实屏导出与独立验证通过，已实屏打开系统打印框。继续原生归档导出、打印取消结果与队列提交、远程界面操作及 Agent Provider／凭据。 |
+| P0 | 旧数据与安全（JW-806/812） | Windows 已实测旧日志提示、丢弃抑制、偏好迁移和真实崩溃恢复。便携包已有坏包拒绝、切换失败复原和主动回退证据。继续更广真实对象语料和正式安装与文件关联回退。[v0.1.2 验证](validation/20261109-v012/README.md#p0) |
+| P0 | CLI 与格式兼容（JW-808） | 19 份 schema 1 报告与旧 CLI 一致。Windows 原生 EPUB、PDF/A-2b 及独立校验通过。已实屏打开预览和系统打印框。继续打印取消回传、队列提交和出纸、远程界面操作及 Agent Provider／凭据。[v0.1.2 验证](validation/20261109-v012/README.md#p0) |
 | P1 | 常用编辑（JW-406/JW-407） | 查找对话框增加正文／当前选区的匹配列表，点击结果定位。大纲导航列出正文标题。布局页增加不等宽分栏、应用范围和更多分节符。继续选区内替换和原生交互验证。[P1 验证](../joyword/r8/VALIDATION.md#windows-p1-常用编辑和桌面控制2026-11-06) |
 | P1 | Word/WPS 双向往返（R5/R6） | macOS 上 Word 和 WPS 各通过两轮正文、表格、图片、页眉和修订往返。JoyWord 已自动验证保留合规的独立厂商 XML，Word 与 WPS 的普通保存仍有移除该部件的实测记录。[实机证据](validation/20261105-macos-desktop/README.md#word-和-wps-双向往返) |
 | P1 | 千页 DOCX 性能复验（R5/R6） | macOS ARM64 Release CLI 已通过 5 轮打开、末页编辑、保存重开和渲染。桌面首屏和末页 15 次键盘输入至 GPUI 提交已测。继续物理呈现、跨对象编辑和同条件基线比较。[千页验证](../joyword/r8/VALIDATION.md#千页-docx) |

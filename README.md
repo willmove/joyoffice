@@ -4,7 +4,7 @@
 
 <a id="english"></a>
 
-JoyOffice is a desktop office suite built with **Rust and GPUI Kit**. It brings documents, spreadsheets, and presentations into one repository through three independently versioned applications: **JoyWord**, **JoySheet**, and **JoyDeck**. Each product includes a native desktop app and a headless CLI, with shared UI, file-container infrastructure, build tooling, and quality checks.
+JoyOffice is a desktop office suite built with **Rust and GPUI Kit**. Its applications, **JoyWord**, **JoySheet**, and **JoyDeck**, share the suite version with the first-party workspace libraries and tools. Each product includes a native desktop app and a headless CLI.
 
 This overview reflects the repository as of **2026-11-08**. All three products have runnable development builds. Feature compatibility, platform qualification, and release readiness are still being completed; linked status and validation records describe the scope actually verified.
 
@@ -12,9 +12,9 @@ This overview reflects the repository as of **2026-11-08**. All three products h
 
 | Product | App / CLI version | Primary files | Current development baseline |
 | --- | --- | --- | --- |
-| <img src="assets/brand/joyword.svg" width="24" height="24" alt=""> **JoyWord** | **0.1.1** | DOCX | R8 implementation integrated into JoyOffice; [handoff and compatibility](docs/joyoffice/JOYWORD-R8-HANDOFF.md) · [status](docs/joyword/r8/STATUS.md) |
-| <img src="assets/brand/joysheet.svg" width="24" height="24" alt=""> **JoySheet** | **0.1.0** | XLSX | Integrated M8-preview6 feature baseline with subsequent fixes; [developer guide](docs/joysheet/README.md) · [status](docs/joysheet/STATUS.md) |
-| <img src="assets/brand/joydeck.svg" width="24" height="24" alt=""> **JoyDeck** | **0.8.0** | PPTX, `.joydeck` v2 | R9 integration of the DeckCraft/GPUI refactor; [handoff](docs/joyoffice/JOYDECK-R9-HANDOFF.md) · [status](docs/joydeck/STATUS.md) |
+| <img src="assets/brand/joyword.svg" width="24" height="24" alt=""> **JoyWord** | **0.1.2** | DOCX | R8 implementation integrated into JoyOffice; [handoff and compatibility](docs/joyoffice/JOYWORD-R8-HANDOFF.md) · [status](docs/joyword/r8/STATUS.md) |
+| <img src="assets/brand/joysheet.svg" width="24" height="24" alt=""> **JoySheet** | **0.1.2** | XLSX | Integrated M8-preview6 feature baseline with subsequent fixes; [developer guide](docs/joysheet/README.md) · [status](docs/joysheet/STATUS.md) |
+| <img src="assets/brand/joydeck.svg" width="24" height="24" alt=""> **JoyDeck** | **0.1.2** | PPTX, `.joydeck` v2 | R9 integration of the DeckCraft/GPUI refactor; [handoff](docs/joyoffice/JOYDECK-R9-HANDOFF.md) · [status](docs/joydeck/STATUS.md) |
 
 These are application manifest versions, not a claim that every milestone or release gate is complete.
 
@@ -160,7 +160,7 @@ cargo xtask package joydeck --release
 
 Native development packages are written under `dist/joyword/`, `dist/joysheet/`, and `dist/joydeck/`. Packaging runs on the host platform and includes product-specific binaries, resources, build/source fingerprints, and dependency/license metadata. Cross-target build/check supports `--target`; packaging is currently native-only, and headless-only packages are not implemented.
 
-Each product owns its app/CLI version and release tags: `joyword-v*`, `joysheet-v*`, and `joydeck-v*`. Historical `v*` tags route to Word only. Products released in the same batch normally use the same version number while retaining separate metadata and tags. The [release workflow](.github/workflows/release.yml) routes by product and validates versions.
+All first-party workspace packages inherit the version from `[workspace.package]` in `Cargo.toml`. Products retain separate release tags (`joyword-v*`, `joysheet-v*`, `joydeck-v*`), and historical `v*` tags route to Word. JoyDeck previously used `0.8.0` for its refactor builds. When moving one of those installations to `0.1.2`, select the new package explicitly because a semantic-version comparison ranks `0.1.2` below `0.8.0`. [Release workflow](.github/workflows/release.yml)
 
 Each desktop package carries its product logo and platform icon. See the [icon maintenance guide](docs/joyoffice/BRANDING.md) for the Windows executable resource, macOS app bundle, and Linux desktop launcher.
 
@@ -199,7 +199,7 @@ The root project is licensed under [MIT](LICENSE). Imported code and assets reta
 
 [English](#english) · [简体中文](#chinese)
 
-JoyOffice 是使用 **Rust 和 GPUI Kit** 构建的桌面 Office 套件，在同一仓库维护文档、电子表格和演示文稿三款独立版本的应用：**JoyWord**、**JoySheet** 和 **JoyDeck**。每款产品都提供原生桌面应用和无界面 CLI，共用 UI、文件容器、构建工具与工程检查等基础设施。
+JoyOffice 是使用 **Rust 和 GPUI Kit** 构建的桌面 Office 套件。**JoyWord**、**JoySheet**、**JoyDeck** 与仓库内第一方库和工具共用套件版本。每款产品都提供原生桌面应用和无界面 CLI。
 
 本文概况截至 **2026-11-08**。三款产品均有可运行的开发构建，功能兼容、平台验收和正式发行准备仍在推进；实际验证范围以链接中的状态和证据记录为准。
 
@@ -207,9 +207,9 @@ JoyOffice 是使用 **Rust 和 GPUI Kit** 构建的桌面 Office 套件，在同
 
 | 产品 | 应用／CLI 版本 | 主要文件 | 当前开发基线 |
 | --- | --- | --- | --- |
-| <img src="assets/brand/joyword.svg" width="24" height="24" alt=""> **JoyWord** | **0.1.1** | DOCX | 已整合到 JoyOffice 的 R8 实现；[交接与兼容表](docs/joyoffice/JOYWORD-R8-HANDOFF.md) · [状态](docs/joyword/r8/STATUS.md) |
-| <img src="assets/brand/joysheet.svg" width="24" height="24" alt=""> **JoySheet** | **0.1.0** | XLSX | 已整合的 M8-preview6 功能基线及后续修复；[开发指南](docs/joysheet/README.md) · [状态](docs/joysheet/STATUS.md) |
-| <img src="assets/brand/joydeck.svg" width="24" height="24" alt=""> **JoyDeck** | **0.8.0** | PPTX、`.joydeck` v2 | DeckCraft/GPUI 重构实现的 R9 整合；[交接](docs/joyoffice/JOYDECK-R9-HANDOFF.md) · [状态](docs/joydeck/STATUS.md) |
+| <img src="assets/brand/joyword.svg" width="24" height="24" alt=""> **JoyWord** | **0.1.2** | DOCX | 已整合到 JoyOffice 的 R8 实现；[交接与兼容表](docs/joyoffice/JOYWORD-R8-HANDOFF.md) · [状态](docs/joyword/r8/STATUS.md) |
+| <img src="assets/brand/joysheet.svg" width="24" height="24" alt=""> **JoySheet** | **0.1.2** | XLSX | 已整合的 M8-preview6 功能基线及后续修复；[开发指南](docs/joysheet/README.md) · [状态](docs/joysheet/STATUS.md) |
+| <img src="assets/brand/joydeck.svg" width="24" height="24" alt=""> **JoyDeck** | **0.1.2** | PPTX、`.joydeck` v2 | DeckCraft/GPUI 重构实现的 R9 整合；[交接](docs/joyoffice/JOYDECK-R9-HANDOFF.md) · [状态](docs/joydeck/STATUS.md) |
 
 以上是应用 manifest 中的版本号，不表示所有里程碑或发布门槛均已完成。
 
@@ -355,7 +355,7 @@ cargo xtask package joydeck --release
 
 原生开发包分别输出到 `dist/joyword/`、`dist/joysheet/` 和 `dist/joydeck/`。打包在宿主平台执行，包含所属产品二进制、资源、构建／源码指纹及依赖／许可元数据。跨目标构建／检查可使用 `--target`；当前打包仅支持原生平台，尚未实现纯 headless 包。
 
-每款产品独立维护应用／CLI 版本和发布标签：`joyword-v*`、`joysheet-v*`、`joydeck-v*`。历史 `v*` 标签仅映射 Word。同一批次发布的产品默认使用相同版本号，同时保留独立元数据和标签。[发布工作流](.github/workflows/release.yml)按产品路由并验证版本。
+所有第一方工作区包默认继承根 `Cargo.toml` 中的 `[workspace.package]` 版本。产品保留各自的发布标签 `joyword-v*`、`joysheet-v*`、`joydeck-v*`，历史 `v*` 标签映射到 Word。从 JoyDeck 历史重构包 `0.8.0` 迁到 `0.1.2` 时须显式选择新包，语义版本比较会把 `0.1.2` 排在 `0.8.0` 之前。[发布工作流](.github/workflows/release.yml)
 
 各产品桌面包均带有产品 LOGO 和平台图标。Windows 可执行文件资源、macOS 应用包和 Linux 桌面入口的维护方式见 [产品标识与图标](docs/joyoffice/BRANDING.md)。
 

@@ -98,7 +98,7 @@ impl Workspace {
     fn about(&mut self, _: &About, window: &mut Window, cx: &mut Context<Self>) {
         window.open_dialog(cx, |dialog, _, _| {
             dialog.title("关于 JoyDeck").child(div().flex().flex_col().gap_3()
-                .child("JoyDeck 0.1.0 · R0 原生技术预览")
+                .child(concat!("JoyDeck ", env!("CARGO_PKG_VERSION"), " · 原生技术预览"))
                 .child("Rust 1.98.1 · GPUI Kit 0.8.1 · GPUI pre 0.3.10")
                 .child("复用 JoyOffice 公共 UI。当前提供原创示例浏览、缩放、主题与临时备注输入；文稿导入和编辑正在迁移。"))
         });

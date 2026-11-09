@@ -16,6 +16,10 @@ import zipfile
 
 from project import ROOT, APPLICATIONS, build, host_target, run
 
+sys.path.insert(0, str(ROOT / "tools/xtask"))
+from product import manifest_version
+sys.path.pop(0)
+
 INTEGRATION_DOCS = (
     "docs/joyoffice/JOYSHEET-INTEGRATION.md",
     "docs/joyoffice/JOYSHEET-GATE-AUDIT.md",
@@ -124,8 +128,8 @@ def source_archive(destination, snapshot, version):
 
 
 def package(profile, validation, output=None):
-    version = tomllib.loads((ROOT / "apps/joysheet/Cargo.toml").read_text(encoding="utf-8"))["package"]["version"]
-    cli_version = tomllib.loads((ROOT / "apps/joysheet-cli/Cargo.toml").read_text(encoding="utf-8"))["package"]["version"]
+    version = manifest_version("joysheet")
+    cli_version = manifest_version("joysheet-cli")
     if version != cli_version:
         raise ValueError("Sheet GUI/CLI versions differ")
     target = host_target()

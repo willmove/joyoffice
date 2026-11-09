@@ -1,5 +1,7 @@
 # JoyWord R8 验证
 
+2026-11-09 Windows x64 的 v0.1.2 崩溃恢复、旧 CLI 差分、原生 PDF/A-2b、Agent 本地提案和便携回退见 [P0 实机记录](../../joyoffice/validation/20261109-v012/README.md#p0)。
+
 2026-11-04 在 JoyOffice 的 `codex/joyword-r8-integration` 工作树执行。测试输入均为仓库自带样例或其副本。平台结果按本次集成重新记录。
 
 ## 旧恢复与 CLI 兼容切片

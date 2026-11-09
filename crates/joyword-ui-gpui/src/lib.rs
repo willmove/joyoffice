@@ -995,7 +995,11 @@ impl Render for JoyWord {
                     .p_4()
                     .bg(rgb(p.selected))
                     .text_color(rgb(p.accent))
-                    .child("JoyWord 0.1.1 · R5 DOCX editor · GPUI Kit 0.8.1 · JoyOffice shared UI"),
+                    .child(concat!(
+                        "JoyWord ",
+                        env!("CARGO_PKG_VERSION"),
+                        " · DOCX editor · JoyOffice shared UI"
+                    )),
             );
         }
         if let Some(note) = &self.shell.notice {
