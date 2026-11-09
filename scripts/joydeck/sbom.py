@@ -78,6 +78,10 @@ def source_hashes(data, packages, reached):
                          if p.is_file() and p.suffix in ('.rs', '.swift', '.toml', '.c', '.h'))
         if (directory / 'build.rs').is_file():
             files.add(directory / 'build.rs')
+        files.update(directory.glob('*.rc'))
+    for product in {packages[i]['name'] for i in reached} & {'joyword', 'joydeck', 'joysheet'}:
+        files.update(ROOT / 'assets/brand' / f'{product}.{extension}' for extension in ('svg', 'ico', 'icns'))
+        files.update(ROOT / 'scripts' / script for script in ('product_icons.py', 'generate_product_icons.py'))
     is_word = any(packages[i]['name'] in ('joyword', 'joyword-cli') for i in reached)
     is_sheet = any(packages[i]['name'] == 'joysheet' for i in reached)
     if is_sheet:
@@ -85,14 +89,12 @@ def source_hashes(data, packages, reached):
             directory = Path(packages[identifier]['manifest_path']).parent
             files.update(p for p in directory.rglob('*')
                          if p.is_file() and not {'target', '__pycache__', '.git'} & set(p.relative_to(directory).parts))
-        for folder in ('scripts/joysheet', 'docs/joysheet', 'assets/joysheet', 'tools/joysheet'):
+        for folder in ('scripts/joysheet', 'docs/joysheet', 'tools/joysheet'):
             files.update(p for p in (ROOT / folder).rglob('*')
                          if p.is_file() and '__pycache__' not in p.parts)
         files.update(ROOT / name for name in ('AGENTS.md', 'deny.toml', '.cargo/config.toml',
                      'scripts/joydeck/sbom.py', 'scripts/joydeck/paths.py',
                      'tools/xtask/Cargo.toml', 'tools/xtask/src/main.rs'))
-        for identifier in reached & workspace:
-            files.update(Path(packages[identifier]['manifest_path']).parent.glob('*.rc'))
     elif is_word:
         # Word embeds workspace fonts, a welcome document and dictionaries.
         # These files and the shipped notices must follow the same snapshot

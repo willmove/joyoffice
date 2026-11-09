@@ -11,6 +11,8 @@ pwsh -NoProfile -File scripts/joysheet/installer-smoke.ps1 -Installer dist/joysh
 
 包名按产品版本、宿主系统、架构、profile 和可选 validation 后缀生成。GUI/CLI 版本必须一致，Windows 版本资源与安装器读取产品版本。构建前后比较实际源码输入哈希；已有输出目录不能覆盖。资源、脚本、开发文档、版权原文随包携带；正式发布路由为 `joysheet-v*`，本次迁移不创建发布或标签。
 
+JoySheet 的青绿四格 LOGO 随包位于 [assets/brand/joysheet.svg](../../assets/brand/joysheet.svg)。Windows EXE 与 NSIS 使用 ICO，macOS 应用包使用 ICNS，Linux AppDir 和 deb 的桌面入口使用 SVG。
+
 ## Windows
 
 安装器使用 NSIS 3.11（zlib），本机路径为 `artifacts/joysheet/tools/nsis-3.11`；也可设置 `JOYSHEET_NSIS` 指向 makensis.exe。CI 安装精确版本。官方 [下载](https://nsis.sourceforge.io/Download)及[版本/哈希数据](https://nsis-dev.github.io/release-data/versions.json)给出的 Windows ZIP SHA256 为 `c7d27f780ddb6cffb4730138cd1591e841f4b7edb155856901cdf5f214394fa1`，工具不随源码检查点分发。

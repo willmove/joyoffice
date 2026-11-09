@@ -1,5 +1,7 @@
 # JoyWord R8 交接
 
+<img src="../../assets/brand/joyword.svg" width="56" height="56" alt="JoyWord">
+
 后续开发、验证与打包统一在 JoyOffice 仓库进行。初次整合使用 `codex/joyword-r8-integration`，替换前基线是 `00fb06872d38bbbfc26f4dbc3404d6810b72aabb`。原独立目录已归档。独立版导入来源和精确指纹随仓库维护，见 [来源记录](../../licenses/joyoffice/JOYWORD-R8-SOURCE.json)。
 
 ## 工作入口
@@ -8,6 +10,7 @@
 - GPUI Kit 0.8.1、GPUI Pre 0.3.10 与 AccessKit Windows 补丁沿用宿主版本。使用宿主的 `joyoffice-ui` 与 `joyoffice-opc`。Word 外壳用 OPC 预检，完整 DOCX reader/writer 保有专用包处理。JoyDeck 来源核查引用的 Noto Emoji 资产与 OFL 留在原位置。
 - 在 [宿主任务状态](../joyword/r8/STATUS.md) 更新本仓库的进展。[迁移路线图](../joyword/r8/migration/docs/joyword/PLAN.md)、[112 项任务账本](../joyword/r8/migration/docs/joyword/tasks.json) 和 [R6/R7 笔记](../joyword/r8/migration/docs/joyword/R6-R7.md) 是导入前快照。[独立版平台验证记录](../joyword/r8/migration/evidence/R7/native-validation.json) 中的路径和状态记录当时环境。替换前的 [JoyWord M0–M9 规格](../joyword/README.md) 仍可用于兼容差距核对。
 - Windows 使用 PowerShell 7。常用入口为 `cargo xtask check joyword`、`cargo xtask test joyword --headless`、`cargo xtask package joyword`。本机开发包按产品归入 `dist/`。全套验证范围记录在 [R8 验证](../joyword/r8/VALIDATION.md)。
+- JoyWord 采用蓝底段落线标识。Windows EXE、macOS 应用包和 Linux 启动器的图标资源见 [产品标识与图标](BRANDING.md)。
 
 ## 接口、数据和系统集成
 

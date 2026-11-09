@@ -36,7 +36,9 @@ apps/joysheet*/** text=auto eol=lf
 crates/joysheet-*/** text=auto eol=lf
 tools/joysheet/** text=auto eol=lf
 scripts/joysheet/** text=auto eol=lf
-assets/joysheet/** -text
+assets/brand/*.svg text eol=lf
+assets/brand/*.icns binary
+assets/brand/*.ico binary
 
 # Historical evidence and provenance retain their original bytes and hashes.
 docs/joysheet/evidence/** -text whitespace=cr-at-eol

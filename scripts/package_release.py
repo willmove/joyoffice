@@ -24,6 +24,7 @@ import tarfile
 import tempfile
 import zipfile
 from pathlib import Path
+from product_icons import bundle_icon, copy_logo, linux_launcher
 
 README = """JoyWord {version} ({platform}-{arch}) - technology preview build, unsigned
 JoyWord {version}（{platform}-{arch}）—— 技术预览构建，未签名
@@ -36,12 +37,15 @@ https://github.com/willmove/joyoffice#readme
 Open a bundled sample through File > Open or pass its path to joyword.
 通过「文件 → 打开」或启动参数打开 samples 目录内的 DOCX。
 Run joyword-cli --help for headless editing and export.
+The product logo is included at assets/brand/joyword.svg.
 macOS: unsigned; right-click the app and choose Open to bypass Gatekeeper.
 macOS：未签名；右键 App 选择「打开」以绕过 Gatekeeper。
 Windows: unsigned; SmartScreen may require "More info -> Run anyway".
 Windows：未签名；SmartScreen 可能需要「更多信息 → 仍要运行」。
 Linux: GPUI system libraries (Vulkan/X11/Wayland stack) must be installed.
 Linux：需预装 GPUI 系统依赖（Vulkan/X11/Wayland 等组件）。
+Linux desktop menu: place joyword on PATH and merge share/ into your XDG data directory.
+Linux 桌面菜单：将 joyword 放入 PATH，并将 share/ 中的内容合入 XDG 数据目录。
 """
 
 
@@ -113,6 +117,7 @@ def app_bundle(binary: Path, version: str, staging: Path) -> Path:
             "CFBundlePackageType": "APPL",
             "CFBundleShortVersionString": version,
             "CFBundleVersion": "1",
+            "CFBundleIconFile": bundle_icon(bundle / "Contents", "joyword"),
             "NSHighResolutionCapable": True,
             "CFBundleDocumentTypes": [{
                 "CFBundleTypeName": "Word document",
@@ -178,6 +183,9 @@ def main() -> int:
                          for p in sorted((root / "assets/fonts").glob("OFL-*")) if p.is_file())
         materials.extend((f"samples/{p.name}", p, False)
                          for p in sorted((root / "assets/samples").iterdir()) if p.is_file())
+        copy_logo(staging, "joyword")
+        if args.platform == "linux":
+            linux_launcher(staging, "joyword")
         materials.extend((p.relative_to(staging).as_posix(), p, False)
                          for p in sorted(staging.rglob("*"))
                          if p.is_file() and p != readme)

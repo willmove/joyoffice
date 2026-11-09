@@ -136,7 +136,7 @@ jobs:
           pattern: release-${{ needs.resolve.outputs.product }}-*
           path: dist
           merge-multiple: true
-      - name: Verify complete archives and SHA-256 files
+      - name: Verify release archives, product icons and SHA-256 files
         env:
           RELEASE_PRODUCT: ${{ needs.resolve.outputs.product }}
           RELEASE_VERSION: ${{ needs.resolve.outputs.version }}

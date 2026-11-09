@@ -817,6 +817,7 @@ pub fn run(arguments: impl Iterator<Item = String>) -> Result<(), String> {
             } else {
                 gpui_kit::open_window(
                     WindowOptions {
+                        app_id: Some("joydeck".into()),
                         window_bounds: Some(WindowBounds::Windowed(Bounds::centered(
                             None,
                             size(px(window_size.0), px(window_size.1)),

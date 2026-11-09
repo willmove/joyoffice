@@ -10,6 +10,9 @@ default-run = "joydeck"
 [dependencies]
 joydeck-ui-gpui = { workspace = true, optional = true }
 
+[build-dependencies]
+embed-resource = "=3.0.12"
+
 [features]
 default = ["desktop"]
 desktop = ["dep:joydeck-ui-gpui"]

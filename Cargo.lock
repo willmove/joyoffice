@@ -3677,6 +3677,7 @@ dependencies = [
 name = "joydeck"
 version = "0.8.0"
 dependencies = [
+ "embed-resource",
  "joydeck-ui-gpui",
 ]
 
@@ -4160,6 +4161,7 @@ dependencies = [
 name = "joyword"
 version = "0.1.1"
 dependencies = [
+ "embed-resource",
  "gpui-pre-platform",
  "joyword-ui-gpui",
 ]

@@ -4,6 +4,7 @@ import importlib.util
 import io
 import json
 from pathlib import Path
+import plistlib
 import struct
 import tarfile
 import tempfile
@@ -31,7 +32,8 @@ def binary(platform, arch):
     return bytes(header)
 
 
-def package(directory, product, version, platform, arch, *, missing_cli=False, wrong_arch=False):
+def package(directory, product, version, platform, arch, *,
+            missing_cli=False, wrong_arch=False, wrong_icon=False):
     name = assets.filename(product, version, platform, arch)
     path = directory / name
     root = name[:-4] + '/' if product in {'joydeck', 'joysheet'} else ''
@@ -54,6 +56,22 @@ def package(directory, product, version, platform, arch, *, missing_cli=False, w
     if product == 'joysheet' and platform == 'macos':
         files[root + 'Joysheet.app/Contents/MacOS/joysheet'] = data
         files[root + 'Joysheet.app/Contents/MacOS/joysheet-cli'] = data
+    logo = f'{product}.svg'
+    svg = (assets.BRAND / logo).read_bytes()
+    files[root + 'assets/brand/' + logo] = svg
+    if platform == 'macos':
+        contents = root + f'{assets.MAC_APPS[product]}.app/Contents/'
+        icon = f'{product}.icns'
+        files[contents + 'Info.plist'] = plistlib.dumps({'CFBundleIconFile': icon})
+        files[contents + 'Resources/' + icon] = (assets.BRAND / icon).read_bytes()
+    elif platform == 'linux':
+        prefixes = ('Joysheet.AppDir/usr/', 'debian/usr/') if product == 'joysheet' else ('',)
+        for prefix in prefixes:
+            share = root + prefix + 'share/'
+            files[share + 'icons/hicolor/scalable/apps/' + logo] = b'old icon' if wrong_icon else svg
+            files[share + f'applications/{product}.desktop'] = (
+                f'[Desktop Entry]\nIcon={product}\nExec={product} %f\nStartupWMClass={product}\n'
+            ).encode()
     if name.endswith('.zip'):
         with zipfile.ZipFile(path, 'w') as archive:
             for key, value in files.items():
@@ -97,6 +115,11 @@ class ReleaseAssets(unittest.TestCase):
     def test_rejects_mislabeled_architecture(self):
         self.matrix('joydeck', wrong_arch=True)
         with self.assertRaisesRegex(ValueError, 'invalid linux x86_64 executable'):
+            assets.verify_assets(self.directory, 'joydeck', '0.1.0')
+
+    def test_rejects_stale_platform_icon_even_with_valid_archive_checksum(self):
+        self.matrix('joydeck', wrong_icon=True)
+        with self.assertRaisesRegex(ValueError, 'Incorrect product icon'):
             assets.verify_assets(self.directory, 'joydeck', '0.1.0')
 
     def test_sheet_cannot_publish_a_package_without_its_cli(self):

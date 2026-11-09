@@ -1,5 +1,5 @@
 #include <winver.h>
-100 ICON "../../assets/joysheet/joysheet.ico"
+1 ICON "../../assets/brand/joysheet.ico"
 1 VERSIONINFO
 FILEVERSION JOYSHEET_VERSION_NUM
 PRODUCTVERSION JOYSHEET_VERSION_NUM

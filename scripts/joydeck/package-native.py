@@ -15,7 +15,9 @@ import zipfile
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / 'tools/xtask'))
+sys.path.insert(0, str(ROOT / 'scripts'))
 from product import native_environment  # noqa: E402
+from product_icons import BRAND, bundle_icon, copy_logo, linux_launcher  # noqa: E402
 
 
 def sha256(path):
@@ -24,6 +26,7 @@ def sha256(path):
 
 def source_snapshot():
     paths = [ROOT / p for p in ['Cargo.toml', 'Cargo.lock', 'rust-toolchain.toml', 'rustfmt.toml', '.gitattributes', 'LICENSE', 'THIRD_PARTY-JOYDECK.md']]
+    paths += [BRAND / f'joydeck.{ext}' for ext in ('svg', 'ico', 'icns')]
     for folder in ['.cargo', 'apps', 'crates', 'tools', 'scripts', 'tests/fixtures', 'licenses', 'packaging', 'third-party']:
         paths += [p for p in (ROOT / folder).rglob('*') if p.is_file() and '__pycache__' not in p.parts and p.suffix != '.pyc']
     records = {p.relative_to(ROOT).as_posix(): sha256(p) for p in sorted(set(paths))}
@@ -133,6 +136,7 @@ def main():
     shutil.copytree(ROOT / 'licenses', output / 'licenses')
     shutil.copy2(ROOT / 'packaging/joydeck/README-r9.md', output / 'README.md')
     shutil.copytree(ROOT / 'tests/fixtures/joydeck', output / 'samples')
+    copy_logo(output, 'joydeck')
     license_records = []
     for package in dependencies:
         dest = output / 'licenses/dependencies' / (package['name'] + '-' + package['version'])
@@ -159,6 +163,7 @@ def main():
             'CFBundleName': 'JoyDeck',
             'CFBundleVersion': version,
             'CFBundlePackageType': 'APPL',
+            'CFBundleIconFile': bundle_icon(contents, 'joydeck'),
             'CFBundleDocumentTypes': [{
                 'CFBundleTypeName': 'PowerPoint presentation',
                 'CFBundleTypeRole': 'Editor',
@@ -166,6 +171,8 @@ def main():
                 'LSItemContentTypes': ['org.openxmlformats.presentationml.presentation'],
             }],
         }))
+    elif system == 'linux':
+        linux_launcher(output, 'joydeck')
     # Preserve the host's SPDX/build metadata contract for release verification.
     import sbom as suite_sbom
     dependency_info = suite_sbom.generate(output / 'SBOM.spdx.json', target, args.profile,

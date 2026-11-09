@@ -12,6 +12,10 @@ dev-runtime-shaders = ["gpui_platform/runtime_shaders"]
 [dependencies]
 joyword-ui-gpui.workspace = true
 gpui_platform.workspace = true
+
+[build-dependencies]
+embed-resource = "=3.0.12"
+
 [lints.rust]
 unsafe_code = "forbid"
 

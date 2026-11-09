@@ -12,7 +12,7 @@ ArtCraft trademarks and branding assets are not included.
 
 Sheet icon shapes use the Lucide catalog bundled with GPUI Kit Assets 0.8.1 (Lucide 1.43.0). ISC/MIT notices are preserved in docs/joysheet/LICENSE-LUCIDE. Legacy icon names are mapped where an equivalent is available.
 
-The Joysheet app icon in assets/joysheet/ is original code-drawn artwork by Joysheet contributors, under MIT OR Apache-2.0. The SVG, PNG, ICO and ICNS variants are included.
+The [JoySheet app logo](../../assets/brand/joysheet.svg) is original JoyOffice artwork. The SVG master and its ICO and ICNS exports are distributed under the JoyOffice repository license.
 
 Redistributed Windows runtime DLLs originate from the Visual Studio C++ redistributable directory and retain Microsoft signatures/copyright; redistribution is subject to the Visual Studio runtime redistribution terms. The NSIS installer uses the zlib compressor; its original COPYING notice is in the binary package licenses/NSIS-COPYING.txt. Dependency license declarations, source repository links and available original license texts are collected into dependency-licenses/ and SBOM.spdx.json by cargo xtask package joysheet for the target host.
 

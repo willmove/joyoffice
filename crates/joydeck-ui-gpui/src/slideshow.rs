@@ -464,6 +464,7 @@ pub(super) fn open(
     let runtime = shared.clone();
     let (handle, view) = gpui_kit::open_window(
         WindowOptions {
+            app_id: Some("joydeck".into()),
             window_bounds: Some(if fullscreen {
                 WindowBounds::Fullscreen(bounds)
             } else {
@@ -553,6 +554,7 @@ pub(super) fn open(
         let runtime = shared.clone();
         let (h, v) = gpui_kit::open_window(
             WindowOptions {
+                app_id: Some("joydeck".into()),
                 window_bounds: Some(WindowBounds::Windowed(Bounds::centered(
                     None,
                     size(px(900.), px(650.)),

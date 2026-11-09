@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+import plistlib
 import stat
 import struct
 import unicodedata
@@ -18,6 +19,8 @@ TARGETS = {('linux', 'x86_64'): 'x86_64-unknown-linux-gnu',
            ('linux', 'aarch64'): 'aarch64-unknown-linux-gnu',
            ('macos', 'aarch64'): 'aarch64-apple-darwin',
            ('windows', 'x86_64'): 'x86_64-pc-windows-msvc'}
+BRAND = Path(__file__).resolve().parents[1] / 'assets/brand'
+MAC_APPS = {'joyword': 'JoyWord', 'joydeck': 'JoyDeck', 'joysheet': 'Joysheet'}
 
 
 def filename(product, version, platform, arch):
@@ -145,6 +148,36 @@ def verify_archive(path, product, version, platform, arch):
         for name in (root + 'SBOM.spdx.json', root + 'SOURCE-HASHES.json'):
             with read_file(name) as stream:
                 json.load(stream)
+        verify_branding(read_file, root, product, platform)
+
+
+def verify_branding(read_file, root, product, platform):
+    def match_asset(member, source):
+        expected = (BRAND / source).read_bytes()
+        with read_file(member) as stream:
+            if stream.read(len(expected) + 1) != expected:
+                raise ValueError(f'Incorrect product icon: {member}')
+
+    logo = f'{product}.svg'
+    match_asset(root + 'assets/brand/' + logo, logo)
+    if platform == 'macos':
+        contents = root + f'{MAC_APPS[product]}.app/Contents/'
+        icon = f'{product}.icns'
+        with read_file(contents + 'Info.plist') as stream:
+            if plistlib.load(stream).get('CFBundleIconFile') != icon:
+                raise ValueError(f'Incorrect app icon reference: {contents}Info.plist')
+        match_asset(contents + 'Resources/' + icon, icon)
+    elif platform == 'linux':
+        prefixes = ('Joysheet.AppDir/usr/', 'debian/usr/') if product == 'joysheet' else ('',)
+        for prefix in prefixes:
+            share = root + prefix + 'share/'
+            match_asset(share + 'icons/hicolor/scalable/apps/' + logo, logo)
+            desktop = share + f'applications/{product}.desktop'
+            with read_file(desktop) as stream:
+                fields = stream.read(4096).decode('utf-8').splitlines()
+            required = {f'Icon={product}', f'Exec={product} %f', f'StartupWMClass={product}'}
+            if not required.issubset(fields):
+                raise ValueError(f'Incorrect desktop icon or launcher reference: {desktop}')
 
 
 def verify_assets(directory, product, version):

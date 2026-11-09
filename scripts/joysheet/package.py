@@ -27,10 +27,12 @@ INTEGRATION_DOCS = (
 # Word already uses this selected normal/build inventory. Sheet reuses it as an
 # engineering tool; no application or product runtime dependency is introduced.
 sys.path.insert(0, str(ROOT / "scripts/joydeck"))
+sys.path.insert(0, str(ROOT / "scripts"))
 try:
     import sbom
+    from product_icons import BRAND, copy_logo
 finally:
-    sys.path.pop(0)
+    del sys.path[:2]
 
 
 def write_json(path, value):
@@ -142,8 +144,10 @@ def package(profile, validation, output=None):
         shutil.copy2(artifact, destination / artifact.name)
     for name in ("LICENSE-MIT", "LICENSE-APACHE", "NOTICE", "ATTRIBUTION.md"):
         shutil.copy2(ROOT / "docs/joysheet" / name, destination / name)
+    shutil.copy2(ROOT / "LICENSE", destination / "LICENSE-JOYOFFICE")
     (destination / "README.md").write_text(
-        f"# JoySheet {version} preview\n\nRun joysheet (joysheet.exe on Windows), or use the sample launchers. "
+        f'# JoySheet {version} preview\n\n<img src="assets/brand/joysheet.svg" width="64" height="64" alt="JoySheet">\n\n'
+        "Run joysheet (joysheet.exe on Windows), or use the sample launchers. "
         "See [product documentation](docs/joysheet/README.md) and [known limits](docs/joysheet/STATUS.md). "
         "This development package does not imply completed M8, native-platform or signing acceptance.\n", encoding="utf-8")
     shutil.copytree(ROOT / "docs/joysheet", destination / "docs/joysheet")
@@ -151,7 +155,10 @@ def package(profile, validation, output=None):
         target_doc = destination / name
         target_doc.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(ROOT / name, target_doc)
-    shutil.copytree(ROOT / "assets/joysheet", destination / "assets/joysheet")
+    copy_logo(destination, "joysheet")
+    for extension in ("ico", "icns"):
+        name = f"joysheet.{extension}"
+        shutil.copy2(BRAND / name, destination / "assets/brand" / name)
     shutil.copytree(ROOT / "scripts/joysheet", destination / "scripts/joysheet",
                     ignore=shutil.ignore_patterns("__pycache__", "tests"))
     inventory = sbom.generate(destination / "SBOM.spdx.json", target, profile, roots=APPLICATIONS, features=features,

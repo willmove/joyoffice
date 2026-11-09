@@ -33,7 +33,7 @@ $deletes=@($files|ForEach-Object {'Delete "$INSTDIR\'+(Escape-Nsis ([IO.Path]::G
 $dirs=@(Get-ChildItem -LiteralPath $payload -Recurse -Directory|Sort-Object {$_.FullName.Length} -Descending|ForEach-Object {'RMDir "$INSTDIR\'+(Escape-Nsis ([IO.Path]::GetRelativePath($payload,$_.FullName)))+'"'})
 ($deletes+$dirs)|Set-Content -LiteralPath (Join-Path $build 'uninstall-files.nsh') -Encoding utf8NoBOM
 Copy-Item -LiteralPath (Join-Path $workspace 'scripts/joysheet/joysheet.nsi') -Destination $build
-& $compiler /V2 "/DPAYLOAD=$payload" "/DOUTPUT=$([IO.Path]::GetFullPath($Output))" "/DICON=$workspace\assets\joysheet\joysheet.ico" "/DVERSION=$version" "/DDISPLAY_NAME=$displayName" (Join-Path $build 'joysheet.nsi')
+& $compiler /V2 "/DPAYLOAD=$payload" "/DOUTPUT=$([IO.Path]::GetFullPath($Output))" "/DICON=$workspace\assets\brand\joysheet.ico" "/DVERSION=$version" "/DDISPLAY_NAME=$displayName" (Join-Path $build 'joysheet.nsi')
 if($LASTEXITCODE -ne 0){throw 'NSIS compilation failed'}
 if($env:JOYSHEET_WINDOWS_SIGN_THUMBPRINT){
     $sign=Get-Command signtool.exe -ErrorAction Stop

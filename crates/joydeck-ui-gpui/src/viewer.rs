@@ -1084,6 +1084,7 @@ pub fn open_window(
 ) -> Result<(AnyWindowHandle, Entity<Viewer>)> {
     let result = gpui_kit::open_window(
         WindowOptions {
+            app_id: Some("joydeck".into()),
             window_bounds: Some(WindowBounds::Windowed(Bounds::centered(
                 None,
                 size(px(dimensions.0), px(dimensions.1)),

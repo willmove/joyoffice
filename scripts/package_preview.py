@@ -130,6 +130,8 @@ def main() -> int:
     inventory = sbom(metadata, lock, created)
     entries = {name: (args.binary_dir / name).read_bytes() for name in names}
     entries["LICENSE.txt"] = (ROOT / "LICENSE").read_bytes()
+    logo = "assets/brand/joyword.svg"
+    entries[logo] = (ROOT / logo).read_bytes()
     entries["source-inventory.spdx.json"] = (json.dumps(inventory, sort_keys=True, indent=2) + "\n").encode()
     entries["README.txt"] = (
         "JoyWord unsigned portable preview\nExtract into a new folder and run joyword.\n"

@@ -7,7 +7,8 @@ import plistlib
 import shutil
 import subprocess
 
-from project import ROOT, run
+from project import run
+from product_icons import bundle_icon, linux_launcher
 
 
 def bundle(directory, version):
@@ -28,15 +29,14 @@ def bundle(directory, version):
         resources.mkdir()
         for name in ("docs", "assets", "scripts", "dependency-licenses"):
             shutil.copytree(directory / name, resources / name)
-        for name in ("BUILD.json", "BUILD-INFO.json", "SOURCE-HASHES.json", "SBOM.spdx.json", "LICENSE-MIT", "LICENSE-APACHE", "NOTICE", "ATTRIBUTION.md"):
+        for name in ("BUILD.json", "BUILD-INFO.json", "SOURCE-HASHES.json", "SBOM.spdx.json", "LICENSE-MIT", "LICENSE-APACHE", "LICENSE-JOYOFFICE", "NOTICE", "ATTRIBUTION.md"):
             shutil.copy2(directory / name, resources / name)
-        shutil.copy2(ROOT / "assets/joysheet/joysheet.icns", resources / "joysheet.icns")
         with (app / "Info.plist").open("wb") as output:
             plistlib.dump({"CFBundleIdentifier": "org.joysheet.desktop", "CFBundleName": "Joysheet",
                           "CFBundleExecutable": "joysheet", "CFBundlePackageType": "APPL",
                           "CFBundleShortVersionString": version, "CFBundleVersion": version,
                           "LSMinimumSystemVersion": "15.0", "NSHighResolutionCapable": True,
-                          "CFBundleIconFile": "joysheet.icns",
+                          "CFBundleIconFile": bundle_icon(app, "joysheet"),
                           "CFBundleDocumentTypes": [{"CFBundleTypeName": "Spreadsheet workbook",
                               "CFBundleTypeRole": "Editor", "LSHandlerRank": "Alternate",
                               "CFBundleTypeExtensions": ["xlsx", "xls", "xlsb", "ods", "csv", "tsv"]}]}, output)
@@ -56,13 +56,13 @@ def bundle(directory, version):
             binaries.mkdir(parents=True)
             for name in ("joysheet", "joysheet-cli"):
                 shutil.copy2(directory / name, binaries / name)
-            shutil.copytree(directory / "dependency-licenses", stage / "usr/share/doc/joysheet/licenses")
-            icon = stage / "usr/share/icons/hicolor/512x512/apps/joysheet.png"
-            icon.parent.mkdir(parents=True)
-            shutil.copy2(ROOT / "assets/joysheet/joysheet.png", icon)
-            desktop = stage / "usr/share/applications/joysheet.desktop"
-            desktop.parent.mkdir(parents=True)
-            desktop.write_text("[Desktop Entry]\nType=Application\nName=Joysheet\nExec=joysheet %f\nIcon=joysheet\nTerminal=false\nCategories=Office;Spreadsheet;\n", encoding="utf-8")
+            licenses = stage / "usr/share/doc/joysheet/licenses"
+            shutil.copytree(directory / "dependency-licenses", licenses)
+            shutil.copy2(directory / "LICENSE-JOYOFFICE", licenses / "LICENSE-JOYOFFICE")
+            desktop, icon = linux_launcher(stage / "usr", "joysheet")
+            if stage == app:
+                shutil.copy2(desktop, app / desktop.name)
+                shutil.copy2(icon, app / icon.name)
         launcher = app / "AppRun"
         launcher.write_text('#!/bin/sh\nHERE=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)\nexec "$HERE/usr/bin/joysheet" "$@"\n', encoding="utf-8")
         launcher.chmod(0o755)

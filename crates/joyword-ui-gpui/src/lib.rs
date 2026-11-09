@@ -1146,6 +1146,7 @@ pub fn run() {
             let bounds = Bounds::centered(None, size(px(1440.0), px(900.0)), cx);
             let result = gpui_kit::open_window(
                 WindowOptions {
+                    app_id: Some("joyword".into()),
                     window_bounds: Some(WindowBounds::Windowed(bounds)),
                     window_min_size: Some(size(px(700.0), px(500.0))),
                     titlebar: Some(gpui::TitlebarOptions {
