@@ -68,7 +68,7 @@
     "source_path": "scripts/joydeck/package-native.py",
     "target_path": "scripts/joydeck/package-native.py",
     "source_sha256": "a4ae844b6c2488524872bc69e418673dce6cd1599530447e9efc54ab6be1398e",
-    "adapted_sha256": "e62d123c294ebb478db3d3cb8cae06175be26e03b047059f168af0f6bea81b3b",
+    "adapted_sha256": "546677fa90f5a77166ee27b234cafd6a715dd738aa420e52a347632031d79158",
     "local_changes": "adapt product packaging and Cargo artifact discovery; add source checks, selected SBOM and atomic ZIP; LF; R1 rustfmt and bounded reader/CPU-renderer/palette/notes adapters as applicable; R2 editable viewer adapter, background save/recovery, command-driven gestures, coordinate anchoring and close guard; rustfmt; R4/R5 scene/content workspace adaptation; R6/R7 adapter additions and repository rustfmt/LF normalization.; R8 native editor, clipboard or product package version adaptation; R9 host integration and explicit command schema negotiation",
     "r9_ui2_gui_fix": "Include reviewed local platform-adapter source in package fingerprint",
     "unified_version": "Resolve the host workspace package version and render it in the bundled README",
@@ -77,7 +77,8 @@
     "dependency_license_report": "Report versioned missing license texts from the packaged SPDX index, including pinned upstream supplements.",
     "p2_qualification": "Allow qualification runs to write separate package evidence without replacing the R9 baseline report.",
     "safety_integration": "Retain host build-dependency identities in cross-target metadata while selecting only the target normal/build tree (6643745c).",
-    "product_branding": "Package the approved product logo, macOS bundle icon and Linux launcher from the shared JoyOffice branding assets."
+    "product_branding": "Package the approved product logo, macOS bundle icon and Linux launcher from the shared JoyOffice branding assets.",
+    "release_architecture": "Use the Rust host target for package architecture labels, including Windows ARM64."
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
