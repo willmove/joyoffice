@@ -23,6 +23,7 @@ mod page_setup;
 mod perf;
 #[cfg(windows)]
 mod printing;
+mod review_ribbon;
 mod ribbon;
 mod save;
 mod search;

@@ -18,11 +18,23 @@ pub(super) struct Tool {
     zh: &'static str,
     en: &'static str,
     icon: IconName,
-    compact: bool,
+    layout: ToolLayout,
     width: Option<f32>,
 }
 
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum ToolLayout {
+    Large,
+    Tile,
+    Split,
+    Compact,
+}
+
 impl Tool {
+    pub(super) fn label(&self, shell: &Shell) -> &'static str {
+        shell.tr(self.zh, self.en)
+    }
+
     pub(super) fn width(mut self, width: f32) -> Self {
         self.width = Some(width);
         self
@@ -32,15 +44,25 @@ impl Tool {
             zh,
             en,
             icon,
-            compact: false,
+            layout: ToolLayout::Large,
             width: None,
         }
     }
     pub(super) fn compact(zh: &'static str, en: &'static str, icon: IconName) -> Self {
         Self {
-            compact: true,
+            layout: ToolLayout::Compact,
             ..Self::new(zh, en, icon)
         }
+    }
+    pub(super) fn tile(zh: &'static str, en: &'static str, icon: IconName) -> Self {
+        Self {
+            layout: ToolLayout::Tile,
+            ..Self::new(zh, en, icon)
+        }
+    }
+    pub(super) fn split(mut self) -> Self {
+        self.layout = ToolLayout::Split;
+        self
     }
 }
 
@@ -56,6 +78,42 @@ impl JoyWord {
             .flex_shrink_0()
             .role(gpui::Role::Group)
             .aria_label(label)
+    }
+
+    pub(super) fn ribbon_group_with_launcher(
+        &self,
+        id: &'static str,
+        title: &'static str,
+        body: impl IntoElement,
+        launcher: Option<Button>,
+    ) -> gpui::Stateful<gpui::Div> {
+        self.group_frame(
+            div().flex().items_center().h(px(64.)).child(body),
+            div()
+                .relative()
+                .flex()
+                .items_center()
+                .justify_center()
+                .h(px(18.))
+                .text_size(px(11.))
+                .text_color(rgb(self.palette().muted))
+                .child(title)
+                .children(launcher.map(|button| button.absolute().right_0().bottom_0())),
+        )
+        .id(id)
+        .flex_shrink_0()
+        .role(gpui::Role::Group)
+        .aria_label(title)
+    }
+
+    pub(super) fn ribbon_centered_group(
+        &self,
+        id: &'static str,
+        title: &'static str,
+        body: impl IntoElement,
+    ) -> gpui::Stateful<gpui::Div> {
+        self.ribbon_group_with_launcher(id, title, body, None)
+            .px(px(6.))
     }
 
     pub(super) fn ribbon_target(&self) -> Option<Target> {
@@ -76,12 +134,18 @@ impl JoyWord {
         menu: bool,
     ) -> Button {
         let p = self.palette();
-        let label = self.shell.tr(tool.zh, tool.en);
-        let width = tool.width.unwrap_or(if tool.compact { 100. } else { 56. });
-        let icon_size = if tool.compact { 15. } else { 26. };
+        let label = tool.label(&self.shell);
+        let compact = tool.layout == ToolLayout::Compact;
+        let width = tool.width.unwrap_or(if compact { 100. } else { 56. });
+        let (height, icon_size) = match tool.layout {
+            ToolLayout::Large => (64., 26.),
+            ToolLayout::Tile => (64., 24.),
+            ToolLayout::Split => (48., 24.),
+            ToolLayout::Compact => (21., 15.),
+        };
         let icon_color = if !enabled {
             p.disabled
-        } else if tool.compact {
+        } else if compact {
             p.text
         } else {
             p.accent
@@ -90,11 +154,15 @@ impl JoyWord {
             .size(px(icon_size))
             .text_color(rgb(icon_color));
         let caption = div()
-            .text_size(px(if tool.compact { 11. } else { 12. }))
-            .line_height(px(14.))
+            .text_size(px(if compact { 11. } else { 12. }))
+            .line_height(px(if tool.layout == ToolLayout::Tile {
+                13.
+            } else {
+                14.
+            }))
             .child(label);
         let caret = || Icon::new(IconName::ChevronDown).size(px(10.));
-        let content = if tool.compact {
+        let content = if compact {
             div()
                 .flex()
                 .items_center()
@@ -108,8 +176,17 @@ impl JoyWord {
                 .flex()
                 .flex_col()
                 .items_center()
-                .h(px(58.))
-                .gap(px(4.))
+                .h(px(height
+                    - if tool.layout == ToolLayout::Large {
+                        6.
+                    } else {
+                        2.
+                    }))
+                .gap(px(if tool.layout == ToolLayout::Large {
+                    4.
+                } else {
+                    2.
+                }))
                 .child(
                     div()
                         .flex()
@@ -117,7 +194,9 @@ impl JoyWord {
                         .items_center()
                         .gap(px(2.))
                         .child(icon)
-                        .when(menu, |el| el.child(caret())),
+                        .when(menu && tool.layout == ToolLayout::Large, |el| {
+                            el.child(caret())
+                        }),
                 )
                 .child(
                     caption
@@ -125,12 +204,15 @@ impl JoyWord {
                         .whitespace_normal()
                         .text_center(),
                 )
+                .when(menu && tool.layout == ToolLayout::Tile, |el| {
+                    el.child(caret())
+                })
         };
         Button::new(id)
             .ghost()
             .xsmall()
             .p_0()
-            .h(px(if tool.compact { 21. } else { 64. }))
+            .h(px(height))
             .w(px(width))
             .flex_shrink_0()
             .accessibility_label(label)

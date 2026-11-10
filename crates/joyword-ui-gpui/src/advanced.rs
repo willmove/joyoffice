@@ -243,144 +243,6 @@ impl JoyWord {
                 ),
             ))
     }
-    pub(super) fn review_ribbon(&self, cx: &mut Context<Self>) -> gpui::Div {
-        let stack = |a, b| div().flex().flex_col().gap_1().child(a).child(b);
-        let tracking = self
-            .canvas
-            .reader
-            .as_ref()
-            .is_some_and(|r| r.engine().doc.settings.track_changes);
-        div()
-            .flex()
-            .child(self.group_box(
-                "校对",
-                self.advanced_button("review-count", "字数统计", IconName::FileText, cx),
-            ))
-            .child(
-                self.group_box(
-                    "批注",
-                    div()
-                        .flex()
-                        .gap_1()
-                        .child(self.large_advanced(
-                            "review-new",
-                            "新建批注",
-                            IconName::MessageSquare,
-                            cx,
-                        ))
-                        .child(stack(
-                            self.advanced_button(
-                                "review-comments",
-                                "显示批注",
-                                IconName::MessageSquare,
-                                cx,
-                            ),
-                            self.author_button(
-                                "review-next-comment",
-                                "下一条",
-                                "review.nextComment",
-                                json!({}),
-                                cx,
-                            ),
-                        )),
-                ),
-            )
-            .child(
-                self.group_box(
-                    "修订",
-                    div()
-                        .flex()
-                        .gap_1()
-                        .child(self.author_button(
-                            "review-track",
-                            if tracking { "✓ 修订" } else { "修订" },
-                            "review.trackChanges",
-                            json!({}),
-                            cx,
-                        ))
-                        .child(stack(
-                            self.advanced_button("review-markup", "显示标记 ▾", IconName::Eye, cx),
-                            self.advanced_button("review-changes", "审阅窗格", IconName::List, cx),
-                        )),
-                ),
-            )
-            .child(
-                self.group_box(
-                    "更改",
-                    div()
-                        .flex()
-                        .gap_1()
-                        .child(stack(
-                            self.author_button(
-                                "review-accept",
-                                "接受",
-                                "review.accept",
-                                json!({"next":true}),
-                                cx,
-                            ),
-                            self.author_button(
-                                "review-reject",
-                                "拒绝",
-                                "review.reject",
-                                json!({"next":true}),
-                                cx,
-                            ),
-                        ))
-                        .child(stack(
-                            self.author_button(
-                                "review-prev",
-                                "上一处",
-                                "review.previousChange",
-                                json!({}),
-                                cx,
-                            ),
-                            self.author_button(
-                                "review-next",
-                                "下一处",
-                                "review.nextChange",
-                                json!({}),
-                                cx,
-                            ),
-                        ))
-                        .child(stack(
-                            self.author_button(
-                                "review-accept-all",
-                                "接受所有修订",
-                                "review.acceptAll",
-                                json!({}),
-                                cx,
-                            ),
-                            self.author_button(
-                                "review-reject-all",
-                                "拒绝所有修订",
-                                "review.rejectAll",
-                                json!({}),
-                                cx,
-                            ),
-                        )),
-                ),
-            )
-            .child(
-                self.group_box(
-                    "比较",
-                    div()
-                        .flex()
-                        .gap_1()
-                        .child(self.large_advanced(
-                            "review-compare",
-                            "比较文档",
-                            IconName::Files,
-                            cx,
-                        ))
-                        .child(self.advanced_button(
-                            "review-combine",
-                            "合并修订",
-                            IconName::Files,
-                            cx,
-                        )),
-                ),
-            )
-    }
     pub(super) fn mailings_ribbon(&self, cx: &mut Context<Self>) -> gpui::Div {
         let stack = |a, b| div().flex().flex_col().gap_1().child(a).child(b);
         div()
@@ -863,16 +725,6 @@ impl JoyWord {
                 }
                 return;
             }
-            "review-count" => {
-                if let Some(r) = self.canvas.reader.as_mut() {
-                    match r.execute("review.wordCount", &json!({})) {
-                        Ok(v) => self.shell.notice = Some(format!("字数统计：{v}")),
-                        Err(e) => self.shell.notice = Some(e),
-                    }
-                }
-                cx.notify();
-                return;
-            }
             "automation-info" => {
                 w.open_dialog(cx,|d,_,_|d.title("MCP 自动化").width(px(580.)).child("在终端运行：joyword-cli mcp --automation-read-root <输入目录> --automation-write-root <输出目录>。通过标准输入输出使用 MCP JSON-RPC；范围外文件访问被拒绝。此开发包提供独立内核自动化，尚未连接当前桌面文档。默认不监听网络、不执行 VBA。"));
                 return;
@@ -1011,11 +863,6 @@ impl JoyWord {
                     "review.editComment",
                     vec![("批注内容", text(&picked, "text"))],
                 ),
-                "review-markup" => (
-                    "显示标记",
-                    "review.markup",
-                    vec![("显示（所有标记 / 无标记）", "所有标记".into())],
-                ),
                 "merge-start" => (
                     "开始邮件合并",
                     "mailings.start",
@@ -1141,14 +988,6 @@ impl JoyWord {
                     "refs-bookmark" => json!({"name":required(v,0)?}),
                     "review-reply" | "review-edit" => {
                         json!({"id":picked["id"],"text":required(v,0)?})
-                    }
-                    "review-markup" => {
-                        let value = match v[0].trim() {
-                            "所有标记" | "allMarkup" => "allMarkup",
-                            "无标记" | "noMarkup" => "noMarkup",
-                            _ => return Err("请选择 所有标记 或 无标记".into()),
-                        };
-                        json!({"value":value})
                     }
                     "merge-start" => {
                         let kind = required(v, 0)?;

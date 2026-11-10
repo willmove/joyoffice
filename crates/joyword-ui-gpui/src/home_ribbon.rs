@@ -43,32 +43,6 @@ impl JoyWord {
             .child(self.search_ribbon(cx))
     }
 
-    pub(super) fn home_group(
-        &self,
-        id: &'static str,
-        title: &'static str,
-        body: impl IntoElement,
-        launcher: Option<Button>,
-    ) -> impl IntoElement {
-        self.group_frame(
-            div().flex().items_center().h(px(64.)).child(body),
-            div()
-                .relative()
-                .flex()
-                .items_center()
-                .justify_center()
-                .h(px(18.))
-                .text_size(px(11.))
-                .text_color(rgb(self.palette().muted))
-                .child(title)
-                .children(launcher.map(|button| button.absolute().right_0().bottom_0())),
-        )
-        .id(id)
-        .flex_shrink_0()
-        .role(gpui::Role::Group)
-        .aria_label(title)
-    }
-
     pub(super) fn home_menu(
         &self,
         id: &'static str,
@@ -239,7 +213,7 @@ impl JoyWord {
                     )
                     .child(brush_menu),
             );
-        self.home_group(
+        self.ribbon_group_with_launcher(
             "home-clipboard",
             tr("剪贴板", "Clipboard"),
             row()
@@ -549,7 +523,7 @@ impl JoyWord {
             .p_0()
             .icon(I::ArrowDownRight)
             .on_click(cx.listener(|v, _, w, cx| v.format_dialog(formatting::Form::Font, w, cx)));
-        self.home_group(
+        self.ribbon_group_with_launcher(
             "home-font",
             tr("字体", "Font"),
             div().flex().flex_col().gap_1().child(top).child(bottom),
@@ -824,7 +798,7 @@ impl JoyWord {
         .p_0()
         .icon(I::ArrowDownRight)
         .on_click(cx.listener(|v, _, w, cx| v.format_dialog(formatting::Form::Paragraph, w, cx)));
-        self.home_group(
+        self.ribbon_group_with_launcher(
             "home-paragraph",
             tr("段落", "Paragraph"),
             div().flex().flex_col().gap_1().child(top).child(bottom),
@@ -986,7 +960,7 @@ impl JoyWord {
         .icon(I::ArrowDownRight)
         .selected(self.styles_open)
         .on_click(cx.listener(|v, _, _, cx| v.toggle_styles(cx)));
-        self.home_group(
+        self.ribbon_group_with_launcher(
             "home-styles",
             tr("样式", "Styles"),
             cards.child(more),

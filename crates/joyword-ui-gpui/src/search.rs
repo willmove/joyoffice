@@ -101,7 +101,7 @@ impl JoyWord {
                 .on_click(cx.listener(|v, _, w, cx| v.open_find(true, w, cx))),
             )
             .child(select);
-        self.home_group("home-editing", tr("编辑", "Editing"), body, None)
+        self.ribbon_group_with_launcher("home-editing", tr("编辑", "Editing"), body, None)
     }
 
     fn open_outline_navigation(&mut self, w: &mut Window, cx: &mut Context<Self>) {
