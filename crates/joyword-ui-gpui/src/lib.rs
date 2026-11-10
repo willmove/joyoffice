@@ -13,6 +13,7 @@ mod formatting;
 mod forms;
 mod gestures;
 mod header_footer;
+mod home_ribbon;
 mod input;
 mod insert;
 mod layout_ribbon;
@@ -510,87 +511,14 @@ impl JoyWord {
             .flex()
             .items_center()
             .overflow_x_scroll()
-            .h(px(if matches!(self.tab, 1 | 2 | 5) {
-                76.0
-            } else {
-                88.0
-            }))
+            .h(px(88.0))
             .flex_shrink_0()
             .bg(rgb(p.surface))
             .border_b_1()
-            .border_color(rgb(p.border))
-            .when(matches!(self.tab, 1 | 2 | 5), |group| {
-                group.bg(rgb(p.chrome))
-            });
+            .border_color(rgb(p.border));
         groups = match self.tab {
             0 => groups
-                .child(
-                    div()
-                        .flex()
-                        .flex_col()
-                        .justify_between()
-                        .h(px(78.0))
-                        .px_3()
-                        .border_r_1()
-                        .border_color(rgb(p.separator))
-                        .child(
-                            div()
-                                .flex()
-                                .gap_1()
-                                .child(self.button(
-                                    "paste-ribbon",
-                                    tr("粘贴", "Paste"),
-                                    "edit.paste",
-                                    cx,
-                                ))
-                                .child(self.button("cut-ribbon", tr("剪切", "Cut"), "edit.cut", cx))
-                                .child(self.button(
-                                    "copy-ribbon",
-                                    tr("复制", "Copy"),
-                                    "edit.copy",
-                                    cx,
-                                )),
-                        )
-                        .child(
-                            div()
-                                .flex()
-                                .gap_1()
-                                .child(
-                                    Button::new("format-brush")
-                                        .ghost()
-                                        .xsmall()
-                                        .label("格式刷")
-                                        .selected(self.canvas.reader.as_ref().is_some_and(|r| {
-                                            r.engine().painter.as_ref().is_some_and(|p| !p.2)
-                                        }))
-                                        .disabled(!self.format_ready("edit.formatPainter"))
-                                        .on_click(
-                                            cx.listener(|v, _, w, cx| v.start_brush(false, w, cx)),
-                                        ),
-                                )
-                                .child(
-                                    Button::new("format-brush-sticky")
-                                        .ghost()
-                                        .xsmall()
-                                        .label("连续刷")
-                                        .selected(self.canvas.reader.as_ref().is_some_and(|r| {
-                                            r.engine().painter.as_ref().is_some_and(|p| p.2)
-                                        }))
-                                        .disabled(!self.format_ready("edit.formatPainter"))
-                                        .on_click(
-                                            cx.listener(|v, _, w, cx| v.start_brush(true, w, cx)),
-                                        ),
-                                ),
-                        )
-                        .child(
-                            div()
-                                .text_size(px(11.0))
-                                .text_color(rgb(p.muted))
-                                .child(tr("剪贴板", "Clipboard")),
-                        ),
-                )
-                .child(self.home_format_groups(cx))
-                .child(self.search_ribbon(cx))
+                .child(self.home_ribbon(cx))
                 .when(cfg!(feature = "agent"), |group| {
                     #[cfg(feature = "agent")]
                     return group.child(self.agent_controls(cx));

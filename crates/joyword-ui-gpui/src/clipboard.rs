@@ -8,12 +8,45 @@ fn copy_marker(document: u64) -> String {
     format!("joyword:{}:{document}", std::process::id())
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use gpui::TestAppContext;
+    use std::sync::atomic::AtomicBool;
+
+    #[gpui::test]
+    fn keep_text_only_reads_the_current_clipboard(cx: &mut TestAppContext) {
+        cx.update(gpui_kit::init);
+        let (view, cx) = cx.add_window_view(JoyWord::new);
+        view.update_in(cx, |v, w, cx| {
+            let mut reader = joyword_shell::reader::Reader::blank(&AtomicBool::new(false)).unwrap();
+            reader
+                .edit_command("document.setText", &json!({"text":"original copy"}))
+                .unwrap();
+            reader.edit_command("select.all", &json!({})).unwrap();
+            let document = reader.engine().document_id();
+            v.canvas.reader = Some(reader);
+            v.install_input(document, cx);
+            v.clipboard("edit.copy", w, cx);
+
+            // A subsequent OS copy replaces the clipboard without replacing the internal fragment.
+            cx.write_to_clipboard(ClipboardItem::new_string("external text".into()));
+            v.clipboard("edit.pasteText", w, cx);
+            let reader = v.canvas.reader.as_ref().unwrap();
+            assert_eq!(
+                reader.engine().doc.body[0].as_para().unwrap().plain_text(),
+                "external text",
+            );
+        });
+    }
+}
+
 impl JoyWord {
     pub(super) fn clipboard(&mut self, id: &str, w: &mut Window, cx: &mut Context<Self>) {
         if !self.format_ready(id) {
             return;
         }
-        if id != "edit.paste" {
+        if matches!(id, "edit.copy" | "edit.cut") {
             let mut copied = None;
             self.apply_input(w, cx, |reader| {
                 let result = reader.execute(id, &json!({}))?;
@@ -35,13 +68,27 @@ impl JoyWord {
         #[cfg(target_os = "windows")]
         let sequence = clipboard_win::raw::seq_num();
         let item = cx.read_from_clipboard();
+        let text = item
+            .as_ref()
+            .and_then(ClipboardItem::text)
+            .filter(|text| text.len() <= MAX_CLIPBOARD_BYTES);
+        if id == "edit.pasteText" {
+            #[cfg(target_os = "windows")]
+            if sequence != clipboard_win::raw::seq_num() {
+                return;
+            }
+            if let Some(text) = text.filter(|text| !text.is_empty()) {
+                self.engine_command(id, &json!({"text": text}), w, cx);
+            }
+            return;
+        }
         if let Some(marker) = item.as_ref().and_then(ClipboardItem::metadata)
             && self.canvas.reader.as_ref().is_some_and(|reader| {
                 reader.engine().clipboard.is_some()
                     && *marker == copy_marker(reader.engine().document_id())
             })
         {
-            self.engine_command("edit.paste", &json!({}), w, cx);
+            self.engine_command(id, &json!({}), w, cx);
             return;
         }
 
@@ -50,23 +97,21 @@ impl JoyWord {
         if sequence != clipboard_win::raw::seq_num() {
             return;
         }
-        let text = item
-            .as_ref()
-            .and_then(ClipboardItem::text)
-            .filter(|text| text.len() <= MAX_CLIPBOARD_BYTES);
         if text.is_some() || html.is_some() || rtf.is_some() {
             self.engine_command(
-                "edit.paste",
+                id,
                 &json!({"text": text, "html": html, "rtf": rtf, "external": true}),
                 w,
                 cx,
             );
-        } else if let Some(image) = item.as_ref().and_then(|item| {
-            item.entries().iter().find_map(|entry| match entry {
-                ClipboardEntry::Image(image) => Some(image),
-                _ => None,
+        } else if id == "edit.paste"
+            && let Some(image) = item.as_ref().and_then(|item| {
+                item.entries().iter().find_map(|entry| match entry {
+                    ClipboardEntry::Image(image) => Some(image),
+                    _ => None,
+                })
             })
-        }) {
+        {
             self.apply_input(w, cx, |reader| reader.paste_clipboard_image(image.bytes()));
         }
     }

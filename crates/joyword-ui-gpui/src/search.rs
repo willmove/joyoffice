@@ -1,4 +1,5 @@
 //! Search and replacement controls over the document's existing engine session.
+use super::ribbon::Tool;
 use super::*;
 use gpui::component::{
     WindowExt,
@@ -6,6 +7,7 @@ use gpui::component::{
     input::{Input, InputState},
 };
 use gpui::{EntityInputHandler, Focusable};
+use joyoffice_ui::IconName as I;
 use serde_json::{Value, json};
 
 #[derive(Default)]
@@ -17,42 +19,89 @@ struct FindMatches {
 impl JoyWord {
     pub(super) fn search_ribbon(&self, cx: &mut Context<Self>) -> impl IntoElement {
         let tr = |zh, en| self.shell.tr(zh, en);
-        div()
+        let find_ready = self.format_ready("edit.findNext");
+        let goto_ready = self.format_ready("edit.goto");
+        let outline_ready = self.format_ready("select.range");
+        let select_ready = self.format_ready("select.all");
+        let find_menu = self.home_menu(
+            "find-options",
+            Button::new("find-options-trigger")
+                .ghost()
+                .xsmall()
+                .p_0()
+                .w(px(16.))
+                .h(px(21.))
+                .icon(I::ChevronDown)
+                .accessibility_label(tr("查找选项", "Find Options"))
+                .disabled(!goto_ready && !outline_ready),
+            vec![
+                (
+                    "goto-page",
+                    tr("转到页…", "Go to Page…"),
+                    goto_ready,
+                    |v, w, cx| v.open_go_to(w, cx),
+                ),
+                (
+                    "outline-navigation",
+                    tr("大纲导航…", "Outline Navigation…"),
+                    outline_ready,
+                    |v, w, cx| v.open_outline_navigation(w, cx),
+                ),
+            ],
+            cx,
+        );
+        let select = self.home_menu(
+            "select-options",
+            self.ribbon_tool(
+                "select-options-trigger",
+                Tool::compact("选择", "Select", I::MousePointer2),
+                select_ready,
+                true,
+            ),
+            vec![
+                (
+                    "select-all-ribbon",
+                    tr("全选", "Select All"),
+                    select_ready,
+                    |v, w, cx| v.run_format("select.all", &json!({}), w, cx),
+                ),
+                (
+                    "select-similar-ribbon",
+                    tr("选择格式相似的文本", "Select Text with Similar Formatting"),
+                    self.format_ready("select.similar"),
+                    |v, w, cx| v.run_format("select.similar", &json!({}), w, cx),
+                ),
+            ],
+            cx,
+        );
+        let body = div()
             .flex()
             .flex_col()
-            .gap_1()
             .child(
-                Button::new("find-document")
-                    .ghost()
-                    .xsmall()
-                    .label(tr("查找…", "Find…"))
-                    .disabled(!self.format_ready("edit.findNext"))
-                    .on_click(cx.listener(|v, _, w, cx| v.open_find(false, w, cx))),
+                div()
+                    .flex()
+                    .child(
+                        self.ribbon_tool(
+                            "find-document",
+                            Tool::compact("查找", "Find", I::Search).width(72.),
+                            find_ready,
+                            false,
+                        )
+                        .on_click(cx.listener(|v, _, w, cx| v.open_find(false, w, cx))),
+                    )
+                    .child(find_menu),
             )
             .child(
-                Button::new("replace-document")
-                    .ghost()
-                    .xsmall()
-                    .label(tr("替换…", "Replace…"))
-                    .disabled(!self.format_ready("edit.findNext"))
-                    .on_click(cx.listener(|v, _, w, cx| v.open_find(true, w, cx))),
+                self.ribbon_tool(
+                    "replace-document",
+                    Tool::compact("替换", "Replace", I::Replace),
+                    find_ready,
+                    false,
+                )
+                .on_click(cx.listener(|v, _, w, cx| v.open_find(true, w, cx))),
             )
-            .child(
-                Button::new("goto-page")
-                    .ghost()
-                    .xsmall()
-                    .label(tr("转到页…", "Go to page…"))
-                    .disabled(!self.format_ready("edit.goto"))
-                    .on_click(cx.listener(|v, _, w, cx| v.open_go_to(w, cx))),
-            )
-            .child(
-                Button::new("outline-navigation")
-                    .ghost()
-                    .xsmall()
-                    .label(tr("大纲导航…", "Outline navigation…"))
-                    .disabled(!self.format_ready("select.range"))
-                    .on_click(cx.listener(|v, _, w, cx| v.open_outline_navigation(w, cx))),
-            )
+            .child(select);
+        self.home_group("home-editing", tr("编辑", "Editing"), body, None)
     }
 
     fn open_outline_navigation(&mut self, w: &mut Window, cx: &mut Context<Self>) {

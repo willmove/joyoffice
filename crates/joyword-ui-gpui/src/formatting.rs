@@ -2,15 +2,15 @@
 use super::*;
 use gpui::EntityInputHandler;
 use gpui::component::{
-    Disableable, Selectable, Sizable, WindowExt,
+    Disableable, Sizable, WindowExt,
     input::{Input, InputState},
     popover::Popover,
-    select::{SearchableVec, Select, SelectState},
+    select::{SearchableVec, SelectState},
 };
 use joyword_shell::formatting::{
     FormatState, font_families, font_parameters, paragraph_parameters,
 };
-use serde_json::{Value, json};
+use serde_json::Value;
 
 pub(super) type FontSelect = gpui::Entity<SelectState<SearchableVec<SharedString>>>;
 #[derive(Clone, Copy)]
@@ -89,7 +89,7 @@ impl JoyWord {
         }
         self.format_state = Some(state);
     }
-    fn format_state(&self) -> FormatState {
+    pub(super) fn format_state(&self) -> FormatState {
         self.format_state.clone().unwrap_or_default()
     }
     pub(super) fn run_format(
@@ -101,61 +101,28 @@ impl JoyWord {
     ) {
         let _ = self.try_edit(id, args, w, cx);
     }
-    #[allow(clippy::too_many_arguments)] // Stable ribbon ID, command, state and accessibility metadata.
-    fn format_button(
-        &self,
-        id: &'static str,
-        label: &str,
-        command: &'static str,
-        args: Value,
-        key: &str,
-        tip: &str,
-        cx: &mut Context<Self>,
-    ) -> Button {
-        let state = self.format_state();
-        let mixed = state.mixed(key);
-        let selected = if key == "bullets" {
-            state.bullets
-        } else if key == "numbering" {
-            state.numbered
-        } else if let Some(align) = key.strip_prefix("align:") {
-            state.paragraph["align"].as_str() == Some(align)
-        } else if let Some(flag) = key.strip_prefix("para:") {
-            state.paragraph[flag].as_bool() == Some(true)
-        } else if let Some(style) = key.strip_prefix("style:") {
-            state.paragraph["style"].as_str() == Some(style)
-        } else {
-            state.active(key)
-        };
-        let label = if mixed {
-            format!("{label} ·")
-        } else {
-            label.to_owned()
-        };
-        let reason = self
-            .canvas
-            .reader
-            .as_ref()
-            .and_then(|r| r.formatting_disabled(command));
-        Button::new(id)
-            .ghost()
-            .xsmall()
-            .h(px(27.))
-            .label(label)
-            .accessibility_label(if mixed {
-                format!("{tip}（混合格式）")
-            } else {
-                tip.to_owned()
-            })
-            .tooltip(reason.unwrap_or(tip).to_owned())
-            .selected(selected)
-            .disabled(!self.format_ready(command))
-            .on_click(cx.listener(move |v, _, w, cx| v.run_format(command, &args, w, cx)))
-    }
     pub(super) fn choices(
         &self,
         id: &'static str,
         label: String,
+        command: &'static str,
+        choices: Vec<(String, Value)>,
+        cx: &mut Context<Self>,
+    ) -> impl IntoElement {
+        let trigger = Button::new((id, 0usize))
+            .ghost()
+            .xsmall()
+            .h(px(27.))
+            .label(label.clone())
+            .accessibility_label(label)
+            .disabled(!self.format_ready(command));
+        self.format_choices(id, trigger, command, choices, cx)
+    }
+
+    pub(super) fn format_choices(
+        &self,
+        id: &'static str,
+        trigger: Button,
         command: &'static str,
         choices: Vec<(String, Value)>,
         cx: &mut Context<Self>,
@@ -166,54 +133,57 @@ impl JoyWord {
             .reader
             .as_ref()
             .map(|r| (r.engine().document_id(), r.engine().rev()));
-        Popover::new(id)
-            .trigger(
-                Button::new((id, 0usize))
-                    .ghost()
-                    .xsmall()
-                    .h(px(27.))
-                    .label(label.clone())
-                    .accessibility_label(label)
-                    .disabled(!self.format_ready(command)),
-            )
-            .content(move |_, _, cx| {
-                let popup = cx.entity().downgrade();
-                let mut list = div()
-                    .flex()
-                    .flex_col()
-                    .w(px(190.))
-                    .max_h(px(380.))
-                    .id((id, 1usize))
-                    .overflow_y_scroll();
-                for (i, (label, args)) in choices.iter().enumerate() {
-                    let owner = owner.clone();
-                    let popup = popup.clone();
-                    let args = args.clone();
-                    list = list.child(
-                        Button::new((id, i + 2))
-                            .ghost()
-                            .xsmall()
-                            .label(label.clone())
-                            .on_click(move |_, w, cx| {
-                                let _ = popup.update(cx, |p, cx| p.dismiss(w, cx));
-                                let _ = owner.update(cx, |v, cx| {
-                                    if v.canvas
-                                        .reader
-                                        .as_ref()
-                                        .map(|r| (r.engine().document_id(), r.engine().rev()))
-                                        == target
-                                    {
-                                        v.run_format(command, &args, w, cx);
-                                    }
-                                });
-                            }),
-                    );
-                }
-                list
-            })
+        Popover::new(id).trigger(trigger).content(move |_, _, cx| {
+            let popup = cx.entity().downgrade();
+            let mut list = div()
+                .flex()
+                .flex_col()
+                .w(px(if command == "format.size" { 56. } else { 190. }))
+                .max_h(px(380.))
+                .id((id, 1usize))
+                .overflow_y_scroll();
+            for (i, (label, args)) in choices.iter().enumerate() {
+                let owner = owner.clone();
+                let popup = popup.clone();
+                let args = args.clone();
+                list = list.child(
+                    Button::new((id, i + 2))
+                        .ghost()
+                        .xsmall()
+                        .label(label.clone())
+                        .on_click(move |_, w, cx| {
+                            let _ = popup.update(cx, |p, cx| p.dismiss(w, cx));
+                            let _ = owner.update(cx, |v, cx| {
+                                if v.canvas
+                                    .reader
+                                    .as_ref()
+                                    .map(|r| (r.engine().document_id(), r.engine().rev()))
+                                    == target
+                                {
+                                    v.run_format(command, &args, w, cx);
+                                }
+                            });
+                        }),
+                );
+            }
+            list
+        })
     }
     pub(super) fn group_box(&self, title: &str, body: impl IntoElement) -> gpui::Div {
-        let p = self.palette();
+        self.group_frame(
+            body,
+            div()
+                .text_size(px(11.))
+                .text_color(rgb(self.palette().muted))
+                .child(title.to_owned()),
+        )
+    }
+
+    pub(super) fn group_frame(
+        &self,
+        body: impl IntoElement,
+        footer: impl IntoElement,
+    ) -> gpui::Div {
         div()
             .flex()
             .flex_col()
@@ -221,360 +191,11 @@ impl JoyWord {
             .h(px(82.))
             .px_2()
             .border_r_1()
-            .border_color(rgb(p.separator))
+            .border_color(rgb(self.palette().separator))
             .child(body)
-            .child(
-                div()
-                    .text_size(px(11.))
-                    .text_color(rgb(p.muted))
-                    .child(title.to_owned()),
-            )
+            .child(footer)
     }
-    pub(super) fn home_format_groups(&self, cx: &mut Context<Self>) -> gpui::Div {
-        let s = self.format_state();
-        let tr = |zh, en| self.shell.tr(zh, en);
-        let size = s.character["size"]
-            .as_f64()
-            .map(|n| n.to_string())
-            .unwrap_or_else(|| "混合".into());
-        let font_row = div()
-            .flex()
-            .items_center()
-            .gap_1()
-            .child(
-                Select::new(&self.font_picker)
-                    .accessibility_label("字体选择")
-                    .xsmall()
-                    .w(px(170.))
-                    .placeholder("混合字体 / 字体")
-                    .disabled(!self.format_ready("format.font")),
-            )
-            .child(
-                self.choices(
-                    "font-size",
-                    format!("{size} 磅 ▾"),
-                    "format.size",
-                    [
-                        8., 9., 10., 10.5, 11., 12., 14., 16., 18., 20., 22., 24., 26., 28., 36.,
-                        48., 72.,
-                    ]
-                    .into_iter()
-                    .map(|n| (format!("{n} 磅"), json!({"size":n})))
-                    .collect(),
-                    cx,
-                ),
-            )
-            .child(
-                Button::new("font-dialog")
-                    .ghost()
-                    .xsmall()
-                    .label("字体…")
-                    .accessibility_label("字体设置")
-                    .disabled(!self.format_ready("format.set"))
-                    .on_click(cx.listener(|v, _, w, cx| v.format_dialog(Form::Font, w, cx))),
-            );
-        let mut font = div().flex().flex_col().gap_1().child(font_row);
-        let mut toggles = div().flex().items_center().gap_1();
-        for (id, label, cmd, key, tip) in [
-            ("bold", "B", "format.bold", "bold", "加粗 (Ctrl+B)"),
-            ("italic", "I", "format.italic", "italic", "斜体 (Ctrl+I)"),
-            (
-                "underline",
-                "U",
-                "format.underline",
-                "underline",
-                "下划线 (Ctrl+U)",
-            ),
-            ("strike", "abc̶", "format.strikethrough", "strike", "删除线"),
-            ("subscript", "x₂", "format.subscript", "subscript", "下标"),
-            (
-                "superscript",
-                "x²",
-                "format.superscript",
-                "superscript",
-                "上标",
-            ),
-        ] {
-            toggles = toggles.child(self.format_button(id, label, cmd, json!({}), key, tip, cx));
-        }
-        toggles = toggles
-            .child(
-                self.choices(
-                    "font-color",
-                    "字色 ▾".into(),
-                    "format.color",
-                    [
-                        ("自动", "auto"),
-                        ("黑色", "000000"),
-                        ("红色", "C42B1C"),
-                        ("蓝色", "2459A6"),
-                        ("绿色", "147D48"),
-                        ("紫色", "7030A0"),
-                    ]
-                    .into_iter()
-                    .map(|(l, c)| (l.into(), json!({"color":c})))
-                    .collect(),
-                    cx,
-                ),
-            )
-            .child(
-                self.choices(
-                    "highlight",
-                    "高亮 ▾".into(),
-                    "format.highlight",
-                    [
-                        ("无高亮", "none"),
-                        ("黄色", "yellow"),
-                        ("绿色", "brightGreen"),
-                        ("粉色", "pink"),
-                        ("青色", "turquoise"),
-                    ]
-                    .into_iter()
-                    .map(|(l, c)| (l.into(), json!({"color":c})))
-                    .collect(),
-                    cx,
-                ),
-            );
-        font = font.child(toggles);
-        let mut para = div().flex().flex_col().gap_1();
-        let mut aligns = div().flex().gap_1();
-        for (id, label, cmd, key, tip) in [
-            (
-                "align-left",
-                "左",
-                "para.alignLeft",
-                "align:left",
-                "左对齐 (Ctrl+L)",
-            ),
-            (
-                "align-center",
-                "中",
-                "para.alignCenter",
-                "align:center",
-                "居中 (Ctrl+E)",
-            ),
-            (
-                "align-right",
-                "右",
-                "para.alignRight",
-                "align:right",
-                "右对齐 (Ctrl+R)",
-            ),
-            (
-                "align-justify",
-                "齐",
-                "para.justify",
-                "align:justify",
-                "两端对齐 (Ctrl+J)",
-            ),
-            ("bullets", "•", "para.bullets", "bullets", "项目符号"),
-            ("numbering", "1.", "para.numbering", "numbering", "编号"),
-            ("outdent", "←", "para.outdent", "", "减少缩进"),
-            ("indent", "→", "para.indent", "", "增加缩进"),
-        ] {
-            aligns = aligns.child(self.format_button(id, label, cmd, json!({}), key, tip, cx));
-        }
-        aligns = aligns.child(
-            self.choices(
-                "numbering-kinds",
-                "编号样式 ▾".into(),
-                "para.numbering",
-                [
-                    ("1. 2. 3.", "numbered"),
-                    ("1) 2) 3)", "numberedParen"),
-                    ("A. B. C.", "upperLetter"),
-                    ("a. b. c.", "lowerLetter"),
-                    ("i. ii. iii.", "lowerRoman"),
-                ]
-                .into_iter()
-                .map(|(l, k)| (l.into(), json!({"kind":k})))
-                .collect(),
-                cx,
-            ),
-        );
-        para = para.child(aligns).child(
-            div()
-                .flex()
-                .gap_1()
-                .child(
-                    self.choices(
-                        "line-spacing",
-                        "行距 ▾".into(),
-                        "para.lineSpacing",
-                        [1., 1.15, 1.5, 2., 2.5, 3.]
-                            .into_iter()
-                            .map(|n| (format!("{n} 倍行距"), json!({"value":n})))
-                            .collect(),
-                        cx,
-                    ),
-                )
-                .child(
-                    self.choices(
-                        "para-borders",
-                        "边框 ▾".into(),
-                        "para.borders",
-                        [
-                            ("无边框", "none"),
-                            ("下边框", "bottom"),
-                            ("外边框", "outside"),
-                            ("全部边框", "all"),
-                        ]
-                        .into_iter()
-                        .map(|(l, k)| (l.into(), json!({"kind":k})))
-                        .collect(),
-                        cx,
-                    ),
-                )
-                .child(
-                    self.choices(
-                        "para-fill",
-                        "底纹 ▾".into(),
-                        "para.shading",
-                        [
-                            ("无底纹", None),
-                            ("浅蓝", Some("DCE6F1")),
-                            ("浅黄", Some("FFF2CC")),
-                            ("浅绿", Some("E2F0D9")),
-                        ]
-                        .into_iter()
-                        .map(|(l, c)| (l.into(), json!({"color":c})))
-                        .collect(),
-                        cx,
-                    ),
-                )
-                .child(
-                    self.choices(
-                        "para-pagination",
-                        "分页 ▾".into(),
-                        "para.set",
-                        [
-                            ("与下段同页", "keepNext"),
-                            ("段中不分页", "keepLines"),
-                            ("段前分页", "pageBreakBefore"),
-                            ("孤行控制", "widowControl"),
-                        ]
-                        .into_iter()
-                        .map(|(l, k)| {
-                            let on = s.paragraph[k].as_bool() == Some(true);
-                            let mut props = serde_json::Map::new();
-                            props.insert(k.into(), json!(!on));
-                            (
-                                format!("{} {l}", if on { "✓" } else { "○" }),
-                                json!({"props":props}),
-                            )
-                        })
-                        .collect(),
-                        cx,
-                    ),
-                )
-                .child(
-                    self.author_button(
-                        "formatting-marks",
-                        tr("显示格式标记 ¶", "Formatting marks ¶"),
-                        "view.marks",
-                        json!({}),
-                        cx,
-                    )
-                    .selected(
-                        self.canvas
-                            .reader
-                            .as_ref()
-                            .is_some_and(|r| r.engine().view.marks),
-                    ),
-                )
-                .child(
-                    Button::new("paragraph-dialog")
-                        .ghost()
-                        .xsmall()
-                        .label("段落…")
-                        .accessibility_label("段落设置")
-                        .disabled(!self.format_ready("para.set"))
-                        .on_click(
-                            cx.listener(|v, _, w, cx| v.format_dialog(Form::Paragraph, w, cx)),
-                        ),
-                ),
-        );
-        let styles = div()
-            .flex()
-            .flex_col()
-            .gap_1()
-            .child(
-                div()
-                    .flex()
-                    .gap_1()
-                    .child(self.format_button(
-                        "normal-style",
-                        "正文",
-                        "para.normal",
-                        json!({}),
-                        "style:Normal",
-                        "正文样式 (Ctrl+Shift+N)",
-                        cx,
-                    ))
-                    .child(self.format_button(
-                        "heading1",
-                        "标题 1",
-                        "para.heading1",
-                        json!({}),
-                        "style:Heading1",
-                        "标题 1 (Ctrl+Alt+1)",
-                        cx,
-                    ))
-                    .child(
-                        self.choices(
-                            "quick-styles",
-                            "快速样式 ▾".into(),
-                            "para.style",
-                            self.style_catalog
-                                .iter()
-                                .filter(|s| {
-                                    s.quick
-                                        && !s.hidden
-                                        && matches!(s.kind.as_str(), "paragraph" | "character")
-                                })
-                                .map(|s| (s.name.clone(), json!({"style":s.id})))
-                                .collect(),
-                            cx,
-                        ),
-                    ),
-            )
-            .child(
-                div()
-                    .flex()
-                    .gap_1()
-                    .child(self.format_button(
-                        "heading2",
-                        "标题 2",
-                        "para.heading2",
-                        json!({}),
-                        "style:Heading2",
-                        "标题 2 (Ctrl+Alt+2)",
-                        cx,
-                    ))
-                    .child(self.format_button(
-                        "clear-format",
-                        "清除",
-                        "format.clear",
-                        json!({}),
-                        "",
-                        "清除格式",
-                        cx,
-                    ))
-                    .child(
-                        Button::new("styles-pane")
-                            .ghost()
-                            .xsmall()
-                            .label("样式面板")
-                            .on_click(cx.listener(|v, _, _, cx| v.toggle_styles(cx))),
-                    ),
-            );
-        div()
-            .flex()
-            .items_center()
-            .child(self.group_box(tr("字体", "Font"), font))
-            .child(self.group_box(tr("段落", "Paragraph"), para))
-            .child(self.group_box(tr("样式", "Styles"), styles))
-    }
+
     pub(super) fn format_dialog(&mut self, kind: Form, w: &mut Window, cx: &mut Context<Self>) {
         let command = match kind {
             Form::Font => "format.set",
@@ -757,6 +378,7 @@ impl JoyWord {
 mod tests {
     use super::*;
     use gpui::TestAppContext;
+    use serde_json::json;
     use std::sync::atomic::AtomicBool;
     #[gpui::test]
     fn native_shortcuts_and_font_picker_edit_same_session(cx: &mut TestAppContext) {

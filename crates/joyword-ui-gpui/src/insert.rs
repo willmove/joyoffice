@@ -169,26 +169,6 @@ impl JoyWord {
             .on_click(cx.listener(move |v, _, w, cx| v.perform_insert(action.clone(), w, cx)))
     }
 
-    fn insert_group(
-        &self,
-        label: &'static str,
-        body: impl IntoElement,
-    ) -> gpui::Stateful<gpui::Div> {
-        div()
-            .id(SharedString::from(format!("insert-group-{label}")))
-            .flex()
-            .flex_shrink_0()
-            .h(px(66.))
-            .px(px(7.))
-            .items_center()
-            .gap(px(1.))
-            .border_r_1()
-            .border_color(rgb(self.palette().border))
-            .role(gpui::Role::Group)
-            .aria_label(label)
-            .child(body)
-    }
-
     pub(super) fn insert_ribbon(&self, cx: &mut Context<Self>) -> gpui::Div {
         use IconName as I;
         use InsertAction::{Advanced, Command, Form, Picture, Unavailable};
@@ -295,8 +275,8 @@ impl JoyWord {
             .flex()
             .flex_shrink_0()
             .items_center()
-            .py(px(4.))
-            .child(self.insert_group(
+            .child(self.ribbon_group(
+                "insert-group-pages",
                 tr("页面", "Pages"),
                 self.insert_menu(
                     "insert-pages",
@@ -324,11 +304,15 @@ impl JoyWord {
                     cx,
                 ),
             ))
-            .child(self.insert_group(tr("表格", "Tables"), self.table_grid(cx)));
+            .child(self.ribbon_group(
+                "insert-group-tables",
+                tr("表格", "Tables"),
+                self.table_grid(cx),
+            ));
         let illustrations = div()
             .flex()
             .items_center()
-            .gap(px(1.))
+            .gap_1()
             .child(self.insert_menu(
                 "insert-pictures",
                 Tool::new("图片", "Pictures", I::Image),
@@ -425,8 +409,13 @@ impl JoyWord {
                     )),
             );
         row = row
-            .child(self.insert_group(tr("插图", "Illustrations"), illustrations))
-            .child(self.insert_group(
+            .child(self.ribbon_group(
+                "insert-group-illustrations",
+                tr("插图", "Illustrations"),
+                illustrations,
+            ))
+            .child(self.ribbon_group(
+                "insert-group-media",
                 tr("媒体", "Media"),
                 self.insert_direct(
                     "insert-media",
@@ -435,7 +424,8 @@ impl JoyWord {
                     cx,
                 ),
             ))
-            .child(self.insert_group(
+            .child(self.ribbon_group(
+                "insert-group-links",
                 tr("链接", "Links"),
                 self.insert_menu(
                     "insert-links",
@@ -458,21 +448,23 @@ impl JoyWord {
                     cx,
                 ),
             ))
-            .child(self.insert_group(
+            .child(self.ribbon_group(
+                "insert-group-comments",
                 tr("批注", "Comments"),
                 self.insert_direct(
                     "insert-comment",
-                    Tool::new("批注", "Comment", I::MessageSquarePlus),
+                    Tool::new("批注", "Comment", I::MessageSquarePlus).width(68.),
                     Advanced("review-new", "review.newComment"),
                     cx,
                 ),
             ))
             .child(
-                self.insert_group(
+                self.ribbon_group(
+                    "insert-group-header-footer",
                     tr("页眉和页脚", "Header & Footer"),
                     div()
                         .flex()
-                        .gap(px(1.))
+                        .gap_1()
                         .child(self.insert_menu(
                             "insert-header",
                             Tool::new("页眉", "Header", I::PanelTop),
@@ -518,7 +510,8 @@ impl JoyWord {
                         )),
                 ),
             )
-            .child(self.insert_group(
+            .child(self.ribbon_group(
+                "insert-group-text",
                 tr("文本", "Text"),
                 self.insert_menu(
                     "insert-text",
@@ -550,11 +543,12 @@ impl JoyWord {
                 ),
             ))
             .child(
-                self.insert_group(
+                self.ribbon_group(
+                    "insert-group-symbols",
                     tr("符号", "Symbols"),
                     div()
                         .flex()
-                        .gap(px(1.))
+                        .gap_1()
                         .child(self.insert_menu(
                             "insert-equations",
                             Tool::new("公式", "Equation", I::Radical),
@@ -600,7 +594,13 @@ impl JoyWord {
                         )),
                 ),
             );
-        row.when(editing, |row| row.child(self.header_footer_ribbon(cx)))
+        row.when(editing, |row| {
+            row.child(self.ribbon_group(
+                "insert-group-header-footer-editing",
+                tr("页眉页脚编辑", "Header & Footer Editing"),
+                self.header_footer_ribbon(cx),
+            ))
+        })
     }
 
     fn perform_insert(&mut self, action: InsertAction, w: &mut Window, cx: &mut Context<Self>) {

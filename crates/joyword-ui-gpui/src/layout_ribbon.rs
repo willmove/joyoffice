@@ -707,32 +707,11 @@ impl JoyWord {
         }
     }
 
-    fn layout_group(&self, name: &'static str) -> gpui::Stateful<gpui::Div> {
-        div()
-            .id(name)
-            .flex()
-            .flex_shrink_0()
-            .items_center()
-            .h(px(66.))
-            .px(px(6.))
-            .gap(px(1.))
-            .border_r_1()
-            .border_color(rgb(self.palette().border))
-            .role(gpui::Role::Group)
-            .aria_label(name)
-    }
-
     pub(super) fn layout_ribbon(&self, cx: &mut Context<Self>) -> gpui::Div {
         use Action::{Command as C, Unavailable as U};
         use IconName as I;
         let entry = |zh, en, icon, action| self.layout_entry(zh, en, icon, action);
-        let tool = |zh, en, icon| {
-            Tool::new(zh, en, icon).width(if !self.layout.chinese && en == "Orientation" {
-                66.
-            } else {
-                48.
-            })
-        };
+        let width = |zh, en| if self.layout.chinese { zh } else { en };
         let commands =
             |id, rows: &[(&'static str, &'static str, &'static str)], key: &str, icon| {
                 rows.iter()
@@ -870,11 +849,13 @@ impl JoyWord {
         );
         breaks[0].heading = Some(self.shell.tr("分页符", "Page Breaks"));
         breaks[2].heading = Some(self.shell.tr("分节符", "Section Breaks"));
-        let page = self
-            .layout_group("layout-page-setup")
+        let page = div()
+            .flex()
+            .items_center()
+            .gap_1()
             .child(self.layout_menu(
                 "layout-direction",
-                tool("文本方向", "Text Direction", I::TextCursorInput),
+                Tool::new("文本方向", "Text Direction", I::TextCursorInput).width(width(56., 68.)),
                 commands(
                     "layout.textDirection",
                     &[
@@ -889,13 +870,13 @@ impl JoyWord {
             ))
             .child(self.layout_menu(
                 "layout-margins",
-                tool("页边距", "Margins", I::PanelLeft),
+                Tool::new("页边距", "Margins", I::PanelLeft),
                 margins,
                 cx,
             ))
             .child(self.layout_menu(
                 "layout-orientation",
-                tool("方向", "Orientation", I::RectangleHorizontal),
+                Tool::new("方向", "Orientation", I::RectangleHorizontal).width(width(56., 72.)),
                 commands(
                     "layout.orientation",
                     &[
@@ -907,16 +888,16 @@ impl JoyWord {
                 ),
                 cx,
             ))
-            .child(self.layout_menu("layout-size", tool("大小", "Size", I::File), sizes, cx))
+            .child(self.layout_menu("layout-size", Tool::new("大小", "Size", I::File), sizes, cx))
             .child(self.layout_menu(
                 "layout-columns",
-                tool("栏", "Columns", I::Columns2),
+                Tool::new("栏", "Columns", I::Columns2),
                 columns,
                 cx,
             ))
             .child(self.layout_menu(
                 "layout-breaks",
-                tool("分隔符", "Breaks", I::FileSymlink),
+                Tool::new("分隔符", "Breaks", I::FileSymlink),
                 breaks,
                 cx,
             ))
@@ -924,12 +905,12 @@ impl JoyWord {
                 div()
                     .flex()
                     .flex_col()
-                    .gap(px(4.))
+                    .gap_1()
                     .child(
                         self.layout_menu(
                             "layout-lines",
                             Tool::compact("行号", "Line Numbers", I::ListOrdered)
-                                .width(if self.layout.chinese { 76. } else { 112. }),
+                                .width(width(76., 120.)),
                             commands(
                                 "layout.lineNumbers",
                                 &[
@@ -944,33 +925,31 @@ impl JoyWord {
                             cx,
                         ),
                     )
-                    .child(
-                        self.layout_menu(
-                            "layout-hyphenation",
-                            Tool::compact("断字", "Hyphenation", I::TextWrap)
-                                .width(if self.layout.chinese { 76. } else { 112. }),
-                            vec![
-                                entry(
-                                    "无",
-                                    "None",
-                                    I::Minus,
-                                    C("layout.hyphenation", json!({"value":false})),
-                                ),
-                                entry(
-                                    "自动",
-                                    "Automatic",
-                                    I::TextWrap,
-                                    C("layout.hyphenation", json!({"value":true})),
-                                ),
-                                entry("手动…", "Manual…", I::TextCursorInput, U),
-                            ],
-                            cx,
-                        ),
-                    ),
+                    .child(self.layout_menu(
+                        "layout-hyphenation",
+                        Tool::compact("断字", "Hyphenation", I::TextWrap).width(width(76., 120.)),
+                        vec![
+                            entry(
+                                "无",
+                                "None",
+                                I::Minus,
+                                C("layout.hyphenation", json!({"value":false})),
+                            ),
+                            entry(
+                                "自动",
+                                "Automatic",
+                                I::TextWrap,
+                                C("layout.hyphenation", json!({"value":true})),
+                            ),
+                            entry("手动…", "Manual…", I::TextCursorInput, U),
+                        ],
+                        cx,
+                    )),
             );
-        let para = self
-            .layout_group("layout-paragraph")
-            .gap(px(6.))
+        let para = div()
+            .flex()
+            .items_center()
+            .gap_2()
             .child(
                 div()
                     .flex()
@@ -1002,8 +981,8 @@ impl JoyWord {
                     .ghost()
                     .xsmall()
                     .p_0()
-                    .w(px(8.))
-                    .h(px(14.))
+                    .w(px(18.))
+                    .h(px(21.))
                     .icon(I::ArrowDownRight)
                     .accessibility_label(self.shell.tr("段落设置…", "Paragraph Settings…"))
                     .disabled(!self.format_ready("para.set"))
@@ -1011,7 +990,7 @@ impl JoyWord {
                         cx.listener(|v, _, w, cx| v.perform_layout(Action::Paragraph, w, cx)),
                     ),
             );
-        let tool = |zh, en, icon| Tool::new(zh, en, icon).width(49.);
+        let tool = |zh, en, icon| Tool::new(zh, en, icon).width(width(56., 64.));
         let positions = commands(
             "arrange.position",
             &[
@@ -1042,8 +1021,10 @@ impl JoyWord {
             "wrap",
             I::TextWrap,
         );
-        let arrange = self
-            .layout_group("layout-arrange")
+        let arrange = div()
+            .flex()
+            .items_center()
+            .gap_1()
             .child(self.layout_menu(
                 "layout-position",
                 tool("位置", "Position", I::PanelsTopLeft),
@@ -1126,11 +1107,13 @@ impl JoyWord {
                 ),
                 cx,
             ));
+        let tr = |zh, en| self.shell.tr(zh, en);
         div()
             .flex()
             .items_center()
-            .child(page)
-            .child(para)
-            .child(arrange)
+            .flex_shrink_0()
+            .child(self.ribbon_group("layout-page-setup", tr("页面设置", "Page Setup"), page))
+            .child(self.ribbon_group("layout-paragraph", tr("段落", "Paragraph"), para))
+            .child(self.ribbon_group("layout-arrange", tr("排列", "Arrange"), arrange))
     }
 }

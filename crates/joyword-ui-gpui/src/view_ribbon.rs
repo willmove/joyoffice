@@ -54,20 +54,6 @@ impl JoyWord {
                 .as_ref()
                 .is_some_and(|r| r.engine().view.nav_pane)
     }
-    fn view_group(&self, zh: &'static str, en: &'static str) -> gpui::Stateful<gpui::Div> {
-        div()
-            .id(zh)
-            .flex()
-            .items_center()
-            .h(px(66.))
-            .px(px(5.))
-            .gap(px(2.))
-            .flex_shrink_0()
-            .border_r_1()
-            .border_color(rgb(self.palette().separator))
-            .role(gpui::Role::Group)
-            .aria_label(self.shell.tr(zh, en))
-    }
     fn view_tool(
         &self,
         id: &'static str,
@@ -91,30 +77,26 @@ impl JoyWord {
                     "This desktop view or window feature is not available yet",
                 ))
         };
-        let views = self
-            .view_group("视图", "Views")
-            .child(
-                self.view_tool(
-                    "view-print",
-                    Tool::new("页面视图", "Print Layout", IconName::FileText)
-                        .width(width(38., 58.))
-                        .caption_width(width(28., 54.)),
-                    "view.printLayout",
-                    true,
-                    cx,
-                ),
-            )
+        let views = div()
+            .flex()
+            .items_center()
+            .gap_1()
+            .child(self.view_tool(
+                "view-print",
+                Tool::new("页面视图", "Print Layout", IconName::FileText),
+                "view.printLayout",
+                true,
+                cx,
+            ))
             .child(unavailable(
                 "view-web",
-                Tool::new("Web 版式", "Web Layout", IconName::Globe)
-                    .width(width(38., 58.))
-                    .caption_width(width(28., 54.)),
+                Tool::new("Web 版式", "Web Layout", IconName::Globe).width(width(68., 56.)),
             ))
             .child(
                 div()
                     .flex()
                     .flex_col()
-                    .gap(px(8.))
+                    .gap_1()
                     .child(unavailable(
                         "view-outline",
                         Tool::compact("大纲", "Outline", IconName::ListTree).width(width(60., 88.)),
@@ -124,11 +106,12 @@ impl JoyWord {
                         Tool::compact("草稿", "Draft", IconName::File).width(width(60., 88.)),
                     )),
             );
-        let immersive = self
-            .view_group("沉浸式", "Immersive")
+        let immersive = div()
+            .flex()
+            .gap_1()
             .child(self.view_tool(
                 "view-focus",
-                Tool::new("专注", "Focus", IconName::Focus).width(width(40., 48.)),
+                Tool::new("专注", "Focus", IconName::Focus),
                 "view.focus",
                 state.is_some_and(|s| s.focus_mode),
                 cx,
@@ -136,22 +119,9 @@ impl JoyWord {
             .child(unavailable(
                 "view-reader",
                 Tool::new("沉浸式阅读器", "Immersive Reader", IconName::BookOpen)
-                    .width(width(50., 68.))
-                    .caption_width(width(44., 64.)),
+                    .width(width(80., 68.)),
             ));
-        let mut show = self
-            .view_group("显示", "Show")
-            .flex_col()
-            .items_start()
-            .justify_center()
-            .gap(px(1.))
-            .w(px(
-                if self.shell.locale == joyword_shell::l10n::Locale::ZhCn {
-                    96.
-                } else {
-                    134.
-                },
-            ));
+        let mut show = div().flex().flex_col().items_start();
         for (id, zh, en, command, checked) in [
             (
                 "view-ruler",
@@ -188,33 +158,30 @@ impl JoyWord {
                     })),
             );
         }
-        let zoom = self
-            .view_group("缩放", "Zoom")
+        let zoom = div()
+            .flex()
+            .items_center()
+            .gap_1()
             .child(
                 self.ribbon_tool(
                     "view-zoom",
-                    Tool::new("缩放", "Zoom", IconName::Search).width(40.),
+                    Tool::new("缩放", "Zoom", IconName::Search),
                     self.format_ready("view.zoom"),
                     false,
                 )
                 .on_click(cx.listener(|v, _, w, cx| v.open_zoom_dialog(w, cx))),
             )
-            .child(
-                self.view_tool(
-                    "view-100",
-                    Tool::new("缩放至 100%", "100%", IconName::FileDigit)
-                        .width(42.)
-                        .caption_width(38.),
-                    "view.zoom100",
-                    false,
-                    cx,
-                ),
-            )
+            .child(self.view_tool(
+                "view-100",
+                Tool::new("缩放至 100%", "100%", IconName::FileDigit),
+                "view.zoom100",
+                false,
+                cx,
+            ))
             .child(
                 div()
                     .flex()
                     .flex_col()
-                    .gap(px(1.))
                     .child(self.view_tool(
                         "view-one-page",
                         Tool::compact("单页", "One Page", IconName::File).width(width(60., 116.)),
@@ -238,38 +205,33 @@ impl JoyWord {
                         ),
                     ),
             );
-        let windows = self
-            .view_group("窗口", "Window")
+        let windows = div()
+            .flex()
+            .gap_1()
             .child(unavailable(
                 "view-new-window",
-                Tool::new("新建窗口", "New Window", IconName::SquarePlus)
-                    .width(width(42., 56.))
-                    .caption_width(width(30., 52.)),
+                Tool::new("新建窗口", "New Window", IconName::SquarePlus),
             ))
             .child(unavailable(
                 "view-arrange",
-                Tool::new("全部重排", "Arrange All", IconName::PanelsTopLeft)
-                    .width(width(42., 56.))
-                    .caption_width(width(30., 52.)),
+                Tool::new("全部重排", "Arrange All", IconName::PanelsTopLeft),
             ))
             .child(unavailable(
                 "view-split",
-                Tool::new("拆分", "Split", IconName::Rows2).width(34.),
-            ));
-        let switch = self.view_group("切换窗口", "Switch Windows").child(
-            self.ribbon_tool(
-                "view-switch",
-                Tool::new("切换窗口", "Switch Windows", IconName::AppWindow)
-                    .width(width(56., 76.))
-                    .caption_width(width(48., 70.)),
-                false,
-                true,
-            )
-            .tooltip(self.shell.tr(
-                "当前桌面仅有一个文档窗口",
-                "This desktop currently has one document window",
-            )),
-        );
+                Tool::new("拆分", "Split", IconName::Rows2),
+            ))
+            .child(
+                self.ribbon_tool(
+                    "view-switch",
+                    Tool::new("切换窗口", "Switch Windows", IconName::AppWindow),
+                    false,
+                    true,
+                )
+                .tooltip(self.shell.tr(
+                    "当前桌面仅有一个文档窗口",
+                    "This desktop currently has one document window",
+                )),
+            );
         let owner = cx.weak_entity();
         let macro_ready = self.format_ready("tools.macros");
         let recording = self
@@ -277,11 +239,10 @@ impl JoyWord {
             .reader
             .as_ref()
             .is_some_and(|r| r.engine().recording.is_some());
-        let chinese = self.shell.locale == joyword_shell::l10n::Locale::ZhCn;
         let macros = Popover::new("view-macros-menu")
             .trigger(self.ribbon_tool(
                 "view-macros",
-                Tool::new("宏", "Macros", IconName::SquareTerminal).width(48.),
+                Tool::new("宏", "Macros", IconName::SquareTerminal),
                 macro_ready,
                 true,
             ))
@@ -318,18 +279,17 @@ impl JoyWord {
                 }
                 list
             });
+        let tr = |zh, en| self.shell.tr(zh, en);
         div()
             .flex()
             .items_center()
-            .px(px(5.))
             .flex_shrink_0()
-            .child(views)
-            .child(immersive)
-            .child(show)
-            .child(zoom)
-            .child(windows)
-            .child(switch)
-            .child(macros)
+            .child(self.ribbon_group("view-views", tr("视图", "Views"), views))
+            .child(self.ribbon_group("view-immersive", tr("沉浸式", "Immersive"), immersive))
+            .child(self.ribbon_group("view-show", tr("显示", "Show"), show))
+            .child(self.ribbon_group("view-zoom-group", tr("缩放", "Zoom"), zoom))
+            .child(self.ribbon_group("view-window", tr("窗口", "Window"), windows))
+            .child(self.ribbon_group("view-macro-group", tr("宏", "Macros"), macros))
     }
     fn open_zoom_dialog(&mut self, w: &mut Window, cx: &mut Context<Self>) {
         self.fields_form(
