@@ -81,9 +81,21 @@ fn recent_list_is_deduplicated_bounded_and_corruption_is_preserved() {
     let after = storage::recent_files(&state).unwrap();
     assert_eq!(after[0], paths[3]);
     assert_eq!(after.len(), 20);
+    std::fs::remove_file(&after[1]).unwrap();
+    let details = storage::recent_file_details(&state).unwrap();
+    assert_eq!(
+        details
+            .iter()
+            .map(|file| file.path.clone())
+            .collect::<Vec<_>>(),
+        after
+    );
+    assert!(details[0].modified.is_some());
+    assert!(details[1].modified.is_none());
     let index = state.join("recent-files.v1");
     std::fs::write(&index, b"future format").unwrap();
-    assert!(storage::remember_file(&state, &paths[0]).is_err());
+    assert!(storage::remember_file(&state, &after[0]).is_err());
+    assert!(storage::recent_file_details(&state).is_err());
     assert_eq!(std::fs::read(&index).unwrap(), b"future format");
 }
 #[test]

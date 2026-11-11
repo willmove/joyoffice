@@ -201,12 +201,8 @@ impl Viewer {
                     .icon(I::House)
                     .accessibility_label("文件")
                     .tooltip("文件")
-                    .on_click(cx.listener(|s, _, _, cx| {
-                        s.backstage = !s.backstage;
-                        if s.backstage {
-                            s.refresh_recent(cx);
-                        }
-                        cx.notify();
+                    .on_click(cx.listener(|s, _, w, cx| {
+                        s.open_file_page(w, cx);
                     })),
             )
             .child(
@@ -306,9 +302,7 @@ impl Viewer {
             .flex()
             .items_center()
             .overflow_x_scroll();
-        if !cfg!(target_os = "macos") {
-            tabs = tabs.child(self.ribbon_tab("文件", self.backstage, p.accent, cx));
-        }
+        tabs = tabs.child(self.ribbon_tab("文件", self.backstage, p.accent, cx));
         let contextual = self
             .editor
             .as_ref()
@@ -452,12 +446,9 @@ impl Viewer {
                     })
                     .child(tab),
             )
-            .on_click(cx.listener(move |s, _, _, cx| {
+            .on_click(cx.listener(move |s, _, w, cx| {
                 if tab == "文件" {
-                    s.backstage = !s.backstage;
-                    if s.backstage {
-                        s.refresh_recent(cx);
-                    }
+                    s.open_file_page(w, cx);
                 } else {
                     s.ribbon = tab;
                     s.backstage = false;
@@ -1452,96 +1443,6 @@ impl Viewer {
                     )),
                 ),
         )
-    }
-    pub(super) fn file_backstage(&self, cx: &mut Context<Self>) -> AnyElement {
-        let p = palette(self.dark);
-        div()
-            .size_full()
-            .flex()
-            .bg(rgb(p.surface))
-            .child(
-                div()
-                    .w(px(208.))
-                    .h_full()
-                    .p_4()
-                    .bg(rgb(p.chrome))
-                    .flex()
-                    .flex_col()
-                    .gap_3()
-                    .child(
-                        Button::new("file-back")
-                            .ghost()
-                            .icon(I::ArrowLeft)
-                            .label("返回")
-                            .on_click(cx.listener(|s, _, _, cx| {
-                                s.backstage = false;
-                                cx.notify();
-                            })),
-                    )
-                    .child(
-                        Button::new("file-new")
-                            .ghost()
-                            .icon(I::FilePlus)
-                            .label("新建")
-                            .on_click(cx.listener(|s, _, w, cx| {
-                                s.new_document(&NewDocument, w, cx);
-                                s.backstage = false;
-                            })),
-                    )
-                    .child(
-                        Button::new("file-open")
-                            .ghost()
-                            .icon(I::FolderOpen)
-                            .label("打开 · Ctrl+O")
-                            .on_click(cx.listener(|s, _, w, cx| s.open(&Open, w, cx))),
-                    )
-                    .child(
-                        Button::new("file-save")
-                            .ghost()
-                            .icon(I::Save)
-                            .label("保存 · Ctrl+S")
-                            .on_click(cx.listener(|s, _, w, cx| s.save(&Save, w, cx))),
-                    )
-                    .child(
-                        Button::new("file-save-as")
-                            .ghost()
-                            .icon(I::Save)
-                            .label("另存为")
-                            .on_click(cx.listener(|s, _, w, cx| s.save_as(&SaveAs, w, cx))),
-                    )
-                    .child(
-                        Button::new("file-recover")
-                            .ghost()
-                            .icon(I::FolderClock)
-                            .label("恢复未保存文稿")
-                            .on_click(cx.listener(|s, _, w, cx| s.recover(w, cx))),
-                    ),
-            )
-            .child(
-                div()
-                    .flex_1()
-                    .p_8()
-                    .flex()
-                    .flex_col()
-                    .gap_5()
-                    .child(div().text_2xl().child("文件"))
-                    .child(
-                        div().text_lg().child(
-                            self.deck
-                                .as_ref()
-                                .map(|d| d.info.name.clone())
-                                .unwrap_or("新演示文稿".into()),
-                        ),
-                    )
-                    .child(self.templates_panel(cx))
-                    .child(self.recent_panel(cx))
-                    .child("导出与打印")
-                    .child(self.delivery_toolbar(cx))
-                    .child(div().mt_4().text_sm().text_color(rgb(p.muted)).child(
-                        "支持 PPTX、JoyDeck 与 DeckCraft 文稿。导入与兼容性详情可在“审阅”中查看。",
-                    )),
-            )
-            .into_any_element()
     }
     pub(super) fn status_chrome(&self, scale: f32, cx: &mut Context<Self>) -> Div {
         let p = palette(self.dark);

@@ -40,7 +40,7 @@ impl Viewer {
                 })),
         )
     }
-    fn delivery_form(
+    pub(super) fn delivery_form(
         &mut self,
         kind: &'static str,
         layout: PageLayout,

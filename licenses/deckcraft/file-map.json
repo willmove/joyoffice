@@ -2294,7 +2294,7 @@
       "source_path": "crates/ui-egui/src/theme.rs",
       "source_sha256": "d8d6f55195ac5b0c22d49ec313b716fcfab6cb2c08b3c15445b1ed1fcbe97c6a",
       "target_path": "crates/joydeck-ui-gpui/src/chrome.rs",
-      "adapted_sha256": "967827ece25fdebc4c2148c449fab06d1e1dba0870d006191c43cfe94a2e8c9d",
+      "adapted_sha256": "5e90962eb4195b971170a3dfeddba212e21369fc214b0819a5292f59bdb35e68",
       "changes": [
         "R8: adapt typed media references / object ID and resource remapping / layout and theme tokens to pure engine or GPUI Kit; no egui dependency",
         "rustfmt; bounded transactions, errors and clipboard serialization; original MIT attribution retained",
@@ -2306,13 +2306,14 @@
       "text_hyperlinks": "Expose the native text-link editor and removal in the Insert ribbon.",
       "dynamic_text_fields": "Support atomic dynamic text fields, native authoring, and separate rendered/source offsets.",
       "footer_menu": "Expose the existing atomic slide footer commands through the Insert ribbon.",
-      "macos_powerpoint_ribbon": "Arrange the native ribbon using the observed macOS PowerPoint tab order, spacing and command groups."
+      "macos_powerpoint_ribbon": "Arrange the native ribbon using the observed macOS PowerPoint tab order, spacing and command groups.",
+      "powerpoint_file_page": "Retain the File ribbon tab on every desktop platform and route both file entries to the updated file page."
     },
     {
       "source_path": "crates/ui-egui/src/ribbon.rs",
       "source_sha256": "036692f8a885af7b61dfcd7e065f371f46c7db67854c0df9d205c91f35d9049a",
       "target_path": "crates/joydeck-ui-gpui/src/chrome.rs",
-      "adapted_sha256": "967827ece25fdebc4c2148c449fab06d1e1dba0870d006191c43cfe94a2e8c9d",
+      "adapted_sha256": "5e90962eb4195b971170a3dfeddba212e21369fc214b0819a5292f59bdb35e68",
       "changes": [
         "R8: adapt typed media references / object ID and resource remapping / layout and theme tokens to pure engine or GPUI Kit; no egui dependency",
         "rustfmt; bounded transactions, errors and clipboard serialization; original MIT attribution retained",
@@ -2324,13 +2325,14 @@
       "text_hyperlinks": "Expose the native text-link editor and removal in the Insert ribbon.",
       "dynamic_text_fields": "Support atomic dynamic text fields, native authoring, and separate rendered/source offsets.",
       "footer_menu": "Expose the existing atomic slide footer commands through the Insert ribbon.",
-      "macos_powerpoint_ribbon": "Arrange the native ribbon using the observed macOS PowerPoint tab order, spacing and command groups."
+      "macos_powerpoint_ribbon": "Arrange the native ribbon using the observed macOS PowerPoint tab order, spacing and command groups.",
+      "powerpoint_file_page": "Retain the File ribbon tab on every desktop platform and route both file entries to the updated file page."
     },
     {
       "source_path": "crates/ui-egui/src/widgets.rs",
       "source_sha256": "d62cc3cce0436f1118c6486f52c5d90175aeaa79751602a89dbf01aa8d233bf9",
       "target_path": "crates/joydeck-ui-gpui/src/chrome.rs",
-      "adapted_sha256": "967827ece25fdebc4c2148c449fab06d1e1dba0870d006191c43cfe94a2e8c9d",
+      "adapted_sha256": "5e90962eb4195b971170a3dfeddba212e21369fc214b0819a5292f59bdb35e68",
       "changes": [
         "R8: adapt typed media references / object ID and resource remapping / layout and theme tokens to pure engine or GPUI Kit; no egui dependency",
         "rustfmt; bounded transactions, errors and clipboard serialization; original MIT attribution retained",
@@ -2342,7 +2344,8 @@
       "text_hyperlinks": "Expose the native text-link editor and removal in the Insert ribbon.",
       "dynamic_text_fields": "Support atomic dynamic text fields, native authoring, and separate rendered/source offsets.",
       "footer_menu": "Expose the existing atomic slide footer commands through the Insert ribbon.",
-      "macos_powerpoint_ribbon": "Arrange the native ribbon using the observed macOS PowerPoint tab order, spacing and command groups."
+      "macos_powerpoint_ribbon": "Arrange the native ribbon using the observed macOS PowerPoint tab order, spacing and command groups.",
+      "powerpoint_file_page": "Retain the File ribbon tab on every desktop platform and route both file entries to the updated file page."
     }
   ]
 }

@@ -46,6 +46,26 @@ pub fn recent_files(root: &Path) -> Result<Vec<PathBuf>> {
     }
     Ok(record.paths)
 }
+/// A recent path stays visible even when its file is currently unavailable.
+#[derive(Clone, Debug)]
+pub struct RecentFile {
+    pub path: PathBuf,
+    pub modified: Option<SystemTime>,
+}
+
+/// Read the bounded MRU list and its display metadata off the UI thread.
+pub fn recent_file_details(root: &Path) -> Result<Vec<RecentFile>> {
+    Ok(recent_files(root)?
+        .into_iter()
+        .map(|path| {
+            let modified = std::fs::metadata(&path)
+                .ok()
+                .and_then(|m| m.modified().ok());
+            RecentFile { path, modified }
+        })
+        .collect())
+}
+
 pub fn remember_file(root: &Path, path: &Path) -> Result<()> {
     let _writer = RECENT_WRITE
         .lock()

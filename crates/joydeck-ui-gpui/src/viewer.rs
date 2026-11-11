@@ -112,7 +112,7 @@ pub struct Viewer {
     compare_task: Option<Task<()>>,
     control: Option<desktop_control::Control>,
     control_task: Option<Task<()>>,
-    recent_paths: Result<Vec<PathBuf>, String>,
+    recent_paths: Result<Vec<joydeck_shell::storage::RecentFile>, String>,
     recent_task: Option<Task<()>>,
     font_picker: Entity<
         gpui_kit::component::select::SelectState<
@@ -131,6 +131,13 @@ pub struct Viewer {
     gpu_document: u64,
     ribbon: &'static str,
     backstage: bool,
+    file_page: file_ui::Page,
+    file_scroll: ScrollHandle,
+    file_templates_expanded: bool,
+    file_search: Entity<InputState>,
+    file_search_subscription: Option<Subscription>,
+    template_previews: Vec<Result<Arc<RenderImage>, String>>,
+    template_preview_task: Option<Task<()>>,
     sorter: bool,
     slide_selection: Vec<joydeck_model::SlideId>,
     slide_anchor: Option<joydeck_model::SlideId>,
@@ -245,6 +252,13 @@ impl Viewer {
             gpu_document: 0,
             ribbon: "开始",
             backstage: false,
+            file_page: file_ui::Page::Home,
+            file_scroll: ScrollHandle::new(),
+            file_templates_expanded: true,
+            file_search: cx.new(|cx| InputState::new(window, cx).placeholder("搜索文件")),
+            file_search_subscription: None,
+            template_previews: vec![],
+            template_preview_task: None,
             sorter: false,
             slide_selection: vec![],
             slide_anchor: None,
@@ -527,8 +541,10 @@ impl Viewer {
             cx.notify();
         }
     }
-    fn cancel(&mut self, _: &Cancel, _: &mut Window, cx: &mut Context<Self>) {
-        if self.loading {
+    fn cancel(&mut self, _: &Cancel, w: &mut Window, cx: &mut Context<Self>) {
+        if self.backstage {
+            self.close_file_page(w, cx);
+        } else if self.loading {
             self.cancel_read(cx);
         } else if self.inline.is_some() {
             self.cancel_inline(cx);
@@ -958,10 +974,12 @@ impl Render for Viewer {
                 .absolute()
                 .size_full(),
             )
-            .child(self.title_chrome(cx))
-            .child(self.editor_ribbon(window, cx))
+            .when(!self.backstage, |d| {
+                d.child(self.title_chrome(cx))
+                    .child(self.editor_ribbon(window, cx))
+            })
             .child(if self.backstage {
-                self.file_backstage(cx)
+                self.file_backstage(window, cx)
             } else if self.sorter {
                 self.slide_sorter(cx)
             } else {
@@ -983,7 +1001,7 @@ impl Render for Viewer {
                     .children((self.inspector).then(|| self.content_inspector(cx)))
                     .into_any_element()
             })
-            .child(self.status_chrome(scale, cx))
+            .when(!self.backstage, |d| d.child(self.status_chrome(scale, cx)))
     }
 }
 pub fn bind(cx: &mut App) {
@@ -1105,6 +1123,7 @@ pub fn open_window(
             let view = cx.new(|cx| Viewer::new(dark, w, cx));
             view.update(cx, |s, cx| {
                 s.install_notes(w, cx);
+                s.install_file_search(w, cx);
                 s.install_font_picker(w, cx);
                 s.refresh_recent(cx);
                 cx.defer_in(w, |s, w, cx| s.focus.focus(w, cx));
