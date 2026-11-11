@@ -15,6 +15,7 @@ too_many_arguments = "allow"
 type_complexity = "allow"
 
 [dependencies]
+joyoffice-theme.workspace = true
 rfd = { workspace = true }
 arboard = { workspace = true }
 serde = { workspace = true }

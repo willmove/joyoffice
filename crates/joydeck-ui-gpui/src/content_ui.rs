@@ -20,7 +20,7 @@ pub(super) enum Form {
 }
 impl Viewer {
     pub(super) fn content_inspector(&self, cx: &mut Context<Self>) -> AnyElement {
-        let p = chrome::palette(self.dark);
+        let p = self.palette();
         let mut panel = div()
             .id("content-inspector")
             .w(px(264.))

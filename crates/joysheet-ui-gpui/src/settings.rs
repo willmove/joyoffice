@@ -1,5 +1,9 @@
 use crate::desktop::{After, Desktop};
-use gpui_kit::{component::button::Button, prelude::*, *};
+use gpui_kit::{
+    component::{Selectable, button::Button},
+    prelude::*,
+    *,
+};
 use serde_json::{Value, json};
 
 impl Desktop {
@@ -9,7 +13,7 @@ impl Desktop {
             if let Some(v) = params.get(key) {
                 let on = v.as_bool().ok_or_else(|| format!("{key} must be true or false"))?;
                 match key {
-                    "dark" => prefs.dark = on,
+                    "dark" => prefs.set_theme(prefs.theme_preset().with_dark(on)),
                     "autosave" => prefs.autosave = on,
                     "formulaBar" => prefs.formula_bar = on,
                     "autocomplete" => prefs.autocomplete = on,
@@ -23,6 +27,13 @@ impl Desktop {
                 }
             }
         }
+        if let Some(theme) = params.get("theme") {
+            let theme = theme.as_str().and_then(joyoffice_ui::ThemePreset::from_id).ok_or("Unknown application theme")?;
+            if params.get("dark").and_then(Value::as_bool).is_some_and(|dark| dark != theme.is_dark()) {
+                return Err("theme and dark must select the same mode".into());
+            }
+            prefs.set_theme(theme);
+        }
         if let Some(language) = params.get("language") {
             let language = language.as_str().filter(|v| ["zh", "en"].contains(v)).ok_or("language must be zh or en")?;
             prefs.language = language.into();
@@ -30,21 +41,16 @@ impl Desktop {
         if params.get("ribbonCollapsed").is_some() {
             return Err("The GPUI command strip is not collapsible".into());
         }
+        if params.get("persist").and_then(Value::as_bool) != Some(false) {
+            prefs.save()?;
+        }
         self.preferences = prefs;
         self.autosave_revision = None;
-        gpui_kit::component::Theme::change(
-            if self.preferences.dark { gpui_kit::component::ThemeMode::Dark } else { gpui_kit::component::ThemeMode::Light },
-            None,
-            cx,
-        );
-        if params.get("persist").and_then(Value::as_bool) != Some(false) {
-            self.persist_preferences(cx);
-        } else {
-            cx.set_global(crate::SharedPreferences(self.preferences.clone()));
-        }
+        joyoffice_ui::apply_theme(self.preferences.theme_preset(), joyoffice_ui::Brand::Sheet, None, cx);
+        cx.set_global(crate::SharedPreferences(self.preferences.clone()));
         cx.notify();
         Ok(
-            json!({"dark":self.preferences.dark,"autosave":self.preferences.autosave,"formulaBar":self.preferences.formula_bar,"autocomplete":self.preferences.autocomplete,"recovery":self.preferences.recovery,"animations":self.preferences.animations,"language":self.preferences.language}),
+            json!({"theme":self.preferences.theme_preset().id(),"dark":self.preferences.dark,"autosave":self.preferences.autosave,"formulaBar":self.preferences.formula_bar,"autocomplete":self.preferences.autocomplete,"recovery":self.preferences.recovery,"animations":self.preferences.animations,"language":self.preferences.language}),
         )
     }
     pub fn settings_panel(&self, cx: &mut Context<Self>) -> impl IntoElement + use<> {
@@ -57,8 +63,10 @@ impl Desktop {
             .top(px(54.))
             .bottom_0()
             .w(px(410.))
+            .max_w_full()
             .p_4()
-            .bg(rgb(if self.preferences.dark { 0x20332a } else { 0xffffff }))
+            .bg(rgb(self.palette().surface))
+            .text_color(rgb(self.palette().text))
             .occlude()
             .overflow_y_scroll()
             .flex()
@@ -68,6 +76,29 @@ impl Desktop {
                 this.daily_group = 0;
                 this.focus_grid(w, cx);
                 cx.notify();
+            })));
+        panel = panel
+            .child(div().font_weight(FontWeight::SEMIBOLD).child(self.label("界面主题", "Application theme")))
+            .child(
+                div()
+                    .text_xs()
+                    .text_color(rgb(self.palette().muted))
+                    .child(self.label("仅更改界面外观，不影响工作簿内容。", "Changes the interface appearance; workbook content is preserved.")),
+            )
+            .child(div().flex().flex_wrap().gap_2().children(joyoffice_ui::ThemePreset::ALL.into_iter().map(|theme| {
+                Button::new(SharedString::from(format!("appearance-{}", theme.id())))
+                    .w(px(174.))
+                    .h_auto()
+                    .p_0()
+                    .selected(self.preferences.theme_preset() == theme)
+                    .toggled(self.preferences.theme_preset() == theme)
+                    .accessibility_label(theme.label(self.chinese()))
+                    .child(joyoffice_ui::theme_preview(theme, joyoffice_ui::Brand::Sheet, self.chinese()))
+                    .on_click(cx.listener(move |this, _, _, cx| {
+                        if let Err(error) = this.set_options(&json!({"theme":theme.id()}), cx) {
+                            this.alert(error);
+                        }
+                    }))
             })));
         for (key, on, zh, en) in [
             ("dark", self.preferences.dark, "深色主题", "Dark theme"),

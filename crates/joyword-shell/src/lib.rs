@@ -18,6 +18,7 @@ pub mod visual;
 
 pub use legacy_recovery::{legacy_recovery_directory, validate_legacy_recovery_record};
 
+pub use joyoffice_theme::ThemePreset;
 use l10n::Locale;
 use prefs::{Loaded, PrefsStore};
 
@@ -71,6 +72,7 @@ pub const COMMANDS: &[CommandSpec] = &[
 pub struct Shell {
     pub locale: Locale,
     pub dark: bool,
+    pub theme: ThemePreset,
     pub zoom: u16,
     pub document_number: u32,
     pub notice: Option<String>,
@@ -90,24 +92,50 @@ impl Default for Shell {
                 .as_ref()
                 .map_or(Locale::ZhCn, |p| p.prefs.ui_locale),
             dark: false,
+            theme: ThemePreset::VerdantLight,
             zoom: 100,
             document_number: 1,
             notice: None,
             store,
             preferences,
         };
-        if let Some(loaded) = &shell.preferences {
-            shell.dark = loaded
-                .prefs
-                .unknown
-                .iter()
-                .any(|(k, v)| k == "preview.theme" && v == "dark");
-        }
+        shell.reload_appearance();
         shell
     }
 }
 
 impl Shell {
+    fn reload_appearance(&mut self) {
+        if let Some(loaded) = &self.preferences {
+            self.dark = loaded
+                .prefs
+                .unknown
+                .iter()
+                .any(|(k, v)| k == "preview.theme" && v == "dark");
+            self.theme = loaded
+                .prefs
+                .unknown
+                .iter()
+                .find(|(k, _)| k == "appearance.theme")
+                .and_then(|(_, v)| ThemePreset::from_id(v))
+                .unwrap_or(ThemePreset::default_for(
+                    joyoffice_theme::Brand::Word,
+                    self.dark,
+                ));
+            self.dark = self.theme.is_dark();
+        }
+    }
+
+    pub fn set_theme(&mut self, theme: ThemePreset) -> Result<(), String> {
+        let previous = (self.theme, self.dark);
+        self.theme = theme;
+        self.dark = theme.is_dark();
+        if let Err(error) = self.persist() {
+            (self.theme, self.dark) = previous;
+            return Err(error);
+        }
+        Ok(())
+    }
     pub fn recovery_interval(&self) -> Option<std::time::Duration> {
         let minutes = self.preferences.as_ref()?.prefs.autosave_minutes;
         (minutes > 0).then(|| std::time::Duration::from_secs(u64::from(minutes) * 60))
@@ -212,7 +240,7 @@ impl Shell {
                 )
                 .into());
         }
-        let previous_appearance = (self.locale, self.dark);
+        let previous_appearance = (self.locale, self.dark, self.theme);
         match id {
             "file.new" => {
                 self.document_number = self
@@ -223,7 +251,10 @@ impl Shell {
             "view.zoom_in" => self.zoom = self.zoom.saturating_add(10).min(200),
             "view.zoom_out" => self.zoom = self.zoom.saturating_sub(10).max(50),
             "view.zoom_reset" => self.zoom = 100,
-            "view.theme" => self.dark = !self.dark,
+            "view.theme" => {
+                self.dark = !self.dark;
+                self.theme = self.theme.with_dark(self.dark);
+            }
             "view.language" => {
                 self.locale = if self.locale == Locale::ZhCn {
                     Locale::En
@@ -236,7 +267,7 @@ impl Shell {
         if matches!(id, "view.theme" | "view.language")
             && let Err(error) = self.persist()
         {
-            (self.locale, self.dark) = previous_appearance;
+            (self.locale, self.dark, self.theme) = previous_appearance;
             return Err(error);
         }
         Ok(())
@@ -251,7 +282,14 @@ impl Shell {
     fn persist_candidate(&self, mut loaded: Loaded) -> Result<Loaded, String> {
         if let Some(store) = &self.store {
             loaded.prefs.ui_locale = self.locale;
-            loaded.prefs.unknown.retain(|(k, _)| k != "preview.theme");
+            loaded
+                .prefs
+                .unknown
+                .retain(|(k, _)| k != "preview.theme" && k != "appearance.theme");
+            loaded
+                .prefs
+                .unknown
+                .push(("appearance.theme".into(), self.theme.id().into()));
             loaded.prefs.unknown.push((
                 "preview.theme".into(),
                 if self.dark { "dark" } else { "light" }.into(),
@@ -271,6 +309,7 @@ mod tests {
         Shell {
             locale: Locale::ZhCn,
             dark: false,
+            theme: ThemePreset::VerdantLight,
             zoom: 100,
             document_number: 1,
             notice: None,
@@ -416,6 +455,29 @@ mod tests {
     }
 
     #[test]
+    fn preset_save_failure_rolls_back_and_legacy_dark_preferences_still_load()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let root = tempfile::tempdir()?;
+        let store = PrefsStore::new(root.path());
+        let path = store.path();
+        std::fs::write(&path, "schema=1\npreview.theme=dark\ncustom.setting=keep\n")?;
+        let mut shell = Shell {
+            preferences: Some(store.load(Locale::ZhCn)),
+            store: Some(store),
+            ..isolated()
+        };
+        shell.reload_appearance();
+        assert_eq!(shell.theme, ThemePreset::VerdantDark);
+        let external = "schema=1\nauthor.name=External\n";
+        std::fs::write(&path, external)?;
+        assert!(shell.set_theme(ThemePreset::SandstoneLight).is_err());
+        assert_eq!(shell.theme, ThemePreset::VerdantDark);
+        assert!(shell.dark);
+        assert_eq!(std::fs::read_to_string(path)?, external);
+        Ok(())
+    }
+
+    #[test]
     fn failed_recent_save_can_retry_the_same_path_after_lock_release()
     -> Result<(), Box<dyn std::error::Error>> {
         let root = tempfile::tempdir()?;
@@ -455,12 +517,15 @@ mod tests {
             store: Some(store),
             ..isolated()
         };
-        shell.execute("view.theme")?;
+        shell.set_theme(ThemePreset::AzureDark)?;
         assert!(shell.dark);
         shell.execute("view.language")?;
         assert_eq!(shell.locale, Locale::En);
         shell.execute("view.theme")?;
         assert!(!shell.dark);
+        assert_eq!(shell.theme, ThemePreset::AzureLight);
+        shell.reload_appearance();
+        assert_eq!(shell.theme, ThemePreset::AzureLight);
         let reloaded = PrefsStore::new(root.path()).load(Locale::ZhCn);
         assert_eq!(reloaded.prefs.ui_locale, Locale::En);
         assert!(

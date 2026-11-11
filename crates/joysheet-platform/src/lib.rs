@@ -6,10 +6,15 @@ use std::path::PathBuf;
 pub mod printing;
 pub mod windows;
 
+#[cfg(test)]
+#[path = "tests/appearance.rs"]
+mod appearance_tests;
+
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Preferences {
     pub dark: bool,
+    pub theme: Option<String>,
     pub language: String,
     pub recent: Vec<String>,
     pub autosave: bool,
@@ -22,6 +27,7 @@ impl Default for Preferences {
     fn default() -> Self {
         Self {
             dark: false,
+            theme: None,
             language: "zh".into(),
             recent: Vec::new(),
             autosave: false,
@@ -80,8 +86,23 @@ pub fn local_open_path(value: &str) -> Result<PathBuf, String> {
     }
 }
 impl Preferences {
+    pub fn theme_preset(&self) -> joyoffice_theme::ThemePreset {
+        self.theme
+            .as_deref()
+            .and_then(joyoffice_theme::ThemePreset::from_id)
+            .unwrap_or(joyoffice_theme::ThemePreset::default_for(joyoffice_theme::Brand::Sheet, self.dark))
+    }
+
+    pub fn set_theme(&mut self, theme: joyoffice_theme::ThemePreset) {
+        self.theme = Some(theme.id().into());
+        self.dark = theme.is_dark();
+    }
+
     pub fn load() -> Self {
-        std::fs::read(config_dir().join("preferences.json")).ok().and_then(|bytes| serde_json::from_slice(&bytes).ok()).unwrap_or_default()
+        let mut prefs: Self =
+            std::fs::read(config_dir().join("preferences.json")).ok().and_then(|bytes| serde_json::from_slice(&bytes).ok()).unwrap_or_default();
+        prefs.dark = prefs.theme_preset().is_dark();
+        prefs
     }
     pub fn save(&self) -> Result<(), String> {
         let dir = config_dir();

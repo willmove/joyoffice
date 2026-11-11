@@ -1,0 +1,21 @@
+{
+  "passed": true,
+  "checks": [
+    "all eight presets change actual desktop preferences without changing document/revision",
+    "unknown IDs, non-string IDs and conflicting mode are rejected atomically",
+    "legacy dark toggle preserves the selected family",
+    "restart restores the exact persisted preset",
+    "complete preset synchronizes between two native views of the same workbook",
+    "Dark-theme draft starts in the native editor and cancels without changing the workbook; full inline paint and physical input acceptance remain open."
+  ],
+  "themes": [
+    "verdant-light",
+    "verdant-dark",
+    "classic-light",
+    "classic-dark",
+    "azure-light",
+    "azure-dark",
+    "sandstone-light",
+    "sandstone-dark"
+  ]
+}

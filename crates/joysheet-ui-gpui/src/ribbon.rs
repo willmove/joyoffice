@@ -97,9 +97,9 @@ impl Desktop {
             )
             .child(self.toolbar_button("undo", "↶", "edit.undo", json!({}), cx))
             .child(self.toolbar_button("redo", "↷", "edit.redo", json!({}), cx))
-            .child(div().w(px(1.)).h(px(18.)).bg(rgb(0xbaccc0)))
+            .child(div().w(px(1.)).h(px(18.)).bg(rgb(self.palette().border)))
             .child(div().max_w(px(280.)).overflow_hidden().font_weight(FontWeight::SEMIBOLD).child(title))
-            .when(self.view().is_some_and(|v| v.dirty), |el| el.child(div().text_color(rgb(0x148256)).child("●")))
+            .when(self.view().is_some_and(|v| v.dirty), |el| el.child(div().text_color(rgb(self.palette().accent)).child("●")))
             .child(div().flex_1())
             .child(
                 div()
@@ -110,9 +110,9 @@ impl Desktop {
                     .px_3()
                     .py_1()
                     .rounded_md()
-                    .bg(rgb(if self.preferences.dark { 0x293e32 } else { 0xf7faf8 }))
+                    .bg(rgb(self.palette().chrome))
                     .cursor_pointer()
-                    .text_color(rgb(if self.preferences.dark { 0xc1cfc6 } else { 0x617369 }))
+                    .text_color(rgb(self.palette().muted))
                     .child(self.label("搜索命令   Ctrl+K", "Search commands   Ctrl+K"))
                     .on_click(cx.listener(|this, _, w, cx| {
                         this.palette_open = true;
@@ -137,23 +137,35 @@ impl Desktop {
                         cx.notify();
                     })),
             )
-            .child(div().id("open-settings").cursor_pointer().child(self.label("设置", "Settings")).on_click(cx.listener(|this, _, _, cx| {
-                this.daily_group = 20;
-                cx.notify();
-            })))
+            .child(
+                joyoffice_ui::control(self.palette(), true, self.daily_group == 20)
+                    .id("open-settings")
+                    .role(Role::Button)
+                    .aria_label(self.label("设置", "Settings"))
+                    .tab_stop(true)
+                    .cursor_pointer()
+                    .child(self.label("设置", "Settings"))
+                    .on_click(cx.listener(|this, _, _, cx| {
+                        this.daily_group = 20;
+                        cx.notify();
+                    }))
+                    .on_key_down(cx.listener(|this, event: &KeyDownEvent, _, cx| {
+                        if matches!(event.keystroke.key.as_str(), "enter" | "space") {
+                            this.daily_group = 20;
+                            cx.notify();
+                            cx.stop_propagation();
+                        }
+                    })),
+            )
             .child(div().id("language").cursor_pointer().child(if self.chinese() { "EN" } else { "中文" }).on_click(cx.listener(|this, _, _, cx| {
                 this.preferences.language = if this.chinese() { "en".into() } else { "zh".into() };
                 this.persist_preferences(cx);
                 cx.notify();
             })))
-            .child(div().id("theme").cursor_pointer().child(if self.preferences.dark { "☀" } else { "◐" }).on_click(cx.listener(|this, _, w, cx| {
-                this.preferences.dark = !this.preferences.dark;
-                gpui_kit::component::Theme::change(
-                    if this.preferences.dark { gpui_kit::component::ThemeMode::Dark } else { gpui_kit::component::ThemeMode::Light },
-                    Some(w),
-                    cx,
-                );
-                this.persist_preferences(cx);
+            .child(div().id("theme").cursor_pointer().child(if self.preferences.dark { "☀" } else { "◐" }).on_click(cx.listener(|this, _, _, cx| {
+                if let Err(error) = this.set_options(&json!({"dark":!this.preferences.dark}), cx) {
+                    this.alert(error);
+                }
                 cx.notify();
             })))
             .into_any_element()
@@ -198,7 +210,7 @@ impl Desktop {
                         .items_center()
                         .cursor_pointer()
                         .border_b_2()
-                        .border_color(rgb(if active { 0x167347 } else { self.palette().chrome }))
+                        .border_color(rgb(if active { self.palette().accent } else { self.palette().chrome }))
                         .when(active, |el| el.font_weight(FontWeight::SEMIBOLD).text_color(rgb(self.palette().accent)))
                         .child(self.label(zh, en))
                         .on_key_down(cx.listener(move |this, e: &KeyDownEvent, _, cx| {

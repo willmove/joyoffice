@@ -1,5 +1,7 @@
 # JoyDeck 当前状态
 
+2026-11-11：新增三产品共享界面主题，Deck 将原中性灰风格归为「素雅」，在「文件 → 选项」提供青岚、素雅、晴空、暖砂的亮暗八个预设。选择持久化，新窗口继承完整风格；主题不修改幻灯片内容。[主题说明](../joyoffice/THEMES.md) · [本机验证与边界](../joyoffice/validation/20261111-themes/README.md)
+
 2026-11-09 Windows P1 续验 JD-305、JD-307、JD-602 与 JD-608。插入功能区新增清空全稿已有页脚文字，实屏验证确认、取消、单步撤销和重做。PPTX 保留写回保留形状树非可视组属性和扩展位置。Microsoft Word 的粗体、斜体和颜色经系统剪贴板粘贴，PowerPoint 直接打开另存的三页 PPTX。[本机验证](../joyoffice/validation/20261109-p1-followup/README.md)
 
 当前工作区版本为 v0.1.3。JoyDeck 桌面、CLI 和组件统一继承 JoyOffice 工作区版本，仍使用 `joydeck-v*` 标签独立打包。历史重构包 0.8.0 用户换版时需显式选择 0.1.3。[R9 交接](../joyoffice/JOYDECK-R9-HANDOFF.md)

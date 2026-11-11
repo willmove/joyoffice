@@ -23,18 +23,6 @@ pub(super) enum Page {
 
 const TEMPLATES: [&str; 4] = ["空白演示文稿", "简洁简报", "课程讲义", "项目计划"];
 
-fn colors(dark: bool) -> Palette {
-    let mut p = chrome::palette(dark);
-    if !dark {
-        p.surface = 0xf5f5f5;
-        p.chrome = 0xe9eef2;
-        p.hover = 0xdde5eb;
-        p.border = 0xd1d1d1;
-        p.accent = 0xc43b1b;
-    }
-    p
-}
-
 fn nav_button(
     id: &'static str,
     label: &'static str,
@@ -89,14 +77,14 @@ fn recent_filter(id: &'static str, label: &'static str, selected: bool, p: Palet
         .h(px(38.))
         .rounded(px(22.))
         .border_1()
-        .border_color(rgb(if selected { p.accent } else { 0x999999 }))
+        .border_color(rgb(if selected { p.accent } else { p.border }))
         .bg(rgb(if selected { p.accent } else { p.surface }))
         .accessibility_label(label)
         .child(
             div()
                 .text_size(px(18.))
                 .font_weight(FontWeight::NORMAL)
-                .text_color(rgb(if selected { 0xffffff } else { p.text }))
+                .text_color(rgb(if selected { p.on_accent } else { p.text }))
                 .child(label),
         )
 }
@@ -227,7 +215,7 @@ impl Viewer {
 
     #[inline(never)]
     pub(super) fn file_backstage(&self, w: &Window, cx: &mut Context<Self>) -> AnyElement {
-        let p = colors(self.dark);
+        let p = self.palette();
         let compact = f32::from(w.viewport_size().width) < 1100.;
         let content = match self.file_page {
             Page::Home => div().child(self.file_home(cx)),
@@ -472,7 +460,7 @@ impl Viewer {
 
     #[inline(never)]
     fn file_templates(&self, collapsible: bool, cx: &mut Context<Self>) -> Div {
-        let p = colors(self.dark);
+        let p = self.palette();
         let heading = div()
             .flex()
             .items_center()
@@ -636,7 +624,7 @@ impl Viewer {
 
     #[inline(never)]
     fn recent_panel(&self, cx: &mut Context<Self>) -> Div {
-        let p = colors(self.dark);
+        let p = self.palette();
         let query = self.file_search.read(cx).value().trim().to_lowercase();
         let header = div()
             .flex()
@@ -779,7 +767,7 @@ impl Viewer {
 
     #[inline(never)]
     fn file_info(&self, cx: &mut Context<Self>) -> Div {
-        let p = colors(self.dark);
+        let p = self.palette();
         let mut panel = div()
             .flex()
             .flex_col()
@@ -900,20 +888,27 @@ impl Viewer {
             )
             .child(div().text_size(px(18.)).child("外观"))
             .child(
-                Button::new("file-theme")
-                    .ghost()
-                    .icon(if self.dark { I::Sun } else { I::Moon })
-                    .label(if self.dark {
-                        "切换为浅色模式"
-                    } else {
-                        "切换为深色模式"
-                    })
-                    .on_click(cx.listener(|s, _, w, cx| {
-                        s.dark = !s.dark;
-                        crate::apply_theme(s.dark, Some(w), cx);
-                        cx.notify();
-                    })),
+                div()
+                    .text_color(rgb(self.palette().muted))
+                    .child("仅更改界面外观，不影响演示文稿内容。"),
             )
+            .child(div().flex().flex_wrap().gap_2().max_w(px(360.)).children(
+                joyoffice_ui::ThemePreset::ALL.into_iter().map(|theme| {
+                    Button::new(SharedString::from(format!("appearance-{}", theme.id())))
+                        .w(px(172.))
+                        .h_auto()
+                        .p_0()
+                        .selected(self.theme == theme)
+                        .toggled(self.theme == theme)
+                        .accessibility_label(theme.label(true))
+                        .child(joyoffice_ui::theme_preview(
+                            theme,
+                            joyoffice_ui::Brand::Deck,
+                            true,
+                        ))
+                        .on_click(cx.listener(move |s, _, w, cx| s.select_theme(theme, w, cx)))
+                }),
+            ))
     }
     pub(super) fn new_template(
         &mut self,

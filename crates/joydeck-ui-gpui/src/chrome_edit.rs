@@ -136,7 +136,7 @@ impl Viewer {
         let empty = state.is_empty();
         let disabled = empty || self.loading || self.composing();
         let props = state.run;
-        let p = chrome::palette(self.dark);
+        let p = self.palette();
         let mut formats = div().flex().items_center().gap(px(1.));
         for (id, label, icon, property, on) in [
             (
@@ -322,7 +322,7 @@ impl Viewer {
     pub(super) fn paragraph_group(&self, cx: &mut Context<Self>) -> Div {
         let state = self.formatting();
         let disabled = state.is_empty() || self.loading || self.composing();
-        let palette = chrome::palette(self.dark);
+        let palette = self.palette();
         let mut first = div().flex().gap(px(1.));
         for (id, label, numbered) in [("bullets", "项目符号", false), ("numbering", "编号", true)]
         {

@@ -1,5 +1,7 @@
 # JoyWord 宿主任务状态
 
+2026-11-11：新增三产品共享界面主题，Word 将原风格归为「青岚」，在「文件 → 选项」提供青岚、素雅、晴空、暖砂的亮暗八个预设。兼容旧偏好，选择即时生效并保存；主题不修改文档内容。[主题说明](../../joyoffice/THEMES.md) · [本机验证与边界](../../joyoffice/validation/20261111-themes/README.md)
+
 2026-11-09 补齐 ODT、OTT、FODT 往返的标题字重与字号、段前段后和行距、图片锚点与偏移、单元格四边内边距及逐边线型、线宽与颜色。修复 Writer 重存时嵌入在图片节点内的空段落被当成正文、导致图片和后续表格下移的问题。ODF 文件从 JoyWord 的有效版式生成，表格按合并边框模型写出。[ODF 1.3 XML 规范](https://docs.oasis-open.org/office/OpenDocument/v1.3/os/part3-schema/OpenDocument-v1.3-os-part3-schema.html)
 
 本机 Windows LibreOffice Writer 26.8.2.2 对两份样本的三种格式各做两轮往返，检查 XML、图片字节和 Writer 渲染。主样本保留了 14 pt 粗体标题、继承的 115% 行距、段前段后、内嵌 PNG 的位置和尺寸、浮动 PNG 的锚点与单侧绕排、表格合并及四边内边距。实线、虚线、点线与等分双线的颜色和渲染线宽一致。标题字形总宽缩短约 0.64 pt，表格文字纵坐标变化约 0.06 pt。第二份样本确认，不等宽双线的两道线与间隙会被均分，浮动图片两侧不等的绕排留白会取平均，图片坐标保留。独立页锚、旋转图片和自定义绕排轮廓未验。Windows 构建、严格 Clippy 和 formats 的 306 项测试通过。产品全量检查仍停在改动前已复现的 `joyword-layout` 分页断言。[LibreOffice Writer 转换过滤器](https://help.libreoffice.org/latest/en-GB/text/shared/guide/convertfilters.html)

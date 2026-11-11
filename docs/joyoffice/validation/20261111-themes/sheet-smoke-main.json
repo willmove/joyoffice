@@ -1,0 +1,32 @@
+{
+  "passed": false,
+  "platform": "macOS-27.2-arm64-arm-64bit-Mach-O",
+  "checks": [
+    "native sales window, charts and window screenshot",
+    "Unicode/emoji, pointer/text input and dependent formula recalculation",
+    "platform keyboard undo and redo",
+    "synthetic composition blocks premature Enter; commit retains UTF-16 text"
+  ],
+  "binary": "/Users/willm/Coding/joyoffice/target/theme-validation/joysheet-baseline",
+  "binarySha256": "8ce911412eac12e0c0e94a548e53e4c8cfbc4e745b9b0148155b150958fe8b72",
+  "eventSource": "production GPUI synthetic input",
+  "nativeImeVerified": false,
+  "gpuPresentationMeasured": false,
+  "display": {
+    "scaleFactor": 1.0,
+    "viewportWidth": 1440.0,
+    "viewportHeight": 900.0
+  },
+  "captures": {
+    "01-sales.png": {
+      "path": "/Users/willm/Coding/joyoffice/target/theme-validation/sheet-native-baseline/01-sales.png",
+      "width": 1440,
+      "height": 900,
+      "window": 1,
+      "doc": 2,
+      "revision": 1,
+      "sequence": 2
+    }
+  },
+  "error": "C6: expected 14, got 40.0"
+}

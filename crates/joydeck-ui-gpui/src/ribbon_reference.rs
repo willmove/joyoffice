@@ -21,8 +21,7 @@ pub(super) fn unavailable_row(items: &[(&'static str, I, &'static str)]) -> Div 
     )
 }
 
-pub(super) fn gallery(dark: bool) -> Div {
-    let p = chrome::palette(dark);
+pub(super) fn gallery(p: joyoffice_ui::Palette) -> Div {
     row()
         .h(px(58.))
         .gap(px(2.))
@@ -38,9 +37,8 @@ fn effect_tile(
     label: &'static str,
     tint: u32,
     selected: bool,
-    dark: bool,
+    p: joyoffice_ui::Palette,
 ) -> Button {
-    let p = chrome::palette(dark);
     Button::new(id)
         .ghost()
         .w(px(72.))
@@ -63,11 +61,16 @@ fn effect_tile(
         )
 }
 
-fn effects(dark: bool, items: &[(&'static str, I, &'static str)], tint: u32, current: &str) -> Div {
-    gallery(dark).children(
+fn effects(
+    p: joyoffice_ui::Palette,
+    items: &[(&'static str, I, &'static str)],
+    tint: u32,
+    current: &str,
+) -> Div {
+    gallery(p).children(
         items
             .iter()
-            .map(|(id, icon, label)| effect_tile(id, *icon, label, tint, *id == current, dark)),
+            .map(|(id, icon, label)| effect_tile(id, *icon, label, tint, *id == current, p)),
     )
 }
 
@@ -104,7 +107,7 @@ impl Viewer {
 
     #[inline(never)]
     pub(super) fn ribbon_draw(&self, _: &mut Context<Self>) -> Div {
-        let pens = gallery(self.dark).children(
+        let pens = gallery(self.palette()).children(
             [
                 ("ink-black", I::PenLine, "黑色笔", 0x53575d),
                 ("ink-red", I::PenLine, "红色笔", 0xc77d7d),
@@ -112,7 +115,9 @@ impl Viewer {
                 ("ink-highlight", I::Highlighter, "荧光笔", 0xada051),
             ]
             .into_iter()
-            .map(|(id, icon, label, tint)| effect_tile(id, icon, label, tint, false, self.dark)),
+            .map(|(id, icon, label, tint)| {
+                effect_tile(id, icon, label, tint, false, self.palette())
+            }),
         );
         row()
             .h(px(RIBBON_HEIGHT))
@@ -137,7 +142,7 @@ impl Viewer {
         let transition = self.current_slide().and_then(|s| s.transition.as_ref());
         let current = transition.map_or("none", |t| t.kind.as_str());
         let tiles = effects(
-            self.dark,
+            self.palette(),
             &[
                 ("none", I::PanelTop, "无"),
                 ("morph", I::Layers2, "平滑"),
@@ -210,7 +215,7 @@ impl Viewer {
     #[inline(never)]
     pub(super) fn ribbon_animations(&self, _: &mut Context<Self>) -> Div {
         let entrance = effects(
-            self.dark,
+            self.palette(),
             &[
                 ("anim-appear", I::Star, "出现"),
                 ("anim-fly-in", I::ArrowUp, "飞入"),
@@ -222,7 +227,7 @@ impl Viewer {
             "",
         );
         let emphasis = effects(
-            self.dark,
+            self.palette(),
             &[
                 ("anim-fill", I::PaintBucket, "填充颜色"),
                 ("anim-scale", I::MoveDiagonal, "放大/缩小"),

@@ -155,9 +155,7 @@ impl JoyWord {
             }));
         }
         let shell = Shell::default();
-        if shell.dark {
-            gpui::component::Theme::change(gpui::component::ThemeMode::Dark, Some(window), cx);
-        }
+        joyoffice_ui::apply_theme(shell.theme, Brand::Word, Some(window), cx);
         JoyWord {
             shell,
             focus,
@@ -203,11 +201,22 @@ impl JoyWord {
         }
     }
     fn palette(&self) -> Palette {
-        if self.shell.dark {
-            Palette::dark(Brand::Word)
-        } else {
-            Palette::light(Brand::Word)
+        self.shell.theme.palette(Brand::Word)
+    }
+    fn select_theme(
+        &mut self,
+        theme: joyoffice_ui::ThemePreset,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
+        match self.shell.set_theme(theme) {
+            Ok(()) => {
+                self.shell.notice = None;
+                joyoffice_ui::apply_theme(theme, Brand::Word, Some(window), cx);
+            }
+            Err(error) => self.shell.notice = Some(error),
         }
+        cx.notify();
     }
     fn execute(&mut self, id: &str, window: &mut Window, cx: &mut Context<Self>) {
         match id {
@@ -297,15 +306,7 @@ impl JoyWord {
             Ok(()) => {
                 self.shell.notice = None;
                 if id == "view.theme" {
-                    gpui::component::Theme::change(
-                        if self.shell.dark {
-                            gpui::component::ThemeMode::Dark
-                        } else {
-                            gpui::component::ThemeMode::Light
-                        },
-                        Some(window),
-                        cx,
-                    );
+                    joyoffice_ui::apply_theme(self.shell.theme, Brand::Word, Some(window), cx);
                 }
                 if id == "file.new" {
                     self.file_page = false;

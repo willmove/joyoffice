@@ -20,6 +20,8 @@ struct PaintState {
     prepaint_started: Instant,
     frame_timing: crate::performance::FrameTiming,
     scale: f32,
+    palette: joyoffice_ui::Palette,
+    paper_accent: u32,
     references: Vec<crate::formula_feedback::Reference>,
     sequence: u64,
     view: WindowSnapshot,
@@ -121,6 +123,8 @@ impl Element for SheetElement {
                     ..Default::default()
                 },
                 scale: window.scale_factor(),
+                palette: view.palette(),
+                paper_accent: view.preferences.theme_preset().with_dark(false).palette(joyoffice_ui::Brand::Sheet).accent,
                 references: view
                     .draft
                     .as_ref()
@@ -368,7 +372,7 @@ fn paint_sheet(state: &PaintState, area: Bounds<Pixels>, window: &mut Window, cx
                     window,
                 );
                 if selected && anchor != state.selection.active {
-                    window.paint_quad(gpui::fill(rect, rgba(0x14825616)));
+                    window.paint_quad(gpui::fill(rect, rgba((state.paper_accent << 8) | 0x16)));
                 }
                 if let Some(look) = &look
                     && let Some((fraction, [r, g, b], gradient)) = look.bar
@@ -608,14 +612,14 @@ fn paint_sheet(state: &PaintState, area: Bounds<Pixels>, window: &mut Window, cx
                     bounds(ox + sx + sw - 2., oy + sy, 2., sh),
                     bounds(ox + sx, oy + sy + sh - 2., sw, 2.),
                 ] {
-                    fill(rect, 0x148256, window);
+                    fill(rect, state.paper_accent, window);
                 }
             });
         }
     }
     // Row and column headers cover the scrolled content and have their own stable hit geometry.
-    fill(bounds(ox, oy, layout.width, COL_HEADER), 0xf4f7f4, window);
-    fill(bounds(ox, oy, ROW_HEADER, layout.height), 0xf4f7f4, window);
+    fill(bounds(ox, oy, layout.width, COL_HEADER), state.palette.chrome, window);
+    fill(bounds(ox, oy, ROW_HEADER, layout.height), state.palette.chrome, window);
     for col in &layout.cols {
         let selected = col.index >= selection.start.col && col.index <= selection.end.col;
         let clip = if col.frozen {
@@ -625,14 +629,14 @@ fn paint_sheet(state: &PaintState, area: Bounds<Pixels>, window: &mut Window, cx
         };
         window.with_content_mask(Some(ContentMask { bounds: clip }), |window| {
             if selected {
-                fill(bounds(ox + col.start, oy, col.size, COL_HEADER), 0xe2efe5, window);
+                fill(bounds(ox + col.start, oy, col.size, COL_HEADER), state.palette.selected, window);
             }
             let text = joysheet_engine::core::col_to_letters(col.index);
             paint_text(
                 &text,
                 Font::default(),
                 12.,
-                if selected { 0x147d59 } else { 0x718277 },
+                if selected { state.palette.accent } else { state.palette.muted },
                 ox + col.start,
                 oy,
                 col.size,
@@ -641,7 +645,7 @@ fn paint_sheet(state: &PaintState, area: Bounds<Pixels>, window: &mut Window, cx
                 window,
                 cx,
             );
-            fill(bounds(ox + col.start + col.size - 0.5, oy, 0.5, COL_HEADER), 0xdce4dd, window);
+            fill(bounds(ox + col.start + col.size - 0.5, oy, 0.5, COL_HEADER), state.palette.border, window);
         });
     }
     for row in &layout.rows {
@@ -653,7 +657,7 @@ fn paint_sheet(state: &PaintState, area: Bounds<Pixels>, window: &mut Window, cx
         };
         window.with_content_mask(Some(ContentMask { bounds: clip }), |window| {
             if selected {
-                fill(bounds(ox, oy + row.start, ROW_HEADER, row.size), 0xe2efe5, window);
+                fill(bounds(ox, oy + row.start, ROW_HEADER, row.size), state.palette.selected, window);
             }
             paint_text(
                 &sheet
@@ -664,7 +668,7 @@ fn paint_sheet(state: &PaintState, area: Bounds<Pixels>, window: &mut Window, cx
                     .unwrap_or_else(|| (row.index + 1).to_string()),
                 Font::default(),
                 12.,
-                if selected { 0x147d59 } else { 0x718277 },
+                if selected { state.palette.accent } else { state.palette.muted },
                 ox,
                 oy + row.start,
                 ROW_HEADER - 5.,
@@ -673,25 +677,25 @@ fn paint_sheet(state: &PaintState, area: Bounds<Pixels>, window: &mut Window, cx
                 window,
                 cx,
             );
-            fill(bounds(ox, oy + row.start + row.size - 0.5, ROW_HEADER, 0.5), 0xdce4dd, window);
+            fill(bounds(ox, oy + row.start + row.size - 0.5, ROW_HEADER, 0.5), state.palette.border, window);
         });
     }
-    fill(bounds(ox, oy, ROW_HEADER, COL_HEADER), 0xeaf0eb, window);
-    fill(bounds(ox + ROW_HEADER - 1., oy, 1., layout.height), 0xd0dcd2, window);
-    fill(bounds(ox, oy + COL_HEADER - 1., layout.width, 1.), 0xd0dcd2, window);
+    fill(bounds(ox, oy, ROW_HEADER, COL_HEADER), state.palette.header, window);
+    fill(bounds(ox + ROW_HEADER - 1., oy, 1., layout.height), state.palette.border, window);
+    fill(bounds(ox, oy + COL_HEADER - 1., layout.width, 1.), state.palette.border, window);
     if layout.frozen_width > 0. {
-        fill(bounds(ox + ROW_HEADER + layout.frozen_width - 1., oy, 1.5, layout.height), 0x9eb5a5, window);
+        fill(bounds(ox + ROW_HEADER + layout.frozen_width - 1., oy, 1.5, layout.height), state.palette.muted, window);
     }
     if layout.frozen_height > 0. {
-        fill(bounds(ox, oy + COL_HEADER + layout.frozen_height - 1., layout.width, 1.5), 0x9eb5a5, window);
+        fill(bounds(ox, oy + COL_HEADER + layout.frozen_height - 1., layout.width, 1.5), state.palette.muted, window);
     }
     let scrollbar_started = Instant::now();
     let (horizontal, vertical) = crate::grid_tools::axes(layout, &state.geo);
     timing.scrollbar_ms = scrollbar_started.elapsed().as_secs_f64() * 1000.;
-    fill(bounds(ox + layout.width, oy, 14., layout.height + 14.), 0xf5f7f5, window);
-    fill(bounds(ox, oy + layout.height, layout.width, 14.), 0xf5f7f5, window);
-    fill(bounds(ox + layout.width + 4., oy + COL_HEADER + vertical.start, 6., vertical.thumb), 0xbccac0, window);
-    fill(bounds(ox + ROW_HEADER + horizontal.start, oy + layout.height + 4., horizontal.thumb, 6.), 0xbccac0, window);
+    fill(bounds(ox + layout.width, oy, 14., layout.height + 14.), state.palette.chrome, window);
+    fill(bounds(ox, oy + layout.height, layout.width, 14.), state.palette.chrome, window);
+    fill(bounds(ox + layout.width + 4., oy + COL_HEADER + vertical.start, 6., vertical.thumb), state.palette.disabled, window);
+    fill(bounds(ox + ROW_HEADER + horizontal.start, oy + layout.height + 4., horizontal.thumb, 6.), state.palette.disabled, window);
     cells.len()
 }
 
@@ -848,6 +852,7 @@ fn paint_cell_text(
 impl Desktop {
     pub fn render_grid(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement + use<> {
         let view = cx.entity();
+        let paper_accent = self.preferences.theme_preset().with_dark(false).palette(joyoffice_ui::Brand::Sheet).accent;
         let mut body = div()
             .id("worksheet")
             .flex_1()
@@ -893,9 +898,9 @@ impl Desktop {
         if let Some(d) = &self.resize_drag {
             let at = d.boundary + d.delta;
             body = body.child(if d.column {
-                div().absolute().left(px(at)).top_0().w(px(2.)).h_full().bg(rgb(0x148256))
+                div().absolute().left(px(at)).top_0().w(px(2.)).h_full().bg(rgb(paper_accent))
             } else {
-                div().absolute().top(px(at)).left_0().h(px(2.)).w_full().bg(rgb(0x148256))
+                div().absolute().top(px(at)).left_0().h(px(2.)).w_full().bg(rgb(paper_accent))
             });
         }
         for (b, clip) in self.object_selection_bounds() {
@@ -908,9 +913,9 @@ impl Desktop {
                         .w(b.size.width)
                         .h(b.size.height)
                         .border_2()
-                        .border_color(rgb(0x147d59))
+                        .border_color(rgb(paper_accent))
                         .when(self.object_selection().len() == 1, |el| {
-                            el.child(div().absolute().right(px(-4.)).bottom(px(-4.)).size(px(9.)).bg(rgb(0x147d59)))
+                            el.child(div().absolute().right(px(-4.)).bottom(px(-4.)).size(px(9.)).bg(rgb(paper_accent)))
                         }),
                 ),
             );
@@ -947,7 +952,7 @@ impl Desktop {
                         .w(px(rect.width.max(1.)))
                         .h(px(rect.height.max(1.)))
                         .opacity(if visible { 1. } else { 0.001 })
-                        .when(visible, |el| el.bg(rgb(0xffffff)).border_2().border_color(rgb(0x148256)))
+                        .when(visible, |el| el.bg(rgb(self.palette().surface)).border_2().border_color(rgb(self.palette().accent)))
                         .child(Input::new(&self.editor).id("cell-editor").appearance(false).bordered(false).size_full().aria_label(format!(
                             "{} {} {}",
                             view.sheet().map(|s| s.name.as_str()).unwrap_or(""),

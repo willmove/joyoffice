@@ -1,0 +1,195 @@
+    Blocking waiting for file lock on build directory
+   Compiling joyword-model v0.1.3 (/Users/willm/Coding/joyoffice/crates/joyword-model)
+   Compiling joyword-fonts v0.1.3 (/Users/willm/Coding/joyoffice/crates/joyword-fonts)
+   Compiling craft-proof v0.1.0 (/Users/willm/Coding/joyoffice/third-party/craft-libs/proof)
+   Compiling rustls v0.23.46
+   Compiling ureq v3.5.1
+   Compiling craft-font-store v0.1.0 (/Users/willm/Coding/joyoffice/third-party/craft-libs/font-store)
+   Compiling joyword-layout v0.1.3 (/Users/willm/Coding/joyoffice/crates/joyword-layout)
+   Compiling joyword-doc v0.1.3 (/Users/willm/Coding/joyoffice/crates/joyword-doc)
+   Compiling joyword-formats v0.1.3 (/Users/willm/Coding/joyoffice/crates/joyword-formats)
+   Compiling joyword-docx v0.1.3 (/Users/willm/Coding/joyoffice/crates/joyword-docx)
+   Compiling joyword-render v0.1.3 (/Users/willm/Coding/joyoffice/crates/joyword-render)
+   Compiling joyword-pdf v0.1.3 (/Users/willm/Coding/joyoffice/crates/joyword-pdf)
+   Compiling joyword-engine v0.1.3 (/Users/willm/Coding/joyoffice/crates/joyword-engine)
+   Compiling joyword-shell v0.1.3 (/Users/willm/Coding/joyoffice/crates/joyword-shell)
+   Compiling joyword-ui-gpui v0.1.3 (/Users/willm/Coding/joyoffice/crates/joyword-ui-gpui)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 47.31s
+warning: the following packages contain code that will be rejected by a future version of Rust: block v0.1.6
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 2`
+     Running unittests src/lib.rs (target/debug/deps/joyoffice_theme-c51562fcb4a8c64c)
+
+running 1 test
+test tests::reading_and_action_colors_remain_legible_across_brands_and_modes ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/joyoffice_ui-e187f92e23caa785)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/joyword_shell-3613284260026a90)
+
+running 108 tests
+test advanced::tests::bounded_imports_reject_bad_data_and_keep_live_reader ... ok
+test authoring::tests::authoring_forms_reject_invalid_input_before_any_edit ... ok
+test advanced::tests::macros_rollback_failed_document_steps_and_refuse_external_io ... ok
+test advanced::tests::layout_and_selection_queries_preserve_composition_and_document_revision ... ok
+test authoring::tests::painter_copies_inherited_format_preserves_text_and_is_one_undo ... ok
+test advanced::tests::merge_expansion_is_rejected_before_materializing_copies ... ok
+test advanced::tests::tracking_roundtrip_projection_accept_reject_and_compare_bytes ... ok
+test authoring::tests::painter_on_a_caret_preserves_destination_hyperlink ... ok
+test advanced::archival_tests::archive_uses_unsaved_text_and_publishes_only_to_new_paths ... ok
+test advanced::tests::merge_snapshot_filters_preview_and_copy_do_not_replace_template ... ok
+test authoring::tests::image_import_size_crop_alt_wrap_and_roundtrip ... ok
+test authoring::tests::header_and_footer_workflow_restores_body_selection_and_round_trips ... ok
+test advanced::tests::exchange_real_formats_and_new_path_publication ... ok
+test editing::additional_input_tests::empty_mark_cancels_and_cross_paragraph_composition_replaces_atomically ... ok
+test editing::additional_input_tests::async_restore_cannot_reuse_a_previous_documents_source ... ok
+test authoring::tests::style_inheritance_character_styles_and_roundtrip ... ok
+test advanced::tests::references_notes_comments_sources_survive_docx ... ok
+test editing::additional_input_tests::save_receipt_cannot_rebind_a_replacement_document ... ok
+test editing::tests::utf16_clusters_and_table_positions_never_split_characters ... ok
+test formatting::tests::font_form_validates_before_edit_and_pending_typing_keeps_format ... ok
+test editing::tests::ime_updates_cancel_commit_and_one_undo ... ok
+test formatting::tests::paragraph_forms_reject_bad_input_and_preserve_blank_mixed_values ... ok
+test formatting::tests::advanced_columns_and_even_section_break_survive_docx_roundtrip ... ok
+test l10n::tests::interpolation_and_plurals_follow_cldr_categories ... ok
+test editing::additional_input_tests::async_restore_cannot_save_a_previous_legacy_snapshot ... ok
+test formatting::tests::paragraph_mixed_patch_is_one_undo_and_blank_values_keep_each_indent ... ok
+test editing::tests::copy_save_is_verified_new_only_and_failure_keeps_dirty ... ok
+test authoring::tests::table_structure_cell_format_merge_split_and_roundtrip ... ok
+test l10n::tests::invalid_resources_are_reported ... ok
+test advanced::tests::desktop_copy_formats_keep_unsaved_text_and_distinguish_xml_variants ... ok
+test l10n::tests::shipped_resources_are_valid_and_in_parity ... ok
+test legacy_recovery::tests::checksum_damage_still_allows_reported_older_generation_fallback ... ok
+test legacy_recovery::tests::regular_recovery_open_keeps_missing_and_handle_read_contract ... ok
+test formatting::tests::mixed_ribbon_state_formatting_undo_and_docx_roundtrip ... ok
+test legacy_recovery::tests::startup_still_offers_a_published_checkpoint ... ok
+test formatting::tests::page_setup_applies_measurements_atomically_and_survives_reopen ... ok
+test legacy_recovery::tests::refuses_text_checkpoint_joining_different_table_cells ... ok
+test legacy_recovery::tests::checked_recovery_open_rejects_replacement_after_metadata ... ok
+test prefs::tests::corrupt_preferences_backup_does_not_grant_group_or_other_access ... ok
+test legacy_recovery::tests::startup_does_not_offer_an_explicitly_discarded_latest_generation ... ok
+test prefs::tests::completed_save_releases_lock_even_with_an_inherited_handle ... ok
+test legacy_recovery::tests::refuses_text_checkpoint_removing_or_inserting_an_inline_object ... ok
+test legacy_recovery::tests::nonregular_slot_must_not_resurrect_an_older_generation ... ok
+test prefs::tests::changed_deleted_or_cross_store_preferences_are_not_overwritten ... ok
+test prefs::tests::dangling_config_link_is_preserved_read_only ... ok
+test legacy_recovery::tests::rich_object_snapshot_is_preserved_exactly_and_mismatch_is_refused ... ok
+test legacy_recovery::tests::replays_disjoint_changes_around_objects_and_table_cells ... ok
+test prefs::tests::fifo_preferences_do_not_block_or_become_writable ... ok
+test prefs::tests::future_preferences_remain_read_only_even_with_unrecognized_syntax ... ok
+test prefs::tests::preference_lock_child ... ok
+test prefs::tests::corrupt_files_fall_back_to_defaults_and_are_kept ... ok
+test prefs::tests::legacy_preferences_are_read_only_and_active_preferences_win ... ok
+test prefs::tests::oversized_preferences_are_preserved_read_only_without_backups ... ok
+test prefs::tests::legacy_preferences_with_a_future_declaration_are_not_migrated ... ok
+test prefs::tests::legacy_fifo_preferences_fall_back_without_touching_the_legacy_path ... ok
+test prefs::tests::invalid_values_newer_schemas_and_migration ... ok
+test prefs::tests::regular_preferences_symlink_keeps_existing_read_compatibility ... ok
+test prefs::tests::oversized_save_neither_replaces_existing_config_nor_creates_a_directory ... ok
+test prefs::tests::round_trip_keeps_values_unknown_keys_and_escapes ... ok
+test prefs::tests::preferences_at_the_read_limit_are_accepted ... ok
+test prefs::tests::stale_writable_preferences_cannot_overwrite_a_newer_schema ... ok
+test prefs::tests::stale_same_schema_save_keeps_completed_external_changes ... ok
+test prefs::tests::save_guard_recognizes_future_schema_even_when_new_syntax_is_unknown ... ok
+test prefs::tests::unreadable_config_path_is_not_treated_as_a_missing_file ... ok
+test print_process::tests::helper_child ... ok
+test prefs::tests::unreadable_preferences_cannot_be_replaced_with_defaults ... ok
+test print_process::tests::refuses_zero_deadline_and_reports_launch_failure ... ok
+test printing::tests::native_reply_distinguishes_submission_cancellation_and_process_failure ... ok
+test prefs::tests::successful_saves_advance_only_the_current_sessions_baseline ... ok
+test printing::tests::native_reply_rejects_inconsistent_or_malformed_queue_claims ... ok
+test editing::tests::original_save_roundtrip_conflicts_locks_and_late_results ... ok
+test prefs::tests::separate_process_lock_refuses_save_and_crash_releases_it ... ok
+test reader::tests::malformed_cancelled_and_existing_output_are_rejected ... ok
+test prefs::tests::unsafe_save_lock_paths_refuse_without_touching_preferences ... ok
+test printing::tests::print_range_uses_unsaved_pages_and_keeps_the_edit_revision ... ok
+test storage::locks::tests::growing_lock_read_stops_after_token_length_plus_one ... ok
+test storage::metadata::tests::a_missing_path_is_an_observation_failure ... ok
+test storage::locks::tests::symlink_to_matching_token_remains_a_conflicting_lock ... ok
+test storage::locks::tests::only_complete_nonempty_regular_lock_tokens_are_owned ... ok
+test storage::metadata::tests::a_volume_refusal_survives_inside_the_observation_error ... ok
+test storage::metadata::tests::security_namespace_is_kernel_managed_only_on_linux ... ok
+test reader::tests::file_name_field_uses_source_on_initial_layout ... ok
+test storage::metadata::tests::volume_rejection_messages_are_distinct_and_non_empty ... ok
+test storage::source::tests::coarse_timestamps_still_accept_an_unchanged_file ... ok
+test storage::source::tests::every_stage_can_fail_with_real_io_error ... ok
+test storage::source::tests::oversized_source_is_refused_before_reading ... ok
+test reader::tests::mixed_media_docx_keeps_text_and_image_colors ... ok
+test storage::source::tests::identity_change_between_stat_and_open_is_not_a_baseline ... ok
+test print_process::tests::captures_success_and_failure_without_a_print_queue ... ok
+test storage::migration_tests::copy_failures_before_publication_never_create_the_destination ... ok
+test storage::source::tests::replacement_after_read_before_restat_is_not_a_baseline ... ok
+test storage::source::tests::same_length_rewrite_before_restat_with_coarse_timestamps_is_not_a_baseline ... ok
+test storage::source::tests::same_length_rewrite_with_coarse_timestamps_is_not_a_baseline ... ok
+test storage::source::tests::published_read_back_checks_the_budget_before_allocating_for_a_grown_inode ... ok
+test storage::source::tests::truncation_during_read_is_not_a_baseline ... ok
+test reader::tests::real_docx_uses_engine_layout_and_nonempty_raster ... ok
+test tests::preset_save_failure_rolls_back_and_legacy_dark_preferences_still_load ... ok
+test tests::failed_recent_save_can_retry_the_same_path_after_lock_release ... ok
+test tests::failed_appearance_save_keeps_shell_and_preferences_unchanged ... ok
+test tests::unavailable_commands_do_not_mutate_preview ... ok
+test tests::zoom_is_bounded_and_new_does_not_create_editable_state ... ok
+test tests::appearance_commands_commit_and_persist_repeated_successful_changes ... ok
+test tests::general_preferences_apply_after_successful_save ... ok
+test tests::saved_page_preset_applies_to_new_documents ... ok
+test print_process::tests::deadline_and_output_budget_stop_the_owned_child ... ok
+test storage::original::migration_tests::injected_original_save_failures_preserve_source ... ok
+test prefs::tests::exhausted_backup_names_preserve_original_and_existing_backups ... ok
+test printing::tests::print_snapshot_is_stable_after_edit_and_formatting_marks_do_not_change_pdf ... ok
+
+test result: ok. 108 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.65s
+
+     Running unittests src/lib.rs (target/debug/deps/joyword_ui_gpui-0da67d2f8535c0e7)
+
+running 20 tests
+test export::tests::checked_export_request_expires_on_edit_or_cancellation ... ok
+test layout_ribbon::tests::numeric_frames_do_not_claim_the_editor_accessibility_focus ... ok
+test layout_ribbon::tests::numeric_units_and_ranges_do_not_silently_clamp_user_text ... ok
+test page_index::tests::visible_range_at_boundaries_and_after_shrinking_document ... ok
+test gestures::tests::table_border_drag_one_history_step_and_undo ... ok
+test save::tests::closing_dirty_document_can_be_cancelled_or_discarded ... ok
+test advanced::tests::real_kit_root_routes_review_and_refreshes_pure_macro_queries ... ok
+test layout_ribbon::tests::numeric_fields_commit_undo_preserve_mixed_values_and_reject_stale_drafts ... ok
+test text_accessibility::tests::text_run_uses_scalar_indices_and_exact_utf16_boundaries ... ok
+test view_ribbon::tests::fitting_respects_page_geometry_viewport_and_limits ... ok
+test save::tests::table_save_and_readback_from_small_executor_stack ... ok
+test page_setup::tests::columns_form_submits_unchanged_required_fields ... ok
+test clipboard::tests::keep_text_only_reads_the_current_clipboard ... ok
+test input::integration_tests::platform_input_bridge_handles_composition_and_rejects_old_document ... ok
+test input::integration_tests::kit_root_tab_navigates_cells_but_form_tab_keeps_native_focus ... ok
+test gestures::tests::picture_drag_is_draft_until_release_cancel_and_stale_guard ... ok
+test formatting::tests::native_shortcuts_and_font_picker_edit_same_session ... ok
+test view_ribbon::tests::view_controls_change_visible_state_without_editing_and_share_zoom ... ok
+test search::tests::search_shortcuts_and_replace_all_use_the_document_session ... ok
+test layout_ribbon::tests::every_numeric_editor_keeps_focus_through_steps_and_returns_it_on_enter ... ok
+
+test result: ok. 20 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.45s
+
+   Doc-tests joyoffice_theme
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests joyoffice_ui
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests joyword_shell
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests joyword_ui_gpui
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s

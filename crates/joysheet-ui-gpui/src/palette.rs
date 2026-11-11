@@ -380,9 +380,9 @@ impl Desktop {
         }
     }
     pub fn render_palette(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement + use<> {
-        let dark = self.preferences.dark;
-        let panel = if dark { 0x20332a } else { 0xffffff };
-        let muted = if dark { 0xa6b7ac } else { 0x708477 };
+        let p = self.palette();
+        let panel = p.surface;
+        let muted = p.muted;
         let query = self.search.read(cx).value().to_lowercase();
         let commands: Vec<_> = joysheet_engine::command_specs()
             .iter()
@@ -476,7 +476,7 @@ impl Desktop {
                     .p_3()
                     .rounded_lg()
                     .border_1()
-                    .border_color(rgb(if dark { 0x3c5144 } else { 0xdfe8e0 }))
+                    .border_color(rgb(p.border))
                     .flex()
                     .flex_col()
                     .gap_2()
@@ -535,7 +535,7 @@ impl Desktop {
                         .py_2()
                         .rounded_md()
                         .cursor_pointer()
-                        .hover(|style| style.bg(rgb(if dark { 0x304a3a } else { 0xf0f5f0 })))
+                        .hover(|style| style.bg(rgb(p.hover)))
                         .child(div().font_weight(FontWeight::MEDIUM).child(label))
                         .child(div().text_xs().text_color(rgb(muted)).child(format!("{id}  ·  {path}")))
                         .on_click(cx.listener(move |this, _, window, cx| this.open_command(id, window, cx)))
@@ -568,7 +568,7 @@ impl Desktop {
         cx.notify();
     }
     pub fn render_close_dialog(&self, cx: &mut Context<Self>) -> impl IntoElement + use<> {
-        let panel = if self.preferences.dark { 0x20332a } else { 0xffffff };
+        let panel = self.palette().surface;
         div()
             .absolute()
             .inset_0()

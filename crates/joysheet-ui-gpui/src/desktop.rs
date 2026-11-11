@@ -199,11 +199,7 @@ pub struct Desktop {
 
 impl Desktop {
     pub(crate) fn palette(&self) -> joyoffice_ui::Palette {
-        if self.preferences.dark {
-            joyoffice_ui::Palette::dark(joyoffice_ui::Brand::Sheet)
-        } else {
-            joyoffice_ui::Palette::light(joyoffice_ui::Brand::Sheet)
-        }
+        self.preferences.theme_preset().palette(joyoffice_ui::Brand::Sheet)
     }
 
     pub fn new(engine: EngineClient, id: Option<u64>, window: &mut Window, cx: &mut Context<Self>) -> Self {
@@ -1044,7 +1040,7 @@ impl Render for Desktop {
                     .aria_label(self.label("确认编辑", "Accept edit"))
                     .cursor_pointer()
                     .px_2()
-                    .text_color(rgb(0x148256))
+                    .text_color(rgb(self.palette().accent))
                     .child("✓")
                     .on_click(cx.listener(|this, _, w, cx| this.commit(After::None, w, cx))),
             )
@@ -1096,8 +1092,8 @@ impl Render for Desktop {
                     .items_center()
                     .cursor_pointer()
                     .bg(rgb(if active { panel } else { bg }))
-                    .text_color(rgb(if active { 0x148256 } else { muted }))
-                    .when(active, |el| el.font_weight(FontWeight::SEMIBOLD).border_b_2().border_color(rgb(0x148256)))
+                    .text_color(rgb(if active { self.palette().accent } else { muted }))
+                    .when(active, |el| el.font_weight(FontWeight::SEMIBOLD).border_b_2().border_color(rgb(self.palette().accent)))
                     .relative()
                     .child(self.advanced_probe(format!("sheet-tab:{index}"), cx))
                     .child(name)
@@ -1409,7 +1405,7 @@ impl Render for Desktop {
                     .gap_2()
                     .child(StyledText::new(hint.signature).with_highlights([(
                         hint.active,
-                        HighlightStyle { font_weight: Some(FontWeight::BOLD), color: Some(rgb(0x148256).into()), ..Default::default() },
+                        HighlightStyle { font_weight: Some(FontWeight::BOLD), color: Some(rgb(self.palette().accent).into()), ..Default::default() },
                     )]))
                     .child(hint.description)
                     .child(

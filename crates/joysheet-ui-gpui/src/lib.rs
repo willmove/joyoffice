@@ -159,11 +159,7 @@ pub fn run(options: LaunchOptions) -> Result<(), String> {
                 MenuItem::action("Commands…", ShowCommands),
             ]),
         ]);
-        gpui_kit::component::Theme::change(
-            if preferences.dark { gpui_kit::component::ThemeMode::Dark } else { gpui_kit::component::ThemeMode::Light },
-            None,
-            cx,
-        );
+        joyoffice_ui::apply_theme(preferences.theme_preset(), joyoffice_ui::Brand::Sheet, None, cx);
         cx.set_global(desktop::NativeWindows::default());
         cx.set_global(desktop::NativeFocus::default());
         let queue = server.as_ref().map(|s| s.queue.clone()).unwrap_or_default();

@@ -1,5 +1,7 @@
 # Joysheet 实施状态
 
+2026-11-11：新增三产品共享界面主题，Sheet 将原风格与 Word 合并为「青岚」，在标题栏「设置」提供青岚、素雅、晴空、暖砂的亮暗八个预设。兼容旧 dark 配置，两个原生窗口同步完整主题；单元格内容颜色保持原样。[主题说明](../joyoffice/THEMES.md) · [本机验证与边界](../joyoffice/validation/20261111-themes/README.md)
+
 2026-11-09 Windows P1 续验 M1.4 与 M4.4。启动及文件选择器打开受密码保护的工作簿时支持掩码输入、错误重试和取消。显式选回源路径会被拒绝，另存完整副本前不写自动恢复副本。合成加密样本实屏验证重试、取消和独立另存，源文件散列一致。多窗口独立视图、草稿和保存失败重试通过 Windows 原生冒烟。[本机验证](../joyoffice/validation/20261109-p1-followup/README.md)
 
 2026-11-09 Windows P1 补验 M3.3。在实际 Excel 和 JoySheet 窗口双向复制整数、小数及文本，JoySheet 单步撤销／重做，独立 XLSX 读回确认双方保存的类型和值。货币、日期、公式、LibreOffice 和多窗口组合继续验收。[本机验证](../joyoffice/validation/20261109-v012/README.md#p1)

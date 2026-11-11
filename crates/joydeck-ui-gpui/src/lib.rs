@@ -2,14 +2,14 @@
 //! Native JoyDeck workspace; product state remains in the headless shell.
 use gpui_kit::base::Disableable;
 use gpui_kit::component::{
-    Sizable, Theme, ThemeMode, WindowExt,
+    Sizable, WindowExt,
     button::{Button, ButtonVariants},
     input::{Textarea, TextareaState},
 };
 use gpui_kit::prelude::FluentBuilder;
 use gpui_kit::*;
 use joydeck_shell::{PreviewDeck, PreviewSlide, WorkspaceState};
-use joyoffice_ui::{Brand, Palette, metrics};
+use joyoffice_ui::{Brand, Palette, ThemePreset, metrics};
 use std::{cell::RefCell, rc::Rc};
 
 mod layout;
@@ -39,6 +39,7 @@ struct Workspace {
     tab: &'static str,
     focus: FocusHandle,
     notes_input: Entity<TextareaState>,
+    theme: ThemePreset,
 }
 
 impl Workspace {
@@ -50,17 +51,14 @@ impl Workspace {
         Self {
             preview,
             state,
+            theme: cx.global::<joyoffice_ui::AppliedTheme>().0,
             tab: "开始",
             focus,
             notes_input: cx.new(|cx| TextareaState::new(window, cx).auto_grow(2, 5)),
         }
     }
     fn palette(&self) -> Palette {
-        if self.state.dark {
-            Palette::dark(Brand::Deck)
-        } else {
-            Palette::light(Brand::Deck)
-        }
+        self.theme.palette(Brand::Deck)
     }
     fn next(&mut self, _: &NextSlide, _: &mut Window, cx: &mut Context<Self>) {
         self.state.step(1, self.preview.slides.len());
@@ -83,8 +81,16 @@ impl Workspace {
         cx.notify();
     }
     fn theme(&mut self, _: &ToggleTheme, window: &mut Window, cx: &mut Context<Self>) {
-        self.state.dark = !self.state.dark;
-        apply_theme(self.state.dark, Some(window), cx);
+        let theme = self.theme.with_dark(!self.state.dark);
+        if let Err(error) =
+            joydeck_shell::storage::save_theme(&joydeck_shell::editor::recovery_root(), theme)
+        {
+            eprintln!("JoyDeck appearance: {error}");
+            return;
+        }
+        self.theme = theme;
+        self.state.dark = theme.is_dark();
+        apply_theme(theme, Some(window), cx);
         cx.notify();
     }
     fn inspector(&mut self, _: &ToggleInspector, _: &mut Window, cx: &mut Context<Self>) {
@@ -670,53 +676,38 @@ impl Render for Workspace {
     }
 }
 
-fn apply_theme(dark: bool, window: Option<&mut Window>, cx: &mut App) {
-    Theme::change(
-        if dark {
-            ThemeMode::Dark
-        } else {
-            ThemeMode::Light
-        },
-        window,
-        cx,
-    );
-    let p = viewer::deck_palette(dark);
-    let theme = Theme::global_mut(cx);
-    theme.colors.primary = rgb(p.accent).into();
-    theme.colors.primary_hover = rgb(p.accent_hover).into();
-    theme.colors.primary_active = rgb(p.accent_hover).into();
-    theme.colors.primary_foreground = rgb(p.on_accent).into();
-    theme.colors.ring = rgb(p.accent).into();
-    theme.colors.button_primary = rgb(p.accent).into();
-    theme.colors.button_primary_hover = rgb(p.accent_hover).into();
-    theme.colors.button_primary_active = rgb(p.accent_hover).into();
-    theme.colors.button_primary_foreground = rgb(p.on_accent).into();
-    theme.tokens.button_primary = theme.colors.button_primary.into();
-    theme.tokens.button_primary_hover = theme.colors.button_primary_hover.into();
-    theme.tokens.button_primary_active = theme.colors.button_primary_active.into();
-    theme.radius = px(metrics::RADIUS);
+fn apply_theme(theme: ThemePreset, window: Option<&mut Window>, cx: &mut App) {
+    joyoffice_ui::apply_theme(theme, Brand::Deck, window, cx);
 }
 
 pub fn run(arguments: impl Iterator<Item = String>) -> Result<(), String> {
-    let mut dark = false;
+    let mut theme = joydeck_shell::storage::load_theme(&joydeck_shell::editor::recovery_root())
+        .unwrap_or_else(|error| {
+            eprintln!("JoyDeck appearance: {error}");
+            ThemePreset::ClassicLight
+        });
     let mut window_size = (1440., 900.);
     let mut input = None;
     let mut sample_workspace = false;
     let mut control_root = None;
     for arg in arguments {
         match arg.as_str() {
-            "--dark" => dark = true,
-            "--light" => dark = false,
+            "--dark" => theme = theme.with_dark(true),
+            "--light" => theme = theme.with_dark(false),
             "--sample-workspace" => sample_workspace = true,
             "--help" => {
                 println!(
-                    "JoyDeck [INPUT.pptx|INPUT.joydeck|INPUT.deckcraft] [--dark|--light] [--window-size=WIDTHxHEIGHT] [--control-stdio=AUTHORIZED_ROOT]\nR8 native ribbon editor, save/reopen and recovery. --sample-workspace opens the R0 UI sample."
+                    "JoyDeck [INPUT.pptx|INPUT.joydeck|INPUT.deckcraft] [--dark|--light] [--theme=PRESET] [--window-size=WIDTHxHEIGHT] [--control-stdio=AUTHORIZED_ROOT]\nR8 native ribbon editor, save/reopen and recovery. --sample-workspace opens the R0 UI sample."
                 );
                 return Ok(());
             }
             "--version" => {
                 println!("JoyDeck {}", env!("CARGO_PKG_VERSION"));
                 return Ok(());
+            }
+            _ if arg.starts_with("--theme=") => {
+                theme = ThemePreset::from_id(arg.trim_start_matches("--theme="))
+                    .ok_or("unknown application theme")?;
             }
             _ if arg.starts_with("--control-stdio=") => {
                 let root = std::path::PathBuf::from(arg.trim_start_matches("--control-stdio="));
@@ -744,6 +735,7 @@ pub fn run(arguments: impl Iterator<Item = String>) -> Result<(), String> {
     if sample_workspace && control_root.is_some() {
         return Err("desktop control requires the editor workspace".into());
     }
+    let dark = theme.is_dark();
     let preview = PreviewDeck::bundled()?;
     let failure = Rc::new(RefCell::new(None));
     let startup_failure = failure.clone();
@@ -772,7 +764,7 @@ pub fn run(arguments: impl Iterator<Item = String>) -> Result<(), String> {
         .with_assets(gpui_kit::assets::AllAssets)
         .run(move |cx| {
             gpui_kit::init(cx);
-            apply_theme(dark, None, cx);
+            apply_theme(theme, None, cx);
             viewer::bind(cx);
             #[cfg(target_os = "macos")]
             if !sample_workspace {

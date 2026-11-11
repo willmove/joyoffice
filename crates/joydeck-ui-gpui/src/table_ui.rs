@@ -232,7 +232,7 @@ impl Viewer {
                 .master_for(model.slides.get(self.page)?)
                 .map(|(master, _)| master)
         });
-        let mut tiles = gallery(self.dark);
+        let mut tiles = gallery(self.palette());
         for (i, slot) in [
             Slot::Tx1,
             Slot::Accent1,

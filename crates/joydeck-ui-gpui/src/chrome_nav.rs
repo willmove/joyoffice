@@ -26,7 +26,7 @@ impl Viewer {
         }
     }
     pub(super) fn slide_rail(&self, w: &Window, count: usize, cx: &mut Context<Self>) -> Div {
-        let palette = chrome::palette(self.dark);
+        let palette = self.palette();
         let rail = self.rail_width(w);
         let width = rail - 42.;
         let height = self
@@ -142,7 +142,7 @@ impl Viewer {
             )
     }
     pub(super) fn slide_sorter(&self, cx: &mut Context<Self>) -> AnyElement {
-        let p = chrome::palette(self.dark);
+        let p = self.palette();
         let count = self.deck.as_ref().map_or(0, |d| d.info.slides.len());
         div()
             .id("slide-sorter")
@@ -308,7 +308,7 @@ impl Viewer {
             .collect()
     }
     pub(super) fn notes_pane(&self) -> Div {
-        let p = chrome::palette(self.dark);
+        let p = self.palette();
         div()
             .h(px(58.))
             .flex_shrink_0()

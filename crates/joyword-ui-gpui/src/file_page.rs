@@ -744,11 +744,54 @@ impl JoyWord {
 
     fn file_options(&self, cx: &mut Context<Self>) -> Div {
         let tr = |zh, en| self.shell.tr(zh, en);
+        let p = self.palette();
+        let themes = div().flex().flex_wrap().gap_2().children(
+            joyoffice_ui::ThemePreset::ALL
+                .into_iter()
+                .enumerate()
+                .map(|(index, theme)| {
+                    let selected = self.shell.theme == theme;
+                    file_control(
+                        joyoffice_ui::theme_preview(
+                            theme,
+                            joyoffice_ui::Brand::Word,
+                            self.shell.locale == joyword_shell::l10n::Locale::ZhCn,
+                        ),
+                        ("appearance-theme", index),
+                        theme.label(self.shell.locale == joyword_shell::l10n::Locale::ZhCn),
+                        true,
+                        p.accent,
+                        cx,
+                        move |v, w, cx| v.select_theme(theme, w, cx),
+                    )
+                    .w(px(164.))
+                    .rounded(px(6.))
+                    .bg(rgb(if selected { p.selected } else { p.surface }))
+                    .border_color(rgb(if selected { p.accent } else { p.border }))
+                    .a11y_synthetic_children(move |b| {
+                        b.parent_node().set_toggled(if selected {
+                            gpui::accesskit::Toggled::True
+                        } else {
+                            gpui::accesskit::Toggled::False
+                        })
+                    })
+                }),
+        );
         div()
             .flex()
             .flex_col()
             .gap_2()
-            .max_w(px(360.0))
+            .max_w(px(352.0))
+            .child(
+                div()
+                    .font_weight(gpui::FontWeight::SEMIBOLD)
+                    .child(tr("界面主题", "Application theme")),
+            )
+            .child(div().text_color(rgb(p.muted)).child(tr(
+                "仅更改界面外观，不影响文档内容。",
+                "Changes the interface appearance; document content is preserved.",
+            )))
+            .child(themes)
             .child(self.file_row(
                 "file-theme",
                 if self.shell.dark {

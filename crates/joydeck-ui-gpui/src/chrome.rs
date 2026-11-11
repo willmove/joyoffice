@@ -8,36 +8,6 @@ use gpui_kit::component::{Icon, Selectable, Sizable, button::ButtonVariants, pop
 use joydeck_engine::Command;
 use joyoffice_ui::{IconName as I, Palette};
 
-pub(super) fn palette(dark: bool) -> Palette {
-    let mut p = if dark {
-        Palette::dark(joyoffice_ui::Brand::Deck)
-    } else {
-        Palette::light(joyoffice_ui::Brand::Deck)
-    };
-    if dark {
-        p.canvas = 0x1e1e1e;
-        p.chrome = 0x262626;
-        p.surface = 0x333333;
-        p.text = 0xeeeeee;
-        p.muted = 0xbbbbbb;
-        p.border = 0x4a4a4a;
-        p.hover = 0x404040;
-        p.selected = 0x474747;
-        p.accent = 0xf26b1d;
-    } else {
-        p.canvas = 0xf0f0f0;
-        p.chrome = 0xf3f3f3;
-        p.surface = 0xffffff;
-        p.text = 0x242424;
-        p.muted = 0x5c5c5c;
-        p.border = 0xd4d4d4;
-        p.hover = 0xebebeb;
-        p.selected = 0xe6e6e6;
-        p.accent = 0xa63d24;
-    }
-    p
-}
-
 pub(super) fn small(id: &'static str, icon: I, label: &'static str) -> Button {
     Button::new(id)
         .ghost()
@@ -182,7 +152,7 @@ impl Viewer {
     }
 
     pub(super) fn title_chrome(&self, cx: &mut Context<Self>) -> Div {
-        let p = palette(self.dark);
+        let p = self.palette();
         let dirty = self.editor.as_ref().is_some_and(|e| e.session.dirty());
         let name = self.document_name();
         div()
@@ -275,9 +245,7 @@ impl Viewer {
                     .accessibility_label("切换明暗主题")
                     .tooltip("切换明暗主题")
                     .on_click(cx.listener(|s, _, w, cx| {
-                        s.dark = !s.dark;
-                        crate::apply_theme(s.dark, Some(w), cx);
-                        cx.notify();
+                        s.select_theme(s.theme.with_dark(!s.dark), w, cx);
                     })),
             )
             .child(
@@ -287,12 +255,12 @@ impl Viewer {
                     .h(px(26.))
                     .rounded(px(16.))
                     .bg(rgb(p.accent))
-                    .text_color(rgb(0xffffff))
+                    .text_color(rgb(p.on_accent))
                     .on_click(cx.listener(|s, _, _, cx| s.start_show(false, false, cx))),
             )
     }
     pub(super) fn editor_ribbon(&self, w: &Window, cx: &mut Context<Self>) -> Div {
-        let p = palette(self.dark);
+        let p = self.palette();
         let mut tabs = div()
             .id("ribbon-tabs")
             .role(gpui::Role::TabList)
@@ -840,9 +808,9 @@ impl Viewer {
                 .master_for(model.slides.get(self.page)?)
                 .map(|(master, _)| master)
         });
-        let p = palette(self.dark);
+        let p = self.palette();
         let builtin = joydeck_model::theme::builtin_themes();
-        let themes = gallery(self.dark).children(
+        let themes = gallery(self.palette()).children(
             master
                 .into_iter()
                 .map(|m| (&m.theme, true))
@@ -1019,7 +987,7 @@ impl Viewer {
                 _ => None,
             }
         });
-        let mut kinds = gallery(self.dark);
+        let mut kinds = gallery(self.palette());
         for (id, label, icon, kind) in [
             ("chart-column", "柱形图", I::ChartColumn, ChartType::Column),
             ("chart-line", "折线图", I::ChartLine, ChartType::Line),
@@ -1445,7 +1413,7 @@ impl Viewer {
         )
     }
     pub(super) fn status_chrome(&self, scale: f32, cx: &mut Context<Self>) -> Div {
-        let p = palette(self.dark);
+        let p = self.palette();
         let count = self.deck.as_ref().map_or(0, |d| d.info.slides.len());
         div()
             .h(px(26.))

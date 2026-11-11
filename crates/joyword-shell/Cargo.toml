@@ -6,6 +6,7 @@ rust-version.workspace = true
 license.workspace = true
 publish = false
 [dependencies]
+joyoffice-theme.workspace = true
 joyword-docx.workspace = true
 joyword-fonts.workspace = true
 joyword-geom.workspace = true

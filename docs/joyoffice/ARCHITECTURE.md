@@ -14,6 +14,8 @@
 
 ## 公共能力的抽取
 
+界面主题由无 GUI、无文件访问的 `joyoffice-theme` 定义；Word shell、Deck shell、Sheet platform 在各自已有偏好存储中保存其稳定 ID。`joyoffice-ui` 依赖该目录并把 Palette 投影到 GPUI Kit 和 Base tokens，三产品 UI 共用预览和主题应用函数。该层不修改文档模型，CLI 依赖闭包仍不引入 GPUI。[主题目录与兼容规则](THEMES.md)
+
 已有 OPC、DrawingML、OMML、CFB 等格式中立模块优先复用。将 Deck 现有实现替换成 OPC 前，先比较预算、关系、未知成员保留与写回契约，再增加能验证行为的往返用例。没有第二个实际调用方的 UI/字体/几何设计不为共享先建空壳。Word 流式分页、Deck 固定画布、Sheet 单元格模型分别维护。
 
 ## 构建、测试和交付

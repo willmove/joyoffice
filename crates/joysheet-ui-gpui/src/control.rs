@@ -377,6 +377,8 @@ impl Desktop {
                 inspect["formulaText"] = json!(self.formula.read(cx).value().to_string());
                 inspect["cellEditorText"] = json!(self.editor.read(cx).value().to_string());
                 inspect["dark"] = json!(self.preferences.dark);
+                inspect["theme"] = json!(self.preferences.theme_preset().id());
+                inspect["themes"] = json!(joyoffice_ui::ThemePreset::ALL.map(|t| t.id()));
                 inspect["settings"] = json!(self.preferences);
                 inspect["ribbonTab"] = json!(self.ribbon_tab);
                 inspect["panel"] = json!(self.daily_group);

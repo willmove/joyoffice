@@ -166,8 +166,8 @@ impl Desktop {
             .bottom_0()
             .w(px(430.))
             .p_4()
-            .bg(rgb(0xffffff))
-            .text_color(rgb(0x20332a))
+            .bg(rgb(self.palette().surface))
+            .text_color(rgb(self.palette().text))
             .shadow_lg()
             .id("control-panel")
             .occlude()
@@ -186,16 +186,16 @@ impl Desktop {
             .child("命令共用引擎队列。app.save / app.open 会先提交指定窗口草稿；ui.awaitIdle 与截图可等待修订。低层命令和 force 关闭保持原引擎语义。")
             .child(text.clone());
         if port.is_some() {
-            panel = panel.child(div().id("copy-mcp-config").p_2().cursor_pointer().bg(rgb(0xe2eee5)).child("复制 MCP 配置").on_click(cx.listener(
-                move |this, _, _, cx| {
+            panel = panel.child(div().id("copy-mcp-config").p_2().cursor_pointer().bg(rgb(self.palette().selected)).child("复制 MCP 配置").on_click(
+                cx.listener(move |this, _, _, cx| {
                     if let Err(e) = this.clipboard.write(&text, None) {
                         this.alert(e);
                     } else {
                         this.message = "MCP 配置已复制".into();
                     }
                     cx.notify();
-                },
-            )));
+                }),
+            ));
         }
         for v in &self.snapshot.windows {
             let id = v.window;
@@ -236,7 +236,7 @@ impl Desktop {
                     div()
                         .p_2()
                         .border_1()
-                        .border_color(rgb(0xdde5df))
+                        .border_color(rgb(self.palette().border))
                         .rounded_md()
                         .flex()
                         .flex_col()
@@ -284,8 +284,8 @@ impl Desktop {
             .bottom_0()
             .w(px(380.))
             .p_3()
-            .bg(rgb(0xffffff))
-            .text_color(rgb(0x20332a))
+            .bg(rgb(self.palette().surface))
+            .text_color(rgb(self.palette().text))
             .shadow_lg()
             .id("names-panel")
             .occlude()
@@ -309,7 +309,7 @@ impl Desktop {
                         div()
                             .p_2()
                             .border_b_1()
-                            .border_color(rgb(0xdde5df))
+                            .border_color(rgb(self.palette().border))
                             .flex()
                             .flex_col()
                             .gap_1()
@@ -368,8 +368,8 @@ impl Desktop {
             .top(px(90.))
             .bottom_0()
             .w(px(360.))
-            .bg(rgb(0xffffff))
-            .text_color(rgb(0x20332a))
+            .bg(rgb(self.palette().surface))
+            .text_color(rgb(self.palette().text))
             .shadow_lg()
             .p_3()
             .flex()
@@ -389,7 +389,7 @@ impl Desktop {
                 let drag_name = name.clone();
                 let drag_pivot = pivot.clone();
                 let doc = self.view().map(|v| v.doc).unwrap_or(0);
-                let mut row = div().relative().p_2().border_b_1().border_color(rgb(0xdde6df)).flex().flex_col().gap_1().child(
+                let mut row = div().relative().p_2().border_b_1().border_color(rgb(self.palette().border)).flex().flex_col().gap_1().child(
                     div()
                         .id(SharedString::from(format!("drag-field-{index}")))
                         .relative()
@@ -414,7 +414,7 @@ impl Desktop {
                             .id(SharedString::from(format!("pivot-{index}-{area}")))
                             .p_1()
                             .rounded_md()
-                            .bg(rgb(if present { 0xdcefe1 } else { 0xf0f3f1 }))
+                            .bg(rgb(if present { self.palette().selected } else { self.palette().chrome }))
                             .cursor_pointer()
                             .child(format!("{label} {}", if present { "−" } else { "+" }))
                             .on_click(cx.listener(move |this, _, window, cx| {
@@ -440,7 +440,7 @@ impl Desktop {
                     .id(SharedString::from(format!("drop-{area}")))
                     .relative()
                     .p_3()
-                    .bg(rgb(0xe8f2eb))
+                    .bg(rgb(self.palette().hover))
                     .child(label)
                     .child(self.advanced_probe(format!("area:{area}"), cx))
                     .on_mouse_up(

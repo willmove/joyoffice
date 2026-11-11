@@ -1,0 +1,17 @@
+[
+  {
+    "product": "joyword",
+    "profile": "macOS ARM64 Debug",
+    "sha256": "ee8321730aced1aa1a5c82d5fe84e8354ad9fed3525cf762fda3d8846f8d0164"
+  },
+  {
+    "product": "joydeck",
+    "profile": "macOS ARM64 Debug",
+    "sha256": "6e89679ae3d0c417d464cb3ad1e781ce5387a244ac54d0aeaa9c854eeaf291e9"
+  },
+  {
+    "product": "joysheet",
+    "profile": "macOS ARM64 Debug",
+    "sha256": "48d2bed04e90e8281237ebb3f6976521ff80cd070f5790d08b62a345e3091d8f"
+  }
+]

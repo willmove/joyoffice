@@ -150,7 +150,7 @@ impl Desktop {
             .bottom_0()
             .w(px(280.))
             .p_4()
-            .bg(rgb(if self.preferences.dark { 0x20332a } else { 0xffffff }))
+            .bg(rgb(self.palette().surface))
             .shadow_lg()
             .flex()
             .flex_col()
@@ -163,31 +163,32 @@ impl Desktop {
                 cx.notify();
             })));
         for &(label, command) in actions {
-            panel = panel.child(div().id(command).p_2().rounded_md().cursor_pointer().hover(|s| s.bg(rgb(0xe3f2e7))).child(label).on_click(
-                cx.listener(move |this, _, window, cx| {
-                    this.daily_group = 0;
-                    if group == 2
-                        || group >= 4
-                        || [
-                            "home.fontName",
-                            "home.fontSize",
-                            "home.fontColor",
-                            "home.fillColor",
-                            "home.numberFormat",
-                            "home.borders",
-                            "home.columnWidth",
-                            "home.rowHeight",
-                            "home.orientation",
-                            "home.formatCells",
-                        ]
-                        .contains(&command)
-                    {
-                        this.open_command(command, window, cx);
-                    } else {
-                        this.commit(After::Command(command.into(), json!({})), window, cx);
-                    }
-                }),
-            ));
+            panel =
+                panel.child(div().id(command).p_2().rounded_md().cursor_pointer().hover(|s| s.bg(rgb(self.palette().hover))).child(label).on_click(
+                    cx.listener(move |this, _, window, cx| {
+                        this.daily_group = 0;
+                        if group == 2
+                            || group >= 4
+                            || [
+                                "home.fontName",
+                                "home.fontSize",
+                                "home.fontColor",
+                                "home.fillColor",
+                                "home.numberFormat",
+                                "home.borders",
+                                "home.columnWidth",
+                                "home.rowHeight",
+                                "home.orientation",
+                                "home.formatCells",
+                            ]
+                            .contains(&command)
+                        {
+                            this.open_command(command, window, cx);
+                        } else {
+                            this.commit(After::Command(command.into(), json!({})), window, cx);
+                        }
+                    }),
+                ));
         }
         if group >= 10 {
             panel = panel.child(Button::new("open-object-selection").label("对象多选与排列…").on_click(cx.listener(|this, _, _, cx| {

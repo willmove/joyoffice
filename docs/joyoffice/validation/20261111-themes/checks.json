@@ -1,0 +1,34 @@
+{
+  "unitIntegration": {
+    "passed": 6001,
+    "failed": 0,
+    "ignored": 3
+  },
+  "documentation": {
+    "passed": 1,
+    "failed": 0,
+    "ignored": 0
+  },
+  "strictProductionClippy": "passed",
+  "deckProductCheck": {
+    "passed": 975,
+    "failed": 0
+  },
+  "sheetProductCheck": {
+    "passed": 1404,
+    "failed": 0,
+    "ignored": 1
+  },
+  "wordThemeConsumers": {
+    "passed": 129,
+    "failed": 0
+  },
+  "nativeThemeChecks": "passed",
+  "nativeClipboardRegression": "fails identically on base main and theme branch",
+  "productionBuilds": [
+    "joyword",
+    "joydeck",
+    "joysheet"
+  ],
+  "baseCommit": "4c7a951b73e62fcc3b71bbb7acc83abc99efa291"
+}

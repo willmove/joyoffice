@@ -1,0 +1,23 @@
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.20s
+     Running `target/debug/joyoffice-xtask build joyword`
++ cargo build -p joyword -p joyword-cli --locked
+   Compiling ring v0.17.14
+   Compiling craft-proof v0.1.0 (/Users/willm/Coding/joyoffice/third-party/craft-libs/proof)
+   Compiling joyoffice-ui v0.1.3 (/Users/willm/Coding/joyoffice/crates/joyoffice-ui)
+warning: craft-proof@0.1.0: CRAFT_I18N_DIR is unset: craft-proof embeds no Language data (English spelling falls back to system Hunspell or the built-in Moby word list; no hyphenation)
+   Compiling joyword-layout v0.1.3 (/Users/willm/Coding/joyoffice/crates/joyword-layout)
+   Compiling rustls v0.23.46
+   Compiling rustls-webpki v0.103.16
+   Compiling joyword-pdf v0.1.3 (/Users/willm/Coding/joyoffice/crates/joyword-pdf)
+   Compiling joyword-render v0.1.3 (/Users/willm/Coding/joyoffice/crates/joyword-render)
+   Compiling ureq v3.5.1
+   Compiling craft-font-store v0.1.0 (/Users/willm/Coding/joyoffice/third-party/craft-libs/font-store)
+   Compiling joyword-engine v0.1.3 (/Users/willm/Coding/joyoffice/crates/joyword-engine)
+   Compiling joyword-shell v0.1.3 (/Users/willm/Coding/joyoffice/crates/joyword-shell)
+   Compiling joyword-mcp v0.1.3 (/Users/willm/Coding/joyoffice/crates/joyword-mcp)
+   Compiling joyword-ui-gpui v0.1.3 (/Users/willm/Coding/joyoffice/crates/joyword-ui-gpui)
+   Compiling joyword-cli v0.1.3 (/Users/willm/Coding/joyoffice/apps/joyword-cli)
+   Compiling joyword v0.1.3 (/Users/willm/Coding/joyoffice/apps/joyword)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 32.74s
+warning: the following packages contain code that will be rejected by a future version of Rust: block v0.1.6
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 2`

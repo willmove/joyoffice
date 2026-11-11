@@ -198,7 +198,7 @@ impl Viewer {
         let view = cx.entity().downgrade();
         let selected =
             items.map(|(_, action)| !bodies.is_empty() && bodies.iter().all(|b| action.matches(b)));
-        let palette = chrome::palette(self.dark);
+        let palette = self.palette();
         Popover::new((id, usize::MAX))
             .trigger(layout_button(id, title, disabled).accessibility_label(title))
             .content(move |_, _, cx| {

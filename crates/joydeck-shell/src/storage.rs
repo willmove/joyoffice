@@ -18,6 +18,50 @@ use std::{
 static IDS: AtomicU64 = AtomicU64::new(1);
 static RECENT_WRITE: Mutex<()> = Mutex::new(());
 static SAVE_PUBLICATION: Mutex<()> = Mutex::new(());
+static APPEARANCE_WRITE: Mutex<()> = Mutex::new(());
+
+#[cfg(test)]
+pub(crate) fn test_preference_id() -> u64 {
+    IDS.fetch_add(1, Ordering::Relaxed)
+}
+
+#[cfg(test)]
+#[path = "tests/appearance.rs"]
+mod appearance_tests;
+
+/// A small application preference beside the existing recent-file index.
+pub fn load_theme(root: &Path) -> Result<joyoffice_theme::ThemePreset> {
+    let file = match File::open(root.join("appearance.v1")) {
+        Ok(file) => file,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+            return Ok(joyoffice_theme::ThemePreset::ClassicLight);
+        }
+        Err(e) => return Err(e.to_string()),
+    };
+    let mut value = String::new();
+    file.take(129)
+        .read_to_string(&mut value)
+        .map_err(|e| e.to_string())?;
+    if value.len() > 128 {
+        return Err("appearance preference exceeds budget".into());
+    }
+    joyoffice_theme::ThemePreset::from_id(value.trim())
+        .ok_or_else(|| "unsupported appearance preference".into())
+}
+
+pub fn save_theme(root: &Path, theme: joyoffice_theme::ThemePreset) -> Result<()> {
+    let _writer = APPEARANCE_WRITE
+        .lock()
+        .map_err(|_| "appearance writer unavailable")?;
+    std::fs::create_dir_all(root).map_err(|e| e.to_string())?;
+    let path = root.join("appearance.v1");
+    let expected = match fingerprint(&path) {
+        Ok(fp) => Some(fp),
+        Err(_) if !path.exists() => None,
+        Err(e) => return Err(e),
+    };
+    save(&path, &theme.id().as_bytes().to_vec(), expected).map(|_| ())
+}
 #[derive(Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 struct RecentFiles {

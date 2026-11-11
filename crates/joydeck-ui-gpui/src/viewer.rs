@@ -177,6 +177,7 @@ pub struct Viewer {
     drag: Option<editing::Drag>,
     activation: Option<Subscription>,
     dark: bool,
+    theme: joyoffice_ui::ThemePreset,
     focus: FocusHandle,
     deck: Option<Arc<Deck>>,
     source: Option<PathBuf>,
@@ -306,6 +307,7 @@ impl Viewer {
             drag: None,
             activation: None,
             dark,
+            theme: cx.global::<joyoffice_ui::AppliedTheme>().0,
             focus,
             deck: None,
             source: None,
@@ -758,7 +760,8 @@ impl Viewer {
 impl Render for Viewer {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         // GPUI Kit refreshes every window when its application theme changes.
-        self.dark = gpui_kit::component::Theme::global(cx).is_dark();
+        self.theme = cx.global::<joyoffice_ui::AppliedTheme>().0;
+        self.dark = self.theme.is_dark();
         if self.close_ready {
             self.close_ready = false;
             cx.defer_in(window, |s, w, _| {
@@ -780,7 +783,7 @@ impl Render for Viewer {
             self.gpu_cache.clear(window);
             self.benchmark = None;
         }
-        let palette = chrome::palette(self.dark);
+        let palette = self.palette();
         if let Some(path) = self.pending_save_path.take() {
             self.save_input
                 .update(cx, |s, cx| s.set_value(path, window, cx));
@@ -1260,8 +1263,27 @@ fn render_doc(
     })
 }
 
-pub(super) fn deck_palette(dark: bool) -> joyoffice_ui::Palette {
-    chrome::palette(dark)
+impl Viewer {
+    fn palette(&self) -> joyoffice_ui::Palette {
+        self.theme.palette(joyoffice_ui::Brand::Deck)
+    }
+
+    fn select_theme(
+        &mut self,
+        theme: joyoffice_ui::ThemePreset,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
+        match joydeck_shell::storage::save_theme(&joydeck_shell::editor::recovery_root(), theme) {
+            Ok(()) => {
+                self.theme = theme;
+                self.dark = theme.is_dark();
+                crate::apply_theme(theme, Some(window), cx);
+            }
+            Err(error) => self.message = format!("无法保存外观设置：{error}"),
+        }
+        cx.notify();
+    }
 }
 
 impl Viewer {
