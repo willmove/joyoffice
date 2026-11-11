@@ -68,7 +68,7 @@ pub fn specs() -> Vec<CommandSpec> {
         cmd!(query "formulas.traceDependents", "Trace Dependents", ["Formulas", "Formula Auditing"], None, "{cell?} → cells", has_doc, trace_dependents),
         cmd!(noundo "formulas.selectPrecedents", "Select Precedents", ["Formulas", "Formula Auditing"], Some("Ctrl+["), "{cell?, all?: true = every level (Ctrl+Shift+[)} → selects the precedent cells", has_doc, select_precedents),
         cmd!(noundo "formulas.selectDependents", "Select Dependents", ["Formulas", "Formula Auditing"], Some("Ctrl+]"), "{cell?, all?: true = every level (Ctrl+Shift+])}", has_doc, select_dependents),
-        cmd!(noundo "formulas.removeArrows", "Remove Arrows", ["Formulas", "Formula Auditing"], None, "{}", has_doc, |_, _| ok()),
+        cmd!(noundo "formulas.removeArrows", "Remove Arrows", ["Formulas", "Formula Auditing"], None, "{}", has_doc, |s, _| {s.ui_requests.push(crate::UiRequest::Dialog("removeTraceArrows".into(),json!({})));ok()}),
         cmd!("formulas.showFormulas", "Show Formulas", ["Formulas", "Formula Auditing"], Some("Ctrl+`"), "{on?}", has_doc, show_formulas),
         cmd!(
             "formulas.convertToNumber",
@@ -636,6 +636,8 @@ fn trace_precedents(s: &mut Session, p: &Json) -> Result<Json> {
     let at = cell_param(s, p, "cell")?.unwrap_or(d.selection.active);
     let areas = d.calc.graph.precedents_of((d.wb.active_sheet(), at));
     let v: Vec<Json> = areas.iter().map(|a| json!({"sheet": d.wb.sheet(a.sheet).map(|s| s.name.clone()), "range": a.range.a1()})).collect();
+    let request = json!({"doc":d.uid,"sheet":d.wb.active_sheet(),"revision":d.revision,"cell":at.a1(),"dependents":false,"arrows":v});
+    s.ui_requests.push(crate::UiRequest::Dialog("traceArrows".into(), request));
     Ok(Json::Array(v))
 }
 
@@ -647,6 +649,8 @@ fn trace_dependents(s: &mut Session, p: &Json) -> Result<Json> {
     deps.sort();
     deps.dedup();
     let v: Vec<Json> = deps.iter().map(|(si, c)| json!({"sheet": d.wb.sheet(*si).map(|s| s.name.clone()), "cell": c.a1()})).collect();
+    let request = json!({"doc":d.uid,"sheet":d.wb.active_sheet(),"revision":d.revision,"cell":at.a1(),"dependents":true,"arrows":v});
+    s.ui_requests.push(crate::UiRequest::Dialog("traceArrows".into(), request));
     Ok(Json::Array(v))
 }
 

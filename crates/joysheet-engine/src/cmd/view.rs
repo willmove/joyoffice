@@ -8,6 +8,29 @@ use super::*;
 
 pub fn specs() -> Vec<CommandSpec> {
     vec![
+        cmd!("pageLayout.moveBreak", "Move Page Break", [], None, "{axis: row|column, from, to} (zero-based boundary)", has_doc, |s, p| {
+            let column = match str_param(p, "axis") {
+                Some("row") => false,
+                Some("column") => true,
+                _ => return Err(bad("pageLayout.moveBreak", "axis must be row or column")),
+            };
+            let from = u32_param(p, "from").ok_or_else(|| bad("pageLayout.moveBreak", "missing from"))?;
+            let to = u32_param(p, "to")
+                .filter(|i| *i > 0 && *i < if column { joysheet_core::MAX_COLS } else { joysheet_core::MAX_ROWS })
+                .ok_or_else(|| bad("pageLayout.moveBreak", "invalid boundary"))?;
+            edit(s, |cx| {
+                let si = cx.sheet_index();
+                let sheet = cx.sheet_mut(si)?;
+                if sheet.is_protected() {
+                    return Err(EngineError::Other(PROTECTED.into()));
+                }
+                let breaks = if column { &mut sheet.print.col_breaks } else { &mut sheet.print.row_breaks };
+                breaks.retain(|b| *b != from && *b != to);
+                breaks.push(to);
+                breaks.sort_unstable();
+                ok()
+            })
+        }),
         cmd!(
             "view.freezePanes",
             "Freeze Panes",

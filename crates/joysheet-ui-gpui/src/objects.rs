@@ -12,6 +12,8 @@ pub struct ObjectKey {
     pub doc: u64,
     pub sheet: usize,
 }
+pub(crate) type Scenes = Rc<RefCell<HashMap<u32, Arc<Vec<joysheet_chart::Prim>>>>>;
+
 pub struct ObjectDrag {
     pub members: Vec<(ObjectKey, Anchor)>,
     pub key: ObjectKey,
@@ -84,6 +86,7 @@ pub fn paint(
     geo: &SheetGeometry,
     area: Bounds<Pixels>,
     images: &Images,
+    scenes: &Scenes,
     window: &mut Window,
     cx: &mut App,
 ) {
@@ -127,6 +130,17 @@ pub fn paint(
                 continue;
             }
             window.with_content_mask(Some(ContentMask { bounds: object_clip(&shape.anchor, layout, geo, freeze, area.origin) }), |window| {
+                if shape.format.object.is_some() {
+                    let prims = scenes
+                        .borrow_mut()
+                        .entry(shape.id)
+                        .or_insert_with(|| Arc::new(joysheet_engine::drawing_scene::render(&view.workbook, view.sheet, shape).unwrap_or_default()))
+                        .clone();
+                    for prim in prims.iter() {
+                        crate::charts::paint_primitive(prim, b.origin, k, window, cx);
+                    }
+                    return;
+                }
                 let w = shape.anchor.width;
                 let h = shape.anchor.height;
                 let origin = b.origin;
@@ -355,7 +369,14 @@ impl crate::desktop::Desktop {
             self.selected_objects.clear();
             return false;
         };
-        let b = rect(&anchor, &self.layout, geo, freeze);
+        if self.click_timeline(&key, &anchor, x, y, additive, window, cx) {
+            return true;
+        }
+        let geo = self.geometry.as_ref().cloned();
+        let Some(geo) = geo else { return false };
+        let b = rect(&anchor, &self.layout, &geo, freeze);
+        let view = self.view();
+        let Some(view) = view else { return false };
         let revision = view.revision;
         let corner = (x - f32::from(b.right())).abs() < 10. && (y - f32::from(b.bottom())).abs() < 10.;
         if additive {

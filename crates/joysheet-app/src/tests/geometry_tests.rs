@@ -63,3 +63,25 @@ fn hidden_prefix_and_custom_dimensions_share_hit_geometry() {
     assert_eq!(view.hit(ROW_HEADER + 136., COL_HEADER + 2.), Some(CellRef::new(128, 0)));
     assert_eq!(view.hit(ROW_HEADER + 138., COL_HEADER + 2.), Some(CellRef::new(128, 1)));
 }
+
+#[test]
+fn page_layout_cells_and_margins_share_paginated_hit_geometry() {
+    let mut s = joysheet_engine::Session::new();
+    s.execute("file.new", serde_json::json!({})).unwrap();
+    s.execute("cell.set", serde_json::json!({"cell":"J150","input":"End"})).unwrap();
+    let wb = &s.active().unwrap().wb;
+    let sheet = wb.active().unwrap();
+    let geo = SheetGeometry::new(sheet);
+    let paper = Arc::new(joysheet_engine::paper::PageGrid::build(wb, 0, 200, 20).unwrap());
+    let k = sheet.zoom as f64 / 100. * paper.scale as f64;
+    for (row, col) in [(0, 0), (paper.row_bands[1].0, 0), (100, 9)] {
+        let x = (paper.col_x(col) * k - ROW_HEADER as f64 - 40.).max(0.);
+        let y = (paper.row_y(row) * k - COL_HEADER as f64 - 80.).max(0.);
+        let layout = GridLayout::new(sheet, &geo, x, y, 1000., 700.).with_paper(paper.clone(), &geo);
+        let at = CellRef::new(row, col);
+        let rect = layout.cell_rect(at, &geo, (0, 0));
+        assert_eq!(layout.hit(rect.x + rect.width / 2., rect.y + rect.height / 2.), Some(at));
+    }
+    let layout = GridLayout::new(sheet, &geo, 0., 0., 1000., 700.).with_paper(paper.clone(), &geo);
+    assert_eq!(layout.hit(ROW_HEADER + (paper.page_x(0) * k) as f32 + 1., COL_HEADER + (paper.page_y(0) * k) as f32 + 1.), None);
+}

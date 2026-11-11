@@ -1,0 +1,8 @@
+{
+  "binarySha256": "25926bf28bff26fac2d3aaaad9a9169140a4a54d8c9324e1940b347ec6d537e1",
+  "check": "timeline-divider-physical-pixels",
+  "coloredPixels": 0,
+  "expectedAtLeast": 188.5,
+  "passed": false,
+  "retainedAsRegressionEvidence": true
+}

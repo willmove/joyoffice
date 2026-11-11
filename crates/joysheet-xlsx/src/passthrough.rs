@@ -47,9 +47,11 @@ mod rebase;
 mod write;
 
 pub use read::KeptReader;
+pub(crate) use read::drawing_source;
 pub use rebase::{SheetKept, rebase_links};
 #[cfg(test)]
 pub(crate) use write::sheet_names_in;
+pub(crate) use write::write_drawing_source;
 pub use write::{KeptOut, SheetIds, workbook_elements, write_package_rels, write_workbook};
 
 /// Most bytes kept for one workbook.

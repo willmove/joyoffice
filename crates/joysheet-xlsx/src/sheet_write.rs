@@ -31,6 +31,10 @@ fn sqref(ranges: &[RangeRef]) -> String {
 
 pub fn write_sheet(wb: &Workbook, si: usize, selected: bool, out: &mut Out) -> (String, Rels) {
     let mut rels = Rels::default();
+    let mut ole_objects = String::new();
+    let mut ole_vml = String::new();
+    let mut ole_images = Vec::new();
+    let mut ole_count = 0u32;
     let Some(sheet) = wb.sheet(si) else { return (String::new(), rels) };
     let nstyles = wb.styles.len() as u32;
     let sid = |s: joysheet_model::StyleId| if s.0 < nstyles { s.0 } else { 0 };
@@ -522,7 +526,43 @@ pub fn write_sheet(wb: &Workbook, si: usize, selected: bool, out: &mut Out) -> (
             objs.push(Obj::Chart(ch, rid));
         }
         for sh in &sheet.shapes {
-            objs.push(Obj::Shape(sh));
+            let id = objs.len() + 2;
+            if let Some(source) = &sh.format.source {
+                if let Some(xml) = crate::passthrough::write_drawing_source(source, id, &sh.anchor, out, &mut drels) {
+                    objs.push(Obj::Xml(&sh.anchor, xml));
+                } else {
+                    out.drawing_error = Some("native drawing XML could not be retained".into());
+                }
+            } else if let Some(xml) = crate::drawing_objects::smart_art(sh, dn, id, out, &mut drels) {
+                objs.push(Obj::Xml(&sh.anchor, xml));
+            } else if let Some(xml) = crate::timeline::graphic(sh, si, id) {
+                objs.push(Obj::Xml(&sh.anchor, xml));
+            } else {
+                if let Some(joysheet_model::DrawingObject::Embedded { data, .. }) = &sh.format.object
+                    && let Some(bytes) = out.embedded.get(&(std::sync::Arc::as_ptr(data) as usize)).cloned()
+                {
+                    let name = format!("oleObject{dn}_{id}.bin");
+                    out.part(&format!("xl/embeddings/{name}"), Some("application/vnd.openxmlformats-officedocument.oleObject"), bytes);
+                    let rid = rels.add("oleObject", &format!("../embeddings/{name}"));
+                    let spid = out.kept.notes_block(out.comments + 1) * 1024 + sheet.comments.len() as u32 + 1 + ole_count;
+                    ole_count += 1;
+                    out.default_type("png", "image/png");
+                    let image = out.image_part("png", crate::drawing_objects::OLE_PREVIEW);
+                    let image_id = rels.add("image", &format!("../media/{image}"));
+                    let vml_image_id = kept.vml_image_id(ole_count);
+                    ole_vml.push_str(&crate::drawing_objects::ole_vml(sheet, sh, spid, &vml_image_id));
+                    ole_images.push((vml_image_id, format!("../media/{image}")));
+                    objs.push(Obj::Embedded(sh, spid));
+                    let _ = write!(
+                        ole_objects,
+                        "<oleObject progId=\"Package\" dvAspect=\"DVASPECT_ICON\" shapeId=\"{spid}\" r:id=\"{rid}\">{}</oleObject>",
+                        crate::drawing_objects::ole_properties(sheet, sh, &image_id)
+                    );
+                }
+                if !matches!(sh.format.object, Some(joysheet_model::DrawingObject::Embedded { .. })) {
+                    objs.push(Obj::Shape(sh));
+                }
+            }
         }
         out.part(&format!("xl/drawings/drawing{dn}.xml"), Some(CT_DRAWING), crate::drawing::write_drawing(sheet, &wb.theme, &objs).into_bytes());
         if !drels.is_empty() {
@@ -533,11 +573,13 @@ pub fn write_sheet(wb: &Workbook, si: usize, selected: bool, out: &mut Out) -> (
     }
     // Notes: comments part + VML so Excel shows them. Threaded comments also get a legacy note
     // (its text with the replies as lines, for readers without threaded comments) linked by id.
-    if !sheet.comments.is_empty() {
+    if !sheet.comments.is_empty() || !ole_vml.is_empty() {
         out.comments += 1;
         let n = out.comments;
         let ids = thread_ids(sheet, si);
-        out.part(&format!("xl/comments{n}.xml"), Some(CT_COMMENTS), comments_xml(sheet, &ids).into_bytes());
+        if !sheet.comments.is_empty() {
+            out.part(&format!("xl/comments{n}.xml"), Some(CT_COMMENTS), comments_xml(sheet, &ids).into_bytes());
+        }
         if !ids.is_empty() {
             let x = threaded_xml(sheet, &ids, &mut out.persons);
             out.part(&format!("xl/threadedComments/threadedComment{n}.xml"), Some(CT_THREADED_COMMENTS), x.into_bytes());
@@ -545,15 +587,20 @@ pub fn write_sheet(wb: &Workbook, si: usize, selected: bool, out: &mut Out) -> (
         }
         out.default_type("vml", "application/vnd.openxmlformats-officedocument.vmlDrawing");
         let vml_name = format!("xl/drawings/vmlDrawing{n}.vml");
-        let vml = kept.notes_vml(vml_xml(sheet, out.kept.notes_block(n)), &vml_name, out);
+        let shape_type = if ole_vml.is_empty() { "" } else { crate::drawing_objects::OLE_SHAPE_TYPE };
+        let ours = vml_xml(sheet, out.kept.notes_block(n)).replace("</xml>", &format!("{shape_type}{ole_vml}</xml>"));
+        let vml = kept.notes_vml(ours, &vml_name, &ole_images, out);
         out.part(&vml_name, None, vml.into_bytes());
-        rels.add("comments", &format!("../comments{n}.xml"));
+        if !sheet.comments.is_empty() {
+            rels.add("comments", &format!("../comments{n}.xml"));
+        }
         let rid = rels.add("vmlDrawing", &format!("../drawings/vmlDrawing{n}.vml"));
         let _ = write!(s, "<legacyDrawing r:id=\"{rid}\"/>");
     } else if let Some(rid) = kept.lone_vml(&mut rels, out) {
         let _ = write!(s, "<legacyDrawing r:id=\"{rid}\"/>");
     }
-    s.push_str(&kept.elements());
+    let kept_elements = crate::drawing_objects::merge_ole_objects(&kept.elements(), &ole_objects);
+    s.push_str(&kept_elements);
     // Tables.
     if !tables.is_empty() {
         let mut parts = String::new();
@@ -570,6 +617,7 @@ pub fn write_sheet(wb: &Workbook, si: usize, selected: bool, out: &mut Out) -> (
         }
         let _ = write!(s, "<tableParts count=\"{}\">{parts}</tableParts>", tables.len());
     }
+    let timeline_ext = crate::timeline::write_sheet(wb, si, out, &mut rels);
     // Excel 2010 extensions: solid data bars, then sparklines.
     let solid_bars: Vec<(&CondFormat, u32)> = sheet
         .cond_formats
@@ -578,7 +626,7 @@ pub fn write_sheet(wb: &Workbook, si: usize, selected: bool, out: &mut Out) -> (
         .filter(|(_, cf)| !cf.ranges.is_empty() && matches!(cf.rule, CfRule::DataBar { gradient: false, .. }))
         .map(|(i, cf)| (cf, prio.get(i).copied().unwrap_or(1)))
         .collect();
-    if !solid_bars.is_empty() || !sheet.sparklines.is_empty() {
+    if !solid_bars.is_empty() || !sheet.sparklines.is_empty() || !timeline_ext.is_empty() {
         s.push_str("<extLst>");
     }
     if !solid_bars.is_empty() {
@@ -616,7 +664,8 @@ pub fn write_sheet(wb: &Workbook, si: usize, selected: bool, out: &mut Out) -> (
         }
         s.push_str("</x14:sparklineGroups></ext>");
     }
-    if !solid_bars.is_empty() || !sheet.sparklines.is_empty() {
+    if !solid_bars.is_empty() || !sheet.sparklines.is_empty() || !timeline_ext.is_empty() {
+        s.push_str(&timeline_ext);
         s.push_str("</extLst>");
     }
     s.push_str("</worksheet>");

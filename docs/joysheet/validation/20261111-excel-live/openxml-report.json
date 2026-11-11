@@ -1,0 +1,16 @@
+{
+  "file": "D:\\Coding\\EditorProjects\\joyoffice\\artifacts\\joysheet\\excel-live-20261111\\round15\\objects-native.xlsx",
+  "sha256": "E5E50252A08B0CBABA7304949503E9958A493791BD5439ADADC34243E4C7AB2C",
+  "sdk": "3.0.1",
+  "findings": [],
+  "sdkLimitations": [
+    {
+      "id": "Sch_InvalidChildinLeafElement",
+      "description": "The element 'http://schemas.microsoft.com/office/drawing/2010/main:m' is a leaf element and cannot contain children.",
+      "part": "/xl/drawings/drawing1.xml",
+      "path": "/xdr:wsDr[1]/xdr:twoCellAnchor[4]/xdr:sp[1]/xdr:txBody[1]/a:p[1]/a14:m[1]"
+    }
+  ],
+  "ommlSubtreesValidated": 1,
+  "passed": true
+}

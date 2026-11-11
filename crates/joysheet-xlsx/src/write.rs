@@ -109,6 +109,8 @@ pub struct Out {
     parts: Vec<(String, Vec<u8>)>,
     overrides: Vec<(String, String)>,
     defaults: BTreeMap<String, String>,
+    pub embedded: HashMap<usize, Vec<u8>>,
+    pub drawing_error: Option<String>,
     pub dxfs: Vec<Style>,
     pub sst: Sst,
     pub images: u32,
@@ -218,7 +220,18 @@ pub fn write_xlsx_named(wb: &Workbook, kind: XlsxKind, book_name: Option<&str>) 
         return Err(IoError::Format("a static cell picture cannot also contain a formula".into()));
     }
     check_sheet_names(wb)?;
+    let mut embedded = HashMap::new();
+    for shape in wb.sheets.iter().flat_map(|s| &s.shapes) {
+        if let Some(joysheet_model::DrawingObject::Embedded { name, data, .. }) = &shape.format.object {
+            if data.len() > 32 * 1024 * 1024 {
+                return Err(IoError::TooLarge("embedded object exceeds 32 MiB".into()));
+            }
+            embedded.insert(std::sync::Arc::as_ptr(data) as usize, crate::drawing_objects::embedded_package(name, data)?);
+        }
+    }
     let mut out = Out {
+        embedded,
+        drawing_error: None,
         parts: vec![],
         overrides: vec![],
         defaults: BTreeMap::new(),
@@ -255,6 +268,7 @@ pub fn write_xlsx_named(wb: &Workbook, kind: XlsxKind, book_name: Option<&str>) 
     let kept = crate::passthrough::write_workbook(wb, &mut wb_rels, &mut out);
     let mut pivots = crate::pivot::PivotWriter::default();
     let mut sheets_xml = String::new();
+    let mut sheet_ids = Vec::new();
     let mut ids = crate::passthrough::SheetIds::new(wb, &kept);
     for (i, sheet) in wb.sheets.iter().enumerate() {
         sheets_xml.push_str(&kept.sheet_entries(i, false, &mut ids));
@@ -274,10 +288,14 @@ pub fn write_xlsx_named(wb: &Workbook, kind: XlsxKind, book_name: Option<&str>) 
         };
         let name: String = sheet.name.chars().take(31).collect();
         let sheet_id = ids.take(sheet.file_id);
+        sheet_ids.push(sheet_id);
         let _ = write!(sheets_xml, "<sheet name=\"{}\" sheetId=\"{sheet_id}\"{state} r:id=\"{rid}\"/>", esc_attr(&name));
     }
     sheets_xml.push_str(&kept.sheet_entries(wb.sheets.len(), true, &mut ids));
 
+    if let Some(error) = out.drawing_error.take() {
+        return Err(IoError::Format(error));
+    }
     // Defined names, then print areas and titles.
     let mut names = String::new();
     let mut seen = std::collections::HashSet::new();
@@ -302,6 +320,7 @@ pub fn write_xlsx_named(wb: &Workbook, kind: XlsxKind, book_name: Option<&str>) 
         }
         let _ = write!(names, ">{}</definedName>", esc(&crate::fmla::text_to_file(&n.formula)));
     }
+    names.push_str(&crate::timeline::defined_names(wb));
     for (i, f) in out.chart_names.iter().enumerate() {
         let _ = write!(
             names,
@@ -388,7 +407,11 @@ pub fn write_xlsx_named(wb: &Workbook, kind: XlsxKind, book_name: Option<&str>) 
     }
     w.push_str("/>");
     w.push_str(&pivots.workbook_xml(&mut wb_rels));
-    let exts = crate::passthrough::workbook_elements(wb, "ext");
+    let exts = format!(
+        "{}{}",
+        crate::passthrough::workbook_elements(wb, "ext"),
+        crate::timeline::write_workbook(wb, &pivots, &sheet_ids, &mut out, &mut wb_rels)?
+    );
     if !exts.is_empty() {
         let _ = write!(w, "<extLst>{exts}</extLst>");
     }

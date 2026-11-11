@@ -119,6 +119,10 @@ fn draw_sparklines(pg: &mut Page, wb: &Workbook, si: usize, sh: &Sheet, b: &Bloc
 }
 
 fn draw_shape(pg: &mut Page, wb: &Workbook, shp: &joysheet_model::Shape, b: &Block, (x, y, w, h): (f32, f32, f32, f32)) {
+    if let Some(prims) = crate::drawing_scene::render(wb, wb.active_sheet(), shp) {
+        draw_prims(pg, &prims, Xf { ox: x, oy: y, k: b.k });
+        return;
+    }
     let fill = rgb_of(shp.fill, wb);
     let line = rgb_of(shp.line, wb).filter(|_| !shp.format.no_line).map(|c| (c, (0.75 * b.k).max(0.25)));
     match shp.kind {

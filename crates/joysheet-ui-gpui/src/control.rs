@@ -2,6 +2,7 @@
 use crate::desktop::{After, Desktop};
 use gpui_kit::{prelude::*, *};
 use joysheet_app::control::{ControlServer, UiCall, UiQueue};
+use joysheet_app::geometry::{COL_HEADER, ROW_HEADER};
 use serde_json::{Value, json};
 
 // GPUI pre 0.3.10 implements render_to_image only on macOS and Windows.
@@ -373,7 +374,17 @@ impl Desktop {
                     let b=crate::objects::rect(&a,&self.layout,g,v.sheet().and_then(|s|s.freeze).unwrap_or((0,0)))+self.grid_bounds.origin;
                     json!({"kind":o.kind,"id":o.id,"x":f32::from(b.origin.x),"y":f32::from(b.origin.y),"width":f32::from(b.size.width),"height":f32::from(b.size.height)})
                 }).collect::<Vec<_>>()).unwrap_or_default());
-                inspect["drawingObjects"]=self.view().and_then(|v|v.sheet()).map(|s|json!({"charts":s.charts.iter().map(|o|json!({"id":o.id,"anchor":o.anchor})).collect::<Vec<_>>(),"images":s.images.iter().map(|o|json!({"id":o.id,"anchor":o.anchor})).collect::<Vec<_>>(),"shapes":s.shapes.iter().map(|o|json!({"id":o.id,"anchor":o.anchor})).collect::<Vec<_>>()})).unwrap_or(Value::Null);
+                inspect["drawingObjects"]=self.view().and_then(|v|v.sheet()).map(|s|json!({"charts":s.charts.iter().map(|o|json!({"id":o.id,"anchor":o.anchor})).collect::<Vec<_>>(),"images":s.images.iter().map(|o|json!({"id":o.id,"anchor":o.anchor})).collect::<Vec<_>>(),"shapes":s.shapes.iter().map(|o|json!({"id":o.id,"anchor":o.anchor,"text":o.text,"readOnly":o.format.source.is_some(),"object":crate::object_ui::summary(o.format.object.as_ref())})).collect::<Vec<_>>()})).unwrap_or(Value::Null);
+                inspect["auditArrows"] = json!(
+                    self.trace_arrows
+                        .iter()
+                        .filter(|a| self
+                            .view()
+                            .is_some_and(|v| v.doc == a.request.doc && v.sheet == a.request.sheet && v.revision == a.request.revision))
+                        .map(|a| json!({"cell":a.request.cell.a1(),"sheet":a.sheet_name,"range":a.range.a1(),"dependents":a.request.dependents}))
+                        .collect::<Vec<_>>()
+                );
+                inspect["pageView"]=self.view().and_then(|v|v.sheet()).map(|s|json!({"mode":s.view,"rowBreaks":s.print.row_breaks,"colBreaks":s.print.col_breaks,"header":s.print.header,"footer":s.print.footer,"paper":self.layout.paper.as_ref().map(|p|json!({"scale":p.scale,"pageWidth":p.page_w*self.layout.zoom,"pageHeight":p.page_h*self.layout.zoom,"left":ROW_HEADER as f64+p.page_x(0)*self.layout.zoom-self.layout.scroll_x,"top":COL_HEADER as f64+p.page_y(0)*self.layout.zoom-self.layout.scroll_y,"marginTop":p.margins[2]*self.layout.zoom,"marginLeft":p.margins[0]*self.layout.zoom})),"rows":self.page_grid.as_ref().map(|p|&p.row_bands),"columns":self.page_grid.as_ref().map(|p|&p.col_bands)})).unwrap_or(Value::Null);
                 inspect["formulaText"] = json!(self.formula.read(cx).value().to_string());
                 inspect["cellEditorText"] = json!(self.editor.read(cx).value().to_string());
                 inspect["dark"] = json!(self.preferences.dark);
@@ -381,6 +392,8 @@ impl Desktop {
                 inspect["themes"] = json!(joyoffice_ui::ThemePreset::ALL.map(|t| t.id()));
                 inspect["settings"] = json!(self.preferences);
                 inspect["ribbonTab"] = json!(self.ribbon_tab);
+                inspect["ribbon"] = json!({"tab":crate::ribbon_catalog::TABS.get(self.ribbon_tab).map(|t|t.2),"collapsed":self.ribbon_collapsed,"help":self.help_open,"functionCategory":self.function_category,"formatPainter":self.format_painter,"inkTool":self.ink.tool,
+                    "groups":crate::ribbon_catalog::groups(self.ribbon_tab).iter().map(|g|json!({"name":g.en,"tools":g.tools.iter().flatten().map(|t|json!({"id":t.id,"command":t.command,"dialog":t.dialog,"menu":t.menu})).collect::<Vec<_>>()})).collect::<Vec<_>>()});
                 inspect["panel"] = json!(self.daily_group);
                 inspect["composing"] = json!(self.composing(window, cx));
                 inspect["inputGeometry"] = self.input_geometry(window, cx);

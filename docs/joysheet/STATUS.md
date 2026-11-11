@@ -2,6 +2,10 @@
 
 2026-11-11：新增三产品共享界面主题，Sheet 将原风格与 Word 合并为「青岚」，在标题栏「设置」提供青岚、素雅、晴空、暖砂的亮暗八个预设。兼容旧 dark 配置，两个原生窗口同步完整主题；单元格内容颜色保持原样。[主题说明](../joyoffice/THEMES.md) · [本机验证与边界](../joyoffice/validation/20261111-themes/README.md)
 
+2026-11-11 本机 Excel 续验完成：最终五类对象样例通过 Excel 无修复打开、另存、关闭和独立重开；原生 SmartArt/WordArt 文本编辑、公式工具、日程表一月筛选、页面单元格/页眉提交、手动分页线拖动及两级追踪已对照。修复日程表缓存名称注册和包含结束端点、Package2/CompObj、预览关系/完整 VML 图片类型、对象编号及 Excel MC 包装的反向读取。完整产品检查 **1,418 项通过、1 项忽略**，fmt/严格 Clippy 和验证构建通过；Windows GPUI **38 组通过**，含 Excel 重写对象提取、原生参考和一月 31 天范围导入。所有 Ribbon 图标与边框已减细，高级图库/上下文功能区/跨表导航等保留差异见[本机续验记录](validation/20261111-excel-live/README.md)。
+2026-11-11 第二轮：补齐 SmartArt、WordArt、日程表、嵌入文件、公式对象的受支持编辑子集，接入页面布局中的单元格/页眉页脚编辑、分页断点拖动和多级公式追踪箭头；所有 Ribbon 图标和边框改为细线。完整产品检查 1,412 项通过、1 项忽略，fmt/严格 Clippy 通过，Windows GPUI 33 组回归通过。新增结构对象使用原生 XLSX 部件，复杂外部 SmartArt/未支持公式保留源 XML；实现边界见[对象与分页记录](STRUCTURED-OBJECTS-AND-PAGING.md)，截图/样例与证据见[第二轮验证](validation/20261111-objects-and-paging/README.md)。本轮 Excel 窗口激活失败，新增对象的 Excel 实际打开/视觉和交互验收尚未完成。
+2026-11-11：按本机中文 Excel 16.0.20527.20150 实际 Ribbon 截图重排主要选项卡，新增绘图、帮助和文件后台，补齐分组/菜单入口、格式刷、函数分类选择与隐藏标题的原生交互。完整产品检查 1,401 项通过、1 项忽略，fmt/严格 Clippy 通过。未实现对象类型、分页编辑、追踪箭头、在线服务和物理输入验收继续开放，详见 [Ribbon 比对](EXCEL-RIBBON-PARITY.md)。
+
 2026-11-09 Windows P1 续验 M1.4 与 M4.4。启动及文件选择器打开受密码保护的工作簿时支持掩码输入、错误重试和取消。显式选回源路径会被拒绝，另存完整副本前不写自动恢复副本。合成加密样本实屏验证重试、取消和独立另存，源文件散列一致。多窗口独立视图、草稿和保存失败重试通过 Windows 原生冒烟。[本机验证](../joyoffice/validation/20261109-p1-followup/README.md)
 
 2026-11-09 Windows P1 补验 M3.3。在实际 Excel 和 JoySheet 窗口双向复制整数、小数及文本，JoySheet 单步撤销／重做，独立 XLSX 读回确认双方保存的类型和值。货币、日期、公式、LibreOffice 和多窗口组合继续验收。[本机验证](../joyoffice/validation/20261109-v012/README.md#p1)
@@ -30,7 +34,7 @@
 | M7 | 透视字段拖放、分析/求解表单、审阅保护/名称、录制/编辑/信任与取消；CLI/MCP 定向草稿保存、版本截图和协议对照；分项原生回归通过 | 复杂模型与跨文档录制等边界；M8 已接入设置，完整更新发布源仍缺外部配置 |
 | M8 | Windows 平台/交互/恢复增量；原始图标、许可证、便携包、用户级 NSIS 安装器；macOS ARM64 app/DMG 打包、移位启动、系统 XLSX 打开事件和基础编辑往返；Linux AppDir/deb 打包入口；UOS 25 基础原生回归 | Windows 最终包回归见 M8.md；macOS 尚未覆盖的桌面交互、Linux 其余原生场景、发行签名、公证、真实 IME/DPI/读屏/GPU 呈现待验 |
 
-实际注册的 **355 条引擎命令**记录在 [commands.json](commands.json)，目录中的占位项单列排除。命令可执行不等于桌面交互迁移完成。
+实际注册的 **366 条引擎命令**记录在 [commands.json](commands.json)，目录中的占位项单列排除。命令可执行不等于桌面交互迁移完成。
 
 运行、构建和验收入口见 [README](README.md)。逐任务结果见 [迁移矩阵](MIGRATION.md)，证据和限制见 [验证记录](VALIDATION.md)。当前目录不依赖原 GridCraft 目录进行构建；原目录未修改。
 

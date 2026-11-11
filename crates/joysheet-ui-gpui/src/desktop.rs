@@ -121,6 +121,7 @@ pub struct Desktop {
     pub editor: Entity<InputState>,
     pub name: Entity<InputState>,
     pub search: Entity<InputState>,
+    pub function_search: Entity<InputState>,
     pub params: Entity<InputState>,
     pub import_text: Entity<TextareaState>,
     pub import_draft: Option<Value>,
@@ -166,6 +167,13 @@ pub struct Desktop {
     pub recent_open: bool,
     pub daily_group: u8,
     pub ribbon_tab: usize,
+    pub ribbon_collapsed: bool,
+    pub ribbon_wide: bool,
+    pub help_open: bool,
+    pub function_category: Option<String>,
+    pub recent_functions: Vec<String>,
+    pub format_painter: bool,
+    pub ink: crate::ink::InkState,
     pub data_results: Vec<(String, Option<String>)>,
     pub data_result_kind: String,
     pub data_raw: Value,
@@ -178,6 +186,14 @@ pub struct Desktop {
     pub pivot_drag: Option<(String, u64, Value)>,
     pub advanced_bounds: HashMap<String, Bounds<Pixels>>,
     pub result_requests: HashMap<u64, String>,
+    pub(crate) trace_requests: HashMap<u64, crate::tracing::TraceRequest>,
+    pub(crate) trace_arrows: Vec<crate::tracing::TraceArrow>,
+    pub(crate) trace_visited: std::collections::BTreeSet<(u64, usize, u64, CellRef, bool)>,
+    pub(crate) object_scenes: crate::objects::Scenes,
+    pub(crate) page_grid: Option<std::sync::Arc<joysheet_engine::paper::PageGrid>>,
+    pub(crate) page_grid_key: Option<(u64, usize, u64)>,
+    pub(crate) break_drag: Option<crate::paper_view::BreakDrag>,
+    pub(crate) timeline_drag: Option<crate::object_ui::TimelineDrag>,
     pub confirm_close: bool,
     pub close_saving: bool,
     pub close_focus: FocusHandle,
@@ -205,6 +221,7 @@ impl Desktop {
     pub fn new(engine: EngineClient, id: Option<u64>, window: &mut Window, cx: &mut Context<Self>) -> Self {
         let formula = cx.new(|cx| InputState::new(window, cx).placeholder("输入数据或公式 / Enter a value or formula"));
         let editor = cx.new(|cx| InputState::new(window, cx));
+        let function_search = cx.new(|cx| InputState::new(window, cx).placeholder("搜索函数 / Search functions"));
         let name = cx.new(|cx| InputState::new(window, cx).default_value("A1"));
         let search = cx.new(|cx| InputState::new(window, cx).placeholder("搜索命令 / Search commands"));
         let params = cx.new(|cx| InputState::new(window, cx).default_value("{}"));
@@ -264,6 +281,8 @@ impl Desktop {
             }
         }));
         subscriptions.push(cx.subscribe(&search, |_, _, _: &TextEvent, cx| cx.notify()));
+        subscriptions.push(cx.subscribe(&function_search, |_, _, _: &TextEvent, cx| cx.notify()));
+        subscriptions.push(cx.subscribe(&import_text, |_, _, _: &TextEvent, cx| cx.notify()));
         let entity = cx.entity().downgrade();
         window.on_window_should_close(cx, move |window, cx| {
             entity
@@ -319,6 +338,7 @@ impl Desktop {
             editor,
             name,
             search,
+            function_search,
             params,
             import_text,
             import_draft: None,
@@ -363,6 +383,13 @@ impl Desktop {
             advanced_params: false,
             recent_open: false,
             ribbon_tab: 1,
+            ribbon_collapsed: false,
+            ribbon_wide: false,
+            help_open: false,
+            function_category: None,
+            recent_functions: Vec::new(),
+            format_painter: false,
+            ink: Default::default(),
             daily_group: if cx.global::<NativeWindows>().0.is_empty() && !cx.global::<crate::recovery::RecoveryRuntime>().entries.is_empty() {
                 21
             } else {
@@ -380,6 +407,14 @@ impl Desktop {
             pivot_drag: None,
             advanced_bounds: HashMap::new(),
             result_requests: HashMap::new(),
+            trace_requests: HashMap::new(),
+            trace_arrows: Vec::new(),
+            trace_visited: Default::default(),
+            object_scenes: Default::default(),
+            page_grid: None,
+            page_grid_key: None,
+            break_drag: None,
+            timeline_drag: None,
             confirm_close: false,
             close_saving: false,
             close_focus: cx.focus_handle(),
@@ -429,12 +464,46 @@ impl Desktop {
             self.begin_print(params, command == "file.print", cx);
             return;
         }
+        if command == "formulas.removeArrows" {
+            self.trace_arrows.clear();
+            self.trace_visited.clear();
+            self.trace_requests.clear();
+        }
+        let trace = if matches!(command, "formulas.tracePrecedents" | "formulas.traceDependents") {
+            self.view().map(|v| crate::tracing::TraceRequest {
+                doc: v.doc,
+                sheet: v.sheet,
+                revision: v.revision,
+                cell: params["cell"].as_str().and_then(CellRef::parse).unwrap_or(self.selection().active),
+                dependents: command == "formulas.traceDependents",
+            })
+        } else {
+            None
+        };
         let target = if matches!(command, "window.activate" | "__joysheet.nativeActivate") { CommandTarget::default() } else { self.target() };
         match self.engine.submit(command, params, target) {
             Ok(ticket) => {
+                if let Some(trace) = trace {
+                    self.trace_requests.insert(ticket.id, trace);
+                }
                 if crate::advanced::is_result(command)
-                    || ["edit.find", "edit.replace", "data.queriesConnections", "data.circleInvalid", "home.manageRules", "__joysheet.previewImport"]
-                        .contains(&command)
+                    || [
+                        "edit.find",
+                        "edit.replace",
+                        "data.queriesConnections",
+                        "data.circleInvalid",
+                        "home.manageRules",
+                        "__joysheet.previewImport",
+                        "formulas.errorChecking",
+                        "formulas.evaluateFormula",
+                        "file.properties",
+                        "insert.recommendedCharts",
+                        "insert.recommendedPivotTables",
+                        "formulas.recentlyUsed",
+                        "formulas.watchWindow",
+                        "view.customViews",
+                    ]
+                    .contains(&command)
                 {
                     self.result_requests.insert(ticket.id, command.into());
                 }
@@ -562,6 +631,7 @@ impl Desktop {
                 r.drafts.retain(|window, _| latest.windows.iter().any(|w| w.window == *window))
             });
             self.snapshot = latest;
+            self.refresh_traces(cx);
             let next_sheet = self.view().and_then(|v| v.sheet().map(|s| (v.doc, s.name.clone(), v.selection.active)));
             let mut restored = false;
             if prior_sheet.as_ref().map(|v| (v.0, &v.1)) != next_sheet.as_ref().map(|v| (v.0, &v.1)) {
@@ -645,6 +715,7 @@ impl Desktop {
                 self.finish_print_export(job, result, window, cx);
                 continue;
             }
+            let trace_request = self.trace_requests.remove(&pending.ticket.id);
             let result_kind = self.result_requests.remove(&pending.ticket.id);
             let has_data_result = result_kind.is_some();
             match result {
@@ -672,11 +743,19 @@ impl Desktop {
                             self.alert(error);
                         }
                         Ok(value) => {
+                            if let Some(trace) = trace_request {
+                                self.accept_trace(trace, &value);
+                            }
                             if let Some(kind) = result_kind {
                                 self.data_raw = value.clone();
                                 self.data_results = crate::workflow::result_rows(&kind, &value);
                                 self.data_result_kind = kind.clone();
                                 self.daily_group = 8;
+                                if kind == "formulas.recentlyUsed" {
+                                    self.recent_functions =
+                                        value.as_array().into_iter().flatten().filter_map(|v| v.as_str().map(str::to_owned)).collect();
+                                    self.daily_group = 0;
+                                }
                                 if kind == "pivot.fields" || kind == "pivot.fieldList" {
                                     self.daily_group = 18;
                                 }
@@ -812,6 +891,29 @@ impl Desktop {
             }
             UiRequest::EditCell(text) => self.begin_edit(text, true, window, cx),
             UiRequest::Dialog(name, params) => {
+                if name == "removeTraceArrows" {
+                    self.trace_arrows.clear();
+                    self.trace_visited.clear();
+                    self.trace_requests.clear();
+                    cx.notify();
+                    return;
+                }
+                if name == "traceArrows" {
+                    if let (Some(doc), Some(sheet), Some(revision), Some(cell)) = (
+                        params["doc"].as_u64(),
+                        params["sheet"].as_u64(),
+                        params["revision"].as_u64(),
+                        params["cell"].as_str().and_then(CellRef::parse),
+                    ) {
+                        self.accept_trace(
+                            crate::tracing::TraceRequest { doc, sheet: sheet as usize, revision, cell, dependents: params["dependents"] == true },
+                            &params["arrows"],
+                        );
+                    }
+                    cx.notify();
+                    return;
+                }
+
                 if name == "saveChanges" {
                     self.close(false, window, cx);
                     return;
@@ -987,6 +1089,7 @@ impl Desktop {
 
 impl Render for Desktop {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        self.ribbon_wide = window.viewport_size().width >= px(1800.);
         let palette = self.palette();
         let bg = palette.canvas;
         let panel = palette.surface;
@@ -1007,6 +1110,7 @@ impl Render for Desktop {
             .unwrap_or_default();
         let address = self.selection().a1();
         let mode = if self.draft.is_some() { self.label("编辑中", "Editing") } else { self.label("就绪", "Ready") };
+        self.advanced_bounds.retain(|id, _| !id.starts_with("ribbon:"));
         let header = self.render_document_header(cx);
         let menu = self.render_ribbon_tabs(cx);
         let tools = self.render_ribbon_tools(cx);
@@ -1361,6 +1465,15 @@ impl Render for Desktop {
             .child(grid)
             .child(sheet_tabs)
             .child(status);
+        if self.help_open {
+            content = content.child(self.render_ribbon_help(cx));
+        }
+        if self.function_category.is_some() {
+            content = content.child(self.render_function_picker(cx));
+        }
+        if self.ribbon_tab == 0 {
+            content = content.child(self.render_backstage(cx));
+        }
         if self.palette_open {
             content = content.child(self.render_palette(window, cx));
         }

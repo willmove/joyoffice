@@ -41,6 +41,7 @@ pub struct Rect {
 }
 #[derive(Clone, Debug, Default)]
 pub struct GridLayout {
+    pub paper: Option<Arc<joysheet_engine::paper::PageGrid>>,
     pub rows: Vec<AxisLine>,
     pub cols: Vec<AxisLine>,
     pub width: f32,
@@ -88,6 +89,7 @@ impl GridLayout {
         let x = if x.is_finite() { x.clamp(0.0, max_x) } else { 0.0 };
         let y = if y.is_finite() { y.clamp(0.0, max_y) } else { 0.0 };
         Self {
+            paper: None,
             rows: axis(&geo.rows, y, height, COL_HEADER, fr, MAX_ROWS, zoom),
             cols: axis(&geo.cols, x, width, ROW_HEADER, fc, MAX_COLS, zoom),
             width,
@@ -108,6 +110,14 @@ impl GridLayout {
         Some(CellRef::new(row.index, col.index))
     }
     pub fn cell_rect(&self, cell: CellRef, geo: &SheetGeometry, freeze: (u32, u32)) -> Rect {
+        if let Some(paper) = &self.paper {
+            return Rect {
+                x: ROW_HEADER + (paper.col_x(cell.col) * self.zoom - self.scroll_x) as f32,
+                y: COL_HEADER + (paper.row_y(cell.row) * self.zoom - self.scroll_y) as f32,
+                width: ((geo.cols.start(cell.col + 1) - geo.cols.start(cell.col)) * self.zoom) as f32,
+                height: ((geo.rows.start(cell.row + 1) - geo.rows.start(cell.row)) * self.zoom) as f32,
+            };
+        }
         let x = geo.cols.start(cell.col) * self.zoom - if cell.col < freeze.1 { 0.0 } else { self.scroll_x };
         let y = geo.rows.start(cell.row) * self.zoom - if cell.row < freeze.0 { 0.0 } else { self.scroll_y };
         Rect {
@@ -116,6 +126,36 @@ impl GridLayout {
             width: ((geo.cols.start(cell.col.saturating_add(1)) - geo.cols.start(cell.col)) * self.zoom) as f32,
             height: ((geo.rows.start(cell.row.saturating_add(1)) - geo.rows.start(cell.row)) * self.zoom) as f32,
         }
+    }
+    /// Uses the print paginator for both page geometry and cell hit targets.
+    pub fn with_paper(mut self, paper: Arc<joysheet_engine::paper::PageGrid>, geo: &SheetGeometry) -> Self {
+        self.zoom *= paper.scale as f64;
+        self.frozen_width = 0.;
+        self.frozen_height = 0.;
+        let make_axis = |index: &LineIndex, horizontal: bool| {
+            let (scroll, extent, header) =
+                if horizontal { (self.scroll_x, self.width, ROW_HEADER) } else { (self.scroll_y, self.height, COL_HEADER) };
+            let first = if horizontal { paper.col_at(scroll / self.zoom) } else { paper.row_at(scroll / self.zoom) };
+            let max = if horizontal { MAX_COLS } else { MAX_ROWS };
+            let mut lines = Vec::new();
+            let mut i = first;
+            while i < max && lines.len() < MAX_VISIBLE_LINES {
+                let start = header + (if horizontal { paper.col_x(i) } else { paper.row_y(i) } * self.zoom - scroll) as f32;
+                if start >= extent {
+                    break;
+                }
+                let size = ((index.start(i + 1) - index.start(i)) * self.zoom) as f32;
+                if size > 0. && start + size > header {
+                    lines.push(AxisLine { index: i, start, size, frozen: false });
+                }
+                i = index.at(index.start(i + 1) + f64::EPSILON * index.start(i + 1).abs().max(1.)).max(i + 1);
+            }
+            lines
+        };
+        self.rows = make_axis(&geo.rows, false);
+        self.cols = make_axis(&geo.cols, true);
+        self.paper = Some(paper);
+        self
     }
     pub fn reveal(&self, cell: CellRef, geo: &SheetGeometry, freeze: (u32, u32)) -> (f64, f64) {
         let rect = self.cell_rect(cell, geo, freeze);

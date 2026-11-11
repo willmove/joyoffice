@@ -16,6 +16,7 @@ pub struct CommandField {
 }
 fn field_label(key: &str, zh: bool) -> String {
     let labels = match key {
+        "at" => ("插入位置", "Insert at"),
         "source" => ("源区域或表名", "Source range or table"),
         "destination" => ("目标地址或 new", "Destination or new"),
         "rowFields" => ("行字段，逗号分隔", "Row fields, comma separated"),
@@ -84,13 +85,25 @@ fn field_label(key: &str, zh: bool) -> String {
         "code" => ("数字格式", "Number format"),
         "width" => ("宽度", "Width"),
         "height" => ("高度", "Height"),
-        "text" => ("查找内容", "Find text"),
+        "sourcesText" => ("源区域，每行或逗号分隔", "Source ranges, one per line or comma separated"),
+        "columnsText" => ("汇总列，逗号分隔", "Subtotal columns, comma separated"),
+        "word" => ("单词", "Word"),
+        "function" => ("函数", "Function"),
+        "shift" => ("移动方向 down/right/up/left", "Shift down/right/up/left"),
+        "text" => ("文本", "Text"),
         "find" => ("查找内容", "Find text"),
         "replace" => ("替换为", "Replace with"),
         "all" => ("全部替换", "Replace all"),
         "header" => ("首行是标题", "First row contains headers"),
         "type" => ("类型", "Type"),
         "style" => ("样式", "Style"),
+        "layout" => ("布局", "Layout"),
+        "warp" => ("文本转换", "Text transform"),
+        "shadow" => ("阴影", "Shadow"),
+        "pivot" => ("数据透视表", "PivotTable"),
+        "level" => ("时间级别", "Time level"),
+        "start" => ("开始日期 YYYY-MM-DD", "Start date YYYY-MM-DD"),
+        "end" => ("结束日期 YYYY-MM-DD", "End date YYYY-MM-DD"),
         "title" => ("标题", "Title"),
         "reference" => ("地址或名称", "Address or name"),
         "percent" => ("缩放百分比", "Zoom percent"),
@@ -194,6 +207,58 @@ impl Desktop {
             let st = view.workbook.styles.get(sheet.style_id(self.selection().active));
             values = json!({"fontName":st.font.name,"fontSize":st.font.size,"bold":st.font.bold,"italic":st.font.italic,"underline":st.font.underline,"fontScript":st.font.vert,"fontColor":st.font.color.hex(&view.workbook.theme).unwrap_or("#27382E".into()),"fillPattern":st.fill.pattern,"fillForeground":st.fill.fg.hex(&view.workbook.theme).unwrap_or("#147D59".into()),"fillBackground":st.fill.bg.hex(&view.workbook.theme).unwrap_or("#FFFFFF".into()),"horizontal":st.align.h,"vertical":st.align.v,"angle":st.align.rotation,"indent":st.align.indent,"wrap":st.align.wrap,"shrink":st.align.shrink,"numberFormat":st.num_fmt});
         }
+        if let Some(view) = self.view()
+            && let Some(sheet) = view.sheet()
+        {
+            let style = view.workbook.styles.get(sheet.style_id(self.selection().active));
+            match id.as_str() {
+                "home.fontName" => values["name"] = json!(style.font.name),
+                "home.fontSize" => values["size"] = json!(style.font.size),
+                "home.numberFormat" => values["code"] = json!(style.num_fmt),
+                "pageLayout.printTitles" => {
+                    values["rows"] = json!(sheet.print.title_rows.map(|(a, b)| format!("{}:{}", a + 1, b + 1)).unwrap_or_default());
+                    values["cols"] = json!(
+                        sheet
+                            .print
+                            .title_cols
+                            .map(|(a, b)| format!("{}:{}", joysheet_engine::core::col_to_letters(a), joysheet_engine::core::col_to_letters(b)))
+                            .unwrap_or_default()
+                    );
+                }
+                _ => {}
+            }
+        }
+        if matches!(id.as_str(), "object.edit" | "object.extract" | "timeline.filter" | "timeline.level")
+            && let Some(shape) = self.selected_object.as_ref().and_then(|o| self.view()?.sheet()?.shapes.iter().find(|s| s.id == o.id))
+        {
+            use joysheet_engine::model::{DrawingObject, SmartArtLayout, TimelineLevel};
+            match (&shape.format.object, id.as_str()) {
+                (Some(DrawingObject::SmartArt { layout, .. }), "object.edit") => {
+                    values = json!({"text":shape.text,"layout":match layout{SmartArtLayout::Process=>"process",SmartArtLayout::List=>"list",SmartArtLayout::Hierarchy=>"hierarchy",SmartArtLayout::Cycle=>"cycle"}})
+                }
+                (Some(DrawingObject::WordArt { warp, shadow }), "object.edit") => {
+                    values = json!({"text":shape.text,"warp":warp,"shadow":shadow,"color":self.view().and_then(|v|shape.format.text_color.and_then(|c|c.hex(&v.workbook.theme))).unwrap_or("#4472C4".into())})
+                }
+                (Some(DrawingObject::Equation { .. }), "object.edit") => values = json!({"text":shape.text}),
+                (Some(object @ DrawingObject::Timeline { selection, level, .. }), _) => {
+                    if id == "timeline.filter" {
+                        let wb = &self.view().map(|v| v.workbook.clone()).unwrap_or_default();
+                        let periods = joysheet_engine::drawing_scene::timeline_periods(wb, self.view().map(|v| v.sheet).unwrap_or(0), object);
+                        let (start, end) = selection.unwrap_or((periods.first().map(|p| p.0).unwrap_or(0), periods.last().map(|p| p.1).unwrap_or(0)));
+                        values = json!({"start":crate::object_ui::iso_date(wb,start),"end":crate::object_ui::iso_date(wb,end),"clear":false});
+                    } else {
+                        values = json!({"level":match level{TimelineLevel::Years=>"years",TimelineLevel::Quarters=>"quarters",TimelineLevel::Months=>"months",TimelineLevel::Days=>"days"}});
+                    }
+                }
+                _ => {}
+            }
+        }
+        if id.starts_with("insert.") && values.get("at").is_some() {
+            values["at"] = json!(self.selection().active.a1());
+        }
+        if id == "pageLayout.breaks" {
+            values["cell"] = json!(self.selection().active.a1());
+        }
         if id.starts_with("review.") && values.get("cell").is_some() {
             values["cell"] = json!(self.selection().active.a1());
         }
@@ -201,7 +266,12 @@ impl Desktop {
             let text = v.as_str().unwrap_or("").to_string();
             self.import_text.update(cx, |s, cx| s.set_value(text, window, cx));
         }
-        if id.starts_with("object.") || id.starts_with("shape.") || id.starts_with("arrange.") || id.starts_with("chart.") {
+        if id.starts_with("timeline.")
+            || id.starts_with("object.")
+            || id.starts_with("shape.")
+            || id.starts_with("arrange.")
+            || id.starts_with("chart.")
+        {
             if let Some(object) = self.selected_object.as_ref().filter(|_| self.selected_anchor().is_some()) {
                 values["id"] = json!(object.id);
                 if id.starts_with("chart.") && !id.starts_with("chart.shape") {
@@ -246,7 +316,7 @@ impl Desktop {
             && !matches!(id.as_str(), "file.print" | "file.printPreview" | "file.exportPdf")
         {
             values["range"] = json!(self.selection().a1());
-            if ["data.sort", "data.filter", "data.removeDuplicates", "insert.table"].contains(&id.as_str())
+            if ["data.sort", "data.filter", "data.removeDuplicates", "insert.table", "home.formatAsTable", "insert.chart"].contains(&id.as_str())
                 && self.selection().current().width() == 1
                 && self.selection().current().height() == 1
                 && let Some(sheet) = self.view().and_then(|v| v.sheet())
@@ -271,7 +341,7 @@ impl Desktop {
         if let Some(field) = self
             .command_fields
             .iter()
-            .find(|f| !f.initial.is_boolean() && crate::advanced::choices(&f.key).is_empty() && !crate::advanced::multiline(id, &f.key))
+            .find(|f| !f.initial.is_boolean() && crate::object_ui::choices(id, &f.key).is_empty() && !crate::advanced::multiline(id, &f.key))
         {
             field.value.update(cx, |input, cx| input.focus(window, cx));
         } else if self.command_fields.iter().any(|f| crate::advanced::multiline(id, &f.key)) {
@@ -297,16 +367,22 @@ impl Desktop {
             })
             .map(|(key, value)| {
                 let text = value.as_str().map(str::to_string).unwrap_or_else(|| value.to_string());
+                let input = cx.new(|cx| InputState::new(window, cx).default_value(text).masked(key.to_ascii_lowercase().contains("password")));
+                cx.subscribe(&input, |_, _, _: &gpui_kit::component::input::InputEvent, cx| cx.notify()).detach();
                 CommandField {
                     key: key.clone(),
-                    label: field_label(key, self.chinese()),
-                    value: cx.new(|cx| InputState::new(window, cx).default_value(text).masked(key.to_ascii_lowercase().contains("password"))),
+                    label: if self.selected_command.as_deref() == Some("insert.timeline") && key == "column" {
+                        self.label("日期字段", "Date field")
+                    } else {
+                        field_label(key, self.chinese())
+                    },
+                    value: input,
                     initial: value.clone(),
                 }
             })
             .collect();
     }
-    fn form_params(&self, cx: &App) -> Result<Value, String> {
+    pub(crate) fn form_params(&self, cx: &App) -> Result<Value, String> {
         let mut values = serde_json::from_str::<Value>(&self.params.read(cx).value()).map_err(|e| e.to_string())?;
         if !values.is_object() {
             return Err("Parameters must be an object".into());
@@ -353,7 +429,9 @@ impl Desktop {
                     self.request_trust(String::new(), false, window, cx);
                     return;
                 }
-                if (id.starts_with("object.") || id.starts_with("shape.") || id.starts_with("arrange.")) && self.selected_anchor().is_none() {
+                if (id.starts_with("object.") || id.starts_with("shape.") || id.starts_with("arrange.") || id.starts_with("timeline."))
+                    && self.selected_anchor().is_none()
+                {
                     self.alert("对象所在文档已切换，请重新选择 / Select the object again");
                     cx.notify();
                     return;
@@ -426,7 +504,7 @@ impl Desktop {
                     .child(Input::new(&self.params).id("command-params").aria_label("Advanced JSON parameters"));
             } else {
                 for field in &self.command_fields {
-                    let choices = if field.initial.is_string() { crate::advanced::choices(&field.key) } else { Vec::new() };
+                    let choices = if field.initial.is_string() { self.object_choices(id, &field.key, cx) } else { Vec::new() };
                     if !choices.is_empty() {
                         let selected = field.value.read(cx).value().to_string();
                         let mut options = div().flex().flex_wrap().gap_1();
@@ -436,7 +514,7 @@ impl Desktop {
                                 Button::new(SharedString::from(format!("choice-{key}-{value}")))
                                     .label(label)
                                     .when(selected == value, |b| b.primary())
-                                    .on_click(cx.listener(move |this, _, window, cx| this.advanced_choice(&key, value, window, cx))),
+                                    .on_click(cx.listener(move |this, _, window, cx| this.advanced_choice(&key, &value, window, cx))),
                             );
                         }
                         fields = fields.child(div().text_sm().child(field.label.clone())).child(options);
@@ -471,6 +549,9 @@ impl Desktop {
                         );
                 }
             }
+            if let Some(preview) = self.object_preview(id, cx) {
+                fields = div().flex().flex_col().gap_3().child(preview).child(fields);
+            }
             body = body.child(
                 div()
                     .p_3()
@@ -501,6 +582,13 @@ impl Desktop {
                             .label("预览（不修改工作簿） / Preview")
                             .on_click(cx.listener(|this, _, window, cx| this.preview_import(window, cx))),
                     );
+            }
+            if matches!(id.as_str(), "insert.object" | "object.extract" | "insert.picture") {
+                body = body.child(
+                    Button::new("pick-object-file")
+                        .label(self.label("浏览…", "Browse…"))
+                        .on_click(cx.listener(|this, _, w, cx| this.pick_object_file(w, cx))),
+                );
             }
             body = body.child(Button::new("advanced-parameters").label(self.label("高级参数", "Advanced parameters")).on_click(cx.listener(
                 |this, _, window, cx| {

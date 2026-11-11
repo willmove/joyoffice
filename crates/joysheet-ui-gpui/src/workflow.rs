@@ -1,6 +1,9 @@
 //! Human-facing data forms translated to the unchanged engine protocol.
 use serde_json::{Value, json};
 pub fn defaults(id: &str) -> Option<Value> {
+    if let Some(p) = crate::ribbon_defaults::defaults(id) {
+        return Some(p);
+    }
     if let Some(p) = crate::advanced::defaults(id) {
         return Some(p);
     }
@@ -60,6 +63,16 @@ pub fn parameters(id: &str, mut p: Value) -> Result<Value, String> {
     crate::advanced::parameters(id, &mut p)?;
     let m = p.as_object_mut().ok_or("Parameters must be an object")?;
     match id {
+        "data.consolidate" | "data.subtotal" => {
+            let (source, target) = if id == "data.consolidate" { ("sourcesText", "sources") } else { ("columnsText", "columns") };
+            if let Some(text) = m.remove(source).and_then(|v| v.as_str().map(str::to_owned)) {
+                let parts: Vec<_> = text.split([',', ';', '\n']).map(str::trim).filter(|s| !s.is_empty()).collect();
+                if parts.is_empty() {
+                    return Err("请输入至少一个区域或列 / Enter at least one range or column".into());
+                }
+                m.insert(target.into(), json!(parts));
+            }
+        }
         "home.formatCells" if m.contains_key("fontName") => {
             let value = |k: &str| m.get(k).cloned().unwrap_or(Value::Null);
             let color = |k: &str| -> Result<Value, String> {

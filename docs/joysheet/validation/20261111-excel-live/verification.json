@@ -1,0 +1,94 @@
+{
+  "product": "JoySheet",
+  "version": "0.1.3",
+  "branch": "feat/joysheet-excel-ribbon",
+  "baseHead": "4c7a951b73e62fcc3b71bbb7acc83abc99efa291",
+  "checks": {
+    "passed": 1418,
+    "failed": 0,
+    "ignored": 1,
+    "groups": 42
+  },
+  "fmt": "passed",
+  "strictClippy": "passed",
+  "build": "passed",
+  "productLog": "artifacts/joysheet/excel-live-20261111/product-final-acceptance-check.log",
+  "buildLog": "artifacts/joysheet/excel-live-20261111/product-final-acceptance-build.log",
+  "native": {
+    "checks": 38,
+    "binarySha256": "5ac58daf08dadc4b4527f4fadafe04265b273da6de1ce321d9043fff2b3437a3",
+    "physicalInputVerified": false,
+    "report": "native-report.json",
+    "excelResavedObjectsReimported": true,
+    "embeddedPayloadExtractedExactly": true,
+    "januaryInclusive31DaysVerified": true,
+    "exactlyFiveImportedObjects": true,
+    "blueOriginDotPixelChecked": true
+  },
+  "excelAuthoredImport": {
+    "sha256": "cdc1a537831284e1a963cb406208e9438c989694b6c642ad6dd5732312dbe469",
+    "sourceUnmodified": true,
+    "excelAcceptanceOfJoySheetExports": false
+  },
+  "excelFilteredImport": {
+    "sha256": "3a8b71013304b8523e36d9cfef3723dd349cf06462fd40441b9d6ce07ba1efd1",
+    "sourceUnmodified": true
+  },
+  "excelResavedObjectsImport": {
+    "sha256": "5d6e193ea831377cbb33e5172580b85574eef849c1325511abb097a737163d94",
+    "sourceUnmodified": true
+  },
+  "excelAcceptance": {
+    "completed": true,
+    "scope": "Self-authored five-object R15 fixture and the explicitly recorded native workflows; not complete Excel parity",
+    "fullExcelParity": false,
+    "nativeUiInspectionPerformed": true,
+    "version": "16.0.20527.20150",
+    "candidateSha256": "e5e50252a08b0cbaba7304949503e9958a493791bd5439adadc34243e4c7ab2c",
+    "excelSavedSha256": "5d6e193ea831377cbb33e5172580b85574eef849c1325511abb097a737163d94",
+    "noRepairOpen": true,
+    "saveAsWithoutError": true,
+    "closedAndReopened": true,
+    "previewAndFilenameIntactAfterReopen": true,
+    "timelineJanuaryFilteredTo10AndSaved": true,
+    "smartArtAndWordArtTextEditedSavedReopened": true,
+    "equationToolsEntered": true,
+    "pageCellHeaderAndManualBreakSaved": true,
+    "manualRowBreak": 48,
+    "formulaTwoLevelTraceCompared": true,
+    "embeddedPayloadExactBytes": 27,
+    "externalEditorOpened": false,
+    "remaining": [
+      "Complete SmartArt/WordArt galleries and contextual Ribbon",
+      "OLE server in-place editing / successful external editor launch",
+      "OLAP and multiple report connections",
+      "All Office Math structures",
+      "Page rulers and margin dragging",
+      "Cross-sheet trace double-click navigation"
+    ],
+    "environment": "User-unlocked Windows desktop; temporary diagnostics closed; final object and page references remain open"
+  },
+  "openXml": {
+    "report": "openxml-report.json",
+    "findings": 0,
+    "sdkLimitations": 1,
+    "ommlSubtreesValidated": 1,
+    "candidateSha256": "e5e50252a08b0cbaba7304949503e9958a493791bd5439adadc34243e4c7ab2c"
+  },
+  "crossProduct": {
+    "JoyWordEnginePassed": 1157,
+    "JoyDeckEnginePassed": 6,
+    "priorEvidence": "../20261111-objects-and-paging/verification.json",
+    "currentChangesAreSheetOnly": true
+  },
+  "retainedFailures": [
+    "round0-excel-repair.xml",
+    "round1-excel-repair.xml",
+    "strokes-before.json",
+    "artifacts/joysheet/excel-live-20261111/round12",
+    "artifacts/joysheet/excel-live-20261111/round13",
+    "artifacts/joysheet/excel-live-20261111/gpui-r15.log"
+  ],
+  "notCommittedPushedOrReleased": true,
+  "foreignOlePreservation": "Unit-tested: original Package graph survives; hidden foreign proxies are not editable rectangles"
+}

@@ -8,19 +8,24 @@ use super::*;
 pub struct KeptOut {
     used: HashSet<String>,
     n: u32,
-    /// The highest VML shape block a kept header and footer drawing uses: notes go after it.
+    /// The highest VML shape block used by retained drawings: new shapes go after it.
     vml_blocks: u32,
     /// Package-root relationships (type, target, external), added when `_rels/.rels` is written.
     root: Vec<(String, String, bool)>,
 }
 
 impl KeptOut {
-    /// Reserves the VML shape blocks the kept header and footer drawings of `wb` use, so that the
-    /// notes drawings GridCraft writes don't reuse their shape ids.
+    /// Reserves all retained VML blocks, including shared note/control/object drawings.
     pub fn reserve_vml_blocks(&mut self, wb: &Workbook) {
-        let vmls =
-            wb.sheets.iter().filter_map(|s| s.preserved.as_deref()).flat_map(|p| &p.parts).filter(|q| q.content_type.eq_ignore_ascii_case(CT_VML));
-        let max = vmls.map(|q| vml_block_max(&String::from_utf8_lossy(&q.data))).max().unwrap_or(0);
+        let vmls = wb
+            .sheets
+            .iter()
+            .filter_map(|s| s.preserved.as_deref())
+            .flat_map(|p| p.parts.iter().chain(p.vml.iter()))
+            .filter(|q| q.content_type.eq_ignore_ascii_case(CT_VML));
+        let drawing_blocks =
+            wb.sheets.iter().map(|s| (s.images.len() + s.shapes.len() + s.charts.len() + s.slicers.len() + 2) as u64 / 1024).max().unwrap_or(0);
+        let max = vmls.map(|q| vml_block_max(&String::from_utf8_lossy(&q.data))).max().unwrap_or(0).max(drawing_blocks);
         self.vml_blocks = u32::try_from(max).unwrap_or(u32::MAX);
     }
 
@@ -112,6 +117,64 @@ pub(super) fn attach(rels: &mut Rels, list: &[PreservedRel], names: &NameMap) ->
 
 pub(super) fn remap(x: &str, ids: &HashMap<String, String>) -> Option<String> {
     map_rel_ids(x, &mut |id| ids.get(id).cloned())
+}
+
+pub(crate) fn write_drawing_source(source: &Preserved, id: usize, anchor: &joysheet_model::Anchor, out: &mut Out, rels: &mut Rels) -> Option<String> {
+    let names = write_parts(out, &source.parts);
+    let ids = attach(rels, &source.rels, &names);
+    let xml = remap(&source.elements.iter().find(|e| e.slot == "drawingObject")?.xml, &ids)?;
+    let mut reader = Reader::from_str(&xml);
+    let mut writer = Writer::new(Vec::new());
+    let mut depth = 0usize;
+    let mut skip = 0usize;
+    loop {
+        match reader.read_event().ok()? {
+            Event::Eof => break,
+            Event::Start(e) => {
+                depth += 1;
+                if depth == 2 && e.local_name().as_ref() == b"xfrm" {
+                    skip = depth;
+                    writer.get_mut().extend_from_slice(crate::drawing::xfrm(anchor, "xdr:xfrm").as_bytes());
+                } else if skip == 0 {
+                    if e.local_name().as_ref() == b"cNvPr" {
+                        let mut n = e.clone().into_owned();
+                        n.clear_attributes();
+                        for a in e.attributes().flatten() {
+                            if a.key.as_ref() != b"id" {
+                                n.push_attribute(a);
+                            }
+                        }
+                        n.push_attribute(("id", id.to_string().as_str()));
+                        writer.write_event(Event::Start(n)).ok()?;
+                    } else {
+                        writer.write_event(Event::Start(e)).ok()?;
+                    }
+                }
+            }
+            Event::Empty(e) if skip == 0 && e.local_name().as_ref() == b"cNvPr" => {
+                let mut n = e.clone().into_owned();
+                n.clear_attributes();
+                for a in e.attributes().flatten() {
+                    if a.key.as_ref() != b"id" {
+                        n.push_attribute(a);
+                    }
+                }
+                n.push_attribute(("id", id.to_string().as_str()));
+                writer.write_event(Event::Empty(n)).ok()?;
+            }
+            Event::End(e) => {
+                if skip == depth {
+                    skip = 0;
+                } else if skip == 0 {
+                    writer.write_event(Event::End(e)).ok()?;
+                }
+                depth = depth.saturating_sub(1);
+            }
+            e if skip == 0 => writer.write_event(e).ok()?,
+            _ => {}
+        }
+    }
+    String::from_utf8(writer.into_inner()).ok()
 }
 
 /// A kept chart sheet being written: its `<sheet>` entry's fields and its new relationship id.

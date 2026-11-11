@@ -10,6 +10,8 @@ Rust + GPUI 电子表格应用，现接入 JoyOffice Monorepo。应用和 CLI �
 
 计算、工作簿、公式、XLSX/ODS/XLS/XLSB、图表、PDF、引擎与 MCP 来源于 GridCraft 0.12.1，已机械更名为产品包名。原始版权、双许可证、来源哈希和必要适配记录保留，参见 [ATTRIBUTION](ATTRIBUTION.md)、[原始来源](upstream-source.json)和[核心适配](UPSTREAM-PATCHES.md)。
 
+当前开发分支的界面增量见 [本机 Excel Ribbon 比对](EXCEL-RIBBON-PARITY.md)，不表示已发布包或全部 Excel 功能等价。
+
 ## 开发入口
 
 在含本次迁移提交的 JoyOffice 检出目录开发。合入后原独立目录仅作恢复材料；源码、构建与分发不依赖旧目录或本机归档。
@@ -56,3 +58,5 @@ python3 scripts/joysheet/smoke-native.py --binary target/debug/joysheet --output
 Windows 原生打印对话框使用 PowerShell 7；系统字体不分发。macOS/Linux 的内置 PDF 预览沿用 Poppler（`pdftoppm`），打印使用系统查看器；Linux deb 声明相应运行依赖。便携包可移动运行，安装器提供隔离安装/卸载测试。签名、公证、三平台原生、真实 IME、多显示器、读屏、GPU 呈现及物理打印等开放项详见 [Windows 质量记录](WINDOWS-QUALITY.md)和[历史验证](VALIDATION.md)。
 
 当前源码检查点由 `pwsh -File scripts/joysheet/checkpoint.ps1` 生成于 `artifacts/joysheet/source-checkpoint.json`；旧检查点及原证据保持历史含义。本次基线、映射和新验证见 [整合记录](../joyoffice/JOYSHEET-INTEGRATION.md)，旧开发包和日志见 [历史产物](LEGACY-ARTIFACTS.md)。
+
+2026-11-11 追加：[SmartArt、WordArt、日程表、嵌入文件、公式对象、分页编辑和追踪箭头](STRUCTURED-OBJECTS-AND-PAGING.md)已接入受支持子集；Ribbon 图标描边与边框统一减细。实现、自动验证与本机 Excel 人工验收分别记录，未覆盖项见该记录。

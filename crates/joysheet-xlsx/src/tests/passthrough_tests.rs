@@ -202,6 +202,147 @@ fn sheet_part(u: &Unpacked, sheet: &str) -> String {
 }
 
 #[test]
+fn new_packages_share_vml_with_retained_objects_controls_and_notes() {
+    use joysheet_model::{Anchor, DrawingObject, Shape, ShapeFormat, ShapeKind};
+    let (mut wb, _) = read_xlsx(&rich_package()).unwrap();
+    let sh = wb.sheet_mut(0).unwrap();
+    // Force the fresh image id allocator to avoid an existing retained id.
+    let preserved = Arc::make_mut(sh.preserved.as_mut().unwrap());
+    let vml = preserved.vml.as_mut().unwrap();
+    let mut alias = vml.rels[0].clone();
+    alias.id = "JoyOleImage1".into();
+    vml.rels.push(alias);
+    for id in [77, 78] {
+        sh.shapes.push(Shape {
+            id,
+            kind: ShapeKind::TextBox,
+            anchor: Anchor { width: 140., height: 100., ..Default::default() },
+            text: format!("file{id}.txt"),
+            fill: joysheet_model::Color::Auto,
+            line: joysheet_model::Color::Auto,
+            format: ShapeFormat {
+                object: Some(DrawingObject::Embedded {
+                    name: format!("file{id}.txt"),
+                    mime: "text/plain".into(),
+                    data: Arc::new(vec![0, 255, id as u8]),
+                }),
+                ..Default::default()
+            },
+        });
+    }
+    // Repeated import/save must not accumulate old editable proxies or lose
+    // either the opaque foreign graph or the new preview relationships.
+    for _ in 0..2 {
+        let bytes = write_xlsx(&wb).unwrap();
+        let u = Unpacked::new(&bytes);
+        u.assert_valid();
+        let sheet = sheet_part(&u, "Data");
+        let root = xml::parse(u.text(&sheet).as_bytes()).unwrap();
+        let vml_name = u.target(&sheet, root.child("legacyDrawing").unwrap().attr("id").unwrap()).1;
+        let vml = xml::parse(u.text(&vml_name).as_bytes()).unwrap();
+        let shapes: Vec<_> = vml.kids("shape").collect();
+        assert_eq!(vml.kids("shapetype").filter(|t| t.attr("id") == Some("_x0000_t75")).count(), 1);
+        assert_eq!(shapes.len(), 5, "foreign object, control, note and two new packages");
+        let ids: std::collections::HashSet<_> = shapes.iter().map(|s| s.attr("id").unwrap()).collect();
+        assert_eq!(ids.len(), shapes.len());
+        assert!(ids.contains("_x0000_s1025") && ids.contains("_x0000_s1026"));
+        fn own_objects<'a>(e: &'a xml::El, out: &mut Vec<&'a xml::El>) {
+            if e.name == "oleObject" && e.attr("dvAspect") == Some("DVASPECT_ICON") {
+                out.push(e);
+            }
+            for c in &e.children {
+                own_objects(c, out);
+            }
+        }
+        let mut own = Vec::new();
+        own_objects(&root, &mut own);
+        assert_eq!(own.len(), 2);
+        let mut owned_spids = Vec::new();
+        for ole in own {
+            let spid = format!("_x0000_s{}", ole.attr("shapeId").unwrap());
+            owned_spids.push(spid.clone());
+            let preview = shapes.iter().find(|s| s.attr("id") == Some(spid.as_str())).expect("OLE id resolves to its unchanged VML shape");
+            let image_id = preview.child("imagedata").unwrap().attr("relid").unwrap();
+            let vml_image = u.target(&vml_name, image_id).1;
+            let properties = ole.child("objectPr").unwrap();
+            let sheet_image = u.target(&sheet, properties.attr("id").unwrap()).1;
+            assert_eq!(vml_image, sheet_image);
+            assert_eq!(u.parts[&sheet_image], crate::drawing_objects::OLE_PREVIEW);
+            assert!(properties.child("anchor").unwrap().child("to").is_some());
+            let drawing = u.target(&sheet, root.child("drawing").unwrap().attr("id").unwrap()).1;
+            assert!(u.text(&drawing).contains(&format!("<xdr:cNvPr id=\"{}\"", ole.attr("shapeId").unwrap())));
+        }
+        assert_eq!(u.find(OLE).len(), 1);
+        assert_eq!(u.find(EMF).len(), 1);
+        assert_eq!(u.find(CTRL_PROP.as_bytes()).len(), 1);
+        // Excel uses a display name as id and keeps the actual legacy shape id
+        // in o:spid. These owned proxies must be removed from the foreign graph.
+        let mut renamed = u.text(&vml_name);
+        for spid in owned_spids {
+            renamed = renamed.replace(&format!("id=\"{spid}\""), &format!("id=\"DisplayName{spid}\" o:spid=\"{spid}\""));
+        }
+        let mut parts = u.parts;
+        parts.insert(vml_name, renamed.into_bytes());
+        let entries: Vec<_> = parts.iter().map(|(n, b)| (n.as_str(), b.as_slice())).collect();
+        wb = read_xlsx(&make_zip(&entries)).unwrap().0;
+        assert_eq!(wb.sheet(0).unwrap().shapes.iter().filter(|s| matches!(s.format.object, Some(DrawingObject::Embedded { .. }))).count(), 2);
+    }
+}
+
+#[test]
+fn package_proxy_and_payload_import_from_excel_choice_wrappers_once() {
+    use joysheet_model::{Anchor, Color, DrawingObject, Shape, ShapeFormat, ShapeKind, Workbook};
+    let mut wb = Workbook::new();
+    let object = DrawingObject::Embedded { name: "附件.txt".into(), mime: "text/plain".into(), data: Arc::new(vec![0, 255, 42]) };
+    wb.sheet_mut(0).unwrap().shapes.push(Shape {
+        id: 77,
+        kind: ShapeKind::TextBox,
+        anchor: Anchor { width: 140., height: 100., ..Default::default() },
+        text: "附件.txt".into(),
+        fill: Color::Auto,
+        line: Color::Auto,
+        format: ShapeFormat { object: Some(object.clone()), ..Default::default() },
+    });
+    let mut u = Unpacked::new(&write_xlsx(&wb).unwrap());
+    for (part, open, close, prefix, ns) in [
+        ("xl/drawings/drawing1.xml", "<xdr:twoCellAnchor", "</xdr:twoCellAnchor>", "a14", "http://schemas.microsoft.com/office/drawing/2010/main"),
+        ("xl/worksheets/sheet1.xml", "<oleObject ", "</oleObject>", "x14", "http://schemas.microsoft.com/office/spreadsheetml/2009/9/main"),
+    ] {
+        let xml = u.text(part);
+        let a = xml.find(open).unwrap();
+        let b = a + xml[a..].find(close).unwrap() + close.len();
+        let node = &xml[a..b];
+        let wrapped = format!(
+            "<mc:AlternateContent xmlns:mc=\"http://schemas.openxmlformats.org/markup-compatibility/2006\" xmlns:{prefix}=\"{ns}\"><mc:Choice Requires=\"{prefix}\">{node}</mc:Choice><mc:Fallback>{node}</mc:Fallback></mc:AlternateContent>"
+        );
+        u.parts.insert(part.into(), format!("{}{wrapped}{}", &xml[..a], &xml[b..]).into_bytes());
+    }
+    let entries: Vec<_> = u.parts.iter().map(|(n, b)| (n.as_str(), b.as_slice())).collect();
+    let (again, report) = read_xlsx(&make_zip(&entries)).unwrap();
+    assert!(report.warnings.is_empty(), "{:?}", report.warnings);
+    let shapes = &again.sheet(0).unwrap().shapes;
+    assert_eq!(shapes.len(), 1);
+    assert_eq!(shapes[0].format.object, Some(object));
+    assert_eq!(shapes[0].text, "附件.txt");
+    assert_eq!(shapes[0].kind, ShapeKind::TextBox);
+    // A foreign Package without our editable metadata remains entirely in the
+    // retained graph. Its hidden compatibility proxy is not an editable shape.
+    let original_package = u.parts.iter().find(|(n, _)| n.starts_with("xl/embeddings/")).unwrap().1.clone();
+    let mut drawing = u.text("xl/drawings/drawing1.xml");
+    while let Some(a) = drawing.find("<a:ext uri=\"urn:joyoffice:drawing-object:v1\"") {
+        let b = a + drawing[a..].find("</a:ext>").unwrap() + "</a:ext>".len();
+        drawing.replace_range(a..b, "");
+    }
+    u.parts.insert("xl/drawings/drawing1.xml".into(), drawing.into_bytes());
+    let entries: Vec<_> = u.parts.iter().map(|(n, b)| (n.as_str(), b.as_slice())).collect();
+    let foreign = read_xlsx(&make_zip(&entries)).unwrap().0;
+    assert!(foreign.sheet(0).unwrap().shapes.is_empty());
+    let kept = Unpacked::new(&write_xlsx(&foreign).unwrap());
+    kept.assert_valid();
+    assert_eq!(kept.find(&original_package).len(), 1);
+}
+
+#[test]
 fn unmodelled_parts_survive_a_round_trip() {
     let (wb, rep) = read_xlsx(&rich_package()).unwrap();
     assert!(wb.preserved.is_some(), "{:?}", rep.warnings);

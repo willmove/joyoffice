@@ -1,0 +1,259 @@
+{
+  "passed": true,
+  "binarySha256": "548ad815ae172b4308782998cca6c994350362392fab88adcdef531ae94f6786",
+  "widthBefore": 2048.0,
+  "widthAfter": 2048.0,
+  "before": {
+    "cell": "A1",
+    "value": null,
+    "type": "empty",
+    "formula": null,
+    "text": "",
+    "input": "",
+    "picture": null,
+    "spilledFrom": null,
+    "spill": null,
+    "style": {
+      "font": {
+        "name": "Calibri",
+        "size": 11.0,
+        "bold": false,
+        "italic": false,
+        "underline": "None",
+        "strike": false,
+        "color": "Auto",
+        "vert": "Baseline",
+        "charset": null,
+        "family": null,
+        "minor": true
+      },
+      "fill": {
+        "pattern": "None",
+        "fg": "Auto",
+        "bg": "Auto"
+      },
+      "borders": {
+        "left": {
+          "style": "None",
+          "color": "Auto"
+        },
+        "right": {
+          "style": "None",
+          "color": "Auto"
+        },
+        "top": {
+          "style": "None",
+          "color": "Auto"
+        },
+        "bottom": {
+          "style": "None",
+          "color": "Auto"
+        },
+        "diag_down": {
+          "style": "None",
+          "color": "Auto"
+        },
+        "diag_up": {
+          "style": "None",
+          "color": "Auto"
+        }
+      },
+      "align": {
+        "h": "General",
+        "v": "Bottom",
+        "wrap": false,
+        "shrink": false,
+        "indent": 0,
+        "rotation": 0
+      },
+      "num_fmt": "General",
+      "protection": {
+        "locked": true,
+        "hidden": false
+      },
+      "dxf_stated": {
+        "bold": false,
+        "italic": false,
+        "strike": false,
+        "underline": false,
+        "size": false,
+        "name": false,
+        "scheme": null,
+        "protection": false
+      }
+    },
+    "merge": null,
+    "comment": null,
+    "hyperlink": null
+  },
+  "after": {
+    "cell": "A1",
+    "value": null,
+    "type": "empty",
+    "formula": null,
+    "text": "",
+    "input": "",
+    "picture": null,
+    "spilledFrom": null,
+    "spill": null,
+    "style": {
+      "font": {
+        "name": "Calibri",
+        "size": 11.0,
+        "bold": false,
+        "italic": false,
+        "underline": "None",
+        "strike": false,
+        "color": {
+          "Rgb": 24832
+        },
+        "vert": "Baseline",
+        "charset": null,
+        "family": null,
+        "minor": true
+      },
+      "fill": {
+        "pattern": "Solid",
+        "fg": {
+          "Rgb": 13037518
+        },
+        "bg": "Auto"
+      },
+      "borders": {
+        "left": {
+          "style": "None",
+          "color": "Auto"
+        },
+        "right": {
+          "style": "None",
+          "color": "Auto"
+        },
+        "top": {
+          "style": "None",
+          "color": "Auto"
+        },
+        "bottom": {
+          "style": "None",
+          "color": "Auto"
+        },
+        "diag_down": {
+          "style": "None",
+          "color": "Auto"
+        },
+        "diag_up": {
+          "style": "None",
+          "color": "Auto"
+        }
+      },
+      "align": {
+        "h": "General",
+        "v": "Bottom",
+        "wrap": false,
+        "shrink": false,
+        "indent": 0,
+        "rotation": 0
+      },
+      "num_fmt": "General",
+      "protection": {
+        "locked": true,
+        "hidden": false
+      },
+      "dxf_stated": {
+        "bold": false,
+        "italic": false,
+        "strike": false,
+        "underline": false,
+        "size": false,
+        "name": false,
+        "scheme": null,
+        "protection": false
+      }
+    },
+    "merge": null,
+    "comment": null,
+    "hyperlink": null
+  },
+  "restored": {
+    "cell": "A1",
+    "value": null,
+    "type": "empty",
+    "formula": null,
+    "text": "",
+    "input": "",
+    "picture": null,
+    "spilledFrom": null,
+    "spill": null,
+    "style": {
+      "font": {
+        "name": "Calibri",
+        "size": 11.0,
+        "bold": false,
+        "italic": false,
+        "underline": "None",
+        "strike": false,
+        "color": "Auto",
+        "vert": "Baseline",
+        "charset": null,
+        "family": null,
+        "minor": true
+      },
+      "fill": {
+        "pattern": "None",
+        "fg": "Auto",
+        "bg": "Auto"
+      },
+      "borders": {
+        "left": {
+          "style": "None",
+          "color": "Auto"
+        },
+        "right": {
+          "style": "None",
+          "color": "Auto"
+        },
+        "top": {
+          "style": "None",
+          "color": "Auto"
+        },
+        "bottom": {
+          "style": "None",
+          "color": "Auto"
+        },
+        "diag_down": {
+          "style": "None",
+          "color": "Auto"
+        },
+        "diag_up": {
+          "style": "None",
+          "color": "Auto"
+        }
+      },
+      "align": {
+        "h": "General",
+        "v": "Bottom",
+        "wrap": false,
+        "shrink": false,
+        "indent": 0,
+        "rotation": 0
+      },
+      "num_fmt": "General",
+      "protection": {
+        "locked": true,
+        "hidden": false
+      },
+      "dxf_stated": {
+        "bold": false,
+        "italic": false,
+        "strike": false,
+        "underline": false,
+        "size": false,
+        "name": false,
+        "scheme": null,
+        "protection": false
+      }
+    },
+    "merge": null,
+    "comment": null,
+    "hyperlink": null
+  }
+}

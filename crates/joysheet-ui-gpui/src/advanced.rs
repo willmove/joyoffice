@@ -127,7 +127,9 @@ fn split(s: &str) -> Vec<String> {
     s.split([',', '，']).map(str::trim).filter(|s| !s.is_empty()).map(str::to_string).collect()
 }
 pub fn multiline(id: &str, key: &str) -> bool {
-    key == "constraintLines" || key == "commandsText" || (key == "text" && id.starts_with("review."))
+    key == "constraintLines"
+        || key == "commandsText"
+        || (key == "text" && (id.starts_with("review.") || id == "insert.smartArt" || id == "object.edit"))
 }
 pub fn choices(key: &str) -> Vec<(&'static str, &'static str)> {
     match key {

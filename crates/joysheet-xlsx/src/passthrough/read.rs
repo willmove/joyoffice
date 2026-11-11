@@ -284,7 +284,7 @@ impl KeptReader {
     }
 
     /// Sheet-level content of the sheet part `part`.
-    pub fn sheet(&mut self, cx: &mut Ctx<'_>, part: &str, name: &str) -> Option<Arc<Preserved>> {
+    pub fn sheet(&mut self, cx: &mut Ctx<'_>, part: &str, name: &str, owned_ole: &HashSet<u32>) -> Option<Arc<Preserved>> {
         if !self.on {
             return None;
         }
@@ -306,12 +306,21 @@ impl KeptReader {
         let vml_drawings = rels.iter().filter(|r| is_kind(r, &["vmlDrawing"])).count();
         let notes = rels.iter().filter(|r| is_kind(r, &["comments"])).count();
         if rels.iter().any(|r| is_kind(r, SHEET_ELEMENT_KINDS)) || vml_drawings > notes {
-            self.sheet_elements(cx, part, name, &rels, &mut p, &mut seen);
+            self.sheet_elements(cx, part, name, &rels, &mut p, &mut seen, owned_ole);
         }
         (!p.is_empty()).then(|| Arc::new(p))
     }
 
-    fn sheet_elements(&mut self, cx: &mut Ctx<'_>, part: &str, name: &str, rels: &[PreservedRel], p: &mut Preserved, seen: &mut HashSet<String>) {
+    fn sheet_elements(
+        &mut self,
+        cx: &mut Ctx<'_>,
+        part: &str,
+        name: &str,
+        rels: &[PreservedRel],
+        p: &mut Preserved,
+        seen: &mut HashSet<String>,
+        owned_ole: &HashSet<u32>,
+    ) {
         let scan = match cx.pkg.read(part) {
             Ok(Some(bytes)) => scan_sheet(&bytes),
             _ => None,
@@ -345,10 +354,41 @@ impl KeptReader {
             }
         }
         let mut frags = scan.fragments;
+        for (slot, xml) in &mut frags {
+            if slot == "oleObjects" {
+                *xml = crate::drawing_objects::strip_owned_ole(xml, owned_ole);
+            }
+        }
+        fn has_ole(e: &xml::El) -> bool {
+            e.name == "oleObject" || e.children.iter().any(has_ole)
+        }
+        frags.retain(|(slot, x)| slot != "oleObjects" || owned_ole.is_empty() || xml::parse(x.as_bytes()).ok().is_none_or(|e| has_ole(&e)));
         // Controls and OLE objects are drawn from shapes in the legacy VML drawing.
         if frags.iter().any(|(slot, _)| slot != "picture") {
             match self.vml(cx, rels, scan.legacy_drawing.as_deref(), seen) {
-                Ok((vml, parts)) => {
+                Ok((mut vml, parts)) => {
+                    if !owned_ole.is_empty() {
+                        let text = String::from_utf8_lossy(&vml.data);
+                        let mut output = text.to_string();
+                        for (a, b) in shape_spans(&text).into_iter().rev() {
+                            let mut r = Reader::from_str(&text[a..b]);
+                            let owned = match r.read_event() {
+                                Ok(Event::Start(e) | Event::Empty(e)) => e.attributes().flatten().any(|a| {
+                                    (a.key.as_ref() == b"id" || a.key.local_name().as_ref() == b"spid")
+                                        && std::str::from_utf8(&a.value)
+                                            .ok()
+                                            .and_then(|s| s.strip_prefix("_x0000_s"))
+                                            .and_then(|n| n.parse::<u32>().ok())
+                                            .is_some_and(|n| owned_ole.contains(&n))
+                                }),
+                                _ => false,
+                            };
+                            if owned {
+                                output.replace_range(a..b, "");
+                            }
+                        }
+                        vml.data = Arc::from(output.into_bytes());
+                    }
                     p.parts.extend(parts);
                     p.vml = Some(vml);
                 }
@@ -531,6 +571,78 @@ fn with_decls(frag: &str, decls: &[(String, String)]) -> String {
     format!("{}{add}{}", frag.get(..name_end).unwrap_or(""), frag.get(name_end..).unwrap_or(""))
 }
 
+/// Retain one native drawing object, including all referenced diagram/media parts. Namespace
+/// scopes come from the original XML, rather than guessing prefixes in unknown extensions.
+pub(crate) fn drawing_source(cx: &mut Ctx<'_>, part: &str, object_id: u32) -> Result<Arc<Preserved>, IoError> {
+    let bytes = cx.pkg.read_limited(part, MAX_KEPT_PART)?.ok_or_else(|| IoError::Format("drawing part is missing".into()))?;
+    let text = std::str::from_utf8(&bytes).map_err(|e| IoError::Xml(e.to_string()))?;
+    let mut reader = Reader::from_str(text);
+    let mut scopes: Vec<Vec<(String, String)>> = Vec::new();
+    let mut capture = None;
+    let mut found = None;
+    loop {
+        let start = reader.buffer_position() as usize;
+        match reader.read_event().map_err(|e| IoError::Xml(e.to_string()))? {
+            Event::Start(e) => {
+                let decls = e
+                    .attributes()
+                    .flatten()
+                    .filter_map(|a| {
+                        Some((
+                            std::str::from_utf8(a.key.as_ref().strip_prefix(b"xmlns:")?).ok()?.to_owned(),
+                            std::str::from_utf8(&a.value).ok()?.to_owned(),
+                        ))
+                    })
+                    .collect();
+                scopes.push(decls);
+                if matches!(e.local_name().as_ref(), b"graphicFrame" | b"sp") && capture.is_none() {
+                    let mut all = Vec::new();
+                    for scope in &scopes {
+                        for (p, v) in scope {
+                            all.retain(|(n, _)| n != p);
+                            all.push((p.clone(), v.clone()));
+                        }
+                    }
+                    capture = Some((start, scopes.len(), all));
+                }
+            }
+            Event::End(_) => {
+                if capture.as_ref().is_some_and(|(_, depth, _)| *depth == scopes.len())
+                    && let Some((start, _, decls)) = capture.take()
+                {
+                    let xml = with_decls(&text[start..reader.buffer_position() as usize], &decls);
+                    if xml::parse(xml.as_bytes()).ok().and_then(|e| {
+                        e.children.iter().find(|n| n.name.starts_with("nv")).and_then(|n| n.child("cNvPr")).and_then(|p| p.attr_u32("id"))
+                    }) == Some(object_id)
+                    {
+                        found = Some(xml);
+                        break;
+                    }
+                }
+                scopes.pop();
+            }
+            Event::Eof => break,
+            _ => {}
+        }
+    }
+    let xml = found.ok_or_else(|| IoError::Format("native drawing object could not be retained".into()))?;
+    let mut used = HashSet::new();
+    map_rel_ids(&xml, &mut |id| {
+        used.insert(id.to_string());
+        Some(id.into())
+    })
+    .ok_or_else(|| IoError::Xml("drawing relationships".into()))?;
+    let roots: Vec<_> = raw_rels(cx, part).map_err(IoError::Format)?.into_iter().filter(|r| used.contains(&r.id)).collect();
+    if roots.len() != used.len() {
+        return Err(IoError::Format("native drawing has missing relationships".into()));
+    }
+    let mut reader = KeptReader::new(cx);
+    let mut p = Preserved::default();
+    reader.keep(cx, &mut p, &roots, &mut HashSet::new()).map_err(IoError::Format)?;
+    p.elements.push(PreservedXml { slot: "drawingObject".into(), xml });
+    Ok(Arc::new(p))
+}
+
 /// Byte ranges of the `<v:shape …>…</v:shape>` (or self-closed) elements in VML text.
 fn shape_spans(vml: &str) -> Vec<(usize, usize)> {
     let mut spans = vec![];
@@ -595,27 +707,25 @@ pub(super) fn vml_block_max(vml: &str) -> u64 {
     used.max(claimed)
 }
 
-/// Kept VML (controls, OLE objects) plus GridCraft's note shapes: the notes get ids in a fresh
-/// shape block so they can't collide with the kept shapes the sheet XML refers to.
+/// Retained VML controls/objects plus generated notes/packages, whose shape
+/// blocks have already been reserved by the exporter.
 pub(super) fn merge_vml(kept: &str, ours: &str) -> String {
     let Some(close) = kept.rfind("</xml>") else { return ours.to_string() };
-    let block = shape_numbers(kept).into_iter().max().unwrap_or(0) / 1024 + 1;
+    let blocks: std::collections::BTreeSet<_> = shape_numbers(ours).into_iter().map(|id| id / 1024).collect();
     let mut add = String::new();
-    if !kept.contains("id=\"_x0000_t202\"")
-        && let Some(i) = ours.find("<v:shapetype")
-        && let Some(j) = ours.get(i..).and_then(|s| s.find("</v:shapetype>"))
-    {
-        add.push_str(ours.get(i..i + j + "</v:shapetype>".len()).unwrap_or(""));
-    }
-    for (k, (a, b)) in shape_spans(ours).into_iter().enumerate() {
-        let shape = ours.get(a..b).unwrap_or("");
-        let id = block.saturating_mul(1024).saturating_add(1 + k as u64);
-        match (shape.find("id=\"_x0000_s"), shape.find("id=\"_x0000_s").and_then(|i| shape.get(i + 4..)?.find('"').map(|j| i + 4 + j))) {
-            (Some(i), Some(j)) => {
-                let _ = write!(add, "{}id=\"_x0000_s{id}\"{}", shape.get(..i).unwrap_or(""), shape.get(j + 1..).unwrap_or(""));
-            }
-            _ => add.push_str(shape),
+    for kind in ["202", "75"] {
+        let id = format!("id=\"_x0000_t{kind}\"");
+        if !kept.contains(&id)
+            && let Some(i) = ours.find(&format!("<v:shapetype {id}"))
+            && let Some(j) = ours.get(i..).and_then(|s| s.find("</v:shapetype>"))
+        {
+            add.push_str(ours.get(i..i + j + "</v:shapetype>".len()).unwrap_or(""));
         }
+    }
+    for (a, b) in shape_spans(ours) {
+        // The exporter reserves every retained block before assigning these ids.
+        // OLE's worksheet and DrawingML parts refer to the exact same shape id.
+        add.push_str(ours.get(a..b).unwrap_or(""));
     }
     let mut head = kept.get(..close).unwrap_or("").to_string();
     // Claim the block in the drawing's id map.
@@ -623,7 +733,8 @@ pub(super) fn merge_vml(kept: &str, ours: &str) -> String {
         && let Some(d) = head.get(i..).and_then(|s| s.find("data=\"")).map(|d| i + d + "data=\"".len())
         && let Some(e) = head.get(d..).and_then(|s| s.find('"')).map(|e| d + e)
     {
-        head.insert_str(e, &format!(",{block}"));
+        let extra: String = blocks.iter().map(|block| format!(",{block}")).collect();
+        head.insert_str(e, &extra);
     }
     format!("{head}{add}{}", kept.get(close..).unwrap_or(""))
 }

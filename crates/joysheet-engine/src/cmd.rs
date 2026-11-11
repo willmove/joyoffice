@@ -4,6 +4,7 @@
 pub mod analysis;
 pub mod data;
 pub mod draw;
+pub mod drawing_objects;
 pub mod edit;
 pub mod extra;
 pub mod file;
@@ -144,6 +145,7 @@ pub fn command_specs() -> &'static [CommandSpec] {
         v.extend(inspect::specs());
         v.extend(extra::specs());
         v.extend(draw::specs());
+        v.extend(drawing_objects::specs());
         v.extend(spelling::specs());
         v.extend(solver::specs());
         v.extend(pivot::specs());

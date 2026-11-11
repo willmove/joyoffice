@@ -1,13 +1,8 @@
 {
   "catalogOnlyNotCounted": [
-    "insert.smartArt",
     "insert.screenshot",
     "insert.map",
-    "insert.timeline",
-    "insert.wordArt",
     "insert.signatureLine",
-    "insert.object",
-    "insert.equation",
     "data.fromWeb",
     "data.stocks",
     "data.geography",
@@ -3757,7 +3752,110 @@
       ],
       "params": "{sheet?, orientation?: portrait|landscape, paper?: Letter|Legal|A4|A3|A5|A6|Tabloid|Executive|Ledger|B4|B5|B6|B4 (ISO)|B5 (ISO)|B6 (ISO)|Japanese Postcard|Japanese Double Postcard|Japanese Envelope #3|Japanese Envelope #4|Japanese Envelope Kaku #2|Japanese Envelope Kaku #3 (B4/B5/B6 are the JIS sizes), margins?: {left,right,top,bottom,header,footer} (inches; also accepted as top-level keys), scale?: 10..400, fitWidth?, fitHeight? (pages; 0 = automatic), fitToPage?: bool, centerH?, centerV?, gridlines?, headings?, header?: \"&L&A&RPage &P of &N\", footer?, printArea?: \"A1:F50\" (\"\" clears), titleRows?: \"1:2\", titleCols?: \"A:A\", rowBreaks?: [46, 91], colBreaks?: [\"K\"]} → the sheet's print settings",
       "undoable": true
+    },
+    {
+      "id": "pageLayout.moveBreak",
+      "interface": "engine editing and production GPUI workflow verified; supported subset and limits in STRUCTURED-OBJECTS-AND-PAGING.md",
+      "label": "Move Page Break",
+      "menu": [],
+      "params": "{axis: row|column, from, to} (zero-based boundary)",
+      "undoable": true
+    },
+    {
+      "id": "insert.smartArt",
+      "interface": "engine editing and production GPUI workflow verified; supported subset and limits in STRUCTURED-OBJECTS-AND-PAGING.md",
+      "label": "SmartArt",
+      "menu": [
+        "Insert",
+        "Illustrations"
+      ],
+      "params": "{layout?: process|hierarchy|cycle|list, text?: newline-separated nodes, at?, width?, height?}",
+      "undoable": true
+    },
+    {
+      "id": "insert.wordArt",
+      "interface": "engine editing and production GPUI workflow verified; supported subset and limits in STRUCTURED-OBJECTS-AND-PAGING.md",
+      "label": "WordArt",
+      "menu": [
+        "Insert",
+        "Text"
+      ],
+      "params": "{text?, warp?: textNoShape|textArchUp|textWave1, shadow?: bool, color?, at?, width?, height?}",
+      "undoable": true
+    },
+    {
+      "id": "insert.equation",
+      "interface": "engine editing and production GPUI workflow verified; supported subset and limits in STRUCTURED-OBJECTS-AND-PAGING.md",
+      "label": "Equation",
+      "menu": [
+        "Insert",
+        "Symbols"
+      ],
+      "params": "{text?: linear equation, at?, width?, height?}",
+      "undoable": true
+    },
+    {
+      "id": "insert.object",
+      "interface": "engine editing and production GPUI workflow verified; supported subset and limits in STRUCTURED-OBJECTS-AND-PAGING.md",
+      "label": "Object",
+      "menu": [
+        "Insert",
+        "Text"
+      ],
+      "params": "{path? | base64?, name?, mime?, at?, width?, height?} embeds original bytes as an icon; no activation",
+      "undoable": true
+    },
+    {
+      "id": "insert.timeline",
+      "interface": "engine editing and production GPUI workflow verified; supported subset and limits in STRUCTURED-OBJECTS-AND-PAGING.md",
+      "label": "Timeline",
+      "menu": [
+        "Insert",
+        "Filters"
+      ],
+      "params": "{pivot?, column?: date field, level?: years|quarters|months|days, at?, width?, height?}",
+      "undoable": true
+    },
+    {
+      "id": "object.edit",
+      "interface": "engine editing and production GPUI workflow verified; supported subset and limits in STRUCTURED-OBJECTS-AND-PAGING.md",
+      "label": "Edit Object",
+      "menu": [],
+      "params": "{id, text?, layout?, warp?, shadow?, color?}",
+      "undoable": true
+    },
+    {
+      "id": "object.extract",
+      "interface": "engine editing and production GPUI workflow verified; supported subset and limits in STRUCTURED-OBJECTS-AND-PAGING.md",
+      "label": "Save Embedded File",
+      "menu": [],
+      "params": "{id, path} saves the original embedded file without launching it",
+      "undoable": false
+    },
+    {
+      "id": "timeline.filter",
+      "interface": "engine editing and production GPUI workflow verified; supported subset and limits in STRUCTURED-OBJECTS-AND-PAGING.md",
+      "label": "Filter Timeline",
+      "menu": [],
+      "params": "{id, start?: Excel serial day, end?: Excel serial day, clear?: bool}",
+      "undoable": true
+    },
+    {
+      "id": "timeline.level",
+      "interface": "engine editing and production GPUI workflow verified; supported subset and limits in STRUCTURED-OBJECTS-AND-PAGING.md",
+      "label": "Timeline Level",
+      "menu": [],
+      "params": "{id, level: years|quarters|months|days}",
+      "undoable": true
+    },
+    {
+      "id": "timeline.scroll",
+      "interface": "engine editing and production GPUI workflow verified; supported subset and limits in STRUCTURED-OBJECTS-AND-PAGING.md",
+      "label": "Scroll Timeline",
+      "menu": [],
+      "params": "{id, delta: periods}",
+      "undoable": true
     }
   ],
-  "registeredCount": 355
+  "registeredCount": 366
 }

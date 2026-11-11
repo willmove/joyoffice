@@ -35,6 +35,7 @@ use serde_json::Value as Json;
 
 pub use cmd::{CommandInfo, CommandSpec, command_specs, find_command, register_test_command};
 pub use joysheet_calc as calc;
+pub mod drawing_scene;
 pub use joysheet_core as core;
 pub use joysheet_formula as formula;
 pub use joysheet_model as model;
@@ -228,6 +229,38 @@ const UNDO_BYTES_LIMIT: usize = 128 * 1024 * 1024;
 
 fn history_retained_bytes(older: &Workbook, newer: &Workbook) -> usize {
     let mut bytes = std::mem::size_of::<Workbook>();
+    let current: std::collections::HashSet<_> = newer
+        .sheets
+        .iter()
+        .flat_map(|s| &s.shapes)
+        .filter_map(|s| match &s.format.object {
+            Some(joysheet_model::DrawingObject::Embedded { data, .. }) => Some(Arc::as_ptr(data) as usize),
+            _ => None,
+        })
+        .collect();
+    let mut charged = std::collections::HashSet::new();
+    let current_sources: std::collections::HashSet<_> =
+        newer.sheets.iter().flat_map(|s| &s.shapes).filter_map(|s| s.format.source.as_ref()).map(|s| Arc::as_ptr(s) as usize).collect();
+    let mut charged_sources = std::collections::HashSet::new();
+    for shape in older.sheets.iter().flat_map(|s| &s.shapes) {
+        if let Some(source) = &shape.format.source {
+            let key = Arc::as_ptr(source) as usize;
+            if !current_sources.contains(&key) && charged_sources.insert(key) {
+                for p in &source.parts {
+                    bytes = bytes.saturating_add(p.data.len());
+                }
+                for e in &source.elements {
+                    bytes = bytes.saturating_add(e.xml.len());
+                }
+            }
+        }
+        if let Some(joysheet_model::DrawingObject::Embedded { data, .. }) = &shape.format.object {
+            let key = Arc::as_ptr(data) as usize;
+            if !current.contains(&key) && charged.insert(key) {
+                bytes = bytes.saturating_add(data.len());
+            }
+        }
+    }
     for (index, sheet) in older.sheets.iter().enumerate() {
         // Moving or inserting sheets must not charge unchanged sheets at a new index.
         if newer.sheets.iter().any(|next| Arc::ptr_eq(sheet, next)) {

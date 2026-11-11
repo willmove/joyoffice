@@ -439,6 +439,29 @@ impl Desktop {
             cx.stop_propagation();
             return;
         }
+        if key == "escape"
+            && (self.ribbon_tab == 0 || self.help_open || self.function_category.is_some() || !self.ink.tool.is_empty() || self.format_painter)
+        {
+            if self.ribbon_tab == 0 {
+                self.ribbon_tab = 1;
+            }
+            self.help_open = false;
+            self.function_category = None;
+            self.ink.tool = "";
+            self.ink.points.clear();
+            self.ink.target = None;
+            self.format_painter = false;
+            self.focus_grid(window, cx);
+            cx.notify();
+            cx.stop_propagation();
+            return;
+        }
+        if command && key == "f1" {
+            self.ribbon_collapsed = !self.ribbon_collapsed;
+            cx.notify();
+            cx.stop_propagation();
+            return;
+        }
         if command {
             match key {
                 "1" => {

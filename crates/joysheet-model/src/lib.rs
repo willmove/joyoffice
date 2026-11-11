@@ -7,6 +7,7 @@
 mod b64;
 pub mod cell;
 mod cellmap;
+pub mod drawing_object;
 pub mod features;
 pub mod password;
 pub mod preserved;
@@ -16,6 +17,7 @@ pub mod style;
 pub mod workbook;
 
 pub use cell::{Cell, CellPicture, Formula};
+pub use drawing_object::{DrawingObject, MathExpr, SmartArtLayout, TimelineLevel};
 pub use features::*;
 pub use password::PasswordHash;
 pub use preserved::{Preserved, PreservedPart, PreservedRel, PreservedSheet, PreservedXml};

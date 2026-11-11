@@ -18,6 +18,7 @@ mod chartex;
 mod crypto;
 mod csv;
 mod drawing;
+mod drawing_objects;
 mod feature_bags;
 mod fmla;
 mod ods;
@@ -35,6 +36,7 @@ mod tables;
 #[path = "tests/crypto_helpers.rs"]
 pub mod testing;
 mod theme;
+mod timeline;
 mod write;
 mod xls;
 mod xlsb;

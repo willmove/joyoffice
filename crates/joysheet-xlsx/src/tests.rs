@@ -7,6 +7,7 @@ mod chart_bool_default;
 mod chart_combo_kinds;
 mod chart_ref_offsets;
 mod csv_tests;
+mod drawing_sources;
 mod encrypted_tests;
 mod fixtures;
 mod ink_roundtrip;

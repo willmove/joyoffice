@@ -217,6 +217,11 @@ impl Desktop {
                     .on_click(cx.listener(move |this, _, _, cx| this.align_objects(how, cx))),
             );
         }
+        panel = panel.child(
+            Button::new("edit-selected-object")
+                .label("编辑对象内容…")
+                .on_click(cx.listener(|this, _, w, cx| this.open_command("object.edit", w, cx))),
+        );
         panel.child(
             Button::new("delete-selected-objects")
                 .label("删除所选 / Delete selected")

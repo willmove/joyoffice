@@ -285,7 +285,10 @@ pub fn read_xlsx(bytes: &[u8]) -> Result<(Workbook, ReadReport), IoError> {
             Err(IoError::TooLarge(m)) => return Err(IoError::TooLarge(m)),
             Err(e) => cx.warn(format!("PivotTables on sheet \"{name}\" could not be read: {e}")),
         }
-        sheet.preserved = kept.sheet(&mut cx, &rel.target, &name);
+        crate::timeline::read_sheet(&mut cx, &rel.target, &mut sheet)?;
+        let owned_ole = crate::drawing_objects::owned_ole_ids(&sheet);
+        sheet.preserved = kept.sheet(&mut cx, &rel.target, &name, &owned_ole);
+        crate::drawing_objects::consume_owned_ole(&mut sheet);
         sheet.file_id = se.attr_u32("sheetId").unwrap_or(0);
         sheet.visibility = match se.attr("state") {
             Some("hidden") => Visibility::Hidden,
@@ -393,6 +396,7 @@ pub fn read_xlsx(bytes: &[u8]) -> Result<(Workbook, ReadReport), IoError> {
             Err(e) => cx.warn(format!("macros (VBA project) could not be read and were dropped: {e}")),
         }
     }
+    crate::timeline::read_workbook(&mut cx, &wb_rels, &mut wb)?;
     wb.preserved = kept.workbook(&mut cx, &wb_part, &wb_xml, &file_to_model);
     // Calls of LAMBDA names are spelled like the names (the parser upper-cases them).
     wb.apply_name_call_case();

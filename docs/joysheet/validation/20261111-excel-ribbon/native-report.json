@@ -1,0 +1,29 @@
+{
+  "passed": true,
+  "checks": [
+    "native tab click and GPU capture: Home",
+    "native tab click and GPU capture: Insert",
+    "native tab click and GPU capture: Draw",
+    "native tab click and GPU capture: Page Layout",
+    "native tab click and GPU capture: Formulas",
+    "native tab click and GPU capture: Data",
+    "native tab click and GPU capture: Review",
+    "native tab click and GPU capture: View",
+    "native tab click and GPU capture: Help",
+    "native tab click and GPU capture: Automate",
+    "File backstage and Escape return",
+    "Ribbon command returns cell focus for Ctrl+Z/Ctrl+Y",
+    "Home Bold and Format Painter apply real styles",
+    "Ctrl+F1 changes the visible ribbon and grid extent",
+    "Function search filters Math/Trig and SUM starts an editable formula",
+    "Hidden headings retain correct B2 editing coordinates",
+    "Draw pointer gesture creates ink; keyboard Undo/Redo restores it",
+    "Eraser removes ink objects",
+    "Saved XLSX reopens with ink intact",
+    "Local help opens and closes with Escape"
+  ],
+  "binary": "D:\\Coding\\EditorProjects\\joyoffice\\target\\debug\\joysheet.exe",
+  "binarySha256": "548ad815ae172b4308782998cca6c994350362392fab88adcdef531ae94f6786",
+  "source": "production GPUI synthetic input and native GPU readback",
+  "physicalInputVerified": false
+}

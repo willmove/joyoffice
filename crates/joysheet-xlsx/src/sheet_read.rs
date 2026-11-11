@@ -244,6 +244,7 @@ pub fn read_sheet(cx: &mut Ctx<'_>, part: &str, name: &str) -> Result<Sheet, IoE
                     crate::drawing::read_drawing(cx, &target, &mut sheet)?;
                 }
             }
+            "oleObjects" => crate::drawing_objects::read_embedded(cx, e, &rels, &mut sheet)?,
             "tableParts" => {
                 for tp in e.kids("tablePart") {
                     if let Some(rel) = tp.attr("id").and_then(|id| rels.iter().find(|r| r.id == id)) {

@@ -1,0 +1,16 @@
+{
+  "file": "D:\\Coding\\EditorProjects\\joyoffice\\artifacts\\joysheet\\object-parity-20261111\\objects-native.xlsx",
+  "sha256": "A2C20F60AC78FCDBED4ABC7B9CEA13D21D7B1C4A340C8A4443E7D78FC2A82DF4",
+  "sdk": "3.0.1",
+  "findings": [],
+  "sdkLimitations": [
+    {
+      "id": "Sch_InvalidChildinLeafElement",
+      "description": "The element 'http://schemas.microsoft.com/office/drawing/2010/main:m' is a leaf element and cannot contain children.",
+      "part": "/xl/drawings/drawing1.xml",
+      "path": "/xdr:wsDr[1]/xdr:twoCellAnchor[4]/xdr:sp[1]/xdr:txBody[1]/a:p[1]/a14:m[1]"
+    }
+  ],
+  "ommlSubtreesValidated": 1,
+  "passed": true
+}

@@ -172,6 +172,12 @@ pub(super) fn shape_set_text(s: &mut Session, p: &Json) -> Result<Json> {
     let sheet = d.wb.active_sheet();
     let sh = d.wb.active().ok_or_else(|| bad("shape.setText", "no such text box"))?;
     let shape = sh.shapes.iter().find(|shape| shape.id == id).ok_or_else(|| bad("shape.setText", "no such text box"))?;
+    if let Some(object) = &shape.format.object {
+        if matches!(object, DrawingObject::SmartArt { .. } | DrawingObject::WordArt { .. } | DrawingObject::Equation { .. }) {
+            return super::super::drawing_objects::edit_object(s, p);
+        }
+        return Err(bad("shape.setText", "this object has dedicated properties"));
+    }
     if shape.kind != ShapeKind::TextBox {
         return Err(bad("shape.setText", "the shape is not a text box"));
     }

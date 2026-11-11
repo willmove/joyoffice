@@ -124,7 +124,7 @@ fn mime_for(name: &str) -> &'static str {
 pub fn read_drawing(cx: &mut Ctx<'_>, part: &str, sheet: &mut Sheet) -> Result<(), IoError> {
     let Some(x) = cx.optional_xml(part)? else { return Ok(()) };
     let rels = cx.pkg.rels(part)?;
-    for (n, a) in x.children.iter().enumerate() {
+    for (n, a) in crate::xml::office_children(&x).into_iter().enumerate() {
         let Some(anchor) = read_anchor(a, sheet) else { continue };
         let n = n + 1;
         // Objects in markup-compatibility blocks: the first choice (chartex frames), else the
@@ -181,6 +181,14 @@ pub fn read_drawing(cx: &mut Ctx<'_>, part: &str, sheet: &mut Sheet) -> Result<(
                         } else {
                             cx.warn(format!("chart {target} is missing from the package and was skipped ({part}, object {n})"));
                         }
+                    } else if uri.contains("/timeslicer") {
+                        if let Some(shape) = crate::timeline::read_graphic(cx, obj, anchor) {
+                            sheet.shapes.push(shape);
+                        }
+                    } else if uri.contains("/diagram") {
+                        if let Some(shape) = crate::drawing_objects::read_smart_art(cx, obj, part, anchor)? {
+                            sheet.shapes.push(shape);
+                        }
                     } else if uri.contains("chartex") || uri.contains("chartEx") {
                         cx.warn(format!("a histogram, waterfall, treemap… chart without its chart part was skipped ({part}, object {n})"));
                     } else {
@@ -188,7 +196,16 @@ pub fn read_drawing(cx: &mut Ctx<'_>, part: &str, sheet: &mut Sheet) -> Result<(
                     }
                 }
                 "sp" | "cxnSp" => {
-                    if let Some(s) = read_shape(obj, anchor) {
+                    if let Some(mut s) = read_shape(obj, anchor) {
+                        let has_math = obj.child("txBody").is_some_and(|tb| tb.kids("p").any(|p| p.child("m").is_some()));
+                        if has_math && crate::drawing_objects::read_equation(obj).is_none() {
+                            let native_id = obj
+                                .path(&["nvSpPr", "cNvPr"])
+                                .and_then(|p| p.attr_u32("id"))
+                                .ok_or_else(|| IoError::Format("equation has no drawing id".into()))?;
+                            s.format.source = Some(crate::passthrough::drawing_source(cx, part, native_id)?);
+                            cx.warn("equation structures outside the editable subset are retained as original Office Math XML");
+                        }
                         let id = cx.next_object_id();
                         sheet.shapes.push(Shape { id, ..s });
                     }
@@ -229,7 +246,34 @@ fn read_shape(obj: &El, anchor: Anchor) -> Option<Shape> {
         })
         .unwrap_or_default();
     let mut format = read_text_format(obj.child("txBody"));
+    format.object = crate::drawing_objects::read_metadata(obj);
+    format.package_shape_id = obj
+        .path(&["nvSpPr", "cNvPr", "extLst"])
+        .and_then(|p| p.kids("ext").find_map(|e| e.child("compatExt")))
+        .and_then(|e| e.attr("spid"))
+        .and_then(|id| id.strip_prefix("_x0000_s"))
+        .and_then(|id| id.parse().ok());
+    // Foreign OLE proxies are displayed by the retained VML/object graph.
+    // They must not become additional editable rectangles on the worksheet.
+    if format.object.is_none() && format.package_shape_id.is_some() && obj.path(&["nvSpPr", "cNvPr"]).is_some_and(|p| p.flag("hidden", false)) {
+        return None;
+    }
+    let mut text = text;
+    if let Some(expression) = crate::drawing_objects::read_equation(obj) {
+        text = expression.linear();
+        format.object = Some(joysheet_model::DrawingObject::Equation { expression });
+    }
+    if let Some(warp) = obj.path(&["txBody", "bodyPr", "prstTxWarp"]).and_then(|p| p.attr("prst")) {
+        format.object =
+            Some(joysheet_model::DrawingObject::WordArt { warp: warp.into(), shadow: obj.path(&["spPr", "effectLst", "outerShdw"]).is_some() });
+    }
     format.no_line = ln.is_some_and(|l| l.child("noFill").is_some());
+    let kind = if let Some(joysheet_model::DrawingObject::Embedded { name, .. }) = &format.object {
+        text = name.clone();
+        ShapeKind::TextBox
+    } else {
+        kind
+    };
     Some(Shape { id: 0, kind, anchor, fill, line, text, format })
 }
 
@@ -271,12 +315,8 @@ fn read_text_format(body: Option<&El>) -> ShapeFormat {
 
 // ---------------------------------------------------------------- writing
 
-/// The opening `<xdr:twoCellAnchor>` for a model anchor, carrying Excel's `editAs` when the mode
-/// is not the default: omitted for "Move and size with cells", `editAs="oneCell"` for "Move but
-/// don't size", `editAs="absolute"` for "Don't move or size". (Excel writes pictures this way;
-/// the standalone `oneCellAnchor`/`absoluteAnchor` elements are read on import but not written.)
-/// Returns the opening tag and the matching closing tag.
-fn anchor_open(sheet: &Sheet, a: &Anchor) -> (String, &'static str) {
+/// The shared from/to markers for DrawingML and SpreadsheetML OLE anchors.
+pub(crate) fn anchor_points(sheet: &Sheet, a: &Anchor) -> String {
     let px = |v: f64| ((v.max(0.0)) * EMU_PER_PX).round() as i64;
     let x1 = sheet.col_left(a.cell.col) + a.dx as f64;
     let y1 = sheet.row_top(a.cell.row) + a.dy as f64;
@@ -286,24 +326,30 @@ fn anchor_open(sheet: &Sheet, a: &Anchor) -> (String, &'static str) {
     let tr = sheet.row_at(y2);
     let tdx = x2 - sheet.col_left(tc);
     let tdy = y2 - sheet.row_top(tr);
-    let edit = match a.mode {
-        AnchorMode::MoveAndSize => "",
-        AnchorMode::MoveOnly => " editAs=\"oneCell\"",
-        AnchorMode::Absolute => " editAs=\"absolute\"",
-    };
-    let open = format!(
-        "<xdr:twoCellAnchor{edit}><xdr:from><xdr:col>{}</xdr:col><xdr:colOff>{}</xdr:colOff><xdr:row>{}</xdr:row><xdr:rowOff>{}</xdr:rowOff></xdr:from><xdr:to><xdr:col>{tc}</xdr:col><xdr:colOff>{}</xdr:colOff><xdr:row>{tr}</xdr:row><xdr:rowOff>{}</xdr:rowOff></xdr:to>",
+    format!(
+        "<xdr:from><xdr:col>{}</xdr:col><xdr:colOff>{}</xdr:colOff><xdr:row>{}</xdr:row><xdr:rowOff>{}</xdr:rowOff></xdr:from><xdr:to><xdr:col>{tc}</xdr:col><xdr:colOff>{}</xdr:colOff><xdr:row>{tr}</xdr:row><xdr:rowOff>{}</xdr:rowOff></xdr:to>",
         a.cell.col,
         px(a.dx as f64),
         a.cell.row,
         px(a.dy as f64),
         px(tdx),
         px(tdy)
-    );
+    )
+}
+
+/// Excel writes all three placement modes as two-cell anchors, using `editAs`
+/// for "move only" and "absolute". Standalone anchors are also read on import.
+fn anchor_open(sheet: &Sheet, a: &Anchor) -> (String, &'static str) {
+    let edit = match a.mode {
+        AnchorMode::MoveAndSize => "",
+        AnchorMode::MoveOnly => " editAs=\"oneCell\"",
+        AnchorMode::Absolute => " editAs=\"absolute\"",
+    };
+    let open = format!("<xdr:twoCellAnchor{edit}>{}", anchor_points(sheet, a));
     (open, "</xdr:twoCellAnchor>")
 }
 
-fn xfrm(a: &Anchor, tag: &str) -> String {
+pub(crate) fn xfrm(a: &Anchor, tag: &str) -> String {
     let e = |v: f32| ((v.max(0.0) as f64) * EMU_PER_PX).round() as i64;
     format!("<{tag}><a:off x=\"0\" y=\"0\"/><a:ext cx=\"{}\" cy=\"{}\"/></{tag}>", e(a.width), e(a.height))
 }
@@ -318,6 +364,8 @@ pub enum Obj<'a> {
     Image(&'a Image, String),
     Chart(&'a joysheet_model::Chart, String),
     Shape(&'a Shape),
+    Embedded(&'a Shape, u32),
+    Xml(&'a Anchor, String),
 }
 
 /// The drawing part for a sheet's objects (relationship ids already assigned).
@@ -329,6 +377,12 @@ pub fn write_drawing(sheet: &Sheet, theme: &Theme, objs: &[Obj<'_>]) -> String {
         let id = i + 2;
         let close_tag;
         match o {
+            Obj::Xml(anchor, xml) => {
+                let (open, close) = anchor_open(sheet, anchor);
+                close_tag = close;
+                s.push_str(&open);
+                s.push_str(xml);
+            }
             Obj::Image(img, rid) => {
                 let (open, close) = anchor_open(sheet, &img.anchor);
                 close_tag = close;
@@ -366,7 +420,14 @@ pub fn write_drawing(sheet: &Sheet, theme: &Theme, objs: &[Obj<'_>]) -> String {
                     xfrm(&ch.anchor, "xdr:xfrm")
                 );
             }
-            Obj::Shape(sh) => {
+            Obj::Shape(sh) | Obj::Embedded(sh, _) => {
+                // Excel identifies an OLE drawing proxy by the same numeric id
+                // as oleObject/VML. A generic drawing id creates a second proxy
+                // on Save, which can cover the preview after reopening.
+                let id = match o {
+                    Obj::Embedded(_, spid) => *spid as usize,
+                    _ => id,
+                };
                 let (open, close) = anchor_open(sheet, &sh.anchor);
                 close_tag = close;
                 s.push_str(&open);
@@ -382,18 +443,29 @@ pub fn write_drawing(sheet: &Sheet, theme: &Theme, objs: &[Obj<'_>]) -> String {
                     ShapeKind::Ellipse => ("ellipse", false),
                     ShapeKind::Triangle => ("triangle", false),
                     ShapeKind::Line | ShapeKind::Arrow => ("line", false),
-                    ShapeKind::TextBox => ("rect", true),
+                    ShapeKind::TextBox => ("rect", !matches!(o, Obj::Embedded(..))),
                     ShapeKind::Icon | ShapeKind::Ink => ("rect", false),
                 };
                 let _ = write!(
                     s,
-                    "<xdr:sp macro=\"\" textlink=\"\"><xdr:nvSpPr><xdr:cNvPr id=\"{id}\" name=\"Shape {}\"/><xdr:cNvSpPr{}/></xdr:nvSpPr><xdr:spPr>{}<a:prstGeom prst=\"{prst}\"><a:avLst/></a:prstGeom>",
+                    "<xdr:sp macro=\"\" textlink=\"\"><xdr:nvSpPr><xdr:cNvPr id=\"{id}\" name=\"Shape {}\"{}>{}</xdr:cNvPr><xdr:cNvSpPr{}/></xdr:nvSpPr><xdr:spPr>{}<a:prstGeom prst=\"{prst}\"><a:avLst/></a:prstGeom>",
                     id - 1,
+                    if matches!(o, Obj::Embedded(..)) { " hidden=\"1\"" } else { "" },
+                    crate::drawing_objects::metadata_with_spid(
+                        sh,
+                        match o {
+                            Obj::Embedded(_, id) => Some(*id),
+                            _ => None,
+                        }
+                    ),
                     if tx { " txBox=\"1\"" } else { "" },
                     xfrm(&sh.anchor, "a:xfrm")
                 );
                 if let Some(c) = srgb(&sh.fill, theme) {
                     let _ = write!(s, "<a:solidFill>{c}</a:solidFill>");
+                }
+                if sh.fill == Color::Auto {
+                    s.push_str("<a:noFill/>");
                 }
                 let line_c = srgb(&sh.line, theme);
                 if sh.format.no_line {
@@ -411,8 +483,13 @@ pub fn write_drawing(sheet: &Sheet, theme: &Theme, objs: &[Obj<'_>]) -> String {
                     }
                     s.push_str("</a:ln>");
                 }
+                if matches!(sh.format.object, Some(joysheet_model::DrawingObject::WordArt { shadow: true, .. })) {
+                    s.push_str("<a:effectLst><a:outerShdw blurRad=\"38100\" dist=\"38100\" dir=\"5400000\" algn=\"ctr\" rotWithShape=\"0\"><a:srgbClr val=\"000000\"><a:alpha val=\"35000\"/></a:srgbClr></a:outerShdw></a:effectLst>");
+                }
                 s.push_str("</xdr:spPr>");
-                if !sh.text.is_empty() {
+                if let Some(joysheet_model::DrawingObject::Equation { expression }) = &sh.format.object {
+                    s.push_str(&crate::drawing_objects::equation_body(expression));
+                } else if !sh.text.is_empty() {
                     let f = &sh.format;
                     let anchor = match f.anchor {
                         Some(ShapeTextAnchor::Top) => " anchor=\"t\"",
@@ -421,7 +498,13 @@ pub fn write_drawing(sheet: &Sheet, theme: &Theme, objs: &[Obj<'_>]) -> String {
                         None if sh.kind == ShapeKind::TextBox => " anchor=\"t\"",
                         None => "",
                     };
-                    let _ = write!(s, "<xdr:txBody><a:bodyPr wrap=\"square\" rtlCol=\"0\"{anchor}/><a:lstStyle/>");
+                    let warp = match &f.object {
+                        Some(joysheet_model::DrawingObject::WordArt { warp, .. }) => {
+                            format!("<a:prstTxWarp prst=\"{}\"><a:avLst/></a:prstTxWarp>", esc_attr(warp))
+                        }
+                        _ => String::new(),
+                    };
+                    let _ = write!(s, "<xdr:txBody><a:bodyPr wrap=\"square\" rtlCol=\"0\"{anchor}>{warp}</a:bodyPr><a:lstStyle/>");
                     let algn = match f.align {
                         None => "",
                         Some(ShapeTextAlign::Left) => " algn=\"l\"",

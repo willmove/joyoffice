@@ -65,6 +65,8 @@ struct Group {
 
 struct CField {
     name: String,
+    /// Timeline source dates need typed cache items, not numeric serials.
+    date: bool,
     /// Column offset in the source (database fields only).
     col: Option<u32>,
     stats: Stats,
@@ -115,6 +117,17 @@ struct Pending {
 }
 
 impl PivotWriter {
+    pub fn timeline_info(&self, wb: &Workbook, name: &str, column: &str) -> Option<(usize, u32, i32, i32)> {
+        for p in &self.pending {
+            let pt = wb.sheet(p.sheet)?.pivots.get(p.idx)?;
+            if pt.name == name {
+                let f = p.cache.fields.iter().find(|f| f.name == column && f.stats.number)?;
+                return Some((p.sheet, p.cache_id, f.stats.min.floor() as i32, f.stats.max.floor() as i32));
+            }
+        }
+        None
+    }
+
     /// Writes the caches of a sheet's PivotTables and adds the sheet's relationships to its
     /// PivotTable parts. Pivots whose source can't be resolved are not written.
     pub fn add_sheet(&mut self, wb: &Workbook, si: usize, out: &mut Out, rels: &mut Rels) {
@@ -133,7 +146,7 @@ impl PivotWriter {
             } else {
                 None
             };
-            out.part(&cache_part, Some(CT_PIVOT_CACHE_DEF), cache_xml(&cache, rec_rid.as_deref(), wb.date_system).into_bytes());
+            out.part(&cache_part, Some(CT_PIVOT_CACHE_DEF), cache_xml(&cache, rec_rid.as_deref(), wb.date_system, n).into_bytes());
             self.caches.push((n, format!("pivotCache/pivotCacheDefinition{n}.xml")));
             self.tables += 1;
             let t = self.tables;
@@ -256,6 +269,15 @@ fn build_cache(wb: &Workbook, pt: &PivotTable, pivot_sheet: usize) -> Option<Cac
     // Lower-case names taken, and the next suffix for each header (linear for repeated headers).
     let mut taken = std::collections::HashSet::new();
     let mut next_suffix: HashMap<String, usize> = HashMap::new();
+    let timeline_columns: std::collections::HashSet<&str> = wb
+        .sheets
+        .iter()
+        .flat_map(|s| &s.shapes)
+        .filter_map(|shape| match &shape.format.object {
+            Some(joysheet_model::DrawingObject::Timeline { pivot, column, .. }) if pivot == &pt.name => Some(column.as_str()),
+            _ => None,
+        })
+        .collect();
     for (k, c) in (r.start.col..=r.end.col).enumerate() {
         let mut h = header_text(&sh.value(CellRef::new(r.start.row, c)).scalar());
         if h.is_empty() {
@@ -269,8 +291,10 @@ fn build_cache(wb: &Workbook, pt: &PivotTable, pivot_sheet: usize) -> Option<Cac
         }
         next_suffix.insert(h.to_lowercase(), i);
         taken.insert(n.to_lowercase());
+        let date = timeline_columns.contains(n.as_str());
         fields.push(CField {
             name: n,
+            date,
             col: Some(k as u32),
             stats: Stats::default(),
             items: vec![],
@@ -361,6 +385,7 @@ fn build_cache(wb: &Workbook, pt: &PivotTable, pivot_sheet: usize) -> Option<Cac
             }
             fields.push(CField {
                 name: n,
+                date: false,
                 col: None,
                 stats: Stats::default(),
                 items: vec![],
@@ -402,9 +427,10 @@ fn build_cache(wb: &Workbook, pt: &PivotTable, pivot_sheet: usize) -> Option<Cac
         }
     }
     for f in fields.iter_mut() {
+        f.date &= f.stats.number && !f.stats.strings() && iso(wb.date_system, f.stats.min).is_some() && iso(wb.date_system, f.stats.max).is_some();
         if f.group.is_some() {
             f.itemized = false;
-        } else if f.col.is_some() && (f.stats.text || f.stats.boolean || f.stats.error) {
+        } else if f.col.is_some() && (f.date || f.stats.text || f.stats.boolean || f.stats.error) {
             f.itemized = true;
         }
     }
@@ -434,10 +460,10 @@ fn build_cache(wb: &Workbook, pt: &PivotTable, pivot_sheet: usize) -> Option<Cac
                         Some(i) => {
                             let _ = write!(s, "<x v=\"{i}\"/>");
                         }
-                        None => s.push_str(&item_xml(&v, wb.date_system, false)),
+                        None => s.push_str(&item_xml(&v, wb.date_system, f.date)),
                     }
                 } else {
-                    s.push_str(&item_xml(&v, wb.date_system, f.group.is_some()));
+                    s.push_str(&item_xml(&v, wb.date_system, f.date || f.group.is_some()));
                 }
             }
             s.push_str("</r>");
@@ -455,6 +481,7 @@ fn build_cache(wb: &Workbook, pt: &PivotTable, pivot_sheet: usize) -> Option<Cac
         }
         fields.push(CField {
             name: cf.name.clone(),
+            date: false,
             col: None,
             stats: Stats::default(),
             items: vec![],
@@ -509,7 +536,7 @@ fn item_xml(v: &Value, sys: DateSystem, date: bool) -> String {
     }
 }
 
-fn cache_xml(c: &Cache, records_rid: Option<&str>, sys: DateSystem) -> String {
+fn cache_xml(c: &Cache, records_rid: Option<&str>, sys: DateSystem, cache_id: u32) -> String {
     let mut s = format!("{XML_DECL}<pivotCacheDefinition xmlns=\"{NS_MAIN}\" xmlns:r=\"{NS_REL}\"");
     match (records_rid, &c.records) {
         (Some(rid), Some((count, _))) => {
@@ -521,7 +548,7 @@ fn cache_xml(c: &Cache, records_rid: Option<&str>, sys: DateSystem) -> String {
     let _ = write!(s, "<cacheSource type=\"worksheet\">{}</cacheSource>", c.source_xml);
     let _ = write!(s, "<cacheFields count=\"{}\">", c.fields.len());
     for f in &c.fields {
-        let fmt = if f.group.is_some() { 14 } else { 0 };
+        let fmt = if f.date || f.group.is_some() { 14 } else { 0 };
         let _ = write!(s, "<cacheField name=\"{}\" numFmtId=\"{fmt}\"", esc_attr(&f.name));
         if let Some(formula) = &f.formula {
             let _ = write!(s, " formula=\"{}\"", esc_attr(formula));
@@ -533,7 +560,7 @@ fn cache_xml(c: &Cache, records_rid: Option<&str>, sys: DateSystem) -> String {
         let st = &f.stats;
         if f.col.is_some() {
             s.push_str("<sharedItems");
-            if let Some(g) = &f.group {
+            if f.date || f.group.is_some() {
                 s.push_str(" containsSemiMixedTypes=\"0\" containsNonDate=\"0\" containsDate=\"1\" containsString=\"0\"");
                 if st.blank {
                     s.push_str(" containsBlank=\"1\"");
@@ -541,7 +568,6 @@ fn cache_xml(c: &Cache, records_rid: Option<&str>, sys: DateSystem) -> String {
                 if let (Some(a), Some(b)) = (iso(sys, st.min), iso(sys, st.max)) {
                     let _ = write!(s, " minDate=\"{a}\" maxDate=\"{b}\"");
                 }
-                let _ = g;
             } else {
                 if !st.strings() && !st.blank {
                     s.push_str(" containsSemiMixedTypes=\"0\"");
@@ -569,7 +595,7 @@ fn cache_xml(c: &Cache, records_rid: Option<&str>, sys: DateSystem) -> String {
             if f.itemized {
                 let _ = write!(s, " count=\"{}\">", f.items.len());
                 for v in &f.items {
-                    s.push_str(&item_xml(v, sys, false));
+                    s.push_str(&item_xml(v, sys, f.date));
                 }
                 s.push_str("</sharedItems>");
             } else {
@@ -594,7 +620,10 @@ fn cache_xml(c: &Cache, records_rid: Option<&str>, sys: DateSystem) -> String {
         }
         s.push_str("</cacheField>");
     }
-    s.push_str("</cacheFields></pivotCacheDefinition>");
+    let _ = write!(
+        s,
+        "</cacheFields><extLst><ext uri=\"{{725AE2AE-9491-48be-B2B4-4EB974FC3084}}\" xmlns:x14=\"http://schemas.microsoft.com/office/spreadsheetml/2009/9/main\"><x14:pivotCacheDefinition pivotCacheId=\"{cache_id}\"/></ext></extLst></pivotCacheDefinition>"
+    );
     s
 }
 

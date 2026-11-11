@@ -15,17 +15,28 @@ mod desktop;
 mod formula_feedback;
 mod grid;
 mod grid_tools;
+mod ink;
 mod input;
+mod object_preview;
 mod object_tools;
+mod object_ui;
 mod objects;
 mod outline_text;
 mod palette;
+mod paper_view;
 mod password;
 mod performance;
 mod printing;
 mod recovery;
 mod ribbon;
+mod ribbon_catalog;
+mod ribbon_defaults;
+mod ribbon_gallery;
+mod ribbon_icons;
+mod ribbon_menus;
+mod ribbon_widgets;
 mod settings;
+mod tracing;
 mod validation;
 mod window_tools;
 mod windows_quality;
@@ -123,7 +134,7 @@ pub fn run(options: LaunchOptions) -> Result<(), String> {
     let recovery_entries = recovery_service.list()?;
     let diagnostics = options.diagnostics;
     let (opens, open_requests) = std::sync::mpsc::channel();
-    let application = gpui_kit::application();
+    let application = gpui_kit::application().with_assets(gpui_kit::assets::AllAssets);
     application.on_open_urls(move |urls| {
         let _ = opens.send(urls);
     });
@@ -203,3 +214,7 @@ fn install_text_measurements(engine: &EngineClient, cx: &App) {
         eprintln!("Joysheet text measurement: {error}");
     }
 }
+
+#[cfg(test)]
+#[path = "tests/ribbon_tests.rs"]
+mod ribbon_tests;

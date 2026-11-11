@@ -43,6 +43,30 @@ pub(crate) fn path(
             }
         }
         if let Some((stroke, width)) = stroke {
+            // A two-point horizontal/vertical path has a zero-area source
+            // bounds in GPUI and can disappear during tessellation/culling.
+            // Paint its stroke as a centered quad, including fractional widths.
+            if points.len() == 2 && (first[0] == points[1][0] || first[1] == points[1][1]) {
+                let end = points[1];
+                let thickness = (width * scale).max(0.5);
+                let horizontal = first[1] == end[1];
+                let start = position([first[0].min(end[0]), first[1].min(end[1])]);
+                let offset = if horizontal { point(px(0.), px(-thickness / 2.)) } else { point(px(-thickness / 2.), px(0.)) };
+                let extent = if horizontal {
+                    size(px((end[0] - first[0]).abs() * scale), px(thickness))
+                } else {
+                    size(px(thickness), px((end[1] - first[1]).abs() * scale))
+                };
+                let mut bounds = window.pixel_snap_bounds(Bounds::new(start + offset, extent));
+                let pixel = px(1. / window.scale_factor());
+                if horizontal {
+                    bounds.size.height = bounds.size.height.max(pixel);
+                } else {
+                    bounds.size.width = bounds.size.width.max(pixel);
+                }
+                window.paint_quad(gpui::fill(bounds, color(stroke)));
+                return;
+            }
             let mut builder = PathBuilder::stroke(px((width * scale).max(0.5)));
             builder.move_to(position(first));
             for p in points.iter().skip(1) {

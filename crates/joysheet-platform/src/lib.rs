@@ -137,6 +137,20 @@ pub async fn pick_save(name: &str) -> Option<PathBuf> {
         .await
         .map(|file| file.path().to_path_buf())
 }
+pub async fn pick_embedded() -> Option<PathBuf> {
+    rfd::AsyncFileDialog::new().set_title("插入对象 — 由文件创建 / Create from file").pick_file().await.map(|f| f.path().to_path_buf())
+}
+pub async fn pick_extracted(name: &str) -> Option<PathBuf> {
+    rfd::AsyncFileDialog::new().set_title("保存嵌入文件 / Save embedded file").set_file_name(name).save_file().await.map(|f| f.path().to_path_buf())
+}
+pub async fn pick_picture() -> Option<PathBuf> {
+    rfd::AsyncFileDialog::new()
+        .set_title("插入图片 / Insert picture")
+        .add_filter("Pictures", &["png", "jpg", "jpeg"])
+        .pick_file()
+        .await
+        .map(|f| f.path().to_path_buf())
+}
 #[derive(Default)]
 pub struct Clipboard {
     inner: Option<arboard::Clipboard>,

@@ -627,6 +627,15 @@ pub enum ShapeTextAnchor {
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct ShapeFormat {
+    /// Structured drawing content. The outer shape supplies its anchor and common formatting.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub object: Option<crate::DrawingObject>,
+    #[serde(skip)]
+    pub package_shape_id: Option<u32>,
+    /// A native drawing with unsupported semantics: retain its XML and relationship graph.
+    /// It may be positioned but content edits must explicitly replace the unsupported object.
+    #[serde(skip)]
+    pub source: Option<std::sync::Arc<crate::Preserved>>,
     /// No outline (`a:ln/a:noFill`), whatever `Shape::line` says.
     pub no_line: bool,
     /// Text size in points (`a:rPr sz` / 100); `None` is the default size.

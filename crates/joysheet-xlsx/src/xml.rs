@@ -73,6 +73,26 @@ impl El {
     }
 }
 
+/// Children selected from Office's markup-compatibility wrappers. The drawing
+/// and Package readers support the a14/x14 choices used here; reading only one
+/// branch avoids duplicating objects from their fallback representations.
+pub fn office_children(e: &El) -> Vec<&El> {
+    fn append<'a>(e: &'a El, out: &mut Vec<&'a El>) {
+        for child in &e.children {
+            if child.name == "AlternateContent" {
+                if let Some(branch) = child.child("Choice").or_else(|| child.child("Fallback")) {
+                    append(branch, out);
+                }
+            } else {
+                out.push(child);
+            }
+        }
+    }
+    let mut out = Vec::new();
+    append(e, &mut out);
+    out
+}
+
 /// Text of a SpreadsheetML string item (`<si>`, `<is>`, comment `<text>`): `<t>` and rich text
 /// runs `<r><t>`, phonetic runs ignored (read them with [`phonetic_data`] instead — they are hints,
 /// not part of the text). Decodes `_xHHHH_` escapes.

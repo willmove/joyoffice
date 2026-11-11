@@ -27,10 +27,12 @@ struct PaintState {
     view: WindowSnapshot,
     geo: SheetGeometry,
     layout: GridLayout,
+    paper: Option<std::sync::Arc<joysheet_engine::paper::PageGrid>>,
     selection: joysheet_engine::Selection,
     cf_cache: std::rc::Rc<std::cell::RefCell<joysheet_engine::cf::CfCache>>,
     chart_cache: crate::charts::ChartCache,
     images: crate::objects::Images,
+    object_scenes: crate::objects::Scenes,
 }
 impl IntoElement for SheetElement {
     type Element = Self;
@@ -98,6 +100,7 @@ impl Element for SheetElement {
                 view.geometry_key = Some(key);
                 *view.cf_cache.borrow_mut() = joysheet_engine::cf::CfCache::new();
                 view.chart_cache.borrow_mut().clear();
+                view.object_scenes.borrow_mut().clear();
                 if first {
                     cx.notify();
                 }
@@ -105,8 +108,29 @@ impl Element for SheetElement {
             let geometry_ms = geometry_started.elapsed().as_secs_f64() * 1000.;
             let geo = view.geometry.clone()?;
             let layout_started = Instant::now();
-            let layout =
+            let mut layout =
                 GridLayout::new(sheet, &geo, view.scroll.0, view.scroll.1, f32::from(bounds.size.width) - 14., f32::from(bounds.size.height) - 14.);
+            let paper = if sheet.view != joysheet_engine::model::SheetViewMode::Normal {
+                let (r, c) = joysheet_engine::paper::need_for(
+                    sheet,
+                    (view.scroll.0 + layout.width as f64) / layout.zoom,
+                    (view.scroll.1 + layout.height as f64) / layout.zoom,
+                );
+                let r = r.max(snapshot.selection.active.row);
+                let c = c.max(snapshot.selection.active.col);
+                if view.page_grid_key != Some(key) || view.page_grid.as_ref().is_none_or(|p| !p.covers(r, c)) {
+                    view.page_grid = joysheet_engine::paper::PageGrid::build(&snapshot.workbook, snapshot.sheet, r, c).map(std::sync::Arc::new);
+                    view.page_grid_key = Some(key);
+                }
+                view.page_grid.clone()
+            } else {
+                None
+            };
+            if sheet.view == joysheet_engine::model::SheetViewMode::PageLayout
+                && let Some(p) = &paper
+            {
+                layout = layout.with_paper(p.clone(), &geo);
+            }
             let layout_ms = layout_started.elapsed().as_secs_f64() * 1000.;
             view.scroll = (layout.scroll_x, layout.scroll_y);
             view.layout = layout.clone();
@@ -140,10 +164,12 @@ impl Element for SheetElement {
                 view: snapshot,
                 geo,
                 layout,
+                paper,
                 selection: view.selection(),
                 cf_cache: view.cf_cache.clone(),
                 chart_cache: view.chart_cache.clone(),
                 images: view.object_images.clone(),
+                object_scenes: view.object_scenes.clone(),
             })
         })
     }
@@ -182,6 +208,29 @@ impl Element for SheetElement {
         let started = Instant::now();
         let mut frame = state.frame_timing.clone();
         let count = paint_sheet(state, bounds, window, cx, &mut frame);
+        let trace_arrows = self.view.read(cx).trace_arrows.clone();
+        crate::tracing::paint(&trace_arrows, &state.view, &state.layout, &state.geo, bounds, window, cx);
+        let ink = &self.view.read(cx).ink;
+        if !ink.points.is_empty() {
+            let freeze = state.view.sheet().and_then(|s| s.freeze).unwrap_or((0, 0));
+            let points: Vec<_> = ink
+                .points
+                .iter()
+                .map(|p| {
+                    [
+                        ROW_HEADER
+                            + (p[0] * state.layout.zoom - if p[0] < state.geo.cols.start(freeze.1) { 0. } else { state.layout.scroll_x }) as f32,
+                        COL_HEADER
+                            + (p[1] * state.layout.zoom - if p[1] < state.geo.rows.start(freeze.0) { 0. } else { state.layout.scroll_y }) as f32,
+                    ]
+                })
+                .collect();
+            let color = u32::from_str_radix(ink.color.trim_start_matches('#'), 16).unwrap_or(0x202020);
+            let rgba = [(color >> 16) as u8, (color >> 8) as u8, color as u8, 255];
+            window.with_content_mask(Some(ContentMask { bounds }), |window| {
+                crate::charts::path(&points, false, None, Some((rgba, ink.width * state.layout.zoom as f32)), bounds.origin, 1., window)
+            });
+        }
         let elapsed = started.elapsed().as_secs_f64() * 1000.;
         frame.paint_ms = elapsed;
         self.view.update(cx, |view, _| {
@@ -228,7 +277,21 @@ fn filter_header(sheet: &joysheet_engine::model::Sheet, cell: CellRef) -> bool {
             .any(|t| t.header_row && t.filter_button && cell.row == t.range.start.row && cell.col >= t.range.start.col && cell.col <= t.range.end.col)
 }
 fn fill(rect: Bounds<Pixels>, color: u32, window: &mut Window) {
-    let rect = if rect.size.width <= px(1.5) || rect.size.height <= px(1.5) { window.pixel_snap_bounds(rect) } else { rect };
+    let rect = if rect.size.width <= px(1.5) || rect.size.height <= px(1.5) {
+        let mut snapped = window.pixel_snap_bounds(rect);
+        // Fractional page margins can round both edges of a hairline to the same
+        // physical pixel. Keep a nonempty rule visible at every print scale.
+        let pixel = px(1. / window.scale_factor());
+        if rect.size.width > px(0.) {
+            snapped.size.width = snapped.size.width.max(pixel);
+        }
+        if rect.size.height > px(0.) {
+            snapped.size.height = snapped.size.height.max(pixel);
+        }
+        snapped
+    } else {
+        rect
+    };
     window.paint_quad(gpui::fill(rect, rgb(color)));
 }
 fn rgb_color(color: Color, view: &WindowSnapshot, default: u32) -> u32 {
@@ -292,7 +355,7 @@ fn paint_sheet(state: &PaintState, area: Bounds<Pixels>, window: &mut Window, cx
     let ox = f32::from(area.origin.x);
     let oy = f32::from(area.origin.y);
     let layout = &state.layout;
-    fill(area, 0xffffff, window);
+    crate::paper_view::background(&state.view, layout, state.paper.as_deref(), area, window, cx);
     let mut cells = Vec::new();
     let mut seen = HashSet::new();
     let mut cf = state.cf_cache.borrow_mut();
@@ -305,15 +368,27 @@ fn paint_sheet(state: &PaintState, area: Bounds<Pixels>, window: &mut Window, cx
                 continue;
             }
             let end = merge.map(|m| m.end).unwrap_or(anchor);
-            let x = ROW_HEADER + (state.geo.cols.start(anchor.col) * layout.zoom - if col.frozen { 0. } else { layout.scroll_x }) as f32;
-            let y = COL_HEADER + (state.geo.rows.start(anchor.row) * layout.zoom - if row.frozen { 0. } else { layout.scroll_y }) as f32;
+            let cell_box = layout.cell_rect(anchor, &state.geo, sheet.freeze.unwrap_or((0, 0)));
+            let x = cell_box.x;
+            let y = cell_box.y;
             let width = ((state.geo.cols.start(end.col.saturating_add(1)) - state.geo.cols.start(anchor.col)) * layout.zoom) as f32;
             let height = ((state.geo.rows.start(end.row.saturating_add(1)) - state.geo.rows.start(anchor.row)) * layout.zoom) as f32;
             let clip_x = if col.frozen { ROW_HEADER } else { ROW_HEADER + layout.frozen_width };
             let clip_y = if row.frozen { COL_HEADER } else { COL_HEADER + layout.frozen_height };
             let clip_right = if col.frozen { (ROW_HEADER + layout.frozen_width).min(layout.width) } else { layout.width };
             let clip_bottom = if row.frozen { (COL_HEADER + layout.frozen_height).min(layout.height) } else { layout.height };
-            let clip = bounds(ox + clip_x, oy + clip_y, clip_right - clip_x, clip_bottom - clip_y);
+            let mut clip = bounds(ox + clip_x, oy + clip_y, clip_right - clip_x, clip_bottom - clip_y);
+            if let Some(paper) = &layout.paper {
+                let i = paper.page_row_at(paper.row_y(anchor.row));
+                let j = paper.page_col_at(paper.col_x(anchor.col));
+                let (px0, py0, pw, ph) = paper.content_rect(i, j);
+                clip = clip.intersect(&bounds(
+                    ox + ROW_HEADER + (px0 * layout.zoom - layout.scroll_x) as f32,
+                    oy + COL_HEADER + (py0 * layout.zoom - layout.scroll_y) as f32,
+                    (pw * layout.zoom) as f32,
+                    (ph * layout.zoom) as f32,
+                ));
+            }
             if clip.size.width <= px(0.) || clip.size.height <= px(0.) {
                 continue;
             }
@@ -389,10 +464,6 @@ fn paint_sheet(state: &PaintState, area: Bounds<Pixels>, window: &mut Window, cx
                         window.paint_quad(gpui::fill(bar, rgba(((r as u32) << 24) | ((g as u32) << 16) | ((b as u32) << 8) | 0x77)));
                     }
                 }
-                if sheet.show_gridlines {
-                    fill(bounds(ox + x + width - 0.5, oy + y, 0.5, height), 0xe3e9e4, window);
-                    fill(bounds(ox + x, oy + y + height - 0.5, width, 0.5), 0xe3e9e4, window);
-                }
                 if style.num_fmt.as_str() == "checkbox" && matches!(sheet.value(anchor), CellValue::Bool(_) | CellValue::Empty) {
                     crate::complex_format::checkbox(
                         sheet.value(anchor) == CellValue::Bool(true),
@@ -401,17 +472,6 @@ fn paint_sheet(state: &PaintState, area: Bounds<Pixels>, window: &mut Window, cx
                         layout.zoom as f32,
                         window,
                     );
-                }
-                let (l, t, r, b) = (ox + x + 1., oy + y + 1., ox + x + width - 1., oy + y + height - 1.);
-                for (line, a, z) in [
-                    (style.borders.left, [l, t], [l, b]),
-                    (style.borders.top, [l, t], [r, t]),
-                    (style.borders.right, [r, t], [r, b]),
-                    (style.borders.bottom, [l, b], [r, b]),
-                    (style.borders.diag_down, [l, t], [r, b]),
-                    (style.borders.diag_up, [l, b], [r, t]),
-                ] {
-                    crate::complex_format::border(a, z, line.style, rgb_color(line.color, &state.view, 0x3c5144), layout.zoom as f32, clip, window);
                 }
             });
             let formatted = joysheet_engine::display::format(&sheet.value(anchor), style.num_fmt.as_str(), &state.view.workbook);
@@ -513,6 +573,36 @@ fn paint_sheet(state: &PaintState, area: Bounds<Pixels>, window: &mut Window, cx
             }
         }
     }
+    // Paint rules after every background. With fractional paper margins, adjacent
+    // cell fills otherwise cover the shared edge when the GPU rounds its bounds.
+    if sheet.show_gridlines {
+        for cell in &cells {
+            let (x, y, w, h) =
+                (f32::from(cell.rect.origin.x), f32::from(cell.rect.origin.y), f32::from(cell.rect.size.width), f32::from(cell.rect.size.height));
+            window.with_content_mask(Some(ContentMask { bounds: cell.clip }), |window| {
+                fill(bounds(x + w - 0.5, y, 0.5, h), 0xe3e9e4, window);
+                fill(bounds(x, y + h - 0.5, w, 0.5), 0xe3e9e4, window);
+            });
+        }
+    }
+    for cell in &cells {
+        let (x, y, w, h) =
+            (f32::from(cell.rect.origin.x), f32::from(cell.rect.origin.y), f32::from(cell.rect.size.width), f32::from(cell.rect.size.height));
+        let (l, t, r, b) = (x + 1., y + 1., x + w - 1., y + h - 1.);
+        let borders = &cell.style.borders;
+        window.with_content_mask(Some(ContentMask { bounds: cell.clip }), |window| {
+            for (line, a, z) in [
+                (borders.left, [l, t], [l, b]),
+                (borders.top, [l, t], [r, t]),
+                (borders.right, [r, t], [r, b]),
+                (borders.bottom, [l, b], [r, b]),
+                (borders.diag_down, [l, t], [r, b]),
+                (borders.diag_up, [l, b], [r, t]),
+            ] {
+                crate::complex_format::border(a, z, line.style, rgb_color(line.color, &state.view, 0x3c5144), layout.zoom as f32, cell.clip, window);
+            }
+        });
+    }
     timing.cells_ms = cells_started.elapsed().as_secs_f64() * 1000.;
     let text_started = Instant::now();
     for cell in &cells {
@@ -543,17 +633,14 @@ fn paint_sheet(state: &PaintState, area: Bounds<Pixels>, window: &mut Window, cx
     }
     timing.text_ms = text_started.elapsed().as_secs_f64() * 1000.;
     crate::charts::paint(&state.view, &state.geo, layout, area, &state.chart_cache, window, cx);
-    crate::objects::paint(&state.view, layout, &state.geo, area, &state.images, window, cx);
+    crate::objects::paint(&state.view, layout, &state.geo, area, &state.images, &state.object_scenes, window, cx);
     for reference in &state.references {
         let r = reference.range;
         for frozen_row in [false, true] {
             for frozen_col in [false, true] {
-                let left = ROW_HEADER + (state.geo.cols.start(r.start.col) * layout.zoom - if frozen_col { 0. } else { layout.scroll_x }) as f32;
-                let right = ROW_HEADER
-                    + (state.geo.cols.start(r.end.col.saturating_add(1)) * layout.zoom - if frozen_col { 0. } else { layout.scroll_x }) as f32;
-                let top = COL_HEADER + (state.geo.rows.start(r.start.row) * layout.zoom - if frozen_row { 0. } else { layout.scroll_y }) as f32;
-                let bottom = COL_HEADER
-                    + (state.geo.rows.start(r.end.row.saturating_add(1)) * layout.zoom - if frozen_row { 0. } else { layout.scroll_y }) as f32;
+                let start = layout.cell_rect(r.start, &state.geo, (if frozen_row { u32::MAX } else { 0 }, if frozen_col { u32::MAX } else { 0 }));
+                let end = layout.cell_rect(r.end, &state.geo, (if frozen_row { u32::MAX } else { 0 }, if frozen_col { u32::MAX } else { 0 }));
+                let (left, top, right, bottom) = (start.x, start.y, end.x + end.width, end.y + end.height);
                 let x = if frozen_col { ROW_HEADER } else { ROW_HEADER + layout.frozen_width };
                 let y = if frozen_row { COL_HEADER } else { COL_HEADER + layout.frozen_height };
                 let w = if frozen_col { layout.frozen_width } else { layout.width - x };
@@ -596,10 +683,9 @@ fn paint_sheet(state: &PaintState, area: Bounds<Pixels>, window: &mut Window, cx
     let selection = state.selection.current();
     for frozen_row in [false, true] {
         for frozen_col in [false, true] {
-            let sx = ROW_HEADER + (state.geo.cols.start(selection.start.col) * layout.zoom - if frozen_col { 0. } else { layout.scroll_x }) as f32;
-            let sy = COL_HEADER + (state.geo.rows.start(selection.start.row) * layout.zoom - if frozen_row { 0. } else { layout.scroll_y }) as f32;
-            let sw = ((state.geo.cols.start(selection.end.col.saturating_add(1)) - state.geo.cols.start(selection.start.col)) * layout.zoom) as f32;
-            let sh = ((state.geo.rows.start(selection.end.row.saturating_add(1)) - state.geo.rows.start(selection.start.row)) * layout.zoom) as f32;
+            let start = layout.cell_rect(selection.start, &state.geo, (if frozen_row { u32::MAX } else { 0 }, if frozen_col { u32::MAX } else { 0 }));
+            let end = layout.cell_rect(selection.end, &state.geo, (if frozen_row { u32::MAX } else { 0 }, if frozen_col { u32::MAX } else { 0 }));
+            let (sx, sy, sw, sh) = (start.x, start.y, end.x + end.width - start.x, end.y + end.height - start.y);
             let x = if frozen_col { ROW_HEADER } else { ROW_HEADER + layout.frozen_width };
             let y = if frozen_row { COL_HEADER } else { COL_HEADER + layout.frozen_height };
             let right = if frozen_col { ROW_HEADER + layout.frozen_width } else { layout.width };
@@ -617,6 +703,7 @@ fn paint_sheet(state: &PaintState, area: Bounds<Pixels>, window: &mut Window, cx
             });
         }
     }
+    crate::paper_view::breaks(&state.view, layout, state.paper.as_deref(), &state.geo, area, window, cx);
     // Row and column headers cover the scrolled content and have their own stable hit geometry.
     fill(bounds(ox, oy, layout.width, COL_HEADER), state.palette.chrome, window);
     fill(bounds(ox, oy, ROW_HEADER, layout.height), state.palette.chrome, window);
@@ -863,8 +950,15 @@ impl Desktop {
             .capture_any_mouse_down(cx.listener(|this, event, window, cx| this.grid_mouse_down(event, window, cx)))
             .on_mouse_move(cx.listener(|this, event, window, cx| this.grid_mouse_move(event, window, cx)))
             .capture_any_mouse_up(cx.listener(|this, _, _, cx| {
+                this.finish_ink(cx);
                 this.finish_object_drag(cx);
                 this.finish_dimension_drag(cx);
+                this.finish_break_drag(cx);
+                this.finish_timeline(cx);
+                if this.format_painter {
+                    this.format_painter = false;
+                    this.issue("edit.formatPainter", json!({"apply":this.selection().a1()}), After::None, cx);
+                }
                 this.drag_anchor = None;
                 this.edge_drag = None;
                 this.reference_pick = None;
@@ -1009,7 +1103,17 @@ impl Desktop {
                 );
             }
         }
-        body
+        if self.view().and_then(|v| v.sheet()).is_some_and(|s| !s.show_headings) {
+            div()
+                .flex_1()
+                .min_h_0()
+                .relative()
+                .overflow_hidden()
+                .child(body.absolute().left(px(-ROW_HEADER)).top(px(-COL_HEADER)).right_0().bottom_0())
+                .into_any_element()
+        } else {
+            body.into_any_element()
+        }
     }
     fn grid_mouse_down(&mut self, event: &MouseDownEvent, window: &mut Window, cx: &mut Context<Self>) {
         if self.composing(window, cx) {
@@ -1024,6 +1128,14 @@ impl Desktop {
         }
         let x = f32::from(event.position.x - self.grid_bounds.origin.x);
         let y = f32::from(event.position.y - self.grid_bounds.origin.y);
+        if self.begin_paper_edit(x, y, window, cx) {
+            cx.stop_propagation();
+            return;
+        }
+        if self.begin_ink(x, y, window, cx) {
+            cx.stop_propagation();
+            return;
+        }
         if self.begin_dimension_drag(x, y, window, cx) {
             if event.click_count >= 2
                 && let Some(d) = self.resize_drag.take()
@@ -1040,6 +1152,22 @@ impl Desktop {
             return;
         }
         if self.object_mouse_down(x, y, event.modifiers.control || event.modifiers.platform || event.modifiers.shift, window, cx) {
+            if event.click_count >= 2 {
+                let content = self
+                    .selected_object
+                    .as_ref()
+                    .and_then(|o| self.view()?.sheet()?.shapes.iter().find(|s| s.id == o.id))
+                    .and_then(|s| s.format.object.as_ref());
+                let command = match content {
+                    Some(joysheet_engine::model::DrawingObject::Embedded { .. }) => Some("object.extract"),
+                    Some(joysheet_engine::model::DrawingObject::Timeline { .. }) | None => None,
+                    _ => Some("object.edit"),
+                };
+                if let Some(command) = command {
+                    self.object_drag = None;
+                    self.open_command(command, window, cx);
+                }
+            }
             cx.stop_propagation();
             return;
         }
@@ -1172,6 +1300,21 @@ impl Desktop {
         }
         let x = f32::from(event.position.x - self.grid_bounds.origin.x);
         let y = f32::from(event.position.y - self.grid_bounds.origin.y);
+        if self.move_ink(x, y, cx) {
+            return;
+        }
+        if self.move_timeline(x, cx) {
+            return;
+        }
+        if let Some(d) = &mut self.break_drag {
+            let lines = if d.column { &self.layout.cols } else { &self.layout.rows };
+            let pos = if d.column { x } else { y };
+            if let Some(line) = lines.iter().min_by(|a, b| (a.start - pos).abs().total_cmp(&(b.start - pos).abs())) {
+                d.to = line.index.max(1);
+            }
+            cx.notify();
+            return;
+        }
         if let Some(d) = &mut self.resize_drag {
             d.delta = if d.column { x } else { y } - d.origin;
             cx.notify();

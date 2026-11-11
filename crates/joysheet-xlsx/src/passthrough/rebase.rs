@@ -1,6 +1,7 @@
 use super::read::merge_vml;
 use super::write::{NameMap, attach, part_rels_xml, remap, write_parts};
 use super::*;
+use crate::xml::esc_attr;
 
 /// A sheet's kept content being written.
 pub struct SheetKept<'a> {
@@ -28,11 +29,32 @@ impl<'a> SheetKept<'a> {
         }
     }
 
-    /// GridCraft's notes VML for part `name`, merged with the kept control and object shapes.
-    pub fn notes_vml(&self, ours: String, name: &str, out: &mut Out) -> String {
-        let Some(vml) = self.vml() else { return ours };
-        self.write_vml_rels(vml, name, out);
-        merge_vml(&String::from_utf8_lossy(&vml.data), &ours)
+    /// An image relationship id that cannot collide with retained VML relationships.
+    pub fn vml_image_id(&self, index: u32) -> String {
+        let mut id = format!("JoyOleImage{index}");
+        while self.vml().is_some_and(|vml| vml.rels.iter().any(|r| r.id == id)) {
+            id.push('_');
+        }
+        id
+    }
+
+    /// Notes and editable Package previews merged with retained control/object shapes.
+    pub fn notes_vml(&self, ours: String, name: &str, images: &[(String, String)], out: &mut Out) -> String {
+        let mut rels = self.vml().map(|vml| part_rels_xml(&vml.rels, &self.names)).unwrap_or_else(|| Rels::default().xml());
+        let mut extra = String::new();
+        for (id, target) in images {
+            let _ = write!(
+                extra,
+                "<Relationship Id=\"{}\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/image\" Target=\"{}\"/>",
+                esc_attr(id),
+                esc_attr(target)
+            );
+        }
+        rels = rels.replace("</Relationships>", &format!("{extra}</Relationships>"));
+        if !images.is_empty() || self.vml().is_some_and(|v| !v.rels.is_empty()) {
+            out.part(&rels_part_name(name), None, rels.into_bytes());
+        }
+        self.vml().map(|vml| merge_vml(&String::from_utf8_lossy(&vml.data), &ours)).unwrap_or(ours)
     }
 
     /// The kept VML drawing of a sheet without notes; its new relationship id.

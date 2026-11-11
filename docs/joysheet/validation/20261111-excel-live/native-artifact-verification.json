@@ -1,0 +1,33 @@
+{
+  "finalCandidate": {
+    "path": "artifacts\\joysheet\\excel-live-20261111\\round15\\objects-native.xlsx",
+    "sha256": "e5e50252a08b0cbaba7304949503e9958a493791bd5439adadc34243e4c7ab2c",
+    "embeddedPayload": {
+      "bytes": 27,
+      "sha256": "541ef136516eb04e933a505fab09234feef003457803bc2eaf41e52a89abeea9",
+      "exact": true
+    }
+  },
+  "excelSaved": {
+    "path": "artifacts\\joysheet\\excel-live-20261111\\round15\\excel-saved-objects-r15.xlsx",
+    "sha256": "5d6e193ea831377cbb33e5172580b85574eef849c1325511abb097a737163d94",
+    "embeddedPayload": {
+      "bytes": 27,
+      "sha256": "541ef136516eb04e933a505fab09234feef003457803bc2eaf41e52a89abeea9",
+      "exact": true
+    }
+  },
+  "timelineFilter": {
+    "startDate": "2026-01-01T00:00:00",
+    "endDate": "2026-01-31T00:00:00"
+  },
+  "pageReference": {
+    "header": "&CHeader",
+    "rowBreak": {
+      "id": "48",
+      "max": "16383",
+      "man": "1"
+    },
+    "path": "artifacts\\joysheet\\excel-live-20261111\\excel-page-and-trace-reference.xlsx"
+  }
+}
