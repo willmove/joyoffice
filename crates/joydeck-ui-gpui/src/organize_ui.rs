@@ -1,6 +1,5 @@
 //! Slide organization, multi-selection and drag/drop share the document transaction path.
 use super::*;
-use gpui_kit::component::{Sizable, button::ButtonVariants};
 use joydeck_engine::{Command, WorkspaceAction};
 use joydeck_model::SlideId;
 
@@ -185,81 +184,45 @@ impl Viewer {
             },
         );
     }
-    pub(super) fn organization_controls(&self, cx: &mut Context<Self>) -> Div {
-        let disabled = self.editor.is_none() || self.loading || self.composing();
-        chrome::group(
-            "组织",
-            div()
-                .flex()
-                .flex_col()
-                .gap_1()
-                .child(
-                    Button::new("move-slides")
-                        .ghost()
-                        .xsmall()
-                        .label("移动幻灯片…")
-                        .h(px(25.))
-                        .disabled(disabled)
-                        .on_click(cx.listener(|s, _, w, cx| s.organize_dialog(w, cx))),
-                )
-                .child(
-                    div()
-                        .flex()
-                        .gap_1()
-                        .child(
-                            Button::new("section-slides")
-                                .ghost()
-                                .xsmall()
-                                .label("节…")
-                                .h(px(25.))
-                                .disabled(disabled)
-                                .on_click(cx.listener(|s, _, w, cx| {
-                                    let slides = s.selected_slides();
-                                    s.fields_dialog(
-                                        "将选中页组成节",
-                                        vec![("节名称", String::new())],
-                                        w,
-                                        cx,
-                                        move |s, v, w, cx| {
-                                            s.dispatch(
-                                                Command::Workspace {
-                                                    action: WorkspaceAction::Section {
-                                                        name: v[0].clone(),
-                                                        slides: slides.clone(),
-                                                    },
-                                                },
-                                                w,
-                                                cx,
-                                            );
-                                            Ok(())
-                                        },
-                                    );
-                                })),
-                        )
-                        .child(
-                            Button::new("hide-slides")
-                                .ghost()
-                                .xsmall()
-                                .label("隐藏／显示")
-                                .h(px(25.))
-                                .disabled(disabled)
-                                .on_click(cx.listener(|s, _, w, cx| {
-                                    let slides = s.selected_slides();
-                                    let hidden = s.editor.as_ref().is_some_and(|e| {
-                                        slides.iter().any(|id| {
-                                            e.session.model().slide(*id).is_some_and(|s| !s.hidden)
-                                        })
-                                    });
-                                    s.dispatch(
-                                        Command::Workspace {
-                                            action: WorkspaceAction::HideSlides { slides, hidden },
-                                        },
-                                        w,
-                                        cx,
-                                    );
-                                })),
-                        ),
-                ),
-        )
+    pub(super) fn create_slide_section(&mut self, w: &mut Window, cx: &mut Context<Self>) {
+        let slides = self.selected_slides();
+        self.fields_dialog(
+            "将选中页组成节",
+            vec![("节名称", String::new())],
+            w,
+            cx,
+            move |s, v, w, cx| {
+                s.dispatch(
+                    Command::Workspace {
+                        action: WorkspaceAction::Section {
+                            name: v[0].clone(),
+                            slides: slides.clone(),
+                        },
+                    },
+                    w,
+                    cx,
+                );
+                Ok(())
+            },
+        );
+    }
+
+    pub(super) fn toggle_hidden_slides(&mut self, w: &mut Window, cx: &mut Context<Self>) {
+        let slides = self.selected_slides();
+        let hidden = self.editor.as_ref().is_some_and(|e| {
+            slides.iter().any(|id| {
+                e.session
+                    .model()
+                    .slide(*id)
+                    .is_some_and(|slide| !slide.hidden)
+            })
+        });
+        self.dispatch(
+            Command::Workspace {
+                action: WorkspaceAction::HideSlides { slides, hidden },
+            },
+            w,
+            cx,
+        );
     }
 }

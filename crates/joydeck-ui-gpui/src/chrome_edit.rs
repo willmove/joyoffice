@@ -4,9 +4,20 @@ use gpui_kit::component::{Icon, Sizable, button::ButtonVariants};
 use joydeck_engine::Command;
 use joydeck_model::{
     edit,
-    text::{Align, Bullet, RunProps, TextBody},
+    text::{Align, Bullet, RunProps, Strike, TextBody},
 };
 use joyoffice_ui::IconName as I;
+
+fn unavailable_format(id: &'static str, icon: I, label: &'static str) -> Button {
+    Button::new(id)
+        .ghost()
+        .xsmall()
+        .icon(icon)
+        .h(px(25.))
+        .w(px(26.))
+        .accessibility_label(format!("{label}（暂不支持）"))
+        .disabled(true)
+}
 
 impl Viewer {
     pub(super) fn format_runs(
@@ -122,25 +133,56 @@ impl Viewer {
     }
     pub(super) fn font_group(&self, cx: &mut Context<Self>) -> Div {
         let state = self.formatting();
-        let disabled = state.is_empty() || self.loading || self.composing();
+        let empty = state.is_empty();
+        let disabled = empty || self.loading || self.composing();
         let props = state.run;
         let p = chrome::palette(self.dark);
         let mut formats = div().flex().items_center().gap(px(1.));
-        for (id, label, icon, on) in [
-            ("font-bold", "加粗", I::Bold, props.bold == Some(true)),
-            ("font-italic", "倾斜", I::Italic, props.italic == Some(true)),
+        for (id, label, icon, property, on) in [
+            (
+                "font-bold",
+                "加粗",
+                I::Bold,
+                "bold",
+                props.bold == Some(true),
+            ),
+            (
+                "font-italic",
+                "倾斜",
+                I::Italic,
+                "italic",
+                props.italic == Some(true),
+            ),
             (
                 "font-underline",
                 "下划线",
                 I::Underline,
+                "underline",
                 props.underline.as_deref().is_some_and(|u| u != "none"),
             ),
+            (
+                "font-strike",
+                "删除线",
+                I::Strikethrough,
+                "strike",
+                props.strike.is_some_and(|strike| strike != Strike::None),
+            ),
+            (
+                "font-super",
+                "上标",
+                I::Superscript,
+                "baseline",
+                props.baseline.is_some_and(|value| value > 0.),
+            ),
+            (
+                "font-sub",
+                "下标",
+                I::Subscript,
+                "baseline",
+                props.baseline.is_some_and(|value| value < 0.),
+            ),
         ] {
-            let mixed = state.mixed.contains(match id {
-                "font-bold" => "bold",
-                "font-italic" => "italic",
-                _ => "underline",
-            });
+            let mixed = state.mixed.contains(property);
             let accessible = if mixed {
                 format!("{label}（混合格式）")
             } else {
@@ -164,7 +206,14 @@ impl Viewer {
                             |p| match id {
                                 "font-bold" => p.bold = Some(!on),
                                 "font-italic" => p.italic = Some(!on),
-                                _ => p.underline = Some(if on { "none" } else { "sng" }.into()),
+                                "font-underline" => {
+                                    p.underline = Some(if on { "none" } else { "sng" }.into())
+                                }
+                                "font-strike" => {
+                                    p.strike = Some(if on { Strike::None } else { Strike::Single })
+                                }
+                                "font-super" => p.baseline = Some(if on { 0. } else { 0.30 }),
+                                _ => p.baseline = Some(if on { 0. } else { -0.25 }),
                             },
                             w,
                             cx,
@@ -172,21 +221,38 @@ impl Viewer {
                     })),
             );
         }
-        formats = formats.child(self.font_color_picker(disabled, cx)).child(
-            Button::new("clear-format")
-                .ghost()
-                .xsmall()
-                .icon(I::RemoveFormatting)
-                .h(px(25.))
-                .accessibility_label("清除字符格式")
-                .tooltip("清除字符格式")
-                .disabled(disabled)
-                .on_click(cx.listener(|s, _, w, cx| {
-                    s.format_runs(joydeck_engine::formatting::clear_character_format, w, cx)
-                })),
-        );
+        let clear_format = Button::new("clear-format")
+            .ghost()
+            .xsmall()
+            .icon(I::RemoveFormatting)
+            .h(px(23.))
+            .accessibility_label("清除字符格式")
+            .tooltip("清除字符格式")
+            .disabled(disabled)
+            .on_click(cx.listener(|s, _, w, cx| {
+                s.format_runs(joydeck_engine::formatting::clear_character_format, w, cx)
+            }));
+        formats = formats
+            .child(unavailable_format(
+                "font-spacing",
+                I::MoveHorizontal,
+                "字符间距",
+            ))
+            .child(unavailable_format(
+                "font-case",
+                I::CaseSensitive,
+                "更改大小写",
+            ))
+            .child(unavailable_format(
+                "font-highlight",
+                I::Highlighter,
+                "文本突出显示颜色",
+            ))
+            .child(self.font_color_picker(disabled, cx));
         let family = props.font.filter(|s| !s.starts_with('+')).unwrap_or(
-            if state.mixed.contains("font") || state.mixed.contains("font_ea") {
+            if empty {
+                ""
+            } else if state.mixed.contains("font") || state.mixed.contains("font_ea") {
                 "混合字体"
             } else {
                 "主题字体"
@@ -209,7 +275,7 @@ impl Viewer {
                             .placeholder(family)
                             .menu_width(px(260.))
                             .menu_max_h(px(360.))
-                            .w(px(138.))
+                            .w(px(169.))
                             .h(px(23.))
                             .disabled(disabled),
                     )
@@ -237,7 +303,8 @@ impl Viewer {
                             .tooltip("减小字号 (Ctrl+Shift+,)")
                             .disabled(disabled)
                             .on_click(cx.listener(|s, _, w, cx| s.step_font_size(false, w, cx))),
-                    ),
+                    )
+                    .child(clear_format),
             )
             .child(
                 formats.child(
@@ -329,7 +396,9 @@ impl Viewer {
                             cx,
                         )
                     })),
-            );
+            )
+            .child(self.line_spacing_picker(disabled, cx))
+            .child(unavailable_format("paragraph-columns", I::Columns2, "栏"));
         let mut second = div().flex().gap(px(1.));
         for (id, label, icon, align) in [
             ("align-left", "左对齐", I::TextAlignStart, Align::Left),
@@ -340,6 +409,12 @@ impl Viewer {
                 "两端对齐",
                 I::TextAlignJustify,
                 Align::Justify,
+            ),
+            (
+                "align-distributed",
+                "分散对齐",
+                I::TextAlignJustify,
+                Align::Distributed,
             ),
         ] {
             second = second.child(
@@ -360,7 +435,7 @@ impl Viewer {
                     })),
             );
         }
-        second = second.child(self.line_spacing_picker(disabled, cx)).child(
+        second = second.child(
             Button::new("paragraph-dialog")
                 .ghost()
                 .xsmall()

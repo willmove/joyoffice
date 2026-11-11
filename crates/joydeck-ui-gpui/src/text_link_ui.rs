@@ -39,38 +39,50 @@ fn parse_address(value: &str, document: &Presentation) -> Result<Action, String>
 }
 
 impl Viewer {
-    pub(super) fn text_link_group(&self, cx: &mut Context<Self>) -> Div {
+    pub(super) fn text_link_controls(&self, cx: &mut Context<Self>) -> impl IntoElement {
         let disabled = self.loading
             || self.composing()
             || self.benchmark.is_some()
             || self.format_targets().len() != 1;
-        chrome::group(
-            "链接",
-            div()
-                .flex()
-                .flex_col()
-                .gap_1()
-                .child(
-                    Button::new("insert-text-link")
-                        .ghost()
-                        .xsmall()
-                        .h(px(25.))
-                        .label("链接…")
-                        .disabled(disabled)
-                        .on_click(
-                            cx.listener(|s, _, w, cx| s.edit_text_link(&EditTextLink, w, cx)),
-                        ),
+        let view = cx.entity().downgrade();
+        chrome::row()
+            .gap_0()
+            .child(
+                chrome::tool(
+                    "insert-text-link",
+                    joyoffice_ui::IconName::Link,
+                    "链接",
+                    0x326797,
                 )
-                .child(
-                    Button::new("remove-text-link")
-                        .ghost()
-                        .xsmall()
-                        .h(px(25.))
-                        .label("移除链接")
-                        .disabled(disabled)
-                        .on_click(cx.listener(|s, _, w, cx| s.remove_text_link(w, cx))),
-                ),
-        )
+                .disabled(disabled)
+                .on_click(cx.listener(|s, _, w, cx| s.edit_text_link(&EditTextLink, w, cx))),
+            )
+            .child(
+                gpui_kit::component::popover::Popover::new("link-options")
+                    .trigger(
+                        Button::new("link-options-trigger")
+                            .ghost()
+                            .xsmall()
+                            .p_0()
+                            .w(px(14.))
+                            .h(px(35.))
+                            .icon(joyoffice_ui::IconName::ChevronDown)
+                            .accessibility_label("链接选项")
+                            .disabled(disabled),
+                    )
+                    .content(move |_, _, cx| {
+                        let popup = cx.entity().downgrade();
+                        let view = view.clone();
+                        Button::new("remove-text-link")
+                            .ghost()
+                            .xsmall()
+                            .label("移除链接")
+                            .on_click(move |_, w, cx| {
+                                let _ = popup.update(cx, |p, cx| p.dismiss(w, cx));
+                                let _ = view.update(cx, |s, cx| s.remove_text_link(w, cx));
+                            })
+                    }),
+            )
     }
 
     fn link_scope(

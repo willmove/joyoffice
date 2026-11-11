@@ -149,7 +149,7 @@
     "source_path": "apps/joydeck/src/viewer.rs",
     "target_path": "crates/joydeck-ui-gpui/src/viewer.rs",
     "source_sha256": "249104bdece51947664a50fe4b8166f358662e78d0000ed7d0024b10fade5584",
-    "adapted_sha256": "2ed672826abdc8830a7585de533918a0e6c93de51a541c88f1bc49632df77f80",
+    "adapted_sha256": "d01c77c44ef78c8b9170f44c93eea8bdefa0eba0f81357e8da5bd88638c04d0e",
     "local_changes": "Reuse asynchronous read-only viewer, generation guards, cancellation, virtual thumbnail rail and bounded cache; adapt to DeckCraft model and shared CPU renderer; R1 branding and aspect fit; upstream validation modules deferred; R1 rustfmt and bounded reader/CPU-renderer/palette/notes adapters as applicable; R2 editable viewer adapter, background save/recovery, command-driven gestures, coordinate anchoring and close guard; rustfmt; R4/R5 scene/content workspace adaptation; R6/R7 adapter additions and repository rustfmt/LF normalization.; R8 native editor, clipboard or product package version adaptation; R9-UI1 native formatting controls and schema-2 validation/history compatibility (see slice evidence)",
     "r9_ui2_adaptation": "Formatting, desktop control and reviewed preservation validation; LF source representation.",
     "r9_ui2_gui_fix": "Synchronize every editor palette with GPUI Kit application theme during render",
@@ -162,7 +162,8 @@
     "text_box_layout": "Register the native text-box layout module.",
     "text_hyperlinks": "Register the native text-link editor and its desktop shortcuts.",
     "dynamic_text_fields": "Support atomic dynamic text fields, native authoring, and separate rendered/source offsets.",
-    "product_branding": "Set the editor window app ID to match the Linux desktop launcher."
+    "product_branding": "Set the editor window app ID to match the Linux desktop launcher.",
+    "macos_powerpoint_ribbon": "Integrate the macOS window title bar and register reference ribbon panels."
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
@@ -622,13 +623,14 @@
     "target_path": "crates/joydeck-ui-gpui/src/chrome.rs",
     "source_sha256": "efd229d2bca36c8887fa16026f4946bbe3240cd9ea9b1b9b65c8c83c11933438",
     "local_changes": "R8 per-tab bounded GPUI construction frames follow the old JoyDeck ribbon pattern; split Home into groups and keep intrinsic horizontal scroll width on default MSVC stack.",
-    "adapted_sha256": "4739274c415118a1ac0d3e2331f239bdcef4317ead3da06d2abba0d049c53c56",
+    "adapted_sha256": "967827ece25fdebc4c2148c449fab06d1e1dba0870d006191c43cfe94a2e8c9d",
     "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained.",
     "cancellable_open": "Add an explicit cancel action to the status bar while opening a document.",
     "shared_document_view": "Separate window selection and state from the shared editor session and preserve revision guards.",
     "text_box_layout": "Expose native text-box layout controls on the contextual formatting ribbon.",
     "text_hyperlinks": "Expose the native text-link editor and removal in the Insert ribbon.",
     "dynamic_text_fields": "Support atomic dynamic text fields, native authoring, and separate rendered/source offsets.",
-    "footer_menu": "Expose the existing atomic slide footer commands through the Insert ribbon."
+    "footer_menu": "Expose the existing atomic slide footer commands through the Insert ribbon.",
+    "macos_powerpoint_ribbon": "Arrange the native ribbon using the observed macOS PowerPoint tab order, spacing and command groups."
   }
 ]

@@ -1,11 +1,12 @@
 //! Table formatting uses bounded engine transactions and the existing public OOXML writer.
 use super::*;
-use gpui_kit::component::{Sizable, button::ButtonVariants, popover::Popover};
+use gpui_kit::component::{Selectable, Sizable, button::ButtonVariants, popover::Popover};
 use joydeck_engine::{CellBorders, CellFormat, CellRange, Command, TableAction};
 use joydeck_model::{
     ShapeKind, Table,
     text::{Anchor, TextDir},
 };
+use joyoffice_ui::IconName as I;
 
 impl Viewer {
     fn selected_table(&self) -> Option<(ShapeId, &Table, CellRange)> {
@@ -104,7 +105,225 @@ impl Viewer {
             })
     }
     #[inline(never)]
-    pub(super) fn table_controls(&self, cx: &mut Context<Self>) -> Div {
+    fn table_design_controls(&self, range: CellRange, cx: &mut Context<Self>) -> Div {
+        let mut bar = chrome::row()
+            .h(px(chrome::RIBBON_HEIGHT))
+            .child(self.table_style_gallery(cx));
+        let table = self.selected_table().map(|(_, table, _)| table);
+        let disabled = table.is_none() || self.loading || self.composing();
+        let first_row = table.is_none_or(|table| table.first_row);
+        let band_row = table.is_none_or(|table| table.band_row);
+        let styles = joydeck_model::table::table_styles()
+            .into_iter()
+            .map(|(name, label)| {
+                (
+                    label,
+                    TableAction::Style {
+                        name,
+                        first_row,
+                        band_row,
+                    },
+                )
+            })
+            .collect();
+        let colors = [
+            ("浅蓝", 0xdce6f1),
+            ("浅橙", 0xfce4d6),
+            ("浅绿", 0xe2efda),
+            ("浅黄", 0xfff2cc),
+            ("白色", 0xffffff),
+            ("蓝色", 0x4472c4),
+            ("橙色", 0xed7d31),
+            ("灰色", 0xa5a5a5),
+        ];
+        let mut fills: Vec<_> = colors
+            .into_iter()
+            .map(|(label, rgb)| {
+                (
+                    label.into(),
+                    TableAction::Format {
+                        range,
+                        format: CellFormat {
+                            fill_rgb: Some(rgb),
+                            ..Default::default()
+                        },
+                    },
+                )
+            })
+            .collect();
+        fills.push((
+            "恢复样式底色".into(),
+            TableAction::Format {
+                range,
+                format: CellFormat {
+                    clear_fill: true,
+                    ..Default::default()
+                },
+            },
+        ));
+        bar = bar.child(chrome::group(
+            "表格样式",
+            div()
+                .flex()
+                .flex_col()
+                .gap_1()
+                .child(self.table_menu("table-styles", "表格样式", styles, cx))
+                .child(self.table_menu("table-shading", "底纹", fills, cx)),
+        ));
+        let borders = [
+            ("所有边框", [true; 4], false),
+            ("无边框", [true; 4], true),
+            ("下边框", [false, false, false, true], false),
+            ("上边框", [false, false, true, false], false),
+            ("左边框", [true, false, false, false], false),
+            ("右边框", [false, true, false, false], false),
+        ]
+        .into_iter()
+        .map(|(label, sides, remove)| {
+            (
+                label.into(),
+                TableAction::Format {
+                    range,
+                    format: CellFormat {
+                        borders: Some(CellBorders {
+                            sides,
+                            rgb: 0x404040,
+                            width: 1.,
+                            remove,
+                        }),
+                        ..Default::default()
+                    },
+                },
+            )
+        })
+        .collect();
+        bar = bar.child(chrome::group(
+            "边框",
+            div()
+                .flex()
+                .flex_col()
+                .gap_1()
+                .child(self.table_menu("table-borders", "边框", borders, cx))
+                .child(
+                    Button::new("table-border-settings")
+                        .ghost()
+                        .xsmall()
+                        .label("边框设置…")
+                        .h(px(25.))
+                        .disabled(disabled)
+                        .on_click(cx.listener(|s, _, w, cx| s.table_border_dialog(w, cx))),
+                ),
+        ));
+        bar
+    }
+
+    #[inline(never)]
+    fn table_style_gallery(&self, cx: &mut Context<Self>) -> Div {
+        use super::ribbon_reference::{gallery, ribbon_checks};
+        use joydeck_model::SchemeSlot as Slot;
+        let table = self.selected_table().map(|(_, table, _)| table);
+        let disabled = table.is_none() || self.loading || self.composing();
+        let style = table.map_or("", |table| table.style.as_str());
+        let first_row = table.is_none_or(|table| table.first_row);
+        let band_row = table.is_none_or(|table| table.band_row);
+        let master = self.editor.as_ref().and_then(|editor| {
+            let model = editor.session.model();
+            model
+                .master_for(model.slides.get(self.page)?)
+                .map(|(master, _)| master)
+        });
+        let mut tiles = gallery(self.dark);
+        for (i, slot) in [
+            Slot::Tx1,
+            Slot::Accent1,
+            Slot::Accent2,
+            Slot::Accent3,
+            Slot::Accent4,
+            Slot::Accent5,
+            Slot::Accent6,
+        ]
+        .into_iter()
+        .enumerate()
+        {
+            let label = if i == 0 {
+                "中等样式 2".into()
+            } else {
+                format!("中等样式 2 · 强调色 {i}")
+            };
+            let name = if i == 0 {
+                "medium2-tx1".into()
+            } else {
+                format!("medium2-accent{i}")
+            };
+            let c = master.map_or(0x326797, |master| {
+                let c = master.theme.colors.get(slot);
+                u32::from_be_bytes([0, c.r, c.g, c.b])
+            });
+            tiles = tiles.child(
+                Button::new(("table-style-tile", i))
+                    .ghost()
+                    .w(px(64.))
+                    .h(px(52.))
+                    .p_1()
+                    .tooltip(label.clone())
+                    .accessibility_label(label)
+                    .selected(name == style)
+                    .disabled(disabled)
+                    .child(
+                        div()
+                            .w(px(55.))
+                            .h(px(36.))
+                            .flex()
+                            .flex_col()
+                            .gap(px(1.))
+                            .bg(rgb(0xffffff))
+                            .children((0..4).map(|r| {
+                                let opacity = if r == 0 && first_row {
+                                    1.
+                                } else if r % 2 == 1 && band_row {
+                                    0.34
+                                } else {
+                                    0.16
+                                };
+                                div().flex_1().flex().gap(px(1.)).children(
+                                    (0..3).map(|_| div().flex_1().bg(rgb(c).opacity(opacity))),
+                                )
+                            })),
+                    )
+                    .on_click(cx.listener(move |s, _, w, cx| {
+                        s.table_action(
+                            TableAction::Style {
+                                name: name.clone(),
+                                first_row,
+                                band_row,
+                            },
+                            w,
+                            cx,
+                        );
+                    })),
+            );
+        }
+        chrome::row()
+            .child(chrome::group(
+                "表格样式选项",
+                chrome::row()
+                    .gap_3()
+                    .child(ribbon_checks(&[
+                        ("标题行", first_row),
+                        ("汇总行", table.is_some_and(|t| t.last_row)),
+                        ("镶边行", band_row),
+                    ]))
+                    .child(ribbon_checks(&[
+                        ("第一列", table.is_some_and(|t| t.first_col)),
+                        ("最后一列", table.is_some_and(|t| t.last_col)),
+                        ("镶边列", table.is_some_and(|t| t.band_col)),
+                    ])),
+            ))
+            .child(chrome::group("样式图库", tiles))
+    }
+
+    #[inline(never)]
+    pub(super) fn table_controls(&self, design: bool, cx: &mut Context<Self>) -> Div {
         let disabled = self.selected_table().is_none() || self.loading || self.composing();
         let range = self
             .selected_table()
@@ -115,32 +334,10 @@ impl Viewer {
                 end_row: 0,
                 end_col: 0,
             });
-        let mut bar = div().flex().items_start().h(px(66.));
-        bar = bar.child(chrome::group(
-            "编辑",
-            div()
-                .flex()
-                .flex_col()
-                .gap_1()
-                .child(
-                    Button::new("table-edit-text")
-                        .ghost()
-                        .xsmall()
-                        .label("编辑文字")
-                        .h(px(25.))
-                        .disabled(disabled)
-                        .on_click(cx.listener(Self::begin_inline)),
-                )
-                .child(
-                    Button::new("table-copy-text")
-                        .ghost()
-                        .xsmall()
-                        .label("复制文字／表格")
-                        .h(px(25.))
-                        .disabled(disabled)
-                        .on_click(cx.listener(|s, _, _, cx| s.copy_grid(cx))),
-                ),
-        ));
+        if design {
+            return self.table_design_controls(range, cx);
+        }
+        let mut bar = chrome::row().h(px(chrome::RIBBON_HEIGHT));
         bar = bar.child(chrome::group(
             "选择",
             div()
@@ -213,119 +410,11 @@ impl Viewer {
                 .child(self.table_menu("table-rows", "行", row_ops, cx))
                 .child(self.table_menu("table-columns", "列", col_ops, cx)),
         ));
-        let styles = joydeck_model::table::table_styles()
-            .into_iter()
-            .map(|(name, label)| {
-                (
-                    label,
-                    TableAction::Style {
-                        name,
-                        first_row: true,
-                        band_row: true,
-                    },
-                )
-            })
-            .collect();
-        let colors = [
-            ("浅蓝", 0xdce6f1),
-            ("浅橙", 0xfce4d6),
-            ("浅绿", 0xe2efda),
-            ("浅黄", 0xfff2cc),
-            ("白色", 0xffffff),
-            ("蓝色", 0x4472c4),
-            ("橙色", 0xed7d31),
-            ("灰色", 0xa5a5a5),
-        ];
-        let mut fills: Vec<_> = colors
-            .into_iter()
-            .map(|(label, rgb)| {
-                (
-                    label.into(),
-                    TableAction::Format {
-                        range,
-                        format: CellFormat {
-                            fill_rgb: Some(rgb),
-                            ..Default::default()
-                        },
-                    },
-                )
-            })
-            .collect();
-        fills.push((
-            "恢复样式底色".into(),
-            TableAction::Format {
-                range,
-                format: CellFormat {
-                    clear_fill: true,
-                    ..Default::default()
-                },
-            },
-        ));
-        bar = bar.child(chrome::group(
-            "表格样式",
-            div()
-                .flex()
-                .flex_col()
-                .gap_1()
-                .child(self.table_menu("table-styles", "表格样式", styles, cx))
-                .child(self.table_menu("table-shading", "单元格底色", fills, cx)),
-        ));
-        let borders = [
-            ("所有边框", [true; 4], false),
-            ("无边框", [true; 4], true),
-            ("下边框", [false, false, false, true], false),
-            ("上边框", [false, false, true, false], false),
-            ("左边框", [true, false, false, false], false),
-            ("右边框", [false, true, false, false], false),
-        ]
-        .into_iter()
-        .map(|(label, sides, remove)| {
-            (
-                label.into(),
-                TableAction::Format {
-                    range,
-                    format: CellFormat {
-                        borders: Some(CellBorders {
-                            sides,
-                            rgb: 0x404040,
-                            width: 1.,
-                            remove,
-                        }),
-                        ..Default::default()
-                    },
-                },
-            )
-        })
-        .collect();
-        bar = bar.child(chrome::group(
-            "边框",
-            div()
-                .flex()
-                .flex_col()
-                .gap_1()
-                .child(self.table_menu("table-borders", "边框", borders, cx))
-                .child(
-                    Button::new("table-border-settings")
-                        .ghost()
-                        .xsmall()
-                        .label("边框设置…")
-                        .h(px(25.))
-                        .disabled(disabled)
-                        .on_click(cx.listener(|s, _, w, cx| s.table_border_dialog(w, cx))),
-                ),
-        ));
         bar = bar.child(chrome::group(
             "合并",
-            div()
-                .flex()
-                .flex_col()
-                .gap_1()
+            chrome::row()
                 .child(
-                    Button::new("merge-cells")
-                        .ghost()
-                        .xsmall()
-                        .label("合并选区")
-                        .h(px(25.))
+                    chrome::tool("merge-cells", I::TableCellsMerge, "合并\n单元格", 0x326797)
                         .disabled(
                             disabled || (range.row == range.end_row && range.col == range.end_col),
                         )
@@ -343,11 +432,7 @@ impl Viewer {
                         })),
                 )
                 .child(
-                    Button::new("split-cell")
-                        .ghost()
-                        .xsmall()
-                        .label("拆分单元格")
-                        .h(px(25.))
+                    chrome::tool("split-cell", I::TableCellsSplit, "拆分\n单元格", 0x326797)
                         .disabled(disabled)
                         .on_click(cx.listener(move |s, _, w, cx| {
                             s.table_action(
@@ -409,7 +494,7 @@ impl Viewer {
                 .child(self.table_menu("cell-anchor", "垂直对齐", anchors, cx))
                 .child(self.table_menu("cell-direction", "文字方向", directions, cx)),
         ));
-        bar.child(chrome::group(
+        bar = bar.child(chrome::group(
             "大小",
             div()
                 .flex()
@@ -433,7 +518,33 @@ impl Viewer {
                         .disabled(disabled)
                         .on_click(cx.listener(|s, _, w, cx| s.table_margins_dialog(w, cx))),
                 ),
-        ))
+        ));
+        bar = bar.child(chrome::group(
+            "编辑",
+            div()
+                .flex()
+                .flex_col()
+                .gap_1()
+                .child(
+                    Button::new("table-edit-text")
+                        .ghost()
+                        .xsmall()
+                        .label("编辑文字")
+                        .h(px(25.))
+                        .disabled(disabled)
+                        .on_click(cx.listener(Self::begin_inline)),
+                )
+                .child(
+                    Button::new("table-copy-text")
+                        .ghost()
+                        .xsmall()
+                        .label("复制文字／表格")
+                        .h(px(25.))
+                        .disabled(disabled)
+                        .on_click(cx.listener(|s, _, _, cx| s.copy_grid(cx))),
+                ),
+        ));
+        bar
     }
     fn table_range_dialog(&mut self, w: &mut Window, cx: &mut Context<Self>) {
         let Some((id, t, range)) = self.selected_table() else {

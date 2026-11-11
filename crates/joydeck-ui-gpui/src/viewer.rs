@@ -84,6 +84,8 @@ mod organize_ui;
 mod paragraph_ui;
 #[path = "review_ui.rs"]
 mod review_ui;
+#[path = "ribbon_reference.rs"]
+mod ribbon_reference;
 #[path = "scene_benchmark.rs"]
 mod scene_benchmark;
 #[path = "scene_canvas.rs"]
@@ -1091,6 +1093,10 @@ pub fn open_window(
                 cx,
             ))),
             window_min_size: Some(size(px(800.), px(600.))),
+            titlebar: Some(gpui::TitlebarOptions {
+                appears_transparent: cfg!(target_os = "macos"),
+                ..Default::default()
+            }),
             ..Default::default()
         },
         cx,

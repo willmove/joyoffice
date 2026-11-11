@@ -53,45 +53,44 @@ impl FooterScope {
 
 impl Viewer {
     #[inline(never)]
-    pub(super) fn footer_group(&self, cx: &mut Context<Self>) -> Div {
+    pub(super) fn footer_control(&self, cx: &mut Context<Self>) -> impl IntoElement {
         let view = cx.entity().downgrade();
         let disabled = self.editor.is_none() || self.loading || self.composing();
-        chrome::group(
-            "页脚",
-            Popover::new("footer-menu")
-                .trigger(
-                    Button::new("insert-footer")
-                        .ghost()
-                        .small()
-                        .label("页脚…")
-                        .disabled(disabled),
+        Popover::new("footer-menu")
+            .trigger(
+                chrome::tool(
+                    "insert-footer",
+                    joyoffice_ui::IconName::NotebookText,
+                    "页眉和\n页脚",
+                    0x326797,
                 )
-                .content(move |_, _, cx| {
-                    let popup = cx.entity().downgrade();
-                    div().flex().flex_col().gap_1().children(
-                        [
-                            FooterScope::CurrentMissing,
-                            FooterScope::AllMissing,
-                            FooterScope::Existing,
-                            FooterScope::ClearExisting,
-                        ]
-                        .into_iter()
-                        .enumerate()
-                        .map(|(index, scope)| {
-                            let popup = popup.clone();
-                            let view = view.clone();
-                            Button::new(("footer-scope", index))
-                                .ghost()
-                                .small()
-                                .label(scope.label())
-                                .on_click(move |_, w, cx| {
-                                    let _ = popup.update(cx, |p, cx| p.dismiss(w, cx));
-                                    let _ = view.update(cx, |s, cx| s.footer_dialog(scope, w, cx));
-                                })
-                        }),
-                    )
-                }),
-        )
+                .disabled(disabled),
+            )
+            .content(move |_, _, cx| {
+                let popup = cx.entity().downgrade();
+                div().flex().flex_col().gap_1().children(
+                    [
+                        FooterScope::CurrentMissing,
+                        FooterScope::AllMissing,
+                        FooterScope::Existing,
+                        FooterScope::ClearExisting,
+                    ]
+                    .into_iter()
+                    .enumerate()
+                    .map(|(index, scope)| {
+                        let popup = popup.clone();
+                        let view = view.clone();
+                        Button::new(("footer-scope", index))
+                            .ghost()
+                            .small()
+                            .label(scope.label())
+                            .on_click(move |_, w, cx| {
+                                let _ = popup.update(cx, |p, cx| p.dismiss(w, cx));
+                                let _ = view.update(cx, |s, cx| s.footer_dialog(scope, w, cx));
+                            })
+                    }),
+                )
+            })
     }
 
     fn footer_dialog(&mut self, scope: FooterScope, w: &mut Window, cx: &mut Context<Self>) {
@@ -146,17 +145,18 @@ impl Viewer {
     }
 
     #[inline(never)]
-    pub(super) fn text_field_group(&self, cx: &mut Context<Self>) -> Div {
+    pub(super) fn text_field_controls(&self, cx: &mut Context<Self>) -> [AnyElement; 2] {
         let disabled = !self.can_insert_text_field();
         let view = cx.entity().downgrade();
         let date = Popover::new("insert-date-menu")
             .trigger(
-                Button::new("insert-date")
-                    .ghost()
-                    .xsmall()
-                    .h(px(25.))
-                    .label("日期和时间…")
-                    .disabled(disabled),
+                chrome::tool(
+                    "insert-date",
+                    joyoffice_ui::IconName::CalendarClock,
+                    "日期和\n时间",
+                    0x326797,
+                )
+                .disabled(disabled),
             )
             .content(move |_, _, cx| {
                 let now = DateTime::now_local();
@@ -214,25 +214,18 @@ impl Viewer {
                 }
                 list
             });
-        chrome::group(
-            "字段",
-            div()
-                .flex()
-                .flex_col()
-                .gap_1()
-                .child(
-                    Button::new("insert-page-field")
-                        .ghost()
-                        .xsmall()
-                        .h(px(25.))
-                        .label("幻灯片编号")
-                        .disabled(disabled)
-                        .on_click(cx.listener(|s, _, w, cx| {
-                            s.insert_text_field("slidenum", None, None, w, cx)
-                        })),
-                )
-                .child(date),
-        )
+        [
+            date.into_any_element(),
+            chrome::tool(
+                "insert-page-field",
+                joyoffice_ui::IconName::Hash,
+                "幻灯片\n编号",
+                0x326797,
+            )
+            .disabled(disabled)
+            .on_click(cx.listener(|s, _, w, cx| s.insert_text_field("slidenum", None, None, w, cx)))
+            .into_any_element(),
+        ]
     }
 
     fn can_insert_text_field(&self) -> bool {

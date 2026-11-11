@@ -2294,7 +2294,7 @@
       "source_path": "crates/ui-egui/src/theme.rs",
       "source_sha256": "d8d6f55195ac5b0c22d49ec313b716fcfab6cb2c08b3c15445b1ed1fcbe97c6a",
       "target_path": "crates/joydeck-ui-gpui/src/chrome.rs",
-      "adapted_sha256": "4739274c415118a1ac0d3e2331f239bdcef4317ead3da06d2abba0d049c53c56",
+      "adapted_sha256": "967827ece25fdebc4c2148c449fab06d1e1dba0870d006191c43cfe94a2e8c9d",
       "changes": [
         "R8: adapt typed media references / object ID and resource remapping / layout and theme tokens to pure engine or GPUI Kit; no egui dependency",
         "rustfmt; bounded transactions, errors and clipboard serialization; original MIT attribution retained",
@@ -2305,13 +2305,14 @@
       "text_box_layout": "Expose native text-box layout controls on the contextual formatting ribbon.",
       "text_hyperlinks": "Expose the native text-link editor and removal in the Insert ribbon.",
       "dynamic_text_fields": "Support atomic dynamic text fields, native authoring, and separate rendered/source offsets.",
-      "footer_menu": "Expose the existing atomic slide footer commands through the Insert ribbon."
+      "footer_menu": "Expose the existing atomic slide footer commands through the Insert ribbon.",
+      "macos_powerpoint_ribbon": "Arrange the native ribbon using the observed macOS PowerPoint tab order, spacing and command groups."
     },
     {
       "source_path": "crates/ui-egui/src/ribbon.rs",
       "source_sha256": "036692f8a885af7b61dfcd7e065f371f46c7db67854c0df9d205c91f35d9049a",
       "target_path": "crates/joydeck-ui-gpui/src/chrome.rs",
-      "adapted_sha256": "4739274c415118a1ac0d3e2331f239bdcef4317ead3da06d2abba0d049c53c56",
+      "adapted_sha256": "967827ece25fdebc4c2148c449fab06d1e1dba0870d006191c43cfe94a2e8c9d",
       "changes": [
         "R8: adapt typed media references / object ID and resource remapping / layout and theme tokens to pure engine or GPUI Kit; no egui dependency",
         "rustfmt; bounded transactions, errors and clipboard serialization; original MIT attribution retained",
@@ -2322,13 +2323,14 @@
       "text_box_layout": "Expose native text-box layout controls on the contextual formatting ribbon.",
       "text_hyperlinks": "Expose the native text-link editor and removal in the Insert ribbon.",
       "dynamic_text_fields": "Support atomic dynamic text fields, native authoring, and separate rendered/source offsets.",
-      "footer_menu": "Expose the existing atomic slide footer commands through the Insert ribbon."
+      "footer_menu": "Expose the existing atomic slide footer commands through the Insert ribbon.",
+      "macos_powerpoint_ribbon": "Arrange the native ribbon using the observed macOS PowerPoint tab order, spacing and command groups."
     },
     {
       "source_path": "crates/ui-egui/src/widgets.rs",
       "source_sha256": "d62cc3cce0436f1118c6486f52c5d90175aeaa79751602a89dbf01aa8d233bf9",
       "target_path": "crates/joydeck-ui-gpui/src/chrome.rs",
-      "adapted_sha256": "4739274c415118a1ac0d3e2331f239bdcef4317ead3da06d2abba0d049c53c56",
+      "adapted_sha256": "967827ece25fdebc4c2148c449fab06d1e1dba0870d006191c43cfe94a2e8c9d",
       "changes": [
         "R8: adapt typed media references / object ID and resource remapping / layout and theme tokens to pure engine or GPUI Kit; no egui dependency",
         "rustfmt; bounded transactions, errors and clipboard serialization; original MIT attribution retained",
@@ -2339,7 +2341,8 @@
       "text_box_layout": "Expose native text-box layout controls on the contextual formatting ribbon.",
       "text_hyperlinks": "Expose the native text-link editor and removal in the Insert ribbon.",
       "dynamic_text_fields": "Support atomic dynamic text fields, native authoring, and separate rendered/source offsets.",
-      "footer_menu": "Expose the existing atomic slide footer commands through the Insert ribbon."
+      "footer_menu": "Expose the existing atomic slide footer commands through the Insert ribbon.",
+      "macos_powerpoint_ribbon": "Arrange the native ribbon using the observed macOS PowerPoint tab order, spacing and command groups."
     }
   ]
 }
