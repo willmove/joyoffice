@@ -5,24 +5,30 @@ mod agent;
 mod agent_port;
 mod clipboard;
 mod command_search;
+mod contextual_ribbon;
 mod control;
+mod design_ribbon;
 mod document_view;
+mod draw_ribbon;
 mod export;
 mod file_page;
 mod formatting;
 mod forms;
 mod gestures;
 mod header_footer;
+mod help_ribbon;
 mod home_ribbon;
 mod input;
 mod insert;
 mod layout_ribbon;
+mod mailings_ribbon;
 mod objects;
 mod page_index;
 mod page_setup;
 mod perf;
 #[cfg(windows)]
 mod printing;
+mod reference_ribbon;
 mod review_ribbon;
 mod ribbon;
 mod save;
@@ -67,6 +73,7 @@ actions!(
         ZoomReset,
         ToggleTheme,
         ToggleLanguage,
+        ToggleRibbon,
         DocumentTab,
         DocumentBackTab
     ]
@@ -78,6 +85,7 @@ struct JoyWord {
     scroll: ScrollHandle,
     tab: usize,
     ribbon_collapsed: bool,
+    developer_visible: bool,
     // Keep File selected when its page is collapsed over the document workspace.
     file_page: bool,
     file_section: FileSection,
@@ -164,6 +172,7 @@ impl JoyWord {
             scroll: ScrollHandle::new(),
             tab: 0,
             ribbon_collapsed: false,
+            developer_visible: false,
             file_page: false,
             file_section: FileSection::default(),
             file_scroll: ScrollHandle::new(),
@@ -381,7 +390,7 @@ impl JoyWord {
         let p = self.palette();
         let tr = |zh, en| self.shell.tr(zh, en);
         div()
-            .h(px(metrics::HEADER))
+            .h(px(30.))
             .flex_shrink_0()
             .px_4()
             .flex()
@@ -444,29 +453,34 @@ impl JoyWord {
             (None, "文件", "File"),
             (Some(0), "开始", "Home"),
             (Some(1), "插入", "Insert"),
+            (Some(10), "绘图", "Draw"),
+            (Some(11), "设计", "Design"),
             (Some(2), "布局", "Layout"),
             (Some(3), "引用", "References"),
             (Some(8), "邮件", "Mailings"),
             (Some(4), "审阅", "Review"),
             (Some(5), "视图", "View"),
-            (Some(9), "自动化", "Automate"),
-            (Some(6), "表格", "Table"),
-            (Some(7), "图片", "Picture"),
+            (Some(12), "帮助", "Help"),
+            (Some(9), "开发工具", "Developer"),
+            (Some(7), "图片格式", "Picture Format"),
+            (Some(13), "表设计", "Table Design"),
+            (Some(6), "表布局", "Table Layout"),
         ];
         let tab_row = div()
             .id("ribbon-tabs")
             .overflow_x_scroll()
             .flex()
             .flex_shrink_0()
-            .h(px(metrics::TAB))
+            .h(px(28.))
             .items_center()
             .px_3()
-            .gap_1()
+            .gap_0()
             .bg(rgb(p.chrome))
             .role(gpui::Role::TabList)
             .aria_label(tr("功能区", "Ribbon"))
             .children(
                 tabs.into_iter()
+                    .filter(|(index, _, _)| self.ribbon_tab_visible(*index))
                     .enumerate()
                     .map(|(position, (index, zh, en))| {
                         let label = tr(zh, en);
@@ -493,7 +507,7 @@ impl JoyWord {
                             .aria_selected(active)
                             .tab_stop(true)
                             .h_full()
-                            .px_3()
+                            .px(px(8.))
                             .flex()
                             .items_center()
                             .cursor_pointer()
@@ -521,6 +535,26 @@ impl JoyWord {
                                 cx.stop_propagation();
                             }))
                     }),
+            )
+            .child(div().flex_1())
+            .child(
+                Button::new("ribbon-collapse")
+                    .ghost()
+                    .xsmall()
+                    .p_0()
+                    .w(px(24.))
+                    .h(px(22.))
+                    .icon(if self.ribbon_collapsed {
+                        joyoffice_ui::IconName::ChevronDown
+                    } else {
+                        joyoffice_ui::IconName::ChevronUp
+                    })
+                    .accessibility_label(tr("折叠或展开功能区", "Collapse or Expand Ribbon"))
+                    .tooltip("Ctrl+F1")
+                    .on_click(cx.listener(|v, _, _, cx| {
+                        v.ribbon_collapsed = !v.ribbon_collapsed;
+                        cx.notify();
+                    })),
             );
         let ribbon = div().flex().flex_col().flex_shrink_0().child(tab_row);
         if self.ribbon_collapsed || self.file_page {
@@ -531,7 +565,7 @@ impl JoyWord {
             .flex()
             .items_center()
             .overflow_x_scroll()
-            .h(px(88.0))
+            .h(px(100.0))
             .flex_shrink_0()
             .bg(rgb(p.surface))
             .border_b_1()
@@ -552,6 +586,10 @@ impl JoyWord {
             5 => groups.child(self.view_ribbon(cx)),
             8 => groups.child(self.mailings_ribbon(cx)),
             9 => groups.child(self.developer_ribbon(cx)),
+            10 => groups.child(self.draw_ribbon(cx)),
+            11 => groups.child(self.design_ribbon(cx)),
+            12 => groups.child(self.help_ribbon(cx)),
+            13 => groups.child(self.table_design_ribbon(cx)),
             6 => groups.child(self.table_tools(cx)),
             7 => groups.child(self.picture_tools(cx)),
             _ => groups,
@@ -565,6 +603,7 @@ impl Render for JoyWord {
         self.sync_view_zoom();
         self.prepare_canvas(window, cx);
         self.sync_format(window, cx);
+        self.sync_contextual_tab();
         if self.tab == 2 {
             self.sync_layout_controls(window, cx);
         }
@@ -607,6 +646,10 @@ impl Render for JoyWord {
                 }
             }))
             .on_action(cx.listener(|v, _: &SearchCommands, w, cx| v.open_command_search(w, cx)))
+            .on_action(cx.listener(|v, _: &ToggleRibbon, _, cx| {
+                v.ribbon_collapsed = !v.ribbon_collapsed;
+                cx.notify();
+            }))
             .on_action(cx.listener(|v, _: &FindDocument, w, cx| v.open_find(false, w, cx)))
             .on_action(cx.listener(|v, _: &ReplaceDocument, w, cx| v.open_find(true, w, cx)))
             .on_action(cx.listener(|v, _: &GoToPage, w, cx| v.open_go_to(w, cx)))
@@ -898,6 +941,7 @@ pub fn run() {
             cx.bind_keys([
                 KeyBinding::new("ctrl-s", SaveDocument, Some("JoyWord")),
                 KeyBinding::new("ctrl-shift-s", SaveAsDocument, Some("JoyWord")),
+                KeyBinding::new("f12", SaveAsDocument, Some("JoyWord")),
                 KeyBinding::new("ctrl-z", Undo, Some("JoyWord")),
                 KeyBinding::new("ctrl-y", Redo, Some("JoyWord")),
                 KeyBinding::new("ctrl-shift-z", Redo, Some("JoyWord")),
@@ -914,6 +958,7 @@ pub fn run() {
                 KeyBinding::new("cmd-x", Cut, Some("JoyWord")),
                 KeyBinding::new("cmd-v", Paste, Some("JoyWord")),
                 KeyBinding::new("ctrl-k", SearchCommands, Some("JoyWord")),
+                KeyBinding::new("ctrl-f1", ToggleRibbon, Some("JoyWord")),
                 KeyBinding::new("cmd-k", SearchCommands, Some("JoyWord")),
                 KeyBinding::new("ctrl-n", NewDocument, Some("JoyWord")),
                 KeyBinding::new("ctrl-o", OpenDocument, Some("JoyWord")),

@@ -49,7 +49,7 @@ impl JoyWord {
         trigger: Button,
         actions: Vec<MenuAction>,
         cx: &Context<Self>,
-    ) -> impl IntoElement {
+    ) -> impl IntoElement + use<> {
         let owner = cx.weak_entity();
         let target = self.ribbon_target();
         Popover::new(id).trigger(trigger).content(move |_, _, cx| {
@@ -395,6 +395,31 @@ impl JoyWord {
                 cx,
             ));
         let mut bottom = row();
+        let top = top.when(
+            self.shell.locale == joyword_shell::l10n::Locale::ZhCn,
+            |row| {
+                row.child(
+                    menu_button(
+                        "home-phonetic",
+                        "拼音指南",
+                        self.format_ready("format.phonetic"),
+                    )
+                    .w(px(24.))
+                    .icon(I::Languages)
+                    .on_click(cx.listener(|v, _, w, cx| v.phonetic_form(w, cx))),
+                )
+                .child(
+                    menu_button(
+                        "home-enclose",
+                        "带圈字符",
+                        self.format_ready("format.enclose"),
+                    )
+                    .w(px(24.))
+                    .icon(I::CircleDot)
+                    .on_click(cx.listener(|v, _, w, cx| v.enclose_form(w, cx))),
+                )
+            },
+        );
         for (id, icon, command, key, label) in [
             (
                 "bold",
@@ -474,6 +499,33 @@ impl JoyWord {
         }
         bottom = bottom
             .child(
+                self.home_menu(
+                    "font-effects-menu",
+                    menu_button(
+                        "font-effects",
+                        tr("文本效果和版式", "Text Effects and Typography"),
+                        self.format_ready("format.outline"),
+                    )
+                    .w(px(27.))
+                    .icon(I::TypeOutline),
+                    vec![
+                        (
+                            "font-outline",
+                            tr("文字轮廓", "Text Outline"),
+                            self.format_ready("format.outline"),
+                            |v, w, cx| v.run_format("format.outline", &json!({}), w, cx),
+                        ),
+                        (
+                            "font-shadow",
+                            tr("文字阴影", "Text Shadow"),
+                            self.format_ready("format.shadow"),
+                            |v, w, cx| v.run_format("format.shadow", &json!({}), w, cx),
+                        ),
+                    ],
+                    cx,
+                ),
+            )
+            .child(
                 self.icon_choices(
                     (
                         "highlight",
@@ -529,6 +581,39 @@ impl JoyWord {
             div().flex().flex_col().gap_1().child(top).child(bottom),
             Some(launcher),
         )
+    }
+
+    fn phonetic_form(&mut self, w: &mut Window, cx: &mut Context<Self>) {
+        let state = self
+            .canvas
+            .reader
+            .as_ref()
+            .map(|r| joyword_shell::authoring::phonetic_state(r.engine()))
+            .unwrap_or_default();
+        self.fields_form("拼音指南 / Phonetic Guide","format.phonetic",vec![
+            ("拼音（留空删除） / Ruby text (blank removes)",state["ruby"].as_str().unwrap_or("").into()),
+            ("对齐 / Alignment (center / left / right / distributeLetter / distributeSpace)",state["align"].as_str().unwrap_or("center").into()),
+            ("字号（磅） / Ruby size (pt)",state["size"].as_f64().unwrap_or(6.).to_string()),
+            ("偏移（磅） / Offset (pt)",state["offset"].as_f64().unwrap_or(0.).to_string())],false,|v|{
+            if v[0].chars().count()>255 || v[0].contains(['\0','\r','\n']) {return Err("拼音最多 255 个字符 / Ruby text is limited to 255 characters".into());}
+            if !["center","left","right","distributeLetter","distributeSpace","rightVertical"].contains(&v[1].trim()){return Err("无效对齐方式 / Invalid ruby alignment".into());}
+            Ok(json!({"ruby":if v[0].is_empty(){Value::Null}else{json!(v[0])},"align":v[1].trim(),"size":joyword_shell::authoring::required_number(&v[2],1.,100.)?,"offset":joyword_shell::authoring::required_number(&v[3],-100.,100.)?}))
+        },w,cx);
+    }
+
+    fn enclose_form(&mut self, w: &mut Window, cx: &mut Context<Self>) {
+        let text = self
+            .canvas
+            .reader
+            .as_ref()
+            .and_then(|r| joyword_shell::authoring::enclose_target(r.engine()).ok())
+            .map_or(String::new(), |t| t.text);
+        self.fields_form("带圈字符 / Enclose Characters","format.enclose",vec![("文字 / Text",text),("形状 / Shape (circle / square / triangle / diamond / none)","circle".into()),("样式 / Style (shrink / enlarge)","shrink".into())],false,|v|{
+            if !["circle","square","triangle","diamond","none"].contains(&v[1].trim())||!["shrink","enlarge"].contains(&v[2].trim()){return Err("请选择有效的形状和样式 / Choose a valid enclosure shape and style".into());}
+            let mut args=json!({"shape":if v[1].trim()=="none"{Value::Null}else{json!(v[1].trim())},"style":v[2].trim()});
+            if !v[0].is_empty(){args["text"]=json!(v[0]);}
+            Ok(args)
+        },w,cx);
     }
 
     fn home_paragraph(&self, cx: &mut Context<Self>) -> impl IntoElement {

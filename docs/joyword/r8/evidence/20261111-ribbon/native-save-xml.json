@@ -1,0 +1,13 @@
+{
+  "file": "target/ribbon-run/ribbon-final.docx",
+  "sha256": "591b0b20c6b76a579f831169a5904fab85259678374d6192aabfd24e20ce2bb2",
+  "page_color": "FFF2CC",
+  "page_border_sides": 4,
+  "watermark": [
+    {
+      "text": "草稿",
+      "style": "position:absolute;margin-left:0;margin-top:0;width:515.6pt;height:257.8pt;rotation:315;z-index:-251654144;mso-position-horizontal:center;mso-position-horizontal-relative:margin;mso-position-vertical:center;mso-position-vertical-relative:margin",
+      "font": "font-family:\"Aptos\";font-size:1pt"
+    }
+  ]
+}

@@ -4,6 +4,7 @@ use super::*;
 use gpui::component::{checkbox::Checkbox, popover::Popover};
 use gpui::{canvas, fill, point};
 use joyoffice_ui::IconName;
+use joyword_shell::formatting::ViewMode;
 use serde_json::json;
 
 fn fit_percent(mode: &str, page: (f32, f32), viewport: (f32, f32)) -> u16 {
@@ -82,28 +83,44 @@ impl JoyWord {
             .items_center()
             .gap_1()
             .child(self.view_tool(
+                "view-read-mode",
+                Tool::new("阅读视图", "Read Mode", IconName::BookOpen).width(width(56., 64.)),
+                "view.readMode",
+                state.is_some_and(|s| s.read_mode),
+                cx,
+            ))
+            .child(self.view_tool(
                 "view-print",
                 Tool::new("页面视图", "Print Layout", IconName::FileText),
                 "view.printLayout",
-                true,
+                state.is_none_or(|s| s.mode == ViewMode::Print && !s.read_mode),
                 cx,
             ))
-            .child(unavailable(
+            .child(self.view_tool(
                 "view-web",
                 Tool::new("Web 版式", "Web Layout", IconName::Globe).width(width(68., 56.)),
+                "view.webLayout",
+                state.is_some_and(|s| s.mode == ViewMode::Web && !s.read_mode),
+                cx,
             ))
             .child(
                 div()
                     .flex()
                     .flex_col()
                     .gap_1()
-                    .child(unavailable(
+                    .child(self.view_tool(
                         "view-outline",
                         Tool::compact("大纲", "Outline", IconName::ListTree).width(width(60., 88.)),
+                        "view.outline",
+                        state.is_some_and(|s| s.mode == ViewMode::Outline && !s.read_mode),
+                        cx,
                     ))
-                    .child(unavailable(
+                    .child(self.view_tool(
                         "view-draft",
                         Tool::compact("草稿", "Draft", IconName::File).width(width(60., 88.)),
+                        "view.draft",
+                        state.is_some_and(|s| s.mode == ViewMode::Draft && !s.read_mode),
+                        cx,
                     )),
             );
         let immersive = div()
@@ -116,10 +133,28 @@ impl JoyWord {
                 state.is_some_and(|s| s.focus_mode),
                 cx,
             ))
+            .child(
+                self.view_tool(
+                    "view-reader",
+                    Tool::new("沉浸式阅读器", "Immersive Reader", IconName::BookOpen)
+                        .width(width(80., 68.)),
+                    "view.immersive",
+                    state.is_some_and(|s| s.read_mode),
+                    cx,
+                ),
+            );
+        let movement = div()
+            .flex()
+            .child(self.view_tool(
+                "view-vertical",
+                Tool::new("垂直", "Vertical", IconName::ArrowDown).width(48.),
+                "view.vertical",
+                true,
+                cx,
+            ))
             .child(unavailable(
-                "view-reader",
-                Tool::new("沉浸式阅读器", "Immersive Reader", IconName::BookOpen)
-                    .width(width(80., 68.)),
+                "view-side-to-side",
+                Tool::new("翻页", "Side to Side", IconName::Columns2).width(48.),
             ));
         let mut show = div().flex().flex_col().items_start();
         for (id, zh, en, command, checked) in [
@@ -173,7 +208,7 @@ impl JoyWord {
             )
             .child(self.view_tool(
                 "view-100",
-                Tool::new("缩放至 100%", "100%", IconName::FileDigit),
+                Tool::new("100%", "100%", IconName::FileDigit),
                 "view.zoom100",
                 false,
                 cx,
@@ -286,6 +321,7 @@ impl JoyWord {
             .flex_shrink_0()
             .child(self.ribbon_group("view-views", tr("视图", "Views"), views))
             .child(self.ribbon_group("view-immersive", tr("沉浸式", "Immersive"), immersive))
+            .child(self.ribbon_group("view-movement", tr("页面移动", "Page Movement"), movement))
             .child(self.ribbon_group("view-show", tr("显示", "Show"), show))
             .child(self.ribbon_group("view-zoom-group", tr("缩放", "Zoom"), zoom))
             .child(self.ribbon_group("view-window", tr("窗口", "Window"), windows))

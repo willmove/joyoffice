@@ -250,7 +250,7 @@ pub fn specs() -> Vec<CommandSpec> {
         CommandSpec::new("draw.stroke", "Draw Ink", "Draw › Pens", stroke).params(
             r#"{"page": n, "points": [[x, y], …] (page points, at most 5000), "tool"?: "pen|pencil|highlighter", "color"?: "RRGGBB", "width"?: pt}"#,
         ),
-        CommandSpec::new("draw.erase", "Erase Ink", "Draw › Tools", erase).params(r#"{"page": n, "x": pt, "y": pt}"#),
+        CommandSpec::new("draw.erase", "Erase Ink", "Draw › Tools", erase).params(r#"{"page": n, "x": pt, "y": pt} | {"page": n, "points": [[x,y], …] (at most 512 page points, one undo step)}"#),
         CommandSpec::new("draw.inkToShape", "Ink to Shape", "Draw › Convert", |s, v| {
             if let Some(on) = p::bool(v, "value") {
                 s.view.draw.ink_to_shape = on;
@@ -453,7 +453,31 @@ fn points_param(v: &Value, max: usize, pw: f32, ph: f32) -> Result<Vec<[f32; 2]>
 
 /// Delete the ink stroke under a point.
 fn erase(s: &mut Session, v: &Value) -> CmdResult {
-    let (page, _) = page_param(s, v)?;
+    let (page, layout) = page_param(s, v)?;
+    if v.get("points").is_some() {
+        let pg = &layout.pages[page];
+        let points = points_param(v, 512, pg.w, pg.h)?;
+        if points.is_empty() {
+            return Err(CmdError::Params(
+                "an eraser path needs at least one point".into(),
+            ));
+        }
+        // Read every hit before deleting. Later offsets in the same paragraph
+        // must be removed first, so one gesture remains one atomic undo step.
+        let mut items: Vec<_> = points
+            .into_iter()
+            .filter_map(|[x, y]| ink_at(s, page, x, y))
+            .collect();
+        items.sort();
+        items.dedup();
+        if items.is_empty() {
+            return Err(CmdError::Failed("no ink stroke there".into()));
+        }
+        for pos in items.iter().rev() {
+            delete_object(s, pos)?;
+        }
+        return Ok(json!({"erased":items.len()}));
+    }
     let (x, y) = (p::req_f32(v, "x")?, p::req_f32(v, "y")?);
     let pos =
         ink_at(s, page, x, y).ok_or_else(|| CmdError::Failed("no ink stroke there".into()))?;

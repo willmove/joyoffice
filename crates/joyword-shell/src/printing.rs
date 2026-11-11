@@ -11,8 +11,12 @@ pub struct PrintJob {
 impl Reader {
     fn print_scene(&self) -> RasterScene {
         let mut scene = self.scene();
-        if scene.options.display.marks {
-            // Formatting marks can expose hidden text and change the screen pagination.
+        if scene.options.display.marks
+            || self.engine().view.read_mode
+            || self.engine().view.mode != joyword_layout::ViewMode::Print
+        {
+            // Printing always uses page layout. Reading, Web, outline, draft and
+            // formatting marks can all change the screen's pagination.
             scene.layout = self
                 .engine()
                 .export_layout_with(scene.options.display.markup);

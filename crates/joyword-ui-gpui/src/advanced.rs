@@ -1,7 +1,7 @@
 //! Word-style ribbon groups over the single Session. Native pickers follow JoyOffice's
 //! epoch/version-bound import and copy-export pattern; no VBA or network execution.
 use super::*;
-use gpui::component::{Icon, WindowExt};
+use gpui::component::WindowExt;
 use joyoffice_ui::IconName;
 use joyword_shell::advanced as core;
 use serde_json::{Value, json};
@@ -35,6 +35,23 @@ fn required(v: &[String], i: usize) -> Result<String, String> {
     }
 }
 impl JoyWord {
+    fn large_advanced(
+        &self,
+        id: &'static str,
+        label: &'static str,
+        icon: IconName,
+        cx: &mut Context<Self>,
+    ) -> Button {
+        self.ribbon_advanced(
+            id,
+            super::ribbon::Tool::new(label, label, icon),
+            match id {
+                "macro-list" => "tools.macros",
+                _ => "file.saveAs",
+            },
+            cx,
+        )
+    }
     fn advanced_button(
         &self,
         id: &'static str,
@@ -51,295 +68,6 @@ impl JoyWord {
                 self.canvas.reader.is_none() || self.canvas.loading || self.file_page_visible(),
             )
             .on_click(cx.listener(move |v, _, w, cx| v.advanced_action(id, w, cx)))
-    }
-    fn large_advanced(
-        &self,
-        id: &'static str,
-        label: &'static str,
-        icon: IconName,
-        cx: &mut Context<Self>,
-    ) -> impl IntoElement {
-        let p = self.palette();
-        div()
-            .id(id)
-            .flex()
-            .flex_col()
-            .items_center()
-            .justify_center()
-            .gap_1()
-            .px_2()
-            .h(px(56.))
-            .rounded(px(4.))
-            .hover(move |s| s.bg(rgb(p.hover)))
-            .cursor_pointer()
-            .role(gpui::Role::Button)
-            .aria_label(label)
-            .focusable()
-            .child(Icon::new(icon).size(px(26.)).text_color(rgb(p.accent)))
-            .child(div().text_size(px(12.)).child(label))
-            .on_click(cx.listener(move |v, _, w, cx| v.advanced_action(id, w, cx)))
-            .on_key_down(cx.listener(move |v, e: &gpui::KeyDownEvent, w, cx| {
-                if matches!(e.keystroke.key.as_str(), "enter" | "space") {
-                    v.advanced_action(id, w, cx);
-                    cx.stop_propagation();
-                }
-            }))
-    }
-    pub(super) fn references_ribbon(&self, cx: &mut Context<Self>) -> gpui::Div {
-        let stack = |a, b| div().flex().flex_col().gap_1().child(a).child(b);
-        div()
-            .flex()
-            .child(
-                self.group_box(
-                    "目录",
-                    div()
-                        .flex()
-                        .gap_1()
-                        .child(self.large_advanced("refs-toc", "目录 ▾", IconName::List, cx))
-                        .child(stack(
-                            self.advanced_button("refs-level", "添加文字", IconName::Plus, cx),
-                            self.author_button(
-                                "refs-update-toc",
-                                "更新目录",
-                                "references.updateToc",
-                                json!({}),
-                                cx,
-                            ),
-                        )),
-                ),
-            )
-            .child(
-                self.group_box(
-                    "脚注",
-                    div()
-                        .flex()
-                        .gap_1()
-                        .child(self.large_advanced(
-                            "refs-footnote",
-                            "插入脚注",
-                            IconName::FileText,
-                            cx,
-                        ))
-                        .child(stack(
-                            self.advanced_button(
-                                "refs-endnote",
-                                "插入尾注",
-                                IconName::FileText,
-                                cx,
-                            ),
-                            self.advanced_button("refs-notes", "显示注释", IconName::List, cx),
-                        )),
-                ),
-            )
-            .child(
-                self.group_box(
-                    "引文与书目",
-                    div()
-                        .flex()
-                        .gap_1()
-                        .child(self.large_advanced(
-                            "refs-citation",
-                            "插入引文",
-                            IconName::BookOpen,
-                            cx,
-                        ))
-                        .child(stack(
-                            self.advanced_button("refs-sources", "管理源", IconName::BookOpen, cx),
-                            self.advanced_button(
-                                "refs-bib-style",
-                                "样式 ▾",
-                                IconName::Settings,
-                                cx,
-                            ),
-                        ))
-                        .child(stack(
-                            self.advanced_button(
-                                "refs-bibliography",
-                                "参考文献",
-                                IconName::BookOpen,
-                                cx,
-                            ),
-                            self.advanced_button("refs-new-source", "添加新源", IconName::Plus, cx),
-                        )),
-                ),
-            )
-            .child(
-                self.group_box(
-                    "题注",
-                    div()
-                        .flex()
-                        .gap_1()
-                        .child(self.large_advanced(
-                            "refs-caption",
-                            "插入题注",
-                            IconName::FileText,
-                            cx,
-                        ))
-                        .child(stack(
-                            self.advanced_button("refs-figures", "插入表目录", IconName::List, cx),
-                            self.advanced_button("refs-crossref", "交叉引用", IconName::Link, cx),
-                        )),
-                ),
-            )
-            .child(
-                self.group_box(
-                    "索引",
-                    div()
-                        .flex()
-                        .gap_1()
-                        .child(self.advanced_button(
-                            "refs-mark-entry",
-                            "标记索引项",
-                            IconName::Bookmark,
-                            cx,
-                        ))
-                        .child(self.author_button(
-                            "refs-index",
-                            "插入索引",
-                            "references.index",
-                            json!({}),
-                            cx,
-                        ))
-                        .child(self.author_button(
-                            "refs-update-index",
-                            "更新索引",
-                            "references.updateIndex",
-                            json!({}),
-                            cx,
-                        )),
-                ),
-            )
-            .child(
-                self.group_box(
-                    "引文目录",
-                    div()
-                        .flex()
-                        .flex_col()
-                        .gap_1()
-                        .child(self.advanced_button(
-                            "refs-mark-authority",
-                            "标记引文",
-                            IconName::Bookmark,
-                            cx,
-                        ))
-                        .child(self.author_button(
-                            "refs-authorities",
-                            "插入引文目录",
-                            "references.tableOfAuthorities",
-                            json!({}),
-                            cx,
-                        )),
-                ),
-            )
-            .child(self.group_box(
-                "链接与域",
-                stack(
-                    self.advanced_button("refs-bookmark", "书签", IconName::Bookmark, cx),
-                    self.author_button(
-                        "refs-update-all",
-                        "更新全部域",
-                        "references.updateFields",
-                        json!({"all":true}),
-                        cx,
-                    ),
-                ),
-            ))
-    }
-    pub(super) fn mailings_ribbon(&self, cx: &mut Context<Self>) -> gpui::Div {
-        let stack = |a, b| div().flex().flex_col().gap_1().child(a).child(b);
-        div()
-            .flex()
-            .child(
-                self.group_box(
-                    "开始邮件合并",
-                    div()
-                        .flex()
-                        .gap_1()
-                        .child(self.large_advanced(
-                            "merge-start",
-                            "开始邮件合并",
-                            IconName::Mail,
-                            cx,
-                        ))
-                        .child(stack(
-                            self.advanced_button(
-                                "merge-recipients",
-                                "选择收件人",
-                                IconName::FolderOpen,
-                                cx,
-                            ),
-                            self.advanced_button(
-                                "merge-list",
-                                "编辑收件人列表",
-                                IconName::List,
-                                cx,
-                            ),
-                        )),
-                ),
-            )
-            .child(
-                self.group_box(
-                    "编写和插入域",
-                    div()
-                        .flex()
-                        .gap_1()
-                        .child(self.large_advanced(
-                            "merge-field",
-                            "插入合并域",
-                            IconName::FileText,
-                            cx,
-                        ))
-                        .child(stack(
-                            self.author_button(
-                                "merge-address",
-                                "地址块",
-                                "mailings.addressBlock",
-                                json!({}),
-                                cx,
-                            ),
-                            self.author_button(
-                                "merge-greeting",
-                                "问候语",
-                                "mailings.greetingLine",
-                                json!({}),
-                                cx,
-                            ),
-                        ))
-                        .child(stack(
-                            self.advanced_button("merge-filter", "筛选收件人", IconName::List, cx),
-                            self.advanced_button("merge-sort", "排序收件人", IconName::List, cx),
-                        )),
-                ),
-            )
-            .child(
-                self.group_box(
-                    "预览结果",
-                    div()
-                        .flex()
-                        .gap_1()
-                        .child(self.large_advanced("merge-preview", "预览结果", IconName::Eye, cx))
-                        .child(stack(
-                            self.author_button(
-                                "merge-prev",
-                                "上一条",
-                                "mailings.previous",
-                                json!({}),
-                                cx,
-                            ),
-                            self.author_button(
-                                "merge-next",
-                                "下一条",
-                                "mailings.next",
-                                json!({}),
-                                cx,
-                            ),
-                        )),
-                ),
-            )
-            .child(self.group_box(
-                "完成",
-                self.large_advanced("merge-finish", "完成并合并 ▾", IconName::Check, cx),
-            ))
     }
     pub(super) fn developer_ribbon(&self, cx: &mut Context<Self>) -> gpui::Div {
         div()
@@ -1208,6 +936,17 @@ impl JoyWord {
         } else {
             r.export_job(&ext, args["markup"] == true)?
         };
+        self.output_job(job, if merge { "merged" } else { "export" }, ext, cx)
+    }
+
+    pub(super) fn output_job(
+        &mut self,
+        job: core::OutputJob,
+        suffix: &str,
+        ext: String,
+        cx: &mut Context<Self>,
+    ) -> Result<(), String> {
+        let r = self.canvas.reader.as_ref().ok_or("请先打开文档")?;
         let directory = r
             .source_path()
             .and_then(|p| p.parent())
@@ -1228,7 +967,7 @@ impl JoyWord {
                 .file_stem()
                 .and_then(|s| s.to_str())
                 .unwrap_or("Untitled"),
-            if merge { "merged" } else { "export" },
+            suffix,
             ext
         );
         let prompt = cx.prompt_for_new_path(&directory, Some(&suggestion));

@@ -565,6 +565,8 @@ impl JoyWord {
                     reader.summary.pages.len(),
                     if reader.is_composing() {
                         self.shell.tr("输入法组合中", "Composing")
+                    } else if reader.engine().view.read_mode {
+                        self.shell.tr("阅读视图（只读）", "Read Mode (read-only)")
                     } else {
                         self.shell.tr("可编辑", "Editable")
                     },

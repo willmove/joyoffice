@@ -102,7 +102,10 @@ pub fn specs() -> Vec<CommandSpec> {
         CommandSpec::new("design.themeColors", "Colors", "Design › Document Formatting", |s, v| {
             let name = p::req_str(v, "name")?;
             let t = THEMES.iter().find(|t| t.0.eq_ignore_ascii_case(name)).ok_or_else(|| CmdError::Params(format!("unknown colours `{name}`")))?;
-            set_accent(s, t.3[0]);
+            for (index,color) in t.3.iter().enumerate() {
+                if let Some(slot) = s.doc.settings.theme_colors.get_mut(4 + index) { *slot = *color; }
+            }
+            refresh_colors(s);
             sel_result(s)
         }),
         CommandSpec::new("design.styleSet", "Style Set", "Design › Document Formatting", style_set)
@@ -336,6 +339,27 @@ fn watermark(s: &mut Session, v: &Value) -> CmdResult {
     }
     if let Some(c) = p::str(v, "color").and_then(Rgb::parse) {
         wm.color = c;
+    }
+    if v.get("text").is_some() {
+        // The model's portable default estimates Latin advances. Measure newly
+        // entered text with its covering face so short CJK watermarks keep their
+        // aspect ratio instead of becoming oversized, horizontally squeezed text.
+        // An imported shape's explicit box stays intact for colour-only edits.
+        let face = joyword_fonts::word::resolve_text(&wm.font, &wm.text, false, false).face;
+        let advance = joyword_fonts::shape(&face, &wm.text, &[], |c| c)
+            .iter()
+            .map(|g| g.x_advance as f32)
+            .sum::<f32>()
+            / face.upem.max(1.0) as f32;
+        if advance.is_finite() && advance > 0.0 {
+            let section = &s.doc.last_section;
+            let width = Watermark {
+                size: None,
+                ..wm.clone()
+            }
+            .frame(section.page_w, section.page_h)[0];
+            wm.size = Some([width, (width / advance).clamp(12.0, 400.0)]);
+        }
     }
     s.doc.settings.watermark = Some(Watermark { ..wm });
     sel_result(s)

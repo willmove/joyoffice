@@ -632,6 +632,31 @@ fn hhea_line(ascender: i16, descender: i16, line_gap: i16) -> (f64, f64) {
     )
 }
 
+/// Resolve a short text as one face when the requested face lacks its characters.
+/// Watermarks need this before measuring and stretching their glyphs; using a
+/// fallback only when drawing would leave the wrong advance and descent.
+pub fn resolve_text(family: &str, text: &str, bold: bool, italic: bool) -> Resolved {
+    let primary = resolve(family, bold, italic);
+    let chars: Vec<char> = text
+        .chars()
+        .filter(|c| !c.is_whitespace() && !c.is_control())
+        .collect();
+    if chars.iter().all(|c| primary.face.covers(*c)) {
+        return primary;
+    }
+    let Some(face) = FontDb::global().fallback_for_run(&chars, primary.face.id(), bold, italic)
+    else {
+        return primary;
+    };
+    let face = FaceRef::of(&face);
+    Resolved {
+        face,
+        synth_bold: bold && face.weight < 600.,
+        synth_italic: italic && !face.italic,
+        substituted: true,
+    }
+}
+
 /// Line metrics for a face in font units: (ascent, descent), both positive, the way word
 /// processors measure single line spacing: the hhea values with the line gap above the ascent
 /// (Word puts the first baseline that far below the line top), falling back to OS/2
@@ -678,6 +703,37 @@ pub fn line_metrics(face: &crate::FontFace) -> (f64, f64) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn short_text_resolution_keeps_covered_faces_and_uses_a_real_covering_fallback()
+    -> Result<(), String> {
+        let primary = resolve("Source Sans 3", false, false);
+        assert_eq!(
+            resolve_text("Source Sans 3", "DRAFT", false, false).face,
+            primary.face
+        );
+        let others = ["Source Serif 4", "JetBrains Mono", "Inter"]
+            .map(|name| resolve(name, false, false).face);
+        let missing = (0x80..0x10000)
+            .filter_map(char::from_u32)
+            .find(|c| {
+                !c.is_control()
+                    && !c.is_whitespace()
+                    && !primary.face.covers(*c)
+                    && others.iter().any(|f| f.covers(*c))
+            })
+            .ok_or("Bundled fallback coverage fixture missing")?;
+        let text = missing.to_string();
+        let fallback = resolve_text("Source Sans 3", &text, false, false);
+        assert_ne!(fallback.face, primary.face);
+        assert!(fallback.face.covers(missing));
+        assert!(
+            crate::shape(&fallback.face, &text, &[], |c| c)
+                .iter()
+                .all(|g| g.gid != 0)
+        );
+        Ok(())
+    }
 
     #[test]
     fn the_line_gap_goes_above_the_ascent() {

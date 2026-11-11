@@ -454,9 +454,9 @@ impl Exporter<'_> {
         h: f32,
         area: Rect,
     ) {
-        let r = joyword_fonts::word::resolve(&wm.font, false, false);
-        let face = r.face;
         let text: String = wm.text.chars().take(200).collect();
+        let r = joyword_fonts::word::resolve_text(&wm.font, &text, false, false);
+        let face = r.face;
         let shaped = joyword_fonts::shape(&face, &text, &[], |c| c);
         let upem = face.upem.max(1.0) as f32;
         let raw_w: f32 = shaped.iter().map(|g| g.x_advance as f32).sum::<f32>() / upem;

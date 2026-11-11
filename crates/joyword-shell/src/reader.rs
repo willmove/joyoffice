@@ -97,6 +97,13 @@ fn visual_command(id: &str) -> bool {
             | "mailings.sortRecipients"
             | "view.fieldCodes"
             | "view.marks"
+            | "review.hideInk"
+            | "view.printLayout"
+            | "view.webLayout"
+            | "view.outline"
+            | "view.draft"
+            | "view.readMode"
+            | "view.immersive"
     )
 }
 impl Reader {
@@ -114,6 +121,7 @@ impl Reader {
             display: joyword_layout::display::DisplayOptions {
                 markup: self.session.view.show_markup,
                 marks: self.session.view.marks,
+                hide_ink: self.session.view.hide_ink,
                 ..Default::default()
             },
             ..Default::default()
@@ -306,6 +314,14 @@ impl Reader {
         command: &str,
         params: &serde_json::Value,
     ) -> Result<serde_json::Value, String> {
+        if self.session.view.read_mode
+            && (self.command_edits_document(command)
+                || (command == "tools.macros" && params["run"].is_string()))
+        {
+            return Err(
+                "阅读视图中不能编辑，请返回页面视图 / Switch to Print Layout to edit".into(),
+            );
+        }
         self.commit_composition()?;
         if command == "tools.macros" {
             self.validate_macro_run(params)?;
@@ -338,6 +354,16 @@ impl Reader {
             self.refresh();
         }
         Ok(result)
+    }
+    pub(crate) fn command_edits_document(&self, command: &str) -> bool {
+        // History commands manage their own transactions and are registered as
+        // pure; they still edit the document and cannot run in Read Mode.
+        matches!(command, "edit.undo" | "edit.redo" | "edit.undoTo")
+            || self
+                .session
+                .registry
+                .get(command)
+                .is_some_and(|c| c.mutates)
     }
     pub(crate) fn refresh(&mut self) {
         self.presentation = self.presentation.saturating_add(1);

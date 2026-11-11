@@ -2,7 +2,7 @@
 use super::*;
 use forms::show;
 use gpui::component::{Disableable, Sizable, popover::Popover};
-use joyword_shell::authoring::{insert_table_params, integer, picture_crop, required_number};
+use joyword_shell::authoring::{insert_table_params, picture_crop};
 use joyword_shell::formatting::optional_number;
 use serde_json::{Value, json};
 fn yes(s: &str) -> Result<bool, String> {
@@ -130,45 +130,7 @@ impl JoyWord {
                 )
             })
     }
-    pub(super) fn table_tools(&self, cx: &mut Context<Self>) -> gpui::Div {
-        let table = self.canvas.reader.as_ref().and_then(|r| r.table_info());
-        let mut first = div().flex().gap_1();
-        for (id, label, cmd) in [
-            ("select-cell", "选单元格", "table.selectCell"),
-            ("select-row", "选行", "table.selectRow"),
-            ("select-column", "选列", "table.selectColumn"),
-            ("select-table", "全表", "table.selectTable"),
-            ("row-above", "上插行", "table.insertRowAbove"),
-            ("row-below", "下插行", "table.insertRowBelow"),
-            ("column-left", "左插列", "table.insertColumnLeft"),
-            ("column-right", "右插列", "table.insertColumnRight"),
-            ("delete-row", "删除行", "table.deleteRow"),
-            ("delete-column", "删除列", "table.deleteColumn"),
-            ("delete-table", "删除表", "table.deleteTable"),
-        ] {
-            first = first.child(self.author_button(id, label, cmd, json!({}), cx));
-        }
-        let table_styles = self
-            .style_catalog
-            .iter()
-            .filter(|s| s.kind == "table")
-            .map(|s| (s.name.clone(), json!({"style":s.id})))
-            .collect();
-        let second=div().flex().gap_1()
-            .child(self.author_button("merge-cells","合并","table.merge",json!({}),cx))
-            .child(Button::new("split-cells").ghost().xsmall().label("拆分…").disabled(!self.format_ready("table.split")).on_click(cx.listener(|v,_,w,cx|v.fields_form("拆分单元格","table.split",vec![("列数","2".into()),("行数","1".into())],false,|s|Ok(json!({"columns":integer(&s[0],1,16)?,"rows":integer(&s[1],1,32)?,"mergeFirst":true})),w,cx))))
-            .child(self.author_button("distribute-cols","均分列","table.distributeColumns",json!({}),cx))
-            .child(self.author_button("distribute-rows","均分行","table.distributeRows",json!({}),cx))
-            .child(self.choices("table-autofit","自适应 ▾".into(),"table.autofit",[("适应内容","contents"),("适应窗口","window"),("固定列宽","fixed")].into_iter().map(|(l,m)|(l.into(),json!({"mode":m}))).collect(),cx))
-            .child(self.choices("table-style","表格样式 ▾".into(),"table.style",table_styles,cx))
-            .child(self.choices("table-shading","底纹 ▾".into(),"table.shading",[("无底纹",None),("浅蓝",Some("DCE6F1")),("浅黄",Some("FFF2CC")),("浅绿",Some("E2F0D9"))].into_iter().map(|(l,c)|(l.into(),json!({"color":c}))).collect(),cx))
-            .child(self.choices("table-borders","边框 ▾".into(),"table.borders",[("全部","all"),("外框","outside"),("内部","inside"),("无","none")].into_iter().map(|(l,k)|(l.into(),json!({"kind":k}))).collect(),cx))
-            .child(self.choices("cell-align","单元格对齐 ▾".into(),"table.cellAlign",[("左上","topLeft"),("居中","center"),("右下","bottomRight")].into_iter().map(|(l,k)|(l.into(),json!({"value":k}))).collect(),cx))
-            .child(Button::new("table-properties").ghost().xsmall().label("属性…").disabled(table.is_none() || !self.format_ready("table.properties")).on_click(cx.listener(|v,_,w,cx|v.table_form(w,cx))))
-            .child(Button::new("cell-margins").ghost().xsmall().label("边距…").disabled(table.is_none() || !self.format_ready("table.properties")).on_click(cx.listener(|v,_,w,cx|v.fields_form("单元格边距","table.cellMargins",vec![("上（磅）",String::new()),("左（磅）",String::new()),("下（磅）",String::new()),("右（磅）",String::new())],true,|v|number_patch(v,&["top","left","bottom","right"],0.,1584.),w,cx))));
-        div().flex().flex_col().px_3().gap_2().child(first).child(second).child(div().text_size(px(11.)).child(table.map(|t|format!("{} 行 × {} 列 · 当前第 {} 行 {} 列 · 拖动边界调整；Tab 在单元格间移动",t.rows,t.cols,t.row+1,t.col+1)).unwrap_or("点击表格单元格以编辑".into())))
-    }
-    fn table_form(&mut self, w: &mut Window, cx: &mut Context<Self>) {
+    pub(super) fn table_form(&mut self, w: &mut Window, cx: &mut Context<Self>) {
         self.fields_form(
             "表格属性",
             "table.properties",
@@ -291,196 +253,7 @@ impl JoyWord {
         }));
         let _ = w;
     }
-    pub(super) fn picture_tools(&self, cx: &mut Context<Self>) -> gpui::Div {
-        let pic = self.canvas.reader.as_ref().and_then(|r| r.picture_info());
-        let disabled = pic.is_none() || !self.format_ready("picture.size");
-        let first = div()
-            .flex()
-            .gap_1()
-            .child(
-                Button::new("insert-picture")
-                    .ghost()
-                    .xsmall()
-                    .label("插入图片…")
-                    .disabled(!self.format_ready("insert.picture"))
-                    .on_click(cx.listener(|v, _, w, cx| v.pick_picture(false, w, cx))),
-            )
-            .child(
-                Button::new("replace-picture")
-                    .ghost()
-                    .xsmall()
-                    .label("替换…")
-                    .disabled(disabled)
-                    .on_click(cx.listener(|v, _, w, cx| v.pick_picture(true, w, cx))),
-            )
-            .child(
-                Button::new("picture-size")
-                    .ghost()
-                    .xsmall()
-                    .label("大小…")
-                    .disabled(disabled)
-                    .on_click(cx.listener(|v, _, w, cx| v.picture_size(w, cx))),
-            )
-            .child(
-                Button::new("picture-crop")
-                    .ghost()
-                    .xsmall()
-                    .label("裁剪…")
-                    .disabled(disabled)
-                    .on_click(cx.listener(|v, _, w, cx| v.picture_crop_form(w, cx))),
-            )
-            .child(
-                self.choices(
-                    "picture-wrap",
-                    "环绕 ▾".into(),
-                    "arrange.wrap",
-                    [
-                        ("嵌入型", "inline"),
-                        ("四周型", "square"),
-                        ("紧密型", "tight"),
-                        ("上下型", "topAndBottom"),
-                        ("衬于文字下方", "behindText"),
-                        ("浮于文字上方", "inFrontOfText"),
-                    ]
-                    .into_iter()
-                    .map(|(l, k)| (l.into(), json!({"wrap":k})))
-                    .collect(),
-                    cx,
-                ),
-            )
-            .child(
-                self.choices(
-                    "picture-rotate",
-                    "旋转/翻转 ▾".into(),
-                    "arrange.rotate",
-                    [
-                        ("向右 90°", "right"),
-                        ("向左 90°", "left"),
-                        ("水平翻转", "flipHorizontal"),
-                        ("垂直翻转", "flipVertical"),
-                    ]
-                    .into_iter()
-                    .map(|(l, k)| (l.into(), json!({"direction":k})))
-                    .collect(),
-                    cx,
-                ),
-            )
-            .child(
-                Button::new("picture-position")
-                    .ghost()
-                    .xsmall()
-                    .label("位置…")
-                    .disabled(disabled)
-                    .on_click(cx.listener(|v, _, w, cx| {
-                        v.fields_form(
-                            "图片页面位置（设置后为浮动图片）",
-                            "arrange.bounds",
-                            vec![
-                                ("横向位置（磅）", String::new()),
-                                ("纵向位置（磅）", String::new()),
-                            ],
-                            true,
-                            |v| number_patch(v, &["x", "y"], -1584., 1584.),
-                            w,
-                            cx,
-                        )
-                    })),
-            )
-            .child(
-                Button::new("picture-alt")
-                    .ghost()
-                    .xsmall()
-                    .label("替代文字…")
-                    .disabled(disabled)
-                    .on_click(cx.listener(|v, _, w, cx| v.picture_alt(w, cx))),
-            )
-            .child(
-                self.author_button("delete-picture", "删除图片", "text.delete", json!({}), cx)
-                    .disabled(disabled),
-            );
-        let second = div()
-            .flex()
-            .gap_1()
-            .child(
-                Button::new("picture-adjust")
-                    .ghost()
-                    .xsmall()
-                    .label("亮度/对比度…")
-                    .disabled(disabled)
-                    .on_click(cx.listener(|v, _, w, cx| {
-                        v.fields_form(
-                            "图片校正",
-                            "picture.corrections",
-                            vec![
-                                ("亮度（-100–100）", "0".into()),
-                                ("对比度（-100–100）", "0".into()),
-                                ("锐化（-100–100）", "0".into()),
-                            ],
-                            false,
-                            |v| {
-                                number_patch(v, &["brightness", "contrast", "sharpen"], -100., 100.)
-                            },
-                            w,
-                            cx,
-                        )
-                    })),
-            )
-            .child(
-                Button::new("picture-transparency")
-                    .ghost()
-                    .xsmall()
-                    .label("透明度…")
-                    .disabled(disabled)
-                    .on_click(cx.listener(|v, _, w, cx| {
-                        v.fields_form(
-                            "图片透明度",
-                            "picture.transparency",
-                            vec![("透明度（0–100%）", "0".into())],
-                            false,
-                            |v| Ok(json!({"percent":required_number(&v[0],0.,100.)?})),
-                            w,
-                            cx,
-                        )
-                    })),
-            )
-            .child(
-                self.choices(
-                    "picture-recolor",
-                    "颜色 ▾".into(),
-                    "picture.color",
-                    [
-                        ("灰度", "grayscale"),
-                        ("褐色", "sepia"),
-                        ("冲蚀", "washout"),
-                        ("黑白", "blackAndWhite"),
-                    ]
-                    .into_iter()
-                    .map(|(l, k)| (l.into(), json!({"mode":k})))
-                    .collect(),
-                    cx,
-                ),
-            )
-            .child(self.author_button("reset-picture", "重置图片", "picture.reset", json!({}), cx));
-        div()
-            .flex()
-            .flex_col()
-            .px_3()
-            .gap_2()
-            .child(first)
-            .child(second)
-            .child(
-                div().text_size(px(11.)).child(
-                    pic.map(|p| {
-                        format!(
-                            "{:.1} × {:.1} 磅 · 拖动移动或用右下角手柄缩放；Esc 取消拖动",
-                            p.width, p.height
-                        )
-                    })
-                    .unwrap_or("点击图片以选择并编辑".into()),
-                ),
-            )
-    }
-    fn picture_size(&mut self, w: &mut Window, cx: &mut Context<Self>) {
+    pub(super) fn picture_size(&mut self, w: &mut Window, cx: &mut Context<Self>) {
         let Some(p) = self.canvas.reader.as_ref().and_then(|r| r.picture_info()) else {
             return;
         };
@@ -506,7 +279,7 @@ impl JoyWord {
             cx,
         );
     }
-    fn picture_crop_form(&mut self, w: &mut Window, cx: &mut Context<Self>) {
+    pub(super) fn picture_crop_form(&mut self, w: &mut Window, cx: &mut Context<Self>) {
         let Some(p) = self.canvas.reader.as_ref().and_then(|r| r.picture_info()) else {
             return;
         };
@@ -529,7 +302,7 @@ impl JoyWord {
             cx,
         );
     }
-    fn picture_alt(&mut self, w: &mut Window, cx: &mut Context<Self>) {
+    pub(super) fn picture_alt(&mut self, w: &mut Window, cx: &mut Context<Self>) {
         let Some(p) = self.canvas.reader.as_ref().and_then(|r| r.picture_info()) else {
             return;
         };

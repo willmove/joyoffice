@@ -855,7 +855,7 @@ impl JoyWord {
             .gap_1()
             .child(self.layout_menu(
                 "layout-direction",
-                Tool::new("文本方向", "Text Direction", I::TextCursorInput).width(width(56., 68.)),
+                Tool::new("文字方向", "Text Direction", I::TextCursorInput).width(width(56., 68.)),
                 commands(
                     "layout.textDirection",
                     &[
@@ -876,7 +876,7 @@ impl JoyWord {
             ))
             .child(self.layout_menu(
                 "layout-orientation",
-                Tool::new("方向", "Orientation", I::RectangleHorizontal).width(width(56., 72.)),
+                Tool::new("纸张方向", "Orientation", I::RectangleHorizontal).width(width(56., 72.)),
                 commands(
                     "layout.orientation",
                     &[
@@ -888,7 +888,12 @@ impl JoyWord {
                 ),
                 cx,
             ))
-            .child(self.layout_menu("layout-size", Tool::new("大小", "Size", I::File), sizes, cx))
+            .child(self.layout_menu(
+                "layout-size",
+                Tool::new("纸张大小", "Size", I::File),
+                sizes,
+                cx,
+            ))
             .child(self.layout_menu(
                 "layout-columns",
                 Tool::new("栏", "Columns", I::Columns2),
@@ -1033,7 +1038,7 @@ impl JoyWord {
             ))
             .child(self.layout_menu(
                 "layout-wrap",
-                tool("自动换行", "Wrap Text", I::TextWrap),
+                tool("环绕文字", "Wrap Text", I::TextWrap),
                 wrap,
                 cx,
             ))

@@ -25,6 +25,24 @@ fn session() -> Session {
 }
 
 #[test]
+fn the_colors_menu_changes_all_six_accents_and_undo_restores_the_palette() {
+    let mut s = session();
+    let original = s.doc.settings.theme_colors.clone();
+    let depth = s.undo_depth();
+    s.run("design.themeColors", &json!({"name":"Studio"}))
+        .unwrap();
+    assert_eq!(
+        &s.doc.settings.theme_colors[4..10],
+        &crate::cmd::design::THEMES[1].3
+    );
+    assert_eq!(&s.doc.settings.theme_colors[..4], &original[..4]);
+    assert_eq!(&s.doc.settings.theme_colors[10..], &original[10..]);
+    assert_eq!(s.undo_depth(), depth + 1);
+    s.run("edit.undo", &json!({})).unwrap();
+    assert_eq!(s.doc.settings.theme_colors, original);
+}
+
+#[test]
 fn theme_command_updates_colors_pending_and_undo() {
     let mut s = session();
     let original = s.doc.clone();

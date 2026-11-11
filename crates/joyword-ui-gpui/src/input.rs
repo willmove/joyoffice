@@ -313,6 +313,38 @@ impl JoyWord {
             cx.stop_propagation();
             return;
         }
+        if key == "escape"
+            && self
+                .canvas
+                .reader
+                .as_ref()
+                .is_some_and(|r| r.engine().view.read_mode)
+        {
+            self.run_format("view.printLayout", &serde_json::json!({}), window, cx);
+            cx.stop_propagation();
+            return;
+        }
+        if key == "escape"
+            && self.canvas.reader.as_ref().is_some_and(|r| {
+                r.engine().view.draw.mode != joyword_shell::authoring::DrawMode::Select
+            })
+        {
+            self.run_format("draw.select", &serde_json::json!({}), window, cx);
+            self.run_format("draw.lasso", &serde_json::json!({"clear":true}), window, cx);
+            cx.stop_propagation();
+            return;
+        }
+        if matches!(key.as_str(), "backspace" | "delete")
+            && self
+                .canvas
+                .reader
+                .as_ref()
+                .is_some_and(|r| joyword_shell::authoring::lasso_selection(r.engine()).is_some())
+        {
+            self.run_format("draw.lassoDelete", &serde_json::json!({}), window, cx);
+            cx.stop_propagation();
+            return;
+        }
         if mods.control || mods.platform {
             if mods.shift && !mods.alt && (key == "c" || key == "v") {
                 let _ = self.try_edit(

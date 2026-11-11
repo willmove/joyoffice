@@ -1,0 +1,42 @@
+{
+  "scope": "Earlier native validation build; Hide Ink only",
+  "before": {
+    "doc": 1,
+    "version": 5,
+    "text": "合作协议（原创测试文本）\n甲方：青禾工作室；乙方：远山设计室。\n双方约定于 2026 年 10 月 13 日提交报告，金额为人民币 12,345.67 元。\n交付内容包括：正文、表格、图片以及 English summary。\n“完成”应以书面验收为准；未经确认，不得视为自动接受。",
+    "summary": {
+      "name": "sample.docx",
+      "fingerprint": "a767d121341c12a26721ded803f4401f77ff54bc411383328ccc5fd1db91cd2d",
+      "pages": [
+        {
+          "width": 595.2999877929688,
+          "height": 841.9000244140625
+        }
+      ],
+      "command_count": 652,
+      "layout_ms": 0.7722999999969034
+    }
+  },
+  "after": {
+    "doc": 1,
+    "version": 5,
+    "text": "合作协议（原创测试文本）\n甲方：青禾工作室；乙方：远山设计室。\n双方约定于 2026 年 10 月 13 日提交报告，金额为人民币 12,345.67 元。\n交付内容包括：正文、表格、图片以及 English summary。\n“完成”应以书面验收为准；未经确认，不得视为自动接受。",
+    "summary": {
+      "name": "sample.docx",
+      "fingerprint": "a767d121341c12a26721ded803f4401f77ff54bc411383328ccc5fd1db91cd2d",
+      "pages": [
+        {
+          "width": 595.2999877929688,
+          "height": 841.9000244140625
+        }
+      ],
+      "command_count": 652,
+      "layout_ms": 0.7722999999969034
+    }
+  },
+  "unchanged": [
+    "doc",
+    "version",
+    "text"
+  ]
+}

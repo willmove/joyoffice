@@ -188,10 +188,10 @@ impl Reader {
             .map(|d| d.id.clone())
     }
     pub fn can_undo(&self) -> bool {
-        self.session.can_undo()
+        !self.session.view.read_mode && self.session.can_undo()
     }
     pub fn can_redo(&self) -> bool {
-        self.session.can_redo()
+        !self.session.view.read_mode && self.session.can_redo()
     }
     pub fn source_path(&self) -> Option<&Path> {
         self.source.as_ref().map(SourceStamp::path)
@@ -224,6 +224,9 @@ impl Reader {
         Ok(replacement)
     }
     pub fn replace_text(&mut self, range: Option<Range<usize>>, text: &str) -> Result<(), String> {
+        if self.session.view.read_mode {
+            return Err("Switch to Print Layout to edit".into());
+        }
         if text.len() > 64 * 1024 {
             return Err("Text input exceeds 64 KiB".into());
         }
@@ -268,6 +271,9 @@ impl Reader {
         text: &str,
         selected: Option<Range<usize>>,
     ) -> Result<(), String> {
+        if self.session.view.read_mode {
+            return Err("Switch to Print Layout to edit".into());
+        }
         if text.is_empty() {
             self.cancel_composition();
             return Ok(());

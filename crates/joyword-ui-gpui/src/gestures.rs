@@ -2,13 +2,24 @@
 use super::*;
 use gpui::{Pixels, Point, fill, point, rgba};
 use joyword_shell::authoring::{
-    InlineObject, ObjectHit, StoryRef, Wrap, table_mouse as table, table_resize as resize,
+    DrawMode, InlineObject, ObjectHit, StoryRef, Wrap, lasso_selection, table_mouse as table,
+    table_resize as resize,
 };
 use joyword_shell::editing::PageRect as Rect;
 use serde_json::json;
 #[derive(Clone)]
 enum Kind {
-    Picture { hit: ObjectHit, resize: bool },
+    Ink {
+        mode: DrawMode,
+        points: Vec<[f32; 2]>,
+        color: u32,
+        width: f32,
+    },
+    InkMove,
+    Picture {
+        hit: ObjectHit,
+        resize: bool,
+    },
     TableResize(resize::ResizeTarget),
     TableMove(resize::ResizeTarget),
     TableSelect,
@@ -81,6 +92,55 @@ impl JoyWord {
         let Some(r) = self.canvas.reader.as_ref() else {
             return;
         };
+        let mode = r.engine().view.draw.mode;
+        if mode != DrawMode::Select {
+            let command = match mode {
+                DrawMode::Lasso => "draw.lasso",
+                DrawMode::Eraser => "draw.erase",
+                _ => "draw.stroke",
+            };
+            if !self.format_ready(command) {
+                self.dragging = false;
+                return;
+            }
+            let moving = mode == DrawMode::Lasso
+                && lasso_selection(r.engine()).is_some_and(|selection| {
+                    selection.page == page
+                        && selection.items.iter().any(|pos| {
+                            r.geometry().object(pos, page).is_some_and(|h| {
+                                let b = h.bounds();
+                                x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h
+                            })
+                        })
+                });
+            let (color, width) = mode
+                .pen()
+                .map(|tool| {
+                    let p = r.engine().view.draw.settings(tool);
+                    (
+                        u32::from_str_radix(&p.color.hex(), 16).unwrap_or(0x222222),
+                        p.width,
+                    )
+                })
+                .unwrap_or((self.palette().accent, 1.));
+            self.gesture = self.gesture(
+                page,
+                (x, y),
+                if moving {
+                    Kind::InkMove
+                } else {
+                    Kind::Ink {
+                        mode,
+                        points: vec![[x, y]],
+                        color,
+                        width,
+                    }
+                },
+                e.modifiers,
+            );
+            cx.notify();
+            return;
+        }
         if let Some(hit) = r
             .picture_info()
             .and_then(|p| r.geometry().object(&p.pos, page))
@@ -198,7 +258,15 @@ impl JoyWord {
             self.mouse_selection(e.position, true, 1, w, cx);
             return;
         };
-        let end_page = self.page_for(e.position).unwrap_or(page);
+        let ink = self
+            .gesture
+            .as_ref()
+            .is_some_and(|g| matches!(g.kind, Kind::Ink { .. } | Kind::InkMove));
+        let end_page = if ink {
+            page
+        } else {
+            self.page_for(e.position).unwrap_or(page)
+        };
         let Some(at) = self.on_page(end_page, e.position) else {
             return;
         };
@@ -207,6 +275,9 @@ impl JoyWord {
             g.end = at;
             g.shift = e.modifiers.shift;
             g.ctrl = e.modifiers.control;
+            if let Kind::Ink { points, .. } = &mut g.kind {
+                push_ink_point(points, [at.0, at.1]);
+            }
         }
         if let Some(g) = &self.gesture
             && matches!(g.kind, Kind::TableSelect)
@@ -226,7 +297,7 @@ impl JoyWord {
             return;
         }
         self.dragging = false;
-        let Some(g) = self.gesture.take() else {
+        let Some(mut g) = self.gesture.take() else {
             self.paint_brush(w, cx);
             return;
         };
@@ -247,7 +318,59 @@ impl JoyWord {
         let dy = g.end.1 - g.start.1;
         let moved = dx.abs() + dy.abs() > 2.;
         let reach = 4. / self.canvas.factor(self.shell.zoom);
+        if let Kind::Ink { points, .. } = &mut g.kind
+            && let Some((x, y)) = self.on_page(g.page, e.position)
+        {
+            push_ink_point(points, [x, y]);
+        }
         match g.kind {
+            Kind::Ink {
+                mode,
+                mut points,
+                color,
+                width,
+            } => {
+                if self
+                    .canvas
+                    .reader
+                    .as_ref()
+                    .is_none_or(|r| r.engine().view.draw.mode != mode)
+                {
+                    return;
+                }
+                match mode {
+                    DrawMode::Pen(tool) => {
+                        if points.len() == 1 {
+                            points.push([points[0][0] + 0.1, points[0][1] + 0.1]);
+                        }
+                        let _=self.try_edit("draw.stroke",&json!({"page":g.page,"points":points,"tool":tool.name(),"color":format!("{color:06X}"),"width":width}),w,cx);
+                    }
+                    DrawMode::Lasso if points.len() >= 3 => {
+                        let _ = self.try_edit(
+                            "draw.lasso",
+                            &json!({"page":g.page,"points":points}),
+                            w,
+                            cx,
+                        );
+                    }
+                    DrawMode::Eraser => {
+                        let result = self.try_edit(
+                            "draw.erase",
+                            &json!({"page":g.page,"points":eraser_samples(&points)}),
+                            w,
+                            cx,
+                        );
+                        if result.is_err_and(|e| e.contains("no ink stroke there")) {
+                            self.shell.notice = None;
+                        }
+                    }
+                    _ => {}
+                }
+            }
+            Kind::InkMove if moved => {
+                let _ = self.try_edit("draw.lassoMove", &json!({"dx":dx,"dy":dy}), w, cx);
+            }
+            Kind::InkMove => {}
             Kind::TableSelect => self.paint_brush(w, cx),
             Kind::TableResize(_) | Kind::TableMove(_) if !moved => {}
             Kind::TableResize(_) => {
@@ -314,6 +437,11 @@ impl JoyWord {
         let line = |b: Rect, w: &mut Window| {
             w.paint_quad(fill(convert(b), rgb(0x315fa8)));
         };
+        if r.engine().merge.highlight {
+            for rect in r.merge_field_rects(page) {
+                w.paint_quad(fill(convert(rect), rgba(0x60606035)));
+            }
+        }
         let outline = |b: Rect, w: &mut Window| {
             let t = 1.5 / scale;
             for q in [
@@ -325,6 +453,15 @@ impl JoyWord {
                 line(q, w);
             }
         };
+        if let Some(selection) =
+            lasso_selection(r.engine()).filter(|s| s.page == page && !r.engine().view.hide_ink)
+        {
+            for pos in &selection.items {
+                if let Some(hit) = r.geometry().object(pos, page) {
+                    outline(hit.bounds(), w);
+                }
+            }
+        }
         if let Some(range) = r.engine().cell_range() {
             for (pi, b) in table::cell_rects(r.geometry(), &r.engine().doc, range) {
                 if pi == page {
@@ -362,6 +499,47 @@ impl JoyWord {
         }
         let (dx, dy) = (g.end.0 - g.start.0, g.end.1 - g.start.1);
         match &g.kind {
+            Kind::Ink {
+                mode,
+                points,
+                color,
+                width,
+            } => {
+                if *mode != DrawMode::Eraser {
+                    let alpha = if mode.pen().is_some_and(|t| t.name() == "highlighter") {
+                        90
+                    } else {
+                        255
+                    };
+                    let mut path = gpui::PathBuilder::stroke(px(width * scale));
+                    for (i, [x, y]) in points.iter().enumerate() {
+                        let p = point(
+                            bounds.origin.x + px(x * scale),
+                            bounds.origin.y + px(y * scale),
+                        );
+                        if i == 0 {
+                            path.move_to(p);
+                        } else {
+                            path.line_to(p);
+                        }
+                    }
+                    if let Ok(path) = path.build() {
+                        w.paint_path(path, rgba((color << 8) | alpha));
+                    }
+                }
+            }
+            Kind::InkMove => {
+                if let Some(selection) = lasso_selection(r.engine()).filter(|s| s.page == page) {
+                    for pos in &selection.items {
+                        if let Some(hit) = r.geometry().object(pos, page) {
+                            let mut b = hit.bounds();
+                            b.x += dx;
+                            b.y += dy;
+                            outline(b, w);
+                        }
+                    }
+                }
+            }
             Kind::Picture { hit, resize } => {
                 let mut b = hit.bounds();
                 if *resize {
@@ -425,6 +603,50 @@ impl JoyWord {
     }
 }
 
+fn push_ink_point(points: &mut Vec<[f32; 2]>, point: [f32; 2]) {
+    if !point.iter().all(|v| v.is_finite())
+        || points
+            .last()
+            .is_some_and(|p| (p[0] - point[0]).hypot(p[1] - point[1]) < 0.4)
+    {
+        return;
+    }
+    if points.len() >= 5000 {
+        *points = points.iter().step_by(2).copied().collect();
+    }
+    points.push(point);
+}
+
+/// Uniform page-space sampling catches strokes crossed between pointer events.
+fn eraser_samples(points: &[[f32; 2]]) -> Vec<[f32; 2]> {
+    let Some(first) = points.first() else {
+        return Vec::new();
+    };
+    let length: f32 = points
+        .windows(2)
+        .map(|p| (p[1][0] - p[0][0]).hypot(p[1][1] - p[0][1]))
+        .sum();
+    let step = (length / 510.).max(2.);
+    let mut out = vec![*first];
+    let mut until = step;
+    for pair in points.windows(2) {
+        let [mut a, b] = [pair[0], pair[1]];
+        let mut distance = (b[0] - a[0]).hypot(b[1] - a[1]);
+        while distance >= until && out.len() < 511 {
+            let t = until / distance;
+            a = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+            out.push(a);
+            distance -= until;
+            until = step;
+        }
+        until = (until - distance).max(0.01);
+    }
+    if let Some(last) = points.last() {
+        out.push(*last);
+    }
+    out
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -434,6 +656,25 @@ mod tests {
         reader::Reader,
     };
     use std::sync::atomic::AtomicBool;
+
+    #[test]
+    fn eraser_sampling_follows_segments_and_respects_the_point_budget() {
+        let samples = eraser_samples(&[[0., 0.], [100., 0.], [100., 100.]]);
+        assert!(
+            samples
+                .iter()
+                .any(|p| (p[0] - 50.).abs() < 1. && p[1] == 0.)
+        );
+        assert!(
+            samples
+                .iter()
+                .any(|p| p[0] == 100. && (p[1] - 50.).abs() < 1.)
+        );
+        assert_eq!(samples.last(), Some(&[100., 100.]));
+        let long = eraser_samples(&[[0., 0.], [10000., 0.], [10000., 10000.]]);
+        assert!(long.len() <= 512);
+        assert_eq!(long.last(), Some(&[10000., 10000.]));
+    }
 
     #[gpui::test]
     fn picture_drag_is_draft_until_release_cancel_and_stale_guard(cx: &mut TestAppContext) {

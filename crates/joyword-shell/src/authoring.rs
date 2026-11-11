@@ -1,6 +1,11 @@
 //! Native authoring queries and bounded import, over the single editor Session.
 use crate::formatting::optional_number;
 use crate::reader::Reader;
+pub use joyword_engine::cmd::citations::STYLES as CITATION_STYLES;
+pub use joyword_engine::cmd::design::THEMES as DOCUMENT_THEMES;
+pub use joyword_engine::cmd::draw::{DrawMode, PenSettings, lasso_selection};
+pub use joyword_engine::cmd::format::enclose_target;
+pub use joyword_engine::cmd::phonetic::state as phonetic_state;
 pub use joyword_engine::cmd::{table_mouse, table_resize};
 pub use joyword_engine::doc::para::Wrap;
 pub use joyword_engine::doc::{InlineObject, Path as DocPath, Pos, StoryRef};
@@ -43,6 +48,58 @@ pub struct PictureInfo {
     pub float: Value,
 }
 impl Reader {
+    /// Screen-only shading for visible merge fields. Inspect only paragraphs
+    /// placed on this page, so a large document is not rescanned on every paint.
+    pub fn merge_field_rects(&self, page: usize) -> Vec<joyword_geom::Rect> {
+        use joyword_layout::Placed;
+        let Some(page_items) = self.layout.pages.get(page) else {
+            return Vec::new();
+        };
+        let mut paragraphs = Vec::new();
+        for item in &page_items.items {
+            if let Placed::Lines { story, path, .. } = item
+                && !paragraphs.contains(&(*story, path.clone()))
+            {
+                paragraphs.push((*story, path.clone()));
+            }
+        }
+        let mut rects = Vec::new();
+        for (story, path) in paragraphs {
+            let Some(p) = self.session.doc.para(story, &path) else {
+                continue;
+            };
+            for off in p.object_offsets() {
+                if let Some(InlineObject::Field { instr, .. }) = p.object_at(off)
+                    && instr.split_whitespace().next().is_some_and(|name| {
+                        ["MERGEFIELD", "ADDRESSBLOCK", "GREETINGLINE"]
+                            .iter()
+                            .any(|field| name.eq_ignore_ascii_case(field))
+                    })
+                {
+                    let a = Pos {
+                        story,
+                        path: path.clone(),
+                        off,
+                    };
+                    let b = Pos {
+                        off: off + '\u{fffc}'.len_utf8(),
+                        ..a.clone()
+                    };
+                    rects.extend(
+                        self.layout
+                            .selection_rects(&self.session.doc, &a, &b, page)
+                            .into_iter()
+                            .filter_map(|(p, r)| (p == page).then_some(r)),
+                    );
+                    if rects.len() >= 512 {
+                        rects.truncate(512);
+                        return rects;
+                    }
+                }
+            }
+        }
+        rects
+    }
     pub fn styles(&self) -> Vec<StyleInfo> {
         self.session
             .doc

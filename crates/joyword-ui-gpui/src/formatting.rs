@@ -2,7 +2,7 @@
 use super::*;
 use gpui::EntityInputHandler;
 use gpui::component::{
-    Disableable, Sizable, WindowExt,
+    Sizable, WindowExt,
     input::{Input, InputState},
     popover::Popover,
     select::{SearchableVec, SelectState},
@@ -101,38 +101,16 @@ impl JoyWord {
     ) {
         let _ = self.try_edit(id, args, w, cx);
     }
-    pub(super) fn choices(
-        &self,
-        id: &'static str,
-        label: String,
-        command: &'static str,
-        choices: Vec<(String, Value)>,
-        cx: &mut Context<Self>,
-    ) -> impl IntoElement {
-        let trigger = Button::new((id, 0usize))
-            .ghost()
-            .xsmall()
-            .h(px(27.))
-            .label(label.clone())
-            .accessibility_label(label)
-            .disabled(!self.format_ready(command));
-        self.format_choices(id, trigger, command, choices, cx)
-    }
-
     pub(super) fn format_choices(
         &self,
         id: &'static str,
         trigger: Button,
         command: &'static str,
         choices: Vec<(String, Value)>,
-        cx: &mut Context<Self>,
-    ) -> impl IntoElement {
+        cx: &Context<Self>,
+    ) -> impl IntoElement + use<> {
         let owner = cx.entity().downgrade();
-        let target = self
-            .canvas
-            .reader
-            .as_ref()
-            .map(|r| (r.engine().document_id(), r.engine().rev()));
+        let target = self.ribbon_target();
         Popover::new(id).trigger(trigger).content(move |_, _, cx| {
             let popup = cx.entity().downgrade();
             let mut list = div()
@@ -146,6 +124,7 @@ impl JoyWord {
                 let owner = owner.clone();
                 let popup = popup.clone();
                 let args = args.clone();
+                let target = target.clone();
                 list = list.child(
                     Button::new((id, i + 2))
                         .ghost()
@@ -154,12 +133,7 @@ impl JoyWord {
                         .on_click(move |_, w, cx| {
                             let _ = popup.update(cx, |p, cx| p.dismiss(w, cx));
                             let _ = owner.update(cx, |v, cx| {
-                                if v.canvas
-                                    .reader
-                                    .as_ref()
-                                    .map(|r| (r.engine().document_id(), r.engine().rev()))
-                                    == target
-                                {
+                                if v.ribbon_target() == target {
                                     v.run_format(command, &args, w, cx);
                                 }
                             });
@@ -188,7 +162,7 @@ impl JoyWord {
             .flex()
             .flex_col()
             .justify_between()
-            .h(px(82.))
+            .h(px(94.))
             .px_2()
             .border_r_1()
             .border_color(rgb(self.palette().separator))

@@ -27,6 +27,45 @@ fn ink(s: &Session) -> Vec<InlineObject> {
 }
 
 #[test]
+fn an_eraser_path_removes_multiple_strokes_in_one_undo_step_and_keeps_other_content() {
+    let mut s = session();
+    for y in [100, 150, 200] {
+        s.run("draw.stroke", &json!({"page":0,"points":[[100,y],[200,y]]}))
+            .unwrap();
+    }
+    let before = s.doc.clone();
+    let depth = s.undo_depth();
+    let result = s
+        .run(
+            "draw.erase",
+            &json!({"page":0,"points":[[130,100],[140,100],[130,150]]}),
+        )
+        .unwrap();
+    assert_eq!(result["erased"], 2);
+    assert_eq!(ink(&s).len(), 1);
+    assert_eq!(s.undo_depth(), depth + 1);
+    assert_eq!(
+        s.doc.plain_text(StoryRef::Body).replace('\u{fffc}', ""),
+        before.plain_text(StoryRef::Body).replace('\u{fffc}', "")
+    );
+    s.run("edit.undo", &json!({})).unwrap();
+    assert_eq!(s.doc, before);
+    s.run("edit.redo", &json!({})).unwrap();
+    assert_eq!(ink(&s).len(), 1);
+    let doc = s.doc.clone();
+    let depth = s.undo_depth();
+    for params in [
+        json!({"page":0,"points":[]}),
+        json!({"page":0,"points":[[500,500]]}),
+        json!({"page":999,"points":[[130,200]]}),
+    ] {
+        assert!(s.run("draw.erase", &params).is_err());
+        assert_eq!(s.doc, doc);
+        assert_eq!(s.undo_depth(), depth);
+    }
+}
+
+#[test]
 fn a_stroke_inserts_floating_ink_through_its_points_in_one_undo_step() {
     let mut s = session();
     let text = s.doc.plain_text(StoryRef::Body);

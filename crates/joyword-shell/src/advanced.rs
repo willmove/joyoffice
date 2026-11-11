@@ -142,6 +142,18 @@ impl Reader {
             merge: Some((self.session.merge.clone(), current)),
         })
     }
+    /// Generate labels in an isolated session and export a verified copy.
+    /// The current template, source identity and unsaved edits stay intact.
+    pub fn labels_job(&self, args: &Value) -> Result<OutputJob, String> {
+        let mut job = self.export_job("docx", false)?;
+        let mut session = Session::new(Document::new());
+        session
+            .run("mailings.labels", args)
+            .map_err(|e| e.to_string())?;
+        job.doc = session.doc;
+        job.recovered = None;
+        Ok(job)
+    }
     pub fn macro_steps(&self, name: &str) -> Result<Vec<(String, Value)>, String> {
         let steps = self.session.macros.get(name).ok_or("找不到宏")?;
         validate_macro(steps)?;

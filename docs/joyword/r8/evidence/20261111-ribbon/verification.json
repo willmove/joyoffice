@@ -1,0 +1,502 @@
+{
+  "date": "2026-11-11",
+  "platform": "Windows x64",
+  "rustc": "1.98.1 (48a229cea 2026-09-01)",
+  "word_version": "16.0.20527.20150",
+  "base_commit": "55b1507177ab1140a4fdf545cfceffe0b60ae4ff",
+  "branch": "feat/joyword-windows-ribbon",
+  "unit_scope": {
+    "engine": 1159,
+    "fonts": 106,
+    "fonts_ignored": 1,
+    "pdf": 70,
+    "render": 71,
+    "shell": 107,
+    "ui": 23,
+    "passed": 1536
+  },
+  "native_binary_sha256": "6aa414858e8644d6548ebba9e2d3100a067d25165dfe17f378bc69374cd7175e",
+  "layout_source_blobs": {
+    "crates/joyword-layout/src/tests/pages.rs": {
+      "baseline": "0bdd29d65005a6b68eed9a56f549b35be95f428a",
+      "working": "0bdd29d65005a6b68eed9a56f549b35be95f428a"
+    },
+    "crates/joyword-layout/src/incremental.rs": {
+      "baseline": "521909d261317907a2ce09a40bf0ac29939f01e9",
+      "working": "521909d261317907a2ce09a40bf0ac29939f01e9"
+    }
+  },
+  "runs": [
+    {
+      "command": "cargo test --locked -p joyword-engine -p joyword-shell --lib",
+      "status": "passed",
+      "log": "target/ribbon-final-engine-shell.log",
+      "log_sha256": "4d643634515ec37369ca52ddecea09f18864371894da80a8fd8986a394502a65",
+      "results": [
+        "     Running unittests src\\lib.rs (D:\\Coding\\EditorProjects\\joyoffice\\target\\debug\\deps\\joyword_engine-3cae6fc952ccaeb5.exe)",
+        "test result: ok. 1159 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 36.88s",
+        "     Running unittests src\\lib.rs (D:\\Coding\\EditorProjects\\joyoffice\\target\\debug\\deps\\joyword_shell-6baf2ebd51f8b365.exe)",
+        "test result: ok. 107 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.72s"
+      ],
+      "failures": [],
+      "tail": [
+        "",
+        "test result: ok. 107 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.72s",
+        ""
+      ]
+    },
+    {
+      "command": "cargo test --locked -p joyword-fonts -p joyword-render -p joyword-pdf -p joyword-shell -p joyword-ui-gpui --lib",
+      "status": "passed",
+      "log": "target/ribbon-render-ui-tests.log",
+      "log_sha256": "a0eb770e861bfcb872158505f09f8f8728593bb7b5cef5ca938581b4ea420f5a",
+      "results": [
+        "     Running unittests src\\lib.rs (D:\\Coding\\EditorProjects\\joyoffice\\target\\debug\\deps\\joyword_fonts-15106e406759f5f3.exe)",
+        "test result: ok. 106 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.94s",
+        "     Running unittests src\\lib.rs (D:\\Coding\\EditorProjects\\joyoffice\\target\\debug\\deps\\joyword_pdf-c2f94a31f24de71b.exe)",
+        "test result: ok. 70 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 12.76s",
+        "     Running unittests src\\lib.rs (D:\\Coding\\EditorProjects\\joyoffice\\target\\debug\\deps\\joyword_render-7b48871f6f73e588.exe)",
+        "test result: ok. 71 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.35s",
+        "     Running unittests src\\lib.rs (D:\\Coding\\EditorProjects\\joyoffice\\target\\debug\\deps\\joyword_shell-4735d2b1b31e6d2f.exe)",
+        "test result: ok. 106 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.78s",
+        "     Running unittests src\\lib.rs (D:\\Coding\\EditorProjects\\joyoffice\\target\\debug\\deps\\joyword_ui_gpui-ec8daaaab9ab109f.exe)",
+        "test result: ok. 23 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.76s"
+      ],
+      "failures": [],
+      "tail": [
+        "",
+        "test result: ok. 23 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.76s",
+        ""
+      ]
+    },
+    {
+      "command": "cargo test --locked -p joyword-mcp -p joyword-metafile -p joyword-model -p joyword-pdf -p joyword-render -p joyword-shell -p joyword-ui-gpui",
+      "status": "passed",
+      "log": "target/ribbon-product-consumers.log",
+      "log_sha256": "59cfbf376bb368bb1340706c1f7fc285925e62bc9f2b465d3dd0c1c4d828bb15",
+      "results": [
+        "     Running unittests src\\lib.rs (D:\\Coding\\EditorProjects\\joyoffice\\target\\debug\\deps\\joyword_mcp-f8cdb6daeab0bc25.exe)",
+        "test result: ok. 26 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.62s",
+        "     Running tests\\automation_roots.rs (D:\\Coding\\EditorProjects\\joyoffice\\target\\debug\\deps\\automation_roots-e50f0899c09b3963.exe)",
+        "test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.26s",
+        "     Running unittests src\\lib.rs (D:\\Coding\\EditorProjects\\joyoffice\\target\\debug\\deps\\joyword_metafile-bebc3f79e586c2ce.exe)",
+        "test result: ok. 65 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.64s",
+        "     Running unittests src\\lib.rs (D:\\Coding\\EditorProjects\\joyoffice\\target\\debug\\deps\\joyword_model-a123abbff9ec4886.exe)",
+        "test result: ok. 267 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.95s",
+        "     Running tests\\core_metadata.rs (D:\\Coding\\EditorProjects\\joyoffice\\target\\debug\\deps\\core_metadata-943322eade03c534.exe)",
+        "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "     Running unittests src\\lib.rs (D:\\Coding\\EditorProjects\\joyoffice\\target\\debug\\deps\\joyword_pdf-c2f94a31f24de71b.exe)",
+        "test result: ok. 70 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 13.25s",
+        "     Running unittests src\\lib.rs (D:\\Coding\\EditorProjects\\joyoffice\\target\\debug\\deps\\joyword_render-7b48871f6f73e588.exe)",
+        "test result: ok. 71 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.39s",
+        "     Running unittests src\\lib.rs (D:\\Coding\\EditorProjects\\joyoffice\\target\\debug\\deps\\joyword_shell-4735d2b1b31e6d2f.exe)",
+        "test result: ok. 107 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.85s",
+        "     Running unittests src\\lib.rs (D:\\Coding\\EditorProjects\\joyoffice\\target\\debug\\deps\\joyword_ui_gpui-ec8daaaab9ab109f.exe)",
+        "test result: ok. 23 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.83s",
+        "   Doc-tests joyword_mcp",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "   Doc-tests joyword_metafile",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "   Doc-tests joyword_model",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "   Doc-tests joyword_pdf",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "   Doc-tests joyword_render",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "   Doc-tests joyword_shell",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "   Doc-tests joyword_ui_gpui",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "failures": [],
+      "tail": [
+        "",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        ""
+      ]
+    },
+    {
+      "command": "cargo xtask test joyword --headless",
+      "status": "failed",
+      "log": "target/ribbon-product-tests.log",
+      "log_sha256": "5a030ebe0ac8767958283f5c2835c0b53daa0e941a3cd8bfa0c4683df1e50991",
+      "results": [
+        "     Running unittests src\\lib.rs (D:\\Coding\\EditorProjects\\joyoffice\\target\\debug\\deps\\joyoffice_opc-5aed858aed789ed8.exe)",
+        "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "     Running tests\\package.rs (D:\\Coding\\EditorProjects\\joyoffice\\target\\debug\\deps\\package-e63860005fc1118a.exe)",
+        "test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s",
+        "     Running unittests src\\lib.rs (D:\\Coding\\EditorProjects\\joyoffice\\target\\debug\\deps\\joyoffice_theme-75a982f5450f3873.exe)",
+        "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "     Running unittests src\\lib.rs (D:\\Coding\\EditorProjects\\joyoffice\\target\\debug\\deps\\joyword_agent-d96747e4ae78eb3e.exe)",
+        "test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s",
+        "     Running tests\\contract.rs (D:\\Coding\\EditorProjects\\joyoffice\\target\\debug\\deps\\contract-e06a01444c8099cc.exe)",
+        "test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s",
+        "     Running tests\\credential_redaction.rs (D:\\Coding\\EditorProjects\\joyoffice\\target\\debug\\deps\\credential_redaction-32f9a8d6e9b3cd06.exe)",
+        "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "     Running tests\\http_cancel.rs (D:\\Coding\\EditorProjects\\joyoffice\\target\\debug\\deps\\http_cancel-68dac66e8330328b.exe)",
+        "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "     Running tests\\replace_preview.rs (D:\\Coding\\EditorProjects\\joyoffice\\target\\debug\\deps\\replace_preview-319975f85c99320e.exe)",
+        "test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "     Running tests\\scoped_tools.rs (D:\\Coding\\EditorProjects\\joyoffice\\target\\debug\\deps\\scoped_tools-fc58d9550ee6e955.exe)",
+        "test result: ok. 22 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "     Running tests\\task_owner.rs (D:\\Coding\\EditorProjects\\joyoffice\\target\\debug\\deps\\task_owner-0a7aaeb1d55f5df1.exe)",
+        "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "     Running unittests src\\main.rs (D:\\Coding\\EditorProjects\\joyoffice\\target\\debug\\deps\\joyword_cli-d0dd8afed3def8ef.exe)",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "     Running tests\\read_only_source.rs (D:\\Coding\\EditorProjects\\joyoffice\\target\\debug\\deps\\read_only_source-183cbf787583945d.exe)",
+        "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.37s",
+        "     Running unittests src\\lib.rs (D:\\Coding\\EditorProjects\\joyoffice\\target\\debug\\deps\\joyword_control_key-d8707d634902ac80.exe)",
+        "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "     Running unittests src\\lib.rs (D:\\Coding\\EditorProjects\\joyoffice\\target\\debug\\deps\\joyword_corpus-71530b3bb0f3c9aa.exe)",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "     Running unittests src\\bin\\generate_corpus.rs (D:\\Coding\\EditorProjects\\joyoffice\\target\\debug\\deps\\generate_corpus-78bd6a7f6250600d.exe)",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "     Running tests\\cases.rs (D:\\Coding\\EditorProjects\\joyoffice\\target\\debug\\deps\\cases-393e398230fd0a2b.exe)",
+        "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s",
+        "     Running unittests src\\lib.rs (D:\\Coding\\EditorProjects\\joyoffice\\target\\debug\\deps\\joyword_doc-ab21c9bf4c62e2ac.exe)",
+        "test result: ok. 126 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.51s",
+        "     Running unittests src\\lib.rs (D:\\Coding\\EditorProjects\\joyoffice\\target\\debug\\deps\\joyword_docx-0362eb83463119b4.exe)",
+        "test result: ok. 138 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 10.30s",
+        "     Running tests\\it\\main.rs (D:\\Coding\\EditorProjects\\joyoffice\\target\\debug\\deps\\it-3e0983a3a60be9e1.exe)",
+        "test result: ok. 405 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.06s",
+        "     Running unittests src\\lib.rs (D:\\Coding\\EditorProjects\\joyoffice\\target\\debug\\deps\\joyword_engine-c89204d40bcb2114.exe)",
+        "test result: ok. 1159 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 36.28s",
+        "     Running tests\\it\\main.rs (D:\\Coding\\EditorProjects\\joyoffice\\target\\debug\\deps\\it-d9dc6635cb04ce06.exe)",
+        "test result: ok. 41 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.49s",
+        "     Running unittests src\\lib.rs (D:\\Coding\\EditorProjects\\joyoffice\\target\\debug\\deps\\joyword_fonts-b05f8783d54cb17f.exe)",
+        "test result: ok. 105 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.85s",
+        "     Running tests\\system_fonts.rs (D:\\Coding\\EditorProjects\\joyoffice\\target\\debug\\deps\\system_fonts-fd38e08ceab92440.exe)",
+        "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.17s",
+        "     Running unittests src\\lib.rs (D:\\Coding\\EditorProjects\\joyoffice\\target\\debug\\deps\\joyword_formats-49bf68d8122731c0.exe)",
+        "test result: ok. 306 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.32s",
+        "     Running unittests src\\lib.rs (D:\\Coding\\EditorProjects\\joyoffice\\target\\debug\\deps\\joyword_geom-ed6e5423149d4a25.exe)",
+        "test result: ok. 20 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "     Running unittests src\\lib.rs (D:\\Coding\\EditorProjects\\joyoffice\\target\\debug\\deps\\joyword_layout-e45305076653a28f.exe)",
+        "test result: FAILED. 584 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 23.01s"
+      ],
+      "failures": [
+        "---- tests::pages::a_page_ends_when_a_multiple_spaced_lines_text_no_longer_fits stdout ----\n\nthread 'tests::pages::a_page_ends_when_a_multiple_spaced_lines_text_no_longer_fits' (29200) panicked at crates\\joyword-layout\\src\\tests\\pages.rs:939:13:\n1.15 shift 0: the paragraph should run onto a second page\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    tests::pages::a_page_ends_when_a_multiple_spaced_lines_text_no_longer_fits\n"
+      ],
+      "tail": [
+        "error: test failed, to rerun pass `-p joyword-layout --lib`",
+        "error: Command '['cargo', 'test', '-p', 'joyoffice-opc', '-p', 'joyoffice-theme', '-p', 'joyword-agent', '-p', 'joyword-cli', '-p', 'joyword-control-key', '-p', 'joyword-corpus', '-p', 'joyword-doc', '-p', 'joyword-docx', '-p', 'joyword-engine', '-p', 'joyword-fonts', '-p', 'joyword-formats', '-p', 'joyword-geom', '-p', 'joyword-layout', '-p', 'joyword-mcp', '-p', 'joyword-metafile', '-p', 'joyword-model', '-p', 'joyword-pdf', '-p', 'joyword-render', '-p', 'joyword-shell', '--locked']' returned non-zero exit status 101.",
+        "error: process didn't exit successfully: `D:\\Coding\\EditorProjects\\joyoffice\\target\\debug\\joyoffice-xtask.exe test joyword --headless` (exit code: 1)"
+      ]
+    },
+    {
+      "command": "cargo test --locked -p joyword-fonts -p joyword-layout -p joyword-mcp -p joyword-metafile -p joyword-model -p joyword-pdf -p joyword-render -p joyword-shell -- --skip tests::pages::a_page_ends_when_a_multiple_spaced_lines_text_no_longer_fits",
+      "status": "failed",
+      "log": "target/ribbon-product-remaining.log",
+      "log_sha256": "01514f4a68a7d114b1c83bd1bba4df156f463e5932f1a518483e49d8bb2350b1",
+      "results": [
+        "     Running unittests src\\lib.rs (D:\\Coding\\EditorProjects\\joyoffice\\target\\debug\\deps\\joyword_fonts-b05f8783d54cb17f.exe)",
+        "test result: ok. 106 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.90s",
+        "     Running tests\\system_fonts.rs (D:\\Coding\\EditorProjects\\joyoffice\\target\\debug\\deps\\system_fonts-fd38e08ceab92440.exe)",
+        "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.18s",
+        "     Running unittests src\\lib.rs (D:\\Coding\\EditorProjects\\joyoffice\\target\\debug\\deps\\joyword_layout-7eca2211e553f8b9.exe)",
+        "test result: FAILED. 583 passed; 1 failed; 0 ignored; 0 measured; 1 filtered out; finished in 25.32s"
+      ],
+      "failures": [
+        "---- incremental::tests::reuses_page_flow_for_single_line_edits_and_falls_back_on_wrapping stdout ----\n\nthread 'incremental::tests::reuses_page_flow_for_single_line_edits_and_falls_back_on_wrapping' (34844) panicked at crates\\joyword-layout\\src\\incremental.rs:268:13:\nassertion `left == right` failed\n  left: None\n right: Some(0)\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:"
+      ],
+      "tail": [
+        "test result: FAILED. 583 passed; 1 failed; 0 ignored; 0 measured; 1 filtered out; finished in 25.32s",
+        "",
+        "error: test failed, to rerun pass `-p joyword-layout --lib`"
+      ]
+    },
+    {
+      "command": "cargo clippy --locked -p joyword-fonts -p joyword-render -p joyword-pdf -p joyword-engine -p joyword-shell -p joyword-ui-gpui --lib --bins -- -D warnings",
+      "status": "passed",
+      "log": "target/ribbon-clippy.log",
+      "log_sha256": "a0c39dea068ce3d19702102a4d4e9da43a56e5ceef39df0ed18b010fc98dc5bf",
+      "results": [],
+      "failures": [],
+      "tail": [
+        "    Checking joyword-shell v0.1.3 (D:\\Coding\\EditorProjects\\joyoffice-joyword-ribbon\\crates\\joyword-shell)",
+        "    Checking joyword-ui-gpui v0.1.3 (D:\\Coding\\EditorProjects\\joyoffice-joyword-ribbon\\crates\\joyword-ui-gpui)",
+        "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 10.94s"
+      ]
+    },
+    {
+      "command": "cargo xtask build joyword",
+      "status": "passed",
+      "log": "target/ribbon-product-build.log",
+      "log_sha256": "9747e184ee9db5e853fcd7892e4886707b758f5ae895ecbf24d3e2558b6f6b0e",
+      "results": [],
+      "failures": [],
+      "tail": [
+        "   Compiling joyword-ui-gpui v0.1.3 (D:\\Coding\\EditorProjects\\joyoffice-joyword-ribbon\\crates\\joyword-ui-gpui)",
+        "   Compiling joyword v0.1.3 (D:\\Coding\\EditorProjects\\joyoffice-joyword-ribbon\\apps\\joyword)",
+        "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 20.55s"
+      ]
+    },
+    {
+      "command": "cargo fmt --all --check",
+      "status": "passed",
+      "log": "target/ribbon-fmt.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "results": [],
+      "failures": [],
+      "tail": []
+    },
+    {
+      "command": "cargo test --locked -p joyword-layout reuses_page_flow_for_single_line_edits_and_falls_back_on_wrapping -- --exact incremental::tests::reuses_page_flow_for_single_line_edits_and_falls_back_on_wrapping",
+      "status": "passed",
+      "log": "target/ribbon-layout-isolated.log",
+      "log_sha256": "80daf2bdfb90e94c15f8e90380cd1365a7160c4bc92fedc03295a85912935cf3",
+      "results": [
+        "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 584 filtered out; finished in 0.20s"
+      ],
+      "tail": [
+        "",
+        "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 584 filtered out; finished in 0.20s",
+        ""
+      ]
+    },
+    {
+      "command": "python scripts/check_docs.py",
+      "status": "passed",
+      "log": "target/ribbon-docs.log",
+      "log_sha256": "e83e5166d8aa3eac9aeccb627eef33b312956bffec53ad09b23588f410737021",
+      "results": [
+        "OK: R8 documentation, 112 historical tasks, sample hashes and workflow action pins"
+      ],
+      "tail": [
+        "OK: R8 documentation, 112 historical tasks, sample hashes and workflow action pins"
+      ]
+    },
+    {
+      "command": "cargo test --locked -p joyword-ui-gpui --lib",
+      "scope": "Final File sidebar adjustment",
+      "status": "passed",
+      "log": "target/ribbon-final-ui-tests.log",
+      "log_sha256": "446979e1e400c65cf0bff6ccb8d9c5ede32498326745c5ff64b75e9c8deec954",
+      "results": [
+        "test result: ok. 23 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.77s"
+      ],
+      "tail": [
+        "",
+        "test result: ok. 23 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.77s",
+        ""
+      ]
+    },
+    {
+      "command": "cargo clippy --locked -p joyword-ui-gpui --lib --bins -- -D warnings",
+      "scope": "Final File sidebar adjustment",
+      "status": "passed",
+      "log": "target/ribbon-final-ui-clippy.log",
+      "log_sha256": "72380763b037172e45d00ce34148cff9dfcdd955aa61c654be86d715e393e5a3",
+      "results": [],
+      "tail": [
+        "    Checking joyword-shell v0.1.3 (D:\\Coding\\EditorProjects\\joyoffice-joyword-ribbon\\crates\\joyword-shell)",
+        "    Checking joyword-ui-gpui v0.1.3 (D:\\Coding\\EditorProjects\\joyoffice-joyword-ribbon\\crates\\joyword-ui-gpui)",
+        "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 8.73s"
+      ]
+    }
+  ],
+  "ribbon_crops": {
+    "source": "Word screenshot crop (0,48,1360,180)",
+    "after": "JoyWord screenshot crop (0,59,1360,187)",
+    "note": "The windows were 1360x794 and 1442x931 respectively. Crops retain their original pixel scale; no responsive-layout equivalence is claimed."
+  },
+  "screenshots": {
+    "native-actions.png": {
+      "sha256": "3d9171f3eaba6e5b5cd23207e4b9531e25cca8d899a60242ecdf6cdc7eec2de3",
+      "bytes": 258231
+    },
+    "native-read-mode-undo.png": {
+      "sha256": "a400197147d3f5ce5e2ed300d9d481d06057c8aea1706b5cd9a1131284ebe785",
+      "bytes": 192110
+    },
+    "strips/after-contextual-tabs.png": {
+      "sha256": "56c18c522d4496f392a75f3413d8798ae19656cf8aea3e2e80324cc840865ecb",
+      "bytes": 785522
+    },
+    "strips/after-highlights.png": {
+      "sha256": "014aa454b979be7b42cc2f626a357d469d3b8a856b9bea91dc242e1437a28cb2",
+      "bytes": 929062
+    },
+    "strips/after-main-tabs.png": {
+      "sha256": "5eb06d75f1d0feadae72848f2c5335c5e6e6e3fb902ca13dc7e03ded3b01206f",
+      "bytes": 2292936
+    },
+    "strips/before-comparison.png": {
+      "sha256": "decd928e478280f67ba3b853ae6a3d128b44bea5e43b131553a2e10ec973e757",
+      "bytes": 1533420
+    },
+    "strips/design-comparison.png": {
+      "sha256": "44ce33ad2c1b8562b09345ca1852b3a771848a004973eb80dbacacf68ea3f963",
+      "bytes": 234546
+    },
+    "strips/file-navigation-comparison.png": {
+      "sha256": "cfe46aa6b5514dac337b00eed6afec335834cbc48bf856a1761f2ee3bee3fd2c",
+      "bytes": 100838
+    },
+    "strips/joyword-after-01-home.png": {
+      "sha256": "898473402b62a3962612d9982b5ba4a41c513c09a268b21577280de1ad73d611",
+      "bytes": 93859
+    },
+    "strips/joyword-after-02-insert.png": {
+      "sha256": "38be376d909ce901b6f01328c3260c2f428ec0a92ca941d781e80d77dacb5dd1",
+      "bytes": 134006
+    },
+    "strips/joyword-after-03-draw.png": {
+      "sha256": "c558811b84b1bd2e88bada7065825d5978c3f2dea4ea12c812c06020a0736f9a",
+      "bytes": 131834
+    },
+    "strips/joyword-after-04-design.png": {
+      "sha256": "40ced4b5ebd7c6419b49b136448797d5c3f300bb656e762276c70dda58fee15d",
+      "bytes": 108304
+    },
+    "strips/joyword-after-05-layout.png": {
+      "sha256": "900bfaeff978c3a40e16cd69fdbeb6aa73dde85ac47d01730937496a5729cbca",
+      "bytes": 112772
+    },
+    "strips/joyword-after-06-references.png": {
+      "sha256": "c6ad373aedbfd49bee5ed8e0b239364966413e8bfc80d538d3cfcf8cc91e0059",
+      "bytes": 113467
+    },
+    "strips/joyword-after-07-mailings.png": {
+      "sha256": "5148605b97c44b689718cc6e2673331715388daa08ad69b60ae14f6d6958a30e",
+      "bytes": 117145
+    },
+    "strips/joyword-after-08-review.png": {
+      "sha256": "4c468ba6e1494b014711e6dab3d63430a8e00eed3490ff34b4e991348b1901da",
+      "bytes": 129904
+    },
+    "strips/joyword-after-09-view.png": {
+      "sha256": "3d62d13c9f320f4fd39ca63fa5a9abab7ce63ec42b5391b6a64258bfd399a7db",
+      "bytes": 118635
+    },
+    "strips/joyword-after-10-help.png": {
+      "sha256": "7538a9c12147bf2d4f9930abc4c7670cfb2223b3856c28a86719c04f25a3bfc3",
+      "bytes": 44677
+    },
+    "strips/joyword-after-11-table-design.png": {
+      "sha256": "354fbc46d057b3b112eba5819841a7f66192a29003a039640a0b0aba34427c66",
+      "bytes": 119868
+    },
+    "strips/joyword-after-12-table-layout.png": {
+      "sha256": "30e2de3367b629e8081fd26a635d0bf093a3edbf9d4440fce63eb5a359278461",
+      "bytes": 143262
+    },
+    "strips/joyword-after-13-picture-format.png": {
+      "sha256": "148359b6f49199e46a0c98b6c3b3ac63b94a10700021a22489fb1f011c6ac5fb",
+      "bytes": 125245
+    },
+    "strips/joyword-before-01-home.png": {
+      "sha256": "54b401792273b4efda9ef74295d3479f1fa6462b5e2eac4fb1e92ca67c70de11",
+      "bytes": 81791
+    },
+    "strips/joyword-before-02-insert.png": {
+      "sha256": "c32991f13ef305460895ee42648e9fec863b8d8075d2578e25b41e8039dad7aa",
+      "bytes": 122600
+    },
+    "strips/joyword-before-05-layout.png": {
+      "sha256": "ae98cc497fae9fa79ce199f399ab8366bdad14f9cb5536107d70877c23f73b06",
+      "bytes": 101363
+    },
+    "strips/joyword-before-06-references.png": {
+      "sha256": "01c8fd36de0821a4b7e50fd054ec593b0a6333d0f9889b354a6ada844bb1dba7",
+      "bytes": 105054
+    },
+    "strips/joyword-before-07-mailings.png": {
+      "sha256": "b474f196844230ab8805397db78bbbe16e98fa84bd95c00a7a6af7d021a99c89",
+      "bytes": 79463
+    },
+    "strips/joyword-before-08-review.png": {
+      "sha256": "65742ee7dbf139496de280d69c26d5478a9eec25785d3dffae6ffa603f9c848b",
+      "bytes": 121880
+    },
+    "strips/joyword-before-09-view.png": {
+      "sha256": "5fa35da664e202f76cd29a9c3df458894b51c4e4a417347a1c0e282996254304",
+      "bytes": 92428
+    },
+    "strips/word-01-home.png": {
+      "sha256": "757db9d44cedfeaa4350633dd629f56134693a1132c449ad51253913afb5583d",
+      "bytes": 110605
+    },
+    "strips/word-02-insert.png": {
+      "sha256": "64db6673e87998111b7c53125f94e79fd722c006cba84ed8cfc39143cfbd8f2e",
+      "bytes": 133227
+    },
+    "strips/word-03-draw.png": {
+      "sha256": "db1e4935ff67e56b67ffbff98b9a96c9350c4ef7c20e3dbda17c89ac3bb27a4f",
+      "bytes": 114416
+    },
+    "strips/word-04-design.png": {
+      "sha256": "2b38376d16f0f4f4db36f6390007119c86466e95cd826b5c069d37517145ad53",
+      "bytes": 116387
+    },
+    "strips/word-05-layout.png": {
+      "sha256": "15df614e63987c8d62189f91c1b66c5641896c4f356fe6b0f7d9d4919f9ab588",
+      "bytes": 101794
+    },
+    "strips/word-06-references.png": {
+      "sha256": "2aa553d9dca2c47775b12c6e37e8abad3e1698280f34aab777672c181be64103",
+      "bytes": 111883
+    },
+    "strips/word-07-mailings.png": {
+      "sha256": "b031aef39f2b54fbed2af74c99e2f251975f830eaeedb218ecee3bdcaea309ba",
+      "bytes": 100273
+    },
+    "strips/word-08-review.png": {
+      "sha256": "300a62c9cfad0c4f2fcdafb58d2d48e83c87e986a418c42c4691c9e3529c121c",
+      "bytes": 134476
+    },
+    "strips/word-09-view.png": {
+      "sha256": "fd946de023983309e174eda46007906be504e89b58a4bed6fee6bb393df8d6fe",
+      "bytes": 116823
+    },
+    "strips/word-10-help.png": {
+      "sha256": "7141e89e203f2083165d2494b7c9bbaa6e3d111b6cbe0fc697fc4de80126cdae",
+      "bytes": 50674
+    },
+    "strips/word-11-table-design.png": {
+      "sha256": "8997e8f91123ab4298270922fc89f9b0b1b46d49f08469dd366d2b0804058b4f",
+      "bytes": 81738
+    },
+    "strips/word-12-table-layout.png": {
+      "sha256": "9bca767e927edc70658ed76342246134c44f0eb11713a3380f793dd0b88d2b01",
+      "bytes": 147372
+    },
+    "strips/word-13-picture-format.png": {
+      "sha256": "2af6394bd582e3b3b8199ddf4b21434a7668f7f958000f310209e3491b6cad1f",
+      "bytes": 136840
+    },
+    "strips/word-additional-tabs.png": {
+      "sha256": "c520c2af4f85e695b231796a03599a3bce18b0ebd531c4f83cd079c0bd8b4bc3",
+      "bytes": 655545
+    }
+  },
+  "not_validated": [
+    "macOS",
+    "Linux",
+    "Xinchuang hardware",
+    "all new dialogs",
+    "full accessibility and keyboard acceptance",
+    "mail delivery",
+    "printer queue",
+    "full Word feature union"
+  ],
+  "native_checks": [
+    "red ink pointer gesture and undo/redo",
+    "Hide Ink changes the screen with unchanged authenticated document identity, version and text (earlier validation build)",
+    "page color and page borders saved and independently inspected in DOCX XML",
+    "Chinese watermark fallback and measured frame",
+    "table style and picture invert apply/undo",
+    "selection-dependent table and picture tabs",
+    "Read Mode with read-only status and accessibility",
+    "Escape returns to Print Layout",
+    "Ctrl+F1 collapses the Ribbon; tab click expands it",
+    "F12 opens Save As; saved copy passed host readback",
+    "Read Mode rejects native Ctrl+Z and Escape restores editing",
+    "Final 152px theme-aware File sidebar, New template view and Escape return"
+  ],
+  "notes": [
+    "A final authenticated inspect retry ended with Windows socket error 10053; no final-build TCP readback result is claimed. Earlier Hide Ink snapshots remain separate evidence.",
+    "Native operation contact sheet contains validation builds from before the final cosmetic sidebar and gallery refinements; final Ribbon appearance is recorded in the after-tab crops."
+  ],
+  "completed_on": "2026-11-12"
+}

@@ -670,9 +670,10 @@ fn draw_watermark(
     wm: &joyword_model::Watermark,
     opts: &RenderOptions,
 ) {
-    let r = joyword_fonts::word::resolve(&wm.font, false, false);
+    let text: String = wm.text.chars().take(200).collect();
+    let r = joyword_fonts::word::resolve_text(&wm.font, &text, false, false);
     let face = r.face;
-    let glyphs = joyword_fonts::shape(&face, &wm.text, &[], |c| c);
+    let glyphs = joyword_fonts::shape(&face, &text, &[], |c| c);
     let upem = face.upem.max(1.0);
     let raw_w: f64 = glyphs.iter().map(|g| g.x_advance as f64).sum::<f64>() / upem;
     if raw_w <= 0.0 {

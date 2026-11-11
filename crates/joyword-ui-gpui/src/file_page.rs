@@ -301,25 +301,18 @@ impl JoyWord {
                 Section(Export),
             ),
             ("file-close", "关闭", "Close", IconName::X, Close),
-            (
-                "file-options",
-                "选项",
-                "Options",
-                IconName::Settings,
-                Section(Options),
-            ),
         ];
         div()
-            .w(px(200.0))
+            .w(px(152.0))
             .flex_shrink_0()
             .flex()
             .flex_col()
-            .bg(rgb(if self.shell.dark { p.header } else { p.accent }))
+            .bg(rgb(p.chrome))
             .child(
                 div()
                     .flex()
                     .items_center()
-                    .h(px(62.0))
+                    .h(px(94.0))
                     .flex_shrink_0()
                     .px_3()
                     .child(
@@ -348,13 +341,29 @@ impl JoyWord {
                         self.sidebar_item(id, tr(zh, en), icon, action, cx)
                     })),
             )
-            .child(div().flex_shrink_0().pb_2().child(self.sidebar_item(
-                "file-about",
-                tr("关于", "About"),
-                IconName::Info,
-                Section(About),
-                cx,
-            )))
+            .child(
+                div()
+                    .flex()
+                    .flex_col()
+                    .flex_shrink_0()
+                    .pb_2()
+                    .border_t_1()
+                    .border_color(rgb(p.separator))
+                    .child(self.sidebar_item(
+                        "file-about",
+                        tr("关于", "About"),
+                        IconName::Info,
+                        Section(About),
+                        cx,
+                    ))
+                    .child(self.sidebar_item(
+                        "file-options",
+                        tr("选项", "Options"),
+                        IconName::Settings,
+                        Section(Options),
+                        cx,
+                    )),
+            )
     }
 
     fn sidebar_item(
@@ -366,11 +375,7 @@ impl JoyWord {
         cx: &mut Context<Self>,
     ) -> Stateful<Div> {
         let p = self.palette();
-        let foreground = if self.shell.dark {
-            p.accent
-        } else {
-            p.on_accent
-        };
+        let foreground = p.text;
         let selected = action == SidebarAction::Section(self.file_section);
         let enabled = match action {
             SidebarAction::Back => self.canvas.reader.is_some(),
@@ -378,17 +383,17 @@ impl JoyWord {
             SidebarAction::Close => self.canvas.reader.is_some() && self.file_change_available(),
             SidebarAction::Section(_) => true,
         };
-        let highlight = if selected && self.shell.dark {
+        let highlight = if selected {
             rgb(p.selected)
         } else {
-            rgb(foreground).alpha(if selected { 0.15 } else { 0.09 })
+            rgb(p.hover)
         };
         let el = div()
             .flex()
             .items_center()
             .flex_shrink_0()
             .gap_3()
-            .h(px(42.0))
+            .h(px(40.0))
             .px(px(22.0))
             .text_size(px(14.0))
             .text_color(rgb(foreground))
@@ -826,6 +831,27 @@ impl JoyWord {
                 |v, w, cx| {
                     v.return_to_document(w, cx);
                     v.advanced_action("general-options", w, cx);
+                },
+            ))
+            .child(self.file_row(
+                "file-show-developer",
+                if self.developer_visible {
+                    tr(
+                        "隐藏开发工具（本次会话）",
+                        "Hide Developer tab (this session)",
+                    )
+                } else {
+                    tr(
+                        "显示开发工具（本次会话）",
+                        "Show Developer tab (this session)",
+                    )
+                },
+                IconName::SquareTerminal,
+                true,
+                cx,
+                |v, _, cx| {
+                    v.developer_visible = !v.developer_visible;
+                    cx.notify();
                 },
             ))
     }

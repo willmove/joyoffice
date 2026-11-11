@@ -13,6 +13,8 @@ mod print_process;
 pub mod printing;
 pub mod proposal_target;
 pub mod reader;
+#[cfg(test)]
+mod ribbon_tests;
 pub mod storage;
 pub mod visual;
 

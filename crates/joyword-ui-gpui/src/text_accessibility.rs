@@ -34,6 +34,7 @@ impl JoyWord {
         cx: &mut Context<Self>,
     ) -> gpui::Stateful<gpui::Div> {
         let reader = self.canvas.reader.as_ref();
+        let read_only = reader.is_some_and(|r| r.engine().view.read_mode);
         let projection = self
             .canvas
             .a11y_active
@@ -62,6 +63,9 @@ impl JoyWord {
             .track_focus(&self.focus)
             .tab_stop(true)
             .a11y_synthetic_children(move |builder| {
+                if read_only {
+                    builder.parent_node().set_read_only();
+                }
                 let Some(context) = projection else { return };
                 let id = builder.synthetic_node_id("current-paragraph");
                 let mut run = Node::new(Role::TextRun);

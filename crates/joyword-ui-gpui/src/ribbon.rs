@@ -20,6 +20,7 @@ pub(super) struct Tool {
     icon: IconName,
     layout: ToolLayout,
     width: Option<f32>,
+    tint: Option<u32>,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -28,6 +29,7 @@ enum ToolLayout {
     Tile,
     Split,
     Compact,
+    Icon,
 }
 
 impl Tool {
@@ -39,6 +41,10 @@ impl Tool {
         self.width = Some(width);
         self
     }
+    pub(super) fn tint(mut self, color: u32) -> Self {
+        self.tint = Some(color);
+        self
+    }
     pub(super) fn new(zh: &'static str, en: &'static str, icon: IconName) -> Self {
         Self {
             zh,
@@ -46,6 +52,7 @@ impl Tool {
             icon,
             layout: ToolLayout::Large,
             width: None,
+            tint: None,
         }
     }
     pub(super) fn compact(zh: &'static str, en: &'static str, icon: IconName) -> Self {
@@ -57,6 +64,12 @@ impl Tool {
     pub(super) fn tile(zh: &'static str, en: &'static str, icon: IconName) -> Self {
         Self {
             layout: ToolLayout::Tile,
+            ..Self::new(zh, en, icon)
+        }
+    }
+    pub(super) fn icon(zh: &'static str, en: &'static str, icon: IconName) -> Self {
+        Self {
+            layout: ToolLayout::Icon,
             ..Self::new(zh, en, icon)
         }
     }
@@ -73,7 +86,7 @@ impl JoyWord {
         label: &'static str,
         body: impl IntoElement,
     ) -> gpui::Stateful<gpui::Div> {
-        self.group_box(label, div().flex().items_center().h(px(64.)).child(body))
+        self.group_box(label, div().flex().items_center().h(px(72.)).child(body))
             .id(id)
             .flex_shrink_0()
             .role(gpui::Role::Group)
@@ -88,7 +101,7 @@ impl JoyWord {
         launcher: Option<Button>,
     ) -> gpui::Stateful<gpui::Div> {
         self.group_frame(
-            div().flex().items_center().h(px(64.)).child(body),
+            div().flex().items_center().h(px(72.)).child(body),
             div()
                 .relative()
                 .flex()
@@ -135,20 +148,20 @@ impl JoyWord {
     ) -> Button {
         let p = self.palette();
         let label = tool.label(&self.shell);
-        let compact = tool.layout == ToolLayout::Compact;
+        let compact = matches!(tool.layout, ToolLayout::Compact | ToolLayout::Icon);
         let width = tool.width.unwrap_or(if compact { 100. } else { 56. });
         let (height, icon_size) = match tool.layout {
-            ToolLayout::Large => (64., 26.),
-            ToolLayout::Tile => (64., 24.),
+            ToolLayout::Large => (72., 28.),
+            ToolLayout::Tile => (72., 28.),
             ToolLayout::Split => (48., 24.),
-            ToolLayout::Compact => (21., 15.),
+            ToolLayout::Compact | ToolLayout::Icon => (21., 15.),
         };
         let icon_color = if !enabled {
             p.disabled
         } else if compact {
             p.text
         } else {
-            p.accent
+            tool.tint.unwrap_or(p.accent)
         };
         let icon = Icon::new(tool.icon)
             .size(px(icon_size))
@@ -169,7 +182,9 @@ impl JoyWord {
                 .gap(px(5.))
                 .w_full()
                 .child(icon)
-                .child(caption.whitespace_nowrap())
+                .when(tool.layout != ToolLayout::Icon, |v| {
+                    v.child(caption.whitespace_nowrap())
+                })
                 .when(menu, |el| el.child(caret()))
         } else {
             div()
@@ -193,10 +208,7 @@ impl JoyWord {
                         .h(px(icon_size))
                         .items_center()
                         .gap(px(2.))
-                        .child(icon)
-                        .when(menu && tool.layout == ToolLayout::Large, |el| {
-                            el.child(caret())
-                        }),
+                        .child(icon),
                 )
                 .child(
                     caption
@@ -204,9 +216,10 @@ impl JoyWord {
                         .whitespace_normal()
                         .text_center(),
                 )
-                .when(menu && tool.layout == ToolLayout::Tile, |el| {
-                    el.child(caret())
-                })
+                .when(
+                    menu && matches!(tool.layout, ToolLayout::Large | ToolLayout::Tile),
+                    |el| el.child(caret()),
+                )
         };
         Button::new(id)
             .ghost()
@@ -226,5 +239,30 @@ impl JoyWord {
             })
             .disabled(!enabled)
             .child(content)
+    }
+}
+
+impl JoyWord {
+    pub(super) fn ribbon_tab_visible(&self, index: Option<usize>) -> bool {
+        match index {
+            Some(9) => self.developer_visible,
+            Some(6 | 13) => self
+                .canvas
+                .reader
+                .as_ref()
+                .is_some_and(|r| r.table_info().is_some()),
+            Some(7) => self
+                .canvas
+                .reader
+                .as_ref()
+                .is_some_and(|r| r.picture_info().is_some()),
+            _ => true,
+        }
+    }
+
+    pub(super) fn sync_contextual_tab(&mut self) {
+        if !self.ribbon_tab_visible(Some(self.tab)) {
+            self.tab = 0;
+        }
     }
 }

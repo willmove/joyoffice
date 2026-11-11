@@ -1,5 +1,6 @@
 //! Derived ribbon state and validated native-dialog parameters over the existing engine.
 use crate::reader::Reader;
+pub use joyword_layout::ViewMode;
 use serde_json::{Value, json};
 
 #[derive(Clone, Debug, Default)]
@@ -56,6 +57,8 @@ impl Reader {
     pub fn formatting_disabled(&self, command: &str) -> Option<&'static str> {
         if self.is_composing() {
             Some("Finish or cancel the composition first")
+        } else if self.engine().view.read_mode && self.command_edits_document(command) {
+            Some("Switch to Print Layout to edit")
         } else if self.engine().registry.get(command).is_none() {
             Some("Command unavailable")
         } else {
