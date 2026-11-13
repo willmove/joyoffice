@@ -1,0 +1,99 @@
+Window: "mixed-media.docx — JoyWord", App: joyword.exe.
+	0 window (区域) mixed-media.docx — JoyWord Secondary Actions: Raise
+		1 title bar (标题栏) (settable, string) Value: mixed-media.docx — JoyWord
+			2 menu bar (菜单栏) 系统 ID: MenuBar
+				3 menu item (菜单项) 系统
+			4 button (按钮) 最小化
+			5 button (按钮) 最大化
+			6 button (按钮) 关闭
+		7 button (按钮) 新建
+		8 button (按钮) 打开
+		9 button (按钮) 保存
+		10 button (按钮) (disabled) 撤销
+		11 button (按钮) (disabled) 重做
+		12 button (按钮) 搜索命令
+		13 button (按钮) EN
+		14 button (按钮) 切换外观
+		15 tab (选项卡) 功能区
+			16 tab item (选项卡项目) (selectable) 文件
+			17 tab item (选项卡项目) (selectable) 开始
+			18 tab item (选项卡项目) (selectable) 插入
+			19 tab item (选项卡项目) (selectable) 绘图
+			20 tab item (选项卡项目) (selectable) 设计
+			21 tab item (选项卡项目) (selectable) 布局
+			22 tab item (选项卡项目) (selectable) 引用
+			23 tab item (选项卡项目) (selectable) 邮件
+			24 tab item (选项卡项目) (selectable) 审阅
+			25 tab item (选项卡项目) (selectable) 视图
+			26 tab item (选项卡项目) (selectable) 帮助
+			27 button (按钮) 折叠或展开功能区
+		28 group (组) 剪贴板
+			29 button (按钮) 粘贴
+			30 button (按钮) 粘贴选项
+			31 button (按钮) (disabled) 剪切
+			32 button (按钮) (disabled) 复制
+			33 button (按钮) 格式刷
+			34 button (按钮) 格式刷选项
+		35 group (组) 字体
+			36 combo box (组合框) (settable, string) 字体选择 Value: Aptos
+			37 button (按钮) 字号
+			38 button (按钮) 增大字号
+			39 button (按钮) 减小字号
+			40 button (按钮) 更改大小写
+			41 button (按钮) 清除所有格式
+			42 button (按钮) 拼音指南
+			43 button (按钮) 带圈字符
+			44 button (按钮) 加粗 (Ctrl+B)
+			45 button (按钮) 倾斜 (Ctrl+I)
+			46 button (按钮) 下划线 (Ctrl+U)
+			47 button (按钮) 下划线样式
+			48 button (按钮) 删除线
+			49 button (按钮) 下标
+			50 button (按钮) 上标
+			51 button (按钮) 文本效果和版式
+			52 button (按钮) 文本突出显示颜色
+			53 button (按钮) 字体颜色
+			54 button (按钮) 字体设置
+		55 group (组) 段落
+			56 button (按钮) 项目符号
+			57 button (按钮) 项目符号
+			58 button (按钮) 编号
+			59 button (按钮) 编号
+			60 button (按钮) 多级列表
+			61 button (按钮) 减少缩进
+			62 button (按钮) 增加缩进
+			63 button (按钮) 排序
+			64 button (按钮) 显示／隐藏格式标记
+			65 button (按钮) 左对齐 (Ctrl+L)
+			66 button (按钮) 居中 (Ctrl+E)
+			67 button (按钮) 右对齐 (Ctrl+R)
+			68 button (按钮) 两端对齐 (Ctrl+J)
+			69 button (按钮) 分散对齐
+			70 button (按钮) 行距
+			71 button (按钮) 底纹
+			72 button (按钮) 边框
+			73 button (按钮) 分页选项
+			74 button (按钮) 段落设置
+		75 group (组) 样式
+			76 button (按钮) 正文
+			77 button (按钮) 无间隔
+			78 button (按钮) 标题 1
+			79 button (按钮) 更多样式
+			80 button (按钮) 样式窗格
+		81 group (组) 编辑
+			82 button (按钮) 查找
+			83 button (按钮) 查找选项
+			84 button (按钮) 替换
+			85 button (按钮) 选择
+		86 button (按钮) 上一页
+		87 button (按钮) 下一页
+		88 text field (编辑) (settable, string) 文档正文 Value: JoyWord 真实文档阅读验证
+			89 group (组) 水平标尺（只读）
+		90 status bar (状态)
+			91 button (按钮) −
+			92 button (按钮) 100%
+			93 button (按钮) +
+
+Document text: ```
+JoyWord 真实文档阅读验证
+```

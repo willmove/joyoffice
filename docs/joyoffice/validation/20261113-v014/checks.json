@@ -1,0 +1,88 @@
+{
+  "platform": "Windows x86_64",
+  "toolchain": "1.98.1",
+  "version": "0.1.4",
+  "product_checks": {
+    "joyword": {
+      "passed": 3618,
+      "failed": 0,
+      "ignored": 2,
+      "log": "target/release-v014-checks/joyword-check-final.log",
+      "log_sha256": "4abcb4699a7de31c1e50e95a919bb81e465ac3f446f7553cd8ff515d4aada7c2"
+    },
+    "joydeck": {
+      "passed": 982,
+      "failed": 0,
+      "ignored": 0,
+      "log": "target/release-v014-checks/joydeck-check-final.log",
+      "log_sha256": "c95939660ed393174f0898458be09211300c2ee0548cce462c36ce8b580dbca0"
+    },
+    "joysheet": {
+      "passed": 1420,
+      "failed": 0,
+      "ignored": 1,
+      "log": "target/release-v014-checks/joysheet-check-final.log",
+      "log_sha256": "f2a8c65f7b5e6616edd735947216e987c7813454515afcd8f18c7a65ddfc30e0"
+    }
+  },
+  "python_tests": {
+    "scripts": 187,
+    "scripts_skipped": 7,
+    "product_routing": 16
+  },
+  "external_dependencies_changed": false,
+  "local_packages": {
+    "joyword": {
+      "archive": "dist/joyword/joyword-0.1.4-windows-x86_64.zip",
+      "sha256": "9a8296f07aeddf8ed7db21a7bddb7ac5deb7379bd44741b30691022394456c29",
+      "archive_contents_verified": true
+    },
+    "joydeck": {
+      "archive": "dist/joydeck/joydeck-0.1.4-windows-x86_64-release.zip",
+      "sha256": "fb7b25d56e4bc9d9acd3bdc0e2343c333285675b0c861b4d41db0aa996d7d336",
+      "archive_contents_verified": true
+    },
+    "joysheet": {
+      "archive": "dist/joysheet/joysheet-0.1.4-windows-x86_64-release.zip",
+      "sha256": "b0776be1c5eac0f6f6fd86ee1f8ba16d9445f89d62cf25cc713b8d870f5abae0",
+      "archive_contents_verified": true,
+      "installer": {
+        "path": "dist/joysheet/joysheet-0.1.4-windows-x86_64-release-setup.exe",
+        "sha256": "4371dad59e8526f3770e179edb48515786efed003effb30ec00974d858fa7f48"
+      }
+    }
+  },
+  "installer_check": {
+    "mode": "TEST",
+    "passed": true,
+    "registry_and_shortcuts_tested": false,
+    "unrelated_file_preserved": true,
+    "installed_executable_sha256": "bce7489bf8b5bfffe79de9a4a895b7d8f9f22ad21fbf91ca2a0f4a9855f7b9e7",
+    "installed_cli_reopen": true
+  },
+  "gui": {
+    "method": "Computer Use sky SendInput and Windows screenshots",
+    "physical_keyboard_input_verified": false,
+    "screenshots": {
+      "deck-down.png": "097629632c8f5a5fce2c74d6405d3e18484740a364dac695d4f830cd81488053",
+      "deck-home.png": "23b0ec6f6198045a2c5521344e9ad3bafa3fdff823eb72ae74e95a9382e273c1",
+      "deck-release-home.png": "889918dd1d428912cdcc47e12a3dac6ea25677ad9114e014bcb5ec5669280dfd",
+      "deck-release-native-saved.png": "7a830347c42c95227c44ff57d539b0b52bc45a9c0bd2e1de919db1653a9d261c",
+      "deck-release-saved.png": "3b00d1b07a9293acce5b0c1ac29c8eefbdef95c97881e2aa5d16a4b72b93132a",
+      "deck-release-show-down.png": "5ef4cea2c91360ab5eb53f8cf752b9f7b2f6ddae3e4c3c89caeee8a771dc23bc",
+      "deck-release-show-start.png": "ffcb962a3e7c53b18aa73f6c037e8beec736f101ac4b881bbc81c62c608102a0",
+      "deck-show-down-settled.png": "c83150349b938e0c99fe96599b358427702a8a579a84041953f0f75c39d9e610",
+      "deck-show-start.png": "3be9b309f78bd8fa78a52180d68eb7b40453b44e1768a319226a8b8575003353",
+      "sheet-collapsed.png": "9eeb06253cf2521dd8d1320e3e7dae0e81b4a186b3a1dcf0fde299e7f3b59182",
+      "sheet-formula.png": "bb3d2e016a5f4209361f21ca9ab17ff27f258c722247ce8e5083cf5291bfae8a",
+      "sheet-home.png": "032bfae7c2f520f1eca0f0cebee98732464ee56fdd058231e82ba9d26043f2b2",
+      "sheet-release-reopened.png": "c71ecd67fb2e35276da70f91e07820fc3b46b4ced28c0eb5af3a055098682718",
+      "sheet-release-saved.png": "542b5c5a4278f66db141e2b00132223ae506a85aa11caebdadeceb7bc21d0b13",
+      "word-collapsed.png": "05771884015573b24f1d915b9f3d04ca736f377166bfd1357d079839bbb63f66",
+      "word-home.png": "5a51fd7ab1c73c6266a1bc4edf4a3a04b5825dbfb7c7c6ed702271e671e67da6",
+      "word-release-dark.png": "274e837a85d13e371afaead378fcf7ff5e8cd5ba41e5fe6419c2825d9057d70f",
+      "word-release-reopened.png": "b49118aec012be4d2dc31dcee57451c9c2e03e3bd8f3359cd959be69304ea93c",
+      "word-release-saved.png": "6c7104457fe6ff91a02d2316ca361ee1ab123fd943c4977ff1117ae3b35b99ac"
+    }
+  }
+}

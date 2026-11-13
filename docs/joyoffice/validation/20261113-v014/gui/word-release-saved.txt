@@ -1,0 +1,99 @@
+Window: "Word 中文副本.docx — JoyWord", App: joyword.exe.
+	0 window (区域) Word 中文副本.docx — JoyWord Secondary Actions: Raise
+		1 title bar (标题栏) (settable, string) Value: Word 中文副本.docx — JoyWord
+			2 menu bar (菜单栏) 系统 ID: MenuBar
+				3 menu item (菜单项) 系统
+			4 button (按钮) 最小化
+			5 button (按钮) 最大化
+			6 button (按钮) 关闭
+		7 button (按钮) 新建
+		8 button (按钮) 打开
+		9 button (按钮) 保存
+		10 button (按钮) 撤销
+		11 button (按钮) (disabled) 重做
+		12 button (按钮) 搜索命令
+		13 button (按钮) EN
+		14 button (按钮) 切换外观
+		15 tab (选项卡) 功能区
+			16 tab item (选项卡项目) (selectable) 文件
+			17 tab item (选项卡项目) (selectable) 开始
+			18 tab item (选项卡项目) (selectable) 插入
+			19 tab item (选项卡项目) (selectable) 绘图
+			20 tab item (选项卡项目) (selectable) 设计
+			21 tab item (选项卡项目) (selectable) 布局
+			22 tab item (选项卡项目) (selectable) 引用
+			23 tab item (选项卡项目) (selectable) 邮件
+			24 tab item (选项卡项目) (selectable) 审阅
+			25 tab item (选项卡项目) (selectable) 视图
+			26 tab item (选项卡项目) (selectable) 帮助
+			27 button (按钮) 折叠或展开功能区
+		127 group (组) 剪贴板
+			128 button (按钮) 粘贴
+			129 button (按钮) 粘贴选项
+			130 button (按钮) (disabled) 剪切
+			131 button (按钮) (disabled) 复制
+			132 button (按钮) 格式刷
+			133 button (按钮) 格式刷选项
+		134 group (组) 字体
+			135 combo box (组合框) (settable, string) 字体选择 Value: Aptos
+			136 button (按钮) 字号
+			137 button (按钮) 增大字号
+			138 button (按钮) 减小字号
+			139 button (按钮) 更改大小写
+			140 button (按钮) 清除所有格式
+			141 button (按钮) 拼音指南
+			142 button (按钮) 带圈字符
+			143 button (按钮) 加粗 (Ctrl+B)
+			144 button (按钮) 倾斜 (Ctrl+I)
+			145 button (按钮) 下划线 (Ctrl+U)
+			146 button (按钮) 下划线样式
+			147 button (按钮) 删除线
+			148 button (按钮) 下标
+			149 button (按钮) 上标
+			150 button (按钮) 文本效果和版式
+			151 button (按钮) 文本突出显示颜色
+			152 button (按钮) 字体颜色
+			153 button (按钮) 字体设置
+		154 group (组) 段落
+			155 button (按钮) 项目符号
+			156 button (按钮) 项目符号
+			157 button (按钮) 编号
+			158 button (按钮) 编号
+			159 button (按钮) 多级列表
+			160 button (按钮) 减少缩进
+			161 button (按钮) 增加缩进
+			162 button (按钮) 排序
+			163 button (按钮) 显示／隐藏格式标记
+			164 button (按钮) 左对齐 (Ctrl+L)
+			165 button (按钮) 居中 (Ctrl+E)
+			166 button (按钮) 右对齐 (Ctrl+R)
+			167 button (按钮) 两端对齐 (Ctrl+J)
+			168 button (按钮) 分散对齐
+			169 button (按钮) 行距
+			170 button (按钮) 底纹
+			171 button (按钮) 边框
+			172 button (按钮) 分页选项
+			173 button (按钮) 段落设置
+		174 group (组) 样式
+			175 button (按钮) 正文
+			176 button (按钮) 无间隔
+			177 button (按钮) 标题 1
+			178 button (按钮) 更多样式
+			179 button (按钮) 样式窗格
+		180 group (组) 编辑
+			181 button (按钮) 查找
+			182 button (按钮) 查找选项
+			183 button (按钮) 替换
+			184 button (按钮) 选择
+		86 button (按钮) 上一页
+		87 button (按钮) 下一页
+		88 text field (编辑) (settable, string) 文档正文 Value: PortableRelease014
+			89 group (组) 水平标尺（只读）
+		90 status bar (状态)
+			91 button (按钮) −
+			92 button (按钮) 100%
+			93 button (按钮) +
+
+Document text: ```
+PortableRelease014
+```

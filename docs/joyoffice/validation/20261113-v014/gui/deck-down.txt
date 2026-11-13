@@ -1,0 +1,100 @@
+Window: "public-format-20.pptx - JoyDeck", App: joydeck.exe.
+	0 window (区域) public-format-20.pptx - JoyDeck Secondary Actions: Raise
+		1 title bar (标题栏) (settable, string) Value: public-format-20.pptx - JoyDeck
+			2 menu bar (菜单栏) 系统 ID: MenuBar
+				3 menu item (菜单项) 系统
+			4 button (按钮) 最小化
+			5 button (按钮) 最大化
+			6 button (按钮) 关闭
+		7 button (按钮) 文件
+		8 button (按钮) 保存
+		9 button (按钮) (disabled) 撤销
+		10 button (按钮) (disabled) 重做
+		11 button (按钮) 从头开始放映
+		12 button (按钮) 查找文字
+		13 button (按钮) 切换明暗主题
+		14 button (按钮) 放映
+		15 tab (选项卡) 功能区
+			16 tab item (选项卡项目) 文件
+			17 tab item (选项卡项目) 开始
+			18 tab item (选项卡项目) 插入
+			19 tab item (选项卡项目) 绘图
+			20 tab item (选项卡项目) 设计
+			21 tab item (选项卡项目) 切换
+			22 tab item (选项卡项目) 动画
+			23 tab item (选项卡项目) 幻灯片放映
+			24 tab item (选项卡项目) 录制
+			25 tab item (选项卡项目) 审阅
+			26 tab item (选项卡项目) 视图
+			27 button (按钮) 批注
+		28 group (组) 剪贴板
+			29 button (按钮) 粘贴
+			30 button (按钮) (disabled) 剪切
+			31 button (按钮) (disabled) 复制
+			32 button (按钮) (disabled) 格式刷（暂不支持）
+		33 group (组) 幻灯片
+			34 button (按钮) 新建幻灯片
+			35 button (按钮) 幻灯片选项
+			36 button (按钮) 版式
+			37 button (按钮) (disabled) 重置（暂不支持）
+			38 button (按钮) 节
+		39 group (组) 字体
+			40 combo box (组合框) (disabled, settable, string) 字体名称
+			41 button (按钮) (disabled) 字号
+			42 button (按钮) (disabled) 增大字号
+			43 button (按钮) (disabled) 减小字号
+			44 button (按钮) (disabled) 清除字符格式
+			45 button (按钮) (disabled) 加粗
+			46 button (按钮) (disabled) 倾斜
+			47 button (按钮) (disabled) 下划线
+			48 button (按钮) (disabled) 删除线
+			49 button (按钮) (disabled) 上标
+			50 button (按钮) (disabled) 下标
+			51 button (按钮) (disabled) 字符间距（暂不支持）
+			52 button (按钮) (disabled) 更改大小写（暂不支持）
+			53 button (按钮) (disabled) 文本突出显示颜色（暂不支持）
+			54 button (按钮) (disabled) 字体颜色
+			55 button (按钮) (disabled) 字体…
+		56 group (组) 段落
+			57 button (按钮) (disabled) 项目符号
+			58 button (按钮) (disabled) 项目符号样式
+			59 button (按钮) (disabled) 编号
+			60 button (按钮) (disabled) 编号样式
+			61 button (按钮) (disabled) 减少缩进
+			62 button (按钮) (disabled) 增加缩进
+			63 button (按钮) (disabled) 行距
+			64 button (按钮) (disabled) 栏（暂不支持）
+			65 button (按钮) (disabled) 左对齐
+			66 button (按钮) (disabled) 居中
+			67 button (按钮) (disabled) 右对齐
+			68 button (按钮) (disabled) 两端对齐
+			69 button (按钮) (disabled) 分散对齐
+			70 button (按钮) (disabled) 段落设置
+		71 group (组) 绘图
+			72 button (按钮) 图片
+			73 button (按钮) 形状
+			74 button (按钮) 文本框
+		75 group (组) 排列
+			76 button (按钮) 排列
+			77 button (按钮) (disabled) 快速样式（暂不支持）
+			78 button (按钮) (disabled) 形状填充
+			79 button (按钮) (disabled) 形状轮廓（暂不支持）
+		80 group (组) 扩展
+			81 button (按钮) (disabled) 加载项（暂不支持）
+			82 button (按钮) (disabled) 设计器（暂不支持）
+		83 button (按钮) 幻灯片 1 PPTX · 页面标识 20
+		84 button (按钮) 幻灯片 2 PPTX · 页面标识 19
+		85 button (按钮) 幻灯片 3 PPTX · 页面标识 18
+		86 button (按钮) 幻灯片 4 PPTX · 页面标识 17
+		87 button (按钮) 幻灯片 5 PPTX · 页面标识 16
+		88 button (按钮) 幻灯片 6 PPTX · 页面标识 15
+		89 text field (编辑) (settable, string) 演讲备注 Description: 单击此处添加备注 ID: speaker-notes
+		90 button (按钮) 备注
+		91 button (按钮) 普通视图
+		92 button (按钮) 幻灯片浏览
+		93 button (按钮) 从当前页放映
+		94 button (按钮) 缩小
+		95 button (按钮) 放大
+		96 button (按钮) 适应窗口
+
+The focused UI element is 0 window (区域) public-format-20.pptx - JoyDeck Secondary Actions: Raise.

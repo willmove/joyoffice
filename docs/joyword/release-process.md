@@ -1,37 +1,30 @@
 # GitHub 产品发布流程
 
-JoyWord 和 JoyDeck 独立版本、独立标签与 Release；历史 `v*` 标签仅兼容 JoyWord。两个产品的发布工作流均使用 `.github/workflows/release.yml`，从已验证的 `main` 提交构建桌面和 CLI 程序。技术预览默认标为 prerelease，不声称正式签名或完整平台人工验收。
+JoyWord、JoyDeck 和 JoySheet 共享根 `Cargo.toml` 的工作区版本，使用独立的 `joyword-v*`、`joydeck-v*`、`joysheet-v*` 标签与 Release；历史 `v*` 标签仅兼容 JoyWord。技术预览保持 prerelease，不声称正式签名或完整平台人工验收。
 
 ## 版本与说明
 
-- 分别以 `apps/joyword/Cargo.toml` 和 `apps/joydeck/Cargo.toml` 的版本为真值；同产品的 `-cli` manifest 必须与桌面应用一致。单产品发布不必更改另一产品或 workspace 版本。
-- 同一批次发布多个产品时，默认使用相同的版本号；用户特别指定或版本号冲突时可不同。版本元数据、标签与 Release 仍按产品独立维护。
-- 没有指定版本时，单产品发布在该产品已有最高标签上递增 PATCH；多产品同批发布默认以本批产品最高已有版本为基准递增 PATCH，选择各产品均可使用的共同版本。JoyWord 同时考虑历史 `v*` 标签。首次单独发布的产品使用当前应用版本，除非它已被占用。
-- 在 `docs/releases/<tag>.md` 编写人工整理的发布说明，以 `## English` 和 `## 中文` 分节。包含用户可见变化、已知限制、各平台文件名、校验方法及版本范围；不声称未经验证的事项。
-- 更新应用及 CLI manifest 后，用 `cargo metadata --format-version 1` 更新根锁文件。公共锁文件变更须对两个产品做回归。公开标签不得删除、强移或重建。
+- 未指定版本时，多产品同批发布以本批产品最高已有版本递增 PATCH，选择均未占用的共同版本；公开标签不得移动、删除或重建。
+- 更新工作区版本及第一方精确 path 依赖版本，通过 `cargo metadata --offline --format-version 1` 同步锁文件，保留所有外部依赖版本和 checksum。桌面与 CLI 必须一致。
+- 同步当前下载页、产品状态与交接文档；历史发布说明及证据不重写。
+- `docs/releases/<tag>.md` 使用 `## English` 和 `## 中文`，说明本版变化、下载、校验、已知限制和验证范围。
 
-## 验证、提交与标签
+## 验证、提交与发布
 
-1. 检查 `git status`、获取远端和标签，确认目标标签及 Release 均不存在。
-2. 运行 `python3 scripts/check_docs.py`、产品工程检查与相关 Python 测试；验证本机 release 构建及打包。涉及锁文件或发布构建规则时，检查两个产品。
-3. 将版本、发布说明和必要的流程修复提交并合入 `main`，推送后等待同一提交的 JoyWord 与 JoyDeck CI 全绿。
-4. 为每个产品分别在该提交创建并推送带注释的标签 `joyword-vX.Y.Z` 或 `joydeck-vX.Y.Z`。推送标签会启动对应的 Release 工作流；只发布一个产品时只推对应标签。
+1. 获取远端与标签，核对干净状态和最新 main，确认版本未占用。
+2. 运行三产品 `cargo xtask check PRODUCT`、`python scripts/check_docs.py`、工程与打包 Python 测试。版本及公共锁文件变更须跨产品回归。
+3. 构建并打包本机 release，实际启动产物验证编辑、保存重开及本版界面变更，记录哈希和未覆盖项。
+4. 提交并合入 main，推送后等待同一提交的三产品 CI 全绿。
+5. 对每个产品运行 `gh workflow run release.yml --ref main -f product=PRODUCT -f version=VERSION -f create_tag=true`。也可在已验证提交推送带注释的产品标签。
 
 ## 自动构建和发布
 
-工作流在原生 runner 上分别构建 Linux x86_64、Linux ARM64、macOS Apple Silicon 和 Windows x86_64 的桌面与 CLI 程序。打包器记录构建来源、依赖 SBOM、目标、版本及 SHA-256。
+`.github/workflows/release.yml` 在六种原生 runner 构建桌面和 CLI：Windows、macOS、Linux 各 x86_64 与 ARM64。JoyWord 提供 ZIP 或 TAR.GZ，JoyDeck 提供 ZIP，JoySheet 另含 Windows Setup EXE、macOS DMG 或 Linux DEB。
 
-所有构建成功后，发布作业必须验证四个归档和四个 SHA-256 文件齐全、哈希正确、包含目标架构的桌面和 CLI 可执行文件，并检查构建信息。随后创建或继续与标签说明一致的预览草稿，上传产物，核对 GitHub 返回的每个资产摘要；全部通过后才公开 Release。现有已公开 Release 不会被工作流覆盖。手动 `workflow_dispatch` 应选择对应标签作为 ref，产品及版本必须与标签、应用 manifest 和 CLI 一致。
+所有平台完成后，工作流验证完整资产矩阵、归档成员、架构、版本、构建信息、SHA-256 和 SBOM。自动建标签模式只允许从 main 创建指向当前提交的新标签。草稿上传后再次核对 GitHub 资产集合及摘要，全部通过才公开预览版，不覆盖已有公开 Release。
 
-标签工作流失败时，检查 `gh run view <run-id> --log-failed`；临时问题可重跑原工作流，草稿会保留且可重试。若标签中的代码或工作流本身有误，在 `main` 向前修复并使用新版本和新标签，不移动旧标签。失败的草稿不是已完成的发布。
+失败时检查 `gh run view RUN_ID --log-failed`，临时问题重跑原任务。标签代码有误则向前修复并采用新版本，禁止移动旧标签。未公开的草稿不算完成发布。
 
 ## 发布后检查
 
-```bash
-gh run list --workflow release.yml --limit 10
-gh release view <tag> --json name,tagName,isDraft,isPrerelease,url,body,assets
-git status --short --branch
-git ls-remote --heads --tags origin main <tag>
-```
-
-确认两种语言的说明、各自四个平台压缩包和四个校验文件均存在，资产摘要与文件相符，标签工作流成功，标签指向预期提交。下载的校验文件只能检查传输损坏，不能证明发布者身份。CI、交叉构建或 QEMU 不替代相应系统和硬件上的人工验收；未实测项在说明中保留。
+核对三条工作流成功、三个 Release 公开且为 prerelease、各六平台的包及校验文件齐全、GitHub 摘要与本地验证一致，并确认标签指向预期提交。CI/QEMU 不代替对应系统与硬件的人工验收；信创真机和其他未实测项明确保留。

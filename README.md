@@ -6,20 +6,20 @@
 
 JoyOffice is a desktop office suite built with **Rust and GPUI Kit**. Its applications, **JoyWord**, **JoySheet**, and **JoyDeck**, share the suite version with the first-party workspace libraries and tools. Each product includes a native desktop app and a headless CLI.
 
-This overview reflects the repository as of **2026-11-09**.
+This overview reflects the repository as of **2026-11-13**.
 
 ## Download and install
 
-Choose the **v0.1.3 preview** for your operating system and processor. Each portable archive includes the desktop app and CLI.
+Choose the **v0.1.4 preview** for your operating system and processor. Each portable archive includes the desktop app and CLI.
 
-| OS and processor | [JoyWord](https://github.com/willmove/joyoffice/releases/tag/joyword-v0.1.3) | [JoySheet](https://github.com/willmove/joyoffice/releases/tag/joysheet-v0.1.3) | [JoyDeck](https://github.com/willmove/joyoffice/releases/tag/joydeck-v0.1.3) |
+| OS and processor | [JoyWord](https://github.com/willmove/joyoffice/releases/tag/joyword-v0.1.4) | [JoySheet](https://github.com/willmove/joyoffice/releases/tag/joysheet-v0.1.4) | [JoyDeck](https://github.com/willmove/joyoffice/releases/tag/joydeck-v0.1.4) |
 | --- | --- | --- | --- |
-| Windows x64 | [ZIP](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.3/joyword-0.1.3-windows-x86_64.zip) | [Setup EXE](https://github.com/willmove/joyoffice/releases/download/joysheet-v0.1.3/joysheet-0.1.3-windows-x86_64-release-setup.exe) · [ZIP](https://github.com/willmove/joyoffice/releases/download/joysheet-v0.1.3/joysheet-0.1.3-windows-x86_64-release.zip) | [ZIP](https://github.com/willmove/joyoffice/releases/download/joydeck-v0.1.3/joydeck-0.1.3-windows-x86_64-release.zip) |
-| Windows ARM64 | [ZIP](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.3/joyword-0.1.3-windows-aarch64.zip) | [Setup EXE](https://github.com/willmove/joyoffice/releases/download/joysheet-v0.1.3/joysheet-0.1.3-windows-aarch64-release-setup.exe) · [ZIP](https://github.com/willmove/joyoffice/releases/download/joysheet-v0.1.3/joysheet-0.1.3-windows-aarch64-release.zip) | [ZIP](https://github.com/willmove/joyoffice/releases/download/joydeck-v0.1.3/joydeck-0.1.3-windows-aarch64-release.zip) |
-| macOS Apple Silicon | [ZIP](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.3/joyword-0.1.3-macos-aarch64.zip) | [DMG](https://github.com/willmove/joyoffice/releases/download/joysheet-v0.1.3/joysheet-0.1.3-macos-aarch64-release.dmg) · [ZIP](https://github.com/willmove/joyoffice/releases/download/joysheet-v0.1.3/joysheet-0.1.3-macos-aarch64-release.zip) | [ZIP](https://github.com/willmove/joyoffice/releases/download/joydeck-v0.1.3/joydeck-0.1.3-macos-aarch64-release.zip) |
-| macOS Intel | [ZIP](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.3/joyword-0.1.3-macos-x86_64.zip) | [DMG](https://github.com/willmove/joyoffice/releases/download/joysheet-v0.1.3/joysheet-0.1.3-macos-x86_64-release.dmg) · [ZIP](https://github.com/willmove/joyoffice/releases/download/joysheet-v0.1.3/joysheet-0.1.3-macos-x86_64-release.zip) | [ZIP](https://github.com/willmove/joyoffice/releases/download/joydeck-v0.1.3/joydeck-0.1.3-macos-x86_64-release.zip) |
-| Linux x64 | [TAR.GZ](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.3/joyword-0.1.3-linux-x86_64.tar.gz) | [DEB](https://github.com/willmove/joyoffice/releases/download/joysheet-v0.1.3/joysheet-0.1.3-linux-x86_64-release.deb) · [ZIP](https://github.com/willmove/joyoffice/releases/download/joysheet-v0.1.3/joysheet-0.1.3-linux-x86_64-release.zip) | [ZIP](https://github.com/willmove/joyoffice/releases/download/joydeck-v0.1.3/joydeck-0.1.3-linux-x86_64-release.zip) |
-| Linux ARM64 | [TAR.GZ](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.3/joyword-0.1.3-linux-aarch64.tar.gz) | [DEB](https://github.com/willmove/joyoffice/releases/download/joysheet-v0.1.3/joysheet-0.1.3-linux-aarch64-release.deb) · [ZIP](https://github.com/willmove/joyoffice/releases/download/joysheet-v0.1.3/joysheet-0.1.3-linux-aarch64-release.zip) | [ZIP](https://github.com/willmove/joyoffice/releases/download/joydeck-v0.1.3/joydeck-0.1.3-linux-aarch64-release.zip) |
+| Windows x64 | [ZIP](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.4/joyword-0.1.4-windows-x86_64.zip) | [Setup EXE](https://github.com/willmove/joyoffice/releases/download/joysheet-v0.1.4/joysheet-0.1.4-windows-x86_64-release-setup.exe) · [ZIP](https://github.com/willmove/joyoffice/releases/download/joysheet-v0.1.4/joysheet-0.1.4-windows-x86_64-release.zip) | [ZIP](https://github.com/willmove/joyoffice/releases/download/joydeck-v0.1.4/joydeck-0.1.4-windows-x86_64-release.zip) |
+| Windows ARM64 | [ZIP](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.4/joyword-0.1.4-windows-aarch64.zip) | [Setup EXE](https://github.com/willmove/joyoffice/releases/download/joysheet-v0.1.4/joysheet-0.1.4-windows-aarch64-release-setup.exe) · [ZIP](https://github.com/willmove/joyoffice/releases/download/joysheet-v0.1.4/joysheet-0.1.4-windows-aarch64-release.zip) | [ZIP](https://github.com/willmove/joyoffice/releases/download/joydeck-v0.1.4/joydeck-0.1.4-windows-aarch64-release.zip) |
+| macOS Apple Silicon | [ZIP](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.4/joyword-0.1.4-macos-aarch64.zip) | [DMG](https://github.com/willmove/joyoffice/releases/download/joysheet-v0.1.4/joysheet-0.1.4-macos-aarch64-release.dmg) · [ZIP](https://github.com/willmove/joyoffice/releases/download/joysheet-v0.1.4/joysheet-0.1.4-macos-aarch64-release.zip) | [ZIP](https://github.com/willmove/joyoffice/releases/download/joydeck-v0.1.4/joydeck-0.1.4-macos-aarch64-release.zip) |
+| macOS Intel | [ZIP](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.4/joyword-0.1.4-macos-x86_64.zip) | [DMG](https://github.com/willmove/joyoffice/releases/download/joysheet-v0.1.4/joysheet-0.1.4-macos-x86_64-release.dmg) · [ZIP](https://github.com/willmove/joyoffice/releases/download/joysheet-v0.1.4/joysheet-0.1.4-macos-x86_64-release.zip) | [ZIP](https://github.com/willmove/joyoffice/releases/download/joydeck-v0.1.4/joydeck-0.1.4-macos-x86_64-release.zip) |
+| Linux x64 | [TAR.GZ](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.4/joyword-0.1.4-linux-x86_64.tar.gz) | [DEB](https://github.com/willmove/joyoffice/releases/download/joysheet-v0.1.4/joysheet-0.1.4-linux-x86_64-release.deb) · [ZIP](https://github.com/willmove/joyoffice/releases/download/joysheet-v0.1.4/joysheet-0.1.4-linux-x86_64-release.zip) | [ZIP](https://github.com/willmove/joyoffice/releases/download/joydeck-v0.1.4/joydeck-0.1.4-linux-x86_64-release.zip) |
+| Linux ARM64 | [TAR.GZ](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.4/joyword-0.1.4-linux-aarch64.tar.gz) | [DEB](https://github.com/willmove/joyoffice/releases/download/joysheet-v0.1.4/joysheet-0.1.4-linux-aarch64-release.deb) · [ZIP](https://github.com/willmove/joyoffice/releases/download/joysheet-v0.1.4/joysheet-0.1.4-linux-aarch64-release.zip) | [ZIP](https://github.com/willmove/joyoffice/releases/download/joydeck-v0.1.4/joydeck-0.1.4-linux-aarch64-release.zip) |
 
 - **Windows** Extract the ZIP and run `joyword.exe`, `joysheet.exe`, or `joydeck.exe`. The JoySheet setup program also adds a Start menu shortcut.
 - **macOS** Extract the ZIP and open the included `.app`, or move it to Applications. For the JoySheet DMG, mount it and drag `Joysheet.app` to Applications.
@@ -31,9 +31,9 @@ These previews ship without publisher signatures or macOS notarization. Each pro
 
 | Product | App / CLI version | Primary files | Current development baseline |
 | --- | --- | --- | --- |
-| <img src="assets/brand/joyword.svg" width="24" height="24" alt=""> **JoyWord** | **0.1.3** | DOCX, OpenDocument, legacy DOC import | R8 implementation integrated into JoyOffice. [Handoff and compatibility](docs/joyoffice/JOYWORD-R8-HANDOFF.md) · [Status](docs/joyword/r8/STATUS.md) |
-| <img src="assets/brand/joysheet.svg" width="24" height="24" alt=""> **JoySheet** | **0.1.3** | XLSX | Integrated M8-preview6 feature baseline with subsequent fixes; [developer guide](docs/joysheet/README.md) · [status](docs/joysheet/STATUS.md) |
-| <img src="assets/brand/joydeck.svg" width="24" height="24" alt=""> **JoyDeck** | **0.1.3** | PPTX, `.joydeck` v2 | R9 integration of the DeckCraft/GPUI refactor; [handoff](docs/joyoffice/JOYDECK-R9-HANDOFF.md) · [status](docs/joydeck/STATUS.md) |
+| <img src="assets/brand/joyword.svg" width="24" height="24" alt=""> **JoyWord** | **0.1.4** | DOCX, OpenDocument, legacy DOC import | R8 implementation integrated into JoyOffice. [Handoff and compatibility](docs/joyoffice/JOYWORD-R8-HANDOFF.md) · [Status](docs/joyword/r8/STATUS.md) |
+| <img src="assets/brand/joysheet.svg" width="24" height="24" alt=""> **JoySheet** | **0.1.4** | XLSX | Integrated M8-preview6 feature baseline with subsequent fixes; [developer guide](docs/joysheet/README.md) · [status](docs/joysheet/STATUS.md) |
+| <img src="assets/brand/joydeck.svg" width="24" height="24" alt=""> **JoyDeck** | **0.1.4** | PPTX, `.joydeck` v2 | R9 integration of the DeckCraft/GPUI refactor; [handoff](docs/joyoffice/JOYDECK-R9-HANDOFF.md) · [status](docs/joydeck/STATUS.md) |
 
 ### JoyWord — documents
 
@@ -41,7 +41,7 @@ These previews ship without publisher signatures or macOS notarization. Each pro
 - Find and replace, outline navigation, comments, tracked changes, comparison, and mail merge.
 - Open and save DOCX, import supported legacy DOC files, and exchange supported ODT, OTT and FODT content. The File workspace offers dedicated export choices, including PDF, PNG, PDF/A-2b, EPUB and two Word XML formats. [Format and validation details](docs/joyword/r8/STATUS.md)
 - Shared desktop/CLI editing sessions, recovery drafts, legacy journal recovery, and authenticated access to selected active-document operations through a local control bridge and MCP.
-- Insert and Layout ribbons follow the installed Word for Mac grouping, with real command menus, paragraph numeric controls, and explicit disabled states for unavailable features. See the [Insert](docs/joyword/r8/INSERT-UI.md) and [Layout](docs/joyword/r8/LAYOUT-UI.md) implementation and validation records.
+- The ribbon follows the observed Windows Word grouping, with working command menus, clipboard controls, paragraph numeric controls, and explicit disabled states for unavailable features. See the [product status](docs/joyword/r8/STATUS.md) for implementation and validation scope.
 - Recent work strengthens imported theme/font/color bindings, unknown XML retention, recovery and preference safety, and complex-object compatibility regression coverage.
 
 The optional `agent` build feature provides local selection proposals with preview and undoable acceptance. Provider, credential, and broader desktop integration remain open. See [R8 validation](docs/joyword/r8/VALIDATION.md) for tested workflows and remaining conditions.
@@ -53,6 +53,7 @@ The optional `agent` build feature provides local selection proposals with previ
 - Charts, pictures, shapes, sparklines, pivot-table workflows, analysis/solver forms, comments, protection, and named ranges.
 - XLSX workflows, additional spreadsheet readers and text/data exchange, PDF export/preview, multi-window workbook views, recovery, scripts, CLI, and MCP.
 - Password prompts for protected XLSX files support retry and cancel. Save As writes an unencrypted copy and preserves the source. Windows testing also covered copying integers, decimals and text both ways with Excel. [Validation](docs/joysheet/STATUS.md)
+- The Excel-style ribbon includes Drawing, Help and File backstage; supported structured-object editing, page-break dragging and formula trace arrows have scoped validation.
 
 Format and UI coverage varies by workflow. The [migration matrix](docs/joysheet/MIGRATION.md) distinguishes implemented features, automated checks, and remaining native acceptance work.
 
@@ -63,8 +64,11 @@ Format and UI coverage varies by workflow. The [migration matrix](docs/joysheet/
 - PPTX and native v2 save/reopen, undo/redo, recovery, basic comparison/review, and explicit migration of legacy `.joydeck` v1 files.
 - Slide-show and presenter windows; PDF, image, GIF, outline, and other scoped exports; static MP4 output on verified Windows/macOS paths; CLI, JSON control, and MCP.
 - The presentation workspace can fill, update and clear footer text with undo. PPTX input now allows up to 500 MiB subject to ZIP and XML budgets. [Validation and limits](docs/joydeck/STATUS.md)
+- Updated File backstage, Up/Down slide navigation and slide-show rendering at the actual window pixel size and DPI improve everyday use.
 
 Full master/theme editing, complex content and media, the complete command/UI matrix, and old automation parity remain in progress. See the [task list](docs/joydeck/TASKS.md) and [UI parity record](docs/joydeck/UI-PARITY.md).
+
+All three apps provide shared light/dark theme presets and double-click ribbon collapse. See the [v0.1.4 Windows validation](docs/joyoffice/validation/20261113-v014/README.md) for this release's tested scope and remaining platform checks.
 
 ## Architecture and repository layout
 
@@ -177,7 +181,7 @@ cargo xtask package joydeck --release
 
 Native development packages are written under `dist/joyword/`, `dist/joysheet/`, and `dist/joydeck/`. Packaging runs on the host platform and includes product-specific binaries, resources, build/source fingerprints, and dependency/license metadata. Cross-target build/check supports `--target`; packaging is currently native-only, and headless-only packages are not implemented.
 
-All first-party workspace packages inherit the version from `[workspace.package]` in `Cargo.toml`. Products retain separate release tags (`joyword-v*`, `joysheet-v*`, `joydeck-v*`), and historical `v*` tags route to Word. JoyDeck previously used `0.8.0` for its refactor builds. When moving one of those installations to `0.1.3`, select the new package explicitly because a semantic-version comparison ranks `0.1.3` below `0.8.0`. [Release workflow](.github/workflows/release.yml)
+All first-party workspace packages inherit the version from `[workspace.package]` in `Cargo.toml`. Products retain separate release tags (`joyword-v*`, `joysheet-v*`, `joydeck-v*`), and historical `v*` tags route to Word. JoyDeck previously used `0.8.0` for its refactor builds. When moving one of those installations to `0.1.4`, select the new package explicitly because a semantic-version comparison ranks `0.1.4` below `0.8.0`. [Release workflow](.github/workflows/release.yml)
 
 Each desktop package carries its product logo and platform icon. See the [icon maintenance guide](docs/joyoffice/BRANDING.md) for the Windows executable resource, macOS app bundle, and Linux desktop launcher.
 
@@ -218,20 +222,20 @@ The root project is licensed under [MIT](LICENSE). Imported code and assets reta
 
 JoyOffice 是使用 **Rust 和 GPUI Kit** 构建的桌面 Office 套件。**JoyWord**、**JoySheet**、**JoyDeck** 与仓库内第一方库和工具共用套件版本。每款产品都提供原生桌面应用和无界面 CLI。
 
-本文概况截至 **2026-11-09**。
+本文概况截至 **2026-11-13**。
 
 ## 下载与安装
 
-选择与你的系统和处理器匹配的 **v0.1.3 预览版**。每个便携包都包含桌面应用和 CLI。
+选择与你的系统和处理器匹配的 **v0.1.4 预览版**。每个便携包都包含桌面应用和 CLI。
 
-| 系统与架构 | [JoyWord](https://github.com/willmove/joyoffice/releases/tag/joyword-v0.1.3) | [JoySheet](https://github.com/willmove/joyoffice/releases/tag/joysheet-v0.1.3) | [JoyDeck](https://github.com/willmove/joyoffice/releases/tag/joydeck-v0.1.3) |
+| 系统与架构 | [JoyWord](https://github.com/willmove/joyoffice/releases/tag/joyword-v0.1.4) | [JoySheet](https://github.com/willmove/joyoffice/releases/tag/joysheet-v0.1.4) | [JoyDeck](https://github.com/willmove/joyoffice/releases/tag/joydeck-v0.1.4) |
 | --- | --- | --- | --- |
-| Windows x64 | [ZIP](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.3/joyword-0.1.3-windows-x86_64.zip) | [Setup EXE](https://github.com/willmove/joyoffice/releases/download/joysheet-v0.1.3/joysheet-0.1.3-windows-x86_64-release-setup.exe) · [ZIP](https://github.com/willmove/joyoffice/releases/download/joysheet-v0.1.3/joysheet-0.1.3-windows-x86_64-release.zip) | [ZIP](https://github.com/willmove/joyoffice/releases/download/joydeck-v0.1.3/joydeck-0.1.3-windows-x86_64-release.zip) |
-| Windows ARM64 | [ZIP](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.3/joyword-0.1.3-windows-aarch64.zip) | [Setup EXE](https://github.com/willmove/joyoffice/releases/download/joysheet-v0.1.3/joysheet-0.1.3-windows-aarch64-release-setup.exe) · [ZIP](https://github.com/willmove/joyoffice/releases/download/joysheet-v0.1.3/joysheet-0.1.3-windows-aarch64-release.zip) | [ZIP](https://github.com/willmove/joyoffice/releases/download/joydeck-v0.1.3/joydeck-0.1.3-windows-aarch64-release.zip) |
-| macOS Apple 芯片 | [ZIP](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.3/joyword-0.1.3-macos-aarch64.zip) | [DMG](https://github.com/willmove/joyoffice/releases/download/joysheet-v0.1.3/joysheet-0.1.3-macos-aarch64-release.dmg) · [ZIP](https://github.com/willmove/joyoffice/releases/download/joysheet-v0.1.3/joysheet-0.1.3-macos-aarch64-release.zip) | [ZIP](https://github.com/willmove/joyoffice/releases/download/joydeck-v0.1.3/joydeck-0.1.3-macos-aarch64-release.zip) |
-| macOS Intel | [ZIP](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.3/joyword-0.1.3-macos-x86_64.zip) | [DMG](https://github.com/willmove/joyoffice/releases/download/joysheet-v0.1.3/joysheet-0.1.3-macos-x86_64-release.dmg) · [ZIP](https://github.com/willmove/joyoffice/releases/download/joysheet-v0.1.3/joysheet-0.1.3-macos-x86_64-release.zip) | [ZIP](https://github.com/willmove/joyoffice/releases/download/joydeck-v0.1.3/joydeck-0.1.3-macos-x86_64-release.zip) |
-| Linux x64 | [TAR.GZ](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.3/joyword-0.1.3-linux-x86_64.tar.gz) | [DEB](https://github.com/willmove/joyoffice/releases/download/joysheet-v0.1.3/joysheet-0.1.3-linux-x86_64-release.deb) · [ZIP](https://github.com/willmove/joyoffice/releases/download/joysheet-v0.1.3/joysheet-0.1.3-linux-x86_64-release.zip) | [ZIP](https://github.com/willmove/joyoffice/releases/download/joydeck-v0.1.3/joydeck-0.1.3-linux-x86_64-release.zip) |
-| Linux ARM64 | [TAR.GZ](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.3/joyword-0.1.3-linux-aarch64.tar.gz) | [DEB](https://github.com/willmove/joyoffice/releases/download/joysheet-v0.1.3/joysheet-0.1.3-linux-aarch64-release.deb) · [ZIP](https://github.com/willmove/joyoffice/releases/download/joysheet-v0.1.3/joysheet-0.1.3-linux-aarch64-release.zip) | [ZIP](https://github.com/willmove/joyoffice/releases/download/joydeck-v0.1.3/joydeck-0.1.3-linux-aarch64-release.zip) |
+| Windows x64 | [ZIP](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.4/joyword-0.1.4-windows-x86_64.zip) | [Setup EXE](https://github.com/willmove/joyoffice/releases/download/joysheet-v0.1.4/joysheet-0.1.4-windows-x86_64-release-setup.exe) · [ZIP](https://github.com/willmove/joyoffice/releases/download/joysheet-v0.1.4/joysheet-0.1.4-windows-x86_64-release.zip) | [ZIP](https://github.com/willmove/joyoffice/releases/download/joydeck-v0.1.4/joydeck-0.1.4-windows-x86_64-release.zip) |
+| Windows ARM64 | [ZIP](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.4/joyword-0.1.4-windows-aarch64.zip) | [Setup EXE](https://github.com/willmove/joyoffice/releases/download/joysheet-v0.1.4/joysheet-0.1.4-windows-aarch64-release-setup.exe) · [ZIP](https://github.com/willmove/joyoffice/releases/download/joysheet-v0.1.4/joysheet-0.1.4-windows-aarch64-release.zip) | [ZIP](https://github.com/willmove/joyoffice/releases/download/joydeck-v0.1.4/joydeck-0.1.4-windows-aarch64-release.zip) |
+| macOS Apple 芯片 | [ZIP](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.4/joyword-0.1.4-macos-aarch64.zip) | [DMG](https://github.com/willmove/joyoffice/releases/download/joysheet-v0.1.4/joysheet-0.1.4-macos-aarch64-release.dmg) · [ZIP](https://github.com/willmove/joyoffice/releases/download/joysheet-v0.1.4/joysheet-0.1.4-macos-aarch64-release.zip) | [ZIP](https://github.com/willmove/joyoffice/releases/download/joydeck-v0.1.4/joydeck-0.1.4-macos-aarch64-release.zip) |
+| macOS Intel | [ZIP](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.4/joyword-0.1.4-macos-x86_64.zip) | [DMG](https://github.com/willmove/joyoffice/releases/download/joysheet-v0.1.4/joysheet-0.1.4-macos-x86_64-release.dmg) · [ZIP](https://github.com/willmove/joyoffice/releases/download/joysheet-v0.1.4/joysheet-0.1.4-macos-x86_64-release.zip) | [ZIP](https://github.com/willmove/joyoffice/releases/download/joydeck-v0.1.4/joydeck-0.1.4-macos-x86_64-release.zip) |
+| Linux x64 | [TAR.GZ](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.4/joyword-0.1.4-linux-x86_64.tar.gz) | [DEB](https://github.com/willmove/joyoffice/releases/download/joysheet-v0.1.4/joysheet-0.1.4-linux-x86_64-release.deb) · [ZIP](https://github.com/willmove/joyoffice/releases/download/joysheet-v0.1.4/joysheet-0.1.4-linux-x86_64-release.zip) | [ZIP](https://github.com/willmove/joyoffice/releases/download/joydeck-v0.1.4/joydeck-0.1.4-linux-x86_64-release.zip) |
+| Linux ARM64 | [TAR.GZ](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.4/joyword-0.1.4-linux-aarch64.tar.gz) | [DEB](https://github.com/willmove/joyoffice/releases/download/joysheet-v0.1.4/joysheet-0.1.4-linux-aarch64-release.deb) · [ZIP](https://github.com/willmove/joyoffice/releases/download/joysheet-v0.1.4/joysheet-0.1.4-linux-aarch64-release.zip) | [ZIP](https://github.com/willmove/joyoffice/releases/download/joydeck-v0.1.4/joydeck-0.1.4-linux-aarch64-release.zip) |
 
 - **Windows** 解压 ZIP 后运行 `joyword.exe`、`joysheet.exe` 或 `joydeck.exe`。JoySheet 也可使用安装程序，从开始菜单启动。
 - **macOS** 解压 ZIP 后打开随附的 `.app`，也可把它拖入「应用程序」。JoySheet DMG 挂载后可将 `Joysheet.app` 拖入「应用程序」。
@@ -243,9 +247,9 @@ JoyOffice 是使用 **Rust 和 GPUI Kit** 构建的桌面 Office 套件。**JoyW
 
 | 产品 | 应用／CLI 版本 | 主要文件 | 当前开发基线 |
 | --- | --- | --- | --- |
-| <img src="assets/brand/joyword.svg" width="24" height="24" alt=""> **JoyWord** | **0.1.3** | DOCX、OpenDocument、旧版 DOC 导入 | 已整合到 JoyOffice 的 R8 实现。[交接与兼容表](docs/joyoffice/JOYWORD-R8-HANDOFF.md) · [状态](docs/joyword/r8/STATUS.md) |
-| <img src="assets/brand/joysheet.svg" width="24" height="24" alt=""> **JoySheet** | **0.1.3** | XLSX | 已整合的 M8-preview6 功能基线及后续修复；[开发指南](docs/joysheet/README.md) · [状态](docs/joysheet/STATUS.md) |
-| <img src="assets/brand/joydeck.svg" width="24" height="24" alt=""> **JoyDeck** | **0.1.3** | PPTX、`.joydeck` v2 | DeckCraft/GPUI 重构实现的 R9 整合；[交接](docs/joyoffice/JOYDECK-R9-HANDOFF.md) · [状态](docs/joydeck/STATUS.md) |
+| <img src="assets/brand/joyword.svg" width="24" height="24" alt=""> **JoyWord** | **0.1.4** | DOCX、OpenDocument、旧版 DOC 导入 | 已整合到 JoyOffice 的 R8 实现。[交接与兼容表](docs/joyoffice/JOYWORD-R8-HANDOFF.md) · [状态](docs/joyword/r8/STATUS.md) |
+| <img src="assets/brand/joysheet.svg" width="24" height="24" alt=""> **JoySheet** | **0.1.4** | XLSX | 已整合的 M8-preview6 功能基线及后续修复；[开发指南](docs/joysheet/README.md) · [状态](docs/joysheet/STATUS.md) |
+| <img src="assets/brand/joydeck.svg" width="24" height="24" alt=""> **JoyDeck** | **0.1.4** | PPTX、`.joydeck` v2 | DeckCraft/GPUI 重构实现的 R9 整合；[交接](docs/joyoffice/JOYDECK-R9-HANDOFF.md) · [状态](docs/joydeck/STATUS.md) |
 
 ### JoyWord — 文档
 
@@ -253,7 +257,7 @@ JoyOffice 是使用 **Rust 和 GPUI Kit** 构建的桌面 Office 套件。**JoyW
 - 查找替换、大纲导航、批注、修订、比较和邮件合并。
 - 打开和保存 DOCX，导入受支持的旧版 DOC，读写受支持的 ODT、OTT 和 FODT 内容。「文件」工作区提供独立导出入口，包含 PDF、PNG、PDF/A-2b、EPUB 和两种 Word XML。[格式与验证记录](docs/joyword/r8/STATUS.md)
 - 桌面与 CLI 共用编辑会话，提供恢复草稿、旧日志恢复，以及通过本地认证控制桥和 MCP 操作活动文档的部分能力。
-- 插入和布局功能区参照本机 Word for Mac 的分组，接通真实命令菜单、段落数值控件，并明确禁用尚未提供的功能。实现与验证范围见[插入记录](docs/joyword/r8/INSERT-UI.md)和[布局记录](docs/joyword/r8/LAYOUT-UI.md)。
+- 功能区按实测 Windows Word 分组，接通真实命令菜单、剪贴板与段落数值控件，并明确禁用尚未提供的功能。实现与验证范围见[产品状态](docs/joyword/r8/STATUS.md)。
 - 近期加强导入主题与字体／颜色绑定、未知 XML 保留、恢复与偏好安全，以及复杂对象兼容性回归覆盖。
 
 可选 `agent` 构建特性提供本地选区提案、预览和可撤销的接受操作。Provider、凭据及更广的桌面集成仍开放。已验证流程与剩余条件见 [R8 验证](docs/joyword/r8/VALIDATION.md)。
@@ -275,8 +279,11 @@ JoyOffice 是使用 **Rust 和 GPUI Kit** 构建的桌面 Office 套件。**JoyW
 - PPTX 与原生 v2 格式保存重开、撤销重做、恢复、基础比较／审阅，以及旧 `.joydeck` v1 文件的显式迁移。
 - 放映和演示者窗口；PDF、图片、GIF、大纲等限定范围的导出；已验证 Windows／macOS 路径上的静态 MP4 输出；CLI、JSON control 和 MCP。
 - 支持补建、更新和清空页脚文字，可撤销。PPTX 文件读取上限提高至 500 MiB，仍受 ZIP 和 XML 安全预算约束。[验证及限制](docs/joydeck/STATUS.md)
+- 重做文件后台，接入上下键翻页，放映画面按窗口实际像素与 DPI 渲染。
 
 完整母版／主题编辑、复杂内容和媒体、全部命令／UI 矩阵及旧自动化等价仍在推进。详见[任务清单](docs/joydeck/TASKS.md)和[界面功能对照](docs/joydeck/UI-PARITY.md)。
+
+三产品均提供共享亮暗主题预设和双击收展功能区。[v0.1.4 Windows 验证](docs/joyoffice/validation/20261113-v014/README.md)记录本版实测范围及未覆盖的平台验收。
 
 ## 架构与仓库布局
 
@@ -389,7 +396,7 @@ cargo xtask package joydeck --release
 
 原生开发包分别输出到 `dist/joyword/`、`dist/joysheet/` 和 `dist/joydeck/`。打包在宿主平台执行，包含所属产品二进制、资源、构建／源码指纹及依赖／许可元数据。跨目标构建／检查可使用 `--target`；当前打包仅支持原生平台，尚未实现纯 headless 包。
 
-所有第一方工作区包默认继承根 `Cargo.toml` 中的 `[workspace.package]` 版本。产品保留各自的发布标签 `joyword-v*`、`joysheet-v*`、`joydeck-v*`，历史 `v*` 标签映射到 Word。从 JoyDeck 历史重构包 `0.8.0` 迁到 `0.1.3` 时须显式选择新包，语义版本比较会把 `0.1.3` 排在 `0.8.0` 之前。[发布工作流](.github/workflows/release.yml)
+所有第一方工作区包默认继承根 `Cargo.toml` 中的 `[workspace.package]` 版本。产品保留各自的发布标签 `joyword-v*`、`joysheet-v*`、`joydeck-v*`，历史 `v*` 标签映射到 Word。从 JoyDeck 历史重构包 `0.8.0` 迁到 `0.1.4` 时须显式选择新包，语义版本比较会把 `0.1.4` 排在 `0.8.0` 之前。[发布工作流](.github/workflows/release.yml)
 
 各产品桌面包均带有产品 LOGO 和平台图标。Windows 可执行文件资源、macOS 应用包和 Linux 桌面入口的维护方式见 [产品标识与图标](docs/joyoffice/BRANDING.md)。
 

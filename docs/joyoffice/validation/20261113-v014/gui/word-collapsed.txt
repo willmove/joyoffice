@@ -1,0 +1,41 @@
+Window: "mixed-media.docx — JoyWord", App: joyword.exe.
+	0 window (区域) mixed-media.docx — JoyWord Secondary Actions: Raise
+		1 title bar (标题栏) (settable, string) Value: mixed-media.docx — JoyWord
+			2 menu bar (菜单栏) 系统 ID: MenuBar
+				3 menu item (菜单项) 系统
+			4 button (按钮) 最小化
+			5 button (按钮) 最大化
+			6 button (按钮) 关闭
+		7 button (按钮) 新建
+		8 button (按钮) 打开
+		9 button (按钮) 保存
+		10 button (按钮) (disabled) 撤销
+		11 button (按钮) (disabled) 重做
+		12 button (按钮) 搜索命令
+		13 button (按钮) EN
+		14 button (按钮) 切换外观
+		15 tab (选项卡) 功能区
+			16 tab item (选项卡项目) (selectable) 文件
+			17 tab item (选项卡项目) (selectable) 开始
+			18 tab item (选项卡项目) (selectable) 插入
+			19 tab item (选项卡项目) (selectable) 绘图
+			20 tab item (选项卡项目) (selectable) 设计
+			21 tab item (选项卡项目) (selectable) 布局
+			22 tab item (选项卡项目) (selectable) 引用
+			23 tab item (选项卡项目) (selectable) 邮件
+			24 tab item (选项卡项目) (selectable) 审阅
+			25 tab item (选项卡项目) (selectable) 视图
+			26 tab item (选项卡项目) (selectable) 帮助
+			27 button (按钮) 折叠或展开功能区
+		86 button (按钮) 上一页
+		87 button (按钮) 下一页
+		88 text field (编辑) (settable, string) 文档正文 Value: JoyWord 真实文档阅读验证
+			89 group (组) 水平标尺（只读）
+		90 status bar (状态)
+			91 button (按钮) −
+			92 button (按钮) 100%
+			93 button (按钮) +
+
+Document text: ```
+JoyWord 真实文档阅读验证
+```

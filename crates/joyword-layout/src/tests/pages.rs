@@ -1,6 +1,7 @@
 //! Page geometry: mirrored margins, headers and footers taller than their margin (also when
 //! linked to the previous section), endnotes continuing over pages, and the caret in a footnote
 //! continued on the next page.
+use crate::tests::{assert_pagination_fixture_font, pagination_fixture_document};
 use crate::*;
 use joyword_model::para::{InlineObject, NoteKind};
 use joyword_model::{PartKind, Pos, para_block};
@@ -926,8 +927,10 @@ fn a_page_ends_when_a_multiple_spaced_lines_text_no_longer_fits() {
     for multiple in [1.15, 1.5, 2.0] {
         let mut past_margin = 0;
         for shift in (0..28).step_by(2) {
-            let mut d = Document::from_text(
-                &"Several words wrap onto many lines of a long paragraph. ".repeat(60),
+            // Use the bundled pagination face and enough text to span pages even with a
+            // narrower installed default font. Keep the multiple-spacing boundary assertions.
+            let mut d = pagination_fixture_document(
+                &"Several words wrap onto many lines of a long paragraph. ".repeat(120),
             );
             if let Some(joyword_model::Block::Para(p)) = d.body.get_mut(0).map(Arc::make_mut) {
                 p.props.line_spacing = Some(LineSpacing::Multiple(multiple));
@@ -936,6 +939,7 @@ fn a_page_ends_when_a_multiple_spaced_lines_text_no_longer_fits() {
             }
             let bottom = d.last_section.page_h - d.last_section.margin_bottom;
             let l = lay(&d);
+            assert_pagination_fixture_font(&l);
             assert!(
                 l.pages.len() >= 2,
                 "{multiple} shift {shift}: the paragraph should run onto a second page"

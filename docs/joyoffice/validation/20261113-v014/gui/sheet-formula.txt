@@ -1,0 +1,38 @@
+Window: "● Quarterly Sales Dashboard — Joysheet", App: joysheet.exe.
+	0 window (区域) ● Quarterly Sales Dashboard — Joysheet Secondary Actions: Raise
+		1 title bar (标题栏) (settable, string) Value: ● Quarterly Sales Dashboard — Joysheet
+			2 menu bar (菜单栏) 系统 ID: MenuBar
+				3 menu item (菜单项) 系统
+			4 button (按钮) 最小化
+			5 button (按钮) 最大化
+			6 button (按钮) 关闭
+		7 button (按钮) 新建
+		8 button (按钮) 保存
+		9 button (按钮) ↶
+		10 button (按钮) ↷
+		11 button (按钮) 搜索命令
+		12 button (按钮) 设置
+		13 tab (选项卡) 功能区
+			14 tab item (选项卡项目) (selectable) 文件
+			15 tab item (选项卡项目) (selectable) 开始
+			16 tab item (选项卡项目) (selectable) 插入
+			17 tab item (选项卡项目) (selectable) 绘图
+			18 tab item (选项卡项目) (selectable) 页面布局
+			19 tab item (选项卡项目) (selectable) 公式
+			20 tab item (选项卡项目) (selectable) 数据
+			21 tab item (选项卡项目) (selectable) 审阅
+			22 tab item (选项卡项目) (selectable) 视图
+			23 tab item (选项卡项目) (selectable) 帮助
+			24 tab item (选项卡项目) (selectable) 自动化
+		70 text field (编辑) (settable, string) 单元格地址 / Cell address Value: A2
+		71 button (按钮) 取消编辑
+		72 button (按钮) 确认编辑
+		73 text field (编辑) (settable, string) 公式栏 / Formula bar Description: 输入数据或公式 / Enter a value or formula
+		74 data grid (数据网格) 工作表 / Worksheet (truncated: child_limit, omitted 700 children)
+		75 text field (编辑) (settable, string) Sales A2
+		76 tab (选项卡) 工作表 / Worksheets
+			77 tab item (选项卡项目) (selectable) Sales
+			78 button (按钮) +
+		79 status bar (状态)
+
+The focused UI element is 75 text field (编辑) (settable, string) Sales A2.

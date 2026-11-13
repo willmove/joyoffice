@@ -1,0 +1,14 @@
+{
+  "directory": "D:\\Coding\\EditorProjects\\joyoffice\\dist\\joydeck\\joydeck-0.1.4-windows-x86_64-release",
+  "archive": "D:\\Coding\\EditorProjects\\joyoffice\\dist\\joydeck\\joydeck-0.1.4-windows-x86_64-release.zip",
+  "archive_sha256": "fb7b25d56e4bc9d9acd3bdc0e2343c333285675b0c861b4d41db0aa996d7d336",
+  "source_sha256": "8a7d69f222276b21fd48bffc66b49cb643806f52c49369c6c6a16503a78d1e0b",
+  "target": "x86_64-pc-windows-msvc",
+  "profile": "release",
+  "sbom_packages": 459,
+  "missing_license_texts": [
+    "mac@0.1.1",
+    "seahash@4.1.0"
+  ],
+  "signed": false
+}
