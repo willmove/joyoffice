@@ -26,6 +26,7 @@ Linux packages are built on Ubuntu 24.04 and require compatible Vulkan, font and
 - The ribbon follows the observed PowerPoint grouping, and the File backstage now offers a clearer home and recent-file workflow.
 - Shared theme presets, double-click ribbon collapse and Up/Down slide navigation work in the editor and slide show.
 - Slide-show frames use the window pixel size and DPI, with cache invalidation and background rendering improvements to avoid enlarged blurry frames.
+- Update rustix to 1.1.6 for RUSTSEC-2026-0486 and xattr to 1.7.0 for its size-query API, retaining large-attribute preservation; no advisory exception is added.
 
 See the [product status](https://github.com/willmove/joyoffice/blob/joydeck-v0.1.4/docs/joydeck/STATUS.md) for format coverage and platform validation. Find the other apps in the [JoyOffice download table](https://github.com/willmove/joyoffice/blob/joydeck-v0.1.4/README.md#download-and-install).
 
@@ -63,6 +64,7 @@ Linux 构建基线为 Ubuntu 24.04，运行需要兼容的 Vulkan、字体和 X1
 - 按实测 PowerPoint 分组重排功能区，恢复文件标签并重做首页与最近文稿流程。
 - 新增共享主题、双击收展功能区，以及编辑和放映中的上下键翻页。
 - 放映画面按窗口实际像素与 DPI 渲染，完善缓存失效与后台渲染，修复低分辨率底图放大导致的模糊。
+- 将 rustix 更新到 1.1.6 修复 RUSTSEC-2026-0486，配套 xattr 1.7.0 的尺寸查询接口以保留大扩展属性，不新增公告忽略。
 
 格式覆盖与逐平台验收范围见[产品状态](https://github.com/willmove/joyoffice/blob/joydeck-v0.1.4/docs/joydeck/STATUS.md)。其他产品可从 [JoyOffice 下载表](https://github.com/willmove/joyoffice/blob/joydeck-v0.1.4/README.md#下载与安装)获取。
 

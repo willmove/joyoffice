@@ -26,6 +26,7 @@ Linux packages are built on Ubuntu 24.04 and require compatible Vulkan, font and
 - The Windows ribbon follows Word more closely, with revised Home, Insert, Review and clipboard controls and working command menus.
 - Shared light/dark theme presets and double-click ribbon collapse provide more room for documents.
 - Pagination regression fixtures now select the exact bundled font instead of depending on the installed default font.
+- Update rustix to 1.1.6 for RUSTSEC-2026-0486 and xattr to 1.7.0 for its size-query API, retaining large-attribute preservation; no advisory exception is added.
 
 See the [product status](https://github.com/willmove/joyoffice/blob/joyword-v0.1.4/docs/joyword/r8/STATUS.md) for format coverage and platform validation. Find the other apps in the [JoyOffice download table](https://github.com/willmove/joyoffice/blob/joyword-v0.1.4/README.md#download-and-install).
 
@@ -59,6 +60,7 @@ Linux 构建基线为 Ubuntu 24.04，运行需要兼容的 Vulkan、字体和 X1
 - 按 Windows Word 调整开始、插入、审阅及剪贴板功能区，补齐对应命令菜单。
 - 新增三产品共享的亮暗主题预设，双击当前标签可收起或展开功能区。
 - 分页回归固定使用随仓库提供的字体，避免已安装默认字体改变测试边界。
+- 将 rustix 更新到 1.1.6 修复 RUSTSEC-2026-0486，配套 xattr 1.7.0 的尺寸查询接口以保留大扩展属性，不新增公告忽略。
 
 格式覆盖与逐平台验收范围见[产品状态](https://github.com/willmove/joyoffice/blob/joyword-v0.1.4/docs/joyword/r8/STATUS.md)。其他产品可从 [JoyOffice 下载表](https://github.com/willmove/joyoffice/blob/joyword-v0.1.4/README.md#下载与安装)获取。
 

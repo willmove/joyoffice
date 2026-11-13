@@ -798,6 +798,33 @@ mod tests {
         )));
     }
 
+    // APFS supports values larger than xattr's initial 4 KiB read buffer. This
+    // exercises the size-query path changed by the rustix security update.
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn large_extended_attributes_survive_observation_and_restore() {
+        let dir = tempfile::tempdir().unwrap();
+        let source = dir.path().join("source.docx");
+        let destination = dir.path().join("copy.docx");
+        std::fs::write(&source, b"source").unwrap();
+        std::fs::write(&destination, b"copy").unwrap();
+        let name = "dev.joyoffice.large-attribute";
+        let value = vec![0x5a; 8192];
+        xattr::set(&source, name, &value).unwrap();
+
+        let observed = observe(&source).unwrap();
+        assert_eq!(
+            observed
+                .xattrs
+                .iter()
+                .find(|(key, _)| key == name)
+                .map(|(_, bytes)| bytes.as_slice()),
+            Some(value.as_slice())
+        );
+        restore_xattrs(&destination, &observed.xattrs).unwrap();
+        assert_eq!(xattr::get(&destination, name).unwrap(), Some(value));
+    }
+
     #[cfg(target_os = "linux")]
     #[test]
     fn linux_security_xattrs_are_observed_and_not_queued_for_restore() {

@@ -26,6 +26,7 @@ Linux packages are built on Ubuntu 24.04 and require compatible Vulkan, font and
 - The ribbon follows Windows Excel grouping with Drawing, Help, File backstage and thinner icons.
 - Supported SmartArt, WordArt, calendar, embedded-file and equation workflows now include editable objects, page-layout cell/header/footer editing, draggable page breaks and formula trace arrows.
 - Shared theme presets and double-click ribbon collapse retain an editable grid and keyboard focus navigation. Complex object and full Excel parity limits remain documented.
+- Update rustix to 1.1.6 for RUSTSEC-2026-0486 and xattr to 1.7.0 for its size-query API, retaining large-attribute preservation; no advisory exception is added.
 
 See the [product status](https://github.com/willmove/joyoffice/blob/joysheet-v0.1.4/docs/joysheet/STATUS.md) for format coverage and platform validation. Find the other apps in the [JoyOffice download table](https://github.com/willmove/joyoffice/blob/joysheet-v0.1.4/README.md#download-and-install).
 
@@ -59,6 +60,7 @@ Linux 构建基线为 Ubuntu 24.04，运行需要兼容的 Vulkan、字体和 X1
 - 按 Windows Excel 分组重排功能区，新增绘图、帮助、文件后台并减细图标。
 - 补齐受支持的 SmartArt、WordArt、日程表、嵌入文件和公式对象编辑子集，接入页面布局单元格/页眉页脚编辑、分页线拖动和公式追踪箭头。
 - 新增共享主题和双击收展功能区，收起后仍可编辑网格并使用键盘焦点导航。复杂对象及完整 Excel 等价范围继续按文档跟踪。
+- 将 rustix 更新到 1.1.6 修复 RUSTSEC-2026-0486，配套 xattr 1.7.0 的尺寸查询接口以保留大扩展属性，不新增公告忽略。
 
 格式覆盖与逐平台验收范围见[产品状态](https://github.com/willmove/joyoffice/blob/joysheet-v0.1.4/docs/joysheet/STATUS.md)。其他产品可从 [JoyOffice 下载表](https://github.com/willmove/joyoffice/blob/joysheet-v0.1.4/README.md#下载与安装)获取。
 

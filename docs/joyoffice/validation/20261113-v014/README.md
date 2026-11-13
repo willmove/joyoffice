@@ -2,7 +2,7 @@
 
 日期：2026-11-13，Windows x86_64，Rust 1.98.1。本轮从 main `73771d2e48c97896916c2d0d4c96be3b6ae2b665` 开始，用户授权本机验证通过后发布 JoyWord、JoyDeck 和 JoySheet。
 
-三产品及 61 个第一方组件统一升级到 0.1.4，外部依赖版本、来源和 checksum 不变。JoyWord 多倍行距分页回归改用既有固定字体测试工具及足够长的正文，核对确切 Source Sans 3 字节并保留末行文本、下一行文本及下边距断言，避免系统默认字体改变测试输入。首轮旧测试复现失败，修复后单项与完整检查均通过；未修改生产分页逻辑。
+三产品及 61 个第一方组件统一升级到 0.1.4，首轮版本升级未改变外部依赖。下述本机首验后，远端依赖门禁发现 rustix 公告，发布前补丁与复验另记于下节。JoyWord 多倍行距分页回归改用既有固定字体测试工具及足够长的正文，核对确切 Source Sans 3 字节并保留末行文本、下一行文本及下边距断言，避免系统默认字体改变测试输入。首轮旧测试复现失败，修复后单项与完整检查均通过；未修改生产分页逻辑。
 
 ## 自动检查
 
@@ -36,3 +36,12 @@
 其它系统和信创真机、物理键盘输入延迟、系统 IME 候选、真实读屏、打印设备和物理多屏/4K 不在本轮本机验收范围。CI 原生构建或 QEMU 不替代对应人工验收。预览包沿用未签名/未公证状态，产品既有功能差距见各自 STATUS 和交接。
 
 三个产品发布均由当前 main 的六平台工作流执行；远端 CI、公开 Release 与资产摘要以 GitHub 实时结果为准。
+
+
+## 发布前安全补丁
+
+首轮 main `87ed9891e4a85b5c87432a920521a892157cc521` 的依赖作业因 [RUSTSEC-2026-0486](https://rustsec.org/advisories/RUSTSEC-2026-0486.html) 失败，尚未创建产品发布标签。按[上游修复](https://github.com/bytecodealliance/rustix/commit/8e6aaa6713d2bb64b1fdd8c472e3a32a10a76d70)将根工作区及 Deck Linux 直接 pin 从 1.1.5 更新为精确 1.1.6；锁文件只更新 rustix 及配套的 xattr 两个包，未添加公告忽略或升级无关依赖。修复零长 xattr 缓冲区被错误标记初始化的问题。兼容性核对发现 xattr 1.6.1 的超过 4 KiB 读取回退仍依赖旧查询语义，因此配套固定到 [xattr 1.7.0 源码](https://github.com/Stebalien/xattr/blob/c0d3de0d4229e496584c4beb5882cbb1739f0632/src/sys/linux_macos.rs)的新 `*_query` 调用。新增 macOS 8 KiB 属性观察与恢复回归，由远端 macOS CI 执行；本机 Windows 不声称运行了该平台测试。原有重命名/事件/预算契约保持。
+
+补丁后的三产品完整检查再次通过，分别为 Word 3,618 / Deck 982 / Sheet 1,420 项，无失败，既有忽略仍为 3 项。三产品普通 Release 包重新构建、打包并通过归档内容/版本/架构/sidecar 校验；新哈希在 checks.json 的 `local_packages` 中，首轮哈希单列保留。
+
+从新包再验 Windows GUI 重开：[Word](gui/word-security-reopened.png)、[Deck](gui/deck-security-reopened.png)、[Sheet](gui/sheet-security-reopened.png)。Word 新包重复通过混合文档编辑/保存/渲染、旧 CLI 与 EPUB 格式脚本；Deck 新包 CLI 读回 20 页和中英文备注；Sheet 新包及隔离安装目录的 CLI 均读回公式值 6。新版 Sheet 安装器重复通过隔离安装、桌面 EXE 哈希核对和保留额外文件的卸载。新增 macOS 8 KiB 属性回归的执行结果以最终提交的 macOS CI 为准，本机未执行。

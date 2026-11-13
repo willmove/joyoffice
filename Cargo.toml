@@ -187,11 +187,11 @@ unicode-segmentation = "=1.13.3"
 # Already in the lock via the gpui-pre snapshot. Linear-time matching only:
 # the engine exposes regex find without any backtracking (ReDoS) surface.
 regex = "=1.13.1"
-xattr = "=1.6.1"
+xattr = "=1.7.0"
 winsafe = { version = "=0.0.19", features = ["kernel"] }
 # Already in the lock via tempfile. Direct use is the safe renameat2 /
 # renamex_np wrapper (RENAME_EXCHANGE / RENAME_SWAP). No other features.
-rustix = { version = "=1.1.5", features = ["std", "fs"] }
+rustix = { version = "=1.1.6", features = ["std", "fs"] }
 
 joydeck-pdf = { path = "crates/joydeck-pdf" }
 joydeck-legacy = { path = "crates/joydeck-legacy" }
