@@ -1,0 +1,180 @@
+{
+  "date": "2026-11-13",
+  "method": "Computer Use sky SendInput and native Windows screenshots",
+  "checks": [
+    {
+      "name": "word-home-expanded",
+      "note": "Home tools visible before double click",
+      "screenshot": "gui/word-home-expanded.jpg",
+      "tree": "gui/word-home-expanded.txt"
+    },
+    {
+      "name": "word-home-collapsed",
+      "note": "Double click hides Home tools; document top moves up by 88 logical pixels",
+      "screenshot": "gui/word-home-collapsed.jpg",
+      "tree": "gui/word-home-collapsed.txt"
+    },
+    {
+      "name": "word-home-restored",
+      "note": "Second double click restores Home tools and prior document geometry",
+      "screenshot": "gui/word-home-restored.jpg",
+      "tree": "gui/word-home-restored.txt"
+    },
+    {
+      "name": "word-file-expanded",
+      "note": "File backstage opens below persistent tab strip",
+      "screenshot": "gui/word-file-expanded.jpg",
+      "tree": "gui/word-file-expanded.txt"
+    },
+    {
+      "name": "word-file-collapsed",
+      "note": "Double click hides File backstage and retains selected File tab with editable document",
+      "screenshot": "gui/word-file-collapsed.jpg",
+      "tree": "gui/word-file-collapsed.txt"
+    },
+    {
+      "name": "word-file-collapsed-edit",
+      "note": "Text entered while File page collapsed; document became dirty without losing selected File tab",
+      "screenshot": "gui/word-file-collapsed-edit.jpg",
+      "tree": "gui/word-file-collapsed-edit.txt"
+    },
+    {
+      "name": "word-file-restored",
+      "note": "Second double click on File restores backstage after successful collapsed-document input and undo",
+      "screenshot": "gui/word-file-restored.jpg",
+      "tree": "gui/word-file-restored.txt"
+    },
+    {
+      "name": "deck-home-expanded",
+      "note": "Home tools visible on slide 1 of 20",
+      "screenshot": "gui/deck-home-expanded.jpg",
+      "tree": "gui/deck-home-expanded.txt"
+    },
+    {
+      "name": "deck-home-collapsed",
+      "note": "Home tools disappear; slide rail and canvas top move up by 75 logical pixels",
+      "screenshot": "gui/deck-home-collapsed.jpg",
+      "tree": "gui/deck-home-collapsed.txt"
+    },
+    {
+      "name": "deck-home-restored",
+      "note": "Second double click restores Home ribbon",
+      "screenshot": "gui/deck-home-restored.jpg",
+      "tree": "gui/deck-home-restored.txt"
+    },
+    {
+      "name": "deck-file-expanded",
+      "note": "File backstage opens while the same File label remains reachable",
+      "screenshot": "gui/deck-file-expanded.jpg",
+      "tree": "gui/deck-file-expanded.txt"
+    },
+    {
+      "name": "deck-file-collapsed",
+      "note": "Double click File hides backstage and restores slide workspace with File selected",
+      "screenshot": "gui/deck-file-collapsed.jpg",
+      "tree": "gui/deck-file-collapsed.txt"
+    },
+    {
+      "name": "deck-file-restored",
+      "note": "Second double click restores File backstage",
+      "screenshot": "gui/deck-file-restored.jpg",
+      "tree": "gui/deck-file-restored.txt"
+    },
+    {
+      "name": "deck-editor-down",
+      "note": "Down changes editor from slide 1/title ID20 to slide 2/title ID19",
+      "screenshot": "gui/deck-editor-down.jpg",
+      "tree": "gui/deck-editor-down.txt"
+    },
+    {
+      "name": "deck-editor-up",
+      "note": "Up changes editor from slide 2/title ID19 back to slide 1/title ID20",
+      "screenshot": "gui/deck-editor-up.jpg",
+      "tree": "gui/deck-editor-up.txt"
+    },
+    {
+      "name": "deck-notes-arrow-guard",
+      "note": "Down in focused speaker-notes input keeps editor at slide 1; input focus remains on notes",
+      "screenshot": "gui/deck-notes-arrow-guard.jpg",
+      "tree": "gui/deck-notes-arrow-guard.txt"
+    },
+    {
+      "name": "deck-show-start",
+      "note": "Slideshow starts on slide 1/title ID20",
+      "screenshot": "gui/deck-show-start.jpg",
+      "tree": "gui/deck-show-start.txt"
+    },
+    {
+      "name": "deck-show-down",
+      "note": "Down in slideshow advances from slide 1/title ID20 to slide 2/title ID19",
+      "screenshot": "gui/deck-show-down.jpg",
+      "tree": "gui/deck-show-down.txt"
+    },
+    {
+      "name": "deck-show-up",
+      "note": "Up in slideshow returns from slide 2/title ID19 to slide 1/title ID20",
+      "screenshot": "gui/deck-show-up.jpg",
+      "tree": "gui/deck-show-up.txt"
+    },
+    {
+      "name": "deck-show-first-boundary",
+      "note": "Up on first slide stays at slide 1 and keeps slideshow open",
+      "screenshot": "gui/deck-show-first-boundary.jpg",
+      "tree": "gui/deck-show-first-boundary.txt"
+    },
+    {
+      "name": "sheet-home-expanded",
+      "note": "Home tools visible above formula bar and grid",
+      "screenshot": "gui/sheet-home-expanded.jpg",
+      "tree": "gui/sheet-home-expanded.txt"
+    },
+    {
+      "name": "sheet-home-collapsed",
+      "note": "Double click hides tools without padding; formula bar and grid move up 101 logical pixels",
+      "screenshot": "gui/sheet-home-collapsed.jpg",
+      "tree": "gui/sheet-home-collapsed.txt"
+    },
+    {
+      "name": "sheet-home-collapsed-settled",
+      "note": "Collapsed Sheet ribbon after the next rendered frame; grid remains visible",
+      "screenshot": "gui/sheet-home-collapsed-settled.jpg",
+      "tree": "gui/sheet-home-collapsed-settled.txt"
+    },
+    {
+      "name": "sheet-home-restored",
+      "note": "Second double click restores Home tools and formula/grid positions",
+      "screenshot": "gui/sheet-home-restored.jpg",
+      "tree": "gui/sheet-home-restored.txt"
+    },
+    {
+      "name": "sheet-file-expanded",
+      "note": "File backstage begins below persistent header and tab strip",
+      "screenshot": "gui/sheet-file-expanded.jpg",
+      "tree": "gui/sheet-file-expanded.txt"
+    },
+    {
+      "name": "sheet-file-collapsed",
+      "note": "Double click hides File backstage and exposes editable grid with File selected",
+      "screenshot": "gui/sheet-file-collapsed.jpg",
+      "tree": "gui/sheet-file-collapsed.txt"
+    },
+    {
+      "name": "sheet-file-collapsed-edit",
+      "note": "Typed RibbonProbe in A1 while File page collapsed; formula bar and accessible cell show the value",
+      "screenshot": "gui/sheet-file-collapsed-edit.jpg",
+      "tree": "gui/sheet-file-collapsed-edit.txt"
+    },
+    {
+      "name": "sheet-file-restored",
+      "note": "Second double click restores File backstage after collapsed-grid input",
+      "screenshot": "gui/sheet-file-restored.jpg",
+      "tree": "gui/sheet-file-restored.txt"
+    },
+    {
+      "name": "sheet-collapsed-f6",
+      "note": "F6 cycles from grid through formula and address fields to the visible Ribbon tab strip while collapsed",
+      "screenshot": "gui/sheet-collapsed-f6.jpg",
+      "tree": "gui/sheet-collapsed-f6.txt"
+    }
+  ]
+}

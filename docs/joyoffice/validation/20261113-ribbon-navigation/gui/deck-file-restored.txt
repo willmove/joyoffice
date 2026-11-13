@@ -1,0 +1,55 @@
+Window: "deck-ui.pptx - JoyDeck", App: joydeck.exe.
+	0 window (区域) deck-ui.pptx - JoyDeck Secondary Actions: Raise
+		1 title bar (标题栏) (settable, string) Value: deck-ui.pptx - JoyDeck
+			2 menu bar (菜单栏) 系统 ID: MenuBar
+				3 menu item (菜单项) 系统
+			4 button (按钮) 最小化
+			5 button (按钮) 最大化
+			6 button (按钮) 关闭
+		7 button (按钮) 文件
+		8 button (按钮) 保存
+		9 button (按钮) (disabled) 撤销
+		10 button (按钮) (disabled) 重做
+		11 button (按钮) 从头开始放映
+		12 button (按钮) 查找文字
+		13 button (按钮) 切换明暗主题
+		14 button (按钮) 放映
+		15 tab (选项卡) 功能区
+			16 tab item (选项卡项目) 文件
+			17 tab item (选项卡项目) 开始
+			18 tab item (选项卡项目) 插入
+			19 tab item (选项卡项目) 绘图
+			20 tab item (选项卡项目) 设计
+			21 tab item (选项卡项目) 切换
+			22 tab item (选项卡项目) 动画
+			23 tab item (选项卡项目) 幻灯片放映
+			24 tab item (选项卡项目) 录制
+			25 tab item (选项卡项目) 审阅
+			26 tab item (选项卡项目) 视图
+			27 button (按钮) 批注
+		190 button (按钮) 返回演示文稿
+		191 button (按钮) 开始
+		192 button (按钮) 新建
+		193 button (按钮) 打开
+		194 button (按钮) (disabled) 共享
+		195 button (按钮) 信息
+		196 button (按钮) 保存
+		197 button (按钮) 另存为
+		198 button (按钮) 打印
+		199 button (按钮) 导出
+		200 button (按钮) 关闭
+		201 button (按钮) (disabled) 帐户
+		202 button (按钮) 选项
+		203 button (按钮) 展开或折叠新建模板
+		204 button (按钮) 更多主题
+		205 button (按钮) 空白演示文稿
+		206 button (按钮) 简洁简报
+		207 button (按钮) 课程讲义
+		208 button (按钮) 项目计划
+		209 button (按钮) 最近
+		210 button (按钮) (disabled) 收藏夹
+		211 button (按钮) (disabled) 与我共享
+		212 text field (编辑) (settable, string) 搜索最近文件 Description: 搜索文件
+		213 button (按钮) 打开最近文件 \\?\D:\Coding\EditorProjects\joyoffice\target\ribbon-navigation-checks\deck-ui.pptx
+
+The focused UI element is 0 window (区域) deck-ui.pptx - JoyDeck Secondary Actions: Raise.

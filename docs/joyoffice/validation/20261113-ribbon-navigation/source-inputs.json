@@ -1,0 +1,26 @@
+{
+  "date": "2026-11-13",
+  "branch": "feat/ribbon-collapse-deck-arrow-navigation",
+  "main": "55b15071",
+  "sheet_baseline": "72bcffb3",
+  "merge_baseline": "1d0835c3",
+  "source_sha256": {
+    "crates/joydeck-ui-gpui/src/chrome.rs": "84eb522e42a487e89594d46a68d8388b146f9efafeae2643f28891cc5a8eec96",
+    "crates/joydeck-ui-gpui/src/editor_actions.rs": "ed648cbf3c078eb190e24598a94a0442a4ed10dff3795ed7aae89fb0633f880e",
+    "crates/joydeck-ui-gpui/src/file_ui.rs": "e188dc7d076a40f94f34a63bf81dfb7181381f89e484783b2a2efd768372115c",
+    "crates/joydeck-ui-gpui/src/slideshow.rs": "638b794c1dbebb714ae10c13cc15f2824f2e5706b8cc08ae9dec57588ff17691",
+    "crates/joydeck-ui-gpui/src/viewer.rs": "4f22cc4d7128f1f160de216d17c497c09df09ca52d8fd22e82cc876f9dbdd9c5",
+    "crates/joysheet-ui-gpui/src/desktop.rs": "2c4fc1eba89238f3359fc38e79aac1e55d40db506bcbbba4a2a08497f146e1be",
+    "crates/joysheet-ui-gpui/src/ribbon.rs": "02d196a38fb6f19cb5f2a088759e49ec6e1a2f90ca41c1ec312c9f458c3d2e9c",
+    "crates/joysheet-ui-gpui/src/ribbon_widgets.rs": "577ef429077db1bbf1877abf687aa0c20676cfbf4642bcf6ed375c48f515150b",
+    "crates/joyword-ui-gpui/src/advanced.rs": "c014b1b5acf43e4a0db9fb7ba3b303d516e2be2374743209f9f72e9fda7da81a",
+    "crates/joyword-ui-gpui/src/file_page.rs": "45eef1406acd34571a83644e1502dd6b1e854725e02ced18bbc047981e382b67",
+    "crates/joyword-ui-gpui/src/formatting.rs": "50268088c6248d72b10591697a8b659969824a97f7fe311f913a2c40722e5617",
+    "crates/joyword-ui-gpui/src/input.rs": "2641251cd04d57ccc9aa85168e6d82741ab96057ca07fd2fbbcbf7f401805241",
+    "crates/joyword-ui-gpui/src/lib.rs": "3fadcbb8784e2cbb8317681f91bffa3ec4a8160b110cb0745733f2494228e288",
+    "crates/joyword-ui-gpui/src/view_ribbon.rs": "28756432c8c3c1486e7537740c5666995c87816721eaf53ed68e0dcb5d0312eb",
+    "scripts/check_gates.py": "0de9309f8fa7dc340bfddfdb2a632a6aefada35a3b8cdc581a396a8391004e2b",
+    "licenses/joyoffice/source-map.json": "e4f2e9bde17dc9e0feaf17151d400c7967145bdb4f9532a96066cca5d55c8b10",
+    "licenses/deckcraft/file-map.json": "b435dd1e78a3c4f6d38dfdb83e585991f8846a03b8b22dd61057fab78325142e"
+  }
+}

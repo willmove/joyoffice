@@ -1,0 +1,95 @@
+Window: "word-ui.docx — JoyWord", App: joyword.exe.
+	0 window (区域) word-ui.docx — JoyWord Secondary Actions: Raise
+		1 title bar (标题栏) (settable, string) Value: word-ui.docx — JoyWord
+			2 menu bar (菜单栏) 系统 ID: MenuBar
+				3 menu item (菜单项) 系统
+			4 button (按钮) 最小化
+			5 button (按钮) 最大化
+			6 button (按钮) 关闭
+		7 button (按钮) 新建
+		8 button (按钮) 打开
+		9 button (按钮) 保存
+		10 button (按钮) (disabled) 撤销
+		11 button (按钮) (disabled) 重做
+		12 button (按钮) 搜索命令
+		13 button (按钮) EN
+		14 button (按钮) 切换外观
+		15 tab (选项卡) 功能区
+			16 tab item (选项卡项目) (selectable) 文件
+			17 tab item (选项卡项目) (selectable) 开始
+			18 tab item (选项卡项目) (selectable) 插入
+			19 tab item (选项卡项目) (selectable) 布局
+			20 tab item (选项卡项目) (selectable) 引用
+			21 tab item (选项卡项目) (selectable) 邮件
+			22 tab item (选项卡项目) (selectable) 审阅
+			23 tab item (选项卡项目) (selectable) 视图
+			24 tab item (选项卡项目) (selectable) 自动化
+			25 tab item (选项卡项目) (selectable) 表格
+			26 tab item (选项卡项目) (selectable) 图片
+		90 group (组) 剪贴板
+			91 button (按钮) 粘贴
+			92 button (按钮) 粘贴选项
+			93 button (按钮) (disabled) 剪切
+			94 button (按钮) (disabled) 复制
+			95 button (按钮) 格式刷
+			96 button (按钮) 格式刷选项
+		97 group (组) 字体
+			98 combo box (组合框) (settable, string) 字体选择 Value: Aptos
+			99 button (按钮) 字号
+			100 button (按钮) 增大字号
+			101 button (按钮) 减小字号
+			102 button (按钮) 更改大小写
+			103 button (按钮) 清除所有格式
+			104 button (按钮) 加粗 (Ctrl+B)
+			105 button (按钮) 倾斜 (Ctrl+I)
+			106 button (按钮) 下划线 (Ctrl+U)
+			107 button (按钮) 下划线样式
+			108 button (按钮) 删除线
+			109 button (按钮) 下标
+			110 button (按钮) 上标
+			111 button (按钮) 文本突出显示颜色
+			112 button (按钮) 字体颜色
+			113 button (按钮) 字体设置
+		114 group (组) 段落
+			115 button (按钮) 项目符号
+			116 button (按钮) 项目符号
+			117 button (按钮) 编号
+			118 button (按钮) 编号
+			119 button (按钮) 多级列表
+			120 button (按钮) 减少缩进
+			121 button (按钮) 增加缩进
+			122 button (按钮) 排序
+			123 button (按钮) 显示／隐藏格式标记
+			124 button (按钮) 左对齐 (Ctrl+L)
+			125 button (按钮) 居中 (Ctrl+E)
+			126 button (按钮) 右对齐 (Ctrl+R)
+			127 button (按钮) 两端对齐 (Ctrl+J)
+			128 button (按钮) 分散对齐
+			129 button (按钮) 行距
+			130 button (按钮) 底纹
+			131 button (按钮) 边框
+			132 button (按钮) 分页选项
+			133 button (按钮) 段落设置
+		134 group (组) 样式
+			135 button (按钮) 正文
+			136 button (按钮) 无间隔
+			137 button (按钮) 标题 1
+			138 button (按钮) 更多样式
+			139 button (按钮) 样式窗格
+		140 group (组) 编辑
+			141 button (按钮) 查找
+			142 button (按钮) 查找选项
+			143 button (按钮) 替换
+			144 button (按钮) 选择
+		82 button (按钮) 上一页
+		83 button (按钮) 下一页
+		84 text field (编辑) (settable, string) 文档正文 Value: 合作协议（原创测试文本）
+			85 group (组) 水平标尺（只读）
+		86 status bar (状态)
+			87 button (按钮) −
+			88 button (按钮) 100%
+			89 button (按钮) +
+
+Document text: ```
+合作协议（原创测试文本）
+```

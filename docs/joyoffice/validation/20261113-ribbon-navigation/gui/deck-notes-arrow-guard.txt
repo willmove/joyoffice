@@ -1,0 +1,100 @@
+Window: "deck-ui.pptx - JoyDeck", App: joydeck.exe.
+	0 window (区域) deck-ui.pptx - JoyDeck Secondary Actions: Raise
+		1 title bar (标题栏) (settable, string) Value: deck-ui.pptx - JoyDeck
+			2 menu bar (菜单栏) 系统 ID: MenuBar
+				3 menu item (菜单项) 系统
+			4 button (按钮) 最小化
+			5 button (按钮) 最大化
+			6 button (按钮) 关闭
+		7 button (按钮) 文件
+		8 button (按钮) 保存
+		9 button (按钮) (disabled) 撤销
+		10 button (按钮) (disabled) 重做
+		11 button (按钮) 从头开始放映
+		12 button (按钮) 查找文字
+		13 button (按钮) 切换明暗主题
+		14 button (按钮) 放映
+		15 tab (选项卡) 功能区
+			16 tab item (选项卡项目) 文件
+			17 tab item (选项卡项目) 开始
+			18 tab item (选项卡项目) 插入
+			19 tab item (选项卡项目) 绘图
+			20 tab item (选项卡项目) 设计
+			21 tab item (选项卡项目) 切换
+			22 tab item (选项卡项目) 动画
+			23 tab item (选项卡项目) 幻灯片放映
+			24 tab item (选项卡项目) 录制
+			25 tab item (选项卡项目) 审阅
+			26 tab item (选项卡项目) 视图
+			27 button (按钮) 批注
+		214 group (组) 剪贴板
+			215 button (按钮) 粘贴
+			216 button (按钮) (disabled) 剪切
+			217 button (按钮) (disabled) 复制
+			218 button (按钮) (disabled) 格式刷（暂不支持）
+		219 group (组) 幻灯片
+			220 button (按钮) 新建幻灯片
+			221 button (按钮) 幻灯片选项
+			222 button (按钮) 版式
+			223 button (按钮) (disabled) 重置（暂不支持）
+			224 button (按钮) 节
+		225 group (组) 字体
+			226 combo box (组合框) (disabled, settable, string) 字体名称
+			227 button (按钮) (disabled) 字号
+			228 button (按钮) (disabled) 增大字号
+			229 button (按钮) (disabled) 减小字号
+			230 button (按钮) (disabled) 清除字符格式
+			231 button (按钮) (disabled) 加粗
+			232 button (按钮) (disabled) 倾斜
+			233 button (按钮) (disabled) 下划线
+			234 button (按钮) (disabled) 删除线
+			235 button (按钮) (disabled) 上标
+			236 button (按钮) (disabled) 下标
+			237 button (按钮) (disabled) 字符间距（暂不支持）
+			238 button (按钮) (disabled) 更改大小写（暂不支持）
+			239 button (按钮) (disabled) 文本突出显示颜色（暂不支持）
+			240 button (按钮) (disabled) 字体颜色
+			241 button (按钮) (disabled) 字体…
+		242 group (组) 段落
+			243 button (按钮) (disabled) 项目符号
+			244 button (按钮) (disabled) 项目符号样式
+			245 button (按钮) (disabled) 编号
+			246 button (按钮) (disabled) 编号样式
+			247 button (按钮) (disabled) 减少缩进
+			248 button (按钮) (disabled) 增加缩进
+			249 button (按钮) (disabled) 行距
+			250 button (按钮) (disabled) 栏（暂不支持）
+			251 button (按钮) (disabled) 左对齐
+			252 button (按钮) (disabled) 居中
+			253 button (按钮) (disabled) 右对齐
+			254 button (按钮) (disabled) 两端对齐
+			255 button (按钮) (disabled) 分散对齐
+			256 button (按钮) (disabled) 段落设置
+		257 group (组) 绘图
+			258 button (按钮) 图片
+			259 button (按钮) 形状
+			260 button (按钮) 文本框
+		261 group (组) 排列
+			262 button (按钮) 排列
+			263 button (按钮) (disabled) 快速样式（暂不支持）
+			264 button (按钮) (disabled) 形状填充
+			265 button (按钮) (disabled) 形状轮廓（暂不支持）
+		266 group (组) 扩展
+			267 button (按钮) (disabled) 加载项（暂不支持）
+			268 button (按钮) (disabled) 设计器（暂不支持）
+		269 button (按钮) 幻灯片 1 PPTX · 页面标识 20
+		270 button (按钮) 幻灯片 2 PPTX · 页面标识 19
+		271 button (按钮) 幻灯片 3 PPTX · 页面标识 18
+		272 button (按钮) 幻灯片 4 PPTX · 页面标识 17
+		273 button (按钮) 幻灯片 5 PPTX · 页面标识 16
+		274 button (按钮) 幻灯片 6 PPTX · 页面标识 15
+		275 text field (编辑) (settable, string) 演讲备注 Description: 单击此处添加备注 ID: speaker-notes
+		276 button (按钮) 备注
+		277 button (按钮) 普通视图
+		278 button (按钮) 幻灯片浏览
+		279 button (按钮) 从当前页放映
+		280 button (按钮) 缩小
+		281 button (按钮) 放大
+		282 button (按钮) 适应窗口
+
+The focused UI element is 275 text field (编辑) (settable, string) 演讲备注 Description: 单击此处添加备注 ID: speaker-notes.

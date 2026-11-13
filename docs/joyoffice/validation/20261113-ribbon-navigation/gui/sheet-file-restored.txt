@@ -1,0 +1,48 @@
+Window: "● Book1 — Joysheet", App: joysheet.exe.
+	0 window (区域) ● Book1 — Joysheet Secondary Actions: Raise
+		1 title bar (标题栏) (settable, string) Value: ● Book1 — Joysheet
+			2 menu bar (菜单栏) 系统 ID: MenuBar
+				3 menu item (菜单项) 系统
+			4 button (按钮) 最小化
+			5 button (按钮) 最大化
+			6 button (按钮) 关闭
+		7 button (按钮) 新建
+		8 button (按钮) 保存
+		9 button (按钮) ↶
+		10 button (按钮) ↷
+		11 button (按钮) 搜索命令
+		12 tab (选项卡) 功能区
+			13 tab item (选项卡项目) (selectable) 文件
+			14 tab item (选项卡项目) (selectable) 开始
+			15 tab item (选项卡项目) (selectable) 插入
+			16 tab item (选项卡项目) (selectable) 绘图
+			17 tab item (选项卡项目) (selectable) 页面布局
+			18 tab item (选项卡项目) (selectable) 公式
+			19 tab item (选项卡项目) (selectable) 数据
+			20 tab item (选项卡项目) (selectable) 审阅
+			21 tab item (选项卡项目) (selectable) 视图
+			22 tab item (选项卡项目) (selectable) 帮助
+			23 tab item (选项卡项目) (selectable) 自动化
+		69 text field (编辑) (settable, string) 单元格地址 / Cell address Value: A1
+		70 button (按钮) 取消编辑
+		71 button (按钮) 确认编辑
+		72 text field (编辑) (settable, string) 公式栏 / Formula bar Description: 输入数据或公式 / Enter a value or formula Value: RibbonProbe
+		73 data grid (数据网格) 工作表 / Worksheet (truncated: child_limit, omitted 792 children)
+		74 text field (编辑) (settable, string) Sheet1 A1 RibbonProbe
+		75 tab (选项卡) 工作表 / Worksheets
+			76 tab item (选项卡项目) (selectable) Sheet1
+			77 button (按钮) +
+		78 status bar (状态)
+		135 button (按钮) 返回
+		136 button (按钮) 新建
+		137 button (按钮) 打开
+		138 button (按钮) 信息
+		139 button (按钮) 保存
+		140 button (按钮) 另存为
+		141 button (按钮) 打印
+		142 button (按钮) 导出
+		143 button (按钮) 关闭
+		144 button (按钮) 选项
+		145 button (按钮)
+
+The focused UI element is 74 text field (编辑) (settable, string) Sheet1 A1 RibbonProbe.

@@ -23,7 +23,7 @@ impl InputBridge {
                     && !view.canvas.loading
                     && !view.confirm_discard
                     && view.replace_confirm.is_none()
-                    && !view.file_page
+                    && !view.file_page_visible()
                 {
                     Some(f(view, cx))
                 } else {
@@ -183,7 +183,7 @@ impl JoyWord {
         if self.canvas.loading
             || self.confirm_discard
             || self.replace_confirm.is_some()
-            || self.file_page
+            || self.file_page_visible()
         {
             return;
         }
@@ -259,7 +259,7 @@ impl JoyWord {
         cx: &mut Context<Self>,
     ) {
         if !self.focus.is_focused(window)
-            || self.file_page
+            || self.file_page_visible()
             || self.canvas.loading
             || self.confirm_discard
         {

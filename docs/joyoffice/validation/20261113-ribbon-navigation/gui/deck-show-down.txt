@@ -1,0 +1,4 @@
+Window: "JoyDeck · 放映", App: joydeck.exe.
+	0 window (区域) JoyDeck · 放映 Secondary Actions: Raise
+
+The focused UI element is 0 window (区域) JoyDeck · 放映 Secondary Actions: Raise.

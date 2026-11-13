@@ -26,7 +26,7 @@ pub(super) fn initial_font_picker(w: &mut Window, cx: &mut Context<JoyWord>) -> 
 impl JoyWord {
     pub(super) fn format_ready(&self, command: &str) -> bool {
         !self.canvas.loading
-            && !self.file_page
+            && !self.file_page_visible()
             && !self.confirm_discard
             && self.replace_confirm.is_none()
             && self

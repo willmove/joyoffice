@@ -354,12 +354,14 @@ impl Desktop {
             .into_any_element()
     }
     pub(crate) fn excel_ribbon_tools(&self, cx: &mut Context<Self>) -> AnyElement {
+        if self.ribbon_collapsed || self.ribbon_tab == 0 {
+            return div().into_any_element();
+        }
         div()
             .id("ribbon-tools")
-            .track_focus(&self.ribbon_focus)
             .tab_stop(true)
             .flex_shrink_0()
-            .h(px(if self.ribbon_collapsed { 0. } else { 101. }))
+            .h(px(101.))
             .overflow_hidden()
             .bg(rgb(self.palette().surface))
             .border_b(px(0.5))
@@ -409,7 +411,10 @@ impl Desktop {
             .id("sheet-backstage")
             .occlude()
             .absolute()
-            .inset_0()
+            .top(px(60.))
+            .bottom_0()
+            .left_0()
+            .right_0()
             .bg(rgb(self.palette().chrome))
             .flex()
             .child(

@@ -1,0 +1,82 @@
+Window: "Joysheet", App: joysheet.exe.
+	0 window (区域) Joysheet Secondary Actions: Raise
+		1 title bar (标题栏) (settable, string) Value: Joysheet
+			2 menu bar (菜单栏) 系统 ID: MenuBar
+				3 menu item (菜单项) 系统
+			4 button (按钮) 最小化
+			5 button (按钮) 最大化
+			6 button (按钮) 关闭
+		7 button (按钮) 新建
+		8 button (按钮) 保存
+		9 button (按钮) ↶
+		10 button (按钮) ↷
+		11 button (按钮) 搜索命令
+		12 tab (选项卡) 功能区
+			13 tab item (选项卡项目) (selectable) 文件
+			14 tab item (选项卡项目) (selectable) 开始
+			15 tab item (选项卡项目) (selectable) 插入
+			16 tab item (选项卡项目) (selectable) 绘图
+			17 tab item (选项卡项目) (selectable) 页面布局
+			18 tab item (选项卡项目) (selectable) 公式
+			19 tab item (选项卡项目) (selectable) 数据
+			20 tab item (选项卡项目) (selectable) 审阅
+			21 tab item (选项卡项目) (selectable) 视图
+			22 tab item (选项卡项目) (selectable) 帮助
+			23 tab item (选项卡项目) (selectable) 自动化
+		24 button (按钮) 粘贴
+		25 button (按钮) 剪切
+		26 button (按钮) 复制
+		27 button (按钮) 格式刷
+		28 button (按钮) 字体
+		29 button (按钮) 字号
+		30 button (按钮) 增大字号
+		31 button (按钮) 减小字号
+		32 button (按钮) 加粗
+		33 button (按钮) 倾斜
+		34 button (按钮) 下划线
+		35 button (按钮) 边框
+		36 button (按钮) 填充颜色
+		37 button (按钮) 字体颜色
+		38 button (按钮) 打开格式设置
+		39 button (按钮) 顶端对齐
+		40 button (按钮) 垂直居中
+		41 button (按钮) 底端对齐
+		42 button (按钮) 方向
+		43 button (按钮) 自动换行
+		44 button (按钮) 左对齐
+		45 button (按钮) 居中
+		46 button (按钮) 右对齐
+		47 button (按钮) 减少缩进量
+		48 button (按钮) 增加缩进量
+		49 button (按钮) 合并后居中
+		50 button (按钮) 打开格式设置
+		51 button (按钮) 常规
+		52 button (按钮) 会计数字格式
+		53 button (按钮) 百分比样式
+		54 button (按钮) 千位分隔样式
+		55 button (按钮) 增加小数位数
+		56 button (按钮) 减少小数位数
+		57 button (按钮) 打开格式设置
+		58 button (按钮) 条件格式
+		59 button (按钮) 套用表格格式
+		60 button (按钮) 单元格样式
+		61 button (按钮) 插入
+		62 button (按钮) 删除
+		63 button (按钮) 格式
+		64 button (按钮) 自动求和
+		65 button (按钮) 填充
+		66 button (按钮) 清除
+		67 button (按钮) 排序和筛选
+		68 button (按钮) 查找和选择
+		69 text field (编辑) (settable, string) 单元格地址 / Cell address Value: A1
+		70 button (按钮) 取消编辑
+		71 button (按钮) 确认编辑
+		72 text field (编辑) (settable, string) 公式栏 / Formula bar Description: 输入数据或公式 / Enter a value or formula
+		73 data grid (数据网格) 工作表 / Worksheet (truncated: child_limit, omitted 682 children)
+		74 text field (编辑) (settable, string) Sheet1 A1
+		75 tab (选项卡) 工作表 / Worksheets
+			76 tab item (选项卡项目) (selectable) Sheet1
+			77 button (按钮) +
+		78 status bar (状态)
+
+The focused UI element is 74 text field (编辑) (settable, string) Sheet1 A1.

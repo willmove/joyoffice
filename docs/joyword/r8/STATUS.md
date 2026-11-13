@@ -1,5 +1,7 @@
 # JoyWord 宿主任务状态
 
+2026-11-13：接入当前 Ribbon 标签双击收起/展开，包含文件后台；收起文件页后仍可编辑文档。UI/Shell 专项 123 项、fmt/严格 Clippy 和普通构建通过；产品全量检查中的分页失败已在未修改 main 复现。Windows 实屏已验证开始/文件标签收展、正文输入与撤销，保留平台及完整 UI 验收边界。[记录与边界](../../joyoffice/validation/20261113-ribbon-navigation/README.md)
+
 2026-11-11：新增三产品共享界面主题，Word 将原风格归为「青岚」，在「文件 → 选项」提供青岚、素雅、晴空、暖砂的亮暗八个预设。兼容旧偏好，选择即时生效并保存；主题不修改文档内容。[主题说明](../../joyoffice/THEMES.md) · [本机验证与边界](../../joyoffice/validation/20261111-themes/README.md)
 
 2026-11-09 补齐 ODT、OTT、FODT 往返的标题字重与字号、段前段后和行距、图片锚点与偏移、单元格四边内边距及逐边线型、线宽与颜色。修复 Writer 重存时嵌入在图片节点内的空段落被当成正文、导致图片和后续表格下移的问题。ODF 文件从 JoyWord 的有效版式生成，表格按合并边框模型写出。[ODF 1.3 XML 规范](https://docs.oasis-open.org/office/OpenDocument/v1.3/os/part3-schema/OpenDocument-v1.3-os-part3-schema.html)

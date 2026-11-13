@@ -112,6 +112,10 @@ fn greeting() -> &'static str {
 }
 
 impl Viewer {
+    pub(super) fn backstage_visible(&self) -> bool {
+        self.backstage && !self.ribbon_collapsed
+    }
+
     pub(super) fn open_file_page(&mut self, w: &mut Window, cx: &mut Context<Self>) {
         if self.composing()
             || self
@@ -123,6 +127,7 @@ impl Viewer {
         self.commit_notes(w, cx);
         self.end_inline(cx);
         self.backstage = true;
+        self.ribbon_collapsed = false;
         self.file_page = Page::Home;
         self.file_scroll.set_offset(point(px(0.), px(0.)));
         self.file_search

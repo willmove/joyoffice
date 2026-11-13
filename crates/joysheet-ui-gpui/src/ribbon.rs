@@ -105,6 +105,7 @@ impl Desktop {
     pub fn render_ribbon_tabs(&self, cx: &mut Context<Self>) -> AnyElement {
         div()
             .id("ribbon-tabs")
+            .track_focus(&self.ribbon_focus)
             .h(px(30.))
             .flex_shrink_0()
             .flex()
@@ -142,18 +143,21 @@ impl Desktop {
                             "end" => v.ribbon_tab = TABS.len() - 1,
                             _ => return,
                         }
+                        v.ribbon_collapsed = false;
                         v.daily_group = 0;
                         cx.stop_propagation();
                         cx.notify();
                     }))
                     .on_click(cx.listener(move |v, e: &ClickEvent, w, cx| {
+                        if v.ribbon_tab == tab && e.click_count() == 2 {
+                            v.ribbon_collapsed = !v.ribbon_collapsed;
+                        } else if v.ribbon_tab != tab {
+                            v.ribbon_collapsed = false;
+                        }
                         v.ribbon_tab = tab;
                         v.daily_group = 0;
                         v.help_open = false;
                         v.function_category = None;
-                        if e.click_count() > 1 && tab != 0 {
-                            v.ribbon_collapsed = !v.ribbon_collapsed;
-                        }
                         v.focus_grid(w, cx);
                         cx.notify();
                     }))

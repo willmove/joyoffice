@@ -1471,7 +1471,7 @@ impl Render for Desktop {
         if self.function_category.is_some() {
             content = content.child(self.render_function_picker(cx));
         }
-        if self.ribbon_tab == 0 {
+        if self.ribbon_tab == 0 && !self.ribbon_collapsed {
             content = content.child(self.render_backstage(cx));
         }
         if self.palette_open {

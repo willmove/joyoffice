@@ -2294,7 +2294,7 @@
       "source_path": "crates/ui-egui/src/theme.rs",
       "source_sha256": "d8d6f55195ac5b0c22d49ec313b716fcfab6cb2c08b3c15445b1ed1fcbe97c6a",
       "target_path": "crates/joydeck-ui-gpui/src/chrome.rs",
-      "adapted_sha256": "532d3ccd0cd934d08c64eb2c6b925080c7a82fc41dd17821d4bc20b4d2af2178",
+      "adapted_sha256": "84eb522e42a487e89594d46a68d8388b146f9efafeae2643f28891cc5a8eec96",
       "changes": [
         "R8: adapt typed media references / object ID and resource remapping / layout and theme tokens to pure engine or GPUI Kit; no egui dependency",
         "rustfmt; bounded transactions, errors and clipboard serialization; original MIT attribution retained",
@@ -2308,13 +2308,14 @@
       "dynamic_text_fields": "Support atomic dynamic text fields, native authoring, and separate rendered/source offsets.",
       "footer_menu": "Expose the existing atomic slide footer commands through the Insert ribbon.",
       "macos_powerpoint_ribbon": "Arrange the native ribbon using the observed macOS PowerPoint tab order, spacing and command groups.",
-      "powerpoint_file_page": "Retain the File ribbon tab on every desktop platform and route both file entries to the updated file page."
+      "powerpoint_file_page": "Retain the File ribbon tab on every desktop platform and route both file entries to the updated file page.",
+      "ribbon_collapse_navigation": "2026-11-13: toggle the selected ribbon tab on double-click and retain the tab strip for expanded or collapsed File pages."
     },
     {
       "source_path": "crates/ui-egui/src/ribbon.rs",
       "source_sha256": "036692f8a885af7b61dfcd7e065f371f46c7db67854c0df9d205c91f35d9049a",
       "target_path": "crates/joydeck-ui-gpui/src/chrome.rs",
-      "adapted_sha256": "532d3ccd0cd934d08c64eb2c6b925080c7a82fc41dd17821d4bc20b4d2af2178",
+      "adapted_sha256": "84eb522e42a487e89594d46a68d8388b146f9efafeae2643f28891cc5a8eec96",
       "changes": [
         "R8: adapt typed media references / object ID and resource remapping / layout and theme tokens to pure engine or GPUI Kit; no egui dependency",
         "rustfmt; bounded transactions, errors and clipboard serialization; original MIT attribution retained",
@@ -2328,13 +2329,14 @@
       "dynamic_text_fields": "Support atomic dynamic text fields, native authoring, and separate rendered/source offsets.",
       "footer_menu": "Expose the existing atomic slide footer commands through the Insert ribbon.",
       "macos_powerpoint_ribbon": "Arrange the native ribbon using the observed macOS PowerPoint tab order, spacing and command groups.",
-      "powerpoint_file_page": "Retain the File ribbon tab on every desktop platform and route both file entries to the updated file page."
+      "powerpoint_file_page": "Retain the File ribbon tab on every desktop platform and route both file entries to the updated file page.",
+      "ribbon_collapse_navigation": "2026-11-13: toggle the selected ribbon tab on double-click and retain the tab strip for expanded or collapsed File pages."
     },
     {
       "source_path": "crates/ui-egui/src/widgets.rs",
       "source_sha256": "d62cc3cce0436f1118c6486f52c5d90175aeaa79751602a89dbf01aa8d233bf9",
       "target_path": "crates/joydeck-ui-gpui/src/chrome.rs",
-      "adapted_sha256": "532d3ccd0cd934d08c64eb2c6b925080c7a82fc41dd17821d4bc20b4d2af2178",
+      "adapted_sha256": "84eb522e42a487e89594d46a68d8388b146f9efafeae2643f28891cc5a8eec96",
       "changes": [
         "R8: adapt typed media references / object ID and resource remapping / layout and theme tokens to pure engine or GPUI Kit; no egui dependency",
         "rustfmt; bounded transactions, errors and clipboard serialization; original MIT attribution retained",
@@ -2348,7 +2350,8 @@
       "dynamic_text_fields": "Support atomic dynamic text fields, native authoring, and separate rendered/source offsets.",
       "footer_menu": "Expose the existing atomic slide footer commands through the Insert ribbon.",
       "macos_powerpoint_ribbon": "Arrange the native ribbon using the observed macOS PowerPoint tab order, spacing and command groups.",
-      "powerpoint_file_page": "Retain the File ribbon tab on every desktop platform and route both file entries to the updated file page."
+      "powerpoint_file_page": "Retain the File ribbon tab on every desktop platform and route both file entries to the updated file page.",
+      "ribbon_collapse_navigation": "2026-11-13: toggle the selected ribbon tab on double-click and retain the tab strip for expanded or collapsed File pages."
     }
   ]
 }

@@ -771,7 +771,7 @@ impl Viewer {
     fn gesture_current(&self, drag: &Drag, w: &Window) -> bool {
         w.is_window_active()
             && !self.loading
-            && !self.backstage
+            && !self.backstage_visible()
             && !self.sorter
             && drag.scale == self.scale(w)
             && drag.canvas == self.canvas_bounds

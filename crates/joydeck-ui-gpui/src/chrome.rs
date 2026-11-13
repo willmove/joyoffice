@@ -300,6 +300,9 @@ impl Viewer {
                 .label("批注")
                 .on_click(cx.listener(|s, _, w, cx| s.comments_dialog(w, cx))),
         );
+        if self.ribbon_collapsed || self.backstage {
+            return div().flex_shrink_0().child(tabs);
+        }
         let disabled = self.editor.is_none() || self.loading;
         let selected = self
             .editor
@@ -414,11 +417,16 @@ impl Viewer {
                     })
                     .child(tab),
             )
-            .on_click(cx.listener(move |s, _, w, cx| {
-                if tab == "文件" {
+            .on_click(cx.listener(move |s, event: &ClickEvent, w, cx| {
+                if selected && event.click_count() == 2 {
+                    s.ribbon_collapsed = !s.ribbon_collapsed;
+                } else if selected {
+                    return;
+                } else if tab == "文件" {
                     s.open_file_page(w, cx);
                 } else {
                     s.ribbon = tab;
+                    s.ribbon_collapsed = false;
                     s.backstage = false;
                     s.ribbon_scroll.set_offset(point(px(0.), px(0.)));
                 }

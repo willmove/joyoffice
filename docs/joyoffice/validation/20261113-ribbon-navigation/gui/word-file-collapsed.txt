@@ -1,0 +1,40 @@
+Window: "word-ui.docx — JoyWord", App: joyword.exe.
+	0 window (区域) word-ui.docx — JoyWord Secondary Actions: Raise
+		1 title bar (标题栏) (settable, string) Value: word-ui.docx — JoyWord
+			2 menu bar (菜单栏) 系统 ID: MenuBar
+				3 menu item (菜单项) 系统
+			4 button (按钮) 最小化
+			5 button (按钮) 最大化
+			6 button (按钮) 关闭
+		7 button (按钮) 新建
+		8 button (按钮) 打开
+		9 button (按钮) 保存
+		10 button (按钮) (disabled) 撤销
+		11 button (按钮) (disabled) 重做
+		12 button (按钮) 搜索命令
+		13 button (按钮) EN
+		14 button (按钮) 切换外观
+		15 tab (选项卡) 功能区
+			16 tab item (选项卡项目) (selectable) 文件
+			17 tab item (选项卡项目) (selectable) 开始
+			18 tab item (选项卡项目) (selectable) 插入
+			19 tab item (选项卡项目) (selectable) 布局
+			20 tab item (选项卡项目) (selectable) 引用
+			21 tab item (选项卡项目) (selectable) 邮件
+			22 tab item (选项卡项目) (selectable) 审阅
+			23 tab item (选项卡项目) (selectable) 视图
+			24 tab item (选项卡项目) (selectable) 自动化
+			25 tab item (选项卡项目) (selectable) 表格
+			26 tab item (选项卡项目) (selectable) 图片
+		164 button (按钮) 上一页
+		165 button (按钮) 下一页
+		166 text field (编辑) (settable, string) 文档正文 Value: 合作协议（原创测试文本）
+			167 group (组) 水平标尺（只读）
+		168 status bar (状态)
+			169 button (按钮) −
+			170 button (按钮) 100%
+			171 button (按钮) +
+
+Document text: ```
+合作协议（原创测试文本）
+```

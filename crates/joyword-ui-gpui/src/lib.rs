@@ -77,6 +77,8 @@ struct JoyWord {
     focus: FocusHandle,
     scroll: ScrollHandle,
     tab: usize,
+    ribbon_collapsed: bool,
+    // Keep File selected when its page is collapsed over the document workspace.
     file_page: bool,
     file_section: FileSection,
     file_scroll: ScrollHandle,
@@ -161,6 +163,7 @@ impl JoyWord {
             focus,
             scroll: ScrollHandle::new(),
             tab: 0,
+            ribbon_collapsed: false,
             file_page: false,
             file_section: FileSection::default(),
             file_scroll: ScrollHandle::new(),
@@ -467,11 +470,17 @@ impl JoyWord {
                     .enumerate()
                     .map(|(position, (index, zh, en))| {
                         let label = tr(zh, en);
-                        let active = index == Some(self.tab);
+                        let active = if self.file_page {
+                            index.is_none()
+                        } else {
+                            index == Some(self.tab)
+                        };
                         let activate =
                             move |v: &mut JoyWord, w: &mut Window, cx: &mut Context<Self>| {
+                                v.ribbon_collapsed = false;
                                 if let Some(index) = index {
                                     v.tab = index;
+                                    v.file_page = false;
                                     cx.notify();
                                 } else {
                                     v.open_file_page(w, cx);
@@ -496,8 +505,13 @@ impl JoyWord {
                             })
                             .focus(move |el| el.bg(rgb(p.hover)))
                             .child(label)
-                            .on_click(cx.listener(move |v, _, w, cx| {
-                                activate(v, w, cx);
+                            .on_click(cx.listener(move |v, event: &gpui::ClickEvent, w, cx| {
+                                if active && event.click_count() == 2 {
+                                    v.ribbon_collapsed = !v.ribbon_collapsed;
+                                    cx.notify();
+                                } else if !active {
+                                    activate(v, w, cx);
+                                }
                             }))
                             .on_key_down(cx.listener(move |v, e: &gpui::KeyDownEvent, w, cx| {
                                 match e.keystroke.key.as_str() {
@@ -508,6 +522,10 @@ impl JoyWord {
                             }))
                     }),
             );
+        let ribbon = div().flex().flex_col().flex_shrink_0().child(tab_row);
+        if self.ribbon_collapsed || self.file_page {
+            return ribbon;
+        }
         let mut groups = div()
             .id("ribbon-controls")
             .flex()
@@ -538,12 +556,7 @@ impl JoyWord {
             7 => groups.child(self.picture_tools(cx)),
             _ => groups,
         };
-        div()
-            .flex()
-            .flex_col()
-            .flex_shrink_0()
-            .child(tab_row)
-            .child(groups)
+        ribbon.child(groups)
     }
 }
 
@@ -570,14 +583,17 @@ impl Render for JoyWord {
                 "sans-serif"
             })
             .text_size(px(13.0))
-            .when(self.canvas.reader.is_none() || self.file_page, |el| {
-                el.track_focus(&self.focus)
-            })
-            .key_context(if !self.file_page && self.focus.is_focused(window) {
-                "JoyWord JoyWordEditor"
-            } else {
-                "JoyWord"
-            })
+            .when(
+                self.canvas.reader.is_none() || self.file_page_visible(),
+                |el| el.track_focus(&self.focus),
+            )
+            .key_context(
+                if !self.file_page_visible() && self.focus.is_focused(window) {
+                    "JoyWord JoyWordEditor"
+                } else {
+                    "JoyWord"
+                },
+            )
             .on_drop(cx.listener(|v, paths: &gpui::ExternalPaths, _, cx| {
                 if let [path] = paths.paths() {
                     v.begin_open(OpenSource::File(path.clone()), cx);
@@ -624,7 +640,7 @@ impl Render for JoyWord {
             )
             .on_action(cx.listener(|this, _: &Quit, window, cx| this.request_close(window, cx)))
             .on_key_down(cx.listener(|this, event: &gpui::KeyDownEvent, window, cx| {
-                if this.file_page && event.keystroke.key == "escape" {
+                if this.file_page_visible() && event.keystroke.key == "escape" {
                     if this.confirm_discard {
                         this.execute("file.keep", window, cx);
                     } else if this.replace_confirm.is_some() {
@@ -654,11 +670,11 @@ impl Render for JoyWord {
             .on_action(cx.listener(|this, _: &ToggleLanguage, window, cx| {
                 this.execute("view.language", window, cx)
             }))
-            .when(!self.file_page && !self.view_focus(), |el| {
+            .when(self.file_page || !self.view_focus(), |el| {
                 el.child(self.header(cx)).child(self.ribbon(cx))
             })
             .when(self.view_focus(), |el| el.child(self.focus_bar(cx)));
-        if !self.file_page
+        if !self.file_page_visible()
             && self
                 .canvas
                 .reader
@@ -673,7 +689,7 @@ impl Render for JoyWord {
                     .child("格式刷已开启：拖选目标文字或单击目标段落；Esc 结束。"),
             );
         }
-        if !self.file_page
+        if !self.file_page_visible()
             && self
                 .canvas
                 .reader
@@ -700,7 +716,7 @@ impl Render for JoyWord {
                     )),
             );
         }
-        if !self.file_page
+        if !self.file_page_visible()
             && let Some(path) = self.legacy_recovery.as_ref()
         {
             let path = path.clone();
@@ -765,7 +781,7 @@ impl Render for JoyWord {
                     )),
             );
         }
-        if self.file_page && self.canvas.loading {
+        if self.file_page_visible() && self.canvas.loading {
             content = content.child(
                 div()
                     .px_4()
@@ -786,7 +802,7 @@ impl Render for JoyWord {
         if let Some(note) = &self.shell.notice {
             content = content.child(div().p_3().bg(rgb(p.selected)).child(note.clone()));
         }
-        if self.file_page {
+        if self.file_page_visible() {
             return content.child(self.render_file_page(cx));
         }
         content

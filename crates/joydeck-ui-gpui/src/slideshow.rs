@@ -122,8 +122,8 @@ impl Audience {
                 r.player.serial += 1;
             } else {
                 let action = match key {
-                    "right" | "space" | "enter" | "pagedown" => "next",
-                    "left" | "backspace" | "pageup" => "previous",
+                    "right" | "down" | "space" | "enter" | "pagedown" => "next",
+                    "left" | "up" | "backspace" | "pageup" => "previous",
                     "p" => "pause",
                     "b" => "black",
                     "w" => "white",

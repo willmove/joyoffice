@@ -102,9 +102,14 @@ static TEMPLATES: [Template; 5] = [
 ];
 
 impl JoyWord {
+    pub(super) fn file_page_visible(&self) -> bool {
+        self.file_page && !self.ribbon_collapsed
+    }
+
     pub(super) fn open_file_page(&mut self, window: &mut Window, cx: &mut Context<Self>) {
         self.cancel_preedit(window, cx);
         self.file_page = true;
+        self.ribbon_collapsed = false;
         self.select_file_section(FileSection::Home, cx);
         window.focus(&self.focus, cx);
     }

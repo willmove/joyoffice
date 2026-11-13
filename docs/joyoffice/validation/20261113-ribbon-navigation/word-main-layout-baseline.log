@@ -1,0 +1,55 @@
+    Blocking waiting for file lock on build directory
+   Compiling proc-macro2 v1.0.107
+   Compiling bitflags v2.13.2
+   Compiling serde v1.0.228
+   Compiling smallvec v1.16.3
+   Compiling arrayvec v0.7.8
+   Compiling moxcms v0.7.11
+   Compiling memchr v2.8.3
+   Compiling joyword-fonts v0.1.3 (D:\Coding\EditorProjects\joyoffice\target\ribbon-navigation-checks\main-baseline\crates\joyword-fonts)
+   Compiling craft-proof v0.1.0 (D:\Coding\EditorProjects\joyoffice\target\ribbon-navigation-checks\main-baseline\third-party\craft-libs\proof)
+   Compiling bytes v1.12.1
+   Compiling png v0.18.1
+   Compiling polycool v0.4.0
+   Compiling kurbo v0.13.1
+   Compiling wuff v0.2.9
+   Compiling serde_json v1.0.154
+   Compiling quote v1.0.47
+   Compiling syn v3.0.9
+   Compiling syn v2.0.119
+   Compiling bytemuck_derive v1.12.1
+   Compiling thiserror-impl v2.0.21
+   Compiling zerocopy-derive v0.8.62
+   Compiling serde_derive v1.0.228
+   Compiling bytemuck v1.25.2
+   Compiling font-types v0.11.3
+   Compiling thiserror v2.0.21
+   Compiling read-fonts v0.39.2
+   Compiling joyword-metafile v0.1.3 (D:\Coding\EditorProjects\joyoffice\target\ribbon-navigation-checks\main-baseline\crates\joyword-metafile)
+   Compiling zerocopy v0.8.62
+   Compiling skrifa v0.42.1
+   Compiling harfrust v0.8.4
+   Compiling half v2.7.1
+   Compiling tiff v0.10.3
+   Compiling image v0.25.9
+   Compiling joyword-geom v0.1.3 (D:\Coding\EditorProjects\joyoffice\target\ribbon-navigation-checks\main-baseline\crates\joyword-geom)
+   Compiling joyword-model v0.1.3 (D:\Coding\EditorProjects\joyoffice\target\ribbon-navigation-checks\main-baseline\crates\joyword-model)
+   Compiling joyword-layout v0.1.3 (D:\Coding\EditorProjects\joyoffice\target\ribbon-navigation-checks\main-baseline\crates\joyword-layout)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 17s
+     Running unittests src\lib.rs (D:\Coding\EditorProjects\joyoffice\target\debug\deps\joyword_layout-7cbab4cd96669f2d.exe)
+
+running 1 test
+
+thread 'tests::pages::a_page_ends_when_a_multiple_spaced_lines_text_no_longer_fits' (4880) panicked at crates\joyword-layout\src\tests\pages.rs:939:13:
+1.15 shift 0: the paragraph should run onto a second page
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test tests::pages::a_page_ends_when_a_multiple_spaced_lines_text_no_longer_fits ... FAILED
+
+failures:
+
+failures:
+    tests::pages::a_page_ends_when_a_multiple_spaced_lines_text_no_longer_fits
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 584 filtered out; finished in 0.13s
+
+error: test failed, to rerun pass `-p joyword-layout --lib`

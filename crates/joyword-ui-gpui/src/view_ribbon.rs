@@ -38,7 +38,7 @@ impl JoyWord {
         };
     }
     pub(super) fn view_focus(&self) -> bool {
-        !self.file_page
+        !self.file_page_visible()
             && self
                 .canvas
                 .reader
@@ -46,7 +46,7 @@ impl JoyWord {
                 .is_some_and(|r| r.engine().view.focus_mode)
     }
     pub(super) fn view_navigation(&self) -> bool {
-        !self.file_page
+        !self.file_page_visible()
             && !self.view_focus()
             && self
                 .canvas

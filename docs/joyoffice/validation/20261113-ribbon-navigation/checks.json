@@ -1,0 +1,116 @@
+{
+  "date": "2026-11-13",
+  "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)",
+  "platform": "Windows x86_64",
+  "tests": {
+    "joyword-check": {
+      "exit_code": 1,
+      "passed": 2978,
+      "failed": 1,
+      "ignored": 2,
+      "local_log": "target/ribbon-navigation-checks/joyword-check.log",
+      "log_sha256": "a16bfdc95c8fcefdb5813e47f2507e2b13c148cc5b117cd4ec596c07823c6bf6"
+    },
+    "joydeck-check": {
+      "exit_code": 0,
+      "passed": 974,
+      "failed": 0,
+      "ignored": 0,
+      "local_log": "target/ribbon-navigation-checks/joydeck-check.log",
+      "log_sha256": "13cab4dfe799e6d522902b6c94f7fe3d8278c965b7ed22e81b286fcf03e06960"
+    },
+    "joysheet-check": {
+      "exit_code": 0,
+      "passed": 1420,
+      "failed": 0,
+      "ignored": 1,
+      "local_log": "target/ribbon-navigation-checks/joysheet-check.log",
+      "log_sha256": "8718f0306d7422c56d3758407cd2250fe5070eb84bef6c18a28ef2e9b943a015"
+    },
+    "word-ui-tests": {
+      "exit_code": 0,
+      "passed": 123,
+      "failed": 0,
+      "ignored": 0,
+      "local_log": "target/ribbon-navigation-checks/word-ui-tests.log",
+      "log_sha256": "20057bd0febf7ad96d91619d7f04eaf78d5512cd900503da3de34fa6056f9267"
+    }
+  },
+  "builds": {
+    "joyword": {
+      "exit_code": 0,
+      "binaries": {
+        "joyword": {
+          "path": "target/debug/joyword.exe",
+          "sha256": "7618aec745e836ede34cfba1233341e998462bcc29475dfdd3caee891ea5c951"
+        },
+        "joyword-cli": {
+          "path": "target/debug/joyword-cli.exe",
+          "sha256": "864e43b038069d2d890b5f52b33b155dca005a0ff2653502f36c31f266283eb7"
+        }
+      }
+    },
+    "joydeck": {
+      "exit_code": 0,
+      "binaries": {
+        "joydeck": {
+          "path": "target/debug/joydeck.exe",
+          "sha256": "3a0d8336113c67a48524c5c2f40c4c5975ce0d83ffb3407cb93b7a27c639535e"
+        },
+        "joydeck-cli": {
+          "path": "target/debug/joydeck-cli.exe",
+          "sha256": "7a4ad974760226c908c441be1c523cef013606ae5f2ce3b912b519f7ee9974e3"
+        }
+      }
+    },
+    "joysheet": {
+      "exit_code": 0,
+      "binaries": {
+        "joysheet": {
+          "path": "target/debug/joysheet.exe",
+          "sha256": "b0106e0a19083c4724483498df8b82a1a79365ffb5663b2d8a4d5f5eae3af4fd"
+        },
+        "joysheet-cli": {
+          "path": "target/debug/joysheet-cli.exe",
+          "sha256": "13ed58a99a656062bc1927227f84c99ece28254ca5f1b11d8d9189dfe38470c7"
+        }
+      }
+    }
+  },
+  "gates": {
+    "source_records": 291,
+    "source_exit_code": 0,
+    "engineering_exit_code": 0,
+    "python_tests": 61,
+    "python_tests_exit_code": 0,
+    "docs_exit_code": 0
+  },
+  "word_layout_baseline": {
+    "commit": "55b1507177ab1140a4fdf545cfceffe0b60ae4ff",
+    "test": "tests::pages::a_page_ends_when_a_multiple_spaced_lines_text_no_longer_fits",
+    "exit_code": 101,
+    "same_failure_as_task": true
+  },
+  "native_ui": {
+    "status": "passed_for_listed_interactions",
+    "method": "Computer Use sky SendInput and native Windows screenshots",
+    "initial_attempt": "Paused on locked desktop; resumed only after user replied unlocked",
+    "window_and_accessibility_tree_observed": true,
+    "os_pointer_keyboard_input_verified": true,
+    "physical_hardware_input_verified": false,
+    "evidence_index": "gui-checks.json",
+    "evidence_snapshots": 29,
+    "covered": [
+      "Word/Home and File double-click collapse and restore, collapsed-document input and undo",
+      "Deck/Home and File double-click collapse and restore",
+      "Deck/Editor Down 1->2 and Up 2->1, notes input arrow guard",
+      "Deck/Slideshow Down 1->2 and Up 2->1, first-page clamp, Escape closes show",
+      "Sheet/Home and File double-click collapse and restore, collapsed-grid input, F6 focus cycle"
+    ]
+  },
+  "unverified_platforms": [
+    "macOS",
+    "Linux",
+    "Xinchuang native hardware"
+  ]
+}

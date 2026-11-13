@@ -1,5 +1,7 @@
 # JoyDeck 当前状态
 
+2026-11-13：接入 Ribbon 当前标签（含文件）双击收起/展开；编辑模式上/下键复用上一页/下一页，放映窗口复用已有后退/前进动作，保留输入框和原位文字的方向键。完整产品检查 974 项、fmt/严格 Clippy 和普通构建通过；Windows 实屏已验证开始/文件标签收展、编辑与放映上下键翻页及备注输入框保护。[记录与边界](../joyoffice/validation/20261113-ribbon-navigation/README.md)
+
 2026-11-11：新增三产品共享界面主题，Deck 将原中性灰风格归为「素雅」，在「文件 → 选项」提供青岚、素雅、晴空、暖砂的亮暗八个预设。选择持久化，新窗口继承完整风格；主题不修改幻灯片内容。[主题说明](../joyoffice/THEMES.md) · [本机验证与边界](../joyoffice/validation/20261111-themes/README.md)
 
 2026-11-09 Windows P1 续验 JD-305、JD-307、JD-602 与 JD-608。插入功能区新增清空全稿已有页脚文字，实屏验证确认、取消、单步撤销和重做。PPTX 保留写回保留形状树非可视组属性和扩展位置。Microsoft Word 的粗体、斜体和颜色经系统剪贴板粘贴，PowerPoint 直接打开另存的三页 PPTX。[本机验证](../joyoffice/validation/20261109-p1-followup/README.md)

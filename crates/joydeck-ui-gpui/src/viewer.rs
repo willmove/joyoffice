@@ -130,6 +130,8 @@ pub struct Viewer {
     retired_images: Vec<Arc<RenderImage>>,
     gpu_document: u64,
     ribbon: &'static str,
+    ribbon_collapsed: bool,
+    // Selection survives collapsing the File page back to the slide workspace.
     backstage: bool,
     file_page: file_ui::Page,
     file_scroll: ScrollHandle,
@@ -252,6 +254,7 @@ impl Viewer {
             retired_images: vec![],
             gpu_document: 0,
             ribbon: "开始",
+            ribbon_collapsed: false,
             backstage: false,
             file_page: file_ui::Page::Home,
             file_scroll: ScrollHandle::new(),
@@ -977,11 +980,9 @@ impl Render for Viewer {
                 .absolute()
                 .size_full(),
             )
-            .when(!self.backstage, |d| {
-                d.child(self.title_chrome(cx))
-                    .child(self.editor_ribbon(window, cx))
-            })
-            .child(if self.backstage {
+            .child(self.title_chrome(cx))
+            .child(self.editor_ribbon(window, cx))
+            .child(if self.backstage_visible() {
                 self.file_backstage(window, cx)
             } else if self.sorter {
                 self.slide_sorter(cx)
@@ -1004,7 +1005,9 @@ impl Render for Viewer {
                     .children((self.inspector).then(|| self.content_inspector(cx)))
                     .into_any_element()
             })
-            .when(!self.backstage, |d| d.child(self.status_chrome(scale, cx)))
+            .when(!self.backstage_visible(), |d| {
+                d.child(self.status_chrome(scale, cx))
+            })
     }
 }
 pub fn bind(cx: &mut App) {
@@ -1064,6 +1067,8 @@ pub fn bind(cx: &mut App) {
         KeyBinding::new("pagedown", Next, Some("Viewer && !Input && !InlineText")),
         KeyBinding::new("left", Previous, Some("Viewer && !Input && !InlineText")),
         KeyBinding::new("right", Next, Some("Viewer && !Input && !InlineText")),
+        KeyBinding::new("up", Previous, Some("Viewer && !Input && !InlineText")),
+        KeyBinding::new("down", Next, Some("Viewer && !Input && !InlineText")),
         KeyBinding::new("home", First, Some("Viewer && !Input && !InlineText")),
         KeyBinding::new("end", Last, Some("Viewer && !Input && !InlineText")),
         KeyBinding::new("ctrl-=", ZoomIn, Some("Viewer && !Input")),

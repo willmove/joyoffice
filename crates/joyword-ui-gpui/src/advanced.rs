@@ -47,7 +47,9 @@ impl JoyWord {
             .xsmall()
             .icon(icon)
             .label(label)
-            .disabled(self.canvas.reader.is_none() || self.canvas.loading || self.file_page)
+            .disabled(
+                self.canvas.reader.is_none() || self.canvas.loading || self.file_page_visible(),
+            )
             .on_click(cx.listener(move |v, _, w, cx| v.advanced_action(id, w, cx)))
     }
     fn large_advanced(
@@ -663,7 +665,7 @@ impl JoyWord {
         w: &mut Window,
         cx: &mut Context<Self>,
     ) {
-        if self.canvas.reader.is_none() || self.canvas.loading || self.file_page {
+        if self.canvas.reader.is_none() || self.canvas.loading || self.file_page_visible() {
             return;
         }
         match id {

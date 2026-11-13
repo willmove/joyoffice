@@ -149,7 +149,7 @@
     "source_path": "apps/joydeck/src/viewer.rs",
     "target_path": "crates/joydeck-ui-gpui/src/viewer.rs",
     "source_sha256": "249104bdece51947664a50fe4b8166f358662e78d0000ed7d0024b10fade5584",
-    "adapted_sha256": "2f8147ab3b38a39a2b4ed4edc68dc18943ac231254c691e20ac236b00d64f44e",
+    "adapted_sha256": "4f22cc4d7128f1f160de216d17c497c09df09ca52d8fd22e82cc876f9dbdd9c5",
     "local_changes": "Reuse asynchronous read-only viewer, generation guards, cancellation, virtual thumbnail rail and bounded cache; adapt to DeckCraft model and shared CPU renderer; R1 branding and aspect fit; upstream validation modules deferred; R1 rustfmt and bounded reader/CPU-renderer/palette/notes adapters as applicable; R2 editable viewer adapter, background save/recovery, command-driven gestures, coordinate anchoring and close guard; rustfmt; R4/R5 scene/content workspace adaptation; R6/R7 adapter additions and repository rustfmt/LF normalization.; R8 native editor, clipboard or product package version adaptation; R9-UI1 native formatting controls and schema-2 validation/history compatibility (see slice evidence); 2026-11-11: shared application theme catalog, persistent preset selection and palette projection; preserve document colors and original source identity",
     "r9_ui2_adaptation": "Formatting, desktop control and reviewed preservation validation; LF source representation.",
     "r9_ui2_gui_fix": "Synchronize every editor palette with GPUI Kit application theme during render",
@@ -164,7 +164,8 @@
     "dynamic_text_fields": "Support atomic dynamic text fields, native authoring, and separate rendered/source offsets.",
     "product_branding": "Set the editor window app ID to match the Linux desktop launcher.",
     "macos_powerpoint_ribbon": "Integrate the macOS window title bar and register reference ribbon panels.",
-    "powerpoint_file_page": "Render the file page across the editor area with independent navigation, search and bounded template preview state."
+    "powerpoint_file_page": "Render the file page across the editor area with independent navigation, search and bounded template preview state.",
+    "ribbon_collapse_navigation": "2026-11-13: retain ribbon selection while collapsed, render the File tab strip, and bind Up/Down to existing slide navigation outside text input."
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
@@ -495,10 +496,11 @@
     "target_path": "crates/joydeck-ui-gpui/src/slideshow.rs",
     "source_sha256": "ba57a296c7911ccd7767e4b655906fb1cc9b479ccc0f4e442f00e878acb1e17c",
     "local_changes": "Audience/presenter ownership, separate clocks/windows and media worker adapted to new immutable model; new GPUI controls, frame guards and CPU rendering.",
-    "adapted_sha256": "185a1dcd02ba54066868cf0863307bc7592eb80e3781975258dd83b5f02b119a",
+    "adapted_sha256": "638b794c1dbebb714ae10c13cc15f2824f2e5706b8cc08ae9dec57588ff17691",
     "font_environment": "Refresh font selection, editor geometry and rendering caches when installed font files change.",
     "text_hyperlinks": "Dispatch a validated URL returned by the slide show click player.",
-    "product_branding": "Group audience and presenter windows with the JoyDeck desktop launcher."
+    "product_branding": "Group audience and presenter windows with the JoyDeck desktop launcher.",
+    "ribbon_collapse_navigation": "2026-11-13: route Up/Down through existing previous/next slideshow navigation, preserving animation and media behavior."
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
@@ -625,7 +627,7 @@
     "target_path": "crates/joydeck-ui-gpui/src/chrome.rs",
     "source_sha256": "efd229d2bca36c8887fa16026f4946bbe3240cd9ea9b1b9b65c8c83c11933438",
     "local_changes": "R8 per-tab bounded GPUI construction frames follow the old JoyDeck ribbon pattern; split Home into groups and keep intrinsic horizontal scroll width on default MSVC stack.; 2026-11-11: shared application theme catalog, persistent preset selection and palette projection; preserve document colors and original source identity",
-    "adapted_sha256": "532d3ccd0cd934d08c64eb2c6b925080c7a82fc41dd17821d4bc20b4d2af2178",
+    "adapted_sha256": "84eb522e42a487e89594d46a68d8388b146f9efafeae2643f28891cc5a8eec96",
     "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained.",
     "cancellable_open": "Add an explicit cancel action to the status bar while opening a document.",
     "shared_document_view": "Separate window selection and state from the shared editor session and preserve revision guards.",
@@ -634,6 +636,7 @@
     "dynamic_text_fields": "Support atomic dynamic text fields, native authoring, and separate rendered/source offsets.",
     "footer_menu": "Expose the existing atomic slide footer commands through the Insert ribbon.",
     "macos_powerpoint_ribbon": "Arrange the native ribbon using the observed macOS PowerPoint tab order, spacing and command groups.",
-    "powerpoint_file_page": "Retain the File ribbon tab on every desktop platform and route both file entries to the updated file page."
+    "powerpoint_file_page": "Retain the File ribbon tab on every desktop platform and route both file entries to the updated file page.",
+    "ribbon_collapse_navigation": "2026-11-13: toggle the selected ribbon tab on double-click and retain the tab strip for expanded or collapsed File pages."
   }
 ]
