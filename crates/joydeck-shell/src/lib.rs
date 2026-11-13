@@ -28,6 +28,7 @@ mod r9_tests;
 mod recovery_io;
 pub mod show;
 pub mod show_media;
+pub mod show_render;
 #[cfg(test)]
 #[allow(
     clippy::unwrap_used,

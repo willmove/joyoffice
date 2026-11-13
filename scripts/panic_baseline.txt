@@ -407,3 +407,31 @@ crates/joydeck-shell/src/r9_tests.rs:290:assert!(session.execute(Command::Redo).
 crates/joydeck-ui-gpui/src/native_clipboard_linux.rs:239:.expect("hidden HTML");
 crates/joydeck-ui-gpui/src/native_clipboard_linux.rs:249:.expect("hidden RTF after invalid HTML");
 crates/joydeck-ui-gpui/src/native_clipboard_linux.rs:258:.expect("ordinary HTML allows original TSV");
+crates/joydeck-shell/src/show_tests.rs:92:let target = RenderTarget::fit((960., 540.), (960., 540.), dpi).unwrap();
+crates/joydeck-shell/src/show_tests.rs:96:RenderTarget::fit((960., 540.), (1920., 1080.), 1.).unwrap(),
+crates/joydeck-shell/src/show_tests.rs:97:RenderTarget::fit((960., 540.), (960., 540.), 2.).unwrap()
+crates/joydeck-shell/src/show_tests.rs:100:let target = RenderTarget::fit(slide, (16384., 16384.), 4.).unwrap();
+crates/joydeck-shell/src/show_tests.rs:122:let mut player = Player::new(Arc::new(model), None, None).unwrap();
+crates/joydeck-shell/src/show_tests.rs:125:let target = RenderTarget::fit((720., 405.), (1920., 1080.), 2.).unwrap();
+crates/joydeck-shell/src/show_tests.rs:127:let mut first = cache.render(&player, target, true, &cancel).unwrap();
+crates/joydeck-shell/src/show_tests.rs:130:player.advance(0.5).unwrap();
+crates/joydeck-shell/src/show_tests.rs:131:let second = cache.render(&player, target, true, &cancel).unwrap();
+crates/joydeck-shell/src/show_tests.rs:134:let low = RenderTarget::fit((720., 405.), (960., 540.), 1.).unwrap();
+crates/joydeck-shell/src/show_tests.rs:135:let resized = cache.render(&player, low, true, &cancel).unwrap();
+crates/joydeck-shell/src/show_tests.rs:137:player.navigate("black", None).unwrap();
+crates/joydeck-shell/src/show_tests.rs:138:let black = cache.render(&player, low, true, &cancel).unwrap();
+crates/joydeck-shell/src/show_tests.rs:167:.unwrap();
+crates/joydeck-shell/src/show_tests.rs:170:let id = slide.shapes.last().unwrap().id;
+crates/joydeck-shell/src/show_tests.rs:176:let mut player = Player::new(Arc::new(model), None, None).unwrap();
+crates/joydeck-shell/src/show_tests.rs:177:let target = RenderTarget::new(960., 540., 0.25).unwrap();
+crates/joydeck-shell/src/show_tests.rs:180:player.navigate("next", None).unwrap();
+crates/joydeck-shell/src/show_tests.rs:181:let start = cache.render(&player, target, true, &cancel).unwrap();
+crates/joydeck-shell/src/show_tests.rs:182:player.advance(0.5).unwrap();
+crates/joydeck-shell/src/show_tests.rs:183:let middle = cache.render(&player, target, true, &cancel).unwrap();
+crates/joydeck-shell/src/show_tests.rs:187:player.frame(target.scale(), &cancel).unwrap().pixels
+crates/joydeck-shell/src/show_tests.rs:198:let mut transition = Player::new(Arc::new(model), None, None).unwrap();
+crates/joydeck-shell/src/show_tests.rs:199:let start = cache.render(&transition, target, true, &cancel).unwrap();
+crates/joydeck-shell/src/show_tests.rs:200:transition.advance(0.5).unwrap();
+crates/joydeck-shell/src/show_tests.rs:201:let middle = cache.render(&transition, target, true, &cancel).unwrap();
+crates/joydeck-shell/src/show_tests.rs:205:transition.frame(target.scale(), &cancel).unwrap().pixels
+crates/joydeck-ui-gpui/src/slideshow_frames.rs:63:target: RenderTarget::fit((960., 540.), (960., 540.), dpi).unwrap(),

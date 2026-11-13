@@ -230,6 +230,118 @@ fn draw_layer(out: &mut Image, l: &Layer, tex: &Tex) {
     if !(l.alpha.is_finite() && l.alpha > 0.0) {
         return;
     }
+    if draw_pixel_aligned_rect(out, l, tex) {
+        return;
+    }
+    draw_mesh_layer(out, l, tex);
+}
+
+/// Exact-size textures and uniform-opacity rectangles need neither triangle coverage nor
+/// bilinear sampling. Keep the mesh path for perspective, subpixel motion and feathering.
+fn draw_pixel_aligned_rect(out: &mut Image, l: &Layer, tex: &Tex) -> bool {
+    let [a, b, c, d] = l.quad;
+    if b != [c[0], a[1]]
+        || d != [a[0], c[1]]
+        || c[0] <= a[0]
+        || c[1] <= a[1]
+        || l.fade != [1.; 4]
+        || !l.alpha.is_finite()
+        || l.alpha > 1.
+        || l.quad.iter().flatten().any(|v| !v.is_finite())
+    {
+        return false;
+    }
+    let (w, h) = (out.width as usize, out.height as usize);
+    let bounds = |lo: f64, hi: f64, side: usize| {
+        (
+            ((lo * side as f64 - 0.5).ceil()).clamp(0., side as f64) as usize,
+            ((hi * side as f64 - 0.5).ceil()).clamp(0., side as f64) as usize,
+        )
+    };
+    let (x0, x1) = bounds(a[0], c[0], w);
+    let (y0, y1) = bounds(a[1], c[1], h);
+    let (dx, dy) = match tex {
+        Tex::Image(image) => {
+            let [u, v, z, t] = l.uv;
+            if image.width != out.width
+                || image.height != out.height
+                || image.pixels.len() != out.pixels.len()
+                || v != [z[0], u[1]]
+                || t != [u[0], z[1]]
+                || ((z[0] - u[0]) - (c[0] - a[0])).abs() > 1e-12
+                || ((z[1] - u[1]) - (c[1] - a[1])).abs() > 1e-12
+            {
+                return false;
+            }
+            let dx = (u[0] - a[0]) * w as f64;
+            let dy = (u[1] - a[1]) * h as f64;
+            if !dx.is_finite()
+                || !dy.is_finite()
+                || (dx - dx.round()).abs() > 1e-9
+                || (dy - dy.round()).abs() > 1e-9
+                || x0 as f64 + dx < 0.
+                || x1 as f64 + dx > w as f64
+                || y0 as f64 + dy < 0.
+                || y1 as f64 + dy > h as f64
+            {
+                return false;
+            }
+            (dx.round() as isize, dy.round() as isize)
+        }
+        Tex::Solid(_) => (0, 0),
+    };
+    let alpha = l.alpha as f32;
+    for y in y0..y1 {
+        let row = &mut out.pixels[(y * w + x0) * 4..(y * w + x1) * 4];
+        match tex {
+            Tex::Image(image) => {
+                let source = ((y as isize + dy) as usize * w + (x0 as isize + dx) as usize) * 4;
+                let pixels = &image.pixels[source..source + row.len()];
+                if pixels.as_chunks::<4>().0.iter().all(|p| p[3] == 255) {
+                    if alpha == 1. {
+                        row.copy_from_slice(pixels);
+                    } else {
+                        // 16-bit opacity keeps quantization below one 8-bit channel level.
+                        // The flat integer loop also lets LLVM vectorize opaque slide fades.
+                        let opacity = (alpha * 65535.).round() as u32;
+                        let inverse = 65535 - opacity;
+                        for (dst, src) in row.iter_mut().zip(pixels) {
+                            *dst = ((u32::from(*src) * opacity + u32::from(*dst) * inverse + 32767)
+                                / 65535) as u8;
+                        }
+                    }
+                } else {
+                    for (dst, src) in row
+                        .as_chunks_mut::<4>()
+                        .0
+                        .iter_mut()
+                        .zip(pixels.as_chunks::<4>().0)
+                    {
+                        let inverse = 1. - src[3] as f32 * alpha / 255.;
+                        for k in 0..4 {
+                            dst[k] = (src[k] as f32 * alpha + dst[k] as f32 * inverse)
+                                .round()
+                                .clamp(0., 255.) as u8;
+                        }
+                    }
+                }
+            }
+            Tex::Solid(color) => {
+                for dst in row.as_chunks_mut::<4>().0 {
+                    for k in 0..4 {
+                        let src = if k == 3 { 255. } else { color[k] };
+                        dst[k] = (src * alpha + dst[k] as f32 * (1. - alpha))
+                            .round()
+                            .clamp(0., 255.) as u8;
+                    }
+                }
+            }
+        }
+    }
+    true
+}
+
+fn draw_mesh_layer(out: &mut Image, l: &Layer, tex: &Tex) {
     let (verts, tris) = layer_mesh(l);
     let (w, h) = (out.width as f64, out.height as f64);
     for t in tris {
@@ -342,6 +454,67 @@ fn fill_triangle(out: &mut Image, p: [[f64; 2]; 3], uv: [[f64; 2]; 3], al: [f64;
 )]
 mod tests {
     use super::*;
+
+    #[test]
+    fn aligned_rectangles_match_mesh_sampling_for_fades_crops_and_transparency() {
+        let mut source = solid(64, 36, [0, 0, 0, 0]);
+        for (i, pixel) in source.pixels.as_chunks_mut::<4>().0.iter_mut().enumerate() {
+            let alpha = (i % 256) as u8;
+            *pixel = [alpha / 2, alpha / 3, alpha / 4, alpha];
+        }
+        let mut opaque = source.clone();
+        for (i, pixel) in opaque.pixels.as_chunks_mut::<4>().0.iter_mut().enumerate() {
+            *pixel = [
+                (i % 256) as u8,
+                ((i * 7) % 256) as u8,
+                ((i * 13) % 256) as u8,
+                255,
+            ];
+        }
+        for alpha in [0.001, 0.1, 0.3333333, 0.5, 0.731, 0.999, 1.] {
+            for layer in [
+                Layer::full(Source::New, alpha),
+                Layer::rect(Source::New, [0., 0., 0.5, 1.], [0., 0., 0.5, 1.], alpha),
+                Layer::rect(
+                    Source::New,
+                    [0., 0., 0.5, 0.5],
+                    [0.25, 0.25, 0.75, 0.75],
+                    alpha,
+                ),
+            ] {
+                for texture in [
+                    Tex::Image(&source),
+                    Tex::Image(&opaque),
+                    Tex::Solid([17., 31., 67.]),
+                ] {
+                    let mut fast = solid(64, 36, [51, 39, 27, 255]);
+                    let mut reference = fast.clone();
+                    assert!(draw_pixel_aligned_rect(&mut fast, &layer, &texture));
+                    draw_mesh_layer(&mut reference, &layer, &texture);
+                    assert!(
+                        fast.pixels
+                            .iter()
+                            .zip(&reference.pixels)
+                            .all(|(a, b)| a.abs_diff(*b) <= 1)
+                    );
+                }
+            }
+        }
+        let mut out = solid(64, 36, [0, 0, 0, 255]);
+        let subpixel = Layer::rect(Source::New, [0., 0., 1., 1.], [0.01, 0., 1.01, 1.], 1.);
+        assert!(!draw_pixel_aligned_rect(
+            &mut out,
+            &subpixel,
+            &Tex::Image(&source)
+        ));
+        let mut feathered = Layer::full(Source::New, 1.);
+        feathered.fade = [0., 1., 1., 0.];
+        assert!(!draw_pixel_aligned_rect(
+            &mut out,
+            &feathered,
+            &Tex::Image(&source)
+        ));
+    }
 
     fn solid(w: u32, h: u32, c: [u8; 4]) -> Image {
         Image {

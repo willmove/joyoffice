@@ -1457,13 +1457,14 @@
       "source_path": "crates/render/src/transition.rs",
       "source_sha256": "bae8e69100dcf1d4b018d1a9fe7344b808d3086d0cd4221c10bba03585b726f0",
       "target_path": "crates/joydeck-render/src/transition.rs",
-      "adapted_sha256": "45e943af7a4ad5735528061b7df61f946cb18e9759bb7c6cd2ff3dd70a976da6",
+      "adapted_sha256": "1214d1992252ec4d6138f608c05f3fd28c9f8a67c3b4a2b2b82b0ca819fe302d",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
-        "R6/R7 version baseline, macro-preserve refusal, explicit previous transition/custom show order or rustfmt; no upstream checkout edits."
+        "R6/R7 version baseline, macro-preserve refusal, explicit previous transition/custom show order or rustfmt; no upstream checkout edits.",
+        "2026-11-13: independently implemented pixel-aligned rectangle compositing fast path; retain mesh fallback and compare premultiplied alpha results within one channel level."
       ]
     },
     {

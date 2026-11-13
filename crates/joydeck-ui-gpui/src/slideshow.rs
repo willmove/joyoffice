@@ -4,8 +4,12 @@ use joydeck_shell::{
     Cancellation,
     show::Player,
     show_media::{Control, Media},
+    show_render::{RasterCache, RenderTarget},
 };
 use std::{sync::Mutex, time::Duration};
+
+#[path = "slideshow_frames.rs"]
+mod frames;
 
 struct Runtime {
     player: Player,
@@ -38,12 +42,19 @@ struct Audience {
     shared: Shared,
     focus: FocusHandle,
     image: Option<Arc<RenderImage>>,
+    image_target: Option<RenderTarget>,
+    image_animated: bool,
+    prepare_total: u128,
+    prepare_peak: u128,
+    prepare_count: u64,
     retired: Vec<Arc<RenderImage>>,
-    key: Option<(u64, usize, usize, u64)>,
-    font_revision: u64,
-    busy: bool,
+    requests: frames::Requests,
+    raster_cache: Arc<Mutex<RasterCache>>,
     task: Option<Task<()>>,
     clock: Option<Task<()>>,
+    bounds_observer: Option<Subscription>,
+    #[cfg(target_os = "windows")]
+    viewport: frames::Viewport,
     media: Arc<Mutex<Media>>,
     cancel: Cancellation,
     message: String,
@@ -147,37 +158,41 @@ impl Audience {
             cx.notify();
         }
     }
-    fn request(&mut self, cx: &mut Context<Self>) {
-        if self.busy {
-            return;
-        }
+    fn request(&mut self, target: RenderTarget, cx: &mut Context<Self>) {
         let Ok(r) = self.shared.lock() else { return };
         if r.closed {
             return;
         }
         let model = r.player.clone();
         let control = r.media.clone();
+        let animated = model.animated();
         let mut key = model.frame_key();
         let media_on = r.media_enabled();
         if media_on && !model.paused && r.status["paused"] != true {
-            key.3 = (model.total * 10.) as u64;
+            key.3 = key.3.max((model.total * 10.) as u64);
         }
         let font_revision = joydeck_fonts::FontDb::global().environment_revision();
-        if self.key == Some(key) && self.font_revision == font_revision {
+        let key = frames::Key {
+            state: key,
+            target,
+            fonts: font_revision,
+        };
+        if !self.requests.request(key) {
             return;
         }
         drop(r);
-        self.key = Some(key);
-        self.font_revision = font_revision;
-        self.busy = true;
         let media = self.media.clone();
+        let cache = self.raster_cache.clone();
         let cancel = self.cancel.clone();
         self.task = Some(cx.spawn(async move |view, cx| {
             let started = Instant::now();
             let result = cx
                 .background_executor()
                 .spawn(async move {
-                    let mut raster = model.frame(1., &cancel)?;
+                    let mut cache = cache.lock().map_err(|_| "show raster cache lock poisoned")?;
+                    let mut raster = cache.render(&model, target, media_on, &cancel)?;
+                    let (renders, hits) = (cache.renders, cache.hits);
+                    drop(cache);
                     let mut media = media
                         .lock()
                         .map_err(|_| "media state lock poisoned".to_string())?;
@@ -186,28 +201,44 @@ impl Audience {
                         media.clear();
                     }
                     cancel.check()?;
-                    Ok::<_, String>((image(raster)?, status))
+                    Ok::<_, String>((image(raster)?, status, renders, hits))
                 })
                 .await;
             let _ = view.update(cx, |s, cx| {
-                s.busy = false;
                 if s.cancel.check().is_err() {
                     return;
                 }
                 let current = s.shared.lock().ok().map(|r| r.player.frame_key());
-                if !current.is_some_and(|k| (k.0, k.1, k.2) == (key.0, key.1, key.2))
-                    || joydeck_fonts::FontDb::global().environment_revision() != font_revision
-                {
-                    s.key = None;
+                let content_current = current.is_some_and(|k|
+                    (k.0, k.1, k.2) == (key.state.0, key.state.1, key.state.2))
+                    && joydeck_fonts::FontDb::global().environment_revision() == font_revision;
+                if !s.requests.complete(key, content_current) {
                     cx.notify();
                     return;
                 }
                 match result {
-                    Ok((image, status)) => {
+                    Ok((image, status, renders, hits)) => {
+                        let resized = s.image_target != Some(target);
+                        s.image_target = Some(target);
+                        let settled = s.image_animated && !animated;
+                        s.image_animated = animated;
                         if let Some(old) = s.image.replace(image) {
                             s.retired.push(old);
                         }
                         s.frames += 1;
+                        let micros = started.elapsed().as_micros();
+                        s.prepare_total += micros;
+                        s.prepare_peak = s.prepare_peak.max(micros);
+                        s.prepare_count += 1;
+                        if resized || settled || s.frames.is_multiple_of(30) {
+                            eprintln!("JoyDeck show_frame pixels={}x{} scale={:.4} prepare_us={} frames={} rasters={renders} cache_hits={hits}",
+                                target.width, target.height, target.scale(), started.elapsed().as_micros(), s.frames);
+                            eprintln!("JoyDeck show_prepare samples={} mean_us={} peak_us={} (worker preparation, excludes GPU presentation)",
+                                s.prepare_count, s.prepare_total / u128::from(s.prepare_count), s.prepare_peak);
+                            s.prepare_total = 0;
+                            s.prepare_peak = 0;
+                            s.prepare_count = 0;
+                        }
                         if let Ok(mut r) = s.shared.lock() {
                             match status {
                                 Ok(value) => r.status = value,
@@ -241,7 +272,6 @@ impl Render for Audience {
         for old in self.retired.drain(..) {
             let _ = w.drop_image(old);
         }
-        self.request(cx);
         let (width, height, page, step, paused, blank, ended) = self
             .shared
             .lock()
@@ -258,6 +288,19 @@ impl Render for Audience {
             })
             .unwrap_or((960., 540., 0, 0, true, None, true));
         let viewport = w.viewport_size();
+        #[cfg(target_os = "windows")]
+        if let Some((width, height)) = self.viewport.update(
+            (f32::from(viewport.width), f32::from(viewport.height)),
+            w.scale_factor(),
+            w.is_fullscreen(),
+        ) {
+            eprintln!(
+                "JoyDeck show_dpi_refit logical={width}x{height} dpi={}",
+                w.scale_factor()
+            );
+            w.resize(size(px(width), px(height)));
+            cx.notify();
+        }
         let scale = (f32::from(viewport.width) / width)
             .min((f32::from(viewport.height) - 42.) / height)
             .max(0.01);
@@ -266,6 +309,17 @@ impl Render for Audience {
             px((f32::from(viewport.height) - 42. - height * scale) / 2.),
         );
         self.scale = scale;
+        match RenderTarget::fit(
+            (f64::from(width), f64::from(height)),
+            (
+                f64::from(viewport.width),
+                (f64::from(viewport.height) - 42.).max(1.),
+            ),
+            f64::from(w.scale_factor()),
+        ) {
+            Ok(target) => self.request(target, cx),
+            Err(error) => self.message = error,
+        }
         let ink = self.ink.clone();
         let origin = self.origin;
         div().id("joydeck-audience").size_full().bg(rgb(if blank==Some(true){0xffffff}else{0})).text_color(rgb(0xffffff)).relative().track_focus(&self.focus).key_context("Slideshow")
@@ -478,16 +532,23 @@ pub(super) fn open(
             cx.new(|cx| {
                 let focus = cx.focus_handle();
                 focus.focus(w, cx);
-                Audience {
+                let mut audience = Audience {
                     shared: runtime,
                     focus,
                     image: None,
+                    image_target: None,
+                    image_animated: false,
+                    prepare_total: 0,
+                    prepare_peak: 0,
+                    prepare_count: 0,
                     retired: vec![],
-                    key: None,
-                    font_revision: 0,
-                    busy: false,
+                    requests: frames::Requests::default(),
+                    raster_cache: Arc::new(Mutex::new(RasterCache::default())),
                     task: None,
                     clock: None,
+                    bounds_observer: None,
+                    #[cfg(target_os = "windows")]
+                    viewport: frames::Viewport::default(),
                     media: Arc::new(Mutex::new(Media::default())),
                     cancel: Cancellation::default(),
                     message: String::new(),
@@ -499,7 +560,12 @@ pub(super) fn open(
                     pointer: Point::default(),
                     ink: vec![],
                     frames: 0,
-                }
+                };
+                audience.bounds_observer =
+                    Some(cx.observe_window_bounds(w, |_: &mut Audience, _, cx| {
+                        cx.notify();
+                    }));
+                audience
             })
         },
     )
@@ -518,6 +584,8 @@ pub(super) fn open(
     view.update(cx, |s, cx| {
         s.clock = Some(cx.spawn(async move |view, cx| {
             let mut last = Instant::now();
+            let mut fonts = joydeck_fonts::FontDb::global().environment_revision();
+            let mut clock = frames::Clock::default();
             loop {
                 cx.background_executor()
                     .timer(Duration::from_millis(33))
@@ -540,8 +608,16 @@ pub(super) fn open(
                         let _ = r.player.advance(dt);
                         r.changed_page(old);
                     }
+                    let media_tick =
+                        (r.media_enabled() && !r.player.paused && r.status["paused"] != true)
+                            .then_some((r.player.total * 10.) as u64);
+                    let changed = clock.changed(r.player.frame_key(), media_tick);
                     drop(r);
-                    cx.notify();
+                    let current_fonts = joydeck_fonts::FontDb::global().environment_revision();
+                    if changed || current_fonts != fonts || dt > 5. {
+                        cx.notify();
+                    }
+                    fonts = current_fonts;
                     true
                 });
                 if !matches!(live, Ok(true)) {

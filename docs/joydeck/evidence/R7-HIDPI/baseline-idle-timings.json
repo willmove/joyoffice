@@ -1,0 +1,219 @@
+{
+  "note": "Idle-host sequential runs; median of 3 end-to-end RPC + raster + PNG encode/write calls; not display FPS",
+  "executable_sha256": "ecc496bb1aa2752739fa0fd4eade797cc87d41f37400fe5e4c68dfbbb68c593e",
+  "fixture_sha256": "5f8b7fafb74fbbe57a87bdbeab7bfe5133a55c690a986400e3214dc6618716dd",
+  "records": [
+    {
+      "kind": "static",
+      "scale": 1,
+      "repetition": 0,
+      "ms": 16.59,
+      "dimensions": [
+        960,
+        540
+      ]
+    },
+    {
+      "kind": "static",
+      "scale": 1,
+      "repetition": 1,
+      "ms": 12.02,
+      "dimensions": [
+        960,
+        540
+      ]
+    },
+    {
+      "kind": "static",
+      "scale": 1,
+      "repetition": 2,
+      "ms": 14.25,
+      "dimensions": [
+        960,
+        540
+      ]
+    },
+    {
+      "kind": "static",
+      "scale": 2,
+      "repetition": 0,
+      "ms": 20.84,
+      "dimensions": [
+        1920,
+        1080
+      ]
+    },
+    {
+      "kind": "static",
+      "scale": 2,
+      "repetition": 1,
+      "ms": 21.36,
+      "dimensions": [
+        1920,
+        1080
+      ]
+    },
+    {
+      "kind": "static",
+      "scale": 2,
+      "repetition": 2,
+      "ms": 19.97,
+      "dimensions": [
+        1920,
+        1080
+      ]
+    },
+    {
+      "kind": "static",
+      "scale": 4,
+      "repetition": 0,
+      "ms": 55.03,
+      "dimensions": [
+        3840,
+        2160
+      ]
+    },
+    {
+      "kind": "static",
+      "scale": 4,
+      "repetition": 1,
+      "ms": 51.68,
+      "dimensions": [
+        3840,
+        2160
+      ]
+    },
+    {
+      "kind": "static",
+      "scale": 4,
+      "repetition": 2,
+      "ms": 53.92,
+      "dimensions": [
+        3840,
+        2160
+      ]
+    },
+    {
+      "kind": "transition",
+      "scale": 1,
+      "repetition": 0,
+      "ms": 42.38,
+      "dimensions": [
+        960,
+        540
+      ]
+    },
+    {
+      "kind": "transition",
+      "scale": 1,
+      "repetition": 1,
+      "ms": 40.89,
+      "dimensions": [
+        960,
+        540
+      ]
+    },
+    {
+      "kind": "transition",
+      "scale": 1,
+      "repetition": 2,
+      "ms": 40.67,
+      "dimensions": [
+        960,
+        540
+      ]
+    },
+    {
+      "kind": "transition",
+      "scale": 2,
+      "repetition": 0,
+      "ms": 137.66,
+      "dimensions": [
+        1920,
+        1080
+      ]
+    },
+    {
+      "kind": "transition",
+      "scale": 2,
+      "repetition": 1,
+      "ms": 139.8,
+      "dimensions": [
+        1920,
+        1080
+      ]
+    },
+    {
+      "kind": "transition",
+      "scale": 2,
+      "repetition": 2,
+      "ms": 135.61,
+      "dimensions": [
+        1920,
+        1080
+      ]
+    },
+    {
+      "kind": "transition",
+      "scale": 4,
+      "repetition": 0,
+      "ms": 523.53,
+      "dimensions": [
+        3840,
+        2160
+      ]
+    },
+    {
+      "kind": "transition",
+      "scale": 4,
+      "repetition": 1,
+      "ms": 544.32,
+      "dimensions": [
+        3840,
+        2160
+      ]
+    },
+    {
+      "kind": "transition",
+      "scale": 4,
+      "repetition": 2,
+      "ms": 527.21,
+      "dimensions": [
+        3840,
+        2160
+      ]
+    }
+  ],
+  "medians": [
+    {
+      "kind": "static",
+      "scale": 1,
+      "ms": 14.25
+    },
+    {
+      "kind": "static",
+      "scale": 2,
+      "ms": 20.84
+    },
+    {
+      "kind": "static",
+      "scale": 4,
+      "ms": 53.92
+    },
+    {
+      "kind": "transition",
+      "scale": 1,
+      "ms": 40.89
+    },
+    {
+      "kind": "transition",
+      "scale": 2,
+      "ms": 137.66
+    },
+    {
+      "kind": "transition",
+      "scale": 4,
+      "ms": 527.21
+    }
+  ]
+}

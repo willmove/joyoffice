@@ -220,16 +220,12 @@ impl Player {
         scale: f64,
         cancel: &Cancellation,
     ) -> Result<joydeck_render::Image, String> {
-        let w = (self.model.slide_size.width * scale).ceil();
-        let h = (self.model.slide_size.height * scale).ceil();
-        if !scale.is_finite()
-            || !(0.05..=4.).contains(&scale)
-            || w > 8192.
-            || h > 8192.
-            || w * h > 16_000_000.
-        {
-            return Err("show frame exceeds render budget".into());
-        }
+        let target = crate::show_render::RenderTarget::new(
+            self.model.slide_size.width,
+            self.model.slide_size.height,
+            scale,
+        )?;
+        let (w, h) = (f64::from(target.width), f64::from(target.height));
         cancel.check()?;
         if self.state.ended || self.blank.is_some() {
             return Ok(joydeck_render::Image {

@@ -1,0 +1,29 @@
+R6/R7 open_started=true request=1
+JoyDeck window opened · GPUI Kit 0.8.1 / pre 0.3.10
+R6/R7 opened=true pages=2 elapsed_ms=152
+R4 scene {"builds":1,"hits":0,"misses":14,"cpu_tiles":8,"backdrop_rasters":1,"native_paths":5,"glyphs":168,"cache_bytes":4198124,"build_micros":5967}
+R7 show_start {"page":1,"step":0,"playing":false,"ended":false,"paused":false,"blank":null,"elapsed_seconds":0.0,"slide_seconds":0.0,"total_seconds":0.0,"order":[1,2],"previous":null,"serial":0}
+JoyDeck show_frame pixels=2411x1356 scale=2.5111 prepare_us=12167 frames=1 rasters=2 cache_hits=0
+JoyDeck show_prepare samples=1 mean_us=12167 peak_us=12167 (worker preparation, excludes GPU presentation)
+R7 show_first_frame prepare_us=18654
+R4 scene {"builds":2,"hits":0,"misses":28,"cpu_tiles":16,"backdrop_rasters":2,"native_paths":5,"glyphs":168,"cache_bytes":5952568,"build_micros":3312}
+JoyDeck show_dpi_refit logical=2048.8x1152 dpi=1.25
+JoyDeck show_dpi_refit logical=2048x1152 dpi=1.25
+JoyDeck show_frame pixels=2467x1388 scale=2.5694 prepare_us=13568 frames=2 rasters=4 cache_hits=0
+JoyDeck show_prepare samples=1 mean_us=13568 peak_us=13568 (worker preparation, excludes GPU presentation)
+R7 show_state {"page":2,"step":0,"playing":false,"ended":false,"paused":false,"blank":null,"elapsed_seconds":0.0,"slide_seconds":0.0,"total_seconds":130.11126989999997,"order":[1,2],"previous":1,"serial":1}
+JoyDeck show_frame pixels=2467x1388 scale=2.5694 prepare_us=10904 frames=27 rasters=29 cache_hits=0
+JoyDeck show_prepare samples=25 mean_us=73157 peak_us=80893 (worker preparation, excludes GPU presentation)
+R7 show_state {"page":2,"step":0,"playing":true,"ended":false,"paused":false,"blank":null,"elapsed_seconds":0.0,"slide_seconds":34.24672210000003,"total_seconds":164.35799199999988,"order":[1,2],"previous":1,"serial":2}
+JoyDeck show_frame pixels=2467x1388 scale=2.5694 prepare_us=12741 frames=30 rasters=32 cache_hits=0
+JoyDeck show_prepare samples=3 mean_us=12713 peak_us=13105 (worker preparation, excludes GPU presentation)
+JoyDeck show_frame pixels=2467x1388 scale=2.5694 prepare_us=13412 frames=39 rasters=41 cache_hits=0
+JoyDeck show_prepare samples=9 mean_us=13238 peak_us=15033 (worker preparation, excludes GPU presentation)
+R7 show_state {"page":2,"step":1,"playing":false,"ended":false,"paused":true,"blank":null,"elapsed_seconds":0.0,"slide_seconds":44.76132560000005,"total_seconds":174.87259549999987,"order":[1,2],"previous":1,"serial":3}
+R7 show_state {"page":2,"step":1,"playing":false,"ended":false,"paused":false,"blank":null,"elapsed_seconds":0.0,"slide_seconds":44.76132560000005,"total_seconds":174.87259549999987,"order":[1,2],"previous":1,"serial":4}
+R7 show_state {"page":2,"step":0,"playing":false,"ended":false,"paused":false,"blank":null,"elapsed_seconds":0.0,"slide_seconds":50.25778130000006,"total_seconds":180.36905119999992,"order":[1,2],"previous":1,"serial":5}
+R7 show_state {"page":2,"step":0,"playing":true,"ended":false,"paused":false,"blank":null,"elapsed_seconds":0.0,"slide_seconds":54.75454620000002,"total_seconds":184.8658160999998,"order":[1,2],"previous":1,"serial":6}
+JoyDeck show_frame pixels=2467x1388 scale=2.5694 prepare_us=12579 frames=54 rasters=56 cache_hits=0
+JoyDeck show_prepare samples=15 mean_us=13155 peak_us=17360 (worker preparation, excludes GPU presentation)
+R7 show_state {"page":2,"step":1,"playing":false,"ended":false,"paused":true,"blank":null,"elapsed_seconds":0.0,"slide_seconds":59.25990300000003,"total_seconds":189.37117289999975,"order":[1,2],"previous":1,"serial":7}
+R7 show_closed frames=55

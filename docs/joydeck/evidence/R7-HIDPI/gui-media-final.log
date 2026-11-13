@@ -1,0 +1,34 @@
+R6/R7 open_started=true request=1
+JoyDeck window opened · GPUI Kit 0.8.1 / pre 0.3.10
+R6/R7 opened=true pages=3 elapsed_ms=354
+R4 scene {"builds":2,"hits":0,"misses":10,"cpu_tiles":4,"backdrop_rasters":2,"native_paths":5,"glyphs":48,"cache_bytes":6692888,"build_micros":3204}
+R7 show_start {"page":1,"step":0,"playing":false,"ended":false,"paused":false,"blank":null,"elapsed_seconds":0.0,"slide_seconds":0.0,"total_seconds":0.0,"order":[1,3],"previous":null,"serial":0}
+JoyDeck show_frame pixels=2467x1388 scale=3.4259 prepare_us=54152 frames=1 rasters=2 cache_hits=0
+JoyDeck show_prepare samples=1 mean_us=54152 peak_us=54152 (worker preparation, excludes GPU presentation)
+R7 show_first_frame prepare_us=61748
+JoyDeck show_frame pixels=2467x1388 scale=3.4259 prepare_us=39914 frames=30 rasters=3 cache_hits=28
+JoyDeck show_prepare samples=29 mean_us=273587 peak_us=5726768 (worker preparation, excludes GPU presentation)
+JoyDeck show_frame pixels=2467x1388 scale=3.4259 prepare_us=80115 frames=60 rasters=3 cache_hits=58
+JoyDeck show_prepare samples=30 mean_us=62939 peak_us=240656 (worker preparation, excludes GPU presentation)
+JoyDeck show_frame pixels=2467x1388 scale=3.4259 prepare_us=188106 frames=90 rasters=6 cache_hits=85
+JoyDeck show_prepare samples=30 mean_us=102497 peak_us=410081 (worker preparation, excludes GPU presentation)
+JoyDeck show_frame pixels=2467x1388 scale=3.4259 prepare_us=40447 frames=120 rasters=6 cache_hits=115
+JoyDeck show_prepare samples=30 mean_us=81954 peak_us=184710 (worker preparation, excludes GPU presentation)
+JoyDeck show_frame pixels=2467x1388 scale=3.4259 prepare_us=64539 frames=150 rasters=6 cache_hits=145
+JoyDeck show_prepare samples=30 mean_us=100998 peak_us=320284 (worker preparation, excludes GPU presentation)
+JoyDeck show_frame pixels=2467x1388 scale=3.4259 prepare_us=48492 frames=180 rasters=6 cache_hits=175
+JoyDeck show_prepare samples=30 mean_us=82471 peak_us=204370 (worker preparation, excludes GPU presentation)
+JoyDeck show_frame pixels=2467x1388 scale=3.4259 prepare_us=42110 frames=210 rasters=6 cache_hits=205
+JoyDeck show_prepare samples=30 mean_us=78045 peak_us=145183 (worker preparation, excludes GPU presentation)
+JoyDeck show_frame pixels=2467x1388 scale=3.4259 prepare_us=59768 frames=240 rasters=6 cache_hits=235
+JoyDeck show_prepare samples=30 mean_us=74878 peak_us=237676 (worker preparation, excludes GPU presentation)
+JoyDeck show_frame pixels=2467x1388 scale=3.4259 prepare_us=88945 frames=270 rasters=6 cache_hits=265
+JoyDeck show_prepare samples=30 mean_us=56318 peak_us=197959 (worker preparation, excludes GPU presentation)
+JoyDeck show_frame pixels=2467x1388 scale=3.4259 prepare_us=58739 frames=300 rasters=6 cache_hits=295
+JoyDeck show_prepare samples=30 mean_us=52871 peak_us=126991 (worker preparation, excludes GPU presentation)
+JoyDeck show_frame pixels=2467x1388 scale=3.4259 prepare_us=97135 frames=330 rasters=6 cache_hits=325
+JoyDeck show_prepare samples=30 mean_us=70181 peak_us=195360 (worker preparation, excludes GPU presentation)
+JoyDeck show_frame pixels=2467x1388 scale=3.4259 prepare_us=59817 frames=360 rasters=6 cache_hits=355
+JoyDeck show_prepare samples=30 mean_us=73911 peak_us=165827 (worker preparation, excludes GPU presentation)
+R7 show_state {"page":3,"step":0,"playing":false,"ended":false,"paused":false,"blank":null,"elapsed_seconds":0.0,"slide_seconds":0.0,"total_seconds":58.53069490000003,"order":[1,3],"previous":1,"serial":5}
+R7 show_closed frames=383

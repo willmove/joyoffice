@@ -1,0 +1,160 @@
+{
+  "date": "2026-11-13",
+  "branch": "fix/joydeck-slideshow-dpi",
+  "base_head": "55b1507177ab1140a4fdf545cfceffe0b60ae4ff",
+  "source_state": "Uncommitted task changes on an isolated worktree; no release tag or CI claim",
+  "source_sha256": {
+    "crates/joydeck-render/src/transition.rs": "1214d1992252ec4d6138f608c05f3fd28c9f8a67c3b4a2b2b82b0ca819fe302d",
+    "crates/joydeck-shell/src/lib.rs": "2c1717d028ada2a3761138ac3c175e78cfdf1e8735782dee918d2453d3824a83",
+    "crates/joydeck-shell/src/show.rs": "e39378702c7471a7fcd25cc2fa4819c127841e10afd9f38ac63b4efb115d2203",
+    "crates/joydeck-shell/src/show_tests.rs": "b8ed7668ea82949c4d0c9b4fcbf39db9604aa24bad5da44184e9ccb1939aeb56",
+    "crates/joydeck-shell/src/show_render.rs": "b5801ce83191ca4edb82ffecf797fac45b22613ee3659c208ac3e083b50debe3",
+    "crates/joydeck-ui-gpui/src/slideshow.rs": "05a2638b40ee4c1fe5b061e7eeabf51168ccdad9f1dd5b0a53ca4ac9b6832537",
+    "crates/joydeck-ui-gpui/src/slideshow_frames.rs": "37ad614ef5be2aa7919ce9eba896e837bebc6a22733ad963c42069ecf1ef9cc5"
+  },
+  "artifacts_sha256": {
+    "target/release/joydeck.exe": "9369beebb632b725c842c6eb7c7825e8442b31e993bbd75261ca4123e21f3c58",
+    "target/release/joydeck-cli.exe": "9d248964866dfe87c9902e1ab13a27e635bd349a3255d4c6fe51714ffea293e6"
+  },
+  "product_check": {
+    "command": "cargo xtask check joydeck --release",
+    "exit_code": 0,
+    "suites": 51,
+    "passed": 982,
+    "failed": 0,
+    "ignored": 0,
+    "log_sha256": "e87387499a88a08f8546bc6728d8b52a551e7ba965e91f35ff78c3995448dfd9",
+    "ui_tests": 14,
+    "render_tests": 199,
+    "targeted_show_tests": 5
+  },
+  "build": {
+    "command": "cargo xtask build joydeck --release",
+    "exit_code": 0,
+    "helpers": "python scripts/joydeck/build-windows-helpers.py --output target/release"
+  },
+  "r6_r7": {
+    "cli_calls": 35,
+    "mcp_responses": 52,
+    "exit_code": 0
+  },
+  "gui": {
+    "desktop": "Windows interactive desktop, 2560x1440, default scale 125%; virtual display adapter present",
+    "scale_configurations_exercised_percent": [
+      100,
+      125,
+      150,
+      200
+    ],
+    "final_dpi_fix_retested": "200% fullscreen startup and live 200% -> 125% fullscreen refit",
+    "restored_scale_percent": 125,
+    "motion": "Fade transition and object animation triggered and terminal state observed; midpoint pause not captured",
+    "media_final_binary": "Muted H.264 playing, paused at 2.6s, seek to 0.0s while paused, resume, changing decoded frames; skip hidden page to page 3; helper exit; Escape and editor exit",
+    "media_cache_sample": {
+      "frames": 360,
+      "rasters": 6,
+      "cache_hits": 355
+    },
+    "dpi_animation_log": "Final Viewport implementation, before subsequent Clock and opaque blend changes; final media GUI uses latest binary",
+    "test_windows_closed": true
+  },
+  "benchmark": {
+    "baseline": [
+      {
+        "kind": "static",
+        "scale": 1,
+        "ms": 14.25
+      },
+      {
+        "kind": "static",
+        "scale": 2,
+        "ms": 20.84
+      },
+      {
+        "kind": "static",
+        "scale": 4,
+        "ms": 53.92
+      },
+      {
+        "kind": "transition",
+        "scale": 1,
+        "ms": 40.89
+      },
+      {
+        "kind": "transition",
+        "scale": 2,
+        "ms": 137.66
+      },
+      {
+        "kind": "transition",
+        "scale": 4,
+        "ms": 527.21
+      }
+    ],
+    "final": [
+      {
+        "kind": "static",
+        "scale": 1,
+        "ms": 11.48
+      },
+      {
+        "kind": "static",
+        "scale": 2,
+        "ms": 19.76
+      },
+      {
+        "kind": "static",
+        "scale": 4,
+        "ms": 50.5
+      },
+      {
+        "kind": "transition",
+        "scale": 1,
+        "ms": 16.49
+      },
+      {
+        "kind": "transition",
+        "scale": 2,
+        "ms": 35.12
+      },
+      {
+        "kind": "transition",
+        "scale": 4,
+        "ms": 112.97
+      }
+    ],
+    "scope": "Idle-host sequential runs; median of 3 end-to-end RPC + raster + PNG encode/write calls; not display FPS"
+  },
+  "not_verified": [
+    "Physical 4K display",
+    "Physical multi-monitor / differing monitor resolutions",
+    "macOS/Linux/Xinchuang hardware",
+    "All complex transitions at 60 FPS",
+    "Audio hearing and A/V synchronization; media retains existing approximately 10Hz update policy"
+  ],
+  "evidence_sha256": {
+    "after-fullscreen-125.jpg": "8705fc912876d93ead89879962908eb17104268af1cdb9125c3676817d8d565c",
+    "after-fullscreen-200.jpg": "ca5d9f3962a6d79121ee11055d88f8cb04ea92776687ff1359edc3eebf22b38b",
+    "baseline-idle-timings.json": "217243c635192acad2d70c3f94d35e9fb40eab0fa7edef499a3cfa01dbb79907",
+    "before-fullscreen-125.jpg": "f3d27036066b0d1d89ad7b6b510b77048baa2fe0f5d4f4e48038ae9364ad51f4",
+    "bench_comparison.py": "391c6aee32701e9adbffd5a74f22c9ba79a70abc364a88c5fb2797dd6c251b90",
+    "clarity.pptx": "5f8b7fafb74fbbe57a87bdbeab7bfe5133a55c690a986400e3214dc6618716dd",
+    "create_fixture.py": "050b1cfa2a9fa748f73a90278993dfba09e495ebf18b141f4b1d3903cc15efcc",
+    "final-idle-timings.json": "dbb33ecc23d522821346106be48bb4a4b7ac26b48ae4d56a58b3887a0fcb8351",
+    "gui-dpi-animation.log": "f8201c0cf0835a7f18d58b901b525f0a7e8395ddf440442f3b52af80fc7f028a",
+    "gui-media-final.log": "6b412ee36a40d216fc7aa07b54c6fe987367f877216a8b5e870c4ed5e6dc1091",
+    "media-frame-a.jpg": "00f8e6f7d7c583fca5991a50d5e27b911c697e2d894a85a6a0d5b48d64b1c84b",
+    "media-frame-b.jpg": "86c63e6c736aaa1cf82239c67f67af6bcdddc022de2ccbf85ac10219f8ba2ffb",
+    "media-paused.jpg": "3e85abfefff3d495c20fae65726f3538f850c863146c4763effbd120188463d7",
+    "media-seek.jpg": "9901dfed3c50b7773c1830ffb3823c0e55f5c534a1b8994f0a9d629300b10ad0",
+    "r6-r7-final.json": "5b4378cbb0ac4b8896ad69d41c55e15261d110877aaf7adbe86cd8bdca5c5814",
+    "README.md": "2f507bc820f21d13032bd121daa1fd4bc4b683e317d280ee66ccc07749036c96"
+  },
+  "post_document_checks": [
+    "python scripts/check_docs.py",
+    "python scripts/joydeck/check_refactor_docs.py",
+    "python scripts/check_gates.py",
+    "python scripts/joydeck/check_sources.py",
+    "git diff --check"
+  ]
+}
