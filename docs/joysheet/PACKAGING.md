@@ -15,7 +15,7 @@ JoySheet 的青绿四格 LOGO 随包位于 [assets/brand/joysheet.svg](../../ass
 
 ## Windows
 
-安装器使用 NSIS 3.11（zlib），本机路径为 `artifacts/joysheet/tools/nsis-3.11`；也可设置 `JOYSHEET_NSIS` 指向 makensis.exe。CI 安装精确版本。官方 [下载](https://nsis.sourceforge.io/Download)及[版本/哈希数据](https://nsis-dev.github.io/release-data/versions.json)给出的 Windows ZIP SHA256 为 `c7d27f780ddb6cffb4730138cd1591e841f4b7edb155856901cdf5f214394fa1`，工具不随源码检查点分发。
+安装器使用 NSIS 3.11（zlib），与 Word/Deck 共用 `scripts/package_windows.py` 和 `scripts/windows/joyoffice.nsi`，Sheet 的 CRT 收集和签名入口保留。本机路径为 `artifacts/joysheet/tools/nsis-3.11`；也可设置 `JOYOFFICE_NSIS` 或兼容的 `JOYSHEET_NSIS` 指向 makensis.exe。CI 安装精确版本。官方 [下载](https://nsis.sourceforge.io/Download)及[版本/哈希数据](https://nsis-dev.github.io/release-data/versions.json)给出的 Windows ZIP SHA256 为 `c7d27f780ddb6cffb4730138cd1591e841f4b7edb155856901cdf5f214394fa1`，工具不随源码检查点分发。
 
 用户级安装到 `%LOCALAPPDATA%/Programs/Joysheet`，含开始菜单和卸载器。“打开方式”组件可选，保留默认应用。卸载按清单删除包文件，保留额外文件及用户配置/恢复目录。`/TEST` 隔离模式执行同一文件解包和卸载代码，禁用快捷方式和注册表写入；测试结果不能替代这些系统集成的实际验收。自动安装后 GUI 检查使用验证版包。
 

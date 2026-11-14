@@ -31,15 +31,18 @@ def filename(product, version, platform, arch):
     return f'{product}-{version}-{platform}-{arch}{suffix}'
 
 
-def installer_filename(version, platform, arch):
+def installer_filename(product, version, platform, arch):
+    if product != 'joysheet' and platform != 'windows':
+        raise ValueError('Only JoySheet has macOS/Linux installers')
     suffix = {'windows': '-setup.exe', 'macos': '.dmg', 'linux': '.deb'}[platform]
-    return f'joysheet-{version}-{platform}-{arch}-release{suffix}'
+    release = '' if product == 'joyword' else '-release'
+    return f'{product}-{version}-{platform}-{arch}{release}{suffix}'
 
 
 def expected_files(product, version):
     assets = [filename(product, version, *pair) for pair in MATRIX]
-    if product == 'joysheet':
-        assets += [installer_filename(version, *pair) for pair in MATRIX]
+    assets += [installer_filename(product, version, *pair) for pair in MATRIX
+               if product == 'joysheet' or pair[0] == 'windows']
     return set(assets + [name + '.sha256' for name in assets])
 
 
@@ -196,8 +199,8 @@ def digest_file(path):
         return hashlib.file_digest(stream, 'sha256').hexdigest()
 
 
-def prepare_installer(directory, version, platform, arch):
-    path = directory / installer_filename(version, platform, arch)
+def prepare_installer(directory, product, version, platform, arch):
+    path = directory / installer_filename(product, version, platform, arch)
     if platform == 'macos':
         subprocess.run(['hdiutil', 'verify', str(path)], check=True)
     elif platform == 'linux':
@@ -242,9 +245,9 @@ def main():
     args = parser.parse_args()
     if args.prepare_installer:
         pair = tuple(args.prepare_installer)
-        if args.product != 'joysheet' or pair not in MATRIX:
-            parser.error('Installer preparation requires JoySheet and a release platform/architecture')
-        prepare_installer(args.directory, args.version, *pair)
+        if pair not in MATRIX or (args.product != 'joysheet' and pair[0] != 'windows'):
+            parser.error('Installer preparation requires a supported product/platform/architecture')
+        prepare_installer(args.directory, args.product, args.version, *pair)
     else:
         verify_assets(args.directory, args.product, args.version)
 

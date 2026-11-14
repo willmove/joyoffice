@@ -1,0 +1,12 @@
+{
+  "installedCli": true,
+  "keptInstalled": true,
+  "installer": "D:\\Coding\\EditorProjects\\joyoffice\\target\\windows-installers-v014\\joyword-0.1.4-windows-x86_64-setup.exe",
+  "systemIntegration": true,
+  "product": "joyword",
+  "archive": "D:\\Coding\\EditorProjects\\joyoffice\\target\\windows-installers-v014\\joyword-0.1.4-windows-x86_64.zip",
+  "installation": "D:\\Coding\\EditorProjects\\joyoffice\\target\\installer-smoke\\joyword-1794615791999\\中文 installation",
+  "payloadMatchesArchive": true,
+  "uninstalled": true,
+  "unrelatedFilePreserved": true
+}

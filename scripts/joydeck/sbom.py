@@ -82,6 +82,8 @@ def source_hashes(data, packages, reached):
     for product in {packages[i]['name'] for i in reached} & {'joyword', 'joydeck', 'joysheet'}:
         files.update(ROOT / 'assets/brand' / f'{product}.{extension}' for extension in ('svg', 'ico', 'icns'))
         files.update(ROOT / 'scripts' / script for script in ('product_icons.py', 'generate_product_icons.py'))
+        files.update(ROOT / name for name in ('scripts/package_windows.py',
+                     'scripts/windows/joyoffice.nsi', 'scripts/verify_release_assets.py'))
     is_word = any(packages[i]['name'] in ('joyword', 'joyword-cli') for i in reached)
     is_sheet = any(packages[i]['name'] == 'joysheet' for i in reached)
     if is_sheet:

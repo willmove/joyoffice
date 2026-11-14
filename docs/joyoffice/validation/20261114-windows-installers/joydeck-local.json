@@ -1,0 +1,12 @@
+{
+  "installation": "D:\\Coding\\EditorProjects\\joyoffice\\target\\installer-smoke\\joydeck-1794615840857\\中文 installation",
+  "product": "joydeck",
+  "payloadMatchesArchive": true,
+  "installedCli": true,
+  "archive": "D:\\Coding\\EditorProjects\\joyoffice\\target\\windows-installers-v014\\joydeck-0.1.4-windows-x86_64-release.zip",
+  "keptInstalled": true,
+  "systemIntegration": true,
+  "installer": "D:\\Coding\\EditorProjects\\joyoffice\\target\\windows-installers-v014\\joydeck-0.1.4-windows-x86_64-release-setup.exe",
+  "uninstalled": true,
+  "unrelatedFilePreserved": true
+}

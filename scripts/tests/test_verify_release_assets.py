@@ -100,8 +100,8 @@ class ReleaseAssets(unittest.TestCase):
         for platform, arch in assets.MATRIX:
             kwargs = override if (platform, arch) == ('linux', 'x86_64') else {}
             package(self.directory, product, '0.1.0', platform, arch, **kwargs)
-            if product == 'joysheet':
-                name = assets.installer_filename('0.1.0', platform, arch)
+            if product == 'joysheet' or platform == 'windows':
+                name = assets.installer_filename(product, '0.1.0', platform, arch)
                 installer = self.directory / name
                 installer.write_bytes(b'installer fixture')
                 (self.directory / (name + '.sha256')).write_text(
@@ -136,13 +136,23 @@ class ReleaseAssets(unittest.TestCase):
 
     def test_sheet_cannot_publish_a_missing_or_corrupted_installer(self):
         self.matrix('joysheet')
-        installer = self.directory / assets.installer_filename('0.1.0', 'windows', 'aarch64')
+        installer = self.directory / assets.installer_filename('joysheet', '0.1.0', 'windows', 'aarch64')
         installer.write_bytes(b'corrupted')
         with self.assertRaisesRegex(ValueError, 'setup.exe: SHA-256 sidecar'):
             assets.verify_assets(self.directory, 'joysheet', '0.1.0')
         installer.unlink()
         with self.assertRaisesRegex(ValueError, 'asset set differs'):
             assets.verify_assets(self.directory, 'joysheet', '0.1.0')
+
+    def test_word_and_deck_require_both_windows_installers(self):
+        for product in ('joyword', 'joydeck'):
+            with self.subTest(product=product), tempfile.TemporaryDirectory() as tmp:
+                self.directory = Path(tmp)
+                self.matrix(product)
+                name = assets.installer_filename(product, '0.1.0', 'windows', 'aarch64')
+                (self.directory / name).unlink()
+                with self.assertRaisesRegex(ValueError, 'asset set differs'):
+                    assets.verify_assets(self.directory, product, '0.1.0')
 
     def test_rejects_missing_platform_and_bad_checksum(self):
         self.matrix('joydeck')

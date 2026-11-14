@@ -19,7 +19,7 @@ JoyWord、JoyDeck 和 JoySheet 共享根 `Cargo.toml` 的工作区版本，使�
 
 ## 自动构建和发布
 
-`.github/workflows/release.yml` 在六种原生 runner 构建桌面和 CLI：Windows、macOS、Linux 各 x86_64 与 ARM64。JoyWord 提供 ZIP 或 TAR.GZ，JoyDeck 提供 ZIP，JoySheet 另含 Windows Setup EXE、macOS DMG 或 Linux DEB。
+`.github/workflows/release.yml` 在六种原生 runner 构建桌面和 CLI：Windows、macOS、Linux 各 x86_64 与 ARM64。JoyWord 提供 ZIP 或 TAR.GZ，JoyDeck 提供 ZIP，三个产品均另含 Windows Setup EXE；JoySheet 在 macOS/Linux 还提供 DMG/DEB。Windows 安装器共用 NSIS 3.11，实现、原生安装检查及已有版本的安装器补充分发见[三产品 Windows 安装器](../joyoffice/WINDOWS-INSTALLERS.md)。
 
 所有平台完成后，工作流验证完整资产矩阵、归档成员、架构、版本、构建信息、SHA-256 和 SBOM。自动建标签模式只允许从 main 创建指向当前提交的新标签。草稿上传后再次核对 GitHub 资产集合及摘要，全部通过才公开预览版，不覆盖已有公开 Release。
 

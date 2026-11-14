@@ -16,7 +16,7 @@
 
 | 契约 | R8 状态与迁移方式 |
 | --- | --- |
-| 产品、文件打开 | 保留 `JoyWord`、`joyword`，应用和 CLI 使用 JoyOffice 统一版本 0.1.4。桌面接受 Unicode 文档路径与 `-- PATH`。Windows 本机的 DOCX 默认处理程序为 `Word.Document.12`。便携包通过桌面「打开」或命令行接收路径，安装器注册和系统默认切换留待发布验收。macOS bundle id 保留 `dev.joyoffice.joyword`。 |
+| 产品、文件打开 | 保留 `JoyWord`、`joyword`，应用和 CLI 使用 JoyOffice 统一版本 0.1.4。桌面接受 Unicode 文档路径与 `-- PATH`。Windows 本机的 DOCX 默认处理程序为 `Word.Document.12`。便携包通过桌面「打开」或命令行接收路径；已接入用户级 Setup EXE 和可选 Open with 注册，不切换系统默认应用，完整关联/升级验收继续开放。[安装器](WINDOWS-INSTALLERS.md)。macOS bundle id 保留 `dev.joyoffice.joyword`。 |
 | 偏好 | 配置根仍为 Windows `%APPDATA%/JoyWord`、Linux `$XDG_CONFIG_HOME/joyword` 或 `~/.config/joyword`、macOS `~/Library/Application Support/JoyWord`。可用 `JOYWORD_CONFIG_DIR` 隔离验证。活动文件为 `migration-preview/preferences.conf`，缺失时只读旧根目录的 `preferences.conf`。语言和迁移版主题生效。作者名接入审阅，最近文档接入文件页。开发工具的「用户信息与单位」保存作者和度量单位，新会话读取这两项。各版式面板中的度量字段仍需逐项核对。桌面自动恢复按 `autosave.minutes` 写入草稿，默认 10 分钟，0 停止周期写入且可继续发现既有草稿。桌面新建空白页使用 `new.page` 的 A4 或 Letter 预设。 |
 | 恢复与原件保存 | 桌面「打开」或 `joyword -- PATH.jwr` 可读旧日志，CLI 为 `recover [--] JOURNAL [--save NEW.docx]`。打开任一标准槽名会检查整个目录。日志以只读方式打开，恢复进入独立 R8 编辑会话，用户选择新 DOCX 路径后才写入副本并读回。完整快照正文核对通过且未经编辑时原样另存。当前恢复目录继续使用 `migration-preview/r3-recovery`。启动会检查旧配置目录的已发布日志，用户可从恢复提示显式打开副本。 |
 | CLI 与自动化 | `inspect\|text [--max-text-bytes N] [--compatibility] [--] PATH` 恢复 schema 1、UTF-8 字节上限和退出码 0/2/3。R8 会话检查用 `inspect\|text --session [--] PATH`。无界面 MCP 继续使用显式目录边界。桌面可通过 `--control PORT` 启用认证后的活动文档操作，详见下文。 |

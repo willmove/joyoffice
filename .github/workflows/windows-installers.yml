@@ -1,0 +1,78 @@
+name: Windows installer validation
+
+# Supplemental installers use already-published, checksum-verified application
+# bytes. This workflow never moves product tags or replaces public assets.
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Existing product release version (without v)
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: windows-installers-${{ inputs.version }}
+  cancel-in-progress: false
+jobs:
+  installer:
+    name: Install ${{ matrix.product }} (${{ matrix.arch }})
+    strategy:
+      fail-fast: false
+      matrix:
+        product: [joyword, joydeck, joysheet]
+        arch: [x86_64, aarch64]
+    runs-on: ${{ matrix.arch == 'aarch64' && 'windows-11-arm' || 'windows-2022' }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: ${{ matrix.arch == 'aarch64' && '3.12.10' || '3.12' }}
+          architecture: ${{ matrix.arch == 'aarch64' && 'arm64' || 'x64' }}
+      - name: Pinned installer compiler
+        run: choco install nsis --version=3.11 -y --no-progress
+      - name: Download and verify the original public payload
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PRODUCT: ${{ matrix.product }}
+          ARCH: ${{ matrix.arch }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          if ($env:VERSION -notmatch '^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$') { throw 'Invalid release version' }
+          $base = "$env:PRODUCT-$env:VERSION-windows-$env:ARCH"
+          if ($env:PRODUCT -ne 'joyword') { $base += '-release' }
+          $tag = "$env:PRODUCT-v$env:VERSION"
+          New-Item -ItemType Directory -Path payload, installers | Out-Null
+          gh release download $tag --repo $env:GITHUB_REPOSITORY --pattern "$base.zip" --pattern "$base.zip.sha256" --dir payload
+          if ($LASTEXITCODE -ne 0) { throw 'Public payload download failed' }
+          $release = gh api "repos/$env:GITHUB_REPOSITORY/releases/tags/$tag" | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0 -or $release.draft) { throw 'Public release is required' }
+          foreach ($file in Get-ChildItem payload -File) {
+            $asset = @($release.assets | Where-Object name -eq $file.Name)
+            $digest = 'sha256:' + (Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+            if ($asset.Count -ne 1 -or $asset[0].state -ne 'uploaded' -or $asset[0].digest -ne $digest) { throw 'Public payload digest differs' }
+          }
+          git fetch --no-tags origin "refs/tags/$tag"
+          if ($LASTEXITCODE -ne 0) { throw 'Release tag is missing' }
+          @{tag=$tag;commit=(git rev-parse 'FETCH_HEAD^{commit}');assets=$release.assets} | ConvertTo-Json -Depth 10 | Set-Content payload-origin.json -Encoding utf8
+          "PAYLOAD_BASE=$base" >> $env:GITHUB_ENV
+      - name: Build installer from the original ZIP
+        env:
+          PRODUCT: ${{ matrix.product }}
+          ARCH: ${{ matrix.arch }}
+          VERSION: ${{ inputs.version }}
+        run: python scripts/package_windows.py --product "$env:PRODUCT" --version "$env:VERSION" --arch "$env:ARCH" --archive "payload/$env:PAYLOAD_BASE.zip" --output "installers/$env:PAYLOAD_BASE-setup.exe"
+      - name: Install, compare every payload file, run CLI and uninstall safely
+        shell: pwsh
+        run: ./scripts/windows/installer-smoke.ps1 -Product '${{ matrix.product }}' -Installer "installers/$env:PAYLOAD_BASE-setup.exe" -Archive "payload/$env:PAYLOAD_BASE.zip"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: windows-installers-${{ matrix.product }}-${{ matrix.arch }}
+          path: |
+            installers/*
+            payload-origin.json
+            target/installer-smoke/**/report.json
+            target/installer-smoke/**/installed-cli.log
+          if-no-files-found: error

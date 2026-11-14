@@ -12,8 +12,8 @@ $runtimeArch=switch($metadata.target){
     'aarch64-pc-windows-msvc' {'arm64'}
     default {throw "Unsupported Windows target: $($metadata.target)"}
 }
-$displayName="JoySheet $version preview"
-$compiler=$env:JOYSHEET_NSIS
+$compiler=$env:JOYOFFICE_NSIS
+if(!$compiler){$compiler=$env:JOYSHEET_NSIS}
 if(!$compiler){$compiler=Join-Path $workspace 'artifacts/joysheet/tools/nsis-3.11/makensis.exe'}
 if(!(Test-Path -LiteralPath $compiler)){$found=Get-Command makensis.exe -ErrorAction SilentlyContinue;if($found){$compiler=$found.Source}else{$compiler=Join-Path ${env:ProgramFiles(x86)} 'NSIS/makensis.exe'}}
 if(!(Test-Path -LiteralPath $compiler)){throw 'Install NSIS or set JOYSHEET_NSIS to makensis.exe. See docs/joysheet/PACKAGING.md.'}
@@ -31,19 +31,13 @@ if(Test-Path -LiteralPath $vswhere){
 }
 $nsisNotice=Join-Path (Split-Path $compiler -Parent) 'COPYING'
 if(Test-Path -LiteralPath $nsisNotice){New-Item -ItemType Directory -Path (Join-Path $payload 'licenses') -Force|Out-Null;Copy-Item -LiteralPath $nsisNotice -Destination (Join-Path $payload 'licenses/NSIS-COPYING.txt')}
-$build=Join-Path $workspace 'artifacts/joysheet/packaging'
-New-Item -ItemType Directory -Path $build -Force|Out-Null
-$files=@(Get-ChildItem -LiteralPath $payload -Recurse -File)
-function Escape-Nsis([string]$Text){return $Text.Replace('$','$$').Replace('"','$\"')}
-$deletes=@($files|ForEach-Object {'Delete "$INSTDIR\'+(Escape-Nsis ([IO.Path]::GetRelativePath($payload,$_.FullName)))+'"'})
-$dirs=@(Get-ChildItem -LiteralPath $payload -Recurse -Directory|Sort-Object {$_.FullName.Length} -Descending|ForEach-Object {'RMDir "$INSTDIR\'+(Escape-Nsis ([IO.Path]::GetRelativePath($payload,$_.FullName)))+'"'})
-($deletes+$dirs)|Set-Content -LiteralPath (Join-Path $build 'uninstall-files.nsh') -Encoding utf8NoBOM
-Copy-Item -LiteralPath (Join-Path $workspace 'scripts/joysheet/joysheet.nsi') -Destination $build
-& $compiler /V2 "/DPAYLOAD=$payload" "/DOUTPUT=$([IO.Path]::GetFullPath($Output))" "/DICON=$workspace\assets\brand\joysheet.ico" "/DVERSION=$version" "/DDISPLAY_NAME=$displayName" (Join-Path $build 'joysheet.nsi')
+& python (Join-Path $workspace 'scripts/package_windows.py') --product joysheet --directory $payload --output ([IO.Path]::GetFullPath($Output)) --compiler $compiler
 if($LASTEXITCODE -ne 0){throw 'NSIS compilation failed'}
 if($env:JOYSHEET_WINDOWS_SIGN_THUMBPRINT){
     $sign=Get-Command signtool.exe -ErrorAction Stop
     & $sign.Source sign /sha1 $env:JOYSHEET_WINDOWS_SIGN_THUMBPRINT /fd SHA256 /tr 'http://timestamp.digicert.com' /td SHA256 $Output
     if($LASTEXITCODE -ne 0){throw 'Signing installer failed'}
+    $digest=(Get-FileHash -LiteralPath $Output -Algorithm SHA256).Hash.ToLowerInvariant()
+    "$digest  $([IO.Path]::GetFileName($Output))"|Set-Content -LiteralPath ($Output+'.sha256') -Encoding ascii
 }
 Get-Item -LiteralPath $Output |Select-Object Name,Length

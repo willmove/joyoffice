@@ -1,0 +1,24 @@
+{
+  "rustChanges": false,
+  "localLogs": {
+    "sbom-tests.log": "5be6b01e04681def3e690b6ba8c572d6f18ba11d843a2ed704e7debd1aa7273c",
+    "python-tests-final.log": "bddcfbf6d0170d6dc5116eb6483fbc673d86d085e297b7a2680ff425277077ed"
+  },
+  "docsPassed": true,
+  "date": "2026-11-14",
+  "pythonTests": {
+    "run": 194,
+    "skipped": 7,
+    "failed": 0
+  },
+  "xtaskTests": {
+    "passed": 16
+  },
+  "applicationCommit": "fee5a463c740c6f37f09476678f2848fa136ff0b",
+  "gatesRustFiles": 1519,
+  "sbomRetest": {
+    "run": 10,
+    "skipped": 1,
+    "failed": 0
+  }
+}

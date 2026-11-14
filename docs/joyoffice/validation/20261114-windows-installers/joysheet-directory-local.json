@@ -1,0 +1,12 @@
+{
+  "product": "joysheet",
+  "installation": "D:\\Coding\\EditorProjects\\joyoffice\\target\\installer-smoke\\joysheet-1794616284019\\中文 installation",
+  "payloadMatchesArchive": true,
+  "installedCli": true,
+  "uninstalled": true,
+  "unrelatedFilePreserved": true,
+  "installer": "D:\\Coding\\EditorProjects\\joyoffice\\target\\windows-installers-v014\\sheet-directory-regression-setup.exe",
+  "archive": "D:\\Coding\\EditorProjects\\joyoffice\\target\\windows-installers-v014\\sheet-directory-expected\\joysheet-0.1.4-windows-x86_64-release.zip",
+  "keptInstalled": false,
+  "systemIntegration": false
+}

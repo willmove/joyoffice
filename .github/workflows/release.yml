@@ -109,8 +109,8 @@ jobs:
           xcrun --find metal
       - name: Fixed Rust toolchain
         run: rustup toolchain install 1.98.1 --profile minimal
-      - name: Sheet Windows installer compiler
-        if: runner.os == 'Windows' && needs.resolve.outputs.product == 'joysheet'
+      - name: Windows installer compiler
+        if: runner.os == 'Windows'
         run: choco install nsis --version=3.11 -y --no-progress
       - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
         with:
@@ -132,9 +132,31 @@ jobs:
             fi
             cargo xtask package "$RELEASE_PRODUCT" --release
           fi
-      - name: Verify and checksum the Sheet installer
-        if: needs.resolve.outputs.product == 'joysheet'
-        run: python scripts/verify_release_assets.py dist/joysheet joysheet "${{ needs.resolve.outputs.version }}" --prepare-installer "${{ matrix.platform }}" "${{ matrix.arch }}"
+      - name: Build the Word or Deck Windows installer
+        if: runner.os == 'Windows' && needs.resolve.outputs.product != 'joysheet'
+        shell: bash
+        env:
+          RELEASE_PRODUCT: ${{ needs.resolve.outputs.product }}
+          RELEASE_VERSION: ${{ needs.resolve.outputs.version }}
+          RELEASE_ARCH: ${{ matrix.arch }}
+        run: |
+          base="$RELEASE_PRODUCT-$RELEASE_VERSION-windows-$RELEASE_ARCH"
+          if [ "$RELEASE_PRODUCT" = joydeck ]; then base="$base-release"; fi
+          python scripts/package_windows.py --product "$RELEASE_PRODUCT" --version "$RELEASE_VERSION" --arch "$RELEASE_ARCH" --archive "dist/$RELEASE_PRODUCT/$base.zip" --output "dist/$RELEASE_PRODUCT/$base-setup.exe"
+      - name: Verify and checksum the installer
+        if: runner.os == 'Windows' || needs.resolve.outputs.product == 'joysheet'
+        run: python scripts/verify_release_assets.py "dist/${{ needs.resolve.outputs.product }}" "${{ needs.resolve.outputs.product }}" "${{ needs.resolve.outputs.version }}" --prepare-installer "${{ matrix.platform }}" "${{ matrix.arch }}"
+      - name: Test Windows installation, installed CLI and safe uninstall
+        if: runner.os == 'Windows'
+        shell: pwsh
+        env:
+          RELEASE_PRODUCT: ${{ needs.resolve.outputs.product }}
+          RELEASE_VERSION: ${{ needs.resolve.outputs.version }}
+          RELEASE_ARCH: ${{ matrix.arch }}
+        run: |
+          $base = "$env:RELEASE_PRODUCT-$env:RELEASE_VERSION-windows-$env:RELEASE_ARCH"
+          if ($env:RELEASE_PRODUCT -ne 'joyword') { $base += '-release' }
+          ./scripts/windows/installer-smoke.ps1 -Product $env:RELEASE_PRODUCT -Installer "dist/$env:RELEASE_PRODUCT/$base-setup.exe" -Archive "dist/$env:RELEASE_PRODUCT/$base.zip"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: release-${{ needs.resolve.outputs.product }}-${{ matrix.platform }}-${{ matrix.arch }}
@@ -147,6 +169,8 @@ jobs:
             dist/${{ needs.resolve.outputs.product }}/${{ needs.resolve.outputs.product }}-${{ needs.resolve.outputs.version }}-${{ matrix.platform }}-${{ matrix.arch }}-release.zip.sha256
             dist/${{ needs.resolve.outputs.product }}/${{ needs.resolve.outputs.product }}-${{ needs.resolve.outputs.version }}-${{ matrix.platform }}-${{ matrix.arch }}-release-setup.exe
             dist/${{ needs.resolve.outputs.product }}/${{ needs.resolve.outputs.product }}-${{ needs.resolve.outputs.version }}-${{ matrix.platform }}-${{ matrix.arch }}-release-setup.exe.sha256
+            dist/${{ needs.resolve.outputs.product }}/${{ needs.resolve.outputs.product }}-${{ needs.resolve.outputs.version }}-${{ matrix.platform }}-${{ matrix.arch }}-setup.exe
+            dist/${{ needs.resolve.outputs.product }}/${{ needs.resolve.outputs.product }}-${{ needs.resolve.outputs.version }}-${{ matrix.platform }}-${{ matrix.arch }}-setup.exe.sha256
             dist/${{ needs.resolve.outputs.product }}/${{ needs.resolve.outputs.product }}-${{ needs.resolve.outputs.version }}-${{ matrix.platform }}-${{ matrix.arch }}-release.dmg
             dist/${{ needs.resolve.outputs.product }}/${{ needs.resolve.outputs.product }}-${{ needs.resolve.outputs.version }}-${{ matrix.platform }}-${{ matrix.arch }}-release.dmg.sha256
             dist/${{ needs.resolve.outputs.product }}/${{ needs.resolve.outputs.product }}-${{ needs.resolve.outputs.version }}-${{ matrix.platform }}-${{ matrix.arch }}-release.deb

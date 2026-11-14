@@ -6,16 +6,18 @@ JoyWord is a paginated word processor. The archives include JoyWord and `joyword
 
 ### Download and install
 
+Windows x64 and ARM64 Setup EXE installers were added on 2026-11-14 using the original v0.1.4 ZIP payloads. Application bytes and release tags are unchanged. Installers remain unsigned; optional Open with registration preserves the default application.
+
 | OS and processor | Download | SHA-256 files |
 | --- | --- | --- |
-| Windows x64 | [ZIP](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.4/joyword-0.1.4-windows-x86_64.zip) | [ZIP](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.4/joyword-0.1.4-windows-x86_64.zip.sha256) |
-| Windows ARM64 | [ZIP](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.4/joyword-0.1.4-windows-aarch64.zip) | [ZIP](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.4/joyword-0.1.4-windows-aarch64.zip.sha256) |
+| Windows x64 | [Setup EXE](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.4/joyword-0.1.4-windows-x86_64-setup.exe) · [ZIP](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.4/joyword-0.1.4-windows-x86_64.zip) | [Setup EXE](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.4/joyword-0.1.4-windows-x86_64-setup.exe.sha256) · [ZIP](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.4/joyword-0.1.4-windows-x86_64.zip.sha256) |
+| Windows ARM64 | [Setup EXE](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.4/joyword-0.1.4-windows-aarch64-setup.exe) · [ZIP](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.4/joyword-0.1.4-windows-aarch64.zip) | [Setup EXE](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.4/joyword-0.1.4-windows-aarch64-setup.exe.sha256) · [ZIP](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.4/joyword-0.1.4-windows-aarch64.zip.sha256) |
 | macOS Apple Silicon | [ZIP](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.4/joyword-0.1.4-macos-aarch64.zip) | [ZIP](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.4/joyword-0.1.4-macos-aarch64.zip.sha256) |
 | macOS Intel | [ZIP](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.4/joyword-0.1.4-macos-x86_64.zip) | [ZIP](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.4/joyword-0.1.4-macos-x86_64.zip.sha256) |
 | Linux x64 | [TAR.GZ](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.4/joyword-0.1.4-linux-x86_64.tar.gz) | [TAR.GZ](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.4/joyword-0.1.4-linux-x86_64.tar.gz.sha256) |
 | Linux ARM64 | [TAR.GZ](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.4/joyword-0.1.4-linux-aarch64.tar.gz) | [TAR.GZ](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.4/joyword-0.1.4-linux-aarch64.tar.gz.sha256) |
 
-- **Windows** Extract the ZIP and run `joyword.exe`. Keep its companion files together.
+- **Windows** Run the Setup EXE for a per-user installation with Start menu and uninstall entries, or extract the ZIP and run `joyword.exe`. Keep companion files together.
 - **macOS** Extract the ZIP and open `JoyWord.app`, or drag it to Applications.
 - **Linux** Extract the archive and run `./joyword` in a desktop session.
 
@@ -40,16 +42,18 @@ JoyWord 是分页文字处理软件。压缩包内含 JoyWord 和 `joyword-cli`�
 
 ### 下载与安装
 
+2026-11-14 补充 Windows x64、ARM64 Setup EXE 安装器，载荷来自原 v0.1.4 ZIP，应用字节与发布标签保持原值。安装器仍未签名；可选“打开方式”注册保留现有默认应用。
+
 | 系统与架构 | 下载 | SHA-256 校验文件 |
 | --- | --- | --- |
-| Windows x64 | [ZIP](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.4/joyword-0.1.4-windows-x86_64.zip) | [ZIP](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.4/joyword-0.1.4-windows-x86_64.zip.sha256) |
-| Windows ARM64 | [ZIP](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.4/joyword-0.1.4-windows-aarch64.zip) | [ZIP](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.4/joyword-0.1.4-windows-aarch64.zip.sha256) |
+| Windows x64 | [Setup EXE](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.4/joyword-0.1.4-windows-x86_64-setup.exe) · [ZIP](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.4/joyword-0.1.4-windows-x86_64.zip) | [Setup EXE](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.4/joyword-0.1.4-windows-x86_64-setup.exe.sha256) · [ZIP](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.4/joyword-0.1.4-windows-x86_64.zip.sha256) |
+| Windows ARM64 | [Setup EXE](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.4/joyword-0.1.4-windows-aarch64-setup.exe) · [ZIP](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.4/joyword-0.1.4-windows-aarch64.zip) | [Setup EXE](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.4/joyword-0.1.4-windows-aarch64-setup.exe.sha256) · [ZIP](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.4/joyword-0.1.4-windows-aarch64.zip.sha256) |
 | macOS Apple 芯片 | [ZIP](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.4/joyword-0.1.4-macos-aarch64.zip) | [ZIP](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.4/joyword-0.1.4-macos-aarch64.zip.sha256) |
 | macOS Intel | [ZIP](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.4/joyword-0.1.4-macos-x86_64.zip) | [ZIP](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.4/joyword-0.1.4-macos-x86_64.zip.sha256) |
 | Linux x64 | [TAR.GZ](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.4/joyword-0.1.4-linux-x86_64.tar.gz) | [TAR.GZ](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.4/joyword-0.1.4-linux-x86_64.tar.gz.sha256) |
 | Linux ARM64 | [TAR.GZ](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.4/joyword-0.1.4-linux-aarch64.tar.gz) | [TAR.GZ](https://github.com/willmove/joyoffice/releases/download/joyword-v0.1.4/joyword-0.1.4-linux-aarch64.tar.gz.sha256) |
 
-- **Windows** 解压 ZIP 后运行 `joyword.exe`，保留同目录的配套文件。
+- **Windows** 运行 Setup EXE 安装到当前用户目录，并创建开始菜单及卸载入口；也可解压 ZIP 后运行 `joyword.exe`，保留同目录的配套文件。
 - **macOS** 解压 ZIP 后打开 `JoyWord.app`，也可将其拖入「应用程序」。
 - **Linux** 解压后在图形会话中运行 `./joyword`。
 
