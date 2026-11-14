@@ -31,6 +31,12 @@ foreach ($file in Get-ChildItem -LiteralPath $payload -Recurse -File) {
     if (!(Test-Path -LiteralPath $installed) -or (Get-FileHash -LiteralPath $installed).Hash -ne (Get-FileHash -LiteralPath $file.FullName).Hash) { throw "Installed payload differs: $relative" }
 }
 if (!(Test-Path -LiteralPath (Join-Path $install 'INSTALLER-INFO.json'))) { throw 'Missing installer provenance' }
+$provenance = Get-Content -LiteralPath (Join-Path $install 'INSTALLER-INFO.json') -Raw | ConvertFrom-Json
+if (!$provenance.appLocalRuntime -or !(Test-Path -LiteralPath (Join-Path $install 'vcruntime140.dll'))) { throw 'Missing app-local VC++ runtime' }
+foreach ($entry in $provenance.appLocalRuntime.sha256.PSObject.Properties) {
+    $runtimePath = Join-Path $install $entry.Name
+    if ((Get-FileHash -LiteralPath $runtimePath -Algorithm SHA256).Hash.ToLowerInvariant() -ne $entry.Value) { throw 'App-local runtime digest differs' }
+}
 if ($SystemIntegration) {
     if ((Get-ItemProperty -LiteralPath $registry).InstallLocation -ne $install -or !(Test-Path -LiteralPath $shortcut)) { throw 'Missing registry entry or Start menu shortcut' }
 } elseif (!(Test-Path -LiteralPath (Join-Path $install ".$Product-install-smoke"))) { throw 'Missing isolated test marker' }
@@ -38,7 +44,7 @@ if ($SystemIntegration) {
 if ($LASTEXITCODE -ne 0) { throw 'Installed CLI failed' }
 $sentinel = Join-Path $install 'user-owned.txt'
 'preserve this unrelated file' | Set-Content -LiteralPath $sentinel
-$report = @{product=$Product;installer=(Resolve-Path -LiteralPath $Installer).Path;archive=$archivePath;installation=$install;payloadMatchesArchive=$true;installedCli=$true;systemIntegration=[bool]$SystemIntegration;keptInstalled=[bool]$KeepInstalled}
+$report = @{product=$Product;installer=(Resolve-Path -LiteralPath $Installer).Path;archive=$archivePath;installation=$install;payloadMatchesArchive=$true;installedCli=$true;appLocalRuntime=$provenance.appLocalRuntime;systemIntegration=[bool]$SystemIntegration;keptInstalled=[bool]$KeepInstalled}
 if (!$KeepInstalled) {
     $process = Start-Process -FilePath (Join-Path $install 'Uninstall.exe') -ArgumentList '/S' -WindowStyle Hidden -PassThru -Wait
     $deadline = [DateTime]::UtcNow.AddSeconds(30)

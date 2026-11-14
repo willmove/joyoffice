@@ -17,7 +17,9 @@ python scripts/package_windows.py --product joyword --version 0.1.4 --arch x86_6
 pwsh -File scripts/windows/installer-smoke.ps1 -Product joyword -Installer dist/joyword/joyword-0.1.4-windows-x86_64-setup.exe -Archive dist/joyword/joyword-0.1.4-windows-x86_64.zip
 ```
 
-安装器包含 `INSTALLER-INFO.json`，记录载荷 ZIP SHA256（从目录构建时为空）、目标架构、编译器版本和安装器源码指纹。默认 smoke 使用 `/S /TEST` 隔离目录，跳过快捷方式和注册表；`-SystemIntegration` 只在没有既有产品注册项/快捷方式时验证真实当前用户安装登记。它不代表 GUI、可选关联、升级回滚或所有系统集成场景已验收。
+安装器包含 `INSTALLER-INFO.json`，记录载荷 ZIP SHA256（从目录构建时为空）、目标架构、编译器版本和安装器源码指纹。原载荷已含 VC++ app-local CRT 时保留其字节；缺失时从匹配架构的已安装 Visual Studio `VC/Redist/MSVC/<版本>/<架构>/Microsoft.VC*.CRT` 收集 release DLL，记录精确源目录和逐文件 SHA256，缺少时拒绝生成。保留 Microsoft 通知，不从系统目录、debug_nonredist 或非官方 DLL 站点收集。便携 ZIP 的原字节不改动，Word/Deck ZIP 仍需系统提供 VC++ v14 运行库。
+
+默认 smoke 使用 `/S /TEST` 隔离目录，跳过快捷方式和注册表，并核对原载荷、运行库和 CLI；`-SystemIntegration` 只在没有既有产品注册项/快捷方式时验证真实当前用户安装登记。它不代表 GUI、可选关联、升级回滚或所有系统集成场景已验收。
 
 ## 预览边界
 

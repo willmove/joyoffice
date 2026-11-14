@@ -83,7 +83,8 @@ def source_hashes(data, packages, reached):
         files.update(ROOT / 'assets/brand' / f'{product}.{extension}' for extension in ('svg', 'ico', 'icns'))
         files.update(ROOT / 'scripts' / script for script in ('product_icons.py', 'generate_product_icons.py'))
         files.update(ROOT / name for name in ('scripts/package_windows.py',
-                     'scripts/windows/joyoffice.nsi', 'scripts/verify_release_assets.py'))
+                     'scripts/windows/joyoffice.nsi', 'scripts/verify_release_assets.py',
+                     'licenses/joyoffice/MSVC-RUNTIME-NOTICE.txt'))
     is_word = any(packages[i]['name'] in ('joyword', 'joyword-cli') for i in reached)
     is_sheet = any(packages[i]['name'] == 'joysheet' for i in reached)
     if is_sheet:

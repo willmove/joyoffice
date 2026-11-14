@@ -9,6 +9,8 @@
 - Word/Deck 卸载后当前用户登记和快捷方式移除，额外 `user-owned.txt` 保留。Sheet 检测到本机既有安装，系统登记测试按契约拒绝覆盖，改用 `/TEST` 隔离回归。
 - Computer Use/sky 实屏验证安装目录中的普通生产应用：Word 打开随包混合中英文、图片、表格 DOCX；Deck 普通编辑窗口显示正常。证据：[Word](gui/word-installed.png)、[Deck](gui/deck-installed.png)。
 - Python 安装器与发布门禁回归初轮 194 项，7 项既有环境跳过，无失败。最终工程和原生 runner 结果以同目录证据及工作流为准。
+- 发布前通过 MSVC `dumpbin /DEPENDENTS` 确认 Word/Deck 原 ZIP 的 EXE 依赖 `VCRUNTIME140.dll`，而归档不含该文件。共用安装器补入匹配架构的 Visual Studio release CRT，保留原应用字节，增加运行库 SHA256 和通知。初轮 native smoke 未检查运行库完整性，最终流程增加该检查后重新执行，不以装有开发工具的主机启动替代干净系统验收。
+- 运行库补丁后 196 项脚本回归通过、7 项既有环境跳过；Word/Deck 当前用户安装、逐文件对比、运行库哈希、CLI 和安全卸载再次通过。Word 真正加载的 `vcruntime140.dll` 路径位于新安装目录，[模块证据](word-runtime-loaded.json)与[窗口截图](gui/word-runtime-installed.png)单列保留。初轮和补丁后报告不混为同一次执行。
 
 ## 验证边界与交付
 

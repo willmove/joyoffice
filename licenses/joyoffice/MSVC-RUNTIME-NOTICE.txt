@@ -1,0 +1,19 @@
+Microsoft Visual C++ Runtime
+
+The app-local Visual C++ runtime DLLs are unmodified Microsoft components.
+Copyright Microsoft Corporation. They are not covered by JoyOffice's MIT license.
+
+When not already supplied by the application payload, packaging copies release
+DLLs from the matching architecture's Microsoft.VC*.CRT folder under the licensed
+Visual Studio installation's VC/Redist/MSVC directory. Debug/nonredistributable
+files and DLLs from the Windows system directory are not collected.
+
+The source folder identity, architecture and exact file SHA-256 values are listed
+in INSTALLER-INFO.json under appLocalRuntime. Existing runtime bytes in a published
+payload are preserved. App-local runtime servicing requires an application update.
+
+Microsoft redistribution/deployment references (the applicable Visual Studio
+Software License Terms govern redistribution):
+https://learn.microsoft.com/en-us/cpp/windows/redistributing-visual-cpp-files
+https://learn.microsoft.com/en-us/cpp/windows/choosing-a-deployment-method
+https://learn.microsoft.com/en-us/visualstudio/releases/2022/redistribution

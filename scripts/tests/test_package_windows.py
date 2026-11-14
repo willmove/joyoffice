@@ -73,6 +73,26 @@ class WindowsInstaller(unittest.TestCase):
             installer.compile_payload(self.directory, output, 'joyword', Path('makensis.exe'))
         self.assertEqual(output.read_bytes(), b'published installer')
 
+    def test_missing_runtime_is_added_from_redist_and_fingerprinted(self):
+        payload = self.directory / 'payload'
+        (payload / 'licenses').mkdir(parents=True)
+        redist = self.directory / '14.44.0/x64/Microsoft.VC143.CRT'
+        redist.mkdir(parents=True)
+        (redist / 'vcruntime140.dll').write_bytes(b'redistributable fixture')
+        with patch.object(installer, 'runtime_directory', return_value=redist):
+            result = installer.collect_runtime(payload, 'x86_64')
+        self.assertEqual((payload / 'vcruntime140.dll').read_bytes(), b'redistributable fixture')
+        self.assertEqual(result['sha256']['vcruntime140.dll'], installer.digest_file(redist / 'vcruntime140.dll'))
+
+    def test_existing_payload_runtime_is_preserved_without_host_substitution(self):
+        (self.directory / 'licenses').mkdir()
+        (self.directory / 'vcruntime140.dll').write_bytes(b'original release bytes')
+        with patch.object(installer, 'runtime_directory') as locate:
+            result = installer.collect_runtime(self.directory, 'aarch64')
+            locate.assert_not_called()
+        self.assertEqual((self.directory / 'vcruntime140.dll').read_bytes(), b'original release bytes')
+        self.assertEqual(result['origin'], 'original payload')
+
 
 if __name__ == '__main__':
     unittest.main()

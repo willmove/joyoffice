@@ -6,7 +6,7 @@ JoyDeck is a presentation editor. This preview includes the R9 desktop applicati
 
 ### Download and install
 
-Windows x64 and ARM64 Setup EXE installers were added on 2026-11-14 using the original v0.1.4 ZIP payloads. Application bytes and release tags are unchanged. Installers remain unsigned; optional Open with registration preserves the default application.
+Windows x64 and ARM64 Setup EXE installers were added on 2026-11-14 using the original v0.1.4 ZIP payloads, with app-local Visual C++ runtime DLLs included. Application bytes and release tags are unchanged. Installers remain unsigned; optional Open with registration preserves the default application. The original portable ZIP requires a system-provided Visual C++ v14 runtime.
 
 | OS and processor | Download | SHA-256 files |
 | --- | --- | --- |
@@ -46,7 +46,7 @@ JoyDeck 是演示文稿编辑器。本预览包包含 R9 桌面应用和 `joydec
 
 ### 下载与安装
 
-2026-11-14 补充 Windows x64、ARM64 Setup EXE 安装器，载荷来自原 v0.1.4 ZIP，应用字节与发布标签保持原值。安装器仍未签名；可选“打开方式”注册保留现有默认应用。
+2026-11-14 补充 Windows x64、ARM64 Setup EXE 安装器，载荷来自原 v0.1.4 ZIP，并携带 app-local Visual C++ 运行库 DLL，应用字节与发布标签保持原值。安装器仍未签名；可选“打开方式”注册保留现有默认应用。原便携 ZIP 仍需系统提供 Visual C++ v14 运行库。
 
 | 系统与架构 | 下载 | SHA-256 校验文件 |
 | --- | --- | --- |

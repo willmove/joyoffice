@@ -80,6 +80,45 @@ def write_uninstall_inventory(payload, destination):
                            encoding='utf-8')
 
 
+def runtime_directory(arch):
+    program_files = Path(os.environ.get('ProgramFiles(x86)', 'C:/Program Files (x86)'))
+    vswhere = program_files / 'Microsoft Visual Studio/Installer/vswhere.exe'
+    component = 'Microsoft.VisualStudio.Component.VC.Tools.' + ('ARM64' if arch == 'aarch64' else 'x86.x64')
+    installation = subprocess.check_output([str(vswhere), '-latest', '-products', '*', '-requires',
+                                            component, '-property', 'installationPath'], text=True).strip()
+    if not installation:
+        raise ValueError('Matching Visual Studio C++ redistributable is required')
+    root = Path(installation) / 'VC/Redist/MSVC'
+    versions = sorted((p for p in root.iterdir() if p.is_dir() and re.fullmatch(r'v?\d+(?:\.\d+)*', p.name)),
+                      key=lambda p: (p.name.startswith('v'), tuple(map(int, p.name.lstrip('v').split('.')))),
+                      reverse=True)
+    for version in versions:
+        folder = version / ('arm64' if arch == 'aarch64' else 'x64')
+        for candidate in sorted(folder.glob('Microsoft.VC*.CRT')):
+            if (candidate / 'vcruntime140.dll').is_file():
+                return candidate.resolve()
+    raise ValueError('Matching Visual Studio C++ redistributable is missing')
+
+
+def collect_runtime(payload, arch):
+    # Preserve existing published runtime bytes (notably Sheet's app-local CRT).
+    # For archives without a CRT, use only the licensed VS Redist release folder,
+    # never System32, debug_nonredist or a DLL downloaded from an arbitrary site.
+    origin = 'original payload'
+    if not (payload / 'vcruntime140.dll').is_file():
+        source = runtime_directory(arch)
+        origin = '/'.join(source.parts[-4:])
+        for path in source.glob('*.dll'):
+            if not (payload / path.name).exists():
+                shutil.copy2(path, payload / path.name)
+    files = {p.name: digest_file(p) for p in sorted(payload.glob('*.dll'))
+             if p.name.lower().startswith(('vcruntime', 'msvcp', 'concrt', 'vccorlib'))}
+    if not any(name.lower() == 'vcruntime140.dll' for name in files):
+        raise ValueError('App-local vcruntime140.dll is required')
+    shutil.copy2(ROOT / 'licenses/joyoffice/MSVC-RUNTIME-NOTICE.txt', payload / 'licenses/MSVC-RUNTIME-NOTICE.txt')
+    return {'origin': origin, 'arch': arch, 'sha256': files}
+
+
 def compile_payload(directory, output, product, compiler, *, archive_sha256=None):
     version, arch = payload_info(directory, product)
     if output.exists() or output.with_name(output.name + '.sha256').exists():
@@ -95,14 +134,15 @@ def compile_payload(directory, output, product, compiler, *, archive_sha256=None
         shutil.copytree(directory, payload)
         (payload / 'licenses').mkdir(exist_ok=True)
         shutil.copy2(compiler.parent / 'COPYING', payload / 'licenses/NSIS-COPYING.txt')
+        runtime = collect_runtime(payload, arch)
         title, progid, description, extensions, license_file = PRODUCTS[product]
         (payload / license_file).read_bytes()
         provenance = {'product': product, 'version': version, 'target': info_target(arch),
                       'payloadArchiveSha256': archive_sha256, 'compiler': 'NSIS 3.11',
-                      'publisherSigned': False,
+                      'publisherSigned': False, 'appLocalRuntime': runtime,
                       'installerSources': {name: digest_file(ROOT / name) for name in (
                           'scripts/package_windows.py', 'scripts/windows/joyoffice.nsi',
-                          'scripts/verify_release_assets.py')}}
+                          'scripts/verify_release_assets.py', 'licenses/joyoffice/MSVC-RUNTIME-NOTICE.txt')}}
         (payload / 'INSTALLER-INFO.json').write_text(json.dumps(provenance, indent=2) + '\n', encoding='utf-8')
         write_uninstall_inventory(payload, build / 'uninstall-files.nsh')
         definitions = {'PRODUCT': product, 'TITLE': title, 'DISPLAY_NAME': f'{title} {version} preview',

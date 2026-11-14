@@ -20,5 +20,13 @@
     "run": 10,
     "skipped": 1,
     "failed": 0
+  },
+  "runtimeRetest": {
+    "skipped": 7,
+    "wordAndDeckRuntimeInstallUninstall": true,
+    "appLocalModuleLoaded": true,
+    "run": 196,
+    "logSha256": "2def64a21398cecfd7cae8565dd98c90f0beeb5d939b197886dd180470b7ecf2",
+    "failed": 0
   }
 }

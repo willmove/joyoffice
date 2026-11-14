@@ -61,6 +61,10 @@ crates/joyoffice-opc/** text=auto eol=lf
 scripts/verify_gpui_pre_provenance.py text=auto eol=lf
 scripts/gpui_pre_reviewed_deviations.json text=auto eol=lf
 tools/xtask/src/main.rs text=auto eol=lf
+# Shared installer provenance uses the same source bytes on every runner.
+scripts/package_windows.py text eol=lf
+scripts/verify_release_assets.py text eol=lf
+scripts/windows/** text=auto eol=lf
 
 # R0-R8 imported evidence is a verbatim archive with recorded byte hashes.
 docs/joydeck/evidence/R[0-8]*/** -text whitespace=-blank-at-eol,-blank-at-eof,cr-at-eol
