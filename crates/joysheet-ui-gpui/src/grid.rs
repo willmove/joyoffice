@@ -586,19 +586,8 @@ fn paint_sheet(state: &PaintState, area: Bounds<Pixels>, window: &mut Window, cx
         }
     }
     for cell in &cells {
-        let (x, y, w, h) =
-            (f32::from(cell.rect.origin.x), f32::from(cell.rect.origin.y), f32::from(cell.rect.size.width), f32::from(cell.rect.size.height));
-        let (l, t, r, b) = (x + 1., y + 1., x + w - 1., y + h - 1.);
-        let borders = &cell.style.borders;
         window.with_content_mask(Some(ContentMask { bounds: cell.clip }), |window| {
-            for (line, a, z) in [
-                (borders.left, [l, t], [l, b]),
-                (borders.top, [l, t], [r, t]),
-                (borders.right, [r, t], [r, b]),
-                (borders.bottom, [l, b], [r, b]),
-                (borders.diag_down, [l, t], [r, b]),
-                (borders.diag_up, [l, b], [r, t]),
-            ] {
+            for (line, a, z) in crate::complex_format::cell_border_segments(cell.rect, &cell.style.borders) {
                 crate::complex_format::border(a, z, line.style, rgb_color(line.color, &state.view, 0x3c5144), layout.zoom as f32, cell.clip, window);
             }
         });

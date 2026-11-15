@@ -1,5 +1,7 @@
 # Joysheet 实施状态
 
+2026-11-14：修复 XLSX 单线边框显示成双框线的问题，边框改在实际单元格边界绘制，相邻单元格共用同一位置。新增相邻／合并单元格及双线／斜线几何回归，完整产品 fmt、严格 Clippy、测试和 validation 构建通过；用户样本在五档缩放下通过 GPU 像素检查，并在 Windows 实屏确认。[验证与边界](validation/20261114-cell-borders/README.md)
+
 2026-11-13：补齐文件标签双击收起/展开，折叠时保留标签栏并移除工具区占位，F6 功能区焦点移到标签栏。完整产品检查 1,420 项通过、1 项既有测试忽略，fmt/严格 Clippy 和普通构建通过；Windows 实屏已验证开始/文件标签收展、收起后的单元格输入及 F6 功能区焦点。[记录与边界](../joyoffice/validation/20261113-ribbon-navigation/README.md)
 
 2026-11-11：新增三产品共享界面主题，Sheet 将原风格与 Word 合并为「青岚」，在标题栏「设置」提供青岚、素雅、晴空、暖砂的亮暗八个预设。兼容旧 dark 配置，两个原生窗口同步完整主题；单元格内容颜色保持原样。[主题说明](../joyoffice/THEMES.md) · [本机验证与边界](../joyoffice/validation/20261111-themes/README.md)

@@ -1,6 +1,21 @@
 //! Cell border and hatch primitives, clipped before expanding dash patterns.
 use gpui_kit::*;
-use joysheet_engine::model::{BorderStyle, PatternType};
+use joysheet_engine::model::{BorderLine, BorderStyle, Borders, PatternType};
+
+pub fn cell_border_segments(rect: Bounds<Pixels>, borders: &Borders) -> [(BorderLine, [f32; 2], [f32; 2]); 6] {
+    // Adjacent cells must use the same boundary. Insetting each cell's outline
+    // separates two thin shared borders into parallel lines with a visible gap.
+    let (l, t, r, b) = (f32::from(rect.left()), f32::from(rect.top()), f32::from(rect.right()), f32::from(rect.bottom()));
+    [
+        (borders.left, [l, t], [l, b]),
+        (borders.top, [l, t], [r, t]),
+        (borders.right, [r, t], [r, b]),
+        (borders.bottom, [l, b], [r, b]),
+        (borders.diag_down, [l, t], [r, b]),
+        (borders.diag_up, [l, b], [r, t]),
+    ]
+}
+
 pub fn checkbox(checked: bool, readonly: bool, rect: Bounds<Pixels>, scale: f32, window: &mut Window) {
     let side = (14. * scale).min(f32::from(rect.size.width) - 4.).min(f32::from(rect.size.height) - 2.).max(1.);
     let b = Bounds::new(
