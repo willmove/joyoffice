@@ -116,6 +116,7 @@ pub fn parameters(id: &str, mut p: Value) -> Result<Value, String> {
             // Send only edited properties. Applying a font change must not replace
             // theme colours or flatten mixed formatting in the selected range.
             let original = m.remove("_original");
+            let colors = m.remove("_colors").unwrap_or_default();
             let mut style = json!({});
             for (key, group, property) in [
                 ("fontName", "font", "name"),
@@ -146,7 +147,7 @@ pub fn parameters(id: &str, mut p: Value) -> Result<Value, String> {
                 let mut value = v.clone();
                 if matches!(key, "fontColor" | "fillForeground" | "fillBackground") {
                     let c = joysheet_engine::model::Color::from_hex(v.as_str().unwrap_or("")).ok_or("Color must be #RRGGBB")?;
-                    value = serde_json::to_value(c).map_err(|e| e.to_string())?;
+                    value = colors.get(key).cloned().unwrap_or(serde_json::to_value(c).map_err(|e| e.to_string())?);
                 }
                 if group.is_empty() {
                     style[property] = value;
@@ -217,11 +218,82 @@ pub fn parameters(id: &str, mut p: Value) -> Result<Value, String> {
             m.insert(key.into(), lines);
         }
         "home.conditionalFormat" if !m.contains_key("rule") => {
+            let initial = m.remove("_cfInitial").unwrap_or_default();
+            let model = m.remove("_modelRule");
+            if !matches!(m.get("operator").and_then(Value::as_str), Some("between" | "notBetween")) {
+                m.remove("value2");
+            }
+            let scale_keys = if m.get("scaleStops").and_then(Value::as_u64) == Some(3) {
+                vec!["colorLow", "colorMiddle", "colorHigh"]
+            } else {
+                vec!["colorLow", "colorHigh"]
+            };
+            let colors_changed = scale_keys.iter().any(|k| m.get(*k) != initial.get(*k)) || m.get("scaleStops") != initial.get("scaleStops");
+            let scale_colors = scale_keys.iter().filter_map(|k| m.get(*k).cloned()).collect::<Vec<_>>();
+            for key in ["scaleStops", "colorLow", "colorMiddle", "colorHigh"] {
+                m.remove(key);
+            }
             let mut rule = serde_json::Map::new();
-            for key in ["type", "operator", "value", "preset", "color", "set"] {
+            for key in [
+                "type", "operator", "value", "value2", "formula", "text", "rank", "bottom", "percent", "below", "period", "preset", "color", "set",
+                "gradient", "reverse",
+            ] {
                 if let Some(v) = m.remove(key) {
                     rule.insert(key.into(), v);
                 }
+            }
+            if rule.get("type").and_then(Value::as_str) == Some("colorScale") && !scale_colors.is_empty() {
+                rule.insert("colors".into(), json!(scale_colors));
+            }
+            if initial["preset"] == rule.get("preset").cloned().unwrap_or_default()
+                && let Some(mut style) = m.remove("_cfStyle")
+            {
+                if let Some(fields) = style.as_object_mut() {
+                    fields.retain(|k, _| matches!(k.as_str(), "font" | "fill" | "borders" | "align" | "num_fmt" | "protection"));
+                }
+                rule.insert("style".into(), style);
+            } else {
+                m.remove("_cfStyle");
+            }
+            if let Some(extra) = m.remove("_cfExtras").and_then(|v| v.as_object().cloned()) {
+                rule.extend(extra);
+            }
+            if let Some(model) = model {
+                let mut parsed =
+                    serde_json::to_value(joysheet_engine::cmd::insert::parse_cf_rule(&Value::Object(rule.clone())).map_err(|e| e.to_string())?)
+                        .map_err(|e| e.to_string())?;
+                if let (Some(old), Some(new)) = (model.as_object(), parsed.as_object_mut())
+                    && let (Some((kind, fields)), Some((new_kind, new_fields))) = (old.iter().next(), new.iter_mut().next())
+                    && kind == new_kind
+                    && let (Some(fields), Some(new_fields)) = (fields.as_object(), new_fields.as_object_mut())
+                {
+                    for (k, value) in fields {
+                        if k == "stops" && colors_changed {
+                            if let (Some(old), Some(new)) = (value.as_array(), new_fields.get_mut(k).and_then(Value::as_array_mut))
+                                && old.len() == new.len()
+                            {
+                                for (old, new) in old.iter().zip(new) {
+                                    let color = new[1].clone();
+                                    *new = old.clone();
+                                    new[1] = color;
+                                }
+                            }
+                            continue;
+                        }
+                        let key = match k.as_str() {
+                            "a" => "value",
+                            "b" => "value2",
+                            "op" => "operator",
+                            "style" => "preset",
+                            other => other,
+                        };
+                        if !rule.contains_key(key) || initial.get(key) == rule.get(key) {
+                            new_fields.insert(k.clone(), value.clone());
+                        }
+                    }
+                }
+                rule.clear();
+                rule.insert("model".into(), parsed);
             }
             m.insert("rule".into(), Value::Object(rule));
         }

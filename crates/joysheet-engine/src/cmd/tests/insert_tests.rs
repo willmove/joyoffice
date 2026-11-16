@@ -1,6 +1,26 @@
 use super::*;
 
 #[test]
+fn manager_replaces_rules_in_one_undo_and_refuses_invalid_formulas() {
+    let mut s = Session::new();
+    s.new_workbook();
+    s.execute("home.conditionalFormat", json!({"range":"A1:A5","rule":{"type":"cellIs","operator":"greaterThan","value":3}})).unwrap();
+    let original = s.doc().unwrap().wb.active().unwrap().cond_formats.clone();
+    let mut edited = original.clone();
+    edited[0].stop_if_true = true;
+    edited[0].ranges = vec![RangeRef::parse("B1:B5").unwrap()];
+    s.execute("home.manageRules", json!({"replaceAll":edited})).unwrap();
+    assert_eq!(s.doc().unwrap().wb.active().unwrap().cond_formats, edited);
+    s.execute("edit.undo", json!({})).unwrap();
+    assert_eq!(s.doc().unwrap().wb.active().unwrap().cond_formats, original);
+    let revision = s.doc().unwrap().revision;
+    let mut bad = original;
+    bad[0].rule = CfRule::Expression { formula: "SUM(".into(), style: Default::default() };
+    assert!(s.execute("home.manageRules", json!({"replaceAll":bad})).is_err());
+    assert_eq!(s.doc().unwrap().revision, revision);
+}
+
+#[test]
 fn manage_rules_delete_then_move() {
     let mut s = Session::new();
     s.new_workbook();

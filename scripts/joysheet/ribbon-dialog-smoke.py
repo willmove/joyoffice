@@ -205,7 +205,7 @@ def main():
         assert send("ui.inspect")["windows"][0]["revision"] == original
         dialog("home.formatCells")
         click("dialog-tab:2")
-        click("dialog-field:bold")
+        click("font-style:Bold")
         click("dialog-tab:1")
         click("dialog-tab:2")
         assert send("ui.inspect")["commandDialog"]["fields"]["bold"] == "true"
@@ -215,7 +215,7 @@ def main():
         assert after_b["font"]["bold"]
         assert after_b["font"]["size"] == 24
         assert after_b["font"]["color"] == before_b["font"]["color"]
-        checks.append("six Format Cells tabs, no-op OK, checkbox persistence and mixed-style preservation")
+        checks.append("six Format Cells tabs, no-op OK, font style persistence and mixed-style preservation")
         execute("pageLayout.pageSetup", {"orientation": "landscape", "paper": "A3", "scale": 85,
                                          "header": "&CReport", "left": 0.8, "titleRows": "1:2"})
         view = dialog("pageLayout.pageSetup")

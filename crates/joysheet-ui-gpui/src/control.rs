@@ -397,6 +397,7 @@ impl Desktop {
                         "menuItems":crate::ribbon_menus::tools(t.command).iter().map(|i|json!({"id":i.id,"command":i.command,"dialog":i.dialog,"params":i.params})).collect::<Vec<_>>()
                     })).collect::<Vec<_>>()})).collect::<Vec<_>>()});
                 inspect["panel"] = json!(self.daily_group);
+                inspect["excelControls"] = json!({"popupOpen":self.excel_ui.popup_open,"sortLevels":self.excel_ui.sort,"sortSelected":self.excel_ui.sort_selected,"fontCount":self.excel_ui.fonts.len(),"splitColumn":self.excel_ui.split_column,"formats":self.excel_ui.formats,"importPreview":self.excel_ui.import_preview,"rulesDraft":self.excel_ui.cf_draft,"rulesTarget":self.excel_ui.cf_target});
                 inspect["commandDialog"] = json!({"command":if self.palette_open {self.selected_command.as_deref()} else {None},"tab":self.dialog_tab,"error":self.dialog_error,
                     "fields":self.command_fields.iter().map(|f|(f.key.clone(),Value::String(f.value.read(cx).value().to_string()))).collect::<serde_json::Map<_,_>>()});
                 inspect["composing"] = json!(self.composing(window, cx));

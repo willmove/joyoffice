@@ -160,7 +160,31 @@ fn preview_import_does_not_mutate_the_live_document() {
     let result = run(&e, "__joysheet.previewImport", json!({"text":"Name,Amount\nA,42","sheet":"Preview"})).result.unwrap();
     assert_eq!(result["previewOnly"], true);
     assert_eq!(result["rows"], 2);
+    assert_eq!(result["cells"], json!([["Name", "Amount"], ["A", "42"]]));
     assert!(Arc::ptr_eq(&before, &e.latest().active().unwrap().workbook));
+}
+
+#[test]
+fn format_dialog_outline_and_font_share_one_undo_and_keep_interior_edges() {
+    let e = EngineClient::start().unwrap();
+    run(&e, "file.new", json!({}));
+    run(
+        &e,
+        "__joysheet.formatDialog",
+        json!({"format":{"range":"A1:C3","style":{"font":{"bold":true}}},"borders":[{"preset":"outside","style":"thin","color":"#123456"}]}),
+    );
+    let snap = e.latest();
+    let v = snap.active().unwrap();
+    let sh = v.sheet().unwrap();
+    let middle = v.workbook.styles.get(sh.style_id(joysheet_engine::core::CellRef::new(1, 1)));
+    assert!(middle.font.bold);
+    assert_eq!(middle.borders.top.style, joysheet_engine::model::BorderStyle::None);
+    let top = v.workbook.styles.get(sh.style_id(joysheet_engine::core::CellRef::new(0, 1)));
+    assert_eq!(top.borders.top.style, joysheet_engine::model::BorderStyle::Thin);
+    run(&e, "edit.undo", json!({}));
+    let snap = e.latest();
+    let v = snap.active().unwrap();
+    assert!(!v.workbook.styles.get(v.sheet().unwrap().style_id(joysheet_engine::core::CellRef::new(0, 0))).font.bold);
 }
 #[test]
 fn failed_save_preserves_document_and_existing_files() {

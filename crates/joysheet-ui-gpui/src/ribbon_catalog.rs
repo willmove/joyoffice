@@ -152,7 +152,7 @@ pub fn groups(tab: usize) -> Vec<Group> {
                 "Styles",
                 vec![
                     vec![t("conditional-format", "条件格式", "Conditional Formatting", I::TableProperties, "conditional").menu()],
-                    vec![t("format-as-table", "套用表格格式", "Format as Table", I::Table, "home.formatAsTable").dialog()],
+                    vec![t("format-as-table", "套用表格格式", "Format as Table", I::Table, "home.formatAsTable").menu()],
                     vec![t("cell-styles", "单元格样式", "Cell Styles", I::PanelsTopLeft, "cell-styles").menu()],
                 ],
             ),

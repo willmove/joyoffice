@@ -105,45 +105,67 @@ pub(super) fn remove_duplicates(s: &mut Session, p: &Json) -> Result<Json> {
 pub(super) fn text_to_columns(s: &mut Session, p: &Json) -> Result<Json> {
     let r = target_range(s, p)?;
     let sheet = target_sheet(s, p)?;
-    let mut delims: Vec<char> = p
-        .get("delimiters")
-        .and_then(Json::as_array)
-        .map(|a| a.iter().filter_map(|d| d.as_str().and_then(|x| x.chars().next())).collect())
-        .unwrap_or_else(|| vec!['\t']);
-    if let Some(o) = str_param(p, "other").and_then(|o| o.chars().next()) {
-        delims.push(o);
+    if r.count() > 2_000_000 {
+        return Err(bad("data.textToColumns", "selection too large"));
     }
-    let fixed: Option<Vec<usize>> =
-        p.get("fixedWidths").and_then(Json::as_array).map(|a| a.iter().filter_map(|x| x.as_u64().map(|v| v as usize)).collect());
-    let consecutive = bool_param(p, "treatConsecutive").unwrap_or(false);
-    let quote = str_param(p, "textQualifier").and_then(|q| q.chars().next()).unwrap_or('"');
+    let formats = p.get("columnFormats").and_then(Json::as_object);
+    if formats.is_some_and(|f| {
+        f.len() > 16_384
+            || f.iter().any(|(k, v)| {
+                k.parse::<usize>().is_err()
+                    || !matches!(
+                        v.as_str(),
+                        Some("general" | "text" | "skip" | "dateMDY" | "dateDMY" | "dateYMD" | "dateMYD" | "dateDYM" | "dateYDM")
+                    )
+            })
+    }) {
+        return Err(bad("data.textToColumns", "invalid column formats"));
+    }
     let dest = cell_param_on(s, p, "destination", sheet)?.unwrap_or(r.start);
     edit(s, |cx| {
         let Some(sh) = cx.wb.sheet(sheet) else { return Ok(()) };
-        let mut out: Vec<(CellRef, String)> = Vec::new();
+        let mut out: Vec<(CellRef, String, String)> = Vec::new();
         for (i, row) in (r.start.row..=r.end.row).enumerate() {
             let text = sh.value(CellRef::new(row, r.start.col)).display();
-            let parts: Vec<String> = match &fixed {
-                Some(w) => {
-                    let chars: Vec<char> = text.chars().collect();
-                    let mut cuts = vec![0];
-                    let mut breaks: Vec<usize> = w.iter().copied().filter(|x| *x > 0 && *x < chars.len()).collect();
-                    breaks.sort_unstable();
-                    breaks.dedup();
-                    cuts.extend(breaks);
-                    cuts.push(chars.len());
-                    cuts.windows(2)
-                        .map(|p| chars.get(p[0]..p[1]).map(|s| s.iter().collect::<String>().trim().to_string()).unwrap_or_default())
-                        .collect()
-                }
-                None => split_delimited(&text, &delims, consecutive, quote),
-            };
+            let parts = crate::text_columns::split(&text, p);
+            let mut column = 0u32;
             for (j, part) in parts.into_iter().enumerate() {
-                out.push((CellRef::new(dest.row + i as u32, dest.col + j as u32), part));
+                let format = formats.and_then(|f| f.get(&j.to_string())).and_then(Json::as_str).unwrap_or("general");
+                if format == "skip" {
+                    continue;
+                }
+                let row = dest
+                    .row
+                    .checked_add(i as u32)
+                    .filter(|r| *r < joysheet_core::MAX_ROWS)
+                    .ok_or_else(|| bad("data.textToColumns", "destination exceeds worksheet"))?;
+                let col = dest
+                    .col
+                    .checked_add(column)
+                    .filter(|c| *c < joysheet_core::MAX_COLS)
+                    .ok_or_else(|| bad("data.textToColumns", "destination exceeds worksheet"))?;
+                column += 1;
+                out.push((CellRef::new(row, col), part, format.to_string()));
+                if out.len() > 2_000_000 {
+                    return Err(bad("data.textToColumns", "output too large"));
+                }
             }
         }
-        for (c, t) in out {
-            let cell = crate::cmd::edit::input_to_cell(&t, sheet, c, &mut cx.wb).unwrap_or(None);
+        for (c, t, format) in out {
+            let date = crate::text_columns::date_value(&t, &format, cx.wb.date_system);
+            let mut cell = if format == "text" {
+                Some(Cell::value(Value::Text(t.into())))
+            } else if format.starts_with("date") {
+                Some(Cell::value(date.map(Value::number).unwrap_or_else(|| Value::Text(t.into()))))
+            } else {
+                crate::cmd::edit::input_to_cell(&t, sheet, c, &mut cx.wb)?
+            };
+            if let Some(cell) = &mut cell {
+                let style = cx.wb.sheet(sheet).map(|s| s.style_id(c)).unwrap_or_default();
+                if format == "text" || date.is_some() {
+                    cell.style = cx.wb.styles.derive(style, |s| s.num_fmt = NumFmt::new(if format == "text" { "@" } else { "yyyy-mm-dd" }));
+                }
+            }
             let shm = cx.sheet_mut(sheet)?;
             match cell {
                 Some(x) => shm.set_cell(c, x),
@@ -158,33 +180,5 @@ pub(super) fn text_to_columns(s: &mut Session, p: &Json) -> Result<Json> {
     ok()
 }
 
-pub(super) fn split_delimited(text: &str, delims: &[char], consecutive: bool, quote: char) -> Vec<String> {
-    let mut out = Vec::new();
-    let mut cur = String::new();
-    let mut in_q = false;
-    let mut last_delim = false;
-    let mut chars = text.chars().peekable();
-    while let Some(c) = chars.next() {
-        if c == quote {
-            if in_q && chars.peek() == Some(&quote) {
-                cur.push(quote);
-                chars.next();
-            } else {
-                in_q = !in_q;
-            }
-            continue;
-        }
-        if !in_q && delims.contains(&c) {
-            if consecutive && last_delim {
-                continue;
-            }
-            out.push(std::mem::take(&mut cur));
-            last_delim = true;
-            continue;
-        }
-        last_delim = false;
-        cur.push(c);
-    }
-    out.push(cur);
-    out
-}
+#[cfg(test)]
+pub(super) use crate::text_columns::split_delimited;

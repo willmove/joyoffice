@@ -1,6 +1,71 @@
 use super::*;
 
 #[test]
+fn editing_a_cell_rule_preserves_model_style_metadata_and_omits_unused_second_value() -> Result<(), String> {
+    use joysheet_engine::model::{CfOperator, CfRule, Style};
+    let style = Box::new(Style::default());
+    let original = CfRule::CellIs { op: CfOperator::Greater, a: "10".into(), b: None, style: style.clone() };
+    let initial = json!({"type":"cellIs","operator":"greaterThan","value":"=10","value2":"","preset":"greenFill"});
+    let mut p = initial.clone();
+    p["_cfInitial"] = initial;
+    p["_modelRule"] = serde_json::to_value(original).map_err(|e| e.to_string())?;
+    p["_cfStyle"] = serde_json::to_value(&style).map_err(|e| e.to_string())?;
+    p["value"] = json!("25");
+    let parsed = parameters("home.conditionalFormat", p)?;
+    assert_eq!(
+        joysheet_engine::cmd::insert::parse_cf_rule(&parsed["rule"]).map_err(|e| e.to_string())?,
+        CfRule::CellIs { op: CfOperator::Greater, a: "25".into(), b: None, style }
+    );
+    Ok(())
+}
+
+#[test]
+fn rule_edit_retains_custom_style_thresholds_and_preserves_formula_validation() -> Result<(), String> {
+    use joysheet_engine::model::{CfRule, CfValueKind, Color};
+    let original = CfRule::DataBar {
+        min: CfValueKind::Number(5.),
+        max: CfValueKind::Formula("A1*3".into()),
+        color: Color::Theme(4, 250),
+        gradient: false,
+        show_value: false,
+    };
+    let initial = json!({"type":"dataBar","color":"#638EC6","gradient":false,"preset":"greenFill"});
+    let mut p = initial.clone();
+    p["_cfInitial"] = initial;
+    p["_modelRule"] = serde_json::to_value(&original).map_err(|e| e.to_string())?;
+    p["range"] = json!("B1:B8");
+    let result = parameters("home.conditionalFormat", p.clone())?;
+    assert_eq!(joysheet_engine::cmd::insert::parse_cf_rule(&result["rule"]).map_err(|e| e.to_string())?, original);
+    p["color"] = json!("#123456");
+    let result = parameters("home.conditionalFormat", p)?;
+    let CfRule::DataBar { min, max, color, show_value, .. } =
+        joysheet_engine::cmd::insert::parse_cf_rule(&result["rule"]).map_err(|e| e.to_string())?
+    else {
+        return Err("wrong type".into());
+    };
+    assert_eq!(min, CfValueKind::Number(5.));
+    assert_eq!(max, CfValueKind::Formula("A1*3".into()));
+    assert_eq!(color, Color::Rgb(0x123456));
+    assert!(!show_value);
+    assert!(
+        parameters("home.conditionalFormat", json!({"type":"expression","formula":"SUM(","_modelRule":{"Expression":{"formula":"SUM(","style":{}}}}))
+            .is_err()
+    );
+    Ok(())
+}
+
+#[test]
+fn format_palette_keeps_theme_color_identity() -> Result<(), String> {
+    let initial = defaults("home.formatCells").ok_or("defaults")?;
+    let mut p = initial.clone();
+    p["fontColor"] = json!("#4472C4");
+    p["_colors"] = json!({"fontColor":{"Theme":[4,250]}});
+    p["_original"] = initial;
+    assert_eq!(parameters("home.formatCells", p)?["style"]["font"]["color"], json!({"Theme":[4,250]}));
+    Ok(())
+}
+
+#[test]
 fn format_dialog_changes_only_edited_properties_and_keeps_mixed_styles() -> Result<(), String> {
     let mut initial = defaults("home.formatCells").ok_or("defaults")?;
     let mut edited = initial.clone();

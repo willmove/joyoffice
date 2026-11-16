@@ -178,63 +178,189 @@ impl Desktop {
         })
         .detach();
     }
+
+    fn print_choice(&self, id: &str, value: String, items: Vec<(&str, &str, Value)>, cx: &mut Context<Self>) -> AnyElement {
+        let owner = cx.weak_entity();
+        let options = items.iter().map(|(k, l, _)| (k.to_string(), l.to_string())).collect();
+        let values = items.into_iter().map(|(k, _, v)| (k.to_string(), v)).collect::<std::collections::HashMap<_, _>>();
+        crate::excel_workflows::choice(
+            id.into(),
+            value,
+            options,
+            std::rc::Rc::new(move |key, _, cx| {
+                let _ = owner.update(cx, |v, cx| {
+                    if let Some(params) = values.get(&key) {
+                        v.issue("pageLayout.pageSetup", params.clone(), After::RefreshPrint, cx);
+                    }
+                });
+            }),
+            cx.weak_entity(),
+        )
+    }
     pub fn render_preview(&self, cx: &mut Context<Self>) -> impl IntoElement + use<> {
+        use gpui_kit::component::button::{Button, ButtonVariants};
         let p = self.preview.as_ref();
         let current = p.map_or(0, |p| p.page);
         let count = p.map_or(0, |p| p.document.pages.len());
         let image = p.and_then(|p| p.document.pages.get(current)).cloned();
         let stale = !self.preview_current();
-        let mut panel = div()
-            .occlude()
-            .id("print-preview-dialog")
-            .role(Role::Dialog)
-            .aria_label("打印预览 / Print preview")
-            .when_some(p, |panel, p| panel.track_focus(&p.focus))
-            .absolute()
-            .inset_0()
-            .bg(rgb(0xe5e9e6))
-            .p_4()
+        let settings = self.view().and_then(|v| v.sheet()).map(|s| s.print.clone()).unwrap_or_default();
+        let mut controls = div()
+            .id("print-settings")
+            .w(px(300.))
+            .flex_shrink_0()
+            .p_6()
             .flex()
             .flex_col()
             .gap_3()
+            .bg(rgb(self.palette().surface))
+            .child(div().text_size(px(28.)).child(self.label("打印", "Print")))
             .child(
-                div()
-                    .flex()
-                    .gap_4()
-                    .items_center()
-                    .child(format!("打印预览 / Print preview  {}/{}{}", current + 1, count, if stale { " · 文档已更改，请重新预览" } else { "" }))
-                    .child(gpui_kit::component::button::Button::new("preview-prev").label("←").on_click(cx.listener(|this, _, _, cx| {
-                        if let Some(p) = &mut this.preview {
-                            p.page = p.page.saturating_sub(1);
-                        }
-                        cx.notify();
-                    })))
-                    .child(gpui_kit::component::button::Button::new("preview-next").label("→").on_click(cx.listener(|this, _, _, cx| {
-                        if let Some(p) = &mut this.preview {
-                            p.page = (p.page + 1).min(p.document.pages.len().saturating_sub(1));
-                        }
-                        cx.notify();
-                    })))
-                    .child(
-                        gpui_kit::component::button::Button::new("preview-print")
-                            .label("系统打印… / Print…")
-                            .disabled(stale || self.print_dialog_generation.is_some())
-                            .on_click(cx.listener(|this, _, _, cx| this.system_print(cx))),
-                    )
-                    .child(
-                        gpui_kit::component::button::Button::new("preview-export")
-                            .label("导出 PDF…")
-                            .disabled(stale)
-                            .on_click(cx.listener(|this, _, w, cx| this.export_preview(w, cx))),
-                    )
-                    .child(gpui_kit::component::button::Button::new("preview-close").label("关闭 ×").on_click(cx.listener(|this, _, window, cx| {
-                        this.close_print_preview(window, cx);
-                    }))),
-            );
-        if let Some(path) = image {
-            panel = panel
-                .child(div().id("pdf-page").flex_1().min_h_0().overflow_y_scroll().flex().justify_center().child(img(path).w(px(760.)).h_auto()));
+                Button::new("preview-print")
+                    .relative()
+                    .child(self.advanced_probe("preview-print".into(), cx))
+                    .label(self.label("打印…", "Print…"))
+                    .disabled(stale || self.print_dialog_generation.is_some())
+                    .on_click(cx.listener(|v, _, _, cx| v.system_print(cx))),
+            )
+            .child(self.label("打印机", "Printer"))
+            .child(self.label("使用系统打印对话框选择打印机和份数", "Select printer and copies in the system print dialog"))
+            .child(div().font_weight(FontWeight::SEMIBOLD).child(self.label("设置", "Settings")));
+        let mut scope = div().flex().flex_col().gap_1();
+        for (key, zh, en) in [
+            ("active", "打印活动工作表", "Print Active Sheets"),
+            ("workbook", "打印整个工作簿", "Print Entire Workbook"),
+            ("selection", "打印选定区域", "Print Selection"),
+        ] {
+            scope = scope.child(Button::new(key).label(self.label(zh, en)).on_click(cx.listener(move |v, _, _, cx| {
+                v.excel_ui.print_params["sheets"] = json!(if key == "workbook" { "all" } else { "active" });
+                if key == "selection" {
+                    v.excel_ui.print_params["range"] = json!(v.selection().a1());
+                } else {
+                    v.excel_ui.print_params.as_object_mut().map(|m| m.remove("range"));
+                }
+                v.begin_print(v.excel_ui.print_params.clone(), false, cx);
+            })));
         }
-        panel
+        controls = controls.child(scope);
+        controls = controls.child(self.print_choice(
+            "print-orientation",
+            if settings.orientation == joysheet_engine::model::Orientation::Landscape { "landscape" } else { "portrait" }.into(),
+            vec![
+                ("portrait", "纵向 / Portrait Orientation", json!({"orientation":"portrait"})),
+                ("landscape", "横向 / Landscape Orientation", json!({"orientation":"landscape"})),
+            ],
+            cx,
+        ));
+        controls = controls.child(self.print_choice(
+            "print-paper",
+            settings.paper.clone(),
+            vec![
+                ("A4", "A4", json!({"paper":"A4"})),
+                ("A3", "A3", json!({"paper":"A3"})),
+                ("Letter", "Letter", json!({"paper":"Letter"})),
+                ("Legal", "Legal", json!({"paper":"Legal"})),
+            ],
+            cx,
+        ));
+        controls = controls.child(self.print_choice(
+            "print-margins",
+            "custom".into(),
+            vec![
+                ("custom", "页边距 / Margins", json!({})),
+                ("normal", "普通 / Normal", json!({"margins":{"left":0.7,"right":0.7,"top":0.75,"bottom":0.75}})),
+                ("wide", "宽 / Wide", json!({"margins":{"left":1.,"right":1.,"top":1.,"bottom":1.}})),
+                ("narrow", "窄 / Narrow", json!({"margins":{"left":0.25,"right":0.25,"top":0.75,"bottom":0.75}})),
+            ],
+            cx,
+        ));
+        controls = controls.child(self.print_choice(
+            "print-scaling",
+            if settings.fit_to.is_some() { "fit" } else { "actual" }.into(),
+            vec![
+                ("actual", "无缩放 / No Scaling", json!({"scale":100})),
+                ("fit", "将工作表调整为一页 / Fit Sheet on One Page", json!({"fitWidth":1,"fitHeight":1})),
+                ("width", "将所有列调整为一页 / Fit All Columns on One Page", json!({"fitWidth":1,"fitHeight":0})),
+                ("height", "将所有行调整为一页 / Fit All Rows on One Page", json!({"fitWidth":0,"fitHeight":1})),
+            ],
+            cx,
+        ));
+        controls = controls.child(
+            Button::new("preview-export")
+                .relative()
+                .child(self.advanced_probe("preview-export".into(), cx))
+                .label(self.label("导出 PDF…", "Export PDF…"))
+                .disabled(stale)
+                .on_click(cx.listener(|v, _, w, cx| v.export_preview(w, cx))),
+        );
+        let nav = div()
+            .w(px(120.))
+            .h_full()
+            .bg(rgb(self.palette().header))
+            .p_3()
+            .flex()
+            .flex_col()
+            .gap_4()
+            .child(
+                Button::new("preview-close")
+                    .relative()
+                    .child(self.advanced_probe("preview-close".into(), cx))
+                    .ghost()
+                    .label(self.label("← 返回", "← Back"))
+                    .on_click(cx.listener(|v, _, w, cx| v.close_print_preview(w, cx))),
+            )
+            .child(self.label("打印", "Print"));
+        let mut preview = div().flex_1().min_w_0().p_4().flex().flex_col().gap_3();
+        preview = preview.child(
+            div()
+                .flex()
+                .items_center()
+                .gap_3()
+                .child(
+                    Button::new("preview-prev")
+                        .relative()
+                        .child(self.advanced_probe("preview-prev".into(), cx))
+                        .label("←")
+                        .disabled(current == 0)
+                        .on_click(cx.listener(|v, _, _, cx| {
+                            if let Some(p) = &mut v.preview {
+                                p.page = p.page.saturating_sub(1);
+                            }
+                            cx.notify();
+                        })),
+                )
+                .child(format!("{} / {}", current + 1, count))
+                .child(
+                    Button::new("preview-next")
+                        .relative()
+                        .child(self.advanced_probe("preview-next".into(), cx))
+                        .label("→")
+                        .disabled(current + 1 >= count)
+                        .on_click(cx.listener(|v, _, _, cx| {
+                            if let Some(p) = &mut v.preview {
+                                p.page = (p.page + 1).min(p.document.pages.len().saturating_sub(1));
+                            }
+                            cx.notify();
+                        })),
+                )
+                .when(stale, |el| el.child(self.label("正在更新预览…", "Updating preview…"))),
+        );
+        if let Some(path) = image {
+            preview = preview
+                .child(div().id("pdf-page").flex_1().min_h_0().overflow_y_scroll().flex().justify_center().child(img(path).w(px(650.)).h_auto()));
+        }
+        div()
+            .occlude()
+            .id("print-preview-dialog")
+            .role(Role::Dialog)
+            .aria_label(self.label("打印", "Print"))
+            .when_some(p, |el, p| el.track_focus(&p.focus))
+            .absolute()
+            .inset_0()
+            .bg(rgb(0xe5e5e5))
+            .flex()
+            .child(nav)
+            .child(controls)
+            .child(preview)
     }
 }

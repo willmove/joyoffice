@@ -222,8 +222,13 @@ impl Desktop {
         let check =
             matches!(tool.command, "view.gridlines" | "view.headings" | "@formula-bar" | "pageLayout.printGridlines" | "pageLayout.printHeadings");
         let icon = if check { if checked { I::SquareCheck } else { I::Square } } else { tool.icon };
-        let color = serde_json::from_str::<Value>(primary.map_or(tool.params, |t| t.params))
-            .ok()
+        let color = self
+            .excel_ui
+            .last_colors
+            .get(tool.command)
+            .cloned()
+            .map(|color| json!({"color":color}))
+            .or_else(|| serde_json::from_str::<Value>(primary.map_or(tool.params, |t| t.params)).ok())
             .and_then(|p| p["color"].as_str().and_then(|s| u32::from_str_radix(s.trim_start_matches('#'), 16).ok()));
         if tool.command == "@pen"
             && let Some(color) = color
@@ -288,7 +293,13 @@ impl Desktop {
             let chinese = self.chinese();
             let target = self.view().map(|v| (v.doc, v.sheet));
             let (main, button) = if let Some(action) = primary {
-                let main = button.on_click(cx.listener(move |v, _, w, cx| v.activate_ribbon_tool(action, w, cx)));
+                let main = button.on_click(cx.listener(move |v, _, w, cx| {
+                    if let Some(color) = v.excel_ui.last_colors.get(tool.command).cloned() {
+                        v.commit(After::Command(action.command.into(), json!({"color":color})), w, cx);
+                    } else {
+                        v.activate_ribbon_tool(action, w, cx);
+                    }
+                }));
                 let dropdown = Button::new(SharedString::from(format!("{}-dropdown", tool.id)))
                     .ghost()
                     .xsmall()
@@ -306,12 +317,85 @@ impl Desktop {
             } else {
                 (None, button)
             };
+            let watcher = owner.clone();
             let menu = Popover::new(ElementId::Name(format!("ribbon-menu-{}", tool.id).into()))
+                .on_open_change(move |open, _, cx| {
+                    let _ = watcher.update(cx, |v, _| v.excel_ui.popup_open = *open);
+                })
                 .trigger(button)
                 .content(move |_, _, cx| {
                     let popup = cx.entity().downgrade();
-                    div().id("ribbon-menu-items").flex().flex_col().w(px(230.)).max_h(px(410.)).overflow_y_scroll().children(choices.iter().map(
-                        |&item| {
+                    if tool.command == "font-name" {
+                        let names = cx.text_system().all_font_names();
+                        return div()
+                            .id("ribbon-font-list")
+                            .w(px(250.))
+                            .max_h(px(380.))
+                            .overflow_y_scroll()
+                            .flex()
+                            .flex_col()
+                            .children(names.into_iter().take(2048).enumerate().map(|(i, name)| {
+                                let popup = popup.clone();
+                                let owner = owner.clone();
+                                let label = name.clone();
+                                let probe = crate::excel_workflows::bound_probe(owner.clone(), format!("font-item:{name}"));
+                                Button::new(("installed-font", i)).relative().child(probe).ghost().justify_start().label(label).on_click(
+                                    move |_, w, cx| {
+                                        let _ = popup.update(cx, |p, cx| p.dismiss(w, cx));
+                                        let _ = owner.update(cx, |v, cx| {
+                                            if v.view().map(|v| (v.doc, v.sheet)) == target {
+                                                v.commit(After::Command("home.fontName".into(), json!({"name":name})), w, cx);
+                                            }
+                                        });
+                                    },
+                                )
+                            }))
+                            .into_any_element();
+                    }
+                    if matches!(tool.command, "fill" | "font-color") {
+                        let colour_owner = owner.clone();
+                        let close = popup.clone();
+                        let command = if tool.command == "fill" { "home.fillColor" } else { "home.fontColor" };
+                        let pick: crate::excel_controls::ColorPick = std::rc::Rc::new(move |color, w, cx| {
+                            let _ = close.update(cx, |p, cx| p.dismiss(w, cx));
+                            let _ = colour_owner.update(cx, |v, cx| {
+                                if v.view().map(|v| (v.doc, v.sheet)) == target {
+                                    let color = crate::excel_controls::color_parameter(color);
+                                    v.excel_ui.last_colors.insert(tool.command.into(), color.clone());
+                                    v.commit(After::Command(command.into(), json!({"color":color})), w, cx);
+                                }
+                            });
+                        });
+                        let more_owner = owner.clone();
+                        let close = popup.clone();
+                        let more = std::rc::Rc::new(move |w: &mut Window, cx: &mut App| {
+                            let _ = close.update(cx, |p, cx| p.dismiss(w, cx));
+                            let _ = more_owner.update(cx, |v, cx| v.open_command(command, w, cx));
+                        });
+                        return owner
+                            .update(cx, |v, cx| v.ribbon_colour_palette(tool.command, pick, more, cx))
+                            .unwrap_or_else(|_| div().into_any_element());
+                    }
+                    if tool.command == "home.formatAsTable" {
+                        let table_owner = owner.clone();
+                        let close = popup.clone();
+                        let pick: crate::excel_galleries::GalleryPick = std::rc::Rc::new(move |style, w, cx| {
+                            let _ = close.update(cx, |p, cx| p.dismiss(w, cx));
+                            let _ = table_owner.update(cx, |v, cx| {
+                                v.open_command("home.formatAsTable", w, cx);
+                                v.set_dialog_value("style", json!(style), w, cx);
+                            });
+                        });
+                        return owner.update(cx, |v, cx| v.table_gallery(pick, cx)).unwrap_or_else(|_| div().into_any_element());
+                    }
+                    div()
+                        .id("ribbon-menu-items")
+                        .flex()
+                        .flex_col()
+                        .w(px(230.))
+                        .max_h(px(410.))
+                        .overflow_y_scroll()
+                        .children(choices.iter().map(|&item| {
                             let probe = owner.update(cx, |v, cx| v.advanced_probe(format!("ribbon-item:{}", item.id), cx).into_any_element()).ok();
                             let owner = owner.clone();
                             let popup = popup.clone();
@@ -334,8 +418,8 @@ impl Desktop {
                                         }
                                     });
                                 })
-                        },
-                    ))
+                        }))
+                        .into_any_element()
                 })
                 .into_any_element();
             if let Some(main) = main {

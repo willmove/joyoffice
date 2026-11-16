@@ -18,6 +18,7 @@ mod table;
 
 pub use chart::{build_chart, chart_kind, recommend_charts, scatter_x_from_first, series_from_range};
 use chart::{chart_delete, chart_set, chart_switch, insert_chart};
+pub use cond_format::parse_cf_rule;
 use cond_format::{add_cf, clear_cf, insert_icon, manage_cf};
 use links::{comment, delete_comment, insert_link, open_link, reply_comment, resolve_comment, show_note};
 use objects::{delete_object, insert_picture, insert_shape, insert_sparkline, move_object, set_anchor_mode, shape_set_text};

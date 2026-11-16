@@ -374,6 +374,15 @@ fn execute_request(s: &mut Session, r: &Request) -> Result<Value, String> {
             let doc = preview.active().ok_or("No preview document")?;
             let sheet = doc.wb.sheet(doc.sheet_index()).ok_or("No preview sheet")?;
             let used = sheet.used_range().ok_or("No data")?;
+            let cells: Vec<Vec<String>> = (used.start.row..=used.end.row)
+                .take(20)
+                .map(|row| {
+                    (used.start.col..=used.end.col)
+                        .take(10)
+                        .map(|col| sheet.value(joysheet_engine::core::CellRef::new(row, col)).display().chars().take(256).collect())
+                        .collect()
+                })
+                .collect();
             let rows: Vec<_> = (used.start.row..=used.end.row)
                 .take(20)
                 .map(|row| {
@@ -384,12 +393,53 @@ fn execute_request(s: &mut Session, r: &Request) -> Result<Value, String> {
                     json!({"name":format!("行 {}",row+1),"value":values.join(" | ")})
                 })
                 .collect();
-            return Ok(json!({"results":rows,"rows":used.height(),"columns":used.width(),"previewOnly":true}));
+            return Ok(json!({"results":rows,"cells":cells,"rows":used.height(),"columns":used.width(),"previewOnly":true}));
         }
         if let Some(expected) = r.expected_revision
             && s.active().is_none_or(|d| d.revision != expected)
         {
             return Err("document changed; stale operation was rejected".into());
+        }
+        if r.command == "__joysheet.formatDialog" {
+            let format = &r.params["format"];
+            if !format.get("style").is_some_and(Value::is_object) {
+                return Err("Format Cells requires a style object".into());
+            }
+            let borders = r.params["borders"].as_array().filter(|b| b.len() <= 64).ok_or("At most 64 border operations")?;
+            if borders.iter().any(|b| {
+                !matches!(
+                    b["preset"].as_str(),
+                    Some(
+                        "none"
+                            | "all"
+                            | "outside"
+                            | "inside"
+                            | "top"
+                            | "bottom"
+                            | "left"
+                            | "right"
+                            | "diagonalDown"
+                            | "diagonalUp"
+                            | "insideHorizontal"
+                            | "insideVertical"
+                    )
+                )
+            }) {
+                return Err("Unknown border preset".into());
+            }
+            return s
+                .grouped("Format Cells", |session| {
+                    session.execute("home.formatCells", format.clone())?;
+                    for border in borders {
+                        let mut border = border.clone();
+                        if let Some(range) = format.get("range") {
+                            border["range"] = range.clone();
+                        }
+                        session.execute("home.borders", border)?;
+                    }
+                    Ok(json!({"formatted":true}))
+                })
+                .map_err(|e| e.to_string());
         }
         if r.command == "__joysheet.objectBatch" {
             if r.params.get("sheet").and_then(Value::as_u64) != s.active().map(|d| d.sheet_index() as u64) {

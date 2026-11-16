@@ -131,13 +131,12 @@ fn check_cf_rule(rule: &CfRule) -> Result<()> {
     Ok(())
 }
 
-pub(super) fn add_cf(s: &mut Session, p: &Json) -> Result<Json> {
-    let ranges = target_ranges(s, p)?;
-    let sheet = target_sheet(s, p)?;
-    let Some(rule) = p.get("rule") else {
-        s.ui_requests.push(crate::UiRequest::Dialog("newFormattingRule".into(), json!({})));
-        return ok();
-    };
+pub fn parse_cf_rule(rule: &Json) -> Result<CfRule> {
+    if let Some(model) = rule.get("model") {
+        let model: CfRule = serde_json::from_value(model.clone()).map_err(|e| bad("home.conditionalFormat", e.to_string()))?;
+        check_cf_rule(&model)?;
+        return Ok(model);
+    }
     let g = |k: &str| rule.get(k).and_then(Json::as_str).map(str::to_string);
     let style = Box::new(match rule.get("style") {
         Some(st) if !st.is_null() => {
@@ -245,6 +244,17 @@ pub(super) fn add_cf(s: &mut Session, p: &Json) -> Result<Json> {
         other => return Err(bad("home.conditionalFormat", format!("unknown rule type `{other}`"))),
     };
     check_cf_rule(&rule)?;
+    Ok(rule)
+}
+
+pub(super) fn add_cf(s: &mut Session, p: &Json) -> Result<Json> {
+    let ranges = target_ranges(s, p)?;
+    let sheet = target_sheet(s, p)?;
+    let Some(rule) = p.get("rule") else {
+        s.ui_requests.push(crate::UiRequest::Dialog("newFormattingRule".into(), json!({})));
+        return ok();
+    };
+    let rule = parse_cf_rule(rule)?;
     edit(s, |cx| {
         let sh = cx.sheet_mut(sheet)?;
         let priority = sh.cond_formats.iter().map(|c| c.priority).max().unwrap_or(0) + 1;
@@ -278,6 +288,31 @@ pub(super) fn clear_cf(s: &mut Session, p: &Json) -> Result<Json> {
 
 pub(super) fn manage_cf(s: &mut Session, p: &Json) -> Result<Json> {
     let sheet = target_sheet(s, p)?;
+    if let Some(rules) = p.get("replaceAll") {
+        let mut rules: Vec<CondFormat> = serde_json::from_value(rules.clone()).map_err(|e| bad("home.manageRules", e.to_string()))?;
+        if rules.len() > 10_000
+            || rules.iter().any(|r| {
+                r.ranges.is_empty()
+                    || r.ranges.len() > 1024
+                    || r.ranges.iter().any(|r| {
+                        r.start.row > r.end.row
+                            || r.start.col > r.end.col
+                            || r.end.row >= joysheet_core::MAX_ROWS
+                            || r.end.col >= joysheet_core::MAX_COLS
+                    })
+            })
+        {
+            return Err(bad("home.manageRules", "rule budget exceeded"));
+        }
+        for (i, cf) in rules.iter_mut().enumerate() {
+            check_cf_rule(&cf.rule)?;
+            cf.priority = i as u32 + 1;
+        }
+        return edit(s, move |cx| {
+            cx.sheet_mut(sheet)?.cond_formats = rules;
+            Ok(Json::Null)
+        });
+    }
     if p.get("delete").is_none() && p.get("moveUp").is_none() && p.get("moveDown").is_none() {
         let list: Vec<Json> = s
             .doc()?

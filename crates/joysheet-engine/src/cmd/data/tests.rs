@@ -1,6 +1,36 @@
 use super::*;
 
 #[test]
+fn text_wizard_preserves_text_skips_columns_and_uses_date_order_atomically() {
+    let mut s = Session::new();
+    s.new_workbook();
+    s.execute("cell.set", json!({"cell":"A1","input":"001,discard,31/12/2026,\"quoted,field\""})).unwrap();
+    s.execute(
+        "data.textToColumns",
+        json!({"range":"A1","destination":"C1","delimiters":[","],"columnFormats":{"0":"text","1":"skip","2":"dateDMY"}}),
+    )
+    .unwrap();
+    let sh = s.doc().unwrap().wb.active().unwrap();
+    assert_eq!(sh.value(CellRef::new(0, 2)), Value::text("001"));
+    assert_eq!(sh.value(CellRef::new(0, 3)).as_f64(), joysheet_core::date::serial_from_ymd(s.doc().unwrap().wb.date_system, 2026, 12, 31));
+    assert_eq!(sh.value(CellRef::new(0, 4)), Value::text("quoted,field"));
+    assert_eq!(s.doc().unwrap().wb.styles.get(sh.style_id(CellRef::new(0, 2))).num_fmt.as_str(), "@");
+    s.execute("edit.undo", json!({})).unwrap();
+    assert!(s.doc().unwrap().wb.active().unwrap().value(CellRef::new(0, 2)).is_empty());
+    let revision = s.doc().unwrap().revision;
+    assert!(s.execute("data.textToColumns", json!({"range":"A1","destination":"XFD1","delimiters":[","]})).is_err());
+    assert_eq!(s.doc().unwrap().revision, revision);
+    assert!(s.doc().unwrap().wb.active().unwrap().value(CellRef::new(0, 16383)).is_empty());
+}
+
+#[test]
+fn text_wizard_fixed_width_uses_unicode_characters_and_can_disable_qualifiers() {
+    assert_eq!(crate::text_columns::split("中文ABC", &json!({"fixedWidths":[2,3,3]})), vec!["中文", "A", "BC"]);
+    assert_eq!(crate::text_columns::split("\"a,b\",c", &json!({"delimiters":[","]})), vec!["a,b", "c"]);
+    assert_eq!(crate::text_columns::split("\"a,b\",c", &json!({"delimiters":[","],"textQualifier":""})), vec!["\"a", "b\"", "c"]);
+}
+
+#[test]
 fn filter_blanks_include_empty_text_and_formula_results() {
     let mut s = Session::new();
     s.new_workbook();

@@ -1,0 +1,48 @@
+{
+  "passed": 11,
+  "checks": [
+    "Installed font popup; theme swatch; custom RGB apply and undo",
+    "Font preview, graphical border click/preset; Cancel unchanged; grouped format apply/undo",
+    "Table gallery grouped thumbnails; selected style applied after Create Table confirmation",
+    "Shape/chart/SmartArt visual selectors and Cancel",
+    "Multi-level sort add/copy/delete/reorder, cancel, actual two-key order and undo",
+    "Three-step delimiter wizard, quotes, text leading zeros, skipped column, DMY date, back/next and undo",
+    "Fixed-width ruler adds/removes character breaks; cancel unchanged",
+    "CSV table preview stays in dialog and leaves workbook unchanged",
+    "Name manager columns, edit returns to manager, delete confirmation cancel",
+    "Rules drafts cancel unchanged; Apply; Edit; OK; undo",
+    "Print opens settings and actual PDF preview; orientation refreshes preview; close"
+  ],
+  "binarySha256": "724e2342519ae8b828220af61f1f430b0799f4be031a3e8d35c87861e8f2f6f0",
+  "productTests": {
+    "passed": 1433,
+    "ignored": 1,
+    "fmt": true,
+    "strictClippy": true
+  },
+  "uiUnitTests": 26,
+  "dialogRegression": 7,
+  "broadRegression": {
+    "groups": 35,
+    "binarySha256": "ce8a55cfa33a743386f71c2322b595cfaf9647bcb605cc0ccb7c8da942d3a6cd"
+  },
+  "independentReader": "Python standard-library ZIP/XML",
+  "nativeMouse": {
+    "status": "passed for the listed flows",
+    "source": "Windows @oai/sky native mouse and UIA observations",
+    "finalBinarySha256": "724e2342519ae8b828220af61f1f430b0799f4be031a3e8d35c87861e8f2f6f0",
+    "finalFlows": [
+      "Home font launcher opens Format Cells",
+      "Border tab Outline draws all four edges",
+      "Left border pointer toggles preview",
+      "Cancel returns to worksheet without saving preview changes"
+    ],
+    "previousBinarySha256": "ce8a55cfa33a743386f71c2322b595cfaf9647bcb605cc0ccb7c8da942d3a6cd",
+    "previousFlows": [
+      "File backstage Print opens real PDF preview; Back returns",
+      "Font style Bold changes live preview; tabs preserve input",
+      "Outline and diagonal preview; Cancel returns"
+    ],
+    "evidence": "artifacts/joysheet/advanced-ui-20261116"
+  }
+}

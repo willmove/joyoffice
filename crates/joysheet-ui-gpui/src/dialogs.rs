@@ -39,6 +39,9 @@ struct Page {
 }
 fn pages(id: &str) -> Vec<Page> {
     match id {
+        "home.fillColor" | "home.fontColor" | "home.borderColor" => {
+            vec![Page { zh: "标准", en: "Standard", keys: &[] }, Page { zh: "自定义", en: "Custom", keys: &["red", "green", "blue", "color"] }]
+        }
         "home.formatCells" => vec![
             Page { zh: "数字", en: "Number", keys: &["numberFormat"] },
             Page { zh: "对齐", en: "Alignment", keys: &["horizontal", "vertical", "indent", "angle", "wrap", "shrink"] },
@@ -117,7 +120,7 @@ pub(crate) fn choices(id: &str, key: &str) -> Vec<(&'static str, &'static str)> 
             ("textLength", "文本长度"),
             ("custom", "自定义"),
         ],
-        ("data.validation", "operator") => vec![
+        ("data.validation" | "home.conditionalFormat", "operator") => vec![
             ("between", "介于"),
             ("notBetween", "未介于"),
             ("equal", "等于"),
@@ -156,6 +159,8 @@ fn title(id: &str, zh: bool) -> String {
         "view.unhideWindow" => ("取消隐藏", "Unhide"),
         "insert.sparkline" => ("创建迷你图", "Create Sparklines"),
         "insert.table" | "home.formatAsTable" => ("创建表", "Create Table"),
+        "home.fillColor" | "home.fontColor" | "home.borderColor" => ("颜色", "Colors"),
+        "data.textToColumns" => ("文本分列向导", "Convert Text to Columns Wizard"),
         _ => {
             return (1..crate::ribbon_catalog::TABS.len())
                 .flat_map(crate::ribbon_catalog::groups)
@@ -172,6 +177,16 @@ fn title(id: &str, zh: bool) -> String {
 
 impl Desktop {
     pub(crate) fn dialog_field_visible(&self, key: &str) -> bool {
+        if self.selected_command.as_deref() == Some("data.sort") && matches!(key, "column" | "order" | "keysText") {
+            return false;
+        }
+        if self.selected_command.as_deref() == Some("data.textToColumns") {
+            return match self.dialog_tab {
+                0 => key == "range",
+                1 => matches!(key, "tab" | "comma" | "semicolon" | "space" | "other" | "treatConsecutive" | "textQualifier" | "fixedBreaks"),
+                _ => matches!(key, "destination" | "columnFormat"),
+            };
+        }
         if matches!(self.selected_command.as_deref(), Some("edit.find" | "edit.replace"))
             && (key == "all" || key == "with" && self.selected_command.as_deref() == Some("edit.find"))
         {
@@ -184,7 +199,15 @@ impl Desktop {
         self.palette_open = false;
         self.selected_command = None;
         self.dialog_error.clear();
-        self.focus_grid(w, cx);
+        if self.excel_ui.return_panel != 0 {
+            self.daily_group = self.excel_ui.return_panel;
+            self.excel_ui.return_panel = 0;
+        }
+        if matches!(self.daily_group, 19 | 23) {
+            self.command_focus.focus(w, cx);
+        } else {
+            self.focus_grid(w, cx);
+        }
         cx.notify();
     }
     pub(crate) fn show_command_search(&mut self, w: &mut Window, cx: &mut Context<Self>) {
@@ -193,7 +216,7 @@ impl Desktop {
         self.search.update(cx, |s, cx| s.focus(w, cx));
         cx.notify();
     }
-    fn dialog_field(&self, id: &str, f: &CommandField, cx: &mut Context<Self>) -> AnyElement {
+    pub(crate) fn dialog_field(&self, id: &str, f: &CommandField, cx: &mut Context<Self>) -> AnyElement {
         let key = f.key.clone();
         let state = f.value.clone();
         let value = state.read(cx).value().to_string();
@@ -288,7 +311,11 @@ impl Desktop {
                 return div().relative().child(probe).flex().flex_col().gap_2().child(label).child(options).into_any_element();
             }
             let owner = cx.weak_entity();
+            let watcher = owner.clone();
             let select = Popover::new(SharedString::from(format!("select-{key}")))
+                .on_open_change(move |open, _, cx| {
+                    let _ = watcher.update(cx, |v, _| v.excel_ui.popup_open = *open);
+                })
                 .trigger(
                     Button::new(SharedString::from(format!("field-{key}")))
                         .w_full()
@@ -349,7 +376,7 @@ impl Desktop {
         let Some(id) = self.selected_command.clone() else { return self.render_command_center(window, cx).into_any_element() };
         let p = self.palette();
         let tabs = pages(&id);
-        let page = self.dialog_tab.min(tabs.len().saturating_sub(1));
+        let page = if id == "data.textToColumns" { self.dialog_tab.min(2) } else { self.dialog_tab.min(tabs.len().saturating_sub(1)) };
         let mut fields = div().id("workflow-fields").flex().flex_col().gap_3().p_4();
         if self.advanced_params {
             fields = fields.child(Input::new(&self.params).id("command-params").aria_label("Advanced JSON parameters"));
@@ -493,17 +520,58 @@ impl Desktop {
             );
         }
         let mut footer = div().flex().items_center().justify_end().gap_2().p_3().border_t_1().border_color(rgb(p.border));
+        let splitting = id == "data.textToColumns";
+        if splitting {
+            footer = footer.child(
+                Button::new("wizard-back")
+                    .relative()
+                    .child(self.advanced_probe("wizard-back".into(), cx))
+                    .disabled(page == 0)
+                    .label(self.label("< 上一步", "< Back"))
+                    .on_click(cx.listener(|v, _, w, cx| {
+                        v.dialog_tab = v.dialog_tab.saturating_sub(1);
+                        v.focus_command_input(w, cx);
+                        cx.notify();
+                    })),
+            );
+            if page < 2 {
+                footer = footer.child(
+                    Button::new("wizard-next")
+                        .relative()
+                        .child(self.advanced_probe("wizard-next".into(), cx))
+                        .primary()
+                        .label(self.label("下一步 >", "Next >"))
+                        .on_click(cx.listener(|v, _, w, cx| {
+                            v.dialog_tab = (v.dialog_tab + 1).min(2);
+                            v.focus_command_input(w, cx);
+                            cx.notify();
+                        })),
+                );
+            }
+        }
         if matches!(id.as_str(), "data.getData" | "data.fromTextCsv") {
             footer = footer.child(
-                Button::new("pick-import-file").label(self.label("浏览…", "Browse…")).on_click(cx.listener(|v, _, w, cx| v.pick_import(w, cx))),
+                Button::new("pick-import-file")
+                    .relative()
+                    .child(self.advanced_probe("pick-import-file".into(), cx))
+                    .label(self.label("浏览…", "Browse…"))
+                    .on_click(cx.listener(|v, _, w, cx| v.pick_import(w, cx))),
             );
             footer = footer.child(
-                Button::new("preview-import").label(self.label("预览", "Preview")).on_click(cx.listener(|v, _, w, cx| v.preview_import(w, cx))),
+                Button::new("preview-import")
+                    .relative()
+                    .child(self.advanced_probe("preview-import".into(), cx))
+                    .label(self.label("预览", "Preview"))
+                    .on_click(cx.listener(|v, _, w, cx| v.preview_import(w, cx))),
             );
         }
         if matches!(id.as_str(), "insert.object" | "object.extract" | "insert.picture") {
             footer = footer.child(
-                Button::new("pick-object-file").label(self.label("浏览…", "Browse…")).on_click(cx.listener(|v, _, w, cx| v.pick_object_file(w, cx))),
+                Button::new("pick-object-file")
+                    .relative()
+                    .child(self.advanced_probe("pick-object-file".into(), cx))
+                    .label(self.label("浏览…", "Browse…"))
+                    .on_click(cx.listener(|v, _, w, cx| v.pick_object_file(w, cx))),
             );
         }
         if finding {
@@ -522,14 +590,16 @@ impl Desktop {
             }
         }
         footer = footer
-            .when(!finding, |el| {
+            .when(!finding && (!splitting || page == 2), |el| {
                 el.child(
                     div().relative().child(self.advanced_probe("dialog-ok".into(), cx)).child(
                         Button::new("execute-command")
+                            .relative()
+                            .child(self.advanced_probe("execute-command".into(), cx))
                             .primary()
                             .disabled(unhide_empty)
                             .min_w(px(82.))
-                            .label(self.label("确定", "OK"))
+                            .label(if splitting { self.label("完成", "Finish") } else { self.label("确定", "OK") })
                             .on_click(cx.listener(|v, _, w, cx| v.run_selected_command(w, cx))),
                     ),
                 )
@@ -537,12 +607,20 @@ impl Desktop {
             .child(
                 div().relative().child(self.advanced_probe("dialog-cancel".into(), cx)).child(
                     Button::new("cancel-command")
+                        .relative()
+                        .child(self.advanced_probe("cancel-command".into(), cx))
                         .min_w(px(82.))
                         .label(if finding { self.label("关闭", "Close") } else { self.label("取消", "Cancel") })
                         .on_click(cx.listener(|v, _, w, cx| v.close_command_dialog(w, cx))),
                 ),
             );
-        let width: f32 = if tabs.is_empty() { 480. } else { 620. };
+        let width: f32 = if matches!(id.as_str(), "data.sort" | "data.textToColumns" | "data.getData" | "data.fromTextCsv") {
+            700.
+        } else if tabs.is_empty() {
+            480.
+        } else {
+            620.
+        };
         div()
             .absolute()
             .inset_0()
@@ -576,6 +654,8 @@ impl Desktop {
                             .child(div().font_weight(FontWeight::SEMIBOLD).child(title(&id, self.chinese())))
                             .child(
                                 Button::new("close-palette")
+                                    .relative()
+                                    .child(self.advanced_probe("close-palette".into(), cx))
                                     .ghost()
                                     .xsmall()
                                     .label("×")
@@ -584,8 +664,25 @@ impl Desktop {
                             ),
                     )
                     .when(!tabs.is_empty() || finding, |el| el.child(tabbar))
-                    .child(div().id("dialog-scroll").min_h_0().overflow_y_scroll().child(fields))
+                    .child(
+                        div()
+                            .id("dialog-scroll")
+                            .min_h_0()
+                            .overflow_y_scroll()
+                            .child(self.excel_dialog_body(&id, page, cx).unwrap_or_else(|| fields.into_any_element())),
+                    )
                     .child(footer)
+                    .when(!self.dialog_error.is_empty(), |el| {
+                        el.child(
+                            div()
+                                .id("special-dialog-error")
+                                .p_3()
+                                .role(Role::Alert)
+                                .text_color(rgb(0xc00000))
+                                .whitespace_normal()
+                                .child(self.dialog_error.clone()),
+                        )
+                    })
                     .focus_trap("command-dialog-focus", &self.command_focus),
             )
             .into_any_element()

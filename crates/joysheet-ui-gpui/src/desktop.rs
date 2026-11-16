@@ -90,6 +90,10 @@ pub enum After {
     CloseSaved,
     Recovered(Value),
     RestoreDraft(Value),
+    RulesApplied,
+    RefreshPrint,
+    RememberFont(String),
+    RibbonFont(String,crate::font_picker::FontTarget),
 }
 pub struct Pending {
     pub ticket: Ticket,
@@ -123,6 +127,7 @@ pub struct Desktop {
     pub search: Entity<InputState>,
     pub function_search: Entity<InputState>,
     pub params: Entity<InputState>,
+    pub font_picker:crate::font_picker::FontPicker,
     pub import_text: Entity<TextareaState>,
     pub import_draft: Option<Value>,
     pub draft: Option<Draft>,
@@ -167,6 +172,7 @@ pub struct Desktop {
     pub command_focus: FocusHandle,
     pub dialog_tab: usize,
     pub dialog_error: String,
+    pub excel_ui: crate::excel_workflows::ExcelUi,
     pub advanced_params: bool,
     pub recent_open: bool,
     pub daily_group: u8,
@@ -234,6 +240,7 @@ impl Desktop {
         let search = cx.new(|cx| InputState::new(window, cx).placeholder("搜索命令 / Search commands"));
         let params = cx.new(|cx| InputState::new(window, cx).default_value("{}"));
         let import_text = cx.new(|cx| TextareaState::new(window, cx));
+        let font_picker=crate::font_picker::FontPicker::new(window,cx);
         let mut subscriptions = Vec::new();
         subscriptions.push(cx.observe_window_activation(window, |this, window, cx| {
             if !window.is_window_active() {
@@ -291,6 +298,7 @@ impl Desktop {
         subscriptions.push(cx.subscribe(&search, |_, _, _: &TextEvent, cx| cx.notify()));
         subscriptions.push(cx.subscribe(&function_search, |_, _, _: &TextEvent, cx| cx.notify()));
         subscriptions.push(cx.subscribe(&import_text, |_, _, _: &TextEvent, cx| cx.notify()));
+        subscriptions.push(cx.subscribe_in(&font_picker.input,window,|this,_,event,window,cx|this.font_input_event(event,window,cx)));
         let entity = cx.entity().downgrade();
         window.on_window_should_close(cx, move |window, cx| {
             entity
@@ -348,6 +356,7 @@ impl Desktop {
             search,
             function_search,
             params,
+            font_picker,
             import_text,
             import_draft: None,
             draft: None,
@@ -392,6 +401,7 @@ impl Desktop {
             command_focus: cx.focus_handle(),
             dialog_tab: 0,
             dialog_error: String::new(),
+            excel_ui: crate::excel_workflows::ExcelUi::default(),
             advanced_params: false,
             recent_open: false,
             ribbon_tab: 1,
@@ -469,12 +479,14 @@ impl Desktop {
     pub fn label(&self, zh: &str, en: &str) -> String {
         if self.chinese() { zh.into() } else { en.into() }
     }
-    pub fn issue(&mut self, command: &str, params: Value, after: After, cx: &mut Context<Self>) {
+    pub fn issue(&mut self, command: &str, params: Value, mut after: After, cx: &mut Context<Self>) {
+        if command=="home.fontName"&&matches!(after,After::None)&&let Some(name)=params["name"].as_str(){after=After::RememberFont(name.into());}
         if command == "automate.runScript" {
             self.daily_group = 16;
         }
         if matches!(command, "file.printPreview" | "file.print") {
-            self.begin_print(params, command == "file.print", cx);
+            self.excel_ui.print_params = params.clone();
+            self.begin_print(params, false, cx);
             return;
         }
         if command == "formulas.removeArrows" {
@@ -767,10 +779,19 @@ impl Desktop {
                                 self.accept_trace(trace, &value);
                             }
                             if let Some(kind) = result_kind {
+                                let previous_panel = self.daily_group;
                                 self.data_raw = value.clone();
                                 self.data_results = crate::workflow::result_rows(&kind, &value);
                                 self.data_result_kind = kind.clone();
                                 self.daily_group = 8;
+                                if kind == "__joysheet.previewImport" {
+                                    let current =
+                                        self.palette_open && matches!(self.selected_command.as_deref(), Some("data.getData" | "data.fromTextCsv"));
+                                    if current && self.form_params(cx).ok().as_ref() == self.import_draft.as_ref() {
+                                        self.excel_ui.import_preview = value.clone();
+                                    }
+                                    self.daily_group = if current { 0 } else { previous_panel };
+                                }
                                 if kind == "view.switchWindows" && self.palette_open && self.selected_command.as_deref() == Some("view.unhideWindow")
                                 {
                                     self.daily_group = 0;
@@ -802,6 +823,13 @@ impl Desktop {
                                 }
                                 if kind == "formulas.nameManager" {
                                     self.daily_group = 19;
+                                    self.excel_ui.manager_selected = 0;
+                                    self.excel_ui.manager_confirm = false;
+                                    self.command_focus.focus(window, cx);
+                                }
+                                if kind == "home.manageRules" {
+                                    self.begin_cf_manager();
+                                    self.command_focus.focus(window, cx);
                                 }
                                 if kind.starts_with("automate.") || kind == "__joysheet.scriptDetails" {
                                     self.daily_group = 16;
@@ -984,6 +1012,12 @@ impl Desktop {
     }
     pub fn after(&mut self, after: After, window: &mut Window, cx: &mut Context<Self>) {
         match after {
+            After::RememberFont(name)=>{self.preferences.remember_font(&name);self.persist_preferences(cx);},
+            After::RibbonFont(name,target)=>{if self.view().is_some_and(|v|v.doc==target.doc&&v.sheet==target.sheet){self.issue("home.fontName",json!({"name":name,"range":target.range}),After::RememberFont(name),cx);}else{self.alert("工作簿已切换，请重新选择字体 / Select a font again for the current workbook");}},
+            After::RulesApplied => {
+                self.excel_ui.cf_target = self.view().map(|v| (v.doc, v.sheet, v.revision));
+            }
+            After::RefreshPrint => self.begin_print(self.excel_ui.print_params.clone(), false, cx),
             After::None => {}
             After::Recovered(draft) => {
                 if !draft.is_null()
@@ -1126,6 +1160,7 @@ impl Desktop {
 
 impl Render for Desktop {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        self.sync_font_picker(window,cx);
         self.ribbon_wide = window.viewport_size().width >= px(1800.);
         let palette = self.palette();
         let bg = palette.canvas;
@@ -1532,6 +1567,8 @@ impl Render for Desktop {
             content = content.child(self.pivot_fields_panel(cx));
         } else if self.daily_group == 19 {
             content = content.child(self.names_panel(cx));
+        } else if self.daily_group == 23 {
+            content = content.child(self.cf_manager(cx));
         } else if self.daily_group == 16 {
             content = content.child(self.script_panel(cx));
         } else if self.daily_group == 17 {

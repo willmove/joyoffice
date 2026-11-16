@@ -332,6 +332,12 @@ impl Desktop {
         self.issue("view.zoom", json!({"percent":(current as i32+delta).clamp(10,400)}), After::None, cx);
     }
     pub fn key_down(&mut self, event: &KeyDownEvent, window: &mut Window, cx: &mut Context<Self>) {
+        if self.font_picker.open||self.font_picker.input.read(cx).focus_handle(cx).is_focused(window){self.font_picker_key(event,window,cx);return;}
+        // A popup owns Escape and navigation until it closes. The root capture
+        // handler must let GPUI dispatch those keys to the popup's focus context.
+        if self.excel_ui.popup_open {
+            return;
+        }
         if cx.global::<crate::control::ControlRuntime>().diagnostics
             && matches!(event.keystroke.key.as_str(), "left" | "right" | "up" | "down" | "escape" | "tab" | "enter" | "f2" | "f6")
         {
@@ -408,6 +414,16 @@ impl Desktop {
                 _ => {}
             }
             cx.stop_propagation();
+            return;
+        }
+        if matches!(self.daily_group, 19 | 23) {
+            if key == "escape" {
+                self.daily_group = 0;
+                self.excel_ui.cf_draft = None;
+                self.focus_grid(window, cx);
+                cx.notify();
+                cx.stop_propagation();
+            }
             return;
         }
         let grid_focus = self.editor.read(cx).focus_handle(cx).is_focused(window);

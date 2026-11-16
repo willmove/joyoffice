@@ -218,6 +218,11 @@ impl Desktop {
         if let (Some(base), Some(extra)) = (p.as_object_mut(), values.as_object()) {
             base.extend(extra.clone());
         }
+        if id == "home.conditionalFormat" {
+            crate::excel_managers::cf_defaults(&mut p);
+        }
+        self.command_initial = p.clone();
+        self.advanced_params = p.as_object().is_some_and(|m| m.iter().any(|(k, v)| !k.starts_with('_') && (v.is_array() || v.is_object())));
         self.make_command_fields(&p, window, cx);
         self.params.update(cx, |s, cx| s.set_value(p.to_string(), window, cx));
         if let Some((_, v)) = p.as_object().into_iter().flatten().find(|(key, _)| multiline(id, key)) {
@@ -279,62 +284,7 @@ impl Desktop {
         list
     }
     pub fn names_panel(&self, cx: &mut Context<Self>) -> impl IntoElement + use<> {
-        let mut panel = div()
-            .absolute()
-            .right_0()
-            .top(px(90.))
-            .bottom_0()
-            .w(px(380.))
-            .p_3()
-            .bg(rgb(self.palette().surface))
-            .text_color(rgb(self.palette().text))
-            .shadow_lg()
-            .id("names-panel")
-            .occlude()
-            .overflow_y_scroll()
-            .flex()
-            .flex_col()
-            .gap_2()
-            .child(div().id("close-names").cursor_pointer().child("名称管理 / Names ×").on_click(cx.listener(|this, _, _, cx| {
-                this.daily_group = 0;
-                cx.notify();
-            })));
-        if let Some(view) = self.view() {
-            for (index, n) in view.workbook.names.iter().filter(|n| !n.hidden).take(300).enumerate() {
-                let scope = n.scope.and_then(|i| view.workbook.sheets.get(i)).map(|s| s.name.clone()).unwrap_or("Workbook".into());
-                let name = n.name.clone();
-                let values =
-                    json!({"name":name,"oldName":name,"oldScope":scope,"scope":scope,"refersTo":format!("={}",n.formula),"comment":n.comment});
-                let deletion = json!({"name":name,"scope":scope});
-                panel =
-                    panel.child(
-                        div()
-                            .p_2()
-                            .border_b_1()
-                            .border_color(rgb(self.palette().border))
-                            .flex()
-                            .flex_col()
-                            .gap_1()
-                            .child(format!("{} · {scope}", n.name))
-                            .child(format!("={}", n.formula))
-                            .child(
-                                div()
-                                    .flex()
-                                    .gap_3()
-                                    .child(div().id(("goto-name", index)).cursor_pointer().child("定位").on_click(cx.listener(
-                                        move |this, _, w, cx| this.commit(After::Command("edit.goTo".into(), json!({"reference":name})), w, cx),
-                                    )))
-                                    .child(div().id(("edit-name", index)).cursor_pointer().child("编辑").on_click(
-                                        cx.listener(move |this, _, w, cx| this.open_prefilled("formulas.defineName", values.clone(), w, cx)),
-                                    ))
-                                    .child(div().id(("delete-name", index)).cursor_pointer().child("删除").on_click(cx.listener(
-                                        move |this, _, w, cx| this.commit(After::Command("formulas.deleteName".into(), deletion.clone()), w, cx),
-                                    ))),
-                            ),
-                    );
-            }
-        }
-        panel
+        self.name_manager(cx)
     }
     pub fn advanced_probe(&self, id: String, cx: &Context<Self>) -> impl IntoElement + use<> {
         let view = cx.entity();

@@ -60,6 +60,11 @@ fn every_enabled_ribbon_leaf_has_a_registered_command_and_valid_parameters() -> 
         let p: Value = serde_json::from_str(t.params).map_err(|e| format!("{}: {e}", t.id))?;
         assert!(p.is_object());
         if t.menu {
+            if t.command == "home.formatAsTable" {
+                assert_eq!(joysheet_engine::tables::gallery().len(), 60);
+                assert!(joysheet_engine::find_command(t.command).is_some());
+                continue;
+            }
             let choices = ribbon_menus::tools(t.command);
             assert!(!choices.is_empty(), "{}", t.id);
             pending.extend(choices);

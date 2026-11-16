@@ -23,6 +23,7 @@ pub mod record;
 pub mod sample;
 pub mod selection;
 pub mod tables;
+pub mod text_columns;
 pub mod windows;
 
 use std::sync::Arc;

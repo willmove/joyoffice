@@ -17,6 +17,7 @@ pub struct Preferences {
     pub theme: Option<String>,
     pub language: String,
     pub recent: Vec<String>,
+    pub recent_fonts: Vec<String>,
     pub autosave: bool,
     pub formula_bar: bool,
     pub autocomplete: bool,
@@ -30,6 +31,7 @@ impl Default for Preferences {
             theme: None,
             language: "zh".into(),
             recent: Vec::new(),
+            recent_fonts: Vec::new(),
             autosave: false,
             formula_bar: true,
             autocomplete: true,
@@ -116,6 +118,13 @@ impl Preferences {
         self.recent.retain(|p| p != &path);
         self.recent.insert(0, path);
         self.recent.truncate(20);
+    }
+    pub fn remember_font(&mut self, name: &str) {
+        let name=name.trim();
+        if name.is_empty()||name.chars().count()>255||name.chars().any(char::is_control){return;}
+        self.recent_fonts.retain(|f|f.to_lowercase()!=name.to_lowercase());
+        self.recent_fonts.insert(0,name.to_string());
+        self.recent_fonts.truncate(8);
     }
 }
 pub async fn pick_open() -> Option<PathBuf> {

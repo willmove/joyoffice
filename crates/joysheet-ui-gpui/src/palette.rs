@@ -16,6 +16,28 @@ pub struct CommandField {
 }
 pub(crate) fn field_label(key: &str, zh: bool) -> String {
     let labels = match key {
+        "red" => ("红色 (R)", "Red (R)"),
+        "colorLow" => ("最小值颜色", "Minimum color"),
+        "colorMiddle" => ("中间值颜色", "Midpoint color"),
+        "colorHigh" => ("最大值颜色", "Maximum color"),
+        "green" => ("绿色 (G)", "Green (G)"),
+        "blue" => ("蓝色 (B)", "Blue (B)"),
+        "tab" => ("Tab 键", "Tab"),
+        "comma" => ("逗号", "Comma"),
+        "semicolon" => ("分号", "Semicolon"),
+        "space" => ("空格", "Space"),
+        "other" => ("其他分隔符", "Other delimiter"),
+        "treatConsecutive" => ("连续分隔符号视为单个处理", "Treat consecutive delimiters as one"),
+        "textQualifier" => ("文本识别符", "Text qualifier"),
+        "fixedBreaks" => ("分列线（字符位置）", "Column break positions"),
+        "columnFormat" => ("列数据格式", "Column data format"),
+        "borderStyle" => ("线条样式", "Line style"),
+        "borderColor" => ("颜色", "Color"),
+        "rank" => ("排名数量", "Rank"),
+        "below" => ("低于平均值", "Below average"),
+        "gradient" => ("渐变填充", "Gradient fill"),
+        "reverse" => ("反转图标次序", "Reverse icon order"),
+        "value2" => ("第二个值", "Second value"),
         "at" => ("插入位置", "Insert at"),
         "source" => ("源区域或表名", "Source range or table"),
         "destination" => ("目标地址或 new", "Destination or new"),
@@ -205,12 +227,12 @@ fn dialog_command(name: &str) -> &str {
     }
 }
 impl Desktop {
-    pub fn preview_import(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+    pub fn preview_import(&mut self, _window: &mut Window, cx: &mut Context<Self>) {
         match self.form_params(cx) {
             Ok(values) => {
                 self.import_draft = Some(values.clone());
-                self.palette_open = false;
-                self.commit(After::Command("__joysheet.previewImport".into(), values), window, cx);
+                self.excel_ui.import_preview = Value::Null;
+                self.issue("__joysheet.previewImport", values, After::None, cx);
             }
             Err(error) => self.alert(error),
         }
@@ -392,7 +414,9 @@ impl Desktop {
                 values["range"] = json!(joysheet_engine::selection::current_region(sheet, self.selection().active).a1());
             }
         }
-        self.advanced_params = values.as_object().is_some_and(|fields| fields.values().any(|v| v.is_array() || v.is_object()));
+        self.prepare_excel_dialog(&id, &mut values, cx);
+        self.advanced_params =
+            values.as_object().is_some_and(|fields| fields.iter().any(|(k, v)| !k.starts_with('_') && (v.is_array() || v.is_object())));
         self.command_initial = values.clone();
         self.make_command_fields(&values, window, cx);
         self.params.update(cx, |input, cx| {
@@ -444,7 +468,28 @@ impl Desktop {
             .map(|(key, value)| {
                 let text = value.as_str().map(str::to_string).unwrap_or_else(|| value.to_string());
                 let input = cx.new(|cx| InputState::new(window, cx).default_value(text).masked(key.to_ascii_lowercase().contains("password")));
-                cx.subscribe(&input, |_, _, _: &gpui_kit::component::input::InputEvent, cx| cx.notify()).detach();
+                let source = key.clone();
+                cx.subscribe_in(&input, window, move |v, _, event: &gpui_kit::component::input::InputEvent, w, cx| {
+                    if matches!(event, gpui_kit::component::input::InputEvent::Change)
+                        && matches!(v.selected_command.as_deref(), Some("home.fillColor" | "home.fontColor" | "home.borderColor"))
+                        && matches!(source.as_str(), "color" | "red" | "green" | "blue")
+                    {
+                        v.excel_ui.color_source = source.clone();
+                        if source == "color" {
+                            if let Ok(n) = u32::from_str_radix(v.dialog_text("color", cx).trim_start_matches('#'), 16)
+                                && n <= 0xffffff
+                            {
+                                for (k, n) in [("red", (n >> 16) & 255), ("green", (n >> 8) & 255), ("blue", n & 255)] {
+                                    v.set_dialog_value(k, json!(n), w, cx);
+                                }
+                            }
+                        } else if let Some(n) = v.proposed_rgb(cx) {
+                            v.set_dialog_value("color", json!(format!("#{n:06X}")), w, cx);
+                        }
+                    }
+                    cx.notify();
+                })
+                .detach();
                 CommandField {
                     key: key.clone(),
                     label: if self.selected_command.as_deref() == Some("insert.timeline") && key == "column" {
@@ -484,6 +529,7 @@ impl Desktop {
             values[&field.key] = value;
         }
         let id = self.selected_command.as_deref().unwrap_or("");
+        self.excel_parameters(id, &mut values, cx)?;
         if matches!(id, "home.formatCells" | "pageLayout.pageSetup") {
             values["_original"] = self.command_initial.clone();
         }
@@ -494,6 +540,12 @@ impl Desktop {
             return;
         };
         let id = dialog_command(&id).to_string();
+        if id == "data.textToColumns" && self.dialog_tab < 2 {
+            self.dialog_tab += 1;
+            self.focus_command_input(window, cx);
+            cx.notify();
+            return;
+        }
         let parameters = if self.advanced_params {
             serde_json::from_str::<Value>(&self.params.read(cx).value()).map_err(|e| e.to_string())
         } else {
@@ -501,6 +553,21 @@ impl Desktop {
         };
         match parameters {
             Ok(params) if params.is_object() => {
+                if id == "home.conditionalFormat" && self.excel_ui.return_panel == 23 {
+                    match self.stage_cf_rule(&params) {
+                        Ok(()) => {
+                            self.close_command_dialog(window, cx);
+                        }
+                        Err(e) => {
+                            self.dialog_error = e;
+                            cx.notify();
+                        }
+                    }
+                    return;
+                }
+                if matches!(id.as_str(), "home.fillColor" | "home.fontColor") {
+                    self.excel_ui.last_colors.insert(if id == "home.fillColor" { "fill" } else { "font-color" }.into(), params["color"].clone());
+                }
                 if id == "view.unhideWindow"
                     && !self.data_raw.as_array().is_some_and(|items| items.iter().any(|i| i["hidden"] == true && i["window"] == params["window"]))
                 {
@@ -512,7 +579,7 @@ impl Desktop {
                     self.close_command_dialog(window, cx);
                     return;
                 }
-                if id == "home.formatCells" && params["style"].as_object().is_some_and(|m| m.is_empty()) {
+                if id == "home.formatCells" && self.excel_ui.border_ops.is_empty() && params["style"].as_object().is_some_and(|m| m.is_empty()) {
                     self.close_command_dialog(window, cx);
                     return;
                 }
@@ -534,6 +601,13 @@ impl Desktop {
                 if ["data.getData", "data.fromTextCsv"].contains(&id.as_str()) {
                     self.import_draft = Some(params.clone());
                 }
+                let (id, params) = if id == "home.formatCells" && !self.excel_ui.border_ops.is_empty() {
+                    let mut params = params;
+                    params["style"].as_object_mut().map(|s| s.remove("borders"));
+                    ("__joysheet.formatDialog".to_string(), json!({"format":params,"borders":self.excel_ui.border_ops}))
+                } else {
+                    (id, params)
+                };
                 let keep_open = matches!(id.as_str(), "edit.find" | "edit.replace");
                 self.dialog_error.clear();
                 if id == "view.arrangeAll" {
@@ -542,8 +616,14 @@ impl Desktop {
                     self.commit(After::Command(id, params), window, cx);
                 }
                 self.palette_open = keep_open;
+                if !keep_open && self.excel_ui.return_panel != 0 {
+                    self.daily_group = self.excel_ui.return_panel;
+                    self.excel_ui.return_panel = 0;
+                }
                 if keep_open {
                     self.focus_command_input(window, cx);
+                } else if matches!(self.daily_group, 19 | 23) {
+                    self.command_focus.focus(window, cx);
                 } else {
                     self.focus_grid(window, cx);
                 }

@@ -1,0 +1,7 @@
+{
+  "reader": "Python ZIP/XML",
+  "orientation": "landscape",
+  "nameComment": "Mouse regression",
+  "conditionalRule": 15,
+  "wizardUndo": true
+}
