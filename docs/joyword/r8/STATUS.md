@@ -1,5 +1,7 @@
 # JoyWord 宿主任务状态
 
+2026-11-16：工作区与内部精确版本约束统一为 0.2.0；后续按正常 GitHub Release 发布，不再标记预览版。保留独立产品标签、六平台产物校验和已有验收边界；本次未创建发布标签或公开新包。[发布规则与平台扩展](../../joyoffice/RELEASE-PLATFORMS.md)
+
 2026-11-16：公共 GPUI Kit 家族升级为 0.9.1、Pre 快照升级为 0.3.12，Word 测试核心同步；默认后端和 AccessKit 补丁保留。构建、生产严格 Clippy 及 UI 23 项通过，本机 X11 输入/查找/保存重开 5 组通过。联合 6,057 通过、6 失败、3 既有忽略；六项 Word 引擎/排版失败全部在原 main 复现，未关闭相关父任务。[升级及验证边界](../../joyoffice/GPUI-KIT-0.9.1-UPGRADE.md)。
 
 2026-11-13：接入当前 Ribbon 标签双击收起/展开，包含文件后台；收起文件页后仍可编辑文档。UI/Shell 专项 123 项、fmt/严格 Clippy 和普通构建通过；产品全量检查中的分页失败已在未修改 main 复现。Windows 实屏已验证开始/文件标签收展、正文输入与撤销，保留平台及完整 UI 验收边界。[记录与边界](../../joyoffice/validation/20261113-ribbon-navigation/README.md)

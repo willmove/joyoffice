@@ -19,6 +19,7 @@
 - 并发时：每个 Agent 独占一条任务分支与明确文件／模块范围，互不改对方工作区；共享文档（如 `TASKS.md`、`IMPLEMENTATION.md`）只追加本任务证据、改本任务状态与进度表中与本任务相关的计数，合并前对最新 `main` 做 merge（禁止强推、禁止 rebase 已推送历史）。
 - 开始前检查工作目录、git status、分支和 HEAD；按用户指定分支工作，未指定时从最新 `main` 开任务分支；独立 worktree 可选。
 - 新增或变更功能的分支（含 PR 源分支）使用 `feat/` 前缀，修复缺陷的分支使用 `fix/` 前缀。
+- 后续版本从统一 `v0.2.0` 开始按正常 GitHub Release 发布，不再使用 Preview／预览版或 prerelease；产品独立标签与产物校验保留，历史发布不改写。平台扩展建议和发布规则见 `docs/joyoffice/RELEASE-PLATFORMS.md`（2026-11-16 用户明确）。
 - 旧 Word 规格以及 docs/coordination/ 供历史查证。由当次任务划定改动范围。
 - 本仓库为 Word／Deck／Sheet 的 Monorepo。开始 Deck 工作先读 `docs/joyoffice/MONOREPO-MIGRATION.md`、迁移结果记录与 `docs/joydeck/STATUS.md`；开始 Sheet 工作先读 `docs/joyoffice/JOYSHEET-INTEGRATION.md`、`docs/joysheet/README.md`、`STATUS.md` 和 `MIGRATION.md`。在本仓库开发，不回到旧独立目录。应用位于 `apps/`，产品模块位于 `crates/joyword-*`／`crates/joydeck-*`／`crates/joysheet-*`，跨产品模块位于 `crates/joyoffice-*`，禁止产品应用互相依赖。
 - 只修改任务相关内容，保留已有未提交修改；必要时同步相关文档。提交、推送按用户或协调者要求执行，不强推。

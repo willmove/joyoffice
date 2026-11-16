@@ -1,8 +1,9 @@
 name: Product release
 
 # Product tags release independently. Historical v* tags still route to Word.
-# Curated bilingual notes live in the tagged tree. A release remains a draft
-# until every platform artifact and its uploaded digest have been checked.
+# Starting at 0.2.0, publish normal releases with curated bilingual notes.
+# A release remains a draft until every platform artifact and its uploaded
+# digest have been checked.
 on:
   push:
     tags: ["v*", "joyword-v*", "joydeck-v*", "joysheet-v*"]
@@ -210,7 +211,7 @@ jobs:
             test "$?" = 2
             gh api "repos/$GITHUB_REPOSITORY/git/refs" -f ref="$ref" -f sha="$GITHUB_SHA"
           fi
-      - name: Create or resume a curated preview draft
+      - name: Create or resume a curated release draft
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ needs.resolve.outputs.tag }}
@@ -221,12 +222,12 @@ jobs:
           notes="docs/releases/$RELEASE_TAG.md"
           if ! gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json body,isPrerelease,isDraft > release-state.json; then
             case "$RELEASE_PRODUCT" in
-              joyword) title="JoyWord v$RELEASE_VERSION · Preview 预览版" ;;
-              joydeck) title="JoyDeck v$RELEASE_VERSION · Preview 预览版" ;;
-              joysheet) title="JoySheet v$RELEASE_VERSION · Preview 预览版" ;;
+              joyword) title="JoyWord v$RELEASE_VERSION" ;;
+              joydeck) title="JoyDeck v$RELEASE_VERSION" ;;
+              joysheet) title="JoySheet v$RELEASE_VERSION" ;;
               *) exit 1 ;;
             esac
-            gh release create "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --verify-tag --draft --prerelease --latest=false --title "$title" --notes-file "$notes"
+            gh release create "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --verify-tag --draft --prerelease=false --latest=false --title "$title" --notes-file "$notes"
             gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json body,isPrerelease,isDraft > release-state.json
           fi
           python3 - <<'PYTHON'
@@ -240,8 +241,8 @@ jobs:
               sys.exit('Curated English and Chinese notes are required')
           if release.get('body', '').strip() != notes:
               sys.exit('Existing draft notes differ from the tagged notes')
-          if not release.get('isDraft') or not release.get('isPrerelease'):
-              sys.exit('Refusing to alter an already published or non-preview release')
+          if not release.get('isDraft') or release.get('isPrerelease') is not False:
+              sys.exit('Refusing to alter an already published release or a prerelease draft')
           PYTHON
       - name: Upload to draft and check GitHub asset digests
         env:
@@ -266,8 +267,8 @@ jobs:
               if asset['state'] != 'uploaded' or asset.get('digest') != digest:
                   sys.exit('Uploaded digest mismatch: ' + asset['name'])
           PYTHON
-      - name: Publish completed preview
+      - name: Publish completed release
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ needs.resolve.outputs.tag }}
-        run: gh release edit "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --draft=false --prerelease --latest=false
+        run: gh release edit "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --draft=false --prerelease=false --latest

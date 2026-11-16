@@ -44,6 +44,8 @@ def release_target(tag=None, product=None, version=None, root=ROOT):
         if product not in PRODUCTS or not version:
             raise ValueError("manual release requires product and version")
         routed, requested = product, version
+    if not re.fullmatch(r"(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)", requested):
+        raise ValueError("normal releases require a major.minor.patch version without suffixes")
     if requested != manifest_version(routed, root):
         raise ValueError("release version does not match apps/" + routed + "/Cargo.toml")
     if manifest_version(PRODUCTS[routed][1], root) != requested:

@@ -93,6 +93,16 @@ class ProductRouting(unittest.TestCase):
         with self.assertRaises(ValueError):
             product.release_target(product='joydeck', version='9.9.9', root=self.root)
 
+    def test_normal_release_rejects_suffixes_and_noncanonical_versions(self):
+        for version in ['0.2.0-preview.1', '0.2.0-rc.1', '0.2.0+build.1', '00.2.0', '0.02.0', '0.2.00']:
+            for app in product.PRODUCTS['joydeck']:
+                (self.root / 'apps' / app / 'Cargo.toml').write_text(
+                    '[package]\nversion = "' + version + '"\n', encoding='utf-8')
+            with self.subTest(version=version), self.assertRaisesRegex(ValueError, 'normal releases'):
+                product.release_target('joydeck-v' + version, root=self.root)
+            with self.subTest(manual=version), self.assertRaisesRegex(ValueError, 'normal releases'):
+                product.release_target(product='joydeck', version=version, root=self.root)
+
     def test_tests_select_owned_and_consumed_shared_packages(self):
         self.assertEqual(product.product_packages(graph(), 'joydeck', headless=True),
                          ['joydeck-cli', 'joydeck-model', 'joydeck-shell', 'joyoffice-cfb', 'joyoffice-opc'])

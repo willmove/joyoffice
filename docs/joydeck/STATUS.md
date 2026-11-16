@@ -1,5 +1,7 @@
 # JoyDeck 当前状态
 
+2026-11-16：工作区与内部精确版本约束统一为 0.2.0；后续按正常 GitHub Release 发布，不再标记预览版。保留独立产品标签、六平台产物校验和已有验收边界；本次未创建发布标签或公开新包。[发布规则与平台扩展](../joyoffice/RELEASE-PLATFORMS.md)
+
 2026-11-16：公共 GPUI Kit 0.9.1 / Pre 0.3.12 基线已接入，诊断和来源/版本门禁同步。产品 check 988 项通过，fmt、all-targets 严格 Clippy、GUI/CLI 构建和 X11 实际窗口 5 组通过，含撤销重做、独立 PPTX 读回及深色重开。联合 6 项 Word 基线失败另行保留；本轮不关闭 JD-905 的完整跨平台/CI 条件。[公共升级与验证](../joyoffice/GPUI-KIT-0.9.1-UPGRADE.md)。
 
 2026-11-14：JD-807/808 增加 Windows x64/ARM64 Setup EXE，共用 JoyOffice NSIS 3.11 安装/卸载实现；v0.1.4 补充安装器使用原公开 ZIP 载荷，不移动产品标签。Windows x64 已实屏启动并核对当前用户登记/安全卸载，ARM64 按原生 runner 自动验证；完整签名、升级回滚和文件关联验收继续开放。[安装器验证](../joyoffice/validation/20261114-windows-installers/README.md)
@@ -12,7 +14,7 @@
 
 2026-11-09 Windows P1 续验 JD-305、JD-307、JD-602 与 JD-608。插入功能区新增清空全稿已有页脚文字，实屏验证确认、取消、单步撤销和重做。PPTX 保留写回保留形状树非可视组属性和扩展位置。Microsoft Word 的粗体、斜体和颜色经系统剪贴板粘贴，PowerPoint 直接打开另存的三页 PPTX。[本机验证](../joyoffice/validation/20261109-p1-followup/README.md)
 
-当前工作区版本为 v0.1.4。JoyDeck 桌面、CLI 和组件统一继承 JoyOffice 工作区版本，仍使用 `joydeck-v*` 标签独立打包。历史重构包 0.8.0 用户换版时需显式选择 0.1.4。[R9 交接](../joyoffice/JOYDECK-R9-HANDOFF.md)
+当前工作区版本为 v0.2.0。JoyDeck 桌面、CLI 和组件统一继承 JoyOffice 工作区版本，仍使用 `joydeck-v*` 标签独立打包。历史重构包 0.8.0 用户换版时需显式选择 0.2.0。[R9 交接](../joyoffice/JOYDECK-R9-HANDOFF.md)
 
 2026-11-09 推进 JD-305。「插入」页脚支持当前缺失页、全部缺失页和更新已有页脚三种事务。Windows 已通过重复拒绝、单页与批量补建、混合值更新、撤销和 PPTX 另存读回。页眉、隐式继承、显示开关及其他文字能力继续开放。[本机验收](../joyoffice/validation/20261109-v012/README.md#p1)
 
