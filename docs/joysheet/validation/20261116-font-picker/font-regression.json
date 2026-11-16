@@ -1,0 +1,20 @@
+{
+  "passed": 6,
+  "checks": [
+    "Direct typed font normalizes installed case/whitespace, applies only selected cells, preserves values/mixed styles, undo/redo",
+    "Escape cancels without revision change; Chinese font names can be entered directly",
+    "Workbook theme and recent groups pinned above full catalog; visible scrollbar thumb drag reveals and selects later fonts",
+    "Typing in an open list filters choices; Escape cancels; mouse theme-font selection applies actual font",
+    "Portable names retained; failed protected-sheet formatting does not pollute recent fonts",
+    "Recent font history persists across application restart"
+  ],
+  "binarySha256": "e7ff86d69718e239e0d9ff40c059cca551811817a1585f124b34f1d1d2b2b16c",
+  "dragSelectedFont": "隶书",
+  "recentAfterRestart": [
+    "Portable Font Test",
+    "Georgia",
+    "隶书",
+    "等线",
+    "Arial"
+  ]
+}

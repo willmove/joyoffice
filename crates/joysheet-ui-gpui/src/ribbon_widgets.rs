@@ -200,6 +200,9 @@ impl Desktop {
         }
     }
     fn ribbon_button(&self, tool: Tool, large: bool, cx: &mut Context<Self>) -> AnyElement {
+        if tool.command == "font-name" {
+            return self.render_font_picker(cx);
+        }
         if tool.id == "cell-styles" && self.ribbon_wide {
             return div()
                 .flex()
@@ -325,33 +328,6 @@ impl Desktop {
                 .trigger(button)
                 .content(move |_, _, cx| {
                     let popup = cx.entity().downgrade();
-                    if tool.command == "font-name" {
-                        let names = cx.text_system().all_font_names();
-                        return div()
-                            .id("ribbon-font-list")
-                            .w(px(250.))
-                            .max_h(px(380.))
-                            .overflow_y_scroll()
-                            .flex()
-                            .flex_col()
-                            .children(names.into_iter().take(2048).enumerate().map(|(i, name)| {
-                                let popup = popup.clone();
-                                let owner = owner.clone();
-                                let label = name.clone();
-                                let probe = crate::excel_workflows::bound_probe(owner.clone(), format!("font-item:{name}"));
-                                Button::new(("installed-font", i)).relative().child(probe).ghost().justify_start().label(label).on_click(
-                                    move |_, w, cx| {
-                                        let _ = popup.update(cx, |p, cx| p.dismiss(w, cx));
-                                        let _ = owner.update(cx, |v, cx| {
-                                            if v.view().map(|v| (v.doc, v.sheet)) == target {
-                                                v.commit(After::Command("home.fontName".into(), json!({"name":name})), w, cx);
-                                            }
-                                        });
-                                    },
-                                )
-                            }))
-                            .into_any_element();
-                    }
                     if matches!(tool.command, "fill" | "font-color") {
                         let colour_owner = owner.clone();
                         let close = popup.clone();

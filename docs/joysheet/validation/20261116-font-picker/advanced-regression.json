@@ -1,0 +1,17 @@
+{
+  "passed": 11,
+  "checks": [
+    "Installed font popup; theme swatch; custom RGB apply and undo",
+    "Font preview, graphical border click/preset; Cancel unchanged; grouped format apply/undo",
+    "Table gallery grouped thumbnails; selected style applied after Create Table confirmation",
+    "Shape/chart/SmartArt visual selectors and Cancel",
+    "Multi-level sort add/copy/delete/reorder, cancel, actual two-key order and undo",
+    "Three-step delimiter wizard, quotes, text leading zeros, skipped column, DMY date, back/next and undo",
+    "Fixed-width ruler adds/removes character breaks; cancel unchanged",
+    "CSV table preview stays in dialog and leaves workbook unchanged",
+    "Name manager columns, edit returns to manager, delete confirmation cancel",
+    "Rules drafts cancel unchanged; Apply; Edit; OK; undo",
+    "Print opens settings and actual PDF preview; orientation refreshes preview; close"
+  ],
+  "binarySha256": "e7ff86d69718e239e0d9ff40c059cca551811817a1585f124b34f1d1d2b2b16c"
+}

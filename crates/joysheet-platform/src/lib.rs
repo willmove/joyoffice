@@ -120,10 +120,12 @@ impl Preferences {
         self.recent.truncate(20);
     }
     pub fn remember_font(&mut self, name: &str) {
-        let name=name.trim();
-        if name.is_empty()||name.chars().count()>255||name.chars().any(char::is_control){return;}
-        self.recent_fonts.retain(|f|f.to_lowercase()!=name.to_lowercase());
-        self.recent_fonts.insert(0,name.to_string());
+        let name = name.trim();
+        if name.is_empty() || name.chars().count() > 255 || name.chars().any(char::is_control) {
+            return;
+        }
+        self.recent_fonts.retain(|f| f.to_lowercase() != name.to_lowercase());
+        self.recent_fonts.insert(0, name.to_string());
         self.recent_fonts.truncate(8);
     }
 }

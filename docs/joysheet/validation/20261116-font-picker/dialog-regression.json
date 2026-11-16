@@ -1,0 +1,16 @@
+{
+  "checks": [
+    "split primary underline toggles; Copy/Paste main buttons transfer a value",
+    "six Format Cells tabs, no-op OK, font style persistence and mixed-style preservation",
+    "Page Setup loads live settings; four tabs; scale mode and header survive OK/reopen",
+    "validation tabs; live zoom; invalid input stays open; Ctrl+K opens command search",
+    "Find Next keeps the Find and Replace dialog open",
+    "Row Height uses points and Column Width uses characters",
+    "New/Hide/Unhide view; Unhide picker Cancel retains hidden view and OK restores selected view"
+  ],
+  "inventory": [],
+  "passed": 7,
+  "binary": "D:\\Coding\\EditorProjects\\joyoffice\\artifacts\\joysheet\\font-picker-dialogs-20261116\\bin\\joysheet.exe",
+  "binarySha256": "e7ff86d69718e239e0d9ff40c059cca551811817a1585f124b34f1d1d2b2b16c",
+  "focusedOnly": true
+}

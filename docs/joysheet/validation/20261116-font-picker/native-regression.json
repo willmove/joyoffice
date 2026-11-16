@@ -1,0 +1,10 @@
+{
+  "binarySha256": "e7ff86d69718e239e0d9ff40c059cca551811817a1585f124b34f1d1d2b2b16c",
+  "checks": [
+    "Native mouse focused font-name field; typed Arial; Enter applied",
+    "Theme and recent sections displayed above installed-font catalog",
+    "Native mouse dragged visible scrollbar thumb to later fonts",
+    "Native mouse clicked Yu Gothic; A1 engine style verified independently"
+  ],
+  "finalA1Font": "Yu Gothic"
+}

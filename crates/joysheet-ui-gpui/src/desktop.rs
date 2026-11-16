@@ -93,7 +93,7 @@ pub enum After {
     RulesApplied,
     RefreshPrint,
     RememberFont(String),
-    RibbonFont(String,crate::font_picker::FontTarget),
+    RibbonFont(String, crate::font_picker::FontTarget),
 }
 pub struct Pending {
     pub ticket: Ticket,
@@ -127,7 +127,7 @@ pub struct Desktop {
     pub search: Entity<InputState>,
     pub function_search: Entity<InputState>,
     pub params: Entity<InputState>,
-    pub font_picker:crate::font_picker::FontPicker,
+    pub font_picker: crate::font_picker::FontPicker,
     pub import_text: Entity<TextareaState>,
     pub import_draft: Option<Value>,
     pub draft: Option<Draft>,
@@ -240,7 +240,7 @@ impl Desktop {
         let search = cx.new(|cx| InputState::new(window, cx).placeholder("搜索命令 / Search commands"));
         let params = cx.new(|cx| InputState::new(window, cx).default_value("{}"));
         let import_text = cx.new(|cx| TextareaState::new(window, cx));
-        let font_picker=crate::font_picker::FontPicker::new(window,cx);
+        let font_picker = crate::font_picker::FontPicker::new(window, cx);
         let mut subscriptions = Vec::new();
         subscriptions.push(cx.observe_window_activation(window, |this, window, cx| {
             if !window.is_window_active() {
@@ -298,7 +298,7 @@ impl Desktop {
         subscriptions.push(cx.subscribe(&search, |_, _, _: &TextEvent, cx| cx.notify()));
         subscriptions.push(cx.subscribe(&function_search, |_, _, _: &TextEvent, cx| cx.notify()));
         subscriptions.push(cx.subscribe(&import_text, |_, _, _: &TextEvent, cx| cx.notify()));
-        subscriptions.push(cx.subscribe_in(&font_picker.input,window,|this,_,event,window,cx|this.font_input_event(event,window,cx)));
+        subscriptions.push(cx.subscribe_in(&font_picker.input, window, |this, _, event, window, cx| this.font_input_event(event, window, cx)));
         let entity = cx.entity().downgrade();
         window.on_window_should_close(cx, move |window, cx| {
             entity
@@ -480,7 +480,12 @@ impl Desktop {
         if self.chinese() { zh.into() } else { en.into() }
     }
     pub fn issue(&mut self, command: &str, params: Value, mut after: After, cx: &mut Context<Self>) {
-        if command=="home.fontName"&&matches!(after,After::None)&&let Some(name)=params["name"].as_str(){after=After::RememberFont(name.into());}
+        if command == "home.fontName"
+            && matches!(after, After::None)
+            && let Some(name) = params["name"].as_str()
+        {
+            after = After::RememberFont(name.into());
+        }
         if command == "automate.runScript" {
             self.daily_group = 16;
         }
@@ -1012,8 +1017,17 @@ impl Desktop {
     }
     pub fn after(&mut self, after: After, window: &mut Window, cx: &mut Context<Self>) {
         match after {
-            After::RememberFont(name)=>{self.preferences.remember_font(&name);self.persist_preferences(cx);},
-            After::RibbonFont(name,target)=>{if self.view().is_some_and(|v|v.doc==target.doc&&v.sheet==target.sheet){self.issue("home.fontName",json!({"name":name,"range":target.range}),After::RememberFont(name),cx);}else{self.alert("工作簿已切换，请重新选择字体 / Select a font again for the current workbook");}},
+            After::RememberFont(name) => {
+                self.preferences.remember_font(&name);
+                self.persist_preferences(cx);
+            }
+            After::RibbonFont(name, target) => {
+                if self.view().is_some_and(|v| v.doc == target.doc && v.sheet == target.sheet) {
+                    self.issue("home.fontName", json!({"name":name,"range":target.range}), After::RememberFont(name), cx);
+                } else {
+                    self.alert("工作簿已切换，请重新选择字体 / Select a font again for the current workbook");
+                }
+            }
             After::RulesApplied => {
                 self.excel_ui.cf_target = self.view().map(|v| (v.doc, v.sheet, v.revision));
             }
@@ -1160,7 +1174,7 @@ impl Desktop {
 
 impl Render for Desktop {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        self.sync_font_picker(window,cx);
+        self.sync_font_picker(window, cx);
         self.ribbon_wide = window.viewport_size().width >= px(1800.);
         let palette = self.palette();
         let bg = palette.canvas;
