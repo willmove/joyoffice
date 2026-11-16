@@ -1,5 +1,7 @@
 # JoySheet / 本机 Excel Ribbon 比对
 
+2026-11-16 续验：逐控件指针检查和弹窗调整见 [对话框续验记录](validation/20261116-ribbon-dialogs/README.md)。本轮补充居中对话框、格式/页面设置/数据验证页签、拆分按钮、查找保留窗口、厘米/磅/字符单位及当前值回填；仍不表示完整 Excel 功能或像素级等价。
+
 日期：2026-11-11。开发分支：`feat/joysheet-excel-ribbon`，基线 `4c7a951b73e62fcc3b71bbb7acc83abc99efa291`。
 
 参照为本机中文 Microsoft Excel，文件版本 **16.0.20527.20150**。本次通过原生窗口实际打开文件、开始、插入、绘图、页面布局、公式、数据、审阅、视图、帮助，逐页截图；未读取或移植 Excel 实现、图标或其他私有资源。JoySheet 使用已锁定的 GPUI Kit / Lucide 图标资源，保留自己的品牌和命令协议。

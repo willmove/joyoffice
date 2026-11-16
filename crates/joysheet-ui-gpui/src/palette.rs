@@ -14,7 +14,7 @@ pub struct CommandField {
     pub value: Entity<InputState>,
     pub initial: Value,
 }
-fn field_label(key: &str, zh: bool) -> String {
+pub(crate) fn field_label(key: &str, zh: bool) -> String {
     let labels = match key {
         "at" => ("插入位置", "Insert at"),
         "source" => ("源区域或表名", "Source range or table"),
@@ -34,7 +34,7 @@ fn field_label(key: &str, zh: bool) -> String {
         "constraintLines" => ("约束，每行一条", "Constraints, one per line"),
         "password" => ("密码", "Password"),
         "refersTo" => ("引用位置或公式", "Refers to"),
-        "scope" => ("作用域 Workbook/工作表名", "Scope: Workbook or sheet"),
+        "scope" => ("作用域", "Scope"),
         "oldName" => ("编辑已有名称（新建时留空）", "Existing name, blank for new"),
         "oldScope" => ("原作用域（新建时留空）", "Existing scope"),
         "commandsText" => ("脚本步骤（JSON 命令数组）", "Script command array (JSON)"),
@@ -52,7 +52,9 @@ fn field_label(key: &str, zh: bool) -> String {
         "input" => ("填充内容或公式", "Fill value or formula"),
         "matchCase" => ("区分大小写", "Match case"),
         "wholeCell" => ("匹配整个单元格", "Match entire cell"),
-        "lookIn" => ("查找位置 values/formulas", "Look in values/formulas"),
+        "lookIn" => ("查找范围", "Look in"),
+        "within" => ("范围", "Within"),
+        "byColumns" => ("按列搜索", "Search by columns"),
         "sheet" => ("工作表名称", "Worksheet name"),
         "by" => ("分组方向 rows/cols", "Group rows/cols"),
         "lines" => ("行或列范围，例如 2:4 / B:D", "Row or column range e.g. 2:4 / B:D"),
@@ -64,14 +66,41 @@ fn field_label(key: &str, zh: bool) -> String {
         "size" => ("字体大小", "Font size"),
         "fontName" => ("字体", "Font family"),
         "fontSize" => ("字号", "Font size"),
-        "fontColor" => ("字体颜色 #RRGGBB", "Font color #RRGGBB"),
-        "fontScript" => ("上下标 Baseline/Superscript/Subscript", "Baseline/Superscript/Subscript"),
-        "underline" => ("下划线 None/Single/Double", "Underline None/Single/Double"),
-        "fillPattern" => ("填充 Solid/Gray25/LightDown/LightGrid 等", "Fill Solid/Gray25/LightDown/LightGrid etc."),
-        "fillForeground" => ("图案前景色 #RRGGBB", "Pattern foreground #RRGGBB"),
-        "fillBackground" => ("图案背景色 #RRGGBB", "Pattern background #RRGGBB"),
-        "horizontal" => ("水平 General/Left/Center/Right", "Horizontal alignment"),
-        "vertical" => ("垂直 Top/Center/Bottom", "Vertical alignment"),
+        "bold" => ("加粗", "Bold"),
+        "italic" => ("倾斜", "Italic"),
+        "strike" => ("删除线", "Strikethrough"),
+        "wrap" => ("自动换行", "Wrap text"),
+        "shrink" => ("缩小字体填充", "Shrink to fit"),
+        "locked" => ("锁定", "Locked"),
+        "hidden" => ("隐藏", "Hidden"),
+        "orientation" => ("方向", "Orientation"),
+        "paper" => ("纸张大小", "Paper size"),
+        "scale" => ("缩放比例 (%)", "Adjust to (%)"),
+        "fitWidth" => ("页宽", "Pages wide"),
+        "fitHeight" => ("页高", "Pages tall"),
+        "fitMode" => ("调整为指定页数", "Fit to pages"),
+        "left" => ("左", "Left"),
+        "right" => ("右", "Right"),
+        "top" => ("上", "Top"),
+        "bottom" => ("下", "Bottom"),
+        "headerMargin" => ("页眉", "Header"),
+        "footerMargin" => ("页脚", "Footer"),
+        "centerH" => ("水平居中", "Horizontally"),
+        "centerV" => ("垂直居中", "Vertically"),
+        "gridlines" => ("网格线", "Gridlines"),
+        "headings" => ("行号列标", "Row and column headings"),
+        "printArea" => ("打印区域", "Print area"),
+        "titleRows" => ("顶端标题行", "Rows to repeat at top"),
+        "titleCols" => ("左端标题列", "Columns to repeat at left"),
+        "footer" => ("页脚", "Footer"),
+        "fontColor" => ("字体颜色", "Font color"),
+        "fontScript" => ("上下标", "Effects"),
+        "underline" => ("下划线", "Underline"),
+        "fillPattern" => ("图案样式", "Pattern style"),
+        "fillForeground" => ("图案颜色", "Pattern color"),
+        "fillBackground" => ("背景色", "Background color"),
+        "horizontal" => ("水平对齐", "Horizontal alignment"),
+        "vertical" => ("垂直对齐", "Vertical alignment"),
         "angle" => ("旋转角度 −90…90，255 为竖排", "Rotation −90…90; 255 stacked"),
         "indent" => ("缩进", "Indent"),
         "numberFormat" => ("数字格式", "Number format"),
@@ -85,6 +114,9 @@ fn field_label(key: &str, zh: bool) -> String {
         "code" => ("数字格式", "Number format"),
         "width" => ("宽度", "Width"),
         "height" => ("高度", "Height"),
+        "points" => ("行高 (磅)", "Row height (points)"),
+        "chars" => ("列宽 (字符)", "Column width (characters)"),
+        "window" => ("取消隐藏工作簿", "Unhide workbook"),
         "sourcesText" => ("源区域，每行或逗号分隔", "Source ranges, one per line or comma separated"),
         "columnsText" => ("汇总列，逗号分隔", "Subtotal columns, comma separated"),
         "word" => ("单词", "Word"),
@@ -143,6 +175,7 @@ fn defaults(id: &str) -> Value {
         "formulas.defineName" => json!({"name":"Total","refersTo":"=Sheet1!$A$1"}),
         "edit.goTo" => json!({"reference":"A1"}),
         "view.zoom" => json!({"percent":100}),
+        "view.unhideWindow" => json!({"window":0}),
         _ => json!({}),
     }
 }
@@ -196,6 +229,8 @@ impl Desktop {
     }
     pub fn open_command(&mut self, id: &str, window: &mut Window, cx: &mut Context<Self>) {
         let id = dialog_command(id).to_string();
+        self.dialog_tab = 0;
+        self.dialog_error.clear();
         self.daily_group = 0;
         self.palette_open = true;
         self.selected_command = Some(id.clone());
@@ -205,7 +240,18 @@ impl Desktop {
             && let Some(sheet) = view.sheet()
         {
             let st = view.workbook.styles.get(sheet.style_id(self.selection().active));
-            values = json!({"fontName":st.font.name,"fontSize":st.font.size,"bold":st.font.bold,"italic":st.font.italic,"underline":st.font.underline,"fontScript":st.font.vert,"fontColor":st.font.color.hex(&view.workbook.theme).unwrap_or("#27382E".into()),"fillPattern":st.fill.pattern,"fillForeground":st.fill.fg.hex(&view.workbook.theme).unwrap_or("#147D59".into()),"fillBackground":st.fill.bg.hex(&view.workbook.theme).unwrap_or("#FFFFFF".into()),"horizontal":st.align.h,"vertical":st.align.v,"angle":st.align.rotation,"indent":st.align.indent,"wrap":st.align.wrap,"shrink":st.align.shrink,"numberFormat":st.num_fmt});
+            values = json!({"fontName":st.font.name,"fontSize":st.font.size,"bold":st.font.bold,"italic":st.font.italic,"strike":st.font.strike,"underline":st.font.underline,"fontScript":st.font.vert,"fontColor":st.font.color.hex(&view.workbook.theme).unwrap_or("#000000".into()),"fillPattern":st.fill.pattern,"fillForeground":st.fill.fg.hex(&view.workbook.theme).unwrap_or("#000000".into()),"fillBackground":st.fill.bg.hex(&view.workbook.theme).unwrap_or("#FFFFFF".into()),"horizontal":st.align.h,"vertical":st.align.v,"angle":st.align.rotation,"indent":st.align.indent,"wrap":st.align.wrap,"shrink":st.align.shrink,"numberFormat":st.num_fmt,"locked":st.protection.locked,"hidden":st.protection.hidden});
+            for (key, line) in [
+                ("borderLeft", st.borders.left),
+                ("borderRight", st.borders.right),
+                ("borderTop", st.borders.top),
+                ("borderBottom", st.borders.bottom),
+                ("borderDown", st.borders.diag_down),
+                ("borderUp", st.borders.diag_up),
+            ] {
+                values[key] = json!(line.style);
+                values[format!("{key}Color")] = json!(line.color.hex(&view.workbook.theme).unwrap_or("#000000".into()));
+            }
         }
         if let Some(view) = self.view()
             && let Some(sheet) = view.sheet()
@@ -215,6 +261,28 @@ impl Desktop {
                 "home.fontName" => values["name"] = json!(style.font.name),
                 "home.fontSize" => values["size"] = json!(style.font.size),
                 "home.numberFormat" => values["code"] = json!(style.num_fmt),
+                "view.zoom" => values["percent"] = json!(sheet.zoom),
+                "home.rowHeight" => values = json!({"points":f64::from(sheet.row_height(self.selection().active.row))*0.75}),
+                "home.columnWidth" => {
+                    values = json!({"chars":joysheet_engine::model::points_to_chars(f64::from(sheet.col_width(self.selection().active.col)))})
+                }
+                "sheet.rename" => values["name"] = json!(sheet.name),
+                "pageLayout.pageSetup" => values = crate::dialogs::page_setup_values(&sheet.print, self.chinese()),
+                "pageLayout.headerFooter" => {
+                    values["header"] = json!(sheet.print.header);
+                    values["footer"] = json!(sheet.print.footer);
+                }
+                "pageLayout.scaleToFit" => {
+                    let (width, height) = sheet.print.fit_to.unwrap_or((0, 0));
+                    values = json!({"width":width,"height":height,"scale":sheet.print.scale,"fitMode":sheet.print.fit_to.is_some()});
+                }
+                "data.validation" => {
+                    if let Some(rule) = sheet.validations.iter().find(|r| r.ranges.iter().any(|r| r.contains(self.selection().active))) {
+                        values = json!({"type":match rule.kind {joysheet_engine::model::ValidationKind::Any=>"any",joysheet_engine::model::ValidationKind::Whole=>"whole",joysheet_engine::model::ValidationKind::Decimal=>"decimal",joysheet_engine::model::ValidationKind::List=>"list",joysheet_engine::model::ValidationKind::Date=>"date",joysheet_engine::model::ValidationKind::Time=>"time",joysheet_engine::model::ValidationKind::TextLength=>"textLength",joysheet_engine::model::ValidationKind::Custom=>"custom"},
+                            "operator":match rule.op{joysheet_engine::model::CfOperator::Between=>"between",joysheet_engine::model::CfOperator::NotBetween=>"notBetween",joysheet_engine::model::CfOperator::Equal=>"equal",joysheet_engine::model::CfOperator::NotEqual=>"notEqual",joysheet_engine::model::CfOperator::Greater=>"greaterThan",joysheet_engine::model::CfOperator::Less=>"lessThan",joysheet_engine::model::CfOperator::GreaterOrEqual=>"greaterOrEqual",joysheet_engine::model::CfOperator::LessOrEqual=>"lessOrEqual"},
+                            "formula1":rule.f1,"formula2":rule.f2.clone().unwrap_or_default(),"ignoreBlank":rule.allow_blank,"dropdown":rule.in_cell_dropdown,"inputTitle":rule.input_title,"inputMessage":rule.input_message,"errorTitle":rule.error_title,"errorMessage":rule.error_message,"errorStyle":match rule.error_style{joysheet_engine::model::ErrorStyle::Stop=>"stop",joysheet_engine::model::ErrorStyle::Warning=>"warning",joysheet_engine::model::ErrorStyle::Information=>"information"}});
+                    }
+                }
                 "pageLayout.printTitles" => {
                     values["rows"] = json!(sheet.print.title_rows.map(|(a, b)| format!("{}:{}", a + 1, b + 1)).unwrap_or_default());
                     values["cols"] = json!(
@@ -325,11 +393,16 @@ impl Desktop {
             }
         }
         self.advanced_params = values.as_object().is_some_and(|fields| fields.values().any(|v| v.is_array() || v.is_object()));
+        self.command_initial = values.clone();
         self.make_command_fields(&values, window, cx);
         self.params.update(cx, |input, cx| {
             input.set_value(values.to_string(), window, cx);
         });
         self.focus_command_input(window, cx);
+        if id == "view.unhideWindow" {
+            self.data_raw = Value::Null;
+            self.issue("view.switchWindows", json!({}), After::None, cx);
+        }
         cx.notify();
     }
     pub fn focus_command_input(&self, window: &mut Window, cx: &mut Context<Self>) {
@@ -338,16 +411,18 @@ impl Desktop {
             return;
         }
         let id = self.selected_command.as_deref().unwrap_or("");
-        if let Some(field) = self
-            .command_fields
-            .iter()
-            .find(|f| !f.initial.is_boolean() && crate::object_ui::choices(id, &f.key).is_empty() && !crate::advanced::multiline(id, &f.key))
-        {
+        if let Some(field) = self.command_fields.iter().find(|f| {
+            self.dialog_field_visible(&f.key)
+                && !f.initial.is_boolean()
+                && crate::dialogs::choices(id, &f.key).is_empty()
+                && self.object_choices(id, &f.key, cx).is_empty()
+                && !crate::advanced::multiline(id, &f.key)
+        }) {
             field.value.update(cx, |input, cx| input.focus(window, cx));
-        } else if self.command_fields.iter().any(|f| crate::advanced::multiline(id, &f.key)) {
+        } else if self.command_fields.iter().any(|f| self.dialog_field_visible(&f.key) && crate::advanced::multiline(id, &f.key)) {
             self.import_text.update(cx, |input, cx| input.focus(window, cx));
         } else {
-            self.search.update(cx, |input, cx| input.focus(window, cx));
+            self.command_focus.focus(window, cx);
         }
     }
     pub fn make_command_fields(&mut self, values: &Value, window: &mut Window, cx: &mut Context<Self>) {
@@ -358,6 +433,7 @@ impl Desktop {
             .filter(|(key, v)| {
                 !v.is_array()
                     && !v.is_object()
+                    && !key.starts_with('_')
                     && !(key.as_str() == "id"
                         || key.as_str() == "kind"
                             && self
@@ -407,7 +483,11 @@ impl Desktop {
             };
             values[&field.key] = value;
         }
-        crate::workflow::parameters(self.selected_command.as_deref().unwrap_or(""), values)
+        let id = self.selected_command.as_deref().unwrap_or("");
+        if matches!(id, "home.formatCells" | "pageLayout.pageSetup") {
+            values["_original"] = self.command_initial.clone();
+        }
+        crate::workflow::parameters(id, values)
     }
     pub fn run_selected_command(&mut self, window: &mut Window, cx: &mut Context<Self>) {
         let Some(id) = self.selected_command.clone() else {
@@ -421,6 +501,21 @@ impl Desktop {
         };
         match parameters {
             Ok(params) if params.is_object() => {
+                if id == "view.unhideWindow"
+                    && !self.data_raw.as_array().is_some_and(|items| items.iter().any(|i| i["hidden"] == true && i["window"] == params["window"]))
+                {
+                    self.dialog_error = self.label("没有可取消隐藏的工作簿。", "There are no hidden workbooks.");
+                    cx.notify();
+                    return;
+                }
+                if id == "pageLayout.pageSetup" && params.as_object().is_some_and(|m| m.is_empty()) {
+                    self.close_command_dialog(window, cx);
+                    return;
+                }
+                if id == "home.formatCells" && params["style"].as_object().is_some_and(|m| m.is_empty()) {
+                    self.close_command_dialog(window, cx);
+                    return;
+                }
                 if id == "automate.runScript" && !self.view().is_some_and(|v| v.scripts_trusted) {
                     self.request_trust(params["name"].as_str().unwrap_or("").into(), true, window, cx);
                     return;
@@ -439,25 +534,32 @@ impl Desktop {
                 if ["data.getData", "data.fromTextCsv"].contains(&id.as_str()) {
                     self.import_draft = Some(params.clone());
                 }
+                let keep_open = matches!(id.as_str(), "edit.find" | "edit.replace");
+                self.dialog_error.clear();
                 if id == "view.arrangeAll" {
                     self.issue(&id, params, After::None, cx);
                 } else {
                     self.commit(After::Command(id, params), window, cx);
                 }
-                self.palette_open = false;
-                self.focus_grid(window, cx);
+                self.palette_open = keep_open;
+                if keep_open {
+                    self.focus_command_input(window, cx);
+                } else {
+                    self.focus_grid(window, cx);
+                }
             }
             Ok(_) => {
                 self.alert("参数必须是 JSON 对象 / Parameters must be a JSON object");
                 cx.notify();
             }
             Err(error) => {
+                self.dialog_error = error.clone();
                 self.alert(error.to_string());
                 cx.notify();
             }
         }
     }
-    pub fn render_palette(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement + use<> {
+    pub(crate) fn render_command_center(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement + use<> {
         let p = self.palette();
         let panel = p.surface;
         let muted = p.muted;

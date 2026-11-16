@@ -2,6 +2,25 @@
 use crate::ribbon_catalog::{Tool, tool as t};
 use joyoffice_ui::IconName as I;
 
+pub(crate) fn primary(menu: &str) -> Option<Tool> {
+    let id = match menu {
+        "paste" => "paste-normal",
+        "underline" => "underline-single",
+        "borders" => "border-bottom",
+        "fill" | "font-color" => "color-red",
+        "merge" => "merge-center",
+        "autosum" => "sum",
+        "insert-cells" => "insert-cell-dialog",
+        "delete-cells" => "delete-cell-dialog",
+        _ => return None,
+    };
+    let mut tool = tools(menu).into_iter().find(|t| t.id == id)?;
+    if menu == "fill" {
+        tool.params = "{\"color\":\"#FFFF00\"}";
+    }
+    Some(tool)
+}
+
 pub fn tools(menu: &str) -> Vec<Tool> {
     match menu {
         "paste" => vec![
@@ -19,7 +38,7 @@ pub fn tools(menu: &str) -> Vec<Tool> {
             t("border-all", "所有框线", "All Borders", I::Grid2x2, "home.borders").params("{\"preset\":\"all\"}"),
             t("border-outside", "外侧框线", "Outside Borders", I::Square, "home.borders").params("{\"preset\":\"outside\"}"),
             t("border-none", "无框线", "No Border", I::SquareDashed, "home.borders").params("{\"preset\":\"none\"}"),
-            t("border-more", "其他边框…", "More Borders…", I::Grid2x2, "home.borders").dialog(),
+            t("border-more", "其他边框…", "More Borders…", I::Grid2x2, "home.formatCells").dialog(),
         ],
         "fill" | "font-color" => {
             let command = if menu == "fill" { "home.fillColor" } else { "home.fontColor" };
@@ -83,7 +102,7 @@ pub fn tools(menu: &str) -> Vec<Tool> {
             t("format-date", "短日期", "Short Date", I::Calendar, "home.numberFormat").params("{\"format\":\"Short Date\"}"),
             t("format-percent", "百分比", "Percentage", I::Percent, "home.percent"),
             t("format-text", "文本", "Text", I::Type, "home.numberFormat").params("{\"format\":\"Text\"}"),
-            t("format-more", "其他数字格式…", "More Number Formats…", I::Hash, "home.numberFormat").dialog(),
+            t("format-more", "其他数字格式…", "More Number Formats…", I::Hash, "home.formatCells").dialog(),
         ],
         "conditional" => vec![
             t("conditional-rule", "突出显示单元格规则…", "Highlight Cells Rules…", I::TableProperties, "home.conditionalFormat").dialog(),
@@ -178,6 +197,17 @@ pub fn tools(menu: &str) -> Vec<Tool> {
             t("paper-a4", "A4", "A4", I::File, "pageLayout.size").params("{\"paper\":\"A4\"}"),
             t("paper-a3", "A3", "A3", I::File, "pageLayout.size").params("{\"paper\":\"A3\"}"),
             t("paper-letter", "Letter", "Letter", I::File, "pageLayout.size").params("{\"paper\":\"Letter\"}"),
+        ],
+        "page-breaks" => vec![
+            t("break-insert", "插入分页符", "Insert Page Break", I::Plus, "pageLayout.breaks").params("{\"insert\":true}"),
+            t("break-remove", "删除分页符", "Remove Page Break", I::Minus, "pageLayout.breaks").params("{\"remove\":true}"),
+            t("break-reset", "重置所有分页符", "Reset All Page Breaks", I::RotateCcw, "pageLayout.breaks").params("{\"reset\":true}"),
+        ],
+        "calculation" => vec![
+            t("calc-auto", "自动", "Automatic", I::Calculator, "formulas.calculationOptions").params("{\"mode\":\"automatic\"}"),
+            t("calc-except-tables", "除模拟运算表外，自动重算", "Automatic Except for Data Tables", I::Table, "formulas.calculationOptions")
+                .params("{\"mode\":\"automaticExceptTables\"}"),
+            t("calc-manual", "手动", "Manual", I::MousePointer2, "formulas.calculationOptions").params("{\"mode\":\"manual\"}"),
         ],
         "print-area" => vec![
             t("print-area-set", "设置打印区域", "Set Print Area", I::Printer, "pageLayout.printArea"),

@@ -43,8 +43,9 @@ pub fn defaults(id: &str) -> Option<Value> {
         "data.sort" => json!({"column":"B","order":"asc","keysText":"","header":true}),
         "data.filterBy" => json!({"column":"B","operator":">","value":"10","clear":false}),
         "data.removeDuplicates" => json!({"columns":"A,B","header":true}),
-        "edit.find" => json!({"what":"","all":false,"matchCase":false,"wholeCell":false,"lookIn":"values"}),
-        "edit.replace" => json!({"what":"","with":"","all":true,"matchCase":false}),
+        "edit.find" | "edit.replace" => {
+            json!({"what":"","with":"","all":false,"matchCase":false,"wholeCell":false,"lookIn":"values","within":"sheet","byColumns":false})
+        }
         "range.fill" => json!({"input":""}),
         "home.conditionalFormat" => {
             json!({"type":"cellIs","operator":"greaterThan","value":15,"preset":"greenFill","color":"#638EC6","set":"3Arrows"})
@@ -54,7 +55,7 @@ pub fn defaults(id: &str) -> Option<Value> {
         "data.showLevels" => json!({"rows":1,"cols":1}),
         "data.getData" | "data.fromTextCsv" => json!({"path":"","text":"","delimiter":"","sheet":"导入数据"}),
         "data.validation" => {
-            json!({"type":"whole","operator":"between","formula1":"0","formula2":"100","ignoreBlank":true,"dropdown":true,"errorMessage":"输入值不符合规则 / Value does not satisfy validation"})
+            json!({"type":"any","operator":"between","formula1":"","formula2":"","ignoreBlank":true,"dropdown":true,"inputTitle":"","inputMessage":"","errorStyle":"stop","errorTitle":"","errorMessage":""})
         }
         _ => return None,
     })
@@ -63,6 +64,44 @@ pub fn parameters(id: &str, mut p: Value) -> Result<Value, String> {
     crate::advanced::parameters(id, &mut p)?;
     let m = p.as_object_mut().ok_or("Parameters must be an object")?;
     match id {
+        "pageLayout.pageSetup" | "pageLayout.scaleToFit" => {
+            let centimeters = m.remove("_marginUnit").and_then(|v| v.as_str().map(str::to_string)).as_deref() == Some("cm");
+            if let Some(original) = m.remove("_original") {
+                let mode_changed = m.get("fitMode") != original.get("fitMode");
+                let fitting = m.get("fitMode").and_then(Value::as_bool).unwrap_or(false);
+                m.retain(|key, value| {
+                    original.get(key) != Some(value)
+                        || mode_changed && if fitting { matches!(key.as_str(), "fitWidth" | "fitHeight") } else { key == "scale" }
+                });
+            }
+            if let Some(fit) = m.remove("fitMode").and_then(|v| v.as_bool()) {
+                if fit {
+                    m.remove("scale");
+                } else {
+                    for key in ["fitWidth", "fitHeight", "width", "height"] {
+                        m.remove(key);
+                    }
+                }
+            }
+            if id == "pageLayout.pageSetup" {
+                let mut margins = serde_json::Map::new();
+                for (key, target) in [
+                    ("left", "left"),
+                    ("right", "right"),
+                    ("top", "top"),
+                    ("bottom", "bottom"),
+                    ("headerMargin", "header"),
+                    ("footerMargin", "footer"),
+                ] {
+                    if let Some(v) = m.remove(key) {
+                        margins.insert(target.into(), if centimeters { json!(v.as_f64().ok_or("Margin must be a number")? / 2.54) } else { v });
+                    }
+                }
+                if !margins.is_empty() {
+                    m.insert("margins".into(), Value::Object(margins));
+                }
+            }
+        }
         "data.consolidate" | "data.subtotal" => {
             let (source, target) = if id == "data.consolidate" { ("sourcesText", "sources") } else { ("columnsText", "columns") };
             if let Some(text) = m.remove(source).and_then(|v| v.as_str().map(str::to_owned)) {
@@ -74,13 +113,79 @@ pub fn parameters(id: &str, mut p: Value) -> Result<Value, String> {
             }
         }
         "home.formatCells" if m.contains_key("fontName") => {
-            let value = |k: &str| m.get(k).cloned().unwrap_or(Value::Null);
-            let color = |k: &str| -> Result<Value, String> {
-                let s = m.get(k).and_then(Value::as_str).ok_or("Color must be #RRGGBB")?;
-                let c = joysheet_engine::model::Color::from_hex(s).ok_or("Color must be #RRGGBB")?;
-                serde_json::to_value(c).map_err(|e| e.to_string())
-            };
-            let style = json!({"font":{"name":value("fontName"),"size":value("fontSize"),"bold":value("bold"),"italic":value("italic"),"underline":value("underline"),"vert":value("fontScript"),"color":color("fontColor")?},"fill":{"pattern":value("fillPattern"),"fg":color("fillForeground")?,"bg":color("fillBackground")?},"align":{"h":value("horizontal"),"v":value("vertical"),"rotation":value("angle"),"indent":value("indent"),"wrap":value("wrap"),"shrink":value("shrink")},"num_fmt":value("numberFormat")});
+            // Send only edited properties. Applying a font change must not replace
+            // theme colours or flatten mixed formatting in the selected range.
+            let original = m.remove("_original");
+            let mut style = json!({});
+            for (key, group, property) in [
+                ("fontName", "font", "name"),
+                ("fontSize", "font", "size"),
+                ("bold", "font", "bold"),
+                ("italic", "font", "italic"),
+                ("strike", "font", "strike"),
+                ("underline", "font", "underline"),
+                ("fontScript", "font", "vert"),
+                ("fontColor", "font", "color"),
+                ("fillPattern", "fill", "pattern"),
+                ("fillForeground", "fill", "fg"),
+                ("fillBackground", "fill", "bg"),
+                ("horizontal", "align", "h"),
+                ("vertical", "align", "v"),
+                ("angle", "align", "rotation"),
+                ("indent", "align", "indent"),
+                ("wrap", "align", "wrap"),
+                ("shrink", "align", "shrink"),
+                ("locked", "protection", "locked"),
+                ("hidden", "protection", "hidden"),
+                ("numberFormat", "", "num_fmt"),
+            ] {
+                let Some(v) = m.get(key) else { continue };
+                if original.as_ref().and_then(|o| o.get(key)) == Some(v) {
+                    continue;
+                }
+                let mut value = v.clone();
+                if matches!(key, "fontColor" | "fillForeground" | "fillBackground") {
+                    let c = joysheet_engine::model::Color::from_hex(v.as_str().unwrap_or("")).ok_or("Color must be #RRGGBB")?;
+                    value = serde_json::to_value(c).map_err(|e| e.to_string())?;
+                }
+                if group.is_empty() {
+                    style[property] = value;
+                } else {
+                    if style.get(group).is_none() {
+                        style[group] = json!({});
+                    }
+                    style[group][property] = value;
+                }
+            }
+            for (key, side) in [
+                ("borderLeft", "left"),
+                ("borderRight", "right"),
+                ("borderTop", "top"),
+                ("borderBottom", "bottom"),
+                ("borderDown", "diag_down"),
+                ("borderUp", "diag_up"),
+            ] {
+                let color_key = format!("{key}Color");
+                for (source, target) in [(key, "style"), (color_key.as_str(), "color")] {
+                    if let Some(v) = m.get(source) {
+                        if original.as_ref().and_then(|o| o.get(source)) == Some(v) {
+                            continue;
+                        }
+                        if style.get("borders").is_none() {
+                            style["borders"] = json!({});
+                        }
+                        if style["borders"].get(side).is_none() {
+                            style["borders"][side] = json!({});
+                        }
+                        style["borders"][side][target] = if target == "color" {
+                            serde_json::to_value(joysheet_engine::model::Color::from_hex(v.as_str().unwrap_or("")).ok_or("Color must be #RRGGBB")?)
+                                .map_err(|e| e.to_string())?
+                        } else {
+                            v.clone()
+                        };
+                    }
+                }
+            }
             let range = m.get("range").cloned();
             m.clear();
             m.insert("style".into(), style);

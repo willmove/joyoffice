@@ -1,0 +1,4720 @@
+{
+  "date": "2026-11-16",
+  "base": "974f06c3d9c456a436ebd17e03aed7de9f88d4dc",
+  "excelVersion": "16.0.20527.20196",
+  "inventoryBinarySha256": "759bcedbea88cd58e6e26d3ce78da045d9f00a128eb9d9906a9d6eea32fac87b",
+  "finalBinarySha256": "b56b994444f96e5852b73c07c22274f5ad1e7c37fd5400c0712ed0d80d0af05b",
+  "inventoryChecks": [
+    "pointer dialogs/menus: Home",
+    "pointer dialogs/menus: Insert",
+    "pointer dialogs/menus: Draw",
+    "pointer dialogs/menus: Page Layout",
+    "pointer dialogs/menus: Formulas",
+    "pointer dialogs/menus: Data",
+    "pointer dialogs/menus: Review",
+    "pointer dialogs/menus: View",
+    "pointer dialogs/menus: Help",
+    "pointer dialogs/menus: Automate",
+    "split primary underline toggles; Copy/Paste main buttons transfer a value",
+    "six Format Cells tabs, no-op OK, checkbox persistence and mixed-style preservation",
+    "Page Setup loads live settings; four tabs; scale mode and header survive OK/reopen",
+    "validation tabs; live zoom; invalid input stays open; Ctrl+K opens command search",
+    "Find Next keeps the Find and Replace dialog open",
+    "Row Height uses points and Column Width uses characters"
+  ],
+  "finalDialogChecks": [
+    "split primary underline toggles; Copy/Paste main buttons transfer a value",
+    "six Format Cells tabs, no-op OK, checkbox persistence and mixed-style preservation",
+    "Page Setup loads live settings; four tabs; scale mode and header survive OK/reopen",
+    "validation tabs; live zoom; invalid input stays open; Ctrl+K opens command search",
+    "Find Next keeps the Find and Replace dialog open",
+    "Row Height uses points and Column Width uses characters",
+    "New/Hide/Unhide view; Unhide picker Cancel retains hidden view and OK restores selected view"
+  ],
+  "inventory": [
+    {
+      "tab": "Home",
+      "group": "Clipboard",
+      "id": "paste",
+      "command": "paste",
+      "dialog": false,
+      "menu": true,
+      "menuItems": [
+        {
+          "id": "paste-normal",
+          "command": "edit.paste",
+          "dialog": false,
+          "params": "{}"
+        },
+        {
+          "id": "paste-values",
+          "command": "edit.pasteSpecial",
+          "dialog": false,
+          "params": "{\"what\":\"values\"}"
+        },
+        {
+          "id": "paste-formats",
+          "command": "edit.pasteSpecial",
+          "dialog": false,
+          "params": "{\"what\":\"formats\"}"
+        },
+        {
+          "id": "paste-special",
+          "command": "edit.pasteSpecial",
+          "dialog": true,
+          "params": "{}"
+        }
+      ],
+      "tested": "pointer opens menu and Escape dismisses",
+      "items": [
+        {
+          "id": "paste-normal",
+          "command": "edit.paste",
+          "dialog": false,
+          "params": "{}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "paste-values",
+          "command": "edit.pasteSpecial",
+          "dialog": false,
+          "params": "{\"what\":\"values\"}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": true
+        },
+        {
+          "id": "paste-formats",
+          "command": "edit.pasteSpecial",
+          "dialog": false,
+          "params": "{\"what\":\"formats\"}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": true
+        },
+        {
+          "id": "paste-special",
+          "command": "edit.pasteSpecial",
+          "dialog": true,
+          "params": "{}",
+          "dialogOpened": "edit.pasteSpecial",
+          "panel": 0,
+          "error": false
+        }
+      ]
+    },
+    {
+      "tab": "Home",
+      "group": "Clipboard",
+      "id": "cut",
+      "command": "edit.cut",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "Home",
+      "group": "Clipboard",
+      "id": "copy",
+      "command": "edit.copy",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "Home",
+      "group": "Clipboard",
+      "id": "format-painter",
+      "command": "@format-painter",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "Home",
+      "group": "Font",
+      "id": "font-name",
+      "command": "font-name",
+      "dialog": false,
+      "menu": true,
+      "menuItems": [
+        {
+          "id": "font-aptos",
+          "command": "home.fontName",
+          "dialog": false,
+          "params": "{\"name\":\"Aptos\"}"
+        },
+        {
+          "id": "font-dengxian",
+          "command": "home.fontName",
+          "dialog": false,
+          "params": "{\"name\":\"DengXian\"}"
+        },
+        {
+          "id": "font-calibri",
+          "command": "home.fontName",
+          "dialog": false,
+          "params": "{\"name\":\"Calibri\"}"
+        },
+        {
+          "id": "font-yahei",
+          "command": "home.fontName",
+          "dialog": false,
+          "params": "{\"name\":\"Microsoft YaHei\"}"
+        },
+        {
+          "id": "font-other",
+          "command": "home.fontName",
+          "dialog": true,
+          "params": "{}"
+        }
+      ],
+      "tested": "pointer opens menu and Escape dismisses",
+      "items": [
+        {
+          "id": "font-aptos",
+          "command": "home.fontName",
+          "dialog": false,
+          "params": "{\"name\":\"Aptos\"}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "font-dengxian",
+          "command": "home.fontName",
+          "dialog": false,
+          "params": "{\"name\":\"DengXian\"}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "font-calibri",
+          "command": "home.fontName",
+          "dialog": false,
+          "params": "{\"name\":\"Calibri\"}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "font-yahei",
+          "command": "home.fontName",
+          "dialog": false,
+          "params": "{\"name\":\"Microsoft YaHei\"}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "font-other",
+          "command": "home.fontName",
+          "dialog": true,
+          "params": "{}",
+          "dialogOpened": "home.fontName",
+          "panel": 0,
+          "error": false
+        }
+      ]
+    },
+    {
+      "tab": "Home",
+      "group": "Font",
+      "id": "font-size",
+      "command": "font-size",
+      "dialog": false,
+      "menu": true,
+      "menuItems": [
+        {
+          "id": "8",
+          "command": "home.fontSize",
+          "dialog": false,
+          "params": "{\"size\":8}"
+        },
+        {
+          "id": "9",
+          "command": "home.fontSize",
+          "dialog": false,
+          "params": "{\"size\":9}"
+        },
+        {
+          "id": "10",
+          "command": "home.fontSize",
+          "dialog": false,
+          "params": "{\"size\":10}"
+        },
+        {
+          "id": "11",
+          "command": "home.fontSize",
+          "dialog": false,
+          "params": "{\"size\":11}"
+        },
+        {
+          "id": "12",
+          "command": "home.fontSize",
+          "dialog": false,
+          "params": "{\"size\":12}"
+        },
+        {
+          "id": "14",
+          "command": "home.fontSize",
+          "dialog": false,
+          "params": "{\"size\":14}"
+        },
+        {
+          "id": "16",
+          "command": "home.fontSize",
+          "dialog": false,
+          "params": "{\"size\":16}"
+        },
+        {
+          "id": "18",
+          "command": "home.fontSize",
+          "dialog": false,
+          "params": "{\"size\":18}"
+        },
+        {
+          "id": "20",
+          "command": "home.fontSize",
+          "dialog": false,
+          "params": "{\"size\":20}"
+        },
+        {
+          "id": "24",
+          "command": "home.fontSize",
+          "dialog": false,
+          "params": "{\"size\":24}"
+        },
+        {
+          "id": "28",
+          "command": "home.fontSize",
+          "dialog": false,
+          "params": "{\"size\":28}"
+        },
+        {
+          "id": "36",
+          "command": "home.fontSize",
+          "dialog": false,
+          "params": "{\"size\":36}"
+        },
+        {
+          "id": "48",
+          "command": "home.fontSize",
+          "dialog": false,
+          "params": "{\"size\":48}"
+        },
+        {
+          "id": "72",
+          "command": "home.fontSize",
+          "dialog": false,
+          "params": "{\"size\":72}"
+        }
+      ],
+      "tested": "pointer opens menu and Escape dismisses",
+      "items": [
+        {
+          "id": "8",
+          "command": "home.fontSize",
+          "dialog": false,
+          "params": "{\"size\":8}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "9",
+          "command": "home.fontSize",
+          "dialog": false,
+          "params": "{\"size\":9}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "10",
+          "command": "home.fontSize",
+          "dialog": false,
+          "params": "{\"size\":10}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "11",
+          "command": "home.fontSize",
+          "dialog": false,
+          "params": "{\"size\":11}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "12",
+          "command": "home.fontSize",
+          "dialog": false,
+          "params": "{\"size\":12}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "14",
+          "command": "home.fontSize",
+          "dialog": false,
+          "params": "{\"size\":14}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "16",
+          "command": "home.fontSize",
+          "dialog": false,
+          "params": "{\"size\":16}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "18",
+          "command": "home.fontSize",
+          "dialog": false,
+          "params": "{\"size\":18}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "20",
+          "command": "home.fontSize",
+          "dialog": false,
+          "params": "{\"size\":20}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "24",
+          "command": "home.fontSize",
+          "dialog": false,
+          "params": "{\"size\":24}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "28",
+          "command": "home.fontSize",
+          "dialog": false,
+          "params": "{\"size\":28}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "36",
+          "command": "home.fontSize",
+          "dialog": false,
+          "params": "{\"size\":36}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "48",
+          "command": "home.fontSize",
+          "dialog": false,
+          "params": "{\"size\":48}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "72",
+          "command": "home.fontSize",
+          "dialog": false,
+          "params": "{\"size\":72}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        }
+      ]
+    },
+    {
+      "tab": "Home",
+      "group": "Font",
+      "id": "font-grow",
+      "command": "home.increaseFontSize",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "Home",
+      "group": "Font",
+      "id": "font-shrink",
+      "command": "home.decreaseFontSize",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "Home",
+      "group": "Font",
+      "id": "bold",
+      "command": "home.bold",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "Home",
+      "group": "Font",
+      "id": "italic",
+      "command": "home.italic",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "Home",
+      "group": "Font",
+      "id": "underline",
+      "command": "underline",
+      "dialog": false,
+      "menu": true,
+      "menuItems": [
+        {
+          "id": "underline-single",
+          "command": "home.underline",
+          "dialog": false,
+          "params": "{}"
+        },
+        {
+          "id": "underline-double",
+          "command": "home.doubleUnderline",
+          "dialog": false,
+          "params": "{}"
+        }
+      ],
+      "tested": "pointer opens menu and Escape dismisses",
+      "items": [
+        {
+          "id": "underline-single",
+          "command": "home.underline",
+          "dialog": false,
+          "params": "{}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "underline-double",
+          "command": "home.doubleUnderline",
+          "dialog": false,
+          "params": "{}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        }
+      ]
+    },
+    {
+      "tab": "Home",
+      "group": "Font",
+      "id": "borders",
+      "command": "borders",
+      "dialog": false,
+      "menu": true,
+      "menuItems": [
+        {
+          "id": "border-bottom",
+          "command": "home.borders",
+          "dialog": false,
+          "params": "{\"preset\":\"bottom\"}"
+        },
+        {
+          "id": "border-all",
+          "command": "home.borders",
+          "dialog": false,
+          "params": "{\"preset\":\"all\"}"
+        },
+        {
+          "id": "border-outside",
+          "command": "home.borders",
+          "dialog": false,
+          "params": "{\"preset\":\"outside\"}"
+        },
+        {
+          "id": "border-none",
+          "command": "home.borders",
+          "dialog": false,
+          "params": "{\"preset\":\"none\"}"
+        },
+        {
+          "id": "border-more",
+          "command": "home.formatCells",
+          "dialog": true,
+          "params": "{}"
+        }
+      ],
+      "tested": "pointer opens menu and Escape dismisses",
+      "items": [
+        {
+          "id": "border-bottom",
+          "command": "home.borders",
+          "dialog": false,
+          "params": "{\"preset\":\"bottom\"}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "border-all",
+          "command": "home.borders",
+          "dialog": false,
+          "params": "{\"preset\":\"all\"}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "border-outside",
+          "command": "home.borders",
+          "dialog": false,
+          "params": "{\"preset\":\"outside\"}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "border-none",
+          "command": "home.borders",
+          "dialog": false,
+          "params": "{\"preset\":\"none\"}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "border-more",
+          "command": "home.formatCells",
+          "dialog": true,
+          "params": "{}",
+          "dialogOpened": "home.formatCells",
+          "panel": 0,
+          "error": false
+        }
+      ]
+    },
+    {
+      "tab": "Home",
+      "group": "Font",
+      "id": "fill",
+      "command": "fill",
+      "dialog": false,
+      "menu": true,
+      "menuItems": [
+        {
+          "id": "color-black",
+          "command": "home.fillColor",
+          "dialog": false,
+          "params": "{\"color\":\"#202020\"}"
+        },
+        {
+          "id": "color-red",
+          "command": "home.fillColor",
+          "dialog": false,
+          "params": "{\"color\":\"#C00000\"}"
+        },
+        {
+          "id": "color-green",
+          "command": "home.fillColor",
+          "dialog": false,
+          "params": "{\"color\":\"#008050\"}"
+        },
+        {
+          "id": "color-blue",
+          "command": "home.fillColor",
+          "dialog": false,
+          "params": "{\"color\":\"#1F5FC9\"}"
+        },
+        {
+          "id": "color-yellow",
+          "command": "home.fillColor",
+          "dialog": false,
+          "params": "{\"color\":\"#FFFF00\"}"
+        },
+        {
+          "id": "color-more",
+          "command": "home.fillColor",
+          "dialog": true,
+          "params": "{}"
+        }
+      ],
+      "tested": "pointer opens menu and Escape dismisses",
+      "items": [
+        {
+          "id": "color-black",
+          "command": "home.fillColor",
+          "dialog": false,
+          "params": "{\"color\":\"#202020\"}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "color-red",
+          "command": "home.fillColor",
+          "dialog": false,
+          "params": "{\"color\":\"#C00000\"}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "color-green",
+          "command": "home.fillColor",
+          "dialog": false,
+          "params": "{\"color\":\"#008050\"}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "color-blue",
+          "command": "home.fillColor",
+          "dialog": false,
+          "params": "{\"color\":\"#1F5FC9\"}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "color-yellow",
+          "command": "home.fillColor",
+          "dialog": false,
+          "params": "{\"color\":\"#FFFF00\"}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "color-more",
+          "command": "home.fillColor",
+          "dialog": true,
+          "params": "{}",
+          "dialogOpened": "home.fillColor",
+          "panel": 0,
+          "error": false
+        }
+      ]
+    },
+    {
+      "tab": "Home",
+      "group": "Font",
+      "id": "font-color",
+      "command": "font-color",
+      "dialog": false,
+      "menu": true,
+      "menuItems": [
+        {
+          "id": "color-black",
+          "command": "home.fontColor",
+          "dialog": false,
+          "params": "{\"color\":\"#202020\"}"
+        },
+        {
+          "id": "color-red",
+          "command": "home.fontColor",
+          "dialog": false,
+          "params": "{\"color\":\"#C00000\"}"
+        },
+        {
+          "id": "color-green",
+          "command": "home.fontColor",
+          "dialog": false,
+          "params": "{\"color\":\"#008050\"}"
+        },
+        {
+          "id": "color-blue",
+          "command": "home.fontColor",
+          "dialog": false,
+          "params": "{\"color\":\"#1F5FC9\"}"
+        },
+        {
+          "id": "color-yellow",
+          "command": "home.fontColor",
+          "dialog": false,
+          "params": "{\"color\":\"#FFFF00\"}"
+        },
+        {
+          "id": "color-more",
+          "command": "home.fontColor",
+          "dialog": true,
+          "params": "{}"
+        }
+      ],
+      "tested": "pointer opens menu and Escape dismisses",
+      "items": [
+        {
+          "id": "color-black",
+          "command": "home.fontColor",
+          "dialog": false,
+          "params": "{\"color\":\"#202020\"}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "color-red",
+          "command": "home.fontColor",
+          "dialog": false,
+          "params": "{\"color\":\"#C00000\"}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "color-green",
+          "command": "home.fontColor",
+          "dialog": false,
+          "params": "{\"color\":\"#008050\"}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "color-blue",
+          "command": "home.fontColor",
+          "dialog": false,
+          "params": "{\"color\":\"#1F5FC9\"}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "color-yellow",
+          "command": "home.fontColor",
+          "dialog": false,
+          "params": "{\"color\":\"#FFFF00\"}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "color-more",
+          "command": "home.fontColor",
+          "dialog": true,
+          "params": "{}",
+          "dialogOpened": "home.fontColor",
+          "panel": 0,
+          "error": false
+        }
+      ]
+    },
+    {
+      "tab": "Home",
+      "group": "Alignment",
+      "id": "align-top",
+      "command": "home.alignTop",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "Home",
+      "group": "Alignment",
+      "id": "align-middle",
+      "command": "home.alignMiddle",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "Home",
+      "group": "Alignment",
+      "id": "align-bottom",
+      "command": "home.alignBottom",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "Home",
+      "group": "Alignment",
+      "id": "orientation",
+      "command": "orientation",
+      "dialog": false,
+      "menu": true,
+      "menuItems": [
+        {
+          "id": "angle-up",
+          "command": "home.orientation",
+          "dialog": false,
+          "params": "{\"angle\":45}"
+        },
+        {
+          "id": "angle-down",
+          "command": "home.orientation",
+          "dialog": false,
+          "params": "{\"angle\":-45}"
+        },
+        {
+          "id": "angle-vertical",
+          "command": "home.orientation",
+          "dialog": false,
+          "params": "{\"angle\":\"vertical\"}"
+        },
+        {
+          "id": "angle-none",
+          "command": "home.orientation",
+          "dialog": false,
+          "params": "{\"angle\":0}"
+        },
+        {
+          "id": "angle-more",
+          "command": "home.formatCells",
+          "dialog": true,
+          "params": "{}"
+        }
+      ],
+      "tested": "pointer opens menu and Escape dismisses",
+      "items": [
+        {
+          "id": "angle-up",
+          "command": "home.orientation",
+          "dialog": false,
+          "params": "{\"angle\":45}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "angle-down",
+          "command": "home.orientation",
+          "dialog": false,
+          "params": "{\"angle\":-45}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "angle-vertical",
+          "command": "home.orientation",
+          "dialog": false,
+          "params": "{\"angle\":\"vertical\"}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "angle-none",
+          "command": "home.orientation",
+          "dialog": false,
+          "params": "{\"angle\":0}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "angle-more",
+          "command": "home.formatCells",
+          "dialog": true,
+          "params": "{}",
+          "dialogOpened": "home.formatCells",
+          "panel": 0,
+          "error": false
+        }
+      ]
+    },
+    {
+      "tab": "Home",
+      "group": "Alignment",
+      "id": "wrap",
+      "command": "home.wrapText",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "Home",
+      "group": "Alignment",
+      "id": "align-left",
+      "command": "home.alignLeft",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "Home",
+      "group": "Alignment",
+      "id": "align-center",
+      "command": "home.alignCenter",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "Home",
+      "group": "Alignment",
+      "id": "align-right",
+      "command": "home.alignRight",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "Home",
+      "group": "Alignment",
+      "id": "indent-less",
+      "command": "home.decreaseIndent",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "Home",
+      "group": "Alignment",
+      "id": "indent-more",
+      "command": "home.increaseIndent",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "Home",
+      "group": "Alignment",
+      "id": "merge",
+      "command": "merge",
+      "dialog": false,
+      "menu": true,
+      "menuItems": [
+        {
+          "id": "merge-center",
+          "command": "home.mergeCenter",
+          "dialog": false,
+          "params": "{}"
+        },
+        {
+          "id": "merge-across",
+          "command": "home.mergeAcross",
+          "dialog": false,
+          "params": "{}"
+        },
+        {
+          "id": "merge-cells",
+          "command": "home.mergeCells",
+          "dialog": false,
+          "params": "{}"
+        },
+        {
+          "id": "unmerge",
+          "command": "home.unmergeCells",
+          "dialog": false,
+          "params": "{}"
+        }
+      ],
+      "tested": "pointer opens menu and Escape dismisses",
+      "items": [
+        {
+          "id": "merge-center",
+          "command": "home.mergeCenter",
+          "dialog": false,
+          "params": "{}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "merge-across",
+          "command": "home.mergeAcross",
+          "dialog": false,
+          "params": "{}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "merge-cells",
+          "command": "home.mergeCells",
+          "dialog": false,
+          "params": "{}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "unmerge",
+          "command": "home.unmergeCells",
+          "dialog": false,
+          "params": "{}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        }
+      ]
+    },
+    {
+      "tab": "Home",
+      "group": "Number",
+      "id": "number-format",
+      "command": "number-format",
+      "dialog": false,
+      "menu": true,
+      "menuItems": [
+        {
+          "id": "format-general",
+          "command": "home.numberFormat",
+          "dialog": false,
+          "params": "{\"format\":\"General\"}"
+        },
+        {
+          "id": "format-number",
+          "command": "home.numberFormat",
+          "dialog": false,
+          "params": "{\"format\":\"Number\"}"
+        },
+        {
+          "id": "format-currency",
+          "command": "home.numberFormat",
+          "dialog": false,
+          "params": "{\"format\":\"Currency\"}"
+        },
+        {
+          "id": "format-accounting",
+          "command": "home.accounting",
+          "dialog": false,
+          "params": "{}"
+        },
+        {
+          "id": "format-date",
+          "command": "home.numberFormat",
+          "dialog": false,
+          "params": "{\"format\":\"Short Date\"}"
+        },
+        {
+          "id": "format-percent",
+          "command": "home.percent",
+          "dialog": false,
+          "params": "{}"
+        },
+        {
+          "id": "format-text",
+          "command": "home.numberFormat",
+          "dialog": false,
+          "params": "{\"format\":\"Text\"}"
+        },
+        {
+          "id": "format-more",
+          "command": "home.formatCells",
+          "dialog": true,
+          "params": "{}"
+        }
+      ],
+      "tested": "pointer opens menu and Escape dismisses",
+      "items": [
+        {
+          "id": "format-general",
+          "command": "home.numberFormat",
+          "dialog": false,
+          "params": "{\"format\":\"General\"}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "format-number",
+          "command": "home.numberFormat",
+          "dialog": false,
+          "params": "{\"format\":\"Number\"}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "format-currency",
+          "command": "home.numberFormat",
+          "dialog": false,
+          "params": "{\"format\":\"Currency\"}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "format-accounting",
+          "command": "home.accounting",
+          "dialog": false,
+          "params": "{}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "format-date",
+          "command": "home.numberFormat",
+          "dialog": false,
+          "params": "{\"format\":\"Short Date\"}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "format-percent",
+          "command": "home.percent",
+          "dialog": false,
+          "params": "{}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "format-text",
+          "command": "home.numberFormat",
+          "dialog": false,
+          "params": "{\"format\":\"Text\"}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "format-more",
+          "command": "home.formatCells",
+          "dialog": true,
+          "params": "{}",
+          "dialogOpened": "home.formatCells",
+          "panel": 0,
+          "error": false
+        }
+      ]
+    },
+    {
+      "tab": "Home",
+      "group": "Number",
+      "id": "currency",
+      "command": "home.accounting",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "Home",
+      "group": "Number",
+      "id": "percent",
+      "command": "home.percent",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "Home",
+      "group": "Number",
+      "id": "comma",
+      "command": "home.comma",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "Home",
+      "group": "Number",
+      "id": "decimal-increase",
+      "command": "home.increaseDecimal",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "Home",
+      "group": "Number",
+      "id": "decimal",
+      "command": "home.decreaseDecimal",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "Home",
+      "group": "Styles",
+      "id": "conditional-format",
+      "command": "conditional",
+      "dialog": false,
+      "menu": true,
+      "menuItems": [
+        {
+          "id": "conditional-rule",
+          "command": "home.conditionalFormat",
+          "dialog": true,
+          "params": "{}"
+        },
+        {
+          "id": "conditional-manage",
+          "command": "home.manageRules",
+          "dialog": false,
+          "params": "{}"
+        },
+        {
+          "id": "conditional-clear",
+          "command": "home.clearRules",
+          "dialog": false,
+          "params": "{}"
+        }
+      ],
+      "tested": "pointer opens menu and Escape dismisses",
+      "items": [
+        {
+          "id": "conditional-rule",
+          "command": "home.conditionalFormat",
+          "dialog": true,
+          "params": "{}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "conditional-manage",
+          "command": "home.manageRules",
+          "dialog": false,
+          "params": "{}",
+          "dialogOpened": null,
+          "panel": 8,
+          "error": false
+        },
+        {
+          "id": "conditional-clear",
+          "command": "home.clearRules",
+          "dialog": false,
+          "params": "{}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        }
+      ]
+    },
+    {
+      "tab": "Home",
+      "group": "Styles",
+      "id": "format-as-table",
+      "command": "home.formatAsTable",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "Home",
+      "group": "Styles",
+      "id": "cell-styles",
+      "command": "cell-styles",
+      "dialog": false,
+      "menu": true,
+      "menuItems": [
+        {
+          "id": "style-normal",
+          "command": "home.cellStyle",
+          "dialog": false,
+          "params": "{\"name\":\"Normal\"}"
+        },
+        {
+          "id": "style-good",
+          "command": "home.cellStyle",
+          "dialog": false,
+          "params": "{\"name\":\"Good\"}"
+        },
+        {
+          "id": "style-bad",
+          "command": "home.cellStyle",
+          "dialog": false,
+          "params": "{\"name\":\"Bad\"}"
+        },
+        {
+          "id": "style-heading",
+          "command": "home.cellStyle",
+          "dialog": false,
+          "params": "{\"name\":\"Heading 1\"}"
+        },
+        {
+          "id": "style-new",
+          "command": "home.newCellStyle",
+          "dialog": true,
+          "params": "{}"
+        }
+      ],
+      "tested": "pointer opens menu and Escape dismisses",
+      "items": [
+        {
+          "id": "style-normal",
+          "command": "home.cellStyle",
+          "dialog": false,
+          "params": "{\"name\":\"Normal\"}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "style-good",
+          "command": "home.cellStyle",
+          "dialog": false,
+          "params": "{\"name\":\"Good\"}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "style-bad",
+          "command": "home.cellStyle",
+          "dialog": false,
+          "params": "{\"name\":\"Bad\"}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "style-heading",
+          "command": "home.cellStyle",
+          "dialog": false,
+          "params": "{\"name\":\"Heading 1\"}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "style-new",
+          "command": "home.newCellStyle",
+          "dialog": true,
+          "params": "{}",
+          "dialogOpened": "home.newCellStyle",
+          "panel": 0,
+          "error": false
+        }
+      ]
+    },
+    {
+      "tab": "Home",
+      "group": "Cells",
+      "id": "insert-cells",
+      "command": "insert-cells",
+      "dialog": false,
+      "menu": true,
+      "menuItems": [
+        {
+          "id": "insert-cell-dialog",
+          "command": "home.insertCells",
+          "dialog": true,
+          "params": "{}"
+        },
+        {
+          "id": "insert-row",
+          "command": "home.insertRows",
+          "dialog": false,
+          "params": "{}"
+        },
+        {
+          "id": "insert-column",
+          "command": "home.insertColumns",
+          "dialog": false,
+          "params": "{}"
+        },
+        {
+          "id": "insert-sheet",
+          "command": "home.insertSheet",
+          "dialog": false,
+          "params": "{}"
+        }
+      ],
+      "tested": "pointer opens menu and Escape dismisses",
+      "items": [
+        {
+          "id": "insert-cell-dialog",
+          "command": "home.insertCells",
+          "dialog": true,
+          "params": "{}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "insert-row",
+          "command": "home.insertRows",
+          "dialog": false,
+          "params": "{}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "insert-column",
+          "command": "home.insertColumns",
+          "dialog": false,
+          "params": "{}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "insert-sheet",
+          "command": "home.insertSheet",
+          "dialog": false,
+          "params": "{}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        }
+      ]
+    },
+    {
+      "tab": "Home",
+      "group": "Cells",
+      "id": "delete-cells",
+      "command": "delete-cells",
+      "dialog": false,
+      "menu": true,
+      "menuItems": [
+        {
+          "id": "delete-cell-dialog",
+          "command": "home.deleteCells",
+          "dialog": true,
+          "params": "{}"
+        },
+        {
+          "id": "delete-row",
+          "command": "home.deleteRows",
+          "dialog": false,
+          "params": "{}"
+        },
+        {
+          "id": "delete-column",
+          "command": "home.deleteColumns",
+          "dialog": false,
+          "params": "{}"
+        },
+        {
+          "id": "delete-sheet",
+          "command": "@delete-sheet",
+          "dialog": false,
+          "params": "{}"
+        }
+      ],
+      "tested": "pointer opens menu and Escape dismisses",
+      "items": [
+        {
+          "id": "delete-cell-dialog",
+          "command": "home.deleteCells",
+          "dialog": true,
+          "params": "{}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "delete-row",
+          "command": "home.deleteRows",
+          "dialog": false,
+          "params": "{}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "delete-column",
+          "command": "home.deleteColumns",
+          "dialog": false,
+          "params": "{}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "delete-sheet",
+          "command": "@delete-sheet",
+          "dialog": false,
+          "params": "{}",
+          "dialogOpened": null,
+          "panel": 2,
+          "error": false
+        }
+      ]
+    },
+    {
+      "tab": "Home",
+      "group": "Cells",
+      "id": "format-panel",
+      "command": "format-cells",
+      "dialog": false,
+      "menu": true,
+      "menuItems": [
+        {
+          "id": "row-height",
+          "command": "home.rowHeight",
+          "dialog": true,
+          "params": "{}"
+        },
+        {
+          "id": "autofit-row",
+          "command": "home.autofitRowHeight",
+          "dialog": false,
+          "params": "{}"
+        },
+        {
+          "id": "column-width",
+          "command": "home.columnWidth",
+          "dialog": true,
+          "params": "{}"
+        },
+        {
+          "id": "autofit",
+          "command": "home.autofitColumnWidth",
+          "dialog": false,
+          "params": "{}"
+        },
+        {
+          "id": "hide-rows",
+          "command": "home.hideRows",
+          "dialog": false,
+          "params": "{}"
+        },
+        {
+          "id": "unhide-rows",
+          "command": "home.unhideRows",
+          "dialog": false,
+          "params": "{}"
+        },
+        {
+          "id": "hide-columns",
+          "command": "home.hideColumns",
+          "dialog": false,
+          "params": "{}"
+        },
+        {
+          "id": "unhide-columns",
+          "command": "home.unhideColumns",
+          "dialog": false,
+          "params": "{}"
+        },
+        {
+          "id": "rename-sheet",
+          "command": "sheet.rename",
+          "dialog": true,
+          "params": "{}"
+        },
+        {
+          "id": "format-cells-dialog",
+          "command": "home.formatCells",
+          "dialog": true,
+          "params": "{}"
+        }
+      ],
+      "tested": "pointer opens menu and Escape dismisses",
+      "items": [
+        {
+          "id": "row-height",
+          "command": "home.rowHeight",
+          "dialog": true,
+          "params": "{}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "autofit-row",
+          "command": "home.autofitRowHeight",
+          "dialog": false,
+          "params": "{}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "column-width",
+          "command": "home.columnWidth",
+          "dialog": true,
+          "params": "{}",
+          "dialogOpened": "home.columnWidth",
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "autofit",
+          "command": "home.autofitColumnWidth",
+          "dialog": false,
+          "params": "{}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "hide-rows",
+          "command": "home.hideRows",
+          "dialog": false,
+          "params": "{}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "unhide-rows",
+          "command": "home.unhideRows",
+          "dialog": false,
+          "params": "{}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "hide-columns",
+          "command": "home.hideColumns",
+          "dialog": false,
+          "params": "{}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "unhide-columns",
+          "command": "home.unhideColumns",
+          "dialog": false,
+          "params": "{}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "rename-sheet",
+          "command": "sheet.rename",
+          "dialog": true,
+          "params": "{}",
+          "dialogOpened": "sheet.rename",
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "format-cells-dialog",
+          "command": "home.formatCells",
+          "dialog": true,
+          "params": "{}",
+          "dialogOpened": "home.formatCells",
+          "panel": 0,
+          "error": false
+        }
+      ]
+    },
+    {
+      "tab": "Home",
+      "group": "Editing",
+      "id": "autosum",
+      "command": "autosum",
+      "dialog": false,
+      "menu": true,
+      "menuItems": [
+        {
+          "id": "sum",
+          "command": "formulas.autoSum",
+          "dialog": false,
+          "params": "{}"
+        },
+        {
+          "id": "average",
+          "command": "formulas.autoSum",
+          "dialog": false,
+          "params": "{\"function\":\"AVERAGE\"}"
+        },
+        {
+          "id": "count",
+          "command": "formulas.autoSum",
+          "dialog": false,
+          "params": "{\"function\":\"COUNT\"}"
+        },
+        {
+          "id": "max",
+          "command": "formulas.autoSum",
+          "dialog": false,
+          "params": "{\"function\":\"MAX\"}"
+        },
+        {
+          "id": "min",
+          "command": "formulas.autoSum",
+          "dialog": false,
+          "params": "{\"function\":\"MIN\"}"
+        }
+      ],
+      "tested": "pointer opens menu and Escape dismisses",
+      "items": [
+        {
+          "id": "sum",
+          "command": "formulas.autoSum",
+          "dialog": false,
+          "params": "{}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "average",
+          "command": "formulas.autoSum",
+          "dialog": false,
+          "params": "{\"function\":\"AVERAGE\"}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "count",
+          "command": "formulas.autoSum",
+          "dialog": false,
+          "params": "{\"function\":\"COUNT\"}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "max",
+          "command": "formulas.autoSum",
+          "dialog": false,
+          "params": "{\"function\":\"MAX\"}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "min",
+          "command": "formulas.autoSum",
+          "dialog": false,
+          "params": "{\"function\":\"MIN\"}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        }
+      ]
+    },
+    {
+      "tab": "Home",
+      "group": "Editing",
+      "id": "fill-menu",
+      "command": "fill-menu",
+      "dialog": false,
+      "menu": true,
+      "menuItems": [
+        {
+          "id": "fill-down",
+          "command": "edit.fillDown",
+          "dialog": false,
+          "params": "{}"
+        },
+        {
+          "id": "fill-right",
+          "command": "edit.fillRight",
+          "dialog": false,
+          "params": "{}"
+        },
+        {
+          "id": "fill-up",
+          "command": "edit.fillUp",
+          "dialog": false,
+          "params": "{}"
+        },
+        {
+          "id": "fill-left",
+          "command": "edit.fillLeft",
+          "dialog": false,
+          "params": "{}"
+        },
+        {
+          "id": "fill-series",
+          "command": "edit.fillSeries",
+          "dialog": true,
+          "params": "{}"
+        },
+        {
+          "id": "fill-flash",
+          "command": "edit.flashFill",
+          "dialog": false,
+          "params": "{}"
+        }
+      ],
+      "tested": "pointer opens menu and Escape dismisses",
+      "items": [
+        {
+          "id": "fill-down",
+          "command": "edit.fillDown",
+          "dialog": false,
+          "params": "{}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "fill-right",
+          "command": "edit.fillRight",
+          "dialog": false,
+          "params": "{}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "fill-up",
+          "command": "edit.fillUp",
+          "dialog": false,
+          "params": "{}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "fill-left",
+          "command": "edit.fillLeft",
+          "dialog": false,
+          "params": "{}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "fill-series",
+          "command": "edit.fillSeries",
+          "dialog": true,
+          "params": "{}",
+          "dialogOpened": "edit.fillSeries",
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "fill-flash",
+          "command": "edit.flashFill",
+          "dialog": false,
+          "params": "{}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": true
+        }
+      ]
+    },
+    {
+      "tab": "Home",
+      "group": "Editing",
+      "id": "clear-menu",
+      "command": "clear",
+      "dialog": false,
+      "menu": true,
+      "menuItems": [
+        {
+          "id": "clear-all",
+          "command": "edit.clearAll",
+          "dialog": false,
+          "params": "{}"
+        },
+        {
+          "id": "clear-formats",
+          "command": "edit.clearFormats",
+          "dialog": false,
+          "params": "{}"
+        },
+        {
+          "id": "clear-contents",
+          "command": "edit.clearContents",
+          "dialog": false,
+          "params": "{}"
+        },
+        {
+          "id": "clear-comments",
+          "command": "edit.clearComments",
+          "dialog": false,
+          "params": "{}"
+        },
+        {
+          "id": "clear-links",
+          "command": "edit.clearHyperlinks",
+          "dialog": false,
+          "params": "{}"
+        }
+      ],
+      "tested": "pointer opens menu and Escape dismisses",
+      "items": [
+        {
+          "id": "clear-all",
+          "command": "edit.clearAll",
+          "dialog": false,
+          "params": "{}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "clear-formats",
+          "command": "edit.clearFormats",
+          "dialog": false,
+          "params": "{}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "clear-contents",
+          "command": "edit.clearContents",
+          "dialog": false,
+          "params": "{}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "clear-comments",
+          "command": "edit.clearComments",
+          "dialog": false,
+          "params": "{}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "clear-links",
+          "command": "edit.clearHyperlinks",
+          "dialog": false,
+          "params": "{}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        }
+      ]
+    },
+    {
+      "tab": "Home",
+      "group": "Editing",
+      "id": "home-sort",
+      "command": "sort-filter",
+      "dialog": false,
+      "menu": true,
+      "menuItems": [
+        {
+          "id": "sort-ascending",
+          "command": "data.sortAscending",
+          "dialog": false,
+          "params": "{}"
+        },
+        {
+          "id": "sort-descending",
+          "command": "data.sortDescending",
+          "dialog": false,
+          "params": "{}"
+        },
+        {
+          "id": "sort-custom",
+          "command": "data.sort",
+          "dialog": true,
+          "params": "{}"
+        },
+        {
+          "id": "sort-filter-toggle",
+          "command": "data.filter",
+          "dialog": false,
+          "params": "{}"
+        },
+        {
+          "id": "sort-filter-clear",
+          "command": "data.clearFilter",
+          "dialog": false,
+          "params": "{}"
+        }
+      ],
+      "tested": "pointer opens menu and Escape dismisses",
+      "items": [
+        {
+          "id": "sort-ascending",
+          "command": "data.sortAscending",
+          "dialog": false,
+          "params": "{}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "sort-descending",
+          "command": "data.sortDescending",
+          "dialog": false,
+          "params": "{}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "sort-custom",
+          "command": "data.sort",
+          "dialog": true,
+          "params": "{}",
+          "dialogOpened": "data.sort",
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "sort-filter-toggle",
+          "command": "data.filter",
+          "dialog": false,
+          "params": "{}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "sort-filter-clear",
+          "command": "data.clearFilter",
+          "dialog": false,
+          "params": "{}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        }
+      ]
+    },
+    {
+      "tab": "Home",
+      "group": "Editing",
+      "id": "home-find",
+      "command": "find-select",
+      "dialog": false,
+      "menu": true,
+      "menuItems": [
+        {
+          "id": "find",
+          "command": "edit.find",
+          "dialog": true,
+          "params": "{}"
+        },
+        {
+          "id": "replace",
+          "command": "edit.replace",
+          "dialog": true,
+          "params": "{}"
+        },
+        {
+          "id": "goto",
+          "command": "edit.goTo",
+          "dialog": true,
+          "params": "{}"
+        },
+        {
+          "id": "goto-special",
+          "command": "edit.goToSpecial",
+          "dialog": true,
+          "params": "{}"
+        }
+      ],
+      "tested": "pointer opens menu and Escape dismisses",
+      "items": [
+        {
+          "id": "find",
+          "command": "edit.find",
+          "dialog": true,
+          "params": "{}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "replace",
+          "command": "edit.replace",
+          "dialog": true,
+          "params": "{}",
+          "dialogOpened": "edit.replace",
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "goto",
+          "command": "edit.goTo",
+          "dialog": true,
+          "params": "{}",
+          "dialogOpened": "edit.goTo",
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "goto-special",
+          "command": "edit.goToSpecial",
+          "dialog": true,
+          "params": "{}",
+          "dialogOpened": "edit.goToSpecial",
+          "panel": 0,
+          "error": false
+        }
+      ]
+    },
+    {
+      "tab": "Insert",
+      "group": "Tables",
+      "id": "insert-pivot",
+      "command": "insert.pivotTable",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "Insert",
+      "group": "Tables",
+      "id": "insert-pivot-recommended",
+      "command": "insert.recommendedPivotTables",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; prerequisite error",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": true
+      }
+    },
+    {
+      "tab": "Insert",
+      "group": "Tables",
+      "id": "insert-table",
+      "command": "insert.table",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "Insert",
+      "group": "Illustrations",
+      "id": "insert-picture",
+      "command": "insert.picture",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "Insert",
+      "group": "Illustrations",
+      "id": "insert-shape",
+      "command": "insert.shape",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "Insert",
+      "group": "Illustrations",
+      "id": "insert-icons",
+      "command": "insert.icons",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "Insert",
+      "group": "Illustrations",
+      "id": "insert-smartart",
+      "command": "insert.smartArt",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "Insert",
+      "group": "Charts",
+      "id": "recommended-charts",
+      "command": "insert.recommendedCharts",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; prerequisite error",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": true
+      }
+    },
+    {
+      "tab": "Insert",
+      "group": "Charts",
+      "id": "insert-chart",
+      "command": "charts",
+      "dialog": false,
+      "menu": true,
+      "menuItems": [
+        {
+          "id": "chart-column",
+          "command": "insert.chart",
+          "dialog": true,
+          "params": "{\"type\":\"column\"}"
+        },
+        {
+          "id": "chart-line",
+          "command": "insert.chart",
+          "dialog": true,
+          "params": "{\"type\":\"line\"}"
+        },
+        {
+          "id": "chart-pie",
+          "command": "insert.chart",
+          "dialog": true,
+          "params": "{\"type\":\"pie\"}"
+        },
+        {
+          "id": "chart-bar",
+          "command": "insert.chart",
+          "dialog": true,
+          "params": "{\"type\":\"bar\"}"
+        },
+        {
+          "id": "chart-scatter",
+          "command": "insert.chart",
+          "dialog": true,
+          "params": "{\"type\":\"scatter\"}"
+        },
+        {
+          "id": "chart-more",
+          "command": "insert.chart",
+          "dialog": true,
+          "params": "{}"
+        }
+      ],
+      "tested": "pointer opens menu and Escape dismisses",
+      "items": [
+        {
+          "id": "chart-column",
+          "command": "insert.chart",
+          "dialog": true,
+          "params": "{\"type\":\"column\"}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "chart-line",
+          "command": "insert.chart",
+          "dialog": true,
+          "params": "{\"type\":\"line\"}",
+          "dialogOpened": "insert.chart",
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "chart-pie",
+          "command": "insert.chart",
+          "dialog": true,
+          "params": "{\"type\":\"pie\"}",
+          "dialogOpened": "insert.chart",
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "chart-bar",
+          "command": "insert.chart",
+          "dialog": true,
+          "params": "{\"type\":\"bar\"}",
+          "dialogOpened": "insert.chart",
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "chart-scatter",
+          "command": "insert.chart",
+          "dialog": true,
+          "params": "{\"type\":\"scatter\"}",
+          "dialogOpened": "insert.chart",
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "chart-more",
+          "command": "insert.chart",
+          "dialog": true,
+          "params": "{}",
+          "dialogOpened": "insert.chart",
+          "panel": 0,
+          "error": false
+        }
+      ]
+    },
+    {
+      "tab": "Insert",
+      "group": "Charts",
+      "id": "insert-pivot-chart",
+      "command": "insert.pivotChart",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "Insert",
+      "group": "Sparklines",
+      "id": "spark-line",
+      "command": "insert.sparkline",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "Insert",
+      "group": "Sparklines",
+      "id": "spark-column",
+      "command": "insert.sparkline",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "Insert",
+      "group": "Sparklines",
+      "id": "spark-winloss",
+      "command": "insert.sparkline",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "Insert",
+      "group": "Filters",
+      "id": "insert-slicer",
+      "command": "insert.slicer",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "Insert",
+      "group": "Filters",
+      "id": "insert-timeline",
+      "command": "insert.timeline",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "Insert",
+      "group": "Links",
+      "id": "insert-link",
+      "command": "insert.link",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "Insert",
+      "group": "Comments",
+      "id": "insert-comment",
+      "command": "review.newComment",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "Insert",
+      "group": "Text",
+      "id": "insert-text",
+      "command": "insert.textBox",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "Insert",
+      "group": "Text",
+      "id": "header-footer",
+      "command": "pageLayout.headerFooter",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "Insert",
+      "group": "Text",
+      "id": "word-art",
+      "command": "insert.wordArt",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "Insert",
+      "group": "Text",
+      "id": "insert-object",
+      "command": "insert.object",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "Insert",
+      "group": "Symbols",
+      "id": "insert-equation",
+      "command": "insert.equation",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "Insert",
+      "group": "Symbols",
+      "id": "insert-symbol",
+      "command": "insert.symbol",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "Draw",
+      "group": "Input Mode",
+      "id": "draw-mode",
+      "command": "@pen",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "Draw",
+      "group": "Undo",
+      "id": "draw-undo",
+      "command": "edit.undo",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "Draw",
+      "group": "Undo",
+      "id": "draw-redo",
+      "command": "edit.redo",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "Draw",
+      "group": "Drawing Tools",
+      "id": "draw-select",
+      "command": "@select",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "Draw",
+      "group": "Drawing Tools",
+      "id": "draw-eraser",
+      "command": "@eraser",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "Draw",
+      "group": "Drawing Tools",
+      "id": "draw-black",
+      "command": "@pen",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "Draw",
+      "group": "Drawing Tools",
+      "id": "draw-red",
+      "command": "@pen",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "Draw",
+      "group": "Drawing Tools",
+      "id": "draw-blue",
+      "command": "@pen",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "Draw",
+      "group": "Drawing Tools",
+      "id": "draw-highlight",
+      "command": "@pen",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "Draw",
+      "group": "Convert",
+      "id": "ink-to-shape",
+      "command": "draw.inkToShape",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; prerequisite error",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": true
+      }
+    },
+    {
+      "tab": "Page Layout",
+      "group": "Themes",
+      "id": "theme-gallery",
+      "command": "pageLayout.theme",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "Page Layout",
+      "group": "Themes",
+      "id": "theme-colors",
+      "command": "pageLayout.themeColors",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "Page Layout",
+      "group": "Themes",
+      "id": "theme-fonts",
+      "command": "pageLayout.themeFonts",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "Page Layout",
+      "group": "Page Setup",
+      "id": "page-margins",
+      "command": "margins",
+      "dialog": false,
+      "menu": true,
+      "menuItems": [
+        {
+          "id": "margins-normal",
+          "command": "pageLayout.margins",
+          "dialog": false,
+          "params": "{\"preset\":\"normal\"}"
+        },
+        {
+          "id": "margins-wide",
+          "command": "pageLayout.margins",
+          "dialog": false,
+          "params": "{\"preset\":\"wide\"}"
+        },
+        {
+          "id": "margins-narrow",
+          "command": "pageLayout.margins",
+          "dialog": false,
+          "params": "{\"preset\":\"narrow\"}"
+        },
+        {
+          "id": "margins-custom",
+          "command": "pageLayout.pageSetup",
+          "dialog": true,
+          "params": "{}"
+        }
+      ],
+      "tested": "pointer opens menu and Escape dismisses",
+      "items": [
+        {
+          "id": "margins-normal",
+          "command": "pageLayout.margins",
+          "dialog": false,
+          "params": "{\"preset\":\"normal\"}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "margins-wide",
+          "command": "pageLayout.margins",
+          "dialog": false,
+          "params": "{\"preset\":\"wide\"}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "margins-narrow",
+          "command": "pageLayout.margins",
+          "dialog": false,
+          "params": "{\"preset\":\"narrow\"}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "margins-custom",
+          "command": "pageLayout.pageSetup",
+          "dialog": true,
+          "params": "{}",
+          "dialogOpened": "pageLayout.pageSetup",
+          "panel": 0,
+          "error": false
+        }
+      ]
+    },
+    {
+      "tab": "Page Layout",
+      "group": "Page Setup",
+      "id": "page-orientation",
+      "command": "page-orientation",
+      "dialog": false,
+      "menu": true,
+      "menuItems": [
+        {
+          "id": "portrait",
+          "command": "pageLayout.orientation",
+          "dialog": false,
+          "params": "{\"orientation\":\"portrait\"}"
+        },
+        {
+          "id": "landscape",
+          "command": "pageLayout.orientation",
+          "dialog": false,
+          "params": "{\"orientation\":\"landscape\"}"
+        }
+      ],
+      "tested": "pointer opens menu and Escape dismisses",
+      "items": [
+        {
+          "id": "portrait",
+          "command": "pageLayout.orientation",
+          "dialog": false,
+          "params": "{\"orientation\":\"portrait\"}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "landscape",
+          "command": "pageLayout.orientation",
+          "dialog": false,
+          "params": "{\"orientation\":\"landscape\"}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        }
+      ]
+    },
+    {
+      "tab": "Page Layout",
+      "group": "Page Setup",
+      "id": "page-size",
+      "command": "page-size",
+      "dialog": false,
+      "menu": true,
+      "menuItems": [
+        {
+          "id": "paper-a4",
+          "command": "pageLayout.size",
+          "dialog": false,
+          "params": "{\"paper\":\"A4\"}"
+        },
+        {
+          "id": "paper-a3",
+          "command": "pageLayout.size",
+          "dialog": false,
+          "params": "{\"paper\":\"A3\"}"
+        },
+        {
+          "id": "paper-letter",
+          "command": "pageLayout.size",
+          "dialog": false,
+          "params": "{\"paper\":\"Letter\"}"
+        }
+      ],
+      "tested": "pointer opens menu and Escape dismisses",
+      "items": [
+        {
+          "id": "paper-a4",
+          "command": "pageLayout.size",
+          "dialog": false,
+          "params": "{\"paper\":\"A4\"}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "paper-a3",
+          "command": "pageLayout.size",
+          "dialog": false,
+          "params": "{\"paper\":\"A3\"}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "paper-letter",
+          "command": "pageLayout.size",
+          "dialog": false,
+          "params": "{\"paper\":\"Letter\"}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        }
+      ]
+    },
+    {
+      "tab": "Page Layout",
+      "group": "Page Setup",
+      "id": "print-area",
+      "command": "print-area",
+      "dialog": false,
+      "menu": true,
+      "menuItems": [
+        {
+          "id": "print-area-set",
+          "command": "pageLayout.printArea",
+          "dialog": false,
+          "params": "{}"
+        },
+        {
+          "id": "print-area-clear",
+          "command": "pageLayout.printArea",
+          "dialog": false,
+          "params": "{\"clear\":true}"
+        }
+      ],
+      "tested": "pointer opens menu and Escape dismisses",
+      "items": [
+        {
+          "id": "print-area-set",
+          "command": "pageLayout.printArea",
+          "dialog": false,
+          "params": "{}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "print-area-clear",
+          "command": "pageLayout.printArea",
+          "dialog": false,
+          "params": "{\"clear\":true}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        }
+      ]
+    },
+    {
+      "tab": "Page Layout",
+      "group": "Page Setup",
+      "id": "page-breaks",
+      "command": "page-breaks",
+      "dialog": false,
+      "menu": true,
+      "menuItems": [
+        {
+          "id": "break-insert",
+          "command": "pageLayout.breaks",
+          "dialog": false,
+          "params": "{\"insert\":true}"
+        },
+        {
+          "id": "break-remove",
+          "command": "pageLayout.breaks",
+          "dialog": false,
+          "params": "{\"remove\":true}"
+        },
+        {
+          "id": "break-reset",
+          "command": "pageLayout.breaks",
+          "dialog": false,
+          "params": "{\"reset\":true}"
+        }
+      ],
+      "tested": "pointer opens menu and Escape dismisses",
+      "items": [
+        {
+          "id": "break-insert",
+          "command": "pageLayout.breaks",
+          "dialog": false,
+          "params": "{\"insert\":true}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "break-remove",
+          "command": "pageLayout.breaks",
+          "dialog": false,
+          "params": "{\"remove\":true}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "break-reset",
+          "command": "pageLayout.breaks",
+          "dialog": false,
+          "params": "{\"reset\":true}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        }
+      ]
+    },
+    {
+      "tab": "Page Layout",
+      "group": "Page Setup",
+      "id": "page-background",
+      "command": "pageLayout.background",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "Page Layout",
+      "group": "Page Setup",
+      "id": "print-titles",
+      "command": "pageLayout.pageSetup",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "Page Layout",
+      "group": "Scale to Fit",
+      "id": "page-width",
+      "command": "pageLayout.scaleToFit",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "Page Layout",
+      "group": "Scale to Fit",
+      "id": "page-height",
+      "command": "pageLayout.scaleToFit",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "Page Layout",
+      "group": "Scale to Fit",
+      "id": "page-scale",
+      "command": "pageLayout.scaleToFit",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "Page Layout",
+      "group": "Sheet Options",
+      "id": "layout-grid-view",
+      "command": "view.gridlines",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "Page Layout",
+      "group": "Sheet Options",
+      "id": "layout-grid-print",
+      "command": "pageLayout.printGridlines",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "Page Layout",
+      "group": "Sheet Options",
+      "id": "layout-heading-view",
+      "command": "view.headings",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "Page Layout",
+      "group": "Sheet Options",
+      "id": "layout-heading-print",
+      "command": "pageLayout.printHeadings",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "Page Layout",
+      "group": "Arrange",
+      "id": "bring-forward",
+      "command": "arrange.bringForward",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "prerequisite guard (no selected object)"
+    },
+    {
+      "tab": "Page Layout",
+      "group": "Arrange",
+      "id": "send-backward",
+      "command": "arrange.sendBackward",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "prerequisite guard (no selected object)"
+    },
+    {
+      "tab": "Page Layout",
+      "group": "Arrange",
+      "id": "selection-pane",
+      "command": "@objects",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 22,
+        "error": false
+      }
+    },
+    {
+      "tab": "Page Layout",
+      "group": "Arrange",
+      "id": "align-objects",
+      "command": "@objects",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 22,
+        "error": false
+      }
+    },
+    {
+      "tab": "Page Layout",
+      "group": "Arrange",
+      "id": "rotate-object",
+      "command": "arrange.rotate",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "prerequisite guard (no selected object)"
+    },
+    {
+      "tab": "Formulas",
+      "group": "Function Library",
+      "id": "insert-function",
+      "command": "formulas.insertFunction",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "Formulas",
+      "group": "Function Library",
+      "id": "formula-autosum",
+      "command": "autosum",
+      "dialog": false,
+      "menu": true,
+      "menuItems": [
+        {
+          "id": "sum",
+          "command": "formulas.autoSum",
+          "dialog": false,
+          "params": "{}"
+        },
+        {
+          "id": "average",
+          "command": "formulas.autoSum",
+          "dialog": false,
+          "params": "{\"function\":\"AVERAGE\"}"
+        },
+        {
+          "id": "count",
+          "command": "formulas.autoSum",
+          "dialog": false,
+          "params": "{\"function\":\"COUNT\"}"
+        },
+        {
+          "id": "max",
+          "command": "formulas.autoSum",
+          "dialog": false,
+          "params": "{\"function\":\"MAX\"}"
+        },
+        {
+          "id": "min",
+          "command": "formulas.autoSum",
+          "dialog": false,
+          "params": "{\"function\":\"MIN\"}"
+        }
+      ],
+      "tested": "pointer opens menu and Escape dismisses",
+      "items": [
+        {
+          "id": "sum",
+          "command": "formulas.autoSum",
+          "dialog": false,
+          "params": "{}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "average",
+          "command": "formulas.autoSum",
+          "dialog": false,
+          "params": "{\"function\":\"AVERAGE\"}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "count",
+          "command": "formulas.autoSum",
+          "dialog": false,
+          "params": "{\"function\":\"COUNT\"}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "max",
+          "command": "formulas.autoSum",
+          "dialog": false,
+          "params": "{\"function\":\"MAX\"}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "min",
+          "command": "formulas.autoSum",
+          "dialog": false,
+          "params": "{\"function\":\"MIN\"}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        }
+      ]
+    },
+    {
+      "tab": "Formulas",
+      "group": "Function Library",
+      "id": "functions-recent",
+      "command": "@functions:Recent",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "Formulas",
+      "group": "Function Library",
+      "id": "functions-financial",
+      "command": "@functions:Financial",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "Formulas",
+      "group": "Function Library",
+      "id": "functions-logical",
+      "command": "@functions:Logical",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "Formulas",
+      "group": "Function Library",
+      "id": "functions-text",
+      "command": "@functions:Text",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "Formulas",
+      "group": "Function Library",
+      "id": "functions-date",
+      "command": "@functions:DateTime",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "Formulas",
+      "group": "Function Library",
+      "id": "functions-lookup",
+      "command": "@functions:Lookup",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "Formulas",
+      "group": "Function Library",
+      "id": "functions-math",
+      "command": "@functions:MathTrig",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "Formulas",
+      "group": "Function Library",
+      "id": "functions-more",
+      "command": "@functions:All",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "Formulas",
+      "group": "Defined Names",
+      "id": "name-manager",
+      "command": "formulas.nameManager",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 19,
+        "error": false
+      }
+    },
+    {
+      "tab": "Formulas",
+      "group": "Defined Names",
+      "id": "define-name",
+      "command": "formulas.defineName",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "Formulas",
+      "group": "Defined Names",
+      "id": "use-name",
+      "command": "formulas.pasteName",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "Formulas",
+      "group": "Defined Names",
+      "id": "names-from-selection",
+      "command": "formulas.createFromSelection",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "Formulas",
+      "group": "Formula Auditing",
+      "id": "trace-precedents",
+      "command": "formulas.tracePrecedents",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "Formulas",
+      "group": "Formula Auditing",
+      "id": "trace-dependents",
+      "command": "formulas.traceDependents",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "Formulas",
+      "group": "Formula Auditing",
+      "id": "trace-remove",
+      "command": "formulas.removeArrows",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "Formulas",
+      "group": "Formula Auditing",
+      "id": "show-formulas",
+      "command": "formulas.showFormulas",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "Formulas",
+      "group": "Formula Auditing",
+      "id": "formula-errors",
+      "command": "formulas.errorChecking",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 8,
+        "error": false
+      }
+    },
+    {
+      "tab": "Formulas",
+      "group": "Formula Auditing",
+      "id": "formula-evaluate",
+      "command": "formulas.evaluateFormula",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; prerequisite error",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": true
+      }
+    },
+    {
+      "tab": "Formulas",
+      "group": "Formula Auditing",
+      "id": "watch-window",
+      "command": "formulas.watchWindow",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "Formulas",
+      "group": "Calculation",
+      "id": "calculation-options",
+      "command": "calculation",
+      "dialog": false,
+      "menu": true,
+      "menuItems": [
+        {
+          "id": "calc-auto",
+          "command": "formulas.calculationOptions",
+          "dialog": false,
+          "params": "{\"mode\":\"automatic\"}"
+        },
+        {
+          "id": "calc-except-tables",
+          "command": "formulas.calculationOptions",
+          "dialog": false,
+          "params": "{\"mode\":\"automaticExceptTables\"}"
+        },
+        {
+          "id": "calc-manual",
+          "command": "formulas.calculationOptions",
+          "dialog": false,
+          "params": "{\"mode\":\"manual\"}"
+        }
+      ],
+      "tested": "pointer opens menu and Escape dismisses",
+      "items": [
+        {
+          "id": "calc-auto",
+          "command": "formulas.calculationOptions",
+          "dialog": false,
+          "params": "{\"mode\":\"automatic\"}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "calc-except-tables",
+          "command": "formulas.calculationOptions",
+          "dialog": false,
+          "params": "{\"mode\":\"automaticExceptTables\"}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "calc-manual",
+          "command": "formulas.calculationOptions",
+          "dialog": false,
+          "params": "{\"mode\":\"manual\"}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        }
+      ]
+    },
+    {
+      "tab": "Formulas",
+      "group": "Calculation",
+      "id": "calculate",
+      "command": "formulas.calculateNow",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "Formulas",
+      "group": "Calculation",
+      "id": "calculate-sheet",
+      "command": "formulas.calculateSheet",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "Data",
+      "group": "Get & Transform Data",
+      "id": "get-data",
+      "command": "data.getData",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "Data",
+      "group": "Get & Transform Data",
+      "id": "from-csv",
+      "command": "data.fromTextCsv",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "Data",
+      "group": "Get & Transform Data",
+      "id": "from-table",
+      "command": "data.fromTableRange",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; prerequisite error",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": true
+      }
+    },
+    {
+      "tab": "Data",
+      "group": "Get & Transform Data",
+      "id": "recent-sources",
+      "command": "data.queriesConnections",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 8,
+        "error": false
+      }
+    },
+    {
+      "tab": "Data",
+      "group": "Queries & Connections",
+      "id": "refresh-all",
+      "command": "data.refreshAll",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "Data",
+      "group": "Queries & Connections",
+      "id": "queries",
+      "command": "data.queriesConnections",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 8,
+        "error": false
+      }
+    },
+    {
+      "tab": "Data",
+      "group": "Sort & Filter",
+      "id": "sort-up",
+      "command": "data.sortAscending",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "Data",
+      "group": "Sort & Filter",
+      "id": "sort-down",
+      "command": "data.sortDescending",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "Data",
+      "group": "Sort & Filter",
+      "id": "sort-dialog",
+      "command": "data.sort",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "Data",
+      "group": "Sort & Filter",
+      "id": "filter",
+      "command": "data.filter",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "Data",
+      "group": "Sort & Filter",
+      "id": "clear-filter",
+      "command": "data.clearFilter",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "Data",
+      "group": "Sort & Filter",
+      "id": "reapply-filter",
+      "command": "data.reapply",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "Data",
+      "group": "Sort & Filter",
+      "id": "advanced-filter",
+      "command": "data.advancedFilter",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "Data",
+      "group": "Data Tools",
+      "id": "text-to-columns",
+      "command": "data.textToColumns",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "Data",
+      "group": "Data Tools",
+      "id": "flash-fill",
+      "command": "edit.flashFill",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; prerequisite error",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": true
+      }
+    },
+    {
+      "tab": "Data",
+      "group": "Data Tools",
+      "id": "remove-duplicates",
+      "command": "data.removeDuplicates",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "Data",
+      "group": "Data Tools",
+      "id": "validation",
+      "command": "data.validation",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "Data",
+      "group": "Data Tools",
+      "id": "consolidate",
+      "command": "data.consolidate",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "Data",
+      "group": "Forecast",
+      "id": "what-if",
+      "command": "what-if",
+      "dialog": false,
+      "menu": true,
+      "menuItems": [
+        {
+          "id": "scenario-manager",
+          "command": "data.scenarioManager",
+          "dialog": false,
+          "params": "{}"
+        },
+        {
+          "id": "goal-seek",
+          "command": "data.goalSeek",
+          "dialog": true,
+          "params": "{}"
+        },
+        {
+          "id": "data-table",
+          "command": "data.dataTable",
+          "dialog": true,
+          "params": "{}"
+        }
+      ],
+      "tested": "pointer opens menu and Escape dismisses",
+      "items": [
+        {
+          "id": "scenario-manager",
+          "command": "data.scenarioManager",
+          "dialog": false,
+          "params": "{}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "goal-seek",
+          "command": "data.goalSeek",
+          "dialog": true,
+          "params": "{}",
+          "dialogOpened": "data.goalSeek",
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "data-table",
+          "command": "data.dataTable",
+          "dialog": true,
+          "params": "{}",
+          "dialogOpened": "data.dataTable",
+          "panel": 0,
+          "error": false
+        }
+      ]
+    },
+    {
+      "tab": "Data",
+      "group": "Forecast",
+      "id": "forecast",
+      "command": "data.forecastSheet",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "Data",
+      "group": "Outline",
+      "id": "group",
+      "command": "data.group",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "Data",
+      "group": "Outline",
+      "id": "ungroup",
+      "command": "data.ungroup",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "Data",
+      "group": "Outline",
+      "id": "subtotal",
+      "command": "data.subtotal",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "Data",
+      "group": "Outline",
+      "id": "show-detail",
+      "command": "data.showDetail",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "Data",
+      "group": "Outline",
+      "id": "hide-detail",
+      "command": "data.hideDetail",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "Data",
+      "group": "Analysis",
+      "id": "analysis",
+      "command": "data.analysisToolPak",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "Data",
+      "group": "Analysis",
+      "id": "solver",
+      "command": "data.solver",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "Review",
+      "group": "Proofing",
+      "id": "spelling",
+      "command": "review.spelling",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; prerequisite error",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": true
+      }
+    },
+    {
+      "tab": "Review",
+      "group": "Proofing",
+      "id": "thesaurus",
+      "command": "review.thesaurus",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "Review",
+      "group": "Proofing",
+      "id": "workbook-statistics",
+      "command": "review.workbookStatistics",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 8,
+        "error": false
+      }
+    },
+    {
+      "tab": "Review",
+      "group": "Accessibility",
+      "id": "accessibility",
+      "command": "review.checkAccessibility",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 8,
+        "error": false
+      }
+    },
+    {
+      "tab": "Review",
+      "group": "Comments",
+      "id": "new-comment",
+      "command": "review.newComment",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "Review",
+      "group": "Comments",
+      "id": "delete-comment",
+      "command": "review.deleteComment",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "Review",
+      "group": "Comments",
+      "id": "previous-comment",
+      "command": "review.previousComment",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; prerequisite error",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": true
+      }
+    },
+    {
+      "tab": "Review",
+      "group": "Comments",
+      "id": "next-comment",
+      "command": "review.nextComment",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; prerequisite error",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": true
+      }
+    },
+    {
+      "tab": "Review",
+      "group": "Comments",
+      "id": "show-comments",
+      "command": "@comments",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 15,
+        "error": false
+      }
+    },
+    {
+      "tab": "Review",
+      "group": "Notes",
+      "id": "notes-menu",
+      "command": "notes",
+      "dialog": false,
+      "menu": true,
+      "menuItems": [
+        {
+          "id": "new-note",
+          "command": "review.newNote",
+          "dialog": true,
+          "params": "{}"
+        },
+        {
+          "id": "show-note",
+          "command": "review.showNote",
+          "dialog": true,
+          "params": "{}"
+        },
+        {
+          "id": "show-notes",
+          "command": "review.showAllNotes",
+          "dialog": false,
+          "params": "{}"
+        },
+        {
+          "id": "convert-notes",
+          "command": "review.convertToComments",
+          "dialog": false,
+          "params": "{}"
+        }
+      ],
+      "tested": "pointer opens menu and Escape dismisses",
+      "items": [
+        {
+          "id": "new-note",
+          "command": "review.newNote",
+          "dialog": true,
+          "params": "{}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "show-note",
+          "command": "review.showNote",
+          "dialog": true,
+          "params": "{}",
+          "dialogOpened": "review.showNote",
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "show-notes",
+          "command": "review.showAllNotes",
+          "dialog": false,
+          "params": "{}",
+          "dialogOpened": null,
+          "panel": 15,
+          "error": false
+        },
+        {
+          "id": "convert-notes",
+          "command": "review.convertToComments",
+          "dialog": false,
+          "params": "{}",
+          "dialogOpened": null,
+          "panel": 15,
+          "error": false
+        }
+      ]
+    },
+    {
+      "tab": "Review",
+      "group": "Protect",
+      "id": "protect-sheet",
+      "command": "review.protectSheet",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "Review",
+      "group": "Protect",
+      "id": "protect-workbook",
+      "command": "review.protectWorkbook",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "Review",
+      "group": "Protect",
+      "id": "allow-edit-ranges",
+      "command": "review.allowEditRanges",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "Review",
+      "group": "Protect",
+      "id": "unprotect-sheet",
+      "command": "review.unprotectSheet",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "View",
+      "group": "Workbook Views",
+      "id": "view-normal",
+      "command": "view.normal",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "View",
+      "group": "Workbook Views",
+      "id": "view-page-break",
+      "command": "view.pageBreakPreview",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "View",
+      "group": "Workbook Views",
+      "id": "view-page-layout",
+      "command": "view.pageLayout",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "View",
+      "group": "Workbook Views",
+      "id": "custom-views",
+      "command": "view.customViews",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "View",
+      "group": "Show",
+      "id": "gridlines",
+      "command": "view.gridlines",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "View",
+      "group": "Show",
+      "id": "headings",
+      "command": "view.headings",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "View",
+      "group": "Show",
+      "id": "formula-bar-toggle",
+      "command": "@formula-bar",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "View",
+      "group": "Zoom",
+      "id": "zoom",
+      "command": "view.zoom",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "View",
+      "group": "Zoom",
+      "id": "zoom100",
+      "command": "view.zoom100",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "View",
+      "group": "Zoom",
+      "id": "zoom-selection",
+      "command": "view.zoomToSelection",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "View",
+      "group": "Window",
+      "id": "new-window",
+      "command": "view.newWindow",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "window lifecycle: separate product smoke required"
+    },
+    {
+      "tab": "View",
+      "group": "Window",
+      "id": "arrange-all",
+      "command": "view.arrangeAll",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "View",
+      "group": "Window",
+      "id": "freeze",
+      "command": "freeze",
+      "dialog": false,
+      "menu": true,
+      "menuItems": [
+        {
+          "id": "freeze-selection",
+          "command": "view.freezePanes",
+          "dialog": false,
+          "params": "{\"atSelection\":true}"
+        },
+        {
+          "id": "freeze-row",
+          "command": "view.freezeTopRow",
+          "dialog": false,
+          "params": "{}"
+        },
+        {
+          "id": "freeze-column",
+          "command": "view.freezeFirstColumn",
+          "dialog": false,
+          "params": "{}"
+        },
+        {
+          "id": "unfreeze",
+          "command": "view.unfreezePanes",
+          "dialog": false,
+          "params": "{}"
+        }
+      ],
+      "tested": "pointer opens menu and Escape dismisses",
+      "items": [
+        {
+          "id": "freeze-selection",
+          "command": "view.freezePanes",
+          "dialog": false,
+          "params": "{\"atSelection\":true}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "freeze-row",
+          "command": "view.freezeTopRow",
+          "dialog": false,
+          "params": "{}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "freeze-column",
+          "command": "view.freezeFirstColumn",
+          "dialog": false,
+          "params": "{}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        },
+        {
+          "id": "unfreeze",
+          "command": "view.unfreezePanes",
+          "dialog": false,
+          "params": "{}",
+          "dialogOpened": null,
+          "panel": 0,
+          "error": false
+        }
+      ]
+    },
+    {
+      "tab": "View",
+      "group": "Window",
+      "id": "split",
+      "command": "view.split",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "View",
+      "group": "Window",
+      "id": "hide-window",
+      "command": "view.hideWindow",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "window lifecycle: separate product smoke required"
+    },
+    {
+      "tab": "View",
+      "group": "Window",
+      "id": "unhide-window",
+      "command": "view.unhideWindow",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "window lifecycle: separate product smoke required"
+    },
+    {
+      "tab": "View",
+      "group": "Window",
+      "id": "switch-windows",
+      "command": "@windows",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 3,
+        "error": false
+      }
+    },
+    {
+      "tab": "Help",
+      "group": "Help",
+      "id": "help",
+      "command": "@help",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "Help",
+      "group": "Help",
+      "id": "training",
+      "command": "@help",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "Help",
+      "group": "Help",
+      "id": "command-search",
+      "command": "@search",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "commands",
+        "panel": 0,
+        "error": false
+      }
+    },
+    {
+      "tab": "Automate",
+      "group": "Scripts",
+      "id": "script-details",
+      "command": "@scripts",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 16,
+        "error": false
+      }
+    },
+    {
+      "tab": "Automate",
+      "group": "Scripts",
+      "id": "script-record",
+      "command": "@record",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 16,
+        "error": false
+      }
+    },
+    {
+      "tab": "Automate",
+      "group": "Scripts",
+      "id": "script-new",
+      "command": "automate.newScript",
+      "dialog": true,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer opens dialog; Cancel leaves revision unchanged"
+    },
+    {
+      "tab": "Automate",
+      "group": "Control",
+      "id": "desktop-control",
+      "command": "@control",
+      "dialog": false,
+      "menu": false,
+      "menuItems": [],
+      "tested": "pointer invoked; response captured",
+      "result": {
+        "dialog": "",
+        "panel": 17,
+        "error": false
+      }
+    }
+  ],
+  "method": "Production GPUI pointer/key dispatch and GPU readback; separate native Windows mouse observations",
+  "limits": "Invocation and prerequisite guards are not complete business or pixel-parity acceptance. The final Unhide picker was added after the full inventory and is covered by finalDialogChecks.",
+  "finalRibbonRegression": {
+    "passed": true,
+    "checks": [
+      "native tab click and GPU capture: Home",
+      "native tab click and GPU capture: Insert",
+      "native tab click and GPU capture: Draw",
+      "native tab click and GPU capture: Page Layout",
+      "native tab click and GPU capture: Formulas",
+      "native tab click and GPU capture: Data",
+      "native tab click and GPU capture: Review",
+      "native tab click and GPU capture: View",
+      "native tab click and GPU capture: Help",
+      "native tab click and GPU capture: Automate",
+      "File backstage and Escape return",
+      "Ribbon command returns cell focus for Ctrl+Z/Ctrl+Y",
+      "Home Bold and Format Painter apply real styles",
+      "Ctrl+F1 changes the visible ribbon and grid extent",
+      "Function search filters Math/Trig and SUM starts an editable formula",
+      "Hidden headings retain correct B2 editing coordinates",
+      "Draw pointer gesture creates ink; keyboard Undo/Redo restores it",
+      "Eraser removes ink objects",
+      "Saved XLSX reopens with ink intact",
+      "Local help opens and closes with Escape",
+      "Ribbon inserts editable SmartArt through its form",
+      "Ribbon inserts editable WordArt through its form",
+      "Ribbon inserts editable Equation through its form",
+      "Ribbon inserts editable Embedded through its form",
+      "Double-click object editor and keyboard Undo/Redo update WordArt",
+      "Embedded file extraction preserves every original byte",
+      "Structured objects reopen independently with editable content intact",
+      "Timeline header divider remains visible at fractional physical pixel width",
+      "Timeline tiles, drag range, clear filter, level and scroll operate on PivotTable data",
+      "Page Layout gridlines stay visible at fractional page origins",
+      "Page Layout uses paper hit geometry for header and B2 editing",
+      "Page Break Preview confines page numbers and break rules to the print area",
+      "Page Break Preview drag moves a real saved print boundary",
+      "Formula trace arrows paint a continuous horizontal shaft and blue origin dot",
+      "Formula arrows expand levels, survive zoom refresh and remove through Ribbon"
+    ],
+    "binarySha256": "b56b994444f96e5852b73c07c22274f5ad1e7c37fd5400c0712ed0d80d0af05b"
+  },
+  "nativeMouseChecks": [
+    "Excel ten tabs and font/alignment/page/validation/zoom/find dialogs observed",
+    "JoySheet Font launcher opens Font tab; Cancel returns to grid",
+    "JoySheet New Window and Hide buttons exercised",
+    "Final Unhide selector: pointer opens, Cancel keeps view hidden, pointer OK restores selected view with revision unchanged"
+  ],
+  "finalProductCheck": {
+    "passed": 1426,
+    "failed": 0,
+    "ignored": 1,
+    "fmt": true,
+    "strictClippy": true
+  }
+}

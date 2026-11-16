@@ -37,6 +37,16 @@ pub(crate) struct TimelineDrag {
 }
 impl Desktop {
     pub(crate) fn object_choices(&self, id: &str, key: &str, cx: &App) -> Vec<(String, String)> {
+        if id == "view.unhideWindow" && key == "window" {
+            return self
+                .data_raw
+                .as_array()
+                .into_iter()
+                .flatten()
+                .filter(|v| v["hidden"] == true)
+                .filter_map(|v| Some((v["window"].as_u64()?.to_string(), v["title"].as_str()?.to_string())))
+                .collect();
+        }
         if id == "insert.timeline"
             && let Some(view) = self.view()
         {

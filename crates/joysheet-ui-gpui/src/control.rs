@@ -393,8 +393,12 @@ impl Desktop {
                 inspect["settings"] = json!(self.preferences);
                 inspect["ribbonTab"] = json!(self.ribbon_tab);
                 inspect["ribbon"] = json!({"tab":crate::ribbon_catalog::TABS.get(self.ribbon_tab).map(|t|t.2),"collapsed":self.ribbon_collapsed,"help":self.help_open,"functionCategory":self.function_category,"formatPainter":self.format_painter,"inkTool":self.ink.tool,
-                    "groups":crate::ribbon_catalog::groups(self.ribbon_tab).iter().map(|g|json!({"name":g.en,"tools":g.tools.iter().flatten().map(|t|json!({"id":t.id,"command":t.command,"dialog":t.dialog,"menu":t.menu})).collect::<Vec<_>>()})).collect::<Vec<_>>()});
+                    "groups":crate::ribbon_catalog::groups(self.ribbon_tab).iter().map(|g|json!({"name":g.en,"tools":g.tools.iter().flatten().map(|t|json!({"id":t.id,"command":t.command,"dialog":t.dialog,"menu":t.menu,
+                        "menuItems":crate::ribbon_menus::tools(t.command).iter().map(|i|json!({"id":i.id,"command":i.command,"dialog":i.dialog,"params":i.params})).collect::<Vec<_>>()
+                    })).collect::<Vec<_>>()})).collect::<Vec<_>>()});
                 inspect["panel"] = json!(self.daily_group);
+                inspect["commandDialog"] = json!({"command":if self.palette_open {self.selected_command.as_deref()} else {None},"tab":self.dialog_tab,"error":self.dialog_error,
+                    "fields":self.command_fields.iter().map(|f|(f.key.clone(),Value::String(f.value.read(cx).value().to_string()))).collect::<serde_json::Map<_,_>>()});
                 inspect["composing"] = json!(self.composing(window, cx));
                 inspect["inputGeometry"] = self.input_geometry(window, cx);
                 inspect["display"] = json!({"scaleFactor":window.scale_factor(),"viewportWidth":f32::from(window.viewport_size().width),"viewportHeight":f32::from(window.viewport_size().height)});

@@ -12,6 +12,7 @@ mod complex_format;
 mod control;
 mod daily;
 mod desktop;
+mod dialogs;
 mod formula_feedback;
 mod grid;
 mod grid_tools;

@@ -163,12 +163,17 @@ pub struct Desktop {
     pub palette_open: bool,
     pub selected_command: Option<String>,
     pub command_fields: Vec<crate::palette::CommandField>,
+    pub command_initial: Value,
+    pub command_focus: FocusHandle,
+    pub dialog_tab: usize,
+    pub dialog_error: String,
     pub advanced_params: bool,
     pub recent_open: bool,
     pub daily_group: u8,
     pub ribbon_tab: usize,
     pub ribbon_collapsed: bool,
     pub ribbon_wide: bool,
+    pub ribbon_repeats: HashMap<&'static str, crate::ribbon_catalog::Tool>,
     pub help_open: bool,
     pub function_category: Option<String>,
     pub recent_functions: Vec<String>,
@@ -383,11 +388,16 @@ impl Desktop {
             palette_open: false,
             selected_command: None,
             command_fields: Vec::new(),
+            command_initial: Value::Null,
+            command_focus: cx.focus_handle(),
+            dialog_tab: 0,
+            dialog_error: String::new(),
             advanced_params: false,
             recent_open: false,
             ribbon_tab: 1,
             ribbon_collapsed: false,
             ribbon_wide: false,
+            ribbon_repeats: HashMap::new(),
             help_open: false,
             function_category: None,
             recent_functions: Vec::new(),
@@ -507,6 +517,7 @@ impl Desktop {
                         "view.customViews",
                     ]
                     .contains(&command)
+                    || command == "view.switchWindows" && self.selected_command.as_deref() == Some("view.unhideWindow")
                 {
                     self.result_requests.insert(ticket.id, command.into());
                 }
@@ -723,6 +734,9 @@ impl Desktop {
             let has_data_result = result_kind.is_some();
             match result {
                 Err(error) => {
+                    if self.palette_open && self.selected_command.as_deref() == result_kind.as_deref() {
+                        self.dialog_error = error.clone();
+                    }
                     if pending.commit {
                         self.committing = false;
                         self.edit_clock = None;
@@ -733,6 +747,9 @@ impl Desktop {
                 Ok(completion) => {
                     match completion.result {
                         Err(error) => {
+                            if self.palette_open && self.selected_command.as_deref() == result_kind.as_deref() {
+                                self.dialog_error = error.clone();
+                            }
                             if pending.commit {
                                 self.committing = false;
                                 self.edit_clock = None;
@@ -754,6 +771,23 @@ impl Desktop {
                                 self.data_results = crate::workflow::result_rows(&kind, &value);
                                 self.data_result_kind = kind.clone();
                                 self.daily_group = 8;
+                                if kind == "view.switchWindows" && self.palette_open && self.selected_command.as_deref() == Some("view.unhideWindow")
+                                {
+                                    self.daily_group = 0;
+                                    if let Some(hidden) = value.as_array().and_then(|items| items.iter().find(|i| i["hidden"] == true))
+                                        && let Some(field) = self.command_fields.iter().find(|f| f.key == "window")
+                                    {
+                                        let id = hidden["window"].to_string();
+                                        field.value.update(cx, |s, cx| s.set_value(id, window, cx));
+                                    }
+                                    self.focus_command_input(window, cx);
+                                }
+                                if matches!(kind.as_str(), "edit.find" | "edit.replace")
+                                    && self.palette_open
+                                    && self.selected_command.as_deref() == Some(&kind)
+                                {
+                                    self.daily_group = 0;
+                                }
                                 if kind == "formulas.recentlyUsed" {
                                     self.recent_functions =
                                         value.as_array().into_iter().flatten().filter_map(|v| v.as_str().map(str::to_owned)).collect();
@@ -1318,9 +1352,7 @@ impl Render for Desktop {
                 cx.listener(|this, _: &crate::RedoWorkbook, window, cx| this.commit(After::Command("edit.redo".into(), json!({})), window, cx)),
             )
             .on_action(cx.listener(|this, _: &crate::ShowCommands, window, cx| {
-                this.palette_open = true;
-                this.search.update(cx, |input, cx| input.focus(window, cx));
-                cx.notify();
+                this.show_command_search(window, cx);
             }))
             .capture_key_down(cx.listener(|this, event, window, cx| this.key_down(event, window, cx)))
             .capture_action(cx.listener(|this, _: &gpui_kit::component::input::Escape, w, cx| {

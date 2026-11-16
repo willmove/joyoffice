@@ -378,6 +378,27 @@ impl Desktop {
             cx.stop_propagation();
             return;
         }
+        if self.palette_open {
+            if key == "escape" {
+                self.close_command_dialog(window, cx);
+                cx.stop_propagation();
+            } else if key == "enter"
+                && self.selected_command.is_some()
+                && (self.command_focus.is_focused(window) || self.command_fields.iter().any(|f| f.value.read(cx).focus_handle(cx).is_focused(window)))
+            {
+                if self.command_fields.iter().any(|f| f.value.update(cx, |s, cx| s.marked_text_range(window, cx).is_some())) {
+                    return;
+                }
+                if matches!(self.selected_command.as_deref(), Some("edit.find" | "edit.replace"))
+                    && let Some(f) = self.command_fields.iter().find(|f| f.key == "all")
+                {
+                    f.value.update(cx, |s, cx| s.set_value("false", window, cx));
+                }
+                self.run_selected_command(window, cx);
+                cx.stop_propagation();
+            }
+            return;
+        }
         if self.confirm_close {
             match key {
                 "escape" => self.cancel_close(window, cx),
@@ -493,9 +514,7 @@ impl Desktop {
                     return;
                 }
                 "k" => {
-                    self.palette_open = true;
-                    self.search.update(cx, |input, cx| input.focus(window, cx));
-                    cx.notify();
+                    self.show_command_search(window, cx);
                     cx.stop_propagation();
                     return;
                 }

@@ -146,7 +146,7 @@ pub fn groups(tab: usize) -> Vec<Group> {
                 ],
             )
             .rows()
-            .launcher("home.numberFormat"),
+            .launcher("home.formatCells"),
             group(
                 "样式",
                 "Styles",
@@ -297,9 +297,9 @@ pub fn groups(tab: usize) -> Vec<Group> {
                     vec![t("page-orientation", "纸张方向", "Orientation", I::Files, "page-orientation").menu()],
                     vec![t("page-size", "纸张大小", "Size", I::File, "page-size").menu()],
                     vec![t("print-area", "打印区域", "Print Area", I::Printer, "print-area").menu()],
-                    vec![t("page-breaks", "分隔符", "Breaks", I::BetweenHorizontalStart, "pageLayout.breaks").dialog()],
+                    vec![t("page-breaks", "分隔符", "Breaks", I::BetweenHorizontalStart, "page-breaks").menu()],
                     vec![t("page-background", "背景", "Background", I::Image, "pageLayout.background").dialog()],
-                    vec![t("print-titles", "打印标题", "Print Titles", I::Table, "pageLayout.printTitles").dialog()],
+                    vec![t("print-titles", "打印标题", "Print Titles", I::Table, "pageLayout.pageSetup").dialog()],
                 ],
             )
             .launcher("pageLayout.pageSetup"),
@@ -390,7 +390,7 @@ pub fn groups(tab: usize) -> Vec<Group> {
                 "计算",
                 "Calculation",
                 vec![
-                    vec![t("calculation-options", "计算选项", "Calculation Options", I::Calculator, "formulas.calculationOptions").dialog()],
+                    vec![t("calculation-options", "计算选项", "Calculation Options", I::Calculator, "calculation").menu()],
                     vec![
                         t("calculate", "开始计算", "Calculate Now", I::Calculator, "formulas.calculateNow"),
                         t("calculate-sheet", "计算工作表", "Calculate Sheet", I::Table, "formulas.calculateSheet"),
@@ -556,7 +556,7 @@ pub fn groups(tab: usize) -> Vec<Group> {
                     vec![
                         t("split", "拆分", "Split", I::PanelLeft, "view.split"),
                         t("hide-window", "隐藏", "Hide", I::EyeOff, "view.hideWindow"),
-                        t("unhide-window", "取消隐藏", "Unhide", I::Eye, "view.unhideWindow"),
+                        t("unhide-window", "取消隐藏", "Unhide", I::Eye, "view.unhideWindow").dialog(),
                     ],
                     vec![t("switch-windows", "切换窗口", "Switch Windows", I::AppWindow, "@windows")],
                 ],

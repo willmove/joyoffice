@@ -47,9 +47,7 @@ impl Desktop {
                     .text_color(rgb(self.palette().muted))
                     .child(self.label("搜索命令   Ctrl+K", "Search commands   Ctrl+K"))
                     .on_click(cx.listener(|this, _, w, cx| {
-                        this.palette_open = true;
-                        this.search.update(cx, |s, cx| s.focus(w, cx));
-                        cx.notify();
+                        this.show_command_search(w, cx);
                     })),
             )
             .child(
@@ -171,9 +169,7 @@ impl Desktop {
                     .aria_label(self.label("搜索命令", "Search Commands"))
                     .child(crate::ribbon_icons::icon(joyoffice_ui::IconName::Search).size(px(16.)))
                     .on_click(cx.listener(|v, _, w, cx| {
-                        v.palette_open = true;
-                        v.search.update(cx, |s, cx| s.focus(w, cx));
-                        cx.notify();
+                        v.show_command_search(w, cx);
                     })),
             )
             .child(

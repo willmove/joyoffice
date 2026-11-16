@@ -25,8 +25,7 @@ impl Desktop {
         let mut p: Value = serde_json::from_str(tool.params).unwrap_or_else(|_| json!({}));
         match tool.command {
             "@search" => {
-                self.palette_open = true;
-                self.search.update(cx, |s, cx| s.focus(w, cx));
+                self.show_command_search(w, cx);
             }
             "@help" => {
                 self.help_open = true;
@@ -115,6 +114,14 @@ impl Desktop {
             _ if tool.dialog => {
                 self.open_command(tool.command, w, cx);
                 self.override_ribbon_form(p, w, cx);
+                self.dialog_tab = match tool.id {
+                    "angle-more" => 1,
+                    "border-more" => 3,
+                    "margins-custom" => 1,
+                    "print-titles" => 3,
+                    _ => 0,
+                };
+                self.focus_command_input(w, cx);
             }
             cmd => {
                 if cmd == "edit.paste" {
@@ -155,6 +162,9 @@ impl Desktop {
         match command {
             "home.bold" => style.font.bold,
             "home.italic" => style.font.italic,
+            "home.underline" => style.font.underline != joysheet_engine::model::Underline::None,
+            "home.doubleUnderline" => style.font.underline == joysheet_engine::model::Underline::Double,
+            "home.mergeCenter" | "home.mergeAcross" | "home.mergeCells" => s.merge_at(self.selection().active).is_some(),
             "home.wrapText" => style.align.wrap,
             "home.alignLeft" => style.align.h == HAlign::Left,
             "home.alignCenter" => style.align.h == HAlign::Center,
@@ -191,7 +201,12 @@ impl Desktop {
     }
     fn ribbon_button(&self, tool: Tool, large: bool, cx: &mut Context<Self>) -> AnyElement {
         if tool.id == "cell-styles" && self.ribbon_wide {
-            return self.ribbon_style_gallery(cx);
+            return div()
+                .flex()
+                .items_center()
+                .child(self.ribbon_style_gallery(cx))
+                .child(self.ribbon_button(Tool { id: "cell-styles-more", compact: true, ..tool }, false, cx))
+                .into_any_element();
         }
         let available = tool.menu || tool.command.starts_with('@') || joysheet_engine::find_command(tool.command).is_some();
         let enabled = available
@@ -202,11 +217,12 @@ impl Desktop {
                 _ => true,
             };
         let label = self.label(tool.zh, tool.en);
-        let mut checked = self.ribbon_checked(tool.command);
+        let primary = ribbon_menus::primary(tool.command).map(|default| self.ribbon_repeats.get(tool.command).copied().unwrap_or(default));
+        let mut checked = self.ribbon_checked(primary.map_or(tool.command, |t| t.command));
         let check =
             matches!(tool.command, "view.gridlines" | "view.headings" | "@formula-bar" | "pageLayout.printGridlines" | "pageLayout.printHeadings");
         let icon = if check { if checked { I::SquareCheck } else { I::Square } } else { tool.icon };
-        let color = serde_json::from_str::<Value>(tool.params)
+        let color = serde_json::from_str::<Value>(primary.map_or(tool.params, |t| t.params))
             .ok()
             .and_then(|p| p["color"].as_str().and_then(|s| u32::from_str_radix(s.trim_start_matches('#'), 16).ok()));
         if tool.command == "@pen"
@@ -234,7 +250,7 @@ impl Desktop {
                     .child(self.ribbon_label(tool)),
             );
         }
-        if tool.menu {
+        if tool.menu && primary.is_none() {
             content = content.child(crate::ribbon_icons::icon(I::ChevronDown).size(px(9.)));
         }
         let tooltip = if available { label.clone() } else { format!("{} · {}", label, self.label("此功能尚未实现", "Not implemented yet")) };
@@ -243,7 +259,7 @@ impl Desktop {
             .xsmall()
             .rounded(px(3.))
             .px(px(4.))
-            .h(px(if large { 72. } else { 24. }))
+            .h(px(if large { if primary.is_some() { 52. } else { 72. } } else { 24. }))
             .text_size(px(12.))
             .accessibility_label(label)
             .tooltip(tooltip)
@@ -271,12 +287,32 @@ impl Desktop {
             let choices = ribbon_menus::tools(tool.command);
             let chinese = self.chinese();
             let target = self.view().map(|v| (v.doc, v.sheet));
-            Popover::new(ElementId::Name(format!("ribbon-menu-{}", tool.id).into()))
+            let (main, button) = if let Some(action) = primary {
+                let main = button.on_click(cx.listener(move |v, _, w, cx| v.activate_ribbon_tool(action, w, cx)));
+                let dropdown = Button::new(SharedString::from(format!("{}-dropdown", tool.id)))
+                    .ghost()
+                    .xsmall()
+                    .w(px(16.))
+                    .h(px(if large { 20. } else { 24. }))
+                    .px_0()
+                    .accessibility_label(format!("{} {}", self.label(tool.zh, tool.en), self.label("更多选项", "More options")))
+                    .child(
+                        div()
+                            .relative()
+                            .child(self.advanced_probe(format!("ribbon-menu:{}", tool.id), cx))
+                            .child(crate::ribbon_icons::icon(I::ChevronDown).size(px(9.))),
+                    );
+                (Some(main), dropdown)
+            } else {
+                (None, button)
+            };
+            let menu = Popover::new(ElementId::Name(format!("ribbon-menu-{}", tool.id).into()))
                 .trigger(button)
                 .content(move |_, _, cx| {
                     let popup = cx.entity().downgrade();
                     div().id("ribbon-menu-items").flex().flex_col().w(px(230.)).max_h(px(410.)).overflow_y_scroll().children(choices.iter().map(
                         |&item| {
+                            let probe = owner.update(cx, |v, cx| v.advanced_probe(format!("ribbon-item:{}", item.id), cx).into_any_element()).ok();
                             let owner = owner.clone();
                             let popup = popup.clone();
                             Button::new(item.id)
@@ -284,13 +320,16 @@ impl Desktop {
                                 .xsmall()
                                 .h(px(28.))
                                 .justify_start()
-                                .label(if chinese { item.zh } else { item.en })
+                                .child(div().relative().child(if chinese { item.zh } else { item.en }).children(probe))
                                 .icon(crate::ribbon_icons::icon(item.icon))
                                 .accessibility_label(if chinese { item.zh } else { item.en })
                                 .on_click(move |_, w, cx| {
                                     let _ = popup.update(cx, |p, cx| p.dismiss(w, cx));
                                     let _ = owner.update(cx, |v, cx| {
                                         if v.view().map(|v| (v.doc, v.sheet)) == target {
+                                            if matches!(tool.command, "underline" | "borders" | "fill" | "font-color") && !item.dialog {
+                                                v.ribbon_repeats.insert(tool.command, item);
+                                            }
                                             v.activate_ribbon_tool(item, w, cx);
                                         }
                                     });
@@ -298,7 +337,12 @@ impl Desktop {
                         },
                     ))
                 })
-                .into_any_element()
+                .into_any_element();
+            if let Some(main) = main {
+                div().flex().when(large, |el| el.flex_col().items_center()).child(main).child(menu).into_any_element()
+            } else {
+                menu
+            }
         } else {
             button.on_click(cx.listener(move |v, _, w, cx| v.activate_ribbon_tool(tool, w, cx))).into_any_element()
         }
@@ -339,7 +383,15 @@ impl Desktop {
                     .px_0()
                     .icon(crate::ribbon_icons::icon(I::ArrowDownRight))
                     .accessibility_label(self.label("打开格式设置", "Open formatting settings"))
-                    .on_click(cx.listener(move |v, _, w, cx| v.open_command(cmd, w, cx))),
+                    .on_click(cx.listener(move |v, _, w, cx| {
+                        v.open_command(cmd, w, cx);
+                        v.dialog_tab = match (cmd, group.en) {
+                            ("home.formatCells", "Font") => 2,
+                            ("home.formatCells", "Alignment") => 1,
+                            _ => 0,
+                        };
+                        v.focus_command_input(w, cx);
+                    })),
             );
         }
         div()
