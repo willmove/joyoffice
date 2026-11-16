@@ -44,8 +44,8 @@
     "source_path": "scripts/gpui_pre_reviewed_deviations.json",
     "target_path": "scripts/gpui_pre_reviewed_deviations.json",
     "source_sha256": "d617723255026cf380ddb6345600ce808a4ee807d8ed4af84dbb12de299055a7",
-    "local_changes": "CRLF normalized to LF; content otherwise unchanged; R9: enforce identical LF checkout bytes on Windows/Linux/macOS",
-    "adapted_sha256": "5d3826ac032e813fb983a25310023908f5e31575856fedd5b30c5d23b864afda"
+    "local_changes": "CRLF normalized to LF; R9: enforce identical LF checkout bytes on Windows/Linux/macOS; 2026-11-16: review and content-pin all GPUI Pre 0.3.12 publication deviations against zed@d2a4fb6ded7c470be25d1541281da3882495b65b; docs/joyoffice/GPUI-KIT-0.9.1-UPGRADE.md",
+    "adapted_sha256": "8586ca056c00f07f9186e16913d82d84126e45615d056530e066fc36f9b788f6"
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",

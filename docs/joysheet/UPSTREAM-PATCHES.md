@@ -2,6 +2,8 @@
 
 The import manifest retains hashes of the original GridCraft 0.12.1 files.
 
+2026-11-16: `crates/joysheet-ui-gpui/src/charts.rs` uses `Rc<WindowTextSystem>` for the window-local chart measurer, matching GPUI Pre 0.3.12. The separate engine text-width callback retains its mutex and `Send + Sync` contract. No workbook model, calculation or serialization changes. Dependency and validation evidence: [GPUI Kit 0.9.1 upgrade](../joyoffice/GPUI-KIT-0.9.1-UPGRADE.md).
+
 | File | Adaptation | Runtime behavior |
 | --- | --- | --- |
 | crates/engine/src/io/tests.rs | Gate the Unix symlink test with `cfg(unix)`; it previously referenced `std::os::unix` on Windows | No production changes |

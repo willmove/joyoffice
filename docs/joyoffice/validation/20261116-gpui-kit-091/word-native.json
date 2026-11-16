@@ -1,0 +1,13 @@
+{
+  "passed": true,
+  "binarySha256": "afb55257781f7c153142d58f2a2d1672b6479572e4c30e0bc5845903b8d05d4c",
+  "checks": [
+    "actual X11 window opens the isolated Chinese/space DOCX path",
+    "OS keyboard typing, undo and redo reach the live editing session",
+    "Kit search input accepts text without changing document content",
+    "OS Save with explicit metadata replacement confirmation writes only the disposable DOCX",
+    "fresh desktop process reopens saved text; repository fixture hash is unchanged"
+  ],
+  "eventSource": "X11 OS synthetic keys, actual window pixels and authenticated live document control",
+  "nativeImeVerified": false
+}

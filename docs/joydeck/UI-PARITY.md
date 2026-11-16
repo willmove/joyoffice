@@ -1,6 +1,6 @@
 # JoyDeck 界面与功能对照
 
-2026-11-03，主参照为本机 DeckCraft 0.14.1；PowerPoint 用于中文菜单、保存和基础编辑习惯核对。技术栈保持 JoyOffice 的 GPUI Kit 0.8.1 / GPUI pre 0.3.10。没有复制微软图标、品牌素材或系统字体。
+2026-11-03，主参照为本机 DeckCraft 0.14.1；PowerPoint 用于中文菜单、保存和基础编辑习惯核对。当前技术栈为 JoyOffice 的 GPUI Kit 0.9.1 / GPUI pre 0.3.12；升级范围见 [公共依赖记录](../joyoffice/GPUI-KIT-0.9.1-UPGRADE.md)。没有复制微软图标、品牌素材或系统字体。
 
 ## 原因与验收修正
 

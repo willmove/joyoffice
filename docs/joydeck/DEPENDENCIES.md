@@ -1,5 +1,7 @@
 # JoyDeck 依赖与公共模块对齐
 
+2026-11-16：下方 GPUI 与工具链节更新到当前宿主 Kit 0.9.1 / Pre 0.3.12；[升级与本机验证](../joyoffice/GPUI-KIT-0.9.1-UPGRADE.md)单列本次结果。其他带日期的规划来源、冲突表和实施增量保留当时范围。
+
 日期：2026-11-02。目标基线为 JoyOffice `a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d`。完整提取结果与文件 hash 见 [planning-baseline.json](evidence/planning-baseline.json)。
 
 ## 对齐规则
@@ -17,10 +19,10 @@
 | rust-toolchain.toml | `channel = "1.98.1"`，minimal，clippy/rustfmt | 完全一致 |
 | workspace.package | edition `2024`，rust-version `1.98` | 保持相同；实际构建固定 1.98.1 |
 | Cargo resolver | `3` | 完全一致 |
-| gpui-kit | `=0.8.1` | 根 workspace 精确固定，产品用 workspace 依赖 |
-| GPUI | Kit 依赖 package `gpui-pre =0.3.10` | 不再另加 crates.io `gpui =0.2.2` 或直接 Zed Git 版本 |
-| gpui-base/component/kit-assets | 锁文件均为 `0.8.1` | 由 Kit 带入；锁定结果保持，避免各自更新 |
-| gpui-pre-platform | `=0.3.10`，workspace alias `gpui_platform`，features font-kit/wayland/x11 | 需要平台桥接时沿用该精确声明；普通 API 经 Kit |
+| gpui-kit | `=0.9.1` | 根 workspace 精确固定，产品用 workspace 依赖 |
+| GPUI | Kit 依赖 package `gpui-pre =0.3.12` | 不再另加 crates.io `gpui =0.2.2` 或直接 Zed Git 版本 |
+| gpui-base/component/component-macros/kit-assets | 锁文件均为 `0.9.1` | 由 Kit 带入；锁定结果保持，避免各自更新 |
+| gpui-pre-platform | `=0.3.12`，workspace alias `gpui_platform`，features font-kit/wayland/x11 | 需要平台桥接时沿用该精确声明；普通 API 经 Kit |
 | Kit feature | 默认 component/assets；未启用 gpui-fast | 新项目相同，禁止为单产品暗中切换 backend |
 | dev-runtime-shaders | JoyWord 用精确 platform 依赖转发开发特性 | mac 开发确有需要时同方式转发；正式构建不依赖此特性 |
 | lints | unsafe_code forbid，Clippy 与产品门禁 | 保持；导入生产代码错误可恢复 |
@@ -30,16 +32,16 @@
 
 ```toml
 [workspace.dependencies]
-gpui-kit = "=0.8.1"
+gpui-kit = "=0.9.1"
 joyoffice-ui = { path = "crates/joyoffice-ui" }
 
 # 仅当沿用宿主的平台桥接/开发 shader 特性时使用。
-gpui_platform = { package = "gpui-pre-platform", version = "=0.3.10", features = ["font-kit", "wayland", "x11"] }
+gpui_platform = { package = "gpui-pre-platform", version = "=0.3.12", features = ["font-kit", "wayland", "x11"] }
 ```
 
 Kit 的 GPUI 类型、组件、基础能力和资源通过 `gpui_kit::*`、`gpui_kit::component`、`gpui_kit::base`、`gpui_kit::assets` 获取。官方说明见 [GPUI Kit 安装文档](https://gpui-kit.com/docs/installation/)。
 
-JoyOffice ADR-010 对应 Zed 快照 `08cbb88a152c3751a43e853425a70e9f631a5918`，并登记已审阅的发布差异。沿用 `scripts/verify_gpui_pre_provenance.py` 及 `scripts/gpui_pre_reviewed_deviations.json` 的核对方法；crate 版本相同不能替代来源验证。
+JoyOffice ADR-010 对应 Zed 快照 `d2a4fb6ded7c470be25d1541281da3882495b65b`，并登记已审阅的发布差异。沿用 `scripts/verify_gpui_pre_provenance.py` 及 `scripts/gpui_pre_reviewed_deviations.json` 的核对方法；crate 版本相同不能替代来源验证。
 
 ## 已发现的版本和来源冲突
 

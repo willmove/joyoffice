@@ -1,0 +1,120 @@
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+   Compiling syn v3.0.9
+   Compiling syn v2.0.119
+   Compiling foldhash v0.2.0
+   Compiling png v0.18.1
+   Compiling kurbo v0.13.1
+   Compiling hashbrown v0.17.1
+   Compiling moxcms v0.7.11
+   Compiling serde_json v1.0.154
+   Compiling indexmap v2.14.2
+   Compiling zeroize v1.9.1
+   Compiling winnow v1.0.4
+   Compiling subtle v2.6.1
+   Compiling toml_parser v1.1.5+spec-1.1.0
+   Compiling ring v0.17.14
+   Compiling synstructure v0.14.0
+   Compiling bytemuck_derive v1.12.1
+   Compiling thiserror-impl v2.0.21
+   Compiling bytemuck v1.25.2
+   Compiling font-types v0.11.3
+   Compiling read-fonts v0.39.2
+   Compiling zerocopy-derive v0.8.62
+   Compiling thiserror v2.0.21
+   Compiling serde_derive v1.0.228
+   Compiling skrifa v0.42.1
+   Compiling zerocopy v0.8.62
+   Compiling half v2.7.1
+   Compiling tiff v0.10.3
+   Compiling toml v1.1.8+spec-1.1.0
+   Compiling serde v1.0.228
+   Compiling image v0.25.9
+   Compiling color v0.3.3
+   Compiling font-types v0.12.6
+   Compiling displaydoc v0.2.7
+   Compiling rustls-pki-types v1.15.1
+   Compiling joyword-geom v0.1.4 (/home/Wilmer/Coding/joyoffice/target/gpui-kit-091/baseline/crates/joyword-geom)
+   Compiling joyword-model v0.1.4 (/home/Wilmer/Coding/joyoffice/target/gpui-kit-091/baseline/crates/joyword-model)
+   Compiling euclid v0.22.14
+   Compiling craft-proof v0.1.0 (/home/Wilmer/Coding/joyoffice/target/gpui-kit-091/baseline/third-party/craft-libs/proof)
+   Compiling joyword-fonts v0.1.4 (/home/Wilmer/Coding/joyoffice/target/gpui-kit-091/baseline/crates/joyword-fonts)
+   Compiling tinystr v0.8.4
+   Compiling guillotiere v0.7.0
+   Compiling digest v0.11.3
+   Compiling digest v0.10.7
+   Compiling read-fonts v0.41.0
+   Compiling peniko v0.6.1
+   Compiling harfrust v0.8.4
+   Compiling joyword-metafile v0.1.4 (/home/Wilmer/Coding/joyoffice/target/gpui-kit-091/baseline/crates/joyword-metafile)
+   Compiling font-types v0.10.1
+   Compiling zerofrom-derive v0.1.8
+   Compiling chrono v0.4.45
+   Compiling uuid v1.28.0
+   Compiling vello_common v0.2.0
+   Compiling zerofrom v0.1.8
+   Compiling cfb v0.15.0
+   Compiling icu_locale_core v2.3.0
+   Compiling rustls v0.23.46
+   Compiling hashbrown v0.16.1
+   Compiling read-fonts v0.35.0
+   Compiling skrifa v0.44.0
+   Compiling rustls-webpki v0.103.16
+   Compiling write-fonts v0.48.1
+   Compiling yoke-derive v0.8.4
+   Compiling http v1.5.0
+   Compiling getrandom v0.3.4
+   Compiling either v1.19.0
+   Compiling sha2 v0.10.9
+   Compiling ureq-proto v0.7.1
+   Compiling yoke v0.8.3
+   Compiling rayon v1.12.0
+   Compiling tiny-skia-path v0.12.0
+   Compiling subsetter v0.2.6
+   Compiling pdf-writer v0.15.0
+   Compiling zip v9.0.0
+   Compiling joyword-layout v0.1.4 (/home/Wilmer/Coding/joyoffice/target/gpui-kit-091/baseline/crates/joyword-layout)
+   Compiling fontique v0.7.0
+   Compiling glifo v0.3.0
+   Compiling sha1 v0.11.0
+   Compiling webpki-roots v1.0.11
+   Compiling aho-corasick v1.1.5
+   Compiling float-cmp v0.9.0
+   Compiling krilla v0.8.2
+   Compiling ureq v3.5.1
+   Compiling regex-automata v0.4.18
+   Compiling vello_cpu v0.2.0
+   Compiling craft-font-catalog v0.1.0 (/home/Wilmer/Coding/joyoffice/target/gpui-kit-091/baseline/third-party/craft-libs/font-catalog)
+   Compiling joyoffice-opc v0.1.4 (/home/Wilmer/Coding/joyoffice/target/gpui-kit-091/baseline/crates/joyoffice-opc)
+   Compiling hmac v0.12.1
+   Compiling hmac v0.13.0
+   Compiling craft-atomic v0.1.0 (/home/Wilmer/Coding/joyoffice/target/gpui-kit-091/baseline/third-party/craft-libs/atomic)
+   Compiling craft-font-store v0.1.0 (/home/Wilmer/Coding/joyoffice/target/gpui-kit-091/baseline/third-party/craft-libs/font-store)
+   Compiling joyword-docx v0.1.4 (/home/Wilmer/Coding/joyoffice/target/gpui-kit-091/baseline/crates/joyword-docx)
+   Compiling joyword-formats v0.1.4 (/home/Wilmer/Coding/joyoffice/target/gpui-kit-091/baseline/crates/joyword-formats)
+   Compiling joyword-render v0.1.4 (/home/Wilmer/Coding/joyoffice/target/gpui-kit-091/baseline/crates/joyword-render)
+   Compiling regex v1.13.1
+   Compiling joyword-pdf v0.1.4 (/home/Wilmer/Coding/joyoffice/target/gpui-kit-091/baseline/crates/joyword-pdf)
+   Compiling joyword-doc v0.1.4 (/home/Wilmer/Coding/joyoffice/target/gpui-kit-091/baseline/crates/joyword-doc)
+   Compiling joyword-engine v0.1.4 (/home/Wilmer/Coding/joyoffice/target/gpui-kit-091/baseline/crates/joyword-engine)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2m 15s
+     Running unittests src/lib.rs (/home/Wilmer/Coding/joyoffice/target/debug/deps/joyword_engine-3b845fc37982fcaf)
+
+running 1 test
+test tests::page_down_and_up_never_stay_on_a_line_in_the_continuous_views ... FAILED
+
+failures:
+
+---- tests::page_down_and_up_never_stay_on_a_line_in_the_continuous_views stdout ----
+
+thread 'tests::page_down_and_up_never_stay_on_a_line_in_the_continuous_views' (306204) panicked at crates/joyword-engine/src/tests.rs:18929:13:
+view.draft: Page Up 2 moves back from Pos { story: Body, path: Path([0]), off: 1 }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    tests::page_down_and_up_never_stay_on_a_line_in_the_continuous_views
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 1169 filtered out; finished in 0.07s
+
+error: test failed, to rerun pass `-p joyword-engine --lib`

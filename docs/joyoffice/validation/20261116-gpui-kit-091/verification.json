@@ -1,0 +1,749 @@
+{
+  "date": "2026-11-16",
+  "recorded_at": "2026-11-16T15:40:58.879278+08:00",
+  "branch": "feat/gpui-kit-0.9.1",
+  "base_commit": "1c189c62f7eae382e4f095b49670090d1891280e",
+  "evidence_captured_from_uncommitted_worktree": true,
+  "environment": {
+    "date": "2026-11-16",
+    "host_os": "PRETTY_NAME=\"UOS Desktop 25 Professional\"\nNAME=\"Uos\"\nVERSION_ID=\"25\"\nVERSION=\"25\"\nID=uos\nHOME_URL=\"https://www.chinauos.com/\"\nBUG_REPORT_URL=\"http://bbs.chinauos.com\"\nVERSION_CODENAME=snipe\n",
+    "execution_os": "PRETTY_NAME=\"Deepin 25\"\nNAME=\"Deepin\"\nVERSION_CODENAME=crimson\nID=deepin\nHOME_URL=\"https://www.deepin.org/\"\nBUG_REPORT_URL=\"https://bbs.deepin.org\"\nVERSION_ID=\"25\"\nVERSION=\"25\"\n",
+    "target": "rustc 1.98.1 (48a229cea 2026-09-01)\nbinary: rustc\ncommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\ncommit-date: 2026-09-01\nhost: x86_64-unknown-linux-gnu\nrelease: 1.98.1\nLLVM version: 22.1.8\n",
+    "display": ":0",
+    "session": "X11",
+    "tool_setup": "existing host Git/GCC/CMake; temporary sysroot wrappers, not a repository build dependency",
+    "cross_targets_installed": [
+      "x86_64-unknown-linux-gnu"
+    ],
+    "advisory_db_commit": "02e2517f457a359fc6d3440ea4560c8ea188fee8"
+  },
+  "gpui_packages": [
+    {
+      "name": "gpui-base",
+      "version": "0.9.1",
+      "checksum": "f3e9ae5237737cfd110d0ff513fcd9c20f97d98ebabd0a73164068177f0aca4f"
+    },
+    {
+      "name": "gpui-component",
+      "version": "0.9.1",
+      "checksum": "e155c4914bd809d966660610d596f7b57c5cd38979ca2c132215057a91f23f03"
+    },
+    {
+      "name": "gpui-component-macros",
+      "version": "0.9.1",
+      "checksum": "9676a5d12c59ce295b5c82cc18365ad8b96cb683682e2e74668a56fb92544300"
+    },
+    {
+      "name": "gpui-kit",
+      "version": "0.9.1",
+      "checksum": "aca1dedfea73645b60b5893c9c16de0b1396f2cf4251d19e5f03a295c1b61879"
+    },
+    {
+      "name": "gpui-kit-assets",
+      "version": "0.9.1",
+      "checksum": "cb5abe0bbd8f9226170c8726e529f6574519e297e9ed1bde86d5fd4d3536079a"
+    },
+    {
+      "name": "gpui-pre",
+      "version": "0.3.12",
+      "checksum": "29db89613527079737f53752eab27fb65c9a7dd94979256c65a0e590c9fd34d8"
+    },
+    {
+      "name": "gpui-pre-apple",
+      "version": "0.3.12",
+      "checksum": "a460605ec4e8cbcc9b213462a84b1d6cc3efe4ed8f0e18669659f07b2d5c6aec"
+    },
+    {
+      "name": "gpui-pre-bench-metrics",
+      "version": "0.3.12",
+      "checksum": "db6a8ff719fdc3da4f5f497b5d39c5545634424073f94943b003c818fc95e1d5"
+    },
+    {
+      "name": "gpui-pre-collections",
+      "version": "0.3.12",
+      "checksum": "cb60ece401b399fd5ec13911915b407b0c6efa1f6c9a9f66201aaac56c7ec39d"
+    },
+    {
+      "name": "gpui-pre-derive-refineable",
+      "version": "0.3.12",
+      "checksum": "aeb2a3f5e6c9f300f432ae7989a81b262953ccfb3f9385be51cdc3303aef8858"
+    },
+    {
+      "name": "gpui-pre-http-client",
+      "version": "0.3.12",
+      "checksum": "55245de7e3b6e219596fd98bb29555d6e3fe44c055d025960affeb11b894c048"
+    },
+    {
+      "name": "gpui-pre-ios",
+      "version": "0.3.12",
+      "checksum": "10656f6db4bbedb60bd7fcbb8a70f7c7eeee45bc4582fb8933ca807d2ddf52ad"
+    },
+    {
+      "name": "gpui-pre-linux",
+      "version": "0.3.12",
+      "checksum": "54bab418d0b7c027af9495f278619b46887362b3bd6446e246c87c5b0fa167df"
+    },
+    {
+      "name": "gpui-pre-macos",
+      "version": "0.3.12",
+      "checksum": "2de7d3f4ad51ac387e822495db363fcc1188d349793365731d054444c4cb06ee"
+    },
+    {
+      "name": "gpui-pre-macros",
+      "version": "0.3.12",
+      "checksum": "1c7f67904eced61ed42ae3320a9b4b388aed893f8547fffe9161ec425ad162eb"
+    },
+    {
+      "name": "gpui-pre-platform",
+      "version": "0.3.12",
+      "checksum": "d2b785bdcbd229f762096aebf4f9ae913bdaa9db49794907cabaf516eb55227b"
+    },
+    {
+      "name": "gpui-pre-refineable",
+      "version": "0.3.12",
+      "checksum": "4d197569e3b1fd84170f574bb866e95ecbc2625e7ae9443c877150eaf7d53374"
+    },
+    {
+      "name": "gpui-pre-reqwest",
+      "version": "0.12.15",
+      "checksum": "05be23908e707966824f8c51a609904b7f30739e8d915e120a53c1b995ba964c"
+    },
+    {
+      "name": "gpui-pre-scheduler",
+      "version": "0.3.12",
+      "checksum": "b1d3fa97eeb4ea233635b756684affe96db9e29fc2af8cdc269268bd7ff649fc"
+    },
+    {
+      "name": "gpui-pre-shared-string",
+      "version": "0.3.12",
+      "checksum": "63c2ed1e44195079d4461b83a99845aa9a52ce8fcf1516410816670a03d32d94"
+    },
+    {
+      "name": "gpui-pre-sum-tree",
+      "version": "0.3.12",
+      "checksum": "6085e61458366decd21491396b0b90b3adf928f2ec27e170c4d3c9fba455d536"
+    },
+    {
+      "name": "gpui-pre-util",
+      "version": "0.3.12",
+      "checksum": "52ead57ff96b5a34e71d64758080347066d667e0c4bd4ff71e85f3a50643fa3e"
+    },
+    {
+      "name": "gpui-pre-web",
+      "version": "0.3.12",
+      "checksum": "a85e775c6874257c63f9cf51d99f0aba13b3bc615ed8d47e7d5338e3b5941f6a"
+    },
+    {
+      "name": "gpui-pre-wgpu",
+      "version": "0.3.12",
+      "checksum": "dc76608d385f6d0dcbad44504b1bf669dac3b7d7ffa2885acdb7c1c358caf852"
+    },
+    {
+      "name": "gpui-pre-windows",
+      "version": "0.3.12",
+      "checksum": "7201762420222d5b5ce5bdf0056996199212a3349bfb2457a3a0238c688681f3"
+    },
+    {
+      "name": "gpui-pre-ztracing",
+      "version": "0.3.12",
+      "checksum": "1043bbe8d711baf03e774b03bae6521155f017450b866dcaa987a07d978d660a"
+    },
+    {
+      "name": "gpui-pre-ztracing-macro",
+      "version": "0.3.12",
+      "checksum": "85701631a9bbecf47e6d19f145e85e57767e7c50f7192d5b1bf65b5ef43cb373"
+    }
+  ],
+  "commands": {
+    "joyword": {
+      "command": [
+        "cargo",
+        "xtask",
+        "check",
+        "joyword"
+      ],
+      "exit_code": 1
+    },
+    "joydeck": {
+      "command": [
+        "cargo",
+        "xtask",
+        "check",
+        "joydeck",
+        "--validation"
+      ],
+      "exit_code": 0
+    },
+    "joysheet": {
+      "command": [
+        "cargo",
+        "xtask",
+        "check",
+        "joysheet",
+        "--validation"
+      ],
+      "exit_code": 0
+    },
+    "workspace-clippy": {
+      "command": [
+        "cargo",
+        "clippy",
+        "--workspace",
+        "--lib",
+        "--bins",
+        "--locked",
+        "--features",
+        "joyword/agent,joydeck/validation,joysheet/automation",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0
+    },
+    "workspace-test": {
+      "command": [
+        "cargo",
+        "test",
+        "--workspace",
+        "--locked",
+        "--no-fail-fast",
+        "--features",
+        "joyword/agent,joydeck/validation,joysheet/automation"
+      ],
+      "exit_code": 101
+    },
+    "word-build": {
+      "command": [
+        "cargo",
+        "xtask",
+        "build",
+        "joyword"
+      ],
+      "exit_code": 0
+    },
+    "deck-build": {
+      "command": [
+        "cargo",
+        "xtask",
+        "build",
+        "joydeck",
+        "--validation"
+      ],
+      "exit_code": 0
+    },
+    "sheet-build": {
+      "command": [
+        "cargo",
+        "xtask",
+        "build",
+        "joysheet",
+        "--validation"
+      ],
+      "exit_code": 0
+    },
+    "desktop-check-final": {
+      "command": [
+        "cargo",
+        "check",
+        "--locked",
+        "-p",
+        "joyword",
+        "-p",
+        "joydeck",
+        "-p",
+        "joysheet",
+        "--features",
+        "joyword/agent,joydeck/validation,joysheet/automation"
+      ],
+      "exit_code": 0
+    },
+    "runtime-shaders-check": {
+      "command": [
+        "cargo",
+        "check",
+        "--locked",
+        "-p",
+        "joyword",
+        "-p",
+        "joydeck",
+        "--features",
+        "joyword/dev-runtime-shaders,joydeck/dev-runtime-shaders"
+      ],
+      "exit_code": 0
+    },
+    "fmt": {
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0
+    },
+    "dependency-gate": {
+      "command": [
+        "python3",
+        "scripts/joydeck/check_dependencies.py"
+      ],
+      "exit_code": 0
+    },
+    "gates-final": {
+      "command": [
+        "python3",
+        "scripts/check_gates.py"
+      ],
+      "exit_code": 0
+    },
+    "docs-final": {
+      "command": [
+        "python3",
+        "scripts/check_docs.py"
+      ],
+      "exit_code": 0
+    }
+  },
+  "tests": {
+    "joyword-check-final": {
+      "passed": 1933,
+      "failed": 1,
+      "ignored": 0,
+      "failed_tests": [
+        "tests::page_down_and_up_never_stay_on_a_line_in_the_continuous_views"
+      ],
+      "log_sha256": "c01b9f9deed17da282767dbb4a00ffa4ed149a7218307bea3b861d62443f8809"
+    },
+    "joydeck-check-final": {
+      "passed": 988,
+      "failed": 0,
+      "ignored": 0,
+      "failed_tests": [],
+      "log_sha256": "e499f5051328b5066cbd716502c0a71a6fb003d4d4ecfb80992f893d7f65d231"
+    },
+    "joysheet-check-final": {
+      "passed": 1439,
+      "failed": 0,
+      "ignored": 1,
+      "failed_tests": [],
+      "log_sha256": "897aa18df0c44676844c9a0f84ad66c22eec147e001a0a3dd450389c69e07e8d"
+    },
+    "workspace-test": {
+      "passed": 6057,
+      "failed": 6,
+      "ignored": 3,
+      "failed_tests": [
+        "tests::page_down_and_up_never_stay_on_a_line_in_the_continuous_views",
+        "tests::a_symbol_bullet_sizes_its_line_by_the_symbol_font",
+        "tests::justified_lines_shrink_spaces_in_word_2013_mode",
+        "tests::last_rewrap_pass_keeps_early_floats_clear_of_text",
+        "tests::legacy_form_fields_are_drawn",
+        "tests::long_footnotes_continue_on_the_next_page"
+      ],
+      "log_sha256": "0d8c1d82a13fb56a49d8944794e4d8fedb39156b0816877dfdf1d0c6dc948782"
+    }
+  },
+  "ui_tests": {
+    "joyword-ui-gpui": 23,
+    "joydeck-ui-gpui": 19,
+    "joysheet-ui-gpui": 27
+  },
+  "python": {
+    "root": {
+      "run": 196,
+      "skipped": 2,
+      "exit_code": 0
+    },
+    "deck": {
+      "run": 14,
+      "exit_code": 0
+    },
+    "product_tools": {
+      "run": 16,
+      "exit_code": 0
+    },
+    "sheet_packaging": {
+      "run": 7,
+      "exit_code": 0
+    }
+  },
+  "baseline": {
+    "engine": {
+      "commit": "1c189c62f7eae382e4f095b49670090d1891280e",
+      "worktree": "target/gpui-kit-091/baseline",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "joyword-engine",
+        "--lib",
+        "tests::page_down_and_up_never_stay_on_a_line_in_the_continuous_views",
+        "--",
+        "--exact"
+      ],
+      "exit_code": 101,
+      "same_failure": "view.draft: Page Up 2 moves back from Pos { story: Body, path: Path([0]), off: 1 }",
+      "log_sha256": "5efee4c52ef06b9689e8b64674aa68b3e3dfc52daaf4e03766be0dd5aa854d28"
+    },
+    "layout": {
+      "commit": "1c189c62f7eae382e4f095b49670090d1891280e",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "joyword-layout",
+        "--lib"
+      ],
+      "exit_code": 101,
+      "passed": 580,
+      "failed": 5,
+      "same_failure_names": [
+        "tests::a_symbol_bullet_sizes_its_line_by_the_symbol_font",
+        "tests::justified_lines_shrink_spaces_in_word_2013_mode",
+        "tests::last_rewrap_pass_keeps_early_floats_clear_of_text",
+        "tests::legacy_form_fields_are_drawn",
+        "tests::long_footnotes_continue_on_the_next_page"
+      ],
+      "log_sha256": "94d5e2f11475339c28b0854c210c53b87c71071f64036463e6b5f80fdfa03dc9"
+    },
+    "original_lock_sha256": "d0d07ac6bf1812d2a4455d7eb3db7956993ec79551f5c2b61e78f053e8cd3d70",
+    "original_gpui_versions": {
+      "gpui-kit": "0.8.1",
+      "gpui-pre": "0.3.10",
+      "gpui-pre-platform": "0.3.10"
+    },
+    "temporary_worktree_removed": true
+  },
+  "provenance": {
+    "zed_rev": "d2a4fb6ded7c470be25d1541281da3882495b65b",
+    "packages": 22,
+    "identical": 17,
+    "snapshot_packages_with_reviewed_deviations": 4,
+    "content_pinned_deviations": 12,
+    "renamed_reference_packages": 1,
+    "exit_code": 0,
+    "command": [
+      "python3",
+      "scripts/verify_gpui_pre_provenance.py",
+      "--expected-zed-rev",
+      "d2a4fb6ded7c470be25d1541281da3882495b65b",
+      "--work-dir",
+      "target/gpui-kit-091/zed",
+      "--reviewed-deviations",
+      "scripts/gpui_pre_reviewed_deviations.json"
+    ]
+  },
+  "imported_sources": {
+    "files": 291,
+    "exit_code": 0
+  },
+  "cargo_deny": {
+    "version": "0.20.2",
+    "all_features": true,
+    "exit_code": 0,
+    "result": "advisories ok, bans ok, licenses ok, sources ok",
+    "existing_warning": "async-executor 1.14.0 is yanked; unchanged dependency, no new advisory ignores",
+    "command": [
+      "target/gpui-kit-091/bin/cargo-deny",
+      "--locked",
+      "--all-features",
+      "check"
+    ]
+  },
+  "headless_closures": {
+    "joyword": {
+      "selected_packages": [
+        "joyoffice-opc",
+        "joyoffice-theme",
+        "joyword-agent",
+        "joyword-cli",
+        "joyword-control-key",
+        "joyword-corpus",
+        "joyword-doc",
+        "joyword-docx",
+        "joyword-engine",
+        "joyword-fonts",
+        "joyword-formats",
+        "joyword-geom",
+        "joyword-layout",
+        "joyword-mcp",
+        "joyword-metafile",
+        "joyword-model",
+        "joyword-pdf",
+        "joyword-render",
+        "joyword-shell"
+      ],
+      "cli_has_gpui": false,
+      "normal_build_tree_lines": 500
+    },
+    "joydeck": {
+      "selected_packages": [
+        "joydeck-anim",
+        "joydeck-cli",
+        "joydeck-color",
+        "joydeck-engine",
+        "joydeck-fonts",
+        "joydeck-format",
+        "joydeck-geom",
+        "joydeck-legacy",
+        "joydeck-metafile",
+        "joydeck-model",
+        "joydeck-pdf",
+        "joydeck-pptx",
+        "joydeck-render",
+        "joydeck-shell",
+        "joydeck-text",
+        "joyoffice-opc",
+        "joyoffice-theme"
+      ],
+      "cli_has_gpui": false,
+      "normal_build_tree_lines": 368
+    },
+    "joysheet": {
+      "selected_packages": [
+        "joyoffice-cfb",
+        "joysheet-app",
+        "joysheet-calc",
+        "joysheet-chart",
+        "joysheet-cli",
+        "joysheet-core",
+        "joysheet-engine",
+        "joysheet-formula",
+        "joysheet-functions",
+        "joysheet-mcp",
+        "joysheet-model",
+        "joysheet-numfmt",
+        "joysheet-pdf",
+        "joysheet-protocol",
+        "joysheet-tools",
+        "joysheet-xlsx"
+      ],
+      "cli_has_gpui": false,
+      "normal_build_tree_lines": 144
+    }
+  },
+  "native": {
+    "word": {
+      "passed": true,
+      "checks": 5,
+      "binary_sha256": "afb55257781f7c153142d58f2a2d1672b6479572e4c30e0bc5845903b8d05d4c",
+      "profile": "dev",
+      "features": [],
+      "report": "word-native.json"
+    },
+    "deck": {
+      "passed": true,
+      "checks": 5,
+      "binary_sha256": "5f2b481f032d6895d4fafb33e33f456eaee4a39e16ff3788bb9d4052a59f2589",
+      "profile": "dev",
+      "features": [
+        "validation"
+      ],
+      "report": "deck-native.json"
+    },
+    "sheet": {
+      "passed": true,
+      "checks": 13,
+      "binary_sha256": "9374e4ee408121b2edafc49ce043443370f8378f8d0477fbdc23812d48b5d4d0",
+      "profile": "dev",
+      "features": [
+        "automation"
+      ],
+      "report": "sheet-native.json"
+    }
+  },
+  "source_sha256": {
+    "Cargo.toml": "3d99a63086a085a29a68bb2f08bcf318750d25f7b1d1d65c6d6f886018194390",
+    "Cargo.lock": "921794fe843a9c2becf2571e782b730e4901bf1cbcfd94dad55397054a2612f4",
+    "crates/joysheet-ui-gpui/Cargo.toml": "c8fd40426f15cda36c432e289f5b47668b09a76b20b1485c7df262a584f6c3b5",
+    "crates/joyword-ui-gpui/Cargo.toml": "6b7b93c7648130d43207e7f3c7b7d2511fd53de940a177cc232382fbf3882e26",
+    "crates/joysheet-ui-gpui/src/charts.rs": "602f5b0e9f09792e1d56d4b072a82ca5c084a660822ae8d695541cf474f0ac45",
+    "crates/joysheet-ui-gpui/src/control.rs": "73c53236130bb5e286e0fd14626ff0cd672840023852791200e3a0778e29825b",
+    "crates/joydeck-shell/src/lib.rs": "905998f93140d0269e21c95cda160d98eae6a8b2a76cbb46934dcf9ef7c8b5da",
+    "crates/joydeck-ui-gpui/src/lib.rs": "07440904dd2079f3ef46abe166a67c19a735614175aba4fec35a91429939448b",
+    "scripts/joydeck/check_dependencies.py": "ba2ccd122f9fad79b62a1227e76d8ec9e10c611121741029cdfeb8ce1f7cb256",
+    "scripts/gpui_pre_reviewed_deviations.json": "8586ca056c00f07f9186e16913d82d84126e45615d056530e066fc36f9b788f6",
+    "licenses/joyoffice/source-map.json": "984559b7b300b1fa55b5e693cb81ac3f597dd00e86af76e273f89cfbf85d60dc",
+    "scripts/joysheet/smoke-native.py": "2c602684588a3111b46d956bcb713118792cb45dee3d386b65386edcd0da3d84",
+    "scripts/joysheet/cell_edit_cases.py": "1430912b322eab860a2955843c60e4406f0dddb61d74d678a0e9bb4966794cfe"
+  },
+  "artifact_sha256": {
+    "provenance.log": "cfb71aeafae39a547d45f12d6095f80329a0a2e0b371600d935f0674aa137171",
+    "word-smoke.py": "93326ea15a07730b8e1871deac8f67f755683e3b0f07f45be133f774abfa39d5",
+    "deck-smoke.py": "242390742f6c8294d765c28cc466aae90bbc29a49190fd8b03dfe133b7bc32ba",
+    "deck-native.json": "b8d3897c51d6febc58a9c644a47333535fdd30b6ba1c879e7cb32beeea045237",
+    "source-review.diff": "0e92444a6d3752a2640838d39b089ff68e21d3c6f962e8681a3e8dfca225b2e6",
+    "sheet-native.json": "fc32e231b1593bc2d0af7e45e3c937c9c8eedd7d52d15d079ec5a45aa5de9f93",
+    "word-native.json": "9a3b3a4cc584bc6eedbb07dd2a6ffb1ebf5f8ff5eed216bb5651a7da22724d4d",
+    "lock-delta.json": "850b8e71051337243e2f091c114b04635b9ed9324de92f241a2f0e9bcba6ac4a",
+    "baseline-layout.log": "94d5e2f11475339c28b0854c210c53b87c71071f64036463e6b5f80fdfa03dc9",
+    "baseline-engine.log": "5efee4c52ef06b9689e8b64674aa68b3e3dfc52daaf4e03766be0dd5aa854d28",
+    "gui/sheet-format-dialog.png": "b4f4ca591daacb8788fc853dd2e54516f100caa2e1e4f6f1869289135d5740e7",
+    "gui/word-search.png": "2ed943f146b10cf8e40e01aff2dbf747ab8537cf471ad100f695b1caa97a57d0",
+    "gui/deck-dark-reopened.png": "285c7e418897e833d5ca4fcaba3c1237e9eb97e1204fb0e34bd18f54cec0f652",
+    "gui/word-reopened.png": "6dedf1fa3c6083a25f88acd1aa4512efdb528647b345c0e5d622ed3638d58396",
+    "gui/sheet-sales.png": "b722251d6ddf33600d0ae457d75bc7a02c27f30f5d6bc914f158de4243fed53d",
+    "gui/deck-light.png": "60933f8a7d6af0a0a3df1fe5f780919c17e3f839ac969008cc2acb65097b6180",
+    "gui/word-metadata-warning.png": "b80db98e3f6e35cda7df5502887afc747ff13713e32b3fdab5b11e9c14925cca"
+  },
+  "logs": {
+    "python-root.log": {
+      "local_path": "target/gpui-kit-091/python-root.log",
+      "sha256": "21e11a962d7f62abd590b1465e19a6e79c2f84f922e69e4a9d31113282a5ee0a"
+    },
+    "word-build.log": {
+      "local_path": "target/gpui-kit-091/word-build.log",
+      "sha256": "44afb2060a2c6dfecfa85306331a77a03cd481598416cae4470e28b358986923"
+    },
+    "provenance-reviewed.log": {
+      "local_path": "target/gpui-kit-091/provenance-reviewed.log",
+      "sha256": "cfb71aeafae39a547d45f12d6095f80329a0a2e0b371600d935f0674aa137171"
+    },
+    "sheet-build.log": {
+      "local_path": "target/gpui-kit-091/sheet-build.log",
+      "sha256": "3d73b9b44967a92b0a9f2608989d86610dcb9ab54277e4a56e404e33ec594da5"
+    },
+    "deck-doc-gate.log": {
+      "local_path": "target/gpui-kit-091/deck-doc-gate.log",
+      "sha256": "6a12348653fe7d1db8922d5e20cdf464a9bf9c4fc691ee8d9a111aa8335dc8f7"
+    },
+    "docs-final.log": {
+      "local_path": "target/gpui-kit-091/docs-final.log",
+      "sha256": "a87aedf0cc43fd12d2521de8ba7090179ad807c18c5e54d7b1c1a8437ab0f0d4"
+    },
+    "python-deck.log": {
+      "local_path": "target/gpui-kit-091/python-deck.log",
+      "sha256": "f2e92f6f11b9465ed8fc8112334f943f0c86cf5997be8dac04bfe6c227fc42a3"
+    },
+    "headless-closures.log": {
+      "local_path": "target/gpui-kit-091/headless-closures.log",
+      "sha256": "568d6d1b9428e7bf972c6c0e05e70d1167b5e0a151396d330fc75cd2ed426d50"
+    },
+    "workspace-test.log": {
+      "local_path": "target/gpui-kit-091/workspace-test.log",
+      "sha256": "0d8c1d82a13fb56a49d8944794e4d8fedb39156b0816877dfdf1d0c6dc948782"
+    },
+    "gates.log": {
+      "local_path": "target/gpui-kit-091/gates.log",
+      "sha256": "0276ddf116c53980c8d5206010b722854a42f42b577b44501b01727b7e6cd745"
+    },
+    "sheet-native.log": {
+      "local_path": "target/gpui-kit-091/sheet-native.log",
+      "sha256": "b109624c05c7cfa55eae87e1c61d32113f2f6744cabfed30b193b70ba1b242fb"
+    },
+    "gates-final.log": {
+      "local_path": "target/gpui-kit-091/gates-final.log",
+      "sha256": "0276ddf116c53980c8d5206010b722854a42f42b577b44501b01727b7e6cd745"
+    },
+    "provenance-unreviewed.log": {
+      "local_path": "target/gpui-kit-091/provenance-unreviewed.log",
+      "sha256": "c65e2d7bc9f13a91bbc2f1429f1951fe17d67cf2cf50fe0f5e2bfd1b071e2f51"
+    },
+    "python-sheet.log": {
+      "local_path": "target/gpui-kit-091/python-sheet.log",
+      "sha256": "e586fc0f3bb2a05f4c80f07d1b4c6171e830592f6c7aaf70d4af3b0aa3ebd072"
+    },
+    "joyword-check-final.log": {
+      "local_path": "target/gpui-kit-091/joyword-check-final.log",
+      "sha256": "c01b9f9deed17da282767dbb4a00ffa4ed149a7218307bea3b861d62443f8809"
+    },
+    "cargo-deny.log": {
+      "local_path": "target/gpui-kit-091/cargo-deny.log",
+      "sha256": "6bf7d97441be2974477d124bb96aca96fae7f15c1508737018cd9525c262c94d"
+    },
+    "lock-minimize-coordinated.log": {
+      "local_path": "target/gpui-kit-091/lock-minimize-coordinated.log",
+      "sha256": "9f0326072c0bc0fa30fcfdc104e331c3c9c442c88aec06cf6a036373c7a2a16b"
+    },
+    "desktop-check-final.log": {
+      "local_path": "target/gpui-kit-091/desktop-check-final.log",
+      "sha256": "ef12d8c5350c76cb33053b67bc1c14bf737176ac36e67ce2a9757867d7cb8b6a"
+    },
+    "baseline-layout.log": {
+      "local_path": "target/gpui-kit-091/baseline-layout.log",
+      "sha256": "94d5e2f11475339c28b0854c210c53b87c71071f64036463e6b5f80fdfa03dc9"
+    },
+    "joysheet-check-final.log": {
+      "local_path": "target/gpui-kit-091/joysheet-check-final.log",
+      "sha256": "897aa18df0c44676844c9a0f84ad66c22eec147e001a0a3dd450389c69e07e8d"
+    },
+    "dependency-update.log": {
+      "local_path": "target/gpui-kit-091/dependency-update.log",
+      "sha256": "76529782962335d3328e4f620d61d03cd8d1ff3a02a7e827e203586d415209f6"
+    },
+    "workspace-clippy.log": {
+      "local_path": "target/gpui-kit-091/workspace-clippy.log",
+      "sha256": "1cea2bc534328ac7f7a30994b875f1c6638bc6d5825556a7ee0dff5d5e23875e"
+    },
+    "deck-native.log": {
+      "local_path": "target/gpui-kit-091/deck-native.log",
+      "sha256": "967147e0b0f95556746d7582ac1eef712aa489c47df0f4bb155d5abc9b63600e"
+    },
+    "python-products.log": {
+      "local_path": "target/gpui-kit-091/python-products.log",
+      "sha256": "c0e3387940a5d4f563f6e2f8e64939baaaf24b285ce7046ffcdd627fe669f657"
+    },
+    "joydeck-check-final.log": {
+      "local_path": "target/gpui-kit-091/joydeck-check-final.log",
+      "sha256": "e499f5051328b5066cbd716502c0a71a6fb003d4d4ecfb80992f893d7f65d231"
+    },
+    "deck-build.log": {
+      "local_path": "target/gpui-kit-091/deck-build.log",
+      "sha256": "b2c6761b94e7ddd2b3793eaa4b6b325cb2a307e412aea9a18c612ab5eca54a36"
+    },
+    "fmt.log": {
+      "local_path": "target/gpui-kit-091/fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "runtime-shaders-check.log": {
+      "local_path": "target/gpui-kit-091/runtime-shaders-check.log",
+      "sha256": "352708be6de9bd3f726eeebf6fcb0347298ea0cb5f61091ef3762b4b018165ae"
+    },
+    "word-native.log": {
+      "local_path": "target/gpui-kit-091/word-native.log",
+      "sha256": "1cd517eb1ecb02ea7232a476d6f3e6b477022aa411beee79d27883042df3e5b4"
+    },
+    "packages-word-baseline.log": {
+      "local_path": "target/gpui-kit-091/packages-word-baseline.log",
+      "sha256": "27a0d3e39b9f7986b7472c330559fca555da2e0aef2608dc2c7a80074820641d"
+    },
+    "dependency-gate.log": {
+      "local_path": "target/gpui-kit-091/dependency-gate.log",
+      "sha256": "da7c63edd5f62d475c26a9aee6df02b9af637aea256572ae9a70db6a989c25a7"
+    },
+    "baseline-engine.log": {
+      "local_path": "target/gpui-kit-091/baseline-engine.log",
+      "sha256": "5efee4c52ef06b9689e8b64674aa68b3e3dfc52daaf4e03766be0dd5aa854d28"
+    }
+  },
+  "not_verified": [
+    "Windows/macOS native",
+    "system IME",
+    "screen reader",
+    "multiple displays and complete DPI matrix",
+    "physical printing",
+    "physical frame presentation latency",
+    "release installers and remote CI",
+    "Xinchuang hardware"
+  ],
+  "status": "upgrade implemented and locally verified; six pre-existing Word test failures remain open",
+  "native_commands": {
+    "word": [
+      "python3",
+      "target/gpui-kit-091/word-smoke.py"
+    ],
+    "deck": [
+      "python3",
+      "target/gpui-kit-091/deck-smoke.py"
+    ],
+    "sheet": [
+      "python3",
+      "scripts/joysheet/smoke-native.py",
+      "--binary",
+      "target/debug/joysheet",
+      "--output",
+      "target/gpui-kit-091/sheet-native"
+    ]
+  }
+}

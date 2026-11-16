@@ -5,7 +5,7 @@ use joysheet_app::control::{ControlServer, UiCall, UiQueue};
 use joysheet_app::geometry::{COL_HEADER, ROW_HEADER};
 use serde_json::{Value, json};
 
-// GPUI pre 0.3.10 implements render_to_image only on macOS and Windows.
+// GPUI pre 0.3.12 implements native render_to_image only on macOS and Windows.
 const GPU_SCREENSHOT_SUPPORTED: bool = cfg!(all(feature = "automation", any(target_os = "macos", target_os = "windows")));
 
 pub struct ControlRuntime {

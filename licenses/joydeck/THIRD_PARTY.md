@@ -6,8 +6,8 @@ The JoyDeck application, document model, native schema, OPC/PresentationML adapt
 
 | Dependency | Version | License | Purpose / upstream |
 |---|---|---|---|
-| GPUI Kit / Base / Component / Assets | 0.8.1 | Apache-2.0 | Desktop UI; https://github.com/longbridge/gpui-kit |
-| GPUI pre family | 0.3.10 | Apache-2.0 | Matching window/render runtime; https://github.com/zed-industries/zed |
+| GPUI Kit / Base / Component / Assets | 0.9.1 | Apache-2.0 | Desktop UI; https://github.com/longbridge/gpui-kit |
+| GPUI pre family | 0.3.12 | Apache-2.0 | Matching window/render runtime; https://github.com/zed-industries/zed |
 | image | 0.25.9 | MIT OR Apache-2.0 | BGRA frame storage and bounded PNG/JPEG decoding/EXIF orientation |
 | serde / serde_json | 1.0.228 / 1.0.154 | MIT OR Apache-2.0 | Native JSON schema; https://github.com/serde-rs/serde and https://github.com/serde-rs/json |
 | zip | 9.0.0 | MIT | Bounded ZIP access; https://github.com/zip-rs/zip2 |

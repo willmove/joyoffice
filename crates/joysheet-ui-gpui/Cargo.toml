@@ -29,8 +29,8 @@ log = { workspace = true }
 image = { workspace = true, features = ["png", "jpeg"] }
 usvg = "=0.45.1"
 raw-window-handle = "=0.6.2"
-gpui-base = "=0.8.1"
-gpui-readback = { package = "gpui-pre-platform", version = "=0.3.10", optional = true, features = ["test-support"] }
+gpui-base = "=0.9.1"
+gpui-readback = { package = "gpui-pre-platform", version = "=0.3.12", optional = true, features = ["test-support"] }
 
 [features]
 automation = ["dep:gpui-readback"]

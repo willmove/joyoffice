@@ -40,8 +40,8 @@ mod show_tests;
 pub mod storage;
 pub use document::{Cancellation, Document};
 
-pub const GPUI_KIT_VERSION: &str = "0.8.1";
-pub const GPUI_VERSION: &str = "0.3.10";
+pub const GPUI_KIT_VERSION: &str = "0.9.1";
+pub const GPUI_VERSION: &str = "0.3.12";
 pub const RUST_TOOLCHAIN: &str = "1.98.1";
 
 #[derive(Clone, Debug, Deserialize, Serialize)]

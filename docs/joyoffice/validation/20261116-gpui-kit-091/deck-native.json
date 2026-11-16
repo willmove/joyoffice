@@ -1,0 +1,14 @@
+{
+  "passed": true,
+  "binarySha256": "5f2b481f032d6895d4fafb33e33f456eaee4a39e16ff3788bb9d4052a59f2589",
+  "checks": [
+    "current R9 desktop window opens a Chinese/space PPTX path; live schema 2 attached editor",
+    "validation preserves live state; duplicate-slide updates the actual editor",
+    "X11 OS keyboard undo/redo follows desktop changes",
+    "PPTX save independently contains the added slide",
+    "fresh dark-theme desktop reopens saved slides; repository fixture hash is unchanged"
+  ],
+  "eventSource": "root-scoped desktop stdio, X11 OS synthetic keys and actual window pixels",
+  "nativeImeVerified": false,
+  "windowsUiaVerified": false
+}

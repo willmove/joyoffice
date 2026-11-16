@@ -1,4 +1,6 @@
 # 实际验证记录
+
+2026-11-16 当前公共依赖为 Kit 0.9.1 / Pre 0.3.12，新验证见[公共升级记录](../joyoffice/GPUI-KIT-0.9.1-UPGRADE.md)。下文 M* 环境、依赖版本和包记录均保留其历史范围。
 M8-preview3 Windows 质量增量：完整 CI **1,372 通过、0 失败、1 忽略**；最终解压 Release **52 项**串联回归，以及实际 Windows UIA、原生打印取消/重试、宿主退出联动、安装运行/卸载通过。证据见 [Quality-release](evidence/Quality-release.json)，13 项具体人工步骤、DPI 模拟范围及性能波动见 [WINDOWS-QUALITY.md](WINDOWS-QUALITY.md)。未宣称系统 IME、真实跨屏 DPI、读屏语音、实体打印和 GPU/端到端性能门槛已验收。下文保留历史版本结果。
 
 Windows W1–W4 更新（2026-10-29）：完整 `cargo xtask ci` 通过，**1,369 项通过、0 失败、1 项原有计时测试忽略**，见 [Windows-ci](evidence/Windows-ci.json)。分项构建/生产 GPUI 回归见 [WINDOWS.md](WINDOWS.md)，覆盖复杂格式、窗口排列、对象批处理、公式/焦点与冻结控件边界。WASM 核心检查通过，保留上游 MAX_READ_BYTES 条件编译警告。最终解压 Release 47 项串联回归及隔离安装运行/卸载通过，见 [Windows-release](evidence/Windows-release.json) 和 [Windows 交付](WINDOWS.md)。后文 M8-preview 及更早数据保留作历史基线。

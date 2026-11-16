@@ -16,7 +16,7 @@ Rust + GPUI 电子表格应用，现接入 JoyOffice Monorepo。应用和 CLI �
 
 在含本次迁移提交的 JoyOffice 检出目录开发。合入后原独立目录仅作恢复材料；源码、构建与分发不依赖旧目录或本机归档。
 
-固定 Rust 1.98.1、GPUI Kit 0.8.1 和 GPUI pre 0.3.10；使用根 Cargo.lock。Windows 使用 PowerShell 7、Visual Studio C++/SDK 与 CMake：
+固定 Rust 1.98.1、GPUI Kit 0.9.1 和 GPUI pre 0.3.12；使用根 Cargo.lock。Windows 使用 PowerShell 7、Visual Studio C++/SDK 与 CMake：
 
 ```powershell
 pwsh -File scripts/joysheet/dev.ps1 run --locked -p joysheet -- --sample sales

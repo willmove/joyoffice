@@ -57,8 +57,8 @@ GPUI 外壳替换与画布提速分开验收。DeckCraft 的幻灯片目前通�
 必须跟随 JoyOffice 的已核实基线，详细冲突与处理见 [DEPENDENCIES](DEPENDENCIES.md)：
 
 - 工具链 `1.98.1`，edition `2024`，resolver `3`；workspace 的 `rust-version` 当前为 `1.98`。
-- `gpui-kit = "=0.8.1"`，锁定 GPUI pre `0.3.10`；使用 `gpui_kit` 重导出的 API。
-- `gpui-base`、`gpui-component`、`gpui-kit-assets` 在现有锁文件中均为 `0.8.1`。通过 Kit 使用，避免独立升级。
+- `gpui-kit = "=0.9.1"`，锁定 GPUI pre `0.3.12`；使用 `gpui_kit` 重导出的 API。
+- `gpui-base`、`gpui-component`、`gpui-component-macros`、`gpui-kit-assets` 在现有锁文件中均为 `0.9.1`。通过 Kit 使用，避免独立升级。
 - 沿用现有默认 component/assets；不自行启用 `gpui-fast` 或切到 Zed Git 分支。
 - 提交锁文件，构建使用 `--locked`，业务代码 `unsafe_code = "forbid"`，错误路径可恢复。
 - Windows 脚本统一使用 `pwsh.exe`，使用 MSVC 工具链；无界面核心和 CLI 不依赖 GPUI。

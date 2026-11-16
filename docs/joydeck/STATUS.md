@@ -1,5 +1,7 @@
 # JoyDeck 当前状态
 
+2026-11-16：公共 GPUI Kit 0.9.1 / Pre 0.3.12 基线已接入，诊断和来源/版本门禁同步。产品 check 988 项通过，fmt、all-targets 严格 Clippy、GUI/CLI 构建和 X11 实际窗口 5 组通过，含撤销重做、独立 PPTX 读回及深色重开。联合 6 项 Word 基线失败另行保留；本轮不关闭 JD-905 的完整跨平台/CI 条件。[公共升级与验证](../joyoffice/GPUI-KIT-0.9.1-UPGRADE.md)。
+
 2026-11-14：JD-807/808 增加 Windows x64/ARM64 Setup EXE，共用 JoyOffice NSIS 3.11 安装/卸载实现；v0.1.4 补充安装器使用原公开 ZIP 载荷，不移动产品标签。Windows x64 已实屏启动并核对当前用户登记/安全卸载，ARM64 按原生 runner 自动验证；完整签名、升级回滚和文件关联验收继续开放。[安装器验证](../joyoffice/validation/20261114-windows-installers/README.md)
 
 2026-11-13：接入 Ribbon 当前标签（含文件）双击收起/展开；编辑模式上/下键复用上一页/下一页，放映窗口复用已有后退/前进动作，保留输入框和原位文字的方向键。完整产品检查 974 项、fmt/严格 Clippy 和普通构建通过；Windows 实屏已验证开始/文件标签收展、编辑与放映上下键翻页及备注输入框保护。[记录与边界](../joyoffice/validation/20261113-ribbon-navigation/README.md)

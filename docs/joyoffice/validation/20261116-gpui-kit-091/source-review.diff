@@ -1,0 +1,393 @@
+--- zed/gpui/src/action.rs
++++ gpui-pre-0.3.12/src/action.rs
+@@ -1,3 +1,4 @@
++// Modified for gpui-pre (snapshot of zed@d2a4fb6): the `actions!` derive paths are crate-relative.
+ use anyhow::{Context as _, Result};
+ use collections::{HashMap, TypeIdHashMap};
+ pub use gpui_macros::Action;
+@@ -24,7 +25,7 @@
+ macro_rules! actions {
+     ($namespace:path, [ $( $(#[$attr:meta])* $name:ident),* $(,)? ]) => {
+         $(
+-            #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug, gpui::Action)]
++            #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug, $crate::Action)]
+             #[action(namespace = $namespace)]
+             $(#[$attr])*
+             pub struct $name;
+@@ -32,7 +33,7 @@
+     };
+     ([ $( $(#[$attr:meta])* $name:ident),* $(,)? ]) => {
+         $(
+-            #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug, gpui::Action)]
++            #[derive(::std::clone::Clone, ::std::cmp::PartialEq, ::std::default::Default, ::std::fmt::Debug, $crate::Action)]
+             $(#[$attr])*
+             pub struct $name;
+         )*
+
+--- zed/gpui_apple/build.rs
++++ gpui-pre-apple-0.3.12/build.rs
+@@ -1,3 +1,4 @@
++// Modified for gpui-pre (snapshot of zed@d2a4fb6): the gpui sources it reads are vendored under `vendor/gpui`.
+ #![allow(clippy::disallowed_methods, reason = "build scripts are exempt")]
+ 
+ fn main() {
+@@ -102,7 +103,7 @@
+     /// build-script runtime against this crate's manifest dir, so no checkout
+     /// path is baked into a compiled artifact (which corgi rejects).
+     fn find_gpui_crate_dir() -> PathBuf {
+-        PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").unwrap()).join("../gpui")
++        PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").unwrap()).join("vendor/gpui")
+     }
+ 
+     /// To enable runtime compilation, we need to "stitch" the shaders file with the generated header
+
+--- zed/gpui_macros/src/gpui_macros.rs
++++ gpui-pre-macros-0.3.12/src/gpui_macros.rs
+@@ -1,3 +1,5 @@
++// Modified for gpui-pre (snapshot of zed@d2a4fb6): the proc-macro entry points resolve gpui through a facade.
++mod gpui_pre_facade_paths;
+ mod bench;
+ mod derive_action;
+ mod derive_app_context;
+@@ -18,6 +20,10 @@
+ /// `Action` derive macro - see the trait documentation for details.
+ #[proc_macro_derive(Action, attributes(action))]
+ pub fn derive_action(input: TokenStream) -> TokenStream {
++    gpui_pre_facade_paths::rewrite(__gpui_pre_derive_action(input))
++}
++
++fn __gpui_pre_derive_action(input: TokenStream) -> TokenStream {
+     derive_action::derive_action(input)
+ }
+ 
+@@ -26,6 +32,10 @@
+ /// instead.
+ #[proc_macro]
+ pub fn register_action(ident: TokenStream) -> TokenStream {
++    gpui_pre_facade_paths::rewrite(__gpui_pre_register_action(ident))
++}
++
++fn __gpui_pre_register_action(ident: TokenStream) -> TokenStream {
+     register_action::register_action(ident)
+ }
+ 
+@@ -33,12 +43,20 @@
+ /// type, wrapping it in a `ViewElement` so it can be used as a child.
+ #[proc_macro_derive(IntoElement)]
+ pub fn derive_into_element(input: TokenStream) -> TokenStream {
++    gpui_pre_facade_paths::rewrite(__gpui_pre_derive_into_element(input))
++}
++
++fn __gpui_pre_derive_into_element(input: TokenStream) -> TokenStream {
+     derive_into_element::derive_into_element(input)
+ }
+ 
+ #[proc_macro_derive(Render)]
+ #[doc(hidden)]
+ pub fn derive_render(input: TokenStream) -> TokenStream {
++    gpui_pre_facade_paths::rewrite(__gpui_pre_derive_render(input))
++}
++
++fn __gpui_pre_derive_render(input: TokenStream) -> TokenStream {
+     derive_render::derive_render(input)
+ }
+ 
+@@ -57,6 +75,10 @@
+ /// ```
+ #[proc_macro_derive(AppContext, attributes(app))]
+ pub fn derive_app_context(input: TokenStream) -> TokenStream {
++    gpui_pre_facade_paths::rewrite(__gpui_pre_derive_app_context(input))
++}
++
++fn __gpui_pre_derive_app_context(input: TokenStream) -> TokenStream {
+     derive_app_context::derive_app_context(input)
+ }
+ 
+@@ -90,6 +112,10 @@
+ /// ```
+ #[proc_macro_derive(VisualContext, attributes(window, app))]
+ pub fn derive_visual_context(input: TokenStream) -> TokenStream {
++    gpui_pre_facade_paths::rewrite(__gpui_pre_derive_visual_context(input))
++}
++
++fn __gpui_pre_derive_visual_context(input: TokenStream) -> TokenStream {
+     derive_visual_context::derive_visual_context(input)
+ }
+ 
+@@ -97,54 +123,90 @@
+ #[proc_macro]
+ #[doc(hidden)]
+ pub fn style_helpers(input: TokenStream) -> TokenStream {
++    gpui_pre_facade_paths::rewrite(__gpui_pre_style_helpers(input))
++}
++
++fn __gpui_pre_style_helpers(input: TokenStream) -> TokenStream {
+     styles::style_helpers(input)
+ }
+ 
+ /// Generates methods for visibility styles.
+ #[proc_macro]
+ pub fn visibility_style_methods(input: TokenStream) -> TokenStream {
++    gpui_pre_facade_paths::rewrite(__gpui_pre_visibility_style_methods(input))
++}
++
++fn __gpui_pre_visibility_style_methods(input: TokenStream) -> TokenStream {
+     styles::visibility_style_methods(input)
+ }
+ 
+ /// Generates methods for margin styles.
+ #[proc_macro]
+ pub fn margin_style_methods(input: TokenStream) -> TokenStream {
++    gpui_pre_facade_paths::rewrite(__gpui_pre_margin_style_methods(input))
++}
++
++fn __gpui_pre_margin_style_methods(input: TokenStream) -> TokenStream {
+     styles::margin_style_methods(input)
+ }
+ 
+ /// Generates methods for padding styles.
+ #[proc_macro]
+ pub fn padding_style_methods(input: TokenStream) -> TokenStream {
++    gpui_pre_facade_paths::rewrite(__gpui_pre_padding_style_methods(input))
++}
++
++fn __gpui_pre_padding_style_methods(input: TokenStream) -> TokenStream {
+     styles::padding_style_methods(input)
+ }
+ 
+ /// Generates methods for position styles.
+ #[proc_macro]
+ pub fn position_style_methods(input: TokenStream) -> TokenStream {
++    gpui_pre_facade_paths::rewrite(__gpui_pre_position_style_methods(input))
++}
++
++fn __gpui_pre_position_style_methods(input: TokenStream) -> TokenStream {
+     styles::position_style_methods(input)
+ }
+ 
+ /// Generates methods for overflow styles.
+ #[proc_macro]
+ pub fn overflow_style_methods(input: TokenStream) -> TokenStream {
++    gpui_pre_facade_paths::rewrite(__gpui_pre_overflow_style_methods(input))
++}
++
++fn __gpui_pre_overflow_style_methods(input: TokenStream) -> TokenStream {
+     styles::overflow_style_methods(input)
+ }
+ 
+ /// Generates methods for cursor styles.
+ #[proc_macro]
+ pub fn cursor_style_methods(input: TokenStream) -> TokenStream {
++    gpui_pre_facade_paths::rewrite(__gpui_pre_cursor_style_methods(input))
++}
++
++fn __gpui_pre_cursor_style_methods(input: TokenStream) -> TokenStream {
+     styles::cursor_style_methods(input)
+ }
+ 
+ /// Generates methods for border styles.
+ #[proc_macro]
+ pub fn border_style_methods(input: TokenStream) -> TokenStream {
++    gpui_pre_facade_paths::rewrite(__gpui_pre_border_style_methods(input))
++}
++
++fn __gpui_pre_border_style_methods(input: TokenStream) -> TokenStream {
+     styles::border_style_methods(input)
+ }
+ 
+ /// Generates methods for box shadow styles.
+ #[proc_macro]
+ pub fn box_shadow_style_methods(input: TokenStream) -> TokenStream {
++    gpui_pre_facade_paths::rewrite(__gpui_pre_box_shadow_style_methods(input))
++}
++
++fn __gpui_pre_box_shadow_style_methods(input: TokenStream) -> TokenStream {
+     styles::box_shadow_style_methods(input)
+ }
+ 
+@@ -187,6 +249,10 @@
+ /// - `ITERATIONS`: forces the value of the `iterations` argument
+ #[proc_macro_attribute]
+ pub fn test(args: TokenStream, function: TokenStream) -> TokenStream {
++    gpui_pre_facade_paths::rewrite(__gpui_pre_test(args, function))
++}
++
++fn __gpui_pre_test(args: TokenStream, function: TokenStream) -> TokenStream {
+     test::test(args, function)
+ }
+ 
+@@ -220,6 +286,10 @@
+ /// feature, since the generated code references all three.
+ #[proc_macro_attribute]
+ pub fn bench(args: TokenStream, function: TokenStream) -> TokenStream {
++    gpui_pre_facade_paths::rewrite(__gpui_pre_bench(args, function))
++}
++
++fn __gpui_pre_bench(args: TokenStream, function: TokenStream) -> TokenStream {
+     bench::bench(args, function)
+ }
+ 
+@@ -293,6 +363,10 @@
+ /// [`Strategy`]: https://docs.rs/proptest/latest/proptest/strategy/trait.Strategy.html
+ #[proc_macro_attribute]
+ pub fn property_test(args: TokenStream, function: TokenStream) -> TokenStream {
++    gpui_pre_facade_paths::rewrite(__gpui_pre_property_test(args, function))
++}
++
++fn __gpui_pre_property_test(args: TokenStream, function: TokenStream) -> TokenStream {
+     property_test::test(args.into(), function.into()).into()
+ }
+ 
+@@ -315,6 +389,11 @@
+ #[cfg(any(feature = "inspector", debug_assertions))]
+ #[proc_macro_attribute]
+ pub fn derive_inspector_reflection(_args: TokenStream, input: TokenStream) -> TokenStream {
++    gpui_pre_facade_paths::rewrite(__gpui_pre_derive_inspector_reflection(_args, input))
++}
++
++#[cfg(any(feature = "inspector", debug_assertions))]
++fn __gpui_pre_derive_inspector_reflection(_args: TokenStream, input: TokenStream) -> TokenStream {
+     derive_inspector_reflection::derive_inspector_reflection(_args, input)
+ }
+ 
+
+--- zed/gpui_macros/src/gpui_pre_facade_paths.rs
++++ gpui-pre-macros-0.3.12/src/gpui_pre_facade_paths.rs
+@@ -0,0 +1,87 @@
++// Modified for gpui-pre (snapshot of zed@d2a4fb6): this module is added by the script.
++// Injected by gpui-kit's script/bump-gpui.ts. Keep fixes in that script.
++use proc_macro::{Group, Ident, Literal, Punct, Spacing, TokenStream, TokenTree};
++use proc_macro_crate::{crate_name, FoundCrate};
++
++enum FacadePath {
++    Itself,
++    Name(String),
++}
++
++pub(crate) fn rewrite(stream: TokenStream) -> TokenStream {
++    let facade = match crate_name("gpui-kit") {
++        Ok(FoundCrate::Name(name)) => Some(FacadePath::Name(name)),
++        Ok(FoundCrate::Itself) => Some(FacadePath::Itself),
++        Err(_) => None,
++    };
++    rewrite_stream(stream, facade.as_ref())
++}
++
++fn rewrite_stream(stream: TokenStream, facade: Option<&FacadePath>) -> TokenStream {
++    let tokens: Vec<_> = stream.into_iter().collect();
++    let mut output = TokenStream::new();
++    for (index, token) in tokens.iter().enumerate() {
++        match token {
++            TokenTree::Group(group) => {
++                let mut rewritten = Group::new(group.delimiter(), rewrite_stream(group.stream(), facade));
++                rewritten.set_span(group.span());
++                output.extend([TokenTree::Group(rewritten)]);
++            }
++            TokenTree::Ident(ident)
++                if is_path_head(&tokens, index)
++                    && (ident.to_string() == "gpui" || ident.to_string() == "gpui_platform") =>
++            {
++                append_path_head(&mut output, ident, facade);
++            }
++            TokenTree::Literal(literal) => {
++                output.extend([TokenTree::Literal(rewrite_literal(literal, facade))]);
++            }
++            token => output.extend([token.clone()]),
++        }
++    }
++    output
++}
++
++fn is_path_head(tokens: &[TokenTree], index: usize) -> bool {
++    matches!(tokens.get(index + 1), Some(TokenTree::Punct(first)) if first.as_char() == ':')
++        && matches!(tokens.get(index + 2), Some(TokenTree::Punct(second)) if second.as_char() == ':')
++}
++
++fn append_path_head(output: &mut TokenStream, original: &Ident, facade: Option<&FacadePath>) {
++    let name = match facade {
++        Some(FacadePath::Itself) => "crate",
++        Some(FacadePath::Name(name)) => name,
++        None => {
++            output.extend([TokenTree::Ident(original.clone())]);
++            return;
++        }
++    };
++    output.extend([TokenTree::Ident(Ident::new(name, original.span()))]);
++    if original.to_string() == "gpui_platform" {
++        output.extend([
++            TokenTree::Punct(Punct::new(':', Spacing::Joint)),
++            TokenTree::Punct(Punct::new(':', Spacing::Alone)),
++            TokenTree::Ident(Ident::new("platform", original.span())),
++        ]);
++    }
++}
++
++fn rewrite_literal(literal: &Literal, facade: Option<&FacadePath>) -> Literal {
++    let (gpui, platform) = match facade {
++        Some(FacadePath::Itself) => ("crate::".into(), "crate::platform::".into()),
++        Some(FacadePath::Name(name)) =>
++            (format!("::{name}::"), format!("::{name}::platform::")),
++        None => return literal.clone(),
++    };
++    let text = literal.to_string();
++    let rewritten = text
++        .replace("::gpui_platform::", &platform)
++        .replace("::gpui::", &gpui);
++    if rewritten == text { return literal.clone() }
++    let Ok(parsed) = rewritten.parse::<TokenStream>() else { return literal.clone() };
++    let mut tokens = parsed.into_iter();
++    match (tokens.next(), tokens.next()) {
++        (Some(TokenTree::Literal(literal)), None) => literal,
++        _ => literal.clone(),
++    }
++}
+
+--- zed/gpui_wgpu/src/wgpu_atlas.rs
++++ gpui-pre-wgpu-0.3.12/src/wgpu_atlas.rs
+@@ -1,3 +1,4 @@
++// Modified for gpui-pre (snapshot of zed@d2a4fb6): adapt device queues and sRGB detection to wgpu 30.0.1.
+ use anyhow::{Context as _, Result};
+ use etagere::{BucketedAtlasAllocator, size2};
+ use gpui::{
+@@ -426,7 +427,6 @@
+                     memory_hints: wgpu::MemoryHints::MemoryUsage,
+                     trace: wgpu::Trace::Off,
+                     experimental_features: wgpu::ExperimentalFeatures::disabled(),
+-                    default_queue: wgpu::QueueDescriptor::default(),
+                 })
+                 .await
+                 .map_err(|error| anyhow::anyhow!("failed to request device: {error}"))?;
+
+--- zed/gpui_wgpu/src/wgpu_context.rs
++++ gpui-pre-wgpu-0.3.12/src/wgpu_context.rs
+@@ -1,3 +1,4 @@
++// Modified for gpui-pre (snapshot of zed@d2a4fb6): adapt device queues and sRGB detection to wgpu 30.0.1.
+ #[cfg(not(target_family = "wasm"))]
+ use crate::{WgpuRenderer, WgpuSurfaceConfig};
+ #[cfg(not(target_family = "wasm"))]
+@@ -463,7 +464,6 @@
+                 memory_hints: wgpu::MemoryHints::MemoryUsage,
+                 trace: wgpu::Trace::Off,
+                 experimental_features: wgpu::ExperimentalFeatures::disabled(),
+-                default_queue: wgpu::QueueDescriptor::default(),
+             })
+             .await
+             .map_err(|e| anyhow::anyhow!("Failed to create wgpu device: {e}"))?;
+
+--- zed/gpui_wgpu/src/wgpu_renderer.rs
++++ gpui-pre-wgpu-0.3.12/src/wgpu_renderer.rs
+@@ -1,3 +1,4 @@
++// Modified for gpui-pre (snapshot of zed@d2a4fb6): adapt device queues and sRGB detection to wgpu 30.0.1.
+ use crate::{CompositorGpuHint, DeviceErrorState, WgpuAtlas, WgpuContext};
+ use anyhow::{Context as _, Result};
+ use bytemuck::{Pod, Zeroable};
+@@ -403,7 +404,7 @@
+                 surface_caps
+                     .formats
+                     .iter()
+-                    .find(|format| !format.has_srgb_suffix())
++                    .find(|format| !format.is_srgb())
+                     .copied()
+             })
+             .or_else(|| surface_caps.formats.first().copied())
+

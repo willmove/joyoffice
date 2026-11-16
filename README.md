@@ -103,7 +103,9 @@ See [module boundaries](docs/joyoffice/ARCHITECTURE.md). Engineering rules requi
 
 ### Prerequisites
 
-The repository pins **Rust 1.98.1**, **edition 2024**, **GPUI Kit 0.8.1**, and **GPUI Pre 0.3.10**. Engineering commands require **Python 3.11 or newer**; set `JOYOFFICE_PYTHON` to select an interpreter if needed. Use the committed `Cargo.lock`.
+The repository pins **Rust 1.98.1**, **edition 2024**, **GPUI Kit 0.9.1**, and **GPUI Pre 0.3.12**. Engineering commands require **Python 3.11 or newer**; set `JOYOFFICE_PYTHON` to select an interpreter if needed. Use the committed `Cargo.lock`.
+
+The [GPUI upgrade record](docs/joyoffice/GPUI-KIT-0.9.1-UPGRADE.md) tracks source adaptations, dependency provenance and verification boundaries for all three products.
 
 | Platform | Native development requirements |
 | --- | --- |
@@ -318,7 +320,9 @@ licenses/           第三方声明、来源记录与许可正文
 
 ### 环境要求
 
-仓库固定 **Rust 1.98.1**、**edition 2024**、**GPUI Kit 0.8.1** 和 **GPUI Pre 0.3.10**。工程命令需要 **Python 3.11 或以上**，必要时可用 `JOYOFFICE_PYTHON` 指定解释器。依赖使用已提交的 `Cargo.lock`。
+仓库固定 **Rust 1.98.1**、**edition 2024**、**GPUI Kit 0.9.1** 和 **GPUI Pre 0.3.12**。工程命令需要 **Python 3.11 或以上**，必要时可用 `JOYOFFICE_PYTHON` 指定解释器。依赖使用已提交的 `Cargo.lock`。
+
+三产品的源码适配、依赖来源审查与实际验证边界见 [GPUI 升级记录](docs/joyoffice/GPUI-KIT-0.9.1-UPGRADE.md)。
 
 | 平台 | 原生开发要求 |
 | --- | --- |

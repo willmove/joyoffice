@@ -8,7 +8,7 @@ use joysheet_app::{
 use joysheet_chart::{Prim, Rgba};
 use std::{cell::RefCell, collections::HashMap, rc::Rc, sync::Arc};
 pub type ChartCache = Rc<RefCell<HashMap<u32, Arc<Vec<Prim>>>>>;
-struct Measure(Arc<WindowTextSystem>);
+struct Measure(Rc<WindowTextSystem>);
 impl joysheet_chart::Measure for Measure {
     fn text_width(&self, text: &str, size: f32, bold: bool) -> f32 {
         let font = Font { family: "Calibri".into(), weight: if bold { FontWeight::BOLD } else { FontWeight::NORMAL }, ..Default::default() };

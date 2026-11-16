@@ -13,7 +13,7 @@
 
 Kit 官方安装说明提供 Windows MSVC/CMake、macOS 15+ 及 Ubuntu 24.04 的起始条件。实际依赖由锁定 feature 图确定；没有用 WebView/speech 不应无理由引入其全部运行时。Linux Vulkan loader 存在不代表有可工作的 GPU driver。[官方安装条件](https://gpui-kit.com/docs/installation/)
 
-工程固定 Rust 1.98.1、Kit 0.8.1 与匹配 GPUI pre 0.3.10；升级必须重新记录构建结果和完整依赖图。
+工程固定 Rust 1.98.1、Kit 0.9.1 与匹配 GPUI pre 0.3.12；升级必须重新记录构建结果和完整依赖图。
 
 M0 三平台编译并实际弹出诊断窗口为目标；若当时缺远端硬件，Windows 可继续推进，但 macOS/Linux 状态须标为未验证。M7 前三平台基础编辑实际冒烟是 MVP 的跨平台退出条件，M13 必须覆盖完整正式支持矩阵。编译成功与实际运行分别记录。
 

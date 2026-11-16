@@ -1,6 +1,6 @@
 # JoyOffice 桌面 UI 规范
 
-2026-11-01。消费者为 JoyWord、JoySheet 和 JoyDeck。公共实现位于 `crates/joyoffice-ui`，通过现有精确固定的 GPUI Kit 0.8.1 提供视觉原语，不另引入 UI 框架。
+2026-11-01。消费者为 JoyWord、JoySheet 和 JoyDeck。公共实现位于 `crates/joyoffice-ui`，通过现有精确固定的 GPUI Kit 0.9.1 提供视觉原语，不另引入 UI 框架。
 
 ## 职责与依赖
 

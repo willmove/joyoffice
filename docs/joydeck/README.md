@@ -32,7 +32,7 @@ macOS/Linux 使用 `cargo run --locked -p joydeck`；跨平台窗口回归用 `p
 - `cargo xtask build joydeck`：按产品构建；实际桌面验收另见记录。
 - `python scripts/joydeck/make-fixtures.py`：生成独立 `.joydeck`/PPTX 样例。
 
-Rust 1.98.1，GPUI Kit 0.8.1 / GPUI pre 0.3.10；PowerShell 使用 `pwsh.exe`。PPTX已提供源包保留写回与明确有损新建导出（范围见29）；M2支持指纹检查后的覆盖保存、交互变换和恢复列表。
+Rust 1.98.1，GPUI Kit 0.9.1 / GPUI pre 0.3.12；PowerShell 使用 `pwsh.exe`。PPTX已提供源包保留写回与明确有损新建导出（范围见29）；M2支持指纹检查后的覆盖保存、交互变换和恢复列表。
 
 ## 文档
 

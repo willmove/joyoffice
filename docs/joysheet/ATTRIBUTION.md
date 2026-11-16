@@ -10,7 +10,7 @@ The GPUI Kit dependency is Apache-2.0; its default icon assets are supplied by
 that dependency. Joysheet's identity and interface are implemented in code.
 ArtCraft trademarks and branding assets are not included.
 
-Sheet icon shapes use the Lucide catalog bundled with GPUI Kit Assets 0.8.1 (Lucide 1.43.0). ISC/MIT notices are preserved in docs/joysheet/LICENSE-LUCIDE. Legacy icon names are mapped where an equivalent is available.
+Sheet icon shapes use the Lucide catalog bundled with GPUI Kit Assets 0.9.1 (Lucide 1.43.0). ISC/MIT notices are preserved in docs/joysheet/LICENSE-LUCIDE. Legacy icon names are mapped where an equivalent is available.
 
 The [JoySheet app logo](../../assets/brand/joysheet.svg) is original JoyOffice artwork. The SVG master and its ICO and ICNS exports are distributed under the JoyOffice repository license.
 

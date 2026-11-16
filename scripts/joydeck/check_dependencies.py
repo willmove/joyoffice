@@ -8,7 +8,7 @@ import tomllib
 
 ROOT = Path(__file__).resolve().parents[2]
 FORBIDDEN = re.compile(r'^(egui(?:[-_].*)?|eframe|epaint(?:[-_].*)?|craft-ui)$')
-EXPECTED = {'krilla': '0.8.2', 'gpui-kit': '0.8.1', 'gpui-base': '0.8.1', 'gpui-component': '0.8.1', 'gpui-kit-assets': '0.8.1', 'gpui-pre': '0.3.10', 'gpui-pre-platform': '0.3.10', 'serde': '1.0.228', 'serde_json': '1.0.154'}
+EXPECTED = {'krilla': '0.8.2', 'gpui-kit': '0.9.1', 'gpui-base': '0.9.1', 'gpui-component': '0.9.1', 'gpui-component-macros': '0.9.1', 'gpui-kit-assets': '0.9.1', 'gpui-pre': '0.3.12', 'gpui-pre-platform': '0.3.12', 'serde': '1.0.228', 'serde_json': '1.0.154'}
 
 
 def check_lock(lock):
@@ -21,6 +21,12 @@ def check_lock(lock):
         elif matches[0].get('source') != 'registry+https://github.com/rust-lang/crates.io-index':
             errors.append(f'{name} has an unexpected dependency source')
     for package in packages:
+        # The renamed reqwest fork has its own version and provenance contract.
+        if package['name'].startswith('gpui-pre-') and package['name'] != 'gpui-pre-reqwest':
+            if package['version'] != '0.3.12':
+                errors.append(package['name'] + ' must match GPUI snapshot 0.3.12')
+            if package.get('source') != 'registry+https://github.com/rust-lang/crates.io-index':
+                errors.append(package['name'] + ' has an unexpected dependency source')
         if FORBIDDEN.fullmatch(package['name']):
             errors.append('egui dependency entered the workspace: ' + package['name'])
     return errors

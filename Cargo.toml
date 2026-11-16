@@ -148,14 +148,14 @@ svg2pdf = "=0.13.0"
 pdf-writer = "=0.12.1"
 getrandom = "=0.3.4"
 
-# ADR-010: align with JoyDeck before workspace integration. Kit 0.8.1 pins
-# gpui-pre 0.3.10 (zed@08cbb88a152c3751a43e853425a70e9f631a5918).
-gpui-kit = "=0.8.1"
+# ADR-010: one Kit/snapshot baseline across all three desktop products.
+# Kit 0.9.1 pins gpui-pre 0.3.12 (zed@d2a4fb6ded7c470be25d1541281da3882495b65b).
+gpui-kit = "=0.9.1"
 joyoffice-ui = { path = "crates/joyoffice-ui" }
 joyoffice-theme = { path = "crates/joyoffice-theme" }
 # Kit does not expose runtime_shaders. Keep this exact platform dependency to
 # forward the existing development-only shader feature; application APIs use Kit.
-gpui_platform = { package = "gpui-pre-platform", version = "=0.3.10", features = ["font-kit", "wayland", "x11"] }
+gpui_platform = { package = "gpui-pre-platform", version = "=0.3.12", features = ["font-kit", "wayland", "x11"] }
 joyword-agent = { path = "crates/joyword-agent", default-features = false }
 joyoffice-cfb = { path = "crates/joyoffice-cfb" }
 joyoffice-drawingml = { path = "crates/joyoffice-drawingml" }

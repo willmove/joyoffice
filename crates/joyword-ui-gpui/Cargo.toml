@@ -44,4 +44,4 @@ unreachable = "deny"
 [dev-dependencies]
 # Kit's aggregate test-support resolves its optional Fast backend against a
 # different proptest pin. Enable only the same host GPUI core for adapter tests.
-gpui_test = { package = "gpui-pre", version = "=0.3.10", features = ["test-support"] }
+gpui_test = { package = "gpui-pre", version = "=0.3.12", features = ["test-support"] }

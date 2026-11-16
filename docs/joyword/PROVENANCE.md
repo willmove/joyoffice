@@ -1,5 +1,7 @@
 # 独立实现、依赖与资产来源
 
+2026-11-16 当前桌面依赖为 GPUI Kit 0.9.1 / GPUI Pre 0.3.12；22 个 Pre 包的逐文件复核、12 处发布适配、许可与实际验证见[公共依赖升级](../joyoffice/GPUI-KIT-0.9.1-UPGRADE.md)。下文旧快照审查结果保留其历史时间和范围；当前公告例外以根 `deny.toml` 为准。
+
 版本 0.2 · 2026-10-13。对应 QUALITY-002。仓库代码许可证延续根目录 [MIT LICENSE](../../LICENSE)。本文件是工程来源规则，不把公开规范的可访问性解释为对所有知识产权的统一授权。
 
 ## 1. 独立实现规则
@@ -22,7 +24,7 @@
 
 | 依赖 | 定位 | 许可／来源依据 | 注意事项 |
 | --- | --- | --- | --- |
-| GPUI Kit =0.8.1；锁定 gpui-pre 0.3.10 | UI 门面、组件、默认图标资产 | [Kit 上游](https://github.com/longbridge/gpui-kit)，Apache-2.0；Lucide 图标 ISC。20 个 Zed 快照包对应 `08cbb88a152c3751a43e853425a70e9f631a5918`，另有一个改名的 reqwest 包 | 快照逐文件校验；HTTP 改名包对照固定的 `zed-reqwest`；5 个 Kit／Base／Component／宏／Assets 包固定版本与锁校验和。来源与新传递依赖见[融合准备报告](../joyoffice/JOYDECK-INTEGRATION.md) |
+| GPUI Kit =0.9.1；锁定 gpui-pre 0.3.12 | UI 门面、组件、默认图标资产 | [Kit 上游](https://github.com/longbridge/gpui-kit)，Apache-2.0；Lucide 图标 ISC/MIT。21 个 Zed 快照包对应 `d2a4fb6ded7c470be25d1541281da3882495b65b`，另有一个独立版本的 reqwest 改名包 | 快照逐文件校验；HTTP 改名包对照固定的 `zed-reqwest`；5 个 Kit／Base／Component／宏／Assets 包固定版本与锁校验和。[本次来源复核与验证](../joyoffice/GPUI-KIT-0.9.1-UPGRADE.md) |
 | sha2 0.10.9 | joyword-model 资源内容散列（直接依赖） | RustCrypto，MIT OR Apache-2.0（crate 元数据） | 与 GPUI 间接锁定的版本相同；只用于身份散列，不用于密码学保护 |
 | Ropey 1.6.1 | 仅 T100 文本存储基准的 dev 依赖 | [上游](https://github.com/cessen/ropey)，MIT | 不进入产品构建；基准结论见 IMPLEMENTATION |
 | HarfRust 0.8.4 | joyword-layout 字体整形（直接依赖） | [上游](https://github.com/harfbuzz/harfrust)，MIT | 选此版本以与 krilla 共用 read-fonts 0.39；特性逐项显式开关；不根据库名称声称兼容 Word |
