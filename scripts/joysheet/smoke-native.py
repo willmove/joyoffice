@@ -14,6 +14,7 @@ import shutil
 import socket
 import subprocess
 import time
+from cell_edit_cases import exercise as exercise_cell_edit
 
 
 class Control:
@@ -217,6 +218,7 @@ def run(binary, output):
                 cell(address, value)
             capture("03-roundtrip.png")
             checks.append("Chinese/space path XLSX save, close, reopen and retained formulas/text")
+            exercise_cell_edit(control, output, wait, key, capture, checks)
             report["finalView"] = control.call("ui.inspect")
             report["passed"] = True
     except Exception as error:

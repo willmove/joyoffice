@@ -1,4 +1,4 @@
-use gpui_kit::component::input::{Input, InputEvent as TextEvent, InputState, TextareaState};
+use gpui_kit::component::input::{Input, InputEvent as TextEvent, InputState, Textarea, TextareaState};
 use gpui_kit::{prelude::*, *};
 use joysheet_app::{
     AppSnapshot, EngineClient, Ticket, WindowSnapshot,
@@ -117,8 +117,8 @@ pub struct Desktop {
     pub snapshot: Arc<AppSnapshot>,
     pub window_id: Option<u64>,
     pub pending: Vec<Pending>,
-    pub formula: Entity<InputState>,
-    pub editor: Entity<InputState>,
+    pub formula: Entity<TextareaState>,
+    pub editor: Entity<TextareaState>,
     pub name: Entity<InputState>,
     pub search: Entity<InputState>,
     pub function_search: Entity<InputState>,
@@ -219,8 +219,11 @@ impl Desktop {
     }
 
     pub fn new(engine: EngineClient, id: Option<u64>, window: &mut Window, cx: &mut Context<Self>) -> Self {
-        let formula = cx.new(|cx| InputState::new(window, cx).placeholder("输入数据或公式 / Enter a value or formula"));
-        let editor = cx.new(|cx| InputState::new(window, cx));
+        // Both views share the exact cell text. Single-line inputs strip CR/LF,
+        // which the draft observer would mistake for a user edit on entry.
+        let formula = cx
+            .new(|cx| TextareaState::new(window, cx).submit_on_enter(true).soft_wrap(false).placeholder("输入数据或公式 / Enter a value or formula"));
+        let editor = cx.new(|cx| TextareaState::new(window, cx).submit_on_enter(true));
         let function_search = cx.new(|cx| InputState::new(window, cx).placeholder("搜索函数 / Search functions"));
         let name = cx.new(|cx| InputState::new(window, cx).default_value("A1"));
         let search = cx.new(|cx| InputState::new(window, cx).placeholder("搜索命令 / Search commands"));
@@ -541,7 +544,7 @@ impl Desktop {
             .unwrap_or_default();
         self.formula.update(cx, |input, cx| {
             if input.value().as_ref() != text {
-                input.set_value(text, window, cx);
+                crate::input::set_cell_text(input, text, window, cx);
             }
         });
         self.editor.update(cx, |input, cx| {
@@ -1151,9 +1154,10 @@ impl Render for Desktop {
             .child(div().w(px(26.)).text_color(rgb(muted)).text_center().child("fx"))
             .child(
                 div()
+                    .id("formula-bar")
                     .flex_1()
                     .key_context("JoysheetEditor")
-                    .child(Input::new(&self.formula).id("formula-bar").w_full().h(px(30.)).aria_label("公式栏 / Formula bar")),
+                    .child(Textarea::new(&self.formula).w_full().h(px(30.)).aria_label("公式栏 / Formula bar")),
             );
         let grid = self.render_grid(window, cx);
         let sheet_tabs = div()
@@ -1341,6 +1345,15 @@ impl Render for Desktop {
                     cx,
                 )
             }))
+            .capture_action(cx.listener(|this, action: &gpui_kit::component::input::Enter, w, cx| {
+                this.capture_input_navigation("enter", action.shift, action.secondary, w, cx)
+            }))
+            .capture_action(
+                cx.listener(|this, _: &gpui_kit::component::input::IndentInline, w, cx| this.capture_input_navigation("tab", false, false, w, cx)),
+            )
+            .capture_action(
+                cx.listener(|this, _: &gpui_kit::component::input::OutdentInline, w, cx| this.capture_input_navigation("tab", true, false, w, cx)),
+            )
             .capture_action(
                 cx.listener(|this, _: &gpui_kit::component::input::MoveRight, w, cx| this.capture_input_navigation("right", false, false, w, cx)),
             )

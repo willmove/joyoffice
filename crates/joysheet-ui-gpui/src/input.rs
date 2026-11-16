@@ -1,7 +1,16 @@
 use crate::desktop::{After, Desktop, Draft, NativeWindows, Pending};
+use gpui_kit::component::input::TextareaState;
 use gpui_kit::{prelude::*, *};
 use joysheet_engine::{core::CellRef, display};
 use serde_json::json;
+
+pub(crate) fn set_cell_text(input: &mut TextareaState, text: String, window: &mut Window, cx: &mut Context<TextareaState>) {
+    let end = text.len();
+    input.set_value(text, window, cx);
+    // Textarea resets to the start; cell editing has always placed the caret at
+    // the end, including replacement drafts and function completion prefixes.
+    input.set_selected_range(end..end, cx);
+}
 
 impl Desktop {
     pub(crate) fn paste_parameters(&mut self) -> serde_json::Value {
@@ -22,7 +31,10 @@ impl Desktop {
         }
     }
     pub fn capture_input_navigation(&mut self, key: &str, shift: bool, command: bool, window: &mut Window, cx: &mut Context<Self>) {
-        if self.draft.is_none() && self.editor.read(cx).focus_handle(cx).is_focused(window) {
+        let grid = self.editor.read(cx).focus_handle(cx).is_focused(window);
+        let submit = matches!(key, "tab" | "enter");
+        let formula_submit = submit && self.formula.read(cx).focus_handle(cx).is_focused(window);
+        if (grid || formula_submit) && (self.draft.is_none() || submit) {
             self.key_down(
                 &KeyDownEvent {
                     keystroke: Keystroke {
@@ -123,8 +135,8 @@ impl Desktop {
         }
         let text = self.draft.as_ref().map(|d| d.text.clone()).unwrap_or_default();
         self.track_draft(cx);
-        self.formula.update(cx, |input, cx| input.set_value(text.clone(), window, cx));
-        self.editor.update(cx, |input, cx| input.set_value(text, window, cx));
+        self.formula.update(cx, |input, cx| set_cell_text(input, text.clone(), window, cx));
+        self.editor.update(cx, |input, cx| set_cell_text(input, text, window, cx));
         if inline {
             self.focus_grid(window, cx);
         } else {
@@ -197,9 +209,9 @@ impl Desktop {
         self.track_draft(cx);
         // set_value is silent: the active editor retains its selection and IME transaction.
         if inline {
-            self.formula.update(cx, |input, cx| input.set_value(text, window, cx));
+            self.formula.update(cx, |input, cx| set_cell_text(input, text, window, cx));
         } else {
-            self.editor.update(cx, |input, cx| input.set_value(text, window, cx));
+            self.editor.update(cx, |input, cx| set_cell_text(input, text, window, cx));
         }
         cx.notify();
     }

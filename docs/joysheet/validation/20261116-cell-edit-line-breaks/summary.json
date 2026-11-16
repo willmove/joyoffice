@@ -1,0 +1,85 @@
+{
+  "date": "2026-11-16",
+  "base": "14da6f22c1b1605382a776755437cda78ede2f15",
+  "branch": "fix/joysheet-preserve-cell-line-breaks",
+  "rust": {
+    "command": "cargo xtask check joysheet --validation",
+    "passed": 1427,
+    "failed": 0,
+    "ignored": 1,
+    "suites": 44,
+    "fmt": "passed",
+    "clippyAllTargetsWarningsDenied": "passed",
+    "logSha256": "7b9f88e933f7bd931d767596b07270b51e8567135548873a35b676585ef0b843"
+  },
+  "native": {
+    "passed": true,
+    "platform": "Linux-6.18.57-061857-generic-x86_64-with-glibc2.38",
+    "binarySha256": "fb3310edd1ea73b5ed5d1332a5fb3d37fd48b3db58d318eb2b3803c4a107a375",
+    "eventSource": "production GPUI synthetic input",
+    "display": {
+      "scaleFactor": 1.25,
+      "viewportWidth": 1440.0,
+      "viewportHeight": 900.0
+    },
+    "nativeImeVerified": false,
+    "gpuPresentationMeasured": false,
+    "checks": [
+      "Linux GPU capability is accurate; unsupported request rejects without output",
+      "native sales window, charts and window screenshot",
+      "Unicode/emoji, pointer/text input and dependent formula recalculation",
+      "platform keyboard undo and redo",
+      "synthetic composition blocks premature Enter; commit retains UTF-16 text",
+      "system clipboard and relative formula references",
+      "registered function completion and calculation",
+      "freeze, zoom and real formatting form",
+      "cancelled close retains unsaved edits",
+      "Chinese/space path XLSX save, close, reopen and retained formulas/text",
+      "XLSX LF/CRLF/blank lines and wrap style survive double-click/Enter/Tab/Shift navigation and F2/Escape without dirtying",
+      "inline and formula-bar edits append at the caret and preserve line breaks and full style",
+      "multiline text and imported cell styles survive XLSX save/close/reopen"
+    ],
+    "captures": {
+      "01-sales.png": {
+        "source": "X11 window pixels via ImageMagick",
+        "window": "119537665"
+      },
+      "02-format-dialog.png": {
+        "source": "X11 window pixels via ImageMagick",
+        "window": "119537690"
+      },
+      "03-roundtrip.png": {
+        "source": "X11 window pixels via ImageMagick",
+        "window": "119537704"
+      },
+      "04-multiline-editor.png": {
+        "source": "X11 window pixels via ImageMagick",
+        "window": "119537718"
+      },
+      "05-multiline-roundtrip.png": {
+        "source": "X11 window pixels via ImageMagick",
+        "window": "119537732"
+      }
+    }
+  },
+  "sourceSha256": {
+    "crates/joysheet-ui-gpui/src/desktop.rs": "0c586bf7df5edf32ce48a99913e1349dff5dabc905226f1413c082f8a4d0cdd0",
+    "crates/joysheet-ui-gpui/src/grid.rs": "abbb2029c6c6a022aa81f2bd53c5f25febc9a0dcfa1de1f16693769d23719400",
+    "crates/joysheet-ui-gpui/src/input.rs": "bffaee25aa5ffcdc295c38166a60e1b1fafa08a089caf6395ad8914f621be424",
+    "crates/joysheet-ui-gpui/src/windows_quality.rs": "c07bb48a096d4239c3f00305efaca5624c68262d2ade290b6a54c7c3569250c3",
+    "scripts/joysheet/smoke-native.py": "2c602684588a3111b46d956bcb713118792cb45dee3d386b65386edcd0da3d84",
+    "scripts/joysheet/cell_edit_cases.py": "1430912b322eab860a2955843c60e4406f0dddb61d74d678a0e9bb4966794cfe"
+  },
+  "artifacts": {
+    "target/joysheet-native/cell-lines-acceptance-20261116/report.json": "a3528f89f2290f223546b40392a0b3b836cf65f74dfb8dc1563da7b46d9fd4df",
+    "target/joysheet-native/cell-lines-acceptance-20261116/multiline-source.xlsx": "275b696b6a7b87d81ce40a2a4fd059683f9a71249c495444723bd27f1c7e780c",
+    "target/joysheet-native/cell-lines-acceptance-20261116/multiline-saved.xlsx": "dd22f00b5140e679a7511fc96b7539df573c96061775b10bd7251eafb87dac3f",
+    "target/joysheet-native/cell-lines-acceptance-20261116/04-multiline-editor.png": "53f3faa26c7c1b519113af7ce5693aad52a28210e5230e7f9e52cb39c748595c",
+    "target/joysheet-native/cell-lines-acceptance-20261116/05-multiline-roundtrip.png": "27e5469f8ff74685f48eb12cd6e5554c811ce76252fc6e50b8296d2116d6f922"
+  },
+  "limitations": [
+    "Synthetic GPUI input; no physical keyboard or system IME acceptance",
+    "X11 window pixels; no GPUI GPU readback or GPU presentation measurements",
+    "No Windows/macOS run, Excel application comparison or original user workbook"
+  ]
+}

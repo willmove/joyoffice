@@ -1,6 +1,6 @@
 //! Shared diagnostics use the same GPUI input layout as the platform IME handler.
 use crate::desktop::Desktop;
-use gpui_kit::{component::input::InputState, *};
+use gpui_kit::{component::input::TextareaState, *};
 use serde_json::{Value, json};
 impl Desktop {
     pub fn refresh_ime_geometry(&mut self, window: &mut Window, cx: &mut Context<Self>) {
@@ -16,7 +16,7 @@ impl Desktop {
             window.invalidate_character_coordinates();
         }
     }
-    pub fn active_text_input(&self, window: &Window, cx: &App) -> Entity<InputState> {
+    pub fn active_text_input(&self, window: &Window, cx: &App) -> Entity<TextareaState> {
         if self.draft.as_ref().is_some_and(|d| !d.inline) || self.formula.read(cx).focus_handle(cx).is_focused(window) {
             self.formula.clone()
         } else {

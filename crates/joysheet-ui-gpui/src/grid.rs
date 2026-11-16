@@ -1,5 +1,5 @@
 use crate::desktop::{After, Desktop};
-use gpui_kit::component::input::Input;
+use gpui_kit::component::input::Textarea;
 use gpui_kit::{prelude::*, *};
 use joysheet_app::{
     WindowSnapshot,
@@ -1019,6 +1019,7 @@ impl Desktop {
                 let visible = self.draft.as_ref().is_some_and(|d| d.inline);
                 body = body.child(
                     div()
+                        .id("cell-editor")
                         .absolute()
                         .key_context({
                             let mut k = KeyContext::default();
@@ -1036,7 +1037,7 @@ impl Desktop {
                         .h(px(rect.height.max(1.)))
                         .opacity(if visible { 1. } else { 0.001 })
                         .when(visible, |el| el.bg(rgb(self.palette().surface)).border_2().border_color(rgb(self.palette().accent)))
-                        .child(Input::new(&self.editor).id("cell-editor").appearance(false).bordered(false).size_full().aria_label(format!(
+                        .child(Textarea::new(&self.editor).appearance(false).bordered(false).size_full().aria_label(format!(
                             "{} {} {}",
                             view.sheet().map(|s| s.name.as_str()).unwrap_or(""),
                             active.a1(),
