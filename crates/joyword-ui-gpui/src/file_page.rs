@@ -69,13 +69,29 @@ impl Template {
     }
 }
 
-static TEMPLATES: [Template; 5] = [
+static TEMPLATES: [Template; 9] = [
     Template::new(("空白文档", "Blank document"), None, None),
     Template::new(
-        ("工作室手册（示例）", "Studio Handbook"),
-        Some(include_bytes!("../../../assets/samples/handbook.docx")),
+        ("项目计划书（示例）", "Project plan (sample)"),
+        Some(include_bytes!("../../../assets/samples/project-plan.docx")),
         Some(include_bytes!(
-            "../../../assets/samples/previews/handbook.png"
+            "../../../assets/samples/previews/project-plan.png"
+        )),
+    ),
+    Template::new(
+        ("会议纪要", "Meeting minutes"),
+        Some(include_bytes!(
+            "../../../assets/samples/meeting-minutes.docx"
+        )),
+        Some(include_bytes!(
+            "../../../assets/samples/previews/meeting-minutes.png"
+        )),
+    ),
+    Template::new(
+        ("工作周报", "Weekly report"),
+        Some(include_bytes!("../../../assets/samples/weekly-report.docx")),
+        Some(include_bytes!(
+            "../../../assets/samples/previews/weekly-report.png"
         )),
     ),
     Template::new(
@@ -90,6 +106,20 @@ static TEMPLATES: [Template; 5] = [
         Some(include_bytes!("../../../assets/samples/resume.docx")),
         Some(include_bytes!(
             "../../../assets/samples/previews/resume.png"
+        )),
+    ),
+    Template::new(
+        ("通知公告", "Notice"),
+        Some(include_bytes!("../../../assets/samples/notice.docx")),
+        Some(include_bytes!(
+            "../../../assets/samples/previews/notice.png"
+        )),
+    ),
+    Template::new(
+        ("学习笔记", "Study notes"),
+        Some(include_bytes!("../../../assets/samples/study-notes.docx")),
+        Some(include_bytes!(
+            "../../../assets/samples/previews/study-notes.png"
         )),
     ),
     Template::new(
@@ -151,7 +181,7 @@ impl JoyWord {
                             .flex()
                             .flex_col()
                             .gap_1()
-                            .child(self.template_gallery(&TEMPLATES[..4], cx))
+                            .child(self.template_gallery(&TEMPLATES[..6], cx))
                             .child(
                                 file_control(
                                     div()
@@ -924,11 +954,62 @@ fn display_path(path: &Path) -> String {
     display.into_owned()
 }
 
-#[cfg(all(test, windows))]
+#[cfg(test)]
 mod tests {
+    use super::TEMPLATES;
+    use joyword_shell::reader::Reader;
+    use std::sync::atomic::AtomicBool;
+
+    #[cfg(windows)]
     use super::display_path;
+    #[cfg(windows)]
     use std::path::Path;
 
+    #[test]
+    fn gallery_documents_open_edit_and_roundtrip_with_their_tables() -> Result<(), String> {
+        let cancel = AtomicBool::new(false);
+        for template in TEMPLATES
+            .iter()
+            .filter(|template| template.document.is_some())
+        {
+            let name = format!("{}.docx", template.labels.0);
+            let bytes = template.document.ok_or("missing template document")?;
+            let preview = image::load_from_memory(template.preview_png.ok_or("missing preview")?)
+                .map_err(|error| error.to_string())?;
+            assert!(preview.width() > 0 && preview.height() > 0, "{name}");
+            let mut reader = Reader::from_bytes(&name, bytes, &cancel)?;
+            assert!(reader.source_path().is_none(), "{name}");
+            assert!(!reader.summary.pages.is_empty(), "{name}");
+            let tables = reader
+                .engine()
+                .doc
+                .body
+                .iter()
+                .filter(|b| b.as_table().is_some())
+                .count();
+            reader.execute("text.insert", &serde_json::json!({"text": "模板编辑验证 "}))?;
+            assert!(reader.is_dirty(), "{name}");
+            let text = reader.body_text();
+            let saved = reader.export_job("docx", false)?.bytes()?;
+            let reopened = Reader::from_bytes(&name, &saved, &cancel)?;
+            assert!(text.contains("模板编辑验证"), "{name}");
+            assert_eq!(reopened.body_text(), text, "{name}");
+            assert_eq!(
+                reopened
+                    .engine()
+                    .doc
+                    .body
+                    .iter()
+                    .filter(|b| b.as_table().is_some())
+                    .count(),
+                tables,
+                "{name}"
+            );
+        }
+        Ok(())
+    }
+
+    #[cfg(windows)]
     #[test]
     fn recent_paths_hide_only_windows_disk_and_unc_verbatim_prefixes() {
         for (stored, shown) in [
