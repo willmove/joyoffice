@@ -214,6 +214,9 @@ pub(super) fn recipients(s: &mut Session, v: &Value) -> CmdResult {
         header_split(all, p::bool(v, "headers").unwrap_or(true))?
     };
     s.merge.headers = headers;
+    s.merge
+        .address_fields
+        .retain(|_, field| field.is_empty() || s.merge.headers.contains(field));
     s.merge.source = rows.clone();
     s.merge.rows = rows;
     s.merge.filter.clear();

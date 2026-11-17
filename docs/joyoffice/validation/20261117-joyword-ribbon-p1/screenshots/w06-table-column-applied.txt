@@ -1,0 +1,34 @@
+Window: "表格属性 ", App: Microsoft Word.
+0 对话框 表格属性 , Secondary Actions: Raise
+	1 标签页组
+		2 标签 表格, Value: 0
+		3 标签 行, Value: 0
+		4 标签 列, Value: 1
+		5 标签 单元格, Value: 0
+		6 标签 替代文字, Value: 0
+		7 text 大小 第 2 列:
+		8 复选框 指定宽度, Value: 2
+		9 文本栏 (disabled) 7.32 厘米
+		10 步进器 (disabled) Value: 0, Secondary Actions: Increment, Decrement
+			11 增箭头按钮
+			12 减箭头按钮
+		13 文本 度量单位:
+		14 弹出式按钮 (disabled) 厘米
+		15 按钮 前一列
+		16 按钮 后一列
+	17 按钮 确定
+	18 按钮 取消
+	19 文本 表格属性 
+20 menu bar
+	21 Word, ID: AppMenu_MenuItem
+	22 文件
+	23 编辑, ID: EditMenu_MenuItem
+	24 视图, ID: ViewMenu_MenuItem
+	25 插入
+	26 格式
+	27 工具
+	28 表格
+	29 窗口, ID: WindowMenu_MenuItem
+	30 帮助, ID: HelpMenu_MenuItem
+
+The focused UI element is 0 对话框 表格属性 , Secondary Actions: Raise

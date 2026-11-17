@@ -1,5 +1,6 @@
 //! Derived ribbon state and validated native-dialog parameters over the existing engine.
 use crate::reader::Reader;
+pub use joyword_geom::{Unit, parse_measure};
 pub use joyword_layout::ViewMode;
 use serde_json::{Value, json};
 

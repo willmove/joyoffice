@@ -62,6 +62,7 @@ impl Reader {
                 | "link.targets"
                 | "tools.macros"
                 | "mailings.checkErrors"
+                | "mailings.matchFields"
                 | "arrange.selectionPane"
                 | "layout.section"
         ) {
@@ -425,6 +426,29 @@ mod tests {
     use super::*;
     fn blank() -> Reader {
         Reader::blank(&AtomicBool::new(false)).unwrap()
+    }
+
+    #[test]
+    fn desktop_field_mapping_query_reads_current_choices_without_editing() {
+        let mut r = blank();
+        r.execute(
+            "mailings.recipients",
+            &json!({"rows":[{"客户":"张三","城市":"上海"}]}),
+        )
+        .unwrap();
+        r.execute(
+            "mailings.matchFields",
+            &json!({"mapping":{"firstName":"客户"}}),
+        )
+        .unwrap();
+        let revision = r.engine().rev();
+        let history = r.engine().undo_depth();
+        let result = r.advanced_query("mailings.matchFields").unwrap();
+        assert_eq!(result["address"]["firstName"], "客户");
+        assert_eq!(result["address"]["city"], "城市");
+        assert_eq!(r.engine().rev(), revision);
+        assert_eq!(r.engine().undo_depth(), history);
+        assert!(r.advanced_query("text.insert").is_err());
     }
 
     #[test]

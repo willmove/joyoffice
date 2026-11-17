@@ -1,0 +1,69 @@
+Window: "* 未命名 1 — JoyWord", App: JoyWord P1 Regression.
+0 standard window * 未命名 1 — JoyWord, Secondary Actions: Raise
+	1 container
+		2 button 新建
+		3 button 打开
+		4 button 保存
+		5 button 撤销
+		6 button (disabled) 重做
+		7 button 搜索命令
+		8 button EN
+		9 button 切换外观
+		10 tab group 功能区
+			11 tab (settable, boolean) 文件, Value: off
+			12 tab (settable, boolean) 开始, Value: off
+			13 tab (settable, boolean) 插入, Value: off
+			14 tab (settable, boolean) 绘图, Value: off
+			15 tab (settable, boolean) 设计, Value: off
+			16 tab (settable, boolean) 布局, Value: off
+			17 tab (settable, boolean) 引用, Value: off
+			18 tab (settable, boolean) 邮件, Value: off
+			19 tab (settable, boolean) 审阅, Value: off
+			20 tab (settable, boolean) 视图, Value: off
+			21 tab (settable, boolean) 帮助, Value: off
+			22 tab (settable, boolean) SmartArt设计, Value: on
+			23 button 折叠或展开功能区, Help: ⌘F1
+		24 button (disabled) 向左滚动功能区
+		25 button 编辑文字和层级
+		26 button 更改布局
+		27 button 大小
+		28 button 环绕文字
+		29 button (disabled) 向右滚动功能区
+		30 button 上一页
+		31 button 下一页
+		32 text entry area (settable) 文档正文, Help: 随光标读取段落。用方向键或翻页键浏览。
+			33 container 水平标尺（只读）
+		34 button −
+		35 button 100%
+		36 button +
+		37 dialog
+			38 text field (settable) 第1列名称, Value: 文字
+			39 text field (settable) 第2列名称, Value: 级别（0为顶层）
+			40 text entry area (settable) 第1行，文字, Value: Plan
+			41 text entry area (settable) 第1行，级别（0为顶层）, Value: 0
+			42 button 删除行
+			43 text entry area (settable) 第2行，文字, Value: Build
+			44 text entry area (settable) 第2行，级别（0为顶层）, Value: 0
+			45 button 删除行
+			46 text entry area (settable) 第3行，文字, Value: Test
+			47 text entry area (settable) 第3行，级别（0为顶层）, Value: 0
+			48 button 删除行
+			49 text entry area (settable) 第4行，文字, Value: Ship
+			50 text entry area (settable) 第4行，级别（0为顶层）, Value: 0
+			51 button 删除行
+			52 button (disabled) 上一页
+			53 button (disabled) 下一页
+			54 button 添加行
+			55 button 取消
+			56 button 确定
+			57 button Close
+	58 text * 未命名 1 — JoyWord
+	59 menu button Window sharing
+60 menu bar
+	61 JoyWord P1 Regression
+	62 文件
+	63 编辑
+	64 插入
+	65 视图
+
+The focused UI element is 0 standard window * 未命名 1 — JoyWord, Secondary Actions: Raise

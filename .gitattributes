@@ -25,6 +25,7 @@ docs/joyoffice/validation/** -text
 # Native AX captures and exported TSV retain the application's recorded whitespace.
 docs/joyoffice/validation/20261117-joyword-ribbon-*/screenshots/*.txt -text whitespace=-blank-at-eol,-blank-at-eof,cr-at-eol
 docs/joyoffice/validation/20261117-joyword-ribbon-word/control-checklist.tsv -text whitespace=cr-at-eol
+docs/joyoffice/validation/20261117-joyword-ribbon-p1/*.log -text whitespace=-blank-at-eof
 # Preserve the exact bytes recorded by JoyWord validation manifests.
 docs/joyword/validation/20261102-completion/** -text whitespace=-blank-at-eof,cr-at-eol
 docs/joyword/validation/20261102-exchange-ui/** -text whitespace=-blank-at-eof,cr-at-eol

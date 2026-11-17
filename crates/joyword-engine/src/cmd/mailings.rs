@@ -23,7 +23,7 @@ pub use filter::{FilterOp, FilterRule, SortKey, select_records};
 use filter::{apply_filter, filter_result, parse_rules, parse_sort, rules_json, sort_json};
 pub use labels::{ENVELOPE_SIZES, LABEL_PRODUCTS, LabelProduct};
 use labels::{envelopes, labels};
-use merge::{address_map, finish, go_to, merge_fields, step};
+use merge::{finish, go_to, merge_fields, step};
 pub use merge::{merge_range, refresh};
 #[cfg(test)]
 use merge::{mergefield_name, placeholder};
@@ -46,6 +46,8 @@ pub struct MergeState {
     pub preview: bool,
     pub record: usize,
     pub highlight: bool,
+    /// Explicit address-part to data-column choices; an empty column means unmatched.
+    pub address_fields: std::collections::BTreeMap<String, String>,
 }
 
 fn has_recipients(s: &Session) -> Option<&'static str> {
@@ -168,9 +170,24 @@ pub fn specs() -> Vec<CommandSpec> {
             insert_field(s, &instr, "")
         })
         .params(r#"{"rule": "IF|SKIPIF|NEXTIF|NEXT|MERGEREC", "field"?, "value"?, "then"?, "else"?}"#),
-        CommandSpec::new("mailings.matchFields", "Match Fields", "Mailings › Write & Insert Fields", |s, _| {
-            Ok(json!({"fields": s.merge.headers, "address": address_map(&s.merge.headers)}))
+        CommandSpec::new("mailings.matchFields", "Match Fields", "Mailings › Write & Insert Fields", |s, v| {
+            if let Some(mapping) = v.get("mapping") {
+                let mapping = mapping.as_object().ok_or_else(|| CmdError::Params("字段匹配必须是一个映射".into()))?;
+                let mut next = std::collections::BTreeMap::new();
+                for (key, value) in mapping {
+                    if !["firstName","lastName","company","address","city","state","postal","country","title"].contains(&key.as_str()) {
+                        return Err(CmdError::Params("未知的地址字段".into()));
+                    }
+                    let field = if value.is_null() { "" } else { value.as_str().ok_or_else(|| CmdError::Params("请选择数据列".into()))? };
+                    if !field.is_empty() && !s.merge.headers.iter().any(|h|h==field) { return Err(CmdError::Params(format!("数据列不存在：{field}"))); }
+                    next.insert(key.clone(),field.to_owned());
+                }
+                s.merge.address_fields=next;
+                refresh(s);
+            }
+            Ok(json!({"fields": s.merge.headers, "address": merge::mapped_address(s)}))
         })
+        .params(r#"{"mapping"?: {addressPart: columnName|null}} (omitted: inspect; null: unmatched)"#)
         .pure(),
         CommandSpec::new("mailings.highlightFields", "Highlight Merge Fields", "Mailings › Write & Insert Fields", |s, v| {
             s.merge.highlight = p::bool(v, "value").unwrap_or(!s.merge.highlight);

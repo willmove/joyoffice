@@ -69,16 +69,28 @@ pub(super) fn address_map(headers: &[String]) -> Value {
             .cloned()
     };
     json!({
-        "firstName": find(&["FirstName", "First", "GivenName"]),
-        "lastName": find(&["LastName", "Last", "Surname", "FamilyName"]),
+        "firstName": find(&["FirstName", "First", "GivenName", "姓名", "名字", "名"]),
+        "lastName": find(&["LastName", "Last", "Surname", "FamilyName", "姓氏", "姓"]),
         "company": find(&["Company", "Organization", "CompanyName"]),
         "address": find(&["Address", "AddressLine1", "Address1", "Street"]),
-        "city": find(&["City", "Town"]),
+        "city": find(&["City", "Town", "城市"]),
         "state": find(&["State", "Province", "Region"]),
         "postal": find(&["PostalCode", "ZIP", "ZipCode", "Postcode"]),
         "country": find(&["Country"]),
         "title": find(&["Title", "CourtesyTitle"]),
     })
+}
+
+pub(super) fn mapped_address(s: &Session) -> Value {
+    let mut mapping = address_map(&s.merge.headers);
+    for (part, field) in &s.merge.address_fields {
+        mapping[part] = if field.is_empty() {
+            Value::Null
+        } else {
+            json!(field)
+        };
+    }
+    mapping
 }
 
 fn value(s: &Session, row: usize, field: &str) -> String {
@@ -99,7 +111,7 @@ fn value(s: &Session, row: usize, field: &str) -> String {
 }
 
 pub(super) fn address_block(s: &Session, row: usize) -> String {
-    let m = address_map(&s.merge.headers);
+    let m = mapped_address(s);
     let g = |k: &str| {
         m.get(k)
             .and_then(Value::as_str)
@@ -131,7 +143,7 @@ pub(super) fn address_block(s: &Session, row: usize) -> String {
 }
 
 fn greeting(s: &Session, row: usize) -> String {
-    let m = address_map(&s.merge.headers);
+    let m = mapped_address(s);
     let g = |k: &str| {
         m.get(k)
             .and_then(Value::as_str)

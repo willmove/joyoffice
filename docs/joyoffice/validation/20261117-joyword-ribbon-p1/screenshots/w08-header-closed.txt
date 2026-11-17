@@ -1,0 +1,112 @@
+Window: "文档1", App: Microsoft Word.
+0 标准窗口 文档1, Secondary Actions: Raise
+	1 分离组
+		2 分离组
+			3 分离组 Document Pane
+				4 滚动区 Secondary Actions: Scroll Left, Scroll Right, Scroll Up, Scroll Down
+					5 (disabled) 文档1
+						6 container
+							7 文本输入区 (disabled, settable) 页眉 - 第 1 节 -
+							8 表格，2 行，2 列，，
+								9 row (disabled) A1
+									10 单元格 (disabled)
+										11 文本输入区 (disabled, settable) A1
+									12 单元格 (disabled)
+										13 文本输入区 (disabled, settable) B1
+								14 row (disabled) A2
+									15 单元格 (disabled)
+										16 文本输入区 (disabled, settable) A2
+									17 单元格 (disabled)
+										18 文本输入区 (disabled, settable) B2
+								19 栏 (disabled) A1
+								20 栏 (disabled) B1
+							21 文本输入区 (disabled, settable) Description: 页面 1 内容, Value: JoyWord P1 对照测试
+Alpha sample
+Beta sample
+表格，2 行，2 列，， 
+							22 文本输入区 (disabled, settable) 页脚 - 第 1 节 -
+					23 滚动条 (disabled, settable, float) 0
+						24 值指示器 (disabled, settable, float) 0
+					25 滚动条 (disabled, settable, float) 0
+						26 值指示器 (disabled, settable, float) 0
+		27 分离器 (disabled, settable, float) 1729
+	28 标签页组 Description: 功能区, Details: 页眉和页脚
+		29 滚动区 页眉和页脚 选项卡命令
+			30 container
+				31 菜单按钮 页眉, Help: 添加页眉, Value: 0
+				32 菜单按钮 页脚, Help: 添加页脚, Value: 0
+				33 菜单按钮 页码  , Help: 添加页码, Value: 0
+			34 container
+				35 按钮 日期和时间
+				36 按钮 域, Help: 插入域
+				37 按钮 来自文件的图片
+			38 container
+				39 按钮 (disabled) 转至页眉
+				40 按钮 转至页脚
+				41 按钮 上一个
+				42 按钮 下一个
+				43 开关按钮 (disabled) 链接到上一节, Value: off
+			44 container
+				45 复选框 首页不同, Value: 0
+				46 复选框 奇偶页不同, Value: 0
+				47 复选框 显示文档文字, Value: 1
+			48 container
+				49 步进器 (settable) Description: 页眉顶端距离:, Value: 1.5 厘米, Secondary Actions: Confirm
+				50 步进器 (settable) Description: 页脚底端距离:, Value: 1.75 厘米, Secondary Actions: Confirm
+			51 按钮 (disabled) 关闭页眉和页脚
+		52 选项卡 开始, Value: 0
+		53 选项卡 插入, Value: 0
+		54 选项卡 绘图
+		55 选项卡 设计
+		56 选项卡 布局
+		57 选项卡 引用
+		58 选项卡 邮件
+		59 选项卡 审阅
+		60 选项卡 视图
+		61 选项卡 页眉和页脚, Help: 折叠功能区, Value: 1
+		62 按钮 批注
+		63 按钮 编辑, Help: 文档访问模式
+		64 按钮 共享
+	65 container 状态栏
+		66 按钮 第 1 页，共 1 页, Help: 文档当前的页码。单击或点击可打开导航窗格。
+		67 按钮 14 个字, Help: 文档的字数。单击或点击可打开“字数统计”对话框。
+		68 按钮 兼容性模式下的共同创作。
+		69 按钮 发现校对错误。单击可更正。
+		70 按钮 简体中文(中国大陆), Help: 语言(国家/地区)
+		71 开关按钮 辅助功能: 一切就绪, Help: 已完成辅助功能检查。请单击此处了解详细信息。, Value: off
+		72 开关按钮  专注, Help: 专注模式, Value: off
+		73 单选按钮 页面视图, Value: 1
+		74 单选按钮 Web 版式, Value: 0
+		75 单选按钮 大纲, Value: 0
+		76 单选按钮 草稿, Value: 0
+		77 按钮 缩小
+		78 按钮 放大
+		79 滑块 (settable, float) Help: 缩放, Value: 1000, Details: 100%
+			80 值指示器 (settable, float) 1000
+		81 按钮 100%, Help: 缩放级别。单击可打开“缩放”对话框。
+	82 工具栏
+		83 container Secondary Actions: 从工具栏移除
+			84 转换 自动保存, Help: 启用“自动保存”以在发生更改时保存更改。, Value: off
+			85 按钮 主页
+			86 按钮 保存
+			87 菜单按钮 撤消表格属性, Help: 有关更多选项，请按 Control-Option-Shift-M。
+			88 按钮 (disabled) 无法重复
+			89 按钮 打印
+			90 菜单按钮 自定义快速访问工具栏, Value: 0
+			91 搜索文本栏 (settable) 搜索(Cmd + Ctrl + U)
+				92 按钮 搜索
+			93 文本 Value: 文档1, ID: CUIDocumentShellWindowTitleLabel
+	94 菜单按钮 窗口共享
+95 menu bar
+	96 Word, ID: AppMenu_MenuItem
+	97 文件
+	98 编辑, ID: EditMenu_MenuItem
+	99 视图, ID: ViewMenu_MenuItem
+	100 插入
+	101 格式
+	102 工具
+	103 表格
+	104 窗口, ID: WindowMenu_MenuItem
+	105 帮助, ID: HelpMenu_MenuItem
+
+The focused UI element is 7 文本输入区 (disabled, settable) 页眉 - 第 1 节 -

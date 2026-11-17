@@ -5,6 +5,70 @@ use super::{
 
 pub(super) const NO_TEXT_BOX: &str = "select a text box first";
 
+/// Replace plain shape text through the editor, retaining formatting/revision handling.
+/// Linked or structured stories stay in the regular story editor; never flatten them.
+pub(super) fn shape_text(s: &mut Session, v: &Value) -> CmdResult {
+    let text = p::req_str(v, "text")?;
+    if text.len() > 16_384 || text.contains('\0') {
+        return Err(CmdError::Params(
+            "形状文字最多为16384字节，且不能包含空字符".into(),
+        ));
+    }
+    let (pos, object) = selected(s).ok_or_else(|| CmdError::Disabled("请先选择形状".into()))?;
+    let InlineObject::Shape { story, .. } = object else {
+        return Err(CmdError::Disabled("请先选择形状".into()));
+    };
+    if let Some(id) = story {
+        let part = s
+            .doc
+            .parts
+            .get(&id)
+            .ok_or_else(|| CmdError::Failed("形状文字不存在".into()))?;
+        if s.doc
+            .text_box_chains()
+            .iter()
+            .any(|chain| chain.len() > 1 && chain.contains(&id))
+            || part.body.next.is_some()
+            || part
+                .blocks
+                .iter()
+                .any(|b| b.as_para().is_none_or(|p| !p.objects.is_empty()))
+        {
+            return Err(CmdError::Disabled(
+                "该形状包含链接或结构化内容，请在文档中编辑文字".into(),
+            ));
+        }
+    }
+    let id = match story {
+        Some(id) => id,
+        None => {
+            let id = s.doc.try_add_part(
+                joyword_model::PartKind::TextBox,
+                vec![joyword_model::para_block(joyword_model::Paragraph::new())],
+            )?;
+            edit_obj(s, &pos, |o| {
+                if let InlineObject::Shape { story, .. } = o {
+                    *story = Some(id);
+                }
+            })?;
+            id
+        }
+    };
+    let saved = s.sel.clone();
+    let story = StoryRef::Part(id);
+    s.sel = crate::Selection {
+        anchor: Pos {
+            story,
+            ..Pos::body(0, 0)
+        },
+        focus: s.doc.end_of(story),
+    };
+    crate::cmd::delete_selection(s)?;
+    crate::cmd::type_text(s, text)?;
+    s.sel = saved;
+    super::sel_result(s)
+}
+
 pub(super) fn has_text_box(s: &Session) -> Option<&'static str> {
     if text_box_target(s).is_some() {
         None

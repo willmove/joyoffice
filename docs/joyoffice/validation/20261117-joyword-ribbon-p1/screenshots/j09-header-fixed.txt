@@ -1,0 +1,85 @@
+Window: "* 未命名 1 — JoyWord", App: JoyWord P1 Regression.
+0 standard window * 未命名 1 — JoyWord, Secondary Actions: Raise
+	1 container
+		2 button 新建
+		3 button 打开
+		4 button 保存
+		5 button 撤销
+		6 button (disabled) 重做
+		7 button 搜索命令
+		8 button EN
+		9 button 切换外观
+		10 tab group 功能区
+			11 tab (settable, boolean) 文件, Value: off
+			12 tab (settable, boolean) 开始, Value: off
+			13 tab (settable, boolean) 插入, Value: on
+			14 tab (settable, boolean) 绘图, Value: off
+			15 tab (settable, boolean) 设计, Value: off
+			16 tab (settable, boolean) 布局, Value: off
+			17 tab (settable, boolean) 引用, Value: off
+			18 tab (settable, boolean) 邮件, Value: off
+			19 tab (settable, boolean) 审阅, Value: off
+			20 tab (settable, boolean) 视图, Value: off
+			21 tab (settable, boolean) 帮助, Value: off
+			22 button 折叠或展开功能区, Help: ⌘F1
+		23 button 关闭页眉页脚
+		24 button 页眉
+		25 button 页脚
+		26 button 在光标处插入页码
+		27 button 首页不同
+		28 button 奇偶页不同
+		29 container 页面
+			30 button 封面
+			31 button 空白页
+			32 button 分页
+		33 container 表格
+			34 button 表格
+		35 container 插图
+			36 button 图片
+			37 button 形状
+			38 button 图标
+			39 button (disabled) 3D 模型, Help: 此功能尚未提供，或当前文档状态不可用
+			40 button SmartArt
+			41 button 图表
+			42 button (disabled) 屏幕截图, Help: 此功能尚未提供，或当前文档状态不可用
+		43 container 媒体
+			44 button (disabled) 联机视频, Help: 此功能尚未提供，或当前文档状态不可用
+		45 container 链接
+			46 button 链接
+			47 button 书签
+			48 button 交叉引用
+		49 container 批注
+			50 button 批注
+		51 container 页眉和页脚
+			52 button 页眉
+			53 button 页脚
+			54 button 页码
+		55 container 文本
+			56 button 文本框
+			57 button 文档部件
+			58 button 艺术字
+			59 button (disabled) 首字下沉, Help: 此功能尚未提供，或当前文档状态不可用
+			60 button 签名行
+			61 button 日期和时间
+			62 button (disabled) 对象, Help: 此功能尚未提供，或当前文档状态不可用
+		63 container 符号
+			64 button 公式
+			65 button 符号
+			66 button (disabled) 编号, Help: 此功能尚未提供，或当前文档状态不可用
+		67 button 上一页
+		68 button 下一页
+		69 text entry area (settable) 文档正文, Help: 随光标读取段落。用方向键或翻页键浏览。
+			70 container 水平标尺（只读）
+		71 button −
+		72 button 100%
+		73 button +
+	74 text * 未命名 1 — JoyWord
+	75 menu button Window sharing
+76 menu bar
+	77 JoyWord P1 Regression
+	78 文件
+	79 编辑
+	80 插入
+	81 视图
+
+The focused UI element is 0 standard window * 未命名 1 — JoyWord, Secondary Actions: Raise

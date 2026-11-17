@@ -682,13 +682,6 @@ impl JoyWord {
                 tr("符号", "Symbols"),
                 symbols,
             ))
-            .when(editing, |row| {
-                row.child(self.ribbon_centered_group(
-                    "insert-group-header-footer-editing",
-                    tr("页眉页脚编辑", "Header & Footer Editing"),
-                    self.header_footer_ribbon(cx),
-                ))
-            })
     }
 
     fn perform_insert(&mut self, action: InsertAction, w: &mut Window, cx: &mut Context<Self>) {
@@ -704,6 +697,14 @@ impl JoyWord {
                     }
                 }
                 self.run_format(command, &args, w, cx);
+                if let Some(o) = self.canvas.reader.as_ref().and_then(|r| r.object_info()) {
+                    self.tab = match o["kind"].as_str() {
+                        Some("shape") => 14,
+                        Some("smartArt") => 15,
+                        Some("chart") => 16,
+                        _ => self.tab,
+                    };
+                }
             }
             InsertAction::Picture => self.pick_picture(false, w, cx),
             InsertAction::Advanced(id, _) => self.advanced_action(id, w, cx),
@@ -712,6 +713,9 @@ impl JoyWord {
         }
     }
 
+    pub(super) fn insert_link_form(&mut self, w: &mut Window, cx: &mut Context<Self>) {
+        self.insert_form(InsertForm::Link, w, cx);
+    }
     fn insert_form(&mut self, form: InsertForm, w: &mut Window, cx: &mut Context<Self>) {
         let tr = |zh, en| self.shell.tr(zh, en);
         let (title, fields) = match form {

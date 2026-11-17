@@ -125,6 +125,7 @@ fn collect_glyph_run(
     Vec<(u32, f32, f32)>,
     String,
     Vec<std::ops::Range<usize>>,
+    Vec<u32>,
 ) {
     let (pl, para, line, x, base) = (ctx.pl, ctx.para, ctx.line, ctx.x, ctx.base);
     let si = style_index;
@@ -147,6 +148,7 @@ fn collect_glyph_run(
     let mut glyphs = Vec::with_capacity(n_glyphs);
     let mut text = String::with_capacity(n_bytes);
     let mut ranges: Vec<std::ops::Range<usize>> = Vec::with_capacity(n_glyphs);
+    let mut styles = Vec::with_capacity(n_glyphs);
     let symbol_font = joyword_model::symbol_fonts::is_symbol_font(&st.rc.font);
     while k < line.c1 {
         let Some(c) = pl.clusters.get(k) else { break };
@@ -217,6 +219,7 @@ fn collect_glyph_run(
                         }
                     };
                     glyphs.push((g.gid, cx + g.dx, base - st.shift - g.dy));
+                    styles.push(g.style);
                     ranges.push(r.start..r.end.max(r.start));
                 }
                 k += 1;
@@ -236,12 +239,13 @@ fn collect_glyph_run(
             }
             for g in cg {
                 glyphs.push((g.gid, cx + g.dx, base - st.shift - g.dy));
+                styles.push(g.style);
                 ranges.push(a..b);
             }
         }
         k += 1;
     }
-    (k, glyphs, text, ranges)
+    (k, glyphs, text, ranges, styles)
 }
 
 fn draw_glyph_runs(ctx: &LineContext<'_, '_, '_>, out: &mut Vec<Draw>) {
@@ -265,7 +269,8 @@ fn draw_glyph_runs(ctx: &LineContext<'_, '_, '_>, out: &mut Vec<Draw>) {
             continue;
         };
         let run_start = k;
-        let (run_end, mut glyphs, text, ranges) = collect_glyph_run(ctx, run_start, si, st);
+        let (run_end, mut glyphs, text, ranges, mut glyph_styles) =
+            collect_glyph_run(ctx, run_start, si, st);
         k = run_end;
         let rc = &st.rc;
         let m = &opts.revisions;
@@ -340,59 +345,89 @@ fn draw_glyph_runs(ctx: &LineContext<'_, '_, '_>, out: &mut Vec<Draw>) {
             continue;
         }
         if del_mark == Some(DeleteMark::Hash) {
+            glyph_styles.fill(si);
             // Each deleted character shows as #.
             let gid = st.face.glyph_for('#');
             for g in &mut glyphs {
                 g.0 = gid;
             }
         }
-        let synth_bold = st.synth_bold
-            || ins_mark == Some(InsertMark::Bold)
-            || del_mark == Some(DeleteMark::Bold);
-        let synth_italic = st.synth_italic
-            || ins_mark == Some(InsertMark::Italic)
-            || del_mark == Some(DeleteMark::Italic);
-        // Text effects draw the letters from their outlines; the glyphs stay, invisible, for
-        // the PDF's text. Not for colour glyphs (no outlines), top-to-bottom text with upright
-        // characters (their outlines would lie on their side), `#` deletion marks, or WordArt
-        // in revision colours.
-        let upright = down && text.chars().any(upright_in_vertical);
-        let art = (!upright
-            && !glyphs.is_empty()
-            && del_mark != Some(DeleteMark::Hash)
-            && (rc.text_effects.is_none() || ins.is_none() && del.is_none()))
-        .then(|| crate::wordart::run_effects(rc, color))
-        .flatten()
-        .filter(|_| !st.face.has_color_glyphs());
-        let has_art = art.is_some();
-        if let Some(mut fx) = art {
-            if synth_bold {
-                crate::wordart::embolden(&mut fx, color, st.size);
+        // Atomic results retain one caret/line-break cluster, but each glyph id belongs to
+        // the face that shaped it. Drawing all of them in the first face loses CJK glyphs.
+        let mut g0 = 0;
+        while g0 < glyphs.len() {
+            let style = glyph_styles[g0];
+            let g1 = (g0 + 1..glyphs.len())
+                .find(|&i| glyph_styles[i] != style)
+                .unwrap_or(glyphs.len());
+            let draw_st = pl.styles.get(style as usize).unwrap_or(st);
+            let draw_rc = &draw_st.rc;
+            let a = if g0 == 0 {
+                0
+            } else {
+                ranges[g0..g1].iter().map(|r| r.start).min().unwrap_or(0)
+            };
+            let b = if g1 == glyphs.len() {
+                text.len()
+            } else {
+                ranges[g0..g1].iter().map(|r| r.end).max().unwrap_or(a)
+            };
+            let part_text = text.get(a..b).unwrap_or_default().to_owned();
+            let part_glyphs: Vec<_> = glyphs[g0..g1]
+                .iter()
+                .map(|&(gid, x, y)| (gid, x, y + st.shift - draw_st.shift))
+                .collect();
+            let part_ranges = ranges[g0..g1]
+                .iter()
+                .map(|r| r.start.saturating_sub(a)..r.end.saturating_sub(a))
+                .collect();
+            let synth_bold = draw_st.synth_bold
+                || ins_mark == Some(InsertMark::Bold)
+                || del_mark == Some(DeleteMark::Bold);
+            let synth_italic = draw_st.synth_italic
+                || ins_mark == Some(InsertMark::Italic)
+                || del_mark == Some(DeleteMark::Italic);
+            let upright = down && part_text.chars().any(upright_in_vertical);
+            let art = (!upright
+                && del_mark != Some(DeleteMark::Hash)
+                && (draw_rc.text_effects.is_none() || ins.is_none() && del.is_none()))
+            .then(|| crate::wordart::run_effects(draw_rc, color))
+            .flatten()
+            .filter(|_| !draw_st.face.has_color_glyphs());
+            let has_art = art.is_some();
+            if let Some(mut fx) = art {
+                if synth_bold {
+                    crate::wordart::embolden(&mut fx, color, draw_st.size);
+                }
+                let path = crate::wordart::glyph_path(
+                    &draw_st.face,
+                    draw_st.size,
+                    &part_glyphs,
+                    synth_italic,
+                );
+                out.push(Draw::Art {
+                    path,
+                    fx: Box::new(fx),
+                    color,
+                    alpha,
+                    text_bg,
+                });
             }
-            let path = crate::wordart::glyph_path(&st.face, st.size, &glyphs, synth_italic);
-            out.push(Draw::Art {
-                path,
-                fx: Box::new(fx),
-                color,
-                alpha,
-                text_bg,
-            });
-        }
-        if !glyphs.is_empty() {
             out.push(Draw::Glyphs {
-                face: st.face,
-                size: st.size,
-                glyphs,
+                face: draw_st.face,
+                size: draw_st.size,
+                glyphs: part_glyphs,
                 color,
                 alpha: if has_art { 0.0 } else { alpha },
                 synth_bold,
                 synth_italic,
-                text,
+                text: part_text,
                 link: rc.link.clone(),
-                ranges,
+                ranges: part_ranges,
                 text_bg,
-                x_scale: rc.scale / 100.0,
+                x_scale: draw_rc.scale / 100.0,
             });
+            g0 = g1;
         }
         // Decorations across the run (underline skips trailing spaces of the line). Right-to-left
         // text inside a run can split it into several visual spans.

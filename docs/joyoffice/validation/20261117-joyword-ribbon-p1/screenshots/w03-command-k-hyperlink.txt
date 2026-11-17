@@ -1,0 +1,28 @@
+Window: "插入超链接", App: Microsoft Word.
+0 对话框 插入超链接, Secondary Actions: Raise
+	1 文本 要显示的文本:
+	2 按钮 屏幕提示...
+	3 按钮 (disabled) 确定
+	4 文本栏 (disabled) <<在文档中选定的内容>>
+	5 标签页组
+		6 标签 网页或文件, Value: 1
+		7 标签 此文档, Value: 0
+		8 标签 电子邮件地址, Value: 0
+		9 text 链接到现有文件或网页。 地址:
+		10 文本栏 (settable)
+		11 按钮 选择...
+	12 按钮 取消
+	13 文本 插入超链接
+14 menu bar
+	15 Word, ID: AppMenu_MenuItem
+	16 文件
+	17 编辑, ID: EditMenu_MenuItem
+	18 视图, ID: ViewMenu_MenuItem
+	19 插入
+	20 格式
+	21 工具
+	22 表格
+	23 窗口, ID: WindowMenu_MenuItem
+	24 帮助, ID: HelpMenu_MenuItem
+
+The focused UI element is 10 文本栏 (settable)

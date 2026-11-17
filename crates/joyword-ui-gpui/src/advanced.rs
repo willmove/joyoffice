@@ -6,6 +6,21 @@ use joyoffice_ui::IconName;
 use joyword_shell::advanced as core;
 use serde_json::{Value, json};
 
+fn run_desktop_copy(
+    job: core::OutputJob,
+    path: std::path::PathBuf,
+) -> Result<std::path::PathBuf, String> {
+    // Copy export verifies DOCX by importing it, like ordinary save. GCD workers on
+    // macOS have insufficient stack for that nested reader in a debug desktop build.
+    std::thread::Builder::new()
+        .name("joyword-desktop-copy".into())
+        .stack_size(8 * 1024 * 1024)
+        .spawn(move || job.publish(path))
+        .map_err(|e| format!("无法启动输出线程：{e}"))?
+        .join()
+        .map_err(|_| "输出线程未能完成，原文档保持不变".to_owned())?
+}
+
 #[derive(Default)]
 pub(super) struct Advanced {
     pub(super) pane: Option<&'static str>,
@@ -310,7 +325,13 @@ impl JoyWord {
                 .unwrap_or_default();
             panel = panel.child(div().text_size(px(11.)).child(format!(
                 "第 {} 条 / {} 条 · 预览 {}",
-                info["record"], info["records"], info["preview"]
+                info["record"],
+                info["records"],
+                if info["preview"].as_bool() == Some(true) {
+                    "开启"
+                } else {
+                    "关闭"
+                }
             )));
         }
         if pane == "收件人" {
@@ -414,7 +435,7 @@ impl JoyWord {
                 return;
             }
             "merge-list" => {
-                self.open_advanced("收件人", cx);
+                self.recipient_grid(false, w, cx);
                 return;
             }
             "macro-list" => {
@@ -671,6 +692,64 @@ impl JoyWord {
             cx.notify();
             return;
         }
+        let mut fields: Vec<super::forms::Field> = fields.into_iter().map(Into::into).collect();
+        use super::forms::Field;
+        match id {
+            "general-options" => {
+                fields[1] = Field::choice(
+                    "度量单位",
+                    fields[1].value.clone(),
+                    &[
+                        ("centimeters", "厘米"),
+                        ("millimeters", "毫米"),
+                        ("inches", "英寸"),
+                        ("points", "磅"),
+                    ],
+                )
+            }
+            "merge-start" => {
+                fields[0] = Field::choice(
+                    "文档类型",
+                    fields[0].value.clone(),
+                    &[
+                        ("letters", "信函"),
+                        ("emails", "电子邮件"),
+                        ("envelopes", "信封"),
+                        ("labels", "标签"),
+                        ("directory", "目录"),
+                        ("normal", "普通文档"),
+                    ],
+                )
+            }
+            "merge-finish" => {
+                fields[0] = Field::choice(
+                    "合并记录",
+                    fields[0].value.clone(),
+                    &[("all", "全部记录"), ("current", "当前记录")],
+                )
+            }
+            "merge-field" | "merge-filter" | "merge-sort" => {
+                let mut choices = vec![("".to_owned(), "未选择".to_owned())];
+                if let Some(r) = self.canvas.reader.as_ref() {
+                    choices.extend(
+                        r.engine()
+                            .merge
+                            .headers
+                            .iter()
+                            .map(|h| (h.clone(), h.clone())),
+                    );
+                }
+                fields[0] = Field::choice(
+                    "收件人字段",
+                    fields[0].value.clone(),
+                    &choices
+                        .iter()
+                        .map(|(v, t)| (v.as_str(), t.as_str()))
+                        .collect::<Vec<_>>(),
+                );
+            }
+            _ => {}
+        }
         self.fields_action(
             title,
             cmd,
@@ -683,7 +762,7 @@ impl JoyWord {
                 Ok(match id {
                     "general-options" => {
                         if joyword_shell::prefs::Units::parse(v[1].trim()).is_none() {
-                            return Err("请选择 centimeters / millimeters / inches / points".into());
+                            return Err("请选择厘米、毫米、英寸或磅".into());
                         }
                         json!({"author":required(v,0)?,"units":v[1].trim()})
                     }
@@ -997,7 +1076,7 @@ impl JoyWord {
             }
             let result = cx
                 .background_executor()
-                .spawn(async move { job.publish(path) })
+                .spawn(async move { run_desktop_copy(job, path) })
                 .await;
             let _ = view.update(cx, |v, cx| {
                 v.shell.notice = Some(match result {
@@ -1016,6 +1095,44 @@ mod tests {
     use super::*;
     use gpui::TestAppContext;
     use std::sync::atomic::AtomicBool;
+    #[test]
+    fn merging_from_small_desktop_worker_verifies_copy_and_keeps_template() -> Result<(), String> {
+        let mut r = joyword_shell::reader::Reader::blank(&AtomicBool::new(false))?;
+        r.execute(
+            "mailings.recipients",
+            &json!({"rows":[{"客户":"张三, QA"},{"客户":"Alice"}]}),
+        )?;
+        r.execute("mailings.insertField", &json!({"field":"客户"}))?;
+        let before = r.body_text();
+        let depth = r.engine().undo_depth();
+        let directory = std::env::temp_dir().join(format!(
+            "joyword-merge-worker-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map_err(|e| e.to_string())?
+                .as_nanos()
+        ));
+        std::fs::create_dir(&directory).map_err(|e| e.to_string())?;
+        let path = directory.join("merged.docx");
+        let job = r.merge_job(false)?;
+        let output = std::thread::Builder::new()
+            .stack_size(512 * 1024)
+            .spawn(move || run_desktop_copy(job, path))
+            .map_err(|e| e.to_string())?
+            .join()
+            .map_err(|_| "小栈调用线程失败".to_string())??;
+        let back = joyword_shell::reader::Reader::open(&output, &AtomicBool::new(false))?;
+        assert!(back.body_text().contains("张三, QA") && back.body_text().contains("Alice"));
+        assert_eq!(r.body_text(), before);
+        assert_eq!(r.engine().undo_depth(), depth);
+        let bytes = std::fs::read(&output).map_err(|e| e.to_string())?;
+        assert!(run_desktop_copy(r.merge_job(false)?, output.clone()).is_err());
+        assert_eq!(std::fs::read(&output).map_err(|e| e.to_string())?, bytes);
+        drop(back);
+        std::fs::remove_dir_all(directory).map_err(|e| e.to_string())?;
+        Ok(())
+    }
     #[gpui::test]
     fn real_kit_root_routes_review_and_refreshes_pure_macro_queries(cx: &mut TestAppContext) {
         cx.update(gpui_kit::init);

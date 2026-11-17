@@ -442,6 +442,7 @@ impl<'a> Builder<'a> {
                     }
                     self.glyphs.push(Glyph {
                         gid: g.gid,
+                        style: si,
                         dx: adv + g.x_offset as f32 * k * hscale,
                         dy: g.y_offset as f32 * k,
                     });

@@ -1,0 +1,127 @@
+{
+  "branch": "fix/joyword-ribbon-p1-parity",
+  "base": "eb551e36622c32feaebcdb029d1b06abb26aea26",
+  "finalBinarySha256": "e7423612e743fd2119320e165f736d30f31f0ee7674ff350dbaf81037f24857d",
+  "files": [
+    {
+      "file": "crates/joyword-engine/src/cmd/format.rs",
+      "sha256": "4291b7eddbf804176231ba050b1425aff4ae46e921947baee94bd44e29575784"
+    },
+    {
+      "file": "crates/joyword-engine/src/cmd/mailings.rs",
+      "sha256": "a1edf8e2a0b584e14f9ff2d1c268425b8781fcd8f27e0346874468dee5e776e7"
+    },
+    {
+      "file": "crates/joyword-engine/src/cmd/mailings/merge.rs",
+      "sha256": "c6d03b3a55ca0f064943f1934dfa08efb52e80355bc5a1d7e13c17636879cb06"
+    },
+    {
+      "file": "crates/joyword-engine/src/cmd/mailings/recipients.rs",
+      "sha256": "14484495f7e7f9396848c1bb63709493539aa941fdf98ba4b5ec8e265ef39a92"
+    },
+    {
+      "file": "crates/joyword-engine/src/cmd/mailings/tests.rs",
+      "sha256": "13d3351ac39709ca7731e6081f3a00aa1fadec31e2578bdba0344c235be9432e"
+    },
+    {
+      "file": "crates/joyword-engine/src/cmd/objects/shape.rs",
+      "sha256": "b39af2bfe5dbb369668543c9b30642495e67549b6b905442d77c8207181dd19d"
+    },
+    {
+      "file": "crates/joyword-engine/src/cmd/objects/specs.rs",
+      "sha256": "7c04c45ef341307c7177c88bb8147a68b5a3caeb3e36ccdd1c890e3c05c34d63"
+    },
+    {
+      "file": "crates/joyword-engine/src/cmd/objects/tests.rs",
+      "sha256": "ca3ed5c288b8047b969867d42b949cfd5b07d7de5450bebf0266a0e69f55a8ea"
+    },
+    {
+      "file": "crates/joyword-layout/src/display/lines.rs",
+      "sha256": "fe2e612c41c2ee2b97d9782b618a3891c20af9deec1a8ce4ff8c51f2dce8178e"
+    },
+    {
+      "file": "crates/joyword-layout/src/para/builder.rs",
+      "sha256": "b94eaec2d81951572b9fd8d158f5351757b96b6fd8b01dabc324fe279dcf8eda"
+    },
+    {
+      "file": "crates/joyword-layout/src/para/model.rs",
+      "sha256": "a80ff5fafc9c9963235fa5c16d8a2f99e2abff96dff8c3dca9f3140356a0a179"
+    },
+    {
+      "file": "crates/joyword-layout/src/tests.rs",
+      "sha256": "bae488258d73f5e18011d8ac8e711858ea0d58217dc9f18ec2a05f3c9eba593b"
+    },
+    {
+      "file": "crates/joyword-shell/src/advanced.rs",
+      "sha256": "0cc0d3409806cab90dbd884a9084bef71a1968e4e97122ba5c770926248b96bd"
+    },
+    {
+      "file": "crates/joyword-shell/src/authoring.rs",
+      "sha256": "ba5580dff1f327f12dae441681617de0a3d18ee4288c328fb01d1e10ed44bb72"
+    },
+    {
+      "file": "crates/joyword-shell/src/formatting.rs",
+      "sha256": "1a034e5e6aa627afe1085dd0589c3863574f4eb7925de2594bb8e4cfe4f4a652"
+    },
+    {
+      "file": "crates/joyword-ui-gpui/src/advanced.rs",
+      "sha256": "3dcb1968e773619ad3a61ff7d20257b9364f13dd51fd175e750cd434d7a31dce"
+    },
+    {
+      "file": "crates/joyword-ui-gpui/src/contextual_ribbon.rs",
+      "sha256": "129317f82c18f12d4ce92ac5511e51e056f44aed6e10621f5d280cf761f785b0"
+    },
+    {
+      "file": "crates/joyword-ui-gpui/src/formatting.rs",
+      "sha256": "09e6ec60b116887c6ddf07057640ba75443bb380a79b0fb76aca68253a20b93f"
+    },
+    {
+      "file": "crates/joyword-ui-gpui/src/forms.rs",
+      "sha256": "7d36baf997478bb70fb8ea4123ac3bd2cecefc8ec6541ea8ef730ea7bde4ffed"
+    },
+    {
+      "file": "crates/joyword-ui-gpui/src/gestures.rs",
+      "sha256": "1b7a36a4d3ba64e70b8e9e10ac07d865c884ff738031282121f23e714e7d0cb4"
+    },
+    {
+      "file": "crates/joyword-ui-gpui/src/header_footer.rs",
+      "sha256": "c0e80433f942645015a433d5417a93eb8e05f0049fed5f7750bb777d3989eef2"
+    },
+    {
+      "file": "crates/joyword-ui-gpui/src/home_ribbon.rs",
+      "sha256": "ac109e5bbfbcadbf6363e9755a04189af3bd560ff370fdffdde81e487a31b6de"
+    },
+    {
+      "file": "crates/joyword-ui-gpui/src/input.rs",
+      "sha256": "ace0dc51ae02065463682afd787fce4c945487354b5bacb9146ee5c630447ae6"
+    },
+    {
+      "file": "crates/joyword-ui-gpui/src/insert.rs",
+      "sha256": "9168d6c76d5aaefd4ea261b0ff9a8cfdb5769b28ad5ddd7e03043e51cd6eb579"
+    },
+    {
+      "file": "crates/joyword-ui-gpui/src/lib.rs",
+      "sha256": "93c08a34027c8b4d0f54e8b76826d77e65a90340e7c2d45a031e666251abed26"
+    },
+    {
+      "file": "crates/joyword-ui-gpui/src/mailings_ribbon.rs",
+      "sha256": "4805192c5092ad966d1582477545230bb247990651247af7572aa0ab5925ea02"
+    },
+    {
+      "file": "crates/joyword-ui-gpui/src/objects.rs",
+      "sha256": "0cd7bf6f40afbff1d4d92c4e9df15d5bc561f6180deb9d3174e7c0db0d6419d4"
+    },
+    {
+      "file": "crates/joyword-ui-gpui/src/ribbon.rs",
+      "sha256": "8395f0dc05399652897f19d6bf8ab1df7e04021790eefa7b67c87b6274af16b5"
+    },
+    {
+      "file": "crates/joyword-ui-gpui/src/data_grid.rs",
+      "sha256": "87a335856bdd59e538618cd3a5d5fdb93b1cea708ea47d16394997f78d190fa5"
+    },
+    {
+      "file": "crates/joyword-ui-gpui/src/object_ribbon.rs",
+      "sha256": "440d707cacee52ffdaab0721d5805cd34f4cdab2cdf98e5f96c48c6889c280fe"
+    }
+  ]
+}

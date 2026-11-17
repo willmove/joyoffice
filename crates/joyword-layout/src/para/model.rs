@@ -115,6 +115,8 @@ impl StyleRun {
 #[derive(Clone, Copy, Debug)]
 pub struct Glyph {
     pub gid: u32,
+    /// The style that shaped this glyph. Atomic fields can contain several fallback faces.
+    pub style: u32,
     /// Offset from the cluster's x, points.
     pub dx: f32,
     pub dy: f32,

@@ -17,6 +17,9 @@ use super::{
 
 pub fn specs() -> Vec<CommandSpec> {
     vec![
+        CommandSpec::new("shape.text", "Edit Text", "Shape Format › Text", super::shape::shape_text)
+            .params(r#"{"text": string} (plain unlinked shape text; one undo step)"#)
+            .when(has_shape),
         CommandSpec::new("picture.size", "Size", "Picture Format › Size", size)
             .params(
                 r#"{"width"?: pt, "height"?: pt, "lockAspect"?: bool, "scale"?: percent, "original"?: bool} (scale: of the current size, or with original of the picture's original size, its pixels at 96 ppi less what is cropped; original alone restores that size; one side alone keeps the proportions unless lockAspect is false; 1–4000 pt: when the proportions are kept, a side past 4000 pt shrinks the other with it)"#,

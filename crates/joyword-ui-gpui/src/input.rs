@@ -267,6 +267,14 @@ impl JoyWord {
         }
         let key = &event.keystroke.key;
         let mods = event.keystroke.modifiers;
+        if key == "escape" && self.crop_mode {
+            self.crop_mode = false;
+            self.gesture = None;
+            self.dragging = false;
+            cx.notify();
+            cx.stop_propagation();
+            return;
+        }
         if self.gesture.is_some() {
             if key == "escape" {
                 self.gesture = None;

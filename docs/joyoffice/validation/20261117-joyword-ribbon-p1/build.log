@@ -1,0 +1,6 @@
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.20s
+     Running `target/debug/joyoffice-xtask build joyword`
++ cargo build -p joyword -p joyword-cli --locked
+   Compiling joyword-ui-gpui v0.2.0 (/Users/willm/Coding/joyoffice/crates/joyword-ui-gpui)
+   Compiling joyword v0.2.0 (/Users/willm/Coding/joyoffice/apps/joyword)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 3.06s

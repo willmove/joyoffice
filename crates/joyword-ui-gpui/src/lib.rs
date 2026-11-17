@@ -7,6 +7,7 @@ mod clipboard;
 mod command_search;
 mod contextual_ribbon;
 mod control;
+mod data_grid;
 mod design_ribbon;
 mod document_view;
 mod draw_ribbon;
@@ -22,6 +23,7 @@ mod input;
 mod insert;
 mod layout_ribbon;
 mod mailings_ribbon;
+mod object_ribbon;
 mod objects;
 mod page_index;
 mod page_setup;
@@ -50,10 +52,19 @@ use gpui_kit as gpui;
 use joyoffice_ui::{Brand, Palette, metrics};
 use joyword_shell::Shell;
 
+fn platform_shortcut(label: &str) -> String {
+    if cfg!(target_os = "macos") {
+        label.replace("Ctrl+", "⌘")
+    } else {
+        label.to_owned()
+    }
+}
+
 actions!(
     joyword,
     [
         SearchCommands,
+        InsertLink,
         FindDocument,
         ReplaceDocument,
         GoToPage,
@@ -83,6 +94,7 @@ struct JoyWord {
     shell: Shell,
     focus: FocusHandle,
     scroll: ScrollHandle,
+    ribbon_scroll: ScrollHandle,
     tab: usize,
     ribbon_collapsed: bool,
     developer_visible: bool,
@@ -122,6 +134,7 @@ struct JoyWord {
     asset_task: Option<gpui::Task<()>>,
     asset_epoch: u64,
     gesture: Option<gestures::Gesture>,
+    crop_mode: bool,
     advanced: advanced::Advanced,
     layout: layout_ribbon::LayoutControls,
 }
@@ -170,6 +183,7 @@ impl JoyWord {
             shell,
             focus,
             scroll: ScrollHandle::new(),
+            ribbon_scroll: ScrollHandle::new(),
             tab: 0,
             ribbon_collapsed: false,
             developer_visible: false,
@@ -208,6 +222,7 @@ impl JoyWord {
             asset_task: None,
             asset_epoch: 0,
             gesture: None,
+            crop_mode: false,
             advanced: advanced::Advanced::default(),
             layout,
         }
@@ -429,7 +444,11 @@ impl JoyWord {
                     .text_color(rgb(p.muted))
                     .cursor_pointer()
                     .focus(move |s| s.border_color(rgb(p.accent)))
-                    .child(tr("搜索命令   Ctrl+K", "Search commands   Ctrl+K"))
+                    .child(if cfg!(target_os = "macos") {
+                        tr("搜索命令   ⌘⇧P", "Search commands   ⌘⇧P")
+                    } else {
+                        tr("搜索命令   Ctrl+K", "Search commands   Ctrl+K")
+                    })
                     .on_click(cx.listener(|v, _, w, cx| v.open_command_search(w, cx)))
                     .on_key_down(cx.listener(|v, e: &gpui::KeyDownEvent, w, cx| {
                         if matches!(e.keystroke.key.as_str(), "enter" | "space") {
@@ -465,6 +484,9 @@ impl JoyWord {
             (Some(7), "图片格式", "Picture Format"),
             (Some(13), "表设计", "Table Design"),
             (Some(6), "表布局", "Table Layout"),
+            (Some(14), "形状格式", "Shape Format"),
+            (Some(15), "SmartArt设计", "SmartArt Design"),
+            (Some(16), "图表设计", "Chart Design"),
         ];
         let tab_row = div()
             .id("ribbon-tabs")
@@ -492,6 +514,7 @@ impl JoyWord {
                         let activate =
                             move |v: &mut JoyWord, w: &mut Window, cx: &mut Context<Self>| {
                                 v.ribbon_collapsed = false;
+                                v.ribbon_scroll.set_offset(gpui::point(px(0.), px(0.)));
                                 if let Some(index) = index {
                                     v.tab = index;
                                     v.file_page = false;
@@ -550,13 +573,25 @@ impl JoyWord {
                         joyoffice_ui::IconName::ChevronUp
                     })
                     .accessibility_label(tr("折叠或展开功能区", "Collapse or Expand Ribbon"))
-                    .tooltip("Ctrl+F1")
+                    .tooltip(platform_shortcut("Ctrl+F1"))
                     .on_click(cx.listener(|v, _, _, cx| {
                         v.ribbon_collapsed = !v.ribbon_collapsed;
                         cx.notify();
                     })),
             );
-        let ribbon = div().flex().flex_col().flex_shrink_0().child(tab_row);
+        let editing_header = self
+            .canvas
+            .reader
+            .as_ref()
+            .is_some_and(|r| r.engine().in_header_footer());
+        let ribbon = div()
+            .flex()
+            .flex_col()
+            .flex_shrink_0()
+            .child(tab_row)
+            .when(editing_header && !self.file_page, |ribbon| {
+                ribbon.child(self.header_footer_ribbon(cx))
+            });
         if self.ribbon_collapsed || self.file_page {
             return ribbon;
         }
@@ -565,6 +600,9 @@ impl JoyWord {
             .flex()
             .items_center()
             .overflow_x_scroll()
+            .track_scroll(&self.ribbon_scroll)
+            .flex_1()
+            .min_w_0()
             .h(px(100.0))
             .flex_shrink_0()
             .bg(rgb(p.surface))
@@ -592,9 +630,52 @@ impl JoyWord {
             13 => groups.child(self.table_design_ribbon(cx)),
             6 => groups.child(self.table_tools(cx)),
             7 => groups.child(self.picture_tools(cx)),
+            14..=16 => groups.child(self.object_ribbon(cx)),
             _ => groups,
         };
-        ribbon.child(groups)
+        let offset = self.ribbon_scroll.offset().x;
+        let max = self.ribbon_scroll.max_offset().x;
+        ribbon.child(
+            div()
+                .flex()
+                .w_full()
+                .min_w_0()
+                .child(
+                    Button::new("ribbon-scroll-left")
+                        .ghost()
+                        .w(px(20.))
+                        .h(px(100.))
+                        .px_0()
+                        .label("‹")
+                        .accessibility_label("向左滚动功能区")
+                        .disabled(offset >= px(-1.))
+                        .on_click(cx.listener(|v, _, _, cx| {
+                            let p = v.ribbon_scroll.offset();
+                            v.ribbon_scroll
+                                .set_offset(gpui::point((p.x + px(280.)).min(px(0.)), p.y));
+                            cx.notify();
+                        })),
+                )
+                .child(groups)
+                .child(
+                    Button::new("ribbon-scroll-right")
+                        .ghost()
+                        .w(px(20.))
+                        .h(px(100.))
+                        .px_0()
+                        .label("›")
+                        .accessibility_label("向右滚动功能区")
+                        .disabled(-offset >= max - px(1.))
+                        .on_click(cx.listener(|v, _, _, cx| {
+                            let p = v.ribbon_scroll.offset();
+                            v.ribbon_scroll.set_offset(gpui::point(
+                                (p.x - px(280.)).max(-v.ribbon_scroll.max_offset().x),
+                                p.y,
+                            ));
+                            cx.notify();
+                        })),
+                ),
+        )
     }
 }
 
@@ -646,6 +727,7 @@ impl Render for JoyWord {
                 }
             }))
             .on_action(cx.listener(|v, _: &SearchCommands, w, cx| v.open_command_search(w, cx)))
+            .on_action(cx.listener(|v, _: &InsertLink, w, cx| v.insert_link_form(w, cx)))
             .on_action(cx.listener(|v, _: &ToggleRibbon, _, cx| {
                 v.ribbon_collapsed = !v.ribbon_collapsed;
                 cx.notify();
@@ -717,6 +799,34 @@ impl Render for JoyWord {
                 el.child(self.header(cx)).child(self.ribbon(cx))
             })
             .when(self.view_focus(), |el| el.child(self.focus_bar(cx)));
+        if !self.file_page_visible()
+            && self.crop_mode
+            && self
+                .canvas
+                .reader
+                .as_ref()
+                .is_some_and(|r| r.picture_info().is_some())
+        {
+            content = content.child(
+                div()
+                    .px_4()
+                    .py_1()
+                    .bg(rgb(p.selected))
+                    .flex()
+                    .flex_wrap()
+                    .items_center()
+                    .gap_2()
+                    .child("拖动图片边缘的黑色裁剪把手；松开应用，Esc 结束。")
+                    .child(
+                        Button::new("finish-picture-crop")
+                            .label("完成裁剪")
+                            .on_click(cx.listener(|v, _, _, cx| {
+                                v.crop_mode = false;
+                                cx.notify();
+                            })),
+                    ),
+            );
+        }
         if !self.file_page_visible()
             && self
                 .canvas
@@ -959,29 +1069,58 @@ pub fn run() {
                 KeyBinding::new("cmd-v", Paste, Some("JoyWord")),
                 KeyBinding::new("ctrl-k", SearchCommands, Some("JoyWord")),
                 KeyBinding::new("ctrl-f1", ToggleRibbon, Some("JoyWord")),
-                KeyBinding::new("cmd-k", SearchCommands, Some("JoyWord")),
+                KeyBinding::new("cmd-shift-p", SearchCommands, Some("JoyWord")),
+                KeyBinding::new("cmd-k", InsertLink, Some("JoyWordEditor")),
+                KeyBinding::new("cmd-f1", ToggleRibbon, Some("JoyWord")),
                 KeyBinding::new("ctrl-n", NewDocument, Some("JoyWord")),
                 KeyBinding::new("ctrl-o", OpenDocument, Some("JoyWord")),
                 KeyBinding::new("cmd-o", OpenDocument, Some("JoyWord")),
                 KeyBinding::new("cmd-n", NewDocument, Some("JoyWord")),
+                KeyBinding::new("cmd-q", Quit, Some("JoyWord")),
                 KeyBinding::new("ctrl-=", ZoomIn, Some("JoyWord")),
                 KeyBinding::new("ctrl--", ZoomOut, Some("JoyWord")),
                 KeyBinding::new("ctrl-0", ZoomReset, Some("JoyWord")),
             ]);
             cx.set_menus(vec![
+                #[cfg(target_os = "macos")]
                 Menu {
-                    name: "File".into(),
+                    name: "JoyWord".into(),
+                    disabled: false,
+                    items: vec![MenuItem::action("退出 JoyWord", Quit)],
+                },
+                Menu {
+                    name: "文件".into(),
                     disabled: false,
                     items: vec![
-                        MenuItem::action("New", NewDocument),
-                        MenuItem::action("Open DOCX", OpenDocument),
-                        MenuItem::action("Save", SaveDocument),
-                        MenuItem::action("Save As", SaveAsDocument),
-                        MenuItem::action("Quit", Quit),
+                        MenuItem::action("新建", NewDocument),
+                        MenuItem::action("打开 DOCX…", OpenDocument),
+                        MenuItem::action("保存", SaveDocument),
+                        MenuItem::action("另存为…", SaveAsDocument),
+                        #[cfg(not(target_os = "macos"))]
+                        MenuItem::action("退出", Quit),
                     ],
                 },
                 Menu {
-                    name: "View".into(),
+                    name: "编辑".into(),
+                    disabled: false,
+                    items: vec![
+                        MenuItem::action("撤销", Undo),
+                        MenuItem::action("重做", Redo),
+                        MenuItem::separator(),
+                        MenuItem::action("剪切", Cut),
+                        MenuItem::action("复制", Copy),
+                        MenuItem::action("粘贴", Paste),
+                        MenuItem::action("全选", SelectAll),
+                        MenuItem::action("查找…", FindDocument),
+                    ],
+                },
+                Menu {
+                    name: "插入".into(),
+                    disabled: false,
+                    items: vec![MenuItem::action("超链接…", InsertLink)],
+                },
+                Menu {
+                    name: "视图".into(),
                     disabled: false,
                     items: vec![
                         MenuItem::action("Zoom In", ZoomIn),

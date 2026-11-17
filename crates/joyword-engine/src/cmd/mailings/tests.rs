@@ -1,6 +1,71 @@
 use super::*;
 
 #[test]
+fn address_matching_is_editable_atomic_and_used_by_preview_and_merge() {
+    let mut s = Session::new(Document::new());
+    s.run(
+        "mailings.recipients",
+        &json!({"rows":[{"客户":"张三","城市":"上海"},{"客户":"Alice","城市":"London"}]}),
+    )
+    .unwrap();
+    s.run(
+        "mailings.matchFields",
+        &json!({"mapping":{"firstName":"客户","city":"城市"}}),
+    )
+    .unwrap();
+    let mapping = s.merge.address_fields.clone();
+    assert!(
+        s.run(
+            "mailings.matchFields",
+            &json!({"mapping":{"firstName":"城市","city":"Missing"}})
+        )
+        .is_err()
+    );
+    assert_eq!(s.merge.address_fields, mapping);
+    s.run("mailings.greetingLine", &json!({})).unwrap();
+    s.run("mailings.preview", &json!({"value":true})).unwrap();
+    assert!(s.doc.plain_text(StoryRef::Body).contains("张三"));
+    s.run("mailings.next", &json!({})).unwrap();
+    assert!(s.doc.plain_text(StoryRef::Body).contains("Alice"));
+    s.run("mailings.finish", &json!({})).unwrap();
+    let text = s.doc.plain_text(StoryRef::Body);
+    assert!(text.contains("张三") && text.contains("Alice"));
+}
+
+#[test]
+fn matching_chinese_names_and_explicit_unmatching_survives_list_edits() {
+    let mut s = Session::new(Document::new());
+    s.run(
+        "mailings.recipients",
+        &json!({"rows":[{"姓名":"张三","城市":"上海"}]}),
+    )
+    .unwrap();
+    assert_eq!(
+        s.run("mailings.matchFields", &json!({})).unwrap()["address"]["firstName"],
+        "姓名"
+    );
+    s.run(
+        "mailings.matchFields",
+        &json!({"mapping":{"firstName":null,"city":"城市"}}),
+    )
+    .unwrap();
+    s.run(
+        "mailings.editRecipients",
+        &json!({"fields":["姓名","城市"],"rows":[["Alice","London"]]}),
+    )
+    .unwrap();
+    let result = s.run("mailings.matchFields", &json!({})).unwrap();
+    assert!(result["address"]["firstName"].is_null());
+    assert_eq!(result["address"]["city"], "城市");
+    s.run(
+        "mailings.editRecipients",
+        &json!({"fields":["姓名"],"rows":[["Alice"]]}),
+    )
+    .unwrap();
+    assert!(!s.merge.address_fields.contains_key("city"));
+}
+
+#[test]
 fn csv_parsing() {
     let r = parse_csv("Name,City\n\"Smith, Ann\",Paris\r\nBo,\"Oslo \"\"N\"\"\"\n\n");
     assert_eq!(

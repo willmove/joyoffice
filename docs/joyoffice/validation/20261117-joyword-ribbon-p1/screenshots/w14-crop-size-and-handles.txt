@@ -1,0 +1,133 @@
+Window: "joyword-p1-cropped-image", App: Microsoft Word.
+0 标准窗口 joyword-p1-cropped-image, Secondary Actions: Raise, URL: file:///Users/willm/Coding/joyoffice/docs/joyoffice/validation/20261117-joyword-ribbon-p1/fixtures/joyword-p1-cropped-image.docx
+	1 分离组
+		2 分离组
+			3 分离组 Document Pane
+				4 滚动区 Secondary Actions: Scroll Left, Scroll Right, Scroll Up, Scroll Down
+					5 (disabled) joyword-p1-cropped-image
+						6 container
+							7 图像 (disabled) Picture 1，嵌入型
+							8 文本输入区 (disabled, settable) Description: 页面 1 内容, Value: [图像: Picture 1，嵌入型]
+					9 滚动条 (disabled, settable, float) 0
+						10 值指示器 (disabled, settable, float) 0
+					11 滚动条 (disabled, settable, float) 0
+						12 值指示器 (disabled, settable, float) 0
+		13 分离器 (disabled, settable, float) 1729
+	14 标签页组 Description: 功能区, Details: 图片格式
+		15 滚动区 图片格式 选项卡命令
+			16 container
+				17 开关按钮 删除背景, Value: off
+				18 菜单按钮 更正, Value: 0
+				19 菜单按钮 颜色, Value: 0
+				20 菜单按钮 艺术效果, Value: 0
+				21 菜单按钮 透明度, Value: 0
+				22 按钮 压缩图片
+				23 菜单按钮 更改图片, Value: 0
+				24 菜单按钮 重置图片, Help: 有关更多选项，请按 Control-Option-Shift-M。, Value: 0
+			25 container
+				26 菜单按钮 显示更多项目
+				27 库 Description: 快速样式, Help: 库
+					28 按钮 Description: 简单框架，白色, Value: 0, ID: in_ribbon_gallery_PictureStylesGallery_Control_0_0
+					29 按钮 Description: 棱台亚光，白色, Value: 0, ID: in_ribbon_gallery_PictureStylesGallery_Control_0_1
+					30 按钮 Description: 金属框架, Value: 0, ID: in_ribbon_gallery_PictureStylesGallery_Control_0_2
+					31 按钮 Description: 矩形投影, Value: 0, ID: in_ribbon_gallery_PictureStylesGallery_Control_0_3
+					32 按钮 Description: 映像圆角矩形, Value: 0, ID: in_ribbon_gallery_PictureStylesGallery_Control_0_4
+					33 按钮 Description: 柔化边缘矩形, Value: 0, ID: in_ribbon_gallery_PictureStylesGallery_Control_0_5
+					34 按钮 Description: 双框架，黑色, Value: 0, ID: in_ribbon_gallery_PictureStylesGallery_Control_0_6
+					35 按钮 Description: 厚重亚光，黑色, Value: 0, ID: in_ribbon_gallery_PictureStylesGallery_Control_0_7
+					36 按钮 Description: 简单框架，黑色, Value: 0, ID: in_ribbon_gallery_PictureStylesGallery_Control_0_8
+					37 按钮 Description: 棱台形椭圆，黑色, Value: 0, ID: in_ribbon_gallery_PictureStylesGallery_Control_0_9
+					38 按钮 Description: 复杂框架，黑色, Value: 0, ID: in_ribbon_gallery_PictureStylesGallery_Control_0_10
+					39 按钮 Description: 中等复杂框架，黑色, Value: 0, ID: in_ribbon_gallery_PictureStylesGallery_Control_0_11
+					40 按钮 Description: 居中矩形阴影, Value: 0, ID: in_ribbon_gallery_PictureStylesGallery_Control_0_12
+					41 按钮 Description: 圆形对角，白色, Value: 0, ID: in_ribbon_gallery_PictureStylesGallery_Control_0_13
+					42 按钮 Description: 剪裁对角线，白色, Value: 0, ID: in_ribbon_gallery_PictureStylesGallery_Control_0_14
+					43 按钮 Description: 中等复杂框架，白色, Value: 0, ID: in_ribbon_gallery_PictureStylesGallery_Control_0_15
+					44 按钮 Description: 旋转，白色, Value: 0, ID: in_ribbon_gallery_PictureStylesGallery_Control_0_16
+					45 按钮 Description: 透视阴影，白色, Value: 0, ID: in_ribbon_gallery_PictureStylesGallery_Control_0_17
+					46 按钮 Description: 松散透视，白色, Value: 0, ID: in_ribbon_gallery_PictureStylesGallery_Control_0_18
+					47 按钮 Description: 柔化边缘椭圆, Value: 0, ID: in_ribbon_gallery_PictureStylesGallery_Control_0_19
+					48 按钮 Description: 棱台矩形, Value: 0, ID: in_ribbon_gallery_PictureStylesGallery_Control_0_20
+					49 按钮 Description: 棱台透视, Value: 0, ID: in_ribbon_gallery_PictureStylesGallery_Control_0_21
+					50 按钮 Description: 映像右透视, Value: 0, ID: in_ribbon_gallery_PictureStylesGallery_Control_0_22
+					51 按钮 Description: 棱台左透视，白色, Value: 0, ID: in_ribbon_gallery_PictureStylesGallery_Control_0_23
+					52 按钮 Description: 映像棱台，黑色, Value: 0, ID: in_ribbon_gallery_PictureStylesGallery_Control_0_24
+					53 按钮 Description: 映像棱台，白色, Value: 0, ID: in_ribbon_gallery_PictureStylesGallery_Control_0_25
+					54 按钮 Description: 金属圆角矩形, Value: 0, ID: in_ribbon_gallery_PictureStylesGallery_Control_0_26
+					55 按钮 Description: 金属椭圆, Value: 0, ID: in_ribbon_gallery_PictureStylesGallery_Control_0_27
+				56 菜单按钮 图片边框, Help: 有关更多选项，请按 Control-Option-Shift-M。, Value: 深青, 个性色 1
+				57 菜单按钮 图片效果, Value: 0
+				58 菜单按钮 图片布局, Value: 0
+			59 开关按钮 替换文本, Help: 显示替换文字窗格, Value: off
+			60 container
+				61 菜单按钮 位置, Help: 放置对象, Value: 0
+				62 菜单按钮 自动换行, Value: 0
+				63 菜单按钮 (disabled) 前移一层, Help: 有关更多选项，请按 Control-Option-Shift-M。, Value: 0
+				64 菜单按钮 (disabled) 后移一层, Help: 有关更多选项，请按 Control-Option-Shift-M。, Value: 0
+				65 开关按钮 选择窗格, Help: 显示选择窗格, Value: off
+				66 菜单按钮 对齐, Help: 对齐对象, Value: 0
+				67 菜单按钮 (disabled) 组合, Help: 组合对象, Value: 0
+				68 菜单按钮 旋转, Help: 旋转对象, Value: 0
+			69 container
+				70 菜单按钮 裁剪, Help: 有关更多选项，请按 Control-Option-Shift-M。, Value: 1
+				71 步进器 (settable) Description: 高度:, Value: 5 厘米, Secondary Actions: Confirm
+				72 步进器 (settable) Description: 宽度:, Value: 7.49 厘米, Secondary Actions: Confirm
+				73 复选框 锁定纵横比, Value: 0
+			74 按钮 格式窗格, Help: 显示格式窗格
+		75 选项卡 开始, Value: 0
+		76 选项卡 插入
+		77 选项卡 绘图
+		78 选项卡 设计
+		79 选项卡 布局
+		80 选项卡 引用
+		81 选项卡 邮件
+		82 选项卡 审阅
+		83 选项卡 视图
+		84 选项卡 图片格式, Help: 折叠功能区, Value: 1
+		85 按钮 批注
+		86 按钮 编辑, Help: 文档访问模式
+		87 按钮 共享
+	88 container 状态栏
+		89 按钮 第 1 页，共 1 页, Help: 文档当前的页码。单击或点击可打开导航窗格。
+		90 按钮 0 个字, Help: 文档的字数。单击或点击可打开“字数统计”对话框。
+		91 按钮 兼容性模式下的共同创作。
+		92 按钮 无校对错误。
+		93 按钮 简体中文(中国大陆), Help: 语言(国家/地区)
+		94 开关按钮 辅助功能: 调查, Help: 找到辅助功能建议。请单击此处进行调查。, Value: off
+		95 开关按钮  专注, Help: 专注模式, Value: off
+		96 单选按钮 页面视图, Value: 1
+		97 单选按钮 Web 版式, Value: 0
+		98 单选按钮 大纲, Value: 0
+		99 单选按钮 草稿, Value: 0
+		100 按钮 缩小
+		101 按钮 放大
+		102 滑块 (settable, float) Help: 缩放, Value: 1000, Details: 100%
+			103 值指示器 (settable, float) 1000
+		104 按钮 100%, Help: 缩放级别。单击可打开“缩放”对话框。
+	105 工具栏
+		106 container Secondary Actions: 从工具栏移除
+			107 转换 自动保存, Help: 启用“自动保存”以在发生更改时保存更改。, Value: off
+			108 按钮 主页
+			109 按钮 保存
+			110 菜单按钮 (disabled) 无法撤消, Help: 有关更多选项，请按 Control-Option-Shift-M。
+			111 按钮 重复关闭文档
+			112 按钮 打印
+			113 菜单按钮 自定义快速访问工具栏, Value: 0
+			114 搜索文本栏 (settable) 搜索(Cmd + Ctrl + U)
+				115 按钮 搜索
+			116 text Value: joyword-p1-cropped-image 已保存到我的 Mac, ID: CUIDocumentShellWindowTitleLabel
+			117 按钮 文档操作, ID: CUIDocumentShellWindowAutosaveWidgetAutoID
+	118 菜单按钮 窗口共享
+119 menu bar
+	120 Word, ID: AppMenu_MenuItem
+	121 文件
+	122 编辑, ID: EditMenu_MenuItem
+	123 视图, ID: ViewMenu_MenuItem
+	124 插入
+	125 格式
+	126 工具
+	127 表格
+	128 窗口, ID: WindowMenu_MenuItem
+	129 帮助, ID: HelpMenu_MenuItem
+
+The focused UI element is 7 图像 (disabled) Picture 1，嵌入型

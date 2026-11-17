@@ -8,8 +8,30 @@ impl JoyWord {
         let (first, even) = reader.map_or((false, false), |reader| reader.header_footer_flags());
         let tr = |zh, en| self.shell.tr(zh, en);
         div()
+            .id("header-footer-context")
             .flex()
-            .gap_1()
+            .flex_wrap()
+            .flex_shrink_0()
+            .items_center()
+            .gap_2()
+            .px_3()
+            .py_1()
+            .bg(rgb(self.palette().surface))
+            .border_b_1()
+            .border_color(rgb(self.palette().border))
+            .child(div().text_sm().child(tr("页眉和页脚", "Header & Footer")))
+            .when(editing, |group| {
+                group.child(
+                    self.author_button(
+                        "close-header-footer",
+                        tr("关闭页眉页脚", "Close header and footer"),
+                        "insert.closeHeader",
+                        json!({}),
+                        cx,
+                    )
+                    .primary(),
+                )
+            })
             .children(
                 [
                     ("edit-header", tr("页眉", "Header"), "insert.editHeader"),
@@ -34,23 +56,15 @@ impl JoyWord {
                 }),
             )
             .when(editing, |group| {
-                group
-                    .child(self.author_button(
-                        "insert-page-number",
-                        tr("在光标处插入页码", "Page number at caret"),
-                        "insert.pageNumber",
-                        json!({"position":"current"}),
-                        cx,
-                    ))
-                    .child(self.author_button(
-                        "close-header-footer",
-                        tr("关闭页眉页脚", "Close header and footer"),
-                        "insert.closeHeader",
-                        json!({}),
-                        cx,
-                    ))
+                group.child(self.author_button(
+                    "insert-page-number",
+                    tr("在光标处插入页码", "Page number at caret"),
+                    "insert.pageNumber",
+                    json!({"position":"current"}),
+                    cx,
+                ))
             })
-            .when(!editing, |group| {
+            .map(|group| {
                 group.children(
                     [
                         (

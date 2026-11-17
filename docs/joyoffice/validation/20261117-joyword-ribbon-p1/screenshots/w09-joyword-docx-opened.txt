@@ -1,0 +1,85 @@
+Window: "Microsoft Word", App: Microsoft Word.
+0 对话框 Microsoft Word, ID: open-panel, Secondary Actions: Raise
+	1 分离组
+		2 滚动区 Secondary Actions: Scroll Up, Scroll Down
+			3 外框 边栏
+				4 row (selectable) Description: 时钟, Value: 最近使用
+				5 row (selectable) Description: 两个人, Value: 共享
+				6 row (selectable, expanded) Value: 个人收藏, Secondary Actions: Collapse
+				7 row (selectable) Description: App Store字母A图标, Value: 应用程序
+				8 row (selectable) Description: 矩形上带程序坞的菜单栏, Value: 桌面
+				9 row (selectable) Description: 文档页面, Value: 文稿
+				10 row (selectable) Description: 箭头向下圆圈, Value: 下载
+				11 row (selectable, expanded) Value: 位置, Secondary Actions: Collapse
+				12 row (selectable) Description: iCloud, Value: iCloud云盘
+				13 row (selectable) Description: 主页, Value: willm
+				14 row (selectable) Description: 内置硬盘驱动器, Value: Macintosh HD
+				15 row (selectable) 推出, Value: Vault, Description: 外置硬盘驱动器
+推出
+				16 row (selectable) Description: 线条连接的网络节点, Value: 网络
+				17 row (selectable, expanded) Value: 标签, Secondary Actions: Collapse
+				18 row (selectable) Description: 小圆圈标记，实心, Value: 红色
+				19 row (selectable) Description: 小圆圈标记，实心, Value: 橙色
+				20 row (selectable) Description: 小圆圈标记，实心, Value: 黄色
+				21 row (selectable) Description: 小圆圈标记，实心, Value: 绿色
+				22 row (selectable) Description: 小圆圈标记，实心, Value: 蓝色
+				23 row (selectable) Description: 小圆圈标记，实心, Value: 紫色
+				24 row (selectable) Description: 小圆圈标记，实心, Value: 灰色
+				25 row (selectable) Description: 两个小圆圈标记, Value: 所有标签…
+				26 row (selectable, expanded) Value: 媒体, Secondary Actions: Collapse
+				27 row (selectable) 照片
+			28 滚动条 (settable, float) 0
+				29 值指示器 (settable, float) 0
+				30 增箭头按钮
+				31 减箭头按钮
+				32 增页面按钮
+				33 减页面按钮
+		34 分离器 (disabled, settable, float) 159
+		35 滚动区
+			36 外框 Description: 列表视图, ID: ListView
+				37 row (selectable)
+				38 row (selected)
+					39 单元格 (selected) Secondary Actions: 打开“访达”项目
+						40 图像
+						41 文本栏 (selected, settable) Value: joyword-p1-table-header.docx, Secondary Actions: 打开“访达”项目, URL: file:///Users/willm/Coding/joyoffice/docs/joyoffice/validation/20261117-joyword-ribbon-p1/fixtures/joyword-p1-table-header.docx
+					42 单元格 (selected)
+						43 文本 7 KB
+					44 单元格 (selected)
+						45 文本 Microsoft Word document (.docx)
+					46 单元格 (selected)
+						47 文本 今天 15:08
+				48 container ListViewHeader
+					49 按钮 Description: wpsoffice 2, ID: name
+					50 按钮 Description: 大小, ID: size
+					51 按钮 Description: 种类, ID: kind
+					52 按钮 Description: 添加日期, Value: AXDescendingSortDirection, ID: dateAdded
+		53 container
+			54 按钮 返回
+			55 按钮 (disabled) 前进
+		56 菜单按钮 Description: 列表, Help: 显示为图标、列表或分栏，和隐藏/显示边栏, ID: View Options
+		57 菜单按钮 Description: 一乘二线条网格下方的三乘一正方形网格, Help: 更改项目的分组方式（按住Option键来更改排列顺序）, ID: Group or Sort By
+		58 弹出式按钮 位置：, Value: fixtures, ID: where popup
+		59 搜索文本栏 Search
+			60 按钮 搜索
+		61 按钮 联机位置
+		62 弹出式按钮 原始状态
+		63 文本 打开
+		64 按钮 隐藏选项, ID: OptionsButton
+		65 按钮 取消, ID: CancelButton
+		66 按钮 打开, ID: OKButton
+67 menu bar
+	68 Word, ID: AppMenu_MenuItem
+	69 文件
+	70 编辑, ID: EditMenu_MenuItem
+	71 视图, ID: ViewMenu_MenuItem
+	72 插入
+	73 格式
+	74 工具
+	75 表格
+	76 窗口, ID: WindowMenu_MenuItem
+	77 帮助, ID: HelpMenu_MenuItem
+
+Selected:
+	38 row (selected)
+
+Note: Pay special attention to the content selected by the user. If the user asks a question or refers to the content they are looking at on-screen, they might be referring to the selected content (but they might be referring to something else that's visible, too).

@@ -21,13 +21,14 @@ fn is_quick_style(style: &StyleInfo) -> bool {
 }
 
 fn menu_button(id: impl Into<gpui::ElementId>, label: &str, enabled: bool) -> Button {
+    let label = platform_shortcut(label);
     Button::new(id)
         .ghost()
         .xsmall()
         .h(px(23.))
         .px(px(3.))
-        .accessibility_label(label.to_owned())
-        .tooltip(label.to_owned())
+        .accessibility_label(label.clone())
+        .tooltip(label)
         .disabled(!enabled)
 }
 
@@ -229,7 +230,21 @@ impl JoyWord {
         selected: bool,
         mixed: bool,
         cx: &mut Context<Self>,
-    ) -> Button {
+    ) -> gpui::AnyElement {
+        if matches!(
+            command,
+            "format.growFont"
+                | "format.shrinkFont"
+                | "format.clear"
+                | "para.indent"
+                | "para.outdent"
+        ) {
+            return menu_button(id, label, self.format_ready(command))
+                .w(px(26.))
+                .child(Icon::new(icon).size(px(16.)))
+                .on_click(cx.listener(move |v, _, w, cx| v.run_format(command, &json!({}), w, cx)))
+                .into_any_element();
+        }
         let label = if mixed {
             format!(
                 "{label}{}",
@@ -239,10 +254,13 @@ impl JoyWord {
             label.to_owned()
         };
         let color = self.palette().muted;
-        menu_button(id, &label, self.format_ready(command))
+        gpui::component::button::Toggle::new(id)
+            .tooltip(platform_shortcut(&label))
+            .disabled(!self.format_ready(command))
             .w(px(26.))
+            .h(px(26.))
             .child(Icon::new(icon).size(px(16.)))
-            .selected(selected)
+            .checked(selected)
             .when(mixed, |button| {
                 button.child(
                     div()
@@ -254,6 +272,7 @@ impl JoyWord {
                 )
             })
             .on_click(cx.listener(move |v, _, w, cx| v.run_format(command, &json!({}), w, cx)))
+            .into_any_element()
     }
 
     fn icon_choices(

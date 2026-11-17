@@ -1,0 +1,89 @@
+Window: "* 未命名 1 — JoyWord", App: JoyWord P1 Regression.
+0 standard window * 未命名 1 — JoyWord, Secondary Actions: Raise
+	1 container
+		2 button 新建
+		3 button 打开
+		4 button 保存
+		5 button 撤销
+		6 button (disabled) 重做
+		7 button 搜索命令
+		8 button EN
+		9 button 切换外观
+		10 tab group 功能区
+			11 tab (settable, boolean) 文件, Value: off
+			12 tab (settable, boolean) 开始, Value: off
+			13 tab (settable, boolean) 插入, Value: off
+			14 tab (settable, boolean) 绘图, Value: off
+			15 tab (settable, boolean) 设计, Value: off
+			16 tab (settable, boolean) 布局, Value: off
+			17 tab (settable, boolean) 引用, Value: off
+			18 tab (settable, boolean) 邮件, Value: off
+			19 tab (settable, boolean) 审阅, Value: off
+			20 tab (settable, boolean) 视图, Value: off
+			21 tab (settable, boolean) 帮助, Value: off
+			22 tab (settable, boolean) 图表设计, Value: on
+			23 button 折叠或展开功能区, Help: ⌘F1
+		24 button (disabled) 向左滚动功能区
+		25 button 编辑数据
+		26 button 图表标题
+		27 button 更改图表类型
+		28 button 大小
+		29 button 环绕文字
+		30 button (disabled) 向右滚动功能区
+		31 button 上一页
+		32 button 下一页
+		33 text entry area (settable) 文档正文, Help: 随光标读取段落。用方向键或翻页键浏览。
+			34 container 水平标尺（只读）
+		35 button −
+		36 button 100%
+		37 button +
+		38 dialog
+			39 text field (settable) 第1列名称, Value: 类别
+			40 button (disabled) 左移
+			41 button (disabled) 删除字段
+			42 text field (settable) 第2列名称, Value: Series 1
+			43 button (disabled) 左移
+			44 button 删除字段
+			45 text field (settable) 第3列名称, Value: Series 2
+			46 button 左移
+			47 button 删除字段
+			48 text field (settable) 第4列名称, Value: Series 3
+			49 button 左移
+			50 button 删除字段
+			51 text entry area (settable) 第1行，类别, Value: Q1
+			52 text entry area (settable) 第1行，Series 1, Value: NaN
+			53 text entry area (settable) 第1行，Series 2, Value: 2
+			54 text entry area (settable) 第1行，Series 3, Value: 1.5
+			55 button 删除行
+			56 text entry area (settable) 第2行，类别, Value: Q2
+			57 text entry area (settable) 第2行，Series 1, Value: 4.1
+			58 text entry area (settable) 第2行，Series 2, Value: 2.7
+			59 text entry area (settable) 第2行，Series 3, Value: 2.2
+			60 button 删除行
+			61 text entry area (settable) 第3行，类别, Value: Q3
+			62 text entry area (settable) 第3行，Series 1, Value: 3.6
+			63 text entry area (settable) 第3行，Series 2, Value: 3.9
+			64 text entry area (settable) 第3行，Series 3, Value: 2.4
+			65 button 删除行
+			66 text entry area (settable) 第4行，类别, Value: Q4
+			67 text entry area (settable) 第4行，Series 1, Value: 5
+			68 text entry area (settable) 第4行，Series 2, Value: 3.3
+			69 text entry area (settable) 第4行，Series 3, Value: 3.8
+			70 button 删除行
+			71 button (disabled) 上一页
+			72 button (disabled) 下一页
+			73 button 添加行
+			74 button 添加字段
+			75 button 取消
+			76 button 确定
+			77 button Close
+	78 text * 未命名 1 — JoyWord
+	79 menu button Window sharing
+80 menu bar
+	81 JoyWord P1 Regression
+	82 文件
+	83 编辑
+	84 插入
+	85 视图
+
+The focused UI element is 0 standard window * 未命名 1 — JoyWord, Secondary Actions: Raise

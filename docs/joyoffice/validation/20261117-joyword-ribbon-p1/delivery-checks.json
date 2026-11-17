@@ -1,0 +1,90 @@
+{
+  "date": "2026-11-17",
+  "build": {
+    "command": "cargo xtask build joyword",
+    "exitCode": 0
+  },
+  "engineering": {
+    "command": "cargo xtask check joyword",
+    "exitCode": 0,
+    "passedTests": 3648,
+    "testResultGroups": 57,
+    "failures": 0
+  },
+  "screenshots": {
+    "count": 75,
+    "joyword": 59,
+    "word": 16,
+    "realNarrowHeaderSize": [
+      1120,
+      766
+    ],
+    "sha256AndPairedAx": "pass"
+  },
+  "docx": [
+    {
+      "file": "fixtures/joyword-p1-merged-two-records.docx",
+      "zipCrc": "pass",
+      "allXmlWellFormed": "pass",
+      "assertions": [
+        "two different greeting records",
+        "one explicit page break",
+        "no unresolved merge fields"
+      ]
+    },
+    {
+      "file": "fixtures/joyword-p1-objects.docx",
+      "zipCrc": "pass",
+      "allXmlWellFormed": "pass",
+      "assertions": [
+        "multiline shape text",
+        "first chart series first value9",
+        "SmartArt visual parity explicitly NOT passed"
+      ]
+    },
+    {
+      "file": "fixtures/joyword-p1-cropped-image.docx",
+      "zipCrc": "pass",
+      "allXmlWellFormed": "pass",
+      "assertions": [
+        "height 5cm",
+        "width approximately7.49cm",
+        "right crop approximately25.14%"
+      ]
+    },
+    {
+      "file": "fixtures/joyword-p1-mail-main.docx",
+      "zipCrc": "pass",
+      "allXmlWellFormed": "pass",
+      "assertions": [
+        "greeting field template retained",
+        "source/mapping session-only, not portable"
+      ]
+    },
+    {
+      "file": "fixtures/joyword-p1-table-header.docx",
+      "zipCrc": "pass",
+      "allXmlWellFormed": "pass",
+      "assertions": [
+        "2x2 content",
+        "second grid column 1417 twips ~=2.5cm",
+        "header text retained"
+      ]
+    }
+  ],
+  "localLinks": "pass",
+  "gitDiffCheck": {
+    "command": "git diff --check",
+    "exitCode": 0
+  },
+  "checkDocs": {
+    "command": "python3 scripts/check_docs.py",
+    "exitCode": 0,
+    "log": "check-docs.log"
+  },
+  "limits": [
+    "Not all original Ribbon checkpoints rerun",
+    "Known SmartArt layout mismatch",
+    "No claim that all P1 are closed"
+  ]
+}

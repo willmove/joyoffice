@@ -37,6 +37,8 @@ pub struct TableInfo {
     pub col: usize,
     pub props: Value,
     pub cell: Value,
+    /// Current selection values; null means automatic or mixed, never an invented default.
+    pub formatting: Value,
 }
 #[derive(Clone, Debug, Serialize)]
 pub struct PictureInfo {
@@ -48,6 +50,41 @@ pub struct PictureInfo {
     pub float: Value,
 }
 impl Reader {
+    pub fn object_info(&self) -> Option<Value> {
+        let (_, object) = joyword_engine::cmd::objects::object_selection(&self.session)?;
+        match object {
+            InlineObject::Shape {
+                kind,
+                w,
+                h,
+                story,
+                fill,
+                ..
+            } => {
+                let text = story
+                    .and_then(|id| self.session.doc.parts.get(&id))
+                    .map(|p| {
+                        p.blocks
+                            .iter()
+                            .filter_map(|b| b.as_para())
+                            .map(|p| p.plain_text())
+                            .collect::<Vec<_>>()
+                            .join("\n")
+                    })
+                    .unwrap_or_default();
+                Some(
+                    json!({"kind":"shape","shape":kind,"width":w,"height":h,"text":text,"fill":fill.as_ref().map(|f|f.main_color().hex())}),
+                )
+            }
+            InlineObject::Graphic { graphic, w, h, .. } if graphic.chart.is_some() => {
+                Some(json!({"kind":"chart","width":w,"height":h,"data":graphic.chart}))
+            }
+            InlineObject::Graphic { graphic, w, h, .. } if graphic.smart_art.is_some() => {
+                Some(json!({"kind":"smartArt","width":w,"height":h,"data":graphic.smart_art}))
+            }
+            _ => None,
+        }
+    }
     /// Screen-only shading for visible merge fields. Inspect only paragraphs
     /// placed on this page, so a large document is not rescanned on every paint.
     pub fn merge_field_rects(&self, page: usize) -> Vec<joyword_geom::Rect> {
@@ -144,6 +181,36 @@ impl Reader {
             .session
             .doc
             .table(self.session.sel.focus.story, &path)?;
+        let cells = joyword_engine::cmd::table::selected_cells(&self.session);
+        let same = |values: Vec<Value>| {
+            values
+                .first()
+                .filter(|first| values.iter().all(|v| v == *first))
+                .cloned()
+                .unwrap_or(Value::Null)
+        };
+        let rows: Vec<_> = cells
+            .iter()
+            .filter_map(|(r, _)| table.rows.get(*r))
+            .collect();
+        let margins: Vec<_> = cells
+            .iter()
+            .map(|&(r, c)| joyword_layout::cell_margins(&self.session.doc, table, r, c))
+            .collect();
+        let mut formatting = json!({
+            "columnWidth": same(cells.iter().map(|&(r,c)| table.grid.get(table.grid_col(r,c)).map_or(Value::Null, |n| json!(n))).collect()),
+            "rowHeight": same(rows.iter().map(|r| json!(r.props.height)).collect()),
+            "rowHeightRule": same(rows.iter().map(|r| json!(r.props.height_rule)).collect()),
+            "allowBreak": same(rows.iter().map(|r| json!(!r.props.cant_split)).collect()),
+            "headerRow": same(rows.iter().map(|r| json!(r.props.header)).collect()),
+            "cellWidth": same(cells.iter().filter_map(|&(r,c)| table.rows.get(r)?.cells.get(c)).map(|c| json!(c.props.width)).collect()),
+            "valign": same(cells.iter().filter_map(|&(r,c)| table.rows.get(r)?.cells.get(c)).map(|c| json!(c.props.valign.unwrap_or_default())).collect()),
+        });
+        formatting["margins"] = json!(
+            (0..4)
+                .map(|side| same(margins.iter().map(|m| json!(m[side])).collect()))
+                .collect::<Vec<_>>()
+        );
         Some(TableInfo {
             rows: table.rows.len(),
             cols: table.grid.len(),
@@ -151,6 +218,7 @@ impl Reader {
             col,
             props: serde_json::to_value(&table.props).ok()?,
             cell: serde_json::to_value(&table.rows.get(row)?.cells.get(col)?.props).ok()?,
+            formatting,
         })
     }
     pub fn picture_info(&self) -> Option<PictureInfo> {

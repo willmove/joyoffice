@@ -20,6 +20,11 @@ enum Kind {
         hit: ObjectHit,
         resize: bool,
     },
+    Crop {
+        hit: ObjectHit,
+        crop: [f32; 4],
+        edges: (i8, i8),
+    },
     TableResize(resize::ResizeTarget),
     TableMove(resize::ResizeTarget),
     TableSelect,
@@ -36,7 +41,87 @@ pub(super) struct Gesture {
     shift: bool,
     ctrl: bool,
 }
+fn crop_handles(b: Rect) -> [(f32, f32, (i8, i8)); 8] {
+    [
+        (-1, -1),
+        (0, -1),
+        (1, -1),
+        (-1, 0),
+        (1, 0),
+        (-1, 1),
+        (0, 1),
+        (1, 1),
+    ]
+    .map(|(x, y)| {
+        (
+            b.x + b.w * (x as f32 + 1.) / 2.,
+            b.y + b.h * (y as f32 + 1.) / 2.,
+            (x, y),
+        )
+    })
+}
+/// Handle deltas are in page coordinates; crop percentages refer to the source image.
+fn crop_drag(
+    hit: &ObjectHit,
+    original: [f32; 4],
+    edges: (i8, i8),
+    dx: f32,
+    dy: f32,
+) -> ([f32; 4], Rect) {
+    let mut crop = original;
+    let full_w = hit.rect.w / (1. - original[0] - original[2]).max(0.05);
+    let full_h = hit.rect.h / (1. - original[1] - original[3]).max(0.05);
+    let left = if hit.spin.flip_h { 2 } else { 0 };
+    let right = 2 - left;
+    let top = if hit.spin.flip_v { 3 } else { 1 };
+    let bottom = 4 - top;
+    for (edge, delta, lo, hi, full) in [
+        (edges.0, dx, left, right, full_w),
+        (edges.1, dy, top, bottom, full_h),
+    ] {
+        let (index, opposite, delta) = if edge < 0 {
+            (lo, hi, delta)
+        } else {
+            (hi, lo, -delta)
+        };
+        if edge != 0 {
+            crop[index] =
+                (original[index] + delta / full).clamp(0., (0.95 - crop[opposite]).max(0.));
+        }
+    }
+    let frame = Rect::new(
+        hit.rect.x + (crop[left] - original[left]) * full_w,
+        hit.rect.y + (crop[top] - original[top]) * full_h,
+        (full_w * (1. - crop[0] - crop[2])).clamp(1., 4000.),
+        (full_h * (1. - crop[1] - crop[3])).clamp(1., 4000.),
+    );
+    (crop, frame)
+}
 impl JoyWord {
+    pub(super) fn toggle_picture_crop(&mut self, w: &mut Window, cx: &mut Context<Self>) {
+        if !self.format_ready("picture.crop") {
+            return;
+        }
+        if self
+            .canvas
+            .reader
+            .as_ref()
+            .and_then(|r| r.picture_info())
+            .is_some_and(|p| {
+                p.float["rot"]
+                    .as_f64()
+                    .is_some_and(|n| n.rem_euclid(360.).abs() > 0.001)
+            })
+        {
+            self.picture_crop_form(w, cx);
+            return;
+        }
+        self.crop_mode = !self.crop_mode;
+        self.gesture = None;
+        self.dragging = false;
+        w.focus(&self.focus, cx);
+        cx.notify();
+    }
     fn on_page(&self, page: usize, p: Point<Pixels>) -> Option<(f32, f32)> {
         let b = self.page_bounds.get(&page)?;
         let s = self.canvas.factor(self.shell.zoom);
@@ -141,12 +226,35 @@ impl JoyWord {
             cx.notify();
             return;
         }
-        if let Some(hit) = r
-            .picture_info()
-            .and_then(|p| r.geometry().object(&p.pos, page))
+        if let Some(pic) = r.picture_info()
+            && let Some(hit) = r
+                .geometry()
+                .object(&pic.pos, page)
+                .filter(|h| h.page == page)
         {
             let b = hit.bounds();
-            if (x - (b.x + b.w)).abs() < 8. / scale && (y - (b.y + b.h)).abs() < 8. / scale {
+            if self.crop_mode && hit.spin.deg == 0. {
+                for (hx, hy, edges) in crop_handles(b) {
+                    if (x - hx).abs() < 9. / scale && (y - hy).abs() < 9. / scale {
+                        self.gesture = self.gesture(
+                            page,
+                            (x, y),
+                            Kind::Crop {
+                                hit,
+                                crop: pic.crop,
+                                edges,
+                            },
+                            e.modifiers,
+                        );
+                        cx.notify();
+                        return;
+                    }
+                }
+            }
+            if !self.crop_mode
+                && (x - (b.x + b.w)).abs() < 8. / scale
+                && (y - (b.y + b.h)).abs() < 8. / scale
+            {
                 self.gesture = self.gesture(
                     page,
                     (x, y),
@@ -155,6 +263,28 @@ impl JoyWord {
                 );
                 return;
             }
+        }
+        self.crop_mode = false;
+        if let Some(hit) = r.geometry().object_at(page, x, y, reach).filter(|h| {
+            matches!(
+                r.engine()
+                    .doc
+                    .para_at(&h.pos())
+                    .and_then(|p| p.object_at(h.off)),
+                Some(InlineObject::Shape { .. } | InlineObject::Graphic { .. })
+            )
+        }) {
+            self.apply_input(w, cx, |r| r.select_object(hit.pos()));
+            if let Some(o) = self.canvas.reader.as_ref().and_then(|r| r.object_info()) {
+                self.tab = match o["kind"].as_str() {
+                    Some("shape") => 14,
+                    Some("smartArt") => 15,
+                    _ => 16,
+                };
+            }
+            self.dragging = false;
+            cx.notify();
+            return;
         }
         if let Some(hit) = r.geometry().object_at(page, x, y, reach).filter(|h| {
             matches!(
@@ -258,10 +388,9 @@ impl JoyWord {
             self.mouse_selection(e.position, true, 1, w, cx);
             return;
         };
-        let ink = self
-            .gesture
-            .as_ref()
-            .is_some_and(|g| matches!(g.kind, Kind::Ink { .. } | Kind::InkMove));
+        let ink = self.gesture.as_ref().is_some_and(|g| {
+            matches!(g.kind, Kind::Ink { .. } | Kind::InkMove | Kind::Crop { .. })
+        });
         let end_page = if ink {
             page
         } else {
@@ -324,6 +453,11 @@ impl JoyWord {
             push_ink_point(points, [x, y]);
         }
         match g.kind {
+            Kind::Crop { hit, crop, edges } if moved => {
+                let (crop, b) = crop_drag(&hit, crop, edges, dx, dy);
+                let _=self.try_edit("picture.crop", &json!({"left":crop[0],"top":crop[1],"right":crop[2],"bottom":crop[3],"width":b.w,"height":b.h}),w,cx);
+            }
+            Kind::Crop { .. } => {}
             Kind::Ink {
                 mode,
                 mut points,
@@ -476,8 +610,18 @@ impl JoyWord {
         {
             let b = pic.bounds();
             outline(b, w);
-            let h = 7. / scale;
-            line(Rect::new(b.x + b.w - h / 2., b.y + b.h - h / 2., h, h), w);
+            if self.crop_mode && pic.spin.deg == 0. {
+                let h = 8. / scale;
+                for (x, y, _) in crop_handles(b) {
+                    w.paint_quad(fill(
+                        convert(Rect::new(x - h / 2., y - h / 2., h, h)),
+                        rgb(0x151515),
+                    ));
+                }
+            } else {
+                let h = 7. / scale;
+                line(Rect::new(b.x + b.w - h / 2., b.y + b.h - h / 2., h, h), w);
+            }
         }
         if let Some((tp, _, _)) = r.engine().sel.focus.path.cell() {
             let (a, b) = table::caret_handles(
@@ -499,6 +643,19 @@ impl JoyWord {
         }
         let (dx, dy) = (g.end.0 - g.start.0, g.end.1 - g.start.1);
         match &g.kind {
+            Kind::Crop { hit, crop, edges } => {
+                let (_, b) = crop_drag(hit, *crop, *edges, dx, dy);
+                let old = hit.rect;
+                for q in [
+                    Rect::new(old.x, old.y, (b.x - old.x).max(0.), old.h),
+                    Rect::new(b.x + b.w, old.y, (old.x + old.w - b.x - b.w).max(0.), old.h),
+                    Rect::new(b.x, old.y, b.w, (b.y - old.y).max(0.)),
+                    Rect::new(b.x, b.y + b.h, b.w, (old.y + old.h - b.y - b.h).max(0.)),
+                ] {
+                    w.paint_quad(fill(convert(q), rgba(0x00000060)));
+                }
+                outline(b, w);
+            }
             Kind::Ink {
                 mode,
                 points,
@@ -656,6 +813,44 @@ mod tests {
         reader::Reader,
     };
     use std::sync::atomic::AtomicBool;
+
+    #[test]
+    fn crop_handles_respect_source_edges_flips_restore_and_minimum_visible_area() {
+        let sample = Reader::from_bytes(
+            "sample",
+            include_bytes!("../../../assets/samples/mixed-media.docx"),
+            &AtomicBool::new(false),
+        )
+        .unwrap();
+        let bytes = sample
+            .engine()
+            .doc
+            .media
+            .values()
+            .find_map(|b| image_bytes(b).ok())
+            .unwrap();
+        let mut r = Reader::blank(&AtomicBool::new(false)).unwrap();
+        r.execute("insert.picture", &bytes).unwrap();
+        r.select_object(Pos::body(0, 0)).unwrap();
+        let info = r.picture_info().unwrap();
+        let mut hit = r.geometry().object(&info.pos, 0).unwrap();
+        hit.rect.w = 200.;
+        hit.rect.h = 100.;
+        let (crop, frame) = crop_drag(&hit, [0.; 4], (1, 0), -50., 0.);
+        assert_eq!(crop, [0., 0., 0.25, 0.]);
+        assert_eq!(frame.w, 150.);
+        hit.spin.flip_h = true;
+        let (crop, frame) = crop_drag(&hit, [0.; 4], (-1, 0), 50., 0.);
+        assert_eq!(crop, [0., 0., 0.25, 0.]);
+        assert_eq!(frame.x, hit.rect.x + 50.);
+        hit.rect = frame;
+        let (restored, frame) = crop_drag(&hit, crop, (-1, 0), -50., 0.);
+        assert_eq!(restored, [0.; 4]);
+        assert_eq!(frame.w, 200.);
+        let (crop, frame) = crop_drag(&hit, [0.; 4], (1, 1), -10000., -10000.);
+        assert!(crop[0] + crop[2] <= 0.95 && crop[1] + crop[3] <= 0.95);
+        assert!(frame.w >= 1. && frame.h >= 1.);
+    }
 
     #[test]
     fn eraser_sampling_follows_segments_and_respects_the_point_budget() {

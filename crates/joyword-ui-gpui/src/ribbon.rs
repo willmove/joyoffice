@@ -256,6 +256,19 @@ impl JoyWord {
                 .reader
                 .as_ref()
                 .is_some_and(|r| r.picture_info().is_some()),
+            Some(index @ 14..=16) => self
+                .canvas
+                .reader
+                .as_ref()
+                .and_then(|r| r.object_info())
+                .is_some_and(|o| {
+                    o["kind"].as_str()
+                        == Some(match index {
+                            14 => "shape",
+                            15 => "smartArt",
+                            _ => "chart",
+                        })
+                }),
             _ => true,
         }
     }

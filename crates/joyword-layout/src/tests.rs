@@ -21,6 +21,93 @@ mod vertical;
 
 const WRAP_TEST_FONT: &str = "Source Sans 3";
 
+#[test]
+fn mixed_script_field_results_keep_each_glyphs_shaping_face_and_atomic_selection() {
+    if joyword_fonts::FontDb::global()
+        .fallback_for('张', 0)
+        .is_none()
+    {
+        return;
+    }
+    let result = "Dear 张三, QA,";
+    let mut d = Document::new();
+    let props = joyword_model::props::CharProps {
+        font: Some(WRAP_TEST_FONT.into()),
+        ..Default::default()
+    };
+    d.insert_object(
+        &Pos::body(0, 0),
+        InlineObject::Field {
+            instr: "GREETINGLINE".into(),
+            result: result.into(),
+            locked: false,
+            dirty: false,
+            code: false,
+            form: String::new(),
+        },
+        &props,
+    )
+    .unwrap();
+    let l = lay(&d);
+    let para = l.pages[0]
+        .items
+        .iter()
+        .find_map(|p| {
+            if let Placed::Lines { para, .. } = p {
+                Some(para)
+            } else {
+                None
+            }
+        })
+        .unwrap();
+    assert_eq!(
+        para.clusters
+            .iter()
+            .filter(|c| c.start == 0 && c.end == 3)
+            .count(),
+        1,
+        "one field remains one edit cluster"
+    );
+    let draws = flat(display::page_display(&d, &l.pages[0], &Default::default()));
+    let runs: Vec<_> = draws
+        .iter()
+        .filter_map(|d| {
+            if let display::Draw::Glyphs {
+                face,
+                text,
+                glyphs,
+                ranges,
+                ..
+            } = d
+            {
+                Some((face, text, glyphs, ranges))
+            } else {
+                None
+            }
+        })
+        .collect();
+    assert_eq!(
+        runs.iter()
+            .map(|(_, text, _, _)| text.as_str())
+            .collect::<String>(),
+        result
+    );
+    for (face, text, glyphs, ranges) in runs {
+        assert_eq!(glyphs.len(), ranges.len());
+        for ch in text.chars().filter(|c| !c.is_whitespace()) {
+            assert!(
+                face.covers(ch),
+                "{ch} must use its shaping face, not {}",
+                face.family
+            );
+        }
+        assert!(glyphs.iter().all(|g| g.0 != 0));
+        for r in ranges {
+            assert!(text.get(r.clone()).is_some());
+        }
+    }
+}
+
 fn lay(doc: &Document) -> DocLayout {
     let mut c = LayoutCache::new();
     layout(doc, &mut c, &LayoutOptions::default())

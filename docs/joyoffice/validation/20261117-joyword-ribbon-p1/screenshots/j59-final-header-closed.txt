@@ -1,0 +1,41 @@
+Window: "* joyword-p1-table-header.docx — JoyWord", App: JoyWord P1 Regression.
+0 standard window * joyword-p1-table-header.docx — JoyWord, Secondary Actions: Raise
+	1 container
+		2 button 新建
+		3 button 打开
+		4 button 保存
+		5 button (disabled) 撤销
+		6 button (disabled) 重做
+		7 button 搜索命令
+		8 button EN
+		9 button 切换外观
+		10 tab group 功能区
+			11 tab (settable, boolean) 文件, Value: off
+			12 tab (settable, boolean) 开始, Value: off
+			13 tab (settable, boolean) 插入, Value: on
+			14 tab (settable, boolean) 绘图, Value: off
+			15 tab (settable, boolean) 设计, Value: off
+			16 tab (settable, boolean) 布局, Value: off
+			17 tab (settable, boolean) 引用, Value: off
+			18 tab (settable, boolean) 邮件, Value: off
+			19 tab (settable, boolean) 审阅, Value: off
+			20 tab (settable, boolean) 视图, Value: off
+			21 tab (settable, boolean) 帮助, Value: off
+			22 button 折叠或展开功能区, Help: ⌘F1
+		23 button 上一页
+		24 button 下一页
+		25 text entry area (settable) 文档正文, Help: 随光标读取段落。用方向键或翻页键浏览。
+			26 container 水平标尺（只读）
+		27 button −
+		28 button 100%
+		29 button +
+	30 text * joyword-p1-table-header.docx — JoyWord
+	31 menu button Window sharing
+32 menu bar
+	33 JoyWord P1 Regression
+	34 文件
+	35 编辑
+	36 插入
+	37 视图
+
+The focused UI element is 0 standard window * joyword-p1-table-header.docx — JoyWord, Secondary Actions: Raise

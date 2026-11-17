@@ -1,0 +1,155 @@
+Window: "joyword-p1-table-header", App: Microsoft Word.
+0 标准窗口 joyword-p1-table-header, Secondary Actions: Raise, URL: file:///Users/willm/Coding/joyoffice/docs/joyoffice/validation/20261117-joyword-ribbon-p1/fixtures/joyword-p1-table-header.docx
+	1 分离组
+		2 分离组
+			3 分离组 Document Pane
+				4 滚动区 Secondary Actions: Scroll Left, Scroll Right, Scroll Up, Scroll Down
+					5 (disabled) joyword-p1-table-header
+						6 container
+							7 文本输入区 (disabled, settable) Description: 页眉 - 第 1 节 -, Value: HEADER P1
+							8 表格，2 行，2 列，，
+								9 row (disabled) A1
+									10 单元格 (disabled)
+										11 文本输入区 (disabled, settable) A1
+									12 单元格 (disabled)
+										13 文本输入区 (disabled, settable) B1
+								14 row (disabled) A2
+									15 单元格 (disabled)
+										16 文本输入区 (disabled, settable) A2
+									17 单元格 (disabled)
+										18 文本输入区 (disabled, settable) B2
+								19 栏 (disabled) A1
+								20 栏 (disabled) B1
+							21 文本输入区 (disabled, settable) Description: 页面 1 内容, Value: ~~JoyWord P1 对照测试
+Alpha sample
+Beta sample
+
+表格，2 行，2 列，， ~~
+							22 文本输入区 (disabled, settable) 页脚 - 第 1 节 -
+					23 滚动条 (disabled, settable, float) 0
+						24 值指示器 (disabled, settable, float) 0
+					25 滚动条 (disabled, settable, float) 0
+						26 值指示器 (disabled, settable, float) 0
+		27 分离器 (disabled, settable, float) 1600
+	28 标签页组 Description: 功能区, Details: 开始
+		29 滚动区 开始 选项卡命令
+			30 container
+				31 菜单按钮 粘贴, Help: 有关更多选项，请按 Control-Option-Shift-M。
+				32 按钮 (disabled) 剪切
+				33 按钮 (disabled) 复制
+				34 开关按钮 格式, Help: 复制一个位置的格式并将其应用于另一个位置, Value: off
+			35 container
+				36 组合框 (settable) Description: 字体:, Value: Aptos (正文), Secondary Actions: Confirm
+					37 按钮
+				38 组合框 (settable) Description: 字号:, Value: 四号, Secondary Actions: Confirm
+					39 按钮
+				40 按钮 增大字体, Help: 增大字号
+				41 按钮 缩小字体, Help: 减小字号
+				42 菜单按钮 更改大小写, Value: 0
+				43 按钮 清除格式, Help: 清除所有格式
+				44 按钮 拼音指南
+				45 开关按钮 字符边框, Value: off
+				46 开关按钮 加粗, Value: off
+				47 开关按钮 倾斜, Value: off
+				48 菜单按钮 下划线, Help: 有关更多选项，请按 Control-Option-Shift-M。
+				49 开关按钮 删除线, Value: on
+				50 开关按钮 下标, Value: off
+				51 开关按钮 上标, Value: off
+				52 菜单按钮 文本效果, Value: 0
+				53 菜单按钮 文本突出显示颜色, Help: 有关更多选项，请按 Control-Option-Shift-M。, Value: 黄色
+				54 菜单按钮 字体颜色, Help: 有关更多选项，请按 Control-Option-Shift-M。, Value: 红色
+				55 开关按钮 字符底纹, Value: off
+				56 按钮 带圈字符
+			57 container
+				58 菜单按钮 项目符号, Help: 有关更多选项，请按 Control-Option-Shift-M。
+				59 菜单按钮 编号, Help: 有关更多选项，请按 Control-Option-Shift-M。
+				60 菜单按钮 多级列表, Value: 0
+				61 按钮 减少缩进量
+				62 按钮 增加缩进量
+				63 菜单按钮 中文版式, Value: 0
+				64 按钮 排序
+				65 开关按钮 显示编辑标记, Help: 显示/隐藏编辑标记, Value: off
+				66 开关按钮 左对齐, Value: on
+				67 开关按钮 居中, Help: 文字居中, Value: off
+				68 开关按钮 右对齐, Value: off
+				69 开关按钮 两端对齐, Help: 文本两端对齐, Value: off
+				70 开关按钮 分散对齐, Help: 分散对齐文本, Value: off
+				71 菜单按钮 行和段落间距, Value: 0
+				72 菜单按钮 底纹, Help: 有关更多选项，请按 Control-Option-Shift-M。, Value: RGB(0, 0, 0)
+				73 菜单按钮 边框, Help: 有关更多选项，请按 Control-Option-Shift-M。
+			74 container
+				75 菜单按钮 显示更多项目
+				76 库 Description: 样式, Help: 库
+					77 按钮 Description: ↵ 正文, Help: 正文, Value: 1, ID: in_ribbon_gallery_UxGalWordQuickFormats_Control_0_0
+					78 按钮 Description: ↵ 无间隔, Help: 无间隔, Value: 0, ID: in_ribbon_gallery_UxGalWordQuickFormats_Control_0_1
+					79 按钮 Description: ↵ 标题 1, Help: 标题 1, Value: 0, ID: in_ribbon_gallery_UxGalWordQuickFormats_Control_0_2
+					80 按钮 Description: ↵ 标题 2, Help: 标题 2, Value: 0, ID: in_ribbon_gallery_UxGalWordQuickFormats_Control_0_3
+					81 按钮 Description: ↵ 标题, Help: 标题, Value: 0, ID: in_ribbon_gallery_UxGalWordQuickFormats_Control_0_4
+					82 按钮 Description: ↵ 副标题, Help: 副标题, Value: 0, ID: in_ribbon_gallery_UxGalWordQuickFormats_Control_0_5
+					83 按钮 Description: 不明显强调, Value: 0, ID: in_ribbon_gallery_UxGalWordQuickFormats_Control_0_6
+					84 按钮 Description: 强调, Value: 0, ID: in_ribbon_gallery_UxGalWordQuickFormats_Control_0_7
+					85 按钮 Description: 明显强调, Value: 0, ID: in_ribbon_gallery_UxGalWordQuickFormats_Control_0_8
+					86 按钮 Description: 要点, Value: 0, ID: in_ribbon_gallery_UxGalWordQuickFormats_Control_0_9
+					87 按钮 Description: ↵ 引用, Help: 引用, Value: 0, ID: in_ribbon_gallery_UxGalWordQuickFormats_Control_0_10
+					88 按钮 Description: ↵ 明显引用, Help: 明显引用, Value: 0, ID: in_ribbon_gallery_UxGalWordQuickFormats_Control_0_11
+					89 按钮 Description: 不明显参考, Value: 0, ID: in_ribbon_gallery_UxGalWordQuickFormats_Control_0_12
+					90 按钮 Description: 明显参考, Value: 0, ID: in_ribbon_gallery_UxGalWordQuickFormats_Control_0_13
+					91 按钮 Description: 书籍标题, Value: 0, ID: in_ribbon_gallery_UxGalWordQuickFormats_Control_0_14
+					92 按钮 Description: ↵ 列表段落, Help: 列表段落, Value: 0, ID: in_ribbon_gallery_UxGalWordQuickFormats_Control_0_15
+				93 开关按钮 样式窗格, Value: off
+			94 开关按钮 (disabled) 听写, Help: Office 听写, Value: off
+			95 按钮 加载项
+			96 按钮 编辑器, Help: 编辑 器。检查拼写、语法和写作问题
+		97 选项卡 开始, Help: 折叠功能区, Value: 1
+		98 选项卡 插入
+		99 选项卡 绘图
+		100 选项卡 设计
+		101 选项卡 布局
+		102 选项卡 引用
+		103 选项卡 邮件
+		104 选项卡 审阅
+		105 选项卡 视图
+		106 按钮 批注
+		107 按钮 编辑, Help: 文档访问模式
+		108 按钮 共享
+	109 container 状态栏
+		110 开关按钮  专注, Help: 专注模式, Value: off
+		111 单选按钮 页面视图, Value: 1
+		112 单选按钮 Web 版式, Value: 0
+		113 单选按钮 大纲, Value: 0
+		114 单选按钮 草稿, Value: 0
+		115 按钮 缩小
+		116 按钮 放大
+		117 滑块 (settable, float) Help: 缩放, Value: 1000, Details: 100%
+			118 值指示器 (settable, float) 1000
+		119 按钮 100%, Help: 缩放级别。单击可打开“缩放”对话框。
+		120 文本 joyword-p1-table-header.docx: 47 个字符(近似值)。
+	121 工具栏
+		122 container Secondary Actions: 从工具栏移除
+			123 转换 自动保存, Help: 启用“自动保存”以在发生更改时保存更改。, Value: off
+			124 按钮 主页
+			125 按钮 保存
+			126 菜单按钮 (disabled) 无法撤消, Help: 有关更多选项，请按 Control-Option-Shift-M。
+			127 按钮 (disabled) 无法重复
+			128 按钮 打印
+			129 菜单按钮 自定义快速访问工具栏, Value: 0
+			130 搜索文本栏 (settable) 搜索(Cmd + Ctrl + U)
+				131 按钮 搜索
+			132 text Value: joyword-p1-table-header 已保存到我的 Mac, ID: CUIDocumentShellWindowTitleLabel
+			133 按钮 文档操作, ID: CUIDocumentShellWindowAutosaveWidgetAutoID
+	134 关闭按钮
+	135 全屏幕按钮 Help: 此按钮也可以执行缩放窗口的操作, Secondary Actions: 缩放窗口
+	136 最小化按钮
+137 menu bar
+	138 Word, ID: AppMenu_MenuItem
+	139 文件
+	140 编辑, ID: EditMenu_MenuItem
+	141 视图, ID: ViewMenu_MenuItem
+	142 插入
+	143 格式
+	144 工具
+	145 表格
+	146 窗口, ID: WindowMenu_MenuItem
+	147 帮助, ID: HelpMenu_MenuItem
+
+The focused UI element is 4 滚动区 Secondary Actions: Scroll Left, Scroll Right, Scroll Up, Scroll Down

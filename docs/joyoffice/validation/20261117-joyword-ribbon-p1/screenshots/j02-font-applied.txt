@@ -1,0 +1,99 @@
+Window: "* 未命名 1 — JoyWord", App: JoyWord P1 Regression.
+0 standard window * 未命名 1 — JoyWord, Secondary Actions: Raise
+	1 container
+		2 button 新建
+		3 button 打开
+		4 button 保存
+		5 button 撤销
+		6 button (disabled) 重做
+		7 button 搜索命令
+		8 button EN
+		9 button 切换外观
+		10 tab group 功能区
+			11 tab (settable, boolean) 文件, Value: off
+			12 tab (settable, boolean) 开始, Value: on
+			13 tab (settable, boolean) 插入, Value: off
+			14 tab (settable, boolean) 绘图, Value: off
+			15 tab (settable, boolean) 设计, Value: off
+			16 tab (settable, boolean) 布局, Value: off
+			17 tab (settable, boolean) 引用, Value: off
+			18 tab (settable, boolean) 邮件, Value: off
+			19 tab (settable, boolean) 审阅, Value: off
+			20 tab (settable, boolean) 视图, Value: off
+			21 tab (settable, boolean) 帮助, Value: off
+			22 button 折叠或展开功能区, Help: ⌘F1
+		23 container 剪贴板
+			24 button 粘贴
+			25 button 粘贴选项
+			26 button 剪切
+			27 button 复制
+			28 button 格式刷
+			29 button 格式刷选项
+		30 container 字体
+			31 pop up button (settable) 字体选择, Value: Aptos
+			32 button 字号
+			33 toggle button (settable, boolean) 增大字号, Value: off
+			34 toggle button (settable, boolean) 减小字号, Value: off
+			35 button 更改大小写
+			36 toggle button (settable, boolean) 清除所有格式, Value: off
+			37 button 拼音指南
+			38 button 带圈字符
+			39 toggle button (settable, boolean) 加粗 (⌘B), Value: off
+			40 toggle button (settable, boolean) 倾斜 (⌘I), Value: off
+			41 toggle button (settable, boolean) 下划线 (⌘U), Value: off
+			42 button 下划线样式
+			43 toggle button (settable, boolean) 删除线, Value: on
+			44 toggle button (settable, boolean) 下标, Value: off
+			45 toggle button (settable, boolean) 上标, Value: off
+			46 button 文本效果和版式
+			47 button 文本突出显示颜色
+			48 button 字体颜色
+			49 button 字体设置
+		50 container 段落
+			51 toggle button (settable, boolean) 项目符号, Value: off
+			52 button 项目符号
+			53 toggle button (settable, boolean) 编号, Value: off
+			54 button 编号
+			55 button 多级列表
+			56 toggle button (settable, boolean) 减少缩进, Value: off
+			57 toggle button (settable, boolean) 增加缩进, Value: off
+			58 button 排序
+			59 toggle button (settable, boolean) 显示／隐藏格式标记, Value: off
+			60 toggle button (settable, boolean) 左对齐 (⌘L), Value: on
+			61 toggle button (settable, boolean) 居中 (⌘E), Value: off
+			62 toggle button (settable, boolean) 右对齐 (⌘R), Value: off
+			63 toggle button (settable, boolean) 两端对齐 (⌘J), Value: off
+			64 toggle button (settable, boolean) 分散对齐, Value: off
+			65 button 行距
+			66 button 底纹
+			67 button 边框
+			68 button 分页选项
+			69 button 段落设置
+		70 container 样式
+			71 button 正文
+			72 button 无间隔
+			73 button 标题 1
+			74 button 更多样式
+			75 button 样式窗格
+		76 container 编辑
+			77 button 查找
+			78 button 查找选项
+			79 button 替换
+			80 button 选择
+		81 button 上一页
+		82 button 下一页
+		83 text entry area 文档正文, Help: 随光标读取段落。用方向键或翻页键浏览。
+			84 container 水平标尺（只读）
+		85 button −
+		86 button 100%
+		87 button +
+	88 text * 未命名 1 — JoyWord
+	89 menu button Window sharing
+90 menu bar
+	91 JoyWord P1 Regression
+	92 文件
+	93 编辑
+	94 插入
+	95 视图
+
+The focused UI element is 0 standard window * 未命名 1 — JoyWord, Secondary Actions: Raise

@@ -368,7 +368,14 @@ impl JoyWord {
                     self.format_ready("picture.crop"),
                     true,
                 )
-                .on_click(cx.listener(|v, _, w, cx| v.picture_crop_form(w, cx))),
+                .selected(self.crop_mode)
+                .on_click(cx.listener(|v, _, w, cx| v.toggle_picture_crop(w, cx))),
+            )
+            .child(
+                Button::new("picture-crop-options")
+                    .label("裁剪选项…")
+                    .disabled(!self.format_ready("picture.crop"))
+                    .on_click(cx.listener(|v, _, w, cx| v.picture_crop_form(w, cx))),
             )
             .child(
                 self.ribbon_tool(
@@ -982,7 +989,7 @@ impl JoyWord {
         self.fields_form("拆分单元格 / Split Cells","table.split",vec![("列数 / Columns","2".into()),("行数 / Rows","1".into())],false,|s|Ok(json!({"columns":joyword_shell::authoring::integer(&s[0],1,16)?,"rows":joyword_shell::authoring::integer(&s[1],1,32)?,"mergeFirst":true})),w,cx);
     }
     fn table_dimension_form(&mut self, width: bool, w: &mut Window, cx: &mut Context<Self>) {
-        let (command, key, label) = if width {
+        let (command, key, _label) = if width {
             (
                 "table.columnWidth",
                 "width",
@@ -991,10 +998,23 @@ impl JoyWord {
         } else {
             ("table.rowHeight", "height", "行高（磅） / Row height (pt)")
         };
+        let unit = self
+            .canvas
+            .reader
+            .as_ref()
+            .map(|r| r.engine().units())
+            .unwrap_or_default();
+        let value = self
+            .canvas
+            .reader
+            .as_ref()
+            .and_then(|r| r.table_info())
+            .map(|t| forms::show(&t.formatting[if width { "columnWidth" } else { "rowHeight" }]))
+            .unwrap_or_default();
         self.fields_form(
-            "单元格大小 / Cell Size",
+            "单元格大小",
             command,
-            vec![(label, String::new())],
+            vec![forms::Field::length(if width { "列宽" } else { "行高" }, value, unit)],
             false,
             move |v| Ok(json!({key:joyword_shell::authoring::required_number(&v[0],if width{6.}else{1.},1584.)?})),
             w,
@@ -1002,15 +1022,23 @@ impl JoyWord {
         );
     }
     fn cell_margins_form(&mut self, w: &mut Window, cx: &mut Context<Self>) {
+        let Some(r) = self.canvas.reader.as_ref() else {
+            return;
+        };
+        let Some(table) = r.table_info() else {
+            return;
+        };
+        let unit = r.engine().units();
         self.fields_form(
-            "单元格边距 / Cell Margins",
+            "单元格边距",
             "table.cellMargins",
-            vec![
-                ("上（磅） / Top (pt)", String::new()),
-                ("左（磅） / Left (pt)", String::new()),
-                ("下（磅） / Bottom (pt)", String::new()),
-                ("右（磅） / Right (pt)", String::new()),
-            ],
+            ["上", "左", "下", "右"]
+                .into_iter()
+                .enumerate()
+                .map(|(i, label)| {
+                    forms::Field::length(label, forms::show(&table.formatting["margins"][i]), unit)
+                })
+                .collect::<Vec<_>>(),
             true,
             |v| {
                 let mut patch = json!({});
@@ -1027,7 +1055,7 @@ impl JoyWord {
         );
     }
     fn table_sort_form(&mut self, w: &mut Window, cx: &mut Context<Self>) {
-        self.fields_form("表格排序 / Sort Table","table.sort",vec![("列（从 1 开始） / Column (1-based)","1".into()),("方向 / Order (ascending / descending)","ascending".into()),("标题行 / Header row (yes / no)","yes".into())],false,|v|{
+        self.fields_form("表格排序 / Sort Table","table.sort",vec![forms::Field::text("排序列（从1开始）","1"),forms::Field::choice("排序方向","ascending",&[("ascending","升序"),("descending","降序")]),forms::Field::check("首行为标题行","yes","yes","no")],false,|v|{
             if !["ascending","descending"].contains(&v[1].trim())||!["yes","no"].contains(&v[2].trim()){return Err("请输入 ascending / descending 和 yes / no".into());}
             Ok(json!({"column":joyword_shell::authoring::integer(&v[0],1,63)?-1,"descending":v[1].trim()=="descending","header":v[2].trim()=="yes"}))
         },w,cx);
@@ -1049,7 +1077,7 @@ impl JoyWord {
         );
     }
     fn table_border_form(&mut self, w: &mut Window, cx: &mut Context<Self>) {
-        self.fields_form("表格边框 / Table Borders","table.borders",vec![("范围 / Kind (all / outside / inside / top / bottom / left / right / none)","all".into()),("宽度（磅） / Width (pt)","0.5".into()),("颜色 / Color (RRGGBB)","315FA8".into())],false,|v|{
+        self.fields_form("表格边框 / Table Borders","table.borders",vec![forms::Field::choice("边框范围","all",&[("all","所有边框"),("outside","外侧框线"),("inside","内部框线"),("top","上框线"),("bottom","下框线"),("left","左框线"),("right","右框线"),("none","无框线")]),forms::Field::text("线宽（磅）","0.5"),forms::Field::color("颜色","315FA8")],false,|v|{
             if !["all","outside","inside","top","bottom","left","right","none"].contains(&v[0].trim()){return Err("无效边框范围 / Invalid border kind".into());}
             let c=v[2].trim().trim_start_matches('#');
             if c.len()!=6||!c.bytes().all(|b|b.is_ascii_hexdigit()){return Err("颜色需要 6 位 RGB / A six-digit RGB color is required".into());}

@@ -1,5 +1,67 @@
 use super::*;
 
+#[test]
+fn shape_text_preserves_selection_is_one_undo_and_roundtrips() {
+    let mut s = Session::new(joyword_model::Document::new());
+    s.run("insert.shape", &json!({"kind":"rectangle"})).unwrap();
+    let selection = s.sel.clone();
+    let before = s.undo_depth();
+    s.run("shape.text", &json!({"text":"形状文字\nSecond line"}))
+        .unwrap();
+    assert_eq!(s.sel, selection);
+    assert_eq!(s.undo_depth(), before + 1);
+    let id = match selected(&s) {
+        Some((
+            _,
+            InlineObject::Shape {
+                story: Some(id), ..
+            },
+        )) => id,
+        other => panic!("{other:?}"),
+    };
+    assert_eq!(
+        s.doc.plain_text(StoryRef::Part(id)),
+        "形状文字\nSecond line"
+    );
+    let back = joyword_docx::read(&joyword_docx::write(&s.doc).unwrap()).unwrap();
+    assert!(back.parts.values().any(|part| {
+        part.blocks
+            .iter()
+            .filter_map(|b| b.as_para())
+            .map(|p| p.plain_text())
+            .collect::<Vec<_>>()
+            .join("\n")
+            == "形状文字\nSecond line"
+    }));
+    s.run("shape.text", &json!({"text":"Changed"})).unwrap();
+    s.run("edit.undo", &json!({})).unwrap();
+    assert_eq!(
+        s.doc.plain_text(StoryRef::Part(id)),
+        "形状文字\nSecond line"
+    );
+    s.run("edit.undo", &json!({})).unwrap();
+    assert!(matches!(
+        selected(&s),
+        Some((_, InlineObject::Shape { story: None, .. }))
+    ));
+}
+
+#[test]
+fn shape_text_does_not_flatten_linked_stories_or_accept_invalid_text() {
+    let mut s = Session::new(joyword_model::Document::new());
+    s.run("insert.textBox", &json!({"text":"Keep"})).unwrap();
+    s.run("caret.set", &json!({"pos":Pos::body(0,3)})).unwrap();
+    s.run("insert.textBox", &json!({})).unwrap();
+    s.run("select.objects", &json!({"index":0})).unwrap();
+    s.run("shape.link", &json!({"target":1})).unwrap();
+    let before = joyword_docx::write(&s.doc).unwrap();
+    let depth = s.undo_depth();
+    assert!(s.run("shape.text", &json!({"text":"Replace"})).is_err());
+    assert!(s.run("shape.text", &json!({"text":"a\u{0}b"})).is_err());
+    assert_eq!(s.undo_depth(), depth);
+    assert_eq!(joyword_docx::write(&s.doc).unwrap(), before);
+}
+
 fn png(w: u32, h: u32) -> Vec<u8> {
     let img = image::RgbaImage::from_fn(w, h, |x, y| {
         if x > 2 && x < w - 3 && y > 2 && y < h - 3 {

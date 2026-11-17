@@ -1,9 +1,7 @@
 //! JoyOffice Kit pickers/forms adapted to Wordcraft command parameters and selection state.
 use super::*;
-use gpui::EntityInputHandler;
 use gpui::component::{
-    Sizable, WindowExt,
-    input::{Input, InputState},
+    Sizable,
     popover::Popover,
     select::{SearchableVec, SelectState},
 };
@@ -12,7 +10,7 @@ use joyword_shell::formatting::{
 };
 use serde_json::Value;
 
-pub(super) type FontSelect = gpui::Entity<SelectState<SearchableVec<SharedString>>>;
+pub(super) type FontSelect = gpui::Entity<SelectState<SearchableVec<forms::Choice>>>;
 #[derive(Clone, Copy)]
 pub(super) enum Form {
     Font,
@@ -20,7 +18,13 @@ pub(super) enum Form {
 }
 
 pub(super) fn initial_font_picker(w: &mut Window, cx: &mut Context<JoyWord>) -> FontSelect {
-    let names: Vec<SharedString> = font_families().into_iter().map(Into::into).collect();
+    let names: Vec<_> = font_families()
+        .into_iter()
+        .map(|name| forms::Choice {
+            title: name.clone().into(),
+            value: name,
+        })
+        .collect();
     cx.new(|cx| SelectState::new(SearchableVec::new(names), None, w, cx).searchable(true))
 }
 impl JoyWord {
@@ -59,7 +63,7 @@ impl JoyWord {
             .as_ref()
             .map(|r| r.formatting())
             .unwrap_or_default();
-        let family = state.character["font"].as_str().map(SharedString::from);
+        let family = state.character["font"].as_str().map(str::to_owned);
         let document = self
             .canvas
             .reader
@@ -70,15 +74,26 @@ impl JoyWord {
         {
             // Reader import catalogs system/document fonts after the window is constructed.
             // Keep an unavailable document font visible, as in the host's font picker.
-            let mut names: Vec<SharedString> =
-                font_families().into_iter().map(Into::into).collect();
+            let mut names = font_families();
             if let Some(name) = &family
                 && !names.contains(name)
             {
                 names.insert(0, name.clone());
             }
             self.font_picker.update(cx, |s, cx| {
-                s.set_items(SearchableVec::new(names), w, cx);
+                s.set_items(
+                    SearchableVec::new(
+                        names
+                            .into_iter()
+                            .map(|name| forms::Choice {
+                                title: name.clone().into(),
+                                value: name,
+                            })
+                            .collect::<Vec<_>>(),
+                    ),
+                    w,
+                    cx,
+                );
                 if let Some(name) = &family {
                     s.set_selected_value(name, w, cx)
                 } else {
@@ -171,180 +186,175 @@ impl JoyWord {
     }
 
     pub(super) fn format_dialog(&mut self, kind: Form, w: &mut Window, cx: &mut Context<Self>) {
-        let command = match kind {
-            Form::Font => "format.set",
-            Form::Paragraph => "para.set",
-        };
-        if !self.format_ready(command) {
-            return;
-        }
+        use forms::{Field, show};
         let Some(reader) = self.canvas.reader.as_ref() else {
             return;
         };
-        let target = (
-            reader.engine().document_id(),
-            reader.engine().rev(),
-            reader.engine().sel.clone(),
-        );
         let state = reader.formatting();
-        let val = |v: &Value| {
-            if v.is_null() {
-                String::new()
-            } else if let Some(s) = v.as_str() {
-                s.into()
-            } else if let Some(n) = v.as_f64() {
-                format!("{n:.3}")
-                    .trim_end_matches('0')
-                    .trim_end_matches('.')
-                    .to_owned()
-            } else {
-                v.to_string()
-            }
-        };
-        let fields = match kind {
-            Form::Font => vec![
-                ("西文字体", val(&state.character["font"])),
-                ("中文字体", val(&state.character["fontEastAsia"])),
-                ("字号（1–400 磅）", val(&state.character["size"])),
-                ("文字颜色（RGB / auto）", val(&state.character["color"])),
-            ],
-            Form::Paragraph => vec![
-                ("起始缩进（磅）", val(&state.paragraph["indentLeft"])),
-                ("结束缩进（磅）", val(&state.paragraph["indentRight"])),
-                (
-                    "首行缩进（负数为悬挂）",
-                    val(&state.paragraph["indentFirst"]),
-                ),
-                ("段前间距（磅）", val(&state.paragraph["spaceBefore"])),
-                ("段后间距（磅）", val(&state.paragraph["spaceAfter"])),
-                (
-                    "行距（倍数 / exact:磅 / min:磅）",
-                    match state.paragraph["lineSpacing"]["rule"].as_str() {
-                        Some("exactly") => {
-                            format!("exact:{}", val(&state.paragraph["lineSpacing"]["value"]))
+        let unit = reader.engine().units();
+        match kind {
+            Form::Font => {
+                let flag = |key| {
+                    if state.mixed(key) {
+                        String::new()
+                    } else {
+                        state.active(key).to_string()
+                    }
+                };
+                self.fields_form(
+                    "字体设置",
+                    "format.set",
+                    vec![
+                        Field::font("西文字体", show(&state.character["font"])),
+                        Field::font("中文字体", show(&state.character["fontEastAsia"])),
+                        Field::text("字号（磅）", show(&state.character["size"])),
+                        Field::color("文字颜色", show(&state.character["color"])),
+                        Field::check("加粗", flag("bold"), "true", "false"),
+                        Field::check("倾斜", flag("italic"), "true", "false"),
+                        Field::choice(
+                            "下划线",
+                            show(&state.character["underlineStyle"]),
+                            &[
+                                ("none", "无"),
+                                ("single", "单下划线"),
+                                ("double", "双下划线"),
+                                ("dotted", "点线"),
+                                ("dash", "虚线"),
+                                ("wave", "波浪线"),
+                            ],
+                        ),
+                        Field::check("删除线", flag("strike"), "true", "false"),
+                        Field::check("小型大写字母", flag("smallCaps"), "true", "false"),
+                        Field::check("全部大写字母", flag("caps"), "true", "false"),
+                        Field::check("隐藏文字", flag("hidden"), "true", "false"),
+                        Field::choice(
+                            "字符位置",
+                            show(&state.character["vertAlign"]),
+                            &[
+                                ("baseline", "正常"),
+                                ("superscript", "上标"),
+                                ("subscript", "下标"),
+                            ],
+                        ),
+                        Field::text(
+                            "字符间距（磅，负值为紧缩）",
+                            show(&state.character["spacing"]),
+                        ),
+                        Field::text("字符缩放（%）", show(&state.character["scale"])),
+                        Field::text(
+                            "位置偏移（磅，负值为降低）",
+                            show(&state.character["position"]),
+                        ),
+                        Field::text(
+                            "字距调整起始字号（磅，0为关闭）",
+                            show(&state.character["kern"]),
+                        ),
+                    ]
+                    .into_iter()
+                    .enumerate()
+                    .map(|(i, field)| field.in_tab(if i < 12 { "字体" } else { "高级" }))
+                    .collect::<Vec<_>>(),
+                    true,
+                    |values| {
+                        let mut args = font_parameters(&values[..4])?;
+                        for (i, key) in [
+                            (4, "bold"),
+                            (5, "italic"),
+                            (7, "strike"),
+                            (8, "smallCaps"),
+                            (9, "caps"),
+                            (10, "hidden"),
+                        ] {
+                            if !values[i].is_empty() {
+                                args["props"][key] = serde_json::json!(values[i] == "true");
+                            }
                         }
-                        Some("atLeast") => {
-                            format!("min:{}", val(&state.paragraph["lineSpacing"]["value"]))
+                        for (i, key) in [(6, "underline"), (11, "vertAlign")] {
+                            if !values[i].is_empty() {
+                                args["props"][key] = serde_json::json!(values[i]);
+                            }
                         }
-                        Some(_) => val(&state.paragraph["lineSpacing"]["value"]),
-                        None => String::new(),
-                    },
-                ),
-            ],
-        };
-        let initial_values: Vec<String> = fields.iter().map(|(_, value)| value.clone()).collect();
-        let inputs: Vec<_> = fields
-            .into_iter()
-            .map(|(label, value)| {
-                let input = cx.new(|cx| {
-                    let mut i = InputState::new(w, cx).placeholder("留空保持原值");
-                    i.set_value(value, w, cx);
-                    i
-                });
-                (label, input)
-            })
-            .collect();
-        let owner = cx.entity().downgrade();
-        let error = cx.new(|_| String::new());
-        let close_owner = owner.clone();
-        w.open_dialog(cx, move |d, _, cx| {
-            let mut body = div()
-                .flex()
-                .flex_col()
-                .gap_2()
-                .child("留空保持每个选区的原值；应用为一次撤销。取消保留原文档。");
-            for (label, input) in &inputs {
-                body = body
-                    .child(div().text_sm().child(*label))
-                    .child(Input::new(input).aria_label(*label).xsmall());
-            }
-            let inputs = inputs.clone();
-            let owner = owner.clone();
-            let error2 = error.clone();
-            let target = target.clone();
-            let close_owner = close_owner.clone();
-            let cancel_owner = owner.clone();
-            let initial_values = initial_values.clone();
-            d.title(match kind {
-                Form::Font => "字体设置",
-                Form::Paragraph => "段落设置",
-            })
-            .width(px(440.))
-            .child(body)
-            .child(
-                div()
-                    .text_color(rgb(0xc42b1c))
-                    .child(error.read(cx).clone()),
-            )
-            .on_close(move |_, w, cx| {
-                let _ = close_owner.update(cx, |v, cx| w.focus(&v.focus, cx));
-            })
-            .child(
-                Button::new("apply-format")
-                    .label("应用")
-                    .on_click(move |_, w, cx| {
-                        let _ = owner.update(cx, |v, cx| {
-                            if v.canvas.reader.as_ref().map(|r| {
-                                (
-                                    r.engine().document_id(),
-                                    r.engine().rev(),
-                                    r.engine().sel.clone(),
-                                )
-                            }) != Some(target.clone())
+                        for (i, key, min, max) in [
+                            (12, "spacing", -100., 100.),
+                            (13, "scale", 1., 600.),
+                            (14, "position", -1584., 1584.),
+                            (15, "kern", 0., 400.),
+                        ] {
+                            if let Some(n) =
+                                joyword_shell::formatting::optional_number(&values[i], min, max)?
                             {
-                                error2.update(cx, |e, cx| {
-                                    *e = "文档或选区已变化，请重新打开设置。".into();
-                                    cx.notify();
-                                });
-                                return;
+                                args["props"][key] = serde_json::json!(n);
                             }
-                            if inputs.iter().any(|(_, i)| {
-                                i.update(cx, |s, cx| s.marked_text_range(w, cx).is_some())
-                            }) {
-                                return;
-                            }
-                            let values: Vec<String> = inputs
-                                .iter()
-                                .enumerate()
-                                .map(|(index, (_, i))| {
-                                    let value = i.read(cx).value().to_string();
-                                    if value.trim() == initial_values[index].trim() {
-                                        String::new()
-                                    } else {
-                                        value
-                                    }
-                                })
-                                .collect();
-                            let params = match kind {
-                                Form::Font => font_parameters(&values),
-                                Form::Paragraph => paragraph_parameters(&values),
-                            };
-                            match params {
-                                Err(e) => error2.update(cx, |s, cx| {
-                                    *s = e;
-                                    cx.notify();
-                                }),
-                                Ok(args) => {
-                                    if !args["props"].as_object().is_some_and(|m| m.is_empty()) {
-                                        v.run_format(command, &args, w, cx);
-                                    }
-                                    w.close_dialog(cx);
-                                    w.focus(&v.focus, cx);
-                                }
+                        }
+                        Ok(args)
+                    },
+                    w,
+                    cx,
+                );
+            }
+            Form::Paragraph => {
+                let line = state.paragraph["lineSpacing"].clone();
+                self.fields_form(
+                    "段落设置",
+                    "para.set",
+                    vec![
+                        Field::length("左缩进", show(&state.paragraph["indentLeft"]), unit),
+                        Field::length("右缩进", show(&state.paragraph["indentRight"]), unit),
+                        Field::length(
+                            "首行缩进（负值为悬挂）",
+                            show(&state.paragraph["indentFirst"]),
+                            unit,
+                        ),
+                        Field::length(
+                            "段前间距",
+                            show(&state.paragraph["spaceBefore"]),
+                            joyword_shell::formatting::Unit::Points,
+                        ),
+                        Field::length(
+                            "段后间距",
+                            show(&state.paragraph["spaceAfter"]),
+                            joyword_shell::formatting::Unit::Points,
+                        ),
+                        Field::choice(
+                            "行距",
+                            show(&line["rule"]),
+                            &[
+                                ("multiple", "多倍行距"),
+                                ("exactly", "固定值（磅）"),
+                                ("atLeast", "最小值（磅）"),
+                            ],
+                        ),
+                        Field::text("行距设置值（倍数或磅）", show(&line["value"])),
+                    ],
+                    true,
+                    move |values| {
+                        let mut legacy = values[..5].to_vec();
+                        let rule = if values[5].is_empty() {
+                            line["rule"].as_str().unwrap_or("multiple")
+                        } else {
+                            values[5].as_str()
+                        };
+                        let amount = if values[6].is_empty() && !values[5].is_empty() {
+                            show(&line["value"])
+                        } else {
+                            values[6].clone()
+                        };
+                        legacy.push(if amount.is_empty() {
+                            String::new()
+                        } else {
+                            match rule {
+                                "exactly" => format!("exact:{amount}"),
+                                "atLeast" => format!("min:{amount}"),
+                                _ => amount,
                             }
                         });
-                    }),
-            )
-            .child(
-                Button::new("cancel-format")
-                    .ghost()
-                    .label("取消")
-                    .on_click(move |_, w, cx| {
-                        w.close_dialog(cx);
-                        let _ = cancel_owner.update(cx, |v, cx| w.focus(&v.focus, cx));
-                    }),
-            )
-        });
+                        paragraph_parameters(&legacy)
+                    },
+                    w,
+                    cx,
+                );
+            }
+        }
     }
 }
 
@@ -388,7 +398,7 @@ mod tests {
         let picker = view.read_with(cx, |v, _| v.font_picker.clone());
         picker.update(cx, |_, cx| {
             cx.emit(gpui::component::select::SelectEvent::Confirm(Some(
-                SharedString::from("Source Sans 3"),
+                String::from("Source Sans 3"),
             )))
         });
         view.read_with(cx, |v, _| {

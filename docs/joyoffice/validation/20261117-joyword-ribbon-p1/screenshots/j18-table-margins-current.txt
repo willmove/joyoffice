@@ -1,0 +1,91 @@
+Window: "* 未命名 1 — JoyWord", App: JoyWord P1 Regression.
+0 standard window * 未命名 1 — JoyWord, Secondary Actions: Raise
+	1 container
+		2 button 新建
+		3 button 打开
+		4 button 保存
+		5 button 撤销
+		6 button (disabled) 重做
+		7 button 搜索命令
+		8 button EN
+		9 button 切换外观
+		10 tab group 功能区
+			11 tab (settable, boolean) 文件, Value: off
+			12 tab (settable, boolean) 开始, Value: off
+			13 tab (settable, boolean) 插入, Value: off
+			14 tab (settable, boolean) 绘图, Value: off
+			15 tab (settable, boolean) 设计, Value: off
+			16 tab (settable, boolean) 布局, Value: off
+			17 tab (settable, boolean) 引用, Value: off
+			18 tab (settable, boolean) 邮件, Value: off
+			19 tab (settable, boolean) 审阅, Value: off
+			20 tab (settable, boolean) 视图, Value: off
+			21 tab (settable, boolean) 帮助, Value: off
+			22 tab (settable, boolean) 表设计, Value: off
+			23 tab (settable, boolean) 表布局, Value: on
+			24 button 折叠或展开功能区, Help: ⌘F1
+		25 container 表
+			26 button 选择
+			27 button (disabled) 查看网格线, Help: 无边框单元格网格尚未接入屏幕叠加
+			28 button 属性
+		29 container 绘图
+			30 button (disabled) 绘制表格, Help: 此功能尚未提供，或当前文档状态不可用
+			31 button (disabled) 橡皮擦, Help: 此功能尚未提供，或当前文档状态不可用
+		32 container 行和列
+			33 button 删除
+			34 button 在上方插入行
+			35 button 在下方插入行
+			36 button 在左侧插入列
+			37 button 在右侧插入列
+		38 container 合并
+			39 button 合并单元格
+			40 button 拆分单元格
+			41 button 拆分表格
+		42 container 单元格大小
+			43 button 自动调整
+			44 button 高度…
+			45 button 宽度…
+			46 button 分布行
+			47 button 分布列
+		48 container 对齐方式
+			49 button 左上对齐
+			50 button 顶端居中
+			51 button 右上对齐
+			52 button 左中对齐
+			53 button 居中
+			54 button 右中对齐
+			55 button 左下对齐
+			56 button 底端居中
+			57 button 右下对齐
+			58 button 文字方向
+			59 button 单元格边距
+		60 container 数据
+			61 button 排序
+			62 button 重复标题行
+			63 button 转换为文本
+			64 button 公式
+		65 button 上一页
+		66 button 下一页
+		67 text entry area (settable) 文档正文, Help: 随光标读取段落。用方向键或翻页键浏览。, Value: B2
+			68 container 水平标尺（只读）
+		69 button −
+		70 button 100%
+		71 button +
+		72 dialog
+			73 text field (settable) 上, Value: 0, Placeholder: 多种值 / 未设置
+			74 text field (settable) 左, Value: 0.19, Placeholder: 多种值 / 未设置
+			75 text field (settable) 下, Value: 0, Placeholder: 多种值 / 未设置
+			76 text field (settable) 右, Value: 0.19, Placeholder: 多种值 / 未设置
+			77 button 取消
+			78 button 应用
+			79 button Close
+	80 text * 未命名 1 — JoyWord
+	81 menu button Window sharing
+82 menu bar
+	83 JoyWord P1 Regression
+	84 文件
+	85 编辑
+	86 插入
+	87 视图
+
+The focused UI element is 0 standard window * 未命名 1 — JoyWord, Secondary Actions: Raise

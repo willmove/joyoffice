@@ -3,7 +3,7 @@ use super::ribbon::Tool;
 use super::*;
 use gpui::component::WindowExt;
 use joyoffice_ui::IconName as I;
-use serde_json::json;
+use serde_json::{Value, json};
 
 impl JoyWord {
     pub(super) fn mailings_ribbon(&self, cx: &mut Context<Self>) -> impl IntoElement {
@@ -188,7 +188,7 @@ impl JoyWord {
                             self.format_ready("mailings.matchFields"),
                             false,
                         )
-                        .on_click(cx.listener(|v, _, w, cx| v.mailing_report(false, w, cx))),
+                        .on_click(cx.listener(|v, _, w, cx| v.match_fields_form(w, cx))),
                     )
                     .child(self.ribbon_tool(
                         "merge-update-labels",
@@ -372,7 +372,139 @@ impl JoyWord {
         }
     }
 
+    pub(super) fn recipient_grid(&mut self, new: bool, w: &mut Window, cx: &mut Context<Self>) {
+        let Some(r) = self.canvas.reader.as_ref() else {
+            return;
+        };
+        let (headers, rows) = if new {
+            (
+                vec!["姓名".into(), "城市".into()],
+                vec![vec![String::new(); 2]],
+            )
+        } else {
+            (
+                r.engine().merge.headers.clone(),
+                r.engine().merge.source.clone(),
+            )
+        };
+        self.data_grid_form(
+            if new {
+                "新建收件人列表"
+            } else {
+                "编辑收件人列表"
+            },
+            if new {
+                "mailings.recipients"
+            } else {
+                "mailings.editRecipients"
+            },
+            headers,
+            rows,
+            true,
+            |headers, rows| {
+                let mut names = std::collections::BTreeSet::new();
+                for h in headers {
+                    if h.trim().is_empty()
+                        || h.len() > 255
+                        || h.chars().any(char::is_control)
+                        || !names.insert(h.to_lowercase())
+                    {
+                        return Err("字段名称不能为空、重复或包含控制字符，最多255字节".into());
+                    }
+                }
+                if rows.iter().flatten().any(|v| v.contains('\0'))
+                    || rows.iter().flatten().map(String::len).sum::<usize>() > 8 * 1024 * 1024
+                {
+                    return Err("数据包含空字符或超过8MB".into());
+                }
+                Ok(json!({"fields":headers,"rows":rows}))
+            },
+            w,
+            cx,
+        );
+    }
+    fn match_fields_form(&mut self, w: &mut Window, cx: &mut Context<Self>) {
+        let result = match self
+            .canvas
+            .reader
+            .as_mut()
+            .map(|r| r.advanced_query("mailings.matchFields"))
+        {
+            Some(Ok(v)) => v,
+            Some(Err(error)) => {
+                self.shell.notice = Some(error);
+                cx.notify();
+                return;
+            }
+            None => return,
+        };
+        let roles = [
+            ("firstName", "名字／姓名"),
+            ("lastName", "姓氏"),
+            ("company", "单位"),
+            ("address", "街道地址"),
+            ("city", "城市"),
+            ("state", "省份"),
+            ("postal", "邮政编码"),
+            ("country", "国家／地区"),
+            ("title", "称谓"),
+        ];
+        let fields: Vec<String> = result["fields"]
+            .as_array()
+            .map(|a| {
+                a.iter()
+                    .filter_map(|s| s.as_str().map(str::to_owned))
+                    .collect()
+            })
+            .unwrap_or_default();
+        let mut choices = vec![("".to_owned(), "不匹配".to_owned())];
+        choices.extend(fields.iter().map(|s| (s.clone(), s.clone())));
+        let choices: Vec<_> = choices
+            .iter()
+            .map(|(id, title)| (id.as_str(), title.as_str()))
+            .collect();
+        let fields = roles
+            .iter()
+            .map(|(key, label)| {
+                forms::Field::choice(
+                    *label,
+                    result["address"][*key].as_str().unwrap_or(""),
+                    &choices,
+                )
+            })
+            .collect::<Vec<_>>();
+        self.fields_form(
+            "匹配域",
+            "mailings.matchFields",
+            fields,
+            false,
+            move |values| {
+                let mapping = roles
+                    .iter()
+                    .zip(values)
+                    .map(|((key, _), value)| {
+                        (
+                            (*key).to_owned(),
+                            if value.is_empty() {
+                                Value::Null
+                            } else {
+                                json!(value)
+                            },
+                        )
+                    })
+                    .collect::<serde_json::Map<_, _>>();
+                Ok(json!({"mapping":mapping}))
+            },
+            w,
+            cx,
+        );
+    }
+
     fn mailing_form(&mut self, kind: &'static str, w: &mut Window, cx: &mut Context<Self>) {
+        if kind == "recipients" {
+            self.recipient_grid(true, w, cx);
+            return;
+        }
         match kind {
             "envelope"=>self.fields_form("信封 / Envelopes","mailings.envelopes",vec![("收信人地址 / Delivery address",String::new()),("回信地址 / Return address",String::new()),("信封尺寸 / Size (DL / C4 / C5 / C6 / B5 / #10)","DL".into())],false,|v|{
                 if v[0].trim().is_empty()||v[0].chars().count()>2000||v[1].chars().count()>2000{return Err("地址需要 1–2000 个字符 / Address text is limited to 2,000 characters".into());}

@@ -1,0 +1,90 @@
+Window: "* 未命名 1 — JoyWord", App: JoyWord P1 Regression.
+0 standard window * 未命名 1 — JoyWord, Secondary Actions: Raise
+	1 container
+		2 button 新建
+		3 button 打开
+		4 button 保存
+		5 button (disabled) 撤销
+		6 button (disabled) 重做
+		7 button 搜索命令
+		8 button EN
+		9 button 切换外观
+		10 tab group 功能区
+			11 tab (settable, boolean) 文件, Value: off
+			12 tab (settable, boolean) 开始, Value: off
+			13 tab (settable, boolean) 插入, Value: off
+			14 tab (settable, boolean) 绘图, Value: off
+			15 tab (settable, boolean) 设计, Value: off
+			16 tab (settable, boolean) 布局, Value: off
+			17 tab (settable, boolean) 引用, Value: off
+			18 tab (settable, boolean) 邮件, Value: on
+			19 tab (settable, boolean) 审阅, Value: off
+			20 tab (settable, boolean) 视图, Value: off
+			21 tab (settable, boolean) 帮助, Value: off
+			22 button 折叠或展开功能区, Help: ⌘F1
+		23 button (disabled) 向左滚动功能区
+		24 container 创建
+			25 button 中文信封
+			26 button 信封
+			27 button 标签
+		28 container 开始邮件合并
+			29 button 开始邮件合并
+			30 button 选择收件人
+			31 button 编辑收件人列表
+		32 container 编写和插入域
+			33 button 突出显示合并域
+			34 button 地址块
+			35 button 问候语
+			36 button 插入合并域
+			37 button 规则
+			38 button 匹配域
+			39 button (disabled) 更新标签, Help: 此功能尚未提供，或当前文档状态不可用
+		40 container 预览结果
+			41 button 预览结果
+			42 button 首条
+			43 button 上一条
+			44 button 当前记录
+			45 button 下一条
+			46 button 末条
+			47 button 查找收件人
+			48 button 检查错误
+		49 container 完成
+			50 button 完成并合并
+		51 button (disabled) 向右滚动功能区
+		52 button 上一页
+		53 button 下一页
+		54 text entry area (settable) 文档正文, Help: 随光标读取段落。用方向键或翻页键浏览。
+			55 container 水平标尺（只读）
+		56 button −
+		57 button 100%
+		58 button +
+		59 dialog
+			60 text field (settable) 第1列名称, Value: 客户
+			61 button (disabled) 左移
+			62 button 删除字段
+			63 text field (settable) 第2列名称, Value: 城市
+			64 button 左移
+			65 button 删除字段
+			66 text entry area (settable) 第1行，客户, Value: 张三, QA
+			67 text entry area (settable) 第1行，城市, Value: 上海
+			68 button 删除行
+			69 text entry area (settable) 第2行，客户, Value: Alice
+			70 text entry area (settable) 第2行，城市, Value: London
+			71 button 删除行
+			72 button (disabled) 上一页
+			73 button (disabled) 下一页
+			74 button 添加行
+			75 button 添加字段
+			76 button 取消
+			77 button 确定
+			78 button Close
+	79 text * 未命名 1 — JoyWord
+	80 menu button Window sharing
+81 menu bar
+	82 JoyWord P1 Regression
+	83 文件
+	84 编辑
+	85 插入
+	86 视图
+
+The focused UI element is 0 standard window * 未命名 1 — JoyWord, Secondary Actions: Raise

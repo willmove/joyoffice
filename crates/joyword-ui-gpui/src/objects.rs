@@ -5,13 +5,6 @@ use gpui::component::{Disableable, Sizable, popover::Popover};
 use joyword_shell::authoring::{insert_table_params, picture_crop};
 use joyword_shell::formatting::optional_number;
 use serde_json::{Value, json};
-fn yes(s: &str) -> Result<bool, String> {
-    match s.trim() {
-        "是" | "true" => Ok(true),
-        "否" | "false" => Ok(false),
-        _ => Err("请输入 是 或 否".into()),
-    }
-}
 fn number_patch(v: &[String], keys: &[&str], min: f64, max: f64) -> Result<Value, String> {
     let mut p = serde_json::Map::new();
     for (s, k) in v.iter().zip(keys) {
@@ -131,39 +124,146 @@ impl JoyWord {
             })
     }
     pub(super) fn table_form(&mut self, w: &mut Window, cx: &mut Context<Self>) {
+        use forms::Field;
+        let Some(reader) = self.canvas.reader.as_ref() else {
+            return;
+        };
+        let Some(table) = reader.table_info() else {
+            return;
+        };
+        let unit = reader.engine().units();
+        let row = &table.formatting;
+        let props = &table.props;
+        let flag = |value: &Value| value.as_bool().map(|b| b.to_string()).unwrap_or_default();
+        let mode = if props["widthPct"].is_number() {
+            "percent"
+        } else if props["width"].is_number() {
+            "fixed"
+        } else {
+            "auto"
+        };
+        let row_mode = show(&row["rowHeightRule"]);
+        let original_width = props["width"].clone();
+        let original_pct = props["widthPct"].clone();
+        let original_height = row["rowHeight"].clone();
         self.fields_form(
             "表格属性",
             "table.properties",
             vec![
-                ("表格宽度（磅）", String::new()),
-                ("列宽（磅）", String::new()),
-                ("行高（磅）", String::new()),
-                ("表格缩进（磅）", String::new()),
-                ("对齐（左/中/右）", String::new()),
-                ("行可跨页（是/否）", String::new()),
-                ("首行为标题（是/否）", String::new()),
+                Field::choice(
+                    "宽度方式",
+                    mode,
+                    &[
+                        ("auto", "自动"),
+                        ("fixed", "指定宽度"),
+                        ("percent", "相对页面宽度（%）"),
+                    ],
+                )
+                .in_tab("表格"),
+                Field::length("表格宽度", show(&props["width"]), unit).in_tab("表格"),
+                Field::text("相对宽度（%）", show(&props["widthPct"])).in_tab("表格"),
+                Field::length(
+                    "表格缩进",
+                    show(
+                        props
+                            .get("indent")
+                            .filter(|v| v.is_number())
+                            .unwrap_or(&json!(0.)),
+                    ),
+                    unit,
+                )
+                .in_tab("表格"),
+                Field::choice(
+                    "对齐方式",
+                    props["align"].as_str().unwrap_or("left"),
+                    &[("left", "左对齐"), ("center", "居中"), ("right", "右对齐")],
+                )
+                .in_tab("表格"),
+                Field::choice(
+                    "行高方式",
+                    row_mode,
+                    &[("auto", "自动"), ("atLeast", "最小值"), ("exact", "固定值")],
+                )
+                .in_tab("行"),
+                Field::length("指定行高", show(&row["rowHeight"]), unit).in_tab("行"),
+                Field::check("允许跨页断行", flag(&row["allowBreak"]), "true", "false")
+                    .in_tab("行"),
+                Field::check(
+                    "在各页顶端以标题行形式重复",
+                    flag(&row["headerRow"]),
+                    "true",
+                    "false",
+                )
+                .in_tab("行"),
+                Field::length("列宽", show(&row["columnWidth"]), unit).in_tab("列"),
+                Field::length("单元格宽度", show(&row["cellWidth"]), unit).in_tab("单元格"),
+                Field::choice(
+                    "垂直对齐方式",
+                    show(&row["valign"]),
+                    &[("top", "顶端"), ("center", "居中"), ("bottom", "底端")],
+                )
+                .in_tab("单元格"),
             ],
             true,
-            |v| {
-                let mut p =
-                    number_patch(&v[..3], &["width", "columnWidth", "rowHeight"], 1., 1584.)?;
-                if let Some(n) = optional_number(&v[3], -1584., 1584.)? {
-                    p["indent"] = json!(n);
+            move |v| {
+                let mut args = json!({});
+                let numeric = |s: &str, min, max| optional_number(s, min, max);
+                if v[0] == "auto" {
+                    args["width"] = Value::Null;
+                    args["widthPct"] = Value::Null;
                 }
-                if !v[4].trim().is_empty() {
-                    p["align"] = json!(match v[4].trim() {
-                        "左" => "left",
-                        "中" => "center",
-                        "右" => "right",
-                        _ => return Err("对齐请输入 左、中、右".into()),
-                    });
+                if !v[1].is_empty() && !v[2].is_empty() {
+                    return Err("请仅设置指定宽度或相对宽度中的一项".into());
                 }
-                for (i, k) in [(5, "allowBreak"), (6, "headerRow")] {
-                    if !v[i].trim().is_empty() {
-                        p[k] = json!(yes(&v[i])?);
+                if (!v[1].is_empty() || v[0] == "fixed") && v[0] != "auto" && v[0] != "percent" {
+                    let text = if v[1].is_empty() {
+                        show(&original_width)
+                    } else {
+                        v[1].clone()
+                    };
+                    args["width"] = json!(numeric(&text, 6., 1584.)?.ok_or("请输入表格宽度")?);
+                }
+                if (!v[2].is_empty() || v[0] == "percent") && v[0] != "auto" && v[0] != "fixed" {
+                    let text = if v[2].is_empty() {
+                        show(&original_pct)
+                    } else {
+                        v[2].clone()
+                    };
+                    args["widthPct"] = json!(numeric(&text, 1., 100.)?.ok_or("请输入相对宽度")?);
+                }
+                if let Some(n) = numeric(&v[3], -1584., 1584.)? {
+                    args["indent"] = json!(n);
+                }
+                if !v[4].is_empty() {
+                    args["align"] = json!(v[4]);
+                }
+                if v[5] == "auto" {
+                    args["rowHeight"] = Value::Null;
+                } else {
+                    if let Some(n) = numeric(&v[6], 1., 1584.)? {
+                        args["rowHeight"] = json!(n);
+                    }
+                    if !v[5].is_empty() {
+                        if !args["rowHeight"].is_number() && !original_height.is_number() {
+                            return Err("请输入指定行高".into());
+                        }
+                        args["rowHeightRule"] = json!(v[5]);
                     }
                 }
-                Ok(p)
+                for (i, key) in [(7, "allowBreak"), (8, "headerRow")] {
+                    if !v[i].is_empty() {
+                        args[key] = json!(v[i] == "true");
+                    }
+                }
+                for (i, key) in [(9, "columnWidth"), (10, "cellWidth")] {
+                    if let Some(n) = numeric(&v[i], 6., 1584.)? {
+                        args[key] = json!(n);
+                    }
+                }
+                if !v[11].is_empty() {
+                    args["valign"] = json!(v[11]);
+                }
+                Ok(args)
             },
             w,
             cx,
@@ -257,13 +357,19 @@ impl JoyWord {
         let Some(p) = self.canvas.reader.as_ref().and_then(|r| r.picture_info()) else {
             return;
         };
+        let unit = self
+            .canvas
+            .reader
+            .as_ref()
+            .map(|r| r.engine().units())
+            .unwrap_or_default();
         self.fields_form(
             "图片大小",
             "picture.size",
             vec![
-                ("宽（磅）", p.width.to_string()),
-                ("高（磅）", p.height.to_string()),
-                ("锁定比例（是/否）", "是".into()),
+                forms::Field::length("宽度", p.width.to_string(), unit),
+                forms::Field::length("高度", p.height.to_string(), unit),
+                forms::Field::check("锁定纵横比", "true", "true", "false"),
             ],
             true,
             |v| {
@@ -271,7 +377,7 @@ impl JoyWord {
                 p["lockAspect"] = json!(if v[2].trim().is_empty() {
                     true
                 } else {
-                    yes(&v[2])?
+                    v[2] == "true"
                 });
                 Ok(p)
             },
@@ -327,7 +433,7 @@ impl JoyWord {
                 if v[0].len() > 4096 || v[1].len() > 4096 {
                     return Err("替代文字最多 4096 字节".into());
                 }
-                Ok(json!({"text":v[0],"title":v[1],"decorative":yes(&v[2])?}))
+                Ok(json!({"text":v[0],"title":v[1],"decorative":v[2] == "true"}))
             },
             w,
             cx,
