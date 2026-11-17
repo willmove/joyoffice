@@ -69,7 +69,7 @@ impl Template {
     }
 }
 
-static TEMPLATES: [Template; 9] = [
+static TEMPLATES_ZH_CN: [Template; 9] = [
     Template::new(("空白文档", "Blank document"), None, None),
     Template::new(
         ("项目计划书（示例）", "Project plan (sample)"),
@@ -96,16 +96,16 @@ static TEMPLATES: [Template; 9] = [
     ),
     Template::new(
         ("信函", "Business letter"),
-        Some(include_bytes!("../../../assets/samples/letter.docx")),
+        Some(include_bytes!("../../../assets/samples/letter-zh-CN.docx")),
         Some(include_bytes!(
-            "../../../assets/samples/previews/letter.png"
+            "../../../assets/samples/previews/letter-zh-CN.png"
         )),
     ),
     Template::new(
         ("简历", "Résumé"),
-        Some(include_bytes!("../../../assets/samples/resume.docx")),
+        Some(include_bytes!("../../../assets/samples/resume-zh-CN.docx")),
         Some(include_bytes!(
-            "../../../assets/samples/previews/resume.png"
+            "../../../assets/samples/previews/resume-zh-CN.png"
         )),
     ),
     Template::new(
@@ -130,6 +130,81 @@ static TEMPLATES: [Template; 9] = [
         )),
     ),
 ];
+
+static TEMPLATES_EN: [Template; 9] = [
+    Template::new(("空白文档", "Blank document"), None, None),
+    Template::new(
+        ("项目计划书（示例）", "Project plan (sample)"),
+        Some(include_bytes!(
+            "../../../assets/samples/project-plan-en.docx"
+        )),
+        Some(include_bytes!(
+            "../../../assets/samples/previews/project-plan-en.png"
+        )),
+    ),
+    Template::new(
+        ("会议纪要", "Meeting minutes"),
+        Some(include_bytes!(
+            "../../../assets/samples/meeting-minutes-en.docx"
+        )),
+        Some(include_bytes!(
+            "../../../assets/samples/previews/meeting-minutes-en.png"
+        )),
+    ),
+    Template::new(
+        ("工作周报", "Weekly report"),
+        Some(include_bytes!(
+            "../../../assets/samples/weekly-report-en.docx"
+        )),
+        Some(include_bytes!(
+            "../../../assets/samples/previews/weekly-report-en.png"
+        )),
+    ),
+    Template::new(
+        ("信函", "Business letter"),
+        Some(include_bytes!("../../../assets/samples/letter.docx")),
+        Some(include_bytes!(
+            "../../../assets/samples/previews/letter.png"
+        )),
+    ),
+    Template::new(
+        ("简历", "Résumé"),
+        Some(include_bytes!("../../../assets/samples/resume.docx")),
+        Some(include_bytes!(
+            "../../../assets/samples/previews/resume.png"
+        )),
+    ),
+    Template::new(
+        ("通知公告", "Notice"),
+        Some(include_bytes!("../../../assets/samples/notice-en.docx")),
+        Some(include_bytes!(
+            "../../../assets/samples/previews/notice-en.png"
+        )),
+    ),
+    Template::new(
+        ("学习笔记", "Study notes"),
+        Some(include_bytes!(
+            "../../../assets/samples/study-notes-en.docx"
+        )),
+        Some(include_bytes!(
+            "../../../assets/samples/previews/study-notes-en.png"
+        )),
+    ),
+    Template::new(
+        ("JoyWord 欢迎文档", "Welcome to JoyWord"),
+        Some(include_bytes!("../../../assets/samples/welcome-en.docx")),
+        Some(include_bytes!(
+            "../../../assets/samples/previews/welcome-en.png"
+        )),
+    ),
+];
+
+fn localized_templates(locale: joyword_shell::l10n::Locale) -> &'static [Template; 9] {
+    match locale {
+        joyword_shell::l10n::Locale::ZhCn => &TEMPLATES_ZH_CN,
+        joyword_shell::l10n::Locale::En => &TEMPLATES_EN,
+    }
+}
 
 impl JoyWord {
     pub(super) fn file_page_visible(&self) -> bool {
@@ -169,6 +244,7 @@ impl JoyWord {
         let p = self.palette();
         let tr = |zh, en| self.shell.tr(zh, en);
         let more_templates = tr("更多模板", "More templates");
+        let templates = localized_templates(self.shell.locale);
         let (title, body) = match self.file_section {
             FileSection::Home => (
                 tr("欢迎使用 JoyWord", "Welcome to JoyWord"),
@@ -181,7 +257,7 @@ impl JoyWord {
                             .flex()
                             .flex_col()
                             .gap_1()
-                            .child(self.template_gallery(&TEMPLATES[..6], cx))
+                            .child(self.template_gallery(&templates[..6], cx))
                             .child(
                                 file_control(
                                     div()
@@ -206,7 +282,7 @@ impl JoyWord {
                     )
                     .child(self.recent_files(cx)),
             ),
-            FileSection::New => (tr("新建", "New"), self.template_gallery(&TEMPLATES, cx)),
+            FileSection::New => (tr("新建", "New"), self.template_gallery(templates, cx)),
             FileSection::Open => (
                 tr("打开", "Open"),
                 div()
@@ -956,8 +1032,8 @@ fn display_path(path: &Path) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::TEMPLATES;
-    use joyword_shell::reader::Reader;
+    use super::localized_templates;
+    use joyword_shell::{l10n::Locale, reader::Reader};
     use std::sync::atomic::AtomicBool;
 
     #[cfg(windows)]
@@ -968,43 +1044,79 @@ mod tests {
     #[test]
     fn gallery_documents_open_edit_and_roundtrip_with_their_tables() -> Result<(), String> {
         let cancel = AtomicBool::new(false);
-        for template in TEMPLATES
-            .iter()
-            .filter(|template| template.document.is_some())
-        {
-            let name = format!("{}.docx", template.labels.0);
-            let bytes = template.document.ok_or("missing template document")?;
-            let preview = image::load_from_memory(template.preview_png.ok_or("missing preview")?)
-                .map_err(|error| error.to_string())?;
-            assert!(preview.width() > 0 && preview.height() > 0, "{name}");
-            let mut reader = Reader::from_bytes(&name, bytes, &cancel)?;
-            assert!(reader.source_path().is_none(), "{name}");
-            assert!(!reader.summary.pages.is_empty(), "{name}");
-            let tables = reader
-                .engine()
-                .doc
-                .body
+        for locale in Locale::ALL {
+            for template in localized_templates(locale)
                 .iter()
-                .filter(|b| b.as_table().is_some())
-                .count();
-            reader.execute("text.insert", &serde_json::json!({"text": "模板编辑验证 "}))?;
-            assert!(reader.is_dirty(), "{name}");
-            let text = reader.body_text();
-            let saved = reader.export_job("docx", false)?.bytes()?;
-            let reopened = Reader::from_bytes(&name, &saved, &cancel)?;
-            assert!(text.contains("模板编辑验证"), "{name}");
-            assert_eq!(reopened.body_text(), text, "{name}");
-            assert_eq!(
-                reopened
+                .filter(|template| template.document.is_some())
+            {
+                let label = if locale == Locale::ZhCn {
+                    template.labels.0
+                } else {
+                    template.labels.1
+                };
+                let name = format!("{label}.docx");
+                let bytes = template.document.ok_or("missing template document")?;
+                let preview =
+                    image::load_from_memory(template.preview_png.ok_or("missing preview")?)
+                        .map_err(|error| error.to_string())?;
+                assert!(preview.width() > 0 && preview.height() > 0, "{name}");
+                let mut reader = Reader::from_bytes(&name, bytes, &cancel)?;
+                assert!(reader.source_path().is_none(), "{name}");
+                assert!(!reader.summary.pages.is_empty(), "{name}");
+                let tables = reader
                     .engine()
                     .doc
                     .body
                     .iter()
                     .filter(|b| b.as_table().is_some())
-                    .count(),
-                tables,
-                "{name}"
-            );
+                    .count();
+                reader.execute("text.insert", &serde_json::json!({"text": "模板编辑验证 "}))?;
+                assert!(reader.is_dirty(), "{name}");
+                let text = reader.body_text();
+                let saved = reader.export_job("docx", false)?.bytes()?;
+                let reopened = Reader::from_bytes(&name, &saved, &cancel)?;
+                assert!(text.contains("模板编辑验证"), "{name}");
+                assert_eq!(reopened.body_text(), text, "{name}");
+                assert_eq!(
+                    reopened
+                        .engine()
+                        .doc
+                        .body
+                        .iter()
+                        .filter(|b| b.as_table().is_some())
+                        .count(),
+                    tables,
+                    "{name}"
+                );
+            }
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn gallery_document_bodies_match_the_interface_language() -> Result<(), String> {
+        let cancel = AtomicBool::new(false);
+        let expected = [
+            ("社区阅读活动项目计划书", "Community Reading Event"),
+            ("项目启动会议纪要", "Project Kick-off Meeting"),
+            ("工作周报模板", "Weekly report template"),
+            ("商务信函", "Your Name"),
+            ("个人简历", "Experience"),
+            ("关于开展专题培训的通知", "Notice of Training Session"),
+            ("学习笔记模板", "Study notes template"),
+            ("合作协议（原创测试文本）", "Cooperation Agreement"),
+        ];
+        for (index, (chinese, english)) in expected.into_iter().enumerate() {
+            let zh = localized_templates(Locale::ZhCn)[index + 1]
+                .document
+                .ok_or("missing Chinese template")?;
+            let en = localized_templates(Locale::En)[index + 1]
+                .document
+                .ok_or("missing English template")?;
+            let zh_text = Reader::from_bytes("zh.docx", zh, &cancel)?.body_text();
+            let en_text = Reader::from_bytes("en.docx", en, &cancel)?.body_text();
+            assert!(zh_text.contains(chinese), "{zh_text}");
+            assert!(en_text.contains(english), "{en_text}");
         }
         Ok(())
     }

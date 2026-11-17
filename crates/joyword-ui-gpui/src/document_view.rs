@@ -36,6 +36,7 @@ struct CachedPage {
     image: Arc<RenderImage>,
     pixels: u64,
     last_used: u64,
+    epoch: u64,
 }
 
 pub(super) struct DocumentCanvas {
@@ -115,7 +116,7 @@ impl DocumentCanvas {
             .as_ref()
             .map_or_else(PageIndex::default, |r| PageIndex::new(&r.summary.pages));
     }
-    pub(super) fn refresh_changed_page(&mut self, cx: &mut Context<JoyWord>) -> bool {
+    pub(super) fn refresh_changed_page(&mut self) -> bool {
         let Some(page) = self.reader.as_ref().and_then(|reader| {
             self.scene
                 .as_ref()
@@ -124,19 +125,17 @@ impl DocumentCanvas {
             return false;
         };
         self.discard_scene();
-        self.images.retain(|&(_, _, cached_page), cached| {
-            if cached_page == page {
-                cx.drop_image(cached.image.clone(), None);
-                false
-            } else {
-                true
+        for (&(_, _, cached_page), cached) in &mut self.images {
+            if cached_page != page {
+                cached.epoch = self.epoch;
             }
-        });
+        }
         self.failed.remove(&page);
         true
     }
-    fn has_image(&self, page: usize) -> bool {
-        self.image(page).is_some()
+    fn needs_raster(&self, page: usize) -> bool {
+        self.image(page)
+            .is_none_or(|cached| cached.epoch != self.epoch)
     }
     fn image(&self, page: usize) -> Option<&CachedPage> {
         let (zoom, dpi) = self.scale_key?;
@@ -149,7 +148,7 @@ impl DocumentCanvas {
         scroll: f32,
         zoom: u16,
     ) {
-        if !self.has_image(page) {
+        if self.needs_raster(page) {
             return;
         }
         if Some(page) == caret_page {
@@ -239,6 +238,13 @@ impl JoyWord {
         self.shell.notice = None;
         let from_legacy = matches!(&source, OpenSource::LegacyRecovery(_));
         let new_page = self.shell.new_page_preset();
+        let welcome = match self.shell.locale {
+            joyword_shell::l10n::Locale::ZhCn => ("JoyWord 欢迎.docx", WELCOME),
+            joyword_shell::l10n::Locale::En => (
+                "Welcome to JoyWord.docx",
+                include_bytes!("../../../assets/samples/welcome-en.docx") as &'static [u8],
+            ),
+        };
         let work = cx.background_executor().spawn(async move {
             // Platform executor threads can have a smaller stack than the nested DOCX
             // importer and layout require, particularly in debug builds.
@@ -248,9 +254,7 @@ impl JoyWord {
                 .spawn(move || match source {
                     OpenSource::File(path) => Reader::open(&path, &cancel),
                     OpenSource::LegacyRecovery(path) => Reader::recover_legacy(&path, &cancel),
-                    OpenSource::Welcome => {
-                        Reader::from_bytes("JoyWord 欢迎.docx", WELCOME, &cancel)
-                    }
+                    OpenSource::Welcome => Reader::from_bytes(welcome.0, welcome.1, &cancel),
                     OpenSource::Blank => Reader::blank_with_preset(new_page, &cancel),
                     OpenSource::Template { name, bytes } => {
                         Reader::from_bytes(&name, bytes, &cancel)
@@ -435,9 +439,9 @@ impl JoyWord {
                 || (key.zoom, key.dpi) != scale_key
                 || !self.canvas.wanted.contains(&key.page)
                 || (!visible.contains(&key.page)
-                    && visible
-                        .clone()
-                        .any(|p| !self.canvas.has_image(p) && !self.canvas.failed.contains_key(&p)))
+                    && visible.clone().any(|p| {
+                        self.canvas.needs_raster(p) && !self.canvas.failed.contains_key(&p)
+                    }))
             {
                 cancel.store(true, Ordering::Relaxed);
             }
@@ -445,7 +449,7 @@ impl JoyWord {
         }
         let Some(page) =
             self.canvas.wanted.iter().copied().find(|page| {
-                !self.canvas.has_image(*page) && !self.canvas.failed.contains_key(page)
+                self.canvas.needs_raster(*page) && !self.canvas.failed.contains_key(page)
             })
         else {
             return;
@@ -502,8 +506,19 @@ impl JoyWord {
                 {
                     match result {
                         Ok((image, pixels)) => {
-                            let mut resident: u64 =
-                                this.canvas.images.values().map(|entry| entry.pixels).sum();
+                            let cache_key = (current.zoom, current.dpi, page);
+                            let replaced_pixels = this
+                                .canvas
+                                .images
+                                .get(&cache_key)
+                                .map_or(0, |cached| cached.pixels);
+                            let mut resident: u64 = this
+                                .canvas
+                                .images
+                                .values()
+                                .map(|entry| entry.pixels)
+                                .sum::<u64>()
+                                - replaced_pixels;
                             while resident + pixels > MAX_CACHE_PIXELS {
                                 let oldest = this
                                     .canvas
@@ -525,14 +540,17 @@ impl JoyWord {
                             }
                             if resident + pixels <= MAX_CACHE_PIXELS {
                                 perf::sample("raster_installed", perf::start(), page);
-                                this.canvas.images.insert(
-                                    (current.zoom, current.dpi, page),
+                                if let Some(old) = this.canvas.images.insert(
+                                    cache_key,
                                     CachedPage {
                                         image,
                                         pixels,
                                         last_used: this.canvas.access,
+                                        epoch: current.epoch,
                                     },
-                                );
+                                ) {
+                                    cx.drop_image(old.image, None);
+                                }
                             } else {
                                 this.canvas
                                     .failed
@@ -722,5 +740,33 @@ impl JoyWord {
             ),
         );
         area
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn stale_page_remains_available_until_the_current_epoch_is_rendered() {
+        let mut canvas = DocumentCanvas::default();
+        canvas.scale_key = Some((100, 1000));
+        canvas.epoch = 1;
+        let rendered = Arc::new(RenderImage::new(vec![image::Frame::new(
+            image::RgbaImage::new(1, 1),
+        )]));
+        canvas.images.insert(
+            (100, 1000, 0),
+            CachedPage {
+                image: rendered,
+                pixels: 1,
+                last_used: 0,
+                epoch: 1,
+            },
+        );
+        assert!(!canvas.needs_raster(0));
+        canvas.epoch = 2;
+        assert!(canvas.needs_raster(0));
+        assert!(canvas.image(0).is_some());
     }
 }
