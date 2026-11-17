@@ -624,19 +624,9 @@ fn split_para_as(s: &mut Session, at: &Pos, enter: bool) -> Result<Pos, CmdError
 
 /// ISO-8601 timestamp (UTC, seconds) for `secs` since the Unix epoch.
 pub fn iso_from_unix_secs(secs: u64) -> String {
-    use chrono::Datelike;
     let t = secs % 86_400;
     let hms = format!("{:02}:{:02}:{:02}", t / 3600, t / 60 % 60, t % 60);
-    // Within chrono's range, read the date from it; past it, keep the proleptic Gregorian answer
-    // `civil_from_days` gives rather than falling back to the epoch.
-    let (y, m, d) = match i64::try_from(secs)
-        .ok()
-        .and_then(|s| chrono::DateTime::from_timestamp(s, 0))
-    {
-        Some(dt) => (i64::from(dt.year()), dt.month(), dt.day()),
-        None => civil_from_days((secs / 86_400) as i64),
-    };
-    // `{y:04}` rather than `%Y`, which writes a `+` before years past 9999.
+    let (y, m, d) = civil_from_days((secs / 86_400) as i64);
     format!("{y:04}-{m:02}-{d:02}T{hms}Z")
 }
 
@@ -667,32 +657,16 @@ pub fn now_iso() -> String {
     iso_from_unix_secs(now_unix())
 }
 
-/// Days since 1970-01-01 → (year, month, day).
-///
-/// `NaiveDate` only covers about ±262143 years, but this is reached by the system clock (and by
-/// [`iso_from_unix_secs`] for a `u64` seconds count past it), so it must stay exact for every
-/// `z`. The Gregorian calendar repeats every 400 years (146_097 days): chrono converts the day
-/// within its cycle and whole cycles go back into the year (an i128 so i64::MIN/MAX can't
-/// overflow). 1970-01-01 is `num_days_from_ce` 719_163, and 0..146_097 days from CE day 0 always
-/// fit chrono. The result matches the proleptic Gregorian count the old hand-rolled code gave.
+/// Proleptic Gregorian date for days since 1970-01-01. Whole 400-year cycles
+/// keep the calculation exact beyond the civil calendar library’s year range.
 pub fn civil_from_days(z: i64) -> (i64, u32, u32) {
-    use chrono::Datelike;
     let (cycles, rest) = (z.div_euclid(146_097), z.rem_euclid(146_097));
-    match i32::try_from(rest + 719_163)
-        .ok()
-        .and_then(chrono::NaiveDate::from_num_days_from_ce_opt)
-    {
-        Some(d) => {
-            let y = i128::from(d.year()) + i128::from(cycles) * 400;
-            (
-                i64::try_from(y).unwrap_or(if y < 0 { i64::MIN } else { i64::MAX }),
-                d.month(),
-                d.day(),
-            )
-        }
-        // Unreachable: `rest + 719_163` is 719_163..865_259, always a valid CE day.
-        None => (1970, 1, 1),
-    }
+    let epoch = jiff::civil::date(1970, 1, 1);
+    let Ok(date) = epoch.checked_add(jiff::Span::new().days(rest)) else {
+        return (1970, 1, 1);
+    };
+    let year = i64::from(date.year()) + cycles * 400;
+    (year, date.month() as u32, date.day() as u32)
 }
 
 /// Story given in params (`"story": "body"` / `{"part": 3}`), else the caret's.

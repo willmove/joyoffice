@@ -78,37 +78,19 @@ fn now_unix() -> Option<i64> {
     }
 }
 
-/// Unix seconds (UTC) → civil time (proleptic Gregorian).
-///
-/// The year is returned unclamped (the caller clamps it to the PDF `DateTime` range 0..=9999);
-/// month, day and time of day always come through correctly. Past chrono's ±262143-year range the
-/// Gregorian 400-year cycle (146_097 days) keeps the result exact — chrono converts the day within
-/// one cycle and whole cycles go back into the year (an `i128` so the extremes can't overflow) —
-/// rather than falling back to the epoch, so the date never changes for a value the old
-/// hand-rolled converter accepted. 1970-01-01 is `num_days_from_ce` 719_163.
+/// Unix seconds (UTC) to proleptic Gregorian date and time.
 pub(crate) fn civil(t: i64) -> Civil {
-    use chrono::Datelike;
     let (days, secs) = (t.div_euclid(86_400), t.rem_euclid(86_400));
     let (cycles, rest) = (days.div_euclid(146_097), days.rem_euclid(146_097));
-    // `rest + 719_163` is 719_163..865_259, always a valid CE day.
-    let (y, m, d) = match i32::try_from(rest + 719_163)
-        .ok()
-        .and_then(chrono::NaiveDate::from_num_days_from_ce_opt)
-    {
-        Some(date) => {
-            let y = i128::from(date.year()) + i128::from(cycles) * 400;
-            (
-                i64::try_from(y).unwrap_or(if y < 0 { i64::MIN } else { i64::MAX }),
-                date.month() as u8,
-                date.day() as u8,
-            )
-        }
-        None => (1970, 1, 1), // unreachable
-    };
+    let epoch = jiff::civil::date(1970, 1, 1);
+    let date = epoch
+        .checked_add(jiff::Span::new().days(rest))
+        .unwrap_or(epoch);
+    let y = i64::from(date.year()) + cycles * 400;
     (
         y,
-        m,
-        d,
+        date.month() as u8,
+        date.day() as u8,
         (secs / 3600) as u8,
         (secs / 60 % 60) as u8,
         (secs % 60) as u8,

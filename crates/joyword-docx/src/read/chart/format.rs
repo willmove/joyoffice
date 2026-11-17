@@ -228,34 +228,15 @@ pub(super) fn excel_stamp(serial: f64, date1904: bool) -> Option<Stamp> {
     })
 }
 
-/// Calendar date (year, month, day) of day `n` counted from 30 December 1899 (an Excel serial
-/// day number). Serial `n` is `n - 25_569` days from 1970-01-01.
-///
-/// The caller's serial guard keeps `n` inside chrono's range, but the Gregorian calendar repeats
-/// every 400 years (146_097 days), so this stays exact for any `n` without hand-rolled calendar
-/// math: chrono converts the day within its cycle and whole cycles go back into the year (an
-/// i128 so the extremes can't overflow). 1970-01-01 is `num_days_from_ce` 719_163, so serial `n`
-/// is CE day `n - 25_569 + 719_163`.
+/// Proleptic Gregorian date for days since 1899-12-30, the chart serial epoch.
 pub(super) fn civil(n: i64) -> (i64, u32, u32) {
-    use chrono::Datelike;
-    // CE day of serial `n`, in i128 so no `n` overflows.
-    let from_ce = i128::from(n) - 25_569 + 719_163;
-    let (cycles, rest) = (from_ce.div_euclid(146_097), from_ce.rem_euclid(146_097));
-    match i32::try_from(rest)
-        .ok()
-        .and_then(chrono::NaiveDate::from_num_days_from_ce_opt)
-    {
-        Some(date) => {
-            let y = i128::from(date.year()) + cycles * 400;
-            (
-                i64::try_from(y).unwrap_or(if y < 0 { i64::MIN } else { i64::MAX }),
-                date.month(),
-                date.day(),
-            )
-        }
-        // Unreachable: every `rest` in 0..146_097 is a valid CE day.
-        None => (1900, 1, 1),
-    }
+    let (cycles, rest) = (n.div_euclid(146_097), n.rem_euclid(146_097));
+    let epoch = jiff::civil::date(1899, 12, 30);
+    let Ok(date) = epoch.checked_add(jiff::Span::new().days(rest)) else {
+        return (1900, 1, 1);
+    };
+    let year = i64::from(date.year()) + cycles * 400;
+    (year, date.month() as u32, date.day() as u32)
 }
 
 const MONTHS: [&str; 12] = [

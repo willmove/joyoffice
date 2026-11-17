@@ -126,7 +126,7 @@ joysheet-ui-gpui = { path = "crates/joysheet-ui-gpui" }
 joysheet-xlsx = { path = "crates/joysheet-xlsx" }
 thiserror = "=2.0.21"
 log = "=0.4.34"
-chrono = { version = "=0.4.45", default-features = false, features = ["std"] }
+jiff = { version = "=0.2.32", default-features = false, features = ["std"] }
 aes = { version = "=0.9.3", default-features = false }
 sha1 = { version = "=0.11.0", default-features = false }
 rfd = "=0.17.2"
@@ -138,7 +138,7 @@ joydeck-engine = { path = "crates/joydeck-engine" }
 joydeck-shell = { path = "crates/joydeck-shell" }
 serde = { version = "=1.0.228", features = ["derive", "rc"] }
 serde_json = "=1.0.154"
-zip = { version = "=9.0.0", default-features = false, features = ["deflate-flate2"] }
+zip = { version = "=9.0.5", default-features = false, features = ["deflate-flate2"] }
 roxmltree = "=0.21.1"
 resvg = "=0.45.1"
 ttf-parser = "=0.25.1"

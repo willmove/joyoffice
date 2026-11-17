@@ -27,7 +27,7 @@ miniz_oxide = { workspace = true }
 sha1 = { workspace = true }
 thiserror = { workspace = true }
 log = { workspace = true }
-chrono = { workspace = true }
+jiff = { workspace = true }
 
 [dev-dependencies]
 joyword-model = { workspace = true, features = ["test-support"] }

@@ -125,6 +125,8 @@ fn hidden_ink_changes_the_screen_only_and_save_reopen_keeps_the_stroke() -> Resu
 fn view_modes_refresh_the_host_layout_and_read_mode_rejects_native_and_command_edits()
 -> Result<(), String> {
     let mut r = Reader::blank(&AtomicBool::new(false))?;
+    // Keep the PDF creation date stable when rendering spans a clock tick.
+    r.session.doc.core.created = "2026-01-01T00:00:00Z".into();
     r.execute("tools.recordMacro", &json!({"name":"EditingMacro"}))?;
     r.execute(
         "text.insert",

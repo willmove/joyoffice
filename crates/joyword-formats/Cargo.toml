@@ -29,7 +29,7 @@ cfb = { workspace = true }
 encoding_rs = { workspace = true }
 chardetng = { workspace = true }
 log = { workspace = true }
-chrono = { workspace = true }
+jiff = { workspace = true }
 
 [target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dependencies]
 # The browser clock (`SystemTime::now()` panics on wasm32-unknown-unknown): ODT change dates.

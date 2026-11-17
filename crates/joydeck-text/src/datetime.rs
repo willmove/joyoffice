@@ -37,15 +37,14 @@ impl DateTime {
     pub fn now_local() -> Option<DateTime> {
         #[cfg(not(target_arch = "wasm32"))]
         {
-            use chrono::{Datelike, Timelike};
-            let n = chrono::Local::now();
+            let n = jiff::Zoned::now();
             Some(DateTime::new(
-                n.year(),
-                n.month(),
-                n.day(),
-                n.hour(),
-                n.minute(),
-                n.second(),
+                i32::from(n.year()),
+                n.month() as u32,
+                n.day() as u32,
+                n.hour() as u32,
+                n.minute() as u32,
+                n.second() as u32,
             ))
         }
         #[cfg(target_arch = "wasm32")]
@@ -54,20 +53,28 @@ impl DateTime {
         }
     }
 
+    fn date(&self) -> Option<jiff::civil::Date> {
+        jiff::civil::Date::new(
+            i16::try_from(self.year).ok()?,
+            i8::try_from(self.month).ok()?,
+            i8::try_from(self.day).ok()?,
+        )
+        .ok()
+    }
+
     /// A real calendar date and time of day.
     fn is_valid(&self) -> bool {
-        let date_ok = (1..=9999).contains(&self.year)
-            && chrono::NaiveDate::from_ymd_opt(self.year, self.month, self.day).is_some();
-        date_ok && self.hour < 24 && self.minute < 60 && self.second < 61
+        (1..=9999).contains(&self.year)
+            && self.date().is_some()
+            && self.hour < 24
+            && self.minute < 60
+            && self.second < 61
     }
 
     /// Day of the week, 0 = Sunday.
     fn weekday(&self) -> usize {
-        match chrono::NaiveDate::from_ymd_opt(self.year, self.month, self.day) {
-            // `chrono::Weekday::num_days_from_sunday` is 0 = Sunday.
-            Some(d) => chrono::Datelike::weekday(&d).num_days_from_sunday() as usize,
-            None => 0,
-        }
+        self.date()
+            .map_or(0, |date| date.weekday().to_sunday_zero_offset() as usize)
     }
 }
 

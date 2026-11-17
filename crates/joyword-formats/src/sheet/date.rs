@@ -92,30 +92,16 @@ pub(super) fn serial_date(serial: f64, date1904: bool, kind: DateKind) -> Option
     })
 }
 
-/// Days since 1970-01-01 to a proleptic Gregorian (year, month, day).
-///
-/// The caller's serial guard keeps `z` inside chrono's range, but the Gregorian calendar repeats
-/// every 400 years (146_097 days), so this stays exact for any `z` without hand-rolled calendar
-/// math: chrono converts the day within its cycle and whole cycles go back into the year (an
-/// i128 so the extremes can't overflow). 1970-01-01 is `num_days_from_ce` 719_163.
+/// Proleptic Gregorian date for days since 1970-01-01. Whole 400-year cycles
+/// keep the calculation exact beyond the civil calendar library’s year range.
 pub(crate) fn civil(z: i64) -> (i64, i64, i64) {
-    use chrono::Datelike;
     let (cycles, rest) = (z.div_euclid(146_097), z.rem_euclid(146_097));
-    match i32::try_from(rest + 719_163)
-        .ok()
-        .and_then(chrono::NaiveDate::from_num_days_from_ce_opt)
-    {
-        Some(d) => {
-            let y = i128::from(d.year()) + i128::from(cycles) * 400;
-            (
-                i64::try_from(y).unwrap_or(if y < 0 { i64::MIN } else { i64::MAX }),
-                i64::from(d.month()),
-                i64::from(d.day()),
-            )
-        }
-        // Unreachable: `rest + 719_163` is always a valid CE day.
-        None => (1970, 1, 1),
-    }
+    let epoch = jiff::civil::date(1970, 1, 1);
+    let Ok(date) = epoch.checked_add(jiff::Span::new().days(rest)) else {
+        return (1970, 1, 1);
+    };
+    let year = i64::from(date.year()) + cycles * 400;
+    (year, i64::from(date.month()), i64::from(date.day()))
 }
 
 /// An ISO 8601 date or date-time (`2024-03-05`, `2024-03-05T13:45:00.000`) as `yyyy-mm-dd`,

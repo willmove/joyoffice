@@ -2,11 +2,18 @@
 
 ## English
 
+**Shenzhen welcomes you as we celebrate APEC.**
+
 JoyDeck is a presentation editor in JoyOffice. Packages include the desktop application and `joydeck-cli`.
 
 ### Release policy
 
 Starting with v0.2.0, JoyOffice publishes normal GitHub releases. All first-party workspace packages share version 0.2.0; products retain separate tags and downloads.
+
+### What’s new
+
+- Windows downloads include a per-user Setup EXE with the app-local Visual C++ runtime on x64 and ARM64.
+- The shared desktop components use GPUI Kit 0.9.1 and GPUI Pre 0.3.12.
 
 ### Download and install
 
@@ -29,13 +36,22 @@ Linux packages use Ubuntu 24.04 and need compatible Vulkan, font and X11/Wayland
 
 See the [current product status](https://github.com/willmove/joyoffice/blob/joydeck-v0.2.0/docs/joydeck/STATUS.md) for implementation changes and remaining work. Publishing as a normal release does not extend the recorded hardware or feature acceptance. Prior [v0.1.4 Windows evidence](https://github.com/willmove/joyoffice/blob/joydeck-v0.2.0/docs/joyoffice/validation/20261113-v014/README.md) remains evidence for that version. Six-platform build and asset checks run before publication; full system IME, accessibility, printing, multi-monitor and upgrade/rollback coverage remains scenario-specific. Imported PPTX files without a reusable notes part still refuse saving newly added notes; save a native `.joydeck` copy instead.
 
+On UOS 25 x86_64 with X11/DDE, the tested JoyDeck build passed native Save As and PPTX reopening. System Pinyin composition in speaker notes is still open. [UOS desktop validation](https://github.com/willmove/joyoffice/blob/joydeck-v0.2.0/docs/joyoffice/validation/20261117-uos-desktop/README.md)
+
 ## 中文
+
+**喜迎APEC，深圳欢迎您**
 
 JoyDeck 是 JoyOffice 的演示文稿应用。软件包包含桌面应用和 `joydeck-cli`。
 
 ### 发布规则
 
 从 v0.2.0 开始，JoyOffice 按正常 GitHub Release 发布。所有第一方工作区包统一使用 0.2.0，产品继续保留独立标签和下载。
+
+### 本版更新
+
+- Windows x64 和 ARM64 提供当前用户级 Setup EXE，并随包携带 app-local Visual C++ 运行库。
+- 共享桌面组件使用 GPUI Kit 0.9.1 和 GPUI Pre 0.3.12。
 
 ### 下载与安装
 
@@ -57,3 +73,5 @@ Linux 构建基线为 Ubuntu 24.04，需要兼容的 Vulkan、字体和 X11／Wa
 ### 能力与验证范围
 
 实现进展与剩余工作见[当前产品状态](https://github.com/willmove/joyoffice/blob/joydeck-v0.2.0/docs/joydeck/STATUS.md)。正常 Release 的发布类型不扩大已有硬件或功能验收范围。[v0.1.4 Windows 历史证据](https://github.com/willmove/joyoffice/blob/joydeck-v0.2.0/docs/joyoffice/validation/20261113-v014/README.md)仍仅对应当时版本。发布前执行六平台构建和资产校验；完整系统输入法、无障碍、打印、多显示器及升级回退继续按场景验收。 导入 PPTX 若没有可复用的备注部件，新增备注仍会拒绝回写，可另存 `.joydeck` 原生副本。
+
+UOS 25 x86_64 的 X11／DDE 实测覆盖原生「另存为」和 PPTX 重开，演讲者备注中的系统拼音组合输入仍待验证通过。 [UOS 桌面实测记录](https://github.com/willmove/joyoffice/blob/joydeck-v0.2.0/docs/joyoffice/validation/20261117-uos-desktop/README.md)

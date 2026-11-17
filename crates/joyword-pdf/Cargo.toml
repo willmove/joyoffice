@@ -29,7 +29,7 @@ kurbo = { workspace = true }
 image = { workspace = true, features = ["bmp", "gif", "jpeg", "png", "tiff", "webp"] }
 thiserror = { workspace = true }
 log = { workspace = true }
-chrono = { workspace = true }
+jiff = { workspace = true }
 
 [target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dependencies]
 # The browser clock (`SystemTime::now()` panics on wasm32-unknown-unknown).

@@ -130,31 +130,16 @@ fn filetime_iso(value: &[u8]) -> Option<String> {
     Some(format!("{y:04}-{m:02}-{d:02}T{h:02}:{mi:02}:{s:02}Z"))
 }
 
-/// Days since 1970-01-01 → proleptic Gregorian (year, month, day).
-///
-/// A FILETIME can land past `NaiveDate`'s ±262143-year range, where the old hand-rolled converter
-/// still produced a date; dropping to `None` there would change the output. The Gregorian calendar
-/// repeats every 400 years (146_097 days), so chrono converts the day within one cycle and whole
-/// cycles go back into the year (an `i128` so the extremes can't overflow), keeping chrono as the
-/// only calendar logic and reproducing the old result exactly. 1970-01-01 is `num_days_from_ce` 719_163.
+/// Proleptic Gregorian date for days since 1970-01-01. Whole 400-year cycles
+/// keep the calculation exact beyond the civil calendar library’s year range.
 fn civil(days: i64) -> (i64, u32, u32) {
-    use chrono::Datelike;
     let (cycles, rest) = (days.div_euclid(146_097), days.rem_euclid(146_097));
-    // `rest + 719_163` is 719_163..865_259, always a valid CE day.
-    match i32::try_from(rest + 719_163)
-        .ok()
-        .and_then(chrono::NaiveDate::from_num_days_from_ce_opt)
-    {
-        Some(d) => {
-            let y = i128::from(d.year()) + i128::from(cycles) * 400;
-            (
-                i64::try_from(y).unwrap_or(if y < 0 { i64::MIN } else { i64::MAX }),
-                d.month(),
-                d.day(),
-            )
-        }
-        None => (1970, 1, 1), // unreachable
-    }
+    let epoch = jiff::civil::date(1970, 1, 1);
+    let Ok(date) = epoch.checked_add(jiff::Span::new().days(rest)) else {
+        return (1970, 1, 1);
+    };
+    let year = i64::from(date.year()) + cycles * 400;
+    (year, date.month() as u32, date.day() as u32)
 }
 
 fn text(value: &[u8], codepage: u16) -> Option<String> {

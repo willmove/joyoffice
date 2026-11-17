@@ -18,7 +18,7 @@ type_complexity = "allow"
 [dependencies]
 serde = { workspace = true }
 thiserror = { workspace = true }
-chrono = { workspace = true }
+jiff = { workspace = true }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 js-sys = "=0.3.106"

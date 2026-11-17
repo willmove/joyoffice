@@ -2,11 +2,18 @@
 
 ## English
 
+**Shenzhen welcomes you as we celebrate APEC.**
+
 JoySheet is a spreadsheet application in JoyOffice. Packages include the desktop application and `joysheet-cli`.
 
 ### Release policy
 
 Starting with v0.2.0, JoyOffice publishes normal GitHub releases. All first-party workspace packages share version 0.2.0; products retain separate tags and downloads.
+
+### What’s new
+
+- Multi-line XLSX cells retain line breaks when opened for editing and saved again. Adjacent cell borders meet at the shared edge.
+- The font picker supports typing and filtering names, and remembers recent fonts. Ribbon updates include format dialogs, multi-level sorting, text to columns and print preview settings.
 
 ### Download and install
 
@@ -29,13 +36,22 @@ Linux packages use Ubuntu 24.04 and need compatible Vulkan, font and X11/Wayland
 
 See the [current product status](https://github.com/willmove/joyoffice/blob/joysheet-v0.2.0/docs/joysheet/STATUS.md) for implementation changes and remaining work. Publishing as a normal release does not extend the recorded hardware or feature acceptance. Prior [v0.1.4 Windows evidence](https://github.com/willmove/joyoffice/blob/joysheet-v0.2.0/docs/joyoffice/validation/20261113-v014/README.md) remains evidence for that version. Six-platform build and asset checks run before publication; full system IME, accessibility, printing, multi-monitor and upgrade/rollback coverage remains scenario-specific.
 
+On UOS 25 x86_64 with X11/DDE, the tested JoySheet build passed multiline XLSX editing, formatting and reopening. System Pinyin composition is still open. [UOS desktop validation](https://github.com/willmove/joyoffice/blob/joysheet-v0.2.0/docs/joyoffice/validation/20261117-uos-desktop/README.md)
+
 ## 中文
+
+**喜迎APEC，深圳欢迎您**
 
 JoySheet 是 JoyOffice 的电子表格应用。软件包包含桌面应用和 `joysheet-cli`。
 
 ### 发布规则
 
 从 v0.2.0 开始，JoyOffice 按正常 GitHub Release 发布。所有第一方工作区包统一使用 0.2.0，产品继续保留独立标签和下载。
+
+### 本版更新
+
+- 多行 XLSX 单元格在进入编辑及重新保存后保留换行。相邻单元格的边框在公共边缘对齐。
+- 字体选择器支持输入和筛选字体名称，并记住最近字体。功能区更新涉及格式对话框、多级排序、分列和打印预览设置。
 
 ### 下载与安装
 
@@ -57,3 +73,5 @@ Linux 构建基线为 Ubuntu 24.04，需要兼容的 Vulkan、字体和 X11／Wa
 ### 能力与验证范围
 
 实现进展与剩余工作见[当前产品状态](https://github.com/willmove/joyoffice/blob/joysheet-v0.2.0/docs/joysheet/STATUS.md)。正常 Release 的发布类型不扩大已有硬件或功能验收范围。[v0.1.4 Windows 历史证据](https://github.com/willmove/joyoffice/blob/joysheet-v0.2.0/docs/joyoffice/validation/20261113-v014/README.md)仍仅对应当时版本。发布前执行六平台构建和资产校验；完整系统输入法、无障碍、打印、多显示器及升级回退继续按场景验收。
+
+UOS 25 x86_64 的 X11／DDE 实测覆盖多行 XLSX 编辑、格式和保存重开，系统拼音组合输入仍待验证通过。 [UOS 桌面实测记录](https://github.com/willmove/joyoffice/blob/joysheet-v0.2.0/docs/joyoffice/validation/20261117-uos-desktop/README.md)

@@ -151,45 +151,24 @@ pub fn parse_date(t: &str) -> Option<(i64, u32, u32)> {
 }
 
 pub fn days_in_month(y: i64, m: u32) -> u32 {
-    // The length of a month is the day before the first of the next month. Month lengths repeat
-    // every 400 years, so the year within its Gregorian cycle (`rem_euclid(400)`) is enough and
-    // always fits chrono, for any `y`. An invalid month keeps the old 31-day default.
-    let y = y.rem_euclid(400);
-    let first = |y: i64, m: u32| {
-        i32::try_from(y)
-            .ok()
-            .and_then(|y| chrono::NaiveDate::from_ymd_opt(y, m, 1))
-    };
-    match (
-        first(y, m),
-        if m == 12 {
-            first(y + 1, 1)
-        } else {
-            first(y, m + 1)
-        },
-    ) {
-        (Some(a), Some(b)) => u32::try_from((b - a).num_days()).unwrap_or(31),
-        _ => 31,
-    }
+    i8::try_from(m)
+        .ok()
+        .and_then(|month| jiff::civil::Date::new(y.rem_euclid(400) as i16, month, 1).ok())
+        .map_or(31, |date| date.days_in_month() as u32)
 }
 
-/// Days since 1970-01-01 for a date (inverse of [`super::civil_from_days`]), exact for any year.
-///
-/// The Gregorian calendar repeats every 400 years (146_097 days): chrono converts the year
-/// within its cycle and whole cycles are added back as days (an i128 so the extremes can't
-/// overflow). 1970-01-01 is `num_days_from_ce` 719_163; the result matches the proleptic
-/// Gregorian count the old hand-rolled code gave.
+/// Days since 1970-01-01 for a proleptic Gregorian date.
 pub fn days_from_civil(y: i64, m: u32, d: u32) -> i64 {
-    let (cycles, year) = (i128::from(y.div_euclid(400)), y.rem_euclid(400));
-    i32::try_from(year)
-        .ok()
-        .and_then(|year| chrono::NaiveDate::from_ymd_opt(year, m, d))
-        .and_then(|date| {
-            let days =
-                i128::from(chrono::Datelike::num_days_from_ce(&date)) - 719_163 + cycles * 146_097;
-            i64::try_from(days).ok()
-        })
-        .unwrap_or(0)
+    let (Ok(month), Ok(day)) = (i8::try_from(m), i8::try_from(d)) else {
+        return 0;
+    };
+    let (cycles, year) = (i128::from(y.div_euclid(400)), y.rem_euclid(400) as i16);
+    let Ok(date) = jiff::civil::Date::new(year, month, day) else {
+        return 0;
+    };
+    let epoch = jiff::civil::date(1970, 1, 1);
+    let days = i128::from((date - epoch).get_days()) + cycles * 146_097;
+    i64::try_from(days).unwrap_or(0)
 }
 
 /// The built-in name of the placeholder style. Its id is localized: German Word writes

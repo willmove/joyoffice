@@ -329,7 +329,13 @@ fn page(s: &mut Session, v: &Value, dir: i32) -> CmdResult {
         let y = (c.top + 1.0 + dir as f32 * page_step(s, &at))
             .min(page_h)
             .max(0.0);
-        let to = l.line_toward(&at, s.page_hint, c.x, y, dir).unwrap_or(from);
+        let to = l
+            .line_toward(&at, s.page_hint, c.x, y, dir)
+            .or_else(|| {
+                let (start, end) = l.line_bounds(&at, s.page_hint)?;
+                Some(if dir < 0 { start } else { end })
+            })
+            .unwrap_or(from);
         apply(s, to, ext);
         return sel_result(s);
     }

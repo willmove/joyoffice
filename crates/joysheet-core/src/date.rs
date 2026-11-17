@@ -29,21 +29,16 @@ pub struct DateTime {
 }
 
 /// Days since 1970-01-01 for a proleptic Gregorian date, exact for every `i32` year.
-///
-/// `NaiveDate` only covers about ±262143 years, but the Gregorian calendar repeats every 400
-/// years (146_097 days): chrono converts the year within its cycle and whole cycles are added
-/// back as days (an i128 so the i32 extremes can't overflow). 1970-01-01 is `num_days_from_ce`
-/// 719_163; the result matches the proleptic Gregorian count the old hand-rolled code gave.
 pub fn days_from_civil(y: i32, m: u32, d: u32) -> i64 {
-    let (cycles, year) = (i128::from(i64::from(y).div_euclid(400)), i64::from(y).rem_euclid(400));
-    i32::try_from(year)
-        .ok()
-        .and_then(|year| chrono::NaiveDate::from_ymd_opt(year, m, d))
-        .and_then(|date| {
-            let days = i128::from(chrono::Datelike::num_days_from_ce(&date)) - 719_163 + cycles * 146_097;
-            i64::try_from(days).ok()
-        })
-        .unwrap_or(0)
+    let (Ok(month), Ok(day)) = (i8::try_from(m), i8::try_from(d)) else {
+        return 0;
+    };
+    let (cycles, year) = (i64::from(y.div_euclid(400)), y.rem_euclid(400) as i16);
+    let Ok(date) = jiff::civil::Date::new(year, month, day) else {
+        return 0;
+    };
+    let epoch = jiff::civil::date(1970, 1, 1);
+    i64::from((date - epoch).get_days()) + cycles * 146_097
 }
 
 /// Milliseconds since the Unix epoch (UTC) from the system clock; `None` when the clock is unavailable.
@@ -74,24 +69,16 @@ pub fn serial_in_system(sys: DateSystem, serial_1900: f64) -> f64 {
     }
 }
 
-/// Proleptic Gregorian `(year, month, day)` for a day count `z` since 1970-01-01 (the inverse of
-/// [`days_from_civil`]).
-///
-/// The calendar repeats every 400 years (146_097 days): chrono converts the day within its cycle
-/// and whole cycles go back into the year (an i128 so no `z` overflows), which matches the
-/// proleptic Gregorian answer the old hand-rolled code gave past `NaiveDate`'s ±262143 range.
-/// 1970-01-01 is `num_days_from_ce` 719_163.
+/// Proleptic Gregorian date for days since 1970-01-01. Whole 400-year cycles
+/// keep the calculation exact beyond the civil calendar library’s year range.
 pub fn civil_from_days(z: i64) -> (i32, u32, u32) {
-    use chrono::Datelike;
     let (cycles, rest) = (z.div_euclid(146_097), z.rem_euclid(146_097));
-    match i32::try_from(rest + 719_163).ok().and_then(chrono::NaiveDate::from_num_days_from_ce_opt) {
-        Some(d) => {
-            let y = i128::from(d.year()) + i128::from(cycles) * 400;
-            (i32::try_from(y).unwrap_or(if y < 0 { i32::MIN } else { i32::MAX }), d.month(), d.day())
-        }
-        // Unreachable: `rest + 719_163` is always a valid CE day.
-        None => (1970, 1, 1),
-    }
+    let epoch = jiff::civil::date(1970, 1, 1);
+    let Ok(date) = epoch.checked_add(jiff::Span::new().days(rest)) else {
+        return (1970, 1, 1);
+    };
+    let year = i64::from(date.year()) + cycles * 400;
+    (year.clamp(i64::from(i32::MIN), i64::from(i32::MAX)) as i32, date.month() as u32, date.day() as u32)
 }
 
 const UNIX_1899_12_30: i64 = -25569; // days_from_civil(1899, 12, 30)
@@ -99,27 +86,15 @@ const UNIX_1904_01_01: i64 = -24107;
 
 /// Whether `y` is a Gregorian leap year, for every `i32` year.
 pub fn is_leap(y: i32) -> bool {
-    // A year is a leap year iff 29 February exists in it. Leap years repeat every 400 years, so
-    // the year within its Gregorian cycle (`rem_euclid(400)`) decides it and always fits chrono.
-    let y = i64::from(y).rem_euclid(400) as i32;
-    chrono::NaiveDate::from_ymd_opt(y, 2, 29).is_some()
+    jiff::civil::date(y.rem_euclid(400) as i16, 1, 1).in_leap_year()
 }
 
-/// Number of days in month `m` of year `y` (1–31), or `0` for an invalid month number, for every
-/// `i32` year.
+/// Number of days in month `m` of year `y`, or `0` for an invalid month.
 pub fn days_in_month(y: i32, m: u32) -> u32 {
-    // The length of a month is the day before the first of the next month. Month lengths repeat
-    // every 400 years, so the year within its Gregorian cycle (`rem_euclid(400)`) is enough and
-    // always fits chrono (so December can't overflow `y + 1`). An invalid month keeps the old `0`.
-    if !(1..=12).contains(&m) {
-        return 0;
-    }
-    let y = i64::from(y).rem_euclid(400) as i32;
-    let first = |y: i32, m: u32| chrono::NaiveDate::from_ymd_opt(y, m, 1);
-    match (first(y, m), if m == 12 { first(y + 1, 1) } else { first(y, m + 1) }) {
-        (Some(a), Some(b)) => u32::try_from((b - a).num_days()).unwrap_or(0),
-        _ => 0,
-    }
+    i8::try_from(m)
+        .ok()
+        .and_then(|month| jiff::civil::Date::new(y.rem_euclid(400) as i16, month, 1).ok())
+        .map_or(0, |date| date.days_in_month() as u32)
 }
 
 /// Days in a month of a date system's calendar: like [`days_in_month`], except that February
