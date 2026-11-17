@@ -26,11 +26,11 @@ import zipfile
 from pathlib import Path
 from product_icons import bundle_icon, copy_logo, linux_launcher
 
-README = """JoyWord {version} ({platform}-{arch}) - technology preview build, unsigned
-JoyWord {version}（{platform}-{arch}）—— 技术预览构建，未签名
+README = """JoyWord {version} ({platform}-{arch}) - unsigned package
+JoyWord {version}（{platform}-{arch}）—— 未签名软件包
 
-Not a 1.0 product; DOCX declared subset only. MIT license.
-不是 1.0 产品；仅支持已声明的 DOCX 子集。MIT 许可证。
+DOCX support covers the documented subset. MIT license.
+DOCX 支持范围见产品文档。MIT 许可证。
 
 Docs and system requirements:
 https://github.com/willmove/joyoffice#readme

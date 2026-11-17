@@ -145,7 +145,7 @@ def compile_payload(directory, output, product, compiler, *, archive_sha256=None
                           'scripts/verify_release_assets.py', 'licenses/joyoffice/MSVC-RUNTIME-NOTICE.txt')}}
         (payload / 'INSTALLER-INFO.json').write_text(json.dumps(provenance, indent=2) + '\n', encoding='utf-8')
         write_uninstall_inventory(payload, build / 'uninstall-files.nsh')
-        definitions = {'PRODUCT': product, 'TITLE': title, 'DISPLAY_NAME': f'{title} {version} preview',
+        definitions = {'PRODUCT': product, 'TITLE': title, 'DISPLAY_NAME': f'{title} {version}',
                        'PROGID': progid, 'DESCRIPTION': description, 'VERSION': version,
                        'NUMERIC_VERSION': version.split('-')[0] + '.0', 'PAYLOAD_ARCH': arch,
                        'LICENSE_FILE': license_file, 'PAYLOAD': payload,

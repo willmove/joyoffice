@@ -104,18 +104,23 @@ fn pictures_over_the_budget_are_not_inflated() {
     assert_eq!(pics.get(&mut z, "big.png"), None);
     assert_eq!(pics.room, 1000);
     assert_eq!(pics.get(&mut z, "ok.png").map(|d| d.len()), Some(300));
-    // One inflating to more than it declares stops a byte past the budget and uses it up:
-    // nothing is inflated after it.
+    // A size mismatch charges the decoder's allowance even when it returns no bytes.
+    // Here the declared size fits the remaining budget exactly, so nothing else is inflated.
     let liar = declare_size(
         zip_of(&[("liar.png", &[0u8; 5000]), ("ok.png", &[5u8; 10])]),
         "liar.png",
         10,
     );
     let mut z = archive(&liar);
-    let mut pics = Pictures::new(1000);
+    let mut pics = Pictures::new(10);
     assert_eq!(pics.get(&mut z, "liar.png"), None);
     assert_eq!(pics.room, 0);
     assert_eq!(pics.get(&mut z, "ok.png"), None);
+
+    let mut pics = Pictures::new(1000);
+    assert_eq!(pics.get(&mut z, "liar.png"), None);
+    assert_eq!(pics.room, 989);
+    assert_eq!(pics.get(&mut z, "ok.png"), Some(vec![5u8; 10]));
 }
 
 #[test]

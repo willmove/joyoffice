@@ -150,10 +150,10 @@ def package(profile, validation, output=None):
         shutil.copy2(ROOT / "docs/joysheet" / name, destination / name)
     shutil.copy2(ROOT / "LICENSE", destination / "LICENSE-JOYOFFICE")
     (destination / "README.md").write_text(
-        f'# JoySheet {version} preview\n\n<img src="assets/brand/joysheet.svg" width="64" height="64" alt="JoySheet">\n\n'
+        f'# JoySheet {version}\n\n<img src="assets/brand/joysheet.svg" width="64" height="64" alt="JoySheet">\n\n'
         "Run joysheet (joysheet.exe on Windows), or use the sample launchers. "
         "See [product documentation](docs/joysheet/README.md) and [known limits](docs/joysheet/STATUS.md). "
-        "This development package does not imply completed M8, native-platform or signing acceptance.\n", encoding="utf-8")
+        "The product status records M8 progress and native-platform and signing validation.\n", encoding="utf-8")
     shutil.copytree(ROOT / "docs/joysheet", destination / "docs/joysheet")
     for name in INTEGRATION_DOCS:
         target_doc = destination / name

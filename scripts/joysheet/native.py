@@ -67,7 +67,7 @@ def bundle(directory, version):
         control = deb / "DEBIAN/control"
         control.parent.mkdir()
         architecture = {"x86_64": "amd64", "aarch64": "arm64"}[target.split("-", 1)[0]]
-        control.write_text(f"Package: joysheet\nVersion: {version}\nArchitecture: {architecture}\nMaintainer: Joysheet contributors\nSection: editors\nPriority: optional\nDepends: libc6 (>= 2.39), libfontconfig1, libx11-xcb1, libxkbcommon-x11-0, libssl3t64, libvulkan1, libwayland-client0, libzstd1, poppler-utils, xdg-utils\nDescription: Joysheet GPUI spreadsheet desktop preview\n", encoding="utf-8")
+        control.write_text(f"Package: joysheet\nVersion: {version}\nArchitecture: {architecture}\nMaintainer: Joysheet contributors\nSection: editors\nPriority: optional\nDepends: libc6 (>= 2.39), libfontconfig1, libx11-xcb1, libxkbcommon-x11-0, libssl3t64, libvulkan1, libwayland-client0, libzstd1, poppler-utils, xdg-utils\nDescription: JoySheet desktop spreadsheet editor\n", encoding="utf-8")
         run(["dpkg-deb", "--build", "--root-owner-group", str(deb), str(directory.parent / (directory.name + ".deb"))])
         run(["tar", "-czf", str(directory.parent / (directory.name + "-appdir.tar.gz")), "-C", str(directory), "Joysheet.AppDir"])
     else:

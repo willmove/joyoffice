@@ -60,13 +60,22 @@ impl Pictures {
             return None;
         }
         let f = z.by_name(name).ok()?;
-        if f.size() > room {
+        let declared = f.size();
+        if declared > room {
             return None;
         }
+        let read_limit = declared.saturating_add(1);
         let mut out = Vec::new();
-        let read = f.take(room.saturating_add(1)).read_to_end(&mut out);
-        self.room = room.saturating_sub(out.len() as u64);
-        (read.is_ok() && out.len() as u64 <= room).then_some(out)
+        let read = f.take(read_limit).read_to_end(&mut out);
+        // The decoder can produce bytes in a read that returns an error. Charge the full
+        // allowance on failure because those bytes are absent from the destination vector.
+        let used = if read.is_ok() {
+            out.len() as u64
+        } else {
+            read_limit
+        };
+        self.room = room.saturating_sub(used);
+        (read.is_ok() && used <= declared).then_some(out)
     }
 }
 

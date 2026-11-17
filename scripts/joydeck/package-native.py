@@ -134,7 +134,9 @@ def main():
         shutil.copy2(ROOT / file, output / file)
     shutil.copytree(ROOT / 'licenses', output / 'licenses')
     readme = (ROOT / 'packaging/joydeck/README-r9.md').read_text(encoding='utf-8')
-    (output / 'README.md').write_text(readme.replace('@VERSION@', version), encoding='utf-8')
+    label = '软件包' if args.release_layout else '开发包'
+    readme = readme.replace('@VERSION@', version).replace('@PACKAGE_LABEL@', label)
+    (output / 'README.md').write_text(readme, encoding='utf-8')
     shutil.copytree(ROOT / 'tests/fixtures/joydeck', output / 'samples')
     copy_logo(output, 'joydeck')
     license_records = []
