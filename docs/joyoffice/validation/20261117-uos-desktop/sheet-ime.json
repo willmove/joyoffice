@@ -1,0 +1,22 @@
+{
+  "passed": false,
+  "probeCompleted": true,
+  "nativeImeVerified": false,
+  "inputMethod": "com.sogou.ime.ng.fcitx5.uos",
+  "eventSource": "X11 OS synthetic ASCII keys through active system input method; production control readback",
+  "binarySha256": "2fdfecf004fe28b392597ee43ef08d002d8aacdcf391f0c5a58765f70a5fb39e",
+  "duringEditor": {
+    "cell": "A1",
+    "text": "zhongwen",
+    "inline": true,
+    "doc": 2
+  },
+  "duringComposing": false,
+  "afterSelectionEditor": {
+    "cell": "A1",
+    "text": "zhongwen1",
+    "inline": true,
+    "doc": 2
+  },
+  "cellValue": "zhongwen1"
+}

@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/home/Wilmer/Coding/joyoffice/scripts/joysheet/smoke-native.py", line 244, in <module>
+    run(arguments.binary.resolve(strict=True), arguments.output)
+  File "/home/Wilmer/Coding/joyoffice/scripts/joysheet/smoke-native.py", line 199, in run
+    capture("02-format-dialog.png")
+  File "/home/Wilmer/Coding/joyoffice/scripts/joysheet/smoke-native.py", line 115, in capture
+    raise RuntimeError("The multi-window test process lost foreground focus")
+RuntimeError: The multi-window test process lost foreground focus

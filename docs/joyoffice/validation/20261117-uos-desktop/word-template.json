@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "binarySha256": "2ea82988af64d6121309ca01996ec335d64c95954743a74252b0ae7bd10dbfbf",
+  "eventSource": "X11 OS synthetic pointer input, actual window pixels and authenticated live document inspection",
+  "checks": [
+    "isolated first run renders the Chinese welcome document",
+    "mouse opens File home and the full New gallery",
+    "mouse creates project-plan template and live control reads its Chinese body"
+  ],
+  "templateText": "社区阅读活动项目计划书\n项目计划书示例  负责人 [姓名]  周期 [起止日期]\n本计划以一次社区阅读活动为例，说明目标、实施安排与验收方式。请按实际项目替换方括号内容，并在启动前确认人员、场地和预算。\n项目目标\n面向社区居民组织一场阅读分享活动，提供主题导读、分组交流和图书推荐。计划招募 30 名参与者，收集反馈后形成活动复盘。\n范围与交付\n交付活动方案、报名名单、现场流程表和复盘记录。场地由社区提供，本次安排不包含图书采购和长期课程运营。\n进度与分工\n阶段\t主要交付\t负责人\t完成时间\n筹备\t确认主题与场地\t[姓名]\t第 1 周\n招募\t发布通知并汇总报名\t[姓名]\t第 2 周\n执行\t开展分享与现场记录\t[姓名]\t第 3 周\n复盘\t汇总反馈与改进建议\t[姓名]\t活动后 3 日\n资源与预算\n印刷材料 200 元，现场物料 300 元，机动费用 100 元，预算合计 600 元。以上为示例估算"
+}

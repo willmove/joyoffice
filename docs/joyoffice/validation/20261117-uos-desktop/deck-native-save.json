@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "eventSource": "DDE native file dialog and X11 synthetic keyboard/pointer",
+  "checks": [
+    "File > Save As opens a native dde-file-dialog window",
+    "native filename and Save button create a valid three-page PPTX"
+  ],
+  "dialogWindow": "188743742",
+  "dialogPid": "1042962",
+  "savedSha256": "6f910f601f020fa7a603ccda943c5b1dfe6bc156ae2435b18626d22e2c662e10"
+}

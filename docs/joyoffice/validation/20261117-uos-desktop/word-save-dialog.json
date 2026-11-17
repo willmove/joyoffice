@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "binarySha256": "2ea82988af64d6121309ca01996ec335d64c95954743a74252b0ae7bd10dbfbf",
+  "eventSource": "X11 OS synthetic keyboard/pointer, actual window pixels and independent OOXML readback",
+  "checks": [
+    "centered unsaved-New dialog cancels with Escape and retains the edit",
+    "Enter saves and confirms original replacement inside centered dialogs; pending New continues",
+    "Discard starts another blank document without writing the discarded text"
+  ],
+  "savedSha256": "61fc4d0d64c6640c257af40adea4a1e963374e8d12adb1279ff58a610085c1a5"
+}

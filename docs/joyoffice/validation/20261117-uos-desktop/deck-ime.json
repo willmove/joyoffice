@@ -1,0 +1,10 @@
+{
+  "passed": false,
+  "probeCompleted": true,
+  "nativeImeVerified": false,
+  "inputMethod": "com.sogou.ime.ng.fcitx5.uos",
+  "eventSource": "X11 OS synthetic ASCII keys through active system input method; desktop stdio readback",
+  "duringContainsPinyin": true,
+  "afterContainsPinyin": true,
+  "afterContainsChinese": true
+}

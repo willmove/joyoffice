@@ -36,4 +36,4 @@
 | 新建前放弃修改 | 编辑页出现相同弹框；点击不保存后进入空白新文档。[截图](new-document-dialog.png) |
 | 独立 XML 读回 | 临时 DOCX 中包含 `Save dialog validation`，不包含随后丢弃的 `Discard validation`。 |
 
-本次未做 Windows、Linux、实际读屏、系统退出实屏、原生另存为取消或平台全量回归；不据此关闭这些范围的验收任务。
+2026-11-17 UOS Linux 已复验取消、保存并确认替换及放弃后新建，见[三产品记录](../20261117-uos-desktop/README.md)。Windows、实际读屏、系统退出实屏、原生另存为取消和平台全量回归仍未覆盖；JoyWord 原生另存异常单独保留，不据此关闭这些范围的验收任务。

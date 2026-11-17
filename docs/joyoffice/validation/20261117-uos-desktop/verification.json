@@ -1,0 +1,76 @@
+{
+  "date": "2026-11-17/2026-11-18",
+  "recorded_at": "2026-11-18T00:01:29+08:00",
+  "branch": "docs/uos-desktop-validation-20261117",
+  "source_commit": "f6895dde66cefb8af9e1e2559d79829d5d667ff2",
+  "product_source_changes": false,
+  "environment": {
+    "host_os": "UOS Desktop 25 Professional",
+    "kernel": "6.18.57-061857-generic",
+    "architecture": "x86_64",
+    "desktop": "DDE",
+    "session": "X11",
+    "display": ":0",
+    "screen": "2560x1600",
+    "application_scale_factor": 1.25,
+    "cpu": "AMD Ryzen AI 9 HX 370",
+    "gpu": "AMD Radeon 890M (radeonsi, gfx1150, ACO)",
+    "mesa": "24.3.0-1deepin9",
+    "direct_rendering": true,
+    "rust": "1.98.1",
+    "input_method": "com.sogou.ime.ng.fcitx5.uos",
+    "input_method_restored_active": true,
+    "domestic_cpu_gpu_verified": false
+  },
+  "binaries": {
+    "joyword": "2ea82988af64d6121309ca01996ec335d64c95954743a74252b0ae7bd10dbfbf",
+    "joydeck": "972753c51613764c8feaefafe20bccc7f913fb4be504f4ca6b79383f0559cfa6",
+    "joysheet": "2fdfecf004fe28b392597ee43ef08d002d8aacdcf391f0c5a58765f70a5fb39e",
+    "joyword-cli": "bbde65fa403c799e69e810cff3e00fee8ff661f09e9f55bc85844a47767a5140",
+    "joydeck-cli": "e3f507eaa8fada346eba2ae8afcdb9e9d2d55e30bf43750a938b46f34545c6a3",
+    "joysheet-cli": "ef867a1b27d8e6a44b41696cc922579e1d982018c1d4c73c11274503322470f8"
+  },
+  "commands": {
+    "build-joyword": {"command": "cargo xtask build joyword", "exit_code": 0},
+    "build-joydeck": {"command": "cargo xtask build joydeck --validation", "exit_code": 0},
+    "build-joysheet": {"command": "cargo xtask build joysheet --validation", "exit_code": 0},
+    "check-joydeck": {"command": "cargo xtask check joydeck", "exit_code": 0, "passed": 988, "failed": 0, "ignored": 0},
+    "check-joysheet": {"command": "cargo xtask check joysheet", "exit_code": 0, "passed": 1439, "failed": 0, "ignored": 1},
+    "check-joyword": {"command": "cargo xtask check joyword", "exit_code": 1, "passed_before_stop": 1937, "failed": 1, "ignored": 0, "failure": "joyword-engine tests::page_down_and_up_never_stay_on_a_line_in_the_continuous_views", "later_modules_not_run_by_product_check": true},
+    "test-joyword-ui": {"command": "cargo test --locked -p joyword-ui-gpui", "exit_code": 0, "passed": 31, "failed": 0, "ignored": 0}
+  },
+  "native_reports": {
+    "joyword_basic": {"report": "word-native.json", "passed": true, "checks": 5},
+    "joyword_templates": {"report": "word-template.json", "passed": true, "checks": 3},
+    "joyword_save_dialog": {"report": "word-save-dialog.json", "passed": true, "checks": 3},
+    "joyword_native_save": {"report": "word-native-save-failure.json", "passed": false, "wait_seconds": 60, "target_created": false},
+    "joyword_system_ime": {"report": "word-ime.json", "passed": false, "committed_text": "zhongwen1"},
+    "joydeck_basic": {"report": "deck-native.json", "passed": true, "checks": 5},
+    "joydeck_native_save": {"report": "deck-native-save.json", "passed": true, "checks": 2},
+    "joydeck_system_ime": {"report": "deck-ime.json", "passed": false, "committed_text": "zhongwen1"},
+    "joysheet_basic_first_run": {"report": "sheet-focus-failure.json", "passed": false, "error": "The multi-window test process lost foreground focus"},
+    "joysheet_basic_final": {"report": "sheet-native.json", "passed": true, "checks": 13},
+    "joysheet_system_ime": {"report": "sheet-ime.json", "passed": false, "committed_text": "zhongwen1", "composing": false}
+  },
+  "event_sources": {
+    "window_pixels": "ImageMagick import of actual X11 windows, not GPUI GPU readback",
+    "os_input": "xdotool synthetic keyboard/pointer events, not physical input",
+    "sheet_main_regression": "production GPUI synthetic input plus X11 window pixels",
+    "system_ime_probes": "ASCII keys delivered through the active Sogou/Fcitx5 desktop input method"
+  },
+  "open_issues": [
+    "UOS-IME-001: system pinyin passes through without candidates/composition in all three desktop applications",
+    "JoyWord native DDE Save As remains disabled without creating a target after 60 seconds; ordinary save works",
+    "Existing joyword-engine Page Up navigation unit test fails; product check exits 1"
+  ],
+  "not_verified": [
+    "Wayland",
+    "physical keyboard or touchpad",
+    "screen readers",
+    "multi-display and DPI hotplug",
+    "physical printing",
+    "release packages, installation, upgrade and signatures",
+    "ARM64, LoongArch and domestic CPU/GPU platforms",
+    "complete product milestone and platform qualification"
+  ]
+}
