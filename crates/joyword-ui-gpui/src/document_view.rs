@@ -187,6 +187,9 @@ impl JoyWord {
         self.begin_document_change(DocumentChange::Open(source), cx);
     }
     pub(super) fn begin_document_change(&mut self, change: DocumentChange, cx: &mut Context<Self>) {
+        if self.confirm_discard || self.saving {
+            return;
+        }
         if self
             .canvas
             .reader
@@ -195,6 +198,8 @@ impl JoyWord {
         {
             self.pending_document = Some(change);
             self.confirm_discard = true;
+            self.replace_confirm = None;
+            self.shell.notice = None;
             cx.notify();
             return;
         }

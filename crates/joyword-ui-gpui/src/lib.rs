@@ -107,6 +107,7 @@ struct JoyWord {
     page_bounds: std::collections::BTreeMap<usize, Bounds<gpui::Pixels>>,
     dragging: bool,
     confirm_discard: bool,
+    discard_focus: FocusHandle,
     replace_confirm: Option<(u64, u64)>,
     pending_document: Option<DocumentChange>,
     legacy_recovery: Option<std::path::PathBuf>,
@@ -195,6 +196,7 @@ impl JoyWord {
             page_bounds: Default::default(),
             dragging: false,
             confirm_discard: false,
+            discard_focus: cx.focus_handle(),
             replace_confirm: None,
             pending_document: None,
             legacy_recovery: None,
@@ -286,7 +288,11 @@ impl JoyWord {
                 return;
             }
             "file.keep" => {
+                if self.saving {
+                    return;
+                }
                 self.confirm_discard = false;
+                self.replace_confirm = None;
                 self.pending_document = None;
                 self.close_pending = false;
                 window.focus(&self.focus, cx);
@@ -690,8 +696,12 @@ impl Render for JoyWord {
         }
         self.sync_advanced();
         window.set_window_title(&self.document_title());
+        if self.confirm_discard && !self.discard_focus.contains_focused(window, cx) {
+            window.focus(&self.discard_focus, cx);
+        }
         let p = self.palette();
         let mut content = div()
+            .relative()
             .size_full()
             .flex()
             .flex_col()
@@ -707,94 +717,101 @@ impl Render for JoyWord {
                 self.canvas.reader.is_none() || self.file_page_visible(),
                 |el| el.track_focus(&self.focus),
             )
-            .key_context(
-                if !self.file_page_visible() && self.focus.is_focused(window) {
-                    "JoyWord JoyWordEditor"
-                } else {
-                    "JoyWord"
-                },
-            )
-            .on_drop(cx.listener(|v, paths: &gpui::ExternalPaths, _, cx| {
-                if let [path] = paths.paths() {
-                    v.begin_open(OpenSource::File(path.clone()), cx);
-                } else {
-                    v.shell.notice = Some(
-                        v.shell
-                            .tr("请拖入一个本地文档", "Drop one local document")
-                            .into(),
-                    );
-                    cx.notify();
-                }
-            }))
-            .on_action(cx.listener(|v, _: &SearchCommands, w, cx| v.open_command_search(w, cx)))
-            .on_action(cx.listener(|v, _: &InsertLink, w, cx| v.insert_link_form(w, cx)))
-            .on_action(cx.listener(|v, _: &ToggleRibbon, _, cx| {
-                v.ribbon_collapsed = !v.ribbon_collapsed;
-                cx.notify();
-            }))
-            .on_action(cx.listener(|v, _: &FindDocument, w, cx| v.open_find(false, w, cx)))
-            .on_action(cx.listener(|v, _: &ReplaceDocument, w, cx| v.open_find(true, w, cx)))
-            .on_action(cx.listener(|v, _: &GoToPage, w, cx| v.open_go_to(w, cx)))
-            .on_action(cx.listener(|v, _: &DocumentTab, w, cx| v.document_tab(false, w, cx)))
-            .on_action(cx.listener(|v, _: &DocumentBackTab, w, cx| v.document_tab(true, w, cx)))
-            .on_action(
-                cx.listener(|this, _: &NewDocument, window, cx| {
-                    this.execute("file.new", window, cx)
-                }),
-            )
-            .on_action(cx.listener(|this, _: &OpenDocument, _, cx| this.pick_open(cx)))
-            .on_action(cx.listener(|this, _: &SaveDocument, _, cx| this.save_document(false, cx)))
-            .on_action(cx.listener(|this, _: &SaveAsDocument, _, cx| this.save_document(true, cx)))
-            .on_action(cx.listener(|this, _: &Undo, window, cx| {
-                this.engine_command("edit.undo", &serde_json::json!({}), window, cx)
-            }))
-            .on_action(cx.listener(|this, _: &Redo, window, cx| {
-                this.engine_command("edit.redo", &serde_json::json!({}), window, cx)
-            }))
-            .on_action(cx.listener(|this, _: &SelectAll, window, cx| {
-                this.engine_command("select.all", &serde_json::json!({}), window, cx)
-            }))
-            .on_action(
-                cx.listener(|this, _: &Copy, window, cx| this.clipboard("edit.copy", window, cx)),
-            )
-            .on_action(
-                cx.listener(|this, _: &Cut, window, cx| this.clipboard("edit.cut", window, cx)),
-            )
-            .on_action(
-                cx.listener(|this, _: &Paste, window, cx| this.clipboard("edit.paste", window, cx)),
-            )
-            .on_action(cx.listener(|this, _: &Quit, window, cx| this.request_close(window, cx)))
-            .on_key_down(cx.listener(|this, event: &gpui::KeyDownEvent, window, cx| {
-                if this.file_page_visible() && event.keystroke.key == "escape" {
-                    if this.confirm_discard {
-                        this.execute("file.keep", window, cx);
-                    } else if this.replace_confirm.is_some() {
-                        this.execute("file.cancel_replace", window, cx);
+            .key_context(if self.confirm_discard {
+                "JoyWordSaveChanges"
+            } else if !self.file_page_visible() && self.focus.is_focused(window) {
+                "JoyWord JoyWordEditor"
+            } else {
+                "JoyWord"
+            });
+        // A pending save decision owns keyboard and menu actions until resolved.
+        if !self.confirm_discard {
+            content = content
+                .on_drop(cx.listener(|v, paths: &gpui::ExternalPaths, _, cx| {
+                    if let [path] = paths.paths() {
+                        v.begin_open(OpenSource::File(path.clone()), cx);
                     } else {
-                        this.return_to_document(window, cx);
+                        v.shell.notice = Some(
+                            v.shell
+                                .tr("请拖入一个本地文档", "Drop one local document")
+                                .into(),
+                        );
+                        cx.notify();
                     }
-                    cx.stop_propagation();
-                } else {
-                    this.document_key(event, window, cx);
-                }
-            }))
-            .on_action(
-                cx.listener(|this, _: &ZoomIn, window, cx| {
+                }))
+                .on_action(cx.listener(|v, _: &SearchCommands, w, cx| v.open_command_search(w, cx)))
+                .on_action(cx.listener(|v, _: &InsertLink, w, cx| v.insert_link_form(w, cx)))
+                .on_action(cx.listener(|v, _: &ToggleRibbon, _, cx| {
+                    v.ribbon_collapsed = !v.ribbon_collapsed;
+                    cx.notify();
+                }))
+                .on_action(cx.listener(|v, _: &FindDocument, w, cx| v.open_find(false, w, cx)))
+                .on_action(cx.listener(|v, _: &ReplaceDocument, w, cx| v.open_find(true, w, cx)))
+                .on_action(cx.listener(|v, _: &GoToPage, w, cx| v.open_go_to(w, cx)))
+                .on_action(cx.listener(|v, _: &DocumentTab, w, cx| v.document_tab(false, w, cx)))
+                .on_action(cx.listener(|v, _: &DocumentBackTab, w, cx| v.document_tab(true, w, cx)))
+                .on_action(cx.listener(|this, _: &NewDocument, window, cx| {
+                    this.execute("file.new", window, cx)
+                }))
+                .on_action(cx.listener(|this, _: &OpenDocument, _, cx| this.pick_open(cx)))
+                .on_action(
+                    cx.listener(|this, _: &SaveDocument, _, cx| this.save_document(false, cx)),
+                )
+                .on_action(
+                    cx.listener(|this, _: &SaveAsDocument, _, cx| this.save_document(true, cx)),
+                )
+                .on_action(cx.listener(|this, _: &Undo, window, cx| {
+                    this.engine_command("edit.undo", &serde_json::json!({}), window, cx)
+                }))
+                .on_action(cx.listener(|this, _: &Redo, window, cx| {
+                    this.engine_command("edit.redo", &serde_json::json!({}), window, cx)
+                }))
+                .on_action(cx.listener(|this, _: &SelectAll, window, cx| {
+                    this.engine_command("select.all", &serde_json::json!({}), window, cx)
+                }))
+                .on_action(
+                    cx.listener(|this, _: &Copy, window, cx| {
+                        this.clipboard("edit.copy", window, cx)
+                    }),
+                )
+                .on_action(
+                    cx.listener(|this, _: &Cut, window, cx| this.clipboard("edit.cut", window, cx)),
+                )
+                .on_action(cx.listener(|this, _: &Paste, window, cx| {
+                    this.clipboard("edit.paste", window, cx)
+                }))
+                .on_action(cx.listener(|this, _: &Quit, window, cx| this.request_close(window, cx)))
+                .on_key_down(cx.listener(|this, event: &gpui::KeyDownEvent, window, cx| {
+                    if this.file_page_visible() && event.keystroke.key == "escape" {
+                        if this.confirm_discard {
+                            this.execute("file.keep", window, cx);
+                        } else if this.replace_confirm.is_some() {
+                            this.execute("file.cancel_replace", window, cx);
+                        } else {
+                            this.return_to_document(window, cx);
+                        }
+                        cx.stop_propagation();
+                    } else {
+                        this.document_key(event, window, cx);
+                    }
+                }))
+                .on_action(cx.listener(|this, _: &ZoomIn, window, cx| {
                     this.execute("view.zoom_in", window, cx)
-                }),
-            )
-            .on_action(cx.listener(|this, _: &ZoomOut, window, cx| {
-                this.execute("view.zoom_out", window, cx)
-            }))
-            .on_action(cx.listener(|this, _: &ZoomReset, window, cx| {
-                this.execute("view.zoom_reset", window, cx)
-            }))
-            .on_action(cx.listener(|this, _: &ToggleTheme, window, cx| {
-                this.execute("view.theme", window, cx)
-            }))
-            .on_action(cx.listener(|this, _: &ToggleLanguage, window, cx| {
-                this.execute("view.language", window, cx)
-            }))
+                }))
+                .on_action(cx.listener(|this, _: &ZoomOut, window, cx| {
+                    this.execute("view.zoom_out", window, cx)
+                }))
+                .on_action(cx.listener(|this, _: &ZoomReset, window, cx| {
+                    this.execute("view.zoom_reset", window, cx)
+                }))
+                .on_action(cx.listener(|this, _: &ToggleTheme, window, cx| {
+                    this.execute("view.theme", window, cx)
+                }))
+                .on_action(cx.listener(|this, _: &ToggleLanguage, window, cx| {
+                    this.execute("view.language", window, cx)
+                }));
+        }
+        content = content
             .when(self.file_page || !self.view_focus(), |el| {
                 el.child(self.header(cx)).child(self.ribbon(cx))
             })
@@ -894,45 +911,13 @@ impl Render for JoyWord {
                     ),
             );
         }
-        if self.replace_confirm.is_some() {
+        if self.replace_confirm.is_some() && !self.confirm_discard {
             content=content.child(div().p_3().bg(rgb(p.selected)).flex().flex_col().gap_2()
                 .child(self.shell.tr("替换原文件：当前组件无法验证文件所有者、ACL 与全部扩展属性。建议另存副本。","Replace original: ownership, ACLs and all extended attributes cannot be verified. Save a copy is recommended."))
                 .child(div().flex().gap_3()
                     .child(self.button("metadata-save-copy",self.shell.tr("另存副本","Save a copy"),"file.save_as",cx))
                     .child(self.button("metadata-confirm",self.shell.tr("确认替换原文件","Confirm replace original"),"file.confirm_original",cx))
                     .child(self.button("metadata-cancel",self.shell.tr("取消","Cancel"),"file.cancel_replace",cx))));
-        }
-        if self.confirm_discard {
-            content = content.child(
-                div()
-                    .p_3()
-                    .bg(rgb(p.selected))
-                    .flex()
-                    .items_center()
-                    .gap_3()
-                    .child(self.shell.tr(
-                        "文档有未保存修改。请保存、放弃或取消。",
-                        "Unsaved changes. Save, discard or cancel.",
-                    ))
-                    .child(self.button(
-                        "confirm-save",
-                        self.shell.tr("保存", "Save"),
-                        "file.save",
-                        cx,
-                    ))
-                    .child(self.button(
-                        "confirm-discard",
-                        self.shell.tr("放弃修改", "Discard"),
-                        "file.discard",
-                        cx,
-                    ))
-                    .child(self.button(
-                        "confirm-keep",
-                        self.shell.tr("取消", "Cancel"),
-                        "file.keep",
-                        cx,
-                    )),
-            );
         }
         if self.file_page_visible() && self.canvas.loading {
             content = content.child(
@@ -952,11 +937,17 @@ impl Render for JoyWord {
                     )),
             );
         }
-        if let Some(note) = &self.shell.notice {
+        if !self.confirm_discard
+            && let Some(note) = &self.shell.notice
+        {
             content = content.child(div().p_3().bg(rgb(p.selected)).child(note.clone()));
         }
         if self.file_page_visible() {
-            return content.child(self.render_file_page(cx));
+            return content
+                .child(self.render_file_page(cx))
+                .when(self.confirm_discard, |el| {
+                    el.child(self.render_save_changes_dialog(cx))
+                });
         }
         content
             .child(
@@ -1005,6 +996,9 @@ impl Render for JoyWord {
                             .child(self.button("zoom-in", "+", "view.zoom_in", cx)),
                     ),
             )
+            .when(self.confirm_discard, |el| {
+                el.child(self.render_save_changes_dialog(cx))
+            })
     }
 }
 
