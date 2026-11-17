@@ -1,5 +1,7 @@
 # JoyDeck 当前状态
 
+2026-11-17 UOS Desktop 25 Professional x86_64：当前 R9 Debug 构建在 X11／DDE、125% 缩放下通过中文路径 PPTX 打开、复制页、系统键盘撤销重做、独立页数读回、深色重开及「文件 → 另存为」原生 DDE 保存。产品 check 988 项通过，fmt、all-targets 严格 Clippy 通过。备注中的搜狗／Fcitx5 拼音直通且无候选，系统 IME 未通过；JD-802／803 转为进行中，Wayland、ARM／其他信创架构和完整平台条件不关闭。[本轮证据与边界](../joyoffice/validation/20261117-uos-desktop/README.md)
+
 2026-11-16：工作区与内部精确版本约束统一为 0.2.0；后续按正常 GitHub Release 发布，不再标记预览版。保留独立产品标签、六平台产物校验和已有验收边界；本次未创建发布标签或公开新包。[发布规则与平台扩展](../joyoffice/RELEASE-PLATFORMS.md)
 
 2026-11-16：公共 GPUI Kit 0.9.1 / Pre 0.3.12 基线已接入，诊断和来源/版本门禁同步。产品 check 988 项通过，fmt、all-targets 严格 Clippy、GUI/CLI 构建和 X11 实际窗口 5 组通过，含撤销重做、独立 PPTX 读回及深色重开。联合 6 项 Word 基线失败另行保留；本轮不关闭 JD-905 的完整跨平台/CI 条件。[公共升级与验证](../joyoffice/GPUI-KIT-0.9.1-UPGRADE.md)。

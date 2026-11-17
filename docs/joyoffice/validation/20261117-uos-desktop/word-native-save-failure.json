@@ -1,0 +1,18 @@
+{
+  "passed": false,
+  "probeCompleted": true,
+  "nativeSaveVerified": false,
+  "binarySha256": "2ea82988af64d6121309ca01996ec335d64c95954743a74252b0ae7bd10dbfbf",
+  "eventSource": "DDE native file dialog, X11 synthetic keyboard/pointer and actual dialog pixels",
+  "checks": [
+    "F12 opens a native dde-file-dialog window",
+    "Chinese/space filename is accepted in the native filename field"
+  ],
+  "error": "Native Save left the dialog disabled and did not create the target after 60 seconds",
+  "processObservation": {
+    "joyword": "ep_poll",
+    "dde-file-dialog": "poll_schedule_timeout"
+  },
+  "targetCreated": false,
+  "screenshot": "gui/word-native-save-failed.png"
+}

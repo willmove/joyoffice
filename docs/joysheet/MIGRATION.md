@@ -1,5 +1,7 @@
 # 功能迁移与待办矩阵
 
+2026-11-17 UOS 25 x86_64：当前构建的 X11 原生 13 组回归通过，覆盖多行编辑、格式、历史、剪贴板和 XLSX 保存重开；产品 check 1,439 项通过、1 项既有忽略。真实搜狗／Fcitx5 输入 `zhongwen` 时无组合态并提交为 `zhongwen1`，系统 IME 仍未通过。首轮前台焦点失败与最终通过报告分别保留，不把合成组合态或 Unicode 输入记作真实 IME 验收。[三产品记录](../joyoffice/validation/20261117-uos-desktop/README.md)。完整 M0–M8 状态不变。
+
 2026-11-16 公共依赖升级：Kit/Base =0.9.1、GPUI Pre/平台 =0.3.12；图表文本测量适配 Rc。产品检查 1,439 通过、1 既有忽略，本机 X11 13 组回归通过；三产品联合结果及六项已在原 main 复现的 Word 失败见[升级记录](../joyoffice/GPUI-KIT-0.9.1-UPGRADE.md)。不改变完整 M0–M8 人工验收状态。
 
 2026-11-01 UOS 25 x86_64：新增 Linux 基础原生 GUI 回归入口，10 组编辑／生命周期／能力声明场景通过；产品检查 1400 项通过、1 项忽略，修复新文件权限与 Linux GPU 截图能力误报。见 [UOS 三产品报告](../joyoffice/validation/20261101-uos/README.md)。矩阵中 Windows 历史证据保留；本轮不代替完整 Linux／系统 IME／跨平台验收。

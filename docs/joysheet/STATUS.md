@@ -1,5 +1,7 @@
 # Joysheet 实施状态
 
+2026-11-17 UOS Desktop 25 Professional x86_64：当前 Debug automation 构建在 X11／DDE、125% 缩放下完成 13 组原生回归，含 Unicode／emoji、公式与历史、合成组合态、系统剪贴板、格式表单、关闭取消、中文路径 XLSX 保存重开及多行 LF／CRLF 与样式保留。产品 check 1,439 项通过、1 项既有忽略，fmt、all-targets 严格 Clippy 通过。首轮截图失去前台焦点，临时停用输入法后完整复跑通过；搜狗／Fcitx5 真实拼音仍直通且无组合态，系统 IME 未通过。合成事件、X11 窗口像素和真实系统按键分别记录，不关闭完整 Linux／M8 验收。[本轮证据与边界](../joyoffice/validation/20261117-uos-desktop/README.md)
+
 2026-11-16：工作区与内部精确版本约束统一为 0.2.0；后续按正常 GitHub Release 发布，不再标记预览版。保留独立产品标签、六平台产物校验和已有验收边界；本次未创建发布标签或公开新包。[发布规则与平台扩展](../joyoffice/RELEASE-PLATFORMS.md)
 
 2026-11-16：公共 GPUI Kit/Base 统一为 0.9.1，Pre/automation 平台快照为 0.3.12；图表测量适配窗口局部 Rc，后台引擎测量继续保持 Send + Sync。完整产品 check 1,439 项通过、1 项既有忽略，fmt、all-targets 严格 Clippy、GUI/CLI 构建及本机 X11 13 组原生回归通过。三产品联合 6,057 通过、6 项 Word 原基线失败、3 既有忽略；平台及功能里程碑不因依赖升级自动关闭。[实现与验证](../joyoffice/GPUI-KIT-0.9.1-UPGRADE.md)。

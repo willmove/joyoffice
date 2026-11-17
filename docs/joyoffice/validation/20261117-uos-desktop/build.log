@@ -1,0 +1,47 @@
+HEAD=f6895dde66cefb8af9e1e2559d79829d5d667ff2
+
+BUILD START 2026-11-17T23:20:59+08:00
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.21s
+     Running `target/debug/joyoffice-xtask build joyword`
++ cargo build -p joyword -p joyword-cli --locked
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.50s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.13s
+     Running `target/debug/joyoffice-xtask build joydeck --validation`
++ cargo build -p joydeck -p joydeck-cli --locked --features joydeck/validation
+   Compiling joydeck v0.2.0 (/home/Wilmer/Coding/joyoffice/apps/joydeck)
+   Compiling joydeck-ui-gpui v0.2.0 (/home/Wilmer/Coding/joyoffice/crates/joydeck-ui-gpui)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 9.65s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.14s
+     Running `target/debug/joyoffice-xtask build joysheet --validation`
++ cargo build -p joysheet -p joysheet-cli --locked --features joysheet/automation
+   Compiling gpui-pre-wgpu v0.3.12
+   Compiling joysheet v0.2.0 (/home/Wilmer/Coding/joyoffice/apps/joysheet)
+   Compiling gpui-base v0.9.1
+   Compiling gpui-pre-linux v0.3.12
+   Compiling gpui-pre-platform v0.3.12
+   Compiling gpui-component v0.9.1
+   Compiling gpui-kit v0.9.1
+   Compiling joyoffice-ui v0.2.0 (/home/Wilmer/Coding/joyoffice/crates/joyoffice-ui)
+   Compiling joysheet-ui-gpui v0.2.0 (/home/Wilmer/Coding/joyoffice/crates/joysheet-ui-gpui)
+
+BUILD RETRY START 2026-11-17T23:22:50+08:00
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.17s
+     Running `target/debug/joyoffice-xtask build joyword`
++ cargo build -p joyword -p joyword-cli --locked
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.49s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.16s
+     Running `target/debug/joyoffice-xtask build joydeck --validation`
++ cargo build -p joydeck -p joydeck-cli --locked --features joydeck/validation
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.43s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.13s
+     Running `target/debug/joyoffice-xtask build joysheet --validation`
++ cargo build -p joysheet -p joysheet-cli --locked --features joysheet/automation
+   Compiling gpui-component v0.9.1
+   Compiling gpui-kit v0.9.1
+   Compiling joyoffice-ui v0.2.0 (/home/Wilmer/Coding/joyoffice/crates/joyoffice-ui)
+   Compiling joysheet-ui-gpui v0.2.0 (/home/Wilmer/Coding/joyoffice/crates/joysheet-ui-gpui)
+   Compiling joysheet v0.2.0 (/home/Wilmer/Coding/joyoffice/apps/joysheet)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 44.21s
+
+BUILD RETRY END 2026-11-17T23:23:38+08:00
+EXIT=0

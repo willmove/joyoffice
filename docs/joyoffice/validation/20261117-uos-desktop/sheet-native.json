@@ -1,0 +1,1905 @@
+{
+  "passed": true,
+  "platform": "Linux-6.18.57-061857-generic-x86_64-with-glibc2.38",
+  "checks": [
+    "Linux GPU capability is accurate; unsupported request rejects without output",
+    "native sales window, charts and window screenshot",
+    "Unicode/emoji, pointer/text input and dependent formula recalculation",
+    "platform keyboard undo and redo",
+    "synthetic composition blocks premature Enter; commit retains UTF-16 text",
+    "system clipboard and relative formula references",
+    "registered function completion and calculation",
+    "freeze, zoom and real formatting form",
+    "cancelled close retains unsaved edits",
+    "Chinese/space path XLSX save, close, reopen and retained formulas/text",
+    "XLSX LF/CRLF/blank lines and wrap style survive double-click/Enter/Tab/Shift navigation and F2/Escape without dirtying",
+    "inline and formula-bar edits append at the caret and preserve line breaks and full style",
+    "multiline text and imported cell styles survive XLSX save/close/reopen"
+  ],
+  "binary": "/home/Wilmer/Coding/joyoffice/target/debug/joysheet",
+  "binarySha256": "2fdfecf004fe28b392597ee43ef08d002d8aacdcf391f0c5a58765f70a5fb39e",
+  "eventSource": "production GPUI synthetic input",
+  "nativeImeVerified": false,
+  "gpuPresentationMeasured": false,
+  "display": {
+    "scaleFactor": 1.25,
+    "viewportWidth": 1440.0,
+    "viewportHeight": 900.0
+  },
+  "captures": {
+    "01-sales.png": {
+      "source": "X11 window pixels via ImageMagick",
+      "window": "115343361"
+    },
+    "02-format-dialog.png": {
+      "source": "X11 window pixels via ImageMagick",
+      "window": "115343375"
+    },
+    "03-roundtrip.png": {
+      "source": "X11 window pixels via ImageMagick",
+      "window": "115343399"
+    },
+    "04-multiline-editor.png": {
+      "source": "X11 window pixels via ImageMagick",
+      "window": "115343413"
+    },
+    "05-multiline-roundtrip.png": {
+      "source": "X11 window pixels via ImageMagick",
+      "window": "115343427"
+    }
+  },
+  "finalView": {
+    "sequence": 120,
+    "activeWindow": 5,
+    "commandMs": 0.08362299999999999,
+    "windows": [
+      {
+        "window": 1,
+        "doc": 2,
+        "title": "Quarterly Sales Dashboard",
+        "dirty": false,
+        "path": null,
+        "revision": 1,
+        "sheet": 0,
+        "selection": "A1",
+        "active": false
+      },
+      {
+        "window": 3,
+        "doc": 4,
+        "title": "中文 空格.xlsx",
+        "dirty": false,
+        "path": "/home/Wilmer/Coding/joyoffice/target/uos-validation-20261117/sheet-native-2/中文 空格.xlsx",
+        "revision": 1,
+        "sheet": 0,
+        "selection": "A1",
+        "active": false
+      },
+      {
+        "window": 5,
+        "doc": 6,
+        "title": "multiline-saved.xlsx",
+        "dirty": false,
+        "path": "/home/Wilmer/Coding/joyoffice/target/uos-validation-20261117/sheet-native-2/multiline-saved.xlsx",
+        "revision": 1,
+        "sheet": 0,
+        "selection": "A1",
+        "active": true
+      }
+    ],
+    "window": 5,
+    "editor": null,
+    "selection": "A1",
+    "scroll": {
+      "x": 0.0,
+      "y": 0.0
+    },
+    "visibleColumns": [
+      {
+        "index": 0,
+        "start": 52.0,
+        "size": 140.0
+      },
+      {
+        "index": 1,
+        "start": 192.0,
+        "size": 64.0
+      },
+      {
+        "index": 2,
+        "start": 256.0,
+        "size": 64.0
+      },
+      {
+        "index": 3,
+        "start": 320.0,
+        "size": 64.0
+      },
+      {
+        "index": 4,
+        "start": 384.0,
+        "size": 64.0
+      },
+      {
+        "index": 5,
+        "start": 448.0,
+        "size": 64.0
+      },
+      {
+        "index": 6,
+        "start": 512.0,
+        "size": 64.0
+      },
+      {
+        "index": 7,
+        "start": 576.0,
+        "size": 64.0
+      },
+      {
+        "index": 8,
+        "start": 640.0,
+        "size": 64.0
+      },
+      {
+        "index": 9,
+        "start": 704.0,
+        "size": 64.0
+      },
+      {
+        "index": 10,
+        "start": 768.0,
+        "size": 64.0
+      },
+      {
+        "index": 11,
+        "start": 832.0,
+        "size": 64.0
+      },
+      {
+        "index": 12,
+        "start": 896.0,
+        "size": 64.0
+      },
+      {
+        "index": 13,
+        "start": 960.0,
+        "size": 64.0
+      },
+      {
+        "index": 14,
+        "start": 1024.0,
+        "size": 64.0
+      },
+      {
+        "index": 15,
+        "start": 1088.0,
+        "size": 64.0
+      },
+      {
+        "index": 16,
+        "start": 1152.0,
+        "size": 64.0
+      },
+      {
+        "index": 17,
+        "start": 1216.0,
+        "size": 64.0
+      },
+      {
+        "index": 18,
+        "start": 1280.0,
+        "size": 64.0
+      },
+      {
+        "index": 19,
+        "start": 1344.0,
+        "size": 64.0
+      },
+      {
+        "index": 20,
+        "start": 1408.0,
+        "size": 64.0
+      }
+    ],
+    "visibleRows": [
+      {
+        "index": 0,
+        "start": 28.0,
+        "size": 85.33333587646484
+      },
+      {
+        "index": 1,
+        "start": 113.33333587646484,
+        "size": 85.33333587646484
+      },
+      {
+        "index": 2,
+        "start": 198.6666717529297,
+        "size": 85.33333587646484
+      },
+      {
+        "index": 3,
+        "start": 284.0,
+        "size": 85.33333587646484
+      },
+      {
+        "index": 4,
+        "start": 369.3333435058594,
+        "size": 20.0
+      },
+      {
+        "index": 5,
+        "start": 389.3333435058594,
+        "size": 20.0
+      },
+      {
+        "index": 6,
+        "start": 409.3333435058594,
+        "size": 20.0
+      },
+      {
+        "index": 7,
+        "start": 429.3333435058594,
+        "size": 20.0
+      },
+      {
+        "index": 8,
+        "start": 449.3333435058594,
+        "size": 20.0
+      },
+      {
+        "index": 9,
+        "start": 469.3333435058594,
+        "size": 20.0
+      },
+      {
+        "index": 10,
+        "start": 489.3333435058594,
+        "size": 20.0
+      },
+      {
+        "index": 11,
+        "start": 509.3333435058594,
+        "size": 20.0
+      },
+      {
+        "index": 12,
+        "start": 529.3333740234375,
+        "size": 20.0
+      },
+      {
+        "index": 13,
+        "start": 549.3333740234375,
+        "size": 20.0
+      },
+      {
+        "index": 14,
+        "start": 569.3333740234375,
+        "size": 20.0
+      },
+      {
+        "index": 15,
+        "start": 589.3333740234375,
+        "size": 20.0
+      },
+      {
+        "index": 16,
+        "start": 609.3333740234375,
+        "size": 20.0
+      },
+      {
+        "index": 17,
+        "start": 629.3333740234375,
+        "size": 20.0
+      }
+    ],
+    "sheetNames": [
+      "Multiline"
+    ],
+    "grid": {
+      "x": 0.0,
+      "y": 196.0,
+      "width": 1426.0,
+      "height": 633.2000122070312
+    },
+    "perf": {
+      "paintMs": 1.6777140000000001,
+      "paintedCells": 378,
+      "frame": 19
+    },
+    "message": "就绪 · Ready",
+    "autosave": false,
+    "closeSaving": false,
+    "closeButtons": null,
+    "worksheet": {
+      "name": "Multiline",
+      "tables": 0,
+      "conditionalFormats": 0,
+      "validations": 0,
+      "hiddenRows": []
+    },
+    "recentFiles": [
+      "/home/Wilmer/Coding/joyoffice/target/uos-validation-20261117/sheet-native-2/multiline-saved.xlsx",
+      "/home/Wilmer/Coding/joyoffice/target/uos-validation-20261117/sheet-native-2/中文 空格.xlsx",
+      "/home/Wilmer/Coding/joyoffice/target/uos-validation-20261117/sheet-native-2/multiline-source.xlsx"
+    ],
+    "dataResults": [],
+    "dataResultKind": "",
+    "tasks": [],
+    "dataRaw": null,
+    "advancedBounds": {
+      "ribbon:insert-cells": {
+        "x": 1033.5999755859375,
+        "y": 64.0,
+        "width": 37.599998474121094,
+        "height": 52.0
+      },
+      "ribbon:merge": {
+        "x": 522.4000244140625,
+        "y": 105.5999984741211,
+        "width": 80.0,
+        "height": 16.0
+      },
+      "ribbon:align-center": {
+        "x": 423.20001220703125,
+        "y": 105.5999984741211,
+        "width": 16.0,
+        "height": 16.0
+      },
+      "ribbon-tab:Help": {
+        "x": 525.5999755859375,
+        "y": 29.600000381469727,
+        "width": 50.400001525878906,
+        "height": 28.799999237060547
+      },
+      "ribbon-menu:borders": {
+        "x": 268.79998779296875,
+        "y": 109.5999984741211,
+        "width": 8.800000190734863,
+        "height": 8.800000190734863
+      },
+      "ribbon:font-color": {
+        "x": 339.20001220703125,
+        "y": 105.5999984741211,
+        "width": 16.0,
+        "height": 16.0
+      },
+      "ribbon-menu:paste": {
+        "x": 25.600000381469727,
+        "y": 121.5999984741211,
+        "width": 8.800000190734863,
+        "height": 8.800000190734863
+      },
+      "font-input": {
+        "x": 136.0,
+        "y": 75.19999694824219,
+        "width": 112.0,
+        "height": 24.0
+      },
+      "ribbon-menu:font-color": {
+        "x": 366.3999938964844,
+        "y": 109.5999984741211,
+        "width": 8.800000190734863,
+        "height": 8.800000190734863
+      },
+      "ribbon:underline": {
+        "x": 192.8000030517578,
+        "y": 105.5999984741211,
+        "width": 16.0,
+        "height": 16.0
+      },
+      "ribbon:decimal": {
+        "x": 740.7999877929688,
+        "y": 105.5999984741211,
+        "width": 16.0,
+        "height": 16.0
+      },
+      "ribbon:conditional-format": {
+        "x": 808.0,
+        "y": 64.0,
+        "width": 48.0,
+        "height": 72.0
+      },
+      "sheet-tab:0": {
+        "x": 12.0,
+        "y": 844.7999877929688,
+        "width": 96.0,
+        "height": 28.0
+      },
+      "ribbon-menu:autosum": {
+        "x": 1267.199951171875,
+        "y": 71.19999694824219,
+        "width": 8.800000190734863,
+        "height": 8.800000190734863
+      },
+      "ribbon:clear-menu": {
+        "x": 1205.5999755859375,
+        "y": 116.80000305175781,
+        "width": 56.79999923706055,
+        "height": 16.0
+      },
+      "ribbon:align-top": {
+        "x": 398.3999938964844,
+        "y": 78.4000015258789,
+        "width": 16.0,
+        "height": 16.0
+      },
+      "ribbon:paste": {
+        "x": 11.199999809265137,
+        "y": 64.0,
+        "width": 37.599998474121094,
+        "height": 52.0
+      },
+      "ribbon:copy": {
+        "x": 65.5999984741211,
+        "y": 92.0,
+        "width": 44.0,
+        "height": 16.0
+      },
+      "ribbon:wrap": {
+        "x": 505.6000061035156,
+        "y": 78.4000015258789,
+        "width": 68.0,
+        "height": 16.0
+      },
+      "ribbon-menu:underline": {
+        "x": 220.0,
+        "y": 109.5999984741211,
+        "width": 8.800000190734863,
+        "height": 8.800000190734863
+      },
+      "ribbon-menu:fill": {
+        "x": 317.6000061035156,
+        "y": 109.5999984741211,
+        "width": 8.800000190734863,
+        "height": 8.800000190734863
+      },
+      "ribbon-tab:Insert": {
+        "x": 116.80000305175781,
+        "y": 29.600000381469727,
+        "width": 50.400001525878906,
+        "height": 28.799999237060547
+      },
+      "ribbon-menu:merge": {
+        "x": 609.5999755859375,
+        "y": 109.5999984741211,
+        "width": 8.800000190734863,
+        "height": 8.800000190734863
+      },
+      "ribbon:delete-cells": {
+        "x": 1082.4000244140625,
+        "y": 64.0,
+        "width": 37.599998474121094,
+        "height": 52.0
+      },
+      "ribbon:fill": {
+        "x": 290.3999938964844,
+        "y": 105.5999984741211,
+        "width": 16.0,
+        "height": 16.0
+      },
+      "ribbon-tab:Review": {
+        "x": 416.79998779296875,
+        "y": 29.600000381469727,
+        "width": 50.400001525878906,
+        "height": 28.799999237060547
+      },
+      "ribbon:indent-less": {
+        "x": 472.79998779296875,
+        "y": 105.5999984741211,
+        "width": 16.0,
+        "height": 16.0
+      },
+      "ribbon:currency": {
+        "x": 641.5999755859375,
+        "y": 105.5999984741211,
+        "width": 16.0,
+        "height": 16.0
+      },
+      "ribbon:font-name": {
+        "x": 246.39999389648438,
+        "y": 75.19999694824219,
+        "width": 20.0,
+        "height": 22.399999618530273
+      },
+      "ribbon:autosum": {
+        "x": 1192.0,
+        "y": 67.19999694824219,
+        "width": 68.0,
+        "height": 16.0
+      },
+      "ribbon:fill-menu": {
+        "x": 1205.5999755859375,
+        "y": 92.0,
+        "width": 56.79999923706055,
+        "height": 16.0
+      },
+      "ribbon:bold": {
+        "x": 139.1999969482422,
+        "y": 105.5999984741211,
+        "width": 16.0,
+        "height": 16.0
+      },
+      "ribbon:orientation": {
+        "x": 470.3999938964844,
+        "y": 78.4000015258789,
+        "width": 28.799999237060547,
+        "height": 16.0
+      },
+      "ribbon-tab:Draw": {
+        "x": 171.1999969482422,
+        "y": 29.600000381469727,
+        "width": 50.400001525878906,
+        "height": 28.799999237060547
+      },
+      "ribbon:format-as-table": {
+        "x": 867.2000122070312,
+        "y": 64.0,
+        "width": 72.0,
+        "height": 72.0
+      },
+      "ribbon:home-find": {
+        "x": 1358.4000244140625,
+        "y": 64.0,
+        "width": 60.0,
+        "height": 72.0
+      },
+      "ribbon:indent-more": {
+        "x": 497.6000061035156,
+        "y": 105.5999984741211,
+        "width": 16.0,
+        "height": 16.0
+      },
+      "ribbon-tab:Data": {
+        "x": 362.3999938964844,
+        "y": 29.600000381469727,
+        "width": 50.400001525878906,
+        "height": 28.799999237060547
+      },
+      "ribbon:home-sort": {
+        "x": 1287.199951171875,
+        "y": 64.0,
+        "width": 60.0,
+        "height": 72.0
+      },
+      "ribbon-tab:File": {
+        "x": 8.0,
+        "y": 29.600000381469727,
+        "width": 50.400001525878906,
+        "height": 28.799999237060547
+      },
+      "ribbon:number-format": {
+        "x": 700.7999877929688,
+        "y": 79.19999694824219,
+        "width": 24.0,
+        "height": 15.199999809265137
+      },
+      "ribbon:comma": {
+        "x": 691.2000122070312,
+        "y": 105.5999984741211,
+        "width": 16.0,
+        "height": 16.0
+      },
+      "ribbon-tab:View": {
+        "x": 471.20001220703125,
+        "y": 29.600000381469727,
+        "width": 50.400001525878906,
+        "height": 28.799999237060547
+      },
+      "ribbon:format-painter": {
+        "x": 60.0,
+        "y": 116.80000305175781,
+        "width": 56.0,
+        "height": 16.0
+      },
+      "ribbon:borders": {
+        "x": 241.60000610351562,
+        "y": 105.5999984741211,
+        "width": 16.0,
+        "height": 16.0
+      },
+      "ribbon:align-left": {
+        "x": 398.3999938964844,
+        "y": 105.5999984741211,
+        "width": 16.0,
+        "height": 16.0
+      },
+      "ribbon:cut": {
+        "x": 65.5999984741211,
+        "y": 67.19999694824219,
+        "width": 44.0,
+        "height": 16.0
+      },
+      "ribbon:align-bottom": {
+        "x": 448.0,
+        "y": 78.4000015258789,
+        "width": 16.0,
+        "height": 16.0
+      },
+      "ribbon:cell-styles": {
+        "x": 950.4000244140625,
+        "y": 64.0,
+        "width": 60.0,
+        "height": 72.0
+      },
+      "ribbon:percent": {
+        "x": 666.4000244140625,
+        "y": 105.5999984741211,
+        "width": 16.0,
+        "height": 16.0
+      },
+      "ribbon-menu:insert-cells": {
+        "x": 1048.0,
+        "y": 121.5999984741211,
+        "width": 8.800000190734863,
+        "height": 8.800000190734863
+      },
+      "ribbon:decimal-increase": {
+        "x": 716.0,
+        "y": 105.5999984741211,
+        "width": 16.0,
+        "height": 16.0
+      },
+      "ribbon:font-shrink": {
+        "x": 341.6000061035156,
+        "y": 78.4000015258789,
+        "width": 16.0,
+        "height": 16.0
+      },
+      "ribbon:align-right": {
+        "x": 448.0,
+        "y": 105.5999984741211,
+        "width": 16.0,
+        "height": 16.0
+      },
+      "ribbon-tab:Home": {
+        "x": 62.400001525878906,
+        "y": 29.600000381469727,
+        "width": 50.400001525878906,
+        "height": 28.799999237060547
+      },
+      "ribbon-tab:Formulas": {
+        "x": 308.0,
+        "y": 29.600000381469727,
+        "width": 50.400001525878906,
+        "height": 28.799999237060547
+      },
+      "ribbon-menu:delete-cells": {
+        "x": 1096.800048828125,
+        "y": 121.5999984741211,
+        "width": 8.800000190734863,
+        "height": 8.800000190734863
+      },
+      "ribbon:font-size": {
+        "x": 276.0,
+        "y": 79.19999694824219,
+        "width": 27.200000762939453,
+        "height": 15.199999809265137
+      },
+      "ribbon-tab:Page Layout": {
+        "x": 225.60000610351562,
+        "y": 29.600000381469727,
+        "width": 78.4000015258789,
+        "height": 28.799999237060547
+      },
+      "ribbon:italic": {
+        "x": 164.0,
+        "y": 105.5999984741211,
+        "width": 16.0,
+        "height": 16.0
+      },
+      "ribbon:align-middle": {
+        "x": 423.20001220703125,
+        "y": 78.4000015258789,
+        "width": 16.0,
+        "height": 16.0
+      },
+      "ribbon:format-panel": {
+        "x": 1131.199951171875,
+        "y": 64.0,
+        "width": 37.599998474121094,
+        "height": 72.0
+      },
+      "ribbon-tab:Automate": {
+        "x": 580.0,
+        "y": 29.600000381469727,
+        "width": 64.80000305175781,
+        "height": 28.799999237060547
+      },
+      "ribbon:font-grow": {
+        "x": 316.79998779296875,
+        "y": 78.4000015258789,
+        "width": 16.0,
+        "height": 16.0
+      }
+    },
+    "sheetCount": 1,
+    "review": {
+      "comments": [],
+      "sheetProtected": false,
+      "structureProtected": false,
+      "names": [],
+      "scriptsTrusted": true,
+      "recording": false
+    },
+    "decodedImages": 0,
+    "selectedObject": null,
+    "selectedObjects": [],
+    "formulaReferences": [],
+    "formulaHint": null,
+    "outlineText": {
+      "fontsReady": true,
+      "cachedBlocks": 0
+    },
+    "nativeWindows": {
+      "error": "Native arrangement currently supports Windows"
+    },
+    "arrangement": null,
+    "keyTrace": [],
+    "focus": {
+      "grid": true,
+      "formula": false,
+      "name": false,
+      "sheets": false
+    },
+    "printStatus": "",
+    "printWork": {
+      "exporting": 0,
+      "rendering": 0,
+      "dialogOpen": false,
+      "current": false
+    },
+    "printPreview": null,
+    "objectBounds": [],
+    "drawingObjects": {
+      "charts": [],
+      "images": [],
+      "shapes": []
+    },
+    "auditArrows": [],
+    "pageView": {
+      "mode": "normal",
+      "rowBreaks": [],
+      "colBreaks": [],
+      "header": "",
+      "footer": "",
+      "paper": null,
+      "rows": null,
+      "columns": null
+    },
+    "formulaText": "首行😀\n第二行追加😀",
+    "cellEditorText": "",
+    "dark": false,
+    "theme": "verdant-light",
+    "themes": [
+      "verdant-light",
+      "verdant-dark",
+      "classic-light",
+      "classic-dark",
+      "azure-light",
+      "azure-dark",
+      "sandstone-light",
+      "sandstone-dark"
+    ],
+    "settings": {
+      "dark": false,
+      "theme": null,
+      "language": "zh",
+      "recent": [
+        "/home/Wilmer/Coding/joyoffice/target/uos-validation-20261117/sheet-native-2/multiline-saved.xlsx",
+        "/home/Wilmer/Coding/joyoffice/target/uos-validation-20261117/sheet-native-2/中文 空格.xlsx",
+        "/home/Wilmer/Coding/joyoffice/target/uos-validation-20261117/sheet-native-2/multiline-source.xlsx"
+      ],
+      "recent_fonts": [],
+      "autosave": false,
+      "formula_bar": true,
+      "autocomplete": true,
+      "recovery": true,
+      "animations": false
+    },
+    "ribbonTab": 1,
+    "ribbon": {
+      "tab": "Home",
+      "collapsed": false,
+      "help": false,
+      "functionCategory": null,
+      "formatPainter": false,
+      "inkTool": "",
+      "groups": [
+        {
+          "name": "Clipboard",
+          "tools": [
+            {
+              "id": "paste",
+              "command": "paste",
+              "dialog": false,
+              "menu": true,
+              "menuItems": [
+                {
+                  "id": "paste-normal",
+                  "command": "edit.paste",
+                  "dialog": false,
+                  "params": "{}"
+                },
+                {
+                  "id": "paste-values",
+                  "command": "edit.pasteSpecial",
+                  "dialog": false,
+                  "params": "{\"what\":\"values\"}"
+                },
+                {
+                  "id": "paste-formats",
+                  "command": "edit.pasteSpecial",
+                  "dialog": false,
+                  "params": "{\"what\":\"formats\"}"
+                },
+                {
+                  "id": "paste-special",
+                  "command": "edit.pasteSpecial",
+                  "dialog": true,
+                  "params": "{}"
+                }
+              ]
+            },
+            {
+              "id": "cut",
+              "command": "edit.cut",
+              "dialog": false,
+              "menu": false,
+              "menuItems": []
+            },
+            {
+              "id": "copy",
+              "command": "edit.copy",
+              "dialog": false,
+              "menu": false,
+              "menuItems": []
+            },
+            {
+              "id": "format-painter",
+              "command": "@format-painter",
+              "dialog": false,
+              "menu": false,
+              "menuItems": []
+            }
+          ]
+        },
+        {
+          "name": "Font",
+          "tools": [
+            {
+              "id": "font-name",
+              "command": "font-name",
+              "dialog": false,
+              "menu": true,
+              "menuItems": [
+                {
+                  "id": "font-aptos",
+                  "command": "home.fontName",
+                  "dialog": false,
+                  "params": "{\"name\":\"Aptos\"}"
+                },
+                {
+                  "id": "font-dengxian",
+                  "command": "home.fontName",
+                  "dialog": false,
+                  "params": "{\"name\":\"DengXian\"}"
+                },
+                {
+                  "id": "font-calibri",
+                  "command": "home.fontName",
+                  "dialog": false,
+                  "params": "{\"name\":\"Calibri\"}"
+                },
+                {
+                  "id": "font-yahei",
+                  "command": "home.fontName",
+                  "dialog": false,
+                  "params": "{\"name\":\"Microsoft YaHei\"}"
+                },
+                {
+                  "id": "font-other",
+                  "command": "home.fontName",
+                  "dialog": true,
+                  "params": "{}"
+                }
+              ]
+            },
+            {
+              "id": "font-size",
+              "command": "font-size",
+              "dialog": false,
+              "menu": true,
+              "menuItems": [
+                {
+                  "id": "8",
+                  "command": "home.fontSize",
+                  "dialog": false,
+                  "params": "{\"size\":8}"
+                },
+                {
+                  "id": "9",
+                  "command": "home.fontSize",
+                  "dialog": false,
+                  "params": "{\"size\":9}"
+                },
+                {
+                  "id": "10",
+                  "command": "home.fontSize",
+                  "dialog": false,
+                  "params": "{\"size\":10}"
+                },
+                {
+                  "id": "11",
+                  "command": "home.fontSize",
+                  "dialog": false,
+                  "params": "{\"size\":11}"
+                },
+                {
+                  "id": "12",
+                  "command": "home.fontSize",
+                  "dialog": false,
+                  "params": "{\"size\":12}"
+                },
+                {
+                  "id": "14",
+                  "command": "home.fontSize",
+                  "dialog": false,
+                  "params": "{\"size\":14}"
+                },
+                {
+                  "id": "16",
+                  "command": "home.fontSize",
+                  "dialog": false,
+                  "params": "{\"size\":16}"
+                },
+                {
+                  "id": "18",
+                  "command": "home.fontSize",
+                  "dialog": false,
+                  "params": "{\"size\":18}"
+                },
+                {
+                  "id": "20",
+                  "command": "home.fontSize",
+                  "dialog": false,
+                  "params": "{\"size\":20}"
+                },
+                {
+                  "id": "24",
+                  "command": "home.fontSize",
+                  "dialog": false,
+                  "params": "{\"size\":24}"
+                },
+                {
+                  "id": "28",
+                  "command": "home.fontSize",
+                  "dialog": false,
+                  "params": "{\"size\":28}"
+                },
+                {
+                  "id": "36",
+                  "command": "home.fontSize",
+                  "dialog": false,
+                  "params": "{\"size\":36}"
+                },
+                {
+                  "id": "48",
+                  "command": "home.fontSize",
+                  "dialog": false,
+                  "params": "{\"size\":48}"
+                },
+                {
+                  "id": "72",
+                  "command": "home.fontSize",
+                  "dialog": false,
+                  "params": "{\"size\":72}"
+                }
+              ]
+            },
+            {
+              "id": "font-grow",
+              "command": "home.increaseFontSize",
+              "dialog": false,
+              "menu": false,
+              "menuItems": []
+            },
+            {
+              "id": "font-shrink",
+              "command": "home.decreaseFontSize",
+              "dialog": false,
+              "menu": false,
+              "menuItems": []
+            },
+            {
+              "id": "bold",
+              "command": "home.bold",
+              "dialog": false,
+              "menu": false,
+              "menuItems": []
+            },
+            {
+              "id": "italic",
+              "command": "home.italic",
+              "dialog": false,
+              "menu": false,
+              "menuItems": []
+            },
+            {
+              "id": "underline",
+              "command": "underline",
+              "dialog": false,
+              "menu": true,
+              "menuItems": [
+                {
+                  "id": "underline-single",
+                  "command": "home.underline",
+                  "dialog": false,
+                  "params": "{}"
+                },
+                {
+                  "id": "underline-double",
+                  "command": "home.doubleUnderline",
+                  "dialog": false,
+                  "params": "{}"
+                }
+              ]
+            },
+            {
+              "id": "borders",
+              "command": "borders",
+              "dialog": false,
+              "menu": true,
+              "menuItems": [
+                {
+                  "id": "border-bottom",
+                  "command": "home.borders",
+                  "dialog": false,
+                  "params": "{\"preset\":\"bottom\"}"
+                },
+                {
+                  "id": "border-all",
+                  "command": "home.borders",
+                  "dialog": false,
+                  "params": "{\"preset\":\"all\"}"
+                },
+                {
+                  "id": "border-outside",
+                  "command": "home.borders",
+                  "dialog": false,
+                  "params": "{\"preset\":\"outside\"}"
+                },
+                {
+                  "id": "border-none",
+                  "command": "home.borders",
+                  "dialog": false,
+                  "params": "{\"preset\":\"none\"}"
+                },
+                {
+                  "id": "border-more",
+                  "command": "home.formatCells",
+                  "dialog": true,
+                  "params": "{}"
+                }
+              ]
+            },
+            {
+              "id": "fill",
+              "command": "fill",
+              "dialog": false,
+              "menu": true,
+              "menuItems": [
+                {
+                  "id": "color-black",
+                  "command": "home.fillColor",
+                  "dialog": false,
+                  "params": "{\"color\":\"#202020\"}"
+                },
+                {
+                  "id": "color-red",
+                  "command": "home.fillColor",
+                  "dialog": false,
+                  "params": "{\"color\":\"#C00000\"}"
+                },
+                {
+                  "id": "color-green",
+                  "command": "home.fillColor",
+                  "dialog": false,
+                  "params": "{\"color\":\"#008050\"}"
+                },
+                {
+                  "id": "color-blue",
+                  "command": "home.fillColor",
+                  "dialog": false,
+                  "params": "{\"color\":\"#1F5FC9\"}"
+                },
+                {
+                  "id": "color-yellow",
+                  "command": "home.fillColor",
+                  "dialog": false,
+                  "params": "{\"color\":\"#FFFF00\"}"
+                },
+                {
+                  "id": "color-more",
+                  "command": "home.fillColor",
+                  "dialog": true,
+                  "params": "{}"
+                }
+              ]
+            },
+            {
+              "id": "font-color",
+              "command": "font-color",
+              "dialog": false,
+              "menu": true,
+              "menuItems": [
+                {
+                  "id": "color-black",
+                  "command": "home.fontColor",
+                  "dialog": false,
+                  "params": "{\"color\":\"#202020\"}"
+                },
+                {
+                  "id": "color-red",
+                  "command": "home.fontColor",
+                  "dialog": false,
+                  "params": "{\"color\":\"#C00000\"}"
+                },
+                {
+                  "id": "color-green",
+                  "command": "home.fontColor",
+                  "dialog": false,
+                  "params": "{\"color\":\"#008050\"}"
+                },
+                {
+                  "id": "color-blue",
+                  "command": "home.fontColor",
+                  "dialog": false,
+                  "params": "{\"color\":\"#1F5FC9\"}"
+                },
+                {
+                  "id": "color-yellow",
+                  "command": "home.fontColor",
+                  "dialog": false,
+                  "params": "{\"color\":\"#FFFF00\"}"
+                },
+                {
+                  "id": "color-more",
+                  "command": "home.fontColor",
+                  "dialog": true,
+                  "params": "{}"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Alignment",
+          "tools": [
+            {
+              "id": "align-top",
+              "command": "home.alignTop",
+              "dialog": false,
+              "menu": false,
+              "menuItems": []
+            },
+            {
+              "id": "align-middle",
+              "command": "home.alignMiddle",
+              "dialog": false,
+              "menu": false,
+              "menuItems": []
+            },
+            {
+              "id": "align-bottom",
+              "command": "home.alignBottom",
+              "dialog": false,
+              "menu": false,
+              "menuItems": []
+            },
+            {
+              "id": "orientation",
+              "command": "orientation",
+              "dialog": false,
+              "menu": true,
+              "menuItems": [
+                {
+                  "id": "angle-up",
+                  "command": "home.orientation",
+                  "dialog": false,
+                  "params": "{\"angle\":45}"
+                },
+                {
+                  "id": "angle-down",
+                  "command": "home.orientation",
+                  "dialog": false,
+                  "params": "{\"angle\":-45}"
+                },
+                {
+                  "id": "angle-vertical",
+                  "command": "home.orientation",
+                  "dialog": false,
+                  "params": "{\"angle\":\"vertical\"}"
+                },
+                {
+                  "id": "angle-none",
+                  "command": "home.orientation",
+                  "dialog": false,
+                  "params": "{\"angle\":0}"
+                },
+                {
+                  "id": "angle-more",
+                  "command": "home.formatCells",
+                  "dialog": true,
+                  "params": "{}"
+                }
+              ]
+            },
+            {
+              "id": "wrap",
+              "command": "home.wrapText",
+              "dialog": false,
+              "menu": false,
+              "menuItems": []
+            },
+            {
+              "id": "align-left",
+              "command": "home.alignLeft",
+              "dialog": false,
+              "menu": false,
+              "menuItems": []
+            },
+            {
+              "id": "align-center",
+              "command": "home.alignCenter",
+              "dialog": false,
+              "menu": false,
+              "menuItems": []
+            },
+            {
+              "id": "align-right",
+              "command": "home.alignRight",
+              "dialog": false,
+              "menu": false,
+              "menuItems": []
+            },
+            {
+              "id": "indent-less",
+              "command": "home.decreaseIndent",
+              "dialog": false,
+              "menu": false,
+              "menuItems": []
+            },
+            {
+              "id": "indent-more",
+              "command": "home.increaseIndent",
+              "dialog": false,
+              "menu": false,
+              "menuItems": []
+            },
+            {
+              "id": "merge",
+              "command": "merge",
+              "dialog": false,
+              "menu": true,
+              "menuItems": [
+                {
+                  "id": "merge-center",
+                  "command": "home.mergeCenter",
+                  "dialog": false,
+                  "params": "{}"
+                },
+                {
+                  "id": "merge-across",
+                  "command": "home.mergeAcross",
+                  "dialog": false,
+                  "params": "{}"
+                },
+                {
+                  "id": "merge-cells",
+                  "command": "home.mergeCells",
+                  "dialog": false,
+                  "params": "{}"
+                },
+                {
+                  "id": "unmerge",
+                  "command": "home.unmergeCells",
+                  "dialog": false,
+                  "params": "{}"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Number",
+          "tools": [
+            {
+              "id": "number-format",
+              "command": "number-format",
+              "dialog": false,
+              "menu": true,
+              "menuItems": [
+                {
+                  "id": "format-general",
+                  "command": "home.numberFormat",
+                  "dialog": false,
+                  "params": "{\"format\":\"General\"}"
+                },
+                {
+                  "id": "format-number",
+                  "command": "home.numberFormat",
+                  "dialog": false,
+                  "params": "{\"format\":\"Number\"}"
+                },
+                {
+                  "id": "format-currency",
+                  "command": "home.numberFormat",
+                  "dialog": false,
+                  "params": "{\"format\":\"Currency\"}"
+                },
+                {
+                  "id": "format-accounting",
+                  "command": "home.accounting",
+                  "dialog": false,
+                  "params": "{}"
+                },
+                {
+                  "id": "format-date",
+                  "command": "home.numberFormat",
+                  "dialog": false,
+                  "params": "{\"format\":\"Short Date\"}"
+                },
+                {
+                  "id": "format-percent",
+                  "command": "home.percent",
+                  "dialog": false,
+                  "params": "{}"
+                },
+                {
+                  "id": "format-text",
+                  "command": "home.numberFormat",
+                  "dialog": false,
+                  "params": "{\"format\":\"Text\"}"
+                },
+                {
+                  "id": "format-more",
+                  "command": "home.formatCells",
+                  "dialog": true,
+                  "params": "{}"
+                }
+              ]
+            },
+            {
+              "id": "currency",
+              "command": "home.accounting",
+              "dialog": false,
+              "menu": false,
+              "menuItems": []
+            },
+            {
+              "id": "percent",
+              "command": "home.percent",
+              "dialog": false,
+              "menu": false,
+              "menuItems": []
+            },
+            {
+              "id": "comma",
+              "command": "home.comma",
+              "dialog": false,
+              "menu": false,
+              "menuItems": []
+            },
+            {
+              "id": "decimal-increase",
+              "command": "home.increaseDecimal",
+              "dialog": false,
+              "menu": false,
+              "menuItems": []
+            },
+            {
+              "id": "decimal",
+              "command": "home.decreaseDecimal",
+              "dialog": false,
+              "menu": false,
+              "menuItems": []
+            }
+          ]
+        },
+        {
+          "name": "Styles",
+          "tools": [
+            {
+              "id": "conditional-format",
+              "command": "conditional",
+              "dialog": false,
+              "menu": true,
+              "menuItems": [
+                {
+                  "id": "conditional-rule",
+                  "command": "home.conditionalFormat",
+                  "dialog": true,
+                  "params": "{}"
+                },
+                {
+                  "id": "conditional-manage",
+                  "command": "home.manageRules",
+                  "dialog": false,
+                  "params": "{}"
+                },
+                {
+                  "id": "conditional-clear",
+                  "command": "home.clearRules",
+                  "dialog": false,
+                  "params": "{}"
+                }
+              ]
+            },
+            {
+              "id": "format-as-table",
+              "command": "home.formatAsTable",
+              "dialog": false,
+              "menu": true,
+              "menuItems": []
+            },
+            {
+              "id": "cell-styles",
+              "command": "cell-styles",
+              "dialog": false,
+              "menu": true,
+              "menuItems": [
+                {
+                  "id": "style-normal",
+                  "command": "home.cellStyle",
+                  "dialog": false,
+                  "params": "{\"name\":\"Normal\"}"
+                },
+                {
+                  "id": "style-good",
+                  "command": "home.cellStyle",
+                  "dialog": false,
+                  "params": "{\"name\":\"Good\"}"
+                },
+                {
+                  "id": "style-bad",
+                  "command": "home.cellStyle",
+                  "dialog": false,
+                  "params": "{\"name\":\"Bad\"}"
+                },
+                {
+                  "id": "style-heading",
+                  "command": "home.cellStyle",
+                  "dialog": false,
+                  "params": "{\"name\":\"Heading 1\"}"
+                },
+                {
+                  "id": "style-new",
+                  "command": "home.newCellStyle",
+                  "dialog": true,
+                  "params": "{}"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Cells",
+          "tools": [
+            {
+              "id": "insert-cells",
+              "command": "insert-cells",
+              "dialog": false,
+              "menu": true,
+              "menuItems": [
+                {
+                  "id": "insert-cell-dialog",
+                  "command": "home.insertCells",
+                  "dialog": true,
+                  "params": "{}"
+                },
+                {
+                  "id": "insert-row",
+                  "command": "home.insertRows",
+                  "dialog": false,
+                  "params": "{}"
+                },
+                {
+                  "id": "insert-column",
+                  "command": "home.insertColumns",
+                  "dialog": false,
+                  "params": "{}"
+                },
+                {
+                  "id": "insert-sheet",
+                  "command": "home.insertSheet",
+                  "dialog": false,
+                  "params": "{}"
+                }
+              ]
+            },
+            {
+              "id": "delete-cells",
+              "command": "delete-cells",
+              "dialog": false,
+              "menu": true,
+              "menuItems": [
+                {
+                  "id": "delete-cell-dialog",
+                  "command": "home.deleteCells",
+                  "dialog": true,
+                  "params": "{}"
+                },
+                {
+                  "id": "delete-row",
+                  "command": "home.deleteRows",
+                  "dialog": false,
+                  "params": "{}"
+                },
+                {
+                  "id": "delete-column",
+                  "command": "home.deleteColumns",
+                  "dialog": false,
+                  "params": "{}"
+                },
+                {
+                  "id": "delete-sheet",
+                  "command": "@delete-sheet",
+                  "dialog": false,
+                  "params": "{}"
+                }
+              ]
+            },
+            {
+              "id": "format-panel",
+              "command": "format-cells",
+              "dialog": false,
+              "menu": true,
+              "menuItems": [
+                {
+                  "id": "row-height",
+                  "command": "home.rowHeight",
+                  "dialog": true,
+                  "params": "{}"
+                },
+                {
+                  "id": "autofit-row",
+                  "command": "home.autofitRowHeight",
+                  "dialog": false,
+                  "params": "{}"
+                },
+                {
+                  "id": "column-width",
+                  "command": "home.columnWidth",
+                  "dialog": true,
+                  "params": "{}"
+                },
+                {
+                  "id": "autofit",
+                  "command": "home.autofitColumnWidth",
+                  "dialog": false,
+                  "params": "{}"
+                },
+                {
+                  "id": "hide-rows",
+                  "command": "home.hideRows",
+                  "dialog": false,
+                  "params": "{}"
+                },
+                {
+                  "id": "unhide-rows",
+                  "command": "home.unhideRows",
+                  "dialog": false,
+                  "params": "{}"
+                },
+                {
+                  "id": "hide-columns",
+                  "command": "home.hideColumns",
+                  "dialog": false,
+                  "params": "{}"
+                },
+                {
+                  "id": "unhide-columns",
+                  "command": "home.unhideColumns",
+                  "dialog": false,
+                  "params": "{}"
+                },
+                {
+                  "id": "rename-sheet",
+                  "command": "sheet.rename",
+                  "dialog": true,
+                  "params": "{}"
+                },
+                {
+                  "id": "format-cells-dialog",
+                  "command": "home.formatCells",
+                  "dialog": true,
+                  "params": "{}"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Editing",
+          "tools": [
+            {
+              "id": "autosum",
+              "command": "autosum",
+              "dialog": false,
+              "menu": true,
+              "menuItems": [
+                {
+                  "id": "sum",
+                  "command": "formulas.autoSum",
+                  "dialog": false,
+                  "params": "{}"
+                },
+                {
+                  "id": "average",
+                  "command": "formulas.autoSum",
+                  "dialog": false,
+                  "params": "{\"function\":\"AVERAGE\"}"
+                },
+                {
+                  "id": "count",
+                  "command": "formulas.autoSum",
+                  "dialog": false,
+                  "params": "{\"function\":\"COUNT\"}"
+                },
+                {
+                  "id": "max",
+                  "command": "formulas.autoSum",
+                  "dialog": false,
+                  "params": "{\"function\":\"MAX\"}"
+                },
+                {
+                  "id": "min",
+                  "command": "formulas.autoSum",
+                  "dialog": false,
+                  "params": "{\"function\":\"MIN\"}"
+                }
+              ]
+            },
+            {
+              "id": "fill-menu",
+              "command": "fill-menu",
+              "dialog": false,
+              "menu": true,
+              "menuItems": [
+                {
+                  "id": "fill-down",
+                  "command": "edit.fillDown",
+                  "dialog": false,
+                  "params": "{}"
+                },
+                {
+                  "id": "fill-right",
+                  "command": "edit.fillRight",
+                  "dialog": false,
+                  "params": "{}"
+                },
+                {
+                  "id": "fill-up",
+                  "command": "edit.fillUp",
+                  "dialog": false,
+                  "params": "{}"
+                },
+                {
+                  "id": "fill-left",
+                  "command": "edit.fillLeft",
+                  "dialog": false,
+                  "params": "{}"
+                },
+                {
+                  "id": "fill-series",
+                  "command": "edit.fillSeries",
+                  "dialog": true,
+                  "params": "{}"
+                },
+                {
+                  "id": "fill-flash",
+                  "command": "edit.flashFill",
+                  "dialog": false,
+                  "params": "{}"
+                }
+              ]
+            },
+            {
+              "id": "clear-menu",
+              "command": "clear",
+              "dialog": false,
+              "menu": true,
+              "menuItems": [
+                {
+                  "id": "clear-all",
+                  "command": "edit.clearAll",
+                  "dialog": false,
+                  "params": "{}"
+                },
+                {
+                  "id": "clear-formats",
+                  "command": "edit.clearFormats",
+                  "dialog": false,
+                  "params": "{}"
+                },
+                {
+                  "id": "clear-contents",
+                  "command": "edit.clearContents",
+                  "dialog": false,
+                  "params": "{}"
+                },
+                {
+                  "id": "clear-comments",
+                  "command": "edit.clearComments",
+                  "dialog": false,
+                  "params": "{}"
+                },
+                {
+                  "id": "clear-links",
+                  "command": "edit.clearHyperlinks",
+                  "dialog": false,
+                  "params": "{}"
+                }
+              ]
+            },
+            {
+              "id": "home-sort",
+              "command": "sort-filter",
+              "dialog": false,
+              "menu": true,
+              "menuItems": [
+                {
+                  "id": "sort-ascending",
+                  "command": "data.sortAscending",
+                  "dialog": false,
+                  "params": "{}"
+                },
+                {
+                  "id": "sort-descending",
+                  "command": "data.sortDescending",
+                  "dialog": false,
+                  "params": "{}"
+                },
+                {
+                  "id": "sort-custom",
+                  "command": "data.sort",
+                  "dialog": true,
+                  "params": "{}"
+                },
+                {
+                  "id": "sort-filter-toggle",
+                  "command": "data.filter",
+                  "dialog": false,
+                  "params": "{}"
+                },
+                {
+                  "id": "sort-filter-clear",
+                  "command": "data.clearFilter",
+                  "dialog": false,
+                  "params": "{}"
+                }
+              ]
+            },
+            {
+              "id": "home-find",
+              "command": "find-select",
+              "dialog": false,
+              "menu": true,
+              "menuItems": [
+                {
+                  "id": "find",
+                  "command": "edit.find",
+                  "dialog": true,
+                  "params": "{}"
+                },
+                {
+                  "id": "replace",
+                  "command": "edit.replace",
+                  "dialog": true,
+                  "params": "{}"
+                },
+                {
+                  "id": "goto",
+                  "command": "edit.goTo",
+                  "dialog": true,
+                  "params": "{}"
+                },
+                {
+                  "id": "goto-special",
+                  "command": "edit.goToSpecial",
+                  "dialog": true,
+                  "params": "{}"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "panel": 0,
+    "fontPicker": {
+      "open": false,
+      "focused": false,
+      "text": "Calibri",
+      "filter": "",
+      "dirty": false,
+      "scrollY": 0.0,
+      "maxScrollY": 0.0,
+      "rows": [
+        {
+          "name": null,
+          "label": "主题字体",
+          "group": "theme"
+        },
+        {
+          "name": "Calibri",
+          "label": "Calibri（标题）",
+          "group": "theme"
+        },
+        {
+          "name": "Calibri",
+          "label": "Calibri（正文）",
+          "group": "theme"
+        }
+      ]
+    },
+    "excelControls": {
+      "popupOpen": false,
+      "sortLevels": [],
+      "sortSelected": 0,
+      "fontCount": 0,
+      "splitColumn": 0,
+      "formats": {},
+      "importPreview": null,
+      "rulesDraft": null,
+      "rulesTarget": null
+    },
+    "commandDialog": {
+      "command": null,
+      "tab": 0,
+      "error": "",
+      "fields": {}
+    },
+    "composing": false,
+    "inputGeometry": {
+      "source": "GPUI EntityInputHandler UTF-16 layout",
+      "formula": false,
+      "scaleFactor": 1.25,
+      "input": {
+        "x": 61.599998474121094,
+        "y": 232.0,
+        "width": 120.80000305175781,
+        "height": 69.5999984741211
+      },
+      "candidate": {
+        "x": 61.599998474121094,
+        "y": 232.0,
+        "width": 0.0,
+        "height": 20.0
+      },
+      "selectionUtf16": [
+        0,
+        0
+      ],
+      "markedUtf16": null
+    },
+    "display": {
+      "scaleFactor": 1.25,
+      "viewportWidth": 1440.0,
+      "viewportHeight": 900.0
+    },
+    "error": false,
+    "dialog": "",
+    "capabilities": {
+      "screenshot": false,
+      "syntheticIme": true,
+      "nativeImeVerified": false,
+      "gpuiInput": true,
+      "versionFences": true,
+      "lifecycleCompletion": true,
+      "scriptCancellation": "betweenCommands",
+      "mcpTargetedScreenshots": false
+    }
+  }
+}

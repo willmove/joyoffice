@@ -1,0 +1,10 @@
+{
+  "passed": false,
+  "probeCompleted": true,
+  "nativeImeVerified": false,
+  "inputMethod": "com.sogou.ime.ng.fcitx5.uos",
+  "eventSource": "X11 OS synthetic ASCII keys through the active system input method",
+  "duringText": "合作协议：甲方与乙方于 2026 年签署。zhongwen",
+  "activeWindow": "132120577",
+  "afterText": "合作协议：甲方与乙方于 2026 年签署。zhongwen1"
+}

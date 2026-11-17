@@ -1,10 +1,12 @@
 # JoyWord 宿主任务状态
 
-2026-11-17：九项模板按界面语言选择中文或英文正文与缩略图，英文首次启动也使用英文欢迎文档；已打开文档不随语言按钮改写。编辑重绘改为保留旧帧到新帧完成，仅重绘实际变化页，避免连续输入反复显示「页面载入中…」。UI 31 项、严格 Clippy、fmt、macOS 调试包与文档检查通过；打包应用连续 80 次真实会话编辑及读回通过。原生键鼠画廊切换、Windows 和 Linux 未验。[实现与验证边界](../../joyoffice/validation/20261117-joyword-templates/README.md)
+2026-11-17 UOS Desktop 25 Professional x86_64：在 X11／DDE、125% 缩放的当前源码 Debug 构建上，中文路径打开、系统合成键鼠编辑与撤销重做、查找、普通保存重开、中文模板创建及居中未保存弹框的取消／保存／放弃均通过，DOCX 独立读回一致。DDE 原生另存可打开，但点击保存后 60 秒仍无目标文件，单列失败；搜狗／Fcitx5 拼音直通且无候选，系统 IME 仍未通过。产品 check 为 1,937 通过、1 项既有 Page Up 导航失败并提前停止，UI 31 项另行通过；上述结果不关闭 Linux 全平台或 R8 父任务。[本轮三产品证据与边界](../../joyoffice/validation/20261117-uos-desktop/README.md)
 
-2026-11-17：未保存更改提示改为与 JoySheet 相同布局的居中遮罩弹框，覆盖文档关闭、退出、新建与打开，保留当前 JoyWord 主题及原文件替换确认。焦点约束、背景操作隔离、失败保留修改和成功后继续关闭已有 GPUI 回归；UI 24 项、fmt、严格 Clippy 和产品构建通过。macOS 实屏通过取消、保存关闭及丢弃后新建，独立 XML 读回核对接受／丢弃结果；其余平台与系统退出实屏未验。[记录与截图](../../joyoffice/validation/20261117-joyword-save-dialog/README.md)
+2026-11-17：九项模板按界面语言选择中文或英文正文与缩略图，英文首次启动也使用英文欢迎文档；已打开文档不随语言按钮改写。编辑重绘改为保留旧帧到新帧完成，仅重绘实际变化页，避免连续输入反复显示「页面载入中…」。UI 31 项、严格 Clippy、fmt、macOS 调试包与文档检查通过；打包应用连续 80 次真实会话编辑及读回通过。UOS Linux 已补验原生键鼠画廊与项目计划书创建，Windows、其余模板及字体组合未验。[实现与验证边界](../../joyoffice/validation/20261117-joyword-templates/README.md)
 
-2026-11-17：文件首页的工作室手册替换为原创中文项目计划书，新增会议纪要、工作周报、通知公告和学习笔记，并同步 DOCX、首屏缩略图与来源指纹。首页六项、完整九项模板；UI 23 项测试、严格 Clippy、fmt、产品构建与文档检查通过，macOS 已逐项创建五份中文模板并核对正文。Windows、Linux、其他字体组合与实际打印未验。[模板内容与验证范围](../../joyoffice/validation/20261117-joyword-templates/README.md)
+2026-11-17：未保存更改提示改为与 JoySheet 相同布局的居中遮罩弹框，覆盖文档关闭、退出、新建与打开，保留当前 JoyWord 主题及原文件替换确认。焦点约束、背景操作隔离、失败保留修改和成功后继续关闭已有 GPUI 回归；UI 24 项、fmt、严格 Clippy 和产品构建通过。macOS 实屏通过取消、保存关闭及丢弃后新建，独立 XML 读回核对接受／丢弃结果；UOS Linux 已复验取消、保存替换与放弃新建，Windows 和系统退出实屏未验。[记录与截图](../../joyoffice/validation/20261117-joyword-save-dialog/README.md)
+
+2026-11-17：文件首页的工作室手册替换为原创中文项目计划书，新增会议纪要、工作周报、通知公告和学习笔记，并同步 DOCX、首屏缩略图与来源指纹。首页六项、完整九项模板；UI 23 项测试、严格 Clippy、fmt、产品构建与文档检查通过，macOS 已逐项创建五份中文模板并核对正文。UOS Linux 已补验项目计划书创建，Windows、其余模板、其他字体组合与实际打印未验。[模板内容与验证范围](../../joyoffice/validation/20261117-joyword-templates/README.md)
 
 2026-11-16：工作区与内部精确版本约束统一为 0.2.0；后续按正常 GitHub Release 发布，不再标记预览版。保留独立产品标签、六平台产物校验和已有验收边界；本次未创建发布标签或公开新包。[发布规则与平台扩展](../../joyoffice/RELEASE-PLATFORMS.md)
 
@@ -117,7 +119,7 @@ Linux x64、Rust 1.98.1 下 11 项偏好测试通过，包括不可读文件、�
 | R4 常用编辑 | JW-406／407 已接入选区查找替换、大纲、高级分节分栏。JW-408 接入富文本粘贴。JW-409／413／414 提供页眉页脚、PAGE 字段、格式标记和 Windows 打印预览，并有保存重开及 PDF 栅格回归。 | 查找、版式、Office／浏览器粘贴、页眉页脚和预览实屏，标尺、其余视图选项和非 Windows 预览。 |
 | R5 引用、审阅与格式交换 | JW-509 接入 EPUB 导出和差异确认。JW-514 接入可选本地提案。JW-515 的认证活动文档控制包含跳页、数值缩放、字面查找和单页／页宽适配。macOS 上已有 Word/WPS 代表性双向往返。 | EPUB 阅读器、WPS 专项交换、保护与密码、复杂故事审阅、其他格式的损失确认、校对与 RTL、多窗口、Agent Provider 和其余桌面控制范围。 |
 | R6 性能 | macOS 千页 CLI 和键盘到 GPUI 提交已有测量。Windows 补测千页 CLI 全流程 5 轮。 | 物理呈现、原生绘制对比、跨对象编辑、同条件基线和平台性能预算。 |
-| R7 平台与分发 | Windows、macOS 和 WSLg 开发验证分别记录。JW-705 接入 Windows 打印入口。JW-708 增加 Windows 便携换版与回退流程。 | Windows 本轮 IME／读屏／高 DPI，macOS IME／VoiceOver，Linux 原生显示协议、输入和无障碍，实屏打印取消、真实队列、其他平台打印、安装、关联、签名及卸载。信创真机按宿主约定后补。 |
+| R7 平台与分发 | Windows、macOS、WSLg 和 UOS 25 X11 的限定开发验证分别记录。JW-705 接入 Windows 打印入口。JW-708 增加 Windows 便携换版与回退流程。 | Windows 本轮 IME／读屏／高 DPI，macOS IME／VoiceOver，Linux 原生显示协议、输入和无障碍，实屏打印取消、真实队列、其他平台打印、安装、关联、签名及卸载。UOS 普通保存与模板／弹框已验，原生另存和系统 IME 仍失败；Wayland、ARM／其他信创架构未验。[UOS 记录](../../joyoffice/validation/20261117-uos-desktop/README.md) |
 
 系统集成进展见 [Windows 系统集成与回退复验](VALIDATION.md#windows-系统集成与回退复验2026-11-05)。此前的格式与旧 CLI 证据分别见 [Windows 格式与编辑复验](VALIDATION.md#windows-格式与编辑复验2026-11-05) 和 [Windows 兼容性复验](VALIDATION.md#windows-兼容性复验2026-11-05)。
 

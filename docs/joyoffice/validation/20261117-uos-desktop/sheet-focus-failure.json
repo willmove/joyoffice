@@ -1,0 +1,30 @@
+{
+  "passed": false,
+  "platform": "Linux-6.18.57-061857-generic-x86_64-with-glibc2.38",
+  "checks": [
+    "Linux GPU capability is accurate; unsupported request rejects without output",
+    "native sales window, charts and window screenshot",
+    "Unicode/emoji, pointer/text input and dependent formula recalculation",
+    "platform keyboard undo and redo",
+    "synthetic composition blocks premature Enter; commit retains UTF-16 text",
+    "system clipboard and relative formula references",
+    "registered function completion and calculation"
+  ],
+  "binary": "/home/Wilmer/Coding/joyoffice/target/debug/joysheet",
+  "binarySha256": "2fdfecf004fe28b392597ee43ef08d002d8aacdcf391f0c5a58765f70a5fb39e",
+  "eventSource": "production GPUI synthetic input",
+  "nativeImeVerified": false,
+  "gpuPresentationMeasured": false,
+  "display": {
+    "scaleFactor": 1.25,
+    "viewportWidth": 1440.0,
+    "viewportHeight": 900.0
+  },
+  "captures": {
+    "01-sales.png": {
+      "source": "X11 window pixels via ImageMagick",
+      "window": "115343361"
+    }
+  },
+  "error": "The multi-window test process lost foreground focus"
+}
