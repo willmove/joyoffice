@@ -737,11 +737,12 @@
       "source_path": "crates/text/Cargo.toml",
       "source_sha256": "61d81bf587886eaba4a7f1e10f0ee8ff3fd6e36a61ed091fb9384ea45d4fb059",
       "target_path": "crates/joydeck-text/Cargo.toml",
-      "adapted_sha256": "bda05d3146d387a42175ac70107642fe487470a9d2596428481d0835f4b3fb7d",
+      "adapted_sha256": "efc789dfde696c480749c4497d4a086a06be663a771a7b235b73f5f7379a307e",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
-        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream"
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "v0.2.0: migrate calendar and native local-time handling from chrono to Jiff"
       ]
     },
     {
@@ -784,12 +785,13 @@
       "source_path": "crates/text/src/datetime.rs",
       "source_sha256": "d68e5a34c9268d56b6cc28aafe13adf8ce53b136a68501b4ce28efceb8412500",
       "target_path": "crates/joydeck-text/src/datetime.rs",
-      "adapted_sha256": "4d6129ef34374b0c0518929eb09b09845660de8d5bee2e53e5ca03423c4e1a4c",
+      "adapted_sha256": "45ec51a53b1ede223c68d33e1805aea2bab05c0755bc7e946ce04759ecd4d43d",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
-        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
+        "v0.2.0: migrate calendar and native local-time handling from chrono to Jiff"
       ]
     },
     {
