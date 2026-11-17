@@ -1,0 +1,18 @@
+Window: "", App: Microsoft Word.
+0 对话框 Description: 警告, Secondary Actions: Raise
+	1 图像 Word 警告
+	2 text Microsoft Word 你的文档没有任何修订。
+	3 按钮 确定, ID: action-button--998
+4 menu bar
+	5 Word, ID: AppMenu_MenuItem
+	6 文件
+	7 编辑, ID: EditMenu_MenuItem
+	8 视图, ID: ViewMenu_MenuItem
+	9 插入
+	10 格式
+	11 工具
+	12 表格
+	13 窗口, ID: WindowMenu_MenuItem
+	14 帮助, ID: HelpMenu_MenuItem
+
+The focused UI element is 0 对话框 Description: 警告, Secondary Actions: Raise

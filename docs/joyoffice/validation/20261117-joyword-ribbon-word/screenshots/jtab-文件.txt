@@ -1,0 +1,48 @@
+Window: "* 未命名 1 — JoyWord", App: JoyWord Ribbon Audit.
+0 standard window * 未命名 1 — JoyWord, Secondary Actions: Raise
+	1 container
+		2 button 新建
+		3 button 打开
+		4 button 保存
+		5 button 撤销
+		6 button (disabled) 重做
+		7 button 搜索命令
+		8 button EN
+		9 button 切换外观
+		10 tab group 功能区
+			11 tab (settable, boolean) 文件, Value: on
+			12 tab (settable, boolean) 开始, Value: off
+			13 tab (settable, boolean) 插入, Value: off
+			14 tab (settable, boolean) 绘图, Value: off
+			15 tab (settable, boolean) 设计, Value: off
+			16 tab (settable, boolean) 布局, Value: off
+			17 tab (settable, boolean) 引用, Value: off
+			18 tab (settable, boolean) 邮件, Value: off
+			19 tab (settable, boolean) 审阅, Value: off
+			20 tab (settable, boolean) 视图, Value: off
+			21 tab (settable, boolean) 帮助, Value: off
+			22 button 折叠或展开功能区, Help: Ctrl+F1
+		23 button 返回文档
+		24 button 开始
+		25 button 新建
+		26 button 打开
+		27 button 信息
+		28 button 恢复
+		29 button 保存
+		30 button 另存为
+		31 button 导出
+		32 button 关闭
+		33 button 关于
+		34 button 选项
+		35 button 空白文档
+		36 button 工作室手册（示例）
+		37 button 信函
+		38 button 简历
+		39 button 更多模板
+	40 text * 未命名 1 — JoyWord
+	41 menu button Window sharing
+42 menu bar
+	43 JoyWord Ribbon Audit
+	44 View
+
+The focused UI element is 0 standard window * 未命名 1 — JoyWord, Secondary Actions: Raise

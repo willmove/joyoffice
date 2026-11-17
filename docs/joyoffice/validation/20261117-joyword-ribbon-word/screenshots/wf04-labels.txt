@@ -1,0 +1,48 @@
+Window: "标签", App: Microsoft Word.
+0 对话框 标签, Secondary Actions: Raise
+	1 文本 收信人地址
+	2 container
+		3 滚动条 (settable, float) 0
+			4 值指示器 (settable, float) 0
+			5 增箭头按钮
+			6 减箭头按钮
+			7 增页面按钮
+			8 减页面按钮
+	9 按钮 搜索通讯簿中的联系人
+	10 复选框 使用我的地址, Value: 0
+	11 按钮 字体...
+	12 text 标签 Microsoft, 1/2 信函 1/2 信函明信片
+	13 图像
+	14 图像
+	15 按钮 选项...
+	16 文本 标签数量
+	17 单选按钮 全页为相同标签, Value: 1
+	18 单选按钮 单个标签, Value: 0
+	19 文本 行:
+	20 文本栏 (disabled) 1
+	21 步进器 (disabled) Value: 0, Secondary Actions: Increment, Decrement
+		22 增箭头按钮
+		23 减箭头按钮
+	24 文本 列:
+	25 文本栏 (disabled) 1
+	26 步进器 (disabled) Value: 0, Secondary Actions: Increment, Decrement
+		27 增箭头按钮
+		28 减箭头按钮
+	29 文本 打印选项
+	30 按钮 自定义...
+	31 按钮 邮件合并...
+	32 按钮 打印...
+	33 按钮 确定
+	34 按钮 取消
+	35 文本 标签
+36 menu bar
+	37 Word, ID: AppMenu_MenuItem
+	38 文件
+	39 编辑, ID: EditMenu_MenuItem
+	40 视图, ID: ViewMenu_MenuItem
+	41 插入
+	42 格式
+	43 工具
+	44 表格
+	45 窗口, ID: WindowMenu_MenuItem
+	46 帮助, ID: HelpMenu_MenuItem

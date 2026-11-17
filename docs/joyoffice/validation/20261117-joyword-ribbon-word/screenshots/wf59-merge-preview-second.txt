@@ -1,0 +1,101 @@
+Window: "文档10", App: Microsoft Word.
+0 标准窗口 文档10, Secondary Actions: Raise
+	1 分离组
+		2 分离组
+			3 分离组 Document Pane
+				4 滚动区 Secondary Actions: Scroll Left, Scroll Right, Scroll Up, Scroll Down
+					5 (disabled) 文档10
+						6 container
+							7 字段 mergefield
+							8 文本输入区 (disabled, settable) Description: 页面 1 内容, Value: 字段 Audit Two
+					9 滚动条 (disabled, settable, float) 0
+						10 值指示器 (disabled, settable, float) 0
+					11 滚动条 (disabled, settable, float) 0
+						12 值指示器 (disabled, settable, float) 0
+		13 分离器 (disabled, settable, float) 1729
+	14 标签页组 Description: 功能区, Details: 邮件
+		15 滚动区 邮件 选项卡命令
+			16 container
+				17 按钮 信封
+				18 按钮 标签
+			19 container
+				20 菜单按钮 开始邮件合并, Value: 0
+				21 菜单按钮 选择收件人, Value: 1
+				22 按钮 编辑收件人列表, Help: 在收件人列表中添加或删除行标题。
+				23 按钮 筛选收件人, Help: 将结果限制为一部分收件人。
+			24 container
+				25 菜单按钮 插入合并域, Value: 0
+				26 菜单按钮 规则, Value: 0
+				27 按钮 (disabled) 更新标签
+			28 container
+				29 开关按钮 预览结果, Help: 预览最终文档。, Value: on
+				30 按钮 第一个, Help: 第一条记录
+				31 按钮 上一个, Help: 上一条记录
+				32 文本栏 (settable) Description: 记录:, Value: 2
+				33 按钮 下一个, Help: 下一条记录
+				34 按钮 最后一个, Help: 最后一条记录
+				35 按钮 查找收件人, Help: 在收件人列表中查找特定条目。
+			36 container
+				37 弹出式按钮 Description: 合并范围, Value: 全部
+				38 文本栏 (settable) 从
+				39 文本 到
+				40 文本栏 (settable) 到
+			41 菜单按钮 完成并合并, Value: 0
+		42 选项卡 开始, Value: 0
+		43 选项卡 插入
+		44 选项卡 绘图
+		45 选项卡 设计
+		46 选项卡 布局
+		47 选项卡 引用
+		48 选项卡 邮件, Help: 折叠功能区, Value: 1
+		49 选项卡 审阅
+		50 选项卡 视图
+		51 按钮 批注
+		52 按钮 编辑, Help: 文档访问模式
+		53 按钮 共享
+	54 消息栏 完成并合并
+		55 text 选择“完成并合并”以完成你的邮件合并。 完成并合并
+		56 按钮 Description: 消除, Help: 隐藏此消息
+	57 container 状态栏
+		58 按钮 第 1 页，共 1 页, Help: 文档当前的页码。单击或点击可打开导航窗格。
+		59 按钮 2 个字, Help: 文档的字数。单击或点击可打开“字数统计”对话框。
+		60 按钮 兼容性模式下的共同创作。
+		61 按钮 无校对错误。
+		62 按钮 英语(美国), Help: 语言(国家/地区)
+		63 开关按钮 辅助功能: 一切就绪, Help: 已完成辅助功能检查。请单击此处了解详细信息。, Value: off
+		64 开关按钮  专注, Help: 专注模式, Value: off
+		65 单选按钮 页面视图, Value: 1
+		66 单选按钮 Web 版式, Value: 0
+		67 单选按钮 大纲, Value: 0
+		68 单选按钮 草稿, Value: 0
+		69 按钮 缩小
+		70 按钮 放大
+		71 滑块 (settable, float) Help: 缩放, Value: 1433, Details: 273%
+			72 值指示器 (settable, float) 1433
+		73 按钮 273%, Help: 缩放级别。单击可打开“缩放”对话框。
+	74 工具栏
+		75 container Secondary Actions: 从工具栏移除
+			76 转换 自动保存, Help: 启用“自动保存”以在发生更改时保存更改。, Value: off
+			77 按钮 主页
+			78 按钮 保存
+			79 菜单按钮 撤消邮件合并下一记录, Help: 有关更多选项，请按 Control-Option-Shift-M。
+			80 按钮 重复邮件合并下一记录
+			81 按钮 打印
+			82 菜单按钮 自定义快速访问工具栏, Value: 0
+			83 搜索文本栏 (settable) 搜索(Cmd + Ctrl + U)
+				84 按钮 搜索
+			85 文本 Value: 文档10, ID: CUIDocumentShellWindowTitleLabel
+	86 菜单按钮 窗口共享
+87 menu bar
+	88 Word, ID: AppMenu_MenuItem
+	89 文件
+	90 编辑, ID: EditMenu_MenuItem
+	91 视图, ID: ViewMenu_MenuItem
+	92 插入
+	93 格式
+	94 工具
+	95 表格
+	96 窗口, ID: WindowMenu_MenuItem
+	97 帮助, ID: HelpMenu_MenuItem
+
+The focused UI element is 8 文本输入区 (disabled, settable) Description: 页面 1 内容, Value: 字段 Audit Two

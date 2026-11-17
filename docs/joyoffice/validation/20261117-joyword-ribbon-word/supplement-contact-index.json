@@ -1,0 +1,237 @@
+[
+  {
+    "file": "contact-sheets/supplement-01.jpg",
+    "captures": [
+      "screenshots/j26-selection-pane.png",
+      "screenshots/j27-comment-created.png",
+      "screenshots/j28-tracked-change.png",
+      "screenshots/j29-new-recipients.png",
+      "screenshots/j30-merge-ready.png",
+      "screenshots/j31-merge-two-fields.png",
+      "screenshots/j32-merge-preview.png",
+      "screenshots/j33-merge-preview-on.png",
+      "screenshots/j34-focus.png",
+      "screenshots/j35-developer-after.png",
+      "screenshots/j36-macro-recorded.png",
+      "screenshots/j37-file-new.png"
+    ]
+  },
+  {
+    "file": "contact-sheets/supplement-02.jpg",
+    "captures": [
+      "screenshots/j38-letter-template.png",
+      "screenshots/j40-page-breaks.png",
+      "screenshots/j41-ribbon-collapsed.png",
+      "screenshots/j42-ribbon-restored.png",
+      "screenshots/j43-units-inches.png",
+      "screenshots/j44-paragraph-still-points.png",
+      "screenshots/j45-insert-shape.png",
+      "screenshots/j46-shape-selected.png",
+      "screenshots/j47-shape-doubleclick.png",
+      "screenshots/j48-smartart-insert.png",
+      "screenshots/j49-chart-insert.png",
+      "screenshots/j50-chart-doubleclick.png"
+    ]
+  },
+  {
+    "file": "contact-sheets/supplement-03.jpg",
+    "captures": [
+      "screenshots/j51-chart-context-menu.png",
+      "screenshots/j52-english-ui.png",
+      "screenshots/j53-header-edit.png",
+      "screenshots/j54-header-ribbon-scroll.png",
+      "screenshots/j55-unsaved-close.png",
+      "screenshots/j56-header-on-help-tab.png",
+      "screenshots/j57-header-baseline.png",
+      "screenshots/j58-header-edit-state.png",
+      "screenshots/j59-header-typed.png",
+      "screenshots/j60-header-close-offscreen-noop.png",
+      "screenshots/j61-header-controls-on-help.png",
+      "screenshots/j63-saved-document-reopened.png"
+    ]
+  },
+  {
+    "file": "contact-sheets/supplement-04.jpg",
+    "captures": [
+      "screenshots/j64-letter-template-verified.png",
+      "screenshots/j65-table-merge-all-cells.png",
+      "screenshots/j66-final-test-document.png",
+      "screenshots/jd-custom-page-border.png",
+      "screenshots/jd-custom-watermark.png",
+      "screenshots/jd-preset-basic.png",
+      "screenshots/jd-preset-casual.png",
+      "screenshots/jd-preset-center.png",
+      "screenshots/jd-preset-default.png",
+      "screenshots/jd-preset-lines.png",
+      "screenshots/jd-preset-shadow.png",
+      "screenshots/jd-preset-simple.png"
+    ]
+  },
+  {
+    "file": "contact-sheets/supplement-05.jpg",
+    "captures": [
+      "screenshots/jd-preset-title.png",
+      "screenshots/jdev-export-copy.png",
+      "screenshots/jdev-macros.png",
+      "screenshots/jdev-mcp-help.png",
+      "screenshots/jdev-record.png",
+      "screenshots/jdev-stop-record.png",
+      "screenshots/jdev-user-units.png",
+      "screenshots/jdraw-redo.png",
+      "screenshots/jdraw-undo.png",
+      "screenshots/jf-back.png",
+      "screenshots/jf-browse.png",
+      "screenshots/jf-close.png"
+    ]
+  },
+  {
+    "file": "contact-sheets/supplement-06.jpg",
+    "captures": [
+      "screenshots/jf-dark-toggle.png",
+      "screenshots/jf-export-docx.png",
+      "screenshots/jf-export-epub.png",
+      "screenshots/jf-export-fodt.png",
+      "screenshots/jf-export-html.png",
+      "screenshots/jf-export-md.png",
+      "screenshots/jf-export-odt.png",
+      "screenshots/jf-export-ott.png",
+      "screenshots/jf-export-pdf.png",
+      "screenshots/jf-export-pdfa.png",
+      "screenshots/jf-export-png.png",
+      "screenshots/jf-export-rtf.png"
+    ]
+  },
+  {
+    "file": "contact-sheets/supplement-07.jpg",
+    "captures": [
+      "screenshots/jf-export-tex.png",
+      "screenshots/jf-export-txt.png",
+      "screenshots/jf-export-word2003xml.png",
+      "screenshots/jf-export-xml.png",
+      "screenshots/jf-letter-template.png",
+      "screenshots/jf-more-templates.png",
+      "screenshots/jf-new.png",
+      "screenshots/jf-open.png",
+      "screenshots/jf-save-as.png",
+      "screenshots/jf-start.png",
+      "screenshots/jf-template-blank.png",
+      "screenshots/jf-template-handbook.png"
+    ]
+  },
+  {
+    "file": "contact-sheets/supplement-08.jpg",
+    "captures": [
+      "screenshots/jf-template-resume.png",
+      "screenshots/jf-template-welcome.png",
+      "screenshots/jf-theme-晴空 · 亮色.png",
+      "screenshots/jf-theme-晴空 · 暗色.png",
+      "screenshots/jf-theme-暖砂 · 亮色.png",
+      "screenshots/jf-theme-暖砂 · 暗色.png",
+      "screenshots/jf-theme-素雅 · 亮色.png",
+      "screenshots/jf-theme-素雅 · 暗色.png",
+      "screenshots/jf-theme-青岚 · 亮色.png",
+      "screenshots/jf-theme-青岚 · 暗色.png",
+      "screenshots/jhfooter-close.png",
+      "screenshots/jhfooter-page-number.png"
+    ]
+  },
+  {
+    "file": "contact-sheets/supplement-09.jpg",
+    "captures": [
+      "screenshots/ji-blank-page.png",
+      "screenshots/ji-page-break.png",
+      "screenshots/jl-after-minus.png",
+      "screenshots/jl-after-plus.png",
+      "screenshots/jl-before-minus.png",
+      "screenshots/jl-before-plus.png",
+      "screenshots/jl-custom-columns.png",
+      "screenshots/jl-custom-margins.png",
+      "screenshots/jl-input-after.png",
+      "screenshots/jl-input-before.png",
+      "screenshots/jl-input-left.png",
+      "screenshots/jl-input-right.png"
+    ]
+  },
+  {
+    "file": "contact-sheets/supplement-10.jpg",
+    "captures": [
+      "screenshots/jl-left-minus.png",
+      "screenshots/jl-left-plus.png",
+      "screenshots/jl-right-minus.png",
+      "screenshots/jl-right-plus.png",
+      "screenshots/jl-selection-pane.png",
+      "screenshots/jm-current-record.png",
+      "screenshots/jm-edit-recipients.png",
+      "screenshots/jm-find-recipient.png",
+      "screenshots/jm-finish.png",
+      "screenshots/jm-first.png",
+      "screenshots/jm-insert-field.png",
+      "screenshots/jm-last.png"
+    ]
+  },
+  {
+    "file": "contact-sheets/supplement-11.jpg",
+    "captures": [
+      "screenshots/jm-next.png",
+      "screenshots/jm-preview.png",
+      "screenshots/jm-previous.png",
+      "screenshots/jp-change.png",
+      "screenshots/jp-selection-pane.png",
+      "screenshots/jr-cross-reference.png",
+      "screenshots/jr-endnote.png",
+      "screenshots/jr-footnote.png",
+      "screenshots/jr-next-footnote.png",
+      "screenshots/jr-show-notes.png",
+      "screenshots/jv-accept.png",
+      "screenshots/jv-delete-comment.png"
+    ]
+  },
+  {
+    "file": "contact-sheets/supplement-12.jpg",
+    "captures": [
+      "screenshots/jv-hide-ink.png",
+      "screenshots/jv-next-change.png",
+      "screenshots/jv-next-comment.png",
+      "screenshots/jv-pane.png",
+      "screenshots/jv-previous-change.png",
+      "screenshots/jv-previous-comment.png",
+      "screenshots/jv-proofing-language.png",
+      "screenshots/jv-reject.png",
+      "screenshots/jv-reset-filter.png",
+      "screenshots/jv-show-comments.png",
+      "screenshots/jv-track.png",
+      "screenshots/jw-check-导航窗格.png"
+    ]
+  },
+  {
+    "file": "contact-sheets/supplement-13.jpg",
+    "captures": [
+      "screenshots/jw-check-标尺.png",
+      "screenshots/jw-check-网格线.png",
+      "screenshots/jw-focus.png",
+      "screenshots/jw-vertical.png",
+      "screenshots/rejected-j39-template-title-transient.png",
+      "screenshots/wd-page-borders.png",
+      "screenshots/wd-theme.png",
+      "screenshots/wd-watermark.png",
+      "screenshots/wi-bookmark.png",
+      "screenshots/wi-cross-reference.png",
+      "screenshots/wi-datetime.png",
+      "screenshots/wi-dropcap.png"
+    ]
+  },
+  {
+    "file": "contact-sheets/supplement-14.jpg",
+    "captures": [
+      "screenshots/wi-header.png",
+      "screenshots/wi-link.png",
+      "screenshots/wl-columns-dialog.png",
+      "screenshots/wl-columns.png",
+      "screenshots/wl-margins.png",
+      "screenshots/wr-caption.png",
+      "screenshots/wr-citation.png",
+      "screenshots/wr-figures.png",
+      "screenshots/wr-index.png"
+    ]
+  }
+]

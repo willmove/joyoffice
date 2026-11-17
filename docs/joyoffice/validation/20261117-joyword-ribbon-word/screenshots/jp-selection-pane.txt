@@ -1,0 +1,74 @@
+Window: "* 未命名 1 — JoyWord", App: JoyWord Ribbon Audit.
+0 standard window * 未命名 1 — JoyWord, Secondary Actions: Raise
+	1 container
+		2 button 新建
+		3 button 打开
+		4 button 保存
+		5 button 撤销
+		6 button (disabled) 重做
+		7 button 搜索命令
+		8 button EN
+		9 button 切换外观
+		10 tab group 功能区
+			11 tab (settable, boolean) 文件, Value: off
+			12 tab (settable, boolean) 开始, Value: off
+			13 tab (settable, boolean) 插入, Value: off
+			14 tab (settable, boolean) 绘图, Value: off
+			15 tab (settable, boolean) 设计, Value: off
+			16 tab (settable, boolean) 布局, Value: off
+			17 tab (settable, boolean) 引用, Value: off
+			18 tab (settable, boolean) 邮件, Value: off
+			19 tab (settable, boolean) 审阅, Value: off
+			20 tab (settable, boolean) 视图, Value: off
+			21 tab (settable, boolean) 帮助, Value: off
+			22 tab (settable, boolean) 开发工具, Value: off
+			23 tab (settable, boolean) 图片格式, Value: on
+			24 button 折叠或展开功能区, Help: Ctrl+F1
+		25 container 调整
+			26 button 删除背景
+			27 button 校正
+			28 button 颜色
+			29 button 艺术效果
+			30 button 透明度
+			31 button 压缩图片
+			32 button 更改图片
+			33 button 重置图片
+		34 container 图片样式
+			35 button 简单框架
+			36 button 粗框架
+			37 button 圆角
+			38 button 柔化边缘
+			39 button 阴影
+			40 button 图片边框
+			41 button 图片效果
+			42 button (disabled) 图片版式, Help: 此功能尚未提供，或当前文档状态不可用
+		43 container 辅助功能
+			44 button 替代文字
+		45 container 排列
+			46 button 位置
+			47 button 环绕文字
+			48 button (disabled) 上移一层, Help: 此功能尚未提供，或当前文档状态不可用
+			49 button (disabled) 下移一层, Help: 此功能尚未提供，或当前文档状态不可用
+			50 button 选择窗格
+			51 button 对齐
+			52 button (disabled) 组合, Help: 此功能尚未提供，或当前文档状态不可用
+			53 button 旋转
+		54 container 大小
+			55 button 裁剪
+			56 button 大小
+		57 button 上一页
+		58 button 下一页
+		59 text entry area (settable) 文档正文, Help: 随光标读取段落。用方向键或翻页键浏览。
+			60 container 水平标尺（只读）
+		61 button 关闭
+		62 button 对象 Picture 1
+		63 button −
+		64 button 100%
+		65 button +
+	66 text * 未命名 1 — JoyWord
+	67 menu button Window sharing
+68 menu bar
+	69 JoyWord Ribbon Audit
+	70 View
+
+The focused UI element is 0 standard window * 未命名 1 — JoyWord, Secondary Actions: Raise

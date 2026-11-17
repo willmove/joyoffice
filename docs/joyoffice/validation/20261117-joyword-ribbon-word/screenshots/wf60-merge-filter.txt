@@ -1,0 +1,24 @@
+Window: "查询选项", App: Microsoft Word.
+0 对话框 查询选项, Secondary Actions: Raise
+	1 按钮 确定
+	2 按钮 取消
+	3 按钮 全部清除
+	4 标签页组
+		5 标签 筛选记录, Value: 1
+		6 标签 排序记录, Value: 0
+		7 text 域: 比较条件: 比较对象:
+		8 弹出式按钮
+	9 文本 查询选项
+10 menu bar
+	11 Word, ID: AppMenu_MenuItem
+	12 文件
+	13 编辑, ID: EditMenu_MenuItem
+	14 视图, ID: ViewMenu_MenuItem
+	15 插入
+	16 格式
+	17 工具
+	18 表格
+	19 窗口, ID: WindowMenu_MenuItem
+	20 帮助, ID: HelpMenu_MenuItem
+
+The focused UI element is 0 对话框 查询选项, Secondary Actions: Raise

@@ -1,0 +1,56 @@
+Window: "* 未命名 1 — JoyWord", App: JoyWord Ribbon Audit.
+0 standard window * 未命名 1 — JoyWord, Secondary Actions: Raise
+	1 container
+		2 button 新建
+		3 button 打开
+		4 button 保存
+		5 button 撤销
+		6 button (disabled) 重做
+		7 button 搜索命令
+		8 button EN
+		9 button 切换外观
+		10 tab group 功能区
+			11 tab (settable, boolean) 文件, Value: on
+			12 tab (settable, boolean) 开始, Value: off
+			13 tab (settable, boolean) 插入, Value: off
+			14 tab (settable, boolean) 绘图, Value: off
+			15 tab (settable, boolean) 设计, Value: off
+			16 tab (settable, boolean) 布局, Value: off
+			17 tab (settable, boolean) 引用, Value: off
+			18 tab (settable, boolean) 邮件, Value: off
+			19 tab (settable, boolean) 审阅, Value: off
+			20 tab (settable, boolean) 视图, Value: off
+			21 tab (settable, boolean) 帮助, Value: off
+			22 tab (settable, boolean) 开发工具, Value: off
+			23 button 折叠或展开功能区, Help: Ctrl+F1
+		24 button 返回文档
+		25 button 开始
+		26 button 新建
+		27 button 打开
+		28 button 信息
+		29 button 恢复
+		30 button 保存
+		31 button 另存为
+		32 button 导出
+		33 button 关闭
+		34 button 关于
+		35 button 选项
+		36 toggle button (settable, boolean) 青岚 · 亮色, Value: on
+		37 toggle button (settable, boolean) 青岚 · 暗色, Value: off
+		38 toggle button (settable, boolean) 素雅 · 亮色, Value: off
+		39 toggle button (settable, boolean) 素雅 · 暗色, Value: off
+		40 toggle button (settable, boolean) 晴空 · 亮色, Value: off
+		41 toggle button (settable, boolean) 晴空 · 暗色, Value: off
+		42 toggle button (settable, boolean) 暖砂 · 亮色, Value: off
+		43 toggle button (settable, boolean) 暖砂 · 暗色, Value: off
+		44 button 切换为深色外观
+		45 button Switch to English
+		46 button 用户信息与单位…
+		47 button 隐藏开发工具（本次会话）
+	48 text * 未命名 1 — JoyWord
+	49 menu button Window sharing
+50 menu bar
+	51 JoyWord Ribbon Audit
+	52 View
+
+The focused UI element is 0 standard window * 未命名 1 — JoyWord, Secondary Actions: Raise

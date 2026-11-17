@@ -1,0 +1,73 @@
+Window: "* 未命名 1 — JoyWord", App: JoyWord Ribbon Audit.
+0 standard window * 未命名 1 — JoyWord, Secondary Actions: Raise
+	1 container
+		2 button 新建
+		3 button 打开
+		4 button 保存
+		5 button 撤销
+		6 button 重做
+		7 button 搜索命令
+		8 button EN
+		9 button 切换外观
+		10 tab group 功能区
+			11 tab (settable, boolean) 文件, Value: off
+			12 tab (settable, boolean) 开始, Value: off
+			13 tab (settable, boolean) 插入, Value: off
+			14 tab (settable, boolean) 绘图, Value: on
+			15 tab (settable, boolean) 设计, Value: off
+			16 tab (settable, boolean) 布局, Value: off
+			17 tab (settable, boolean) 引用, Value: off
+			18 tab (settable, boolean) 邮件, Value: off
+			19 tab (settable, boolean) 审阅, Value: off
+			20 tab (settable, boolean) 视图, Value: off
+			21 tab (settable, boolean) 帮助, Value: off
+			22 tab (settable, boolean) 开发工具, Value: off
+			23 button 折叠或展开功能区, Help: Ctrl+F1
+		24 container 输入模式
+			25 button 绘图
+		26 container 撤消
+			27 button 撤销
+			28 button 重做
+		29 container 绘图工具
+			30 button 选择
+			31 button 套索选择
+			32 button 橡皮擦
+			33 button 黑色笔
+			34 button 红色笔
+			35 button 铅笔
+			36 button 荧光笔
+			37 button 蓝色笔
+			38 button 绿色笔
+			39 button 添加笔
+			40 button (disabled) 颜色和粗细, Help: 此功能尚未提供，或当前文档状态不可用
+		41 container 模具
+			42 button (disabled) 标尺, Help: 绘图直尺尚未实现
+		43 container 编辑
+			44 button 设置背景格式
+		45 container 转换
+			46 button 将墨迹转换为形状
+			47 button (disabled) 将墨迹转换为数学公式, Help: 此功能尚未提供，或当前文档状态不可用
+		48 container 插入
+			49 button (disabled) 画布, Help: 此功能尚未提供，或当前文档状态不可用
+		50 container 重播
+			51 button (disabled) 墨迹重播, Help: 墨迹时间轴播放尚未接入桌面
+		52 container 帮助
+			53 button 墨迹帮助
+		54 button 上一页
+		55 button 下一页
+		56 text entry area (settable) 文档正文, Help: 随光标读取段落。用方向键或翻页键浏览。, Value: 
+			57 container 水平标尺（只读）
+			58 container 水平标尺（只读）
+			59 container 水平标尺（只读）
+			60 container 水平标尺（只读）
+		61 button 关闭
+		62 button −
+		63 button 100%
+		64 button +
+	65 text * 未命名 1 — JoyWord
+	66 menu button Window sharing
+67 menu bar
+	68 JoyWord Ribbon Audit
+	69 View
+
+The focused UI element is 0 standard window * 未命名 1 — JoyWord, Secondary Actions: Raise

@@ -1,0 +1,26 @@
+Window: "压缩图片", App: Microsoft Word.
+0 对话框 压缩图片, Secondary Actions: Raise
+	1 文本 压缩图片以减小此文件的大小。
+	2 container
+		3 文本 图片质量:
+		4 弹出式按钮 图片质量, Value: 高保真(最大 ppi)
+		5 复选框 删除图片的剪裁区域, Value: 1
+		6 单选按钮 此文件中的所有图片, Value: 1
+		7 单选按钮 仅所选图片, Value: 0
+		8 text 应用于: 压缩选项
+	9 按钮 取消
+	10 按钮 确定
+	11 文本 压缩图片
+12 menu bar
+	13 Word, ID: AppMenu_MenuItem
+	14 文件
+	15 编辑, ID: EditMenu_MenuItem
+	16 视图, ID: ViewMenu_MenuItem
+	17 插入
+	18 格式
+	19 工具
+	20 表格
+	21 窗口, ID: WindowMenu_MenuItem
+	22 帮助, ID: HelpMenu_MenuItem
+
+The focused UI element is 0 对话框 压缩图片, Secondary Actions: Raise

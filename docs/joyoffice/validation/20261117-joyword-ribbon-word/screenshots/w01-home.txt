@@ -1,0 +1,22 @@
+The following is a diff from the previous accessibility tree for Window: "文档2" with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 116, 231-233
++						231 container
++							232 文本输入区 (disabled, settable) Description: 页面 1 内容, Value: Ribbon audit 标题
+这是用于 JoyWord 与 Microsoft Word 对比的测试段落。Hello Word 123.
+第二段用于项目符号、编号、缩进和行距设置。
+第三段用于查找、替换、批注与修订。
++					233 弹出窗口 Secondary Actions: Cancel
++						234 text 粘贴更轻松 使用 CMD SHIFT V 在不设置格式的情况下粘贴文本
+
+将 CMD OPTION C/V 用于格式刷
++						235 按钮 了解详细信息
++						236 按钮 了解
+~		205 按钮 61 个字, Help: 文档的字数。单击或点击可打开“字数统计”对话框。
++		237 按钮 发现校对错误。单击可更正。
+~			224 菜单按钮 撤消粘贴, Help: 有关更多选项，请按 Control-Option-Shift-M。
+~			225 按钮 重复粘贴
++	238 菜单按钮 窗口共享
+The focused UI element is 232 文本输入区 (disabled, settable) Description: 页面 1 内容, Value: Ribbon audit 标题
+这是用于 JoyWord 与 Microsoft Word 对比的测试段落。Hello Word 123.
+第二段用于项目符号、编号、缩进和行距设置。
+第三段用于查找、替换、批注与修订。

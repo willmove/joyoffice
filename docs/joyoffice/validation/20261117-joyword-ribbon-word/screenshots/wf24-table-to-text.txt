@@ -1,0 +1,29 @@
+Window: "将表格转换成文本", App: Microsoft Word.
+0 对话框 将表格转换成文本, Secondary Actions: Raise
+	1 文本 文字分隔符:
+	2 单选按钮 段落标记, Value: 0
+	3 单选按钮 制表位, Value: 1
+	4 单选按钮 逗号, Value: 0
+	5 单选按钮 其他:, Value: 0
+	6 文本栏 (settable) -
+	7 复选框 (disabled) 转换嵌套表格, Value: 1
+	8 按钮 确定
+	9 按钮 取消
+	10 文本 将表格转换成文本
+11 menu bar
+	12 Word, ID: AppMenu_MenuItem
+	13 文件
+	14 编辑, ID: EditMenu_MenuItem
+	15 视图, ID: ViewMenu_MenuItem
+	16 插入
+	17 格式
+	18 工具
+	19 表格
+	20 窗口, ID: WindowMenu_MenuItem
+	21 帮助, ID: HelpMenu_MenuItem
+
+Selected text: ```
+-
+```
+
+Note: Pay special attention to the content selected by the user. If the user asks a question or refers to the content they are looking at on-screen, they might be referring to the selected content (but they might be referring to something else that's visible, too).

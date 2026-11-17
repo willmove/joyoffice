@@ -1,0 +1,112 @@
+Window: "* 未命名 1 — JoyWord", App: JoyWord Ribbon Audit.
+0 standard window * 未命名 1 — JoyWord, Secondary Actions: Raise
+	1 container
+		2 button 新建
+		3 button 打开
+		4 button 保存
+		5 button 撤销
+		6 button (disabled) 重做
+		7 button 搜索命令
+		8 button EN
+		9 button 切换外观
+		10 tab group 功能区
+			11 tab (settable, boolean) 文件, Value: off
+			12 tab (settable, boolean) 开始, Value: on
+			13 tab (settable, boolean) 插入, Value: off
+			14 tab (settable, boolean) 绘图, Value: off
+			15 tab (settable, boolean) 设计, Value: off
+			16 tab (settable, boolean) 布局, Value: off
+			17 tab (settable, boolean) 引用, Value: off
+			18 tab (settable, boolean) 邮件, Value: off
+			19 tab (settable, boolean) 审阅, Value: off
+			20 tab (settable, boolean) 视图, Value: off
+			21 tab (settable, boolean) 帮助, Value: off
+			22 tab (settable, boolean) 开发工具, Value: off
+			23 button 折叠或展开功能区, Help: Ctrl+F1
+		24 container 剪贴板
+			25 button 粘贴
+			26 button 粘贴选项
+			27 button (disabled) 剪切
+			28 button (disabled) 复制
+			29 button 格式刷
+			30 button 格式刷选项
+		31 container 字体
+			32 pop up button (settable) 字体选择, Value: Aptos
+			33 button 字号
+			34 button 增大字号
+			35 button 减小字号
+			36 button 更改大小写
+			37 button 清除所有格式
+			38 button 拼音指南
+			39 button 带圈字符
+			40 button 加粗 (Ctrl+B)
+			41 button 倾斜 (Ctrl+I)
+			42 button 下划线 (Ctrl+U)
+			43 button 下划线样式
+			44 button 删除线
+			45 button 下标
+			46 button 上标
+			47 button 文本效果和版式
+			48 button 文本突出显示颜色
+			49 button 字体颜色
+			50 button 字体设置
+		51 container 段落
+			52 button 项目符号
+			53 button 项目符号
+			54 button 编号
+			55 button 编号
+			56 button 多级列表
+			57 button 减少缩进
+			58 button 增加缩进
+			59 button 排序
+			60 button 显示／隐藏格式标记
+			61 button 左对齐 (Ctrl+L)
+			62 button 居中 (Ctrl+E)
+			63 button 右对齐 (Ctrl+R)
+			64 button 两端对齐 (Ctrl+J)
+			65 button 分散对齐
+			66 button 行距
+			67 button 底纹
+			68 button 边框
+			69 button 分页选项
+			70 button 段落设置
+		71 container 样式
+			72 button 正文
+			73 button 无间隔
+			74 button 标题 1
+			75 button 更多样式
+			76 button 样式窗格
+		77 container 编辑
+			78 button 查找
+			79 button 查找选项
+			80 button 替换
+			81 button 选择
+		82 button 上一页
+		83 button 下一页
+		84 text entry area (settable) 文档正文, Help: 随光标读取段落。用方向键或翻页键浏览。, Value: 中文测试段落。
+			85 container 水平标尺（只读）
+		86 button −
+		87 button 100%
+		88 button +
+		89 list
+			90 text field (settable) Search...
+			91 container (selected) Secondary Actions: Pick
+			92 container (selectable) Secondary Actions: Pick
+			93 container (selectable) Secondary Actions: Pick
+			94 container (selectable) Secondary Actions: Pick
+			95 container (selectable) Secondary Actions: Pick
+			96 container (selectable) Secondary Actions: Pick
+			97 container (selectable) Secondary Actions: Pick
+			98 container (selectable) Secondary Actions: Pick
+			99 container (selectable) Secondary Actions: Pick
+			100 container (selectable) Secondary Actions: Pick
+			101 container (selectable) Secondary Actions: Pick
+			102 container (selectable) Secondary Actions: Pick
+			103 container (selectable) Secondary Actions: Pick
+	104 text * 未命名 1 — JoyWord
+	105 menu button Window sharing
+106 menu bar
+	107 JoyWord Ribbon Audit
+	108 View
+
+The focused UI element is 0 standard window * 未命名 1 — JoyWord, Secondary Actions: Raise

@@ -1,0 +1,128 @@
+Window: "文档3", App: Microsoft Word.
+0 标准窗口 文档3, Secondary Actions: Raise
+	1 分离组
+		2 分离组
+			3 分离组 Document Pane
+				4 滚动区 Secondary Actions: Scroll Left, Scroll Right, Scroll Up, Scroll Down
+					5 (disabled) 文档3
+						6 container
+							7 表格，2 行，2 列，，
+								8 row (disabled) 甲
+									9 单元格 (disabled)
+										10 文本输入区 (disabled, settable) 甲
+									11 单元格 (disabled)
+										12 文本输入区 (disabled, settable) 乙
+								13 row (disabled) 丙
+									14 单元格 (disabled)
+										15 文本输入区 (disabled, settable) 丙
+									16 单元格 (disabled)
+										17 container
+											18 文本输入区 (disabled, settable)
+								19 栏 (disabled) 甲
+								20 栏 (disabled) 乙
+							21 文本输入区 (disabled, settable) Description: 页面 1 内容, Value: Word 补充对照测试
+表格、图片、对象与审阅，仅用于本轮实机测试。
+					22 滚动条 (disabled, settable, float) 0
+						23 值指示器 (disabled, settable, float) 0
+					24 滚动条 (disabled, settable, float) 0
+						25 值指示器 (disabled, settable, float) 0
+		26 分离器 (disabled, settable, float) 1729
+	27 标签页组 Description: 功能区, Details: 表格布局
+		28 滚动区 表格布局 选项卡命令
+			29 container
+				30 菜单按钮 选择, Help: 选择表格, Value: 0
+				31 开关按钮 查看网格线, Help: 查看表格网格线, Value: off
+				32 按钮 属性, Help: 表格属性
+			33 container
+				34 开关按钮 绘制表格, Value: off
+				35 开关按钮 橡皮擦​​, Help: 表格擦除器, Value: off
+			36 container
+				37 菜单按钮 删除, Help: 删除表格, Value: 0
+				38 按钮 在上方插入, Help: 在上方插入行
+				39 按钮 在下方插入, Help: 在下方插入行
+				40 按钮 在左侧插入, Help: 在左侧插入列
+				41 按钮 在右侧插入, Help: 在右侧插入列
+			42 container
+				43 按钮 (disabled) 合并单元格
+				44 按钮 拆分单元格
+				45 按钮 拆分表格
+			46 container
+				47 菜单按钮 自动调整, Value: 0
+				48 步进器 (settable) Description: 高度:, Value: 0.56 厘米, Secondary Actions: Confirm
+				49 步进器 (settable) Description: 宽度:, Value: 7.32 厘米, Secondary Actions: Confirm
+				50 按钮 分布行
+				51 按钮 分布列
+			52 container
+				53 开关按钮 靠上两端对齐, Value: off
+				54 开关按钮 靠上居中, Value: off
+				55 开关按钮 靠上右对齐, Value: off
+				56 开关按钮 中间两端对齐, Value: off
+				57 开关按钮 居中, Value: off
+				58 开关按钮 中部右对齐, Value: off
+				59 开关按钮 靠下两端对齐, Value: off
+				60 开关按钮 靠下居中, Value: off
+				61 开关按钮 靠下右对齐, Value: off
+				62 按钮 文字方向
+				63 按钮 单元格边距
+			64 container
+				65 按钮 排序
+				66 开关按钮 (disabled) 重复标题行, Value: off
+				67 按钮 转换为文本, Help: 将表格转换成文本
+				68 按钮 公式
+		69 选项卡 开始, Value: 0
+		70 选项卡 插入, Value: 0
+		71 选项卡 绘图
+		72 选项卡 设计
+		73 选项卡 布局
+		74 选项卡 引用
+		75 选项卡 邮件, Value: 0
+		76 选项卡 审阅, Value: 0
+		77 选项卡 视图, Value: 0
+		78 选项卡 表格设计, Value: 0
+		79 选项卡 表格布局, Help: 折叠功能区, Value: 1
+		80 按钮 批注
+		81 按钮 编辑, Help: 文档访问模式
+		82 按钮 共享
+	83 container 状态栏
+		84 按钮 第 1 页，共 1 页, Help: 文档当前的页码。单击或点击可打开导航窗格。
+		85 按钮 33 个字, Help: 文档的字数。单击或点击可打开“字数统计”对话框。
+		86 按钮 兼容性模式下的共同创作。
+		87 按钮 无校对错误。
+		88 按钮 简体中文(中国大陆), Help: 语言(国家/地区)
+		89 开关按钮 辅助功能: 一切就绪, Help: 已完成辅助功能检查。请单击此处了解详细信息。, Value: off
+		90 开关按钮  专注, Help: 专注模式, Value: off
+		91 单选按钮 页面视图, Value: 1
+		92 单选按钮 Web 版式, Value: 0
+		93 单选按钮 大纲, Value: 0
+		94 单选按钮 草稿, Value: 0
+		95 按钮 缩小
+		96 按钮 放大
+		97 滑块 (settable, float) Help: 缩放, Value: 1000, Details: 100%
+			98 值指示器 (settable, float) 1000
+		99 按钮 100%, Help: 缩放级别。单击可打开“缩放”对话框。
+	100 工具栏
+		101 container Secondary Actions: 从工具栏移除
+			102 转换 自动保存, Help: 启用“自动保存”以在发生更改时保存更改。, Value: off
+			103 按钮 主页
+			104 按钮 保存
+			105 菜单按钮 撤消粘贴, Help: 有关更多选项，请按 Control-Option-Shift-M。
+			106 按钮 重复粘贴
+			107 按钮 打印
+			108 菜单按钮 自定义快速访问工具栏, Value: 0
+			109 搜索文本栏 (settable) 搜索(Cmd + Ctrl + U)
+				110 按钮 搜索
+			111 文本 Value: 文档3, ID: CUIDocumentShellWindowTitleLabel
+	112 菜单按钮 窗口共享
+113 menu bar
+	114 Word, ID: AppMenu_MenuItem
+	115 文件
+	116 编辑, ID: EditMenu_MenuItem
+	117 视图, ID: ViewMenu_MenuItem
+	118 插入
+	119 格式
+	120 工具
+	121 表格
+	122 窗口, ID: WindowMenu_MenuItem
+	123 帮助, ID: HelpMenu_MenuItem
+
+The focused UI element is 18 文本输入区 (disabled, settable)

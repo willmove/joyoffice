@@ -1,0 +1,102 @@
+Window: "文档2", App: Microsoft Word.
+0 标准窗口 文档2, Secondary Actions: Raise
+	1 分离组
+		2 分离组
+			3 分离组 Document Pane
+				4 滚动区 Secondary Actions: Scroll Left, Scroll Right, Scroll Up, Scroll Down
+					5 (disabled) 文档2
+						6 container
+							7 文本输入区 (disabled, settable) Description: 页面 1 内容, Value: Ribbon audit 标题
+这是用于 JoyWord 与 Microsoft Word 对比的测试段落。Hello Word 123.
+第二段用于项目符号、编号、缩进和行距设置。
+第三段用于查找、替换、批注与修订。
+					8 滚动条 (disabled, settable, float) 0
+						9 值指示器 (disabled, settable, float) 0
+					10 滚动条 (disabled, settable, float) 0
+						11 值指示器 (disabled, settable, float) 0
+		12 分离器 (disabled, settable, float) 1729
+	13 标签页组 Description: 功能区, Details: 设计
+		14 滚动区 设计 选项卡命令
+			15 container
+				16 菜单按钮 主题, Value: 0
+				17 菜单按钮 显示更多项目
+				18 库 Description: 样式集, Help: 库
+					19 按钮 Description: 文档, Help: 此文档的样式集, Value: 1, ID: in_ribbon_gallery_UxGalWordQuickFormatsTheme_Control_0_0
+					20 按钮 Description: 独特, Value: 0, ID: in_ribbon_gallery_UxGalWordQuickFormatsTheme_Control_1_0
+					21 按钮 Description: 典雅型, Value: 0, ID: in_ribbon_gallery_UxGalWordQuickFormatsTheme_Control_1_1
+					22 按钮 Description: 流行, Value: 0, ID: in_ribbon_gallery_UxGalWordQuickFormatsTheme_Control_1_2
+					23 按钮 Description: 正式, Value: 0, ID: in_ribbon_gallery_UxGalWordQuickFormatsTheme_Control_1_3
+					24 按钮 Description: 手稿, Value: 0, ID: in_ribbon_gallery_UxGalWordQuickFormatsTheme_Control_1_4
+					25 按钮 Description: 现代, Value: 0, ID: in_ribbon_gallery_UxGalWordQuickFormatsTheme_Control_1_5
+					26 按钮 Description: 新闻纸, Value: 0, ID: in_ribbon_gallery_UxGalWordQuickFormatsTheme_Control_1_6
+					27 按钮 Description: 透视, Value: 0, ID: in_ribbon_gallery_UxGalWordQuickFormatsTheme_Control_1_7
+					28 按钮 Description: 简单, Value: 0, ID: in_ribbon_gallery_UxGalWordQuickFormatsTheme_Control_1_8
+					29 按钮 Description: 茅草, Value: 0, ID: in_ribbon_gallery_UxGalWordQuickFormatsTheme_Control_1_9
+					30 按钮 Description: 传统, Value: 0, ID: in_ribbon_gallery_UxGalWordQuickFormatsTheme_Control_1_10
+					31 按钮 Description: Word 2010, Value: 0, ID: in_ribbon_gallery_UxGalWordQuickFormatsTheme_Control_1_11
+				32 菜单按钮 颜色, Help: 主题颜色, Value: 0
+				33 菜单按钮 字体, Help: 主题字体, Value: 0
+				34 菜单按钮 段落间距, Value: 0
+				35 按钮 设为默认值
+			36 container
+				37 按钮 水印
+				38 菜单按钮 页面颜色, Value: 0
+				39 按钮 页面边框, Help: 边框和底纹
+		40 选项卡 开始, Value: 0
+		41 选项卡 插入, Value: 0
+		42 选项卡 绘图, Value: 0
+		43 选项卡 设计, Help: 折叠功能区, Value: 1
+		44 选项卡 布局
+		45 选项卡 引用
+		46 选项卡 邮件
+		47 选项卡 审阅
+		48 选项卡 视图
+		49 按钮 批注
+		50 按钮 编辑, Help: 文档访问模式
+		51 按钮 共享
+	52 container 状态栏
+		53 按钮 第 1 页，共 1 页, Help: 文档当前的页码。单击或点击可打开导航窗格。
+		54 按钮 61 个字, Help: 文档的字数。单击或点击可打开“字数统计”对话框。
+		55 按钮 兼容性模式下的共同创作。
+		56 按钮 发现校对错误。单击可更正。
+		57 按钮 简体中文(中国大陆), Help: 语言(国家/地区)
+		58 开关按钮 辅助功能: 一切就绪, Help: 已完成辅助功能检查。请单击此处了解详细信息。, Value: off
+		59 开关按钮  专注, Help: 专注模式, Value: off
+		60 单选按钮 页面视图, Value: 1
+		61 单选按钮 Web 版式, Value: 0
+		62 单选按钮 大纲, Value: 0
+		63 单选按钮 草稿, Value: 0
+		64 按钮 缩小
+		65 按钮 放大
+		66 滑块 (settable, float) Help: 缩放, Value: 1000, Details: 100%
+			67 值指示器 (settable, float) 1000
+		68 按钮 100%, Help: 缩放级别。单击可打开“缩放”对话框。
+	69 工具栏
+		70 container Secondary Actions: 从工具栏移除
+			71 转换 自动保存, Help: 启用“自动保存”以在发生更改时保存更改。, Value: off
+			72 按钮 主页
+			73 按钮 保存
+			74 菜单按钮 撤消粘贴, Help: 有关更多选项，请按 Control-Option-Shift-M。
+			75 按钮 (disabled) 无法重复
+			76 按钮 打印
+			77 菜单按钮 自定义快速访问工具栏, Value: 0
+			78 搜索文本栏 (settable) 搜索(Cmd + Ctrl + U)
+				79 按钮 搜索
+			80 文本 Value: 文档2, ID: CUIDocumentShellWindowTitleLabel
+	81 菜单按钮 窗口共享
+82 menu bar
+	83 Word, ID: AppMenu_MenuItem
+	84 文件
+	85 编辑, ID: EditMenu_MenuItem
+	86 视图, ID: ViewMenu_MenuItem
+	87 插入
+	88 格式
+	89 工具
+	90 表格
+	91 窗口, ID: WindowMenu_MenuItem
+	92 帮助, ID: HelpMenu_MenuItem
+
+The focused UI element is 7 文本输入区 (disabled, settable) Description: 页面 1 内容, Value: Ribbon audit 标题
+这是用于 JoyWord 与 Microsoft Word 对比的测试段落。Hello Word 123.
+第二段用于项目符号、编号、缩进和行距设置。
+第三段用于查找、替换、批注与修订。

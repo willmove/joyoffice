@@ -1,0 +1,72 @@
+Window: "* 未命名 1 — JoyWord", App: JoyWord Ribbon Audit.
+0 standard window * 未命名 1 — JoyWord, Secondary Actions: Raise
+	1 container
+		2 button 新建
+		3 button 打开
+		4 button 保存
+		5 button 撤销
+		6 button (disabled) 重做
+		7 button 搜索命令
+		8 button EN
+		9 button 切换外观
+		10 tab group 功能区
+			11 tab (settable, boolean) 文件, Value: off
+			12 tab (settable, boolean) 开始, Value: off
+			13 tab (settable, boolean) 插入, Value: off
+			14 tab (settable, boolean) 绘图, Value: off
+			15 tab (settable, boolean) 设计, Value: off
+			16 tab (settable, boolean) 布局, Value: off
+			17 tab (settable, boolean) 引用, Value: off
+			18 tab (settable, boolean) 邮件, Value: on
+			19 tab (settable, boolean) 审阅, Value: off
+			20 tab (settable, boolean) 视图, Value: off
+			21 tab (settable, boolean) 帮助, Value: off
+			22 button 折叠或展开功能区, Help: Ctrl+F1
+		23 container 创建
+			24 button 中文信封
+			25 button 信封
+			26 button 标签
+		27 container 开始邮件合并
+			28 button 开始邮件合并
+			29 button 选择收件人
+			30 button (disabled) 编辑收件人列表, Help: 此功能尚未提供，或当前文档状态不可用
+		31 container 编写和插入域
+			32 button 突出显示合并域
+			33 button 地址块
+			34 button 问候语
+			35 button (disabled) 插入合并域, Help: 此功能尚未提供，或当前文档状态不可用
+			36 button 规则
+			37 button 匹配域
+			38 button (disabled) 更新标签, Help: 此功能尚未提供，或当前文档状态不可用
+		39 container 预览结果
+			40 button (disabled) 预览结果, Help: 此功能尚未提供，或当前文档状态不可用
+			41 button (disabled) 首条, Help: 此功能尚未提供，或当前文档状态不可用
+			42 button (disabled) 上一条, Help: 此功能尚未提供，或当前文档状态不可用
+			43 button (disabled) 当前记录
+			44 button (disabled) 下一条, Help: 此功能尚未提供，或当前文档状态不可用
+			45 button (disabled) 末条, Help: 此功能尚未提供，或当前文档状态不可用
+			46 button (disabled) 查找收件人, Help: 此功能尚未提供，或当前文档状态不可用
+			47 button 检查错误
+		48 container 完成
+			49 button (disabled) 完成并合并, Help: 此功能尚未提供，或当前文档状态不可用
+		50 button 上一页
+		51 button 下一页
+		52 text entry area (settable) 文档正文, Help: 随光标读取段落。用方向键或翻页键浏览。, Value: Table of Authorities
+			53 container 水平标尺（只读）
+		54 button −
+		55 button 100%
+		56 button +
+		57 dialog
+			58 text field (settable) 收信人地址 / Delivery address, Placeholder: 留空保持原值
+			59 text field (settable) 回信地址 / Return address, Placeholder: 留空保持原值
+			60 text field (settable) 信封尺寸 / Size (DL / C4 / C5 / C6 / B5 / #10), Value: DL, Placeholder: 留空保持原值
+			61 button 取消
+			62 button 应用
+			63 button Close
+	64 text * 未命名 1 — JoyWord
+	65 menu button Window sharing
+66 menu bar
+	67 JoyWord Ribbon Audit
+	68 View
+
+The focused UI element is 0 standard window * 未命名 1 — JoyWord, Secondary Actions: Raise

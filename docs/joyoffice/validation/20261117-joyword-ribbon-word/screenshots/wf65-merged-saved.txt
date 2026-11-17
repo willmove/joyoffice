@@ -1,0 +1,97 @@
+Window: "Audit OneWordAuditMerged", App: Microsoft Word.
+0 标准窗口 Audit OneWordAuditMerged, URL: file:///private/tmp/joyword-ribbon-audit-20261117/Audit%20OneWordAuditMerged.docx, Secondary Actions: Raise
+	1 分离组
+		2 分离组
+			3 分离组 Document Pane
+				4 滚动区 Secondary Actions: Scroll Left, Scroll Right, Scroll Up, Scroll Down
+					5 (disabled) Audit OneWordAuditMerged
+						6 文本输入区 (disabled, settable) Description: 页面 1 内容, Value: Audit One
+						7 container
+							8 文本输入区 (disabled, settable) Description: 页面 2 内容, Value: Audit One
+					9 滚动条 (disabled, settable, float) 0
+						10 值指示器 (disabled, settable, float) 0
+					11 滚动条 (disabled, settable, float) 0.9307973729448584
+						12 值指示器 (disabled, settable, float) 0.9307973729448584
+		13 分离器 (disabled, settable, float) 1729
+	14 标签页组 Description: 功能区, Details: 视图
+		15 滚动区 视图 选项卡命令
+			16 container
+				17 开关按钮 页面视图, Value: on
+				18 开关按钮 Web 版式, Value: off
+				19 开关按钮 大纲, Help: 大纲视图, Value: off
+				20 开关按钮 草稿, Value: off
+			21 container
+				22 开关按钮 专注, Help: 专注模式, Value: off
+				23 开关按钮 沉浸式阅读器, Value: off
+			24 container
+				25 复选框 标尺, Value: 0
+				26 复选框 网格线, Value: 0
+				27 复选框 导航窗格, Help: 打开导航窗格, Value: 0
+			28 container
+				29 按钮 缩放
+				30 按钮 缩放至 100%, Help: 100%
+				31 按钮 单页
+				32 按钮 多页
+				33 按钮 页宽
+			34 container
+				35 按钮 新建窗口
+				36 按钮 全部重排
+				37 按钮 拆分
+			38 菜单按钮 切换窗口, Value: 0
+			39 菜单按钮 宏, Help: 有关更多选项，请按 Control-Option-Shift-M。, Value: 0
+		40 选项卡 开始, Value: 0
+		41 选项卡 插入
+		42 选项卡 绘图
+		43 选项卡 设计
+		44 选项卡 布局
+		45 选项卡 引用
+		46 选项卡 邮件
+		47 选项卡 审阅
+		48 选项卡 视图, Help: 折叠功能区, Value: 1
+		49 按钮 批注
+		50 按钮 编辑, Help: 文档访问模式
+		51 按钮 共享
+	52 container 状态栏
+		53 按钮 第 2 页，共 2 页, Help: 文档当前的页码。单击或点击可打开导航窗格。
+		54 按钮 4 个字, Help: 文档的字数。单击或点击可打开“字数统计”对话框。
+		55 按钮 兼容性模式下的共同创作。
+		56 按钮 无校对错误。
+		57 按钮 简体中文(中国大陆), Help: 语言(国家/地区)
+		58 开关按钮 辅助功能: 一切就绪, Help: 已完成辅助功能检查。请单击此处了解详细信息。, Value: off
+		59 开关按钮  专注, Help: 专注模式, Value: off
+		60 单选按钮 页面视图, Value: 1
+		61 单选按钮 Web 版式, Value: 0
+		62 单选按钮 大纲, Value: 0
+		63 单选按钮 草稿, Value: 0
+		64 按钮 缩小
+		65 按钮 放大
+		66 滑块 (settable, float) Help: 缩放, Value: 1000, Details: 100%
+			67 值指示器 (settable, float) 1000
+		68 按钮 100%, Help: 缩放级别。单击可打开“缩放”对话框。
+	69 工具栏
+		70 container Secondary Actions: 从工具栏移除
+			71 转换 自动保存, Help: 启用“自动保存”以在发生更改时保存更改。, Value: off
+			72 按钮 主页
+			73 按钮 保存
+			74 菜单按钮 (disabled) 无法撤消, Help: 有关更多选项，请按 Control-Option-Shift-M。
+			75 按钮 (disabled) 重复邮件合并到文档
+			76 按钮 打印
+			77 菜单按钮 自定义快速访问工具栏, Value: 0
+			78 搜索文本栏 (settable) 搜索(Cmd + Ctrl + U)
+				79 按钮 搜索
+			80 text Value: Audit OneWordAuditMerged 已保存到我的 Mac, ID: CUIDocumentShellWindowTitleLabel
+			81 按钮 文档操作, ID: CUIDocumentShellWindowAutosaveWidgetAutoID
+	82 菜单按钮 窗口共享
+83 menu bar
+	84 Word, ID: AppMenu_MenuItem
+	85 文件
+	86 编辑, ID: EditMenu_MenuItem
+	87 视图, ID: ViewMenu_MenuItem
+	88 插入
+	89 格式
+	90 工具
+	91 表格
+	92 窗口, ID: WindowMenu_MenuItem
+	93 帮助, ID: HelpMenu_MenuItem
+
+The focused UI element is 8 文本输入区 (disabled, settable) Description: 页面 2 内容, Value: Audit One

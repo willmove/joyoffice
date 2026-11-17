@@ -1,0 +1,140 @@
+Window: "文档2", App: Microsoft Word.
+0 标准窗口 文档2, Secondary Actions: Raise
+	1 分离组
+		2 分离组
+			3 分离组 Document Pane
+				4 滚动区 Secondary Actions: Scroll Left, Scroll Right, Scroll Up, Scroll Down
+					5 (disabled) 文档2
+						6 container
+							7 文本输入区 (disabled, settable) Description: 页面 1 内容, Value: Ribbon audit 标题
+这是用于 JoyWord 与 Microsoft Word 对比的测试段落。Hello Word 123.
+第二段用于项目符号、编号、缩进和行距设置。
+第三段用于查找、替换、批注与修订。
+					8 滚动条 (disabled, settable, float) 0
+						9 值指示器 (disabled, settable, float) 0
+					10 滚动条 (disabled, settable, float) 0
+						11 值指示器 (disabled, settable, float) 0
+		12 分离器 (disabled, settable, float) 1729
+	13 标签页组 Description: 功能区, Details: 插入
+		14 滚动区 插入 选项卡命令
+			15 container
+				16 菜单按钮 封面, Help: 添加封面, Value: 0
+				17 按钮 空白页, Help: 添加空白页
+				18 按钮 分页符, Help: 插入分页符
+			19 菜单按钮 表格, Help: 添加表格, Value: 0
+			20 container
+				21 菜单按钮 图片, Help: 插入图片, Value: 0
+				22 菜单按钮 形状, Help: 绘制形状, Value: 0
+				23 按钮 图标, Help: 显示“图标”任务窗格
+				24 菜单按钮 3D 模型, Help: 有关更多选项，请按 Control-Option-Shift-M。, Value: 0
+				25 菜单按钮 SmartArt, Help: 插入 SmartArt 图形, Value: 0
+				26 菜单按钮 图表, Value: 0
+				27 菜单按钮 屏幕截图, Help: 捕获屏幕截图, Value: 0
+			28 菜单按钮 媒体, Value: 0
+			29 container
+				30 按钮 链接, Help: 添加超链接
+				31 按钮 书签, Help: 插入书签
+				32 按钮 交叉引用, Help: 插入交叉引用
+			33 按钮 批注, Help: 插入批注  
+			34 container
+				35 菜单按钮 页眉, Help: 添加页眉, Value: 0
+					36 菜单 Secondary Actions: Cancel
+						37 oui_performOfficeSpaceMenuAction:
+							38 container 页眉
+								39 container 内置
+									40 文本 内置
+									41 按钮 Description:  空白, Value: 0, ID: popover_gallery_LegoHeaderGallery_Control_0_0
+									42 按钮 Description:  空白(三栏), Value: 0, ID: popover_gallery_LegoHeaderGallery_Control_0_1
+									43 按钮 Description: 边线型, Value: 0, ID: popover_gallery_LegoHeaderGallery_Control_0_2
+									44 按钮 Description: 标题, Value: 0, ID: popover_gallery_LegoHeaderGallery_Control_0_3
+									45 按钮 Description: 裁剪, Value: 0, ID: popover_gallery_LegoHeaderGallery_Control_0_4
+									46 按钮 Description: 花丝, Value: 0, ID: popover_gallery_LegoHeaderGallery_Control_0_5
+									47 按钮 Description: 怀旧, Value: 0, ID: popover_gallery_LegoHeaderGallery_Control_0_6
+									48 按钮 Description: 徽章, Value: 0, ID: popover_gallery_LegoHeaderGallery_Control_0_7
+									49 按钮 Description: 积分, Value: 0, ID: popover_gallery_LegoHeaderGallery_Control_0_8
+									50 按钮 Description: 离子(浅色), Value: 0, ID: popover_gallery_LegoHeaderGallery_Control_0_9
+									51 按钮 Description: 离子(深色), Value: 0, ID: popover_gallery_LegoHeaderGallery_Control_0_10
+									52 按钮 Description: 母版型, Value: 0, ID: popover_gallery_LegoHeaderGallery_Control_0_11
+									53 按钮 Description: 平面(偶数页), Value: 0, ID: popover_gallery_LegoHeaderGallery_Control_0_12
+									54 按钮 Description: 平面(奇数页), Value: 0, ID: popover_gallery_LegoHeaderGallery_Control_0_13
+									55 按钮 Description: 切片 1, Value: 0, ID: popover_gallery_LegoHeaderGallery_Control_0_14
+									56 按钮 Description: 切片 2, Value: 0, ID: popover_gallery_LegoHeaderGallery_Control_0_15
+									57 按钮 Description: 丝状, Value: 0, ID: popover_gallery_LegoHeaderGallery_Control_0_16
+									58 按钮 Description: 镶边, Value: 0, ID: popover_gallery_LegoHeaderGallery_Control_0_17
+									59 按钮 Description: 信号灯, Value: 0, ID: popover_gallery_LegoHeaderGallery_Control_0_18
+									60 按钮 Description: 羽毛, Value: 0, ID: popover_gallery_LegoHeaderGallery_Control_0_19
+									61 按钮 Description: 羽毛 2, Value: 0, ID: popover_gallery_LegoHeaderGallery_Control_0_20
+						62 编辑页眉, ID: oui_performOfficeSpaceMenuAction:
+						63 删除页眉, ID: oui_performOfficeSpaceMenuAction:
+				64 菜单按钮 页脚, Help: 添加页脚, Value: 0
+				65 菜单按钮 页码  , Help: 添加页码, Value: 0
+			66 container
+				67 菜单按钮 文本框, Help: 绘制文本框, Value: 0
+				68 菜单按钮 艺术字, Help: 插入艺术字, Value: 0
+				69 菜单按钮 首字下沉, Help: 添加首字下沉, Value: 0
+				70 按钮 域, Help: 插入域
+				71 按钮 日期和时间
+				72 菜单按钮 对象, Help: 有关更多选项，请按 Control-Option-Shift-M。, Value: 0
+			73 container
+				74 菜单按钮 公式, Help: 有关更多选项，请按 Control-Option-Shift-M。
+				75 按钮 高级符号
+				76 按钮 数字
+		77 选项卡 开始, Value: 0
+		78 选项卡 插入, Help: 折叠功能区, Value: 1
+		79 选项卡 绘图, Value: 0
+		80 选项卡 设计, Value: 0
+		81 选项卡 布局, Value: 0
+		82 选项卡 引用, Value: 0
+		83 选项卡 邮件, Value: 0
+		84 选项卡 审阅, Value: 0
+		85 选项卡 视图, Value: 0
+		86 按钮 批注
+		87 按钮 编辑, Help: 文档访问模式
+		88 按钮 共享
+	89 container 状态栏
+		90 按钮 第 1 页，共 1 页, Help: 文档当前的页码。单击或点击可打开导航窗格。
+		91 按钮 1/61 个字, Help: 所选内容或文档的字数。单击或点击可打开“字数统计”对话框。
+		92 按钮 兼容性模式下的共同创作。
+		93 按钮 发现校对错误。单击可更正。
+		94 按钮 简体中文(中国大陆), Help: 语言(国家/地区)
+		95 开关按钮 辅助功能: 一切就绪, Help: 已完成辅助功能检查。请单击此处了解详细信息。, Value: off
+		96 开关按钮  专注, Help: 专注模式, Value: off
+		97 单选按钮 页面视图, Value: 1
+		98 单选按钮 Web 版式, Value: 0
+		99 单选按钮 大纲, Value: 0
+		100 单选按钮 草稿, Value: 0
+		101 按钮 缩小
+		102 按钮 放大
+		103 滑块 (settable, float) Help: 缩放, Value: 1000, Details: 100%
+			104 值指示器 (settable, float) 1000
+		105 按钮 100%, Help: 缩放级别。单击可打开“缩放”对话框。
+	106 工具栏
+		107 container Secondary Actions: 从工具栏移除
+			108 转换 自动保存, Help: 启用“自动保存”以在发生更改时保存更改。, Value: off
+			109 按钮 主页
+			110 按钮 保存
+			111 菜单按钮 撤消文字填充效果, Help: 有关更多选项，请按 Control-Option-Shift-M。
+			112 按钮 重复文字填充效果
+			113 按钮 打印
+			114 菜单按钮 自定义快速访问工具栏, Value: 0
+			115 搜索文本栏 (settable) 搜索(Cmd + Ctrl + U)
+				116 按钮 搜索
+			117 文本 Value: 文档2, ID: CUIDocumentShellWindowTitleLabel
+	118 菜单按钮 窗口共享
+119 menu bar
+	120 Word, ID: AppMenu_MenuItem
+	121 文件
+	122 编辑, ID: EditMenu_MenuItem
+	123 视图, ID: ViewMenu_MenuItem
+	124 插入
+	125 格式
+	126 工具
+	127 表格
+	128 窗口, ID: WindowMenu_MenuItem
+	129 帮助, ID: HelpMenu_MenuItem
+
+Selected text: ```
+。
+```
+
+Note: Pay special attention to the content selected by the user. If the user asks a question or refers to the content they are looking at on-screen, they might be referring to the selected content (but they might be referring to something else that's visible, too).

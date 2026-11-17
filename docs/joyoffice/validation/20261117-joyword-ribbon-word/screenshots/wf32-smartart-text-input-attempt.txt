@@ -1,0 +1,25 @@
+Window: "SmartArt 文本", App: Microsoft Word.
+0 标签页组 SmartArt 文本, Secondary Actions: Raise
+	1 按钮 Description: 添加, ID: Add
+	2 按钮 Description: 删除, ID: Delete
+	3 按钮 (disabled) Description: 升级, ID: Promote
+	4 按钮 (disabled) Description: 降级, ID: Demote
+	5 按钮 Description: 下移, ID: ReorderDown
+	6 按钮 (disabled) Description: 上移, ID: ReorderUp
+	7 滚动区
+	8 关闭按钮
+	9 缩放按钮
+	10 文本 SmartArt 文本
+11 menu bar
+	12 Word, ID: AppMenu_MenuItem
+	13 文件
+	14 编辑, ID: EditMenu_MenuItem
+	15 视图, ID: ViewMenu_MenuItem
+	16 插入
+	17 格式
+	18 工具
+	19 表格
+	20 窗口, ID: WindowMenu_MenuItem
+	21 帮助, ID: HelpMenu_MenuItem
+
+The focused UI element is 7 滚动区

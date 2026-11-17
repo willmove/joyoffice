@@ -1,0 +1,54 @@
+Window: "日期和时间", App: Microsoft Word.
+0 对话框 日期和时间, Secondary Actions: Raise
+	1 文本 可用格式:
+	2 滚动区
+		3 表格
+			4 row (selected)
+				5 文本栏 (settable) 2026/11/17
+			6 row (selectable)
+				7 文本栏 (settable) 2026年11月17日 Tuesday
+			8 row (selectable)
+				9 文本栏 (settable) 2026年11月17日星期二
+			10 row (selectable)
+				11 文本栏 (settable) 2026年11月17日
+			12 row (selectable)
+				13 文本栏 (settable) 26.11.17
+			14 row (selectable)
+				15 文本栏 (settable) 2026年11月
+			16 row (selectable)
+				17 文本栏 (settable) 11时55分10秒
+			18 row (selectable)
+				19 文本栏 (settable) 11时55分
+			20 row (selectable)
+				21 文本栏 (settable) 上午11时55分
+			22 row (selectable)
+				23 文本栏 (settable) 二〇二六年十一月十七日
+			24 row (selectable)
+				25 文本栏 (settable) 二〇二六年十一月十七日星期二
+			26 row (selectable)
+				27 文本栏 (settable) 二〇二六年十一月
+			28 栏 (selectable) AutomaticTableColumnIdentifier.0
+	29 复选框 自动更新, Value: 0
+	30 复选框 使用全角字符, Value: 0
+	31 按钮 默认...
+	32 按钮 取消
+	33 按钮 确定
+	34 文本 语言:
+	35 弹出式按钮 中文(中国)
+	36 文本 日期和时间
+37 menu bar
+	38 Word, ID: AppMenu_MenuItem
+	39 文件
+	40 编辑, ID: EditMenu_MenuItem
+	41 视图, ID: ViewMenu_MenuItem
+	42 插入
+	43 格式
+	44 工具
+	45 表格
+	46 窗口, ID: WindowMenu_MenuItem
+	47 帮助, ID: HelpMenu_MenuItem
+
+Selected:
+	4 row (selected)
+
+Note: Pay special attention to the content selected by the user. If the user asks a question or refers to the content they are looking at on-screen, they might be referring to the selected content (but they might be referring to something else that's visible, too).

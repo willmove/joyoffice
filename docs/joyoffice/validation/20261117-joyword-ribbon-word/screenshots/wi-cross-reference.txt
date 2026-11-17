@@ -1,0 +1,29 @@
+Window: "交叉引用", App: Microsoft Word.
+0 标准窗口 交叉引用, Secondary Actions: Raise
+	1 文本 引用类型:
+	2 弹出式按钮 编号项
+	3 文本 引用内容:
+	4 弹出式按钮 段落编号
+	5 复选框 插入为超链接, Value: 1
+	6 复选框 包括“见上方”/“见下方”, Value: 0
+	7 复选框 (disabled) 编号分隔符, Value: 0
+	8 文本 引用哪一个编号项:
+	9 滚动区
+		10 表格
+			11 栏 (selectable) AutomaticTableColumnIdentifier.0
+	12 按钮 (disabled) 插入
+	13 按钮 取消
+	14 文本 交叉引用
+15 menu bar
+	16 Word, ID: AppMenu_MenuItem
+	17 文件
+	18 编辑, ID: EditMenu_MenuItem
+	19 视图, ID: ViewMenu_MenuItem
+	20 插入
+	21 格式
+	22 工具
+	23 表格
+	24 窗口, ID: WindowMenu_MenuItem
+	25 帮助, ID: HelpMenu_MenuItem
+
+The focused UI element is 10 表格

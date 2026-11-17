@@ -1,0 +1,81 @@
+Window: "* 未命名 1 — JoyWord", App: JoyWord Ribbon Audit.
+0 standard window * 未命名 1 — JoyWord, Secondary Actions: Raise
+	1 container
+		2 button 新建
+		3 button 打开
+		4 button 保存
+		5 button 撤销
+		6 button (disabled) 重做
+		7 button 搜索命令
+		8 button EN
+		9 button 切换外观
+		10 tab group 功能区
+			11 tab (settable, boolean) 文件, Value: off
+			12 tab (settable, boolean) 开始, Value: off
+			13 tab (settable, boolean) 插入, Value: off
+			14 tab (settable, boolean) 绘图, Value: off
+			15 tab (settable, boolean) 设计, Value: off
+			16 tab (settable, boolean) 布局, Value: on
+			17 tab (settable, boolean) 引用, Value: off
+			18 tab (settable, boolean) 邮件, Value: off
+			19 tab (settable, boolean) 审阅, Value: off
+			20 tab (settable, boolean) 视图, Value: off
+			21 tab (settable, boolean) 帮助, Value: off
+			22 button 折叠或展开功能区, Help: Ctrl+F1
+		23 container 页面设置
+			24 button 文字方向
+			25 button 页边距
+			26 button 纸张方向
+			27 button 纸张大小
+			28 button 栏
+			29 button 分隔符
+			30 button 行号
+			31 button 断字
+		32 container 段落
+			33 stepper (settable, float) 左缩进, Value: 0
+				34 text field (settable) 左缩进, Value: 0
+				35 button + 左缩进
+				36 button − 左缩进
+			37 stepper (settable, float) 右缩进, Value: 0
+				38 text field (settable) 右缩进, Value: 0
+				39 button + 右缩进
+				40 button − 右缩进
+			41 stepper (settable, float) 段前间距, Value: 0
+				42 text field (settable) 段前间距, Value: 0
+				43 button + 段前间距
+				44 button − 段前间距
+			45 stepper (settable, float) 段后间距, Value: 8
+				46 text field (settable) 段后间距, Value: 8
+				47 button + 段后间距
+				48 button − 段后间距
+			49 button 段落设置…
+		50 container 排列
+			51 button (disabled) 位置, Help: 此功能尚未提供，或当前文档状态不可用
+			52 button (disabled) 环绕文字, Help: 此功能尚未提供，或当前文档状态不可用
+			53 button (disabled) 前移一层, Help: 此功能尚未提供，或当前文档状态不可用
+			54 button (disabled) 后移一层, Help: 此功能尚未提供，或当前文档状态不可用
+			55 button 选择窗格
+			56 button 对齐
+			57 button (disabled) 组合, Help: 此功能尚未提供，或当前文档状态不可用
+			58 button (disabled) 旋转, Help: 此功能尚未提供，或当前文档状态不可用
+		59 button 上一页
+		60 button 下一页
+		61 text entry area (settable) 文档正文, Help: 随光标读取段落。用方向键或翻页键浏览。, Value: Ribbon audit 标题
+			62 container 水平标尺（只读）
+		63 button −
+		64 button 100%
+		65 button +
+		66 dialog
+			67 button 常规
+			68 button 窄
+			69 button 中等
+			70 button 宽
+			71 button 对称
+			72 button 自定义边距…
+	73 text * 未命名 1 — JoyWord
+	74 menu button Window sharing
+75 menu bar
+	76 JoyWord Ribbon Audit
+	77 View
+
+The focused UI element is 0 standard window * 未命名 1 — JoyWord, Secondary Actions: Raise

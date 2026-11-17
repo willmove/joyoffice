@@ -1,0 +1,169 @@
+Window: "文档3", App: Microsoft Word.
+0 标准窗口 文档3, Secondary Actions: Raise
+	1 分离组
+		2 分离组
+			3 分离组 Document Pane
+				4 滚动区 Secondary Actions: Scroll Left, Scroll Right, Scroll Up, Scroll Down
+					5 (disabled) 文档3
+						6 container
+							7 表格，2 行，2 列，，
+								8 row (disabled) 甲
+									9 单元格 (disabled)
+										10 文本输入区 (disabled, settable) 甲
+									11 单元格 (disabled)
+										12 文本输入区 (disabled, settable) 乙
+								13 row (disabled) 丙
+									14 单元格 (disabled)
+										15 文本输入区 (disabled, settable) 丙
+									16 单元格 (disabled)
+										17 container
+											18 文本输入区 (disabled, settable)
+								19 栏 (disabled) 甲
+								20 栏 (disabled) 乙
+							21 文本输入区 (disabled, settable) Description: 页面 1 内容, Value: Word 补充对照测试
+表格、图片、对象与审阅，仅用于本轮实机测试。
+					22 滚动条 (disabled, settable, float) 0
+						23 值指示器 (disabled, settable, float) 0
+					24 滚动条 (disabled, settable, float) 0
+						25 值指示器 (disabled, settable, float) 0
+		26 分离器 (disabled, settable, float) 1729
+	27 标签页组 Description: 功能区, Details: 表格设计
+		28 滚动区 表格设计 选项卡命令
+			29 container
+				30 复选框 标题行, Value: 1
+				31 复选框 汇总行, Value: 0
+				32 复选框 镶边行, Value: 1
+				33 复选框 第一列, Value: 1
+				34 复选框 最后一列, Value: 0
+				35 复选框 镶边列, Value: 0
+			36 container
+				37 菜单按钮 显示更多项目
+				38 库 Description: 表格样式, Help: 库
+					39 按钮 Description: 网格型, Value: 1, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_1_0
+					40 按钮 Description: 网格型浅色, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_1_1
+					41 按钮 Description: 无格式表格 1, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_1_2
+					42 按钮 Description: 无格式表格 2, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_1_3
+					43 按钮 Description: 无格式表格 3, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_1_4
+					44 按钮 Description: 无格式表格 4, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_1_5
+					45 按钮 Description: 无格式表格 5, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_1_6
+					46 按钮 Description: 网格表 1 浅色, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_2_0
+					47 按钮 Description: 网格表 1 浅色 - 着色 1, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_2_1
+					48 按钮 Description: 网格表 1 浅色 - 着色 2, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_2_2
+					49 按钮 Description: 网格表 1 浅色 - 着色 3, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_2_3
+					50 按钮 Description: 网格表 1 浅色 - 着色 4, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_2_4
+					51 按钮 Description: 网格表 1 浅色 - 着色 5, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_2_5
+					52 按钮 Description: 网格表 1 浅色 - 着色 6, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_2_6
+					53 按钮 Description: 网格表 2, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_2_7
+					54 按钮 Description: 网格表 2 - 着色 1, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_2_8
+					55 按钮 Description: 网格表 2 - 着色 2, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_2_9
+					56 按钮 Description: 网格表 2 - 着色 3, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_2_10
+					57 按钮 Description: 网格表 2 - 着色 4, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_2_11
+					58 按钮 Description: 网格表 2 - 着色 5, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_2_12
+					59 按钮 Description: 网格表 2 - 着色 6, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_2_13
+					60 按钮 Description: 网格表 3, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_2_14
+					61 按钮 Description: 网格表 3 - 着色 1, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_2_15
+					62 按钮 Description: 网格表 3 - 着色 2, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_2_16
+					63 按钮 Description: 网格表 3 - 着色 3, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_2_17
+					64 按钮 Description: 网格表 3 - 着色 4, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_2_18
+					65 按钮 Description: 网格表 3 - 着色 5, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_2_19
+					66 按钮 Description: 网格表 3 - 着色 6, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_2_20
+					67 按钮 Description: 网格表 4, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_2_21
+					68 按钮 Description: 网格表 4 - 着色 1, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_2_22
+					69 按钮 Description: 网格表 4 - 着色 2, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_2_23
+					70 按钮 Description: 网格表 4 - 着色 3, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_2_24
+					71 按钮 Description: 网格表 4 - 着色 4, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_2_25
+					72 按钮 Description: 网格表 4 - 着色 5, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_2_26
+					73 按钮 Description: 网格表 4 - 着色 6, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_2_27
+					74 按钮 Description: 网格表 5 深色, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_2_28
+					75 按钮 Description: 网格表 5 深色 - 着色 1, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_2_29
+					76 按钮 Description: 网格表 5 深色 - 着色 2, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_2_30
+					77 按钮 Description: 网格表 5 深色 - 着色 3, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_2_31
+					78 按钮 Description: 网格表 5 深色 - 着色 4, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_2_32
+					79 按钮 Description: 网格表 5 深色 - 着色 5, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_2_33
+					80 按钮 Description: 网格表 5 深色 - 着色 6, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_2_34
+					81 按钮 Description: 清单表 5 深色, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_3_28
+					82 按钮 Description: 清单表 5 深色 - 着色 1, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_3_29
+					83 按钮 Description: 清单表 5 深色 - 着色 2, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_3_30
+					84 按钮 Description: 清单表 5 深色 - 着色 3, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_3_31
+					85 按钮 Description: 清单表 5 深色 - 着色 4, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_3_32
+					86 按钮 Description: 清单表 5 深色 - 着色 5, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_3_33
+					87 按钮 Description: 清单表 5 深色 - 着色 6, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_3_34
+					88 按钮 Description: 清单表 6 彩色, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_3_35
+					89 按钮 Description: 清单表 6 彩色 - 着色 1, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_3_36
+					90 按钮 Description: 清单表 6 彩色 - 着色 2, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_3_37
+					91 按钮 Description: 清单表 6 彩色 - 着色 3, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_3_38
+					92 按钮 Description: 清单表 6 彩色 - 着色 4, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_3_39
+					93 按钮 Description: 清单表 6 彩色 - 着色 5, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_3_40
+					94 按钮 Description: 清单表 6 彩色 - 着色 6, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_3_41
+					95 按钮 Description: 清单表 7 彩色, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_3_42
+					96 按钮 Description: 清单表 7 彩色 - 着色 1, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_3_43
+					97 按钮 Description: 清单表 7 彩色 - 着色 2, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_3_44
+					98 按钮 Description: 清单表 7 彩色 - 着色 3, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_3_45
+					99 按钮 Description: 清单表 7 彩色 - 着色 4, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_3_46
+					100 按钮 Description: 清单表 7 彩色 - 着色 5, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_3_47
+					101 按钮 Description: 清单表 7 彩色 - 着色 6, Value: 0, ID: in_ribbon_gallery_UxGalWordTableStyles_Control_3_48
+				102 菜单按钮 底纹, Help: 有关更多选项，请按 Control-Option-Shift-M。, Value: RGB(0, 0, 0)
+			103 container
+				104 菜单按钮 边框样式, Help: 有关更多选项，请按 Control-Option-Shift-M。
+				105 弹出式按钮 笔样式
+				106 弹出式按钮 笔划粗细
+				107 菜单按钮 笔颜色, Help: 有关更多选项，请按 Control-Option-Shift-M。, Value: RGB(0, 0, 0)
+				108 菜单按钮 边框, Help: 有关更多选项，请按 Control-Option-Shift-M。
+				109 开关按钮 边框刷, Value: off
+		110 选项卡 开始, Value: 0
+		111 选项卡 插入, Value: 0
+		112 选项卡 绘图
+		113 选项卡 设计
+		114 选项卡 布局
+		115 选项卡 引用
+		116 选项卡 邮件, Value: 0
+		117 选项卡 审阅, Value: 0
+		118 选项卡 视图, Value: 0
+		119 选项卡 表格设计, Help: 折叠功能区, Value: 1
+		120 选项卡 表格布局
+		121 按钮 批注
+		122 按钮 编辑, Help: 文档访问模式
+		123 按钮 共享
+	124 container 状态栏
+		125 按钮 第 1 页，共 1 页, Help: 文档当前的页码。单击或点击可打开导航窗格。
+		126 按钮 33 个字, Help: 文档的字数。单击或点击可打开“字数统计”对话框。
+		127 按钮 兼容性模式下的共同创作。
+		128 按钮 正在检查校对错误。
+		129 按钮 简体中文(中国大陆), Help: 语言(国家/地区)
+		130 开关按钮 辅助功能: 一切就绪, Help: 已完成辅助功能检查。请单击此处了解详细信息。, Value: off
+		131 开关按钮  专注, Help: 专注模式, Value: off
+		132 单选按钮 页面视图, Value: 1
+		133 单选按钮 Web 版式, Value: 0
+		134 单选按钮 大纲, Value: 0
+		135 单选按钮 草稿, Value: 0
+		136 按钮 缩小
+		137 按钮 放大
+		138 滑块 (settable, float) Help: 缩放, Value: 1000, Details: 100%
+			139 值指示器 (settable, float) 1000
+		140 按钮 100%, Help: 缩放级别。单击可打开“缩放”对话框。
+	141 工具栏
+		142 container Secondary Actions: 从工具栏移除
+			143 转换 自动保存, Help: 启用“自动保存”以在发生更改时保存更改。, Value: off
+			144 按钮 主页
+			145 按钮 保存
+			146 菜单按钮 撤消粘贴, Help: 有关更多选项，请按 Control-Option-Shift-M。
+			147 按钮 重复粘贴
+			148 按钮 打印
+			149 菜单按钮 自定义快速访问工具栏, Value: 0
+			150 搜索文本栏 (settable) 搜索(Cmd + Ctrl + U)
+				151 按钮 搜索
+			152 文本 Value: 文档3, ID: CUIDocumentShellWindowTitleLabel
+	153 菜单按钮 窗口共享
+154 menu bar
+	155 Word, ID: AppMenu_MenuItem
+	156 文件
+	157 编辑, ID: EditMenu_MenuItem
+	158 视图, ID: ViewMenu_MenuItem
+	159 插入
+	160 格式
+	161 工具
+	162 表格
+	163 窗口, ID: WindowMenu_MenuItem
+	164 帮助, ID: HelpMenu_MenuItem
+
+The focused UI element is 18 文本输入区 (disabled, settable)

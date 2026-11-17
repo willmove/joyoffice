@@ -1,0 +1,158 @@
+Window: "* 未命名 1 — JoyWord", App: JoyWord Ribbon Audit.
+0 standard window * 未命名 1 — JoyWord, Secondary Actions: Raise
+	1 container
+		2 button 新建
+		3 button 打开
+		4 button 保存
+		5 button 撤销
+		6 button (disabled) 重做
+		7 button 搜索命令
+		8 button EN
+		9 button 切换外观
+		10 tab group 功能区
+			11 tab (settable, boolean) 文件, Value: off
+			12 tab (settable, boolean) 开始, Value: off
+			13 tab (settable, boolean) 插入, Value: on
+			14 tab (settable, boolean) 绘图, Value: off
+			15 tab (settable, boolean) 设计, Value: off
+			16 tab (settable, boolean) 布局, Value: off
+			17 tab (settable, boolean) 引用, Value: off
+			18 tab (settable, boolean) 邮件, Value: off
+			19 tab (settable, boolean) 审阅, Value: off
+			20 tab (settable, boolean) 视图, Value: off
+			21 tab (settable, boolean) 帮助, Value: off
+			22 button 折叠或展开功能区, Help: Ctrl+F1
+		23 container 页面
+			24 button 封面
+			25 button 空白页
+			26 button 分页
+		27 container 表格
+			28 button 表格
+		29 container 插图
+			30 button 图片
+			31 button 形状
+			32 button 图标
+			33 button (disabled) 3D 模型, Help: 此功能尚未提供，或当前文档状态不可用
+			34 button SmartArt
+			35 button 图表
+			36 button (disabled) 屏幕截图, Help: 此功能尚未提供，或当前文档状态不可用
+		37 container 媒体
+			38 button (disabled) 联机视频, Help: 此功能尚未提供，或当前文档状态不可用
+		39 container 链接
+			40 button 链接
+			41 button 书签
+			42 button 交叉引用
+		43 container 批注
+			44 button 批注
+		45 container 页眉和页脚
+			46 button 页眉
+			47 button 页脚
+			48 button 页码
+		49 container 文本
+			50 button 文本框
+			51 button 文档部件
+			52 button 艺术字
+			53 button 首字下沉
+			54 button 签名行
+			55 button 日期和时间
+			56 button (disabled) 对象, Help: 此功能尚未提供，或当前文档状态不可用
+		57 container 符号
+			58 button 公式
+			59 button 符号
+			60 button (disabled) 编号, Help: 此功能尚未提供，或当前文档状态不可用
+		61 button 上一页
+		62 button 下一页
+		63 text entry area (settable) 文档正文, Help: 随光标读取段落。用方向键或翻页键浏览。, Value: Ribbon audit 标题
+			64 container 水平标尺（只读）
+		65 button −
+		66 button 100%
+		67 button +
+		68 dialog
+			69 button 插入 1 行 1 列表格, Help: 1 行 × 1 列
+			70 button 插入 1 行 2 列表格, Help: 1 行 × 2 列
+			71 button 插入 1 行 3 列表格, Help: 1 行 × 3 列
+			72 button 插入 1 行 4 列表格, Help: 1 行 × 4 列
+			73 button 插入 1 行 5 列表格, Help: 1 行 × 5 列
+			74 button 插入 1 行 6 列表格, Help: 1 行 × 6 列
+			75 button 插入 1 行 7 列表格, Help: 1 行 × 7 列
+			76 button 插入 1 行 8 列表格, Help: 1 行 × 8 列
+			77 button 插入 1 行 9 列表格, Help: 1 行 × 9 列
+			78 button 插入 1 行 10 列表格, Help: 1 行 × 10 列
+			79 button 插入 2 行 1 列表格, Help: 2 行 × 1 列
+			80 button 插入 2 行 2 列表格, Help: 2 行 × 2 列
+			81 button 插入 2 行 3 列表格, Help: 2 行 × 3 列
+			82 button 插入 2 行 4 列表格, Help: 2 行 × 4 列
+			83 button 插入 2 行 5 列表格, Help: 2 行 × 5 列
+			84 button 插入 2 行 6 列表格, Help: 2 行 × 6 列
+			85 button 插入 2 行 7 列表格, Help: 2 行 × 7 列
+			86 button 插入 2 行 8 列表格, Help: 2 行 × 8 列
+			87 button 插入 2 行 9 列表格, Help: 2 行 × 9 列
+			88 button 插入 2 行 10 列表格, Help: 2 行 × 10 列
+			89 button 插入 3 行 1 列表格, Help: 3 行 × 1 列
+			90 button 插入 3 行 2 列表格, Help: 3 行 × 2 列
+			91 button 插入 3 行 3 列表格, Help: 3 行 × 3 列
+			92 button 插入 3 行 4 列表格, Help: 3 行 × 4 列
+			93 button 插入 3 行 5 列表格, Help: 3 行 × 5 列
+			94 button 插入 3 行 6 列表格, Help: 3 行 × 6 列
+			95 button 插入 3 行 7 列表格, Help: 3 行 × 7 列
+			96 button 插入 3 行 8 列表格, Help: 3 行 × 8 列
+			97 button 插入 3 行 9 列表格, Help: 3 行 × 9 列
+			98 button 插入 3 行 10 列表格, Help: 3 行 × 10 列
+			99 button 插入 4 行 1 列表格, Help: 4 行 × 1 列
+			100 button 插入 4 行 2 列表格, Help: 4 行 × 2 列
+			101 button 插入 4 行 3 列表格, Help: 4 行 × 3 列
+			102 button 插入 4 行 4 列表格, Help: 4 行 × 4 列
+			103 button 插入 4 行 5 列表格, Help: 4 行 × 5 列
+			104 button 插入 4 行 6 列表格, Help: 4 行 × 6 列
+			105 button 插入 4 行 7 列表格, Help: 4 行 × 7 列
+			106 button 插入 4 行 8 列表格, Help: 4 行 × 8 列
+			107 button 插入 4 行 9 列表格, Help: 4 行 × 9 列
+			108 button 插入 4 行 10 列表格, Help: 4 行 × 10 列
+			109 button 插入 5 行 1 列表格, Help: 5 行 × 1 列
+			110 button 插入 5 行 2 列表格, Help: 5 行 × 2 列
+			111 button 插入 5 行 3 列表格, Help: 5 行 × 3 列
+			112 button 插入 5 行 4 列表格, Help: 5 行 × 4 列
+			113 button 插入 5 行 5 列表格, Help: 5 行 × 5 列
+			114 button 插入 5 行 6 列表格, Help: 5 行 × 6 列
+			115 button 插入 5 行 7 列表格, Help: 5 行 × 7 列
+			116 button 插入 5 行 8 列表格, Help: 5 行 × 8 列
+			117 button 插入 5 行 9 列表格, Help: 5 行 × 9 列
+			118 button 插入 5 行 10 列表格, Help: 5 行 × 10 列
+			119 button 插入 6 行 1 列表格, Help: 6 行 × 1 列
+			120 button 插入 6 行 2 列表格, Help: 6 行 × 2 列
+			121 button 插入 6 行 3 列表格, Help: 6 行 × 3 列
+			122 button 插入 6 行 4 列表格, Help: 6 行 × 4 列
+			123 button 插入 6 行 5 列表格, Help: 6 行 × 5 列
+			124 button 插入 6 行 6 列表格, Help: 6 行 × 6 列
+			125 button 插入 6 行 7 列表格, Help: 6 行 × 7 列
+			126 button 插入 6 行 8 列表格, Help: 6 行 × 8 列
+			127 button 插入 6 行 9 列表格, Help: 6 行 × 9 列
+			128 button 插入 6 行 10 列表格, Help: 6 行 × 10 列
+			129 button 插入 7 行 1 列表格, Help: 7 行 × 1 列
+			130 button 插入 7 行 2 列表格, Help: 7 行 × 2 列
+			131 button 插入 7 行 3 列表格, Help: 7 行 × 3 列
+			132 button 插入 7 行 4 列表格, Help: 7 行 × 4 列
+			133 button 插入 7 行 5 列表格, Help: 7 行 × 5 列
+			134 button 插入 7 行 6 列表格, Help: 7 行 × 6 列
+			135 button 插入 7 行 7 列表格, Help: 7 行 × 7 列
+			136 button 插入 7 行 8 列表格, Help: 7 行 × 8 列
+			137 button 插入 7 行 9 列表格, Help: 7 行 × 9 列
+			138 button 插入 7 行 10 列表格, Help: 7 行 × 10 列
+			139 button 插入 8 行 1 列表格, Help: 8 行 × 1 列
+			140 button 插入 8 行 2 列表格, Help: 8 行 × 2 列
+			141 button 插入 8 行 3 列表格, Help: 8 行 × 3 列
+			142 button 插入 8 行 4 列表格, Help: 8 行 × 4 列
+			143 button 插入 8 行 5 列表格, Help: 8 行 × 5 列
+			144 button 插入 8 行 6 列表格, Help: 8 行 × 6 列
+			145 button 插入 8 行 7 列表格, Help: 8 行 × 7 列
+			146 button 插入 8 行 8 列表格, Help: 8 行 × 8 列
+			147 button 插入 8 行 9 列表格, Help: 8 行 × 9 列
+			148 button 插入 8 行 10 列表格, Help: 8 行 × 10 列
+			149 button 更多行列…
+	150 text * 未命名 1 — JoyWord
+	151 menu button Window sharing
+152 menu bar
+	153 JoyWord Ribbon Audit
+	154 View
+
+The focused UI element is 0 standard window * 未命名 1 — JoyWord, Secondary Actions: Raise

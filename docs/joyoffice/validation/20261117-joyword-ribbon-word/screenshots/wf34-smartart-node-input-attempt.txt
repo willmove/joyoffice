@@ -1,0 +1,164 @@
+Window: "文档6", App: Microsoft Word.
+0 标准窗口 文档6, Secondary Actions: Raise
+	1 分离组
+		2 分离组
+			3 分离组 Document Pane
+				4 滚动区 Secondary Actions: Scroll Left, Scroll Right, Scroll Up, Scroll Down
+					5 (disabled) 文档6
+						6 container
+							7 smartart 图 (disabled) Description: 基本流程，嵌入型, Help: 
+								8 控制柄 (disabled) Description: 顶部左对齐调整大小图柄，嵌入型, Secondary Actions: Increment, Decrement
+								9 控制柄 (disabled) Description: 顶部右对齐调整大小图柄, Secondary Actions: Increment, Decrement
+								10 控制柄 (disabled) Description: 底部左对齐调整大小图柄, Secondary Actions: Increment, Decrement
+								11 控制柄 (disabled) Description: 底部右对齐调整大小图柄, Secondary Actions: Increment, Decrement
+								12 控制柄 (disabled) Description: 顶部居中调整大小图柄, Secondary Actions: Increment, Decrement
+								13 控制柄 (disabled) Description: 中部右对齐调整大小图柄, Secondary Actions: Increment, Decrement
+								14 控制柄 (disabled) Description: 底部居中调整大小图柄, Secondary Actions: Increment, Decrement
+								15 控制柄 (disabled) Description: 中部左对齐调整大小图柄, Secondary Actions: Increment, Decrement
+								16 控制柄 (disabled) Description: 中部左对齐调整大小图柄, Secondary Actions: Increment, Decrement
+								17 组合的对象 (disabled) 形状
+									18 形状 圆角矩形
+										19 文本输入区 (disabled) [文本]
+									20 形状 圆角矩形
+										21 文本输入区 (disabled) [文本]
+									22 形状 圆角矩形
+										23 文本输入区 (disabled) [文本]
+									24 形状 右箭头
+									25 形状 右箭头
+							26 文本输入区 (disabled, settable) Description: 页面 1 内容, Value: [smartart 图: 基本流程，嵌入型]
+					27 滚动条 (disabled, settable, float) 0
+						28 值指示器 (disabled, settable, float) 0
+					29 滚动条 (disabled, settable, float) 0
+						30 值指示器 (disabled, settable, float) 0
+		31 分离器 (disabled, settable, float) 1428
+		32 container 设置形状格式
+			33 标签页组 选项卡栏，1 个选项卡
+				34 选项卡 设置形状格式, Value: 1
+				35 按钮 关闭 设置形状格式
+			36 滚动区 设置形状格式
+				37 单选按钮 Description: 形状选项, Value: 1
+				38 单选按钮 Description: 文本选项, Value: 0
+				39 选项卡 Description: 填充与线条, Value: 1, ID: datasource.ShowCategoryFillsLines
+				40 选项卡 Description: 效果, Value: 0, ID: datasource.ShowCategoryEffects
+				41 选项卡 Description: 布局属性, Value: 0, ID: datasource.ShowCategoryLayout
+				42 滚动区
+					43 显示三角形 Description: 填充, Value: 0
+					44 文本 填充
+					45 显示三角形 Description: 线条, Value: 0
+					46 文本 线条
+	47 标签页组 Description: 功能区, Details: SmartArt 设计
+		48 滚动区 SmartArt 设计 选项卡命令
+			49 container
+				50 菜单按钮 添加形状, Help: 有关更多选项，请按 Control-Option-Shift-M。, Value: 0
+				51 按钮 添加项目符号
+				52 开关按钮 文本窗格, Value: off
+				53 按钮 (disabled) 升级, Help: 提升所选内容
+				54 按钮 (disabled) 降级, Help: 降级所选内容
+				55 开关按钮 从右到左, Value: off
+				56 按钮 (disabled) 移到前面, Help: 将所选内容移到前面
+				57 按钮 移到后面, Help: 将所选内容移到后面
+				58 菜单按钮 (disabled) 布局, Help: 组织结构图布局, Value: 0
+			59 container
+				60 菜单按钮 显示更多项目
+				61 库 Description: 更改布局, Help: 库
+					62 按钮 Description: 垂直重点列表, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseType_Control_0_25
+					63 按钮 Description: 垂直箭头列表, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseType_Control_0_26
+					64 按钮 Description: 梯形列表, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseType_Control_0_27
+					65 按钮 Description: 降序基本块列表, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseType_Control_0_28
+					66 按钮 Description: 图标圆形标签列表, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseType_Control_0_29
+					67 按钮 Description: 表格列表, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseType_Control_0_30
+					68 按钮 Description: 分段流程, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseType_Control_0_31
+					69 按钮 Description: 垂直曲形列表, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseType_Control_0_32
+					70 按钮 Description: 棱锥型列表, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseType_Control_0_33
+					71 按钮 Description: 目标图列表, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseType_Control_0_34
+					72 按钮 Description: 层次结构列表, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseType_Control_0_35
+					73 按钮 Description: 垂直圆形列表, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseType_Control_0_36
+					74 按钮 Description: 表层次结构, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseType_Control_0_37
+					75 按钮 Description: 基本流程, Value: 1, ID: in_ribbon_gallery_IgxUXGalChooseType_Control_1_0
+					76 按钮 Description: 步骤上移流程, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseType_Control_1_1
+					77 按钮 Description: 步骤下移流程, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseType_Control_1_2
+					78 按钮 Description: 编号线性箭头流程, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseType_Control_1_3
+					79 按钮 Description: 重点流程, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseType_Control_1_4
+					80 按钮 Description: 图片重点流程, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseType_Control_1_5
+					81 按钮 Description: 交替流, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseType_Control_1_6
+					82 按钮 Description: 递增循环流程, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseType_Control_1_7
+					83 按钮 Description: 饼图流程, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseType_Control_1_8
+					84 按钮 Description: 连续块状流程, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseType_Control_1_9
+					85 按钮 Description: 递增箭头流程, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseType_Control_1_10
+					86 按钮 Description: 连续箭头流程, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseType_Control_1_11
+			87 container
+				88 菜单按钮 更改颜色, Value: 0
+				89 菜单按钮 显示更多项目
+				90 库 Description: 快速样式, Help: 库
+					91 按钮 Description: 简单填充, Value: 1, ID: in_ribbon_gallery_IgxUXGalChooseStyle_Control_0_0
+					92 按钮 Description: 白色轮廓, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseStyle_Control_0_1
+					93 按钮 Description: 细微效果, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseStyle_Control_0_2
+					94 按钮 Description: 中等效果, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseStyle_Control_0_3
+					95 按钮 Description: 强烈效果, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseStyle_Control_0_4
+					96 按钮 Description: 优雅, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseStyle_Control_1_0
+					97 按钮 Description: 嵌入, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseStyle_Control_1_1
+					98 按钮 Description: 卡通, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseStyle_Control_1_2
+					99 按钮 Description: 粉末, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseStyle_Control_1_3
+					100 按钮 Description: 砖块场景, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseStyle_Control_1_4
+					101 按钮 Description: 平面场景, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseStyle_Control_1_5
+					102 按钮 Description: 金属场景, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseStyle_Control_1_6
+					103 按钮 Description: 日落场景, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseStyle_Control_1_7
+					104 按钮 Description: 鸟瞰场景, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseStyle_Control_1_8
+			105 按钮 重置图形
+		106 选项卡 开始, Value: 0
+		107 选项卡 插入, Value: 0
+		108 选项卡 绘图
+		109 选项卡 设计
+		110 选项卡 布局
+		111 选项卡 引用
+		112 选项卡 邮件
+		113 选项卡 审阅
+		114 选项卡 视图
+		115 选项卡 SmartArt 设计, Help: 折叠功能区, Value: 1
+		116 选项卡 格式
+		117 按钮 批注
+		118 按钮 编辑, Help: 文档访问模式
+		119 按钮 共享
+	120 container 状态栏
+		121 按钮 第 1 页，共 1 页, Help: 文档当前的页码。单击或点击可打开导航窗格。
+		122 按钮 0 个字, Help: 文档的字数。单击或点击可打开“字数统计”对话框。
+		123 按钮 兼容性模式下的共同创作。
+		124 按钮 无校对错误。
+		125 按钮 英语(美国), Help: 语言(国家/地区)
+		126 开关按钮 辅助功能: 调查, Help: 找到辅助功能建议。请单击此处进行调查。, Value: off
+		127 开关按钮  专注, Help: 专注模式, Value: off
+		128 单选按钮 页面视图, Value: 1
+		129 单选按钮 Web 版式, Value: 0
+		130 单选按钮 大纲, Value: 0
+		131 单选按钮 草稿, Value: 0
+		132 按钮 缩小
+		133 按钮 放大
+		134 滑块 (settable, float) Help: 缩放, Value: 1000, Details: 100%
+			135 值指示器 (settable, float) 1000
+		136 按钮 100%, Help: 缩放级别。单击可打开“缩放”对话框。
+	137 工具栏
+		138 container Secondary Actions: 从工具栏移除
+			139 转换 自动保存, Help: 启用“自动保存”以在发生更改时保存更改。, Value: off
+			140 按钮 主页
+			141 按钮 保存
+			142 菜单按钮 撤消, Help: 有关更多选项，请按 Control-Option-Shift-M。
+			143 按钮 (disabled) 无法重复
+			144 按钮 打印
+			145 菜单按钮 自定义快速访问工具栏, Value: 0
+			146 搜索文本栏 (settable) 搜索(Cmd + Ctrl + U)
+				147 按钮 搜索
+			148 文本 Value: 文档6, ID: CUIDocumentShellWindowTitleLabel
+	149 菜单按钮 窗口共享
+150 menu bar
+	151 Word, ID: AppMenu_MenuItem
+	152 文件
+	153 编辑, ID: EditMenu_MenuItem
+	154 视图, ID: ViewMenu_MenuItem
+	155 插入
+	156 格式
+	157 工具
+	158 表格
+	159 窗口, ID: WindowMenu_MenuItem
+	160 帮助, ID: HelpMenu_MenuItem
+
+The focused UI element is 19 文本输入区 (disabled) [文本]

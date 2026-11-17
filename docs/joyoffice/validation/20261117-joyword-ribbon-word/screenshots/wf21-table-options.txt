@@ -1,0 +1,50 @@
+Window: "表格选项", App: Microsoft Word.
+0 对话框 表格选项, Secondary Actions: Raise
+	1 text 默认单元格边距 上:
+	2 文本栏 (settable) 0 厘米
+	3 步进器 Value: 0, Secondary Actions: Increment, Decrement
+		4 增箭头按钮
+		5 减箭头按钮
+	6 文本 下:
+	7 文本栏 (settable) 0 厘米
+	8 步进器 Value: 0, Secondary Actions: Increment, Decrement
+		9 增箭头按钮
+		10 减箭头按钮
+	11 文本 左:
+	12 文本栏 (settable) 0.19 厘米
+	13 步进器 Value: 0, Secondary Actions: Increment, Decrement
+		14 增箭头按钮
+		15 减箭头按钮
+	16 文本 右:
+	17 文本栏 (settable) 0.19 厘米
+	18 步进器 Value: 0, Secondary Actions: Increment, Decrement
+		19 增箭头按钮
+		20 减箭头按钮
+	21 文本 默认单元格间距
+	22 复选框 允许调整单元格间距, Value: 0
+	23 文本栏 (disabled) 0 厘米
+	24 步进器 (disabled) Value: 0, Secondary Actions: Increment, Decrement
+		25 增箭头按钮
+		26 减箭头按钮
+	27 文本 选项
+	28 复选框 自动重调尺寸以适应内容, Value: 1
+	29 按钮 确定
+	30 按钮 取消
+	31 文本 表格选项
+32 menu bar
+	33 Word, ID: AppMenu_MenuItem
+	34 文件
+	35 编辑, ID: EditMenu_MenuItem
+	36 视图, ID: ViewMenu_MenuItem
+	37 插入
+	38 格式
+	39 工具
+	40 表格
+	41 窗口, ID: WindowMenu_MenuItem
+	42 帮助, ID: HelpMenu_MenuItem
+
+Selected text: ```
+0 厘米
+```
+
+Note: Pay special attention to the content selected by the user. If the user asks a question or refers to the content they are looking at on-screen, they might be referring to the selected content (but they might be referring to something else that's visible, too).

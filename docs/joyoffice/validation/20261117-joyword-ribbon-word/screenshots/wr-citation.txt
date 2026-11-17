@@ -1,0 +1,45 @@
+Window: "创建源", App: Microsoft Word.
+0 对话框 创建源, Secondary Actions: Raise
+	1 text 源类型 语言:
+	2 弹出式按钮 书籍
+	3 弹出式按钮 默认
+	4 container
+		5 文本 作者:
+		6 文本栏
+			7 文本栏 (settable)
+		8 按钮 编辑...
+		9 复选框 公司 作者:
+		10 文本栏 (disabled)
+		11 文本 标题:
+		12 文本栏
+			13 文本栏 (settable)
+		14 文本 市/县:
+		15 文本栏
+			16 文本栏 (settable)
+		17 文本 发布者:
+		18 文本栏
+			19 文本栏 (settable)
+		20 文本 年:
+		21 文本栏
+			22 文本栏 (settable)
+		23 文本 APA 的书目域
+	24 文本 示例: Dickens, Charles; Hemingway, Ernest
+	25 按钮 确定
+	26 按钮 取消
+	27 复选框 显示所有书目域, Value: 0
+	28 文本 源类型:
+	29 文本栏 (settable) 占位符1
+	30 文本 创建源
+31 menu bar
+	32 Word, ID: AppMenu_MenuItem
+	33 文件
+	34 编辑, ID: EditMenu_MenuItem
+	35 视图, ID: ViewMenu_MenuItem
+	36 插入
+	37 格式
+	38 工具
+	39 表格
+	40 窗口, ID: WindowMenu_MenuItem
+	41 帮助, ID: HelpMenu_MenuItem
+
+The focused UI element is 7 文本栏 (settable)

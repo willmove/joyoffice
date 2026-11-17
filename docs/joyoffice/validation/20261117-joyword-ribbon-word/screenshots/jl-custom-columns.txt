@@ -1,0 +1,85 @@
+Window: "* 未命名 1 — JoyWord", App: JoyWord Ribbon Audit.
+0 standard window * 未命名 1 — JoyWord, Secondary Actions: Raise
+	1 container
+		2 button 新建
+		3 button 打开
+		4 button 保存
+		5 button 撤销
+		6 button (disabled) 重做
+		7 button 搜索命令
+		8 button EN
+		9 button 切换外观
+		10 tab group 功能区
+			11 tab (settable, boolean) 文件, Value: off
+			12 tab (settable, boolean) 开始, Value: off
+			13 tab (settable, boolean) 插入, Value: off
+			14 tab (settable, boolean) 绘图, Value: off
+			15 tab (settable, boolean) 设计, Value: off
+			16 tab (settable, boolean) 布局, Value: on
+			17 tab (settable, boolean) 引用, Value: off
+			18 tab (settable, boolean) 邮件, Value: off
+			19 tab (settable, boolean) 审阅, Value: off
+			20 tab (settable, boolean) 视图, Value: off
+			21 tab (settable, boolean) 帮助, Value: off
+			22 tab (settable, boolean) 开发工具, Value: off
+			23 tab (settable, boolean) 图片格式, Value: off
+			24 button 折叠或展开功能区, Help: Ctrl+F1
+		25 container 页面设置
+			26 button 文字方向
+			27 button 页边距
+			28 button 纸张方向
+			29 button 纸张大小
+			30 button 栏
+			31 button 分隔符
+			32 button 行号
+			33 button 断字
+		34 container 段落
+			35 stepper (settable, float) 左缩进, Value: 0
+				36 text field (settable) 左缩进, Value: 0
+				37 button + 左缩进
+				38 button − 左缩进
+			39 stepper (settable, float) 右缩进, Value: 0
+				40 text field (settable) 右缩进, Value: 0
+				41 button + 右缩进
+				42 button − 右缩进
+			43 stepper (settable, float) 段前间距, Value: 0
+				44 text field (settable) 段前间距, Value: 0
+				45 button + 段前间距
+				46 button − 段前间距
+			47 stepper (settable, float) 段后间距, Value: 8
+				48 text field (settable) 段后间距, Value: 8
+				49 button + 段后间距
+				50 button − 段后间距
+			51 button 段落设置…
+		52 container 排列
+			53 button 位置
+			54 button 环绕文字
+			55 button (disabled) 前移一层, Help: 此功能尚未提供，或当前文档状态不可用
+			56 button (disabled) 后移一层, Help: 此功能尚未提供，或当前文档状态不可用
+			57 button 选择窗格
+			58 button 对齐
+			59 button (disabled) 组合, Help: 此功能尚未提供，或当前文档状态不可用
+			60 button 旋转
+		61 button 上一页
+		62 button 下一页
+		63 text entry area (settable) 文档正文, Help: 随光标读取段落。用方向键或翻页键浏览。
+			64 container 水平标尺（只读）
+		65 button −
+		66 button 100%
+		67 button +
+		68 dialog
+			69 text field (settable) 栏数（1–12）, Value: 1, Placeholder: 留空保持原值
+			70 text field (settable) 等宽栏间距, Value: 36 pt, Placeholder: 留空保持原值
+			71 text field (settable) 分隔线（是 / 否）, Value: 否, Placeholder: 留空保持原值
+			72 text field (settable) 不等宽（如 100 pt/20 pt | 120 pt）, Placeholder: 留空保持原值
+			73 text field (settable) 应用于（本节 / 整篇文档 / 插入点之后 / 所选文字）, Value: 本节, Placeholder: 留空保持原值
+			74 button 取消
+			75 button 应用
+			76 button Close
+	77 text * 未命名 1 — JoyWord
+	78 menu button Window sharing
+79 menu bar
+	80 JoyWord Ribbon Audit
+	81 View
+
+The focused UI element is 0 standard window * 未命名 1 — JoyWord, Secondary Actions: Raise

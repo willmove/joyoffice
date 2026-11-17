@@ -1,0 +1,125 @@
+Window: "文档9", App: Microsoft Word.
+0 标准窗口 文档9, Secondary Actions: Raise
+	1 分离组
+		2 分离组
+			3 分离组 Document Pane
+				4 滚动区 Secondary Actions: Scroll Left, Scroll Right, Scroll Up, Scroll Down
+					5 (disabled) 文档9
+						6 container
+							7 文本输入区 (disabled, settable) 页眉 - 第 1 节 -
+							8 文本输入区 (disabled, settable) Description: 页面 1 内容, Value: 页眉与审阅对照正文。
+							9 列表 (disabled) 注释提示
+								10 布局项目 (disabled) 评论提示按钮
+							11 container sidetrack
+								12 未知 Description: 1/1, Weimu Ma 马伟木 于 2026/11/17 13:08 发起的批注线程, ID: 批注线程
+									13 container Description: Weimu Ma 马伟木 于 2026/11/17 13:08 提供的批注  UI , ID: Thread container
+										14 按钮 Weimu Ma 马伟木
+											15 图像 Description: Weimu Ma 马伟木, ID: Persona image
+												16 图像
+										17 文本 Weimu Ma 马伟木
+										18 按钮 更多会话操作, Help: 显示会话选项
+										19 按钮 Help: 赞, Value: 此注释有 0 个回应。
+											20 图像
+										21 文本输入区  UI 
+										22 文本 2026/11/17 13:08
+									23 滚动区
+										24 文本输入区 回复
+									25 按钮 (disabled) 发表评论, Help: 发布评论(Cmd + Enter)
+							26 文本输入区 (disabled, settable) 页脚 - 第 1 节 -
+					27 滚动条 (disabled, settable, float) 0
+						28 值指示器 (disabled, settable, float) 0
+					29 滚动条 (disabled, settable, float) 0
+						30 值指示器 (disabled, settable, float) 0
+		31 分离器 (disabled, settable, float) 1729
+	32 标签页组 Description: 功能区, Details: 审阅
+		33 滚动区 审阅 选项卡命令
+			34 container
+				35 按钮 编辑器, Help: 编辑 器。检查拼写、语法和写作问题
+				36 菜单按钮 拼写和语法, Help: 有关更多选项，请按 Control-Option-Shift-M。, Value: 0
+				37 开关按钮 同义词库, Value: off
+				38 按钮 字数统计
+			39 按钮 (disabled) 大声朗读
+			40 开关按钮 检查辅助功能, Value: off
+			41 container
+				42 菜单按钮 (disabled) 翻译, Value: 0
+				43 按钮 (disabled) 语言
+			44 container
+				45 按钮 新建批注, Help: 插入批注
+				46 菜单按钮 删除, Help: 有关更多选项，请按 Control-Option-Shift-M。, Value: 0
+				47 按钮 解决
+				48 按钮 上一个, Help: 上一条批注
+				49 按钮 下一个, Help: 下一条批注
+				50 菜单按钮 显示批注, Help: 有关更多选项，请按 Control-Option-Shift-M。, Value: 1
+			51 container
+				52 菜单按钮 修订​​, Help: 有关更多选项，请按 Control-Option-Shift-M。, Value: 0
+				53 弹出式按钮 Description: 显示以供审阅, Value: 所有标记
+				54 菜单按钮 标记选项, Value: 0
+			55 开关按钮 审阅, Value: off
+			56 container
+				57 菜单按钮 接受, Help: 有关更多选项，请按 Control-Option-Shift-M。, Value: 0
+				58 菜单按钮 拒绝, Help: 有关更多选项，请按 Control-Option-Shift-M。, Value: 0
+				59 按钮 上一条修订
+				60 按钮 下一条修订
+			61 菜单按钮 比较, Value: 1
+				62 菜单 Secondary Actions: Cancel
+					63 比较文档..., ID: oui_performOfficeSpaceMenuAction:
+					64 合并文档..., ID: oui_performOfficeSpaceMenuAction:
+			65 container
+				66 菜单按钮 (disabled) 阻止作者, Help: 有关更多选项，请按 Control-Option-Shift-M。, Value: 0
+				67 开关按钮 保护文档, Value: off
+				68 开关按钮 始终以只读方式打开, Value: off
+			69 菜单按钮 隐藏墨迹, Help: 有关更多选项，请按 Control-Option-Shift-M。, Value: 0
+		70 选项卡 开始, Value: 0
+		71 选项卡 插入, Value: 0
+		72 选项卡 绘图
+		73 选项卡 设计
+		74 选项卡 布局
+		75 选项卡 引用
+		76 选项卡 邮件
+		77 选项卡 审阅, Help: 折叠功能区, Value: 1
+		78 选项卡 视图
+		79 按钮 批注
+		80 按钮 编辑, Help: 文档访问模式
+		81 按钮 共享
+	82 container 状态栏
+		83 按钮 第 1 页，共 1 页, Help: 文档当前的页码。单击或点击可打开导航窗格。
+		84 按钮 10 个字, Help: 文档的字数。单击或点击可打开“字数统计”对话框。
+		85 按钮 兼容性模式下的共同创作。
+		86 按钮 简体中文(中国大陆), Help: 语言(国家/地区)
+		87 开关按钮 辅助功能: 一切就绪, Help: 已完成辅助功能检查。请单击此处了解详细信息。, Value: off
+		88 开关按钮  专注, Help: 专注模式, Value: off
+		89 单选按钮 页面视图, Value: 1
+		90 单选按钮 Web 版式, Value: 0
+		91 单选按钮 大纲, Value: 0
+		92 单选按钮 草稿, Value: 0
+		93 按钮 缩小
+		94 按钮 放大
+		95 滑块 (settable, float) Help: 缩放, Value: 1000, Details: 100%
+			96 值指示器 (settable, float) 1000
+		97 按钮 100%, Help: 缩放级别。单击可打开“缩放”对话框。
+	98 工具栏
+		99 container Secondary Actions: 从工具栏移除
+			100 转换 自动保存, Help: 启用“自动保存”以在发生更改时保存更改。, Value: off
+			101 按钮 主页
+			102 按钮 保存
+			103 菜单按钮 撤消插入批注, Help: 有关更多选项，请按 Control-Option-Shift-M。
+			104 按钮 (disabled) 无法重复
+			105 按钮 打印
+			106 菜单按钮 自定义快速访问工具栏, Value: 0
+			107 搜索文本栏 (settable) 搜索(Cmd + Ctrl + U)
+				108 按钮 搜索
+			109 文本 Value: 文档9, ID: CUIDocumentShellWindowTitleLabel
+	110 菜单按钮 窗口共享
+111 menu bar
+	112 Word, ID: AppMenu_MenuItem
+	113 文件
+	114 编辑, ID: EditMenu_MenuItem
+	115 视图, ID: ViewMenu_MenuItem
+	116 插入
+	117 格式
+	118 工具
+	119 表格
+	120 窗口, ID: WindowMenu_MenuItem
+	121 帮助, ID: HelpMenu_MenuItem
+
+The focused UI element is 12 未知 Description: 1/1, Weimu Ma 马伟木 于 2026/11/17 13:08 发起的批注线程, ID: 批注线程

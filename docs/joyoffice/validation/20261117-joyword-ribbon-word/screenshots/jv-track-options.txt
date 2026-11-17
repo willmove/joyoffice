@@ -1,0 +1,81 @@
+Window: "* 未命名 1 — JoyWord", App: JoyWord Ribbon Audit.
+0 standard window * 未命名 1 — JoyWord, Secondary Actions: Raise
+	1 container
+		2 button 新建
+		3 button 打开
+		4 button 保存
+		5 button 撤销
+		6 button (disabled) 重做
+		7 button 搜索命令
+		8 button EN
+		9 button 切换外观
+		10 tab group 功能区
+			11 tab (settable, boolean) 文件, Value: off
+			12 tab (settable, boolean) 开始, Value: off
+			13 tab (settable, boolean) 插入, Value: off
+			14 tab (settable, boolean) 绘图, Value: off
+			15 tab (settable, boolean) 设计, Value: off
+			16 tab (settable, boolean) 布局, Value: off
+			17 tab (settable, boolean) 引用, Value: off
+			18 tab (settable, boolean) 邮件, Value: off
+			19 tab (settable, boolean) 审阅, Value: on
+			20 tab (settable, boolean) 视图, Value: off
+			21 tab (settable, boolean) 帮助, Value: off
+			22 button 折叠或展开功能区, Help: Ctrl+F1
+		23 container 校对
+			24 button 拼写和语法
+			25 button 同义词库
+			26 button 字数统计
+		27 container 语音
+			28 button (disabled) 大声朗读, Help: 此功能尚未提供，或当前文档状态不可用
+		29 container 辅助功能
+			30 button (disabled) 检查辅助功能, Help: 此功能尚未提供，或当前文档状态不可用
+		31 container 语言
+			32 button (disabled) 翻译, Help: 此功能尚未提供，或当前文档状态不可用
+			33 button 语言
+		34 container 中文简繁转换
+			35 button (disabled) 简转繁, Help: 此功能尚未提供，或当前文档状态不可用
+			36 button (disabled) 繁转简, Help: 此功能尚未提供，或当前文档状态不可用
+		37 container 批注
+			38 button 新建批注
+			39 button (disabled) 删除, Help: 此功能尚未提供，或当前文档状态不可用
+			40 button (disabled) 上一条, Help: 此功能尚未提供，或当前文档状态不可用
+			41 button (disabled) 下一条, Help: 此功能尚未提供，或当前文档状态不可用
+			42 button 显示批注
+		43 container 标记
+			44 button 重置筛选
+			45 button 所有标记
+			46 button 显示标记
+			47 button 审阅窗格
+		48 container 修订
+			49 button 修订
+			50 button 修订 选项
+			51 button 接受
+			52 button 接受 选项
+			53 button 拒绝
+			54 button 拒绝 选项
+			55 button 上一处
+			56 button 下一处
+		57 container 比较
+			58 button 比较
+		59 container 保护
+			60 button (disabled) 保护, Help: 此功能尚未提供，或当前文档状态不可用
+		61 container 墨迹
+			62 button 隐藏墨迹
+		63 button 上一页
+		64 button 下一页
+		65 text entry area (settable) 文档正文, Help: 随光标读取段落。用方向键或翻页键浏览。, Value: 这是用于 JoyWord 与 Microsoft Word 对比的测试段落。Hello Word 123.
+			66 container 水平标尺（只读）
+		67 button −
+		68 button 100%
+		69 button +
+		70 dialog
+			71 button 启用修订
+			72 button 关闭修订
+	73 text * 未命名 1 — JoyWord
+	74 menu button Window sharing
+75 menu bar
+	76 JoyWord Ribbon Audit
+	77 View
+
+The focused UI element is 0 standard window * 未命名 1 — JoyWord, Secondary Actions: Raise

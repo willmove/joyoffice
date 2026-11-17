@@ -1,0 +1,75 @@
+Window: "图表目录", App: Microsoft Word.
+0 对话框 图表目录, Secondary Actions: Raise
+	1 标签页组
+		2 标签 索引, Value: 0
+		3 标签 目录, Value: 0
+		4 标签 图表目录, Value: 1
+		5 标签 引文目录, Value: 0
+		6 文本 题注标签:
+		7 滚动区
+			8 表格
+				9 row (selectable)
+					10 文本 (无)
+				11 row (selectable)
+					12 文本 表格
+				13 row (selectable)
+					14 文本 公式
+				15 row (selected)
+					16 文本 图表
+				17 栏 (selectable) AutomaticTableColumnIdentifier.0
+		18 文本 格式:
+		19 滚动区 Secondary Actions: Scroll Up, Scroll Down
+			20 表格
+				21 row (selected)
+					22 文本 来自模板
+				23 row (selectable)
+					24 文本 古典
+				25 row (selectable)
+					26 文本 优雅
+				27 row (selectable)
+					28 文本 居中
+				29 row (selectable)
+					30 文本 正式
+				31 row (selectable)
+					32 文本 简单
+				33 栏 (selectable) AutomaticTableColumnIdentifier.0
+			34 滚动条 (settable, float) 0
+				35 值指示器 (settable, float) 0
+				36 增箭头按钮
+				37 减箭头按钮
+				38 增页面按钮
+				39 减页面按钮
+		40 container
+			41 滚动条 (settable, float) 0
+				42 值指示器 (settable, float) 0
+				43 增箭头按钮
+				44 减箭头按钮
+				45 增页面按钮
+				46 减页面按钮
+		47 复选框 包括标签和编号, Value: 1
+		48 复选框 显示页码, Value: 1
+		49 文本 制表符前导符:
+		50 弹出式按钮 .......
+		51 复选框 页码右对齐, Value: 1
+		52 按钮 修改...
+		53 按钮 选项...
+		54 复选框 使用超链接而不使用页码, Value: 1
+	55 按钮 确定
+	56 按钮 取消
+	57 文本 图表目录
+58 menu bar
+	59 Word, ID: AppMenu_MenuItem
+	60 文件
+	61 编辑, ID: EditMenu_MenuItem
+	62 视图, ID: ViewMenu_MenuItem
+	63 插入
+	64 格式
+	65 工具
+	66 表格
+	67 窗口, ID: WindowMenu_MenuItem
+	68 帮助, ID: HelpMenu_MenuItem
+
+Selected:
+	15 row (selected)
+
+Note: Pay special attention to the content selected by the user. If the user asks a question or refers to the content they are looking at on-screen, they might be referring to the selected content (but they might be referring to something else that's visible, too).

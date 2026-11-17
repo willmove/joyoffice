@@ -1,0 +1,193 @@
+Window: "Open", App: JoyWord Ribbon Audit.
+0 standard window Open, ID: open-panel, Secondary Actions: Raise
+	1 split group
+		2 scroll area Secondary Actions: Scroll Up, Scroll Down
+			3 outline sidebar
+				4 row (selectable) Description: clock, Value: Recents
+				5 row (selectable) Description: Two people, Value: Shared
+				6 row (selectable, expanded) Value: Favorites, Secondary Actions: Collapse
+				7 row (selectable) Description: App Store letter A icon, Value: Applications
+				8 row (selectable) Description: Menu bar with dock on a rectangle, Value: Desktop
+				9 row (selectable) Description: Document page, Value: Documents
+				10 row (selectable) Description: Arrow Down Circle, Value: Downloads
+				11 row (selectable, expanded) Value: Locations, Secondary Actions: Collapse
+				12 row (selectable) Description: iCloud, Value: iCloud Drive
+				13 row (selected) Description: home, Value: willm
+				14 row (selectable) Description: Internal hard drive, Value: Macintosh HD
+				15 row (selectable) Eject, Value: Vault, Description: External hard drive
+eject
+				16 row (selectable) Description: Network nodes connected by lines, Value: Network
+				17 row (selectable, expanded) Value: Tags, Secondary Actions: Collapse
+				18 row (selectable) Description: Small circle badge, filled, Value: 红色
+				19 row (selectable) Description: Small circle badge, filled, Value: 橙色
+				20 row (selectable) Description: Small circle badge, filled, Value: 黄色
+				21 row (selectable) Description: Small circle badge, filled, Value: 绿色
+				22 row (selectable) Description: Small circle badge, filled, Value: 蓝色
+				23 row (selectable) Description: Small circle badge, filled, Value: 紫色
+				24 row (selectable) Description: Small circle badge, filled, Value: 灰色
+				25 row (selectable) Description: Two small circle badges, Value: All Tags…
+				26 row (selectable, expanded) Value: Media, Secondary Actions: Collapse
+				27 row (selectable) Description: Music note, Value: Music
+				28 row (selectable) Description: photo, Value: Photos
+				29 row (selectable) Description: movie, Value: Movies
+			30 scroll bar (settable, float) 0
+				31 value indicator (settable, float) 0
+				32 increment arrow button
+				33 decrement arrow button
+				34 increment page button
+				35 decrement page button
+		36 splitter (disabled, settable, float) 159
+		37 scroll area
+			38 outline Description: list view, ID: ListView
+				39 row (selectable)
+				40 row (selectable, collapsed) Secondary Actions: Expand
+					41 cell Secondary Actions: Open Finder item
+						42 image
+						43 text field (settable) URL: file:///Users/willm/orca/, Value: orca, Secondary Actions: Open Finder item
+					44 cell
+						45 text --
+					46 cell
+						47 text Folder
+					48 cell
+						49 text 2026年10月16日 19:08
+				50 row (selectable, collapsed) Secondary Actions: Expand
+					51 cell Secondary Actions: Open Finder item
+						52 image
+						53 text field (settable) URL: file:///Users/willm/Applications/, Value: Applications, Secondary Actions: Open Finder item
+					54 cell
+						55 text --
+					56 cell
+						57 text Folder
+					58 cell
+						59 text 2026年10月16日 19:07
+				60 row (selectable, collapsed) Secondary Actions: Expand
+					61 cell Secondary Actions: Open Finder item
+						62 image
+						63 text field (settable) URL: file:///Users/willm/artifacts/, Value: artifacts, Secondary Actions: Open Finder item
+					64 cell
+						65 text --
+					66 cell
+						67 text Folder
+					68 cell
+						69 text 2026年10月14日 13:37
+				70 row (selectable, collapsed) Secondary Actions: Expand
+					71 cell Secondary Actions: Open Finder item
+						72 image
+						73 text field (settable) URL: file:///Users/willm/Vaults/, Value: Vaults, Secondary Actions: Open Finder item
+					74 cell
+						75 text --
+					76 cell
+						77 text Folder
+					78 cell
+						79 text 2026年10月1日 16:00
+				80 row (selectable, collapsed) Secondary Actions: Expand
+					81 cell Secondary Actions: Open Finder item
+						82 image
+						83 text field (settable) URL: file:///Users/willm/Coding/, Value: Coding, Secondary Actions: Open Finder item
+					84 cell
+						85 text --
+					86 cell
+						87 text Folder
+					88 cell
+						89 text 2026年10月1日 13:02
+				90 row (selectable, collapsed) Secondary Actions: Expand
+					91 cell Secondary Actions: Open Finder item
+						92 image
+						93 text field (settable) URL: file:///Users/willm/Projects/, Value: Projects, Secondary Actions: Open Finder item
+					94 cell
+						95 text --
+					96 cell
+						97 text Folder
+					98 cell
+						99 text 2026年9月28日 23:25
+				100 row (selectable, collapsed) Secondary Actions: Expand
+					101 cell Secondary Actions: Open Finder item
+						102 image
+						103 text field (settable) URL: file:///Users/willm/Downloads/, Value: Downloads, Secondary Actions: Open Finder item
+					104 cell
+						105 text --
+					106 cell
+						107 text Folder
+					108 cell
+						109 text 2026年9月28日 21:13
+				110 row (selectable, collapsed) Secondary Actions: Expand
+					111 cell Secondary Actions: Open Finder item
+						112 image
+						113 text field (settable) URL: file:///Users/willm/Documents/, Value: Documents, Secondary Actions: Open Finder item
+					114 cell
+						115 text --
+					116 cell
+						117 text Folder
+					118 cell
+						119 text 2026年9月28日 21:13
+				120 row (selectable, collapsed) Secondary Actions: Expand
+					121 cell Secondary Actions: Open Finder item
+						122 image
+						123 text field (settable) URL: file:///Users/willm/Movies/, Value: Movies, Secondary Actions: Open Finder item
+					124 cell
+						125 text --
+					126 cell
+						127 text Folder
+					128 cell
+						129 text 2026年9月28日 21:13
+				130 row (selectable, collapsed) Secondary Actions: Expand
+					131 cell Secondary Actions: Open Finder item
+						132 image
+						133 text field (settable) URL: file:///Users/willm/Public/, Value: Public, Secondary Actions: Open Finder item
+					134 cell
+						135 text --
+					136 cell
+						137 text Folder
+					138 cell
+						139 text 2026年9月28日 21:13
+				140 row (selectable, collapsed) Secondary Actions: Expand
+					141 cell Secondary Actions: Open Finder item
+						142 image
+						143 text field (settable) URL: file:///Users/willm/Desktop/, Value: Desktop, Secondary Actions: Open Finder item
+					144 cell
+						145 text --
+					146 cell
+						147 text Folder
+					148 cell
+						149 text 2026年9月28日 21:13
+				150 row (selectable, collapsed) Secondary Actions: Expand
+					151 cell Secondary Actions: Open Finder item
+						152 image
+						153 text field (settable) URL: file:///Users/willm/Pictures/, Value: Pictures, Secondary Actions: Open Finder item
+					154 cell
+						155 text --
+					156 cell
+						157 text Folder
+					158 cell
+						159 text 2026年9月28日 21:13
+				160 row (selectable, collapsed) Secondary Actions: Expand
+					161 cell Secondary Actions: Open Finder item
+						162 image
+						163 text field (settable) URL: file:///Users/willm/Music/, Value: Music, Secondary Actions: Open Finder item
+					164 cell
+						165 text --
+					166 cell
+						167 text Folder
+					168 cell
+						169 text 2026年9月28日 21:13
+				170 container ListViewHeader
+					171 button Description: Other, ID: name
+					172 button Description: Size, ID: size
+					173 button Description: Kind, ID: kind
+					174 button Description: Date Added, Value: AXDescendingSortDirection, ID: dateAdded
+		175 container
+			176 button (disabled) back
+			177 button (disabled) forward
+		178 menu button Description: List, Help: Show as Icons, List, or Columns, and hide/show the sidebar, ID: View Options
+		179 menu button Description: Three-by-one square grid below a one-by-two line grid, Help: Change the item grouping (hold down Option to change the sort), ID: Group or Sort By
+		180 pop up button Where:, Value: willm, ID: where popup
+		181 search text field Search
+			182 button search
+		183 button New Folder, ID: NewFolderButton
+		184 button Cancel, ID: CancelButton
+		185 button (disabled) Open, ID: OKButton
+186 menu bar
+	187 JoyWord Ribbon Audit
+	188 View
+
+The focused UI element is 38 outline Description: list view, ID: ListView

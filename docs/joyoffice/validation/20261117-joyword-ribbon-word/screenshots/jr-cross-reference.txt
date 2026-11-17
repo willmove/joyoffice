@@ -1,0 +1,78 @@
+Window: "* 未命名 1 — JoyWord", App: JoyWord Ribbon Audit.
+0 standard window * 未命名 1 — JoyWord, Secondary Actions: Raise
+	1 container
+		2 button 新建
+		3 button 打开
+		4 button 保存
+		5 button 撤销
+		6 button (disabled) 重做
+		7 button 搜索命令
+		8 button EN
+		9 button 切换外观
+		10 tab group 功能区
+			11 tab (settable, boolean) 文件, Value: off
+			12 tab (settable, boolean) 开始, Value: off
+			13 tab (settable, boolean) 插入, Value: off
+			14 tab (settable, boolean) 绘图, Value: off
+			15 tab (settable, boolean) 设计, Value: off
+			16 tab (settable, boolean) 布局, Value: off
+			17 tab (settable, boolean) 引用, Value: on
+			18 tab (settable, boolean) 邮件, Value: off
+			19 tab (settable, boolean) 审阅, Value: off
+			20 tab (settable, boolean) 视图, Value: off
+			21 tab (settable, boolean) 帮助, Value: off
+			22 tab (settable, boolean) 开发工具, Value: off
+			23 button 折叠或展开功能区, Help: Ctrl+F1
+		24 container 目录
+			25 button 目录
+			26 button 添加文字
+			27 button 更新目录
+		28 container 脚注
+			29 button 插入脚注
+			30 button 插入尾注
+			31 button 下一条脚注
+			32 button 显示备注
+			33 button 脚注和尾注设置
+		34 container 引文与书目
+			35 button 插入引文
+			36 button 管理源
+			37 button 样式
+			38 button 书目
+		39 container 题注
+			40 button 插入题注
+			41 button 插入表目录
+			42 button 更新表格
+			43 button 交叉引用
+		44 container 索引
+			45 button 标记索引项
+			46 button 插入索引
+			47 button 更新索引
+		48 container 引文目录
+			49 button 标记引文
+			50 button 插入引文目录
+			51 button 更新引文目录
+		52 button 上一页
+		53 button 下一页
+		54 text entry area (settable) 文档正文, Help: 随光标读取段落。用方向键或翻页键浏览。, Value: 
+			55 container 水平标尺（只读）
+			56 container 水平标尺（只读）
+			57 container 水平标尺（只读）
+			58 container 水平标尺（只读）
+		59 button 关闭
+		60 button −
+		61 button 100%
+		62 button +
+		63 dialog
+			64 text field (settable) 类型（heading / bookmark / figure / table / label:图）, Value: heading, Placeholder: 留空保持原值
+			65 text field (settable) 目标文字 / 名称 / 编号, Placeholder: 留空保持原值
+			66 text field (settable) 内容（text / page / number / aboveBelow）, Value: text, Placeholder: 留空保持原值
+			67 button 取消
+			68 button 应用
+			69 button Close
+	70 text * 未命名 1 — JoyWord
+	71 menu button Window sharing
+72 menu bar
+	73 JoyWord Ribbon Audit
+	74 View
+
+The focused UI element is 0 standard window * 未命名 1 — JoyWord, Secondary Actions: Raise

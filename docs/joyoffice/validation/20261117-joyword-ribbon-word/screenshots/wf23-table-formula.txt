@@ -1,0 +1,30 @@
+Window: "公式", App: Microsoft Word.
+0 对话框 公式, Secondary Actions: Raise
+	1 文本 公式:
+	2 文本栏 (settable) =
+	3 文本 编号格式:
+	4 组合框 (settable) Secondary Actions: Confirm
+		5 按钮
+	6 文本 粘贴函数:
+	7 弹出式按钮
+	8 文本 粘贴书签:
+	9 按钮 取消
+	10 按钮 (disabled) 确定
+	11 文本 公式
+12 menu bar
+	13 Word, ID: AppMenu_MenuItem
+	14 文件
+	15 编辑, ID: EditMenu_MenuItem
+	16 视图, ID: ViewMenu_MenuItem
+	17 插入
+	18 格式
+	19 工具
+	20 表格
+	21 窗口, ID: WindowMenu_MenuItem
+	22 帮助, ID: HelpMenu_MenuItem
+
+Selected text: ```
+=
+```
+
+Note: Pay special attention to the content selected by the user. If the user asks a question or refers to the content they are looking at on-screen, they might be referring to the selected content (but they might be referring to something else that's visible, too).

@@ -1,0 +1,93 @@
+{
+  "schema": 1,
+  "date": "2026-11-17",
+  "base_commit": "eb551e36622c32feaebcdb029d1b06abb26aea26",
+  "branch": "feat/joyword-ribbon-native-audit",
+  "platform": "macOS 27.2.1 (26B131), arm64",
+  "rust": "1.98.1",
+  "joyword": "0.2.0, debug build --locked -p joyword, isolated temporary app wrapper",
+  "word": "16.115 (16.115.26110837)",
+  "control_rows": 376,
+  "evidence_levels": {
+    "CLICKED": 317,
+    "DISABLED_OBSERVED": 38,
+    "VALUE_APPLIED": 4,
+    "TOGGLED": 17
+  },
+  "tabs": {
+    "文件": {
+      "CLICKED": 37,
+      "TOGGLED": 8
+    },
+    "开始": {
+      "CLICKED": 53
+    },
+    "插入": {
+      "CLICKED": 24,
+      "DISABLED_OBSERVED": 5
+    },
+    "绘图": {
+      "CLICKED": 17,
+      "DISABLED_OBSERVED": 4
+    },
+    "设计": {
+      "CLICKED": 15,
+      "DISABLED_OBSERVED": 2
+    },
+    "布局": {
+      "CLICKED": 19,
+      "VALUE_APPLIED": 4,
+      "DISABLED_OBSERVED": 6
+    },
+    "引用": {
+      "CLICKED": 22
+    },
+    "邮件": {
+      "CLICKED": 21,
+      "DISABLED_OBSERVED": 1
+    },
+    "审阅": {
+      "CLICKED": 23,
+      "DISABLED_OBSERVED": 6
+    },
+    "视图": {
+      "CLICKED": 13,
+      "DISABLED_OBSERVED": 6,
+      "TOGGLED": 3
+    },
+    "帮助": {
+      "CLICKED": 3
+    },
+    "开发工具": {
+      "CLICKED": 6
+    },
+    "图片格式": {
+      "CLICKED": 23,
+      "DISABLED_OBSERVED": 4
+    },
+    "表设计": {
+      "TOGGLED": 6,
+      "CLICKED": 11,
+      "DISABLED_OBSERVED": 1
+    },
+    "表布局": {
+      "CLICKED": 30,
+      "DISABLED_OBSERVED": 3
+    }
+  },
+  "captures": 513,
+  "accepted_captures": 510,
+  "word_captures": 96,
+  "raw_action_records": 358,
+  "code_changed": false,
+  "word_followup_blocker": null,
+  "limitations": [
+    "CLICKED proves an entry/action was exercised, not all feature semantics or persistence.",
+    "Dropdown descendants were inspected, with representative options applied. No Cartesian coverage of every preset/selection/document state.",
+    "JoyWord one-row synthetic mail merge only; Word two-row traversal, local merged output and package XML verified. No actual printing or end-to-end cross-application mail merge compatibility acceptance.",
+    "No screen reader, IME, Windows/Linux, signed release bundle or performance acceptance."
+  ],
+  "word_related_excel_captures": 2,
+  "word_followup_observations": 66,
+  "word_followup_status": "Recovered after user confirmed Word was usable and app was rebound. 7 groups of Mailings/Review/View/table/picture/object/header comparisons completed at the scopes recorded in README; chart Select Data opened an Excel dialog, handled by selecting that app."
+}

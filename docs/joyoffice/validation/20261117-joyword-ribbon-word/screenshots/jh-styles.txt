@@ -1,0 +1,114 @@
+Window: "* 未命名 1 — JoyWord", App: JoyWord Ribbon Audit.
+0 standard window * 未命名 1 — JoyWord, Secondary Actions: Raise
+	1 container
+		2 button 新建
+		3 button 打开
+		4 button 保存
+		5 button 撤销
+		6 button (disabled) 重做
+		7 button 搜索命令
+		8 button EN
+		9 button 切换外观
+		10 tab group 功能区
+			11 tab (settable, boolean) 文件, Value: off
+			12 tab (settable, boolean) 开始, Value: on
+			13 tab (settable, boolean) 插入, Value: off
+			14 tab (settable, boolean) 绘图, Value: off
+			15 tab (settable, boolean) 设计, Value: off
+			16 tab (settable, boolean) 布局, Value: off
+			17 tab (settable, boolean) 引用, Value: off
+			18 tab (settable, boolean) 邮件, Value: off
+			19 tab (settable, boolean) 审阅, Value: off
+			20 tab (settable, boolean) 视图, Value: off
+			21 tab (settable, boolean) 帮助, Value: off
+			22 button 折叠或展开功能区, Help: Ctrl+F1
+		23 container 剪贴板
+			24 button 粘贴
+			25 button 粘贴选项
+			26 button 剪切
+			27 button 复制
+			28 button 格式刷
+			29 button 格式刷选项
+		30 container 字体
+			31 pop up button (settable) 字体选择, Value: Aptos
+			32 button 字号
+			33 button 增大字号
+			34 button 减小字号
+			35 button 更改大小写
+			36 button 清除所有格式
+			37 button 拼音指南
+			38 button 带圈字符
+			39 button 加粗 (Ctrl+B)
+			40 button 倾斜 (Ctrl+I)
+			41 button 下划线 (Ctrl+U)
+			42 button 下划线样式
+			43 button 删除线
+			44 button 下标
+			45 button 上标
+			46 button 文本效果和版式
+			47 button 文本突出显示颜色
+			48 button 字体颜色
+			49 button 字体设置
+		50 container 段落
+			51 button 项目符号
+			52 button 项目符号
+			53 button 编号
+			54 button 编号
+			55 button 多级列表
+			56 button 减少缩进
+			57 button 增加缩进
+			58 button 排序
+			59 button 显示／隐藏格式标记
+			60 button 左对齐 (Ctrl+L)
+			61 button 居中 (Ctrl+E)
+			62 button 右对齐 (Ctrl+R)
+			63 button 两端对齐 (Ctrl+J)
+			64 button 分散对齐
+			65 button 行距
+			66 button 底纹
+			67 button 边框
+			68 button 分页选项
+			69 button 段落设置
+		70 container 样式
+			71 button 正文
+			72 button 无间隔
+			73 button 标题 1
+			74 button 更多样式
+			75 button 样式窗格
+		76 container 编辑
+			77 button 查找
+			78 button 查找选项
+			79 button 替换
+			80 button 选择
+		81 button 上一页
+		82 button 下一页
+		83 text entry area 文档正文, Help: 随光标读取段落。用方向键或翻页键浏览。
+			84 container 水平标尺（只读）
+		85 button −
+		86 button 100%
+		87 button +
+		88 dialog
+			89 button 正文
+			90 button 无间隔
+			91 button 标题 1
+			92 button 标题 2
+			93 button Heading 3
+			94 button Title
+			95 button Subtitle
+			96 button Subtle Emphasis
+			97 button Emphasis
+			98 button Intense Emphasis
+			99 button Strong
+			100 button Quote
+			101 button Intense Quote
+			102 button Subtle Reference
+			103 button Intense Reference
+			104 button Book Title
+			105 button List Paragraph
+	106 text * 未命名 1 — JoyWord
+	107 menu button Window sharing
+108 menu bar
+	109 JoyWord Ribbon Audit
+	110 View
+
+The focused UI element is 0 standard window * 未命名 1 — JoyWord, Secondary Actions: Raise

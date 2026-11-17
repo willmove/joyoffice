@@ -1,0 +1,45 @@
+Window: "排序文字", App: Microsoft Word.
+0 对话框 排序文字, Secondary Actions: Raise
+	1 文本 第一排序依据
+	2 组合框 (settable) Value: 段落数, Secondary Actions: Confirm
+		3 按钮
+	4 文本 类型:
+	5 弹出式按钮 拼音
+	6 单选按钮 升序, Value: 1
+	7 单选按钮 降序, Value: 0
+	8 文本 第二排序依据
+	9 组合框 (disabled) Secondary Actions: Confirm
+	10 文本 类型:
+	11 弹出式按钮 (disabled) 拼音
+	12 单选按钮 (disabled) 升序, Value: 1
+	13 单选按钮 (disabled) 降序, Value: 0
+	14 文本 第三排序依据
+	15 组合框 (disabled) Secondary Actions: Confirm
+	16 文本 类型:
+	17 弹出式按钮 (disabled) 拼音
+	18 单选按钮 (disabled) 升序, Value: 1
+	19 单选按钮 (disabled) 降序, Value: 0
+	20 文本 列表
+	21 单选按钮 (disabled) 无标题行, Value: 1
+	22 单选按钮 (disabled) 有标题行, Value: 0
+	23 按钮 选项...
+	24 按钮 确定
+	25 按钮 取消
+	26 文本 排序文字
+27 menu bar
+	28 Word, ID: AppMenu_MenuItem
+	29 文件
+	30 编辑, ID: EditMenu_MenuItem
+	31 视图, ID: ViewMenu_MenuItem
+	32 插入
+	33 格式
+	34 工具
+	35 表格
+	36 窗口, ID: WindowMenu_MenuItem
+	37 帮助, ID: HelpMenu_MenuItem
+
+Selected text: ```
+段落数
+```
+
+Note: Pay special attention to the content selected by the user. If the user asks a question or refers to the content they are looking at on-screen, they might be referring to the selected content (but they might be referring to something else that's visible, too).

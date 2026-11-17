@@ -1,0 +1,73 @@
+Window: "索引", App: Microsoft Word.
+0 对话框 索引, Secondary Actions: Raise
+	1 标签页组
+		2 标签 索引, Value: 1
+		3 标签 目录, Value: 0
+		4 标签 图表目录, Value: 0
+		5 标签 引文目录, Value: 0
+		6 文本 类型
+		7 单选按钮 缩进式, Value: 1
+		8 单选按钮 接排式, Value: 0
+		9 文本 格式:
+		10 滚动区 Secondary Actions: Scroll Up, Scroll Down
+			11 表格
+				12 row (selected)
+					13 文本 来自模板
+				14 row (selectable)
+					15 文本 古典
+				16 row (selectable)
+					17 文本 流行
+				18 row (selectable)
+					19 文本 现代
+				20 row (selectable)
+					21 文本 项目符号
+				22 row (selectable)
+					23 文本 正式
+				24 row (selectable)
+					25 文本 简单
+				26 栏 (selectable) AutomaticTableColumnIdentifier.0
+			27 滚动条 (settable, float) 0
+				28 值指示器 (settable, float) 0
+				29 增箭头按钮
+				30 减箭头按钮
+				31 增页面按钮
+				32 减页面按钮
+		33 弹出式按钮 (disabled) 无
+		34 文本 列:
+		35 文本栏 (settable) 2
+		36 步进器 Value: 0, Secondary Actions: Increment, Decrement
+			37 增箭头按钮
+			38 减箭头按钮
+		39 复选框 用于重音字母的标题, Value: 0
+		40 复选框 页码右对齐, Value: 0
+		41 文本 制表符前导符:
+		42 弹出式按钮 (disabled) .......
+		43 按钮 修改...
+		44 按钮 自动标记...
+		45 按钮 标记索引项...
+		46 container
+			47 滚动条 (settable, float) 0
+				48 值指示器 (settable, float) 0
+				49 增箭头按钮
+				50 减箭头按钮
+				51 增页面按钮
+				52 减页面按钮
+	53 按钮 确定
+	54 按钮 取消
+	55 文本 索引
+56 menu bar
+	57 Word, ID: AppMenu_MenuItem
+	58 文件
+	59 编辑, ID: EditMenu_MenuItem
+	60 视图, ID: ViewMenu_MenuItem
+	61 插入
+	62 格式
+	63 工具
+	64 表格
+	65 窗口, ID: WindowMenu_MenuItem
+	66 帮助, ID: HelpMenu_MenuItem
+
+Selected:
+	12 row (selected)
+
+Note: Pay special attention to the content selected by the user. If the user asks a question or refers to the content they are looking at on-screen, they might be referring to the selected content (but they might be referring to something else that's visible, too).

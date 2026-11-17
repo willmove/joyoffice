@@ -1,0 +1,36 @@
+Window: "拼音指南", App: Microsoft Word.
+0 对话框 拼音指南, Secondary Actions: Raise
+	1 文本 拼音文字
+	2 container
+		3 文本栏 (settable) 。
+		4 文本栏 (settable)
+	5 text 字体 字体:
+	6 弹出式按钮 DengXian
+	7 文本 字号:
+	8 组合框 (settable) Value: 5.5, Secondary Actions: Confirm
+		9 按钮
+	10 文本 对齐方式
+	11 弹出式按钮 1-2-1
+	12 文本 拼音文字距离
+	13 文本栏 (settable) 0
+	14 步进器 Value: 0, Secondary Actions: Increment, Decrement
+		15 增箭头按钮
+		16 减箭头按钮
+	17 文本 1-2-1 分布示例
+	18 按钮 (disabled) 删除
+	19 按钮 确定
+	20 按钮 取消
+	21 文本 拼音指南
+22 menu bar
+	23 Word, ID: AppMenu_MenuItem
+	24 文件
+	25 编辑, ID: EditMenu_MenuItem
+	26 视图, ID: ViewMenu_MenuItem
+	27 插入
+	28 格式
+	29 工具
+	30 表格
+	31 窗口, ID: WindowMenu_MenuItem
+	32 帮助, ID: HelpMenu_MenuItem
+
+The focused UI element is 4 文本栏 (settable)

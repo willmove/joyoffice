@@ -1,0 +1,213 @@
+Window: "Open", App: JoyWord Ribbon Audit.
+0 standard window Open, ID: open-panel, Secondary Actions: Raise
+	1 split group
+		2 scroll area Secondary Actions: Scroll Up, Scroll Down
+			3 outline sidebar
+				4 row (selectable) Description: clock, Value: Recents
+				5 row (selectable) Description: Two people, Value: Shared
+				6 row (selectable, expanded) Value: Favorites, Secondary Actions: Collapse
+				7 row (selectable) Description: App Store letter A icon, Value: Applications
+				8 row (selectable) Description: Menu bar with dock on a rectangle, Value: Desktop
+				9 row (selectable) Description: Document page, Value: Documents
+				10 row (selectable) Description: Arrow Down Circle, Value: Downloads
+				11 row (selectable, expanded) Value: Locations, Secondary Actions: Collapse
+				12 row (selectable) Description: iCloud, Value: iCloud Drive
+				13 row (selectable) Description: home, Value: willm
+				14 row (selectable) Description: Internal hard drive, Value: Macintosh HD
+				15 row (selectable) Eject, Value: Vault, Description: External hard drive
+eject
+				16 row (selectable) Description: Network nodes connected by lines, Value: Network
+				17 row (selectable, expanded) Value: Tags, Secondary Actions: Collapse
+				18 row (selectable) Description: Small circle badge, filled, Value: 红色
+				19 row (selectable) Description: Small circle badge, filled, Value: 橙色
+				20 row (selectable) Description: Small circle badge, filled, Value: 黄色
+				21 row (selectable) Description: Small circle badge, filled, Value: 绿色
+				22 row (selectable) Description: Small circle badge, filled, Value: 蓝色
+				23 row (selectable) Description: Small circle badge, filled, Value: 紫色
+				24 row (selectable) Description: Small circle badge, filled, Value: 灰色
+				25 row (selectable) Description: Two small circle badges, Value: All Tags…
+				26 row (selectable, expanded) Value: Media, Secondary Actions: Collapse
+				27 row (selectable) Description: Music note, Value: Music
+				28 row (selectable) Description: photo, Value: Photos
+				29 row (selectable) Description: movie, Value: Movies
+			30 scroll bar (settable, float) 0
+				31 value indicator (settable, float) 0
+				32 increment arrow button
+				33 decrement arrow button
+				34 increment page button
+				35 decrement page button
+		36 splitter (disabled, settable, float) 159
+		37 scroll area Secondary Actions: Scroll Up, Scroll Down
+			38 outline Description: list view, ID: ListView (showing 1-16 of 100 items)
+				39 row (selectable)
+					40 cell Secondary Actions: Open Finder item
+						41 image
+						42 text field (settable) Value: wr-index.png, Secondary Actions: Open Finder item, URL: file:///Users/willm/Coding/joyoffice/docs/joyoffice/validation/20261117-joyword-ribbon-word/screenshots/wr-index.png
+					43 cell
+						44 text 43 KB
+					45 cell
+						46 text PNG image
+					47 cell
+						48 text 今天 11:56
+				49 row (selectable)
+					50 cell Secondary Actions: Open Finder item
+						51 image
+						52 text field (settable) Value: wr-figures.png, Secondary Actions: Open Finder item, URL: file:///Users/willm/Coding/joyoffice/docs/joyoffice/validation/20261117-joyword-ribbon-word/screenshots/wr-figures.png
+					53 cell
+						54 text 47 KB
+					55 cell
+						56 text PNG image
+					57 cell
+						58 text 今天 11:56
+				59 row (selectable)
+					60 cell Secondary Actions: Open Finder item
+						61 image
+						62 text field (settable) Value: wr-caption.png, Secondary Actions: Open Finder item, URL: file:///Users/willm/Coding/joyoffice/docs/joyoffice/validation/20261117-joyword-ribbon-word/screenshots/wr-caption.png
+					63 cell
+						64 text 22 KB
+					65 cell
+						66 text PNG image
+					67 cell
+						68 text 今天 11:56
+				69 row (selectable)
+					70 cell Secondary Actions: Open Finder item
+						71 image
+						72 text field (settable) Value: wr-citation.png, Secondary Actions: Open Finder item, URL: file:///Users/willm/Coding/joyoffice/docs/joyoffice/validation/20261117-joyword-ribbon-word/screenshots/wr-citation.png
+					73 cell
+						74 text 35 KB
+					75 cell
+						76 text PNG image
+					77 cell
+						78 text 今天 11:55
+				79 row (selectable)
+					80 cell Secondary Actions: Open Finder item
+						81 image
+						82 text field (settable) Value: wd-page-borders.png, Secondary Actions: Open Finder item, URL: file:///Users/willm/Coding/joyoffice/docs/joyoffice/validation/20261117-joyword-ribbon-word/screenshots/wd-page-borders.png
+					83 cell
+						84 text 47 KB
+					85 cell
+						86 text PNG image
+					87 cell
+						88 text 今天 11:55
+				89 row (selectable)
+					90 cell Secondary Actions: Open Finder item
+						91 image
+						92 text field (settable) Value: wd-watermark.png, Secondary Actions: Open Finder item, URL: file:///Users/willm/Coding/joyoffice/docs/joyoffice/validation/20261117-joyword-ribbon-word/screenshots/wd-watermark.png
+					93 cell
+						94 text 58 KB
+					95 cell
+						96 text PNG image
+					97 cell
+						98 text 今天 11:55
+				99 row (selectable)
+					100 cell Secondary Actions: Open Finder item
+						101 image
+						102 text field (settable) Value: wd-theme.png, Secondary Actions: Open Finder item, URL: file:///Users/willm/Coding/joyoffice/docs/joyoffice/validation/20261117-joyword-ribbon-word/screenshots/wd-theme.png
+					103 cell
+						104 text 162 KB
+					105 cell
+						106 text PNG image
+					107 cell
+						108 text 今天 11:55
+				109 row (selectable)
+					110 cell Secondary Actions: Open Finder item
+						111 image
+						112 text field (settable) Value: wl-columns-dialog.png, Secondary Actions: Open Finder item, URL: file:///Users/willm/Coding/joyoffice/docs/joyoffice/validation/20261117-joyword-ribbon-word/screenshots/wl-columns-dialog.png
+					113 cell
+						114 text 38 KB
+					115 cell
+						116 text PNG image
+					117 cell
+						118 text 今天 11:55
+				119 row (selectable)
+					120 cell Secondary Actions: Open Finder item
+						121 image
+						122 text field (settable) Value: wl-columns.png, Secondary Actions: Open Finder item, URL: file:///Users/willm/Coding/joyoffice/docs/joyoffice/validation/20261117-joyword-ribbon-word/screenshots/wl-columns.png
+					123 cell
+						124 text 111 KB
+					125 cell
+						126 text PNG image
+					127 cell
+						128 text 今天 11:55
+				129 row (selectable)
+					130 cell Secondary Actions: Open Finder item
+						131 image
+						132 text field (settable) Value: wl-margins.png, Secondary Actions: Open Finder item, URL: file:///Users/willm/Coding/joyoffice/docs/joyoffice/validation/20261117-joyword-ribbon-word/screenshots/wl-margins.png
+					133 cell
+						134 text 127 KB
+					135 cell
+						136 text PNG image
+					137 cell
+						138 text 今天 11:55
+				139 row (selectable)
+					140 cell Secondary Actions: Open Finder item
+						141 image
+						142 text field (settable) Value: wi-header.png, Secondary Actions: Open Finder item, URL: file:///Users/willm/Coding/joyoffice/docs/joyoffice/validation/20261117-joyword-ribbon-word/screenshots/wi-header.png
+					143 cell
+						144 text 127 KB
+					145 cell
+						146 text PNG image
+					147 cell
+						148 text 今天 11:55
+				149 row (selectable)
+					150 cell Secondary Actions: Open Finder item
+						151 image
+						152 text field (settable) Value: wi-dropcap.png, Secondary Actions: Open Finder item, URL: file:///Users/willm/Coding/joyoffice/docs/joyoffice/validation/20261117-joyword-ribbon-word/screenshots/wi-dropcap.png
+					153 cell
+						154 text 117 KB
+					155 cell
+						156 text PNG image
+					157 cell
+						158 text 今天 11:55
+				159 row (selectable)
+					160 cell Secondary Actions: Open Finder item
+						161 image
+						162 text field (settable) Value: wi-datetime.png, Secondary Actions: Open Finder item, URL: file:///Users/willm/Coding/joyoffice/docs/joyoffice/validation/20261117-joyword-ribbon-word/screenshots/wi-datetime.png
+					163 cell
+						164 text 34 KB
+					165 cell
+						166 text PNG image
+					167 cell
+						168 text 今天 11:55
+				169 row (selectable)
+					170 cell Secondary Actions: Open Finder item
+						171 image
+						172 text field (settable) Value: wi-cross-reference.png, Secondary Actions: Open Finder item, URL: file:///Users/willm/Coding/joyoffice/docs/joyoffice/validation/20261117-joyword-ribbon-word/screenshots/wi-cross-reference.png
+					173 cell
+						174 text 21 KB
+					175 cell
+						176 text PNG image
+					177 cell
+						178 text 今天 11:55
+				179 row (selectable)
+					180 cell Secondary Actions: Open Finder item
+						181 image
+						182 text field (settable) Value: wi-bookmark.png, Secondary Actions: Open Finder item, URL: file:///Users/willm/Coding/joyoffice/docs/joyoffice/validation/20261117-joyword-ribbon-word/screenshots/wi-bookmark.png
+					183 cell
+						184 text 14 KB
+					185 cell
+						186 text PNG image
+					187 cell
+						188 text 今天 11:55
+			189 scroll bar (settable, float) 0
+				190 value indicator (settable, float) 0
+				191 increment arrow button
+				192 decrement arrow button
+				193 increment page button
+				194 decrement page button
+		195 container
+			196 button (disabled) back
+			197 button (disabled) forward
+		198 menu button Description: List, Help: Show as Icons, List, or Columns, and hide/show the sidebar, ID: View Options
+		199 menu button Description: Three-by-one square grid below a one-by-two line grid, Help: Change the item grouping (hold down Option to change the sort), ID: Group or Sort By
+		200 pop up button Where:, Value: screenshots, ID: where popup
+		201 search text field Search
+			202 button search
+		203 button New Folder, ID: NewFolderButton
+		204 button Cancel, ID: CancelButton
+		205 button (disabled) 选择图片, ID: OKButton
+206 menu bar
+	207 JoyWord Ribbon Audit
+	208 View
+
+The focused UI element is 38 outline Description: list view, ID: ListView

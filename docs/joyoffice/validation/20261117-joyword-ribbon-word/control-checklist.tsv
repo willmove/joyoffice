@@ -1,0 +1,377 @@
+tab	subpage	control	role	occurrence	baseline_disabled	evidence_level	observed_response	word_comparison_depth	word_evidence	word_additional_evidence	finding_ids	recommendation	evidence_files
+文件	Ribbon	返回文档	button	1	false	CLICKED	入口已操作；具体状态见截图	本轮未完成对应控件的Word操作				保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jf-back.png
+文件	Ribbon	开始	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	本轮未完成对应控件的Word操作				保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jf-start.png
+文件	Ribbon	新建	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	本轮未完成对应控件的Word操作				保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jf-new.png
+文件	Ribbon	打开	button	1	false	CLICKED	出现原生文件选择器；此入口检查并取消	本轮未完成对应控件的Word操作				保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jf-open.png;screenshots/jf-browse.png
+文件	Ribbon	信息	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	本轮未完成对应控件的Word操作				保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jf-info.png
+文件	Ribbon	恢复	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	本轮未完成对应控件的Word操作				保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jf-recovery.png
+文件	Ribbon	保存	button	1	false	CLICKED	一个合成DOCX保存并重新打开；非所有保存路径验收	本轮未完成对应控件的Word操作				保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/j17-developer-enabled.png;screenshots/j63-saved-document-reopened.png
+文件	Ribbon	另存为	button	1	false	CLICKED	出现原生保存面板；此入口取消，未验证输出产物	本轮未完成对应控件的Word操作				保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jf-save-as.png
+文件	Ribbon	导出	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	本轮未完成对应控件的Word操作				保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jf-export.png
+文件	Ribbon	关闭	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	本轮未完成对应控件的Word操作				保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jf-close.png
+文件	Ribbon	关于	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	本轮未完成对应控件的Word操作				保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jf-about.png
+文件	Ribbon	选项	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	本轮未完成对应控件的Word操作				保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jf-options.png
+文件	Ribbon	空白文档	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	本轮未完成对应控件的Word操作				保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jf-template-blank.png
+文件	Ribbon	工作室手册（示例）	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	本轮未完成对应控件的Word操作				保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jf-template-handbook.png
+文件	Ribbon	信函	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	本轮未完成对应控件的Word操作				保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jf-letter-template.png;screenshots/j64-letter-template-verified.png
+文件	Ribbon	简历	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	本轮未完成对应控件的Word操作				保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jf-template-resume.png
+文件	Ribbon	更多模板	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	本轮未完成对应控件的Word操作				保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jf-more-templates.png
+开始	Ribbon	粘贴	button	1	false	CLICKED	剪切后的合成正文恢复	仅选项卡基线，未逐参数对照	screenshots/w01-home.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jh-paste.png
+开始	Ribbon	粘贴选项	button	1	false	CLICKED	弹窗/菜单含：保留源格式；合并格式；只保留文本	仅选项卡基线，未逐参数对照	screenshots/w01-home.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jh-paste-options.png
+开始	Ribbon	剪切	button	1	true	CLICKED	合成正文被移除	仅选项卡基线，未逐参数对照	screenshots/w01-home.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jh-cut.png
+开始	Ribbon	复制	button	1	true	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/w01-home.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jh-copy.png
+开始	Ribbon	格式刷	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/w01-home.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jh-format-painter.png
+开始	Ribbon	格式刷选项	button	1	false	CLICKED	弹窗/菜单含：连续格式刷	仅选项卡基线，未逐参数对照	screenshots/w01-home.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jh-format-painter-options.png
+开始	Ribbon	字体选择	pop up button	1	false	CLICKED	入口已操作；具体状态见截图	仅选项卡基线，未逐参数对照	screenshots/w01-home.png		RIB-19	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jh-font-picker.png
+开始	Ribbon	字号	button	1	false	CLICKED	弹窗/菜单含：8；9；10；10.5；11；12；14；16；18；20；22；24；26；28；36；48	仅选项卡基线，未逐参数对照	screenshots/w01-home.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jh-size.png
+开始	Ribbon	增大字号	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/w01-home.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jh-grow.png
+开始	Ribbon	减小字号	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/w01-home.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jh-shrink.png
+开始	Ribbon	更改大小写	button	1	false	CLICKED	弹窗/菜单含：句首字母大写；小写；大写；每个单词首字母大写；切换大小写	仅选项卡基线，未逐参数对照	screenshots/w01-home.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jh-case.png
+开始	Ribbon	清除所有格式	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/w01-home.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jh-clear-format.png
+开始	Ribbon	拼音指南	button	1	false	CLICKED	弹窗/菜单含：拼音（留空删除） / Ruby text (blank removes)；对齐 / Alignment (center / left / right / distributeLetter / distributeSpace)；字号（磅） / Ruby size (pt)；偏移（磅） / Offset (pt)；应用	对应控件弹窗/菜单已操作	screenshots/wh-phonetic.png		RIB-01	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jh-phonetic.png
+开始	Ribbon	带圈字符	button	1	false	CLICKED	弹窗/菜单含：文字 / Text；形状 / Shape (circle / square / triangle / diamond / none)；样式 / Style (shrink / enlarge)；应用	对应控件弹窗/菜单已操作	screenshots/wh-enclosed.png		RIB-01	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jh-enclosed.png
+开始	Ribbon	加粗 (Ctrl+B)	button	1	false	CLICKED	选区文字加粗可见；仅本轮选区	仅选项卡基线，未逐参数对照	screenshots/w01-home.png		RIB-04;RIB-19	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/j05-bold.png
+开始	Ribbon	倾斜 (Ctrl+I)	button	1	false	CLICKED	选区文字倾斜可见；仅本轮选区	仅选项卡基线，未逐参数对照	screenshots/w01-home.png		RIB-04;RIB-19	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/j06-italic.png
+开始	Ribbon	下划线 (Ctrl+U)	button	1	false	CLICKED	选区下划线可见；仅本轮选区	仅选项卡基线，未逐参数对照	screenshots/w01-home.png		RIB-04;RIB-19	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/j07-underline.png
+开始	Ribbon	下划线样式	button	1	false	CLICKED	弹窗/菜单含：单线；双线；点线；波浪线	仅选项卡基线，未逐参数对照	screenshots/w01-home.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jh-underline-styles.png
+开始	Ribbon	删除线	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/w01-home.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jh-strike.png
+开始	Ribbon	下标	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/w01-home.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jh-subscript.png
+开始	Ribbon	上标	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/w01-home.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jh-superscript.png
+开始	Ribbon	文本效果和版式	button	1	false	CLICKED	弹窗/菜单含：文字轮廓；文字阴影	仅选项卡基线，未逐参数对照	screenshots/w01-home.png		RIB-06	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jh-text-effects.png
+开始	Ribbon	文本突出显示颜色	button	1	false	CLICKED	弹窗/菜单含：无颜色；黄色；绿色；粉色；青色	仅选项卡基线，未逐参数对照	screenshots/w01-home.png		RIB-06	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jh-highlight.png
+开始	Ribbon	字体颜色	button	1	false	CLICKED	弹窗/菜单含：自动；黑色；红色；蓝色；绿色；紫色	仅选项卡基线，未逐参数对照	screenshots/w01-home.png		RIB-06	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jh-font-color.png
+开始	Ribbon	字体设置	button	1	false	CLICKED	字号18应用于选区，见j09	对应控件弹窗/菜单已操作	screenshots/w02-font-dialog.png		RIB-05	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/j03-font-dialog.png;screenshots/j09-font-18-applied.png
+开始	Ribbon	项目符号	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/w01-home.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jh-bullets-primary.png
+开始	Ribbon	项目符号	button	2	false	CLICKED	弹窗/菜单含：•；○；▪；无	仅选项卡基线，未逐参数对照	screenshots/w01-home.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jh-bullets.png
+开始	Ribbon	编号	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/w01-home.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jh-numbering-primary.png
+开始	Ribbon	编号	button	2	false	CLICKED	弹窗/菜单含：1. 2. 3.；1) 2) 3)；A. B. C.；a. b. c.；i. ii. iii.	仅选项卡基线，未逐参数对照	screenshots/w01-home.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jh-numbering.png
+开始	Ribbon	多级列表	button	1	false	CLICKED	弹窗/菜单含：1. 1.1 1.1.1；I. A. 1.	仅选项卡基线，未逐参数对照	screenshots/w01-home.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jh-multilevel.png
+开始	Ribbon	减少缩进	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/w01-home.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jh-indent-less.png
+开始	Ribbon	增加缩进	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/w01-home.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jh-indent-more.png
+开始	Ribbon	排序	button	1	false	CLICKED	弹窗/菜单含：升序；降序	对应控件弹窗/菜单已操作	screenshots/wh-sort.png		RIB-08	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jh-sort.png
+开始	Ribbon	显示／隐藏格式标记	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/w01-home.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jh-show-marks.png
+开始	Ribbon	左对齐 (Ctrl+L)	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/w01-home.png		RIB-04	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jh-left.png
+开始	Ribbon	居中 (Ctrl+E)	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/w01-home.png		RIB-04	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jh-center.png
+开始	Ribbon	右对齐 (Ctrl+R)	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/w01-home.png		RIB-04	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jh-right.png
+开始	Ribbon	两端对齐 (Ctrl+J)	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/w01-home.png		RIB-04	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jh-justify.png
+开始	Ribbon	分散对齐	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/w01-home.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jh-distributed.png
+开始	Ribbon	行距	button	1	false	CLICKED	弹窗/菜单含：1；1.15；1.5；2；2.5；3	对应控件弹窗/菜单已操作	screenshots/wh-spacing.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jh-line-spacing.png
+开始	Ribbon	底纹	button	1	false	CLICKED	弹窗/菜单含：无底纹；浅蓝；浅黄；浅绿	仅选项卡基线，未逐参数对照	screenshots/w01-home.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jh-shading.png
+开始	Ribbon	边框	button	1	false	CLICKED	弹窗/菜单含：无边框；下边框；外边框；全部边框	仅选项卡基线，未逐参数对照	screenshots/w01-home.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jh-borders.png
+开始	Ribbon	分页选项	button	1	false	CLICKED	弹窗/菜单含：○ 与下段同页；○ 段中不分页；○ 段前分页；✓ 孤行控制	仅选项卡基线，未逐参数对照	screenshots/w01-home.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jh-pagination.png
+开始	Ribbon	段落设置	button	1	false	CLICKED	弹窗/菜单含：起始缩进（磅）；结束缩进（磅）；首行缩进（负数为悬挂）；段前间距（磅）；段后间距（磅）；行距（倍数 / exact:磅 / min:磅）；应用	仅选项卡基线，未逐参数对照	screenshots/w01-home.png		RIB-01;RIB-03	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jh-paragraph.png
+开始	Ribbon	正文	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/w01-home.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jh-normal.png
+开始	Ribbon	无间隔	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/w01-home.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jh-no-spacing.png
+开始	Ribbon	标题 1	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/w01-home.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jh-heading1.png
+开始	Ribbon	更多样式	button	1	false	CLICKED	弹窗/菜单含：正文；无间隔；标题 1；标题 2；Heading 3；Title；Subtitle；Subtle Emphasis；Emphasis；Intense Emphasis；Strong；Quote；Intense Quote；Subtle Reference；Intense Reference；Book Title	仅选项卡基线，未逐参数对照	screenshots/w01-home.png		RIB-07	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jh-styles.png
+开始	Ribbon	样式窗格	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/w01-home.png		RIB-07	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jh-styles-pane.png
+开始	Ribbon	查找	button	1	false	CLICKED	查询Test并列出2处匹配，见j20	仅选项卡基线，未逐参数对照	screenshots/w01-home.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jh-find.png
+开始	Ribbon	查找选项	button	1	false	CLICKED	弹窗/菜单含：转到页…；大纲导航…	仅选项卡基线，未逐参数对照	screenshots/w01-home.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jh-find-options.png
+开始	Ribbon	替换	button	1	false	CLICKED	Test全部替换为Sample，显示2处，见j21	仅选项卡基线，未逐参数对照	screenshots/w01-home.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jh-replace.png
+开始	Ribbon	选择	button	1	false	CLICKED	入口已操作；具体状态见截图	仅选项卡基线，未逐参数对照	screenshots/w01-home.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/j04-select-menu.png
+插入	Ribbon	封面	button	1	false	CLICKED	弹窗/菜单含：自定义封面…	仅选项卡基线，未逐参数对照	screenshots/wtab-插入.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/ji-cover.png
+插入	Ribbon	空白页	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-插入.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/ji-blank-page.png
+插入	Ribbon	分页	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-插入.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/ji-page-break.png
+插入	Ribbon	表格	button	1	false	CLICKED	2×2网格插入及行列扩展已观察	2×2表格插入及上下文已观察	screenshots/wf14-table-created.png	screenshots/wf13-insert-table.png		保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/ji-table.png
+插入	Ribbon	图片	button	1	false	CLICKED	PNG插入且图片格式上下文出现	同一PNG插入及上下文已观察	screenshots/wf25-picture-format.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/ji-picture.png
+插入	Ribbon	形状	button	1	false	CLICKED	预设矩形出现在页面；后续编辑未验	矩形拖出后上下文已观察；文字输入未通过	screenshots/wf39-shape-context.png		RIB-13	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/ji-shapes.png
+插入	Ribbon	图标	button	1	false	CLICKED	弹窗/菜单含：Arrow Right；Arrow Left；Arrow Up；Arrow Down；Refresh；Swap；Mail；Chat；Megaphone；Bell；Inbox；Document；Folder；Calendar；Clipboard；Pencil	仅选项卡基线，未逐参数对照	screenshots/wtab-插入.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/ji-icons.png
+插入	Ribbon	3D 模型	button	1	true	DISABLED_OBSERVED	所测状态禁用；未执行命令；不等同于永久缺失	仅选项卡基线，未逐参数对照	screenshots/wtab-插入.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jtab-插入.png
+插入	Ribbon	SmartArt	button	1	false	CLICKED	流程预设出现在页面；后续文字编辑未验	基本流程插入及文本/设计入口已观察；文字输入未通过	screenshots/wf31-smartart-context.png	screenshots/wf33-smartart-ribbon.png	RIB-13	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/ji-smartart.png
+插入	Ribbon	图表	button	1	false	CLICKED	柱形图预设出现在页面；数据编辑入口未发现	柱形图插入、数据源及Excel改值回写已验证	screenshots/wf54-chart-data-update-verified.png	screenshots/wf35-chart-insert.png;screenshots/wf36-chart-select-data.png;screenshots/wf37-chart-data-edited.png	RIB-13	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/ji-chart.png
+插入	Ribbon	屏幕截图	button	1	true	DISABLED_OBSERVED	所测状态禁用；未执行命令；不等同于永久缺失	仅选项卡基线，未逐参数对照	screenshots/wtab-插入.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jtab-插入.png
+插入	Ribbon	联机视频	button	1	true	DISABLED_OBSERVED	所测状态禁用；未执行命令；不等同于永久缺失	仅选项卡基线，未逐参数对照	screenshots/wtab-插入.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jtab-插入.png
+插入	Ribbon	链接	button	1	false	CLICKED	弹窗/菜单含：地址；显示文字（留空使用地址）；应用	对应控件弹窗/菜单已操作	screenshots/wi-link.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/ji-link.png
+插入	Ribbon	书签	button	1	false	CLICKED	弹窗/菜单含：书签名称；应用	对应控件弹窗/菜单已操作	screenshots/wi-bookmark.png		RIB-09	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/ji-bookmark.png
+插入	Ribbon	交叉引用	button	1	false	CLICKED	弹窗/菜单含：类型（heading / bookmark / figure / table / label:图）；目标文字 / 名称 / 编号；内容（text / page / number / aboveBelow）；应用	对应控件弹窗/菜单已操作	screenshots/wi-cross-reference.png		RIB-01;RIB-10	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/ji-cross-reference.png
+插入	Ribbon	批注	button	1	false	CLICKED	弹窗/菜单含：批注内容；应用	仅选项卡基线，未逐参数对照	screenshots/wtab-插入.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/ji-comment.png
+插入	Ribbon	页眉	button	1	false	CLICKED	弹窗/菜单含：空白；空白（三栏）；标题；编辑页眉；首页不同；奇偶页不同；删除页眉	页眉专用上下文及关闭返回正文已操作	screenshots/wf41-header-context.png	screenshots/wf42-header-closed.png	RIB-02	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/ji-header.png
+插入	Ribbon	页脚	button	1	false	CLICKED	弹窗/菜单含：空白；页码；编辑页脚；删除页脚	仅选项卡基线，未逐参数对照	screenshots/wtab-插入.png		RIB-02	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/ji-footer.png
+插入	Ribbon	页码	button	1	false	CLICKED	弹窗/菜单含：页面顶端；页面底端；当前位置	仅选项卡基线，未逐参数对照	screenshots/wtab-插入.png		RIB-02	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/ji-page-number.png
+插入	Ribbon	文本框	button	1	false	CLICKED	弹窗/菜单含：插入文本框…	仅选项卡基线，未逐参数对照	screenshots/wtab-插入.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/ji-textbox.png
+插入	Ribbon	文档部件	button	1	false	CLICKED	弹窗/菜单含：域…	仅选项卡基线，未逐参数对照	screenshots/wtab-插入.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/ji-docparts.png
+插入	Ribbon	艺术字	button	1	false	CLICKED	弹窗/菜单含：填充；轮廓；阴影	仅选项卡基线，未逐参数对照	screenshots/wtab-插入.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/ji-wordart.png
+插入	Ribbon	首字下沉	button	1	false	CLICKED	弹窗/菜单含：无；下沉；悬挂	对应控件弹窗/菜单已操作	screenshots/wi-dropcap.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/ji-dropcap.png
+插入	Ribbon	签名行	button	1	false	CLICKED	弹窗/菜单含：签名人；职务；应用	仅选项卡基线，未逐参数对照	screenshots/wtab-插入.png		RIB-01	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/ji-signature.png
+插入	Ribbon	日期和时间	button	1	false	CLICKED	弹窗/菜单含：格式（例如 yyyy-MM-dd）；自动更新（是 / 否）；应用	对应控件弹窗/菜单已操作	screenshots/wi-datetime.png		RIB-01;RIB-11	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/ji-datetime.png
+插入	Ribbon	对象	button	1	true	DISABLED_OBSERVED	所测状态禁用；未执行命令；不等同于永久缺失	仅选项卡基线，未逐参数对照	screenshots/wtab-插入.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jtab-插入.png
+插入	Ribbon	公式	button	1	false	CLICKED	弹窗/菜单含：输入公式…；勾股定理；一元二次方程	仅选项卡基线，未逐参数对照	screenshots/wtab-插入.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/ji-equation.png
+插入	Ribbon	符号	button	1	false	CLICKED	弹窗/菜单含：©；®；™；°；±；€；其他符号…	仅选项卡基线，未逐参数对照	screenshots/wtab-插入.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/ji-symbol.png
+插入	Ribbon	编号	button	1	true	DISABLED_OBSERVED	所测状态禁用；未执行命令；不等同于永久缺失	仅选项卡基线，未逐参数对照	screenshots/wtab-插入.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jtab-插入.png
+绘图	Ribbon	绘图	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-绘图.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jdraw-mode.png
+绘图	Ribbon	撤销	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-绘图.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jdraw-undo.png
+绘图	Ribbon	重做	button	1	true	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-绘图.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jdraw-redo.png
+绘图	Ribbon	选择	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-绘图.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jdraw-select.png
+绘图	Ribbon	套索选择	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-绘图.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jdraw-lasso.png
+绘图	Ribbon	橡皮擦	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-绘图.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jdraw-eraser.png
+绘图	Ribbon	黑色笔	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-绘图.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jdraw-black.png
+绘图	Ribbon	红色笔	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-绘图.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jdraw-red.png
+绘图	Ribbon	铅笔	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-绘图.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jdraw-pencil.png
+绘图	Ribbon	荧光笔	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-绘图.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jdraw-highlight.png
+绘图	Ribbon	蓝色笔	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-绘图.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jdraw-blue.png
+绘图	Ribbon	绿色笔	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-绘图.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jdraw-green.png
+绘图	Ribbon	添加笔	button	1	false	CLICKED	弹窗/菜单含：类型 / Kind (pen / pencil / highlighter)；颜色 / Color (RRGGBB)；粗细 / Width (pt)；应用	仅选项卡基线，未逐参数对照	screenshots/wtab-绘图.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jdraw-add-pen.png
+绘图	Ribbon	颜色和粗细	button	1	true	CLICKED	弹窗/菜单含：颜色 / Color (RRGGBB)；粗细 / Width (pt)；应用	仅选项卡基线，未逐参数对照	screenshots/wtab-绘图.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jdraw-pen-settings.png
+绘图	Ribbon	标尺	button	1	true	DISABLED_OBSERVED	所测状态禁用；未执行命令；不等同于永久缺失	仅选项卡基线，未逐参数对照	screenshots/wtab-绘图.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jtab-绘图.png
+绘图	Ribbon	设置背景格式	button	1	false	CLICKED	弹窗/菜单含：无；网格线	仅选项卡基线，未逐参数对照	screenshots/wtab-绘图.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jdraw-background.png
+绘图	Ribbon	将墨迹转换为形状	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-绘图.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jdraw-convert-shape.png
+绘图	Ribbon	将墨迹转换为数学公式	button	1	true	DISABLED_OBSERVED	所测状态禁用；未执行命令；不等同于永久缺失	仅选项卡基线，未逐参数对照	screenshots/wtab-绘图.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jtab-绘图.png
+绘图	Ribbon	画布	button	1	true	DISABLED_OBSERVED	所测状态禁用；未执行命令；不等同于永久缺失	仅选项卡基线，未逐参数对照	screenshots/wtab-绘图.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jtab-绘图.png
+绘图	Ribbon	墨迹重播	button	1	true	DISABLED_OBSERVED	所测状态禁用；未执行命令；不等同于永久缺失	仅选项卡基线，未逐参数对照	screenshots/wtab-绘图.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jtab-绘图.png
+绘图	Ribbon	墨迹帮助	button	1	false	CLICKED	打开结果/说明弹窗；AX仅有关闭，显示文字见截图	仅选项卡基线，未逐参数对照	screenshots/wtab-绘图.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jdraw-help.png
+设计	Ribbon	主题	button	1	false	CLICKED	弹窗/菜单含：Craft；Studio；Gallery；Atelier；Darkroom；Sketchbook	对应控件弹窗/菜单已操作	screenshots/wd-theme.png		RIB-06	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jd-theme.png
+设计	Ribbon	默认	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-设计.png		RIB-06	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jd-preset-default.png
+设计	Ribbon	基本	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-设计.png		RIB-06	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jd-preset-basic.png
+设计	Ribbon	线条	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-设计.png		RIB-06	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jd-preset-lines.png
+设计	Ribbon	阴影	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-设计.png		RIB-06	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jd-preset-shadow.png
+设计	Ribbon	休闲	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-设计.png		RIB-06	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jd-preset-casual.png
+设计	Ribbon	居中	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-设计.png		RIB-06	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jd-preset-center.png
+设计	Ribbon	简约	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-设计.png		RIB-06	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jd-preset-simple.png
+设计	Ribbon	标题	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-设计.png		RIB-06	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jd-preset-title.png
+设计	Ribbon	颜色	button	1	false	CLICKED	弹窗/菜单含：Craft；Studio；Gallery；Atelier；Darkroom；Sketchbook	仅选项卡基线，未逐参数对照	screenshots/wtab-设计.png		RIB-06	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jd-colors.png
+设计	Ribbon	字体	button	1	false	CLICKED	弹窗/菜单含：Aptos Display / Aptos；Calibri Light / Calibri；等线 / 宋体；自定义字体…	仅选项卡基线，未逐参数对照	screenshots/wtab-设计.png		RIB-06	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jd-fonts.png
+设计	Ribbon	段落间距	button	1	false	CLICKED	弹窗/菜单含：默认；无段落间距；紧凑；紧密；开放；宽松；双倍	仅选项卡基线，未逐参数对照	screenshots/wtab-设计.png		RIB-06	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jd-spacing.png
+设计	Ribbon	效果	button	1	true	DISABLED_OBSERVED	所测状态禁用；未执行命令；不等同于永久缺失	仅选项卡基线，未逐参数对照	screenshots/wtab-设计.png		RIB-06	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jtab-设计.png
+设计	Ribbon	设为默认值	button	1	true	DISABLED_OBSERVED	所测状态禁用；未执行命令；不等同于永久缺失	仅选项卡基线，未逐参数对照	screenshots/wtab-设计.png		RIB-06	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jtab-设计.png
+设计	Ribbon	水印	button	1	false	CLICKED	弹窗/菜单含：机密；草稿；自定义水印…；删除水印	对应控件弹窗/菜单已操作	screenshots/wd-watermark.png		RIB-06	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jd-watermark.png
+设计	Ribbon	页面颜色	button	1	false	CLICKED	弹窗/菜单含：无颜色；浅蓝；浅黄；浅绿；浅灰；白色	仅选项卡基线，未逐参数对照	screenshots/wtab-设计.png		RIB-06	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jd-page-color.png
+设计	Ribbon	页面边框	button	1	false	CLICKED	弹窗/菜单含：方框；无；边框和底纹…	对应控件弹窗/菜单已操作	screenshots/wd-page-borders.png		RIB-06	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jd-page-border.png
+布局	Ribbon	文字方向	button	1	false	CLICKED	弹窗/菜单含：水平；将所有文字旋转 90°；将所有文字旋转 270°	仅选项卡基线，未逐参数对照	screenshots/wtab-布局.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jl-direction.png
+布局	Ribbon	页边距	button	1	false	CLICKED	弹窗/菜单含：常规；窄；中等；宽；对称；自定义边距…	对应控件弹窗/菜单已操作	screenshots/wl-margins.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jl-margins.png
+布局	Ribbon	纸张方向	button	1	false	CLICKED	弹窗/菜单含：纵向；横向	仅选项卡基线，未逐参数对照	screenshots/wtab-布局.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jl-orientation.png
+布局	Ribbon	纸张大小	button	1	false	CLICKED	弹窗/菜单含：Letter；Legal；A3；A4；A5；B5；更多纸张大小…	仅选项卡基线，未逐参数对照	screenshots/wtab-布局.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jl-paper.png
+布局	Ribbon	栏	button	1	false	CLICKED	弹窗/菜单含：一栏；两栏；三栏；偏左；偏右；更多分栏…	对应控件弹窗/菜单已操作	screenshots/wl-columns-dialog.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jl-columns.png
+布局	Ribbon	分隔符	button	1	false	CLICKED	弹窗/菜单含：页面；栏；下一页；连续；偶数页；奇数页	仅选项卡基线，未逐参数对照	screenshots/wtab-布局.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jl-breaks.png
+布局	Ribbon	行号	button	1	false	CLICKED	弹窗/菜单含：无；连续；每页重编行号；每节重编行号	仅选项卡基线，未逐参数对照	screenshots/wtab-布局.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jl-line-numbers.png
+布局	Ribbon	断字	button	1	false	CLICKED	弹窗/菜单含：无；自动；手动…	仅选项卡基线，未逐参数对照	screenshots/wtab-布局.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jl-hyphenation.png
+布局	Ribbon	左缩进	text field	1	false	VALUE_APPLIED	数值输入后回车提交，AX显示该值；详见截图	仅选项卡基线，未逐参数对照	screenshots/wtab-布局.png		RIB-03	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jl-input-left.png
+布局	Ribbon	+ 左缩进	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-布局.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jl-left-plus.png
+布局	Ribbon	− 左缩进	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-布局.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jl-left-minus.png
+布局	Ribbon	右缩进	text field	1	false	VALUE_APPLIED	数值输入后回车提交，AX显示该值；详见截图	仅选项卡基线，未逐参数对照	screenshots/wtab-布局.png		RIB-03	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jl-input-right.png
+布局	Ribbon	+ 右缩进	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-布局.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jl-right-plus.png
+布局	Ribbon	− 右缩进	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-布局.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jl-right-minus.png
+布局	Ribbon	段前间距	text field	1	false	VALUE_APPLIED	数值输入后回车提交，AX显示该值；详见截图	仅选项卡基线，未逐参数对照	screenshots/wtab-布局.png		RIB-03	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jl-input-before.png
+布局	Ribbon	+ 段前间距	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-布局.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jl-before-plus.png
+布局	Ribbon	− 段前间距	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-布局.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jl-before-minus.png
+布局	Ribbon	段后间距	text field	1	false	VALUE_APPLIED	数值输入后回车提交，AX显示该值；详见截图	仅选项卡基线，未逐参数对照	screenshots/wtab-布局.png		RIB-03	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jl-input-after.png
+布局	Ribbon	+ 段后间距	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-布局.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jl-after-plus.png
+布局	Ribbon	− 段后间距	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-布局.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jl-after-minus.png
+布局	Ribbon	段落设置…	button	1	false	CLICKED	弹窗/菜单含：起始缩进（磅）；结束缩进（磅）；首行缩进（负数为悬挂）；段前间距（磅）；段后间距（磅）；行距（倍数 / exact:磅 / min:磅）；应用	仅选项卡基线，未逐参数对照	screenshots/wtab-布局.png		RIB-03	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jl-paragraph.png
+布局	Ribbon	位置	button	1	true	DISABLED_OBSERVED	所测状态禁用；未执行命令；不等同于永久缺失	仅选项卡基线，未逐参数对照	screenshots/wtab-布局.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jtab-布局.png
+布局	Ribbon	环绕文字	button	1	true	DISABLED_OBSERVED	所测状态禁用；未执行命令；不等同于永久缺失	仅选项卡基线，未逐参数对照	screenshots/wtab-布局.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jtab-布局.png
+布局	Ribbon	前移一层	button	1	true	DISABLED_OBSERVED	所测状态禁用；未执行命令；不等同于永久缺失	仅选项卡基线，未逐参数对照	screenshots/wtab-布局.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jtab-布局.png
+布局	Ribbon	后移一层	button	1	true	DISABLED_OBSERVED	所测状态禁用；未执行命令；不等同于永久缺失	仅选项卡基线，未逐参数对照	screenshots/wtab-布局.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jtab-布局.png
+布局	Ribbon	选择窗格	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-布局.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jl-selection-pane.png
+布局	Ribbon	对齐	button	1	false	CLICKED	弹窗/菜单含：左对齐；水平居中；右对齐	仅选项卡基线，未逐参数对照	screenshots/wtab-布局.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jl-align.png
+布局	Ribbon	组合	button	1	true	DISABLED_OBSERVED	所测状态禁用；未执行命令；不等同于永久缺失	仅选项卡基线，未逐参数对照	screenshots/wtab-布局.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jtab-布局.png
+布局	Ribbon	旋转	button	1	true	DISABLED_OBSERVED	所测状态禁用；未执行命令；不等同于永久缺失	仅选项卡基线，未逐参数对照	screenshots/wtab-布局.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jtab-布局.png
+引用	Ribbon	目录	button	1	false	CLICKED	弹窗/菜单含：自动目录 1；自动目录 2；自定义目录…；删除目录	仅选项卡基线，未逐参数对照	screenshots/wtab-引用.png		RIB-10	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jr-toc.png
+引用	Ribbon	添加文字	button	1	false	CLICKED	弹窗/菜单含：不在目录中显示；级别 1；级别 2；级别 3	仅选项卡基线，未逐参数对照	screenshots/wtab-引用.png		RIB-10	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jr-add-text.png
+引用	Ribbon	更新目录	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-引用.png		RIB-10	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jr-update-toc.png
+引用	Ribbon	插入脚注	button	1	false	CLICKED	弹窗/菜单含：脚注文字；应用	仅选项卡基线，未逐参数对照	screenshots/wtab-引用.png		RIB-10	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jr-footnote.png
+引用	Ribbon	插入尾注	button	1	false	CLICKED	弹窗/菜单含：尾注文字；应用	仅选项卡基线，未逐参数对照	screenshots/wtab-引用.png		RIB-10	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jr-endnote.png
+引用	Ribbon	下一条脚注	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-引用.png		RIB-10	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jr-next-footnote.png
+引用	Ribbon	显示备注	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-引用.png		RIB-10	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jr-show-notes.png
+引用	Ribbon	脚注和尾注设置	button	1	false	CLICKED	弹窗/菜单含：类型 / Kind (footnote / endnote)；起始编号 / Start at；编号格式 / Format (decimal / lowerRoman / upperRoman / lowerLetter / upperLetter)；应用	仅选项卡基线，未逐参数对照	screenshots/wtab-引用.png		RIB-01;RIB-10	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jr-footnotes-settings.png
+引用	Ribbon	插入引文	button	1	false	CLICKED	弹窗/菜单含：来源标记；页码；应用	对应控件弹窗/菜单已操作	screenshots/wr-citation.png		RIB-10	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jr-citation.png
+引用	Ribbon	管理源	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-引用.png		RIB-10	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jr-sources.png
+引用	Ribbon	样式	button	1	false	CLICKED	弹窗/菜单含：APA；Chicago；GB/T 7714；GOST (name sort)；GOST (title sort)；Harvard (Anglia)；IEEE；ISO 690 (author-date)；ISO 690 (numerical)；MLA；SIST02；Turabian	仅选项卡基线，未逐参数对照	screenshots/wtab-引用.png		RIB-10	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jr-citation-style.png
+引用	Ribbon	书目	button	1	false	CLICKED	弹窗/菜单含：参考文献；自定义书目…；添加新源…	仅选项卡基线，未逐参数对照	screenshots/wtab-引用.png		RIB-10	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jr-bibliography.png
+引用	Ribbon	插入题注	button	1	false	CLICKED	弹窗/菜单含：标签；题注文字；应用	对应控件弹窗/菜单已操作	screenshots/wr-caption.png		RIB-10	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jr-caption.png
+引用	Ribbon	插入表目录	button	1	false	CLICKED	弹窗/菜单含：标签；标题；应用	对应控件弹窗/菜单已操作	screenshots/wr-figures.png		RIB-10	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jr-figures.png
+引用	Ribbon	更新表格	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-引用.png		RIB-10	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jr-update-figures.png
+引用	Ribbon	交叉引用	button	1	false	CLICKED	弹窗/菜单含：类型（heading / bookmark / figure / table / label:图）；目标文字 / 名称 / 编号；内容（text / page / number / aboveBelow）；应用	对应控件弹窗/菜单已操作	screenshots/wi-cross-reference.png		RIB-01;RIB-10	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jr-cross-reference.png
+引用	Ribbon	标记索引项	button	1	false	CLICKED	弹窗/菜单含：主索引项；子项；应用	仅选项卡基线，未逐参数对照	screenshots/wtab-引用.png		RIB-10	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jr-mark-index.png
+引用	Ribbon	插入索引	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	对应控件弹窗/菜单已操作	screenshots/wr-index.png		RIB-10	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jr-index.png
+引用	Ribbon	更新索引	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-引用.png		RIB-10	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jr-update-index.png
+引用	Ribbon	标记引文	button	1	false	CLICKED	弹窗/菜单含：引文文字；应用	仅选项卡基线，未逐参数对照	screenshots/wtab-引用.png		RIB-10	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jr-mark-citation.png
+引用	Ribbon	插入引文目录	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-引用.png		RIB-10	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jr-authorities.png
+引用	Ribbon	更新引文目录	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-引用.png		RIB-10	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jr-update-authorities.png
+邮件	Ribbon	中文信封	button	1	false	CLICKED	弹窗/菜单含：收信人地址 / Delivery address；回信地址 / Return address；信封尺寸 / Size (DL / C4 / C5 / C6 / B5 / #10)；应用	仅选项卡基线，未逐参数对照	screenshots/wtab-邮件.png		RIB-12	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jm-cn-envelope.png
+邮件	Ribbon	信封	button	1	false	CLICKED	弹窗/菜单含：收信人地址 / Delivery address；回信地址 / Return address；信封尺寸 / Size (DL / C4 / C5 / C6 / B5 / #10)；应用	对应对话框已操作并取消	screenshots/wf03-envelope-dialog.png		RIB-12	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jm-envelope.png
+邮件	Ribbon	标签	button	1	false	CLICKED	弹窗/菜单含：标签文字 / Label text；标签产品 / Product (a4-3x7 / a4-2x7 / letter-3x10)；应用	对应对话框已操作并取消	screenshots/wf04-labels.png		RIB-12	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jm-labels.png
+邮件	Ribbon	开始邮件合并	button	1	false	CLICKED	弹窗/菜单含：信函；电子邮件；信封；标签；目录；普通 Word 文档	类型菜单已操作；未穷举每种类型	screenshots/wf05-start-merge.png		RIB-12	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jm-start-merge.png
+邮件	Ribbon	选择收件人	button	1	false	CLICKED	弹窗/菜单含：使用现有列表…；键入新列表…	创建字段列表并保存本地数据源	screenshots/wf07-new-recipient-list.png	screenshots/wf06-recipients-menu.png;screenshots/wf55-recipient-record-editor.png	RIB-12	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jm-recipients.png
+邮件	Ribbon	编辑收件人列表	button	1	true	CLICKED	点击后已采集画面；非所有语义/参数已验收	编辑器填写两条记录并保存	screenshots/wf55-recipient-record-editor.png	screenshots/wf56-two-recipient-records.png	RIB-12	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jm-edit-recipients.png
+邮件	Ribbon	突出显示合并域	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-邮件.png		RIB-12	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jm-highlight-fields.png
+邮件	Ribbon	地址块	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-邮件.png		RIB-12	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jm-address.png
+邮件	Ribbon	问候语	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-邮件.png		RIB-12	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jm-greeting.png
+邮件	Ribbon	插入合并域	button	1	true	CLICKED	弹窗/菜单含：NameCity	字段菜单选择姓名并插入	screenshots/wf57-merge-fields.png		RIB-12	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jm-insert-field.png
+邮件	Ribbon	规则	button	1	false	CLICKED	弹窗/菜单含：如果…那么…否则…；下一记录；合并记录序号	仅选项卡基线，未逐参数对照	screenshots/wtab-邮件.png		RIB-12	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jm-rules.png
+邮件	Ribbon	匹配域	button	1	false	CLICKED	打开结果/说明弹窗；AX仅有关闭，显示文字见截图	仅选项卡基线，未逐参数对照	screenshots/wtab-邮件.png		RIB-12	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jm-match.png
+邮件	Ribbon	更新标签	button	1	true	DISABLED_OBSERVED	所测状态禁用；未执行命令；不等同于永久缺失	仅选项卡基线，未逐参数对照	screenshots/wtab-邮件.png		RIB-12	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jtab-邮件.png
+邮件	Ribbon	预览结果	button	1	true	CLICKED	Name域预览为Audit One；仅一条记录，见j33	预览第一条并切换第二条；Joy仅一条记录	screenshots/wf58-merge-preview-first.png	screenshots/wf59-merge-preview-second.png	RIB-12	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jm-preview.png
+邮件	Ribbon	首条	button	1	true	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-邮件.png		RIB-12	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jm-first.png
+邮件	Ribbon	上一条	button	1	true	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-邮件.png		RIB-12	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jm-previous.png
+邮件	Ribbon	当前记录	button	1	true	CLICKED	弹窗/菜单含：记录序号 / Record number；应用	仅选项卡基线，未逐参数对照	screenshots/wtab-邮件.png		RIB-12	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jm-current-record.png
+邮件	Ribbon	下一条	button	1	true	CLICKED	点击后已采集画面；非所有语义/参数已验收	Word两条记录导航结果已观察；Joy仅单记录边界	screenshots/wf59-merge-preview-second.png		RIB-12	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jm-next.png
+邮件	Ribbon	末条	button	1	true	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-邮件.png		RIB-12	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jm-last.png
+邮件	Ribbon	查找收件人	button	1	true	CLICKED	弹窗/菜单含：查找文字 / Find text；应用	仅选项卡基线，未逐参数对照	screenshots/wtab-邮件.png		RIB-12	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jm-find-recipient.png
+邮件	Ribbon	检查错误	button	1	false	CLICKED	打开结果/说明弹窗；AX仅有关闭，显示文字见截图	仅选项卡基线，未逐参数对照	screenshots/wtab-邮件.png		RIB-12	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jm-errors.png
+邮件	Ribbon	完成并合并	button	1	true	CLICKED	弹窗/菜单含：合并到新 DOCX…	Word生成两页并保存、XML核对；Joy未生成输出	screenshots/wf64-merge-second-page.png	screenshots/wf62-finish-merge.png;screenshots/wf63-merge-new-document.png;screenshots/wf65-merged-saved.png	RIB-12	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jm-finish.png
+审阅	Ribbon	拼写和语法	button	1	false	CLICKED	打开结果/说明弹窗；AX仅有关闭，显示文字见截图	仅选项卡基线，未逐参数对照	screenshots/wtab-审阅.png		RIB-17	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jv-spelling.png
+审阅	Ribbon	同义词库	button	1	false	CLICKED	打开结果/说明弹窗；AX仅有关闭，显示文字见截图	仅选项卡基线，未逐参数对照	screenshots/wtab-审阅.png		RIB-17	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jv-thesaurus.png
+审阅	Ribbon	字数统计	button	1	false	CLICKED	打开结果/说明弹窗；AX仅有关闭，显示文字见截图	对应统计对话框已打开并取消；非同文档数值验收	screenshots/wf10-word-count.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jv-word-count.png
+审阅	Ribbon	大声朗读	button	1	true	DISABLED_OBSERVED	所测状态禁用；未执行命令；不等同于永久缺失	仅选项卡基线，未逐参数对照	screenshots/wtab-审阅.png		RIB-17	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jtab-审阅.png
+审阅	Ribbon	检查辅助功能	button	1	true	DISABLED_OBSERVED	所测状态禁用；未执行命令；不等同于永久缺失	仅选项卡基线，未逐参数对照	screenshots/wtab-审阅.png		RIB-17	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jtab-审阅.png
+审阅	Ribbon	翻译	button	1	true	DISABLED_OBSERVED	所测状态禁用；未执行命令；不等同于永久缺失	仅选项卡基线，未逐参数对照	screenshots/wtab-审阅.png		RIB-17	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jtab-审阅.png
+审阅	Ribbon	语言	button	1	false	CLICKED	弹窗/菜单含：设置校对语言…	对应语言列表与复选框已观察并取消	screenshots/wf11-proofing-language.png		RIB-17	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jv-language.png
+审阅	Ribbon	简转繁	button	1	true	DISABLED_OBSERVED	所测状态禁用；未执行命令；不等同于永久缺失	仅选项卡基线，未逐参数对照	screenshots/wtab-审阅.png		RIB-17	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jtab-审阅.png
+审阅	Ribbon	繁转简	button	1	true	DISABLED_OBSERVED	所测状态禁用；未执行命令；不等同于永久缺失	仅选项卡基线，未逐参数对照	screenshots/wtab-审阅.png		RIB-17	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jtab-审阅.png
+审阅	Ribbon	新建批注	button	1	false	CLICKED	批注内容与作者出现在窗格，见j27	本地批注创建已观察；实际内容为UI	screenshots/wf44-comment-created.png	screenshots/wf43-comment-editor.png		保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jv-comment.png
+审阅	Ribbon	删除	button	1	true	CLICKED	弹窗/菜单含：删除当前批注；删除文档中的所有批注	仅选项卡基线，未逐参数对照	screenshots/wtab-审阅.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jv-delete-comment.png
+审阅	Ribbon	上一条	button	1	true	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-审阅.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jv-previous-comment.png
+审阅	Ribbon	下一条	button	1	true	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-审阅.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jv-next-comment.png
+审阅	Ribbon	显示批注	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-审阅.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jv-show-comments.png
+审阅	Ribbon	重置筛选	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-审阅.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jv-reset-filter.png
+审阅	Ribbon	所有标记	button	1	false	CLICKED	弹窗/菜单含：简单标记；所有标记；无标记；原始版本	仅选项卡基线，未逐参数对照	screenshots/wtab-审阅.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jv-display-markup.png
+审阅	Ribbon	显示标记	button	1	false	CLICKED	弹窗/菜单含：批注；插入和删除；格式；墨迹	仅选项卡基线，未逐参数对照	screenshots/wtab-审阅.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jv-markup-options.png
+审阅	Ribbon	审阅窗格	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-审阅.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jv-pane.png
+审阅	Ribbon	修订	button	1	false	CLICKED	输入新增文字显示修订颜色与侧线，见j28	修订开关与插入标记已观察	screenshots/wf47-tracked-insertion.png	screenshots/wf46-track-toggle.png		保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jv-track.png
+审阅	Ribbon	修订 选项	button	1	false	CLICKED	弹窗/菜单含：启用修订；关闭修订	仅选项卡基线，未逐参数对照	screenshots/wtab-审阅.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jv-track-options.png
+审阅	Ribbon	接受	button	1	false	CLICKED	本轮新增修订的标记消失；其他范围未验	仅选项卡基线，未逐参数对照	screenshots/wtab-审阅.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jv-accept.png
+审阅	Ribbon	接受 选项	button	1	false	CLICKED	弹窗/菜单含：接受并移到下一处；接受此修订；接受所有修订；接受所有修订并停止修订	仅选项卡基线，未逐参数对照	screenshots/wtab-审阅.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jv-accept-options.png
+审阅	Ribbon	拒绝	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	Word新增修订拒绝并核对正文；Joy拒绝语义仍未完整验证	screenshots/wf53-revision-result.png	screenshots/wf47-tracked-insertion.png		保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jv-reject.png
+审阅	Ribbon	拒绝 选项	button	1	false	CLICKED	弹窗/菜单含：拒绝并移到下一处；拒绝此修订；拒绝所有修订；拒绝所有修订并停止修订	仅选项卡基线，未逐参数对照	screenshots/wtab-审阅.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jv-reject-options.png
+审阅	Ribbon	上一处	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-审阅.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jv-previous-change.png
+审阅	Ribbon	下一处	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-审阅.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jv-next-change.png
+审阅	Ribbon	比较	button	1	false	CLICKED	弹窗/菜单含：比较文档…；合并修订…	对应比较菜单已操作；未执行文档比较	screenshots/wf45-compare-menu.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jv-compare.png
+审阅	Ribbon	保护	button	1	true	DISABLED_OBSERVED	所测状态禁用；未执行命令；不等同于永久缺失	仅选项卡基线，未逐参数对照	screenshots/wtab-审阅.png		RIB-17	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jtab-审阅.png
+审阅	Ribbon	隐藏墨迹	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-审阅.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jv-hide-ink.png
+视图	Ribbon	阅读视图	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-视图.png		RIB-16	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jw-read.png
+视图	Ribbon	页面视图	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-视图.png		RIB-16	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jw-print-layout.png
+视图	Ribbon	Web 版式	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-视图.png		RIB-16	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jw-web.png
+视图	Ribbon	大纲	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-视图.png		RIB-16	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jw-outline.png
+视图	Ribbon	草稿	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-视图.png		RIB-16	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jw-draft.png
+视图	Ribbon	专注	button	1	false	CLICKED	工具栏隐藏且Esc返回，见j34	仅选项卡基线，未逐参数对照	screenshots/wtab-视图.png		RIB-16	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jw-focus.png
+视图	Ribbon	沉浸式阅读器	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-视图.png		RIB-16	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jw-immersive.png
+视图	Ribbon	垂直	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-视图.png		RIB-16	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jw-vertical.png
+视图	Ribbon	翻页	button	1	true	DISABLED_OBSERVED	所测状态禁用；未执行命令；不等同于永久缺失	仅选项卡基线，未逐参数对照	screenshots/wtab-视图.png		RIB-16	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jtab-视图.png
+视图	Ribbon	标尺	checkbox	1	false	TOGGLED	已切换并观察状态/外观变化；非完整持久化验收	仅选项卡基线，未逐参数对照	screenshots/wtab-视图.png		RIB-16	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jw-check-标尺.png
+视图	Ribbon	网格线	checkbox	1	false	TOGGLED	已切换并观察状态/外观变化；非完整持久化验收	仅选项卡基线，未逐参数对照	screenshots/wtab-视图.png		RIB-16	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jw-check-网格线.png
+视图	Ribbon	导航窗格	checkbox	1	false	TOGGLED	已切换并观察状态/外观变化；非完整持久化验收	仅选项卡基线，未逐参数对照	screenshots/wtab-视图.png		RIB-16	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jw-check-导航窗格.png
+视图	Ribbon	缩放	button	1	false	CLICKED	弹窗/菜单含：百分比（10–500）；应用	对应设置对话框已操作并取消	screenshots/wf12-zoom.png		RIB-16	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jw-zoom.png
+视图	Ribbon	100%	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	仅选项卡基线，未逐参数对照	screenshots/wtab-视图.png		RIB-16	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jw-100.png
+视图	Ribbon	单页	button	1	false	CLICKED	缩放变为54%，见jw-one-page	实际缩放变为108%；两应用窗口尺寸不同	screenshots/wf49-one-page.png		RIB-16	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jw-one-page.png
+视图	Ribbon	多页	button	1	true	DISABLED_OBSERVED	所测状态禁用；未执行命令；不等同于永久缺失	仅选项卡基线，未逐参数对照	screenshots/wtab-视图.png		RIB-16	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jtab-视图.png
+视图	Ribbon	页宽	button	1	false	CLICKED	缩放变为173%，见jw-page-width	实际缩放变为199%；两应用窗口尺寸不同	screenshots/wf50-page-width.png		RIB-16	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jw-page-width.png
+视图	Ribbon	新建窗口	button	1	true	DISABLED_OBSERVED	所测状态禁用；未执行命令；不等同于永久缺失	仅选项卡基线，未逐参数对照	screenshots/wtab-视图.png		RIB-16	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jtab-视图.png
+视图	Ribbon	全部重排	button	1	true	DISABLED_OBSERVED	所测状态禁用；未执行命令；不等同于永久缺失	仅选项卡基线，未逐参数对照	screenshots/wtab-视图.png		RIB-16	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jtab-视图.png
+视图	Ribbon	拆分	button	1	true	DISABLED_OBSERVED	所测状态禁用；未执行命令；不等同于永久缺失	仅选项卡基线，未逐参数对照	screenshots/wtab-视图.png		RIB-16	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jtab-视图.png
+视图	Ribbon	切换窗口	button	1	true	DISABLED_OBSERVED	所测状态禁用；未执行命令；不等同于永久缺失	仅选项卡基线，未逐参数对照	screenshots/wtab-视图.png		RIB-16	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jtab-视图.png
+视图	Ribbon	宏	button	1	false	CLICKED	弹窗/菜单含：查看宏…；录制宏…；停止录制	宏对话框已打开；未创建或运行VBA	screenshots/wf51-macro-dialog.png		RIB-16	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jw-macro.png
+帮助	Ribbon	帮助	button	1	false	CLICKED	打开结果/说明弹窗；AX仅有关闭，显示文字见截图	本轮未完成对应控件的Word操作			RIB-20	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jhelp-help.png
+帮助	Ribbon	反馈	button	1	false	CLICKED	打开结果/说明弹窗；AX仅有关闭，显示文字见截图	本轮未完成对应控件的Word操作			RIB-20	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jhelp-feedback.png
+帮助	Ribbon	显示培训内容	button	1	false	CLICKED	打开结果/说明弹窗；AX仅有关闭，显示文字见截图	本轮未完成对应控件的Word操作			RIB-20	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jhelp-training.png
+开发工具	Ribbon	宏	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	Word由视图主按钮打开宏对话框；未配置开发工具标签	screenshots/wf51-macro-dialog.png		RIB-18	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jdev-macros.png
+开发工具	Ribbon	录制宏	button	1	false	CLICKED	弹窗/菜单含：宏名称；应用	本轮未完成对应控件的Word操作			RIB-18	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jdev-record.png
+开发工具	Ribbon	停止录制	button	1	true	CLICKED	AuditMacro出现且包含1条格式命令，见j36	本轮未完成对应控件的Word操作			RIB-18	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jdev-stop-record.png
+开发工具	Ribbon	用户信息与单位	button	1	false	CLICKED	弹窗/菜单含：用户名；单位（centimeters / millimeters / inches / points）；应用	本轮未完成对应控件的Word操作			RIB-01	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jdev-user-units.png
+开发工具	Ribbon	MCP 自动化说明	button	1	false	CLICKED	打开结果/说明弹窗；AX仅有关闭，显示文字见截图	本轮未完成对应控件的Word操作				保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jdev-mcp-help.png
+开发工具	Ribbon	导出副本	button	1	false	CLICKED	弹窗/菜单含：格式（docx / pdf / txt / md / html / rtf / odt / ott / fodt / tex / xml）；保留标记与批注（是 / 否，仅适用支持的格式）；应用	本轮未完成对应控件的Word操作				保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jdev-export-copy.png
+图片格式	Ribbon	删除背景	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf25-picture-format.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jp-remove-background.png
+图片格式	Ribbon	校正	button	1	false	CLICKED	弹窗/菜单含：正常；明亮；暗淡；高对比度；柔化；锐化	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf25-picture-format.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jp-corrections.png
+图片格式	Ribbon	颜色	button	1	false	CLICKED	弹窗/菜单含：原色；灰度；褐色；冲蚀；黑白	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf25-picture-format.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jp-color.png
+图片格式	Ribbon	艺术效果	button	1	false	CLICKED	弹窗/菜单含：无；模糊；锐化；反色；色调分离；像素化	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf25-picture-format.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jp-art.png
+图片格式	Ribbon	透明度	button	1	false	CLICKED	弹窗/菜单含：0%；15%；30%；50%；65%；80%；95%	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf25-picture-format.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jp-transparency.png
+图片格式	Ribbon	压缩图片	button	1	false	CLICKED	弹窗/菜单含：最长边 1024 px；最长边 1600 px；最长边 2200 px	对应压缩对话框已打开并取消	screenshots/wf28-picture-compress.png		RIB-15	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jp-compress.png
+图片格式	Ribbon	更改图片	button	1	false	CLICKED	出现原生文件选择器；此入口检查并取消	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf25-picture-format.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jp-change.png
+图片格式	Ribbon	重置图片	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf25-picture-format.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jp-reset.png
+图片格式	Ribbon	简单框架	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf25-picture-format.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jp-simple-frame.png
+图片格式	Ribbon	粗框架	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf25-picture-format.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jp-thick-frame.png
+图片格式	Ribbon	圆角	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf25-picture-format.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jp-rounded.png
+图片格式	Ribbon	柔化边缘	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf25-picture-format.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jp-soft-edge.png
+图片格式	Ribbon	阴影	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf25-picture-format.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jp-shadow.png
+图片格式	Ribbon	图片边框	button	1	false	CLICKED	弹窗/菜单含：黑色；蓝色；红色；白色	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf25-picture-format.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jp-border.png
+图片格式	Ribbon	图片效果	button	1	false	CLICKED	弹窗/菜单含：阴影；柔化边缘；简单框架	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf25-picture-format.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jp-effects.png
+图片格式	Ribbon	图片版式	button	1	true	DISABLED_OBSERVED	所测状态禁用；未执行命令；不等同于永久缺失	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf25-picture-format.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jtab-图片格式.png
+图片格式	Ribbon	替代文字	button	1	false	CLICKED	弹窗/菜单含：描述；标题；装饰性图片（是/否）；应用	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf25-picture-format.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jp-alt.png
+图片格式	Ribbon	位置	button	1	false	CLICKED	弹窗/菜单含：左上；中上；右上；左中；正中；右中；左下；中下；右下	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf25-picture-format.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jp-position.png
+图片格式	Ribbon	环绕文字	button	1	false	CLICKED	弹窗/菜单含：嵌入型；四周型；紧密型；穿越型；上下型；衬于文字下方；浮于文字上方	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf25-picture-format.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jp-wrap.png
+图片格式	Ribbon	上移一层	button	1	true	DISABLED_OBSERVED	所测状态禁用；未执行命令；不等同于永久缺失	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf25-picture-format.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jtab-图片格式.png
+图片格式	Ribbon	下移一层	button	1	true	DISABLED_OBSERVED	所测状态禁用；未执行命令；不等同于永久缺失	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf25-picture-format.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jtab-图片格式.png
+图片格式	Ribbon	选择窗格	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf25-picture-format.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jp-selection-pane.png
+图片格式	Ribbon	对齐	button	1	false	CLICKED	弹窗/菜单含：左对齐；居中；右对齐；顶端对齐；垂直居中；底端对齐	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf25-picture-format.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jp-align.png
+图片格式	Ribbon	组合	button	1	true	DISABLED_OBSERVED	所测状态禁用；未执行命令；不等同于永久缺失	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf25-picture-format.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jtab-图片格式.png
+图片格式	Ribbon	旋转	button	1	false	CLICKED	弹窗/菜单含：向右旋转 90°；向左旋转 90°；水平翻转；垂直翻转	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf25-picture-format.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jp-rotate.png
+图片格式	Ribbon	裁剪	button	1	false	CLICKED	弹窗/菜单含：左侧裁剪（%）；顶部裁剪（%）；右侧裁剪（%）；底部裁剪（%）；应用	Word鼠标拖动裁剪并核对宽度14.66→12.42厘米	screenshots/wf27-picture-crop-drag.png	screenshots/wf26-picture-crop.png	RIB-15	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jp-crop.png
+图片格式	Ribbon	大小	button	1	false	CLICKED	宽度144磅应用且保持比例，见j25	Word当前厘米宽高及锁定比例复选框已观察；未直接输入尺寸	screenshots/wf25-picture-format.png		RIB-15	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jp-size.png
+表设计	Ribbon	标题行	checkbox	1	false	TOGGLED	已切换并观察状态/外观变化；非完整持久化验收	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf14-table-created.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jtd-check-标题行.png
+表设计	Ribbon	汇总行	checkbox	1	false	TOGGLED	已切换并观察状态/外观变化；非完整持久化验收	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf14-table-created.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jtd-check-汇总行.png
+表设计	Ribbon	镶边行	checkbox	1	false	TOGGLED	已切换并观察状态/外观变化；非完整持久化验收	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf14-table-created.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jtd-check-镶边行.png
+表设计	Ribbon	第一列	checkbox	1	false	TOGGLED	已切换并观察状态/外观变化；非完整持久化验收	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf14-table-created.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jtd-check-第一列.png
+表设计	Ribbon	最后一列	checkbox	1	false	TOGGLED	已切换并观察状态/外观变化；非完整持久化验收	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf14-table-created.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jtd-check-最后一列.png
+表设计	Ribbon	镶边列	checkbox	1	false	TOGGLED	已切换并观察状态/外观变化；非完整持久化验收	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf14-table-created.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jtd-check-镶边列.png
+表设计	Ribbon	Table Grid	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf14-table-created.png		RIB-07	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jtd-grid.png
+表设计	Ribbon	Normal Table	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf14-table-created.png		RIB-07	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jtd-normal.png
+表设计	Ribbon	Plain Table 1	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf14-table-created.png		RIB-07	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jtd-plain.png
+表设计	Ribbon	Grid Table 1 Light	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf14-table-created.png		RIB-07	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jtd-light.png
+表设计	Ribbon	Grid Table 4 – Blue	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf14-table-created.png		RIB-07	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jtd-blue.png
+表设计	Ribbon	List Table 3 – Blue	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf14-table-created.png		RIB-07	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jtd-list.png
+表设计	Ribbon	Grid Table 4 – Orange	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf14-table-created.png		RIB-07	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jtd-orange.png
+表设计	Ribbon	更多	button	1	false	CLICKED	弹窗/菜单含：Table Grid；Normal Table；Plain Table 1；Grid Table 1 Light；Grid Table 4 – Blue；List Table 3 – Blue；Grid Table 4 – Orange；List Table 3 – Orange；Grid Table 4 – Green；List Table 3 – Green；Grid Table 4 – Purple；List Table 3 – Purple	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf14-table-created.png		RIB-07	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jtd-more.png
+表设计	Ribbon	底纹	button	1	false	CLICKED	弹窗/菜单含：无颜色；浅蓝；浅黄；浅绿；深蓝	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf14-table-created.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jtd-shading.png
+表设计	Ribbon	边框样式	button	1	false	CLICKED	弹窗/菜单含：范围 / Kind (all / outside / inside / top / bottom / left / right / none)；宽度（磅） / Width (pt)；颜色 / Color (RRGGBB)；应用	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf14-table-created.png		RIB-01;RIB-14	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jtd-border-style.png
+表设计	Ribbon	边框	button	1	false	CLICKED	弹窗/菜单含：所有框线；外侧框线；内部框线；无框线；上框线；下框线；左框线；右框线	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf14-table-created.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jtd-borders.png
+表设计	Ribbon	边框刷	button	1	true	DISABLED_OBSERVED	所测状态禁用；未执行命令；不等同于永久缺失	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf14-table-created.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jtab-表设计.png
+表布局	Ribbon	选择	button	1	false	CLICKED	弹窗/菜单含：选择单元格；选择行；选择列；选择表格	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf15-table-layout.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jt-selection.png
+表布局	Ribbon	查看网格线	button	1	true	DISABLED_OBSERVED	所测状态禁用；未执行命令；不等同于永久缺失	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf15-table-layout.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/j22-table-inserted.png
+表布局	Ribbon	属性	button	1	false	CLICKED	弹窗/菜单含：表格宽度（磅）；列宽（磅）；行高（磅）；表格缩进（磅）；对齐（左/中/右）；行可跨页（是/否）；首行为标题（是/否）；应用	表/行/列/单元格四页当前值与控件已观察并取消	screenshots/wf16-table-properties.png	screenshots/wf17-table-row.png;screenshots/wf18-table-column.png;screenshots/wf19-table-cell.png;screenshots/wf20-cell-options.png	RIB-14	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jt-properties.png
+表布局	Ribbon	绘制表格	button	1	true	DISABLED_OBSERVED	所测状态禁用；未执行命令；不等同于永久缺失	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf15-table-layout.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/j22-table-inserted.png
+表布局	Ribbon	橡皮擦	button	1	true	DISABLED_OBSERVED	所测状态禁用；未执行命令；不等同于永久缺失	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf15-table-layout.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/j22-table-inserted.png
+表布局	Ribbon	删除	button	1	false	CLICKED	弹窗/菜单含：删除行；删除列；删除表格	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf15-table-layout.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jt-delete.png
+表布局	Ribbon	在上方插入行	button	1	false	CLICKED	与其余三个行列按钮组成2×2→4×4实测，见j23	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf15-table-layout.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jt-row-above.png
+表布局	Ribbon	在下方插入行	button	1	false	CLICKED	与其余三个行列按钮组成2×2→4×4实测，见j23	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf15-table-layout.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jt-row-below.png
+表布局	Ribbon	在左侧插入列	button	1	false	CLICKED	与其余三个行列按钮组成2×2→4×4实测，见j23	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf15-table-layout.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jt-column-left.png
+表布局	Ribbon	在右侧插入列	button	1	false	CLICKED	与其余三个行列按钮组成2×2→4×4实测，见j23	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf15-table-layout.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jt-column-right.png
+表布局	Ribbon	合并单元格	button	1	false	CLICKED	整张2×2表格合并成一格，见j65；未多选场景显示提示	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf15-table-layout.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jt-merge.png
+表布局	Ribbon	拆分单元格	button	1	false	CLICKED	弹窗/菜单含：列数 / Columns；行数 / Rows；应用	对应拆分对话框已观察并取消	screenshots/wf22-split-cells.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jt-split-cells.png
+表布局	Ribbon	拆分表格	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf15-table-layout.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jt-split-table.png
+表布局	Ribbon	自动调整	button	1	false	CLICKED	弹窗/菜单含：根据内容调整表格；根据窗口调整表格；固定列宽	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf15-table-layout.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jt-autofit.png
+表布局	Ribbon	高度…	button	1	false	CLICKED	弹窗/菜单含：行高（磅） / Row height (pt)；应用	当前行高约束及单位已观察，未应用新值	screenshots/wf17-table-row.png		RIB-14	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jt-height.png
+表布局	Ribbon	宽度…	button	1	false	CLICKED	弹窗/菜单含：列宽（磅） / Column width (pt)；应用	当前列宽7.32厘米及单位已观察，未应用新值	screenshots/wf18-table-column.png		RIB-14	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jt-width.png
+表布局	Ribbon	分布行	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf15-table-layout.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jt-distribute-row.png
+表布局	Ribbon	分布列	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf15-table-layout.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jt-distribute-col.png
+表布局	Ribbon	左上对齐	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf15-table-layout.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jt-top-left.png
+表布局	Ribbon	顶端居中	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf15-table-layout.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jt-top-center.png
+表布局	Ribbon	右上对齐	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf15-table-layout.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jt-top-right.png
+表布局	Ribbon	左中对齐	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf15-table-layout.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jt-middle-left.png
+表布局	Ribbon	居中	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf15-table-layout.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jt-middle.png
+表布局	Ribbon	右中对齐	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf15-table-layout.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jt-middle-right.png
+表布局	Ribbon	左下对齐	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf15-table-layout.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jt-bottom-left.png
+表布局	Ribbon	底端居中	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf15-table-layout.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jt-bottom-center.png
+表布局	Ribbon	右下对齐	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf15-table-layout.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jt-bottom-right.png
+表布局	Ribbon	文字方向	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf15-table-layout.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jt-direction.png
+表布局	Ribbon	单元格边距	button	1	false	CLICKED	弹窗/菜单含：上（磅） / Top (pt)；左（磅） / Left (pt)；下（磅） / Bottom (pt)；右（磅） / Right (pt)；应用	当前边距及约束已观察并取消	screenshots/wf21-table-options.png	screenshots/wf20-cell-options.png	RIB-14	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jt-margins.png
+表布局	Ribbon	排序	button	1	false	CLICKED	弹窗/菜单含：列（从 1 开始） / Column (1-based)；方向 / Order (ascending / descending)；标题行 / Header row (yes / no)；应用	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf15-table-layout.png		RIB-14	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jt-sort.png
+表布局	Ribbon	重复标题行	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	对应上下文Ribbon已观察；未逐控件应用	screenshots/wf15-table-layout.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jt-repeat-header.png
+表布局	Ribbon	转换为文本	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	对应转换分隔符设置已观察并取消	screenshots/wf24-table-to-text.png			保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jt-to-text.png
+表布局	Ribbon	公式	button	1	false	CLICKED	弹窗/菜单含：公式 / Formula；应用	对应公式/编号格式/函数控件已观察并取消	screenshots/wf23-table-formula.png		RIB-14	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jt-formula.png
+文件	选项	青岚 · 亮色	toggle button	1	false	TOGGLED	已切换并观察状态/外观变化；非完整持久化验收	本轮未完成对应控件的Word操作				保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jf-theme-青岚 · 亮色.png
+文件	选项	青岚 · 暗色	toggle button	1	false	TOGGLED	已切换并观察状态/外观变化；非完整持久化验收	本轮未完成对应控件的Word操作				保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jf-theme-青岚 · 暗色.png
+文件	选项	素雅 · 亮色	toggle button	1	false	TOGGLED	已切换并观察状态/外观变化；非完整持久化验收	本轮未完成对应控件的Word操作				保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jf-theme-素雅 · 亮色.png
+文件	选项	素雅 · 暗色	toggle button	1	false	TOGGLED	已切换并观察状态/外观变化；非完整持久化验收	本轮未完成对应控件的Word操作				保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jf-theme-素雅 · 暗色.png
+文件	选项	晴空 · 亮色	toggle button	1	false	TOGGLED	已切换并观察状态/外观变化；非完整持久化验收	本轮未完成对应控件的Word操作				保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jf-theme-晴空 · 亮色.png
+文件	选项	晴空 · 暗色	toggle button	1	false	TOGGLED	已切换并观察状态/外观变化；非完整持久化验收	本轮未完成对应控件的Word操作				保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jf-theme-晴空 · 暗色.png
+文件	选项	暖砂 · 亮色	toggle button	1	false	TOGGLED	已切换并观察状态/外观变化；非完整持久化验收	本轮未完成对应控件的Word操作				保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jf-theme-暖砂 · 亮色.png
+文件	选项	暖砂 · 暗色	toggle button	1	false	TOGGLED	已切换并观察状态/外观变化；非完整持久化验收	本轮未完成对应控件的Word操作				保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jf-theme-暖砂 · 暗色.png
+文件	选项	切换为深色外观	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	本轮未完成对应控件的Word操作				保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jf-dark-toggle.png
+文件	选项	Switch to English	button	1	false	CLICKED	入口已操作；具体状态见截图	本轮未完成对应控件的Word操作				保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/j52-english-ui.png
+文件	选项	用户信息与单位…	button	1	false	CLICKED	弹窗/菜单含：用户名；单位（centimeters / millimeters / inches / points）；应用	本轮未完成对应控件的Word操作			RIB-01	按报告对应建议优化，并用同一DOCX补做Word结果核对	screenshots/jf-user-units.png
+文件	选项	显示开发工具（本次会话）	button	1	false	CLICKED	入口已操作；具体状态见截图	本轮未完成对应控件的Word操作				保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/j17-developer-enabled.png
+文件	导出	PDF 文档 (*.pdf)	button	1	false	CLICKED	出现原生保存面板；此入口取消，未验证输出产物	本轮未完成对应控件的Word操作				保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jf-export-pdf.png
+文件	导出	Word 文档 (*.docx)	button	1	false	CLICKED	出现原生保存面板；此入口取消，未验证输出产物	本轮未完成对应控件的Word操作				保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jf-export-docx.png
+文件	导出	Word XML 文档 (*.xml)	button	1	false	CLICKED	弹窗/菜单含：选择保存位置…	本轮未完成对应控件的Word操作				保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jf-export-xml.png
+文件	导出	Word 2003 XML 文档 (*.xml)	button	1	false	CLICKED	弹窗/菜单含：选择保存位置…	本轮未完成对应控件的Word操作				保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jf-export-word2003xml.png
+文件	导出	OpenDocument 文本 (*.odt)	button	1	false	CLICKED	弹窗/菜单含：选择保存位置…	本轮未完成对应控件的Word操作				保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jf-export-odt.png
+文件	导出	OpenDocument 文本模板 (*.ott)	button	1	false	CLICKED	弹窗/菜单含：选择保存位置…	本轮未完成对应控件的Word操作				保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jf-export-ott.png
+文件	导出	平面 OpenDocument 文本 (*.fodt)	button	1	false	CLICKED	弹窗/菜单含：选择保存位置…	本轮未完成对应控件的Word操作				保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jf-export-fodt.png
+文件	导出	RTF 格式 (*.rtf)	button	1	false	CLICKED	弹窗/菜单含：选择保存位置…	本轮未完成对应控件的Word操作				保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jf-export-rtf.png
+文件	导出	网页 (*.html)	button	1	false	CLICKED	弹窗/菜单含：选择保存位置…	本轮未完成对应控件的Word操作				保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jf-export-html.png
+文件	导出	Markdown (*.md)	button	1	false	CLICKED	弹窗/菜单含：选择保存位置…	本轮未完成对应控件的Word操作				保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jf-export-md.png
+文件	导出	LaTeX (*.tex)	button	1	false	CLICKED	弹窗/菜单含：选择保存位置…	本轮未完成对应控件的Word操作				保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jf-export-tex.png
+文件	导出	纯文本 (*.txt)	button	1	false	CLICKED	弹窗/菜单含：选择保存位置…	本轮未完成对应控件的Word操作				保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jf-export-txt.png
+文件	导出	页面图像 (*.png)	button	1	false	CLICKED	弹窗/菜单含：选择保存位置…	本轮未完成对应控件的Word操作				保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jf-export-png.png
+文件	导出	EPUB 电子书 (*.epub)	button	1	false	CLICKED	点击后已采集画面；非所有语义/参数已验收	本轮未完成对应控件的Word操作				保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jf-export-epub.png
+文件	导出	PDF/A-2b 归档文档 (*.pdf)	button	1	false	CLICKED	弹窗/菜单含：选择保存位置…	本轮未完成对应控件的Word操作				保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jf-export-pdfa.png
+文件	新建	JoyWord 欢迎文档	button	1	false	CLICKED	入口已操作；具体状态见截图	本轮未完成对应控件的Word操作				保持现有入口，补做相同样本的Word结果及保存重开核对	screenshots/jf-template-welcome.png

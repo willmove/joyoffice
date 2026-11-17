@@ -1,0 +1,43 @@
+Window: "单元格选项", App: Microsoft Word.
+0 对话框 单元格选项, Secondary Actions: Raise
+	1 文本 单元格\x200\x200边距
+	2 复选框 与整张表格相同, Value: 1
+	3 文本 上:
+	4 文本栏 (disabled) 0 厘米
+	5 步进器 (disabled) Value: 0, Secondary Actions: Increment, Decrement
+		6 增箭头按钮
+		7 减箭头按钮
+	8 文本 下:
+	9 文本栏 (disabled) 0 厘米
+	10 步进器 (disabled) Value: 0, Secondary Actions: Increment, Decrement
+		11 增箭头按钮
+		12 减箭头按钮
+	13 文本 左:
+	14 文本栏 (disabled) 0.19 厘米
+	15 步进器 (disabled) Value: 0, Secondary Actions: Increment, Decrement
+		16 增箭头按钮
+		17 减箭头按钮
+	18 文本 右:
+	19 文本栏 (disabled) 0.19 厘米
+	20 步进器 (disabled) Value: 0, Secondary Actions: Increment, Decrement
+		21 增箭头按钮
+		22 减箭头按钮
+	23 文本 选项
+	24 复选框 自动换行, Value: 1
+	25 复选框 适应文字, Value: 0
+	26 按钮 确定
+	27 按钮 取消
+	28 文本 单元格选项
+29 menu bar
+	30 Word, ID: AppMenu_MenuItem
+	31 文件
+	32 编辑, ID: EditMenu_MenuItem
+	33 视图, ID: ViewMenu_MenuItem
+	34 插入
+	35 格式
+	36 工具
+	37 表格
+	38 窗口, ID: WindowMenu_MenuItem
+	39 帮助, ID: HelpMenu_MenuItem
+
+The focused UI element is 0 对话框 单元格选项, Secondary Actions: Raise

@@ -1,0 +1,105 @@
+Window: "边框和底纹", App: Microsoft Word.
+0 对话框 边框和底纹, Secondary Actions: Raise
+	1 标签页组
+		2 标签 边框, Value: 0
+		3 标签 页面边框, Value: 1
+		4 标签 底纹, Value: 0
+		5 文本 设置:
+		6 单选按钮 1
+		7 单选按钮 0
+		8 单选按钮 阴影, Value: 0
+		9 单选按钮 三维, Value: 0
+		10 单选按钮 0
+		11 text 无 框 阴影 三维 自定义 样式:
+		12 滚动区 Secondary Actions: Scroll Up, Scroll Down
+			13 表格
+				14 row (selected)
+					15 文本栏 (settable) 单实线
+				16 row (selectable)
+					17 文本栏 (settable) 点式
+				18 row (selectable)
+					19 文本栏 (settable) 虚线(小间隙)
+				20 row (selectable)
+					21 文本栏 (settable) 虚线(大间隙)
+				22 row (selectable)
+					23 文本栏 (settable) 短线-点
+				24 row (selectable)
+					25 文本栏 (settable) 短线-点-点
+				26 row (selectable)
+					27 文本栏 (settable) 双实线
+				28 row (selectable)
+					29 文本栏 (settable) 三重实线
+				30 row (selectable)
+					31 文本栏 (settable) 粗-细窄间隔
+				32 row (selectable)
+					33 文本栏 (settable) 细-粗窄间隔
+				34 row (selectable)
+					35 文本栏 (settable) 细-粗-细窄间隔
+				36 row (selectable)
+					37 文本栏 (settable) 粗-细普通间隔
+				38 row (selectable)
+					39 文本栏 (settable) 细-粗普通间隔
+				40 row (selectable)
+					41 文本栏 (settable) 细-粗-细普通间隔
+				42 row (selectable)
+					43 文本栏 (settable) 粗-细宽间隔
+				44 row (selectable)
+					45 文本栏 (settable) 细-粗宽间隔
+				46 row (selectable)
+					47 文本栏 (settable) 细-粗-细宽间隔
+				48 row (selectable)
+					49 文本栏 (settable) 单波浪线
+				50 row (selectable)
+					51 文本栏 (settable) 双波浪线
+				52 row (selectable)
+					53 文本栏 (settable) 点划线(敲击式)
+				54 row (selectable)
+					55 文本栏 (settable) 阳文三维
+				56 row (selectable)
+					57 文本栏 (settable) 阴文三维
+				58 row (selectable)
+					59 文本栏 (settable) 起始
+				60 row (selectable)
+					61 文本栏 (settable) 插页
+				62 栏 (selectable) AutomaticTableColumnIdentifier.0
+			63 滚动条 (settable, float) 0
+				64 值指示器 (settable, float) 0
+				65 增箭头按钮
+				66 减箭头按钮
+				67 增页面按钮
+				68 减页面按钮
+		69 文本 颜色:
+		70 菜单按钮
+		71 文本 宽度:
+		72 弹出式按钮 0.5 磅
+		73 文本 艺术型:
+		74 弹出式按钮 (无)
+		75 text 预览 单击下方图示或使用按钮可应用边框
+		76 开关按钮 Description: 上框线, Value: off
+		77 开关按钮 Description: 下框线, Value: off
+		78 图像
+		79 开关按钮 Description: 左边框, Value: off
+		80 开关按钮 Description: 右框线, Value: off
+		81 文本 应用于:
+		82 弹出式按钮 整篇文档
+		83 按钮 选项...
+	84 按钮 横线...
+	85 按钮 确定
+	86 按钮 取消
+	87 文本 边框和底纹
+88 menu bar
+	89 Word, ID: AppMenu_MenuItem
+	90 文件
+	91 编辑, ID: EditMenu_MenuItem
+	92 视图, ID: ViewMenu_MenuItem
+	93 插入
+	94 格式
+	95 工具
+	96 表格
+	97 窗口, ID: WindowMenu_MenuItem
+	98 帮助, ID: HelpMenu_MenuItem
+
+Selected:
+	14 row (selected)
+
+Note: Pay special attention to the content selected by the user. If the user asks a question or refers to the content they are looking at on-screen, they might be referring to the selected content (but they might be referring to something else that's visible, too).

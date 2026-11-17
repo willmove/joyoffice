@@ -1,0 +1,48 @@
+Window: "信封", App: Microsoft Word.
+0 对话框 信封, Secondary Actions: Raise
+	1 文本 收信人地址
+	2 container
+		3 滚动条 (settable, float) 0
+			4 值指示器 (settable, float) 0
+			5 增箭头按钮
+			6 减箭头按钮
+			7 增页面按钮
+			8 减页面按钮
+	9 按钮 搜索通讯簿中的联系人
+	10 按钮 字体...
+	11 按钮 定位...
+	12 文本 寄信人地址
+	13 container
+		14 滚动条 (settable, float) 0
+			15 值指示器 (settable, float) 0
+			16 增箭头按钮
+			17 减箭头按钮
+			18 增页面按钮
+			19 减页面按钮
+	20 按钮 (disabled) 搜索通讯簿中的联系人
+	21 复选框 省略, Value: 0
+	22 复选框 使用我的地址, Value: 1
+	23 按钮 字体...
+	24 按钮 定位...
+	25 文本 打印选项
+	26 单选按钮 使用打印机中的设置, Value: 1
+	27 单选按钮 使用自定义设置, Value: 0
+	28 按钮 页面设置...
+	29 按钮 自定义...
+	30 复选框 将此信封插入活动文档中, Value: 0
+	31 按钮 邮件合并...
+	32 按钮 打印...
+	33 按钮 确定
+	34 按钮 取消
+	35 文本 信封
+36 menu bar
+	37 Word, ID: AppMenu_MenuItem
+	38 文件
+	39 编辑, ID: EditMenu_MenuItem
+	40 视图, ID: ViewMenu_MenuItem
+	41 插入
+	42 格式
+	43 工具
+	44 表格
+	45 窗口, ID: WindowMenu_MenuItem
+	46 帮助, ID: HelpMenu_MenuItem

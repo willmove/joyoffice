@@ -1,0 +1,56 @@
+Window: "选择数据源", App: Microsoft Excel.
+0 对话框 选择数据源, Secondary Actions: Raise
+	1 container
+		2 文本栏 (settable) Help: 在工作表上选择一个范围, Value: =Sheet1!$A$1:$D$5
+			3 按钮 折叠对话框
+		4 text 图表数据区域: 区域详细信息
+	5 文本 图例项(系列):
+	6 滚动区
+		7 表格 图表中的系列列表
+			8 row (selected)
+				9 文本栏 (settable) 系列 1
+			10 row (selectable)
+				11 文本栏 (settable) 系列 2
+			12 row (selectable)
+				13 文本栏 (settable) 系列 3
+			14 栏 (selectable) AutomaticTableColumnIdentifier.0
+	15 文本 名称:
+	16 文本栏 (settable) Help: 在工作表上选择一个范围, Value: =Sheet1!$B$1
+		17 按钮 折叠对话框
+	18 文本 Y 值:
+	19 文本栏 (settable) Help: 在工作表上选择一个范围, Value: =Sheet1!$B$2:$B$5
+		20 按钮 折叠对话框
+	21 文本 水平(分类)轴标签:
+	22 文本栏 (settable) Help: 在工作表上选择一个范围, Value: =Sheet1!$A$2:$A$5
+		23 按钮 折叠对话框
+	24 container
+		25 文本 空单元格显示为:
+		26 弹出式按钮 空距
+		27 复选框 显示隐藏行列中的数据, Value: 0
+		28 复选框 将 #N/A 显示为空单元格, Value: 1
+		29 文本 隐藏和清空单元格
+	30 按钮 添加新的系列
+	31 按钮 删除系列
+	32 按钮 切换行/列
+	33 按钮 确定
+	34 按钮 取消
+	35 按钮 Description: 向上重新调整序列, Help: 向上移动序列
+	36 按钮 Description: 向下重新调整序列, Help: 向下移动序列
+	37 文本 选择数据源
+38 menu bar
+	39 Excel, ID: AppMenu_MenuItem
+	40 文件
+	41 编辑, ID: EditMenu_MenuItem
+	42 视图, ID: ViewMenu_MenuItem
+	43 插入
+	44 格式
+	45 工具
+	46 数据
+	47 窗口, ID: WindowMenu_MenuItem
+	48 帮助, ID: HelpMenu_MenuItem
+
+Selected text: ```
+=Sheet1!$A$1:$D$5
+```
+
+Note: Pay special attention to the content selected by the user. If the user asks a question or refers to the content they are looking at on-screen, they might be referring to the selected content (but they might be referring to something else that's visible, too).

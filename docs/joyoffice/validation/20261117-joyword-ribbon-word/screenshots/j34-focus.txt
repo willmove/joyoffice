@@ -1,0 +1,17 @@
+Window: "* 未命名 1 — JoyWord", App: JoyWord Ribbon Audit.
+0 standard window * 未命名 1 — JoyWord, Secondary Actions: Raise
+	1 container
+		2 button 退出专注（Esc）
+		3 button 上一页
+		4 button 下一页
+		5 text entry area (settable) 文档正文, Help: 随光标读取段落。用方向键或翻页键浏览。, Value: Alpha Audit One trackedSample
+		6 button −
+		7 button 100%
+		8 button +
+	9 text * 未命名 1 — JoyWord
+	10 menu button Window sharing
+11 menu bar
+	12 JoyWord Ribbon Audit
+	13 View
+
+The focused UI element is 0 standard window * 未命名 1 — JoyWord, Secondary Actions: Raise

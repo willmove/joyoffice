@@ -1,0 +1,44 @@
+Window: "* 未命名 1 — JoyWord", App: JoyWord Ribbon Audit.
+0 standard window * 未命名 1 — JoyWord, Secondary Actions: Raise
+	1 container
+		2 button 新建
+		3 button 打开
+		4 button 保存
+		5 button 撤销
+		6 button (disabled) 重做
+		7 button 搜索命令
+		8 button EN
+		9 button 切换外观
+		10 tab group 功能区
+			11 tab (settable, boolean) 文件, Value: off
+			12 tab (settable, boolean) 开始, Value: off
+			13 tab (settable, boolean) 插入, Value: off
+			14 tab (settable, boolean) 绘图, Value: off
+			15 tab (settable, boolean) 设计, Value: off
+			16 tab (settable, boolean) 布局, Value: off
+			17 tab (settable, boolean) 引用, Value: off
+			18 tab (settable, boolean) 邮件, Value: off
+			19 tab (settable, boolean) 审阅, Value: off
+			20 tab (settable, boolean) 视图, Value: off
+			21 tab (settable, boolean) 帮助, Value: on
+			22 button 折叠或展开功能区, Help: Ctrl+F1
+		23 container 帮助
+			24 button 帮助
+			25 button 反馈
+			26 button 显示培训内容
+		27 button 上一页
+		28 button 下一页
+		29 text entry area (settable) 文档正文, Help: 随光标读取段落。用方向键或翻页键浏览。, Value: 这是用于 JoyWord 与 Microsoft Word 对比的测试段落。Hello Word 123.
+			30 container 水平标尺（只读）
+		31 button −
+		32 button 100%
+		33 button +
+		34 dialog
+			35 button Close
+	36 text * 未命名 1 — JoyWord
+	37 menu button Window sharing
+38 menu bar
+	39 JoyWord Ribbon Audit
+	40 View
+
+The focused UI element is 0 standard window * 未命名 1 — JoyWord, Secondary Actions: Raise

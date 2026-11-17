@@ -1,0 +1,87 @@
+{
+  "schema": 1,
+  "date": "2026-11-17",
+  "source_head": "eb551e36622c32feaebcdb029d1b06abb26aea26",
+  "build": {
+    "command": "cargo build --locked -p joyword",
+    "exit_code": 0,
+    "profile": "debug",
+    "rust": "1.98.1",
+    "binary_sha256": "13d63764bc867ce6360d42dd94c91d543e871e4679ab70dcbc8f956b8e4aa884",
+    "temporary_app_binary_sha256": "13d63764bc867ce6360d42dd94c91d543e871e4679ab70dcbc8f956b8e4aa884"
+  },
+  "documentation": {
+    "command": "python3 scripts/check_docs.py",
+    "exit_code": 0,
+    "output": "OK: R8 documentation, 112 historical tasks, sample hashes and workflow action pins"
+  },
+  "artifact_validation": {
+    "report_local_links": "98 passed",
+    "checklist_evidence_files": "passed",
+    "screenshot_sha256": "513 passed",
+    "docx_zip_crc": "passed",
+    "docx_document_xml": "parsed",
+    "docx_zip_parts": 9,
+    "fixture_sha256": "84b112c8fc7b41250be1e7a5893aab0c7c67ceb261832de9f40d81421865cf24",
+    "word_evidence_links": "passed",
+    "control_count": 376,
+    "findings_count": 20,
+    "capture_review": "Reviewed originals and all contact-01..24 / supplement-01..14 / word-followup-01..06; 3 rejected captures excluded",
+    "accepted_captures": 510,
+    "word_captures": 96,
+    "word_related_excel_captures": 2,
+    "docx_fixtures": [
+      {
+        "file": "fixtures/joyword-saved-session.docx",
+        "sha256": "84b112c8fc7b41250be1e7a5893aab0c7c67ceb261832de9f40d81421865cf24",
+        "zip_crc": "passed",
+        "xml_parts_parsed": 9,
+        "zip_parts": 9
+      },
+      {
+        "file": "fixtures/word-mail-main.docx",
+        "sha256": "17de4192b7640a2646c182e90c499c30adea0e5f127493f9ac5a5d8150a02e07",
+        "zip_crc": "passed",
+        "xml_parts_parsed": 12,
+        "zip_parts": 12
+      },
+      {
+        "file": "fixtures/word-merged-two-records.docx",
+        "sha256": "2c22a89dd6ad50120a98f36ad984a26b47116521bde31ac86df0e840884f3a03",
+        "zip_crc": "passed",
+        "xml_parts_parsed": 11,
+        "zip_parts": 11
+      },
+      {
+        "file": "fixtures/word-recipients.docx",
+        "sha256": "894b51a1c8c995224b821b8eba0a9f0c58e9e1b635912f2b97a4e1d1268a4e9a",
+        "zip_crc": "passed",
+        "xml_parts_parsed": 11,
+        "zip_parts": 11
+      }
+    ],
+    "followup_capture_index": "66 passed"
+  },
+  "code_change_check": {
+    "tracked_diff_empty": true,
+    "untracked_scope": "docs/joyoffice/validation/20261117-joyword-ribbon-word only"
+  },
+  "not_run": [
+    "Rust unit tests/fmt/clippy (no Rust changes)",
+    "Cross-product regression (no shared code/build/dependency changes)",
+    "All JoyWord export formats and actual printing (Word local two-record merge output was saved and its XML checked)",
+    "Real screen reader / IME / Windows / Linux / signed release package"
+  ],
+  "word_followup": {
+    "cua_error": "-10005 timeoutReached on subsequent state/screenshot/Esc calls",
+    "process_alive": true,
+    "forced_quit": false,
+    "claim": "Tool control resumed. No evidence of a Word crash. Scope and remaining limitations are recorded in README.",
+    "resolved": true,
+    "user_confirmed_word_usable": true,
+    "reconnected": true,
+    "observation_records": 66,
+    "comparison_groups": 7,
+    "chart_excel_dialog_handled": true
+  }
+}

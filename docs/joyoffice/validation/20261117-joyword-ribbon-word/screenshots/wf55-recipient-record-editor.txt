@@ -1,0 +1,46 @@
+Window: "编辑列表项", App: Microsoft Word.
+0 对话框 编辑列表项, Secondary Actions: Raise
+	1 container
+		2 文本 姓名:
+		3 文本栏 (settable)
+		4 文本 单位:
+		5 文本栏 (settable)
+		6 文本 职务:
+		7 文本栏 (settable)
+		8 文本 邮政编码:
+		9 文本栏 (settable)
+		10 文本 通讯地址1:
+		11 文本栏 (settable)
+		12 文本 通讯地址2:
+		13 文本栏 (settable)
+		14 文本 通讯地址3:
+		15 文本栏 (settable)
+		16 文本 联系电话:
+		17 文本栏 (settable)
+		18 滑块 (settable, float) 8
+			19 值指示器 (settable, float) 8
+	20 按钮 添加
+	21 按钮 移除
+	22 按钮 ⇤, Description: 第一项
+	23 按钮 ←, Description: 前一项
+	24 文本栏 (settable) 1
+	25 按钮 →, Description: 下一项
+	26 按钮 ⇥, Description: 最后一项
+	27 按钮 查找...
+	28 按钮 查看数据源
+	29 按钮 重置
+	30 按钮 确定
+	31 文本 编辑列表项
+32 menu bar
+	33 Word, ID: AppMenu_MenuItem
+	34 文件
+	35 编辑, ID: EditMenu_MenuItem
+	36 视图, ID: ViewMenu_MenuItem
+	37 插入
+	38 格式
+	39 工具
+	40 表格
+	41 窗口, ID: WindowMenu_MenuItem
+	42 帮助, ID: HelpMenu_MenuItem
+
+The focused UI element is 3 文本栏 (settable)

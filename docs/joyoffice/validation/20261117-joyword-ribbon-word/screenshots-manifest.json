@@ -1,0 +1,3593 @@
+[
+  {
+    "file": "screenshots/j01-home-blank.png",
+    "sha256": "66972c54c79b5dc76e0bb895f961f37163190dcc9f33df92ec1d746fdbb154f2",
+    "ax": "screenshots/j01-home-blank.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j02-home-text.png",
+    "sha256": "635e2f6b3f0b5a9233205bbfbd566f6ccee56b4bf773052cf83fafaae3bc43af",
+    "ax": "screenshots/j02-home-text.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j03-font-dialog.png",
+    "sha256": "995ccce2074dcfb8e7beed723f9c8cd2bcd4c9d724ff156c2fa8f4078a927687",
+    "ax": "screenshots/j03-font-dialog.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j04-select-menu.png",
+    "sha256": "76b7be926ba6a14d9a09489a1d929ff180cfd6ce5a7db1fafed95c824ae64065",
+    "ax": "screenshots/j04-select-menu.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j05-bold.png",
+    "sha256": "2178bce4329d843f7e2ca6f07aaf332d04ca068d2dd7a9428195c801bc68319c",
+    "ax": "screenshots/j05-bold.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j06-italic.png",
+    "sha256": "06506397556bc110c1cc7e5cab3318fdb3ad03a87a33b0e4df7108f4ccd7f464",
+    "ax": "screenshots/j06-italic.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j07-underline.png",
+    "sha256": "7888e2ec9f1eb5b3da7b707f9b18bae089025bc45959eed2423f97e057f63088",
+    "ax": "screenshots/j07-underline.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j09-font-18-applied.png",
+    "sha256": "494e2e1011a9b585503fb7682f7de48a2b8482128b426d3bf7c8e8da768c1377",
+    "ax": "screenshots/j09-font-18-applied.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j10-home-after-menu-tests.png",
+    "sha256": "eab240084574a2750dcb9341c3cde46cef4bb2545d351e6d923f508f4cbf3736",
+    "ax": "screenshots/j10-home-after-menu-tests.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j11-home-format-result.png",
+    "sha256": "7e6ae12d7fbcc68876ca58d26cacdbd97b8c51b4a3f26af0bb9ce0391527aece",
+    "ax": "screenshots/j11-home-format-result.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j12-cross-reference-dialog.png",
+    "sha256": "74ea18d6e36b28e9b8e4b26123183cc01619dc4f19c0c77bd49bb56d05aa10c3",
+    "ax": "screenshots/j12-cross-reference-dialog.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j13-view.png",
+    "sha256": "8ffa077935a77963e774be92405e74bff81eefacb64c389e1e4d2611a20a61d1",
+    "ax": "screenshots/j13-view.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j14-ink-drag.png",
+    "sha256": "44d75fb2f4cb2517b82f396b2b62b25e9e27df5cf01704119b87e0482dfbca1e",
+    "ax": "screenshots/j14-ink-drag.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j16-save-dialog.png",
+    "sha256": "ad259034e8fdd642fee6d960dddc96685d5e56739359d29d6f58d5917fe38481",
+    "ax": "screenshots/j16-save-dialog.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j17-developer-enabled.png",
+    "sha256": "d52d2d70bee435720e08722855146592d2e7a94eb5eda590868a2e042e640b25",
+    "ax": "screenshots/j17-developer-enabled.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j18-new-doc.png",
+    "sha256": "ba2b251a9a2bc4c2bb37dafe521d8eb9908b06813e97a6676e050714c6a6b62e",
+    "ax": "screenshots/j18-new-doc.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j19-find-dialog.png",
+    "sha256": "dabe13bb28bca791658d3e4be998dbf12d39f80ec55fd60092cdf6be779bb016",
+    "ax": "screenshots/j19-find-dialog.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j20-find-results.png",
+    "sha256": "7c07651e6cc9b3df0293dad5afcc759334d7ad5c9ea60f73b1fe6fa16a6c17e1",
+    "ax": "screenshots/j20-find-results.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j21-replace-confirmation.png",
+    "sha256": "f0fd76c18d723612a172c06b6411c873dd0dcee4aa4a95d424e18f946fa886a5",
+    "ax": "screenshots/j21-replace-confirmation.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j22-table-inserted.png",
+    "sha256": "1e4e9b24f8140c1e3bc3d815606b2a253b0269486bd97ce37c39b587029d8382",
+    "ax": "screenshots/j22-table-inserted.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j23-table-4x4-result.png",
+    "sha256": "52cc3be6dbdc6c7a7ab708cc865db58303db1a2513aa741c6e5bef4406b7605f",
+    "ax": "screenshots/j23-table-4x4-result.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j24-picture-inserted.png",
+    "sha256": "3823fa379db9cd13dfecb6412def23973901b6e8954e9430e4c416f4949ff301",
+    "ax": "screenshots/j24-picture-inserted.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j25-picture-resized.png",
+    "sha256": "4fb4f85ae1a614b3251f26e52eb25eb44a6b9edd65275872dcf9b2382c6520f8",
+    "ax": "screenshots/j25-picture-resized.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j26-selection-pane.png",
+    "sha256": "ce7a260b1a5b4a773fe96b28f03167ec1a6ca422f769f15269de205def5342a6",
+    "ax": "screenshots/j26-selection-pane.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j27-comment-created.png",
+    "sha256": "304d1d7a8ec36bea6bfb7b59d930af885282cf50050244c9970a917fb74d40f1",
+    "ax": "screenshots/j27-comment-created.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j28-tracked-change.png",
+    "sha256": "7f3079f279706e1499aa0ea525a725566075c1d3cd40f65cdaeef3d28ffc7065",
+    "ax": "screenshots/j28-tracked-change.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j29-new-recipients.png",
+    "sha256": "9aa6a0f8f7e2719a90f07db51d64eebbeb57460e28491ceb8f9759c4f2eb6a0c",
+    "ax": "screenshots/j29-new-recipients.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j30-merge-ready.png",
+    "sha256": "a94f9ba30db874fe92a8d5a1320bc0f6780459cd6029efe40b64129bedd41310",
+    "ax": "screenshots/j30-merge-ready.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j31-merge-two-fields.png",
+    "sha256": "7e2cff02d25dd2a144defb641b2e5f6b00f2b2fdf81c81f48ea4fbc052eba1c2",
+    "ax": "screenshots/j31-merge-two-fields.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j32-merge-preview.png",
+    "sha256": "80b00e3321454aa453ca381a604f8024e8da46641164108440275d631d0dc075",
+    "ax": "screenshots/j32-merge-preview.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j33-merge-preview-on.png",
+    "sha256": "58c1d93d4017776134b66b7f23baa12b20a22d65dfd2eb29b6c72fe671aead82",
+    "ax": "screenshots/j33-merge-preview-on.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j34-focus.png",
+    "sha256": "42ba197f7ec7ce8403993c230ec6a6983f7e7e2cd4e432e858d52d1a3cbec986",
+    "ax": "screenshots/j34-focus.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j35-developer-after.png",
+    "sha256": "507e7d53cc21d3fae2add812109131124d2085152b84aae3ae035dce744dbfbe",
+    "ax": "screenshots/j35-developer-after.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j36-macro-recorded.png",
+    "sha256": "fe3647cc411a29349453fd770784b4ed760a1ee937aa51dfb34e40b247f7c42b",
+    "ax": "screenshots/j36-macro-recorded.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j37-file-new.png",
+    "sha256": "fb7d62854845a9ea21377060adf83214ab3f1cb619741c4bc9a2d09e4df6c8f8",
+    "ax": "screenshots/j37-file-new.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j38-letter-template.png",
+    "sha256": "66c7dc155ae642da6dc88344ce8bb280526ed9497ae6e4271bcd1cac2d8a0b16",
+    "ax": "screenshots/j38-letter-template.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j40-page-breaks.png",
+    "sha256": "133646405cb80f733adbc6339d216603f5c7c89e5ecfb206ccb1b1a42ca79671",
+    "ax": "screenshots/j40-page-breaks.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j41-ribbon-collapsed.png",
+    "sha256": "165d0b53eea2f81f64d7b8da942c6af7693eb51ba60f5ab2965d3624068feb16",
+    "ax": "screenshots/j41-ribbon-collapsed.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j42-ribbon-restored.png",
+    "sha256": "9ec4d5f5e6286f03d4036fbe9a26ed95d13b699d35c895a0aca314c8a4ba7b98",
+    "ax": "screenshots/j42-ribbon-restored.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j43-units-inches.png",
+    "sha256": "dd50c25fbffc639eeba98212c937b6d7d2a7c68917cb9ac555af364da634a32c",
+    "ax": "screenshots/j43-units-inches.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j44-paragraph-still-points.png",
+    "sha256": "65203f89c71158947b29787c4201bf80e09cccdcd9bace2d75a8a398b1e0348d",
+    "ax": "screenshots/j44-paragraph-still-points.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j45-insert-shape.png",
+    "sha256": "e1df63eaee973f82b9e25d12753cf787cdabdfa20bf4aca0da1e9256896e7f50",
+    "ax": "screenshots/j45-insert-shape.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j46-shape-selected.png",
+    "sha256": "7e52749f4ba85ebdf7981733023ee1037fab9c4272f98bb27e214c07524c8fe0",
+    "ax": "screenshots/j46-shape-selected.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j47-shape-doubleclick.png",
+    "sha256": "72670847a11b76f8c35e11d1151d86f8c1fab0055f270d033cb870f495e7e35b",
+    "ax": "screenshots/j47-shape-doubleclick.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j48-smartart-insert.png",
+    "sha256": "2d1b4590fd856680a450fbad7ee95a15c4cf66f8635f6fc0b7d50c807669e91b",
+    "ax": "screenshots/j48-smartart-insert.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j49-chart-insert.png",
+    "sha256": "e516bc3b85a693c0a23da502bb532430b0dc0a0a01bb937ba8d3213e906059b0",
+    "ax": "screenshots/j49-chart-insert.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j50-chart-doubleclick.png",
+    "sha256": "12e31c961a5961e35c8c0a68976f366394b84f6fa7d466a0f2a8e4abe06026b6",
+    "ax": "screenshots/j50-chart-doubleclick.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j51-chart-context-menu.png",
+    "sha256": "6cd5611e5f756041b31a1f98b94c854f78240a9c31317ff7219bb1efde3ff6b4",
+    "ax": "screenshots/j51-chart-context-menu.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j52-english-ui.png",
+    "sha256": "3dbf6698147b3dd77d8625070cf1d400227629c8be6a6400d901f720f4cdde32",
+    "ax": "screenshots/j52-english-ui.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j53-header-edit.png",
+    "sha256": "4a2b72d3f9de87a1cdca64fefb0ae4a9174f6f5fdd1862c2e4479d07a7932a86",
+    "ax": "screenshots/j53-header-edit.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j54-header-ribbon-scroll.png",
+    "sha256": "a043af4cb23f5994757907f27be2c21286832bb78c02a13e492b6545d05405ae",
+    "ax": "screenshots/j54-header-ribbon-scroll.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j55-unsaved-close.png",
+    "sha256": "c430696acc7f52726d4e3229cf0e2cb086af99bf40ec1c1a6f4227d1f2e55f5d",
+    "ax": "screenshots/j55-unsaved-close.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j56-header-on-help-tab.png",
+    "sha256": "9a297e01a0886cfe21bf5d862c9d1c12129d2d8e3f63b3d0f67404036cd59adb",
+    "ax": "screenshots/j56-header-on-help-tab.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j57-header-baseline.png",
+    "sha256": "45a67d2459e6eb3889889362a89a19ba74f8d5d19d5c717172bcb14bb00d65a0",
+    "ax": "screenshots/j57-header-baseline.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j58-header-edit-state.png",
+    "sha256": "ef99f695b35dbd0e31ff100688f4bbd6f4028da491c2c4b765071bb9b75b9a60",
+    "ax": "screenshots/j58-header-edit-state.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j59-header-typed.png",
+    "sha256": "6757fd0d98cbb39139624b740ef1ef015baa3dc2c2855960b8c1242f00450339",
+    "ax": "screenshots/j59-header-typed.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j60-header-close-offscreen-noop.png",
+    "sha256": "f47d81fac3cee83870603ec9d822f5b5a4db7fe1e70ae268ebb5555207f0ece6",
+    "ax": "screenshots/j60-header-close-offscreen-noop.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j61-header-controls-on-help.png",
+    "sha256": "b57ad4378b67dfbaaafeab8854823aef74bbc01698249556d5b486f9004a4968",
+    "ax": "screenshots/j61-header-controls-on-help.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j63-saved-document-reopened.png",
+    "sha256": "ecada4a79d3d172b0d8d718f7de73c497a5dee69e45b7dfb6a041e304c4828b6",
+    "ax": "screenshots/j63-saved-document-reopened.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j64-letter-template-verified.png",
+    "sha256": "c6d5367c090805cf065b0d00da722b6ca73f2fda2e8cefdc592196cf14c5a83f",
+    "ax": "screenshots/j64-letter-template-verified.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j65-table-merge-all-cells.png",
+    "sha256": "781f7d764bc00c588e586ee97183d3c9a7e9c8190a7ed04150045380caf4133f",
+    "ax": "screenshots/j65-table-merge-all-cells.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/j66-final-test-document.png",
+    "sha256": "872f9d5773b821ab36a780bc8d614b5e08277eab41f7fd5d6cd007a2955352a5",
+    "ax": "screenshots/j66-final-test-document.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jd-colors.png",
+    "sha256": "b9320cff882edf6b006dedd0eba4d34f533f050d12f93be262f315b8178ed1e4",
+    "ax": "screenshots/jd-colors.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jd-custom-page-border.png",
+    "sha256": "1bb708e96205bae004ad8b7858c033fa910c754fdf2fb7c45446f2be5e465d77",
+    "ax": "screenshots/jd-custom-page-border.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jd-custom-watermark.png",
+    "sha256": "537e7960ba002514fc4a24c2e41e103177df23e90e54b9bad5918c89560c36d9",
+    "ax": "screenshots/jd-custom-watermark.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jd-fonts.png",
+    "sha256": "3c26373b1e44adbc07b73a38019d21a12a5b020553e44fe3180ae3cb45a9d686",
+    "ax": "screenshots/jd-fonts.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jd-page-border.png",
+    "sha256": "d4efdcc7bd03377f71490cf89dc58436d95726fe7b6f0bf684dff115c3d886d5",
+    "ax": "screenshots/jd-page-border.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jd-page-color.png",
+    "sha256": "312e499b4fc28c22b4914e29c5e960a3874ba8682a2603684715bcc40780e0c0",
+    "ax": "screenshots/jd-page-color.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jd-preset-basic.png",
+    "sha256": "d7a9fe7f2f8ab7d88951b3557b70db214fd0e8e801ef79dae104d18300327006",
+    "ax": "screenshots/jd-preset-basic.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jd-preset-casual.png",
+    "sha256": "e285539b026d099f33510632cf397e36fde717a837e506c0eb68c395271d7cb4",
+    "ax": "screenshots/jd-preset-casual.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jd-preset-center.png",
+    "sha256": "69c8302b08ed605838826d2c3f2a0718d28dd165dabd5f5a116d0d9f809357cb",
+    "ax": "screenshots/jd-preset-center.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jd-preset-default.png",
+    "sha256": "22ce8c435485f9456c5181ab78f37246303ac383b195fead2a3289565fa319bb",
+    "ax": "screenshots/jd-preset-default.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jd-preset-lines.png",
+    "sha256": "158a4a0487a577a408e210e8db064fa4e66088e492e5991e3e6641d41356a2d3",
+    "ax": "screenshots/jd-preset-lines.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jd-preset-shadow.png",
+    "sha256": "7ca22ef24cc07a0f0942839b6b986d8c2c25e70d105150bc87eb75850132d8ac",
+    "ax": "screenshots/jd-preset-shadow.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jd-preset-simple.png",
+    "sha256": "7403e2e98f069254fb018fe5f5cd56ff7e2e7a770d64868259dfbf8307e8a6cd",
+    "ax": "screenshots/jd-preset-simple.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jd-preset-title.png",
+    "sha256": "d2cd5495ae6112d4b5b65d72b77cfcb7d1b8fc542dfeddb9c94e7c301eff914e",
+    "ax": "screenshots/jd-preset-title.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jd-spacing.png",
+    "sha256": "13dbdeb9a84cf293cfa77f2d6dc8e66276352ee1efd4ae104dfa531c4740b5f0",
+    "ax": "screenshots/jd-spacing.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jd-theme.png",
+    "sha256": "cb25791123568788980cfec79c15e205c73790c43e554b94ad7af98a4da1ae11",
+    "ax": "screenshots/jd-theme.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jd-watermark.png",
+    "sha256": "83f50501537ad10014effba8bbbd1b431a08f657771490ff26daf396e28042a4",
+    "ax": "screenshots/jd-watermark.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jdev-export-copy.png",
+    "sha256": "d61229f2ff0f625d82006407c02aeec66599b4f37547b1116c51ad47f9651978",
+    "ax": "screenshots/jdev-export-copy.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jdev-macros.png",
+    "sha256": "9f89372a3dc0bb5eca0bb998be26e282881c57bb760fe20b886ca8a4f464bd90",
+    "ax": "screenshots/jdev-macros.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jdev-mcp-help.png",
+    "sha256": "5013e5aac5170ca21ed48f9aee28cd16c39a142f5aea674c02247f76884fb355",
+    "ax": "screenshots/jdev-mcp-help.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jdev-record.png",
+    "sha256": "c02ea419fa1f0de20713d0384e4bbd8265c04aecd97d01f8b9b3cdbb6f387e60",
+    "ax": "screenshots/jdev-record.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jdev-stop-record.png",
+    "sha256": "91d0b1c97764db973c6cd02cb2223412f3706f46b54c36e9ae0dfd8c08bf8309",
+    "ax": "screenshots/jdev-stop-record.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jdev-user-units.png",
+    "sha256": "6c0116758f08f11a48171be041952cd85ac039df563db14f1e0b3833b01d9cd0",
+    "ax": "screenshots/jdev-user-units.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jdraw-add-pen.png",
+    "sha256": "d3e481d9851e92ce002fba0e110fd39575cbd52b40695882e6c73d406c8702fa",
+    "ax": "screenshots/jdraw-add-pen.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jdraw-background.png",
+    "sha256": "e708d0153729036244d794c77ad3f2218bf7a0b2f13c07e6eccf9251d8be819b",
+    "ax": "screenshots/jdraw-background.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jdraw-black.png",
+    "sha256": "dd9c4114f1d7f1a9f026b276d8f83accf3eb5016e6d49c8de72fc7924eec51df",
+    "ax": "screenshots/jdraw-black.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jdraw-blue.png",
+    "sha256": "1a78e167e299e1d398eae111835b0c99b50f016e44781e6451522fb88f83c6c0",
+    "ax": "screenshots/jdraw-blue.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jdraw-convert-shape.png",
+    "sha256": "f39cd0f441576399cb6d41dc6e355f3bc2bcd44a54aab616e3dfccf235719e8b",
+    "ax": "screenshots/jdraw-convert-shape.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jdraw-eraser.png",
+    "sha256": "6f90ea59ae18643c340df22029e870c1c284ef8886c9b365c05266ffe623042e",
+    "ax": "screenshots/jdraw-eraser.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jdraw-green.png",
+    "sha256": "d3a5e023f5ed87e0ee56924cfdacbb9d81881a5e1688408fb3b969f9ad86ccc8",
+    "ax": "screenshots/jdraw-green.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jdraw-help.png",
+    "sha256": "b4947783e4da0047cd7440a803ffb575db198397d2f581c1bf6686ffbe106102",
+    "ax": "screenshots/jdraw-help.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jdraw-highlight.png",
+    "sha256": "0b9e6138aa6fe718952d85519ae0002c4c7b735eae1399d70be0773741519dff",
+    "ax": "screenshots/jdraw-highlight.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jdraw-lasso.png",
+    "sha256": "da40e85e873cf95e127ae72698965c5827d93c0d2bd0fde754e59ded90f038c1",
+    "ax": "screenshots/jdraw-lasso.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jdraw-mode.png",
+    "sha256": "48da06d72ba5c2d12aefe45465724b558bbebde9c56642f775c9035fea0773e1",
+    "ax": "screenshots/jdraw-mode.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jdraw-pen-settings.png",
+    "sha256": "d9d96550490265d421a12bcff8652273a336ba49ed45c5e55ea1e274d5361ac2",
+    "ax": "screenshots/jdraw-pen-settings.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jdraw-pencil.png",
+    "sha256": "ccf87be52908efa4d12e94d4cefc5602ef06c82f00064e6c2fdff483ae5c41d4",
+    "ax": "screenshots/jdraw-pencil.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jdraw-red.png",
+    "sha256": "d8e277bbf630f5cde236a09813924550b9136e12046b204a49b18b432cdbbc54",
+    "ax": "screenshots/jdraw-red.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jdraw-redo.png",
+    "sha256": "9f4cd4e02d60798b63bea1df0373a009fab20a21ba219d571f3ad2c9470e686c",
+    "ax": "screenshots/jdraw-redo.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jdraw-select.png",
+    "sha256": "b9e10862ae8443c40b746090f383d8f266707267f6e382ba452e7e97ca00c346",
+    "ax": "screenshots/jdraw-select.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jdraw-undo.png",
+    "sha256": "e44aaab0157bb26562845540b35dc8fd1a55a4ed21b20102c3fa69873b7ab0b9",
+    "ax": "screenshots/jdraw-undo.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jf-about.png",
+    "sha256": "a588583094aa72257a60bf0df2b656f83f1482e445035a979deb51a2427e8542",
+    "ax": "screenshots/jf-about.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jf-back.png",
+    "sha256": "3b3c2ba63490fc2ce0ad5c05508fa884eae3cd6f3c114b4f473a500f61beec6d",
+    "ax": "screenshots/jf-back.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jf-browse.png",
+    "sha256": "fa91e705f5d3882dd361057851349fd0e01050a5fc6f7656c82bd540a39cca95",
+    "ax": "screenshots/jf-browse.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jf-close.png",
+    "sha256": "4aefde792bb1604a2e9dbecac36642a874074ac2ab5e4537b18e9d57af5d381e",
+    "ax": "screenshots/jf-close.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jf-dark-toggle.png",
+    "sha256": "cb2097ad47e835bbede5cbe24164e6dc843728b9e4c2c08545dbca9e7ec246c3",
+    "ax": "screenshots/jf-dark-toggle.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jf-export-docx.png",
+    "sha256": "38f43087a8ad6e9f809259590d92afd39aefa0525c9b6c1b453638db0098ba52",
+    "ax": "screenshots/jf-export-docx.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jf-export-epub.png",
+    "sha256": "dfd17808cd743edd44c073b2310eafcc7499f17747fe3d134113ee7e675466f3",
+    "ax": "screenshots/jf-export-epub.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jf-export-fodt.png",
+    "sha256": "7aa59c9d74c53f8357d210928522e72d14c3304a8e3d80bee9313e2f746df90d",
+    "ax": "screenshots/jf-export-fodt.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jf-export-html.png",
+    "sha256": "372de3992a272444e2db036cad4ff57eb08c96c02dbd40a057fdbf400d62333e",
+    "ax": "screenshots/jf-export-html.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jf-export-md.png",
+    "sha256": "eca426f378d06bf84fa57c5531099b9956539dbf7c16adc10d90d2a5c0313fd4",
+    "ax": "screenshots/jf-export-md.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jf-export-odt.png",
+    "sha256": "95d9296dbb44fd272209e5e1948e75f41b3ff9975963c42eee4b59c5b60705d7",
+    "ax": "screenshots/jf-export-odt.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jf-export-ott.png",
+    "sha256": "8b133e9e2d7f259a0704a83b49ab316be819bdd61b6c6d49ee345f40e863abcf",
+    "ax": "screenshots/jf-export-ott.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jf-export-pdf.png",
+    "sha256": "0d62cf048eb9607d1da6394077c571685de1bd8f04ecbe5b140f8cf2813402b4",
+    "ax": "screenshots/jf-export-pdf.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jf-export-pdfa.png",
+    "sha256": "a03e3a1a1d4d000903015cfcfb5db72da16c5b5a50ee8f28762091f96275d10a",
+    "ax": "screenshots/jf-export-pdfa.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jf-export-png.png",
+    "sha256": "1921a687e6fa2b584047d22064daf5d6de4561cf2708d8462d44426c757bbb07",
+    "ax": "screenshots/jf-export-png.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jf-export-rtf.png",
+    "sha256": "c2bdf56d59870f76ddcb21b7f049fca26e86d0063c837b205e91d493093a7a94",
+    "ax": "screenshots/jf-export-rtf.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jf-export-tex.png",
+    "sha256": "c92160ebf117b59bb9dd139f8c9c474026a137f545f6623202b34c5ef26e02c0",
+    "ax": "screenshots/jf-export-tex.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jf-export-txt.png",
+    "sha256": "b46a8486c6d65c1595e27a0115bce9bfe33937aaca4f2a8c24017365cb390635",
+    "ax": "screenshots/jf-export-txt.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jf-export-word2003xml.png",
+    "sha256": "7beceae04cb800a0f7a80faff2e1b5ce17dd59cb4404d32d60132b1c92219eb7",
+    "ax": "screenshots/jf-export-word2003xml.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jf-export-xml.png",
+    "sha256": "68a8882b3d4c321bab09cf78e4f19278f117179bf5771754beca5666a1eae04a",
+    "ax": "screenshots/jf-export-xml.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jf-export.png",
+    "sha256": "11be6af8e567df3335dfe51dadad657b4264576cd363aa9c3636458b3c0c79df",
+    "ax": "screenshots/jf-export.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jf-info.png",
+    "sha256": "6fe0a0fcfd06b3a81838e3e3f0e7242ec4a3410021ae87209acfb72a906af466",
+    "ax": "screenshots/jf-info.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jf-letter-template.png",
+    "sha256": "b94a4491e4e691363af2972551a71c1e594814b31360381be3ada836cfde09c1",
+    "ax": "screenshots/jf-letter-template.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jf-more-templates.png",
+    "sha256": "4505833a7e11fa420ef26dfe9be2294385881dc1d93cd3abf8a8ba9b78e848a2",
+    "ax": "screenshots/jf-more-templates.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jf-new.png",
+    "sha256": "02a68685828a1a7e3fea7f782f145c7266078d0c0aa0e56455a50119b49d9b75",
+    "ax": "screenshots/jf-new.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jf-open.png",
+    "sha256": "67dfeb5c5953ebc858a08840e7fb9b3f3334bf7556a0cd0ff583489138c81b26",
+    "ax": "screenshots/jf-open.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jf-options.png",
+    "sha256": "d6741b5da62be8c2931e8ef7ee364bae79fb4279529547d4951a347cb0bfd6fc",
+    "ax": "screenshots/jf-options.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jf-recovery.png",
+    "sha256": "35a3f5047f06247b508a405b2904953e37147c0eb389da1f878969071187a199",
+    "ax": "screenshots/jf-recovery.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jf-save-as.png",
+    "sha256": "2e01fcdd405bbd8de5b8df0a7e9560c88464d787584b4838c52cc757b0417cea",
+    "ax": "screenshots/jf-save-as.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jf-start.png",
+    "sha256": "a44a89678b7fafde14f97fce4628ac8dacee5608afebb1dceb1f472c08f8ebb2",
+    "ax": "screenshots/jf-start.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jf-template-blank.png",
+    "sha256": "e180386db2f460e1524b91cc7a2087ed4b1afc24f0f24102e984cf2ff29370ac",
+    "ax": "screenshots/jf-template-blank.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jf-template-handbook.png",
+    "sha256": "74436aa6affd6ba615cb123262f7454febccc3ff42e5be4a2b1bbda48b1536cb",
+    "ax": "screenshots/jf-template-handbook.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jf-template-resume.png",
+    "sha256": "84ed0f0be07be66d226a1119b5e99aa61b969f69b1e37110a56ebf9c9652697a",
+    "ax": "screenshots/jf-template-resume.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jf-template-welcome.png",
+    "sha256": "94ae410a0d52eb0dab8f71949661390f059d7c7f96e760fc0f85e304b15cc756",
+    "ax": "screenshots/jf-template-welcome.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jf-theme-晴空 · 亮色.png",
+    "sha256": "577e5c3c291b68697cf7e8ac4ceceee5b6f558a49490e3212bce2b5a84cc485d",
+    "ax": "screenshots/jf-theme-晴空 · 亮色.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jf-theme-晴空 · 暗色.png",
+    "sha256": "dbe2d5f2c6f8b43f8591d0680304c782f4a5bc17442433d7dd91840750f0888b",
+    "ax": "screenshots/jf-theme-晴空 · 暗色.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jf-theme-暖砂 · 亮色.png",
+    "sha256": "eab5f07be0ad77707003059c53076c7ea0585fd7a498651d881f2cbbe1a9f168",
+    "ax": "screenshots/jf-theme-暖砂 · 亮色.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jf-theme-暖砂 · 暗色.png",
+    "sha256": "2982379687ebc47dbdfd6f62780efe6b57519582b13beeb9dd71d07ea578b514",
+    "ax": "screenshots/jf-theme-暖砂 · 暗色.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jf-theme-素雅 · 亮色.png",
+    "sha256": "35923b27653e2617222ec2f7fe7648ca078be08a4feefd5a4a3c605172a850b6",
+    "ax": "screenshots/jf-theme-素雅 · 亮色.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jf-theme-素雅 · 暗色.png",
+    "sha256": "0a95438210dc7e14dc76e677f7db0f40149935959db0e51ebc633b5587f665b2",
+    "ax": "screenshots/jf-theme-素雅 · 暗色.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jf-theme-青岚 · 亮色.png",
+    "sha256": "a4c7f5d353d8a0d13d4491bd17fa94b3b2236cad70ae0d6a99e9c3bf620ddaa5",
+    "ax": "screenshots/jf-theme-青岚 · 亮色.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jf-theme-青岚 · 暗色.png",
+    "sha256": "857746b9e4f30f0095f6a11d842e0f22d05c6a89445e6d1fbba0c8cba97e8145",
+    "ax": "screenshots/jf-theme-青岚 · 暗色.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jf-user-units.png",
+    "sha256": "ce2a70feab03c2038c118479c1eefd5cad18eb07526a056f116418d5c0b6c8d4",
+    "ax": "screenshots/jf-user-units.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jh-borders.png",
+    "sha256": "e771dec6bd0b5019dbe61963dd08c7ba07f692aed6ce0d18cace709a88a5217e",
+    "ax": "screenshots/jh-borders.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jh-bullets-primary.png",
+    "sha256": "99cb89b57e52631ffd922f5113698d371401499be8cdbb206c7c3b0888ada3fc",
+    "ax": "screenshots/jh-bullets-primary.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jh-bullets.png",
+    "sha256": "89245acbf5bc4fc4c5d9cd4b9241e7ea601ed192f2d567c0d99a06b14a4221ff",
+    "ax": "screenshots/jh-bullets.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jh-case.png",
+    "sha256": "ef13e68440036b6818f1a608e48bae56f2d505397b4f3003803b036de959ea9a",
+    "ax": "screenshots/jh-case.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jh-center.png",
+    "sha256": "c3cfbbd48f2b3d2e598a3f87ae603df1e33bb865213bddbb27b4dd2ad6513b79",
+    "ax": "screenshots/jh-center.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jh-clear-format.png",
+    "sha256": "d083aeaa0ee2d735f63a36ed405aaf60a42f79ebe4486469f23b62ed815311d7",
+    "ax": "screenshots/jh-clear-format.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jh-copy.png",
+    "sha256": "cd2e7e485b9cf0b6afaa9b2b7f5b4756bb4c57a27ca27e55cf896d8cfade44c6",
+    "ax": "screenshots/jh-copy.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jh-cut.png",
+    "sha256": "35ecc8fc2ce22c66fc348307c96f5291a5ed3ff9a55e7b65f24bf98763b6a75a",
+    "ax": "screenshots/jh-cut.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jh-distributed.png",
+    "sha256": "f44764be32bf029304ef7e67f3af03d23fba384de18198da505a8a87931cf3ce",
+    "ax": "screenshots/jh-distributed.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jh-enclosed.png",
+    "sha256": "1c794149de2918fa7634fac96722a28eb3b3e3d31a24cf688f9cd9a2464a87cb",
+    "ax": "screenshots/jh-enclosed.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jh-find-options.png",
+    "sha256": "e5c484604116d9d493487360be948a898cf199ad39582e7e64d1238abf5123dc",
+    "ax": "screenshots/jh-find-options.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jh-find.png",
+    "sha256": "9db8144964b14e53e567eb93b2d4de71eac2438f46ed443cba70c349492ef93b",
+    "ax": "screenshots/jh-find.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jh-font-color.png",
+    "sha256": "66726ad3a5c65f84c89ecfdf262fb3479df282662a89c31e0346b5e52945b764",
+    "ax": "screenshots/jh-font-color.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jh-font-picker.png",
+    "sha256": "335afc2c979612d426aa2cc7157435cf5349e271c87609d95e62ea017888edc2",
+    "ax": "screenshots/jh-font-picker.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jh-format-painter-options.png",
+    "sha256": "70f0c002ae4fb9d01cff97d9e6f00450fb96e0c581fa51c0adc121b2da42f5e9",
+    "ax": "screenshots/jh-format-painter-options.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jh-format-painter.png",
+    "sha256": "833fb9f61df194898f6b7ce0b9509f73ae7bb195e8b24d3b7a237af2d98a8c10",
+    "ax": "screenshots/jh-format-painter.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jh-grow.png",
+    "sha256": "4c40471ad073573f45781cabab43e5c3f12556144cd185cebe4078845cfad724",
+    "ax": "screenshots/jh-grow.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jh-heading1.png",
+    "sha256": "bf8cbf3f4ae3ae93189ccb81a12319a35450e2ecf69195895a081742300f294d",
+    "ax": "screenshots/jh-heading1.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jh-highlight.png",
+    "sha256": "1fd86a15edbd51792c8653dd17c3a4472e368a02c0ad189857d7479615650f94",
+    "ax": "screenshots/jh-highlight.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jh-indent-less.png",
+    "sha256": "916b9aa18b8d13e1806084f85ad9f1f83fb45e3f3376982d8aaa2fc3ae635324",
+    "ax": "screenshots/jh-indent-less.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jh-indent-more.png",
+    "sha256": "be13eb753ae80a25cfd1139ab9bed623f891942327c617dbbae03a376a8c6155",
+    "ax": "screenshots/jh-indent-more.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jh-justify.png",
+    "sha256": "1c617726106322c71a41b5945c20dbb9796efb3644a3a6f040eb1069ad1a7425",
+    "ax": "screenshots/jh-justify.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jh-left.png",
+    "sha256": "bdcbcd66bd602a04b17903a09f4e26205c0c3e01fe54f08b9205e58511f6c797",
+    "ax": "screenshots/jh-left.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jh-line-spacing.png",
+    "sha256": "a57e55b192951e9a58809f1d838e9830f55bbbb5828f09249fe0ebb78eb29122",
+    "ax": "screenshots/jh-line-spacing.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jh-multilevel.png",
+    "sha256": "86135b61f0abc524fc4fe4525de773be0092d13980338101d7cdc27f560869b6",
+    "ax": "screenshots/jh-multilevel.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jh-no-spacing.png",
+    "sha256": "0a526a5693980277a2bc193c56a11248b9e54333090621fa341d3ad594774e77",
+    "ax": "screenshots/jh-no-spacing.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jh-normal.png",
+    "sha256": "16b95a360e736151cfaaba176dd1baed3b7a10b0609ca4ebfc39437328bba701",
+    "ax": "screenshots/jh-normal.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jh-numbering-primary.png",
+    "sha256": "3786ded078a4ea887137f1301fc1947ce1a8e942c5bf1ac5c707810f0361643f",
+    "ax": "screenshots/jh-numbering-primary.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jh-numbering.png",
+    "sha256": "67e799708a58f9f747a1b0ac1a2eea436ee2912df42d431d860ecf846822458b",
+    "ax": "screenshots/jh-numbering.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jh-pagination.png",
+    "sha256": "e9859eca5aa19eef164b81ca468f39b100bd3304ff1665f58d73d9911ba6fae9",
+    "ax": "screenshots/jh-pagination.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jh-paragraph.png",
+    "sha256": "74077978d0ef0d9961843f365a2f00e94c298381f3fc0a1bd834fc52bc2a2101",
+    "ax": "screenshots/jh-paragraph.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jh-paste-options.png",
+    "sha256": "c9ec5c531394a16179bed0240bbdc4932ed08b33735426dbb0cdedb32458dbb1",
+    "ax": "screenshots/jh-paste-options.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jh-paste.png",
+    "sha256": "b2330ec717ebe47878f86dbbe8480f1b107e8d621095efae3f6822d7987cb27f",
+    "ax": "screenshots/jh-paste.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jh-phonetic.png",
+    "sha256": "767221ca664aa15cdc11898b1d74e2c2498f8bbb32458943840f4839ecf72b7f",
+    "ax": "screenshots/jh-phonetic.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jh-replace.png",
+    "sha256": "c7b092dc635b12283ee53541771d3a63e37c4fc7834d03b818f50b97c1112bab",
+    "ax": "screenshots/jh-replace.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jh-right.png",
+    "sha256": "d51d48a478feeaf0f3a53245ad2724b1eba585389cd4527be13692558e3ecf4e",
+    "ax": "screenshots/jh-right.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jh-shading.png",
+    "sha256": "1a30d7f3783d661ca6c5e8fb498ec21ff3d06ab737e1d52f50902c9337e5367e",
+    "ax": "screenshots/jh-shading.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jh-show-marks.png",
+    "sha256": "09e92aa4abe70fa9a7b33736814cc32a4ee6aadc94ca5cbb5e2262bce97df872",
+    "ax": "screenshots/jh-show-marks.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jh-shrink.png",
+    "sha256": "0da7398f19f7ba93c43c42b9c79ebab7c2adba23446de58ccb5490266847f592",
+    "ax": "screenshots/jh-shrink.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jh-size.png",
+    "sha256": "b979502b79a9e41f56a72e59acae094a8f43c535fc1373aad6f192e148293d6f",
+    "ax": "screenshots/jh-size.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jh-sort.png",
+    "sha256": "1ef7062c35b013c5d288a5c943bbf95b1bde9c2f642030746d9ca4e60cdcdd0c",
+    "ax": "screenshots/jh-sort.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jh-strike.png",
+    "sha256": "04f35887bbefc3e5bba19d85059e1cdc605d3bdf10513f520ffbad801c36743e",
+    "ax": "screenshots/jh-strike.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jh-styles-pane.png",
+    "sha256": "a7a31b0a74dac3d75fe9ac59b71805abe05826132943e1c05e41700bd2095a63",
+    "ax": "screenshots/jh-styles-pane.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jh-styles.png",
+    "sha256": "7d23b8a1deb401e76be68a4e00d0863a5899df80a2735cb8be8000d2fe06bf6b",
+    "ax": "screenshots/jh-styles.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jh-subscript.png",
+    "sha256": "fcb182ba6551b21d4671a6beb34940fdb3e55b7ae261f8e13db2a8294fbaa918",
+    "ax": "screenshots/jh-subscript.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jh-superscript.png",
+    "sha256": "7ef85f16e0dbf121a01a5faae050f6ffc884e114cfa54be65de39e8456f78860",
+    "ax": "screenshots/jh-superscript.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jh-text-effects.png",
+    "sha256": "39db24b2fdec353a4d5f55faa88453970be95f71a9586b9739cd6cc2a5fdf073",
+    "ax": "screenshots/jh-text-effects.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jh-underline-styles.png",
+    "sha256": "0cebf9488326302340140d98d3fa1a3f966ec8f4b1e74a0a2cdc0081bd00ec59",
+    "ax": "screenshots/jh-underline-styles.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jhelp-feedback.png",
+    "sha256": "fd87969e9fb5fe9c8aab1944f87d3e7d8a9139772c9a02c924dc990fde599d3c",
+    "ax": "screenshots/jhelp-feedback.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jhelp-help.png",
+    "sha256": "0d81d6b32f28b2698c66ac660cea9e4e0d5170d63e86aa8d427c002e4be439fe",
+    "ax": "screenshots/jhelp-help.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jhelp-training.png",
+    "sha256": "472598b03cb6e310b59bc4af2f6068eac6f54aa06dd8812fff2c21128fe660ce",
+    "ax": "screenshots/jhelp-training.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jhfooter-close.png",
+    "sha256": "c01862d14864dce08a7289560fa49c2f9f6ab0381ea2a64e3f71b427ba40efb1",
+    "ax": "screenshots/jhfooter-close.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jhfooter-page-number.png",
+    "sha256": "27fa763b9d2c26863cc133d07d9a3d46cbcf9a8f5e76c54dd8ef5575f445ad6d",
+    "ax": "screenshots/jhfooter-page-number.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/ji-blank-page.png",
+    "sha256": "b9b2e87d4ab6ce636603e320bb6636e2dbc04c53583629e9d0d1028b5b624471",
+    "ax": "screenshots/ji-blank-page.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/ji-bookmark.png",
+    "sha256": "eff268c2059ffd7692bf142efc8673e035a5f40ba1af79dac907a59aec8e89b3",
+    "ax": "screenshots/ji-bookmark.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/ji-chart.png",
+    "sha256": "326919d514c5dbf3c7ec080fe4b3c839f7eb4253cd08105f177b1aee7d1beaf8",
+    "ax": "screenshots/ji-chart.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/ji-comment.png",
+    "sha256": "461d11b85faa76cd0752b9c255216763b063b9347b30d77a88abadf408075173",
+    "ax": "screenshots/ji-comment.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/ji-cover.png",
+    "sha256": "3d6d392d14f7f2c558eed46f09966b180acd4855d7c11fea03b4dd70a455b840",
+    "ax": "screenshots/ji-cover.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/ji-cross-reference.png",
+    "sha256": "74ea18d6e36b28e9b8e4b26123183cc01619dc4f19c0c77bd49bb56d05aa10c3",
+    "ax": "screenshots/ji-cross-reference.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/ji-datetime.png",
+    "sha256": "e668776f1b8df66e643c24d39009364eded839437782b523596148fd37b7d33f",
+    "ax": "screenshots/ji-datetime.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/ji-docparts.png",
+    "sha256": "dbe57ee00a4ff681f87cb6595b9da01b79c5210836663657c38789820262342a",
+    "ax": "screenshots/ji-docparts.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/ji-dropcap.png",
+    "sha256": "d8bc119902f4572e7c7ec618c905de6e7a310745fca13b892c560952e4e2fee8",
+    "ax": "screenshots/ji-dropcap.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/ji-equation.png",
+    "sha256": "939fc5da589c8a9a2136f8ab05baed449ef82e8d7a598b06e345e575c1f3cbd0",
+    "ax": "screenshots/ji-equation.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/ji-footer.png",
+    "sha256": "6b52b3e42ed553c11de18868ebc9bd43450d63a86b2945654448a2c81045055d",
+    "ax": "screenshots/ji-footer.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/ji-header.png",
+    "sha256": "d4f873f6e2e1568fbf3d4f638d949129ad359b64397dc209a019ba4282cfc49b",
+    "ax": "screenshots/ji-header.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/ji-icons.png",
+    "sha256": "8b660591e22793399c9b05d012ea9bfb8084794a0777f5dcbfc10180322a1283",
+    "ax": "screenshots/ji-icons.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/ji-link.png",
+    "sha256": "1f2944800de99c9ca8b3dccda7bac4c864d5877e0a1790a67f460baf572e76bd",
+    "ax": "screenshots/ji-link.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/ji-page-break.png",
+    "sha256": "b514ee6353b01dbfb93f1a032bb5b7974199390d5113e635b75d0c1db012f020",
+    "ax": "screenshots/ji-page-break.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/ji-page-number.png",
+    "sha256": "223dbb532b55750023a1b2308d57e035f070d27bdd51c9e80ee480526ab62c74",
+    "ax": "screenshots/ji-page-number.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/ji-picture.png",
+    "sha256": "173ce81890d6b4efebda88593fe2c45cc77208f69816820ececb9be3a0781e36",
+    "ax": "screenshots/ji-picture.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/ji-shapes.png",
+    "sha256": "97ee3efcfd073ad38adef57fc6b26b07721b0730a4e681b2eb8599dc07a6fff6",
+    "ax": "screenshots/ji-shapes.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/ji-signature.png",
+    "sha256": "aa6ee0aa01e0d7496de2740891596fa1bd106b7a19cff77b2910a66e47c91a84",
+    "ax": "screenshots/ji-signature.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/ji-smartart.png",
+    "sha256": "ef50fae86c3f4dc144c244ccb05b809cd3afbb1a854c07ad91a200ecc0a42cd8",
+    "ax": "screenshots/ji-smartart.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/ji-symbol.png",
+    "sha256": "333cb08788e24f310c5474bfe04980b38fed4e2e8ce05f0f5c7d56549fc839a8",
+    "ax": "screenshots/ji-symbol.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/ji-table.png",
+    "sha256": "cebb8a36b15ae715ad6355aba79d460f8a3c62bea58abb6dad1e17a34ea65d20",
+    "ax": "screenshots/ji-table.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/ji-textbox.png",
+    "sha256": "0a193c18f98c316cda306764fc4408977746562ed5f7d9f3e0a029a503e14ea8",
+    "ax": "screenshots/ji-textbox.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/ji-wordart.png",
+    "sha256": "017f752bec550ab0e1c83b0ca12868c0bc76e72a67e76a6afed3e90f2a395282",
+    "ax": "screenshots/ji-wordart.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jl-after-minus.png",
+    "sha256": "ae61cf7ab0bd93c9577d030c261a60639394cf0a1c371d21ec1d0d93b6505d7f",
+    "ax": "screenshots/jl-after-minus.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jl-after-plus.png",
+    "sha256": "1155d9873ac7922352c9a8263fe47c1cd14c391ce1468b998c9ec2a18ecbb5cc",
+    "ax": "screenshots/jl-after-plus.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jl-align.png",
+    "sha256": "aa3ee7ee8a38d1a4e20272e2c11230cb4b16c1906af5ec5bd6fe44a46fe71a7f",
+    "ax": "screenshots/jl-align.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jl-before-minus.png",
+    "sha256": "474ecb9face6c6a368e8734ae591036715bf7d7bcc394e4207bbc7b692ae133d",
+    "ax": "screenshots/jl-before-minus.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jl-before-plus.png",
+    "sha256": "e7c178665bb2b98fb01bdb90e2a9c295d314e419dae48dbae646034b2d8e5b54",
+    "ax": "screenshots/jl-before-plus.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jl-breaks.png",
+    "sha256": "9f3ed19ef3172ca9af669d52bcebd3fecc1fd309bb4986df4e0c3c25ce325d7a",
+    "ax": "screenshots/jl-breaks.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jl-columns.png",
+    "sha256": "ca64ee99ddda2d813c57888824abaadfc68acf302401d4bc07ce2246a8418ca1",
+    "ax": "screenshots/jl-columns.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jl-custom-columns.png",
+    "sha256": "494dac432570990d325b96c1d26c32d0fe679048897d49d01aad818b6a8610cf",
+    "ax": "screenshots/jl-custom-columns.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jl-custom-margins.png",
+    "sha256": "180bc8cde02e202d409f796098fc79d26734a00d2b5c2769016e09f30dae4880",
+    "ax": "screenshots/jl-custom-margins.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jl-direction.png",
+    "sha256": "67a741e6e1ae0bbfbdd1b03d691f23b8421ddfa45b57ac066068565ac6e2b4c1",
+    "ax": "screenshots/jl-direction.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jl-hyphenation.png",
+    "sha256": "ae65b741a9de89e3d2b36ef91418bd4462225687d1678b03db60f35109353113",
+    "ax": "screenshots/jl-hyphenation.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jl-input-after.png",
+    "sha256": "0cbf89212f0357d779f179494622f38ca1d0b2163878716bd5ec716edf248f91",
+    "ax": "screenshots/jl-input-after.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jl-input-before.png",
+    "sha256": "11854c7e702af2c5f0f48ec9fbbbc7ee9bef67efa812f5dd42f6a1819e91ffbb",
+    "ax": "screenshots/jl-input-before.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jl-input-left.png",
+    "sha256": "2bd825b57573af7b603ac4c85a56354050b88a195f8f03d44c8cde84829d2237",
+    "ax": "screenshots/jl-input-left.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jl-input-right.png",
+    "sha256": "24d0e9ea05f1b1f7a55fe2f27c6c01ceebdf4f867ecc744c59e1a194404c67d0",
+    "ax": "screenshots/jl-input-right.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jl-left-minus.png",
+    "sha256": "359c9b352c86d3b5848a37066e67eeb48edeb2f4e9ed7865912354c1f1e3fb02",
+    "ax": "screenshots/jl-left-minus.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jl-left-plus.png",
+    "sha256": "c3f60e480e0b3f4e902cfd355a608395b7057eb959b2f6db2023cb8973f95619",
+    "ax": "screenshots/jl-left-plus.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jl-line-numbers.png",
+    "sha256": "d6d03b3bfc92cc784c8cb7c9de1ea1e91e669ffdf069714803e847ea1ecfdb12",
+    "ax": "screenshots/jl-line-numbers.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jl-margins.png",
+    "sha256": "738fc1648338acff4061a4cf0d19fefb19a6de5160f7b14e52fba905c229af08",
+    "ax": "screenshots/jl-margins.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jl-orientation.png",
+    "sha256": "b24c9c5e29adb1b362e643759e2e27a007d6a37157297d59b9be39a54a3b8d50",
+    "ax": "screenshots/jl-orientation.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jl-paper.png",
+    "sha256": "e76e80ebd45754cfda8a56b83eb422a03f1011990b2c7e9361d34d8ec72e726f",
+    "ax": "screenshots/jl-paper.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jl-paragraph.png",
+    "sha256": "122634a22bdf05fbf66b912e61e8abc70a182832d42791da81f946a0f590ae61",
+    "ax": "screenshots/jl-paragraph.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jl-right-minus.png",
+    "sha256": "61605be7f7a1d6d4fa535c8312125d2e15068c82f70ef6f22975ffbe4ae4738c",
+    "ax": "screenshots/jl-right-minus.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jl-right-plus.png",
+    "sha256": "9c477e6dce3c0263fb28bec61847ac259e96e305012af180b948744017d0560b",
+    "ax": "screenshots/jl-right-plus.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jl-selection-pane.png",
+    "sha256": "655e317d46c6cc5f9aeddc64cc22489dd6e3ff9d4249d676ffb6db0f15394d4f",
+    "ax": "screenshots/jl-selection-pane.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jm-address.png",
+    "sha256": "becc15847ee3d20a98fe6a0b4d1a7b57e501655a1565b4113e5d43009b74529a",
+    "ax": "screenshots/jm-address.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jm-cn-envelope.png",
+    "sha256": "2bfd52b5b9687a10c0772d9ecae5b688274b18ea12bb56d5bc8e62de25918e0e",
+    "ax": "screenshots/jm-cn-envelope.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jm-current-record.png",
+    "sha256": "733e20c33a4a5efe00ea18d4799f509f7f5fbe2a53f884bc7ead10de4a709199",
+    "ax": "screenshots/jm-current-record.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jm-edit-recipients.png",
+    "sha256": "5d11edd061f6ecc0e75901fcd52e2b875af4bf4197ac7a317ed5e8c42aa2c46c",
+    "ax": "screenshots/jm-edit-recipients.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jm-envelope.png",
+    "sha256": "608a1af94dc96f0c47429408ab0d31d224f23d3837f0dd4021b64c286f2475b9",
+    "ax": "screenshots/jm-envelope.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jm-errors.png",
+    "sha256": "5f18dc7315f5a3bcbf5175f044cac990a0f70bb571230993bfd11881f6152d8a",
+    "ax": "screenshots/jm-errors.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jm-find-recipient.png",
+    "sha256": "d731fd39b44ffa3232b4ffceed1ff39ab25117905d77142b782abe8663428c74",
+    "ax": "screenshots/jm-find-recipient.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jm-finish.png",
+    "sha256": "36205f8e736aded9d17bf864d4ed1a01dc0df3a6fe9a6f4dd0f0f96147f73b2b",
+    "ax": "screenshots/jm-finish.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jm-first.png",
+    "sha256": "c98988a170bfc31fd8686aaf2749f67b619be02b580a8fa0656de065011f1663",
+    "ax": "screenshots/jm-first.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jm-greeting.png",
+    "sha256": "e17703525d0addb70b871a885e07dca707da47691e8af4a424d4772df1afff31",
+    "ax": "screenshots/jm-greeting.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jm-highlight-fields.png",
+    "sha256": "dd7788de547edfcbb6bdec730580fe846997d3c70dc21825b9616b6d342e0291",
+    "ax": "screenshots/jm-highlight-fields.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jm-insert-field.png",
+    "sha256": "353d8a8df346e80f0126f6d84a02b591981fb2556ea0d30908d0fe865c57b574",
+    "ax": "screenshots/jm-insert-field.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jm-labels.png",
+    "sha256": "42b5a956161fe946d92adf475375550002347d4f79f4a9d4f5caca70bb2e4b93",
+    "ax": "screenshots/jm-labels.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jm-last.png",
+    "sha256": "cc0a7afdb976402fb674a936affed5eadfb1516fd705726cd2334d29824def62",
+    "ax": "screenshots/jm-last.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jm-match.png",
+    "sha256": "07a9728c52a5c2b52dac03186d0186304b387cf95ebb2715292430e64579e985",
+    "ax": "screenshots/jm-match.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jm-next.png",
+    "sha256": "0e23f2bfa7d67342944bab0d04e18f5a02371b2384fa8f3ecd069fb74a228494",
+    "ax": "screenshots/jm-next.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jm-preview.png",
+    "sha256": "06f4792853bf75e786dafd670e1f930c27c3a063ad10645663e9297b4480d79d",
+    "ax": "screenshots/jm-preview.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jm-previous.png",
+    "sha256": "c7509a440bda822cd4d34c1ec974404afe87a9d08c300e141f2fc93c2c33da2b",
+    "ax": "screenshots/jm-previous.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jm-recipients.png",
+    "sha256": "37d28a6bf5bcda0624737db8aef0868644ee3205ceeac9f23429ab45b2eb148b",
+    "ax": "screenshots/jm-recipients.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jm-rules.png",
+    "sha256": "a7c24823819ba09321c0713b0b957fd2ae8e586ef899b52f6b5c6dfe3d07d503",
+    "ax": "screenshots/jm-rules.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jm-start-merge.png",
+    "sha256": "4ad95f689314a27360b449b2e870dede744a0c761df039af915e4e63b09e6c27",
+    "ax": "screenshots/jm-start-merge.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jp-align.png",
+    "sha256": "5e1ff8d2853e4bada76884f8fd75dee93e24f3104c01d1a0b074d1d66ab49aad",
+    "ax": "screenshots/jp-align.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jp-alt.png",
+    "sha256": "c1c44e17447134b851e72a2fab9553e6abd5e87d26c718fc7179c37c3a14f04f",
+    "ax": "screenshots/jp-alt.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jp-art.png",
+    "sha256": "8c0dc503e76daf91c338f6d26e8e9a0da4b53e5878e9174bc89d1bf6bdf295a9",
+    "ax": "screenshots/jp-art.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jp-border.png",
+    "sha256": "3f1c5b3d3e0549647770176fed66762bc6237b92be43003a6917b541f8b90daa",
+    "ax": "screenshots/jp-border.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jp-change.png",
+    "sha256": "6c233430041c80c9046298e3de3709467ec084006e158e331464a192037e1487",
+    "ax": "screenshots/jp-change.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jp-color.png",
+    "sha256": "d0ff32b86943665cc7b2768931a96060c6187ba4327d2449fff15248996d58f7",
+    "ax": "screenshots/jp-color.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jp-compress.png",
+    "sha256": "76e0a03296ed6a61ce1fc891bae834bc9ae5789d6078ca655a1872dd55eed4a7",
+    "ax": "screenshots/jp-compress.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jp-corrections.png",
+    "sha256": "f8214abc325a3cb770f7c577a5878caebad9c3adf49a987ae5763ae9a0c98256",
+    "ax": "screenshots/jp-corrections.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jp-crop.png",
+    "sha256": "b28de41ed3bbef039aa43d21e861348784a6c32b3f9ad54f048f77eb30a42e11",
+    "ax": "screenshots/jp-crop.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jp-effects.png",
+    "sha256": "40d3f9f36cb3108db882f79dd512734e46e3ebe1b47850b676aed66ddb450d0f",
+    "ax": "screenshots/jp-effects.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jp-position.png",
+    "sha256": "fa603e9e4238f721e90fb1e50b5ac6d3d11dcb5fb0549017a0eebce2a63a0fd5",
+    "ax": "screenshots/jp-position.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jp-remove-background.png",
+    "sha256": "e65f8ae9e57e66491859c2f345c52e6992bdec704c0c11006e62d89a4d0a392e",
+    "ax": "screenshots/jp-remove-background.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jp-reset.png",
+    "sha256": "23ae355d2b9462e54ab8593417ec072b79a99ae870f1f7e93ec59b02098153d2",
+    "ax": "screenshots/jp-reset.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jp-rotate.png",
+    "sha256": "4e9eb89b766bb5f579f6e1c01b5ff47a77209eaf9efd4dad1802f21eb5e9913e",
+    "ax": "screenshots/jp-rotate.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jp-rounded.png",
+    "sha256": "265cad90ea119b7657b76f1925d268380547336d35b4348cfd5f986cfc9438aa",
+    "ax": "screenshots/jp-rounded.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jp-selection-pane.png",
+    "sha256": "faa0fdd647a5ed84bfd60fa27ecb1587e9d33591187870c9fa77c7a627c33608",
+    "ax": "screenshots/jp-selection-pane.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jp-shadow.png",
+    "sha256": "91d2c2e83830580834e88444d4d904b53194ff6a66424ba56be4bfab661b5f5d",
+    "ax": "screenshots/jp-shadow.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jp-simple-frame.png",
+    "sha256": "8116f0090b8dc814153fb976b4ccf692249e6632e739bde5db6d5b09ff1cbbf3",
+    "ax": "screenshots/jp-simple-frame.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jp-size.png",
+    "sha256": "6f11bc13f49bde4a0f31cae0a9d8872177c5256de5776f319fcbc654a48fd6f8",
+    "ax": "screenshots/jp-size.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jp-soft-edge.png",
+    "sha256": "7fc9f72418fc65be33a7fcbce1bccff14d8272c83d7cdd58a89f4a0a8f1c82a8",
+    "ax": "screenshots/jp-soft-edge.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jp-thick-frame.png",
+    "sha256": "468061ea793d16cbe61e72beb7b92b542e4166766c9f0fb571a612ce08af4651",
+    "ax": "screenshots/jp-thick-frame.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jp-transparency.png",
+    "sha256": "1f732578899d236a90af70e3a6e80c9fedbc75897a278e924757ff421eaceab0",
+    "ax": "screenshots/jp-transparency.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jp-wrap.png",
+    "sha256": "d20c8dcb36cb51c0d3bca57db398a78bd50061a59cf8b5c5cbadb92476a4f7c3",
+    "ax": "screenshots/jp-wrap.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jr-add-text.png",
+    "sha256": "3460664d30159a223d8df52db045414df47aff509b8ec59b3e58ca9d341b5c53",
+    "ax": "screenshots/jr-add-text.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jr-authorities.png",
+    "sha256": "5ecb64fbbb0eb6f57376b12f4111d3aaf3576e06989ed9157a96a57dd3d21b95",
+    "ax": "screenshots/jr-authorities.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jr-bibliography.png",
+    "sha256": "1f1d6f84ead762a83300536d5ca00383508dcd2cbb91ce0781bce36df79ae3ce",
+    "ax": "screenshots/jr-bibliography.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jr-caption.png",
+    "sha256": "f2f07d63ff73f561dd4943be1c5149d3fe14b8fd9d7a64321423c1631534ba08",
+    "ax": "screenshots/jr-caption.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jr-citation-style.png",
+    "sha256": "ecad0287e89c1f2e4e9283eb18771bde8f2a1b22e05319d2ef814fafc46f9482",
+    "ax": "screenshots/jr-citation-style.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jr-citation.png",
+    "sha256": "9f531f0773ea80702d6b6a0ca00a2c3090063347062a3217c5a898db5bd5bda2",
+    "ax": "screenshots/jr-citation.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jr-cross-reference.png",
+    "sha256": "774c41945ab3b164d928e0268a1734bb5a7d9d75071ec4838ed9dbe554170bca",
+    "ax": "screenshots/jr-cross-reference.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jr-endnote.png",
+    "sha256": "c52aaf1109cc8c27b7525befd2ebfe4d0f5910d622323553d1b1d3993e76df8e",
+    "ax": "screenshots/jr-endnote.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jr-figures.png",
+    "sha256": "024d38ec331f2c9d3ecfeb65f6642415787f6b27758fef7982354c604dd9a928",
+    "ax": "screenshots/jr-figures.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jr-footnote.png",
+    "sha256": "bf8c7ee379af77d903b3d896b7f7838b75d3d2bed74620f8eeb73412fd4aa6ea",
+    "ax": "screenshots/jr-footnote.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jr-footnotes-settings.png",
+    "sha256": "aab2ffd3f7e6e70e51021f842019bf254d09eac276b1aeaa198f9f4c216260a0",
+    "ax": "screenshots/jr-footnotes-settings.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jr-index.png",
+    "sha256": "54205fb5c9fdda2e60bd9f8a5ac5681dbe8f86bfed23e65531a88158f9b46f4f",
+    "ax": "screenshots/jr-index.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jr-mark-citation.png",
+    "sha256": "6ee79dfc417958ad08673a2d5544a492a616e40ef25b842309b88dc7275ca470",
+    "ax": "screenshots/jr-mark-citation.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jr-mark-index.png",
+    "sha256": "7376bd3af7abc2ea6528480722635e9f47da3c4f99b568483c3a5dbee5df1598",
+    "ax": "screenshots/jr-mark-index.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jr-next-footnote.png",
+    "sha256": "492f5b89ab24618ac0c43f841d2637d845d86bdce64705f96ac1f1afcd08ebe4",
+    "ax": "screenshots/jr-next-footnote.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jr-show-notes.png",
+    "sha256": "bb514c8dfad47f95e77d0178084552781341e1a5022743fee4dcfe4c1bdb50f2",
+    "ax": "screenshots/jr-show-notes.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jr-sources.png",
+    "sha256": "81bcf2fbf0df6c1e7995b7bb2d98aeceae55696d80642358b650fabed64a3f7d",
+    "ax": "screenshots/jr-sources.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jr-toc.png",
+    "sha256": "31e36c9bc5baebaaced96793a73d9bf83aca8a1f5136ddb9630ad0536b8fdcc8",
+    "ax": "screenshots/jr-toc.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jr-update-authorities.png",
+    "sha256": "686e74d796c2964bd9db8c606722e57c3b4946b9f04fb357bcd274e1779fbdae",
+    "ax": "screenshots/jr-update-authorities.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jr-update-figures.png",
+    "sha256": "a077a0078d51541c0af0029ed8667736f8b20858217f705967a2d02f20918eb0",
+    "ax": "screenshots/jr-update-figures.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jr-update-index.png",
+    "sha256": "e72dddf5f80537bda6cc721a070074bdad5993f51c850362affe9ac2656e49e9",
+    "ax": "screenshots/jr-update-index.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jr-update-toc.png",
+    "sha256": "5054efa3b6c000ca65eccf48d024120653ab0d27ba8c1182d47c42d37c11e225",
+    "ax": "screenshots/jr-update-toc.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jt-autofit.png",
+    "sha256": "565317796ca2fe1f77f49437f890db8ac105f05683467fddf2aa4c754a32f09b",
+    "ax": "screenshots/jt-autofit.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jt-bottom-center.png",
+    "sha256": "838d4787216f9ce8102bacdc7de6748241379b2f525bb8b3652d391eb926bd28",
+    "ax": "screenshots/jt-bottom-center.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jt-bottom-left.png",
+    "sha256": "a8cafe07674d43f02f83f41c610d6ed64cf529b3c8b8674227f3af0e3054fc0b",
+    "ax": "screenshots/jt-bottom-left.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jt-bottom-right.png",
+    "sha256": "9b5e646b2a09b51a55f59389d1d92bf70929dff4adcc1137575d5827c78eea5e",
+    "ax": "screenshots/jt-bottom-right.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jt-column-left.png",
+    "sha256": "2f95a465bb24cbecd0ba6aeedcd4db424e71bd2d3a3a5eecb0b0dc03a2d0a3e6",
+    "ax": "screenshots/jt-column-left.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jt-column-right.png",
+    "sha256": "b6029db263f05869b2db9947e189ef9570feccf0da151211da7b0e57174b79d7",
+    "ax": "screenshots/jt-column-right.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jt-delete.png",
+    "sha256": "2e0f2b8d4a5cc2c457b67e4397618d43dd6db2e30f9480bee4349d026a40ae1e",
+    "ax": "screenshots/jt-delete.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jt-direction.png",
+    "sha256": "e5a67de152994af9e0f106f833b8942f4a1599f3d0036eede06650bbba74f2fc",
+    "ax": "screenshots/jt-direction.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jt-distribute-col.png",
+    "sha256": "0ec1f021129882be5946a3319b405be085b3e2e36f1523b404d85dc81a056f6e",
+    "ax": "screenshots/jt-distribute-col.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jt-distribute-row.png",
+    "sha256": "67a311037aaae2c7fcada5a570305ba565c241e6c51619ee0359c8d2fc275d6b",
+    "ax": "screenshots/jt-distribute-row.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jt-formula.png",
+    "sha256": "f9517ea5cd0464827706461da27ded19c22b084224b068ddb46f845f4ac32837",
+    "ax": "screenshots/jt-formula.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jt-height.png",
+    "sha256": "2002d64525a1f3e6f1b1338b319cca02c49be49a81dd3a25bde16643a7ea73f2",
+    "ax": "screenshots/jt-height.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jt-margins.png",
+    "sha256": "8067b54d967acb38d41fd1896faee309c6ec9fbb9348234a548b5cfa229dcfef",
+    "ax": "screenshots/jt-margins.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jt-merge.png",
+    "sha256": "8cdcd4d715f1eed3bb74d2e6b35e4dbe164ae78b841de85aca940e5a39af99a7",
+    "ax": "screenshots/jt-merge.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jt-middle-left.png",
+    "sha256": "ece2c32a8e6859ee744deca52189e1aad280faed3188108fa31017994d5940e3",
+    "ax": "screenshots/jt-middle-left.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jt-middle-right.png",
+    "sha256": "d5b2bdfe775808ba9e82d7df59e2a9a9b7bdd9a43a3c9202512272831684a7ff",
+    "ax": "screenshots/jt-middle-right.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jt-middle.png",
+    "sha256": "e262767f11835e6b4638d2837ba58c27b35b381c673a6d7ecc4f1c7612f203a0",
+    "ax": "screenshots/jt-middle.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jt-properties.png",
+    "sha256": "ec3021c82b98e887430dd50b4f13d78f4076caec182c23bfc2c5e62441a5fbea",
+    "ax": "screenshots/jt-properties.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jt-repeat-header.png",
+    "sha256": "aa8e1bc330ff16dcd462c573aef2348205a05459e7f5fd09a33a2b9f24984bb8",
+    "ax": "screenshots/jt-repeat-header.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jt-row-above.png",
+    "sha256": "e8acdcfd66550b1433c3db1afcb896b1e177056135f84da94a1f98313dea2abe",
+    "ax": "screenshots/jt-row-above.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jt-row-below.png",
+    "sha256": "7499a010c82704f89f491efe176ec2ef5cbb767c67e3b0bebc7807c926e77540",
+    "ax": "screenshots/jt-row-below.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jt-selection.png",
+    "sha256": "92cb5c820d652af7e9ede5a6b64a61360bfc07c1e15ded77aa5fd52645333325",
+    "ax": "screenshots/jt-selection.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jt-sort.png",
+    "sha256": "d5d01249f3bfe01b8a6f2bcce1e11e583ba2d057b15faa6ea3713e39d9e46aa6",
+    "ax": "screenshots/jt-sort.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jt-split-cells.png",
+    "sha256": "c7800a94e105db9f87c06e84806acfdb7fc76bc71caa427d6d09e338eb561cdf",
+    "ax": "screenshots/jt-split-cells.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jt-split-table.png",
+    "sha256": "03d45c799a07aca200d75d9f979a435c33e2066b640cfa0243e63ba93907dc8a",
+    "ax": "screenshots/jt-split-table.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jt-to-text.png",
+    "sha256": "0b3b62d475334b9802eed1a44d6446f4d6126533d1282fbc9b69a62654702f89",
+    "ax": "screenshots/jt-to-text.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jt-top-center.png",
+    "sha256": "9e05ed32a79a6cba88bdb27a61f8b2273c0480f79d44f387e17cabc9bc0178a0",
+    "ax": "screenshots/jt-top-center.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jt-top-left.png",
+    "sha256": "972f0ddc99d8ae16088aee7939f58a2a4a315a4bf8e4308285e39ed966c1dab6",
+    "ax": "screenshots/jt-top-left.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jt-top-right.png",
+    "sha256": "86676bb56f6f4d1902c16941513d67ceb5226d26e8d311fb7f1e38056bfe39b8",
+    "ax": "screenshots/jt-top-right.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jt-width.png",
+    "sha256": "d6cfb3d1cceb1c0614da18de588fde4b554f3db33f91e3e95f6fdb2f4ebbced4",
+    "ax": "screenshots/jt-width.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jtab-图片格式.png",
+    "sha256": "f2ae5d3ec2119903760217ec535b7f2feb66a14a3f48539797206f5c5739a231",
+    "ax": "screenshots/jtab-图片格式.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jtab-审阅.png",
+    "sha256": "fb457f09486d521dcea7266c86c05251dea2ec7bd6a0da5027e6fbf413d2217d",
+    "ax": "screenshots/jtab-审阅.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jtab-布局.png",
+    "sha256": "ddd0144025232e246f7390047592ceb64c2781df1041a55f2c5f6a01a4b743b6",
+    "ax": "screenshots/jtab-布局.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jtab-帮助.png",
+    "sha256": "669fb397bbd6833d3d3ecb3d4c86fde79b61bc1b66dece1625f26f4051d362a5",
+    "ax": "screenshots/jtab-帮助.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jtab-开发工具.png",
+    "sha256": "17d7676c51f946a1ef126b8ab675a03db0a661fed2083a373053aaaa5e79348c",
+    "ax": "screenshots/jtab-开发工具.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jtab-引用.png",
+    "sha256": "1b983bd23a6df1a3a456db8d95b29cacb420f76fcb90814d199bebb1a55fbf80",
+    "ax": "screenshots/jtab-引用.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jtab-插入.png",
+    "sha256": "c28051b3d1ffd22f25a1cae99b6e7c5df022c6f9ca8870ed4a5164407c0017eb",
+    "ax": "screenshots/jtab-插入.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jtab-文件.png",
+    "sha256": "212b54de8087be09d7a886eb481c324ae65e032e0fc3be12b0c7ea490d28069d",
+    "ax": "screenshots/jtab-文件.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jtab-绘图.png",
+    "sha256": "d01487df854e41d7aae58d2ccb9edbc9993cceba79d5e1e3bb58a68943c4db40",
+    "ax": "screenshots/jtab-绘图.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jtab-表设计.png",
+    "sha256": "2ca37aed9eccfe7e50c270d657aad5dba3931be269cd6c73767dfdab95dd954d",
+    "ax": "screenshots/jtab-表设计.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jtab-视图.png",
+    "sha256": "ed5baa883e08023412de836ea0ef53c75cbbee594b87541fa0284eef0300588d",
+    "ax": "screenshots/jtab-视图.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jtab-设计.png",
+    "sha256": "47dcdbb81c200c1a6fd87f8ec49365c4fb10332f299932434241839d91a4b4f3",
+    "ax": "screenshots/jtab-设计.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jtab-邮件.png",
+    "sha256": "e1a3d5f3c4e1942dad56fac1e68ff27f82ceb92e7bc5ac46e3c6814c93ab9e0a",
+    "ax": "screenshots/jtab-邮件.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jtd-blue.png",
+    "sha256": "f1e72e81dfcef512a7d18492bc93bd609dc03294f138938f4337e2357441026e",
+    "ax": "screenshots/jtd-blue.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jtd-border-style.png",
+    "sha256": "88f857ec1edef492e3bc4547dc2f131eb21b3d0079e5c6535a772a7c9da57098",
+    "ax": "screenshots/jtd-border-style.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jtd-borders.png",
+    "sha256": "6fa83de93e292db4b7a042b252c6bc397a5e8cb28527934d4972cbed79dcb014",
+    "ax": "screenshots/jtd-borders.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jtd-check-最后一列.png",
+    "sha256": "7e075d1f9786087761f4c9d2e328df1737f9407b42cff1abda625df369f90173",
+    "ax": "screenshots/jtd-check-最后一列.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jtd-check-标题行.png",
+    "sha256": "d5a1094b17e984080e0d0ce7b19c6f46061f89f8e670dc84037134baccd6c8ef",
+    "ax": "screenshots/jtd-check-标题行.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jtd-check-汇总行.png",
+    "sha256": "ca296ca646be5fd2e3c1743b58652d7bbf43f54581605d4a9e2ebb103a3fea6c",
+    "ax": "screenshots/jtd-check-汇总行.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jtd-check-第一列.png",
+    "sha256": "bf45a3f092255b3a2894ee2fee538be5797b95abde7dc7ec04aab98da430ee1a",
+    "ax": "screenshots/jtd-check-第一列.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jtd-check-镶边列.png",
+    "sha256": "15e845b215d02b4aa4bb4e86e0ad3451f50c86ef65cba28c464fbab9f5ed0331",
+    "ax": "screenshots/jtd-check-镶边列.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jtd-check-镶边行.png",
+    "sha256": "1242de6476483fed3e38b84acfa22500194a8dc9a628137aa7911b18e0d7d08e",
+    "ax": "screenshots/jtd-check-镶边行.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jtd-grid.png",
+    "sha256": "59df839274516247964a4a07c52c7a38878390d27f302b74aa01dd5e2b15607a",
+    "ax": "screenshots/jtd-grid.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jtd-light.png",
+    "sha256": "2e2ddbedefa7dae4077f8e1d37939321602abc3db310c31b6ab6bc67cc9d143e",
+    "ax": "screenshots/jtd-light.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jtd-list.png",
+    "sha256": "a8436bbabde83cc1eee13edf01e2a05e6985374cc69b917e2c077c1e6fbb6d3e",
+    "ax": "screenshots/jtd-list.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jtd-more.png",
+    "sha256": "6512fd853dedca853ffe2e903067e863213e533bda74ef2783566e2b1d4a0f4a",
+    "ax": "screenshots/jtd-more.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jtd-normal.png",
+    "sha256": "003491e698cb254f076e9ad50dbe29cc25f50b76885642505b82d975c213d966",
+    "ax": "screenshots/jtd-normal.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jtd-orange.png",
+    "sha256": "de02ec79b83a2a3b1cf6c6f4e3695292d6e779040218cb3380c74b678a0eb20d",
+    "ax": "screenshots/jtd-orange.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jtd-plain.png",
+    "sha256": "b687736d3523ca643aa316446fadeb54cd77be9a6e3663ccd1655953aac5d805",
+    "ax": "screenshots/jtd-plain.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jtd-shading.png",
+    "sha256": "bd0daf97c901a50885612fe7a89220381ee0343d9c3e3709c1dbccbec729db2c",
+    "ax": "screenshots/jtd-shading.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jv-accept-options.png",
+    "sha256": "79c72b6e725491604c277443e0e72e1d16fe0ee3ee8dce99600d9d441095fe0f",
+    "ax": "screenshots/jv-accept-options.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jv-accept.png",
+    "sha256": "f7da3ad8fb6f989b6f20696a07e849a15a2980b7803ad5fd1e72a43e31d3d6c3",
+    "ax": "screenshots/jv-accept.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jv-comment.png",
+    "sha256": "1f59a4ed41287eef35f0fc17da704dea5aeb80afcfe80f6d0ea122399db7808c",
+    "ax": "screenshots/jv-comment.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jv-compare.png",
+    "sha256": "2cebe6107beccbbd8a7d6c3ac19228d9506bce3cbf2b7fe2f8d5b43f5ea0ae96",
+    "ax": "screenshots/jv-compare.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jv-delete-comment.png",
+    "sha256": "eba93173e1175e4f79e3d18ceadfc79823c95336131bce496c5ed686ca86b946",
+    "ax": "screenshots/jv-delete-comment.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jv-display-markup.png",
+    "sha256": "29885e35cb0ad65c78f6425323995a7b397c7ff1249de6a37ac6b933e4f81cd4",
+    "ax": "screenshots/jv-display-markup.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jv-hide-ink.png",
+    "sha256": "306c2bb2dda0dbf3ddcf8202be2761979c766b095b0c3218bc62bff4c51aab61",
+    "ax": "screenshots/jv-hide-ink.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jv-language.png",
+    "sha256": "2aa57eedfffd9170d72c95b4f5fab8f125fc73548f057a5f27e264e5349c9a99",
+    "ax": "screenshots/jv-language.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jv-markup-options.png",
+    "sha256": "3e72598db9f70864fb73e8460eb0d9c2a8472e100309f2e4f068fbd88fbaf89b",
+    "ax": "screenshots/jv-markup-options.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jv-next-change.png",
+    "sha256": "fa95b5a2a0f6a285415faf6c40e8be6572d2e70fafc690dd2958d298da861d06",
+    "ax": "screenshots/jv-next-change.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jv-next-comment.png",
+    "sha256": "185ba2ceeb047cd01771c4631e066e5908f4a10286f2da28e8b1cf957284ffd2",
+    "ax": "screenshots/jv-next-comment.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jv-pane.png",
+    "sha256": "32dfc7b3017ec7cd56b22ca056178dfa3654ad742001ca50f2743913e0f1a8f9",
+    "ax": "screenshots/jv-pane.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jv-previous-change.png",
+    "sha256": "8ba2a2e8c8f2218b84b721876771df567b28409f105294a2e329574504fc968d",
+    "ax": "screenshots/jv-previous-change.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jv-previous-comment.png",
+    "sha256": "683fcbe641dce997074689f89b3e6e5a0a0265c09678d05139a261a97725e618",
+    "ax": "screenshots/jv-previous-comment.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jv-proofing-language.png",
+    "sha256": "3950a692b83ae1c2af6781ac794bbf713c0022391138bd7dcca5bab7121fba1d",
+    "ax": "screenshots/jv-proofing-language.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jv-reject-options.png",
+    "sha256": "4f0c08b7c7996e10ff7f40158da16eaeb051cc5139afce38d727d94ef499fc17",
+    "ax": "screenshots/jv-reject-options.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jv-reject.png",
+    "sha256": "f7b38c560a0913e91fc8e375af4a0e485fdca24eaa619d029994ab6824cc5c98",
+    "ax": "screenshots/jv-reject.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jv-reset-filter.png",
+    "sha256": "27f96786cfe0985206ddf2f3730eb1c14939d9c00bfde13de96e955ee33d75a4",
+    "ax": "screenshots/jv-reset-filter.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jv-show-comments.png",
+    "sha256": "502913337fba24d8ce36831eae78268e968b572bdee072278f6aaa372dde7384",
+    "ax": "screenshots/jv-show-comments.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jv-spelling.png",
+    "sha256": "936ee92b1e0c6b90550cd40c7bf55de86e01dce0a557a07d972ee143ea0258ac",
+    "ax": "screenshots/jv-spelling.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jv-thesaurus.png",
+    "sha256": "82b58a37dfd775bae3b766032bcd968bf1a3a317fe8ecde8f1bee4e1b5dc3fd8",
+    "ax": "screenshots/jv-thesaurus.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jv-track-options.png",
+    "sha256": "40693f30f03fc234058c8aac7a989097b0b9556b3a024e8e0a8e7e3a6e525980",
+    "ax": "screenshots/jv-track-options.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jv-track.png",
+    "sha256": "12ead960788984d2b8004b67a85d838442aa6ea041f494f14888de6d224fe0cf",
+    "ax": "screenshots/jv-track.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jv-word-count.png",
+    "sha256": "53f2183f87bab43e1ef2c329787eda95eab32d3267801bf443881d56584420a3",
+    "ax": "screenshots/jv-word-count.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jw-100.png",
+    "sha256": "52c22b163483fa04b9cd36f8d39e22d90de1b41ee0cd0d0990fc973e2cf90511",
+    "ax": "screenshots/jw-100.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jw-check-导航窗格.png",
+    "sha256": "505eb55fb2089a983f532ac05ea4b89e639edaafd3eb843205477f2255c90a35",
+    "ax": "screenshots/jw-check-导航窗格.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jw-check-标尺.png",
+    "sha256": "aba30a40a8524d4d35e7aa3e7deda2e1fb6734203e1289407be18d933e404a48",
+    "ax": "screenshots/jw-check-标尺.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jw-check-网格线.png",
+    "sha256": "999bb6c653e92b7559edfc15492a1fdb083bdcf2641dc5f490859d244882795e",
+    "ax": "screenshots/jw-check-网格线.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jw-draft.png",
+    "sha256": "f6f2e2fa8ff6e4ab3040ac2887dfe5d386f4459a8aa708d3b6969f74613ad7f7",
+    "ax": "screenshots/jw-draft.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jw-focus.png",
+    "sha256": "aaa33a8ae07433ab4064b29b9f361517c0cde905eb30c2382b57573665ccca70",
+    "ax": "screenshots/jw-focus.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jw-immersive.png",
+    "sha256": "4d3038219db538bd7a94df1daceca36ea36f15007d4b797af79b9cd50800af59",
+    "ax": "screenshots/jw-immersive.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jw-macro.png",
+    "sha256": "a74f22ef72d070685bcd3fbf72dc61d63ecb77b3fe865123de4893a4df89c462",
+    "ax": "screenshots/jw-macro.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jw-one-page.png",
+    "sha256": "89deb138a16983a8bd917ca746f634298da9e557c0817d90366c0577907c8f61",
+    "ax": "screenshots/jw-one-page.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jw-outline.png",
+    "sha256": "950f347d6cfeb18887c9021327bdd4dfe81fb2b954423fb83bfefd0460c995fe",
+    "ax": "screenshots/jw-outline.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jw-page-width.png",
+    "sha256": "d975ea134419af8fbef98de5510e638df3b4d95fc41ffbbcdecc9225f0fab913",
+    "ax": "screenshots/jw-page-width.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jw-print-layout.png",
+    "sha256": "178804a972c464d53040f6f29fa14993a0b068e6cbef836c324be14be46f4f0e",
+    "ax": "screenshots/jw-print-layout.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jw-read.png",
+    "sha256": "b8bc7518da84d08f8ee259782320c6487c186ef7fcaae51d77fd8926bfe7b408",
+    "ax": "screenshots/jw-read.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jw-vertical.png",
+    "sha256": "a14fd870b4fd8a921eb8493f02739603616801a452399303d762d2c0bb5575ff",
+    "ax": "screenshots/jw-vertical.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jw-web.png",
+    "sha256": "ee637a8ac64716af621ee99e0f99b238825eafb907e7c582924968f52bf0f6da",
+    "ax": "screenshots/jw-web.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/jw-zoom.png",
+    "sha256": "2b81b7a66f6f1fa14f701f131c59dbc2ad1bfb970bb05cf2003230ff13c3396b",
+    "ax": "screenshots/jw-zoom.txt",
+    "accepted": true,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/rejected-j08-font-application-not-executed.png",
+    "sha256": "245d5dacf059f56ad62d04401e724d92c3efa724a27d7ff613c01d2d1ea674fc",
+    "ax": "screenshots/rejected-j08-font-application-not-executed.txt",
+    "accepted": false,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/rejected-j39-template-title-transient.png",
+    "sha256": "9c942e6ba7e032946c79a98ab1a5b6758e79ea91170270203afc23b0f60fd3c8",
+    "ax": "screenshots/rejected-j39-template-title-transient.txt",
+    "accepted": false,
+    "app": "JoyWord"
+  },
+  {
+    "file": "screenshots/rejected-wf52-warning-not-rendered.png",
+    "sha256": "7a131d1984fa0521429610b45b01f072ec9ed0a0713b42c6aefd0c4802e180e1",
+    "ax": "screenshots/rejected-wf52-warning-not-rendered.txt",
+    "accepted": false,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/w01-home.png",
+    "sha256": "bca73bd7c08955b96f126e957c440330342c513f0e136699c3ec10487c6507c7",
+    "ax": "screenshots/w01-home.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/w02-font-dialog.png",
+    "sha256": "a9f3255843166ab0cf52cede51e36721a4f28c77742dd7a026f3d06a617f3a5f",
+    "ax": "screenshots/w02-font-dialog.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/w03-paragraph-dialog.png",
+    "sha256": "50e6d9d7d210c2c3f2269f120b5780d039f91c356453bcd3e6f6c11a146b8b8d",
+    "ax": "screenshots/w03-paragraph-dialog.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wd-page-borders.png",
+    "sha256": "bcd49239651ffdcf30756c3c0e5aec6d5a6f17466bb1696060d498e4bb5b20a8",
+    "ax": "screenshots/wd-page-borders.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wd-theme.png",
+    "sha256": "504a8d31b984dc18b76ade44cfd86df201d7588506aa857a8753961d52f9d1b0",
+    "ax": "screenshots/wd-theme.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wd-watermark.png",
+    "sha256": "17f5ad3bb294af0a7212476e4edd7e3f746e97e514d274a498e122dc1d99ba73",
+    "ax": "screenshots/wd-watermark.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf01-mail-baseline-noop.png",
+    "sha256": "c1f4d1be87a3852507ca3f22f48a21ef60690368c16b36dbc8f1514adb191011",
+    "ax": "screenshots/wf01-mail-baseline-noop.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf02-fresh-document.png",
+    "sha256": "0afc14ea714cfbc74e1f764e89dd267267848fe53cefc590318a7810fa2513f2",
+    "ax": "screenshots/wf02-fresh-document.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf03-envelope-dialog.png",
+    "sha256": "7e2db5e1967c22e439b0d6fe17e24a48c406506bd07e8b59b960890d6bf4fc79",
+    "ax": "screenshots/wf03-envelope-dialog.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf04-labels.png",
+    "sha256": "41c0813c2e07085cab15040355d6103c138d53ccce1229fbdac5e8df5d2fb0ec",
+    "ax": "screenshots/wf04-labels.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf05-start-merge.png",
+    "sha256": "866aa836ab95301056d52283b2e2b0e2ddde6c73af138a92aa9696cc047ae3db",
+    "ax": "screenshots/wf05-start-merge.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf06-recipients-menu.png",
+    "sha256": "36ef1597ab64a7ecf6dbd0d442391aaa5495fdd65f0336153a615003cdb18a65",
+    "ax": "screenshots/wf06-recipients-menu.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf07-new-recipient-list.png",
+    "sha256": "939912c4d12e3f54ddef6953449b489b675fc286142da98fe558eedf1a87db93",
+    "ax": "screenshots/wf07-new-recipient-list.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf08-recipient-list-save-panel.png",
+    "sha256": "54144564f6f3b954d95a4858a86f5d0f66dcf4d1ff64f9c78d884f19e60abb82",
+    "ax": "screenshots/wf08-recipient-list-save-panel.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf09-review-baseline.png",
+    "sha256": "f1dc5f47e246057b558823cc63ad239c434f31bd32ce9bf4c732cbf03dd99f89",
+    "ax": "screenshots/wf09-review-baseline.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf10-word-count.png",
+    "sha256": "e544ad3e3eedbc79ade1f9cddededd5396dc2d5cdd71efa7a134a87a2642c7b4",
+    "ax": "screenshots/wf10-word-count.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf11-proofing-language.png",
+    "sha256": "1481424ed53104a34be29bf1686889ed28d0e2677a018dad7095e8b47be68ca6",
+    "ax": "screenshots/wf11-proofing-language.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf12-zoom.png",
+    "sha256": "6249b7a9f0604e321064b9a63fbf39a1b48ca730efede19a25c53a55e0e8325d",
+    "ax": "screenshots/wf12-zoom.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf13-insert-table.png",
+    "sha256": "d1bdc60799baf5363e72740cbeffeaaae3324e277430894b2ed0a3fc4e1d65aa",
+    "ax": "screenshots/wf13-insert-table.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf14-table-created.png",
+    "sha256": "653fb3ea313b81547b9729c80e607e2535fe5a9429557d784f17db79b7e6f6b4",
+    "ax": "screenshots/wf14-table-created.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf15-table-layout.png",
+    "sha256": "9ed9476cefbefe45abeb0a80ccac86b869bc75b0b346431a3a32d658178bfc39",
+    "ax": "screenshots/wf15-table-layout.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf16-table-properties.png",
+    "sha256": "638589c7a9f9a951ca8c84d8523caa6dd90f58a8366f28dd90f05cc202688e47",
+    "ax": "screenshots/wf16-table-properties.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf17-table-row.png",
+    "sha256": "c1e1b8df2f50aa2718c5df88e16e5062f6e2db2767132015c819bb41a510e761",
+    "ax": "screenshots/wf17-table-row.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf18-table-column.png",
+    "sha256": "9a95ff3a8fd14cdfc05f760eed4ffbfefbd238ce4cf61489519ac6d44cd93972",
+    "ax": "screenshots/wf18-table-column.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf19-table-cell.png",
+    "sha256": "93e09f3ffa3677036e49b5c04a129db768ff321c42e3f3b1d69c889a1dca1309",
+    "ax": "screenshots/wf19-table-cell.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf20-cell-options.png",
+    "sha256": "035814f0636225be8adca9bf11ee791b7b0a1d2795c9a9275b8bcac0cbf1e159",
+    "ax": "screenshots/wf20-cell-options.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf21-table-options.png",
+    "sha256": "e02a3994a17f6ee8e0a2c67030edf450fcaa894e323507dd23c7061263731daa",
+    "ax": "screenshots/wf21-table-options.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf22-split-cells.png",
+    "sha256": "775a392dc7f5adee48d0daa7b5bce5f28108c65c879f58e3facc80eb2f8d18f3",
+    "ax": "screenshots/wf22-split-cells.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf23-table-formula.png",
+    "sha256": "e124b3f9626a154e1e479039e288472d0bb626a8927adfae0c3d51e417779797",
+    "ax": "screenshots/wf23-table-formula.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf24-table-to-text.png",
+    "sha256": "310885ae928d92308f4925dfa2c7c7939bcb642b51c8ccbcd478d8a4e829de4c",
+    "ax": "screenshots/wf24-table-to-text.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf25-picture-format.png",
+    "sha256": "2a8426a69b0bf5dcc576c560c4df2d228bd9117b7e20c2d5166410a1948fbd97",
+    "ax": "screenshots/wf25-picture-format.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf26-picture-crop.png",
+    "sha256": "f2b1f38789202039cad1d91bd2bd819efd7264d53755c9622fb606a8533eaad4",
+    "ax": "screenshots/wf26-picture-crop.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf27-picture-crop-drag.png",
+    "sha256": "9c50d6995945e58f6dd3bde31f8b36c39bceeafac9faa53b8ed5b33cdf1ac4d6",
+    "ax": "screenshots/wf27-picture-crop-drag.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf28-picture-compress.png",
+    "sha256": "808b33b62f3d2d22dedfad1a80a8b18a3720641eb3cfc9c7c1456cb0b0f1d8fe",
+    "ax": "screenshots/wf28-picture-compress.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf29-picture-format-pane.png",
+    "sha256": "44f6ac99d378e753c8744fe6608a8e202b13f8a661cf4b7d4c5506ff82a6fa88",
+    "ax": "screenshots/wf29-picture-format-pane.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf30-picture-layout-pane.png",
+    "sha256": "a07401e14e7572ea7d1a506789d8613cfbe11befab259116d7490a0f0fe7b803",
+    "ax": "screenshots/wf30-picture-layout-pane.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf31-smartart-context.png",
+    "sha256": "1e7212bfe14f8403eb38a4223a6a136360a0b4ad41a638a46cc0d35f02f9dab9",
+    "ax": "screenshots/wf31-smartart-context.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf32-smartart-text-input-attempt.png",
+    "sha256": "1e7212bfe14f8403eb38a4223a6a136360a0b4ad41a638a46cc0d35f02f9dab9",
+    "ax": "screenshots/wf32-smartart-text-input-attempt.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf33-smartart-ribbon.png",
+    "sha256": "cce017101f7aff0efdf8071e733e7e7e3f2819edbe11d50f1f03896035fff6b8",
+    "ax": "screenshots/wf33-smartart-ribbon.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf34-smartart-node-input-attempt.png",
+    "sha256": "ad40faec9c0f73221d814634a629b68ec550f6496eced87d8c79c0a1cca39abe",
+    "ax": "screenshots/wf34-smartart-node-input-attempt.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf35-chart-insert.png",
+    "sha256": "95ed0dc312362bde0d952ddf7ca3c0dbd9118ff8c1d8ee07a7a11d5be9fd8e22",
+    "ax": "screenshots/wf35-chart-insert.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf36-chart-select-data.png",
+    "sha256": "cbb97046c663cb5cbc39fd36f69c9dacff8c80f19b55fab4c6e239087785ae5f",
+    "ax": "screenshots/wf36-chart-select-data.txt",
+    "accepted": true,
+    "app": "Microsoft Excel (Word chart workflow)"
+  },
+  {
+    "file": "screenshots/wf37-chart-data-edited.png",
+    "sha256": "ffba7894468d876c815d554f050a0d414fdb3cf30a6b7cb2010d583addd6e37f",
+    "ax": "screenshots/wf37-chart-data-edited.txt",
+    "accepted": true,
+    "app": "Microsoft Excel (Word chart workflow)"
+  },
+  {
+    "file": "screenshots/wf38-chart-before-refresh.png",
+    "sha256": "e6e6d660f3e966b64bc2f9e1c97dd93dd0abde20389385799c70094b86b4929e",
+    "ax": "screenshots/wf38-chart-before-refresh.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf39-shape-context.png",
+    "sha256": "ae2095883226ab8d20d745fa57ee491769fd303d489e9a617e5ed8307d0b869f",
+    "ax": "screenshots/wf39-shape-context.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf40-shape-text-input-attempt.png",
+    "sha256": "ae2095883226ab8d20d745fa57ee491769fd303d489e9a617e5ed8307d0b869f",
+    "ax": "screenshots/wf40-shape-text-input-attempt.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf41-header-context.png",
+    "sha256": "5a67ce711bcff80a419a52f49202780083ae434a7a9f6aaa8427f4d01dead525",
+    "ax": "screenshots/wf41-header-context.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf42-header-closed.png",
+    "sha256": "94fa26b281a479b742bd88a625b02a8d3f27272a64d6e025b1159dde3bf0dd36",
+    "ax": "screenshots/wf42-header-closed.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf43-comment-editor.png",
+    "sha256": "19aa05d540c7b441983a9af5f93f7d9f376942509bd59b23a23a7840ad6dd742",
+    "ax": "screenshots/wf43-comment-editor.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf44-comment-created.png",
+    "sha256": "c21e430b1e25e48561297a3391ee5804486b579ed970221c58b7f9a094fcf321",
+    "ax": "screenshots/wf44-comment-created.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf45-compare-menu.png",
+    "sha256": "f378a3c982bec4f88703d57b6dacfd9287f1f3742198e731be149fc903828881",
+    "ax": "screenshots/wf45-compare-menu.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf46-track-toggle.png",
+    "sha256": "e51e43cb74919caaffe40dbc72384915f6a90d107a969817d72c7780c56f1a07",
+    "ax": "screenshots/wf46-track-toggle.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf47-tracked-insertion.png",
+    "sha256": "ce271b7cc519cdedd723f5641b6c236fa8cce671751c47d01f43a37f2129dcee",
+    "ax": "screenshots/wf47-tracked-insertion.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf48-reject-action-before-refresh.png",
+    "sha256": "0b0b76770fce3bffca405c0cf1a77b3f6a74b3826f9dd140c5595bef3c828bd9",
+    "ax": "screenshots/wf48-reject-action-before-refresh.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf49-one-page.png",
+    "sha256": "259ab0be87e664cba75ba09af7eb4a91383277402e2bb03edcab991491d0af3f",
+    "ax": "screenshots/wf49-one-page.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf50-page-width.png",
+    "sha256": "5f864821004809e0a967320deb5f28e0fb795085913592d77d2dcb8674902d64",
+    "ax": "screenshots/wf50-page-width.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf51-macro-dialog.png",
+    "sha256": "0663fb7af29fdda2fe890962ae738cb468d376b842e5bf87855d05dc80ffce47",
+    "ax": "screenshots/wf51-macro-dialog.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf53-revision-result.png",
+    "sha256": "98d70f0608668fec12c64a7fa9ad7231b685617b13c871895920aeccd2124d43",
+    "ax": "screenshots/wf53-revision-result.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf54-chart-data-update-verified.png",
+    "sha256": "47683f8adba8fc64397232d8e4b30d8f7d5d43e13353ffe79661f36d9fc71fd2",
+    "ax": "screenshots/wf54-chart-data-update-verified.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf55-recipient-record-editor.png",
+    "sha256": "613246cc980ffddafd1bcdeba130d1e77bb9a85b0e49f91745885c836b3f2614",
+    "ax": "screenshots/wf55-recipient-record-editor.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf56-two-recipient-records.png",
+    "sha256": "105d9facd17ddb0776327332aab6dc6ddf562adf9a87b91492d80b7aecbe5d52",
+    "ax": "screenshots/wf56-two-recipient-records.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf57-merge-fields.png",
+    "sha256": "a34aec574b0fef23eb7770e4d3431ab1006392b333ece3ab218295af66434a20",
+    "ax": "screenshots/wf57-merge-fields.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf58-merge-preview-first.png",
+    "sha256": "793ba4556190243e2e6db15f7514fb0d94526a6cda21cb297b65dca5df054db3",
+    "ax": "screenshots/wf58-merge-preview-first.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf59-merge-preview-second.png",
+    "sha256": "44b93ded81b22f0099c0c50080245a327bd6e7e2b169c040b850d8500fd66d7c",
+    "ax": "screenshots/wf59-merge-preview-second.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf60-merge-filter.png",
+    "sha256": "d56a387873bfe65f52dcbd0c7de2cad4cf02371c0c19cf1ff3debca966ad21e5",
+    "ax": "screenshots/wf60-merge-filter.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf61-merge-sort.png",
+    "sha256": "287c5aef5b8f53ac6d7dfc080843653318c0c4625e221df7b2cae52d8d71b58b",
+    "ax": "screenshots/wf61-merge-sort.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf62-finish-merge.png",
+    "sha256": "e6a6cbd262c1d2390c9661e3c01f6294c3e4ecca22c551b8491f803641893186",
+    "ax": "screenshots/wf62-finish-merge.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf63-merge-new-document.png",
+    "sha256": "a6ec9d7c44a7da19f053af0a03c6689f78aa55c78645425106703f91f34d620d",
+    "ax": "screenshots/wf63-merge-new-document.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf64-merge-second-page.png",
+    "sha256": "b8c7b3aa02e89f989b85cff106a24d59647d44fa15909d37c6abce1ec5782894",
+    "ax": "screenshots/wf64-merge-second-page.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf65-merged-saved.png",
+    "sha256": "85f368e1c80daba807568e7fa75a009f7e8bbecdcdad9be84dfb5a23e7f50a8c",
+    "ax": "screenshots/wf65-merged-saved.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wf66-mail-close-returned-chart.png",
+    "sha256": "1cde50ee3124d1bfb5c4152de9909cf3fdaa87f7411c9e6a5f1f50f453adbc53",
+    "ax": "screenshots/wf66-mail-close-returned-chart.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wh-enclosed.png",
+    "sha256": "c47273fe37521cda1c0f5334c3fc21f3449cfeb9889542bc6431ce4f61cc1408",
+    "ax": "screenshots/wh-enclosed.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wh-font-color.png",
+    "sha256": "ebd1df5153796e75b7e45b5cb27fd866f627cdcddea88626cc16d2cf883efde8",
+    "ax": "screenshots/wh-font-color.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wh-phonetic.png",
+    "sha256": "3299755e745e95f9ce361d423a80e19c8d4dda2e41e2533f9dffa875ce2ca6a3",
+    "ax": "screenshots/wh-phonetic.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wh-sort.png",
+    "sha256": "cb4b9756051b583acfb3a2bfdd0c2911e78ddbd851d02816b8756af8eca02076",
+    "ax": "screenshots/wh-sort.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wh-spacing.png",
+    "sha256": "47be905e27fecda8241a8358266b4e9b1d376b6d6b34f19f252826de481e4571",
+    "ax": "screenshots/wh-spacing.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wi-bookmark.png",
+    "sha256": "ff55949a9c543952dd6da71c97169aa74630575c6e20855eccda8177dca0b791",
+    "ax": "screenshots/wi-bookmark.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wi-cross-reference.png",
+    "sha256": "0cf97d4c48ffb440c420bf278b957ec6089cf37fd661e3957f95c3fc959b607c",
+    "ax": "screenshots/wi-cross-reference.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wi-datetime.png",
+    "sha256": "b02586fdee5a218f1f9fe766b878b4069c77f79d73b96cde79ae58f37888c06b",
+    "ax": "screenshots/wi-datetime.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wi-dropcap.png",
+    "sha256": "6df725644b9d2ccba6d6b6c0e7ae2b25f93234c4bf1faa4f28cde6e96d8cbfb2",
+    "ax": "screenshots/wi-dropcap.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wi-header.png",
+    "sha256": "34b0cc057c187196f2672d68590a7c3de132c910ed20fd095e65059f874c193b",
+    "ax": "screenshots/wi-header.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wi-link.png",
+    "sha256": "4d7d7113fbc7ac80559ad7dbcec8f8a64a69d11f8347e7ac7d11a6f9e9400393",
+    "ax": "screenshots/wi-link.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wl-columns-dialog.png",
+    "sha256": "d9503ba7cd6e891827282386544951ecb33d3a928f9e8857f16f584277df830f",
+    "ax": "screenshots/wl-columns-dialog.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wl-columns.png",
+    "sha256": "899ebaefa8a2b6180fd7bc3c69122786eb00b68c02887226179413a557b83b44",
+    "ax": "screenshots/wl-columns.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wl-margins.png",
+    "sha256": "6bbcea5034e147497616af15d1239c464da2303f0954ae4b0f71ee6cb6a900d7",
+    "ax": "screenshots/wl-margins.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wr-caption.png",
+    "sha256": "8e18f5b8c3800c1ad90f46fed97aed0dbff2a1a289de72daccec1da1fc1261af",
+    "ax": "screenshots/wr-caption.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wr-citation.png",
+    "sha256": "57b9b3aca320fc0e07ae88411f2f8944b98744b03d9034bcc6c681673728234f",
+    "ax": "screenshots/wr-citation.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wr-figures.png",
+    "sha256": "205beb8968d4121e3d00e344d3ce3f152f3e47c189dfa7b237341bfa98b939e9",
+    "ax": "screenshots/wr-figures.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wr-index.png",
+    "sha256": "178507bfcca5fe9ad0e84ee48911e6ef2aedaa8f6f6458627b414cd806b482c4",
+    "ax": "screenshots/wr-index.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wtab-审阅.png",
+    "sha256": "e2715416aac1d9f839a17dcd405fdb8cebbf605eb6ebcae47fe159677bbc79b8",
+    "ax": "screenshots/wtab-审阅.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wtab-布局.png",
+    "sha256": "778476278d4bbc6ea5e979e591ea2e4115abf56aeb5e59d111da5934a741e3ed",
+    "ax": "screenshots/wtab-布局.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wtab-引用.png",
+    "sha256": "f373571f7ad2a94c88c09e1f564294965bc4fdfaa82044c4a7fe41c2ced94fc2",
+    "ax": "screenshots/wtab-引用.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wtab-插入.png",
+    "sha256": "7ca86d23b59c0ad3c47906270c2f4db515284d1658fa2607a39a51146fb6743e",
+    "ax": "screenshots/wtab-插入.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wtab-绘图.png",
+    "sha256": "5e16c1dc57ddd6a2de778d1b36c2874e486bb8b039c0469d0cd7165060c15c74",
+    "ax": "screenshots/wtab-绘图.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wtab-视图.png",
+    "sha256": "d57d444c0c04e82127a94cd4335f68d363659f8f598b9a43d12c62a3fbc4a86b",
+    "ax": "screenshots/wtab-视图.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wtab-设计.png",
+    "sha256": "4b1495993e73de0274e6821d63cfb71337a7fa8263933aadf6b60d43cb557d40",
+    "ax": "screenshots/wtab-设计.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  },
+  {
+    "file": "screenshots/wtab-邮件.png",
+    "sha256": "2ae0295299ed1b6562d68eb1f29164a78464efcabd76d9458bc231800e8dbcc7",
+    "ax": "screenshots/wtab-邮件.txt",
+    "accepted": true,
+    "app": "Microsoft Word"
+  }
+]

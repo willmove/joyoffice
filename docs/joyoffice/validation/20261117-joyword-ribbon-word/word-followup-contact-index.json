@@ -1,0 +1,98 @@
+[
+  {
+    "file": "contact-sheets/word-followup-01.jpg",
+    "screenshots": [
+      "screenshots/wf01-mail-baseline-noop.png",
+      "screenshots/wf02-fresh-document.png",
+      "screenshots/wf03-envelope-dialog.png",
+      "screenshots/wf04-labels.png",
+      "screenshots/wf05-start-merge.png",
+      "screenshots/wf06-recipients-menu.png",
+      "screenshots/wf07-new-recipient-list.png",
+      "screenshots/wf08-recipient-list-save-panel.png",
+      "screenshots/wf09-review-baseline.png",
+      "screenshots/wf10-word-count.png",
+      "screenshots/wf11-proofing-language.png",
+      "screenshots/wf12-zoom.png"
+    ]
+  },
+  {
+    "file": "contact-sheets/word-followup-02.jpg",
+    "screenshots": [
+      "screenshots/wf13-insert-table.png",
+      "screenshots/wf14-table-created.png",
+      "screenshots/wf15-table-layout.png",
+      "screenshots/wf16-table-properties.png",
+      "screenshots/wf17-table-row.png",
+      "screenshots/wf18-table-column.png",
+      "screenshots/wf19-table-cell.png",
+      "screenshots/wf20-cell-options.png",
+      "screenshots/wf21-table-options.png",
+      "screenshots/wf22-split-cells.png",
+      "screenshots/wf23-table-formula.png",
+      "screenshots/wf24-table-to-text.png"
+    ]
+  },
+  {
+    "file": "contact-sheets/word-followup-03.jpg",
+    "screenshots": [
+      "screenshots/wf25-picture-format.png",
+      "screenshots/wf26-picture-crop.png",
+      "screenshots/wf27-picture-crop-drag.png",
+      "screenshots/wf28-picture-compress.png",
+      "screenshots/wf29-picture-format-pane.png",
+      "screenshots/wf30-picture-layout-pane.png",
+      "screenshots/wf31-smartart-context.png",
+      "screenshots/wf32-smartart-text-input-attempt.png",
+      "screenshots/wf33-smartart-ribbon.png",
+      "screenshots/wf34-smartart-node-input-attempt.png",
+      "screenshots/wf35-chart-insert.png",
+      "screenshots/wf36-chart-select-data.png"
+    ]
+  },
+  {
+    "file": "contact-sheets/word-followup-04.jpg",
+    "screenshots": [
+      "screenshots/wf37-chart-data-edited.png",
+      "screenshots/wf38-chart-before-refresh.png",
+      "screenshots/wf39-shape-context.png",
+      "screenshots/wf40-shape-text-input-attempt.png",
+      "screenshots/wf41-header-context.png",
+      "screenshots/wf42-header-closed.png",
+      "screenshots/wf43-comment-editor.png",
+      "screenshots/wf44-comment-created.png",
+      "screenshots/wf45-compare-menu.png",
+      "screenshots/wf46-track-toggle.png",
+      "screenshots/wf47-tracked-insertion.png",
+      "screenshots/wf48-reject-action-before-refresh.png"
+    ]
+  },
+  {
+    "file": "contact-sheets/word-followup-05.jpg",
+    "screenshots": [
+      "screenshots/wf49-one-page.png",
+      "screenshots/wf50-page-width.png",
+      "screenshots/wf51-macro-dialog.png",
+      "screenshots/rejected-wf52-warning-not-rendered.png",
+      "screenshots/wf53-revision-result.png",
+      "screenshots/wf54-chart-data-update-verified.png",
+      "screenshots/wf55-recipient-record-editor.png",
+      "screenshots/wf56-two-recipient-records.png",
+      "screenshots/wf57-merge-fields.png",
+      "screenshots/wf58-merge-preview-first.png",
+      "screenshots/wf59-merge-preview-second.png",
+      "screenshots/wf60-merge-filter.png"
+    ]
+  },
+  {
+    "file": "contact-sheets/word-followup-06.jpg",
+    "screenshots": [
+      "screenshots/wf61-merge-sort.png",
+      "screenshots/wf62-finish-merge.png",
+      "screenshots/wf63-merge-new-document.png",
+      "screenshots/wf64-merge-second-page.png",
+      "screenshots/wf65-merged-saved.png",
+      "screenshots/wf66-mail-close-returned-chart.png"
+    ]
+  }
+]

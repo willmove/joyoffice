@@ -1,0 +1,56 @@
+Window: "* Untitled 1 — JoyWord", App: JoyWord Ribbon Audit.
+0 standard window * Untitled 1 — JoyWord, Secondary Actions: Raise
+	1 container
+		2 button New
+		3 button Open
+		4 button Save
+		5 button Undo
+		6 button (disabled) Redo
+		7 button Search commands
+		8 button 中文
+		9 button Appearance
+		10 tab group Ribbon
+			11 tab (settable, boolean) File, Value: on
+			12 tab (settable, boolean) Home, Value: off
+			13 tab (settable, boolean) Insert, Value: off
+			14 tab (settable, boolean) Draw, Value: off
+			15 tab (settable, boolean) Design, Value: off
+			16 tab (settable, boolean) Layout, Value: off
+			17 tab (settable, boolean) References, Value: off
+			18 tab (settable, boolean) Mailings, Value: off
+			19 tab (settable, boolean) Review, Value: off
+			20 tab (settable, boolean) View, Value: off
+			21 tab (settable, boolean) Help, Value: off
+			22 tab (settable, boolean) Developer, Value: off
+			23 button Collapse or Expand Ribbon, Help: Ctrl+F1
+		24 button Back to document
+		25 button Home
+		26 button New
+		27 button Open
+		28 button Info
+		29 button Recover
+		30 button Save
+		31 button Save As
+		32 button Export
+		33 button Close
+		34 button About
+		35 button Options
+		36 toggle button (settable, boolean) Verdant · Light, Value: on
+		37 toggle button (settable, boolean) Verdant · Dark, Value: off
+		38 toggle button (settable, boolean) Classic · Light, Value: off
+		39 toggle button (settable, boolean) Classic · Dark, Value: off
+		40 toggle button (settable, boolean) Azure · Light, Value: off
+		41 toggle button (settable, boolean) Azure · Dark, Value: off
+		42 toggle button (settable, boolean) Sandstone · Light, Value: off
+		43 toggle button (settable, boolean) Sandstone · Dark, Value: off
+		44 button Switch to dark appearance
+		45 button 切换为中文
+		46 button User information and units…
+		47 button Hide Developer tab (this session)
+	48 text * Untitled 1 — JoyWord
+	49 menu button Window sharing
+50 menu bar
+	51 JoyWord Ribbon Audit
+	52 View
+
+The focused UI element is 0 standard window * Untitled 1 — JoyWord, Secondary Actions: Raise

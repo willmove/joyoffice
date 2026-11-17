@@ -1,0 +1,31 @@
+Window: "宏", App: Microsoft Word.
+0 对话框 宏, Secondary Actions: Raise
+	1 文本 宏的位置:
+	2 弹出式按钮 所有的活动模板和文档
+	3 按钮 管理器...
+	4 文本 宏名:
+	5 文本栏 (settable)
+	6 滚动区
+		7 表格
+			8 栏 (selectable) AutomaticTableColumnIdentifier.0
+	9 按钮 (disabled) 添加
+	10 按钮 (disabled) 移除
+	11 文本 说明:
+	12 按钮 取消
+	13 按钮 (disabled) 步骤
+	14 按钮 (disabled) 编辑
+	15 按钮 (disabled) 运行
+	16 文本 宏
+17 menu bar
+	18 Word, ID: AppMenu_MenuItem
+	19 文件
+	20 编辑, ID: EditMenu_MenuItem
+	21 视图, ID: ViewMenu_MenuItem
+	22 插入
+	23 格式
+	24 工具
+	25 表格
+	26 窗口, ID: WindowMenu_MenuItem
+	27 帮助, ID: HelpMenu_MenuItem
+
+The focused UI element is 5 文本栏 (settable)

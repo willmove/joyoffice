@@ -1,0 +1,41 @@
+Window: "插入表格", App: Microsoft Word.
+0 对话框 插入表格, Secondary Actions: Raise
+	1 text 表格尺寸 列数:
+	2 文本栏 (settable) 5
+	3 步进器 Value: 0, Secondary Actions: Increment, Decrement
+		4 增箭头按钮
+		5 减箭头按钮
+	6 文本 行数:
+	7 文本栏 (settable) 2
+	8 步进器 Value: 0, Secondary Actions: Increment, Decrement
+		9 增箭头按钮
+		10 减箭头按钮
+	11 文本 “自动调整”操作
+	12 单选按钮 初始列宽:, Value: 1
+	13 文本栏 (settable) 自动
+	14 步进器 Value: 0, Secondary Actions: Increment, Decrement
+		15 增箭头按钮
+		16 减箭头按钮
+	17 单选按钮 根据内容调整表格, Value: 0
+	18 单选按钮 根据窗口调整表格, Value: 0
+	19 复选框 设为新表格的默认值, Value: 0
+	20 按钮 确定
+	21 按钮 取消
+	22 文本 插入表格
+23 menu bar
+	24 Word, ID: AppMenu_MenuItem
+	25 文件
+	26 编辑, ID: EditMenu_MenuItem
+	27 视图, ID: ViewMenu_MenuItem
+	28 插入
+	29 格式
+	30 工具
+	31 表格
+	32 窗口, ID: WindowMenu_MenuItem
+	33 帮助, ID: HelpMenu_MenuItem
+
+Selected text: ```
+自动
+```
+
+Note: Pay special attention to the content selected by the user. If the user asks a question or refers to the content they are looking at on-screen, they might be referring to the selected content (but they might be referring to something else that's visible, too).

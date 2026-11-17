@@ -1,0 +1,104 @@
+Window: "文档2", App: Microsoft Word.
+0 标准窗口 文档2, Secondary Actions: Raise
+	1 分离组
+		2 分离组
+			3 分离组 Document Pane
+				4 滚动区 Secondary Actions: Scroll Left, Scroll Right, Scroll Up, Scroll Down
+					5 (disabled) 文档2
+						6 container
+							7 文本输入区 (disabled, settable) Description: 页面 1 内容, Value: Ribbon audit 标题
+这是用于 JoyWord 与 Microsoft Word 对比的测试段落。Hello Word 123.
+第二段用于项目符号、编号、缩进和行距设置。
+第三段用于查找、替换、批注与修订。
+					8 滚动条 (disabled, settable, float) 0
+						9 值指示器 (disabled, settable, float) 0
+					10 滚动条 (disabled, settable, float) 0
+						11 值指示器 (disabled, settable, float) 0
+		12 分离器 (disabled, settable, float) 1729
+	13 标签页组 Description: 功能区, Details: 引用
+		14 滚动区 引用 选项卡命令
+			15 container
+				16 菜单按钮 目录, Value: 0
+				17 菜单按钮 添加文字, Value: 0
+				18 按钮 更新目录
+			19 container
+				20 按钮 插入脚注
+				21 按钮 插入尾注
+				22 菜单按钮 下一条脚注, Help: 有关更多选项，请按 Control-Option-Shift-M。, Value: 0
+				23 按钮 (disabled) 显示备注
+			24 container
+				25 按钮 插入引文
+				26 开关按钮 引文, Value: off
+				27 弹出式按钮 Description: 样式:, Value: APA
+				28 菜单按钮 书目, Value: 0
+			29 container
+				30 按钮 插入题注
+				31 按钮 插入表目录
+				32 按钮 (disabled) 更新表格, Help: 更新图表目录
+				33 按钮 交叉引用, Help: 插入交叉引用
+			34 container
+				35 按钮 标记条目
+				36 按钮 插入索引
+				37 按钮 (disabled) 更新索引
+			38 container
+				39 按钮 标记引文
+				40 按钮 插入引文目录
+				41 按钮 (disabled) 更新表格, Help: 更新引文目录
+		42 选项卡 开始, Value: 0
+		43 选项卡 插入, Value: 0
+		44 选项卡 绘图, Value: 0
+		45 选项卡 设计, Value: 0
+		46 选项卡 布局, Value: 0
+		47 选项卡 引用, Help: 折叠功能区, Value: 1
+		48 选项卡 邮件
+		49 选项卡 审阅
+		50 选项卡 视图
+		51 按钮 批注
+		52 按钮 编辑, Help: 文档访问模式
+		53 按钮 共享
+	54 container 状态栏
+		55 按钮 第 1 页，共 1 页, Help: 文档当前的页码。单击或点击可打开导航窗格。
+		56 按钮 61 个字, Help: 文档的字数。单击或点击可打开“字数统计”对话框。
+		57 按钮 兼容性模式下的共同创作。
+		58 按钮 发现校对错误。单击可更正。
+		59 按钮 简体中文(中国大陆), Help: 语言(国家/地区)
+		60 开关按钮 辅助功能: 一切就绪, Help: 已完成辅助功能检查。请单击此处了解详细信息。, Value: off
+		61 开关按钮  专注, Help: 专注模式, Value: off
+		62 单选按钮 页面视图, Value: 1
+		63 单选按钮 Web 版式, Value: 0
+		64 单选按钮 大纲, Value: 0
+		65 单选按钮 草稿, Value: 0
+		66 按钮 缩小
+		67 按钮 放大
+		68 滑块 (settable, float) Help: 缩放, Value: 1000, Details: 100%
+			69 值指示器 (settable, float) 1000
+		70 按钮 100%, Help: 缩放级别。单击可打开“缩放”对话框。
+	71 工具栏
+		72 container Secondary Actions: 从工具栏移除
+			73 转换 自动保存, Help: 启用“自动保存”以在发生更改时保存更改。, Value: off
+			74 按钮 主页
+			75 按钮 保存
+			76 菜单按钮 撤消粘贴, Help: 有关更多选项，请按 Control-Option-Shift-M。
+			77 按钮 (disabled) 无法重复
+			78 按钮 打印
+			79 菜单按钮 自定义快速访问工具栏, Value: 0
+			80 搜索文本栏 (settable) 搜索(Cmd + Ctrl + U)
+				81 按钮 搜索
+			82 文本 Value: 文档2, ID: CUIDocumentShellWindowTitleLabel
+	83 菜单按钮 窗口共享
+84 menu bar
+	85 Word, ID: AppMenu_MenuItem
+	86 文件
+	87 编辑, ID: EditMenu_MenuItem
+	88 视图, ID: ViewMenu_MenuItem
+	89 插入
+	90 格式
+	91 工具
+	92 表格
+	93 窗口, ID: WindowMenu_MenuItem
+	94 帮助, ID: HelpMenu_MenuItem
+
+The focused UI element is 7 文本输入区 (disabled, settable) Description: 页面 1 内容, Value: Ribbon audit 标题
+这是用于 JoyWord 与 Microsoft Word 对比的测试段落。Hello Word 123.
+第二段用于项目符号、编号、缩进和行距设置。
+第三段用于查找、替换、批注与修订。

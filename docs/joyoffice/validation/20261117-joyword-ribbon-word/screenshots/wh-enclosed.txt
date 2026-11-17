@@ -1,0 +1,65 @@
+Window: "带圈字符", App: Microsoft Word.
+0 对话框 带圈字符, Secondary Actions: Raise
+	1 文本 样式
+	2 单选按钮 Description: 无, Value: 0
+	3 单选按钮 Description: 缩小文字, Value: 1
+	4 单选按钮 Description: 样式增大圈号, Value: 0
+	5 text 无 缩小文字 增大圈号 圈号 字符:
+	6 文本栏 (settable) Description: 字符, Value: 。
+	7 滚动区 Secondary Actions: Scroll Up, Scroll Down
+		8 表格
+			9 row (selectable)
+				10 文本栏 (settable) A
+			11 row (selectable)
+				12 文本栏 (settable) a
+			13 row (selectable)
+				14 文本栏 (settable) !
+			15 row (selectable)
+				16 文本栏 (settable) 1
+			17 row (selectable)
+				18 文本栏 (settable) 21
+			19 row (selectable)
+				20 文本栏 (settable) 一
+			21 row (selectable)
+				22 文本栏 (settable) 壹
+			23 row (selectable)
+				24 文本栏 (settable) 印
+			25 栏 (selectable) AutomaticTableColumnIdentifier.0
+		26 滚动条 (settable, float) 0
+			27 值指示器 (settable, float) 0
+			28 增箭头按钮
+			29 减箭头按钮
+			30 增页面按钮
+			31 减页面按钮
+	32 文本 圈号:
+	33 滚动区
+		34 表格
+			35 row (selected)
+				36 文本栏 (settable) ○
+			37 row (selectable)
+				38 文本栏 (settable) □
+			39 row (selectable)
+				40 文本栏 (settable) △
+			41 row (selectable)
+				42 文本栏 (settable) ◇
+			43 栏 (selectable) AutomaticTableColumnIdentifier.0
+	44 按钮 确定
+	45 按钮 取消
+	46 文本 带圈字符
+47 menu bar
+	48 Word, ID: AppMenu_MenuItem
+	49 文件
+	50 编辑, ID: EditMenu_MenuItem
+	51 视图, ID: ViewMenu_MenuItem
+	52 插入
+	53 格式
+	54 工具
+	55 表格
+	56 窗口, ID: WindowMenu_MenuItem
+	57 帮助, ID: HelpMenu_MenuItem
+
+Selected text: ```
+。
+```
+
+Note: Pay special attention to the content selected by the user. If the user asks a question or refers to the content they are looking at on-screen, they might be referring to the selected content (but they might be referring to something else that's visible, too).

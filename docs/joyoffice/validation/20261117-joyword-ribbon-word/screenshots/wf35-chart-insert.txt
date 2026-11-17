@@ -1,0 +1,161 @@
+Window: "文档7", App: Microsoft Word.
+0 标准窗口 文档7, Secondary Actions: Raise
+	1 分离组
+		2 分离组
+			3 分离组 Document Pane
+				4 滚动区 Secondary Actions: Scroll Left, Scroll Right, Scroll Up, Scroll Down
+					5 (disabled) 文档7
+						6 container
+							7 container 图表区，嵌入型
+								8 控制柄 (disabled) Description: 顶部左对齐调整大小图柄，嵌入型, Secondary Actions: Increment, Decrement
+								9 控制柄 (disabled) Description: 顶部右对齐调整大小图柄, Secondary Actions: Increment, Decrement
+								10 控制柄 (disabled) Description: 底部左对齐调整大小图柄, Secondary Actions: Increment, Decrement
+								11 控制柄 (disabled) Description: 底部右对齐调整大小图柄, Secondary Actions: Increment, Decrement
+								12 控制柄 (disabled) Description: 顶部居中调整大小图柄, Secondary Actions: Increment, Decrement
+								13 控制柄 (disabled) Description: 中部右对齐调整大小图柄, Secondary Actions: Increment, Decrement
+								14 控制柄 (disabled) Description: 底部居中调整大小图柄, Secondary Actions: Increment, Decrement
+								15 控制柄 (disabled) Description: 中部左对齐调整大小图柄, Secondary Actions: Increment, Decrement
+								16 container 图表标题
+									17 文本输入区 (disabled) 图表标题
+								18 图表元素 (disabled) 图例
+									19 图表元素 (disabled) Description: 系列 "系列 1" 图例项, Help: 系列 1
+									20 图表元素 (disabled) Description: 系列 "系列 2" 图例项, Help: 系列 2
+									21 图表元素 (disabled) Description: 系列 "系列 3" 图例项, Help: 系列 3
+								22 container 绘图区
+									23 图表元素 (disabled) 垂直 (值) 轴
+										24 图表元素 (disabled) 轴标签 值: 0
+										25 图表元素 (disabled) 轴标签 值: 1
+										26 图表元素 (disabled) 轴标签 值: 2
+										27 图表元素 (disabled) 轴标签 值: 3
+										28 图表元素 (disabled) 轴标签 值: 4
+										29 图表元素 (disabled) 轴标签 值: 5
+										30 图表元素 (disabled) 轴标签 值: 6
+									31 图表元素 (disabled) 水平 (类别) 轴
+										32 图表元素 (disabled) 轴标签 类别: 类别 1
+										33 图表元素 (disabled) 轴标签 类别: 类别 2
+										34 图表元素 (disabled) 轴标签 类别: 类别 3
+										35 图表元素 (disabled) 轴标签 类别: 类别 4
+									36 container 垂直 (值) 轴 主要网格线
+									37 container 系列 "系列 1"
+										38 container 系列 "系列 1" 点 "类别 1"
+值: 4.3
+										39 container 系列 "系列 1" 点 "类别 2"
+值: 2.5
+										40 container 系列 "系列 1" 点 "类别 3"
+值: 3.5
+										41 container 系列 "系列 1" 点 "类别 4"
+值: 4.5
+									42 container 系列 "系列 2"
+										43 container 系列 "系列 2" 点 "类别 1"
+值: 2.4
+										44 container 系列 "系列 2" 点 "类别 2"
+值: 4.4
+										45 container 系列 "系列 2" 点 "类别 3"
+值: 1.8
+										46 container 系列 "系列 2" 点 "类别 4"
+值: 2.8
+									47 container 系列 "系列 3"
+										48 container 系列 "系列 3" 点 "类别 1"
+值: 2
+										49 container 系列 "系列 3" 点 "类别 2"
+值: 2
+										50 container 系列 "系列 3" 点 "类别 3"
+值: 3
+										51 container 系列 "系列 3" 点 "类别 4"
+值: 5
+							52 文本输入区 (disabled, settable) Description: 页面 1 内容, Value: ￼
+					53 滚动条 (disabled, settable, float) 0
+						54 值指示器 (disabled, settable, float) 0
+					55 滚动条 (disabled, settable, float) 0
+						56 值指示器 (disabled, settable, float) 0
+		57 分离器 (disabled, settable, float) 1729
+	58 标签页组 Description: 功能区, Details: 图表设计
+		59 滚动区 图表设计 选项卡命令
+			60 container
+				61 菜单按钮 添加图表元素, Value: 0
+				62 菜单按钮 快速布局, Value: 0
+			63 container
+				64 菜单按钮 更改颜色, Help: 图表快速颜色, Value: 0
+				65 菜单按钮 显示更多项目
+				66 库 Description: 快速样式, Help: 库
+					67 按钮 Description: 样式 1, Value: 1, ID: in_ribbon_gallery_ChartStylesGallery_Control_0_0
+					68 按钮 Description: 样式 2, Value: 0, ID: in_ribbon_gallery_ChartStylesGallery_Control_0_1
+					69 按钮 Description: 样式 3, Value: 0, ID: in_ribbon_gallery_ChartStylesGallery_Control_0_2
+					70 按钮 Description: 样式 4, Value: 0, ID: in_ribbon_gallery_ChartStylesGallery_Control_0_3
+					71 按钮 Description: 样式 5, Value: 0, ID: in_ribbon_gallery_ChartStylesGallery_Control_0_4
+					72 按钮 Description: 样式 6, Value: 0, ID: in_ribbon_gallery_ChartStylesGallery_Control_0_5
+					73 按钮 Description: 样式 7, Value: 0, ID: in_ribbon_gallery_ChartStylesGallery_Control_0_6
+					74 按钮 Description: 样式 8, Value: 0, ID: in_ribbon_gallery_ChartStylesGallery_Control_0_7
+					75 按钮 Description: 样式 9, Value: 0, ID: in_ribbon_gallery_ChartStylesGallery_Control_0_8
+					76 按钮 Description: 样式 10, Value: 0, ID: in_ribbon_gallery_ChartStylesGallery_Control_0_9
+					77 按钮 Description: 样式 11, Value: 0, ID: in_ribbon_gallery_ChartStylesGallery_Control_0_10
+					78 按钮 Description: 样式 12, Value: 0, ID: in_ribbon_gallery_ChartStylesGallery_Control_0_11
+					79 按钮 Description: 样式 13, Value: 0, ID: in_ribbon_gallery_ChartStylesGallery_Control_0_12
+					80 按钮 Description: 样式 14, Value: 0, ID: in_ribbon_gallery_ChartStylesGallery_Control_0_13
+			81 container
+				82 按钮 切换行/列
+				83 按钮 选择数据
+				84 按钮 在 Excel 中编辑数据
+				85 按钮 (disabled) 刷新数据
+			86 菜单按钮 更改图表类型, Value: 0
+		87 选项卡 开始, Value: 0
+		88 选项卡 插入, Value: 0
+		89 选项卡 绘图
+		90 选项卡 设计
+		91 选项卡 布局
+		92 选项卡 引用
+		93 选项卡 邮件
+		94 选项卡 审阅
+		95 选项卡 视图
+		96 选项卡 图表设计, Help: 折叠功能区, Value: 1
+		97 选项卡 格式
+		98 按钮 批注
+		99 按钮 编辑, Help: 文档访问模式
+		100 按钮 共享
+	101 container 状态栏
+		102 按钮 第 1 页，共 1 页, Help: 文档当前的页码。单击或点击可打开导航窗格。
+		103 按钮 0 个字, Help: 文档的字数。单击或点击可打开“字数统计”对话框。
+		104 按钮 兼容性模式下的共同创作。
+		105 按钮 正在检查校对错误。
+		106 按钮 英语(美国), Help: 语言(国家/地区)
+		107 开关按钮 辅助功能: 调查, Help: 找到辅助功能建议。请单击此处进行调查。, Value: off
+		108 开关按钮  专注, Help: 专注模式, Value: off
+		109 单选按钮 页面视图, Value: 1
+		110 单选按钮 Web 版式, Value: 0
+		111 单选按钮 大纲, Value: 0
+		112 单选按钮 草稿, Value: 0
+		113 按钮 缩小
+		114 按钮 放大
+		115 滑块 (settable, float) Help: 缩放, Value: 1000, Details: 100%
+			116 值指示器 (settable, float) 1000
+		117 按钮 100%, Help: 缩放级别。单击可打开“缩放”对话框。
+	118 工具栏
+		119 container Secondary Actions: 从工具栏移除
+			120 转换 自动保存, Help: 启用“自动保存”以在发生更改时保存更改。, Value: off
+			121 按钮 主页
+			122 按钮 保存
+			123 菜单按钮 撤消, Help: 有关更多选项，请按 Control-Option-Shift-M。
+			124 按钮 (disabled) 无法重复
+			125 按钮 打印
+			126 菜单按钮 自定义快速访问工具栏, Value: 0
+			127 搜索文本栏 (settable) 搜索(Cmd + Ctrl + U)
+				128 按钮 搜索
+			129 文本 Value: 文档7, ID: CUIDocumentShellWindowTitleLabel
+	130 菜单按钮 窗口共享
+131 menu bar
+	132 Word, ID: AppMenu_MenuItem
+	133 文件
+	134 编辑, ID: EditMenu_MenuItem
+	135 视图, ID: ViewMenu_MenuItem
+	136 插入
+	137 格式
+	138 工具
+	139 表格
+	140 窗口, ID: WindowMenu_MenuItem
+	141 帮助, ID: HelpMenu_MenuItem
+
+Selected text: ```
+￼
+```
+
+Note: Pay special attention to the content selected by the user. If the user asks a question or refers to the content they are looking at on-screen, they might be referring to the selected content (but they might be referring to something else that's visible, too).

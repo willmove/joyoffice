@@ -1,0 +1,55 @@
+Window: "表格属性 ", App: Microsoft Word.
+0 对话框 表格属性 , Secondary Actions: Raise
+	1 标签页组
+		2 标签 表格, Value: 1
+		3 标签 行, Value: 0
+		4 标签 列, Value: 0
+		5 标签 单元格, Value: 0
+		6 标签 替代文字, Value: 0
+		7 文本 大小
+		8 复选框 指定宽度:, Value: 0
+		9 文本栏 (disabled) 0 厘米
+		10 步进器 (disabled) Value: 0, Secondary Actions: Increment, Decrement
+			11 增箭头按钮
+			12 减箭头按钮
+		13 文本 度量单位:
+		14 弹出式按钮 (disabled) 厘米
+		15 文本 对齐方式
+		16 单选按钮 左, Value: 1
+		17 文本 左
+		18 单选按钮 居中, Value: 0
+		19 文本 居中
+		20 单选按钮 右侧, Value: 0
+		21 text 右侧 左缩进:
+		22 文本栏 (settable) 0 厘米
+		23 步进器 Value: 0, Secondary Actions: Increment, Decrement
+			24 增箭头按钮
+			25 减箭头按钮
+		26 文本 文字环绕
+		27 单选按钮 环绕, Value: 0
+		28 文本 环绕
+		29 按钮 (disabled) 定位...
+		30 按钮 边框和底纹...
+		31 按钮 选项...
+		32 单选按钮 无, Value: 1
+		33 文本 无
+	34 按钮 确定
+	35 按钮 取消
+	36 文本 表格属性 
+37 menu bar
+	38 Word, ID: AppMenu_MenuItem
+	39 文件
+	40 编辑, ID: EditMenu_MenuItem
+	41 视图, ID: ViewMenu_MenuItem
+	42 插入
+	43 格式
+	44 工具
+	45 表格
+	46 窗口, ID: WindowMenu_MenuItem
+	47 帮助, ID: HelpMenu_MenuItem
+
+Selected text: ```
+0 厘米
+```
+
+Note: Pay special attention to the content selected by the user. If the user asks a question or refers to the content they are looking at on-screen, they might be referring to the selected content (but they might be referring to something else that's visible, too).

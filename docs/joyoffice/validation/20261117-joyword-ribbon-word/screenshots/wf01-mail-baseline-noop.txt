@@ -1,0 +1,104 @@
+Window: "文档2", App: Microsoft Word.
+0 标准窗口 文档2, Secondary Actions: Raise
+	1 分离组
+		2 分离组
+			3 分离组 Document Pane
+				4 滚动区 Secondary Actions: Scroll Left, Scroll Right, Scroll Up, Scroll Down
+					5 (disabled) 文档2
+						6 文本输入区 (disabled, settable) Description: 页面 1 内容, Value: Ribbon audit 标题
+这是用于 JoyWord 与 Microsoft Word 对比的测试段落。Hello Word 123.
+第二段用于项目符号、编号、缩进和行距设置。
+第三段用于查找、替换、批注与修订。
+
+
+
+测试
+正常
+
+
+					7 滚动条 (disabled, settable, float) 0
+						8 值指示器 (disabled, settable, float) 0
+					9 滚动条 (disabled, settable, float) 0
+						10 值指示器 (disabled, settable, float) 0
+		11 分离器 (disabled, settable, float) 1729
+	12 标签页组 Description: 功能区, Details: 邮件
+		13 滚动区 邮件 选项卡命令
+			14 container
+				15 按钮 信封
+				16 按钮 标签
+			17 container
+				18 菜单按钮 开始邮件合并, Value: 0
+				19 菜单按钮 选择收件人, Value: 0
+				20 按钮 (disabled) 编辑收件人列表, Help: 在收件人列表中添加或删除行标题。
+				21 按钮 (disabled) 筛选收件人, Help: 将结果限制为一部分收件人。
+			22 container
+				23 菜单按钮 (disabled) 插入合并域, Value: 0
+				24 菜单按钮 (disabled) 规则, Value: 0
+				25 按钮 (disabled) 更新标签
+			26 container
+				27 开关按钮 (disabled) 预览结果, Help: 预览最终文档。, Value: off
+				28 按钮 (disabled) 第一个, Help: 第一条记录
+				29 按钮 (disabled) 上一个, Help: 上一条记录
+				30 文本栏 (disabled) 记录:
+				31 按钮 (disabled) 下一个, Help: 下一条记录
+				32 按钮 (disabled) 最后一个, Help: 最后一条记录
+				33 按钮 (disabled) 查找收件人, Help: 在收件人列表中查找特定条目。
+			34 container
+				35 弹出式按钮 (disabled) 合并范围
+				36 文本栏 (disabled) 从
+				37 文本 到
+				38 文本栏 (disabled) 到
+			39 菜单按钮 (disabled) 完成并合并, Value: 0
+		40 选项卡 开始, Value: 0
+		41 选项卡 插入, Value: 0
+		42 选项卡 绘图, Value: 0
+		43 选项卡 设计, Value: 0
+		44 选项卡 布局, Value: 0
+		45 选项卡 引用, Value: 0
+		46 选项卡 邮件, Help: 折叠功能区, Value: 1
+		47 选项卡 审阅, Value: 0
+		48 选项卡 视图, Value: 0
+		49 按钮 批注
+		50 按钮 编辑, Help: 文档访问模式
+		51 按钮 共享
+	52 container 状态栏
+		53 按钮 第 1 页，共 1 页, Help: 文档当前的页码。单击或点击可打开导航窗格。
+		54 按钮 65 个字, Help: 文档的字数。单击或点击可打开“字数统计”对话框。
+		55 按钮 兼容性模式下的共同创作。
+		56 按钮 发现校对错误。单击可更正。
+		57 按钮 简体中文(中国大陆), Help: 语言(国家/地区)
+		58 开关按钮 辅助功能: 一切就绪, Help: 已完成辅助功能检查。请单击此处了解详细信息。, Value: off
+		59 开关按钮  专注, Help: 专注模式, Value: off
+		60 单选按钮 页面视图, Value: 1
+		61 单选按钮 Web 版式, Value: 0
+		62 单选按钮 大纲, Value: 0
+		63 单选按钮 草稿, Value: 0
+		64 按钮 缩小
+		65 按钮 放大
+		66 滑块 (settable, float) Help: 缩放, Value: 1000, Details: 100%
+			67 值指示器 (settable, float) 1000
+		68 按钮 100%, Help: 缩放级别。单击可打开“缩放”对话框。
+	69 工具栏
+		70 container Secondary Actions: 从工具栏移除
+			71 转换 自动保存, Help: 启用“自动保存”以在发生更改时保存更改。, Value: off
+			72 按钮 主页
+			73 按钮 保存
+			74 菜单按钮 撤消键入, Help: 有关更多选项，请按 Control-Option-Shift-M。
+			75 按钮 重复键入
+			76 按钮 打印
+			77 菜单按钮 自定义快速访问工具栏, Value: 0
+			78 搜索文本栏 (settable) 搜索(Cmd + Ctrl + U)
+				79 按钮 搜索
+			80 文本 Value: 文档2, ID: CUIDocumentShellWindowTitleLabel
+	81 菜单按钮 窗口共享
+82 menu bar
+	83 Word, ID: AppMenu_MenuItem
+	84 文件
+	85 编辑, ID: EditMenu_MenuItem
+	86 视图, ID: ViewMenu_MenuItem
+	87 插入
+	88 格式
+	89 工具
+	90 表格
+	91 窗口, ID: WindowMenu_MenuItem
+	92 帮助, ID: HelpMenu_MenuItem

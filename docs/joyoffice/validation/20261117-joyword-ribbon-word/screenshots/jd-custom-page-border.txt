@@ -1,0 +1,67 @@
+Window: "* 未命名 1 — JoyWord", App: JoyWord Ribbon Audit.
+0 standard window * 未命名 1 — JoyWord, Secondary Actions: Raise
+	1 container
+		2 button 新建
+		3 button 打开
+		4 button 保存
+		5 button 撤销
+		6 button (disabled) 重做
+		7 button 搜索命令
+		8 button EN
+		9 button 切换外观
+		10 tab group 功能区
+			11 tab (settable, boolean) 文件, Value: off
+			12 tab (settable, boolean) 开始, Value: off
+			13 tab (settable, boolean) 插入, Value: off
+			14 tab (settable, boolean) 绘图, Value: off
+			15 tab (settable, boolean) 设计, Value: on
+			16 tab (settable, boolean) 布局, Value: off
+			17 tab (settable, boolean) 引用, Value: off
+			18 tab (settable, boolean) 邮件, Value: off
+			19 tab (settable, boolean) 审阅, Value: off
+			20 tab (settable, boolean) 视图, Value: off
+			21 tab (settable, boolean) 帮助, Value: off
+			22 tab (settable, boolean) 开发工具, Value: off
+			23 tab (settable, boolean) 图片格式, Value: off
+			24 button 折叠或展开功能区, Help: Ctrl+F1
+		25 container 文档格式
+			26 button 主题
+			27 button 默认
+			28 button 基本
+			29 button 线条
+			30 button 阴影
+			31 button 休闲
+			32 button 居中
+			33 button 简约
+			34 button 标题
+			35 button 颜色
+			36 button 字体
+			37 button 段落间距
+			38 button (disabled) 效果, Help: 主题效果尚未接入页面渲染
+			39 button (disabled) 设为默认值, Help: 文档设计默认值尚未接入持久化
+		40 container 页面背景
+			41 button 水印
+			42 button 页面颜色
+			43 button 页面边框
+		44 button 上一页
+		45 button 下一页
+		46 text entry area (settable) 文档正文, Help: 随光标读取段落。用方向键或翻页键浏览。
+			47 container 水平标尺（只读）
+		48 button −
+		49 button 100%
+		50 button +
+		51 dialog
+			52 text field (settable) 线型 / Style (single / double / dotted / dashed), Value: single, Placeholder: 留空保持原值
+			53 text field (settable) 线宽 / Width (pt), Value: 1, Placeholder: 留空保持原值
+			54 text field (settable) 颜色 / Color (RRGGBB), Value: 315FA8, Placeholder: 留空保持原值
+			55 text field (settable) 应用于 / Apply to (section / document), Value: section, Placeholder: 留空保持原值
+			56 button 取消
+			57 button 应用
+			58 button Close
+	59 text * 未命名 1 — JoyWord
+	60 menu button Window sharing
+61 menu bar
+	62 JoyWord Ribbon Audit
+	63 View
+
+The focused UI element is 0 standard window * 未命名 1 — JoyWord, Secondary Actions: Raise

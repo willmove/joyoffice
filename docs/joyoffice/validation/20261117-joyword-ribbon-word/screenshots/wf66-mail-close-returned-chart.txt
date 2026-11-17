@@ -1,0 +1,161 @@
+Window: "文档7", App: Microsoft Word.
+0 标准窗口 文档7, Secondary Actions: Raise
+	1 分离组
+		2 分离组
+			3 分离组 Document Pane
+				4 滚动区 Secondary Actions: Scroll Left, Scroll Right, Scroll Up, Scroll Down
+					5 (disabled) 文档7
+						6 container
+							7 container 图表区
+								8 控制柄 (disabled) Description: 顶部左对齐调整大小图柄, Secondary Actions: Increment, Decrement
+								9 控制柄 (disabled) Description: 顶部右对齐调整大小图柄, Secondary Actions: Increment, Decrement
+								10 控制柄 (disabled) Description: 底部左对齐调整大小图柄, Secondary Actions: Increment, Decrement
+								11 控制柄 (disabled) Description: 底部右对齐调整大小图柄, Secondary Actions: Increment, Decrement
+								12 控制柄 (disabled) Description: 顶部居中调整大小图柄, Secondary Actions: Increment, Decrement
+								13 控制柄 (disabled) Description: 中部右对齐调整大小图柄, Secondary Actions: Increment, Decrement
+								14 控制柄 (disabled) Description: 底部居中调整大小图柄, Secondary Actions: Increment, Decrement
+								15 控制柄 (disabled) Description: 中部左对齐调整大小图柄, Secondary Actions: Increment, Decrement
+								16 container 图表标题
+									17 文本输入区 (disabled) 图表标题
+								18 图表元素 (disabled) 图例
+									19 图表元素 (disabled) Description: 系列 "系列 1" 图例项, Help: 系列 1
+									20 图表元素 (disabled) Description: 系列 "系列 2" 图例项, Help: 系列 2
+									21 图表元素 (disabled) Description: 系列 "系列 3" 图例项, Help: 系列 3
+								22 container 绘图区
+									23 图表元素 (disabled) 垂直 (值) 轴
+										24 图表元素 (disabled) 轴标签 值: 0
+										25 图表元素 (disabled) 轴标签 值: 1
+										26 图表元素 (disabled) 轴标签 值: 2
+										27 图表元素 (disabled) 轴标签 值: 3
+										28 图表元素 (disabled) 轴标签 值: 4
+										29 图表元素 (disabled) 轴标签 值: 5
+										30 图表元素 (disabled) 轴标签 值: 6
+										31 图表元素 (disabled) 轴标签 值: 7
+										32 图表元素 (disabled) 轴标签 值: 8
+										33 图表元素 (disabled) 轴标签 值: 9
+										34 图表元素 (disabled) 轴标签 值: 10
+									35 图表元素 (disabled) 水平 (类别) 轴
+										36 图表元素 (disabled) 轴标签 类别: 类别 1
+										37 图表元素 (disabled) 轴标签 类别: 类别 2
+										38 图表元素 (disabled) 轴标签 类别: 类别 3
+										39 图表元素 (disabled) 轴标签 类别: 类别 4
+									40 container 垂直 (值) 轴 主要网格线
+									41 container 系列 "系列 1"
+										42 container 系列 "系列 1" 点 "类别 1"
+值: 9
+										43 container 系列 "系列 1" 点 "类别 2"
+值: 2.5
+										44 container 系列 "系列 1" 点 "类别 3"
+值: 3.5
+										45 container 系列 "系列 1" 点 "类别 4"
+值: 4.5
+									46 container 系列 "系列 2"
+										47 container 系列 "系列 2" 点 "类别 1"
+值: 2.4
+										48 container 系列 "系列 2" 点 "类别 2"
+值: 4.4
+										49 container 系列 "系列 2" 点 "类别 3"
+值: 1.8
+										50 container 系列 "系列 2" 点 "类别 4"
+值: 2.8
+									51 container 系列 "系列 3"
+										52 container 系列 "系列 3" 点 "类别 1"
+值: 2
+										53 container 系列 "系列 3" 点 "类别 2"
+值: 2
+										54 container 系列 "系列 3" 点 "类别 3"
+值: 3
+										55 container 系列 "系列 3" 点 "类别 4"
+值: 5
+							56 文本输入区 (disabled, settable) Description: 页面 1 内容, Value: ￼
+					57 滚动条 (disabled, settable, float) 0
+						58 值指示器 (disabled, settable, float) 0
+					59 滚动条 (disabled, settable, float) 0
+						60 值指示器 (disabled, settable, float) 0
+		61 分离器 (disabled, settable, float) 1729
+	62 标签页组 Description: 功能区, Details: 图表设计
+		63 滚动区 图表设计 选项卡命令
+			64 container
+				65 菜单按钮 添加图表元素, Value: 0
+				66 菜单按钮 快速布局, Value: 0
+			67 container
+				68 菜单按钮 更改颜色, Help: 图表快速颜色, Value: 0
+				69 菜单按钮 显示更多项目
+				70 库 Description: 快速样式, Help: 库
+					71 按钮 Description: 样式 1, Value: 1, ID: in_ribbon_gallery_ChartStylesGallery_Control_0_0
+					72 按钮 Description: 样式 2, Value: 0, ID: in_ribbon_gallery_ChartStylesGallery_Control_0_1
+					73 按钮 Description: 样式 3, Value: 0, ID: in_ribbon_gallery_ChartStylesGallery_Control_0_2
+					74 按钮 Description: 样式 4, Value: 0, ID: in_ribbon_gallery_ChartStylesGallery_Control_0_3
+					75 按钮 Description: 样式 5, Value: 0, ID: in_ribbon_gallery_ChartStylesGallery_Control_0_4
+					76 按钮 Description: 样式 6, Value: 0, ID: in_ribbon_gallery_ChartStylesGallery_Control_0_5
+					77 按钮 Description: 样式 7, Value: 0, ID: in_ribbon_gallery_ChartStylesGallery_Control_0_6
+					78 按钮 Description: 样式 8, Value: 0, ID: in_ribbon_gallery_ChartStylesGallery_Control_0_7
+					79 按钮 Description: 样式 9, Value: 0, ID: in_ribbon_gallery_ChartStylesGallery_Control_0_8
+					80 按钮 Description: 样式 10, Value: 0, ID: in_ribbon_gallery_ChartStylesGallery_Control_0_9
+					81 按钮 Description: 样式 11, Value: 0, ID: in_ribbon_gallery_ChartStylesGallery_Control_0_10
+					82 按钮 Description: 样式 12, Value: 0, ID: in_ribbon_gallery_ChartStylesGallery_Control_0_11
+					83 按钮 Description: 样式 13, Value: 0, ID: in_ribbon_gallery_ChartStylesGallery_Control_0_12
+					84 按钮 Description: 样式 14, Value: 0, ID: in_ribbon_gallery_ChartStylesGallery_Control_0_13
+			85 container
+				86 按钮 (disabled) 切换行/列
+				87 按钮 选择数据
+				88 按钮 在 Excel 中编辑数据
+				89 按钮 (disabled) 刷新数据
+			90 菜单按钮 更改图表类型, Value: 0
+		91 选项卡 开始, Value: 0
+		92 选项卡 插入, Value: 0
+		93 选项卡 绘图
+		94 选项卡 设计
+		95 选项卡 布局
+		96 选项卡 引用
+		97 选项卡 邮件
+		98 选项卡 审阅
+		99 选项卡 视图
+		100 选项卡 图表设计, Help: 折叠功能区, Value: 1
+		101 选项卡 格式
+		102 按钮 批注
+		103 按钮 编辑, Help: 文档访问模式
+		104 按钮 共享
+	105 container 状态栏
+		106 按钮 第 1 页，共 1 页, Help: 文档当前的页码。单击或点击可打开导航窗格。
+		107 按钮 0 个字, Help: 文档的字数。单击或点击可打开“字数统计”对话框。
+		108 按钮 兼容性模式下的共同创作。
+		109 按钮 无校对错误。
+		110 按钮 英语(美国), Help: 语言(国家/地区)
+		111 开关按钮 辅助功能: 调查, Help: 找到辅助功能建议。请单击此处进行调查。, Value: off
+		112 开关按钮  专注, Help: 专注模式, Value: off
+		113 单选按钮 页面视图, Value: 1
+		114 单选按钮 Web 版式, Value: 0
+		115 单选按钮 大纲, Value: 0
+		116 单选按钮 草稿, Value: 0
+		117 按钮 缩小
+		118 按钮 放大
+		119 滑块 (settable, float) Help: 缩放, Value: 1000, Details: 100%
+			120 值指示器 (settable, float) 1000
+		121 按钮 100%, Help: 缩放级别。单击可打开“缩放”对话框。
+	122 工具栏
+		123 container Secondary Actions: 从工具栏移除
+			124 转换 自动保存, Help: 启用“自动保存”以在发生更改时保存更改。, Value: off
+			125 按钮 主页
+			126 按钮 保存
+			127 菜单按钮 撤消, Help: 有关更多选项，请按 Control-Option-Shift-M。
+			128 按钮 重复关闭文档
+			129 按钮 打印
+			130 菜单按钮 自定义快速访问工具栏, Value: 0
+			131 搜索文本栏 (settable) 搜索(Cmd + Ctrl + U)
+				132 按钮 搜索
+			133 文本 Value: 文档7, ID: CUIDocumentShellWindowTitleLabel
+	134 菜单按钮 窗口共享
+135 menu bar
+	136 Word, ID: AppMenu_MenuItem
+	137 文件
+	138 编辑, ID: EditMenu_MenuItem
+	139 视图, ID: ViewMenu_MenuItem
+	140 插入
+	141 格式
+	142 工具
+	143 表格
+	144 窗口, ID: WindowMenu_MenuItem
+	145 帮助, ID: HelpMenu_MenuItem
+
+The focused UI element is 4 滚动区 Secondary Actions: Scroll Left, Scroll Right, Scroll Up, Scroll Down

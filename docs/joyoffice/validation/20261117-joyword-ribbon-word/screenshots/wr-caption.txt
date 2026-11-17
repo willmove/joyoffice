@@ -1,0 +1,30 @@
+Window: "题注", App: Microsoft Word.
+0 对话框 题注, Secondary Actions: Raise
+	1 文本 题注:
+	2 container
+		3 文本输入区 (disabled, settable) 图表 1 
+	4 text 选项 标签:
+	5 弹出式按钮 图表
+	6 按钮 新建标签...
+	7 按钮 (disabled) 删除标签
+	8 文本 位置:
+	9 弹出式按钮 所选项目下方
+	10 文本 编号:
+	11 按钮 格式...
+	12 复选框 从题注中排除标签, Value: 0
+	13 按钮 自动插入题注...
+	14 按钮 确定
+	15 按钮 取消
+	16 未知
+	17 文本 题注
+18 menu bar
+	19 Word, ID: AppMenu_MenuItem
+	20 文件
+	21 编辑, ID: EditMenu_MenuItem
+	22 视图, ID: ViewMenu_MenuItem
+	23 插入
+	24 格式
+	25 工具
+	26 表格
+	27 窗口, ID: WindowMenu_MenuItem
+	28 帮助, ID: HelpMenu_MenuItem

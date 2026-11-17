@@ -1,0 +1,44 @@
+Window: "插入水印", App: Microsoft Word.
+0 对话框 插入水印, Secondary Actions: Raise
+	1 单选按钮 无水印, Value: 1
+	2 单选按钮 图片, Value: 0
+	3 按钮 (disabled) 选择图片...
+	4 text (未选择图片) 缩放:
+	5 组合框 (disabled) Value: 自动, Secondary Actions: Confirm
+	6 复选框 (disabled) 冲蚀, Value: 1
+	7 单选按钮 文字, Value: 0
+	8 组合框 (disabled) Value: 保密, Secondary Actions: Confirm
+	9 文本 字体:
+	10 组合框 (disabled) Value: DengXian, Secondary Actions: Confirm
+	11 文本 字号:
+	12 组合框 (disabled) Value: 自动, Secondary Actions: Confirm
+	13 复选框 (disabled) 加粗, Value: 0
+	14 复选框 (disabled) 倾斜, Value: 0
+	15 文本 透明度:
+	16 滑块 (disabled) Value: 0, Secondary Actions: Increment, Decrement
+		17 值指示器 0
+	18 文本栏 (disabled) 0%
+	19 步进器 (disabled) Value: 0, Secondary Actions: Increment, Decrement
+		20 增箭头按钮
+		21 减箭头按钮
+	22 文本 字体颜色:
+	23 文本 方向:
+	24 单选按钮 (disabled) 水平, Value: 1
+	25 单选按钮 (disabled) 对角线, Value: 0
+	26 图像
+	27 按钮 (disabled) 确定
+	28 按钮 取消
+	29 文本 插入水印
+30 menu bar
+	31 Word, ID: AppMenu_MenuItem
+	32 文件
+	33 编辑, ID: EditMenu_MenuItem
+	34 视图, ID: ViewMenu_MenuItem
+	35 插入
+	36 格式
+	37 工具
+	38 表格
+	39 窗口, ID: WindowMenu_MenuItem
+	40 帮助, ID: HelpMenu_MenuItem
+
+The focused UI element is 1 单选按钮 无水印, Value: 1

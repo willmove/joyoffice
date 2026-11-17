@@ -1,0 +1,59 @@
+Window: "* 未命名 1 — JoyWord", App: JoyWord Ribbon Audit.
+0 standard window * 未命名 1 — JoyWord, Secondary Actions: Raise
+	1 container
+		2 button 新建
+		3 button 打开
+		4 button 保存
+		5 button 撤销
+		6 button (disabled) 重做
+		7 button 搜索命令
+		8 button EN
+		9 button 切换外观
+		10 tab group 功能区
+			11 tab (settable, boolean) 文件, Value: on
+			12 tab (settable, boolean) 开始, Value: off
+			13 tab (settable, boolean) 插入, Value: off
+			14 tab (settable, boolean) 绘图, Value: off
+			15 tab (settable, boolean) 设计, Value: off
+			16 tab (settable, boolean) 布局, Value: off
+			17 tab (settable, boolean) 引用, Value: off
+			18 tab (settable, boolean) 邮件, Value: off
+			19 tab (settable, boolean) 审阅, Value: off
+			20 tab (settable, boolean) 视图, Value: off
+			21 tab (settable, boolean) 帮助, Value: off
+			22 tab (settable, boolean) 开发工具, Value: off
+			23 button 折叠或展开功能区, Help: Ctrl+F1
+		24 button 返回文档
+		25 button 开始
+		26 button 新建
+		27 button 打开
+		28 button 信息
+		29 button 恢复
+		30 button 保存
+		31 button 另存为
+		32 button 导出
+		33 button 关闭
+		34 button 关于
+		35 button 选项
+		36 button PDF 文档 (*.pdf)
+		37 button Word 文档 (*.docx)
+		38 button Word XML 文档 (*.xml)
+		39 button Word 2003 XML 文档 (*.xml)
+		40 button OpenDocument 文本 (*.odt)
+		41 button OpenDocument 文本模板 (*.ott)
+		42 button 平面 OpenDocument 文本 (*.fodt)
+		43 button RTF 格式 (*.rtf)
+		44 button 网页 (*.html)
+		45 button Markdown (*.md)
+		46 button LaTeX (*.tex)
+		47 button 纯文本 (*.txt)
+		48 button 页面图像 (*.png)
+		49 button EPUB 电子书 (*.epub)
+		50 button PDF/A-2b 归档文档 (*.pdf)
+	51 text * 未命名 1 — JoyWord
+	52 menu button Window sharing
+53 menu bar
+	54 JoyWord Ribbon Audit
+	55 View
+
+The focused UI element is 0 standard window * 未命名 1 — JoyWord, Secondary Actions: Raise

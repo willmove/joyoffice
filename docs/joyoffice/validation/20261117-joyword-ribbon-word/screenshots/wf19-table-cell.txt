@@ -1,0 +1,42 @@
+Window: "表格属性 ", App: Microsoft Word.
+0 对话框 表格属性 , Secondary Actions: Raise
+	1 标签页组
+		2 标签 表格, Value: 0
+		3 标签 行, Value: 0
+		4 标签 列, Value: 0
+		5 标签 单元格, Value: 1
+		6 标签 替代文字, Value: 0
+		7 文本 大小
+		8 复选框 指定宽度:, Value: 1
+		9 文本栏 (settable) 7.32 厘米
+		10 步进器 Value: 0, Secondary Actions: Increment, Decrement
+			11 增箭头按钮
+			12 减箭头按钮
+		13 文本 度量单位:
+		14 弹出式按钮 厘米
+		15 文本 垂直对齐方式
+		16 单选按钮 上, Value: 1
+		17 单选按钮 居中, Value: 0
+		18 单选按钮 底端对齐, Value: 0
+		19 text 上 居中 底端对齐
+		20 按钮 选项...
+	21 按钮 确定
+	22 按钮 取消
+	23 文本 表格属性 
+24 menu bar
+	25 Word, ID: AppMenu_MenuItem
+	26 文件
+	27 编辑, ID: EditMenu_MenuItem
+	28 视图, ID: ViewMenu_MenuItem
+	29 插入
+	30 格式
+	31 工具
+	32 表格
+	33 窗口, ID: WindowMenu_MenuItem
+	34 帮助, ID: HelpMenu_MenuItem
+
+Selected text: ```
+7.32 厘米
+```
+
+Note: Pay special attention to the content selected by the user. If the user asks a question or refers to the content they are looking at on-screen, they might be referring to the selected content (but they might be referring to something else that's visible, too).

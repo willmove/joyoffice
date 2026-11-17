@@ -1,0 +1,50 @@
+Window: "编辑列表字段", App: Microsoft Word.
+0 对话框 编辑列表字段, Secondary Actions: Raise
+	1 文本 新字段名称:
+	2 文本栏 (settable)
+	3 文本 字段名称:
+	4 滚动区 Secondary Actions: Scroll Up, Scroll Down
+		5 表格
+			6 row (selected)
+				7 文本栏 (settable) 姓名
+			8 row (selectable)
+				9 文本栏 (settable) 单位
+			10 row (selectable)
+				11 文本栏 (settable) 职务
+			12 row (selectable)
+				13 文本栏 (settable) 邮政编码
+			14 row (selectable)
+				15 文本栏 (settable) 通讯地址1
+			16 row (selectable)
+				17 文本栏 (settable) 通讯地址2
+			18 row (selectable)
+				19 文本栏 (settable) 通讯地址3
+			20 row (selectable)
+				21 文本栏 (settable) 联系电话
+			22 栏 (selectable) AutomaticTableColumnIdentifier.0
+		23 滚动条 (settable, float) 0
+			24 值指示器 (settable, float) 0
+			25 增箭头按钮
+			26 减箭头按钮
+			27 增页面按钮
+			28 减页面按钮
+	29 按钮 (disabled) 添加
+	30 按钮 移除
+	31 按钮 ▲, Description: 上
+	32 按钮 ▼, Description: 下
+	33 按钮 创建
+	34 按钮 取消
+	35 文本 编辑列表字段
+36 menu bar
+	37 Word, ID: AppMenu_MenuItem
+	38 文件
+	39 编辑, ID: EditMenu_MenuItem
+	40 视图, ID: ViewMenu_MenuItem
+	41 插入
+	42 格式
+	43 工具
+	44 表格
+	45 窗口, ID: WindowMenu_MenuItem
+	46 帮助, ID: HelpMenu_MenuItem
+
+The focused UI element is 2 文本栏 (settable)

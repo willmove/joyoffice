@@ -1,0 +1,118 @@
+Window: "文档9", App: Microsoft Word.
+0 标准窗口 文档9, Secondary Actions: Raise
+	1 分离组
+		2 分离组
+			3 分离组 Document Pane
+				4 滚动区 Secondary Actions: Scroll Left, Scroll Right, Scroll Up, Scroll Down
+					5 (disabled) 文档9
+						6 container
+							7 文本输入区 (disabled, settable) 页眉 - 第 1 节 -
+							8 开关按钮 (disabled) Description: 隐藏修订。, Value: on
+							9 文本输入区 (disabled, settable) Description: 页面 1 内容, Value: 页眉与审阅对照正文。TRACK-AUDIT
+							10 列表 (disabled) 注释提示
+								11 布局项目 (disabled) 评论提示按钮
+							12 container sidetrack
+								13 未知 Description: 1/1, Weimu Ma 马伟木 于 2026/11/17 13:08 发起的批注线程, ID: 批注线程
+									14 container Description: Weimu Ma 马伟木 于 2026/11/17 13:08 提供的批注  UI , ID: Thread container
+										15 按钮 Weimu Ma 马伟木
+											16 图像 Description: Weimu Ma 马伟木, ID: Persona image
+												17 图像
+										18 文本 Weimu Ma 马伟木
+										19 按钮 更多会话操作, Help: 显示会话选项
+										20 按钮 Help: 赞, Value: 此注释有 0 个回应。
+											21 图像
+										22 文本输入区  UI 
+									23 滚动区
+										24 文本输入区 (settable) 回复
+									25 按钮 (disabled) 发表评论, Help: 发布评论(Cmd + Enter)
+							26 文本输入区 (disabled, settable) 页脚 - 第 1 节 -
+					27 滚动条 (disabled, settable, float) 0
+						28 值指示器 (disabled, settable, float) 0
+					29 滚动条 (disabled, settable, float) 0
+						30 值指示器 (disabled, settable, float) 0
+		31 分离器 (disabled, settable, float) 1729
+	32 标签页组 Description: 功能区, Details: 视图
+		33 滚动区 视图 选项卡命令
+			34 container
+				35 开关按钮 页面视图, Value: on
+				36 开关按钮 Web 版式, Value: off
+				37 开关按钮 大纲, Help: 大纲视图, Value: off
+				38 开关按钮 草稿, Value: off
+			39 container
+				40 开关按钮 专注, Help: 专注模式, Value: off
+				41 开关按钮 沉浸式阅读器, Value: off
+			42 container
+				43 复选框 标尺, Value: 0
+				44 复选框 网格线, Value: 0
+				45 复选框 导航窗格, Help: 打开导航窗格, Value: 0
+			46 container
+				47 按钮 缩放
+				48 按钮 缩放至 100%, Help: 100%
+				49 按钮 单页
+				50 按钮 多页
+				51 按钮 页宽
+			52 container
+				53 按钮 新建窗口
+				54 按钮 全部重排
+				55 按钮 拆分
+			56 菜单按钮 切换窗口, Value: 0
+			57 菜单按钮 宏, Help: 有关更多选项，请按 Control-Option-Shift-M。, Value: 0
+		58 选项卡 开始, Value: 0
+		59 选项卡 插入, Value: 0
+		60 选项卡 绘图
+		61 选项卡 设计
+		62 选项卡 布局
+		63 选项卡 引用
+		64 选项卡 邮件
+		65 选项卡 审阅, Value: 0
+		66 选项卡 视图, Help: 折叠功能区, Value: 1
+		67 按钮 批注
+		68 按钮 编辑, Help: 文档访问模式
+		69 按钮 共享
+	70 container 状态栏
+		71 按钮 第 1 页，共 1 页, Help: 文档当前的页码。单击或点击可打开导航窗格。
+		72 按钮 11 个字, Help: 文档的字数。单击或点击可打开“字数统计”对话框。
+		73 按钮 兼容性模式下的共同创作。
+		74 按钮 无校对错误。
+		75 按钮 英语(美国), Help: 语言(国家/地区)
+		76 开关按钮 辅助功能: 一切就绪, Help: 已完成辅助功能检查。请单击此处了解详细信息。, Value: off
+		77 开关按钮  专注, Help: 专注模式, Value: off
+		78 单选按钮 页面视图, Value: 1
+		79 单选按钮 Web 版式, Value: 0
+		80 单选按钮 大纲, Value: 0
+		81 单选按钮 草稿, Value: 0
+		82 按钮 缩小
+		83 按钮 放大
+		84 滑块 (settable, float) Help: 缩放, Value: 1020, Details: 108%
+			85 值指示器 (settable, float) 1020
+		86 按钮 108%, Help: 缩放级别。单击可打开“缩放”对话框。
+	87 工具栏
+		88 container Secondary Actions: 从工具栏移除
+			89 转换 自动保存, Help: 启用“自动保存”以在发生更改时保存更改。, Value: off
+			90 按钮 主页
+			91 按钮 保存
+			92 菜单按钮 撤消粘贴, Help: 有关更多选项，请按 Control-Option-Shift-M。
+			93 按钮 重复修订标记切换
+			94 按钮 打印
+			95 菜单按钮 自定义快速访问工具栏, Value: 0
+			96 搜索文本栏 (settable) 搜索(Cmd + Ctrl + U)
+				97 按钮 搜索
+			98 文本 Value: 文档9, ID: CUIDocumentShellWindowTitleLabel
+	99 菜单按钮 窗口共享
+100 menu bar
+	101 Word, ID: AppMenu_MenuItem
+	102 文件
+	103 编辑, ID: EditMenu_MenuItem
+	104 视图, ID: ViewMenu_MenuItem
+	105 插入
+	106 格式
+	107 工具
+	108 表格
+	109 窗口, ID: WindowMenu_MenuItem
+	110 帮助, ID: HelpMenu_MenuItem
+
+Selected text: ```
+TRACK-AUDIT
+```
+
+Note: Pay special attention to the content selected by the user. If the user asks a question or refers to the content they are looking at on-screen, they might be referring to the selected content (but they might be referring to something else that's visible, too).

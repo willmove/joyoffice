@@ -1,0 +1,177 @@
+Window: "语言", App: Microsoft Word.
+0 对话框 语言, Secondary Actions: Raise
+	1 文本 将所选文字标记为:
+	2 滚动区 Secondary Actions: Scroll Up, Scroll Down
+		3 表格
+			4 row (selectable)
+				5 文本栏 (settable) 英语(美国)
+			6 row (selected)
+				7 文本栏 (settable) 中文(中国)
+			8 row (selectable)
+				9 文本栏 (settable) 阿拉伯语
+			10 row (selectable)
+				11 文本栏 (settable) 埃纳德语
+			12 row (selectable)
+				13 文本栏 (settable) 爱尔兰语
+			14 row (selectable)
+				15 文本栏 (settable) 爱沙尼亚语
+			16 row (selectable)
+				17 文本栏 (settable) 巴斯克语(巴斯克语)
+			18 row (selectable)
+				19 文本栏 (settable) 巴索托语
+			20 row (selectable)
+				21 文本栏 (settable) 保加利亚语
+			22 row (selectable)
+				23 文本栏 (settable) 冰岛语
+			24 row (selectable)
+				25 文本栏 (settable) 波兰语
+			26 row (selectable)
+				27 文本栏 (settable) 波斯尼亚语
+			28 row (selectable)
+				29 文本栏 (settable) 波斯语
+			30 row (selectable)
+				31 文本栏 (settable) 朝鲜语
+			32 row (selectable)
+				33 文本栏 (settable) 茨瓦纳语
+			34 row (selectable)
+				35 文本栏 (settable) 丹麦语
+			36 row (selectable)
+				37 文本栏 (settable) 德语
+			38 row (selectable)
+				39 文本栏 (settable) 德语(奥地利)
+			40 row (selectable)
+				41 文本栏 (settable) 德语(瑞士)
+			42 row (selectable)
+				43 文本栏 (settable) 俄语
+			44 row (selectable)
+				45 文本栏 (settable) 法语
+			46 row (selectable)
+				47 文本栏 (settable) 法语(加拿大)
+			48 row (selectable)
+				49 文本栏 (settable) 法语(瑞士)
+			50 row (selectable)
+				51 文本栏 (settable) 芬兰语
+			52 row (selectable)
+				53 文本栏 (settable) 古吉拉特语
+			54 row (selectable)
+				55 文本栏 (settable) 哈萨克语
+			56 row (selectable)
+				57 文本栏 (settable) 荷兰语
+			58 row (selectable)
+				59 文本栏 (settable) 加利西亚语
+			60 row (selectable)
+				61 文本栏 (settable) 加泰罗尼亚语
+			62 row (selectable)
+				63 文本栏 (settable) 捷克语
+			64 row (selectable)
+				65 文本栏 (settable) 克罗地亚语
+			66 row (selectable)
+				67 文本栏 (settable) 拉脱维亚语
+			68 row (selectable)
+				69 文本栏 (settable) 立陶宛语
+			70 row (selectable)
+				71 文本栏 (settable) 罗马尼亚语
+			72 row (selectable)
+				73 文本栏 (settable) 马拉地语
+			74 row (selectable)
+				75 文本栏 (settable) 马来西亚
+			76 row (selectable)
+				77 文本栏 (settable) 马其顿语
+			78 row (selectable)
+				79 文本栏 (settable) 南非荷兰语
+			80 row (selectable)
+				81 文本栏 (settable) 挪威博克马尔语
+			82 row (selectable)
+				83 文本栏 (settable) 挪威尼诺斯克语
+			84 row (selectable)
+				85 文本栏 (settable) 葡萄牙语
+			86 row (selectable)
+				87 文本栏 (settable) 葡萄牙语(巴西)
+			88 row (selectable)
+				89 文本栏 (settable) 日语
+			90 row (selectable)
+				91 文本栏 (settable) 瑞典语
+			92 row (selectable)
+				93 文本栏 (settable) 塞尔维亚语(拉丁语)
+			94 row (selectable)
+				95 文本栏 (settable) 塞尔维亚语(西里尔文)
+			96 row (selectable)
+				97 文本栏 (settable) 斯洛伐克语
+			98 row (selectable)
+				99 文本栏 (settable) 斯洛文尼亚语
+			100 row (selectable)
+				101 文本栏 (settable) 斯瓦希里语
+			102 row (selectable)
+				103 文本栏 (settable) 索萨语
+			104 row (selectable)
+				105 文本栏 (settable) 泰卢固语
+			106 row (selectable)
+				107 文本栏 (settable) 泰米尔语
+			108 row (selectable)
+				109 文本栏 (settable) 泰语
+			110 row (selectable)
+				111 文本栏 (settable) 土耳其语
+			112 row (selectable)
+				113 文本栏 (settable) 威尔士语
+			114 row (selectable)
+				115 文本栏 (settable) 乌克兰语
+			116 row (selectable)
+				117 文本栏 (settable) 西班牙语
+			118 row (selectable)
+				119 文本栏 (settable) 西班牙语(传统风格)
+			120 row (selectable)
+				121 文本栏 (settable) 希伯来语
+			122 row (selectable)
+				123 文本栏 (settable) 希腊语
+			124 row (selectable)
+				125 文本栏 (settable) 匈牙利语
+			126 row (selectable)
+				127 文本栏 (settable) 意大利语
+			128 row (selectable)
+				129 文本栏 (settable) 印地语
+			130 row (selectable)
+				131 文本栏 (settable) 印度尼西亚语
+			132 row (selectable)
+				133 文本栏 (settable) 英语(澳大利亚)
+			134 row (selectable)
+				135 文本栏 (settable) 英语(加拿大)
+			136 row (selectable)
+				137 文本栏 (settable) 英语(美国)
+			138 row (selectable)
+				139 文本栏 (settable) 英语(英国)
+			140 row (selectable)
+				141 文本栏 (settable) 中文(台湾)
+			142 row (selectable)
+				143 文本栏 (settable) 中文(中国)
+			144 row (selectable)
+				145 文本栏 (settable) 祖鲁语
+			146 栏 (selectable) AutomaticTableColumnIdentifier.0
+		147 滚动条 (settable, float) 0
+			148 值指示器 (settable, float) 0
+			149 增箭头按钮
+			150 减箭头按钮
+			151 增页面按钮
+			152 减页面按钮
+	153 文本 如果所选语言的词典有效，拼写器和其他校对工具将自动使用该词典。
+	154 复选框 不检查拼写或语法, Value: 0
+	155 按钮 默认...
+	156 复选框 自动检测语言, Value: 1
+	157 按钮 取消
+	158 按钮 确定
+	159 文本 语言
+160 menu bar
+	161 Word, ID: AppMenu_MenuItem
+	162 文件
+	163 编辑, ID: EditMenu_MenuItem
+	164 视图, ID: ViewMenu_MenuItem
+	165 插入
+	166 格式
+	167 工具
+	168 表格
+	169 窗口, ID: WindowMenu_MenuItem
+	170 帮助, ID: HelpMenu_MenuItem
+
+Selected:
+	6 row (selected)
+
+Note: Pay special attention to the content selected by the user. If the user asks a question or refers to the content they are looking at on-screen, they might be referring to the selected content (but they might be referring to something else that's visible, too).

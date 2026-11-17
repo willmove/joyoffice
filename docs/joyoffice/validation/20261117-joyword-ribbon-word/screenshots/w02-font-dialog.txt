@@ -1,0 +1,55 @@
+Window: "字体", App: Microsoft Word.
+0 对话框 字体, Secondary Actions: Raise
+	1 按钮 默认...
+	2 按钮 确定
+	3 按钮 取消
+	4 标签页组
+		5 标签 字体, Value: 1
+		6 标签 高级, Value: 0
+		7 文本 中文字体:
+		8 组合框 (settable) Value: DengXian (中文正文), Secondary Actions: Confirm
+			9 按钮
+		10 文本 西文字体:
+		11 组合框 (settable) Value: DengXian (西文正文), Secondary Actions: Confirm
+			12 按钮
+		13 文本 字形:
+		14 组合框 (settable) Value: 常规, Secondary Actions: Confirm
+			15 按钮
+		16 文本 字号:
+		17 组合框 (settable) Value: 11, Secondary Actions: Confirm
+			18 按钮
+		19 text 颜色和下划线 字体颜色:
+		20 菜单按钮
+		21 文本 下划线线型:
+		22 弹出式按钮 (无)
+		23 文本 下划线颜色:
+		24 文本 着重号:
+		25 弹出式按钮 (无)
+		26 文本 效果
+		27 复选框 删除线, Value: 0
+		28 复选框 双删除线, Value: 0
+		29 复选框 上标, Value: 0
+		30 复选框 下标, Value: 0
+		31 复选框 小型大写字母, Value: 0
+		32 复选框 全部大写字母, Value: 0
+		33 复选框 隐藏, Value: 0
+		34 文本 预览
+		35 图像
+	36 文本 字体
+37 menu bar
+	38 Word, ID: AppMenu_MenuItem
+	39 文件
+	40 编辑, ID: EditMenu_MenuItem
+	41 视图, ID: ViewMenu_MenuItem
+	42 插入
+	43 格式
+	44 工具
+	45 表格
+	46 窗口, ID: WindowMenu_MenuItem
+	47 帮助, ID: HelpMenu_MenuItem
+
+Selected text: ```
+常规
+```
+
+Note: Pay special attention to the content selected by the user. If the user asks a question or refers to the content they are looking at on-screen, they might be referring to the selected content (but they might be referring to something else that's visible, too).

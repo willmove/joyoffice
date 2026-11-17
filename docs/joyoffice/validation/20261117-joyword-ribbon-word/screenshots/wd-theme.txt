@@ -1,0 +1,140 @@
+Window: "文档2", App: Microsoft Word.
+0 标准窗口 文档2, Secondary Actions: Raise
+	1 分离组
+		2 分离组
+			3 分离组 Document Pane
+				4 滚动区 Secondary Actions: Scroll Left, Scroll Right, Scroll Up, Scroll Down
+					5 (disabled) 文档2
+						6 container
+							7 文本输入区 (disabled, settable) Description: 页面 1 内容, Value: Ribbon audit 标题
+这是用于 JoyWord 与 Microsoft Word 对比的测试段落。Hello Word 123.
+第二段用于项目符号、编号、缩进和行距设置。
+第三段用于查找、替换、批注与修订。
+					8 滚动条 (disabled, settable, float) 0
+						9 值指示器 (disabled, settable, float) 0
+					10 滚动条 (disabled, settable, float) 0
+						11 值指示器 (disabled, settable, float) 0
+		12 分离器 (disabled, settable, float) 1729
+	13 标签页组 Description: 功能区, Details: 设计
+		14 滚动区 设计 选项卡命令
+			15 container
+				16 菜单按钮 主题, Value: 0
+					17 菜单 Secondary Actions: Cancel
+						18 oui_performOfficeSpaceMenuAction:
+							19 container 主题
+								20 container Office
+									21 文本 Office
+									22 按钮 Description: Office, Value: 1, ID: popover_gallery_UxGalThemeGallery_Control_2_0
+									23 按钮 Description: Office 2013 - 2022 主题, Value: 0, ID: popover_gallery_UxGalThemeGallery_Control_2_1
+									24 按钮 Description: 柏林, Value: 0, ID: popover_gallery_UxGalThemeGallery_Control_2_2
+									25 按钮 Description: 包裹, Value: 0, ID: popover_gallery_UxGalThemeGallery_Control_2_3
+									26 按钮 Description: 标题, Value: 0, ID: popover_gallery_UxGalThemeGallery_Control_2_4
+									27 按钮 Description: 地图集, Value: 0, ID: popover_gallery_UxGalThemeGallery_Control_2_5
+									28 按钮 Description: 肥皂, Value: 0, ID: popover_gallery_UxGalThemeGallery_Control_2_6
+									29 按钮 Description: 风景, Value: 0, ID: popover_gallery_UxGalThemeGallery_Control_2_7
+									30 按钮 Description: 画廊, Value: 0, ID: popover_gallery_UxGalThemeGallery_Control_2_8
+									31 按钮 Description: 环保, Value: 0, ID: popover_gallery_UxGalThemeGallery_Control_2_9
+									32 按钮 Description: 徽章, Value: 0, ID: popover_gallery_UxGalThemeGallery_Control_2_10
+									33 按钮 Description: 回顾, Value: 0, ID: popover_gallery_UxGalThemeGallery_Control_2_11
+									34 按钮 Description: 积分, Value: 0, ID: popover_gallery_UxGalThemeGallery_Control_2_12
+									35 按钮 Description: 剪切, Value: 0, ID: popover_gallery_UxGalThemeGallery_Control_2_13
+									36 按钮 Description: 离子, Value: 0, ID: popover_gallery_UxGalThemeGallery_Control_2_14
+									37 按钮 Description: 离子会议室, Value: 0, ID: popover_gallery_UxGalThemeGallery_Control_2_15
+									38 按钮 Description: 麦迪逊, Value: 0, ID: popover_gallery_UxGalThemeGallery_Control_2_16
+									39 按钮 Description: 木材纹理, Value: 0, ID: popover_gallery_UxGalThemeGallery_Control_2_17
+									40 按钮 Description: 平面, Value: 0, ID: popover_gallery_UxGalThemeGallery_Control_2_18
+									41 按钮 Description: 切片, Value: 0, ID: popover_gallery_UxGalThemeGallery_Control_2_19
+									42 按钮 Description: 深度, Value: 0, ID: popover_gallery_UxGalThemeGallery_Control_2_20
+									43 按钮 Description: 视差, Value: 0, ID: popover_gallery_UxGalThemeGallery_Control_2_21
+									44 按钮 Description: 水滴, Value: 0, ID: popover_gallery_UxGalThemeGallery_Control_2_22
+									45 按钮 Description: 水汽尾迹, Value: 0, ID: popover_gallery_UxGalThemeGallery_Control_2_23
+									46 按钮 Description: 丝状, Value: 0, ID: popover_gallery_UxGalThemeGallery_Control_2_24
+									47 按钮 Description: 天体, Value: 0, ID: popover_gallery_UxGalThemeGallery_Control_2_25
+									48 按钮 Description: 网状, Value: 0, ID: popover_gallery_UxGalThemeGallery_Control_2_26
+									49 按钮 Description: 羽毛, Value: 0, ID: popover_gallery_UxGalThemeGallery_Control_2_27
+									50 按钮 Description: 主要事件, Value: 0, ID: popover_gallery_UxGalThemeGallery_Control_2_28
+						51 重置为模板中的主题, ID: oui_performOfficeSpaceMenuAction:
+						52 浏览主题..., ID: oui_performOfficeSpaceMenuAction:
+						53 保存当前主题..., ID: oui_performOfficeSpaceMenuAction:
+				54 菜单按钮 显示更多项目
+				55 库 Description: 样式集, Help: 库
+					56 按钮 Description: 文档, Help: 此文档的样式集, Value: 1, ID: in_ribbon_gallery_UxGalWordQuickFormatsTheme_Control_0_0
+					57 按钮 Description: 独特, Value: 0, ID: in_ribbon_gallery_UxGalWordQuickFormatsTheme_Control_1_0
+					58 按钮 Description: 典雅型, Value: 0, ID: in_ribbon_gallery_UxGalWordQuickFormatsTheme_Control_1_1
+					59 按钮 Description: 流行, Value: 0, ID: in_ribbon_gallery_UxGalWordQuickFormatsTheme_Control_1_2
+					60 按钮 Description: 正式, Value: 0, ID: in_ribbon_gallery_UxGalWordQuickFormatsTheme_Control_1_3
+					61 按钮 Description: 手稿, Value: 0, ID: in_ribbon_gallery_UxGalWordQuickFormatsTheme_Control_1_4
+					62 按钮 Description: 现代, Value: 0, ID: in_ribbon_gallery_UxGalWordQuickFormatsTheme_Control_1_5
+					63 按钮 Description: 新闻纸, Value: 0, ID: in_ribbon_gallery_UxGalWordQuickFormatsTheme_Control_1_6
+					64 按钮 Description: 透视, Value: 0, ID: in_ribbon_gallery_UxGalWordQuickFormatsTheme_Control_1_7
+					65 按钮 Description: 简单, Value: 0, ID: in_ribbon_gallery_UxGalWordQuickFormatsTheme_Control_1_8
+					66 按钮 Description: 茅草, Value: 0, ID: in_ribbon_gallery_UxGalWordQuickFormatsTheme_Control_1_9
+					67 按钮 Description: 传统, Value: 0, ID: in_ribbon_gallery_UxGalWordQuickFormatsTheme_Control_1_10
+					68 按钮 Description: Word 2010, Value: 0, ID: in_ribbon_gallery_UxGalWordQuickFormatsTheme_Control_1_11
+				69 菜单按钮 颜色, Help: 主题颜色, Value: 0
+				70 菜单按钮 字体, Help: 主题字体, Value: 0
+				71 菜单按钮 段落间距, Value: 0
+				72 按钮 设为默认值
+			73 container
+				74 按钮 水印
+				75 菜单按钮 页面颜色, Value: 0
+				76 按钮 页面边框, Help: 边框和底纹
+		77 选项卡 开始, Value: 0
+		78 选项卡 插入, Value: 0
+		79 选项卡 绘图, Value: 0
+		80 选项卡 设计, Help: 折叠功能区, Value: 1
+		81 选项卡 布局, Value: 0
+		82 选项卡 引用, Value: 0
+		83 选项卡 邮件, Value: 0
+		84 选项卡 审阅, Value: 0
+		85 选项卡 视图, Value: 0
+		86 按钮 批注
+		87 按钮 编辑, Help: 文档访问模式
+		88 按钮 共享
+	89 container 状态栏
+		90 按钮 第 1 页，共 1 页, Help: 文档当前的页码。单击或点击可打开导航窗格。
+		91 按钮 1/61 个字, Help: 所选内容或文档的字数。单击或点击可打开“字数统计”对话框。
+		92 按钮 兼容性模式下的共同创作。
+		93 按钮 发现校对错误。单击可更正。
+		94 按钮 简体中文(中国大陆), Help: 语言(国家/地区)
+		95 开关按钮 辅助功能: 一切就绪, Help: 已完成辅助功能检查。请单击此处了解详细信息。, Value: off
+		96 开关按钮  专注, Help: 专注模式, Value: off
+		97 单选按钮 页面视图, Value: 1
+		98 单选按钮 Web 版式, Value: 0
+		99 单选按钮 大纲, Value: 0
+		100 单选按钮 草稿, Value: 0
+		101 按钮 缩小
+		102 按钮 放大
+		103 滑块 (settable, float) Help: 缩放, Value: 1000, Details: 100%
+			104 值指示器 (settable, float) 1000
+		105 按钮 100%, Help: 缩放级别。单击可打开“缩放”对话框。
+	106 工具栏
+		107 container Secondary Actions: 从工具栏移除
+			108 转换 自动保存, Help: 启用“自动保存”以在发生更改时保存更改。, Value: off
+			109 按钮 主页
+			110 按钮 保存
+			111 菜单按钮 撤消文字填充效果, Help: 有关更多选项，请按 Control-Option-Shift-M。
+			112 按钮 (disabled) 无法重复
+			113 按钮 打印
+			114 菜单按钮 自定义快速访问工具栏, Value: 0
+			115 搜索文本栏 (settable) 搜索(Cmd + Ctrl + U)
+				116 按钮 搜索
+			117 文本 Value: 文档2, ID: CUIDocumentShellWindowTitleLabel
+	118 菜单按钮 窗口共享
+119 menu bar
+	120 Word, ID: AppMenu_MenuItem
+	121 文件
+	122 编辑, ID: EditMenu_MenuItem
+	123 视图, ID: ViewMenu_MenuItem
+	124 插入
+	125 格式
+	126 工具
+	127 表格
+	128 窗口, ID: WindowMenu_MenuItem
+	129 帮助, ID: HelpMenu_MenuItem
+
+Selected text: ```
+。
+```
+
+Note: Pay special attention to the content selected by the user. If the user asks a question or refers to the content they are looking at on-screen, they might be referring to the selected content (but they might be referring to something else that's visible, too).

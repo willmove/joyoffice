@@ -1,0 +1,62 @@
+Window: "* 未命名 1 — JoyWord", App: JoyWord Ribbon Audit.
+0 standard window * 未命名 1 — JoyWord, Secondary Actions: Raise
+	1 container
+		2 button 新建
+		3 button 打开
+		4 button 保存
+		5 button 撤销
+		6 button (disabled) 重做
+		7 button 搜索命令
+		8 button EN
+		9 button 切换外观
+		10 tab group 功能区
+			11 tab (settable, boolean) 文件, Value: off
+			12 tab (settable, boolean) 开始, Value: off
+			13 tab (settable, boolean) 插入, Value: off
+			14 tab (settable, boolean) 绘图, Value: off
+			15 tab (settable, boolean) 设计, Value: on
+			16 tab (settable, boolean) 布局, Value: off
+			17 tab (settable, boolean) 引用, Value: off
+			18 tab (settable, boolean) 邮件, Value: off
+			19 tab (settable, boolean) 审阅, Value: off
+			20 tab (settable, boolean) 视图, Value: off
+			21 tab (settable, boolean) 帮助, Value: off
+			22 button 折叠或展开功能区, Help: Ctrl+F1
+		23 container 文档格式
+			24 button 主题
+			25 button 默认
+			26 button 基本
+			27 button 线条
+			28 button 阴影
+			29 button 休闲
+			30 button 居中
+			31 button 简约
+			32 button 标题
+			33 button 颜色
+			34 button 字体
+			35 button 段落间距
+			36 button (disabled) 效果, Help: 主题效果尚未接入页面渲染
+			37 button (disabled) 设为默认值, Help: 文档设计默认值尚未接入持久化
+		38 container 页面背景
+			39 button 水印
+			40 button 页面颜色
+			41 button 页面边框
+		42 button 上一页
+		43 button 下一页
+		44 text entry area (settable) 文档正文, Help: 随光标读取段落。用方向键或翻页键浏览。, Value: Ribbon audit 标题
+			45 container 水平标尺（只读）
+		46 button −
+		47 button 100%
+		48 button +
+		49 dialog
+			50 button 机密
+			51 button 草稿
+			52 button 自定义水印…
+			53 button 删除水印
+	54 text * 未命名 1 — JoyWord
+	55 menu button Window sharing
+56 menu bar
+	57 JoyWord Ribbon Audit
+	58 View
+
+The focused UI element is 0 standard window * 未命名 1 — JoyWord, Secondary Actions: Raise

@@ -1,0 +1,142 @@
+[
+  {
+    "id": "RIB-01",
+    "priority": "P1",
+    "observation": "双端已观察：JoyWord将对齐、线型、类型、布尔值、作用范围等放在普通输入框，提示要求填写 center、shrink、heading、aboveBelow、exact:磅 等；Word对应对话框使用选择控件、复选框和预览",
+    "recommendation": "先把所有有限枚举改为中文下拉/单选，布尔值改为复选框，尺寸使用带单位的数值框。内部参数不应成为用户必须掌握的语法",
+    "evidence": "[Joy圈字](screenshots/jh-enclosed.png)、[Word圈字](screenshots/wh-enclosed.png)、[Joy交叉引用](screenshots/j12-cross-reference-dialog.png)、[Word交叉引用](screenshots/wi-cross-reference.png)"
+  },
+  {
+    "id": "RIB-02",
+    "priority": "P1",
+    "observation": "双端已观察：JoyWord页眉编辑控件追加在插入Ribbon末尾；1440×936窗口中关闭入口在右边界之外，横滚未露出，点击后仍处于页眉编辑。Word提供专用页眉页脚Ribbon，可见关闭按钮点击后返回正文",
+    "recommendation": "为页眉页脚提供可见、固定的关闭入口和专用上下文区域；Ribbon窄化时折叠分组/显示溢出箭头，不能依赖不可见按钮",
+    "evidence": "[Joy溢出](screenshots/j53-header-edit.png)、[横滚后](screenshots/j54-header-ribbon-scroll.png)、[关闭未生效](screenshots/j60-header-close-offscreen-noop.png)、[Word上下文](screenshots/wf41-header-context.png)、wf42"
+  },
+  {
+    "id": "RIB-03",
+    "priority": "P1",
+    "observation": "双端/同端已观察：JoyWord布局区遵从厘米/英寸偏好，但段落、表格、图片面板仍固定磅；切到英寸后同一缩进在布局为0.59，在段落为42.52。Word段落面板明确显示字符/行/磅等语义单位",
+    "recommendation": "统一长度类字段的偏好和单位转换；缩进应可选字符/厘米等，特殊缩进用“首行/悬挂+数值”。限制展示小数位，保存内部精度",
+    "evidence": "[英寸布局](screenshots/j43-units-inches.png)、[固定磅弹窗](screenshots/j44-paragraph-still-points.png)、[Word段落](screenshots/w03-paragraph-dialog.png)"
+  },
+  {
+    "id": "RIB-04",
+    "priority": "P1",
+    "observation": "双端已观察：JoyWord macOS界面仍标Ctrl+B/Ctrl+K/Ctrl+F1；原生菜单仅应用菜单和View。Word有文件、编辑、插入、格式、工具等原生菜单，搜索提示使用Cmd体系",
+    "recommendation": "做平台命令映射和一致的显示名称，补齐标准菜单入口；本轮没有证明所有Cmd绑定失效，需逐条验证后再改快捷键行为",
+    "evidence": "[Joy开始](screenshots/j02-home-text.png)及同名AX；[Word开始](screenshots/w01-home.png)及AX"
+  },
+  {
+    "id": "RIB-05",
+    "priority": "P1",
+    "observation": "双端已观察：Joy字体设置只有西文/中文字体、字号、RGB/auto文本框；Word字体框包含字形、下划线、效果、高级页和预览。此机新建文档的字体/字号栏分别为Joy的Aptos 12与Word的等线11；这是当前本机默认值，不是所有Word的统一标准",
+    "recommendation": "建立一个完整字体对话框，读取当前/混合值，支持字体和颜色选择、效果组合、预览、确定/取消；提供兼容默认样式/模板选项，保留Ribbon快速入口",
+    "evidence": "[Joy字体](screenshots/j03-font-dialog.png)、[Word字体](screenshots/w02-font-dialog.png)"
+  },
+  {
+    "id": "RIB-06",
+    "priority": "P1",
+    "observation": "双端已观察：Joy主题/颜色多为少量文字菜单，字体颜色和突出显示也只有少量固定项；Word主题菜单是带名称的视觉库。完整Word颜色面板本轮未深测",
+    "recommendation": "增加视觉主题/颜色样本、当前项、最近色和自定义色入口；对更改前的效果给出预览，不要求用户记RGB",
+    "evidence": "jd-theme / jd-colors / jh-font-color；[Word主题](screenshots/wd-theme.png)"
+  },
+  {
+    "id": "RIB-07",
+    "priority": "P2",
+    "observation": "双端已观察：中文Joy更多样式中出现Heading 3、Title、Subtitle等，样式窗格直接显示Normal等内部名；Word库显示中文样式名。Joy表格样式也多为英文",
+    "recommendation": "分离内部样式ID与本地化显示名；按Word用户熟悉的名称和层级组织。字体搜索框Search...和英文错误也一起本地化",
+    "evidence": "[Joy样式](screenshots/jh-styles.png)、[Joy窗格](screenshots/jh-styles-pane.png)、[Word开始](screenshots/w01-home.png)、[英文错误](screenshots/jt-merge.png)"
+  },
+  {
+    "id": "RIB-08",
+    "priority": "P1",
+    "observation": "双端已观察：正文“排序”在Joy仅提供升序/降序；Word显示排序依据、类型、三个关键字和选项",
+    "recommendation": "保持同名功能的预期：先显示排序字段、文本/数字/日期或中文排序类型、标题行及预览/确认。选区条件不满足时解释原因",
+    "evidence": "[Joy排序](screenshots/jh-sort.png)、[Word排序](screenshots/wh-sort.png)"
+  },
+  {
+    "id": "RIB-09",
+    "priority": "P1",
+    "observation": "双端已观察：Joy书签只有名称输入；Word有书签列表、名称/位置排序、定位、添加和删除",
+    "recommendation": "书签应是管理器，可看见现有项、跳转、重命名/删除，并验证名称；不能让用户靠记忆输入既有名称",
+    "evidence": "[Joy书签](screenshots/ji-bookmark.png)、[Word书签](screenshots/wi-bookmark.png)"
+  },
+  {
+    "id": "RIB-10",
+    "priority": "P1",
+    "observation": "双端已观察：交叉引用要手输类型和目标；引文要先知道来源标记。Word交叉引用提供类型/引用内容和目标列表，插入引文可进入创建源；Word索引/图表目录有格式和预览，Joy插入索引会直接写入Index标题",
+    "recommendation": "从文档实际对象生成目标选择器，显示可插入项、空状态和结果预览；整合“新建源→引用→管理源”。目录/索引应提供常见格式与应用范围",
+    "evidence": "ji-cross-reference / jr-citation / jr-index；wi-cross-reference / wr-citation / wr-figures / wr-index"
+  },
+  {
+    "id": "RIB-11",
+    "priority": "P2",
+    "observation": "双端已观察：Joy日期时间要输入yyyy-MM-dd，自动更新的默认值是false；Word列出真实日期样式，自动更新为复选框",
+    "recommendation": "用本地化日期预览列表和复选框；自定义格式作为高级入口，避免最常见操作先学习格式代码",
+    "evidence": "[Joy日期](screenshots/ji-datetime.png)、[Word日期](screenshots/wi-datetime.png)"
+  },
+  {
+    "id": "RIB-12",
+    "priority": "P1",
+    "observation": "双端已观察：Joy新建收件人要输入字段CSV和记录CSV；匹配域展示映射JSON，无对应编辑控件。Word使用字段列表和逐记录表单，可增删、调整字段顺序及导航，预览两条记录并合并为两页成功。Word字段匹配深层界面仍未验证",
+    "recommendation": "提供字段列表与可编辑记录表格/表单、增删行列、导入预览、中文字段匹配下拉和错误定位。完成按钮应解释输出范围和结果，不能只展示内部映射",
+    "evidence": "[Joy新列表](screenshots/j29-new-recipients.png)、j31 / j33 / jm-match；[Word字段](screenshots/wf07-new-recipient-list.png)、[记录](screenshots/wf55-recipient-record-editor.png)、wf58 / wf59 / wf64"
+  },
+  {
+    "id": "RIB-13",
+    "priority": "P1",
+    "observation": "双端已观察：Joy形状/SmartArt/图表插入固定初始对象后，本轮选择、双击图表、右键未找到相应编辑数据/布局或上下文Ribbon。Word有形状格式、SmartArt文本/设计、图表设计和数据源入口；通过Excel把图表值4.3改为9，Word实屏与AX复核更新。不能据此断言Joy底层永远不可编辑",
+    "recommendation": "每个插入对象都应有清晰的下一步：形状尺寸/填充/文字，SmartArt文字和层级，图表数据/类型/系列。选择对象后显露上下文命令",
+    "evidence": "j46 / j48 / j50 / j51；[Word形状](screenshots/wf39-shape-context.png)、wf31 / wf33 / wf35 / wf36 / [图表回写](screenshots/wf54-chart-data-update-verified.png)"
+  },
+  {
+    "id": "RIB-14",
+    "priority": "P1",
+    "observation": "双端已观察：Joy表格属性/宽高/边距多字段空白，只提示留空保持原值；边框和排序参数要求英文关键字。Word属性按表/行/列/单元格分页，显示当前列宽7.32厘米、边距0/0.19厘米，并用复选框、单选和下拉控制跨页、对齐及尺寸约束",
+    "recommendation": "读取并展示当前表/行/列/单元格值和混合值，按对象范围分组；提供可选择的对齐/跨页/标题行、带单位的尺寸和边框预览",
+    "evidence": "[Joy属性](screenshots/jt-properties.png)、jt-margins / jtd-border-style；[Word属性](screenshots/wf16-table-properties.png)、wf17 / wf18 / wf19 / [边距](screenshots/wf21-table-options.png)"
+  },
+  {
+    "id": "RIB-15",
+    "priority": "P1",
+    "observation": "双端已观察：Joy裁剪是四个百分比框；尺寸显示451.28003等磅值，锁定比例是“是/否”文本框。Word提供鼠标裁剪把手、厘米宽高和比例复选框，拖动裁剪后宽度14.66→12.42厘米。Joy宽度144磅应用成功，不把不直观误记成设置无效",
+    "recommendation": "增加鼠标裁剪把手/裁剪预览、边界和重置；宽高遵从单位偏好，合理舍入显示，比例用复选框；压缩应解释分辨率与质量及作用范围",
+    "evidence": "[Joy裁剪](screenshots/jp-crop.png)、jp-size / j25；[Word裁剪](screenshots/wf26-picture-crop.png)、wf27 / [压缩](screenshots/wf28-picture-compress.png)"
+  },
+  {
+    "id": "RIB-16",
+    "priority": "P1",
+    "observation": "能力范围差异：Joy多页、新建窗口、全部重排、拆分、切换窗口等禁用，其中提示明确说尚未接入；本机Word视图页相应入口可用。Joy已有Web/草稿/大纲等视觉变化，不能当作完全无效果",
+    "recommendation": "优先补齐并排/多页阅读和文档窗口能力；将未提供与“缺少前置条件”分开解释。对各视图另做任务级验证，尤其大纲编辑和重排",
+    "evidence": "[Joy视图](screenshots/j13-view.png)、[Word视图](screenshots/wtab-%E8%A7%86%E5%9B%BE.png)、jw-web / jw-draft / jw-outline"
+  },
+  {
+    "id": "RIB-17",
+    "priority": "P2",
+    "observation": "能力范围差异/双端语言设置已观察：Joy朗读、辅助功能、翻译、简繁、保护等在所测文档禁用；Word审阅页相应多项有入口，焦点在批注中时也可能条件禁用。Joy校对语言要求zh-CN/en-US，Word提供中文语言名称列表及自动检测/不检查复选框",
+    "recommendation": "校对语言改为可搜索语言列表；先完成高频校对/批注/修订任务，再按明确支持范围补齐能力；禁用提示应说明具体原因及可行替代路径",
+    "evidence": "jtab-审阅 / wtab-审阅；[Joy语言](screenshots/jv-proofing-language.png)、[Word语言](screenshots/wf11-proofing-language.png)、jv-spelling / jv-thesaurus"
+  },
+  {
+    "id": "RIB-18",
+    "priority": "P2",
+    "observation": "能力范围差异：Joy宏窗格说明仅本会话保存、支持文档命令、不执行VBA/文件/网络；录制一条命令成功。Word宏对话框有活动模板/文档位置、管理器及运行/编辑控件；本轮没有运行或创建VBA宏，不能把两个同名入口等同于宏兼容",
+    "recommendation": "在命名和说明中明确“命令宏”的范围；提供持久化、编辑和导入导出计划，单独定义VBA文档的提示/保留契约，避免同名误导",
+    "evidence": "[Joy宏](screenshots/j35-developer-after.png)、j36；[Word宏](screenshots/wf51-macro-dialog.png)"
+  },
+  {
+    "id": "RIB-19",
+    "priority": "P1",
+    "observation": "AX已观察：Joy B/I/U、修订及部分视图只是普通button，无selected/on/off；字体列表项是无名称container；Word多项为带Value的开关或库项",
+    "recommendation": "开关使用正确角色和状态；为字体候选、菜单项和弹窗提供可读名称、标题和当前值；验证键盘焦点与返回正文。此项是可访问性风险，不是完整读屏/WCAG验收",
+    "evidence": "j05-bold.txt / jh-font-picker.txt / j28-tracked-change.txt；w01-home.txt / wtab-审阅.txt"
+  },
+  {
+    "id": "RIB-20",
+    "priority": "P2",
+    "observation": "JoyWord已观察：培训入口主要是简短入门文字，反馈框是版本与URL文字；多种参数框含中英双语技术提示。临时包装的原生面板显示英文，尚需正式包复核",
+    "recommendation": "统一中文文案、确认/取消位置和错误格式；让帮助直接定位当前命令，反馈链接可操作；常见动作首次使用时给简短任务提示",
+    "evidence": "jhelp-help / jhelp-training / jhelp-feedback；[原生保存](screenshots/j16-save-dialog.png)"
+  }
+]

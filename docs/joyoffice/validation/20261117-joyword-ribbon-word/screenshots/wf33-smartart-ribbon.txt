@@ -1,0 +1,131 @@
+Window: "文档6", App: Microsoft Word.
+0 标准窗口 文档6, Secondary Actions: Raise
+	1 分离组
+		2 分离组
+			3 分离组 Document Pane
+				4 滚动区 Secondary Actions: Scroll Left, Scroll Right, Scroll Up, Scroll Down
+					5 (disabled) 文档6
+						6 container
+							7 文本输入区 (disabled, settable) Description: 页面 1 内容, Value: ￼
+					8 滚动条 (disabled, settable, float) 0
+						9 值指示器 (disabled, settable, float) 0
+					10 滚动条 (disabled, settable, float) 0
+						11 值指示器 (disabled, settable, float) 0
+		12 分离器 (disabled, settable, float) 1729
+	13 标签页组 Description: 功能区, Details: 插入
+		14 滚动区 SmartArt 设计 选项卡命令
+			15 container
+				16 菜单按钮 添加形状, Help: 有关更多选项，请按 Control-Option-Shift-M。, Value: 0
+				17 按钮 (disabled) 添加项目符号
+				18 开关按钮 文本窗格, Value: on
+				19 按钮 (disabled) 升级, Help: 提升所选内容
+				20 按钮 (disabled) 降级, Help: 降级所选内容
+				21 开关按钮 从右到左, Value: off
+				22 按钮 (disabled) 移到前面, Help: 将所选内容移到前面
+				23 按钮 (disabled) 移到后面, Help: 将所选内容移到后面
+				24 菜单按钮 (disabled) 布局, Help: 组织结构图布局, Value: 0
+			25 container
+				26 菜单按钮 显示更多项目
+				27 库 Description: 更改布局, Help: 库
+					28 按钮 Description: 垂直重点列表, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseType_Control_0_25
+					29 按钮 Description: 垂直箭头列表, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseType_Control_0_26
+					30 按钮 Description: 梯形列表, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseType_Control_0_27
+					31 按钮 Description: 降序基本块列表, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseType_Control_0_28
+					32 按钮 Description: 图标圆形标签列表, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseType_Control_0_29
+					33 按钮 Description: 表格列表, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseType_Control_0_30
+					34 按钮 Description: 分段流程, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseType_Control_0_31
+					35 按钮 Description: 垂直曲形列表, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseType_Control_0_32
+					36 按钮 Description: 棱锥型列表, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseType_Control_0_33
+					37 按钮 Description: 目标图列表, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseType_Control_0_34
+					38 按钮 Description: 层次结构列表, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseType_Control_0_35
+					39 按钮 Description: 垂直圆形列表, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseType_Control_0_36
+					40 按钮 Description: 表层次结构, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseType_Control_0_37
+					41 按钮 Description: 基本流程, Value: 1, ID: in_ribbon_gallery_IgxUXGalChooseType_Control_1_0
+					42 按钮 Description: 步骤上移流程, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseType_Control_1_1
+					43 按钮 Description: 步骤下移流程, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseType_Control_1_2
+					44 按钮 Description: 编号线性箭头流程, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseType_Control_1_3
+					45 按钮 Description: 重点流程, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseType_Control_1_4
+					46 按钮 Description: 图片重点流程, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseType_Control_1_5
+					47 按钮 Description: 交替流, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseType_Control_1_6
+					48 按钮 Description: 递增循环流程, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseType_Control_1_7
+					49 按钮 Description: 饼图流程, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseType_Control_1_8
+					50 按钮 Description: 连续块状流程, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseType_Control_1_9
+					51 按钮 Description: 递增箭头流程, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseType_Control_1_10
+					52 按钮 Description: 连续箭头流程, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseType_Control_1_11
+			53 container
+				54 菜单按钮 更改颜色, Value: 0
+				55 菜单按钮 显示更多项目
+				56 库 Description: 快速样式, Help: 库
+					57 按钮 Description: 简单填充, Value: 1, ID: in_ribbon_gallery_IgxUXGalChooseStyle_Control_0_0
+					58 按钮 Description: 白色轮廓, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseStyle_Control_0_1
+					59 按钮 Description: 细微效果, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseStyle_Control_0_2
+					60 按钮 Description: 中等效果, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseStyle_Control_0_3
+					61 按钮 Description: 强烈效果, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseStyle_Control_0_4
+					62 按钮 Description: 优雅, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseStyle_Control_1_0
+					63 按钮 Description: 嵌入, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseStyle_Control_1_1
+					64 按钮 Description: 卡通, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseStyle_Control_1_2
+					65 按钮 Description: 粉末, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseStyle_Control_1_3
+					66 按钮 Description: 砖块场景, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseStyle_Control_1_4
+					67 按钮 Description: 平面场景, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseStyle_Control_1_5
+					68 按钮 Description: 金属场景, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseStyle_Control_1_6
+					69 按钮 Description: 日落场景, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseStyle_Control_1_7
+					70 按钮 Description: 鸟瞰场景, Value: 0, ID: in_ribbon_gallery_IgxUXGalChooseStyle_Control_1_8
+			71 按钮 重置图形
+		72 选项卡 开始, Value: 0
+		73 选项卡 插入, Help: 折叠功能区, Value: 1
+		74 选项卡 绘图
+		75 选项卡 设计
+		76 选项卡 布局
+		77 选项卡 引用
+		78 选项卡 邮件
+		79 选项卡 审阅
+		80 选项卡 视图
+		81 按钮 批注
+		82 按钮 编辑, Help: 文档访问模式
+		83 按钮 共享
+	84 container 状态栏
+		85 按钮 第 1 页，共 1 页, Help: 文档当前的页码。单击或点击可打开导航窗格。
+		86 按钮 0 个字, Help: 文档的字数。单击或点击可打开“字数统计”对话框。
+		87 按钮 兼容性模式下的共同创作。
+		88 按钮 简体中文(中国大陆), Help: 语言(国家/地区)
+		89 开关按钮 辅助功能: 一切就绪, Help: 已完成辅助功能检查。请单击此处了解详细信息。, Value: off
+		90 开关按钮  专注, Help: 专注模式, Value: off
+		91 单选按钮 页面视图, Value: 1
+		92 单选按钮 Web 版式, Value: 0
+		93 单选按钮 大纲, Value: 0
+		94 单选按钮 草稿, Value: 0
+		95 按钮 缩小
+		96 按钮 放大
+		97 滑块 (settable, float) Help: 缩放, Value: 1000, Details: 100%
+			98 值指示器 (settable, float) 1000
+		99 按钮 100%, Help: 缩放级别。单击可打开“缩放”对话框。
+	100 工具栏
+		101 container Secondary Actions: 从工具栏移除
+			102 转换 自动保存, Help: 启用“自动保存”以在发生更改时保存更改。, Value: off
+			103 按钮 主页
+			104 按钮 保存
+			105 菜单按钮 (disabled) 无法撤消, Help: 有关更多选项，请按 Control-Option-Shift-M。
+			106 按钮 重复新空白文档
+			107 按钮 打印
+			108 菜单按钮 自定义快速访问工具栏, Value: 0
+			109 搜索文本栏 (settable) 搜索(Cmd + Ctrl + U)
+				110 按钮 搜索
+			111 文本 Value: 文档6, ID: CUIDocumentShellWindowTitleLabel
+	112 菜单按钮 窗口共享
+113 menu bar
+	114 Word, ID: AppMenu_MenuItem
+	115 文件
+	116 编辑, ID: EditMenu_MenuItem
+	117 视图, ID: ViewMenu_MenuItem
+	118 插入
+	119 格式
+	120 工具
+	121 表格
+	122 窗口, ID: WindowMenu_MenuItem
+	123 帮助, ID: HelpMenu_MenuItem
+
+Selected text: ```
+￼
+```
+
+Note: Pay special attention to the content selected by the user. If the user asks a question or refers to the content they are looking at on-screen, they might be referring to the selected content (but they might be referring to something else that's visible, too).

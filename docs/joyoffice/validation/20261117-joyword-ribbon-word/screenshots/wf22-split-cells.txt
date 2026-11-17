@@ -1,0 +1,32 @@
+Window: "拆分单元格", App: Microsoft Word.
+0 对话框 拆分单元格, Secondary Actions: Raise
+	1 text 列数: 行数:
+	2 文本栏 (settable) 2
+	3 文本栏 (settable) 1
+	4 步进器 Value: 0, Secondary Actions: Increment, Decrement
+		5 增箭头按钮
+		6 减箭头按钮
+	7 步进器 Value: 0, Secondary Actions: Increment, Decrement
+		8 增箭头按钮
+		9 减箭头按钮
+	10 复选框 (disabled) 拆分前合并单元格, Value: 0
+	11 按钮 确定
+	12 按钮 取消
+	13 文本 拆分单元格
+14 menu bar
+	15 Word, ID: AppMenu_MenuItem
+	16 文件
+	17 编辑, ID: EditMenu_MenuItem
+	18 视图, ID: ViewMenu_MenuItem
+	19 插入
+	20 格式
+	21 工具
+	22 表格
+	23 窗口, ID: WindowMenu_MenuItem
+	24 帮助, ID: HelpMenu_MenuItem
+
+Selected text: ```
+2
+```
+
+Note: Pay special attention to the content selected by the user. If the user asks a question or refers to the content they are looking at on-screen, they might be referring to the selected content (but they might be referring to something else that's visible, too).

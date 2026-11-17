@@ -1,0 +1,45 @@
+Window: "字数统计", App: Microsoft Word.
+0 对话框 字数统计, Secondary Actions: Raise
+	1 文本 统计信息:
+	2 滚动区
+		3 表格
+			4 row (selectable)
+				5 文本栏 页数
+				6 文本栏 1
+			7 row (selectable)
+				8 文本栏 字数
+				9 文本栏 29
+			10 row (selectable)
+				11 文本栏 字符数(不计空格)
+				12 文本栏 32
+			13 row (selectable)
+				14 文本栏 字符数(计空格)
+				15 文本栏 33
+			16 row (selectable)
+				17 文本栏 非中文单词
+				18 文本栏 1
+			19 row (selectable)
+				20 文本栏 中文字符
+				21 文本栏 28
+			22 row (selectable)
+				23 文本栏 段落数
+				24 文本栏 2
+			25 row (selectable)
+				26 文本栏 行
+				27 文本栏 2
+	28 复选框 包括脚注和尾注, Value: 1
+	29 按钮 关闭
+	30 文本 字数统计
+31 menu bar
+	32 Word, ID: AppMenu_MenuItem
+	33 文件
+	34 编辑, ID: EditMenu_MenuItem
+	35 视图, ID: ViewMenu_MenuItem
+	36 插入
+	37 格式
+	38 工具
+	39 表格
+	40 窗口, ID: WindowMenu_MenuItem
+	41 帮助, ID: HelpMenu_MenuItem
+
+The focused UI element is 3 表格

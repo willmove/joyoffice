@@ -1,0 +1,106 @@
+Window: "文档3", App: Microsoft Word.
+0 标准窗口 文档3, Secondary Actions: Raise
+	1 分离组
+		2 分离组
+			3 分离组 Document Pane
+				4 滚动区 Secondary Actions: Scroll Left, Scroll Right, Scroll Up, Scroll Down
+					5 (disabled) 文档3
+						6 container
+							7 文本输入区 (disabled, settable) Description: 页面 1 内容, Value: Word 补充对照测试
+表格、图片、对象与审阅，仅用于本轮实机测试。
+					8 滚动条 (disabled, settable, float) 0
+						9 值指示器 (disabled, settable, float) 0
+					10 滚动条 (disabled, settable, float) 0
+						11 值指示器 (disabled, settable, float) 0
+		12 分离器 (disabled, settable, float) 1729
+	13 标签页组 Description: 功能区, Details: 邮件
+		14 滚动区 邮件 选项卡命令
+			15 container
+				16 按钮 信封
+				17 按钮 标签
+			18 container
+				19 菜单按钮 开始邮件合并, Value: 1
+					20 菜单 Secondary Actions: Cancel
+						21 信函, ID: oui_performOfficeSpaceMenuAction:
+						22 电子邮件, ID: oui_performOfficeSpaceMenuAction:
+						23 信封..., ID: oui_performOfficeSpaceMenuAction:
+						24 标签..., ID: oui_performOfficeSpaceMenuAction:
+						25 目录, ID: oui_performOfficeSpaceMenuAction:
+						26 普通 Word 文档, ID: oui_performOfficeSpaceMenuAction:
+				27 菜单按钮 选择收件人, Value: 0
+				28 按钮 (disabled) 编辑收件人列表, Help: 在收件人列表中添加或删除行标题。
+				29 按钮 (disabled) 筛选收件人, Help: 将结果限制为一部分收件人。
+			30 container
+				31 菜单按钮 (disabled) 插入合并域, Value: 0
+				32 菜单按钮 (disabled) 规则, Value: 0
+				33 按钮 (disabled) 更新标签
+			34 container
+				35 开关按钮 (disabled) 预览结果, Help: 预览最终文档。, Value: off
+				36 按钮 (disabled) 第一个, Help: 第一条记录
+				37 按钮 (disabled) 上一个, Help: 上一条记录
+				38 文本栏 (disabled) 记录:
+				39 按钮 (disabled) 下一个, Help: 下一条记录
+				40 按钮 (disabled) 最后一个, Help: 最后一条记录
+				41 按钮 (disabled) 查找收件人, Help: 在收件人列表中查找特定条目。
+			42 container
+				43 弹出式按钮 (disabled) 合并范围
+				44 文本栏 (disabled) 从
+				45 文本 到
+				46 文本栏 (disabled) 到
+			47 菜单按钮 (disabled) 完成并合并, Value: 0
+		48 选项卡 开始, Value: 0
+		49 选项卡 插入
+		50 选项卡 绘图
+		51 选项卡 设计
+		52 选项卡 布局
+		53 选项卡 引用
+		54 选项卡 邮件, Help: 折叠功能区, Value: 1
+		55 选项卡 审阅
+		56 选项卡 视图
+		57 按钮 批注
+		58 按钮 编辑, Help: 文档访问模式
+		59 按钮 共享
+	60 container 状态栏
+		61 按钮 第 1 页，共 1 页, Help: 文档当前的页码。单击或点击可打开导航窗格。
+		62 按钮 29 个字, Help: 文档的字数。单击或点击可打开“字数统计”对话框。
+		63 按钮 兼容性模式下的共同创作。
+		64 按钮 无校对错误。
+		65 按钮 简体中文(中国大陆), Help: 语言(国家/地区)
+		66 开关按钮 辅助功能: 一切就绪, Help: 已完成辅助功能检查。请单击此处了解详细信息。, Value: off
+		67 开关按钮  专注, Help: 专注模式, Value: off
+		68 单选按钮 页面视图, Value: 1
+		69 单选按钮 Web 版式, Value: 0
+		70 单选按钮 大纲, Value: 0
+		71 单选按钮 草稿, Value: 0
+		72 按钮 缩小
+		73 按钮 放大
+		74 滑块 (settable, float) Help: 缩放, Value: 1000, Details: 100%
+			75 值指示器 (settable, float) 1000
+		76 按钮 100%, Help: 缩放级别。单击可打开“缩放”对话框。
+	77 工具栏
+		78 container Secondary Actions: 从工具栏移除
+			79 转换 自动保存, Help: 启用“自动保存”以在发生更改时保存更改。, Value: off
+			80 按钮 主页
+			81 按钮 保存
+			82 菜单按钮 撤消粘贴, Help: 有关更多选项，请按 Control-Option-Shift-M。
+			83 按钮 重复粘贴
+			84 按钮 打印
+			85 菜单按钮 自定义快速访问工具栏, Value: 0
+			86 搜索文本栏 (settable) 搜索(Cmd + Ctrl + U)
+				87 按钮 搜索
+			88 文本 Value: 文档3, ID: CUIDocumentShellWindowTitleLabel
+	89 菜单按钮 窗口共享
+90 menu bar
+	91 Word, ID: AppMenu_MenuItem
+	92 文件
+	93 编辑, ID: EditMenu_MenuItem
+	94 视图, ID: ViewMenu_MenuItem
+	95 插入
+	96 格式
+	97 工具
+	98 表格
+	99 窗口, ID: WindowMenu_MenuItem
+	100 帮助, ID: HelpMenu_MenuItem
+
+The focused UI element is 7 文本输入区 (disabled, settable) Description: 页面 1 内容, Value: Word 补充对照测试
+表格、图片、对象与审阅，仅用于本轮实机测试。

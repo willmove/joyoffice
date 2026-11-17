@@ -1,0 +1,96 @@
+Window: "文档9", App: Microsoft Word.
+0 标准窗口 文档9, Secondary Actions: Raise
+	1 分离组
+		2 分离组
+			3 分离组 Document Pane
+				4 滚动区 Secondary Actions: Scroll Left, Scroll Right, Scroll Up, Scroll Down
+					5 (disabled) 文档9
+						6 container
+							7 文本输入区 (disabled, settable) 页眉 - 第 1 节 -
+							8 文本输入区 (disabled, settable) Description: 页面 1 内容, Value: 页眉与审阅对照正文。
+							9 文本输入区 (disabled, settable) 页脚 - 第 1 节 -
+					10 滚动条 (disabled, settable, float) 0
+						11 值指示器 (disabled, settable, float) 0
+					12 滚动条 (disabled, settable, float) 0
+						13 值指示器 (disabled, settable, float) 0
+		14 分离器 (disabled, settable, float) 1729
+	15 标签页组 Description: 功能区, Details: 页眉和页脚
+		16 滚动区 页眉和页脚 选项卡命令
+			17 container
+				18 菜单按钮 页眉, Help: 添加页眉, Value: 0
+				19 菜单按钮 页脚, Help: 添加页脚, Value: 0
+				20 菜单按钮 页码  , Help: 添加页码, Value: 0
+			21 container
+				22 按钮 日期和时间
+				23 按钮 域, Help: 插入域
+				24 按钮 来自文件的图片
+			25 container
+				26 按钮 (disabled) 转至页眉
+				27 按钮 转至页脚
+				28 按钮 上一个
+				29 按钮 下一个
+				30 开关按钮 (disabled) 链接到上一节, Value: off
+			31 container
+				32 复选框 首页不同, Value: 0
+				33 复选框 奇偶页不同, Value: 0
+				34 复选框 显示文档文字, Value: 1
+			35 container
+				36 步进器 (settable) Description: 页眉顶端距离:, Value: 1.5 厘米, Secondary Actions: Confirm
+				37 步进器 (settable) Description: 页脚底端距离:, Value: 1.75 厘米, Secondary Actions: Confirm
+			38 按钮 关闭页眉和页脚
+		39 选项卡 开始, Value: 0
+		40 选项卡 插入, Value: 0
+		41 选项卡 绘图
+		42 选项卡 设计
+		43 选项卡 布局
+		44 选项卡 引用
+		45 选项卡 邮件
+		46 选项卡 审阅
+		47 选项卡 视图
+		48 选项卡 页眉和页脚, Help: 折叠功能区, Value: 1
+		49 按钮 批注
+		50 按钮 编辑, Help: 文档访问模式
+		51 按钮 共享
+	52 container 状态栏
+		53 按钮 第 1 页，共 1 页, Help: 文档当前的页码。单击或点击可打开导航窗格。
+		54 按钮 10 个字, Help: 文档的字数。单击或点击可打开“字数统计”对话框。
+		55 按钮 兼容性模式下的共同创作。
+		56 按钮 无校对错误。
+		57 按钮 简体中文(中国大陆), Help: 语言(国家/地区)
+		58 开关按钮 辅助功能: 一切就绪, Help: 已完成辅助功能检查。请单击此处了解详细信息。, Value: off
+		59 开关按钮  专注, Help: 专注模式, Value: off
+		60 单选按钮 页面视图, Value: 1
+		61 单选按钮 Web 版式, Value: 0
+		62 单选按钮 大纲, Value: 0
+		63 单选按钮 草稿, Value: 0
+		64 按钮 缩小
+		65 按钮 放大
+		66 滑块 (settable, float) Help: 缩放, Value: 1000, Details: 100%
+			67 值指示器 (settable, float) 1000
+		68 按钮 100%, Help: 缩放级别。单击可打开“缩放”对话框。
+	69 工具栏
+		70 container Secondary Actions: 从工具栏移除
+			71 转换 自动保存, Help: 启用“自动保存”以在发生更改时保存更改。, Value: off
+			72 按钮 主页
+			73 按钮 保存
+			74 菜单按钮 撤消粘贴, Help: 有关更多选项，请按 Control-Option-Shift-M。
+			75 按钮 (disabled) 无法重复
+			76 按钮 打印
+			77 菜单按钮 自定义快速访问工具栏, Value: 0
+			78 搜索文本栏 (settable) 搜索(Cmd + Ctrl + U)
+				79 按钮 搜索
+			80 文本 Value: 文档9, ID: CUIDocumentShellWindowTitleLabel
+	81 菜单按钮 窗口共享
+82 menu bar
+	83 Word, ID: AppMenu_MenuItem
+	84 文件
+	85 编辑, ID: EditMenu_MenuItem
+	86 视图, ID: ViewMenu_MenuItem
+	87 插入
+	88 格式
+	89 工具
+	90 表格
+	91 窗口, ID: WindowMenu_MenuItem
+	92 帮助, ID: HelpMenu_MenuItem
+
+The focused UI element is 7 文本输入区 (disabled, settable) 页眉 - 第 1 节 -

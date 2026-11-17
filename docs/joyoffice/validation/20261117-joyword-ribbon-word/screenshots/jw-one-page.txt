@@ -1,0 +1,67 @@
+Window: "* 未命名 1 — JoyWord", App: JoyWord Ribbon Audit.
+0 standard window * 未命名 1 — JoyWord, Secondary Actions: Raise
+	1 container
+		2 button 新建
+		3 button 打开
+		4 button 保存
+		5 button 撤销
+		6 button (disabled) 重做
+		7 button 搜索命令
+		8 button EN
+		9 button 切换外观
+		10 tab group 功能区
+			11 tab (settable, boolean) 文件, Value: off
+			12 tab (settable, boolean) 开始, Value: off
+			13 tab (settable, boolean) 插入, Value: off
+			14 tab (settable, boolean) 绘图, Value: off
+			15 tab (settable, boolean) 设计, Value: off
+			16 tab (settable, boolean) 布局, Value: off
+			17 tab (settable, boolean) 引用, Value: off
+			18 tab (settable, boolean) 邮件, Value: off
+			19 tab (settable, boolean) 审阅, Value: off
+			20 tab (settable, boolean) 视图, Value: on
+			21 tab (settable, boolean) 帮助, Value: off
+			22 button 折叠或展开功能区, Help: Ctrl+F1
+		23 container 视图
+			24 button 阅读视图
+			25 button 页面视图
+			26 button Web 版式
+			27 button 大纲
+			28 button 草稿
+		29 container 沉浸式
+			30 button 专注
+			31 button 沉浸式阅读器
+		32 container 页面移动
+			33 button 垂直
+			34 button (disabled) 翻页, Help: 此桌面版本尚未接入该视图或窗口功能
+		35 container 显示
+			36 checkbox (settable, boolean) 标尺, Value: on
+			37 checkbox (settable, boolean) 网格线, Value: off
+			38 checkbox (settable, boolean) 导航窗格, Value: off
+		39 container 缩放
+			40 button 缩放
+			41 button 100%
+			42 button 单页
+			43 button (disabled) 多页, Help: 此桌面版本尚未接入该视图或窗口功能
+			44 button 页宽
+		45 container 窗口
+			46 button (disabled) 新建窗口, Help: 此桌面版本尚未接入该视图或窗口功能
+			47 button (disabled) 全部重排, Help: 此桌面版本尚未接入该视图或窗口功能
+			48 button (disabled) 拆分, Help: 此桌面版本尚未接入该视图或窗口功能
+			49 button (disabled) 切换窗口, Help: 当前桌面仅有一个文档窗口
+		50 container 宏
+			51 button 宏
+		52 button 上一页
+		53 button 下一页
+		54 text entry area (settable) 文档正文, Help: 随光标读取段落。用方向键或翻页键浏览。, Value: 这是用于 JoyWord 与 Microsoft Word 对比的测试段落。Hello Word 123.
+			55 container 水平标尺（只读）
+		56 button −
+		57 button 54%
+		58 button +
+	59 text * 未命名 1 — JoyWord
+	60 menu button Window sharing
+61 menu bar
+	62 JoyWord Ribbon Audit
+	63 View
+
+The focused UI element is 0 standard window * 未命名 1 — JoyWord, Secondary Actions: Raise
