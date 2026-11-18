@@ -143,6 +143,20 @@ impl ShowState {
             .is_some_and(|r| r.triggers.iter().any(|t| t.elapsed.is_some()))
     }
 
+    /// Longest remaining duration of the triggered steps already playing on this slide.
+    pub fn remaining_trigger_seconds(&self, timeline: &Timeline) -> f64 {
+        self.runs
+            .get(&self.slide)
+            .into_iter()
+            .flat_map(|run| &run.triggers)
+            .filter_map(|trigger| {
+                trigger.elapsed.map(|elapsed| {
+                    timeline.trigger_step_duration(trigger.shape, trigger.done) - elapsed
+                })
+            })
+            .fold(0., f64::max)
+    }
+
     /// Animation state of `shape` on the current slide: main step `step` with `t_main` seconds
     /// played, plus the triggered sequences.
     pub fn anim_state(&self, tl: &Timeline, shape: ShapeId, t_main: f64) -> AnimState {

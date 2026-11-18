@@ -4,7 +4,7 @@
 use joydeck_model::anim::TRANSITIONS;
 
 use crate::transition::{Layer, Source, transition_frame, transition_layers, uses_slide_parts};
-use crate::transition_geom::{edge, pow_inout, q2, ss};
+use crate::transition_geom::{edge, q2, ss};
 
 const A: f64 = 16.0 / 9.0;
 
@@ -111,7 +111,6 @@ fn cover_and_uncover_match_measured_positions() {
             "cover lu t={t}"
         );
     }
-    assert!(near(pow_inout(0.25, 3.0), 0.0625, 1e-9));
 }
 
 #[test]

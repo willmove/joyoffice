@@ -958,24 +958,26 @@
       "source_path": "crates/anim/src/interact.rs",
       "source_sha256": "e17ae8513dff536d8cc00e21018bc016580f2d8ba8dee4d69ddccd4d4dafbc76",
       "target_path": "crates/joydeck-anim/src/interact.rs",
-      "adapted_sha256": "63e5a369b80db208babfa5eb6285d88a7ea327ee799b063fe56ba20a41e94c7c",
+      "adapted_sha256": "90fa3db472e9496888c02d0340899639770ed509378528ccab095c0d486f3f58",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
-        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
+        "Expose the remaining duration of simultaneous triggered effects for the host slide-advance clock."
       ]
     },
     {
       "source_path": "crates/anim/src/lib.rs",
       "source_sha256": "960fee50af9c7cd413c62db1a8222a1500247882f2b855e0f0a7e688132d733c",
       "target_path": "crates/joydeck-anim/src/lib.rs",
-      "adapted_sha256": "7845fe1501b14c7e95e5d6a32e7889225a48896d8832532a24011f36b7b576ee",
+      "adapted_sha256": "1b98eb8a044357ed5a287fbce12084bdca134673fc7c6bca86dfda704af66419",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
-        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
+        "Register the host whole-slide motion generator."
       ]
     },
     {
@@ -1079,36 +1081,39 @@
       "source_path": "crates/anim/src/transition_fx.rs",
       "source_sha256": "d33982408786bf055bf487318d4fd6a6e79d4309812a1dd0b7f5807963c79dad",
       "target_path": "crates/joydeck-anim/src/transition_fx.rs",
-      "adapted_sha256": "66f846ac5ca44912381bbb0affdc1bb5b5a913988b992ffe3d18961a832d9039",
+      "adapted_sha256": "3b642093172e1d19514bc5c0039ef9e4e6f87b13aaa0dc6b14dbdbaa90a9188c",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
-        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
+        "Dispatch basic cuts, dissolves and travel tracks to the host generator; remove their previous implementations."
       ]
     },
     {
       "source_path": "crates/anim/src/transition_geom.rs",
       "source_sha256": "5b1f243f755182dfdf10a93ac36764b2f1b93bb6d964e7f22e31605e99ac77a2",
       "target_path": "crates/joydeck-anim/src/transition_geom.rs",
-      "adapted_sha256": "a9aa75c4a69ebed45db0610f126f578ac918c0d922bc353abfc0d7eed3f20b55",
+      "adapted_sha256": "d19cd63a1e6ebad44d375cb633e06b6723d2c50671fd6f0a8f5ea9d6206b6152",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
-        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
+        "Remove the retired polynomial used only for legacy cover and uncover motion."
       ]
     },
     {
       "source_path": "crates/anim/src/transition_tests.rs",
       "source_sha256": "25b1f239d26905c592bda30f8538d0daa3d08be9b864054f3c78814a5a24eac8",
       "target_path": "crates/joydeck-anim/src/transition_tests.rs",
-      "adapted_sha256": "6fed15e4ce1b847305f83b64263f5b8a4fc6660890712259636127190ddab912",
+      "adapted_sha256": "4f3bbcd5a3d1d7f10c858bf7409c6b5f5f8a6e4e15b9f567fcfc66b70da4ad9a",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
-        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
+        "Keep the measured layer-position checks and remove the test of the retired polynomial."
       ]
     },
     {

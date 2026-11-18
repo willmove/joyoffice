@@ -285,3 +285,9 @@ macOS 原生窗口和 UOS 真机的独立 X11／KWin 窗口各用两种区域设
 Apple M4 和 UOS 真机的 Radeon 890M 各自运行了 49 种效果、185 组效果及选项、五个进度点。64×36 和 193×109 两个尺寸各 925 帧。每端共 740 个首尾帧与 CPU 逐字节相同。全部帧的最大 8 位通道误差在 Metal 为 1，在 Vulkan 为 2。另按两种尺寸各验证 48 个缺少旧页或背景、内容分层的组合。测试中特别校准了极薄的碎片边缘和奇数尺寸正中央的扇形接缝。[逐端数值](transition-gpu.json) · [像素复验入口](../../../../crates/joydeck-render/examples/transition_pixels.rs)
 
 两端的真实窗口分别以 GPU 和 CPU 播放同一份 PPTX，暂停、恢复并退出。每个暂停画面取 3,864 个位置，与旧版 CLI 在同一时刻的独立渲染核对。Mac 截图先用显示器 ICC 配置转到 sRGB；UOS 的独立 X11／KWin 会话实际选中了 AMD Vulkan 硬件。两代 CLI 重写并互读了 PPTX，各自读回 4,800 ms 的时长，淡化和棋盘格中间帧在四种读写组合下相同。工程验证构建的窗口帧准备 P95，macOS 的淡化为 81.34 → 41.18 ms，棋盘格为 611.69 → 39.97 ms；UOS 分别为 52.00 → 36.70 ms 和 289.30 → 46.94 ms。这项计时包括工作线程和 GPU 回读，屏幕结果由暂停截图单独验证。[窗口、回退与文件互读脚本](../../../../scripts/joydeck/check-transition-window.py)
+
+### Deck 基础转场和自动翻页
+
+JoyDeck 现在用同一组归一化坐标描述推入、覆盖和揭开。PowerPoint 16.115 在 macOS 上导出的 25 页视频共 1,752 帧。验证器采样 24 种效果／方向组合各 15 个时刻，记录进场面积、重心和颜色。覆盖和揭开的轨迹只用向左、向左上两种方向校准，其余方向的 180 个样本平均位移误差从 2.37% 降至 0.97%，P95 从 7.41% 降至 4.86%。在另一个包含纹理和透明图层的 925 帧回归中，变化的 46 帧全部属于覆盖和揭开。端点 370 帧完全相同。回退到 `f5810bd0` 可直接打开新版写出的 PPTX。[原始测量](../../../../tests/fixtures/joydeck/slide-motion-reference.json) · [生成和复验脚本](../../../../scripts/joydeck/check-slide-motion.py) · [格式规范](https://ecma-international.org/publications-and-standards/standards/ecma-376/)
+
+同一批参考文件暴露出自动翻页会截断转场。设置 1,600 ms 转场和 767 ms 停留的 22 页，在旧播放器中全部提前翻页；新版在 2.366 秒仍显示原页，2.368 秒已前进或到达结束画面。双平台另用真实窗口验证了自动播放、暂停和恢复，各用两代读写器交叉读回保存的 PPTX。macOS 的 Metal 与 CPU 均验证了相同时间的暂停画面。UOS 真机在本轮重启后停在登录界面，独立 KWin 窗口验证了软件适配器触发的自动 CPU 回退及手动 CPU 模式。开发用例强制使用 llvmpipe 时，另一个立体特效有一个通道相差 3 级，超出硬件对照采用的 2 级容差。上一轮 Radeon 真机结果保留在独立记录中。[双平台结果](slide-motion.json) · [微软的自动翻页计时说明](https://support.microsoft.com/en-us/powerpoint/set-the-timing-and-speed-of-a-transition) · [上一轮硬件结果](transition-gpu.json)

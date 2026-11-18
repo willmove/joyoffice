@@ -11,8 +11,8 @@ use crate::easing::ease;
 use crate::transition::{FULL, Layer, R, Source};
 use crate::transition_geom::{
     Cam, V3, boundary, card, center, clip, dir, edge, ein, eout, facing_shade, fan, field, hash64,
-    moved, offset, poly_layers, pow_inout, q2, rect_poly, rnd, rot, rot_quad, scale_rect, scaled,
-    soft_rect, ss, v3, win,
+    moved, offset, poly_layers, q2, rect_poly, rnd, rot, rot_quad, scale_rect, scaled, soft_rect,
+    ss, v3, win,
 };
 
 use Source::{Black, New, NewBack, NewContent, Old, OldBack, OldContent, White};
@@ -65,48 +65,10 @@ const RANDOM_KINDS: &[&str] = &[
 ];
 
 pub(crate) fn layers(kind: &str, o: &str, t: f64, a: f64, depth: u32) -> Vec<Layer> {
+    if let Some(layers) = crate::slide_motion::layers(kind, o, t) {
+        return layers;
+    }
     match kind {
-        "none" => vec![Layer::full(New, 1.0)],
-        "cut" => {
-            if o == "throughBlack" && t < 0.5 {
-                vec![Layer::full(Black, 1.0)]
-            } else {
-                vec![Layer::full(New, 1.0)]
-            }
-        }
-        "fade" if o == "throughBlack" => through_black(t, 0.5, 0.5),
-        "fade" | "morph" => vec![Layer::full(Old, 1.0), Layer::full(New, ss(t))],
-        "push" => {
-            let (dx, dy) = dir(o, (-1.0, 0.0));
-            let s = q2(t);
-            vec![
-                moved(Old, dx * s, dy * s, 1.0),
-                moved(New, dx * (s - 1.0), dy * (s - 1.0), 1.0),
-            ]
-        }
-        "uncover" => {
-            let (dx, dy) = dir(o, (-1.0, 0.0));
-            // Diagonal: the old slide accelerates off in the first third.
-            let s = if o.len() == 2 {
-                ein(win(t, 0.05, 0.35))
-            } else {
-                pow_inout(t, 3.0)
-            };
-            vec![Layer::full(New, 1.0), moved(Old, dx * s, dy * s, 1.0)]
-        }
-        "cover" => {
-            let (dx, dy) = dir(o, (-1.0, 0.0));
-            // Diagonal: the new slide shoots in and settles slowly.
-            let s = if o.len() == 2 {
-                1.0 - (1.0 - win(t, 0.07, 0.95)).powi(3)
-            } else {
-                pow_inout(t, 4.0)
-            };
-            vec![
-                Layer::full(Old, 1.0),
-                moved(New, dx * (s - 1.0), dy * (s - 1.0), 1.0),
-            ]
-        }
         "wipe" => wipe(o, t),
         "split" => split(o, t),
         "reveal" => reveal(o, t),
@@ -159,18 +121,6 @@ pub(crate) fn layers(kind: &str, o: &str, t: f64, a: f64, depth: u32) -> Vec<Lay
         }
         _ => vec![Layer::full(Old, 1.0), Layer::full(New, ss(t))],
     }
-}
-
-/// Old fades to black over [0, `out`], new fades in from black over [`inn`, 1] (smoothstep).
-fn through_black(t: f64, out: f64, inn: f64) -> Vec<Layer> {
-    let mut v = vec![Layer::full(Black, 1.0)];
-    if t < out {
-        v.push(Layer::full(Old, 1.0 - ss(win(t, 0.0, out))));
-    }
-    if t > inn {
-        v.push(Layer::full(New, ss(win(t, inn, 1.0))));
-    }
-    v
 }
 
 // ---------- Subtle ----------

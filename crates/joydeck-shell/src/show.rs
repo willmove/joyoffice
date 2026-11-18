@@ -13,6 +13,8 @@ pub struct Player {
     pub blank: Option<bool>,
     pub elapsed: f64,
     pub slide_elapsed: f64,
+    // The Advance After countdown starts when the last effect finishes.
+    hold_elapsed: f64,
     pub total: f64,
     pub transition_elapsed: f64,
     pub previous: Option<usize>,
@@ -41,6 +43,7 @@ impl Player {
             blank: None,
             elapsed: 0.,
             slide_elapsed: 0.,
+            hold_elapsed: 0.,
             total: 0.,
             transition_elapsed: 0.,
             previous: None,
@@ -70,6 +73,7 @@ impl Player {
             self.previous = Some(old);
             self.elapsed = 0.;
             self.slide_elapsed = 0.;
+            self.hold_elapsed = 0.;
             self.transition_elapsed = 0.;
         }
         if matches!(
@@ -77,6 +81,7 @@ impl Player {
             ShowAction::PlayStep(_) | ShowAction::FinishStep(_) | ShowAction::StepBack(_)
         ) {
             self.elapsed = 0.;
+            self.hold_elapsed = 0.;
         }
         self.serial += 1;
     }
@@ -131,9 +136,13 @@ impl Player {
         let blocked = (duration - self.transition_elapsed).max(0.).min(delta);
         self.transition_elapsed += delta;
         let timeline = ShowState::timeline(&self.model, self.state.slide);
+        let trigger_remaining = self.state.remaining_trigger_seconds(&timeline);
         self.state.tick(&timeline, self.total);
+        let mut idle = delta - blocked;
         if self.state.playing {
-            self.elapsed += delta - blocked;
+            self.elapsed += idle;
+            self.hold_elapsed = 0.;
+            idle = 0.;
         }
         for _ in 0..128 {
             if !self.state.playing || self.elapsed < timeline.step_duration(self.state.step) {
@@ -144,11 +153,21 @@ impl Player {
             if self.state.step < timeline.steps() && timeline.step_is_auto(self.state.step) {
                 self.state.next(&self.model);
             } else {
+                idle = self.elapsed;
                 self.elapsed = 0.;
                 break;
             }
         }
-        if self.state.auto_advance_due(&self.model, self.slide_elapsed) {
+        if trigger_remaining > 0. {
+            self.hold_elapsed = 0.;
+            idle = idle.min((delta - trigger_remaining).max(0.));
+        }
+        if self.transition_elapsed < duration || self.state.playing || self.state.trigger_playing()
+        {
+            return Ok(());
+        }
+        self.hold_elapsed += idle;
+        if self.state.auto_advance_due(&self.model, self.hold_elapsed) {
             let old = self.state.slide;
             let action = self.state.next(&self.model);
             self.changed(old, action);
@@ -218,6 +237,10 @@ impl Player {
         match action {
             joydeck_anim::Click::Show(a) => self.changed(old, a),
             joydeck_anim::Click::Open(url) => return Ok(Some(url)),
+            joydeck_anim::Click::Animated => {
+                self.hold_elapsed = 0.;
+                self.serial += 1;
+            }
             _ => self.serial += 1,
         }
         Ok(None)

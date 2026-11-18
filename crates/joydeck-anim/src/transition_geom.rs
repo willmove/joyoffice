@@ -18,16 +18,6 @@ pub(crate) fn q2(x: f64) -> f64 {
     ease(x, 0.5, 0.5, 0.0)
 }
 
-/// Power ease in-out of degree `n` (2: quadratic, 3: cubic, 4: quartic).
-pub(crate) fn pow_inout(x: f64, n: f64) -> f64 {
-    let x = x.clamp(0.0, 1.0);
-    if x < 0.5 {
-        0.5 * (2.0 * x).powf(n)
-    } else {
-        1.0 - 0.5 * (2.0 - 2.0 * x).powf(n)
-    }
-}
-
 /// Quadratic ease-in.
 pub(crate) fn ein(x: f64) -> f64 {
     let x = x.clamp(0.0, 1.0);

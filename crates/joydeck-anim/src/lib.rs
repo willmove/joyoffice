@@ -27,6 +27,7 @@ mod mesh;
 mod morph;
 mod path;
 mod show;
+mod slide_motion;
 mod timeline;
 mod transition;
 mod transition_fx;

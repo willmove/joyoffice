@@ -1,0 +1,763 @@
+{
+  "baseline": "f5810bd0",
+  "scope": "P2 D-GEOM. Host full-slide cuts, fades, push, cover, uncover and static morph crossfade. Complex layered transitions and object morph are separate.",
+  "reference": {
+    "source": "Microsoft PowerPoint 16.115 for macOS, H.264 QuickTime export of the generated 25-slide deck. Each slide advances after 767 ms; the declared transition duration is 1600 ms.",
+    "frames": 1752,
+    "videoSha256": "79297c2e3669f75e8b36b9b849e8480ce78c0ad7ec0c47c97306cbd569c94b4f",
+    "pptxSourceSha256": "77cfea899d3ee3ba18294528bda678ce1a45158f80bad491938ee4eb53c5c924",
+    "generatedPartPayloads": 96,
+    "sortedNameAndPartDigestSha256": "690c6e92173d3eab6029d3a681bc8b6f88054d6f5c22dbd1c662fcc7c0841452",
+    "measuredFile": "tests/fixtures/joydeck/slide-motion-reference.json",
+    "samples": 360,
+    "calibrationDirections": [
+      "l",
+      "lu"
+    ],
+    "heldOutSamples": 180,
+    "metric": "Normalized displacements from classified incoming area; for diagonal cover sqrt(area), for diagonal uncover 1-sqrt(1-area). For cut/fade, normalized solid colours or opacity on black. Samples at times 1/16 through 15/16. Enlarged holds only in visual comparisons, separate unmodified original used for automatic-advance clocks."
+  },
+  "rollback": "Rebuild f5810bd0 and reopen the PPTX. The two generations retain original public transition names, directions and durations. JOYDECK_GPU_TRANSITIONS=0 selects CPU composition independently of layer generation.",
+  "platforms": {
+    "macOS": {
+      "visualComparison": {
+        "baseline": {
+          "cliSha256": "0730709055ccfc66fb182af5e0c03473aa0a926745e9e91b1ef7d8d55468b77c",
+          "wrongDirections": [],
+          "errors": {
+            "cut": {
+              "samples": 30,
+              "meanAbsError": 0.002534,
+              "p95AbsError": 0.009071,
+              "maximumAbsError": 0.009071
+            },
+            "fade": {
+              "samples": 30,
+              "meanAbsError": 0.026841,
+              "p95AbsError": 0.066105,
+              "maximumAbsError": 0.069057
+            },
+            "push": {
+              "samples": 60,
+              "meanAbsError": 0.018904,
+              "p95AbsError": 0.037037,
+              "maximumAbsError": 0.037037
+            },
+            "cover": {
+              "samples": 60,
+              "meanAbsError": 0.021759,
+              "p95AbsError": 0.074074,
+              "maximumAbsError": 0.092593
+            },
+            "heldOutDirections": {
+              "samples": 180,
+              "meanAbsError": 0.02367,
+              "p95AbsError": 0.074074,
+              "maximumAbsError": 0.161471
+            },
+            "cover-diagonal": {
+              "samples": 60,
+              "meanAbsError": 0.019211,
+              "p95AbsError": 0.048113,
+              "maximumAbsError": 0.049987
+            },
+            "uncover": {
+              "samples": 60,
+              "meanAbsError": 0.026235,
+              "p95AbsError": 0.074074,
+              "maximumAbsError": 0.074074
+            },
+            "uncover-diagonal": {
+              "samples": 60,
+              "meanAbsError": 0.027186,
+              "p95AbsError": 0.161471,
+              "maximumAbsError": 0.161471
+            }
+          }
+        },
+        "candidate": {
+          "cliSha256": "bb8ba9189ec87278a502e09c7d322e8ee5fab9b6fba754efa4acad6cf3f629d7",
+          "wrongDirections": [],
+          "errors": {
+            "cut": {
+              "samples": 30,
+              "meanAbsError": 0.002534,
+              "p95AbsError": 0.009071,
+              "maximumAbsError": 0.009071
+            },
+            "fade": {
+              "samples": 30,
+              "meanAbsError": 0.026841,
+              "p95AbsError": 0.066105,
+              "maximumAbsError": 0.069057
+            },
+            "push": {
+              "samples": 60,
+              "meanAbsError": 0.018904,
+              "p95AbsError": 0.037037,
+              "maximumAbsError": 0.037037
+            },
+            "cover": {
+              "samples": 60,
+              "meanAbsError": 0.01196,
+              "p95AbsError": 0.052083,
+              "maximumAbsError": 0.055556
+            },
+            "heldOutDirections": {
+              "samples": 180,
+              "meanAbsError": 0.009706,
+              "p95AbsError": 0.048589,
+              "maximumAbsError": 0.055556
+            },
+            "cover-diagonal": {
+              "samples": 60,
+              "meanAbsError": 0.00719,
+              "p95AbsError": 0.034122,
+              "maximumAbsError": 0.034122
+            },
+            "uncover": {
+              "samples": 60,
+              "meanAbsError": 0.0125,
+              "p95AbsError": 0.052083,
+              "maximumAbsError": 0.055556
+            },
+            "uncover-diagonal": {
+              "samples": 60,
+              "meanAbsError": 0.006817,
+              "p95AbsError": 0.048589,
+              "maximumAbsError": 0.048589
+            }
+          }
+        }
+      },
+      "automaticOriginal": {
+        "baseline": {
+          "samples": 22,
+          "earlyPages": 22,
+          "probeAtSeconds": [
+            0.8,
+            1.6,
+            2.366,
+            2.368
+          ]
+        },
+        "candidate": {
+          "samples": 22,
+          "earlyPages": 0,
+          "probeAtSeconds": [
+            0.8,
+            1.6,
+            2.366,
+            2.368
+          ]
+        }
+      },
+      "native": {
+        "sourceSha256": "34189366ed6c8f36a3f18471da1b2d93a5a634e25859ee0616500fcc4a06713c",
+        "binarySha256": "000ac09dc45753481ee4357cf6fa396699b013865fd4eb5010c233ccc617b3d3",
+        "modes": {
+          "auto": {
+            "backend": "Metal / Apple M4",
+            "slides": {
+              "push": {
+                "referenceMean": [
+                  131.57,
+                  54.57,
+                  98.86
+                ],
+                "outlyingSamples": 0,
+                "samples": 3864,
+                "pausedSeconds": 2.2323710840000004,
+                "firstColor": [
+                  204,
+                  35,
+                  16
+                ],
+                "pausedColor": [
+                  132,
+                  55.14,
+                  98.29
+                ],
+                "settledColor": [
+                  36,
+                  82,
+                  208
+                ],
+                "screenshots": {
+                  "paused": "3a3a4125061598e8e066a384db05fa6bb9219ffb5ab759f421a611602ddeae28",
+                  "end": "831a36376097b6e30c6a29ca60dc93446323be43c509823fa0e80eeaf8b3c9bb"
+                },
+                "pixels": [
+                  1846,
+                  1038
+                ],
+                "preparation": {
+                  "frames": 95,
+                  "medianMs": 36.43,
+                  "p95Ms": 37.36
+                }
+              },
+              "cover": {
+                "referenceMean": [
+                  41.71,
+                  128.12,
+                  149.3
+                ],
+                "outlyingSamples": 53,
+                "samples": 3864,
+                "pausedSeconds": 1.5129595420000002,
+                "firstColor": [
+                  36,
+                  82,
+                  208
+                ],
+                "pausedColor": [
+                  41.76,
+                  124.25,
+                  154.23
+                ],
+                "settledColor": [
+                  51,
+                  192,
+                  68
+                ],
+                "screenshots": {
+                  "paused": "6fe087bb78aebbe47b674c2d0efc0a4c2474ae1b87f0990202510869652de17b",
+                  "end": "a3a70f307599930f5b036d1086f2118b740065e41129c5cf7035220b7f1c40d1"
+                },
+                "pixels": [
+                  1846,
+                  1038
+                ],
+                "preparation": {
+                  "frames": 95,
+                  "medianMs": 36.74,
+                  "p95Ms": 38.39
+                }
+              }
+            }
+          },
+          "cpu": {
+            "backend": "CPU",
+            "slides": {
+              "push": {
+                "referenceMean": [
+                  101.39,
+                  63.14,
+                  132.96
+                ],
+                "outlyingSamples": 0,
+                "samples": 3864,
+                "pausedSeconds": 2.6696365830000004,
+                "firstColor": [
+                  204,
+                  35,
+                  16
+                ],
+                "pausedColor": [
+                  102,
+                  63.54,
+                  132.57
+                ],
+                "settledColor": [
+                  36,
+                  82,
+                  208
+                ],
+                "screenshots": {
+                  "paused": "d30a7259e4a083bc9c9e3b6c04e06d17f8bd8320273176aa1129827283d7dc6c",
+                  "end": "ae4ed3c57dbbfc120a6e9df7ef3241440342a60dc8787e65852a606eb8ca4180"
+                },
+                "pixels": [
+                  1100,
+                  619
+                ],
+                "preparation": {
+                  "frames": 17,
+                  "medianMs": 271.69,
+                  "p95Ms": 274.11
+                }
+              },
+              "cover": {
+                "referenceMean": [
+                  40.59,
+                  120.43,
+                  159.09
+                ],
+                "outlyingSamples": 0,
+                "samples": 3864,
+                "pausedSeconds": 1.4303299579999995,
+                "firstColor": [
+                  36,
+                  82,
+                  208
+                ],
+                "pausedColor": [
+                  41.24,
+                  120.43,
+                  159.09
+                ],
+                "settledColor": [
+                  51,
+                  192,
+                  68
+                ],
+                "screenshots": {
+                  "paused": "b520fb43fb3a39446e295e5ad9b2fa30e718fba7c19443ffbced569eb5823a6a",
+                  "end": "6015096bbd24d5cb17fc8248c74396a11b109ffa8e6319da25fbff6ed1068330"
+                },
+                "pixels": [
+                  1100,
+                  619
+                ],
+                "preparation": {
+                  "frames": 53,
+                  "medianMs": 29.45,
+                  "p95Ms": 268.15
+                }
+              }
+            }
+          }
+        },
+        "automaticWindow": {
+          "durationMs": 1600,
+          "holdMs": 767,
+          "lastObservedPushProgress": 0.98651544,
+          "observedFromKeyDispatchSeconds": 2.765
+        },
+        "exchange": {
+          "cliSha256": {
+            "baseline": "0730709055ccfc66fb182af5e0c03473aa0a926745e9e91b1ef7d8d55468b77c",
+            "candidate": "49e256105a7b9d591df17e1199f7a6011b47397acb4166c40e1c2564c66d2f8c"
+          },
+          "halfTimeFramesByWriterAndReader": {
+            "baseline-baseline": [
+              "005ab451c83e2f2116a7d23d87f859b2a547c0e10dcf41c83370d5a50d3ee0c3",
+              "2b9b4765d191ffa893c3465b28710836d265f5ae03255395e0f7d69b29324243"
+            ],
+            "baseline-candidate": [
+              "005ab451c83e2f2116a7d23d87f859b2a547c0e10dcf41c83370d5a50d3ee0c3",
+              "07b1c8e71ce2b06caf3fb9faf68d2cb3deab37bd8303fa3054394d966b003355"
+            ],
+            "candidate-baseline": [
+              "005ab451c83e2f2116a7d23d87f859b2a547c0e10dcf41c83370d5a50d3ee0c3",
+              "2b9b4765d191ffa893c3465b28710836d265f5ae03255395e0f7d69b29324243"
+            ],
+            "candidate-candidate": [
+              "005ab451c83e2f2116a7d23d87f859b2a547c0e10dcf41c83370d5a50d3ee0c3",
+              "07b1c8e71ce2b06caf3fb9faf68d2cb3deab37bd8303fa3054394d966b003355"
+            ]
+          }
+        }
+      },
+      "patternedFrames": {
+        "compared": 925,
+        "changed": {
+          "cover": 27,
+          "uncover": 19
+        },
+        "unchanged": 879,
+        "exactEndpoints": 370,
+        "sha256": "698e55fcd1ac9622d007aca58422f5c5695ffe23fb44c585af8b03ec8df88606"
+      },
+      "productChecks": {
+        "joydeck": {
+          "passed": 1013,
+          "failed": 0,
+          "ignored": 0
+        },
+        "ui": {
+          "passed": 78,
+          "failed": 0,
+          "ignored": 0
+        }
+      },
+      "adapterChecks": [
+        {
+          "adapter": "Apple M4",
+          "backend": "Metal",
+          "size": [
+            64,
+            36
+          ],
+          "frames": 925,
+          "maxChannelDifference": 1,
+          "missingSources": {
+            "frames": 48,
+            "maximumChannelDifference": 1
+          }
+        },
+        {
+          "adapter": "Apple M4",
+          "backend": "Metal",
+          "size": [
+            193,
+            109
+          ],
+          "frames": 925,
+          "maxChannelDifference": 1,
+          "missingSources": {
+            "frames": 48,
+            "maximumChannelDifference": 1
+          }
+        }
+      ]
+    },
+    "UOS25": {
+      "visualComparison": {
+        "baseline": {
+          "cliSha256": "7cfc19c661ad12604a1bc6ec8755660f3aec0b9e91ae8940e9bf320a23332a2c",
+          "wrongDirections": [],
+          "errors": {
+            "cut": {
+              "samples": 30,
+              "meanAbsError": 0.002534,
+              "p95AbsError": 0.009071,
+              "maximumAbsError": 0.009071
+            },
+            "fade": {
+              "samples": 30,
+              "meanAbsError": 0.026841,
+              "p95AbsError": 0.066105,
+              "maximumAbsError": 0.069057
+            },
+            "push": {
+              "samples": 60,
+              "meanAbsError": 0.018904,
+              "p95AbsError": 0.037037,
+              "maximumAbsError": 0.037037
+            },
+            "cover": {
+              "samples": 60,
+              "meanAbsError": 0.021759,
+              "p95AbsError": 0.074074,
+              "maximumAbsError": 0.092593
+            },
+            "heldOutDirections": {
+              "samples": 180,
+              "meanAbsError": 0.02367,
+              "p95AbsError": 0.074074,
+              "maximumAbsError": 0.161471
+            },
+            "cover-diagonal": {
+              "samples": 60,
+              "meanAbsError": 0.019211,
+              "p95AbsError": 0.048113,
+              "maximumAbsError": 0.049987
+            },
+            "uncover": {
+              "samples": 60,
+              "meanAbsError": 0.026235,
+              "p95AbsError": 0.074074,
+              "maximumAbsError": 0.074074
+            },
+            "uncover-diagonal": {
+              "samples": 60,
+              "meanAbsError": 0.027186,
+              "p95AbsError": 0.161471,
+              "maximumAbsError": 0.161471
+            }
+          }
+        },
+        "candidate": {
+          "cliSha256": "83244afe1892aebc6350e272873c6d41bc9e7a9fd67e950cf7132962a3c1e245",
+          "wrongDirections": [],
+          "errors": {
+            "cut": {
+              "samples": 30,
+              "meanAbsError": 0.002534,
+              "p95AbsError": 0.009071,
+              "maximumAbsError": 0.009071
+            },
+            "fade": {
+              "samples": 30,
+              "meanAbsError": 0.026841,
+              "p95AbsError": 0.066105,
+              "maximumAbsError": 0.069057
+            },
+            "push": {
+              "samples": 60,
+              "meanAbsError": 0.018904,
+              "p95AbsError": 0.037037,
+              "maximumAbsError": 0.037037
+            },
+            "cover": {
+              "samples": 60,
+              "meanAbsError": 0.01196,
+              "p95AbsError": 0.052083,
+              "maximumAbsError": 0.055556
+            },
+            "heldOutDirections": {
+              "samples": 180,
+              "meanAbsError": 0.009706,
+              "p95AbsError": 0.048589,
+              "maximumAbsError": 0.055556
+            },
+            "cover-diagonal": {
+              "samples": 60,
+              "meanAbsError": 0.00719,
+              "p95AbsError": 0.034122,
+              "maximumAbsError": 0.034122
+            },
+            "uncover": {
+              "samples": 60,
+              "meanAbsError": 0.0125,
+              "p95AbsError": 0.052083,
+              "maximumAbsError": 0.055556
+            },
+            "uncover-diagonal": {
+              "samples": 60,
+              "meanAbsError": 0.006817,
+              "p95AbsError": 0.048589,
+              "maximumAbsError": 0.048589
+            }
+          }
+        }
+      },
+      "automaticOriginal": {
+        "baseline": {
+          "samples": 22,
+          "earlyPages": 22,
+          "probeAtSeconds": [
+            0.8,
+            1.6,
+            2.366,
+            2.368
+          ]
+        },
+        "candidate": {
+          "samples": 22,
+          "earlyPages": 0,
+          "probeAtSeconds": [
+            0.8,
+            1.6,
+            2.366,
+            2.368
+          ]
+        }
+      },
+      "native": {
+        "sourceSha256": "34189366ed6c8f36a3f18471da1b2d93a5a634e25859ee0616500fcc4a06713c",
+        "binarySha256": "693135cbfff5122c5c15fda098f905a7b23c28bffa9f00fd0f0039d0ca6fb60a",
+        "modes": {
+          "auto": {
+            "backend": "CPU fallback / llvmpipe (LLVM 17.0.6, 256 bits)",
+            "slides": {
+              "push": {
+                "referenceMean": [
+                  137.61,
+                  52.86,
+                  92.04
+                ],
+                "outlyingSamples": 0,
+                "samples": 3864,
+                "pausedSeconds": 2.154796993,
+                "firstColor": [
+                  204,
+                  34,
+                  17
+                ],
+                "pausedColor": [
+                  137.61,
+                  52.86,
+                  92.04
+                ],
+                "settledColor": [
+                  35,
+                  82,
+                  208
+                ],
+                "screenshots": {
+                  "paused": "448b36756e4873e018e9b675332d568b9a04ef88895fd6b79b98121f712c4aaf",
+                  "end": "c982cf41207380231e24a2055d338681cf4961ce23a928a5074efc980a2ea803"
+                },
+                "pixels": [
+                  1100,
+                  619
+                ],
+                "preparation": {
+                  "frames": 19,
+                  "medianMs": 219.49,
+                  "p95Ms": 260.72
+                }
+              },
+              "cover": {
+                "referenceMean": [
+                  39.1,
+                  110.15,
+                  172.17
+                ],
+                "outlyingSamples": 0,
+                "samples": 3864,
+                "pausedSeconds": 1.275772743,
+                "firstColor": [
+                  35,
+                  82,
+                  208
+                ],
+                "pausedColor": [
+                  39.1,
+                  110.15,
+                  172.17
+                ],
+                "settledColor": [
+                  51,
+                  192,
+                  68
+                ],
+                "screenshots": {
+                  "paused": "3e88652e759fc0aa1da9be517f8238b190e98e6cc80df9cc09b3933675b9bccd",
+                  "end": "5cb32a336b7479423dcf3ebdd6d891c56d0ba631d0a4bd1477ad687c1d20a30b"
+                },
+                "pixels": [
+                  1100,
+                  619
+                ],
+                "preparation": {
+                  "frames": 51,
+                  "medianMs": 36.08,
+                  "p95Ms": 216.07
+                }
+              }
+            }
+          },
+          "cpu": {
+            "backend": "CPU",
+            "slides": {
+              "push": {
+                "referenceMean": [
+                  129.56,
+                  55.14,
+                  101.13
+                ],
+                "outlyingSamples": 0,
+                "samples": 3864,
+                "pausedSeconds": 2.2684341289999996,
+                "firstColor": [
+                  204,
+                  34,
+                  17
+                ],
+                "pausedColor": [
+                  129.56,
+                  55.14,
+                  101.13
+                ],
+                "settledColor": [
+                  35,
+                  82,
+                  208
+                ],
+                "screenshots": {
+                  "paused": "a7c63e64ba9397aade834a2b78cfe44fe7e6a67ad7dd258d7a225054f5d35222",
+                  "end": "b32432097377a4fa1ed2f696c6cdccf83095a72fde432815b01e7fe608676caf"
+                },
+                "pixels": [
+                  1100,
+                  619
+                ],
+                "preparation": {
+                  "frames": 19,
+                  "medianMs": 222.41,
+                  "p95Ms": 231.28
+                }
+              },
+              "cover": {
+                "referenceMean": [
+                  39,
+                  109.5,
+                  173
+                ],
+                "outlyingSamples": 0,
+                "samples": 3864,
+                "pausedSeconds": 1.2638379030000002,
+                "firstColor": [
+                  35,
+                  82,
+                  208
+                ],
+                "pausedColor": [
+                  39,
+                  109.5,
+                  173
+                ],
+                "settledColor": [
+                  51,
+                  192,
+                  68
+                ],
+                "screenshots": {
+                  "paused": "12bc23d86278991bec7f81fe2b97097fcba0259f3453de1ee29d108511c64142",
+                  "end": "5cb32a336b7479423dcf3ebdd6d891c56d0ba631d0a4bd1477ad687c1d20a30b"
+                },
+                "pixels": [
+                  1100,
+                  619
+                ],
+                "preparation": {
+                  "frames": 61,
+                  "medianMs": 24.36,
+                  "p95Ms": 207.74
+                }
+              }
+            }
+          }
+        },
+        "automaticWindow": {
+          "durationMs": 1600,
+          "holdMs": 767,
+          "lastObservedPushProgress": 0.91093696,
+          "observedFromKeyDispatchSeconds": 2.462
+        },
+        "exchange": {
+          "cliSha256": {
+            "baseline": "7cfc19c661ad12604a1bc6ec8755660f3aec0b9e91ae8940e9bf320a23332a2c",
+            "candidate": "83244afe1892aebc6350e272873c6d41bc9e7a9fd67e950cf7132962a3c1e245"
+          },
+          "halfTimeFramesByWriterAndReader": {
+            "baseline-baseline": [
+              "005ab451c83e2f2116a7d23d87f859b2a547c0e10dcf41c83370d5a50d3ee0c3",
+              "2b9b4765d191ffa893c3465b28710836d265f5ae03255395e0f7d69b29324243"
+            ],
+            "baseline-candidate": [
+              "005ab451c83e2f2116a7d23d87f859b2a547c0e10dcf41c83370d5a50d3ee0c3",
+              "07b1c8e71ce2b06caf3fb9faf68d2cb3deab37bd8303fa3054394d966b003355"
+            ],
+            "candidate-baseline": [
+              "005ab451c83e2f2116a7d23d87f859b2a547c0e10dcf41c83370d5a50d3ee0c3",
+              "2b9b4765d191ffa893c3465b28710836d265f5ae03255395e0f7d69b29324243"
+            ],
+            "candidate-candidate": [
+              "005ab451c83e2f2116a7d23d87f859b2a547c0e10dcf41c83370d5a50d3ee0c3",
+              "07b1c8e71ce2b06caf3fb9faf68d2cb3deab37bd8303fa3054394d966b003355"
+            ]
+          }
+        }
+      },
+      "patternedFrames": {
+        "compared": 925,
+        "changed": {
+          "cover": 27,
+          "uncover": 19
+        },
+        "unchanged": 879,
+        "exactEndpoints": 370,
+        "sha256": "698e55fcd1ac9622d007aca58422f5c5695ffe23fb44c585af8b03ec8df88606"
+      },
+      "productChecks": {
+        "joydeck": {
+          "passed": 1018,
+          "failed": 0,
+          "ignored": 0
+        },
+        "ui": {
+          "passed": 82,
+          "failed": 0,
+          "ignored": 0
+        }
+      },
+      "deviceAccess": "Host rebooted during this phase. The seat belonged to the greeter. Native KWin/X11 on the UOS host verified automatic software-adapter fallback and explicit CPU selection. f5810bd0 has separate prior physical RADV measurements.",
+      "optionalSoftwareAdapter": "Explicitly forcing llvmpipe for the developer-only pixel test gave maximum channel difference 3 at window/horz/22 (hardware acceptance budget 2). The desktop automatically excludes this adapter."
+    }
+  }
+}

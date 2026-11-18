@@ -206,3 +206,37 @@ fn animation_and_transition_frames_bypass_static_media_cache() {
     );
     assert_eq!((cache.renders, cache.hits), (4, 0));
 }
+
+#[test]
+fn automatic_hold_begins_after_transition_and_final_animation() {
+    use joydeck_model::{AnimStart, Transition};
+
+    let mut model = joydeck_model::Presentation::default();
+    let slide = Arc::make_mut(&mut model.slides[0]);
+    let id = slide.shapes[0].id;
+    slide.transition = Some(Transition {
+        kind: "fade".into(),
+        duration_ms: 1600,
+        advance_after_ms: Some(767),
+        ..Default::default()
+    });
+    slide.animations.push(Animation {
+        shape: id,
+        start: AnimStart::AfterPrevious,
+        duration_ms: 600,
+        ..Default::default()
+    });
+    let mut p = Player::new(Arc::new(model), None, None).unwrap();
+    p.advance(0.8).unwrap();
+    assert!(!p.state.ended && p.state.playing);
+    p.navigate("pause", None).unwrap();
+    p.advance(5.).unwrap();
+    p.navigate("pause", None).unwrap();
+    p.advance(1.9).unwrap();
+    assert_eq!(p.state.step, 1);
+    assert!(!p.state.ended);
+    p.advance(0.266).unwrap();
+    assert!(!p.state.ended);
+    p.advance(0.002).unwrap();
+    assert!(p.state.ended);
+}

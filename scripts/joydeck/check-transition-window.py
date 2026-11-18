@@ -24,12 +24,14 @@ P = "http://schemas.openxmlformats.org/presentationml/2006/main"
 A = "http://schemas.openxmlformats.org/drawingml/2006/main"
 P14 = "http://schemas.microsoft.com/office/powerpoint/2010/main"
 COLORS = ["CC2211", "2352D0", "33C044"]
+STANDARD = (("fade", ""), ("checker", "vert"))
+TRAVEL = (("push", "l"), ("cover", "ru"))
 ET.register_namespace("p", P)
 ET.register_namespace("a", A)
 ET.register_namespace("p14", P14)
 
 
-def deck(path):
+def deck(path, effects=STANDARD, duration=4800, timed=False):
     with (
         ZipFile(ROOT / "tests/fixtures/joydeck/independent.pptx") as source,
         ZipFile(path, "x", ZIP_DEFLATED) as output,
@@ -54,12 +56,14 @@ def deck(path):
                 ET.SubElement(props, f"{{{A}}}effectLst")
                 if i:
                     tr = ET.SubElement(
-                        root, f"{{{P}}}transition", {f"{{{P14}}}dur": "4800"}
+                        root, f"{{{P}}}transition", {f"{{{P14}}}dur": str(duration)}
                     )
-                    if i == 1:
-                        ET.SubElement(tr, f"{{{P}}}fade")
-                    else:
-                        ET.SubElement(tr, f"{{{P}}}checker", dir="vert")
+                    if timed and i == 1:
+                        tr.set("advTm", "767")
+                    kind, direction = effects[i - 1]
+                    ET.SubElement(
+                        tr, f"{{{P}}}" + kind, {"dir": direction} if direction else {}
+                    )
                 data = ET.tostring(root, encoding="utf-8", xml_declaration=True)
             output.writestr(source.getinfo(name), data)
 
@@ -96,7 +100,9 @@ def window_id(pid, audience):
 def key(process, window, name):
     if platform.system() == "Darwin":
         target = mac_target(process.pid)
-        system_events(f"set frontmost of {target} to true")
+        system_events(
+            f"if not frontmost of {target} then set frontmost of {target} to true"
+        )
         mac_keys(
             process.pid,
             [{"f5": "96", "right": "124", "pause": "35", "escape": "53"}[name]],
@@ -194,7 +200,7 @@ def stats(values):
     }
 
 
-def play(binary, cli, doc, directory, mode):
+def play(binary, cli, doc, directory, mode, effects, software_fallback=False):
     directory.mkdir()
     settings = {
         "JOYDECK_GPU_TRANSITIONS": "0" if mode == "cpu" else "1",
@@ -231,14 +237,16 @@ def play(binary, cli, doc, directory, mode):
                 return bounds, average(samples(grid, bounds))
 
         bounds, previous = wait(first_bounds, "first red slide on screen", process)
-        for slide, kind in [(2, "fade"), (3, "checker")]:
+        for slide, (kind, _) in enumerate(effects, 2):
             key(process, audience, "right")
             pattern = re.compile(
                 rf"show_transition_frame slide={slide} effect={kind} progress=([.\d]+) prepare_us=(\d+) pixels=(\d+)x(\d+)"
             )
+            pause_from = 0.22 if kind == "cover" else 0.38 if kind == "push" else 0.48
             wait(
                 lambda: any(
-                    0.48 < float(m[1]) < 0.88 for m in pattern.finditer(contents())
+                    pause_from < float(m[1]) < 0.88
+                    for m in pattern.finditer(contents())
                 ),
                 f"visible {kind} progress",
                 process,
@@ -311,10 +319,14 @@ def play(binary, cli, doc, directory, mode):
             time.sleep(max(0.0, 4.8 - paused["slide_seconds"]))
 
             def settled():
-                color = average(
-                    samples(capture(audience, directory / f"{kind}-end.png"), bounds)
+                pixels = samples(
+                    capture(audience, directory / f"{kind}-end.png"), bounds
                 )
-                return color if close_color(color, target, 3) else None
+                return (
+                    average(pixels)
+                    if all(close_color(pixel, target, 3) for pixel in pixels)
+                    else None
+                )
 
             current = wait(settled, "settled slide on the display", process)
             assert not close_color(current, middle, 5) and not close_color(
@@ -363,6 +375,10 @@ def play(binary, cli, doc, directory, mode):
             and "show_transition uploaded" not in text
         )
         backend = "CPU"
+    elif software_fallback:
+        match = re.search(r"backend=cpu reason=software adapter ([^\n]+)", text)
+        assert match and "show_transition uploaded" not in text
+        backend = f"CPU fallback / {match[1]}"
     else:
         backend = re.search(r'show_transition backend=(\w+) adapter="([^"]+)"', text)
         assert backend and "backend=cpu" not in text, text[-1200:]
@@ -373,7 +389,85 @@ def play(binary, cli, doc, directory, mode):
     return {"backend": backend, "slides": records}
 
 
-def exchange(doc, directory, baseline, candidate):
+def play_automatic(binary, directory):
+    directory.mkdir()
+    document = directory / "自动翻页.pptx"
+    deck(document, TRAVEL, duration=1600, timed=True)
+    with app(
+        binary,
+        [str(document)],
+        directory,
+        {
+            "JOYDECK_TRACE_TRANSITIONS": "1",
+            "XDG_CONFIG_HOME": str(directory / "config"),
+        },
+    ) as proc:
+        log = directory / "desktop.log"
+        editor = wait(lambda: window_id(proc.pid, False), "editor window", proc)
+        wait(
+            lambda: "opened=true pages=3" in log.read_text(errors="replace"),
+            "timed presentation opened",
+            proc,
+        )
+        key(proc, editor, "f5")
+        audience = wait(
+            lambda: window_id(proc.pid, True), "timed audience window", proc
+        )
+        wait(
+            lambda: "show_first_frame" in log.read_text(errors="replace"),
+            "first timed slide",
+            proc,
+        )
+
+        def first_visible():
+            bitmap = capture(audience, directory / "automatic-first.png")
+            centre = bitmap[(GRID[1] // 2) * GRID[0] + GRID[0] // 2]
+            return close_color(centre, tuple(bytes.fromhex(COLORS[0])), 4)
+
+        wait(first_visible, "first timed slide actually presented", proc)
+        if platform.system() == "Darwin":
+            # AppKit can expose the fullscreen surface before its Space is active.
+            time.sleep(1.0)
+            audience = wait(
+                lambda: window_id(proc.pid, True), "active fullscreen Space", proc
+            )
+            wait(first_visible, "settled fullscreen surface", proc)
+        start = time.monotonic()
+        key(proc, audience, "right")
+
+        def next_slide():
+            trace = log.read_text(errors="replace")
+            if "show_transition_frame slide=3 effect=cover" in trace:
+                return trace
+
+        trace = wait(next_slide, "automatic advance to slide three", proc)
+        elapsed = time.monotonic() - start
+        before, _ = trace.split("show_transition_frame slide=3 effect=cover", 1)
+        progress = [
+            float(p)
+            for p in re.findall(
+                r"show_transition_frame slide=2 effect=push progress=([.\d]+)", before
+            )
+        ]
+        assert progress and max(progress) > 0.85 and elapsed >= 2.30, (
+            progress,
+            elapsed,
+        )
+        key(proc, audience, "escape")
+        wait(
+            lambda: "show_closed" in log.read_text(errors="replace"),
+            "closed timed audience",
+            proc,
+        )
+        return {
+            "durationMs": 1600,
+            "holdMs": 767,
+            "lastObservedPushProgress": max(progress),
+            "observedFromKeyDispatchSeconds": round(elapsed, 3),
+        }
+
+
+def exchange(doc, directory, baseline, candidate, effects):
     directory.mkdir()
     versions = {"baseline": baseline, "candidate": candidate}
     readers = {}
@@ -385,13 +479,15 @@ def exchange(doc, directory, baseline, candidate):
             check=True,
         )
         with ZipFile(saved) as z:
-            for page, kind in [(2, "fade"), (3, "checker")]:
+            for page, (kind, direction) in enumerate(effects, 2):
                 slide = ET.fromstring(z.read(f"ppt/slides/slide{page}.xml"))
                 transition = slide.find(".//{*}transition")
                 assert (
                     transition is not None and transition.find("{*}" + kind) is not None
                 )
                 assert transition.get(f"{{{P14}}}dur") == "4800"
+                if direction:
+                    assert transition.find("{*}" + kind).get("dir") == direction
         for reader, tool in versions.items():
             work = directory / f"{writer}-{reader}"
             work.mkdir()
@@ -400,7 +496,10 @@ def exchange(doc, directory, baseline, candidate):
             readers[f"{writer}-{reader}"] = [
                 digest(work / f"slide-{page}-CPU.png") for page in (2, 3)
             ]
-    assert len({tuple(v) for v in readers.values()}) == 1
+    for reader in versions:
+        assert readers[f"baseline-{reader}"] == readers[f"candidate-{reader}"]
+    if effects == STANDARD:
+        assert len({tuple(v) for v in readers.values()}) == 1
     return {
         "cliSha256": {k: digest(v) for k, v in versions.items()},
         "halfTimeFramesByWriterAndReader": readers,
@@ -413,26 +512,37 @@ def main():
     parser.add_argument("output", type=Path)
     parser.add_argument("--reference-cli", type=Path)
     parser.add_argument("--exchange-only", action="store_true")
+    parser.add_argument(
+        "--travel", action="store_true", help="exercise push and diagonal cover"
+    )
+    parser.add_argument(
+        "--expect-software-fallback",
+        action="store_true",
+        help="verify automatic CPU fallback on a desktop with only a software adapter",
+    )
     args = parser.parse_args()
+    effects = TRAVEL if args.travel else STANDARD
     out = args.output.resolve()
     cli = args.binary.with_name("joydeck-cli").resolve()
     baseline = (args.reference_cli or cli).resolve()
     doc = out / "转场 示例.pptx"
     if args.exchange_only:
-        result = exchange(doc, out / "exchange", baseline, cli)
+        result = exchange(doc, out / "exchange", baseline, cli, effects)
         (out / "exchange.json").write_text(json.dumps(result, indent=2) + "\n")
         return
     out.mkdir(parents=True)
-    deck(doc)
+    deck(doc, effects)
     original = digest(doc)
     results = {}
     for mode in ("auto", "cpu"):
         results[mode] = play(
             args.binary.resolve(),
-            (args.reference_cli or args.binary.with_name("joydeck-cli")).resolve(),
+            cli if args.travel else baseline,
             doc,
             out / mode,
             mode,
+            effects,
+            args.expect_software_fallback,
         )
     assert digest(doc) == original
     assert all(
@@ -441,7 +551,7 @@ def main():
             results["cpu"]["slides"][k]["settledColor"],
             1,
         )
-        for k in ["fade", "checker"]
+        for k, _ in effects
     )
     (out / "report.json").write_text(
         json.dumps(
@@ -449,7 +559,16 @@ def main():
                 "sourceSha256": original,
                 "binarySha256": digest(args.binary),
                 "modes": results,
-                "exchange": exchange(doc, out / "exchange", baseline, cli),
+                **(
+                    {
+                        "automaticWindow": play_automatic(
+                            args.binary.resolve(), out / "automatic"
+                        )
+                    }
+                    if args.travel
+                    else {}
+                ),
+                "exchange": exchange(doc, out / "exchange", baseline, cli, effects),
             },
             ensure_ascii=False,
             indent=2,
