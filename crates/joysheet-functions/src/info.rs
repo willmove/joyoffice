@@ -2,7 +2,8 @@
 
 use std::cmp::Ordering;
 
-use joysheet_core::{Array, CellError, Value, compare_text};
+use joysheet_core::broadcast::dimensions;
+use joysheet_core::{Array, CellError, Value, compare_numbers, compare_text};
 
 use crate::util::{A, MAX_CELLS, R, S, has, scalar, text};
 use crate::{Arg, Ctx, FnSpec, VAR};
@@ -161,31 +162,22 @@ fn not(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
 /// Applies `f` to scalar argument values. When any argument at a `drivers` position is an
 /// array, `f` runs per element over the broadcast shape of all arguments; otherwise it receives
 /// the arguments whole (so the chosen value may itself be an array).
-fn drive(a: &[Arg], drivers: &dyn Fn(usize) -> bool, f: &dyn Fn(&[Value]) -> R<Value>) -> R<Value> {
+fn drive(a: &[Arg], drivers: &dyn Fn(usize) -> bool, f: &dyn Fn(&[&Value]) -> R<Value>) -> R<Value> {
     let any = a.iter().enumerate().any(|(i, x)| drivers(i) && matches!(x.value, Value::Array(_)));
     if !any {
-        let vals: Vec<Value> = a.iter().map(|x| x.value.clone()).collect();
+        let vals: Vec<_> = a.iter().map(|arg| &arg.value).collect();
         return f(&vals).map(empty_to_zero);
     }
-    let (mut rows, mut cols) = (1usize, 1usize);
-    for x in a {
-        if let Value::Array(arr) = &x.value {
-            rows = rows.max(arr.rows);
-            cols = cols.max(arr.cols);
-        }
-    }
-    if rows.saturating_mul(cols) > MAX_CELLS {
-        return Err(CellError::Num);
-    }
-    let mut data = Vec::with_capacity(rows * cols);
-    let mut vals: Vec<Value> = Vec::with_capacity(a.len());
+    let (rows, cols, count) = dimensions(a.iter().map(|arg| arg.value.array_dimensions()), MAX_CELLS).ok_or(CellError::Num)?;
+    let mut data = Vec::with_capacity(count);
+    let mut vals = Vec::with_capacity(a.len());
+    let mut input_rows = Vec::with_capacity(a.len());
     for r in 0..rows {
+        input_rows.clear();
+        input_rows.extend(a.iter().map(|arg| arg.value.broadcast_row(r)));
         for c in 0..cols {
             vals.clear();
-            vals.extend(a.iter().map(|x| match &x.value {
-                Value::Array(arr) => arr.get_broadcast(r, c),
-                v => v.clone(),
-            }));
+            vals.extend(input_rows.iter().map(|row| row.cell(c)));
             let out = match f(&vals) {
                 Ok(Value::Array(arr)) => arr.data.first().cloned().unwrap_or(Value::Empty),
                 Ok(v) => v,
@@ -203,8 +195,8 @@ fn empty_to_zero(v: Value) -> Value {
 
 fn if_fn(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
     drive(a, &|i| i == 0, &|v| {
-        let cond = v.first().cloned().unwrap_or(Value::Empty).to_bool()?;
-        if cond { Ok(v.get(1).cloned().unwrap_or(Value::Bool(true))) } else { Ok(v.get(2).cloned().unwrap_or(Value::Bool(false))) }
+        let cond = v.first().copied().unwrap_or(&Value::Empty).to_bool()?;
+        if cond { Ok(v.get(1).copied().cloned().unwrap_or(Value::Bool(true))) } else { Ok(v.get(2).copied().cloned().unwrap_or(Value::Bool(false))) }
     })
 }
 
@@ -217,7 +209,7 @@ fn ifs(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
             if let [c, r] = pair
                 && c.to_bool()?
             {
-                return Ok(r.clone());
+                return Ok((*r).clone());
             }
         }
         Err(CellError::NA)
@@ -226,16 +218,16 @@ fn ifs(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
 
 fn iferror(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
     drive(a, &|i| i == 0, &|v| match v.first() {
-        Some(Value::Error(_)) => Ok(v.get(1).cloned().unwrap_or(Value::Empty)),
-        Some(x) => Ok(x.clone()),
+        Some(Value::Error(_)) => Ok(v.get(1).copied().cloned().unwrap_or(Value::Empty)),
+        Some(x) => Ok((*x).clone()),
         None => Err(CellError::Value),
     })
 }
 
 fn ifna(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
     drive(a, &|i| i == 0, &|v| match v.first() {
-        Some(Value::Error(CellError::NA)) => Ok(v.get(1).cloned().unwrap_or(Value::Empty)),
-        Some(x) => Ok(x.clone()),
+        Some(Value::Error(CellError::NA)) => Ok(v.get(1).copied().cloned().unwrap_or(Value::Empty)),
+        Some(x) => Ok((*x).clone()),
         None => Err(CellError::Value),
     })
 }
@@ -243,7 +235,7 @@ fn ifna(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
 fn switch_equal(a: &Value, b: &Value) -> bool {
     match (a, b) {
         (Value::Text(x), Value::Text(y)) => compare_text(x, y) == Ordering::Equal,
-        (Value::Number(x), Value::Number(y)) => x == y,
+        (Value::Number(x), Value::Number(y)) => compare_numbers(*x, *y) == Ordering::Equal,
         (Value::Bool(x), Value::Bool(y)) => x == y,
         (Value::Empty, Value::Empty) => true,
         (Value::Empty, Value::Number(x)) | (Value::Number(x), Value::Empty) => *x == 0.0,
@@ -253,7 +245,7 @@ fn switch_equal(a: &Value, b: &Value) -> bool {
 }
 
 fn switch(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    drive(a, &|i| i == 0, &|v| {
+    drive(a, &|i| i == 0 || (i % 2 == 1 && i + 1 < a.len()), &|v| {
         let Some((expr, rest)) = v.split_first() else { return Err(CellError::Value) };
         if let Value::Error(e) = expr {
             return Err(*e);
@@ -266,10 +258,10 @@ fn switch(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
                         return Err(*e);
                     }
                     if switch_equal(expr, case) {
-                        return Ok(result.clone());
+                        return Ok((*result).clone());
                     }
                 }
-                [default] => return Ok(default.clone()),
+                [default] => return Ok((*default).clone()),
                 _ => {}
             }
         }
@@ -279,11 +271,11 @@ fn switch(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
 
 fn choose(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
     drive(a, &|i| i == 0, &|v| {
-        let idx = v.first().cloned().unwrap_or(Value::Empty).to_number()?.trunc();
+        let idx = v.first().copied().unwrap_or(&Value::Empty).to_number()?.trunc();
         if idx < 1.0 || idx >= v.len() as f64 {
             return Err(CellError::Value);
         }
-        v.get(idx as usize).cloned().ok_or(CellError::Value)
+        v.get(idx as usize).copied().cloned().ok_or(CellError::Value)
     })
 }
 

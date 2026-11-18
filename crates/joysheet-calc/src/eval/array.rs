@@ -1,4 +1,5 @@
 use super::*;
+use joysheet_core::broadcast::dimensions;
 
 /// The aggregates that can fold a reference without building an array.
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -69,13 +70,17 @@ pub(super) fn map_unary(v: &Value, f: &dyn Fn(f64) -> Value, plus: bool, sys: jo
 pub fn zip2(a: &Value, b: &Value, f: impl Fn(&Value, &Value) -> Value) -> Value {
     match (a, b) {
         (Value::Array(x), Value::Array(y)) => {
-            let rows = broadcast_dim(x.rows, y.rows);
-            let cols = broadcast_dim(x.cols, y.cols);
-            let Some(n) = broadcast_len(rows, cols) else { return Value::Error(CellError::Num) };
+            let Some((rows, cols, n)) = dimensions([(x.rows, x.cols), (y.rows, y.cols)], MAX_CELLS as usize) else {
+                return Value::Error(CellError::Num);
+            };
             let mut data = Vec::with_capacity(n);
-            for r in 0..rows {
-                for c in 0..cols {
-                    data.push(f(&x.get_broadcast(r, c), &y.get_broadcast(r, c)));
+            if x.rows == y.rows && x.cols == y.cols && x.data.len() == n && y.data.len() == n {
+                data.extend(x.data.iter().zip(&y.data).map(|(left, right)| f(left, right)));
+            } else {
+                for r in 0..rows {
+                    let left = x.broadcast_row(r);
+                    let right = y.broadcast_row(r);
+                    data.extend((0..cols).map(|c| f(left.cell(c), right.cell(c))));
                 }
             }
             Value::from(Array { rows, cols, data })
@@ -86,36 +91,15 @@ pub fn zip2(a: &Value, b: &Value, f: impl Fn(&Value, &Value) -> Value) -> Value 
     }
 }
 
-/// Cell count of a `rows`×`cols` broadcast result, or `None` when it would exceed [`MAX_CELLS`].
-/// Each operand passes its own size cap, but their broadcast product can be far larger
-/// (`SEQUENCE(1048576)*SEQUENCE(1,16384)` is 17 billion cells), so it is checked before allocating.
-pub(super) fn broadcast_len(rows: usize, cols: usize) -> Option<usize> {
-    rows.checked_mul(cols).filter(|&n| n as u64 <= MAX_CELLS)
-}
-
-fn broadcast_dim(a: usize, b: usize) -> usize {
-    if a == 1 {
-        b
-    } else if b == 1 {
-        a
-    } else {
-        a.max(b)
-    }
-}
-
 pub(super) fn zip3(c: &Array, t: &Value, f: &Value, g: impl Fn(&Value, &Value, &Value) -> Value) -> Value {
-    let dims = |v: &Value| if let Value::Array(a) = v { (a.rows, a.cols) } else { (1, 1) };
-    let (tr, tc) = dims(t);
-    let (fr, fc) = dims(f);
-    let rows = broadcast_dim(broadcast_dim(c.rows, tr), fr);
-    let cols = broadcast_dim(broadcast_dim(c.cols, tc), fc);
-    let Some(n) = broadcast_len(rows, cols) else { return Value::Error(CellError::Num) };
-    let get = |v: &Value, r: usize, col: usize| if let Value::Array(a) = v { a.get_broadcast(r, col) } else { v.clone() };
+    let sizes = [(c.rows, c.cols), t.array_dimensions(), f.array_dimensions()];
+    let Some((rows, cols, n)) = dimensions(sizes, MAX_CELLS as usize) else { return Value::Error(CellError::Num) };
     let mut data = Vec::with_capacity(n);
     for r in 0..rows {
-        for col in 0..cols {
-            data.push(g(&c.get_broadcast(r, col), &get(t, r, col), &get(f, r, col)));
-        }
+        let condition = c.broadcast_row(r);
+        let yes = t.broadcast_row(r);
+        let no = f.broadcast_row(r);
+        data.extend((0..cols).map(|col| g(condition.cell(col), yes.cell(col), no.cell(col))));
     }
     Value::from(Array { rows, cols, data })
 }

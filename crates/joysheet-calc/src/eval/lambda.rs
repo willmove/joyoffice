@@ -1,5 +1,6 @@
-use super::array::{broadcast_len, single};
+use super::array::single;
 use super::*;
+use joysheet_core::broadcast::dimensions;
 
 impl<'h> Evaluator<'h> {
     pub fn apply_lambda(&mut self, l: &Lambda, args: &[Expr]) -> Ev {
@@ -90,23 +91,43 @@ impl<'h> Evaluator<'h> {
                     return err(CellError::Value);
                 }
                 let Some(l) = self.lambda_arg(args.last(), args.len() - 1) else { return err(CellError::Value) };
-                let arrays: Vec<Arc<Array>> = args[..args.len() - 1].iter().map(|a| as_array(self.value(a))).collect();
-                let rows = arrays.iter().map(|a| a.rows).max().unwrap_or(1);
-                let cols = arrays.iter().map(|a| a.cols).max().unwrap_or(1);
-                let Some(n) = broadcast_len(rows, cols) else { return err(CellError::Num) };
-                // The LAMBDA takes one parameter per array.
-                if l.params.len() != arrays.len() {
+                if l.params.len() != args.len() - 1 {
                     return err(CellError::Value);
                 }
+                let mut values = Vec::with_capacity(l.params.len());
+                for (i, expression) in args[..args.len() - 1].iter().enumerate() {
+                    let input = self.eval(expression);
+                    if let Ev::V(Value::Error(e)) = input
+                        && i == 0
+                    {
+                        return err(e);
+                    }
+                    if i > 0 && !matches!(input, Ev::R(_) | Ev::V(Value::Array(_))) {
+                        return err(CellError::Value);
+                    }
+                    values.push(as_array(self.deref(input)));
+                }
+                let Some((rows, cols, n)) = dimensions(values.iter().map(|a| (a.rows, a.cols)), MAX_CELLS as usize) else {
+                    return err(CellError::Num);
+                };
+                // MAP pairs actual coordinates. Unlike binary arithmetic it pads missing
+                // input positions with #N/A without running the LAMBDA at those positions.
+                let common_rows = values.iter().map(|a| a.rows).min().unwrap_or(0);
+                let common_cols = values.iter().map(|a| a.cols).min().unwrap_or(0);
                 let mut out = Vec::with_capacity(n);
-                for r in 0..rows {
-                    for c in 0..cols {
-                        let bound = l.params.iter().zip(arrays.iter()).map(|(p, a)| (p.clone(), Ev::V(a.get_broadcast(r, c)))).collect();
-                        let v = self.call_lambda_values(&l, bound);
-                        let Some(one) = single(self.deref(v)) else { return err(CellError::Calc) };
+                let mut input_rows = Vec::with_capacity(values.len());
+                for r in 0..common_rows {
+                    input_rows.clear();
+                    input_rows.extend(values.iter().map(|v| v.broadcast_row(r)));
+                    for c in 0..common_cols {
+                        let bound = l.params.iter().zip(&input_rows).map(|(name, row)| (name.clone(), Ev::V(row.cell(c).clone()))).collect();
+                        let value = self.call_lambda_values(&l, bound);
+                        let Some(one) = single(self.deref(value)) else { return err(CellError::Calc) };
                         out.push(one);
                     }
+                    out.resize((r + 1) * cols, Value::Error(CellError::NA));
                 }
+                out.resize(n, Value::Error(CellError::NA));
                 Ev::V(Array::new(rows, cols, out).map(Value::from).unwrap_or(Value::Error(CellError::Calc)))
             }
             "REDUCE" | "SCAN" => {

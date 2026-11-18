@@ -122,9 +122,7 @@ impl Array {
     /// Excel's broadcasting read: a 1-row or 1-column array repeats along that axis; outside the
     /// array is `#N/A`.
     pub fn get_broadcast(&self, r: usize, c: usize) -> Value {
-        let rr = if self.rows == 1 { 0 } else { r };
-        let cc = if self.cols == 1 { 0 } else { c };
-        self.get(rr, cc).cloned().unwrap_or(Value::Error(CellError::NA))
+        self.broadcast_row(r).cell(c).clone()
     }
     pub fn transpose(&self) -> Array {
         let mut data = Vec::with_capacity(self.data.len());

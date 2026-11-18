@@ -1,0 +1,872 @@
+[
+  {
+    "inputs": {
+      "A1": 2,
+      "A2": 5,
+      "A4": 10,
+      "A5": 20,
+      "A6": "=NA()",
+      "A7": "x"
+    },
+    "cases": [
+      {
+        "id": "mapMissing",
+        "formula": "=MAP({1;2;3},{4,5},LAMBDA(x,y,IFERROR(x,10)+IFERROR(y,20)))",
+        "cells": [
+          [
+            5,
+            "#N/A"
+          ],
+          [
+            "#N/A",
+            "#N/A"
+          ],
+          [
+            "#N/A",
+            "#N/A"
+          ]
+        ]
+      },
+      {
+        "id": "mapIgnore",
+        "formula": "=MAP({1;2;3},{4,5},LAMBDA(x,y,9))",
+        "cells": [
+          [
+            9,
+            "#N/A"
+          ],
+          [
+            "#N/A",
+            "#N/A"
+          ],
+          [
+            "#N/A",
+            "#N/A"
+          ]
+        ]
+      },
+      {
+        "id": "mapScalar",
+        "formula": "=MAP({1;2},3,LAMBDA(x,y,IFERROR(x,10)+IFERROR(y,20)))",
+        "cells": [
+          [
+            "#VALUE!"
+          ]
+        ]
+      },
+      {
+        "id": "mapExplicitError",
+        "formula": "=MAP({1;#N/A},{0;0},LAMBDA(x,y,IFERROR(x,10)))",
+        "cells": [
+          [
+            1
+          ],
+          [
+            10
+          ]
+        ]
+      },
+      {
+        "id": "ifErrorNoCatch",
+        "formula": "=IFERROR({1,2},{8;9})",
+        "cells": [
+          [
+            1,
+            2
+          ],
+          [
+            1,
+            2
+          ]
+        ]
+      },
+      {
+        "id": "ifErrorScalarNoCatch",
+        "formula": "=IFERROR(1,{8;9})",
+        "cells": [
+          [
+            1
+          ]
+        ]
+      },
+      {
+        "id": "ifErrorCatch",
+        "formula": "=IFERROR({#N/A,2},{7;8})",
+        "cells": [
+          [
+            7,
+            2
+          ],
+          [
+            8,
+            2
+          ]
+        ]
+      },
+      {
+        "id": "ifErrorRefRange",
+        "formula": "=IFERROR(A1:A2,{10,20})",
+        "cells": [
+          [
+            2,
+            2
+          ],
+          [
+            5,
+            5
+          ]
+        ]
+      },
+      {
+        "id": "ifnaOtherError",
+        "formula": "=IFNA({#DIV/0!,1},{8;9})",
+        "cells": [
+          [
+            "#DIV/0!",
+            1
+          ],
+          [
+            "#DIV/0!",
+            1
+          ]
+        ]
+      },
+      {
+        "id": "ifnaScalarCatch",
+        "formula": "=IFNA(NA(),{8;9})",
+        "cells": [
+          [
+            8
+          ],
+          [
+            9
+          ]
+        ]
+      },
+      {
+        "id": "ifsScalarWin",
+        "formula": "=IFS(TRUE,1,{TRUE;FALSE},{4;5})",
+        "cells": [
+          [
+            1
+          ]
+        ]
+      },
+      {
+        "id": "switchScalarWin",
+        "formula": "=SWITCH(1,1,5,2,{6;7})",
+        "cells": [
+          [
+            5
+          ]
+        ]
+      },
+      {
+        "id": "ifRefIdentity",
+        "formula": "=ISREF(IFERROR(A1:A2,{4,5}))",
+        "cells": [
+          [
+            false
+          ]
+        ]
+      },
+      {
+        "id": "ifRefWithError",
+        "formula": "=IFERROR(A5:A7,{9,10})",
+        "cells": [
+          [
+            20,
+            20
+          ],
+          [
+            9,
+            10
+          ],
+          [
+            "x",
+            "x"
+          ]
+        ]
+      },
+      {
+        "id": "dateTwoNumbers",
+        "formula": "=EOMONTH(A1:A2,{0;1})",
+        "cells": [
+          [
+            "#VALUE!"
+          ],
+          [
+            59
+          ]
+        ]
+      },
+      {
+        "id": "dateNumberEmpty",
+        "formula": "=EOMONTH(A2:A3,{0;1})",
+        "cells": [
+          [
+            "#VALUE!"
+          ],
+          [
+            59
+          ]
+        ]
+      },
+      {
+        "id": "dateEmptyNumber",
+        "formula": "=EOMONTH(A3:A4,{0;1})",
+        "cells": [
+          [
+            "#VALUE!"
+          ],
+          [
+            59
+          ]
+        ]
+      },
+      {
+        "id": "dateEmptyCell",
+        "formula": "=EOMONTH(A3,{0;1})",
+        "cells": [
+          [
+            31
+          ],
+          [
+            59
+          ]
+        ]
+      },
+      {
+        "id": "dateTwoNumScalar",
+        "formula": "=EOMONTH(A1:A2,0)",
+        "cells": [
+          [
+            "#VALUE!"
+          ]
+        ]
+      },
+      {
+        "id": "dateNumBlankScalar",
+        "formula": "=EOMONTH(A2:A3,0)",
+        "cells": [
+          [
+            "#VALUE!"
+          ]
+        ]
+      },
+      {
+        "id": "dateNumBlankThree",
+        "formula": "=EOMONTH(A2:A3,{0;1;2})",
+        "cells": [
+          [
+            "#VALUE!"
+          ],
+          [
+            59
+          ],
+          [
+            91
+          ]
+        ]
+      },
+      {
+        "id": "dateNumBlankRow",
+        "formula": "=EOMONTH(A2:A3,{0,1})",
+        "cells": [
+          [
+            "#VALUE!",
+            59
+          ]
+        ]
+      },
+      {
+        "id": "dateBlankNumRow",
+        "formula": "=EOMONTH(A3:A4,{0,1})",
+        "cells": [
+          [
+            "#VALUE!",
+            59
+          ]
+        ]
+      },
+      {
+        "id": "dateExplicitZero",
+        "formula": "=EOMONTH(0,{0;1;2})",
+        "cells": [
+          [
+            31
+          ],
+          [
+            59
+          ],
+          [
+            91
+          ]
+        ]
+      },
+      {
+        "id": "ifsCaseErr",
+        "formula": "=IFS({TRUE;FALSE},{1,2},NA(),{3,4})",
+        "cells": [
+          [
+            1,
+            2
+          ],
+          [
+            "#N/A",
+            "#N/A"
+          ]
+        ]
+      },
+      {
+        "id": "switchCaseErr",
+        "formula": "=SWITCH({1;2},NA(),7,1,5,9)",
+        "cells": [
+          [
+            "#N/A"
+          ],
+          [
+            "#N/A"
+          ]
+        ]
+      },
+      {
+        "id": "ifNoCatchRefWithError",
+        "formula": "=IFNA(A5:A7,{9,10})",
+        "cells": [
+          [
+            20,
+            20
+          ],
+          [
+            9,
+            10
+          ],
+          [
+            "x",
+            "x"
+          ]
+        ]
+      },
+      {
+        "id": "mapSame",
+        "formula": "=MAP({1;2},{4;5},LAMBDA(x,y,x+y))",
+        "cells": [
+          [
+            5
+          ],
+          [
+            7
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "inputs": {
+      "A1": 45000,
+      "A2": 45020,
+      "A4": 10,
+      "A5": 20,
+      "A6": "=NA()",
+      "A7": "x",
+      "A3": 45040
+    },
+    "cases": [
+      {
+        "id": "mapNum1",
+        "formula": "=MAP(2,LAMBDA(x,x+1))",
+        "cells": [
+          [
+            3
+          ]
+        ]
+      },
+      {
+        "id": "mapConst1",
+        "formula": "=MAP({2},LAMBDA(x,x+1))",
+        "cells": [
+          [
+            3
+          ]
+        ]
+      },
+      {
+        "id": "mapNum2",
+        "formula": "=MAP(2,3,LAMBDA(x,y,x+y))",
+        "cells": [
+          [
+            "#VALUE!"
+          ]
+        ]
+      },
+      {
+        "id": "mapCell",
+        "formula": "=MAP(A1,A2,LAMBDA(x,y,x+y))",
+        "cells": [
+          [
+            90020
+          ]
+        ]
+      },
+      {
+        "id": "mapFirstScalar",
+        "formula": "=MAP(3,{1;2},LAMBDA(x,y,x+y))",
+        "cells": [
+          [
+            4
+          ],
+          [
+            "#N/A"
+          ]
+        ]
+      },
+      {
+        "id": "mapSecondCell",
+        "formula": "=MAP({1;2},A2,LAMBDA(x,y,x+y))",
+        "cells": [
+          [
+            45021
+          ],
+          [
+            "#N/A"
+          ]
+        ]
+      },
+      {
+        "id": "mapMask",
+        "formula": "=MAP({1;2},{4},LAMBDA(x,y,IFERROR(x,10)+IFERROR(y,20)))",
+        "cells": [
+          [
+            5
+          ],
+          [
+            "#N/A"
+          ]
+        ]
+      },
+      {
+        "id": "dateReplica",
+        "formula": "=EOMONTH(A1:A3,{1;2})",
+        "cells": [
+          [
+            "#VALUE!"
+          ],
+          [
+            45077
+          ]
+        ]
+      },
+      {
+        "id": "dateDifferentFmt",
+        "formula": "=EOMONTH(A1:A3,{2,3})",
+        "cells": [
+          [
+            "#VALUE!",
+            45107
+          ]
+        ]
+      },
+      {
+        "id": "edate",
+        "formula": "=EDATE(A1:A3,{1;2})",
+        "cells": [
+          [
+            "#VALUE!"
+          ],
+          [
+            45061
+          ]
+        ]
+      },
+      {
+        "id": "quotient",
+        "formula": "=QUOTIENT(A1:A3,{1;2})",
+        "cells": [
+          [
+            "#VALUE!"
+          ],
+          [
+            22500
+          ]
+        ]
+      },
+      {
+        "id": "quotientSpecific",
+        "formula": "=QUOTIENT({12;16},A1:A3)",
+        "cells": [
+          [
+            "#VALUE!"
+          ],
+          [
+            0
+          ]
+        ]
+      },
+      {
+        "id": "delta",
+        "formula": "=DELTA(A1:A3,{1;0})",
+        "cells": [
+          [
+            "#VALUE!"
+          ],
+          [
+            0
+          ]
+        ]
+      },
+      {
+        "id": "mround",
+        "formula": "=MROUND(A1:A3,{0;1})",
+        "cells": [
+          [
+            "#VALUE!"
+          ],
+          [
+            "#VALUE!"
+          ]
+        ]
+      },
+      {
+        "id": "yearfrac",
+        "formula": "=YEARFRAC(A1:A3,{45020;45030})",
+        "cells": [
+          [
+            "#VALUE!"
+          ],
+          [
+            0.08055555555555556
+          ]
+        ]
+      },
+      {
+        "id": "workday",
+        "formula": "=WORKDAY(A1:A3,{0;1})",
+        "cells": [
+          [
+            "#VALUE!"
+          ],
+          [
+            45001
+          ]
+        ]
+      },
+      {
+        "id": "eomonthReversed",
+        "formula": "=EOMONTH({45000;45001},A1:A3)",
+        "cells": [
+          [
+            "#VALUE!"
+          ],
+          [
+            1414676
+          ]
+        ]
+      },
+      {
+        "id": "plainRef",
+        "formula": "=ISREF(IFERROR(A1:A3,0))",
+        "cells": [
+          [
+            false
+          ]
+        ]
+      },
+      {
+        "id": "scalarRef",
+        "formula": "=ISREF(IFERROR(A1,0))",
+        "cells": [
+          [
+            false
+          ]
+        ]
+      },
+      {
+        "id": "ifNoCatchref",
+        "formula": "=IFERROR(A1:A3,{4,5})",
+        "cells": [
+          [
+            45000,
+            45000
+          ],
+          [
+            45020,
+            45020
+          ],
+          [
+            45040,
+            45040
+          ]
+        ]
+      },
+      {
+        "id": "ifsOddcase",
+        "formula": "=IFS(FALSE,1,{TRUE;FALSE},{4,5},TRUE,9)",
+        "cells": [
+          [
+            4,
+            5
+          ],
+          [
+            9,
+            9
+          ]
+        ]
+      },
+      {
+        "id": "switchScalarArraycase",
+        "formula": "=SWITCH(2,{2;3},{6,7},{3;2},{4,5},9)",
+        "cells": [
+          [
+            6,
+            7
+          ],
+          [
+            4,
+            5
+          ]
+        ]
+      },
+      {
+        "id": "ifErrorShapes",
+        "formula": "=IFERROR({1;#N/A;3}, {8,9;10,11})",
+        "cells": [
+          [
+            1,
+            1
+          ],
+          [
+            10,
+            11
+          ],
+          [
+            3,
+            3
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "inputs": {
+      "A1": 45000,
+      "A2": 45020,
+      "A4": 10,
+      "A5": 20,
+      "A6": "=NA()",
+      "A7": "x",
+      "A3": 45040
+    },
+    "cases": [
+      {
+        "id": "mapComputed",
+        "formula": "=MAP({2;4},3+2,LAMBDA(x,y,x+y))",
+        "cells": [
+          [
+            "#VALUE!"
+          ]
+        ]
+      },
+      {
+        "id": "map1x1Array",
+        "formula": "=MAP({2;4},{5},LAMBDA(x,y,x+y))",
+        "cells": [
+          [
+            7
+          ],
+          [
+            "#N/A"
+          ]
+        ]
+      },
+      {
+        "id": "mapSequence1",
+        "formula": "=MAP({2;4},SEQUENCE(1),LAMBDA(x,y,x+y))",
+        "cells": [
+          [
+            3
+          ],
+          [
+            "#N/A"
+          ]
+        ]
+      },
+      {
+        "id": "mapError",
+        "formula": "=MAP({2;4},NA(),LAMBDA(x,y,5))",
+        "cells": [
+          [
+            "#VALUE!"
+          ]
+        ]
+      },
+      {
+        "id": "mapFirstError",
+        "formula": "=MAP(NA(),LAMBDA(x,5))",
+        "cells": [
+          [
+            "#N/A"
+          ]
+        ]
+      },
+      {
+        "id": "mapDoubleError",
+        "formula": "=MAP({2;4},{#N/A;3},LAMBDA(x,y,5))",
+        "cells": [
+          [
+            5
+          ],
+          [
+            5
+          ]
+        ]
+      },
+      {
+        "id": "ifsSkippedArray",
+        "formula": "=IFS(FALSE,{1,2,3},{TRUE;TRUE},5)",
+        "cells": [
+          [
+            5
+          ],
+          [
+            5
+          ]
+        ]
+      },
+      {
+        "id": "ifsEarlySelected",
+        "formula": "=IFS(TRUE,{1,2},{FALSE;FALSE},{5;6})",
+        "cells": [
+          [
+            1,
+            2
+          ]
+        ]
+      },
+      {
+        "id": "switchErrScalar",
+        "formula": "=SWITCH(1,NA(),7,1,5,9)",
+        "cells": [
+          [
+            "#N/A"
+          ]
+        ]
+      },
+      {
+        "id": "switchSkippedWide",
+        "formula": "=SWITCH(2,1,{1,2,3},{2;2},5,7)",
+        "cells": [
+          [
+            5,
+            5,
+            5
+          ],
+          [
+            5,
+            5,
+            5
+          ]
+        ]
+      },
+      {
+        "id": "ifErrorScalarClean",
+        "formula": "=ISREF(IFERROR(A1,1))",
+        "cells": [
+          [
+            false
+          ]
+        ]
+      },
+      {
+        "id": "DateBothRanges",
+        "formula": "=EOMONTH(A1:A3,A1:A2)",
+        "cells": [
+          [
+            "#VALUE!"
+          ]
+        ]
+      },
+      {
+        "id": "mroundA",
+        "formula": "=MROUND(A1:A3,{2;3})",
+        "cells": [
+          [
+            "#VALUE!"
+          ],
+          [
+            "#VALUE!"
+          ]
+        ]
+      },
+      {
+        "id": "mroundB",
+        "formula": "=MROUND(A1,{2;3})",
+        "cells": [
+          [
+            45000
+          ],
+          [
+            45000
+          ]
+        ]
+      },
+      {
+        "id": "mroundZero",
+        "formula": "=MROUND(A1,{0;1})",
+        "cells": [
+          [
+            0
+          ],
+          [
+            45000
+          ]
+        ]
+      },
+      {
+        "id": "eomWhenScalar",
+        "formula": "=EOMONTH(A1:A3,{2})",
+        "cells": [
+          [
+            "#VALUE!"
+          ]
+        ]
+      },
+      {
+        "id": "iferrorPad",
+        "formula": "=IFERROR({1;2},{1,2;3,4;5,6})",
+        "cells": [
+          [
+            1,
+            1
+          ],
+          [
+            2,
+            2
+          ],
+          [
+            5,
+            6
+          ]
+        ]
+      },
+      {
+        "id": "ifnaPad",
+        "formula": "=IFNA({1;2},{1,2;3,4;5,6})",
+        "cells": [
+          [
+            1,
+            1
+          ],
+          [
+            2,
+            2
+          ],
+          [
+            5,
+            6
+          ]
+        ]
+      }
+    ]
+  }
+]

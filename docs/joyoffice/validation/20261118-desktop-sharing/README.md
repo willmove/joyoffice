@@ -209,3 +209,11 @@ GUI 复跑用 `python3 scripts/joyword/check-section-reflow.py DESKTOP NEW_DIR -
 macOS 与 UOS 各检查横、竖、方三种尺寸及普通、带文字、半透明、虚线四种呈现，共 12 张 960 × 540 页面、144 个形状实例。参照由旧版将标准附件作为自定义几何独立渲染。每版重新打开新版生成的 PPTX 后，结果与各自初次打开原件相同。相对独立参照，每张页面有 166 至 438 个像素的 RGB 不完全相同；逐点双向检查，一像素邻域之外的填充／背景／描边类别差异为零，通道强度超出邻域容差的点每页最多 25 个，出现在竖版虚线页。已有 29 个流程图的六张组合页也重验，两代结果逐字节相同。[双平台图像摘要、连接点及工程回归](action-buttons.json)
 
 12 种按钮另验六种宽高组合，包含零宽、零高和双零。实机回归按独立参照取样，每端验证 5,240 次旋转前后的指针命中或排除，另在原生窗口实际移动、拉伸声音按钮、撤销、重做、保存副本并重开。两端均核实原件 SHA-256 相同。复跑用 `python3 scripts/joydeck/check-flowcharts.py OLD_CLI NEW_CLI PRESET_XML NEW_DIR --family buttons --desktop NEW_DESKTOP`。[复跑入口](../../../../scripts/joydeck/check-flowcharts.py)
+
+## JoySheet 数组广播、条件函数与 MAP
+
+本机 Microsoft Excel 16.115 实际重新计算并保存了五份合成工作簿。两份给出输入变化前后的 204 格参照，另外三份包含 69 个公式。旧 JoySheet 在其中 48 个公式的 87 格与 Excel 有差异。两平台的新版对这 69 个公式各检查 1,104 个位置，值、错误和空白均与 Excel 一致。例如 IFERROR 的替代数组可以扩大溢出范围，MAP 遇到某个参数没有对应坐标时会在该位置产生 `#N/A`。日期函数还区分首个引用错误与后续提升出的元素。[Excel 数组行为](https://support.microsoft.com/en-us/excel/dynamic-array-formulas-and-spilled-array-behavior) · [IFNA](https://support.microsoft.com/en-us/excel/functions/ifna-function) · [公式与期望](../../../../scripts/joysheet/tests/data/broadcast-conditions.json)
+
+新旧版本相互打开对方保存的 XLSX，四种组合均保留公式。旧版重算后显示其原有结果。macOS 与 UOS 各在真实窗口修改 A1、撤销、重做、保存并用新进程重开，五次各核对 204 格。两份授权业务原件均为零公式，派生副本分别命中 916 和 16 个公式，七份仓库文件也通过旧版读回。两端 Sheet 产品回归各通过 1,475 项，原有一项忽略。[双平台结果与发行程序指纹](array-broadcast.json) · [桌面与双版本复跑](../../../../scripts/joysheet/check-broadcast.py) · [Excel 独立复跑](../../../../scripts/joysheet/check-broadcast-excel.py)
+
+在 4,096 × 8 广播范围上交替运行两版发布程序，每次打开工作簿、改六次数值并核对三个结果。首批各 40 个样本，macOS 的 P95 为 38.25 → 38.00 ms，UOS 为 53.96 → 56.89 ms。单独再取各 120 个样本，macOS 的 P50／P95 分别为 35.84 → 35.57 和 36.99 → 36.73 ms，UOS 为 40.93 → 40.44 和 49.27 → 49.32 ms。这一项交付的效果是计算结果与 Excel 一致，UOS 尾延迟未见稳定改善。[全部原始采样](array-broadcast.json)

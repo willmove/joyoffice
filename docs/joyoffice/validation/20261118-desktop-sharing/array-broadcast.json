@@ -1,0 +1,2569 @@
+{
+  "microsoftExcel": {
+    "excelVersion": "16.115",
+    "formulas": {
+      "D1": "=SEQUENCE(3,1)*10+SEQUENCE(1,4,A1)",
+      "I1": "=IF({TRUE;FALSE;TRUE},{\"甲\",\"乙\",\"丙\"},SEQUENCE(1,3,A1))",
+      "M1": "=IFERROR({1,#N/A,#DIV/0!},{6;7})",
+      "Q1": "=MAP(SEQUENCE(3,1),SEQUENCE(1,2,A1),LAMBDA(x,y,x*y))",
+      "D6": "=SEQUENCE(2,3)+SEQUENCE(4,2)",
+      "H6": "=MOD(SEQUENCE(3,1,A1),{2,3,4})",
+      "L6": "=CHOOSE({1;2},{\"红\",\"绿\"},{10,20})",
+      "O6": "=SWITCH({1;2;3},1,{\"同\",\"次\"},2,{5,6},\"无\")",
+      "S6": "=IFS({TRUE;FALSE;FALSE},{\"先\",\"后\"},{FALSE;TRUE;FALSE},{7,8},TRUE,\"末\")",
+      "D11": "=EOMONTH(A1:A2,{0;1})",
+      "H11": "=IFNA({1,#N/A},{2;4})",
+      "L11": "=INDEX(MAP({2},{3},LAMBDA(x,y,x+y)),1,1)"
+    },
+    "snapshots": [
+      {
+        "input": 2,
+        "cells": [
+          [
+            "12",
+            "13",
+            "14",
+            "15",
+            "",
+            "甲",
+            "乙",
+            "丙",
+            "",
+            "1",
+            "6",
+            "6",
+            "",
+            "2",
+            "#N/A",
+            "",
+            ""
+          ],
+          [
+            "22",
+            "23",
+            "24",
+            "25",
+            "",
+            "2",
+            "3",
+            "4",
+            "",
+            "1",
+            "7",
+            "7",
+            "",
+            "#N/A",
+            "#N/A",
+            "",
+            ""
+          ],
+          [
+            "32",
+            "33",
+            "34",
+            "35",
+            "",
+            "甲",
+            "乙",
+            "丙",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "#N/A",
+            "#N/A",
+            "",
+            ""
+          ],
+          [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          [
+            "2",
+            "4",
+            "#N/A",
+            "",
+            "0",
+            "2",
+            "2",
+            "",
+            "红",
+            "绿",
+            "",
+            "同",
+            "次",
+            "",
+            "",
+            "先",
+            "后"
+          ],
+          [
+            "7",
+            "9",
+            "#N/A",
+            "",
+            "1",
+            "0",
+            "3",
+            "",
+            "10",
+            "20",
+            "",
+            "5",
+            "6",
+            "",
+            "",
+            "7",
+            "8"
+          ],
+          [
+            "#N/A",
+            "#N/A",
+            "#N/A",
+            "",
+            "0",
+            "1",
+            "0",
+            "",
+            "",
+            "",
+            "",
+            "无",
+            "无",
+            "",
+            "",
+            "末",
+            "末"
+          ],
+          [
+            "#N/A",
+            "#N/A",
+            "#N/A",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          [
+            "#VALUE!",
+            "",
+            "",
+            "",
+            "1",
+            "2",
+            "",
+            "",
+            "5",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          [
+            "59",
+            "",
+            "",
+            "",
+            "1",
+            "4",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ]
+        ],
+        "workbookSha256": "709b417a4b36c189d83da98fb1911a04bb54b3a1d17b7c71dc38a0011342d50d"
+      },
+      {
+        "input": 5,
+        "cells": [
+          [
+            "15",
+            "16",
+            "17",
+            "18",
+            "",
+            "甲",
+            "乙",
+            "丙",
+            "",
+            "1",
+            "6",
+            "6",
+            "",
+            "5",
+            "#N/A",
+            "",
+            ""
+          ],
+          [
+            "25",
+            "26",
+            "27",
+            "28",
+            "",
+            "5",
+            "6",
+            "7",
+            "",
+            "1",
+            "7",
+            "7",
+            "",
+            "#N/A",
+            "#N/A",
+            "",
+            ""
+          ],
+          [
+            "35",
+            "36",
+            "37",
+            "38",
+            "",
+            "甲",
+            "乙",
+            "丙",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "#N/A",
+            "#N/A",
+            "",
+            ""
+          ],
+          [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          [
+            "2",
+            "4",
+            "#N/A",
+            "",
+            "1",
+            "2",
+            "1",
+            "",
+            "红",
+            "绿",
+            "",
+            "同",
+            "次",
+            "",
+            "",
+            "先",
+            "后"
+          ],
+          [
+            "7",
+            "9",
+            "#N/A",
+            "",
+            "0",
+            "0",
+            "2",
+            "",
+            "10",
+            "20",
+            "",
+            "5",
+            "6",
+            "",
+            "",
+            "7",
+            "8"
+          ],
+          [
+            "#N/A",
+            "#N/A",
+            "#N/A",
+            "",
+            "1",
+            "1",
+            "3",
+            "",
+            "",
+            "",
+            "",
+            "无",
+            "无",
+            "",
+            "",
+            "末",
+            "末"
+          ],
+          [
+            "#N/A",
+            "#N/A",
+            "#N/A",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          [
+            "#VALUE!",
+            "",
+            "",
+            "",
+            "1",
+            "2",
+            "",
+            "",
+            "5",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          [
+            "59",
+            "",
+            "",
+            "",
+            "1",
+            "4",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ]
+        ],
+        "workbookSha256": "e8d73c0aa142f231e0260ae6460729d01ff9eb6a48e2defbe4c7368b53908591"
+      }
+    ],
+    "conditions": [
+      {
+        "formulas": 28,
+        "matching": true,
+        "workbookSha256": "7a0ef699d6a3e8ab279ce8cacfa92686d4e5e8955864b78b93fbbc92ca190a90"
+      },
+      {
+        "formulas": 23,
+        "matching": true,
+        "workbookSha256": "fb36bdc2a5e6b7350b722716ab1f8bc40916c6f0a832d2d983b87badebdce0cf"
+      },
+      {
+        "formulas": 18,
+        "matching": true,
+        "workbookSha256": "005a7405ddcc8167b0b2648d2926c90eb11fd01cfec5f7c487632dfbc4ffedfd"
+      }
+    ]
+  },
+  "fixture": "scripts/joysheet/tests/data/broadcast-conditions.json",
+  "platforms": {
+    "macOS": {
+      "cliSha256": [
+        "f56755730ed4efde886810c949478b8def69671f910591dc97787ebc08a75f58",
+        "2dc1e9d1948c87e9ac3e28437b40b975d183b699997a3062766d06a7d02a9d29"
+      ],
+      "writerReaderPairs": [
+        [
+          "old",
+          "old"
+        ],
+        [
+          "old",
+          "new"
+        ],
+        [
+          "new",
+          "old"
+        ],
+        [
+          "new",
+          "new"
+        ]
+      ],
+      "conditionalCases": [
+        {
+          "formulas": 28,
+          "cellDifferencesFromExcel": {
+            "baseline": [
+              {
+                "case": "mapMissing",
+                "cell": "E3",
+                "actual": 6.0,
+                "expected": "#N/A"
+              },
+              {
+                "case": "mapMissing",
+                "cell": "D4",
+                "actual": 6.0,
+                "expected": "#N/A"
+              },
+              {
+                "case": "mapMissing",
+                "cell": "E4",
+                "actual": 7.0,
+                "expected": "#N/A"
+              },
+              {
+                "case": "mapMissing",
+                "cell": "D5",
+                "actual": 7.0,
+                "expected": "#N/A"
+              },
+              {
+                "case": "mapMissing",
+                "cell": "E5",
+                "actual": 8.0,
+                "expected": "#N/A"
+              },
+              {
+                "case": "mapIgnore",
+                "cell": "J3",
+                "actual": 9.0,
+                "expected": "#N/A"
+              },
+              {
+                "case": "mapIgnore",
+                "cell": "I4",
+                "actual": 9.0,
+                "expected": "#N/A"
+              },
+              {
+                "case": "mapIgnore",
+                "cell": "J4",
+                "actual": 9.0,
+                "expected": "#N/A"
+              },
+              {
+                "case": "mapIgnore",
+                "cell": "I5",
+                "actual": 9.0,
+                "expected": "#N/A"
+              },
+              {
+                "case": "mapIgnore",
+                "cell": "J5",
+                "actual": 9.0,
+                "expected": "#N/A"
+              },
+              {
+                "case": "mapScalar",
+                "cell": "N3",
+                "actual": 4.0,
+                "expected": "#VALUE!"
+              },
+              {
+                "case": "mapScalar",
+                "cell": "N4",
+                "actual": 5.0,
+                "expected": null
+              },
+              {
+                "case": "ifErrorNoCatch",
+                "cell": "X4",
+                "actual": null,
+                "expected": 1
+              },
+              {
+                "case": "ifErrorNoCatch",
+                "cell": "Y4",
+                "actual": null,
+                "expected": 2
+              },
+              {
+                "case": "ifErrorCatch",
+                "cell": "I9",
+                "actual": null,
+                "expected": 8
+              },
+              {
+                "case": "ifErrorCatch",
+                "cell": "J9",
+                "actual": null,
+                "expected": 2
+              },
+              {
+                "case": "ifErrorRefRange",
+                "cell": "O8",
+                "actual": null,
+                "expected": 2
+              },
+              {
+                "case": "ifErrorRefRange",
+                "cell": "O9",
+                "actual": null,
+                "expected": 5
+              },
+              {
+                "case": "ifnaOtherError",
+                "cell": "S9",
+                "actual": null,
+                "expected": "#DIV/0!"
+              },
+              {
+                "case": "ifnaOtherError",
+                "cell": "T9",
+                "actual": null,
+                "expected": 1
+              },
+              {
+                "case": "ifRefIdentity",
+                "cell": "N13",
+                "actual": true,
+                "expected": false
+              },
+              {
+                "case": "ifRefWithError",
+                "cell": "T13",
+                "actual": null,
+                "expected": 20
+              },
+              {
+                "case": "ifRefWithError",
+                "cell": "T14",
+                "actual": null,
+                "expected": 10
+              },
+              {
+                "case": "ifRefWithError",
+                "cell": "T15",
+                "actual": null,
+                "expected": "x"
+              },
+              {
+                "case": "dateTwoNumbers",
+                "cell": "X14",
+                "actual": "#VALUE!",
+                "expected": 59
+              },
+              {
+                "case": "dateNumberEmpty",
+                "cell": "D19",
+                "actual": "#VALUE!",
+                "expected": 59
+              },
+              {
+                "case": "dateEmptyNumber",
+                "cell": "I19",
+                "actual": "#VALUE!",
+                "expected": 59
+              },
+              {
+                "case": "dateNumBlankThree",
+                "cell": "D24",
+                "actual": "#VALUE!",
+                "expected": 59
+              },
+              {
+                "case": "dateNumBlankThree",
+                "cell": "D25",
+                "actual": "#VALUE!",
+                "expected": 91
+              },
+              {
+                "case": "dateNumBlankRow",
+                "cell": "J23",
+                "actual": "#VALUE!",
+                "expected": 59
+              },
+              {
+                "case": "dateBlankNumRow",
+                "cell": "O23",
+                "actual": "#VALUE!",
+                "expected": 59
+              },
+              {
+                "case": "ifsCaseErr",
+                "cell": "X24",
+                "actual": null,
+                "expected": "#N/A"
+              },
+              {
+                "case": "ifsCaseErr",
+                "cell": "Y24",
+                "actual": null,
+                "expected": "#N/A"
+              },
+              {
+                "case": "switchCaseErr",
+                "cell": "D28",
+                "actual": 5.0,
+                "expected": "#N/A"
+              },
+              {
+                "case": "switchCaseErr",
+                "cell": "D29",
+                "actual": null,
+                "expected": "#N/A"
+              },
+              {
+                "case": "ifNoCatchRefWithError",
+                "cell": "J28",
+                "actual": null,
+                "expected": 20
+              },
+              {
+                "case": "ifNoCatchRefWithError",
+                "cell": "J29",
+                "actual": null,
+                "expected": 10
+              },
+              {
+                "case": "ifNoCatchRefWithError",
+                "cell": "J30",
+                "actual": null,
+                "expected": "x"
+              }
+            ],
+            "candidate": []
+          }
+        },
+        {
+          "formulas": 23,
+          "cellDifferencesFromExcel": {
+            "baseline": [
+              {
+                "case": "mapNum2",
+                "cell": "N3",
+                "actual": 5.0,
+                "expected": "#VALUE!"
+              },
+              {
+                "case": "mapFirstScalar",
+                "cell": "X4",
+                "actual": 5.0,
+                "expected": "#N/A"
+              },
+              {
+                "case": "mapSecondCell",
+                "cell": "D9",
+                "actual": 45022.0,
+                "expected": "#N/A"
+              },
+              {
+                "case": "mapMask",
+                "cell": "I9",
+                "actual": 6.0,
+                "expected": "#N/A"
+              },
+              {
+                "case": "dateReplica",
+                "cell": "N9",
+                "actual": "#VALUE!",
+                "expected": 45077
+              },
+              {
+                "case": "dateDifferentFmt",
+                "cell": "T8",
+                "actual": "#VALUE!",
+                "expected": 45107
+              },
+              {
+                "case": "edate",
+                "cell": "X9",
+                "actual": "#VALUE!",
+                "expected": 45061
+              },
+              {
+                "case": "quotient",
+                "cell": "D14",
+                "actual": "#VALUE!",
+                "expected": 22500
+              },
+              {
+                "case": "quotientSpecific",
+                "cell": "I14",
+                "actual": "#VALUE!",
+                "expected": 0
+              },
+              {
+                "case": "delta",
+                "cell": "N14",
+                "actual": "#VALUE!",
+                "expected": 0
+              },
+              {
+                "case": "yearfrac",
+                "cell": "X14",
+                "actual": "#VALUE!",
+                "expected": 0.08055555555555556
+              },
+              {
+                "case": "workday",
+                "cell": "D19",
+                "actual": "#VALUE!",
+                "expected": 45001
+              },
+              {
+                "case": "eomonthReversed",
+                "cell": "I19",
+                "actual": "#VALUE!",
+                "expected": 1414676
+              },
+              {
+                "case": "plainRef",
+                "cell": "N18",
+                "actual": true,
+                "expected": false
+              },
+              {
+                "case": "scalarRef",
+                "cell": "S18",
+                "actual": true,
+                "expected": false
+              },
+              {
+                "case": "ifNoCatchref",
+                "cell": "Y18",
+                "actual": null,
+                "expected": 45000
+              },
+              {
+                "case": "ifNoCatchref",
+                "cell": "Y19",
+                "actual": null,
+                "expected": 45020
+              },
+              {
+                "case": "ifNoCatchref",
+                "cell": "Y20",
+                "actual": null,
+                "expected": 45040
+              },
+              {
+                "case": "ifsOddcase",
+                "cell": "D24",
+                "actual": null,
+                "expected": 9
+              },
+              {
+                "case": "ifsOddcase",
+                "cell": "E24",
+                "actual": null,
+                "expected": 9
+              },
+              {
+                "case": "switchScalarArraycase",
+                "cell": "I24",
+                "actual": null,
+                "expected": 4
+              },
+              {
+                "case": "switchScalarArraycase",
+                "cell": "J24",
+                "actual": null,
+                "expected": 5
+              },
+              {
+                "case": "ifErrorShapes",
+                "cell": "O23",
+                "actual": null,
+                "expected": 1
+              },
+              {
+                "case": "ifErrorShapes",
+                "cell": "N24",
+                "actual": 8.0,
+                "expected": 10
+              },
+              {
+                "case": "ifErrorShapes",
+                "cell": "O24",
+                "actual": null,
+                "expected": 11
+              },
+              {
+                "case": "ifErrorShapes",
+                "cell": "O25",
+                "actual": null,
+                "expected": 3
+              }
+            ],
+            "candidate": []
+          }
+        },
+        {
+          "formulas": 18,
+          "cellDifferencesFromExcel": {
+            "baseline": [
+              {
+                "case": "mapComputed",
+                "cell": "D3",
+                "actual": 7.0,
+                "expected": "#VALUE!"
+              },
+              {
+                "case": "mapComputed",
+                "cell": "D4",
+                "actual": 9.0,
+                "expected": null
+              },
+              {
+                "case": "map1x1Array",
+                "cell": "I4",
+                "actual": 9.0,
+                "expected": "#N/A"
+              },
+              {
+                "case": "mapSequence1",
+                "cell": "N4",
+                "actual": 5.0,
+                "expected": "#N/A"
+              },
+              {
+                "case": "mapError",
+                "cell": "S3",
+                "actual": 5.0,
+                "expected": "#VALUE!"
+              },
+              {
+                "case": "mapError",
+                "cell": "S4",
+                "actual": 5.0,
+                "expected": null
+              },
+              {
+                "case": "mapFirstError",
+                "cell": "X3",
+                "actual": 5.0,
+                "expected": "#N/A"
+              },
+              {
+                "case": "ifsSkippedArray",
+                "cell": "I9",
+                "actual": null,
+                "expected": 5
+              },
+              {
+                "case": "switchErrScalar",
+                "cell": "S8",
+                "actual": 5.0,
+                "expected": "#N/A"
+              },
+              {
+                "case": "switchSkippedWide",
+                "cell": "Y8",
+                "actual": null,
+                "expected": 5
+              },
+              {
+                "case": "switchSkippedWide",
+                "cell": "Z8",
+                "actual": null,
+                "expected": 5
+              },
+              {
+                "case": "switchSkippedWide",
+                "cell": "X9",
+                "actual": null,
+                "expected": 5
+              },
+              {
+                "case": "switchSkippedWide",
+                "cell": "Y9",
+                "actual": null,
+                "expected": 5
+              },
+              {
+                "case": "switchSkippedWide",
+                "cell": "Z9",
+                "actual": null,
+                "expected": 5
+              },
+              {
+                "case": "ifErrorScalarClean",
+                "cell": "D13",
+                "actual": true,
+                "expected": false
+              },
+              {
+                "case": "iferrorPad",
+                "cell": "J18",
+                "actual": null,
+                "expected": 1
+              },
+              {
+                "case": "iferrorPad",
+                "cell": "J19",
+                "actual": null,
+                "expected": 2
+              },
+              {
+                "case": "iferrorPad",
+                "cell": "I20",
+                "actual": null,
+                "expected": 5
+              },
+              {
+                "case": "iferrorPad",
+                "cell": "J20",
+                "actual": null,
+                "expected": 6
+              },
+              {
+                "case": "ifnaPad",
+                "cell": "O18",
+                "actual": null,
+                "expected": 1
+              },
+              {
+                "case": "ifnaPad",
+                "cell": "O19",
+                "actual": null,
+                "expected": 2
+              },
+              {
+                "case": "ifnaPad",
+                "cell": "N20",
+                "actual": null,
+                "expected": 5
+              },
+              {
+                "case": "ifnaPad",
+                "cell": "O20",
+                "actual": null,
+                "expected": 6
+              }
+            ],
+            "candidate": []
+          }
+        }
+      ],
+      "native": {
+        "desktopSha256": "6f79bba62603b6128b4c4c040ff7e9dc4d6d3839da6824b88c3b3d100b2e702a",
+        "snapshots": 5,
+        "cellsPerSnapshot": 204,
+        "nativeEditUndoRedoReopen": true,
+        "sourceUnchanged": true,
+        "savedFormulaRanges": {
+          "D1": "D1:G3",
+          "I1": "I1:K3",
+          "M1": "M1:O2",
+          "Q1": "Q1:R3",
+          "D6": "D6:F9",
+          "H6": "H6:J8",
+          "L6": "L6:M7",
+          "O6": "O6:P8",
+          "S6": "S6:T8",
+          "D11": "D11:D12",
+          "H11": "H11:I12",
+          "L11": null
+        }
+      },
+      "benchmark": {
+        "rows": 4096,
+        "columns": 8,
+        "edits": [
+          1,
+          2,
+          7,
+          5,
+          200,
+          19
+        ],
+        "expected": [
+          671989760,
+          146772,
+          57350
+        ],
+        "milliseconds": {
+          "baseline": {
+            "samples": [
+              37.3074,
+              37.8586,
+              37.454,
+              38.1013,
+              38.3798,
+              37.8398,
+              37.2522,
+              37.1143,
+              36.8843,
+              37.4115,
+              38.5379,
+              37.1724,
+              36.5892,
+              37.023,
+              36.7864,
+              37.8407,
+              37.4246,
+              37.5185,
+              36.9408,
+              37.0234,
+              36.88,
+              38.1962,
+              37.3017,
+              37.5866,
+              37.5253,
+              37.6651,
+              37.575,
+              37.6515,
+              37.255,
+              37.2868,
+              37.5744,
+              36.7394,
+              37.6397,
+              37.1161,
+              36.8975,
+              37.7545,
+              38.2422,
+              38.2525,
+              37.5343,
+              36.4515
+            ],
+            "p50": 37.4393,
+            "p95": 38.2525
+          },
+          "candidate": {
+            "samples": [
+              37.1402,
+              37.1017,
+              38.0231,
+              37.2955,
+              37.855,
+              36.8892,
+              36.6551,
+              37.0804,
+              37.1612,
+              37.1663,
+              37.7049,
+              36.7485,
+              37.1296,
+              37.5212,
+              36.7982,
+              37.5492,
+              37.5245,
+              37.167,
+              36.6423,
+              37.167,
+              36.6954,
+              37.4999,
+              37.0763,
+              36.7906,
+              36.5886,
+              36.4933,
+              37.2235,
+              37.997,
+              36.7596,
+              36.1564,
+              37.6967,
+              36.6745,
+              36.4513,
+              36.746,
+              37.766,
+              37.3738,
+              37.1749,
+              39.193,
+              36.3288,
+              36.5124
+            ],
+            "p50": 37.1349,
+            "p95": 37.997
+          }
+        }
+      },
+      "workbooks": {
+        "previousVersionReopenedCandidateCopies": 7,
+        "formulaExpectationsCheckedInBothVersions": 35,
+        "iterationCases": 4,
+        "authorizedBusinessWorkbooks": [
+          {
+            "originalFormulaCells": 0,
+            "derivedFormulaCells": 916,
+            "matchedByOldAndNew": {
+              "original": [
+                0,
+                0
+              ],
+              "derived": [
+                916,
+                916
+              ]
+            }
+          },
+          {
+            "originalFormulaCells": 0,
+            "derivedFormulaCells": 16,
+            "matchedByOldAndNew": {
+              "original": [
+                0,
+                0
+              ],
+              "derived": [
+                16,
+                16
+              ]
+            }
+          }
+        ]
+      },
+      "repeatBenchmark": {
+        "rows": 4096,
+        "columns": 8,
+        "edits": [
+          1,
+          2,
+          7,
+          5,
+          200,
+          19
+        ],
+        "expected": [
+          671989760,
+          146772,
+          57350
+        ],
+        "milliseconds": {
+          "baseline": {
+            "samples": [
+              35.747,
+              35.2373,
+              35.412,
+              35.9962,
+              35.443,
+              37.0265,
+              35.508,
+              35.9357,
+              35.4608,
+              35.2523,
+              34.8708,
+              36.0375,
+              35.7737,
+              35.237,
+              36.5646,
+              36.4263,
+              35.3094,
+              35.4528,
+              36.447,
+              36.105,
+              35.9759,
+              36.9979,
+              35.4942,
+              35.8358,
+              35.5451,
+              37.8098,
+              35.6062,
+              35.6624,
+              35.8346,
+              35.777,
+              35.205,
+              36.4001,
+              34.9632,
+              35.2781,
+              35.9967,
+              35.6617,
+              35.6168,
+              35.5725,
+              35.9629,
+              35.3727,
+              35.7873,
+              35.6971,
+              34.9973,
+              35.6513,
+              35.355,
+              35.6815,
+              34.9368,
+              35.554,
+              35.6052,
+              35.8027,
+              35.1707,
+              36.0942,
+              35.8795,
+              36.0068,
+              35.9194,
+              36.0481,
+              36.6774,
+              36.4214,
+              35.6743,
+              36.3384,
+              36.103,
+              35.7329,
+              35.9639,
+              35.3974,
+              37.397,
+              35.4985,
+              35.311,
+              37.1054,
+              36.011,
+              36.8411,
+              35.6212,
+              36.5257,
+              35.949,
+              36.8376,
+              36.3039,
+              36.6405,
+              35.8272,
+              36.1733,
+              35.5853,
+              35.0295,
+              35.6205,
+              35.6409,
+              35.9382,
+              35.7368,
+              35.886,
+              35.2699,
+              35.9562,
+              35.1305,
+              38.3813,
+              36.4831,
+              35.7521,
+              36.0827,
+              35.612,
+              36.1831,
+              36.6679,
+              36.0285,
+              36.9851,
+              36.1919,
+              36.702,
+              36.519,
+              36.2403,
+              36.5647,
+              36.1535,
+              35.8741,
+              36.4838,
+              36.1864,
+              36.6505,
+              36.0696,
+              35.8158,
+              35.8142,
+              35.8479,
+              35.583,
+              36.1652,
+              36.201,
+              35.8099,
+              35.583,
+              35.7925,
+              35.8537,
+              35.2706,
+              36.059
+            ],
+            "p50": 35.84185,
+            "p95": 36.9851
+          },
+          "candidate": {
+            "samples": [
+              35.6171,
+              34.5378,
+              36.4105,
+              35.227,
+              35.6503,
+              35.5792,
+              35.6067,
+              35.4402,
+              35.9072,
+              35.1995,
+              34.7897,
+              37.2165,
+              36.5385,
+              35.5644,
+              37.2361,
+              34.8385,
+              34.9713,
+              35.206,
+              36.3095,
+              35.7661,
+              34.5626,
+              35.3045,
+              35.6659,
+              34.8764,
+              35.0626,
+              35.6412,
+              34.9625,
+              35.0647,
+              35.1739,
+              35.9312,
+              35.189,
+              35.1235,
+              36.0843,
+              35.6904,
+              35.3205,
+              35.6977,
+              36.3172,
+              34.9686,
+              35.0314,
+              35.6414,
+              36.7413,
+              35.4813,
+              35.1439,
+              35.8972,
+              35.0857,
+              36.4779,
+              35.8086,
+              37.1478,
+              35.491,
+              35.2797,
+              35.1166,
+              35.5633,
+              35.6374,
+              35.8982,
+              35.2458,
+              35.4345,
+              35.136,
+              36.2875,
+              35.4887,
+              35.6335,
+              36.0352,
+              36.1845,
+              35.7189,
+              34.5761,
+              35.3189,
+              35.4746,
+              35.4625,
+              35.0112,
+              35.4028,
+              35.5153,
+              36.1822,
+              35.6295,
+              35.2807,
+              37.1133,
+              35.8836,
+              35.1776,
+              35.3423,
+              34.7682,
+              35.754,
+              35.0439,
+              35.0838,
+              35.686,
+              35.8679,
+              35.2334,
+              35.7172,
+              35.1556,
+              35.3444,
+              35.1526,
+              35.6778,
+              35.7755,
+              36.9492,
+              35.7907,
+              35.9832,
+              36.5119,
+              35.7114,
+              35.076,
+              35.7345,
+              35.3304,
+              36.0823,
+              35.9209,
+              36.0941,
+              35.2969,
+              35.5225,
+              35.0079,
+              35.7127,
+              35.2196,
+              36.2805,
+              35.7631,
+              36.048,
+              36.5064,
+              36.6001,
+              35.5705,
+              36.7261,
+              35.4259,
+              35.7873,
+              34.7609,
+              35.5012,
+              35.0765,
+              35.7769,
+              36.3407
+            ],
+            "p50": 35.57485,
+            "p95": 36.7261
+          }
+        }
+      },
+      "regression": {
+        "desktop": {
+          "exit": 0,
+          "passed": 0,
+          "ignored": 0,
+          "logSha256": "f282eb795a2f202e22e6054fb5e7a0c17dbd56e5dac7484173d7a2fc02937bdc"
+        },
+        "ui": {
+          "exit": 0,
+          "passed": 76,
+          "ignored": 0,
+          "logSha256": "3f03b0b20310eb93b8b898cd6ef704c6070c525a5ca732a3889d4ebf25d150bf"
+        },
+        "joysheet": {
+          "exit": 0,
+          "passed": 1475,
+          "ignored": 1,
+          "logSha256": "1a6d1123c7def5eff963e0c6e7be4ac730516c4c5b3d89b172e6b5ede22f8234"
+        }
+      }
+    },
+    "UOS": {
+      "cliSha256": [
+        "3618e0e216c8e52f8bcdf855a2ce0a901b5c462e193546c34008022895cb28eb",
+        "8651cb52a7efa13af07ddaed4aa5df7a03a7d450db852f3b6231c2f960fbc684"
+      ],
+      "writerReaderPairs": [
+        [
+          "old",
+          "old"
+        ],
+        [
+          "old",
+          "new"
+        ],
+        [
+          "new",
+          "old"
+        ],
+        [
+          "new",
+          "new"
+        ]
+      ],
+      "conditionalCases": [
+        {
+          "formulas": 28,
+          "cellDifferencesFromExcel": {
+            "baseline": [
+              {
+                "case": "mapMissing",
+                "cell": "E3",
+                "actual": 6.0,
+                "expected": "#N/A"
+              },
+              {
+                "case": "mapMissing",
+                "cell": "D4",
+                "actual": 6.0,
+                "expected": "#N/A"
+              },
+              {
+                "case": "mapMissing",
+                "cell": "E4",
+                "actual": 7.0,
+                "expected": "#N/A"
+              },
+              {
+                "case": "mapMissing",
+                "cell": "D5",
+                "actual": 7.0,
+                "expected": "#N/A"
+              },
+              {
+                "case": "mapMissing",
+                "cell": "E5",
+                "actual": 8.0,
+                "expected": "#N/A"
+              },
+              {
+                "case": "mapIgnore",
+                "cell": "J3",
+                "actual": 9.0,
+                "expected": "#N/A"
+              },
+              {
+                "case": "mapIgnore",
+                "cell": "I4",
+                "actual": 9.0,
+                "expected": "#N/A"
+              },
+              {
+                "case": "mapIgnore",
+                "cell": "J4",
+                "actual": 9.0,
+                "expected": "#N/A"
+              },
+              {
+                "case": "mapIgnore",
+                "cell": "I5",
+                "actual": 9.0,
+                "expected": "#N/A"
+              },
+              {
+                "case": "mapIgnore",
+                "cell": "J5",
+                "actual": 9.0,
+                "expected": "#N/A"
+              },
+              {
+                "case": "mapScalar",
+                "cell": "N3",
+                "actual": 4.0,
+                "expected": "#VALUE!"
+              },
+              {
+                "case": "mapScalar",
+                "cell": "N4",
+                "actual": 5.0,
+                "expected": null
+              },
+              {
+                "case": "ifErrorNoCatch",
+                "cell": "X4",
+                "actual": null,
+                "expected": 1
+              },
+              {
+                "case": "ifErrorNoCatch",
+                "cell": "Y4",
+                "actual": null,
+                "expected": 2
+              },
+              {
+                "case": "ifErrorCatch",
+                "cell": "I9",
+                "actual": null,
+                "expected": 8
+              },
+              {
+                "case": "ifErrorCatch",
+                "cell": "J9",
+                "actual": null,
+                "expected": 2
+              },
+              {
+                "case": "ifErrorRefRange",
+                "cell": "O8",
+                "actual": null,
+                "expected": 2
+              },
+              {
+                "case": "ifErrorRefRange",
+                "cell": "O9",
+                "actual": null,
+                "expected": 5
+              },
+              {
+                "case": "ifnaOtherError",
+                "cell": "S9",
+                "actual": null,
+                "expected": "#DIV/0!"
+              },
+              {
+                "case": "ifnaOtherError",
+                "cell": "T9",
+                "actual": null,
+                "expected": 1
+              },
+              {
+                "case": "ifRefIdentity",
+                "cell": "N13",
+                "actual": true,
+                "expected": false
+              },
+              {
+                "case": "ifRefWithError",
+                "cell": "T13",
+                "actual": null,
+                "expected": 20
+              },
+              {
+                "case": "ifRefWithError",
+                "cell": "T14",
+                "actual": null,
+                "expected": 10
+              },
+              {
+                "case": "ifRefWithError",
+                "cell": "T15",
+                "actual": null,
+                "expected": "x"
+              },
+              {
+                "case": "dateTwoNumbers",
+                "cell": "X14",
+                "actual": "#VALUE!",
+                "expected": 59
+              },
+              {
+                "case": "dateNumberEmpty",
+                "cell": "D19",
+                "actual": "#VALUE!",
+                "expected": 59
+              },
+              {
+                "case": "dateEmptyNumber",
+                "cell": "I19",
+                "actual": "#VALUE!",
+                "expected": 59
+              },
+              {
+                "case": "dateNumBlankThree",
+                "cell": "D24",
+                "actual": "#VALUE!",
+                "expected": 59
+              },
+              {
+                "case": "dateNumBlankThree",
+                "cell": "D25",
+                "actual": "#VALUE!",
+                "expected": 91
+              },
+              {
+                "case": "dateNumBlankRow",
+                "cell": "J23",
+                "actual": "#VALUE!",
+                "expected": 59
+              },
+              {
+                "case": "dateBlankNumRow",
+                "cell": "O23",
+                "actual": "#VALUE!",
+                "expected": 59
+              },
+              {
+                "case": "ifsCaseErr",
+                "cell": "X24",
+                "actual": null,
+                "expected": "#N/A"
+              },
+              {
+                "case": "ifsCaseErr",
+                "cell": "Y24",
+                "actual": null,
+                "expected": "#N/A"
+              },
+              {
+                "case": "switchCaseErr",
+                "cell": "D28",
+                "actual": 5.0,
+                "expected": "#N/A"
+              },
+              {
+                "case": "switchCaseErr",
+                "cell": "D29",
+                "actual": null,
+                "expected": "#N/A"
+              },
+              {
+                "case": "ifNoCatchRefWithError",
+                "cell": "J28",
+                "actual": null,
+                "expected": 20
+              },
+              {
+                "case": "ifNoCatchRefWithError",
+                "cell": "J29",
+                "actual": null,
+                "expected": 10
+              },
+              {
+                "case": "ifNoCatchRefWithError",
+                "cell": "J30",
+                "actual": null,
+                "expected": "x"
+              }
+            ],
+            "candidate": []
+          }
+        },
+        {
+          "formulas": 23,
+          "cellDifferencesFromExcel": {
+            "baseline": [
+              {
+                "case": "mapNum2",
+                "cell": "N3",
+                "actual": 5.0,
+                "expected": "#VALUE!"
+              },
+              {
+                "case": "mapFirstScalar",
+                "cell": "X4",
+                "actual": 5.0,
+                "expected": "#N/A"
+              },
+              {
+                "case": "mapSecondCell",
+                "cell": "D9",
+                "actual": 45022.0,
+                "expected": "#N/A"
+              },
+              {
+                "case": "mapMask",
+                "cell": "I9",
+                "actual": 6.0,
+                "expected": "#N/A"
+              },
+              {
+                "case": "dateReplica",
+                "cell": "N9",
+                "actual": "#VALUE!",
+                "expected": 45077
+              },
+              {
+                "case": "dateDifferentFmt",
+                "cell": "T8",
+                "actual": "#VALUE!",
+                "expected": 45107
+              },
+              {
+                "case": "edate",
+                "cell": "X9",
+                "actual": "#VALUE!",
+                "expected": 45061
+              },
+              {
+                "case": "quotient",
+                "cell": "D14",
+                "actual": "#VALUE!",
+                "expected": 22500
+              },
+              {
+                "case": "quotientSpecific",
+                "cell": "I14",
+                "actual": "#VALUE!",
+                "expected": 0
+              },
+              {
+                "case": "delta",
+                "cell": "N14",
+                "actual": "#VALUE!",
+                "expected": 0
+              },
+              {
+                "case": "yearfrac",
+                "cell": "X14",
+                "actual": "#VALUE!",
+                "expected": 0.08055555555555556
+              },
+              {
+                "case": "workday",
+                "cell": "D19",
+                "actual": "#VALUE!",
+                "expected": 45001
+              },
+              {
+                "case": "eomonthReversed",
+                "cell": "I19",
+                "actual": "#VALUE!",
+                "expected": 1414676
+              },
+              {
+                "case": "plainRef",
+                "cell": "N18",
+                "actual": true,
+                "expected": false
+              },
+              {
+                "case": "scalarRef",
+                "cell": "S18",
+                "actual": true,
+                "expected": false
+              },
+              {
+                "case": "ifNoCatchref",
+                "cell": "Y18",
+                "actual": null,
+                "expected": 45000
+              },
+              {
+                "case": "ifNoCatchref",
+                "cell": "Y19",
+                "actual": null,
+                "expected": 45020
+              },
+              {
+                "case": "ifNoCatchref",
+                "cell": "Y20",
+                "actual": null,
+                "expected": 45040
+              },
+              {
+                "case": "ifsOddcase",
+                "cell": "D24",
+                "actual": null,
+                "expected": 9
+              },
+              {
+                "case": "ifsOddcase",
+                "cell": "E24",
+                "actual": null,
+                "expected": 9
+              },
+              {
+                "case": "switchScalarArraycase",
+                "cell": "I24",
+                "actual": null,
+                "expected": 4
+              },
+              {
+                "case": "switchScalarArraycase",
+                "cell": "J24",
+                "actual": null,
+                "expected": 5
+              },
+              {
+                "case": "ifErrorShapes",
+                "cell": "O23",
+                "actual": null,
+                "expected": 1
+              },
+              {
+                "case": "ifErrorShapes",
+                "cell": "N24",
+                "actual": 8.0,
+                "expected": 10
+              },
+              {
+                "case": "ifErrorShapes",
+                "cell": "O24",
+                "actual": null,
+                "expected": 11
+              },
+              {
+                "case": "ifErrorShapes",
+                "cell": "O25",
+                "actual": null,
+                "expected": 3
+              }
+            ],
+            "candidate": []
+          }
+        },
+        {
+          "formulas": 18,
+          "cellDifferencesFromExcel": {
+            "baseline": [
+              {
+                "case": "mapComputed",
+                "cell": "D3",
+                "actual": 7.0,
+                "expected": "#VALUE!"
+              },
+              {
+                "case": "mapComputed",
+                "cell": "D4",
+                "actual": 9.0,
+                "expected": null
+              },
+              {
+                "case": "map1x1Array",
+                "cell": "I4",
+                "actual": 9.0,
+                "expected": "#N/A"
+              },
+              {
+                "case": "mapSequence1",
+                "cell": "N4",
+                "actual": 5.0,
+                "expected": "#N/A"
+              },
+              {
+                "case": "mapError",
+                "cell": "S3",
+                "actual": 5.0,
+                "expected": "#VALUE!"
+              },
+              {
+                "case": "mapError",
+                "cell": "S4",
+                "actual": 5.0,
+                "expected": null
+              },
+              {
+                "case": "mapFirstError",
+                "cell": "X3",
+                "actual": 5.0,
+                "expected": "#N/A"
+              },
+              {
+                "case": "ifsSkippedArray",
+                "cell": "I9",
+                "actual": null,
+                "expected": 5
+              },
+              {
+                "case": "switchErrScalar",
+                "cell": "S8",
+                "actual": 5.0,
+                "expected": "#N/A"
+              },
+              {
+                "case": "switchSkippedWide",
+                "cell": "Y8",
+                "actual": null,
+                "expected": 5
+              },
+              {
+                "case": "switchSkippedWide",
+                "cell": "Z8",
+                "actual": null,
+                "expected": 5
+              },
+              {
+                "case": "switchSkippedWide",
+                "cell": "X9",
+                "actual": null,
+                "expected": 5
+              },
+              {
+                "case": "switchSkippedWide",
+                "cell": "Y9",
+                "actual": null,
+                "expected": 5
+              },
+              {
+                "case": "switchSkippedWide",
+                "cell": "Z9",
+                "actual": null,
+                "expected": 5
+              },
+              {
+                "case": "ifErrorScalarClean",
+                "cell": "D13",
+                "actual": true,
+                "expected": false
+              },
+              {
+                "case": "iferrorPad",
+                "cell": "J18",
+                "actual": null,
+                "expected": 1
+              },
+              {
+                "case": "iferrorPad",
+                "cell": "J19",
+                "actual": null,
+                "expected": 2
+              },
+              {
+                "case": "iferrorPad",
+                "cell": "I20",
+                "actual": null,
+                "expected": 5
+              },
+              {
+                "case": "iferrorPad",
+                "cell": "J20",
+                "actual": null,
+                "expected": 6
+              },
+              {
+                "case": "ifnaPad",
+                "cell": "O18",
+                "actual": null,
+                "expected": 1
+              },
+              {
+                "case": "ifnaPad",
+                "cell": "O19",
+                "actual": null,
+                "expected": 2
+              },
+              {
+                "case": "ifnaPad",
+                "cell": "N20",
+                "actual": null,
+                "expected": 5
+              },
+              {
+                "case": "ifnaPad",
+                "cell": "O20",
+                "actual": null,
+                "expected": 6
+              }
+            ],
+            "candidate": []
+          }
+        }
+      ],
+      "native": {
+        "desktopSha256": "e52ef1895d2f5d678f2664fac9cc64b4535ab4e0a4f4c3a08653ea3e4ac8178c",
+        "snapshots": 5,
+        "cellsPerSnapshot": 204,
+        "nativeEditUndoRedoReopen": true,
+        "sourceUnchanged": true,
+        "savedFormulaRanges": {
+          "D1": "D1:G3",
+          "I1": "I1:K3",
+          "M1": "M1:O2",
+          "Q1": "Q1:R3",
+          "D6": "D6:F9",
+          "H6": "H6:J8",
+          "L6": "L6:M7",
+          "O6": "O6:P8",
+          "S6": "S6:T8",
+          "D11": "D11:D12",
+          "H11": "H11:I12",
+          "L11": null
+        }
+      },
+      "benchmark": {
+        "rows": 4096,
+        "columns": 8,
+        "edits": [
+          1,
+          2,
+          7,
+          5,
+          200,
+          19
+        ],
+        "expected": [
+          671989760,
+          146772,
+          57350
+        ],
+        "milliseconds": {
+          "baseline": {
+            "samples": [
+              50.7635,
+              44.3676,
+              48.1108,
+              38.3687,
+              51.7368,
+              38.1492,
+              40.6045,
+              46.6034,
+              38.0485,
+              39.2676,
+              41.8711,
+              38.4134,
+              39.4305,
+              36.2813,
+              40.6533,
+              53.6799,
+              40.587,
+              37.5806,
+              42.8387,
+              37.7217,
+              46.0274,
+              53.521,
+              42.1434,
+              42.9395,
+              37.9616,
+              39.1584,
+              51.5747,
+              44.8423,
+              36.8184,
+              44.4679,
+              56.4339,
+              36.3052,
+              53.9636,
+              39.5241,
+              35.8201,
+              35.9984,
+              53.6358,
+              44.5325,
+              54.0048,
+              39.7715
+            ],
+            "p50": 41.2622,
+            "p95": 53.9636
+          },
+          "candidate": {
+            "samples": [
+              39.6978,
+              52.8087,
+              42.562,
+              52.5695,
+              39.2248,
+              55.937,
+              54.0375,
+              38.4577,
+              37.6904,
+              51.8287,
+              59.0282,
+              38.0166,
+              50.8889,
+              42.902,
+              43.104,
+              56.8862,
+              41.0854,
+              44.0733,
+              37.7053,
+              58.898,
+              40.3888,
+              43.0237,
+              41.6161,
+              38.1341,
+              49.1599,
+              48.396,
+              54.9009,
+              56.5391,
+              41.252,
+              53.8,
+              39.1613,
+              44.3216,
+              48.1899,
+              54.4092,
+              43.3374,
+              53.8112,
+              54.0767,
+              51.4024,
+              50.2448,
+              44.5398
+            ],
+            "p50": 46.364850000000004,
+            "p95": 56.8862
+          }
+        }
+      },
+      "workbooks": {
+        "previousVersionReopenedCandidateCopies": 7,
+        "formulaExpectationsCheckedInBothVersions": 35,
+        "iterationCases": 4,
+        "authorizedBusinessWorkbooks": [
+          {
+            "originalFormulaCells": 0,
+            "derivedFormulaCells": 916,
+            "matchedByOldAndNew": {
+              "original": [
+                0,
+                0
+              ],
+              "derived": [
+                916,
+                916
+              ]
+            }
+          },
+          {
+            "originalFormulaCells": 0,
+            "derivedFormulaCells": 16,
+            "matchedByOldAndNew": {
+              "original": [
+                0,
+                0
+              ],
+              "derived": [
+                16,
+                16
+              ]
+            }
+          }
+        ]
+      },
+      "repeatBenchmark": {
+        "rows": 4096,
+        "columns": 8,
+        "edits": [
+          1,
+          2,
+          7,
+          5,
+          200,
+          19
+        ],
+        "expected": [
+          671989760,
+          146772,
+          57350
+        ],
+        "milliseconds": {
+          "baseline": {
+            "samples": [
+              41.3066,
+              44.4238,
+              36.5151,
+              37.9342,
+              52.8007,
+              36.5892,
+              38.2303,
+              39.899,
+              48.8609,
+              48.1571,
+              38.3651,
+              40.7162,
+              41.5385,
+              40.9285,
+              37.3124,
+              53.7451,
+              44.8001,
+              44.3244,
+              46.6714,
+              39.0953,
+              48.7278,
+              37.2964,
+              39.3228,
+              46.6171,
+              44.1689,
+              41.3942,
+              39.1911,
+              54.8631,
+              53.8963,
+              42.0263,
+              43.1643,
+              38.762,
+              40.0752,
+              38.0003,
+              39.8972,
+              49.0595,
+              43.1377,
+              38.0334,
+              43.5584,
+              46.5936,
+              42.6893,
+              49.0192,
+              46.8976,
+              39.905,
+              38.188,
+              53.6954,
+              38.8427,
+              44.0158,
+              37.645,
+              45.9508,
+              39.8977,
+              36.73,
+              40.2624,
+              39.6359,
+              44.0033,
+              39.7707,
+              37.4296,
+              42.5527,
+              48.1896,
+              40.2483,
+              40.1414,
+              37.7828,
+              45.1867,
+              45.1024,
+              39.5789,
+              37.4306,
+              40.6926,
+              52.7966,
+              42.5435,
+              46.5835,
+              45.1169,
+              42.6036,
+              48.1229,
+              44.0703,
+              42.9895,
+              39.2104,
+              39.4604,
+              43.8963,
+              46.2175,
+              39.398,
+              38.7591,
+              40.6602,
+              39.2028,
+              39.3073,
+              40.4983,
+              40.9227,
+              39.0511,
+              39.9275,
+              40.6691,
+              43.1186,
+              39.5565,
+              38.6728,
+              40.7731,
+              40.4949,
+              36.8423,
+              41.1594,
+              42.4326,
+              40.3095,
+              36.8938,
+              39.7119,
+              39.2101,
+              37.4043,
+              39.5693,
+              42.7188,
+              41.3281,
+              40.2994,
+              42.5404,
+              44.6413,
+              45.0347,
+              42.5495,
+              48.1566,
+              41.0478,
+              42.3103,
+              39.1689,
+              35.6758,
+              41.9,
+              49.2685,
+              44.0339,
+              39.1029,
+              44.5123
+            ],
+            "p50": 40.9256,
+            "p95": 49.2685
+          },
+          "candidate": {
+            "samples": [
+              36.7993,
+              41.1157,
+              41.4434,
+              39.7849,
+              47.8811,
+              41.8397,
+              51.2874,
+              43.3999,
+              44.685,
+              36.161,
+              43.5144,
+              40.1533,
+              45.7819,
+              38.8242,
+              42.2312,
+              41.0589,
+              37.9617,
+              38.5441,
+              40.3598,
+              41.0218,
+              43.0937,
+              36.7927,
+              40.0176,
+              40.4138,
+              46.0577,
+              38.491,
+              47.2576,
+              45.5997,
+              42.7805,
+              37.5021,
+              52.3657,
+              43.3959,
+              39.5067,
+              46.7244,
+              43.21,
+              40.2138,
+              43.8454,
+              41.8284,
+              39.5159,
+              36.7989,
+              40.5766,
+              40.1666,
+              39.1475,
+              49.0991,
+              42.2603,
+              41.7635,
+              39.1691,
+              38.2162,
+              40.4382,
+              40.7937,
+              40.708,
+              37.4692,
+              39.0153,
+              37.2805,
+              38.7215,
+              45.8427,
+              39.9261,
+              36.3696,
+              47.8803,
+              38.8663,
+              38.5941,
+              39.1027,
+              43.3486,
+              38.4685,
+              37.6726,
+              40.1788,
+              42.9568,
+              54.3024,
+              38.3983,
+              40.163,
+              55.8873,
+              45.3246,
+              43.6529,
+              40.4385,
+              40.4563,
+              40.9736,
+              39.2213,
+              39.6945,
+              45.7506,
+              51.4687,
+              41.1395,
+              44.4076,
+              38.3643,
+              41.1175,
+              40.9809,
+              41.3251,
+              39.7306,
+              43.9367,
+              38.9256,
+              42.7881,
+              37.3272,
+              44.1111,
+              37.5087,
+              39.3105,
+              38.4873,
+              42.4302,
+              40.4085,
+              37.5404,
+              38.5523,
+              42.0967,
+              38.2794,
+              38.7305,
+              38.1443,
+              48.8139,
+              41.2704,
+              39.6146,
+              43.3771,
+              39.5458,
+              41.6284,
+              37.9584,
+              38.8632,
+              38.9935,
+              39.9717,
+              40.4847,
+              39.3514,
+              41.9036,
+              39.342,
+              49.3197,
+              50.8583,
+              37.3575
+            ],
+            "p50": 40.43835,
+            "p95": 49.3197
+          }
+        }
+      },
+      "regression": {
+        "desktop": {
+          "exit": 0,
+          "passed": 0,
+          "ignored": 0,
+          "logSha256": "aee1348067acc2410dfafa8c4b31079f567ff95287d8fd406e2009dac9e27c0a"
+        },
+        "ui": {
+          "exit": 0,
+          "passed": 80,
+          "ignored": 0,
+          "logSha256": "bbe8ab515cd285003fbe98fecbd667d5dc957132f1b4a9527dcd98dce20af7b5"
+        },
+        "joysheet": {
+          "exit": 0,
+          "passed": 1475,
+          "ignored": 1,
+          "logSha256": "82f37c1ac137b3cc8927a4e22ccfcf51548c72fcd4cc77f2bc67c5db1bfffc65"
+        }
+      }
+    }
+  }
+}

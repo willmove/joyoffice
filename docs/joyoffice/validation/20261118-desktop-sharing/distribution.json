@@ -4,7 +4,7 @@
       "target": "aarch64-apple-darwin",
       "packages": 512,
       "sourceFiles": 1058,
-      "spdxSha256": "6926c91a66a364ac5e4a13944457bc1f2e1ed09feacae64367b31ee22dcaa8e9",
+      "spdxSha256": "3d7983962abe960d60056a8e43be0f17a4445d97a38634b724eb3160c6031434",
       "missingLicenseTexts": [],
       "sharedCrates": [
         "joyoffice-cfb",
@@ -25,7 +25,7 @@
       "target": "aarch64-apple-darwin",
       "packages": 473,
       "sourceFiles": 513,
-      "spdxSha256": "33c3963961c380f7bb705bfef2c1b3c2667918e22b2a992fa9892725b2f19218",
+      "spdxSha256": "0c278dc21a786ce3faf36db5c5ec5aa7e5f067dcc8bc6991ae714bf884b45304",
       "missingLicenseTexts": [],
       "sharedCrates": [
         "joyoffice-drawingml",
@@ -42,8 +42,8 @@
     "joysheet": {
       "target": "aarch64-apple-darwin",
       "packages": 453,
-      "sourceFiles": 1177,
-      "spdxSha256": "9653885f5a5bfa607b950f2a0f28049b1145c132e64a94a503b645fb3c6ce90a",
+      "sourceFiles": 1181,
+      "spdxSha256": "aac289686939d68700c526466c2c9abafe936c198432dcc6f7cd908119644c22",
       "missingLicenseTexts": [],
       "sharedCrates": [
         "joyoffice-cfb",
@@ -61,7 +61,7 @@
       "target": "x86_64-unknown-linux-gnu",
       "packages": 601,
       "sourceFiles": 1063,
-      "spdxSha256": "30a0ca7ffdeeb0cae051b8d4031363fe4dd3186b9cb618ed8578e9b98bec737c",
+      "spdxSha256": "d97e3b939242cf0c3fb05ba6ca4414d3e90c65fcb7ebe8e0d22edbd5c2ead19e",
       "missingLicenseTexts": [],
       "sharedCrates": [
         "joyoffice-cfb",
@@ -82,7 +82,7 @@
       "target": "x86_64-unknown-linux-gnu",
       "packages": 565,
       "sourceFiles": 519,
-      "spdxSha256": "ab4c4e67893aa8408150d46bad6acd257e5670016faa2182717549e0ef69d150",
+      "spdxSha256": "5db09cec974c491cc2dd7ed1bdc53aab4b2800369a6a4ad0eec96f23d59c0304",
       "missingLicenseTexts": [],
       "sharedCrates": [
         "joyoffice-drawingml",
@@ -99,8 +99,8 @@
     "joysheet": {
       "target": "x86_64-unknown-linux-gnu",
       "packages": 556,
-      "sourceFiles": 1175,
-      "spdxSha256": "4ef8f57e4d2acd89446fa47b106bbfd929d93b97b95bba1251b535bd39e4ea80",
+      "sourceFiles": 1179,
+      "spdxSha256": "f40b78e831f92b9dd941bac61c12a6dc7aa5a2a8f0c5c6e4b70dbcf4d129bb99",
       "missingLicenseTexts": [],
       "sharedCrates": [
         "joyoffice-cfb",

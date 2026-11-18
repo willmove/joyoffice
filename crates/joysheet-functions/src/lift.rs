@@ -1,7 +1,7 @@
 //! Automatic array lifting: a function given an array where it expects a scalar is applied to
 //! each element, broadcasting single rows/columns like Excel's dynamic arrays.
 
-use joysheet_core::{Array, CellError, Value};
+use joysheet_core::{Array, CellError, Value, broadcast::dimensions};
 
 use crate::util::MAX_CELLS;
 use crate::{Arg, Ctx, FnSpec};
@@ -43,8 +43,8 @@ pub(crate) fn value_args(name: &str) -> &'static [bool] {
     VALUE_ARGS.iter().find(|(names, _)| names.split_ascii_whitespace().any(|n| n == name)).map_or(&[], |(_, mask)| mask)
 }
 
-/// A reference to more than one cell at a value parameter becomes a scalar `#VALUE!`, so it adds
-/// no shape: `EOMONTH(A1:A3, {1;2})` is a 2x1 array of `#VALUE!`, as in Excel.
+/// A multi-cell reference at a value parameter contributes no shape and yields #VALUE!
+/// at the anchor. Other arguments can still determine the result dimensions.
 fn reject_multi_cell_refs(spec: &FnSpec, args: &[Arg]) -> Option<Vec<Arg>> {
     let multi = |i: usize, a: &Arg| a.from_ref && spec.is_value_arg(i) && matches!(&a.value, Value::Array(arr) if arr.data.len() > 1);
     if !args.iter().enumerate().any(|(i, a)| multi(i, a)) {
@@ -60,39 +60,47 @@ fn reject_multi_cell_refs(spec: &FnSpec, args: &[Arg]) -> Option<Vec<Arg>> {
 
 pub(crate) fn call_lifted(spec: &FnSpec, args: &[Arg], ctx: &mut dyn Ctx) -> Value {
     let rejected = if spec.value_args.is_empty() { None } else { reject_multi_cell_refs(spec, args) };
-    let args = rejected.as_deref().unwrap_or(args);
-    let mut rows = 0usize;
-    let mut cols = 0usize;
-    let mut any = false;
-    for (i, a) in args.iter().enumerate() {
-        if spec.is_scalar_arg(i)
-            && let Value::Array(arr) = &a.value
-        {
-            any = true;
-            rows = rows.max(arr.rows);
-            cols = cols.max(arr.cols);
-        }
-    }
-    if !any {
+    let original = args;
+    let args = rejected.as_deref().unwrap_or(original);
+    let drivers: Vec<_> = args
+        .iter()
+        .enumerate()
+        .filter_map(|(i, arg)| match &arg.value {
+            Value::Array(array) if spec.is_scalar_arg(i) => Some((i, array.as_ref())),
+            _ => None,
+        })
+        .collect();
+    if drivers.is_empty() {
         return (spec.imp)(args, ctx);
     }
-    if rows.saturating_mul(cols) > MAX_CELLS {
-        return Value::Error(CellError::Num);
-    }
-    let mut cell_args: Vec<Arg> = args.to_vec();
-    let mut data = Vec::with_capacity(rows * cols);
+    let Some((rows, cols, count)) = dimensions(drivers.iter().map(|(_, a)| (a.rows, a.cols)), MAX_CELLS) else { return Value::Error(CellError::Num) };
+    let mut cell_args = args.to_vec();
+    let mut input_rows = Vec::with_capacity(drivers.len());
+    let mut data = Vec::with_capacity(count);
     for r in 0..rows {
+        input_rows.clear();
+        input_rows.extend(drivers.iter().map(|&(i, arr)| (i, arr.broadcast_row(r))));
         for c in 0..cols {
-            for (i, a) in args.iter().enumerate() {
-                if spec.is_scalar_arg(i)
-                    && let Value::Array(arr) = &a.value
-                    && let Some(slot) = cell_args.get_mut(i)
-                {
-                    let v = arr.get_broadcast(r, c);
-                    slot.value = if let Value::Array(inner) = &v { inner.data.first().cloned().unwrap_or(Value::Empty) } else { v };
-                }
+            for &(i, row) in &input_rows {
+                cell_args[i].value = match row.cell(c) {
+                    Value::Array(inner) => inner.data.first().cloned().unwrap_or(Value::Empty),
+                    v => v.clone(),
+                };
             }
             let out = (spec.imp)(&cell_args, ctx);
+            // For these functions Excel rejects a multi-cell value reference in the anchor,
+            // then uses its top-left value in cells lifted by another argument.
+            if r == 0 && c == 0 && rejected.is_some() && matches!(spec.name, "EDATE" | "EOMONTH" | "WORKDAY" | "YEARFRAC" | "DELTA" | "QUOTIENT") {
+                for (i, arg) in original.iter().enumerate() {
+                    if arg.from_ref
+                        && spec.is_value_arg(i)
+                        && let Value::Array(arr) = &arg.value
+                        && arr.data.len() > 1
+                    {
+                        cell_args[i].value = arr.data.first().cloned().unwrap_or(Value::Empty);
+                    }
+                }
+            }
             data.push(match out {
                 Value::Array(a) => a.data.first().cloned().unwrap_or(Value::Empty),
                 v => v,

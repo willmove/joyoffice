@@ -618,9 +618,6 @@ impl<'h> Evaluator<'h> {
 
     // ------------------------------------------------------------------ calls
 
-    fn arg_ev(&mut self, args: &[Expr], i: usize) -> Option<Ev> {
-        args.get(i).map(|e| self.eval(e))
-    }
     fn arg_val(&mut self, args: &[Expr], i: usize) -> Option<Value> {
         args.get(i).map(|e| self.value(e))
     }

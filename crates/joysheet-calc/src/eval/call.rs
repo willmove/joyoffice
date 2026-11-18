@@ -39,11 +39,13 @@ impl<'h> Evaluator<'h> {
                 if args.len() < 2 || !args.len().is_multiple_of(2) {
                     return err(CellError::Value);
                 }
-                for pair in args.chunks(2) {
-                    let [c, v] = pair else { break };
-                    let cv = self.value(c);
-                    match cv.scalar().to_bool() {
-                        Ok(true) => return self.eval(v),
+                for (i, [test, result]) in args.as_chunks::<2>().0.iter().enumerate() {
+                    let condition = self.value(test);
+                    if matches!(condition, Value::Array(_)) {
+                        return self.array_choice(name, vec![Arg::val(condition)], &args[i * 2 + 1..]);
+                    }
+                    match condition.to_bool() {
+                        Ok(true) => return self.eval(result),
                         Ok(false) => {}
                         Err(e) => return err(e),
                     }
@@ -54,29 +56,20 @@ impl<'h> Evaluator<'h> {
                 if args.len() != 2 {
                     return err(CellError::Value);
                 }
-                let v = self.arg_ev(args, 0).unwrap_or(Ev::V(Value::Empty));
-                let na_only = name == "IFNA";
-                let catch = |e: CellError| if na_only { e == CellError::NA } else { true };
-                match &v {
-                    Ev::V(Value::Error(e)) if catch(*e) => self.eval(&args[1]),
-                    Ev::V(Value::Array(a)) if a.data.iter().any(|x| x.as_error().is_some_and(catch)) => {
-                        let alt = self.arg_val(args, 1).unwrap_or_default();
-                        let data = a.data.iter().map(|x| if x.as_error().is_some_and(catch) { alt.scalar() } else { x.clone() }).collect();
-                        Ev::V(Array::new(a.rows, a.cols, data).map(Value::from).unwrap_or(Value::Error(CellError::Value)))
-                    }
-                    Ev::R(_) => {
-                        let val = self.deref(v.clone());
-                        match val {
-                            Value::Error(e) if catch(e) => self.eval(&args[1]),
-                            Value::Array(ref a) if a.data.iter().any(|x| x.as_error().is_some_and(catch)) => {
-                                let alt = self.arg_val(args, 1).unwrap_or_default();
-                                let data = a.data.iter().map(|x| if x.as_error().is_some_and(catch) { alt.scalar() } else { x.clone() }).collect();
-                                Ev::V(Array::new(a.rows, a.cols, data).map(Value::from).unwrap_or(Value::Error(CellError::Value)))
-                            }
-                            _ => v,
-                        }
-                    }
-                    _ => v,
+                let input = self.eval(&args[0]);
+                if matches!(input, Ev::L(_)) {
+                    return input;
+                }
+                let value = self.deref(input);
+                let catches = |v: &Value| v.as_error().is_some_and(|e| name == "IFERROR" || e == CellError::NA);
+                if matches!(value, Value::Array(_)) {
+                    // Even when no error is present, an array fallback contributes its shape.
+                    let fallback = self.value(&args[1]);
+                    Ev::V(zip2(&value, &fallback, |cell, alt| if catches(cell) { alt.clone() } else { cell.clone() }))
+                } else if catches(&value) {
+                    self.eval(&args[1])
+                } else {
+                    Ev::V(value)
                 }
             }
             "CHOOSE" => {
@@ -84,17 +77,8 @@ impl<'h> Evaluator<'h> {
                     return err(CellError::Value);
                 }
                 let index = self.value(&args[0]);
-                if let Value::Array(_) = index {
-                    // An array of indexes picks element by element: `CHOOSE({1,2},A1:A3,B1:B3)`
-                    // is a two-column array. The library CHOOSE lifts over its arguments.
-                    let Some(spec) = joysheet_functions::lookup(name) else { return err(CellError::Name) };
-                    let mut evaluated = vec![Arg { value: index, from_ref: false }];
-                    for a in &args[1..] {
-                        let value = self.value(a);
-                        evaluated.push(Arg { value, from_ref: false });
-                    }
-                    let mut ctx = FnCtx { ev: self, criteria: None, lambda: None };
-                    return joysheet_functions::call(spec, &evaluated, &mut ctx).pipe(Ev::V);
+                if matches!(index, Value::Array(_)) {
+                    return self.array_choice(name, vec![Arg::val(index)], &args[1..]);
                 }
                 let i = match index.to_number() {
                     Ok(n) => n.trunc() as i64,
@@ -109,20 +93,37 @@ impl<'h> Evaluator<'h> {
                 if args.len() < 3 {
                     return err(CellError::Value);
                 }
-                let v = self.arg_val(args, 0).unwrap_or_default().scalar();
-                if let Value::Error(e) = v {
+                let input = self.value(&args[0]);
+                if matches!(input, Value::Array(_)) {
+                    return self.array_choice(name, vec![Arg::val(input)], &args[1..]);
+                }
+                if let Value::Error(e) = input {
                     return err(e);
                 }
-                let rest = &args[1..];
-                let mut i = 0;
-                while i + 1 < rest.len() {
-                    let cand = self.value(&rest[i]).scalar();
-                    if !cand.is_error() && compare(&v, &cand) == std::cmp::Ordering::Equal && same_kind(&v, &cand) {
-                        return self.eval(&rest[i + 1]);
+                let mut previous = Vec::new();
+                let (pairs, default) = args[1..].as_chunks::<2>();
+                for (i, [test, result]) in pairs.iter().enumerate() {
+                    let case = self.value(test);
+                    if matches!(case, Value::Array(_)) {
+                        // A case array also drives the result. Keep earlier result dimensions
+                        // and reuse previous case values, including any volatile expressions.
+                        let mut evaluated = vec![Arg::val(input)];
+                        for (val, result_expr) in previous {
+                            evaluated.push(Arg::val(val));
+                            evaluated.push(Arg::val(self.value(result_expr)));
+                        }
+                        evaluated.push(Arg::val(case));
+                        return self.array_choice(name, evaluated, &args[i * 2 + 2..]);
                     }
-                    i += 2;
+                    if let Value::Error(e) = case {
+                        return err(e);
+                    }
+                    if same_kind(&input, &case) && compare(&input, &case) == std::cmp::Ordering::Equal {
+                        return self.eval(result);
+                    }
+                    previous.push((case, result));
                 }
-                if rest.len() % 2 == 1 { rest.last().map_or(err(CellError::NA), |d| self.eval(d)) } else { err(CellError::NA) }
+                default.first().map_or_else(|| err(CellError::NA), |e| self.eval(e))
             }
             "ROW" | "COLUMN" => {
                 let is_row = name == "ROW";
@@ -271,6 +272,13 @@ impl<'h> Evaluator<'h> {
             }
             _ => self.builtin(name, args),
         }
+    }
+
+    fn array_choice(&mut self, name: &str, mut evaluated: Vec<Arg>, rest: &[Expr]) -> Ev {
+        let Some(spec) = joysheet_functions::lookup(name) else { return err(CellError::Name) };
+        evaluated.extend(rest.iter().map(|e| Arg::val(self.value(e))));
+        let mut ctx = FnCtx { ev: self, criteria: None, lambda: None };
+        Ev::V(joysheet_functions::call(spec, &evaluated, &mut ctx))
     }
 
     pub(super) fn builtin(&mut self, name: &str, args: &[Expr]) -> Ev {

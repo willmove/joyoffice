@@ -319,6 +319,31 @@ fn index_with_one_index() {
 }
 
 #[test]
+fn conditional_array_fallbacks_and_map_pairing_match_excel() {
+    let mut t = T::new();
+    let na = Value::Error(CellError::NA);
+    for (formula, cells) in [
+        ("=IFERROR({1,#N/A,#DIV/0!},{6;7})", vec![("E1", Value::number(6.)), ("D2", Value::number(1.)), ("F2", Value::number(7.))]),
+        ("=IFNA({#DIV/0!,1},{8;9})", vec![("D2", Value::Error(CellError::Div0)), ("E2", Value::number(1.))]),
+        ("=SWITCH(2,1,{1,2,3},{2;2},5,7)", vec![("D1", Value::number(5.)), ("F2", Value::number(5.))]),
+        ("=IFS(FALSE,{1,2,3},{TRUE;TRUE},5)", vec![("D1", Value::number(5.)), ("D2", Value::number(5.)), ("E1", Value::Empty)]),
+        ("=MAP({1;2;3},{4,5},LAMBDA(x,y,9))", vec![("D1", Value::number(9.)), ("E1", na.clone()), ("D3", na.clone())]),
+        ("=MAP({1;#N/A},{0;0},LAMBDA(x,y,IFERROR(x,10)))", vec![("D2", Value::number(10.))]),
+        ("=MAP({1;2},3,LAMBDA(x,y,x+y))", vec![("D1", Value::Error(CellError::Value)), ("D2", Value::Empty)]),
+    ] {
+        t.set("D1", formula);
+        for (cell, value) in cells {
+            assert_eq!(t.get(cell), value, "{formula} {cell}");
+        }
+        t.set("D1", "");
+    }
+    t.set("A1", "45000");
+    t.set("A2", "45020");
+    t.set("D1", "=ISREF(IFERROR(A1:A2,0))");
+    assert_eq!(t.get("D1"), Value::Bool(false));
+}
+
+#[test]
 fn errors_and_cycles() {
     let mut t = T::new();
     t.set("A1", "=1/0");
@@ -2012,8 +2037,8 @@ fn analysis_toolpak_value_params_reject_multi_cell_references() {
         ("=MAP(A1:A3,LAMBDA(x,EOMONTH(x,0)))", Value::Number(45046.0), Value::Empty),
         ("=NETWORKDAYS.INTL(A1,A3+30,F1:F3)", Value::Number(66.0), Value::Empty),
         ("=ISOWEEKNUM(A1:A3)", Value::Number(15.0), Value::Empty),
-        // The rejected reference adds no shape: a 2x1 array of #VALUE!.
-        ("=EOMONTH(A1:A3,{1;2})", value.clone(), Value::Empty),
+        // Excel rejects the reference at the anchor; the second lifted month uses A1.
+        ("=EOMONTH(A1:A3,{1;2})", Value::Number(45077.0), Value::Empty),
     ] {
         t.set("H5", f);
         assert_eq!((t.get("H6"), t.get("I5")), (below, right), "{f}");
