@@ -19,6 +19,7 @@ unimplemented = "deny"
 unreachable = "deny"
 
 [dependencies]
+joyoffice-fonts.workspace = true
 kurbo = { workspace = true }
 skrifa = { workspace = true }
 harfrust = { workspace = true }

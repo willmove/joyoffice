@@ -1,0 +1,240 @@
+{
+  "platform": "Linux-6.18.57-061857-generic-x86_64-with-glibc2.38",
+  "build": "dev",
+  "cases": {
+    "mixed-media.docx": {
+      "baseline": [
+        {
+          "ms": 72.662,
+          "rssMiB": 86.297,
+          "textSha256": "7f8ff39685997047f4cdb69d7b6b7a21b0cef44b2b5760aa5437400ae2a95366"
+        },
+        {
+          "ms": 70.775,
+          "rssMiB": 86.539,
+          "textSha256": "7f8ff39685997047f4cdb69d7b6b7a21b0cef44b2b5760aa5437400ae2a95366"
+        },
+        {
+          "ms": 67.959,
+          "rssMiB": 86.629,
+          "textSha256": "7f8ff39685997047f4cdb69d7b6b7a21b0cef44b2b5760aa5437400ae2a95366"
+        },
+        {
+          "ms": 65.375,
+          "rssMiB": 86.805,
+          "textSha256": "7f8ff39685997047f4cdb69d7b6b7a21b0cef44b2b5760aa5437400ae2a95366"
+        },
+        {
+          "ms": 64.331,
+          "rssMiB": 86.195,
+          "textSha256": "7f8ff39685997047f4cdb69d7b6b7a21b0cef44b2b5760aa5437400ae2a95366"
+        },
+        {
+          "ms": 66.336,
+          "rssMiB": 86.699,
+          "textSha256": "7f8ff39685997047f4cdb69d7b6b7a21b0cef44b2b5760aa5437400ae2a95366"
+        }
+      ],
+      "candidate": [
+        {
+          "ms": 60.334,
+          "rssMiB": 85.195,
+          "textSha256": "7f8ff39685997047f4cdb69d7b6b7a21b0cef44b2b5760aa5437400ae2a95366"
+        },
+        {
+          "ms": 75.666,
+          "rssMiB": 83.969,
+          "textSha256": "7f8ff39685997047f4cdb69d7b6b7a21b0cef44b2b5760aa5437400ae2a95366"
+        },
+        {
+          "ms": 66.077,
+          "rssMiB": 85.371,
+          "textSha256": "7f8ff39685997047f4cdb69d7b6b7a21b0cef44b2b5760aa5437400ae2a95366"
+        },
+        {
+          "ms": 69.926,
+          "rssMiB": 84.012,
+          "textSha256": "7f8ff39685997047f4cdb69d7b6b7a21b0cef44b2b5760aa5437400ae2a95366"
+        },
+        {
+          "ms": 67.809,
+          "rssMiB": 84.449,
+          "textSha256": "7f8ff39685997047f4cdb69d7b6b7a21b0cef44b2b5760aa5437400ae2a95366"
+        },
+        {
+          "ms": 80.127,
+          "rssMiB": 84.379,
+          "textSha256": "7f8ff39685997047f4cdb69d7b6b7a21b0cef44b2b5760aa5437400ae2a95366"
+        }
+      ],
+      "expandedBytes": 3501,
+      "sourceSha256": "8e55503dbfd2de7e209ca3494d678919e48f52780e51ba06f8456a944b2aac7f",
+      "summary": {
+        "baseline": {
+          "medianMs": 67.148,
+          "maxRssMiB": 86.805
+        },
+        "candidate": {
+          "medianMs": 68.868,
+          "maxRssMiB": 85.371
+        }
+      }
+    },
+    "handbook.docx": {
+      "baseline": [
+        {
+          "ms": 67.841,
+          "rssMiB": 46.992,
+          "textSha256": "71eafcc65225733e108bd35053f8a98b213cc60b706cad1ee1634a0dd79db9aa"
+        },
+        {
+          "ms": 59.365,
+          "rssMiB": 46.852,
+          "textSha256": "71eafcc65225733e108bd35053f8a98b213cc60b706cad1ee1634a0dd79db9aa"
+        },
+        {
+          "ms": 51.696,
+          "rssMiB": 47.305,
+          "textSha256": "71eafcc65225733e108bd35053f8a98b213cc60b706cad1ee1634a0dd79db9aa"
+        },
+        {
+          "ms": 60.857,
+          "rssMiB": 47.133,
+          "textSha256": "71eafcc65225733e108bd35053f8a98b213cc60b706cad1ee1634a0dd79db9aa"
+        },
+        {
+          "ms": 56.725,
+          "rssMiB": 47.102,
+          "textSha256": "71eafcc65225733e108bd35053f8a98b213cc60b706cad1ee1634a0dd79db9aa"
+        },
+        {
+          "ms": 61.545,
+          "rssMiB": 46.84,
+          "textSha256": "71eafcc65225733e108bd35053f8a98b213cc60b706cad1ee1634a0dd79db9aa"
+        }
+      ],
+      "candidate": [
+        {
+          "ms": 52.691,
+          "rssMiB": 45.141,
+          "textSha256": "71eafcc65225733e108bd35053f8a98b213cc60b706cad1ee1634a0dd79db9aa"
+        },
+        {
+          "ms": 58.965,
+          "rssMiB": 45.715,
+          "textSha256": "71eafcc65225733e108bd35053f8a98b213cc60b706cad1ee1634a0dd79db9aa"
+        },
+        {
+          "ms": 51.213,
+          "rssMiB": 45.184,
+          "textSha256": "71eafcc65225733e108bd35053f8a98b213cc60b706cad1ee1634a0dd79db9aa"
+        },
+        {
+          "ms": 47.085,
+          "rssMiB": 45.023,
+          "textSha256": "71eafcc65225733e108bd35053f8a98b213cc60b706cad1ee1634a0dd79db9aa"
+        },
+        {
+          "ms": 52.997,
+          "rssMiB": 45.027,
+          "textSha256": "71eafcc65225733e108bd35053f8a98b213cc60b706cad1ee1634a0dd79db9aa"
+        },
+        {
+          "ms": 60.568,
+          "rssMiB": 45.055,
+          "textSha256": "71eafcc65225733e108bd35053f8a98b213cc60b706cad1ee1634a0dd79db9aa"
+        }
+      ],
+      "expandedBytes": 54392,
+      "sourceSha256": "d1681f71d467a32efdfd85872c4fdaa9fb887d62cda6d45901b4161342c03f6c",
+      "summary": {
+        "baseline": {
+          "medianMs": 60.111,
+          "maxRssMiB": 47.305
+        },
+        "candidate": {
+          "medianMs": 52.844,
+          "maxRssMiB": 45.715
+        }
+      }
+    },
+    "opaque-12MiB.docx": {
+      "baseline": [
+        {
+          "ms": 92.665,
+          "rssMiB": 58.828,
+          "textSha256": "c216a63bf20dc2d6a0eb603b7a9c169338625a58a1169412d7e38d33493bb037"
+        },
+        {
+          "ms": 88.483,
+          "rssMiB": 58.477,
+          "textSha256": "c216a63bf20dc2d6a0eb603b7a9c169338625a58a1169412d7e38d33493bb037"
+        },
+        {
+          "ms": 85.922,
+          "rssMiB": 58.375,
+          "textSha256": "c216a63bf20dc2d6a0eb603b7a9c169338625a58a1169412d7e38d33493bb037"
+        },
+        {
+          "ms": 87.008,
+          "rssMiB": 58.445,
+          "textSha256": "c216a63bf20dc2d6a0eb603b7a9c169338625a58a1169412d7e38d33493bb037"
+        },
+        {
+          "ms": 96.244,
+          "rssMiB": 58.664,
+          "textSha256": "c216a63bf20dc2d6a0eb603b7a9c169338625a58a1169412d7e38d33493bb037"
+        },
+        {
+          "ms": 87.145,
+          "rssMiB": 58.285,
+          "textSha256": "c216a63bf20dc2d6a0eb603b7a9c169338625a58a1169412d7e38d33493bb037"
+        }
+      ],
+      "candidate": [
+        {
+          "ms": 85.912,
+          "rssMiB": 56.836,
+          "textSha256": "c216a63bf20dc2d6a0eb603b7a9c169338625a58a1169412d7e38d33493bb037"
+        },
+        {
+          "ms": 83.628,
+          "rssMiB": 56.695,
+          "textSha256": "c216a63bf20dc2d6a0eb603b7a9c169338625a58a1169412d7e38d33493bb037"
+        },
+        {
+          "ms": 83.097,
+          "rssMiB": 56.617,
+          "textSha256": "c216a63bf20dc2d6a0eb603b7a9c169338625a58a1169412d7e38d33493bb037"
+        },
+        {
+          "ms": 79.385,
+          "rssMiB": 56.457,
+          "textSha256": "c216a63bf20dc2d6a0eb603b7a9c169338625a58a1169412d7e38d33493bb037"
+        },
+        {
+          "ms": 81.785,
+          "rssMiB": 56.605,
+          "textSha256": "c216a63bf20dc2d6a0eb603b7a9c169338625a58a1169412d7e38d33493bb037"
+        },
+        {
+          "ms": 83.874,
+          "rssMiB": 56.742,
+          "textSha256": "c216a63bf20dc2d6a0eb603b7a9c169338625a58a1169412d7e38d33493bb037"
+        }
+      ],
+      "expandedBytes": 13410295,
+      "sourceSha256": "02a14a60528cf99e229fcd81ea60c03ca1abe23eb064615a147ee7c9fff8dd02",
+      "summary": {
+        "baseline": {
+          "medianMs": 87.814,
+          "maxRssMiB": 58.828
+        },
+        "candidate": {
+          "medianMs": 83.362,
+          "maxRssMiB": 56.836
+        }
+      }
+    }
+  }
+}

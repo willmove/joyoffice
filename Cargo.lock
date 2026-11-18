@@ -3968,9 +3968,9 @@ name = "joydeck-fonts"
 version = "0.2.0"
 dependencies = [
  "harfrust 0.8.4",
+ "joyoffice-fonts",
  "kurbo 0.13.1",
  "log",
- "sha2 0.10.9",
  "skrifa 0.42.1",
  "unicode-bidi",
 ]
@@ -4058,6 +4058,7 @@ dependencies = [
  "joydeck-color",
  "joydeck-geom",
  "joydeck-model",
+ "joyoffice-opc",
  "log",
  "quick-xml",
  "serde_json",
@@ -4162,6 +4163,13 @@ name = "joyoffice-drawingml"
 version = "0.2.0"
 dependencies = [
  "quick-xml",
+]
+
+[[package]]
+name = "joyoffice-fonts"
+version = "0.2.0"
+dependencies = [
+ "sha2 0.10.9",
 ]
 
 [[package]]
@@ -4532,6 +4540,7 @@ version = "0.2.0"
 dependencies = [
  "brotli-decompressor",
  "harfrust 0.8.4",
+ "joyoffice-fonts",
  "kurbo 0.13.1",
  "log",
  "skrifa 0.42.1",

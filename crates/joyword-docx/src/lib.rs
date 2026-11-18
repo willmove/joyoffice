@@ -127,6 +127,22 @@ pub fn read_with(bytes: &[u8], opts: &ReadOptions) -> Result<joyword_model::Docu
     read::read_package(bytes, opts.chunks)
 }
 
+/// Read an OPC-validated Word package, consuming members already inflated from this source.
+pub fn read_with_verified_members(
+    bytes: &[u8],
+    mut members: std::collections::BTreeMap<String, Vec<u8>>,
+    chunks: Option<ChunkImporter>,
+) -> Result<joyword_model::Document, DocxError> {
+    let (package, stats) =
+        package::Package::read_entries(bytes, package::MAX_PART, package::MAX_TOTAL, &mut members)?;
+    log::debug!(
+        "DOCX member reads: {} verified bytes reused, {} bytes inflated",
+        stats.reused_bytes,
+        stats.inflated_bytes
+    );
+    read::read_opened(&package, chunks)
+}
+
 /// Which kind of WordprocessingML package to write. The main part's content type differs per
 /// kind, and Word refuses a file whose content type doesn't match its extension.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]

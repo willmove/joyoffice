@@ -86,11 +86,8 @@ impl JoyWord {
         label: &'static str,
         body: impl IntoElement,
     ) -> gpui::Stateful<gpui::Div> {
-        self.group_box(label, div().flex().items_center().h(px(72.)).child(body))
-            .id(id)
-            .flex_shrink_0()
-            .role(gpui::Role::Group)
-            .aria_label(label)
+        let frame = self.group_box(label, div().flex().items_center().h(px(72.)).child(body));
+        joyoffice_ui::ribbon_group(frame.flex_shrink_0(), id, label)
     }
 
     pub(super) fn ribbon_group_with_launcher(
@@ -100,23 +97,13 @@ impl JoyWord {
         body: impl IntoElement,
         launcher: Option<Button>,
     ) -> gpui::Stateful<gpui::Div> {
-        self.group_frame(
-            div().flex().items_center().h(px(72.)).child(body),
-            div()
-                .relative()
-                .flex()
-                .items_center()
-                .justify_center()
-                .h(px(18.))
-                .text_size(px(11.))
-                .text_color(rgb(self.palette().muted))
-                .child(title)
-                .children(launcher.map(|button| button.absolute().right_0().bottom_0())),
-        )
-        .id(id)
-        .flex_shrink_0()
-        .role(gpui::Role::Group)
-        .aria_label(title)
+        let footer = joyoffice_ui::ribbon_group_footer(
+            self.palette(),
+            title,
+            launcher.map(|button| button.bottom_0()),
+        );
+        let frame = self.group_frame(div().flex().items_center().h(px(72.)).child(body), footer);
+        joyoffice_ui::ribbon_group(frame.flex_shrink_0(), id, title)
     }
 
     pub(super) fn ribbon_centered_group(

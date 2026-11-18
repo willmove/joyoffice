@@ -25,6 +25,7 @@ members = [
     "crates/joyoffice-cfb",
     "crates/joyoffice-drawingml",
     "crates/joyoffice-omml",
+    "crates/joyoffice-fonts",
     "crates/joyoffice-metafile",
     "crates/joyoffice-opc",
     "crates/joyoffice-ui",
@@ -83,6 +84,7 @@ default-members = [
     "crates/joyoffice-cfb",
     "crates/joyoffice-drawingml",
     "crates/joyoffice-omml",
+    "crates/joyoffice-fonts",
     "crates/joyoffice-metafile",
     "crates/joyoffice-opc",
     "crates/joyword-agent",
@@ -159,6 +161,7 @@ joyoffice-theme = { path = "crates/joyoffice-theme" }
 # forward the existing development-only shader feature; application APIs use Kit.
 gpui_platform = { package = "gpui-pre-platform", version = "=0.3.12", features = ["font-kit", "wayland", "x11"] }
 joyword-agent = { path = "crates/joyword-agent", default-features = false }
+joyoffice-fonts = { path = "crates/joyoffice-fonts" }
 joyoffice-metafile = { path = "crates/joyoffice-metafile" }
 joyoffice-cfb = { path = "crates/joyoffice-cfb" }
 joyoffice-drawingml = { path = "crates/joyoffice-drawingml" }

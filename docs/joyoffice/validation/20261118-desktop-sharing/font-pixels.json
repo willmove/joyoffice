@@ -1,0 +1,86 @@
+{
+  "macOS": {
+    "word-wmf": {
+      "screenScene": {
+        "rgbSha256": "0eff233dc2e3d3ebecd28781ad12a564547da5b82d066d1945808fd516e7320c",
+        "trianglePixels": 15522
+      },
+      "pdfRaster": {
+        "rgbSha256": "282b7d01ecaed8343298056f83f56858bd5d09e7ea8e567f43861970f2e30ad4",
+        "trianglePixels": 15736
+      }
+    },
+    "word-emf": {
+      "screenScene": {
+        "rgbSha256": "91a869436f0ad8dd7f361bc365945201314a3fc152277ca908c4cb3780bd42d2",
+        "trianglePixels": 12177
+      },
+      "pdfRaster": {
+        "rgbSha256": "8b211ba5ccc05711abb46e8f32f5052e284bd8c05ca6aa33ceb8af8da7a5b2c4",
+        "trianglePixels": 12372
+      }
+    },
+    "deck-wmf": {
+      "screenScene": {
+        "rgbSha256": "224d490d3bb534372bb1e56bc48a63824def6d955fc9644622662804f9e43ba6",
+        "trianglePixels": 8960
+      },
+      "pdfRaster": {
+        "rgbSha256": "e78ba582ae2ec1171664f9a0232a6a06ff7df60e74673a2cfdf9206e380bc32d",
+        "trianglePixels": 16311
+      }
+    },
+    "deck-emf": {
+      "screenScene": {
+        "rgbSha256": "a725d3bd5e6e39080a0d06af217e7d353025bd8c744083328ea34511c36718d6",
+        "trianglePixels": 7048
+      },
+      "pdfRaster": {
+        "rgbSha256": "b76c42d64f50f802d0b3f78d85896884812f6658835075d9ae2b3b0af9d6c678",
+        "trianglePixels": 12859
+      }
+    }
+  },
+  "UOS": {
+    "word-wmf": {
+      "screenScene": {
+        "rgbSha256": "0eff233dc2e3d3ebecd28781ad12a564547da5b82d066d1945808fd516e7320c",
+        "trianglePixels": 15522
+      },
+      "pdfRaster": {
+        "rgbSha256": "282b7d01ecaed8343298056f83f56858bd5d09e7ea8e567f43861970f2e30ad4",
+        "trianglePixels": 15736
+      }
+    },
+    "word-emf": {
+      "screenScene": {
+        "rgbSha256": "91a869436f0ad8dd7f361bc365945201314a3fc152277ca908c4cb3780bd42d2",
+        "trianglePixels": 12177
+      },
+      "pdfRaster": {
+        "rgbSha256": "8b211ba5ccc05711abb46e8f32f5052e284bd8c05ca6aa33ceb8af8da7a5b2c4",
+        "trianglePixels": 12372
+      }
+    },
+    "deck-wmf": {
+      "screenScene": {
+        "rgbSha256": "37f331ac2e8ed2bfdd14a7479fe692874749dd0b0fd343810c696984b0f9aa2d",
+        "trianglePixels": 8960
+      },
+      "pdfRaster": {
+        "rgbSha256": "7e486ff46c9b05dd85eb2917c5cb4ae385f0fc02419bf09b40bc8345d953b315",
+        "trianglePixels": 16311
+      }
+    },
+    "deck-emf": {
+      "screenScene": {
+        "rgbSha256": "bc15a02f21cde36e155c78c6b0faaac1cf3ce95e365d92527ff2a2a00ba4f097",
+        "trianglePixels": 7048
+      },
+      "pdfRaster": {
+        "rgbSha256": "61428f24abddddcb558a6b54c6157a31248223f46b03ed2b2163cc0346c3c095",
+        "trianglePixels": 12859
+      }
+    }
+  }
+}

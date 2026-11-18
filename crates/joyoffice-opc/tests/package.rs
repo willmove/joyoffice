@@ -85,6 +85,22 @@ fn reads_a_minimal_package_and_keeps_exact_bytes() {
 }
 
 #[test]
+fn transferred_members_keep_the_manifest_spelling_and_opaque_contents() {
+    let bytes = archive(&[
+        ("[CONTENT_TYPES].Xml", CONTENT_TYPES),
+        ("vendor/Future.bin", "opaque"),
+        ("unused/", ""),
+    ]);
+    let parts = Package::read_members(&bytes, &Budget::default()).unwrap();
+    assert_eq!(parts.len(), 2);
+    assert_eq!(
+        parts["[CONTENT_TYPES].Xml"].as_slice(),
+        CONTENT_TYPES.as_bytes()
+    );
+    assert_eq!(parts["vendor/Future.bin"].as_slice(), b"opaque");
+}
+
+#[test]
 fn stored_items_round_trip_through_the_writer() {
     let items = [
         (

@@ -1996,6 +1996,7 @@ fn legacy_form_fields_are_drawn() {
     };
     let draws_of = |o: InlineObject| {
         let mut d = Document::from_text("ab");
+        d.styles.default_chr.font = Some(WRAP_TEST_FONT.into());
         d.insert_object(&Pos::body(0, 1), o, &Default::default())
             .unwrap();
         let l = lay(&d);
@@ -3187,6 +3188,7 @@ fn symbol_font_bullet_without_the_font_draws_a_bullet() {
 /// bulleted paragraph whose bullet is in `label_font`; no label font = no bullet.
 fn bullet_first_line(label_font: Option<&str>) -> (f32, f32, f32, f32) {
     let mut d = Document::from_text("one");
+    d.styles.default_chr.font = Some(WRAP_TEST_FONT.into());
     if let Some(label_font) = label_font {
         let id = d
             .numbering
@@ -8801,6 +8803,7 @@ fn cell_margins_are_where_cell_text_starts() {
 fn justified_lines(text: &str, compat_mode: u32, align: Align) -> (usize, Vec<f32>) {
     let mut d = Document::from_text(text);
     d.settings.compat_mode = compat_mode;
+    d.styles.default_chr.font = Some(WRAP_TEST_FONT.into());
     d.format_paragraphs(&Pos::body(0, 0), &Pos::body(0, 0), &|p| {
         p.align = Some(align)
     })
@@ -12669,6 +12672,7 @@ fn rules_below(l: &DocLayout, pi: usize, y: f32) -> Vec<f32> {
 #[test]
 fn long_footnotes_continue_on_the_next_page() {
     let mut d = Document::from_text(&"Body text line.\n".repeat(16));
+    d.styles.default_chr.font = Some(WRAP_TEST_FONT.into());
     let long = footnote(
         &mut d,
         &Pos::body(4, 4),
@@ -19954,7 +19958,9 @@ fn text_under_shapes(l: &DocLayout) -> (Option<String>, usize) {
                     continue;
                 };
                 for ln in &para.lines[*l0..*l1] {
-                    let (lt, lb) = (top + ln.top, top + ln.top + ln.height);
+                    // A continued paragraph starts at its first line on this page.
+                    let lt = top + (ln.top - para.lines[*l0].top);
+                    let lb = lt + ln.height;
                     if lb > r.y + 0.5
                         && lt < r.bottom() - 0.5
                         && ln.c1 > ln.c0

@@ -2,22 +2,23 @@
 
 use joyword_engine::{
     doc::Document,
-    io::{open_bytes, read_regular_file_within},
+    io::{open_verified_docx, read_regular_file_within},
 };
 use joyword_fonts::{FaceRef, FontDb};
+use joyword_fonts::{FileFace, file_digest};
 use joyword_layout::{
     DocLayout, LayoutCache, LayoutOptions,
     display::{DisplayOptions, Draw, page_display},
     layout,
 };
 use joyword_render::{RenderOptions, Rendered, render_page};
-use sha2::{Digest, Sha256};
 use std::path::Path;
 
 pub struct FixedVisual {
     document: Document,
     layout: DocLayout,
     face: FaceRef,
+    file_face: FileFace,
 }
 
 impl FixedVisual {
@@ -29,8 +30,8 @@ impl FixedVisual {
         let face = FontDb::init_export_face(bytes, index)?;
         let bytes = read_regular_file_within(input, 32 << 20)
             .ok_or("input must be a regular file of at most 32 MiB")?;
-        crate::reader::preflight_word_package(&bytes)?;
-        let document = open_bytes("input.docx", &bytes)?;
+        let package = crate::reader::verified_package(&bytes)?;
+        let document = open_verified_docx("input.docx", &bytes, package)?;
         let layout = layout(
             &document,
             &mut LayoutCache::new(),
@@ -48,6 +49,10 @@ impl FixedVisual {
         Ok(Self {
             document,
             layout,
+            file_face: FileFace {
+                sha256: file_digest(face.data()),
+                index: face.index(),
+            },
             face,
         })
     }
@@ -57,11 +62,11 @@ impl FixedVisual {
     }
 
     pub fn font_hash(&self) -> String {
-        format!("{:x}", Sha256::digest(self.face.data()))
+        format!("{:x}", self.file_face)
     }
 
     pub fn font_index(&self) -> u32 {
-        self.face.index()
+        self.file_face.index
     }
 
     pub fn raster(&self, index: usize, dpi: u16) -> Result<Rendered, String> {

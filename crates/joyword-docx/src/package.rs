@@ -307,6 +307,12 @@ pub struct Package {
     lower: HashMap<String, String>,
 }
 
+#[derive(Default, Debug)]
+pub(crate) struct MemberReadStats {
+    pub reused_bytes: u64,
+    pub inflated_bytes: u64,
+}
+
 impl Package {
     pub(crate) fn keep_isolated_xml(&self, doc: &mut joyword_model::Document) {
         let candidates: Vec<_> = self
@@ -350,6 +356,16 @@ impl Package {
     }
 
     pub fn open_limited(bytes: &[u8], max_part: u64, max_total: u64) -> Result<Package, DocxError> {
+        Self::read_entries(bytes, max_part, max_total, &mut BTreeMap::new())
+            .map(|(package, _)| package)
+    }
+
+    pub(crate) fn read_entries(
+        bytes: &[u8],
+        max_part: u64,
+        max_total: u64,
+        members: &mut BTreeMap<String, Vec<u8>>,
+    ) -> Result<(Package, MemberReadStats), DocxError> {
         // Before `zip` parses every entry the end record declares (#3660).
         joyword_model::zip_guard::check(bytes, MAX_ENTRIES as u64).map_err(DocxError::Limit)?;
         let mut zip =
@@ -358,6 +374,7 @@ impl Package {
             return Err(DocxError::Limit(format!("{} zip entries", zip.len())));
         }
         let mut files = BTreeMap::new();
+        let mut stats = MemberReadStats::default();
         let mut total: u64 = 0;
         for i in 0..zip.len() {
             let mut f = match zip.by_index(i) {
@@ -382,10 +399,23 @@ impl Package {
                 )));
             }
             let room = max_part.min(max_total.saturating_sub(total));
+            // Retain this reader's ZIP metadata, name decoding and entry limits. CRC and length
+            // bind a transferred member to this entry; an unexpected name or value uses the
+            // regular reader. Move each inflated buffer directly into the Word model.
+            if f.size() <= room
+                && let Some(data) =
+                    joyoffice_opc::take_matching_member(members, &name, f.size(), f.crc32())
+            {
+                total += f.size();
+                stats.reused_bytes += f.size();
+                files.insert(name, Arc::new(data));
+                continue;
+            }
             let mut buf = Vec::with_capacity(f.size().min(16 * 1024 * 1024) as usize);
             let read = (&mut f).take(room + 1).read_to_end(&mut buf);
             // Charged whether or not the read succeeds: an entry inflates in full before its CRC
             // is checked, so failed entries would otherwise inflate without limit (#3723).
+            stats.inflated_bytes = stats.inflated_bytes.saturating_add(buf.len() as u64);
             total = total.saturating_add(buf.len() as u64);
             if buf.len() as u64 > room {
                 return Err(DocxError::Limit(format!(
@@ -399,7 +429,7 @@ impl Package {
             }
             files.insert(name, Arc::new(buf));
         }
-        Ok(Package::new(files))
+        Ok((Package::new(files), stats))
     }
 
     /// The bytes of all its parts.
@@ -711,6 +741,38 @@ mod tests {
             .map(|(n, b)| (n.to_string(), b.clone()))
             .collect();
         zip_entries(&e).unwrap()
+    }
+
+    #[test]
+    fn transfers_verified_bytes_and_falls_back_on_wrong_crc_without_relaxing_limits() {
+        let input = zip_of(&[("wide", vec![7; 120_000]), ("extra", vec![9; 16])]);
+        let (baseline, old) =
+            Package::read_entries(&input, MAX_PART, MAX_TOTAL, &mut BTreeMap::new()).unwrap();
+        let read = |corrupt: bool, limit| {
+            let mut extra = vec![9; 16];
+            if corrupt {
+                extra[0] ^= 1;
+            }
+            let mut members = BTreeMap::from([
+                ("wide".to_owned(), vec![7; 120_000]),
+                ("extra".to_owned(), extra),
+            ]);
+            Package::read_entries(&input, MAX_PART, limit, &mut members)
+        };
+        let (new, new_stats) = read(false, MAX_TOTAL).unwrap();
+        assert_eq!(new.get("wide"), baseline.get("wide"));
+        assert_eq!(
+            (
+                old.inflated_bytes,
+                new_stats.inflated_bytes,
+                new_stats.reused_bytes
+            ),
+            (120_016, 0, 120_016)
+        );
+        let (recovered, stats) = read(true, MAX_TOTAL).unwrap();
+        assert_eq!(recovered.get("extra"), baseline.get("extra"));
+        assert_eq!((stats.inflated_bytes, stats.reused_bytes), (16, 120_000));
+        assert!(matches!(read(false, 119_999), Err(DocxError::Limit(_))));
     }
 
     #[test]

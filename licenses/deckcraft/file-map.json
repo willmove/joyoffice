@@ -591,13 +591,14 @@
       "source_path": "crates/fonts/Cargo.toml",
       "source_sha256": "a194d97837f02d615456d5cd181ba03ac4c462a99b9fd1cd04038e7d3b114fd7",
       "target_path": "crates/joydeck-fonts/Cargo.toml",
-      "adapted_sha256": "de769f9acbe1142590676e27f2a5167b9567ecf87a71be0fdb122a9f241f6493",
+      "adapted_sha256": "9c5df264cf502fca803dbac2c05f722f4cef7879bbe7cb09d19ebfe3424c28a6",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
         "R9: host workspace feature wiring and sole shared-library implementation",
-        "Exact font bytes, face and variation identity with live system font refresh"
+        "Exact font bytes, face and variation identity with live system font refresh",
+        "Share platform font roots and exact byte-and-face identity; retain Office caches and product-specific fallback."
       ]
     },
     {
@@ -617,14 +618,15 @@
       "source_path": "crates/fonts/src/fontdb.rs",
       "source_sha256": "bce2264f3781c38b8ee60c3e3b39322c5d42a6d9236c01f835297dfb957869bd",
       "target_path": "crates/joydeck-fonts/src/fontdb.rs",
-      "adapted_sha256": "564197dbb29562ad527a03bf251905559f6dc503c7ac935c9d2a433fc8ec9772",
+      "adapted_sha256": "834dfd68d5bcb506af2230c04e8b480468648f70348835642f1a3635e42d21ef",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
         "R4/R5 scene/content/workbook/font-revision adaptation, exact JoyOffice dependency reuse",
-        "Exact font bytes, face and variation identity with live system font refresh"
+        "Exact font bytes, face and variation identity with live system font refresh",
+        "Share platform font roots and exact byte-and-face identity; retain Office caches and product-specific fallback."
       ]
     },
     {
@@ -1593,13 +1595,14 @@
       "source_path": "crates/pptx/Cargo.toml",
       "source_sha256": "30a783dcadbf5eb12d1e93df304c77586d1d82013cee8c8c2147ce42345fc86a",
       "target_path": "crates/joydeck-pptx/Cargo.toml",
-      "adapted_sha256": "3b0a681cc5481c81f0c5c3a67d3dfbd4aea34bced14693a09c9cdbb2ea42f760",
+      "adapted_sha256": "c8e8bf2253de45afcdaedb559ec8f9230045bf5bf0644adf9ff1db37191c1a2c",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
         "R4/R5 scene/content/workbook/font-revision adaptation, exact JoyOffice dependency reuse",
-        "R9: host workspace feature wiring and sole shared-library implementation"
+        "R9: host workspace feature wiring and sole shared-library implementation",
+        "Reuse verified OPC buffers while preserving format reader budgets and ZIP name decoding."
       ]
     },
     {
@@ -1642,13 +1645,14 @@
       "source_path": "crates/pptx/src/lib.rs",
       "source_sha256": "7886430c0095c036472d8a84d8b4d2eccf001b0c8660e5c2b43572f6a0f79c1f",
       "target_path": "crates/joydeck-pptx/src/lib.rs",
-      "adapted_sha256": "38cab0a0b75816705d28e6fb06012208f54f27b3348d6dd8a7421aedae2319f9",
+      "adapted_sha256": "f2121ac4b162224fea6958986e4740d01108ee9549a19cba9f233af303ac96db",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
-        "R2 shared preservation writer entry point or rustfmt; history cost extraction kept pure"
+        "R2 shared preservation writer entry point or rustfmt; history cost extraction kept pure",
+        "Reuse verified OPC buffers while preserving format reader budgets and ZIP name decoding."
       ],
       "safety_integration": "Register footer import and preservation regression tests (d28049dc)."
     },
@@ -1668,13 +1672,14 @@
       "source_path": "crates/pptx/src/opc.rs",
       "source_sha256": "f7905174cd984e290e231dbed1c05dcece3379233feef91ee06f6975e4267ef9",
       "target_path": "crates/joydeck-pptx/src/opc.rs",
-      "adapted_sha256": "54880cfc1be748da72a043071f3f244810f6e1fa6a7d675aef6dbbb24f66bd8c",
+      "adapted_sha256": "a8ff96cf5c81beeb400b8ffe90645b3001e0c038404b0453500232bf333d5dc5",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
-        "R9: resolve root officeDocument relationship for custom part paths; retain minimal packages without requiring unchanged masters"
+        "R9: resolve root officeDocument relationship for custom part paths; retain minimal packages without requiring unchanged masters",
+        "Reuse verified OPC buffers while preserving format reader budgets and ZIP name decoding."
       ]
     },
     {
@@ -1765,14 +1770,15 @@
       "source_path": "crates/pptx/src/read.rs",
       "source_sha256": "db5e0ece9be0db36fedf36fbd6efa95d9536be8060cce414b28ee94e298640ff",
       "target_path": "crates/joydeck-pptx/src/read.rs",
-      "adapted_sha256": "71299a9959190c53b52380c95279e94075b95afece0c43f1d6759fbfc329ef53",
+      "adapted_sha256": "f072a68a5911dc6437a86edc2fe7670b396ca808451a2558d36debca63e9396b",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
         "R9: resolve root officeDocument relationship for custom part paths; retain minimal packages without requiring unchanged masters",
-        "preserve recognized layout and master header/footer visibility flags without resolving inheritance"
+        "preserve recognized layout and master header/footer visibility flags without resolving inheritance",
+        "Reuse verified OPC buffers while preserving format reader budgets and ZIP name decoding."
       ],
       "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained.",
       "safety_integration": "Retain header flag and automatic date format in footer summaries without changing per-slide shapes (d28049dc)."
@@ -2250,9 +2256,10 @@
       "source_path": "crates/render/src/placed.rs",
       "source_sha256": "f2851a72da1ed824bfadafcc409a6ebbaa9a711671021ebdb4d46696d0f31f0c",
       "target_path": "crates/joydeck-render/src/scene.rs",
-      "adapted_sha256": "43fa55b5e6c02fa1610866214523b869257aeb0b5d52cba8c4cb1ea6c28d52c1",
+      "adapted_sha256": "04a1305f5d371fa71e4775d068010f5ea149fdf0b88936361e0f68ab61a164b3",
       "changes": [
-        "R4/R5 adapts shared text-outline placement to a neutral per-object scene; exact FontFace retained; adds bounded cache and explicit fallback"
+        "R4/R5 adapts shared text-outline placement to a neutral per-object scene; exact FontFace retained; adds bounded cache and explicit fallback",
+        "Cache media digests by allocation and check same-ID replacement and undo against rendered pixels."
       ]
     },
     {
@@ -2299,13 +2306,14 @@
       "source_path": "crates/ui-egui/src/theme.rs",
       "source_sha256": "d8d6f55195ac5b0c22d49ec313b716fcfab6cb2c08b3c15445b1ed1fcbe97c6a",
       "target_path": "crates/joydeck-ui-gpui/src/chrome.rs",
-      "adapted_sha256": "0a4e53f54c637e166815cb153953073592d7bbd349b431a8465244ffd7c8e180",
+      "adapted_sha256": "f8b5c2f4ce5fb42621afa447e19fa05bad2e927ef73c8006d44296dbc384ed0b",
       "changes": [
         "R8: adapt typed media references / object ID and resource remapping / layout and theme tokens to pure engine or GPUI Kit; no egui dependency",
         "rustfmt; bounded transactions, errors and clipboard serialization; original MIT attribution retained",
         "Status-bar control for cancelling an active document open",
         "Connect independent windows to the shared document session",
-        "2026-11-11: shared application theme catalog, persistent preset selection and palette projection; preserve document colors and original source identity"
+        "2026-11-11: shared application theme catalog, persistent preset selection and palette projection; preserve document colors and original source identity",
+        "Use the shared accessible group with the same compact layout and control ID."
       ],
       "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained.",
       "text_box_layout": "Expose native text-box layout controls on the contextual formatting ribbon.",
@@ -2321,13 +2329,14 @@
       "source_path": "crates/ui-egui/src/ribbon.rs",
       "source_sha256": "036692f8a885af7b61dfcd7e065f371f46c7db67854c0df9d205c91f35d9049a",
       "target_path": "crates/joydeck-ui-gpui/src/chrome.rs",
-      "adapted_sha256": "0a4e53f54c637e166815cb153953073592d7bbd349b431a8465244ffd7c8e180",
+      "adapted_sha256": "f8b5c2f4ce5fb42621afa447e19fa05bad2e927ef73c8006d44296dbc384ed0b",
       "changes": [
         "R8: adapt typed media references / object ID and resource remapping / layout and theme tokens to pure engine or GPUI Kit; no egui dependency",
         "rustfmt; bounded transactions, errors and clipboard serialization; original MIT attribution retained",
         "Status-bar control for cancelling an active document open",
         "Connect independent windows to the shared document session",
-        "2026-11-11: shared application theme catalog, persistent preset selection and palette projection; preserve document colors and original source identity"
+        "2026-11-11: shared application theme catalog, persistent preset selection and palette projection; preserve document colors and original source identity",
+        "Use the shared accessible group with the same compact layout and control ID."
       ],
       "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained.",
       "text_box_layout": "Expose native text-box layout controls on the contextual formatting ribbon.",
@@ -2343,13 +2352,14 @@
       "source_path": "crates/ui-egui/src/widgets.rs",
       "source_sha256": "d62cc3cce0436f1118c6486f52c5d90175aeaa79751602a89dbf01aa8d233bf9",
       "target_path": "crates/joydeck-ui-gpui/src/chrome.rs",
-      "adapted_sha256": "0a4e53f54c637e166815cb153953073592d7bbd349b431a8465244ffd7c8e180",
+      "adapted_sha256": "f8b5c2f4ce5fb42621afa447e19fa05bad2e927ef73c8006d44296dbc384ed0b",
       "changes": [
         "R8: adapt typed media references / object ID and resource remapping / layout and theme tokens to pure engine or GPUI Kit; no egui dependency",
         "rustfmt; bounded transactions, errors and clipboard serialization; original MIT attribution retained",
         "Status-bar control for cancelling an active document open",
         "Connect independent windows to the shared document session",
-        "2026-11-11: shared application theme catalog, persistent preset selection and palette projection; preserve document colors and original source identity"
+        "2026-11-11: shared application theme catalog, persistent preset selection and palette projection; preserve document colors and original source identity",
+        "Use the shared accessible group with the same compact layout and control ID."
       ],
       "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained.",
       "text_box_layout": "Expose native text-box layout controls on the contextual formatting ribbon.",

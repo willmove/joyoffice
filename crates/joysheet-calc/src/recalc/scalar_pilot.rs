@@ -14,7 +14,12 @@ pub(super) fn evaluate(book: &Workbook, sheet: usize, expr: &Expr) -> Option<Val
         (Expr::Number(n), Expr::Ref(r)) => (r, *n, false),
         _ => return None,
     };
-    let Reference { sheet: SheetSel::Current, kind: RefKind::Cell(anchor) } = reference else { return None };
+    let Reference { sheet: selector, kind: RefKind::Cell(anchor) } = reference else { return None };
+    let sheet = match selector {
+        SheetSel::Current => sheet,
+        SheetSel::Named(name) => book.sheet_index(name)?,
+        SheetSel::Span(_, _) => return None,
+    };
     let cell = book.sheet(sheet)?.cell(anchor.cell())?;
     let Value::Number(stored) = cell.value else { return None };
     if cell.formula.is_some() || !stored.is_finite() || !literal.is_finite() {
@@ -48,6 +53,19 @@ mod tests {
                 assert_eq!(evaluate(&book, 0, &expr), Some(crate::recalc::evaluate_expr(&book, 0, at, &expr)));
             }
         }
+        Ok(())
+    }
+
+    #[test]
+    fn named_numeric_constant_matches_general_reference_lookup() -> Result<(), Box<dyn std::error::Error>> {
+        let mut book = Workbook::new();
+        let source = book.sheet_mut(0).ok_or("missing sheet")?;
+        source.name = "中文 数据".into();
+        source.set_value(CellRef::new(0, 0), Value::Number(4.));
+        let expr = joysheet_formula::parse("='中文 数据'!A1+2")?;
+        let at = CellRef::new(0, 1);
+        assert_eq!(evaluate(&book, 0, &expr), Some(Value::Number(6.)));
+        assert_eq!(evaluate(&book, 0, &expr), Some(crate::recalc::evaluate_expr(&book, 0, at, &expr)));
         Ok(())
     }
 

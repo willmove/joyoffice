@@ -80,6 +80,15 @@ pub fn import_checked(bytes: &[u8]) -> Result<(Presentation, Vec<String>), PptxE
     read::import_checked(bytes)
 }
 
+/// Import using members already validated and inflated during desktop preflight.
+/// The PresentationML reader retains its own part and cumulative work limits.
+pub fn import_verified(
+    bytes: &[u8],
+    members: std::collections::BTreeMap<String, Vec<u8>>,
+) -> Result<(Presentation, Vec<String>), PptxError> {
+    read::import_package(opc::Package::open_verified(bytes, members)?)
+}
+
 /// Read the theme of a `.thmx` file, or of a `.pptx` / `.potx`'s first master, with its media.
 pub fn import_theme(
     bytes: &[u8],

@@ -1,0 +1,65 @@
+{
+  "stage": "suite",
+  "platforms": {
+    "mac": {
+      "joyword": {
+        "passed": 3660,
+        "failed": 0,
+        "ignored": 2,
+        "failedTests": [],
+        "logSha256": "7d4667031353878920e0710fa10b2b4e8067b3e203069aa9089939a336a09d45"
+      },
+      "joydeck": {
+        "passed": 989,
+        "failed": 0,
+        "ignored": 0,
+        "failedTests": [],
+        "logSha256": "3dc7eab6013e7a8c7b5597630e85fa0fcb20d51997d8eeca61ca47a2158104ec"
+      },
+      "joysheet": {
+        "passed": 1441,
+        "failed": 0,
+        "ignored": 1,
+        "failedTests": [],
+        "logSha256": "86c2b7a3b90e5903c4da7f154172b6cf2e9f65ff74024a22860cc25e8d5743c8"
+      },
+      "ui": {
+        "passed": 75,
+        "failed": 0,
+        "ignored": 0,
+        "failedTests": [],
+        "logSha256": "f2ea680c4779457241f0ac317cb2fd1c59869de5735f32094a2d653a29b6b07f"
+      }
+    },
+    "uos": {
+      "joyword": {
+        "passed": 3664,
+        "failed": 0,
+        "ignored": 2,
+        "failedTests": [],
+        "logSha256": "cf43ab644c3bd2bf6218dfa98047baf60671df5ba8de1d0f963b94016bb73829"
+      },
+      "joydeck": {
+        "passed": 994,
+        "failed": 0,
+        "ignored": 0,
+        "failedTests": [],
+        "logSha256": "fd37f61b6ecac1965c51a50c32bf7ee062b7de63d2d0f6cb613e1de07d24df8f"
+      },
+      "joysheet": {
+        "passed": 1441,
+        "failed": 0,
+        "ignored": 1,
+        "failedTests": [],
+        "logSha256": "e6a683061540392a4aea2c55991ada8a2d089ae0ec3cef490e127d38ccae2e0f"
+      },
+      "ui": {
+        "passed": 79,
+        "failed": 0,
+        "ignored": 0,
+        "failedTests": [],
+        "logSha256": "09ed6f4b0fc0a6b754fad3b2ce58813fedeec17c6b4a20d8d6c237ec2d071584"
+      }
+    }
+  }
+}

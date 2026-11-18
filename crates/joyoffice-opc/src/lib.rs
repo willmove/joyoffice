@@ -16,7 +16,7 @@ mod zip;
 pub use budget::{Budget, BudgetError};
 pub use package::{
     CONTENT_TYPES_NAMESPACE, Diagnostic, ExternalKind, OpcError, Package, Part,
-    RELATIONSHIPS_NAMESPACE, Relationship, Target,
+    RELATIONSHIPS_NAMESPACE, Relationship, Target, take_matching_member,
 };
 pub use part::{PartName, PartNameError};
 pub use xml::XmlError;

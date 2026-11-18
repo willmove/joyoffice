@@ -354,9 +354,26 @@ impl Calc {
             // Row-major order is a good topological guess; on-demand evaluation fixes the rest.
             dirty.sort_by_key(|(s, c)| (*s, c.row, c.col));
             let mut exprs: HashMap<Key, std::sync::Arc<Expr>> = HashMap::with_capacity_and_hasher(dirty.len(), Default::default());
+            #[cfg(feature = "scalar-pilot")]
+            let mut literals = HashMap::default();
+            #[cfg(feature = "scalar-pilot")]
+            let batch_literals = dirty.len() >= 512 && !wb.calc.iterative && wb.sheets.iter().all(|sheet| sheet.spill_ranges.is_empty());
             for k in &dirty {
-                if let Some(e) = wb.sheet(k.0).and_then(|s| s.cell(k.1)).and_then(|c| c.formula.as_ref()).and_then(|f| f.expr_arc()) {
-                    exprs.insert(*k, e);
+                if let Some(formula) = wb.sheet(k.0).and_then(|s| s.cell(k.1)).and_then(|c| c.formula.as_ref())
+                    && let Some(expr) = formula.expr_arc()
+                {
+                    // Numeric constants cannot change during this single-writer pass or be
+                    // overwritten by a new spill. Aggregate and dependent formulas below
+                    // read the resulting values from the same PassHost as other precedents.
+                    #[cfg(feature = "scalar-pilot")]
+                    if batch_literals
+                        && formula.array.is_none()
+                        && let Some(value) = scalar_pilot::evaluate(wb, k.0, &expr)
+                    {
+                        literals.insert(*k, value);
+                        continue;
+                    }
+                    exprs.insert(*k, expr);
                 }
             }
             drop(preparation_profile);
@@ -367,6 +384,10 @@ impl Calc {
             let (mut results, spills, cycles) = {
                 let mut host = PassHost::new(wb, &exprs, &mut rng, now);
                 host.iterate = wb.calc.iterative;
+                #[cfg(feature = "scalar-pilot")]
+                if !literals.is_empty() {
+                    host.results = literals;
+                }
                 for k in &dirty {
                     host.calculate(*k);
                 }

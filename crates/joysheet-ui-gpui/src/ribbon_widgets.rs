@@ -423,47 +423,30 @@ impl Desktop {
             }
             body = body.child(stack);
         }
-        let mut footer = div()
-            .relative()
-            .h(px(18.))
-            .flex()
-            .items_center()
-            .justify_center()
-            .text_size(px(11.))
-            .text_color(rgb(self.palette().muted))
-            .child(self.label(group.zh, group.en));
-        if let Some(cmd) = group.launcher {
-            footer = footer.child(
-                Button::new(ElementId::Name(format!("launcher-{}-{}", group.en, cmd).into()))
-                    .ghost()
-                    .xsmall()
-                    .absolute()
-                    .right_0()
-                    .size(px(15.))
-                    .px_0()
-                    .icon(crate::ribbon_icons::icon(I::ArrowDownRight))
-                    .accessibility_label(self.label("打开格式设置", "Open formatting settings"))
-                    .on_click(cx.listener(move |v, _, w, cx| {
-                        v.open_command(cmd, w, cx);
-                        v.dialog_tab = match (cmd, group.en) {
-                            ("home.formatCells", "Font") => 2,
-                            ("home.formatCells", "Alignment") => 1,
-                            _ => 0,
-                        };
-                        v.focus_command_input(w, cx);
-                    })),
-            );
-        }
-        div()
-            .flex_shrink_0()
-            .px(px(7.))
-            .border_r(px(0.5))
-            .border_color(rgb(self.palette().border))
-            .flex()
-            .flex_col()
-            .child(body)
-            .child(footer)
-            .into_any_element()
+        let title = self.label(group.zh, group.en);
+        let launcher = group.launcher.map(|cmd| {
+            Button::new(ElementId::Name(format!("launcher-{}-{}", group.en, cmd).into()))
+                .ghost()
+                .xsmall()
+                .size(px(15.))
+                .px_0()
+                .icon(crate::ribbon_icons::icon(I::ArrowDownRight))
+                .accessibility_label(self.label("打开格式设置", "Open formatting settings"))
+                .on_click(cx.listener(move |v, _, w, cx| {
+                    v.open_command(cmd, w, cx);
+                    v.dialog_tab = match (cmd, group.en) {
+                        ("home.formatCells", "Font") => 2,
+                        ("home.formatCells", "Alignment") => 1,
+                        _ => 0,
+                    };
+                    v.focus_command_input(w, cx);
+                }))
+        });
+        let footer = joyoffice_ui::ribbon_group_footer(self.palette(), title.clone(), launcher);
+        let frame =
+            div().flex_shrink_0().px(px(7.)).border_r(px(0.5)).border_color(rgb(self.palette().border)).flex().flex_col().child(body).child(footer);
+        let id = ElementId::Name(format!("ribbon-group-{}-{}", self.ribbon_tab, group.en).into());
+        joyoffice_ui::ribbon_group(frame, id, title).into_any_element()
     }
     pub(crate) fn excel_ribbon_tools(&self, cx: &mut Context<Self>) -> AnyElement {
         if self.ribbon_collapsed || self.ribbon_tab == 0 {

@@ -21,6 +21,12 @@ pub const WELCOME: &[u8] = include_bytes!("../../../assets/samples/welcome.docx"
 
 /// Apply the desktop host's untrusted Word container limits before import.
 pub fn preflight_word_package(bytes: &[u8]) -> Result<(), String> {
+    verified_package(bytes).map(drop)
+}
+
+pub(super) fn verified_package(
+    bytes: &[u8],
+) -> Result<std::collections::BTreeMap<String, Vec<u8>>, String> {
     if bytes.len() as u64 > MAX_INPUT_BYTES {
         return Err("DOCX exceeds 64 MiB".into());
     }
@@ -30,9 +36,7 @@ pub fn preflight_word_package(bytes: &[u8]) -> Result<(), String> {
         max_xml_nodes: 4_000_000,
         ..Default::default()
     };
-    joyoffice_opc::Package::read(bytes, &budget)
-        .map(|_| ())
-        .map_err(|e| format!("DOCX container: {e}"))
+    joyoffice_opc::Package::read_members(bytes, &budget).map_err(|e| format!("DOCX container: {e}"))
 }
 
 #[derive(Clone, Debug, serde::Serialize)]
@@ -178,13 +182,21 @@ impl Reader {
             }
             // Host OPC validates the untrusted container; Word-specific semantics stay in the engine.
             let ext = crate::advanced::extension(Path::new(name));
-            if joyword_engine::io::is_word_package(&ext)
+            let doc = if joyword_engine::io::is_word_package(&ext)
                 || (ext.is_empty() && bytes.starts_with(b"PK\x03\x04"))
             {
-                preflight_word_package(bytes)?;
-            }
-            check_cancel(cancel)?;
-            let doc = joyword_engine::io::open_bytes(name, bytes)?;
+                let package = verified_package(bytes)?;
+                check_cancel(cancel)?;
+                if bytes.starts_with(b"PK\x03\x04") {
+                    joyword_engine::io::open_verified_docx(name, bytes, package)?
+                } else {
+                    // Keep signature-based dispatch for unusual files with a Word extension.
+                    joyword_engine::io::open_bytes(name, bytes)?
+                }
+            } else {
+                check_cancel(cancel)?;
+                joyword_engine::io::open_bytes(name, bytes)?
+            };
             Self::with_document(
                 name,
                 doc,

@@ -1,8 +1,12 @@
 //! GPUI-independent display list. Text consumes the CPU layout's exact face and glyph outlines;
 //! consumers must not shape it again. Unsupported paints remain explicit CPU object tiles.
-use std::{collections::BTreeMap, sync::Arc, time::Instant};
+use std::{
+    collections::BTreeMap,
+    sync::{Arc, Weak},
+    time::Instant,
+};
 
-use joydeck_model::{Presentation, Shape, ShapeId, ShapeKind, resolve};
+use joydeck_model::{MediaId, Presentation, Shape, ShapeId, ShapeKind, resolve};
 use kurbo::{Affine, BezPath, Point, Rect, Shape as _};
 use serde::Serialize;
 use sha2::{Digest, Sha256};
@@ -67,6 +71,8 @@ pub struct Stats {
     pub glyphs: usize,
     pub cache_bytes: usize,
     pub build_micros: u64,
+    /// Total payload bytes read to compute media digests since this cache was created.
+    pub media_hashed_bytes: u64,
 }
 
 struct Entry {
@@ -74,10 +80,17 @@ struct Entry {
     tick: u64,
 }
 
+struct MediaFingerprint {
+    source: Weak<Vec<u8>>,
+    digest: [u8; 32],
+    tick: u64,
+}
+
 #[derive(Default)]
 pub struct Cache {
     entries: BTreeMap<[u8; 32], Entry>,
     fallbacks: BTreeMap<[u8; 32], String>,
+    media: BTreeMap<MediaId, MediaFingerprint>,
     tick: u64,
     pub stats: Stats,
 }
@@ -91,7 +104,34 @@ impl Cache {
     pub fn clear(&mut self) {
         self.entries.clear();
         self.fallbacks.clear();
+        self.media.clear();
         self.stats.cache_bytes = 0;
+    }
+
+    fn media_digest(&mut self, id: MediaId, data: &Arc<Vec<u8>>) -> [u8; 32] {
+        let source = Arc::downgrade(data);
+        if let Some(entry) = self.media.get_mut(&id)
+            && entry.source.ptr_eq(&source)
+        {
+            entry.tick = self.tick;
+            return entry.digest;
+        }
+        // A weak reference also makes Arc::make_mut detach before an in-place edit,
+        // while allowing the product to drop an unused media payload immediately.
+        let digest = Sha256::digest(data.as_slice()).into();
+        self.stats.media_hashed_bytes = self
+            .stats
+            .media_hashed_bytes
+            .saturating_add(data.len() as u64);
+        self.media.insert(
+            id,
+            MediaFingerprint {
+                source,
+                digest,
+                tick: self.tick,
+            },
+        );
+        digest
     }
 
     fn get(&mut self, key: [u8; 32]) -> Option<Arc<Geometry>> {
@@ -185,10 +225,11 @@ impl Cache {
                     &m.name,
                     &m.content_type,
                     &m.link,
-                    Sha256::digest(m.data.as_slice()).to_vec(),
+                    self.media_digest(m.id, &m.data),
                 )
             })
             .collect();
+        self.media.retain(|_, entry| entry.tick == self.tick);
         let environment = digest(&(
             &pres.masters,
             &pres.slide_size,
@@ -696,6 +737,62 @@ mod tests {
         }
         panic!("font environment did not stabilize for cache identity check")
     }
+    #[test]
+    fn title_edits_reuse_media_bytes_but_replacement_and_undo_restore_pixels()
+    -> Result<(), Box<dyn std::error::Error>> {
+        fn png(rgb: [u8; 3]) -> image::ImageResult<Vec<u8>> {
+            let image = image::RgbImage::from_pixel(8, 8, image::Rgb(rgb));
+            let mut bytes = std::io::Cursor::new(Vec::new());
+            image.write_to(&mut bytes, image::ImageFormat::Png)?;
+            Ok(bytes.into_inner())
+        }
+        let mut p = deck();
+        let red = png([220, 20, 20])?;
+        let total = red.len() as u64;
+        let id = p
+            .add_media("logo.png", "image/png", red)
+            .ok_or("media allocation failed")?;
+        Arc::make_mut(&mut p.slides[0]).shapes.push(Shape {
+            id: ShapeId(905),
+            xfrm: Some(joydeck_geom::Xfrm::new(400., 40., 90., 90.)),
+            kind: ShapeKind::Picture {
+                fill: joydeck_model::style::PictureFill {
+                    media: id,
+                    ..Default::default()
+                },
+            },
+            ..Default::default()
+        });
+        let mut cache = Cache::default();
+        cache.build(&p, 0, 1., &|| false)?;
+        assert_eq!(cache.stats.media_hashed_bytes, total);
+        Arc::make_mut(&mut p.slides[0]).shapes[0].text = Some(TextBody::from_text("Edited title"));
+        let original = cache.build(&p, 0, 1., &|| false)?;
+        assert_eq!(cache.stats.media_hashed_bytes, total);
+        let saved = p.clone();
+        let blue = png([20, 20, 220])?;
+        let changed_bytes = blue.len() as u64;
+        *Arc::make_mut(&mut p.media[0].data) = blue;
+        let changed = cache.build(&p, 0, 1., &|| false)?;
+        assert_eq!(cache.stats.media_hashed_bytes, total + changed_bytes);
+        let picture = |scene: &Scene| {
+            scene
+                .nodes
+                .iter()
+                .find(|node| node.id == Some(ShapeId(905)))
+                .and_then(|node| node.geometry.bitmap.as_ref())
+                .map(|bitmap| bitmap.pixels.clone())
+                .ok_or("picture bitmap missing")
+        };
+        assert_ne!(picture(&original)?, picture(&changed)?);
+        let undone = cache.build(&saved, 0, 1., &|| false)?;
+        assert_eq!(picture(&original)?, picture(&undone)?);
+        assert_eq!(cache.stats.media_hashed_bytes, 2 * total + changed_bytes);
+        cache.clear();
+        assert!(cache.media.is_empty());
+        Ok(())
+    }
+
     #[test]
     fn translation_reuses_geometry_and_exact_glyphs() {
         let mut p = deck();

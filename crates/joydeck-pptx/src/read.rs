@@ -511,8 +511,11 @@ pub fn import(bytes: &[u8]) -> Result<Presentation, PptxError> {
 /// [`import`], plus the parts of the slide list the file names but that couldn't be read (a
 /// missing or truncated slide): those slides are left out, so a caller can say so (#203).
 pub fn import_checked(bytes: &[u8]) -> Result<(Presentation, Vec<String>), PptxError> {
+    import_package(Package::open(bytes)?)
+}
+
+pub(super) fn import_package(pkg: Package) -> Result<(Presentation, Vec<String>), PptxError> {
     let mut lost_slides: Vec<String> = vec![];
-    let pkg = Package::open(bytes)?;
     let root_rels = pkg.rels("");
     let pres_path = pkg.presentation_path()?;
     let pres_doc = load(&pkg, &pres_path)

@@ -77,13 +77,11 @@ pub(super) fn group(label: &'static str, content: impl IntoElement) -> Div {
         .border_color(gpui::rgb(0x888888).opacity(0.27))
         .flex()
         .items_start()
-        .child(
-            div()
-                .id(label)
-                .role(gpui::Role::Group)
-                .aria_label(label)
-                .child(content),
-        )
+        .child(joyoffice_ui::ribbon_group(
+            div().child(content),
+            label,
+            label,
+        ))
 }
 
 pub(super) fn row() -> Div {

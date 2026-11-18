@@ -54,6 +54,29 @@ impl Package {
         max_total: u64,
         max_work: u64,
     ) -> Result<Self, PptxError> {
+        Self::read_entries(
+            bytes,
+            max_part,
+            max_total,
+            max_work,
+            &mut Default::default(),
+        )
+    }
+
+    pub(super) fn open_verified(
+        bytes: &[u8],
+        mut members: std::collections::BTreeMap<String, Vec<u8>>,
+    ) -> Result<Self, PptxError> {
+        Self::read_entries(bytes, MAX_PART, MAX_TOTAL, MAX_INFLATE_WORK, &mut members)
+    }
+
+    fn read_entries(
+        bytes: &[u8],
+        max_part: u64,
+        max_total: u64,
+        max_work: u64,
+        members: &mut std::collections::BTreeMap<String, Vec<u8>>,
+    ) -> Result<Self, PptxError> {
         let mut zip = zip::ZipArchive::new(Cursor::new(bytes))
             .map_err(|e| PptxError::NotPptx(format!("{e}")))?;
         if zip.len() > MAX_ENTRIES {
@@ -93,10 +116,19 @@ impl Package {
                 log::warn!("pptx: skipping oversized part {name} ({declared} bytes)");
                 continue;
             }
-            let mut data = Vec::with_capacity(declared.min(16 * 1024 * 1024) as usize);
             let cap = max_part
                 .min(max_total.saturating_sub(total))
                 .min(max_work.saturating_sub(work));
+            if declared <= cap
+                && let Some(data) =
+                    joyoffice_opc::take_matching_member(members, &name, declared, f.crc32())
+            {
+                total += declared;
+                work += declared;
+                parts.insert(norm(&name), (name.replace('\\', "/"), data));
+                continue;
+            }
+            let mut data = Vec::with_capacity(declared.min(16 * 1024 * 1024) as usize);
             let read = (&mut f).take(cap.saturating_add(1)).read_to_end(&mut data);
             // Charge what was inflated whether or not the part is kept.
             work = work.saturating_add(data.len() as u64);

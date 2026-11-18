@@ -1,4 +1,5 @@
 """Check the exact JoyOffice dependency baseline and headless isolation."""
+import hashlib
 import json
 from pathlib import Path
 import re
@@ -25,7 +26,21 @@ def check_lock(lock):
         if package['name'].startswith('gpui-pre-') and package['name'] != 'gpui-pre-reqwest':
             if package['version'] != '0.3.12':
                 errors.append(package['name'] + ' must match GPUI snapshot 0.3.12')
-            if package.get('source') != 'registry+https://github.com/rust-lang/crates.io-index':
+            if package.get('source') is None and package['name'] == 'gpui-pre-linux':
+                reviewed = 'third-party/gpui-pre-linux'
+                manifest = tomllib.loads((ROOT / 'Cargo.toml').read_text(encoding='utf-8'))
+                if manifest.get('patch', {}).get('crates-io', {}).get(package['name']) != {'path': reviewed}:
+                    errors.append('gpui-pre-linux path differs from the reviewed patch')
+                # Hash all paths and bytes even on a host without the registry archive.
+                digests = hashlib.sha256()
+                directory = ROOT / reviewed
+                for item in sorted(directory.rglob('*')):
+                    if item.is_file():
+                        digests.update(item.relative_to(directory).as_posix().encode() + b'\0')
+                        digests.update(hashlib.sha256(item.read_bytes()).digest())
+                if digests.hexdigest() != 'ae269c605c7d6379ce0ec9de31f9e7c7651d90f6b4df20688ba31b87e230e759':
+                    errors.append('gpui-pre-linux patch differs from its reviewed build inputs')
+            elif package.get('source') != 'registry+https://github.com/rust-lang/crates.io-index':
                 errors.append(package['name'] + ' has an unexpected dependency source')
         if FORBIDDEN.fullmatch(package['name']):
             errors.append('egui dependency entered the workspace: ' + package['name'])

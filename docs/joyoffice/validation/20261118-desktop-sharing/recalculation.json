@@ -1,0 +1,55 @@
+{
+  "configuration": "macOS release, AB/BA, historical default vs candidate. CPU paint measures commit handler to paint.",
+  "desktop": {
+    "100": {
+      "base": {
+        "samples": 40,
+        "binarySha256": "e3e590d91628ba19aa5d0965c3702d31227d416d3ecc8c86b6b552ce3767a4b9",
+        "engineP95Ms": 0.23533300000000001,
+        "commitToCpuPaintP95Ms": 14.635292,
+        "peakRssMiB": 134.34375,
+        "xlsxAndUndoVerified": true
+      },
+      "candidate": {
+        "samples": 40,
+        "binarySha256": "f8536b48b7b6fe53db5e7ece823e564f9a53b46ec9e5c0e0a104913f19f15d4a",
+        "engineP95Ms": 0.199959,
+        "commitToCpuPaintP95Ms": 15.125875,
+        "peakRssMiB": 142.15625,
+        "xlsxAndUndoVerified": true
+      }
+    },
+    "100000": {
+      "base": {
+        "samples": 40,
+        "binarySha256": "e3e590d91628ba19aa5d0965c3702d31227d416d3ecc8c86b6b552ce3767a4b9",
+        "engineP95Ms": 72.138792,
+        "commitToCpuPaintP95Ms": 81.916333,
+        "peakRssMiB": 1098.4375,
+        "xlsxAndUndoVerified": true
+      },
+      "candidate": {
+        "samples": 40,
+        "binarySha256": "f8536b48b7b6fe53db5e7ece823e564f9a53b46ec9e5c0e0a104913f19f15d4a",
+        "engineP95Ms": 50.790583,
+        "commitToCpuPaintP95Ms": 64.897625,
+        "peakRssMiB": 1121.09375,
+        "xlsxAndUndoVerified": true
+      }
+    }
+  },
+  "warmed100Rows": {
+    "base": {
+      "samples": 4000,
+      "warmupPerRound": 5000,
+      "p95Ms": 0.0525,
+      "medianMs": 0.0209
+    },
+    "candidate": {
+      "samples": 4000,
+      "warmupPerRound": 5000,
+      "p95Ms": 0.0538,
+      "medianMs": 0.0212
+    }
+  }
+}

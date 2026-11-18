@@ -6,8 +6,10 @@ use joysheet_model::{Cell, Formula, Workbook};
 fn main() -> Result<(), String> {
     let mut args = std::env::args().skip(1);
     let rows: u32 = args.next().ok_or("usage: recalc_fanout ROWS")?.parse().map_err(|_| "invalid row count")?;
-    if !(1..=100_000).contains(&rows) || args.next().is_some() {
-        return Err("expected one row count between 1 and 100000".into());
+    let warmups: u32 = args.next().map(|v| v.parse()).transpose().map_err(|_| "invalid warmup count")?.unwrap_or(2);
+    let samples: u32 = args.next().map(|v| v.parse()).transpose().map_err(|_| "invalid sample count")?.unwrap_or(20);
+    if !(1..=100_000).contains(&rows) || warmups > 10_000 || !(1..=10_000).contains(&samples) || args.next().is_some() {
+        return Err("usage: recalc_fanout ROWS [WARMUPS [SAMPLES]]".into());
     }
     let mut wb = Workbook::new();
     let input = CellRef::new(0, 0);
@@ -20,7 +22,7 @@ fn main() -> Result<(), String> {
     let mut calc = Calc::new();
     calc.recalc_all(&mut wb);
     println!("edit,rows,formulas,recalc_ms,dependency_ms,preparation_ms,evaluation_ms,writeback_ms");
-    for edit in 1..=22 {
+    for edit in 1..=(warmups + samples) {
         let value = f64::from(edit);
         wb.sheet_mut(0).ok_or("missing sheet")?.set_value(input, Value::Number(value));
         profile::start();
@@ -36,10 +38,10 @@ fn main() -> Result<(), String> {
         if sheet.value(total) != Value::Number(n * (n + 1.) / 2. + n * value) || sample.formulas != rows as usize + 1 {
             return Err(format!("aggregate or dependency count differs on edit {edit}"));
         }
-        if edit > 2 {
+        if edit > warmups {
             println!(
                 "{},{rows},{},{:.4},{:.4},{:.4},{:.4},{:.4}",
-                edit - 2,
+                edit - warmups,
                 sample.formulas,
                 sample.recalc_ms,
                 sample.dependency_ms,

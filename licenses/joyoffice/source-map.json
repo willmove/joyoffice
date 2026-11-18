@@ -14,8 +14,9 @@
     "target_path": "crates/joyoffice-ui/src/lib.rs",
     "source_sha256": "08e23515fe8a44ea93dda33be7d47554c6c6fc4240f35f2fb27b6339fcd7c5cc",
     "local_changes": "CRLF normalized to LF; content otherwise unchanged; 2026-11-11: shared application theme catalog, persistent preset selection and palette projection; preserve document colors and original source identity; export the shared Word and Sheet save changes dialog",
-    "adapted_sha256": "357435d02ef4c9485684513ef32fbab6c961c2bff2351df05386e86d2454c7eb",
-    "desktop_product_icons": "2026-11-18: embedded native product icons/logos for every product window; portable desktop registration and complete shared artwork source fingerprints; original attribution retained."
+    "adapted_sha256": "dfadbd9b8a1ba2e8d21605ab9ae101863bb5d2e412177c1444d6eb85c2204bb7",
+    "desktop_product_icons": "2026-11-18: embedded native product icons/logos for every product window; portable desktop registration and complete shared artwork source fingerprints; original attribution retained.",
+    "roadmap_refactor": "Expose accessible ribbon groups and launcher footers for all three desktops."
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
@@ -39,7 +40,8 @@
     "target_path": "scripts/verify_gpui_pre_provenance.py",
     "source_sha256": "cc8f0c60d19e9576943906043ce34ef1ad0f12fbfa4e8b5c08d647fb5d329af6",
     "local_changes": "CRLF normalized to LF; content otherwise unchanged; R9: enforce identical LF checkout bytes on Windows/Linux/macOS",
-    "adapted_sha256": "d061412aed0d0cf3242f53414bdeb7500a6b43480e6c509c88e1a7df9ce30ad8"
+    "adapted_sha256": "b8c34afc0afad76b6a0edc188e9a2d189965670c2a9f2e859792e77384e5492d",
+    "verified_opc_read": "Reuse verified OPC buffers while preserving format reader budgets and ZIP name decoding."
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
@@ -105,16 +107,19 @@
     "source_path": "crates/joyoffice-opc/src/lib.rs",
     "target_path": "crates/joyoffice-opc/src/lib.rs",
     "source_sha256": "073949433fe217bcaad7ba34313fd49e183c98580ec8c32462780e490b678c2f",
-    "adapted_sha256": "34a3166790e5d968e1767c77d1be57d43541181c43f210559dbc269054004b86",
-    "local_changes": "LF normalization; fallible cursor conversions under stricter local panic policy; test-only assertion allowances"
+    "adapted_sha256": "3c844a6309b7b320dec21fa8f33669f97048f4a688e3c7907f3d75624056af04",
+    "local_changes": "LF normalization; fallible cursor conversions under stricter local panic policy; test-only assertion allowances",
+    "verified_opc_read": "Reuse verified OPC buffers while preserving format reader budgets and ZIP name decoding."
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
     "source_path": "crates/joyoffice-opc/src/package.rs",
     "target_path": "crates/joyoffice-opc/src/package.rs",
     "source_sha256": "53deec46e5ae05ae9b3387a6858d76fe34c36373831158d42a6ee4db351c72da",
-    "adapted_sha256": "d7c9b288c39b1ddfeaf6cbad863b0dd473ec9957cf32f7825115918a84d07277",
-    "local_changes": "LF normalization; fallible cursor conversions under stricter local panic policy; test-only assertion allowances"
+    "adapted_sha256": "1937233d71fd18f999f33bc6302e0204ab3c2c2524d72a08f2b8602fe37a5e0e",
+    "local_changes": "LF normalization; fallible cursor conversions under stricter local panic policy; test-only assertion allowances",
+    "verified_opc_members": "Consume verified OPC members without a second inflate, preserving the original manifest name and input limits.",
+    "verified_opc_read": "Reuse verified OPC buffers while preserving format reader budgets and ZIP name decoding."
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
@@ -145,8 +150,10 @@
     "source_path": "crates/joyoffice-opc/tests/package.rs",
     "target_path": "crates/joyoffice-opc/tests/package.rs",
     "source_sha256": "616a16d4577732334fb8a34ad20c6182e779851a21c2ff468ebeab91453def11",
-    "adapted_sha256": "63c9db86db6f792524a8827e9be621b856e3436d1d39d358c1d5a7a6a86f09b3",
-    "local_changes": "LF normalization; fallible cursor conversions under stricter local panic policy; test-only assertion allowances; R1 rustfmt and bounded reader/CPU-renderer/palette/notes adapters as applicable"
+    "adapted_sha256": "39035e1847ca8238e6548bfb1bbe47ff83c2b7e2332377f5321572d00441c00a",
+    "local_changes": "LF normalization; fallible cursor conversions under stricter local panic policy; test-only assertion allowances; R1 rustfmt and bounded reader/CPU-renderer/palette/notes adapters as applicable",
+    "verified_opc_members": "Consume verified OPC members without a second inflate, preserving the original manifest name and input limits.",
+    "verified_opc_read": "Reuse verified OPC buffers while preserving format reader budgets and ZIP name decoding."
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
@@ -635,7 +642,7 @@
     "target_path": "crates/joydeck-ui-gpui/src/chrome.rs",
     "source_sha256": "efd229d2bca36c8887fa16026f4946bbe3240cd9ea9b1b9b65c8c83c11933438",
     "local_changes": "R8 per-tab bounded GPUI construction frames follow the old JoyDeck ribbon pattern; split Home into groups and keep intrinsic horizontal scroll width on default MSVC stack.; 2026-11-11: shared application theme catalog, persistent preset selection and palette projection; preserve document colors and original source identity",
-    "adapted_sha256": "0a4e53f54c637e166815cb153953073592d7bbd349b431a8465244ffd7c8e180",
+    "adapted_sha256": "f8b5c2f4ce5fb42621afa447e19fa05bad2e927ef73c8006d44296dbc384ed0b",
     "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained.",
     "cancellable_open": "Add an explicit cancel action to the status bar while opening a document.",
     "shared_document_view": "Separate window selection and state from the shared editor session and preserve revision guards.",
@@ -646,6 +653,7 @@
     "macos_powerpoint_ribbon": "Arrange the native ribbon using the observed macOS PowerPoint tab order, spacing and command groups.",
     "powerpoint_file_page": "Retain the File ribbon tab on every desktop platform and route both file entries to the updated file page.",
     "ribbon_collapse_navigation": "2026-11-13: toggle the selected ribbon tab on double-click and retain the tab strip for expanded or collapsed File pages.",
-    "desktop_product_icons": "2026-11-18: embedded native product icons/logos for every product window; portable desktop registration and complete shared artwork source fingerprints; original attribution retained."
+    "desktop_product_icons": "2026-11-18: embedded native product icons/logos for every product window; portable desktop registration and complete shared artwork source fingerprints; original attribution retained.",
+    "roadmap_refactor": "Use the shared accessible group with the same compact layout and control ID."
   }
 ]

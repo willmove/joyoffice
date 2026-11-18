@@ -1,0 +1,240 @@
+{
+  "platform": "macOS-27.2.1-arm64-arm-64bit-Mach-O",
+  "build": "dev",
+  "cases": {
+    "mixed-media.docx": {
+      "baseline": [
+        {
+          "ms": 114.463,
+          "rssMiB": 119.75,
+          "textSha256": "7f8ff39685997047f4cdb69d7b6b7a21b0cef44b2b5760aa5437400ae2a95366"
+        },
+        {
+          "ms": 116.58,
+          "rssMiB": 119.797,
+          "textSha256": "7f8ff39685997047f4cdb69d7b6b7a21b0cef44b2b5760aa5437400ae2a95366"
+        },
+        {
+          "ms": 124.819,
+          "rssMiB": 119.25,
+          "textSha256": "7f8ff39685997047f4cdb69d7b6b7a21b0cef44b2b5760aa5437400ae2a95366"
+        },
+        {
+          "ms": 112.691,
+          "rssMiB": 120.188,
+          "textSha256": "7f8ff39685997047f4cdb69d7b6b7a21b0cef44b2b5760aa5437400ae2a95366"
+        },
+        {
+          "ms": 110.595,
+          "rssMiB": 119.656,
+          "textSha256": "7f8ff39685997047f4cdb69d7b6b7a21b0cef44b2b5760aa5437400ae2a95366"
+        },
+        {
+          "ms": 143.95,
+          "rssMiB": 119.953,
+          "textSha256": "7f8ff39685997047f4cdb69d7b6b7a21b0cef44b2b5760aa5437400ae2a95366"
+        }
+      ],
+      "candidate": [
+        {
+          "ms": 99.159,
+          "rssMiB": 118.953,
+          "textSha256": "7f8ff39685997047f4cdb69d7b6b7a21b0cef44b2b5760aa5437400ae2a95366"
+        },
+        {
+          "ms": 120.059,
+          "rssMiB": 119.109,
+          "textSha256": "7f8ff39685997047f4cdb69d7b6b7a21b0cef44b2b5760aa5437400ae2a95366"
+        },
+        {
+          "ms": 135.275,
+          "rssMiB": 119.047,
+          "textSha256": "7f8ff39685997047f4cdb69d7b6b7a21b0cef44b2b5760aa5437400ae2a95366"
+        },
+        {
+          "ms": 128.537,
+          "rssMiB": 120.406,
+          "textSha256": "7f8ff39685997047f4cdb69d7b6b7a21b0cef44b2b5760aa5437400ae2a95366"
+        },
+        {
+          "ms": 136.414,
+          "rssMiB": 119.109,
+          "textSha256": "7f8ff39685997047f4cdb69d7b6b7a21b0cef44b2b5760aa5437400ae2a95366"
+        },
+        {
+          "ms": 101.572,
+          "rssMiB": 119.172,
+          "textSha256": "7f8ff39685997047f4cdb69d7b6b7a21b0cef44b2b5760aa5437400ae2a95366"
+        }
+      ],
+      "expandedBytes": 3501,
+      "sourceSha256": "8e55503dbfd2de7e209ca3494d678919e48f52780e51ba06f8456a944b2aac7f",
+      "summary": {
+        "baseline": {
+          "medianMs": 115.522,
+          "maxRssMiB": 120.188
+        },
+        "candidate": {
+          "medianMs": 124.298,
+          "maxRssMiB": 120.406
+        }
+      }
+    },
+    "handbook.docx": {
+      "baseline": [
+        {
+          "ms": 137.473,
+          "rssMiB": 45.375,
+          "textSha256": "71eafcc65225733e108bd35053f8a98b213cc60b706cad1ee1634a0dd79db9aa"
+        },
+        {
+          "ms": 118.051,
+          "rssMiB": 45.297,
+          "textSha256": "71eafcc65225733e108bd35053f8a98b213cc60b706cad1ee1634a0dd79db9aa"
+        },
+        {
+          "ms": 138.644,
+          "rssMiB": 44.906,
+          "textSha256": "71eafcc65225733e108bd35053f8a98b213cc60b706cad1ee1634a0dd79db9aa"
+        },
+        {
+          "ms": 127.164,
+          "rssMiB": 45.875,
+          "textSha256": "71eafcc65225733e108bd35053f8a98b213cc60b706cad1ee1634a0dd79db9aa"
+        },
+        {
+          "ms": 125.38,
+          "rssMiB": 45.125,
+          "textSha256": "71eafcc65225733e108bd35053f8a98b213cc60b706cad1ee1634a0dd79db9aa"
+        },
+        {
+          "ms": 125.693,
+          "rssMiB": 45.312,
+          "textSha256": "71eafcc65225733e108bd35053f8a98b213cc60b706cad1ee1634a0dd79db9aa"
+        }
+      ],
+      "candidate": [
+        {
+          "ms": 123.723,
+          "rssMiB": 44.812,
+          "textSha256": "71eafcc65225733e108bd35053f8a98b213cc60b706cad1ee1634a0dd79db9aa"
+        },
+        {
+          "ms": 120.859,
+          "rssMiB": 45.0,
+          "textSha256": "71eafcc65225733e108bd35053f8a98b213cc60b706cad1ee1634a0dd79db9aa"
+        },
+        {
+          "ms": 127.472,
+          "rssMiB": 44.719,
+          "textSha256": "71eafcc65225733e108bd35053f8a98b213cc60b706cad1ee1634a0dd79db9aa"
+        },
+        {
+          "ms": 129.311,
+          "rssMiB": 44.797,
+          "textSha256": "71eafcc65225733e108bd35053f8a98b213cc60b706cad1ee1634a0dd79db9aa"
+        },
+        {
+          "ms": 108.31,
+          "rssMiB": 44.859,
+          "textSha256": "71eafcc65225733e108bd35053f8a98b213cc60b706cad1ee1634a0dd79db9aa"
+        },
+        {
+          "ms": 151.507,
+          "rssMiB": 44.516,
+          "textSha256": "71eafcc65225733e108bd35053f8a98b213cc60b706cad1ee1634a0dd79db9aa"
+        }
+      ],
+      "expandedBytes": 54392,
+      "sourceSha256": "d1681f71d467a32efdfd85872c4fdaa9fb887d62cda6d45901b4161342c03f6c",
+      "summary": {
+        "baseline": {
+          "medianMs": 126.428,
+          "maxRssMiB": 45.875
+        },
+        "candidate": {
+          "medianMs": 125.597,
+          "maxRssMiB": 45.0
+        }
+      }
+    },
+    "opaque-12MiB.docx": {
+      "baseline": [
+        {
+          "ms": 216.74,
+          "rssMiB": 64.688,
+          "textSha256": "c216a63bf20dc2d6a0eb603b7a9c169338625a58a1169412d7e38d33493bb037"
+        },
+        {
+          "ms": 167.281,
+          "rssMiB": 64.984,
+          "textSha256": "c216a63bf20dc2d6a0eb603b7a9c169338625a58a1169412d7e38d33493bb037"
+        },
+        {
+          "ms": 202.654,
+          "rssMiB": 65.359,
+          "textSha256": "c216a63bf20dc2d6a0eb603b7a9c169338625a58a1169412d7e38d33493bb037"
+        },
+        {
+          "ms": 156.475,
+          "rssMiB": 68.859,
+          "textSha256": "c216a63bf20dc2d6a0eb603b7a9c169338625a58a1169412d7e38d33493bb037"
+        },
+        {
+          "ms": 138.18,
+          "rssMiB": 64.734,
+          "textSha256": "c216a63bf20dc2d6a0eb603b7a9c169338625a58a1169412d7e38d33493bb037"
+        },
+        {
+          "ms": 172.992,
+          "rssMiB": 72.875,
+          "textSha256": "c216a63bf20dc2d6a0eb603b7a9c169338625a58a1169412d7e38d33493bb037"
+        }
+      ],
+      "candidate": [
+        {
+          "ms": 177.254,
+          "rssMiB": 61.547,
+          "textSha256": "c216a63bf20dc2d6a0eb603b7a9c169338625a58a1169412d7e38d33493bb037"
+        },
+        {
+          "ms": 177.213,
+          "rssMiB": 60.141,
+          "textSha256": "c216a63bf20dc2d6a0eb603b7a9c169338625a58a1169412d7e38d33493bb037"
+        },
+        {
+          "ms": 229.189,
+          "rssMiB": 61.359,
+          "textSha256": "c216a63bf20dc2d6a0eb603b7a9c169338625a58a1169412d7e38d33493bb037"
+        },
+        {
+          "ms": 215.887,
+          "rssMiB": 61.094,
+          "textSha256": "c216a63bf20dc2d6a0eb603b7a9c169338625a58a1169412d7e38d33493bb037"
+        },
+        {
+          "ms": 133.117,
+          "rssMiB": 62.703,
+          "textSha256": "c216a63bf20dc2d6a0eb603b7a9c169338625a58a1169412d7e38d33493bb037"
+        },
+        {
+          "ms": 169.142,
+          "rssMiB": 60.25,
+          "textSha256": "c216a63bf20dc2d6a0eb603b7a9c169338625a58a1169412d7e38d33493bb037"
+        }
+      ],
+      "expandedBytes": 13410295,
+      "sourceSha256": "02a14a60528cf99e229fcd81ea60c03ca1abe23eb064615a147ee7c9fff8dd02",
+      "summary": {
+        "baseline": {
+          "medianMs": 170.137,
+          "maxRssMiB": 72.875
+        },
+        "candidate": {
+          "medianMs": 177.233,
+          "maxRssMiB": 62.703
+        }
+      }
+    }
+  }
+}

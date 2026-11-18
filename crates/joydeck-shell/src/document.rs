@@ -2,7 +2,7 @@
 use joydeck_model::Presentation;
 use serde::Serialize;
 use std::{
-    collections::BTreeSet,
+    collections::{BTreeMap, BTreeSet},
     io::{Read, Write},
     path::Path,
     sync::{
@@ -153,6 +153,7 @@ impl Document {
         let archive = joyoffice_opc::ZipArchive::new(&bytes, &budget)
             .map_err(|e| format!("invalid package: {e:?}"))?;
         let mut names = BTreeSet::new();
+        let mut verified = BTreeMap::new();
         let mut manifest = None;
         let mut has_content_types = false;
         for (i, entry) in archive.entries().iter().enumerate() {
@@ -176,6 +177,9 @@ impl Document {
             }
             if name.ends_with(".xml") || name.ends_with(".rels") {
                 validate_xml(name, &part, &budget)?;
+            }
+            if pptx && !name.ends_with('/') {
+                verified.insert(name.clone(), part);
             }
         }
         // Reject symlink entries rather than passing filesystem semantics to format readers.
@@ -203,7 +207,8 @@ impl Document {
             let (p, w) = joydeck_format::load_checked(&bytes).map_err(|e| e.to_string())?;
             ("deckcraft", p, w)
         } else if has_content_types {
-            let (p, w) = joydeck_pptx::import_checked(&bytes).map_err(|e| e.to_string())?;
+            let (p, w) =
+                joydeck_pptx::import_verified(&bytes, verified).map_err(|e| e.to_string())?;
             ("pptx", p, w)
         } else {
             return Err("unsupported package: expected PPTX or .deckcraft".into());

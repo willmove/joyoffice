@@ -318,13 +318,6 @@ impl PassHost<'_> {
     }
 
     fn formula_value(&mut self, k: Key, expr: &Expr) -> Value {
-        #[cfg(feature = "scalar-pilot")]
-        if !self.iterate
-            && self.spills.is_empty()
-            && let Some(value) = super::scalar_pilot::evaluate(self.wb, k.0, expr)
-        {
-            return value;
-        }
         Evaluator::new(self, k.0, k.1).value(expr)
     }
 

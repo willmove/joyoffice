@@ -117,11 +117,11 @@ pub enum Diagnostic {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct Part {
+pub struct Part<D = Arc<[u8]>> {
     pub name: PartName,
     pub content_type: Option<Arc<str>>,
     /// Exact uncompressed bytes, kept for preservation on save.
-    pub data: Arc<[u8]>,
+    pub data: D,
     pub method: Method,
 }
 
@@ -181,11 +181,12 @@ pub struct Relationship {
 }
 
 #[derive(Clone, Debug)]
-pub struct Package {
-    parts: BTreeMap<String, Part>,
+pub struct Package<D = Arc<[u8]>> {
+    parts: BTreeMap<String, Part<D>>,
     /// Keyed by source part key; `None` is the package itself.
     relationships: BTreeMap<Option<String>, Vec<Relationship>>,
-    content_types: Arc<[u8]>,
+    content_types: D,
+    content_types_name: String,
     diagnostics: Vec<Diagnostic>,
 }
 
@@ -325,9 +326,47 @@ fn relationships(
     Ok(out)
 }
 
+/// Take a previously inflated part only when both ZIP views agree on name, length and CRC.
+/// A reader can fall back to its original archive entry if the name decoding differs.
+pub fn take_matching_member(
+    members: &mut BTreeMap<String, Vec<u8>>,
+    name: &str,
+    size: u64,
+    crc: u32,
+) -> Option<Vec<u8>> {
+    members
+        .remove(name)
+        .filter(|data| data.len() as u64 == size && crc32fast::hash(data) == crc)
+}
+
 impl Package {
     /// Reads and validates a package; see the module documentation.
     pub fn read(bytes: &[u8], budget: &Budget) -> Result<Package, OpcError> {
+        Self::parse(bytes, budget)
+    }
+
+    /// Validate the same package and transfer its original inflated buffers to a format reader.
+    /// This includes the manifest and relationship parts, preserving exact member names.
+    pub fn read_members(
+        bytes: &[u8],
+        budget: &Budget,
+    ) -> Result<BTreeMap<String, Vec<u8>>, OpcError> {
+        let package = Package::<Vec<u8>>::parse(bytes, budget)?;
+        Ok(
+            std::iter::once((package.content_types_name, package.content_types))
+                .chain(
+                    package
+                        .parts
+                        .into_values()
+                        .map(|part| (part.name.item_name().to_owned(), part.data)),
+                )
+                .collect(),
+        )
+    }
+}
+
+impl<D: AsRef<[u8]> + From<Vec<u8>>> Package<D> {
+    fn parse(bytes: &[u8], budget: &Budget) -> Result<Self, OpcError> {
         let archive = ZipArchive::new(bytes, budget)?;
         let mut diagnostics = Vec::new();
         let mut names: Vec<(usize, PartName)> = Vec::new();
@@ -366,14 +405,14 @@ impl Package {
             }
         }
 
-        let content_types_bytes: Arc<[u8]> = archive
-            .read(content_types_item.ok_or(OpcError::MissingContentTypes)?)?
-            .into();
-        let types = content_types(&content_types_bytes, budget)?;
+        let content_types_item = content_types_item.ok_or(OpcError::MissingContentTypes)?;
+        let content_types_name = archive.entries()[content_types_item].name.clone();
+        let content_types_bytes: D = archive.read(content_types_item)?.into();
+        let types = content_types(content_types_bytes.as_ref(), budget)?;
 
         let mut parts = BTreeMap::new();
         for (index, name) in names {
-            let data: Arc<[u8]> = archive.read(index)?.into();
+            let data: D = archive.read(index)?.into();
             let content_type = types.overrides.get(&name.key()).cloned().or_else(|| {
                 name.extension()
                     .and_then(|extension| types.defaults.get(&extension).cloned())
@@ -410,7 +449,7 @@ impl Package {
             let list = relationships(
                 &part.name,
                 source.as_ref(),
-                &part.data,
+                part.data.as_ref(),
                 budget,
                 &keys,
                 &mut diagnostics,
@@ -422,16 +461,17 @@ impl Package {
             parts,
             relationships: relationships_map,
             content_types: content_types_bytes,
+            content_types_name,
             diagnostics,
         })
     }
 
     /// Part by name, compared under ASCII case folding.
-    pub fn part(&self, name: &str) -> Option<&Part> {
+    pub fn part(&self, name: &str) -> Option<&Part<D>> {
         self.parts.get(&name.to_ascii_lowercase())
     }
 
-    pub fn parts(&self) -> impl Iterator<Item = &Part> {
+    pub fn parts(&self) -> impl Iterator<Item = &Part<D>> {
         self.parts.values()
     }
 
@@ -454,7 +494,7 @@ impl Package {
 
     /// Exact bytes of `[Content_Types].xml`, kept for preservation.
     pub fn content_types_xml(&self) -> &[u8] {
-        &self.content_types
+        self.content_types.as_ref()
     }
 
     pub fn diagnostics(&self) -> &[Diagnostic] {

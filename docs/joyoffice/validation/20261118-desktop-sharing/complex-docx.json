@@ -1,0 +1,108 @@
+{
+  "macOS": {
+    "binarySha256": {
+      "baseline": "fc283cd3eb5ac54c6e69000f9aac53b0f52115e82dfb6db4607482406515b804",
+      "candidate": "73d3055ee97bcdc830dcf578b6a87c156f260c5fc01ed97e16303c88ab3b2a30"
+    },
+    "cases": [
+      {
+        "case": "notes",
+        "source_sha256": "3589241b6e286d7b8002b696abb4a2a92786fbfd37495cb85bec745e4b2e72ef",
+        "matching_reports": true,
+        "differing_keys": [],
+        "candidate_roundtrips": 2,
+        "baseline_readback": true,
+        "source_unchanged": true
+      },
+      {
+        "case": "equation",
+        "source_sha256": "706be688c5d71c0e4a71dae736f18eed59b8a191ee441f113096aee121b23633",
+        "matching_reports": true,
+        "differing_keys": [],
+        "candidate_roundtrips": 2,
+        "baseline_readback": true,
+        "source_unchanged": true
+      },
+      {
+        "case": "ole",
+        "source_sha256": "5bec3fe898a0109a85423b03859fc700a4c3c114e673fb4baf10d1fa9a93222d",
+        "matching_reports": true,
+        "differing_keys": [],
+        "candidate_roundtrips": 2,
+        "baseline_readback": true,
+        "source_unchanged": true
+      },
+      {
+        "case": "chart",
+        "source_sha256": "40ca300cf73f8292956f53f568c024901d513a4ab15e119b4ec55b78e9f28b0c",
+        "matching_reports": true,
+        "differing_keys": [],
+        "candidate_roundtrips": 2,
+        "baseline_readback": true,
+        "source_unchanged": true
+      },
+      {
+        "case": "smartart",
+        "source_sha256": "2859a81e3fa23c5536ff805327deb5e8c70bcccab0fd441c86dd1830b37b256a",
+        "matching_reports": true,
+        "differing_keys": [],
+        "candidate_roundtrips": 2,
+        "baseline_readback": true,
+        "source_unchanged": true
+      }
+    ]
+  },
+  "UOS": {
+    "binarySha256": {
+      "baseline": "111f7529472d4569514937ed70c7f8f9f15c7edc965efa1f2619cca742ab1a4c",
+      "candidate": "8997cfa3f9feea454d3b3a5aec29321d09c2d84c5c316548f7c2275b418f09a2"
+    },
+    "cases": [
+      {
+        "case": "notes",
+        "source_sha256": "3589241b6e286d7b8002b696abb4a2a92786fbfd37495cb85bec745e4b2e72ef",
+        "matching_reports": true,
+        "differing_keys": [],
+        "candidate_roundtrips": 2,
+        "baseline_readback": true,
+        "source_unchanged": true
+      },
+      {
+        "case": "equation",
+        "source_sha256": "706be688c5d71c0e4a71dae736f18eed59b8a191ee441f113096aee121b23633",
+        "matching_reports": true,
+        "differing_keys": [],
+        "candidate_roundtrips": 2,
+        "baseline_readback": true,
+        "source_unchanged": true
+      },
+      {
+        "case": "ole",
+        "source_sha256": "5bec3fe898a0109a85423b03859fc700a4c3c114e673fb4baf10d1fa9a93222d",
+        "matching_reports": true,
+        "differing_keys": [],
+        "candidate_roundtrips": 2,
+        "baseline_readback": true,
+        "source_unchanged": true
+      },
+      {
+        "case": "chart",
+        "source_sha256": "40ca300cf73f8292956f53f568c024901d513a4ab15e119b4ec55b78e9f28b0c",
+        "matching_reports": true,
+        "differing_keys": [],
+        "candidate_roundtrips": 2,
+        "baseline_readback": true,
+        "source_unchanged": true
+      },
+      {
+        "case": "smartart",
+        "source_sha256": "2859a81e3fa23c5536ff805327deb5e8c70bcccab0fd441c86dd1830b37b256a",
+        "matching_reports": true,
+        "differing_keys": [],
+        "candidate_roundtrips": 2,
+        "baseline_readback": true,
+        "source_unchanged": true
+      }
+    ]
+  }
+}

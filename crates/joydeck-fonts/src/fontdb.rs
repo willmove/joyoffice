@@ -6,8 +6,8 @@ use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU32, AtomicU64, Ordering};
 use std::sync::{Arc, Mutex, RwLock};
 
+use joyoffice_fonts::{FileFace, file_digest};
 use kurbo::BezPath;
-use sha2::{Digest, Sha256};
 use skrifa::instance::{Location, LocationRef, Size};
 use skrifa::outline::{DrawSettings, OutlinePen};
 use skrifa::raw::FileRef;
@@ -154,10 +154,9 @@ struct FontBytes {
 impl FontBytes {
     fn new(data: FontData, system_path: Option<Arc<Path>>) -> Self {
         let sha256 = match &data {
-            FontData::Static(bytes) => Sha256::digest(bytes),
-            FontData::Owned(bytes) => Sha256::digest(bytes.as_slice()),
-        }
-        .into();
+            FontData::Static(bytes) => file_digest(bytes),
+            FontData::Owned(bytes) => file_digest(bytes.as_slice()),
+        };
         Self {
             data,
             sha256,
@@ -183,10 +182,14 @@ pub struct FontIdentity {
 
 impl std::fmt::Display for FontIdentity {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        for byte in self.sha256 {
-            write!(f, "{byte:02x}")?;
-        }
-        write!(f, "/{}", self.index)?;
+        write!(
+            f,
+            "{}",
+            FileFace {
+                sha256: self.sha256,
+                index: self.index
+            }
+        )?;
         for (tag, bits) in &self.variation {
             write!(
                 f,
@@ -707,15 +710,13 @@ fn read_font(path: &Path, limit: u64) -> Option<Vec<u8>> {
 /// The platform's font folders (the system's and the user's), scanned by [`FontDb::global`].
 /// Empty on wasm.
 pub fn system_font_dirs() -> Vec<std::path::PathBuf> {
-    let mut dirs: Vec<std::path::PathBuf> = Vec::new();
+    let home = std::env::var_os("HOME").map(std::path::PathBuf::from);
+    let mut dirs = joyoffice_fonts::system_roots(home.as_deref());
     if cfg!(target_arch = "wasm32") {
         return dirs;
     }
-    let home = std::env::var_os("HOME").map(std::path::PathBuf::from);
     if cfg!(target_os = "macos") {
-        dirs.extend(["/System/Library/Fonts", "/Library/Fonts"].map(Into::into));
         if let Some(h) = &home {
-            dirs.push(h.join("Library/Fonts"));
             // Fonts Microsoft Office downloads on demand (Aptos…), used where Office put them.
             dirs.push(h.join("Library/Group Containers/UBF8T346G9.Office/FontCache/4/CloudFonts"));
         }
@@ -725,56 +726,22 @@ pub fn system_font_dirs() -> Vec<std::path::PathBuf> {
                 "/Applications/{app}.app/Contents/Resources/DFonts"
             )));
         }
-        // Fonts macOS ships as assets (PingFang, Yu Mincho, …): com_apple_MobileAsset_Font<N>.
-        for parent in [
-            "/System/Library/AssetsV2",
-            "/System/Library/AssetsV2/PreinstalledAssetsV2/InstallWithOs",
-        ] {
-            let Ok(entries) = std::fs::read_dir(parent) else {
-                continue;
-            };
-            for e in entries.flatten() {
-                if e.file_name()
-                    .to_string_lossy()
-                    .starts_with("com_apple_MobileAsset_Font")
-                {
-                    dirs.push(e.path());
-                }
-            }
-        }
+        dirs.extend(joyoffice_fonts::macos_asset_roots(false));
     } else if cfg!(windows) {
-        let root = std::env::var_os("WINDIR")
-            .map(std::path::PathBuf::from)
-            .unwrap_or_else(|| "C:\\Windows".into());
-        dirs.push(root.join("Fonts"));
-        if let Some(l) = std::env::var_os("LOCALAPPDATA") {
-            let l = std::path::PathBuf::from(l);
-            dirs.push(l.join("Microsoft\\Windows\\Fonts"));
+        if let Some(local) = std::env::var_os("LOCALAPPDATA") {
+            let l = std::path::PathBuf::from(local);
             // Fonts Microsoft Office downloads on demand (Aptos…), used where Office put them;
             // DeckCraft never ships or needs them.
             dirs.push(l.join("Microsoft\\FontCache\\4\\CloudFonts"));
         }
     } else {
-        dirs.extend(["/usr/share/fonts", "/usr/local/share/fonts"].map(Into::into));
-        if let Some(h) = &home {
-            dirs.push(h.join(".fonts"));
-            dirs.push(h.join(".local/share/fonts"));
-        }
         let env = |k: &str| std::env::var_os(k).map(|v| v.to_string_lossy().into_owned());
         dirs.extend(xdg_font_dirs(
             env("XDG_DATA_HOME").as_deref(),
             env("XDG_DATA_DIRS").as_deref(),
             home.as_deref(),
         ));
-        // Inside Flatpak the host's fonts are mounted here.
-        dirs.extend(
-            [
-                "/run/host/fonts",
-                "/run/host/local-fonts",
-                "/run/host/user-fonts",
-            ]
-            .map(Into::into),
-        );
+        dirs.extend(joyoffice_fonts::flatpak_roots(false));
         // Folders fontconfig is configured with (NixOS, Guix, custom setups).
         for conf in fontconfig_files() {
             if let Ok(text) = std::fs::read_to_string(&conf) {

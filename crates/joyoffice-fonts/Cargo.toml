@@ -1,0 +1,14 @@
+[package]
+name = "joyoffice-fonts"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+description = "System font locations and content-based collection face identity for JoyOffice"
+
+[dependencies]
+sha2.workspace = true
+
+[lints]
+workspace = true

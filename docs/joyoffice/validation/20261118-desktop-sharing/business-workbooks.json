@@ -1,0 +1,402 @@
+{
+  "macOS": [
+    {
+      "sourceSha256": "521576e13e1ced708e2f7efac270da864053d9b05ce6216831970f3fa9fdc126",
+      "originalFormulaCells": 0,
+      "derivedFormulaCells": 916,
+      "original": {
+        "baseline": {
+          "exit": 0,
+          "counts": {
+            "boolAsNumber": 0,
+            "categoriesDiffering": {},
+            "checked": 0,
+            "failedToOpen": 0,
+            "files": 1,
+            "formulaCells": 0,
+            "matched": 0,
+            "mismatched": 0,
+            "noOracle": 0,
+            "opened": 1,
+            "roundTripDiffering": 0,
+            "roundTripFailed": 0,
+            "volatile": 0
+          }
+        },
+        "candidate": {
+          "exit": 0,
+          "counts": {
+            "boolAsNumber": 0,
+            "categoriesDiffering": {},
+            "checked": 0,
+            "failedToOpen": 0,
+            "files": 1,
+            "formulaCells": 0,
+            "matched": 0,
+            "mismatched": 0,
+            "noOracle": 0,
+            "opened": 1,
+            "roundTripDiffering": 0,
+            "roundTripFailed": 0,
+            "volatile": 0
+          }
+        }
+      },
+      "derived": {
+        "baseline": {
+          "exit": 0,
+          "counts": {
+            "boolAsNumber": 0,
+            "categoriesDiffering": {},
+            "checked": 916,
+            "failedToOpen": 0,
+            "files": 1,
+            "formulaCells": 916,
+            "matched": 916,
+            "mismatched": 0,
+            "noOracle": 0,
+            "opened": 1,
+            "roundTripDiffering": 0,
+            "roundTripFailed": 0,
+            "volatile": 0
+          }
+        },
+        "candidate": {
+          "exit": 0,
+          "counts": {
+            "boolAsNumber": 0,
+            "categoriesDiffering": {},
+            "checked": 916,
+            "failedToOpen": 0,
+            "files": 1,
+            "formulaCells": 916,
+            "matched": 916,
+            "mismatched": 0,
+            "noOracle": 0,
+            "opened": 1,
+            "roundTripDiffering": 0,
+            "roundTripFailed": 0,
+            "volatile": 0
+          }
+        }
+      },
+      "openAnd12FullRecalcsMs": {
+        "baseline": [
+          21.789,
+          21.819,
+          20.779,
+          21.616,
+          22.054,
+          21.973
+        ],
+        "candidate": [
+          20.559,
+          20.695,
+          19.933,
+          20.603,
+          19.61,
+          20.128
+        ]
+      }
+    },
+    {
+      "sourceSha256": "7034ab68c7c22f09a07114767d912c4bf8e87849d35e03bb76c15e9ef25e984d",
+      "originalFormulaCells": 0,
+      "derivedFormulaCells": 16,
+      "original": {
+        "baseline": {
+          "exit": 0,
+          "counts": {
+            "boolAsNumber": 0,
+            "categoriesDiffering": {},
+            "checked": 0,
+            "failedToOpen": 0,
+            "files": 1,
+            "formulaCells": 0,
+            "matched": 0,
+            "mismatched": 0,
+            "noOracle": 0,
+            "opened": 1,
+            "roundTripDiffering": 0,
+            "roundTripFailed": 0,
+            "volatile": 0
+          }
+        },
+        "candidate": {
+          "exit": 0,
+          "counts": {
+            "boolAsNumber": 0,
+            "categoriesDiffering": {},
+            "checked": 0,
+            "failedToOpen": 0,
+            "files": 1,
+            "formulaCells": 0,
+            "matched": 0,
+            "mismatched": 0,
+            "noOracle": 0,
+            "opened": 1,
+            "roundTripDiffering": 0,
+            "roundTripFailed": 0,
+            "volatile": 0
+          }
+        }
+      },
+      "derived": {
+        "baseline": {
+          "exit": 0,
+          "counts": {
+            "boolAsNumber": 0,
+            "categoriesDiffering": {},
+            "checked": 16,
+            "failedToOpen": 0,
+            "files": 1,
+            "formulaCells": 16,
+            "matched": 16,
+            "mismatched": 0,
+            "noOracle": 0,
+            "opened": 1,
+            "roundTripDiffering": 0,
+            "roundTripFailed": 0,
+            "volatile": 0
+          }
+        },
+        "candidate": {
+          "exit": 0,
+          "counts": {
+            "boolAsNumber": 0,
+            "categoriesDiffering": {},
+            "checked": 16,
+            "failedToOpen": 0,
+            "files": 1,
+            "formulaCells": 16,
+            "matched": 16,
+            "mismatched": 0,
+            "noOracle": 0,
+            "opened": 1,
+            "roundTripDiffering": 0,
+            "roundTripFailed": 0,
+            "volatile": 0
+          }
+        }
+      },
+      "openAnd12FullRecalcsMs": {
+        "baseline": [
+          5.937,
+          6.245,
+          6.038,
+          5.255,
+          5.475,
+          5.205
+        ],
+        "candidate": [
+          5.559,
+          5.424,
+          5.474,
+          5.14,
+          6.963,
+          6.237
+        ]
+      }
+    }
+  ],
+  "UOS": [
+    {
+      "sourceSha256": "521576e13e1ced708e2f7efac270da864053d9b05ce6216831970f3fa9fdc126",
+      "originalFormulaCells": 0,
+      "derivedFormulaCells": 916,
+      "original": {
+        "baseline": {
+          "exit": 0,
+          "counts": {
+            "boolAsNumber": 0,
+            "categoriesDiffering": {},
+            "checked": 0,
+            "failedToOpen": 0,
+            "files": 1,
+            "formulaCells": 0,
+            "matched": 0,
+            "mismatched": 0,
+            "noOracle": 0,
+            "opened": 1,
+            "roundTripDiffering": 0,
+            "roundTripFailed": 0,
+            "volatile": 0
+          }
+        },
+        "candidate": {
+          "exit": 0,
+          "counts": {
+            "boolAsNumber": 0,
+            "categoriesDiffering": {},
+            "checked": 0,
+            "failedToOpen": 0,
+            "files": 1,
+            "formulaCells": 0,
+            "matched": 0,
+            "mismatched": 0,
+            "noOracle": 0,
+            "opened": 1,
+            "roundTripDiffering": 0,
+            "roundTripFailed": 0,
+            "volatile": 0
+          }
+        }
+      },
+      "derived": {
+        "baseline": {
+          "exit": 0,
+          "counts": {
+            "boolAsNumber": 0,
+            "categoriesDiffering": {},
+            "checked": 916,
+            "failedToOpen": 0,
+            "files": 1,
+            "formulaCells": 916,
+            "matched": 916,
+            "mismatched": 0,
+            "noOracle": 0,
+            "opened": 1,
+            "roundTripDiffering": 0,
+            "roundTripFailed": 0,
+            "volatile": 0
+          }
+        },
+        "candidate": {
+          "exit": 0,
+          "counts": {
+            "boolAsNumber": 0,
+            "categoriesDiffering": {},
+            "checked": 916,
+            "failedToOpen": 0,
+            "files": 1,
+            "formulaCells": 916,
+            "matched": 916,
+            "mismatched": 0,
+            "noOracle": 0,
+            "opened": 1,
+            "roundTripDiffering": 0,
+            "roundTripFailed": 0,
+            "volatile": 0
+          }
+        }
+      },
+      "openAnd12FullRecalcsMs": {
+        "baseline": [
+          22.775,
+          28.418,
+          56.258,
+          29.725,
+          28.503,
+          64.677
+        ],
+        "candidate": [
+          28.142,
+          23.538,
+          64.843,
+          54.689,
+          41.056,
+          27.564
+        ]
+      }
+    },
+    {
+      "sourceSha256": "7034ab68c7c22f09a07114767d912c4bf8e87849d35e03bb76c15e9ef25e984d",
+      "originalFormulaCells": 0,
+      "derivedFormulaCells": 16,
+      "original": {
+        "baseline": {
+          "exit": 0,
+          "counts": {
+            "boolAsNumber": 0,
+            "categoriesDiffering": {},
+            "checked": 0,
+            "failedToOpen": 0,
+            "files": 1,
+            "formulaCells": 0,
+            "matched": 0,
+            "mismatched": 0,
+            "noOracle": 0,
+            "opened": 1,
+            "roundTripDiffering": 0,
+            "roundTripFailed": 0,
+            "volatile": 0
+          }
+        },
+        "candidate": {
+          "exit": 0,
+          "counts": {
+            "boolAsNumber": 0,
+            "categoriesDiffering": {},
+            "checked": 0,
+            "failedToOpen": 0,
+            "files": 1,
+            "formulaCells": 0,
+            "matched": 0,
+            "mismatched": 0,
+            "noOracle": 0,
+            "opened": 1,
+            "roundTripDiffering": 0,
+            "roundTripFailed": 0,
+            "volatile": 0
+          }
+        }
+      },
+      "derived": {
+        "baseline": {
+          "exit": 0,
+          "counts": {
+            "boolAsNumber": 0,
+            "categoriesDiffering": {},
+            "checked": 16,
+            "failedToOpen": 0,
+            "files": 1,
+            "formulaCells": 16,
+            "matched": 16,
+            "mismatched": 0,
+            "noOracle": 0,
+            "opened": 1,
+            "roundTripDiffering": 0,
+            "roundTripFailed": 0,
+            "volatile": 0
+          }
+        },
+        "candidate": {
+          "exit": 0,
+          "counts": {
+            "boolAsNumber": 0,
+            "categoriesDiffering": {},
+            "checked": 16,
+            "failedToOpen": 0,
+            "files": 1,
+            "formulaCells": 16,
+            "matched": 16,
+            "mismatched": 0,
+            "noOracle": 0,
+            "opened": 1,
+            "roundTripDiffering": 0,
+            "roundTripFailed": 0,
+            "volatile": 0
+          }
+        }
+      },
+      "openAnd12FullRecalcsMs": {
+        "baseline": [
+          5.824,
+          4.181,
+          5.546,
+          4.673,
+          5.766,
+          5.008
+        ],
+        "candidate": [
+          4.042,
+          3.562,
+          5.136,
+          3.739,
+          5.25,
+          5.007
+        ]
+      }
+    }
+  ]
+}

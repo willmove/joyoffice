@@ -289,61 +289,12 @@ pub(super) fn mini_font(tables: &[([u8; 4], Vec<u8>)]) -> Vec<u8> {
 /// The platform's font folders (the system's and the user's), scanned by [`FontDb::global`].
 /// Empty on wasm.
 pub fn system_font_dirs() -> Vec<std::path::PathBuf> {
-    let mut dirs: Vec<std::path::PathBuf> = Vec::new();
-    if cfg!(target_arch = "wasm32") {
-        return dirs;
-    }
     let home = std::env::var_os("HOME").map(std::path::PathBuf::from);
+    let mut dirs = joyoffice_fonts::system_roots(home.as_deref());
     if cfg!(target_os = "macos") {
-        dirs.extend(["/System/Library/Fonts", "/Library/Fonts"].map(Into::into));
-        if let Some(h) = &home {
-            dirs.push(h.join("Library/Fonts"));
-        }
-        // Fonts macOS ships as assets (PingFang, Yu Mincho, …): com_apple_MobileAsset_Font<N>
-        // (`Assets` before macOS 11, `AssetsV2` since).
-        for parent in [
-            "/System/Library/AssetsV2",
-            "/System/Library/AssetsV2/PreinstalledAssetsV2/InstallWithOs",
-            "/System/Library/Assets",
-        ] {
-            let Ok(entries) = std::fs::read_dir(parent) else {
-                continue;
-            };
-            for e in entries.flatten() {
-                if e.file_name()
-                    .to_string_lossy()
-                    .starts_with("com_apple_MobileAsset_Font")
-                {
-                    dirs.push(e.path());
-                }
-            }
-        }
-    } else if cfg!(windows) {
-        let root = std::env::var_os("WINDIR")
-            .map(std::path::PathBuf::from)
-            .unwrap_or_else(|| "C:\\Windows".into());
-        dirs.push(root.join("Fonts"));
-        if let Some(l) = std::env::var_os("LOCALAPPDATA") {
-            dirs.push(std::path::PathBuf::from(l).join("Microsoft\\Windows\\Fonts"));
-        }
-    } else {
-        dirs.extend(["/usr/share/fonts", "/usr/local/share/fonts"].map(Into::into));
-        if let Some(h) = &home {
-            dirs.push(h.join(".fonts"));
-            dirs.push(h.join(".local/share/fonts"));
-        }
-        // Flatpak (#1937): the folders above are the runtime's, and the host's system, local and
-        // user fonts are mounted here instead (no filesystem permission needed). Flatpak after
-        // 1.19.2 also mounts ~/.fonts, at user-fonts-legacy when the XDG user font folder exists too.
-        dirs.extend(
-            [
-                "/run/host/fonts",
-                "/run/host/local-fonts",
-                "/run/host/user-fonts",
-                "/run/host/user-fonts-legacy",
-            ]
-            .map(Into::into),
-        );
+        dirs.extend(joyoffice_fonts::macos_asset_roots(true));
+    } else if !cfg!(windows) && !cfg!(target_arch = "wasm32") {
+        dirs.extend(joyoffice_fonts::flatpak_roots(true));
     }
     dirs
 }

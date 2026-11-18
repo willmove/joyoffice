@@ -282,6 +282,26 @@ pub(crate) fn read_docx(
     )
 }
 
+/// Open the same Word package after host OPC validation. Keep alternate chunks, opening
+/// field updates and embedded font registration identical to the regular import path.
+pub fn open_verified_docx(
+    name: &str,
+    bytes: &[u8],
+    members: std::collections::BTreeMap<String, Vec<u8>>,
+) -> Result<Document, String> {
+    let mut doc = joyword_docx::read_with_verified_members(bytes, members, Some(&import_chunk))
+        .map_err(|error| {
+            if ext_of(name).is_empty() {
+                format!("{name}: not a document WordCraft can open ({error})")
+            } else {
+                error.to_string()
+            }
+        })?;
+    opened(&mut doc);
+    load_embedded_fonts(&doc);
+    Ok(doc)
+}
+
 /// An alternative format chunk in a format the docx reader leaves to the format importers, as a
 /// document: an MHT web archive, HTML, RTF or plain text, told by its content type, its part's
 /// extension or what it holds. Its pictures fit the text width, as when the file is opened.
