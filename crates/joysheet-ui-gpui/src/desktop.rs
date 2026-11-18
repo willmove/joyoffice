@@ -1,7 +1,7 @@
 use gpui_kit::component::input::{Input, InputEvent as TextEvent, InputState, Textarea, TextareaState};
 use gpui_kit::{prelude::*, *};
 use joysheet_app::{
-    AppSnapshot, EngineClient, Ticket, WindowSnapshot,
+    AppSnapshot, EngineClient, SaveTarget, Ticket, WindowSnapshot,
     geometry::{GridLayout, SheetGeometry},
 };
 use joysheet_engine::{Selection, UiRequest, core::CellRef};
@@ -86,7 +86,8 @@ pub enum After {
     OpenPaths(Vec<String>),
     NativeOpen(String),
     Close(bool),
-    CloseSaved,
+    CloseSaved(SaveTarget),
+    SavedAs,
     Recovered(Value),
     RestoreDraft(Value),
     RulesApplied,
@@ -206,6 +207,7 @@ pub struct Desktop {
     pub(crate) timeline_drag: Option<crate::object_ui::TimelineDrag>,
     pub confirm_close: bool,
     pub close_saving: bool,
+    pub(crate) save_as_pending: bool,
     pub close_focus: FocusHandle,
     pub close_button_bounds: HashMap<&'static str, Bounds<Pixels>>,
     pub allow_close: bool,
@@ -439,6 +441,7 @@ impl Desktop {
             timeline_drag: None,
             confirm_close: false,
             close_saving: false,
+            save_as_pending: false,
             close_focus: cx.focus_handle(),
             close_button_bounds: HashMap::new(),
             allow_close: false,
@@ -737,7 +740,10 @@ impl Desktop {
                 };
                 self.barriers[index].result = Some(response);
             }
-            if matches!(&pending.after, After::CloseSaved) {
+            if matches!(&pending.after, After::SavedAs | After::CloseSaved(_)) {
+                self.save_as_pending = false;
+            }
+            if matches!(&pending.after, After::CloseSaved(_)) {
                 self.close_saving = false;
             }
             if let Some(job) = self.print_jobs.remove(&pending.ticket.id) {
@@ -1062,8 +1068,10 @@ impl Desktop {
             }
             After::NativeOpen(_) => {}
             After::Close(force) => self.close(force, window, cx),
-            After::CloseSaved => {
-                if self.view().is_some_and(|v| v.dirty) {
+            After::SavedAs => {}
+            After::CloseSaved(target) => {
+                let Some(view) = self.view().filter(|v| v.window == target.window && v.doc == target.doc) else { return };
+                if view.dirty || self.draft.is_some() {
                     self.alert("导出未保存完整工作簿，请保存为 XLSX / Export did not save the workbook; save as XLSX");
                     cx.notify();
                 } else {
@@ -1101,14 +1109,55 @@ impl Desktop {
         .detach();
     }
     pub fn pick_save(&mut self, window: &mut Window, cx: &mut Context<Self>) {
-        let name = self.view().map(|v| v.title.clone()).unwrap_or_else(|| "Book1.xlsx".into());
-        let name = if name.ends_with(".xlsx") { name } else { format!("{name}.xlsx") };
+        self.pick_save_for(false, window, cx);
+    }
+    pub(crate) fn pick_save_for(&mut self, close: bool, window: &mut Window, cx: &mut Context<Self>) {
+        if self.save_as_pending || self.close_saving {
+            return;
+        }
+        let Some(view) = self.view().filter(|v| self.window_id.is_none_or(|id| v.window == id)) else { return };
+        let target = SaveTarget::from(view);
+        let directory = view.path.as_deref().and_then(|p| std::path::Path::new(p).parent()).map(std::path::Path::to_owned);
+        let name = if view.title.to_ascii_lowercase().ends_with(".xlsx") { view.title.clone() } else { format!("{}.xlsx", view.title) };
+        self.save_as_pending = true;
+        self.close_saving = close;
+        self.error = false;
+        cx.notify();
         cx.spawn_in(window, async move |this, cx| {
-            if let Some(path) = joysheet_platform::pick_save(&name).await {
-                let _ = this.update_in(cx, |this, _, cx| this.issue("file.save", json!({"path":path}), After::None, cx));
-            }
+            let path = joysheet_platform::pick_save_in(&name, directory.as_deref()).await;
+            let _ = this.update_in(cx, |this, window, cx| {
+                if let Some(path) = path {
+                    this.submit_target_save(target, Some(&path), close, cx);
+                } else {
+                    this.save_as_pending = false;
+                    this.close_saving = false;
+                    if close {
+                        window.focus(&this.close_focus, cx);
+                    }
+                    cx.notify();
+                }
+            });
         })
         .detach();
+    }
+    pub(crate) fn submit_target_save(&mut self, target: SaveTarget, path: Option<&std::path::Path>, close: bool, cx: &mut Context<Self>) {
+        let result = if self.draft.is_some() || !self.view().is_some_and(|v| v.window == target.window && v.doc == target.doc) {
+            Err(self.label("保存时工作簿或编辑内容已更改，请重试", "The workbook or draft changed. Try saving again."))
+        } else {
+            self.engine.save_target(target, path)
+        };
+        match result {
+            Ok(ticket) => {
+                let after = if close { After::CloseSaved(target) } else { After::SavedAs };
+                self.pending.push(Pending { ticket, after, commit: false, clipboard: false });
+            }
+            Err(error) => {
+                self.save_as_pending = false;
+                self.close_saving = false;
+                self.alert(error);
+            }
+        }
+        cx.notify();
     }
     pub fn save(&mut self, save_as: bool, window: &mut Window, cx: &mut Context<Self>) {
         if save_as || self.view().is_none_or(|v| v.path.is_none()) {

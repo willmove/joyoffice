@@ -148,6 +148,8 @@ impl Viewer {
     pub(super) fn save_unavailable(&self) -> Option<&'static str> {
         if self.loading {
             Some("正在读取，请稍后保存")
+        } else if self.save_picker_generation == Some(self.generation) {
+            Some("请选择保存位置或取消另存为")
         } else if self.is_saving() {
             Some("文稿正在保存")
         } else if self.composing() {

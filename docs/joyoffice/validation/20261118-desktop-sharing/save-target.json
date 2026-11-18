@@ -1,0 +1,82 @@
+{
+  "mac": {
+    "sheet": {
+      "platform": "macOS-27.2.1-arm64-arm-64bit-Mach-O",
+      "product": "sheet",
+      "binarySha256": "da6c1051c0929563cd2d5a465ad6f7d5eff410f058789e3d15af34dcad6bd245",
+      "passed": true,
+      "checks": [
+        "cancel then retry",
+        "late result after edit rejected before file creation",
+        "independent XLSX and fresh process readback",
+        "original hash unchanged"
+      ]
+    },
+    "deck": {
+      "platform": "macOS-27.2.1-arm64-arm-64bit-Mach-O",
+      "product": "deck",
+      "binarySha256": "746eb874732a8cc874d526194dc81d5e72ac0fa221ef327316e96cdce9494282",
+      "passed": true,
+      "checks": [
+        "cancel then retry",
+        "independent PPTX inspection and fresh process readback",
+        "original hash unchanged"
+      ]
+    },
+    "joysheet": {
+      "passed": 1441,
+      "ignored": 1,
+      "sha256": "ec1519f07001887290e7958cb46539b039f7aeadd1f45234e662f80472af334a"
+    },
+    "joydeck": {
+      "passed": 986,
+      "ignored": 0,
+      "sha256": "3a3ecae867860ffbf33ec60f0ba232e306e1157bde7a4c169c1567952b6df58b"
+    },
+    "ui": {
+      "passed": 75,
+      "ignored": 0,
+      "sha256": "248f14c215357c1d3032c33c28d8b246dd2aa2535dfba8f56e45b2d47736f48f"
+    }
+  },
+  "uos": {
+    "sheet": {
+      "platform": "Linux-6.18.57-061857-generic-x86_64-with-glibc2.38",
+      "product": "sheet",
+      "binarySha256": "73eb3b3fc81792935ac1e3526c781ac2403f6bc6b6ac223fb6909512a85315ca",
+      "passed": true,
+      "checks": [
+        "cancel then retry",
+        "late result after edit rejected before file creation",
+        "independent XLSX and fresh process readback",
+        "original hash unchanged"
+      ]
+    },
+    "deck": {
+      "platform": "Linux-6.18.57-061857-generic-x86_64-with-glibc2.38",
+      "product": "deck",
+      "binarySha256": "da51cdc9ea4c4d5414ac53a08d994ed858aff86e6f1fdbd9043ceadd2bccce73",
+      "passed": true,
+      "checks": [
+        "cancel then retry",
+        "independent PPTX inspection and fresh process readback",
+        "original hash unchanged"
+      ]
+    },
+    "joysheet": {
+      "passed": 1441,
+      "ignored": 1,
+      "sha256": "6db91cbd7e4b3e012b62fca882ca7aa4f1c814327b402f61a579ee4be1d2cf92"
+    },
+    "joydeck": {
+      "passed": 991,
+      "ignored": 0,
+      "sha256": "949be90f4f3741d14a5761733f96380e5160c2c3ef13a30b565d1ff56335a1d4"
+    },
+    "ui": {
+      "passed": 79,
+      "ignored": 0,
+      "sha256": "5bb18a62b28331eed366f2723e578d90fbd0c7f252bc3f9702836d44bf2d4184"
+    }
+  }
+}

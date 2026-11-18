@@ -423,40 +423,45 @@ impl Viewer {
         let rx = cx.prompt_for_new_path(base, Some(&name));
         let window = w.window_handle();
         let generation = self.generation;
-        self.dialog_task = Some(cx.spawn(async move |view, cx| match rx.await {
-            Ok(Ok(Some(mut path))) => {
-                if path.extension().is_none() {
-                    path.set_extension("joydeck");
-                }
-                let _ = window.update(cx, |_, w, cx| {
-                    let _ = view.update(cx, |s, cx| {
-                        if s.generation != generation {
+        let read_request = self.read_request;
+        let revision = self.editor.as_ref().map(|e| e.session.revision());
+        self.save_picker_generation = Some(generation);
+        cx.spawn(async move |view, cx| {
+            let result = rx.await;
+            let _ = window.update(cx, |_, w, cx| {
+                let _ = view.update(cx, |s, cx| {
+                    if s.save_picker_generation != Some(generation) {
+                        return;
+                    }
+                    s.save_picker_generation = None;
+                    cx.notify();
+                    if s.generation != generation || s.read_request != read_request {
+                        return;
+                    }
+                    match result {
+                        Ok(Ok(Some(mut path)))
+                            if s.editor.as_ref().map(|e| e.session.revision()) == revision =>
+                        {
+                            if path.extension().is_none() {
+                                path.set_extension("joydeck");
+                            }
+                            s.save_input.update(cx, |i, cx| {
+                                i.set_value(path.to_string_lossy().to_string(), w, cx)
+                            });
+                            s.save_to(Some(path), w, cx);
+                            s.backstage = false;
                             return;
                         }
-                        s.save_input.update(cx, |i, cx| {
-                            i.set_value(path.to_string_lossy().to_string(), w, cx)
-                        });
-                        s.save_to(Some(path), w, cx);
-                        s.backstage = false;
-                    });
-                });
-            }
-            Ok(Ok(None)) => {
-                let _ = view.update(cx, |s, cx| {
+                        Ok(Ok(Some(_))) => s.message = "文稿已更改，请重新另存为".into(),
+                        Ok(Ok(None)) => {}
+                        _ => s.message = "无法打开另存为对话框".into(),
+                    }
                     s.close_after_save = false;
                     s.pending_replace = None;
-                    cx.notify();
                 });
-            }
-            _ => {
-                let _ = view.update(cx, |s, cx| {
-                    s.message = "无法打开另存为对话框".into();
-                    s.close_after_save = false;
-                    s.pending_replace = None;
-                    cx.notify();
-                });
-            }
-        }));
+            });
+        })
+        .detach();
     }
 }
 

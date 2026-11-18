@@ -45,6 +45,20 @@ impl WindowSnapshot {
         self.workbook.sheets.get(self.sheet).map(Arc::as_ref)
     }
 }
+/// Identity captured before opening a native save panel. The single writer validates it
+/// against the selected window immediately before writing any file.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct SaveTarget {
+    pub window: u64,
+    pub doc: u64,
+    pub revision: u64,
+}
+impl From<&WindowSnapshot> for SaveTarget {
+    fn from(view: &WindowSnapshot) -> Self {
+        Self { window: view.window, doc: view.doc, revision: view.revision }
+    }
+}
+
 #[derive(Clone, Debug, Default)]
 pub struct AppSnapshot {
     pub sequence: u64,
@@ -99,6 +113,7 @@ struct Request {
     params: Value,
     target: CommandTarget,
     expected_revision: Option<u64>,
+    expected_doc: Option<u64>,
     reply: mpsc::Sender<Completion>,
     text_width: Option<joysheet_engine::TextWidth>,
 }
@@ -194,6 +209,23 @@ impl EngineClient {
         self.submit_guarded(command, params, target, None)
     }
     pub fn submit_guarded(&self, command: &str, params: Value, target: CommandTarget, expected_revision: Option<u64>) -> Result<Ticket, String> {
+        self.enqueue(command, params, target, expected_revision, None)
+    }
+    pub fn save_target(&self, target: SaveTarget, path: Option<&std::path::Path>) -> Result<Ticket, String> {
+        let params = match path {
+            Some(path) => json!({"path":path.to_str().ok_or("Cannot save to a non-Unicode path")?}),
+            None => json!({}),
+        };
+        self.enqueue("file.save", params, CommandTarget { window: Some(target.window), doc: None }, Some(target.revision), Some(target.doc))
+    }
+    fn enqueue(
+        &self,
+        command: &str,
+        params: Value,
+        target: CommandTarget,
+        expected_revision: Option<u64>,
+        expected_doc: Option<u64>,
+    ) -> Result<Ticket, String> {
         if !params.is_object() {
             return Err("command parameters must be an object".into());
         }
@@ -245,6 +277,7 @@ impl EngineClient {
                 params,
                 target,
                 expected_revision,
+                expected_doc,
                 reply,
                 text_width: None,
                 control,
@@ -266,6 +299,7 @@ impl EngineClient {
                 params: json!({}),
                 target: CommandTarget::default(),
                 expected_revision: None,
+                expected_doc: None,
                 reply,
                 text_width: Some(text_width),
                 control: None,
@@ -394,6 +428,11 @@ fn execute_request(s: &mut Session, r: &Request) -> Result<Value, String> {
                 })
                 .collect();
             return Ok(json!({"results":rows,"cells":cells,"rows":used.height(),"columns":used.width(),"previewOnly":true}));
+        }
+        if let Some(doc) = r.expected_doc
+            && s.active().is_none_or(|d| d.uid != doc)
+        {
+            return Err("save target changed; reopen the save dialog".into());
         }
         if let Some(expected) = r.expected_revision
             && s.active().is_none_or(|d| d.revision != expected)

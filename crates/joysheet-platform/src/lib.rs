@@ -138,7 +138,15 @@ pub async fn pick_open() -> Option<PathBuf> {
         .map(|file| file.path().to_path_buf())
 }
 pub async fn pick_save(name: &str) -> Option<PathBuf> {
-    rfd::AsyncFileDialog::new()
+    pick_save_in(name, None).await
+}
+pub async fn pick_save_in(name: &str, directory: Option<&std::path::Path>) -> Option<PathBuf> {
+    let dialog = rfd::AsyncFileDialog::new();
+    let dialog = match directory {
+        Some(directory) => dialog.set_directory(directory),
+        None => dialog,
+    };
+    dialog
         .set_title("Joysheet — 另存为 / Save as")
         .set_file_name(name)
         .add_filter("Excel workbook", &["xlsx"])

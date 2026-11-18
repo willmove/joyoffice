@@ -39,3 +39,5 @@ Cold-index refinement: opaque cell mutation now marks a band as possibly contain
 The optional `joysheet-calc/scalar-pilot` feature dispatches one operation on a numeric literal and an ordinary stored numeric cell to a JoyOffice implementation. The existing GridCraft-derived scheduler, general evaluator, array handling and writeback remain authoritative outside this subset. Iteration and active pass spills take the general path. The production default uses the general evaluator. Source fingerprints continue to describe the original import. Scope, comparison commands and the rollout decision are tracked in the [refactoring roadmap](../joyoffice/REFACTOR-ROADMAP.md).
 
 The inline editor in `crates/joysheet-ui-gpui/src/grid.rs` expands its overlay while the system input method owns marked text. The existing viewport and frozen-pane bounds constrain that overlay. macOS acceptance compared the same narrow cell before and after the change and reopened the saved text in a fresh process. [Native validation](../joyoffice/validation/20261118-refactor/README.md)
+
+- 普通另存与关闭前保存共用窗口、文档及版本快照，单写者在落盘前重新核验。原生面板取消可重试，过时结果不会写入新工作簿。涉及 `joysheet-ui-gpui` 与 `joysheet-app`。

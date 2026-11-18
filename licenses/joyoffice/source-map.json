@@ -153,7 +153,7 @@
     "source_path": "apps/joydeck/src/viewer.rs",
     "target_path": "crates/joydeck-ui-gpui/src/viewer.rs",
     "source_sha256": "249104bdece51947664a50fe4b8166f358662e78d0000ed7d0024b10fade5584",
-    "adapted_sha256": "147cab675114951919bf67a9b3a358ff9f42764dd38ea0012f11c148bdc301b0",
+    "adapted_sha256": "08f0e5f8a553b5203094bd4d2b25a312e8637852a12e3fcba64b85f7bd651708",
     "local_changes": "Reuse asynchronous read-only viewer, generation guards, cancellation, virtual thumbnail rail and bounded cache; adapt to DeckCraft model and shared CPU renderer; R1 branding and aspect fit; upstream validation modules deferred; R1 rustfmt and bounded reader/CPU-renderer/palette/notes adapters as applicable; R2 editable viewer adapter, background save/recovery, command-driven gestures, coordinate anchoring and close guard; rustfmt; R4/R5 scene/content workspace adaptation; R6/R7 adapter additions and repository rustfmt/LF normalization.; R8 native editor, clipboard or product package version adaptation; R9-UI1 native formatting controls and schema-2 validation/history compatibility (see slice evidence); 2026-11-11: shared application theme catalog, persistent preset selection and palette projection; preserve document colors and original source identity",
     "r9_ui2_adaptation": "Formatting, desktop control and reviewed preservation validation; LF source representation.",
     "r9_ui2_gui_fix": "Synchronize every editor palette with GPUI Kit application theme during render",
@@ -170,7 +170,8 @@
     "macos_powerpoint_ribbon": "Integrate the macOS window title bar and register reference ribbon panels.",
     "powerpoint_file_page": "Render the file page across the editor area with independent navigation, search and bounded template preview state.",
     "ribbon_collapse_navigation": "2026-11-13: retain ribbon selection while collapsed, render the File tab strip, and bind Up/Down to existing slide navigation outside text input.",
-    "desktop_product_icons": "2026-11-18: embedded native product icons/logos for every product window; portable desktop registration and complete shared artwork source fingerprints; original attribution retained."
+    "desktop_product_icons": "2026-11-18: embedded native product icons/logos for every product window; portable desktop registration and complete shared artwork source fingerprints; original attribution retained.",
+    "native_save_target": "Bind the native save panel and its callback to the originating document."
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
@@ -621,11 +622,12 @@
     "source_path": "apps/joydeck/src/chrome.rs",
     "target_path": "crates/joydeck-ui-gpui/src/chrome_nav.rs",
     "source_sha256": "68b6b3800e63f68f65ccab43e81304728295aa7aaa407c3ba4a46408666e6328",
-    "adapted_sha256": "30b31d2f593df222ab540d25f82ad6c99bbeb5ebcdb81e021450c7ceda54e869",
+    "adapted_sha256": "bce30b3c3a5cec1538f8598f8d9ec972445c95a20311c2b2f72f122ca7f5020e",
     "local_changes": "R8 native Save As prompt and deferred window update pattern adapted to v2 save jobs; own notes/placeholder/navigation implementation; 2026-11-11: shared application theme catalog, persistent preset selection and palette projection; preserve document colors and original source identity",
     "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained.",
     "r9_save_as": "Leave the macOS Save As suggestion extensionless and submit the selected path directly.",
-    "shared_document_view": "Separate window selection and state from the shared editor session and preserve revision guards."
+    "shared_document_view": "Separate window selection and state from the shared editor session and preserve revision guards.",
+    "native_save_target": "Bind the native save panel and its callback to the originating document."
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",

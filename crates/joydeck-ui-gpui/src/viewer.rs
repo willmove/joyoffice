@@ -166,6 +166,7 @@ pub struct Viewer {
     save_input: Entity<InputState>,
     text_input: Entity<InputState>,
     save_task: Option<Task<()>>,
+    save_picker_generation: Option<u64>,
     recovery_rows: Option<Vec<joydeck_shell::storage::Entry>>,
     refresh_pending: bool,
     pending_save_path: Option<String>,
@@ -297,6 +298,7 @@ impl Viewer {
                 InputState::new(window, cx).placeholder("选中文字对象后，在这里修改并应用")
             }),
             save_task: None,
+            save_picker_generation: None,
             recovery_rows: None,
             refresh_pending: false,
             pending_save_path: None,

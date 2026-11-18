@@ -871,49 +871,18 @@ impl Desktop {
         .focus_trap("save-changes-focus", &self.close_focus);
         joyoffice_ui::save_changes_backdrop().child(panel)
     }
-    fn submit_close_save(&mut self, doc: u64, revision: u64, path: Option<std::path::PathBuf>, cx: &mut Context<Self>) {
-        if !self.view().is_some_and(|v| v.doc == doc) {
-            self.close_saving = false;
-            self.alert("保存目标文档已更改 / Save target changed");
-            cx.notify();
-            return;
-        }
-        let params = path.map(|p| json!({"path":p})).unwrap_or_else(|| json!({}));
-        match self.engine.submit_guarded("file.save", params, self.target(), Some(revision)) {
-            Ok(ticket) => self.pending.push(crate::desktop::Pending { ticket, after: After::CloseSaved, commit: false, clipboard: false }),
-            Err(error) => {
-                self.close_saving = false;
-                self.alert(error);
-            }
-        }
-        cx.notify();
-    }
     pub fn save_then_close(&mut self, window: &mut Window, cx: &mut Context<Self>) {
-        if self.close_saving || !self.confirm_close {
+        if self.close_saving || self.save_as_pending || !self.confirm_close {
             return;
         }
         let Some(view) = self.view() else { return };
-        let (doc, revision, has_path, name) = (view.doc, view.revision, view.path.is_some(), view.title.clone());
-        self.close_saving = true;
-        self.error = false;
-        cx.notify();
-        if has_path {
-            self.submit_close_save(doc, revision, None, cx);
+        if view.path.is_none() {
+            self.pick_save_for(true, window, cx);
         } else {
-            let name = if name.to_ascii_lowercase().ends_with(".xlsx") { name } else { format!("{name}.xlsx") };
-            cx.spawn_in(window, async move |this, cx| {
-                let path = joysheet_platform::pick_save(&name).await;
-                let _ = this.update_in(cx, |this, window, cx| {
-                    if let Some(path) = path {
-                        this.submit_close_save(doc, revision, Some(path), cx);
-                    } else {
-                        this.close_saving = false;
-                        window.focus(&this.close_focus, cx);
-                        cx.notify();
-                    }
-                });
-            })
-            .detach();
+            let target = joysheet_app::SaveTarget::from(view);
+            self.close_saving = true;
+            self.error = false;
+            self.submit_target_save(target, None, true, cx);
         }
     }
 }

@@ -207,3 +207,30 @@ fn failed_save_preserves_document_and_existing_files() {
     std::fs::remove_file(path).unwrap();
     std::fs::remove_dir(dir).unwrap();
 }
+
+#[test]
+fn native_save_rechecks_window_document_and_revision_on_the_writer() {
+    let engine = EngineClient::start().unwrap();
+    run(&engine, "file.new", json!({}));
+    run(&engine, "cell.set", json!({"cell":"A1","input":"original workbook"}));
+    let first = SaveTarget::from(engine.latest().active().unwrap());
+    run(&engine, "file.new", json!({}));
+    let other = SaveTarget::from(engine.latest().active().unwrap());
+    let dir = std::env::temp_dir().join(format!("joysheet-picker-{}-{}", std::process::id(), first.window));
+    std::fs::create_dir(&dir).unwrap();
+    let save = |target, name: &str| engine.save_target(target, Some(&dir.join(name))).unwrap().wait(Duration::from_secs(5)).unwrap().result;
+    assert!(save(SaveTarget { doc: first.doc, ..other }, "wrong.xlsx").is_err());
+    assert!(!dir.join("wrong.xlsx").exists());
+    save(first, "原始 副本.xlsx").unwrap();
+    assert_eq!(engine.latest().active_window, Some(other.window));
+    assert_eq!(engine.latest().window(first.window).unwrap().path.as_deref(), dir.join("原始 副本.xlsx").to_str());
+    engine.dispatch("engine.execute", json!({"window":first.window,"command":"cell.set","params":{"cell":"A1","input":"new draft"}})).unwrap();
+    assert!(save(first, "stale.xlsx").is_err());
+    assert!(!dir.join("stale.xlsx").exists());
+    assert!(engine.latest().window(first.window).unwrap().dirty);
+    let current = SaveTarget::from(engine.latest().window(first.window).unwrap());
+    engine.dispatch("engine.execute", json!({"window":first.window,"command":"window.close","params":{"window":first.window,"force":true}})).unwrap();
+    assert!(save(current, "closed.xlsx").is_err());
+    assert!(!dir.join("closed.xlsx").exists());
+    std::fs::remove_dir_all(dir).unwrap();
+}
