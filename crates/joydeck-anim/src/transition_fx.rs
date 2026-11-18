@@ -10,8 +10,8 @@ use std::f64::consts::PI;
 use crate::easing::ease;
 use crate::transition::{FULL, Layer, R, Source};
 use crate::transition_geom::{
-    Cam, V3, boundary, card, center, clip, dir, edge, ein, eout, facing_shade, field, hash64,
-    moved, offset, poly_layers, q2, rect_poly, rnd, rot, rot_quad, scale_rect, scaled, ss, v3, win,
+    Cam, V3, boundary, card, center, clip, dir, ein, eout, facing_shade, hash64, moved, offset,
+    poly_layers, q2, rect_poly, rnd, rot, rot_quad, scale_rect, scaled, ss, v3, win,
 };
 
 use Source::{Black, New, NewBack, NewContent, Old, OldBack, OldContent, White};
@@ -74,11 +74,11 @@ pub(crate) fn layers(kind: &str, o: &str, t: f64, a: f64, depth: u32) -> Vec<Lay
         "shape" => crate::transition_pattern::shape(o, t, a),
         "flash" => flash(t),
         "dissolve" => crate::transition_pattern::dissolve(t),
-        "checker" => checker(o == "vert", t, a),
-        "blinds" => blinds(o == "vert", t, a),
+        "checker" => crate::transition_panels::checker(o == "vert", t, a),
+        "blinds" => crate::transition_panels::blinds(o == "vert", t),
         "clock" => crate::transition_pattern::clock(o, t),
-        "ripple" => ripple(o, t, a),
-        "comb" => comb(o == "vert", t),
+        "ripple" => crate::transition_panels::ripple(o, t, a),
+        "comb" => crate::transition_panels::comb(o == "vert", t),
         "zoom" => zoom(o, t, a),
         "pan" => pan(o, t),
         "fallOver" => fall_over(o == "r", t, a),
@@ -196,106 +196,6 @@ fn flip_tile(cam: &Cam, cell: R, k: f64, vertical_axis: bool, out: &mut Vec<Laye
     });
     let sh = facing_shade(pts, 0.6);
     out.extend(card(cam, src, cell, pts, 1.0, sh, true));
-}
-
-fn checker(vert: bool, t: f64, a: f64) -> Vec<Layer> {
-    let (n, m) = (10usize, 8usize);
-    let cam = Cam { a, d: 3.0 };
-    let mut v = vec![Layer::full(Black, 1.0)];
-    for r in 0..m {
-        for c in 0..n {
-            let cell = [
-                c as f64 / n as f64,
-                r as f64 / m as f64,
-                (c + 1) as f64 / n as f64,
-                (r + 1) as f64 / m as f64,
-            ];
-            let across = if vert {
-                r as f64 / m as f64
-            } else {
-                c as f64 / n as f64
-            };
-            let start = across * 0.55 + rnd((r * n + c) as u64 + 5) * 0.12;
-            let k = q2(win(t, start, start + 0.3));
-            flip_tile(&cam, cell, k, !vert, &mut v);
-        }
-    }
-    v
-}
-
-fn blinds(vert: bool, t: f64, a: f64) -> Vec<Layer> {
-    let n = 12usize;
-    let cam = Cam { a, d: 3.0 };
-    let mut v = vec![Layer::full(Black, 1.0)];
-    for i in 0..n {
-        let (s, e) = (i as f64 / n as f64, (i + 1) as f64 / n as f64);
-        let cell = if vert {
-            [s, 0.0, e, 1.0]
-        } else {
-            [0.0, s, 1.0, e]
-        };
-        let start = 0.1 + 0.3 * i as f64 / n as f64;
-        let k = q2(win(t, start, start + 0.4));
-        flip_tile(&cam, cell, k, vert, &mut v);
-    }
-    v
-}
-
-fn ripple(o: &str, t: f64, a: f64) -> Vec<Layer> {
-    // A soft disc of the new slide spreads from the centre, or from the corner opposite to where
-    // the wave heads.
-    let origin = match o {
-        "lu" => [1.0, 1.0],
-        "ru" => [0.0, 1.0],
-        "ld" => [1.0, 0.0],
-        "rd" => [0.0, 0.0],
-        _ => [0.5, 0.5],
-    };
-    let far = [[0.0, 0.0], [1.0, 0.0], [0.0, 1.0], [1.0, 1.0]]
-        .iter()
-        .map(|p: &[f64; 2]| (((p[0] - origin[0]) * a).powi(2) + (p[1] - origin[1]).powi(2)).sqrt())
-        .fold(0.0, f64::max);
-    let soft = 0.16;
-    let c = -soft / 2.0 + (1.0 + soft) * t;
-    let mut v = vec![Layer::full(Old, 1.0)];
-    let f = |x: f64, y: f64| {
-        let d = (((x - origin[0]) * a).powi(2) + (y - origin[1]).powi(2)).sqrt() / far.max(1e-6);
-        edge(c, d, soft)
-    };
-    v.extend(field(New, 48, 27, &f));
-    // Rings of shade travelling inside the wave.
-    let rings = |x: f64, y: f64| {
-        let d = (((x - origin[0]) * a).powi(2) + (y - origin[1]).powi(2)).sqrt() / far.max(1e-6);
-        let inside = edge(c, d, soft);
-        let w = ((d - c) * 30.0).sin().abs();
-        0.18 * inside * (1.0 - w) * (1.0 - t)
-    };
-    v.extend(field(Black, 48, 27, &rings));
-    v
-}
-
-fn comb(vert: bool, t: f64) -> Vec<Layer> {
-    // Bands of the old slide slide off to alternate sides, one after another from the last band,
-    // uncovering the new slide.
-    let n = if vert { 10usize } else { 7usize };
-    let mut v = vec![Layer::full(New, 1.0)];
-    for i in 0..n {
-        let (a, b) = (i as f64 / n as f64, (i + 1) as f64 / n as f64);
-        let d = if (n - 1 - i) % 2 == 0 { 1.0 } else { -1.0 };
-        let start = 0.06 + 0.05 * (n - 1 - i) as f64 * 7.0 / n as f64;
-        let s = ein(win(t, start, start + 0.55));
-        if s >= 1.0 {
-            continue;
-        }
-        let band = if vert {
-            [a, 0.0, b, 1.0]
-        } else {
-            [0.0, a, 1.0, b]
-        };
-        let (ox, oy) = if vert { (0.0, d * s) } else { (d * s, 0.0) };
-        v.push(Layer::rect(Old, band, offset(band, ox, oy), 1.0));
-    }
-    v
 }
 
 fn zoom(o: &str, t: f64, a: f64) -> Vec<Layer> {

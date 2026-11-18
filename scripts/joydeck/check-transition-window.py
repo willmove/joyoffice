@@ -28,6 +28,7 @@ STANDARD = (("fade", ""), ("checker", "vert"))
 TRAVEL = (("push", "l"), ("cover", "ru"))
 MASKS = (("wipe", "ru"), ("split", "vertOut"))
 PATTERNS = (("shape", "circle"), ("clock", "wedge"))
+PANELS = (("blinds", "horz"), ("ripple", "lu"))
 ET.register_namespace("p", P)
 ET.register_namespace("a", A)
 ET.register_namespace("p14", P14)
@@ -40,6 +41,8 @@ def effect_xml(kind, option):
             tag, attrs = "zoom", {"dir": option}
         else:
             tag = option
+    elif kind == "ripple":
+        ns, attrs = P14, {"dir": option or "center"}
     elif kind == "clock":
         if option == "wedge":
             tag = "wedge"
@@ -149,7 +152,7 @@ def key(process, window, name):
 GRID = (256, 144)
 
 
-def image_grid(image):
+def image_grid(image, crop=None):
     if platform.system() == "Darwin":
         from PIL import Image, ImageCms
 
@@ -163,22 +166,52 @@ def image_grid(image):
                     ImageCms.createProfile("sRGB"),
                     outputMode="RGB",
                 )
+            if crop:
+                converted = converted.crop(crop)
             data = converted.resize(GRID, Image.Resampling.NEAREST).tobytes()
     else:
         tool = shutil.which("magick") or shutil.which("convert")
-        data = subprocess.check_output(
-            [tool, str(image), "-sample", "256x144!", "-depth", "8", "rgb:-"]
-        )
+        options = []
+        if crop:
+            l, t, r, b = crop
+            options = ["-crop", f"{r-l}x{b-t}+{l}+{t}", "+repage"]
+        data = subprocess.check_output([tool, str(image), *options, "-sample", "256x144!", "-depth", "8", "rgb:-"])
     assert len(data) == GRID[0] * GRID[1] * 3
     return list(zip(*[iter(data)] * 3))
 
 
-def capture(window, image):
+def capture(window, image, crop=None):
     if platform.system() == "Darwin":
         run("screencapture", "-x", "-o", "-l", str(window), str(image))
     else:
         run("import", "-silent", "-window", str(window), str(image))
-    return image_grid(image)
+    return image_grid(image, crop)
+
+
+def slide_crop(image):
+    """Locate the solid first slide in physical pixels before resampling fine transition edges."""
+    if platform.system() == "Darwin":
+        from PIL import Image
+        with Image.open(image) as source:
+            rgb = source.convert("RGB")
+            w, h = rgb.size
+            row = [rgb.getpixel((x, h // 2)) for x in range(w)]
+            col = [rgb.getpixel((w // 2, y)) for y in range(h)]
+    else:
+        tool = shutil.which("magick") or shutil.which("convert")
+        w, h = map(int, subprocess.check_output([tool, str(image), "-format", "%w %h", "info:"]).split())
+        def scanline(rect):
+            data = subprocess.check_output([tool, str(image), "-crop", rect, "+repage", "-depth", "8", "rgb:-"])
+            return zip(*[iter(data)] * 3)
+        row = scanline(f"{w}x1+0+{h // 2}")
+        col = scanline(f"1x{h}+{w // 2}+0")
+
+    def red_pixels(line):
+        return [i for i, (r, g, b) in enumerate(line) if r > b + 45 and r > g + 45]
+    xs, ys = red_pixels(row), red_pixels(col)
+    if len(xs) > w * 0.5 and len(ys) > h * 0.5:
+        return xs[0], ys[0], xs[-1] + 1, ys[-1] + 1
+    return None
 
 
 def samples(grid, bounds):
@@ -255,16 +288,14 @@ def play(binary, cli, doc, directory, mode, effects, software_fallback=False):
         wait(lambda: "show_first_frame" in contents(), "settled first slide", process)
 
         def first_bounds():
-            grid = capture(audience, directory / "first.png")
-            w, h = GRID
-            red = [10 < p[0] and p[0] > p[2] + 45 and p[0] > p[1] + 45 for p in grid]
-            rows = [y for y in range(h) if sum(red[y * w : (y + 1) * w]) > w * 0.5]
-            cols = [x for x in range(w) if sum(red[x::w]) > h * 0.5]
-            if len(rows) > h * 0.5 and len(cols) > w * 0.5:
-                bounds = (cols[0], rows[0], cols[-1], rows[-1])
-                return bounds, average(samples(grid, bounds))
+            image = directory / "first.png"
+            capture(audience, image)
+            crop = slide_crop(image)
+            if crop:
+                return crop, average(samples(image_grid(image, crop), bounds))
 
-        bounds, previous = wait(first_bounds, "first red slide on screen", process)
+        bounds = (0, 0, GRID[0] - 1, GRID[1] - 1)
+        crop, previous = wait(first_bounds, "first red slide on screen", process)
         for slide, (kind, _) in enumerate(effects, 2):
             key(process, audience, "right")
             pattern = re.compile(
@@ -274,7 +305,7 @@ def play(binary, cli, doc, directory, mode, effects, software_fallback=False):
                 0.22
                 if kind == "cover"
                 else 0.30
-                if kind in ("wipe", "split")
+                if kind in ("wipe", "split", "blinds")
                 else 0.38
                 if kind == "push"
                 else 0.48
@@ -314,41 +345,33 @@ def play(binary, cli, doc, directory, mode, effects, software_fallback=False):
                 cli, doc, directory, slide, paused["slide_seconds"]
             )
 
-            def observed_pause():
-                pixels = samples(
-                    capture(audience, directory / f"{kind}-paused.png"), bounds
-                )
-                middle = average(pixels)
-                return (
-                    (middle, pixels)
-                    if close_color(middle, average(reference), 7)
-                    else None
-                )
-
-            middle, pixels = wait(
-                observed_pause, "paused pixels reached the audience", process
-            )
             expected = average(reference)
-            assert close_color(middle, expected, 7), (kind, middle, expected, paused)
-            # At the same paused timestamp compare actual locations, allowing one
-            # sampled neighbour for physical window scaling and colour quantization.
-            mismatch = 0
-            for i, actual in enumerate(pixels):
-                row, col = divmod(i, 84)
-                neighbours = (
-                    reference[y * 84 + x]
-                    for y in range(max(0, row - 1), min(46, row + 2))
-                    for x in range(max(0, col - 1), min(84, col + 2))
-                )
-                if not any(close_color(actual, ref, 5) for ref in neighbours):
-                    mismatch += 1
-            assert mismatch <= len(pixels) * 0.02, (
-                kind,
-                mismatch,
-                len(pixels),
-                middle,
-                expected,
-            )
+            latest = {}
+
+            def observed_pause():
+                pixels = samples(capture(audience, directory / f"{kind}-paused.png", crop), bounds)
+                middle = average(pixels)
+                # Both the compositor's color and its spatial pattern must reach
+                # the requested timestamp before accepting an asynchronous frame.
+                mismatch = 0
+                for i, actual in enumerate(pixels):
+                    row, col = divmod(i, 84)
+                    neighbours = (
+                        reference[y * 84 + x]
+                        for y in range(max(0, row - 1), min(46, row + 2))
+                        for x in range(max(0, col - 1), min(84, col + 2))
+                    )
+                    if not any(close_color(actual, ref, 5) for ref in neighbours):
+                        mismatch += 1
+                latest.update(mean=middle, differing=mismatch)
+                if close_color(middle, expected, 7) and mismatch <= len(pixels) * 0.02:
+                    return middle, pixels, mismatch
+                return None
+
+            try:
+                middle, pixels, mismatch = wait(observed_pause, "paused pixels reached the audience", process)
+            except (RuntimeError, TimeoutError) as error:
+                raise RuntimeError(f"{kind} at {paused['slide_seconds']:.4f}s, expected {expected}, observed {latest}") from error
             assert not close_color(previous, middle, 5), (kind, previous, middle)
             key(process, audience, "pause")
             target = bytes.fromhex(COLORS[slide - 1])
@@ -356,7 +379,7 @@ def play(binary, cli, doc, directory, mode, effects, software_fallback=False):
 
             def settled():
                 pixels = samples(
-                    capture(audience, directory / f"{kind}-end.png"), bounds
+                    capture(audience, directory / f"{kind}-end.png", crop), bounds
                 )
                 return (
                     average(pixels)
@@ -536,8 +559,9 @@ def exchange(doc, directory, baseline, candidate, effects):
             ]
     for reader in versions:
         assert readers[f"baseline-{reader}"] == readers[f"candidate-{reader}"]
-    if effects == STANDARD:
-        assert len({tuple(v) for v in readers.values()}) == 1
+    for index, (kind, _) in enumerate(effects):
+        if kind == "fade":
+            assert len({frames[index] for frames in readers.values()}) == 1
     return {
         "cliSha256": {k: digest(v) for k, v in versions.items()},
         "halfTimeFramesByWriterAndReader": readers,
@@ -551,6 +575,7 @@ def main():
     parser.add_argument("--reference-cli", type=Path)
     parser.add_argument("--exchange-only", action="store_true")
     mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--panels", action="store_true", help="exercise Venetian blinds and a corner ripple")
     mode.add_argument(
         "--patterns",
         action="store_true",
@@ -569,7 +594,9 @@ def main():
     )
     args = parser.parse_args()
     effects = (
-        PATTERNS
+        PANELS
+        if args.panels
+        else PATTERNS
         if args.patterns
         else MASKS
         if args.masks
@@ -592,7 +619,7 @@ def main():
     for mode in ("auto", "cpu"):
         results[mode] = play(
             args.binary.resolve(),
-            cli if effects != STANDARD else baseline,
+            cli,
             doc,
             out / mode,
             mode,

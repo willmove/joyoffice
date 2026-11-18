@@ -971,7 +971,7 @@
       "source_path": "crates/anim/src/lib.rs",
       "source_sha256": "960fee50af9c7cd413c62db1a8222a1500247882f2b855e0f0a7e688132d733c",
       "target_path": "crates/joydeck-anim/src/lib.rs",
-      "adapted_sha256": "af5da0b9dffa6186fc3069be05911208992712b063609df15ee56c954271b235",
+      "adapted_sha256": "5c38940231f66ef5b0bbdadeab560d15b709ef8397b1ffc7579b74b6a1f5d875",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -979,7 +979,8 @@
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
         "Register the host whole-slide motion generator.",
         "JoyOffice's contour-strip mask generator replaces the imported wipe and split opacity grids; see slides in tests/fixtures/joydeck/soft-mask-reference.json.",
-        "Register the JoyOffice shape, wheel, random-bar and dissolve transition generator."
+        "Register the JoyOffice shape, wheel, random-bar and dissolve transition generator.",
+        "Register the JoyOffice panel transition generator (transition_panels.rs, SHA-256 378954a7ffaa00a48f18d46623c6e8f96c5db049f5d4acf2b23aa7798b7438c6)."
       ]
     },
     {
@@ -1083,7 +1084,7 @@
       "source_path": "crates/anim/src/transition_fx.rs",
       "source_sha256": "d33982408786bf055bf487318d4fd6a6e79d4309812a1dd0b7f5807963c79dad",
       "target_path": "crates/joydeck-anim/src/transition_fx.rs",
-      "adapted_sha256": "dd53435fcc2537ca30ee29f6c7daa57e96ca24b880c82e9daf8ab8854bf5e465",
+      "adapted_sha256": "12ff29da1b6a5004150cb4434a86a4de8c500717b8c7eb87b85fb247a4f52ebb",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -1091,34 +1092,37 @@
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
         "Dispatch basic cuts, dissolves and travel tracks to the host generator; remove their previous implementations.",
         "JoyOffice's contour-strip mask generator replaces the imported wipe and split opacity grids; see slides in tests/fixtures/joydeck/soft-mask-reference.json.",
-        "Dispatch shape, wheel, random-bar and dissolve to JoyOffice and retire the original generators."
+        "Dispatch shape, wheel, random-bar and dissolve to JoyOffice and retire the original generators.",
+        "Route checker, blinds, comb and ripple variants to native tile, stripe and radial generators."
       ]
     },
     {
       "source_path": "crates/anim/src/transition_geom.rs",
       "source_sha256": "5b1f243f755182dfdf10a93ac36764b2f1b93bb6d964e7f22e31605e99ac77a2",
       "target_path": "crates/joydeck-anim/src/transition_geom.rs",
-      "adapted_sha256": "eca76e7a60651af587a745b749d9162bab29cfd28a3a807f05e0b186abd580e1",
+      "adapted_sha256": "3e96abb83b6772a927ff037eb556c06582a1d698e35b99fd3f373eef1a19165a",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
         "Remove the retired polynomial used only for legacy cover and uncover motion.",
-        "Retire the fixed-size angular fan and soft rectangle previously used by shape and wheel transitions."
+        "Retire the fixed-size angular fan and soft rectangle previously used by shape and wheel transitions.",
+        "Remove the unused two-dimensional opacity grid and soft edge helpers once the final ripple caller retired."
       ]
     },
     {
       "source_path": "crates/anim/src/transition_tests.rs",
       "source_sha256": "25b1f239d26905c592bda30f8538d0daa3d08be9b864054f3c78814a5a24eac8",
       "target_path": "crates/joydeck-anim/src/transition_tests.rs",
-      "adapted_sha256": "4f3bbcd5a3d1d7f10c858bf7409c6b5f5f8a6e4e15b9f567fcfc66b70da4ad9a",
+      "adapted_sha256": "667a5b48dc4819a80cec0dc877547ba72f6421f7e930c6ddb07997b752a8950f",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
-        "Keep the measured layer-position checks and remove the test of the retired polynomial."
+        "Keep the measured layer-position checks and remove the test of the retired polynomial.",
+        "Test the measured wipe edge against the production interpolated tiles."
       ]
     },
     {

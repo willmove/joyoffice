@@ -4,7 +4,7 @@
 use joydeck_model::anim::TRANSITIONS;
 
 use crate::transition::{Layer, Source, transition_frame, transition_layers, uses_slide_parts};
-use crate::transition_geom::{edge, q2, ss};
+use crate::transition_geom::{q2, ss};
 
 const A: f64 = 16.0 / 9.0;
 
@@ -117,10 +117,20 @@ fn cover_and_uncover_match_measured_positions() {
 fn wipe_has_a_wide_soft_edge() {
     // Measured along a row of Wipe Right at t = 0.5: about half-way through at x = 0.6, nearly
     // nothing at the right edge, fully new on the left third.
-    let c = -0.4 + 1.8 * 1.05 * 0.5;
-    assert!(near(edge(c, 0.6, 0.8), 0.49, 0.1));
-    assert!(edge(c, 1.0, 0.8) < 0.1);
-    assert!(edge(c, 0.2, 0.8) > 0.8);
+    let layers = transition_layers("wipe", "r", 0.5);
+    let opacity = |x: f64| {
+        for layer in layers.iter().filter(|layer| layer.source == Source::New) {
+            let [left, _, right, _] = layer.src;
+            if left <= x && x <= right && right > left {
+                let blend = (x - left) / (right - left);
+                return layer.alpha * (layer.fade[0] * (1. - blend) + layer.fade[1] * blend);
+            }
+        }
+        0.
+    };
+    assert!(near(opacity(0.6), 0.49, 0.1));
+    assert!(opacity(1.0) < 0.1);
+    assert!(opacity(0.2) > 0.8);
     // Directions: "r" starts on the left, "l" on the right, "u" at the bottom, "d" at the top,
     // diagonals at the opposite corner.
     let first = |o: &str| {
