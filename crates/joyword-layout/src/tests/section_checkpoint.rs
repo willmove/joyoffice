@@ -959,3 +959,88 @@ fn reviewed_sections_and_reply_edits_match_full_layout_and_invalidate_their_ball
     }
     Ok(())
 }
+
+#[test]
+fn custom_note_separators_match_full_pages_through_edit_undo_and_redefinition()
+-> Result<(), Box<dyn std::error::Error>> {
+    let mut doc = Document::new();
+    doc.body.clear();
+    let paragraph =
+        |s: &str| joyword_model::para_block(Paragraph::with_text(s, Default::default()));
+    for n in 0..68 {
+        doc.body.extend([
+            paragraph("Chapter"),
+            paragraph("Edit here"),
+            paragraph("End"),
+        ]);
+        if n != 67 {
+            doc.para_mut(StoryRef::Body, &Path::top(n * 3 + 2))?.section =
+                Some(Box::new(doc.last_section.clone()));
+        }
+    }
+    let block = 34 * 3 + 1;
+    footnote(
+        &mut doc,
+        &Pos::body(block + 1, 1),
+        &"Footnote paragraph ".repeat(460),
+    );
+    let end = doc.add_part(
+        joyword_model::PartKind::Endnote,
+        vec![paragraph("Final endnote")],
+    );
+    doc.insert_object(
+        &Pos::body(block, 2),
+        InlineObject::NoteRef {
+            id: end,
+            kind: joyword_model::para::NoteKind::Endnote,
+            custom: String::new(),
+        },
+        &Default::default(),
+    )?;
+    let separator = |text, long| -> Result<Blocks, Box<dyn std::error::Error>> {
+        let mut p = Paragraph::with_text(text, Default::default());
+        p.insert_object(0, InlineObject::note_separator(long), &Default::default())?;
+        Ok(vec![joyword_model::para_block(p)])
+    };
+    doc.footnote_separators = joyword_model::NoteSeparators {
+        separator: Some(separator("Footnotes begin", false)?),
+        continuation_separator: Some(separator("Footnotes resume", true)?),
+        continuation_notice: Some(vec![paragraph("Continued on next page")]),
+    };
+    doc.endnote_separators.separator = Some(separator("Endnotes begin", false)?);
+    let mut edited = doc.clone();
+    edited.insert_text(
+        &Pos::body(block, 0),
+        &"More body text ".repeat(270),
+        &Default::default(),
+    )?;
+    let opts = LayoutOptions::default();
+    let mut cache = LayoutCache::new();
+    let mut last = layout_shared(&doc, &mut cache, &opts);
+    for state in [&edited, &doc, &edited] {
+        let next = layout_shared(state, &mut cache, &opts);
+        let full = layout(state, &mut LayoutCache::new(), &opts);
+        assert!(next.changed_pages_from(&last).is_some());
+        assert_eq!(next.index, full.index);
+        assert_eq!(next.pages.len(), full.pages.len());
+        for (index, (got, want)) in next.pages.iter().zip(&full.pages).enumerate() {
+            assert_eq!(format!("{got:?}"), format!("{want:?}"), "page {index}");
+            assert_eq!(
+                next.hit(index, 90., 110., StoryRef::Body),
+                full.hit(index, 90., 110., StoryRef::Body)
+            );
+        }
+        last = next;
+    }
+    edited.footnote_separators.continuation_notice = Some(vec![paragraph("A distinct notice")]);
+    let changed = layout_shared(&edited, &mut cache, &opts);
+    assert_eq!(changed.changed_pages_from(&last), None);
+    assert_eq!(
+        format!("{:?}", changed.pages),
+        format!(
+            "{:?}",
+            layout(&edited, &mut LayoutCache::new(), &opts).pages
+        )
+    );
+    Ok(())
+}

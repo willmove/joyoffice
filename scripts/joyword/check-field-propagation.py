@@ -20,7 +20,7 @@ SECTIONS = runpy.run_path(str(Path(__file__).with_name('check-section-reflow.py'
 CORPUS = runpy.run_path(str(Path(__file__).with_name('check-complex-corpus.py')))
 
 
-def fixture(path, edited=False, facing_notes=False, structured=False, column_geometry=False, numbered_lines=False, reviewed=False):
+def fixture(path, edited=False, facing_notes=False, structured=False, column_geometry=False, numbered_lines=False, reviewed=False, separators=False):
     def text(value):
         return f'<w:r><w:t xml:space="preserve">{value}</w:t></w:r>'
 
@@ -64,6 +64,8 @@ def fixture(path, edited=False, facing_notes=False, structured=False, column_geo
             body = text('End')
         if facing_notes and section == 66:
             body += '<w:r><w:footnoteReference w:id="1"/></w:r>'
+        if separators and section == 34:
+            body += '<w:r><w:endnoteReference w:id="1"/></w:r>'
         if reviewed and section in (34, 62):
             cid = 0 if section == 34 else 1
             marked = (f'<w:commentRangeStart w:id="{cid}"/>' + text(f'AnchorWitness{cid}') +
@@ -115,6 +117,21 @@ def fixture(path, edited=False, facing_notes=False, structured=False, column_geo
         extras['word/settings.xml'] = f'<w:settings xmlns:w="{CORPUS["W"]}"><w:mirrorMargins/><w:evenAndOddHeaders/></w:settings>'
         types['word/settings.xml'] = prefix + 'settings+xml'
         rels.extend([('n', 'footnotes', 'footnotes.xml'), ('cfg', 'settings', 'settings.xml')])
+    if separators:
+        for kind in ('footnote', 'endnote'):
+            special = ''.join(
+                f'<w:{kind} w:type="{role}" w:id="{ident}"><w:p>{text(kind + witness)}{rule}</w:p></w:{kind}>'
+                for role, ident, witness, rule in [
+                    ('separator', -1, 'BeginWitness', '<w:r><w:separator/></w:r>'),
+                    ('continuationSeparator', 0, 'ResumeWitness', '<w:r><w:continuationSeparator/></w:r>'),
+                    ('continuationNotice', -2, 'NextWitness', '')])
+            part = f'word/{kind}s.xml'
+            if kind == 'endnote':
+                extras[part] = (f'<w:endnotes xmlns:w="{CORPUS["W"]}"><w:endnote w:id="1"><w:p>'
+                                + text('EndnoteBodyWitness') + '</w:p></w:endnote></w:endnotes>')
+                rels.append(('en', 'endnotes', 'endnotes.xml'))
+            extras[part] = extras[part].replace(f'</w:{kind}s>', special + f'</w:{kind}s>')
+
     CORPUS['package'](path, ''.join(paragraphs), rels, extras, types)
 
 
@@ -258,11 +275,11 @@ def print_review(cli, document, pdf):
     return witnesses
 
 
-def run(desktop, old, current, folder, facing_notes=False, structured=False, column_geometry=False, numbered_lines=False, reviewed=False):
+def run(desktop, old, current, folder, facing_notes=False, structured=False, column_geometry=False, numbered_lines=False, reviewed=False, separators=False):
     folder.mkdir(parents=True, exist_ok=False)
     original, working = folder / '原始.docx', folder / '分节 编辑.docx'
-    fixture(original, facing_notes=facing_notes, structured=structured, column_geometry=column_geometry, numbered_lines=numbered_lines, reviewed=reviewed)
-    fixture(folder / 'expanded.docx', edited=True, facing_notes=facing_notes, structured=structured, column_geometry=column_geometry, numbered_lines=numbered_lines, reviewed=reviewed)
+    fixture(original, facing_notes=facing_notes, structured=structured, column_geometry=column_geometry, numbered_lines=numbered_lines, reviewed=reviewed, separators=separators)
+    fixture(folder / 'expanded.docx', edited=True, facing_notes=facing_notes, structured=structured, column_geometry=column_geometry, numbered_lines=numbered_lines, reviewed=reviewed, separators=separators)
     source_hash = digest(original)
     shutil.copyfile(original, working)
     reference = []
@@ -352,6 +369,32 @@ def run(desktop, old, current, folder, facing_notes=False, structured=False, col
             assert continuous == list(range(5, 5 + len(continuous)))
         assert max(labels['expanded']) > max(labels['original']) and len(labels['expanded']) > len(labels['original'])
         formats['marginLabels'] = {k: labels[k] for k in ('original', 'expanded')}
+    if separators:
+        def note_entries(filename):
+            with ZipFile(filename) as archive:
+                roles = {}
+                for kind in ('footnote', 'endnote'):
+                    root = ET.fromstring(archive.read(f'word/{kind}s.xml'))
+                    for element in root:
+                        role = element.get('{%s}type' % CORPUS['W'])
+                        if role in ('separator', 'continuationSeparator', 'continuationNotice'):
+                            roles[(kind + '/' + role)] = ''.join(n.text or '' for n in element.findall('.//{*}t'))
+                assert set(roles.values()) == {kind + tag for kind in ('footnote', 'endnote')
+                                               for tag in ('BeginWitness', 'ResumeWitness', 'NextWitness')}, roles
+                return roles
+        files = {'original': original, 'native': working, 'previous': folder / 'baseline-resaved.docx',
+                 'current': folder / 'candidate-resaved.docx'}
+        formats['separatorStories'] = {key: note_entries(file) for key, file in files.items()}
+        def locations(pdf):
+            pages = subprocess.check_output(['pdftotext', '-layout', pdf, '-'], text=True).split('\f')
+            tags = ['footnoteBeginWitness', 'footnoteResumeWitness', 'footnoteNextWitness',
+                    'endnoteBeginWitness', 'EndnoteBodyWitness']
+            result = {tag: [i for i, page in enumerate(pages, 1) if tag in ''.join(page.split())] for tag in tags}
+            assert all(result.values()), result
+            return result
+        loc = {key: locations(folder / (key + '.pdf')) for key in ('original', 'expanded', 'old', 'new')}
+        assert loc['expanded'] == loc['old'] == loc['new'], loc
+        formats['separatorPages'] = loc
     if reviewed:
         formats['reviewByWriter'] = {name: reviewed_content(file) for name, file in
             [('source', original), ('native', working), ('baseline', folder / 'baseline-resaved.docx'),
@@ -378,8 +421,9 @@ if __name__ == '__main__':
     arg.add_argument('--structured', action='store_true', help='exercise continued and restarted lists, a frame, a drop cap and nested table fields')
     arg.add_argument('--column-geometry', action='store_true', help='exercise unequal columns, an explicit column break and both rotated text directions')
     arg.add_argument('--numbered-lines', action='store_true', help='exercise per-page, section and continuous margin line numbering')
+    arg.add_argument('--separators', action='store_true', help='exercise custom footnotes, continuation notices and an endnote separator')
     arg.add_argument('--reviewed', action='store_true', help='include tracked revisions, anchored comments and independent printed markup')
     args = arg.parse_args()
     dest = args.output.resolve()
-    result = run(args.desktop.resolve(), args.baseline.resolve(), args.candidate.resolve(), dest, args.facing_notes, args.structured, args.column_geometry, args.numbered_lines, args.reviewed)
+    result = run(args.desktop.resolve(), args.baseline.resolve(), args.candidate.resolve(), dest, args.facing_notes or args.separators, args.structured, args.column_geometry, args.numbered_lines, args.reviewed, args.separators)
     (dest / 'report.json').write_text(json.dumps(result, indent=2) + '\n')

@@ -18,6 +18,8 @@ const MIN_PAGES: usize = 64;
 pub(crate) struct Previous {
     body: Blocks,
     notes: BTreeMap<u32, joyword_model::Part>,
+    footnote_separators: joyword_model::NoteSeparators,
+    endnote_separators: joyword_model::NoteSeparators,
     section_context: bool,
     requires_section_flow: bool,
     media: BTreeMap<String, Arc<Vec<u8>>>,
@@ -95,7 +97,10 @@ pub fn layout_shared(
             ..Default::default()
         },
     ));
-    let mut requires_section_flow = endnotes.is_some() || uses_section_geometry(&doc.last_section);
+    let mut requires_section_flow = endnotes.is_some()
+        || !doc.footnote_separators.is_empty()
+        || !doc.endnote_separators.is_empty()
+        || uses_section_geometry(&doc.last_section);
     let mut body_fields = false;
     if layout.pages.len() >= MIN_PAGES
         && eligible(doc, opts)
@@ -139,6 +144,8 @@ pub fn layout_shared(
             endnotes,
             body: doc.body.clone(),
             notes: doc.parts.clone(),
+            footnote_separators: doc.footnote_separators.clone(),
+            endnote_separators: doc.endnote_separators.clone(),
             requires_section_flow,
             body_fields,
             list_starts: std::mem::take(&mut cache.list_starts),
@@ -342,8 +349,31 @@ fn box_anchors(doc: &Document) -> Option<BTreeMap<u32, (usize, usize)>> {
 fn eligible(doc: &Document, opts: &LayoutOptions) -> bool {
     opts.view == ViewMode::Print
         && !opts.comment_balloons
-        && doc.footnote_separators.is_empty()
-        && doc.endnote_separators.is_empty()
+        && [&doc.footnote_separators, &doc.endnote_separators]
+            .into_iter()
+            .all(|notes| {
+                [
+                    &notes.separator,
+                    &notes.continuation_separator,
+                    &notes.continuation_notice,
+                ]
+                .into_iter()
+                .flatten()
+                .all(|blocks| {
+                    blocks.len() <= 32
+                        && blocks.iter().all(|b| {
+                            b.as_para().is_some_and(|p| {
+                                let props = doc.styles.resolve_para(&p.props);
+                                p.text.len() <= 32_768
+                                    && p.section.is_none()
+                                    && props.numbering.is_none()
+                                    && props.frame.is_none()
+                                    && props.drop_cap == 0
+                                    && p.objects.iter().all(|o| o.as_note_separator().is_some())
+                            })
+                        })
+                })
+            })
 }
 
 // A single paragraph cannot determine which column width to use after a break,
@@ -365,6 +395,8 @@ impl Previous {
         if self.body.len() != doc.body.len()
             || self.section != doc.last_section
             || self.settings != doc.settings
+            || self.footnote_separators != doc.footnote_separators
+            || self.endnote_separators != doc.endnote_separators
             || !eligible(doc, opts)
             || self.notes.len() != doc.parts.len()
             || self.media.len() != doc.media.len()
