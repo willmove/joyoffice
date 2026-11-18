@@ -324,3 +324,31 @@ fn xlsb_phonetic_runs_use_documented_size_and_tolerate_padding() {
     }
     assert!(read_xlsb(&file(&worksheet(&[row(0), cell(62, 0, &phonetic(2, 12))].concat(), &[]))).is_err());
 }
+
+#[test]
+fn xlsb_book_view_reads_the_first_complete_view_in_its_collection() {
+    let view = |tab: u32| {
+        let mut bytes = [0; 29];
+        bytes[24..28].copy_from_slice(&tab.to_le_bytes());
+        record(158, &bytes)
+    };
+    for (tab, expected) in [(1, "Second"), (7, "Data")] {
+        let mut book = record(131, &[]);
+        for part in [view(0), record(135, &[]), record(158, &[0; 28]), view(tab), view(0), record(136, &[]), record(143, &[])] {
+            book.extend(part);
+        }
+        for (sheet_id, rel, name) in [(1u32, "one", "Data"), (2, "two", "Second")] {
+            let mut data = vec![0; 4];
+            data.extend(sheet_id.to_le_bytes());
+            data.extend(wide(rel));
+            data.extend(wide(name));
+            book.extend(record(156, &data));
+        }
+        book.extend(record(144, &[]));
+        book.extend(record(132, &[]));
+        let data = package(&book, &worksheet(&[], &[]), &sst(), ROOT, RELS, TYPES);
+        let (wb, report) = read_xlsb(&data).unwrap();
+        assert_eq!(wb.active().unwrap().name, expected);
+        assert!(report.warnings.iter().any(|s| s.contains("truncated workbook view")));
+    }
+}

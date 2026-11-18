@@ -77,7 +77,7 @@ pub fn read_xlsb(bytes: &[u8]) -> Result<(Workbook, ReadReport), IoError> {
     wb.sheets.clear();
     let mut report = ReadReport::default();
     report.warn("XLSB data-only import: formulas become their saved results and will not recalculate. Formatting, charts, images, macros and other features are not imported; dates, currency and percentages may display as numbers. Save a new .xlsx file; XLSB saving is not supported.");
-    let sheets = workbook(&book, &mut wb, &mut report)?;
+    let (sheets, active_tab) = workbook(&book, &mut wb, &mut report)?;
     let rels = relationships(&mut package, &root.target)?;
     let mut budget = Budget::default();
     let sst_rels: Vec<_> = rels.iter().filter(|r| r.kind == "sharedStrings").collect();
@@ -93,7 +93,8 @@ pub fn read_xlsb(bytes: &[u8]) -> Result<(Workbook, ReadReport), IoError> {
     } else {
         vec![]
     };
-    for info in sheets {
+    let mut active_sheet = None;
+    for (index, info) in sheets.into_iter().enumerate() {
         let Some(id) = info.rel else {
             if info.visibility != Visibility::VeryHidden {
                 return Err(invalid("worksheet relationship is null"));
@@ -116,12 +117,15 @@ pub fn read_xlsb(bytes: &[u8]) -> Result<(Workbook, ReadReport), IoError> {
         wb.check_sheet_name(&info.name, None).map_err(invalid)?;
         let mut sheet = worksheet(&required(&mut package, &rel.target)?, &info.name, &strings, &mut budget, &mut report)?;
         sheet.visibility = info.visibility;
+        if active_tab == Some(index) {
+            active_sheet = Some(wb.sheets.len());
+        }
         wb.sheets.push(Arc::new(sheet));
     }
     if wb.sheets.is_empty() {
         return Err(invalid("no supported worksheets"));
     }
-    wb.set_active_sheet(wb.sheets.iter().position(|s| s.visibility == Visibility::Visible).unwrap_or(0));
+    crate::restore_active_sheet(&wb, active_sheet);
     Ok((wb, report))
 }
 
@@ -391,12 +395,14 @@ struct SheetInfo {
     rel: Option<String>,
     visibility: Visibility,
 }
-fn workbook(bytes: &[u8], wb: &mut Workbook, report: &mut ReadReport) -> Result<Vec<SheetInfo>, IoError> {
+fn workbook(bytes: &[u8], wb: &mut Workbook, report: &mut ReadReport) -> Result<(Vec<SheetInfo>, Option<usize>), IoError> {
     let mut records = Records::new(bytes);
     records.first(131, report)?;
     let mut sheets = vec![];
     let mut bundle = false;
     let mut bundle_seen = false;
+    let mut in_views = false;
+    let mut active_tab = None;
     while let Some((id, payload)) = records.next(report)? {
         let mut b = Bytes::new(payload);
         match id {
@@ -405,7 +411,18 @@ fn workbook(bytes: &[u8], wb: &mut Workbook, report: &mut ReadReport) -> Result<
                     return Err(invalid("incomplete worksheet list"));
                 }
                 records.end(payload, report)?;
-                return Ok(sheets);
+                return Ok((sheets, active_tab));
+            }
+            135 => in_views = true,  // BrtBeginBookViews
+            136 => in_views = false, // BrtEndBookViews
+            158 if in_views && active_tab.is_none() => {
+                // MS-XLSB BrtBookView: itabCur follows six 32-bit window fields.
+                if payload.len() >= 29 {
+                    b.take(24)?;
+                    active_tab = Some(b.u32()? as usize);
+                } else {
+                    report.warn("A truncated workbook view was ignored.");
+                }
             }
             143 => {
                 if bundle_seen {

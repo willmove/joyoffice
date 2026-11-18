@@ -664,3 +664,27 @@ fn xls_short_window2_is_ignored() {
         assert_eq!(v(&wb, 0, "A1"), Value::Number(7.0));
     }
 }
+
+#[test]
+fn xls_window1_uses_the_first_complete_view_and_ignores_unknown_tabs() {
+    let window = |index: u16| {
+        let mut p = [0; 18];
+        p[10..12].copy_from_slice(&index.to_le_bytes());
+        rec(0x003D, &p)
+    };
+    let sheet = cat(&[&bof(0x0010), &eof()]);
+    for (index, expected) in [(1, "Two"), (7, "One")] {
+        let globals = |start: u32| {
+            let mut parts = cat(&[&bof(5), &rec(0x003D, &[0; 12]), &window(index), &window(0)]);
+            for (pos, name) in [(start, b"One"), (start + sheet.len() as u32, b"Two")] {
+                parts.extend(rec(0x0085, &cat(&[&pos.to_le_bytes(), &[0, 0, 3, 0], name])));
+            }
+            parts.extend(eof());
+            parts
+        };
+        let data = compound("Workbook", &cat(&[&globals(globals(0).len() as u32), &sheet, &sheet]));
+        let (wb, report) = crate::read_xls(&data).unwrap();
+        assert_eq!(wb.active().unwrap().name, expected);
+        assert!(report.warnings.iter().any(|s| s.contains("truncated workbook window")));
+    }
+}

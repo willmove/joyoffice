@@ -86,6 +86,14 @@ impl ReadReport {
     }
 }
 
+/// Restore the stored window tab after non-worksheet parts have been mapped
+/// or skipped. A hidden or missing tab opens the first visible worksheet.
+fn restore_active_sheet(wb: &Workbook, model_index: Option<usize>) {
+    let visible = |sheet: &joysheet_model::Sheet| sheet.visibility == joysheet_model::Visibility::Visible;
+    let active = model_index.filter(|&i| wb.sheet(i).is_some_and(visible)).or_else(|| wb.sheets.iter().position(|sheet| visible(sheet))).unwrap_or(0);
+    wb.set_active_sheet(active);
+}
+
 /// Reads an `.xlsx` / `.xlsm` / `.xltx` / `.xltm` package (the workbook part is found through the
 /// package relationships, so every main-part content type is accepted).
 pub fn read_xlsx(bytes: &[u8]) -> Result<(Workbook, ReadReport), IoError> {

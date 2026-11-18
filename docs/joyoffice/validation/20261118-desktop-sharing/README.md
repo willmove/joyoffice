@@ -466,3 +466,9 @@ Apple M4 Metal 和 UOS 25 的 Radeon 890M Vulkan 分别核对 1,850 帧，最大
 在 68 节 DOCX 中，有九节启用页边行号，包含跨节延续、逐页和逐节起号、每三行显示及跳过指定段落。插入长段后，连续编号的末行从 15 变成 113，后一节按间隔从 6 显示。macOS 与 UOS 均在真实窗口完成编辑、撤销、重做和保存，页数依次为 68 → 71 → 68 → 71。PDF 中实际出现的行号逐个核对，两代程序的 71 页栅格一致，原生与两代文件均保留九组编号设置。[行号和逐页证据](numbered-lines.json) · [OOXML 行号设置](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.linenumbertype)
 
 60 次交错发布构建编辑中，完整分页回退从 60 次降为零。macOS 的中位数从 1.87 降至 1.20 毫秒，P95 从 4.94 降至 3.67 毫秒。UOS 中位数从 1.34 降至 0.99 毫秒，P95 为 2.63 → 2.61 毫秒。另测在长段连续编号中增行且附近没有重启点，程序按预算回到完整分页，结果逐页一致。Word 产品回归分别通过 3,709 和 3,713 项，两端各保留两项原有忽略。恢复 `38c5f5ef` 可用同一文档复现原来的完整分页。[逐次计时与回退](numbered-lines.json)
+
+## Sheet 打开后实际编辑的工作表
+
+Excel 16.115 分别生成并重开两组三格式样本。五个标签依次为隐藏的 Start、Archive、图表 Graph、Summary、Details。停在 Details 时，上一版在 XLS 和 XLSB 打开 Archive，新版在两种格式均恢复 Details。停在 Graph 时，上一版的 XLSX 命令把修改写进隐藏的 Start，却在导出文件里显示 Archive 为活动页。新版本的 XML 和二进制读取器统一选中 Archive，编辑也写入同一页。[两代文件、Excel 及桌面记录](workbook-views.json)
+
+在 macOS 和 UOS 原生窗口，每个文件都实际完成打开、输入、撤销、重做、另存和新进程重开。两端各核对 24 组新旧读写组合，并逐表定位写入格。六份桌面导出再由 Excel 重开，活动页、修改和计算值全部相符。XLSX 的图表页、绘图和图表原始内容逐字节保留，XLS 和 XLSB 继续告知用户图表没有导入。两份授权业务原表均含零个公式，分别加入 916 和 16 个公式的测试副本在两端新旧程序全部匹配。恢复前一提交的三个格式适配器即可回退。[复验脚本](../../../../scripts/joysheet/check-workbook-view.py)

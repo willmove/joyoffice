@@ -1,0 +1,309 @@
+{
+  "date": "2026-11-19",
+  "scope": "Restore the first saved workbook window tab using the original file order, then select an editable visible sheet. BIFF8 Window1, BIFF12 BrtBookView, and SpreadsheetML workbookView share the visibility policy.",
+  "formats": [
+    "https://learn.microsoft.com/en-us/openspecs/office_file_formats/ms-xls/5e7b0663-0af0-4ff5-83fb-b3c42a7ed54f",
+    "https://learn.microsoft.com/en-us/openspecs/office_file_formats/ms-xlsb/05c70c7a-ed20-4888-bfed-bff2237aca88"
+  ],
+  "reproduce": "scripts/joysheet/check-workbook-view.py OLD_CLI NEW_CLI OUTPUT --desktop JOYSHEET",
+  "baseline": "f811034f",
+  "compatibility": "XLSX retains the original chart sheet, drawing, chart and relationships. Both binary readers explicitly report the skipped chart. BIFF8 retains B1*2, BIFF12 imports its saved numeric result. Original files stay unchanged.",
+  "externalExcel": {
+    "version": "Microsoft Excel for Mac 16.115",
+    "inputReopens": [
+      "details xlsx 16.115, Details, Start, Archive, Graph, Summary, Details, sheet hidden",
+      "details xlsb 16.115, Details, Start, Archive, Graph, Summary, Details, sheet hidden",
+      "details xls 16.115, Details, Start, Archive, Graph, Summary, Details, sheet hidden",
+      "chart xlsx 16.115, Graph, Start, Archive, Graph, Summary, Details, sheet hidden",
+      "chart xlsb 16.115, Graph, Start, Archive, Graph, Summary, Details, sheet hidden",
+      "chart xls 16.115, Graph, Start, Archive, Graph, Summary, Details, sheet hidden"
+    ],
+    "nativeJoySheetOutputReopens": [
+      "details xlsx 16.115, Details, window marker, 80.0, Start, Archive, Graph, Summary, Details, sheet hidden",
+      "details xlsb 16.115, Details, window marker, 80.0, Start, Archive, Summary, Details, sheet hidden",
+      "details xls 16.115, Details, window marker, 80.0, Start, Archive, Summary, Details, sheet hidden",
+      "chart xlsx 16.115, Archive, window marker, 40.0, Start, Archive, Graph, Summary, Details, sheet hidden",
+      "chart xlsb 16.115, Archive, window marker, 40.0, Start, Archive, Summary, Details, sheet hidden",
+      "chart xls 16.115, Archive, window marker, 40.0, Start, Archive, Summary, Details, sheet hidden"
+    ]
+  },
+  "rollback": "Restore the three format adapters and remove their shared tab-selection helper from this change. Keep source workbooks and reopen editable XLSX copies. The previous binary readers select the first visible worksheet and the previous XML reader can target a hidden worksheet when the stored tab is a chart.",
+  "platforms": {
+    "macOS": {
+      "comparison": {
+        "binaries": [
+          "d66e22e00ab900123b6d33ec06e751eff89d4bb7f35607f4f50712582857d590",
+          "18da0bee717361b56d1879abd7e79d807e31a9cb69cdcfe09dda02cc6d2bdda6"
+        ],
+        "workbooks": {
+          "chart.xls": {
+            "sourceSha256": "211ca9bb142a13c7e405ebb5769989aaa1955548dbeab3b82f9e474646f1c5d7",
+            "opened": {
+              "baseline": {
+                "savedTab": "Archive",
+                "editedWorksheet": "Archive"
+              },
+              "candidate": {
+                "savedTab": "Archive",
+                "editedWorksheet": "Archive"
+              }
+            },
+            "readerWriterPairs": 4
+          },
+          "chart.xlsb": {
+            "sourceSha256": "de5cf89533b4472ef2c79d85f238659d65454ff2a9b69de212bf45ab7843e28f",
+            "opened": {
+              "baseline": {
+                "savedTab": "Archive",
+                "editedWorksheet": "Archive"
+              },
+              "candidate": {
+                "savedTab": "Archive",
+                "editedWorksheet": "Archive"
+              }
+            },
+            "readerWriterPairs": 4
+          },
+          "chart.xlsx": {
+            "sourceSha256": "2bee2f5b958be3e37a6fd50501506d0b3ef797f141f4328981f8ee44629dd98a",
+            "opened": {
+              "baseline": {
+                "savedTab": "Archive",
+                "editedWorksheet": "Start"
+              },
+              "candidate": {
+                "savedTab": "Archive",
+                "editedWorksheet": "Archive"
+              }
+            },
+            "readerWriterPairs": 4
+          },
+          "details.xls": {
+            "sourceSha256": "581b66579a6e991c8229c9b12d4f7eb393e9facff139d31df45e2b797fb18e19",
+            "opened": {
+              "baseline": {
+                "savedTab": "Archive",
+                "editedWorksheet": "Archive"
+              },
+              "candidate": {
+                "savedTab": "Details",
+                "editedWorksheet": "Details"
+              }
+            },
+            "readerWriterPairs": 4
+          },
+          "details.xlsb": {
+            "sourceSha256": "a5cd21c802d9c59e152aa0aa21458a904b14c6c1517e1e8dd44b875f98cadd03",
+            "opened": {
+              "baseline": {
+                "savedTab": "Archive",
+                "editedWorksheet": "Archive"
+              },
+              "candidate": {
+                "savedTab": "Details",
+                "editedWorksheet": "Details"
+              }
+            },
+            "readerWriterPairs": 4
+          },
+          "details.xlsx": {
+            "sourceSha256": "3a91e186ebdb881a8b60a11fda38d0030040f7ffbf20cef0e8b6b26aedde6570",
+            "opened": {
+              "baseline": {
+                "savedTab": "Details",
+                "editedWorksheet": "Details"
+              },
+              "candidate": {
+                "savedTab": "Details",
+                "editedWorksheet": "Details"
+              }
+            },
+            "readerWriterPairs": 4
+          }
+        },
+        "desktopSha256": "e87b2d4a12feace4b12fb70c4a176b00e3b41f38e701981b967f869091573cba",
+        "native": {
+          "files": 6,
+          "statesPerFile": 5,
+          "freshProcessReopen": true,
+          "onlyActiveWorksheetModified": true,
+          "sourceHashesUnchanged": true
+        }
+      },
+      "productGate": {
+        "command": "cargo xtask check joysheet",
+        "fmtAndAllTargetsClippy": true,
+        "passed": 1496,
+        "failed": 0,
+        "ignored": 1
+      },
+      "businessWorkbooks": [
+        {
+          "originalFormulaCells": 0,
+          "derivedFormulaCells": 916,
+          "oldAndNewMatchedAllDerivedResults": true
+        },
+        {
+          "originalFormulaCells": 0,
+          "derivedFormulaCells": 16,
+          "oldAndNewMatchedAllDerivedResults": true
+        }
+      ],
+      "spdx": {
+        "target": "aarch64-apple-darwin",
+        "packages": 454,
+        "sourceFiles": 1250,
+        "spdxSha256": "18dc5531004c05a0d9d1fd777249a98f88e60eb62fd8a3232904cd03a67e6eb5",
+        "missingLicenseTexts": [],
+        "sharedCrates": [
+          "joyoffice-cfb",
+          "joyoffice-drawingml",
+          "joyoffice-omml",
+          "joyoffice-opc",
+          "joyoffice-theme",
+          "joyoffice-ui"
+        ],
+        "runtimeLegacyDependencies": []
+      },
+      "hardware": "Apple M4, native desktop"
+    },
+    "UOS25": {
+      "comparison": {
+        "binaries": [
+          "03987f54b32c99670bfa7a45ccfaac661a5077a37fbd5750525a91e1547ff6e0",
+          "14b9d3034cb3513d802e56c7b1ccd177537dbede403483c5e4f19bb7c1a8d0dd"
+        ],
+        "workbooks": {
+          "chart.xls": {
+            "sourceSha256": "211ca9bb142a13c7e405ebb5769989aaa1955548dbeab3b82f9e474646f1c5d7",
+            "opened": {
+              "baseline": {
+                "savedTab": "Archive",
+                "editedWorksheet": "Archive"
+              },
+              "candidate": {
+                "savedTab": "Archive",
+                "editedWorksheet": "Archive"
+              }
+            },
+            "readerWriterPairs": 4
+          },
+          "chart.xlsb": {
+            "sourceSha256": "de5cf89533b4472ef2c79d85f238659d65454ff2a9b69de212bf45ab7843e28f",
+            "opened": {
+              "baseline": {
+                "savedTab": "Archive",
+                "editedWorksheet": "Archive"
+              },
+              "candidate": {
+                "savedTab": "Archive",
+                "editedWorksheet": "Archive"
+              }
+            },
+            "readerWriterPairs": 4
+          },
+          "chart.xlsx": {
+            "sourceSha256": "2bee2f5b958be3e37a6fd50501506d0b3ef797f141f4328981f8ee44629dd98a",
+            "opened": {
+              "baseline": {
+                "savedTab": "Archive",
+                "editedWorksheet": "Start"
+              },
+              "candidate": {
+                "savedTab": "Archive",
+                "editedWorksheet": "Archive"
+              }
+            },
+            "readerWriterPairs": 4
+          },
+          "details.xls": {
+            "sourceSha256": "581b66579a6e991c8229c9b12d4f7eb393e9facff139d31df45e2b797fb18e19",
+            "opened": {
+              "baseline": {
+                "savedTab": "Archive",
+                "editedWorksheet": "Archive"
+              },
+              "candidate": {
+                "savedTab": "Details",
+                "editedWorksheet": "Details"
+              }
+            },
+            "readerWriterPairs": 4
+          },
+          "details.xlsb": {
+            "sourceSha256": "a5cd21c802d9c59e152aa0aa21458a904b14c6c1517e1e8dd44b875f98cadd03",
+            "opened": {
+              "baseline": {
+                "savedTab": "Archive",
+                "editedWorksheet": "Archive"
+              },
+              "candidate": {
+                "savedTab": "Details",
+                "editedWorksheet": "Details"
+              }
+            },
+            "readerWriterPairs": 4
+          },
+          "details.xlsx": {
+            "sourceSha256": "3a91e186ebdb881a8b60a11fda38d0030040f7ffbf20cef0e8b6b26aedde6570",
+            "opened": {
+              "baseline": {
+                "savedTab": "Details",
+                "editedWorksheet": "Details"
+              },
+              "candidate": {
+                "savedTab": "Details",
+                "editedWorksheet": "Details"
+              }
+            },
+            "readerWriterPairs": 4
+          }
+        },
+        "desktopSha256": "6c54147b23791b756cec6462adbe83c2edc6b6cc7e085e9c8ef4a9202dce4c05",
+        "native": {
+          "files": 6,
+          "statesPerFile": 5,
+          "freshProcessReopen": true,
+          "onlyActiveWorksheetModified": true,
+          "sourceHashesUnchanged": true
+        }
+      },
+      "productGate": {
+        "command": "cargo xtask check joysheet",
+        "fmtAndAllTargetsClippy": true,
+        "passed": 1496,
+        "failed": 0,
+        "ignored": 1
+      },
+      "businessWorkbooks": [
+        {
+          "originalFormulaCells": 0,
+          "derivedFormulaCells": 916,
+          "oldAndNewMatchedAllDerivedResults": true
+        },
+        {
+          "originalFormulaCells": 0,
+          "derivedFormulaCells": 16,
+          "oldAndNewMatchedAllDerivedResults": true
+        }
+      ],
+      "spdx": {
+        "target": "x86_64-unknown-linux-gnu",
+        "packages": 556,
+        "sourceFiles": 1242,
+        "spdxSha256": "2ea50caf66770e79a75e344580c55d0844e828fb5f2a27623b057ce8484e3dff",
+        "missingLicenseTexts": [],
+        "sharedCrates": [
+          "joyoffice-cfb",
+          "joyoffice-drawingml",
+          "joyoffice-omml",
+          "joyoffice-opc",
+          "joyoffice-theme",
+          "joyoffice-ui"
+        ],
+        "runtimeLegacyDependencies": []
+      },
+      "hardware": "UOS 25 x86_64 DDE X11, logged-in desktop"
+    }
+  }
+}

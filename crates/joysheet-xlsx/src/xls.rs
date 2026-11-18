@@ -130,6 +130,7 @@ struct Lbl {
 #[derive(Default)]
 struct Globals {
     sheets: Vec<BoundSheet>,
+    active_tab: Option<usize>,
     date1904: bool,
     formats: HashMap<u16, String>,
     xf_formats: Vec<u16>,
@@ -207,7 +208,7 @@ pub(crate) fn read_xls_with(bytes: &[u8], mut budget: Budget) -> Result<(Workboo
     }
     wb.calc.precision_as_displayed = g.precision_as_displayed;
     defined_names(&g, &model_index, &mut wb, &mut report);
-    wb.set_active_sheet(wb.sheets.iter().position(|s| s.visibility == Visibility::Visible).unwrap_or(0));
+    crate::restore_active_sheet(&wb, g.active_tab.and_then(|i| model_index.get(i).copied().flatten()));
     // The overview comes first.
     report.warnings.insert(
         0,
@@ -264,6 +265,15 @@ fn globals(stream: &[u8], budget: &mut Budget, report: &mut ReadReport) -> Resul
                 };
                 g.links.sheets.push(name.clone());
                 g.sheets.push(BoundSheet { pos, name, visibility, kind });
+            }
+            0x003D if g.active_tab.is_none() => {
+                // MS-XLS Window1: itabCur follows four window dimensions and the option flags.
+                if c.remaining() >= 18 {
+                    c.skip(10)?;
+                    g.active_tab = Some(usize::from(c.u16()?));
+                } else {
+                    report.warn("A truncated workbook window was ignored.");
+                }
             }
             0x0022 => g.date1904 = c.u16()? == 1,
             0x000E => g.precision_as_displayed = c.u16()? == 0,
