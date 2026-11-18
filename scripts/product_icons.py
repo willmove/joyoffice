@@ -22,13 +22,14 @@ def bundle_icon(contents, product):
     return name
 
 
-def linux_launcher(prefix, product):
+def linux_launcher(prefix, product, *, system_install=False):
     icon = prefix / "share/icons/hicolor/scalable/apps" / f"{product}.svg"
     icon.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(BRAND / icon.name, icon)
     desktop = prefix / "share/applications" / f"{product}.desktop"
     desktop.parent.mkdir(parents=True, exist_ok=True)
-    desktop.write_text(desktop_entry(product), encoding="utf-8", newline="\n")
+    installed_icon = f"/usr/share/icons/hicolor/scalable/apps/{product}.svg" if system_install else None
+    desktop.write_text(desktop_entry(product, icon=installed_icon), encoding="utf-8", newline="\n")
     return desktop, icon
 
 

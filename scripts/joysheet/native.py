@@ -64,7 +64,7 @@ def bundle(directory, version):
             licenses = stage / "usr/share/doc/joysheet/licenses"
             shutil.copytree(directory / "dependency-licenses", licenses)
             shutil.copy2(directory / "LICENSE-JOYOFFICE", licenses / "LICENSE-JOYOFFICE")
-            desktop, icon = linux_launcher(stage / "usr", "joysheet")
+            desktop, icon = linux_launcher(stage / "usr", "joysheet", system_install=stage == deb)
             if stage == app:
                 shutil.copy2(desktop, app / desktop.name)
                 shutil.copy2(icon, app / icon.name)

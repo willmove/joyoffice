@@ -1,0 +1,144 @@
+{
+  "baseCommit": "f04d8aa5",
+  "desktop": "UOS 25 / X11 / dde-shell 2.0.52 / dde-application-manager 1.2.59",
+  "products": {
+    "joyword": {
+      "customLauncherCommandAndMetadataPreserved": true,
+      "originalIcon": "Icon=joyword",
+      "correctedIcon": "Icon=/home/Wilmer/.local/share/icons/hicolor/scalable/apps/joyword.svg",
+      "currentBinarySha256": "166e53aafedde1315d41670b4f65f352b68871ac4bb7e75e341072cd6aa7ce0f",
+      "currentBuild": {
+        "window": "197132289",
+        "pid": 318824,
+        "wmClass": "WM_CLASS(STRING) = \"joyword\", \"joyword\"",
+        "unit": "app-DDE-tmp.portablebinary.-home-Wilmer-Coding-joyoffice-target-debug-joyword@c3b170f4.service",
+        "nativeIconSize": [
+          256,
+          256
+        ],
+        "nativeIconMatchesProductIco": true,
+        "dockIcon": "/home/Wilmer/.local/share/icons/hicolor/scalable/apps/joyword.svg"
+      },
+      "installedDesktopLauncher": {
+        "window": "207618049",
+        "pid": 325148,
+        "wmClass": "WM_CLASS(STRING) = \"joyword\", \"joyword\"",
+        "unit": "app-DDE-joyword@b959de172ba940eaba284ef36ba5495d.service",
+        "nativeIconSize": [],
+        "nativeIconMatchesProductIco": false,
+        "dockIcon": "/home/Wilmer/.local/share/icons/hicolor/scalable/apps/joyword.svg"
+      },
+      "terminalDirectRun": {
+        "window": "195035137",
+        "pid": 321016,
+        "wmClass": "WM_CLASS(STRING) = \"joyword\", \"joyword\"",
+        "unit": "app-DDE-deepin\\x2dterminal@cefdffaffbd443b795fac065db062f26.service",
+        "nativeIconSize": [
+          256,
+          256
+        ],
+        "nativeIconMatchesProductIco": true,
+        "dockIcon": "/home/Wilmer/.local/share/icons/hicolor/scalable/apps/joyword.svg"
+      }
+    },
+    "joydeck": {
+      "customLauncherCommandAndMetadataPreserved": true,
+      "originalIcon": "Icon=joydeck",
+      "correctedIcon": "Icon=/home/Wilmer/.local/share/icons/hicolor/scalable/apps/joydeck.svg",
+      "currentBinarySha256": "87fdc2c86ef0215c5eda50aab26417283aa736eb69a05a5f9885c14242f3f71e",
+      "currentBuild": {
+        "window": "201326593",
+        "pid": 318912,
+        "wmClass": "WM_CLASS(STRING) = \"joydeck\", \"joydeck\"",
+        "unit": "app-DDE-tmp.portablebinary.-home-Wilmer-Coding-joyoffice-target-debug-joydeck@8ec6f067.service",
+        "nativeIconSize": [
+          256,
+          256
+        ],
+        "nativeIconMatchesProductIco": true,
+        "dockIcon": "/home/Wilmer/.local/share/icons/hicolor/scalable/apps/joydeck.svg"
+      },
+      "installedDesktopLauncher": {
+        "window": "195035137",
+        "pid": 325236,
+        "wmClass": "WM_CLASS(STRING) = \"joydeck\", \"joydeck\"",
+        "unit": "app-DDE-joydeck@e487745b667e4688bbfdeaf84a8ec6fc.service",
+        "nativeIconSize": [],
+        "nativeIconMatchesProductIco": false,
+        "dockIcon": "/home/Wilmer/.local/share/icons/hicolor/scalable/apps/joydeck.svg"
+      },
+      "terminalDirectRun": {
+        "window": "199229441",
+        "pid": 321017,
+        "wmClass": "WM_CLASS(STRING) = \"joydeck\", \"joydeck\"",
+        "unit": "app-DDE-deepin\\x2dterminal@cefdffaffbd443b795fac065db062f26.service",
+        "nativeIconSize": [
+          256,
+          256
+        ],
+        "nativeIconMatchesProductIco": true,
+        "dockIcon": "/home/Wilmer/.local/share/icons/hicolor/scalable/apps/joydeck.svg"
+      }
+    },
+    "joysheet": {
+      "customLauncherCommandAndMetadataPreserved": true,
+      "originalIcon": "Icon=joysheet",
+      "correctedIcon": "Icon=/home/Wilmer/.local/share/icons/hicolor/scalable/apps/joysheet.svg",
+      "currentBinarySha256": "67c8f28ef9c3299bb241f96019249adcd4fea9d6cca6e65f939d61b1fdff6b37",
+      "currentBuild": {
+        "window": "205520897",
+        "pid": 319000,
+        "wmClass": "WM_CLASS(STRING) = \"joysheet\", \"joysheet\"",
+        "unit": "app-DDE-tmp.portablebinary.-home-Wilmer-Coding-joyoffice-target-debug-joysheet@05f4d327.service",
+        "nativeIconSize": [
+          256,
+          256
+        ],
+        "nativeIconMatchesProductIco": true,
+        "dockIcon": "/home/Wilmer/.local/share/icons/hicolor/scalable/apps/joysheet.svg"
+      },
+      "installedDesktopLauncher": {
+        "window": "199229441",
+        "pid": 325309,
+        "wmClass": "WM_CLASS(STRING) = \"joysheet\", \"joysheet\"",
+        "unit": "app-DDE-joysheet@b7d7d2335d6d4227a5d81a49facf0868.service",
+        "nativeIconSize": [],
+        "nativeIconMatchesProductIco": false,
+        "dockIcon": "/home/Wilmer/.local/share/icons/hicolor/scalable/apps/joysheet.svg"
+      },
+      "terminalDirectRun": {
+        "window": "197132289",
+        "pid": 321018,
+        "wmClass": "WM_CLASS(STRING) = \"joysheet\", \"joysheet\"",
+        "unit": "app-DDE-deepin\\x2dterminal@cefdffaffbd443b795fac065db062f26.service",
+        "nativeIconSize": [
+          256,
+          256
+        ],
+        "nativeIconMatchesProductIco": true,
+        "dockIcon": "/home/Wilmer/.local/share/icons/hicolor/scalable/apps/joysheet.svg"
+      }
+    }
+  },
+  "baselineCurrentBuild": {
+    "window": "199229441",
+    "pid": 313945,
+    "wmClass": "WM_CLASS(STRING) = \"joyword\", \"joyword\"",
+    "unit": "app-DDE-tmp.portablebinary.-home-Wilmer-Coding-joyoffice-target-debug-joyword@09cd004b.service",
+    "nativeIconSize": [
+      256,
+      256
+    ],
+    "nativeIconMatchesProductIco": true,
+    "dockIcon": "joyword",
+    "binarySha256": "166e53aafedde1315d41670b4f65f352b68871ac4bb7e75e341072cd6aa7ce0f",
+    "taskbarShowsGenericIcon": true
+  },
+  "cacheRefreshAloneFixedTaskbar": false,
+  "visualVerification": {
+    "terminalDirectRun": true,
+    "installedDesktopLauncher": true,
+    "screenshotFreezeExcluded": true,
+    "desktopShellRestarted": false
+  }
+}
