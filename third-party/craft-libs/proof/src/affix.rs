@@ -42,6 +42,10 @@ use std::hash::Hasher;
 use crate::patterns::{FxHasher, FxMap};
 
 mod compound;
+mod letter_case;
+mod rule_program;
+use letter_case::LetterCase;
+use rule_program::RuleProgram;
 mod edges;
 mod forms;
 use edges::EdgeIndex;
@@ -388,6 +392,7 @@ pub struct AffixDict {
     /// `CHECKSHARPS`: in a word in capitals, `SS` may stand for `ß` (`STRASSE` for `Straße`), and
     /// a `KEEPCASE` word with `ß` may be capitalized and written in capitals with `SS`.
     check_sharps: bool,
+    letter_case: LetterCase,
     /// `ICONV`: input conversions applied before a lookup.
     iconv: Conv,
     /// `OCONV`: output conversions applied to suggestions.
@@ -398,7 +403,8 @@ pub struct AffixDict {
     comments: Vec<String>,
     /// `COMPOUNDRULE` patterns: per token, the flag's id (`None`: a flag no stem carries, which
     /// matches no part) and how often it may repeat.
-    compound_rules: Vec<Vec<(Option<u16>, Repeat)>>,
+    compound_rules: Vec<RuleProgram>,
+    rule_edge: [Option<u16>; 2],
     /// The same patterns as written, for [`AffixDict::to_bytes`].
     compound_text: Vec<String>,
     /// The `ONLYINCOMPOUND` flag: such stems are words only as parts of a compound.
@@ -567,14 +573,6 @@ pub fn capitalize(w: &str) -> String {
     }
 }
 
-/// `w` with its first letter in lower case.
-fn decapitalize(w: &str) -> String {
-    let mut c = w.chars();
-    c.next()
-        .map(|f| f.to_lowercase().chain(c).collect())
-        .unwrap_or_default()
-}
-
 /// Parsed rules and tables, shared by the Hunspell reader and the compact format.
 #[derive(Default)]
 struct Rules {
@@ -594,6 +592,7 @@ struct Rules {
     circumfix: Option<FlagKey>,
     full_strip: bool,
     check_sharps: bool,
+    letter_case: LetterCase,
     iconv: Vec<(String, String)>,
     oconv: Vec<(String, String)>,
     ignore: Vec<char>,
@@ -1117,6 +1116,9 @@ fn parse_aff(aff: &str, english: bool) -> Result<Rules, String> {
             continue;
         }
         let at = |k: usize| f.get(k).copied().unwrap_or("");
+        if dir == "LANG" {
+            r.letter_case = LetterCase::of(at(1));
+        }
         match dir {
             "SET" | "NAME" | "VERSION" | "HOME" | "WORDCHARS" | "MAXNGRAMSUGS" | "MAXDIFF"
             | "ONLYMAXDIFF" | "SUGSWITHDOTS" | "WARN" | "FORBIDWARN" => {}
@@ -1543,6 +1545,7 @@ impl AffixDict {
             circumfix: rules.circumfix.and_then(id_of),
             full_strip: rules.full_strip,
             check_sharps: rules.check_sharps,
+            letter_case: rules.letter_case,
             flag_mode: mode,
             iconv: Conv::new(rules.iconv),
             oconv: Conv::new(rules.oconv),
@@ -1558,9 +1561,10 @@ impl AffixDict {
                 .iter()
                 .map(|p| {
                     parse_compound_rule(p, mode)
-                        .map(|t| t.into_iter().map(|(k, rep)| (id_of(k), rep)).collect())
+                        .map(|t| RuleProgram::new(t.into_iter().map(|(k, rep)| (id_of(k), rep))))
                 })
                 .collect::<Result<_, _>>()?,
+            rule_edge: rules.cpd.edge_permissions().map(|k| k.and_then(id_of)),
             compound_text: rules.compound_rules,
             only_in_compound: rules.only_in_compound.and_then(id_of),
             compound_min: rules.compound_min.unwrap_or(3),
@@ -1571,8 +1575,7 @@ impl AffixDict {
         let compound_flags: Vec<u16> = d
             .compound_rules
             .iter()
-            .flatten()
-            .filter_map(|(f, _)| *f)
+            .flat_map(RuleProgram::flags)
             .collect();
         let mut set_ids: FxMap<Vec<u16>, u32> = FxMap::default();
         set_ids.insert(Vec::new(), 0);
@@ -1934,7 +1937,10 @@ impl AffixDict {
             if let (Some(w), Ok(i)) = (self.word(i), u32::try_from(i))
                 && casing(w) == Casing::Mixed
             {
-                mixed.entry(w.to_lowercase().into()).or_default().push(i);
+                mixed
+                    .entry(self.letter_case.lower(w).into())
+                    .or_default()
+                    .push(i);
             }
         }
         self.mixed = mixed;
@@ -2468,10 +2474,10 @@ impl AffixDict {
         false
     }
 
-    /// Is `w` a compound of two or more stems (no affixes) whose flags spell out one of the
+    /// Is `w` a compound of two or more parts whose root flags spell out one of the
     /// `COMPOUNDRULE` patterns, each part at least `COMPOUNDMIN` characters? `21st` is `2/m` +
-    /// `1st/p` under `n*mp`. A dynamic programme over (byte offset, token, parts so far), so a
-    /// hostile pattern costs at most a few thousand lookups. A forbidden word is never rebuilt
+    /// `1st/p` under `n*mp`. Each cut carries a bounded set of active token positions.
+    /// Terminal affix analyses are shared across patterns. A forbidden word is never rebuilt
     /// from its parts.
     fn compound(&self, w: &str, excluded: Excluded) -> bool {
         if self.compound_rules.is_empty()
@@ -2499,29 +2505,40 @@ impl AffixDict {
             .chain(std::iter::once(w.len()))
             .collect();
         let n = cuts.len();
-        // Flag set of each part `w[cuts[a]..cuts[b]]`, by (a, b), looked up when a rule first
-        // reaches cut `a` (`None`: not looked up yet; `Some(None)`: not a stem). Only the parts
-        // after a cut a rule reaches are looked up, so a word with no first part costs `n`.
-        let mut parts: Vec<Option<Option<&[u16]>>> = vec![None; n * n];
-        let min = self.compound_min;
-        let mut part = |a: usize, b: usize| -> Option<&[u16]> {
-            if b < a.saturating_add(min) {
-                return None;
-            }
-            let slot = parts.get_mut(a * n + b)?;
-            *slot.get_or_insert_with(|| {
-                let (Some(&x), Some(&y)) = (cuts.get(a), cuts.get(b)) else {
-                    return None;
-                };
-                w.get(x..y)
-                    .and_then(|p| self.stem_lookup(p))
-                    .map(|(stem, set)| self.rule_sets.get(&stem).map_or(set, |&s| self.set(s)))
-                    .filter(|set| !excluded.hits(set) && bare(set))
-            })
+        // A single rule visits each (start,end) once. Only dictionaries with
+        // competing patterns benefit from retaining the root lookup between them.
+        let mut parts = (self.compound_rules.len() > 1).then(|| vec![None; n * n]);
+        let lookup = |a: usize, b: usize| {
+            let (stem, set) = self.stem_lookup(&w[cuts[a]..cuts[b]])?;
+            let flags = self.rule_sets.get(&stem).map_or(set, |&id| self.set(id));
+            (!excluded.hits(flags) && bare(flags)).then_some(flags)
         };
-        self.compound_rules
-            .iter()
-            .any(|rule| compound_matches(rule, &mut part, n))
+        let mut part = |a: usize, b: usize| match &mut parts {
+            Some(table) => *table[a * n + b].get_or_insert_with(|| lookup(a, b)),
+            None => lookup(a, b),
+        };
+        let has_affixes = !self.prefixes.is_empty() || !self.suffixes.is_empty();
+        let mut terminal: Vec<Option<Vec<&[u16]>>> = if has_affixes {
+            vec![None; n]
+        } else {
+            Vec::new()
+        };
+        let min = self.compound_min;
+        let mut work = 0;
+        self.compound_rules.iter().any(|rule| {
+            rule.accepts(n, min, |a, b, active| {
+                let mut mask = part(a, b).map_or(0, |flags| rule.positions(active, flags));
+                if has_affixes && b + 1 == n && a != 0 && mask != active {
+                    let sets = terminal[a].get_or_insert_with(|| {
+                        self.rule_terminal(&w[cuts[a]..], excluded, &mut work)
+                    });
+                    for flags in sets {
+                        mask |= rule.positions(active & !mask, flags);
+                    }
+                }
+                mask
+            })
+        })
     }
 
     /// Is `w` a stem with one suffix? With `need` set (a prefix was taken off), the prefix's flag
@@ -2662,8 +2679,22 @@ impl AffixDict {
             )
     }
 
+    pub(crate) fn lower_word(&self, word: &str) -> String {
+        self.letter_case.lower(word)
+    }
+    pub(crate) fn upper_word(&self, word: &str) -> String {
+        self.letter_case.upper(word)
+    }
+    pub(crate) fn initial_upper(&self, word: &str) -> String {
+        self.letter_case.initial(word, true)
+    }
+
     fn check_except(&self, w: &str, excluded: Excluded) -> bool {
         let w = self.normalize(w);
+        // An explicit spelling ban takes precedence over case variants of that word.
+        if self.is_forbidden(&w) {
+            return false;
+        }
         if self.contains_except(&w, excluded) {
             return true;
         }
@@ -2678,10 +2709,10 @@ impl AffixDict {
             // capital (`FooQux` from `foo` and `Qux`: right in the CLI).
             Casing::Mixed => {
                 w.chars().next().is_some_and(char::is_uppercase)
-                    && self.flag_compound(&decapitalize(&w), keep, true)
+                    && self.flag_compound(&self.letter_case.initial(&w, false), keep, true)
             }
             Casing::Initial => {
-                let lower = w.to_lowercase();
+                let lower = self.letter_case.lower(&w);
                 // CHECKSHARPS: a KEEPCASE word with `ß` may be capitalized (`Gruß` for `Gruß/k`).
                 let ex = if self.check_sharps && lower.contains('ß') {
                     excluded
@@ -2691,11 +2722,15 @@ impl AffixDict {
                 self.contains_in(&lower, ex, true)
             }
             Casing::Upper => {
-                let lower = w.to_lowercase();
-                self.contains_except(&capitalize(&lower), keep)
-                    || self.contains_in(&lower, keep, true)
-                    || self.mixed_case(&lower, keep)
-                    || (self.check_sharps && self.sharps(&lower, excluded))
+                let (initial, lower) = self.letter_case.capital_variants(&w);
+                initial
+                    .as_deref()
+                    .is_some_and(|word| self.contains_except(word, keep))
+                    || lower.as_deref().is_some_and(|word| {
+                        self.contains_in(word, keep, true)
+                            || self.mixed_case(word, keep)
+                            || (self.check_sharps && self.sharps(word, excluded))
+                    })
             }
         }
     }
@@ -2872,6 +2907,9 @@ impl AffixDict {
                 out.push('\n');
             }
         };
+        if let Some(tag) = self.letter_case.tag() {
+            out.push_str(&format!("LANG {tag}\n"));
+        }
         if self.compound_text.is_empty() && self.cpd.is_none() {
             write_only_in_compound(&mut out);
         } else {
@@ -2879,6 +2917,19 @@ impl AffixDict {
             write_only_in_compound(&mut out);
             for p in &self.compound_text {
                 out.push_str(&format!("COMPOUNDRULE {p}\n"));
+            }
+        }
+        if self.cpd.is_none() && !self.compound_rules.is_empty() {
+            for (directive, flag) in ["COMPOUNDPERMITFLAG", "COMPOUNDFORBIDFLAG"]
+                .into_iter()
+                .zip(self.rule_edge)
+            {
+                if let Some(f) = flag {
+                    out.push_str(directive);
+                    out.push(' ');
+                    self.write_flags(&[f], &mut out);
+                    out.push('\n');
+                }
             }
         }
         if let Some(c) = &self.cpd {
@@ -2983,6 +3034,9 @@ impl AffixDict {
             }
             let f: Vec<&str> = split_fields(line).collect();
             let at = |k: usize| f.get(k).copied().unwrap_or("");
+            if at(0) == "LANG" {
+                rules.letter_case = LetterCase::of(at(1));
+            }
             match at(0) {
                 "FLAG" => rules
                     .set_mode(at(1))
@@ -3132,47 +3186,6 @@ impl FlagText {
         }
         Ok(())
     }
-}
-
-/// Does a compound rule's token list match a split of the word into two or more parts? `part(a,
-/// b)` is the flags of the stem between char cuts `a` and `b` (`None`: not a stem). States are
-/// (cut, token, parts so far capped at 2), each visited once.
-fn compound_matches<'a>(
-    rule: &[(Option<u16>, Repeat)],
-    part: &mut impl FnMut(usize, usize) -> Option<&'a [u16]>,
-    n: usize,
-) -> bool {
-    let t = rule.len();
-    let idx = |cut: usize, tok: usize, k: usize| (cut * (t + 1) + tok) * 3 + k;
-    let mut seen = vec![false; n * (t + 1) * 3];
-    let mut stack = vec![(0usize, 0usize, 0usize)];
-    while let Some((cut, tok, k)) = stack.pop() {
-        match seen.get_mut(idx(cut, tok, k)) {
-            Some(s) if !*s => *s = true,
-            _ => continue,
-        }
-        if tok == t {
-            if cut + 1 == n && k >= 2 {
-                return true;
-            }
-            continue;
-        }
-        let Some(&(flag, repeat)) = rule.get(tok) else {
-            continue;
-        };
-        if repeat != Repeat::Once {
-            stack.push((cut, tok + 1, k));
-        }
-        for next in cut + 1..n {
-            if let Some(flag) = flag
-                && part(cut, next).is_some_and(|set| has(set, flag))
-            {
-                let k = (k + 1).min(2);
-                stack.push((next, if repeat == Repeat::Any { tok } else { tok + 1 }, k));
-            }
-        }
-    }
-    false
 }
 
 #[cfg(test)]

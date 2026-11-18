@@ -26,7 +26,7 @@ use std::borrow::Cow;
 use std::cmp::Reverse;
 use std::collections::{BinaryHeap, HashMap, HashSet};
 
-use crate::affix::{AffixDict, Casing, capitalize, casing};
+use crate::affix::{AffixDict, Casing, casing};
 
 /// Longest word suggestions are looked for, in letters.
 pub(crate) const MAX_LETTERS: usize = 40;
@@ -243,7 +243,7 @@ impl Collector<'_> {
                 self.compound_work = work;
                 return false;
             } else {
-                let c = capitalize(part);
+                let c = self.d.initial_upper(part);
                 if !is_word(&c) {
                     self.compound_work = work;
                     return false;
@@ -347,7 +347,7 @@ pub(crate) fn suggest_in(d: &AffixDict, word: &str, max: usize, t: &Tuning) -> V
     // The simple-word checks of this call share one budget of affix rules.
     let _steps = crate::affix::SuggestSteps::start();
     let case = casing(word);
-    let input = word.to_lowercase();
+    let input = d.lower_word(word);
     let chars: Vec<char> = input.chars().collect();
     let names = !t.strict_case || case != Casing::Lower;
     let split_names = !t.strict_case;
@@ -394,14 +394,14 @@ pub(crate) fn suggest_in(d: &AffixDict, word: &str, max: usize, t: &Tuning) -> V
         let locked = text.split(' ').any(|p| d.case_locked(p));
         let sharp = d.check_sharps() && text.contains('ß');
         let recased: Vec<String> = match case {
-            Casing::Initial if !locked || sharp => vec![capitalize(&text)],
+            Casing::Initial if !locked || sharp => vec![d.initial_upper(&text)],
             // In capitals `ß` stays `ß` (`STRAßE` is right with or without CHECKSHARPS); under
             // CHECKSHARPS the SS spelling comes first, as Hunspell offers it.
             Casing::Upper if n > 1 => {
-                let ss = text.to_uppercase();
+                let ss = d.upper_word(&text);
                 let kept: String = text
                     .split('ß')
-                    .map(str::to_uppercase)
+                    .map(|part| d.upper_word(part))
                     .collect::<Vec<_>>()
                     .join("ß");
                 match (locked, sharp) {
@@ -431,8 +431,8 @@ pub(crate) fn suggest_in(d: &AffixDict, word: &str, max: usize, t: &Tuning) -> V
 fn add_case(col: &mut Collector, word: &str, input: &str) {
     if col.d.contains(input) && word != input {
         col.keep(input.to_string(), COST_CASE);
-    } else if col.d.contains(&capitalize(input)) && word != capitalize(input) {
-        col.keep(capitalize(input), COST_CASE);
+    } else if col.d.contains(&col.d.initial_upper(input)) && word != col.d.initial_upper(input) {
+        col.keep(col.d.initial_upper(input), COST_CASE);
     }
 }
 
@@ -509,7 +509,7 @@ fn scan(col: &mut Collector, chars: &[char], map: &[Vec<char>]) {
     let mut budget = SCAN_FORMS_WORK;
     for (_, stem) in best {
         for form in d.forms_spending(stem, &mut budget) {
-            let lf: Vec<char> = form.to_lowercase().chars().collect();
+            let lf: Vec<char> = col.d.lower_word(&form).chars().collect();
             if lf.len().abs_diff(chars.len()) > 2 {
                 continue;
             }

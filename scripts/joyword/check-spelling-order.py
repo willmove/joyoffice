@@ -140,7 +140,7 @@ def compare(binaries, directory, locale, probes):
 
 
 def verify_desktop(binary, dictionary, out, words=("teh", "tests", "tset"),
-                   ordered=EXPECTED["teh"], replacement="the"):
+                   ordered=EXPECTED["teh"], replacement="the", locale="nl"):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
     from native_pilot_support import app, port, wait, word_request
     from verify_save_changes import word_keys
@@ -149,7 +149,7 @@ def verify_desktop(binary, dictionary, out, words=("teh", "tests", "tset"),
     out.mkdir()
     source = out / "原始拼写.docx"
     working = out / "校对 副本.docx"
-    make_document(source, "nl", words)
+    make_document(source, locale, words)
     original = sha(source)
     shutil.copyfile(source, working)
     number, token = port(), secrets.token_hex(32)

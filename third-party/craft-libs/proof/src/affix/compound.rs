@@ -38,7 +38,7 @@
 //! - `ONLYINCOMPOUND` homonyms beside others keep their own flags (compound parts only).
 //! - `MAXCPDSUGS 0`: compounds are never suggested.
 //!
-//! Not read: `SYLLABLENUM` (Hungarian), which the man page doesn't describe; it is ignored.
+//! The Hungarian final-stem and derivational suffix adjustments are pinned to Hunspell 1.7.5.
 //!
 //! The work per word is bounded: words up to [`MAX_WORD_BYTES`](super::MAX_WORD_BYTES), at most
 //! [`MAX_PARTS`] parts, each part's analyses computed once, and at most [`MAX_WORK`] steps (rules
@@ -117,7 +117,9 @@ pub(super) struct Raw {
     word_max: Option<usize>,
     /// `COMPOUNDSYLLABLE`: most vowels, and the vowels.
     syllable: Option<(usize, String)>,
-    /// `LANG hu…`: the Hungarian syllable rule applies.
+    /// Hungarian derivational syllable corrections. Preserve the directive for compact files.
+    syllable_num: Option<Box<str>>,
+    /// Hungarian LANG codes defined by the dictionary format.
     hungarian: bool,
     /// `CHECKCOMPOUNDPATTERN` lines, as written (`end[/flag] begin[/flag]`).
     patterns: Vec<(String, String)>,
@@ -171,9 +173,13 @@ impl Raw {
                 let vowels: String = at(2).chars().take(MAX_VOWELS).collect();
                 self.syllable = Some((n.min(super::MAX_WORD_BYTES), vowels));
             }
-            "LANG" => {
-                self.hungarian =
-                    at(1) == "hu" || at(1).starts_with("hu_") || at(1).starts_with("hu-")
+            "LANG" => self.hungarian = matches!(at(1), "hu" | "hu_HU"),
+            "SYLLABLENUM" => {
+                let flags = at(1);
+                if flags.is_empty() || flags.len() > super::MAX_WORD_BYTES {
+                    return Err("SYLLABLENUM expects a bounded flag list".into());
+                }
+                self.syllable_num = Some(flags.into());
             }
             "MAXCPDSUGS" => self.no_suggestions = at(1) == "0",
             "NOSPLITSUGS" => self.no_split_suggestions = true,
@@ -219,6 +225,10 @@ impl Raw {
         Ok(())
     }
 
+    pub(super) fn edge_permissions(&self) -> [Option<FlagKey>; 2] {
+        [PERMIT, FORBID].map(|i| self.flags.get(i).copied().flatten())
+    }
+
     /// Whether any directive makes words compound by flags (the rest only refine that).
     fn compounds(&self) -> bool {
         [FLAG, BEGIN, MIDDLE_FLAG, END]
@@ -258,14 +268,6 @@ impl Raw {
         let id = |i: usize| self.flags.get(i).copied().flatten().and_then(id_of);
         let switch = |i: usize| self.switches.get(i).copied().unwrap_or(false);
         let mut c = Compounding {
-            flag: id(FLAG),
-            begin: id(BEGIN),
-            middle: id(MIDDLE_FLAG),
-            end: id(END),
-            permit: id(PERMIT),
-            forbid: id(FORBID),
-            root: id(ROOT),
-            force_ucase: id(FORCE_UCASE),
             dup: switch(DUP),
             rep: switch(REP),
             case: switch(CASE),
@@ -283,10 +285,11 @@ impl Raw {
             (Some((n, vowels)), true) => {
                 c.word_max = self.word_max;
                 c.syllables = Some((*n, vowels.chars().collect()));
+                c.syllable_flags = (*b"IJc").map(|f| id_of(u64::from(f)));
             }
             (Some(_), false) => {}
         }
-        if let Some(f) = c.force_ucase {
+        if let Some(f) = id(FORCE_UCASE) {
             c.marks.push(f);
         }
         for (end, begin) in &self.patterns {
@@ -315,6 +318,31 @@ impl Raw {
                 unmodified,
             });
         }
+        let mut roles = std::collections::BTreeMap::<u16, Roles>::new();
+        for (directive, positions) in [
+            (FLAG, FIRST | MIDDLE | LAST),
+            (BEGIN, FIRST),
+            (MIDDLE_FLAG, MIDDLE),
+            (END, LAST),
+        ] {
+            if let Some(flag) = id(directive) {
+                roles.entry(flag).or_default().positions |= positions;
+            }
+        }
+        for (directive, bit) in [
+            (PERMIT, PERMITTED),
+            (FORBID, FORBIDDEN),
+            (ROOT, DOUBLE_ROOT),
+            (FORCE_UCASE, CAPITAL_ROOT),
+        ] {
+            if let Some(flag) = id(directive) {
+                roles.entry(flag).or_default().attributes |= bit;
+            }
+        }
+        for (index, &flag) in c.marks.iter().enumerate() {
+            roles.entry(flag).or_default().marks |= 1u64 << index;
+        }
+        c.roles = roles.into_iter().collect();
         Ok(Some(Box::new(c)))
     }
 }
@@ -349,20 +377,38 @@ struct Pattern {
     unmodified: bool,
 }
 
+const PERMITTED: u8 = 1;
+const FORBIDDEN: u8 = 2;
+const DOUBLE_ROOT: u8 = 4;
+const CAPITAL_ROOT: u8 = 8;
+
+#[derive(Clone, Copy, Debug, Default)]
+struct Roles {
+    positions: u8,
+    attributes: u8,
+    marks: u64,
+}
+impl Roles {
+    fn include(&mut self, other: Self) {
+        self.positions |= other.positions;
+        self.attributes |= other.attributes;
+        self.marks |= other.marks;
+    }
+    fn has(self, bit: u8) -> bool {
+        self.attributes & bit != 0
+    }
+}
+
 /// The flag-based compounding of a dictionary (see the module docs).
 #[derive(Clone, Debug, Default)]
 pub(super) struct Compounding {
-    flag: Option<u16>,
-    begin: Option<u16>,
-    middle: Option<u16>,
-    end: Option<u16>,
-    permit: Option<u16>,
-    forbid: Option<u16>,
-    root: Option<u16>,
-    force_ucase: Option<u16>,
+    /// Sorted by interned flag ID. Only compound-related flags consume entries.
+    roles: Vec<(u16, Roles)>,
     word_max: Option<usize>,
     /// The Hungarian rule: past `word_max` parts, at most this many vowels in the word.
     syllables: Option<(usize, Box<[char]>)>,
+    /// Interned IDs used by the Hungarian dictionary's syllable rules (I, J, c).
+    syllable_flags: [Option<u16>; 3],
     dup: bool,
     rep: bool,
     case: bool,
@@ -380,6 +426,16 @@ pub(super) struct Compounding {
 }
 
 impl Compounding {
+    fn roles_of(&self, flags: &[u16]) -> Roles {
+        let mut found = Roles::default();
+        for &flag in flags {
+            if let Ok(i) = self.roles.binary_search_by_key(&flag, |(id, _)| *id) {
+                found.include(self.roles[i].1);
+            }
+        }
+        found
+    }
+
     /// The mark index of `flag`, adding it.
     fn mark(&mut self, flag: u16) -> Result<u8, String> {
         let i = match self.marks.iter().position(|&m| m == flag) {
@@ -421,6 +477,9 @@ impl Compounding {
         if let Some((n, vowels)) = &raw.syllable {
             out.push_str(&format!("COMPOUNDSYLLABLE {n} {vowels}\n"));
         }
+        if let Some(flags) = &raw.syllable_num {
+            out.push_str(&format!("SYLLABLENUM {flags}\n"));
+        }
         if raw.no_suggestions {
             out.push_str("MAXCPDSUGS 0\n");
         }
@@ -448,9 +507,8 @@ struct Info {
     stem: u32,
     /// How many words it counts as (`COMPOUNDROOT`: two).
     words: u8,
-    /// Syllables of its suffix the Hungarian rule leaves out (as the last part): a suffix with no
-    /// continuation classes doesn't count.
-    tail: u8,
+    /// Signed correction to the Hungarian vowel count when this part ends the compound.
+    syllable_adjustment: i16,
 }
 
 /// A stem found for a part, and the affixes that make the part from it.
@@ -769,72 +827,78 @@ impl AffixDict {
 
     /// Where the analysis `an` lets its piece sit in a compound, if anywhere.
     fn info(&self, c: &Compounding, an: &Analysis) -> Option<Info> {
-        let sets = [
-            Some(an.set),
-            an.pfx.map(|r| self.set(r.cont)),
-            an.sfx.map(|r| self.set(r.cont)),
-            an.inner.map(|r| self.set(r.cont)),
-        ];
-        let carries = |f: Option<u16>| f.is_some_and(|f| sets.iter().flatten().any(|s| has(s, f)));
-        // COMPOUNDFORBIDFLAG on a prefix: no part anywhere (`bar|defoo` is wrong in the CLI).
-        if an.pfx.is_some_and(|r| self.cont_holds(r, c.forbid)) {
+        let stem = c.roles_of(an.set);
+        let role_of = |rule: Option<&Rule>| {
+            rule.map(|r| c.roles_of(self.set(r.cont)))
+                .unwrap_or_default()
+        };
+        let prefix = role_of(an.pfx);
+        if prefix.has(FORBIDDEN) {
             return None;
         }
-        let mut pos = 0;
-        if carries(c.flag) {
-            pos = FIRST | MIDDLE | LAST;
+        let suffix = role_of(an.sfx);
+        let mut combined = stem;
+        for roles in [prefix, suffix, role_of(an.inner)] {
+            combined.include(roles);
         }
-        for (flag, p) in [(c.begin, FIRST), (c.middle, MIDDLE), (c.end, LAST)] {
-            if carries(flag) {
-                pos |= p;
-            }
-        }
-        // A prefix without COMPOUNDPERMITFLAG: any part but the last (`foo|unfoo|bar` is right
-        // in the CLI, `foo|unfoo` wrong).
-        if an.pfx.is_some_and(|r| !self.cont_holds(r, c.permit)) {
+        let mut pos = combined.positions;
+        // A prefix can appear internally. It needs explicit permission at the end.
+        if an.pfx.is_some() && !prefix.has(PERMITTED) {
             pos &= !LAST;
         }
-        if let Some(r) = an.sfx {
-            if !self.cont_holds(r, c.permit) {
+        if let Some(rule) = an.sfx {
+            if !suffix.has(PERMITTED) {
                 pos &= LAST;
             }
-            if self.cont_holds(r, self.only_in_compound) {
+            if an.pfx.is_none() && self.cont_holds(rule, self.only_in_compound) {
                 pos &= !LAST;
             }
         }
-        if an.inner.is_some() {
-            pos &= LAST;
+        // A compound-only stem cannot take two terminal suffixes. A forbidden
+        // continuation on either half of a compound affix chain also bars the final part.
+        if an.inner.is_some() && self.only_in_compound.is_some_and(|flag| has(an.set, flag)) {
+            return None;
         }
-        if carries(c.forbid) {
+        if (an.pfx.is_some() && suffix.has(FORBIDDEN))
+            || an
+                .inner
+                .is_some_and(|rule| self.cont_holds(rule, self.rule_edge[1]))
+        {
+            pos &= !LAST;
+        }
+        if an.inner.is_some() || combined.has(FORBIDDEN) {
             pos &= LAST;
         }
         if pos == 0 {
             return None;
         }
-        let mut marks = 0u64;
-        for (i, &m) in c.marks.iter().enumerate().take(64) {
-            if carries(Some(m)) {
-                marks |= 1 << i;
+        let marks = combined.marks;
+        let mut words = 1 + u8::from(stem.has(DOUBLE_ROOT));
+        let force = stem.has(CAPITAL_ROOT);
+        let mut syllable_adjustment = 0;
+        if let Some((_, vowels)) = &c.syllables {
+            let vowel_count = |text: &str| text.chars().filter(|ch| vowels.contains(ch)).count();
+            if an.pfx.is_some_and(|r| vowel_count(&r.add) > 1) {
+                words += 1;
+            }
+            let [i, j, derivative] = c.syllable_flags;
+            let root_has = |id: Option<u16>| id.is_some_and(|f| has(an.set, f));
+            if let Some(suffix) = an.sfx {
+                if self.set(suffix.cont).is_empty() {
+                    syllable_adjustment =
+                        -i16::try_from(vowel_count(&suffix.add)).unwrap_or(i16::MAX);
+                }
+                if c.raw.syllable_num.is_some() {
+                    if Some(suffix.flag) == derivative {
+                        syllable_adjustment += 2;
+                    } else if Some(suffix.flag) == j || (Some(suffix.flag) == i && root_has(j)) {
+                        syllable_adjustment += 1;
+                    }
+                }
+            } else if root_has(i) && !root_has(j) {
+                syllable_adjustment = -1;
             }
         }
-        // COMPOUNDROOT and FORCEUCASE count on the stem only (an affix's continuation class
-        // holding them is ignored);
-        // a pattern's `0` means no suffix (a prefix doesn't count): the CLI's answers.
-        let words = if c.root.is_some_and(|f| has(an.set, f)) {
-            2
-        } else {
-            1
-        };
-        let force = c.force_ucase.is_some_and(|f| has(an.set, f));
-        // The Hungarian syllable rule leaves out a suffix with no continuation classes (the
-        // CLI's answers: `bab|bab|baata` from `ata` is right, from `ata/Z` wrong).
-        let tail = match (&c.syllables, an.sfx) {
-            (Some((_, vowels)), Some(r)) if self.set(r.cont).is_empty() => {
-                r.add.chars().filter(|ch| vowels.contains(ch)).count()
-            }
-            _ => 0,
-        };
-        let tail = u8::try_from(tail).unwrap_or(u8::MAX);
         Some(Info {
             pos,
             marks,
@@ -842,8 +906,49 @@ impl AffixDict {
             force,
             stem: an.stem,
             words,
-            tail,
+            syllable_adjustment,
         })
+    }
+
+    /// A COMPOUNDRULE uses a terminal affix's root flags. Prefixes in the
+    /// last position require COMPOUNDPERMITFLAG; a bare suffix marked
+    /// ONLYINCOMPOUND cannot finish the compound.
+    pub(super) fn rule_terminal<'a>(
+        &'a self,
+        piece: &str,
+        excluded: Excluded,
+        work: &mut usize,
+    ) -> Vec<&'a [u16]> {
+        let mut sets: Vec<&'a [u16]> = Vec::new();
+        if *work >= MAX_WORK {
+            return sets;
+        }
+        self.analyses(piece, excluded, work, &mut |a| {
+            if sets.len() >= MAX_INFOS || (a.pfx.is_none() && a.sfx.is_none()) {
+                return;
+            }
+            if a.inner.is_some() && self.only_in_compound.is_some_and(|flag| has(a.set, flag)) {
+                return;
+            }
+            let [permit, forbid] = self.rule_edge;
+            if a.pfx
+                .is_some_and(|p| !self.cont_holds(p, permit) || self.cont_holds(p, forbid))
+            {
+                return;
+            }
+            if a.pfx.is_none()
+                && [a.sfx, a.inner]
+                    .into_iter()
+                    .flatten()
+                    .any(|r| self.cont_holds(r, self.only_in_compound))
+            {
+                return;
+            }
+            if !sets.iter().any(|&old| std::ptr::eq(old, a.set)) {
+                sets.push(a.set);
+            }
+        });
+        sets
     }
 
     /// Every way `p` is a stem, or a stem with a prefix, one or two suffixes, or a prefix and a
@@ -1124,12 +1229,15 @@ impl AffixDict {
             None => false,
             Some(_) if !whole => true,
             Some((most, vowels)) => {
-                let tail = s.path.last().map_or(0, |p| usize::from(p.2.tail));
+                let adjustment = s
+                    .path
+                    .last()
+                    .map_or(0, |p| isize::from(p.2.syllable_adjustment));
                 s.chars
                     .iter()
                     .filter(|c| vowels.contains(c))
                     .count()
-                    .saturating_sub(tail)
+                    .saturating_add_signed(adjustment)
                     <= *most
             }
         }
@@ -1427,6 +1535,7 @@ pub(super) fn is_directive(dir: &str) -> bool {
             dir,
             "COMPOUNDWORDMAX"
                 | "COMPOUNDSYLLABLE"
+                | "SYLLABLENUM"
                 | "LANG"
                 | "MAXCPDSUGS"
                 | "NOSPLITSUGS"
@@ -1476,6 +1585,32 @@ mod tests {
         }
         out.extend(p.extra.split_whitespace().map(str::to_string));
         out
+    }
+
+    #[test]
+    fn compiled_rules_and_lang_permissions_survive_compact_roundtrip() -> Result<(), String> {
+        let grammar = "SET UTF-8\nCOMPOUNDMIN 2\nCOMPOUNDRULE 1\nCOMPOUNDRULE A*B\nCOMPOUNDPERMITFLAG P\nSFX S Y 1\nSFX S 0 en/T .\nSFX T Y 1\nSFX T 0 s .\nPFX X Y 1\nPFX X 0 pre/P .\nLANG tr_TR";
+        let words = "6\nred/A\nsun/BSX\nistanbul\nırmak\nİzmir\nwalk/S";
+        let dictionary = AffixDict::from_hunspell(grammar, words, &[])?;
+        let compact = AffixDict::from_bytes(&dictionary.to_bytes()?)?;
+        for d in [&dictionary, &compact] {
+            for good in ["redsunens", "redredsunen", "redpresun", "İSTANBUL", "IRMAK"] {
+                assert!(d.check(good), "{good}");
+            }
+            for bad in ["redwalken", "redsunsen", "ISTANBUL", "İZMİR"] {
+                assert!(!d.check(bad), "{bad}");
+            }
+        }
+        let grammar = "SET UTF-8\nLANG hu\nCOMPOUNDMIN 2\nCOMPOUNDFLAG Z\nCOMPOUNDWORDMAX 2\nCOMPOUNDSYLLABLE 3 aeiou\nSYLLABLENUM klmc\nNOSPLITSUGS\nSFX I Y 1\nSFX I 0 nai .\nSFX c Y 1\nSFX c 0 nac .";
+        let words = "5\nbab/Z\nded/Z\nfin/ZI\nsun/ZIJ\nlog/Zc";
+        let original = AffixDict::from_hunspell(grammar, words, &[])?;
+        let compact = AffixDict::from_bytes(&original.to_bytes()?)?;
+        for d in [&original, &compact] {
+            assert!(d.check("babdedfinnai"));
+            assert!(!d.check("babdedsunnai"));
+            assert!(!d.check("babdedlognac"));
+        }
+        Ok(())
     }
 
     /// One case per directive (or pair that only means something together), each word's answer

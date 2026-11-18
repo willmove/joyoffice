@@ -309,3 +309,9 @@ Excel 16.115 分别保存三种输入状态。205 个公式覆盖数据库分类
 在 PowerPoint 16.115 中把 13 页双色演示文稿导出为 912 帧视频，使用向右擦除的样本确定透明度曲线。其余 11 个方向留作验证，每个方向取 15 个时刻、每个时刻取 72 个像素。JoyDeck 在 macOS 和 UOS 上的平均覆盖率误差均由 1.94% 降至 0.39%，第 95 百分位由 7.17% 降至 1.18%。斜向擦除直接画移动带内的三角形，分割在两个半页上使用同一条曲线。[实测数据和双平台回归](soft-masks.json) · [可重建语料和参考采样](../../../../scripts/joydeck/check-soft-masks.py)
 
 Apple M4 Metal 与 UOS Radeon 890M Vulkan 各对 1,850 帧执行像素比较。真实放映窗口分别用硬件与 CPU 播放斜擦和中心分割，核对暂停位置、恢复及结束颜色。PPTX 经新旧读写器的四种组合重开；恢复旧生成器可以直接播放新版本保存的演示文件。[窗口验证](../../../../scripts/joydeck/check-transition-window.py)
+
+## Word 复合词、大小写和匈牙利语音节
+
+新旧两代 JoyWord 在同一套词典上逐词与 Hunspell 1.7.5 的独立 C API 比较。两台机器各运行 11,385 个规则序列、7,092 个位置及词缀许可、312 个语言大小写和 3,080 个匈牙利语音节用例。75 个发行包另有 5,719 个结果，旧版两处差异在新版均已校正。92 个合成用例的词尾带有显式禁用的词根，JoyWord 旧版和新版均按原有词典契约拒绝，Hunspell 的组合规则接受；其余合成结果一致。程序继续限制字节、规则数、词缀搜索工作量和同形词数量。[逐项计数、耗时与双平台回归](compound-permissions.json) · [规则与语料](../../../../scripts/joyword/check-compound-permissions.py) · [Hunspell 1.7.5 格式](https://github.com/hunspell/hunspell/blob/v1.7.5/man/hunspell.5)
+
+在两端的实际 JoyWord 校对窗口中，输入 `redsunenn` 可见 `redsunen` 和 `redsunens` 两项建议。已更正的复合词和土耳其语大写词通过撤销、重做、保存和全新进程重开。两代读写器的四种组合均保留了正文和大小写。同一发行目录仍可供旧版读取，构建时使用的语法与语言数据保留原有归属。[复合词实现](../../../../third-party/craft-libs/proof/src/affix/rule_program.rs) · [来源和许可](../../../../licenses/craft-libs/SOURCE.json)

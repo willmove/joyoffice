@@ -1,0 +1,597 @@
+{
+  "baseline": "91e907aa",
+  "reference": "Native Hunspell 1.7.5 C API, independently loaded from the official release on each machine. Input grammar based on hunspell(5). 75 published archives checked against their release SHA-256. Three equivalent rule flag encodings; 1–4 piece words, optional and repeated tokens, terminal affixes, positional permissions, local casing and Hungarian syllables.",
+  "source": "https://github.com/hunspell/hunspell/blob/v1.7.5/man/hunspell.5",
+  "limits": "A rule uses up to 32 flag positions, with 64 rules and 48 UTF-8 bytes per candidate. The bounded terminal affix search preserves existing work limits. FORBIDDENWORD still excludes a marked root in a compound: 92 synthetic answers deliberately differ from Hunspell, consistent with the baseline. This is tested separately from released-pack answers.",
+  "rollback": "Use the previous Word desktop or CLI with the same .aff/.dic directory or saved DOCX. Current compact dictionaries round-trip the locale and permission directives.",
+  "platforms": {
+    "macOS": {
+      "comparison": {
+        "patterns": {
+          "cases": 33,
+          "words": 11385,
+          "right": 267,
+          "before": 0,
+          "after": 0,
+          "retainedForbidden": 0
+        },
+        "permissions": {
+          "cases": 116,
+          "words": 7092,
+          "right": 4483,
+          "before": 219,
+          "after": 92,
+          "retainedForbidden": 92
+        },
+        "locales": {
+          "cases": 12,
+          "words": 312,
+          "right": 135,
+          "before": 77,
+          "after": 0,
+          "retainedForbidden": 0
+        },
+        "hungarian": {
+          "cases": 40,
+          "words": 3080,
+          "right": 2166,
+          "before": 460,
+          "after": 0,
+          "retainedForbidden": 0
+        },
+        "published": {
+          "cases": 75,
+          "words": 5719,
+          "right": 1024,
+          "before": 2,
+          "after": 0,
+          "retainedForbidden": 0
+        }
+      },
+      "perCaseDigest": "7afe56f25b00c99cc48400db0d46836236a6d01780f96583ace9fa9bac6a1734",
+      "nativeReview": {
+        "oldIssues": [
+          {
+            "start": {
+              "story": "body",
+              "path": [
+                0
+              ],
+              "off": 0
+            },
+            "end": {
+              "story": "body",
+              "path": [
+                0
+              ],
+              "off": 9
+            },
+            "text": "redsunenn",
+            "suggestions": [],
+            "lang": "tr"
+          },
+          {
+            "start": {
+              "story": "body",
+              "path": [
+                1
+              ],
+              "off": 0
+            },
+            "end": {
+              "story": "body",
+              "path": [
+                1
+              ],
+              "off": 8
+            },
+            "text": "redsunen",
+            "suggestions": [],
+            "lang": "tr"
+          },
+          {
+            "start": {
+              "story": "body",
+              "path": [
+                2
+              ],
+              "off": 0
+            },
+            "end": {
+              "story": "body",
+              "path": [
+                2
+              ],
+              "off": 9
+            },
+            "text": "redsunens",
+            "suggestions": [],
+            "lang": "tr"
+          }
+        ],
+        "newIssues": [
+          {
+            "start": {
+              "story": "body",
+              "path": [
+                0
+              ],
+              "off": 0
+            },
+            "end": {
+              "story": "body",
+              "path": [
+                0
+              ],
+              "off": 9
+            },
+            "text": "redsunenn",
+            "suggestions": [
+              "redsunen",
+              "redsunens"
+            ],
+            "lang": "tr"
+          }
+        ],
+        "native": {
+          "binarySha256": "77d290421e6e8a734110670fb48ecb539be6e401cce58b775e70c9a80e3d1002",
+          "sourceSha256": "05e80f8291cbe1b1dc4ab8346f28faf01cfe8ff030d697f54114be8e02ae12d6",
+          "selectedWord": "redsunenn",
+          "displayedSuggestions": [
+            "redsunen",
+            "redsunens"
+          ],
+          "replacement": "redsunen",
+          "undoRedo": true,
+          "savedAndReopened": true,
+          "originalUnchanged": true
+        },
+        "rollback": {
+          "savedSha256": "c4aebfc1c90a9eab1179e38343d640eccb11c4a265f2c7e6b6c44971c7a36f48",
+          "pairs": [
+            [
+              "baseline",
+              "baseline"
+            ],
+            [
+              "baseline",
+              "candidate"
+            ],
+            [
+              "candidate",
+              "baseline"
+            ],
+            [
+              "candidate",
+              "candidate"
+            ]
+          ],
+          "cliSha256": {
+            "baseline": "6a914703b5ca1dcdfbd6219f0207559450577b68fa7d1c9dad6283306ad2838f",
+            "candidate": "b98f496e4ed7104bd621cbe57e1bcc71d8ce1110bc5662fb504f2df1630ee065"
+          }
+        }
+      },
+      "proofLibrary": {
+        "passed": 485,
+        "failed": 0,
+        "ignored": 0
+      },
+      "wordProduct": {
+        "passed": 3694,
+        "failed": 0,
+        "ignored": 2
+      },
+      "uiProducts": {
+        "passed": 78,
+        "failed": 0,
+        "ignored": 0
+      },
+      "releaseClosure": {
+        "target": "aarch64-apple-darwin",
+        "packages": 513,
+        "sourceFiles": 1071,
+        "spdxSha256": "52723c842736271edf63b32908f86ed970bcaa70550767150fa91fc44cecf22d",
+        "missingLicenseTexts": [],
+        "sharedCrates": [
+          "joyoffice-cfb",
+          "joyoffice-drawingml",
+          "joyoffice-fonts",
+          "joyoffice-metafile",
+          "joyoffice-omml",
+          "joyoffice-opc",
+          "joyoffice-theme",
+          "joyoffice-ui"
+        ],
+        "runtimeLegacyDependencies": [
+          "craft-atomic",
+          "craft-font-store",
+          "craft-proof"
+        ]
+      },
+      "checkTiming": {
+        "short": {
+          "words": 4800,
+          "medianMs": {
+            "baseline": 1.569,
+            "candidate": 1.21
+          },
+          "rawMs": {
+            "baseline": [
+              1.572917,
+              1.565458,
+              1.627375,
+              1.553875,
+              1.644875,
+              1.547333,
+              1.794292,
+              1.508958
+            ],
+            "candidate": [
+              1.196417,
+              1.17575,
+              1.222084,
+              1.237333,
+              1.221458,
+              1.198167,
+              1.16625,
+              1.255209
+            ]
+          }
+        },
+        "ambiguous": {
+          "words": 1800,
+          "medianMs": {
+            "baseline": 5.006,
+            "candidate": 4.383
+          },
+          "rawMs": {
+            "baseline": [
+              5.046666,
+              4.97125,
+              5.048916,
+              4.960792,
+              4.957125,
+              4.92275,
+              5.040833,
+              5.073292
+            ],
+            "candidate": [
+              4.359791,
+              4.380833,
+              4.38475,
+              4.307209,
+              4.405667,
+              4.37575,
+              4.434208,
+              4.38725
+            ]
+          }
+        },
+        "positions": {
+          "words": 4800,
+          "medianMs": {
+            "baseline": 13.751,
+            "candidate": 13.428
+          },
+          "rawMs": {
+            "baseline": [
+              13.8205,
+              13.850875,
+              13.477625,
+              13.807625,
+              13.329792,
+              13.574084,
+              13.695042,
+              13.956041
+            ],
+            "candidate": [
+              13.613292,
+              13.723208,
+              13.203041,
+              13.331583,
+              13.297542,
+              13.197167,
+              14.345916,
+              13.523542
+            ]
+          }
+        }
+      }
+    },
+    "UOS25": {
+      "comparison": {
+        "patterns": {
+          "cases": 33,
+          "words": 11385,
+          "right": 267,
+          "before": 0,
+          "after": 0,
+          "retainedForbidden": 0
+        },
+        "permissions": {
+          "cases": 116,
+          "words": 7092,
+          "right": 4483,
+          "before": 219,
+          "after": 92,
+          "retainedForbidden": 92
+        },
+        "locales": {
+          "cases": 12,
+          "words": 312,
+          "right": 135,
+          "before": 77,
+          "after": 0,
+          "retainedForbidden": 0
+        },
+        "hungarian": {
+          "cases": 40,
+          "words": 3080,
+          "right": 2166,
+          "before": 460,
+          "after": 0,
+          "retainedForbidden": 0
+        },
+        "published": {
+          "cases": 75,
+          "words": 5719,
+          "right": 1024,
+          "before": 2,
+          "after": 0,
+          "retainedForbidden": 0
+        }
+      },
+      "perCaseDigest": "7afe56f25b00c99cc48400db0d46836236a6d01780f96583ace9fa9bac6a1734",
+      "nativeReview": {
+        "oldIssues": [
+          {
+            "start": {
+              "story": "body",
+              "path": [
+                0
+              ],
+              "off": 0
+            },
+            "end": {
+              "story": "body",
+              "path": [
+                0
+              ],
+              "off": 9
+            },
+            "text": "redsunenn",
+            "suggestions": [],
+            "lang": "tr"
+          },
+          {
+            "start": {
+              "story": "body",
+              "path": [
+                1
+              ],
+              "off": 0
+            },
+            "end": {
+              "story": "body",
+              "path": [
+                1
+              ],
+              "off": 8
+            },
+            "text": "redsunen",
+            "suggestions": [],
+            "lang": "tr"
+          },
+          {
+            "start": {
+              "story": "body",
+              "path": [
+                2
+              ],
+              "off": 0
+            },
+            "end": {
+              "story": "body",
+              "path": [
+                2
+              ],
+              "off": 9
+            },
+            "text": "redsunens",
+            "suggestions": [],
+            "lang": "tr"
+          }
+        ],
+        "newIssues": [
+          {
+            "start": {
+              "story": "body",
+              "path": [
+                0
+              ],
+              "off": 0
+            },
+            "end": {
+              "story": "body",
+              "path": [
+                0
+              ],
+              "off": 9
+            },
+            "text": "redsunenn",
+            "suggestions": [
+              "redsunen",
+              "redsunens"
+            ],
+            "lang": "tr"
+          }
+        ],
+        "native": {
+          "binarySha256": "06b39bfe181c006838cbd0170e61f77ab66146cd860babffb1712838f76f7c2b",
+          "sourceSha256": "05e80f8291cbe1b1dc4ab8346f28faf01cfe8ff030d697f54114be8e02ae12d6",
+          "selectedWord": "redsunenn",
+          "displayedSuggestions": [
+            "redsunen",
+            "redsunens"
+          ],
+          "replacement": "redsunen",
+          "undoRedo": true,
+          "savedAndReopened": true,
+          "originalUnchanged": true
+        },
+        "rollback": {
+          "savedSha256": "c4aebfc1c90a9eab1179e38343d640eccb11c4a265f2c7e6b6c44971c7a36f48",
+          "pairs": [
+            [
+              "baseline",
+              "baseline"
+            ],
+            [
+              "baseline",
+              "candidate"
+            ],
+            [
+              "candidate",
+              "baseline"
+            ],
+            [
+              "candidate",
+              "candidate"
+            ]
+          ],
+          "cliSha256": {
+            "baseline": "e44556cfc9c15e44498509ef7d3dc9e4f91262011ada6dd8047b46dfc9758dee",
+            "candidate": "7625a639737e59f4d34437b8d4a0a986188cad20977d114006d997a3209eb02e"
+          }
+        }
+      },
+      "proofLibrary": {
+        "passed": 485,
+        "failed": 0,
+        "ignored": 0
+      },
+      "wordProduct": {
+        "passed": 3698,
+        "failed": 0,
+        "ignored": 2
+      },
+      "uiProducts": {
+        "passed": 82,
+        "failed": 0,
+        "ignored": 0
+      },
+      "releaseClosure": {
+        "target": "x86_64-unknown-linux-gnu",
+        "packages": 602,
+        "sourceFiles": 1076,
+        "spdxSha256": "a80675cecd4e0a360fb9457a23d9e0819b9573869e02bf21eda1d833a7da878d",
+        "missingLicenseTexts": [],
+        "sharedCrates": [
+          "joyoffice-cfb",
+          "joyoffice-drawingml",
+          "joyoffice-fonts",
+          "joyoffice-metafile",
+          "joyoffice-omml",
+          "joyoffice-opc",
+          "joyoffice-theme",
+          "joyoffice-ui"
+        ],
+        "runtimeLegacyDependencies": [
+          "craft-atomic",
+          "craft-font-store",
+          "craft-proof"
+        ]
+      },
+      "checkTiming": {
+        "short": {
+          "words": 4800,
+          "medianMs": {
+            "baseline": 2.236,
+            "candidate": 1.566
+          },
+          "rawMs": {
+            "baseline": [
+              2.402005,
+              2.253684,
+              1.916238,
+              2.39337,
+              2.216586,
+              3.08418,
+              2.205156,
+              2.21861
+            ],
+            "candidate": [
+              1.588449,
+              1.556592,
+              1.57161,
+              1.573062,
+              1.079531,
+              1.146723,
+              1.563404,
+              1.569395
+            ]
+          }
+        },
+        "ambiguous": {
+          "words": 1800,
+          "medianMs": {
+            "baseline": 5.927,
+            "candidate": 5.915
+          },
+          "rawMs": {
+            "baseline": [
+              5.221332,
+              5.898107,
+              7.639928,
+              5.955071,
+              6.170345,
+              5.316045,
+              4.857117,
+              7.468344
+            ],
+            "candidate": [
+              6.007166,
+              4.642485,
+              5.928623,
+              7.339629,
+              5.902374,
+              4.173759,
+              7.130346,
+              5.870797
+            ]
+          }
+        },
+        "positions": {
+          "words": 4800,
+          "medianMs": {
+            "baseline": 16.1,
+            "candidate": 16.736
+          },
+          "rawMs": {
+            "baseline": [
+              14.651867,
+              11.824717,
+              18.801513,
+              18.448719,
+              18.603852,
+              12.666823,
+              17.547454,
+              14.635106
+            ],
+            "candidate": [
+              19.616972,
+              19.045298,
+              12.038026,
+              18.595517,
+              15.373895,
+              12.414062,
+              18.0986,
+              11.992613
+            ]
+          }
+        }
+      }
+    }
+  }
+}
