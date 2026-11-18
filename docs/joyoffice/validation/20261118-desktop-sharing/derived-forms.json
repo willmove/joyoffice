@@ -1,0 +1,1121 @@
+{
+  "baseline": "b2a57421",
+  "reference": "Hunspell 1.7.5, native builds on both systems",
+  "publishedPacks": 75,
+  "referenceCountCorrections": "es-uy, hy and ta: four group counts corrected only in temporary external-reference inputs (see affix-recognition.json); both JoyOffice versions used published bytes",
+  "platforms": {
+    "macOS": {
+      "referenceLibrarySha256": "b1e589d497b261754917dbf0cbd6e2101443e86a0e3f778ee609fa6b803c4d58",
+      "releaseExamplesSha256": [
+        "e599f9666868da58f79440b8f7e207a58af1f6146542fb8e35bf01c0cd4d7f92",
+        "a863401485c8889f460be15d4d500ae9c4b7cb2a173db767f92bbfd86eb8c71d"
+      ],
+      "wordCliSha256": [
+        "dd8c0854679d349d1dfa6e41bfbaa9c6711248cd9d8407bc14e182ef2246a859",
+        "f0fba112ad073aab1001bbb152d1f923ff8792bb3d951af6846f8a320d41b9d2"
+      ],
+      "native": {
+        "binarySha256": "4d42b86795a3e248c568584e17dea49be9e4223c4d0095248a605393422d23b7",
+        "sourceSha256": "b43f287618901d9343d19d5641e4ec384281492db8944ab6cd058e1feeb26705",
+        "selectedWord": "waworiables",
+        "displayedSuggestions": [
+          "woworkables"
+        ],
+        "replacement": "woworkables",
+        "undoRedo": true,
+        "savedAndReopened": true,
+        "originalUnchanged": true
+      },
+      "display": "Quartz, accessibility and keyboard",
+      "regressions": {
+        "word": {
+          "passed": 3691,
+          "failed": 0,
+          "ignored": 2
+        },
+        "ui": {
+          "passed": 78,
+          "failed": 0,
+          "ignored": 0
+        },
+        "proofLibrary": {
+          "passed": 484,
+          "failed": 0,
+          "ignored": 0
+        }
+      },
+      "strictWordSpdx": {
+        "target": "aarch64-apple-darwin",
+        "packages": 513,
+        "sourceFiles": 1067,
+        "spdxSha256": "f4cf9cc1f6cd28c66c6a8595dc7730d378c1b3e921656b654c39f08c7ddfe65c",
+        "missingLicenseTexts": [],
+        "sharedCrates": [
+          "joyoffice-cfb",
+          "joyoffice-drawingml",
+          "joyoffice-fonts",
+          "joyoffice-metafile",
+          "joyoffice-omml",
+          "joyoffice-opc",
+          "joyoffice-theme",
+          "joyoffice-ui"
+        ],
+        "runtimeLegacyDependencies": [
+          "craft-atomic",
+          "craft-font-store",
+          "craft-proof"
+        ]
+      },
+      "alternatingReleaseBatchMilliseconds": {
+        "timing": {
+          "nl": {
+            "baseline": {
+              "p50": 291.7235,
+              "p95": 619.817
+            },
+            "candidate": {
+              "p50": 323.336,
+              "p95": 711.343
+            }
+          },
+          "pl": {
+            "baseline": {
+              "p50": 297.51,
+              "p95": 363.402
+            },
+            "candidate": {
+              "p50": 277.2315,
+              "p95": 309.88
+            }
+          },
+          "es": {
+            "baseline": {
+              "p50": 47.4585,
+              "p95": 58.655
+            },
+            "candidate": {
+              "p50": 44.3665,
+              "p95": 47.211
+            }
+          }
+        },
+        "timing-repeat": {
+          "nl": {
+            "baseline": {
+              "p50": 263.07050000000004,
+              "p95": 266.906
+            },
+            "candidate": {
+              "p50": 265.4205,
+              "p95": 274.383
+            }
+          },
+          "pl": {
+            "baseline": {
+              "p50": 240.012,
+              "p95": 251.741
+            },
+            "candidate": {
+              "p50": 235.814,
+              "p95": 247.874
+            }
+          },
+          "es": {
+            "baseline": {
+              "p50": 42.355500000000006,
+              "p95": 42.946
+            },
+            "candidate": {
+              "p50": 39.8505,
+              "p95": 40.266
+            }
+          }
+        }
+      }
+    },
+    "UOS 25": {
+      "referenceLibrarySha256": "96711c36b275890143b4dbbe3033df22e9c930511fc7877598dd7ef23a4b5f42",
+      "releaseExamplesSha256": [
+        "6bf41804999e8139545428a303e2cce1b8f5d32b49a48880f3fd12ecd88a7fe6",
+        "80a5dbdb9be700c4b44ba5cc80fdcc9f16e44e51f2d9ddfdc660b9ab5a821cab"
+      ],
+      "wordCliSha256": [
+        "e91df3824f12f7629e4c6364d8a48c7ccb38d1b5c32b88688f93a4806ea4c3ee",
+        "717299e2fdd400d507de8995866d3a6763415b291f522f36c8f63a8970fdcf4b"
+      ],
+      "native": {
+        "binarySha256": "2817435e6c070df588f0f8a639fa02fe54749dfee900dd05731fc7c3eff71e4e",
+        "sourceSha256": "b43f287618901d9343d19d5641e4ec384281492db8944ab6cd058e1feeb26705",
+        "selectedWord": "waworiables",
+        "displayedSuggestions": [
+          "woworkables"
+        ],
+        "replacement": "woworkables",
+        "undoRedo": true,
+        "savedAndReopened": true,
+        "originalUnchanged": true
+      },
+      "display": "x86_64 test machine, native JoyWord on an isolated X11 display with KWin and AT-SPI while the user session was locked",
+      "regressions": {
+        "word": {
+          "passed": 3695,
+          "failed": 0,
+          "ignored": 2
+        },
+        "ui": {
+          "passed": 82,
+          "failed": 0,
+          "ignored": 0
+        },
+        "proofLibrary": {
+          "passed": 484,
+          "failed": 0,
+          "ignored": 0
+        }
+      },
+      "strictWordSpdx": {
+        "target": "x86_64-unknown-linux-gnu",
+        "packages": 602,
+        "sourceFiles": 1072,
+        "spdxSha256": "7f390c9fef05c991b8371056944bdbe9d398f1beecb908782a8446c1db020789",
+        "missingLicenseTexts": [],
+        "sharedCrates": [
+          "joyoffice-cfb",
+          "joyoffice-drawingml",
+          "joyoffice-fonts",
+          "joyoffice-metafile",
+          "joyoffice-omml",
+          "joyoffice-opc",
+          "joyoffice-theme",
+          "joyoffice-ui"
+        ],
+        "runtimeLegacyDependencies": [
+          "craft-atomic",
+          "craft-font-store",
+          "craft-proof"
+        ]
+      },
+      "alternatingReleaseBatchMilliseconds": {
+        "timing": {
+          "nl": {
+            "baseline": {
+              "p50": 296.52750000000003,
+              "p95": 349.748
+            },
+            "candidate": {
+              "p50": 338.296,
+              "p95": 528.622
+            }
+          },
+          "pl": {
+            "baseline": {
+              "p50": 480.086,
+              "p95": 594.938
+            },
+            "candidate": {
+              "p50": 457.179,
+              "p95": 610.35
+            }
+          },
+          "es": {
+            "baseline": {
+              "p50": 55.1015,
+              "p95": 77.322
+            },
+            "candidate": {
+              "p50": 54.2605,
+              "p95": 57.362
+            }
+          }
+        },
+        "timing-repeat": {
+          "nl": {
+            "baseline": {
+              "p50": 280.92449999999997,
+              "p95": 303.121
+            },
+            "candidate": {
+              "p50": 281.134,
+              "p95": 295.227
+            }
+          },
+          "pl": {
+            "baseline": {
+              "p50": 411.04,
+              "p95": 450.716
+            },
+            "candidate": {
+              "p50": 395.9275,
+              "p95": 436.69
+            }
+          },
+          "es": {
+            "baseline": {
+              "p50": 48.349000000000004,
+              "p95": 55.094
+            },
+            "candidate": {
+              "p50": 46.379,
+              "p95": 52.498
+            }
+          }
+        }
+      }
+    }
+  },
+  "grammar": {
+    "grammars": 4608,
+    "decisions": 27648,
+    "baselineDifferences": 400,
+    "candidateDifferences": 0,
+    "examples": [],
+    "referenceSha256": "8f1351669ad526cb611115b56d3d432a7dbf3229d53be2ba140fa27781666b02"
+  },
+  "publishedSum": {
+    "stems": 883,
+    "formsChecked": 100859,
+    "referenceAccepted": 100644,
+    "baselineRejected": 215,
+    "candidateRejected": 0,
+    "newAccepted": 11084,
+    "removedAccepted": 305,
+    "removedDerivableFromSameStem": 0
+  },
+  "byLanguage": {
+    "af": {
+      "stems": 12,
+      "formsChecked": 31,
+      "referenceAccepted": 31,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "ar": {
+      "stems": 12,
+      "formsChecked": 3695,
+      "referenceAccepted": 3602,
+      "baselineRejected": 93,
+      "candidateRejected": 0,
+      "newAccepted": 1381,
+      "removedAccepted": 15,
+      "removedDerivableFromSameStem": 0
+    },
+    "be": {
+      "stems": 12,
+      "formsChecked": 90,
+      "referenceAccepted": 90,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "bg": {
+      "stems": 11,
+      "formsChecked": 256,
+      "referenceAccepted": 256,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "bs": {
+      "stems": 12,
+      "formsChecked": 135,
+      "referenceAccepted": 135,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "ca": {
+      "stems": 12,
+      "formsChecked": 636,
+      "referenceAccepted": 521,
+      "baselineRejected": 115,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 290,
+      "removedDerivableFromSameStem": 0
+    },
+    "ca-valencia": {
+      "stems": 12,
+      "formsChecked": 222,
+      "referenceAccepted": 222,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "cs": {
+      "stems": 12,
+      "formsChecked": 208,
+      "referenceAccepted": 208,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "cy": {
+      "stems": 12,
+      "formsChecked": 223,
+      "referenceAccepted": 223,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 42,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "da": {
+      "stems": 12,
+      "formsChecked": 78,
+      "referenceAccepted": 78,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "de": {
+      "stems": 12,
+      "formsChecked": 50,
+      "referenceAccepted": 50,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "de-at": {
+      "stems": 12,
+      "formsChecked": 40,
+      "referenceAccepted": 40,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "de-ch": {
+      "stems": 12,
+      "formsChecked": 28,
+      "referenceAccepted": 28,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "el": {
+      "stems": 12,
+      "formsChecked": 3,
+      "referenceAccepted": 3,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "eo": {
+      "stems": 12,
+      "formsChecked": 5903,
+      "referenceAccepted": 5903,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 4199,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "es": {
+      "stems": 12,
+      "formsChecked": 149,
+      "referenceAccepted": 149,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "es-ar": {
+      "stems": 12,
+      "formsChecked": 101,
+      "referenceAccepted": 101,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "es-bo": {
+      "stems": 12,
+      "formsChecked": 133,
+      "referenceAccepted": 133,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "es-cl": {
+      "stems": 12,
+      "formsChecked": 122,
+      "referenceAccepted": 122,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "es-co": {
+      "stems": 12,
+      "formsChecked": 171,
+      "referenceAccepted": 171,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "es-cr": {
+      "stems": 12,
+      "formsChecked": 177,
+      "referenceAccepted": 177,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "es-cu": {
+      "stems": 12,
+      "formsChecked": 122,
+      "referenceAccepted": 122,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "es-do": {
+      "stems": 12,
+      "formsChecked": 130,
+      "referenceAccepted": 130,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "es-ec": {
+      "stems": 12,
+      "formsChecked": 38,
+      "referenceAccepted": 38,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "es-gq": {
+      "stems": 11,
+      "formsChecked": 85,
+      "referenceAccepted": 85,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "es-gt": {
+      "stems": 12,
+      "formsChecked": 236,
+      "referenceAccepted": 236,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "es-hn": {
+      "stems": 12,
+      "formsChecked": 125,
+      "referenceAccepted": 125,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "es-mx": {
+      "stems": 12,
+      "formsChecked": 124,
+      "referenceAccepted": 124,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "es-ni": {
+      "stems": 12,
+      "formsChecked": 221,
+      "referenceAccepted": 221,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "es-pa": {
+      "stems": 12,
+      "formsChecked": 172,
+      "referenceAccepted": 172,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "es-pe": {
+      "stems": 12,
+      "formsChecked": 30,
+      "referenceAccepted": 30,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "es-ph": {
+      "stems": 11,
+      "formsChecked": 87,
+      "referenceAccepted": 87,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "es-pr": {
+      "stems": 12,
+      "formsChecked": 30,
+      "referenceAccepted": 30,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "es-py": {
+      "stems": 12,
+      "formsChecked": 132,
+      "referenceAccepted": 132,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "es-sv": {
+      "stems": 12,
+      "formsChecked": 121,
+      "referenceAccepted": 121,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "es-us": {
+      "stems": 12,
+      "formsChecked": 262,
+      "referenceAccepted": 262,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "es-uy": {
+      "stems": 12,
+      "formsChecked": 177,
+      "referenceAccepted": 177,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "es-ve": {
+      "stems": 12,
+      "formsChecked": 127,
+      "referenceAccepted": 127,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "et": {
+      "stems": 12,
+      "formsChecked": 1656,
+      "referenceAccepted": 1656,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "fa": {
+      "stems": 11,
+      "formsChecked": 405,
+      "referenceAccepted": 405,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "fr": {
+      "stems": 12,
+      "formsChecked": 385,
+      "referenceAccepted": 381,
+      "baselineRejected": 4,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "ga": {
+      "stems": 12,
+      "formsChecked": 92,
+      "referenceAccepted": 92,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "gl": {
+      "stems": 12,
+      "formsChecked": 3885,
+      "referenceAccepted": 3885,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "he": {
+      "stems": 12,
+      "formsChecked": 3997,
+      "referenceAccepted": 3997,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "hi": {
+      "stems": 11,
+      "formsChecked": 61,
+      "referenceAccepted": 61,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "hr": {
+      "stems": 12,
+      "formsChecked": 219,
+      "referenceAccepted": 219,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "hu": {
+      "stems": 12,
+      "formsChecked": 39587,
+      "referenceAccepted": 39587,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 2736,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "hy": {
+      "stems": 12,
+      "formsChecked": 4526,
+      "referenceAccepted": 4526,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 1524,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "id": {
+      "stems": 12,
+      "formsChecked": 573,
+      "referenceAccepted": 573,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 247,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "is": {
+      "stems": 12,
+      "formsChecked": 226,
+      "referenceAccepted": 226,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "it": {
+      "stems": 12,
+      "formsChecked": 238,
+      "referenceAccepted": 238,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "ka": {
+      "stems": 12,
+      "formsChecked": 381,
+      "referenceAccepted": 381,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "ko": {
+      "stems": 12,
+      "formsChecked": 20213,
+      "referenceAccepted": 20213,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "lt": {
+      "stems": 12,
+      "formsChecked": 3972,
+      "referenceAccepted": 3972,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "lv": {
+      "stems": 12,
+      "formsChecked": 2200,
+      "referenceAccepted": 2200,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 955,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "mk": {
+      "stems": 11,
+      "formsChecked": 42,
+      "referenceAccepted": 42,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "nb": {
+      "stems": 12,
+      "formsChecked": 3,
+      "referenceAccepted": 3,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "nl": {
+      "stems": 12,
+      "formsChecked": 53,
+      "referenceAccepted": 50,
+      "baselineRejected": 3,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "nn": {
+      "stems": 12,
+      "formsChecked": 3,
+      "referenceAccepted": 3,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "pl": {
+      "stems": 12,
+      "formsChecked": 301,
+      "referenceAccepted": 301,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "pt-br": {
+      "stems": 12,
+      "formsChecked": 946,
+      "referenceAccepted": 946,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "pt-pt": {
+      "stems": 12,
+      "formsChecked": 635,
+      "referenceAccepted": 635,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "ro": {
+      "stems": 11,
+      "formsChecked": 122,
+      "referenceAccepted": 122,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "ru": {
+      "stems": 12,
+      "formsChecked": 151,
+      "referenceAccepted": 151,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "sk": {
+      "stems": 12,
+      "formsChecked": 321,
+      "referenceAccepted": 321,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "sl": {
+      "stems": 12,
+      "formsChecked": 105,
+      "referenceAccepted": 105,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "sq": {
+      "stems": 11,
+      "formsChecked": 54,
+      "referenceAccepted": 54,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "sr": {
+      "stems": 12,
+      "formsChecked": 283,
+      "referenceAccepted": 283,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "sr-latn": {
+      "stems": 12,
+      "formsChecked": 283,
+      "referenceAccepted": 283,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "sv": {
+      "stems": 12,
+      "formsChecked": 39,
+      "referenceAccepted": 39,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "sv-fi": {
+      "stems": 12,
+      "formsChecked": 75,
+      "referenceAccepted": 75,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "sw": {
+      "stems": 7,
+      "formsChecked": 35,
+      "referenceAccepted": 35,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "ta": {
+      "stems": 8,
+      "formsChecked": 8,
+      "referenceAccepted": 8,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "tr": {
+      "stems": 12,
+      "formsChecked": 110,
+      "referenceAccepted": 110,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    },
+    "vi": {
+      "stems": 12,
+      "formsChecked": 4,
+      "referenceAccepted": 4,
+      "baselineRejected": 0,
+      "candidateRejected": 0,
+      "newAccepted": 0,
+      "removedAccepted": 0,
+      "removedDerivableFromSameStem": 0
+    }
+  },
+  "publishedReviewInputs": 1499,
+  "changedRecommendations": {
+    "hy": [
+      {
+        "word": "մրկային",
+        "old": [
+          "մկային",
+          "մկկային",
+          "մրրկային",
+          "մրկածին",
+          "մաշկային",
+          "մսային"
+        ],
+        "new": [
+          "մկային",
+          "մկկային",
+          "մրրկային",
+          "մրկածին",
+          "չմրկածին",
+          "մաշկային"
+        ]
+      }
+    ],
+    "lt": [
+      {
+        "word": "ketil",
+        "old": [
+          "keti",
+          "keti l",
+          "kelti",
+          "kepti",
+          "kerti",
+          "kežti"
+        ],
+        "new": [
+          "keti",
+          "keti l",
+          "kekių",
+          "ketėt",
+          "ketės",
+          "ketėk"
+        ]
+      },
+      {
+        "word": "reforuojam",
+        "old": [
+          "reformuojam",
+          "referuojam",
+          "referuoja",
+          "referuojame",
+          "referuojat",
+          "referuojamo"
+        ],
+        "new": [
+          "reformuojam",
+          "referuojam",
+          "renovuojam",
+          "rezonuojam",
+          "referuoja",
+          "referuojame"
+        ]
+      }
+    ],
+    "pt-br": [
+      {
+        "word": "enaton",
+        "old": [
+          "enato",
+          "enatou",
+          "ecato",
+          "erato",
+          "exato",
+          "entoná"
+        ],
+        "new": [
+          "enato",
+          "enatou",
+          "ecato",
+          "ecatos",
+          "erato",
+          "eratos"
+        ]
+      }
+    ]
+  }
+}

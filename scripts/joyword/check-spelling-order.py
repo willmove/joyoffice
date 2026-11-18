@@ -184,10 +184,13 @@ def verify_desktop(binary, dictionary, out, words=("teh", "tests", "tset"),
                     interface = node["object"].get_text_iface()
                     if interface:
                         texts.append(interface.get_text(0, -1))
-            return any(suggestions in t for t in texts) and any(words[0] in t for t in texts)
+            issues = {f"Issue {words[0]}", f"发现的问题 {words[0]}"}
+            choices = {f"Suggestions {suggestions}", f"建议 {suggestions}"}
+            return bool(issues.intersection(texts) and choices.intersection(texts))
 
         wait(displayed, "issue and ordered recommendations displayed", proc)
         surface.key("escape")
+        wait(lambda: not displayed(), "spelling dialog closed", proc)
         corrected = initial.replace(words[0], replacement, 1)
         edit("text.insert", text=replacement)
         assert inspect()["text"] == corrected

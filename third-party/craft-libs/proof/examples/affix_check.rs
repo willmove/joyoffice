@@ -158,6 +158,17 @@ fn single(d: &AffixDict, n: usize, seed: u64) -> Vec<String> {
 fn main() -> Result<(), String> {
     let args: Vec<String> = std::env::args().skip(1).collect();
     match args.as_slice() {
+        [cmd, aff, dic] if cmd == "forms" => {
+            let d = load(aff, dic)?;
+            for line in std::io::stdin().lock().lines() {
+                let stem = line.map_err(|e| e.to_string())?;
+                let mut forms = d.forms(&stem);
+                forms.sort();
+                forms.dedup();
+                println!("{}\t{}", stem, forms.join("\t"));
+            }
+            Ok(())
+        }
         [cmd, aff, dic] if cmd == "check" => {
             let d = load(aff, dic)?;
             let words: Vec<String> = std::io::stdin().lock().lines().map_while(Result::ok).collect();
@@ -207,6 +218,6 @@ fn main() -> Result<(), String> {
             }
             Ok(())
         }
-        _ => Err("usage: affix_check check|suggest <aff> <dic> < words | affix_check gen|single <aff> <dic> <n> <seed>".into()),
+        _ => Err("usage: affix_check check|suggest|forms <aff> <dic> < words | affix_check gen|single <aff> <dic> <n> <seed>".into()),
     }
 }

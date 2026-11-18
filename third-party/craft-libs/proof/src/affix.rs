@@ -43,6 +43,7 @@ use crate::patterns::{FxHasher, FxMap};
 
 mod compound;
 mod edges;
+mod forms;
 use edges::EdgeIndex;
 
 pub(crate) use compound::{MAX_SUGGEST_COMPOUND_WORK, Pieces};
@@ -274,12 +275,6 @@ const MAX_SUGGEST_SIMPLE_WORK: usize = 1 << 13;
 const MAX_SUGGEST_STEPS: usize = 1 << 25;
 /// Most homonyms of one stem kept apart ([`AffixDict::homonyms`]); past it their flags count merged.
 const MAX_HOMONYMS: usize = 16;
-/// How many suffixes a word may carry in a row through continuation classes (`work` +
-/// `able/B` + `s` → `workables` is two). Hunspell strips at most two suffixes, so a third
-/// chained suffix is not a word; the bound also keeps hostile input from walking deep recursions.
-const MAX_CHAIN: u8 = 2;
-/// Number of additional suffix layers after the first when generating forms.
-const INNER_CHAIN: u8 = MAX_CHAIN - 1;
 /// Most `ss` pairs of a word in capitals that CHECKSHARPS reads as `ß` (each combination is tried:
 /// at most 31 variants).
 const MAX_SHARPS: usize = 5;
@@ -298,7 +293,7 @@ struct Rule {
     strip: Box<str>,
     add: Box<str>,
     /// Continuation classes (`SFX A 0 able/B`): flags the derived form carries, licensing
-    /// further affixes, as a flag set id (0: none). Chained application is bounded by [`MAX_CHAIN`].
+    /// further affixes, as a flag set id (0: none). Chained application is bounded to two suffixes.
     cont: u32,
     cond: Box<[Cond]>,
     cond_text: Box<str>,
@@ -372,6 +367,8 @@ pub struct AffixDict {
     sfx_index: EdgeIndex<Vec<SfxGroup>, true>,
     /// Per flag id: the suffix rules of that flag, in rule order.
     sfx_by_flag: Vec<Vec<u32>>,
+    /// Prefix rules by granting flag, for forward enumeration.
+    pfx_by_flag: Vec<Vec<u32>>,
     /// Longest appended suffix, in chars.
     max_sfx_chars: usize,
     try_chars: String,
@@ -726,11 +723,6 @@ fn cap_try(s: &str) -> String {
         }
     }
     out
-}
-
-/// `form`, unless it is empty: no word is, and `FULLSTRIP` can strip a stem down to nothing.
-fn non_empty(form: String) -> Option<String> {
-    Some(form).filter(|f| !f.is_empty())
 }
 
 /// `0` means empty in Hunspell's strip and append fields.
@@ -1927,13 +1919,16 @@ impl AffixDict {
             }
         }
         self.sfx_by_flag = by_flag;
+        let mut prefix_flags = vec![Vec::new(); self.flag_keys.len()];
         let mut pfx_index: FxMap<Box<str>, Vec<u32>> = FxMap::default();
         for (i, r) in self.prefixes.iter().enumerate() {
             if let Ok(i) = u32::try_from(i) {
                 pfx_index.entry(r.add.clone()).or_default().push(i);
+                prefix_flags[usize::from(r.flag)].push(i);
             }
         }
         self.pfx_index = EdgeIndex::build(pfx_index);
+        self.pfx_by_flag = prefix_flags;
         let mut mixed: FxMap<Box<str>, Vec<u32>> = FxMap::default();
         for i in 0..self.len() {
             if let (Some(w), Ok(i)) = (self.word(i), u32::try_from(i))
@@ -2086,11 +2081,6 @@ impl AffixDict {
         } else {
             e
         }
-    }
-
-    /// Flag set of a stem, if `w` is one.
-    fn stem_flags(&self, w: &str) -> Option<&[u16]> {
-        self.stem_flags_except(w, self.excluded(false))
     }
 
     /// Flag set of a stem, if `w` is one and carries none of the `excluded` flags. A stem
@@ -2758,186 +2748,6 @@ impl AffixDict {
             }
         }
         false
-    }
-
-    /// Every form of the stem `stem` (itself included), unsorted, possibly with repeats; at most
-    /// [`MAX_FORMS`], and at most [`MAX_FORMS_WORK`] rules tried along the continuation chains and
-    /// cross products, so a dictionary with thousands of self-continuing rules can't make one stem
-    /// cost millions of strings (#3613).
-    pub fn forms(&self, stem: &str) -> Vec<String> {
-        let mut budget = MAX_FORMS_WORK;
-        self.forms_spending(stem, &mut budget)
-    }
-
-    /// [`AffixDict::forms`], with the rules it tries taken off `budget` (several stems' forms
-    /// share one budget: the suggestions' scan of 48 stems in a dictionary of 12,000 rules).
-    pub(crate) fn forms_spending(&self, stem: &str, budget: &mut usize) -> Vec<String> {
-        let Some(f) = self.stem_flags(stem) else {
-            return Vec::new();
-        };
-        let start = *budget;
-        let out = self.forms_within(stem, f, (*budget).min(MAX_FORMS_WORK));
-        *budget = start.saturating_sub(out.1);
-        out.0
-    }
-
-    /// The forms of `stem` (flags `f`) in at most `limit` rules tried, and the rules tried.
-    fn forms_within(&self, stem: &str, f: &[u16], limit: usize) -> (Vec<String>, usize) {
-        let mut out = Vec::new();
-        if !self.need_affix.is_some_and(|n| has(f, n)) {
-            out.push(stem.to_string());
-        }
-        // Suffix forms a prefix may be added to: the form, whether its suffix is a circumfix one,
-        // whether it needs another affix, and its continuation classes (which may allow a prefix
-        // the stem doesn't).
-        let mut cross_sfx: Vec<(String, bool, bool, u32)> = Vec::new();
-        // Suffix forms queued with the continuation classes they carry, for chained expansion;
-        // each (form, classes) pair is expanded once.
-        let mut chain: Vec<(String, u32)> = Vec::new();
-        let mut queued: std::collections::HashSet<(String, u32)> = std::collections::HashSet::new();
-        let mut work = 0usize;
-        for r in &self.suffixes {
-            if !has(f, r.flag) {
-                continue;
-            }
-            work += 1;
-            if work > limit {
-                return (out, work);
-            }
-            if !r.cond_matches(stem, true) || self.cont_holds(r, self.only_in_compound) {
-                continue;
-            }
-            let Some(base) = stem.strip_suffix(&*r.strip) else {
-                continue;
-            };
-            if base.is_empty() && !self.full_strip {
-                continue;
-            }
-            let form = format!("{base}{}", r.add);
-            let circ = self.cont_holds(r, self.circumfix);
-            if r.cross {
-                cross_sfx.push((
-                    form.clone(),
-                    circ,
-                    self.cont_holds(r, self.need_affix),
-                    r.cont,
-                ));
-            }
-            // A circumfix suffix needs its prefix, so what it ends is never chained without one.
-            if r.cont != 0 && !circ && queued.insert((form.clone(), r.cont)) {
-                chain.push((form.clone(), r.cont));
-            }
-            // A circumfix suffix or one that needs another affix is no word on its own.
-            // (An empty form still feeds the cross products and chains above; it is no word.)
-            if !circ && !self.cont_holds(r, self.need_affix) {
-                out.extend(non_empty(form));
-            }
-            if out.len() >= MAX_FORMS {
-                return (out, work);
-            }
-        }
-        // Continuation classes chain suffixes (`workable/B` → `workables`), up to [`MAX_CHAIN`]
-        // suffixes in all — the same bound the checker walks.
-        'chain: for _ in 0..INNER_CHAIN {
-            let level = std::mem::take(&mut chain);
-            if level.is_empty() {
-                break;
-            }
-            for (form, flags) in level {
-                for r in self
-                    .suffixes_with(flags)
-                    .into_iter()
-                    .filter_map(|i| self.suffixes.get(i as usize))
-                {
-                    work += 1;
-                    if work > limit {
-                        break 'chain;
-                    }
-                    if !r.cond_matches(&form, true) || self.cont_holds(r, self.only_in_compound) {
-                        continue;
-                    }
-                    let Some(base) = form.strip_suffix(&*r.strip) else {
-                        continue;
-                    };
-                    if base.is_empty() && !self.full_strip {
-                        continue;
-                    }
-                    let next = format!("{base}{}", r.add);
-                    if r.cont != 0 && queued.insert((next.clone(), r.cont)) {
-                        chain.push((next.clone(), r.cont));
-                    }
-                    // The outer suffix of a chain has an affix under it, so its NEEDAFFIX is met,
-                    // and Hunspell ignores its CIRCUMFIX there (`workables` from `s/c`).
-                    out.extend(non_empty(next));
-                    if out.len() >= MAX_FORMS {
-                        return (out, work);
-                    }
-                }
-            }
-        }
-        for r in self
-            .prefixes
-            .iter()
-            .filter(|r| !self.cont_holds(r, self.only_in_compound))
-        {
-            let on_stem = has(f, r.flag);
-            let circ = self.cont_holds(r, self.circumfix);
-            let needs = self.cont_holds(r, self.need_affix);
-            if on_stem && !circ && !needs {
-                out.extend(self.prefixed(r, stem));
-            }
-            if r.cross {
-                // Every suffix form looked at counts against the work budget, matching or not.
-                for (s, s_circ, s_needs, s_cont) in &cross_sfx {
-                    work += 1;
-                    if out.len() >= MAX_FORMS || work > limit {
-                        return (out, work);
-                    }
-                    // The prefix's flag comes from the stem or the suffix's continuation classes;
-                    // circumfix alike; not both in need of another affix.
-                    if !(on_stem || has(self.set(*s_cont), r.flag))
-                        || *s_circ != circ
-                        || (needs && *s_needs)
-                    {
-                        continue;
-                    }
-                    out.extend(self.prefixed(r, s));
-                }
-            }
-            if out.len() >= MAX_FORMS {
-                return (out, work);
-            }
-        }
-        (out, work)
-    }
-
-    /// `root` with the prefix rule `r` added, when the checker takes it back off: the rule's
-    /// condition holds for `root` (the stem, or a suffix form in a cross product), and something
-    /// stays after the strip unless `FULLSTRIP`.
-    fn prefixed(&self, r: &Rule, root: &str) -> Option<String> {
-        let rest = root.strip_prefix(&*r.strip)?;
-        if (rest.is_empty() && !self.full_strip) || !r.cond_matches(root, false) {
-            return None;
-        }
-        non_empty(format!("{}{rest}", r.add))
-    }
-
-    /// The suffix rules carrying any flag of the set `set`, in rule order.
-    fn suffixes_with(&self, set: u32) -> Vec<u32> {
-        let mut rules: Vec<u32> = Vec::new();
-        let mut lists = 0;
-        for &flag in self.set(set) {
-            if let Some(list) = self.sfx_by_flag.get(usize::from(flag))
-                && !list.is_empty()
-            {
-                rules.extend_from_slice(list);
-                lists += 1;
-            }
-        }
-        if lists > 1 {
-            rules.sort_unstable();
-        }
-        rules
     }
 
     /// Whether the dictionary sets `CHECKSHARPS` (`SS` may stand for `ß` in capitals).
@@ -4391,7 +4201,7 @@ pub(crate) mod tests {
             (
                 "SET UTF-8\nCIRCUMFIX c\nPFX P Y 1\nPFX P 0 ne/c .\nSFX A Y 1\nSFX A 0 able/Bc .\nSFX B Y 1\nSFX B 0 s .\n",
                 "1\nwork/AP\n",
-                "neworkable work",
+                "neworkable neworkables work",
                 "nenework neneworkable neneworkableable neneworkables neneworks neneworksable neneworkss nework neworkableable neworks neworksable neworkss workable workableable workables works worksable workss",
             ),
             // rv488-hs/circN
@@ -5874,7 +5684,7 @@ x/12
         let d = AffixDict::from_hunspell(aff, "1\nwork/AP\n", &[]).unwrap();
         let mut forms = d.forms("work");
         forms.sort();
-        assert_eq!(forms, ["neworkable", "work"]);
+        assert_eq!(forms, ["neworkable", "neworkables", "work"]);
         for f in &forms {
             assert!(d.contains(f), "{f}");
         }
