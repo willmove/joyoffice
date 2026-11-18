@@ -43,6 +43,20 @@ const MAX_DEPTH: usize = 400;
 /// or nest `MAP` into `MAP`) then stops at the same bound instead of squaring.
 const LAMBDA_FUEL: u64 = MAX_CELLS;
 
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum TypeContext {
+    Normal,
+    Scalar,
+    Array,
+    LegacyArray,
+}
+
+impl TypeContext {
+    fn is_array(self) -> bool {
+        matches!(self, Self::Array | Self::LegacyArray)
+    }
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct Area {
     pub sheet: usize,
@@ -138,6 +152,8 @@ pub struct Evaluator<'h> {
     pub sheet: usize,
     pub at: CellRef,
     env: Vec<(String, Ev)>,
+    // Ordinary TYPE formulas evaluate arithmetic references at the formula cell.
+    type_context: TypeContext,
     depth: usize,
     /// LAMBDA calls in progress.
     calls: usize,
@@ -174,6 +190,9 @@ fn simplified_chinese_region(category: &str) -> bool {
 }
 
 impl Ctx for FnCtx<'_, '_> {
+    fn preserve_singleton_arrays(&self) -> bool {
+        self.ev.type_context.is_array()
+    }
     fn year_first_calendar_dates(&self) -> bool {
         static YEAR_FIRST: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
         *YEAR_FIRST.get_or_init(|| simplified_chinese_region("LC_TIME"))
@@ -218,6 +237,7 @@ impl Ctx for FnCtx<'_, '_> {
             sheet: area.sheet,
             at,
             env,
+            type_context: TypeContext::Normal,
             depth: self.ev.depth,
             calls: self.ev.calls,
             stack_top: self.ev.stack_top,
@@ -252,7 +272,18 @@ impl Ctx for FnCtx<'_, '_> {
 
 impl<'h> Evaluator<'h> {
     pub fn new(host: &'h mut dyn Host, sheet: usize, at: CellRef) -> Self {
-        Evaluator { host, sheet, at, env: Vec::new(), depth: 0, calls: 0, stack_top: 0, fuel: LAMBDA_FUEL, observed: None }
+        Evaluator {
+            host,
+            sheet,
+            at,
+            env: Vec::new(),
+            type_context: TypeContext::Normal,
+            depth: 0,
+            calls: 0,
+            stack_top: 0,
+            fuel: LAMBDA_FUEL,
+            observed: None,
+        }
     }
 
     /// Evaluates to a value (references are dereferenced; multi-cell → array).
@@ -447,18 +478,12 @@ impl<'h> Evaluator<'h> {
         if op == UnOp::At {
             let ev = self.eval(x);
             return match ev {
-                Ev::R(areas) => match areas.as_slice() {
-                    [a] => match self.implicit_intersect(a) {
-                        Some(c) => Ev::V(self.host.cell_value(a.sheet, c)),
-                        None => err(CellError::Value),
-                    },
-                    _ => err(CellError::Value),
-                },
+                Ev::R(areas) => Ev::V(self.intersected_reference(&areas)),
                 Ev::V(v) => Ev::V(v.scalar()),
                 l => l,
             };
         }
-        let v = self.value(x);
+        let v = self.scalar_operand(x);
         let sys = self.host.workbook().date_system;
         Ev::V(map_unary(
             &v,
@@ -471,6 +496,46 @@ impl<'h> Evaluator<'h> {
             op == UnOp::Plus,
             sys,
         ))
+    }
+
+    fn intersected_reference(&mut self, areas: &[Area]) -> Value {
+        if let [area] = areas
+            && let Some(cell) = self.implicit_intersect(area)
+        {
+            self.host.cell_value(area.sheet, cell)
+        } else {
+            Value::Error(CellError::Value)
+        }
+    }
+
+    /// Legacy scalar evaluation intersects a reference at the formula cell. A
+    /// function which returns a reference can also select a computed array;
+    /// such an array supplies its first element, as there are no sheet coordinates.
+    fn scalar_operand(&mut self, expr: &Expr) -> Value {
+        let ev = self.eval(expr);
+        if self.type_context == TypeContext::Scalar {
+            let mut expr = expr;
+            while let Expr::Paren(inner) = expr {
+                expr = inner;
+            }
+            match &ev {
+                Ev::R(areas) => return self.intersected_reference(areas),
+                Ev::V(value @ Value::Array(_)) if matches!(expr, Expr::Call(name, _) if matches!(name.as_str(), "INDEX" | "IF" | "CHOOSE")) => {
+                    return value.scalar();
+                }
+                _ => {}
+            }
+        }
+        self.deref(ev)
+    }
+
+    /// Array parameters such as the source of INDEX or an input of SUMPRODUCT
+    /// evaluate their operands at full shape even inside an ordinary TYPE formula.
+    fn array_argument(&mut self, expr: &Expr) -> Ev {
+        let previous = std::mem::replace(&mut self.type_context, TypeContext::Array);
+        let value = self.eval(expr);
+        self.type_context = previous;
+        value
     }
 
     fn implicit_intersect(&self, a: &Area) -> Option<CellRef> {
@@ -553,9 +618,9 @@ impl<'h> Evaluator<'h> {
                     rest.push((*o, r.as_ref()));
                     left = l.as_ref();
                 }
-                let mut acc = self.value(left);
+                let mut acc = self.scalar_operand(left);
                 while let Some((o, r)) = rest.pop() {
-                    let y = self.value(r);
+                    let y = self.scalar_operand(r);
                     acc = binary_values(o, &acc, &y, self.host.workbook().date_system);
                 }
                 Ev::V(acc)

@@ -107,7 +107,7 @@ pub(crate) fn call_lifted(spec: &FnSpec, args: &[Arg], ctx: &mut dyn Ctx) -> Val
             });
         }
     }
-    if rows == 1 && cols == 1 {
+    if rows == 1 && cols == 1 && !ctx.preserve_singleton_arrays() {
         return data.pop().unwrap_or(Value::Empty);
     }
     Array::new(rows, cols, data).map(Value::from).unwrap_or(Value::Error(CellError::Calc))

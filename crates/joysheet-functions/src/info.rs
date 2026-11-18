@@ -6,6 +6,7 @@ use joysheet_core::broadcast::dimensions;
 use joysheet_core::{Array, CellError, Value, compare_numbers, compare_text};
 
 use crate::util::{A, MAX_CELLS, R, S, has, scalar, text};
+use crate::value_info::{self, BLANK, BOOLEAN, NA, NUMBER, OTHER_ERROR, TEXT, classify};
 use crate::{Arg, Ctx, FnSpec, VAR};
 
 // ---------------------------------------------------------------------------------------------
@@ -13,99 +14,6 @@ use crate::{Arg, Ctx, FnSpec, VAR};
 
 fn first(a: &[Arg]) -> Value {
     a.first().map(scalar).unwrap_or(Value::Empty)
-}
-
-fn is_blank(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    Ok(Value::Bool(matches!(first(a), Value::Empty)))
-}
-fn is_err(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    Ok(Value::Bool(matches!(first(a), Value::Error(e) if e != CellError::NA)))
-}
-fn is_error(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    Ok(Value::Bool(matches!(first(a), Value::Error(_))))
-}
-fn is_na(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    Ok(Value::Bool(matches!(first(a), Value::Error(CellError::NA))))
-}
-fn is_number(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    Ok(Value::Bool(matches!(first(a), Value::Number(_))))
-}
-fn is_text(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    Ok(Value::Bool(matches!(first(a), Value::Text(_))))
-}
-fn is_nontext(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    Ok(Value::Bool(!matches!(first(a), Value::Text(_))))
-}
-fn is_logical(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    Ok(Value::Bool(matches!(first(a), Value::Bool(_))))
-}
-
-fn parity(a: &[Arg]) -> R<f64> {
-    match first(a) {
-        Value::Bool(_) => Err(CellError::Value),
-        v => {
-            let n = v.to_number()?;
-            if n.abs() > 9.007_199_254_740_992e15 {
-                return Err(CellError::Num);
-            }
-            Ok(n.trunc().abs() % 2.0)
-        }
-    }
-}
-fn is_even(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    Ok(Value::Bool(parity(a)? == 0.0))
-}
-fn is_odd(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    Ok(Value::Bool(parity(a)? == 1.0))
-}
-
-fn type_of(v: &Value) -> f64 {
-    match v {
-        Value::Empty | Value::Number(_) => 1.0,
-        Value::Text(_) => 2.0,
-        Value::Bool(_) => 4.0,
-        Value::Error(_) => 16.0,
-        Value::Array(_) => 64.0,
-    }
-}
-fn type_fn(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    let Some(arg) = a.first() else { return Err(CellError::Value) };
-    let t = match &arg.value {
-        // A single-cell reference reports the type of its content.
-        Value::Array(arr) if arg.from_ref && arr.rows == 1 && arr.cols == 1 => arr.data.first().map_or(1.0, type_of),
-        v => type_of(v),
-    };
-    Ok(Value::Number(t))
-}
-
-fn error_type(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    match first(a) {
-        Value::Error(e) => Ok(Value::Number(e.code() as f64)),
-        _ => Err(CellError::NA),
-    }
-}
-
-fn na(_a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    Err(CellError::NA)
-}
-
-fn n_fn(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    // N(range) reads the range's first cell, but a computed array (N(A1:A3>0), N({...})) is
-    // converted element by element, so N can stand in for `--` inside SUMPRODUCT.
-    if let Some(Arg { value: Value::Array(arr), from_ref: false }) = a.first() {
-        let data = arr.data.iter().map(|v| n_of(v.clone()).unwrap_or_else(Value::Error)).collect();
-        return Array::new(arr.rows, arr.cols, data).map(Value::from).ok_or(CellError::Calc);
-    }
-    n_of(first(a))
-}
-
-fn n_of(v: Value) -> R<Value> {
-    match v {
-        Value::Number(n) => Ok(Value::Number(n)),
-        Value::Bool(b) => Ok(Value::Number(if b { 1.0 } else { 0.0 })),
-        Value::Error(e) => Err(e),
-        _ => Ok(Value::Number(0.0)),
-    }
 }
 
 fn info(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
@@ -320,16 +228,16 @@ fn value_err(_a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
 
 pub(crate) fn specs() -> Vec<FnSpec> {
     vec![
-        f!("ISBLANK", 1, 1, Information, S, "ISBLANK(value)", "TRUE when the value refers to an empty cell.", is_blank),
-        f!("ISERR", 1, 1, Information, S, "ISERR(value)", "TRUE when the value is any error other than #N/A.", is_err),
-        f!("ISERROR", 1, 1, Information, S, "ISERROR(value)", "TRUE when the value is any error.", is_error),
-        f!("ISNA", 1, 1, Information, S, "ISNA(value)", "TRUE when the value is the #N/A error.", is_na),
-        f!("ISNUMBER", 1, 1, Information, S, "ISNUMBER(value)", "TRUE when the value is a number.", is_number),
-        f!("ISTEXT", 1, 1, Information, S, "ISTEXT(value)", "TRUE when the value is text.", is_text),
-        f!("ISNONTEXT", 1, 1, Information, S, "ISNONTEXT(value)", "TRUE when the value is anything other than text.", is_nontext),
-        f!("ISLOGICAL", 1, 1, Information, S, "ISLOGICAL(value)", "TRUE when the value is TRUE or FALSE.", is_logical),
-        f!("ISEVEN", 1, 1, Information, S, "ISEVEN(number)", "TRUE when the integer part of a number is even.", is_even),
-        f!("ISODD", 1, 1, Information, S, "ISODD(number)", "TRUE when the integer part of a number is odd.", is_odd),
+        f!("ISBLANK", 1, 1, Information, S, "ISBLANK(value)", "TRUE when the value refers to an empty cell.", classify::<BLANK>),
+        f!("ISERR", 1, 1, Information, S, "ISERR(value)", "TRUE when the value is any error other than #N/A.", classify::<OTHER_ERROR>),
+        f!("ISERROR", 1, 1, Information, S, "ISERROR(value)", "TRUE when the value is any error.", classify::<{ NA | OTHER_ERROR }>),
+        f!("ISNA", 1, 1, Information, S, "ISNA(value)", "TRUE when the value is the #N/A error.", classify::<NA>),
+        f!("ISNUMBER", 1, 1, Information, S, "ISNUMBER(value)", "TRUE when the value is a number.", classify::<NUMBER>),
+        f!("ISTEXT", 1, 1, Information, S, "ISTEXT(value)", "TRUE when the value is text.", classify::<TEXT>),
+        f!("ISNONTEXT", 1, 1, Information, S, "ISNONTEXT(value)", "TRUE when the value is anything other than text.", classify::<{ !TEXT }>),
+        f!("ISLOGICAL", 1, 1, Information, S, "ISLOGICAL(value)", "TRUE when the value is TRUE or FALSE.", classify::<BOOLEAN>),
+        f!("ISEVEN", 1, 1, Information, S, "ISEVEN(number)", "TRUE when the integer part of a number is even.", value_info::parity::<false>),
+        f!("ISODD", 1, 1, Information, S, "ISODD(number)", "TRUE when the integer part of a number is odd.", value_info::parity::<true>),
         f!(
             "TYPE",
             1,
@@ -338,7 +246,7 @@ pub(crate) fn specs() -> Vec<FnSpec> {
             A,
             "TYPE(value)",
             "Returns a code for the kind of value: 1 number, 2 text, 4 logical, 16 error, 64 array.",
-            type_fn
+            value_info::type_code
         ),
         f!(
             "ERROR.TYPE",
@@ -348,10 +256,19 @@ pub(crate) fn specs() -> Vec<FnSpec> {
             S,
             "ERROR.TYPE(error_val)",
             "Returns the number identifying an error value, or #N/A if it is not an error.",
-            error_type
+            value_info::error_code
         ),
-        f!("NA", 0, 0, Information, S, "NA()", "Returns the #N/A error value.", na),
-        f!("N", 1, 1, Information, A, "N(value)", "Converts a value to a number: numbers stay, TRUE is 1, everything else is 0.", n_fn),
+        f!("NA", 0, 0, Information, S, "NA()", "Returns the #N/A error value.", value_info::not_available),
+        f!(
+            "N",
+            1,
+            1,
+            Information,
+            A,
+            "N(value)",
+            "Converts a value to a number: numbers stay, TRUE is 1, everything else is 0.",
+            value_info::numeric
+        ),
         f!("INFO", 1, 1, Information, S, "INFO(type_text)", "Returns information about the operating environment.", info),
         f!("AND", 1, VAR, Logical, A, "AND(logical1, [logical2], ...)", "TRUE when every argument is TRUE.", and),
         f!("OR", 1, VAR, Logical, A, "OR(logical1, [logical2], ...)", "TRUE when at least one argument is TRUE.", or),
@@ -422,7 +339,7 @@ pub(crate) fn specs() -> Vec<FnSpec> {
             A,
             "CUBEKPIMEMBER(connection, kpi_name, kpi_property, [caption])",
             "Returns a key performance indicator property from a cube (no cube connections; #N/A).",
-            na
+            value_info::not_available
         ),
         f!(
             "CUBEMEMBER",
@@ -432,7 +349,7 @@ pub(crate) fn specs() -> Vec<FnSpec> {
             A,
             "CUBEMEMBER(connection, member_expression, [caption])",
             "Returns a member or tuple from a cube (no cube connections; #N/A).",
-            na
+            value_info::not_available
         ),
         f!(
             "CUBEMEMBERPROPERTY",
@@ -442,7 +359,7 @@ pub(crate) fn specs() -> Vec<FnSpec> {
             A,
             "CUBEMEMBERPROPERTY(connection, member_expression, property)",
             "Returns a property of a cube member (no cube connections; #N/A).",
-            na
+            value_info::not_available
         ),
         f!(
             "CUBERANKEDMEMBER",
@@ -452,7 +369,7 @@ pub(crate) fn specs() -> Vec<FnSpec> {
             A,
             "CUBERANKEDMEMBER(connection, set_expression, rank, [caption])",
             "Returns the nth member of a cube set (no cube connections; #N/A).",
-            na
+            value_info::not_available
         ),
         f!(
             "CUBESET",
@@ -462,9 +379,18 @@ pub(crate) fn specs() -> Vec<FnSpec> {
             A,
             "CUBESET(connection, set_expression, [caption], [sort_order], [sort_by])",
             "Defines a set of cube members (no cube connections; #N/A).",
-            na
+            value_info::not_available
         ),
-        f!("CUBESETCOUNT", 1, 1, Cube, A, "CUBESETCOUNT(set)", "Counts the items in a cube set (no cube connections; #N/A).", na),
+        f!(
+            "CUBESETCOUNT",
+            1,
+            1,
+            Cube,
+            A,
+            "CUBESETCOUNT(set)",
+            "Counts the items in a cube set (no cube connections; #N/A).",
+            value_info::not_available
+        ),
         f!(
             "CUBEVALUE",
             1,
@@ -473,7 +399,7 @@ pub(crate) fn specs() -> Vec<FnSpec> {
             A,
             "CUBEVALUE(connection, [member_expression1], ...)",
             "Returns an aggregated value from a cube (no cube connections; #N/A).",
-            na
+            value_info::not_available
         ),
     ]
 }

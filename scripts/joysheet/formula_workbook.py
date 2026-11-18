@@ -24,7 +24,7 @@ def cells(source):
                 continue
             assert address == f"G{len(rows) + 2}"
             kind = cell.get("t", "n")
-            assert kind in {"n", "e", "str"}, (source, address, kind)
+            assert kind in {"n", "e", "str", "b"}, (source, address, kind)
             value = cell.findtext("{*}v")
             assert value is not None or kind == "str"
             rows.append((formula.removeprefix("_xlfn."), kind, value or ""))
@@ -42,7 +42,7 @@ def differences(rows, reference, number_equal):
     return failures
 
 
-def exchange(old, new, source, folder, number_equal):
+def exchange(old, new, source, folder, number_equal, previous_writer_reference=None, inspect_writers=None):
     digest, save = CALENDAR["digest"], CALENDAR["save"]
     original = digest(source)
     expected = cells(source)
@@ -53,19 +53,29 @@ def exchange(old, new, source, folder, number_equal):
         by_writer[label] = cells(output)
     errors = {key: differences(rows, expected, number_equal) for key, rows in by_writer.items()}
     assert not errors["candidate"], errors["candidate"]
-    # Force each reader to recalculate and save the other writer's formulas.
+    previous = cells(previous_writer_reference) if previous_writer_reference else None
+    # A previous writer may change formula entry modes. Compare its reopened
+    # results against Excel's own recalculation of that precise set of modes.
+
     for label, reader in (("baseline", old), ("candidate", new)):
-        partner = "baseline" if label == "candidate" else "candidate"
-        output = folder / f"{source.stem}-{partner}-to-{label}.xlsx"
-        save(reader, folder / f"{source.stem}-{partner}.xlsx", output, "en")
-        assert not differences(cells(output), by_writer[label], number_equal)
+        for writer in by_writer:
+            output = folder / f"{source.stem}-{writer}-to-{label}.xlsx"
+            save(reader, folder / f"{source.stem}-{writer}.xlsx", output, "en")
+            reference = previous if label == "candidate" and writer == "baseline" and previous is not None else by_writer[label]
+            found = differences(cells(output), reference, number_equal)
+            assert not found, (writer, label, found)
     assert digest(source) == original
     return {
         "sourceSha256": original,
+        **({"fileContract": inspect_writers(source, {label: folder / f"{source.stem}-{label}.xlsx" for label in by_writer})}
+           if inspect_writers else {}),
         "independentByFunction": dict(Counter(f.split("(")[0] for f, _, _ in expected)),
         "baselineDifferences": errors["baseline"],
         "candidateDifferences": len(errors["candidate"]),
         "bothGenerationsRecalculatedBothWriters": True,
+        **({"previousWriterReferenceSha256": digest(previous_writer_reference),
+            "sourceResultsChangedByPreviousWriter": len(differences(previous, expected, number_equal))}
+           if previous is not None else {}),
     }
 
 
@@ -91,8 +101,10 @@ def native(program, folder, data, new_input, output_name, number_equal):
         for i in indices:
             actual = call("engine.execute", command="cell.get", params={"cell": f"G{i + 2}"})
             expr, kind, expected = states[state][i]
-            assert actual["type"] == {"n": "number", "e": "error", "str": "text"}[kind], (i, actual)
-            if kind != "n":
+            assert actual["type"] == {"n": "number", "e": "error", "str": "text", "b": "boolean"}[kind], (i, actual)
+            if kind == "b":
+                assert expected in {"0", "1"} and actual["value"] is (expected == "1"), (i, actual, expected)
+            elif kind != "n":
                 assert actual["text"] == expected, (i, actual, expected)
             else:
                 assert number_equal(expr, actual["value"], expected), (i, actual, expected)
@@ -123,7 +135,7 @@ def native(program, folder, data, new_input, output_name, number_equal):
             "savedTypedCaches": len(states[1]), "undoRedoAndFreshReopen": True, "originalUnchanged": True}
 
 
-def run_family(description, data, new_input, output_name, number_equal):
+def run_family(description, data, new_input, output_name, number_equal, *, previous_writer_data=None, inspect_writers=None):
     p = argparse.ArgumentParser(description=description)
     for name in ("baseline", "candidate", "output"):
         p.add_argument(name, type=Path)
@@ -132,7 +144,9 @@ def run_family(description, data, new_input, output_name, number_equal):
     old, new, folder = [path.resolve() for path in (args.baseline, args.candidate, args.output)]
     folder.mkdir(parents=True)
     result = {"binaries": [CALENDAR["digest"](p) for p in (old, new)],
-              "excel": {book.stem: exchange(old, new, book.resolve(), folder, number_equal) for book in sorted(data.glob("*.xlsx"))}}
+              "excel": {book.stem: exchange(old, new, book.resolve(), folder, number_equal,
+                                             previous_writer_data / book.name if previous_writer_data else None, inspect_writers)
+                        for book in sorted(data.glob("*.xlsx"))}}
     assert set(result["excel"]) == {"base", "edit"}
     if args.desktop:
         result["native"] = native(args.desktop.resolve(), folder, data, new_input, output_name, number_equal)

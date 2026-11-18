@@ -112,15 +112,14 @@ pub(super) fn paste_special(s: &mut Session, p: &Json) -> Result<Json> {
                                 } else {
                                     e
                                 };
-                                let mut moved = Formula::from_expr(e);
+                                let mut moved = f.rewritten(e, None);
                                 // The array range moves with its formula.
                                 let (dr, dc) = (dest.row as i64 - sc.row as i64, dest.col as i64 - sc.col as i64);
                                 moved.array = f.array.and_then(|a| Some(RangeRef::new(a.start.offset(dr, dc)?, a.end.offset(dr, dc)?)));
-                                moved.dynamic = f.dynamic;
                                 return Some(std::sync::Arc::new(moved));
                             }
                             let moved = joysheet_formula::adjust::shift_relative(e, dest.row as i64 - sc.row as i64, dest.col as i64 - sc.col as i64);
-                            Some(std::sync::Arc::new(Formula { dynamic: f.dynamic, ..Formula::from_expr(moved) }))
+                            Some(std::sync::Arc::new(f.rewritten_cell(moved, dest)))
                         };
                         if link {
                             let sheet_prefix = if dest_sheet == clip.sheet && same_doc {
@@ -333,9 +332,7 @@ pub(crate) fn rewrite_all_formulas(wb: &mut joysheet_model::Workbook, target: &s
             if (text != f.text || array != f.array)
                 && let Some(cell) = sheet.cells.get_mut(c)
             {
-                let mut nf = Formula::from_expr(new);
-                nf.array = array;
-                nf.dynamic = f.dynamic;
+                let nf = f.rewritten(new, array);
                 cell.formula = Some(std::sync::Arc::new(nf));
             }
         }

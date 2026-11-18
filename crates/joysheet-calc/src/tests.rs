@@ -34,6 +34,26 @@ impl T {
 }
 
 #[test]
+fn type_preserves_file_entry_mode_and_new_expression_semantics() {
+    let mut t = T::new();
+    t.set("A1", "TRUE");
+    t.set("A2", "name");
+    let mut scalar = Formula::new("TYPE(A1:A2)");
+    scalar.keep_file_type_mode();
+    let mut cse = Formula::new("TYPE(ISNUMBER(INDIRECT(\"A\"&ROW())))");
+    cse.array = Some(joysheet_core::RangeRef::cell(c("D2")));
+    let copied = cse.rewritten_cell(cse.expr().unwrap(), c("F2"));
+    assert_eq!(copied.array, Some(joysheet_core::RangeRef::cell(c("F2"))));
+    let modern = Formula::new("TYPE(ISNUMBER(INDIRECT(\"A\"&ROW())))");
+    let inputs = [("B2", scalar), ("C2", Formula::new("TYPE(A1:A2)")), ("D2", cse), ("E2", modern), ("F2", copied)];
+    for (pos, formula) in inputs {
+        t.wb.sheet_mut(0).unwrap().cells.set(c(pos), Cell::formula(formula));
+    }
+    t.calc.recalc_all(&mut t.wb);
+    assert_eq!([t.num("B2"), t.num("C2"), t.num("D2"), t.num("E2"), t.num("F2")], [2., 64., 64., 4., 64.]);
+}
+
+#[test]
 fn constant_sum_memo_preserves_float_order_and_expires_with_pass() {
     let mut t = T::new();
     t.set("A1", "-10000000000000000");

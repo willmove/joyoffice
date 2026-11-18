@@ -1,47 +1,11 @@
 //! Integer representations used by the engineering and mathematical worksheet functions.
 use joysheet_core::{CellError, Value};
 
-use crate::util::{R, arg, has, num_val, text_val};
+use crate::util::{R, has, num_val, number_with_decimal_digits as number, scalar_argument as input, text_val};
 use crate::{Arg, Ctx};
 
 const DIGITS: &[u8; 36] = b"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const BIT_LIMIT: u64 = 1 << 48;
-
-// Decimal scripts accepted in numeric arguments by Excel's conversion functions.
-// Encoded strings such as HEX2DEC's first argument use the ASCII alphabet.
-const DECIMAL_ZERO: [u32; 18] =
-    [0x0660, 0x06f0, 0x0966, 0x09e6, 0x0a66, 0x0ae6, 0x0b66, 0x0be6, 0x0c66, 0x0ce6, 0x0d66, 0x0e50, 0x0ed0, 0x0f20, 0x1040, 0x17e0, 0x1810, 0xff10];
-
-fn input(args: &[Arg], index: usize) -> R<&Value> {
-    Ok(match &arg(args, index)?.value {
-        Value::Array(array) => array.data.first().unwrap_or(&Value::Empty),
-        value => value,
-    })
-}
-
-fn number(args: &[Arg], index: usize, allow_logical: bool) -> R<f64> {
-    let value = input(args, index)?;
-    if let Value::Number(n) = value {
-        return Ok(*n);
-    }
-    if !allow_logical && matches!(value, Value::Bool(_)) {
-        return Err(CellError::Value);
-    }
-    if let Value::Text(t) = value
-        && !t.is_ascii()
-    {
-        let normalized: String = t
-            .chars()
-            .map(|c| {
-                let code = u32::from(c);
-                let pos = DECIMAL_ZERO.partition_point(|&start| start <= code);
-                pos.checked_sub(1).and_then(|i| char::from_digit(code - DECIMAL_ZERO[i], 10)).unwrap_or(c)
-            })
-            .collect();
-        return Value::from(normalized).to_number();
-    }
-    value.to_number()
-}
 
 fn digit(byte: u8, radix: u32) -> R<u32> {
     char::from(byte).to_digit(radix).ok_or(CellError::Num)

@@ -6,7 +6,7 @@
 //! bag whose `XFControls` key names an `XFControls` bag, whose `CellControl` key names a
 //! `Checkbox` bag. Bag references are zero-based indexes into the part's list of `bag` elements.
 //!
-//! GridCraft keeps a checkbox as the `checkbox` number format in its model, so reading maps each
+//! JoySheet keeps a checkbox as the `checkbox` number format in its model, so reading maps each
 //! `xfComplement` that resolves to a `Checkbox` bag onto that format, and writing emits one chain
 //! that every checkbox `xf` points at.
 
@@ -23,12 +23,15 @@ pub const PART: &str = "xl/featurePropertyBag/featurePropertyBag.xml";
 /// `ext` URI of the `xfComplement` extension on an `xf`.
 pub const XF_EXT_URI: &str = "{C7286773-470A-42A8-94C5-96B5CB345126}";
 
+// Excel 16.115 requires the mapper's public name when opening a generated workbook.
+const XF_MAPPER: &str = "XFComplementsMapperExtRef";
+
 /// The bags for one checkbox cell control, referenced as `xfComplement i="0"`: Checkbox (0),
 /// XFControls → 0 (1), XFComplement → 1 (2), XFComplements mapping index 0 → 2 (3). Every
 /// reference points to an earlier bag, as [MS-XLSX] 2.6.230 requires.
 pub fn checkbox_part() -> String {
     format!(
-        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<FeaturePropertyBags xmlns=\"{NS}\" count=\"4\"><bag type=\"Checkbox\"/><bag type=\"XFControls\"><bagId k=\"CellControl\">0</bagId></bag><bag type=\"XFComplement\"><bagId k=\"XFControls\">1</bagId></bag><bag type=\"XFComplements\"><a k=\"MappedFeaturePropertyBags\"><bagId>2</bagId></a></bag></FeaturePropertyBags>"
+        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<FeaturePropertyBags xmlns=\"{NS}\" count=\"4\"><bag type=\"Checkbox\"/><bag type=\"XFControls\"><bagId k=\"CellControl\">0</bagId></bag><bag type=\"XFComplement\"><bagId k=\"XFControls\">1</bagId></bag><bag type=\"XFComplements\" extRef=\"{XF_MAPPER}\"><a k=\"MappedFeaturePropertyBags\"><bagId>2</bagId></a></bag></FeaturePropertyBags>"
     )
 }
 
@@ -41,16 +44,31 @@ pub fn checkbox_xf_ext() -> String {
 /// malformed or out-of-range references simply resolve to `false`.
 pub fn checkbox_complements(root: &El) -> Vec<bool> {
     let bags: Vec<&El> = root.kids("bag").collect();
-    let bag = |i: Option<u32>, ty: &str| i.and_then(|i| bags.get(i as usize).copied()).filter(|b| b.attr("type") == Some(ty));
-    let key = |b: &El, k: &str| b.kids("bagId").find(|e| e.attr("k") == Some(k)).and_then(|e| e.text.trim().parse::<u32>().ok());
-    let Some(map) = bags.iter().find(|b| b.attr("type") == Some("XFComplements")) else { return Vec::new() };
-    let Some(arr) = map.kids("a").find(|a| a.attr("k") == Some("MappedFeaturePropertyBags")) else { return Vec::new() };
-    arr.kids("bagId")
+    // A bagId may only refer to an earlier sibling. Follow three typed
+    // edges, preserving the map index even when one entry is malformed.
+    let earlier = |owner: usize, index: Option<usize>, kind: &str| {
+        let index = index?;
+        let bag = bags.get(..owner)?.get(index)?;
+        (bag.attr("type") == Some(kind)).then_some((index, *bag))
+    };
+    let key = |bag: &El, name: &str| bag.kids("bagId").find(|e| e.attr("k") == Some(name))?.text.trim().parse::<usize>().ok();
+    let mappers = || bags.iter().enumerate().filter(|(_, b)| b.attr("type") == Some("XFComplements"));
+    // Older JoySheet writers omitted extRef. The schema also allows other
+    // names. A single mapping is unambiguous in either case.
+    let mapper = mappers().find(|(_, b)| b.attr("extRef") == Some(XF_MAPPER)).or_else(|| {
+        let mut candidates = mappers();
+        let first = candidates.next()?;
+        candidates.next().is_none().then_some(first)
+    });
+    let Some((owner, mapping)) = mapper else { return Vec::new() };
+    let Some(entries) = mapping.kids("a").find(|a| a.attr("k") == Some("MappedFeaturePropertyBags")) else { return Vec::new() };
+    entries
+        .kids("bagId")
         .take(100_000)
-        .map(|e| {
-            let complement = bag(e.text.trim().parse::<u32>().ok(), "XFComplement");
-            let controls = complement.and_then(|c| bag(key(c, "XFControls"), "XFControls"));
-            controls.and_then(|c| bag(key(c, "CellControl"), "Checkbox")).is_some()
+        .map(|entry| {
+            let complement = earlier(owner, entry.text.trim().parse().ok(), "XFComplement");
+            let controls = complement.and_then(|(index, bag)| earlier(index, key(bag, "XFControls"), "XFControls"));
+            controls.and_then(|(index, bag)| earlier(index, key(bag, "CellControl"), "Checkbox")).is_some()
         })
         .collect()
 }

@@ -390,3 +390,11 @@ JoySheet 的工程函数和数学函数共用整数转换实现。Excel 16.115 �
 在 Apple M4 Metal 和 UOS 25 Radeon 890M Vulkan 上，各比对两种尺寸的 1,850 帧。两台机器也分别在真实放映窗口使用硬件和 CPU 暂停立方体及轨道转场，逐张截图的 3,864 个位置均在验收容差内。UOS 初次用默认搜狗输入法放映时，按 P 未能暂停。共享 X11 后端现将没有文字接收器的窗口按键送给应用；正文、备注和单元格仍通过 XIM 组合及选词。原桌面搜狗保持启用，真实窗口重测通过。另以独立 Fcitx5 拼音和 macOS 系统拼音复验三产品的选词、撤销、保存及重开。[窗口与读回](../../../../scripts/joydeck/check-transition-window.py) · [X11 来源与许可](../../../../licenses/gpui/NOTICE.md)
 
 按族回退可从 `18424801` 恢复原转场分派。X11 输入路由可独立恢复同一提交中的客户端、窗口和来源记录。旧版本能重开新程序保存的 PPTX。放映中的硬件合成仍可通过 `JOYDECK_GPU_TRANSITIONS=0` 切换到 CPU。
+
+## Sheet 信息函数与复选框读写
+
+八个 IS 类型判断、奇偶判断、`TYPE`、`N`、`ERROR.TYPE` 和 `NA` 已接入 JoySheet 自研实现。普通文件公式的隐式交叉、动态数组和单格旧式数组公式保留各自的录入方式。两份由 Excel 16.115 独立重算的工作簿各有 867 个公式，每份的旧版结果中有 51 处差异，新版均为零。原来另存会改变 176 个 `TYPE` 公式中 47 个的录入方式，Excel 重开后有 34 个值随之改变；新版两项差异均为零。两份新文件又由 Excel 实际打开、重算、保存并逐格复核。[两代读写与 Excel 结果](value-information.json) · [类型函数](https://support.microsoft.com/en-us/excel/functions/type-function) · [隐式交叉](https://support.microsoft.com/en-us/excel/implicit-intersection-operator)
+
+这次还定位了 Excel 打开旧版另存文件时弹出的修复提示。分别替换文件部件，再单独改变复选框映射表的名称或数量属性。补上 `XFComplementsMapperExtRef` 后 Excel 可正常打开，只移除数量属性时仍要求修复。新读取器逐级检查映射类型，并要求引用指向已经出现的条目，兼容只有一个无名映射的旧文件。[文件试验](value-information.json) · [MS-XLSX 特性包](https://learn.microsoft.com/en-us/openspecs/office_standards/ms-xlsx/8383a417-7cb1-4324-af63-99dd77ffebd5)
+
+macOS 与 UOS 25 各通过 1,491 项产品回归，原有一项忽略。真实 Sheet 窗口把 A1 从 7 改为 12，再撤销、重做、保存、重开；五个状态各检查 91 格，发生变化的 63 格全部覆盖。19 个进制和位运算函数另复验 16,644 个缓存值。两份授权业务表原件均无公式，派生副本的 916 和 16 个公式在两端全部吻合。六种函数调用的每次中位数，macOS 均下降，UOS 的小幅变化和全部原始样本见记录。函数与格式映射可共同回退至 `18424801`；旧程序能读取两版文件，旧写入器会重现上述录入方式和复选框问题。[原生回归、计时和回退](value-information.json) · [重放脚本](../../../../scripts/joysheet/check-value-information.py)

@@ -58,7 +58,7 @@ pub(super) fn delete_sheet(s: &mut Session, p: &Json) -> Result<Json> {
                 if let Some(e) = f.expr() {
                     let ne = joysheet_formula::adjust::delete_sheet(e, &name, &order);
                     if let Some(cell) = sh.cells.get_mut(c) {
-                        cell.formula = Some(Arc::new(joysheet_model::Formula::from_expr(ne)));
+                        cell.formula = Some(Arc::new(f.rewritten(ne, f.array)));
                     }
                 }
             }
@@ -112,7 +112,7 @@ pub(super) fn rename_sheet(s: &mut Session, p: &Json) -> Result<Json> {
                     if text != f.text
                         && let Some(cell) = sh.cells.get_mut(c)
                     {
-                        cell.formula = Some(Arc::new(joysheet_model::Formula::from_expr(ne)));
+                        cell.formula = Some(Arc::new(f.rewritten(ne, f.array)));
                     }
                 }
             }

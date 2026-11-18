@@ -1,0 +1,692 @@
+{
+  "baseline": "18424801. The intervening Word proof and Deck input changes do not alter the Sheet calculation or file format code. Both reference workbooks use synthetic inputs, with the controlling A1 cell set to 7 and 12 respectively.",
+  "scope": "Eight stored-value IS predicates, ISEVEN, ISODD, TYPE, N, ERROR.TYPE and NA use first-party classification and conversion. ISREF and INDEX are retained as independent reference and reference-producer controls. The model remembers imported ordinary TYPE entry, legacy one-cell CSE and dynamic array modes through copy/fill/sort and reference rewrites. The XLSX checkbox mapping resolves bounded typed backward references and writes the mapper name accepted by Excel.",
+  "independentReference": "Microsoft Excel for Mac 16.115 opened and independently recalculated the workbooks. JoySheet previously changed 47 of 176 TYPE entry modes in each file. For the old-writer reference copies only, the missing checkbox mapper name was added before recalculating in Excel, preserving the worksheet XML supplied by the old writer. Excel then produced 34 different results in each workbook. The original Excel files, both prior-writer reference sheets and the current JoySheet output are checked separately.",
+  "excelReopen": {
+    "base": {
+      "cachedCells": 867,
+      "differences": 0,
+      "excelSavedSha256": "dfd81381d0e532a47e10e41c736718b076de29eb8f71b828b1cb7679e992fc10",
+      "inputJoySheetSha256": "864b248b9280150fdb6c67d63b43b9870d4051c5e4b61faa5bd463dba6a2864d"
+    },
+    "edit": {
+      "cachedCells": 867,
+      "differences": 0,
+      "excelSavedSha256": "cfaf9922b94253e40fb2e04958408f2c04dda895a80effbbe65f0ebead00399c",
+      "inputJoySheetSha256": "c42e1252dcd906dfeeb89bcfdf2828711610be61a5a228acf854f0d8ce7f4140"
+    }
+  },
+  "excelPackageIsolation": {
+    "desktopVersion": "16.115",
+    "observedCases": {
+      "excel": "opened",
+      "native": "repair",
+      "sheet": "repair",
+      "styles": "opened",
+      "metadata": "opened",
+      "sst": "opened",
+      "table": "opened",
+      "table-nocache": "opened",
+      "fix-theme": "repair",
+      "fix-feature": "opened",
+      "fix-properties": "repair",
+      "fix-original-two": "opened",
+      "workbook": "opened",
+      "workbookrels": "opened",
+      "types": "opened",
+      "rootrels": "opened",
+      "properties": "opened",
+      "workbook-both": "opened",
+      "head": "opened",
+      "nochain-head": "opened",
+      "feature-label": "opened",
+      "feature-count": "repair",
+      "feature-both": "opened"
+    },
+    "interpretation": "Adding the mapper name by itself made the generated file open normally. Removing the optional count by itself still produced a repair prompt."
+  },
+  "referenceURLs": [
+    "https://support.microsoft.com/en-us/excel/functions/type-function",
+    "https://support.microsoft.com/en-us/excel/implicit-intersection-operator",
+    "https://support.microsoft.com/en-us/excel/functions/is-functions",
+    "https://support.microsoft.com/en-us/excel/functions/iseven-function",
+    "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-xlsx/8383a417-7cb1-4324-af63-99dd77ffebd5",
+    "https://learn.microsoft.com/en-us/openspecs/office_standards/ms-xlsx/c36ae2cb-267b-4ee9-9d22-9928e65a1e8c"
+  ],
+  "timing": "Each of six registry calls uses 11 interleaved samples of 100,000 calls per build. Optimized builds use separate target directories; each executable checks its own expected high-value parity result before measuring. UOS both on CPU 3. Units are ns per call.",
+  "rollback": "Restore calculation, model, format reader and writer files from 18424801 together. The older program reopens either writer’s data and exhibits the recorded previous calculated values and entry modes. Reopening an old-writer file in Excel can require repair of its checkbox mapper. Retain originals.",
+  "platforms": {
+    "macOS": {
+      "binaries": [
+        "645f5a0faf806471dff2f9e7d15fecc0f757bfdb1e2f670d15ff99ac3d1cb164",
+        "d831817b246a764446a9835704e99f984402614fa952f8821af4e478754a1216"
+      ],
+      "excel": {
+        "base": {
+          "sourceSha256": "0a187e4cff054e41517712e88325427efe46499a4658598e25a4d69d3bbd47a0",
+          "fileContract": {
+            "typeFormulas": 176,
+            "previousWriterChangedEntryModes": 47,
+            "candidateWriterChangedEntryModes": 0,
+            "checkboxMapper": "XFComplementsMapperExtRef"
+          },
+          "independentByFunction": {
+            "ISBLANK": 50,
+            "ISERR": 50,
+            "ISERROR": 50,
+            "ISNA": 50,
+            "ISNUMBER": 50,
+            "ISTEXT": 50,
+            "ISNONTEXT": 50,
+            "ISLOGICAL": 50,
+            "ISEVEN": 50,
+            "ISODD": 50,
+            "TYPE": 176,
+            "ERROR.TYPE": 50,
+            "N": 50,
+            "ISREF": 54,
+            "INDEX": 36,
+            "NA": 1
+          },
+          "candidateDifferences": 0,
+          "bothGenerationsRecalculatedBothWriters": true,
+          "previousWriterReferenceSha256": "6568b12097ff750c81c244c38c016dc29fa4e55619627653ea9569760cc36658",
+          "sourceResultsChangedByPreviousWriter": 34,
+          "baselineDifferences": 51,
+          "baselineDifferencesByFunction": {
+            "ISEVEN": 5,
+            "ISODD": 5,
+            "TYPE": 41
+          }
+        },
+        "edit": {
+          "sourceSha256": "5aa4404df24526576446f34534b90edf3aee4342b503744aa4c963d08c8a9e7f",
+          "fileContract": {
+            "typeFormulas": 176,
+            "previousWriterChangedEntryModes": 47,
+            "candidateWriterChangedEntryModes": 0,
+            "checkboxMapper": "XFComplementsMapperExtRef"
+          },
+          "independentByFunction": {
+            "ISBLANK": 50,
+            "ISERR": 50,
+            "ISERROR": 50,
+            "ISNA": 50,
+            "ISNUMBER": 50,
+            "ISTEXT": 50,
+            "ISNONTEXT": 50,
+            "ISLOGICAL": 50,
+            "ISEVEN": 50,
+            "ISODD": 50,
+            "TYPE": 176,
+            "ERROR.TYPE": 50,
+            "N": 50,
+            "ISREF": 54,
+            "INDEX": 36,
+            "NA": 1
+          },
+          "candidateDifferences": 0,
+          "bothGenerationsRecalculatedBothWriters": true,
+          "previousWriterReferenceSha256": "5675932c0d472eb130b670e972b2140f6d5de36546680ab6bcd2ab0b069980da",
+          "sourceResultsChangedByPreviousWriter": 34,
+          "baselineDifferences": 51,
+          "baselineDifferencesByFunction": {
+            "ISEVEN": 5,
+            "ISODD": 5,
+            "TYPE": 41
+          }
+        }
+      },
+      "native": {
+        "changedCells": 63,
+        "checkedPerState": 91,
+        "states": 5,
+        "savedTypedCaches": 867,
+        "undoRedoAndFreshReopen": true,
+        "originalUnchanged": true
+      },
+      "integerRegression": {
+        "cachesCompared": 16644,
+        "differences": 0,
+        "bothReadersAndWriters": true
+      },
+      "product": {
+        "passed": 1491,
+        "failed": 0,
+        "ignored": 1
+      },
+      "businessSamples": [
+        {
+          "sourceSha256": "521576e13e1ced708e2f7efac270da864053d9b05ce6216831970f3fa9fdc126",
+          "originalFormulaCells": 0,
+          "derivedFormulaCells": 916
+        },
+        {
+          "sourceSha256": "7034ab68c7c22f09a07114767d912c4bf8e87849d35e03bb76c15e9ef25e984d",
+          "originalFormulaCells": 0,
+          "derivedFormulaCells": 16
+        }
+      ],
+      "timing": {
+        "text-predicate": {
+          "baseline": [
+            6.491,
+            5.767,
+            5.928,
+            5.528,
+            5.644,
+            5.648,
+            5.485,
+            6.143,
+            6.242,
+            5.9,
+            5.922
+          ],
+          "candidate": [
+            4.604,
+            5.555,
+            4.558,
+            4.593,
+            4.518,
+            4.504,
+            4.704,
+            4.532,
+            4.943,
+            4.596,
+            4.484
+          ],
+          "repetitions": 100000,
+          "baselineMedianNs": 5.9,
+          "candidateMedianNs": 4.593
+        },
+        "number-predicate": {
+          "baseline": [
+            6.563,
+            5.42,
+            5.348,
+            5.348,
+            5.144,
+            5.341,
+            5.405,
+            5.645,
+            5.6,
+            5.346,
+            5.58
+          ],
+          "candidate": [
+            4.555,
+            4.874,
+            4.577,
+            4.513,
+            4.888,
+            4.515,
+            4.623,
+            5.415,
+            4.918,
+            4.509,
+            4.485
+          ],
+          "repetitions": 100000,
+          "baselineMedianNs": 5.405,
+          "candidateMedianNs": 4.577
+        },
+        "na-predicate": {
+          "baseline": [
+            6.025,
+            5.657,
+            5.233,
+            5.29,
+            5.256,
+            5.25,
+            5.357,
+            6.703,
+            6.022,
+            5.16,
+            5.222
+          ],
+          "candidate": [
+            4.534,
+            4.899,
+            4.563,
+            5.336,
+            4.868,
+            5.176,
+            6.279,
+            5.36,
+            4.937,
+            4.552,
+            4.552
+          ],
+          "repetitions": 100000,
+          "baselineMedianNs": 5.29,
+          "candidateMedianNs": 4.899
+        },
+        "text-type": {
+          "baseline": [
+            4.916,
+            4.913,
+            4.912,
+            4.898,
+            4.899,
+            4.914,
+            4.925,
+            7.173,
+            5.58,
+            4.9,
+            4.895
+          ],
+          "candidate": [
+            4.484,
+            4.481,
+            4.687,
+            4.442,
+            4.874,
+            4.642,
+            5.853,
+            8.24,
+            4.988,
+            4.639,
+            4.468
+          ],
+          "repetitions": 100000,
+          "baselineMedianNs": 4.913,
+          "candidateMedianNs": 4.642
+        },
+        "fractional-parity": {
+          "baseline": [
+            8.508,
+            8.509,
+            8.503,
+            8.555,
+            8.51,
+            8.506,
+            8.618,
+            12.365,
+            9.213,
+            8.508,
+            8.466
+          ],
+          "candidate": [
+            6.388,
+            6.352,
+            6.52,
+            6.38,
+            6.209,
+            6.354,
+            6.53,
+            8.586,
+            7.163,
+            6.484,
+            6.357
+          ],
+          "repetitions": 100000,
+          "baselineMedianNs": 8.509,
+          "candidateMedianNs": 6.388
+        },
+        "reference-boolean": {
+          "baseline": [
+            6.12,
+            6.118,
+            6.141,
+            6.99,
+            6.112,
+            6.135,
+            6.312,
+            8.441,
+            6.171,
+            6.103,
+            6.116
+          ],
+          "candidate": [
+            5.382,
+            5.308,
+            5.501,
+            5.356,
+            5.347,
+            5.351,
+            5.398,
+            6.588,
+            5.525,
+            5.42,
+            5.361
+          ],
+          "repetitions": 100000,
+          "baselineMedianNs": 6.135,
+          "candidateMedianNs": 5.382
+        }
+      },
+      "spdx": {
+        "target": "aarch64-apple-darwin",
+        "packages": 454,
+        "sourceFiles": 1235,
+        "spdxSha256": "e3577d76cd30d052698470d254c1d813cedfda4177da788920ce13999d16402e",
+        "missingLicenseTexts": [],
+        "sharedCrates": [
+          "joyoffice-cfb",
+          "joyoffice-drawingml",
+          "joyoffice-omml",
+          "joyoffice-opc",
+          "joyoffice-theme",
+          "joyoffice-ui"
+        ],
+        "runtimeLegacyDependencies": []
+      }
+    },
+    "UOS25": {
+      "binaries": [
+        "2e2523eee9b14a5c83157c0839e55788ac25bf75761d0c3d536614cb674ce33a",
+        "ce5ce7a7d2baca0b86118f9bf6a8fffe72a661616eca213bc3c140e21416faa6"
+      ],
+      "excel": {
+        "base": {
+          "sourceSha256": "0a187e4cff054e41517712e88325427efe46499a4658598e25a4d69d3bbd47a0",
+          "fileContract": {
+            "typeFormulas": 176,
+            "previousWriterChangedEntryModes": 47,
+            "candidateWriterChangedEntryModes": 0,
+            "checkboxMapper": "XFComplementsMapperExtRef"
+          },
+          "independentByFunction": {
+            "ISBLANK": 50,
+            "ISERR": 50,
+            "ISERROR": 50,
+            "ISNA": 50,
+            "ISNUMBER": 50,
+            "ISTEXT": 50,
+            "ISNONTEXT": 50,
+            "ISLOGICAL": 50,
+            "ISEVEN": 50,
+            "ISODD": 50,
+            "TYPE": 176,
+            "ERROR.TYPE": 50,
+            "N": 50,
+            "ISREF": 54,
+            "INDEX": 36,
+            "NA": 1
+          },
+          "candidateDifferences": 0,
+          "bothGenerationsRecalculatedBothWriters": true,
+          "previousWriterReferenceSha256": "6568b12097ff750c81c244c38c016dc29fa4e55619627653ea9569760cc36658",
+          "sourceResultsChangedByPreviousWriter": 34,
+          "baselineDifferences": 51,
+          "baselineDifferencesByFunction": {
+            "ISEVEN": 5,
+            "ISODD": 5,
+            "TYPE": 41
+          }
+        },
+        "edit": {
+          "sourceSha256": "5aa4404df24526576446f34534b90edf3aee4342b503744aa4c963d08c8a9e7f",
+          "fileContract": {
+            "typeFormulas": 176,
+            "previousWriterChangedEntryModes": 47,
+            "candidateWriterChangedEntryModes": 0,
+            "checkboxMapper": "XFComplementsMapperExtRef"
+          },
+          "independentByFunction": {
+            "ISBLANK": 50,
+            "ISERR": 50,
+            "ISERROR": 50,
+            "ISNA": 50,
+            "ISNUMBER": 50,
+            "ISTEXT": 50,
+            "ISNONTEXT": 50,
+            "ISLOGICAL": 50,
+            "ISEVEN": 50,
+            "ISODD": 50,
+            "TYPE": 176,
+            "ERROR.TYPE": 50,
+            "N": 50,
+            "ISREF": 54,
+            "INDEX": 36,
+            "NA": 1
+          },
+          "candidateDifferences": 0,
+          "bothGenerationsRecalculatedBothWriters": true,
+          "previousWriterReferenceSha256": "5675932c0d472eb130b670e972b2140f6d5de36546680ab6bcd2ab0b069980da",
+          "sourceResultsChangedByPreviousWriter": 34,
+          "baselineDifferences": 51,
+          "baselineDifferencesByFunction": {
+            "ISEVEN": 5,
+            "ISODD": 5,
+            "TYPE": 41
+          }
+        }
+      },
+      "native": {
+        "changedCells": 63,
+        "checkedPerState": 91,
+        "states": 5,
+        "savedTypedCaches": 867,
+        "undoRedoAndFreshReopen": true,
+        "originalUnchanged": true
+      },
+      "integerRegression": {
+        "cachesCompared": 16644,
+        "differences": 0,
+        "bothReadersAndWriters": true
+      },
+      "product": {
+        "passed": 1491,
+        "failed": 0,
+        "ignored": 1
+      },
+      "businessSamples": [
+        {
+          "sourceSha256": "521576e13e1ced708e2f7efac270da864053d9b05ce6216831970f3fa9fdc126",
+          "originalFormulaCells": 0,
+          "derivedFormulaCells": 916
+        },
+        {
+          "sourceSha256": "7034ab68c7c22f09a07114767d912c4bf8e87849d35e03bb76c15e9ef25e984d",
+          "originalFormulaCells": 0,
+          "derivedFormulaCells": 16
+        }
+      ],
+      "timing": {
+        "text-predicate": {
+          "baseline": [
+            14.527,
+            14.343,
+            15.418,
+            14.398,
+            15.468,
+            14.787,
+            14.958,
+            14.384,
+            14.965,
+            14.832,
+            15.396
+          ],
+          "candidate": [
+            9.152,
+            9.16,
+            9.029,
+            8.989,
+            8.997,
+            9.023,
+            9.239,
+            9.267,
+            10.186,
+            9.123,
+            8.994
+          ],
+          "repetitions": 100000,
+          "baselineMedianNs": 14.832,
+          "candidateMedianNs": 9.123
+        },
+        "number-predicate": {
+          "baseline": [
+            10.701,
+            9.179,
+            9.19,
+            9.186,
+            9.382,
+            12.305,
+            9.171,
+            9.189,
+            9.166,
+            10.791,
+            9.563
+          ],
+          "candidate": [
+            9.141,
+            9.156,
+            9.049,
+            8.956,
+            8.971,
+            9.002,
+            9.229,
+            8.98,
+            9.254,
+            9.175,
+            8.966
+          ],
+          "repetitions": 100000,
+          "baselineMedianNs": 9.19,
+          "candidateMedianNs": 9.049
+        },
+        "na-predicate": {
+          "baseline": [
+            10.617,
+            9.234,
+            9.174,
+            9.176,
+            9.439,
+            10.77,
+            9.156,
+            9.187,
+            9.165,
+            10.832,
+            9.503
+          ],
+          "candidate": [
+            9.136,
+            9.135,
+            9.001,
+            9.531,
+            9.037,
+            8.998,
+            9.227,
+            9.1,
+            9.179,
+            9.045,
+            8.979
+          ],
+          "repetitions": 100000,
+          "baselineMedianNs": 9.234,
+          "candidateMedianNs": 9.1
+        },
+        "text-type": {
+          "baseline": [
+            10.232,
+            8.394,
+            8.383,
+            8.341,
+            8.38,
+            10.37,
+            8.36,
+            8.385,
+            8.457,
+            10.433,
+            8.368
+          ],
+          "candidate": [
+            8.256,
+            8.116,
+            8.188,
+            9.056,
+            8.15,
+            8.187,
+            8.215,
+            8.169,
+            8.184,
+            8.152,
+            8.194
+          ],
+          "repetitions": 100000,
+          "baselineMedianNs": 8.385,
+          "candidateMedianNs": 8.187
+        },
+        "fractional-parity": {
+          "baseline": [
+            15.048,
+            15.366,
+            15.131,
+            15.177,
+            16.316,
+            14.988,
+            15.009,
+            16.185,
+            14.813,
+            15.022,
+            15.075
+          ],
+          "candidate": [
+            16.611,
+            14.941,
+            14.946,
+            14.874,
+            15.055,
+            14.929,
+            17.171,
+            14.611,
+            14.926,
+            15.149,
+            14.964
+          ],
+          "repetitions": 100000,
+          "baselineMedianNs": 15.075,
+          "candidateMedianNs": 14.946
+        },
+        "reference-boolean": {
+          "baseline": [
+            10.286,
+            9.864,
+            10.042,
+            9.794,
+            9.019,
+            10.258,
+            10.148,
+            9.824,
+            10.017,
+            10.355,
+            8.813
+          ],
+          "candidate": [
+            10.164,
+            10.166,
+            8.743,
+            9.768,
+            8.695,
+            9.825,
+            9.774,
+            9.786,
+            9.817,
+            9.866,
+            8.586
+          ],
+          "repetitions": 100000,
+          "baselineMedianNs": 10.017,
+          "candidateMedianNs": 9.786
+        }
+      },
+      "spdx": {
+        "target": "x86_64-unknown-linux-gnu",
+        "packages": 556,
+        "sourceFiles": 1233,
+        "spdxSha256": "d820ff8007037ba3eaaf215219efd1bd4205de944c027d6c77bafa41b1012597",
+        "missingLicenseTexts": [],
+        "sharedCrates": [
+          "joyoffice-cfb",
+          "joyoffice-drawingml",
+          "joyoffice-omml",
+          "joyoffice-opc",
+          "joyoffice-theme",
+          "joyoffice-ui"
+        ],
+        "runtimeLegacyDependencies": []
+      }
+    }
+  }
+}

@@ -2,7 +2,7 @@
 
 use std::sync::Arc;
 
-use joysheet_core::{RangeRef, Value};
+use joysheet_core::{CellRef, RangeRef, Value};
 use joysheet_formula::Expr;
 use serde::{Deserialize, Serialize};
 
@@ -23,6 +23,10 @@ pub struct Formula {
     /// rewritten in GridCraft start without it, and the writer decides from their shape.
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     pub dynamic: bool,
+    /// An ordinary formula read from a file can intersect references inside TYPE.
+    /// Newly entered formulas and older serialized sessions use array evaluation.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub legacy_type_intersection: bool,
 }
 
 impl Formula {
@@ -31,13 +35,39 @@ impl Formula {
     pub fn new(text: &str) -> Formula {
         let body = text.strip_prefix('=').unwrap_or(text);
         match joysheet_formula::parse(body) {
-            Ok(e) => Formula { text: joysheet_formula::print(&e), expr: Some(Arc::new(e)), array: None, dynamic: false },
-            Err(_) => Formula { text: body.to_string(), expr: None, array: None, dynamic: false },
+            Ok(e) => {
+                Formula { text: joysheet_formula::print(&e), expr: Some(Arc::new(e)), array: None, dynamic: false, legacy_type_intersection: false }
+            }
+            Err(_) => Formula { text: body.to_string(), expr: None, array: None, dynamic: false, legacy_type_intersection: false },
         }
     }
     pub fn from_expr(e: Expr) -> Formula {
-        Formula { text: joysheet_formula::print(&e), expr: Some(Arc::new(e)), array: None, dynamic: false }
+        Formula { text: joysheet_formula::print(&e), expr: Some(Arc::new(e)), array: None, dynamic: false, legacy_type_intersection: false }
     }
+    /// Remember the file's evaluation mode for TYPE, including inside another expression.
+    pub fn keep_file_type_mode(&mut self) {
+        if !self.dynamic
+            && self.array.is_none()
+            && self.text.contains("TYPE(")
+            && let Some(expr) = self.expr_arc()
+        {
+            expr.walk(&mut |e| self.legacy_type_intersection |= matches!(e, Expr::Call(name, _) if name == "TYPE"));
+        }
+    }
+
+    /// Changing references does not change how Excel originally entered the formula.
+    /// The caller supplies the array range at its new location when one exists.
+    pub fn rewritten(&self, expr: Expr, array: Option<RangeRef>) -> Formula {
+        Formula { array, dynamic: self.dynamic, legacy_type_intersection: self.legacy_type_intersection, ..Formula::from_expr(expr) }
+    }
+
+    /// Copying one formula cell keeps single-cell CSE at the destination.
+    /// Whole array blocks are moved by the range-aware paste operation.
+    pub fn rewritten_cell(&self, expr: Expr, destination: CellRef) -> Formula {
+        let array = self.array.filter(|range| range.is_single()).map(|_| RangeRef::cell(destination));
+        self.rewritten(expr, array)
+    }
+
     /// The parsed expression, re-parsing after deserialization.
     pub fn expr(&self) -> Option<Expr> {
         self.expr.as_deref().cloned().or_else(|| joysheet_formula::parse(&self.text).ok())

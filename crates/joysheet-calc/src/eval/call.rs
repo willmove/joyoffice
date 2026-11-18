@@ -128,7 +128,8 @@ impl<'h> Evaluator<'h> {
             "ROW" | "COLUMN" => {
                 let is_row = name == "ROW";
                 if args.is_empty() || matches!(args.first(), Some(Expr::Missing)) {
-                    return Ev::V(Value::number(if is_row { self.at.row + 1 } else { self.at.col + 1 } as f64));
+                    let position = Value::number(if is_row { self.at.row + 1 } else { self.at.col + 1 } as f64);
+                    return if self.type_context == TypeContext::LegacyArray { Ev::V(Array::scalar(position).into()) } else { Ev::V(position) };
                 }
                 match self.eval(&args[0]) {
                     Ev::R(a) => {
@@ -293,6 +294,22 @@ impl<'h> Evaluator<'h> {
         if args.len() < spec.min_args || args.len() > spec.max_args {
             return err(CellError::Value);
         }
+        if spec.name == "TYPE" {
+            // The same OOXML formula text can denote an ordinary, legacy
+            // array-entered or dynamic-array formula. A multi-area reference
+            // has no single type in any of the three modes.
+            let formula = self.host.workbook().sheet(self.sheet).and_then(|sheet| sheet.cell(self.at)).and_then(|cell| cell.formula.as_ref());
+            let mode = match formula {
+                Some(f) if f.legacy_type_intersection => TypeContext::Scalar,
+                Some(f) if f.array.is_some() => TypeContext::LegacyArray,
+                _ => TypeContext::Array,
+            };
+            let previous = std::mem::replace(&mut self.type_context, mode);
+            let value = self.scalar_operand(&args[0]);
+            self.type_context = previous;
+            let mut ctx = FnCtx { ev: self, criteria: None, database: None, lambda: None };
+            return Ev::V(joysheet_functions::call(spec, &[Arg::val(value)], &mut ctx));
+        }
         if let Some(kind) = Agg::of(spec.name) {
             return self.aggregate(kind, args);
         }
@@ -310,7 +327,13 @@ impl<'h> Evaluator<'h> {
             _ => None,
         };
         for (i, a) in args.iter().enumerate() {
-            let mut ev = self.eval(a);
+            let mut ev = if self.type_context != TypeContext::Scalar {
+                self.eval(a)
+            } else if spec.is_scalar_arg(i) {
+                Ev::V(self.scalar_operand(a))
+            } else {
+                self.array_argument(a)
+            };
             if lambda_at == Some(i)
                 && let Ev::L(l) = &ev
             {

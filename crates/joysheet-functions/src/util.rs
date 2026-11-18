@@ -60,6 +60,41 @@ pub(crate) fn num(args: &[Arg], i: usize) -> R<f64> {
     scalar(a).to_number()
 }
 
+// Decimal scripts accepted by the worksheet conversion and parity functions.
+const DECIMAL_ZERO: [u32; 18] =
+    [0x0660, 0x06f0, 0x0966, 0x09e6, 0x0a66, 0x0ae6, 0x0b66, 0x0be6, 0x0c66, 0x0ce6, 0x0d66, 0x0e50, 0x0ed0, 0x0f20, 0x1040, 0x17e0, 0x1810, 0xff10];
+
+pub(crate) fn scalar_argument(args: &[Arg], index: usize) -> R<&Value> {
+    Ok(match &arg(args, index)?.value {
+        Value::Array(array) => array.data.first().unwrap_or(&Value::Empty),
+        value => value,
+    })
+}
+
+pub(crate) fn number_with_decimal_digits(args: &[Arg], index: usize, allow_logical: bool) -> R<f64> {
+    let value = scalar_argument(args, index)?;
+    if let Value::Number(n) = value {
+        return Ok(*n);
+    }
+    if !allow_logical && matches!(value, Value::Bool(_)) {
+        return Err(CellError::Value);
+    }
+    if let Value::Text(t) = value
+        && !t.is_ascii()
+    {
+        let normalized: String = t
+            .chars()
+            .map(|c| {
+                let code = u32::from(c);
+                let pos = DECIMAL_ZERO.partition_point(|&start| start <= code);
+                pos.checked_sub(1).and_then(|i| char::from_digit(code - DECIMAL_ZERO[i], 10)).unwrap_or(c)
+            })
+            .collect();
+        return Value::from(normalized).to_number();
+    }
+    value.to_number()
+}
+
 /// Optional number: `default` when missing, otherwise coerced (an explicit empty is 0).
 pub(crate) fn opt_num(args: &[Arg], i: usize, default: f64) -> R<f64> {
     match args.get(i) {

@@ -21,6 +21,9 @@ impl Shape {
 }
 
 pub(crate) fn needs_array(wb: &Workbook, sheet: usize, at: CellRef, formula: &Formula) -> bool {
+    if formula.legacy_type_intersection {
+        return false;
+    }
     let Some(expr) = formula.expr_arc() else { return false };
     // The budget covers every node of a formula as long as Excel allows (8,192 characters make
     // at most about 8,200 nodes), so only names that expand a lot fall back to array evaluation.
@@ -175,6 +178,12 @@ impl Scan<'_> {
                 let row_positive = row.is_some_and(|e| positive_index(e, shapes.get(1).copied()));
                 let col_positive = col.is_some_and(|e| positive_index(e, shapes.get(2).copied()));
                 !row_positive || col.is_some_and(|_| !col_positive) || (col.is_none() && !args.first().is_some_and(single_column))
+            }
+            "TYPE" => {
+                // A computed singleton (for example ROW() or a slice of INDEX)
+                // can still carry array identity even when TYPE itself is scalar.
+                affected |= first_array || args.first().is_some_and(|e| matches!(e, Expr::Call(..) | Expr::Name(_) | Expr::Struct(_)));
+                false
             }
             "ROW" | "COLUMN" => {
                 affected |= first_array && !array_context;

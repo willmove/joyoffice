@@ -78,6 +78,7 @@ pub(crate) mod special;
 pub(crate) mod stat;
 pub(crate) mod text;
 pub(crate) mod util;
+mod value_info;
 
 pub use ets::Timeline;
 pub use stat::{aggregate_values, aggregate_values_k};
@@ -103,6 +104,10 @@ impl Arg {
 
 /// Services a function may need from the host.
 pub trait Ctx {
+    /// TYPE can distinguish an array with one element from a scalar of the same value.
+    fn preserve_singleton_arrays(&self) -> bool {
+        false
+    }
     fn date_system(&self) -> DateSystem;
     /// Whether working-day functions use a year-first numeric date grammar.
     fn year_first_calendar_dates(&self) -> bool {

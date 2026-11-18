@@ -62,17 +62,46 @@ impl<'h> Evaluator<'h> {
         if args.is_empty() || args.len() > 2 {
             return err(CellError::Value);
         }
-        let text = match self.arg_val(args, 0).map(|v| v.scalar().to_text()) {
-            Some(Ok(t)) => t,
-            Some(Err(e)) => return err(e),
-            None => return err(CellError::Value),
-        };
+        let input = self.value(&args[0]);
         let a1 = match args.get(1) {
             None => true,
             Some(expr) => match self.value(expr).scalar().to_bool() {
                 Ok(mode) => mode,
                 Err(e) => return err(e),
             },
+        };
+        if self.type_context.is_array()
+            && let Value::Array(array) = &input
+        {
+            if array.data.len() > MAX_CELLS as usize {
+                return err(CellError::Num);
+            }
+            let values = array
+                .data
+                .iter()
+                .map(|cell| {
+                    let reference = self.indirect_value(cell, a1);
+                    match &reference {
+                        Ev::R(areas)
+                            if let [area] = areas.as_slice()
+                                && area.range.is_single() =>
+                        {
+                            self.host.cell_value(area.sheet, area.range.start)
+                        }
+                        Ev::V(Value::Error(e)) => Value::Error(*e),
+                        _ => Value::Error(CellError::Value),
+                    }
+                })
+                .collect();
+            return Array::new(array.rows, array.cols, values).map_or_else(|| err(CellError::Calc), |a| Ev::V(a.into()));
+        }
+        self.indirect_value(&input.scalar(), a1)
+    }
+
+    fn indirect_value(&mut self, input: &Value, a1: bool) -> Ev {
+        let text = match input.to_text() {
+            Ok(text) => text,
+            Err(error) => return err(error),
         };
         let text = text.trim_end_matches(' ');
         if text.is_empty() || text.trim_start() != text || text.starts_with('=') {
@@ -109,7 +138,7 @@ impl<'h> Evaluator<'h> {
         if args.is_empty() || args.len() > 4 {
             return err(CellError::Value);
         }
-        let src = self.eval(&args[0]);
+        let src = if self.type_context == TypeContext::Scalar { self.array_argument(&args[0]) } else { self.eval(&args[0]) };
         let mut arg = |i: usize| match args.get(i) {
             None | Some(Expr::Missing) => None,
             Some(e) => Some(self.value(e)),
