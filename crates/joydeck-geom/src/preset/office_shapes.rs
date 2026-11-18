@@ -100,10 +100,106 @@ pub(super) fn straight_arrow(
     }
 }
 
+/// leftRightArrow and upDownArrow use a common polygon, with distinct connector ordering.
+pub(super) fn opposed_arrows(vertical: bool, w: f64, h: f64, shaft: f64, head: f64) -> Geometry {
+    let (length, width) = if vertical { (h, w) } else { (w, h) };
+    let at = |along, across| {
+        if vertical {
+            Point::new(across, along)
+        } else {
+            Point::new(along, across)
+        }
+    };
+    let unit = w.min(h) / 100_000.;
+    let max_head = if unit > 0. { length / (2. * unit) } else { 0. };
+    let head = head.clamp(0., max_head);
+    let shaft = shaft.clamp(0., 100_000.);
+    let depth = head * unit;
+    let far = length - depth;
+    let mid = width / 2.;
+    let fraction = shaft / 100_000.;
+    let inset = mid * (1. - fraction);
+    let outline = [
+        at(0., mid),
+        at(depth, 0.),
+        at(depth, inset),
+        at(far, inset),
+        at(far, 0.),
+        at(length, mid),
+        at(far, width),
+        at(far, width - inset),
+        at(depth, width - inset),
+        at(depth, width),
+    ];
+    let sites = if vertical {
+        vec![
+            at(0., mid),
+            at(depth, 0.),
+            at(length / 2., inset),
+            at(far, 0.),
+            at(length, mid),
+            at(far, width),
+            at(length / 2., width - inset),
+            at(depth, width),
+        ]
+    } else {
+        vec![
+            at(length, mid),
+            at(far, width),
+            at(depth, width),
+            at(0., mid),
+            at(depth, 0.),
+            at(far, 0.),
+        ]
+    };
+    let shaft_origin = at(far, mid);
+    let text_inset = depth * fraction;
+    Geometry {
+        paths: vec![fill(Pb::new().poly(&outline.map(|p| (p.x, p.y))).take())],
+        text_rect: Rect::from_points(
+            at(text_inset, inset),
+            at(length - text_inset, width - inset),
+        ),
+        handles: vec![
+            Handle::new(
+                0,
+                shaft_origin,
+                (at(far, 0.) - shaft_origin) / 100_000.,
+                shaft,
+                0.,
+                100_000.,
+            ),
+            Handle::new(1, Point::ORIGIN, at(unit, 0.).to_vec2(), head, 0., max_head),
+        ],
+        sites,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use kurbo::Shape;
+
+    #[test]
+    fn opposite_heads_have_independent_connectors_and_draggable_handles() {
+        for vertical in [false, true] {
+            let g = opposed_arrows(vertical, 200., 100., 50_000., 50_000.);
+            assert_eq!(g.sites.len(), if vertical { 8 } else { 6 });
+            assert_eq!(
+                g.text_rect,
+                if vertical {
+                    Rect::new(50., 25., 150., 75.)
+                } else {
+                    Rect::new(25., 25., 175., 75.)
+                }
+            );
+            assert!(g.paths[0].path.contains(Point::new(100., 50.)));
+            assert!(!g.paths[0].path.contains(Point::new(1., 1.)));
+            for handle in &g.handles {
+                assert!((handle.value_at(handle.pos) - 50_000.).abs() < 1e-6);
+            }
+        }
+    }
 
     #[test]
     fn right_arrow_has_specified_sites_handles_text_and_hit_boundary() {

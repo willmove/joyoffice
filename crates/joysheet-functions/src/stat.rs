@@ -4,7 +4,7 @@
 use joysheet_core::{CellError, Value};
 
 use crate::special::{erf, gamma, invert, ln_beta, ln_gamma, norm_cdf, norm_inv, norm_pdf, reg_gamma_p, reg_gamma_q, reg_inc_beta};
-use crate::util::{A, R, S, arg, array_numbers, array_val, as_array, boolean, has, num, num_val, numbers, numbers_a, opt_num};
+use crate::util::{A, R, S, arg, array_numbers, array_val, as_array, boolean, fold_numbers, has, num, num_val, numbers, numbers_a, opt_num};
 use crate::{Arg, Ctx, FnSpec, VAR};
 
 mod descriptive;
@@ -40,11 +40,17 @@ const S_FORECAST: &[bool] = &[true, false, false];
 const S_PROB: &[bool] = &[false, false, true, true];
 const S_TTEST: &[bool] = &[false, false, true, true];
 
+fn average(args: &[Arg], _ctx: C) -> R<Value> {
+    let (count, sum) = fold_numbers(args, -0.0, |acc, n| acc + n)?;
+    if count == 0 {
+        return Err(CellError::Div0);
+    }
+    num_val(sum / count as f64)
+}
+
 pub(crate) fn specs() -> Vec<FnSpec> {
     vec![
-        f!("AVERAGE", 1, VAR, Statistical, A, "AVERAGE(number1, [number2], ...)", "Arithmetic mean of the numbers.", |a: &[Arg], _c: C| num_val(
-            mean(&numbers(a)?)?
-        )),
+        f!("AVERAGE", 1, VAR, Statistical, A, "AVERAGE(number1, [number2], ...)", "Arithmetic mean of the numbers.", average),
         f!(
             "AVERAGEA",
             1,
@@ -125,9 +131,10 @@ pub(crate) fn specs() -> Vec<FnSpec> {
             "Population variance counting text as 0 and logicals as 1/0.",
             |a: &[Arg], _c: C| num_val(var_p(&numbers_a(a)?)?)
         ),
-        f!("MIN", 0, VAR, Statistical, A, "MIN(number1, [number2], ...)", "Smallest number (0 when there are none).", |a: &[Arg], _c: C| num_val(
-            min_of(&numbers(a)?)
-        )),
+        f!("MIN", 0, VAR, Statistical, A, "MIN(number1, [number2], ...)", "Smallest number (0 when there are none).", |a: &[Arg], _c: C| {
+            let (count, n) = fold_numbers(a, f64::INFINITY, f64::min)?;
+            num_val(if count == 0 { 0.0 } else { n })
+        }),
         f!(
             "MINA",
             1,
@@ -138,9 +145,10 @@ pub(crate) fn specs() -> Vec<FnSpec> {
             "Smallest value counting text as 0 and logicals as 1/0.",
             |a: &[Arg], _c: C| num_val(min_of(&numbers_a(a)?))
         ),
-        f!("MAX", 1, VAR, Statistical, A, "MAX(number1, [number2], ...)", "Largest number (0 when there are none).", |a: &[Arg], _c: C| num_val(
-            max_of(&numbers(a)?)
-        )),
+        f!("MAX", 1, VAR, Statistical, A, "MAX(number1, [number2], ...)", "Largest number (0 when there are none).", |a: &[Arg], _c: C| {
+            let (count, n) = fold_numbers(a, f64::NEG_INFINITY, f64::max)?;
+            num_val(if count == 0 { 0.0 } else { n })
+        }),
         f!(
             "MAXA",
             1,

@@ -76,7 +76,7 @@
       "source_path": "crates/geom/src/preset/build.rs",
       "source_sha256": "0f20c9e24506d28aaa495311d6d653279dcd297f898e5d10104bc2526ab8b154",
       "target_path": "crates/joydeck-geom/src/preset/build.rs",
-      "adapted_sha256": "3c943f8f5dfd20116840ed4145a7442277a1907a18e198cde68423105ce60747",
+      "adapted_sha256": "65f28c16256ccd49ae3b80880b07463026c6ac6c73349ac580faf81b4a61d7c9",
       "changes": [
         "crate/import namespace deckcraft -> joydeck",
         "LF normalization",
@@ -89,12 +89,13 @@
       "source_path": "crates/geom/src/preset/builder.rs",
       "source_sha256": "26d0f06d29087a8ac5895105d80a32884ef4c7212ca6628ab6c42331991054ae",
       "target_path": "crates/joydeck-geom/src/preset/builder.rs",
-      "adapted_sha256": "5d2b557f93dcf6ec92a982ecd95ba60266a522d025609b30f33afc62496b82fa",
+      "adapted_sha256": "68eca34ab37538a200770732911e4a3726aa7c81848f4f60b8754aae449f3cc3",
       "changes": [
         "crate/import namespace deckcraft -> joydeck",
         "LF normalization",
         "package description credits origin",
-        "rustfmt using repository Unix newline policy"
+        "rustfmt using repository Unix newline policy",
+        "Independently derive rounded rectangles and the four straight arrows from the DrawingML adjustment guides and connector coordinates."
       ]
     },
     {
@@ -622,7 +623,7 @@
       "source_path": "crates/fonts/src/fontdb.rs",
       "source_sha256": "bce2264f3781c38b8ee60c3e3b39322c5d42a6d9236c01f835297dfb957869bd",
       "target_path": "crates/joydeck-fonts/src/fontdb.rs",
-      "adapted_sha256": "834dfd68d5bcb506af2230c04e8b480468648f70348835642f1a3635e42d21ef",
+      "adapted_sha256": "712d0c9fb931111d59d3703f33b9278841189c817c090ebc9636c1e37615a872",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -1467,14 +1468,15 @@
       "source_path": "crates/render/src/transition.rs",
       "source_sha256": "bae8e69100dcf1d4b018d1a9fe7344b808d3086d0cd4221c10bba03585b726f0",
       "target_path": "crates/joydeck-render/src/transition.rs",
-      "adapted_sha256": "1214d1992252ec4d6138f608c05f3fd28c9f8a67c3b4a2b2b82b0ca819fe302d",
+      "adapted_sha256": "1ddff70ce89cb06b4f7ea7114618f47d3d8dfda3985c28711af57fece95e6641",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
         "R6/R7 version baseline, macro-preserve refusal, explicit previous transition/custom show order or rustfmt; no upstream checkout edits.",
-        "2026-11-13: independently implemented pixel-aligned rectangle compositing fast path; retain mesh fallback and compare premultiplied alpha results within one channel level."
+        "2026-11-13: independently implemented pixel-aligned rectangle compositing fast path; retain mesh fallback and compare premultiplied alpha results within one channel level.",
+        "Independently composite mixed premultiplied scanlines, skipping empty blocks and copying fully opaque coverage."
       ]
     },
     {

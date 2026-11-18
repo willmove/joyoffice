@@ -270,5 +270,89 @@
       ],
       "p95Ms": 95.4501
     }
+  },
+  "releaseDesktopFrames": {
+    "macOS": {
+      "platform": "macOS-27.2.1-arm64-arm-64bit-Mach-O",
+      "binarySha256": "c9b2b73d845b0e02aa209fb96c642e8bfd43ba91de0dc5c872600894b7f55805",
+      "fixtureSha256": "2644d3e6925aa788f7a4629c9a639ecfb4a5f9ba37951135a08db35102949067",
+      "operation": "undo and redo a background-color edit on the first media-rich slide",
+      "start": "immediately before sending the guarded mutation to the live desktop",
+      "end": "WindowServer displayTime",
+      "crop": [
+        395,
+        305,
+        230,
+        125
+      ],
+      "canvasHashes": {
+        "document.undo": 4105739268639896728,
+        "document.redo": 14512671095930491853
+      },
+      "samplesMs": [
+        90.7208,
+        85.39,
+        81.2157,
+        93.1727,
+        89.5345,
+        85.836,
+        81.5005,
+        77.851,
+        90.4533,
+        86.6909,
+        81.7283,
+        91.6677,
+        87.378,
+        83.5076,
+        79.1497,
+        92.5736,
+        88.5053,
+        83.7788,
+        79.3826,
+        92.1513
+      ],
+      "p95Ms": 92.5736
+    },
+    "UOS": {
+      "platform": "Linux-6.18.57-061857-generic-x86_64-with-glibc2.38",
+      "binarySha256": "370d087482f9a019073d03ce4b9277c691ebf385fb3ff5b0b17357b2f9c398a2",
+      "fixtureSha256": "2644d3e6925aa788f7a4629c9a639ecfb4a5f9ba37951135a08db35102949067",
+      "operation": "undo and redo a background-color edit on the first media-rich slide",
+      "start": "immediately before sending the guarded mutation to the live desktop",
+      "end": "X Present pixmap CompleteNotify UST, pixels read on delivery",
+      "crop": [
+        494,
+        381,
+        288,
+        156
+      ],
+      "canvasHashes": {
+        "document.undo": 3588582577208270419,
+        "document.redo": 16344519625106253676
+      },
+      "samplesMs": [
+        50.2978,
+        42.8159,
+        50.0042,
+        52.8214,
+        47.2513,
+        43.4503,
+        49.293,
+        55.1214,
+        55.0868,
+        40.3724,
+        41.0378,
+        47.2589,
+        42.9951,
+        44.2852,
+        45.668,
+        43.9383,
+        43.1408,
+        44.5936,
+        39.2337,
+        42.9514
+      ],
+      "p95Ms": 55.0868
+    }
   }
 }

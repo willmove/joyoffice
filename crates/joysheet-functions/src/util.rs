@@ -149,27 +149,40 @@ pub(crate) fn flatten(args: &[Arg]) -> Vec<Value> {
 /// Numbers for aggregate functions (SUM, AVERAGE, MIN, STDEV…): inside references and arrays
 /// only numbers count (text, booleans and blanks are skipped); direct scalar arguments are
 /// coerced ("3" → 3, TRUE → 1, other text → `#VALUE!`). Errors propagate.
-pub(crate) fn numbers(args: &[Arg]) -> R<Vec<f64>> {
-    let mut out = Vec::new();
-    for a in args {
-        match &a.value {
-            Value::Array(arr) => {
-                for v in arr.iter() {
-                    match v {
-                        Value::Number(n) => out.push(*n),
-                        Value::Error(e) => return Err(*e),
-                        _ => {}
-                    }
-                }
+fn visit_numbers(args: &[Arg], mut accept: impl FnMut(f64)) -> R<()> {
+    for arg in args {
+        let (cells, reference) = match &arg.value {
+            Value::Array(array) => (array.data.as_slice(), true),
+            scalar => (std::slice::from_ref(scalar), arg.from_ref),
+        };
+        for cell in cells {
+            match cell {
+                Value::Number(number) => accept(*number),
+                Value::Error(error) => return Err(*error),
+                Value::Empty => {}
+                _ if reference => {}
+                literal => accept(literal.to_number()?),
             }
-            Value::Error(e) => return Err(*e),
-            Value::Number(n) => out.push(*n),
-            _ if a.from_ref => {}
-            Value::Empty => {}
-            v => out.push(v.to_number()?),
         }
     }
-    Ok(out)
+    Ok(())
+}
+
+pub(crate) fn numbers(args: &[Arg]) -> R<Vec<f64>> {
+    let mut collected = Vec::new();
+    visit_numbers(args, |n| collected.push(n))?;
+    Ok(collected)
+}
+
+/// Fold in spreadsheet argument and row order, using constant scratch space.
+pub(crate) fn fold_numbers(args: &[Arg], initial: f64, combine: impl Fn(f64, f64) -> f64) -> R<(usize, f64)> {
+    let mut result = initial;
+    let mut count = 0;
+    visit_numbers(args, |n| {
+        result = combine(result, n);
+        count += 1;
+    })?;
+    Ok((count, result))
 }
 
 /// Numbers for the "A" aggregates (AVERAGEA, MAXA, STDEVA…): inside references and arrays text

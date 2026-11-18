@@ -7,7 +7,8 @@ use joysheet_core::{Array, CellError, Value};
 
 use crate::criteria::Criterion;
 use crate::util::{
-    A, MAX_CELLS, R, S, array_val, as_array, check_size, has, num, num_val, numbers, opt_num, round_half_away, text, text_val, to_sig_digits,
+    A, MAX_CELLS, R, S, array_val, as_array, check_size, fold_numbers, has, num, num_val, numbers, opt_num, round_half_away, text, text_val,
+    to_sig_digits,
 };
 use crate::{Arg, Ctx, FnSpec, VAR};
 
@@ -99,14 +100,15 @@ fn round_dir(x: f64, digits: i32, up: bool) -> f64 {
 // Sums and products
 
 fn sum(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    num_val(numbers(a)?.iter().sum())
+    num_val(fold_numbers(a, -0.0, |sum, value| sum + value)?.1)
 }
 
 /// PERCENTOF(data_subset, data_all) = SUM(data_subset) / SUM(data_all).
 fn percentof(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
     let part = a.get(..1).ok_or(CellError::Value)?;
     let all = a.get(1..2).ok_or(CellError::Value)?;
-    let (part, all): (f64, f64) = (numbers(part)?.iter().sum(), numbers(all)?.iter().sum());
+    let (_, part) = fold_numbers(part, -0.0, |sum, value| sum + value)?;
+    let (_, all) = fold_numbers(all, -0.0, |sum, value| sum + value)?;
     if all == 0.0 {
         return Err(CellError::Div0);
     }
@@ -114,15 +116,12 @@ fn percentof(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
 }
 
 fn sumsq(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    num_val(numbers(a)?.iter().map(|x| x * x).sum())
+    num_val(fold_numbers(a, -0.0, |sum, n| sum + n * n)?.1)
 }
 
 fn product(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    let v = numbers(a)?;
-    if v.is_empty() {
-        return Ok(Value::Number(0.0));
-    }
-    num_val(v.iter().product())
+    let (count, value) = fold_numbers(a, 1.0, |acc, n| acc * n)?;
+    num_val(if count == 0 { 0.0 } else { value })
 }
 
 /// SUMPRODUCT: non-numeric entries of arrays and multi-cell ranges count as 0, but a scalar

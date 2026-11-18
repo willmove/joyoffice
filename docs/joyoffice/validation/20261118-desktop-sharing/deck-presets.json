@@ -1,12 +1,14 @@
 {
   "macOS": {
-    "shapeInstances": 20,
+    "shapeInstances": 28,
     "presets": [
       "roundRect",
       "rightArrow",
       "leftArrow",
       "downArrow",
-      "upArrow"
+      "upArrow",
+      "leftRightArrow",
+      "upDownArrow"
     ],
     "adjustments": [
       null,
@@ -21,21 +23,23 @@
     ],
     "changedPixelsFromPreviousRenderer": 0,
     "rgbSha256": [
-      "4cf85b78f65fe68194c2ba1d41cdd8a48e35fbed3c35508c68a387616351a063",
-      "4cf85b78f65fe68194c2ba1d41cdd8a48e35fbed3c35508c68a387616351a063",
-      "4cf85b78f65fe68194c2ba1d41cdd8a48e35fbed3c35508c68a387616351a063",
-      "4cf85b78f65fe68194c2ba1d41cdd8a48e35fbed3c35508c68a387616351a063"
+      "9b8ee2bc630db33e87331b5c3ff6678b6f1166fd8ed19de46069e677d6608290",
+      "9b8ee2bc630db33e87331b5c3ff6678b6f1166fd8ed19de46069e677d6608290",
+      "9b8ee2bc630db33e87331b5c3ff6678b6f1166fd8ed19de46069e677d6608290",
+      "9b8ee2bc630db33e87331b5c3ff6678b6f1166fd8ed19de46069e677d6608290"
     ],
     "bothVersionsReopenedRegeneratedFile": true
   },
   "UOS": {
-    "shapeInstances": 20,
+    "shapeInstances": 28,
     "presets": [
       "roundRect",
       "rightArrow",
       "leftArrow",
       "downArrow",
-      "upArrow"
+      "upArrow",
+      "leftRightArrow",
+      "upDownArrow"
     ],
     "adjustments": [
       null,
@@ -50,10 +54,10 @@
     ],
     "changedPixelsFromPreviousRenderer": 0,
     "rgbSha256": [
-      "4cf85b78f65fe68194c2ba1d41cdd8a48e35fbed3c35508c68a387616351a063",
-      "4cf85b78f65fe68194c2ba1d41cdd8a48e35fbed3c35508c68a387616351a063",
-      "4cf85b78f65fe68194c2ba1d41cdd8a48e35fbed3c35508c68a387616351a063",
-      "4cf85b78f65fe68194c2ba1d41cdd8a48e35fbed3c35508c68a387616351a063"
+      "9b8ee2bc630db33e87331b5c3ff6678b6f1166fd8ed19de46069e677d6608290",
+      "9b8ee2bc630db33e87331b5c3ff6678b6f1166fd8ed19de46069e677d6608290",
+      "9b8ee2bc630db33e87331b5c3ff6678b6f1166fd8ed19de46069e677d6608290",
+      "9b8ee2bc630db33e87331b5c3ff6678b6f1166fd8ed19de46069e677d6608290"
     ],
     "bothVersionsReopenedRegeneratedFile": true
   }

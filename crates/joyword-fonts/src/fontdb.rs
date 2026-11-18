@@ -59,6 +59,8 @@ pub struct FontDb {
     run_fallbacks: RwLock<RunFallbackCache>,
     #[cfg(not(target_arch = "wasm32"))]
     catalog: RwLock<Vec<CatalogEntry>>,
+    #[cfg(not(target_arch = "wasm32"))]
+    catalog_files: Mutex<Option<Vec<(std::path::PathBuf, joyoffice_fonts::FileStamp)>>>,
     /// Fonts the user added at run time, and the folder they are stored in (#582).
     user: RwLock<user::UserFonts>,
     /// Bumped whenever user fonts are added or removed ([`FontDb::generation`]).
@@ -86,7 +88,7 @@ pub struct FontDb {
     /// needs that file. Held through a search, so two searches never read a file twice.
     #[cfg(not(target_arch = "wasm32"))]
     coverage: Mutex<CoverageIndex>,
-    /// Counts the font folder scans, so the coverage index notices a rescan.
+    /// Changes when the catalog is rebuilt so the coverage index drops stale entries.
     #[cfg(not(target_arch = "wasm32"))]
     catalog_gen: AtomicU32,
 }
@@ -137,6 +139,8 @@ impl FontDb {
             run_fallbacks: RwLock::new(RunFallbackCache::default()),
             #[cfg(not(target_arch = "wasm32"))]
             catalog: RwLock::new(Vec::new()),
+            #[cfg(not(target_arch = "wasm32"))]
+            catalog_files: Mutex::new(None),
             user: RwLock::new(user::UserFonts::default()),
             generation: AtomicU64::new(0),
             font_dirs,

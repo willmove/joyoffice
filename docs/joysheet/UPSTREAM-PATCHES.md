@@ -36,7 +36,7 @@ Cold-index refinement: opaque cell mutation now marks a band as possibly contain
 
 ## 2026-11-18 scalar recalculation pilot
 
-The optional `joysheet-calc/scalar-pilot` feature dispatches one operation on a numeric literal and an ordinary stored numeric cell to a JoyOffice implementation. The existing GridCraft-derived scheduler, general evaluator, array handling and writeback remain authoritative outside this subset. Iteration and active pass spills take the general path. The production default uses the general evaluator. Source fingerprints continue to describe the original import. Scope, comparison commands and the rollout decision are tracked in the [refactoring roadmap](../joyoffice/REFACTOR-ROADMAP.md).
+The optional `joysheet-calc/scalar-pilot` feature dispatches one operation on a numeric literal and an ordinary stored numeric cell to a JoyOffice implementation. The existing GridCraft-derived scheduler, general evaluator, array handling and writeback remain authoritative outside this subset. Iteration and active pass spills take the general path. At the first measurement checkpoint, production used the general evaluator. Source fingerprints continue to describe the original import. Scope, comparison commands and the rollout decision are tracked in the [refactoring roadmap](../joyoffice/REFACTOR-ROADMAP.md).
 
 The inline editor in `crates/joysheet-ui-gpui/src/grid.rs` expands its overlay while the system input method owns marked text. The existing viewport and frozen-pane bounds constrain that overlay. macOS acceptance compared the same narrow cell before and after the change and reopened the saved text in a fresh process. [Native validation](../joyoffice/validation/20261118-refactor/README.md)
 
@@ -45,3 +45,8 @@ The inline editor in `crates/joysheet-ui-gpui/src/grid.rs` expands its overlay w
 The dense scalar candidate precomputes literal arithmetic on ordinary numeric cells, including named-sheet references, in batches of 512 or more. Formulas with array metadata and passes with iteration or existing spills use the general evaluator. The XLS reader uses the shared CFB sector accessors, and DrawingML RGB and OMML script serialization use the host format crates. Interactive tests cover the shared ribbon group and launcher. [Validation and rollout](../joyoffice/REFACTOR-ROADMAP.md)
 
 The direct numeric batch is enabled by default after same-source desktop comparisons on macOS and UOS. Set `JOYSHEET_SCALAR_RECALC=0` before launch to return the workbook to the general evaluator.
+
+
+## 2026-11-18 ordered formula reductions
+
+The production functions SUM, SUMSQ, PRODUCT, PERCENTOF, AVERAGE, MIN and MAX now traverse their inputs once with fixed-size accumulator state. AND, OR and XOR accumulate one Boolean while still reading later arguments for errors. The implementation preserves the different coercion rules for direct arguments and array members, traversal order, empty inputs and the first error. Previous and current readers reproduced 16 independent expected results on both desktops and reopened seven workbooks saved by the candidate. [Workbook and formula results](../joyoffice/validation/20261118-desktop-sharing/version-rollback.json) · [Microsoft AND specification](https://support.microsoft.com/en-us/excel/functions/and-function) · [Microsoft XOR specification](https://support.microsoft.com/en-us/excel/functions/xor-function)

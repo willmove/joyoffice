@@ -1,0 +1,42 @@
+{
+  "macOS": {
+    "releaseSha256": "1e5b016e581cc196b6bd9aab4925935f2e4de66b3eced6ac6f95195b0d4150b1",
+    "rows": 10000,
+    "variants": {
+      "default": {
+        "checkedEdits": 20,
+        "formulaEvaluationsPerEdit": [
+          10001
+        ],
+        "undoRedoAndIndependentXlsxReadback": true
+      },
+      "JOYSHEET_SCALAR_RECALC=0": {
+        "checkedEdits": 20,
+        "formulaEvaluationsPerEdit": [
+          10001
+        ],
+        "undoRedoAndIndependentXlsxReadback": true
+      }
+    }
+  },
+  "UOS": {
+    "releaseSha256": "34209ed3b1dd29d4fa2e72b9f7518ce315689d30b16d5d3c5f53e8f73e6b9518",
+    "rows": 10000,
+    "variants": {
+      "default": {
+        "checkedEdits": 20,
+        "formulaEvaluationsPerEdit": [
+          10001
+        ],
+        "undoRedoAndIndependentXlsxReadback": true
+      },
+      "JOYSHEET_SCALAR_RECALC=0": {
+        "checkedEdits": 20,
+        "formulaEvaluationsPerEdit": [
+          10001
+        ],
+        "undoRedoAndIndependentXlsxReadback": true
+      }
+    }
+  }
+}

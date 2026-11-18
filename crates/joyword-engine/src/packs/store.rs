@@ -4,7 +4,6 @@
 use std::path::PathBuf;
 use std::sync::{Mutex, PoisonError};
 
-use craft_font_catalog::FontEnv;
 use craft_font_store::{FontStore, Network, PackEntry, PackIndex, PackIndexPin};
 
 use super::{Cancel, Pack};
@@ -24,18 +23,35 @@ pub(super) struct FontStoreBackend {
     index: Mutex<Option<PackIndex>>,
 }
 
+/// Keep existing installs, consent and cached indexes readable at their original location.
+fn store_folder(get: impl Fn(&str) -> Option<PathBuf>) -> Option<PathBuf> {
+    let path = |key| get(key).filter(|p| !p.as_os_str().is_empty());
+    if let Some(override_dir) = path("CRAFT_FONT_STORE") {
+        return Some(override_dir);
+    }
+    if cfg!(any(
+        target_os = "ios",
+        target_os = "android",
+        target_arch = "wasm32"
+    )) {
+        return None;
+    }
+    if cfg!(windows) {
+        return Some(path("LOCALAPPDATA")?.join("Craft Fonts"));
+    }
+    if cfg!(target_os = "macos") {
+        return Some(path("HOME")?.join("Library/Application Support/Craft Fonts"));
+    }
+    let data = path("XDG_DATA_HOME")
+        .filter(|p| p.is_absolute())
+        .or_else(|| path("HOME").map(|p| p.join(".local/share")))?;
+    Some(data.join("craft-fonts"))
+}
+
 impl FontStoreBackend {
     pub(super) fn new(user: bool) -> Option<Self> {
-        let env = FontEnv::from_process();
-        let store = if user {
-            FontStore::for_user(&env)?
-        } else {
-            FontStore::for_agent(&env)?
-        };
-        Some(Self {
-            store,
-            index: Mutex::new(None),
-        })
+        let path = store_folder(|key| std::env::var_os(key).map(PathBuf::from))?;
+        Some(Self::in_dir(path, user))
     }
 
     /// A store in `dir`.
@@ -143,5 +159,35 @@ impl super::Backend for FontStoreBackend {
 
     fn packs_dir(&self) -> Option<PathBuf> {
         Some(self.store.language_packs_dir())
+    }
+}
+
+#[cfg(test)]
+mod folder_tests {
+    use super::*;
+    #[test]
+    fn old_language_assets_and_consent_use_the_same_folder() {
+        let loc = |var: &str| match var {
+            "LOCALAPPDATA" => Some(PathBuf::from("Local")),
+            "HOME" => Some(PathBuf::from("/profile")),
+            "XDG_DATA_HOME" => Some(PathBuf::from("relative-must-be-ignored")),
+            _ => None,
+        };
+        let expected = if cfg!(windows) {
+            "Local/Craft Fonts"
+        } else if cfg!(target_os = "macos") {
+            "/profile/Library/Application Support/Craft Fonts"
+        } else if cfg!(any(target_os = "android", target_os = "ios")) {
+            assert_eq!(store_folder(loc), None);
+            return;
+        } else {
+            "/profile/.local/share/craft-fonts"
+        };
+        assert_eq!(store_folder(loc), Some(PathBuf::from(expected)));
+        assert_eq!(
+            store_folder(|k| (k == "CRAFT_FONT_STORE").then(|| PathBuf::from("existing"))),
+            Some(PathBuf::from("existing"))
+        );
+        assert_eq!(store_folder(|_| None), None);
     }
 }

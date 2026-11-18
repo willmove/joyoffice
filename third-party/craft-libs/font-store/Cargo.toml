@@ -8,7 +8,8 @@ rust-version.workspace = true
 repository.workspace = true
 
 [features]
-default = []
+default = ["catalog"]
+catalog = ["dep:craft-font-catalog"]
 # The pinned built-in indexes compiled in (`Index::bundled`), about 620 KB gzipped, so an app can
 # look fonts up with no request at all.
 bundled-index = []
@@ -24,7 +25,7 @@ thiserror = { workspace = true }
 # The store and the network are native only; the web keeps fonts elsewhere.
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 craft-atomic = { workspace = true }
-craft-font-catalog = { workspace = true }
+craft-font-catalog = { workspace = true, optional = true }
 log = "0.4"
 # Language packs (`language_packs`): `<locale>.tar.zst` archives, unpacked in pure Rust.
 ruzstd = { version = "0.9", default-features = false, features = ["std"] }
@@ -34,6 +35,7 @@ tar = { version = "0.4", default-features = false }
 ureq = { version = "3", default-features = false, features = ["rustls", "gzip"] }
 
 [dev-dependencies]
+craft-font-catalog = { workspace = true }
 write-fonts = "0.54"
 
 [lints]

@@ -104,5 +104,33 @@
         "original hash unchanged"
       ]
     }
+  },
+  "deckChangeFromAnotherView": {
+    "macOS": {
+      "platform": "macOS-27.2.1-arm64-arm-64bit-Mach-O",
+      "product": "deck",
+      "binarySha256": "0e8da342d1c5da2c35d86cd7c68e446380f028892102b4120466b0d50aca592d",
+      "passed": true,
+      "checks": [
+        "cancel then retry",
+        "late result after edit rejected before file creation",
+        "four slides in independent PPTX inspection and fresh process readback",
+        "original hash unchanged",
+        "second document view owned the picker while the first edited the shared document"
+      ]
+    },
+    "UOS": {
+      "platform": "Linux-6.18.57-061857-generic-x86_64-with-glibc2.38",
+      "product": "deck",
+      "binarySha256": "f933425b3325a8aec6f03957fbd60b0df33ab58a2f9c68033f0dc211816a21f9",
+      "passed": true,
+      "checks": [
+        "cancel then retry",
+        "late result after edit rejected before file creation",
+        "four slides in independent PPTX inspection and fresh process readback",
+        "original hash unchanged",
+        "second document view owned the picker while the first edited the shared document"
+      ]
+    }
   }
 }

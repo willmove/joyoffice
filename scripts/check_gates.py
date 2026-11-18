@@ -90,7 +90,7 @@ LAYERS = {
     "joyword-corpus": {"joyoffice-opc"},
     "joyword-doc": {"joyoffice-cfb", "joyword-geom", "joyword-model"},
     "joyword-docx": {"joyoffice-omml", "joyoffice-opc", "joyword-geom", "joyword-model"},
-    "joyword-engine": {"joyword-doc", "joyword-docx", "joyword-fonts", "joyword-formats", "joyword-geom", "joyword-layout", "joyword-model", "joyword-pdf", "joyword-render", "craft-font-catalog", "craft-font-store", "craft-proof"},
+    "joyword-engine": {"joyword-doc", "joyword-docx", "joyword-fonts", "joyword-formats", "joyword-geom", "joyword-layout", "joyword-model", "joyword-pdf", "joyword-render", "craft-font-store", "craft-proof"},
     "joyword-fonts": {"craft-font-catalog", "craft-font-store", "joyoffice-fonts"},
     "joyword-formats": {"joyword-geom", "joyword-metafile", "joyword-model"},
     "joyword-geom": set(),

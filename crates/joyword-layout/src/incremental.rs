@@ -45,14 +45,9 @@ pub fn layout_shared(
     let layout = Arc::new(layout(doc, cache, opts));
     if layout.pages.len() >= MIN_PAGES
         && eligible(doc, opts)
-        && doc.body.iter().all(|block| {
-            block.as_para().is_some_and(|p| {
-                if p.section.is_some() || !p.objects.is_empty() {
-                    return false;
-                }
-                let resolved = doc.styles.resolve_para(&p.props);
-                resolved.frame.is_none() && resolved.drop_cap == 0
-            })
+        && doc.body.iter().all(|block| match block.as_ref() {
+            joyword_model::Block::Para(p) => plain_paragraph(doc, p),
+            joyword_model::Block::Table(t) => plain_table(doc, t),
         })
     {
         cache.previous = Some(Previous {
@@ -65,6 +60,39 @@ pub fn layout_shared(
         });
     }
     layout
+}
+
+fn plain_paragraph(doc: &Document, p: &Paragraph) -> bool {
+    let r = doc.styles.resolve_para(&p.props);
+    p.section.is_none() && p.objects.is_empty() && r.frame.is_none() && r.drop_cap == 0
+}
+
+fn plain_table(doc: &Document, table: &joyword_model::Table) -> bool {
+    if table.props.float.is_some() || table.rows.len() > 128 {
+        return false;
+    }
+    let mut cells = 0usize;
+    let mut paragraphs = 0usize;
+    for row in &table.rows {
+        cells = cells.saturating_add(row.cells.len());
+        if cells > 512 {
+            return false;
+        }
+        for cell in &row.cells {
+            paragraphs = paragraphs.saturating_add(cell.blocks.len());
+            if paragraphs > 512
+                || !cell.blocks.iter().all(|block| {
+                    block.as_para().is_some_and(|p| {
+                        plain_paragraph(doc, p)
+                            && doc.styles.resolve_para(&p.props).numbering.is_none()
+                    })
+                })
+            {
+                return false;
+            }
+        }
+    }
+    true
 }
 
 fn eligible(doc: &Document, opts: &LayoutOptions) -> bool {
@@ -108,6 +136,18 @@ impl Previous {
         let (block, (before, after)) = changes.next()?;
         if changes.next().is_some() {
             return None;
+        }
+        if let (Some(_), Some(table)) = (before.as_table(), after.as_table()) {
+            if self.options.typing_word.is_some()
+                || opts.typing_word.is_some()
+                || !plain_table(doc, table)
+            {
+                return None;
+            }
+            let current = self.layout.upgrade()?;
+            return self
+                .reflow(doc, opts, block, &current)
+                .map(|layout| (block, layout));
         }
         let (before, after) = (before.as_para()?, after.as_para()?);
         if !ordinary_edit(before, after)
@@ -201,32 +241,74 @@ impl Previous {
                 .and_then(|b| b.as_para())
                 .is_some_and(|p| doc.styles.resolve_para(&p.props).page_break_before)
         };
-        let start = (block.saturating_sub(MAX_BLOCKS)..=block)
-            .rev()
-            .find(|&i| i == 0 || is_start(i))?;
-        let end = (block + 1..=doc.body.len().min(start.saturating_add(MAX_BLOCKS)))
-            .find(|&i| i == doc.body.len() || is_start(i))?;
         let page_at = |i| {
             current
                 .index
-                .get(&(StoryRef::Body, Path::top(i)))?
+                .get(&(StoryRef::Body, Path::top(i)))
+                .or_else(|| {
+                    current
+                        .index
+                        .get(&(StoryRef::Body, Path(vec![i as u32, 0, 0, 0])))
+                })?
                 .first()
-                .map(|&(p, _)| p)
+                .map(|&(page, _)| page)
         };
-        let first = page_at(start)?;
-        let stop = if end == doc.body.len() {
-            current.pages.len()
-        } else {
-            page_at(end)?
+        let chapter = (block.saturating_sub(MAX_BLOCKS)..=block)
+            .rev()
+            .find(|&i| i == 0 || is_start(i))
+            .and_then(|start| {
+                let end = (block + 1..=doc.body.len().min(start + MAX_BLOCKS))
+                    .find(|&i| i == doc.body.len() || is_start(i))?;
+                let stop = if end == doc.body.len() {
+                    current.pages.len()
+                } else {
+                    page_at(end)?
+                };
+                Some((start, end, page_at(start)?, stop))
+            });
+        let natural = chapter.is_none();
+        let (start, end, first, stop) = match chapter {
+            Some(bounds) => bounds,
+            None => {
+                // Start before the edit, on a whole unchanged paragraph. The preceding page
+                // has already rejected this same paragraph. Leave one unchanged page as an
+                // exit checkpoint so downstream positions can be reused.
+                let edited_page = page_at(block)?;
+                let page_head = |page: usize| match current.pages.get(page)?.items.first()? {
+                    Placed::Lines {
+                        story: StoryRef::Body,
+                        path,
+                        l0: 0,
+                        ..
+                    } if path.depth() == 0 => Some(path.last()),
+                    _ => None,
+                };
+                let (first, start) = (edited_page.saturating_sub(3)..=edited_page)
+                    .rev()
+                    .find_map(|p| page_head(p).filter(|&i| i < block).map(|i| (p, i)))?;
+                let (stop, end) = (edited_page + 2..current.pages.len().min(edited_page + 6))
+                    .find_map(|p| page_head(p).map(|i| (p, i)))?;
+                if end.saturating_sub(start) > MAX_BLOCKS {
+                    return None;
+                }
+                (start, end, first, stop)
+            }
         };
         let original = current.pages.get(first..stop)?;
         if original.is_empty()
             || original.len() > MAX_PAGES
             || doc.last_section.title_page
             || doc.body[start..end].iter().any(|b| {
-                let Some(p) = b.as_para() else { return true };
+                let Some(p) = b.as_para() else {
+                    return b.as_table().is_none_or(|t| !plain_table(doc, t));
+                };
                 let r = doc.styles.resolve_para(&p.props);
-                r.numbering.is_some()
+                (natural
+                    && p.text.contains([
+                        joyword_model::para::PAGE_BREAK,
+                        joyword_model::para::COLUMN_BREAK,
+                    ]))
+                    || r.numbering.is_some()
                     || r.keep_next
                     || r.mirror_indents
                     || r.contextual_spacing
@@ -259,29 +341,42 @@ impl Previous {
         }
         fragment.body[block - start] = doc.body[block].clone();
         let replacement = layout(&fragment, &mut scratch, opts);
-        if replacement.pages.len() != original.len() {
+        if replacement.pages.len() != original.len()
+            || (natural && !same_page_entry(replacement.pages.last()?, original.last()?, start))
+        {
             return None;
         }
         let mut next = current.as_ref().clone();
-        for i in start..end {
-            next.index.remove(&(StoryRef::Body, Path::top(i)));
-        }
+        next.index.retain(|(story, path), _| {
+            *story != StoryRef::Body
+                || path
+                    .0
+                    .first()
+                    .is_none_or(|&b| !(start..end).contains(&(b as usize)))
+        });
         for (local, mut page) in replacement.pages.into_iter().enumerate() {
             let absolute = first + local;
             let target = next.pages.get_mut(absolute)?;
             for (index, item) in page.items.iter_mut().enumerate() {
-                let Placed::Lines {
-                    story: StoryRef::Body,
-                    path,
-                    ..
-                } = item
-                else {
-                    return None;
+                let (path, indexed) = match item {
+                    Placed::Lines {
+                        story: StoryRef::Body,
+                        path,
+                        ..
+                    } => (path, true),
+                    Placed::Cell {
+                        story: StoryRef::Body,
+                        table,
+                        ..
+                    } => (table, false),
+                    Placed::Fill { .. } | Placed::Rule { .. } => continue,
+                    _ => return None,
                 };
-                if path.depth() != 0 {
-                    return None;
+                let top = path.0.first_mut()?;
+                *top = top.checked_add(u32::try_from(start).ok()?)?;
+                if !indexed {
+                    continue;
                 }
-                *path = Path::top(start + path.last());
                 next.index
                     .entry((StoryRef::Body, path.clone()))
                     .or_default()
@@ -293,6 +388,16 @@ impl Previous {
         next.page_patch = Some((Arc::downgrade(current), first..stop));
         Some(next)
     }
+}
+
+fn same_body_path(local: &Path, absolute: &Path, offset: usize) -> bool {
+    local
+        .0
+        .split_first()
+        .zip(absolute.0.split_first())
+        .is_some_and(|((&a, tail_a), (&b, tail_b))| {
+            (a as usize).checked_add(offset) == Some(b as usize) && tail_a == tail_b
+        })
 }
 
 fn same_page_entry(piece: &super::Page, original: &super::Page, start: usize) -> bool {
@@ -334,9 +439,7 @@ fn same_page_entry(piece: &super::Page, original: &super::Page, start: usize) ->
                     turn: TextDirection::Horizontal,
                 },
             ) => {
-                ap.depth() == 0
-                    && bp.depth() == 0
-                    && ap.last() + start == bp.last()
+                same_body_path(ap, bp, start)
                     && (al, ae, ax, ay) == (bl, be, bx, by)
                     && same_flow(a, b)
                     && a.lines
@@ -344,6 +447,45 @@ fn same_page_entry(piece: &super::Page, original: &super::Page, start: usize) ->
                         .zip(&b.lines)
                         .all(|(a, b)| (a.c0, a.c1) == (b.c0, b.c1))
             }
+            (
+                Placed::Cell {
+                    rect: a,
+                    covered: ac,
+                    table: at,
+                    row: ar,
+                    cell: ai,
+                    story: StoryRef::Body,
+                    clip: ap,
+                },
+                Placed::Cell {
+                    rect: b,
+                    covered: bc,
+                    table: bt,
+                    row: br,
+                    cell: bi,
+                    story: StoryRef::Body,
+                    clip: bp,
+                },
+            ) => same_body_path(at, bt, start) && (a, ac, ar, ai, ap) == (b, bc, br, bi, bp),
+            (Placed::Fill { rect: a, color: ac }, Placed::Fill { rect: b, color: bc }) => {
+                (a, ac) == (b, bc)
+            }
+            (
+                Placed::Rule {
+                    x0: ax,
+                    y0: ay,
+                    x1: bx,
+                    y1: by,
+                    border: ab,
+                },
+                Placed::Rule {
+                    x0: cx,
+                    y0: cy,
+                    x1: dx,
+                    y1: dy,
+                    border: bb,
+                },
+            ) => (ax, ay, bx, by, ab) == (cx, cy, dx, dy, bb),
             _ => false,
         })
 }
@@ -499,6 +641,95 @@ mod tests {
             }
             previous = next;
         }
+        Ok(())
+    }
+
+    #[test]
+    fn natural_page_checkpoint_matches_full_layout_and_propagation_falls_back()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let mut doc = Document::new();
+        doc.body.clear();
+        doc.styles.default_chr.font = Some("Source Sans 3".into());
+        doc.last_section.page_h = 240.;
+        doc.last_section.margin_top = 24.;
+        doc.last_section.margin_bottom = 24.;
+        // Four-line paragraphs moving whole leave room for the short paragraphs between them.
+        for i in 0..800 {
+            let words = if i % 2 == 0 { 16 } else { 3 };
+            let mut p =
+                Paragraph::with_text(&"alpha beta gamma ".repeat(words), Default::default());
+            p.props.keep_lines = Some(true);
+            p.props.space_before = Some(0.);
+            doc.body.push(joyword_model::para_block(p));
+        }
+        let opts = LayoutOptions::default();
+        let mut cache = LayoutCache::new();
+        let old = layout_shared(&doc, &mut cache, &opts);
+        assert!(old.pages.len() >= MIN_PAGES);
+        let phrase = " words".repeat(15);
+        let block = 401;
+        doc.para_mut(StoryRef::Body, &Path::top(block))?
+            .insert_text(0, &phrase, &Default::default())?;
+        let next = layout_shared(&doc, &mut cache, &opts);
+        assert!(
+            paragraph(&old, block).ok_or("old")?.lines.len()
+                < paragraph(&next, block).ok_or("new")?.lines.len()
+        );
+        assert!(
+            next.changed_pages_from(&old)
+                .is_some_and(|r| (2..=8).contains(&r.len()))
+        );
+        let full = layout(&doc, &mut LayoutCache::new(), &opts);
+        assert_eq!(full.index, next.index);
+        assert_eq!(format!("{:?}", full.pages), format!("{:?}", next.pages));
+        // A long insertion can't converge by the saved page.
+        doc.para_mut(StoryRef::Body, &Path::top(block))?
+            .insert_text(0, &phrase.repeat(180), &Default::default())?;
+        let changed = layout_shared(&doc, &mut cache, &opts);
+        assert!(changed.changed_pages_from(&next).is_none());
+        assert_eq!(
+            changed.index,
+            layout(&doc, &mut LayoutCache::new(), &opts).index
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn reflows_an_inline_table_and_updates_nested_hit_paths()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let mut doc = Document::new();
+        doc.body.clear();
+        doc.styles.default_chr.font = Some("Source Sans 3".into());
+        for i in 0..96 {
+            let mut p = Paragraph::with_text(&format!("Chapter {i}"), Default::default());
+            p.props.page_break_before = Some(true);
+            p.props.space_before = Some(0.);
+            doc.body.push(joyword_model::para_block(p));
+            if i == 48 {
+                let mut table = joyword_model::Table::new(2, 2, 220.);
+                table.rows[0].cells[0] = joyword_model::Cell::with_text("Original cell");
+                doc.body.push(Arc::new(joyword_model::Block::Table(table)));
+            }
+        }
+        let opts = LayoutOptions::default();
+        let mut cache = LayoutCache::new();
+        let old = layout_shared(&doc, &mut cache, &opts);
+        let path = Path(vec![49, 0, 0, 0]);
+        doc.para_mut(StoryRef::Body, &path)?.insert_text(
+            0,
+            &"A longer cell value ".repeat(8),
+            &Default::default(),
+        )?;
+        let next = layout_shared(&doc, &mut cache, &opts);
+        assert_eq!(next.changed_pages_from(&old), Some(48..49));
+        let full = layout(&doc, &mut LayoutCache::new(), &opts);
+        assert_eq!(next.index, full.index);
+        assert_eq!(format!("{:?}", next.pages), format!("{:?}", full.pages));
+        let bounds = next
+            .index
+            .get(&(StoryRef::Body, path))
+            .ok_or("new cell index")?;
+        assert!(bounds.iter().all(|(page, _)| *page == 48));
         Ok(())
     }
 

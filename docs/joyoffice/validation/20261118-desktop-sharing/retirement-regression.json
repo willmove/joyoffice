@@ -1,0 +1,106 @@
+{
+  "macOS": {
+    "desktop": {
+      "exitCode": 0,
+      "logSha256": "d1a3520ddc09baa9d500d2aacc13d23c385a879029913856c7d1c320dd4b357f"
+    },
+    "ui": {
+      "exitCode": 0,
+      "logSha256": "d6751b3e07cc1ff2153450aab67c9a639e7be321fdc239cfa239d9f6d14e0f8c",
+      "passed": 75,
+      "failed": 0,
+      "ignored": 0
+    },
+    "joyword": {
+      "exitCode": 0,
+      "logSha256": "a18e1c1a3a8ae1706328570f70e11eb970b2343d7d61235f873aa80a87461e85",
+      "passed": 3672,
+      "failed": 0,
+      "ignored": 2
+    },
+    "joydeck": {
+      "exitCode": 0,
+      "logSha256": "3a92a84b24bd05ef650552975131da1f44aa57dd901a866e348add0f47fa09ce",
+      "passed": 995,
+      "failed": 0,
+      "ignored": 0
+    },
+    "joysheet": {
+      "exitCode": 0,
+      "logSha256": "3e1ae74df658482daee19c13b019db144375ed93c0376794eba498416e4acad3",
+      "passed": 1452,
+      "failed": 0,
+      "ignored": 1
+    },
+    "sharedFontConsumers": {
+      "logSha256": "e0de0324435834a295ba4583583193ba2735da394c480c7df9c9e753015ec852",
+      "passed": 159,
+      "failed": 0,
+      "ignored": 1
+    },
+    "packStorageWithoutCatalog": {
+      "logSha256": "7f1e41f0cab9a03b65e50653fff42628f43aa4d5ced55bbd21eae8ede032e348",
+      "passed": 32,
+      "failed": 0,
+      "ignored": 1
+    },
+    "packStorageWithCatalog": {
+      "logSha256": "b6395b91bc60f4ceed6ad41f64d4bd46baa24d501aa455c3978adf108f72d203",
+      "passed": 32,
+      "failed": 0,
+      "ignored": 1
+    }
+  },
+  "UOS": {
+    "desktop": {
+      "exitCode": 0,
+      "logSha256": "2f77478693790988737b23dcc41c7bfa20a4237297c02476a926fe4b3fc8fada"
+    },
+    "ui": {
+      "exitCode": 0,
+      "logSha256": "60b5fe095603a16f0152d4d6fd6cb6e57e387247c8e3b1ad404994d70909f4f7",
+      "passed": 79,
+      "failed": 0,
+      "ignored": 0
+    },
+    "joyword": {
+      "exitCode": 0,
+      "logSha256": "56c7356d52e53f501b87d8b1216ac3a83fa25016376022f9197fa5d2003e62c2",
+      "passed": 3676,
+      "failed": 0,
+      "ignored": 2
+    },
+    "joydeck": {
+      "exitCode": 0,
+      "logSha256": "5f88fb3a71f356f9038e6744f1d51d37f617ff69881383667f11f4c6920c5886",
+      "passed": 1000,
+      "failed": 0,
+      "ignored": 0
+    },
+    "joysheet": {
+      "exitCode": 0,
+      "logSha256": "44eb057fc87d652f9decba4039f6c51004127a64abe21f5e9fad0a91096a7022",
+      "passed": 1452,
+      "failed": 0,
+      "ignored": 1
+    },
+    "sharedFontConsumers": {
+      "logSha256": "b1c5d77930fdc5a7b303463d1a106e4a80f33137a04831660da947ae231fea67",
+      "passed": 161,
+      "failed": 0,
+      "ignored": 1
+    },
+    "packStorageWithoutCatalog": {
+      "logSha256": "9ddd956ce24d2d3156eb1c88afd8c5a003d5c1908f1bf1a1ae284ffb2e731462",
+      "passed": 32,
+      "failed": 0,
+      "ignored": 1
+    },
+    "packStorageWithCatalog": {
+      "logSha256": "b802c93da94badb8cabf13d1613e7989542b38082c6bb964a5cdc5c5fe1b90d4",
+      "passed": 32,
+      "failed": 0,
+      "ignored": 1
+    }
+  }
+}

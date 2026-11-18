@@ -8,6 +8,47 @@ use super::{
     Paragraph, Rect, StoryRef, TextDirection, fields, para,
 };
 
+/// Number restarts affect the displayed label. SEQ and note references also need a stable
+/// ordinal across sections. Each note kind has an independent counter (ECMA-376 §17.11).
+#[derive(Clone, Copy, Default)]
+struct NoteCounter {
+    ordinal: u32,
+    label: u32,
+    section: usize,
+    page: Option<usize>,
+}
+
+impl NoteCounter {
+    fn next(
+        &mut self,
+        options: &joyword_model::section::NoteOptions,
+        section: usize,
+        page: Option<usize>,
+    ) -> fields::NoteNum {
+        use joyword_model::section::NoteRestart;
+        let restart = self.ordinal == 0
+            || match options.num_restart {
+                NoteRestart::Continuous => false,
+                NoteRestart::EachSect => self.section != section,
+                NoteRestart::EachPage => page.is_some() && page != self.page,
+            };
+        self.label = if restart {
+            options.num_start
+        } else {
+            self.label.saturating_add(1)
+        };
+        self.ordinal = self.ordinal.saturating_add(1);
+        self.section = section;
+        self.page = page;
+        fields::NoteNum {
+            n: self.label,
+            fmt: options.num_fmt,
+            section,
+            order: self.ordinal,
+        }
+    }
+}
+
 /// Footnote and endnote numbers (each kind counted separately), in document order, as each
 /// section's options say: starting at its "start at", numbered on, or starting again in each
 /// section or (footnotes) on each page. `pages` gives the page each footnote was placed on by an
@@ -18,22 +59,30 @@ pub(crate) fn note_info(
     hide_deleted: HideDeleted,
     pages: &HashMap<u32, usize>,
 ) -> HashMap<u32, fields::NoteNum> {
-    use joyword_model::section::NoteRestart;
     let sections = doc.sections();
     let opts: Vec<[joyword_model::section::NoteOptions; 2]> = sections
         .iter()
         .map(|(_, s)| [doc.note_options(s, false), doc.note_options(s, true)])
         .collect();
     let mut m = HashMap::new();
-    // Per kind (footnotes, endnotes): the last number, and the section and page of the last note.
-    let mut last: [Option<(u32, usize, Option<usize>)>; 2] = [None, None];
-    let mut order = [0u32; 2];
+    let mut counters = [NoteCounter::default(); 2];
     let mut si = 0usize;
     // Reading order, text boxes included where they are. A hidden reference mark still takes
     // its number, as in Word; a deleted one (or one in a deleted or hidden text box) does not,
     // and `para_notes` doesn't place its note either.
     let mut cur: Option<(usize, Vec<bool>)> = None;
     doc.objects_in_reading_order_by_block(&mut |block, p, k| {
+        // Only a reference or a container capable of holding a note needs visibility resolution.
+        if !matches!(
+            p.objects.get(k),
+            Some(
+                InlineObject::NoteRef { .. }
+                    | InlineObject::Shape { story: Some(_), .. }
+                    | InlineObject::Group { .. }
+            )
+        ) {
+            return false;
+        }
         let key = p as *const Paragraph as usize;
         if cur.as_ref().is_none_or(|(at, _)| *at != key) {
             let gone = left_out_objects(doc, p, None, true, hide_deleted);
@@ -58,38 +107,7 @@ pub(crate) fn note_info(
             } else {
                 None
             };
-            let Some(slot) = last.get_mut(ki) else {
-                return true;
-            };
-            let n = match *slot {
-                None => o.num_start,
-                Some((prev, psect, ppage)) => {
-                    let again = match o.num_restart {
-                        NoteRestart::Continuous => false,
-                        NoteRestart::EachSect => psect != si,
-                        NoteRestart::EachPage => page.is_some() && page != ppage,
-                    };
-                    if again {
-                        o.num_start
-                    } else {
-                        prev.saturating_add(1)
-                    }
-                }
-            };
-            *slot = Some((n, si, page));
-            let ord = order.get_mut(ki).map(|c| {
-                *c = c.saturating_add(1);
-                *c
-            });
-            m.insert(
-                *id,
-                fields::NoteNum {
-                    n,
-                    fmt: o.num_fmt,
-                    section: si,
-                    order: ord.unwrap_or(0),
-                },
-            );
+            m.insert(*id, counters[ki].next(o, si, page));
         }
         true
     });

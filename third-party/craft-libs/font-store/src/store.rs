@@ -1,6 +1,6 @@
 //! The font store folder: consent, installs, the manifest, removal and checks.
 //!
-//! Layout of the folder ([`craft_font_catalog::font_store_dir`]):
+//! Layout of the per-user font-store folder:
 //!
 //! ```text
 //! settings.json        the consent setting and the sources the user added
@@ -16,10 +16,12 @@
 use std::fs::File;
 use std::io::Write;
 use std::path::{Path, PathBuf};
+#[cfg(any(test, feature = "catalog"))]
 use std::sync::Arc;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{Duration, SystemTime};
 
+#[cfg(any(test, feature = "catalog"))]
 use craft_font_catalog::{Catalog, FontEnv, font_store_dir};
 use serde::{Deserialize, Serialize};
 
@@ -220,6 +222,7 @@ pub struct FontStore {
     dir: PathBuf,
     caller: Caller,
     client: Client,
+    #[cfg(any(test, feature = "catalog"))]
     catalog: Option<Arc<Catalog>>,
 }
 
@@ -235,11 +238,13 @@ impl std::fmt::Debug for FontStore {
 impl FontStore {
     /// The store for the app's own interface, in the folder every app reads.
     /// `None` where there is no per-user folder.
+    #[cfg(any(test, feature = "catalog"))]
     pub fn for_user(env: &FontEnv) -> Option<Self> {
         Some(Self::new(font_store_dir(env)?, Caller::User))
     }
 
     /// The store for an agent (MCP, CLI): it can never turn the network on.
+    #[cfg(any(test, feature = "catalog"))]
     pub fn for_agent(env: &FontEnv) -> Option<Self> {
         Some(Self::new(font_store_dir(env)?, Caller::Agent))
     }
@@ -250,6 +255,7 @@ impl FontStore {
             dir,
             caller,
             client: Client::default(),
+            #[cfg(any(test, feature = "catalog"))]
             catalog: None,
         }
     }
@@ -262,6 +268,7 @@ impl FontStore {
 
     /// Rescans `catalog` after each install and removal, so the app sees the change at once.
     /// Apps pass `Catalog::global().clone()`.
+    #[cfg(any(test, feature = "catalog"))]
     pub fn with_catalog(mut self, catalog: Arc<Catalog>) -> Self {
         self.catalog = Some(catalog);
         self
@@ -687,6 +694,7 @@ impl FontStore {
             }
         };
         drop(stage);
+        #[cfg(any(test, feature = "catalog"))]
         self.rescan();
         result
     }
@@ -780,6 +788,7 @@ impl FontStore {
                 }
             }
         };
+        #[cfg(any(test, feature = "catalog"))]
         self.rescan();
         result
     }
@@ -852,6 +861,7 @@ impl FontStore {
                 }
             }
         };
+        #[cfg(any(test, feature = "catalog"))]
         self.rescan();
         result
     }
@@ -894,6 +904,7 @@ impl FontStore {
 
     // ----- folder
 
+    #[cfg(any(test, feature = "catalog"))]
     fn rescan(&self) {
         if let Some(catalog) = &self.catalog {
             catalog.rescan();

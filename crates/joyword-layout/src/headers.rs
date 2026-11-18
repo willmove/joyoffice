@@ -27,30 +27,26 @@ pub(crate) fn section_side(
     even_odd: bool,
     mirror: bool,
 ) -> (bool, Option<u32>) {
-    match start {
-        SectionStart::OddPage | SectionStart::EvenPage => {
-            let want_odd = start == SectionStart::OddPage;
-            let continuing_odd = last.saturating_add(1) % 2 == 1;
-            let filler = pages > 0
-                && continuing_odd != want_odd
-                && (restart.is_none() || even_odd || mirror);
-            let restart = restart.map(|n| {
-                if (n % 2 == 1) == want_odd {
-                    n
-                } else {
-                    n.saturating_add(1)
-                }
-            });
-            (filler, restart)
-        }
+    // A next-page restart follows physical sheet parity only for facing headers. Explicit
+    // odd/even sections use the previous displayed page, which may itself have been restarted.
+    let odd = match start {
+        SectionStart::OddPage => true,
+        SectionStart::EvenPage => false,
         SectionStart::NextPage => {
-            let filler = even_odd
-                && pages > 0
-                && restart.is_some_and(|n| (n % 2 == 1) != ((pages + 1) % 2 == 1));
-            (filler, restart)
+            let physical_next_is_odd = pages.is_multiple_of(2);
+            let skip = pages > 0
+                && even_odd
+                && restart.is_some_and(|n| (n % 2 == 1) != physical_next_is_odd);
+            return (skip, restart);
         }
-        SectionStart::Continuous | SectionStart::NextColumn => (false, restart),
-    }
+        SectionStart::Continuous | SectionStart::NextColumn => return (false, restart),
+    };
+    let on_wrong_side = |n: u32| (n % 2 == 1) != odd;
+    let skip = pages > 0
+        && (restart.is_none() || even_odd || mirror)
+        && on_wrong_side(last.saturating_add(1));
+    let number = restart.map(|n| n.saturating_add(u32::from(on_wrong_side(n))));
+    (skip, number)
 }
 
 /// The document's sections with their headers and footers (Word's "link to previous"), each

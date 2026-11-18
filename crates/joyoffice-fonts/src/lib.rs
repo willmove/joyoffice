@@ -94,9 +94,149 @@ pub fn flatpak_roots(include_legacy: bool) -> impl Iterator<Item = PathBuf> {
     .map(PathBuf::from)
 }
 
+/// Filesystem revision used for catalog discovery. Rendering still uses a digest of the
+/// actual font bytes and the collection face. On Unix this also detects same-length rewrites
+/// that restore mtime and atomic replacements with a different inode.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct FileStamp {
+    length: u64,
+    modified: Option<std::time::SystemTime>,
+    created: Option<std::time::SystemTime>,
+    #[cfg(unix)]
+    identity: (u64, u64, i64, i64),
+}
+
+impl From<&std::fs::Metadata> for FileStamp {
+    fn from(meta: &std::fs::Metadata) -> Self {
+        #[cfg(unix)]
+        use std::os::unix::fs::MetadataExt;
+        Self {
+            length: meta.len(),
+            modified: meta.modified().ok(),
+            created: meta.created().ok(),
+            #[cfg(unix)]
+            identity: (meta.dev(), meta.ino(), meta.ctime(), meta.ctime_nsec()),
+        }
+    }
+}
+
+/// Enumerate regular OpenType and TrueType files in the supplied root order (last root first).
+/// Directory symlinks are followed at most once. Return false if the caller's entry budget
+/// stops this scan. The owner retains its file-size, face and cache policies.
+pub fn visit_font_files(
+    roots: &[PathBuf],
+    max_depth: usize,
+    max_entries: usize,
+    mut visit: impl FnMut(PathBuf, std::fs::Metadata),
+) -> bool {
+    let mut pending: Vec<_> = roots.iter().cloned().map(|root| (root, 0usize)).collect();
+    let mut directories = std::collections::HashSet::new();
+    let mut remaining = max_entries;
+    while let Some((directory, depth)) = pending.pop() {
+        #[cfg(unix)]
+        let identity = {
+            use std::os::unix::fs::MetadataExt;
+            let Ok(meta) = std::fs::metadata(&directory) else {
+                continue;
+            };
+            (meta.dev(), meta.ino())
+        };
+        #[cfg(not(unix))]
+        let identity = std::fs::canonicalize(&directory).unwrap_or_else(|_| directory.clone());
+        if !directories.insert(identity) {
+            continue;
+        }
+        let Ok(children) = std::fs::read_dir(directory) else {
+            continue;
+        };
+        for child in children.flatten() {
+            let Some(budget) = remaining.checked_sub(1) else {
+                return false;
+            };
+            remaining = budget;
+            let path = child.path();
+            let has_font_extension = path.extension().is_some_and(|ext| {
+                ["ttf", "otf", "ttc", "otc"]
+                    .iter()
+                    .any(|suffix| ext.eq_ignore_ascii_case(suffix))
+            });
+            // Directory entries normally carry their type. Stat only matching files or links,
+            // which may point to directories even if their names have no font extension.
+            if let Ok(kind) = child.file_type() {
+                if kind.is_dir() {
+                    if depth < max_depth {
+                        pending.push((path, depth + 1));
+                    }
+                    continue;
+                }
+                if !kind.is_symlink() && !has_font_extension {
+                    continue;
+                }
+            }
+            let Ok(meta) = std::fs::metadata(&path) else {
+                continue;
+            };
+            if meta.is_dir() && depth < max_depth {
+                pending.push((path, depth + 1));
+            } else if meta.is_file() && has_font_extension {
+                visit(path, meta);
+            }
+        }
+    }
+    true
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[cfg(unix)]
+    #[test]
+    fn visits_real_font_files_once_through_symlink_cycles_and_honors_budgets() -> std::io::Result<()>
+    {
+        use std::os::unix::fs::symlink;
+        let root = std::env::temp_dir().join(format!("joyoffice-font-walk-{}", std::process::id()));
+        std::fs::create_dir(&root)?;
+        let run = || -> std::io::Result<()> {
+            let nested = root.join("nested");
+            std::fs::create_dir(&nested)?;
+            let face = nested.join("Family.TtC");
+            std::fs::write(&face, b"one")?;
+            std::fs::write(nested.join("readme.txt"), b"text")?;
+            symlink(&root, nested.join("cycle"))?;
+            let mut paths = Vec::new();
+            assert!(visit_font_files(
+                std::slice::from_ref(&root),
+                12,
+                20,
+                |path, meta| paths.push((path, FileStamp::from(&meta)))
+            ));
+            assert_eq!(paths.len(), 1);
+            assert_eq!(paths[0].0, face);
+            let replacement = nested.join("new");
+            std::fs::write(&replacement, b"two")?;
+            std::fs::rename(replacement, &face)?;
+            assert_ne!(paths[0].1, FileStamp::from(&std::fs::metadata(&face)?));
+            assert!(!visit_font_files(
+                std::slice::from_ref(&root),
+                12,
+                0,
+                |_, _| {}
+            ));
+            let mut count = 0;
+            assert!(visit_font_files(
+                std::slice::from_ref(&root),
+                0,
+                20,
+                |_, _| count += 1
+            ));
+            assert_eq!(count, 0);
+            Ok(())
+        };
+        let result = run();
+        std::fs::remove_dir_all(root)?;
+        result
+    }
 
     #[test]
     fn identity_distinguishes_file_content_and_collection_index() {

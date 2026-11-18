@@ -115,3 +115,14 @@ fn web_and_cube() {
     is_err(ev("CUBEVALUE", vec![t("conn")]), CellError::NA);
     is_err(ev("CUBESETCOUNT", vec![t("set")]), CellError::NA);
 }
+
+#[test]
+fn logical_reductions_preserve_error_order_and_reference_coercion() {
+    for (name, decisive) in [("AND", false), ("OR", true), ("XOR", true)] {
+        let late = arr(vec![vec![Value::Bool(decisive), Value::Error(CellError::Ref), Value::Error(CellError::Div0)]]);
+        is_err(ev(name, vec![rf(late)]), CellError::Ref);
+        let ignored = arr(vec![vec![tv("TRUE"), Value::Empty]]);
+        is_err(ev(name, vec![rf(ignored)]), CellError::Value);
+        assert_eq!(ev(name, vec![t("TRUE"), rf(tv("FALSE"))]), Value::Bool(true));
+    }
+}

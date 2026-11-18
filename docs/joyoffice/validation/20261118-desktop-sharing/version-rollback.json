@@ -1,0 +1,346 @@
+{
+  "macOS": {
+    "previousBinarySha256": "e2693b8aed1d98f31f55ba7e63204e192d9fe1a1f8c1f5ba3137b14e6ee4f6b2",
+    "candidateBinarySha256": "599e40d9743f5effb9614fa288ce3c287eb52366a938f96eab8157254a057062",
+    "formulaExpectationsCheckedInBothVersions": {
+      "=SUM({1,\"x\",2},TRUE,\"3\")": 7,
+      "=SUM(1E16,1,-1E16)": 0,
+      "=SUMSQ({2,-3},TRUE)": 14,
+      "=PRODUCT({2,0,3})": 0,
+      "=PRODUCT({\"x\",\"y\"})": 0,
+      "=AVERAGE({1,\"x\",3})": 2,
+      "=MIN({\"x\",\"y\"})": 0,
+      "=MAX(-2,-3)": -2,
+      "=PERCENTOF({1,2},{3,3})": 0.5,
+      "=PERCENTOF(1,0)": {
+        "error": "#DIV/0!"
+      },
+      "=AND(\"TRUE\",{TRUE,\"ignore\",1})": true,
+      "=OR({0,\"TRUE\",FALSE})": false,
+      "=XOR({TRUE,FALSE,TRUE})": false,
+      "=AND(FALSE,1/0)": {
+        "error": "#DIV/0!"
+      },
+      "=OR(TRUE,NA())": {
+        "error": "#N/A"
+      },
+      "=XOR({\"x\",\"y\"})": {
+        "error": "#VALUE!"
+      }
+    },
+    "previousVersionReopenedCandidateCopies": [
+      {
+        "fixture": "M5-workflow.xlsx",
+        "sourceSha256": "936d4dc5fb8e2ba164cf188122f82907c94144d42bbd1a84b3751496baae8389",
+        "sheets": 3,
+        "checks": {
+          "boolAsNumber": 0,
+          "categoriesDiffering": {},
+          "checked": 0,
+          "failedToOpen": 0,
+          "files": 1,
+          "formulaCells": 0,
+          "matched": 0,
+          "mismatched": 0,
+          "noOracle": 0,
+          "opened": 1,
+          "roundTripDiffering": 0,
+          "roundTripFailed": 0,
+          "volatile": 0
+        }
+      },
+      {
+        "fixture": "M6-workflow.xlsx",
+        "sourceSha256": "1cfbb09edbc3ddc817a84704595af48bb9076085c7c4133122a8476cd8767f28",
+        "sheets": 1,
+        "checks": {
+          "boolAsNumber": 0,
+          "categoriesDiffering": {},
+          "checked": 0,
+          "failedToOpen": 0,
+          "files": 1,
+          "formulaCells": 0,
+          "matched": 0,
+          "mismatched": 0,
+          "noOracle": 0,
+          "opened": 1,
+          "roundTripDiffering": 0,
+          "roundTripFailed": 0,
+          "volatile": 0
+        }
+      },
+      {
+        "fixture": "M7-workflow.xlsx",
+        "sourceSha256": "31b566eff1f9e1e457a58fe29a9e7e7d42ba28e57ed1c137524d1536f2f87bc9",
+        "sheets": 1,
+        "checks": {
+          "boolAsNumber": 0,
+          "categoriesDiffering": {},
+          "checked": 4,
+          "failedToOpen": 0,
+          "files": 1,
+          "formulaCells": 4,
+          "matched": 4,
+          "mismatched": 0,
+          "noOracle": 0,
+          "opened": 1,
+          "roundTripDiffering": 0,
+          "roundTripFailed": 0,
+          "volatile": 0
+        }
+      },
+      {
+        "fixture": "Windows-boundaries.xlsx",
+        "sourceSha256": "fcf64a910eb135efb8a06fee0c630599fe3b9a603299285562c3fdaab8578581",
+        "sheets": 3,
+        "checks": {
+          "boolAsNumber": 0,
+          "categoriesDiffering": {},
+          "checked": 0,
+          "failedToOpen": 0,
+          "files": 1,
+          "formulaCells": 0,
+          "matched": 0,
+          "mismatched": 0,
+          "noOracle": 0,
+          "opened": 1,
+          "roundTripDiffering": 0,
+          "roundTripFailed": 0,
+          "volatile": 0
+        }
+      },
+      {
+        "fixture": "Windows-format.xlsx",
+        "sourceSha256": "cf286276d7e5bbb080d27f0fa8e1905f31d6bf4a1df040e701aa1180526415a1",
+        "sheets": 1,
+        "checks": {
+          "boolAsNumber": 0,
+          "categoriesDiffering": {},
+          "checked": 0,
+          "failedToOpen": 0,
+          "files": 1,
+          "formulaCells": 0,
+          "matched": 0,
+          "mismatched": 0,
+          "noOracle": 0,
+          "opened": 1,
+          "roundTripDiffering": 0,
+          "roundTripFailed": 0,
+          "volatile": 0
+        }
+      },
+      {
+        "fixture": "Windows-objects.xlsx",
+        "sourceSha256": "ed91d8da8242b592bfcc0a422869871e4279e018d12c1149c6fcd45a39d97812",
+        "sheets": 1,
+        "checks": {
+          "boolAsNumber": 0,
+          "categoriesDiffering": {},
+          "checked": 0,
+          "failedToOpen": 0,
+          "files": 1,
+          "formulaCells": 0,
+          "matched": 0,
+          "mismatched": 0,
+          "noOracle": 0,
+          "opened": 1,
+          "roundTripDiffering": 0,
+          "roundTripFailed": 0,
+          "volatile": 0
+        }
+      },
+      {
+        "fixture": "Windows-quality.xlsx",
+        "sourceSha256": "018c8fcf4b996e570ec36521dcad4f765efdeb7996b8b601554915a5003f1631",
+        "sheets": 2,
+        "checks": {
+          "boolAsNumber": 0,
+          "categoriesDiffering": {},
+          "checked": 1,
+          "failedToOpen": 0,
+          "files": 1,
+          "formulaCells": 1,
+          "matched": 1,
+          "mismatched": 0,
+          "noOracle": 0,
+          "opened": 1,
+          "roundTripDiffering": 0,
+          "roundTripFailed": 0,
+          "volatile": 0
+        }
+      }
+    ]
+  },
+  "UOS": {
+    "previousBinarySha256": "f700749b8f3b29bdd611ee61aae46ad28add2d4e849809db4ae52d24450f68ff",
+    "candidateBinarySha256": "3cae2ec84f16e45dedd350ae78533aa35e55f7bf3f6efd878fd9142032061257",
+    "formulaExpectationsCheckedInBothVersions": {
+      "=SUM({1,\"x\",2},TRUE,\"3\")": 7,
+      "=SUM(1E16,1,-1E16)": 0,
+      "=SUMSQ({2,-3},TRUE)": 14,
+      "=PRODUCT({2,0,3})": 0,
+      "=PRODUCT({\"x\",\"y\"})": 0,
+      "=AVERAGE({1,\"x\",3})": 2,
+      "=MIN({\"x\",\"y\"})": 0,
+      "=MAX(-2,-3)": -2,
+      "=PERCENTOF({1,2},{3,3})": 0.5,
+      "=PERCENTOF(1,0)": {
+        "error": "#DIV/0!"
+      },
+      "=AND(\"TRUE\",{TRUE,\"ignore\",1})": true,
+      "=OR({0,\"TRUE\",FALSE})": false,
+      "=XOR({TRUE,FALSE,TRUE})": false,
+      "=AND(FALSE,1/0)": {
+        "error": "#DIV/0!"
+      },
+      "=OR(TRUE,NA())": {
+        "error": "#N/A"
+      },
+      "=XOR({\"x\",\"y\"})": {
+        "error": "#VALUE!"
+      }
+    },
+    "previousVersionReopenedCandidateCopies": [
+      {
+        "fixture": "M5-workflow.xlsx",
+        "sourceSha256": "936d4dc5fb8e2ba164cf188122f82907c94144d42bbd1a84b3751496baae8389",
+        "sheets": 3,
+        "checks": {
+          "boolAsNumber": 0,
+          "categoriesDiffering": {},
+          "checked": 0,
+          "failedToOpen": 0,
+          "files": 1,
+          "formulaCells": 0,
+          "matched": 0,
+          "mismatched": 0,
+          "noOracle": 0,
+          "opened": 1,
+          "roundTripDiffering": 0,
+          "roundTripFailed": 0,
+          "volatile": 0
+        }
+      },
+      {
+        "fixture": "M6-workflow.xlsx",
+        "sourceSha256": "1cfbb09edbc3ddc817a84704595af48bb9076085c7c4133122a8476cd8767f28",
+        "sheets": 1,
+        "checks": {
+          "boolAsNumber": 0,
+          "categoriesDiffering": {},
+          "checked": 0,
+          "failedToOpen": 0,
+          "files": 1,
+          "formulaCells": 0,
+          "matched": 0,
+          "mismatched": 0,
+          "noOracle": 0,
+          "opened": 1,
+          "roundTripDiffering": 0,
+          "roundTripFailed": 0,
+          "volatile": 0
+        }
+      },
+      {
+        "fixture": "M7-workflow.xlsx",
+        "sourceSha256": "31b566eff1f9e1e457a58fe29a9e7e7d42ba28e57ed1c137524d1536f2f87bc9",
+        "sheets": 1,
+        "checks": {
+          "boolAsNumber": 0,
+          "categoriesDiffering": {},
+          "checked": 4,
+          "failedToOpen": 0,
+          "files": 1,
+          "formulaCells": 4,
+          "matched": 4,
+          "mismatched": 0,
+          "noOracle": 0,
+          "opened": 1,
+          "roundTripDiffering": 0,
+          "roundTripFailed": 0,
+          "volatile": 0
+        }
+      },
+      {
+        "fixture": "Windows-boundaries.xlsx",
+        "sourceSha256": "fcf64a910eb135efb8a06fee0c630599fe3b9a603299285562c3fdaab8578581",
+        "sheets": 3,
+        "checks": {
+          "boolAsNumber": 0,
+          "categoriesDiffering": {},
+          "checked": 0,
+          "failedToOpen": 0,
+          "files": 1,
+          "formulaCells": 0,
+          "matched": 0,
+          "mismatched": 0,
+          "noOracle": 0,
+          "opened": 1,
+          "roundTripDiffering": 0,
+          "roundTripFailed": 0,
+          "volatile": 0
+        }
+      },
+      {
+        "fixture": "Windows-format.xlsx",
+        "sourceSha256": "cf286276d7e5bbb080d27f0fa8e1905f31d6bf4a1df040e701aa1180526415a1",
+        "sheets": 1,
+        "checks": {
+          "boolAsNumber": 0,
+          "categoriesDiffering": {},
+          "checked": 0,
+          "failedToOpen": 0,
+          "files": 1,
+          "formulaCells": 0,
+          "matched": 0,
+          "mismatched": 0,
+          "noOracle": 0,
+          "opened": 1,
+          "roundTripDiffering": 0,
+          "roundTripFailed": 0,
+          "volatile": 0
+        }
+      },
+      {
+        "fixture": "Windows-objects.xlsx",
+        "sourceSha256": "ed91d8da8242b592bfcc0a422869871e4279e018d12c1149c6fcd45a39d97812",
+        "sheets": 1,
+        "checks": {
+          "boolAsNumber": 0,
+          "categoriesDiffering": {},
+          "checked": 0,
+          "failedToOpen": 0,
+          "files": 1,
+          "formulaCells": 0,
+          "matched": 0,
+          "mismatched": 0,
+          "noOracle": 0,
+          "opened": 1,
+          "roundTripDiffering": 0,
+          "roundTripFailed": 0,
+          "volatile": 0
+        }
+      },
+      {
+        "fixture": "Windows-quality.xlsx",
+        "sourceSha256": "018c8fcf4b996e570ec36521dcad4f765efdeb7996b8b601554915a5003f1631",
+        "sheets": 2,
+        "checks": {
+          "boolAsNumber": 0,
+          "categoriesDiffering": {},
+          "checked": 1,
+          "failedToOpen": 0,
+          "files": 1,
+          "formulaCells": 1,
+          "matched": 1,
+          "mismatched": 0,
+          "noOracle": 0,
+          "opened": 1,
+          "roundTripDiffering": 0,
+          "roundTripFailed": 0,
+          "volatile": 0
+        }
+      }
+    ]
+  }
+}

@@ -12,7 +12,7 @@
 //! font catalog reads.
 //!
 //! ```no_run
-//! # #[cfg(not(target_arch = "wasm32"))] {
+//! # #[cfg(all(not(target_arch = "wasm32"), feature = "catalog"))] {
 //! use craft_font_store::{Cancel, FontStore, Index, PINNED_INDEX};
 //! use craft_font_catalog::{Catalog, FontEnv};
 //!

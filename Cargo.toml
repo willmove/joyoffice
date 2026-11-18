@@ -219,7 +219,7 @@ vello_common = { version = "=0.2.0", default-features = false }
 joyword-mcp = { path = "crates/joyword-mcp" }
 joyword-control-key = { path = "crates/joyword-control-key" }
 joyword-proof = { version = "=0.1.0", package = "craft-proof", path = "third-party/craft-libs/proof" }
-craft-font-store = { version = "=0.1.0", path = "third-party/craft-libs/font-store" }
+craft-font-store = { version = "=0.1.0", default-features = false, path = "third-party/craft-libs/font-store" }
 craft-font-catalog = { version = "=0.1.0", path = "third-party/craft-libs/font-catalog" }
 joyword-fonts = { version = "=0.2.0", path = "crates/joyword-fonts" }
 joyword-formats = { version = "=0.2.0", path = "crates/joyword-formats" }

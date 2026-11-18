@@ -459,14 +459,7 @@ struct CatalogLoad {
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-#[derive(PartialEq, Eq)]
-struct FileStamp {
-    len: u64,
-    modified: Option<std::time::SystemTime>,
-    created: Option<std::time::SystemTime>,
-    #[cfg(unix)]
-    changed: (u64, u64, i64, i64),
-}
+use joyoffice_fonts::FileStamp;
 
 #[cfg(not(target_arch = "wasm32"))]
 #[derive(Default)]
@@ -1449,57 +1442,14 @@ impl FontDb {
             platform_dirs = system_font_dirs();
             &platform_dirs
         };
-        let mut stack: Vec<(PathBuf, usize)> = dirs.iter().map(|d| (d.clone(), 0)).collect();
-        // Each folder once, however links lead back to it.
-        let mut visited = std::collections::HashSet::new();
-        let mut entries = 0usize;
-        while let Some((d, depth)) = stack.pop() {
-            if !visited.insert(std::fs::canonicalize(&d).unwrap_or_else(|_| d.clone())) {
-                continue;
-            }
-            let Ok(rd) = std::fs::read_dir(&d) else {
-                continue;
-            };
-            for e in rd.flatten() {
-                // A link to `/` or a vast tree mustn't turn start-up into a disk crawl.
-                entries += 1;
-                if entries > MAX_SCAN_ENTRIES {
-                    log::warn!("font scan stopped after {MAX_SCAN_ENTRIES} entries");
-                    return found;
-                }
-                let p = e.path();
-                // Follows links: what matters is what the entry leads to.
-                let Ok(meta) = std::fs::metadata(&p) else {
-                    continue;
-                };
-                if meta.is_dir() {
-                    if depth < MAX_SCAN_DEPTH {
-                        stack.push((p, depth + 1));
-                    }
-                    continue;
-                }
-                let ext = p
-                    .extension()
-                    .and_then(std::ffi::OsStr::to_str)
-                    .map(str::to_ascii_lowercase);
-                if !matches!(ext.as_deref(), Some("ttf" | "otf" | "ttc" | "otc")) {
-                    continue;
-                }
+        let complete =
+            joyoffice_fonts::visit_font_files(dirs, MAX_SCAN_DEPTH, MAX_SCAN_ENTRIES, |p, meta| {
                 if font_file_ok(&meta) {
-                    #[cfg(unix)]
-                    use std::os::unix::fs::MetadataExt as _;
-                    found.insert(
-                        p,
-                        FileStamp {
-                            len: meta.len(),
-                            modified: meta.modified().ok(),
-                            created: meta.created().ok(),
-                            #[cfg(unix)]
-                            changed: (meta.dev(), meta.ino(), meta.ctime(), meta.ctime_nsec()),
-                        },
-                    );
+                    found.insert(p, FileStamp::from(&meta));
                 }
-            }
+            });
+        if !complete {
+            log::warn!("font scan stopped after {MAX_SCAN_ENTRIES} entries");
         }
         found
     }

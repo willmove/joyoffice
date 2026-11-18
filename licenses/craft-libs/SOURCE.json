@@ -598,8 +598,8 @@
       "target": "third-party/craft-libs/font-store/Cargo.toml",
       "sha256": "59433f5b9007345dad9735553133948c357b3394aae804bc9035b31b6b1f41b3",
       "modified": true,
-      "target_sha256": "d33951186e3d72eeeded2a3a315cf0109740964bcab5095ff835ebd44add082c",
-      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+      "target_sha256": "5ed451f70d1850779e8442e6a7ff590b33f7018cb211c1bb3aaef828d7382f1e",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md. Make the font catalog an optional integration, enabled by default for callers of its font APIs. JoyWord installs language packs with its existing store and consent settings."
     },
     {
       "commit": "762a06a4c6b48b522b7d4de84a87917ef90265e6",
@@ -675,8 +675,8 @@
       "target": "third-party/craft-libs/font-store/src/lib.rs",
       "sha256": "44c950cb251a21f3204c7dfe1be8a5dda9fafc95506ccfce21fdbf73a8ee00ec",
       "modified": true,
-      "target_sha256": "0eeb9489786ba8764d00264ab8faea4937677b8f98443b0667e89b30f492496c",
-      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+      "target_sha256": "0d058b92d9385f7b669ffe3b25a4a3d76e752b9644badfaf8c4e722097cb30d8",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md. Make the font catalog an optional integration, enabled by default for callers of its font APIs. JoyWord installs language packs with its existing store and consent settings."
     },
     {
       "commit": "762a06a4c6b48b522b7d4de84a87917ef90265e6",
@@ -711,8 +711,8 @@
       "target": "third-party/craft-libs/font-store/src/store.rs",
       "sha256": "fc5a6572293f0aede3d0f7111800225d4f30ec53a3ddf89d28a8e58587a1a0dd",
       "modified": true,
-      "target_sha256": "dd0b9c3f17147463c0cb97652bccee48f1e902969f54de9023d0eebc90f0d9d1",
-      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+      "target_sha256": "2cc811926f91987b7cef646af1ee0c87446e429bb53d9a176cb970fb01952d8a",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md. Make the font catalog an optional integration, enabled by default for callers of its font APIs. JoyWord installs language packs with its existing store and consent settings."
     },
     {
       "commit": "762a06a4c6b48b522b7d4de84a87917ef90265e6",

@@ -311,19 +311,7 @@ fn draw_pixel_aligned_rect(out: &mut Image, l: &Layer, tex: &Tex) -> bool {
                         }
                     }
                 } else {
-                    for (dst, src) in row
-                        .as_chunks_mut::<4>()
-                        .0
-                        .iter_mut()
-                        .zip(pixels.as_chunks::<4>().0)
-                    {
-                        let inverse = 1. - src[3] as f32 * alpha / 255.;
-                        for k in 0..4 {
-                            dst[k] = (src[k] as f32 * alpha + dst[k] as f32 * inverse)
-                                .round()
-                                .clamp(0., 255.) as u8;
-                        }
-                    }
+                    composite_translucent_row(row, pixels, alpha);
                 }
             }
             Tex::Solid(color) => {
@@ -339,6 +327,33 @@ fn draw_pixel_aligned_rect(out: &mut Image, l: &Layer, tex: &Tex) -> bool {
         }
     }
     true
+}
+
+/// Premultiplied source-over on a clipped scanline. Decorations often leave fully
+/// transparent spans around artwork. Such a span contributes exactly zero to all channels.
+fn composite_translucent_row(row: &mut [u8], source: &[u8], opacity: f32) {
+    for (output, input) in row.chunks_mut(64).zip(source.chunks(64)) {
+        if input.iter().all(|&byte| byte == 0) {
+            continue;
+        }
+        if opacity == 1. && input.as_chunks::<4>().0.iter().all(|pixel| pixel[3] == 255) {
+            output.copy_from_slice(input);
+            continue;
+        }
+        for (dest, pixel) in output
+            .as_chunks_mut::<4>()
+            .0
+            .iter_mut()
+            .zip(input.as_chunks::<4>().0)
+        {
+            let keep = 1. - f32::from(pixel[3]) * opacity / 255.;
+            for (dst, src) in dest.iter_mut().zip(pixel) {
+                *dst = (f32::from(*src) * opacity + f32::from(*dst) * keep)
+                    .round()
+                    .clamp(0., 255.) as u8;
+            }
+        }
+    }
 }
 
 fn draw_mesh_layer(out: &mut Image, l: &Layer, tex: &Tex) {
@@ -454,6 +469,29 @@ fn fill_triangle(out: &mut Image, p: [[f64; 2]; 3], uv: [[f64; 2]; 3], al: [f64;
 )]
 mod tests {
     use super::*;
+
+    #[test]
+    fn mixed_scanline_matches_premultiplied_source_over_for_every_alpha() {
+        let input: Vec<u8> = (0..67)
+            .flat_map(|i| match i {
+                0..16 => [0; 4],
+                16..32 => [10, 160, 90, 255],
+                _ => [i / 4, i / 3, i / 2, i],
+            })
+            .collect();
+        for a in 0..=255 {
+            let opacity = a as f32 / 255.;
+            let initial = [48u8, 96, 128, 200].repeat(67);
+            let mut out = initial.clone();
+            composite_translucent_row(&mut out, &input, opacity);
+            for (index, actual) in out.into_iter().enumerate() {
+                let cover = f32::from(input[(index / 4) * 4 + 3]) * opacity / 255.;
+                let expected =
+                    f32::from(input[index]) * opacity + f32::from(initial[index]) * (1. - cover);
+                assert_eq!(actual, expected.round() as u8);
+            }
+        }
+    }
 
     #[test]
     fn aligned_rectangles_match_mesh_sampling_for_fades_crops_and_transparency() {

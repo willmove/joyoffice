@@ -40,11 +40,12 @@ class NativeWindow:
     def nodes(self):
         if self.mac:
             roots = json.loads(run(self.helper, str(self.proc.pid), "tree"))
-            stack = list(roots)
+            stack = [(node, []) for node in roots]
             while stack:
-                node = stack.pop()
-                stack.extend(node.get("children", []))
-                yield node
+                node, parents = stack.pop()
+                name = node.get("label") or node.get("title") or ""
+                stack.extend((child, parents + [name]) for child in node.get("children", []))
+                yield {**node, "parents":parents}
         else:
             from gi.repository import GLib
             context = GLib.MainContext.default()
@@ -52,23 +53,24 @@ class NativeWindow:
                 context.iteration(False)
             desk = self.atspi.get_desktop(0)
             roots = [desk.get_child_at_index(i) for i in range(desk.get_child_count())]
-            stack = [node for node in roots if node and node.get_process_id() == self.proc.pid]
+            stack = [(node, []) for node in roots if node and node.get_process_id() == self.proc.pid]
             while stack:
-                obj = stack.pop()
+                obj, parents = stack.pop()
                 if obj is None:
                     continue
                 try:
                     obj.clear_cache()
                     node = {"role":obj.get_role_name(), "label":obj.get_name() or "", "id":obj.get_accessible_id() or "",
-                            "enabled":obj.get_state_set().contains(self.atspi.StateType.ENABLED), "object":obj}
-                    stack.extend(obj.get_child_at_index(i) for i in range(obj.get_child_count()))
+                            "enabled":obj.get_state_set().contains(self.atspi.StateType.ENABLED), "object":obj, "parents":parents}
+                    stack.extend((obj.get_child_at_index(i), parents + [node["label"]]) for i in range(obj.get_child_count()))
                 except GLib.Error:
                     # A ribbon rebuild can remove a node while its accessibility methods are in flight.
                     continue
                 yield node
 
-    def find(self, names, role=None):
+    def find(self, names, role=None, parent=None):
         return next((node for node in self.nodes() if names.intersection(node.get(k, "") for k in ("id","label","title"))
+                     and (not parent or parent in node["parents"])
                      and (not role or role in node["role"].lower() or (role == "group" and node["role"] == "panel"))), None)
 
     def key(self, name):
@@ -134,7 +136,6 @@ def main():
                 g = wait(group, f"{lang} visible group at {actual_width}", proc)
                 if ctrl:
                     ctrl.call("ui.focus")
-                if ctrl:
                     ctrl.call("ui.key", key="f1", ctrl=not surface.mac, cmd=surface.mac)
                 else:
                     surface.key("collapse")
@@ -144,8 +145,27 @@ def main():
                 else:
                     surface.key("collapse")
                 wait(group, "keyboard expands ribbon", proc)
+                activated = False
+                if args.product in ("word","sheet"):
+                    names = ({"font-dialog", "字体设置", "Font Settings"} if not ctrl else
+                             {"launcher-Font-home.formatCells", "打开格式设置", "Open formatting settings"})
+                    launcher = wait(lambda: surface.find(names, "button", g.get("label") or g.get("title")), "font group launcher", proc)
+                    assert str(launcher.get("enabled", "")).lower() in ("true","1")
+                    surface.press(launcher)
+                    if ctrl:
+                        def font_dialog():
+                            dialog = ctrl.call("ui.inspect").get("commandDialog", {})
+                            return dialog.get("command") == "home.formatCells" and dialog.get("tab") == 2
+                        wait(font_dialog, "Font tab opened by its launcher", proc)
+                        ctrl.call("ui.dialog.cancel")
+                        wait(lambda: not font_dialog(), "dismissed Format Cells", proc)
+                    else:
+                        cancel = wait(lambda: surface.find({"cancel-authoring","取消"}, "button"), "font form opened",proc)
+                        surface.press(cancel)
+                        wait(lambda: not surface.find({"cancel-authoring","取消"}, "button"), "font form dismissed",proc)
+                    activated = True
                 rows.append({"language":lang,"requestedWidth":width,"actualWidth":actual_width,
-                             "group":g.get("label") or g.get("title"),"keyboardCollapseAndExpand":True})
+                             "group":g.get("label") or g.get("title"),"keyboardCollapseAndExpand":True,"fontLauncherOpenedAndDismissed":activated})
     (out / "report.json").write_text(json.dumps({"product":args.product,"binarySha256":digest(args.binary),
                                                   "cases":rows}, ensure_ascii=False, indent=2) + "\n")
 

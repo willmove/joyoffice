@@ -1,0 +1,250 @@
+{
+  "macOS": {
+    "before": {
+      "platform": "macOS-27.2.1-arm64-arm-64bit-Mach-O",
+      "build": "release",
+      "samplesPerProduct": 5,
+      "products": {
+        "joydeck_fonts": [
+          {
+            "faces": 2898,
+            "coldUs": 102238,
+            "rescanUs": 18085
+          },
+          {
+            "faces": 2898,
+            "coldUs": 62796,
+            "rescanUs": 17176
+          },
+          {
+            "faces": 2898,
+            "coldUs": 60626,
+            "rescanUs": 17236
+          },
+          {
+            "faces": 2898,
+            "coldUs": 60096,
+            "rescanUs": 16275
+          },
+          {
+            "faces": 2898,
+            "coldUs": 59573,
+            "rescanUs": 16995
+          }
+        ],
+        "joyword_fonts": [
+          {
+            "faces": 2902,
+            "coldUs": 59533,
+            "rescanUs": 27423
+          },
+          {
+            "faces": 2902,
+            "coldUs": 26405,
+            "rescanUs": 26343
+          },
+          {
+            "faces": 2902,
+            "coldUs": 26506,
+            "rescanUs": 25223
+          },
+          {
+            "faces": 2902,
+            "coldUs": 25796,
+            "rescanUs": 25662
+          },
+          {
+            "faces": 2902,
+            "coldUs": 25027,
+            "rescanUs": 25005
+          }
+        ]
+      }
+    },
+    "after": {
+      "platform": "macOS-27.2.1-arm64-arm-64bit-Mach-O",
+      "build": "release",
+      "samplesPerProduct": 5,
+      "products": {
+        "joydeck_fonts": [
+          {
+            "faces": 2898,
+            "coldUs": 69943,
+            "rescanUs": 15388
+          },
+          {
+            "faces": 2898,
+            "coldUs": 70725,
+            "rescanUs": 18937
+          },
+          {
+            "faces": 2898,
+            "coldUs": 70605,
+            "rescanUs": 17578
+          },
+          {
+            "faces": 2898,
+            "coldUs": 69152,
+            "rescanUs": 18456
+          },
+          {
+            "faces": 2898,
+            "coldUs": 69638,
+            "rescanUs": 18891
+          }
+        ],
+        "joyword_fonts": [
+          {
+            "faces": 2902,
+            "coldUs": 29747,
+            "rescanUs": 8451
+          },
+          {
+            "faces": 2902,
+            "coldUs": 22677,
+            "rescanUs": 8214
+          },
+          {
+            "faces": 2902,
+            "coldUs": 20624,
+            "rescanUs": 8583
+          },
+          {
+            "faces": 2902,
+            "coldUs": 19959,
+            "rescanUs": 8539
+          },
+          {
+            "faces": 2902,
+            "coldUs": 19813,
+            "rescanUs": 8261
+          }
+        ]
+      }
+    }
+  },
+  "UOS": {
+    "before": {
+      "platform": "Linux-6.18.57-061857-generic-x86_64-with-glibc2.38",
+      "build": "release",
+      "samplesPerProduct": 5,
+      "products": {
+        "joydeck_fonts": [
+          {
+            "faces": 529,
+            "coldUs": 13325,
+            "rescanUs": 4256
+          },
+          {
+            "faces": 529,
+            "coldUs": 12152,
+            "rescanUs": 3767
+          },
+          {
+            "faces": 529,
+            "coldUs": 11700,
+            "rescanUs": 4508
+          },
+          {
+            "faces": 529,
+            "coldUs": 11539,
+            "rescanUs": 4790
+          },
+          {
+            "faces": 529,
+            "coldUs": 13065,
+            "rescanUs": 6211
+          }
+        ],
+        "joyword_fonts": [
+          {
+            "faces": 451,
+            "coldUs": 9534,
+            "rescanUs": 6818
+          },
+          {
+            "faces": 451,
+            "coldUs": 10263,
+            "rescanUs": 6636
+          },
+          {
+            "faces": 451,
+            "coldUs": 9562,
+            "rescanUs": 6482
+          },
+          {
+            "faces": 451,
+            "coldUs": 7101,
+            "rescanUs": 6814
+          },
+          {
+            "faces": 451,
+            "coldUs": 9881,
+            "rescanUs": 7003
+          }
+        ]
+      }
+    },
+    "after": {
+      "platform": "Linux-6.18.57-061857-generic-x86_64-with-glibc2.38",
+      "build": "release",
+      "samplesPerProduct": 5,
+      "products": {
+        "joydeck_fonts": [
+          {
+            "faces": 529,
+            "coldUs": 7429,
+            "rescanUs": 1893
+          },
+          {
+            "faces": 529,
+            "coldUs": 9825,
+            "rescanUs": 2978
+          },
+          {
+            "faces": 529,
+            "coldUs": 7315,
+            "rescanUs": 2845
+          },
+          {
+            "faces": 529,
+            "coldUs": 8649,
+            "rescanUs": 2414
+          },
+          {
+            "faces": 529,
+            "coldUs": 9032,
+            "rescanUs": 2490
+          }
+        ],
+        "joyword_fonts": [
+          {
+            "faces": 451,
+            "coldUs": 5819,
+            "rescanUs": 3281
+          },
+          {
+            "faces": 451,
+            "coldUs": 6407,
+            "rescanUs": 1749
+          },
+          {
+            "faces": 451,
+            "coldUs": 6912,
+            "rescanUs": 2029
+          },
+          {
+            "faces": 451,
+            "coldUs": 5333,
+            "rescanUs": 1634
+          },
+          {
+            "faces": 451,
+            "coldUs": 6508,
+            "rescanUs": 1879
+          }
+        ]
+      }
+    }
+  }
+}

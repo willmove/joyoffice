@@ -185,22 +185,21 @@ pub(crate) fn place_table(
     }
     // A table in the text flow starts below the floating objects in its way.
     below_floats(ctx, pb, pb.col_x() + tl.x, pb.col_x() + tl.x + tl.width);
-    let header_rows: Vec<usize> = (0..t.rows.len())
-        .take_while(|r| t.rows.get(*r).is_some_and(|row| row.props.header))
-        .collect();
-    // Items repeated so far, and what one more repeat of the header rows costs (see
-    // `MAX_HEADER_ITEMS`).
+    // ECMA-376 tblHeader repeats the contiguous leading header rows. A prefix length also
+    // answers membership in constant time for every body row and page break.
+    let header_len = t.rows.iter().take_while(|row| row.props.header).count();
+    let headers = &tl.rows[..header_len.min(tl.rows.len())];
     let mut header_repeats = 0usize;
-    let header_cost = header_rows
+    let header_cost = headers
         .iter()
-        .filter_map(|i| tl.rows.get(*i))
         .map(|r| r.items.len().max(1))
         .fold(0, usize::saturating_add);
+    let repeated_height = headers.iter().map(|row| row.height).sum::<f32>();
     // Resolve kept chains once; nested paragraphs cannot keep their enclosing row.
     let mut kept: Vec<(usize, f32)> = (0..tl.rows.len()).map(|i| (i, 0.0)).collect();
     for i in (0..tl.rows.len().saturating_sub(1)).rev() {
         let Some(row) = tl.rows.get(i) else { continue };
-        if i < header_rows.len() || !row_keeps_next(row) {
+        if i < header_len || !row_keeps_next(row) {
             continue;
         }
         let Some((end, height)) = kept.get(i + 1).copied() else {
@@ -210,11 +209,6 @@ pub(crate) fn place_table(
             *group = (end, row.height + height);
         }
     }
-    let repeated_height: f32 = header_rows
-        .iter()
-        .filter_map(|i| tl.rows.get(*i))
-        .map(|r| r.height)
-        .sum();
     let place = |pb: &mut PageBuilder, row: &table::RowLayout| {
         let (x, y) = (pb.col_x() + tl.x, pb.y);
         if let Some(pg) = pb.page() {
@@ -238,12 +232,12 @@ pub(crate) fn place_table(
     };
     // Like Word, repeated header rows don't stay alone at the bottom of a page: when the first row
     // after them can't start under them there, the table starts on the next page.
-    let first = header_rows.len();
-    if !header_rows.is_empty()
+    let first = header_len;
+    if header_len > 0
         && !pb.at_top()
         && let Some(row) = tl.rows.get(first)
     {
-        let room = pb.bottom - pb.y - tl.rows.iter().take(first).map(|r| r.height).sum::<f32>();
+        let room = pb.bottom - pb.y - repeated_height;
         let splittable = !t.rows.get(first).is_some_and(|r| r.props.cant_split);
         if row.height + row.edge > room + 0.01
             && (short_of_min(first, room)
@@ -256,7 +250,7 @@ pub(crate) fn place_table(
     let table_at_top = pb.at_top();
     for (ri, row) in tl.rows.iter().enumerate() {
         // Word never splits a row of an exact height: it moves on whole.
-        let splittable = !header_rows.contains(&ri)
+        let splittable = ri >= header_len
             && !t.rows.get(ri).is_some_and(|r| {
                 r.props.cant_split
                     || (r.props.height_rule == HeightRule::Exact
@@ -321,11 +315,9 @@ pub(crate) fn place_table(
             }
             pb.advance(block, body_top);
             // Repeat header rows, up to this table's cap.
-            if !header_rows.contains(&ri)
-                && header_repeats.saturating_add(header_cost) <= MAX_HEADER_ITEMS
-            {
+            if ri >= header_len && header_repeats.saturating_add(header_cost) <= MAX_HEADER_ITEMS {
                 header_repeats += header_cost;
-                for h in header_rows.iter().filter_map(|hr| tl.rows.get(*hr)) {
+                for h in headers {
                     place(pb, h);
                 }
             }

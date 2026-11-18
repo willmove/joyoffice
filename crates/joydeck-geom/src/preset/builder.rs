@@ -372,39 +372,6 @@ pub(super) fn arrow(d: Dir, w: f64, h: f64, a1: f64, a2: f64) -> Geometry {
     g
 }
 
-pub(super) fn double_arrow(vertical: bool, w: f64, h: f64, a1: f64, a2: f64) -> Geometry {
-    let (l, t) = if vertical { (h, w) } else { (w, h) };
-    let ss = l.min(t);
-    let a1 = a1.clamp(0.0, 100000.0) / 100000.0;
-    let dx = (ss * a2.max(0.0) / 100000.0).min(l / 2.0);
-    let y1 = t / 2.0 - t * a1 / 2.0;
-    let y2 = t / 2.0 + t * a1 / 2.0;
-    let pts = [
-        (0.0, t / 2.0),
-        (dx, 0.0),
-        (dx, y1),
-        (l - dx, y1),
-        (l - dx, 0.0),
-        (l, t / 2.0),
-        (l - dx, t),
-        (l - dx, y2),
-        (dx, y2),
-        (dx, t),
-    ];
-    let pts = orient(if vertical { Dir::Down } else { Dir::Right }, w, h, &pts);
-    let r = if vertical {
-        Rect::new(y1, dx, y2, h - dx)
-    } else {
-        Rect::new(dx, y1, w - dx, y2)
-    };
-    Geometry {
-        paths: vec![fill(Pb::new().poly(&pts).take())],
-        text_rect: r,
-        handles: vec![],
-        sites: mid_sites(w, h),
-    }
-}
-
 /// Points given in 21600ths of the box (as ECMA-376 defines many fixed shapes), scaled to it.
 pub(super) fn spec_pts(pts: &[(i32, i32)], w: f64, h: f64) -> Vec<(f64, f64)> {
     pts.iter()

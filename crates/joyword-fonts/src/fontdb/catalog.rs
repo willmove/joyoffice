@@ -252,44 +252,40 @@ impl FontDb {
 
     #[cfg(not(target_arch = "wasm32"))]
     fn scan_font_dirs(&self) -> usize {
+        // Serialize discovery and publication. A second scan of the same files can use the
+        // catalog directly. Retain traversal order because it can select among same-named faces.
+        let mut previous = self
+            .catalog_files
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        let mut files = Vec::new();
+        joyoffice_fonts::visit_font_files(&self.font_dirs, usize::MAX, usize::MAX, |path, meta| {
+            files.push((path, joyoffice_fonts::FileStamp::from(&meta)));
+        });
+        // Windows metadata does not expose the Unix change time. Recheck name tables there.
+        if cfg!(unix) && previous.as_ref() == Some(&files) {
+            return self
+                .catalog
+                .read()
+                .unwrap_or_else(std::sync::PoisonError::into_inner)
+                .len();
+        }
         let mut found = Vec::new();
-        let mut stack = self.font_dirs.clone();
-        // Each folder once, however links lead back to it.
-        let mut visited = std::collections::HashSet::new();
-        while let Some(d) = stack.pop() {
-            if !visited.insert(std::fs::canonicalize(&d).unwrap_or_else(|_| d.clone())) {
-                continue;
-            }
-            let Ok(rd) = std::fs::read_dir(&d) else {
-                continue;
-            };
-            for e in rd.flatten() {
-                let p = e.path();
-                if p.is_dir() {
-                    stack.push(p);
-                    continue;
-                }
-                let ext = p
-                    .extension()
-                    .and_then(std::ffi::OsStr::to_str)
-                    .map(str::to_ascii_lowercase);
-                if !matches!(ext.as_deref(), Some("ttf" | "otf" | "ttc" | "otc")) {
-                    continue;
-                }
-                for f in file_face_names(&p) {
-                    found.push(CatalogEntry {
-                        family: f.family,
-                        style: f.style,
-                        legacy: f.legacy,
-                        full_name: f.full_name,
-                        postscript: f.postscript,
-                        local: f.local,
-                        east_asian: f.east_asian,
-                        path: p.clone(),
-                    });
-                }
+        for (p, _) in &files {
+            for f in file_face_names(p) {
+                found.push(CatalogEntry {
+                    family: f.family,
+                    style: f.style,
+                    legacy: f.legacy,
+                    full_name: f.full_name,
+                    postscript: f.postscript,
+                    local: f.local,
+                    east_asian: f.east_asian,
+                    path: p.clone(),
+                });
             }
         }
+        *previous = Some(files);
         let n = found.len();
         log::debug!("cataloged {n} system font faces");
         *self

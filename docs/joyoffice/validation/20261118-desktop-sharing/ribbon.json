@@ -2,89 +2,99 @@
   "macOS": {
     "word": {
       "product": "word",
-      "binarySha256": "b1b6880ba4c88e5ea0d80874c9bd4487393369461e0d2261b7af3bf6efeba099",
+      "binarySha256": "dd3b0a4b2b92adc4194a97f757acd4895cc0f361a59829e6448d566bfc189c6e",
       "cases": [
         {
           "language": "zh",
           "requestedWidth": 1180,
           "actualWidth": 1180,
           "group": "字体",
-          "keyboardCollapseAndExpand": true
+          "keyboardCollapseAndExpand": true,
+          "fontLauncherOpenedAndDismissed": true
         },
         {
           "language": "zh",
           "requestedWidth": 740,
           "actualWidth": 740,
           "group": "字体",
-          "keyboardCollapseAndExpand": true
+          "keyboardCollapseAndExpand": true,
+          "fontLauncherOpenedAndDismissed": true
         },
         {
           "language": "en",
           "requestedWidth": 1180,
           "actualWidth": 1180,
           "group": "Font",
-          "keyboardCollapseAndExpand": true
+          "keyboardCollapseAndExpand": true,
+          "fontLauncherOpenedAndDismissed": true
         },
         {
           "language": "en",
           "requestedWidth": 740,
           "actualWidth": 740,
           "group": "Font",
-          "keyboardCollapseAndExpand": true
+          "keyboardCollapseAndExpand": true,
+          "fontLauncherOpenedAndDismissed": true
         }
       ]
     },
     "sheet": {
       "product": "sheet",
-      "binarySha256": "b368487f147cb8329ccb975f7a36c08c19b3d97f5098713c1081fce8206b2724",
+      "binarySha256": "c91677f479823c776a1c6591f1b027319e40d173632c91da4e5ba851f3c445f5",
       "cases": [
         {
           "language": "zh",
           "requestedWidth": 1180,
           "actualWidth": 1180,
           "group": "字体",
-          "keyboardCollapseAndExpand": true
+          "keyboardCollapseAndExpand": true,
+          "fontLauncherOpenedAndDismissed": true
         },
         {
           "language": "zh",
           "requestedWidth": 740,
           "actualWidth": 740,
           "group": "字体",
-          "keyboardCollapseAndExpand": true
+          "keyboardCollapseAndExpand": true,
+          "fontLauncherOpenedAndDismissed": true
         },
         {
           "language": "en",
           "requestedWidth": 1180,
           "actualWidth": 1180,
           "group": "Font",
-          "keyboardCollapseAndExpand": true
+          "keyboardCollapseAndExpand": true,
+          "fontLauncherOpenedAndDismissed": true
         },
         {
           "language": "en",
           "requestedWidth": 740,
           "actualWidth": 740,
           "group": "Font",
-          "keyboardCollapseAndExpand": true
+          "keyboardCollapseAndExpand": true,
+          "fontLauncherOpenedAndDismissed": true
         }
       ]
     },
     "deck": {
       "product": "deck",
-      "binarySha256": "bbcf7875b894dd264a4037e8651676bf7fb970dcb01abf0657fc1ec3ec998d68",
+      "binarySha256": "0e8da342d1c5da2c35d86cd7c68e446380f028892102b4120466b0d50aca592d",
       "cases": [
         {
           "language": "zh",
           "requestedWidth": 1180,
           "actualWidth": 1180,
           "group": "字体",
-          "keyboardCollapseAndExpand": true
+          "keyboardCollapseAndExpand": true,
+          "fontLauncherOpenedAndDismissed": false
         },
         {
           "language": "zh",
           "requestedWidth": 740,
           "actualWidth": 800,
           "group": "字体",
-          "keyboardCollapseAndExpand": true
+          "keyboardCollapseAndExpand": true,
+          "fontLauncherOpenedAndDismissed": false
         }
       ]
     }
@@ -92,89 +102,99 @@
   "UOS": {
     "word": {
       "product": "word",
-      "binarySha256": "7020329615de4cb8840157c88ff232ee6b3758ae617d9ca9a7e94e52d8a4e60c",
+      "binarySha256": "d60c80142f07ccf0467ffeaa181375e6dc99f7714fc68fb5f1eab0ca215fe4ce",
       "cases": [
         {
           "language": "zh",
           "requestedWidth": 1180,
           "actualWidth": 1180,
           "group": "字体",
-          "keyboardCollapseAndExpand": true
+          "keyboardCollapseAndExpand": true,
+          "fontLauncherOpenedAndDismissed": true
         },
         {
           "language": "zh",
           "requestedWidth": 740,
           "actualWidth": 740,
           "group": "字体",
-          "keyboardCollapseAndExpand": true
+          "keyboardCollapseAndExpand": true,
+          "fontLauncherOpenedAndDismissed": true
         },
         {
           "language": "en",
           "requestedWidth": 1180,
           "actualWidth": 1180,
           "group": "Font",
-          "keyboardCollapseAndExpand": true
+          "keyboardCollapseAndExpand": true,
+          "fontLauncherOpenedAndDismissed": true
         },
         {
           "language": "en",
           "requestedWidth": 740,
           "actualWidth": 740,
           "group": "Font",
-          "keyboardCollapseAndExpand": true
+          "keyboardCollapseAndExpand": true,
+          "fontLauncherOpenedAndDismissed": true
         }
       ]
     },
     "sheet": {
       "product": "sheet",
-      "binarySha256": "a24f14b587435da9df06cb403f52519192016523b98c46ac4ffe8c0a4b8a7dca",
+      "binarySha256": "bbd1715c0010a8f3d59fe434d3a68498ca54d52e97468bb0b0236b662dfc9e34",
       "cases": [
         {
           "language": "zh",
           "requestedWidth": 1180,
           "actualWidth": 1180,
           "group": "字体",
-          "keyboardCollapseAndExpand": true
+          "keyboardCollapseAndExpand": true,
+          "fontLauncherOpenedAndDismissed": true
         },
         {
           "language": "zh",
           "requestedWidth": 740,
           "actualWidth": 740,
           "group": "字体",
-          "keyboardCollapseAndExpand": true
+          "keyboardCollapseAndExpand": true,
+          "fontLauncherOpenedAndDismissed": true
         },
         {
           "language": "en",
           "requestedWidth": 1180,
           "actualWidth": 1180,
           "group": "Font",
-          "keyboardCollapseAndExpand": true
+          "keyboardCollapseAndExpand": true,
+          "fontLauncherOpenedAndDismissed": true
         },
         {
           "language": "en",
           "requestedWidth": 740,
           "actualWidth": 740,
           "group": "Font",
-          "keyboardCollapseAndExpand": true
+          "keyboardCollapseAndExpand": true,
+          "fontLauncherOpenedAndDismissed": true
         }
       ]
     },
     "deck": {
       "product": "deck",
-      "binarySha256": "47931e18d66b3dabe5f4dd799c673b0229e032556f63617e580bac64f9581d32",
+      "binarySha256": "8564421eaa243c436fea2808ce584744ab8d2576afbf12f8d367f10f26dec42e",
       "cases": [
         {
           "language": "zh",
           "requestedWidth": 1180,
           "actualWidth": 1180,
           "group": "字体",
-          "keyboardCollapseAndExpand": true
+          "keyboardCollapseAndExpand": true,
+          "fontLauncherOpenedAndDismissed": false
         },
         {
           "language": "zh",
           "requestedWidth": 740,
           "actualWidth": 800,
           "group": "字体",
-          "keyboardCollapseAndExpand": true
+          "keyboardCollapseAndExpand": true,
+          "fontLauncherOpenedAndDismissed": false
         }
       ]
     }

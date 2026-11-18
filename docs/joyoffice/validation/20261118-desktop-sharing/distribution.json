@@ -2,9 +2,9 @@
   "macOS": {
     "joyword": {
       "target": "aarch64-apple-darwin",
-      "packages": 517,
+      "packages": 512,
       "sourceFiles": 1051,
-      "spdxSha256": "8067339f5671eacf5643f79335346eea4f493ec44332cd19a5f0d74bf05b64a6",
+      "spdxSha256": "383343f1cec400381cd0e71e453bfcf026f56a70dc7242ca81d7c3520b4510ac",
       "missingLicenseTexts": [],
       "sharedCrates": [
         "joyoffice-cfb",
@@ -17,7 +17,6 @@
       ],
       "runtimeLegacyDependencies": [
         "craft-atomic",
-        "craft-font-catalog",
         "craft-font-store",
         "craft-proof"
       ]
@@ -26,7 +25,7 @@
       "target": "aarch64-apple-darwin",
       "packages": 473,
       "sourceFiles": 507,
-      "spdxSha256": "1cea5cfc6d8f0313e7eb01fe7dbe260305ad3e1e041a7ff8374ad9035a55a78f",
+      "spdxSha256": "a1c6d5610d00193bd4172a06c6c916020ee4d525e2e74a18bb3de6c663a523f2",
       "missingLicenseTexts": [],
       "sharedCrates": [
         "joyoffice-drawingml",
@@ -43,8 +42,8 @@
     "joysheet": {
       "target": "aarch64-apple-darwin",
       "packages": 452,
-      "sourceFiles": 1163,
-      "spdxSha256": "7fda2f31a85eaaf3bb45de03b565f649d26eec68ff6a1afb97e3e628bcf36a59",
+      "sourceFiles": 1164,
+      "spdxSha256": "c4db560e1880779a3ef5d41dede99c907a4baf7053611a14d09f09fe87b9f6c1",
       "missingLicenseTexts": [],
       "sharedCrates": [
         "joyoffice-cfb",
@@ -59,9 +58,9 @@
   "UOS": {
     "joyword": {
       "target": "x86_64-unknown-linux-gnu",
-      "packages": 605,
+      "packages": 601,
       "sourceFiles": 1056,
-      "spdxSha256": "bd9fda3bf5c0c8fae3f52060ccea6bbf90805f94538b0df86299e1a1799878e2",
+      "spdxSha256": "5de316c2b497f214276b8cfa2ce34e1c697a877ffa64812866ebb4be97b8a277",
       "missingLicenseTexts": [],
       "sharedCrates": [
         "joyoffice-cfb",
@@ -74,7 +73,6 @@
       ],
       "runtimeLegacyDependencies": [
         "craft-atomic",
-        "craft-font-catalog",
         "craft-font-store",
         "craft-proof"
       ]
@@ -83,7 +81,7 @@
       "target": "x86_64-unknown-linux-gnu",
       "packages": 565,
       "sourceFiles": 513,
-      "spdxSha256": "00fb657bc3ea8c8a006fbd173cad7f2d97cda975578c1ac6b8169898ff834986",
+      "spdxSha256": "eb8c87ded0dc725624b2574165df9126669bddc7e093662ee7d7b56946ae8cd8",
       "missingLicenseTexts": [],
       "sharedCrates": [
         "joyoffice-drawingml",
@@ -100,8 +98,8 @@
     "joysheet": {
       "target": "x86_64-unknown-linux-gnu",
       "packages": 555,
-      "sourceFiles": 1161,
-      "spdxSha256": "c642ad49399bfe0dfcfb982a49a0b501861ded754f4b7d993ea99fa0123690cb",
+      "sourceFiles": 1162,
+      "spdxSha256": "efe7bb51e6d0cdf30ca026ecc12d06fc4e79568ff7a0c97a994a51c868b72211",
       "missingLicenseTexts": [],
       "sharedCrates": [
         "joyoffice-cfb",

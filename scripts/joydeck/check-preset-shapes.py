@@ -12,7 +12,7 @@ from zipfile import ZipFile, ZIP_DEFLATED
 ROOT = Path(__file__).resolve().parents[2]
 A = "http://schemas.openxmlformats.org/drawingml/2006/main"
 P = "http://schemas.openxmlformats.org/presentationml/2006/main"
-KINDS = ["roundRect", "rightArrow", "leftArrow", "downArrow", "upArrow"]
+KINDS = ["roundRect", "rightArrow", "leftArrow", "downArrow", "upArrow", "leftRightArrow", "upDownArrow"]
 ADJUST = [None, 0, 50_000, 100_000]
 COLOR = (30, 112, 206)
 
@@ -33,11 +33,11 @@ def fixture(dest):
                         if adjust is not None:
                             names = ["adj"] if kind == "roundRect" else ["adj1", "adj2"]
                             av = "".join(f'<a:gd name="{n}" fmla="val {adjust}"/>' for n in names)
-                        x, y = 300000 + col * 1600000, 300000 + row * 1220000
+                        x, y = 160000 + col * 1280000, 300000 + row * 1220000
                         tree.append(ET.fromstring(f"""
                         <p:sp xmlns:p="{P}" xmlns:a="{A}"><p:nvSpPr><p:cNvPr id="{idx}" name="{kind}-{row}"/>
                         <p:cNvSpPr/><p:nvPr/></p:nvSpPr><p:spPr><a:xfrm><a:off x="{x}" y="{y}"/>
-                        <a:ext cx="1400000" cy="920000"/></a:xfrm><a:prstGeom prst="{kind}"><a:avLst>{av}</a:avLst>
+                        <a:ext cx="1100000" cy="920000"/></a:xfrm><a:prstGeom prst="{kind}"><a:avLst>{av}</a:avLst>
                         </a:prstGeom><a:solidFill><a:srgbClr val="1E70CE"/></a:solidFill><a:ln><a:noFill/></a:ln>
                         </p:spPr></p:sp>"""))
                 data = ET.tostring(slide, encoding="utf-8")
@@ -87,7 +87,7 @@ def main():
     src, generation = out / "presets.pptx", out / "regenerated.pptx"
     fixture(src)
     before = presets(src)
-    assert len(before) == 20
+    assert len(before) == len(KINDS) * len(ADJUST)
     run(args.candidate, "exchange", src, "--mode", "regenerate", "--output", generation)
     after = presets(generation)
     if before != after:

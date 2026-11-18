@@ -125,43 +125,34 @@ fn info(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
 // ---------------------------------------------------------------------------------------------
 // Logical
 
-/// Collects booleans for AND/OR/XOR: references and arrays contribute numbers and booleans
-/// (text and blanks skipped); direct scalars coerce (empty literal = FALSE).
-fn logicals(a: &[Arg]) -> R<Vec<bool>> {
-    let mut out = Vec::new();
-    for arg in a {
-        match &arg.value {
-            Value::Array(arr) => {
-                for v in arr.iter() {
-                    match v {
-                        Value::Number(n) => out.push(*n != 0.0),
-                        Value::Bool(b) => out.push(*b),
-                        Value::Error(e) => return Err(*e),
-                        _ => {}
-                    }
-                }
+/// AND, OR and XOR consume the range in row order, including errors after a decisive value.
+/// Only scalar arguments coerce text or blanks. Keep a single bit of reduction state.
+fn reduce_logical(args: &[Arg], combine: impl Fn(bool, bool) -> bool) -> R<Value> {
+    let mut result = None;
+    let mut accept = |value| result = Some(result.map_or(value, |previous| combine(previous, value)));
+    for arg in args {
+        let (values, referenced) = match &arg.value {
+            Value::Array(array) => (array.data.as_slice(), true),
+            value => (std::slice::from_ref(value), arg.from_ref),
+        };
+        for value in values {
+            match value {
+                Value::Text(_) | Value::Empty | Value::Array(_) if referenced => continue,
+                value => accept(value.to_bool()?),
             }
-            Value::Error(e) => return Err(*e),
-            Value::Number(n) => out.push(*n != 0.0),
-            Value::Bool(b) => out.push(*b),
-            _ if arg.from_ref => {}
-            v => out.push(v.to_bool()?),
         }
     }
-    if out.is_empty() {
-        return Err(CellError::Value);
-    }
-    Ok(out)
+    result.map(Value::Bool).ok_or(CellError::Value)
 }
 
 fn and(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    Ok(Value::Bool(logicals(a)?.iter().all(|b| *b)))
+    reduce_logical(a, |a, b| a && b)
 }
 fn or(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    Ok(Value::Bool(logicals(a)?.iter().any(|b| *b)))
+    reduce_logical(a, |a, b| a || b)
 }
 fn xor(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    Ok(Value::Bool(logicals(a)?.iter().filter(|b| **b).count() % 2 == 1))
+    reduce_logical(a, |a, b| a ^ b)
 }
 fn not(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
     Ok(Value::Bool(!first(a).to_bool()?))

@@ -5,6 +5,7 @@ from pathlib import Path
 import posixpath
 import platform
 import shutil
+import subprocess
 import time
 import xml.etree.ElementTree as ET
 import zipfile
@@ -63,13 +64,25 @@ class Panel:
             system_events(f'set value of attribute "AXValue" of {self.focus} to {json.dumps(path.name, ensure_ascii=False)}')
             mac_keys(self.process.pid, ["36"])
         else:
-            time.sleep(.4)
-            self.xevent("key", "--clearmodifiers", "Home", "shift+End")
-            for char in path.name:
-                self.xevent("type", "--clearmodifiers", char)
-                if ord(char) > 127:
-                    time.sleep(.1)
-            self.xevent("key", "--clearmodifiers", "Return")
+            # xdotool types literal filenames; DDE can otherwise interpret their punctuation as
+            # part of a Chinese composition. Restore the active input method after acceptance.
+            fcitx = shutil.which("fcitx5-remote")
+            active = fcitx and subprocess.run([fcitx], capture_output=True, text=True).stdout.strip() == "2"
+            try:
+                if active:
+                    subprocess.run([fcitx, "-c"], check=True)
+                time.sleep(.4)
+                self.xevent("key", "--clearmodifiers", "Home", "shift+End")
+                for char in path.name:
+                    self.xevent("type", "--clearmodifiers", char)
+                    if ord(char) > 127:
+                        time.sleep(.1)
+                self.xevent("key", "--clearmodifiers", "Return")
+                wait(lambda: not self.visible(), "panel acceptance", self.process)
+            finally:
+                if active:
+                    subprocess.run([fcitx, "-o"], check=True)
+            return
         wait(lambda: not self.visible(), "panel acceptance", self.process)
 
 
@@ -109,8 +122,10 @@ def sheet(binary, out):
     return ["cancel then retry", "late result after edit rejected before file creation", "independent XLSX and fresh process readback", "original hash unchanged"]
 
 
-def deck(binary, out):
+def deck(binary, out, other_view=False, x11_buttons=None):
     original, target = out / "原件.pptx", out / "演示 副本.pptx"
+    if other_view:
+        target = out / "four-slides.pptx"
     shutil.copyfile(ROOT / "tests/fixtures/joydeck/independent.pptx", original)
     initial_hash = digest(original)
     env = {"JOYDECK_CONFIG_DIR":str(out / "profile"), "JOYDECK_RECOVERY_DIR":str(out / "recovery")}
@@ -120,12 +135,28 @@ def deck(binary, out):
         client = DeckControl(p)
         slides = wait(client.inspect, "presentation", p)["slides"]
         panel = Panel(p)
+        if other_view:
+            if x11_buttons:
+                for x, y in zip(x11_buttons[::2], x11_buttons[1::2]):
+                    run("xdotool","windowactivate","--sync",panel.window)
+                    run("xdotool","mousemove","--window",panel.window,str(x),str(y),"click","1")
+                    time.sleep(.45)
+            else:
+                from verify_shared_ribbon import NativeWindow
+                surface = NativeWindow(p, out)
+                surface.press(wait(lambda: surface.find({"视图"}, "button") or surface.find({"视图"}), "View tab", p))
+                surface.press(wait(lambda: surface.find({"shared-view","新建文稿视图"}, "button"), "New document view", p))
+            if panel.mac:
+                wait(lambda: int(system_events(f"return count of windows of {panel.owner}")) == 2, "two document views", p)
+            else:
+                first = panel.window
+                panel.window = wait(lambda: next((w for w in run("xdotool", "search", "--onlyvisible", "--pid", str(p.pid)).splitlines() if w != first), None), "second view", p)
         panel.open()
         panel.cancel()
         panel.open()
         client.edit({"command":"page.add"})
         assert len(client.inspect()["slides"]) == len(slides) + 1
-        stale = out / "过时 副本.pptx"
+        stale = out / ("stale-copy.pptx" if other_view else "过时 副本.pptx")
         panel.submit(stale)
         panel.open()
         assert not stale.exists()
@@ -142,7 +173,10 @@ def deck(binary, out):
         assert len(slides) == 3 and len(opened) == 4 and opened[0]["notes"] == slides[0]["notes"]
     assert not stale.exists()
     assert digest(original) == initial_hash
-    return ["cancel then retry", "late result after edit rejected before file creation", "four slides in independent PPTX inspection and fresh process readback", "original hash unchanged"]
+    checks = ["cancel then retry", "late result after edit rejected before file creation", "four slides in independent PPTX inspection and fresh process readback", "original hash unchanged"]
+    if other_view:
+        checks.append("second document view owned the picker while the first edited the shared document")
+    return checks
 
 
 if __name__ == "__main__":
@@ -150,12 +184,18 @@ if __name__ == "__main__":
     parser.add_argument("product", choices=("sheet", "deck"))
     parser.add_argument("binary", type=Path)
     parser.add_argument("output", type=Path)
+    parser.add_argument("--other-view", action="store_true", help="open the native Deck picker in a second view of the same document")
+    parser.add_argument("--x11-view-buttons", type=int, nargs=4, metavar=("VIEW_X","VIEW_Y","NEW_X","NEW_Y"), help="window-relative centers from the native accessibility tree on the same X11 desktop")
     args = parser.parse_args()
+    if args.x11_view_buttons and (platform.system() != "Linux" or not args.other_view):
+        parser.error("--x11-view-buttons requires an X11 --other-view check")
+    if args.product != "deck" and args.other_view:
+        parser.error("--other-view requires deck")
     out, binary = args.output.resolve(), args.binary.resolve()
     out.mkdir(parents=True, exist_ok=False)
     result = {"platform":platform.platform(),"product":args.product,"binarySha256":digest(binary),"passed":False}
     try:
-        result["checks"] = (sheet if args.product == "sheet" else deck)(binary, out)
+        result["checks"] = sheet(binary,out) if args.product == "sheet" else deck(binary,out,args.other_view,args.x11_view_buttons)
         result["passed"] = True
     finally:
         (out / "report.json").write_text(json.dumps(result, indent=2) + "\n")

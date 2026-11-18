@@ -1,7 +1,7 @@
 use super::builder::{
-    Corner, Dir, Pb, arrow, corner_rect, double_arrow, ellipse_sites, fill, fill_eo, fill_only,
-    len_thick, mid_sites, orient, polygon_regular, shade, simple, spec_pts, star, star_text_rect,
-    stroke_only, tip_handle, vis,
+    Corner, Dir, Pb, arrow, corner_rect, ellipse_sites, fill, fill_eo, fill_only, len_thick,
+    mid_sites, orient, polygon_regular, shade, simple, spec_pts, star, star_text_rect, stroke_only,
+    tip_handle, vis,
 };
 use super::catalog::{FillMode, Geometry, Handle, info};
 use super::shapes::{action_button, cloud, math, ribbon, scroll, wedge_rect};
@@ -1203,8 +1203,8 @@ fn bracket_and_arrow_shapes(c: &Ctx) -> Option<Geometry> {
         "leftArrow" => super::office_shapes::straight_arrow(Dir::Left, w, h, a(0), a(1)),
         "upArrow" => super::office_shapes::straight_arrow(Dir::Up, w, h, a(0), a(1)),
         "downArrow" => super::office_shapes::straight_arrow(Dir::Down, w, h, a(0), a(1)),
-        "leftRightArrow" => double_arrow(false, w, h, a(0), a(1)),
-        "upDownArrow" => double_arrow(true, w, h, a(0), a(1)),
+        "leftRightArrow" => super::office_shapes::opposed_arrows(false, w, h, a(0), a(1)),
+        "upDownArrow" => super::office_shapes::opposed_arrows(true, w, h, a(0), a(1)),
         "notchedRightArrow" | "stripedRightArrow" => {
             let mut g = arrow(Dir::Right, w, h, a(0), a(1));
             let k = a(0).clamp(0.0, 100000.0) / 1e5;
