@@ -75,7 +75,7 @@ def x11_selection_owner(atom_name):
         x11.XCloseDisplay(display)
 
 
-def probe(binary, output, sogou_shift=False):
+def probe(binary, output, sogou_shift=False, method=None, server_preedit=False):
     output.mkdir(parents=True, exist_ok=False)
     log = output / "input.log"
     report = {"passed": False, "system": platform.platform(), "events": "OS synthetic keys",
@@ -97,6 +97,7 @@ def probe(binary, output, sogou_shift=False):
         if modifier.startswith("@im="):
             report["ximSelectionOwner"] = x11_selection_owner("@server=" + modifier.removeprefix("@im="))
         report["inputMethod"] = run("fcitx5-remote", "-n")
+        previous_method = report["inputMethod"]
         previous = run("fcitx5-remote")
     with log.open("w") as stream:
         process = subprocess.Popen([binary], stdout=stream, stderr=subprocess.STDOUT)
@@ -120,6 +121,10 @@ def probe(binary, output, sogou_shift=False):
                 wait_for(find_window, "probe window", process)
                 window = find_window()[0]
                 run("xdotool", "windowactivate", "--sync", window)
+                if method:
+                    run("xdotool", "key", "--clearmodifiers", "Left")
+                    time.sleep(.3)
+                    run("fcitx5-remote", "-s", method)
                 run("fcitx5-remote", "-o")
                 wait_for(lambda: run("fcitx5-remote") == "2", "active Fcitx", process)
                 report["inputMethod"] = run("fcitx5-remote", "-n")
@@ -142,15 +147,29 @@ def probe(binary, output, sogou_shift=False):
                 report["checks"].append(marker)
             time.sleep(.5)
             keys(spelling)
-            until("focused=true marked=true")
+            if server_preedit:
+                time.sleep(.4)
+                if "utf16=0" not in log.read_text() or "utf16=1 " in log.read_text():
+                    raise RuntimeError("server-side preedit must leave the input empty until selection")
+                report["preedit"] = "server"
+            else:
+                until("focused=true marked=true")
             keys([select])
             until("marked=false utf16=2 chinese=true")
             pos = len(log.read_text())
             keys(spelling[:3])
-            until("marked=true", pos)
+            if server_preedit:
+                time.sleep(.35)
+            else:
+                until("marked=true", pos)
             pos = len(log.read_text())
             keys([cancel])
-            until("marked=false utf16=2 chinese=true", pos)
+            if server_preedit:
+                # Cancelling server-side preedit does not send a client-side update.
+                if "marked=false utf16=2 chinese=true" not in log.read_text().splitlines()[-1]:
+                    raise RuntimeError("cancelling server-side preedit changed the text")
+            else:
+                until("marked=false utf16=2 chinese=true", pos)
             pos = len(log.read_text())
             keys([undo])
             until("marked=false utf16=0 chinese=false", pos)
@@ -170,6 +189,8 @@ def probe(binary, output, sogou_shift=False):
                             keys(["Escape", "Shift_L"])
                             report["restoredMode"] = True
                     finally:
+                        if method and previous_method:
+                            run("fcitx5-remote", "-s", previous_method)
                         if previous in ("1", "2"):
                             run("fcitx5-remote", "-o" if previous == "2" else "-c")
             finally:
@@ -187,5 +208,7 @@ if __name__ == "__main__":
     parser.add_argument("binary", type=Path)
     parser.add_argument("output", type=Path)
     parser.add_argument("--sogou-shift", action="store_true", help="A/B comparison after one temporary Sogou mode toggle on UOS")
+    parser.add_argument("--method", help="Select this Fcitx5 input method in the focused X11 probe")
+    parser.add_argument("--server-preedit", action="store_true", help="XIM handles preedit outside the client")
     args = parser.parse_args()
-    probe(args.binary.resolve(), args.output.resolve(), args.sogou_shift)
+    probe(args.binary.resolve(), args.output.resolve(), args.sogou_shift, args.method, args.server_preedit)

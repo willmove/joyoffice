@@ -1,5 +1,5 @@
 [workspace]
-exclude = ["third-party/accesskit_windows", "third-party/craft-libs"]
+exclude = ["third-party/accesskit_windows", "third-party/craft-libs", "third-party/gpui-pre-linux"]
 members = [
     "crates/joysheet-app",
     "crates/joysheet-calc",
@@ -321,4 +321,5 @@ opt-level = 1
 
 # Exact AccessKit 0.34.0 with a retained-provider HWND lifetime fix.
 [patch.crates-io]
+gpui-pre-linux = { path = "third-party/gpui-pre-linux" }
 accesskit_windows = { path = "third-party/accesskit_windows" }

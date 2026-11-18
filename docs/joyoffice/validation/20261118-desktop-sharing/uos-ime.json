@@ -1,0 +1,51 @@
+{
+  "probe": {
+    "passed": true,
+    "system": "Linux-6.18.57-061857-generic-x86_64-with-glibc2.38",
+    "events": "OS synthetic keys",
+    "checks": [
+      "focused=true marked=true",
+      "marked=false utf16=2 chinese=true",
+      "marked=true",
+      "marked=false utf16=2 chinese=true",
+      "marked=false utf16=0 chinese=false"
+    ],
+    "environment": {
+      "LANG": "zh_CN.UTF-8",
+      "LC_ALL": "C.UTF-8",
+      "LC_CTYPE": "C.UTF-8",
+      "XMODIFIERS": "@im=joyoffice-qa",
+      "XDG_SESSION_TYPE": "x11"
+    },
+    "ximServers": "XIM_SERVERS(ATOM) = @server=joyoffice-qa, @server=fcitx, @server=fcitx",
+    "ximSelectionOwner": 176160769,
+    "inputMethod": "pinyin"
+  },
+  "word": {
+    "passed": true,
+    "method": "pinyin",
+    "display": ":0",
+    "binarySha256": "91609dd77bb4f1fdc343340d413a993e1a81f1802fe0ff9b4d814d3e038bd33b",
+    "ximSelectionOwner": 176160769,
+    "fileSha256": "7141f30907446a3703bb79cc25814c8fa57e7569e284b653d9b315ab8d1eadbc",
+    "candidateSha256": "e34d11d5d32f8c72d6f3b3dcfde3cf113f08ceed7dc40573cd87a753fcf4b59f"
+  },
+  "deck": {
+    "passed": true,
+    "method": "pinyin",
+    "display": ":0",
+    "binarySha256": "baf58ab69124af401983edea0d3d7e92959a2f918ed99256643dde44c9819e8d",
+    "ximSelectionOwner": 176160769,
+    "fileSha256": "71963f8e671edfc10da8404ad9b6def8b5b38ed7a89818438c570e0fcfaefb41",
+    "candidateSha256": "3cde3fdd2f7bf2044e7e5cd46c54d7c06afd70f21dfe3b540c56636bce2f1503"
+  },
+  "sheet": {
+    "passed": true,
+    "method": "pinyin",
+    "display": ":0",
+    "binarySha256": "08da9ed84196536c4425b69db278c67cdf8a6b87aa25a068494780fd776d3022",
+    "ximSelectionOwner": 176160769,
+    "fileSha256": "89c0f3ebd6473abb2b7180d7ddd440f7d2e52d23325d3fdc164ccf75fb84ad62",
+    "candidateSha256": "e7d93757600b1d0591a955c686c7ad9dcc4baf9054e5af397d06e8e9df336693"
+  }
+}

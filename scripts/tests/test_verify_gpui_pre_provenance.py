@@ -106,6 +106,21 @@ def crate_bytes(files, name="gpui-pre-demo", version="0.3.9"):
     return buffer.getvalue()
 
 
+class PlatformPatch(unittest.TestCase):
+    def test_local_files_and_manifest_are_checked(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = pathlib.Path(tmp)
+            files = {"Cargo.toml": b"manifest", "client.rs": b"before", "Cargo.lock": b"unused"}
+            (path / "Cargo.toml").write_bytes(files["Cargo.toml"])
+            (path / "client.rs").write_bytes(b"reviewed")
+            changed = {"client.rs": provenance.sha256(b"reviewed")}
+            self.assertEqual(provenance.verify_local_patch(path, files, changed), [])
+            (path / "Cargo.toml").write_bytes(b"other build target")
+            (path / "client.rs").unlink()
+            (path / "unreviewed.rs").write_bytes(b"")
+            self.assertEqual(len(provenance.verify_local_patch(path, files, changed)), 3)
+
+
 class RenamedRegistryCrates(unittest.TestCase):
     def check(self, changes=None, registered=True, corrupt_reference=False):
         with tempfile.TemporaryDirectory() as tmp:

@@ -1,0 +1,64 @@
+{
+  "before": [
+    "locale C.UTF-8 supported True",
+    "XIM selection owner: 0x0 modifiers: b'@im=fcitx'",
+    "XOpenIM: False"
+  ],
+  "after": [
+    "locale C.UTF-8 supported True",
+    "XIM selection owner: 0x4200001 modifiers: b'@im=fcitx'",
+    "XOpenIM: True"
+  ],
+  "previousMethod": "keyboard-cn",
+  "previousActivation": "1",
+  "probe": {
+    "passed": true,
+    "system": "Linux-6.18.57-061857-generic-x86_64-with-glibc2.38",
+    "events": "OS synthetic keys",
+    "checks": [
+      "marked=false utf16=2 chinese=true",
+      "marked=false utf16=0 chinese=false"
+    ],
+    "environment": {
+      "LANG": "zh_CN.UTF-8",
+      "LC_ALL": "C.UTF-8",
+      "LC_CTYPE": "C.UTF-8",
+      "XMODIFIERS": "@im=fcitx",
+      "XDG_SESSION_TYPE": "x11"
+    },
+    "ximServers": "XIM_SERVERS(ATOM) = @server=joyoffice-qa-259779, @server=joyoffice-qa, @server=fcitx, @server=fcitx",
+    "ximSelectionOwner": 69206017,
+    "inputMethod": "com.sogou.ime.ng.fcitx5.uos",
+    "preedit": "server"
+  },
+  "word": {
+    "passed": true,
+    "method": "com.sogou.ime.ng.fcitx5.uos",
+    "display": ":0",
+    "binarySha256": "66905379aecfbfe0a287e042e95b17164819c2a1ace16d07fdc9f39c058d7eb9",
+    "ximSelectionOwner": 69206017,
+    "preedit": "server",
+    "fileSha256": "7141f30907446a3703bb79cc25814c8fa57e7569e284b653d9b315ab8d1eadbc",
+    "candidateSha256": "13a54620f2d99465d55b7af96a8a384314f125a5bdd1edecfc04e84caa728610"
+  },
+  "deck": {
+    "passed": true,
+    "method": "com.sogou.ime.ng.fcitx5.uos",
+    "display": ":0",
+    "binarySha256": "5d3c68f3224af0ca8e5b75404a34938795c83a2cac4bec164b5b401842368220",
+    "ximSelectionOwner": 69206017,
+    "preedit": "server",
+    "fileSha256": "71963f8e671edfc10da8404ad9b6def8b5b38ed7a89818438c570e0fcfaefb41",
+    "candidateSha256": "4f811e7b4b30b78ae9db14a1843d8e51eff9c16e2f45778ccd36b438241b40c9"
+  },
+  "sheet": {
+    "passed": true,
+    "method": "com.sogou.ime.ng.fcitx5.uos",
+    "display": ":0",
+    "binarySha256": "1fcb6fa56e50f8e37da005f18ba6df8dac4db1db20126cd59bd9c4f04e0d42a9",
+    "ximSelectionOwner": 69206017,
+    "preedit": "server",
+    "fileSha256": "89c0f3ebd6473abb2b7180d7ddd440f7d2e52d23325d3fdc164ccf75fb84ad62",
+    "candidateSha256": "6a7c9025833aeec9577c76c1b50652cb7cc5c57b436e68dc1ec09003cf9c8fc5"
+  }
+}

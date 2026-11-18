@@ -79,16 +79,19 @@ def word(binary, out, helper, report):
             return None
         return reply["result"]
 
-    def command(name, **params):
+    def command(name, *, wait_for_load=False, **params):
         state = inspect()
         reply = word_request(number, "engine.execute", {"command": name, "doc": state["doc"],
                               "version": state["version"], "params": params}, token)
         if not reply["ok"]:
+            if wait_for_load and reply["error"] == "finish the active dialog or composition first":
+                return False
             raise RuntimeError(str(reply["error"]))
+        return True
 
     with app(binary, ["--control", str(number), "--", str(source)], out, env) as p:
         baseline = wait(inspect, "Word document", p)["text"]
-        command("caret.docEnd")
+        wait(lambda: command("caret.docEnd", wait_for_load=True), "Word editing focus after opening", p)
         expected = baseline + "中文"
         key = lambda code: mac_keys(p.pid, [code])
         pinyin(p, helper, out, report, lambda: inspect()["text"] == expected, lambda: inspect()["text"] == expected)

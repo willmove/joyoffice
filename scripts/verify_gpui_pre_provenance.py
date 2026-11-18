@@ -94,6 +94,17 @@ RENAMED_CRATES = {
 }
 
 
+# A path dependency loses its registry checksum in Cargo.lock. Verify the built
+# files against the original archive before comparing the archive to upstream.
+LOCAL_PATCHES = {
+    ("gpui-pre-linux", "0.3.12"): (
+        "third-party/gpui-pre-linux",
+        "54bab418d0b7c027af9495f278619b46887362b3bd6446e246c87c5b0fa167df",
+        {"src/linux/x11/client.rs": "9b33b8fbb43d3deda7be1cd1e481b7519dc269fa1223c50be5bef195c0438b65"},
+    ),
+}
+
+
 class CheckError(Exception):
     """The check could not run; reported with exit status 2."""
 
@@ -523,9 +534,33 @@ def check_build_inputs(manifest, files):
     return problems
 
 
+def verify_local_patch(root, original, changed):
+    """Check the build manifest, Rust sources, assets, and license of the path dependency."""
+    notes = []
+    expected = set(original) - {"Cargo.lock", "Cargo.toml.orig", ".cargo_vcs_info.json"}
+    entries = list(root.rglob("*"))
+    if any(path.is_symlink() for path in entries):
+        return ["local platform patch contains a symlink"]
+    actual = {p.relative_to(root).as_posix(): p for p in entries if p.is_file()}
+    for path in sorted(expected | actual.keys() | changed.keys()):
+        if path not in actual or path not in expected:
+            notes.append(f"missing or unexpected platform patch file: {path}")
+        elif sha256(actual[path].read_bytes()) != changed.get(path, sha256(original[path])):
+            notes.append(f"platform patch content differs: {path}")
+    return notes
+
+
 def inspect_crate(package, cargo_home, download):
     report = PackageReport(package)
     notes = report.problems
+    local = LOCAL_PATCHES.get((package.name, package.version)) if package.source is None else None
+    if local:
+        folder, checksum, changed = local
+        declared = parse_toml((ROOT / "Cargo.toml").read_text())["patch"]["crates-io"]
+        if declared.get(package.name) != {"path": folder}:
+            notes.append("the platform build must use its reviewed local path")
+            return report
+        package = package._replace(source=CRATES_IO, checksum=checksum)
     if package.source != CRATES_IO:
         notes.append(f"source {package.source!r} is not crates.io")
         return report
@@ -539,6 +574,10 @@ def inspect_crate(package, cargo_home, download):
         return report
     try:
         files = read_crate_archive(data, package.name, package.version)
+        if local:
+            notes.extend(verify_local_patch(ROOT / folder, files, changed))
+            if notes:
+                return report
         manifest = parse_toml(files["Cargo.toml"].decode("utf-8"))
     except KeyError:
         notes.append("archive has no Cargo.toml")

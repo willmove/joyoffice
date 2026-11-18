@@ -224,6 +224,8 @@ def generate(output, target, profile='release', roots=('joydeck', 'joydeck-cli')
                 candidates.extend(ROOT / 'docs/joysheet' / name for name in ('LICENSE-MIT', 'LICENSE-APACHE', 'NOTICE'))
             elif p['name'] == 'joydeck' or p['name'].startswith('joydeck-'):
                 candidates.extend([LICENSES / 'LICENSE-MIT', LICENSES / 'LICENSE-APACHE'])
+            elif source.is_relative_to(ROOT / 'third-party/gpui-pre-linux'):
+                candidates.append(ROOT / 'licenses/gpui/NOTICE.md')
             else:
                 candidates.append(ROOT / 'LICENSE')
         supplement = LICENSES / 'dependency-notices' / (p['name'] + '-' + p['version'])

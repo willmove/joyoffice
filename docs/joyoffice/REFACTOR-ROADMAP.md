@@ -4,11 +4,11 @@
 
 ## 当前剩余任务
 
-2026-11-18 核对至 `6a301fd0`。首轮代码和证据已在任务分支，核对时远端 `main` 为 `f04d8aa5`。Word 另存为已在 macOS 和 UOS 验收，Sheet 标量试点已完成第一轮采用决策。阶段 0 已有这三个试点的语料、探针和基线，后续每个替换组件仍需各自的样本与对照。[首轮验证](validation/20261118-refactor/README.md) · [UOS 实机记录](validation/20261118-refactor/UOS.md)
+2026-11-18 首批共享改造已提交，后续验证按本页末尾的实机记录更新。首轮代码和证据已在任务分支，核对时远端 `main` 为 `f04d8aa5`。Word 另存为已在 macOS 和 UOS 验收，Sheet 标量试点已完成第一轮采用决策。阶段 0 已有这三个试点的语料、探针和基线，后续每个替换组件仍需各自的样本与对照。[首轮验证](validation/20261118-refactor/README.md) · [UOS 实机记录](validation/20261118-refactor/UOS.md)
 
 | 优先级与范围 | 当前位置 | 下一项可交付结果 |
 | --- | --- | --- |
-| P0 · 中文输入 IME-2／3 | macOS 三产品通过。UOS 已定位到 XIM 注册无所有者，最小 GPUI 控件和三产品均收到直通拼音 | 待同一桌面的 XIM 恢复，先用最小控件确认有组合态，再在 Word 正文、Deck 备注、Sheet 单元格分别选词、取消、切焦点、撤销并保存重开，留候选截图与读回结果。其余任务可独立推进 |
+| P0 · 中文输入 IME-2／3 | macOS 系统拼音通过。UOS 25 DDE 上，独立 Fcitx5 拼音与用户默认搜狗都通过了最小控件和三产品读回。Sheet 提前发送 XIM_SET_IC_VALUES 的故障已修复 | 回归分别覆盖客户端内嵌预编辑和由搜狗服务显示的候选，切换输入法后复跑相应模式。[三产品读回和候选截图](validation/20261118-desktop-sharing/README.md#uos-中文输入) |
 | P1 · Sheet 重算推广 | 100k 行桌面引擎 P95 为 71.14 → 64.10 ms，降约 9.9%，目标 15%。100 行纯重算 P95 由 0.041 升至 0.063 ms。UOS 已验证默认路径的正确性 | 保持试点默认关闭。先分测依赖发现、求值准备及写回，选下一处热点，同机交替复跑大小表和代表性业务工作簿。用户可见延迟另测 GPU 实际呈现，现有首帧记录到 CPU 绘制 |
 | P1 · Word 分页与 DOCX 读取 | 已有单段几何不变时的就地重排。中段增删行后的跨页重排、OPC 预检后的重复读取仍待优化 | 分别提交千页中段编辑的逐页差分及输入 P95、同一 DOCX 预检到 reader 的解压字节与峰值内存对照。另用固定字体字节与 face 复核 UOS 的 5 项既有排版失败。[现有增量路径](../../crates/joyword-layout/src/incremental.rs) |
 | P1 · Deck 渲染与几何 | 场景构建仍对媒体内容做摘要，圆角矩形和箭头仍走现有预设分派 | 先证明只改标题时未变媒体的重新哈希字节为 0，同 ID 换图能立即更新。再按形状族交付屏幕、命中和 PPTX 往返差分 |
@@ -74,7 +74,7 @@ cargo tree --locked --offline -e normal,build -p joyword-cli
 | 2 · P1 · Word／Deck fonts | **字体发现与 face 标识**。先比对两端的系统字体枚举、实际字节和集合 face，再提取相同的目录或标识逻辑。正文断行、幻灯片文本适配及各产品回退顺序留在产品层 | 使用同名字体不同字节、同一 TTC 不同 face 和字体文件变化样本。固定字体的行末、命中和 PDF 金样一致，记录冷扫描耗时和缓存失效。UOS 的 5 项排版差异保留作对照 | 各产品可恢复原目录或身份实现，重建派生缓存。[Word 字体](../../crates/joyword-fonts/src/lib.rs) · [Deck 字体](../../crates/joydeck-fonts/src/lib.rs) |
 | 3 · P2 · 公共格式与产品导入层 | **CFB、DrawingML、OMML 按子集接入**。CFB 先比较 Word 旧 DOC 与 Sheet XLS 的流读取。绘图与公式 XML 分别列出两个有对应内容的实际入口，再选择一种对象接入 | 先补两产品各自的真实样本、预算、兼容读回和拒绝用例。只有双方生产入口均接入且原始部件保留、损坏输入判定与旧版互读相符，才计为共享 | 按对象或容器切回产品 reader，保留未解释的数据。[Word 旧 DOC](../../crates/joyword-doc/src/container.rs) · [DrawingML](../../crates/joyoffice-drawingml/src/lib.rs) · [OMML](../../crates/joyoffice-omml/src/lib.rs) |
 
-**建议开工顺序。** Word／Sheet 保存更改提示框已接入。Word／Deck 的 WMF／EMF 读取也已接入并通过同机前后两套二进制的像素对照。UOS 输入验收在 XIM 可用后独立复测。这样第一批就覆盖三个桌面应用，每个新组件都有两个能从产品入口验收的调用方。
+**建议开工顺序。** Word／Sheet 保存更改提示框已接入。Word／Deck 的 WMF／EMF 读取也已接入并通过同机前后两套二进制的像素对照。UOS 的三产品输入已在同一 DDE 桌面的独立 XIM 服务复测。这样第一批就覆盖三个桌面应用，每个新组件都有两个能从产品入口验收的调用方。
 
 **进度口径。** 共享复用记录调用产品、删除的重复路径和回退结果。自研替换另外记录独立规范来源、差分证据和已退出的上游调用。合并现有上游代码只增加共享覆盖，原始来源与许可继续登记。WMF／EMF 的独立实现可以分别从微软的公开格式规范取证。[MS-WMF](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-wmf/) · [MS-EMF](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-emf/)
 
@@ -130,3 +130,6 @@ cargo tree --locked --offline -e normal,build -p joyword-cli
 **WMF／EMF 读取已交付。** 两个图元解析器共用同一个有界字节读取器，原始来源和许可已登记。macOS 和 UOS 各运行四个文档的页面场景及 PDF 导出。每台机器的八份 RGB 输出与其改动前基线逐字节相同，图内均检出测试三角形。两产品各自的记录预算、绘图及导出仍从原入口验收。[回归与像素摘要](validation/20261118-desktop-sharing/README.md#wmfemf-有界读取)
 
 **Sheet／Deck 异步另存。** 两款产品已在 macOS 和 UOS 的原生面板验证取消及重试。Sheet 在选择期间发生编辑会拒绝迟到的路径并保留草稿，后续另存的工作簿能在新进程读回。Deck 的另存副本也经独立解包和新进程读回。[机器结果](validation/20261118-desktop-sharing/save-target.json)
+
+
+**UOS 中文输入。** Linux 客户端在收到 XIM 创建输入上下文的应答后才更新光标、处理焦点和复位请求。修复前同一独立输入法下 Word 和 Deck 可以选词，Sheet 收到字面拼音；修复后三产品均通过。经授权重启用户输入法，默认搜狗的 XIM 注册恢复，三产品在该服务下也均通过。[候选与重开证据](validation/20261118-desktop-sharing/README.md#uos-中文输入)
