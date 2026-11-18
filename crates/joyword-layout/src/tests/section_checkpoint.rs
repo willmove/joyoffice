@@ -759,3 +759,78 @@ fn section_reflow_preserves_column_breaks_rotated_text_and_caret_positions()
     }
     Ok(())
 }
+
+#[test]
+fn numbered_lines_continue_across_edits_until_a_verified_restart()
+-> Result<(), Box<dyn std::error::Error>> {
+    use joyword_model::section::{LineNumberRestart, LineNumbering};
+
+    let mut doc = Document::new();
+    doc.body.clear();
+    doc.styles.default_chr.font = Some("Source Sans 3".into());
+    for section in 0..68 {
+        let mut props = doc.last_section.clone();
+        props.line_numbers = Some(LineNumbering {
+            start: 5,
+            count_by: if section == 36 { 3 } else { 1 },
+            restart: match section {
+                36 => LineNumberRestart::Section,
+                38 => LineNumberRestart::Page,
+                _ => LineNumberRestart::Continuous,
+            },
+            ..Default::default()
+        });
+        let mut first = Paragraph::with_text("Numbered first line", Default::default());
+        let mut end = Paragraph::with_text("Numbered last line", Default::default());
+        first.props.suppress_line_numbers = Some(section == 33);
+        if section < 67 {
+            end.section = Some(Box::new(props));
+        } else {
+            doc.last_section = props;
+        }
+        doc.body.extend([
+            joyword_model::para_block(first),
+            joyword_model::para_block(end),
+        ]);
+    }
+    let opts = LayoutOptions::default();
+    let mut cache = LayoutCache::new();
+    let mut previous = layout_shared(&doc, &mut cache, &opts);
+    let mut edited = doc.clone();
+    edited.insert_text(
+        &Pos::body(68, 0),
+        "More numbered lines.\nAnd another.\n",
+        &Default::default(),
+    )?;
+    for state in [&edited, &doc, &edited] {
+        let next = layout_shared(state, &mut cache, &opts);
+        let full = layout(state, &mut LayoutCache::new(), &opts);
+        assert_eq!(next.changed_pages_from(&previous), Some(34..36));
+        assert_eq!(next.index, full.index);
+        assert_eq!(format!("{:?}", next.pages), format!("{:?}", full.pages));
+        let next_section = next.pages[35].numbered_lines_before;
+        assert_eq!(
+            next_section,
+            if std::ptr::eq(state, &edited) { 71 } else { 69 }
+        );
+        assert_eq!(next.pages[36].numbered_lines_before, 0);
+        assert_eq!(next.pages[38].numbered_lines_before, 0);
+        previous = next;
+    }
+    let mut distant = edited.clone();
+    distant.insert_text(
+        &Pos::body(8, 0),
+        "Line without a nearby restart.\n",
+        &Default::default(),
+    )?;
+    let next = layout_shared(&distant, &mut cache, &opts);
+    assert!(next.changed_pages_from(&previous).is_none());
+    assert_eq!(
+        format!("{:?}", next.pages),
+        format!(
+            "{:?}",
+            layout(&distant, &mut LayoutCache::new(), &opts).pages
+        )
+    );
+    Ok(())
+}

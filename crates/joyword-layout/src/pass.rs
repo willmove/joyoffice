@@ -694,6 +694,7 @@ pub(crate) fn layout_pass(
     let web_sect = mode.reflow.then(|| reflow_sect(first_sect, opts));
     let sect_ref = web_sect.as_ref().unwrap_or(first_sect);
     let mut pb = new_page_builder(sect_ref, early, mode.web, !may_rewrap && !mode.reflow);
+    pb.line_no = origin.preceding_lines;
     // Text boxes laid out in balancing attempts that were thrown away.
     let mut boxes_discarded = 0usize;
     let mut block = 0usize;

@@ -110,7 +110,6 @@ pub fn layout_shared(
                     || listed
                     || p.section.as_deref().is_some_and(uses_section_geometry);
                 (!listed || capture_list_starts)
-                    && p.section.as_deref().is_none_or(eligible_section)
                     && p.objects.iter().all(|object| {
                         body_fields |= matches!(object, joyword_model::InlineObject::Field { .. });
                         requires_section_flow |= object.is_drawing() || body_fields;
@@ -329,11 +328,6 @@ fn eligible(doc: &Document, opts: &LayoutOptions) -> bool {
         && doc.revisions.is_empty()
         && doc.footnote_separators.is_empty()
         && doc.endnote_separators.is_empty()
-        && eligible_section(&doc.last_section)
-}
-
-fn eligible_section(section: &SectionProps) -> bool {
-    section.line_numbers.is_none()
 }
 
 // A single paragraph cannot determine which column width to use after a break,
@@ -342,6 +336,7 @@ fn uses_section_geometry(section: &SectionProps) -> bool {
     !section.columns.widths.is_empty()
         || section.text_direction.is_turned()
         || section.valign != PageVAlign::Top
+        || section.line_numbers.is_some()
 }
 
 impl Previous {
@@ -781,6 +776,7 @@ fn same_page_entry(piece: &super::Page, original: &super::Page, start: usize) ->
     if piece.w != original.w
         || piece.h != original.h
         || piece.body != original.body
+        || piece.numbered_lines_before != original.numbered_lines_before
         || piece.first_block + start != original.first_block
         || piece.items.len() != original.items.len()
         || piece.float_tables.len() != original.float_tables.len()

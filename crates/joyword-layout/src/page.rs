@@ -414,6 +414,7 @@ impl PageBuilder<'_> {
             h,
             section: self.sect_idx,
             number: self.number,
+            numbered_lines_before: self.line_no,
             body,
             first_block,
             items: decor,

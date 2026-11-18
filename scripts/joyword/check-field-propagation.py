@@ -20,7 +20,7 @@ SECTIONS = runpy.run_path(str(Path(__file__).with_name('check-section-reflow.py'
 CORPUS = runpy.run_path(str(Path(__file__).with_name('check-complex-corpus.py')))
 
 
-def fixture(path, edited=False, facing_notes=False, structured=False, column_geometry=False):
+def fixture(path, edited=False, facing_notes=False, structured=False, column_geometry=False, numbered_lines=False):
     def text(value):
         return f'<w:r><w:t xml:space="preserve">{value}</w:t></w:r>'
 
@@ -45,12 +45,17 @@ def fixture(path, edited=False, facing_notes=False, structured=False, column_geo
         if column_geometry and section in (34, 36):
             props += ('<w:cols w:num="2" w:equalWidth="0" w:sep="1">'
                       '<w:col w:w="2680" w:space="520"/><w:col w:w="6160"/></w:cols>')
+        if numbered_lines and 30 <= section <= 38:
+            restart = 'newSection' if section == 36 else 'newPage' if section in (30, 38) else 'continuous'
+            count = 3 if section == 36 else 1
+            props += f'<w:lnNumType w:start="4" w:countBy="{count}" w:distance="360" w:restart="{restart}"/>'
         end = f'<w:sectPr>{props}</w:sectPr>'
         spacing = '<w:spacing w:after="0"/>'
         number = ''
         if structured and 8 <= section <= 43:
             number = f'<w:numPr><w:ilvl w:val="0"/><w:numId w:val="{1 if section < 35 else 2}"/></w:numPr>'
-        paragraphs.append(f'<w:p><w:pPr>{number}{spacing}</w:pPr>{text(title)}</w:p>')
+        suppress = '<w:suppressLineNumbers/>' if numbered_lines and section == 33 else ''
+        paragraphs.append(f'<w:p><w:pPr>{number}{suppress}{spacing}</w:pPr>{text(title)}</w:p>')
         if section == 64:
             body = (field('PAGE') + text(' ')) * 12
         elif section in (2, 66, 67):
@@ -163,6 +168,31 @@ def section_geometry(document):
     return {'columnsTwips': columns, 'directions': turns, 'verticalAlignments': align, 'columnBreaks': breaks}
 
 
+def line_number_settings(document):
+    ns = {'w': CORPUS['W']}
+    with ZipFile(document) as archive:
+        root = ET.fromstring(archive.read('word/document.xml'))
+    def values(node):
+        return {key: node.get(f'{{{ns["w"]}}}{key}') for key in ('start', 'countBy', 'distance', 'restart')}
+    settings = [values(n) for n in root.findall('.//w:sectPr/w:lnNumType', ns)]
+    assert len(settings) == 9 and all(n['start'] == '4' and n['distance'] == '360' for n in settings), settings
+    assert [n['restart'] for n in settings] == ['newPage'] + ['continuous'] * 5 + ['newSection', 'continuous', 'newPage']
+    assert [n['countBy'] for n in settings] == ['1'] * 6 + ['3', '1', '1']
+    assert len(root.findall('.//w:suppressLineNumbers', ns)) == 1
+    return settings
+
+
+def margin_labels(pdf):
+    root = ET.fromstring(subprocess.check_output(['pdftotext', '-bbox', str(pdf), '-']))
+    result = {}
+    for i, page in enumerate(root.findall('.//{*}page'), 1):
+        labels = [int(word.text) for word in page.findall('.//{*}word')
+                  if word.text and word.text.isdecimal() and float(word.get('xMin')) < 0.1 * float(page.get('width'))]
+        if labels:
+            result[i] = labels
+    return result
+
+
 def column_witnesses(pdf):
     root = ET.fromstring(subprocess.check_output(['pdftotext', '-bbox', str(pdf), '-']))
     words = {}
@@ -175,11 +205,11 @@ def column_witnesses(pdf):
     return words
 
 
-def run(desktop, old, current, folder, facing_notes=False, structured=False, column_geometry=False):
+def run(desktop, old, current, folder, facing_notes=False, structured=False, column_geometry=False, numbered_lines=False):
     folder.mkdir(parents=True, exist_ok=False)
     original, working = folder / '原始.docx', folder / '分节 编辑.docx'
-    fixture(original, facing_notes=facing_notes, structured=structured, column_geometry=column_geometry)
-    fixture(folder / 'expanded.docx', edited=True, facing_notes=facing_notes, structured=structured, column_geometry=column_geometry)
+    fixture(original, facing_notes=facing_notes, structured=structured, column_geometry=column_geometry, numbered_lines=numbered_lines)
+    fixture(folder / 'expanded.docx', edited=True, facing_notes=facing_notes, structured=structured, column_geometry=column_geometry, numbered_lines=numbered_lines)
     source_hash = digest(original)
     shutil.copyfile(original, working)
     reference = []
@@ -255,6 +285,20 @@ def run(desktop, old, current, folder, facing_notes=False, structured=False, col
         assert west[0] == east[0] and abs(east[1] - west[1] - 160.) < .5, witnesses
         assert witnesses['expanded'] == witnesses['old'] == witnesses['new'], witnesses
         formats['pdfColumnWitnesses'] = witnesses
+    if numbered_lines:
+        formats['lineNumberSettingsByWriter'] = {name: line_number_settings(file) for name, file in
+            [('source', original), ('native', working), ('baseline', folder / 'baseline-resaved.docx'),
+             ('candidate', folder / 'candidate-resaved.docx')]}
+        labels = {key: margin_labels(folder / (key + '.pdf')) for key in ('original', 'expanded', 'old', 'new')}
+        assert labels['expanded'] == labels['old'] == labels['new']
+        for key in ('original', 'expanded'):
+            values = list(labels[key].values())
+            assert values[:4] == [[5, 6], [7, 8], [9, 10], [11]], values[:4]
+            assert values[-3:] == [[6], [7, 8], [5, 6]], values[-3:]
+            continuous = [n for page in values[:-3] for n in page]
+            assert continuous == list(range(5, 5 + len(continuous)))
+        assert max(labels['expanded']) > max(labels['original']) and len(labels['expanded']) > len(labels['original'])
+        formats['marginLabels'] = {k: labels[k] for k in ('original', 'expanded')}
     return {
         **formats, 'sourceSha256': source_hash, 'desktopSha256': digest(desktop),
         'original': before, 'expanded': after, 'nativePatches': patches, 'savedAndReopened': True,
@@ -270,7 +314,8 @@ if __name__ == '__main__':
     arg.add_argument('--facing-notes', action='store_true', help='include mirrored sections, an even start, a numbering restart and a continued footnote')
     arg.add_argument('--structured', action='store_true', help='exercise continued and restarted lists, a frame, a drop cap and nested table fields')
     arg.add_argument('--column-geometry', action='store_true', help='exercise unequal columns, an explicit column break and both rotated text directions')
+    arg.add_argument('--numbered-lines', action='store_true', help='exercise per-page, section and continuous margin line numbering')
     args = arg.parse_args()
     dest = args.output.resolve()
-    result = run(args.desktop.resolve(), args.baseline.resolve(), args.candidate.resolve(), dest, args.facing_notes, args.structured, args.column_geometry)
+    result = run(args.desktop.resolve(), args.baseline.resolve(), args.candidate.resolve(), dest, args.facing_notes, args.structured, args.column_geometry, args.numbered_lines)
     (dest / 'report.json').write_text(json.dumps(result, indent=2) + '\n')

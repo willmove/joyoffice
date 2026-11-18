@@ -308,6 +308,7 @@ impl Window {
             capture_list_starts: !list_starts.is_empty() && self.next_section.is_some(),
             trailing_sentinel: self.next_section.is_some(),
             preceding_pages: self.pages.start,
+            preceding_lines: current.get(self.pages.start)?.numbered_lines_before,
             preceding_sections: u32::try_from(self.first_section).ok()?,
             outside_pages: u32::try_from(outside).ok()?,
         };
@@ -342,10 +343,27 @@ impl Window {
         if self.next_section.is_some() {
             let exit = pages.pop()?;
             let mut expected = current.get(self.pages.end)?.clone();
-            expected.items.truncate(1);
+            // A numbered paragraph can add several synthetic margin labels.
+            // Only that real paragraph and its labels are allowed at the exit:
+            // an arriving footnote or other body flow still invalidates it.
+            let first = Path::top(self.blocks.end);
+            let mut body_lines = 0;
+            for item in &exit.items {
+                match item {
+                    Placed::Lines {
+                        story: StoryRef::Body,
+                        path,
+                        ..
+                    } if *path == first => body_lines += 1,
+                    Placed::Lines { story, path, .. }
+                        if *story == crate::DECOR_STORY && path.0.is_empty() => {}
+                    _ => return None,
+                }
+            }
+            expected.items.truncate(exit.items.len());
             exit_number_delta = i64::from(exit.number) - i64::from(expected.number);
             expected.number = exit.number;
-            if exit.items.len() != 1 || !equivalent_page(&exit, &expected) {
+            if body_lines != 1 || !equivalent_page(&exit, &expected) {
                 return None;
             }
         }

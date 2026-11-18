@@ -329,6 +329,8 @@ pub struct Page {
     /// default), whether or not the section has one: double-clicking an empty header area
     /// creates that one (#960).
     pub hf_slot: HfSlot,
+    /// Counted body lines at page entry, after any page or section numbering restart.
+    pub numbered_lines_before: u32,
     /// Top-level body block index at the start of the page.
     pub first_block: usize,
     /// Width of the markup area on the right of `w` that holds comment balloons (Print Markup,
@@ -385,6 +387,7 @@ pub fn layout(doc: &Document, cache: &mut LayoutCache, opts: &LayoutOptions) -> 
 pub(crate) struct PageOrigin<'a> {
     preceding_pages: usize,
     preceding_sections: u32,
+    preceding_lines: u32,
     outside_pages: u32,
     endnotes: Option<&'a notes::Endnotes>,
     list_seed: Option<&'a Counters>,
