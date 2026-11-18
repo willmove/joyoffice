@@ -399,6 +399,7 @@ pub struct RasterScene {
     pub doc: Arc<Document>,
     pub layout: Arc<DocLayout>,
     pub options: joyword_render::RenderOptions,
+    font_generation: u64,
 }
 impl Reader {
     pub fn scene(&self) -> RasterScene {
@@ -406,20 +407,87 @@ impl Reader {
             doc: Arc::new(self.session.doc.clone()),
             layout: self.layout.clone(),
             options: self.display_options(),
+            font_generation: joyword_fonts::FontDb::global().generation(),
         }
     }
     pub fn geometry(&self) -> &DocLayout {
         &self.layout
     }
     pub fn changed_pages_from(&self, scene: &RasterScene) -> Option<std::ops::Range<usize>> {
+        if self.display_options() != scene.options
+            || scene.font_generation != joyword_fonts::FontDb::global().generation()
+        {
+            return None;
+        }
         self.layout.changed_pages_from(&scene.layout)
     }
 
     pub fn changed_page_from(&self, scene: &RasterScene) -> Option<usize> {
-        self.layout.changed_page_from(&scene.layout)
+        let pages = self.changed_pages_from(scene)?;
+        (pages.len() == 1).then_some(pages.start)
     }
 }
 impl RasterScene {
+    /// After a complete pagination, compare the actual paint commands for a cached text page.
+    /// Page pictures, watermarks and externally resolved media can draw outside that list.
+    pub fn same_page_paint(&self, previous: &Self, page: usize) -> bool {
+        use joyword_layout::display::page_layers;
+
+        if self.options != previous.options
+            || self.font_generation != previous.font_generation
+            || self.font_generation != joyword_fonts::FontDb::global().generation()
+            || self.options.paper_of(&self.doc) != previous.options.paper_of(&previous.doc)
+        {
+            return false;
+        }
+        let (Some(page), Some(old)) = (
+            self.comparable_text_page(page),
+            previous.comparable_text_page(page),
+        ) else {
+            return false;
+        };
+        (page.w, page.h, page.markup) == (old.w, old.h, old.markup)
+            && page_layers(&self.doc, page, &self.options.display)
+                == page_layers(&previous.doc, old, &previous.options.display)
+    }
+
+    // Bound the extra display list. Rich objects and unusually dense pages go to the rasterizer.
+    fn comparable_text_page(&self, index: usize) -> Option<&joyword_layout::Page> {
+        use joyword_engine::doc::InlineObject;
+        use joyword_layout::Placed;
+        let page = self.layout.pages.get(index)?;
+        if self.doc.settings.watermark.is_some()
+            || self.doc.settings.page_picture.is_some()
+            || page.header.len() + page.footer.len() + page.items.len() > 256
+        {
+            return None;
+        }
+        let mut clusters = 0usize;
+        for item in page.header.iter().chain(&page.footer).chain(&page.items) {
+            match item {
+                Placed::Lines {
+                    story, path, para, ..
+                } => {
+                    let model = self.doc.para(*story, path)?;
+                    if !model
+                        .objects
+                        .iter()
+                        .all(|obj| matches!(obj, InlineObject::NoteRef { .. }))
+                    {
+                        return None;
+                    }
+                    clusters = clusters.checked_add(para.clusters.len())?;
+                    if clusters > 4096 {
+                        return None;
+                    }
+                }
+                Placed::Cell { .. } | Placed::Rule { .. } | Placed::Fill { .. } => {}
+                _ => return None,
+            }
+        }
+        Some(page)
+    }
+
     pub fn raster(&self, page: usize, scale: f32) -> Result<joyword_render::Rendered, String> {
         self.raster_cancellable(page, scale, &AtomicBool::new(false))
     }
@@ -500,6 +568,62 @@ pub fn publish_rasters(directory: &Path, artifacts: &[(PathBuf, Vec<u8>)]) -> Re
 #[allow(clippy::unwrap_used, reason = "Test setup and assertions")]
 mod tests {
     use super::*;
+    #[test]
+    fn full_pagination_keeps_only_pages_with_identical_paint()
+    -> Result<(), Box<dyn std::error::Error>> {
+        use joyword_engine::doc::{
+            InlineObject, Paragraph, PartKind, Path, Pos, para::NoteKind, para_block,
+        };
+        let mut doc = Document::new();
+        doc.body.clear();
+        doc.last_section.columns.count = 2;
+        for i in 0..6 {
+            let mut para = Paragraph::with_text(&format!("Text on page {i}"), Default::default());
+            para.props.page_break_before = Some(i > 0);
+            doc.body.push(para_block(para));
+        }
+        let note = doc.add_part(
+            PartKind::Footnote,
+            vec![para_block(Paragraph::with_text("Note", Default::default()))],
+        );
+        doc.insert_object(
+            &Pos::body(2, 0),
+            InlineObject::NoteRef {
+                kind: NoteKind::Footnote,
+                id: note,
+                custom: String::new(),
+            },
+            &Default::default(),
+        )?;
+        let cancel = AtomicBool::new(false);
+        let make = |d| {
+            Reader::with_document("pages.docx", d, "test".into(), None, &cancel).map(|r| r.scene())
+        };
+        let before = make(doc.clone())?;
+        doc.para_mut(StoryRef::Part(note), &Path::top(0))?
+            .insert_text(0, &"long note ".repeat(100), &Default::default())?;
+        let after = make(doc)?;
+        assert_eq!(after.layout.pages.len(), before.layout.pages.len());
+        let affected = before.layout.index[&(StoryRef::Part(note), Path::top(0))][0].0;
+        for i in 0..before.layout.pages.len() {
+            let equal_pixels = before.raster(i, 0.6)?.pixels == after.raster(i, 0.6)?.pixels;
+            assert_eq!(after.same_page_paint(&before, i), equal_pixels);
+            assert_eq!(equal_pixels, i != affected);
+        }
+        let mut dark = after.clone();
+        dark.options.dark = true;
+        assert!(!after.same_page_paint(&dark, 0));
+        let mut marks = after.clone();
+        marks.options.display.marks = true;
+        assert!(!after.same_page_paint(&marks, 0));
+        let mut paper = after.clone();
+        Arc::make_mut(&mut paper.doc).settings.page_color =
+            Some(joyword_engine::doc::props::Rgb(10, 20, 30));
+        assert!(!after.same_page_paint(&paper, 0));
+        assert!(!after.same_page_paint(&before, before.layout.pages.len()));
+        Ok(())
+    }
+
     #[test]
     fn file_name_field_uses_source_on_initial_layout() -> Result<(), Box<dyn std::error::Error>> {
         use joyword_engine::doc::{Paragraph, para::InlineObject, para_block};

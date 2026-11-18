@@ -632,7 +632,7 @@
       "source": "crates/layout/src/display.rs",
       "target": "crates/joyword-layout/src/display.rs",
       "source_sha256": "9708f1e04d67bf7aef8d81fe5d41bed3ab4d1f28dedb3d3732e22f4a21354e3c",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md."
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Compare the paint commands and active display options before reusing a page after complete pagination."
     },
     {
       "source": "crates/layout/src/fields.rs",
@@ -791,7 +791,7 @@
       "source": "crates/layout/src/display/options.rs",
       "target": "crates/joyword-layout/src/display/options.rs",
       "source_sha256": "0dcb2ff6e7214d95d5f05c04e7674f5d11db6534adb227cb920b10a0da09d51f",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md."
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Compare the paint commands and active display options before reusing a page after complete pagination."
     },
     {
       "source": "crates/layout/src/display/page.rs",
@@ -1043,7 +1043,7 @@
       "source": "crates/render/src/lib.rs",
       "target": "crates/joyword-render/src/lib.rs",
       "source_sha256": "dbb8c890ba369b7282da4c0dcd1b867a090fd27cf692c346c09621f90f22a12c",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md."
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Compare the paint commands and active display options before reusing a page after complete pagination."
     },
     {
       "source": "crates/render/src/media.rs",

@@ -36,7 +36,7 @@ impl FormattingMarks {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct DisplayOptions {
     /// Show formatting marks (¶): Show/Hide ¶, every mark.
     pub marks: bool,

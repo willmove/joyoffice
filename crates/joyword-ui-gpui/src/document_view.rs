@@ -44,6 +44,7 @@ pub(super) struct DocumentCanvas {
     images: BTreeMap<(u16, u32, usize), CachedPage>,
     index: PageIndex,
     scene: Option<RasterScene>,
+    previous_scene: Option<RasterScene>,
     active_raster: Option<(RasterKey, Arc<AtomicBool>)>,
     wanted: Vec<usize>,
     access: u64,
@@ -71,6 +72,7 @@ impl Default for DocumentCanvas {
             images: BTreeMap::new(),
             index: PageIndex::default(),
             scene: None,
+            previous_scene: None,
             active_raster: None,
             wanted: Vec::new(),
             access: 0,
@@ -108,6 +110,7 @@ impl DocumentCanvas {
             cancel.store(true, Ordering::Relaxed);
         }
         self.scene = None;
+        self.previous_scene = None;
     }
     pub(super) fn invalidate_scene(&mut self) {
         self.discard_scene();
@@ -116,7 +119,22 @@ impl DocumentCanvas {
             .as_ref()
             .map_or_else(PageIndex::default, |r| PageIndex::new(&r.summary.pages));
     }
-    pub(super) fn refresh_changed_page(&mut self) -> bool {
+    pub(super) fn invalidate_after_edit(&mut self) {
+        if self.refresh_changed_page() {
+            return;
+        }
+        let previous = self.scene.take();
+        self.invalidate_scene();
+        if self
+            .images
+            .values()
+            .any(|entry| entry.epoch.checked_add(1) == Some(self.epoch))
+        {
+            self.previous_scene = previous;
+        }
+        self.failed.clear();
+    }
+    fn refresh_changed_page(&mut self) -> bool {
         let Some(pages) = self.reader.as_ref().and_then(|reader| {
             self.scene
                 .as_ref()
@@ -125,13 +143,16 @@ impl DocumentCanvas {
             return false;
         };
         self.discard_scene();
-        for (&(_, _, cached_page), cached) in &mut self.images {
-            if !pages.contains(&cached_page) {
+        self.keep_unaffected_images(&pages);
+        self.failed.retain(|page, _| !pages.contains(page));
+        true
+    }
+    fn keep_unaffected_images(&mut self, changed: &std::ops::Range<usize>) {
+        for (&(_, _, page), cached) in &mut self.images {
+            if cached.epoch.checked_add(1) == Some(self.epoch) && !changed.contains(&page) {
                 cached.epoch = self.epoch;
             }
         }
-        self.failed.retain(|page, _| !pages.contains(page));
-        true
     }
     fn needs_raster(&self, page: usize) -> bool {
         self.image(page)
@@ -468,11 +489,23 @@ impl JoyWord {
             .scene
             .get_or_insert_with(|| reader.scene())
             .clone();
+        let previous = self
+            .canvas
+            .image(page)
+            .filter(|cached| cached.epoch.checked_add(1) == Some(self.canvas.epoch))
+            .and(self.canvas.previous_scene.as_ref())
+            .cloned();
         let cancelled = Arc::new(AtomicBool::new(false));
         self.canvas.active_raster = Some((key, cancelled.clone()));
         let worker_cancel = cancelled.clone();
         let work = cx.background_executor().spawn(async move {
             let started = perf::start();
+            if !worker_cancel.load(Ordering::Relaxed)
+                && previous.is_some_and(|old| scene.same_page_paint(&old, page))
+            {
+                perf::sample("raster_reused", started, page);
+                return Ok(None);
+            }
             let mut raster = scene.raster_cancellable(page, scale, &worker_cancel)?;
             perf::sample("raster_worker", started, page);
             if worker_cancel.load(Ordering::Relaxed) {
@@ -484,10 +517,10 @@ impl JoyWord {
             }
             let buffer = image::RgbaImage::from_raw(raster.width, raster.height, raster.pixels)
                 .ok_or("Invalid raster buffer")?;
-            Ok::<_, String>((
+            Ok::<_, String>(Some((
                 Arc::new(RenderImage::new(vec![image::Frame::new(buffer)])),
                 u64::from(raster.width) * u64::from(raster.height),
-            ))
+            )))
         });
         self.canvas.raster_task = Some(cx.spawn(async move |view, cx| {
             let result = work.await;
@@ -505,7 +538,18 @@ impl JoyWord {
                     && this.canvas.raster_gate.accepts(&ticket, &current)
                 {
                     match result {
-                        Ok((image, pixels)) => {
+                        Ok(None) => {
+                            if let Some(cached) =
+                                this.canvas
+                                    .images
+                                    .get_mut(&(current.zoom, current.dpi, page))
+                                && cached.epoch.checked_add(1) == Some(current.epoch)
+                            {
+                                cached.epoch = current.epoch;
+                                cached.last_used = this.canvas.access;
+                            }
+                        }
+                        Ok(Some((image, pixels))) => {
                             let cache_key = (current.zoom, current.dpi, page);
                             let replaced_pixels = this
                                 .canvas
@@ -768,5 +812,16 @@ mod tests {
         canvas.epoch = 2;
         assert!(canvas.needs_raster(0));
         assert!(canvas.image(0).is_some());
+        canvas.keep_unaffected_images(&(0..1));
+        // Page zero was not repainted before the next edit changed a different page.
+        canvas.epoch = 3;
+        canvas.keep_unaffected_images(&(1..2));
+        assert!(canvas.needs_raster(0));
+        if let Some(cached) = canvas.images.get_mut(&(100, 1000, 0)) {
+            cached.epoch = 3;
+        }
+        canvas.epoch = 4;
+        canvas.keep_unaffected_images(&(1..2));
+        assert!(!canvas.needs_raster(0));
     }
 }

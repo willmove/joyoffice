@@ -127,3 +127,9 @@ Word 和 Deck 共用目录遍历及文件修订识别，塑形和回退顺序由
 可复跑的入口为 `python3 scripts/joyword/check-installed-language-pack.py CLI DESKTOP NEW_DIR --published`、`python3 scripts/joydeck/check-preset-shapes.py OLD_CLI NEW_CLI NEW_DIR --family rectangles` 和 `python3 scripts/joysheet/check-version-rollback.py --help`。每次 GUI 测试使用独立配置和新进程。荷兰语发行数据与许可按正式索引核对，词典内容保留原许可。[固定发行清单](https://github.com/storytold/craft-i18n/releases/tag/language-packs-2)
 
 本批采用各消费产品工程命令，macOS 与 UOS 的 Word 分别通过 3,676 与 3,680 项，Deck 通过 997 与 1,002 项，Sheet 均通过 1,470 项。两台机器均另跑校对库的 475 个用例，原有一项忽略。公共 UI 另通过 75 与 79 项，部分用例已包含在产品工程检查中。两端均完成桌面和 CLI 联合构建，且六份产品发行清单均找到依赖许可文本。[产品与专项回归](cycle-regression.json) · [发行范围](distribution.json)
+
+## Word 连续编辑和跨页重绘
+
+页面只有在纸色、显示选项、字体版本、页面尺寸及两份显示列表都相同时才能复用。对正文、表格与脚注的文字页面，比较在栅格线程执行。带图、水印、高密度或未能核验的页继续重绘。相邻两个版本的缓存可以继承，中间曾失效的旧图保持待更新。专项还检查增加脚注高度后每页的真实光栅、切换深色、格式标记与纸色，以及页号越界。
+
+两端在真实窗口打开完全相同的六页双栏 DOCX。插入八次重复短句及撤销后分别核对完整正文和六页总数。两次都观测到第 1 页重新生成位图，第 2 页沿用已有图像，磁盘原件的 SHA-256 一致。复跑入口为 `python3 scripts/joyword/check-page-repaint.py DESKTOP NEW_DIR`。macOS 和 UOS 的 Word 产品工程检查分别通过 3,677 和 3,681 项。两端同时复跑公共 UI 专项和六个桌面与 CLI 入口的联合构建。[原生及工程验证](page-repaint.json)

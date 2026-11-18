@@ -235,10 +235,7 @@ impl JoyWord {
     pub(super) fn invalidate_document(&mut self, _cx: &mut Context<Self>) {
         if let Some(epoch) = self.canvas.epoch.checked_add(1) {
             self.canvas.epoch = epoch;
-            if !self.canvas.refresh_changed_page() {
-                self.canvas.invalidate_scene();
-                self.canvas.failed.clear();
-            }
+            self.canvas.invalidate_after_edit();
         } else {
             self.shell.notice = Some("Document generation exhausted".into());
         }

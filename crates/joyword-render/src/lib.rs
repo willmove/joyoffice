@@ -194,7 +194,7 @@ fn color(c: Rgb, alpha: f32) -> peniko::Color {
 }
 
 /// Options for a page raster.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct RenderOptions {
     pub display: DisplayOptions,
     /// Paper colour (page colour from Design › Page Color, else white).

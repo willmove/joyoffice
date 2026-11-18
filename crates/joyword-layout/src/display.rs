@@ -37,7 +37,7 @@ pub use page::{
 };
 pub use paint::{Paint, Stroke, paint_for};
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Draw {
     Glyphs {
         face: FaceRef,
