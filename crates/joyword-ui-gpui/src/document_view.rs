@@ -142,7 +142,8 @@ impl DocumentCanvas {
         }) else {
             return false;
         };
-        self.discard_scene();
+        // Page count and heights can change even when only one section was laid out.
+        self.invalidate_scene();
         perf::layout_patch(&pages);
         self.keep_unaffected_images(&pages);
         self.failed.retain(|page, _| !pages.contains(page));

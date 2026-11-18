@@ -410,3 +410,153 @@ fn clipped_groups_linked_boxes_and_distant_endnotes_reflow_at_their_displayed_se
     }
     Ok(())
 }
+#[test]
+fn a_remote_field_can_repaginate_its_own_section_and_invalidate_other_fields()
+-> Result<(), Box<dyn std::error::Error>> {
+    let mut original = Document::new();
+    original.styles.default_chr.font = Some("Source Sans 3".into());
+    original.body.clear();
+    for section in 0..68 {
+        let mut entry = Paragraph::with_text("Entry", Default::default());
+        entry.props.space_after = Some(0.);
+        original.body.push(joyword_model::para_block(entry));
+        let mut row = Paragraph::with_text("", Default::default());
+        row.props.space_after = Some(0.);
+        let mut props = original.last_section.clone();
+        if section == 0 {
+            props.page_num_start = Some(35);
+        }
+        if section == 64 {
+            props.page_w = 211.;
+            props.page_h = 82.;
+            props.margin_top = 20.;
+            props.margin_bottom = 20.;
+            props.margin_left = 20.;
+            props.margin_right = 20.;
+        }
+        let (instr, count) = match section {
+            64 => ("PAGE", 12),
+            2 => ("NUMPAGES", 1),
+            66 => ("PAGE", 1),
+            _ => ("", 0),
+        };
+        for _ in 0..count {
+            row.insert_object(
+                row.len(),
+                InlineObject::Field {
+                    instr: instr.into(),
+                    result: "99".into(),
+                    locked: false,
+                    dirty: false,
+                    code: false,
+                    form: String::new(),
+                },
+                &Default::default(),
+            )?;
+            row.insert_text(row.len(), " ", &Default::default())?;
+        }
+        if section < 67 {
+            row.section = Some(Box::new(props));
+        }
+        original.body.push(joyword_model::para_block(row));
+    }
+    for (break_kind, continued_note) in [
+        (SectionStart::NextPage, false),
+        (SectionStart::EvenPage, false),
+        (SectionStart::OddPage, false),
+        (SectionStart::NextPage, true),
+        (SectionStart::EvenPage, true),
+    ] {
+        let mut original = original.clone();
+        let note = if continued_note {
+            let blocks = (0..58)
+                .map(|i| {
+                    joyword_model::para_block(Paragraph::with_text(
+                        &format!("Continued note {i}"),
+                        Default::default(),
+                    ))
+                })
+                .collect();
+            let id = original.add_part(joyword_model::PartKind::Footnote, blocks);
+            original.insert_object(
+                &Pos::body(66 * 2 + 1, 0),
+                InlineObject::NoteRef {
+                    kind: joyword_model::para::NoteKind::Footnote,
+                    id,
+                    custom: String::new(),
+                },
+                &Default::default(),
+            )?;
+            Some(id)
+        } else {
+            None
+        };
+        if break_kind != SectionStart::NextPage {
+            original.settings.mirror_margins = true;
+            original.settings.even_odd_headers = true;
+            let props = original
+                .para_mut(StoryRef::Body, &Path::top(65 * 2 + 1))?
+                .section
+                .as_mut()
+                .ok_or("missing section")?;
+            props.start = break_kind;
+            props.margin_left = 37.;
+            props.margin_right = 61.;
+            original.last_section.page_num_start = Some(7);
+        }
+        let mut edited = original.clone();
+        edited.insert_text(
+            &Pos::body(68, 0),
+            &"Extra text ".repeat(900),
+            &Default::default(),
+        )?;
+        let opts = LayoutOptions::default();
+        let mut cache = LayoutCache::new();
+        let mut last = layout_shared(&original, &mut cache, &opts);
+        let remote_pages = |d: &DocLayout| d.pages.iter().filter(|p| p.section == 64).count();
+        let initial_remote = if break_kind == SectionStart::OddPage {
+            2
+        } else {
+            1
+        };
+        let edited_remote = if break_kind == SectionStart::EvenPage {
+            3
+        } else {
+            2
+        };
+        assert_eq!(remote_pages(&last), initial_remote);
+        if let Some(id) = note {
+            let positions = last
+                .index
+                .iter()
+                .filter(|((story, _), _)| *story == StoryRef::Part(id))
+                .flat_map(|(_, locations)| locations.iter().map(|(page, _)| *page))
+                .collect::<std::collections::BTreeSet<_>>();
+            assert!(positions.len() > 1);
+        }
+        for (state, expected) in [
+            (&edited, edited_remote),
+            (&original, initial_remote),
+            (&edited, edited_remote),
+        ] {
+            let next = layout_shared(state, &mut cache, &opts);
+            let full = layout(state, &mut LayoutCache::new(), &opts);
+            assert_eq!(remote_pages(&full), expected);
+            assert_eq!(
+                next.changed_pages_from(&last),
+                Some(2..last.pages.len().max(full.pages.len()))
+            );
+            assert_eq!(next.pages.len(), full.pages.len());
+            assert_eq!(next.index, full.index);
+            for (i, (a, b)) in next.pages.iter().zip(&full.pages).enumerate() {
+                assert_eq!(format!("{a:?}"), format!("{b:?}"), "page {i}");
+                assert_eq!(
+                    next.hit(i, 82., 51., StoryRef::Body),
+                    full.hit(i, 82., 51., StoryRef::Body)
+                );
+            }
+            last = next;
+        }
+    }
+    Ok(())
+}

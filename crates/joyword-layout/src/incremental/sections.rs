@@ -25,7 +25,62 @@ struct Repaginated {
     exit_number_delta: i64,
 }
 
+/// Work left for one edit, shared by the primary and all dependent sections.
+struct SectionReflow<'a> {
+    doc: &'a Document,
+    opts: &'a LayoutOptions,
+    current: &'a Arc<DocLayout>,
+    remaining_pages: usize,
+    remaining_blocks: usize,
+}
+
+impl SectionReflow<'_> {
+    fn consume(&mut self, pages: usize, blocks: usize) -> Option<()> {
+        let pages = self.remaining_pages.checked_sub(pages)?;
+        let blocks = self.remaining_blocks.checked_sub(blocks)?;
+        self.remaining_pages = pages;
+        self.remaining_blocks = blocks;
+        Some(())
+    }
+}
+
+struct FieldReplay {
+    window: Window,
+    replacement: Vec<Page>,
+    shifted_suffix: Option<Vec<Page>>,
+    cache: LayoutCache,
+}
+
 impl Window {
+    // A continuation can land before or after the first independent page start.
+    // Prefer narrow windows and exhaust the same three boundary extensions at either end.
+    fn candidates<'a>(
+        doc: &'a Document,
+        current: &'a DocLayout,
+        block: usize,
+    ) -> impl Iterator<Item = Self> + 'a {
+        (0..=3).flat_map(move |breadth| {
+            (0..=breadth)
+                .filter_map(move |before| Self::find(doc, current, block, before, breadth - before))
+        })
+    }
+
+    fn locate_in(&self, original: &DocLayout, pages: &[Page]) -> Option<Range<usize>> {
+        // Earlier reflows may have shifted both boundaries. Section and block
+        // identity still locate the window in the current candidate.
+        let start = pages.partition_point(|page| page.section < self.first_section);
+        let end = original
+            .pages
+            .get(self.pages.end)
+            .map_or(pages.len(), |next| {
+                pages.partition_point(|page| page.section < next.section)
+            });
+        (start < end
+            && pages.get(start)?.first_block == self.blocks.start
+            && (!self.sentinel || pages.get(end)?.first_block == self.blocks.end))
+            .then_some(start..end)
+    }
+
     fn find(
         doc: &Document,
         current: &DocLayout,
@@ -508,6 +563,73 @@ fn equivalent_page(page: &Page, original: &Page) -> bool {
         && same_page_entry(page, original, 0)
 }
 
+/// Find body fields in reused pages whose displayed value changed when a section was replayed.
+fn collect_changed_fields(
+    doc: &Document,
+    previous: &[Page],
+    pages: &[Page],
+    changed: &Range<usize>,
+    replacement_end: usize,
+    blocks: &mut BTreeSet<usize>,
+) -> Option<()> {
+    let sections = doc.sections();
+    let old_totals = crate::cache::Totals::of(previous, &sections);
+    let new_totals = crate::cache::Totals::of(pages, &sections);
+    let reused = previous[..changed.start]
+        .iter()
+        .zip(&pages[..changed.start])
+        .chain(
+            previous[changed.end..]
+                .iter()
+                .zip(&pages[replacement_end..]),
+        );
+    for (old, new) in reused {
+        for item in &new.items {
+            let Placed::Lines {
+                story: StoryRef::Body,
+                path,
+                para,
+                ..
+            } = item
+            else {
+                continue;
+            };
+            if !para.has_page_fields {
+                continue;
+            }
+            let block = *path.0.first()? as usize;
+            let si = sections.partition_point(|(last, _)| *last < block);
+            if doc
+                .para(StoryRef::Body, path)?
+                .objects
+                .iter()
+                .any(|object| {
+                    let InlineObject::Field {
+                        instr,
+                        locked: false,
+                        ..
+                    } = object
+                    else {
+                        return false;
+                    };
+                    match crate::fields::field_name(instr).as_str() {
+                        "PAGE" => old.number != new.number,
+                        "NUMPAGES" => old_totals.pages != new_totals.pages,
+                        "SECTIONPAGES" => old_totals.section(si) != new_totals.section(si),
+                        _ => false,
+                    }
+                })
+            {
+                blocks.insert(block);
+                if blocks.len() > 256 {
+                    return None;
+                }
+            }
+        }
+    }
+    Some(())
+}
+
 impl Previous {
     pub(super) fn reflow_sections(
         &mut self,
@@ -519,16 +641,28 @@ impl Previous {
         // A continued footnote can enter or leave the first window. Include
         // its anchor or continuation before accepting the checked exit. The
         // same expansion absorbs changes at a later odd/even section break.
-        for breadth in 0..=3 {
-            for before in 0..=breadth {
-                if let Some(window) = Window::find(doc, current, block, before, breadth - before)
-                    && let Some(next) = self.reflow_window(doc, opts, window, current)
-                {
-                    return Some(next);
-                }
-            }
+        let mut pass = SectionReflow {
+            doc,
+            opts,
+            current,
+            remaining_pages: 16,
+            remaining_blocks: 256,
+        };
+        let checked = self
+            .checked_section
+            .as_ref()
+            .map(|s| s.blocks.clone())
+            .filter(|r| r.contains(&block));
+        if let Some(range) = &checked
+            && let Some(window) =
+                Window::candidates(doc, current, block).find(|w| w.blocks == *range)
+            && let Some(next) = self.reflow_window(&mut pass, window)
+        {
+            return Some(next);
         }
-        None
+        Window::candidates(doc, current, block)
+            .filter(|w| checked.as_ref() != Some(&w.blocks))
+            .find_map(|window| self.reflow_window(&mut pass, window))
     }
 
     fn independent_window(
@@ -571,135 +705,117 @@ impl Previous {
         .then_some(())
     }
 
-    /// A distant field can move its neighbours even when only one digit changes.
-    /// Replay its entire section with the new totals and original entry state;
-    /// a changed exit, page count, or exhausted budget goes to the full paginator.
+    fn replay_field(
+        &self,
+        mut window: Window,
+        pass: &mut SectionReflow<'_>,
+        pages: &[Page],
+        verified: Option<LayoutCache>,
+    ) -> Option<FieldReplay> {
+        let (doc, opts, current) = (pass.doc, pass.opts, pass.current);
+        if !self.independent_window(&mut window, doc, opts, current) {
+            return None;
+        }
+        let located = window.locate_in(current, pages)?;
+        let reserved = window.pages.len().max(located.len());
+        pass.consume(reserved, window.blocks.len())?;
+        let mut cache = match verified {
+            Some(cache) => cache,
+            None => {
+                let mut cache = LayoutCache::new();
+                self.check_previous_window(&window, doc, &mut cache, current)?;
+                cache
+            }
+        };
+        window.pages = located;
+        let fragment = window.fragment(doc, pages, &doc.body)?;
+        let next = window.pages(&fragment, opts, &mut cache, pages, self.endnotes.as_ref())?;
+        pass.consume(next.pages.len().saturating_sub(reserved), 0)?;
+        let delta = next.pages.len() as i64 - window.pages.len() as i64;
+        let shifted_suffix = if delta == 0 && next.exit_number_delta == 0 {
+            None
+        } else {
+            let suffix = &pages[window.pages.end..];
+            let mut shifted = Vec::with_capacity(suffix.len());
+            append_shifted_suffix(doc, suffix, next.exit_number_delta, delta, &mut shifted)?;
+            Some(shifted)
+        };
+        Some(FieldReplay {
+            window,
+            replacement: next.pages,
+            shifted_suffix,
+            cache,
+        })
+    }
+
+    /// Repeat affected sections until the page counts and displayed numbers settle.
+    /// Every pass, including a repeat visit, consumes the same document-edit budget.
     fn refresh_remote_fields(
         &self,
-        doc: &Document,
-        opts: &LayoutOptions,
+        pass: &mut SectionReflow<'_>,
         edited: &Window,
-        current: &DocLayout,
-        pages: &mut [Page],
+        pages: &mut Vec<Page>,
         field_layouts: &mut BTreeMap<(usize, usize), LayoutCache>,
     ) -> Option<usize> {
+        let (doc, current) = (pass.doc, pass.current);
         let replacement_end = pages.len() - (current.pages.len() - edited.pages.end);
-        let sections = doc.sections();
-        let old_totals = crate::cache::Totals::of(&current.pages, &sections);
-        let new_totals = crate::cache::Totals::of(pages, &sections);
-        let reused = current.pages[..edited.pages.start]
-            .iter()
-            .zip(&pages[..edited.pages.start])
-            .chain(
-                current.pages[edited.pages.end..]
-                    .iter()
-                    .zip(&pages[replacement_end..]),
-            );
         let mut blocks = BTreeSet::new();
-        for (old, new) in reused {
-            for item in &new.items {
-                let Placed::Lines {
-                    story: StoryRef::Body,
-                    path,
-                    para,
-                    ..
-                } = item
-                else {
-                    continue;
-                };
-                if !para.has_page_fields {
-                    continue;
-                }
-                let block = *path.0.first()? as usize;
-                let si = sections.partition_point(|(last, _)| *last < block);
-                if doc
-                    .para(StoryRef::Body, path)?
-                    .objects
-                    .iter()
-                    .any(|object| {
-                        let InlineObject::Field {
-                            instr,
-                            locked: false,
-                            ..
-                        } = object
-                        else {
-                            return false;
-                        };
-                        match crate::fields::field_name(instr).as_str() {
-                            "PAGE" => old.number != new.number,
-                            "NUMPAGES" => old_totals.pages != new_totals.pages,
-                            "SECTIONPAGES" => old_totals.section(si) != new_totals.section(si),
-                            _ => false,
-                        }
-                    })
-                {
-                    blocks.insert(block);
-                    if blocks.len() > 256 {
-                        return None;
-                    }
-                }
-            }
-        }
-
+        collect_changed_fields(
+            doc,
+            &current.pages,
+            pages,
+            &edited.pages,
+            replacement_end,
+            &mut blocks,
+        )?;
         let mut previous_fields = std::mem::take(field_layouts);
         let mut first_dirty = edited.pages.start;
-        let mut checked_to = 0;
-        let mut page_count = edited.pages.len().max(replacement_end - edited.pages.start);
-        let mut block_count = edited.blocks.len();
-        for block in blocks {
-            if block < checked_to {
-                continue;
-            }
-            let mut remote = Window::find(doc, current, block, 0, 0)?;
-            let start = if remote.pages.end <= edited.pages.start {
-                remote.pages.start
+        while let Some(block) = blocks.pop_first() {
+            let replay = Window::candidates(doc, current, block).find_map(|remote| {
+                let key = (remote.blocks.start, remote.blocks.end);
+                let verified = field_layouts
+                    .remove(&key)
+                    .or_else(|| previous_fields.remove(&key));
+                self.replay_field(remote, pass, pages, verified)
+            })?;
+            let remote = replay.window;
+            blocks.retain(|b| !remote.blocks.contains(b));
+            first_dirty = first_dirty.min(remote.pages.start);
+            field_layouts.insert((remote.blocks.start, remote.blocks.end), replay.cache);
+            if let Some(suffix) = replay.shifted_suffix {
+                let replacement_end = remote.pages.start + replay.replacement.len();
+                let mut updated = Vec::with_capacity(replacement_end + suffix.len());
+                updated.extend_from_slice(&pages[..remote.pages.start]);
+                updated.extend(replay.replacement);
+                updated.extend(suffix);
+                collect_changed_fields(
+                    doc,
+                    pages,
+                    &updated,
+                    &remote.pages,
+                    replacement_end,
+                    &mut blocks,
+                )?;
+                *pages = updated;
             } else {
-                replacement_end + remote.pages.start.checked_sub(edited.pages.end)?
-            };
-            let length = remote.pages.len();
-            page_count += length;
-            block_count += remote.blocks.len();
-            if page_count > 16
-                || block_count > 256
-                || !self.independent_window(&mut remote, doc, opts, current)
-            {
-                return None;
-            }
-            let key = (remote.blocks.start, remote.blocks.end);
-            let mut cache = match previous_fields.remove(&key) {
-                Some(cache) => cache,
-                None => {
-                    let mut cache = LayoutCache::new();
-                    self.check_previous_window(&remote, doc, &mut cache, current)?;
-                    cache
+                for (page, updated) in pages[remote.pages].iter_mut().zip(replay.replacement) {
+                    *page = updated;
                 }
-            };
-            remote.pages = start..start + length;
-            let fragment = remote.fragment(doc, pages, &doc.body)?;
-            let next = remote.pages(&fragment, opts, &mut cache, pages, self.endnotes.as_ref())?;
-            if next.pages.len() != length || next.exit_number_delta != 0 {
-                return None;
             }
-            for (page, updated) in pages[remote.pages].iter_mut().zip(next.pages) {
-                *page = updated;
-            }
-            field_layouts.insert(key, cache);
-            checked_to = remote.blocks.end;
-            first_dirty = first_dirty.min(start);
         }
         Some(first_dirty)
     }
 
     fn reflow_window(
         &mut self,
-        doc: &Document,
-        opts: &LayoutOptions,
+        pass: &mut SectionReflow<'_>,
         mut window: Window,
-        current: &Arc<DocLayout>,
     ) -> Option<DocLayout> {
+        let (doc, opts, current) = (pass.doc, pass.opts, pass.current);
         if !self.independent_window(&mut window, doc, opts, current) {
             return None;
         }
+        pass.consume(window.pages.len(), window.blocks.len())?;
         // On first entry replay the old section against the real document.
         // A successfully produced replacement is already a verified base for
         // the next edit of that same section. Reuse only its private shaping cache.
@@ -718,6 +834,10 @@ impl Previous {
             &mut cache,
             &current.pages,
             self.endnotes.as_ref(),
+        )?;
+        pass.consume(
+            replacement.pages.len().saturating_sub(window.pages.len()),
+            0,
         )?;
         let moved = replacement.pages.len() != window.pages.len();
         let count = current.pages.len() - window.pages.len() + replacement.pages.len();
@@ -745,13 +865,12 @@ impl Previous {
         };
         if self.body_fields && moved {
             dirty.start = dirty.start.min(self.refresh_remote_fields(
-                doc,
-                opts,
+                pass,
                 &window,
-                current,
                 &mut pages,
                 &mut field_layouts,
             )?);
+            dirty.end = dirty.end.max(pages.len());
         } else {
             field_layouts.clear();
         }
