@@ -135,6 +135,8 @@ FS_ALLOW = {
     "crates/joyoffice-opc/src/zip.rs",
     "crates/joyoffice-opc/src/package.rs",
     "crates/joyoffice-fonts/src/lib.rs",
+    "crates/joyoffice-ui/src/linux_graphics.rs",  # fixed runtime discovery and same-process graphics fallback exec
+    "crates/joydeck-geom/build.rs",  # build script: reads the bundled ECMA-376 preset source and writes generated code to Cargo OUT_DIR
     "apps/joyword-cli/src/main.rs",
     "apps/joyword-cli/src/inspect.rs",  # bounded, read-only legacy CLI input
     "crates/joyword-control-key/src/lib.rs",

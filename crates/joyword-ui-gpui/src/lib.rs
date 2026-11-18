@@ -1017,6 +1017,10 @@ fn bind_document_keys(cx: &mut App) {
 }
 
 pub fn run() {
+    if let Err(error) = joyoffice_ui::prepare_desktop_graphics() {
+        eprintln!("JoyWord graphics setup: {error}");
+        return;
+    }
     #[cfg(not(target_arch = "wasm32"))]
     joyword_shell::authoring::configure_language_packs(true);
     let application = gpui_kit::application();

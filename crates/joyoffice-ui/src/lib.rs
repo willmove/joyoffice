@@ -15,6 +15,14 @@ mod save_changes;
 pub use save_changes::{save_changes_backdrop, save_changes_panel};
 mod branding;
 pub use branding::{product_logo, product_window_options};
+#[cfg(all(target_os = "linux", target_arch = "x86_64"))]
+mod linux_graphics;
+#[cfg(all(target_os = "linux", target_arch = "x86_64"))]
+pub use linux_graphics::prepare_desktop_graphics;
+#[cfg(not(all(target_os = "linux", target_arch = "x86_64")))]
+pub fn prepare_desktop_graphics() -> Result<(), String> {
+    Ok(())
+}
 
 /// Logical pixels; document zoom never changes application chrome dimensions.
 pub mod metrics {

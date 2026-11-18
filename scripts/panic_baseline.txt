@@ -435,3 +435,16 @@ crates/joydeck-shell/src/show_tests.rs:200:transition.advance(0.5).unwrap();
 crates/joydeck-shell/src/show_tests.rs:201:let middle = cache.render(&transition, target, true, &cancel).unwrap();
 crates/joydeck-shell/src/show_tests.rs:205:transition.frame(target.scale(), &cancel).unwrap().pixels
 crates/joydeck-ui-gpui/src/slideshow_frames.rs:63:target: RenderTarget::fit((960., 540.), (960., 540.), dpi).unwrap(),
+crates/joydeck-shell/src/show_tests.rs:229:let mut p = Player::new(Arc::new(model), None, None).unwrap();
+crates/joydeck-shell/src/show_tests.rs:230:p.advance(0.8).unwrap();
+crates/joydeck-shell/src/show_tests.rs:232:p.navigate("pause", None).unwrap();
+crates/joydeck-shell/src/show_tests.rs:233:p.advance(5.).unwrap();
+crates/joydeck-shell/src/show_tests.rs:234:p.navigate("pause", None).unwrap();
+crates/joydeck-shell/src/show_tests.rs:235:p.advance(1.9).unwrap();
+crates/joydeck-shell/src/show_tests.rs:238:p.advance(0.266).unwrap();
+crates/joydeck-shell/src/show_tests.rs:240:p.advance(0.002).unwrap();
+crates/joysheet-functions/examples/integer_conversion.rs:30:let f = lookup(function).expect("registered worksheet function");
+crates/joysheet-xlsx/src/sheet_view.rs:218:let view = crate::xml::parse(br#"<sheetView><selection sqref="A1:B2 D4:E5"/></sheetView>"#).unwrap();
+crates/joysheet-xlsx/src/sheet_view.rs:220:read_selections(&view, &mut sheet, None).unwrap();
+crates/joysheet-xlsx/src/sheet_view.rs:221:let stored = sheet.stored_selection().unwrap();
+crates/joysheet-xlsx/src/sheet_view.rs:233:view.select(3, PaneSelection { active: at, active_area: 0, areas: vec![area; MAX_VIEW_AREAS] }).unwrap();

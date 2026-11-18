@@ -13,8 +13,8 @@
     "source_path": "crates/joyoffice-ui/src/lib.rs",
     "target_path": "crates/joyoffice-ui/src/lib.rs",
     "source_sha256": "08e23515fe8a44ea93dda33be7d47554c6c6fc4240f35f2fb27b6339fcd7c5cc",
-    "local_changes": "CRLF normalized to LF; content otherwise unchanged; 2026-11-11: shared application theme catalog, persistent preset selection and palette projection; preserve document colors and original source identity; export the shared Word and Sheet save changes dialog",
-    "adapted_sha256": "dfadbd9b8a1ba2e8d21605ab9ae101863bb5d2e412177c1444d6eb85c2204bb7",
+    "local_changes": "CRLF normalized to LF; 2026-11-11: shared application theme catalog, persistent preset selection and palette projection; preserve document colors and original source identity; 2026-11-18: export the shared Word and Sheet save changes dialog; 2026-11-18: Linux software graphics fallback bootstrap",
+    "adapted_sha256": "5e93be8866d2e71ab8012ccce27b0e8c3332855db7e2dbc537c84541a77cd441",
     "desktop_product_icons": "2026-11-18: embedded native product icons/logos for every product window; portable desktop registration and complete shared artwork source fingerprints; original attribution retained.",
     "roadmap_refactor": "Expose accessible ribbon groups and launcher footers for all three desktops."
   },
@@ -39,8 +39,8 @@
     "source_path": "scripts/verify_gpui_pre_provenance.py",
     "target_path": "scripts/verify_gpui_pre_provenance.py",
     "source_sha256": "cc8f0c60d19e9576943906043ce34ef1ad0f12fbfa4e8b5c08d647fb5d329af6",
-    "local_changes": "CRLF normalized to LF; content otherwise unchanged; R9: enforce identical LF checkout bytes on Windows/Linux/macOS; pin both reviewed Linux backend files for editable and read-only X11 windows",
-    "adapted_sha256": "065c2320bb1f8cb9a0e1acc3b4be2e0edeb466cd672552bbf33f94878988c896",
+    "local_changes": "CRLF normalized to LF; R9: enforce identical LF checkout bytes on Windows/Linux/macOS; pin both reviewed Linux backend files for editable and read-only X11 windows; 2026-11-18: support legacy Git with a full shallow-commit fallback while retaining partial blob fetches on modern Git",
+    "adapted_sha256": "fe6130459a2577caee3b3871c8fff48fbc2568b46787bfb34250f02cf599710f",
     "verified_opc_read": "Reuse verified OPC buffers while preserving format reader budgets and ZIP name decoding."
   },
   {

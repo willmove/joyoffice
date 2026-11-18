@@ -115,6 +115,8 @@ The [GPUI upgrade record](docs/joyoffice/GPUI-KIT-0.9.1-UPGRADE.md) tracks sourc
 
 Exact Linux package lists are maintained in [Word CI](.github/workflows/ci.yml), [Sheet CI](.github/workflows/ci-joysheet.yml), and [Deck CI](.github/workflows/ci-joydeck.yml). Install appropriate CJK fonts for Chinese text. Deck's external HTML/RTF clipboard adapter uses `xclip` on X11 or `wl-paste` from `wl-clipboard` on Wayland; the relevant command must be on `PATH`. Sheet's macOS/Linux PDF preview uses Poppler's `pdftoppm`.
 
+On Linux x86_64 hosts without a `/dev/dri/renderD*` node, the desktop apps can re-exec once with an optional user-installed Vulkan software runtime at `~/.local/share/joyoffice/runtime` (override with `JOYOFFICE_RUNTIME_DIR`). Existing hardware ICDs remain candidates. `JOYOFFICE_SOFTWARE_GPU=1` forces this path; `=0` or `JOYOFFICE_DISABLE_SOFTWARE_GPU=1` disables it. Explicit `VK_ICD_FILENAMES`/`VK_DRIVER_FILES` selection is otherwise preserved, and no runtime is downloaded at launch.
+
 ### Get the source and launch a product
 
 ```sh
@@ -331,6 +333,8 @@ licenses/           第三方声明、来源记录与许可正文
 | Linux | Clang、CMake、pkg-config，字体与 X11／Wayland 开发库，以及 Vulkan、OpenSSL、ALSA 开发包。运行 GUI 需要可用的显示与图形驱动环境。 |
 
 准确的 Linux 包清单随 [Word CI](.github/workflows/ci.yml)、[Sheet CI](.github/workflows/ci-joysheet.yml) 和 [Deck CI](.github/workflows/ci-joydeck.yml) 维护。中文显示需安装适当的 CJK 字体。Deck 的外部 HTML／RTF 剪贴板适配在 X11 使用 `xclip`，在 Wayland 使用 `wl-clipboard` 提供的 `wl-paste`，对应命令须在 `PATH` 中。Sheet 的 macOS／Linux PDF 预览使用 Poppler 的 `pdftoppm`。
+
+在没有 `/dev/dri/renderD*` 节点的 Linux x86_64 主机上，桌面应用可通过位于 `~/.local/share/joyoffice/runtime` 的可选用户级 Vulkan 软件运行时进行一次进程替换（可用 `JOYOFFICE_RUNTIME_DIR` 覆盖路径）。已有硬件 ICD 仍保留为候选。`JOYOFFICE_SOFTWARE_GPU=1` 强制启用，`JOYOFFICE_SOFTWARE_GPU=0` 或 `JOYOFFICE_DISABLE_SOFTWARE_GPU=1` 禁用；未强制启用时会尊重显式的 `VK_ICD_FILENAMES`／`VK_DRIVER_FILES` 选择。启动过程不会下载运行时。
 
 ### 获取源码并启动产品
 

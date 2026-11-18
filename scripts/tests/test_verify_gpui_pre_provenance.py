@@ -400,7 +400,8 @@ class EndToEndTests(unittest.TestCase):
         self.addCleanup(shutil.rmtree, self.tmp, True)
         zed = self.tmp / "zed"
         write_files(zed, ZED_FILES)
-        self.git(zed, "init", "--quiet", "--initial-branch=main")
+        self.git(zed, "init", "--quiet")
+        self.git(zed, "symbolic-ref", "HEAD", "refs/heads/main")
         self.git(zed, "add", "--all")
         for path, target in ZED_SYMLINKS.items():
             oid = self.git(zed, "hash-object", "-w", "--stdin", input=target.encode()).strip().decode()

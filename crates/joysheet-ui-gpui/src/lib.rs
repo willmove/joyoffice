@@ -117,6 +117,7 @@ pub struct LaunchOptions {
 }
 
 pub fn run(options: LaunchOptions) -> Result<(), String> {
+    joyoffice_ui::prepare_desktop_graphics()?;
     outline_text::start();
     let engine = EngineClient::start()?;
     let pending_password = if let Some(path) = options.path {

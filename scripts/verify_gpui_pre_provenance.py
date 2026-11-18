@@ -10,8 +10,8 @@ gpui-pre-* entry in Cargo.lock this script
    crates.io, and requires its SHA-256 to equal the Cargo.lock checksum, so the
    files are exactly the ones Cargo builds;
 2. fetches the declared Zed commit with trees only (git fetch --depth=1
-   --filter=blob:none), requires it to be an ancestor of Zed's main branch
-   (GitHub also serves commits that exist only in forks of a repository) and
+   --filter=blob:none, or a full shallow commit on older Git), requires it to be an ancestor of
+   Zed's main branch (GitHub also serves commits that exist only in forks of a repository) and
    finds the directory of the declared crate among the workspace members;
 3. compares every file by git blob id with the file at the same path in that
    directory. The commit id authenticates its trees and their blob ids, so a
@@ -637,19 +637,23 @@ def git(repo, *args):
 
 
 def fetch_zed(repo, remote, revs, branch):
-    """Fetch the commits with their trees (no blobs) and the recent history of `branch`
-    (commits only) into a partial clone; returns the ref holding that branch."""
+    """Fetch the commits and recent branch history; return the branch ref and promisor remote."""
     repo.mkdir(parents=True, exist_ok=True)
     git(repo, "init", "--quiet")
     remotes = git(repo, "remote").decode().split()
     git(repo, "remote", "set-url" if "zed" in remotes else "add", "zed", remote)
+    git(repo, "config", "extensions.partialClone", "zed")
+    help_result = subprocess.run(["git", "fetch", "-h"], capture_output=True)
+    partial = b"--no-write-fetch-head" in help_result.stdout + help_result.stderr
     fetch = ("-c", "protocol.version=2", "-c", "fetch.fsckObjects=true", "fetch", "--quiet", "--no-tags")
-    git(repo, *fetch, "--depth=1", "--filter=blob:none", "zed", *revs)
+    # Git versions without --no-write-fetch-head also reject fetching individual blob ids.
+    commit_filters = ("--filter=blob:none",) if partial else ()
+    git(repo, *fetch, "--depth=1", *commit_filters, "zed", *revs)
     oldest = min(int(git(repo, "log", "-1", "--format=%ct", rev)) for rev in revs) - HISTORY_MARGIN
     since = time.strftime("%Y-%m-%d %H:%M:%S +0000", time.gmtime(oldest))
     ref = f"refs/remotes/zed/{branch}"
     git(repo, *fetch, "--filter=tree:0", f"--shallow-since={since}", "zed", f"+refs/heads/{branch}:{ref}")
-    return ref
+    return ref, "zed" if partial else None
 
 
 def is_ancestor(repo, rev, ref):
@@ -882,8 +886,8 @@ def zed_repository(args, revs):
         return
     with contextlib.ExitStack() as stack:
         repo = args.work_dir or Path(stack.enter_context(tempfile.TemporaryDirectory(prefix="zed-")))
-        ref = fetch_zed(repo, args.zed_remote, revs, args.zed_branch)
-        yield repo, "zed", ref, args.zed_remote
+        ref, promisor = fetch_zed(repo, args.zed_remote, revs, args.zed_branch)
+        yield repo, promisor, ref, args.zed_remote
 
 
 def print_report(reports, problems, label, branch, timing):
@@ -937,7 +941,7 @@ def parse_args(argv):
                         help="Zed branch every commit must belong to; with --zed-repo any local ref name "
                              "(default: %(default)s)")
     parser.add_argument("--work-dir", type=Path,
-                        help="keep the partial Zed clone here (reused on later runs) instead of a temporary directory")
+                        help="keep the Zed clone here (reused on later runs) instead of a temporary directory")
     parser.add_argument("--expected-zed-rev", help="also fail unless every package declares this Zed commit")
     parser.add_argument("--reviewed-deviations", type=Path,
                         help="JSON file of reviewed differences, each pinned to its exact content")
