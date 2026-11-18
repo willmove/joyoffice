@@ -306,13 +306,14 @@ fn xsearch(x: &Value, hay: &[Value], match_mode: i64, search_mode: i64) -> R<Opt
     for step in 0..hay.len() {
         let index = if reverse { hay.len() - 1 - step } else { step };
         let value = &hay[index];
-        if lookup_equal(x, value, false) {
+        if !same_type(value, x) {
+            continue;
+        }
+        let order = lookup_order(value, x);
+        if order == Ordering::Equal && lookup_equal(x, value, false) {
             return Ok(Some(index));
         }
-        if same_type(value, x)
-            && lookup_order(value, x) == wanted
-            && best.is_none_or(|(_, previous)| lookup_order(value, previous) == wanted.reverse())
-        {
+        if order == wanted && best.is_none_or(|(_, previous)| lookup_order(value, previous) == wanted.reverse()) {
             best = Some((index, value));
         }
     }

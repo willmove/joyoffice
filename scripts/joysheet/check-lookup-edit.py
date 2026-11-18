@@ -2,6 +2,7 @@
 
 import argparse
 import json
+import math
 import subprocess
 import time
 from pathlib import Path
@@ -69,7 +70,7 @@ def run(binary, out):
             "beforeEdit": initial, "afterEdit": edited, "undoRedoAndXlsxReopen": True}
 
 
-def compare_cli(versions, workbook, expected):
+def compare_cli(versions, workbook, expected, rounds):
     """Time opening the saved GUI workbook and committing twelve changes through the CLI."""
     edits = [part for key in [321, 1229] * 6 for part in
              ("--cmd", "cell.set=" + json.dumps({"cell": "F1", "input": str(key)}))]
@@ -83,11 +84,13 @@ def compare_cli(versions, workbook, expected):
     timings = [[], []]
     for cli in versions:
         sample(cli)
-    for _ in range(10):
-        for i in (0, 1, 1, 0):
-            timings[i].append(sample(versions[i]))
-    return {label: {"cliSha256": digest(cli), "samplesMs": t, "p50Ms": sorted(t)[9],
-                    "p95Ms": sorted(t)[18]} for label, cli, t in zip(("before", "after"), versions, timings)}
+    for group in range(rounds):
+        order = (0, 1, 1, 0) if group % 2 == 0 else (1, 0, 0, 1)
+        for _ in range(10):
+            for i in order:
+                timings[i].append(sample(versions[i]))
+    return {label: {"cliSha256": digest(cli), "samplesMs": t, "p50Ms": sorted(t)[math.ceil(0.50 * len(t))-1],
+                    "p95Ms": sorted(t)[math.ceil(0.95 * len(t))-1]} for label, cli, t in zip(("before", "after"), versions, timings)}
 
 
 if __name__ == "__main__":
@@ -95,11 +98,14 @@ if __name__ == "__main__":
     for key in ("binary", "output"):
         parser.add_argument(key, type=Path)
     parser.add_argument("--compare-cli", nargs=2, type=Path, metavar=("BASELINE", "CANDIDATE"))
+    parser.add_argument("--timing-rounds", type=int, default=1, help="20 samples per build per round; the starting order alternates")
     args = parser.parse_args()
+    if args.timing_rounds < 1:
+        parser.error("--timing-rounds must be positive")
     out = args.output.resolve()
     out.mkdir(parents=True, exist_ok=False)
     report = run(args.binary.resolve(), out)
     if args.compare_cli:
         report["openAndTwelveLookupEdits"] = compare_cli([cli.resolve() for cli in args.compare_cli],
-                                                         out / "查找 重开.xlsx", report["afterEdit"])
+                                                         out / "查找 重开.xlsx", report["afterEdit"], args.timing_rounds)
     (out / "report.json").write_text(json.dumps(report, indent=2) + "\n")

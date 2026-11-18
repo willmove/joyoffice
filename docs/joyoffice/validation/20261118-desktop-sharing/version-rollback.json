@@ -1,7 +1,7 @@
 {
   "macOS": {
     "previousBinarySha256": "b6dace6aafbdb064339f50713faa8f3ed4100ecd89a20e720d6ecb7c0aa0ad5a",
-    "candidateBinarySha256": "441922cbfac6de6d8df392e12e518676aac52308e80163d7e75776c117cc864d",
+    "candidateBinarySha256": "8ac7a08bf4955e5e7443ce366b59241fcd0af238e1371a393d662649a7956580",
     "formulaExpectationsCheckedInBothVersions": {
       "=SUM({1,\"x\",2},TRUE,\"3\")": 7,
       "=SUM(1E16,1,-1E16)": 0,
@@ -321,7 +321,7 @@
   },
   "UOS": {
     "previousBinarySha256": "3e924af4c17bb37cf2d17ebc461fc94f25605c56b02d003c0995c7585340fc2f",
-    "candidateBinarySha256": "d0c4141226d3e0919fd43c47da762025a02766cbafaeb2341fc3bb7b69fed996",
+    "candidateBinarySha256": "b447b75e57f45a9822c12e7d76a043f490d41a42b31e77922c9588d9111be25c",
     "formulaExpectationsCheckedInBothVersions": {
       "=SUM({1,\"x\",2},TRUE,\"3\")": 7,
       "=SUM(1E16,1,-1E16)": 0,
