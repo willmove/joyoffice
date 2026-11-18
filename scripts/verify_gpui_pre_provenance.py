@@ -100,7 +100,8 @@ LOCAL_PATCHES = {
     ("gpui-pre-linux", "0.3.12"): (
         "third-party/gpui-pre-linux",
         "54bab418d0b7c027af9495f278619b46887362b3bd6446e246c87c5b0fa167df",
-        {"src/linux/x11/client.rs": "9b33b8fbb43d3deda7be1cd1e481b7519dc269fa1223c50be5bef195c0438b65"},
+        {"src/linux/x11/client.rs": "23caa56f17d1bfc529cb296cd8edaa8a852b6d4ebc6d3523924a0082838cd943",
+         "src/linux/x11/window.rs": "158760d6a6218bbea5dc1ba28393614a1a6aef49ebaeb4ebc5e520967b88ae3a"},
     ),
 }
 

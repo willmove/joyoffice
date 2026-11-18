@@ -1527,6 +1527,15 @@ impl X11Client {
     }
 
     fn xim_handle_event(&self, event: Event) -> Option<()> {
+        // A slideshow or toolbar can consume printable keys as commands. The
+        // XIM service may keep those keys as preedit until a later commit, which
+        // a window without a text receiver cannot consume.
+        if let Event::KeyPress(key) | Event::KeyRelease(key) = &event
+            && let Some(window) = self.get_window(key.event)
+            && !window.accepts_text_input()
+        {
+            return self.handle_event(event);
+        }
         match event {
             Event::KeyPress(event) | Event::KeyRelease(event) => {
                 let mut state = self.0.borrow_mut();

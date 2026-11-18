@@ -1049,6 +1049,10 @@ impl X11Window {
 }
 
 impl X11WindowStatePtr {
+    pub(super) fn accepts_text_input(&self) -> bool {
+        self.state.borrow().input_handler.is_some()
+    }
+
     pub fn should_close(&self) -> bool {
         let mut cb = self.callbacks.borrow_mut();
         if let Some(mut should_close) = cb.should_close.take() {

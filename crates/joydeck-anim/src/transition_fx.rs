@@ -10,7 +10,7 @@ use std::f64::consts::PI;
 use crate::easing::ease;
 use crate::transition::{FULL, Layer, R, Source};
 use crate::transition_geom::{
-    Cam, V3, boundary, card, center, clip, dir, ein, eout, facing_shade, hash64, moved, offset,
+    Cam, boundary, card, center, clip, dir, ein, eout, facing_shade, hash64, moved, offset,
     poly_layers, q2, rect_poly, rnd, rot, rot_quad, scale_rect, scaled, ss, v3, win,
 };
 
@@ -100,7 +100,7 @@ pub(crate) fn layers(kind: &str, o: &str, t: f64, a: f64, depth: u32) -> Vec<Lay
         "flip" => flip(o == "r", t, a),
         "gallery" => gallery(o == "r", t, a),
         "conveyor" => conveyor(o == "r", t, a),
-        "cube" | "box" | "rotate" | "orbit" => prism(kind, o, t, a),
+        "cube" | "box" | "rotate" | "orbit" => crate::transition_prism::frame(kind, o, t, a),
         "doors" | "window" => doors(kind == "window", o == "horz", t, a),
         "ferris" => ferris(o == "r", t, a),
         "flythrough" => flythrough(o, t),
@@ -986,77 +986,6 @@ fn conveyor(right: bool, t: f64, a: f64) -> Vec<Layer> {
             .map(|p| p.yaw(v3(0.0, 0.0, back), yaw));
         v.extend(card(&cam, src, FULL, pts, 1.0, 0.0, true));
     }
-    v
-}
-
-fn prism(kind: &str, o: &str, t: f64, a: f64) -> Vec<Layer> {
-    // Cube: the slides are two faces of a cube turning; Box: two inside walls of a box; Rotate and
-    // Orbit: the same with the contents only, over cross-fading backgrounds.
-    let (dx, dy) = dir(o, (-1.0, 0.0));
-    let vertical = dy != 0.0 && dx == 0.0;
-    let content = matches!(kind, "rotate" | "orbit");
-    let inverted = matches!(kind, "box" | "orbit");
-    let cam = Cam { a, d: 2.5 };
-    let s = q2(t);
-    let half = if vertical { 0.5 } else { a / 2.0 };
-    // Faces on a cube around (0, 0, half) (outside), or the inside of a box around (0, 0, -half).
-    let c = v3(0.0, 0.0, if inverted { -half } else { half });
-    // Positive turns the right (or top) side away.
-    let sign = if vertical { -dy } else { dx };
-    let deg = 90.0 * s * sign * if inverted { -1.0 } else { 1.0 };
-    let turn = |p: V3, base: f64| -> V3 {
-        if vertical {
-            p.pitch(c, base + deg)
-        } else {
-            p.yaw(c, base + deg)
-        }
-    };
-    let side_base = -90.0 * sign * if inverted { -1.0 } else { 1.0 };
-    let (os, ns) = if content {
-        (OldContent, NewContent)
-    } else {
-        (Old, New)
-    };
-    let old = cam.rect(FULL).map(|p| turn(p, 0.0));
-    let new = cam.rect(FULL).map(|p| turn(p, side_base));
-    // Keep the nearest edge on the screen plane, as PowerPoint's camera does.
-    let near = old
-        .iter()
-        .chain(new.iter())
-        .map(|p| p.z)
-        .fold(f64::INFINITY, f64::min);
-    let lift = if inverted {
-        0.0
-    } else {
-        -near.min(0.0) - near.max(0.0)
-    };
-    // The box is seen from further back mid-turn.
-    let back = if inverted { 0.5 } else { 0.15 } * (s * PI).sin();
-    let push = |q: [V3; 4]| q.map(|p| v3(p.x, p.y, p.z + lift + back));
-    let (old, new) = (push(old), push(new));
-    let mut v = if content {
-        vec![Layer::full(OldBack, 1.0), Layer::full(NewBack, ss(t))]
-    } else {
-        vec![Layer::full(Black, 1.0)]
-    };
-    v.extend(card(
-        &cam,
-        os,
-        FULL,
-        old,
-        1.0,
-        if content { 0.0 } else { facing_shade(old, 0.6) },
-        false,
-    ));
-    v.extend(card(
-        &cam,
-        ns,
-        FULL,
-        new,
-        1.0,
-        if content { 0.0 } else { facing_shade(new, 0.6) },
-        false,
-    ));
     v
 }
 

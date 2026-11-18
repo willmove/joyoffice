@@ -39,8 +39,8 @@
     "source_path": "scripts/verify_gpui_pre_provenance.py",
     "target_path": "scripts/verify_gpui_pre_provenance.py",
     "source_sha256": "cc8f0c60d19e9576943906043ce34ef1ad0f12fbfa4e8b5c08d647fb5d329af6",
-    "local_changes": "CRLF normalized to LF; content otherwise unchanged; R9: enforce identical LF checkout bytes on Windows/Linux/macOS",
-    "adapted_sha256": "b8c34afc0afad76b6a0edc188e9a2d189965670c2a9f2e859792e77384e5492d",
+    "local_changes": "CRLF normalized to LF; content otherwise unchanged; R9: enforce identical LF checkout bytes on Windows/Linux/macOS; pin both reviewed Linux backend files for editable and read-only X11 windows",
+    "adapted_sha256": "065c2320bb1f8cb9a0e1acc3b4be2e0edeb466cd672552bbf33f94878988c896",
     "verified_opc_read": "Reuse verified OPC buffers while preserving format reader budgets and ZIP name decoding."
   },
   {

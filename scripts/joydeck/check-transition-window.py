@@ -29,6 +29,7 @@ TRAVEL = (("push", "l"), ("cover", "ru"))
 MASKS = (("wipe", "ru"), ("split", "vertOut"))
 PATTERNS = (("shape", "circle"), ("clock", "wedge"))
 PANELS = (("blinds", "horz"), ("ripple", "lu"))
+PRISMS = (("cube", "l"), ("orbit", "u"))
 ET.register_namespace("p", P)
 ET.register_namespace("a", A)
 ET.register_namespace("p14", P14)
@@ -41,6 +42,10 @@ def effect_xml(kind, option):
             tag, attrs = "zoom", {"dir": option}
         else:
             tag = option
+    elif kind in ("cube", "box", "rotate", "orbit"):
+        tag, ns = "prism", P14
+        attrs = {"dir": option, "isContent": str(int(kind in ("rotate", "orbit"))),
+                 "isInverted": str(int(kind in ("box", "orbit")))}
     elif kind == "ripple":
         ns, attrs = P14, {"dir": option or "center"}
     elif kind == "clock":
@@ -547,7 +552,9 @@ def exchange(doc, directory, baseline, candidate, effects):
                 )
                 child = transition.find(tag)
                 assert child is not None and all(
-                    child.get(k) == v for k, v in attrs.items()
+                    (child.get(k, "0") in ("true", "1")) == (v == "1")
+                    if k in ("isContent", "isInverted") else child.get(k) == v
+                    for k, v in attrs.items()
                 )
         for reader, tool in versions.items():
             work = directory / f"{writer}-{reader}"
@@ -575,6 +582,7 @@ def main():
     parser.add_argument("--reference-cli", type=Path)
     parser.add_argument("--exchange-only", action="store_true")
     mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--prisms", action="store_true", help="exercise an outside turn and content-only inside turn")
     mode.add_argument("--panels", action="store_true", help="exercise Venetian blinds and a corner ripple")
     mode.add_argument(
         "--patterns",
@@ -594,7 +602,9 @@ def main():
     )
     args = parser.parse_args()
     effects = (
-        PANELS
+        PRISMS
+        if args.prisms
+        else PANELS
         if args.panels
         else PATTERNS
         if args.patterns

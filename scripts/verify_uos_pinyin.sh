@@ -8,7 +8,19 @@ scripts=$(cd "$(dirname "$0")" && pwd)
 mkdir "$2"
 out=$(cd "$2" && pwd)
 profile=$(mktemp -d)
-trap 'rm -rf -- "$profile"' EXIT
+cleanup() {
+    # The private session bus may exit just before its GVfs/portal FUSE mounts.
+    # Wait for those mounts to disappear before removing their parent directory.
+    for attempt in $(seq 1 50); do
+        if ! mountpoint -q -- "$profile/runtime/gvfs" && ! mountpoint -q -- "$profile/runtime/doc"; then
+            if rm -rf --one-file-system -- "$profile"; then return 0; fi
+        fi
+        sleep .2
+    done
+    echo "Temporary input-method profile still in use: $profile" >&2
+    return 1
+}
+trap cleanup EXIT
 export XDG_CONFIG_HOME="$profile/config" XDG_DATA_HOME="$profile/data" XDG_CACHE_HOME="$profile/cache" XDG_RUNTIME_DIR="$profile/runtime" XDG_STATE_HOME="$profile/state"
 mkdir -p "$XDG_CONFIG_HOME/fcitx5/conf" "$XDG_DATA_HOME" "$XDG_CACHE_HOME" "$XDG_RUNTIME_DIR" "$XDG_STATE_HOME"
 chmod 700 "$XDG_RUNTIME_DIR"

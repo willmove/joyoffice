@@ -35,6 +35,7 @@ mod transition_geom;
 mod transition_mask;
 mod transition_panels;
 mod transition_pattern;
+mod transition_prism;
 
 #[cfg(test)]
 #[allow(

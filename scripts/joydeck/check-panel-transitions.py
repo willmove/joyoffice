@@ -17,12 +17,15 @@ CASES = ([("none", "")] + [(k, o) for k in ("checker", "blinds", "comb") for o i
          + [("ripple", o) for o in ("center", "lu", "ru", "ld", "rd")] + [("checker", "horz")])
 
 
-def marked(path):
+PRISMS = [("none", "")] + [(kind, direction) for kind in ("cube", "box", "rotate", "orbit") for direction in "lrud"]
+
+
+def marked(path, cases=CASES):
     """Add neutral strokes to the two colored pages to measure their motion during transitions."""
     p, a = MOTION["P"], MOTION["window"]["A"]
     with tempfile.TemporaryDirectory() as tmp:
         seed = Path(tmp) / "plain.pptx"
-        MOTION["generate"](seed, CASES)
+        MOTION["generate"](seed, cases)
         with ZipFile(seed) as src, ZipFile(path, "x", ZIP_DEFLATED) as dest:
             size = ET.fromstring(src.read("ppt/presentation.xml")).find("{*}sldSz")
             width, height = (int(size.get(k)) for k in ("cx", "cy"))
@@ -76,52 +79,99 @@ def samples(image, index, colors, markers):
     return weights(image, index, colors)
 
 
-def measure(movie, deck, raw, markers):
+def measure(movie, deck, raw, markers, cases=CASES):
     pixels = raw.read_bytes() if raw else subprocess.check_output([
         "ffmpeg", "-v", "error", "-i", movie, "-vf", "scale=96:54:flags=area", "-vsync", "0",
         "-pix_fmt", "rgb24", "-f", "rawvideo", "-",
     ])
     stride = 96 * 54 * 3
-    assert len(pixels) == 912 * stride
+    frame_count = len(cases) * 74 - 50
+    assert len(pixels) == frame_count * stride
 
     def frame(n):
         return pixels[n * stride:(n + 1) * stride]
 
     colors = [frame(i)[:3] for i in (8, 80)]
     observations = []
-    for index, (kind, option) in enumerate(CASES[1:], 1):
+    for index, (kind, option) in enumerate(cases[1:], 1):
         for j in range(1, 16):
             sample = samples(frame(25 + (index - 1) * 74 + 3 * j), index, colors, markers)
             observations.append([index + 1, kind, option, j / 16,
                                  bytes(round(x * 255) for x in sample).hex()])
     return {"source": "PowerPoint 16.115 for macOS, 1920x1080, 30 fps, 1600 ms effects",
-            "movieSha256": hashlib.sha256(movie.read_bytes()).hexdigest(), "frames": 912,
+            "movieSha256": hashlib.sha256(movie.read_bytes()).hexdigest(), "frames": frame_count,
+            "family": "prisms" if cases == PRISMS else "panels",
             "payloadSha256": MASKS["payloads"](deck), "markers": markers, "pixels": MASKS["SAMPLES"], "samples": observations}
+
+
+def prism_exchange(original, old, new, out, originals):
+    versions = {"baseline": old, "candidate": new}
+    middle = [[i + 2, kind, direction, 0.5] for i, (kind, direction) in enumerate(PRISMS[1:])]
+    checked = {}
+    for first, second in (("baseline", "candidate"), ("candidate", "baseline")):
+        source = original
+        for generation, writer in enumerate((first, second), 1):
+            tag = f"{first}-{generation}"
+            saved = out / f"{tag}.pptx"
+            subprocess.run([versions[writer], "exchange", source, "--mode", "regenerate", "--output", saved],
+                           check=True, capture_output=True)
+            with ZipFile(saved) as archive:
+                for page, kind, direction, _ in middle:
+                    tree = ET.fromstring(archive.read(f"ppt/slides/slide{page}.xml"))
+                    turn = tree.find(".//{*}transition")
+                    assert turn is not None and turn.get(f"{{{MOTION['P14']}}}dur") == "1600"
+                    prism = turn.find(f"{{{MOTION['P14']}}}prism")
+                    assert prism is not None and prism.get("dir") == direction
+                    assert (prism.get("isContent") in ("true", "1")) == (kind in ("rotate", "orbit"))
+                    assert (prism.get("isInverted") in ("true", "1")) == (kind in ("box", "orbit"))
+            replay = out / f"{tag}-held.pptx"
+            MOTION["hold_for_sampling"](saved, replay, len(PRISMS))
+            checked[tag] = {}
+            for reader, exe in versions.items():
+                images = MOTION["sample_cli"](exe, replay, middle, out / f"{tag}-{reader}-frames")
+                manifest = [hashlib.sha256(image).hexdigest() for image in images]
+                assert manifest == originals[reader], (tag, reader)
+                checked[tag][reader] = hashlib.sha256("".join(manifest).encode()).hexdigest()
+            source = saved
+    return checked
 
 
 def verify(reference, old, new, out):
     out.mkdir(parents=True)
-    original, replay = out / "棋盘百叶梳形波纹.pptx", out / "sample.pptx"
+    prisms = reference.get("family") == "prisms"
+    cases = PRISMS if prisms else CASES
+    original = out / ("立体翻转.pptx" if prisms else "棋盘百叶梳形波纹.pptx")
+    replay = out / "sample.pptx"
     markers = reference.get("markers", False)
     if markers:
-        marked(original)
+        marked(original, cases)
     else:
-        MOTION["generate"](original, CASES)
+        MOTION["generate"](original, cases)
     assert MASKS["payloads"](original) == reference["payloadSha256"]
-    MOTION["hold_for_sampling"](original, replay, len(CASES))
+    MOTION["hold_for_sampling"](original, replay, len(cases))
     rows = reference["samples"]
     report = {"binaries": [hashlib.sha256(b.read_bytes()).hexdigest() for b in (old, new)]}
+    middle = {}
     for label, cli in (("baseline", old), ("candidate", new)):
         frames = MOTION["sample_cli"](cli, replay, rows, out / label)
+        if prisms:
+            middle[label] = [hashlib.sha256(frame).hexdigest() for row, frame in zip(rows, frames, strict=True) if row[3] == 0.5]
         errors = {}
         for (page, kind, option, _, target), frame in zip(rows, frames, strict=True):
             actual = samples(frame, page - 1, MASKS["SOURCE"], markers)
             errors.setdefault(kind + "/" + option, []).extend(
                 abs(a - b / 255) for a, b in zip(actual, bytes.fromhex(target), strict=True))
         report[label] = {k: MASKS["summarize"](v) for k,v in errors.items()}
+    if prisms:
+        report["exchange"] = prism_exchange(original, old, new, out, middle)
     (out / "report.json").write_text(json.dumps(report, indent=2) + "\n")
     for option, stats in report["candidate"].items():
-        assert stats["meanAbsoluteError"] < report["baseline"][option]["meanAbsoluteError"], (option, stats)
+        if prisms and not markers and option.split("/")[0] in ("rotate", "orbit"):
+            # There are no foreground shapes on the plain page. Only the two
+            # backgrounds can contribute, through their original cross-fade.
+            assert stats == report["baseline"][option] and stats["meanAbsoluteError"] < 0.035, (option, stats)
+        else:
+            assert stats["meanAbsoluteError"] < report["baseline"][option]["meanAbsoluteError"], (option, stats)
 
 
 if __name__ == "__main__":
@@ -134,15 +184,17 @@ if __name__ == "__main__":
             sub.add_argument(name, type=Path)
         if mode != "verify":
             sub.add_argument("--markers", action="store_true")
+            sub.add_argument("--prisms", action="store_true", help="all four directions of the four p14:prism effects")
         if mode == "measure":
             sub.add_argument("--raw", type=Path)
     a = p.parse_args()
+    cases = PRISMS if getattr(a, "prisms", False) else CASES
     if a.mode == "generate":
         if a.markers:
-            marked(a.deck)
+            marked(a.deck, cases)
         else:
-            MOTION["generate"](a.deck, CASES)
+            MOTION["generate"](a.deck, cases)
     elif a.mode == "measure":
-        a.output.write_text(json.dumps(measure(a.movie, a.deck, a.raw, a.markers), indent=2) + "\n")
+        a.output.write_text(json.dumps(measure(a.movie, a.deck, a.raw, a.markers, cases), indent=2) + "\n")
     else:
         verify(json.loads(a.reference.read_text()), a.baseline.resolve(), a.candidate.resolve(), a.output.resolve())

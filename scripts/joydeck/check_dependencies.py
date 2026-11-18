@@ -38,7 +38,7 @@ def check_lock(lock):
                     if item.is_file():
                         digests.update(item.relative_to(directory).as_posix().encode() + b'\0')
                         digests.update(hashlib.sha256(item.read_bytes()).digest())
-                if digests.hexdigest() != 'ae269c605c7d6379ce0ec9de31f9e7c7651d90f6b4df20688ba31b87e230e759':
+                if digests.hexdigest() != '1b4275be4caaf8bbc0f6b50b71b00a7acdb772d36c6beff05f4236d58cfe3103':
                     errors.append('gpui-pre-linux patch differs from its reviewed build inputs')
             elif package.get('source') != 'registry+https://github.com/rust-lang/crates.io-index':
                 errors.append(package['name'] + ' has an unexpected dependency source')

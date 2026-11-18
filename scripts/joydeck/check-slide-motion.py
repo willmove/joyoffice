@@ -345,7 +345,11 @@ def hold_for_sampling(source, destination, count_expected=len(CASES)):
         for info in src.infolist():
             raw = src.read(info)
             if re.fullmatch(r"ppt/slides/slide\d+\.xml", info.filename):
-                assert raw.count(b'advTm="767"') == 1
+                # Regenerated P14 effects carry the same timing in both the
+                # Choice and its compatibility Fallback.
+                times = [t.get("advTm") for t in E.fromstring(raw).iter(f"{{{P}}}transition")]
+                assert times and all(time == "767" for time in times)
+                assert raw.count(b'advTm="767"') == len(times)
                 raw = raw.replace(b'advTm="767"', b'advTm="60000"')
                 count += 1
             dst.writestr(info, raw)

@@ -14,3 +14,5 @@ for XIM_CREATE_IC to finish. The build sources and original license are in
 `third-party/gpui-pre-linux`. The provenance check compares the build manifest
 and every file with the pinned archive, verifies the reviewed patch digest and
 then compares the archive with the pinned upstream revision.
+
+JoyOffice also routes keys directly to X11 windows without a GPUI text input handler, so Chinese input services cannot consume presentation shortcuts. The local source comparison pins both X11 backend files.
