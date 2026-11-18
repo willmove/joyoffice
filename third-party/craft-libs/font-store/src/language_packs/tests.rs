@@ -976,3 +976,23 @@ fn cancelling_a_local_archive_during_transfer_keeps_the_installed_dictionary()
     std::fs::remove_dir_all(store.dir())?;
     Ok(())
 }
+
+#[test]
+fn install_preserves_a_large_valid_manifest_and_all_optional_fields()
+-> Result<(), Box<dyn std::error::Error>> {
+    let comment = "#metadata\n".repeat(MAX_PACK_TOML_BYTES as usize / 5);
+    let contents = format!("{comment}locale='nl'\n[future]\noptions=['a','b']\n");
+    let packed = zst(&tar_of(&[("pack.toml", FILE, contents.as_bytes())]));
+    let mut nl = pack_entry("nl", &packed);
+    nl.spelling = false;
+    nl.hyphenation = false;
+    let parent = temp("large-valid-manifest");
+    let destination = parent.join("nl");
+    unpack(&packed, &destination, &nl)?;
+    assert_eq!(
+        std::fs::read(destination.join("pack.toml"))?,
+        contents.as_bytes()
+    );
+    std::fs::remove_dir_all(parent)?;
+    Ok(())
+}

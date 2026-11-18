@@ -657,8 +657,8 @@
       "target": "third-party/craft-libs/font-store/src/language_packs.rs",
       "sha256": "651d0b225f48adb65d6295dff414779973fd716da623733565377c6357541072",
       "modified": true,
-      "target_sha256": "ef07c6278eeb9a4d680505000dd4bfb081e57e2e06a4d8cc8788e07e4f369b32",
-      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md. JoyOffice owns release transfer and recoverable dictionary publication. transfer.rs SHA-256 b202f99489a962bf35b0de8174c940f9abd871b72c6142d1c0977de7cb4fd952; transaction.rs SHA-256 3963fa4df9e1e1fe6f26f5d91e44b8c8be2cb057c5cf464f99d827b0d9be48fb."
+      "target_sha256": "a2d7271685da0d32a9e5b950871efffe241fad20b7ebbf368ebe79d383764abf",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md. JoyOffice owns release transfer and recoverable dictionary publication. transfer.rs SHA-256 b202f99489a962bf35b0de8174c940f9abd871b72c6142d1c0977de7cb4fd952; transaction.rs SHA-256 3963fa4df9e1e1fe6f26f5d91e44b8c8be2cb057c5cf464f99d827b0d9be48fb. JoyOffice validates format-1 indexes and portable dictionary archives using a bounded reader; contents.rs SHA-256 3c7eeb885c6a55cb9daa601d371fc722cf4e2bc5c906b8fe2d6c57cfd72ac0fa."
     },
     {
       "commit": "762a06a4c6b48b522b7d4de84a87917ef90265e6",
@@ -666,8 +666,8 @@
       "target": "third-party/craft-libs/font-store/src/language_packs/tests.rs",
       "sha256": "07185242f43712ade339e0ec7e59d335bb130f17543d30f4f86f048dca20899c",
       "modified": true,
-      "target_sha256": "192985702950ca51b31d79940c92ae167aae3a99aa54a1ab7c9c76bf61221e43",
-      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md. JoyOffice verifies cancellation during a partial archive transfer preserves the installed files and inventory."
+      "target_sha256": "3ad12528e25cc63e9aa2890520fddaa4b4a65598dee9388515ee4b89cd9a083c",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md. JoyOffice verifies cancellation during a partial archive transfer preserves the installed files and inventory. Verify large valid manifests and unknown metadata survive extraction byte for byte."
     },
     {
       "commit": "762a06a4c6b48b522b7d4de84a87917ef90265e6",

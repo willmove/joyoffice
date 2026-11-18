@@ -1,0 +1,247 @@
+{
+  "macOS": {
+    "verifiedFiles": {
+      "baselineSha256": "5643dd7de5263e087ab10d2b6b52d8e3d69cce94042fe87579e42bf67713f259",
+      "candidateSha256": "c6cd442cc3732c80c0a53a3fca731485b49ed6012ca13871b4fbf07313e50df2",
+      "indexSha256": "b35c7aef0591177f18233b551da16035dcd615549ff874e169ffd19f16fea74b",
+      "archives": 75,
+      "regularFiles": 569,
+      "licenseFiles": 276,
+      "archiveBytes": 41923267,
+      "firstInstalledWithOld": 37,
+      "firstInstalledWithNew": 38,
+      "crossVersionReplacements": 75,
+      "crossVersionInventoryVerified": true,
+      "verifiedCrashStates": [
+        [
+          "replace",
+          "journal"
+        ],
+        [
+          "replace",
+          "old-moved"
+        ],
+        [
+          "replace",
+          "candidate-published"
+        ],
+        [
+          "replace",
+          "inventory-written"
+        ],
+        [
+          "remove",
+          "journal"
+        ],
+        [
+          "remove",
+          "old-moved"
+        ],
+        [
+          "remove",
+          "candidate-published"
+        ],
+        [
+          "remove",
+          "inventory-written"
+        ]
+      ],
+      "concurrentReplacements": 4,
+      "allRemoved": true,
+      "originalUnchanged": true,
+      "consentOffRefused": true
+    },
+    "desktopAndNetwork": {
+      "cliSha256": "c6cd442cc3732c80c0a53a3fca731485b49ed6012ca13871b4fbf07313e50df2",
+      "desktopSha256": "803dd58c08025974b9b2c242ea1ebd25381e36629a43138a0ec62d95d06ceed8",
+      "fixtureSha256": "34574dba513adf7c6f569a31fc39d2ae0e733a27ab0cc53ff86d56318894b80a",
+      "archiveSha256": [
+        "a0b06d9531233160598c4d146a708c1c52a57e6aec6eb379ae1a75035106100f",
+        "bdd7a0b0e7fe9c24d4c3ee78e41ea90459e9052d1a68492bc9249b5fdc9174e6"
+      ],
+      "desktopAndCliPages": {
+        "before": 15,
+        "wholeWordException": 21,
+        "syllableExceptions": 15,
+        "afterRemoval": 15
+      },
+      "refusedConsentOff": true,
+      "refusedChangedArchive": true,
+      "licenseAndInstallRecordVerified": true,
+      "sourceDocumentUnchanged": true,
+      "published": {
+        "releaseIndexSha256": "b35c7aef0591177f18233b551da16035dcd615549ff874e169ffd19f16fea74b",
+        "indexEntries": 75,
+        "locale": "nl",
+        "archiveSha256": "6e26118ef28d0faca48b5b55d7be9f364b1de5e73adbcb739d6e0fb2a517c7f0",
+        "archiveBytes": 756670,
+        "source": "https://github.com/LibreOffice/dictionaries/tree/4f1df64b2e8e14751aa7c2205d170ca016071315/nl_NL",
+        "license": "BSD-3-Clause AND MIT",
+        "checkedFiles": [
+          "spelling.aff",
+          "spelling.dic",
+          "hyphenation.pat",
+          "LICENCES/"
+        ],
+        "desktopAndCliPages": 15
+      }
+    },
+    "productGates": {
+      "desktop": {
+        "exitCode": 0,
+        "logSha256": "6f2510ad0287f4d69f4fd85a5d0eebc546dd444048161c9f2494c319a0833c81"
+      },
+      "ui": {
+        "exitCode": 0,
+        "logSha256": "104877bd6d9e91833e130bb7efed6c6c3b33abb611b726077d03a00bc69e2ca7",
+        "passed": 76,
+        "failed": 0,
+        "ignored": 0
+      },
+      "joyword": {
+        "exitCode": 0,
+        "logSha256": "70a2a44e10fa023027f09ed419eb440268008f9af3992da3b0ab512b14db4b11",
+        "passed": 3679,
+        "failed": 0,
+        "ignored": 2
+      }
+    },
+    "storeLibrary": {
+      "passed": 36,
+      "failed": 0,
+      "ignored": 1,
+      "logSha256": "4101b0a550b93f61b1a901c70dd7f0533cea5a2734d2008e167d4e577b8681ca",
+      "productionClippyExit": 0,
+      "productionClippyLogSha256": "eb45b61aac1dc0dc07e0a2dec1b18de969f9667f56b6d2979555f2d0847e1dd4",
+      "interruptedPublicationStatesTested": 15
+    }
+  },
+  "UOS": {
+    "verifiedFiles": {
+      "baselineSha256": "6bbc3f8c72cb8090e133cc93bbdb41b56a3c0c49882cc24606ec042185434d4b",
+      "candidateSha256": "5a0b7c6956bf19b90299625362af79873ba238535c6975071078f3e9d0951d2e",
+      "indexSha256": "b35c7aef0591177f18233b551da16035dcd615549ff874e169ffd19f16fea74b",
+      "archives": 75,
+      "regularFiles": 569,
+      "licenseFiles": 276,
+      "archiveBytes": 41923267,
+      "firstInstalledWithOld": 37,
+      "firstInstalledWithNew": 38,
+      "crossVersionReplacements": 75,
+      "crossVersionInventoryVerified": true,
+      "verifiedCrashStates": [
+        [
+          "replace",
+          "journal"
+        ],
+        [
+          "replace",
+          "old-moved"
+        ],
+        [
+          "replace",
+          "candidate-published"
+        ],
+        [
+          "replace",
+          "inventory-written"
+        ],
+        [
+          "remove",
+          "journal"
+        ],
+        [
+          "remove",
+          "old-moved"
+        ],
+        [
+          "remove",
+          "candidate-published"
+        ],
+        [
+          "remove",
+          "inventory-written"
+        ]
+      ],
+      "concurrentReplacements": 4,
+      "allRemoved": true,
+      "originalUnchanged": true,
+      "consentOffRefused": true
+    },
+    "desktopAndNetwork": {
+      "cliSha256": "5a0b7c6956bf19b90299625362af79873ba238535c6975071078f3e9d0951d2e",
+      "desktopSha256": "0b848055b9061f5a0854bc041ea1779d11b458b1c37b90d7d9586d1766443c2e",
+      "fixtureSha256": "34574dba513adf7c6f569a31fc39d2ae0e733a27ab0cc53ff86d56318894b80a",
+      "archiveSha256": [
+        "a0b06d9531233160598c4d146a708c1c52a57e6aec6eb379ae1a75035106100f",
+        "bdd7a0b0e7fe9c24d4c3ee78e41ea90459e9052d1a68492bc9249b5fdc9174e6"
+      ],
+      "desktopAndCliPages": {
+        "before": 20,
+        "wholeWordException": 24,
+        "syllableExceptions": 20,
+        "afterRemoval": 20
+      },
+      "refusedConsentOff": true,
+      "refusedChangedArchive": true,
+      "licenseAndInstallRecordVerified": true,
+      "sourceDocumentUnchanged": true,
+      "published": {
+        "releaseIndexSha256": "b35c7aef0591177f18233b551da16035dcd615549ff874e169ffd19f16fea74b",
+        "indexEntries": 75,
+        "locale": "nl",
+        "archiveSha256": "6e26118ef28d0faca48b5b55d7be9f364b1de5e73adbcb739d6e0fb2a517c7f0",
+        "archiveBytes": 756670,
+        "source": "https://github.com/LibreOffice/dictionaries/tree/4f1df64b2e8e14751aa7c2205d170ca016071315/nl_NL",
+        "license": "BSD-3-Clause AND MIT",
+        "checkedFiles": [
+          "spelling.aff",
+          "spelling.dic",
+          "hyphenation.pat",
+          "LICENCES/"
+        ],
+        "desktopAndCliPages": 20
+      }
+    },
+    "productGates": {
+      "desktop": {
+        "exitCode": 0,
+        "logSha256": "21224e0e6ad95324a4e180e9fa605659aa0bfc7afb91b28b673a41ec27b67f18"
+      },
+      "ui": {
+        "exitCode": 0,
+        "logSha256": "e4d4e778e0328dfd38daa125fd6d11023857c3c49df3bd85df954182d835dc56",
+        "passed": 80,
+        "failed": 0,
+        "ignored": 0
+      },
+      "joyword": {
+        "exitCode": 0,
+        "logSha256": "789040c2acf6a66664d84a0f42a164fbcfaf45a7c00ee1bf8f11a95f88c6ab2b",
+        "passed": 3683,
+        "failed": 0,
+        "ignored": 2
+      }
+    },
+    "storeLibrary": {
+      "passed": 36,
+      "failed": 0,
+      "ignored": 1,
+      "logSha256": "7286a295a8899a82be918e7d796680e28641896dc99bee239773ef7a18c25339",
+      "productionClippyExit": 0,
+      "productionClippyLogSha256": "7a6d5863e7736f43033a82a6d498dc5366add41871153b8dcde596b8ea2beddb",
+      "interruptedPublicationStatesTested": 15
+    }
+  },
+  "packagePolicy": {
+    "maxIndexBytes": 4194304,
+    "maxPackages": 1024,
+    "maxEntries": 256,
+    "maxRegularFileBytes": 67108864,
+    "maxExpandedPayloadBytes": 268435456,
+    "maxCompressedBytes": 134217728,
+    "maxZstdFrames": 4096,
+    "preservesLargeValidManifest": true,
+    "decoderWorkspaceReusedBetweenFrames": true
+  }
+}
