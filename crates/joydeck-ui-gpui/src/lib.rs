@@ -727,6 +727,7 @@ pub fn run(arguments: impl Iterator<Item = String>) -> Result<(), String> {
         return Err("desktop control requires the editor workspace".into());
     }
     let dark = theme.is_dark();
+    joyoffice_ui::prepare_desktop_graphics()?;
     let preview = PreviewDeck::bundled()?;
     let failure = Rc::new(RefCell::new(None));
     let startup_failure = failure.clone();

@@ -131,6 +131,7 @@ DEV_LAYERS = {
 FS_ALLOW = {
     "crates/joyoffice-opc/src/zip.rs",
     "crates/joyoffice-opc/src/package.rs",
+    "crates/joyoffice-ui/src/linux_graphics.rs",  # fixed runtime discovery and same-process graphics fallback exec
     "apps/joyword-cli/src/main.rs",
     "apps/joyword-cli/src/inspect.rs",  # bounded, read-only legacy CLI input
     "crates/joyword-control-key/src/lib.rs",

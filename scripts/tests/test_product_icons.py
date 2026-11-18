@@ -157,7 +157,15 @@ class ProductIcons(unittest.TestCase):
             entry = desktop.install('joyword', binary, icons.BRAND / 'joyword.svg', root / 'data')
             document = root / 'sample document.docx'
             document.touch()
-            result = subprocess.run(['gio', 'launch', entry, document], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            launch_help = subprocess.run(['gio', 'help', 'launch'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            if launch_help.returncode == 0:
+                command = ['gio', 'launch', entry, document]
+            elif shutil.which('gtk-launch'):
+                command = ['gtk-launch', 'joyword', document]
+            else:
+                self.skipTest('requires GIO desktop launch support')
+            environment = dict(os.environ, XDG_DATA_HOME=str(root / 'data'))
+            result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=environment)
             self.assertEqual(result.returncode, 0, result.stderr + entry.read_text())
             for _ in range(100):
                 if marker.exists():

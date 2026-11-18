@@ -13,8 +13,8 @@
     "source_path": "crates/joyoffice-ui/src/lib.rs",
     "target_path": "crates/joyoffice-ui/src/lib.rs",
     "source_sha256": "08e23515fe8a44ea93dda33be7d47554c6c6fc4240f35f2fb27b6339fcd7c5cc",
-    "local_changes": "CRLF normalized to LF; content otherwise unchanged; 2026-11-11: shared application theme catalog, persistent preset selection and palette projection; preserve document colors and original source identity",
-    "adapted_sha256": "02a3d2ccbd635c3b83599b9c0b50dd2b62a0e668afc47769a3af382f1a5a5661",
+    "local_changes": "CRLF normalized to LF; content otherwise unchanged; 2026-11-11: shared application theme catalog, persistent preset selection and palette projection; preserve document colors and original source identity; 2026-11-18: Linux software graphics fallback bootstrap",
+    "adapted_sha256": "0ea8c3bf07912035dc863e5e148ac48171a6611d5e79728838594ca85ca83ddd",
     "desktop_product_icons": "2026-11-18: embedded native product icons/logos for every product window; portable desktop registration and complete shared artwork source fingerprints; original attribution retained."
   },
   {
@@ -38,8 +38,8 @@
     "source_path": "scripts/verify_gpui_pre_provenance.py",
     "target_path": "scripts/verify_gpui_pre_provenance.py",
     "source_sha256": "cc8f0c60d19e9576943906043ce34ef1ad0f12fbfa4e8b5c08d647fb5d329af6",
-    "local_changes": "CRLF normalized to LF; content otherwise unchanged; R9: enforce identical LF checkout bytes on Windows/Linux/macOS",
-    "adapted_sha256": "d061412aed0d0cf3242f53414bdeb7500a6b43480e6c509c88e1a7df9ce30ad8"
+    "local_changes": "CRLF normalized to LF; R9: enforce identical LF checkout bytes on Windows/Linux/macOS; 2026-11-18: support legacy Git with a full shallow-commit fallback while retaining partial blob fetches on modern Git",
+    "adapted_sha256": "415cc38bf289c73c209fbf7c61d23d921d5d4bc36b1849d87b72f6f08d34e158"
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
