@@ -518,3 +518,20 @@ fn three_d_span_and_cell_start_still_lex_as_span() {
     assert_eq!(rt("SUM(Sheet1:Sheet3!A1)"), "SUM(Sheet1:Sheet3!A1)");
     assert_eq!(rt("SUM(Q1:Sheet3!A1)"), "SUM('Q1:Sheet3'!A1)");
 }
+
+#[test]
+fn r1c1_reference_text_resolves_whole_axes_without_an_a1_round_trip() {
+    let at = joysheet_core::CellRef::new(8, 6);
+    for (source, expected) in
+        [("R", "9:9"), ("r[]c[+2]", "I9"), ("C2:C[-2]", "$B:E"), ("R[2]:R2", "11:$2"), ("'Data! O''Brien'!R2C2", "'Data! O''Brien'!$B$2")]
+    {
+        let result = parse_r1c1_reference(source, at).unwrap().unwrap();
+        assert_eq!(crate::printer::reference_a1(&result), expected, "{source}");
+    }
+    for name in ["OfficeTarget", "R99999999COST", "RsummaryC99999999"] {
+        assert!(parse_r1c1_reference(name, at).unwrap().is_none());
+    }
+    for reference in ["R2:C2", "R[-1000]", "R[9999999999999999999999]C"] {
+        assert_eq!(parse_r1c1_reference(reference, at), Err(joysheet_core::CellError::Ref));
+    }
+}

@@ -130,6 +130,7 @@ joysheet-ui-gpui = { path = "crates/joysheet-ui-gpui" }
 joysheet-xlsx = { path = "crates/joysheet-xlsx" }
 thiserror = "=2.0.21"
 log = "=0.4.34"
+sys-locale = "=0.3.2"
 jiff = { version = "=0.2.32", default-features = false, features = ["std"] }
 aes = { version = "=0.9.3", default-features = false }
 sha1 = { version = "=0.11.0", default-features = false }

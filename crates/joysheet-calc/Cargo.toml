@@ -27,3 +27,4 @@ joysheet-functions = { workspace = true }
 joysheet-numfmt = { workspace = true }
 joysheet-model = { workspace = true }
 log = { workspace = true }
+sys-locale.workspace = true

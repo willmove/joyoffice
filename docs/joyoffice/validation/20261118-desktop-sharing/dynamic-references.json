@@ -1,0 +1,739 @@
+{
+  "baseline": "7f29ae41",
+  "reference": "Four independent workbooks calculated and saved with Microsoft Excel 16.115 in English and Simplified Chinese on macOS. Each contains 138 independent results at G1:G138 and a spill source on Probe. Only the local absolute folder and document author metadata were removed from the copies in Git. Worksheet content and formula caches were preserved.",
+  "fixtures": {
+    "en-0.xlsx": {
+      "originalSha256": "5f4a8343e119040c5b5171705ba10da4fb7546de89877875fa6675c2c2b55f71",
+      "fixtureSha256": "75fa9ebe1484ea2dbe6cc356bd2e49cdb26385068a4b8bca56731f4fb3600618",
+      "language": "en",
+      "application": "16.115",
+      "cells": 138
+    },
+    "en-7.xlsx": {
+      "originalSha256": "60c936255449a2c5fe87877042c78541184ba68cec286c2060e7f595a1705cf7",
+      "fixtureSha256": "f65c77704589a16b5e2914f5252728a73d54d55d107a131ba31309f2ab070a44",
+      "language": "en",
+      "application": "16.115",
+      "cells": 138
+    },
+    "zh-0.xlsx": {
+      "originalSha256": "aa51bf1efcbb3d9d5aa938e7bef85da51346bd0fefdfe842b02697334a1dabff",
+      "fixtureSha256": "41ae9a34c600a055407ea68dac1138b9f9ff9daa05170fe51e6e02a6c6c69d04",
+      "language": "zh",
+      "application": "16.115",
+      "cells": 138
+    },
+    "zh-7.xlsx": {
+      "originalSha256": "87d2551fbc328694c8dc6348aca9d4b5a4968cfa1f18ff9ab3e4663f95884ef9",
+      "fixtureSha256": "03b4518f04249086a4cc634838d5350482e8028e0cf6906dea11bdcc31dfd13d",
+      "language": "zh",
+      "application": "16.115",
+      "cells": 138
+    }
+  },
+  "regions": "INDIRECT table-item names follow the process locale (LC_ALL, LC_MESSAGES, LANG, then the native OS locale). Formula syntax stored in XLSX uses invariant English. English and Simplified Chinese tested.",
+  "platforms": {
+    "macOS": {
+      "cliSha256": [
+        "680ae0e498ea8e87fadcea798308ef84a97b74f2b30f16af941070e7243c97c4",
+        "328215cd7f13227793d45424a2bf55640cea194d69d652f2d08adc5c3a1e9f8d"
+      ],
+      "exchange": {
+        "en-0.xlsx": {
+          "sourceSha256": "75fa9ebe1484ea2dbe6cc356bd2e49cdb26385068a4b8bca56731f4fb3600618",
+          "independentCells": 138,
+          "previousDifferences": [
+            "G1",
+            "G2",
+            "G3",
+            "G4",
+            "G5",
+            "G6",
+            "G7",
+            "G8",
+            "G9",
+            "G10",
+            "G11",
+            "G12",
+            "G18",
+            "G35",
+            "G50",
+            "G54",
+            "G55",
+            "G59",
+            "G61",
+            "G62",
+            "G66",
+            "G67",
+            "G68",
+            "G76",
+            "G77",
+            "G78",
+            "G82",
+            "G84",
+            "G86",
+            "G90",
+            "G112",
+            "G132",
+            "G136"
+          ],
+          "differences": 0,
+          "bothGenerationsReopened": true,
+          "originalFormulasRetained": 138
+        },
+        "en-7.xlsx": {
+          "sourceSha256": "f65c77704589a16b5e2914f5252728a73d54d55d107a131ba31309f2ab070a44",
+          "independentCells": 138,
+          "previousDifferences": [
+            "G1",
+            "G2",
+            "G3",
+            "G4",
+            "G5",
+            "G6",
+            "G7",
+            "G8",
+            "G9",
+            "G10",
+            "G11",
+            "G12",
+            "G18",
+            "G35",
+            "G50",
+            "G54",
+            "G55",
+            "G59",
+            "G61",
+            "G62",
+            "G66",
+            "G67",
+            "G68",
+            "G76",
+            "G77",
+            "G78",
+            "G82",
+            "G84",
+            "G86",
+            "G90",
+            "G112",
+            "G132",
+            "G136"
+          ],
+          "differences": 0,
+          "bothGenerationsReopened": true,
+          "originalFormulasRetained": 138
+        },
+        "zh-0.xlsx": {
+          "sourceSha256": "41ae9a34c600a055407ea68dac1138b9f9ff9daa05170fe51e6e02a6c6c69d04",
+          "independentCells": 138,
+          "previousDifferences": [
+            "G1",
+            "G2",
+            "G3",
+            "G4",
+            "G5",
+            "G6",
+            "G7",
+            "G8",
+            "G9",
+            "G10",
+            "G11",
+            "G12",
+            "G18",
+            "G35",
+            "G50",
+            "G54",
+            "G55",
+            "G59",
+            "G61",
+            "G62",
+            "G66",
+            "G67",
+            "G68",
+            "G76",
+            "G77",
+            "G78",
+            "G81",
+            "G82",
+            "G84",
+            "G86",
+            "G90",
+            "G93",
+            "G94",
+            "G95",
+            "G98",
+            "G100",
+            "G101",
+            "G108",
+            "G112",
+            "G114",
+            "G115",
+            "G116",
+            "G117",
+            "G119",
+            "G120",
+            "G123",
+            "G125",
+            "G132",
+            "G136"
+          ],
+          "differences": 0,
+          "bothGenerationsReopened": true,
+          "originalFormulasRetained": 138
+        },
+        "zh-7.xlsx": {
+          "sourceSha256": "03b4518f04249086a4cc634838d5350482e8028e0cf6906dea11bdcc31dfd13d",
+          "independentCells": 138,
+          "previousDifferences": [
+            "G1",
+            "G2",
+            "G3",
+            "G4",
+            "G5",
+            "G6",
+            "G7",
+            "G8",
+            "G9",
+            "G10",
+            "G11",
+            "G12",
+            "G18",
+            "G35",
+            "G50",
+            "G54",
+            "G55",
+            "G59",
+            "G61",
+            "G62",
+            "G66",
+            "G67",
+            "G68",
+            "G76",
+            "G77",
+            "G78",
+            "G81",
+            "G82",
+            "G84",
+            "G86",
+            "G90",
+            "G93",
+            "G94",
+            "G95",
+            "G98",
+            "G100",
+            "G101",
+            "G108",
+            "G112",
+            "G114",
+            "G115",
+            "G116",
+            "G117",
+            "G119",
+            "G120",
+            "G123",
+            "G125",
+            "G132",
+            "G136"
+          ],
+          "differences": 0,
+          "bothGenerationsReopened": true,
+          "originalFormulasRetained": 138
+        }
+      },
+      "desktop": {
+        "en": {
+          "binarySha256": "f27765666d300a9a17e5b18717e6ae5496685e60952bcc12e11a86443d687ab2",
+          "cellsPerState": 21,
+          "states": 6,
+          "targetRow": [
+            12,
+            19
+          ],
+          "targetValue": [
+            122,
+            192,
+            881
+          ],
+          "undoRedo": true,
+          "savedAndReopened": true,
+          "originalUnchanged": true
+        },
+        "zh": {
+          "binarySha256": "f27765666d300a9a17e5b18717e6ae5496685e60952bcc12e11a86443d687ab2",
+          "cellsPerState": 21,
+          "states": 6,
+          "targetRow": [
+            12,
+            19
+          ],
+          "targetValue": [
+            122,
+            192,
+            881
+          ],
+          "undoRedo": true,
+          "savedAndReopened": true,
+          "originalUnchanged": true
+        }
+      },
+      "display": "Quartz",
+      "xtaskAndUiTests": {
+        "joyword": {
+          "passed": 3691,
+          "failed": 0,
+          "ignored": 2
+        },
+        "joydeck": {
+          "passed": 1011,
+          "failed": 0,
+          "ignored": 0
+        },
+        "joysheet": {
+          "passed": 1480,
+          "failed": 0,
+          "ignored": 1
+        },
+        "ui": {
+          "passed": 78,
+          "failed": 0,
+          "ignored": 0
+        }
+      },
+      "timingMilliseconds": {
+        "a1": {
+          "rows": 8192,
+          "rounds": 20,
+          "baseline": {
+            "p50": 128.752812,
+            "p95": 147.000333
+          },
+          "candidate": {
+            "p50": 120.9405415,
+            "p95": 147.698708
+          }
+        },
+        "r1c1": {
+          "rows": 8192,
+          "rounds": 20,
+          "baseline": {
+            "p50": 115.8476875,
+            "p95": 154.683875
+          },
+          "candidate": {
+            "p50": 110.462833,
+            "p95": 152.0845
+          }
+        }
+      },
+      "strictSpdx": {
+        "joyword": {
+          "target": "aarch64-apple-darwin",
+          "packages": 513,
+          "sourceFiles": 1067,
+          "spdxSha256": "854e0d0ed7cce2eeeb4a6eacf561c526fe1335f0780608dff6154b00422cbb68",
+          "missingLicenseTexts": [],
+          "sharedCrates": [
+            "joyoffice-cfb",
+            "joyoffice-drawingml",
+            "joyoffice-fonts",
+            "joyoffice-metafile",
+            "joyoffice-omml",
+            "joyoffice-opc",
+            "joyoffice-theme",
+            "joyoffice-ui"
+          ],
+          "runtimeLegacyDependencies": [
+            "craft-atomic",
+            "craft-font-store",
+            "craft-proof"
+          ]
+        },
+        "joydeck": {
+          "target": "aarch64-apple-darwin",
+          "packages": 473,
+          "sourceFiles": 524,
+          "spdxSha256": "b33e04a8b4d7e3ad927e47a00684dd31ef222062a2355bc4e28d8fb4a266b586",
+          "missingLicenseTexts": [],
+          "sharedCrates": [
+            "joyoffice-drawingml",
+            "joyoffice-fonts",
+            "joyoffice-metafile",
+            "joyoffice-opc",
+            "joyoffice-theme",
+            "joyoffice-ui"
+          ],
+          "runtimeLegacyDependencies": [
+            "joydeck-legacy"
+          ]
+        },
+        "joysheet": {
+          "target": "aarch64-apple-darwin",
+          "packages": 454,
+          "sourceFiles": 1189,
+          "spdxSha256": "eaccf07ed7ae0f6a8c43b2233e9beaee2d078456aabf9b64f41785a12d12e6dc",
+          "missingLicenseTexts": [],
+          "sharedCrates": [
+            "joyoffice-cfb",
+            "joyoffice-drawingml",
+            "joyoffice-omml",
+            "joyoffice-opc",
+            "joyoffice-theme",
+            "joyoffice-ui"
+          ],
+          "runtimeLegacyDependencies": []
+        }
+      }
+    },
+    "UOS 25": {
+      "cliSha256": [
+        "0d8b12285fe4bf7b878208ca2d65b99367eab338411f924e686e3cbb8fae7dc6",
+        "997f3c9433ddc1b05c7ab52a00690ec12d1459cf59ab62ed43c12defffc714be"
+      ],
+      "exchange": {
+        "en-0.xlsx": {
+          "sourceSha256": "75fa9ebe1484ea2dbe6cc356bd2e49cdb26385068a4b8bca56731f4fb3600618",
+          "independentCells": 138,
+          "previousDifferences": [
+            "G1",
+            "G2",
+            "G3",
+            "G4",
+            "G5",
+            "G6",
+            "G7",
+            "G8",
+            "G9",
+            "G10",
+            "G11",
+            "G12",
+            "G18",
+            "G35",
+            "G50",
+            "G54",
+            "G55",
+            "G59",
+            "G61",
+            "G62",
+            "G66",
+            "G67",
+            "G68",
+            "G76",
+            "G77",
+            "G78",
+            "G82",
+            "G84",
+            "G86",
+            "G90",
+            "G112",
+            "G132",
+            "G136"
+          ],
+          "differences": 0,
+          "bothGenerationsReopened": true,
+          "originalFormulasRetained": 138
+        },
+        "en-7.xlsx": {
+          "sourceSha256": "f65c77704589a16b5e2914f5252728a73d54d55d107a131ba31309f2ab070a44",
+          "independentCells": 138,
+          "previousDifferences": [
+            "G1",
+            "G2",
+            "G3",
+            "G4",
+            "G5",
+            "G6",
+            "G7",
+            "G8",
+            "G9",
+            "G10",
+            "G11",
+            "G12",
+            "G18",
+            "G35",
+            "G50",
+            "G54",
+            "G55",
+            "G59",
+            "G61",
+            "G62",
+            "G66",
+            "G67",
+            "G68",
+            "G76",
+            "G77",
+            "G78",
+            "G82",
+            "G84",
+            "G86",
+            "G90",
+            "G112",
+            "G132",
+            "G136"
+          ],
+          "differences": 0,
+          "bothGenerationsReopened": true,
+          "originalFormulasRetained": 138
+        },
+        "zh-0.xlsx": {
+          "sourceSha256": "41ae9a34c600a055407ea68dac1138b9f9ff9daa05170fe51e6e02a6c6c69d04",
+          "independentCells": 138,
+          "previousDifferences": [
+            "G1",
+            "G2",
+            "G3",
+            "G4",
+            "G5",
+            "G6",
+            "G7",
+            "G8",
+            "G9",
+            "G10",
+            "G11",
+            "G12",
+            "G18",
+            "G35",
+            "G50",
+            "G54",
+            "G55",
+            "G59",
+            "G61",
+            "G62",
+            "G66",
+            "G67",
+            "G68",
+            "G76",
+            "G77",
+            "G78",
+            "G81",
+            "G82",
+            "G84",
+            "G86",
+            "G90",
+            "G93",
+            "G94",
+            "G95",
+            "G98",
+            "G100",
+            "G101",
+            "G108",
+            "G112",
+            "G114",
+            "G115",
+            "G116",
+            "G117",
+            "G119",
+            "G120",
+            "G123",
+            "G125",
+            "G132",
+            "G136"
+          ],
+          "differences": 0,
+          "bothGenerationsReopened": true,
+          "originalFormulasRetained": 138
+        },
+        "zh-7.xlsx": {
+          "sourceSha256": "03b4518f04249086a4cc634838d5350482e8028e0cf6906dea11bdcc31dfd13d",
+          "independentCells": 138,
+          "previousDifferences": [
+            "G1",
+            "G2",
+            "G3",
+            "G4",
+            "G5",
+            "G6",
+            "G7",
+            "G8",
+            "G9",
+            "G10",
+            "G11",
+            "G12",
+            "G18",
+            "G35",
+            "G50",
+            "G54",
+            "G55",
+            "G59",
+            "G61",
+            "G62",
+            "G66",
+            "G67",
+            "G68",
+            "G76",
+            "G77",
+            "G78",
+            "G81",
+            "G82",
+            "G84",
+            "G86",
+            "G90",
+            "G93",
+            "G94",
+            "G95",
+            "G98",
+            "G100",
+            "G101",
+            "G108",
+            "G112",
+            "G114",
+            "G115",
+            "G116",
+            "G117",
+            "G119",
+            "G120",
+            "G123",
+            "G125",
+            "G132",
+            "G136"
+          ],
+          "differences": 0,
+          "bothGenerationsReopened": true,
+          "originalFormulasRetained": 138
+        }
+      },
+      "desktop": {
+        "en": {
+          "binarySha256": "c97744c3b539d22d4269cae9d7d69dcf1b05d3b509779134edefeba795a9036d",
+          "cellsPerState": 21,
+          "states": 6,
+          "targetRow": [
+            12,
+            19
+          ],
+          "targetValue": [
+            122,
+            192,
+            881
+          ],
+          "undoRedo": true,
+          "savedAndReopened": true,
+          "originalUnchanged": true
+        },
+        "zh": {
+          "binarySha256": "c97744c3b539d22d4269cae9d7d69dcf1b05d3b509779134edefeba795a9036d",
+          "cellsPerState": 21,
+          "states": 6,
+          "targetRow": [
+            12,
+            19
+          ],
+          "targetValue": [
+            122,
+            192,
+            881
+          ],
+          "undoRedo": true,
+          "savedAndReopened": true,
+          "originalUnchanged": true
+        }
+      },
+      "display": "native x86_64 UOS with an isolated X11/KWin desktop",
+      "xtaskAndUiTests": {
+        "joyword": {
+          "passed": 3695,
+          "failed": 0,
+          "ignored": 2
+        },
+        "joydeck": {
+          "passed": 1016,
+          "failed": 0,
+          "ignored": 0
+        },
+        "joysheet": {
+          "passed": 1480,
+          "failed": 0,
+          "ignored": 1
+        },
+        "ui": {
+          "passed": 82,
+          "failed": 0,
+          "ignored": 0
+        }
+      },
+      "timingMilliseconds": {
+        "a1": {
+          "rows": 8192,
+          "rounds": 20,
+          "baseline": {
+            "p50": 87.534584,
+            "p95": 106.559442
+          },
+          "candidate": {
+            "p50": 85.40958499999999,
+            "p95": 104.249429
+          }
+        },
+        "r1c1": {
+          "rows": 8192,
+          "rounds": 20,
+          "baseline": {
+            "p50": 103.01564450000001,
+            "p95": 121.629109
+          },
+          "candidate": {
+            "p50": 95.5014985,
+            "p95": 115.353859
+          }
+        }
+      },
+      "strictSpdx": {
+        "joyword": {
+          "target": "x86_64-unknown-linux-gnu",
+          "packages": 602,
+          "sourceFiles": 1072,
+          "spdxSha256": "6bba861757856ade3e15c93db0f7b92bca16c767e4e99772fefa96fa82453bf5",
+          "missingLicenseTexts": [],
+          "sharedCrates": [
+            "joyoffice-cfb",
+            "joyoffice-drawingml",
+            "joyoffice-fonts",
+            "joyoffice-metafile",
+            "joyoffice-omml",
+            "joyoffice-opc",
+            "joyoffice-theme",
+            "joyoffice-ui"
+          ],
+          "runtimeLegacyDependencies": [
+            "craft-atomic",
+            "craft-font-store",
+            "craft-proof"
+          ]
+        },
+        "joydeck": {
+          "target": "x86_64-unknown-linux-gnu",
+          "packages": 565,
+          "sourceFiles": 530,
+          "spdxSha256": "a7d12a892e2484f3ed65a90370ecd64717d0d645beb54f9c87e39df9d3b61909",
+          "missingLicenseTexts": [],
+          "sharedCrates": [
+            "joyoffice-drawingml",
+            "joyoffice-fonts",
+            "joyoffice-metafile",
+            "joyoffice-opc",
+            "joyoffice-theme",
+            "joyoffice-ui"
+          ],
+          "runtimeLegacyDependencies": [
+            "joydeck-legacy"
+          ]
+        },
+        "joysheet": {
+          "target": "x86_64-unknown-linux-gnu",
+          "packages": 556,
+          "sourceFiles": 1187,
+          "spdxSha256": "a2757384e974752c14081254140e30457cb8e3290365278bac38a648183acb2a",
+          "missingLicenseTexts": [],
+          "sharedCrates": [
+            "joyoffice-cfb",
+            "joyoffice-drawingml",
+            "joyoffice-omml",
+            "joyoffice-opc",
+            "joyoffice-theme",
+            "joyoffice-ui"
+          ],
+          "runtimeLegacyDependencies": []
+        }
+      }
+    }
+  }
+}

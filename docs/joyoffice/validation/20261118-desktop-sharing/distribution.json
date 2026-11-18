@@ -41,9 +41,9 @@
     },
     "joysheet": {
       "target": "aarch64-apple-darwin",
-      "packages": 453,
-      "sourceFiles": 1181,
-      "spdxSha256": "324976867289232bca10261ce62b550bf2d2c69b63cef93ef8e7811a2c87ccbe",
+      "packages": 454,
+      "sourceFiles": 1189,
+      "spdxSha256": "eaccf07ed7ae0f6a8c43b2233e9beaee2d078456aabf9b64f41785a12d12e6dc",
       "missingLicenseTexts": [],
       "sharedCrates": [
         "joyoffice-cfb",
@@ -99,8 +99,8 @@
     "joysheet": {
       "target": "x86_64-unknown-linux-gnu",
       "packages": 556,
-      "sourceFiles": 1179,
-      "spdxSha256": "54bf0e2afce0d4e4922cf7f58516472f61d0376c0812106d71d80f8ae45b2b9a",
+      "sourceFiles": 1187,
+      "spdxSha256": "a2757384e974752c14081254140e30457cb8e3290365278bac38a648183acb2a",
       "missingLicenseTexts": [],
       "sharedCrates": [
         "joyoffice-cfb",

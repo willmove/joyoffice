@@ -1,5 +1,41 @@
-use super::format::{cell_format_code, r1c1_to_a1};
+use super::format::cell_format_code;
 use super::*;
+use joysheet_formula::TableItemLanguage;
+use std::sync::OnceLock;
+
+/// This is the system's formula-text language, independent of a toolbar
+/// translation and of the invariant function and table tokens in an XLSX file.
+fn table_item_language() -> TableItemLanguage {
+    static LANGUAGE: OnceLock<TableItemLanguage> = OnceLock::new();
+    *LANGUAGE.get_or_init(|| {
+        let locale = ["LC_ALL", "LC_MESSAGES", "LANG"]
+            .iter()
+            .find_map(|key| std::env::var(key).ok().filter(|v| !v.is_empty()))
+            .or_else(sys_locale::get_locale)
+            .unwrap_or_default()
+            .to_ascii_lowercase()
+            .replace('_', "-");
+        let tag = locale.split(['.', '@']).next().unwrap_or_default();
+        if tag == "zh" || tag.starts_with("zh-hans") || tag.starts_with("zh-cn") || tag.starts_with("zh-sg") {
+            TableItemLanguage::SimplifiedChinese
+        } else {
+            TableItemLanguage::English
+        }
+    })
+}
+
+/// The shifted anchor is included in either direction. Both ends must be on
+/// the sheet, including when a negative extent grows toward the origin.
+fn offset_axis(start: u32, displacement: i64, size: i64, limit: u32) -> Option<(u32, u32)> {
+    if size == 0 {
+        return None;
+    }
+    let first = i64::from(start).checked_add(displacement)?;
+    let last = first.checked_add(size - size.signum())?;
+    let first = u32::try_from(first).ok()?;
+    let last = u32::try_from(last).ok()?;
+    (first < limit && last < limit).then_some((first.min(last), first.max(last)))
+}
 
 impl<'h> Evaluator<'h> {
     /// Whole rows/columns trimmed for ROW()/COLUMN() arrays.
@@ -17,33 +53,20 @@ impl<'h> Evaluator<'h> {
             Ev::V(Value::Error(e)) => return err(e),
             _ => return err(CellError::Value),
         };
-        let rows = match self.arg_num(args, 1, 0.0) {
-            Ok(n) => n.trunc() as i64,
-            Err(e) => return err(e),
-        };
-        let cols = match self.arg_num(args, 2, 0.0) {
-            Ok(n) => n.trunc() as i64,
-            Err(e) => return err(e),
-        };
-        let h = match self.arg_num(args, 3, base.range.height() as f64) {
-            Ok(n) => n.trunc() as i64,
-            Err(e) => return err(e),
-        };
-        let w = match self.arg_num(args, 4, base.range.width() as f64) {
-            Ok(n) => n.trunc() as i64,
-            Err(e) => return err(e),
-        };
-        if h == 0 || w == 0 {
-            return err(CellError::Ref);
+        let mut integer = |i, default| self.arg_num(args, i, default).map(|n| n.trunc() as i64);
+        let shifted = (|| {
+            let rows = integer(1, 0.0)?;
+            let cols = integer(2, 0.0)?;
+            let height = integer(3, f64::from(base.range.height()))?;
+            let width = integer(4, f64::from(base.range.width()))?;
+            let (top, bottom) = offset_axis(base.range.start.row, rows, height, MAX_ROWS).ok_or(CellError::Ref)?;
+            let (left, right) = offset_axis(base.range.start.col, cols, width, MAX_COLS).ok_or(CellError::Ref)?;
+            Ok(RangeRef::new(CellRef::new(top, left), CellRef::new(bottom, right)))
+        })();
+        match shifted {
+            Ok(range) => Ev::R(vec![Area { sheet: base.sheet, range }]),
+            Err(e) => err(e),
         }
-        let r0 = (base.range.start.row as i64).saturating_add(rows);
-        let c0 = (base.range.start.col as i64).saturating_add(cols);
-        let (r0, r1) = if h > 0 { (r0, r0.saturating_add(h - 1)) } else { (r0.saturating_add(h + 1), r0) };
-        let (c0, c1) = if w > 0 { (c0, c0.saturating_add(w - 1)) } else { (c0.saturating_add(w + 1), c0) };
-        if r0 < 0 || c0 < 0 || r1 >= MAX_ROWS as i64 || c1 >= MAX_COLS as i64 {
-            return err(CellError::Ref);
-        }
-        Ev::R(vec![Area { sheet: base.sheet, range: RangeRef::new(CellRef::new(r0 as u32, c0 as u32), CellRef::new(r1 as u32, c1 as u32)) }])
     }
 
     pub(super) fn indirect(&mut self, args: &[Expr]) -> Ev {
@@ -57,28 +80,39 @@ impl<'h> Evaluator<'h> {
             None => return err(CellError::Value),
         };
         let a1 = match args.get(1) {
-            None | Some(Expr::Missing) => true,
-            Some(e) => {
-                let v = self.value(e);
-                v.scalar().to_bool().unwrap_or(true)
-            }
+            None => true,
+            Some(expr) => match self.value(expr).scalar().to_bool() {
+                Ok(mode) => mode,
+                Err(e) => return err(e),
+            },
         };
-        // With a1 = FALSE, text that isn't R1C1 can still be a name, but never an A1 reference.
-        let (text, a1_ok) = if a1 {
-            (text, true)
+        let text = text.trim_end_matches(' ');
+        if text.is_empty() || text.trim_start() != text || text.starts_with('=') {
+            return err(CellError::Ref);
+        }
+        let (body, spill) = text.strip_suffix('#').map_or((text, false), |s| (s, true));
+        let typed = if a1 {
+            None
         } else {
-            match r1c1_to_a1(&text, self.at) {
-                Ok(Some(a1_text)) => (a1_text, true),
-                Ok(None) => (text, false),
+            match joysheet_formula::parse_r1c1_reference(body, self.at) {
+                Ok(reference) => reference,
                 Err(e) => return err(e),
             }
         };
-        match joysheet_formula::parse(&text) {
-            Ok(Expr::Ref(_)) if !a1_ok => err(CellError::Ref),
-            Ok(e @ (Expr::Ref(_) | Expr::Name(_) | Expr::Struct(_))) => match self.eval(&e) {
-                r @ Ev::R(_) => r,
-                _ => err(CellError::Ref),
+        let expr = match typed {
+            Some(reference) => Expr::Ref(reference),
+            None => match joysheet_formula::parse_reference_text(body, table_item_language()) {
+                Ok(e @ Expr::Ref(_)) if a1 => e,
+                Ok(e @ (Expr::Name(_) | Expr::Struct(_))) => e,
+                _ => return err(CellError::Ref),
             },
+        };
+        if matches!(expr, Expr::Ref(Reference { sheet: SheetSel::Span(..), .. })) {
+            return err(CellError::Ref);
+        }
+        let result = if spill { self.unary(UnOp::Spill, &expr) } else { self.eval(&expr) };
+        match result {
+            Ev::R(areas) if areas.len() == 1 => Ev::R(areas),
             _ => err(CellError::Ref),
         }
     }

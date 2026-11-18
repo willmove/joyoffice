@@ -31,7 +31,7 @@ pub fn parse(src: &str) -> Result<Expr, ParseError> {
 /// Parses a defined name's formula. Unlike a cell formula, a comma at the top level is the
 /// union operator: Excel stores and shows a name over several ranges as `Sheet1!$A$1,Sheet1!$C$1`.
 pub fn parse_name(src: &str) -> Result<Expr, ParseError> {
-    parse_top(src, crate::FormulaLocale::En, true)
+    parse_top(src, crate::FormulaLocale::En, true, TableItemLanguage::English)
 }
 
 /// Most closing parentheses [`parse_closing_parens`] adds.
@@ -56,17 +56,29 @@ pub fn parse_closing_parens<T>(src: &str, parse: impl Fn(&str) -> Result<T, Pars
 }
 
 pub(crate) fn parse_syntax(src: &str, locale: crate::FormulaLocale) -> Result<Expr, ParseError> {
-    parse_top(src, locale, false)
+    parse_top(src, locale, false, TableItemLanguage::English)
 }
 
-fn parse_top(src: &str, locale: crate::FormulaLocale, allow_union: bool) -> Result<Expr, ParseError> {
+/// Excel localizes table item names inside INDIRECT strings. Stored formulas
+/// always use the invariant English tokens.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum TableItemLanguage {
+    English,
+    SimplifiedChinese,
+}
+
+pub fn parse_reference_text(src: &str, language: TableItemLanguage) -> Result<Expr, ParseError> {
+    parse_top(src, crate::FormulaLocale::En, false, language)
+}
+
+fn parse_top(src: &str, locale: crate::FormulaLocale, allow_union: bool, table_items: TableItemLanguage) -> Result<Expr, ParseError> {
     let body = src.strip_prefix('=').unwrap_or(src);
     if body.len() > MAX_FORMULA_LEN && body.chars().count() > MAX_FORMULA_LEN {
         return Err(ParseError { msg: format!("formula is longer than {MAX_FORMULA_LEN} characters"), pos: 0 });
     }
     let toks = tokenize_locale(body, locale).map_err(|e| ParseError { msg: e.msg, pos: e.pos })?;
     let toks = significant_spaces(toks);
-    let mut p = Parser { toks, i: 0, depth: 0, input: locale == crate::FormulaLocale::Es };
+    let mut p = Parser { toks, i: 0, depth: 0, input: locale == crate::FormulaLocale::Es, table_items };
     let e = p.expr(0, allow_union)?;
     match p.peek() {
         Tok::Eof => Ok(e),
@@ -107,6 +119,7 @@ struct Parser {
     i: usize,
     depth: usize,
     input: bool,
+    table_items: TableItemLanguage,
 }
 
 fn word_is_cols(w: &str) -> Option<(u32, bool)> {
@@ -341,11 +354,11 @@ impl Parser {
                 {
                     let pos = self.pos();
                     let Tok::Struct(body) = self.next() else { return Err(self.err("internal")) };
-                    return parse_struct(&w, &body).map(Expr::Struct).map_err(|msg| ParseError { msg, pos });
+                    return parse_struct_in(&w, &body, self.table_items).map(Expr::Struct).map_err(|msg| ParseError { msg, pos });
                 }
                 self.reference_from_word(SheetSel::Current, &w)
             }
-            Tok::Struct(body) => parse_struct("", &body).map(Expr::Struct).map_err(|msg| self.err(msg)),
+            Tok::Struct(body) => parse_struct_in("", &body, self.table_items).map(Expr::Struct).map_err(|msg| self.err(msg)),
             t => Err(self.err(format!("unexpected {}", describe(&t)))),
         }
     }
@@ -474,6 +487,10 @@ fn combine(op: BinOp, lhs: Expr, rhs: Expr) -> Expr {
 /// `:` separators, except one unbracketed column after `[#This Row],` (`[[#This Row],Units]`,
 /// how some writers spell `[@Units]`); anything else is an error rather than dropped.
 pub fn parse_struct(table: &str, body: &str) -> Result<StructRef, String> {
+    parse_struct_in(table, body, TableItemLanguage::English)
+}
+
+fn parse_struct_in(table: &str, body: &str, language: TableItemLanguage) -> Result<StructRef, String> {
     let mut specifiers = Vec::new();
     let mut cols: Vec<String> = Vec::new();
     // Spaces at the edges of a column name are part of it (`Table1[Qty ]` names `Qty `), so the
@@ -495,12 +512,13 @@ pub fn parse_struct(table: &str, body: &str) -> Result<StructRef, String> {
         out
     };
     let item = |s: &str| -> Option<StructItem> {
-        match s.trim().to_ascii_lowercase().as_str() {
-            "#all" => Some(StructItem::All),
-            "#data" => Some(StructItem::Data),
-            "#headers" => Some(StructItem::Headers),
-            "#totals" => Some(StructItem::Totals),
-            "#this row" => Some(StructItem::ThisRow),
+        use TableItemLanguage::*;
+        match (language, s.trim().to_ascii_lowercase().as_str()) {
+            (English, "#all") | (SimplifiedChinese, "#全部") => Some(StructItem::All),
+            (English, "#data") | (SimplifiedChinese, "#数据") => Some(StructItem::Data),
+            (English, "#headers") | (SimplifiedChinese, "#标题") => Some(StructItem::Headers),
+            (English, "#totals") | (SimplifiedChinese, "#汇总") => Some(StructItem::Totals),
+            (English, "#this row") | (SimplifiedChinese, "#此行") => Some(StructItem::ThisRow),
             _ => None,
         }
     };
