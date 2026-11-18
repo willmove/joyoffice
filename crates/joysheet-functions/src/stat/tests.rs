@@ -292,6 +292,26 @@ fn linest_family() {
 // #2177: one predictor row of 16,384 columns built three 16,384² matrices (6 GB) and an O(k³)
 // inversion; a wider TOROW aborted the process. It is now refused before allocating.
 #[test]
+fn multivariate_regression_preserves_rank_and_centered_predictions() {
+    let x = [1., 4., 2., 8., 5., 9., 6., 3.];
+    let z = [3., -1., 5., 2., 0., 7., 1., 8.];
+    let noise = [0.31, -0.50, 0.27, 0.08, -0.63, 0.41, 0.58, -0.09];
+    let duplicate = av(arr(x.iter().map(|&a| vec![nv(a), nv(a)]).collect()));
+    let y: Vec<_> = x.iter().map(|v| 1. + 2. * v).collect();
+    for (constant, redundant) in [(true, 1), (false, 0)] {
+        let stats = rows_of(&ev("LINEST", vec![c(&y), duplicate.clone(), b(constant), b(true)]));
+        assert_eq!(stats[0][redundant], nv(0.));
+        assert_eq!(stats[1][redundant], nv(0.));
+        assert_eq!(stats[3][1], nv(if constant { 6. } else { 7. }));
+    }
+    let y: Vec<_> = (0..8).map(|i| 7. * z[i] + 1.75 * x[i] + noise[i] + 19.).collect();
+    let offsets = av(arr((0..8).map(|i| vec![nv(1e10 + x[i]), nv(1e10 + 3. * z[i])]).collect()));
+    let predicted = rows_of(&ev("TREND", vec![c(&y), offsets]));
+    let Value::Number(value) = predicted[2][0] else { panic!("expected numeric prediction") };
+    assert!((value - 57.601_015_643_802_65).abs() < 2e-12);
+}
+
+#[test]
 fn linest_family_caps_regressor_count() {
     let wide = |k: usize| av(arr(vec![(0..k).map(|i| nv(i as f64)).collect()]));
     let tall = |k: usize| av(arr((0..k).map(|i| vec![nv(i as f64), nv(1.0)]).collect()));

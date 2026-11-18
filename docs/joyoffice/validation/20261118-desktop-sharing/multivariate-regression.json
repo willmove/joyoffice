@@ -1,0 +1,1231 @@
+{
+  "baselineFunctionsCommit": "ff419c49",
+  "baselineSheetFileAdapters": "87d48e8d",
+  "reference": "Excel 16.115 for macOS. Two independently saved workbooks with 926 scalar observations of positions in the four result arrays. Four additional dynamic arrays were entered directly in Excel (38 cells). With intercept, without intercept, omitted predictors, tall and wide layouts, repeated, zero, shifted, nearly collinear, exact and log-domain cases. A1 changes from 7 to 12.",
+  "implementation": "Column-pivoted Householder QR on the design matrix, withholding the covariance calculations when statistics are not requested. Predictions retain centered coordinates. Pre-existing input limits of 255 regressors and one billion row × predictor-squared operations remain.",
+  "thresholds": "Types and errors match exactly. General relative/absolute bounds are 2e-10/1e-12. For the named near-collinear input the statistic bounds are 4e-9 and the intercept standard error reference bound is 2e-6; all of those candidate statistics must separately match an independent 75-digit solution within 4e-9. Large-offset predictions must be within one Excel-scale ULP and separately within 2e-12 of the 75-digit solution. The exactly linear input has zero true residual and unbounded F; both programs give finite F > 1 / epsilon², with different roundoff in the residual. All raw strict deviations are listed per platform.",
+  "source": "https://support.microsoft.com/en-us/excel/functions/linest-function",
+  "rollback": "Rebuild the prior Sheet implementation and open either XLSX. The old calculator reproduces its former numeric results, including the independently measured differences. The input files remain unchanged.",
+  "excelRecalculatedJoySheetFiles": {
+    "base": {
+      "referenceSha256": "1f5b06d08be89c8311e65bca8a94644092745a971f9275838086a0a192a7d2d1",
+      "sha256": "99a4ac32402a36c8188380a129d4258d41e64b370ee9b462c5f789d5928452c5",
+      "action": "Change A1 to opposite reference state; change V2 and restore it to force recalculation of exact-fit formulas independent of A1; save in Microsoft Excel.",
+      "strictDifferencesAfterActualEdits": 0,
+      "unchangedCachedDifferencesAfterOpeningWithoutChangingInputs": 14,
+      "cells": 926,
+      "independentSpillCells": 38
+    },
+    "edit": {
+      "referenceSha256": "e1a5d0e3ace9cfe411f113dea6eafc18cb409b13a08c611616d6a7393a231c60",
+      "sha256": "249b67fa51bc6881de55e0bbd96ec11edb206e6ae42229ebb3471c75fb61c961",
+      "action": "Change A1 to opposite reference state; change V2 and restore it to force recalculation of exact-fit formulas independent of A1; save in Microsoft Excel.",
+      "strictDifferencesAfterActualEdits": 0,
+      "unchangedCachedDifferencesAfterOpeningWithoutChangingInputs": 17,
+      "cells": 926,
+      "independentSpillCells": 38
+    }
+  },
+  "platforms": {
+    "macOS": {
+      "binaries": [
+        "18da0bee717361b56d1879abd7e79d807e31a9cb69cdcfe09dda02cc6d2bdda6",
+        "0cbe5d4c9574fc4016de1bf145a47a525269a46af45211f5ad4f9e3ebb508bb3"
+      ],
+      "excel": {
+        "base": {
+          "sourceSha256": "e1a5d0e3ace9cfe411f113dea6eafc18cb409b13a08c611616d6a7393a231c60",
+          "fileContract": {
+            "decimalPrecision": 75,
+            "WWorstRelativeStatisticDifference": 5.066445041279621e-10,
+            "XWorstRelativeStatisticDifference": 1.0546024054036707e-09,
+            "largeOffsetPredictionWorstAbsoluteDifference": 1.4210854715202004e-14,
+            "strictExcelDifferences": {
+              "candidate": [
+                [
+                  "G87",
+                  "INDEX(LINEST(W2:W9,M2:N9,TRUE,TRUE),2,3)",
+                  "0.37151850434405531",
+                  "0.3715180975740326"
+                ],
+                [
+                  "G91",
+                  "INDEX(LINEST(W2:W9,M2:N9,TRUE,TRUE),4,1)",
+                  "9393.6936649621366",
+                  "9393.693668662292"
+                ],
+                [
+                  "G95",
+                  "INDEX(LINEST(W2:W9,M2:N9,TRUE,TRUE),5,2)",
+                  "1.0340727921543063",
+                  "1.0340727917470955"
+                ],
+                [
+                  "G304",
+                  "INDEX(LOGEST(X2:X9,M2:N9,TRUE,TRUE),2,1)",
+                  "57.815490735994132",
+                  "57.81549071239983"
+                ],
+                [
+                  "G305",
+                  "INDEX(LOGEST(X2:X9,M2:N9,TRUE,TRUE),2,2)",
+                  "57.815482926989382",
+                  "57.81548290339508"
+                ],
+                [
+                  "G306",
+                  "INDEX(LOGEST(X2:X9,M2:N9,TRUE,TRUE),2,3)",
+                  "4.086699975820984E-3",
+                  "0.004086699073164668"
+                ],
+                [
+                  "G308",
+                  "INDEX(LOGEST(X2:X9,M2:N9,TRUE,TRUE),3,2)",
+                  "5.0024555549213565E-3",
+                  "0.0050024555528706575"
+                ],
+                [
+                  "G310",
+                  "INDEX(LOGEST(X2:X9,M2:N9,TRUE,TRUE),4,1)",
+                  "40367.829614205883",
+                  "40367.829647304585"
+                ],
+                [
+                  "G486",
+                  "INDEX(TREND(W2:W9,Q2:R9,Q4:R7,TRUE),1,1)",
+                  "57.601020812988281",
+                  "57.601015643802654"
+                ],
+                [
+                  "G487",
+                  "INDEX(TREND(W2:W9,Q2:R9,Q4:R7,TRUE),2,1)",
+                  "47.061164855957031",
+                  "47.06116726835138"
+                ],
+                [
+                  "G488",
+                  "INDEX(TREND(W2:W9,Q2:R9,Q4:R7,TRUE),3,1)",
+                  "27.628074645996094",
+                  "27.628078820697947"
+                ],
+                [
+                  "G489",
+                  "INDEX(TREND(W2:W9,Q2:R9,Q4:R7,TRUE),4,1)",
+                  "84.123542785644531",
+                  "84.12354572803852"
+                ],
+                [
+                  "G614",
+                  "INDEX(LINEST(V2:V9,J2:J9,TRUE,TRUE),4,1)",
+                  "1.6081053328609539E+32",
+                  "1.731805743081027E32"
+                ],
+                [
+                  "G657",
+                  "INDEX(LINEST(V2:V9,AB2:AC9,TRUE,TRUE),4,1)",
+                  "1.6081053328609539E+32",
+                  "1.731805743081027E32"
+                ]
+              ]
+            },
+            "arrayExtents": {
+              "AH2": "AH2:AJ6",
+              "AL2": "AL2:AN6",
+              "AP2": "AP2:AP5",
+              "AR2": "AR2:AU2"
+            },
+            "arrayCellsChecked": 38
+          },
+          "bothGenerationsRecalculatedBothWriters": true,
+          "rawDifferenceCount": {
+            "baseline": 193,
+            "candidate": 14
+          },
+          "differenceCountWithConditioningBounds": {
+            "baseline": 187,
+            "candidate": 0
+          },
+          "functionObservations": {
+            "LINEST": 379,
+            "LOGEST": 379,
+            "TREND": 84,
+            "GROWTH": 84
+          },
+          "strictDifferencesByType": [
+            [
+              "G562",
+              "INDEX(GROWTH(X2:X9,M2:N9,M4:N7,TRUE),1,1)",
+              "#NUM!"
+            ],
+            [
+              "G563",
+              "INDEX(GROWTH(X2:X9,M2:N9,M4:N7,TRUE),2,1)",
+              "#NUM!"
+            ],
+            [
+              "G564",
+              "INDEX(GROWTH(X2:X9,M2:N9,M4:N7,TRUE),3,1)",
+              "#NUM!"
+            ],
+            [
+              "G565",
+              "INDEX(GROWTH(X2:X9,M2:N9,M4:N7,TRUE),4,1)",
+              "#NUM!"
+            ]
+          ]
+        },
+        "edit": {
+          "sourceSha256": "1f5b06d08be89c8311e65bca8a94644092745a971f9275838086a0a192a7d2d1",
+          "fileContract": {
+            "decimalPrecision": 75,
+            "WWorstRelativeStatisticDifference": 8.654357230852838e-10,
+            "XWorstRelativeStatisticDifference": 1.8048793570812904e-09,
+            "largeOffsetPredictionWorstAbsoluteDifference": 1.7763568394002505e-14,
+            "strictExcelDifferences": {
+              "candidate": [
+                [
+                  "G85",
+                  "INDEX(LINEST(W2:W9,M2:N9,TRUE,TRUE),2,1)",
+                  "5255.9537029520789",
+                  "5255.953701193695"
+                ],
+                [
+                  "G86",
+                  "INDEX(LINEST(W2:W9,M2:N9,TRUE,TRUE),2,2)",
+                  "5255.952993042557",
+                  "5255.952991284173"
+                ],
+                [
+                  "G87",
+                  "INDEX(LINEST(W2:W9,M2:N9,TRUE,TRUE),2,3)",
+                  "0.37151850434405531",
+                  "0.3715180975651205"
+                ],
+                [
+                  "G89",
+                  "INDEX(LINEST(W2:W9,M2:N9,TRUE,TRUE),3,2)",
+                  "0.45476868678333471",
+                  "0.4547686866303537"
+                ],
+                [
+                  "G91",
+                  "INDEX(LINEST(W2:W9,M2:N9,TRUE,TRUE),4,1)",
+                  "26663.422043005579",
+                  "26663.422060946035"
+                ],
+                [
+                  "G95",
+                  "INDEX(LINEST(W2:W9,M2:N9,TRUE,TRUE),5,2)",
+                  "1.0340727923931938",
+                  "1.0340727916974843"
+                ],
+                [
+                  "G304",
+                  "INDEX(LOGEST(X2:X9,M2:N9,TRUE,TRUE),2,1)",
+                  "57.815490749957377",
+                  "57.815490709499706"
+                ],
+                [
+                  "G305",
+                  "INDEX(LOGEST(X2:X9,M2:N9,TRUE,TRUE),2,2)",
+                  "57.815482940952634",
+                  "57.81548290049495"
+                ],
+                [
+                  "G306",
+                  "INDEX(LOGEST(X2:X9,M2:N9,TRUE,TRUE),2,3)",
+                  "4.086699975820984E-3",
+                  "0.004086699072959671"
+                ],
+                [
+                  "G308",
+                  "INDEX(LOGEST(X2:X9,M2:N9,TRUE,TRUE),3,2)",
+                  "5.0024555561295203E-3",
+                  "0.005002455552619725"
+                ],
+                [
+                  "G310",
+                  "INDEX(LOGEST(X2:X9,M2:N9,TRUE,TRUE),4,1)",
+                  "115645.44282664562",
+                  "115645.44298892615"
+                ],
+                [
+                  "G486",
+                  "INDEX(TREND(W2:W9,Q2:R9,Q4:R7,TRUE),1,1)",
+                  "82.60101318359375",
+                  "82.60101564380265"
+                ],
+                [
+                  "G487",
+                  "INDEX(TREND(W2:W9,Q2:R9,Q4:R7,TRUE),2,1)",
+                  "57.0611572265625",
+                  "57.06116726835137"
+                ],
+                [
+                  "G488",
+                  "INDEX(TREND(W2:W9,Q2:R9,Q4:R7,TRUE),3,1)",
+                  "27.628067016601562",
+                  "27.628078820697937"
+                ],
+                [
+                  "G489",
+                  "INDEX(TREND(W2:W9,Q2:R9,Q4:R7,TRUE),4,1)",
+                  "119.12353515625",
+                  "119.12354572803851"
+                ],
+                [
+                  "G614",
+                  "INDEX(LINEST(V2:V9,J2:J9,TRUE,TRUE),4,1)",
+                  "1.6081053328609539E+32",
+                  "1.731805743081027E32"
+                ],
+                [
+                  "G657",
+                  "INDEX(LINEST(V2:V9,AB2:AC9,TRUE,TRUE),4,1)",
+                  "1.6081053328609539E+32",
+                  "1.731805743081027E32"
+                ]
+              ]
+            },
+            "arrayExtents": {
+              "AH2": "AH2:AJ6",
+              "AL2": "AL2:AN6",
+              "AP2": "AP2:AP5",
+              "AR2": "AR2:AU2"
+            },
+            "arrayCellsChecked": 38
+          },
+          "bothGenerationsRecalculatedBothWriters": true,
+          "rawDifferenceCount": {
+            "baseline": 200,
+            "candidate": 17
+          },
+          "differenceCountWithConditioningBounds": {
+            "baseline": 190,
+            "candidate": 0
+          },
+          "functionObservations": {
+            "LINEST": 379,
+            "LOGEST": 379,
+            "TREND": 84,
+            "GROWTH": 84
+          },
+          "strictDifferencesByType": [
+            [
+              "G562",
+              "INDEX(GROWTH(X2:X9,M2:N9,M4:N7,TRUE),1,1)",
+              "#NUM!"
+            ],
+            [
+              "G563",
+              "INDEX(GROWTH(X2:X9,M2:N9,M4:N7,TRUE),2,1)",
+              "#NUM!"
+            ],
+            [
+              "G564",
+              "INDEX(GROWTH(X2:X9,M2:N9,M4:N7,TRUE),3,1)",
+              "#NUM!"
+            ],
+            [
+              "G565",
+              "INDEX(GROWTH(X2:X9,M2:N9,M4:N7,TRUE),4,1)",
+              "#NUM!"
+            ]
+          ]
+        }
+      },
+      "native": {
+        "changedCells": 483,
+        "checkedPerState": 496,
+        "states": 5,
+        "savedTypedCaches": 926,
+        "undoRedoAndFreshReopen": true,
+        "originalUnchanged": true
+      },
+      "product": {
+        "passed": 1497,
+        "failed": 0,
+        "ignored": 1
+      },
+      "strictClippy": "joysheet-functions --all-targets -- -D warnings",
+      "business": [
+        {
+          "sourceSha256": "521576e13e1ced708e2f7efac270da864053d9b05ce6216831970f3fa9fdc126",
+          "originalFormulaCells": 0,
+          "derivedFormulaCells": 916
+        },
+        {
+          "sourceSha256": "7034ab68c7c22f09a07114767d912c4bf8e87849d35e03bb76c15e9ef25e984d",
+          "originalFormulaCells": 0,
+          "derivedFormulaCells": 16
+        }
+      ],
+      "registryTimings": {
+        "LINEST-128": {
+          "baseline": [
+            13669.688,
+            8055.102,
+            5661.148,
+            5582.188,
+            5114.165,
+            6316.562,
+            5623.852,
+            4852.188,
+            4716.25,
+            4977.602,
+            4728.75
+          ],
+          "candidate": [
+            4590.727,
+            2971.875,
+            1809.688,
+            1840.625,
+            1769.582,
+            1787.085,
+            1723.543,
+            1807.602,
+            1794.375,
+            1785.625,
+            1805.105
+          ],
+          "repetitions": 400,
+          "baselineMedianNs": 5582.188,
+          "candidateMedianNs": 1805.105
+        },
+        "LOGEST-128": {
+          "baseline": [
+            13663.958,
+            7859.688,
+            6060.208,
+            5945.938,
+            5344.583,
+            6662.292,
+            5950.73,
+            5136.562,
+            5013.335,
+            5052.605,
+            5148.125
+          ],
+          "candidate": [
+            5193.75,
+            3287.085,
+            2080.207,
+            2107.605,
+            2005.938,
+            2069.895,
+            2037.605,
+            2070.21,
+            2072.082,
+            2016.145,
+            2050.102
+          ],
+          "repetitions": 400,
+          "baselineMedianNs": 5945.938,
+          "candidateMedianNs": 2070.21
+        },
+        "TREND-128": {
+          "baseline": [
+            11149.167,
+            5792.085,
+            5536.25,
+            5696.042,
+            5111.98,
+            6471.977,
+            5630.0,
+            4816.04,
+            4736.25,
+            4769.48,
+            4827.083
+          ],
+          "candidate": [
+            3908.438,
+            2595.938,
+            1621.668,
+            1642.293,
+            1603.125,
+            1626.25,
+            1603.855,
+            1706.77,
+            1619.27,
+            1557.293,
+            1615.727
+          ],
+          "repetitions": 400,
+          "baselineMedianNs": 5536.25,
+          "candidateMedianNs": 1621.668
+        },
+        "GROWTH-128": {
+          "baseline": [
+            10559.165,
+            5665.938,
+            5860.0,
+            5955.938,
+            5468.75,
+            6754.165,
+            5911.458,
+            4899.062,
+            5016.25,
+            5002.083,
+            4983.645
+          ],
+          "candidate": [
+            4641.665,
+            2971.25,
+            1971.25,
+            1899.477,
+            1855.523,
+            1910.0,
+            1914.375,
+            2016.25,
+            1905.832,
+            1837.71,
+            1838.125
+          ],
+          "repetitions": 400,
+          "baselineMedianNs": 5665.938,
+          "candidateMedianNs": 1910.0
+        },
+        "LINEST-16384": {
+          "baseline": [
+            949484.375,
+            593135.375,
+            625604.125,
+            623130.125,
+            553974.0,
+            655161.5,
+            617099.0,
+            530823.0,
+            539531.25,
+            530572.875,
+            524859.375
+          ],
+          "candidate": [
+            546531.25,
+            300041.625,
+            201198.0,
+            203505.125,
+            204234.375,
+            204515.625,
+            202182.25,
+            202015.625,
+            202489.625,
+            200093.75,
+            203796.875
+          ],
+          "repetitions": 8,
+          "baselineMedianNs": 593135.375,
+          "candidateMedianNs": 203505.125
+        },
+        "LOGEST-16384": {
+          "baseline": [
+            845458.25,
+            604718.75,
+            624880.125,
+            654932.25,
+            591072.875,
+            556515.625,
+            555312.5,
+            560770.75,
+            578828.125,
+            565947.875,
+            555557.375
+          ],
+          "candidate": [
+            553510.375,
+            349916.625,
+            231557.25,
+            239750.0,
+            238473.875,
+            241244.875,
+            238463.5,
+            242109.375,
+            241130.25,
+            232187.5,
+            242614.625
+          ],
+          "repetitions": 8,
+          "baselineMedianNs": 578828.125,
+          "candidateMedianNs": 241130.25
+        },
+        "TREND-16384": {
+          "baseline": [
+            733125.0,
+            699156.25,
+            523000.0,
+            618958.25,
+            555333.25,
+            539948.0,
+            528406.25,
+            538713.5,
+            550385.375,
+            538593.75,
+            536203.125
+          ],
+          "candidate": [
+            382645.875,
+            256557.375,
+            184906.25,
+            181312.5,
+            194994.875,
+            181187.5,
+            188083.375,
+            185307.375,
+            190598.875,
+            180338.625,
+            180588.5
+          ],
+          "repetitions": 8,
+          "baselineMedianNs": 539948.0,
+          "candidateMedianNs": 185307.375
+        },
+        "GROWTH-16384": {
+          "baseline": [
+            714796.875,
+            719421.875,
+            563380.25,
+            645994.75,
+            588901.125,
+            573578.125,
+            562296.875,
+            564479.125,
+            587088.5,
+            566875.0,
+            562765.625
+          ],
+          "candidate": [
+            420984.375,
+            288104.25,
+            218171.875,
+            220250.0,
+            220843.75,
+            222182.25,
+            216401.0,
+            224531.25,
+            227916.625,
+            216869.75,
+            220104.25
+          ],
+          "repetitions": 8,
+          "baselineMedianNs": 573578.125,
+          "candidateMedianNs": 220843.75
+        }
+      },
+      "spdx": {
+        "target": "aarch64-apple-darwin",
+        "packages": 454,
+        "sourceFiles": 1255,
+        "spdxSha256": "107436b54b08951bbddedbfc2fa6729dfcdccf3467cd56a246d023dfac707df6",
+        "missingLicenseTexts": [],
+        "sharedCrates": [
+          "joyoffice-cfb",
+          "joyoffice-drawingml",
+          "joyoffice-omml",
+          "joyoffice-opc",
+          "joyoffice-theme",
+          "joyoffice-ui"
+        ],
+        "runtimeLegacyDependencies": []
+      }
+    },
+    "UOS25": {
+      "binaries": [
+        "14b9d3034cb3513d802e56c7b1ccd177537dbede403483c5e4f19bb7c1a8d0dd",
+        "e4404417ed305de267e00688a4a4387023c8dd31d0daea416aa8f4f4d039cdfa"
+      ],
+      "excel": {
+        "base": {
+          "sourceSha256": "e1a5d0e3ace9cfe411f113dea6eafc18cb409b13a08c611616d6a7393a231c60",
+          "fileContract": {
+            "decimalPrecision": 75,
+            "WWorstRelativeStatisticDifference": 5.066445041279621e-10,
+            "XWorstRelativeStatisticDifference": 1.0546024054036707e-09,
+            "largeOffsetPredictionWorstAbsoluteDifference": 1.4210854715202004e-14,
+            "strictExcelDifferences": {
+              "candidate": [
+                [
+                  "G87",
+                  "INDEX(LINEST(W2:W9,M2:N9,TRUE,TRUE),2,3)",
+                  "0.37151850434405531",
+                  "0.3715180975740326"
+                ],
+                [
+                  "G91",
+                  "INDEX(LINEST(W2:W9,M2:N9,TRUE,TRUE),4,1)",
+                  "9393.6936649621366",
+                  "9393.693668662292"
+                ],
+                [
+                  "G95",
+                  "INDEX(LINEST(W2:W9,M2:N9,TRUE,TRUE),5,2)",
+                  "1.0340727921543063",
+                  "1.0340727917470955"
+                ],
+                [
+                  "G304",
+                  "INDEX(LOGEST(X2:X9,M2:N9,TRUE,TRUE),2,1)",
+                  "57.815490735994132",
+                  "57.81549071239983"
+                ],
+                [
+                  "G305",
+                  "INDEX(LOGEST(X2:X9,M2:N9,TRUE,TRUE),2,2)",
+                  "57.815482926989382",
+                  "57.81548290339508"
+                ],
+                [
+                  "G306",
+                  "INDEX(LOGEST(X2:X9,M2:N9,TRUE,TRUE),2,3)",
+                  "4.086699975820984E-3",
+                  "0.004086699073164668"
+                ],
+                [
+                  "G308",
+                  "INDEX(LOGEST(X2:X9,M2:N9,TRUE,TRUE),3,2)",
+                  "5.0024555549213565E-3",
+                  "0.0050024555528706575"
+                ],
+                [
+                  "G310",
+                  "INDEX(LOGEST(X2:X9,M2:N9,TRUE,TRUE),4,1)",
+                  "40367.829614205883",
+                  "40367.829647304585"
+                ],
+                [
+                  "G486",
+                  "INDEX(TREND(W2:W9,Q2:R9,Q4:R7,TRUE),1,1)",
+                  "57.601020812988281",
+                  "57.601015643802654"
+                ],
+                [
+                  "G487",
+                  "INDEX(TREND(W2:W9,Q2:R9,Q4:R7,TRUE),2,1)",
+                  "47.061164855957031",
+                  "47.06116726835138"
+                ],
+                [
+                  "G488",
+                  "INDEX(TREND(W2:W9,Q2:R9,Q4:R7,TRUE),3,1)",
+                  "27.628074645996094",
+                  "27.628078820697947"
+                ],
+                [
+                  "G489",
+                  "INDEX(TREND(W2:W9,Q2:R9,Q4:R7,TRUE),4,1)",
+                  "84.123542785644531",
+                  "84.12354572803852"
+                ],
+                [
+                  "G614",
+                  "INDEX(LINEST(V2:V9,J2:J9,TRUE,TRUE),4,1)",
+                  "1.6081053328609539E+32",
+                  "1.731805743081027E32"
+                ],
+                [
+                  "G657",
+                  "INDEX(LINEST(V2:V9,AB2:AC9,TRUE,TRUE),4,1)",
+                  "1.6081053328609539E+32",
+                  "1.731805743081027E32"
+                ]
+              ]
+            },
+            "arrayExtents": {
+              "AH2": "AH2:AJ6",
+              "AL2": "AL2:AN6",
+              "AP2": "AP2:AP5",
+              "AR2": "AR2:AU2"
+            },
+            "arrayCellsChecked": 38
+          },
+          "bothGenerationsRecalculatedBothWriters": true,
+          "rawDifferenceCount": {
+            "baseline": 193,
+            "candidate": 14
+          },
+          "differenceCountWithConditioningBounds": {
+            "baseline": 187,
+            "candidate": 0
+          },
+          "functionObservations": {
+            "LINEST": 379,
+            "LOGEST": 379,
+            "TREND": 84,
+            "GROWTH": 84
+          },
+          "strictDifferencesByType": [
+            [
+              "G562",
+              "INDEX(GROWTH(X2:X9,M2:N9,M4:N7,TRUE),1,1)",
+              "#NUM!"
+            ],
+            [
+              "G563",
+              "INDEX(GROWTH(X2:X9,M2:N9,M4:N7,TRUE),2,1)",
+              "#NUM!"
+            ],
+            [
+              "G564",
+              "INDEX(GROWTH(X2:X9,M2:N9,M4:N7,TRUE),3,1)",
+              "#NUM!"
+            ],
+            [
+              "G565",
+              "INDEX(GROWTH(X2:X9,M2:N9,M4:N7,TRUE),4,1)",
+              "#NUM!"
+            ]
+          ]
+        },
+        "edit": {
+          "sourceSha256": "1f5b06d08be89c8311e65bca8a94644092745a971f9275838086a0a192a7d2d1",
+          "fileContract": {
+            "decimalPrecision": 75,
+            "WWorstRelativeStatisticDifference": 8.654357230852838e-10,
+            "XWorstRelativeStatisticDifference": 1.8048793570812904e-09,
+            "largeOffsetPredictionWorstAbsoluteDifference": 1.7763568394002505e-14,
+            "strictExcelDifferences": {
+              "candidate": [
+                [
+                  "G85",
+                  "INDEX(LINEST(W2:W9,M2:N9,TRUE,TRUE),2,1)",
+                  "5255.9537029520789",
+                  "5255.953701193695"
+                ],
+                [
+                  "G86",
+                  "INDEX(LINEST(W2:W9,M2:N9,TRUE,TRUE),2,2)",
+                  "5255.952993042557",
+                  "5255.952991284173"
+                ],
+                [
+                  "G87",
+                  "INDEX(LINEST(W2:W9,M2:N9,TRUE,TRUE),2,3)",
+                  "0.37151850434405531",
+                  "0.3715180975651205"
+                ],
+                [
+                  "G89",
+                  "INDEX(LINEST(W2:W9,M2:N9,TRUE,TRUE),3,2)",
+                  "0.45476868678333471",
+                  "0.4547686866303537"
+                ],
+                [
+                  "G91",
+                  "INDEX(LINEST(W2:W9,M2:N9,TRUE,TRUE),4,1)",
+                  "26663.422043005579",
+                  "26663.422060946035"
+                ],
+                [
+                  "G95",
+                  "INDEX(LINEST(W2:W9,M2:N9,TRUE,TRUE),5,2)",
+                  "1.0340727923931938",
+                  "1.0340727916974843"
+                ],
+                [
+                  "G304",
+                  "INDEX(LOGEST(X2:X9,M2:N9,TRUE,TRUE),2,1)",
+                  "57.815490749957377",
+                  "57.815490709499706"
+                ],
+                [
+                  "G305",
+                  "INDEX(LOGEST(X2:X9,M2:N9,TRUE,TRUE),2,2)",
+                  "57.815482940952634",
+                  "57.81548290049495"
+                ],
+                [
+                  "G306",
+                  "INDEX(LOGEST(X2:X9,M2:N9,TRUE,TRUE),2,3)",
+                  "4.086699975820984E-3",
+                  "0.004086699072959671"
+                ],
+                [
+                  "G308",
+                  "INDEX(LOGEST(X2:X9,M2:N9,TRUE,TRUE),3,2)",
+                  "5.0024555561295203E-3",
+                  "0.005002455552619725"
+                ],
+                [
+                  "G310",
+                  "INDEX(LOGEST(X2:X9,M2:N9,TRUE,TRUE),4,1)",
+                  "115645.44282664562",
+                  "115645.44298892615"
+                ],
+                [
+                  "G486",
+                  "INDEX(TREND(W2:W9,Q2:R9,Q4:R7,TRUE),1,1)",
+                  "82.60101318359375",
+                  "82.60101564380265"
+                ],
+                [
+                  "G487",
+                  "INDEX(TREND(W2:W9,Q2:R9,Q4:R7,TRUE),2,1)",
+                  "57.0611572265625",
+                  "57.06116726835137"
+                ],
+                [
+                  "G488",
+                  "INDEX(TREND(W2:W9,Q2:R9,Q4:R7,TRUE),3,1)",
+                  "27.628067016601562",
+                  "27.628078820697937"
+                ],
+                [
+                  "G489",
+                  "INDEX(TREND(W2:W9,Q2:R9,Q4:R7,TRUE),4,1)",
+                  "119.12353515625",
+                  "119.12354572803851"
+                ],
+                [
+                  "G614",
+                  "INDEX(LINEST(V2:V9,J2:J9,TRUE,TRUE),4,1)",
+                  "1.6081053328609539E+32",
+                  "1.731805743081027E32"
+                ],
+                [
+                  "G657",
+                  "INDEX(LINEST(V2:V9,AB2:AC9,TRUE,TRUE),4,1)",
+                  "1.6081053328609539E+32",
+                  "1.731805743081027E32"
+                ]
+              ]
+            },
+            "arrayExtents": {
+              "AH2": "AH2:AJ6",
+              "AL2": "AL2:AN6",
+              "AP2": "AP2:AP5",
+              "AR2": "AR2:AU2"
+            },
+            "arrayCellsChecked": 38
+          },
+          "bothGenerationsRecalculatedBothWriters": true,
+          "rawDifferenceCount": {
+            "baseline": 200,
+            "candidate": 17
+          },
+          "differenceCountWithConditioningBounds": {
+            "baseline": 190,
+            "candidate": 0
+          },
+          "functionObservations": {
+            "LINEST": 379,
+            "LOGEST": 379,
+            "TREND": 84,
+            "GROWTH": 84
+          },
+          "strictDifferencesByType": [
+            [
+              "G562",
+              "INDEX(GROWTH(X2:X9,M2:N9,M4:N7,TRUE),1,1)",
+              "#NUM!"
+            ],
+            [
+              "G563",
+              "INDEX(GROWTH(X2:X9,M2:N9,M4:N7,TRUE),2,1)",
+              "#NUM!"
+            ],
+            [
+              "G564",
+              "INDEX(GROWTH(X2:X9,M2:N9,M4:N7,TRUE),3,1)",
+              "#NUM!"
+            ],
+            [
+              "G565",
+              "INDEX(GROWTH(X2:X9,M2:N9,M4:N7,TRUE),4,1)",
+              "#NUM!"
+            ]
+          ]
+        }
+      },
+      "native": {
+        "changedCells": 483,
+        "checkedPerState": 496,
+        "states": 5,
+        "savedTypedCaches": 926,
+        "undoRedoAndFreshReopen": true,
+        "originalUnchanged": true
+      },
+      "product": {
+        "passed": 1497,
+        "failed": 0,
+        "ignored": 1
+      },
+      "strictClippy": "joysheet-functions --all-targets -- -D warnings",
+      "business": [
+        {
+          "sourceSha256": "521576e13e1ced708e2f7efac270da864053d9b05ce6216831970f3fa9fdc126",
+          "originalFormulaCells": 0,
+          "derivedFormulaCells": 916
+        },
+        {
+          "sourceSha256": "7034ab68c7c22f09a07114767d912c4bf8e87849d35e03bb76c15e9ef25e984d",
+          "originalFormulaCells": 0,
+          "derivedFormulaCells": 16
+        }
+      ],
+      "registryTimings": {
+        "LINEST-128": {
+          "baseline": [
+            7265.32,
+            4333.587,
+            4365.898,
+            4356.583,
+            4427.285,
+            4557.373,
+            5726.26,
+            4407.5,
+            4301.33,
+            4334.917,
+            4407.123
+          ],
+          "candidate": [
+            1962.435,
+            2020.59,
+            1998.6,
+            2013.527,
+            3507.682,
+            1980.243,
+            1985.553,
+            1995.092,
+            1984.675,
+            1997.023,
+            2007.19
+          ],
+          "repetitions": 400,
+          "baselineMedianNs": 4407.123,
+          "candidateMedianNs": 1997.023
+        },
+        "LOGEST-128": {
+          "baseline": [
+            7733.65,
+            4531.403,
+            4645.91,
+            4586.203,
+            4699.932,
+            4596.67,
+            4614.328,
+            7205.035,
+            4564.962,
+            4579.815,
+            4644.682
+          ],
+          "candidate": [
+            2238.915,
+            2239.867,
+            2301.977,
+            2261.28,
+            3303.983,
+            2254.97,
+            2242.42,
+            2732.565,
+            2248.782,
+            2252.037,
+            2286.177
+          ],
+          "repetitions": 400,
+          "baselineMedianNs": 4614.328,
+          "candidateMedianNs": 2254.97
+        },
+        "TREND-128": {
+          "baseline": [
+            7160.278,
+            4154.262,
+            4179.36,
+            4167.188,
+            4182.065,
+            4213.245,
+            4177.578,
+            4281.52,
+            6068.46,
+            4232.83,
+            4190.528
+          ],
+          "candidate": [
+            1736.297,
+            1731.263,
+            1740.73,
+            1753.352,
+            1743.26,
+            1780.0,
+            1782.608,
+            2852.66,
+            1743.76,
+            1744.61,
+            1746.89
+          ],
+          "repetitions": 400,
+          "baselineMedianNs": 4190.528,
+          "candidateMedianNs": 1744.61
+        },
+        "GROWTH-128": {
+          "baseline": [
+            8933.04,
+            4458.342,
+            4506.405,
+            4526.943,
+            4461.873,
+            4479.155,
+            4472.72,
+            4563.057,
+            4468.385,
+            6249.288,
+            4648.14
+          ],
+          "candidate": [
+            2026.775,
+            2037.372,
+            2062.718,
+            2095.102,
+            2033.013,
+            2027.503,
+            4880.637,
+            2313.677,
+            2063.92,
+            2041.38,
+            2025.4
+          ],
+          "repetitions": 400,
+          "baselineMedianNs": 4506.405,
+          "candidateMedianNs": 2041.38
+        },
+        "LINEST-16384": {
+          "baseline": [
+            607553.375,
+            821863.5,
+            740260.75,
+            704655.75,
+            621245.875,
+            617355.0,
+            613143.5,
+            616219.125,
+            653814.125,
+            611967.625,
+            657681.125
+          ],
+          "candidate": [
+            285155.875,
+            282564.875,
+            289327.125,
+            295966.75,
+            298140.75,
+            296210.875,
+            291443.625,
+            307882.375,
+            372794.5,
+            384576.125,
+            288337.875
+          ],
+          "repetitions": 8,
+          "baselineMedianNs": 621245.875,
+          "candidateMedianNs": 295966.75
+        },
+        "LOGEST-16384": {
+          "baseline": [
+            630658.125,
+            638764.125,
+            640740.25,
+            641452.75,
+            778063.5,
+            802037.375,
+            826444.375,
+            721688.125,
+            635096.125,
+            634853.25,
+            645251.0
+          ],
+          "candidate": [
+            365530.0,
+            458796.75,
+            322021.875,
+            327066.125,
+            324913.375,
+            327021.0,
+            318872.375,
+            329808.625,
+            324537.625,
+            327505.625,
+            358872.875
+          ],
+          "repetitions": 8,
+          "baselineMedianNs": 641452.75,
+          "candidateMedianNs": 327066.125
+        },
+        "TREND-16384": {
+          "baseline": [
+            579129.0,
+            542704.875,
+            473256.875,
+            475638.625,
+            479828.75,
+            480704.25,
+            474034.5,
+            481954.0,
+            644642.375,
+            571848.125,
+            600971.375
+          ],
+          "candidate": [
+            339011.625,
+            266280.0,
+            307238.625,
+            321429.625,
+            273701.125,
+            270246.125,
+            269440.875,
+            274689.125,
+            269543.5,
+            268085.875,
+            270431.375
+          ],
+          "repetitions": 8,
+          "baselineMedianNs": 481954.0,
+          "candidateMedianNs": 270431.375
+        },
+        "GROWTH-16384": {
+          "baseline": [
+            505142.5,
+            513923.625,
+            615988.75,
+            509590.75,
+            513987.375,
+            514464.625,
+            508486.125,
+            510120.5,
+            509169.875,
+            513105.875,
+            512764.0
+          ],
+          "candidate": [
+            301975.25,
+            309524.125,
+            306337.0,
+            308375.75,
+            306453.5,
+            315436.125,
+            302386.0,
+            308366.875,
+            306832.875,
+            301794.875,
+            301167.625
+          ],
+          "repetitions": 8,
+          "baselineMedianNs": 512764.0,
+          "candidateMedianNs": 306453.5
+        }
+      },
+      "spdx": {
+        "target": "x86_64-unknown-linux-gnu",
+        "packages": 556,
+        "sourceFiles": 1253,
+        "spdxSha256": "a3b147a3d6a28a4654a50dfefa0884ad004858a7b6a4c8a8056827665b4abb7b",
+        "missingLicenseTexts": [],
+        "sharedCrates": [
+          "joyoffice-cfb",
+          "joyoffice-drawingml",
+          "joyoffice-omml",
+          "joyoffice-opc",
+          "joyoffice-theme",
+          "joyoffice-ui"
+        ],
+        "runtimeLegacyDependencies": []
+      }
+    }
+  }
+}

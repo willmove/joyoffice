@@ -9,6 +9,7 @@ use crate::{Arg, Ctx, FnSpec, VAR};
 
 mod descriptive;
 mod distributions;
+mod least_squares;
 mod paired;
 mod regression;
 mod spread;
