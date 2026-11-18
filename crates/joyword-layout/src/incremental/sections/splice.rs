@@ -13,11 +13,17 @@ impl Previous {
         if old.len().max(new.len()) > 256 {
             return None;
         }
-        // Section breaks, numbered lists and story anchors carry state beyond
-        // their paragraph. Only unchanged blocks may carry them across a splice.
+        // Only body paragraphs without independent list, frame or note state may
+        // change. Unchanged tables and other paragraphs between two anchors stay shared.
         let suitable = |block: &Arc<joyword_model::Block>| {
             block.as_para().is_some_and(|p| {
-                plain_paragraph(doc, p) && doc.styles.resolve_para(&p.props).numbering.is_none()
+                let props = doc.styles.resolve_para(&p.props);
+                props.numbering.is_none()
+                    && props.frame.is_none()
+                    && props.drop_cap == 0
+                    && p.objects
+                        .iter()
+                        .all(|o| o.is_drawing() && supported_body_object(o))
             })
         };
         let (before_span, after_span) = (self.body.get(old.clone())?, doc.body.get(new.clone())?);
@@ -42,6 +48,36 @@ impl Previous {
         } else if !before_edits.iter().chain(after_edits).all(suitable) {
             return None;
         }
+        let drawings = |span: &[Arc<joyword_model::Block>]| {
+            span.iter()
+                .filter_map(|b| b.as_para())
+                .flat_map(|p| &p.objects)
+                .filter(|o| o.is_drawing())
+                .count()
+        };
+        if drawings(before_edits) != drawings(after_edits) {
+            return None;
+        }
+        let sections = |span: &[Arc<joyword_model::Block>]| {
+            span.iter()
+                .filter_map(|b| b.as_para()?.section.clone())
+                .collect::<Vec<_>>()
+        };
+        let (old_marks, new_marks) = (sections(before_edits), sections(after_edits));
+        let section_change = old_marks != new_marks;
+        let section_delta = isize::try_from(new_marks.len())
+            .ok()?
+            .checked_sub(isize::try_from(old_marks.len()).ok()?)?;
+        if section_change
+            && (!self.list_starts.is_empty()
+                || self.endnotes.is_some()
+                || self.body_fields
+                || self.page_stories)
+        {
+            // Their entering counters, fields or linked stories depend on the old
+            // section ordinal. Full pagination rebuilds those global summaries.
+            return None;
+        }
         for (typing, span) in [
             (self.options.typing_word, before_span),
             (opts.typing_word, after_span),
@@ -58,11 +94,35 @@ impl Previous {
         let mut before = doc.clone();
         before.body.clone_from(&self.body);
         let anchor = old.start.min(before.body.len().checked_sub(1)?);
-        let mut window = Window::candidates(&before, &current, anchor)
-            .find(|w| old.start >= w.blocks.start && old.end <= w.blocks.end)?;
-        if !self.independent_window(&mut window, &before, &self.options, &current) {
-            return None;
-        }
+        let delta = isize::try_from(new.len())
+            .ok()?
+            .checked_sub(isize::try_from(old.len()).ok()?)?;
+        let mut window = Window::candidates(&before, &current, anchor).find_map(|mut w| {
+            if old.start < w.blocks.start || old.end > w.blocks.end {
+                return None;
+            }
+            if section_change {
+                // The leading checkpoint precedes every changed start type. The unchanged
+                // successor must start on the same body block in the edited document.
+                let old_sections = before.sections();
+                let new_sections = doc.sections();
+                if old_sections.get(w.first_section)?.1 != new_sections.get(w.first_section)?.1 {
+                    return None;
+                }
+                if let Some(next) = w.next_section {
+                    let new_next = next.checked_add_signed(section_delta)?;
+                    let last = new_next.checked_sub(1)?;
+                    if new_sections.get(last)?.0.checked_add(1)?
+                        != w.blocks.end.checked_add_signed(delta)?
+                        || old_sections.get(next)?.1 != new_sections.get(new_next)?.1
+                    {
+                        return None;
+                    }
+                }
+            }
+            self.independent_window(&mut w, &before, &self.options, &current)
+                .then_some(w)
+        })?;
         let (cache, prior_fields) = match self.checked_section.take() {
             Some(previous) if previous.blocks == window.blocks => {
                 (previous.layout, previous.field_layouts)
@@ -73,21 +133,24 @@ impl Previous {
                 (cache, BTreeMap::new())
             }
         };
-        let delta = isize::try_from(new.len())
-            .ok()?
-            .checked_sub(isize::try_from(old.len()).ok()?)?;
         window.blocks.end = window.blocks.end.checked_add_signed(delta)?;
+        if let Some(next) = &mut window.next_section {
+            *next = next.checked_add_signed(section_delta)?;
+        }
         if window.blocks.len() > 256 {
             return None;
         }
 
         // The checked exit uses the next real body paragraph. Rebase its
         // absolute path, all later hit targets, and floating-table anchors.
-        let aligned = if delta == 0 {
+        let aligned = if delta == 0 && section_delta == 0 {
             Arc::clone(&current)
         } else {
             let mut pages = current.pages.clone();
             let from = u32::try_from(old.end).ok()?;
+            for page in &mut pages[window.pages.end..] {
+                page.section = page.section.checked_add_signed(section_delta)?;
+            }
             for page in &mut pages[window.pages.start..] {
                 if page.first_block >= old.end {
                     page.first_block = page.first_block.checked_add_signed(delta)?;
@@ -118,6 +181,8 @@ impl Previous {
         // Subsequent field checks use the new coordinates. Their unchanged
         // body blocks are shared with the original; the edit itself was replayed above.
         self.body.clone_from(&doc.body);
+        self.section_context |= section_change;
+        self.requires_section_flow |= section_change;
         if !self.boxes.is_empty() {
             self.boxes = box_anchors(doc)?;
         }
@@ -149,7 +214,7 @@ impl Previous {
         };
         let mut next = self.reflow_window(&mut pass, window)?;
         let (_, dirty) = next.page_patch.as_mut()?;
-        if delta != 0 {
+        if delta != 0 || section_delta != 0 {
             dirty.end = next.pages.len().max(current.pages.len());
         }
         next.page_patch = Some((Arc::downgrade(&current), dirty.clone()));

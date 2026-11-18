@@ -565,6 +565,11 @@ impl Previous {
                 .map(|layout| (Change::Body(block), layout));
         }
         let (before, after) = (before.as_para()?, after.as_para()?);
+        if before.section != after.section || before.objects != after.objects {
+            return self
+                .reflow_splice(doc, opts, old, new)
+                .map(|layout| (Change::Structural, layout));
+        }
         if self
             .options
             .typing_word
@@ -576,12 +581,7 @@ impl Previous {
 
         let current = self.layout.upgrade()?;
         if self.requires_section_flow || self.page_stories || !ordinary_edit(before, after) {
-            if before.props != after.props
-                || before.section != after.section
-                || before.mark != after.mark
-                || before.objects != after.objects
-                || !self.section_context
-            {
+            if before.props != after.props || before.mark != after.mark || !self.section_context {
                 return None;
             }
             return self

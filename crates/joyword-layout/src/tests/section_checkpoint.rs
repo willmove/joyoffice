@@ -1132,3 +1132,88 @@ fn splitting_merging_and_replacing_paragraphs_rebases_reused_pages_and_cell_hits
     );
     Ok(())
 }
+
+#[test]
+fn changed_section_boundaries_and_reanchored_drawings_match_full_pages()
+-> Result<(), Box<dyn std::error::Error>> {
+    use joyword_model::para::{Float, Wrap};
+    let mut doc = Document::new();
+    doc.body.clear();
+    let add =
+        |text: &str| joyword_model::para_block(Paragraph::with_text(text, Default::default()));
+    for n in 0..68 {
+        doc.body.extend([
+            add(&format!("Heading {n}")),
+            add("Before the break and after it"),
+            add("Drawing anchor"),
+            add("End"),
+        ]);
+        if n < 67 {
+            doc.para_mut(StoryRef::Body, &Path::top(n * 4 + 3))?.section =
+                Some(Box::new(doc.last_section.clone()));
+        }
+    }
+    let at = 34 * 4 + 1;
+    let shape = picture(
+        73.,
+        51.,
+        Float {
+            wrap: Wrap::Square,
+            ..Default::default()
+        },
+    );
+    doc.insert_object(&Pos::body(at + 1, 0), shape.clone(), &Default::default())?;
+    let mut anchor = doc.clone();
+    anchor.delete_range(
+        &Pos::body(at + 1, 0),
+        &Pos::body(at + 1, joyword_model::para::OBJ.len_utf8()),
+    )?;
+    anchor.insert_object(&Pos::body(at, 4), shape, &Default::default())?;
+    let mut cache = LayoutCache::new();
+    let opts = LayoutOptions::default();
+    let mut previous = layout_shared(&doc, &mut cache, &opts);
+    let mut verify = |state: &Document, label: &str| {
+        let next = layout_shared(state, &mut cache, &opts);
+        let full = layout(state, &mut LayoutCache::new(), &opts);
+        assert!(
+            next.changed_pages_from(&previous).is_some(),
+            "{label} required full pagination"
+        );
+        assert_eq!(next.index, full.index, "{label}");
+        assert_eq!(next.pages.len(), full.pages.len(), "{label}");
+        assert_eq!(next.text_boxes, full.text_boxes, "{label}");
+        for (i, (a, b)) in next.pages.iter().zip(&full.pages).enumerate() {
+            assert_eq!(format!("{a:?}"), format!("{b:?}"), "{label} page {i}");
+            assert_eq!(
+                next.hit(i, 95., 115., StoryRef::Body),
+                full.hit(i, 95., 115., StoryRef::Body)
+            );
+        }
+        previous = next;
+    };
+    verify(&anchor, "move anchor");
+    verify(&doc, "undo anchor");
+    verify(&anchor, "redo anchor");
+    verify(&doc, "restore anchor");
+    for start in [
+        SectionStart::NextPage,
+        SectionStart::Continuous,
+        SectionStart::OddPage,
+        SectionStart::EvenPage,
+    ] {
+        let mut split = doc.clone();
+        let next = split.split_paragraph(&Pos::body(at, 10))?;
+        split.para_mut(StoryRef::Body, &Path::top(at))?.section =
+            Some(Box::new(doc.last_section.clone()));
+        split.section_mut(next.path.last()).start = start;
+        verify(&split, &format!("insert {start:?}"));
+        verify(&doc, &format!("undo {start:?}"));
+        verify(&split, &format!("redo {start:?}"));
+        let mut removed = split.clone();
+        assert!(removed.remove_section_break(at));
+        verify(&removed, "remove boundary and keep both paragraphs");
+        verify(&split, "undo boundary removal");
+        verify(&doc, "restore paragraphs");
+    }
+    Ok(())
+}
