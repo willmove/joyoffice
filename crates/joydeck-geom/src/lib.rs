@@ -13,6 +13,8 @@
 )]
 #![forbid(unsafe_code)]
 
+mod hit;
+pub use hit::fill_winding;
 pub mod morph;
 pub mod preset;
 pub mod squircle;

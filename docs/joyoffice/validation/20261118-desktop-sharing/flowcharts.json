@@ -1,0 +1,557 @@
+{
+  "baselineCommit": "d26ab08a",
+  "galleryPresetsReplaced": 29,
+  "galleryTotalAfter": 50,
+  "galleryTotal": 183,
+  "macOS": {
+    "flowcharts": {
+      "definitionsSha256": "2f7c868d857c1e3c4b5a6068759fe0e07d77ad58377a6618d1b02ba3507b6939",
+      "shapes": [
+        "flowChartAlternateProcess",
+        "flowChartCollate",
+        "flowChartConnector",
+        "flowChartDecision",
+        "flowChartDelay",
+        "flowChartDisplay",
+        "flowChartDocument",
+        "flowChartExtract",
+        "flowChartInputOutput",
+        "flowChartInternalStorage",
+        "flowChartMagneticDisk",
+        "flowChartMagneticDrum",
+        "flowChartMagneticTape",
+        "flowChartManualInput",
+        "flowChartManualOperation",
+        "flowChartMerge",
+        "flowChartMultidocument",
+        "flowChartOfflineStorage",
+        "flowChartOffpageConnector",
+        "flowChartOnlineStorage",
+        "flowChartOr",
+        "flowChartPredefinedProcess",
+        "flowChartPreparation",
+        "flowChartProcess",
+        "flowChartPunchedCard",
+        "flowChartPunchedTape",
+        "flowChartSort",
+        "flowChartSummingJunction",
+        "flowChartTerminator"
+      ],
+      "renderers": [
+        "0f1317ae1448110c84444e1e7270a5819c7227fe4f9ca6da2f47613a95995bbc",
+        "e4f70d72c91f7546d80ec85f8e1e3b6be2ba71d8c87d12b8af667b89b462d7c0"
+      ],
+      "boards": {
+        "wide-outline": {
+          "size": [
+            960,
+            540
+          ],
+          "shapes": 29,
+          "rgbSha256": {
+            "old": "1ae710b414a9acd6c88520635133fb76cc0475ffe1b62a47a934b33940aa8d63",
+            "new": "0213713ec9b913f42f7160f4190c3a1a156725f05ef0c310dc9641064f3bda31",
+            "oldReopened": "1ae710b414a9acd6c88520635133fb76cc0475ffe1b62a47a934b33940aa8d63",
+            "newReopened": "0213713ec9b913f42f7160f4190c3a1a156725f05ef0c310dc9641064f3bda31"
+          },
+          "referenceSha256": "7382941cf4d8f4cf6ddb4798b8c116dd8d626aa1d019eb2133286d3d724e075b",
+          "referenceDifferentPixels": 260,
+          "referencePixelsBeyondRgbNeighborhood": 0,
+          "referencePaintPixelsBeyondOnePixel": 0,
+          "oldDifferentPixels": 676
+        },
+        "wide-text": {
+          "size": [
+            960,
+            540
+          ],
+          "shapes": 29,
+          "rgbSha256": {
+            "old": "4d80462ca06c422f490781105cbd2b0ea730727cf1799cc9ae10c7ec8e30db65",
+            "new": "eda17ee88a16a1a55944b45d1122c72caf6a561362a87ee825ad8138a4554dc8",
+            "oldReopened": "4d80462ca06c422f490781105cbd2b0ea730727cf1799cc9ae10c7ec8e30db65",
+            "newReopened": "eda17ee88a16a1a55944b45d1122c72caf6a561362a87ee825ad8138a4554dc8"
+          },
+          "referenceSha256": "31ef29465d52dab93537104e586c76904712c7daad4c9975b8b34fd3c14fcf8c",
+          "referenceDifferentPixels": 263,
+          "referencePixelsBeyondRgbNeighborhood": 0,
+          "referencePaintPixelsBeyondOnePixel": 0,
+          "oldDifferentPixels": 869
+        },
+        "tall-outline": {
+          "size": [
+            960,
+            540
+          ],
+          "shapes": 29,
+          "rgbSha256": {
+            "old": "89aafbf06e70c3f169873918c4d2e0a8e9b2c969326987cfb6d562c31012ee08",
+            "new": "cec2eaa1a8bf2641b42fba940b4358ea7ef41c7746d1a50da42c151d1ef2f123",
+            "oldReopened": "89aafbf06e70c3f169873918c4d2e0a8e9b2c969326987cfb6d562c31012ee08",
+            "newReopened": "cec2eaa1a8bf2641b42fba940b4358ea7ef41c7746d1a50da42c151d1ef2f123"
+          },
+          "referenceSha256": "91ebbfbe1cd5f71a200ef937d09c725d91b58bc414932fe5f83f8970ed003562",
+          "referenceDifferentPixels": 664,
+          "referencePixelsBeyondRgbNeighborhood": 4,
+          "referencePaintPixelsBeyondOnePixel": 0,
+          "oldDifferentPixels": 492
+        },
+        "tall-text": {
+          "size": [
+            960,
+            540
+          ],
+          "shapes": 29,
+          "rgbSha256": {
+            "old": "7a4051321994e9e763207e9a107052fa6e8c23e78bd3f25dd53f73473bbf577d",
+            "new": "eb8f619db218e70dde4a686d959b881bfe5524d45dcf3100218e6c42deee5604",
+            "oldReopened": "7a4051321994e9e763207e9a107052fa6e8c23e78bd3f25dd53f73473bbf577d",
+            "newReopened": "eb8f619db218e70dde4a686d959b881bfe5524d45dcf3100218e6c42deee5604"
+          },
+          "referenceSha256": "9df94d4620bfec86edc3d8651bde6f58aef715b98559674992cbb308c52e1d02",
+          "referenceDifferentPixels": 664,
+          "referencePixelsBeyondRgbNeighborhood": 4,
+          "referencePaintPixelsBeyondOnePixel": 0,
+          "oldDifferentPixels": 699
+        },
+        "square-outline": {
+          "size": [
+            960,
+            540
+          ],
+          "shapes": 29,
+          "rgbSha256": {
+            "old": "829aeb5f7b5c93d6b65bce11d31ed29fc56f727d6de377787191aae39cc47d84",
+            "new": "2c2943f8816ce43b834d708a8e3795ad7e2a7a5aef734d16b1767c7cdc8e63d1",
+            "oldReopened": "829aeb5f7b5c93d6b65bce11d31ed29fc56f727d6de377787191aae39cc47d84",
+            "newReopened": "2c2943f8816ce43b834d708a8e3795ad7e2a7a5aef734d16b1767c7cdc8e63d1"
+          },
+          "referenceSha256": "8efdff5f05bb5c2d37a7089a49ed368b1235a9b8ce074eca7f0de630d760e89d",
+          "referenceDifferentPixels": 231,
+          "referencePixelsBeyondRgbNeighborhood": 0,
+          "referencePaintPixelsBeyondOnePixel": 0,
+          "oldDifferentPixels": 571
+        },
+        "square-text": {
+          "size": [
+            960,
+            540
+          ],
+          "shapes": 29,
+          "rgbSha256": {
+            "old": "7b9a909f7c84ae6d27bc88bb68f5b25f79c3035ad78c508076c33d0eb02a48cc",
+            "new": "84dbed63c65e154b4466cc43c202eb5080bfb9a3942958c8eb063fb08b6e0430",
+            "oldReopened": "7b9a909f7c84ae6d27bc88bb68f5b25f79c3035ad78c508076c33d0eb02a48cc",
+            "newReopened": "84dbed63c65e154b4466cc43c202eb5080bfb9a3942958c8eb063fb08b6e0430"
+          },
+          "referenceSha256": "39271136f682ede9d22f1b26cdee0b54e56c919467f4452fc8234e7c63c7f6e6",
+          "referenceDifferentPixels": 233,
+          "referencePixelsBeyondRgbNeighborhood": 0,
+          "referencePaintPixelsBeyondOnePixel": 0,
+          "oldDifferentPixels": 766
+        }
+      },
+      "native": {
+        "binarySha256": "53b925d74fbe7ca77a5d1f822f4fff0bf2efef436b7c9d64611a6903a8160b1a",
+        "shapes": 29,
+        "resized": "flowChartDocument",
+        "before": {
+          "x": 13.385826771653543,
+          "y": 132.28346456692913,
+          "w": 133.85826771653544,
+          "h": 53.54330708661417
+        },
+        "after": {
+          "x": 18.38582677165354,
+          "y": 135.28346456692913,
+          "w": 150.85826771653544,
+          "h": 62.54330708661417
+        },
+        "undoRedo": true,
+        "savedAndReopened": true,
+        "sourceUnchanged": true
+      }
+    },
+    "connectorRegression": {
+      "gallery": {
+        "shapeInstances": 30,
+        "presets": [
+          "line",
+          "lineInv",
+          "straightConnector1",
+          "bentConnector2",
+          "bentConnector3",
+          "curvedConnector3"
+        ],
+        "adjustments": [
+          null,
+          0,
+          50000,
+          100000,
+          [
+            20000,
+            75000,
+            35000
+          ]
+        ],
+        "pptxParametersPreserved": true,
+        "imageSize": [
+          960,
+          540
+        ],
+        "changedPixelsFromPreviousRenderer": 0,
+        "rgbSha256": [
+          "dac8ad9b66467e73571357e55e6a47c3f659b14333231aca7aebb7875dbd4653",
+          "dac8ad9b66467e73571357e55e6a47c3f659b14333231aca7aebb7875dbd4653",
+          "dac8ad9b66467e73571357e55e6a47c3f659b14333231aca7aebb7875dbd4653",
+          "dac8ad9b66467e73571357e55e6a47c3f659b14333231aca7aebb7875dbd4653"
+        ],
+        "bothVersionsReopenedRegeneratedFile": true,
+        "presentationObject": "p:cxnSp",
+        "referenceRgbSha256": "dac8ad9b66467e73571357e55e6a47c3f659b14333231aca7aebb7875dbd4653",
+        "changedPixelsFromPublishedGuides": 0,
+        "definitionsSha256": "2f7c868d857c1e3c4b5a6068759fe0e07d77ad58377a6618d1b02ba3507b6939"
+      },
+      "file": {
+        "shapeInstances": 25,
+        "presets": [
+          "curvedConnector2",
+          "bentConnector4",
+          "curvedConnector4",
+          "bentConnector5",
+          "curvedConnector5"
+        ],
+        "adjustments": [
+          null,
+          0,
+          50000,
+          100000,
+          [
+            20000,
+            75000,
+            35000
+          ]
+        ],
+        "pptxParametersPreserved": true,
+        "imageSize": [
+          960,
+          540
+        ],
+        "changedPixelsFromPreviousRenderer": 0,
+        "rgbSha256": [
+          "1816c18927fa66c6b406e96f59143f933e5850eda5e9c1e05a1a42863a7c5cea",
+          "1816c18927fa66c6b406e96f59143f933e5850eda5e9c1e05a1a42863a7c5cea",
+          "1816c18927fa66c6b406e96f59143f933e5850eda5e9c1e05a1a42863a7c5cea",
+          "1816c18927fa66c6b406e96f59143f933e5850eda5e9c1e05a1a42863a7c5cea"
+        ],
+        "bothVersionsReopenedRegeneratedFile": true,
+        "presentationObject": "p:cxnSp",
+        "referenceRgbSha256": "1816c18927fa66c6b406e96f59143f933e5850eda5e9c1e05a1a42863a7c5cea",
+        "changedPixelsFromPublishedGuides": 0,
+        "definitionsSha256": "2f7c868d857c1e3c4b5a6068759fe0e07d77ad58377a6618d1b02ba3507b6939"
+      }
+    },
+    "gates": {
+      "desktop": {
+        "exit": 0,
+        "logSha256": "25bc072bc6b65ace78275de60843a4de06fedee3f2cc373a7c2d9de11d003896"
+      },
+      "ui": {
+        "exit": 0,
+        "logSha256": "189276e482cdd063b6253cc110745a5e8df92f03425c7241d3f897d1c24ae284",
+        "passed": 76,
+        "failed": 0,
+        "ignored": 0
+      },
+      "joydeck": {
+        "exit": 0,
+        "logSha256": "22e94b02a89d99f928efa20822c29346b517a9c2828b2b76e4e8f1b6018557d5",
+        "passed": 1001,
+        "failed": 0,
+        "ignored": 0
+      }
+    }
+  },
+  "UOS": {
+    "flowcharts": {
+      "definitionsSha256": "2f7c868d857c1e3c4b5a6068759fe0e07d77ad58377a6618d1b02ba3507b6939",
+      "shapes": [
+        "flowChartAlternateProcess",
+        "flowChartCollate",
+        "flowChartConnector",
+        "flowChartDecision",
+        "flowChartDelay",
+        "flowChartDisplay",
+        "flowChartDocument",
+        "flowChartExtract",
+        "flowChartInputOutput",
+        "flowChartInternalStorage",
+        "flowChartMagneticDisk",
+        "flowChartMagneticDrum",
+        "flowChartMagneticTape",
+        "flowChartManualInput",
+        "flowChartManualOperation",
+        "flowChartMerge",
+        "flowChartMultidocument",
+        "flowChartOfflineStorage",
+        "flowChartOffpageConnector",
+        "flowChartOnlineStorage",
+        "flowChartOr",
+        "flowChartPredefinedProcess",
+        "flowChartPreparation",
+        "flowChartProcess",
+        "flowChartPunchedCard",
+        "flowChartPunchedTape",
+        "flowChartSort",
+        "flowChartSummingJunction",
+        "flowChartTerminator"
+      ],
+      "renderers": [
+        "d18729afb2659a78c6a20104c0d1e3aea7be0b5a9b1474da5e1a99278f1428ff",
+        "7714d92cda9a791e4a34b2ee187cbe03de1296e0cdd935b79d7c449e5305ba32"
+      ],
+      "boards": {
+        "wide-outline": {
+          "size": [
+            960,
+            540
+          ],
+          "shapes": 29,
+          "rgbSha256": {
+            "old": "1ae710b414a9acd6c88520635133fb76cc0475ffe1b62a47a934b33940aa8d63",
+            "new": "0213713ec9b913f42f7160f4190c3a1a156725f05ef0c310dc9641064f3bda31",
+            "oldReopened": "1ae710b414a9acd6c88520635133fb76cc0475ffe1b62a47a934b33940aa8d63",
+            "newReopened": "0213713ec9b913f42f7160f4190c3a1a156725f05ef0c310dc9641064f3bda31"
+          },
+          "referenceSha256": "7382941cf4d8f4cf6ddb4798b8c116dd8d626aa1d019eb2133286d3d724e075b",
+          "referenceDifferentPixels": 260,
+          "referencePixelsBeyondRgbNeighborhood": 0,
+          "referencePaintPixelsBeyondOnePixel": 0,
+          "oldDifferentPixels": 676
+        },
+        "wide-text": {
+          "size": [
+            960,
+            540
+          ],
+          "shapes": 29,
+          "rgbSha256": {
+            "old": "14a28e5fb3c4f8df46e9c626d4f04a756a40ebbce65a512b4bf8ff27b5a6304f",
+            "new": "bbacee27de26ec5a8906a8372dcd8e5a83a9d6706cefb2f1f822fd37e00407ed",
+            "oldReopened": "14a28e5fb3c4f8df46e9c626d4f04a756a40ebbce65a512b4bf8ff27b5a6304f",
+            "newReopened": "bbacee27de26ec5a8906a8372dcd8e5a83a9d6706cefb2f1f822fd37e00407ed"
+          },
+          "referenceSha256": "b1fabbd308a300365358bcc68c53e8ee664f70334cf97c444db6a814b7a84d93",
+          "referenceDifferentPixels": 264,
+          "referencePixelsBeyondRgbNeighborhood": 0,
+          "referencePaintPixelsBeyondOnePixel": 0,
+          "oldDifferentPixels": 899
+        },
+        "tall-outline": {
+          "size": [
+            960,
+            540
+          ],
+          "shapes": 29,
+          "rgbSha256": {
+            "old": "89aafbf06e70c3f169873918c4d2e0a8e9b2c969326987cfb6d562c31012ee08",
+            "new": "cec2eaa1a8bf2641b42fba940b4358ea7ef41c7746d1a50da42c151d1ef2f123",
+            "oldReopened": "89aafbf06e70c3f169873918c4d2e0a8e9b2c969326987cfb6d562c31012ee08",
+            "newReopened": "cec2eaa1a8bf2641b42fba940b4358ea7ef41c7746d1a50da42c151d1ef2f123"
+          },
+          "referenceSha256": "91ebbfbe1cd5f71a200ef937d09c725d91b58bc414932fe5f83f8970ed003562",
+          "referenceDifferentPixels": 664,
+          "referencePixelsBeyondRgbNeighborhood": 4,
+          "referencePaintPixelsBeyondOnePixel": 0,
+          "oldDifferentPixels": 492
+        },
+        "tall-text": {
+          "size": [
+            960,
+            540
+          ],
+          "shapes": 29,
+          "rgbSha256": {
+            "old": "4d0fee12bea2537d423191509ff2fd9ad6b3a647f333a686613be220ade569ff",
+            "new": "0f54baad5ce22729fc57f33c768776c3773da649be913b51a75a1e546662e571",
+            "oldReopened": "4d0fee12bea2537d423191509ff2fd9ad6b3a647f333a686613be220ade569ff",
+            "newReopened": "0f54baad5ce22729fc57f33c768776c3773da649be913b51a75a1e546662e571"
+          },
+          "referenceSha256": "e369c73d31b5c4eefc6cbb1f076bf8e9133e0be42d9b95ad7d5270407e4f1269",
+          "referenceDifferentPixels": 664,
+          "referencePixelsBeyondRgbNeighborhood": 4,
+          "referencePaintPixelsBeyondOnePixel": 0,
+          "oldDifferentPixels": 725
+        },
+        "square-outline": {
+          "size": [
+            960,
+            540
+          ],
+          "shapes": 29,
+          "rgbSha256": {
+            "old": "829aeb5f7b5c93d6b65bce11d31ed29fc56f727d6de377787191aae39cc47d84",
+            "new": "2c2943f8816ce43b834d708a8e3795ad7e2a7a5aef734d16b1767c7cdc8e63d1",
+            "oldReopened": "829aeb5f7b5c93d6b65bce11d31ed29fc56f727d6de377787191aae39cc47d84",
+            "newReopened": "2c2943f8816ce43b834d708a8e3795ad7e2a7a5aef734d16b1767c7cdc8e63d1"
+          },
+          "referenceSha256": "8efdff5f05bb5c2d37a7089a49ed368b1235a9b8ce074eca7f0de630d760e89d",
+          "referenceDifferentPixels": 231,
+          "referencePixelsBeyondRgbNeighborhood": 0,
+          "referencePaintPixelsBeyondOnePixel": 0,
+          "oldDifferentPixels": 571
+        },
+        "square-text": {
+          "size": [
+            960,
+            540
+          ],
+          "shapes": 29,
+          "rgbSha256": {
+            "old": "1d6c09ec26439f475fd6485f814856a79da5c9cb815a2dbc050d2cbd4a15a89e",
+            "new": "6f229d14d278ee49692fe0d46a8aa06ed0ac7aded88601b6caa0ff8032f55382",
+            "oldReopened": "1d6c09ec26439f475fd6485f814856a79da5c9cb815a2dbc050d2cbd4a15a89e",
+            "newReopened": "6f229d14d278ee49692fe0d46a8aa06ed0ac7aded88601b6caa0ff8032f55382"
+          },
+          "referenceSha256": "ba99a0630ab03d4905e56705d922576d210f4554509ca5c28282159b6ef203b0",
+          "referenceDifferentPixels": 233,
+          "referencePixelsBeyondRgbNeighborhood": 0,
+          "referencePaintPixelsBeyondOnePixel": 0,
+          "oldDifferentPixels": 803
+        }
+      },
+      "native": {
+        "binarySha256": "a0c0e4bbb4d84aeb942530f9d4e858b3f6d273f094623d9f38f0cc96a360a94c",
+        "shapes": 29,
+        "resized": "flowChartDocument",
+        "before": {
+          "x": 13.385826771653543,
+          "y": 132.28346456692913,
+          "w": 133.85826771653544,
+          "h": 53.54330708661417
+        },
+        "after": {
+          "x": 18.38582677165354,
+          "y": 135.28346456692913,
+          "w": 150.85826771653544,
+          "h": 62.54330708661417
+        },
+        "undoRedo": true,
+        "savedAndReopened": true,
+        "sourceUnchanged": true
+      }
+    },
+    "connectorRegression": {
+      "gallery": {
+        "shapeInstances": 30,
+        "presets": [
+          "line",
+          "lineInv",
+          "straightConnector1",
+          "bentConnector2",
+          "bentConnector3",
+          "curvedConnector3"
+        ],
+        "adjustments": [
+          null,
+          0,
+          50000,
+          100000,
+          [
+            20000,
+            75000,
+            35000
+          ]
+        ],
+        "pptxParametersPreserved": true,
+        "imageSize": [
+          960,
+          540
+        ],
+        "changedPixelsFromPreviousRenderer": 0,
+        "rgbSha256": [
+          "dac8ad9b66467e73571357e55e6a47c3f659b14333231aca7aebb7875dbd4653",
+          "dac8ad9b66467e73571357e55e6a47c3f659b14333231aca7aebb7875dbd4653",
+          "dac8ad9b66467e73571357e55e6a47c3f659b14333231aca7aebb7875dbd4653",
+          "dac8ad9b66467e73571357e55e6a47c3f659b14333231aca7aebb7875dbd4653"
+        ],
+        "bothVersionsReopenedRegeneratedFile": true,
+        "presentationObject": "p:cxnSp",
+        "referenceRgbSha256": "dac8ad9b66467e73571357e55e6a47c3f659b14333231aca7aebb7875dbd4653",
+        "changedPixelsFromPublishedGuides": 0,
+        "definitionsSha256": "2f7c868d857c1e3c4b5a6068759fe0e07d77ad58377a6618d1b02ba3507b6939"
+      },
+      "file": {
+        "shapeInstances": 25,
+        "presets": [
+          "curvedConnector2",
+          "bentConnector4",
+          "curvedConnector4",
+          "bentConnector5",
+          "curvedConnector5"
+        ],
+        "adjustments": [
+          null,
+          0,
+          50000,
+          100000,
+          [
+            20000,
+            75000,
+            35000
+          ]
+        ],
+        "pptxParametersPreserved": true,
+        "imageSize": [
+          960,
+          540
+        ],
+        "changedPixelsFromPreviousRenderer": 0,
+        "rgbSha256": [
+          "1816c18927fa66c6b406e96f59143f933e5850eda5e9c1e05a1a42863a7c5cea",
+          "1816c18927fa66c6b406e96f59143f933e5850eda5e9c1e05a1a42863a7c5cea",
+          "1816c18927fa66c6b406e96f59143f933e5850eda5e9c1e05a1a42863a7c5cea",
+          "1816c18927fa66c6b406e96f59143f933e5850eda5e9c1e05a1a42863a7c5cea"
+        ],
+        "bothVersionsReopenedRegeneratedFile": true,
+        "presentationObject": "p:cxnSp",
+        "referenceRgbSha256": "1816c18927fa66c6b406e96f59143f933e5850eda5e9c1e05a1a42863a7c5cea",
+        "changedPixelsFromPublishedGuides": 0,
+        "definitionsSha256": "2f7c868d857c1e3c4b5a6068759fe0e07d77ad58377a6618d1b02ba3507b6939"
+      }
+    },
+    "gates": {
+      "desktop": {
+        "exit": 0,
+        "logSha256": "92715f710e7ef69d717e747a8ecefce14fccd849fb3e18685b9d451cda4f40b3"
+      },
+      "ui": {
+        "exit": 0,
+        "logSha256": "1072aeda6068b17c7d33039446968c167cd2980c49d0edad4e1f0d3af70047b2",
+        "passed": 80,
+        "failed": 0,
+        "ignored": 0
+      },
+      "joydeck": {
+        "exit": 0,
+        "logSha256": "57e5403658754415f0ef2b5c58729b769758eaa9b78b8b30add16c67213c08c4",
+        "passed": 1006,
+        "failed": 0,
+        "ignored": 0
+      }
+    }
+  },
+  "expectedGeometryCases": 87,
+  "pointer": {
+    "aspectRatioCases": 87,
+    "solidFillSamples": 4984,
+    "backgroundSamples": 947,
+    "antiAliasedOrStrokeSamplesExcluded": 1116,
+    "rotationDegrees": [
+      0,
+      37
+    ],
+    "additionalExteriorSamples": 348,
+    "assertedResultsPerPlatform": 12210
+  }
+}

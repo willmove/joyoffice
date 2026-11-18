@@ -103,7 +103,7 @@ pub(super) fn rectangle(name: &str, w: f64, h: f64, first: f64, second: f64) -> 
     };
     let round_inset = |radius: f64| radius * 29_289. / 100_000.;
     let (corners, text, controls) = match name {
-        "rect" | "textBox" | "flowChartProcess" => ([Square; 4], full, vec![]),
+        "rect" | "textBox" => ([Square; 4], full, vec![]),
         "roundRect" => (
             [Round(a); 4],
             full.inset(-round_inset(a)),

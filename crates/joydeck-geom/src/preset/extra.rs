@@ -45,21 +45,6 @@ pub(super) fn build(name: &str, w: f64, h: f64, a: &dyn Fn(usize) -> f64) -> Opt
             b.m(0.0, h).arc(w, h, 180.0, 90.0).l(w, h).z();
             simple(b.take(), Rect::new(w * 0.29289, h * 0.29289, w, h), w, h)
         }
-        "flowChartOfflineStorage" => {
-            let tri = b.poly(&[(0.0, 0.0), (w, 0.0), (w / 2.0, h)]).take();
-            let bar = Pb::new().m(w * 0.4, h * 0.8).l(w * 0.6, h * 0.8).take();
-            Geometry {
-                paths: vec![fill(tri), stroke_only(bar)],
-                text_rect: Rect::new(w / 4.0, 0.0, w * 0.75, h * 0.8),
-                handles: vec![],
-                sites: vec![
-                    Point::new(w / 2.0, 0.0),
-                    Point::new(w / 4.0, h / 2.0),
-                    Point::new(w / 2.0, h),
-                    Point::new(w * 0.75, h / 2.0),
-                ],
-            }
-        }
         "chartX" | "chartStar" | "chartPlus" => {
             let body = corner_rect(w, h, [Corner::Square; 4]);
             let mut l = Pb::new();

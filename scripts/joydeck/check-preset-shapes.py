@@ -72,7 +72,7 @@ def presets(path):
             for shape in slide.findall(".//{*}spTree/*") if (geo := shape.find(".//{*}prstGeom")) is not None}
 
 
-def make_connector_reference(source, output, definitions):
+def make_geometry_reference(source, output, definitions, connectors=True):
     # Render the unmodified ECMA guide equations as custom geometry in the previous CLI,
     # independent of both versions' preset generators.
     spec = ET.parse(definitions).getroot()
@@ -81,7 +81,8 @@ def make_connector_reference(source, output, definitions):
             data = src.read(name)
             if name == "ppt/slides/slide1.xml":
                 slide = ET.fromstring(data)
-                for props in slide.findall(".//{*}cxnSp/{*}spPr"):
+                elements = ".//{*}cxnSp/{*}spPr" if connectors else ".//{*}spTree/{*}sp/{*}spPr"
+                for props in slide.findall(elements):
                     preset = props.find("{*}prstGeom")
                     ref = spec.find(preset.get("prst"))
                     assert ref is not None
@@ -93,8 +94,9 @@ def make_connector_reference(source, output, definitions):
                         if guide.get("name") in overrides:
                             guide.set("fmla", overrides.pop(guide.get("name")))
                     assert not overrides
-                    for path in custom.findall("{*}pathLst/{*}path"):
-                        path.set("fill", "none")
+                    if connectors:
+                        for path in custom.findall("{*}pathLst/{*}path"):
+                            path.set("fill", "none")
                     position = list(props).index(preset)
                     props.remove(preset)
                     props.insert(position, custom)
@@ -168,7 +170,7 @@ def main():
               "bothVersionsReopenedRegeneratedFile":True}
     if connectors:
         reference = out / "ecma-reference.pptx"
-        make_connector_reference(src, reference, args.definitions)
+        make_geometry_reference(src, reference, args.definitions)
         _, expected = render(args.baseline, reference, out / "standard")
         reference_diff = sum(a != b for a, b in zip(struct.iter_unpack("3B", expected),
                                                      struct.iter_unpack("3B", encoded[1])))

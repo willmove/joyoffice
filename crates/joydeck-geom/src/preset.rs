@@ -1,9 +1,8 @@
 //! Preset shape geometry.
 //!
 //! Each preset is identified by its Office Open XML name (`rect`, `roundRect`, `rightArrow`…) so
-//! files round-trip, but every outline here is our own construction in Rust: we re-derive the shapes
-//! from what they look like and from the meaning of their adjust values, not from any reference
-//! geometry table. Adjust values use the file convention: ratios in 1/100 000 of the shorter side (or
+//! files round-trip, and the Rust generators construct their outlines, text frames and glue sites
+//! from the shape dimensions and preset-specific geometry. Adjust values use the file convention: ratios in 1/100 000 of the shorter side (or
 //! of the width/height), angles in 1/60 000 degree.
 
 use kurbo::{Arc, BezPath, Point, Rect, Vec2};
@@ -12,6 +11,7 @@ use serde::{Deserialize, Serialize};
 mod build;
 mod builder;
 mod catalog;
+mod flowchart;
 mod office_shapes;
 mod shapes;
 

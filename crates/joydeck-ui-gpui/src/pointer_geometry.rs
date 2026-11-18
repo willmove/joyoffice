@@ -1,5 +1,5 @@
 use joydeck_engine::{Command, WorkspaceAction};
-use joydeck_geom::{Affine, KurboShape as _, Point, Rect, Vec2, Xfrm};
+use joydeck_geom::{Affine, Point, Rect, Vec2, Xfrm};
 use joydeck_model::{Shape, ShapeKind, resolve, style::Fill};
 
 pub(super) const GRIPS: [(i8, i8); 8] = [
@@ -193,7 +193,7 @@ pub(super) fn hits(ctx: &resolve::Ctx, shape: &Shape, point: Point, tolerance: f
         .any(|path| {
             let filled = has_fill && path.fill != joydeck_geom::preset::FillMode::None;
             (filled && {
-                let winding = path.path.winding(local);
+                let winding = joydeck_geom::fill_winding(&path.path, local);
                 if path.even_odd {
                     winding % 2 != 0
                 } else {
@@ -219,6 +219,52 @@ pub(super) fn intersects(frame: Xfrm, marquee: Rect) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn flowchart_pointer_hits_follow_independently_rendered_fill_regions()
+    -> Result<(), Box<dyn std::error::Error>> {
+        use joydeck_model::{ColorRef, Geom, Line, Presentation, Rgba};
+        let deck = Presentation::default();
+        let slide = deck.slides.first().ok_or("missing blank slide")?;
+        let ctx = resolve::Ctx::for_slide(&deck, slide).ok_or("missing slide context")?;
+        for row in include_str!("../tests/flowchart-hits.txt").lines() {
+            let cols: Vec<_> = row.split_whitespace().collect();
+            let [name, width, height, samples] = cols.as_slice() else {
+                return Err("bad hit fixture".into());
+            };
+            let w = width.parse::<f64>()? / 12700.;
+            let h = height.parse::<f64>()? / 12700.;
+            assert_eq!(samples.len(), 81);
+            for angle in [0., 37.] {
+                let frame = Xfrm {
+                    rot: angle,
+                    ..Xfrm::new(40., 60., w, h)
+                };
+                let shape = Shape {
+                    xfrm: Some(frame),
+                    geom: Geom::preset(name),
+                    fill: Some(Fill::solid(ColorRef::rgb(Rgba::BLACK))),
+                    line: Some(Line::none()),
+                    ..Default::default()
+                };
+                for (i, flag) in samples.bytes().enumerate().filter(|(_, f)| *f != b'.') {
+                    let pt = Point::new(
+                        ((i % 9) as f64 + 0.5) * w / 9.,
+                        ((i / 9) as f64 + 0.5) * h / 9.,
+                    );
+                    assert_eq!(
+                        hits(&ctx, &shape, frame.affine() * pt, 0.),
+                        flag == b'1',
+                        "{name} {w}x{h}, angle {angle}, point {pt:?}"
+                    );
+                }
+                for pt in [Point::new(-2., h / 2.), Point::new(w + 2., h / 2.)] {
+                    assert!(!hits(&ctx, &shape, frame.affine() * pt, 0.));
+                }
+            }
+        }
+        Ok(())
+    }
 
     #[test]
     fn rotated_resize_keeps_opposite_grip_fixed() -> Result<(), &'static str> {

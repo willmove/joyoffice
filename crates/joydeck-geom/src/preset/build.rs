@@ -43,12 +43,13 @@ pub fn build(name: &str, w: f64, h: f64, adj: &[f64]) -> Option<Geometry> {
         adj,
         defaults,
     };
-    super::office_shapes::rectangle(name, c.w, c.h, c.a(0), c.a(1))
+    super::flowchart::build(name, c.w, c.h)
+        .or_else(|| super::office_shapes::rectangle(name, c.w, c.h, c.a(0), c.a(1)))
         .or_else(|| super::office_shapes::connector(name, c.w, c.h, adj))
         .or_else(|| rect_and_triangle_shapes(&c))
         .or_else(|| polygon_and_symbol_shapes(&c))
         .or_else(|| bracket_and_arrow_shapes(&c))
-        .or_else(|| flowchart_and_star_shapes(&c))
+        .or_else(|| star_shapes(&c))
         .or_else(|| callout_wave_and_connector_shapes(&c))
         .or_else(|| extra::build(name, c.w, c.h, &|i| c.a(i)))
 }
@@ -58,7 +59,6 @@ fn rect_and_triangle_shapes(c: &Ctx) -> Option<Geometry> {
     let w = c.w;
     let h = c.h;
     let ss = c.w.min(c.h);
-    let full = Rect::new(0.0, 0.0, c.w, c.h);
     let a = |i: usize| c.a(i);
     let mut b = Pb::new();
     let g = match c.name {
@@ -75,13 +75,7 @@ fn rect_and_triangle_shapes(c: &Ctx) -> Option<Geometry> {
         | "actionButtonSound"
         | "actionButtonHelp" => action_button(name, w, h),
 
-        "flowChartAlternateProcess" => simple(
-            corner_rect(w, h, [Corner::Round(ss / 6.0); 4]),
-            full.inset(-ss / 6.0 * 0.29289),
-            w,
-            h,
-        ),
-        "ellipse" | "flowChartConnector" => {
+        "ellipse" => {
             let mut g = simple(
                 b.ellipse(w / 2.0, h / 2.0, w / 2.0, h / 2.0).take(),
                 Rect::new(w * 0.14645, h * 0.14645, w * 0.85355, h * 0.85355),
@@ -91,12 +85,8 @@ fn rect_and_triangle_shapes(c: &Ctx) -> Option<Geometry> {
             g.sites = ellipse_sites(w, h);
             g
         }
-        "triangle" | "flowChartExtract" => {
-            let v = if name == "triangle" {
-                a(0).clamp(0.0, 100000.0)
-            } else {
-                50000.0
-            };
+        "triangle" => {
+            let v = a(0).clamp(0.0, 100000.0);
             let ax = w * v / 100000.0;
             let mut g = simple(
                 b.poly(&[(0.0, h), (ax, 0.0), (w, h)]).take(),
@@ -112,36 +102,24 @@ fn rect_and_triangle_shapes(c: &Ctx) -> Option<Geometry> {
                 Point::new(w, h),
                 Point::new((ax + w) / 2.0, h / 2.0),
             ];
-            if name == "triangle" {
-                g.handles.push(Handle::new(
-                    0,
-                    Point::ZERO,
-                    Vec2::new(w / 100000.0, 0.0),
-                    v,
-                    0.0,
-                    100000.0,
-                ));
-            }
+            g.handles.push(Handle::new(
+                0,
+                Point::ZERO,
+                Vec2::new(w / 100000.0, 0.0),
+                v,
+                0.0,
+                100000.0,
+            ));
             g
         }
-        "flowChartMerge" => simple(
-            b.poly(&[(0.0, 0.0), (w, 0.0), (w / 2.0, h)]).take(),
-            Rect::new(w / 4.0, 0.0, w * 0.75, h / 2.0),
-            w,
-            h,
-        ),
         "rtTriangle" => simple(
             b.poly(&[(0.0, 0.0), (0.0, h), (w, h)]).take(),
             Rect::new(w / 12.0, h * 7.0 / 12.0, w * 7.0 / 12.0, h * 11.0 / 12.0),
             w,
             h,
         ),
-        "parallelogram" | "flowChartInputOutput" => {
-            let v = if name == "parallelogram" {
-                a(0).clamp(0.0, 100000.0 * w / ss.max(1e-9))
-            } else {
-                20000.0 * w / ss.max(1e-9)
-            };
+        "parallelogram" => {
+            let v = a(0).clamp(0.0, 100000.0 * w / ss.max(1e-9));
             let off = ss * v / 100000.0;
             let mut g = simple(
                 b.poly(&[(0.0, h), (off, 0.0), (w, 0.0), (w - off, h)])
@@ -155,16 +133,14 @@ fn rect_and_triangle_shapes(c: &Ctx) -> Option<Geometry> {
                 w,
                 h,
             );
-            if name == "parallelogram" {
-                g.handles.push(Handle::new(
-                    0,
-                    Point::ZERO,
-                    Vec2::new(ss / 100000.0, 0.0),
-                    v,
-                    0.0,
-                    100000.0 * w / ss.max(1e-9),
-                ));
-            }
+            g.handles.push(Handle::new(
+                0,
+                Point::ZERO,
+                Vec2::new(ss / 100000.0, 0.0),
+                v,
+                0.0,
+                100000.0 * w / ss.max(1e-9),
+            ));
             g
         }
         "trapezoid" => {
@@ -187,32 +163,13 @@ fn rect_and_triangle_shapes(c: &Ctx) -> Option<Geometry> {
             ));
             g
         }
-        "flowChartManualOperation" => simple(
-            b.poly(&[(0.0, 0.0), (w, 0.0), (w * 0.8, h), (w * 0.2, h)])
-                .take(),
-            Rect::new(w * 0.2, 0.0, w * 0.8, h),
-            w,
-            h,
-        ),
-        "diamond" | "flowChartDecision" => simple(
+        "diamond" => simple(
             b.poly(&[(w / 2.0, 0.0), (w, h / 2.0), (w / 2.0, h), (0.0, h / 2.0)])
                 .take(),
             Rect::new(w / 4.0, h / 4.0, w * 0.75, h * 0.75),
             w,
             h,
         ),
-        "flowChartSort" => {
-            let d = b
-                .poly(&[(w / 2.0, 0.0), (w, h / 2.0), (w / 2.0, h), (0.0, h / 2.0)])
-                .take();
-            let line = Pb::new().m(0.0, h / 2.0).l(w, h / 2.0).take();
-            Geometry {
-                paths: vec![fill(d), stroke_only(line)],
-                text_rect: Rect::new(w / 4.0, h / 4.0, w * 0.75, h * 0.75),
-                handles: vec![],
-                sites: mid_sites(w, h),
-            }
-        }
         _ => return None,
     };
     Some(g)
@@ -251,12 +208,8 @@ fn polygon_and_symbol_shapes(c: &Ctx) -> Option<Geometry> {
             w,
             h,
         ),
-        "hexagon" | "flowChartPreparation" => {
-            let v = if name == "hexagon" {
-                a(0).clamp(0.0, 50000.0 * w / ss.max(1e-9))
-            } else {
-                20000.0 * w / ss.max(1e-9)
-            };
+        "hexagon" => {
+            let v = a(0).clamp(0.0, 50000.0 * w / ss.max(1e-9));
             let off = ss * v / 100000.0;
             let mut g = simple(
                 b.poly(&[
@@ -272,16 +225,14 @@ fn polygon_and_symbol_shapes(c: &Ctx) -> Option<Geometry> {
                 w,
                 h,
             );
-            if name == "hexagon" {
-                g.handles.push(Handle::new(
-                    0,
-                    Point::ZERO,
-                    Vec2::new(ss / 100000.0, 0.0),
-                    v,
-                    0.0,
-                    50000.0 * w / ss.max(1e-9),
-                ));
-            }
+            g.handles.push(Handle::new(
+                0,
+                Point::ZERO,
+                Vec2::new(ss / 100000.0, 0.0),
+                v,
+                0.0,
+                50000.0 * w / ss.max(1e-9),
+            ));
             g
         }
         "octagon" => {
@@ -440,13 +391,8 @@ fn polygon_and_symbol_shapes(c: &Ctx) -> Option<Geometry> {
             ));
             g
         }
-        "can" | "flowChartMagneticDisk" => {
-            // The disk's ends are a third of its height (ECMA-376: ellipses of radius h/6).
-            let v = if name == "can" {
-                a(0).clamp(0.0, 50000.0 * h / ss.max(1e-9))
-            } else {
-                100000.0 / 3.0 * h / ss.max(1e-9)
-            };
+        "can" => {
+            let v = a(0).clamp(0.0, 50000.0 * h / ss.max(1e-9));
             let eh = ss * v / 100000.0;
             let r = eh / 2.0;
             let body = Pb::new()
@@ -459,54 +405,20 @@ fn polygon_and_symbol_shapes(c: &Ctx) -> Option<Geometry> {
                 .take();
             let top = Pb::new().ellipse(w / 2.0, r, w / 2.0, r).take();
             let mut g = Geometry {
-                paths: vec![
-                    fill(body),
-                    shade(
-                        top,
-                        if name == "can" {
-                            FillMode::Lighten
-                        } else {
-                            FillMode::Norm
-                        },
-                    ),
-                ],
+                paths: vec![fill(body), shade(top, FillMode::Lighten)],
                 text_rect: Rect::new(0.0, eh, w, h - r),
                 handles: vec![],
                 sites: mid_sites(w, h),
             };
-            if name == "can" {
-                g.handles.push(Handle::new(
-                    0,
-                    Point::new(w / 2.0, 0.0),
-                    Vec2::new(0.0, ss / 100000.0),
-                    v,
-                    0.0,
-                    50000.0 * h / ss.max(1e-9),
-                ));
-            }
+            g.handles.push(Handle::new(
+                0,
+                Point::new(w / 2.0, 0.0),
+                Vec2::new(0.0, ss / 100000.0),
+                v,
+                0.0,
+                50000.0 * h / ss.max(1e-9),
+            ));
             g
-        }
-        "flowChartMagneticDrum" => {
-            // ECMA-376: end ellipses of radius w/6 across.
-            let r = w / 6.0;
-            let body = Pb::new()
-                .m(r, 0.0)
-                .l(w - r, 0.0)
-                .arc(r, h / 2.0, 270.0, 180.0)
-                .l(r, h)
-                .arc(r, h / 2.0, 90.0, 180.0)
-                .z()
-                .take();
-            let side = Pb::new()
-                .m(w - r, 0.0)
-                .arc(r, h / 2.0, 270.0, -180.0)
-                .take();
-            Geometry {
-                paths: vec![fill(body), stroke_only(side)],
-                text_rect: Rect::new(r, 0.0, w - 2.0 * r, h),
-                handles: vec![],
-                sites: mid_sites(w, h),
-            }
         }
         "cube" => {
             let v = a(0).clamp(0.0, 100000.0);
@@ -1342,7 +1254,7 @@ fn bracket_and_arrow_shapes(c: &Ctx) -> Option<Geometry> {
     Some(g)
 }
 
-fn flowchart_and_star_shapes(c: &Ctx) -> Option<Geometry> {
+fn star_shapes(c: &Ctx) -> Option<Geometry> {
     let name = c.name;
     let w = c.w;
     let h = c.h;
@@ -1351,263 +1263,6 @@ fn flowchart_and_star_shapes(c: &Ctx) -> Option<Geometry> {
     let a = |i: usize| c.a(i);
     let mut b = Pb::new();
     let g = match c.name {
-        "flowChartPredefinedProcess" => {
-            let r = Pb::new()
-                .poly(&[(0.0, 0.0), (w, 0.0), (w, h), (0.0, h)])
-                .take();
-            let mut l = Pb::new();
-            l.m(w / 8.0, 0.0)
-                .l(w / 8.0, h)
-                .m(w * 7.0 / 8.0, 0.0)
-                .l(w * 7.0 / 8.0, h);
-            Geometry {
-                paths: vec![fill(r), stroke_only(l.take())],
-                text_rect: Rect::new(w / 8.0, 0.0, w * 7.0 / 8.0, h),
-                handles: vec![],
-                sites: mid_sites(w, h),
-            }
-        }
-        "flowChartInternalStorage" => {
-            let r = Pb::new()
-                .poly(&[(0.0, 0.0), (w, 0.0), (w, h), (0.0, h)])
-                .take();
-            let mut l = Pb::new();
-            l.m(w / 8.0, 0.0)
-                .l(w / 8.0, h)
-                .m(0.0, h / 8.0)
-                .l(w, h / 8.0);
-            Geometry {
-                paths: vec![fill(r), stroke_only(l.take())],
-                text_rect: Rect::new(w / 8.0, h / 8.0, w, h),
-                handles: vec![],
-                sites: mid_sites(w, h),
-            }
-        }
-        "flowChartDocument" => {
-            let u = |x: f64, y: f64| (w * x / 21600.0, h * y / 21600.0);
-            let (p1, p2, p3, p4) = (
-                u(21600.0, 17322.0),
-                u(10800.0, 17322.0),
-                u(10800.0, 23922.0),
-                u(0.0, 20172.0),
-            );
-            b.m(0.0, 0.0)
-                .l(w, 0.0)
-                .l(p1.0, p1.1)
-                .c(p2.0, p2.1, p3.0, p3.1, p4.0, p4.1)
-                .z();
-            simple(
-                b.take(),
-                Rect::new(0.0, 0.0, w, h * 17322.0 / 21600.0),
-                w,
-                h,
-            )
-        }
-        "flowChartMultidocument" => {
-            // ECMA-376 multidocument (21600ths): two back pages peeking out above and right of
-            // the front one; the back pages' edges are outlined only where they show.
-            let x = |v: f64| w * v / 21600.0;
-            let y = |v: f64| h * v / 21600.0;
-            let front = |b: &mut Pb| {
-                b.m(0.0, y(20782.0))
-                    .c(
-                        x(9298.0),
-                        y(23542.0),
-                        x(9298.0),
-                        y(18022.0),
-                        x(18595.0),
-                        y(18022.0),
-                    )
-                    .l(x(18595.0), y(3675.0))
-                    .l(0.0, y(3675.0))
-                    .z();
-            };
-            let mid = |b: &mut Pb| {
-                b.m(x(1532.0), y(3675.0))
-                    .l(x(1532.0), y(1815.0))
-                    .l(x(20000.0), y(1815.0))
-                    .l(x(20000.0), y(16252.0));
-                b.c(
-                    x(19298.0),
-                    y(16252.0),
-                    x(18595.0),
-                    y(16352.0),
-                    x(18595.0),
-                    y(16352.0),
-                );
-            };
-            let back = |b: &mut Pb| {
-                b.m(x(2972.0), y(1815.0))
-                    .l(x(2972.0), 0.0)
-                    .l(w, 0.0)
-                    .l(w, y(14392.0));
-                b.c(
-                    x(20800.0),
-                    y(14392.0),
-                    x(20000.0),
-                    y(14467.0),
-                    x(20000.0),
-                    y(14467.0),
-                );
-            };
-            let mut area = Pb::new();
-            front(&mut area);
-            mid(&mut area);
-            area.l(x(18595.0), y(3675.0)).z();
-            back(&mut area);
-            area.l(x(20000.0), y(1815.0)).z();
-            let mut outline = Pb::new();
-            outline
-                .m(0.0, y(3675.0))
-                .l(x(18595.0), y(3675.0))
-                .l(x(18595.0), y(18022.0));
-            outline
-                .c(
-                    x(9298.0),
-                    y(18022.0),
-                    x(9298.0),
-                    y(23542.0),
-                    0.0,
-                    y(20782.0),
-                )
-                .z();
-            mid(&mut outline);
-            back(&mut outline);
-            Geometry {
-                paths: vec![fill_only(area.take()), stroke_only(outline.take())],
-                text_rect: Rect::new(0.0, y(3675.0), x(18595.0), y(17322.0)),
-                handles: vec![],
-                sites: mid_sites(w, h),
-            }
-        }
-        "flowChartTerminator" => {
-            let rx = (w * 0.16).min(w / 2.0);
-            b.m(rx, 0.0)
-                .l(w - rx, 0.0)
-                .arc(rx, h / 2.0, 270.0, 180.0)
-                .l(rx, h)
-                .arc(rx, h / 2.0, 90.0, 180.0)
-                .z();
-            simple(
-                b.take(),
-                Rect::new(rx * 0.3, h * 0.15, w - rx * 0.3, h * 0.85),
-                w,
-                h,
-            )
-        }
-        "flowChartManualInput" => simple(
-            b.poly(&[(0.0, h / 5.0), (w, 0.0), (w, h), (0.0, h)]).take(),
-            Rect::new(0.0, h / 5.0, w, h),
-            w,
-            h,
-        ),
-        "flowChartOffpageConnector" => simple(
-            b.poly(&[
-                (0.0, 0.0),
-                (w, 0.0),
-                (w, h * 0.8),
-                (w / 2.0, h),
-                (0.0, h * 0.8),
-            ])
-            .take(),
-            Rect::new(0.0, 0.0, w, h * 0.8),
-            w,
-            h,
-        ),
-        "flowChartPunchedCard" => simple(
-            b.poly(&[(w * 0.2, 0.0), (w, 0.0), (w, h), (0.0, h), (0.0, h * 0.2)])
-                .take(),
-            Rect::new(0.0, h * 0.2, w, h),
-            w,
-            h,
-        ),
-        "flowChartPunchedTape" => {
-            // ECMA-376: each long edge is two half-ellipses a quarter of the width wide and a
-            // tenth of the height deep, one bulging in and one out.
-            let (rx, ry) = (w / 4.0, h / 10.0);
-            b.m(0.0, ry)
-                .arc(rx, ry, 180.0, -180.0)
-                .arc(rx, ry, 180.0, 180.0)
-                .l(w, h - ry)
-                .arc(rx, ry, 0.0, -180.0)
-                .arc(rx, ry, 0.0, 180.0)
-                .z();
-            simple(b.take(), Rect::new(0.0, h / 5.0, w, h * 0.8), w, h)
-        }
-        "flowChartSummingJunction" | "flowChartOr" => {
-            let e = Pb::new().ellipse(w / 2.0, h / 2.0, w / 2.0, h / 2.0).take();
-            let mut l = Pb::new();
-            if name == "flowChartOr" {
-                l.m(w / 2.0, 0.0)
-                    .l(w / 2.0, h)
-                    .m(0.0, h / 2.0)
-                    .l(w, h / 2.0);
-            } else {
-                let (dx, dy) = (
-                    w / 2.0 * std::f64::consts::FRAC_1_SQRT_2,
-                    h / 2.0 * std::f64::consts::FRAC_1_SQRT_2,
-                );
-                l.m(w / 2.0 - dx, h / 2.0 - dy)
-                    .l(w / 2.0 + dx, h / 2.0 + dy)
-                    .m(w / 2.0 + dx, h / 2.0 - dy)
-                    .l(w / 2.0 - dx, h / 2.0 + dy);
-            }
-            Geometry {
-                paths: vec![fill(e), stroke_only(l.take())],
-                text_rect: Rect::new(w * 0.14645, h * 0.14645, w * 0.85355, h * 0.85355),
-                handles: vec![],
-                sites: ellipse_sites(w, h),
-            }
-        }
-        "flowChartCollate" => simple(
-            b.poly(&[(0.0, 0.0), (w, 0.0), (0.0, h), (w, h)]).take(),
-            Rect::new(w / 4.0, h / 4.0, w * 0.75, h * 0.75),
-            w,
-            h,
-        ),
-        "flowChartOnlineStorage" => {
-            let rx = w / 6.0;
-            b.m(rx, 0.0)
-                .l(w, 0.0)
-                .arc(rx, h / 2.0, 270.0, -180.0)
-                .l(rx, h)
-                .arc(rx, h / 2.0, 90.0, 180.0)
-                .z();
-            simple(b.take(), Rect::new(rx, 0.0, w - rx, h), w, h)
-        }
-        "flowChartDelay" => {
-            b.m(0.0, 0.0)
-                .l(w / 2.0, 0.0)
-                .arc(w / 2.0, h / 2.0, 270.0, 180.0)
-                .l(0.0, h)
-                .z();
-            simple(b.take(), Rect::new(0.0, h * 0.15, w * 0.85, h * 0.85), w, h)
-        }
-        "flowChartMagneticTape" => {
-            b.m(w / 2.0, h)
-                .arc(w / 2.0, h / 2.0, 90.0, 90.0)
-                .arc(w / 2.0, h / 2.0, 180.0, 90.0)
-                .arc(w / 2.0, h / 2.0, 270.0, 90.0)
-                .arc(w / 2.0, h / 2.0, 0.0, 45.0);
-            let p = b.cur;
-            b.l(w, p.y).l(w, h).z();
-            simple(
-                b.take(),
-                Rect::new(w * 0.14645, h * 0.14645, w * 0.85355, h * 0.85355),
-                w,
-                h,
-            )
-        }
-        "flowChartDisplay" => {
-            let rx = w / 6.0;
-            b.m(0.0, h / 2.0)
-                .l(rx, 0.0)
-                .l(w - rx, 0.0)
-                .arc(rx, h / 2.0, 270.0, 180.0)
-                .l(rx, h)
-                .z();
-            simple(b.take(), Rect::new(rx, 0.0, w - rx, h), w, h)
-        }
         "star4" | "star5" | "star6" | "star7" | "star8" | "star10" | "star12" | "star16"
         | "star24" | "star32" => {
             let n: usize = name.trim_start_matches("star").parse().unwrap_or(5);
