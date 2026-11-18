@@ -99,6 +99,37 @@ def sample_words(affix, dictionary):
     return words
 
 
+def edit_probes(affix, dictionary):
+    words = sample_words(affix, dictionary)
+    charset = re.search(rb"(?mi)^SET[ \t]+([^\s]+)", affix)
+    tables = affix.decode(charset.group(1).decode("ascii") if charset else "utf-8", errors="replace")
+    try_table = re.search(r"(?mi)^TRY[ \t]+(\S+)", tables)
+    keyboard = re.search(r"(?mi)^KEY[ \t]+(\S+)", tables)
+    groups = re.findall(r"(?mi)^MAP[ \t]+([^\s#]+)", tables)
+    substitutions = re.findall(r"(?mi)^REP[ \t]+([^\s#]+)[ \t]+([^\s#]+)", tables)
+    alphabet = [c for c in (try_table.group(1) if try_table else "") if c.isalpha()]
+    for stem in list(words[::3]):
+        middle = len(stem) // 2
+        words.extend([stem[:middle] + stem[middle - 1:], stem + stem, stem.upper(),
+                      stem[:middle] + stem[middle + 1:] + stem[middle]])
+        if alphabet:
+            words.extend((stem[:middle] + alphabet[0] + stem[middle:],
+                          stem[:middle] + alphabet[-1] + stem[middle + 1:]))
+        for group in groups + (keyboard.group(1).split("|") if keyboard else []):
+            if len(group) < 2 or not group.isalpha():
+                continue
+            index = next((i for i, c in enumerate(stem) if c in group), None)
+            if index is not None:
+                c = group[(group.index(stem[index]) + 1) % len(group)]
+                words.append(stem[:index] + c + stem[index + 1:])
+                break
+        for wrong, right in substitutions:
+            if wrong.isalpha() and right.isalpha() and right in stem:
+                words.append(stem.replace(right, wrong, 1))
+                break
+    return list(dict.fromkeys(words))
+
+
 def compare(binaries, directory, locale, probes):
     before,after = [results(cli,directory,locale,probes) for cli in binaries]
     assert before == after, f"different issue or suggestion order for {locale}"
@@ -188,6 +219,8 @@ if __name__ == "__main__":
         parser.add_argument(arg,type=Path)
     parser.add_argument("--release-packs",type=Path,help="verified index.json and its locale.tar.zst archives")
     parser.add_argument("--desktop",type=Path,help="also exercise the native Review ribbon and its spelling dialog")
+    parser.add_argument("--candidate-edits", action="store_true",
+                        help="also compare insertion, substitution, duplication, case and dictionary-directed edits")
     args = parser.parse_args()
     out = args.output.resolve()
     out.mkdir(parents=True,exist_ok=False)
@@ -212,6 +245,7 @@ if __name__ == "__main__":
             affix,dictionary = published_data(archive)
             folder = out/locale
             write_dictionary(folder,locale,affix,dictionary)
-            _, counts = compare(binaries,folder,locale,sample_words(affix,dictionary))
+            probes = (edit_probes if args.candidate_edits else sample_words)(affix, dictionary)
+            _, counts = compare(binaries, folder, locale, probes)
             report["published"][locale] = {**counts,"archiveSha256":row["sha256"]}
     (out/"report.json").write_text(json.dumps(report,indent=2)+"\n")

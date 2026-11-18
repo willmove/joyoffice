@@ -17,11 +17,14 @@
 //! lack and the slips no table can say. The input is bounded ([`MAX_LETTERS`]), and so is every
 //! round, so a call costs a few thousand dictionary lookups at most.
 
+mod edits;
+use edits::map_variants;
 mod ranking;
 pub(crate) use ranking::weighted_distance;
 
 use std::borrow::Cow;
-use std::collections::{HashMap, HashSet};
+use std::cmp::Reverse;
+use std::collections::{BinaryHeap, HashMap, HashSet};
 
 use crate::affix::{AffixDict, Casing, capitalize, casing};
 
@@ -125,7 +128,7 @@ fn mistype_cost(_: &[char], _: usize, _: char) -> u32 {
 struct Collector<'a> {
     d: &'a AffixDict,
     /// The word, lower case.
-    input: String,
+    input: &'a str,
     /// Candidate → the cheapest cost it was offered at (rounds don't run in rising cost).
     tested: HashMap<String, u32>,
     /// Suggestion → (cost, order found).
@@ -181,7 +184,7 @@ impl Collector<'_> {
             return;
         }
         let gap = self.d.compound_gap(
-            &self.input,
+            self.input,
             self.names,
             &mut self.compound_work,
             &mut self.pieces,
@@ -303,56 +306,6 @@ fn alternatives(c: char, map: &[Vec<char>]) -> Vec<char> {
     out
 }
 
-/// Every way of changing up to `t.max_map_changes` letters of `chars` to a MAP relative (`alts`,
-/// letter by letter), with its cost: all one-change variants first, then two, and so on, so the
-/// [`MAX_MAP_VARIANTS`] cap drops the variants with the most changes.
-fn map_variants(chars: &[char], alts: &[Vec<char>], t: &Tuning, out: &mut Vec<(String, u32)>) {
-    let mut buf = Vec::with_capacity(chars.len());
-    for n in 1..=t.max_map_changes.min(chars.len()) {
-        exact_map_variants(chars, alts, t, n, 0, &mut buf, out);
-    }
-}
-
-/// [`map_variants`] with exactly `left` more changes, each written after `buf`.
-fn exact_map_variants(
-    chars: &[char],
-    alts: &[Vec<char>],
-    t: &Tuning,
-    left: usize,
-    cost: u32,
-    buf: &mut Vec<char>,
-    out: &mut Vec<(String, u32)>,
-) {
-    if out.len() >= MAX_MAP_VARIANTS || left > chars.len() {
-        return;
-    }
-    let Some((&c, rest)) = chars.split_first() else {
-        out.push((buf.iter().collect(), cost));
-        return;
-    };
-    let (here, later) = alts
-        .split_first()
-        .map_or((&[][..], &[][..]), |(h, l)| (h.as_slice(), l));
-    buf.push(c);
-    exact_map_variants(rest, later, t, left, cost, buf, out);
-    buf.pop();
-    if left > 0 {
-        for &a in here {
-            buf.push(a);
-            exact_map_variants(
-                rest,
-                later,
-                t,
-                left - 1,
-                cost + (t.map_cost)(c, a),
-                buf,
-                out,
-            );
-            buf.pop();
-        }
-    }
-}
-
 /// A letter's MAP representative (the first of its first group), lower case: `ż` → `z`, `ó` → `o`.
 pub(crate) fn fold(c: char, map: &[Vec<char>]) -> char {
     let l = c.to_lowercase().next().unwrap_or(c);
@@ -400,7 +353,7 @@ pub(crate) fn suggest_in(d: &AffixDict, word: &str, max: usize, t: &Tuning) -> V
     let split_names = !t.strict_case;
     let mut col = Collector {
         d,
-        input: input.clone(),
+        input: &input,
         tested: HashMap::new(),
         found: HashMap::new(),
         seq: 0,
@@ -413,10 +366,19 @@ pub(crate) fn suggest_in(d: &AffixDict, word: &str, max: usize, t: &Tuning) -> V
     add_case(&mut col, word, &input);
     let map = groups(d, t);
     add_map_slips(&mut col, &chars, &map, t);
-    add_confusions(&mut col, &input, t);
-    add_splits(&mut col, &input, &t.split);
-    add_key_neighbours(&mut col, &chars);
-    add_typos(&mut col, &chars, t);
+    let rep = d
+        .rep()
+        .iter()
+        .map(|(a, b)| (a.as_str(), b.as_str()))
+        .chain(t.rep.iter().copied());
+    let alphabet = if d.try_chars().is_empty() {
+        t.alphabet
+    } else {
+        d.try_chars()
+    };
+    edits::visit(&input, &chars, rep, d.key(), alphabet, t, |word, cost| {
+        col.offer(word, cost)
+    });
     col.compounds();
     // 6. Further off: scan the stems that start like the word.
     if col.count_within(COST_MISTYPE) < max {
@@ -485,114 +447,6 @@ fn add_map_slips(col: &mut Collector, chars: &[char], map: &[Vec<char>], t: &Tun
     }
 }
 
-/// Round 3: common confusions.
-fn add_confusions(col: &mut Collector, input: &str, t: &Tuning) {
-    let rep = col
-        .d
-        .rep()
-        .iter()
-        .map(|(from, to)| (from.as_str(), to.as_str()))
-        .chain(t.rep.iter().copied());
-    for (from, to) in rep {
-        if from.is_empty() {
-            continue;
-        }
-        for (i, _) in input.match_indices(from) {
-            if let (Some(a), Some(b)) = (input.get(..i), input.get(i + from.len()..)) {
-                col.offer(&format!("{a}{to}{b}"), t.rep_cost);
-            }
-        }
-    }
-}
-
-/// Round 4: a missing space; both halves must be dictionary words.
-fn add_splits(col: &mut Collector, input: &str, split: &Split) {
-    for (i, _) in input.char_indices().skip(1) {
-        let (Some(a), Some(b)) = (input.get(..i), input.get(i..)) else {
-            continue;
-        };
-        if let Some(cost) = split_cost(split, a, b) {
-            col.offer(&format!("{a} {b}"), cost);
-        }
-    }
-}
-
-/// Round 5: keyboard neighbours from the dictionary's KEY rows.
-fn add_key_neighbours(col: &mut Collector, chars: &[char]) {
-    for row in col.d.key().split('|').take(32) {
-        let keys: Vec<char> = row.chars().take(128).collect();
-        for pair in keys.windows(2) {
-            let [a, b] = pair else { continue };
-            for (i, &c) in chars.iter().enumerate() {
-                let replacement = if c == *a {
-                    Some(*b)
-                } else if c == *b {
-                    Some(*a)
-                } else {
-                    None
-                };
-                if let Some(replacement) = replacement {
-                    let mut v = chars.to_vec();
-                    if let Some(x) = v.get_mut(i) {
-                        *x = replacement;
-                    }
-                    col.offer(&v.iter().collect::<String>(), COST_KEY);
-                }
-            }
-        }
-    }
-}
-
-/// Round 5, second half: one typo, with the TRY letters (the language's when the dictionary has
-/// none), bounded and each once, in their order: a TRY line lists the commonest letters first, so
-/// equal-cost candidates come out in that order.
-fn add_typos(col: &mut Collector, chars: &[char], t: &Tuning) {
-    let d = col.d;
-    let n = chars.len();
-    let try_chars = if d.try_chars().is_empty() {
-        t.alphabet
-    } else {
-        d.try_chars()
-    };
-    let mut letters: Vec<char> = Vec::new();
-    for c in try_chars.chars().filter(|c| c.is_lowercase()).take(128) {
-        if !letters.contains(&c) {
-            letters.push(c);
-        }
-    }
-    let s = |v: &[char]| v.iter().collect::<String>();
-    for i in 0..n.saturating_sub(1) {
-        if chars.get(i) != chars.get(i + 1) {
-            let mut v = chars.to_vec();
-            v.swap(i, i + 1);
-            col.offer(&s(&v), COST_SWAP);
-        }
-    }
-    for i in 0..n {
-        let mut v = chars.to_vec();
-        v.remove(i);
-        col.offer(&s(&v), COST_DROP_OR_ADD);
-    }
-    for i in 0..=n {
-        for &c in &letters {
-            let mut v = chars.to_vec();
-            v.insert(i, c);
-            col.offer(&s(&v), COST_DROP_OR_ADD);
-        }
-    }
-    for i in 0..n {
-        for &c in &letters {
-            if chars.get(i) != Some(&c) {
-                let mut v = chars.to_vec();
-                if let Some(x) = v.get_mut(i) {
-                    *x = c;
-                }
-                col.offer(&s(&v), (t.mistype_cost)(chars, i, c));
-            }
-        }
-    }
-}
-
 /// Round 6: rank the stems starting with the word's first letter (or a MAP relative of it, either
 /// case) by shared letter pairs, then keep the forms of the best within two typos.
 fn scan(col: &mut Collector, chars: &[char], map: &[Vec<char>]) {
@@ -611,37 +465,45 @@ fn scan(col: &mut Collector, chars: &[char], map: &[Vec<char>]) {
     firsts.sort_unstable();
     firsts.dedup();
     let n = folded.len();
-    let mut best: Vec<(u32, &str)> = Vec::new();
+    let mut best = BinaryHeap::<Reverse<(u32, usize, &str)>>::with_capacity(SCAN_STEMS);
     for f in firsts {
         let prefix = f.to_string();
         for stem in d.stems_with_prefix(&prefix) {
-            let sf: Vec<char> = stem.chars().map(|c| fold(c, map)).collect();
-            let shared = std::iter::once(' ')
-                .chain(sf.iter().copied())
-                .zip(sf.iter().copied())
-                .filter(|p| pairs.contains(p))
-                .count();
+            let mut previous = ' ';
+            let mut length = 0usize;
+            let mut shared = 0usize;
+            for next in stem.chars().map(|c| fold(c, map)) {
+                shared += usize::from(pairs.contains(&(previous, next)));
+                length += 1;
+                previous = next;
+            }
             if shared < 2 {
                 continue;
             }
             // Shared pairs, less the stem's letters the word doesn't explain, less a length gap
             // beyond what an ending explains.
-            let extra = sf.len().saturating_sub(shared);
-            let gap = sf.len().abs_diff(n).saturating_sub(4);
+            let extra = length.saturating_sub(shared);
+            let gap = length.abs_diff(n).saturating_sub(4);
             let score = (shared * 4).saturating_sub(extra * 3 + gap * 2) as u32;
             if score == 0 {
                 continue;
             }
             if best.len() < SCAN_STEMS {
-                best.push((score, stem));
-            } else if let Some(min) = best.iter_mut().min_by_key(|b| b.0)
-                && score > min.0
-            {
-                *min = (score, stem);
+                best.push(Reverse((score, best.len(), stem)));
+            } else if let Some(mut weakest) = best.peek_mut() {
+                let Reverse((minimum, slot, _)) = *weakest;
+                if score > minimum {
+                    // Ties evict the earliest slot of the shortlist.
+                    *weakest = Reverse((score, slot, stem));
+                }
             }
         }
     }
-    best.sort_by(|a, b| b.0.cmp(&a.0).then(a.1.cmp(b.1)));
+    let mut best: Vec<_> = best
+        .into_iter()
+        .map(|Reverse((score, _, stem))| (score, stem))
+        .collect();
+    best.sort_unstable_by(|a, b| b.0.cmp(&a.0).then(a.1.cmp(b.1)));
     let related = |a: char, b: char| fold(a, map) == fold(b, map);
     let limit = 4;
     let mut budget = SCAN_FORMS_WORK;
@@ -842,7 +704,7 @@ mod tests {
         let d = AffixDict::from_hunspell("", "1\ncafe\n", &[]).unwrap();
         let mut col = Collector {
             d: &d,
-            input: "cafè".into(),
+            input: "cafè",
             tested: HashMap::new(),
             found: HashMap::new(),
             seq: 0,

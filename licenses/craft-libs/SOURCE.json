@@ -84,8 +84,8 @@
       "target": "third-party/craft-libs/proof/src/affix_suggest.rs",
       "sha256": "4c39ed382531386a97467a04802e69c6255581bd7ea816697b241e9c20d3ebff",
       "modified": true,
-      "target_sha256": "b1400700ed07dc3c54b07d5b715adac72429dea8f41dbed11ca8ea8eae434fe9",
-      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md. JoyOffice ranks verified candidates and computes bounded weighted adjacent-transposition distances in src/affix_suggest/ranking.rs. Independent implementation SHA-256 4978096601bf7447d14766944ffb8729efc30e55760920aefed7a5d9c346a96e."
+      "target_sha256": "dd6df910b2eb77290fb6b8fa69f88fdacd57763172385339a133692617ce766a",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md. JoyOffice ranks verified candidates and computes bounded weighted adjacent-transposition distances in src/affix_suggest/ranking.rs. Independent implementation SHA-256 4978096601bf7447d14766944ffb8729efc30e55760920aefed7a5d9c346a96e. JoyOffice enumerates MAP, REP, KEY, TRY and split candidates with bounded scratch storage and streams stem scores. Candidate implementation SHA-256 b5cab085eef4e28107727d12f39360e36c6316ecfe896b71a781d2957efba868."
     },
     {
       "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
