@@ -9,6 +9,8 @@ use gpui_kit::{Div, ParentElement, Styled, div, px, rgb};
 pub use joyoffice_theme::{Brand, Palette, ThemePreset};
 mod appearance;
 pub use appearance::{AppliedTheme, apply_theme, theme_preview};
+mod save_changes;
+pub use save_changes::{save_changes_backdrop, save_changes_panel};
 mod branding;
 pub use branding::{product_logo, product_window_options};
 

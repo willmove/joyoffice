@@ -838,70 +838,38 @@ impl Desktop {
         cx.notify();
     }
     pub fn render_close_dialog(&self, cx: &mut Context<Self>) -> impl IntoElement + use<> {
-        let panel = self.palette().surface;
-        div()
-            .absolute()
-            .inset_0()
-            .occlude()
-            .track_focus(&self.close_focus)
-            .key_context("JoysheetCloseDialog")
-            .bg(rgba(0x0e1e1855))
-            .flex()
-            .items_center()
-            .justify_center()
-            .child(
-                div()
-                    .relative()
-                    .w(px(450.))
-                    .p_6()
-                    .rounded_xl()
-                    .bg(rgb(panel))
-                    .shadow_xl()
-                    .flex()
-                    .flex_col()
-                    .gap_4()
-                    .child(self.close_probe("panel", cx))
-                    .child(div().text_lg().font_weight(FontWeight::SEMIBOLD).child(self.label("保存更改？", "Save changes?")))
-                    .child(self.label("关闭工作簿前可以先保存。", "Save this workbook before closing."))
-                    .when(self.error, |el| el.child(div().text_sm().text_color(rgb(0xb42318)).child(self.message.clone())))
-                    .child(
-                        div()
-                            .flex()
-                            .justify_end()
-                            .gap_2()
-                            .child(
-                                self.close_button(
-                                    "cancel",
-                                    Button::new("cancel-close")
-                                        .disabled(self.close_saving)
-                                        .label(self.label("取消", "Cancel"))
-                                        .on_click(cx.listener(|this, _, window, cx| this.cancel_close(window, cx))),
-                                    cx,
-                                ),
-                            )
-                            .child(
-                                self.close_button(
-                                    "discard",
-                                    Button::new("discard-close")
-                                        .disabled(self.close_saving)
-                                        .label(self.label("不保存", "Discard"))
-                                        .on_click(cx.listener(|this, _, window, cx| this.after(After::Close(true), window, cx))),
-                                    cx,
-                                ),
-                            )
-                            .child(
-                                self.close_button(
-                                    "save",
-                                    Button::new("save-close")
-                                        .primary()
-                                        .disabled(self.close_saving)
-                                        .label(if self.close_saving { self.label("保存中…", "Saving…") } else { self.label("保存", "Save") })
-                                        .on_click(cx.listener(|this, _, window, cx| this.save_then_close(window, cx))),
-                                    cx,
-                                ),
-                            ),
-                    ),
-            )
+        use gpui_kit::base::FocusTrapElement as _;
+        let cancel = Button::new("cancel-close")
+            .disabled(self.close_saving)
+            .label(self.label("取消", "Cancel"))
+            .on_click(cx.listener(|this, _, window, cx| this.cancel_close(window, cx)));
+        let discard = Button::new("discard-close")
+            .disabled(self.close_saving)
+            .label(self.label("不保存", "Discard"))
+            .on_click(cx.listener(|this, _, window, cx| this.after(After::Close(true), window, cx)));
+        let save = Button::new("save-close")
+            .primary()
+            .disabled(self.close_saving)
+            .label(if self.close_saving { self.label("保存中…", "Saving…") } else { self.label("保存", "Save") })
+            .on_click(cx.listener(|this, _, window, cx| this.save_then_close(window, cx)));
+        let status = self.error.then(|| {
+            div().id("save-changes-status").role(Role::Status).text_sm().text_color(rgb(0xb42318)).child(self.message.clone()).into_any_element()
+        });
+        let panel = joyoffice_ui::save_changes_panel(
+            self.palette(),
+            self.label("保存更改？", "Save changes?"),
+            self.label("关闭工作簿前可以先保存。", "Save this workbook before closing."),
+            status,
+            [
+                self.close_button("cancel", cancel, cx).into_any_element(),
+                self.close_button("discard", discard, cx).into_any_element(),
+                self.close_button("save", save, cx).into_any_element(),
+            ],
+        )
+        .key_context("JoysheetCloseDialog")
+        .child(self.close_probe("panel", cx))
+        .focus_trap("save-changes-focus", &self.close_focus);
+        joyoffice_ui::save_changes_backdrop().child(panel)
     }
     fn submit_close_save(&mut self, doc: u64, revision: u64, path: Option<std::path::PathBuf>, cx: &mut Context<Self>) {
         if !self.view().is_some_and(|v| v.doc == doc) {

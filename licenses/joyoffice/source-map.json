@@ -13,8 +13,8 @@
     "source_path": "crates/joyoffice-ui/src/lib.rs",
     "target_path": "crates/joyoffice-ui/src/lib.rs",
     "source_sha256": "08e23515fe8a44ea93dda33be7d47554c6c6fc4240f35f2fb27b6339fcd7c5cc",
-    "local_changes": "CRLF normalized to LF; content otherwise unchanged; 2026-11-11: shared application theme catalog, persistent preset selection and palette projection; preserve document colors and original source identity",
-    "adapted_sha256": "02a3d2ccbd635c3b83599b9c0b50dd2b62a0e668afc47769a3af382f1a5a5661",
+    "local_changes": "CRLF normalized to LF; content otherwise unchanged; 2026-11-11: shared application theme catalog, persistent preset selection and palette projection; preserve document colors and original source identity; export the shared Word and Sheet save changes dialog",
+    "adapted_sha256": "357435d02ef4c9485684513ef32fbab6c961c2bff2351df05386e86d2454c7eb",
     "desktop_product_icons": "2026-11-18: embedded native product icons/logos for every product window; portable desktop registration and complete shared artwork source fingerprints; original attribution retained."
   },
   {

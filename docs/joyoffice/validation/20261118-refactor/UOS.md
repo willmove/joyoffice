@@ -25,6 +25,8 @@
 
 GTK 对照确认了搜狗中文引擎能提交文字。当前桌面的 XIM 连接缺少可用的 selection owner，这使走 XIM 的 GPUI 输入路径无法开始组合。UOS 系统拼音仍待 XIM 服务恢复后的同机验证，Sheet 的合成组合态单独记录。
 
+2026-11-18 12:26（UTC+8）在同一 X11 桌面只读复查。使用 `XMODIFIERS=@im=fcitx` 初始化 Xlib 后，`XGetSelectionOwner(@server=fcitx)` 仍为 `0x0`，`XOpenIM` 仍返回空。本次复查仅查询会话状态，上表的产品输入结果来自此前的实机操作。
+
 同一已登录的 UOS 桌面可以按以下命令复跑，用新输出目录保存结果。脚本仅在测试窗口获得焦点时发送按键。
 
 ```sh

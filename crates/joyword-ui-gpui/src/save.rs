@@ -45,15 +45,84 @@ impl JoyWord {
                 "Save this document before closing.",
             )
         };
-        // Match JoySheet's close dialog while using JoyWord's active theme.
-        div()
-            .absolute()
-            .inset_0()
-            .occlude()
-            .bg(gpui::rgba(0x0e1e1855))
-            .flex()
-            .items_center()
-            .justify_center()
+        let cancel = Button::new("confirm-keep")
+            .debug_selector(|| "confirm-keep".into())
+            .disabled(self.saving)
+            .label(self.shell.tr("取消", "Cancel"))
+            .on_click(cx.listener(move |v, _, w, cx| {
+                v.execute(
+                    if replacing {
+                        "file.cancel_replace"
+                    } else {
+                        "file.keep"
+                    },
+                    w,
+                    cx,
+                );
+            }));
+        let alternate = Button::new("confirm-discard")
+            .debug_selector(|| "confirm-discard".into())
+            .disabled(self.saving)
+            .label(if replacing {
+                self.shell.tr("另存副本", "Save a copy")
+            } else {
+                self.shell.tr("不保存", "Discard")
+            })
+            .on_click(cx.listener(move |v, _, w, cx| {
+                v.execute(
+                    if replacing {
+                        "file.save_as"
+                    } else {
+                        "file.discard"
+                    },
+                    w,
+                    cx,
+                );
+            }));
+        let save = Button::new("confirm-save")
+            .debug_selector(|| "confirm-save".into())
+            .primary()
+            .disabled(self.saving)
+            .label(if self.saving {
+                self.shell.tr("保存中…", "Saving…")
+            } else if replacing {
+                self.shell.tr("确认替换原文件", "Confirm replace original")
+            } else {
+                self.shell.tr("保存", "Save")
+            })
+            .on_click(cx.listener(move |v, _, w, cx| {
+                v.execute(
+                    if replacing {
+                        "file.confirm_original"
+                    } else {
+                        "file.save"
+                    },
+                    w,
+                    cx,
+                );
+            }));
+        let status = self.shell.notice.as_ref().map(|note| {
+            div()
+                .id("save-changes-status")
+                .debug_selector(|| "save-changes-status".into())
+                .role(gpui::Role::Status)
+                .text_sm()
+                .whitespace_normal()
+                .child(note.clone())
+                .into_any_element()
+        });
+        let panel = joyoffice_ui::save_changes_panel(
+            self.palette(),
+            self.shell.tr("保存更改？", "Save changes?"),
+            message,
+            status,
+            [
+                cancel.into_any_element(),
+                alternate.into_any_element(),
+                save.into_any_element(),
+            ],
+        );
+        joyoffice_ui::save_changes_backdrop()
             .on_key_down(cx.listener(|v, event: &gpui::KeyDownEvent, window, cx| {
                 if event.keystroke.key == "escape" {
                     v.execute(
@@ -77,111 +146,7 @@ impl JoyWord {
                 }
                 cx.stop_propagation();
             }))
-            .child(
-                div()
-                    .id("save-changes-dialog")
-                    .debug_selector(|| "save-changes-dialog".into())
-                    .track_focus(&self.discard_focus)
-                    .role(gpui::Role::Dialog)
-                    .aria_label(self.shell.tr("保存更改？", "Save changes?"))
-                    .w(px(450.))
-                    .max_w_full()
-                    .m_4()
-                    .p_6()
-                    .rounded_xl()
-                    .bg(rgb(self.palette().surface))
-                    .shadow_xl()
-                    .flex()
-                    .flex_col()
-                    .gap_4()
-                    .child(
-                        div()
-                            .text_lg()
-                            .font_weight(gpui::FontWeight::SEMIBOLD)
-                            .child(self.shell.tr("保存更改？", "Save changes?")),
-                    )
-                    .child(div().whitespace_normal().child(message))
-                    .when_some(self.shell.notice.as_ref(), |el, note| {
-                        el.child(
-                            div()
-                                .id("save-changes-status")
-                                .debug_selector(|| "save-changes-status".into())
-                                .role(gpui::Role::Status)
-                                .text_sm()
-                                .whitespace_normal()
-                                .child(note.clone()),
-                        )
-                    })
-                    .child(
-                        div()
-                            .flex()
-                            .justify_end()
-                            .gap_2()
-                            .child(
-                                Button::new("confirm-keep")
-                                    .debug_selector(|| "confirm-keep".into())
-                                    .disabled(self.saving)
-                                    .label(self.shell.tr("取消", "Cancel"))
-                                    .on_click(cx.listener(move |v, _, window, cx| {
-                                        v.execute(
-                                            if replacing {
-                                                "file.cancel_replace"
-                                            } else {
-                                                "file.keep"
-                                            },
-                                            window,
-                                            cx,
-                                        );
-                                    })),
-                            )
-                            .child(
-                                Button::new("confirm-discard")
-                                    .debug_selector(|| "confirm-discard".into())
-                                    .disabled(self.saving)
-                                    .label(if replacing {
-                                        self.shell.tr("另存副本", "Save a copy")
-                                    } else {
-                                        self.shell.tr("不保存", "Discard")
-                                    })
-                                    .on_click(cx.listener(move |v, _, window, cx| {
-                                        v.execute(
-                                            if replacing {
-                                                "file.save_as"
-                                            } else {
-                                                "file.discard"
-                                            },
-                                            window,
-                                            cx,
-                                        );
-                                    })),
-                            )
-                            .child(
-                                Button::new("confirm-save")
-                                    .debug_selector(|| "confirm-save".into())
-                                    .primary()
-                                    .disabled(self.saving)
-                                    .label(if self.saving {
-                                        self.shell.tr("保存中…", "Saving…")
-                                    } else if replacing {
-                                        self.shell.tr("确认替换原文件", "Confirm replace original")
-                                    } else {
-                                        self.shell.tr("保存", "Save")
-                                    })
-                                    .on_click(cx.listener(move |v, _, window, cx| {
-                                        v.execute(
-                                            if replacing {
-                                                "file.confirm_original"
-                                            } else {
-                                                "file.save"
-                                            },
-                                            window,
-                                            cx,
-                                        );
-                                    })),
-                            ),
-                    )
-                    .focus_trap("save-changes-focus", &self.discard_focus),
-            )
+            .child(panel.focus_trap("save-changes-focus", &self.discard_focus))
     }
 
     pub(super) fn save_available(&self) -> bool {

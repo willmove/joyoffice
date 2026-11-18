@@ -1,0 +1,121 @@
+{
+  "stage": "dialog",
+  "platforms": {
+    "mac": {
+      "joyword": {
+        "passed": 3655,
+        "failed": 0,
+        "ignored": 2,
+        "failedTests": [],
+        "logSha256": "98eec3c1cddcd8530e2c9b0915580be6c606f3004da97d4bffb5c49f1ffe8c46"
+      },
+      "joydeck": {
+        "passed": 984,
+        "failed": 0,
+        "ignored": 0,
+        "failedTests": [],
+        "logSha256": "f1b9426f552d5f199cc8eddcb101ae4ec7bff8c3f32b42aa3e8c77aee5d50472"
+      },
+      "joysheet": {
+        "passed": 1440,
+        "failed": 0,
+        "ignored": 1,
+        "failedTests": [],
+        "logSha256": "bf632c90df3d1f8a44a29032ffb99b82fe3a9ea462c5c554833182bce1e8f9f6"
+      },
+      "ui": {
+        "passed": 75,
+        "failed": 0,
+        "ignored": 0,
+        "failedTests": [],
+        "logSha256": "73800768f482f6f7df4a606f1b6291a1e9ae9fcfeeb427a56b36dce19479a64b"
+      },
+      "desktop": [
+        {
+          "product": "word",
+          "platform": "macOS-27.2.1-arm64-arm-64bit-Mach-O",
+          "sha256": "6d5d7189e1b9d1e104c16c72a7a69a024b397cfc6fd68ac65e575c79c67b54f6",
+          "passed": true,
+          "checks": [
+            "Tab / Shift+Tab / Escape retained the edit and original file",
+            "save and original replacement confirmed in the prompt",
+            "DOCX XML and fresh process agree"
+          ]
+        },
+        {
+          "product": "sheet",
+          "platform": "macOS-27.2.1-arm64-arm-64bit-Mach-O",
+          "sha256": "6c2b32719bb9d73d7012b9b5a472f17fd565c91a4bfbd137a74d7ad28f16ec9f",
+          "passed": true,
+          "checks": [
+            "Escape and Cancel preserved workbook",
+            "failed write retained draft, target and private staging file",
+            "retry closed only the intended window and XLSX reopened with edits",
+            "Discard preserved the saved workbook"
+          ]
+        }
+      ]
+    },
+    "uos": {
+      "joyword": {
+        "passed": 2999,
+        "failed": 5,
+        "ignored": 2,
+        "failedTests": [
+          "tests::a_symbol_bullet_sizes_its_line_by_the_symbol_font",
+          "tests::justified_lines_shrink_spaces_in_word_2013_mode",
+          "tests::last_rewrap_pass_keeps_early_floats_clear_of_text",
+          "tests::legacy_form_fields_are_drawn",
+          "tests::long_footnotes_continue_on_the_next_page"
+        ],
+        "logSha256": "570f12eb7ac17f302d8aec5d95b5af376bf325abdf94af93be2a48e2e9c73382"
+      },
+      "joydeck": {
+        "passed": 989,
+        "failed": 0,
+        "ignored": 0,
+        "failedTests": [],
+        "logSha256": "88b5698eccfb81cbc640bcb89d834b91ee29eef6c3930404a44c4f996741bf76"
+      },
+      "joysheet": {
+        "passed": 1440,
+        "failed": 0,
+        "ignored": 1,
+        "failedTests": [],
+        "logSha256": "3517a5422ca998c85442404230e56b94b0c6ae40049e4a75a49bb44c23c4b164"
+      },
+      "ui": {
+        "passed": 79,
+        "failed": 0,
+        "ignored": 0,
+        "failedTests": [],
+        "logSha256": "8e8f8fbf6049865898c40cd854bac092540183e5a395179faca79a84b8852e17"
+      },
+      "desktop": [
+        {
+          "product": "word",
+          "platform": "Linux-6.18.57-061857-generic-x86_64-with-glibc2.38",
+          "sha256": "3f2100bed2a1348fc73934986fa4bdad1a1dc313c1db9100f5850b5921d943bd",
+          "passed": true,
+          "checks": [
+            "Tab / Shift+Tab / Escape retained the edit and original file",
+            "save and original replacement confirmed in the prompt",
+            "DOCX XML and fresh process agree"
+          ]
+        },
+        {
+          "product": "sheet",
+          "platform": "Linux-6.18.57-061857-generic-x86_64-with-glibc2.38",
+          "sha256": "21d5a4dbc9fc9d098e1aa4b997f0cc016bb21836087a8018302e7b9d05e478ab",
+          "passed": true,
+          "checks": [
+            "Escape and Cancel preserved workbook",
+            "failed write retained draft, target and private staging file",
+            "retry closed only the intended window and XLSX reopened with edits",
+            "Discard preserved the saved workbook"
+          ]
+        }
+      ]
+    }
+  }
+}

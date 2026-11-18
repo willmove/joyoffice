@@ -2,7 +2,7 @@
 
 ## 仓库与版本
 
-主产品在同一个 Cargo workspace 内使用根 Cargo.lock、Rust 1.98.1、resolver 3 和工程门禁。`apps/joyword`、`apps/joyword-cli`、`apps/joydeck`、`apps/joydeck-cli`、`apps/joysheet`、`apps/joysheet-cli` 是独立构建目标。应用 manifest 是各产品版本真值；CLI 跟随所属产品，内部库和其它产品不被强制一起升版。现有独立实验沿其受控工作区规则运行，影响其 path 依赖的变更须同步验证。
+主产品在同一个 Cargo workspace 内使用根 Cargo.lock、Rust 1.98.1、resolver 3 和工程门禁。`apps/joyword`、`apps/joyword-cli`、`apps/joydeck`、`apps/joydeck-cli`、`apps/joysheet`、`apps/joysheet-cli` 是独立构建目标。第一方组件和应用清单默认继承根工作区的统一版本，GUI 和 CLI 随各自产品打包。现有独立实验沿其受控工作区规则运行，影响其 path 依赖的变更须同步验证。
 
 ## 依赖方向
 
@@ -18,7 +18,9 @@
 
 界面主题由无 GUI、无文件访问的 `joyoffice-theme` 定义；Word shell、Deck shell、Sheet platform 在各自已有偏好存储中保存其稳定 ID。`joyoffice-ui` 依赖该目录并把 Palette 投影到 GPUI Kit 和 Base tokens，三产品 UI 共用预览和主题应用函数。该层不修改文档模型，CLI 依赖闭包仍不引入 GPUI。[主题目录与兼容规则](THEMES.md)
 
-已有 OPC、DrawingML、OMML、CFB 等格式中立模块优先复用。将 Deck 现有实现替换成 OPC 前，先比较预算、关系、未知成员保留与写回契约，再增加能验证行为的往返用例。没有第二个实际调用方的 UI/字体/几何设计不为共享先建空壳。Word 流式分页、Deck 固定画布、Sheet 单元格模型分别维护。
+Word 和 Deck 已在部分包读取路径使用 `joyoffice-opc`。Sheet 已在 XLSX 嵌入对象写入中使用 `joyoffice-cfb`。DrawingML 和 OMML 目前均未进入三款桌面或其 CLI 的默认依赖闭包。格式能力按对象或包读取操作接入，共用输入预算、关系和未知成员保留的差分语料。
+
+公共 UI 持有呈现组件，产品适配层传入命令、焦点、可访问名称和保存状态。Word 的流式分页、Deck 的固定画布与 Sheet 的单写者计算引擎分别维护。每次抽取列出至少两个实际调用产品、各自的正常入口和可独立恢复的旧路径。共享组件的调用矩阵、首批候选与验收条件见[桌面应用共享复用](REFACTOR-ROADMAP.md#桌面应用共享复用)。
 
 ## 构建、测试和交付
 
