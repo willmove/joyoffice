@@ -84,8 +84,8 @@
       "target": "third-party/craft-libs/proof/src/affix_suggest.rs",
       "sha256": "4c39ed382531386a97467a04802e69c6255581bd7ea816697b241e9c20d3ebff",
       "modified": true,
-      "target_sha256": "12b86166fc71929ef888a7c6466a2295214599e836f26cd75104b0bcc313d6ef",
-      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+      "target_sha256": "b1400700ed07dc3c54b07d5b715adac72429dea8f41dbed11ca8ea8eae434fe9",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md. JoyOffice ranks verified candidates and computes bounded weighted adjacent-transposition distances in src/affix_suggest/ranking.rs. Independent implementation SHA-256 4978096601bf7447d14766944ffb8729efc30e55760920aefed7a5d9c346a96e."
     },
     {
       "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",

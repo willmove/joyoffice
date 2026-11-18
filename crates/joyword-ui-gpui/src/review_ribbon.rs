@@ -684,16 +684,30 @@ impl JoyWord {
             dialog
                 .title(title)
                 .width(px(390.))
-                .child(div().flex().flex_col().gap_2().children(rows.iter().map(
-                    |(label, value)| {
-                        div()
-                            .flex()
-                            .justify_between()
-                            .gap_3()
-                            .child(*label)
-                            .child(value.clone())
-                    },
-                )))
+                .child(
+                    div()
+                        .flex()
+                        .flex_col()
+                        .gap_2()
+                        .children(rows.iter().enumerate().map(|(index, (label, value))| {
+                            let text: SharedString = if label.is_empty() {
+                                value.clone()
+                            } else {
+                                format!("{label} {value}")
+                            }
+                            .into();
+                            div()
+                                .id(("proofing-result", index))
+                                .role(gpui::accesskit::Role::Label)
+                                .aria_label(text.clone())
+                                .aria_value(text)
+                                .flex()
+                                .justify_between()
+                                .gap_3()
+                                .child(*label)
+                                .child(value.clone())
+                        })),
+                )
         });
     }
 }

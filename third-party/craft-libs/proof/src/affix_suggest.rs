@@ -17,6 +17,9 @@
 //! lack and the slips no table can say. The input is bounded ([`MAX_LETTERS`]), and so is every
 //! round, so a call costs a few thousand dictionary lookups at most.
 
+mod ranking;
+pub(crate) use ranking::weighted_distance;
+
 use std::borrow::Cow;
 use std::collections::{HashMap, HashSet};
 
@@ -359,53 +362,6 @@ pub(crate) fn fold(c: char, map: &[Vec<char>]) -> char {
         .unwrap_or(l)
 }
 
-/// Optimal string alignment distance where a MAP slip (`a`/`ą`, `u`/`ó`) costs 1 and any other
-/// edit 2; `limit + 1` once it is certainly above `limit`.
-pub(crate) fn weighted_distance(
-    a: &[char],
-    b: &[char],
-    related: &dyn Fn(char, char) -> bool,
-    limit: u32,
-) -> u32 {
-    let m = b.len();
-    let over = limit + 1;
-    let mut prev2 = vec![0u32; m + 1];
-    let mut prev: Vec<u32> = (0..=m as u32).map(|j| j * 2).collect();
-    let mut cur = vec![0u32; m + 1];
-    for (i, &ai) in a.iter().enumerate() {
-        if let Some(c) = cur.get_mut(0) {
-            *c = (i as u32 + 1) * 2;
-        }
-        let mut row_min = u32::MAX;
-        for (j, &bj) in b.iter().enumerate() {
-            let sub = if ai == bj {
-                0
-            } else if related(ai, bj) {
-                1
-            } else {
-                2
-            };
-            let at = |v: &[u32], k: usize| v.get(k).copied().unwrap_or(u32::MAX / 4);
-            let mut v = (at(&prev, j + 1) + 2)
-                .min(at(&cur, j) + 2)
-                .min(at(&prev, j) + sub);
-            if i > 0 && j > 0 && a.get(i - 1) == Some(&bj) && b.get(j - 1) == Some(&ai) {
-                v = v.min(at(&prev2, j - 1) + 2);
-            }
-            if let Some(c) = cur.get_mut(j + 1) {
-                *c = v;
-            }
-            row_min = row_min.min(v);
-        }
-        if m > 0 && row_min > limit {
-            return over;
-        }
-        std::mem::swap(&mut prev2, &mut prev);
-        std::mem::swap(&mut prev, &mut cur);
-    }
-    prev.get(m).copied().unwrap_or(over).min(over)
-}
-
 /// The cost of a missing space between `a` and `b`, or `None` when the split isn't offered.
 fn split_cost(split: &Split, a: &str, b: &str) -> Option<u32> {
     let long = |part: &str| part.chars().count() >= 3;
@@ -467,19 +423,9 @@ pub(crate) fn suggest_in(d: &AffixDict, word: &str, max: usize, t: &Tuning) -> V
         scan(&mut col, &chars, &map);
         col.compounds();
     }
-    let mut found: Vec<(String, (u32, usize))> = col.found.into_iter().collect();
-    // Among equal costs, the change nearest the word's start is the likelier intent
-    // (the first changed letter breaks ties).
-    let diff_at = |text: &str| {
-        chars
-            .iter()
-            .zip(text.chars())
-            .position(|(a, b)| *a != b)
-            .unwrap_or(n)
-    };
-    found.sort_by_key(|(text, (cost, seq))| (*cost, diff_at(text), *seq));
+    let found = ranking::best_first(col.found, &chars, n);
     let mut out: Vec<String> = Vec::new();
-    'found: for (text, _) in found {
+    'found: for text in found {
         // A KEEPCASE word only exists in its dictionary case: `Km` would be flagged, so offer `km`.
         // Under CHECKSHARPS one with `ß` may still be capitalized, or written in capitals with SS
         // (`Fußball`, `FUSSBALL`), as hunspell 1.7.5 offers.

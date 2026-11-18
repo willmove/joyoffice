@@ -153,3 +153,13 @@ Word 和 Deck 共用目录遍历及文件修订识别，塑形和回退顺序由
 Release 在同一份原生测试文档的第二条脚注交替插入和删除，五个新进程各执行 20 次。macOS 完整分页与编辑加局部分页的 P50 为 0.585 → 0.411 ms，P95 为 0.648 → 0.559 ms。UOS P50 为 0.591 → 0.422 ms，P95 为 1.000 → 1.017 ms。两端中位数均下降，UOS 尾部有约 0.018 ms 回退。每台机器另完成 690 次逐页比较和 2,070 次命中检查。记录中保留了每次都重新核验旧布局的初版、加入章节缓存的中间版与最终版的计时。macOS 产品回归通过 3,679 项，UOS 通过 3,683 项。两端公共 UI 和桌面／CLI 联合构建也通过。[逐次计时](section-reflow.json)
 
 复跑用 `python3 scripts/joyword/check-section-reflow.py DESKTOP NEW_DIR`，随后运行 `cargo run --release -p joyword-engine --example chapter_reflow -- NEW_DIR/原始分节.docx`。该例省略文件名时仍执行原有的千页中段增删基准。当前局部计算限于原布局至少 64 页、连续节组最多 256 个正文块和 16 页。分节改变总页数、外部字段、复杂浮动绘图和无法验证的入口继续使用完整分页。[生产入口](../../../../crates/joyword-layout/src/incremental/sections.rs)
+
+## Word 多语拼写建议与原生审阅
+
+JoyWord 用带宽受阈值限制的动态规划计算候选距离。相邻字符换位与普通编辑各计两分，词典 MAP 声明的近似字母替换计一分。优先队列按距离、首个不同字符的位置和候选原次序取出结果，直到大小写转换、去重后的建议数量足够。对照程序使用完整矩阵，对 121 个含重音字符的字符串两两比较，在八个阈值下核对了 117,128 次结果。带状求解的边界依据 Ukkonen 的编辑距离研究，字符权重及换位规则采用现有产品词典约定。[Ukkonen 原文](https://www.cs.helsinki.fi/u/ukkonen/InfCont85.PDF) · [实现](../../../../third-party/craft-libs/proof/src/affix_suggest/ranking.rs)
+
+两个平台分别校验了固定索引和 75 个正式压缩包的 SHA-256，共 41,923,267 字节。每个语言标签选两个词干，另造换位和删字输入。通过真实 CLI 的审阅命令，每端对照新旧程序各 450 个输入，产生 298 个拼写问题，其中 293 个有建议。问题的文字范围、语言和完整建议列表在版本之间、在两台机器之间逐项相同。四种语言另各有 12 个独立样例，核对词形、重音、换位、整词拆分及无建议的情形。真实词典部分衡量与旧版的一致性，语言学正确率需要人工标注语料。[逐语言结果](spelling-ranking.json)
+
+原生窗口从“审阅”打开“拼写和语法”，两端的辅助功能树均读回 `teh` 和依次排列的 `the, tens, tent, test, text`。关闭弹窗后输入第一项，验证只有选中的错词改变，撤销、重做，保存副本并在新进程重开。首轮发现弹窗正文没有可访问标签，现已补齐。两端校对库各通过 476 项并按原配置忽略一项，生产库 Clippy 通过。macOS 的首次并发产品回归有一项 1 MiB 长词布局超过 15 秒限值，改为两个测试线程重跑整套。额外对校对库测试代码开启所有 Clippy 告警时，已有测试中的 `unwrap` 等仍会报错。[双平台回归与原生纠错](spelling-ranking.json)
+
+复跑用 `python3 scripts/joyword/check-spelling-order.py OLD_CLI NEW_CLI NEW_DIR --release-packs VERIFIED_PACKS --desktop NEW_DESKTOP`。词典目录含正式 `index.json` 及按小写语言标签命名的 `.tar.zst`。安装器仍以用户同意和应用固定的索引为入口。[验证脚本](../../../../scripts/joyword/check-spelling-order.py)

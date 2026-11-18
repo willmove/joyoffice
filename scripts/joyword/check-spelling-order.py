@@ -1,0 +1,217 @@
+"""Compare JoyWord's word acceptance, issue ranges and ordered spelling suggestions in two builds."""
+import argparse
+import hashlib
+import json
+import os
+from pathlib import Path
+import re
+import runpy
+import secrets
+import shutil
+import subprocess
+import sys
+import tarfile
+import xml.etree.ElementTree as ET
+from xml.sax.saxutils import escape
+from zipfile import ZipFile
+
+PUBLISHED_INDEX = "b35c7aef0591177f18233b551da16035dcd615549ff874e169ffd19f16fea74b"
+VOCABULARY = ["test/S", "toast", "tosty", "text", "tens", "tent", "the", "word", "worded", "house",
+              "work", "case", "base", "space", "km", "tést", "best", "east", "Testy"]
+CASES = ["teh", "tset", "tost", "wrod", "tést", "tests", "testing", "testinng", "tsets", "ßpase", "houseword", "km"]
+EXPECTED = {"teh": ["the", "tens", "tent", "test", "text"], "tset": ["test"],
+            "tost": ["toast", "test", "tést", "tosty", "tests"], "wrod": ["word"], "testing": [],
+            "testinng": [], "tsets": ["tests"], "ßpase": [], "houseword": ["house word"]}
+SAMPLE_AFFIX = b"SET UTF-8\nTRY estorawdinlmphbc\nMAP 1\nMAP e\xc3\xa9\nREP 1\nREP eh he\nSFX S Y 1\nSFX S 0 s .\n"
+
+
+def sha(path):
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def make_document(document, locale, words):
+    make = runpy.run_path(str(Path(__file__).with_name("check-complex-corpus.py")))
+    body = "".join(f'<w:p><w:r><w:rPr><w:lang w:val="{locale}"/></w:rPr><w:t>{escape(word)}</w:t></w:r></w:p>'
+                   for word in words)
+    make["package"](document, body+"<w:sectPr/>")
+
+
+def results(binary, root, locale, words):
+    document = root / "sample.docx"
+    if not document.exists():
+        make_document(document, locale, words)
+    calls = [("open_document", {"path": str(document)}), ("execute", {"command": "review.issues", "params": {}})]
+    stdin = "".join(json.dumps({"jsonrpc":"2.0", "id":i+1, "method":"tools/call",
+                    "params":{"name":name, "arguments":args}})+"\n" for i, (name,args) in enumerate(calls))
+    response = subprocess.run([binary, "mcp", "--automation-read-root", root], input=stdin,
+                              env={**os.environ, "JOYWORD_CONFIG_DIR": str(root/"profile"),
+                                   "WORDCRAFT_DICTIONARIES": str(root)}, text=True, capture_output=True,
+                              check=True, timeout=180)
+    messages = [json.loads(line)["result"] for line in response.stdout.splitlines()]
+    assert len(messages) == 2 and not any(m["isError"] for m in messages)
+    issues = json.loads(messages[1]["content"][0]["text"])
+    return [{k:i[k] for k in ("start","end","text","suggestions","lang")} for i in issues if i["kind"] == "spelling"]
+
+
+def write_dictionary(folder, locale, affix, words):
+    folder.mkdir()
+    full = locale.split("-")
+    canonical = [full[0], *(s.title() if len(s) == 4 and s.isalpha() else s.upper() for s in full[1:])]
+    names = {locale, locale.replace("-", "_"), "-".join(canonical), "_".join(canonical)}
+    if not any(len(s) == 4 and s.isalpha() for s in full[1:]):
+        names.add(full[0])
+    for suffix, data in [("aff",affix),("dic",words)]:
+        file = folder/(locale+"."+suffix)
+        file.write_bytes(data)
+        for name in names:
+            alias = folder/(name+"."+suffix)
+            if not alias.exists():
+                os.link(file, alias)
+
+
+def published_data(archive):
+    found = {}
+    with subprocess.Popen(["zstd","-dq","-c",archive],stdout=subprocess.PIPE) as decoder:
+        with tarfile.open(fileobj=decoder.stdout,mode="r|") as stream:
+            for member in stream:
+                if member.name in ("spelling.aff","spelling.dic"):
+                    assert member.isfile() and 0 < member.size <= 64 << 20 and member.name not in found
+                    found[member.name] = stream.extractfile(member).read(member.size)
+        for _ in iter(lambda: decoder.stdout.read(65536), b""):
+            pass
+        decoder.stdout.close()
+        assert decoder.wait() == 0
+    return found["spelling.aff"],found["spelling.dic"]
+
+
+def sample_words(affix, dictionary):
+    charset = re.search(rb"(?mi)^SET[ \t]+([^\s]+)",affix)
+    codec = charset.group(1).decode("ascii") if charset else "utf-8"
+    rows = dictionary.decode(codec,errors="replace").splitlines()[1:]
+    words = []
+    for begin in (len(rows)//3, len(rows)*2//3):
+        for line in rows[begin:]:
+            stem = line.split("/",1)[0].split("\t",1)[0].strip()
+            if 4 <= len(stem) <= 14 and stem.isalpha() and stem not in words and stem[0] != stem[1]:
+                words.extend((stem, stem[1]+stem[0]+stem[2:], stem[:1]+stem[2:]))
+                break
+    assert words
+    return words
+
+
+def compare(binaries, directory, locale, probes):
+    before,after = [results(cli,directory,locale,probes) for cli in binaries]
+    assert before == after, f"different issue or suggestion order for {locale}"
+    signature = hashlib.sha256(json.dumps(after,sort_keys=True,ensure_ascii=False).encode()).hexdigest()
+    return after, {"probes":len(probes), "spellingIssues":len(after),
+                   "issuesWithSuggestions":sum(bool(i["suggestions"]) for i in after),
+                   "orderedIssueSha256":signature}
+
+
+def verify_desktop(binary, dictionary, out):
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    from native_pilot_support import app, port, wait, word_request
+    from verify_save_changes import word_keys
+    from verify_shared_ribbon import NativeWindow
+
+    out.mkdir()
+    source = out / "原始拼写.docx"
+    working = out / "校对 副本.docx"
+    make_document(source, "nl", ["teh", "tests", "tset"])
+    original = sha(source)
+    shutil.copyfile(source, working)
+    number, token = port(), secrets.token_hex(32)
+    env = {"JOYWORD_CONFIG_DIR": str(out / "profile"), "JOYWORD_CONTROL_KEY": token,
+           "WORDCRAFT_DICTIONARIES": str(dictionary)}
+    args = ["--control", str(number), "--", str(working)]
+
+    def inspect():
+        return word_request(number, "document.inspect", key=token).get("result")
+
+    def edit(command, **params):
+        state = inspect()
+        reply = word_request(number, "engine.execute", {"command": command, "doc": state["doc"],
+                             "version": state["version"], "params": params}, token)
+        assert reply["ok"], reply
+
+    with app(binary, args, out, env) as proc:
+        initial = wait(inspect, "document opened", proc)["text"]
+        surface = NativeWindow(proc, out)
+        surface.size(1180)
+        surface.press(wait(lambda: surface.find({"Review", "审阅"}), "Review tab", proc))
+        spell = wait(lambda: surface.find({"review-spelling", "拼写和语法", "Spelling & Grammar"}, "button"),
+                     "Spelling & Grammar", proc)
+        surface.press(spell)
+        suggestions = ", ".join(EXPECTED["teh"])
+
+        def displayed():
+            texts = []
+            for node in surface.nodes():
+                texts.extend(str(node.get(k) or "") for k in ("title", "label", "value"))
+                if not surface.mac and node["role"] in ("label", "text", "static"):
+                    interface = node["object"].get_text_iface()
+                    if interface:
+                        texts.append(interface.get_text(0, -1))
+            return any(suggestions in t for t in texts) and any("teh" in t for t in texts)
+
+        wait(displayed, "issue and ordered recommendations displayed", proc)
+        surface.key("escape")
+        corrected = initial.replace("teh", "the", 1)
+        edit("text.insert", text="the")
+        assert inspect()["text"] == corrected
+        edit("edit.undo")
+        assert inspect()["text"] == initial
+        edit("edit.redo")
+        assert inspect()["text"] == corrected
+        key = word_keys(proc)
+        key("new")
+        key("enter")
+        key("enter")
+
+        def saved():
+            with ZipFile(working) as archive:
+                body = ET.fromstring(archive.read("word/document.xml"))
+            return [t.text for t in body.findall(".//{*}t")] == ["the", "tests", "tset"]
+
+        wait(saved, "corrected DOCX written", proc)
+    with app(binary, args, out, env, "reopen.log") as proc:
+        assert wait(inspect, "corrected copy reopened", proc)["text"] == corrected
+    assert sha(source) == original
+    return {"binarySha256": sha(binary), "sourceSha256": original, "selectedWord": "teh",
+            "displayedSuggestions": EXPECTED["teh"], "replacement": "the", "undoRedo": True,
+            "savedAndReopened": True, "originalUnchanged": True}
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description=__doc__)
+    for arg in ("baseline","candidate","output"):
+        parser.add_argument(arg,type=Path)
+    parser.add_argument("--release-packs",type=Path,help="verified index.json and its locale.tar.zst archives")
+    parser.add_argument("--desktop",type=Path,help="also exercise the native Review ribbon and its spelling dialog")
+    args = parser.parse_args()
+    out = args.output.resolve()
+    out.mkdir(parents=True,exist_ok=False)
+    binaries = [args.baseline.resolve(),args.candidate.resolve()]
+    report = {"binarySha256":[sha(b) for b in binaries],"synthetic":{},"published":{}}
+    for locale in ["nl","sv","da","fi"]:
+        folder = out/("small-"+locale)
+        write_dictionary(folder,locale,SAMPLE_AFFIX,(str(len(VOCABULARY))+"\n"+"\n".join(VOCABULARY)+"\n").encode())
+        issues,counts = compare(binaries,folder,locale,CASES)
+        assert {x["text"]:x["suggestions"] for x in issues} == EXPECTED
+        report["synthetic"][locale] = counts
+    if args.desktop:
+        report["desktop"] = verify_desktop(args.desktop.resolve(), out/"small-nl", out/"desktop")
+    if args.release_packs:
+        index = args.release_packs/"index.json"
+        assert sha(index) == PUBLISHED_INDEX
+        report["indexSha256"] = PUBLISHED_INDEX
+        for row in json.loads(index.read_text())["packs"]:
+            locale = row["locale"]
+            archive = args.release_packs/(locale+".tar.zst")
+            assert archive.stat().st_size == row["size"] and sha(archive) == row["sha256"]
+            affix,dictionary = published_data(archive)
+            folder = out/locale
+            write_dictionary(folder,locale,affix,dictionary)
+            _, counts = compare(binaries,folder,locale,sample_words(affix,dictionary))
+            report["published"][locale] = {**counts,"archiveSha256":row["sha256"]}
+    (out/"report.json").write_text(json.dumps(report,indent=2)+"\n")
