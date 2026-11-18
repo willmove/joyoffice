@@ -297,3 +297,9 @@ JoyDeck 现在用同一组归一化坐标描述推入、覆盖和揭开。PowerP
 同一公式中的相对名称按所在单元格解析，工作表局部名称优先。运行时取得的范围可跟随 INDIRECT、OFFSET 和溢出目标移动；不完整的读取、迭代计算以及超出范围预算的情况使用保守调度。修改无关单元格时，Excel 易失函数仍会计算。通过 `JOYSHEET_REFERENCE_DEPENDENCIES=0` 可在同一程序中切回保守调度。[微软关于易失函数和重算的说明](https://learn.microsoft.com/en-us/office/vba/excel/concepts/excel-performance/excel-improving-calculation-performance)
 
 Excel 16.115 分别保存三种输入状态。205 个公式覆盖数据库分类的全部 12 个函数，包括错误传播、单条／多条／零条匹配、公式返回的空字符串、计算条件的相对与绝对引用，以及名称、表格和溢出目标。每个平台比较 615 个带类型的缓存，旧版 111 处差异，新版为零。每份文件经过两代读写器的四种组合。真实编辑窗口还核对六个编辑、撤销、重做和重开状态，每个状态比较 38 格。桌面输入 `SUM(Sales)` 后，保存得到与 Excel 相同的 `SUM(Sales[])`。两份授权业务原件均无公式，另在副本验证 916 和 16 个计算结果。原件摘要保持一致。[双平台结果与重算计时](reference-dependencies.json) · [验证脚本](../../../../scripts/joysheet/check-reference-dependencies.py) · [DSUM 语义](https://support.microsoft.com/en-us/excel/functions/dsum-function)
+
+## Word 页眉页脚、绘图锚点和跨节续注
+
+70 节合成 DOCX 含奇偶页与页码重起、首尾链接的页眉页脚、双栏、浮动嵌套表格、以段落为锚点的环绕图片和延续到下一节的脚注。正文和五个运行页眉页脚分别打印页码、总页数、节序及节页数。旧版和新版的打印文本与每张 48 DPI 页图逐页相同。macOS 实际窗口在修改、撤销、重做后分别为 75、73、75 页；UOS 真机 Wilmer 的 DDE 桌面分别为 77、73、77 页。54 个续注段落在两端各跨三页。两台机器都从第一页起刷新总页数，并重开两代产品各自保存的文件。[双平台记录](section-stories.json) · [窗口与 PDF 复验](../../../../scripts/joyword/check-section-reflow.py)
+
+对同一 DOCX 的每次编辑，另将增量结果与独立完整分页逐页比较，包括所有放置对象、段落索引以及正文、页眉和页脚的点击位置。模型回归覆盖页眉里的 PAGEREF、STYLEREF 和页脚的直接编辑。页脚增高侵入正文，或远端正文字段因总页数变化而影响换行时，编辑器自动完成整篇重排。两代读写器的四种组合均成功重开，保存副本仍包含字段、图片关系和表格。[逐页及命中检查](../../../../crates/joyword-shell/examples/verify_section_reflow.rs) · [边界回归](../../../../crates/joyword-layout/src/tests/section_checkpoint.rs)

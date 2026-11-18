@@ -39,6 +39,7 @@ impl Mode {
 
 /// Where a section's pages start and end: the body below the headers (on the first page, and on
 /// the others) and the foot above the footers.
+#[derive(PartialEq)]
 struct Tops {
     body: f32,
     first: f32,
@@ -570,22 +571,93 @@ fn fill_headers_footers(
     pages: &mut [Page],
     sections: &[(usize, &SectionProps)],
     (totals, may_repeat): (&Totals, bool),
+    outside_pages: u32,
 ) -> Option<Totals> {
-    let found = Totals::of(pages, sections);
+    let mut found = Totals::of(pages, sections);
+    found.pages = found.pages.saturating_add(outside_pages);
     if ctx.uses_totals && may_repeat && found != *totals {
         return Some(found);
     }
+    draw_running_stories(ctx, pages, sections, &found);
+    if ctx.doc.settings.mirror_margins {
+        mirror_even_pages(pages, sections);
+    }
+    None
+}
+
+fn draw_running_stories(
+    ctx: &mut Ctx,
+    pages: &mut [Page],
+    sections: &[(usize, &SectionProps)],
+    totals: &Totals,
+) {
     ctx.track_totals = false;
     if headers_footers_refer_to_pages(ctx.doc) {
         let marks = bookmark_pages(ctx.doc, pages, sections);
         ctx.fields.bookmarks_key = marks_key(&marks);
         ctx.fields.bookmark_pages = Arc::new(marks);
     }
-    headers_footers(ctx, pages, sections, &found);
-    if ctx.doc.settings.mirror_margins {
-        mirror_even_pages(pages, sections);
+    headers_footers(ctx, pages, sections, totals);
+}
+
+pub(super) fn same_story_limits(
+    old: &Document,
+    new: &Document,
+    opts: &LayoutOptions,
+    cache: &mut LayoutCache,
+    pages: &[Page],
+) -> bool {
+    let limits = |doc: &Document, cache: &mut LayoutCache| {
+        let totals = Totals::of(pages, &doc.sections());
+        let notes = super::notes::footnote_pages(doc, pages);
+        reset_cache(doc, cache, opts);
+        let mut ctx = new_ctx(doc, cache, opts, (&notes, &totals));
+        ctx.mirror = doc.settings.mirror_margins;
+        let links = Arc::clone(&ctx.hf);
+        links
+            .sections
+            .iter()
+            .enumerate()
+            .map(|(i, (_, s))| section_tops(&mut ctx, &links, (i, s), false))
+            .collect::<Vec<_>>()
+    };
+    limits(old, cache) == limits(new, cache)
+}
+
+/// Rebuild running stories against the complete set of body pages after a
+/// checkpoint reflow. Body positions already have their facing-page translation.
+pub(super) fn refresh_page_stories(
+    doc: &Document,
+    opts: &LayoutOptions,
+    cache: &mut LayoutCache,
+    pages: &mut [Page],
+) {
+    let sections = doc.sections();
+    let totals = Totals::of(pages, &sections);
+    let notes = super::notes::footnote_pages(doc, pages);
+    reset_cache(doc, cache, opts);
+    let mut ctx = new_ctx(doc, cache, opts, (&notes, &totals));
+    ctx.mirror = doc.settings.mirror_margins;
+    for page in pages.iter_mut() {
+        page.header.clear();
+        page.footer.clear();
+        page.header_story = None;
+        page.footer_story = None;
     }
-    None
+    draw_running_stories(&mut ctx, pages, &sections, &totals);
+    if ctx.mirror {
+        for page in pages.iter_mut().filter(|p| p.number % 2 == 0) {
+            let Some((_, s)) = sections.get(page.section) else {
+                continue;
+            };
+            let dx = s.margin_right - s.margin_left - s.gutter;
+            if dx.abs() >= 0.001 && dx.is_finite() {
+                for item in page.header.iter_mut().chain(&mut page.footer) {
+                    item.translate(dx, 0.);
+                }
+            }
+        }
+    }
 }
 
 /// Evict paragraph layouts that weren't used this pass if the cache grew large.
@@ -624,13 +696,13 @@ pub(crate) fn layout_pass(
     note_pages: &HashMap<u32, usize>,
     (totals, may_repeat): (&Totals, bool),
     (early, may_rewrap): (&EarlyFloats, bool),
-    preceding_pages: usize,
+    origin: super::PageOrigin,
 ) -> Pass {
     reset_cache(doc, cache, opts);
     let mut ctx = new_ctx(doc, cache, opts, (note_pages, totals));
     let hf = Arc::clone(&ctx.hf);
     let sections = &hf.sections;
-    let mode = Mode::of(opts.view, preceding_pages);
+    let mode = Mode::of(opts.view, origin.preceding_pages);
     ctx.mirror = doc.settings.mirror_margins && !mode.reflow;
     (ctx.stacked_marks, ctx.quiet_marks) = section_marks(doc, opts, sections);
     let outline = (opts.view == ViewMode::Outline)
@@ -670,6 +742,7 @@ pub(crate) fn layout_pass(
             tops,
         };
         begin_section_state(&mut ctx, &mut pb, &sec, totals, mode.web);
+        ctx.fields.section = ctx.fields.section.saturating_add(origin.preceding_sections);
         if mode.web && si > 0 {
             // one long page
         } else if pb.pages.is_empty() || start != SectionStart::Continuous || turn != prev_turn {
@@ -709,8 +782,13 @@ pub(crate) fn layout_pass(
         return Pass::Rewrap(found);
     }
     if !mode.reflow
-        && let Some(found) =
-            fill_headers_footers(&mut ctx, &mut pages, sections, (totals, may_repeat))
+        && let Some(found) = fill_headers_footers(
+            &mut ctx,
+            &mut pages,
+            sections,
+            (totals, may_repeat),
+            origin.outside_pages,
+        )
     {
         return Pass::Again(found);
     }

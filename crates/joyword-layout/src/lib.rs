@@ -368,7 +368,15 @@ impl DocLayout {
 
 /// Lay out the whole document.
 pub fn layout(doc: &Document, cache: &mut LayoutCache, opts: &LayoutOptions) -> DocLayout {
-    layout_at(doc, cache, opts, 0)
+    layout_at(doc, cache, opts, PageOrigin::default())
+}
+
+/// The sheet side, section number and document total seen by a fragment.
+#[derive(Clone, Copy, Default)]
+pub(crate) struct PageOrigin {
+    preceding_pages: usize,
+    preceding_sections: u32,
+    outside_pages: u32,
 }
 
 /// A section fragment starts on an existing physical sheet even when its
@@ -377,7 +385,7 @@ fn layout_at(
     doc: &Document,
     cache: &mut LayoutCache,
     opts: &LayoutOptions,
-    preceding_pages: usize,
+    origin: PageOrigin,
 ) -> DocLayout {
     let t0 = now_ms();
     // Page totals shown in the body (`NUMPAGES`, `SECTIONPAGES`) are known only after
@@ -390,6 +398,7 @@ fn layout_at(
     let mut note_pages = HashMap::new();
     let mut note_passes = 1;
     let mut totals = Totals::first_guess(doc.sections().len());
+    totals.pages = totals.pages.saturating_add(origin.outside_pages);
     let mut passes = 0;
     let (mut early, mut rewraps) = (EarlyFloats::new(), 0);
     let mut l = loop {
@@ -400,7 +409,7 @@ fn layout_at(
             &note_pages,
             (&totals, passes < MAX_TOTAL_PASSES),
             (&early, rewraps < MAX_REWRAP_PASSES),
-            preceding_pages,
+            origin,
         ) {
             Pass::Again(t) => {
                 totals = t;

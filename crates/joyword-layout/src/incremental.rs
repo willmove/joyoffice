@@ -19,7 +19,10 @@ pub(crate) struct Previous {
     body: Blocks,
     notes: BTreeMap<u32, joyword_model::Part>,
     section_context: bool,
-    complex_tables: bool,
+    requires_section_flow: bool,
+    media: BTreeMap<String, Arc<Vec<u8>>>,
+    page_stories: bool,
+    body_fields: bool,
     /// Only the most recently verified section keeps its paragraph shaping cache.
     checked_section: Option<(std::ops::Range<usize>, Box<LayoutCache>)>,
     section: SectionProps,
@@ -31,7 +34,7 @@ pub(crate) struct Previous {
 
 enum Change {
     Body(usize),
-    Footnote(u32),
+    Part(u32),
 }
 
 /// Reuse stable page geometry or paginate the affected section group to a checked exit.
@@ -48,7 +51,7 @@ pub fn layout_shared(
         let next = Arc::new(next);
         match change {
             Change::Body(block) => previous.body[block] = doc.body[block].clone(),
-            Change::Footnote(id) => {
+            Change::Part(id) => {
                 previous.notes.insert(id, doc.parts[&id].clone());
             }
         }
@@ -59,17 +62,20 @@ pub fn layout_shared(
     }
 
     let layout = Arc::new(layout(doc, cache, opts));
-    let mut complex_tables = false;
+    let mut requires_section_flow = false;
+    let mut body_fields = false;
     if layout.pages.len() >= MIN_PAGES
         && eligible(doc, opts)
-        && doc.parts.values().all(|part| {
-            matches!(
-                part.kind,
-                joyword_model::PartKind::Footnote | joyword_model::PartKind::Endnote
-            ) && part
+        && doc.parts.values().all(|part| match part.kind {
+            joyword_model::PartKind::Header | joyword_model::PartKind::Footer => part
                 .blocks
                 .iter()
-                .all(|b| b.as_para().is_some_and(|p| plain_paragraph(doc, p)))
+                .all(|b| b.as_para().is_some_and(|p| running_paragraph(doc, p))),
+            joyword_model::PartKind::Footnote | joyword_model::PartKind::Endnote => part
+                .blocks
+                .iter()
+                .all(|b| b.as_para().is_some_and(|p| plain_paragraph(doc, p))),
+            _ => false,
         })
         && doc.body.iter().all(|block| match block.as_ref() {
             joyword_model::Block::Para(p) => {
@@ -77,12 +83,14 @@ pub fn layout_shared(
                 props.frame.is_none()
                     && props.drop_cap == 0
                     && p.section.as_deref().is_none_or(eligible_section)
-                    && p.objects
-                        .iter()
-                        .all(|o| matches!(o, joyword_model::InlineObject::NoteRef { .. }))
+                    && p.objects.iter().all(|object| {
+                        body_fields |= matches!(object, joyword_model::InlineObject::Field { .. });
+                        requires_section_flow |= object.is_drawing() || body_fields;
+                        supported_body_object(object)
+                    })
             }
             joyword_model::Block::Table(t) => table_flow(doc, t, None).is_some_and(|flow| {
-                complex_tables |= flow == TableFlow::Section;
+                requires_section_flow |= flow == TableFlow::Section;
                 true
             }),
         })
@@ -90,9 +98,17 @@ pub fn layout_shared(
         cache.previous = Some(Previous {
             body: doc.body.clone(),
             notes: doc.parts.clone(),
-            complex_tables,
+            requires_section_flow,
+            body_fields,
+            media: doc.media.clone(),
+            page_stories: doc.parts.values().any(|p| {
+                matches!(
+                    p.kind,
+                    joyword_model::PartKind::Header | joyword_model::PartKind::Footer
+                )
+            }),
             checked_section: None,
-            section_context: complex_tables
+            section_context: requires_section_flow
                 || doc.settings.even_odd_headers
                 || doc.settings.mirror_margins
                 || !doc.parts.is_empty()
@@ -109,6 +125,36 @@ pub fn layout_shared(
         });
     }
     layout
+}
+
+fn supported_body_object(object: &joyword_model::InlineObject) -> bool {
+    use joyword_model::InlineObject::*;
+    if let Field { instr, .. } = object {
+        return matches!(
+            crate::fields::field_name(instr).as_str(),
+            "PAGE" | "NUMPAGES" | "SECTION" | "SECTIONPAGES"
+        );
+    }
+    matches!(
+        object,
+        NoteRef { .. }
+            | BookmarkStart { .. }
+            | BookmarkEnd { .. }
+            | Image { .. }
+            | Graphic { .. }
+            | Shape { story: None, .. }
+    )
+}
+
+fn running_paragraph(doc: &Document, p: &Paragraph) -> bool {
+    let props = doc.styles.resolve_para(&p.props);
+    p.section.is_none()
+        && props.frame.is_none()
+        && props.drop_cap == 0
+        && props.numbering.is_none()
+        && p.objects
+            .iter()
+            .all(|o| matches!(o, joyword_model::InlineObject::Field { .. }))
 }
 
 fn plain_paragraph(doc: &Document, p: &Paragraph) -> bool {
@@ -173,7 +219,6 @@ fn eligible(doc: &Document, opts: &LayoutOptions) -> bool {
         && !opts.comment_balloons
         && doc.comments.is_empty()
         && doc.revisions.is_empty()
-        && doc.media.is_empty()
         && doc.footnote_separators.is_empty()
         && doc.endnote_separators.is_empty()
         && eligible_section(&doc.last_section)
@@ -193,6 +238,11 @@ impl Previous {
             || self.settings != doc.settings
             || !eligible(doc, opts)
             || self.notes.len() != doc.parts.len()
+            || self.media.len() != doc.media.len()
+            || self
+                .media
+                .iter()
+                .any(|(key, old)| !doc.media.get(key).is_some_and(|new| Arc::ptr_eq(old, new)))
             || self.options
                 != (LayoutOptions {
                     typing_word: self.options.typing_word,
@@ -202,7 +252,7 @@ impl Previous {
         {
             return None;
         }
-        let mut edited_note = None;
+        let mut edited_part = None;
         for (id, old) in &self.notes {
             let new = doc.parts.get(id)?;
             if old.kind != new.kind || old.body != new.body {
@@ -215,12 +265,20 @@ impl Previous {
                     .zip(&new.blocks)
                     .any(|(a, b)| !Arc::ptr_eq(a, b))
             {
-                if edited_note.is_some()
-                    || new.kind != joyword_model::PartKind::Footnote
-                    || !new
-                        .blocks
-                        .iter()
-                        .all(|b| b.as_para().is_some_and(|p| plain_paragraph(doc, p)))
+                if edited_part.is_some()
+                    || !matches!(
+                        new.kind,
+                        joyword_model::PartKind::Footnote
+                            | joyword_model::PartKind::Header
+                            | joyword_model::PartKind::Footer
+                    )
+                    || !new.blocks.iter().all(|b| {
+                        b.as_para().is_some_and(|p| {
+                            plain_paragraph(doc, p)
+                                && (new.kind == joyword_model::PartKind::Footnote
+                                    || running_paragraph(doc, p))
+                        })
+                    })
                     || [(self.options.typing_word, old), (opts.typing_word, new)]
                         .into_iter()
                         .any(|(word, part)| {
@@ -234,7 +292,7 @@ impl Previous {
                 {
                     return None;
                 }
-                edited_note = Some(*id);
+                edited_part = Some(*id);
             }
         }
         let mut changes = self
@@ -243,15 +301,51 @@ impl Previous {
             .zip(&doc.body)
             .enumerate()
             .filter(|(_, (before, after))| !Arc::ptr_eq(before, after));
-        if let Some(id) = edited_note {
+        if let Some(id) = edited_part {
             if changes.next().is_some() {
                 return None;
+            }
+            if matches!(
+                self.notes.get(&id)?.kind,
+                joyword_model::PartKind::Header | joyword_model::PartKind::Footer
+            ) {
+                // A plain running story can be edited without paginating the body
+                // if every linked section still reserves the same space for it.
+                if !self
+                    .notes
+                    .get(&id)?
+                    .blocks
+                    .iter()
+                    .all(|b| b.as_para().is_some_and(|p| plain_paragraph(doc, p)))
+                {
+                    return None;
+                }
+                let current = self.layout.upgrade()?;
+                let mut before = doc.clone();
+                before.parts = self.notes.clone();
+                let mut cache = LayoutCache::new();
+                if !crate::pass::same_story_limits(&before, doc, opts, &mut cache, &current.pages) {
+                    return None;
+                }
+                let mut next = (*current).clone();
+                let initially_clean = next.pages.len()..next.pages.len();
+                let dirty = sections::update_page_stories(
+                    doc,
+                    opts,
+                    &mut cache,
+                    &mut next.pages,
+                    &current,
+                    initially_clean,
+                );
+                next.page_patch = Some((Arc::downgrade(&current), dirty));
+                self.checked_section = None;
+                return Some((Change::Part(id), next));
             }
             let anchor = doc.body.iter().position(|b| b.as_para().is_some_and(|p| p.objects.iter().any(|o|
                 matches!(o, joyword_model::InlineObject::NoteRef { id: target, .. } if *target == id))))?;
             return self
                 .reflow_sections(doc, opts, anchor, &self.layout.upgrade()?)
-                .map(|layout| (Change::Footnote(id), layout));
+                .map(|layout| (Change::Part(id), layout));
         }
         let (block, (before, after)) = changes.next()?;
         if changes.next().is_some() {
@@ -279,7 +373,7 @@ impl Previous {
         }
 
         let current = self.layout.upgrade()?;
-        if self.complex_tables || !ordinary_edit(before, after) {
+        if self.requires_section_flow || self.page_stories || !ordinary_edit(before, after) {
             if before.props != after.props
                 || before.section != after.section
                 || before.mark != after.mark
@@ -553,8 +647,6 @@ fn same_page_entry(piece: &super::Page, original: &super::Page, start: usize) ->
         || piece.body != original.body
         || piece.first_block + start != original.first_block
         || piece.items.len() != original.items.len()
-        || !original.header.is_empty()
-        || !original.footer.is_empty()
         || piece.float_tables.len() != original.float_tables.len()
         || !piece
             .float_tables
@@ -564,11 +656,12 @@ fn same_page_entry(piece: &super::Page, original: &super::Page, start: usize) ->
     {
         return false;
     }
-    piece
-        .items
-        .iter()
-        .zip(&original.items)
-        .all(|(a, b)| match (a, b) {
+    same_items(&piece.items, &original.items, start)
+}
+
+fn same_items(left: &[Placed], right: &[Placed], start: usize) -> bool {
+    left.len() == right.len()
+        && left.iter().zip(right).all(|(a, b)| match (a, b) {
             (
                 Placed::Lines {
                     story: left_story,
@@ -600,6 +693,8 @@ fn same_page_entry(piece: &super::Page, original: &super::Page, start: usize) ->
                     && a.shown == b.shown
                     && (al, ae, ax, ay) == (bl, be, bx, by)
                     && a.rp == b.rp
+                    && a.styles == b.styles
+                    && a.issues == b.issues
                     && a.height == b.height
                     && a.notes == b.notes
                     && a.lines == b.lines
@@ -645,7 +740,7 @@ fn same_page_entry(piece: &super::Page, original: &super::Page, start: usize) ->
                     border: bb,
                 },
             ) => (ax, ay, bx, by, ab) == (cx, cy, dx, dy, bb),
-            _ => false,
+            _ => start == 0 && sections::same_drawing(a, b),
         })
 }
 

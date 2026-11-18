@@ -14576,7 +14576,7 @@ fn footer_page_total_needs_one_body_pass() {
             &HashMap::new(),
             (&totals, true),
             (&EarlyFloats::new(), true),
-            0,
+            PageOrigin::default(),
         )
     };
     assert!(
@@ -20055,7 +20055,7 @@ fn last_rewrap_pass_keeps_early_floats_clear_of_text() {
             &HashMap::new(),
             (&totals, false),
             (&EarlyFloats::new(), false),
-            0,
+            PageOrigin::default(),
         );
         let Pass::Done(l) = pass else {
             panic!("a last pass is done")
@@ -21484,3 +21484,5 @@ fn header_margin_table_area() {
 }
 
 mod shape_alpha;
+
+mod section_checkpoint;

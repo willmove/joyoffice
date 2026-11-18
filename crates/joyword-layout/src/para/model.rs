@@ -81,7 +81,7 @@ pub(super) fn undrawable_bullet(text: &str, lvl: &Level, rc: &ResolvedChar) -> b
 }
 
 /// A face at a size with the formatting needed to draw it.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct StyleRun {
     pub face: FaceRef,
     pub size: f32,
