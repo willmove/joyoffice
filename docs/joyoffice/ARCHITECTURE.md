@@ -18,7 +18,9 @@
 
 界面主题由无 GUI、无文件访问的 `joyoffice-theme` 定义；Word shell、Deck shell、Sheet platform 在各自已有偏好存储中保存其稳定 ID。`joyoffice-ui` 依赖该目录并把 Palette 投影到 GPUI Kit 和 Base tokens，三产品 UI 共用预览和主题应用函数。该层不修改文档模型，CLI 依赖闭包仍不引入 GPUI。[主题目录与兼容规则](THEMES.md)
 
-Word 和 Deck 的 WMF／EMF 解析器共用 `joyoffice-metafile` 的有界字节和点列读取。记录数量预算、绘图和导出由各产品维护。Word 和 Deck 已在部分包读取路径使用 `joyoffice-opc`。Sheet 已在 XLSX 嵌入对象写入中使用 `joyoffice-cfb`。DrawingML 和 OMML 目前均未进入三款桌面或其 CLI 的默认依赖闭包。格式能力按对象或包读取操作接入，共用输入预算、关系和未知成员保留的差分语料。
+Word 和 Deck 共用 WMF／EMF 的有界读取与系统字体枚举。三产品都使用公共 OPC 读取，产品决定部件名、对象预算、未知 XML 保留及写回。Word 和 Sheet 共用 CFB 扇区／目录读取与 OMML 上下标，三产品都消费 DrawingML。Word／Deck 复用自定义几何公式和椭圆弧，Deck／Sheet 复用颜色处理。[公共库与各桌面、CLI 的调用关系](REFACTOR-ROADMAP.md#已在生产入口使用的公共代码)
+
+Word 的 `joyword-proof-rules` 从原文 UTF-8 范围产生标点、空白和句首大小写建议，零第三方依赖。既有校对适配层传入语言、词区间和缩略词表，并提供相应语言的消息。桌面审阅、CLI 及 DOCX 修正仍通过同一编辑会话。Deck 和 Sheet 使用各自的文本编辑入口。[规则实现](../../crates/joyword-proof-rules/src/lib.rs) · [语言适配](../../third-party/craft-libs/proof/src/editorial.rs)
 
 公共 UI 持有呈现组件，产品适配层传入命令、焦点、可访问名称和保存状态。Word 的流式分页、Deck 的固定画布与 Sheet 的单写者计算引擎分别维护。每次抽取列出至少两个实际调用产品、各自的正常入口和可独立恢复的旧路径。共享组件的调用矩阵、首批候选与验收条件见[桌面应用共享复用](REFACTOR-ROADMAP.md#桌面应用共享复用)。
 

@@ -152,134 +152,6 @@ fn issue(start: usize, end: usize, message: String, suggestions: Vec<String>) ->
     }
 }
 
-/// Is `prev`, before a period, an abbreviation, an initial, a number or a Roman numeral (after
-/// which a lower-case word doesn't start a sentence)?
-fn abbreviation_or_number(prev: &str) -> bool {
-    prev.chars().count() <= 1
-        || prev.chars().any(|c| c.is_ascii_digit())
-        || (prev
-            .chars()
-            .all(|c| matches!(c, 'I' | 'V' | 'X' | 'L' | 'C' | 'D' | 'M')))
-        || ABBREVIATIONS.contains(&prev.to_lowercase().as_str())
-}
-
-const CLOSING: [char; 8] = ['"', '”', '’', '\'', ')', '»', ']', '\u{1}'];
-
-/// Does the gap between two words end a sentence: a `.`, `!` or `?` (not an ellipsis, not after
-/// an abbreviation), then space, with nothing but quotes and brackets around?
-fn ends_sentence(gap: &str, prev: &str) -> bool {
-    let t = gap.trim_start_matches(CLOSING);
-    let Some(end) = t.chars().next() else {
-        return false;
-    };
-    if !matches!(end, '.' | '!' | '?') || t.starts_with("..") {
-        return false;
-    }
-    if end == '.' && abbreviation_or_number(prev) {
-        return false;
-    }
-    let after_marks = t.trim_start_matches(['.', '!', '?']);
-    let rest = after_marks.trim_start_matches(CLOSING);
-    // (Not the object placeholder `\u{1}`: `Chi era?\u{1} era Marco.` still starts a sentence.)
-    // `«Vai?» disse lui.` and `—Vai? —disse lui.`: the narration after a quoted question or
-    // exclamation (not after a period: `Finì. —domani` starts a sentence), or after a dialogue dash, goes on in lower case.
-    if end != '.'
-        && (rest.contains('—') || after_marks.trim_start_matches('\u{1}').starts_with(CLOSING))
-    {
-        return false;
-    }
-    rest.starts_with(char::is_whitespace)
-        && rest
-            .trim_start()
-            .chars()
-            .all(|c| c.is_whitespace() || matches!(c, '"' | '“' | '«' | '(' | '[' | '\'' | '—'))
-}
-
-fn spaces(text: &str, v: &mut Vec<Issue>) {
-    for (i, c) in text.char_indices() {
-        if c != ' ' {
-            continue;
-        }
-        let rest = text.get(i + 1..).unwrap_or("");
-        let mut it = rest.chars();
-        let Some(p) = it.next() else { continue };
-        let after = it.next();
-        let flag = match p {
-            ',' => true,
-            // `;)` and `;-)` are emoticons.
-            ';' => !matches!(after, Some(')' | '(' | '-' | 'P' | 'D')),
-            // ` ...` is an ellipsis, ` .5` a number.
-            '.' => !matches!(after, Some('.')) && !after.is_some_and(|a| a.is_ascii_digit()),
-            // ` :)`, ` :-)`, ` :D` and similar are emoticons; ` ?!` is still a stray space.
-            ':' | '!' | '?' => {
-                !crate::score_colon(text, i)
-                    && after.is_none_or(|a| {
-                        a.is_whitespace() || matches!(a, '"' | '”' | '’' | '!' | '?')
-                    })
-            }
-            _ => false,
-        };
-        if flag {
-            v.push(issue(
-                i,
-                i + 1 + p.len_utf8(),
-                "Spazio prima della punteggiatura".into(),
-                vec![p.to_string()],
-            ));
-        }
-    }
-    for run in crate::space_runs(text) {
-        v.push(issue(
-            run.start,
-            run.end,
-            "Spazio doppio".into(),
-            vec![" ".into()],
-        ));
-    }
-}
-
-fn sentence_capitals(text: &str, ws: &[(usize, usize)], capital_first: bool, v: &mut Vec<Issue>) {
-    let mut after_end = capital_first;
-    for (i, (a, b)) in ws.iter().enumerate() {
-        let Some(w) = text.get(*a..*b) else { continue };
-        if after_end
-            && w.chars().next().is_some_and(char::is_lowercase)
-            && w.chars().all(char::is_alphabetic)
-        {
-            let fixed: String = w
-                .chars()
-                .next()
-                .map(|f| f.to_uppercase().chain(w.chars().skip(1)).collect())
-                .unwrap_or_default();
-            v.push(issue(
-                *a,
-                *b,
-                "Maiuscola a inizio frase".into(),
-                vec![fixed],
-            ));
-        }
-        // Only the gap before the next word: the rest of the paragraph never ends a sentence.
-        let next = ws.get(i + 1).map_or(text.len(), |n| n.0);
-        after_end = ends_sentence(text.get(*b..next).unwrap_or(""), w);
-    }
-}
-
-fn doubled_punctuation(text: &str, v: &mut Vec<Issue>) {
-    for pat in [",,", "..", ";;", "::", "??", "!!"] {
-        for (i, _) in text.match_indices(pat) {
-            if pat == ".." && text.get(i + 2..).is_some_and(|r| r.starts_with('.')) {
-                continue; // ellipsis
-            }
-            v.push(issue(
-                i,
-                i + pat.len(),
-                "Punteggiatura doppia".into(),
-                vec![pat[..1].into()],
-            ));
-        }
-    }
-}
-
 /// Is `c` an apostrophe (straight or typographic)?
 fn is_apostrophe(c: char) -> bool {
     matches!(c, '\'' | '’')
@@ -447,9 +319,15 @@ pub fn check_with(text: &str, capital_first: bool) -> Vec<Issue> {
             ));
         },
     );
-    spaces(text, &mut v);
-    sentence_capitals(text, &ws, capital_first, &mut v);
-    doubled_punctuation(text, &mut v);
+    crate::editorial::punctuation(text, ProofLang::It, &mut v);
+    crate::editorial::capitals(
+        text,
+        &ws,
+        ProofLang::It,
+        capital_first,
+        ABBREVIATIONS,
+        &mut v,
+    );
     po(text, &ws, &mut v);
     qual_e(text, &ws, &mut v);
     e_apostrophe(text, &ws, &mut v);

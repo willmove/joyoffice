@@ -29,43 +29,6 @@ fn issue(start: usize, end: usize, message: String, suggestions: Vec<String>) ->
     }
 }
 
-fn capitalize(w: &str) -> String {
-    crate::affix::capitalize(w)
-}
-
-/// Is `prev`, before a period, an abbreviation, an initial, a number or a Roman numeral (after
-/// which a lower-case word doesn't start a sentence)?
-fn abbreviation_or_number(prev: &str) -> bool {
-    prev.chars().count() <= 1
-        || prev.chars().any(|c| c.is_ascii_digit())
-        || (prev
-            .chars()
-            .all(|c| matches!(c, 'I' | 'V' | 'X' | 'L' | 'C' | 'D' | 'M')))
-        || ABBREVIATIONS.contains(&prev.to_lowercase().as_str())
-}
-
-const CLOSING: [char; 8] = ['"', '”', '’', '\'', ')', '»', ']', '\u{1}'];
-const OPENING: [char; 8] = ['"', '“', '«', '(', '[', '\'', '‚', '—'];
-
-/// Does the gap between two words end a sentence: a `.`, `!` or `?` (not an ellipsis, not after
-/// an abbreviation), then space, with nothing but quotes and brackets around?
-fn ends_sentence(gap: &str, prev: &str) -> bool {
-    let t = gap.trim_start_matches(CLOSING);
-    let Some(end) = t.chars().next() else {
-        return false;
-    };
-    if !matches!(end, '.' | '!' | '?') || t.starts_with("..") {
-        return false;
-    }
-    if end == '.' && abbreviation_or_number(prev) {
-        return false;
-    }
-    let rest = t
-        .trim_start_matches(['.', '!', '?'])
-        .trim_start_matches(CLOSING);
-    rest.starts_with(char::is_whitespace) && rest.trim_start().chars().all(|c| OPENING.contains(&c))
-}
-
 /// Grammar issues in a paragraph of Croatian text, in order.
 pub fn check(text: &str) -> Vec<Issue> {
     check_with(text, true)
@@ -91,121 +54,17 @@ pub fn check_with(text: &str, capital_first: bool) -> Vec<Issue> {
             ));
         },
     );
-    spaces(text, &mut v);
-    sentence_capitals(text, &ws, capital_first, &mut v);
-    doubled_punctuation(text, &mut v);
+    crate::editorial::punctuation(text, ProofLang::Hr, &mut v);
+    crate::editorial::capitals(
+        text,
+        &ws,
+        ProofLang::Hr,
+        capital_first,
+        ABBREVIATIONS,
+        &mut v,
+    );
     v.sort_by_key(|i| (i.start, i.end));
     v
-}
-
-fn spaces(text: &str, v: &mut Vec<Issue>) {
-    for (i, c) in text.char_indices() {
-        if c != ' ' {
-            continue;
-        }
-        let rest = text.get(i + 1..).unwrap_or("");
-        let mut it = rest.chars();
-        let Some(p) = it.next() else { continue };
-        let after = it.next();
-        let flag = match p {
-            ',' => true,
-            // `;)` and `;-)` are emoticons.
-            ';' => !matches!(after, Some(')' | '(' | '-' | 'P' | 'D')),
-            // ` ...` is an ellipsis, ` .5` a number.
-            '.' => !matches!(after, Some('.')) && !after.is_some_and(|a| a.is_ascii_digit()),
-            // ` :)`, ` :-)`, ` :D` and similar are emoticons; ` ?!` is still a stray space.
-            ':' | '!' | '?' => {
-                !crate::score_colon(text, i)
-                    && after.is_none_or(|a| {
-                        a.is_whitespace() || matches!(a, '"' | '”' | '’' | '!' | '?')
-                    })
-            }
-            _ => false,
-        };
-        if flag {
-            v.push(issue(
-                i,
-                i + 1 + p.len_utf8(),
-                "Razmak ispred interpunkcijskog znaka".into(),
-                vec![p.to_string()],
-            ));
-        }
-    }
-    for run in crate::space_runs(text) {
-        v.push(issue(
-            run.start,
-            run.end,
-            "Dvostruki razmak".into(),
-            vec![" ".into()],
-        ));
-    }
-}
-
-fn sentence_capitals(text: &str, ws: &[(usize, usize)], capital_first: bool, v: &mut Vec<Issue>) {
-    // List items (`– maçãs,`) may start in lower case.
-    let list_item = text.trim_end().ends_with([',', ';']);
-    for (k, &(a, b)) in ws.iter().enumerate() {
-        let Some(w) = text.get(a..b) else { continue };
-        let starts = if k == 0 {
-            let before = text.get(..a).unwrap_or("");
-            capital_first
-                && !list_item
-                && before
-                    .chars()
-                    .all(|c| c.is_whitespace() || OPENING.contains(&c))
-        } else {
-            let Some(&(pa, pb)) = ws.get(k - 1) else {
-                continue;
-            };
-            ends_sentence(
-                text.get(pb..a).unwrap_or(""),
-                text.get(pa..pb).unwrap_or(""),
-            )
-        };
-        if starts
-            && w.chars().next().is_some_and(char::is_lowercase)
-            && w.chars().all(char::is_alphabetic)
-        {
-            v.push(issue(
-                a,
-                b,
-                "Rečenica treba započeti velikim slovom".into(),
-                vec![capitalize(w)],
-            ));
-        }
-    }
-}
-
-fn doubled_punctuation(text: &str, v: &mut Vec<Issue>) {
-    let bytes = text.as_bytes();
-    let mut i = 0;
-    while let Some(&b) = bytes.get(i) {
-        if !matches!(b, b',' | b'.' | b';') {
-            i += 1;
-            continue;
-        }
-        let run = bytes
-            .get(i..)
-            .map_or(0, |r| r.iter().take_while(|&&x| x == b).count());
-        let flag = match b {
-            b'.' => run == 2,
-            _ => run >= 2,
-        };
-        if flag {
-            let end = i + run;
-            let suggestions: Vec<String> = match b {
-                b'.' => vec![".".into(), "…".into()],
-                _ => vec![char::from(b).to_string()],
-            };
-            v.push(issue(
-                i,
-                end,
-                "Ponovljen interpunkcijski znak".into(),
-                suggestions,
-            ));
-        }
-        i += run.max(1);
-    }
 }
 
 #[cfg(test)]

@@ -1,0 +1,957 @@
+{
+  "baseline": "18424801",
+  "component": "joyword-proof-rules. The first-party crate has zero dependencies. The imported review adapter retains its original localized messages, abbreviation data, dictionary and idiom rules. The same rules run through native Review and the CLI.",
+  "reference": "The 23 hand-labeled paragraph cases in each locale specify source byte ranges and ordered suggestions. The larger comparison combines punctuation, case, quote and decimal contexts, preserving prior ordered messages except for the independently expected removed errors. The engine applies project editorial policy, not a full Unicode sentence break algorithm.",
+  "comparison": {
+    "locales": 17,
+    "paragraphs": 11356,
+    "independentExpectations": 391,
+    "matchingGrammarIssues": 6526,
+    "correctedFalsePositives": 69,
+    "perLocale": {
+      "cs-CZ": {
+        "paragraphs": 668,
+        "independentExpectations": 23,
+        "matchingGrammarIssues": 286,
+        "correctedFalsePositives": 0,
+        "orderedIssuesSha256": "d0f217ba2b64efaef16cda78ae353afa0ecd28aa16d52acaa355e7b603e780a5"
+      },
+      "hr-HR": {
+        "paragraphs": 668,
+        "independentExpectations": 23,
+        "matchingGrammarIssues": 492,
+        "correctedFalsePositives": 0,
+        "orderedIssuesSha256": "0ba006705caa3517013a89b4277cb54816d3ac393312720ef915dd46d3466fb6"
+      },
+      "id-ID": {
+        "paragraphs": 668,
+        "independentExpectations": 23,
+        "matchingGrammarIssues": 286,
+        "correctedFalsePositives": 0,
+        "orderedIssuesSha256": "980484bfe6a99110005c4d82cd8101f99120816e27cba5228f6b7198ebc2245d"
+      },
+      "it-IT": {
+        "paragraphs": 668,
+        "independentExpectations": 23,
+        "matchingGrammarIssues": 1121,
+        "correctedFalsePositives": 37,
+        "orderedIssuesSha256": "488e9788bc8efa69101abd9e9b52c8e40e8069e4003196dffee28083c60a5728"
+      },
+      "pl-PL": {
+        "paragraphs": 668,
+        "independentExpectations": 23,
+        "matchingGrammarIssues": 436,
+        "correctedFalsePositives": 0,
+        "orderedIssuesSha256": "cf111b1f9a48998181ab854844f3625587a4e937b643cc9cb63c3d1aba487f27"
+      },
+      "pt-BR": {
+        "paragraphs": 668,
+        "independentExpectations": 23,
+        "matchingGrammarIssues": 490,
+        "correctedFalsePositives": 0,
+        "orderedIssuesSha256": "68700efa63c18f956d2fa114130f4d53928ac8468e61363571fd79e7bbafbc60"
+      },
+      "ru-RU": {
+        "paragraphs": 668,
+        "independentExpectations": 23,
+        "matchingGrammarIssues": 436,
+        "correctedFalsePositives": 0,
+        "orderedIssuesSha256": "0f8862bff115846ef2d644735af02c5b740fb0a5c3a9d3b77e95f6e23679b83e"
+      },
+      "tr-TR": {
+        "paragraphs": 668,
+        "independentExpectations": 23,
+        "matchingGrammarIssues": 369,
+        "correctedFalsePositives": 0,
+        "orderedIssuesSha256": "589d158e2e78cbb828df2faf278503e7a5a42400567134ea99684af13f9db611"
+      },
+      "es-ES": {
+        "paragraphs": 668,
+        "independentExpectations": 23,
+        "matchingGrammarIssues": 432,
+        "correctedFalsePositives": 0,
+        "orderedIssuesSha256": "4fd48fa15927bcc8de2701a29e92f004056619194d98268b07e5233b6b4fab0c"
+      },
+      "es-MX": {
+        "paragraphs": 668,
+        "independentExpectations": 23,
+        "matchingGrammarIssues": 432,
+        "correctedFalsePositives": 0,
+        "orderedIssuesSha256": "4fd48fa15927bcc8de2701a29e92f004056619194d98268b07e5233b6b4fab0c"
+      },
+      "es-419": {
+        "paragraphs": 668,
+        "independentExpectations": 23,
+        "matchingGrammarIssues": 432,
+        "correctedFalsePositives": 0,
+        "orderedIssuesSha256": "4fd48fa15927bcc8de2701a29e92f004056619194d98268b07e5233b6b4fab0c"
+      },
+      "es-UY": {
+        "paragraphs": 668,
+        "independentExpectations": 23,
+        "matchingGrammarIssues": 432,
+        "correctedFalsePositives": 0,
+        "orderedIssuesSha256": "4fd48fa15927bcc8de2701a29e92f004056619194d98268b07e5233b6b4fab0c"
+      },
+      "pt-PT": {
+        "paragraphs": 668,
+        "independentExpectations": 23,
+        "matchingGrammarIssues": 490,
+        "correctedFalsePositives": 0,
+        "orderedIssuesSha256": "1b108179351c128d0e93923acfb3b5d8987fc7ac9574b06a199d75794a22d504"
+      },
+      "en-US": {
+        "paragraphs": 668,
+        "independentExpectations": 23,
+        "matchingGrammarIssues": 98,
+        "correctedFalsePositives": 8,
+        "orderedIssuesSha256": "1b052f5f617b553b1d6a8b95c21cf0594f64a8fa02bcf9056257f7795d8d9b18"
+      },
+      "en-GB": {
+        "paragraphs": 668,
+        "independentExpectations": 23,
+        "matchingGrammarIssues": 98,
+        "correctedFalsePositives": 8,
+        "orderedIssuesSha256": "1b052f5f617b553b1d6a8b95c21cf0594f64a8fa02bcf9056257f7795d8d9b18"
+      },
+      "en-AU": {
+        "paragraphs": 668,
+        "independentExpectations": 23,
+        "matchingGrammarIssues": 98,
+        "correctedFalsePositives": 8,
+        "orderedIssuesSha256": "1b052f5f617b553b1d6a8b95c21cf0594f64a8fa02bcf9056257f7795d8d9b18"
+      },
+      "en-CA": {
+        "paragraphs": 668,
+        "independentExpectations": 23,
+        "matchingGrammarIssues": 98,
+        "correctedFalsePositives": 8,
+        "orderedIssuesSha256": "1b052f5f617b553b1d6a8b95c21cf0594f64a8fa02bcf9056257f7795d8d9b18"
+      }
+    }
+  },
+  "dictionaries": {
+    "packs": 75,
+    "publishedInputs": 1499,
+    "syntheticInputs": 48,
+    "indexSha256": "b35c7aef0591177f18233b551da16035dcd615549ff874e169ffd19f16fea74b",
+    "orderedResultsSha256": "4c36652dec37c20c050db192e44a40d8a6b6c5e6238e082d0b42e006a4c6024d",
+    "reference": "Both generations read the same verified release index and the original archives on each platform."
+  },
+  "provenance": {
+    "importedFilesVerified": 101,
+    "manifest": "licenses/craft-libs/SOURCE.json",
+    "adapter": "third-party/craft-libs/proof/src/editorial.rs",
+    "sources": [
+      "https://www.unicode.org/reports/tr29/"
+    ]
+  },
+  "timing": "Microseconds to review a fixed repeated paragraph with check_grammar_in, seven alternating pairs and 500 reviews per batch. Primary samples retain normal scheduling. UOS also repeats both binaries on one CPU.",
+  "rollback": "Rebuild 18424801 or restore its craft-proof manifest, locale dispatch and source ledger. The original DOCX, suggestions, installed dictionary directories and user data remain readable. Both writers and readers exercised the corrected DOCX copies.",
+  "platforms": {
+    "macOS": {
+      "binaries": [
+        "b5b15f9a5076ce376abb624a996edc1621861331014b15b08928dc5103bc10f3",
+        "d29449c8c4a4fdf9779b15f61616067574217396cbc406d0e6e58d3928561b39"
+      ],
+      "desktop": {
+        "pl-PL": {
+          "binarySha256": "f7350ab9d8aa10294f043e1fa0e487dc746f9ac2b255b73aeabd2199f7b28e79",
+          "sourceSha256": "b60003a45f7462b633270b5d8d00902aacf3b176db00d28886aebbc5cb9030a8",
+          "selectedWord": "..",
+          "displayedSuggestions": [
+            ".",
+            "…"
+          ],
+          "replacement": ".",
+          "undoRedo": true,
+          "savedAndReopened": true,
+          "originalUnchanged": true,
+          "readersByWriter": {
+            "baseline": [
+              "baseline",
+              "candidate"
+            ],
+            "candidate": [
+              "baseline",
+              "candidate"
+            ]
+          }
+        },
+        "tr-TR": {
+          "binarySha256": "f7350ab9d8aa10294f043e1fa0e487dc746f9ac2b255b73aeabd2199f7b28e79",
+          "sourceSha256": "b4599034caa705dad987cccc5825c15ebca298096e1efdd613189100e5bd2141",
+          "selectedWord": "izmir",
+          "displayedSuggestions": [
+            "İzmir"
+          ],
+          "replacement": "İzmir",
+          "undoRedo": true,
+          "savedAndReopened": true,
+          "originalUnchanged": true,
+          "readersByWriter": {
+            "baseline": [
+              "baseline",
+              "candidate"
+            ],
+            "candidate": [
+              "baseline",
+              "candidate"
+            ]
+          }
+        }
+      },
+      "standaloneProof": {
+        "passed": 485,
+        "failed": 0,
+        "ignored": 0
+      },
+      "gates": {
+        "ui": {
+          "passed": 78,
+          "failed": 0,
+          "ignored": 0
+        },
+        "joydeck": {
+          "passed": 1015,
+          "failed": 0,
+          "ignored": 0
+        },
+        "joysheet": {
+          "passed": 1489,
+          "failed": 0,
+          "ignored": 1
+        },
+        "joyword": {
+          "passed": 3698,
+          "failed": 0,
+          "ignored": 2
+        }
+      },
+      "spdx": {
+        "target": "aarch64-apple-darwin",
+        "packages": 514,
+        "sourceFiles": 1080,
+        "spdxSha256": "15e1b9e0479f03163efdc7ae764438ad5cb689635481df4c17ac6ca4d529f0d8",
+        "missingLicenseTexts": [],
+        "sharedCrates": [
+          "joyoffice-cfb",
+          "joyoffice-drawingml",
+          "joyoffice-fonts",
+          "joyoffice-metafile",
+          "joyoffice-omml",
+          "joyoffice-opc",
+          "joyoffice-theme",
+          "joyoffice-ui"
+        ],
+        "runtimeLegacyDependencies": [
+          "craft-atomic",
+          "craft-font-store",
+          "craft-proof"
+        ]
+      },
+      "firstPartyPaths": {
+        "joyword": true,
+        "joyword-cli": true,
+        "joydeck": false,
+        "joydeck-cli": false,
+        "joysheet": false,
+        "joysheet-cli": false
+      },
+      "timing": {
+        "en": {
+          "issuesPerParagraph": 0,
+          "repetitions": 500,
+          "baseline": [
+            16.73,
+            8.861,
+            15.561,
+            11.296,
+            15.536,
+            9.356,
+            13.999
+          ],
+          "candidate": [
+            8.654,
+            8.253,
+            16.412,
+            9.115,
+            8.278,
+            10.085,
+            10.958
+          ],
+          "baselineMedianUs": 13.999,
+          "candidateMedianUs": 9.115
+        },
+        "cs": {
+          "issuesPerParagraph": 0,
+          "repetitions": 500,
+          "baseline": [
+            11.158,
+            11.255,
+            11.274,
+            14.891,
+            11.47,
+            26.97,
+            24.223
+          ],
+          "candidate": [
+            10.687,
+            10.438,
+            26.392,
+            10.397,
+            10.176,
+            28.907,
+            14.147
+          ],
+          "baselineMedianUs": 11.47,
+          "candidateMedianUs": 10.687
+        },
+        "pl": {
+          "issuesPerParagraph": 0,
+          "repetitions": 500,
+          "baseline": [
+            53.618,
+            29.926,
+            44.083,
+            53.224,
+            29.637,
+            49.898,
+            62.347
+          ],
+          "candidate": [
+            27.995,
+            28.05,
+            43.004,
+            47.24,
+            27.473,
+            54.216,
+            32.683
+          ],
+          "baselineMedianUs": 49.898,
+          "candidateMedianUs": 32.683
+        },
+        "tr": {
+          "issuesPerParagraph": 0,
+          "repetitions": 500,
+          "baseline": [
+            78.634,
+            33.46,
+            33.871,
+            42.702,
+            33.439,
+            55.455,
+            47.362
+          ],
+          "candidate": [
+            51.261,
+            31.153,
+            31.647,
+            45.391,
+            52.443,
+            71.653,
+            52.529
+          ],
+          "baselineMedianUs": 42.702,
+          "candidateMedianUs": 51.261
+        },
+        "it-edits": {
+          "issuesPerParagraph": 96,
+          "repetitions": 500,
+          "baseline": [
+            39.217,
+            23.16,
+            23.92,
+            43.677,
+            23.643,
+            48.519,
+            47.855
+          ],
+          "candidate": [
+            33.913,
+            21.411,
+            26.13,
+            42.321,
+            23.579,
+            41.36,
+            47.241
+          ],
+          "baselineMedianUs": 39.217,
+          "candidateMedianUs": 33.913
+        },
+        "ru-edits": {
+          "issuesPerParagraph": 96,
+          "repetitions": 500,
+          "baseline": [
+            259.038,
+            101.749,
+            134.886,
+            219.254,
+            262.468,
+            173.771,
+            163.371
+          ],
+          "candidate": [
+            161.267,
+            108.2,
+            146.553,
+            147.121,
+            210.712,
+            210.274,
+            131.598
+          ],
+          "baselineMedianUs": 173.771,
+          "candidateMedianUs": 147.121
+        }
+      },
+      "repeatTiming": {
+        "en": {
+          "issuesPerParagraph": 0,
+          "repetitions": 500,
+          "baseline": [
+            8.953,
+            8.886,
+            9.007,
+            8.85,
+            8.795,
+            8.935,
+            8.892
+          ],
+          "candidate": [
+            8.563,
+            8.241,
+            8.244,
+            8.244,
+            8.357,
+            8.243,
+            8.402
+          ],
+          "baselineMedianUs": 8.892,
+          "candidateMedianUs": 8.244
+        },
+        "cs": {
+          "issuesPerParagraph": 0,
+          "repetitions": 500,
+          "baseline": [
+            11.382,
+            11.457,
+            11.898,
+            11.435,
+            11.282,
+            11.775,
+            11.301
+          ],
+          "candidate": [
+            10.856,
+            10.506,
+            10.376,
+            10.615,
+            10.801,
+            10.781,
+            10.524
+          ],
+          "baselineMedianUs": 11.435,
+          "candidateMedianUs": 10.615
+        },
+        "pl": {
+          "issuesPerParagraph": 0,
+          "repetitions": 500,
+          "baseline": [
+            29.946,
+            30.213,
+            29.936,
+            29.853,
+            29.459,
+            30.033,
+            29.752
+          ],
+          "candidate": [
+            28.505,
+            29.553,
+            27.959,
+            28.773,
+            28.845,
+            29.183,
+            28.379
+          ],
+          "baselineMedianUs": 29.936,
+          "candidateMedianUs": 28.773
+        },
+        "tr": {
+          "issuesPerParagraph": 0,
+          "repetitions": 500,
+          "baseline": [
+            33.243,
+            33.027,
+            33.6,
+            33.908,
+            32.988,
+            35.094,
+            33.187
+          ],
+          "candidate": [
+            34.808,
+            31.438,
+            31.681,
+            31.487,
+            31.721,
+            31.496,
+            31.33
+          ],
+          "baselineMedianUs": 33.243,
+          "candidateMedianUs": 31.496
+        },
+        "it-edits": {
+          "issuesPerParagraph": 96,
+          "repetitions": 500,
+          "baseline": [
+            23.25,
+            23.356,
+            23.509,
+            23.634,
+            23.389,
+            23.242,
+            23.227
+          ],
+          "candidate": [
+            26.491,
+            20.827,
+            21.001,
+            20.981,
+            21.288,
+            21.116,
+            20.524
+          ],
+          "baselineMedianUs": 23.356,
+          "candidateMedianUs": 21.001
+        },
+        "ru-edits": {
+          "issuesPerParagraph": 96,
+          "repetitions": 500,
+          "baseline": [
+            97.979,
+            94.308,
+            95.499,
+            95.438,
+            94.807,
+            95.597,
+            94.355
+          ],
+          "candidate": [
+            93.751,
+            95.203,
+            90.122,
+            92.093,
+            92.138,
+            92.662,
+            91.165
+          ],
+          "baselineMedianUs": 95.438,
+          "candidateMedianUs": 92.138
+        }
+      }
+    },
+    "UOS25": {
+      "binaries": [
+        "ec43a4fbaedf45e6a47ab6e8deb2f503177f1c4eb3e0d2a25a28c6354863d97b",
+        "6374b8dfef05fbd3434f0b14fa80c5eb14c4be9077777590cc580941e69d404a"
+      ],
+      "desktop": {
+        "pl-PL": {
+          "binarySha256": "ac34c4f1c7f4a033e0ad7a9b79118fef3bec9d18323cff3b90e8ff54e62073a7",
+          "sourceSha256": "b60003a45f7462b633270b5d8d00902aacf3b176db00d28886aebbc5cb9030a8",
+          "selectedWord": "..",
+          "displayedSuggestions": [
+            ".",
+            "…"
+          ],
+          "replacement": ".",
+          "undoRedo": true,
+          "savedAndReopened": true,
+          "originalUnchanged": true,
+          "readersByWriter": {
+            "baseline": [
+              "baseline",
+              "candidate"
+            ],
+            "candidate": [
+              "baseline",
+              "candidate"
+            ]
+          }
+        },
+        "tr-TR": {
+          "binarySha256": "ac34c4f1c7f4a033e0ad7a9b79118fef3bec9d18323cff3b90e8ff54e62073a7",
+          "sourceSha256": "b4599034caa705dad987cccc5825c15ebca298096e1efdd613189100e5bd2141",
+          "selectedWord": "izmir",
+          "displayedSuggestions": [
+            "İzmir"
+          ],
+          "replacement": "İzmir",
+          "undoRedo": true,
+          "savedAndReopened": true,
+          "originalUnchanged": true,
+          "readersByWriter": {
+            "baseline": [
+              "baseline",
+              "candidate"
+            ],
+            "candidate": [
+              "baseline",
+              "candidate"
+            ]
+          }
+        }
+      },
+      "standaloneProof": {
+        "passed": 485,
+        "failed": 0,
+        "ignored": 0
+      },
+      "gates": {
+        "ui": {
+          "passed": 82,
+          "failed": 0,
+          "ignored": 0
+        },
+        "joydeck": {
+          "passed": 1020,
+          "failed": 0,
+          "ignored": 0
+        },
+        "joysheet": {
+          "passed": 1489,
+          "failed": 0,
+          "ignored": 1
+        },
+        "joyword": {
+          "passed": 3702,
+          "failed": 0,
+          "ignored": 2
+        }
+      },
+      "spdx": {
+        "target": "x86_64-unknown-linux-gnu",
+        "packages": 603,
+        "sourceFiles": 1084,
+        "spdxSha256": "88e0678dedc7ad42e20ce65a18ce3ef6a1ec4dc798b194b02f0f5cbc7f0be1d7",
+        "missingLicenseTexts": [],
+        "sharedCrates": [
+          "joyoffice-cfb",
+          "joyoffice-drawingml",
+          "joyoffice-fonts",
+          "joyoffice-metafile",
+          "joyoffice-omml",
+          "joyoffice-opc",
+          "joyoffice-theme",
+          "joyoffice-ui"
+        ],
+        "runtimeLegacyDependencies": [
+          "craft-atomic",
+          "craft-font-store",
+          "craft-proof"
+        ]
+      },
+      "firstPartyPaths": {
+        "joyword": true,
+        "joyword-cli": true,
+        "joydeck": false,
+        "joydeck-cli": false,
+        "joysheet": false,
+        "joysheet-cli": false
+      },
+      "timing": {
+        "en": {
+          "issuesPerParagraph": 0,
+          "repetitions": 500,
+          "baseline": [
+            8.991,
+            13.493,
+            12.565,
+            12.272,
+            7.996,
+            11.924,
+            8.045
+          ],
+          "candidate": [
+            11.25,
+            8.192,
+            10.835,
+            11.73,
+            11.406,
+            11.34,
+            11.192
+          ],
+          "baselineMedianUs": 11.924,
+          "candidateMedianUs": 11.25
+        },
+        "cs": {
+          "issuesPerParagraph": 0,
+          "repetitions": 500,
+          "baseline": [
+            10.963,
+            15.618,
+            17.072,
+            15.697,
+            10.116,
+            10.568,
+            11.135
+          ],
+          "candidate": [
+            11.339,
+            10.143,
+            9.612,
+            16.252,
+            16.134,
+            14.594,
+            15.456
+          ],
+          "baselineMedianUs": 11.135,
+          "candidateMedianUs": 14.594
+        },
+        "pl": {
+          "issuesPerParagraph": 0,
+          "repetitions": 500,
+          "baseline": [
+            20.307,
+            32.69,
+            32.7,
+            32.905,
+            21.114,
+            21.969,
+            20.633
+          ],
+          "candidate": [
+            20.802,
+            20.039,
+            20.013,
+            30.962,
+            21.594,
+            29.801,
+            29.714
+          ],
+          "baselineMedianUs": 21.969,
+          "candidateMedianUs": 21.594
+        },
+        "tr": {
+          "issuesPerParagraph": 0,
+          "repetitions": 500,
+          "baseline": [
+            27.386,
+            37.662,
+            34.042,
+            41.554,
+            26.1,
+            26.165,
+            26.914
+          ],
+          "candidate": [
+            25.267,
+            25.462,
+            25.304,
+            28.969,
+            25.025,
+            37.899,
+            38.914
+          ],
+          "baselineMedianUs": 27.386,
+          "candidateMedianUs": 25.462
+        },
+        "it-edits": {
+          "issuesPerParagraph": 96,
+          "repetitions": 500,
+          "baseline": [
+            22.194,
+            22.468,
+            20.543,
+            34.412,
+            20.972,
+            22.292,
+            22.063
+          ],
+          "candidate": [
+            15.74,
+            15.831,
+            16.354,
+            16.285,
+            16.63,
+            24.374,
+            23.655
+          ],
+          "baselineMedianUs": 22.194,
+          "candidateMedianUs": 16.354
+        },
+        "ru-edits": {
+          "issuesPerParagraph": 96,
+          "repetitions": 500,
+          "baseline": [
+            130.968,
+            132.154,
+            124.924,
+            159.401,
+            127.966,
+            130.466,
+            130.434
+          ],
+          "candidate": [
+            121.717,
+            123.711,
+            130.758,
+            119.854,
+            125.02,
+            134.893,
+            195.867
+          ],
+          "baselineMedianUs": 130.466,
+          "candidateMedianUs": 125.02
+        }
+      },
+      "sameCpuTiming": {
+        "en": {
+          "issuesPerParagraph": 0,
+          "repetitions": 500,
+          "baseline": [
+            8.333,
+            7.968,
+            7.902,
+            7.973,
+            7.849,
+            7.877,
+            8.744
+          ],
+          "candidate": [
+            7.291,
+            7.111,
+            7.17,
+            7.151,
+            7.151,
+            7.346,
+            7.189
+          ],
+          "baselineMedianUs": 7.968,
+          "candidateMedianUs": 7.17
+        },
+        "cs": {
+          "issuesPerParagraph": 0,
+          "repetitions": 500,
+          "baseline": [
+            10.093,
+            11.659,
+            10.53,
+            10.814,
+            10.045,
+            10.124,
+            10.037
+          ],
+          "candidate": [
+            9.478,
+            9.379,
+            9.445,
+            9.435,
+            10.758,
+            9.529,
+            9.571
+          ],
+          "baselineMedianUs": 10.124,
+          "candidateMedianUs": 9.478
+        },
+        "pl": {
+          "issuesPerParagraph": 0,
+          "repetitions": 500,
+          "baseline": [
+            24.577,
+            20.351,
+            21.407,
+            20.296,
+            21.207,
+            21.291,
+            20.998
+          ],
+          "candidate": [
+            20.972,
+            20.951,
+            20.824,
+            20.268,
+            19.419,
+            21.04,
+            20.4
+          ],
+          "baselineMedianUs": 21.207,
+          "candidateMedianUs": 20.824
+        },
+        "tr": {
+          "issuesPerParagraph": 0,
+          "repetitions": 500,
+          "baseline": [
+            28.162,
+            27.313,
+            27.026,
+            26.454,
+            26.129,
+            27.128,
+            25.808
+          ],
+          "candidate": [
+            26.106,
+            26.298,
+            26.222,
+            25.666,
+            27.101,
+            25.41,
+            26.185
+          ],
+          "baselineMedianUs": 27.026,
+          "candidateMedianUs": 26.185
+        },
+        "it-edits": {
+          "issuesPerParagraph": 96,
+          "repetitions": 500,
+          "baseline": [
+            22.572,
+            22.265,
+            23.005,
+            22.224,
+            22.167,
+            20.876,
+            21.649
+          ],
+          "candidate": [
+            15.384,
+            15.48,
+            15.397,
+            15.495,
+            18.807,
+            16.639,
+            15.451
+          ],
+          "baselineMedianUs": 22.224,
+          "candidateMedianUs": 15.48
+        },
+        "ru-edits": {
+          "issuesPerParagraph": 96,
+          "repetitions": 500,
+          "baseline": [
+            128.765,
+            130.243,
+            132.732,
+            126.838,
+            127.12,
+            127.91,
+            126.875
+          ],
+          "candidate": [
+            124.452,
+            124.636,
+            121.211,
+            121.349,
+            121.735,
+            122.73,
+            123.012
+          ],
+          "baselineMedianUs": 127.91,
+          "candidateMedianUs": 122.73
+        }
+      }
+    }
+  }
+}

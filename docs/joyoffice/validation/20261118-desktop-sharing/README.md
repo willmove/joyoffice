@@ -375,3 +375,10 @@ JoySheet 的工程函数和数学函数共用整数转换实现。Excel 16.115 �
 两个实际窗口均在 A1 从 7 改为 12 时重算，经历初始、编辑、撤销、重做、新进程重开五种状态。每次检查 510 格，包含所有 236 个发生变化的结果。另存后核对全部 8,322 个缓存。复用了同一套读取和桌面工具复验现金流的 1,804 个独立缓存。两份授权业务原表都没有公式，派生副本的 916 和 16 个公式在两版之间无差异，原件摘要一致。
 
 两代优化构建对六种调用各交替计时 11 轮，每轮 100,000 次。以数值调用 BIN2DEC 的中位耗时在 macOS 从 230.38 降至 10.34 纳秒，在 UOS 从 329.62 降至 32.80 纳秒。48 位移位在两端分别由 11.44 降至 9.17、20.89 降至 19.62 纳秒。回退到 `6136f1aa` 可重开本批另存的 XLSX，旧版重新计算时会重现上述结果差异。[计时程序](../../../../crates/joysheet-functions/examples/integer_conversion.rs) · [Excel BASE](https://support.microsoft.com/en-us/excel/functions/base-function) · [Excel DECIMAL](https://support.microsoft.com/en-us/excel/functions/decimal-function) · [Excel BITLSHIFT](https://support.microsoft.com/en-us/excel/functions/bitlshift-function)
+
+
+## Word 多语种标点与句首大小写
+
+十种语言的空白和标点、其中七种的句首大小写由 `joyword-proof-rules` 计算。区域适配层继续提供本地化消息、缩写及语言数据。17 个语言配置各检查 668 段原文，逐项核对 UTF-8 选区、消息顺序和建议。新旧结果有 6,526 条相同诊断。独立预期确认消除了 69 处误报，包括英文小数前的空格和意大利语省略号。两端另用 75 个正式词典包检查 1,499 个拼写输入和建议顺序。[规则](../../../../crates/joyword-proof-rules/src/lib.rs) · [复验脚本](../../../../scripts/joyword/check-editorial-rules.py) · [Unicode 文本边界参考](https://www.unicode.org/reports/tr29/)
+
+在 macOS 与 UOS 25 的审阅窗口中，波兰语 `..` 提供句点及省略号，土耳其语 `izmir` 提供 `İzmir`。两端均实际应用更正、撤销、重做、保存，再由新进程重开，两代 CLI 交叉读回 DOCX。独立校对库各通过 485 项测试。回退至 `18424801` 可继续使用原件和原词典目录。许可检查覆盖 101 个随附来源文件；三产品的桌面与 CLI 中，Word 两个入口依赖这套规则。六种语言逐一计时。首轮 macOS 的土耳其语和 UOS 的捷克语耗时上升；macOS 复测与 UOS 固定单核复测中，六种语言的中位耗时均下降。机器记录保留初测及复测的全部样本。[输出、计时与依赖记录](editorial-rules.json) · [来源清单](../../../../licenses/craft-libs/SOURCE.json)

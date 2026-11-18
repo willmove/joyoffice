@@ -27,57 +27,9 @@ pub fn check(text: &str) -> Vec<Issue> {
             vec![format!("{first}-{second}"), first.to_owned()],
         ));
     });
-    spaces(text, &mut issues);
+    crate::editorial::punctuation(text, ProofLang::Id, &mut issues);
     issues.sort_by_key(|i| (i.start, i.end));
     issues
-}
-
-fn spaces(text: &str, v: &mut Vec<Issue>) {
-    for (i, c) in text.char_indices() {
-        if c != ' ' {
-            continue;
-        }
-        let rest = text.get(i + 1..).unwrap_or("");
-        let mut it = rest.chars();
-        let Some(p) = it.next() else { continue };
-        let after = it.next();
-        // A ratio/score keeps the spaces in digit-space-colon-space-digit.
-        let ratio = p == ':'
-            && text
-                .get(..i)
-                .and_then(|before| before.chars().next_back())
-                .is_some_and(|c| c.is_ascii_digit())
-            && after == Some(' ')
-            && it.next().is_some_and(|c| c.is_ascii_digit());
-        let flag = !ratio
-            && match p {
-                ',' => true,
-                // `;)` and `;-)` are emoticons.
-                ';' => !matches!(after, Some(')' | '(' | '-' | 'P' | 'D')),
-                // ` ...` is an ellipsis, ` .5` a number.
-                '.' => !matches!(after, Some('.')) && !after.is_some_and(|a| a.is_ascii_digit()),
-                // ` :)`, ` :-)`, ` :D` and similar are emoticons; ` ?!` is still a stray space.
-                ':' | '!' | '?' => after
-                    .is_none_or(|a| a.is_whitespace() || matches!(a, '"' | '”' | '’' | '!' | '?')),
-                _ => false,
-            };
-        if flag {
-            v.push(issue(
-                i,
-                i + 1 + p.len_utf8(),
-                "Spasi sebelum tanda baca".into(),
-                vec![p.to_string()],
-            ));
-        }
-    }
-    for run in crate::space_runs(text) {
-        v.push(issue(
-            run.start,
-            run.end,
-            "Spasi ganda".into(),
-            vec![" ".into()],
-        ));
-    }
 }
 
 #[cfg(test)]

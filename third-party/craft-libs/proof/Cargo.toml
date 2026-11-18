@@ -12,6 +12,7 @@ build = "build.rs"
 workspace = true
 
 [dependencies]
+joyword-proof-rules = { version = "=0.2.0", path = "../../../crates/joyword-proof-rules" }
 log = "0.4"
 miniz_oxide = "0.9"
 toml = { version = "1", default-features = false, features = ["parse", "serde", "std"] }

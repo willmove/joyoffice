@@ -1,0 +1,11 @@
+[package]
+name = "joyword-proof-rules"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+description = "Localized punctuation and sentence-case checks on original JoyWord text ranges"
+
+[lints]
+workspace = true

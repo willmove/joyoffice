@@ -77,6 +77,7 @@ mod data {
 pub mod bg;
 pub mod cs;
 pub mod dict;
+mod editorial;
 pub mod en_variants;
 mod english;
 pub mod es;
@@ -162,28 +163,6 @@ static DICTIONARY_GENERATION: AtomicU64 = AtomicU64::new(0);
 /// the other way round (#3562 review).
 fn dictionary_key(w: &str) -> String {
     composed(&w.to_lowercase()).into_owned()
-}
-
-/// Each run of two or more spaces in `text`, once, over the whole run (a fix replaces it with one
-/// space). A run of three is one issue over three, not a pair and a leftover.
-pub(crate) fn space_runs(text: &str) -> Vec<Range<usize>> {
-    let bytes = text.as_bytes();
-    let mut runs = Vec::new();
-    let mut i = 0;
-    while i < bytes.len() {
-        if bytes.get(i) != Some(&b' ') {
-            i += 1;
-            continue;
-        }
-        let start = i;
-        while bytes.get(i) == Some(&b' ') {
-            i += 1;
-        }
-        if i - start >= 2 {
-            runs.push(start..i);
-        }
-    }
-    runs
 }
 
 /// Add a word to the user dictionary ("Add to Dictionary"). It applies to every language.
@@ -773,20 +752,6 @@ pub(crate) fn accepted_by_options(word: &str, opts: &Options) -> bool {
         || in_user_dictionary(&w.to_lowercase())
 }
 
-/// Is the space at byte `space` of `text` the first of a score or ratio's `3 : 1`, which keeps
-/// its spaces (the grammar rules' space-before-punctuation check)?
-pub(crate) fn score_colon(text: &str, space: usize) -> bool {
-    text.get(..space)
-        .and_then(|t| t.chars().next_back())
-        .is_some_and(|c| c.is_ascii_digit())
-        && text.get(space..).is_some_and(|t| {
-            t.starts_with(" : ")
-                && t.get(3..)
-                    .and_then(|r| r.chars().next())
-                    .is_some_and(|c| c.is_ascii_digit())
-        })
-}
-
 /// [`is_correct`] with the File › Options › Proofing choices: English with no dialect, so a word
 /// any English spells so is right (`color` and `colour`; American English's dictionary when it
 /// isn't SCOWL: [`english_source`]), without the dialect policy.
@@ -1245,69 +1210,8 @@ fn grammar_en(text: &str, capital_first: bool) -> Vec<Issue> {
             });
         }
     }
-    // Space before punctuation; doubled spaces.
-    for (i, _) in text
-        .match_indices(" ,")
-        .chain(text.match_indices(" ."))
-        .chain(text.match_indices(" ;"))
-    {
-        if text
-            .get(i + 2..)
-            .is_some_and(|r| r.starts_with('.') || r.starts_with(','))
-        {
-            continue; // "..." or numbers like " .5"
-        }
-        v.push(Issue {
-            start: i,
-            end: i + 2,
-            kind: IssueKind::Grammar,
-            message: "Remove the space before the punctuation".into(),
-            suggestions: vec![text.get(i + 1..i + 2).unwrap_or("").to_string()],
-            lang: ProofLang::En,
-        });
-    }
-    for run in space_runs(text) {
-        v.push(Issue {
-            start: run.start,
-            end: run.end,
-            kind: IssueKind::Grammar,
-            message: "Extra space".into(),
-            suggestions: vec![" ".into()],
-            lang: ProofLang::En,
-        });
-    }
-    // Sentence start capital.
-    let mut after_end = capital_first;
-    for (a, b) in &ws {
-        let Some(w) = text.get(*a..*b) else { continue };
-        if after_end
-            && w.chars().next().is_some_and(char::is_lowercase)
-            && w.chars().all(char::is_alphabetic)
-        {
-            let fixed: String = w
-                .chars()
-                .next()
-                .map(|f| f.to_uppercase().chain(w.chars().skip(1)).collect())
-                .unwrap_or_default();
-            v.push(Issue {
-                start: *a,
-                end: *b,
-                kind: IssueKind::Grammar,
-                message: "Capitalize the first word of a sentence".into(),
-                suggestions: vec![fixed],
-                lang: ProofLang::En,
-            });
-        }
-        let tail = text.get(*b..).unwrap_or("");
-        let punctuation = tail.trim_start_matches(['"', '”', ')', '\'']);
-        // Two or more dots are an ellipsis, not a full stop ending a sentence.
-        // A Unicode ellipsis (U+2026) does not match sentence-ending punctuation either.
-        after_end = matches!(punctuation.chars().next(), Some('.' | '!' | '?'))
-            && !punctuation.starts_with("..")
-            && punctuation
-                .trim_start_matches(['.', '!', '?', '"', '”', ')'])
-                .starts_with(' ');
-    }
+    editorial::punctuation(text, ProofLang::En, &mut v);
+    editorial::capitals(text, &ws, ProofLang::En, capital_first, &[], &mut v);
     v.sort_by_key(|i| i.start);
     v
 }
@@ -3605,43 +3509,6 @@ mod tests {
 
     /// Review follow-up: a run of spaces is one issue over the whole run, in every language with a
     /// double-space rule (a run of three used to leave two after the fix, four three).
-    #[test]
-    fn a_run_of_spaces_is_one_issue_in_every_language() {
-        assert_eq!(space_runs("a b  c   d    "), [3..5, 6..9, 10..14]);
-        assert!(
-            space_runs("a b c").is_empty()
-                && space_runs("").is_empty()
-                && space_runs(" ").is_empty()
-        );
-        let langs = [
-            ProofLang::En,
-            ProofLang::EnGb,
-            ProofLang::Es,
-            ProofLang::It,
-            ProofLang::Pt,
-            ProofLang::Cs,
-            ProofLang::Hr,
-            ProofLang::Id,
-            ProofLang::Pl,
-            ProofLang::Ru,
-            ProofLang::Tr,
-            ProofLang::EnAu,
-            ProofLang::EnCa,
-        ]
-        .into_iter()
-        .chain(PackLocale::new("pt-PT").map(ProofLang::Pack));
-        for lang in langs {
-            for n in 2..=5 {
-                let text = format!("Aaa{}bbb", " ".repeat(n));
-                let hits: Vec<_> = check_grammar_in(&text, lang)
-                    .into_iter()
-                    .filter(|i| i.start <= 3 && i.end > 3 && i.suggestions == [" "])
-                    .collect();
-                assert_eq!(hits.len(), 1, "{lang:?} {n}: {hits:?}");
-                assert_eq!((hits[0].start, hits[0].end), (3, 3 + n), "{lang:?} {n}");
-            }
-        }
-    }
 
     /// English spelling reads SCOWL 2026 through the affix engine: one dictionary per English,
     /// its notice embedded, and its ordinals (`COMPOUNDRULE`) understood.

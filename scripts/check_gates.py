@@ -105,7 +105,8 @@ LAYERS = {
     "craft-atomic": set(),
     "craft-font-catalog": set(),
     "craft-font-store": {"craft-atomic", "craft-font-catalog"},
-    "craft-proof": {"craft-atomic"},
+    "joyword-proof-rules": set(),
+    "craft-proof": {"craft-atomic", "joyword-proof-rules"},
 }
 
 # Dev-dependency allowances on top of LAYERS.

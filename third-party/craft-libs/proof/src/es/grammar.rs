@@ -39,80 +39,10 @@ pub fn check(text: &str, lang: ProofLang) -> Vec<Issue> {
             lang,
         ));
     });
-    spaces(text, lang, &mut issues);
+    crate::editorial::punctuation(text, lang, &mut issues);
     opening_marks(text, lang, &mut issues);
     issues.sort_by_key(|i| (i.start, i.end));
     issues
-}
-
-fn spaces(text: &str, lang: ProofLang, v: &mut Vec<Issue>) {
-    for (i, c) in text.char_indices() {
-        // A space after an opening mark: `¿ Vienes?`.
-        if matches!(c, '¿' | '¡')
-            && text.get(i + c.len_utf8()..).is_some_and(|r| {
-                r.starts_with(' ')
-                    && r.trim_start()
-                        .chars()
-                        .next()
-                        .is_some_and(char::is_alphanumeric)
-            })
-        {
-            v.push(issue(
-                i,
-                i + c.len_utf8() + 1,
-                "Espacio después de un signo de apertura".into(),
-                vec![c.to_string()],
-                lang,
-            ));
-            continue;
-        }
-        if c != ' ' {
-            continue;
-        }
-        let rest = text.get(i + 1..).unwrap_or("");
-        let mut it = rest.chars();
-        let Some(p) = it.next() else { continue };
-        let after = it.next();
-        // A ratio/score keeps the spaces in digit-space-colon-space-digit.
-        let ratio = p == ':'
-            && text
-                .get(..i)
-                .and_then(|before| before.chars().next_back())
-                .is_some_and(|c| c.is_ascii_digit())
-            && after == Some(' ')
-            && it.next().is_some_and(|c| c.is_ascii_digit());
-        let flag = !ratio
-            && match p {
-                ',' => true,
-                // `;)` and `;-)` are emoticons.
-                ';' => !matches!(after, Some(')' | '(' | '-' | 'P' | 'D')),
-                // ` ...` is an ellipsis, ` .5` a number.
-                '.' => !matches!(after, Some('.')) && !after.is_some_and(|a| a.is_ascii_digit()),
-                // ` :)`, ` :-)`, ` :D` and similar are emoticons; ` ?!` is still a stray space.
-                ':' | '!' | '?' => after.is_none_or(|a| {
-                    a.is_whitespace() || matches!(a, '"' | '”' | '’' | '»' | '!' | '?')
-                }),
-                _ => false,
-            };
-        if flag {
-            v.push(issue(
-                i,
-                i + 1 + p.len_utf8(),
-                "Espacio antes de un signo de puntuación".into(),
-                vec![p.to_string()],
-                lang,
-            ));
-        }
-    }
-    for run in crate::space_runs(text) {
-        v.push(issue(
-            run.start,
-            run.end,
-            "Espacio doble".into(),
-            vec![" ".into()],
-            lang,
-        ));
-    }
 }
 
 /// Does the character `b` at byte `j` end what comes before it, so a question or exclamation after

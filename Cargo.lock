@@ -1351,6 +1351,7 @@ dependencies = [
 name = "craft-proof"
 version = "0.1.0"
 dependencies = [
+ "joyword-proof-rules",
  "log",
  "miniz_oxide 0.9.1",
  "toml 1.1.8+spec-1.1.0",
@@ -4626,6 +4627,10 @@ dependencies = [
  "log",
  "thiserror 2.0.21",
 ]
+
+[[package]]
+name = "joyword-proof-rules"
+version = "0.2.0"
 
 [[package]]
 name = "joyword-render"

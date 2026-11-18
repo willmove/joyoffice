@@ -162,57 +162,8 @@ pub fn check_with(text: &str, capital_first: bool) -> Vec<Issue> {
         },
     );
 
-    // 2. Spaces before punctuation and double spaces
-    let chars: Vec<(usize, char)> = text.char_indices().collect();
-    for i in 0..chars.len() {
-        let (idx, c) = chars[i];
-        if matches!(c, ',' | '.' | '?' | '!' | ';' | ':') && i > 0 && chars[i - 1].1 == ' ' {
-            let prev_sp = chars[i - 1].0;
-            // Leave ellipses (` ...`), numbers (` .5`), emoticons (` :)`, ` ;-)`, ` :D`) and
-            // scores (`3 : 1`) alone.
-            let after = chars.get(i + 1).map(|&(_, a)| a);
-            let ratio = c == ':'
-                && i >= 2
-                && chars.get(i - 2).is_some_and(|&(_, b)| b.is_ascii_digit())
-                && after == Some(' ')
-                && chars.get(i + 2).is_some_and(|&(_, d)| d.is_ascii_digit());
-            // `:)`, `;(`, `:-)` are emoticons; `:D` and `;P` only when a space or the end follows
-            // (`;Dün` is a stray space before a word).
-            let ends = |k: usize| chars.get(k).is_none_or(|&(_, e)| e.is_whitespace());
-            let emoticon = match after {
-                Some(')' | '(') => true,
-                Some('-') => matches!(chars.get(i + 2), Some(&(_, ')' | '('))),
-                Some('D' | 'P') => ends(i + 2),
-                _ => false,
-            };
-            let flag = !ratio
-                && match c {
-                    ',' | '!' | '?' => true,
-                    ':' | ';' => !emoticon,
-                    _ => !matches!(after, Some('.')) && !after.is_some_and(|a| a.is_ascii_digit()),
-                };
-            if flag {
-                v.push(Issue {
-                    start: prev_sp,
-                    end: idx + c.len_utf8(),
-                    kind: IssueKind::Grammar,
-                    message: "Noktalama işaretinden önce boşluk bırakılmaz".into(),
-                    suggestions: vec![c.to_string()],
-                    lang: ProofLang::Tr,
-                });
-            }
-        }
-    }
-    for run in crate::space_runs(text) {
-        v.push(Issue {
-            start: run.start,
-            end: run.end,
-            kind: IssueKind::Grammar,
-            message: "Fazladan boşluk".into(),
-            suggestions: vec![" ".into()],
-            lang: ProofLang::Tr,
-        });
-    }
+    crate::editorial::punctuation(text, ProofLang::Tr, &mut v);
+
     // 3. Comma before or after conjunctions (`ali, ve veli` or `ve, veli`)
     for (i, &(w_start, w_end)) in ws.iter().enumerate() {
         let word = match text.get(w_start..w_end) {
@@ -253,63 +204,14 @@ pub fn check_with(text: &str, capital_first: bool) -> Vec<Issue> {
         }
     }
 
-    // 4. Sentence capitalization knowing Turkish abbreviations
-    for (i, &(w_start, w_end)) in ws.iter().enumerate() {
-        if i == 0 {
-            // First word in paragraph
-            if capital_first
-                && let Some(w) = text.get(w_start..w_end)
-                && w.chars().next().is_some_and(char::is_lowercase)
-            {
-                let cap = turkish_capitalize(w);
-                v.push(Issue {
-                    start: w_start,
-                    end: w_end,
-                    kind: IssueKind::Grammar,
-                    message: "Cümle büyük harfle başlar".into(),
-                    suggestions: vec![cap],
-                    lang: ProofLang::Tr,
-                });
-            }
-            continue;
-        }
-
-        // Check if previous character sequence ended a sentence
-        let prev_end = ws[i - 1].1;
-        let prev_word = text.get(ws[i - 1].0..prev_end).unwrap_or("");
-        if let Some(gap) = text.get(prev_end..w_start) {
-            let trimmed = gap.trim();
-            // A space must follow the mark (`rapor.txt`, `www.example.com` are one token), and a
-            // number before a period is an ordinal (`5. sınıf`, `21. yüzyıl`).
-            let spaced = gap
-                .rfind(['.', '?', '!'])
-                .and_then(|m| gap.get(m + 1..))
-                .is_some_and(|rest| rest.contains(char::is_whitespace));
-            let ordinal = trimmed.ends_with('.') && prev_word.chars().any(|c| c.is_ascii_digit());
-            // An initial (`A.Ş.`, `T.C.`, `M. Kemal`) ends no sentence.
-            let initial = trimmed.starts_with('.') && prev_word.chars().count() == 1;
-            if (trimmed.ends_with('.') || trimmed.ends_with('?') || trimmed.ends_with('!'))
-                && spaced
-                && !ordinal
-                && !initial
-                && !trimmed.contains("...")
-                && !ABBREVIATIONS.contains(&turkish_to_lower(prev_word).as_str())
-                && let Some(w) = text.get(w_start..w_end)
-                && w.chars().next().is_some_and(char::is_lowercase)
-            {
-                let cap = turkish_capitalize(w);
-                v.push(Issue {
-                    start: w_start,
-                    end: w_end,
-                    kind: IssueKind::Grammar,
-                    message: "Cümle büyük harfle başlar".into(),
-                    suggestions: vec![cap],
-                    lang: ProofLang::Tr,
-                });
-            }
-        }
-    }
-
+    crate::editorial::capitals(
+        text,
+        &ws,
+        ProofLang::Tr,
+        capital_first,
+        ABBREVIATIONS,
+        &mut v,
+    );
     v.sort_by_key(|issue| (issue.start, issue.end));
     v
 }
