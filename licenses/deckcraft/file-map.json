@@ -1086,7 +1086,7 @@
       "source_path": "crates/anim/src/transition_fx.rs",
       "source_sha256": "d33982408786bf055bf487318d4fd6a6e79d4309812a1dd0b7f5807963c79dad",
       "target_path": "crates/joydeck-anim/src/transition_fx.rs",
-      "adapted_sha256": "75b04ec0e41601917bf6b5d86a7d804a5a8c7ab57996dff153204b405b415f29",
+      "adapted_sha256": "463414b9dfb227d567a160cf11c891c14f00bf23056f43280f1cad405203ea94",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -1097,7 +1097,8 @@
         "Dispatch shape, wheel, random-bar and dissolve to JoyOffice and retire the original generators.",
         "Route checker, blinds, comb and ripple variants to native tile, stripe and radial generators.",
         "Remove the imported prism construction for Cube, Box, Rotate and Orbit. The first-party generator projects and clips the two moving faces of p14:prism. Independent references are in tests/fixtures/joydeck/prism-{plain,marked}-reference.json.",
-        "Retire the imported fallOver, drape and curtains generators. Use independently measured normalized slide surfaces from transition_fabric.rs."
+        "Retire the imported fallOver, drape and curtains generators. Use independently measured normalized slide surfaces from transition_fabric.rs.",
+        "Retire the imported rigid wind and prestige cards. JoyOffice now carries the outgoing slide texture on a rippling sheet and a gathered canopy, measured on two PowerPoint slide sizes."
       ]
     },
     {

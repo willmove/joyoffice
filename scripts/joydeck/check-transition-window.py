@@ -30,6 +30,7 @@ MASKS = (("wipe", "ru"), ("split", "vertOut"))
 PATTERNS = (("shape", "circle"), ("clock", "wedge"))
 PANELS = (("blinds", "horz"), ("ripple", "lu"))
 PRISMS = (("cube", "l"), ("orbit", "u"))
+AIRBORNE = (("wind", "r"), ("prestige", ""))
 FABRIC = (("fallOver", "l"), ("curtains", ""))
 PRESET_OPTIONS = {
     "fallOver": ("l", "r"), "drape": ("l", "r"), "curtains": ("",), "wind": ("l", "r"),
@@ -277,7 +278,7 @@ def stats(values):
     }
 
 
-def play(binary, cli, doc, directory, mode, effects, software_fallback=False):
+def play(binary, cli, doc, directory, mode, effects, duration_ms, software_fallback=False):
     directory.mkdir()
     settings = {
         "JOYDECK_GPU_TRANSITIONS": "0" if mode == "cpu" else "1",
@@ -330,14 +331,22 @@ def play(binary, cli, doc, directory, mode, effects, software_fallback=False):
                 if kind == "push"
                 else 0.48
             )
-            wait(
-                lambda: any(
-                    pause_from < float(m[1]) < 0.88
-                    for m in pattern.finditer(contents())
-                ),
-                f"visible {kind} progress",
-                process,
-            )
+            def pause_ready():
+                frames = list(pattern.finditer(contents()))
+                if kind not in ("wind", "prestige"):
+                    return any(pause_from < float(frame[1]) < 0.88 for frame in frames)
+                if not frames:
+                    return False
+                progress = float(frames[-1][1])
+                # The key can land after the frame already in preparation and
+                # the one that receives the event. Measure each actual display.
+                lead = 2 * int(frames[-1][2]) / (duration_ms * 1000)
+                if kind == "prestige":
+                    # The canopy is stationary during its first third.
+                    return progress > 0.36 and progress + lead >= 0.61
+                return progress + lead >= 0.49
+
+            wait(pause_ready, f"visible {kind} progress", process)
             key(process, audience, "pause")
 
             def paused_state():
@@ -352,7 +361,7 @@ def play(binary, cli, doc, directory, mode, effects, software_fallback=False):
                 )
 
             paused = wait(paused_state, "accepted pause", process)
-            progress = paused["slide_seconds"] / 4.8
+            progress = paused["slide_seconds"] / (duration_ms / 1000)
             wait(
                 lambda: any(
                     abs(float(m[1]) - progress) < 1e-6
@@ -395,7 +404,7 @@ def play(binary, cli, doc, directory, mode, effects, software_fallback=False):
             assert not close_color(previous, middle, 5), (kind, previous, middle)
             key(process, audience, "pause")
             target = bytes.fromhex(COLORS[slide - 1])
-            time.sleep(max(0.0, 4.8 - paused["slide_seconds"]))
+            time.sleep(max(0.0, duration_ms / 1000 - paused["slide_seconds"]))
 
             def settled():
                 pixels = samples(
@@ -546,7 +555,7 @@ def play_automatic(binary, directory):
         }
 
 
-def exchange(doc, directory, baseline, candidate, effects):
+def exchange(doc, directory, baseline, candidate, effects, duration_ms):
     directory.mkdir()
     versions = {"baseline": baseline, "candidate": candidate}
     readers = {}
@@ -563,7 +572,7 @@ def exchange(doc, directory, baseline, candidate, effects):
                 transition = slide.find(".//{*}transition")
                 tag, attrs = effect_xml(kind, direction)
                 assert (
-                    transition is not None and transition.get(f"{{{P14}}}dur") == "4800"
+                    transition is not None and transition.get(f"{{{P14}}}dur") == str(duration_ms)
                 )
                 child = transition.find(tag)
                 assert child is not None and all(
@@ -575,7 +584,7 @@ def exchange(doc, directory, baseline, candidate, effects):
             work = directory / f"{writer}-{reader}"
             work.mkdir()
             for page in (2, 3):
-                reference_frame(tool, saved, work, page, 2.4)
+                reference_frame(tool, saved, work, page, duration_ms / 2000)
             readers[f"{writer}-{reader}"] = [
                 digest(work / f"slide-{page}-CPU.png") for page in (2, 3)
             ]
@@ -597,6 +606,7 @@ def main():
     parser.add_argument("--reference-cli", type=Path)
     parser.add_argument("--exchange-only", action="store_true")
     mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--airborne", action="store_true", help="exercise a gust and a central lift of the outgoing slide")
     mode.add_argument("--fabric", action="store_true", help="exercise a falling sheet and two parting curtains")
     mode.add_argument("--prisms", action="store_true", help="exercise an outside turn and content-only inside turn")
     mode.add_argument("--panels", action="store_true", help="exercise Venetian blinds and a corner ripple")
@@ -618,7 +628,9 @@ def main():
     )
     args = parser.parse_args()
     effects = (
-        FABRIC
+        AIRBORNE
+        if args.airborne
+        else FABRIC
         if args.fabric
         else PRISMS
         if args.prisms
@@ -636,12 +648,15 @@ def main():
     cli = args.binary.with_name("joydeck-cli").resolve()
     baseline = (args.reference_cli or cli).resolve()
     doc = out / "转场 示例.pptx"
+    # Allow the full-window debug CPU compositor to present an intermediate
+    # frame before a fast-moving cloth has completely cleared the viewport.
+    duration_ms = 9600 if args.airborne else 4800
     if args.exchange_only:
-        result = exchange(doc, out / "exchange", baseline, cli, effects)
+        result = exchange(doc, out / "exchange", baseline, cli, effects, duration_ms)
         (out / "exchange.json").write_text(json.dumps(result, indent=2) + "\n")
         return
     out.mkdir(parents=True)
-    deck(doc, effects)
+    deck(doc, effects, duration=duration_ms)
     original = digest(doc)
     results = {}
     for mode in ("auto", "cpu"):
@@ -652,6 +667,7 @@ def main():
             out / mode,
             mode,
             effects,
+            duration_ms,
             args.expect_software_fallback,
         )
     assert digest(doc) == original
@@ -678,7 +694,7 @@ def main():
                     if args.travel
                     else {}
                 ),
-                "exchange": exchange(doc, out / "exchange", baseline, cli, effects),
+                "exchange": exchange(doc, out / "exchange", baseline, cli, effects, duration_ms),
             },
             ensure_ascii=False,
             indent=2,

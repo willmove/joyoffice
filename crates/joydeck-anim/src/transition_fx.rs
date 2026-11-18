@@ -84,8 +84,8 @@ pub(crate) fn layers(kind: &str, o: &str, t: f64, a: f64, depth: u32) -> Vec<Lay
         "fallOver" => crate::transition_fabric::fall_over(o == "r", t),
         "drape" => crate::transition_fabric::drape(o == "r", t),
         "curtains" => crate::transition_fabric::curtains(t),
-        "wind" => wind(o == "r", t, a),
-        "prestige" => prestige(t, a),
+        "wind" => crate::transition_fabric::wind(o == "r", t),
+        "prestige" => crate::transition_fabric::prestige(t),
         "fracture" => fracture(t, a),
         "crush" => crush(t, a),
         "peelOff" => peel_off(o == "r", t),
@@ -254,50 +254,6 @@ fn zoom(o: &str, t: f64, a: f64) -> Vec<Layer> {
             ),
         ],
     }
-}
-
-fn wind(right: bool, t: f64, a: f64) -> Vec<Layer> {
-    // The old slide blows away like a sheet, lifting and receding toward one side.
-    let cam = Cam { a, d: 2.2 };
-    let u = ein(win(t, 0.12, 0.8));
-    let side = if right { 1.0 } else { -1.0 };
-    let pivot = v3(0.0, 0.0, 0.0);
-    let pts = cam.rect(FULL).map(|p| {
-        let w = p
-            .pitch(v3(0.0, -0.5, 0.0), -25.0 * u)
-            .yaw(pivot, -side * 20.0 * u);
-        v3(w.x + side * 1.6 * u * a / 2.0, w.y - 0.8 * u, w.z + 0.5 * u)
-    });
-    let mut v = vec![Layer::full(New, 1.0)];
-    if u < 1.0 {
-        v.extend(card(&cam, Old, FULL, pts, 1.0, 0.0, true));
-    }
-    v
-}
-
-fn prestige(t: f64, a: f64) -> Vec<Layer> {
-    // The old slide lifts at its bottom edge and flies off upward.
-    let cam = Cam { a, d: 2.2 };
-    let lift = q2(win(t, 0.4, 0.62));
-    let fly = ein(win(t, 0.5, 0.85));
-    let pivot = v3(0.0, -0.5, 0.0);
-    let pts = cam.rect(FULL).map(|p| {
-        let w = p.pitch(pivot, -40.0 * lift).roll(pivot, -12.0 * fly);
-        v3(w.x - 0.4 * fly * a / 2.0, w.y - 1.3 * fly, w.z - 0.2 * fly)
-    });
-    let mut v = vec![Layer::full(New, 1.0)];
-    if fly < 1.0 {
-        v.extend(card(
-            &cam,
-            Old,
-            FULL,
-            pts,
-            1.0,
-            facing_shade(pts, 0.3),
-            true,
-        ));
-    }
-    v
 }
 
 fn fracture(t: f64, a: f64) -> Vec<Layer> {
