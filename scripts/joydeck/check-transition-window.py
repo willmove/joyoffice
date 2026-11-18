@@ -106,7 +106,7 @@ def deck(path, effects=STANDARD, duration=4800, timed=False):
                 fill = ET.SubElement(props, f"{{{A}}}solidFill")
                 ET.SubElement(fill, f"{{{A}}}srgbClr", val=COLORS[i])
                 ET.SubElement(props, f"{{{A}}}effectLst")
-                if i:
+                if 0 < i <= len(effects):
                     tr = ET.SubElement(
                         root, f"{{{P}}}transition", {f"{{{P14}}}dur": str(duration)}
                     )
@@ -476,7 +476,7 @@ def play(binary, cli, doc, directory, mode, effects, duration_ms, software_fallb
         backend = f"{backend[1]} / {backend[2]}"
         assert {
             int(n) for n in re.findall(r"show_transition uploaded slide=(\d+)", text)
-        } == {2, 3}
+        } == set(range(2, 2 + len(effects)))
     return {"backend": backend, "slides": records}
 
 
@@ -586,10 +586,10 @@ def exchange(doc, directory, baseline, candidate, effects, duration_ms):
         for reader, tool in versions.items():
             work = directory / f"{writer}-{reader}"
             work.mkdir()
-            for page in (2, 3):
+            for page in range(2, 2 + len(effects)):
                 reference_frame(tool, saved, work, page, duration_ms / 2000)
             readers[f"{writer}-{reader}"] = [
-                digest(work / f"slide-{page}-CPU.png") for page in (2, 3)
+                digest(work / f"slide-{page}-CPU.png") for page in range(2, 2 + len(effects))
             ]
     for reader in versions:
         assert readers[f"baseline-{reader}"] == readers[f"candidate-{reader}"]
@@ -613,6 +613,7 @@ def main():
     mode.add_argument("--airborne", action="store_true", help="exercise a gust and a central lift of the outgoing slide")
     mode.add_argument("--fabric", action="store_true", help="exercise a falling sheet and two parting curtains")
     mode.add_argument("--prisms", action="store_true", help="exercise an outside turn and content-only inside turn")
+    mode.add_argument("--ripples", choices=["center", "lu", "ru", "ld", "rd"], help="exercise the selected ripple in the audience window")
     mode.add_argument("--panels", action="store_true", help="exercise Venetian blinds and a corner ripple")
     mode.add_argument(
         "--patterns",
@@ -640,6 +641,8 @@ def main():
         if args.fabric
         else PRISMS
         if args.prisms
+        else (("ripple", args.ripples),)
+        if args.ripples
         else PANELS
         if args.panels
         else PATTERNS

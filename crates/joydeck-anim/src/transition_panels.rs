@@ -141,10 +141,16 @@ pub(crate) fn ripple(option: &str, t: f64, aspect: f64) -> Vec<Layer> {
     .sqrt();
     let front = 0.98 * t - 0.09;
     let intensity = |radius: f64| {
-        let mix = (0.5 + (front - radius) / 0.224).clamp(0., 1.);
-        let wave = ((radius - front) * (TAU / 0.33) - 0.42).cos().max(0.);
-        let shade = 0.15 * wave * (mix * 4.).min(1.);
-        (mix, shade)
+        let offset = radius - front;
+        let mix = (0.5 - (offset + 0.003) / 0.223).clamp(0., 1.);
+        // A crest darkens both textures. The trailing crests lose energy
+        // and only the leading shoulder refracts the outgoing slide.
+        let phase = TAU * (offset - 0.0255) / (1. / 3.);
+        let damping = (0.73 * (offset - 0.0255).min(0.)).exp();
+        let shade = 0.173 * phase.cos().max(0.) * damping * (mix * 7.).min(1.);
+        let old_shift = 0.0016 * (1. - ((offset - 0.075) / 0.064).powi(2)).max(0.);
+        let new_shift = -0.0015 * (TAU * (offset + 0.21) / 0.33).cos() * damping;
+        (mix, shade, old_shift, new_shift)
     };
     let mut out = vec![Layer::full(Source::Old, 1.)];
     // Join each ray to a fixed point on the frame. Clamping the radii at
@@ -173,7 +179,7 @@ pub(crate) fn ripple(option: &str, t: f64, aspect: f64) -> Vec<Layer> {
             };
             for step in 0..36 {
                 let r0 = step as f64 / 36.;
-                if r0 >= lr.max(rr) || r0 >= front + 0.112 {
+                if r0 >= lr.max(rr) || r0 >= front + 0.124 {
                     break;
                 }
                 let r1 = (step + 1) as f64 / 36.;
@@ -183,16 +189,36 @@ pub(crate) fn ripple(option: &str, t: f64, aspect: f64) -> Vec<Layer> {
                     point(right, rr, r1),
                     point(right, rr, r0),
                 ];
-                let values = [r0.min(lr), r1.min(lr), r1.min(rr), r0.min(rr)].map(intensity);
+                let radii = [r0.min(lr), r1.min(lr), r1.min(rr), r0.min(rr)];
+                let values = radii.map(intensity);
+                let refract = |i: usize, shift: f64| {
+                    let radius = radii[i];
+                    if radius == 0. {
+                        return origin;
+                    }
+                    let k = 1. + shift / radius;
+                    [0, 1].map(|axis| {
+                        (origin[axis] + (quad[i][axis] - origin[axis]) * k).clamp(0., 1.)
+                    })
+                };
                 for inds in [[0, 1, 2], [0, 2, 3]] {
                     let p = inds.map(|i| quad[i]);
                     if p[0] == p[1] || p[1] == p[2] || p[0] == p[2] {
                         continue;
                     }
+                    if inds.iter().any(|&i| values[i].2 > 0.) {
+                        out.push(Layer::tri_uv(
+                            Source::Old,
+                            p,
+                            inds.map(|i| refract(i, values[i].2)),
+                            [1.; 3],
+                            1.,
+                        ));
+                    }
                     out.push(Layer::tri_uv(
                         Source::New,
                         p,
-                        p,
+                        inds.map(|i| refract(i, values[i].3)),
                         inds.map(|i| values[i].0),
                         1.,
                     ));
@@ -205,4 +231,37 @@ pub(crate) fn ripple(option: &str, t: f64, aspect: f64) -> Vec<Layer> {
         }
     }
     out
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn both_ripple_textures_refract_inside_the_slide_in_all_five_directions() {
+        for option in ["center", "lu", "ru", "ld", "rd"] {
+            for aspect in [4. / 3., 16. / 9.] {
+                let layers = ripple(option, 0.5, aspect);
+                for source in [Source::Old, Source::New] {
+                    assert!(
+                        layers
+                            .iter()
+                            .filter(|face| face.source == source)
+                            .any(|face| {
+                                face.uv.iter().zip(face.quad).any(|(uv, p)| {
+                                    (uv[0] - p[0]).abs() + (uv[1] - p[1]).abs() > 1e-5
+                                })
+                            })
+                    );
+                }
+                assert!(
+                    layers
+                        .iter()
+                        .flat_map(|l| l.uv)
+                        .flatten()
+                        .all(|coord| (0.0..=1.).contains(&coord))
+                );
+            }
+        }
+    }
 }

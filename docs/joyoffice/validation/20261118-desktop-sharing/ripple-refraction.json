@@ -1,0 +1,1925 @@
+{
+  "rollbackCommit": "c364ba40",
+  "previousDeckCommit": "01b37a1d",
+  "reference": {
+    "plain": {
+      "source": "PowerPoint 16.115 for macOS, 1920x1080, 30 fps, 1600 ms effects",
+      "movieSha256": "b7fadfa77752467571f5a90ed03f9383a8adae78cec83f608e679b8dab7d47bb",
+      "frames": 912,
+      "payloadSha256": "02aa7dab287106471df49abe899c0137d5fff1d8b2eb83de4bf094f04a33c49f",
+      "markers": false
+    },
+    "marked": {
+      "source": "PowerPoint 16.115 for macOS, 1920x1080, 30 fps, 1600 ms effects",
+      "movieSha256": "66b2fc610fab94dac4992131e54360cfb9990f7ae3a30b60b32bf39f8be31d6c",
+      "frames": 912,
+      "payloadSha256": "42db343cf0c4cb216c069c764232c784c03c778bcf4f32535b08dc9779b8e173",
+      "markers": true
+    }
+  },
+  "scope": "First-party radial ripple refraction for the center and all four corner spotlight origins. Both the previous and incoming slide bend with the moving wave. Metal, Vulkan, and CPU present the same generated layer geometry.",
+  "calibration": "Two full-color PowerPoint exports (plain and independently marked slide pairs). Wavefront and displacement fitted on alternating instants for center and two corners. Opposite corners and intermediate instants were held back. Published errors below cover every sampled instant; per-pixel maximum and P95 are recorded separately.",
+  "platforms": {
+    "macOS": {
+      "plain": {
+        "binaries": [
+          "0b8e031665d8539927d09d3881016928cdac25da306f3dba63e88eb95e295c03",
+          "2b105cc057e0f49e9648c311b8855252af5cdee9e2617516297cc6503cff9d4e"
+        ],
+        "baseline": {
+          "checker/horz": {
+            "values": 4320,
+            "meanAbsoluteError": 0.038166,
+            "p95AbsoluteError": 0.239216,
+            "maxAbsoluteError": 1.0
+          },
+          "checker/vert": {
+            "values": 2160,
+            "meanAbsoluteError": 0.028596,
+            "p95AbsoluteError": 0.163149,
+            "maxAbsoluteError": 1.0
+          },
+          "blinds/horz": {
+            "values": 2160,
+            "meanAbsoluteError": 0.043342,
+            "p95AbsoluteError": 0.293631,
+            "maxAbsoluteError": 0.874359
+          },
+          "blinds/vert": {
+            "values": 2160,
+            "meanAbsoluteError": 0.046629,
+            "p95AbsoluteError": 0.266667,
+            "maxAbsoluteError": 0.831373
+          },
+          "comb/horz": {
+            "values": 2160,
+            "meanAbsoluteError": 0.005171,
+            "p95AbsoluteError": 0.007843,
+            "maxAbsoluteError": 0.952941
+          },
+          "comb/vert": {
+            "values": 2160,
+            "meanAbsoluteError": 0.019985,
+            "p95AbsoluteError": 0.007843,
+            "maxAbsoluteError": 0.623529
+          },
+          "ripple/center": {
+            "values": 2160,
+            "meanAbsoluteError": 0.014354,
+            "p95AbsoluteError": 0.071658,
+            "maxAbsoluteError": 0.153811
+          },
+          "ripple/lu": {
+            "values": 2160,
+            "meanAbsoluteError": 0.008897,
+            "p95AbsoluteError": 0.049102,
+            "maxAbsoluteError": 0.179496
+          },
+          "ripple/ru": {
+            "values": 2160,
+            "meanAbsoluteError": 0.013874,
+            "p95AbsoluteError": 0.06668,
+            "maxAbsoluteError": 0.169209
+          },
+          "ripple/ld": {
+            "values": 2160,
+            "meanAbsoluteError": 0.008813,
+            "p95AbsoluteError": 0.048663,
+            "maxAbsoluteError": 0.179496
+          },
+          "ripple/rd": {
+            "values": 2160,
+            "meanAbsoluteError": 0.013745,
+            "p95AbsoluteError": 0.066741,
+            "maxAbsoluteError": 0.177052
+          }
+        },
+        "candidate": {
+          "checker/horz": {
+            "values": 4320,
+            "meanAbsoluteError": 0.038166,
+            "p95AbsoluteError": 0.239216,
+            "maxAbsoluteError": 1.0
+          },
+          "checker/vert": {
+            "values": 2160,
+            "meanAbsoluteError": 0.028596,
+            "p95AbsoluteError": 0.163149,
+            "maxAbsoluteError": 1.0
+          },
+          "blinds/horz": {
+            "values": 2160,
+            "meanAbsoluteError": 0.043342,
+            "p95AbsoluteError": 0.293631,
+            "maxAbsoluteError": 0.874359
+          },
+          "blinds/vert": {
+            "values": 2160,
+            "meanAbsoluteError": 0.046629,
+            "p95AbsoluteError": 0.266667,
+            "maxAbsoluteError": 0.831373
+          },
+          "comb/horz": {
+            "values": 2160,
+            "meanAbsoluteError": 0.005171,
+            "p95AbsoluteError": 0.007843,
+            "maxAbsoluteError": 0.952941
+          },
+          "comb/vert": {
+            "values": 2160,
+            "meanAbsoluteError": 0.019985,
+            "p95AbsoluteError": 0.007843,
+            "maxAbsoluteError": 0.623529
+          },
+          "ripple/center": {
+            "values": 2160,
+            "meanAbsoluteError": 0.01396,
+            "p95AbsoluteError": 0.06842,
+            "maxAbsoluteError": 0.163237
+          },
+          "ripple/lu": {
+            "values": 2160,
+            "meanAbsoluteError": 0.008362,
+            "p95AbsoluteError": 0.04914,
+            "maxAbsoluteError": 0.168633
+          },
+          "ripple/ru": {
+            "values": 2160,
+            "meanAbsoluteError": 0.011691,
+            "p95AbsoluteError": 0.056685,
+            "maxAbsoluteError": 0.158509
+          },
+          "ripple/ld": {
+            "values": 2160,
+            "meanAbsoluteError": 0.008437,
+            "p95AbsoluteError": 0.04922,
+            "maxAbsoluteError": 0.168633
+          },
+          "ripple/rd": {
+            "values": 2160,
+            "meanAbsoluteError": 0.011608,
+            "p95AbsoluteError": 0.056374,
+            "maxAbsoluteError": 0.166352
+          }
+        },
+        "exchange": {
+          "baseline-1": {
+            "baseline": "631ea1822442227c9c1fb9948eb5c3780e3eb30754e5d9f42ff11414e5b4eaa7",
+            "candidate": "6c59df21da79baaf9b4024e5ee4e115074736a56ca111c001290dd114aec6ccb"
+          },
+          "baseline-2": {
+            "baseline": "631ea1822442227c9c1fb9948eb5c3780e3eb30754e5d9f42ff11414e5b4eaa7",
+            "candidate": "6c59df21da79baaf9b4024e5ee4e115074736a56ca111c001290dd114aec6ccb"
+          },
+          "candidate-1": {
+            "baseline": "631ea1822442227c9c1fb9948eb5c3780e3eb30754e5d9f42ff11414e5b4eaa7",
+            "candidate": "6c59df21da79baaf9b4024e5ee4e115074736a56ca111c001290dd114aec6ccb"
+          },
+          "candidate-2": {
+            "baseline": "631ea1822442227c9c1fb9948eb5c3780e3eb30754e5d9f42ff11414e5b4eaa7",
+            "candidate": "6c59df21da79baaf9b4024e5ee4e115074736a56ca111c001290dd114aec6ccb"
+          }
+        },
+        "replacedMeanAbsoluteError": {
+          "baseline": 0.0119366,
+          "candidate": 0.0108116
+        },
+        "replacedSamples": 10800
+      },
+      "marked": {
+        "binaries": [
+          "0b8e031665d8539927d09d3881016928cdac25da306f3dba63e88eb95e295c03",
+          "2b105cc057e0f49e9648c311b8855252af5cdee9e2617516297cc6503cff9d4e"
+        ],
+        "baseline": {
+          "checker/horz": {
+            "values": 6480,
+            "meanAbsoluteError": 0.057961,
+            "p95AbsoluteError": 0.223529,
+            "maxAbsoluteError": 0.937255
+          },
+          "checker/vert": {
+            "values": 3240,
+            "meanAbsoluteError": 0.053531,
+            "p95AbsoluteError": 0.180392,
+            "maxAbsoluteError": 0.862745
+          },
+          "blinds/horz": {
+            "values": 3240,
+            "meanAbsoluteError": 0.061051,
+            "p95AbsoluteError": 0.247059,
+            "maxAbsoluteError": 0.784314
+          },
+          "blinds/vert": {
+            "values": 3240,
+            "meanAbsoluteError": 0.061743,
+            "p95AbsoluteError": 0.196078,
+            "maxAbsoluteError": 0.65098
+          },
+          "comb/horz": {
+            "values": 3240,
+            "meanAbsoluteError": 0.041422,
+            "p95AbsoluteError": 0.082353,
+            "maxAbsoluteError": 0.701961
+          },
+          "comb/vert": {
+            "values": 3240,
+            "meanAbsoluteError": 0.051265,
+            "p95AbsoluteError": 0.117647,
+            "maxAbsoluteError": 0.501961
+          },
+          "ripple/center": {
+            "values": 3240,
+            "meanAbsoluteError": 0.046006,
+            "p95AbsoluteError": 0.090196,
+            "maxAbsoluteError": 0.435294
+          },
+          "ripple/lu": {
+            "values": 3240,
+            "meanAbsoluteError": 0.038059,
+            "p95AbsoluteError": 0.090196,
+            "maxAbsoluteError": 0.447059
+          },
+          "ripple/ru": {
+            "values": 3240,
+            "meanAbsoluteError": 0.048447,
+            "p95AbsoluteError": 0.113725,
+            "maxAbsoluteError": 0.454902
+          },
+          "ripple/ld": {
+            "values": 3240,
+            "meanAbsoluteError": 0.038786,
+            "p95AbsoluteError": 0.101961,
+            "maxAbsoluteError": 0.423529
+          },
+          "ripple/rd": {
+            "values": 3240,
+            "meanAbsoluteError": 0.048635,
+            "p95AbsoluteError": 0.113725,
+            "maxAbsoluteError": 0.454902
+          }
+        },
+        "candidate": {
+          "checker/horz": {
+            "values": 6480,
+            "meanAbsoluteError": 0.057961,
+            "p95AbsoluteError": 0.223529,
+            "maxAbsoluteError": 0.937255
+          },
+          "checker/vert": {
+            "values": 3240,
+            "meanAbsoluteError": 0.053531,
+            "p95AbsoluteError": 0.180392,
+            "maxAbsoluteError": 0.862745
+          },
+          "blinds/horz": {
+            "values": 3240,
+            "meanAbsoluteError": 0.061051,
+            "p95AbsoluteError": 0.247059,
+            "maxAbsoluteError": 0.784314
+          },
+          "blinds/vert": {
+            "values": 3240,
+            "meanAbsoluteError": 0.061743,
+            "p95AbsoluteError": 0.196078,
+            "maxAbsoluteError": 0.65098
+          },
+          "comb/horz": {
+            "values": 3240,
+            "meanAbsoluteError": 0.041422,
+            "p95AbsoluteError": 0.082353,
+            "maxAbsoluteError": 0.701961
+          },
+          "comb/vert": {
+            "values": 3240,
+            "meanAbsoluteError": 0.051265,
+            "p95AbsoluteError": 0.117647,
+            "maxAbsoluteError": 0.501961
+          },
+          "ripple/center": {
+            "values": 3240,
+            "meanAbsoluteError": 0.045167,
+            "p95AbsoluteError": 0.090196,
+            "maxAbsoluteError": 0.407843
+          },
+          "ripple/lu": {
+            "values": 3240,
+            "meanAbsoluteError": 0.038048,
+            "p95AbsoluteError": 0.098039,
+            "maxAbsoluteError": 0.372549
+          },
+          "ripple/ru": {
+            "values": 3240,
+            "meanAbsoluteError": 0.046416,
+            "p95AbsoluteError": 0.094118,
+            "maxAbsoluteError": 0.388235
+          },
+          "ripple/ld": {
+            "values": 3240,
+            "meanAbsoluteError": 0.037849,
+            "p95AbsoluteError": 0.094118,
+            "maxAbsoluteError": 0.364706
+          },
+          "ripple/rd": {
+            "values": 3240,
+            "meanAbsoluteError": 0.046762,
+            "p95AbsoluteError": 0.101961,
+            "maxAbsoluteError": 0.388235
+          }
+        },
+        "exchange": {
+          "baseline-1": {
+            "baseline": "9601095b665d0c112579d7f64d77b60f99b367a588a62b955ea5ab3a44e1beae",
+            "candidate": "ec384f111d5714f1a93c67b08d539ed091f131f966e75c17d0680e0bc1acdfe1"
+          },
+          "baseline-2": {
+            "baseline": "9601095b665d0c112579d7f64d77b60f99b367a588a62b955ea5ab3a44e1beae",
+            "candidate": "ec384f111d5714f1a93c67b08d539ed091f131f966e75c17d0680e0bc1acdfe1"
+          },
+          "candidate-1": {
+            "baseline": "9601095b665d0c112579d7f64d77b60f99b367a588a62b955ea5ab3a44e1beae",
+            "candidate": "ec384f111d5714f1a93c67b08d539ed091f131f966e75c17d0680e0bc1acdfe1"
+          },
+          "candidate-2": {
+            "baseline": "9601095b665d0c112579d7f64d77b60f99b367a588a62b955ea5ab3a44e1beae",
+            "candidate": "ec384f111d5714f1a93c67b08d539ed091f131f966e75c17d0680e0bc1acdfe1"
+          }
+        },
+        "replacedMeanAbsoluteError": {
+          "baseline": 0.0439866,
+          "candidate": 0.0428484
+        },
+        "replacedSamples": 16200
+      },
+      "hardware": [
+        {
+          "adapter": "Apple M4",
+          "backend": "Metal",
+          "size": [
+            64,
+            36
+          ],
+          "missingSources": {
+            "frames": 48,
+            "maximumChannelDifference": 1
+          },
+          "cpuManifestSha256": "a438cecc148916b00f25f7cef42e47e79a820a6a99d81e0d1dbf6a10f6d7e783",
+          "frames": 925,
+          "maximumChannelDifference": 1
+        },
+        {
+          "adapter": "Apple M4",
+          "backend": "Metal",
+          "size": [
+            193,
+            109
+          ],
+          "missingSources": {
+            "frames": 48,
+            "maximumChannelDifference": 1
+          },
+          "cpuManifestSha256": "f175d105c05a428ee35b033c88f20e062dd3abfbbe7a5bc07b07ce7f8c58daed",
+          "frames": 925,
+          "maximumChannelDifference": 1
+        }
+      ],
+      "audience": {
+        "center": {
+          "sourceSha256": "b9635a62af030742c08fb746da699e9b18ec84b1aafd7dd32eeb81b7ae833737",
+          "binarySha256": "d1150cba22a5fe3934535b7e2544f9a36687a8c7cc9c022818dc07abc8b88e76",
+          "modes": {
+            "auto": {
+              "backend": "Metal / Apple M4",
+              "slides": {
+                "ripple": {
+                  "referenceMean": [
+                    122.94,
+                    53.55,
+                    99.31
+                  ],
+                  "outlyingSamples": 0,
+                  "samples": 3864,
+                  "pausedSeconds": 2.763012708,
+                  "firstColor": [
+                    204,
+                    35,
+                    16
+                  ],
+                  "pausedColor": [
+                    123.1,
+                    53.94,
+                    98.89
+                  ],
+                  "settledColor": [
+                    36,
+                    82,
+                    208
+                  ],
+                  "screenshots": {
+                    "paused": "31567a3e7cc241e9454afa22b9eb0aec03a978cec47b002012f5651c4ebac771",
+                    "end": "831a36376097b6e30c6a29ca60dc93446323be43c509823fa0e80eeaf8b3c9bb"
+                  },
+                  "pixels": [
+                    1846,
+                    1038
+                  ],
+                  "preparation": {
+                    "frames": 94,
+                    "medianMs": 41.0,
+                    "p95Ms": 43.83
+                  }
+                }
+              }
+            },
+            "cpu": {
+              "backend": "CPU",
+              "slides": {
+                "ripple": {
+                  "referenceMean": [
+                    69.65,
+                    67.66,
+                    156.76
+                  ],
+                  "outlyingSamples": 0,
+                  "samples": 3864,
+                  "pausedSeconds": 3.8211898330000005,
+                  "firstColor": [
+                    204,
+                    35,
+                    16
+                  ],
+                  "pausedColor": [
+                    69.86,
+                    67.78,
+                    156.68
+                  ],
+                  "settledColor": [
+                    36,
+                    82,
+                    208
+                  ],
+                  "screenshots": {
+                    "paused": "46cdc7adfc3ebc5d722ed3c5c77a73bddaf2341a8acc0d21f4b7e8012e078179",
+                    "end": "831a36376097b6e30c6a29ca60dc93446323be43c509823fa0e80eeaf8b3c9bb"
+                  },
+                  "pixels": [
+                    1846,
+                    1038
+                  ],
+                  "preparation": {
+                    "frames": 16,
+                    "medianMs": 165.5,
+                    "p95Ms": 1067.72
+                  }
+                }
+              }
+            }
+          },
+          "exchange": {
+            "cliSha256": {
+              "baseline": "0b8e031665d8539927d09d3881016928cdac25da306f3dba63e88eb95e295c03",
+              "candidate": "2b105cc057e0f49e9648c311b8855252af5cdee9e2617516297cc6503cff9d4e"
+            },
+            "halfTimeFramesByWriterAndReader": {
+              "baseline-baseline": [
+                "f41cce979de2d803fb0810d6adf822c217931a791f5921b0f91c786ea6195055"
+              ],
+              "baseline-candidate": [
+                "9ab0994457b3ae0b86480654c657dc3b0ac6609244914645a1c309958218f131"
+              ],
+              "candidate-baseline": [
+                "f41cce979de2d803fb0810d6adf822c217931a791f5921b0f91c786ea6195055"
+              ],
+              "candidate-candidate": [
+                "9ab0994457b3ae0b86480654c657dc3b0ac6609244914645a1c309958218f131"
+              ]
+            }
+          }
+        },
+        "lu": {
+          "sourceSha256": "c58c57203ede2802f69bbed6d54456f7f76176fc2ebdd69587bba9e6bb223214",
+          "binarySha256": "d1150cba22a5fe3934535b7e2544f9a36687a8c7cc9c022818dc07abc8b88e76",
+          "modes": {
+            "auto": {
+              "backend": "Metal / Apple M4",
+              "slides": {
+                "ripple": {
+                  "referenceMean": [
+                    130.18,
+                    51.56,
+                    91.3
+                  ],
+                  "outlyingSamples": 0,
+                  "samples": 3864,
+                  "pausedSeconds": 2.7671504579999997,
+                  "firstColor": [
+                    204,
+                    35,
+                    16
+                  ],
+                  "pausedColor": [
+                    130.29,
+                    51.98,
+                    90.89
+                  ],
+                  "settledColor": [
+                    36,
+                    82,
+                    208
+                  ],
+                  "screenshots": {
+                    "paused": "dba939bb66786453ed788a261078f7f6ac8a3c375f138b54f87ecac87ff527ce",
+                    "end": "831a36376097b6e30c6a29ca60dc93446323be43c509823fa0e80eeaf8b3c9bb"
+                  },
+                  "pixels": [
+                    1846,
+                    1038
+                  ],
+                  "preparation": {
+                    "frames": 94,
+                    "medianMs": 38.73,
+                    "p95Ms": 40.18
+                  }
+                }
+              }
+            },
+            "cpu": {
+              "backend": "CPU",
+              "slides": {
+                "ripple": {
+                  "referenceMean": [
+                    98.41,
+                    60.25,
+                    126.26
+                  ],
+                  "outlyingSamples": 0,
+                  "samples": 3864,
+                  "pausedSeconds": 3.3671428750000008,
+                  "firstColor": [
+                    204,
+                    35,
+                    16
+                  ],
+                  "pausedColor": [
+                    98.63,
+                    60.51,
+                    126.03
+                  ],
+                  "settledColor": [
+                    36,
+                    82,
+                    208
+                  ],
+                  "screenshots": {
+                    "paused": "0f7944a2e468a38e18008475c4b4ae7340ea8bed4450cc63f40aaf84083674d8",
+                    "end": "831a36376097b6e30c6a29ca60dc93446323be43c509823fa0e80eeaf8b3c9bb"
+                  },
+                  "pixels": [
+                    1846,
+                    1038
+                  ],
+                  "preparation": {
+                    "frames": 16,
+                    "medianMs": 194.5,
+                    "p95Ms": 1161.1
+                  }
+                }
+              }
+            }
+          },
+          "exchange": {
+            "cliSha256": {
+              "baseline": "0b8e031665d8539927d09d3881016928cdac25da306f3dba63e88eb95e295c03",
+              "candidate": "2b105cc057e0f49e9648c311b8855252af5cdee9e2617516297cc6503cff9d4e"
+            },
+            "halfTimeFramesByWriterAndReader": {
+              "baseline-baseline": [
+                "4ce7c350026965370985a265e77ed740586874f1db89f74640ded43a3fc1864d"
+              ],
+              "baseline-candidate": [
+                "19ab16a63f50b109afeb35ee7b8a2734004c9f1d8486df5ae848d2fc59a8d574"
+              ],
+              "candidate-baseline": [
+                "4ce7c350026965370985a265e77ed740586874f1db89f74640ded43a3fc1864d"
+              ],
+              "candidate-candidate": [
+                "19ab16a63f50b109afeb35ee7b8a2734004c9f1d8486df5ae848d2fc59a8d574"
+              ]
+            }
+          }
+        },
+        "ru": {
+          "sourceSha256": "8b3a957fdc5f7ffd79a40480f02a7c29a04455479eeddd69b8b46e8badbdb463",
+          "binarySha256": "d1150cba22a5fe3934535b7e2544f9a36687a8c7cc9c022818dc07abc8b88e76",
+          "modes": {
+            "auto": {
+              "backend": "Metal / Apple M4",
+              "slides": {
+                "ripple": {
+                  "referenceMean": [
+                    129.7,
+                    51.68,
+                    91.76
+                  ],
+                  "outlyingSamples": 0,
+                  "samples": 3864,
+                  "pausedSeconds": 2.775173875000001,
+                  "firstColor": [
+                    204,
+                    35,
+                    16
+                  ],
+                  "pausedColor": [
+                    129.82,
+                    52.08,
+                    91.34
+                  ],
+                  "settledColor": [
+                    36,
+                    82,
+                    208
+                  ],
+                  "screenshots": {
+                    "paused": "e6f5c4475b70e727069704144e39c3623ac8c04359e3b2f7b64c28484ad7dc7d",
+                    "end": "831a36376097b6e30c6a29ca60dc93446323be43c509823fa0e80eeaf8b3c9bb"
+                  },
+                  "pixels": [
+                    1846,
+                    1038
+                  ],
+                  "preparation": {
+                    "frames": 94,
+                    "medianMs": 38.98,
+                    "p95Ms": 41.05
+                  }
+                }
+              }
+            },
+            "cpu": {
+              "backend": "CPU",
+              "slides": {
+                "ripple": {
+                  "referenceMean": [
+                    96.65,
+                    60.72,
+                    128.2
+                  ],
+                  "outlyingSamples": 0,
+                  "samples": 3864,
+                  "pausedSeconds": 3.402995375,
+                  "firstColor": [
+                    204,
+                    35,
+                    16
+                  ],
+                  "pausedColor": [
+                    96.88,
+                    60.96,
+                    127.98
+                  ],
+                  "settledColor": [
+                    36,
+                    82,
+                    208
+                  ],
+                  "screenshots": {
+                    "paused": "ad408c058f56535ec3bceb02ee14e4a47e17a4ed96ded9c4910926ca1c188a20",
+                    "end": "831a36376097b6e30c6a29ca60dc93446323be43c509823fa0e80eeaf8b3c9bb"
+                  },
+                  "pixels": [
+                    1846,
+                    1038
+                  ],
+                  "preparation": {
+                    "frames": 16,
+                    "medianMs": 191.54,
+                    "p95Ms": 1133.99
+                  }
+                }
+              }
+            }
+          },
+          "exchange": {
+            "cliSha256": {
+              "baseline": "0b8e031665d8539927d09d3881016928cdac25da306f3dba63e88eb95e295c03",
+              "candidate": "2b105cc057e0f49e9648c311b8855252af5cdee9e2617516297cc6503cff9d4e"
+            },
+            "halfTimeFramesByWriterAndReader": {
+              "baseline-baseline": [
+                "7d602292a9ec4153397f13268615aec5163eb5ec74c8b60c459d2741b34d2bb4"
+              ],
+              "baseline-candidate": [
+                "dc0221efc536f052e75a4246cefef582ff054340921e0afe44540f061a79b24c"
+              ],
+              "candidate-baseline": [
+                "7d602292a9ec4153397f13268615aec5163eb5ec74c8b60c459d2741b34d2bb4"
+              ],
+              "candidate-candidate": [
+                "dc0221efc536f052e75a4246cefef582ff054340921e0afe44540f061a79b24c"
+              ]
+            }
+          }
+        },
+        "ld": {
+          "sourceSha256": "3d3107cd25a224e926642a20beb344c48b54fc39bb03ff852a1631c33e075a6c",
+          "binarySha256": "d1150cba22a5fe3934535b7e2544f9a36687a8c7cc9c022818dc07abc8b88e76",
+          "modes": {
+            "auto": {
+              "backend": "Metal / Apple M4",
+              "slides": {
+                "ripple": {
+                  "referenceMean": [
+                    131.08,
+                    51.3,
+                    90.25
+                  ],
+                  "outlyingSamples": 0,
+                  "samples": 3864,
+                  "pausedSeconds": 2.750286334,
+                  "firstColor": [
+                    204,
+                    35,
+                    16
+                  ],
+                  "pausedColor": [
+                    131.19,
+                    51.72,
+                    89.84
+                  ],
+                  "settledColor": [
+                    36,
+                    82,
+                    208
+                  ],
+                  "screenshots": {
+                    "paused": "dcc2a08567c72828f56882df258c70a8e17e8c5984fdd31a85d3f9212242beb4",
+                    "end": "831a36376097b6e30c6a29ca60dc93446323be43c509823fa0e80eeaf8b3c9bb"
+                  },
+                  "pixels": [
+                    1846,
+                    1038
+                  ],
+                  "preparation": {
+                    "frames": 94,
+                    "medianMs": 38.86,
+                    "p95Ms": 41.34
+                  }
+                }
+              }
+            },
+            "cpu": {
+              "backend": "CPU",
+              "slides": {
+                "ripple": {
+                  "referenceMean": [
+                    82.05,
+                    64.58,
+                    143.92
+                  ],
+                  "outlyingSamples": 0,
+                  "samples": 3864,
+                  "pausedSeconds": 3.7035074580000007,
+                  "firstColor": [
+                    204,
+                    35,
+                    16
+                  ],
+                  "pausedColor": [
+                    82.3,
+                    64.76,
+                    143.77
+                  ],
+                  "settledColor": [
+                    36,
+                    82,
+                    208
+                  ],
+                  "screenshots": {
+                    "paused": "fcaa4907d6eea1720633aa2ef319b0d671628e7bcda877a33c27dd9718112ed4",
+                    "end": "831a36376097b6e30c6a29ca60dc93446323be43c509823fa0e80eeaf8b3c9bb"
+                  },
+                  "pixels": [
+                    1846,
+                    1038
+                  ],
+                  "preparation": {
+                    "frames": 17,
+                    "medianMs": 181.84,
+                    "p95Ms": 1087.48
+                  }
+                }
+              }
+            }
+          },
+          "exchange": {
+            "cliSha256": {
+              "baseline": "0b8e031665d8539927d09d3881016928cdac25da306f3dba63e88eb95e295c03",
+              "candidate": "2b105cc057e0f49e9648c311b8855252af5cdee9e2617516297cc6503cff9d4e"
+            },
+            "halfTimeFramesByWriterAndReader": {
+              "baseline-baseline": [
+                "8a063fc7699406731564dbc88bd74fb90e5453665cbb8a09ce257c7477ace7df"
+              ],
+              "baseline-candidate": [
+                "2a8323eea1a3915b3ad63e607fa154e86576da8fd3a1fd0b0d938f75b3f9abfe"
+              ],
+              "candidate-baseline": [
+                "8a063fc7699406731564dbc88bd74fb90e5453665cbb8a09ce257c7477ace7df"
+              ],
+              "candidate-candidate": [
+                "2a8323eea1a3915b3ad63e607fa154e86576da8fd3a1fd0b0d938f75b3f9abfe"
+              ]
+            }
+          }
+        },
+        "rd": {
+          "sourceSha256": "9f26ca5844fe6b63170fa3c2afc1cc0835bd230d18f910c5d8157eb8be80590a",
+          "binarySha256": "d1150cba22a5fe3934535b7e2544f9a36687a8c7cc9c022818dc07abc8b88e76",
+          "modes": {
+            "auto": {
+              "backend": "Metal / Apple M4",
+              "slides": {
+                "ripple": {
+                  "referenceMean": [
+                    130.95,
+                    51.35,
+                    90.4
+                  ],
+                  "outlyingSamples": 0,
+                  "samples": 3864,
+                  "pausedSeconds": 2.752854042,
+                  "firstColor": [
+                    204,
+                    35,
+                    16
+                  ],
+                  "pausedColor": [
+                    131.06,
+                    51.78,
+                    89.99
+                  ],
+                  "settledColor": [
+                    36,
+                    82,
+                    208
+                  ],
+                  "screenshots": {
+                    "paused": "b46d03f803117080771ae81d5a8f5f9c12eb95d2b8faac72f5fab3e7c6c28154",
+                    "end": "831a36376097b6e30c6a29ca60dc93446323be43c509823fa0e80eeaf8b3c9bb"
+                  },
+                  "pixels": [
+                    1846,
+                    1038
+                  ],
+                  "preparation": {
+                    "frames": 94,
+                    "medianMs": 38.87,
+                    "p95Ms": 40.82
+                  }
+                }
+              }
+            },
+            "cpu": {
+              "backend": "CPU",
+              "slides": {
+                "ripple": {
+                  "referenceMean": [
+                    93.46,
+                    61.57,
+                    131.66
+                  ],
+                  "outlyingSamples": 0,
+                  "samples": 3864,
+                  "pausedSeconds": 3.466287291000001,
+                  "firstColor": [
+                    204,
+                    35,
+                    16
+                  ],
+                  "pausedColor": [
+                    93.67,
+                    61.8,
+                    131.45
+                  ],
+                  "settledColor": [
+                    36,
+                    82,
+                    208
+                  ],
+                  "screenshots": {
+                    "paused": "33ce0245351b48bfda3b59d53691871914ebee9292f876cc62ea297826843990",
+                    "end": "831a36376097b6e30c6a29ca60dc93446323be43c509823fa0e80eeaf8b3c9bb"
+                  },
+                  "pixels": [
+                    1846,
+                    1038
+                  ],
+                  "preparation": {
+                    "frames": 17,
+                    "medianMs": 178.45,
+                    "p95Ms": 1125.44
+                  }
+                }
+              }
+            }
+          },
+          "exchange": {
+            "cliSha256": {
+              "baseline": "0b8e031665d8539927d09d3881016928cdac25da306f3dba63e88eb95e295c03",
+              "candidate": "2b105cc057e0f49e9648c311b8855252af5cdee9e2617516297cc6503cff9d4e"
+            },
+            "halfTimeFramesByWriterAndReader": {
+              "baseline-baseline": [
+                "c25a4353c51630c3099f6727e550caf7caebae9c9b7a4e7a417f1a5264c09247"
+              ],
+              "baseline-candidate": [
+                "4f6f64f96c5945dba616ec7591e3cff4727fdbf4df216055a085a7d2a4133ad0"
+              ],
+              "candidate-baseline": [
+                "c25a4353c51630c3099f6727e550caf7caebae9c9b7a4e7a417f1a5264c09247"
+              ],
+              "candidate-candidate": [
+                "4f6f64f96c5945dba616ec7591e3cff4727fdbf4df216055a085a7d2a4133ad0"
+              ]
+            }
+          }
+        }
+      },
+      "product": {
+        "passed": 1024,
+        "failed": 0,
+        "ignored": 0
+      },
+      "clippy": "joydeck-anim --all-targets -- -D warnings",
+      "spdx": {
+        "target": "aarch64-apple-darwin",
+        "packages": 490,
+        "sourceFiles": 541,
+        "spdxSha256": "297be77e04d3b96262300dcbb6c4587dd9ee6c4d44a8a5ad5b3a835a253a0b44",
+        "missingLicenseTexts": [],
+        "sharedCrates": [
+          "joyoffice-drawingml",
+          "joyoffice-fonts",
+          "joyoffice-metafile",
+          "joyoffice-opc",
+          "joyoffice-theme",
+          "joyoffice-ui"
+        ],
+        "runtimeLegacyDependencies": [
+          "joydeck-legacy"
+        ]
+      }
+    },
+    "UOS25": {
+      "plain": {
+        "binaries": [
+          "5af3f948d363922cadde58cf8ccb0d009030fc6a435716801b4e4b481836c67e",
+          "903479bdb63ee8088f74f91550b0ba42ba4b00c92d786fc4cca647559963272d"
+        ],
+        "baseline": {
+          "checker/horz": {
+            "values": 4320,
+            "meanAbsoluteError": 0.038166,
+            "p95AbsoluteError": 0.239216,
+            "maxAbsoluteError": 1.0
+          },
+          "checker/vert": {
+            "values": 2160,
+            "meanAbsoluteError": 0.028596,
+            "p95AbsoluteError": 0.163149,
+            "maxAbsoluteError": 1.0
+          },
+          "blinds/horz": {
+            "values": 2160,
+            "meanAbsoluteError": 0.043342,
+            "p95AbsoluteError": 0.293631,
+            "maxAbsoluteError": 0.874359
+          },
+          "blinds/vert": {
+            "values": 2160,
+            "meanAbsoluteError": 0.046629,
+            "p95AbsoluteError": 0.266667,
+            "maxAbsoluteError": 0.831373
+          },
+          "comb/horz": {
+            "values": 2160,
+            "meanAbsoluteError": 0.005171,
+            "p95AbsoluteError": 0.007843,
+            "maxAbsoluteError": 0.952941
+          },
+          "comb/vert": {
+            "values": 2160,
+            "meanAbsoluteError": 0.019985,
+            "p95AbsoluteError": 0.007843,
+            "maxAbsoluteError": 0.623529
+          },
+          "ripple/center": {
+            "values": 2160,
+            "meanAbsoluteError": 0.014354,
+            "p95AbsoluteError": 0.071658,
+            "maxAbsoluteError": 0.153811
+          },
+          "ripple/lu": {
+            "values": 2160,
+            "meanAbsoluteError": 0.008897,
+            "p95AbsoluteError": 0.049102,
+            "maxAbsoluteError": 0.179496
+          },
+          "ripple/ru": {
+            "values": 2160,
+            "meanAbsoluteError": 0.013874,
+            "p95AbsoluteError": 0.06668,
+            "maxAbsoluteError": 0.169209
+          },
+          "ripple/ld": {
+            "values": 2160,
+            "meanAbsoluteError": 0.008813,
+            "p95AbsoluteError": 0.048663,
+            "maxAbsoluteError": 0.179496
+          },
+          "ripple/rd": {
+            "values": 2160,
+            "meanAbsoluteError": 0.013745,
+            "p95AbsoluteError": 0.066741,
+            "maxAbsoluteError": 0.177052
+          }
+        },
+        "candidate": {
+          "checker/horz": {
+            "values": 4320,
+            "meanAbsoluteError": 0.038166,
+            "p95AbsoluteError": 0.239216,
+            "maxAbsoluteError": 1.0
+          },
+          "checker/vert": {
+            "values": 2160,
+            "meanAbsoluteError": 0.028596,
+            "p95AbsoluteError": 0.163149,
+            "maxAbsoluteError": 1.0
+          },
+          "blinds/horz": {
+            "values": 2160,
+            "meanAbsoluteError": 0.043342,
+            "p95AbsoluteError": 0.293631,
+            "maxAbsoluteError": 0.874359
+          },
+          "blinds/vert": {
+            "values": 2160,
+            "meanAbsoluteError": 0.046629,
+            "p95AbsoluteError": 0.266667,
+            "maxAbsoluteError": 0.831373
+          },
+          "comb/horz": {
+            "values": 2160,
+            "meanAbsoluteError": 0.005171,
+            "p95AbsoluteError": 0.007843,
+            "maxAbsoluteError": 0.952941
+          },
+          "comb/vert": {
+            "values": 2160,
+            "meanAbsoluteError": 0.019985,
+            "p95AbsoluteError": 0.007843,
+            "maxAbsoluteError": 0.623529
+          },
+          "ripple/center": {
+            "values": 2160,
+            "meanAbsoluteError": 0.01396,
+            "p95AbsoluteError": 0.06842,
+            "maxAbsoluteError": 0.163237
+          },
+          "ripple/lu": {
+            "values": 2160,
+            "meanAbsoluteError": 0.008362,
+            "p95AbsoluteError": 0.04914,
+            "maxAbsoluteError": 0.168633
+          },
+          "ripple/ru": {
+            "values": 2160,
+            "meanAbsoluteError": 0.011691,
+            "p95AbsoluteError": 0.056685,
+            "maxAbsoluteError": 0.158509
+          },
+          "ripple/ld": {
+            "values": 2160,
+            "meanAbsoluteError": 0.008437,
+            "p95AbsoluteError": 0.04922,
+            "maxAbsoluteError": 0.168633
+          },
+          "ripple/rd": {
+            "values": 2160,
+            "meanAbsoluteError": 0.011608,
+            "p95AbsoluteError": 0.056374,
+            "maxAbsoluteError": 0.166352
+          }
+        },
+        "exchange": {
+          "baseline-1": {
+            "baseline": "631ea1822442227c9c1fb9948eb5c3780e3eb30754e5d9f42ff11414e5b4eaa7",
+            "candidate": "6c59df21da79baaf9b4024e5ee4e115074736a56ca111c001290dd114aec6ccb"
+          },
+          "baseline-2": {
+            "baseline": "631ea1822442227c9c1fb9948eb5c3780e3eb30754e5d9f42ff11414e5b4eaa7",
+            "candidate": "6c59df21da79baaf9b4024e5ee4e115074736a56ca111c001290dd114aec6ccb"
+          },
+          "candidate-1": {
+            "baseline": "631ea1822442227c9c1fb9948eb5c3780e3eb30754e5d9f42ff11414e5b4eaa7",
+            "candidate": "6c59df21da79baaf9b4024e5ee4e115074736a56ca111c001290dd114aec6ccb"
+          },
+          "candidate-2": {
+            "baseline": "631ea1822442227c9c1fb9948eb5c3780e3eb30754e5d9f42ff11414e5b4eaa7",
+            "candidate": "6c59df21da79baaf9b4024e5ee4e115074736a56ca111c001290dd114aec6ccb"
+          }
+        },
+        "replacedMeanAbsoluteError": {
+          "baseline": 0.0119366,
+          "candidate": 0.0108116
+        },
+        "replacedSamples": 10800
+      },
+      "marked": {
+        "binaries": [
+          "5af3f948d363922cadde58cf8ccb0d009030fc6a435716801b4e4b481836c67e",
+          "903479bdb63ee8088f74f91550b0ba42ba4b00c92d786fc4cca647559963272d"
+        ],
+        "baseline": {
+          "checker/horz": {
+            "values": 6480,
+            "meanAbsoluteError": 0.057961,
+            "p95AbsoluteError": 0.223529,
+            "maxAbsoluteError": 0.937255
+          },
+          "checker/vert": {
+            "values": 3240,
+            "meanAbsoluteError": 0.053531,
+            "p95AbsoluteError": 0.180392,
+            "maxAbsoluteError": 0.862745
+          },
+          "blinds/horz": {
+            "values": 3240,
+            "meanAbsoluteError": 0.061051,
+            "p95AbsoluteError": 0.247059,
+            "maxAbsoluteError": 0.784314
+          },
+          "blinds/vert": {
+            "values": 3240,
+            "meanAbsoluteError": 0.061743,
+            "p95AbsoluteError": 0.196078,
+            "maxAbsoluteError": 0.65098
+          },
+          "comb/horz": {
+            "values": 3240,
+            "meanAbsoluteError": 0.041422,
+            "p95AbsoluteError": 0.082353,
+            "maxAbsoluteError": 0.701961
+          },
+          "comb/vert": {
+            "values": 3240,
+            "meanAbsoluteError": 0.051265,
+            "p95AbsoluteError": 0.117647,
+            "maxAbsoluteError": 0.501961
+          },
+          "ripple/center": {
+            "values": 3240,
+            "meanAbsoluteError": 0.046006,
+            "p95AbsoluteError": 0.090196,
+            "maxAbsoluteError": 0.435294
+          },
+          "ripple/lu": {
+            "values": 3240,
+            "meanAbsoluteError": 0.038059,
+            "p95AbsoluteError": 0.090196,
+            "maxAbsoluteError": 0.447059
+          },
+          "ripple/ru": {
+            "values": 3240,
+            "meanAbsoluteError": 0.048447,
+            "p95AbsoluteError": 0.113725,
+            "maxAbsoluteError": 0.454902
+          },
+          "ripple/ld": {
+            "values": 3240,
+            "meanAbsoluteError": 0.038786,
+            "p95AbsoluteError": 0.101961,
+            "maxAbsoluteError": 0.423529
+          },
+          "ripple/rd": {
+            "values": 3240,
+            "meanAbsoluteError": 0.048635,
+            "p95AbsoluteError": 0.113725,
+            "maxAbsoluteError": 0.454902
+          }
+        },
+        "candidate": {
+          "checker/horz": {
+            "values": 6480,
+            "meanAbsoluteError": 0.057961,
+            "p95AbsoluteError": 0.223529,
+            "maxAbsoluteError": 0.937255
+          },
+          "checker/vert": {
+            "values": 3240,
+            "meanAbsoluteError": 0.053531,
+            "p95AbsoluteError": 0.180392,
+            "maxAbsoluteError": 0.862745
+          },
+          "blinds/horz": {
+            "values": 3240,
+            "meanAbsoluteError": 0.061051,
+            "p95AbsoluteError": 0.247059,
+            "maxAbsoluteError": 0.784314
+          },
+          "blinds/vert": {
+            "values": 3240,
+            "meanAbsoluteError": 0.061743,
+            "p95AbsoluteError": 0.196078,
+            "maxAbsoluteError": 0.65098
+          },
+          "comb/horz": {
+            "values": 3240,
+            "meanAbsoluteError": 0.041422,
+            "p95AbsoluteError": 0.082353,
+            "maxAbsoluteError": 0.701961
+          },
+          "comb/vert": {
+            "values": 3240,
+            "meanAbsoluteError": 0.051265,
+            "p95AbsoluteError": 0.117647,
+            "maxAbsoluteError": 0.501961
+          },
+          "ripple/center": {
+            "values": 3240,
+            "meanAbsoluteError": 0.045167,
+            "p95AbsoluteError": 0.090196,
+            "maxAbsoluteError": 0.407843
+          },
+          "ripple/lu": {
+            "values": 3240,
+            "meanAbsoluteError": 0.038048,
+            "p95AbsoluteError": 0.098039,
+            "maxAbsoluteError": 0.372549
+          },
+          "ripple/ru": {
+            "values": 3240,
+            "meanAbsoluteError": 0.046416,
+            "p95AbsoluteError": 0.094118,
+            "maxAbsoluteError": 0.388235
+          },
+          "ripple/ld": {
+            "values": 3240,
+            "meanAbsoluteError": 0.037849,
+            "p95AbsoluteError": 0.094118,
+            "maxAbsoluteError": 0.364706
+          },
+          "ripple/rd": {
+            "values": 3240,
+            "meanAbsoluteError": 0.046762,
+            "p95AbsoluteError": 0.101961,
+            "maxAbsoluteError": 0.388235
+          }
+        },
+        "exchange": {
+          "baseline-1": {
+            "baseline": "9601095b665d0c112579d7f64d77b60f99b367a588a62b955ea5ab3a44e1beae",
+            "candidate": "ec384f111d5714f1a93c67b08d539ed091f131f966e75c17d0680e0bc1acdfe1"
+          },
+          "baseline-2": {
+            "baseline": "9601095b665d0c112579d7f64d77b60f99b367a588a62b955ea5ab3a44e1beae",
+            "candidate": "ec384f111d5714f1a93c67b08d539ed091f131f966e75c17d0680e0bc1acdfe1"
+          },
+          "candidate-1": {
+            "baseline": "9601095b665d0c112579d7f64d77b60f99b367a588a62b955ea5ab3a44e1beae",
+            "candidate": "ec384f111d5714f1a93c67b08d539ed091f131f966e75c17d0680e0bc1acdfe1"
+          },
+          "candidate-2": {
+            "baseline": "9601095b665d0c112579d7f64d77b60f99b367a588a62b955ea5ab3a44e1beae",
+            "candidate": "ec384f111d5714f1a93c67b08d539ed091f131f966e75c17d0680e0bc1acdfe1"
+          }
+        },
+        "replacedMeanAbsoluteError": {
+          "baseline": 0.0439866,
+          "candidate": 0.0428484
+        },
+        "replacedSamples": 16200
+      },
+      "hardware": [
+        {
+          "adapter": "AMD Radeon 890M Graphics (RADV GFX1150)",
+          "backend": "Vulkan",
+          "size": [
+            64,
+            36
+          ],
+          "missingSources": {
+            "frames": 48,
+            "maximumChannelDifference": 1
+          },
+          "cpuManifestSha256": "a438cecc148916b00f25f7cef42e47e79a820a6a99d81e0d1dbf6a10f6d7e783",
+          "frames": 925,
+          "maximumChannelDifference": 2
+        },
+        {
+          "adapter": "AMD Radeon 890M Graphics (RADV GFX1150)",
+          "backend": "Vulkan",
+          "size": [
+            193,
+            109
+          ],
+          "missingSources": {
+            "frames": 48,
+            "maximumChannelDifference": 1
+          },
+          "cpuManifestSha256": "f175d105c05a428ee35b033c88f20e062dd3abfbbe7a5bc07b07ce7f8c58daed",
+          "frames": 925,
+          "maximumChannelDifference": 2
+        }
+      ],
+      "audience": {
+        "center": {
+          "sourceSha256": "b9635a62af030742c08fb746da699e9b18ec84b1aafd7dd32eeb81b7ae833737",
+          "binarySha256": "3f842c917b1c93aaf62866cd69766a19ea4200faa98d94bc0a8d16b626a8c715",
+          "modes": {
+            "auto": {
+              "backend": "Vulkan / AMD Radeon 890M Graphics (RADV GFX1150)",
+              "slides": {
+                "ripple": {
+                  "referenceMean": [
+                    138.73,
+                    49.15,
+                    81.7
+                  ],
+                  "outlyingSamples": 0,
+                  "samples": 3864,
+                  "pausedSeconds": 2.4751949470000003,
+                  "firstColor": [
+                    204,
+                    34,
+                    17
+                  ],
+                  "pausedColor": [
+                    138.75,
+                    49.16,
+                    81.7
+                  ],
+                  "settledColor": [
+                    35,
+                    82,
+                    208
+                  ],
+                  "screenshots": {
+                    "paused": "237f1add876bad1b8932cadadcca6dc57c0d015e848e3dc6464ec2e31287901d",
+                    "end": "f9661c0d6a44db42293e5892738133b2aedeab901c0da677ad80d2989bead866"
+                  },
+                  "pixels": [
+                    1376,
+                    774
+                  ],
+                  "preparation": {
+                    "frames": 129,
+                    "medianMs": 30.62,
+                    "p95Ms": 38.5
+                  }
+                }
+              }
+            },
+            "cpu": {
+              "backend": "CPU",
+              "slides": {
+                "ripple": {
+                  "referenceMean": [
+                    113.05,
+                    56.26,
+                    110.18
+                  ],
+                  "outlyingSamples": 0,
+                  "samples": 3864,
+                  "pausedSeconds": 2.9442038350000006,
+                  "firstColor": [
+                    204,
+                    34,
+                    17
+                  ],
+                  "pausedColor": [
+                    113.07,
+                    56.24,
+                    110.15
+                  ],
+                  "settledColor": [
+                    35,
+                    82,
+                    208
+                  ],
+                  "screenshots": {
+                    "paused": "bf8f40b602bc657241ba514dc4b947c605830a392d79ae3d1730b302325981c3",
+                    "end": "f9661c0d6a44db42293e5892738133b2aedeab901c0da677ad80d2989bead866"
+                  },
+                  "pixels": [
+                    1376,
+                    774
+                  ],
+                  "preparation": {
+                    "frames": 26,
+                    "medianMs": 117.93,
+                    "p95Ms": 502.28
+                  }
+                }
+              }
+            }
+          },
+          "exchange": {
+            "cliSha256": {
+              "baseline": "5af3f948d363922cadde58cf8ccb0d009030fc6a435716801b4e4b481836c67e",
+              "candidate": "903479bdb63ee8088f74f91550b0ba42ba4b00c92d786fc4cca647559963272d"
+            },
+            "halfTimeFramesByWriterAndReader": {
+              "baseline-baseline": [
+                "f41cce979de2d803fb0810d6adf822c217931a791f5921b0f91c786ea6195055"
+              ],
+              "baseline-candidate": [
+                "9ab0994457b3ae0b86480654c657dc3b0ac6609244914645a1c309958218f131"
+              ],
+              "candidate-baseline": [
+                "f41cce979de2d803fb0810d6adf822c217931a791f5921b0f91c786ea6195055"
+              ],
+              "candidate-candidate": [
+                "9ab0994457b3ae0b86480654c657dc3b0ac6609244914645a1c309958218f131"
+              ]
+            }
+          }
+        },
+        "lu": {
+          "sourceSha256": "c58c57203ede2802f69bbed6d54456f7f76176fc2ebdd69587bba9e6bb223214",
+          "binarySha256": "3f842c917b1c93aaf62866cd69766a19ea4200faa98d94bc0a8d16b626a8c715",
+          "modes": {
+            "auto": {
+              "backend": "Vulkan / AMD Radeon 890M Graphics (RADV GFX1150)",
+              "slides": {
+                "ripple": {
+                  "referenceMean": [
+                    147.04,
+                    47.04,
+                    72.94
+                  ],
+                  "outlyingSamples": 0,
+                  "samples": 3864,
+                  "pausedSeconds": 2.455106194,
+                  "firstColor": [
+                    204,
+                    34,
+                    17
+                  ],
+                  "pausedColor": [
+                    147.05,
+                    47.04,
+                    72.95
+                  ],
+                  "settledColor": [
+                    35,
+                    82,
+                    208
+                  ],
+                  "screenshots": {
+                    "paused": "ae3beb2e12fd59c2ce957fa777efad6f3a18454ab691cb99d6ed4924a96bc985",
+                    "end": "f9661c0d6a44db42293e5892738133b2aedeab901c0da677ad80d2989bead866"
+                  },
+                  "pixels": [
+                    1376,
+                    774
+                  ],
+                  "preparation": {
+                    "frames": 132,
+                    "medianMs": 28.07,
+                    "p95Ms": 38.5
+                  }
+                }
+              }
+            },
+            "cpu": {
+              "backend": "CPU",
+              "slides": {
+                "ripple": {
+                  "referenceMean": [
+                    129.96,
+                    51.62,
+                    91.51
+                  ],
+                  "outlyingSamples": 0,
+                  "samples": 3864,
+                  "pausedSeconds": 2.770796011,
+                  "firstColor": [
+                    204,
+                    34,
+                    17
+                  ],
+                  "pausedColor": [
+                    129.95,
+                    51.62,
+                    91.52
+                  ],
+                  "settledColor": [
+                    35,
+                    82,
+                    208
+                  ],
+                  "screenshots": {
+                    "paused": "043fbbe1b104b8d564841c75e6ceb4bb282e912ee0d35c310a72d1261278006b",
+                    "end": "f9661c0d6a44db42293e5892738133b2aedeab901c0da677ad80d2989bead866"
+                  },
+                  "pixels": [
+                    1376,
+                    774
+                  ],
+                  "preparation": {
+                    "frames": 28,
+                    "medianMs": 119.25,
+                    "p95Ms": 494.58
+                  }
+                }
+              }
+            }
+          },
+          "exchange": {
+            "cliSha256": {
+              "baseline": "5af3f948d363922cadde58cf8ccb0d009030fc6a435716801b4e4b481836c67e",
+              "candidate": "903479bdb63ee8088f74f91550b0ba42ba4b00c92d786fc4cca647559963272d"
+            },
+            "halfTimeFramesByWriterAndReader": {
+              "baseline-baseline": [
+                "4ce7c350026965370985a265e77ed740586874f1db89f74640ded43a3fc1864d"
+              ],
+              "baseline-candidate": [
+                "19ab16a63f50b109afeb35ee7b8a2734004c9f1d8486df5ae848d2fc59a8d574"
+              ],
+              "candidate-baseline": [
+                "4ce7c350026965370985a265e77ed740586874f1db89f74640ded43a3fc1864d"
+              ],
+              "candidate-candidate": [
+                "19ab16a63f50b109afeb35ee7b8a2734004c9f1d8486df5ae848d2fc59a8d574"
+              ]
+            }
+          }
+        },
+        "ru": {
+          "sourceSha256": "8b3a957fdc5f7ffd79a40480f02a7c29a04455479eeddd69b8b46e8badbdb463",
+          "binarySha256": "3f842c917b1c93aaf62866cd69766a19ea4200faa98d94bc0a8d16b626a8c715",
+          "modes": {
+            "auto": {
+              "backend": "Vulkan / AMD Radeon 890M Graphics (RADV GFX1150)",
+              "slides": {
+                "ripple": {
+                  "referenceMean": [
+                    147.42,
+                    46.94,
+                    72.55
+                  ],
+                  "outlyingSamples": 0,
+                  "samples": 3864,
+                  "pausedSeconds": 2.4480300000000006,
+                  "firstColor": [
+                    204,
+                    34,
+                    17
+                  ],
+                  "pausedColor": [
+                    147.42,
+                    46.93,
+                    72.55
+                  ],
+                  "settledColor": [
+                    35,
+                    82,
+                    208
+                  ],
+                  "screenshots": {
+                    "paused": "06f54c4294ac83d9b2e79bf69f9f45af47579779f26c93b58307e082716bd1eb",
+                    "end": "f9661c0d6a44db42293e5892738133b2aedeab901c0da677ad80d2989bead866"
+                  },
+                  "pixels": [
+                    1376,
+                    774
+                  ],
+                  "preparation": {
+                    "frames": 136,
+                    "medianMs": 26.9,
+                    "p95Ms": 38.84
+                  }
+                }
+              }
+            },
+            "cpu": {
+              "backend": "CPU",
+              "slides": {
+                "ripple": {
+                  "referenceMean": [
+                    134.97,
+                    50.19,
+                    85.81
+                  ],
+                  "outlyingSamples": 0,
+                  "samples": 3864,
+                  "pausedSeconds": 2.6773569529999994,
+                  "firstColor": [
+                    204,
+                    34,
+                    17
+                  ],
+                  "pausedColor": [
+                    134.96,
+                    50.19,
+                    85.83
+                  ],
+                  "settledColor": [
+                    35,
+                    82,
+                    208
+                  ],
+                  "screenshots": {
+                    "paused": "9fd9ada27a7b54a69a6e355275f0f5db9373437ed19f0d3af6812886e448c61d",
+                    "end": "f9661c0d6a44db42293e5892738133b2aedeab901c0da677ad80d2989bead866"
+                  },
+                  "pixels": [
+                    1376,
+                    774
+                  ],
+                  "preparation": {
+                    "frames": 28,
+                    "medianMs": 111.22,
+                    "p95Ms": 479.31
+                  }
+                }
+              }
+            }
+          },
+          "exchange": {
+            "cliSha256": {
+              "baseline": "5af3f948d363922cadde58cf8ccb0d009030fc6a435716801b4e4b481836c67e",
+              "candidate": "903479bdb63ee8088f74f91550b0ba42ba4b00c92d786fc4cca647559963272d"
+            },
+            "halfTimeFramesByWriterAndReader": {
+              "baseline-baseline": [
+                "7d602292a9ec4153397f13268615aec5163eb5ec74c8b60c459d2741b34d2bb4"
+              ],
+              "baseline-candidate": [
+                "dc0221efc536f052e75a4246cefef582ff054340921e0afe44540f061a79b24c"
+              ],
+              "candidate-baseline": [
+                "7d602292a9ec4153397f13268615aec5163eb5ec74c8b60c459d2741b34d2bb4"
+              ],
+              "candidate-candidate": [
+                "dc0221efc536f052e75a4246cefef582ff054340921e0afe44540f061a79b24c"
+              ]
+            }
+          }
+        },
+        "ld": {
+          "sourceSha256": "3d3107cd25a224e926642a20beb344c48b54fc39bb03ff852a1631c33e075a6c",
+          "binarySha256": "3f842c917b1c93aaf62866cd69766a19ea4200faa98d94bc0a8d16b626a8c715",
+          "modes": {
+            "auto": {
+              "backend": "Vulkan / AMD Radeon 890M Graphics (RADV GFX1150)",
+              "slides": {
+                "ripple": {
+                  "referenceMean": [
+                    145.76,
+                    47.39,
+                    74.33
+                  ],
+                  "outlyingSamples": 0,
+                  "samples": 3864,
+                  "pausedSeconds": 2.4792298849999996,
+                  "firstColor": [
+                    204,
+                    34,
+                    17
+                  ],
+                  "pausedColor": [
+                    145.76,
+                    47.39,
+                    74.34
+                  ],
+                  "settledColor": [
+                    35,
+                    82,
+                    208
+                  ],
+                  "screenshots": {
+                    "paused": "8603e7deb82c0306ec85d99661ae0ec5987aa03e26d3c2a292fb23ee4a109e01",
+                    "end": "f9661c0d6a44db42293e5892738133b2aedeab901c0da677ad80d2989bead866"
+                  },
+                  "pixels": [
+                    1376,
+                    774
+                  ],
+                  "preparation": {
+                    "frames": 133,
+                    "medianMs": 27.34,
+                    "p95Ms": 38.37
+                  }
+                }
+              }
+            },
+            "cpu": {
+              "backend": "CPU",
+              "slides": {
+                "ripple": {
+                  "referenceMean": [
+                    126.13,
+                    52.64,
+                    95.66
+                  ],
+                  "outlyingSamples": 0,
+                  "samples": 3864,
+                  "pausedSeconds": 2.8413488469999995,
+                  "firstColor": [
+                    204,
+                    34,
+                    17
+                  ],
+                  "pausedColor": [
+                    126.13,
+                    52.64,
+                    95.66
+                  ],
+                  "settledColor": [
+                    35,
+                    82,
+                    208
+                  ],
+                  "screenshots": {
+                    "paused": "d46636d94013cc6dffaecc4ce70618b8f5423e558fd18a13bc6a311452442a67",
+                    "end": "f9661c0d6a44db42293e5892738133b2aedeab901c0da677ad80d2989bead866"
+                  },
+                  "pixels": [
+                    1376,
+                    774
+                  ],
+                  "preparation": {
+                    "frames": 27,
+                    "medianMs": 121.31,
+                    "p95Ms": 493.0
+                  }
+                }
+              }
+            }
+          },
+          "exchange": {
+            "cliSha256": {
+              "baseline": "5af3f948d363922cadde58cf8ccb0d009030fc6a435716801b4e4b481836c67e",
+              "candidate": "903479bdb63ee8088f74f91550b0ba42ba4b00c92d786fc4cca647559963272d"
+            },
+            "halfTimeFramesByWriterAndReader": {
+              "baseline-baseline": [
+                "8a063fc7699406731564dbc88bd74fb90e5453665cbb8a09ce257c7477ace7df"
+              ],
+              "baseline-candidate": [
+                "2a8323eea1a3915b3ad63e607fa154e86576da8fd3a1fd0b0d938f75b3f9abfe"
+              ],
+              "candidate-baseline": [
+                "8a063fc7699406731564dbc88bd74fb90e5453665cbb8a09ce257c7477ace7df"
+              ],
+              "candidate-candidate": [
+                "2a8323eea1a3915b3ad63e607fa154e86576da8fd3a1fd0b0d938f75b3f9abfe"
+              ]
+            }
+          }
+        },
+        "rd": {
+          "sourceSha256": "9f26ca5844fe6b63170fa3c2afc1cc0835bd230d18f910c5d8157eb8be80590a",
+          "binarySha256": "3f842c917b1c93aaf62866cd69766a19ea4200faa98d94bc0a8d16b626a8c715",
+          "modes": {
+            "auto": {
+              "backend": "Vulkan / AMD Radeon 890M Graphics (RADV GFX1150)",
+              "slides": {
+                "ripple": {
+                  "referenceMean": [
+                    145.66,
+                    47.42,
+                    74.45
+                  ],
+                  "outlyingSamples": 0,
+                  "samples": 3864,
+                  "pausedSeconds": 2.481203869,
+                  "firstColor": [
+                    204,
+                    34,
+                    17
+                  ],
+                  "pausedColor": [
+                    145.66,
+                    47.42,
+                    74.46
+                  ],
+                  "settledColor": [
+                    35,
+                    82,
+                    208
+                  ],
+                  "screenshots": {
+                    "paused": "a2d5ae4e3f5230b8e5f884ba5feac114761120cbeaf51b8d21203ddb5fa340dc",
+                    "end": "f9661c0d6a44db42293e5892738133b2aedeab901c0da677ad80d2989bead866"
+                  },
+                  "pixels": [
+                    1376,
+                    774
+                  ],
+                  "preparation": {
+                    "frames": 129,
+                    "medianMs": 28.05,
+                    "p95Ms": 40.94
+                  }
+                }
+              }
+            },
+            "cpu": {
+              "backend": "CPU",
+              "slides": {
+                "ripple": {
+                  "referenceMean": [
+                    118.97,
+                    54.64,
+                    103.67
+                  ],
+                  "outlyingSamples": 0,
+                  "samples": 3864,
+                  "pausedSeconds": 2.974361106000002,
+                  "firstColor": [
+                    204,
+                    34,
+                    17
+                  ],
+                  "pausedColor": [
+                    118.96,
+                    54.65,
+                    103.69
+                  ],
+                  "settledColor": [
+                    35,
+                    82,
+                    208
+                  ],
+                  "screenshots": {
+                    "paused": "b88e4d1ce6a036d53ed4a45ec6355fae789acdc0c75c5593d5e37833903d8ffa",
+                    "end": "f9661c0d6a44db42293e5892738133b2aedeab901c0da677ad80d2989bead866"
+                  },
+                  "pixels": [
+                    1376,
+                    774
+                  ],
+                  "preparation": {
+                    "frames": 27,
+                    "medianMs": 114.9,
+                    "p95Ms": 486.46
+                  }
+                }
+              }
+            }
+          },
+          "exchange": {
+            "cliSha256": {
+              "baseline": "5af3f948d363922cadde58cf8ccb0d009030fc6a435716801b4e4b481836c67e",
+              "candidate": "903479bdb63ee8088f74f91550b0ba42ba4b00c92d786fc4cca647559963272d"
+            },
+            "halfTimeFramesByWriterAndReader": {
+              "baseline-baseline": [
+                "c25a4353c51630c3099f6727e550caf7caebae9c9b7a4e7a417f1a5264c09247"
+              ],
+              "baseline-candidate": [
+                "4f6f64f96c5945dba616ec7591e3cff4727fdbf4df216055a085a7d2a4133ad0"
+              ],
+              "candidate-baseline": [
+                "c25a4353c51630c3099f6727e550caf7caebae9c9b7a4e7a417f1a5264c09247"
+              ],
+              "candidate-candidate": [
+                "4f6f64f96c5945dba616ec7591e3cff4727fdbf4df216055a085a7d2a4133ad0"
+              ]
+            }
+          }
+        }
+      },
+      "product": {
+        "passed": 1029,
+        "failed": 0,
+        "ignored": 0
+      },
+      "clippy": "joydeck-anim --all-targets -- -D warnings",
+      "spdx": {
+        "target": "x86_64-unknown-linux-gnu",
+        "packages": 565,
+        "sourceFiles": 552,
+        "spdxSha256": "dcd85480123ba7417a1bf57b0e90ea2c74214249c1e90d5a8c7509885d25ee2e",
+        "missingLicenseTexts": [],
+        "sharedCrates": [
+          "joyoffice-drawingml",
+          "joyoffice-fonts",
+          "joyoffice-metafile",
+          "joyoffice-opc",
+          "joyoffice-theme",
+          "joyoffice-ui"
+        ],
+        "runtimeLegacyDependencies": [
+          "joydeck-legacy"
+        ]
+      }
+    }
+  },
+  "rollback": "Restore transition_panels::ripple from c364ba40. Both generations retain the direction on exchange. JOYDECK_GPU_TRANSITIONS=0 selects the verified CPU compositor."
+}

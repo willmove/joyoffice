@@ -144,7 +144,7 @@ def exchange_effects(original, old, new, out, originals, cases):
     return checked
 
 
-def verify(reference, old, new, out, changed_presets=FABRIC_PRESETS):
+def verify(reference, old, new, out, changed_presets=FABRIC_PRESETS, ripple_only=False):
     out.mkdir(parents=True)
     prisms = reference.get("family") == "prisms"
     presets = reference.get("family") == "presets2013"
@@ -163,7 +163,7 @@ def verify(reference, old, new, out, changed_presets=FABRIC_PRESETS):
     middle = {}
     for label, cli in (("baseline", old), ("candidate", new)):
         frames = MOTION["sample_cli"](cli, replay, rows, out / label)
-        if prisms or presets:
+        if prisms or presets or ripple_only:
             middle[label] = [hashlib.sha256(frame).hexdigest() for row, frame in zip(rows, frames, strict=True) if row[3] == 0.5]
         errors = {}
         for (page, kind, option, _, target), frame in zip(rows, frames, strict=True):
@@ -171,11 +171,13 @@ def verify(reference, old, new, out, changed_presets=FABRIC_PRESETS):
             errors.setdefault(kind + "/" + option, []).extend(
                 abs(a - b / 255) for a, b in zip(actual, bytes.fromhex(target), strict=True))
         report[label] = {k: MASKS["summarize"](v) for k,v in errors.items()}
-    if prisms or presets:
+    if prisms or presets or ripple_only:
         report["exchange"] = exchange_effects(original, old, new, out, middle, cases)
     (out / "report.json").write_text(json.dumps(report, indent=2) + "\n")
     for option, stats in report["candidate"].items():
-        if presets and option.split("/")[0] not in changed_presets:
+        if ripple_only and not option.startswith("ripple/"):
+            assert stats == report["baseline"][option], (option, stats)
+        elif presets and option.split("/")[0] not in changed_presets:
             assert stats == report["baseline"][option], (option, stats)
         elif prisms and not markers and option.split("/")[0] in ("rotate", "orbit"):
             # There are no foreground shapes on the plain page. Only the two
@@ -194,6 +196,7 @@ if __name__ == "__main__":
         for name in arguments:
             sub.add_argument(name, type=Path)
         if mode == "verify":
+            sub.add_argument("--ripple-only", action="store_true", help="require improvement in the five ripples and identical other panels")
             sub.add_argument("--changed-presets", nargs="+", choices=sorted({kind for kind, _ in PRESETS[1:]}),
                              help="compare these preset families for improvement and require identical metrics on the others")
         if mode != "verify":
@@ -213,4 +216,4 @@ if __name__ == "__main__":
     elif a.mode == "measure":
         a.output.write_text(json.dumps(measure(a.movie, a.deck, a.raw, a.markers, cases), indent=2) + "\n")
     else:
-        verify(json.loads(a.reference.read_text()), a.baseline.resolve(), a.candidate.resolve(), a.output.resolve(), set(a.changed_presets or FABRIC_PRESETS))
+        verify(json.loads(a.reference.read_text()), a.baseline.resolve(), a.candidate.resolve(), a.output.resolve(), set(a.changed_presets or FABRIC_PRESETS), a.ripple_only)
