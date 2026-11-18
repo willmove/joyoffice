@@ -42,6 +42,8 @@ use std::hash::Hasher;
 use crate::patterns::{FxHasher, FxMap};
 
 mod compound;
+mod edges;
+use edges::EdgeIndex;
 
 pub(crate) use compound::{MAX_SUGGEST_COMPOUND_WORK, Pieces};
 
@@ -276,7 +278,7 @@ const MAX_HOMONYMS: usize = 16;
 /// `able/B` + `s` → `workables` is two). Hunspell strips at most two suffixes, so a third
 /// chained suffix is not a word; the bound also keeps hostile input from walking deep recursions.
 const MAX_CHAIN: u8 = 2;
-/// How many suffixes may sit under the outermost one: the depth `form_has_flag` walks.
+/// Number of additional suffix layers after the first when generating forms.
 const INNER_CHAIN: u8 = MAX_CHAIN - 1;
 /// Most `ss` pairs of a word in capitals that CHECKSHARPS reads as `ß` (each combination is tried:
 /// at most 31 variants).
@@ -367,7 +369,7 @@ pub struct AffixDict {
     prefixes: Vec<Rule>,
     suffixes: Vec<Rule>,
     /// Appended string → groups of suffix rules by stripped string.
-    sfx_index: FxMap<Box<str>, Vec<SfxGroup>>,
+    sfx_index: EdgeIndex<Vec<SfxGroup>, true>,
     /// Per flag id: the suffix rules of that flag, in rule order.
     sfx_by_flag: Vec<Vec<u32>>,
     /// Longest appended suffix, in chars.
@@ -423,12 +425,10 @@ pub struct AffixDict {
     /// takes `af`, `stop/Ca…` takes `je`: `afstopje` is wrong in the CLI).
     homonyms: FxMap<u32, Box<[u32]>>,
     /// Appended string → the prefix rules adding it, in rule order.
-    pfx_index: FxMap<Box<str>, Vec<u32>>,
+    pfx_index: EdgeIndex<Vec<u32>, false>,
     /// Stems in mixed case (`kB`, `MSc`) by their lower case: a word in capitals may be one
     /// (`KB`, `KBS`), as in the CLI.
     mixed: FxMap<Box<str>, Vec<u32>>,
-    /// Longest appended prefix, in chars.
-    max_pfx_chars: usize,
 }
 
 /// An `ICONV` or `OCONV` table: `(from, to)` pairs in source order, found by the first character
@@ -1933,7 +1933,7 @@ impl AffixDict {
                 pfx_index.entry(r.add.clone()).or_default().push(i);
             }
         }
-        self.pfx_index = pfx_index;
+        self.pfx_index = EdgeIndex::build(pfx_index);
         let mut mixed: FxMap<Box<str>, Vec<u32>> = FxMap::default();
         for i in 0..self.len() {
             if let (Some(w), Ok(i)) = (self.word(i), u32::try_from(i))
@@ -1943,12 +1943,6 @@ impl AffixDict {
             }
         }
         self.mixed = mixed;
-        self.max_pfx_chars = self
-            .prefixes
-            .iter()
-            .map(|r| r.add.chars().count())
-            .max()
-            .unwrap_or(0);
         let mut cont_flag = vec![false; self.flag_keys.len()];
         for r in self.prefixes.iter().chain(&self.suffixes) {
             for &f in self.set(r.cont) {
@@ -1973,7 +1967,7 @@ impl AffixDict {
             .map(|r| r.add.chars().count())
             .max()
             .unwrap_or(0);
-        self.sfx_index = idx;
+        self.sfx_index = EdgeIndex::build(idx);
         let n = self.len();
         let size = (n.max(1) * 2).next_power_of_two();
         let mut table = vec![EMPTY; size];
@@ -1989,6 +1983,33 @@ impl AffixDict {
             }
         }
         self.table = table;
+    }
+
+    /// Charge the dictionary's existing work budget for each possible Unicode split, even
+    /// after the radix walk has ruled out longer suffixes. This preserves the per-word
+    /// allowance shared by all candidates of one suggestion request.
+    fn budgeted_suffixes<'a>(
+        &'a self,
+        word: &'a str,
+        steps: &'a Steps,
+    ) -> impl Iterator<Item = (&'a str, &'a Vec<SfxGroup>)> {
+        let mut hits = self.sfx_index.matches(word).peekable();
+        std::iter::once(word.len())
+            .chain(
+                word.char_indices()
+                    .rev()
+                    .map(|(at, _)| at)
+                    .filter(|&at| at > 0 || self.full_strip),
+            )
+            .take(self.max_sfx_chars + 1)
+            .map_while(move |at| {
+                let length = word.len() - at;
+                steps.scan(length).then(|| {
+                    hits.next_if(|&(n, _)| n == length)
+                        .map(|(_, groups)| (&word[..at], groups))
+                })
+            })
+            .flatten()
     }
 
     /// Number of stems.
@@ -2147,37 +2168,42 @@ impl AffixDict {
             .unwrap_or(false)
     }
 
-    /// Does `w` carry any flag of `flags` — as a stem, or as the form of a suffix rule whose
-    /// continuation classes include one (chained suffixation, depth-bounded)?
-    ///
-    /// The rules of a group that could lead to `w` are merged into one set of their flags (sorted)
-    /// and followed once, not once per rule: the answer is the same, but thousands of rules of one
-    /// flag cost one walk, not one each (#3613).
-    ///
-    /// With `pfx` set (a prefix was taken off: the flags of the prefixes that could be it), every
-    /// rule on the way must allow cross products and one prefix's flag must come from the stem or
-    /// a continuation class on the way (`meg` + `épít` + `és` + `e`).
-    fn form_has_flag(
+    /// A cross product whose prefix flag is still required must have one stem homonym
+    /// authorizing both directions. Separately listed homonyms cannot be combined.
+    fn stem_has_flags(
         &self,
         w: &str,
         flags: &[u16],
-        depth: u8,
-        pfx: Option<&FlagProbe>,
+        prefix: Option<&FlagProbe>,
         excluded: Excluded,
         steps: &Steps,
     ) -> bool {
         let fits = |f: &[u16]| {
-            steps.scan(f.len()) && intersects(f, flags) && pfx.is_none_or(|p| p.meets(f))
+            steps.scan(f.len()) && intersects(f, flags) && prefix.is_none_or(|p| p.meets(f))
         };
-        if if pfx.is_some() {
+        if prefix.is_some() {
             self.homonym_meets(w, excluded, fits)
         } else {
             self.stem_flags_except(w, excluded).is_some_and(fits)
-        } {
+        }
+    }
+
+    /// A stem or one inner suffix licensing a further affix. Hunspell permits at most
+    /// two successive suffixes. A circumfix prefix must pair with the inner suffix
+    /// when the outer rule has not already licensed the prefix.
+    fn form_has_flag(
+        &self,
+        w: &str,
+        flags: &[u16],
+        pfx: Option<&FlagProbe>,
+        paired: bool,
+        excluded: Excluded,
+        steps: &Steps,
+    ) -> bool {
+        if !paired && self.stem_has_flags(w, flags, pfx, excluded, steps) {
             return true;
         }
-        // Without continuation classes no rule leads from a form to another.
-        if depth == 0 || !self.has_cont {
+        if !self.has_cont {
             return false;
         }
         let mut root = String::with_capacity(w.len() + 8);
@@ -2192,23 +2218,7 @@ impl AffixDict {
         }
         let probe = FlagProbe::new(flags);
         let mut seen: FxMap<u32, bool> = FxMap::default();
-        let cuts = std::iter::once(w.len()).chain(
-            w.char_indices()
-                .rev()
-                .map(|(i, _)| i)
-                .filter(|&i| i > 0 || self.full_strip),
-        );
-        for b in cuts.take(self.max_sfx_chars + 1) {
-            let (Some(base), Some(add)) = (w.get(..b), w.get(b..)) else {
-                continue;
-            };
-            // Each split is a lookup of its appended text.
-            if !steps.scan(add.len()) {
-                return false;
-            }
-            let Some(groups) = self.sfx_index.get(add) else {
-                continue;
-            };
+        for (base, groups) in self.budgeted_suffixes(w, steps) {
             for g in groups.iter().filter(|g| !g.cont_rules.is_empty()) {
                 if !steps.spend(g.cont_rules.len() + GROUP_STEPS) {
                     return false;
@@ -2229,7 +2239,7 @@ impl AffixDict {
                         .or_insert_with(|| steps.scan(cont.len()) && probe.meets(cont));
                     if meets
                         && (pfx.is_none() || r.cross)
-                        && !self.cont_holds(r, self.circumfix)
+                        && self.cont_holds(r, self.circumfix) == paired
                         && !self.cont_holds(r, self.only_in_compound)
                         && steps.cond(r)
                         && r.cond_matches(&root, true)
@@ -2244,9 +2254,7 @@ impl AffixDict {
                 for (list, p) in [(&mut inner, pfx), (&mut met, None)] {
                     list.sort_unstable();
                     list.dedup();
-                    if !list.is_empty()
-                        && self.form_has_flag(&root, list, depth - 1, p, excluded, steps)
-                    {
+                    if !list.is_empty() && self.stem_has_flags(&root, list, p, excluded, steps) {
                         return true;
                     }
                 }
@@ -2391,13 +2399,11 @@ impl AffixDict {
         if !prefixes {
             return false;
         }
-        // The prefix rules whose appended text starts `w`, found by that text (one hash lookup per
-        // length) rather than by trying every rule.
-        let ends = std::iter::once(0).chain(w.char_indices().map(|(i, c)| i + c.len_utf8()));
-        let rules = ends
-            .take(self.max_pfx_chars + 1)
-            .filter_map(|b| self.pfx_index.get(w.get(..b)?))
-            .flatten()
+        // Read matching prefix groups in increasing byte length, preserving rule order.
+        let rules = self
+            .pfx_index
+            .matches(w)
+            .flat_map(|(_, rules)| rules)
             .filter_map(|&i| self.prefixes.get(i as usize));
         // What each rule leaves: (root, circumfix, needs another affix, cross, flag). The rules
         // that leave the same root alike are answered together, in one walk each.
@@ -2449,19 +2455,12 @@ impl AffixDict {
             plain.dedup();
             crossed.sort_unstable();
             crossed.dedup();
-            if !plain.is_empty() {
-                if self
+            if !plain.is_empty()
+                && self
                     .stem_flags_except(root, excluded)
                     .is_some_and(|f| steps.scan(f.len()) && intersects(f, &plain))
-                {
-                    return true;
-                }
-                plain.retain(|&f| self.is_cont_flag(f));
-                if !plain.is_empty()
-                    && self.form_has_flag(root, &plain, INNER_CHAIN, None, excluded, steps)
-                {
-                    return true;
-                }
+            {
+                return true;
             }
             if !crossed.is_empty()
                 && self.suffixed(
@@ -2564,23 +2563,7 @@ impl AffixDict {
         let mut met: Vec<u16> = Vec::new();
         // Each split point from the end: the appended string is `w[b..]`, at most the longest
         // suffix, and something must stay before it.
-        let cuts = std::iter::once(w.len()).chain(
-            w.char_indices()
-                .rev()
-                .map(|(i, _)| i)
-                .filter(|&i| i > 0 || self.full_strip),
-        );
-        for b in cuts.take(self.max_sfx_chars + 1) {
-            let (Some(base), Some(add)) = (w.get(..b), w.get(b..)) else {
-                continue;
-            };
-            // Each split is a lookup of its appended text.
-            if !steps.scan(add.len()) {
-                return false;
-            }
-            let Some(groups) = self.sfx_index.get(add) else {
-                continue;
-            };
+        for (base, groups) in self.budgeted_suffixes(w, steps) {
             for g in groups {
                 if !steps.spend(g.rules.len() + GROUP_STEPS) {
                     return false;
@@ -2621,7 +2604,7 @@ impl AffixDict {
                 // it may be a form that gained the flag from another rule's continuation. The
                 // matching rules' flags are looked for together, in one walk. Without continuation
                 // classes that walk would only repeat the stem path above.
-                if self.has_cont && !circ {
+                if self.has_cont {
                     flags.clear();
                     met.clear();
                     // Only a flag some continuation class holds can come from another rule. The
@@ -2647,7 +2630,14 @@ impl AffixDict {
                         list.sort_unstable();
                         list.dedup();
                         if !list.is_empty()
-                            && self.form_has_flag(&root, list, INNER_CHAIN, p, excluded, steps)
+                            && self.form_has_flag(
+                                &root,
+                                list,
+                                p,
+                                circ && p.is_some(),
+                                excluded,
+                                steps,
+                            )
                         {
                             return true;
                         }
@@ -3858,7 +3848,13 @@ pub(crate) mod tests {
         let t = std::time::Instant::now();
         let d = many_rules(n, |i| format!("k{i} y ."));
         assert!(t.elapsed().as_secs_f64() < 10.0, "{:?}", t.elapsed());
-        assert_eq!(d.sfx_index.get("y").map(Vec::len), Some(n));
+        assert_eq!(
+            d.sfx_index
+                .matches("y")
+                .find(|(n, _)| *n == 1)
+                .map(|(_, rules)| rules.len()),
+            Some(n)
+        );
         assert!(!d.contains("koty"));
     }
 
@@ -4631,13 +4627,34 @@ pub(crate) mod tests {
     }
 
     /// A circumfix prefix with two suffixes (`ne` + `work` + `able/Bc` + `s`): Hunspell 1.7.5
-    /// takes `neworkables`; this engine allows a prefix with one suffix only.
+    /// takes `neworkables`. Both suffixes follow the same prefix authorization.
     #[test]
-    #[ignore = "prefix + two suffixes is not supported (craft-libs#488 review P3)"]
-    fn a_circumfix_prefix_with_a_suffix_chain() {
+    fn a_circumfix_prefix_with_a_suffix_chain() -> Result<(), String> {
         let aff = "SET UTF-8\nCIRCUMFIX c\nPFX P Y 1\nPFX P 0 ne/c .\nSFX A Y 1\nSFX A 0 able/Bc .\nSFX B Y 1\nSFX B 0 s .\n";
-        let d = AffixDict::from_hunspell(aff, "1\nwork/AP\n", &[]).unwrap();
-        assert!(d.check("neworkables"));
+        let d = AffixDict::from_hunspell(aff, "1\nwork/AP\n", &[])?;
+        for dict in [&d, &AffixDict::from_bytes(&d.to_bytes()?)?] {
+            assert!(dict.check("neworkable") && dict.check("neworkables"));
+            assert!(
+                !dict.check("nework") && !dict.check("workables") && !dict.check("neworkabless")
+            );
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn a_continuation_licenses_one_crossing_only_if_both_rules_can_cross() -> Result<(), String> {
+        for prefix in ['N', 'Y'] {
+            for suffix in ['N', 'Y'] {
+                let syntax = format!(
+                    "SET UTF-8\nPFX P {prefix} 1\nPFX P 0 re .\nSFX A {suffix} 1\nSFX A 0 ed/P .\n"
+                );
+                let dict = AffixDict::from_hunspell(&syntax, "1\nwork/A\n", &[])?;
+                assert_eq!(dict.check("reworked"), prefix == 'Y' && suffix == 'Y');
+                assert!(!dict.check("rework"));
+                assert!(dict.check("worked"));
+            }
+        }
+        Ok(())
     }
 
     #[test]

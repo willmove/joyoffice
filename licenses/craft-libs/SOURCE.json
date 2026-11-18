@@ -66,8 +66,8 @@
       "target": "third-party/craft-libs/proof/src/affix.rs",
       "sha256": "8962c6ca57c9621421d99c924c1cec610f76168428449e318a2aeb1e06051df3",
       "modified": true,
-      "target_sha256": "244c4d74513bcb66f3c47dd49a967519306613d5d5604cf0523d5e390e83a9f1",
-      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+      "target_sha256": "98910598b5a1f419f385214a50b9fb5d6d1925242392da9756048c06bfaf1bdd",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md. JoyOffice matches prefix and suffix rule groups with a compressed radix index and checks circumfix continuation authorization. Host edge index SHA-256 0a54d1a1aa102a4032127647c38fabc4d966b56378fc1655cd5c917f86b0709e."
     },
     {
       "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
@@ -75,8 +75,8 @@
       "target": "third-party/craft-libs/proof/src/affix/compound.rs",
       "sha256": "1e53d8b59d9873d82e651df73cd686b32f44d7eccb368c7c73f49f535e4285f1",
       "modified": true,
-      "target_sha256": "05d2edd331637b4f38d757d28e1ec1c1f27aa821b22a32c3a9c7049ea53f351d",
-      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+      "target_sha256": "673aa065d2ae864033a4fa655712fad928204ca1d7d28f970e1d6cf9b325626a",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md. Compound-part and inner-suffix recognition use the host affix edge index."
     },
     {
       "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",

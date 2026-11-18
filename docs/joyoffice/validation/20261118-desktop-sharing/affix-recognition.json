@@ -1,0 +1,2379 @@
+{
+  "baselineCommit": "58ec6fe09bfce0928e343441a729cd0335cd5390",
+  "reference": {
+    "release": "Hunspell 1.7.5",
+    "url": "https://github.com/hunspell/hunspell/releases/tag/v1.7.5",
+    "archiveSha256": "2e559f0c2a592ba48e421477f58e9bf7e01062277a4a7821afb52fc9401010ae",
+    "protocol": "Compile the official release on each host. Compare Hunspell_spell with each JoyWord build. Only the reference uses corrected header counts on disposable copies of three dictionaries."
+  },
+  "platforms": {
+    "macOS": {
+      "referenceLibrarySha256": "b1e589d497b261754917dbf0cbd6e2101443e86a0e3f778ee609fa6b803c4d58",
+      "wordCliSha256": [
+        "ad1972d93c03e148879c719d9ae9a3f2c1b5a2ab879ed93344d20f0f79d8ed8c",
+        "c94c6ca4498be7e224ed72e68bc39fd10a4d38459fe786d736c8370e3d5b36a2"
+      ],
+      "wordRegression": {
+        "passed": 3681,
+        "failed": 0,
+        "ignored": 2,
+        "sha256": "efb35a547cfe691f66ac5c35959ef5bcfd97abd80f7031d406e1bf6b12afc0f1"
+      },
+      "uiRegression": {
+        "passed": 76,
+        "failed": 0,
+        "ignored": 0,
+        "sha256": "0990506647a80cf6b0ebba94caaeef35fd5141cefd57e07ef36f995831a8ae24"
+      },
+      "dictionaryTests": {
+        "passed": 482,
+        "failed": 0,
+        "ignored": 0,
+        "sha256": "f56e5b2f4c7dbba76c6833946afb0e209014dfcea91e468a9dc41f8d19531477"
+      },
+      "productionClippyLogSha256": "f222563f970c99702e19483c4b595566088fe0f6f03fc5f526e654960fca8db5",
+      "formalPackSuggestions": {
+        "packs": 75,
+        "inputs": 1499,
+        "issues": 1196,
+        "withSuggestions": 1179,
+        "orderedResultsVerified": true
+      },
+      "nativeReview": {
+        "binarySha256": "abc7cdbafd57230956f9909522bf56d1e94f44369b703826722b925f313a361f",
+        "sourceSha256": "0261d644203e838fe8e1be23fe6f1cc1a9f01de53286d8030fddec5a67b9f885",
+        "selectedWord": "teh",
+        "displayedSuggestions": [
+          "the",
+          "tens",
+          "tent",
+          "test",
+          "text"
+        ],
+        "replacement": "the",
+        "undoRedo": true,
+        "savedAndReopened": true,
+        "originalUnchanged": true
+      },
+      "pairedAffixReview": {
+        "words": [
+          "neworkabless",
+          "neworkables",
+          "neworkable",
+          "workables",
+          "nework"
+        ],
+        "baseline": [
+          {
+            "start": {
+              "story": "body",
+              "path": [
+                0
+              ],
+              "off": 0
+            },
+            "end": {
+              "story": "body",
+              "path": [
+                0
+              ],
+              "off": 12
+            },
+            "text": "neworkabless",
+            "suggestions": [],
+            "lang": "nl"
+          },
+          {
+            "start": {
+              "story": "body",
+              "path": [
+                1
+              ],
+              "off": 0
+            },
+            "end": {
+              "story": "body",
+              "path": [
+                1
+              ],
+              "off": 11
+            },
+            "text": "neworkables",
+            "suggestions": [
+              "neworkable"
+            ],
+            "lang": "nl"
+          },
+          {
+            "start": {
+              "story": "body",
+              "path": [
+                3
+              ],
+              "off": 0
+            },
+            "end": {
+              "story": "body",
+              "path": [
+                3
+              ],
+              "off": 9
+            },
+            "text": "workables",
+            "suggestions": [],
+            "lang": "nl"
+          },
+          {
+            "start": {
+              "story": "body",
+              "path": [
+                4
+              ],
+              "off": 0
+            },
+            "end": {
+              "story": "body",
+              "path": [
+                4
+              ],
+              "off": 6
+            },
+            "text": "nework",
+            "suggestions": [],
+            "lang": "nl"
+          }
+        ],
+        "candidate": [
+          {
+            "start": {
+              "story": "body",
+              "path": [
+                0
+              ],
+              "off": 0
+            },
+            "end": {
+              "story": "body",
+              "path": [
+                0
+              ],
+              "off": 12
+            },
+            "text": "neworkabless",
+            "suggestions": [
+              "neworkables"
+            ],
+            "lang": "nl"
+          },
+          {
+            "start": {
+              "story": "body",
+              "path": [
+                3
+              ],
+              "off": 0
+            },
+            "end": {
+              "story": "body",
+              "path": [
+                3
+              ],
+              "off": 9
+            },
+            "text": "workables",
+            "suggestions": [],
+            "lang": "nl"
+          },
+          {
+            "start": {
+              "story": "body",
+              "path": [
+                4
+              ],
+              "off": 0
+            },
+            "end": {
+              "story": "body",
+              "path": [
+                4
+              ],
+              "off": 6
+            },
+            "text": "nework",
+            "suggestions": [],
+            "lang": "nl"
+          }
+        ],
+        "desktop": {
+          "binarySha256": "abc7cdbafd57230956f9909522bf56d1e94f44369b703826722b925f313a361f",
+          "sourceSha256": "03d5a7ce76751e732d469cb558a3cda95028d71699f4455d6b07fe5af9d1a61a",
+          "selectedWord": "neworkabless",
+          "displayedSuggestions": [
+            "neworkables"
+          ],
+          "replacement": "neworkables",
+          "undoRedo": true,
+          "savedAndReopened": true,
+          "originalUnchanged": true
+        }
+      },
+      "suggestionTimings": {
+        "binarySha256": [
+          "70e92bbd7bf9a946e8d63380dc85e03f9e2ff376554aa657b9e3af7e97a4a212",
+          "150c38e6d135b0d923cbaeb82aa6ab98a81f4ecad6d24fc8317dd083564961c0"
+        ],
+        "languages": {
+          "nl": {
+            "words": [
+              "Hamming",
+              "aHmming",
+              "Hmming",
+              "popelpee",
+              "oppelpee",
+              "ppelpee",
+              "Hammming",
+              "HammingHamming",
+              "HAMMING",
+              "Hamingm",
+              "Hameming",
+              "HamXing",
+              "Hámming",
+              "Hammings",
+              "popeelpee",
+              "popelpeepopelpee",
+              "POPELPEE",
+              "popepeel",
+              "popeXpee",
+              "popélpee",
+              "popenlpee"
+            ],
+            "suggestionsSha256": "851a717249d17d2353cc389913400c91b6df2c29c867da203b0b446de6c6bb8c",
+            "dictionarySha256": [
+              "f0233d4f721f4661cf5f4d05ed2739549322bf3b6b66764b55a38257e1e16e6f",
+              "bc28af45307700a9927ad5719184da44dfd7eed4f707b8c1477f6d8a21b586a6"
+            ],
+            "batchMilliseconds": {
+              "baseline": {
+                "samples": [
+                  287.601,
+                  283.33,
+                  293.282,
+                  289.667,
+                  284.013,
+                  291.082,
+                  286.244,
+                  285.946,
+                  289.875,
+                  284.179,
+                  290.086,
+                  287.75,
+                  274.989,
+                  275.018,
+                  275.827,
+                  275.531,
+                  276.354,
+                  275.621,
+                  273.123,
+                  275.042,
+                  275.33,
+                  274.803,
+                  275.224,
+                  274.959,
+                  274.124,
+                  274.966,
+                  274.734,
+                  274.131,
+                  273.832,
+                  275.487,
+                  274.225,
+                  274.964,
+                  272.659,
+                  273.021,
+                  272.349,
+                  273.075,
+                  273.106,
+                  273.136,
+                  274.788,
+                  274.016
+                ],
+                "p50": 275.03,
+                "p95": 290.086
+              },
+              "candidate": {
+                "samples": [
+                  277.138,
+                  285.534,
+                  285.866,
+                  279.774,
+                  286.871,
+                  282.265,
+                  284.593,
+                  281.286,
+                  281.535,
+                  285.105,
+                  279.358,
+                  275.687,
+                  279.593,
+                  275.948,
+                  280.78,
+                  276.346,
+                  280.156,
+                  275.887,
+                  280.343,
+                  279.096,
+                  271.572,
+                  269.349,
+                  269.247,
+                  271.552,
+                  269.974,
+                  270.113,
+                  272.798,
+                  272.498,
+                  271.715,
+                  270.57,
+                  270.781,
+                  272.671,
+                  270.547,
+                  273.187,
+                  269.695,
+                  272.248,
+                  272.254,
+                  270.927,
+                  269.654,
+                  270.695
+                ],
+                "p50": 274.437,
+                "p95": 285.534
+              }
+            }
+          },
+          "pl": {
+            "words": [
+              "miłosierdzie",
+              "imłosierdzie",
+              "młosierdzie",
+              "ponadmetrażowy",
+              "opnadmetrażowy",
+              "pnadmetrażowy",
+              "miłosiierdzie",
+              "miłosierdziemiłosierdzie",
+              "MIŁOSIERDZIE",
+              "miłosirdziee",
+              "miłosiaerdzie",
+              "miłosiÜrdzie",
+              "miłosięrdzie",
+              "miłosierdźe",
+              "ponadmeetrażowy",
+              "ponadmetrażowyponadmetrażowy",
+              "PONADMETRAŻOWY",
+              "ponadmerażowyt",
+              "ponadmeatrażowy",
+              "ponadmeÜrażowy",
+              "ponądmetrażowy",
+              "pąadmetrażowy"
+            ],
+            "suggestionsSha256": "19287fa1cb474b8249762f05031d6b85e0d25b71e21456b9612cb1201df26f79",
+            "dictionarySha256": [
+              "82973651651aa930335c865b339b98db376ca3dbf3a661b70b9eeb71fdf41dca",
+              "c0848440599eb88e5aca500418d5f389e562ec2c157b63dbe39d354658ffba49"
+            ],
+            "batchMilliseconds": {
+              "baseline": {
+                "samples": [
+                  238.319,
+                  237.889,
+                  238.559,
+                  237.204,
+                  239.93,
+                  238.398,
+                  238.679,
+                  239.893,
+                  236.632,
+                  237.865,
+                  238.524,
+                  240.636,
+                  239.262,
+                  240.664,
+                  236.898,
+                  237.288,
+                  237.894,
+                  240.229,
+                  238.012,
+                  237.989,
+                  238.654,
+                  237.688,
+                  238.896,
+                  239.826,
+                  238.822,
+                  237.295,
+                  239.451,
+                  237.538,
+                  236.853,
+                  240.707,
+                  236.521,
+                  238.854,
+                  238.1,
+                  237.915,
+                  241.822,
+                  240.26,
+                  240.79,
+                  237.842,
+                  239.875,
+                  240.484
+                ],
+                "p50": 238.54149999999998,
+                "p95": 240.707
+              },
+              "candidate": {
+                "samples": [
+                  240.678,
+                  239.244,
+                  236.747,
+                  241.207,
+                  238.314,
+                  238.293,
+                  240.202,
+                  238.199,
+                  237.086,
+                  239.903,
+                  240.063,
+                  239.759,
+                  239.853,
+                  238.157,
+                  239.59,
+                  238.72,
+                  241.85,
+                  240.003,
+                  238.1,
+                  241.307,
+                  239.239,
+                  237.645,
+                  238.782,
+                  238.166,
+                  236.188,
+                  239.998,
+                  238.303,
+                  237.828,
+                  238.47,
+                  239.044,
+                  237.979,
+                  238.51,
+                  237.934,
+                  239.597,
+                  238.673,
+                  239.526,
+                  235.868,
+                  237.915,
+                  239.873,
+                  238.459
+                ],
+                "p50": 238.69650000000001,
+                "p95": 241.207
+              }
+            }
+          },
+          "es": {
+            "words": [
+              "destajador",
+              "edstajador",
+              "dstajador",
+              "muerto",
+              "umerto",
+              "merto",
+              "destaajador",
+              "destajadordestajador",
+              "DESTAJADOR",
+              "destaadorj",
+              "destaWador",
+              "destájador",
+              "mueerto",
+              "muertomuerto",
+              "MUERTO",
+              "muetor",
+              "muearto",
+              "mueWto",
+              "muérto"
+            ],
+            "suggestionsSha256": "47890c47dc1096bb34c83ccd72d515879aabaca343e60be4290e99f40f0409f5",
+            "dictionarySha256": [
+              "e73a9bf8e1383f4986a5dc9e2fbed49371c0c61f511c626d15586bd433c1cad9",
+              "6975dddec3d5d2c676069537bc67b4b5f786c65c5d4cf6703a82acf779ac9ec1"
+            ],
+            "batchMilliseconds": {
+              "baseline": {
+                "samples": [
+                  45.56,
+                  45.738,
+                  45.973,
+                  45.612,
+                  45.691,
+                  45.225,
+                  45.39,
+                  45.702,
+                  45.155,
+                  45.661,
+                  45.302,
+                  45.541,
+                  45.473,
+                  45.651,
+                  45.63,
+                  45.093,
+                  45.323,
+                  45.334,
+                  45.098,
+                  45.487,
+                  45.372,
+                  45.427,
+                  45.35,
+                  45.367,
+                  45.11,
+                  45.726,
+                  45.095,
+                  45.2,
+                  45.462,
+                  45.297,
+                  45.842,
+                  45.093,
+                  45.61,
+                  45.329,
+                  45.129,
+                  45.227,
+                  45.445,
+                  45.407,
+                  45.291,
+                  45.061
+                ],
+                "p50": 45.381,
+                "p95": 45.738
+              },
+              "candidate": {
+                "samples": [
+                  42.734,
+                  42.758,
+                  42.902,
+                  42.614,
+                  42.611,
+                  42.695,
+                  42.961,
+                  42.477,
+                  42.511,
+                  42.693,
+                  42.362,
+                  42.301,
+                  42.727,
+                  42.313,
+                  43.181,
+                  43.024,
+                  42.899,
+                  42.545,
+                  42.955,
+                  42.92,
+                  43.241,
+                  42.773,
+                  42.557,
+                  42.823,
+                  43.066,
+                  42.853,
+                  43.065,
+                  43.178,
+                  42.64,
+                  42.637,
+                  42.893,
+                  42.797,
+                  42.628,
+                  42.655,
+                  42.853,
+                  42.901,
+                  42.698,
+                  42.998,
+                  42.768,
+                  42.751
+                ],
+                "p50": 42.763000000000005,
+                "p95": 43.178
+              }
+            }
+          }
+        }
+      },
+      "distribution": {
+        "target": "aarch64-apple-darwin",
+        "packages": 512,
+        "sourceFiles": 1060,
+        "spdxSha256": "0112a235beaccedaad926be38293515bb79749831176a5c1ea68783e9ccfd631",
+        "missingLicenseTexts": [],
+        "sharedCrates": [
+          "joyoffice-cfb",
+          "joyoffice-fonts",
+          "joyoffice-metafile",
+          "joyoffice-omml",
+          "joyoffice-opc",
+          "joyoffice-theme",
+          "joyoffice-ui"
+        ],
+        "runtimeLegacyDependencies": [
+          "craft-atomic",
+          "craft-font-store",
+          "craft-proof"
+        ]
+      }
+    },
+    "UOS": {
+      "referenceLibrarySha256": "96711c36b275890143b4dbbe3033df22e9c930511fc7877598dd7ef23a4b5f42",
+      "wordCliSha256": [
+        "122741bae76e3a8d85e1c918b4447d995b440215f7c64459180f6365d2598d85",
+        "7026e719aac1a2b328d33e0de87ccf430e4eb1525c8a9cecea47c2c39f6e1d65"
+      ],
+      "wordRegression": {
+        "passed": 3685,
+        "failed": 0,
+        "ignored": 2,
+        "sha256": "861974b23022e1e3f4bb0fb4849301ba7b9e004b4c1bbbc702f2496491565e06"
+      },
+      "uiRegression": {
+        "passed": 80,
+        "failed": 0,
+        "ignored": 0,
+        "sha256": "1b281dfa3aa29c3ce04e0f2071f397fcd422f0b24c3a1902fd04ea02024f8191"
+      },
+      "dictionaryTests": {
+        "passed": 482,
+        "failed": 0,
+        "ignored": 0,
+        "sha256": "e90e08045f5e76a9eefd444bccd0dcf290c8ba1dfe491345f8e4b3ba74977216"
+      },
+      "productionClippyLogSha256": "66c48fac95723c516d7af60aff88f98a2ca1dc794f23530a12b3eb9da46eca4c",
+      "formalPackSuggestions": {
+        "packs": 75,
+        "inputs": 1499,
+        "issues": 1196,
+        "withSuggestions": 1179,
+        "orderedResultsVerified": true
+      },
+      "nativeReview": {
+        "binarySha256": "1d315593e2c79fc7498f9a172b19de007d2373805ba89bf5210f6751b69416b7",
+        "sourceSha256": "0261d644203e838fe8e1be23fe6f1cc1a9f01de53286d8030fddec5a67b9f885",
+        "selectedWord": "teh",
+        "displayedSuggestions": [
+          "the",
+          "tens",
+          "tent",
+          "test",
+          "text"
+        ],
+        "replacement": "the",
+        "undoRedo": true,
+        "savedAndReopened": true,
+        "originalUnchanged": true
+      },
+      "pairedAffixReview": {
+        "words": [
+          "neworkabless",
+          "neworkables",
+          "neworkable",
+          "workables",
+          "nework"
+        ],
+        "baseline": [
+          {
+            "start": {
+              "story": "body",
+              "path": [
+                0
+              ],
+              "off": 0
+            },
+            "end": {
+              "story": "body",
+              "path": [
+                0
+              ],
+              "off": 12
+            },
+            "text": "neworkabless",
+            "suggestions": [],
+            "lang": "nl"
+          },
+          {
+            "start": {
+              "story": "body",
+              "path": [
+                1
+              ],
+              "off": 0
+            },
+            "end": {
+              "story": "body",
+              "path": [
+                1
+              ],
+              "off": 11
+            },
+            "text": "neworkables",
+            "suggestions": [
+              "neworkable"
+            ],
+            "lang": "nl"
+          },
+          {
+            "start": {
+              "story": "body",
+              "path": [
+                3
+              ],
+              "off": 0
+            },
+            "end": {
+              "story": "body",
+              "path": [
+                3
+              ],
+              "off": 9
+            },
+            "text": "workables",
+            "suggestions": [],
+            "lang": "nl"
+          },
+          {
+            "start": {
+              "story": "body",
+              "path": [
+                4
+              ],
+              "off": 0
+            },
+            "end": {
+              "story": "body",
+              "path": [
+                4
+              ],
+              "off": 6
+            },
+            "text": "nework",
+            "suggestions": [],
+            "lang": "nl"
+          }
+        ],
+        "candidate": [
+          {
+            "start": {
+              "story": "body",
+              "path": [
+                0
+              ],
+              "off": 0
+            },
+            "end": {
+              "story": "body",
+              "path": [
+                0
+              ],
+              "off": 12
+            },
+            "text": "neworkabless",
+            "suggestions": [
+              "neworkables"
+            ],
+            "lang": "nl"
+          },
+          {
+            "start": {
+              "story": "body",
+              "path": [
+                3
+              ],
+              "off": 0
+            },
+            "end": {
+              "story": "body",
+              "path": [
+                3
+              ],
+              "off": 9
+            },
+            "text": "workables",
+            "suggestions": [],
+            "lang": "nl"
+          },
+          {
+            "start": {
+              "story": "body",
+              "path": [
+                4
+              ],
+              "off": 0
+            },
+            "end": {
+              "story": "body",
+              "path": [
+                4
+              ],
+              "off": 6
+            },
+            "text": "nework",
+            "suggestions": [],
+            "lang": "nl"
+          }
+        ],
+        "desktop": {
+          "binarySha256": "1d315593e2c79fc7498f9a172b19de007d2373805ba89bf5210f6751b69416b7",
+          "sourceSha256": "03d5a7ce76751e732d469cb558a3cda95028d71699f4455d6b07fe5af9d1a61a",
+          "selectedWord": "neworkabless",
+          "displayedSuggestions": [
+            "neworkables"
+          ],
+          "replacement": "neworkables",
+          "undoRedo": true,
+          "savedAndReopened": true,
+          "originalUnchanged": true
+        }
+      },
+      "suggestionTimings": {
+        "binarySha256": [
+          "ffb83409ad6ba343dc3062422500ab896740e71ead0bb4c5552db166a9f53b64",
+          "2c62ecf1b22bcefa90ce8a442b147574d2df2cb289eac417631a53d23358ca17"
+        ],
+        "languages": {
+          "nl": {
+            "words": [
+              "Hamming",
+              "aHmming",
+              "Hmming",
+              "popelpee",
+              "oppelpee",
+              "ppelpee",
+              "Hammming",
+              "HammingHamming",
+              "HAMMING",
+              "Hamingm",
+              "Hameming",
+              "HamXing",
+              "Hámming",
+              "Hammings",
+              "popeelpee",
+              "popelpeepopelpee",
+              "POPELPEE",
+              "popepeel",
+              "popeXpee",
+              "popélpee",
+              "popenlpee"
+            ],
+            "suggestionsSha256": "851a717249d17d2353cc389913400c91b6df2c29c867da203b0b446de6c6bb8c",
+            "dictionarySha256": [
+              "f0233d4f721f4661cf5f4d05ed2739549322bf3b6b66764b55a38257e1e16e6f",
+              "bc28af45307700a9927ad5719184da44dfd7eed4f707b8c1477f6d8a21b586a6"
+            ],
+            "batchMilliseconds": {
+              "baseline": {
+                "samples": [
+                  312.704,
+                  305.961,
+                  287.123,
+                  306.659,
+                  310.247,
+                  332.323,
+                  363.804,
+                  278.22,
+                  306.636,
+                  323.598,
+                  312.711,
+                  314.693,
+                  316.233,
+                  301.319,
+                  327.443,
+                  305.027,
+                  302.809,
+                  312.01,
+                  313.289,
+                  306.836,
+                  325.699,
+                  314.285,
+                  304.891,
+                  317.212,
+                  311.725,
+                  308.647,
+                  328.309,
+                  304.057,
+                  311.896,
+                  304.402,
+                  305.056,
+                  324.19,
+                  322.61,
+                  317.084,
+                  326.382,
+                  356.269,
+                  326.528,
+                  338.179,
+                  336.666,
+                  315.672
+                ],
+                "p50": 313.0,
+                "p95": 338.179
+              },
+              "candidate": {
+                "samples": [
+                  312.578,
+                  303.074,
+                  289.333,
+                  304.647,
+                  294.993,
+                  305.93,
+                  300.791,
+                  313.407,
+                  289.475,
+                  278.714,
+                  297.135,
+                  308.537,
+                  311.102,
+                  312.182,
+                  305.192,
+                  298.28,
+                  295.93,
+                  289.712,
+                  278.328,
+                  297.427,
+                  280.419,
+                  306.126,
+                  280.352,
+                  285.636,
+                  271.532,
+                  307.059,
+                  292.829,
+                  290.068,
+                  322.102,
+                  270.997,
+                  274.564,
+                  292.708,
+                  297.376,
+                  301.34,
+                  306.655,
+                  303.75,
+                  293.704,
+                  299.089,
+                  299.841,
+                  292.964
+                ],
+                "p50": 297.4015,
+                "p95": 312.578
+              }
+            }
+          },
+          "pl": {
+            "words": [
+              "miłosierdzie",
+              "imłosierdzie",
+              "młosierdzie",
+              "ponadmetrażowy",
+              "opnadmetrażowy",
+              "pnadmetrażowy",
+              "miłosiierdzie",
+              "miłosierdziemiłosierdzie",
+              "MIŁOSIERDZIE",
+              "miłosirdziee",
+              "miłosiaerdzie",
+              "miłosiÜrdzie",
+              "miłosięrdzie",
+              "miłosierdźe",
+              "ponadmeetrażowy",
+              "ponadmetrażowyponadmetrażowy",
+              "PONADMETRAŻOWY",
+              "ponadmerażowyt",
+              "ponadmeatrażowy",
+              "ponadmeÜrażowy",
+              "ponądmetrażowy",
+              "pąadmetrażowy"
+            ],
+            "suggestionsSha256": "19287fa1cb474b8249762f05031d6b85e0d25b71e21456b9612cb1201df26f79",
+            "dictionarySha256": [
+              "82973651651aa930335c865b339b98db376ca3dbf3a661b70b9eeb71fdf41dca",
+              "c0848440599eb88e5aca500418d5f389e562ec2c157b63dbe39d354658ffba49"
+            ],
+            "batchMilliseconds": {
+              "baseline": {
+                "samples": [
+                  483.588,
+                  469.742,
+                  497.51,
+                  476.489,
+                  503.238,
+                  448.217,
+                  516.637,
+                  508.711,
+                  524.174,
+                  557.063,
+                  528.933,
+                  497.267,
+                  488.49,
+                  476.267,
+                  504.354,
+                  478.807,
+                  442.131,
+                  440.832,
+                  442.461,
+                  458.677,
+                  478.943,
+                  455.268,
+                  486.423,
+                  513.326,
+                  460.152,
+                  457.651,
+                  471.607,
+                  460.667,
+                  496.718,
+                  505.973,
+                  475.151,
+                  456.618,
+                  459.64,
+                  521.512,
+                  499.75,
+                  480.445,
+                  489.776,
+                  510.214,
+                  526.89,
+                  497.559
+                ],
+                "p50": 485.0055,
+                "p95": 526.89
+              },
+              "candidate": {
+                "samples": [
+                  401.602,
+                  450.889,
+                  532.554,
+                  469.98,
+                  395.106,
+                  434.65,
+                  417.118,
+                  511.021,
+                  466.683,
+                  472.706,
+                  460.274,
+                  450.651,
+                  471.79,
+                  531.318,
+                  407.478,
+                  456.378,
+                  406.975,
+                  427.786,
+                  373.585,
+                  445.567,
+                  495.466,
+                  498.781,
+                  521.161,
+                  468.614,
+                  535.093,
+                  514.14,
+                  433.758,
+                  450.555,
+                  413.244,
+                  429.682,
+                  548.097,
+                  527.595,
+                  427.56,
+                  519.204,
+                  532.567,
+                  509.904,
+                  513.017,
+                  478.866,
+                  491.389,
+                  498.402
+                ],
+                "p50": 469.297,
+                "p95": 532.567
+              }
+            }
+          },
+          "es": {
+            "words": [
+              "destajador",
+              "edstajador",
+              "dstajador",
+              "muerto",
+              "umerto",
+              "merto",
+              "destaajador",
+              "destajadordestajador",
+              "DESTAJADOR",
+              "destaadorj",
+              "destaWador",
+              "destájador",
+              "mueerto",
+              "muertomuerto",
+              "MUERTO",
+              "muetor",
+              "muearto",
+              "mueWto",
+              "muérto"
+            ],
+            "suggestionsSha256": "47890c47dc1096bb34c83ccd72d515879aabaca343e60be4290e99f40f0409f5",
+            "dictionarySha256": [
+              "e73a9bf8e1383f4986a5dc9e2fbed49371c0c61f511c626d15586bd433c1cad9",
+              "6975dddec3d5d2c676069537bc67b4b5f786c65c5d4cf6703a82acf779ac9ec1"
+            ],
+            "batchMilliseconds": {
+              "baseline": {
+                "samples": [
+                  65.806,
+                  62.619,
+                  57.449,
+                  58.009,
+                  60.635,
+                  58.125,
+                  57.12,
+                  62.933,
+                  58.442,
+                  57.799,
+                  59.219,
+                  61.462,
+                  61.071,
+                  60.305,
+                  60.084,
+                  67.367,
+                  61.967,
+                  62.478,
+                  65.22,
+                  63.384,
+                  63.852,
+                  72.447,
+                  81.084,
+                  80.099,
+                  79.042,
+                  66.411,
+                  61.284,
+                  59.211,
+                  62.518,
+                  60.945,
+                  57.476,
+                  56.821,
+                  57.271,
+                  57.591,
+                  58.121,
+                  55.312,
+                  56.721,
+                  57.048,
+                  55.991,
+                  58.419
+                ],
+                "p50": 60.47,
+                "p95": 79.042
+              },
+              "candidate": {
+                "samples": [
+                  51.504,
+                  54.029,
+                  55.048,
+                  50.129,
+                  52.815,
+                  51.334,
+                  51.148,
+                  55.9,
+                  52.896,
+                  54.097,
+                  50.066,
+                  50.805,
+                  54.273,
+                  49.811,
+                  51.219,
+                  54.73,
+                  50.122,
+                  44.762,
+                  49.75,
+                  50.823,
+                  49.758,
+                  51.785,
+                  53.411,
+                  50.644,
+                  49.352,
+                  48.639,
+                  61.244,
+                  49.989,
+                  54.108,
+                  51.536,
+                  51.336,
+                  49.641,
+                  47.242,
+                  51.12,
+                  53.132,
+                  49.319,
+                  47.554,
+                  54.021,
+                  55.323,
+                  57.957
+                ],
+                "p50": 51.2765,
+                "p95": 55.9
+              }
+            }
+          }
+        }
+      },
+      "distribution": {
+        "target": "x86_64-unknown-linux-gnu",
+        "packages": 601,
+        "sourceFiles": 1065,
+        "spdxSha256": "4e42877bf42f93c03fc8ab114fb7d9e4e20d24ffe19875723fc0f15ce8dffcea",
+        "missingLicenseTexts": [],
+        "sharedCrates": [
+          "joyoffice-cfb",
+          "joyoffice-fonts",
+          "joyoffice-metafile",
+          "joyoffice-omml",
+          "joyoffice-opc",
+          "joyoffice-theme",
+          "joyoffice-ui"
+        ],
+        "runtimeLegacyDependencies": [
+          "craft-atomic",
+          "craft-font-store",
+          "craft-proof"
+        ]
+      }
+    }
+  },
+  "publishedIndexSha256": "b35c7aef0591177f18233b551da16035dcd615549ff874e169ffd19f16fea74b",
+  "publishedPacks": {
+    "af": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 65,
+      "remainingExamples": [],
+      "answersSha256": [
+        "6438817e58c2e332c9cf2705e0ab98835eb0be4584404c1251f8689aca701c60",
+        "6438817e58c2e332c9cf2705e0ab98835eb0be4584404c1251f8689aca701c60",
+        "6438817e58c2e332c9cf2705e0ab98835eb0be4584404c1251f8689aca701c60"
+      ]
+    },
+    "ar": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 110,
+      "remainingExamples": [],
+      "answersSha256": [
+        "f71a7c6b2ad94c9cd6671bc1956361ccbcb4c7ff949cdd81e63a6946bbb9e06c",
+        "f71a7c6b2ad94c9cd6671bc1956361ccbcb4c7ff949cdd81e63a6946bbb9e06c",
+        "f71a7c6b2ad94c9cd6671bc1956361ccbcb4c7ff949cdd81e63a6946bbb9e06c"
+      ]
+    },
+    "be": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 69,
+      "remainingExamples": [],
+      "answersSha256": [
+        "23e09b974d599696ee16ff57cd523aef402ca68ab8a18bd6e4310b8ce37ef331",
+        "23e09b974d599696ee16ff57cd523aef402ca68ab8a18bd6e4310b8ce37ef331",
+        "23e09b974d599696ee16ff57cd523aef402ca68ab8a18bd6e4310b8ce37ef331"
+      ]
+    },
+    "bg": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 69,
+      "remainingExamples": [],
+      "answersSha256": [
+        "c60857478c3f24f436735eceb17cc13821f65c7ea7cfa8eed3c64ef121b80a8e",
+        "c60857478c3f24f436735eceb17cc13821f65c7ea7cfa8eed3c64ef121b80a8e",
+        "c60857478c3f24f436735eceb17cc13821f65c7ea7cfa8eed3c64ef121b80a8e"
+      ]
+    },
+    "bs": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 67,
+      "remainingExamples": [],
+      "answersSha256": [
+        "dce4f8cbcebb974269bb70326c64ac94e568bc53a835bb687f3a94395a830198",
+        "dce4f8cbcebb974269bb70326c64ac94e568bc53a835bb687f3a94395a830198",
+        "dce4f8cbcebb974269bb70326c64ac94e568bc53a835bb687f3a94395a830198"
+      ]
+    },
+    "ca": {
+      "probes": 207,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 86,
+      "remainingExamples": [],
+      "answersSha256": [
+        "144e994b7bf086007a26febd3f0f5763e2ebde2d6899b6ee8b4aa21194d7d4a0",
+        "144e994b7bf086007a26febd3f0f5763e2ebde2d6899b6ee8b4aa21194d7d4a0",
+        "144e994b7bf086007a26febd3f0f5763e2ebde2d6899b6ee8b4aa21194d7d4a0"
+      ]
+    },
+    "ca-valencia": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 90,
+      "remainingExamples": [],
+      "answersSha256": [
+        "ab6153b416af4ebd079dcf0c12673e55386c051dd503d6d7a08afaefe8d1657d",
+        "ab6153b416af4ebd079dcf0c12673e55386c051dd503d6d7a08afaefe8d1657d",
+        "ab6153b416af4ebd079dcf0c12673e55386c051dd503d6d7a08afaefe8d1657d"
+      ]
+    },
+    "cs": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 70,
+      "remainingExamples": [],
+      "answersSha256": [
+        "ecad096e9c380674e62bace2880a071b69c8c52aa49c39d193be4e80121a294f",
+        "ecad096e9c380674e62bace2880a071b69c8c52aa49c39d193be4e80121a294f",
+        "ecad096e9c380674e62bace2880a071b69c8c52aa49c39d193be4e80121a294f"
+      ]
+    },
+    "cy": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 65,
+      "remainingExamples": [],
+      "answersSha256": [
+        "c0949b4def4b6fdbe8590d0570a3dc00dc50e59a9cc97bb8b05e7ddcbe7ce8d5",
+        "c0949b4def4b6fdbe8590d0570a3dc00dc50e59a9cc97bb8b05e7ddcbe7ce8d5",
+        "c0949b4def4b6fdbe8590d0570a3dc00dc50e59a9cc97bb8b05e7ddcbe7ce8d5"
+      ]
+    },
+    "da": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 69,
+      "remainingExamples": [],
+      "answersSha256": [
+        "18773d47267e501c203250931cf3d6949c11083e351f3f8fa4ff6eb86377f874",
+        "18773d47267e501c203250931cf3d6949c11083e351f3f8fa4ff6eb86377f874",
+        "18773d47267e501c203250931cf3d6949c11083e351f3f8fa4ff6eb86377f874"
+      ]
+    },
+    "de": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 51,
+      "remainingExamples": [],
+      "answersSha256": [
+        "a01c484107fe542f4d9fe8c052dc014cd5c8b9eed9e8bc1f6c7badbce3e4f10b",
+        "a01c484107fe542f4d9fe8c052dc014cd5c8b9eed9e8bc1f6c7badbce3e4f10b",
+        "a01c484107fe542f4d9fe8c052dc014cd5c8b9eed9e8bc1f6c7badbce3e4f10b"
+      ]
+    },
+    "de-at": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 48,
+      "remainingExamples": [],
+      "answersSha256": [
+        "f8b19b61868e14880eff3deb9e85d9204bd4af688db6842070138daf3e8516d6",
+        "f8b19b61868e14880eff3deb9e85d9204bd4af688db6842070138daf3e8516d6",
+        "f8b19b61868e14880eff3deb9e85d9204bd4af688db6842070138daf3e8516d6"
+      ]
+    },
+    "de-ch": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 49,
+      "remainingExamples": [],
+      "answersSha256": [
+        "cb8200a03f55f78e17df634155ff283d9bf7da7b27297e51e5fd76fea18c4e22",
+        "cb8200a03f55f78e17df634155ff283d9bf7da7b27297e51e5fd76fea18c4e22",
+        "cb8200a03f55f78e17df634155ff283d9bf7da7b27297e51e5fd76fea18c4e22"
+      ]
+    },
+    "el": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 96,
+      "remainingExamples": [],
+      "answersSha256": [
+        "383e6c251139204e9f5982dc089cbffac605f5b3974f765b1c85dd4082fe5e3b",
+        "383e6c251139204e9f5982dc089cbffac605f5b3974f765b1c85dd4082fe5e3b",
+        "383e6c251139204e9f5982dc089cbffac605f5b3974f765b1c85dd4082fe5e3b"
+      ]
+    },
+    "eo": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 49,
+      "remainingExamples": [],
+      "answersSha256": [
+        "f9410d32a46f7bd1663194083ce6dbf08b06fb75c5515367952f1306475b6373",
+        "f9410d32a46f7bd1663194083ce6dbf08b06fb75c5515367952f1306475b6373",
+        "f9410d32a46f7bd1663194083ce6dbf08b06fb75c5515367952f1306475b6373"
+      ]
+    },
+    "es": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 70,
+      "remainingExamples": [],
+      "answersSha256": [
+        "d3e246d31f552b71649326ac85ae542be02f21193dc8fa185921438d319143b2",
+        "d3e246d31f552b71649326ac85ae542be02f21193dc8fa185921438d319143b2",
+        "d3e246d31f552b71649326ac85ae542be02f21193dc8fa185921438d319143b2"
+      ]
+    },
+    "es-ar": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 68,
+      "remainingExamples": [],
+      "answersSha256": [
+        "b4326617f3a9af99fb77f216450437464fa625904c2f9cb9d2a347da2e587f2c",
+        "b4326617f3a9af99fb77f216450437464fa625904c2f9cb9d2a347da2e587f2c",
+        "b4326617f3a9af99fb77f216450437464fa625904c2f9cb9d2a347da2e587f2c"
+      ]
+    },
+    "es-bo": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 72,
+      "remainingExamples": [],
+      "answersSha256": [
+        "f243167196e7ba2ab8d1520cc32d585c338af64ad7f6d8522ea7815253b95756",
+        "f243167196e7ba2ab8d1520cc32d585c338af64ad7f6d8522ea7815253b95756",
+        "f243167196e7ba2ab8d1520cc32d585c338af64ad7f6d8522ea7815253b95756"
+      ]
+    },
+    "es-cl": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 73,
+      "remainingExamples": [],
+      "answersSha256": [
+        "a3262a77c7eb570d1d0ef810ceec403b115d14acbae0ebe3954f73ce633a5efc",
+        "a3262a77c7eb570d1d0ef810ceec403b115d14acbae0ebe3954f73ce633a5efc",
+        "a3262a77c7eb570d1d0ef810ceec403b115d14acbae0ebe3954f73ce633a5efc"
+      ]
+    },
+    "es-co": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 72,
+      "remainingExamples": [],
+      "answersSha256": [
+        "53c6cca6ae68b784d87334e4c91ab2c3c74c88b4b6baef3a87807c7be17c258c",
+        "53c6cca6ae68b784d87334e4c91ab2c3c74c88b4b6baef3a87807c7be17c258c",
+        "53c6cca6ae68b784d87334e4c91ab2c3c74c88b4b6baef3a87807c7be17c258c"
+      ]
+    },
+    "es-cr": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 70,
+      "remainingExamples": [],
+      "answersSha256": [
+        "e7962ad0b8699faff3d68f185deed8a1763289825ff6faed78d1c6a3d30bf94c",
+        "e7962ad0b8699faff3d68f185deed8a1763289825ff6faed78d1c6a3d30bf94c",
+        "e7962ad0b8699faff3d68f185deed8a1763289825ff6faed78d1c6a3d30bf94c"
+      ]
+    },
+    "es-cu": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 70,
+      "remainingExamples": [],
+      "answersSha256": [
+        "98b19cf0a2b5016f002ccaf13604988b21503f09fff5b7ac22f6e3839e92aa73",
+        "98b19cf0a2b5016f002ccaf13604988b21503f09fff5b7ac22f6e3839e92aa73",
+        "98b19cf0a2b5016f002ccaf13604988b21503f09fff5b7ac22f6e3839e92aa73"
+      ]
+    },
+    "es-do": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 73,
+      "remainingExamples": [],
+      "answersSha256": [
+        "41aae28cbbde2f83d727c0353a4dd164f0783873d738932af9f31045412023a8",
+        "41aae28cbbde2f83d727c0353a4dd164f0783873d738932af9f31045412023a8",
+        "41aae28cbbde2f83d727c0353a4dd164f0783873d738932af9f31045412023a8"
+      ]
+    },
+    "es-ec": {
+      "probes": 207,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 72,
+      "remainingExamples": [],
+      "answersSha256": [
+        "00842ec069d83ec2dfa6f4cb51e2d31faeb55e8adcc98bf3fbfea72abfd855e6",
+        "00842ec069d83ec2dfa6f4cb51e2d31faeb55e8adcc98bf3fbfea72abfd855e6",
+        "00842ec069d83ec2dfa6f4cb51e2d31faeb55e8adcc98bf3fbfea72abfd855e6"
+      ]
+    },
+    "es-gq": {
+      "probes": 207,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 73,
+      "remainingExamples": [],
+      "answersSha256": [
+        "37b0199db8b6cdee6132082153d1c09842b13c41fc80ca12273a24a0f874f263",
+        "37b0199db8b6cdee6132082153d1c09842b13c41fc80ca12273a24a0f874f263",
+        "37b0199db8b6cdee6132082153d1c09842b13c41fc80ca12273a24a0f874f263"
+      ]
+    },
+    "es-gt": {
+      "probes": 207,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 69,
+      "remainingExamples": [],
+      "answersSha256": [
+        "9b7720ab009214d55a7138ee12b7536faa6e19de0a84dab3a076abadc00b98bd",
+        "9b7720ab009214d55a7138ee12b7536faa6e19de0a84dab3a076abadc00b98bd",
+        "9b7720ab009214d55a7138ee12b7536faa6e19de0a84dab3a076abadc00b98bd"
+      ]
+    },
+    "es-hn": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 74,
+      "remainingExamples": [],
+      "answersSha256": [
+        "802caa523c54c0d3166caf98b54d6b30ab6bbb98fd0de96b2c7c2ef3d8ba3924",
+        "802caa523c54c0d3166caf98b54d6b30ab6bbb98fd0de96b2c7c2ef3d8ba3924",
+        "802caa523c54c0d3166caf98b54d6b30ab6bbb98fd0de96b2c7c2ef3d8ba3924"
+      ]
+    },
+    "es-mx": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 67,
+      "remainingExamples": [],
+      "answersSha256": [
+        "69d371b5f899d4ef9240a9e098e2d2c94d921098abed3fbfd1c24b9829b9fcb9",
+        "69d371b5f899d4ef9240a9e098e2d2c94d921098abed3fbfd1c24b9829b9fcb9",
+        "69d371b5f899d4ef9240a9e098e2d2c94d921098abed3fbfd1c24b9829b9fcb9"
+      ]
+    },
+    "es-ni": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 67,
+      "remainingExamples": [],
+      "answersSha256": [
+        "6194765d2e28fa880aea030d635cc03e7091091df2170dd8f6df1de992069898",
+        "6194765d2e28fa880aea030d635cc03e7091091df2170dd8f6df1de992069898",
+        "6194765d2e28fa880aea030d635cc03e7091091df2170dd8f6df1de992069898"
+      ]
+    },
+    "es-pa": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 71,
+      "remainingExamples": [],
+      "answersSha256": [
+        "2f5de0d9760ea5df1dd2f2536b2822a07b2c8b0953bc7e50473e79964178d0e6",
+        "2f5de0d9760ea5df1dd2f2536b2822a07b2c8b0953bc7e50473e79964178d0e6",
+        "2f5de0d9760ea5df1dd2f2536b2822a07b2c8b0953bc7e50473e79964178d0e6"
+      ]
+    },
+    "es-pe": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 77,
+      "remainingExamples": [],
+      "answersSha256": [
+        "655bbfb1eda3e110d62f5af66a3994a1fae700ac8f793c51499e581dba34445b",
+        "655bbfb1eda3e110d62f5af66a3994a1fae700ac8f793c51499e581dba34445b",
+        "655bbfb1eda3e110d62f5af66a3994a1fae700ac8f793c51499e581dba34445b"
+      ]
+    },
+    "es-ph": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 68,
+      "remainingExamples": [],
+      "answersSha256": [
+        "e130606385896be4f86d3d52b88ea122a0b918b4d9995552e8be9c0ca11d97c7",
+        "e130606385896be4f86d3d52b88ea122a0b918b4d9995552e8be9c0ca11d97c7",
+        "e130606385896be4f86d3d52b88ea122a0b918b4d9995552e8be9c0ca11d97c7"
+      ]
+    },
+    "es-pr": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 72,
+      "remainingExamples": [],
+      "answersSha256": [
+        "cf44a51977a4a906e28d0f00a31ecc0c4a108f168d7310300ad15fb09c5d7405",
+        "cf44a51977a4a906e28d0f00a31ecc0c4a108f168d7310300ad15fb09c5d7405",
+        "cf44a51977a4a906e28d0f00a31ecc0c4a108f168d7310300ad15fb09c5d7405"
+      ]
+    },
+    "es-py": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 71,
+      "remainingExamples": [],
+      "answersSha256": [
+        "150678deed0ea0b4dc7857be9267cafba9f34cf1c5651dbac58f873d6f40e133",
+        "150678deed0ea0b4dc7857be9267cafba9f34cf1c5651dbac58f873d6f40e133",
+        "150678deed0ea0b4dc7857be9267cafba9f34cf1c5651dbac58f873d6f40e133"
+      ]
+    },
+    "es-sv": {
+      "probes": 207,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 70,
+      "remainingExamples": [],
+      "answersSha256": [
+        "e8e11dee492047aafcec4d28ddb3128db33ba007cee0e90c902f5a81ebe0923c",
+        "e8e11dee492047aafcec4d28ddb3128db33ba007cee0e90c902f5a81ebe0923c",
+        "e8e11dee492047aafcec4d28ddb3128db33ba007cee0e90c902f5a81ebe0923c"
+      ]
+    },
+    "es-us": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 72,
+      "remainingExamples": [],
+      "answersSha256": [
+        "d959e9c31d2235dcc6eadb2994c4cdee44535ed1707685fb596fd74b58006f5c",
+        "d959e9c31d2235dcc6eadb2994c4cdee44535ed1707685fb596fd74b58006f5c",
+        "d959e9c31d2235dcc6eadb2994c4cdee44535ed1707685fb596fd74b58006f5c"
+      ]
+    },
+    "es-uy": {
+      "originalAffixDiagnostic": "Failure loading aff file release.aff",
+      "originalReferenceDifferences": 11,
+      "referenceCopyHeaderCounts": [
+        {
+          "line": 6053,
+          "rule": "SFX ô",
+          "declared": 138,
+          "actual": 137
+        }
+      ],
+      "countedReferenceAffixSha256": "ad199f6933a72c213a68f82f666ad2967552303e2177f9e5a84a11d6921a77a1",
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 68,
+      "remainingExamples": [],
+      "answersSha256": [
+        "a080bd0fa580c38f187d875ff790776c945982838c0d98d85979754c80a45a28",
+        "a080bd0fa580c38f187d875ff790776c945982838c0d98d85979754c80a45a28",
+        "a080bd0fa580c38f187d875ff790776c945982838c0d98d85979754c80a45a28"
+      ]
+    },
+    "es-ve": {
+      "probes": 207,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 77,
+      "remainingExamples": [],
+      "answersSha256": [
+        "d794307336624fc09eb93a2b36ccb30b33cf2d236b342272eb3ddef41907cd0d",
+        "d794307336624fc09eb93a2b36ccb30b33cf2d236b342272eb3ddef41907cd0d",
+        "d794307336624fc09eb93a2b36ccb30b33cf2d236b342272eb3ddef41907cd0d"
+      ]
+    },
+    "et": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 112,
+      "remainingExamples": [],
+      "answersSha256": [
+        "5d3ef69ce71fd2b30fd1ff226adc45bf943070757a45074fd85d66810b815f0b",
+        "5d3ef69ce71fd2b30fd1ff226adc45bf943070757a45074fd85d66810b815f0b",
+        "5d3ef69ce71fd2b30fd1ff226adc45bf943070757a45074fd85d66810b815f0b"
+      ]
+    },
+    "fa": {
+      "probes": 195,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 82,
+      "remainingExamples": [],
+      "answersSha256": [
+        "8a52e2a442614672b2db68e9df91a61459cc6306c69b83cc94c309f162defb7b",
+        "8a52e2a442614672b2db68e9df91a61459cc6306c69b83cc94c309f162defb7b",
+        "8a52e2a442614672b2db68e9df91a61459cc6306c69b83cc94c309f162defb7b"
+      ]
+    },
+    "fr": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 52,
+      "remainingExamples": [],
+      "answersSha256": [
+        "454a0fcff1305d4ca5fd292fbb91ee6853cd1a938878c039d146735ca1fa1b02",
+        "454a0fcff1305d4ca5fd292fbb91ee6853cd1a938878c039d146735ca1fa1b02",
+        "454a0fcff1305d4ca5fd292fbb91ee6853cd1a938878c039d146735ca1fa1b02"
+      ]
+    },
+    "ga": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 68,
+      "remainingExamples": [],
+      "answersSha256": [
+        "887ab320bb82c9bc105a84f9540935d03e9161d34a97252a103ed2a94b95287f",
+        "887ab320bb82c9bc105a84f9540935d03e9161d34a97252a103ed2a94b95287f",
+        "887ab320bb82c9bc105a84f9540935d03e9161d34a97252a103ed2a94b95287f"
+      ]
+    },
+    "gl": {
+      "probes": 207,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 82,
+      "remainingExamples": [],
+      "answersSha256": [
+        "540e4de8292b76753947c434a771aaa265cb26d52f51c3ce49743b118d785749",
+        "540e4de8292b76753947c434a771aaa265cb26d52f51c3ce49743b118d785749",
+        "540e4de8292b76753947c434a771aaa265cb26d52f51c3ce49743b118d785749"
+      ]
+    },
+    "he": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 112,
+      "remainingExamples": [],
+      "answersSha256": [
+        "7074ea29fe4ca183f0a2171a854b7b257c650d85d886f9cea49c02b714c1e7ef",
+        "7074ea29fe4ca183f0a2171a854b7b257c650d85d886f9cea49c02b714c1e7ef",
+        "7074ea29fe4ca183f0a2171a854b7b257c650d85d886f9cea49c02b714c1e7ef"
+      ]
+    },
+    "hi": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 77,
+      "remainingExamples": [],
+      "answersSha256": [
+        "925f95072676400bdf5802b2b42ef83d554a0dd14afba6fc92b1483bd4ea2c64",
+        "925f95072676400bdf5802b2b42ef83d554a0dd14afba6fc92b1483bd4ea2c64",
+        "925f95072676400bdf5802b2b42ef83d554a0dd14afba6fc92b1483bd4ea2c64"
+      ]
+    },
+    "hr": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 68,
+      "remainingExamples": [],
+      "answersSha256": [
+        "c94b5f9cf00576e289eeb658bcda11ab8ade6a6025e7f32663f4814a7e41f04a",
+        "c94b5f9cf00576e289eeb658bcda11ab8ade6a6025e7f32663f4814a7e41f04a",
+        "c94b5f9cf00576e289eeb658bcda11ab8ade6a6025e7f32663f4814a7e41f04a"
+      ]
+    },
+    "hu": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 72,
+      "remainingExamples": [],
+      "answersSha256": [
+        "e4e8905e1f57a55cc9d6f8800e3681b5537dd4c61f5e03781f1baf507f37fdf0",
+        "e4e8905e1f57a55cc9d6f8800e3681b5537dd4c61f5e03781f1baf507f37fdf0",
+        "e4e8905e1f57a55cc9d6f8800e3681b5537dd4c61f5e03781f1baf507f37fdf0"
+      ]
+    },
+    "hy": {
+      "originalAffixDiagnostic": "Failure loading aff file release.aff",
+      "originalReferenceDifferences": 47,
+      "referenceCopyHeaderCounts": [
+        {
+          "line": 735,
+          "rule": "SFX VD",
+          "declared": 171,
+          "actual": 172
+        }
+      ],
+      "countedReferenceAffixSha256": "e9bc375687e8975ee00ed3f8b75544f05fda0621196773fd428464a2915e0a8f",
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 83,
+      "remainingExamples": [],
+      "answersSha256": [
+        "1769e817f6381d228ee12557f430987a0cb6b69e0d13e02eb0dd3deb9b06278c",
+        "1769e817f6381d228ee12557f430987a0cb6b69e0d13e02eb0dd3deb9b06278c",
+        "1769e817f6381d228ee12557f430987a0cb6b69e0d13e02eb0dd3deb9b06278c"
+      ]
+    },
+    "id": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 75,
+      "remainingExamples": [],
+      "answersSha256": [
+        "26da0961604dafb120cdcfb907a2124506fe359a4847ba021d7d58e555d9ba96",
+        "26da0961604dafb120cdcfb907a2124506fe359a4847ba021d7d58e555d9ba96",
+        "26da0961604dafb120cdcfb907a2124506fe359a4847ba021d7d58e555d9ba96"
+      ]
+    },
+    "is": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 66,
+      "remainingExamples": [],
+      "answersSha256": [
+        "e527dc5900a39b602c0c26c2b55ec8107c6e2856eb1bd70c8086fee375df3051",
+        "e527dc5900a39b602c0c26c2b55ec8107c6e2856eb1bd70c8086fee375df3051",
+        "e527dc5900a39b602c0c26c2b55ec8107c6e2856eb1bd70c8086fee375df3051"
+      ]
+    },
+    "it": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 66,
+      "remainingExamples": [],
+      "answersSha256": [
+        "cd090ae5edd27497fe3c8c795572bf1f06e0750db15d530770c31a79bd831ff0",
+        "cd090ae5edd27497fe3c8c795572bf1f06e0750db15d530770c31a79bd831ff0",
+        "cd090ae5edd27497fe3c8c795572bf1f06e0750db15d530770c31a79bd831ff0"
+      ]
+    },
+    "ka": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 68,
+      "remainingExamples": [],
+      "answersSha256": [
+        "bd4437169df98c16b70c22ebebc23395a60e7f2bb6cc156268016a1da360e3a4",
+        "bd4437169df98c16b70c22ebebc23395a60e7f2bb6cc156268016a1da360e3a4",
+        "bd4437169df98c16b70c22ebebc23395a60e7f2bb6cc156268016a1da360e3a4"
+      ]
+    },
+    "ko": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 64,
+      "remainingExamples": [],
+      "answersSha256": [
+        "c66061deda1d3c0b44a994130060a20068d6ea1d556743399953908b50ae63d1",
+        "c66061deda1d3c0b44a994130060a20068d6ea1d556743399953908b50ae63d1",
+        "c66061deda1d3c0b44a994130060a20068d6ea1d556743399953908b50ae63d1"
+      ]
+    },
+    "lt": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 69,
+      "remainingExamples": [],
+      "answersSha256": [
+        "3b3ff677f032f4ad77e88a42aa28a70937941135257082d4a78426c349b4a4f5",
+        "3b3ff677f032f4ad77e88a42aa28a70937941135257082d4a78426c349b4a4f5",
+        "3b3ff677f032f4ad77e88a42aa28a70937941135257082d4a78426c349b4a4f5"
+      ]
+    },
+    "lv": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 67,
+      "remainingExamples": [],
+      "answersSha256": [
+        "554f24d5852cc0d446d8d2159e8d58f6295f46340a2b640c873874cf006cbb59",
+        "554f24d5852cc0d446d8d2159e8d58f6295f46340a2b640c873874cf006cbb59",
+        "554f24d5852cc0d446d8d2159e8d58f6295f46340a2b640c873874cf006cbb59"
+      ]
+    },
+    "mk": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 74,
+      "remainingExamples": [],
+      "answersSha256": [
+        "d2b721b09a3589e4af580513ed4a37f49b84436867ce1bfc6c21b70fe0447e78",
+        "d2b721b09a3589e4af580513ed4a37f49b84436867ce1bfc6c21b70fe0447e78",
+        "d2b721b09a3589e4af580513ed4a37f49b84436867ce1bfc6c21b70fe0447e78"
+      ]
+    },
+    "nb": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 98,
+      "remainingExamples": [],
+      "answersSha256": [
+        "9233e619ad29cd263eef15ad9b3a5d634323d5013c189f814355159e11acfe4e",
+        "9233e619ad29cd263eef15ad9b3a5d634323d5013c189f814355159e11acfe4e",
+        "9233e619ad29cd263eef15ad9b3a5d634323d5013c189f814355159e11acfe4e"
+      ]
+    },
+    "nl": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 73,
+      "remainingExamples": [],
+      "answersSha256": [
+        "905f57092e64004597a419490182a738ccd530c8011abead8d42b297649207e9",
+        "905f57092e64004597a419490182a738ccd530c8011abead8d42b297649207e9",
+        "905f57092e64004597a419490182a738ccd530c8011abead8d42b297649207e9"
+      ]
+    },
+    "nn": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 101,
+      "remainingExamples": [],
+      "answersSha256": [
+        "33f8fea02ae803a797ca93846a269ce41bd7b601eb834e816c4820821a67f01b",
+        "33f8fea02ae803a797ca93846a269ce41bd7b601eb834e816c4820821a67f01b",
+        "33f8fea02ae803a797ca93846a269ce41bd7b601eb834e816c4820821a67f01b"
+      ]
+    },
+    "pl": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 70,
+      "remainingExamples": [],
+      "answersSha256": [
+        "cba9ab59614f3558fe434802b2076f89a704d11a39d5b291f378d2c8e459c30d",
+        "cba9ab59614f3558fe434802b2076f89a704d11a39d5b291f378d2c8e459c30d",
+        "cba9ab59614f3558fe434802b2076f89a704d11a39d5b291f378d2c8e459c30d"
+      ]
+    },
+    "pt-br": {
+      "probes": 207,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 90,
+      "remainingExamples": [],
+      "answersSha256": [
+        "2b986a73beee60a348bbd72d1d6d69268965892b703b2114cb3832ba77d758b1",
+        "2b986a73beee60a348bbd72d1d6d69268965892b703b2114cb3832ba77d758b1",
+        "2b986a73beee60a348bbd72d1d6d69268965892b703b2114cb3832ba77d758b1"
+      ]
+    },
+    "pt-pt": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 87,
+      "remainingExamples": [],
+      "answersSha256": [
+        "d0d7b8440ab439d713475a6c667c3ff4097900af0f4117d6366207a49ceb6e9e",
+        "d0d7b8440ab439d713475a6c667c3ff4097900af0f4117d6366207a49ceb6e9e",
+        "d0d7b8440ab439d713475a6c667c3ff4097900af0f4117d6366207a49ceb6e9e"
+      ]
+    },
+    "ro": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 74,
+      "remainingExamples": [],
+      "answersSha256": [
+        "f17e5072e3b30714ad7d5b7b45070ab8f6ea34af22d8ad17010260ac70a82d81",
+        "f17e5072e3b30714ad7d5b7b45070ab8f6ea34af22d8ad17010260ac70a82d81",
+        "f17e5072e3b30714ad7d5b7b45070ab8f6ea34af22d8ad17010260ac70a82d81"
+      ]
+    },
+    "ru": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 64,
+      "remainingExamples": [],
+      "answersSha256": [
+        "7fbfdbd899ea031b78d9902be05c66578083f54176ffdb3ff3a16a7c9ffa3311",
+        "7fbfdbd899ea031b78d9902be05c66578083f54176ffdb3ff3a16a7c9ffa3311",
+        "7fbfdbd899ea031b78d9902be05c66578083f54176ffdb3ff3a16a7c9ffa3311"
+      ]
+    },
+    "sk": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 66,
+      "remainingExamples": [],
+      "answersSha256": [
+        "ad8286df2eadea0be7bb13d90b4e7cf99b396940b1ddfa4adb6186cb9d808b4b",
+        "ad8286df2eadea0be7bb13d90b4e7cf99b396940b1ddfa4adb6186cb9d808b4b",
+        "ad8286df2eadea0be7bb13d90b4e7cf99b396940b1ddfa4adb6186cb9d808b4b"
+      ]
+    },
+    "sl": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 69,
+      "remainingExamples": [],
+      "answersSha256": [
+        "0c13c04e8de6e4b041e0ca0a5306201340f6d1b3068331be15f20730e9dd205b",
+        "0c13c04e8de6e4b041e0ca0a5306201340f6d1b3068331be15f20730e9dd205b",
+        "0c13c04e8de6e4b041e0ca0a5306201340f6d1b3068331be15f20730e9dd205b"
+      ]
+    },
+    "sq": {
+      "probes": 204,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 59,
+      "remainingExamples": [],
+      "answersSha256": [
+        "98ec00e885ecbaef3bb3a10b66fa2fe747f5ef2d41bdc26cc98f8294af311871",
+        "98ec00e885ecbaef3bb3a10b66fa2fe747f5ef2d41bdc26cc98f8294af311871",
+        "98ec00e885ecbaef3bb3a10b66fa2fe747f5ef2d41bdc26cc98f8294af311871"
+      ]
+    },
+    "sr": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 69,
+      "remainingExamples": [],
+      "answersSha256": [
+        "3787cbfac3a920cdcfaf73661f15459f5e47d041b86594c98ba72b6cd623cc03",
+        "3787cbfac3a920cdcfaf73661f15459f5e47d041b86594c98ba72b6cd623cc03",
+        "3787cbfac3a920cdcfaf73661f15459f5e47d041b86594c98ba72b6cd623cc03"
+      ]
+    },
+    "sr-latn": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 72,
+      "remainingExamples": [],
+      "answersSha256": [
+        "a5f14e7b789cad81b8ebe92968b25dcb2ac703f139f621f3c7e0784a7444b3ed",
+        "a5f14e7b789cad81b8ebe92968b25dcb2ac703f139f621f3c7e0784a7444b3ed",
+        "a5f14e7b789cad81b8ebe92968b25dcb2ac703f139f621f3c7e0784a7444b3ed"
+      ]
+    },
+    "sv": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 68,
+      "remainingExamples": [],
+      "answersSha256": [
+        "dd2502426c25a34c29592dc441def9cf99b366e6941cd3628f0d9d0ace00853b",
+        "dd2502426c25a34c29592dc441def9cf99b366e6941cd3628f0d9d0ace00853b",
+        "dd2502426c25a34c29592dc441def9cf99b366e6941cd3628f0d9d0ace00853b"
+      ]
+    },
+    "sv-fi": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 69,
+      "remainingExamples": [],
+      "answersSha256": [
+        "c4be47f5f2c2e1005dba188bb9e61b1bc06559e61e28793eaf231e0db61ca565",
+        "c4be47f5f2c2e1005dba188bb9e61b1bc06559e61e28793eaf231e0db61ca565",
+        "c4be47f5f2c2e1005dba188bb9e61b1bc06559e61e28793eaf231e0db61ca565"
+      ]
+    },
+    "sw": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 104,
+      "remainingExamples": [],
+      "answersSha256": [
+        "8b9b1900bfd4eb66cfceef582f1cba36ad88b1baee538cd5edcaa7ee8dec653d",
+        "8b9b1900bfd4eb66cfceef582f1cba36ad88b1baee538cd5edcaa7ee8dec653d",
+        "8b9b1900bfd4eb66cfceef582f1cba36ad88b1baee538cd5edcaa7ee8dec653d"
+      ]
+    },
+    "ta": {
+      "originalAffixDiagnostic": "Failure loading aff file release.aff",
+      "originalReferenceDifferences": 2,
+      "referenceCopyHeaderCounts": [
+        {
+          "line": 132,
+          "rule": "SFX D",
+          "declared": 13,
+          "actual": 14
+        },
+        {
+          "line": 330,
+          "rule": "SFX v",
+          "declared": 4,
+          "actual": 5
+        }
+      ],
+      "countedReferenceAffixSha256": "41663eefdfc9b10db54817cb903b341d35d51b863d4e36581f163799690db4e6",
+      "probes": 165,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 67,
+      "remainingExamples": [],
+      "answersSha256": [
+        "eadd4d7f8dbcafc285a41e46c532d793c7547a9c1da9e6c3705eb67e0c68c071",
+        "eadd4d7f8dbcafc285a41e46c532d793c7547a9c1da9e6c3705eb67e0c68c071",
+        "eadd4d7f8dbcafc285a41e46c532d793c7547a9c1da9e6c3705eb67e0c68c071"
+      ]
+    },
+    "tr": {
+      "probes": 208,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 65,
+      "remainingExamples": [],
+      "answersSha256": [
+        "539d1e70fa6cc4cd30174e826aa62339e42334eca9f53405c65d7bc1a10727ab",
+        "539d1e70fa6cc4cd30174e826aa62339e42334eca9f53405c65d7bc1a10727ab",
+        "539d1e70fa6cc4cd30174e826aa62339e42334eca9f53405c65d7bc1a10727ab"
+      ]
+    },
+    "vi": {
+      "probes": 204,
+      "baselineDifferences": 0,
+      "candidateDifferences": 0,
+      "referenceAccepted": 107,
+      "remainingExamples": [],
+      "answersSha256": [
+        "3a8fd717d9c574b11c41ffe716d1ce4e8b7d6d93bd0260ebbb398bb040e9d40d",
+        "3a8fd717d9c574b11c41ffe716d1ce4e8b7d6d93bd0260ebbb398bb040e9d40d",
+        "3a8fd717d9c574b11c41ffe716d1ce4e8b7d6d93bd0260ebbb398bb040e9d40d"
+      ]
+    }
+  },
+  "affixCombinations": {
+    "grammars": 256,
+    "wordsPerGrammar": [
+      "work",
+      "workable",
+      "workables",
+      "nework",
+      "neworkable",
+      "neworkables"
+    ],
+    "oracleSha256": "403c669b64bee79b0a57b7890a76e506c73b3a9670bab04473f90cf2890a82c9",
+    "baselineDifferences": 20,
+    "candidateDifferences": 0,
+    "corrected": [
+      [
+        0,
+        0,
+        0,
+        "NNN",
+        "inner",
+        "neworkable",
+        false
+      ],
+      [
+        0,
+        0,
+        0,
+        "NNY",
+        "inner",
+        "neworkable",
+        false
+      ],
+      [
+        0,
+        0,
+        0,
+        "NYN",
+        "inner",
+        "neworkable",
+        false
+      ],
+      [
+        0,
+        0,
+        0,
+        "NYY",
+        "inner",
+        "neworkable",
+        false
+      ],
+      [
+        0,
+        0,
+        0,
+        "YNN",
+        "inner",
+        "neworkable",
+        false
+      ],
+      [
+        0,
+        0,
+        0,
+        "YNY",
+        "inner",
+        "neworkable",
+        false
+      ],
+      [
+        0,
+        0,
+        1,
+        "NNN",
+        "inner",
+        "neworkable",
+        false
+      ],
+      [
+        0,
+        0,
+        1,
+        "NNY",
+        "inner",
+        "neworkable",
+        false
+      ],
+      [
+        0,
+        0,
+        1,
+        "NYN",
+        "inner",
+        "neworkable",
+        false
+      ],
+      [
+        0,
+        0,
+        1,
+        "NYY",
+        "inner",
+        "neworkable",
+        false
+      ],
+      [
+        0,
+        0,
+        1,
+        "YNN",
+        "inner",
+        "neworkable",
+        false
+      ],
+      [
+        0,
+        0,
+        1,
+        "YNY",
+        "inner",
+        "neworkable",
+        false
+      ],
+      [
+        1,
+        0,
+        0,
+        "YNY",
+        "outer",
+        "neworkables",
+        true
+      ],
+      [
+        1,
+        0,
+        0,
+        "YYY",
+        "outer",
+        "neworkables",
+        true
+      ],
+      [
+        1,
+        0,
+        1,
+        "YNY",
+        "outer",
+        "neworkables",
+        true
+      ],
+      [
+        1,
+        0,
+        1,
+        "YYY",
+        "outer",
+        "neworkables",
+        true
+      ],
+      [
+        1,
+        1,
+        0,
+        "YYY",
+        "stem",
+        "neworkables",
+        true
+      ],
+      [
+        1,
+        1,
+        0,
+        "YYY",
+        "inner",
+        "neworkables",
+        true
+      ],
+      [
+        1,
+        1,
+        1,
+        "YYY",
+        "stem",
+        "neworkables",
+        true
+      ],
+      [
+        1,
+        1,
+        1,
+        "YYY",
+        "inner",
+        "neworkables",
+        true
+      ]
+    ]
+  },
+  "uosSystemReference": {
+    "version": "1.7.2",
+    "librarySha256": "b92940b64d1d90058818d5bf04454677de39a6835b33f576388f99d0a8e7abcf",
+    "combinationsSha256": "c578370398d182c11b72714daf60123ded09b01a3ac082a22131bfcac21e942c",
+    "comparisons": 1536,
+    "wordsAcceptedOnlyBySystemVersion": 32,
+    "word": "nework"
+  }
+}

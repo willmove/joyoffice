@@ -139,7 +139,8 @@ def compare(binaries, directory, locale, probes):
                    "orderedIssueSha256":signature}
 
 
-def verify_desktop(binary, dictionary, out):
+def verify_desktop(binary, dictionary, out, words=("teh", "tests", "tset"),
+                   ordered=EXPECTED["teh"], replacement="the"):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
     from native_pilot_support import app, port, wait, word_request
     from verify_save_changes import word_keys
@@ -148,7 +149,7 @@ def verify_desktop(binary, dictionary, out):
     out.mkdir()
     source = out / "原始拼写.docx"
     working = out / "校对 副本.docx"
-    make_document(source, "nl", ["teh", "tests", "tset"])
+    make_document(source, "nl", words)
     original = sha(source)
     shutil.copyfile(source, working)
     number, token = port(), secrets.token_hex(32)
@@ -173,7 +174,7 @@ def verify_desktop(binary, dictionary, out):
         spell = wait(lambda: surface.find({"review-spelling", "拼写和语法", "Spelling & Grammar"}, "button"),
                      "Spelling & Grammar", proc)
         surface.press(spell)
-        suggestions = ", ".join(EXPECTED["teh"])
+        suggestions = ", ".join(ordered)
 
         def displayed():
             texts = []
@@ -183,12 +184,12 @@ def verify_desktop(binary, dictionary, out):
                     interface = node["object"].get_text_iface()
                     if interface:
                         texts.append(interface.get_text(0, -1))
-            return any(suggestions in t for t in texts) and any("teh" in t for t in texts)
+            return any(suggestions in t for t in texts) and any(words[0] in t for t in texts)
 
         wait(displayed, "issue and ordered recommendations displayed", proc)
         surface.key("escape")
-        corrected = initial.replace("teh", "the", 1)
-        edit("text.insert", text="the")
+        corrected = initial.replace(words[0], replacement, 1)
+        edit("text.insert", text=replacement)
         assert inspect()["text"] == corrected
         edit("edit.undo")
         assert inspect()["text"] == initial
@@ -202,15 +203,31 @@ def verify_desktop(binary, dictionary, out):
         def saved():
             with ZipFile(working) as archive:
                 body = ET.fromstring(archive.read("word/document.xml"))
-            return [t.text for t in body.findall(".//{*}t")] == ["the", "tests", "tset"]
+            return [t.text for t in body.findall(".//{*}t")] == [replacement, *words[1:]]
 
         wait(saved, "corrected DOCX written", proc)
     with app(binary, args, out, env, "reopen.log") as proc:
         assert wait(inspect, "corrected copy reopened", proc)["text"] == corrected
     assert sha(source) == original
-    return {"binarySha256": sha(binary), "sourceSha256": original, "selectedWord": "teh",
-            "displayedSuggestions": EXPECTED["teh"], "replacement": "the", "undoRedo": True,
+    return {"binarySha256": sha(binary), "sourceSha256": original, "selectedWord": words[0],
+            "displayedSuggestions": ordered, "replacement": replacement, "undoRedo": True,
             "savedAndReopened": True, "originalUnchanged": True}
+
+
+def verify_circumfix(binaries, desktop, out):
+    aff = b"SET UTF-8\nTRY worksablen\nCIRCUMFIX c\nPFX P Y 1\nPFX P 0 ne/c .\nSFX A Y 1\nSFX A 0 able/Bc .\nSFX B Y 1\nSFX B 0 s .\n"
+    folder = out/"paired-affixes"
+    write_dictionary(folder, "nl", aff, b"1\nwork/AP\n")
+    words = ["neworkabless", "neworkables", "neworkable", "workables", "nework"]
+    old, new = [results(binary, folder, "nl", words) for binary in binaries]
+    assert [r["text"] for r in old] == [words[i] for i in (0, 1, 3, 4)]
+    assert [r["text"] for r in new] == [words[i] for i in (0, 3, 4)]
+    assert new[0]["suggestions"] == [words[1]]
+    result = {"words": words, "baseline": old, "candidate": new}
+    if desktop:
+        result["desktop"] = verify_desktop(desktop, folder, out/"circumfix-window",
+                                         words[:3], [words[1]], words[1])
+    return result
 
 
 if __name__ == "__main__":
@@ -221,6 +238,7 @@ if __name__ == "__main__":
     parser.add_argument("--desktop",type=Path,help="also exercise the native Review ribbon and its spelling dialog")
     parser.add_argument("--candidate-edits", action="store_true",
                         help="also compare insertion, substitution, duplication, case and dictionary-directed edits")
+    parser.add_argument("--paired-affixes", action="store_true", help="verify corrected prefix and double-suffix recognition")
     args = parser.parse_args()
     out = args.output.resolve()
     out.mkdir(parents=True,exist_ok=False)
@@ -234,6 +252,8 @@ if __name__ == "__main__":
         report["synthetic"][locale] = counts
     if args.desktop:
         report["desktop"] = verify_desktop(args.desktop.resolve(), out/"small-nl", out/"desktop")
+    if args.paired_affixes:
+        report["pairedAffixes"] = verify_circumfix(binaries, args.desktop.resolve() if args.desktop else None, out)
     if args.release_packs:
         index = args.release_packs/"index.json"
         assert sha(index) == PUBLISHED_INDEX

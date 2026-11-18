@@ -868,17 +868,11 @@ impl AffixDict {
         }
         self.suffix_analyses(p, None, excluded, work, emit);
         let mut root = String::with_capacity(p.len() + 8);
-        let ends = std::iter::once(0).chain(p.char_indices().map(|(i, c)| i + c.len_utf8()));
-        for b in ends.take(self.max_pfx_chars + 1) {
-            let (Some(add), Some(rest)) = (p.get(..b), p.get(b..)) else {
-                continue;
-            };
+        for (bytes, ids) in self.pfx_index.matches(p) {
+            let rest = &p[bytes..];
             if rest.is_empty() && !self.full_strip {
                 continue;
             }
-            let Some(ids) = self.pfx_index.get(add) else {
-                continue;
-            };
             for r in ids.iter().filter_map(|&i| self.prefixes.get(i as usize)) {
                 *work += 1;
                 if *work > MAX_WORK {
@@ -925,19 +919,11 @@ impl AffixDict {
         emit: &mut impl FnMut(Analysis<'a>),
     ) {
         let mut root = String::with_capacity(p.len() + 8);
-        let cuts = std::iter::once(p.len()).chain(
-            p.char_indices()
-                .rev()
-                .map(|(i, _)| i)
-                .filter(|&i| i > 0 || self.full_strip),
-        );
-        for b in cuts.take(self.max_sfx_chars + 1) {
-            let (Some(base), Some(add)) = (p.get(..b), p.get(b..)) else {
+        for (bytes, groups) in self.sfx_index.matches(p) {
+            let base = &p[..p.len() - bytes];
+            if bytes != 0 && base.is_empty() && !self.full_strip {
                 continue;
-            };
-            let Some(groups) = self.sfx_index.get(add) else {
-                continue;
-            };
+            }
             for g in groups {
                 root.clear();
                 root.push_str(base);
@@ -1015,19 +1001,11 @@ impl AffixDict {
         emit: &mut impl FnMut(Analysis<'a>),
     ) {
         let mut root = String::with_capacity(form.len() + 8);
-        let cuts = std::iter::once(form.len()).chain(
-            form.char_indices()
-                .rev()
-                .map(|(i, _)| i)
-                .filter(|&i| i > 0 || self.full_strip),
-        );
-        for b in cuts.take(self.max_sfx_chars + 1) {
-            let (Some(base), Some(add)) = (form.get(..b), form.get(b..)) else {
+        for (bytes, groups) in self.sfx_index.matches(form) {
+            let base = &form[..form.len() - bytes];
+            if bytes != 0 && base.is_empty() && !self.full_strip {
                 continue;
-            };
-            let Some(groups) = self.sfx_index.get(add) else {
-                continue;
-            };
+            }
             for g in groups.iter().filter(|g| !g.cont_rules.is_empty()) {
                 root.clear();
                 root.push_str(base);
