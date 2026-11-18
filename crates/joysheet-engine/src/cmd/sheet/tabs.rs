@@ -28,7 +28,7 @@ pub(super) fn insert_sheet(s: &mut Session, p: &Json) -> Result<Json> {
         cx.structural = true;
         Ok(at)
     })?;
-    d.sheet_selections.insert(idx.min(d.sheet_selections.len()), crate::Selection::default());
+    d.insert_selection_slot(idx);
     Ok(json!({"index": idx, "name": name}))
 }
 
@@ -87,6 +87,7 @@ pub(super) fn delete_sheet(s: &mut Session, p: &Json) -> Result<Json> {
     })?;
     if i < d.sheet_selections.len() {
         d.sheet_selections.remove(i);
+        d.sheet_selection_names.remove(i);
     }
     ok()
 }
@@ -98,7 +99,7 @@ pub(super) fn rename_sheet(s: &mut Session, p: &Json) -> Result<Json> {
     let i = target_sheet(s, p)?;
     let Some(name) = str_param(p, "name").map(|n| n.trim().to_string()) else { return Err(bad("sheet.rename", "missing `name`")) };
     s.doc()?.wb.check_sheet_name(&name, Some(i)).map_err(EngineError::Other)?;
-    edit(s, |cx| {
+    let updated = edit(s, |cx| {
         let old = cx.wb.sheet(i).map(|s| s.name.clone()).unwrap_or_default();
         cx.sheet_mut(i)?.name = name.clone();
         for si in 0..cx.wb.sheets.len() {
@@ -142,7 +143,12 @@ pub(super) fn rename_sheet(s: &mut Session, p: &Json) -> Result<Json> {
         }
         cx.structural = true;
         Ok(Json::Null)
-    })
+    })?;
+    let d = s.doc_mut()?;
+    if let Some(slot) = d.sheet_selection_names.get_mut(i) {
+        slot.clone_from(&name);
+    }
+    Ok(updated)
 }
 
 pub(super) fn move_sheet(s: &mut Session, p: &Json) -> Result<Json> {
@@ -152,7 +158,15 @@ pub(super) fn move_sheet(s: &mut Session, p: &Json) -> Result<Json> {
     let i = target_sheet(s, p)?;
     let copy = bool_param(p, "copy").unwrap_or(false);
     let to = p.get("to").and_then(Json::as_u64).map(|v| v as usize).ok_or_else(|| bad("sheet.move", "missing `to`"))?;
-    edit(s, |cx| {
+    let d = s.doc_mut()?;
+    d.align_selection_slots();
+    let active = d.wb.active_sheet();
+    if let Some(slot) = d.sheet_selections.get_mut(active) {
+        slot.clone_from(&d.selection);
+    }
+    let moved_selection = d.sheet_selections.get(i).cloned().ok_or_else(|| bad("sheet.move", "no such sheet"))?;
+    edit_doc(d, |cx| {
+        *cx.sel = moved_selection;
         let n = cx.wb.sheets.len();
         let Some(src) = cx.wb.sheets.get(i).cloned() else { return Err(bad("sheet.move", "no such sheet")) };
         if copy {

@@ -158,40 +158,35 @@ pub fn write_sheet(wb: &Workbook, si: usize, selected: bool, out: &mut Out) -> (
     if sheet.zoom != 100 && (10..=400).contains(&sheet.zoom) {
         let _ = write!(s, " zoomScale=\"{0}\" zoomScaleNormal=\"{0}\"", sheet.zoom);
     }
-    if sheet.view_top_left != CellRef::default() && sheet.freeze.is_none() {
-        let _ = write!(s, " topLeftCell=\"{}\"", sheet.view_top_left.a1());
+    let (rows, cols) = sheet.freeze.unwrap_or_default();
+    let top = sheet.view_top_left;
+    let main_origin = CellRef::new(if rows == 0 { top.row } else { 0 }, if cols == 0 { top.col } else { 0 });
+    if main_origin != CellRef::default() {
+        let _ = write!(s, " topLeftCell=\"{}\"", main_origin.a1());
     }
     s.push_str(" workbookViewId=\"0\">");
-    let active = sheet.view_active.a1();
-    match sheet.freeze {
-        Some((rows, cols)) if rows > 0 || cols > 0 => {
-            let pane = match (rows > 0, cols > 0) {
-                (true, true) => "bottomRight",
-                (true, false) => "bottomLeft",
-                _ => "topRight",
-            };
-            s.push_str("<pane");
-            if cols > 0 {
-                let _ = write!(s, " xSplit=\"{cols}\"");
-            }
-            if rows > 0 {
-                let _ = write!(s, " ySplit=\"{rows}\"");
-            }
-            let _ = write!(
-                s,
-                " topLeftCell=\"{}\" activePane=\"{pane}\" state=\"frozen\"/>",
-                CellRef::new(
-                    rows.max(sheet.view_top_left.row).min(joysheet_core::MAX_ROWS - 1),
-                    cols.max(sheet.view_top_left.col).min(joysheet_core::MAX_COLS - 1)
-                )
-                .a1()
-            );
-            let _ = write!(s, "<selection pane=\"{pane}\" activeCell=\"{active}\" sqref=\"{active}\"/>");
+    if let Some((rows, cols)) = sheet.freeze
+        && (rows > 0 || cols > 0)
+    {
+        let pane = crate::sheet_view::active_name(sheet);
+        s.push_str("<pane");
+        if cols > 0 {
+            let _ = write!(s, " xSplit=\"{cols}\"");
         }
-        _ => {
-            let _ = write!(s, "<selection activeCell=\"{active}\" sqref=\"{active}\"/>");
+        if rows > 0 {
+            let _ = write!(s, " ySplit=\"{rows}\"");
         }
+        let _ = write!(
+            s,
+            " topLeftCell=\"{}\" activePane=\"{pane}\" state=\"frozen\"/>",
+            CellRef::new(
+                if rows == 0 { 0 } else { rows.max(top.row).min(joysheet_core::MAX_ROWS - 1) },
+                if cols == 0 { 0 } else { cols.max(top.col).min(joysheet_core::MAX_COLS - 1) }
+            )
+            .a1()
+        );
     }
+    crate::sheet_view::write_selections(&mut s, sheet);
     s.push_str("</sheetView></sheetViews>");
 
     // sheetFormatPr

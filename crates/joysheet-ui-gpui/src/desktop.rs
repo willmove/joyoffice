@@ -108,6 +108,12 @@ pub struct ReferencePick {
     pub text: String,
 }
 
+struct RememberedSheetView {
+    scroll: (f64, f64),
+    active: CellRef,
+    origin: Option<CellRef>,
+}
+
 pub struct Desktop {
     pub performance: crate::performance::Performance,
     pub ime_geometry: Option<(Bounds<Pixels>, f32)>,
@@ -140,7 +146,8 @@ pub struct Desktop {
     pub barriers: Vec<crate::control::Barrier>,
     pub next_barrier: u64,
     pub scroll: (f64, f64),
-    pub sheet_views: HashMap<(u64, String), ((f64, f64), CellRef)>,
+    sheet_views: HashMap<(u64, String), RememberedSheetView>,
+    pub(crate) pending_view_origin: Option<CellRef>,
     pub geometry: Option<SheetGeometry>,
     pub geometry_key: Option<(u64, usize, u64)>,
     pub cf_cache: std::rc::Rc<std::cell::RefCell<joysheet_engine::cf::CfCache>>,
@@ -338,6 +345,8 @@ impl Desktop {
         })
         .detach();
         let snapshot = engine.latest();
+        let pending_view_origin =
+            id.and_then(|id| snapshot.window(id)).or_else(|| snapshot.active()).and_then(WindowSnapshot::sheet).map(|sheet| sheet.view_top_left);
         let mut this = Self {
             performance: Default::default(),
             ime_geometry: None,
@@ -371,6 +380,7 @@ impl Desktop {
             next_barrier: 0,
             scroll: (0.0, 0.0),
             sheet_views: HashMap::new(),
+            pending_view_origin,
             geometry: None,
             geometry_key: None,
             cf_cache: Default::default(),
@@ -481,7 +491,44 @@ impl Desktop {
     pub fn label(&self, zh: &str, en: &str) -> String {
         if self.chinese() { zh.into() } else { en.into() }
     }
-    pub fn issue(&mut self, command: &str, params: Value, mut after: After, cx: &mut Context<Self>) {
+    fn visible_origin(&self) -> Option<CellRef> {
+        let view = self.view()?;
+        if view.sheet()?.view == joysheet_engine::model::SheetViewMode::PageLayout {
+            return None;
+        }
+        if let Some(origin) = self.pending_view_origin {
+            return Some(origin);
+        }
+        if self.geometry_key.map(|(doc, sheet, _)| (doc, sheet)) != Some((view.doc, view.sheet)) {
+            return None;
+        }
+        Some(CellRef::new(self.layout.rows.iter().find(|r| !r.frozen)?.index, self.layout.cols.iter().find(|c| !c.frozen)?.index))
+    }
+    fn view_origins(&self) -> std::collections::BTreeMap<String, String> {
+        let mut origins = std::collections::BTreeMap::new();
+        if let Some(view) = self.view() {
+            for ((doc, name), saved) in &self.sheet_views {
+                if *doc == view.doc
+                    && let Some(origin) = saved.origin
+                {
+                    origins.insert(name.clone(), origin.a1());
+                }
+            }
+            if let Some(sheet) = view.sheet()
+                && let Some(origin) = self.visible_origin()
+            {
+                origins.insert(sheet.name.clone(), origin.a1());
+            }
+        }
+        origins
+    }
+    pub(crate) fn attach_save_view(&self, command: &str, params: &mut Value) {
+        if matches!(command, "file.save" | "file.saveAs" | "file.saveBytes") && params.is_object() {
+            params["sheetViewOrigins"] = json!(self.view_origins());
+        }
+    }
+    pub fn issue(&mut self, command: &str, mut params: Value, mut after: After, cx: &mut Context<Self>) {
+        self.attach_save_view(command, &mut params);
         if command == "home.fontName"
             && matches!(after, After::None)
             && let Some(name) = params["name"].as_str()
@@ -652,6 +699,7 @@ impl Desktop {
             let prior_path = self.view().and_then(|v| v.path.clone());
             let prior_location = self.view().map(|v| (v.doc, v.sheet, v.selection.active));
             let prior_sheet = self.view().and_then(|v| v.sheet().map(|s| (v.doc, s.name.clone(), v.selection.active)));
+            let prior_origin = self.visible_origin();
             let prior_active = self.snapshot.active_window;
             let closed: std::collections::HashSet<_> =
                 self.snapshot.windows.iter().map(|w| w.doc).filter(|id| !latest.windows.iter().any(|w| w.doc == *id)).collect();
@@ -669,14 +717,18 @@ impl Desktop {
             let mut restored = false;
             if prior_sheet.as_ref().map(|v| (v.0, &v.1)) != next_sheet.as_ref().map(|v| (v.0, &v.1)) {
                 if let Some((doc, name, cell)) = prior_sheet {
-                    self.sheet_views.insert((doc, name), (self.scroll, cell));
+                    self.sheet_views.insert((doc, name), RememberedSheetView { scroll: self.scroll, active: cell, origin: prior_origin });
                 }
                 self.scroll = (0., 0.);
-                if let Some((doc, name, cell)) = next_sheet
-                    && let Some((scroll, selected)) = self.sheet_views.get(&(doc, name))
-                {
-                    self.scroll = *scroll;
-                    restored = *selected == cell;
+                self.pending_view_origin = None;
+                if let Some((doc, name, cell)) = next_sheet {
+                    if let Some(saved) = self.sheet_views.get(&(doc, name)) {
+                        self.scroll = saved.scroll;
+                        restored = saved.active == cell;
+                    } else if let Some(sheet) = self.view().and_then(WindowSnapshot::sheet) {
+                        self.pending_view_origin = Some(sheet.view_top_left);
+                        restored = true;
+                    }
                 }
             }
             if prior_active != self.snapshot.active_window && self.snapshot.active_window == self.window_id {
@@ -1144,7 +1196,7 @@ impl Desktop {
         let result = if self.draft.is_some() || !self.view().is_some_and(|v| v.window == target.window && v.doc == target.doc) {
             Err(self.label("保存时工作簿或编辑内容已更改，请重试", "The workbook or draft changed. Try saving again."))
         } else {
-            self.engine.save_target(target, path)
+            self.engine.save_target_with_view(target, path, &self.view_origins())
         };
         match result {
             Ok(ticket) => {

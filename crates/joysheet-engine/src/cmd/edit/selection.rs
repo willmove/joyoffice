@@ -35,14 +35,33 @@ pub(super) fn selection_set(s: &mut Session, p: &Json) -> Result<Json> {
 
 impl crate::DocState {
     /// Switches the active sheet, remembering each sheet's selection.
+    /// A second window or Undo can reorder the sheets while this view is inactive.
+    /// Keep the saved ranges attached to their worksheet on the next use.
+    pub(crate) fn align_selection_slots(&mut self) {
+        if self.sheet_selection_names.iter().eq(self.wb.sheets.iter().map(|s| &s.name)) {
+            return;
+        }
+        let mut remembered: std::collections::HashMap<_, _> = self.sheet_selection_names.drain(..).zip(self.sheet_selections.drain(..)).collect();
+        for sheet in &self.wb.sheets {
+            self.sheet_selections.push(remembered.remove(&sheet.name).unwrap_or_else(|| crate::Selection::from_sheet(sheet)));
+            self.sheet_selection_names.push(sheet.name.clone());
+        }
+    }
+    pub(crate) fn insert_selection_slot(&mut self, at: usize) {
+        if !self.sheet_selections.is_empty()
+            && at <= self.sheet_selections.len()
+            && let Some(sheet) = self.wb.sheets.get(at)
+        {
+            self.sheet_selections.insert(at, crate::Selection::from_sheet(sheet));
+            self.sheet_selection_names.insert(at, sheet.name.clone());
+        }
+    }
     pub fn wb_switch_sheet(&mut self, i: usize) {
         if i >= self.wb.sheets.len() || i == self.wb.active_sheet() {
             return;
         }
         let cur = self.wb.active_sheet();
-        if self.sheet_selections.len() < self.wb.sheets.len() {
-            self.sheet_selections.resize(self.wb.sheets.len(), crate::Selection::default());
-        }
+        self.align_selection_slots();
         if let Some(slot) = self.sheet_selections.get_mut(cur) {
             *slot = self.selection.clone();
         }

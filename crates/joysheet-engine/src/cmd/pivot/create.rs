@@ -164,7 +164,7 @@ pub(super) fn insert_pivot(s: &mut Session, p: &Json) -> Result<Json> {
     if let Some(at) = new_sheet_at
         && let Ok(d) = s.doc_mut()
     {
-        d.sheet_selections.insert(at.min(d.sheet_selections.len()), crate::Selection::default());
+        d.insert_selection_slot(at);
     }
     Ok(res)
 }
@@ -267,7 +267,7 @@ pub(super) fn show_details(s: &mut Session, p: &Json) -> Result<Json> {
     if let Some(at) = new_sheet_at
         && let Ok(d) = s.doc_mut()
     {
-        d.sheet_selections.insert(at.min(d.sheet_selections.len()), crate::Selection::default());
+        d.insert_selection_slot(at);
     }
     Ok(res)
 }

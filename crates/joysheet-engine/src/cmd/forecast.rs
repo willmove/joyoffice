@@ -446,7 +446,7 @@ fn forecast_sheet(s: &mut Session, p: &Json) -> Result<Json> {
         Ok(at)
     })?;
     if let Ok(d) = s.doc_mut() {
-        d.sheet_selections.insert(index.min(d.sheet_selections.len()), crate::Selection::default());
+        d.insert_selection_slot(index);
     }
     Ok(json!({"sheet": sheet_name, "table": table_name, "chart": chart_id, "history": n, "periods": periods, "fitted": fit}))
 }

@@ -115,6 +115,22 @@ fn open(s: &mut Session, p: &Json) -> Result<Json> {
     )
 }
 
+// The desktop identifies sheets by name so tab reordering cannot redirect a viewport.
+fn store_save_view(d: &mut DocState, p: &Json) -> Result<()> {
+    let mut tops = Vec::new();
+    if let Some(origins) = p.get("sheetViewOrigins") {
+        let origins = origins.as_object().ok_or_else(|| bad("file.save", "invalid sheetViewOrigins"))?;
+        for (i, sheet) in d.wb.sheets.iter().enumerate() {
+            if let Some(origin) = origins.get(&sheet.name) {
+                let cell = origin.as_str().and_then(joysheet_core::CellRef::parse).ok_or_else(|| bad("file.save", "invalid viewport cell"))?;
+                tops.push((i, cell));
+            }
+        }
+    }
+    d.store_view(&tops);
+    Ok(())
+}
+
 fn save(s: &mut Session, p: &Json) -> Result<Json> {
     let path = match str_param(p, "path").map(str::to_string).or_else(|| s.active().and_then(|d| d.path.clone())) {
         Some(p) => p,
@@ -130,6 +146,7 @@ fn save(s: &mut Session, p: &Json) -> Result<Json> {
     }
     let d = s.doc_mut()?;
     protect_encrypted_origin(d, &path)?;
+    store_save_view(d, p)?;
     // The document's own file keeps the format its content had when opened; any other path
     // goes by its extension. Relative paths to linked workbooks are rewritten for the new folder.
     let kind = crate::io::FileKind::from_path(&path).or(d.content_kind.filter(|_| d.path.as_deref() == Some(path.as_str())));
@@ -165,7 +182,8 @@ fn save_as(s: &mut Session, p: &Json) -> Result<Json> {
 
 fn save_bytes(s: &mut Session, p: &Json) -> Result<Json> {
     let fmt = str_param(p, "format").unwrap_or("xlsx");
-    let d = s.doc()?;
+    let d = s.doc_mut()?;
+    store_save_view(d, p)?;
     let name = format!("{}.{fmt}", std::path::Path::new(&d.display_title()).file_stem().and_then(|x| x.to_str()).unwrap_or("Book"));
     // The file name goes into a PivotChart's link to its PivotTable.
     let bytes = crate::io::save_bytes(&d.wb, &name)?;

@@ -49,7 +49,8 @@ fn modifiers(params: &Value) -> Modifiers {
     }
 }
 impl Desktop {
-    pub fn start_control_command(&mut self, id: u64, command: &str, params: Value, cx: &mut Context<Self>) {
+    pub fn start_control_command(&mut self, id: u64, command: &str, mut params: Value, cx: &mut Context<Self>) {
+        self.attach_save_view(command, &mut params);
         let target = self.target();
         if let Some(b) = self.barriers.iter_mut().find(|b| b.id == id) {
             match self.engine.submit(command, params, target) {

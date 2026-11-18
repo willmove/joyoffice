@@ -21,6 +21,33 @@ impl Default for Selection {
 }
 
 impl Selection {
+    pub(crate) fn from_sheet(sheet: &Sheet) -> Self {
+        let active = sheet.view_active;
+        match sheet.stored_selection() {
+            Some(stored) => Self { active, anchor: active, ranges: stored.editor_areas().collect() },
+            None => Self::at(active),
+        }
+    }
+
+    pub(crate) fn matches_sheet(&self, sheet: &Sheet) -> bool {
+        self.active == sheet.view_active
+            && match sheet.stored_selection() {
+                Some(stored) => stored.editor_areas().eq(self.ranges.iter().copied()),
+                None => self.ranges.as_slice() == [RangeRef::cell(self.active)],
+            }
+    }
+
+    pub(crate) fn store(&self, sheet: &mut Sheet) {
+        sheet.view_active = self.active;
+        let active_area = self.ranges.iter().rposition(|r| r.contains(self.active));
+        let pane = sheet.pane_at(self.active);
+        if let Some(active_area) = active_area {
+            sheet.view_selections.insert(pane, joysheet_model::sheet::PaneSelection { active: self.active, active_area, areas: self.ranges.clone() });
+        } else {
+            sheet.view_selections.remove(&pane);
+        }
+    }
+
     pub fn at(c: CellRef) -> Selection {
         Selection { active: c, anchor: c, ranges: vec![RangeRef::cell(c)] }
     }

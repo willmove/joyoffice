@@ -107,6 +107,11 @@ impl Element for SheetElement {
             }
             let geometry_ms = geometry_started.elapsed().as_secs_f64() * 1000.;
             let geo = view.geometry.clone()?;
+            if let Some(origin) = view.pending_view_origin.take()
+                && sheet.view != joysheet_engine::model::SheetViewMode::PageLayout
+            {
+                view.scroll = geo.scroll_to_origin(sheet, origin);
+            }
             let layout_started = Instant::now();
             let mut layout =
                 GridLayout::new(sheet, &geo, view.scroll.0, view.scroll.1, f32::from(bounds.size.width) - 14., f32::from(bounds.size.height) - 14.);

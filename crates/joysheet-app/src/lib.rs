@@ -212,10 +212,21 @@ impl EngineClient {
         self.enqueue(command, params, target, expected_revision, None)
     }
     pub fn save_target(&self, target: SaveTarget, path: Option<&std::path::Path>) -> Result<Ticket, String> {
-        let params = match path {
+        self.save_target_with_view(target, path, &Default::default())
+    }
+    pub fn save_target_with_view(
+        &self,
+        target: SaveTarget,
+        path: Option<&std::path::Path>,
+        origins: &std::collections::BTreeMap<String, String>,
+    ) -> Result<Ticket, String> {
+        let mut params = match path {
             Some(path) => json!({"path":path.to_str().ok_or("Cannot save to a non-Unicode path")?}),
             None => json!({}),
         };
+        if !origins.is_empty() {
+            params["sheetViewOrigins"] = json!(origins);
+        }
         self.enqueue("file.save", params, CommandTarget { window: Some(target.window), doc: None }, Some(target.revision), Some(target.doc))
     }
     fn enqueue(

@@ -191,6 +191,7 @@ pub struct DocState {
     pub title: String,
     /// Per-sheet selection memory.
     pub sheet_selections: Vec<Selection>,
+    sheet_selection_names: Vec<String>,
     /// Allow Edit Ranges unlocked with their password in this session: (sheet name, title).
     pub unlocked_ranges: Vec<(String, String)>,
     /// The format `path`'s content was recognised as when its extension doesn't name one (an
@@ -332,7 +333,7 @@ impl DocState {
     fn with_calc(wb: Workbook, calc: Calc, path: Option<String>, title: String, trust: Trust) -> DocState {
         let scripts_trusted = !cmd::extra::has_scripts(&wb);
         let wb = Arc::new(wb);
-        let sel = Selection::at(wb.active().map(|s| s.view_active).unwrap_or_default());
+        let sel = wb.active().map(Selection::from_sheet).unwrap_or_default();
         DocState {
             saved: wb.clone(),
             wb,
@@ -345,6 +346,7 @@ impl DocState {
             uid: NEXT_UID.fetch_add(1, std::sync::atomic::Ordering::Relaxed),
             title,
             sheet_selections: vec![],
+            sheet_selection_names: vec![],
             unlocked_ranges: vec![],
             content_kind: None,
             encrypted_origin: None,
@@ -363,10 +365,13 @@ impl DocState {
     /// cell): the first visible cell of the scrolling area per sheet index in `tops`, and the
     /// active sheet's active cell. View state never makes the workbook dirty.
     pub fn store_view(&mut self, tops: &[(usize, CellRef)]) {
-        let active = self.selection.active;
+        if !self.sheet_selections.is_empty() {
+            self.align_selection_slots();
+        }
         let si = self.wb.active_sheet();
+        let selections = |i: usize| if i == si { Some(&self.selection) } else { self.sheet_selections.get(i) };
         let changed = tops.iter().any(|(i, c)| self.wb.sheets.get(*i).is_some_and(|sh| sh.view_top_left != *c))
-            || self.wb.sheets.get(si).is_some_and(|sh| sh.view_active != active);
+            || self.wb.sheets.iter().enumerate().any(|(i, sh)| selections(i).is_some_and(|s| !s.matches_sheet(sh)));
         if !changed {
             return;
         }
@@ -379,10 +384,12 @@ impl DocState {
                 Arc::make_mut(sh).view_top_left = *c;
             }
         }
-        if let Some(sh) = wb.sheets.get_mut(si)
-            && sh.view_active != active
-        {
-            Arc::make_mut(sh).view_active = active;
+        for (i, sh) in wb.sheets.iter_mut().enumerate() {
+            if let Some(selection) = selections(i)
+                && !selection.matches_sheet(sh)
+            {
+                selection.store(Arc::make_mut(sh));
+            }
         }
         if !dirty {
             self.saved = self.wb.clone();

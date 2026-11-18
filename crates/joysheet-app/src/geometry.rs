@@ -20,6 +20,12 @@ impl SheetGeometry {
     pub fn new(sheet: &Sheet) -> Self {
         Self::with_extent(sheet, sheet.used_range().map(|r| r.end).unwrap_or_default())
     }
+    /// Pixel offset of the first scrolling cell, relative to the frozen headers.
+    pub fn scroll_to_origin(&self, sheet: &Sheet, cell: CellRef) -> (f64, f64) {
+        let (rows, cols) = sheet.freeze.unwrap_or_default();
+        let zoom = (f64::from(sheet.zoom) / 100.).clamp(0.1, 4.);
+        ((self.cols.start(cell.col.max(cols)) - self.cols.start(cols)) * zoom, (self.rows.start(cell.row.max(rows)) - self.rows.start(rows)) * zoom)
+    }
     /// The extent must come from the same immutable sheet snapshot.
     pub fn with_extent(sheet: &Sheet, used_end: CellRef) -> Self {
         Self { rows: sheet.rows.index(sheet.default_row_height, MAX_ROWS), cols: sheet.cols.index(sheet.default_col_width, MAX_COLS), used_end }

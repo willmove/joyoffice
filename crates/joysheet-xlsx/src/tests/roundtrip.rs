@@ -1059,7 +1059,8 @@ fn scroll_position_round_trips_with_and_without_frozen_panes() {
     s.view_top_left = at("C40");
     let bytes = write_xlsx(&wb).unwrap();
     let (xml, _) = sheet1_xml(&bytes);
-    assert!(xml.contains(r#"<pane ySplit="1" topLeftCell="C40""#), "{xml}");
+    assert!(xml.contains(r#"topLeftCell="C1" workbookViewId="#), "{xml}");
+    assert!(xml.contains(r#"<pane ySplit="1" topLeftCell="A40""#), "{xml}");
     let (back, _) = read_xlsx(&bytes).unwrap();
     assert_eq!(back.sheet(0).unwrap().view_top_left, at("C40"));
     assert_eq!(back.sheet(0).unwrap().freeze, Some((1, 0)));

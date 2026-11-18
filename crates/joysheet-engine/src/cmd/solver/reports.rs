@@ -311,7 +311,7 @@ pub(super) fn write_reports(cx: &mut Ctx, at: usize, built: Vec<(String, Lines)>
 pub(super) fn insert_report_selections(s: &mut Session, at: usize, count: usize) {
     if let Ok(d) = s.doc_mut() {
         for i in 0..count {
-            d.sheet_selections.insert((at + i).min(d.sheet_selections.len()), crate::Selection::default());
+            d.insert_selection_slot(at + i);
         }
     }
 }

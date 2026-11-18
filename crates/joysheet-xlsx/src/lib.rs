@@ -30,6 +30,7 @@ mod pivot;
 mod read;
 mod richdata;
 mod sheet_read;
+mod sheet_view;
 mod sheet_write;
 mod styles;
 mod tables;

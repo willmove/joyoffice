@@ -422,6 +422,7 @@ fn parsed(c: &mut Cursor<'_, '_>) -> Result<Parsed, IoError> {
 }
 
 struct SheetState<'g> {
+    view: crate::sheet_view::BinaryView,
     g: &'g Globals,
     styles: &'g [StyleId],
     sheet: Sheet,
@@ -560,6 +561,7 @@ fn worksheet(
         return Ok(None);
     }
     let mut st = SheetState {
+        view: Default::default(),
         g,
         styles,
         sheet: Sheet::new(&bs.name),
@@ -605,6 +607,7 @@ fn worksheet(
     for why in &st.unsupported {
         report.warn(format!("Some formulas use {why}; their saved results were kept as values."));
     }
+    st.view.finish(&mut st.sheet);
     Ok(Some((st.sheet, st.calc)))
 }
 
@@ -793,12 +796,44 @@ fn sheet_record(rec: &Record<'_>, st: &mut SheetState<'_>, budget: &mut Budget, 
         0x023E => {
             let flags = if c.remaining() >= WINDOW2_MIN_LEN { c.u16().ok() } else { None };
             let Some(flags) = flags else { return Ok(()) };
+            if !st.view.begin() {
+                return Ok(());
+            }
+            st.view.frozen = flags & 0x0008 != 0;
+            let (row, col) = (u32::from(c.u16()?), u32::from(c.u16()?));
+            if col < 256 {
+                st.sheet.view_top_left = CellRef::new(row, col);
+            }
             let on = |bit: u16| flags & bit != 0;
             st.sheet.show_formulas = on(0x0001);
             st.sheet.show_gridlines = on(0x0002);
             st.sheet.show_headings = on(0x0004);
             st.sheet.show_zeros = on(0x0010);
             st.sheet.right_to_left = on(0x0040);
+        }
+        0x0041 if st.view.reading && c.remaining() >= 9 => {
+            let (cols, rows) = (u32::from(c.u16()?), u32::from(c.u16()?));
+            let (row, col) = (u32::from(c.u16()?), u32::from(c.u16()?));
+            let pane = u32::from(c.u8()?);
+            if cols < 256 && col < 256 {
+                st.view.pane(&mut st.sheet, pane, (rows, cols), Some(CellRef::new(row, col)));
+            }
+        }
+        0x001D if st.view.reading && c.remaining() >= 9 => {
+            let pane = u32::from(c.u8()?);
+            let (row, col) = (u32::from(c.u16()?), u32::from(c.u16()?));
+            let (index, count) = (usize::from(c.u16()?), usize::from(c.u16()?));
+            if col < 256 && count > 0 && count <= c.remaining() / 6 {
+                let mut areas = Vec::with_capacity(count);
+                for _ in 0..count {
+                    let (r1, r2, c1, c2) = (u32::from(c.u16()?), u32::from(c.u16()?), u32::from(c.u8()?), u32::from(c.u8()?));
+                    if r1 > r2 || c1 > c2 {
+                        return Ok(());
+                    }
+                    areas.push(RangeRef::new(CellRef::new(r1, c1), CellRef::new(r2, c2)));
+                }
+                st.view.select(pane, joysheet_model::sheet::PaneSelection { active: CellRef::new(row, col), active_area: index, areas })?;
+            }
         }
         0x001C => report.warn("Cell comments in .xls files are not imported yet."),
         0x00EC => report.warn("Pictures, charts and shapes in .xls files are not imported yet."),

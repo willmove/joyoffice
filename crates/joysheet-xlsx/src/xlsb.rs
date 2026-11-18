@@ -587,6 +587,7 @@ fn worksheet(bytes: &[u8], name: &str, strings: &[Arc<str>], budget: &mut Budget
     let mut records = Records::new(bytes);
     records.first(129, report)?;
     let mut sheet = Sheet::new(name);
+    let mut view = crate::sheet_view::BinaryView::default();
     let mut data = false;
     let mut data_seen = false;
     let mut row = None;
@@ -599,7 +600,54 @@ fn worksheet(bytes: &[u8], name: &str, strings: &[Arc<str>], budget: &mut Budget
                     return Err(invalid("incomplete worksheet data"));
                 }
                 records.end(payload, report)?;
+                view.finish(&mut sheet);
                 return Ok(sheet);
+            }
+            137 if !data && payload.len() >= 30 => {
+                if view.begin() {
+                    b.take(6)?;
+                    if let Some(cell) = crate::sheet_view::cell(b.u32()?, b.u32()?) {
+                        sheet.view_top_left = cell;
+                    }
+                }
+            }
+            138 => view.reading = false,
+            151 if view.reading && payload.len() >= 29 => {
+                let (x, y) = (b.f64()?, b.f64()?);
+                let top = crate::sheet_view::cell(b.u32()?, b.u32()?);
+                let pane = b.u32()?;
+                view.frozen = b.u8()? & 3 != 0;
+                // Excel's BrtPane stores the horizontal (column) offset first.
+                // Distinct row-only and column-only files exercise the axes.
+                if [x, y].into_iter().all(|v| v.is_finite() && v >= 0. && v.fract() == 0.) {
+                    view.pane(&mut sheet, pane, (y as u32, x as u32), top);
+                } else if !view.frozen {
+                    view.pane(&mut sheet, pane, (0, 0), None);
+                }
+            }
+            152 if view.reading && payload.len() >= 20 => {
+                let pane = b.u32()?;
+                let active = crate::sheet_view::cell(b.u32()?, b.u32()?);
+                let (index, count) = (b.u32()? as usize, b.u32()? as usize);
+                if count > crate::sheet_view::MAX_VIEW_AREAS {
+                    return Err(IoError::TooLarge("worksheet selection contains too many areas".into()));
+                }
+                if let Some(active) = active
+                    && count > 0
+                    && count <= b.rest.len() / 16
+                {
+                    let mut areas = Vec::with_capacity(count);
+                    for _ in 0..count {
+                        let (r1, r2, c1, c2) = (b.u32()?, b.u32()?, b.u32()?, b.u32()?);
+                        if r1 > r2 || r2 >= MAX_ROWS || c1 > c2 || c2 >= MAX_COLS {
+                            break;
+                        }
+                        areas.push(RangeRef::new(CellRef::new(r1, c1), CellRef::new(r2, c2)));
+                    }
+                    if areas.len() == count {
+                        view.select(pane, joysheet_model::sheet::PaneSelection { active, active_area: index, areas })?;
+                    }
+                }
             }
             145 => {
                 if data_seen {

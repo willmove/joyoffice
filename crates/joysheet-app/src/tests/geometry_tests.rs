@@ -85,3 +85,20 @@ fn page_layout_cells_and_margins_share_paginated_hit_geometry() {
     let layout = GridLayout::new(sheet, &geo, 0., 0., 1000., 700.).with_paper(paper.clone(), &geo);
     assert_eq!(layout.hit(ROW_HEADER + (paper.page_x(0) * k) as f32 + 1., COL_HEADER + (paper.page_y(0) * k) as f32 + 1.), None);
 }
+
+#[test]
+fn saved_origin_restores_the_scrolling_cell_beyond_frozen_headers_at_each_zoom() {
+    for frozen in [None, Some((4, 0)), Some((0, 2)), Some((3, 2))] {
+        let mut sheet = Sheet::new("View");
+        sheet.freeze = frozen;
+        for zoom in [75, 100, 130] {
+            sheet.zoom = zoom;
+            let geometry = SheetGeometry::new(&sheet);
+            let cell = CellRef::new(10, 6);
+            let (x, y) = geometry.scroll_to_origin(&sheet, cell);
+            let layout = GridLayout::new(&sheet, &geometry, x, y, 1200., 740.);
+            assert_eq!(layout.rows.iter().find(|r| !r.frozen).unwrap().index, cell.row);
+            assert_eq!(layout.cols.iter().find(|c| !c.frozen).unwrap().index, cell.col);
+        }
+    }
+}

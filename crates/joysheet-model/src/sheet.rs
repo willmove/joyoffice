@@ -1,5 +1,8 @@
 //! Worksheets.
 
+mod view_selection;
+pub use view_selection::{Pane, PaneSelection};
+
 use std::collections::BTreeMap;
 use std::sync::Arc;
 
@@ -121,6 +124,8 @@ pub struct Sheet {
     pub print: PrintSettings,
     /// Last selection and scroll position, saved with the file.
     pub view_active: CellRef,
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub view_selections: BTreeMap<Pane, PaneSelection>,
     pub view_top_left: CellRef,
     /// Normal, Page Layout or Page Break Preview.
     #[serde(default)]
@@ -187,6 +192,7 @@ impl Sheet {
             edit_ranges: vec![],
             print: PrintSettings::default(),
             view_active: CellRef::default(),
+            view_selections: BTreeMap::new(),
             view_top_left: CellRef::default(),
             view: SheetViewMode::Normal,
             preserved: None,
