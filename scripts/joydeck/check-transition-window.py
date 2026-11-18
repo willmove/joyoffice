@@ -27,20 +27,37 @@ COLORS = ["CC2211", "2352D0", "33C044"]
 STANDARD = (("fade", ""), ("checker", "vert"))
 TRAVEL = (("push", "l"), ("cover", "ru"))
 MASKS = (("wipe", "ru"), ("split", "vertOut"))
+PATTERNS = (("shape", "circle"), ("clock", "wedge"))
 ET.register_namespace("p", P)
 ET.register_namespace("a", A)
 ET.register_namespace("p14", P14)
 
 
 def effect_xml(kind, option):
-    if kind == "split":
-        return "split", {"orient": option[:4], "dir": option[4:].lower()}
-    if kind == "wipe" and len(option) == 2:
-        return "strips", {"dir": option}
-    tag = "pull" if kind == "uncover" else kind
-    if option == "throughBlack":
-        return tag, {"thruBlk": "1"}
-    return tag, ({"dir": option} if option and option != "smoothly" else {})
+    tag, attrs, ns = kind, {}, P
+    if kind == "shape":
+        if option in ("in", "out"):
+            tag, attrs = "zoom", {"dir": option}
+        else:
+            tag = option
+    elif kind == "clock":
+        if option == "wedge":
+            tag = "wedge"
+        else:
+            tag, attrs = "wheel", {"spokes": "1"}
+            if option == "counterClockwise":
+                tag, ns = "wheelReverse", P14
+    elif kind == "split":
+        attrs = {"orient": option[:4], "dir": option[4:].lower()}
+    elif kind == "wipe" and len(option) == 2:
+        tag, attrs = "strips", {"dir": option}
+    else:
+        tag = "pull" if kind == "uncover" else kind
+        if option == "throughBlack":
+            attrs = {"thruBlk": "1"}
+        elif option and option != "smoothly":
+            attrs = {"dir": option}
+    return f"{{{ns}}}" + tag, attrs
 
 
 def deck(path, effects=STANDARD, duration=4800, timed=False):
@@ -74,7 +91,7 @@ def deck(path, effects=STANDARD, duration=4800, timed=False):
                         tr.set("advTm", "767")
                     kind, direction = effects[i - 1]
                     tag, attrs = effect_xml(kind, direction)
-                    ET.SubElement(tr, f"{{{P}}}" + tag, attrs)
+                    ET.SubElement(tr, tag, attrs)
                 data = ET.tostring(root, encoding="utf-8", xml_declaration=True)
             output.writestr(source.getinfo(name), data)
 
@@ -505,7 +522,7 @@ def exchange(doc, directory, baseline, candidate, effects):
                 assert (
                     transition is not None and transition.get(f"{{{P14}}}dur") == "4800"
                 )
-                child = transition.find("{*}" + tag)
+                child = transition.find(tag)
                 assert child is not None and all(
                     child.get(k) == v for k, v in attrs.items()
                 )
@@ -535,6 +552,11 @@ def main():
     parser.add_argument("--exchange-only", action="store_true")
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument(
+        "--patterns",
+        action="store_true",
+        help="exercise a circular reveal and a wedge in the audience window",
+    )
+    mode.add_argument(
         "--masks", action="store_true", help="exercise diagonal wipe and centered split"
     )
     mode.add_argument(
@@ -546,7 +568,15 @@ def main():
         help="verify automatic CPU fallback on a desktop with only a software adapter",
     )
     args = parser.parse_args()
-    effects = MASKS if args.masks else TRAVEL if args.travel else STANDARD
+    effects = (
+        PATTERNS
+        if args.patterns
+        else MASKS
+        if args.masks
+        else TRAVEL
+        if args.travel
+        else STANDARD
+    )
     out = args.output.resolve()
     cli = args.binary.with_name("joydeck-cli").resolve()
     baseline = (args.reference_cli or cli).resolve()
@@ -562,7 +592,7 @@ def main():
     for mode in ("auto", "cpu"):
         results[mode] = play(
             args.binary.resolve(),
-            cli if args.travel or args.masks else baseline,
+            cli if effects != STANDARD else baseline,
             doc,
             out / mode,
             mode,

@@ -1,7 +1,5 @@
 //! Geometry for transition effects: easing, 3-D cards, opacity fields, polygons.
 
-use std::f64::consts::PI;
-
 use crate::easing::{ease, smooth};
 use crate::transition::{FULL, Layer, P, Q, R, Source, corners};
 
@@ -133,79 +131,6 @@ pub(crate) fn dir(opt: &str, default: (f64, f64)) -> (f64, f64) {
     if d == (0.0, 0.0) { default } else { d }
 }
 
-/// A rectangle with a soft border `f` wide (slide units) fading out to nothing: the rectangle at
-/// full opacity, four edge ramps and four corner ramps. `src` maps onto `dst`; the border samples
-/// the texture's edge.
-pub(crate) fn soft_rect(source: Source, src: R, dst: R, f: f64, alpha: f64) -> Vec<Layer> {
-    let mut v = vec![Layer::rect(source, src, dst, alpha)];
-    if f <= 1e-6 {
-        return v;
-    }
-    let (l, t, r, b) = (dst[0], dst[1], dst[2], dst[3]);
-    let (fx, fy) = (f, f * 16.0 / 9.0);
-    let uv_at = |x: f64, y: f64| -> P {
-        let u = if r > l {
-            src[0] + (x.clamp(l, r) - l) / (r - l) * (src[2] - src[0])
-        } else {
-            src[0]
-        };
-        let w = if b > t {
-            src[1] + (y.clamp(t, b) - t) / (b - t) * (src[3] - src[1])
-        } else {
-            src[1]
-        };
-        [u, w]
-    };
-    let mut q = |pts: Q, fade: [f64; 4]| {
-        let uv = pts.map(|p| uv_at(p[0], p[1]));
-        let xs = uv.map(|p| p[0]);
-        let ys = uv.map(|p| p[1]);
-        let mn = |a: [f64; 4]| a.iter().copied().fold(f64::INFINITY, f64::min);
-        let mx = |a: [f64; 4]| a.iter().copied().fold(f64::NEG_INFINITY, f64::max);
-        v.push(Layer {
-            source,
-            src: [mn(xs), mn(ys), mx(xs), mx(ys)],
-            quad: pts,
-            uv,
-            alpha,
-            fade,
-        });
-    };
-    q(
-        [[l, t - fy], [r, t - fy], [r, t], [l, t]],
-        [0.0, 0.0, 1.0, 1.0],
-    );
-    q(
-        [[l, b], [r, b], [r, b + fy], [l, b + fy]],
-        [1.0, 1.0, 0.0, 0.0],
-    );
-    q(
-        [[l - fx, t], [l, t], [l, b], [l - fx, b]],
-        [0.0, 1.0, 1.0, 0.0],
-    );
-    q(
-        [[r, t], [r + fx, t], [r + fx, b], [r, b]],
-        [1.0, 0.0, 0.0, 1.0],
-    );
-    q(
-        [[l - fx, t - fy], [l, t - fy], [l, t], [l - fx, t]],
-        [0.0, 0.0, 1.0, 0.0],
-    );
-    q(
-        [[r, t - fy], [r + fx, t - fy], [r + fx, t], [r, t]],
-        [0.0, 0.0, 0.0, 1.0],
-    );
-    q(
-        [[r, b], [r + fx, b], [r + fx, b + fy], [r, b + fy]],
-        [1.0, 0.0, 0.0, 0.0],
-    );
-    q(
-        [[l - fx, b], [l, b], [l, b + fy], [l - fx, b + fy]],
-        [0.0, 1.0, 0.0, 0.0],
-    );
-    v
-}
-
 // ---------- opacity fields ----------
 
 /// The source shown in place through an opacity field `f(x, y)` (0..1) sampled on an `n` × `m`
@@ -282,38 +207,6 @@ pub(crate) fn boundary(ang: f64, a: f64) -> P {
     let (dx, dy) = (ang.sin() / a, -ang.cos());
     let m = (dx.abs() / 0.5).max(dy.abs() / 0.5).max(1e-9);
     [0.5 + dx / m, 0.5 + dy / m]
-}
-
-/// The source shown in place through an angular opacity field `f(angle)` (radians clockwise from
-/// 12 o'clock, 0..2π): a fan of thin wedges from the centre.
-pub(crate) fn fan(source: Source, a: f64, steps: usize, f: &dyn Fn(f64) -> f64) -> Vec<Layer> {
-    let n = steps.clamp(8, 720);
-    let mut angles: Vec<f64> = (0..=n).map(|k| 2.0 * PI * k as f64 / n as f64).collect();
-    // The square's corners, so wedges reach them.
-    for c in [[1.0, 0.0], [1.0, 1.0], [0.0, 1.0], [0.0, 0.0]] {
-        let ang = ((c[0] - 0.5) * a).atan2(-(c[1] - 0.5));
-        angles.push(ang.rem_euclid(2.0 * PI));
-    }
-    angles.sort_by(f64::total_cmp);
-    angles.dedup_by(|x, y| (*x - *y).abs() < 1e-9);
-    let mut out = Vec::new();
-    let c = [0.5, 0.5];
-    for w in angles.windows(2) {
-        let [x, y] = w else { continue };
-        let (fx, fy) = (f(*x).clamp(0.0, 1.0), f(*y).clamp(0.0, 1.0));
-        if fx <= 0.0 && fy <= 0.0 {
-            continue;
-        }
-        let (bx, by) = (boundary(*x, a), boundary(*y, a));
-        out.push(Layer::tri_uv(
-            source,
-            [c, bx, by],
-            [c, bx, by],
-            [(fx + fy) / 2.0, fx, fy],
-            1.0,
-        ));
-    }
-    out
 }
 
 // ---------- polygons ----------

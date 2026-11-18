@@ -33,6 +33,7 @@ mod transition;
 mod transition_fx;
 mod transition_geom;
 mod transition_mask;
+mod transition_pattern;
 
 #[cfg(test)]
 #[allow(

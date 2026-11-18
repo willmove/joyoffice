@@ -10,9 +10,8 @@ use std::f64::consts::PI;
 use crate::easing::ease;
 use crate::transition::{FULL, Layer, R, Source};
 use crate::transition_geom::{
-    Cam, V3, boundary, card, center, clip, dir, edge, ein, eout, facing_shade, fan, field, hash64,
-    moved, offset, poly_layers, q2, rect_poly, rnd, rot, rot_quad, scale_rect, scaled, soft_rect,
-    ss, v3, win,
+    Cam, V3, boundary, card, center, clip, dir, edge, ein, eout, facing_shade, field, hash64,
+    moved, offset, poly_layers, q2, rect_poly, rnd, rot, rot_quad, scale_rect, scaled, ss, v3, win,
 };
 
 use Source::{Black, New, NewBack, NewContent, Old, OldBack, OldContent, White};
@@ -71,13 +70,13 @@ pub(crate) fn layers(kind: &str, o: &str, t: f64, a: f64, depth: u32) -> Vec<Lay
     match kind {
         "wipe" | "split" => crate::transition_mask::layers(kind == "split", o, t),
         "reveal" => reveal(o, t),
-        "randomBar" => random_bars(o == "vert", t),
-        "shape" => shape(o, t, a),
+        "randomBar" => crate::transition_pattern::bars(o == "vert", t),
+        "shape" => crate::transition_pattern::shape(o, t, a),
         "flash" => flash(t),
-        "dissolve" => dissolve(t),
+        "dissolve" => crate::transition_pattern::dissolve(t),
         "checker" => checker(o == "vert", t, a),
         "blinds" => blinds(o == "vert", t, a),
-        "clock" => clock(o, t, a),
+        "clock" => crate::transition_pattern::clock(o, t),
         "ripple" => ripple(o, t, a),
         "comb" => comb(o == "vert", t),
         "zoom" => zoom(o, t, a),
@@ -153,74 +152,6 @@ fn reveal(o: &str, t: f64) -> Vec<Layer> {
     v
 }
 
-fn random_bars(vert: bool, t: f64) -> Vec<Layer> {
-    // Thin bars, each cross-fading quickly at its own random moment.
-    let n = 160usize;
-    let w = 0.2;
-    let mut v = vec![Layer::full(Old, 1.0)];
-    for i in 0..n {
-        let start = rnd(i as u64 * 7 + 17) * (1.0 - w);
-        let k = win(t, start, start + w);
-        if k <= 0.0 {
-            continue;
-        }
-        let (a, b) = (i as f64 / n as f64, (i + 1) as f64 / n as f64);
-        let r: R = if vert {
-            [a, 0.0, b, 1.0]
-        } else {
-            [0.0, a, 1.0, b]
-        };
-        v.push(Layer::inplace(New, r, k));
-    }
-    v
-}
-
-fn shape(o: &str, t: f64, a: f64) -> Vec<Layer> {
-    match o {
-        // Shape In: the old slide shrinks into the centre over the first half.
-        "in" => {
-            let s = 1.0 - win(t, 0.0, 0.5);
-            let mut v = vec![Layer::full(New, 1.0)];
-            if s > 0.0 {
-                v.extend(soft_rect(Old, FULL, scale_rect(FULL, s), 0.012, 1.0));
-            }
-            v
-        }
-        // Shape Out: the new slide grows out of the centre over the second half.
-        "out" => {
-            let s = win(t, 0.5, 1.0);
-            let mut v = vec![Layer::full(Old, 1.0)];
-            if s > 0.0 {
-                v.extend(soft_rect(New, FULL, scale_rect(FULL, s), 0.012, 1.0));
-            }
-            v
-        }
-        _ => {
-            let soft = 0.18;
-            let c = -soft / 2.0 + (1.0 + soft) * t;
-            let f: Box<dyn Fn(f64, f64) -> f64> = match o {
-                "diamond" => Box::new(move |x, y| edge(c, (x - 0.5).abs() + (y - 0.5).abs(), soft)),
-                "plus" => {
-                    Box::new(move |x, y| edge(c, (x - 0.5).abs().min((y - 0.5).abs()) * 2.0, soft))
-                }
-                _ => {
-                    let rmax = ((0.5 * a).powi(2) + 0.25).sqrt();
-                    Box::new(move |x, y| {
-                        edge(
-                            c,
-                            (((x - 0.5) * a).powi(2) + (y - 0.5).powi(2)).sqrt() / rmax,
-                            soft,
-                        )
-                    })
-                }
-            };
-            let mut v = vec![Layer::full(Old, 1.0)];
-            v.extend(field(New, 48, 27, &*f));
-            v
-        }
-    }
-}
-
 fn flash(t: f64) -> Vec<Layer> {
     // A flash bulb: the old slide burns out to white fast, the white holds, then fades off the new
     // slide.
@@ -236,27 +167,6 @@ fn flash(t: f64) -> Vec<Layer> {
 }
 
 // ---------- Exciting: patterns ----------
-
-fn dissolve(t: f64) -> Vec<Layer> {
-    let (n, m) = (48usize, 27usize);
-    let mut v = vec![Layer::full(Old, 1.0)];
-    let cell = |c: usize, r: usize| {
-        [
-            c as f64 / n as f64,
-            r as f64 / m as f64,
-            (c + 1) as f64 / n as f64,
-            (r + 1) as f64 / m as f64,
-        ]
-    };
-    for r in 0..m {
-        for c in 0..n {
-            if t > rnd((r * n + c) as u64 + 991) * 0.97 {
-                v.push(Layer::inplace(New, cell(c, r), 1.0));
-            }
-        }
-    }
-    v
-}
 
 /// One tile flipping in 3-D about its own vertical (or horizontal) axis: old face for the first
 /// half of `k`, new face for the second.
@@ -328,26 +238,6 @@ fn blinds(vert: bool, t: f64, a: f64) -> Vec<Layer> {
         let k = q2(win(t, start, start + 0.4));
         flip_tile(&cam, cell, k, vert, &mut v);
     }
-    v
-}
-
-fn clock(o: &str, t: f64, a: f64) -> Vec<Layer> {
-    // The hand sweeps at a constant speed with a soft leading edge.
-    let soft = 0.12;
-    let c = -soft / 2.0 + (1.0 + soft) * t;
-    let f = move |ang: f64| -> f64 {
-        let p = match o {
-            "counterClockwise" => (2.0 * PI - ang) / (2.0 * PI),
-            "wedge" => {
-                let d = if ang > PI { 2.0 * PI - ang } else { ang };
-                d / PI
-            }
-            _ => ang / (2.0 * PI),
-        };
-        edge(c, p, soft)
-    };
-    let mut v = vec![Layer::full(Old, 1.0)];
-    v.extend(fan(New, a, 240, &f));
     v
 }
 

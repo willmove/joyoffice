@@ -971,14 +971,15 @@
       "source_path": "crates/anim/src/lib.rs",
       "source_sha256": "960fee50af9c7cd413c62db1a8222a1500247882f2b855e0f0a7e688132d733c",
       "target_path": "crates/joydeck-anim/src/lib.rs",
-      "adapted_sha256": "2c8573b8d9b24eec5db33b973daa4ba24e1298280b26b0a4a0f82c09ba7b94b0",
+      "adapted_sha256": "af5da0b9dffa6186fc3069be05911208992712b063609df15ee56c954271b235",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
         "Register the host whole-slide motion generator.",
-        "JoyOffice's contour-strip mask generator replaces the imported wipe and split opacity grids; see slides in tests/fixtures/joydeck/soft-mask-reference.json."
+        "JoyOffice's contour-strip mask generator replaces the imported wipe and split opacity grids; see slides in tests/fixtures/joydeck/soft-mask-reference.json.",
+        "Register the JoyOffice shape, wheel, random-bar and dissolve transition generator."
       ]
     },
     {
@@ -1082,27 +1083,29 @@
       "source_path": "crates/anim/src/transition_fx.rs",
       "source_sha256": "d33982408786bf055bf487318d4fd6a6e79d4309812a1dd0b7f5807963c79dad",
       "target_path": "crates/joydeck-anim/src/transition_fx.rs",
-      "adapted_sha256": "2b88ea3b35d02c6d59043e3ceb8d633284d932c93e074e6fd5817c30ac5a4df1",
+      "adapted_sha256": "dd53435fcc2537ca30ee29f6c7daa57e96ca24b880c82e9daf8ab8854bf5e465",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
         "Dispatch basic cuts, dissolves and travel tracks to the host generator; remove their previous implementations.",
-        "JoyOffice's contour-strip mask generator replaces the imported wipe and split opacity grids; see slides in tests/fixtures/joydeck/soft-mask-reference.json."
+        "JoyOffice's contour-strip mask generator replaces the imported wipe and split opacity grids; see slides in tests/fixtures/joydeck/soft-mask-reference.json.",
+        "Dispatch shape, wheel, random-bar and dissolve to JoyOffice and retire the original generators."
       ]
     },
     {
       "source_path": "crates/anim/src/transition_geom.rs",
       "source_sha256": "5b1f243f755182dfdf10a93ac36764b2f1b93bb6d964e7f22e31605e99ac77a2",
       "target_path": "crates/joydeck-anim/src/transition_geom.rs",
-      "adapted_sha256": "d19cd63a1e6ebad44d375cb633e06b6723d2c50671fd6f0a8f5ea9d6206b6152",
+      "adapted_sha256": "eca76e7a60651af587a745b749d9162bab29cfd28a3a807f05e0b186abd580e1",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
-        "Remove the retired polynomial used only for legacy cover and uncover motion."
+        "Remove the retired polynomial used only for legacy cover and uncover motion.",
+        "Retire the fixed-size angular fan and soft rectangle previously used by shape and wheel transitions."
       ]
     },
     {

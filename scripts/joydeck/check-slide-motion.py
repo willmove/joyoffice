@@ -113,7 +113,7 @@ def extend(seed, out, cases=CASES):
             )
             if kind != "none":
                 tag, attrs = window["effect_xml"](kind, option)
-                E.SubElement(tr, f"{{{P}}}" + tag, attrs)
+                E.SubElement(tr, tag, attrs)
             w.writestr(
                 f"ppt/slides/slide{idx}.xml",
                 E.tostring(xml, encoding="utf-8", xml_declaration=True),
