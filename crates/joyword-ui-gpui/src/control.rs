@@ -249,7 +249,12 @@ impl JoyWord {
                 }
                 let args = match cmd {
                     "text.insert" => {
-                        json!({"text":p["params"]["text"].as_str().ok_or("missing text")?})
+                        let text = p["params"]["text"].as_str().ok_or("missing text")?;
+                        let paragraphs = match p["params"].get("paragraphs") {
+                            None => false,
+                            Some(value) => value.as_bool().ok_or("paragraphs must be a boolean")?,
+                        };
+                        json!({"text": text, "paragraphs": paragraphs})
                     }
                     "edit.find" => {
                         let text = p["params"]["text"]

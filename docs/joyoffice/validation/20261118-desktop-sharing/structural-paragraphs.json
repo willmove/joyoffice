@@ -1,0 +1,815 @@
+{
+  "baseline": "f064056b",
+  "latestSheetCommit": "b35c0987",
+  "scope": "Real paragraph split, merge and replacement within a verified section. Rebase later body and nested table hit paths, keep note and header/footer stories in their original coordinate systems, and propagate page fields. Structural changes to section marks, drawing anchors and unsupported content still use the full paginator. The desktop text.insert command forwards its optional paragraphs boolean to the editor.",
+  "rollback": "Rebuild f064056b and open either saved DOCX with its full paginator. The older desktop control converts newlines to soft breaks unless separate paragraph commands are sent.",
+  "platforms": {
+    "macOS": {
+      "product": {
+        "passed": 3714,
+        "failed": 0,
+        "ignored": 2
+      },
+      "strictLibraryClippy": [
+        "joyword-layout",
+        "joyword-ui-gpui"
+      ],
+      "native": {
+        "splitParagraphs": {
+          "native": {
+            "paragraphs": 138,
+            "insertedParagraph": 69,
+            "followingText": "Section 34"
+          },
+          "baseline": {
+            "paragraphs": 138,
+            "insertedParagraph": 69,
+            "followingText": "Section 34"
+          },
+          "candidate": {
+            "paragraphs": 138,
+            "insertedParagraph": 69,
+            "followingText": "Section 34"
+          }
+        },
+        "sourceSha256": "6a1c185cacc561ea5eb4c7bb391ef99af3e0b1ac2e1bd33f527972e31802643a",
+        "desktopSha256": "005dd7f5aee60f20dda92b05ba2d51fa9a3207dcdb4d9a75640e4066f5f40a1d",
+        "original": {
+          "notePages": [],
+          "pages": 68,
+          "editedPage": 35,
+          "firstDirtyPage": 3,
+          "fieldPages": [
+            65
+          ],
+          "followingPage": 67,
+          "restartPage": 68,
+          "fieldNumbers": [
+            99,
+            99,
+            99,
+            99,
+            99,
+            99,
+            99,
+            99,
+            99,
+            99,
+            99,
+            99
+          ]
+        },
+        "expanded": {
+          "notePages": [],
+          "pages": 71,
+          "editedPage": 37,
+          "firstDirtyPage": 3,
+          "fieldPages": [
+            67,
+            68
+          ],
+          "followingPage": 70,
+          "restartPage": 71,
+          "fieldNumbers": [
+            102,
+            102,
+            102,
+            102,
+            102,
+            102,
+            102,
+            102,
+            102,
+            102,
+            102,
+            102
+          ]
+        },
+        "nativePatches": [
+          {
+            "action": "text.insert",
+            "firstPage": 3,
+            "lastPage": 71,
+            "pages": 71,
+            "displayedPages": [
+              3,
+              67,
+              68,
+              70,
+              71
+            ]
+          },
+          {
+            "action": "edit.undo",
+            "firstPage": 3,
+            "lastPage": 71,
+            "pages": 68,
+            "displayedPages": [
+              3,
+              65,
+              67,
+              68
+            ]
+          },
+          {
+            "action": "edit.redo",
+            "firstPage": 3,
+            "lastPage": 71,
+            "pages": 71,
+            "displayedPages": [
+              3,
+              67,
+              68,
+              70,
+              71
+            ]
+          }
+        ],
+        "savedAndReopened": true,
+        "twoVersionPageRastersSha256": [
+          "f558beef401b7d0e813eff8491ffb318ca946eeaf76b3109781c07a5e0a38af0",
+          "f555e1db905051fd909b46bfddbe02dd60b0627fd9efd9616c54c6e93bbf043d",
+          "048e83e4036631a7cac2481390934ad183f9d9ed37ea303d11c9ab3c1df53bef",
+          "1f425185be4ae1bdbb78d247736fd926b690edf1df8eec0922473c4bfe951bac",
+          "9db893509c27e7911444810187a17297ccfb029c3df319f8d4f58f9fbbbd6ead",
+          "8c857efbb9efee46200a2b26433a250a12fb3d27057eacce760930504cd0e773",
+          "4f2b1a2d50d4fd25c75afad7bdf277f16bfbc53b5a988055931b9964621620c8",
+          "35164b060043834f0b038c1503c86d056f7e78168e611c02fa1c79d26e9e5190",
+          "6c4c579e7e3625c4944b663d96cdaba5ac9d12109d9dff3307ed0d8e12a42aea",
+          "3166b1c4041433f2048afa55a56734dfbf05e99dae3319832495dd0ded8eac21",
+          "5b4ff1d9add76512ae40d4169857b3334e053b93ef393f0a54d85f5c9f4b2537",
+          "1672407696276a3404a3645d8be489979006560470256e4d3ff0c521ef27563c",
+          "d8419c6c8cac07fa7bd504008da1d61e65b6e0e531b1fdc59d55f4b177aeb0fa",
+          "363b0bd853e017c19c407cf785a347d91196f670b1d9895008066332b7c2fe46",
+          "a1793d987e5b0d5cc0027f205d181ec75c402699cec5ce509a4e0fadda324225",
+          "ebfe3797f4551b44b7963386abe5efea30ca887ad22c21d8ed08833c6ce32eda",
+          "48e950ea5ae0cc0734a44b14732def46a307ae21bdb14c4b64a131b621b0744e",
+          "992b44155a67654e5c4ec91f0d161ec80183c6037cbe6f9dba5fce6125c0b049",
+          "6c91f0f86e215352ee047f5e28db0a3426a3c10a2bc0e06f4b049f7966afb881",
+          "4a42c5d3be8b5527f00c9101dc38c3e3a07ebd15141e5dce6f5d113ca7c200e8",
+          "d704f18c72dcc0395cbf5023036e9225060d59ec556c3f4620142d79b47df1ab",
+          "e49b7fa3f14745050e66cd8570e6301c38b62f85d6ed52c88448d8f9b486e994",
+          "65adbc541225bef165eac9fe661dc049b6982e04ec013cae2b76c6cdc67ea073",
+          "b53815d436bc7b83573971d73108f8e64fd196ca386eef4966734bebb0b2a3f7",
+          "a65537ec14ad16fb286d4a0c1be0f803f74dcfffb620059cea9b370abb7133df",
+          "4b9b0e13988dc5ad550099926e2ee2ef156241ed94ed54b9b3f4ae3da4c7e251",
+          "22de5ce8b9776dce97d79104944f7998582d49040c567868b1fe8d3076e7ab6b",
+          "d4670310c8dfdd6814b65045aa6eda8110b91966b2cb0d7abd30b40876b255dc",
+          "c55db3423aece8c05da7ee8d30b5706d570fa99921cc460e2f83e397331f06de",
+          "70a3a2061a4fc5bc126290099dfabbb64ccfe4320c1648c44edfabde8729cf77",
+          "db2bbfdefd051d4d19d6af8d79240698d4e6148fd39788dc9de69c75313cef23",
+          "725a61bbe85f268478655df7191b2f392e8f7e395890fc406c6aa7692ce3decd",
+          "a7d5c26cb1264480131d07209089a0e5eafcf84e6c7381e98c21f07b0f8822fc",
+          "128b6aa714f879b971f556a4899b283d8f1c509bd4af2066ce19d5c0b11df47c",
+          "9f4f7cae10a4e4b672329fffb9958c5018e37f0f91f0a7460fe4dc7085213f2a",
+          "9f4f7cae10a4e4b672329fffb9958c5018e37f0f91f0a7460fe4dc7085213f2a",
+          "48aeb7eecf66fb39fd507f5b943dbff32d30865a3f9acec91ec3b3877d2a93d2",
+          "9659076bac28b144cb4f02f6249155f8607e489d853eebbb625fbdd0fe4c202e",
+          "bfe1f0e2faf9a91ea40567173e56e8089767d9b08bb1008fc73e69771f9c5047",
+          "05a00fbb731a28fab5d5c46390c1da82c9fdda7391328bfc6469434649e5ef25",
+          "1fdb0ebfa46efe33d900123f46e8eabb073e362503aa5ea05c4493117ceba3d4",
+          "bbd3bea27909541011c26088d0a1e73978a1e99a275cf5e5ae6bc6e87aaab1cb",
+          "e92eade28bbcf1d42296bc9db3574ad4964f2a7d674ea8238f6c1c2e59eacd70",
+          "b2d6e812c39bc63c4f8eb7d24f057899228046712a199b53c2c9f535a0b23bb7",
+          "1a990e563efb617eb9838b18312aa2ae2ca873912617a4dd7297353caa8f4b25",
+          "58980cd6bcdebccb2e77f0ec02d4ccd71f9e80c85755289f1c524a0625fcc073",
+          "3c289670e8cb5adc0647c35de2171fb57eaa1b8b5c7957c922e5e0bae4e2f40b",
+          "d6d609d055dec2d84f7174e224d1aab1cc8f2061535d47590b850b74ac3c8102",
+          "c95ae6aceaffd471c5d55d8741c012bcdeb1b9fd9d24a304b49ad16d2fb84ce4",
+          "8c4f89b701d8a73ebaa33fd9bd38181f762658479f8389a2c9c939646c17be26",
+          "16da2d74f30e3a54178353652074d6d91230208c49b22bccb5e9ff3ff147906c",
+          "069f9d32f66ea45097707ddfbef9b0f98ea08edbb94fb517543d7f48f39c944c",
+          "6d43e911641ae613788227223c80502032195668213955f050656743a3e2196f",
+          "ea604b50dfb19a39713c18d938f11dc3a21819d2b1f3ed667364fac5c06efc1e",
+          "0f0ceb39fe52384ee9bfd4c3d9f8d2e43e14f7118baf2140826213399aa24734",
+          "b35d8d34e98595a740bb9e6101186fc72fd70470d6fbcc0c2234f22358f499cf",
+          "e8c0cf6d602ad6d05ca28b7bd5cdf631e005da5f200d5e23c5e6a3a072a75bcd",
+          "e6e11ad7c5e64e4c7886dc0cc721bb29fa9b17f4e291adee22bcabe7d553759d",
+          "74ed2f9d4a38ae8d41a51319006867c650ae993da116b0862ca54e630e8d789d",
+          "9a6643d44eccded06bfdca3bf3407307db4ec5c8fdbab93bfb2d0a6da00aa2ea",
+          "4b12543c2960b3e02ff1bb90ad10ca69116e62d022a6fe1e0ebf77576d047ce2",
+          "2b168587c44cdf23279fc6b7f171a85dc15e45368e3defef6df06005b9e4b370",
+          "bd532835012f49d7a66d69b400c1df9c373229c554a12c836346e4d898d13600",
+          "ed0cdaee5ec61a6f9297b6df5f6eeeaa24060f2b2d2168a883a997dde843d609",
+          "07d09c1adf62439f90f3b1ca6b7f3b0f3ba5ec879527e7d9e19feff84ab34c69",
+          "975578baca223d966f472c6696b47ab3d3ff9dd8172c80cc24c61b976454d15e",
+          "f5182343b1361bd6e97b0ded863a6bd45dac697e0d9198a7d595e1bc645147a3",
+          "68b6aad1388c2ac37eeed6e4851939c4b3a20412831dfec2a2607b959a6a0c20",
+          "9e4f8f6b0209f271afe26b5a5ab7f3346c5092f61c229a66dcc3b663678633b8",
+          "2b1e639042114dcd8adb86cc8a0d81cbbbc4dae196baa58241ee61bd55da58a1",
+          "3ef2d263902442b28a745b0504634308d1f4d2bbbff82049c4e79d62b6521655"
+        ],
+        "crossVersion": {
+          "cliSha256": {
+            "baseline": "265d6b16025d29127b6f4bc52982258888dccfc5baf7fad5bffd2ba2f2684ec6",
+            "candidate": "0e782738342030311a3a018476e96d5e8a86766117053b604e7e4dc69dd18a6f"
+          },
+          "writerReaderPairs": [
+            [
+              "baseline",
+              "baseline"
+            ],
+            [
+              "baseline",
+              "candidate"
+            ],
+            [
+              "candidate",
+              "baseline"
+            ],
+            [
+              "candidate",
+              "candidate"
+            ]
+          ],
+          "pageCount": 71,
+          "savedCopyUnchanged": true
+        }
+      },
+      "releaseTiming": {
+        "baseline": {
+          "sampleCount": 60,
+          "medianMs": 1.0236045,
+          "p95Ms": 1.598625,
+          "fullFallbacks": 60,
+          "comparedPages": 417,
+          "comparedHits": 1251,
+          "editThroughLayoutMs": [
+            [
+              2.040625,
+              0.566084,
+              1.5319159999999998,
+              0.501667,
+              1.482167,
+              0.503917,
+              1.529125,
+              0.494209,
+              1.5019580000000001,
+              0.49387499999999995,
+              1.4979170000000002,
+              0.494375,
+              1.598625,
+              0.504375,
+              1.5349160000000002,
+              0.49212500000000003,
+              1.506542,
+              0.520959,
+              1.508667,
+              0.506625
+            ],
+            [
+              1.6655000000000002,
+              0.582834,
+              1.574041,
+              0.504625,
+              1.464375,
+              0.50325,
+              1.483917,
+              0.49270800000000003,
+              1.502958,
+              0.49033400000000005,
+              1.5217500000000002,
+              0.502542,
+              1.498333,
+              0.50825,
+              1.492708,
+              0.49525,
+              1.5012910000000002,
+              0.500291,
+              1.488583,
+              0.521667
+            ],
+            [
+              1.662333,
+              0.582583,
+              1.565917,
+              0.5099170000000001,
+              1.484917,
+              0.5155,
+              1.480208,
+              0.5215000000000001,
+              1.512208,
+              0.496791,
+              1.530792,
+              0.49529200000000007,
+              1.480542,
+              0.49795799999999996,
+              1.502125,
+              0.5215000000000001,
+              1.537708,
+              0.498292,
+              1.522459,
+              0.496916
+            ]
+          ]
+        },
+        "candidate": {
+          "sampleCount": 60,
+          "medianMs": 0.771687,
+          "p95Ms": 1.372541,
+          "fullFallbacks": 0,
+          "comparedPages": 417,
+          "comparedHits": 1251,
+          "editThroughLayoutMs": [
+            [
+              4.921,
+              0.365333,
+              1.248959,
+              0.247417,
+              1.1942089999999999,
+              0.232875,
+              1.2979580000000002,
+              0.23708400000000002,
+              1.248875,
+              0.231042,
+              1.233916,
+              0.231,
+              1.211792,
+              0.23174999999999998,
+              1.2230839999999998,
+              0.270917,
+              1.286709,
+              0.237875,
+              1.232667,
+              0.25075
+            ],
+            [
+              1.622834,
+              0.328042,
+              1.372541,
+              0.244625,
+              1.219208,
+              0.24000000000000002,
+              1.2661250000000002,
+              0.232666,
+              1.232208,
+              0.230083,
+              1.254125,
+              0.230292,
+              1.220834,
+              0.23299999999999998,
+              1.246875,
+              0.268208,
+              1.290041,
+              0.23299999999999998,
+              1.244042,
+              0.231291
+            ],
+            [
+              1.716541,
+              0.332375,
+              1.27775,
+              0.24212499999999998,
+              1.178041,
+              0.232125,
+              1.22025,
+              0.229917,
+              1.2181250000000001,
+              0.24945799999999999,
+              1.226125,
+              0.228084,
+              1.256459,
+              0.24325,
+              1.240292,
+              0.232125,
+              1.205333,
+              0.231792,
+              1.227167,
+              0.231167
+            ]
+          ]
+        }
+      },
+      "earlierColdSectionCacheP95Ms": {
+        "baseline": 1.713791,
+        "candidate": 1.83175
+      },
+      "spdx": {
+        "target": "aarch64-apple-darwin",
+        "packages": 514,
+        "sourceFiles": 1093,
+        "spdxSha256": "1738540b2f2c728e704d2b5ee6b4c783f7f6085b6e891b16092fbd22beabfa92",
+        "missingLicenseTexts": [],
+        "sharedCrates": [
+          "joyoffice-cfb",
+          "joyoffice-drawingml",
+          "joyoffice-fonts",
+          "joyoffice-metafile",
+          "joyoffice-omml",
+          "joyoffice-opc",
+          "joyoffice-theme",
+          "joyoffice-ui"
+        ],
+        "runtimeLegacyDependencies": [
+          "craft-atomic",
+          "craft-font-store",
+          "craft-proof"
+        ]
+      },
+      "earlierConcurrentRun": "The historical one-megabyte line test took 15.86 seconds against a 15-second limit while the Sheet product gate and numerical benchmark also ran. The unchanged full Word gate passed with RUST_TEST_THREADS=2. The original limit was retained."
+    },
+    "UOS25": {
+      "product": {
+        "passed": 3718,
+        "failed": 0,
+        "ignored": 2
+      },
+      "strictLibraryClippy": [
+        "joyword-layout",
+        "joyword-ui-gpui"
+      ],
+      "native": {
+        "splitParagraphs": {
+          "native": {
+            "paragraphs": 138,
+            "insertedParagraph": 69,
+            "followingText": "Section 34"
+          },
+          "baseline": {
+            "paragraphs": 138,
+            "insertedParagraph": 69,
+            "followingText": "Section 34"
+          },
+          "candidate": {
+            "paragraphs": 138,
+            "insertedParagraph": 69,
+            "followingText": "Section 34"
+          }
+        },
+        "sourceSha256": "6a1c185cacc561ea5eb4c7bb391ef99af3e0b1ac2e1bd33f527972e31802643a",
+        "desktopSha256": "c496bbd1b174560b3247733ab4cb0d36e2627fb5b104244d28014709ba287e93",
+        "original": {
+          "notePages": [],
+          "pages": 68,
+          "editedPage": 35,
+          "firstDirtyPage": 3,
+          "fieldPages": [
+            65
+          ],
+          "followingPage": 67,
+          "restartPage": 68,
+          "fieldNumbers": [
+            99,
+            99,
+            99,
+            99,
+            99,
+            99,
+            99,
+            99,
+            99,
+            99,
+            99,
+            99
+          ]
+        },
+        "expanded": {
+          "notePages": [],
+          "pages": 71,
+          "editedPage": 37,
+          "firstDirtyPage": 3,
+          "fieldPages": [
+            67,
+            68
+          ],
+          "followingPage": 70,
+          "restartPage": 71,
+          "fieldNumbers": [
+            102,
+            102,
+            102,
+            102,
+            102,
+            102,
+            102,
+            102,
+            102,
+            102,
+            102,
+            102
+          ]
+        },
+        "nativePatches": [
+          {
+            "action": "text.insert",
+            "firstPage": 3,
+            "lastPage": 71,
+            "pages": 71,
+            "displayedPages": [
+              3,
+              67,
+              68,
+              70,
+              71
+            ]
+          },
+          {
+            "action": "edit.undo",
+            "firstPage": 3,
+            "lastPage": 71,
+            "pages": 68,
+            "displayedPages": [
+              3,
+              65,
+              67,
+              68
+            ]
+          },
+          {
+            "action": "edit.redo",
+            "firstPage": 3,
+            "lastPage": 71,
+            "pages": 71,
+            "displayedPages": [
+              3,
+              67,
+              68,
+              70,
+              71
+            ]
+          }
+        ],
+        "savedAndReopened": true,
+        "twoVersionPageRastersSha256": [
+          "f558beef401b7d0e813eff8491ffb318ca946eeaf76b3109781c07a5e0a38af0",
+          "f555e1db905051fd909b46bfddbe02dd60b0627fd9efd9616c54c6e93bbf043d",
+          "048e83e4036631a7cac2481390934ad183f9d9ed37ea303d11c9ab3c1df53bef",
+          "1f425185be4ae1bdbb78d247736fd926b690edf1df8eec0922473c4bfe951bac",
+          "9db893509c27e7911444810187a17297ccfb029c3df319f8d4f58f9fbbbd6ead",
+          "8c857efbb9efee46200a2b26433a250a12fb3d27057eacce760930504cd0e773",
+          "4f2b1a2d50d4fd25c75afad7bdf277f16bfbc53b5a988055931b9964621620c8",
+          "35164b060043834f0b038c1503c86d056f7e78168e611c02fa1c79d26e9e5190",
+          "6c4c579e7e3625c4944b663d96cdaba5ac9d12109d9dff3307ed0d8e12a42aea",
+          "3166b1c4041433f2048afa55a56734dfbf05e99dae3319832495dd0ded8eac21",
+          "5b4ff1d9add76512ae40d4169857b3334e053b93ef393f0a54d85f5c9f4b2537",
+          "1672407696276a3404a3645d8be489979006560470256e4d3ff0c521ef27563c",
+          "d8419c6c8cac07fa7bd504008da1d61e65b6e0e531b1fdc59d55f4b177aeb0fa",
+          "363b0bd853e017c19c407cf785a347d91196f670b1d9895008066332b7c2fe46",
+          "a1793d987e5b0d5cc0027f205d181ec75c402699cec5ce509a4e0fadda324225",
+          "ebfe3797f4551b44b7963386abe5efea30ca887ad22c21d8ed08833c6ce32eda",
+          "48e950ea5ae0cc0734a44b14732def46a307ae21bdb14c4b64a131b621b0744e",
+          "992b44155a67654e5c4ec91f0d161ec80183c6037cbe6f9dba5fce6125c0b049",
+          "6c91f0f86e215352ee047f5e28db0a3426a3c10a2bc0e06f4b049f7966afb881",
+          "4a42c5d3be8b5527f00c9101dc38c3e3a07ebd15141e5dce6f5d113ca7c200e8",
+          "d704f18c72dcc0395cbf5023036e9225060d59ec556c3f4620142d79b47df1ab",
+          "e49b7fa3f14745050e66cd8570e6301c38b62f85d6ed52c88448d8f9b486e994",
+          "65adbc541225bef165eac9fe661dc049b6982e04ec013cae2b76c6cdc67ea073",
+          "b53815d436bc7b83573971d73108f8e64fd196ca386eef4966734bebb0b2a3f7",
+          "a65537ec14ad16fb286d4a0c1be0f803f74dcfffb620059cea9b370abb7133df",
+          "4b9b0e13988dc5ad550099926e2ee2ef156241ed94ed54b9b3f4ae3da4c7e251",
+          "22de5ce8b9776dce97d79104944f7998582d49040c567868b1fe8d3076e7ab6b",
+          "d4670310c8dfdd6814b65045aa6eda8110b91966b2cb0d7abd30b40876b255dc",
+          "c55db3423aece8c05da7ee8d30b5706d570fa99921cc460e2f83e397331f06de",
+          "70a3a2061a4fc5bc126290099dfabbb64ccfe4320c1648c44edfabde8729cf77",
+          "db2bbfdefd051d4d19d6af8d79240698d4e6148fd39788dc9de69c75313cef23",
+          "725a61bbe85f268478655df7191b2f392e8f7e395890fc406c6aa7692ce3decd",
+          "a7d5c26cb1264480131d07209089a0e5eafcf84e6c7381e98c21f07b0f8822fc",
+          "128b6aa714f879b971f556a4899b283d8f1c509bd4af2066ce19d5c0b11df47c",
+          "9f4f7cae10a4e4b672329fffb9958c5018e37f0f91f0a7460fe4dc7085213f2a",
+          "9f4f7cae10a4e4b672329fffb9958c5018e37f0f91f0a7460fe4dc7085213f2a",
+          "48aeb7eecf66fb39fd507f5b943dbff32d30865a3f9acec91ec3b3877d2a93d2",
+          "9659076bac28b144cb4f02f6249155f8607e489d853eebbb625fbdd0fe4c202e",
+          "bfe1f0e2faf9a91ea40567173e56e8089767d9b08bb1008fc73e69771f9c5047",
+          "05a00fbb731a28fab5d5c46390c1da82c9fdda7391328bfc6469434649e5ef25",
+          "1fdb0ebfa46efe33d900123f46e8eabb073e362503aa5ea05c4493117ceba3d4",
+          "bbd3bea27909541011c26088d0a1e73978a1e99a275cf5e5ae6bc6e87aaab1cb",
+          "e92eade28bbcf1d42296bc9db3574ad4964f2a7d674ea8238f6c1c2e59eacd70",
+          "b2d6e812c39bc63c4f8eb7d24f057899228046712a199b53c2c9f535a0b23bb7",
+          "1a990e563efb617eb9838b18312aa2ae2ca873912617a4dd7297353caa8f4b25",
+          "58980cd6bcdebccb2e77f0ec02d4ccd71f9e80c85755289f1c524a0625fcc073",
+          "3c289670e8cb5adc0647c35de2171fb57eaa1b8b5c7957c922e5e0bae4e2f40b",
+          "d6d609d055dec2d84f7174e224d1aab1cc8f2061535d47590b850b74ac3c8102",
+          "c95ae6aceaffd471c5d55d8741c012bcdeb1b9fd9d24a304b49ad16d2fb84ce4",
+          "8c4f89b701d8a73ebaa33fd9bd38181f762658479f8389a2c9c939646c17be26",
+          "16da2d74f30e3a54178353652074d6d91230208c49b22bccb5e9ff3ff147906c",
+          "069f9d32f66ea45097707ddfbef9b0f98ea08edbb94fb517543d7f48f39c944c",
+          "6d43e911641ae613788227223c80502032195668213955f050656743a3e2196f",
+          "ea604b50dfb19a39713c18d938f11dc3a21819d2b1f3ed667364fac5c06efc1e",
+          "0f0ceb39fe52384ee9bfd4c3d9f8d2e43e14f7118baf2140826213399aa24734",
+          "b35d8d34e98595a740bb9e6101186fc72fd70470d6fbcc0c2234f22358f499cf",
+          "e8c0cf6d602ad6d05ca28b7bd5cdf631e005da5f200d5e23c5e6a3a072a75bcd",
+          "e6e11ad7c5e64e4c7886dc0cc721bb29fa9b17f4e291adee22bcabe7d553759d",
+          "74ed2f9d4a38ae8d41a51319006867c650ae993da116b0862ca54e630e8d789d",
+          "9a6643d44eccded06bfdca3bf3407307db4ec5c8fdbab93bfb2d0a6da00aa2ea",
+          "4b12543c2960b3e02ff1bb90ad10ca69116e62d022a6fe1e0ebf77576d047ce2",
+          "2b168587c44cdf23279fc6b7f171a85dc15e45368e3defef6df06005b9e4b370",
+          "bd532835012f49d7a66d69b400c1df9c373229c554a12c836346e4d898d13600",
+          "ed0cdaee5ec61a6f9297b6df5f6eeeaa24060f2b2d2168a883a997dde843d609",
+          "07d09c1adf62439f90f3b1ca6b7f3b0f3ba5ec879527e7d9e19feff84ab34c69",
+          "975578baca223d966f472c6696b47ab3d3ff9dd8172c80cc24c61b976454d15e",
+          "f5182343b1361bd6e97b0ded863a6bd45dac697e0d9198a7d595e1bc645147a3",
+          "68b6aad1388c2ac37eeed6e4851939c4b3a20412831dfec2a2607b959a6a0c20",
+          "9e4f8f6b0209f271afe26b5a5ab7f3346c5092f61c229a66dcc3b663678633b8",
+          "2b1e639042114dcd8adb86cc8a0d81cbbbc4dae196baa58241ee61bd55da58a1",
+          "3ef2d263902442b28a745b0504634308d1f4d2bbbff82049c4e79d62b6521655"
+        ],
+        "crossVersion": {
+          "cliSha256": {
+            "baseline": "c6132502735313b3f6c47381343135fed2003c6aa62f968a10b88c3ef4832fd9",
+            "candidate": "24fae49452176452e0ea671e3e5ffc72b12972ce4f1b5f83358a10a0028fa6c6"
+          },
+          "writerReaderPairs": [
+            [
+              "baseline",
+              "baseline"
+            ],
+            [
+              "baseline",
+              "candidate"
+            ],
+            [
+              "candidate",
+              "baseline"
+            ],
+            [
+              "candidate",
+              "candidate"
+            ]
+          ],
+          "pageCount": 71,
+          "savedCopyUnchanged": true
+        }
+      },
+      "releaseTiming": {
+        "baseline": {
+          "sampleCount": 60,
+          "medianMs": 1.0591195,
+          "p95Ms": 1.8005289999999998,
+          "fullFallbacks": 60,
+          "comparedPages": 417,
+          "comparedHits": 1251,
+          "editThroughLayoutMs": [
+            [
+              1.92169,
+              0.7302339999999999,
+              1.656275,
+              0.459179,
+              1.568284,
+              0.44519299999999995,
+              1.531166,
+              0.6689820000000001,
+              1.540243,
+              0.450863,
+              1.5427570000000002,
+              0.448158,
+              1.4681710000000001,
+              0.448409,
+              1.463583,
+              0.654054,
+              1.5676329999999998,
+              0.445854,
+              1.655293,
+              0.44354000000000005
+            ],
+            [
+              1.931758,
+              0.70093,
+              1.7120270000000002,
+              0.4975379999999999,
+              1.3880050000000002,
+              0.455432,
+              1.52746,
+              0.472273,
+              1.8005289999999998,
+              0.468766,
+              1.671042,
+              0.47399600000000003,
+              1.6028170000000002,
+              0.461212,
+              1.497134,
+              0.548362,
+              1.6329829999999999,
+              0.456945,
+              1.609721,
+              0.460401
+            ],
+            [
+              2.203264,
+              0.692925,
+              1.607445,
+              0.46845600000000004,
+              1.550973,
+              0.439472,
+              1.523001,
+              0.440114,
+              1.721995,
+              0.455812,
+              1.5034560000000001,
+              0.444131,
+              1.561382,
+              0.450193,
+              1.632441,
+              0.44880000000000003,
+              1.7574299999999998,
+              0.445203,
+              1.554019,
+              0.440835
+            ]
+          ]
+        },
+        "candidate": {
+          "sampleCount": 60,
+          "medianMs": 0.9477104999999999,
+          "p95Ms": 1.9643080000000002,
+          "fullFallbacks": 0,
+          "comparedPages": 417,
+          "comparedHits": 1251,
+          "editThroughLayoutMs": [
+            [
+              2.4632590000000003,
+              0.631814,
+              1.440621,
+              0.309145,
+              1.442355,
+              0.27611399999999997,
+              1.404705,
+              0.264203,
+              1.410296,
+              0.250608,
+              1.413663,
+              0.27353,
+              1.842195,
+              0.255777,
+              1.31941,
+              0.256759,
+              1.291459,
+              0.249676,
+              1.263869,
+              0.25351300000000004
+            ],
+            [
+              1.9643080000000002,
+              0.469738,
+              1.982761,
+              0.30322299999999996,
+              1.381042,
+              0.267528,
+              1.370673,
+              0.25733,
+              1.326263,
+              0.250137,
+              1.409394,
+              0.29064100000000004,
+              1.323187,
+              0.264824,
+              1.289054,
+              0.265896,
+              1.279416,
+              0.258411,
+              1.328477,
+              0.276225
+            ],
+            [
+              2.181915,
+              0.48351299999999997,
+              1.59314,
+              0.304426,
+              1.598941,
+              0.275643,
+              1.378487,
+              0.248403,
+              1.306015,
+              0.244296,
+              1.277603,
+              0.251078,
+              1.3363909999999999,
+              0.263812,
+              1.3499860000000001,
+              0.253724,
+              1.2638580000000001,
+              0.248694,
+              1.263607,
+              0.24425599999999997
+            ]
+          ]
+        }
+      },
+      "earlierColdSectionCacheP95Ms": {
+        "baseline": 2.201517,
+        "candidate": 2.843239
+      },
+      "spdx": {
+        "target": "x86_64-unknown-linux-gnu",
+        "packages": 603,
+        "sourceFiles": 1098,
+        "spdxSha256": "c72f9a961c9f26ad8268342402809135dfb4fc36071c63730d4e8ec06d0b59ec",
+        "missingLicenseTexts": [],
+        "sharedCrates": [
+          "joyoffice-cfb",
+          "joyoffice-drawingml",
+          "joyoffice-fonts",
+          "joyoffice-metafile",
+          "joyoffice-omml",
+          "joyoffice-opc",
+          "joyoffice-theme",
+          "joyoffice-ui"
+        ],
+        "runtimeLegacyDependencies": [
+          "craft-atomic",
+          "craft-font-store",
+          "craft-proof"
+        ]
+      }
+    }
+  }
+}

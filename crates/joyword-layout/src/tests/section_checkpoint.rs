@@ -1044,3 +1044,91 @@ fn custom_note_separators_match_full_pages_through_edit_undo_and_redefinition()
     );
     Ok(())
 }
+
+#[test]
+fn splitting_merging_and_replacing_paragraphs_rebases_reused_pages_and_cell_hits()
+-> Result<(), Box<dyn std::error::Error>> {
+    let mut doc = Document::new();
+    doc.body.clear();
+    let add =
+        |text: &str| joyword_model::para_block(Paragraph::with_text(text, Default::default()));
+    for n in 0..70 {
+        doc.body.extend([
+            add("Chapter start"),
+            add("First editable paragraph"),
+            add("Second paragraph"),
+            add("Last paragraph"),
+        ]);
+        if n < 69 {
+            doc.para_mut(StoryRef::Body, &Path::top(4 * n + 3))?.section =
+                Some(Box::new(doc.last_section.clone()));
+        }
+    }
+    // A later field and footnote check their own story coords after the body indices move.
+    doc.insert_object(
+        &Pos::body(63 * 4 + 1, 0),
+        InlineObject::Field {
+            instr: "PAGE".into(),
+            result: "1".into(),
+            locked: false,
+            dirty: false,
+            code: false,
+            form: String::new(),
+        },
+        &Default::default(),
+    )?;
+    footnote(
+        &mut doc,
+        &Pos::body(66 * 4 + 2, 0),
+        "Footnote after the splice",
+    );
+    let mut table = Table::new(1, 1, 260.);
+    table.rows[0].cells[0].blocks = vec![add("Later cell witness")];
+    doc.body[64 * 4 + 1] = Arc::new(Block::Table(table));
+    let row = 34 * 4 + 1;
+    let mut split = doc.clone();
+    let second = split.split_paragraph(&Pos::body(row, 5))?;
+    split.insert_text(&second, &"More words ".repeat(780), &Default::default())?;
+    let mut joined = split.clone();
+    joined.delete_range(&Pos::body(row, 3), &Pos::body(row + 1, 4))?;
+    let mut multi = doc.clone();
+    multi.insert_text(&Pos::body(row, 0), "A", &Default::default())?;
+    multi.insert_text(&Pos::body(row + 1, 2), "B", &Default::default())?;
+    let opts = LayoutOptions::default();
+    let mut cache = LayoutCache::new();
+    let mut last = layout_shared(&doc, &mut cache, &opts);
+    for (step, state) in [&split, &doc, &split, &joined, &doc, &multi, &doc]
+        .into_iter()
+        .enumerate()
+    {
+        let got = layout_shared(state, &mut cache, &opts);
+        let full = layout(state, &mut LayoutCache::new(), &opts);
+        assert!(
+            got.changed_pages_from(&last).is_some(),
+            "step {step} fell back"
+        );
+        assert_eq!(got.pages.len(), full.pages.len());
+        assert_eq!(got.index, full.index, "step {step}");
+        for (pi, (p, q)) in got.pages.iter().zip(&full.pages).enumerate() {
+            assert_eq!(format!("{p:?}"), format!("{q:?}"), "step {step} page {pi}");
+            for (x, y) in [(80., 76.), (130., 115.), (230., 148.)] {
+                assert_eq!(
+                    got.hit(pi, x, y, StoryRef::Body),
+                    full.hit(pi, x, y, StoryRef::Body)
+                );
+            }
+        }
+        last = got;
+    }
+    let mut limit = doc.clone();
+    limit
+        .body
+        .splice(row..row + 1, (0..257).map(|_| add("Oversized paste")));
+    let wide = layout_shared(&limit, &mut cache, &opts);
+    assert!(wide.changed_pages_from(&last).is_none());
+    assert_eq!(
+        wide.index,
+        layout(&limit, &mut LayoutCache::new(), &opts).index
+    );
+    Ok(())
+}

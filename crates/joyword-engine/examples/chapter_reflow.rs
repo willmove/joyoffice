@@ -1,5 +1,6 @@
 //! Compare incremental and full pagination on a 1,000-page chapter or a native section fixture.
 //! Pass a fixture followed by `--grow [initial-page-count]` to add and remove pages.
+//! Add `--splice` to insert and merge two paragraphs in the middle section.
 //! Append `--allow-full` when measuring a baseline that falls back to full pagination.
 use joyword_layout::{LayoutCache, LayoutOptions, layout, layout_shared};
 use joyword_model::{Document, Path, StoryRef, para::Paragraph, para_block};
@@ -42,6 +43,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let grow = std::env::args_os()
         .nth(2)
         .is_some_and(|arg| arg == "--grow");
+    let splice = std::env::args_os().skip(2).any(|arg| arg == "--splice");
     let allow_full = std::env::args_os().skip(2).any(|arg| arg == "--allow-full");
     let (mut doc, story, path, expected_pages) = if let Some(filename) = std::env::args_os().nth(1)
     {
@@ -90,11 +92,23 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut full_fallbacks = 0;
     for i in 0..20 {
         let begin = Instant::now();
-        let para = doc.para_mut(story, &path)?;
-        if i % 2 == 0 {
-            para.insert_text(0, &change, &Default::default())?;
+        if splice {
+            let start = joyword_model::Pos::new(story, path.clone(), 0);
+            if i % 2 == 0 {
+                let heading = doc.split_paragraph(&start)?;
+                doc.split_paragraph(&heading)?;
+                doc.insert_text(&start, &change, &Default::default())?;
+                doc.insert_text(&heading, "SpliceWitness", &Default::default())?;
+            } else {
+                doc.delete_range(&start, &joyword_model::Pos::body(path.last() + 2, 0))?;
+            }
         } else {
-            para.delete(0, change.len())?;
+            let para = doc.para_mut(story, &path)?;
+            if i % 2 == 0 {
+                para.insert_text(0, &change, &Default::default())?;
+            } else {
+                para.delete(0, change.len())?;
+            }
         }
         let next = layout_shared(&doc, &mut cache, &opts);
         let edit_ms = begin.elapsed().as_secs_f64() * 1000.;

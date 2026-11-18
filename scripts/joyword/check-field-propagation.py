@@ -20,7 +20,7 @@ SECTIONS = runpy.run_path(str(Path(__file__).with_name('check-section-reflow.py'
 CORPUS = runpy.run_path(str(Path(__file__).with_name('check-complex-corpus.py')))
 
 
-def fixture(path, edited=False, facing_notes=False, structured=False, column_geometry=False, numbered_lines=False, reviewed=False, separators=False):
+def fixture(path, edited=False, facing_notes=False, structured=False, column_geometry=False, numbered_lines=False, reviewed=False, separators=False, splice=False):
     def text(value):
         return f'<w:r><w:t xml:space="preserve">{value}</w:t></w:r>'
 
@@ -30,7 +30,7 @@ def fixture(path, edited=False, facing_notes=False, structured=False, column_geo
     paragraphs = []
     for section in range(68):
         title = f'Section {section}'
-        if edited and section == 34:
+        if edited and section == 34 and not splice:
             title = 'Edited clause. ' * 740 + title
         props = '<w:pgNumType w:start="35"/>' if section == 0 else ''
         if section == 67:
@@ -55,6 +55,9 @@ def fixture(path, edited=False, facing_notes=False, structured=False, column_geo
         if structured and 8 <= section <= 43:
             number = f'<w:numPr><w:ilvl w:val="0"/><w:numId w:val="{1 if section < 35 else 2}"/></w:numPr>'
         suppress = '<w:suppressLineNumbers/>' if numbered_lines and section == 33 else ''
+        if edited and splice and section == 34:
+            paragraphs.extend(f'<w:p><w:pPr>{spacing}</w:pPr>{text(label)}</w:p>'
+                              for label in ('Edited clause. ' * 740, 'SpliceWitness'))
         paragraphs.append(f'<w:p><w:pPr>{number}{suppress}{spacing}</w:pPr>{text(title)}</w:p>')
         if section == 64:
             body = (field('PAGE') + text(' ')) * 12
@@ -275,11 +278,21 @@ def print_review(cli, document, pdf):
     return witnesses
 
 
-def run(desktop, old, current, folder, facing_notes=False, structured=False, column_geometry=False, numbered_lines=False, reviewed=False, separators=False):
+def split_paragraphs(file):
+    with ZipFile(file) as archive:
+        root = ET.fromstring(archive.read('word/document.xml'))
+    lines = [''.join(n.text or '' for n in p.findall('.//{*}t'))
+             for p in root.find('{*}body').findall('{*}p')]
+    i = lines.index('SpliceWitness')
+    assert lines[i-1].rstrip() == ('Edited clause. ' * 740).rstrip() and lines[i+1] == 'Section 34'
+    return {'paragraphs': len(lines), 'insertedParagraph': i, 'followingText': lines[i+1]}
+
+
+def run(desktop, old, current, folder, facing_notes=False, structured=False, column_geometry=False, numbered_lines=False, reviewed=False, separators=False, splice=False):
     folder.mkdir(parents=True, exist_ok=False)
     original, working = folder / '原始.docx', folder / '分节 编辑.docx'
-    fixture(original, facing_notes=facing_notes, structured=structured, column_geometry=column_geometry, numbered_lines=numbered_lines, reviewed=reviewed, separators=separators)
-    fixture(folder / 'expanded.docx', edited=True, facing_notes=facing_notes, structured=structured, column_geometry=column_geometry, numbered_lines=numbered_lines, reviewed=reviewed, separators=separators)
+    fixture(original, facing_notes=facing_notes, structured=structured, column_geometry=column_geometry, numbered_lines=numbered_lines, reviewed=reviewed, separators=separators, splice=splice)
+    fixture(folder / 'expanded.docx', edited=True, facing_notes=facing_notes, structured=structured, column_geometry=column_geometry, numbered_lines=numbered_lines, reviewed=reviewed, separators=separators, splice=splice)
     source_hash = digest(original)
     shutil.copyfile(original, working)
     reference = []
@@ -302,7 +315,7 @@ def run(desktop, old, current, folder, facing_notes=False, structured=False, col
         with log.open() as f:
             f.seek(offset)
             return [json.loads(line.removeprefix('joyword-perf ')) for line in f if line.startswith('joyword-perf ') and line.endswith('}\n')]
-    changed = 'Edited clause. ' * 740
+    changed = 'Edited clause. ' * 740 + ('\nSpliceWitness\n' if splice else '')
     patches = []
     with app(desktop, args, folder, env) as proc:
         initial = wait(inspect, 'opened field document', proc)
@@ -314,7 +327,7 @@ def run(desktop, old, current, folder, facing_notes=False, structured=False, col
         expected_text = initial['text'].replace('Section 34', changed + 'Section 34', 1)
         for action, state in [('text.insert', after), ('edit.undo', before), ('edit.redo', after)]:
             offset = log.stat().st_size
-            command(action, **({'text': changed} if action == 'text.insert' else {}))
+            command(action, **({'text': changed, 'paragraphs': splice} if action == 'text.insert' else {}))
             current_state = inspect()
             assert current_state['text'] == (initial['text'] if action == 'edit.undo' else expected_text)
             assert len(current_state['summary']['pages']) == state['pages']
@@ -331,6 +344,8 @@ def run(desktop, old, current, folder, facing_notes=False, structured=False, col
         for k in ('new', 'enter', 'enter'):
             keys(k)
         def saved():
+            if splice:
+                return split_paragraphs(working)
             with ZipFile(working) as z:
                 return changed in z.read('word/document.xml').decode()
         wait(saved, 'saved edited field document', proc)
@@ -369,6 +384,9 @@ def run(desktop, old, current, folder, facing_notes=False, structured=False, col
             assert continuous == list(range(5, 5 + len(continuous)))
         assert max(labels['expanded']) > max(labels['original']) and len(labels['expanded']) > len(labels['original'])
         formats['marginLabels'] = {k: labels[k] for k in ('original', 'expanded')}
+    if splice:
+        files = [working, folder / 'baseline-resaved.docx', folder / 'candidate-resaved.docx']
+        formats['splitParagraphs'] = {key: split_paragraphs(f) for key, f in zip(('native','baseline','candidate'), files)}
     if separators:
         def note_entries(filename):
             with ZipFile(filename) as archive:
@@ -421,9 +439,10 @@ if __name__ == '__main__':
     arg.add_argument('--structured', action='store_true', help='exercise continued and restarted lists, a frame, a drop cap and nested table fields')
     arg.add_argument('--column-geometry', action='store_true', help='exercise unequal columns, an explicit column break and both rotated text directions')
     arg.add_argument('--numbered-lines', action='store_true', help='exercise per-page, section and continuous margin line numbering')
+    arg.add_argument('--splice', action='store_true', help='insert two paragraphs in one edit and undo their structural change')
     arg.add_argument('--separators', action='store_true', help='exercise custom footnotes, continuation notices and an endnote separator')
     arg.add_argument('--reviewed', action='store_true', help='include tracked revisions, anchored comments and independent printed markup')
     args = arg.parse_args()
     dest = args.output.resolve()
-    result = run(args.desktop.resolve(), args.baseline.resolve(), args.candidate.resolve(), dest, args.facing_notes or args.separators, args.structured, args.column_geometry, args.numbered_lines, args.reviewed, args.separators)
+    result = run(args.desktop.resolve(), args.baseline.resolve(), args.candidate.resolve(), dest, args.facing_notes or args.separators, args.structured, args.column_geometry, args.numbered_lines, args.reviewed, args.separators, args.splice)
     (dest / 'report.json').write_text(json.dumps(result, indent=2) + '\n')

@@ -41,6 +41,7 @@ pub(crate) struct Previous {
 
 enum Change {
     Body(usize),
+    Structural,
     Part(u32),
     Review,
 }
@@ -65,7 +66,7 @@ pub fn layout_shared(
         next.ms = now_ms() - start;
         let next = Arc::new(next);
         match change {
-            Change::Review => {}
+            Change::Review | Change::Structural => {}
             Change::Body(block) => previous.body[block] = doc.body[block].clone(),
             Change::Part(id) => {
                 previous.notes.insert(id, doc.parts[&id].clone());
@@ -392,8 +393,7 @@ impl Previous {
         opts: &LayoutOptions,
         review_changed: bool,
     ) -> Option<(Change, DocLayout)> {
-        if self.body.len() != doc.body.len()
-            || self.section != doc.last_section
+        if self.section != doc.last_section
             || self.settings != doc.settings
             || self.footnote_separators != doc.footnote_separators
             || self.endnote_separators != doc.endnote_separators
@@ -459,14 +459,15 @@ impl Previous {
                 edited_part = Some(*id);
             }
         }
-        let mut changes = self
+        let first = self
             .body
             .iter()
             .zip(&doc.body)
-            .enumerate()
-            .filter(|(_, (before, after))| !Arc::ptr_eq(before, after));
+            .position(|(old, new)| !Arc::ptr_eq(old, new))
+            .unwrap_or(self.body.len().min(doc.body.len()));
+        let body_changed = first != self.body.len() || first != doc.body.len();
         if let Some(id) = edited_part {
-            if changes.next().is_some() {
+            if body_changed {
                 return None;
             }
             if self.notes.get(&id)?.kind == joyword_model::PartKind::Comment {
@@ -531,15 +532,27 @@ impl Previous {
                 .reflow_sections(doc, opts, anchor, &self.layout.upgrade()?)
                 .map(|layout| (Change::Part(id), layout));
         }
-        let Some((block, (before, after))) = changes.next() else {
+        if !body_changed {
             if review_changed && self.options.typing_word == opts.typing_word {
                 return Some((Change::Review, (*self.layout.upgrade()?).clone()));
             }
             return None;
-        };
-        if changes.next().is_some() {
-            return None;
         }
+        let same_tail = self.body[first..]
+            .iter()
+            .rev()
+            .zip(doc.body[first..].iter().rev())
+            .take_while(|(old, new)| Arc::ptr_eq(old, new))
+            .count();
+        let old = first..self.body.len() - same_tail;
+        let new = first..doc.body.len() - same_tail;
+        if old.len() != 1 || new.len() != 1 {
+            return self
+                .reflow_splice(doc, opts, old, new)
+                .map(|layout| (Change::Structural, layout));
+        }
+        let block = first;
+        let (before, after) = (&self.body[block], &doc.body[block]);
         if let (Some(old), Some(table)) = (before.as_table(), after.as_table()) {
             if table_flow(doc, old, self.options.typing_word)?
                 != table_flow(doc, table, opts.typing_word)?

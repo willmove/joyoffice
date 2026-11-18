@@ -1,5 +1,7 @@
 //! Reflow the complete group of continuous sections between two fresh page starts.
 
+mod splice;
+
 use super::*;
 use crate::{Page, SectionStart, pass::index_lines};
 use joyword_model::{InlineObject, PartKind};
@@ -338,7 +340,7 @@ impl Window {
             for path in &mut page.float_tables {
                 shift(path)?;
             }
-            relocate_items(&mut page.items, u32::try_from(self.blocks.start).ok()?)?;
+            relocate_items(&mut page.items, 0, i64::try_from(self.blocks.start).ok()?)?;
         }
         let mut exit_number_delta = 0;
         if self.next_section.is_some() {
@@ -376,7 +378,7 @@ impl Window {
 }
 
 /// Body paths in a clipped canvas are relative to the fragment as well.
-fn relocate_items(items: &mut [Placed], start: u32) -> Option<()> {
+fn relocate_items(items: &mut [Placed], from: u32, delta: i64) -> Option<()> {
     for item in items {
         let (story, path) = match item {
             Placed::Lines { story, path, .. }
@@ -390,7 +392,7 @@ fn relocate_items(items: &mut [Placed], start: u32) -> Option<()> {
                 object: Some(pos), ..
             } => (pos.story, &mut pos.path),
             Placed::Clip { items, .. } => {
-                relocate_items(items, start)?;
+                relocate_items(items, from, delta)?;
                 continue;
             }
             Placed::Shape { object: None, .. } | Placed::Fill { .. } | Placed::Rule { .. } => {
@@ -399,7 +401,9 @@ fn relocate_items(items: &mut [Placed], start: u32) -> Option<()> {
         };
         if story == StoryRef::Body {
             let block = path.0.first_mut()?;
-            *block = block.checked_add(start)?;
+            if *block >= from {
+                *block = u32::try_from(i64::from(*block).checked_add(delta)?).ok()?;
+            }
         }
     }
     Some(())
