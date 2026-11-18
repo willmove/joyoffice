@@ -115,6 +115,24 @@ class Packaging(unittest.TestCase):
                 self.assertEqual(package.package("release", False, destination), destination.resolve())
             self.assertEqual(phases, ["prepare", "compile"])
 
+    def test_linux_bundle_uses_absolute_system_icon_and_relocatable_appdir(self):
+        import native
+
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary) / 'payload'
+            directory.mkdir()
+            (directory / 'BUILD.json').write_text('{"target":"x86_64-unknown-linux-gnu"}')
+            for name in ('joysheet', 'joysheet-cli', 'LICENSE-JOYOFFICE'):
+                (directory / name).write_bytes(b'fixture')
+            (directory / 'dependency-licenses').mkdir()
+            with patch.object(native.platform, 'system', return_value='Linux'), patch.object(native, 'run'):
+                native.bundle(directory, '0.2.0')
+            installed = directory / 'debian/usr/share/applications/joysheet.desktop'
+            self.assertIn('Icon=/usr/share/icons/hicolor/scalable/apps/joysheet.svg\n', installed.read_text())
+            appdir = directory / 'Joysheet.AppDir/joysheet.desktop'
+            self.assertIn('Icon=joysheet\n', appdir.read_text())
+            self.assertNotIn(str(directory), installed.read_text() + appdir.read_text())
+
     def test_standalone_workspace_keeps_consumed_shared_crates_and_features(self):
         source = '''[workspace]
 members = ["apps/joyword", "apps/joysheet", "crates/joyoffice-opc"]

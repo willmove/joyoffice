@@ -194,7 +194,8 @@ def verify_branding(read_file, root, product, platform):
             desktop = share + f'applications/{product}.desktop'
             with read_file(desktop) as stream:
                 fields = stream.read(4096).decode('utf-8').splitlines()
-            required = {f'Icon={product}', f'Exec={product} %f', f'StartupWMClass={product}'}
+            icon = f'/usr/share/icons/hicolor/scalable/apps/{logo}' if prefix == 'debian/usr/' else product
+            required = {f'Icon={icon}', f'Exec={product} %f', f'StartupWMClass={product}'}
             if not required.issubset(fields):
                 raise ValueError(f'Incorrect desktop icon or launcher reference: {desktop}')
 

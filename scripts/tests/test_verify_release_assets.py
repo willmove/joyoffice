@@ -34,7 +34,8 @@ def binary(platform, arch):
 
 
 def package(directory, product, version, platform, arch, *,
-            missing_cli=False, wrong_arch=False, wrong_icon=False, wrong_desktop_installer=False):
+            missing_cli=False, wrong_arch=False, wrong_icon=False, wrong_desktop_installer=False,
+            stale_system_icon=False):
     name = assets.filename(product, version, platform, arch)
     path = directory / name
     root = name[:-4] + '/' if product in {'joydeck', 'joysheet'} else ''
@@ -72,8 +73,9 @@ def package(directory, product, version, platform, arch, *,
         for prefix in prefixes:
             share = root + prefix + 'share/'
             files[share + 'icons/hicolor/scalable/apps/' + logo] = b'old icon' if wrong_icon else svg
+            icon = f'/usr/share/icons/hicolor/scalable/apps/{logo}' if prefix == 'debian/usr/' and not stale_system_icon else product
             files[share + f'applications/{product}.desktop'] = (
-                f'[Desktop Entry]\nIcon={product}\nExec={product} %f\nStartupWMClass={product}\n'
+                f'[Desktop Entry]\nIcon={icon}\nExec={product} %f\nStartupWMClass={product}\n'
             ).encode()
     if name.endswith('.zip'):
         with zipfile.ZipFile(path, 'w') as archive:
@@ -135,6 +137,11 @@ class ReleaseAssets(unittest.TestCase):
         self.matrix('joyword', wrong_desktop_installer=True)
         with self.assertRaisesRegex(ValueError, 'Incorrect desktop installer'):
             assets.verify_assets(self.directory, 'joyword', '0.1.0')
+
+    def test_rejects_theme_name_only_icon_in_system_installation(self):
+        self.matrix('joysheet', stale_system_icon=True)
+        with self.assertRaisesRegex(ValueError, 'Incorrect desktop icon or launcher reference'):
+            assets.verify_assets(self.directory, 'joysheet', '0.1.0')
 
     def test_sheet_cannot_publish_a_package_without_its_cli(self):
         self.matrix('joysheet', missing_cli=True)
