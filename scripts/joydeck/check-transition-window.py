@@ -31,6 +31,9 @@ PATTERNS = (("shape", "circle"), ("clock", "wedge"))
 PANELS = (("blinds", "horz"), ("ripple", "lu"))
 PRISMS = (("cube", "l"), ("orbit", "u"))
 AIRBORNE = (("wind", "r"), ("prestige", ""))
+PAPER = {"fragments": (("fracture", ""), ("crush", "")),
+         "pages": (("peelOff", "r"), ("pageCurlDouble", "l")),
+         "flight": (("airplane", "r"), ("origami", "l"))}
 FABRIC = (("fallOver", "l"), ("curtains", ""))
 PRESET_OPTIONS = {
     "fallOver": ("l", "r"), "drape": ("l", "r"), "curtains": ("",), "wind": ("l", "r"),
@@ -333,7 +336,7 @@ def play(binary, cli, doc, directory, mode, effects, duration_ms, software_fallb
             )
             def pause_ready():
                 frames = list(pattern.finditer(contents()))
-                if kind not in ("wind", "prestige"):
+                if kind not in PRESET_OPTIONS or kind in ("fallOver", "drape", "curtains"):
                     return any(pause_from < float(frame[1]) < 0.88 for frame in frames)
                 if not frames:
                     return False
@@ -606,6 +609,7 @@ def main():
     parser.add_argument("--reference-cli", type=Path)
     parser.add_argument("--exchange-only", action="store_true")
     mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--paper", choices=PAPER, help="exercise two paper effects on the actual audience window")
     mode.add_argument("--airborne", action="store_true", help="exercise a gust and a central lift of the outgoing slide")
     mode.add_argument("--fabric", action="store_true", help="exercise a falling sheet and two parting curtains")
     mode.add_argument("--prisms", action="store_true", help="exercise an outside turn and content-only inside turn")
@@ -628,7 +632,9 @@ def main():
     )
     args = parser.parse_args()
     effects = (
-        AIRBORNE
+        PAPER[args.paper]
+        if args.paper
+        else AIRBORNE
         if args.airborne
         else FABRIC
         if args.fabric
@@ -650,7 +656,7 @@ def main():
     doc = out / "转场 示例.pptx"
     # Allow the full-window debug CPU compositor to present an intermediate
     # frame before a fast-moving cloth has completely cleared the viewport.
-    duration_ms = 9600 if args.airborne else 4800
+    duration_ms = 9600 if (args.airborne or args.paper) else 4800
     if args.exchange_only:
         result = exchange(doc, out / "exchange", baseline, cli, effects, duration_ms)
         (out / "exchange.json").write_text(json.dumps(result, indent=2) + "\n")

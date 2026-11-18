@@ -1,20 +1,8 @@
 //! Projected sheet and cloth presets. Motion is measured in fractions of the
 //! slide, including at 4:3. The incoming texture stays fixed behind the curtain.
-use crate::transition::{FULL, Layer, P, Source, corners};
+use crate::transition::{FULL, Layer, Source};
+use crate::transition_surface::{texture_grid, track};
 use std::f64::consts::PI;
-
-/// Interpolate motion landmarks in normalized slide time. Knots at the contact
-/// and release of the cloth preserve its overshoot when frame rates change.
-fn track<const N: usize>(t: f64, keys: &[(f64, [f64; N])]) -> [f64; N] {
-    for pair in keys.windows(2) {
-        let ((a, start), (b, end)) = (pair[0], pair[1]);
-        if t <= b {
-            let mix = ((t - a) / (b - a)).clamp(0., 1.);
-            return std::array::from_fn(|i| start[i] + mix * (end[i] - start[i]));
-        }
-    }
-    keys[keys.len() - 1].1
-}
 
 pub(crate) fn fall_over(right: bool, t: f64) -> Vec<Layer> {
     let mut layers = vec![Layer::full(Source::New, 1.)];
@@ -54,36 +42,6 @@ pub(crate) fn fall_over(right: bool, t: f64) -> Vec<Layer> {
     layers
 }
 
-/// Draw a deformed texture in tiles, with continuous UVs and per-vertex shade.
-/// The same geometry is consumed by the CPU and hardware compositors.
-fn cloth(
-    layers: &mut Vec<Layer>,
-    source: Source,
-    region: [f64; 2],
-    columns: usize,
-    rows: usize,
-    project: impl Fn(P) -> (P, f64),
-) {
-    for row in 0..rows {
-        for column in 0..columns {
-            let x = |col: usize| region[0] + (region[1] - region[0]) * col as f64 / columns as f64;
-            let rect = [
-                x(column),
-                row as f64 / rows as f64,
-                x(column + 1),
-                (row + 1) as f64 / rows as f64,
-            ];
-            let points = corners(rect).map(&project);
-            let tile = Layer::quad(source, rect, points.map(|p| p.0), 1.);
-            layers.push(tile);
-            let fade = points.map(|p| p.1.clamp(0., 1.));
-            if fade.iter().any(|&s| s > 0.) {
-                layers.push(tile.shade(1.).faded(fade));
-            }
-        }
-    }
-}
-
 pub(crate) fn drape(right: bool, t: f64) -> Vec<Layer> {
     let mut layers = vec![Layer::full(Source::Old, 1.)];
     if t <= 0.29 {
@@ -107,7 +65,7 @@ pub(crate) fn drape(right: bool, t: f64) -> Vec<Layer> {
             (1., [1., 1., 0., 0., 0.]),
         ],
     );
-    cloth(&mut layers, Source::New, [0., 1.], 5, 6, |[u, v]| {
+    texture_grid(&mut layers, Source::New, [0., 1.], 5, 6, |[u, v]| {
         let x = if right { 1. - u } else { u };
         let height = left + (right_edge - left) * x;
         let inset = gather * v * (1. - 1.55 * x);
@@ -145,7 +103,7 @@ pub(crate) fn curtains(t: f64) -> Vec<Layer> {
     let gathered = (4. * t).min(1.);
     for right in [false, true] {
         let region = if right { [0.5, 1.] } else { [0., 0.5] };
-        cloth(&mut layers, Source::Old, region, 8, 6, |[u, v]| {
+        texture_grid(&mut layers, Source::Old, region, 8, 6, |[u, v]| {
             let s = (if right { 1. - u } else { u }) * 2.;
             let width = (1. - v) * top + v * hem + 4. * v * (1. - v) * (middle - (top + hem) / 2.);
             let outside = -0.045 * gathered - travel;
@@ -183,7 +141,7 @@ pub(crate) fn wind(right: bool, t: f64) -> Vec<Layer> {
             (0.82, [1.16, 0.61, 0.05, 0.04]),
         ],
     );
-    cloth(&mut layers, Source::Old, [0., 1.], 9, 4, |[u, v]| {
+    texture_grid(&mut layers, Source::Old, [0., 1.], 9, 4, |[u, v]| {
         let across = if right { 1. - u } else { u };
         let phase = PI * (4.2 * across - 1.2 * v - 2.5 * t);
         let ripple = amplitude * phase.sin();
@@ -219,7 +177,7 @@ pub(crate) fn prestige(t: f64) -> Vec<Layer> {
             (0.82, [1.36, 0.12, 0.66, 0.10, 0.04]),
         ],
     );
-    cloth(&mut layers, Source::Old, [0., 1.], 12, 4, |[u, v]| {
+    texture_grid(&mut layers, Source::Old, [0., 1.], 12, 4, |[u, v]| {
         let across = u - 0.5;
         let center = (PI * u).sin().powi(2);
         let pleat = (4. * PI * u + 0.3 * v).cos();

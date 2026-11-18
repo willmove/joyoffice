@@ -971,7 +971,7 @@
       "source_path": "crates/anim/src/lib.rs",
       "source_sha256": "960fee50af9c7cd413c62db1a8222a1500247882f2b855e0f0a7e688132d733c",
       "target_path": "crates/joydeck-anim/src/lib.rs",
-      "adapted_sha256": "47ebef70a6a2c583d8cac305779c7e0d0a57ccd7854951917aa23cddb1632ac7",
+      "adapted_sha256": "22b8f012972997bd01dd2c08df1272d213d7e30caa23180936c06e6a93617fa8",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -982,7 +982,8 @@
         "Register the JoyOffice shape, wheel, random-bar and dissolve transition generator.",
         "Register the JoyOffice panel transition generator (transition_panels.rs, SHA-256 378954a7ffaa00a48f18d46623c6e8f96c5db049f5d4acf2b23aa7798b7438c6).",
         "Register the host prism projection used by the audience, CPU and GPU renderers.",
-        "Register the JoyOffice sheet and cloth transition generator."
+        "Register the JoyOffice sheet and cloth transition generator.",
+        "Register first-party paper surfaces, folds and shared textured-surface helpers."
       ]
     },
     {
@@ -1086,7 +1087,7 @@
       "source_path": "crates/anim/src/transition_fx.rs",
       "source_sha256": "d33982408786bf055bf487318d4fd6a6e79d4309812a1dd0b7f5807963c79dad",
       "target_path": "crates/joydeck-anim/src/transition_fx.rs",
-      "adapted_sha256": "463414b9dfb227d567a160cf11c891c14f00bf23056f43280f1cad405203ea94",
+      "adapted_sha256": "3789ae7caecfea9646a3de84721bf1929de5e8aba583829f6ac22f1224fb349f",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -1098,14 +1099,15 @@
         "Route checker, blinds, comb and ripple variants to native tile, stripe and radial generators.",
         "Remove the imported prism construction for Cube, Box, Rotate and Orbit. The first-party generator projects and clips the two moving faces of p14:prism. Independent references are in tests/fixtures/joydeck/prism-{plain,marked}-reference.json.",
         "Retire the imported fallOver, drape and curtains generators. Use independently measured normalized slide surfaces from transition_fabric.rs.",
-        "Retire the imported rigid wind and prestige cards. JoyOffice now carries the outgoing slide texture on a rippling sheet and a gathered canopy, measured on two PowerPoint slide sizes."
+        "Retire the imported rigid wind and prestige cards. JoyOffice now carries the outgoing slide texture on a rippling sheet and a gathered canopy, measured on two PowerPoint slide sizes.",
+        "Dispatch all twelve remaining p15 paper effects and file options to JoyOffice generators and remove the imported generators."
       ]
     },
     {
       "source_path": "crates/anim/src/transition_geom.rs",
       "source_sha256": "5b1f243f755182dfdf10a93ac36764b2f1b93bb6d964e7f22e31605e99ac77a2",
       "target_path": "crates/joydeck-anim/src/transition_geom.rs",
-      "adapted_sha256": "3e96abb83b6772a927ff037eb556c06582a1d698e35b99fd3f373eef1a19165a",
+      "adapted_sha256": "00583973124868eec458916d4c3a48229d37984268af227c7834f568840ed495",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -1113,7 +1115,8 @@
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
         "Remove the retired polynomial used only for legacy cover and uncover motion.",
         "Retire the fixed-size angular fan and soft rectangle previously used by shape and wheel transitions.",
-        "Remove the unused two-dimensional opacity grid and soft edge helpers once the final ripple caller retired."
+        "Remove the unused two-dimensional opacity grid and soft edge helpers once the final ripple caller retired.",
+        "Retire the unused radial boundary and rectangular polygon helpers after replacing the old paper effects."
       ]
     },
     {

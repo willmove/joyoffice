@@ -31,12 +31,15 @@ mod slide_motion;
 mod timeline;
 mod transition;
 mod transition_fabric;
+mod transition_fold;
 mod transition_fx;
 mod transition_geom;
 mod transition_mask;
 mod transition_panels;
+mod transition_paper;
 mod transition_pattern;
 mod transition_prism;
+mod transition_surface;
 
 #[cfg(test)]
 #[allow(

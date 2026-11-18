@@ -131,14 +131,6 @@ pub(crate) fn dir(opt: &str, default: (f64, f64)) -> (f64, f64) {
     if d == (0.0, 0.0) { default } else { d }
 }
 
-/// Point on the unit square's boundary seen from its centre at angle `ang` (radians, clockwise
-/// from 12 o'clock, measured on a slide `a` wide per unit of height).
-pub(crate) fn boundary(ang: f64, a: f64) -> P {
-    let (dx, dy) = (ang.sin() / a, -ang.cos());
-    let m = (dx.abs() / 0.5).max(dy.abs() / 0.5).max(1e-9);
-    [0.5 + dx / m, 0.5 + dy / m]
-}
-
 // ---------- polygons ----------
 
 /// Keep the part of a convex polygon where `n · p <= d`.
@@ -182,10 +174,6 @@ pub(crate) fn poly_layers(
             _ => None,
         })
         .collect()
-}
-
-pub(crate) fn rect_poly(r: R) -> Vec<P> {
-    corners(r).to_vec()
 }
 
 // ---------- 3-D ----------
