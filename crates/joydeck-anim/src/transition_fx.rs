@@ -69,8 +69,7 @@ pub(crate) fn layers(kind: &str, o: &str, t: f64, a: f64, depth: u32) -> Vec<Lay
         return layers;
     }
     match kind {
-        "wipe" => wipe(o, t),
-        "split" => split(o, t),
+        "wipe" | "split" => crate::transition_mask::layers(kind == "split", o, t),
         "reveal" => reveal(o, t),
         "randomBar" => random_bars(o == "vert", t),
         "shape" => shape(o, t, a),
@@ -124,58 +123,6 @@ pub(crate) fn layers(kind: &str, o: &str, t: f64, a: f64, depth: u32) -> Vec<Lay
 }
 
 // ---------- Subtle ----------
-
-/// Width of the soft edge of Wipe and Split (slide units along the motion).
-const WIPE_SOFT: f64 = 0.8;
-
-/// Where the middle of the soft edge is at `t`: from fully before the slide to fully past it.
-fn wipe_pos(t: f64) -> f64 {
-    -WIPE_SOFT / 2.0 + (1.0 + WIPE_SOFT) * 1.05 * t
-}
-
-fn wipe(o: &str, t: f64) -> Vec<Layer> {
-    let c = wipe_pos(t);
-    // Position along the motion, 0 where the new slide starts showing.
-    let p: Box<dyn Fn(f64, f64) -> f64> = match o {
-        "l" => Box::new(|x, _| 1.0 - x),
-        "u" => Box::new(|_, y| 1.0 - y),
-        "d" => Box::new(|_, y| y),
-        "lu" => Box::new(|x, y| (2.0 - x - y) / 2.0),
-        "ru" => Box::new(|x, y| (1.0 + x - y) / 2.0),
-        "ld" => Box::new(|x, y| (1.0 - x + y) / 2.0),
-        "rd" => Box::new(|x, y| (x + y) / 2.0),
-        _ => Box::new(|x, _| x),
-    };
-    let diag = o.len() == 2;
-    let (n, m) = if diag {
-        (32, 18)
-    } else if matches!(o, "u" | "d") {
-        (1, 36)
-    } else {
-        (48, 1)
-    };
-    let mut v = vec![Layer::full(Old, 1.0)];
-    v.extend(field(New, n, m, &|x, y| edge(c, p(x, y), WIPE_SOFT)));
-    v
-}
-
-fn split(o: &str, t: f64) -> Vec<Layer> {
-    let horz = o.starts_with("horz");
-    let inward = o.ends_with("In");
-    let c = wipe_pos(t);
-    let p = move |x: f64, y: f64| {
-        let d = if horz {
-            (y - 0.5).abs() * 2.0
-        } else {
-            (x - 0.5).abs() * 2.0
-        };
-        if inward { 1.0 - d } else { d }
-    };
-    let (n, m) = if horz { (1, 36) } else { (48, 1) };
-    let mut v = vec![Layer::full(Old, 1.0)];
-    v.extend(field(New, n, m, &|x, y| edge(c, p(x, y), WIPE_SOFT)));
-    v
-}
 
 fn reveal(o: &str, t: f64) -> Vec<Layer> {
     let dx = if o.ends_with("Right") { 1.0 } else { -1.0 };

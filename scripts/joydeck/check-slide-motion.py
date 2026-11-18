@@ -42,14 +42,14 @@ CASES = [
 ]
 
 
-def generate(out):
+def generate(out, cases=CASES):
     with tempfile.TemporaryDirectory() as folder:
         seed = Path(folder) / "seed.pptx"
         window["deck"](seed)
-        extend(seed, out)
+        extend(seed, out, cases)
 
 
-def extend(seed, out):
+def extend(seed, out, cases=CASES):
     with ZipFile(seed) as z, ZipFile(out, "x", ZIP_DEFLATED) as w:
         for name in z.namelist():
             if re.fullmatch(r"ppt/slides/(?:_rels/)?slide\d+\.xml(?:\.rels)?", name):
@@ -64,7 +64,7 @@ def extend(seed, out):
                 if name == "ppt/presentation.xml":
                     slides = xml.find(f"{{{P}}}sldIdLst")
                     slides.clear()
-                    for i in range(1, len(CASES) + 1):
+                    for i in range(1, len(cases) + 1):
                         E.SubElement(
                             slides,
                             f"{{{P}}}sldId",
@@ -74,7 +74,7 @@ def extend(seed, out):
                     for rel in list(xml):
                         if rel.get("Type", "").endswith("/slide"):
                             xml.remove(rel)
-                    for i in range(1, len(CASES) + 1):
+                    for i in range(1, len(cases) + 1):
                         E.SubElement(
                             xml,
                             f"{{{REL}}}Relationship",
@@ -88,7 +88,7 @@ def extend(seed, out):
                             r"/ppt/slides/slide\d+\.xml", part.get("PartName", "")
                         ):
                             xml.remove(part)
-                    for i in range(1, len(CASES) + 1):
+                    for i in range(1, len(cases) + 1):
                         E.SubElement(
                             xml,
                             f"{{{CT}}}Override",
@@ -101,7 +101,7 @@ def extend(seed, out):
         for item in list(rels):
             if not item.get("Type", "").endswith("/slideLayout"):
                 rels.remove(item)
-        for idx, (kind, option) in enumerate(CASES, 1):
+        for idx, (kind, option) in enumerate(cases, 1):
             xml = E.fromstring(z.read("ppt/slides/slide1.xml"))
             xml.find(".//{*}bg/{*}bgPr/{*}solidFill/{*}srgbClr").set(
                 "val", "E82820" if idx % 2 else "1848D8"
@@ -112,11 +112,8 @@ def extend(seed, out):
                 {"advTm": "767", "advClick": "0", f"{{{P14}}}dur": "1600"},
             )
             if kind != "none":
-                eff = E.SubElement(tr, f"{{{P}}}" + {"uncover": "pull"}.get(kind, kind))
-                if option == "throughBlack":
-                    eff.set("thruBlk", "1")
-                elif kind in ["push", "cover", "uncover"]:
-                    eff.set("dir", option)
+                tag, attrs = window["effect_xml"](kind, option)
+                E.SubElement(tr, f"{{{P}}}" + tag, attrs)
             w.writestr(
                 f"ppt/slides/slide{idx}.xml",
                 E.tostring(xml, encoding="utf-8", xml_declaration=True),
@@ -340,7 +337,7 @@ def summary(values):
     }
 
 
-def hold_for_sampling(source, destination):
+def hold_for_sampling(source, destination, count_expected=len(CASES)):
     # Older players count the transition itself as hold time. Lengthen only
     # the hold in both visual comparisons to keep those clocks on the same page.
     count = 0
@@ -352,7 +349,7 @@ def hold_for_sampling(source, destination):
                 raw = raw.replace(b'advTm="767"', b'advTm="60000"')
                 count += 1
             dst.writestr(info, raw)
-    assert count == len(CASES)
+    assert count == count_expected
 
 
 def timed_pages(cli, doc, directory):

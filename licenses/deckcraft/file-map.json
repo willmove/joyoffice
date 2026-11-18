@@ -971,13 +971,14 @@
       "source_path": "crates/anim/src/lib.rs",
       "source_sha256": "960fee50af9c7cd413c62db1a8222a1500247882f2b855e0f0a7e688132d733c",
       "target_path": "crates/joydeck-anim/src/lib.rs",
-      "adapted_sha256": "1b98eb8a044357ed5a287fbce12084bdca134673fc7c6bca86dfda704af66419",
+      "adapted_sha256": "2c8573b8d9b24eec5db33b973daa4ba24e1298280b26b0a4a0f82c09ba7b94b0",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
-        "Register the host whole-slide motion generator."
+        "Register the host whole-slide motion generator.",
+        "JoyOffice's contour-strip mask generator replaces the imported wipe and split opacity grids; see slides in tests/fixtures/joydeck/soft-mask-reference.json."
       ]
     },
     {
@@ -1081,13 +1082,14 @@
       "source_path": "crates/anim/src/transition_fx.rs",
       "source_sha256": "d33982408786bf055bf487318d4fd6a6e79d4309812a1dd0b7f5807963c79dad",
       "target_path": "crates/joydeck-anim/src/transition_fx.rs",
-      "adapted_sha256": "3b642093172e1d19514bc5c0039ef9e4e6f87b13aaa0dc6b14dbdbaa90a9188c",
+      "adapted_sha256": "2b88ea3b35d02c6d59043e3ceb8d633284d932c93e074e6fd5817c30ac5a4df1",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
-        "Dispatch basic cuts, dissolves and travel tracks to the host generator; remove their previous implementations."
+        "Dispatch basic cuts, dissolves and travel tracks to the host generator; remove their previous implementations.",
+        "JoyOffice's contour-strip mask generator replaces the imported wipe and split opacity grids; see slides in tests/fixtures/joydeck/soft-mask-reference.json."
       ]
     },
     {

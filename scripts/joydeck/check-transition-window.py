@@ -26,9 +26,21 @@ P14 = "http://schemas.microsoft.com/office/powerpoint/2010/main"
 COLORS = ["CC2211", "2352D0", "33C044"]
 STANDARD = (("fade", ""), ("checker", "vert"))
 TRAVEL = (("push", "l"), ("cover", "ru"))
+MASKS = (("wipe", "ru"), ("split", "vertOut"))
 ET.register_namespace("p", P)
 ET.register_namespace("a", A)
 ET.register_namespace("p14", P14)
+
+
+def effect_xml(kind, option):
+    if kind == "split":
+        return "split", {"orient": option[:4], "dir": option[4:].lower()}
+    if kind == "wipe" and len(option) == 2:
+        return "strips", {"dir": option}
+    tag = "pull" if kind == "uncover" else kind
+    if option == "throughBlack":
+        return tag, {"thruBlk": "1"}
+    return tag, ({"dir": option} if option and option != "smoothly" else {})
 
 
 def deck(path, effects=STANDARD, duration=4800, timed=False):
@@ -61,9 +73,8 @@ def deck(path, effects=STANDARD, duration=4800, timed=False):
                     if timed and i == 1:
                         tr.set("advTm", "767")
                     kind, direction = effects[i - 1]
-                    ET.SubElement(
-                        tr, f"{{{P}}}" + kind, {"dir": direction} if direction else {}
-                    )
+                    tag, attrs = effect_xml(kind, direction)
+                    ET.SubElement(tr, f"{{{P}}}" + tag, attrs)
                 data = ET.tostring(root, encoding="utf-8", xml_declaration=True)
             output.writestr(source.getinfo(name), data)
 
@@ -242,7 +253,15 @@ def play(binary, cli, doc, directory, mode, effects, software_fallback=False):
             pattern = re.compile(
                 rf"show_transition_frame slide={slide} effect={kind} progress=([.\d]+) prepare_us=(\d+) pixels=(\d+)x(\d+)"
             )
-            pause_from = 0.22 if kind == "cover" else 0.38 if kind == "push" else 0.48
+            pause_from = (
+                0.22
+                if kind == "cover"
+                else 0.30
+                if kind in ("wipe", "split")
+                else 0.38
+                if kind == "push"
+                else 0.48
+            )
             wait(
                 lambda: any(
                     pause_from < float(m[1]) < 0.88
@@ -482,12 +501,14 @@ def exchange(doc, directory, baseline, candidate, effects):
             for page, (kind, direction) in enumerate(effects, 2):
                 slide = ET.fromstring(z.read(f"ppt/slides/slide{page}.xml"))
                 transition = slide.find(".//{*}transition")
+                tag, attrs = effect_xml(kind, direction)
                 assert (
-                    transition is not None and transition.find("{*}" + kind) is not None
+                    transition is not None and transition.get(f"{{{P14}}}dur") == "4800"
                 )
-                assert transition.get(f"{{{P14}}}dur") == "4800"
-                if direction:
-                    assert transition.find("{*}" + kind).get("dir") == direction
+                child = transition.find("{*}" + tag)
+                assert child is not None and all(
+                    child.get(k) == v for k, v in attrs.items()
+                )
         for reader, tool in versions.items():
             work = directory / f"{writer}-{reader}"
             work.mkdir()
@@ -512,7 +533,11 @@ def main():
     parser.add_argument("output", type=Path)
     parser.add_argument("--reference-cli", type=Path)
     parser.add_argument("--exchange-only", action="store_true")
-    parser.add_argument(
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument(
+        "--masks", action="store_true", help="exercise diagonal wipe and centered split"
+    )
+    mode.add_argument(
         "--travel", action="store_true", help="exercise push and diagonal cover"
     )
     parser.add_argument(
@@ -521,7 +546,7 @@ def main():
         help="verify automatic CPU fallback on a desktop with only a software adapter",
     )
     args = parser.parse_args()
-    effects = TRAVEL if args.travel else STANDARD
+    effects = MASKS if args.masks else TRAVEL if args.travel else STANDARD
     out = args.output.resolve()
     cli = args.binary.with_name("joydeck-cli").resolve()
     baseline = (args.reference_cli or cli).resolve()
@@ -537,7 +562,7 @@ def main():
     for mode in ("auto", "cpu"):
         results[mode] = play(
             args.binary.resolve(),
-            cli if args.travel else baseline,
+            cli if args.travel or args.masks else baseline,
             doc,
             out / mode,
             mode,
