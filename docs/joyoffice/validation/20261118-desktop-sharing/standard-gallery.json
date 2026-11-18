@@ -1,0 +1,400 @@
+{
+  "reference": {
+    "application": "Microsoft PowerPoint for Mac 16.115",
+    "source": "ECMA-376 Part 1, fifth edition, machine-readable geometry definitions",
+    "definitionsSha256": "2f7c868d857c1e3c4b5a6068759fe0e07d77ad58377a6618d1b02ba3507b6939",
+    "pdfSha256": {
+      "JoyOffice-presets-1-asymmetric.pdf": "a19b17f4fc45da356d5351671db0640cbeecc91873b2908e90c8c5dcc9988aa6",
+      "JoyOffice-presets-1-boundary.pdf": "9ecd6f887b53fd353ead3fea8b7aa39791fcbcbafd9a2c824681ce43c9cbf9b2",
+      "JoyOffice-presets-1-default.pdf": "ef64871de3e13bfc150b52ee0b3354d000ce9499a8c821e164e74d38bf671e3c",
+      "JoyOffice-presets-2-asymmetric.pdf": "b96eb40ec2eb4b1d46487d19533531672f0270ef29dfbf0a0bbfd11f1033523b",
+      "JoyOffice-presets-2-boundary.pdf": "180cfdb170634baab5de8fec67a727b3b3521d4f9b19425a7f84aa734f159a15",
+      "JoyOffice-presets-2-default.pdf": "557cab70c4977b04a91bbd28c62a39d1d989747f26ffca5190bf606c1d1fbf8a",
+      "JoyOffice-presets-3-asymmetric.pdf": "2822c782000e1479ed4ae53de124ddcd33c69bb1041af0efc68685f2ef6fb605",
+      "JoyOffice-presets-3-boundary.pdf": "3c2beb7c535a365e539290bdaf1d1d614ab6d2b9b302e3e75d933346aabe05a0",
+      "JoyOffice-presets-3-default.pdf": "be2d1b2e33dfc5a63be67814108d2cc75c2e81e63e264f2dad084af8f7be44bb",
+      "JoyOffice-presets-4-asymmetric.pdf": "3bf0798b5f950807b208c852c9ca05cea5ad405993f9abe691007db8191c7ef5",
+      "JoyOffice-presets-4-boundary.pdf": "22d4ca9c4d50acccb20bf14363614246703d5d124be58203091bc7c7ddeb66d3",
+      "JoyOffice-presets-4-default.pdf": "86a9b06d6bda257510f781e0e62d0d92a46e3378e7df6bc36611be0c740c5a63"
+    },
+    "raster": "72 dpi, 960 × 540. Coverage where min RGB < 197, outline where max RGB < 99. Count pixels with no counterpart within a 3 × 3 neighborhood in either direction."
+  },
+  "gallery": {
+    "dedicated": 74,
+    "compiled": 108,
+    "textBoxAlias": 1,
+    "total": 183,
+    "shapeNames": [
+      "ellipse",
+      "triangle",
+      "rtTriangle",
+      "parallelogram",
+      "trapezoid",
+      "nonIsoscelesTrapezoid",
+      "diamond",
+      "pentagon",
+      "hexagon",
+      "heptagon",
+      "octagon",
+      "decagon",
+      "dodecagon",
+      "pie",
+      "pieWedge",
+      "chord",
+      "teardrop",
+      "frame",
+      "cornerTabs",
+      "squareTabs",
+      "plaqueTabs",
+      "halfFrame",
+      "corner",
+      "diagStripe",
+      "plus",
+      "plaque",
+      "can",
+      "cube",
+      "bevel",
+      "donut",
+      "noSmoking",
+      "blockArc",
+      "foldedCorner",
+      "smileyFace",
+      "heart",
+      "lightningBolt",
+      "sun",
+      "moon",
+      "cloud",
+      "gear6",
+      "gear9",
+      "funnel",
+      "arc",
+      "bracketPair",
+      "bracePair",
+      "leftBracket",
+      "rightBracket",
+      "leftBrace",
+      "rightBrace",
+      "chartX",
+      "chartStar",
+      "chartPlus",
+      "quadArrow",
+      "leftRightUpArrow",
+      "bentArrow",
+      "uturnArrow",
+      "curvedRightArrow",
+      "curvedLeftArrow",
+      "curvedUpArrow",
+      "curvedDownArrow",
+      "leftUpArrow",
+      "bentUpArrow",
+      "stripedRightArrow",
+      "notchedRightArrow",
+      "homePlate",
+      "chevron",
+      "circularArrow",
+      "leftCircularArrow",
+      "leftRightCircularArrow",
+      "swooshArrow",
+      "rightArrowCallout",
+      "downArrowCallout",
+      "leftArrowCallout",
+      "upArrowCallout",
+      "leftRightArrowCallout",
+      "upDownArrowCallout",
+      "quadArrowCallout",
+      "mathPlus",
+      "mathMinus",
+      "mathMultiply",
+      "mathDivide",
+      "mathEqual",
+      "mathNotEqual",
+      "irregularSeal1",
+      "irregularSeal2",
+      "star4",
+      "star5",
+      "star6",
+      "star7",
+      "star8",
+      "star10",
+      "star12",
+      "star16",
+      "star24",
+      "star32",
+      "ribbon2",
+      "ribbon",
+      "ellipseRibbon2",
+      "ellipseRibbon",
+      "leftRightRibbon",
+      "verticalScroll",
+      "horizontalScroll",
+      "wave",
+      "doubleWave",
+      "wedgeRectCallout",
+      "wedgeRoundRectCallout",
+      "wedgeEllipseCallout",
+      "cloudCallout"
+    ],
+    "configurations": 972,
+    "settings": [
+      "wide, tall, square",
+      "default, asymmetric, boundary"
+    ],
+    "geometryReferenceSha256": "c5903a29f2e058a1e670537363675752a3f13813470cd2653aab26db264daaf5",
+    "independentFillPointerSamples": 41192,
+    "pointerAnglesDegrees": [
+      0,
+      37
+    ],
+    "externalTipsEightPositions": true
+  },
+  "platforms": {
+    "macOS": {
+      "tests": {
+        "ui": {
+          "passed": 78,
+          "failed": 0,
+          "ignored": 0
+        },
+        "joyword": {
+          "passed": 3691,
+          "failed": 0,
+          "ignored": 2
+        },
+        "joydeck": {
+          "passed": 1011,
+          "failed": 0,
+          "ignored": 0
+        },
+        "joysheet": {
+          "passed": 1479,
+          "failed": 0,
+          "ignored": 1
+        }
+      },
+      "exchange": "12 decks × 3 pages × 27 objects, both CLI versions render their reopened files identically",
+      "candidatePagesSha256": "0fbad6e207d3a2de2fb1f3fb105c5ec5cd21ed461dea209a643871f89de512e3",
+      "referenceDifferencesInPixels": {
+        "baseline": {
+          "coverage": 16505,
+          "stroke": 14021,
+          "largestSingleShape": 994
+        },
+        "candidate": {
+          "coverage": 38,
+          "stroke": 11,
+          "largestSingleShape": 8
+        }
+      },
+      "resize": {
+        "binarySha256": "ca15c876918b588f23b17a16565218595d0af1f3c00c475f0752c7b3b65c1cff",
+        "shapes": 27,
+        "resized": "triangle",
+        "before": {
+          "x": 170.07874015748033,
+          "y": 28.346456692913385,
+          "w": 133.85826771653544,
+          "h": 53.54330708661417
+        },
+        "after": {
+          "x": 175.07874015748033,
+          "y": 31.346456692913385,
+          "w": 150.85826771653544,
+          "h": 62.54330708661417
+        },
+        "undoRedo": true,
+        "savedAndReopened": true,
+        "sourceUnchanged": true
+      },
+      "textBox": {
+        "rect": true,
+        "txBox": true,
+        "text": "JoyOffice 图文路径 123",
+        "undoRedo": true,
+        "desktopReopen": true,
+        "twoVersionExchange": true
+      },
+      "strictSpdx": {
+        "joyword": {
+          "target": "aarch64-apple-darwin",
+          "packages": 513,
+          "sourceFiles": 1066,
+          "spdxSha256": "afa13091eea3d46512e394eb7e5bead5890b215ec0c8ba3b4157f62df33fda4a",
+          "missingLicenseTexts": [],
+          "sharedCrates": [
+            "joyoffice-cfb",
+            "joyoffice-drawingml",
+            "joyoffice-fonts",
+            "joyoffice-metafile",
+            "joyoffice-omml",
+            "joyoffice-opc",
+            "joyoffice-theme",
+            "joyoffice-ui"
+          ],
+          "runtimeLegacyDependencies": [
+            "craft-atomic",
+            "craft-font-store",
+            "craft-proof"
+          ]
+        },
+        "joydeck": {
+          "target": "aarch64-apple-darwin",
+          "packages": 473,
+          "sourceFiles": 524,
+          "spdxSha256": "c11873c0d56c4e6f674487cec553fbac4c6900ac9c8a73c42f5d6690a458e0a9",
+          "missingLicenseTexts": [],
+          "sharedCrates": [
+            "joyoffice-drawingml",
+            "joyoffice-fonts",
+            "joyoffice-metafile",
+            "joyoffice-opc",
+            "joyoffice-theme",
+            "joyoffice-ui"
+          ],
+          "runtimeLegacyDependencies": [
+            "joydeck-legacy"
+          ]
+        },
+        "joysheet": {
+          "target": "aarch64-apple-darwin",
+          "packages": 453,
+          "sourceFiles": 1183,
+          "spdxSha256": "81b48a930b8bed8fe8e9a3da89b36e3f6c50d6fdb757765a0ad91ab0c1a9f685",
+          "missingLicenseTexts": [],
+          "sharedCrates": [
+            "joyoffice-cfb",
+            "joyoffice-drawingml",
+            "joyoffice-omml",
+            "joyoffice-opc",
+            "joyoffice-theme",
+            "joyoffice-ui"
+          ],
+          "runtimeLegacyDependencies": []
+        }
+      }
+    },
+    "UOS 25 X11 DDE": {
+      "tests": {
+        "ui": {
+          "passed": 82,
+          "failed": 0,
+          "ignored": 0
+        },
+        "joyword": {
+          "passed": 3695,
+          "failed": 0,
+          "ignored": 2
+        },
+        "joydeck": {
+          "passed": 1016,
+          "failed": 0,
+          "ignored": 0
+        },
+        "joysheet": {
+          "passed": 1479,
+          "failed": 0,
+          "ignored": 1
+        }
+      },
+      "exchange": "12 decks × 3 pages × 27 objects, both CLI versions render their reopened files identically",
+      "candidatePagesSha256": "6966e066f1ba433761a4e221906caab95e7f43eb5c13d40d6520a223b74f14d7",
+      "referenceDifferencesInPixels": {
+        "baseline": {
+          "coverage": 16505,
+          "stroke": 14021,
+          "largestSingleShape": 994
+        },
+        "candidate": {
+          "coverage": 38,
+          "stroke": 11,
+          "largestSingleShape": 8
+        }
+      },
+      "resize": {
+        "binarySha256": "1f8e7cb7eb72e5c83c8917e0f41cc8ef2862d8c0475da614552cc9559b5dc3e6",
+        "shapes": 27,
+        "resized": "triangle",
+        "before": {
+          "x": 170.07874015748033,
+          "y": 28.346456692913385,
+          "w": 133.85826771653544,
+          "h": 53.54330708661417
+        },
+        "after": {
+          "x": 175.07874015748033,
+          "y": 31.346456692913385,
+          "w": 150.85826771653544,
+          "h": 62.54330708661417
+        },
+        "undoRedo": true,
+        "savedAndReopened": true,
+        "sourceUnchanged": true
+      },
+      "textBox": {
+        "rect": true,
+        "txBox": true,
+        "text": "JoyOffice 图文路径 123",
+        "undoRedo": true,
+        "desktopReopen": true,
+        "twoVersionExchange": true
+      },
+      "strictSpdx": {
+        "joyword": {
+          "target": "x86_64-unknown-linux-gnu",
+          "packages": 602,
+          "sourceFiles": 1071,
+          "spdxSha256": "801896b673b758702216c162856872dd6d053b13bed1615d7402af4b57679069",
+          "missingLicenseTexts": [],
+          "sharedCrates": [
+            "joyoffice-cfb",
+            "joyoffice-drawingml",
+            "joyoffice-fonts",
+            "joyoffice-metafile",
+            "joyoffice-omml",
+            "joyoffice-opc",
+            "joyoffice-theme",
+            "joyoffice-ui"
+          ],
+          "runtimeLegacyDependencies": [
+            "craft-atomic",
+            "craft-font-store",
+            "craft-proof"
+          ]
+        },
+        "joydeck": {
+          "target": "x86_64-unknown-linux-gnu",
+          "packages": 565,
+          "sourceFiles": 530,
+          "spdxSha256": "c8c71f094252af63b0267c283b831ec5b7edb4b46db77c2c3f329d6a98281e1c",
+          "missingLicenseTexts": [],
+          "sharedCrates": [
+            "joyoffice-drawingml",
+            "joyoffice-fonts",
+            "joyoffice-metafile",
+            "joyoffice-opc",
+            "joyoffice-theme",
+            "joyoffice-ui"
+          ],
+          "runtimeLegacyDependencies": [
+            "joydeck-legacy"
+          ]
+        },
+        "joysheet": {
+          "target": "x86_64-unknown-linux-gnu",
+          "packages": 556,
+          "sourceFiles": 1181,
+          "spdxSha256": "ae20e6cacc9ff48071fd56d3f037a483ebf0e2d829fb39e83d81f7cd7baa97ba",
+          "missingLicenseTexts": [],
+          "sharedCrates": [
+            "joyoffice-cfb",
+            "joyoffice-drawingml",
+            "joyoffice-omml",
+            "joyoffice-opc",
+            "joyoffice-theme",
+            "joyoffice-ui"
+          ],
+          "runtimeLegacyDependencies": []
+        }
+      }
+    }
+  }
+}

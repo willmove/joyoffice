@@ -412,6 +412,15 @@ fn layers(a: Option<Look>, b: Option<Look>, t: f64) -> Vec<(Look, Fade)> {
     };
     let (stroke, line) = (a.stroke || b.stroke, side(a.stroke, b.stroke));
     let (fa, fb) = (a.fill != FillMode::None, b.fill != FillMode::None);
+    if a.fill == b.fill && a.even_odd == b.even_odd {
+        return vec![(
+            Look { stroke, ..a },
+            Fade {
+                fill: 1.0,
+                stroke: line,
+            },
+        )];
+    }
     if fa && fb {
         let (under, over, alpha) = if a.even_odd || !b.even_odd {
             (a, b, t)
@@ -462,7 +471,27 @@ impl GeometryMorph {
                 ca.get(k).map(Vec::as_slice).unwrap_or(&[]),
                 cb.get(k).map(Vec::as_slice).unwrap_or(&[]),
             );
-            let (pa, pb) = align(xa, xb, ba, bb);
+            let (mut pa, mut pb) = align(xa, xb, ba, bb);
+            // An entire missing path, including separate outline strokes, starts
+            // or ends at one point. A missing contour inside a matched path still
+            // uses its individual relative position.
+            let collapsed = if xa.is_empty() {
+                Some(&mut pa)
+            } else if xb.is_empty() {
+                Some(&mut pb)
+            } else {
+                None
+            };
+            if let Some(contours) = collapsed
+                && contours.len() > 1
+            {
+                let box_ = bounds(contours.iter().filter_map(|c| c.pts.first()));
+                if let Some(rect) = box_ {
+                    for contour in contours {
+                        contour.pts.fill(rect.center());
+                    }
+                }
+            }
             parts.push(Part {
                 a: a.paths.get(k).map(look),
                 b: b.paths.get(k).map(look),

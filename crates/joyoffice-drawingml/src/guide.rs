@@ -19,7 +19,7 @@ pub enum Operation {
     Value,
     Product,
     Sum,
-    Average,
+    AddDivide,
     Select,
     Absolute,
     Direction,
@@ -41,7 +41,7 @@ impl Operation {
             "val" => Self::Value,
             "*/" => Self::Product,
             "+-" => Self::Sum,
-            "+/" => Self::Average,
+            "+/" => Self::AddDivide,
             "?:" => Self::Select,
             "abs" => Self::Absolute,
             "at2" => Self::Direction,
@@ -67,7 +67,7 @@ impl Operation {
             Value => x,
             Product => divide(x * y),
             Sum => x + y - z,
-            Average => divide(x + y),
+            AddDivide => divide(x + y),
             Select => {
                 if x > 0. {
                     y
@@ -113,46 +113,70 @@ impl GuideSpace {
     }
 
     pub fn builtin(self, key: &str) -> Option<f64> {
-        let (w, h) = (self.width, self.height);
-        Some(match key {
-            "l" | "t" => 0.,
-            "r" | "w" => w,
-            "b" | "h" => h,
-            "hc" => w / 2.,
-            "vc" => h / 2.,
-            "ss" => w.min(h),
-            "ls" => w.max(h),
-            "cd2" => 10_800_000.,
-            "cd4" => 5_400_000.,
-            "cd8" => 2_700_000.,
-            "3cd4" => 16_200_000.,
-            "3cd8" => 8_100_000.,
-            "5cd8" => 13_500_000.,
-            "7cd8" => 18_900_000.,
+        Builtin::parse(key).map(|variable| variable.evaluate(self))
+    }
+}
+
+/// Named shape distances and angles in a compiled or dynamically read guide.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Builtin {
+    Constant(i32),
+    Width(u8),
+    Height(u8),
+    Short(u8),
+    Long,
+}
+
+impl Builtin {
+    pub fn parse(name: &str) -> Option<Self> {
+        Some(match name {
+            "l" | "t" => Self::Constant(0),
+            "r" | "w" => Self::Width(1),
+            "b" | "h" => Self::Height(1),
+            "hc" => Self::Width(2),
+            "vc" => Self::Height(2),
+            "ss" => Self::Short(1),
+            "ls" => Self::Long,
+            "cd2" => Self::Constant(10_800_000),
+            "cd4" => Self::Constant(5_400_000),
+            "cd8" => Self::Constant(2_700_000),
+            "3cd4" => Self::Constant(16_200_000),
+            "3cd8" => Self::Constant(8_100_000),
+            "5cd8" => Self::Constant(13_500_000),
+            "7cd8" => Self::Constant(18_900_000),
             _ => {
-                let (side, denom) = if let Some(s) = key.strip_prefix("wd") {
-                    (w, s)
-                } else if let Some(s) = key.strip_prefix("hd") {
-                    (h, s)
+                let divisor = |s: &str| match s {
+                    "2" => Some(2),
+                    "3" => Some(3),
+                    "4" => Some(4),
+                    "5" => Some(5),
+                    "6" => Some(6),
+                    "8" => Some(8),
+                    "10" => Some(10),
+                    "12" => Some(12),
+                    "16" => Some(16),
+                    "32" => Some(32),
+                    _ => None,
+                };
+                if let Some(n) = name.strip_prefix("wd") {
+                    Self::Width(divisor(n)?)
+                } else if let Some(n) = name.strip_prefix("hd") {
+                    Self::Height(divisor(n)?)
                 } else {
-                    (w.min(h), key.strip_prefix("ssd")?)
-                };
-                let divisor = match denom {
-                    "2" => 2.,
-                    "3" => 3.,
-                    "4" => 4.,
-                    "5" => 5.,
-                    "6" => 6.,
-                    "8" => 8.,
-                    "10" => 10.,
-                    "12" => 12.,
-                    "16" => 16.,
-                    "32" => 32.,
-                    _ => return None,
-                };
-                side / divisor
+                    Self::Short(divisor(name.strip_prefix("ssd")?)?)
+                }
             }
         })
+    }
+    pub fn evaluate(self, space: GuideSpace) -> f64 {
+        let GuideSpace { width, height } = space;
+        match self {
+            Self::Constant(v) => f64::from(v),
+            Self::Width(d) => width / f64::from(d.max(1)),
+            Self::Height(d) => height / f64::from(d.max(1)),
+            Self::Short(d) => width.min(height) / f64::from(d.max(1)),
+            Self::Long => width.max(height),
+        }
     }
 }
 

@@ -3950,7 +3950,9 @@ dependencies = [
 name = "joydeck-geom"
 version = "0.2.0"
 dependencies = [
+ "joyoffice-drawingml",
  "kurbo 0.13.1",
+ "roxmltree 0.21.1",
  "serde",
 ]
 

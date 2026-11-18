@@ -63,7 +63,7 @@ LAYERS = {
     'joydeck-engine': {'joydeck-model'},
     'joydeck-fonts': {'joyoffice-fonts'},
     'joydeck-format': {'joydeck-model'},
-    'joydeck-geom': set(),
+    'joydeck-geom': {'joyoffice-drawingml'},
     'joydeck-legacy': {'joyoffice-opc'},
     'joydeck-metafile': {'joyoffice-metafile'},
     'joydeck-model': {'joydeck-color', 'joydeck-geom'},

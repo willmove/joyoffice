@@ -12,5 +12,10 @@ description = "JoyDeck (adapted from DeckCraft) geometry: units (EMU/pt), transf
 workspace = true
 
 [dependencies]
+joyoffice-drawingml.workspace = true
 kurbo = { workspace = true, features = ["serde"] }
 serde = { workspace = true }
+
+[build-dependencies]
+joyoffice-drawingml.workspace = true
+roxmltree.workspace = true

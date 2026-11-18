@@ -247,3 +247,11 @@ Word 产品回归在本机通过 3,681 项，在 UOS 通过 3,685 项。独立�
 DOCX 和 PPTX 现通过同一个 DrawingML 内核求解 17 种坐标公式，将可顺逆时针绘制的椭圆弧转成三次贝塞尔曲线。两种产品分别构建自己的编辑模型。Deck 复用相同尺寸路径的指南值。Word 保留原始 XML 片段及其继承的命名空间和兼容性声明，改正文时仍能写回导引线、圆弧与厂商扩展。超出保留预算、不能重绑的关系和与原始曲线冲突的点编辑会阻止写出。[共享求值器](../../../../crates/joyoffice-drawingml/src/guide.rs) · [圆弧](../../../../crates/joyoffice-drawingml/src/arc.rs) · [Word 原始几何](../../../../crates/joyword-docx/src/geometry_source.rs)
 
 macOS 和 UOS 25 各在 Word、Deck 中打开同一份含 64 条路径的图形，对照独立计算的数值路径。JoyWord 屏幕的 2,585,088 个颜色通道中仅两个相差 1，PDF 光栅逐像素一致。JoyDeck 屏幕和 PDF 均逐像素一致。两端分别在 Word 窗口改正文，在 Deck 窗口移动并缩放图形，均验证撤销、重做、保存、新进程重开及原件摘要。两代 CLI 都能读取写出的文件。旧版 Word 自身无法正确绘制这些命名坐标，回退时应保存原 DOCX，并用本次之前的可读副本继续处理。两种受保护 DOCX 均按预期拒绝生成目标文件。[逐端数据与回退](custom-geometry.json) · [复跑脚本](../../../../scripts/verify_shared_geometry.py)
+
+## JoyDeck 标准预设与文本框
+
+画廊 183 项中，74 种先前已逐族替换，108 种现在由 JoyOffice 在构建时把 ECMA-376 第五版附件编成只读几何表。最后一项是文本框。两台真实桌面均从编辑器插入中文文本框，执行撤销、重做、保存并由新进程重开。再生成的 PPTX 保留文本、矩形几何和文本框属性。标准附件原件的摘要、许可和编译器处理的两个勘误已登记。[来源及许可](../../../../licenses/ecma-376/NOTICE.md) · [双平台记录](standard-gallery.json)
+
+参考图来自 Mac 上的 PowerPoint 16.115。12 份演示文稿各有三页及每页 27 个对象，覆盖宽、长、正方形三种尺寸和默认、非对称、边界参数。macOS 和 UOS 都核对了 972 个文字框及有序连接点集合、41,192 个普通或旋转的填充区点击结果。另测四种标注的框外尖端。两版 JoyDeck 对各自重开的 36 页均生成相同图像。独立 PDF 与两端的新图像在允许一个像素邻域后有 38 个轮廓和 11 个描边像素差异，旧版分别为 16,505 和 14,021。正常字号的星尖和细线仍留有少量栅格差异。[语料与几何检查](../../../../scripts/joydeck/check-standard-presets.py) · [导出对照](../../../../scripts/joydeck/compare-preset-exports.py)
+
+复验时用该脚本的 generate 子命令生成演示文稿。用 PowerPoint 导出原件 PDF，再用 pdftoppm 以 72 DPI 为每页生成 PNG。verify 子命令接受语料目录、一个新输出目录和本地两版 CLI 路径，desktop 选项连接实际产品。导出对照读取参考 PNG 与 verify 产物。将生成的 geometry.txt 路径传给环境变量 JOYDECK_PRESET_GEOMETRY_REFERENCE 可执行全部 972 组；常规单测内置跨 108 种图形的取样。

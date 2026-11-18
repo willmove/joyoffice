@@ -97,3 +97,6 @@ docs/joyword/r8/migration/** -text whitespace=cr-at-eol,-blank-at-eof,-blank-at-
 # Preserve the exact reviewed AccessKit package bytes.
 third-party/accesskit_windows/** -text -whitespace
 licenses/accesskit-windows/source.json -text
+
+# The ECMA-376 attachment is distributed with its original BOM and CRLF bytes.
+crates/joydeck-geom/data/presetShapeDefinitions.xml -text -diff

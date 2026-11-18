@@ -34,17 +34,11 @@ pub struct Handle {
     pub min: f64,
     pub max: f64,
     pub angle: bool,
+    pub(super) standard: Option<super::shapes::Drag>,
 }
 
 impl Handle {
-    pub(super) fn new(
-        index: usize,
-        origin: Point,
-        dir: Vec2,
-        value: f64,
-        min: f64,
-        max: f64,
-    ) -> Self {
+    pub fn new(index: usize, origin: Point, dir: Vec2, value: f64, min: f64, max: f64) -> Self {
         Handle {
             index,
             pos: origin + dir * value,
@@ -53,10 +47,11 @@ impl Handle {
             min,
             max,
             angle: false,
+            standard: None,
         }
     }
     /// An angle handle on the `rx`×`ry` ellipse around `center` at visual angle `value`.
-    pub(super) fn angle(index: usize, center: Point, rx: f64, ry: f64, value: f64) -> Self {
+    pub fn angle(index: usize, center: Point, rx: f64, ry: f64, value: f64) -> Self {
         let t = vis(value / 60000.0, rx, ry).to_radians();
         let pos = Point::new(center.x + rx * t.cos(), center.y + ry * t.sin());
         Handle {
@@ -67,10 +62,14 @@ impl Handle {
             min: 0.0,
             max: 21600000.0,
             angle: true,
+            standard: None,
         }
     }
     /// The adjust value for a pointer at `p` (shape-local space).
     pub fn value_at(&self, p: Point) -> f64 {
+        if let Some(drag) = &self.standard {
+            return drag.value_at(p, self.min, self.max);
+        }
         if self.angle {
             let d = p - self.origin;
             if !(d.x.is_finite() && d.y.is_finite()) || d.hypot() < 1e-9 {

@@ -186,9 +186,16 @@ pub(super) fn hits(ctx: &resolve::Ctx, shape: &Shape, point: Point, tolerance: f
             painted_bounds = painted_bounds.union_pt(tip);
         }
     }
-    if !painted_bounds
-        .inflate(stroke_tolerance, stroke_tolerance)
-        .contains(local)
+    // A wedge or cloud pointer can be filled outside the text frame. Its
+    // actual contour below decides hits, including for a flipped or rotated tip.
+    let external_tip = matches!(
+        shape.geom.preset_name(),
+        Some("wedgeRectCallout" | "wedgeRoundRectCallout" | "wedgeEllipseCallout" | "cloudCallout")
+    );
+    if !external_tip
+        && !painted_bounds
+            .inflate(stroke_tolerance, stroke_tolerance)
+            .contains(local)
     {
         return false;
     }
@@ -240,6 +247,7 @@ mod tests {
             .lines()
             .chain(include_str!("../tests/action-button-hits.txt").lines())
             .chain(include_str!("../tests/callout-hits.txt").lines())
+            .chain(include_str!("../tests/standard-hits.txt").lines())
         {
             let cols: Vec<_> = row.split_whitespace().collect();
             let [name, width, height, samples] = cols.as_slice() else {
@@ -274,6 +282,40 @@ mod tests {
                 for pt in [Point::new(-2., h / 2.), Point::new(w + 2., h / 2.)] {
                     assert!(!hits(&ctx, &shape, frame.affine() * pt, 0.));
                 }
+            }
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn filled_callout_tips_outside_the_frame_remain_selectable() -> Result<(), &'static str> {
+        use joydeck_model::{ColorRef, Geom, Line, Presentation, Rgba};
+        let deck = Presentation::default();
+        let slide = deck.slides.first().ok_or("missing blank slide")?;
+        let ctx = resolve::Ctx::for_slide(&deck, slide).ok_or("missing slide context")?;
+        // Solid interior points sampled from the independently exported PowerPoint slide.
+        for (name, x, y) in [
+            ("wedgeRectCallout", 0.29, 1.06),
+            ("wedgeRoundRectCallout", 0.29, 1.06),
+            ("wedgeEllipseCallout", 0.30, 1.06),
+            ("cloudCallout", 0.34, 1.04),
+        ] {
+            for (angle, flip) in [(0., false), (37., true)] {
+                let frame = Xfrm {
+                    rot: angle,
+                    flip_h: flip,
+                    ..Xfrm::new(40., 60., 1700000. / 12700., 680000. / 12700.)
+                };
+                let shape = Shape {
+                    xfrm: Some(frame),
+                    geom: Geom::preset(name),
+                    fill: Some(Fill::solid(ColorRef::rgb(Rgba::BLACK))),
+                    line: Some(Line::none()),
+                    ..Default::default()
+                };
+                let point = |x, y| frame.affine() * Point::new(frame.w * x, frame.h * y);
+                assert!(hits(&ctx, &shape, point(x, y), 0.), "{name}");
+                assert!(!hits(&ctx, &shape, point(0.80, 1.10), 0.), "{name}");
             }
         }
         Ok(())

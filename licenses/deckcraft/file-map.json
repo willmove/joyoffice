@@ -36,14 +36,15 @@
       "source_path": "crates/geom/Cargo.toml",
       "source_sha256": "7424df077a7ef2d5eb9fbc35a723f66c59aaefcdbd9803fa001f455b1c31b3b8",
       "target_path": "crates/joydeck-geom/Cargo.toml",
-      "adapted_sha256": "b5eb91476df294216d67ebcebe23b00e372e02ad362f8e444218135bbfb911c3",
+      "adapted_sha256": "20d910635518bd872f4edcd6c65c70544b699b6e19ebff0922f907e381b68328",
       "changes": [
         "crate/import namespace deckcraft -> joydeck",
         "LF normalization",
         "package description credits origin",
         "rustfmt using repository Unix newline policy",
         "inherit JoyOffice Rust/repository metadata and keep package private",
-        "R9: host workspace feature wiring and sole shared-library implementation"
+        "R9: host workspace feature wiring and sole shared-library implementation",
+        "Compile the ECMA preset attachment and evaluate it with the shared DrawingML library."
       ]
     },
     {
@@ -64,20 +65,21 @@
       "source_path": "crates/geom/src/morph.rs",
       "source_sha256": "38435f8a08bc23ddd27f8914ce002b4810b3a3bf39d3be27a4ff2de557ec0435",
       "target_path": "crates/joydeck-geom/src/morph.rs",
-      "adapted_sha256": "ff3f67b8b111f50de7c11e042473ebc60ceaf0c2ba9d5a0f9ee13b4322701cc9",
+      "adapted_sha256": "6d6580b63720fb05ededd5213f675a0e09aaa263e5402bd624941725921cc92b",
       "changes": [
         "crate/import namespace deckcraft -> joydeck",
         "LF normalization",
         "package description credits origin",
         "rustfmt using repository Unix newline policy",
-        "test-only assertion lint allowances; production no-panic guards retained"
+        "test-only assertion lint allowances; production no-panic guards retained",
+        "Pair corresponding filled and outlined faces once and preserve multi-contour endpoints when a face appears."
       ]
     },
     {
       "source_path": "crates/geom/src/preset/build.rs",
       "source_sha256": "0f20c9e24506d28aaa495311d6d653279dcd297f898e5d10104bc2526ab8b154",
       "target_path": "crates/joydeck-geom/src/preset/build.rs",
-      "adapted_sha256": "2108fd5cd72723afddc1fab24d7d74d39cb1c2fef69b08ac74e775c42f139e00",
+      "adapted_sha256": "a4649e8020cb167c1d903e2d717e39453e91c81ff11fe9ea6fedca14a8d542b6",
       "changes": [
         "crate/import namespace deckcraft -> joydeck",
         "LF normalization",
@@ -88,41 +90,44 @@
         "Derive straight, orthogonal and smoothed DrawingML connector paths and adjustments from the published coordinate guides, including multi-bend defaults when opening and writing PPTX.",
         "Route all fixed DrawingML flowcharts through the independently implemented JoyOffice geometry family.",
         "Remove the previous twelve-button dispatch and use the host DrawingML button family.",
-        "Use the host line callout generator for bordered, accented and plain leaders."
+        "Use the host line callout generator for bordered, accented and plain leaders.",
+        "Replace the imported shape dispatch and procedural families with bounded host programs."
       ]
     },
     {
       "source_path": "crates/geom/src/preset/builder.rs",
       "source_sha256": "26d0f06d29087a8ac5895105d80a32884ef4c7212ca6628ab6c42331991054ae",
       "target_path": "crates/joydeck-geom/src/preset/builder.rs",
-      "adapted_sha256": "49d3470cdd113136a3c05b8403dd2c8bbc4fe22da659edc4ed953a8ca3dc6b7b",
+      "adapted_sha256": "aa949c23aed338f136df4ed19c97c5a0101fce2d911dd94c3c359e5078b8ce0a",
       "changes": [
         "crate/import namespace deckcraft -> joydeck",
         "LF normalization",
         "package description credits origin",
         "rustfmt using repository Unix newline policy",
         "Independently derive rounded rectangles and the four straight arrows from the DrawingML adjustment guides and connector coordinates.",
-        "Share endpoint-stable quadrant arcs between the host action buttons and flowcharts."
+        "Share endpoint-stable quadrant arcs between the host action buttons and flowcharts.",
+        "Retire the unused generators and retain path primitives used by dedicated host shapes."
       ]
     },
     {
       "source_path": "crates/geom/src/preset/catalog.rs",
       "source_sha256": "20743d98648bcf7ff0fd56694cc1ecb941d7b3f4b8fe6494ece25278741ff4c7",
       "target_path": "crates/joydeck-geom/src/preset/catalog.rs",
-      "adapted_sha256": "318773b5c91ec7eecf5216cf9cff5861ad3ee12ed33c0b09d169e5b234dce0c7",
+      "adapted_sha256": "d975449a92a1a6b7216d2832c879c22a304c1a261ad58d8024e5515c9dca3599",
       "changes": [
         "crate/import namespace deckcraft -> joydeck",
         "LF normalization",
         "package description credits origin",
         "rustfmt using repository Unix newline policy",
-        "Derive straight, orthogonal and smoothed DrawingML connector paths and adjustments from the published coordinate guides, including multi-bend defaults when opening and writing PPTX."
+        "Derive straight, orthogonal and smoothed DrawingML connector paths and adjustments from the published coordinate guides, including multi-bend defaults when opening and writing PPTX.",
+        "Support inversion of nonlinear standard handles and keep direct linear and polar constructors."
       ]
     },
     {
       "source_path": "crates/geom/src/preset/extra.rs",
       "source_sha256": "8c93e1910fe4326296182a582be0a776f7ac6a3644b349110895319d7b8a01f9",
       "target_path": "crates/joydeck-geom/src/preset/extra.rs",
-      "adapted_sha256": "f61e84514548df2502fce17f1441c1afbbadfd3ea34215edeb296892018d01dc",
+      "adapted_sha256": "710fc15a0f2938474545c869d9f5b2bfb3c136919ef9eba3fb7ef999cfd0bcf3",
       "changes": [
         "crate/import namespace deckcraft -> joydeck",
         "LF normalization",
@@ -131,20 +136,22 @@
         "test-only assertion lint allowances; production no-panic guards retained",
         "Derive straight, orthogonal and smoothed DrawingML connector paths and adjustments from the published coordinate guides, including multi-bend defaults when opening and writing PPTX.",
         "Route all fixed DrawingML flowcharts through the independently implemented JoyOffice geometry family.",
-        "Retire imported line callout construction; the host handles signed leader coordinates."
+        "Retire imported line callout construction; the host handles signed leader coordinates.",
+        "Retain original regression fixtures after retiring the imported shape implementations."
       ]
     },
     {
       "source_path": "crates/geom/src/preset/shapes.rs",
       "source_sha256": "8e6ee19c5ea29805df9285991c69a9c0c6d153c82a0d1ebee75c48ff39b1a696",
       "target_path": "crates/joydeck-geom/src/preset/shapes.rs",
-      "adapted_sha256": "e8418e7cf42a179df71b457cc6c6f3659dbfe3498740411a620985d24f7bfba9",
+      "adapted_sha256": "afa9cc819853061a1dea89bcd4fb2c81c2966ffd65652b4a3746a958c7f1a0b2",
       "changes": [
         "crate/import namespace deckcraft -> joydeck",
         "LF normalization",
         "package description credits origin",
         "rustfmt using repository Unix newline policy",
-        "Remove the simplified action-button generator after replacement by independent shaded geometry."
+        "Remove the simplified action-button generator after replacement by independent shaded geometry.",
+        "Replace imported preset constructions with a host interpreter for the published standard definitions."
       ]
     },
     {
@@ -163,7 +170,7 @@
       "source_path": "crates/geom/src/preset.rs",
       "source_sha256": "94c4d928be5b4d8f44d570ce5c3376d6128617ab8cc14a7450b1c0383c6190fd",
       "target_path": "crates/joydeck-geom/src/preset.rs",
-      "adapted_sha256": "e073359d15134f77d5e858006e03bcad1f3b66287811e7d1ac424bac9d0b7347",
+      "adapted_sha256": "6ef3e351241628c8a85ea55c61c5dd9da25cfaa6a594f084015ff8197ef69b45",
       "changes": [
         "crate/import namespace deckcraft -> joydeck",
         "LF normalization",
@@ -174,7 +181,8 @@
         "Derive straight, orthogonal and smoothed DrawingML connector paths and adjustments from the published coordinate guides, including multi-bend defaults when opening and writing PPTX.",
         "Route all fixed DrawingML flowcharts through the independently implemented JoyOffice geometry family.",
         "Dispatch the complete action-button family to JoyOffice geometry.",
-        "Expose the host line callout geometry and editable leader vertices."
+        "Expose the host line callout geometry and editable leader vertices.",
+        "Route gallery geometry to the dedicated host families or compiled ECMA definitions."
       ]
     },
     {

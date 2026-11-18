@@ -79,6 +79,9 @@ def source_hashes(data, packages, reached):
         if (directory / 'build.rs').is_file():
             files.add(directory / 'build.rs')
         files.update(directory.glob('*.rc'))
+    if any(packages[i]['name'] == 'joydeck-geom' for i in reached):
+        files.add(ROOT / 'crates/joydeck-geom/data/presetShapeDefinitions.xml')
+        files.update(p for p in (ROOT / 'licenses/ecma-376').iterdir() if p.is_file())
     if any(packages[i]['name'] == 'joyoffice-ui' for i in reached):
         # The shared UI embeds all three brands. Product-only source archives
         # and before/after build fingerprints must contain those actual inputs.
