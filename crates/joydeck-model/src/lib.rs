@@ -225,6 +225,14 @@ impl Geom {
             adj: vec![],
         }
     }
+    pub fn set_callout_vertex(&mut self, vertex: u8, x: i32, y: i32) -> bool {
+        let Self::Preset { name, adj } = self else {
+            return false;
+        };
+        joydeck_geom::preset::LineCallout::named(name)
+            .is_some_and(|callout| callout.set_vertex(adj, vertex, x, y))
+    }
+
     pub fn preset_name(&self) -> Option<&str> {
         match self {
             Geom::Preset { name, .. } => Some(name),

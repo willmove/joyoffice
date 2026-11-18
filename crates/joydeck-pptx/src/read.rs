@@ -4,6 +4,7 @@ pub(crate) mod chart;
 mod chartex;
 pub(crate) mod dml;
 mod shapes;
+pub(crate) use shapes::preset_geom;
 mod theme;
 mod timing;
 

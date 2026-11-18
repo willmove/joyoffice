@@ -31,7 +31,7 @@ def sha(data):
     return hashlib.sha256(data).hexdigest()
 
 
-def board(dest, names, size, labels, style="solid"):
+def board(dest, names, size, labels, style="solid", adjustments=None):
     seed = ROOT / "tests/fixtures/joydeck/independent.pptx"
     with ZipFile(seed) as src, ZipFile(dest, "x", ZIP_DEFLATED) as out:
         for part in src.namelist():
@@ -61,6 +61,10 @@ def board(dest, names, size, labels, style="solid"):
 <a:solidFill><a:srgbClr val="1E70CE"/></a:solidFill>
 <a:ln w="19050"><a:solidFill><a:srgbClr val="17212E"/></a:solidFill></a:ln></p:spPr>{label}</p:sp>''')
                     props = shape.find("{*}spPr")
+                    if adjustments is not None:
+                        guides = props.find("{*}prstGeom/{*}avLst")
+                        for j, v in enumerate(adjustments[name], 1):
+                            ET.SubElement(guides, f"{{{A}}}gd", name=f"adj{j}", fmla=f"val {v}")
                     if style == "transparent":
                         color = props.find("{*}solidFill/{*}srgbClr")
                         ET.SubElement(color, f"{{{A}}}alpha", val="45000")
@@ -85,6 +89,10 @@ def text_frame(shape, w, h):
     def value(token):
         return float(token) if token.lstrip("-").isdigit() else values[token]
 
+    for guide in shape.findall("{*}avLst/{*}gd"):
+        op, argument = guide.get("fmla").split()
+        assert op == "val"
+        values[guide.get("name")] = value(argument)
     for guide in shape.findall("{*}gdLst/{*}gd"):
         op, *args = guide.get("fmla").split()
         v = list(map(value, args))
@@ -290,6 +298,7 @@ def verify(old, new, definitions, out, desktop, family):
     prefix, count, target_name = {
         "flowcharts": ("flowChart", 29, "flowChartDocument"),
         "buttons": ("actionButton", 12, "actionButtonSound"),
+        "callouts": (("callout", "accentCallout", "borderCallout", "accentBorderCallout"), 12, "accentBorderCallout3"),
     }[family]
     names = [node.tag for node in spec if node.tag.startswith(prefix)]
     assert len(names) == count
@@ -305,14 +314,21 @@ def verify(old, new, definitions, out, desktop, family):
     presets = support["presets"]
     for kind, size in SIZES.items():
         variants = [(False, "solid", "outline"), (True, "solid", "text")]
-        if family == "buttons":
+        if family in ("buttons", "callouts"):
             variants.extend([(False, "transparent", "transparent"), (False, "dashed", "dashed")])
+        if family == "callouts":
+            variants.extend([(False, "solid", "asymmetric"), (False, "solid", "boundary")])
         for labels, style, suffix in variants:
             name = f"{kind}-{suffix}"
             directory = out / name
             directory.mkdir()
             src, ref, second = (directory / (k + ".pptx") for k in ("preset", "custom", "regenerated"))
-            board(src, names, size, labels, style)
+            guides = None
+            if suffix in ("asymmetric", "boundary"):
+                coords = ([35000, 22000, -8000, 28000, 90000, 70000, 101000, -3200]
+                          if suffix == "asymmetric" else [0, 0, 100000, 100000, 100000, 0, 0, 100000])
+                guides = {n: coords[:len(spec.find(n).findall("{*}avLst/{*}gd"))] for n in names}
+            board(src, names, size, labels, style, guides)
             support["make_geometry_reference"](src, ref, definitions, False)
             if labels:
                 labelled = directory / "custom-text.pptx"
@@ -322,7 +338,7 @@ def verify(old, new, definitions, out, desktop, family):
             assert presets(src) == presets(second)
             opacity = 0.45 if style == "transparent" else 1.0
             (width, height), expected = render(old, ref, directory / "reference", opacity)
-            if not labels and style == "solid":
+            if suffix == "outline":
                 hits.extend(reference_hits(expected, (width, height), names, size))
             results = {}
             for label, cli, deck in [
@@ -363,7 +379,7 @@ if __name__ == "__main__":
     for key in ("baseline", "candidate", "definitions", "output"):
         parser.add_argument(key, type=Path)
     parser.add_argument("--desktop", type=Path)
-    parser.add_argument("--family", choices=("flowcharts", "buttons"), default="flowcharts")
+    parser.add_argument("--family", choices=("flowcharts", "buttons", "callouts"), default="flowcharts")
     args = parser.parse_args()
     output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=False)

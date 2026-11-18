@@ -1,14 +1,26 @@
 //! GPUI adapter: document changes go through the headless transaction engine.
 use super::*;
-use joydeck_engine::Command;
+use joydeck_engine::{Command, ContentAction};
+use joydeck_geom::{Xfrm, preset::LineCallout};
 use joydeck_model::{ShapeId, resolve};
 #[path = "pointer_geometry.rs"]
 mod pointer_geometry;
 use pointer_geometry::{Frame, GRIPS, ROTATION_OFFSET, Transform, grip};
 
 enum Gesture {
-    Marquee { extend: bool },
-    Transform { frame: Frame, kind: Transform },
+    Marquee {
+        extend: bool,
+    },
+    Callout {
+        vertex: u8,
+        tip: joydeck_geom::Point,
+        transform: Xfrm,
+        preset: LineCallout,
+    },
+    Transform {
+        frame: Frame,
+        kind: Transform,
+    },
 }
 
 pub(super) struct Drag {
@@ -625,6 +637,24 @@ impl Viewer {
         )
     }
 
+    fn selected_callout(&self) -> Option<(LineCallout, Xfrm, &[f64])> {
+        let editor = self.editor.as_ref()?;
+        let [id] = editor.session.selection().shapes.as_slice() else {
+            return None;
+        };
+        let model = editor.session.model();
+        let slide = model.slides.get(self.page)?;
+        let shape = slide.shape(*id)?;
+        if shape.locked || shape.hidden || !matches!(shape.kind, joydeck_model::ShapeKind::Shape) {
+            return None;
+        }
+        let joydeck_model::Geom::Preset { name, adj } = &shape.geom else {
+            return None;
+        };
+        let ctx = resolve::Ctx::for_slide(model, slide)?;
+        Some((LineCallout::named(name)?, resolve::xfrm(&ctx, shape), adj))
+    }
+
     fn start_drag(
         &mut self,
         event: &MouseDownEvent,
@@ -668,6 +698,32 @@ impl Viewer {
         };
         let point = page_point(event.position, self.canvas_bounds, scale);
         let scale_f64 = f64::from(scale);
+        if let Some((preset, transform, adj)) = self.selected_callout() {
+            let world = transform.affine();
+            if let Some((i, tip)) = preset
+                .vertices(transform.w, transform.h, adj)
+                .enumerate()
+                .min_by(|(_, a), (_, b)| {
+                    (world * *a)
+                        .distance(point)
+                        .total_cmp(&(world * *b).distance(point))
+                })
+                .filter(|(_, tip)| (world * *tip).distance(point) <= 7. / scale_f64)
+            {
+                self.start_drag(
+                    event,
+                    scale,
+                    Gesture::Callout {
+                        vertex: i as u8,
+                        tip,
+                        transform,
+                        preset,
+                    },
+                    cx,
+                );
+                return;
+            }
+        }
         if let Some(frame) = self.selection_frame()
             && let Some(kind) = frame.handle(point, scale_f64)
         {
@@ -857,13 +913,31 @@ impl Viewer {
                 self.cell_range = None;
                 self.select_objects(ids, w, cx);
             }
+            Gesture::Callout {
+                vertex,
+                tip,
+                transform,
+                preset,
+            } if moved => {
+                let inverse = transform.affine().inverse();
+                let delta = inverse * drag.point(event.position) - inverse * drag.point(drag.start);
+                if let Some((x, y)) = preset.values(transform.w, transform.h, tip + delta) {
+                    self.dispatch(
+                        Command::Content {
+                            action: ContentAction::CalloutPoint { vertex, x, y },
+                        },
+                        w,
+                        cx,
+                    );
+                }
+            }
             Gesture::Transform { frame, kind } if moved => {
                 let next = frame.preview(kind, drag.delta(event.position), event.modifiers.shift);
                 if let Some(command) = frame.command(next) {
                     self.dispatch(command, w, cx);
                 }
             }
-            Gesture::Transform { .. } => {}
+            Gesture::Transform { .. } | Gesture::Callout { .. } => {}
         }
     }
 
@@ -886,6 +960,22 @@ impl Viewer {
             -1,
             ROTATION_OFFSET / f64::from(scale),
         )));
+        if let Some(drag) = &self.drag
+            && let Gesture::Callout { vertex, .. } = drag.gesture
+            && let Some((preset, transform, adj)) = self.selected_callout()
+        {
+            for (i, point) in preset.vertices(transform.w, transform.h, adj).enumerate() {
+                let mut p = transform.affine() * point;
+                if i == usize::from(vertex) {
+                    p += drag.delta(drag.current);
+                }
+                if i == 0 {
+                    path.move_to(to_window(p))
+                } else {
+                    path.line_to(to_window(p))
+                }
+            }
+        }
         if let Ok(path) = path.build() {
             w.paint_path(path, rgb(0x7a7a7a));
         }
@@ -897,7 +987,9 @@ impl Viewer {
                 Gesture::Transform { frame, kind } => {
                     Some(frame.preview(kind, drag.delta(drag.current), drag.shift))
                 }
-                Gesture::Marquee { .. } => self.selection_frame().map(|frame| frame.bounds),
+                Gesture::Marquee { .. } | Gesture::Callout { .. } => {
+                    self.selection_frame().map(|frame| frame.bounds)
+                }
             },
             None => self.selection_frame().map(|frame| frame.bounds),
         }
@@ -990,6 +1082,29 @@ impl Viewer {
                     .border_color(rgb(color))
                     .into_any_element(),
             );
+        }
+        if let Some((preset, transform, adj)) = self.selected_callout() {
+            for (i, tip) in preset.vertices(transform.w, transform.h, adj).enumerate() {
+                let mut p = transform.affine() * tip;
+                if let Some(drag) = &self.drag
+                    && matches!(drag.gesture, Gesture::Callout {vertex, ..} if usize::from(vertex)==i)
+                {
+                    p += drag.delta(drag.current);
+                }
+                overlays.push(
+                    div()
+                        .absolute()
+                        .left(px(p.x as f32 * scale - 4.5))
+                        .top(px(p.y as f32 * scale - 4.5))
+                        .w(px(9.))
+                        .h(px(9.))
+                        .rounded_full()
+                        .bg(rgb(0xffcd3c))
+                        .border_1()
+                        .border_color(rgb(0x765500))
+                        .into_any_element(),
+                );
+            }
         }
         if let Some(d) = &self.drag
             && matches!(d.gesture, Gesture::Marquee { .. })

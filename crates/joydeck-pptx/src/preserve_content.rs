@@ -348,6 +348,116 @@ impl<'a> Pictures<'a> {
     }
 }
 
+/// A leader drag replaces two literal adjustments. Keep the source preset,
+/// including non-adjust guides, extension elements and qualified attributes.
+fn update_callout(
+    props: &mut El,
+    old: &joydeck_model::Geom,
+    new: &joydeck_model::Geom,
+) -> Result<bool, PptxError> {
+    use joydeck_model::Geom;
+    let (
+        Geom::Preset { name, adj: before },
+        Geom::Preset {
+            name: updated,
+            adj: after,
+        },
+    ) = (old, new)
+    else {
+        return Ok(false);
+    };
+    if name != updated || joydeck_geom::preset::LineCallout::named(name).is_none() {
+        return Ok(false);
+    }
+    let geom = child_mut(props, "prstGeom")
+        .filter(|g| g.attr("prst") == Some(name.as_str()))
+        .ok_or_else(|| error("source callout geometry is missing"))?;
+    let prefix = geom.prefix();
+    let qualified = |local: &str| {
+        if prefix.is_empty() {
+            local.to_owned()
+        } else {
+            format!("{prefix}:{local}")
+        }
+    };
+    let list_name = qualified("avLst");
+    if geom.child("avLst").is_none() {
+        geom.children.insert(
+            0,
+            Node::El(El {
+                name: list_name,
+                ..El::default()
+            }),
+        );
+    }
+    let list = child_mut(geom, "avLst").ok_or_else(|| error("callout guides missing"))?;
+    let prefix = list.prefix().to_owned();
+    let guide_name = if prefix.is_empty() {
+        "gd".to_owned()
+    } else {
+        format!("{prefix}:gd")
+    };
+    let defaults = joydeck_geom::preset::adjustment_defaults(name);
+    for (i, &default) in defaults.iter().enumerate() {
+        let from = before.get(i).copied().unwrap_or(default);
+        let to = after.get(i).copied().unwrap_or(default);
+        if from == to {
+            continue;
+        }
+        let key = format!("adj{}", i + 1);
+        let mut positions = list
+            .children
+            .iter()
+            .enumerate()
+            .filter_map(|(index, node)| {
+                let Node::El(g) = node else { return None };
+                (g.name == guide_name
+                    && g.attr("name")
+                        .is_some_and(|n| n == key || (i == 0 && n == "adj")))
+                .then_some(index)
+            });
+        let position = positions.next();
+        if positions.next().is_some() {
+            return Err(error(
+                "multiple guides set the same callout vertex; save .joydeck to preserve them",
+            ));
+        }
+        let literal = format!("val {to:.0}");
+        if let Some(Node::El(g)) = position.and_then(|i| list.children.get_mut(i)) {
+            let value = g
+                .attr("fmla")
+                .and_then(|f| f.trim().strip_prefix("val "))
+                .and_then(|v| v.trim().parse::<f64>().ok());
+            if value != Some(from) {
+                return Err(error(
+                    "callout vertex has a computed guide; save .joydeck to preserve it",
+                ));
+            }
+            g.set_attr("fmla", &literal);
+        } else {
+            list.children.insert(
+                0,
+                Node::El(El {
+                    name: guide_name.clone(),
+                    attrs: vec![("name".into(), key), ("fmla".into(), literal)],
+                    children: vec![],
+                }),
+            );
+        }
+    }
+    // The existing reader inspects a bounded number of guide entries. A crowded
+    // list must never produce a successful save that reopens with different tips.
+    let Geom::Preset { adj: actual, .. } = crate::read::preset_geom(geom) else {
+        return Err(error("unreadable callout geometry"));
+    };
+    if actual != *after && !(actual.is_empty() && after.as_slice() == defaults) {
+        return Err(error(
+            "callout adjustments exceed the PPTX reader's guide budget; save .joydeck to preserve them",
+        ));
+    }
+    Ok(true)
+}
+
 #[allow(clippy::too_many_arguments)]
 pub(super) fn shape(
     target: &mut El,
@@ -381,7 +491,7 @@ pub(super) fn shape(
                 props.children.push(Node::El(fill.clone()));
             }
         }
-        if new.geom != old.geom {
+        if new.geom != old.geom && !update_callout(props, &old.geom, &new.geom)? {
             props
                 .children
                 .retain(|n| !matches!(n,Node::El(e) if matches!(e.local(),"prstGeom"|"custGeom")));
@@ -481,4 +591,51 @@ pub(super) fn shape(
         &opc::relative(slide, &destination),
     ));
     Ok(())
+}
+
+#[cfg(test)]
+mod callout_tests {
+    use super::*;
+    use joydeck_model::Geom;
+
+    #[test]
+    fn preserving_literal_updates_respects_foreign_guides_and_reader_bounds()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let previous = Geom::preset("callout1");
+        let mut next = previous.clone();
+        assert!(next.set_callout_vertex(0, -35000, 63000));
+        let source = |guides: &str| {
+            crate::xml::parse(format!(
+            r#"<p:spPr xmlns:p="p" xmlns:q="a" xmlns:ext="extra"><q:prstGeom prst="callout1"><q:avLst ext:attr="keep">{guides}</q:avLst></q:prstGeom></p:spPr>"#
+        ).as_bytes()).map(|d|d.root)
+        };
+        let foreign = r#"<ext:gd name="userGuide" fmla="val 848"/><ext:item keep="yes"/>"#;
+        let mut doc = source(foreign)?;
+        assert!(update_callout(&mut doc, &previous, &next)?);
+        let list = doc
+            .child("prstGeom")
+            .and_then(|g| g.child("avLst"))
+            .ok_or("avLst missing")?;
+        assert!(
+            list.elements()
+                .any(|e| e.name == "ext:gd" && e.attr("fmla") == Some("val 848"))
+        );
+        assert!(
+            list.elements()
+                .any(|e| e.name == "ext:item" && e.attr("keep") == Some("yes"))
+        );
+        for guides in [
+            r#"<q:gd name="adj1" fmla="*/ h 1 2"/>"#.to_owned(),
+            r#"<ext:gd name="adj1" fmla="val 848"/>"#.to_owned(),
+            format!(
+                "{}{}",
+                r#"<q:gd name="extraGuide" fmla="val 0"/>"#.repeat(16),
+                r#"<q:gd name="adj1" fmla="val 18750"/>"#
+            ),
+            r#"<q:gd name="adj1" fmla="val 18750"/><q:gd name="adj" fmla="val 18750"/>"#.to_owned(),
+        ] {
+            assert!(update_callout(&mut source(&guides)?, &previous, &next).is_err());
+        }
+        Ok(())
+    }
 }

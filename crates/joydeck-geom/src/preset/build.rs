@@ -44,6 +44,7 @@ pub fn build(name: &str, w: f64, h: f64, adj: &[f64]) -> Option<Geometry> {
         defaults,
     };
     super::flowchart::build(name, c.w, c.h)
+        .or_else(|| super::LineCallout::named(name).map(|callout| callout.geometry(c.w, c.h, adj)))
         .or_else(|| super::action_buttons::build(name, c.w, c.h))
         .or_else(|| super::office_shapes::rectangle(name, c.w, c.h, c.a(0), c.a(1)))
         .or_else(|| super::office_shapes::connector(name, c.w, c.h, adj))
@@ -1370,7 +1371,6 @@ fn callout_wave_and_connector_shapes(c: &Ctx) -> Option<Geometry> {
     let w = c.w;
     let h = c.h;
     let ss = c.w.min(c.h);
-    let full = Rect::new(0.0, 0.0, c.w, c.h);
     let a = |i: usize| c.a(i);
     let mut b = Pb::new();
     let g = match c.name {
@@ -1472,20 +1472,6 @@ fn callout_wave_and_connector_shapes(c: &Ctx) -> Option<Geometry> {
             g.handles.retain(|_| false);
             g.handles.push(tip_handle(w, h, tip));
             g
-        }
-        "borderCallout1" => {
-            let r = Pb::new()
-                .poly(&[(0.0, 0.0), (w, 0.0), (w, h), (0.0, h)])
-                .take();
-            let p1 = (w * a(1) / 1e5, h * a(0) / 1e5);
-            let p2 = (w * a(3) / 1e5, h * a(2) / 1e5);
-            let l = Pb::new().m(p1.0, p1.1).l(p2.0, p2.1).take();
-            Geometry {
-                paths: vec![fill(r), stroke_only(l)],
-                text_rect: full,
-                handles: vec![],
-                sites: mid_sites(w, h),
-            }
         }
         _ => return None,
     };

@@ -13,6 +13,7 @@ mod build;
 mod builder;
 mod catalog;
 mod flowchart;
+mod line_callout;
 mod office_shapes;
 mod shapes;
 
@@ -25,6 +26,7 @@ pub use catalog::{
     CATALOG, Category, FillMode, Geometry, Handle, PresetInfo, SubPath, adjustment_defaults, info,
     is_line_like, mitred_by_default,
 };
+pub use line_callout::LineCallout;
 
 mod extra;
 

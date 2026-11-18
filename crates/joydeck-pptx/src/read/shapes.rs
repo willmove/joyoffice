@@ -197,7 +197,7 @@ fn base(imp: &mut Imp, part: &Part, ctx: &mut IdCtx, nv: Option<&El>) -> Shape {
     s
 }
 
-fn preset_geom(pg: &El) -> Geom {
+pub(crate) fn preset_geom(pg: &El) -> Geom {
     let name = pg.attr("prst").unwrap_or("rect").to_string();
     let mut adj = preset::adjustment_defaults(&name).to_vec();
     let mut any = false;

@@ -41,6 +41,11 @@ pub enum ContentAction {
     ShapePreset {
         name: String,
     },
+    CalloutPoint {
+        vertex: u8,
+        x: i32,
+        y: i32,
+    },
     Picture {
         crop: [f64; 4],
         alpha: f64,
@@ -284,6 +289,13 @@ fn edit(st: &mut EditorSnapshot, action: &ContentAction) -> Result<(), String> {
                         name: name.clone(),
                         adj: vec![],
                     };
+                }
+                ContentAction::CalloutPoint { vertex, x, y } => {
+                    if !matches!(s.kind, ShapeKind::Shape)
+                        || !s.geom.set_callout_vertex(*vertex, *x, *y)
+                    {
+                        return Err("invalid callout vertex or coordinates".into());
+                    }
                 }
                 ContentAction::Picture {
                     crop,

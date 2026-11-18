@@ -1,4 +1,4 @@
-//! More preset outlines: line callouts, arrow callouts, curved and circular arrows, curved
+//! More preset outlines: arrow callouts, curved and circular arrows, curved
 //! ribbons, gears, tabs and chart markers. Like the rest of `preset`, every outline is our own
 //! construction, fitted to how the shapes look and to what their adjust values mean.
 
@@ -97,31 +97,6 @@ pub(super) fn build(name: &str, w: f64, h: f64, a: &dyn Fn(usize) -> f64) -> Opt
                 handles: vec![],
                 sites: mid_sites(w, h),
             }
-        }
-        "callout1"
-        | "callout2"
-        | "callout3"
-        | "accentCallout1"
-        | "accentCallout2"
-        | "accentCallout3"
-        | "borderCallout2"
-        | "borderCallout3"
-        | "accentBorderCallout1"
-        | "accentBorderCallout2"
-        | "accentBorderCallout3" => {
-            let n = match name.chars().last() {
-                Some('2') => 2,
-                Some('3') => 3,
-                _ => 1,
-            };
-            line_callout(
-                w,
-                h,
-                a,
-                n + 1,
-                name.starts_with("accent"),
-                name.contains("order"),
-            )
         }
         "leftRightArrowCallout" | "upDownArrowCallout" => {
             let vertical = name == "upDownArrowCallout";
@@ -685,42 +660,6 @@ fn curved_arrow(name: &str, w: f64, h: f64, a0: f64, a1: f64, a2: f64) -> Geomet
 
 /// A rectangle with a callout leader through `pts` points (`(y, x)` adjust pairs in 1/100 000 of
 /// the height and width), optionally with an accent bar at the first point's x and a border.
-fn line_callout(
-    w: f64,
-    h: f64,
-    a: &dyn Fn(usize) -> f64,
-    pts: usize,
-    accent: bool,
-    border: bool,
-) -> Geometry {
-    let body = corner_rect(w, h, [Corner::Square; 4]);
-    // Leaders may reach well outside the box, but not without bound.
-    let pt = |i: usize| {
-        (
-            w * a(2 * i + 1).clamp(-1e7, 1e7) / 1e5,
-            h * a(2 * i).clamp(-1e7, 1e7) / 1e5,
-        )
-    };
-    let mut l = Pb::new();
-    let (x0, y0) = pt(0);
-    l.m(x0, y0);
-    for i in 1..pts {
-        let (x, y) = pt(i);
-        l.l(x, y);
-    }
-    let mut paths = vec![if border { fill(body) } else { fill_only(body) }];
-    if accent {
-        paths.push(stroke_only(Pb::new().m(x0, 0.0).l(x0, h).take()));
-    }
-    paths.push(stroke_only(l.take()));
-    Geometry {
-        paths,
-        text_rect: Rect::new(0.0, 0.0, w, h),
-        handles: vec![],
-        sites: mid_sites(w, h),
-    }
-}
-
 #[cfg(test)]
 #[allow(
     clippy::unwrap_used,

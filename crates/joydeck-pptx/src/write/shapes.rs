@@ -127,8 +127,13 @@ pub fn geometry(w: &mut W, g: &Geom) {
                     } else {
                         format!("adj{}", i + 1)
                     };
+                    let limit = if name == "borderCallout1" {
+                        f64::from(i32::MAX)
+                    } else {
+                        2.0e9
+                    };
                     let v = if v.is_finite() {
-                        v.round().clamp(-2.0e9, 2.0e9) as i64
+                        v.round().clamp(-limit, limit) as i64
                     } else {
                         0
                     };

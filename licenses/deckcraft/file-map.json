@@ -77,7 +77,7 @@
       "source_path": "crates/geom/src/preset/build.rs",
       "source_sha256": "0f20c9e24506d28aaa495311d6d653279dcd297f898e5d10104bc2526ab8b154",
       "target_path": "crates/joydeck-geom/src/preset/build.rs",
-      "adapted_sha256": "1a2acdd9da31d4159ab027062d92deeb7d796542a76785eaca133ee9f884bcef",
+      "adapted_sha256": "2108fd5cd72723afddc1fab24d7d74d39cb1c2fef69b08ac74e775c42f139e00",
       "changes": [
         "crate/import namespace deckcraft -> joydeck",
         "LF normalization",
@@ -87,7 +87,8 @@
         "Replace all gallery rectangle branches with the JoyOffice parameterized corner builder.",
         "Derive straight, orthogonal and smoothed DrawingML connector paths and adjustments from the published coordinate guides, including multi-bend defaults when opening and writing PPTX.",
         "Route all fixed DrawingML flowcharts through the independently implemented JoyOffice geometry family.",
-        "Remove the previous twelve-button dispatch and use the host DrawingML button family."
+        "Remove the previous twelve-button dispatch and use the host DrawingML button family.",
+        "Use the host line callout generator for bordered, accented and plain leaders."
       ]
     },
     {
@@ -121,7 +122,7 @@
       "source_path": "crates/geom/src/preset/extra.rs",
       "source_sha256": "8c93e1910fe4326296182a582be0a776f7ac6a3644b349110895319d7b8a01f9",
       "target_path": "crates/joydeck-geom/src/preset/extra.rs",
-      "adapted_sha256": "c8e3ba57f2a184ef7461ee6f84e3d002f5524948b13a495f6615c8170bc5627e",
+      "adapted_sha256": "f61e84514548df2502fce17f1441c1afbbadfd3ea34215edeb296892018d01dc",
       "changes": [
         "crate/import namespace deckcraft -> joydeck",
         "LF normalization",
@@ -129,7 +130,8 @@
         "rustfmt using repository Unix newline policy",
         "test-only assertion lint allowances; production no-panic guards retained",
         "Derive straight, orthogonal and smoothed DrawingML connector paths and adjustments from the published coordinate guides, including multi-bend defaults when opening and writing PPTX.",
-        "Route all fixed DrawingML flowcharts through the independently implemented JoyOffice geometry family."
+        "Route all fixed DrawingML flowcharts through the independently implemented JoyOffice geometry family.",
+        "Retire imported line callout construction; the host handles signed leader coordinates."
       ]
     },
     {
@@ -161,7 +163,7 @@
       "source_path": "crates/geom/src/preset.rs",
       "source_sha256": "94c4d928be5b4d8f44d570ce5c3376d6128617ab8cc14a7450b1c0383c6190fd",
       "target_path": "crates/joydeck-geom/src/preset.rs",
-      "adapted_sha256": "5028b818e8fb784d5455eacb0f4c71850eb8723b3b982bdf046588c03c4497e8",
+      "adapted_sha256": "e073359d15134f77d5e858006e03bcad1f3b66287811e7d1ac424bac9d0b7347",
       "changes": [
         "crate/import namespace deckcraft -> joydeck",
         "LF normalization",
@@ -171,7 +173,8 @@
         "Independently derive rounded rectangles and the four straight arrows from the DrawingML adjustment guides and connector coordinates.",
         "Derive straight, orthogonal and smoothed DrawingML connector paths and adjustments from the published coordinate guides, including multi-bend defaults when opening and writing PPTX.",
         "Route all fixed DrawingML flowcharts through the independently implemented JoyOffice geometry family.",
-        "Dispatch the complete action-button family to JoyOffice geometry."
+        "Dispatch the complete action-button family to JoyOffice geometry.",
+        "Expose the host line callout geometry and editable leader vertices."
       ]
     },
     {
@@ -296,7 +299,7 @@
       "source_path": "crates/model/src/lib.rs",
       "source_sha256": "4b5a99b737768e630d877382837063a3f43ca12f9385ee8834e9437ed53b16d2",
       "target_path": "crates/joydeck-model/src/lib.rs",
-      "adapted_sha256": "5bada5c9253a383da476bb80cc01811e3a2c9743ec85941d699b78889396f008",
+      "adapted_sha256": "62897b30118c0b04b2e04a7faa3e9e421ab7713cb52364a56b83425ed92a267f",
       "changes": [
         "crate/import namespace deckcraft -> joydeck",
         "LF normalization",
@@ -305,7 +308,8 @@
         "test-only assertion lint allowances; production no-panic guards retained",
         "scoped Clippy style allowances preserve imported public representations",
         "JD-307: deduplicate embedded media only against embedded resources with matching content type and bytes",
-        "preserve recognized layout and master header/footer visibility flags without resolving inheritance"
+        "preserve recognized layout and master header/footer visibility flags without resolving inheritance",
+        "Apply a validated two-axis update to a native callout vertex."
       ],
       "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained."
     },
@@ -1754,13 +1758,14 @@
       "source_path": "crates/pptx/src/read/shapes.rs",
       "source_sha256": "9df34bf672f801a9fe96569f10829fa82486d39b225c9231da2adbb0b4ced9f8",
       "target_path": "crates/joydeck-pptx/src/read/shapes.rs",
-      "adapted_sha256": "9b86c5bd6386259935ba963d2b510e90ee3e947a6f8b3b932d52a9d08986e826",
+      "adapted_sha256": "ccadc574efcd3cc6389a1f922ea4c26004de490a95fd776be4d3503debfea5ba",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
-        "Derive straight, orthogonal and smoothed DrawingML connector paths and adjustments from the published coordinate guides, including multi-bend defaults when opening and writing PPTX."
+        "Derive straight, orthogonal and smoothed DrawingML connector paths and adjustments from the published coordinate guides, including multi-bend defaults when opening and writing PPTX.",
+        "Use the same bounded preset reader to verify preservation writes."
       ]
     },
     {
@@ -1791,7 +1796,7 @@
       "source_path": "crates/pptx/src/read.rs",
       "source_sha256": "db5e0ece9be0db36fedf36fbd6efa95d9536be8060cce414b28ee94e298640ff",
       "target_path": "crates/joydeck-pptx/src/read.rs",
-      "adapted_sha256": "f072a68a5911dc6437a86edc2fe7670b396ca808451a2558d36debca63e9396b",
+      "adapted_sha256": "cd15c7808892f3518d3151f6e0624bbf9e56535d82322a07d21b7421d64c5e4e",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -1799,7 +1804,8 @@
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
         "R9: resolve root officeDocument relationship for custom part paths; retain minimal packages without requiring unchanged masters",
         "preserve recognized layout and master header/footer visibility flags without resolving inheritance",
-        "Reuse verified OPC buffers while preserving format reader budgets and ZIP name decoding."
+        "Reuse verified OPC buffers while preserving format reader budgets and ZIP name decoding.",
+        "Expose the bounded preset reader to the native save verifier."
       ],
       "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained.",
       "safety_integration": "Retain header flag and automatic date format in footer summaries without changing per-slide shapes (d28049dc)."
@@ -1845,13 +1851,14 @@
       "source_path": "crates/pptx/src/write/shapes.rs",
       "source_sha256": "386f88a4a3ca7b7b1434028d1360f17ff16af7c0eca4b75cb5e73a38e7aced1a",
       "target_path": "crates/joydeck-pptx/src/write/shapes.rs",
-      "adapted_sha256": "66b02e7bee6d3636ab2b63b9b2475f301c83d30f06b0ee84bf6ba26d2763152d",
+      "adapted_sha256": "b5f000fa470b48374206a4e0646052a62395241eb644f22929a13f57f35f4794",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
-        "Derive straight, orthogonal and smoothed DrawingML connector paths and adjustments from the published coordinate guides, including multi-bend defaults when opening and writing PPTX."
+        "Derive straight, orthogonal and smoothed DrawingML connector paths and adjustments from the published coordinate guides, including multi-bend defaults when opening and writing PPTX.",
+        "Retain the signed DrawingML range of borderCallout1 through regeneration."
       ]
     },
     {

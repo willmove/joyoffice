@@ -177,7 +177,16 @@ pub(super) fn hits(ctx: &resolve::Ctx, shape: &Shape, point: Point, tolerance: f
         .as_ref()
         .is_some_and(|fill| !matches!(fill, Fill::None));
     let stroke_tolerance = line.width.unwrap_or(0.75).max(0.) / 2. + tolerance;
-    if !bounds
+    let mut painted_bounds = bounds;
+    if has_stroke
+        && let joydeck_model::Geom::Preset { name, adj } = &shape.geom
+        && let Some(callout) = joydeck_geom::preset::LineCallout::named(name)
+    {
+        for tip in callout.vertices(transform.w, transform.h, adj) {
+            painted_bounds = painted_bounds.union_pt(tip);
+        }
+    }
+    if !painted_bounds
         .inflate(stroke_tolerance, stroke_tolerance)
         .contains(local)
     {
@@ -230,6 +239,7 @@ mod tests {
         for row in include_str!("../tests/flowchart-hits.txt")
             .lines()
             .chain(include_str!("../tests/action-button-hits.txt").lines())
+            .chain(include_str!("../tests/callout-hits.txt").lines())
         {
             let cols: Vec<_> = row.split_whitespace().collect();
             let [name, width, height, samples] = cols.as_slice() else {
@@ -265,6 +275,38 @@ mod tests {
                     assert!(!hits(&ctx, &shape, frame.affine() * pt, 0.));
                 }
             }
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn a_rotated_callout_can_be_selected_by_its_visible_external_leader() -> Result<(), &'static str>
+    {
+        use joydeck_model::{ColorRef, Geom, Line, Presentation, Rgba};
+        let deck = Presentation::default();
+        let slide = deck.slides.first().ok_or("missing blank slide")?;
+        let ctx = resolve::Ctx::for_slide(&deck, slide).ok_or("missing slide context")?;
+        let mut geom = Geom::preset("callout1");
+        assert!(geom.set_callout_vertex(0, -25000, 15000));
+        assert!(geom.set_callout_vertex(1, -25000, 85000));
+        let line = Line::solid(ColorRef::rgb(Rgba::BLACK), 1.);
+        for angle in [0., 19., -47.] {
+            let frame = Xfrm {
+                rot: angle,
+                flip_h: true,
+                ..Xfrm::new(170., 210., 160., 80.)
+            };
+            let mut shape = Shape {
+                xfrm: Some(frame),
+                geom: geom.clone(),
+                line: Some(line.clone()),
+                ..Default::default()
+            };
+            let world = frame.affine();
+            assert!(hits(&ctx, &shape, world * Point::new(-40., 40.), 2.));
+            assert!(!hits(&ctx, &shape, world * Point::new(-44., 40.), 2.));
+            shape.line = Some(Line::none());
+            assert!(!hits(&ctx, &shape, world * Point::new(-40., 40.), 2.));
         }
         Ok(())
     }
