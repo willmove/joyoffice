@@ -157,7 +157,7 @@ impl super::Backend for FontStoreBackend {
     }
 
     fn packs_dir(&self) -> Option<PathBuf> {
-        Some(self.store.language_packs_dir())
+        Some(self.store.open_language_packs())
     }
 }
 

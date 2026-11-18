@@ -25,10 +25,17 @@ use std::path::{Component, Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
 
-use crate::http::{Cancel, Client, Timeouts};
+mod transaction;
+mod transfer;
+
+use crate::http::Cancel;
+#[cfg(test)]
+use crate::http::{Client, Timeouts};
 use crate::index::IndexError;
 use crate::store::{Error, FontStore, INDEX_CACHE, Progress, Stage, io, read_limited};
-use crate::verify::{VerifyError, sha256_hex};
+#[cfg(test)]
+use crate::verify::VerifyError;
+use crate::verify::sha256_hex;
 
 /// The store's folder of installed Language packs.
 pub const LANGUAGE_PACKS: &str = "language-packs";
@@ -286,6 +293,15 @@ impl FontStore {
         self.dir().join(LANGUAGE_PACKS)
     }
 
+    /// Restore the previous dictionary and its record after an interrupted change.
+    /// Opening a healthy store only checks for the presence of the journal.
+    pub fn open_language_packs(&self) -> PathBuf {
+        if let Err(error) = transaction::recover_on_open(self) {
+            log::warn!("recovering installed language packs: {error}");
+        }
+        self.language_packs_dir()
+    }
+
     /// The pack index saved by the last [`FontStore::fetch_language_pack_index`], when it is
     /// `pin`'s (or the developer override is set).
     pub fn cached_language_pack_index(&self, pin: &PackIndexPin) -> Option<PackIndex> {
@@ -318,82 +334,12 @@ impl FontStore {
         source: &IndexSource,
         cancel: &Cancel,
     ) -> Result<PackIndex, Error> {
-        self.require_network()?;
-        let bytes = match source {
-            IndexSource::Pinned(pin) => {
-                let check = |b: &[u8]| {
-                    if sha256_hex(b) == pin.sha256 {
-                        Ok(())
-                    } else {
-                        Err(VerifyError::Sha256)
-                    }
-                };
-                self.fetch(
-                    &[pin.url.to_string()],
-                    MAX_PACK_INDEX_BYTES,
-                    "the Language pack index",
-                    cancel,
-                    &mut |_| {},
-                    &check,
-                )?
-            }
-            IndexSource::Override(at) => self.get_local(
-                at,
-                MAX_PACK_INDEX_BYTES,
-                "the Language pack index",
-                cancel,
-                &mut |_| {},
-                &|_| Ok(()),
-            )?,
-        };
+        let bytes = transfer::index(self, source, cancel)?;
         let index = PackIndex::parse(&bytes, source.is_override())?;
         std::fs::create_dir_all(self.dir().join(INDEX_CACHE))
             .map_err(io("creating the index folder"))?;
         self.write_file(&format!("{INDEX_CACHE}/{INDEX_CACHE_NAME}"), &bytes)?;
         Ok(index)
-    }
-
-    /// A download under the developer override: an https or loopback http URL, or a file.
-    fn get_local(
-        &self,
-        at: &str,
-        max: u64,
-        what: &str,
-        cancel: &Cancel,
-        on_bytes: &mut dyn FnMut(u64),
-        check: &dyn Fn(&[u8]) -> Result<(), VerifyError>,
-    ) -> Result<Vec<u8>, Error> {
-        let bytes = match local_source(at) {
-            Some(Ok(url)) if url.starts_with("https://") => {
-                return self.fetch(&[url.to_string()], max, what, cancel, on_bytes, check);
-            }
-            Some(Ok(url)) => Client::allowing_http(Timeouts::default())
-                .get(url, max, cancel, on_bytes)
-                .map_err(|e| Error::Download {
-                    what: what.to_string(),
-                    reasons: vec![e.to_string()],
-                })?,
-            Some(Err(path)) => {
-                let mut buf = Vec::new();
-                std::fs::File::open(&path)
-                    .and_then(|f| f.take(max.saturating_add(1)).read_to_end(&mut buf))
-                    .map_err(io(format!("reading {}", path.display())))?;
-                if buf.len() as u64 > max {
-                    return Err(Error::Download {
-                        what: what.to_string(),
-                        reasons: vec![format!("larger than {max} bytes")],
-                    });
-                }
-                on_bytes(buf.len() as u64);
-                buf
-            }
-            None => return Err(Error::BadUrl(at.chars().take(200).collect())),
-        };
-        check(&bytes).map_err(|error| Error::Verify {
-            file: what.to_string(),
-            error,
-        })?;
-        Ok(bytes)
     }
 
     /// Downloads `pack` from `index`, checks its size and sha256, unpacks it and moves it into
@@ -429,50 +375,12 @@ impl FontStore {
                 "Language pack {locale:?}: bad locale, sha256 or size"
             ))));
         }
-        let what = format!("{}.tar.zst", pack.locale);
-        let (size, sha) = (pack.size, pack.sha256.clone());
-        let check = move |b: &[u8]| {
-            if b.len() as u64 != size {
-                Err(VerifyError::Size {
-                    expected: size,
-                    actual: b.len() as u64,
-                })
-            } else if sha256_hex(b) != sha {
-                Err(VerifyError::Sha256)
-            } else {
-                Ok(())
-            }
-        };
-        let mut on_bytes = |done: u64| {
-            progress(Progress {
-                file: 0,
-                files: 1,
-                done,
-                total: size,
-            })
-        };
-        let bytes = if local {
-            self.get_local(&pack.url, size, &what, cancel, &mut on_bytes, &check)?
-        } else if pack.url.starts_with("https://") {
-            self.fetch(
-                std::slice::from_ref(&pack.url),
-                size,
-                &what,
-                cancel,
-                &mut on_bytes,
-                &check,
-            )?
-        } else {
-            return Err(Error::BadUrl(pack.url.chars().take(200).collect()));
-        };
-        if cancel.is_cancelled() {
-            return Err(Error::Cancelled);
-        }
+        let bytes = transfer::archive(self, pack, local, cancel, progress)?;
         self.sweep_staging();
         let stage = Stage::new(self.dir())?;
         let unpacked = stage.dir.join(&pack.locale);
         unpack(&bytes, &unpacked, pack).map_err(|e| Error::Io {
-            what: format!("unpacking {what}"),
+            what: format!("unpacking {}.tar.zst", pack.locale),
             source: std::io::Error::other(e),
         })?;
         let record = InstalledLanguagePack {
@@ -484,41 +392,20 @@ impl FontStore {
             sha256: pack.sha256.clone(),
             size: pack.size,
         };
-        let _lock = self.lock()?;
-        // The record first: rebuilding a damaged one must not count the pack being installed.
-        let mut installed = self.read_installed()?;
-        let packs = self.language_packs_dir();
-        std::fs::create_dir_all(&packs).map_err(io("creating the Language packs folder"))?;
-        let dest = packs.join(&pack.locale);
-        let old = stage.dir.join(format!("{}.old", pack.locale));
-        let had = std::fs::symlink_metadata(&dest).is_ok();
-        if had {
-            std::fs::rename(&dest, &old)
-                .map_err(io(format!("replacing the {} pack", pack.locale)))?;
-        }
-        if let Err(e) = std::fs::rename(&unpacked, &dest) {
-            if had {
-                let _ = std::fs::rename(&old, &dest);
-            }
-            return Err(io(format!("installing the {} pack", pack.locale))(e));
-        }
-        installed.packs.retain(|p| p.locale != record.locale);
-        installed.packs.push(record.clone());
-        installed.packs.sort_by(|a, b| a.locale.cmp(&b.locale));
-        if let Err(e) = self.write_installed(&installed) {
-            // Put the old pack back, so folder and record agree.
-            let _ = std::fs::remove_dir_all(&dest);
-            if had {
-                let _ = std::fs::rename(&old, &dest);
-            }
-            return Err(e);
-        }
+        transaction::publish(
+            self,
+            &stage,
+            &pack.locale,
+            Some((&unpacked, &record)),
+            Some(cancel),
+        )?;
         Ok(record)
     }
 
-    /// The installed Language packs whose folder is there, by locale.
+    /// The installed Language packs whose folder is there, by locale. A pending
+    /// publication is recovered under the writer lock before inspecting the inventory.
     pub fn installed_language_packs(&self) -> Vec<InstalledLanguagePack> {
-        let dir = self.language_packs_dir();
+        let dir = self.open_language_packs();
         // Read only: without the store lock this never writes the record (an install or removal
         // may be under way); a record that can't be read is listed from the folders and repaired
         // by the next install or removal, which hold the lock.
@@ -546,20 +433,7 @@ impl FontStore {
             return Err(Error::NotInstalled(locale.chars().take(40).collect()));
         }
         let stage = Stage::new(self.dir())?;
-        let _lock = self.lock()?;
-        let dest = self.language_packs_dir().join(locale);
-        let mut installed = self.read_installed()?;
-        let known = installed.packs.iter().any(|p| p.locale == locale);
-        if !known && std::fs::symlink_metadata(&dest).is_err() {
-            return Err(Error::NotInstalled(locale.to_string()));
-        }
-        if std::fs::symlink_metadata(&dest).is_ok() {
-            std::fs::rename(&dest, stage.dir.join(locale))
-                .map_err(io(format!("removing the {locale} pack")))?;
-        }
-        installed.packs.retain(|p| p.locale != locale);
-        self.write_installed(&installed)
-        // `stage` deletes the old folder when dropped.
+        transaction::publish(self, &stage, locale, None, None)
     }
 
     /// The record of installed packs. One that can't be read is copied aside as

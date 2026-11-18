@@ -169,6 +169,8 @@ FS_ALLOW = {
     "third-party/craft-libs/font-catalog/src/suitcase.rs",
     "third-party/craft-libs/font-catalog/src/system.rs",
     "third-party/craft-libs/font-store/src/language_packs.rs",
+    "third-party/craft-libs/font-store/src/language_packs/transaction.rs",
+    "third-party/craft-libs/font-store/src/language_packs/transfer.rs",
     "third-party/craft-libs/font-store/src/store.rs",
     "third-party/craft-libs/proof/build.rs",
     "third-party/craft-libs/proof/src/hunspell.rs",

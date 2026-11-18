@@ -933,3 +933,46 @@ fn a_stale_stage_folder_is_cleared() {
         .count();
     assert_eq!(left, 512);
 }
+
+#[test]
+fn cancelling_a_local_archive_during_transfer_keeps_the_installed_dictionary()
+-> Result<(), Box<dyn std::error::Error>> {
+    let (store, _, _, original) = setup("cancel-partial-archive");
+    let path = store.dir().join("download.tar.zst");
+    let indexed = |archive: &[u8]| {
+        let mut info = pack_entry("nl", archive);
+        info.url = path.to_string_lossy().into_owned();
+        PackIndex {
+            format: 1,
+            release: "test".into(),
+            packs: vec![info],
+        }
+    };
+    let before = indexed(&original);
+    std::fs::write(&path, &original)?;
+    store.install_pack_from(true, &before, &before.packs[0], &Cancel::new(), &mut |_| {})?;
+    let dictionary = store.language_packs_dir().join("nl/spelling.dic");
+    let original_dictionary = std::fs::read(&dictionary)?;
+    let original_inventory = std::fs::read(store.dir().join(INSTALLED))?;
+    let candidate = original.repeat(200);
+    let after = indexed(&candidate);
+    std::fs::write(&path, &candidate)?;
+    let cancel = Cancel::new();
+    let mut received = Vec::new();
+    let result = store.install_pack_from(true, &after, &after.packs[0], &cancel, &mut |p| {
+        received.push(p.done);
+        cancel.cancel();
+    });
+    assert!(matches!(result, Err(Error::Cancelled)));
+    assert!(
+        matches!(received.as_slice(), [partial] if *partial > 0 && *partial < candidate.len() as u64)
+    );
+    assert_eq!(std::fs::read(dictionary)?, original_dictionary);
+    assert_eq!(
+        std::fs::read(store.dir().join(INSTALLED))?,
+        original_inventory
+    );
+    assert!(!store.dir().join(".language-pack-change").exists());
+    std::fs::remove_dir_all(store.dir())?;
+    Ok(())
+}

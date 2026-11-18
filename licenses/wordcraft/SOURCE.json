@@ -2836,8 +2836,8 @@
       "source": "crates/engine/src/packs/store.rs",
       "target": "crates/joyword-engine/src/packs/store.rs",
       "source_sha256": "4f30cacc6a745d0aee605ffcab943203c0dcd03a2003eb980763a65226ef6b89",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Resolve the existing language-pack folder independently of craft-font-catalog while preserving consent and cached data. Expose the verified dictionary source, or the archive for legacy language-pack indexes, to existing desktop and CLI document sessions.",
-      "adapted_sha256": "f9a77461efc82c549db2ea9202d0345354b6bb29345e2a672accc25d8d4006de"
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Resolve the existing language-pack folder independently of craft-font-catalog while preserving consent and cached data. Expose the verified dictionary source, or the archive for legacy language-pack indexes, to existing desktop and CLI document sessions. Recover interrupted publication when binding the original language directory to a document session.",
+      "adapted_sha256": "00e942d2c77e630921f0d41cd1e138d0a577120da5555c9b5e9833b67a9ef5b7"
     },
     {
       "source": "crates/engine/src/recovery/desktop.rs",

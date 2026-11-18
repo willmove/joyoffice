@@ -163,3 +163,11 @@ JoyWord 用带宽受阈值限制的动态规划计算候选距离。相邻字符
 原生窗口从“审阅”打开“拼写和语法”，两端的辅助功能树均读回 `teh` 和依次排列的 `the, tens, tent, test, text`。关闭弹窗后输入第一项，验证只有选中的错词改变，撤销、重做，保存副本并在新进程重开。首轮发现弹窗正文没有可访问标签，现已补齐。两端校对库各通过 476 项并按原配置忽略一项，生产库 Clippy 通过。macOS 的首次并发产品回归有一项 1 MiB 长词布局超过 15 秒限值，改为两个测试线程重跑整套。额外对校对库测试代码开启所有 Clippy 告警时，已有测试中的 `unwrap` 等仍会报错。[双平台回归与原生纠错](spelling-ranking.json)
 
 复跑用 `python3 scripts/joyword/check-spelling-order.py OLD_CLI NEW_CLI NEW_DIR --release-packs VERIFIED_PACKS --desktop NEW_DESKTOP`。词典目录含正式 `index.json` 及按小写语言标签命名的 `.tar.zst`。安装器仍以用户同意和应用固定的索引为入口。[验证脚本](../../../../scripts/joyword/check-spelling-order.py)
+
+## Word 语言包下载、发布与中断恢复
+
+Word 的桌面和 CLI 现在共用 JoyOffice 的词典传输与发布逻辑。下载正式索引时校验应用固定的 SHA-256，每个压缩包另验索引所列的长度和摘要。用户同意设置、网络超时、许可和安装目录沿用原格式。安装、替换和卸载在同一文件锁下提交目录和清单；进程中断后，下一次打开词典目录会恢复上一个已提交版本，同时保留其他语言。文件锁、HTTP、压缩和已有归档验证仍复用原库。[传输实现](../../../../third-party/craft-libs/font-store/src/language_packs/transfer.rs) · [目录事务](../../../../third-party/craft-libs/font-store/src/language_packs/transaction.rs)
+
+macOS 与 UOS 真机各用固定索引的 75 个正式包运行旧、新两版 CLI。37 个由旧版首次安装，38 个由新版首次安装，再交换版本覆盖全部 75 个。每轮单独对照压缩包内的 569 个文件和安装清单，其中有 276 个许可文件。四个独立进程同时替换词典，其中两个写入同一语言，最后按两版分别卸载并检查目录与清单均空。整套使用本地镜像以便重放；另在两个原生桌面实际下载正式索引与荷兰语包，UOS 经 SSH 转发使用 HTTPS 代理。两端的 GUI 与 CLI 对安装前、替换、卸载及实际正式包的分页一致，原始文档摘要相同。[文件、网络与原生结果](pack-publication.json)
+
+对创建、替换、移除分别构造提交前后的五种磁盘状态，再启动新存储会话恢复；另有八种替换／卸载中断快照经过真实 CLI 冷启动及旧版读回。传输中取消时，原词典和清单保持逐字节相同。这里验证进程中断恢复，尚无断电实测。两端存储库各通过 33 项、忽略原有一项，生产库 Clippy 通过。产品工程检查与共享 UI 和六入口联合构建通过。复跑用 `python3 scripts/joyword/check-pack-publication.py OLD_CLI NEW_CLI VERIFIED_PACKS NEW_DIR`，随后运行 `python3 scripts/joyword/check-installed-language-pack.py NEW_CLI NEW_DESKTOP OTHER_NEW_DIR --published`。[双版本复跑脚本](../../../../scripts/joyword/check-pack-publication.py)
