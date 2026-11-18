@@ -152,7 +152,7 @@ Word 和 Deck 共用目录遍历及文件修订识别，塑形和回退顺序由
 
 Release 在同一份原生测试文档的第二条脚注交替插入和删除，五个新进程各执行 20 次。macOS 完整分页与编辑加局部分页的 P50 为 0.585 → 0.411 ms，P95 为 0.648 → 0.559 ms。UOS P50 为 0.591 → 0.422 ms，P95 为 1.000 → 1.017 ms。两端中位数均下降，UOS 尾部有约 0.018 ms 回退。每台机器另完成 690 次逐页比较和 2,070 次命中检查。记录中保留了每次都重新核验旧布局的初版、加入章节缓存的中间版与最终版的计时。macOS 产品回归通过 3,679 项，UOS 通过 3,683 项。两端公共 UI 和桌面／CLI 联合构建也通过。[逐次计时](section-reflow.json)
 
-复跑用 `python3 scripts/joyword/check-section-reflow.py DESKTOP NEW_DIR`，随后运行 `cargo run --release -p joyword-engine --example chapter_reflow -- NEW_DIR/原始分节.docx`。该例省略文件名时仍执行原有的千页中段增删基准。当前局部计算限于原布局至少 64 页、连续节组最多 256 个正文块和 16 页。分节改变总页数、外部字段、复杂浮动绘图和无法验证的入口继续使用完整分页。[生产入口](../../../../crates/joyword-layout/src/incremental/sections.rs)
+复跑用 `python3 scripts/joyword/check-section-reflow.py DESKTOP NEW_DIR`，随后运行 `cargo run --release -p joyword-engine --example chapter_reflow -- NEW_DIR/原始分节.docx`。该例省略文件名时仍执行原有的千页中段增删基准。当时的局部计算限于原布局至少 64 页、连续节组最多 256 个正文块和 16 页。当时分节改变总页数、外部字段、复杂浮动绘图和无法验证的入口均使用完整分页。下文记录了新增的分节增减页支持。[生产入口](../../../../crates/joyword-layout/src/incremental/sections.rs)
 
 ## Word 多语拼写建议与原生审阅
 
@@ -193,3 +193,11 @@ FILTER、SORT、SORTBY、UNIQUE 现在直接读取输入行或列，按索引决
 七个公式分别由新旧 CLI 写入，两代都重开并读取 96 个单元格，还逐一核对 XLSX 中公式和溢出区域。两个原生桌面均从旧版工作簿开始，改变筛选阈值、撤销、重做、清空结果、放置阻塞单元格，读到 `#SPILL!`，移除阻塞后恢复，再保存副本并用新进程重开。两端各有八个完整的 96 格快照。另回归七份仓库工作簿与两个获准业务样本。原始业务文件均没有公式，派生副本分别核对了 916 和 16 个公式，UOS 临时副本已清理。[逐次结果与公式](array-selection.json) · [复跑脚本](../../../../scripts/joysheet/check-array-selection.py)
 
 4,096 行的固定表上，两版发布程序交替启动，各取 40 个样本，每次打开工作簿、提交六次阈值编辑并核对四个独立计算结果。macOS 的 P50 从 34.25 降至 28.42 ms，P95 从 36.02 降至 29.54 ms。UOS 的 P50 从 44.14 降至 36.18 ms，P95 从 55.37 降至 46.40 ms。计时包含打开与六次计算。两端 Sheet 产品回归均通过 1,473 项。[发布程序指纹与原始计时](array-selection.json)
+
+## Word 分节增减页、命中索引与旧尾页图像
+
+在 69 页文档的第 35 页插入 11,100 个字符。macOS 原生窗口增至 73 页，UOS 原生窗口增至 74 页，两端撤销后均恢复 69 页，重做后恢复各自新增的页数。完整分页也得到各自平台的页数。旧尾页在撤销时一起失效。正文、三条脚注及浮动表格中的嵌套表格经独立 XML 检查；保存后用新进程重开，再用两代 CLI 各写一份，两版均逐字读回并重建相同的页面尺寸和页数。两端同页的小编辑也重新验证。[两端窗口、读回与回归](page-count-reflow.json)
+
+新的排版路径在分节出口与后一节首段重新对齐后复用后续的页内容。后续逻辑页码随物理页增减，遇到显式重新编号则停止传播。回归还覆盖文档末节、重新从 7 开始编号，以及后方含奇数起始节时回到完整分页。每台机器用同一个 Release 程序交替插入、删除共 100 次。macOS 完整分页与编辑加增量分页的 P50 为 1.200 → 1.028 ms，P95 为 1.877 → 1.764 ms。UOS 的 P50 为 2.001 → 1.867 ms，P95 为 4.359 → 4.204 ms。两端分别比较了 710／715 个页面对象和 2,130／2,145 个命中点，并对受影响页和邻页核对 RGB 与 PDF。跨节续注、带字段的页眉页脚及奇偶页布局仍保留完整分页。[实现与回退](../../../../crates/joyword-layout/src/incremental/sections.rs)
+
+GUI 复跑用 `python3 scripts/joyword/check-section-reflow.py DESKTOP NEW_DIR --grow --compare-cli OLD_CLI NEW_CLI`。Release 计时入口为 `cargo run --release -p joyword-engine --example chapter_reflow -- NEW_DIR/原始分节.docx --grow`。同一轮完整回归在 macOS 的 Word／Deck／Sheet 分别通过 3,681／1,001／1,473 项，在 UOS 分别通过 3,685／1,006／1,473 项。[原始采样](page-count-reflow.json)

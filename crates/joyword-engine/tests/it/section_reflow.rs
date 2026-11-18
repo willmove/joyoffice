@@ -87,7 +87,8 @@ fn compare(
             }
         }
     }
-    let pages = (changed.start - 1..=changed.end).collect::<Vec<_>>();
+    let pages = (changed.start.saturating_sub(1)..=changed.end.min(full.pages.len() - 1))
+        .collect::<Vec<_>>();
     for &i in &pages {
         let bitmap = |l: &DocLayout| {
             joyword_render::render_page(doc, &l.pages[i], 1., &Default::default()).pixels
@@ -104,6 +105,76 @@ fn compare(
     );
 }
 
+#[test]
+fn section_growth_and_shrinkage_reindex_hits_and_stop_renumbering_at_restarts() {
+    for final_section in [false, true] {
+        let (mut doc, block, note) = fixture();
+        let later = doc.sections()[55].0;
+        doc.para_mut(StoryRef::Body, &Path::top(later))
+            .unwrap()
+            .section
+            .as_mut()
+            .unwrap()
+            .page_num_start = Some(7);
+        let target = if final_section {
+            doc.body.len() - 1
+        } else {
+            block + 2
+        };
+        let (mut cache, opts) = (LayoutCache::new(), LayoutOptions::default());
+        let mut last = layout_shared(&doc, &mut cache, &opts);
+        let original_len = last.pages.len();
+        let first = last.index[&(StoryRef::Body, Path::top(target))][0].0;
+        let text = "Several words before the following section. ".repeat(280);
+        for add in [true, false] {
+            let p = doc.para_mut(StoryRef::Body, &Path::top(target)).unwrap();
+            if add {
+                p.insert_text(0, &text, &Default::default()).unwrap();
+            } else {
+                p.delete(0, text.len()).unwrap();
+            }
+            let next = layout_shared(&doc, &mut cache, &opts);
+            let full = layout(&doc, &mut LayoutCache::new(), &opts);
+            if add {
+                assert!(full.pages.len() > original_len);
+            } else {
+                assert_eq!(full.pages.len(), original_len);
+            }
+            let dirty = first..last.pages.len().max(full.pages.len());
+            assert_eq!(next.changed_pages_from(&last), Some(dirty.clone()));
+            assert_eq!(
+                next.pages.iter().find(|p| p.section == 55).unwrap().number,
+                7
+            );
+            compare(&doc, &next, &full, dirty, note);
+            last = next;
+        }
+    }
+}
+
+#[test]
+fn shifting_an_unreplayed_odd_page_section_falls_back_to_full_pagination() {
+    let (mut doc, block, _) = fixture();
+    let future = doc.sections()[55].0;
+    doc.para_mut(StoryRef::Body, &Path::top(future))
+        .unwrap()
+        .section
+        .as_mut()
+        .unwrap()
+        .start = SectionStart::OddPage;
+    let (opts, mut cache) = (LayoutOptions::default(), LayoutCache::new());
+    let before = layout_shared(&doc, &mut cache, &opts);
+    doc.para_mut(StoryRef::Body, &Path::top(block + 2))
+        .unwrap()
+        .insert_text(0, &"Grow this section. ".repeat(650), &Default::default())
+        .unwrap();
+    let after = layout_shared(&doc, &mut cache, &opts);
+    assert!(after.pages.len() > before.pages.len());
+    assert!(after.changed_pages_from(&before).is_none());
+    let full = layout(&doc, &mut LayoutCache::new(), &opts);
+    assert_eq!(format!("{:?}", after.pages), format!("{:?}", full.pages));
+    assert_eq!(after.index, full.index);
+}
 #[test]
 fn footnote_height_and_rebalanced_columns_match_whole_document_outputs() {
     let (mut doc, block, note) = fixture();
@@ -132,17 +203,17 @@ fn footnote_height_and_rebalanced_columns_match_whole_document_outputs() {
         compare(&doc, &next, &full, changed, note);
         last = next;
     }
-    // A footnote that carries through the next fresh page must propagate globally.
+    // A long footnote may add pages before the next section's real first
+    // paragraph. Check every page and note hit after propagating the page shift.
     doc.para_mut(footnote, &Path::top(0))
         .unwrap()
         .insert_text(0, &insert.repeat(80), &Default::default())
         .unwrap();
     let oversized = layout_shared(&doc, &mut cache, &opts);
-    assert!(oversized.changed_pages_from(&last).is_none());
-    assert_eq!(
-        oversized.index,
-        layout(&doc, &mut LayoutCache::new(), &opts).index
-    );
+    let full = layout(&doc, &mut LayoutCache::new(), &opts);
+    let dirty = 34..last.pages.len().max(full.pages.len());
+    compare(&doc, &oversized, &full, dirty.clone(), note);
+    assert_eq!(oversized.changed_pages_from(&last), Some(dirty));
 }
 
 #[test]

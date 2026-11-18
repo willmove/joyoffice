@@ -1,0 +1,1570 @@
+{
+  "macOS": {
+    "nativeExpansion": {
+      "binarySha256": "20f53b63f6b6d9c463c41f62131414e9da0645d312242f922d3c747196be4c1e",
+      "sourceSha256": "c91034132c4cb66ced79edbcd3c7c547e07fc8b12044558c159737f1fb9bca7b",
+      "pages": 69,
+      "sections": 70,
+      "numberedNotes": 3,
+      "nativePatches": [
+        {
+          "action": "text.insert",
+          "firstPage": 35,
+          "lastPage": 73,
+          "pageCount": 73
+        },
+        {
+          "action": "edit.undo",
+          "firstPage": 35,
+          "lastPage": 73,
+          "pageCount": 69
+        },
+        {
+          "action": "edit.redo",
+          "firstPage": 35,
+          "lastPage": 73,
+          "pageCount": 73
+        }
+      ],
+      "reopenedPageCount": 73,
+      "savedAndReopened": true,
+      "sourceUnchanged": true,
+      "savedNestedAndFloatingTable": true,
+      "crossVersion": {
+        "cliSha256": {
+          "baseline": "5643dd7de5263e087ab10d2b6b52d8e3d69cce94042fe87579e42bf67713f259",
+          "candidate": "6be0f5aef5ce6ec582555a1be48847f2caaea9f4c8bf4ebb9d5d40c8b07f8635"
+        },
+        "writerReaderPairs": [
+          [
+            "baseline",
+            "baseline"
+          ],
+          [
+            "baseline",
+            "candidate"
+          ],
+          [
+            "candidate",
+            "baseline"
+          ],
+          [
+            "candidate",
+            "candidate"
+          ]
+        ],
+        "pageCount": 73,
+        "savedCopyUnchanged": true
+      }
+    },
+    "nativeSamePage": {
+      "binarySha256": "20f53b63f6b6d9c463c41f62131414e9da0645d312242f922d3c747196be4c1e",
+      "sourceSha256": "c91034132c4cb66ced79edbcd3c7c547e07fc8b12044558c159737f1fb9bca7b",
+      "pages": 69,
+      "sections": 70,
+      "numberedNotes": 3,
+      "nativePatches": [
+        {
+          "action": "text.insert",
+          "firstPage": 35,
+          "lastPage": 35,
+          "pageCount": 69
+        },
+        {
+          "action": "edit.undo",
+          "firstPage": 35,
+          "lastPage": 35,
+          "pageCount": 69
+        },
+        {
+          "action": "edit.redo",
+          "firstPage": 35,
+          "lastPage": 35,
+          "pageCount": 69
+        }
+      ],
+      "reopenedPageCount": 69,
+      "savedAndReopened": true,
+      "sourceUnchanged": true,
+      "savedNestedAndFloatingTable": true
+    },
+    "release": {
+      "processes": 5,
+      "samplesPerProcess": 20,
+      "milliseconds": {
+        "fullLayoutMs": {
+          "p50": 1.2002915,
+          "p95": 1.876666
+        },
+        "editThroughLayoutMs": {
+          "p50": 1.0275,
+          "p95": 1.763875
+        }
+      },
+      "pageComparisons": 710,
+      "hitComparisons": 2130,
+      "rasterAndPdf": "Insertion and deletion in each process with all affected existing pages and adjacent pages compared to full layout",
+      "runs": [
+        {
+          "allPageComparisons": 142,
+          "hitComparisons": 426,
+          "pages": 69,
+          "rasterAndPdfCompared": "affected pages and available neighboring pages for insertion and deletion",
+          "samples": [
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 2.282334,
+              "fullLayoutMs": 1.8875000000000002,
+              "pageCount": 73
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 0.5363749999999999,
+              "fullLayoutMs": 0.646459,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 1.6451669999999998,
+              "fullLayoutMs": 1.731792,
+              "pageCount": 73
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 0.5582910000000001,
+              "fullLayoutMs": 0.632417,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 1.450083,
+              "fullLayoutMs": 1.928791,
+              "pageCount": 73
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 0.513,
+              "fullLayoutMs": 0.741583,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 1.485167,
+              "fullLayoutMs": 1.517125,
+              "pageCount": 73
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 0.410458,
+              "fullLayoutMs": 0.567791,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 1.367375,
+              "fullLayoutMs": 1.627791,
+              "pageCount": 73
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 0.46525,
+              "fullLayoutMs": 0.625416,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 1.5034589999999999,
+              "fullLayoutMs": 1.576167,
+              "pageCount": 73
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 0.438041,
+              "fullLayoutMs": 0.6873330000000001,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 1.4814159999999998,
+              "fullLayoutMs": 2.065167,
+              "pageCount": 73
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 0.49370800000000004,
+              "fullLayoutMs": 0.6807920000000001,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 1.3964999999999999,
+              "fullLayoutMs": 1.618584,
+              "pageCount": 73
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 0.40225,
+              "fullLayoutMs": 0.5632499999999999,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 1.3502500000000002,
+              "fullLayoutMs": 1.7717919999999998,
+              "pageCount": 73
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 0.50675,
+              "fullLayoutMs": 0.631084,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 1.503667,
+              "fullLayoutMs": 1.814792,
+              "pageCount": 73
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 0.45649999999999996,
+              "fullLayoutMs": 0.577875,
+              "pageCount": 69
+            }
+          ]
+        },
+        {
+          "allPageComparisons": 142,
+          "hitComparisons": 426,
+          "pages": 69,
+          "rasterAndPdfCompared": "affected pages and available neighboring pages for insertion and deletion",
+          "samples": [
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 3.1068749999999996,
+              "fullLayoutMs": 1.826834,
+              "pageCount": 73
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 0.609,
+              "fullLayoutMs": 0.670041,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 1.446959,
+              "fullLayoutMs": 1.704875,
+              "pageCount": 73
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 0.465625,
+              "fullLayoutMs": 0.593875,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 1.398208,
+              "fullLayoutMs": 1.561333,
+              "pageCount": 73
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 0.467333,
+              "fullLayoutMs": 0.6726669999999999,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 1.6557080000000002,
+              "fullLayoutMs": 1.6894580000000001,
+              "pageCount": 73
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 0.442375,
+              "fullLayoutMs": 0.63925,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 1.5250000000000001,
+              "fullLayoutMs": 1.846709,
+              "pageCount": 73
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 0.460416,
+              "fullLayoutMs": 0.596958,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 1.488083,
+              "fullLayoutMs": 1.543875,
+              "pageCount": 73
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 0.406916,
+              "fullLayoutMs": 0.565792,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 1.3752499999999999,
+              "fullLayoutMs": 1.6514170000000001,
+              "pageCount": 73
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 0.479125,
+              "fullLayoutMs": 0.856167,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 1.763875,
+              "fullLayoutMs": 1.731458,
+              "pageCount": 73
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 0.435417,
+              "fullLayoutMs": 0.6155419999999999,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 1.4925419999999998,
+              "fullLayoutMs": 1.7144160000000002,
+              "pageCount": 73
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 0.428,
+              "fullLayoutMs": 0.639,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 1.5802500000000002,
+              "fullLayoutMs": 1.618708,
+              "pageCount": 73
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 0.429041,
+              "fullLayoutMs": 0.583125,
+              "pageCount": 69
+            }
+          ]
+        },
+        {
+          "allPageComparisons": 142,
+          "hitComparisons": 426,
+          "pages": 69,
+          "rasterAndPdfCompared": "affected pages and available neighboring pages for insertion and deletion",
+          "samples": [
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 2.1138749999999997,
+              "fullLayoutMs": 1.617,
+              "pageCount": 73
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 0.585,
+              "fullLayoutMs": 0.666959,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 1.502625,
+              "fullLayoutMs": 1.646125,
+              "pageCount": 73
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 0.459041,
+              "fullLayoutMs": 0.6018749999999999,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 1.436,
+              "fullLayoutMs": 1.656458,
+              "pageCount": 73
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 0.49891599999999997,
+              "fullLayoutMs": 0.599,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 1.550875,
+              "fullLayoutMs": 1.777458,
+              "pageCount": 73
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 0.41133400000000003,
+              "fullLayoutMs": 0.559959,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 1.5335839999999998,
+              "fullLayoutMs": 1.867875,
+              "pageCount": 73
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 0.413125,
+              "fullLayoutMs": 0.566125,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 1.35325,
+              "fullLayoutMs": 1.752917,
+              "pageCount": 73
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 0.47675,
+              "fullLayoutMs": 0.663208,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 1.500209,
+              "fullLayoutMs": 1.696959,
+              "pageCount": 73
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 0.485084,
+              "fullLayoutMs": 0.585125,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 1.480334,
+              "fullLayoutMs": 1.631958,
+              "pageCount": 73
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 0.46533399999999997,
+              "fullLayoutMs": 0.589,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 1.6347079999999998,
+              "fullLayoutMs": 1.6668749999999999,
+              "pageCount": 73
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 0.417875,
+              "fullLayoutMs": 0.568833,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 1.423459,
+              "fullLayoutMs": 1.61875,
+              "pageCount": 73
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 0.509792,
+              "fullLayoutMs": 0.623666,
+              "pageCount": 69
+            }
+          ]
+        },
+        {
+          "allPageComparisons": 142,
+          "hitComparisons": 426,
+          "pages": 69,
+          "rasterAndPdfCompared": "affected pages and available neighboring pages for insertion and deletion",
+          "samples": [
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 2.32125,
+              "fullLayoutMs": 1.743375,
+              "pageCount": 73
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 0.5238750000000001,
+              "fullLayoutMs": 0.621083,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 1.67425,
+              "fullLayoutMs": 1.689291,
+              "pageCount": 73
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 0.45875,
+              "fullLayoutMs": 0.619542,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 1.46775,
+              "fullLayoutMs": 1.876666,
+              "pageCount": 73
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 0.47887500000000005,
+              "fullLayoutMs": 0.600458,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 1.4547080000000001,
+              "fullLayoutMs": 1.5442909999999999,
+              "pageCount": 73
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 0.39675000000000005,
+              "fullLayoutMs": 0.559167,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 1.413333,
+              "fullLayoutMs": 1.715292,
+              "pageCount": 73
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 0.466625,
+              "fullLayoutMs": 0.602167,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 1.6075830000000002,
+              "fullLayoutMs": 1.741542,
+              "pageCount": 73
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 0.433083,
+              "fullLayoutMs": 0.59625,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 1.588209,
+              "fullLayoutMs": 1.817542,
+              "pageCount": 73
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 0.496167,
+              "fullLayoutMs": 0.615834,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 1.411208,
+              "fullLayoutMs": 1.55025,
+              "pageCount": 73
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 0.401625,
+              "fullLayoutMs": 0.6006670000000001,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 1.5178749999999999,
+              "fullLayoutMs": 1.742791,
+              "pageCount": 73
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 0.448625,
+              "fullLayoutMs": 0.633709,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 1.533959,
+              "fullLayoutMs": 1.6175,
+              "pageCount": 73
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 0.420666,
+              "fullLayoutMs": 0.6499579999999999,
+              "pageCount": 69
+            }
+          ]
+        },
+        {
+          "allPageComparisons": 142,
+          "hitComparisons": 426,
+          "pages": 69,
+          "rasterAndPdfCompared": "affected pages and available neighboring pages for insertion and deletion",
+          "samples": [
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 2.357625,
+              "fullLayoutMs": 1.66025,
+              "pageCount": 73
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 0.70475,
+              "fullLayoutMs": 0.8834580000000001,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 1.512041,
+              "fullLayoutMs": 1.664208,
+              "pageCount": 73
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 0.447458,
+              "fullLayoutMs": 0.580584,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 1.363791,
+              "fullLayoutMs": 1.5651249999999999,
+              "pageCount": 73
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 0.416416,
+              "fullLayoutMs": 0.6445,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 1.521958,
+              "fullLayoutMs": 1.938834,
+              "pageCount": 73
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 0.5022909999999999,
+              "fullLayoutMs": 0.629333,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 1.505667,
+              "fullLayoutMs": 1.737625,
+              "pageCount": 73
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 0.469917,
+              "fullLayoutMs": 0.695459,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 1.610125,
+              "fullLayoutMs": 1.8424159999999998,
+              "pageCount": 73
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 0.450834,
+              "fullLayoutMs": 0.578542,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 1.463459,
+              "fullLayoutMs": 1.5685,
+              "pageCount": 73
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 0.42320800000000003,
+              "fullLayoutMs": 0.6155,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 1.592791,
+              "fullLayoutMs": 1.9684580000000003,
+              "pageCount": 73
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 0.48966600000000005,
+              "fullLayoutMs": 0.632917,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 1.494583,
+              "fullLayoutMs": 1.695292,
+              "pageCount": 73
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 0.611375,
+              "fullLayoutMs": 0.684459,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 1.663041,
+              "fullLayoutMs": 1.5964589999999999,
+              "pageCount": 73
+            },
+            {
+              "changedPages": 39,
+              "editThroughLayoutMs": 0.405709,
+              "fullLayoutMs": 0.56875,
+              "pageCount": 69
+            }
+          ]
+        }
+      ]
+    },
+    "checks": {
+      "desktop": {
+        "exit": 0,
+        "logSha256": "e1387c7c171beed720d667b153aea4364c59d1c747de27fbcf0d807d13c2e3d4"
+      },
+      "ui": {
+        "exit": 0,
+        "logSha256": "468832a41e0ebac0f839cd0889ce4b679e50a9765a0ae496848ebec83649217a",
+        "passed": 76,
+        "failed": 0,
+        "ignored": 0
+      },
+      "joyword": {
+        "exit": 0,
+        "logSha256": "b2815162f6512dc447b611ecde81f69368de4b598c34031c6e97062d1944d9e1",
+        "passed": 3681,
+        "failed": 0,
+        "ignored": 2
+      },
+      "joydeck": {
+        "exit": 0,
+        "logSha256": "ddae370175ec7bdf84975ad30be2afd0fc0f0ff3be624765c258a6df7f658bc9",
+        "passed": 1001,
+        "failed": 0,
+        "ignored": 0
+      },
+      "joysheet": {
+        "exit": 0,
+        "logSha256": "e6e3ab2a03e5e7e7acd2352324c30b40b1406ef39e00f64bca18f0b4e817ef8a",
+        "passed": 1473,
+        "failed": 0,
+        "ignored": 1
+      }
+    },
+    "exampleClippy": true
+  },
+  "UOS": {
+    "nativeExpansion": {
+      "binarySha256": "8cb5ab71d2bbebcb93f372a01883ddad64e4fe3cb33d71edff24dd3698165571",
+      "sourceSha256": "c91034132c4cb66ced79edbcd3c7c547e07fc8b12044558c159737f1fb9bca7b",
+      "pages": 69,
+      "sections": 70,
+      "numberedNotes": 3,
+      "nativePatches": [
+        {
+          "action": "text.insert",
+          "firstPage": 35,
+          "lastPage": 74,
+          "pageCount": 74
+        },
+        {
+          "action": "edit.undo",
+          "firstPage": 35,
+          "lastPage": 74,
+          "pageCount": 69
+        },
+        {
+          "action": "edit.redo",
+          "firstPage": 35,
+          "lastPage": 74,
+          "pageCount": 74
+        }
+      ],
+      "reopenedPageCount": 74,
+      "savedAndReopened": true,
+      "sourceUnchanged": true,
+      "savedNestedAndFloatingTable": true,
+      "crossVersion": {
+        "cliSha256": {
+          "baseline": "6bbc3f8c72cb8090e133cc93bbdb41b56a3c0c49882cc24606ec042185434d4b",
+          "candidate": "bd6ec812485281197a65e3952a24a3b48e95459eef952a6914031cedbfface04"
+        },
+        "writerReaderPairs": [
+          [
+            "baseline",
+            "baseline"
+          ],
+          [
+            "baseline",
+            "candidate"
+          ],
+          [
+            "candidate",
+            "baseline"
+          ],
+          [
+            "candidate",
+            "candidate"
+          ]
+        ],
+        "pageCount": 74,
+        "savedCopyUnchanged": true
+      }
+    },
+    "nativeSamePage": {
+      "binarySha256": "8cb5ab71d2bbebcb93f372a01883ddad64e4fe3cb33d71edff24dd3698165571",
+      "sourceSha256": "c91034132c4cb66ced79edbcd3c7c547e07fc8b12044558c159737f1fb9bca7b",
+      "pages": 69,
+      "sections": 70,
+      "numberedNotes": 3,
+      "nativePatches": [
+        {
+          "action": "text.insert",
+          "firstPage": 35,
+          "lastPage": 35,
+          "pageCount": 69
+        },
+        {
+          "action": "edit.undo",
+          "firstPage": 35,
+          "lastPage": 35,
+          "pageCount": 69
+        },
+        {
+          "action": "edit.redo",
+          "firstPage": 35,
+          "lastPage": 35,
+          "pageCount": 69
+        }
+      ],
+      "reopenedPageCount": 69,
+      "savedAndReopened": true,
+      "sourceUnchanged": true,
+      "savedNestedAndFloatingTable": true
+    },
+    "release": {
+      "processes": 5,
+      "samplesPerProcess": 20,
+      "milliseconds": {
+        "fullLayoutMs": {
+          "p50": 2.0014974999999997,
+          "p95": 4.359446999999999
+        },
+        "editThroughLayoutMs": {
+          "p50": 1.867238,
+          "p95": 4.203843
+        }
+      },
+      "pageComparisons": 715,
+      "hitComparisons": 2145,
+      "rasterAndPdf": "Insertion and deletion in each process with all affected existing pages and adjacent pages compared to full layout",
+      "runs": [
+        {
+          "allPageComparisons": 143,
+          "hitComparisons": 429,
+          "pages": 69,
+          "rasterAndPdfCompared": "affected pages and available neighboring pages for insertion and deletion",
+          "samples": [
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 4.52535,
+              "fullLayoutMs": 3.3615429999999997,
+              "pageCount": 74
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 0.822894,
+              "fullLayoutMs": 0.910545,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 2.654221,
+              "fullLayoutMs": 2.371444,
+              "pageCount": 74
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 0.581162,
+              "fullLayoutMs": 0.736136,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 1.902758,
+              "fullLayoutMs": 2.20545,
+              "pageCount": 74
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 0.46274499999999996,
+              "fullLayoutMs": 0.664415,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 2.19403,
+              "fullLayoutMs": 2.274748,
+              "pageCount": 74
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 0.494484,
+              "fullLayoutMs": 0.626545,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 2.040209,
+              "fullLayoutMs": 2.1084229999999997,
+              "pageCount": 74
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 0.452186,
+              "fullLayoutMs": 0.626715,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 2.0526210000000003,
+              "fullLayoutMs": 2.491073,
+              "pageCount": 74
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 0.588646,
+              "fullLayoutMs": 0.6495770000000001,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 2.3701719999999997,
+              "fullLayoutMs": 2.246756,
+              "pageCount": 74
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 0.47462699999999997,
+              "fullLayoutMs": 0.639739,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 2.116117,
+              "fullLayoutMs": 2.17732,
+              "pageCount": 74
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 0.45104500000000003,
+              "fullLayoutMs": 0.642043,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 2.055907,
+              "fullLayoutMs": 2.0953489999999997,
+              "pageCount": 74
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 0.468596,
+              "fullLayoutMs": 0.6139920000000001,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 2.167511,
+              "fullLayoutMs": 2.164025,
+              "pageCount": 74
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 0.460231,
+              "fullLayoutMs": 0.609664,
+              "pageCount": 69
+            }
+          ]
+        },
+        {
+          "allPageComparisons": 143,
+          "hitComparisons": 429,
+          "pages": 69,
+          "rasterAndPdfCompared": "affected pages and available neighboring pages for insertion and deletion",
+          "samples": [
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 4.691304000000001,
+              "fullLayoutMs": 3.7605120000000003,
+              "pageCount": 74
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 0.8032980000000001,
+              "fullLayoutMs": 0.843882,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 3.033815,
+              "fullLayoutMs": 2.9602299999999997,
+              "pageCount": 74
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 0.704368,
+              "fullLayoutMs": 0.93583,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 2.4757249999999997,
+              "fullLayoutMs": 2.864775,
+              "pageCount": 74
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 0.718012,
+              "fullLayoutMs": 1.0920560000000001,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 3.790778,
+              "fullLayoutMs": 3.076232,
+              "pageCount": 74
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 0.692656,
+              "fullLayoutMs": 0.959233,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 2.7738989999999997,
+              "fullLayoutMs": 2.957536,
+              "pageCount": 74
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 0.70575,
+              "fullLayoutMs": 0.981834,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 4.346323,
+              "fullLayoutMs": 3.1514189999999997,
+              "pageCount": 74
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 0.701712,
+              "fullLayoutMs": 0.923417,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 2.966261,
+              "fullLayoutMs": 4.971666,
+              "pageCount": 74
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 1.639466,
+              "fullLayoutMs": 1.630641,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 3.409551,
+              "fullLayoutMs": 4.354678,
+              "pageCount": 74
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 0.8425699999999999,
+              "fullLayoutMs": 0.949295,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 2.8538349999999997,
+              "fullLayoutMs": 4.359446999999999,
+              "pageCount": 74
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 0.834996,
+              "fullLayoutMs": 1.0835510000000002,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 3.29935,
+              "fullLayoutMs": 2.573152,
+              "pageCount": 74
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 0.5953879999999999,
+              "fullLayoutMs": 0.729874,
+              "pageCount": 69
+            }
+          ]
+        },
+        {
+          "allPageComparisons": 143,
+          "hitComparisons": 429,
+          "pages": 69,
+          "rasterAndPdfCompared": "affected pages and available neighboring pages for insertion and deletion",
+          "samples": [
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 4.543102,
+              "fullLayoutMs": 4.448319,
+              "pageCount": 74
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 0.7753169999999999,
+              "fullLayoutMs": 0.825349,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 3.582908,
+              "fullLayoutMs": 5.112464,
+              "pageCount": 74
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 0.879187,
+              "fullLayoutMs": 1.110279,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 2.7562569999999997,
+              "fullLayoutMs": 2.906031,
+              "pageCount": 74
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 0.76083,
+              "fullLayoutMs": 0.912848,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 3.116255,
+              "fullLayoutMs": 4.028412,
+              "pageCount": 74
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 0.879758,
+              "fullLayoutMs": 1.021337,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 2.7531019999999997,
+              "fullLayoutMs": 3.208504,
+              "pageCount": 74
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 0.718503,
+              "fullLayoutMs": 0.895867,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 3.173901,
+              "fullLayoutMs": 4.145246,
+              "pageCount": 74
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 0.7928390000000001,
+              "fullLayoutMs": 0.980902,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 2.945233,
+              "fullLayoutMs": 2.972622,
+              "pageCount": 74
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 0.734924,
+              "fullLayoutMs": 1.042425,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 2.404555,
+              "fullLayoutMs": 2.957555,
+              "pageCount": 74
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 0.582244,
+              "fullLayoutMs": 0.678911,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 2.2674040000000004,
+              "fullLayoutMs": 2.287801,
+              "pageCount": 74
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 0.482722,
+              "fullLayoutMs": 0.639359,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 1.969189,
+              "fullLayoutMs": 2.130563,
+              "pageCount": 74
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 0.519219,
+              "fullLayoutMs": 0.6008880000000001,
+              "pageCount": 69
+            }
+          ]
+        },
+        {
+          "allPageComparisons": 143,
+          "hitComparisons": 429,
+          "pages": 69,
+          "rasterAndPdfCompared": "affected pages and available neighboring pages for insertion and deletion",
+          "samples": [
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 3.948456,
+              "fullLayoutMs": 3.115224,
+              "pageCount": 74
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 1.0017509999999998,
+              "fullLayoutMs": 1.074153,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 2.958286,
+              "fullLayoutMs": 4.631234,
+              "pageCount": 74
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 0.798439,
+              "fullLayoutMs": 0.951088,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 2.638272,
+              "fullLayoutMs": 3.132445,
+              "pageCount": 74
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 0.805162,
+              "fullLayoutMs": 0.92477,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 4.203843,
+              "fullLayoutMs": 3.492292,
+              "pageCount": 74
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 0.7874289999999999,
+              "fullLayoutMs": 1.162785,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 3.172298,
+              "fullLayoutMs": 3.409831,
+              "pageCount": 74
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 0.780165,
+              "fullLayoutMs": 1.0759960000000002,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 3.850527,
+              "fullLayoutMs": 3.256522,
+              "pageCount": 74
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 0.905955,
+              "fullLayoutMs": 1.010276,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 3.006175,
+              "fullLayoutMs": 3.1003060000000002,
+              "pageCount": 74
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 0.938214,
+              "fullLayoutMs": 1.604573,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 3.6098570000000003,
+              "fullLayoutMs": 3.197423,
+              "pageCount": 74
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 0.7912359999999999,
+              "fullLayoutMs": 1.038929,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 2.980056,
+              "fullLayoutMs": 3.23405,
+              "pageCount": 74
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 1.0861550000000002,
+              "fullLayoutMs": 1.602628,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 2.762388,
+              "fullLayoutMs": 3.0565860000000002,
+              "pageCount": 74
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 0.8211200000000001,
+              "fullLayoutMs": 0.944196,
+              "pageCount": 69
+            }
+          ]
+        },
+        {
+          "allPageComparisons": 143,
+          "hitComparisons": 429,
+          "pages": 69,
+          "rasterAndPdfCompared": "affected pages and available neighboring pages for insertion and deletion",
+          "samples": [
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 4.779414,
+              "fullLayoutMs": 4.099111,
+              "pageCount": 74
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 1.299314,
+              "fullLayoutMs": 1.907646,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 3.341377,
+              "fullLayoutMs": 3.847802,
+              "pageCount": 74
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 1.073292,
+              "fullLayoutMs": 0.972748,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 2.629115,
+              "fullLayoutMs": 3.391058,
+              "pageCount": 74
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 0.8753399999999999,
+              "fullLayoutMs": 1.0784,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 2.919165,
+              "fullLayoutMs": 3.672342,
+              "pageCount": 74
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 1.831718,
+              "fullLayoutMs": 1.231952,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 2.897265,
+              "fullLayoutMs": 3.195359,
+              "pageCount": 74
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 0.862317,
+              "fullLayoutMs": 0.9663360000000001,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 3.031049,
+              "fullLayoutMs": 4.948043,
+              "pageCount": 74
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 0.9466910000000001,
+              "fullLayoutMs": 0.971055,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 2.8780799999999997,
+              "fullLayoutMs": 3.1276759999999997,
+              "pageCount": 74
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 0.801084,
+              "fullLayoutMs": 0.9280160000000001,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 3.398511,
+              "fullLayoutMs": 4.304617,
+              "pageCount": 74
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 0.955897,
+              "fullLayoutMs": 0.980682,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 2.81788,
+              "fullLayoutMs": 3.2745550000000003,
+              "pageCount": 74
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 0.7747459999999999,
+              "fullLayoutMs": 0.914281,
+              "pageCount": 69
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 3.728494,
+              "fullLayoutMs": 3.554166,
+              "pageCount": 74
+            },
+            {
+              "changedPages": 40,
+              "editThroughLayoutMs": 0.806705,
+              "fullLayoutMs": 1.0014399999999999,
+              "pageCount": 69
+            }
+          ]
+        }
+      ]
+    },
+    "checks": {
+      "desktop": {
+        "exit": 0,
+        "logSha256": "1e5dc51b49bfa3cbe7bedf7d89e6f3523cc7c798ec2b80f157bb8e6e876625b0"
+      },
+      "ui": {
+        "exit": 0,
+        "logSha256": "82e7a45adbd7b0727045cd68363eada5b3c37675fbe1da9ed350ee77e69f8dde",
+        "passed": 80,
+        "failed": 0,
+        "ignored": 0
+      },
+      "joyword": {
+        "exit": 0,
+        "logSha256": "a140e0ca17ce3273c2eb1f9ed2348ad535b78ceb601abc4136122ed9bff3fb72",
+        "passed": 3685,
+        "failed": 0,
+        "ignored": 2
+      },
+      "joydeck": {
+        "exit": 0,
+        "logSha256": "72a0650f8170cb63b9a2862b084306840083499114d9df70e6c2824884139853",
+        "passed": 1006,
+        "failed": 0,
+        "ignored": 0
+      },
+      "joysheet": {
+        "exit": 0,
+        "logSha256": "c045b39c21a7afd96dd75c46191fd5008cc4b992a93912713bbc65b241ebf558",
+        "passed": 1473,
+        "failed": 0,
+        "ignored": 1
+      }
+    },
+    "exampleClippy": true
+  }
+}

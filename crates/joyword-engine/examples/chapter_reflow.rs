@@ -37,15 +37,30 @@ fn thousand_page_chapter() -> (Document, Path) {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let grow = std::env::args_os()
+        .nth(2)
+        .is_some_and(|arg| arg == "--grow");
     let (mut doc, story, path, expected_pages) = if let Some(filename) = std::env::args_os().nth(1)
     {
         let doc = joyword_docx::read(&std::fs::read(filename)?)?;
-        let (&note, _) = doc
-            .parts
-            .iter()
-            .find(|(id, _)| doc.plain_text(StoryRef::Part(**id)) == "Numbered note 2")
-            .ok_or("expected the 69-page section fixture from check-section-reflow.py")?;
-        (doc, StoryRef::Part(note), Path::top(0), 69)
+        if grow {
+            let block = doc
+                .body
+                .iter()
+                .position(|b| {
+                    b.as_para()
+                        .is_some_and(|p| p.text.starts_with("Section 34"))
+                })
+                .ok_or("missing middle heading in the section fixture")?;
+            (doc, StoryRef::Body, Path::top(block), 69)
+        } else {
+            let (&note, _) = doc
+                .parts
+                .iter()
+                .find(|(id, _)| doc.plain_text(StoryRef::Part(**id)) == "Numbered note 2")
+                .ok_or("expected the 69-page section fixture from check-section-reflow.py")?;
+            (doc, StoryRef::Part(note), Path::top(0), 69)
+        }
     } else {
         let (doc, path) = thousand_page_chapter();
         (doc, StoryRef::Body, path, 1000)
@@ -56,8 +71,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut previous = layout_shared(&doc, &mut cache, &opts);
     assert_eq!(previous.pages.len(), expected_pages);
     let _ = layout(&doc, &mut full_cache, &opts);
-    let change = "Extra words that wrap. ".repeat(if story == StoryRef::Body { 4 } else { 14 });
+    let change = if grow {
+        "Edited clause. ".repeat(740)
+    } else {
+        "Extra words that wrap. ".repeat(if story == StoryRef::Body { 4 } else { 14 })
+    };
     let mut timings = Vec::new();
+    let mut compared = 0;
     for i in 0..20 {
         let begin = Instant::now();
         let para = doc.para_mut(story, &path)?;
@@ -73,15 +93,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let full = layout(&doc, &mut full_cache, &opts);
         let full_ms = begin.elapsed().as_secs_f64() * 1000.;
         assert_eq!(next.pages.len(), full.pages.len());
+        if grow {
+            assert_eq!(next.pages.len() > expected_pages, i % 2 == 0);
+        }
         assert_eq!(next.index, full.index);
         if i < 2 {
+            compared += next.pages.len();
             for (p, (a, b)) in next.pages.iter().zip(&full.pages).enumerate() {
                 assert_eq!(format!("{a:?}"), format!("{b:?}"));
                 for (x, y) in [(75., 60.), (145., 120.), (245., 160.)] {
                     assert_eq!(next.hit(p, x, y, story), full.hit(p, x, y, story));
                 }
             }
-            let pages = ((changed.start - 1)..=(changed.end)).collect::<Vec<_>>();
+            let pages = (changed.start.saturating_sub(1)..=changed.end.min(next.pages.len() - 1))
+                .collect::<Vec<_>>();
             for &p in &pages {
                 let raster = |layout: &joyword_layout::DocLayout| {
                     joyword_render::render_page(&doc, &layout.pages[p], 1., &Default::default())
@@ -98,12 +123,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     == joyword_pdf::export_fixed_layout(&doc, &full, &pdf, None)?
             );
         }
-        timings.push(serde_json::json!({"editThroughLayoutMs":edit_ms,"fullLayoutMs":full_ms,"changedPages":changed.len()}));
+        timings.push(serde_json::json!({"editThroughLayoutMs":edit_ms,"fullLayoutMs":full_ms,"changedPages":changed.len(),"pageCount":next.pages.len()}));
         previous = next;
     }
     println!(
         "{}",
-        serde_json::json!({"pages":expected_pages,"samples":timings,"allPageComparisons":expected_pages*2,"hitComparisons":expected_pages*6,"rasterAndPdfCompared":"affected pages and both neighboring pages for insertion and deletion"})
+        serde_json::json!({"pages":expected_pages,"samples":timings,"allPageComparisons":compared,"hitComparisons":compared*3,"rasterAndPdfCompared":"affected pages and available neighboring pages for insertion and deletion"})
     );
     Ok(())
 }

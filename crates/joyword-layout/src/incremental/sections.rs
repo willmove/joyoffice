@@ -13,6 +13,11 @@ struct Window {
     initial_note: Option<(usize, u32)>,
 }
 
+struct Repaginated {
+    pages: Vec<Page>,
+    exit_number_delta: i64,
+}
+
 impl Window {
     fn find(doc: &Document, current: &DocLayout, block: usize) -> Option<Self> {
         let sections = doc.sections();
@@ -192,9 +197,10 @@ impl Window {
         opts: &LayoutOptions,
         cache: &mut LayoutCache,
         current: &DocLayout,
-    ) -> Option<Vec<Page>> {
+    ) -> Option<Repaginated> {
         let mut pages = layout(doc, cache, opts).pages;
-        if pages.len() != self.pages.len() + usize::from(self.sentinel) {
+        let count = pages.len().checked_sub(usize::from(self.sentinel))?;
+        if !(1..=16).contains(&count) {
             return None;
         }
         for page in &mut pages {
@@ -231,16 +237,61 @@ impl Window {
                 shift(path)?;
             }
         }
+        let mut exit_number_delta = 0;
         if self.sentinel {
             let exit = pages.pop()?;
             let mut expected = current.pages.get(self.pages.end)?.clone();
             expected.items.truncate(1);
+            exit_number_delta = i64::from(exit.number) - i64::from(expected.number);
+            expected.number = exit.number;
             if exit.items.len() != 1 || !equivalent_page(&exit, &expected) {
                 return None;
             }
         }
-        Some(pages)
+        Some(Repaginated {
+            pages,
+            exit_number_delta,
+        })
     }
+}
+
+// A changed physical page count can change which side of the sheet an odd
+// or even section begins on. Only reuse a suffix independent of that choice.
+// The caller has already excluded facing headers, mirror margins and fields.
+fn append_shifted_suffix(
+    doc: &Document,
+    suffix: &[Page],
+    number_delta: i64,
+    output: &mut Vec<Page>,
+) -> Option<()> {
+    let Some(first) = suffix.first() else {
+        return Some(());
+    };
+    let sections = doc.sections();
+    let mut restart = sections.len();
+    for (i, (_, section)) in sections.iter().enumerate().skip(first.section) {
+        match section.start {
+            SectionStart::NextPage => {
+                if i > first.section && section.page_num_start.is_some() {
+                    restart = restart.min(i);
+                }
+            }
+            SectionStart::Continuous if section.page_num_start.is_none() => {}
+            _ => return None,
+        }
+    }
+    for old in suffix {
+        let mut page = old.clone();
+        if old.section < restart && number_delta != 0 {
+            // Saturated numbering has lost the original distance to the restart.
+            if old.number == u32::MAX {
+                return None;
+            }
+            page.number = u32::try_from(i64::from(old.number) + number_delta).ok()?;
+        }
+        output.push(page);
+    }
+    Some(())
 }
 
 fn section_at(doc: &mut Document, block: usize) -> Option<&mut SectionProps> {
@@ -291,10 +342,13 @@ impl Previous {
                 let mut before = window.fragment(doc, current, &self.body)?;
                 before.parts.clone_from(&self.notes);
                 let old = window.pages(&before, &self.options, &mut cache, current)?;
-                if !old
-                    .iter()
-                    .zip(&current.pages[window.pages.clone()])
-                    .all(|(a, b)| equivalent_page(a, b))
+                if old.pages.len() != window.pages.len()
+                    || old.exit_number_delta != 0
+                    || !old
+                        .pages
+                        .iter()
+                        .zip(&current.pages[window.pages.clone()])
+                        .all(|(a, b)| equivalent_page(a, b))
                 {
                     return None;
                 }
@@ -303,17 +357,31 @@ impl Previous {
         };
         let after = window.fragment(doc, current, &doc.body)?;
         let replacement = window.pages(&after, opts, &mut cache, current)?;
-        let mut pages = Vec::with_capacity(current.pages.len());
+        let moved = replacement.pages.len() != window.pages.len();
+        let count = current.pages.len() - window.pages.len() + replacement.pages.len();
+        let mut pages = Vec::with_capacity(count);
         pages.extend_from_slice(&current.pages[..window.pages.start]);
-        pages.extend(replacement);
-        pages.extend_from_slice(&current.pages[window.pages.end..]);
+        pages.extend(replacement.pages);
+        let suffix = &current.pages[window.pages.end..];
+        let dirty = if moved {
+            append_shifted_suffix(doc, suffix, replacement.exit_number_delta, &mut pages)?;
+            // Bitmap caches are indexed by physical page. Also invalidate any
+            // former tail pages, so a later undo cannot reuse a stale bitmap.
+            window.pages.start..count.max(current.pages.len())
+        } else {
+            if replacement.exit_number_delta != 0 {
+                return None;
+            }
+            pages.extend_from_slice(suffix);
+            window.pages
+        };
         self.checked_section = Some((window.blocks, cache));
         Some(DocLayout {
             index: index_lines(&pages),
             pages,
             ms: 0.0,
             text_boxes: current.text_boxes,
-            page_patch: Some((Arc::downgrade(current), window.pages)),
+            page_patch: Some((Arc::downgrade(current), dirty)),
         })
     }
 }

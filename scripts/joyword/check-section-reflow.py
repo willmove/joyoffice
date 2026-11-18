@@ -43,7 +43,7 @@ def fixture(path):
                     {"word/footnotes.xml": f'<w:footnotes xmlns:w="{make["W"]}">{notes}</w:footnotes>'})
 
 
-def verify(binary, out):
+def verify(binary, out, grow=False):
     original, working = out / "原始分节.docx", out / "分节 编辑.docx"
     fixture(original)
     sha = digest(original)
@@ -69,28 +69,35 @@ def verify(binary, out):
             return [json.loads(line.removeprefix("joyword-perf ")) for line in f
                     if line.startswith("joyword-perf ") and line.endswith("}\n")]
 
-    insert = "Edited clause. " * 18
+    insert = "Edited clause. " * (740 if grow else 18)
     patches = []
     with app(binary, args, out, env) as proc:
         first = wait(inspect, "opened reference", proc)
         total = len(first["summary"]["pages"])
         assert total == 69
+        previous_pages = total
         command("edit.goto", page=35)
         wait(lambda: any(e.get("stage") == "raster_installed" and e.get("page") == 35 for e in events(0)),
              "chapter displayed", proc)
-        expected = first["text"].replace("Section 34", insert+"Section 34", 1)
+        expected = first["text"].replace("Section 34", insert + "Section 34", 1)
         for action in ("text.insert", "edit.undo", "edit.redo"):
             offset = log.stat().st_size
             command(action, **({"text": insert} if action == "text.insert" else {}))
             after = inspect()
             assert after["text"] == (first["text"] if action == "edit.undo" else expected)
-            assert len(after["summary"]["pages"]) == total
+            current_pages = len(after["summary"]["pages"])
+            if grow and action != "edit.undo":
+                assert current_pages > total
+            else:
+                assert current_pages == total
             patch = wait(lambda: next((e for e in events(offset) if e.get("stage") == "layout_patch"), None),
                          "affected pages calculated by the editor", proc)
-            assert (patch["firstPage"], patch["lastPage"]) == (35, 35), patch
-            wait(lambda: any(e.get("stage") == "raster_installed" and e.get("page") == 35 for e in events(offset)),
+            last_dirty = max(previous_pages, current_pages) if grow else 35
+            assert (patch["firstPage"], patch["lastPage"]) == (35, last_dirty), patch
+            wait(lambda: any(e.get("stage") == "raster_installed" and 35 <= e.get("page", 0) <= last_dirty for e in events(offset)),
                  "edited page raster", proc)
-            patches.append({"action": action, "firstPage": 35, "lastPage": 35})
+            patches.append({"action": action, "firstPage": 35, "lastPage": last_dirty, "pageCount": current_pages})
+            previous_pages = current_pages
         keypress = word_keys(proc)
         keypress("new")
         keypress("enter")
@@ -108,18 +115,44 @@ def verify(binary, out):
         wait(saved, "saved document and numbered notes", proc)
     with app(binary, args, out, env, "reopen.log") as proc:
         reopened = wait(inspect, "saved copy reopened", proc)
-        assert reopened["text"] == expected and len(reopened["summary"]["pages"]) == total
+        assert reopened["text"] == expected and reopened["summary"]["pages"] == after["summary"]["pages"]
     assert digest(original) == sha
     return {"binarySha256": digest(binary), "sourceSha256": sha, "pages": total, "sections": 70, "numberedNotes": 3,
-            "nativePatches": patches, "savedAndReopened": True, "sourceUnchanged": True,
+            "nativePatches": patches, "reopenedPageCount": previous_pages, "savedAndReopened": True, "sourceUnchanged": True,
             "savedNestedAndFloatingTable": True}
+
+
+def verify_readers(out, baseline, candidate, pages):
+    run = runpy.run_path(str(Path(__file__).with_name("check-complex-corpus.py")))["run_cli"]
+    saved = out / "分节 编辑.docx"
+    expected = run(candidate, "inspect", "--session", saved)
+    assert len(expected["pages"]) == pages
+    original = digest(saved)
+    builds = (("baseline", baseline), ("candidate", candidate))
+    checked = []
+    for writer, program in builds:
+        copy = out / f"{writer}-resaved.docx"
+        run(program, "convert", saved, copy)
+        for reader, other in builds:
+            opened = run(other, "inspect", "--session", copy)
+            assert (opened["text"], opened["pages"]) == (expected["text"], expected["pages"])
+            checked.append([writer, reader])
+    assert digest(saved) == original
+    return {"cliSha256": {label: digest(binary) for label, binary in builds},
+            "writerReaderPairs": checked, "pageCount": pages, "savedCopyUnchanged": True}
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("desktop", type=Path)
     parser.add_argument("output", type=Path)
+    parser.add_argument("--grow", action="store_true", help="expand the edited section across fresh pages")
+    parser.add_argument("--compare-cli", nargs=2, type=Path, metavar=("BASELINE", "CANDIDATE"))
     args = parser.parse_args()
     dest = args.output.resolve()
     dest.mkdir(parents=True, exist_ok=False)
-    (dest / "report.json").write_text(json.dumps(verify(args.desktop.resolve(), dest), indent=2) + "\n")
+    report = verify(args.desktop.resolve(), dest, args.grow)
+    if args.compare_cli:
+        report["crossVersion"] = verify_readers(dest, *(p.resolve() for p in args.compare_cli),
+                                                report["reopenedPageCount"])
+    (dest / "report.json").write_text(json.dumps(report, indent=2) + "\n")
