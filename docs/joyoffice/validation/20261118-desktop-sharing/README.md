@@ -241,3 +241,9 @@ Word 产品回归在本机通过 3,681 项，在 UOS 通过 3,685 项。独立�
 在 macOS 与 UOS 25 上，每台分别渲染十二种标注的横、竖、方三种比例，覆盖实色、文字、透明填充、虚线、非对称调整和边界重合。每端 216 个实例与旧版 CLI 渲染的标准自定义几何逐像素一致。新旧版本分别重开新写出的 PPTX，画面均与各自打开原件时相同。两端还验证了零度和 37 度时的 5,772 处指针命中，单测另覆盖框外引线和无描边对象。[标准附件](https://ecma-international.org/wp-content/uploads/ECMA-376-1_5th_edition_december_2016.zip) · [图像与命中结果](line-callouts.json)
 
 两端真实窗口对同一形状应用 19 度旋转和水平翻转，使用系统鼠标事件拖动第三个折点，分别核对撤销、重做、保存及新进程读回。旧版也能读到已移动的引线。macOS 首次复跑偶发缺少抬键事件，事件记录显示 GPUI 仍在接收拖动。改为同一 Quartz 事件源发送完整鼠标序列后，连续三次通过。UOS 使用 X11 鼠标事件通过。两端 Deck 产品回归分别通过 1,005 和 1,010 项。[实机结果和发行指纹](line-callouts.json) · [原生拖动复跑](../../../../scripts/joydeck/check-callout-drag.py)
+
+## Word 与 Deck 的自定义几何
+
+DOCX 和 PPTX 现通过同一个 DrawingML 内核求解 17 种坐标公式，将可顺逆时针绘制的椭圆弧转成三次贝塞尔曲线。两种产品分别构建自己的编辑模型。Deck 复用相同尺寸路径的指南值。Word 保留原始 XML 片段及其继承的命名空间和兼容性声明，改正文时仍能写回导引线、圆弧与厂商扩展。超出保留预算、不能重绑的关系和与原始曲线冲突的点编辑会阻止写出。[共享求值器](../../../../crates/joyoffice-drawingml/src/guide.rs) · [圆弧](../../../../crates/joyoffice-drawingml/src/arc.rs) · [Word 原始几何](../../../../crates/joyword-docx/src/geometry_source.rs)
+
+macOS 和 UOS 25 各在 Word、Deck 中打开同一份含 64 条路径的图形，对照独立计算的数值路径。JoyWord 屏幕的 2,585,088 个颜色通道中仅两个相差 1，PDF 光栅逐像素一致。JoyDeck 屏幕和 PDF 均逐像素一致。两端分别在 Word 窗口改正文，在 Deck 窗口移动并缩放图形，均验证撤销、重做、保存、新进程重开及原件摘要。两代 CLI 都能读取写出的文件。旧版 Word 自身无法正确绘制这些命名坐标，回退时应保存原 DOCX，并用本次之前的可读副本继续处理。两种受保护 DOCX 均按预期拒绝生成目标文件。[逐端数据与回退](custom-geometry.json) · [复跑脚本](../../../../scripts/verify_shared_geometry.py)

@@ -129,6 +129,7 @@ fn el_xml(e: &El, out: &mut String, depth: usize) {
         match k {
             Node::El(c) => el_xml(c, out, depth + 1),
             Node::Text(t) => out.push_str(&esc(t)),
+            Node::GeometrySource(_) => {}
         }
     }
     out.push_str("</");

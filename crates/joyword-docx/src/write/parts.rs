@@ -35,6 +35,8 @@ pub(crate) fn write_parts(
         doc
     };
     let mut wr = Writer {
+        geometry_error: None,
+        geometry_bytes_left: crate::geometry_source::WRITE_BUDGET,
         eq_number: 0,
         doc,
         media_files: BTreeMap::new(),
@@ -449,6 +451,9 @@ pub(crate) fn write_parts(
     }
     w.close("Types");
     entries.insert(0, ("[Content_Types].xml".into(), w.into_bytes()));
+    if let Some(reason) = wr.geometry_error {
+        return Err(DocxError::Xml(reason.into()));
+    }
     Ok(entries)
 }
 

@@ -108,6 +108,8 @@ impl PartRels {
 }
 
 pub(crate) struct Writer<'d> {
+    geometry_error: Option<&'static str>,
+    geometry_bytes_left: usize,
     doc: &'d Document,
     /// Numbered display equations written so far (automatic numbers are written as text).
     pub(crate) eq_number: u32,

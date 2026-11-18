@@ -1,0 +1,290 @@
+{
+  "baselineCommit": "a2cc023a7fd64b37b7dc4c6d47127748a08ac30e",
+  "fixture": "64 asymmetric paths, all 17 DrawingML operators, both arc directions, four start angles, alternate namespace prefix and an ignorable vendor extension",
+  "reference": "Independent integer control points from the closed form for quarter ellipses, rendered by the baseline CLI",
+  "rollback": "Open untouched originals using the baseline. Earlier Word can read the package but cannot render named paths accurately. A relationship-dependent or mandatory unknown geometry must remain protected.",
+  "platforms": {
+    "macOS": {
+      "checks": {
+        "desktop": 0,
+        "ui": 0,
+        "joyword": 0,
+        "joydeck": 0,
+        "joysheet": 0
+      },
+      "testsPassed": {
+        "ui": 77,
+        "joyword": 3691,
+        "joydeck": 1009,
+        "joysheet": 1479
+      },
+      "products": {
+        "word": {
+          "sourceSha256": "110d9d7f1e79d1e3523921e07b380c1e546852519f4a665bfd51a43e908413a4",
+          "oldCliSha256": "b49cb6849bd4244c7d45ad3098935368cd34655c3fcf2e1911bbac305f7b9c4b",
+          "cliSha256": "31ec0cbd1cc01e1c745842da3643be690056b2d16e4cf36b03abdab8beb67450",
+          "paths": 64,
+          "guideOperations": 17,
+          "render": {
+            "screen": {
+              "bytes": 2585088,
+              "bluePixels": 4016,
+              "differingChannels": 2,
+              "maxChannelDelta": 1,
+              "rgbSha256": "55dae13baaab05dc8b4dd507386b5170a7763653f07046635fc3db3d5964744b",
+              "baselineNamedDifferingChannels": 584029
+            },
+            "pdf": {
+              "bytes": 2585088,
+              "bluePixels": 4791,
+              "differingChannels": 0,
+              "maxChannelDelta": 0,
+              "rgbSha256": "b19cf80ffbbb1874b76774a1b0e05fe9d8f27c46566a26c1f9d5a26eab54c4a8",
+              "baselineNamedDifferingChannels": 578583
+            }
+          },
+          "refusals": {
+            "mandatory-extension": "Source DOCX requires read-only handling; command editing and regenerated saves are refused",
+            "linked-extension": "malformed XML: Cannot safely reattach a relationship in custom geometry"
+          },
+          "native": {
+            "savedSha256": "01a926818173d0762685e379f5b6e29164d5d470e4684123f232819720c63f68",
+            "desktopSha256": "0152c63666b08869e58d44fd12a2f629a245e81c3359876d29b019dc281f3a85",
+            "undoRedoReopen": true,
+            "externalGeometryPreserved": true
+          }
+        },
+        "deck": {
+          "sourceSha256": "c63d5f2499a8ae291965a39492dada24a8809d63b7301dbc1297988f044b2546",
+          "oldCliSha256": "0730709055ccfc66fb182af5e0c03473aa0a926745e9e91b1ef7d8d55468b77c",
+          "cliSha256": "a1887752dac0c841847956cf1be6cc4ed41e5db0b7dff3a79a90603bb78eb716",
+          "paths": 64,
+          "guideOperations": 17,
+          "render": {
+            "screen": {
+              "bytes": 1555200,
+              "bluePixels": 1944,
+              "differingChannels": 0,
+              "maxChannelDelta": 0,
+              "rgbSha256": "044867996c4de5afd920f588fbeba076076f62d2267267f671ca3f5cafa22e76",
+              "baselineNamedDifferingChannels": 0
+            },
+            "pdf": {
+              "bytes": 2764800,
+              "bluePixels": 4062,
+              "differingChannels": 0,
+              "maxChannelDelta": 0,
+              "rgbSha256": "577c8cc8e0feeab8d936345ee6a01a2a91c1e1f83eed05d47430bef29b1f2431",
+              "baselineNamedDifferingChannels": 0
+            }
+          },
+          "native": {
+            "savedSha256": "ded962dc94ec7e7c6d8d9497688c30913525cef9cacfee9c1bdbe0cb23b1c562",
+            "desktopSha256": "b6a5f006f01f8568b10dc848d8a003e4fc3dc3586b22faa53e1ab260a4ad212f",
+            "undoRedoReopen": true,
+            "externalGeometryPreserved": true
+          }
+        }
+      },
+      "distribution": {
+        "joyword": {
+          "target": "aarch64-apple-darwin",
+          "packages": 513,
+          "sourceFiles": 1066,
+          "spdxSha256": "3bbe8644bc92122bc2da5d62ca6b27412f3c9445a223286d321df83f8834e449",
+          "missingLicenseTexts": [],
+          "sharedCrates": [
+            "joyoffice-cfb",
+            "joyoffice-drawingml",
+            "joyoffice-fonts",
+            "joyoffice-metafile",
+            "joyoffice-omml",
+            "joyoffice-opc",
+            "joyoffice-theme",
+            "joyoffice-ui"
+          ],
+          "runtimeLegacyDependencies": [
+            "craft-atomic",
+            "craft-font-store",
+            "craft-proof"
+          ]
+        },
+        "joydeck": {
+          "target": "aarch64-apple-darwin",
+          "packages": 473,
+          "sourceFiles": 517,
+          "spdxSha256": "d9265e77a3e0d4ea012294682ec967a2f4375f0d6e95375438ee215e18601dd5",
+          "missingLicenseTexts": [],
+          "sharedCrates": [
+            "joyoffice-drawingml",
+            "joyoffice-fonts",
+            "joyoffice-metafile",
+            "joyoffice-opc",
+            "joyoffice-theme",
+            "joyoffice-ui"
+          ],
+          "runtimeLegacyDependencies": [
+            "joydeck-legacy"
+          ]
+        },
+        "joysheet": {
+          "target": "aarch64-apple-darwin",
+          "packages": 453,
+          "sourceFiles": 1183,
+          "spdxSha256": "cdb74642730fc5a559ff24ea5edaf2c67618a7e5bb5b1bff20766cab67220b75",
+          "missingLicenseTexts": [],
+          "sharedCrates": [
+            "joyoffice-cfb",
+            "joyoffice-drawingml",
+            "joyoffice-omml",
+            "joyoffice-opc",
+            "joyoffice-theme",
+            "joyoffice-ui"
+          ],
+          "runtimeLegacyDependencies": []
+        }
+      }
+    },
+    "UOS25": {
+      "checks": {
+        "desktop": 0,
+        "ui": 0,
+        "joyword": 0,
+        "joydeck": 0,
+        "joysheet": 0
+      },
+      "testsPassed": {
+        "ui": 81,
+        "joyword": 3695,
+        "joydeck": 1014,
+        "joysheet": 1479
+      },
+      "products": {
+        "word": {
+          "sourceSha256": "110d9d7f1e79d1e3523921e07b380c1e546852519f4a665bfd51a43e908413a4",
+          "oldCliSha256": "0963d67d8ccae11d056093641b157e568093da028111724da5676d9165a958a0",
+          "cliSha256": "009c705a3191ce069bf1d97d88e9c23e8465fe09548c042fb6a346ff06b28d34",
+          "paths": 64,
+          "guideOperations": 17,
+          "render": {
+            "screen": {
+              "bytes": 2585088,
+              "bluePixels": 4016,
+              "differingChannels": 2,
+              "maxChannelDelta": 1,
+              "rgbSha256": "55dae13baaab05dc8b4dd507386b5170a7763653f07046635fc3db3d5964744b",
+              "baselineNamedDifferingChannels": 584029
+            },
+            "pdf": {
+              "bytes": 2585088,
+              "bluePixels": 4791,
+              "differingChannels": 0,
+              "maxChannelDelta": 0,
+              "rgbSha256": "b19cf80ffbbb1874b76774a1b0e05fe9d8f27c46566a26c1f9d5a26eab54c4a8",
+              "baselineNamedDifferingChannels": 578583
+            }
+          },
+          "refusals": {
+            "mandatory-extension": "Source DOCX requires read-only handling; command editing and regenerated saves are refused",
+            "linked-extension": "malformed XML: Cannot safely reattach a relationship in custom geometry"
+          },
+          "native": {
+            "savedSha256": "01a926818173d0762685e379f5b6e29164d5d470e4684123f232819720c63f68",
+            "desktopSha256": "0bddf8a3827d2c2f204710d17db267fa72eec855200d319d79552bebc8c31f87",
+            "undoRedoReopen": true,
+            "externalGeometryPreserved": true
+          }
+        },
+        "deck": {
+          "sourceSha256": "c63d5f2499a8ae291965a39492dada24a8809d63b7301dbc1297988f044b2546",
+          "oldCliSha256": "6b8dcf4b710e407fbf5843362a0bafe8c37f273e272c2e567d0fc2bda5a70903",
+          "cliSha256": "50e55588a461207f6db7e74507e7782915d24b39dbf037b3b6a2522a802cb38b",
+          "paths": 64,
+          "guideOperations": 17,
+          "render": {
+            "screen": {
+              "bytes": 1555200,
+              "bluePixels": 1944,
+              "differingChannels": 0,
+              "maxChannelDelta": 0,
+              "rgbSha256": "044867996c4de5afd920f588fbeba076076f62d2267267f671ca3f5cafa22e76",
+              "baselineNamedDifferingChannels": 0
+            },
+            "pdf": {
+              "bytes": 2764800,
+              "bluePixels": 4062,
+              "differingChannels": 0,
+              "maxChannelDelta": 0,
+              "rgbSha256": "577c8cc8e0feeab8d936345ee6a01a2a91c1e1f83eed05d47430bef29b1f2431",
+              "baselineNamedDifferingChannels": 0
+            }
+          },
+          "native": {
+            "savedSha256": "ded962dc94ec7e7c6d8d9497688c30913525cef9cacfee9c1bdbe0cb23b1c562",
+            "desktopSha256": "14e3297dec9e3f9a2691929553b2f756fdea08d606802b08343c10891ec07dae",
+            "undoRedoReopen": true,
+            "externalGeometryPreserved": true
+          }
+        }
+      },
+      "distribution": {
+        "joyword": {
+          "target": "x86_64-unknown-linux-gnu",
+          "packages": 602,
+          "sourceFiles": 1071,
+          "spdxSha256": "c4f928bfb7f4e53722da3b55905e9b764738a0076543b7beb58f2ceeb363d796",
+          "missingLicenseTexts": [],
+          "sharedCrates": [
+            "joyoffice-cfb",
+            "joyoffice-drawingml",
+            "joyoffice-fonts",
+            "joyoffice-metafile",
+            "joyoffice-omml",
+            "joyoffice-opc",
+            "joyoffice-theme",
+            "joyoffice-ui"
+          ],
+          "runtimeLegacyDependencies": [
+            "craft-atomic",
+            "craft-font-store",
+            "craft-proof"
+          ]
+        },
+        "joydeck": {
+          "target": "x86_64-unknown-linux-gnu",
+          "packages": 565,
+          "sourceFiles": 523,
+          "spdxSha256": "af9d866e5ae23c8e7d7257e8c429313979fc9cebf0e427dd0a74546600feda07",
+          "missingLicenseTexts": [],
+          "sharedCrates": [
+            "joyoffice-drawingml",
+            "joyoffice-fonts",
+            "joyoffice-metafile",
+            "joyoffice-opc",
+            "joyoffice-theme",
+            "joyoffice-ui"
+          ],
+          "runtimeLegacyDependencies": [
+            "joydeck-legacy"
+          ]
+        },
+        "joysheet": {
+          "target": "x86_64-unknown-linux-gnu",
+          "packages": 556,
+          "sourceFiles": 1181,
+          "spdxSha256": "1dd1e9c5e58afce5075bcc681ac8d5415a74e6b75d28df4a569152d944aae203",
+          "missingLicenseTexts": [],
+          "sharedCrates": [
+            "joyoffice-cfb",
+            "joyoffice-drawingml",
+            "joyoffice-omml",
+            "joyoffice-opc",
+            "joyoffice-theme",
+            "joyoffice-ui"
+          ],
+          "runtimeLegacyDependencies": []
+        }
+      }
+    }
+  }
+}

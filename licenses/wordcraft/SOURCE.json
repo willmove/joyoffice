@@ -96,7 +96,8 @@
       "source": "crates/doc/src/connector.rs",
       "target": "crates/joyword-model/src/connector.rs",
       "source_sha256": "032767425795c441bfd9141134350f27817e5ddc2cbfc0f3407938feb820e376",
-      "changes": "Package/module naming and explicit source license only; formatter may normalize whitespace."
+      "changes": "Package/module naming and explicit source license only; formatter may normalize whitespace. Retain original custom geometry and namespace scope; resolve DrawingML guides and elliptical arcs through JoyOffice.",
+      "adapted_sha256": "018198af786fe5dff542feae513c10b31b9f96546a76d30c4a37ea1d9e99e539"
     },
     {
       "source": "crates/doc/src/control.rs",
@@ -1069,7 +1070,8 @@
       "source": "crates/docx/Cargo.toml",
       "target": "crates/joyword-docx/Cargo.toml",
       "source_sha256": "478c40fb81ed6344bbf6b9bfebbd164fa565178245167dbd14329a4272e51f13",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md."
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Retain original custom geometry and namespace scope; resolve DrawingML guides and elliptical arcs through JoyOffice.",
+      "adapted_sha256": "a1f5196d20d59f569ad9566234186880c90eca3c0f5d1eadfae238502c3f8e23"
     },
     {
       "source": "crates/docx/src/bibliography.rs",
@@ -1093,7 +1095,8 @@
       "source": "crates/docx/src/custom.rs",
       "target": "crates/joyword-docx/src/custom.rs",
       "source_sha256": "728172477fa805dc4afed0a122e63d7e017dd55e3f4d1a8ec72869c1dc55d2f7",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md."
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Retain original custom geometry and namespace scope; resolve DrawingML guides and elliptical arcs through JoyOffice.",
+      "adapted_sha256": "becadd7f06d7a38cd58902347363372eeee26055e005734ba2bfd41360dafa24"
     },
     {
       "source": "crates/docx/src/flat.rs",
@@ -1111,7 +1114,8 @@
       "source": "crates/docx/src/lib.rs",
       "target": "crates/joyword-docx/src/lib.rs",
       "source_sha256": "3b435ea5b228a3c395b6f0b2b18c21df7a7b2611ddce8213126cd9f94d46473b",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md."
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Retain original custom geometry and namespace scope; resolve DrawingML guides and elliptical arcs through JoyOffice.",
+      "adapted_sha256": "0dbb4ae17d0e1104fe1a1a2aa424b77ec7ebe16cd571fdb885be06f7fa501f97"
     },
     {
       "source": "crates/docx/src/package.rs",
@@ -1124,8 +1128,8 @@
       "source": "crates/docx/src/read.rs",
       "target": "crates/joyword-docx/src/read.rs",
       "source_sha256": "3dbb884ca4f7143a63a94e76aa5aa6b3b1c4e522a591e901fae9c0c2ae19ddf0",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Retain opaque EA/CS theme references and font hints; detach explicit script-font edits and refuse unsupported metadata or unresolved cross-theme transfers on DOCX save.",
-      "adapted_sha256": "536e89b08bf1ef2bc9743526952c75b431ed7fd23faa58e194f71b9b699bf8ea"
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Retain opaque EA/CS theme references and font hints; detach explicit script-font edits and refuse unsupported metadata or unresolved cross-theme transfers on DOCX save. Retain original custom geometry and namespace scope; resolve DrawingML guides and elliptical arcs through JoyOffice.",
+      "adapted_sha256": "4383e4ca3a8e96ce1a2e099f23bfadb2d266cfed81e9b50a10c9857958e84970"
     },
     {
       "source": "crates/docx/src/smart_art.rs",
@@ -1149,27 +1153,29 @@
       "source": "crates/docx/src/wordml2003.rs",
       "target": "crates/joyword-docx/src/wordml2003.rs",
       "source_sha256": "4a083d65fd576f5921cfceb26d18f1b12c17e3525a28484e2ca03a33081708ab",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md."
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Retain original custom geometry and namespace scope; resolve DrawingML guides and elliptical arcs through JoyOffice.",
+      "adapted_sha256": "f44b74f1bf845c65204d961238086b0d10035ff9819eadd507fc2cfd00e15cf4"
     },
     {
       "source": "crates/docx/src/wordml2003_write.rs",
       "target": "crates/joyword-docx/src/wordml2003_write.rs",
       "source_sha256": "69dd3686d0904f2b59070180007d26d566996bc216a0a182d4586563e0d29914",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md."
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Retain original custom geometry and namespace scope; resolve DrawingML guides and elliptical arcs through JoyOffice.",
+      "adapted_sha256": "f4866c289dda6d1e5725d9a48633cd4ae456e776467879d7b4a2a808f0ee3c5a"
     },
     {
       "source": "crates/docx/src/write.rs",
       "target": "crates/joyword-docx/src/write.rs",
       "source_sha256": "c38c5a60f0a2cc3e0194260eed1b414cc32c828b31105784dbef0314e40e1550",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Preserve imported theme XML and its complete dependency graph; patch only unambiguous model-owned theme attributes, retaining script fonts and unknown content.",
-      "adapted_sha256": "f7d171cf04bc536b58e8417253fc3981b9d05f2a29105895b564d534f43f3039"
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Preserve imported theme XML and its complete dependency graph; patch only unambiguous model-owned theme attributes, retaining script fonts and unknown content. Retain original custom geometry and namespace scope; resolve DrawingML guides and elliptical arcs through JoyOffice.",
+      "adapted_sha256": "ecb670141525d1c806434fcf6e92e0ef9ed296f02e4480a928d4f225d4d2c881"
     },
     {
       "source": "crates/docx/src/xml.rs",
       "target": "crates/joyword-docx/src/xml.rs",
       "source_sha256": "900d8b593dcda591459a29fce096d2c00c3c77ac620fc486b6af7e24f49436bc",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Expose the existing namespace vocabulary internally for legacy read-only inspection; namespace mapping behavior is unchanged.",
-      "adapted_sha256": "32f1f2a6829f2ba9c17b3e03fc95fcf1fce3112fc46ad17139b57d2d21fedf86"
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Expose the existing namespace vocabulary internally for legacy read-only inspection; namespace mapping behavior is unchanged. Retain original custom geometry and namespace scope; resolve DrawingML guides and elliptical arcs through JoyOffice.",
+      "adapted_sha256": "b7f7da6fedf6cedf68ced27a3f1a5878cf2ce08fa5ede804ed13fea024d4bec3"
     },
     {
       "source": "crates/docx/tests/it/alt_chunks.rs",
@@ -1454,7 +1460,8 @@
       "source": "crates/docx/src/read/freeform.rs",
       "target": "crates/joyword-docx/src/read/freeform.rs",
       "source_sha256": "251da2a95b141cb09ec4b0baca82cbfe0ea478d1bf8d6317ecc59be58b79eb83",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md."
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Retain original custom geometry and namespace scope; resolve DrawingML guides and elliptical arcs through JoyOffice.",
+      "adapted_sha256": "5446dca449aa7e02dbcb5b4ee80564590e1598d58f81b95e119b6026c02253f5"
     },
     {
       "source": "crates/docx/src/read/glossary.rs",
@@ -1560,8 +1567,8 @@
       "source": "crates/docx/src/write/parts.rs",
       "target": "crates/joyword-docx/src/write/parts.rs",
       "source_sha256": "a6ed33f9c32756bac29f64cfe694e8c05f2d3d156da0d429f433eab562407e6e",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Preserve imported theme XML and its complete dependency graph; patch only unambiguous model-owned theme attributes, retaining script fonts and unknown content. Retain opaque EA/CS theme references and font hints; detach explicit script-font edits and refuse unsupported metadata or unresolved cross-theme transfers on DOCX save.",
-      "adapted_sha256": "3b5ae1fe80672e22cc0184e3ded9f45673eed5c272bbe6054329807ba853c8dc"
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Preserve imported theme XML and its complete dependency graph; patch only unambiguous model-owned theme attributes, retaining script fonts and unknown content. Retain opaque EA/CS theme references and font hints; detach explicit script-font edits and refuse unsupported metadata or unresolved cross-theme transfers on DOCX save. Retain original custom geometry and namespace scope; resolve DrawingML guides and elliptical arcs through JoyOffice.",
+      "adapted_sha256": "ad01af641f62534f5e75aea74ee7e1f3be5285d2388b0f5db791991ad0c944a6"
     },
     {
       "source": "crates/docx/src/write/props.rs",
@@ -1623,7 +1630,8 @@
       "source": "crates/docx/src/write/story/drawing.rs",
       "target": "crates/joyword-docx/src/write/story/drawing.rs",
       "source_sha256": "191b6e72322e85150a0096937d7ec210f84ae74b434feb415d3c28d6319074e7",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md."
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Retain original custom geometry and namespace scope; resolve DrawingML guides and elliptical arcs through JoyOffice.",
+      "adapted_sha256": "170c9b98ac458e806daad1b049c8dd91c46a7aecabdfc12acdd87d04a67222a7"
     },
     {
       "source": "crates/docx/src/write/story/field.rs",
@@ -1707,7 +1715,8 @@
       "source": "crates/docx/src/read/story/drawing.rs",
       "target": "crates/joyword-docx/src/read/story/drawing.rs",
       "source_sha256": "18f3a6802ff6d280bc25d646b0003b3e39e90bf99b825b8c8c4de017a7853c87",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md."
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Retain original custom geometry and namespace scope; resolve DrawingML guides and elliptical arcs through JoyOffice.",
+      "adapted_sha256": "2d88bb0adc898d6cff16ce69c53efd0430fc6bbe3d494bd6b35b5446cf613a7f"
     },
     {
       "source": "crates/docx/src/read/story/fields.rs",

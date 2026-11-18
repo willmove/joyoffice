@@ -177,10 +177,20 @@ pub fn arrow_unit(line_width: f32) -> f32 {
     w.max(2.0)
 }
 
+/// The original custom geometry retained alongside an editable path preview.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum GeometrySource {
+    Xml(std::sync::Arc<str>),
+    Unavailable,
+}
+
 /// The rest of a shape's properties. Empty (the default) for most shapes.
 #[derive(Clone, Debug, PartialEq, Default, Serialize, Deserialize)]
 #[serde(default, rename_all = "camelCase")]
 pub struct ShapeExtra {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub geometry_source: Option<GeometrySource>,
     /// The drawing id connectors refer to (`wp:docPr/@id`, `wps:cNvPr/@id`); 0 = none. Kept only
     /// for shapes a connector is glued to.
     #[serde(skip_serializing_if = "is_zero")]

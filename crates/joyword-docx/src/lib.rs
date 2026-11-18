@@ -20,6 +20,7 @@ mod crypt;
 mod custom;
 mod flat;
 mod fonts;
+mod geometry_source;
 pub mod legacy_inspection;
 mod package;
 mod read;

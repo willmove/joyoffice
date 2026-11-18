@@ -1,6 +1,7 @@
 //! Freeform shapes (DrawingML custom geometry, `a:custGeom`; legacy VML paths) and ink strokes
 //! drawn with them.
 
+use joyoffice_drawingml::guide::Guides;
 use joyword_model::freeform::{FreePath, Freeform, InkTool, MAX_PATHS, MAX_POINTS};
 
 use crate::units::int;
@@ -17,10 +18,24 @@ const MAX_EMU: f64 = 1.0e12;
 
 /// The paths of the custom geometry in `sppr` (`wps:spPr`), mapped onto a `w` × `h` shape
 /// (points): each `a:path` in its own `w` × `h` space (EMUs of the shape's size when it gives
-/// none). Lines and Bézier curves (flattened) are kept; arcs are drawn straight to their end.
+/// none). Lines, Bézier curves and elliptical arcs are converted to the editable freeform path.
 /// `None` when there is no `a:custGeom` or it has no points.
-pub fn cust_geom(sppr: &El, w: f32, h: f32) -> Option<Freeform> {
-    let list = sppr.child("a:custGeom")?.child("a:pathLst")?;
+pub(crate) fn paths(geometry: &El, w: f32, h: f32) -> Option<Freeform> {
+    let list = geometry.child("a:pathLst")?;
+    let definitions: Vec<_> = ["a:avLst", "a:gdLst"]
+        .into_iter()
+        .filter_map(|tag| geometry.child(tag))
+        .flat_map(|group| {
+            group
+                .children("a:gd")
+                .take(5000)
+                .filter_map(|g| Some((g.attr("name")?, g.attr("fmla")?)))
+        })
+        .collect();
+    // Most compound shapes use a single set of path dimensions. Share the
+    // evaluated guides and cap work for files that request many different sizes.
+    let mut previous: Option<((f64, f64), Guides)> = None;
+    let mut guide_budget = 65_536usize;
     let mut paths = Vec::new();
     for p in list.children("a:path").take(MAX_PATHS) {
         // Subpaths count too: stop once the shape has as many paths as it may keep.
@@ -34,6 +49,19 @@ pub fn cust_geom(sppr: &El, w: f32, h: f32) -> Option<Freeform> {
                 .map_or(shape as f64 * 12_700.0, |v| v as f64)
         };
         let (pw, ph) = (dim("w", w), dim("h", h));
+        let literal = Guides::new(pw, ph);
+        let guides = if previous.as_ref().is_some_and(|(size, _)| *size == (pw, ph)) {
+            &previous.as_ref()?.1
+        } else if definitions.is_empty() || !uses_named_coordinates(p) {
+            &literal
+        } else {
+            guide_budget = guide_budget.checked_sub(definitions.len())?;
+            let mut guides = literal;
+            for &(key, formula) in &definitions {
+                guides.set(key, guides.eval(formula));
+            }
+            &previous.insert(((pw, ph), guides)).1
+        };
         let scale = |[x, y]: [f64; 2]| -> [f32; 2] {
             let sx = if pw > 0.0 {
                 w as f64 / pw
@@ -49,9 +77,11 @@ pub fn cust_geom(sppr: &El, w: f32, h: f32) -> Option<Freeform> {
         };
         let pt = |e: &El| -> Option<[f64; 2]> {
             let c = |n: &str| {
-                e.attr(n)
-                    .and_then(int)
-                    .map(|v| (v as f64).clamp(-MAX_EMU, MAX_EMU))
+                let token = e.attr(n)?;
+                int(token)
+                    .map(|v| v as f64)
+                    .or_else(|| guides.resolve(token))
+                    .map(|v| v.clamp(-MAX_EMU, MAX_EMU))
             };
             Some([c("x")?, c("y")?])
         };
@@ -68,15 +98,15 @@ pub fn cust_geom(sppr: &El, w: f32, h: f32) -> Option<Freeform> {
                 .filter_map(pt)
                 .take(MAX_SEG_POINTS)
                 .collect();
-            match seg.local() {
-                "moveTo" => {
+            match seg.name.as_str() {
+                "a:moveTo" => {
                     if !cur.is_empty() {
                         done.push((std::mem::take(&mut cur), false));
                     }
                     cur.extend(pts.first());
                 }
-                "lnTo" => cur.extend(pts.first()),
-                "cubicBezTo" | "quadBezTo" => {
+                "a:lnTo" => cur.extend(pts.first()),
+                "a:cubicBezTo" | "a:quadBezTo" => {
                     let Some(&start) = cur.last() else {
                         cur.extend(pts.last());
                         continue;
@@ -87,7 +117,37 @@ pub fn cust_geom(sppr: &El, w: f32, h: f32) -> Option<Freeform> {
                         cur.push(bezier(&ctrl, i as f64 / CURVE_STEPS as f64));
                     }
                 }
-                "close" if !cur.is_empty() => done.push((std::mem::take(&mut cur), true)),
+                "a:arcTo" => {
+                    let scalar = |key: &str| guides.resolve(seg.attr(key)?);
+                    if let (Some(&from), Some(rx), Some(ry), Some(start), Some(sweep)) = (
+                        cur.last(),
+                        scalar("wR"),
+                        scalar("hR"),
+                        scalar("stAng"),
+                        scalar("swAng"),
+                    ) {
+                        let mut last = from;
+                        let radius = |v: f64| v.clamp(-MAX_EMU, MAX_EMU);
+                        joyoffice_drawingml::arc::cubics(
+                            from,
+                            [radius(rx), radius(ry)],
+                            [start, sweep],
+                            |[p1, p2, end]| {
+                                let control = [last, p1, p2, end];
+                                for step in
+                                    1..=CURVE_STEPS.min(MAX_POINTS.saturating_sub(cur.len()))
+                                {
+                                    cur.push(
+                                        bezier(&control, step as f64 / CURVE_STEPS as f64)
+                                            .map(|v| v.clamp(-MAX_EMU, MAX_EMU)),
+                                    );
+                                }
+                                last = end;
+                            },
+                        );
+                    }
+                }
+                "a:close" if !cur.is_empty() => done.push((std::mem::take(&mut cur), true)),
                 _ => {}
             }
         }
@@ -114,6 +174,21 @@ pub fn cust_geom(sppr: &El, w: f32, h: f32) -> Option<Freeform> {
     }
     .sanitized();
     (!f.paths.is_empty()).then_some(f)
+}
+
+/// Numeric paths keep their historical preview even if many unused named guides
+/// were supplied. Only evaluate the guide list for a path that refers to a name.
+fn uses_named_coordinates(path: &El) -> bool {
+    let named = |value: &str| int(value).is_none();
+    path.els().any(|s| {
+        s.children("a:pt")
+            .any(|p| ["x", "y"].into_iter().filter_map(|k| p.attr(k)).any(named))
+            || (s.name == "a:arcTo"
+                && ["wR", "hR", "stAng", "swAng"]
+                    .into_iter()
+                    .filter_map(|k| s.attr(k))
+                    .any(named))
+    })
 }
 
 /// Largest VML path coordinate kept (coordinate-space units).
@@ -433,6 +508,35 @@ mod tests {
     }
 
     #[test]
+    fn numeric_paths_remain_readable_when_unused_guide_lists_are_large() {
+        let guides = (0..4_900)
+            .map(|n| format!(r#"<a:gd name="g{n}" fmla="val 2"/>"#))
+            .collect::<String>();
+        let strokes = (100..120)
+            .map(|w| {
+                format!(
+                    r#"<a:path w="{w}" h="200"><a:moveTo><a:pt x="10" y="10"/></a:moveTo></a:path>"#
+                )
+            })
+            .collect::<String>();
+        let xml = format!(
+            r#"<a:custGeom xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><a:gdLst>{guides}</a:gdLst><a:pathLst>{strokes}</a:pathLst></a:custGeom>"#
+        );
+        let tree = crate::xml::parse(xml.as_bytes()).unwrap();
+        assert_eq!(paths(&tree, 250., 80.).unwrap().paths.len(), 20);
+        let over = crate::xml::parse(xml.replace(r#"x="10""#, r#"x="g1""#).as_bytes()).unwrap();
+        assert!(paths(&over, 250., 80.).is_none());
+        assert!(
+            crate::geometry_source::verified(
+                &crate::geometry_source::origin(&over, None).unwrap(),
+                None,
+                [250., 80.]
+            )
+            .is_ok()
+        );
+    }
+
+    #[test]
     fn a_vml_path_of_bare_letters_builds_a_bounded_command_list() {
         let path = "x".repeat(MAX_VML_PATH);
         let n = vml_commands(&path).len();
@@ -445,7 +549,7 @@ mod tests {
         // control polygon is capped, so flattening stays a handful of points and returns at once.
         let pts = "<a:pt x=\"1\" y=\"1\"/>".repeat(50_000);
         let sppr = sppr(&format!("<a:cubicBezTo>{pts}</a:cubicBezTo>"));
-        let f = cust_geom(&sppr, 100.0, 100.0).expect("a path");
+        let f = paths(sppr.child("a:custGeom").unwrap(), 100.0, 100.0).expect("a path");
         assert!(
             f.paths.iter().all(|p| p.pts.len() <= 1 + CURVE_STEPS),
             "{:?}",
@@ -458,7 +562,7 @@ mod tests {
         let sppr = sppr(
             "<a:cubicBezTo><a:pt x=\"0\" y=\"100\"/><a:pt x=\"100\" y=\"100\"/><a:pt x=\"100\" y=\"0\"/></a:cubicBezTo>",
         );
-        let f = cust_geom(&sppr, 100.0, 100.0).expect("a path");
+        let f = paths(sppr.child("a:custGeom").unwrap(), 100.0, 100.0).expect("a path");
         assert_eq!(f.paths.len(), 1);
         assert!(f.paths[0].pts.len() >= 2 && f.paths[0].pts.len() <= 1 + CURVE_STEPS);
     }

@@ -5,7 +5,7 @@ mod chunk;
 pub(crate) mod diagram;
 mod drawing_color;
 mod embed;
-mod freeform;
+pub(crate) mod freeform;
 mod glossary;
 pub(crate) mod math;
 mod props;

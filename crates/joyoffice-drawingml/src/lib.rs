@@ -1,5 +1,8 @@
 //! DrawingML shapes, text boxes, and geometries (ECMA-376 Part 1 §20).
 
+pub mod arc;
+pub mod guide;
+
 use quick_xml::events::Event;
 use quick_xml::reader::Reader;
 

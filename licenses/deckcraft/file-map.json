@@ -1619,14 +1619,15 @@
       "source_path": "crates/pptx/Cargo.toml",
       "source_sha256": "30a783dcadbf5eb12d1e93df304c77586d1d82013cee8c8c2147ce42345fc86a",
       "target_path": "crates/joydeck-pptx/Cargo.toml",
-      "adapted_sha256": "c8e8bf2253de45afcdaedb559ec8f9230045bf5bf0644adf9ff1db37191c1a2c",
+      "adapted_sha256": "8daacaab55800ede392dfa48b1f9449b5221cf84bd67ae38782adbc214d49cb2",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
         "R4/R5 scene/content/workbook/font-revision adaptation, exact JoyOffice dependency reuse",
         "R9: host workspace feature wiring and sole shared-library implementation",
-        "Reuse verified OPC buffers while preserving format reader budgets and ZIP name decoding."
+        "Reuse verified OPC buffers while preserving format reader budgets and ZIP name decoding.",
+        "Use host DrawingML geometry when importing custom paths."
       ]
     },
     {
@@ -1645,12 +1646,13 @@
       "source_path": "crates/pptx/src/custgeom.rs",
       "source_sha256": "5c3ee2587c4dca11e004b2c4228a70ce66c816ed33c880b4905162a1f8379984",
       "target_path": "crates/joydeck-pptx/src/custgeom.rs",
-      "adapted_sha256": "c3e8fb759fbf60bdc98529954b22a5bf1a6a78d1f8bcd3824491306e1e2f9359",
+      "adapted_sha256": "aa1d79ad2e62df8a0d56c4067fa9d218832a81925d9b39392324a5fe80c820f4",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
-        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
+        "Read custom path guides and elliptical arcs through JoyOffice DrawingML and reuse repeated path dimensions."
       ]
     },
     {

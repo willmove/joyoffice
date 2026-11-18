@@ -158,23 +158,41 @@ impl Writer<'_> {
             ShapeKind::Star => "star5",
             ShapeKind::Heart => "heart",
         };
-        match geom {
-            Some(f) => cust_geom(w, f, *sw, *sh),
-            None => {
-                w.open("a:prstGeom", &[("prst", prst)]);
-                match extra
-                    .corner
-                    .filter(|_| *kind == ShapeKind::RoundedRectangle)
-                {
-                    Some(c) => {
-                        w.open("a:avLst", &[]);
-                        let fmla = format!("val {}", c.min(joyword_model::connector::MAX_CORNER));
-                        w.empty("a:gd", &[("name", "adj"), ("fmla", &fmla)]);
-                        w.close("a:avLst");
+        if let Some(source) = &extra.geometry_source {
+            let bytes = match source {
+                joyword_model::connector::GeometrySource::Xml(xml) => xml.len(),
+                joyword_model::connector::GeometrySource::Unavailable => 0,
+            };
+            let Some(left) = self.geometry_bytes_left.checked_sub(bytes) else {
+                self.geometry_error =
+                    Some("Original custom geometries exceed the document write budget");
+                return;
+            };
+            self.geometry_bytes_left = left;
+            match crate::geometry_source::verified(source, geom, [*sw, *sh]) {
+                Ok(xml) => w.raw(xml),
+                Err(reason) => self.geometry_error = Some(reason),
+            }
+        } else {
+            match geom {
+                Some(f) => w.freeform_geometry(f, *sw, *sh),
+                None => {
+                    w.open("a:prstGeom", &[("prst", prst)]);
+                    match extra
+                        .corner
+                        .filter(|_| *kind == ShapeKind::RoundedRectangle)
+                    {
+                        Some(c) => {
+                            w.open("a:avLst", &[]);
+                            let fmla =
+                                format!("val {}", c.min(joyword_model::connector::MAX_CORNER));
+                            w.empty("a:gd", &[("name", "adj"), ("fmla", &fmla)]);
+                            w.close("a:avLst");
+                        }
+                        None => w.empty("a:avLst", &[]),
                     }
-                    None => w.empty("a:avLst", &[]),
+                    w.close("a:prstGeom");
                 }
-                w.close("a:prstGeom");
             }
         }
         let alpha = geom.map_or(1.0, |f| f.alpha);
@@ -463,49 +481,57 @@ pub(super) fn shape_name(
 
 /// A freeform's geometry as DrawingML custom geometry (`a:custGeom`): each path in EMUs of its
 /// own coordinate space (the shape's size when it has none), from `a:moveTo` along `a:lnTo`.
-fn cust_geom(w: &mut W, f: &joyword_model::freeform::Freeform, sw: f32, sh: f32) {
-    let (pw, ph) = (
-        if f.w > 0.0 { f.w } else { sw.max(0.0) },
-        if f.h > 0.0 { f.h } else { sh.max(0.0) },
-    );
-    w.open("a:custGeom", &[]);
-    w.empty("a:avLst", &[]);
-    w.empty("a:gdLst", &[]);
-    w.empty("a:ahLst", &[]);
-    w.empty("a:cxnLst", &[]);
-    w.empty("a:rect", &[("l", "0"), ("t", "0"), ("r", "r"), ("b", "b")]);
-    w.open("a:pathLst", &[]);
-    let pt = |w: &mut W, tag: &str, [x, y]: [f32; 2]| {
-        w.open(tag, &[]);
-        w.empty("a:pt", &[("x", &emu(x)), ("y", &emu(y))]);
-        w.close(tag);
-    };
-    for p in f.paths.iter().take(joyword_model::freeform::MAX_PATHS) {
-        let mut attrs = vec![("w", emu(pw)), ("h", emu(ph))];
-        if !p.closed || f.is_ink() {
-            attrs.push(("fill", "none".to_string()));
+impl W {
+    pub(crate) fn freeform_geometry(
+        &mut self,
+        f: &joyword_model::freeform::Freeform,
+        sw: f32,
+        sh: f32,
+    ) {
+        let w = self;
+        let (pw, ph) = (
+            if f.w > 0.0 { f.w } else { sw.max(0.0) },
+            if f.h > 0.0 { f.h } else { sh.max(0.0) },
+        );
+        w.open("a:custGeom", &[]);
+        w.empty("a:avLst", &[]);
+        w.empty("a:gdLst", &[]);
+        w.empty("a:ahLst", &[]);
+        w.empty("a:cxnLst", &[]);
+        w.empty("a:rect", &[("l", "0"), ("t", "0"), ("r", "r"), ("b", "b")]);
+        w.open("a:pathLst", &[]);
+        let pt = |w: &mut W, tag: &str, [x, y]: [f32; 2]| {
+            w.open(tag, &[]);
+            w.empty("a:pt", &[("x", &emu(x)), ("y", &emu(y))]);
+            w.close(tag);
+        };
+        for p in f.paths.iter().take(joyword_model::freeform::MAX_PATHS) {
+            let mut attrs = vec![("w", emu(pw)), ("h", emu(ph))];
+            if !p.closed || f.is_ink() {
+                attrs.push(("fill", "none".to_string()));
+            }
+            let attrs: Vec<(&str, &str)> = attrs.iter().map(|(k, v)| (*k, v.as_str())).collect();
+            w.open("a:path", &attrs);
+            for (i, xy) in p
+                .pts
+                .iter()
+                .take(joyword_model::freeform::MAX_POINTS)
+                .enumerate()
+            {
+                pt(w, if i == 0 { "a:moveTo" } else { "a:lnTo" }, *xy);
+            }
+            // A tap: a zero-length line, so it shows as a dot.
+            if let (1, Some(xy)) = (p.pts.len(), p.pts.first()) {
+                pt(w, "a:lnTo", *xy);
+            }
+            if p.closed {
+                w.empty("a:close", &[]);
+            }
+            w.close("a:path");
         }
-        let attrs: Vec<(&str, &str)> = attrs.iter().map(|(k, v)| (*k, v.as_str())).collect();
-        w.open("a:path", &attrs);
-        for (i, xy) in p
-            .pts
-            .iter()
-            .take(joyword_model::freeform::MAX_POINTS)
-            .enumerate()
-        {
-            pt(w, if i == 0 { "a:moveTo" } else { "a:lnTo" }, *xy);
-        }
-        // A tap: a zero-length line, so it shows as a dot.
-        if let (1, Some(xy)) = (p.pts.len(), p.pts.first()) {
-            pt(w, "a:lnTo", *xy);
-        }
-        if p.closed {
-            w.empty("a:close", &[]);
-        }
-        w.close("a:path");
+        w.close("a:pathLst");
+        w.close("a:custGeom");
     }
-    w.close("a:pathLst");
-    w.close("a:custGeom");
 }
 
 /// Explicit DrawingML outline dashes, before joins and arrowheads.

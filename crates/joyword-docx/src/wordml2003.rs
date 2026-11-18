@@ -307,6 +307,7 @@ impl Conv {
         for n in &e.kids {
             match n {
                 Node::Text(t) => out.push(Node::Text(t.clone())),
+                Node::GeometrySource(_) => out.push(n.clone()),
                 Node::El(k) => out.extend(self.node(k, part, depth + 1)),
             }
         }

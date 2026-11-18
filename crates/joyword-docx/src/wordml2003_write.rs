@@ -276,6 +276,7 @@ impl<'a> Conv<'a> {
         for n in &e.kids {
             match n {
                 Node::Text(t) => out.push(Node::Text(t.clone())),
+                Node::GeometrySource(_) => out.push(n.clone()),
                 Node::El(k) => out.extend(self.node(k, rels, parent, depth + 1)),
             }
         }

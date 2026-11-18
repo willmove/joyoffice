@@ -879,13 +879,16 @@ impl Reader<'_> {
             .and_then(|b| b.child("a:prstTxWarp"))
             .and_then(text_warp);
         // A freeform: its custom geometry (#743: in a group too).
-        let freeform = sppr
-            .and_then(|s| crate::read::freeform::cust_geom(s, w, h))
+        let geometry = sppr.and_then(|s| s.child("a:custGeom"));
+        let freeform = geometry
+            .and_then(|g| crate::read::freeform::paths(g, w, h))
             .map(|mut f| {
                 f.alpha = crate::read::freeform::line_alpha(ln);
                 kind = ShapeKind::Freeform;
                 Arc::new(f)
             });
+        extra.geometry_source =
+            geometry.and_then(|g| crate::geometry_source::origin(g, freeform.as_deref()));
         InlineObject::Shape {
             kind,
             w,

@@ -218,6 +218,7 @@ fn requirement_prefix(uri: &[u8]) -> &'static str {
 pub enum Node {
     El(El),
     Text(String),
+    GeometrySource(Option<crate::geometry_source::Fragment>),
 }
 
 /// Elements whose markup names a relationship: the id is in an attribute of the relationship
@@ -299,7 +300,7 @@ impl El {
     pub fn els(&self) -> impl Iterator<Item = &El> {
         self.kids.iter().filter_map(|n| match n {
             Node::El(e) => Some(e),
-            Node::Text(_) => None,
+            Node::Text(_) | Node::GeometrySource(_) => None,
         })
     }
     pub fn child(&self, name: &str) -> Option<&El> {
@@ -333,6 +334,7 @@ impl El {
                 match n {
                     Node::Text(t) => s.push_str(t),
                     Node::El(c) => go(c, s, depth + 1),
+                    Node::GeometrySource(_) => {}
                 }
             }
         }
@@ -385,6 +387,7 @@ impl El {
                 match n {
                     Node::Text(t) => s.push_str(&esc(t)),
                     Node::El(c) => go(c, s, depth + 1),
+                    Node::GeometrySource(_) => {}
                 }
             }
             s.push_str("</");
@@ -472,9 +475,13 @@ fn parse_with(
     let mut root: Option<El> = None;
     let mut count = 0usize;
     let bounded_projection = limit != MAX_ELEMENTS;
+    let mut capture: Option<crate::geometry_source::Capture> = None;
+    let mut geometry_scopes = Vec::new();
+    let mut geometry_budget = crate::geometry_source::PART_BUDGET;
     let mut buf = Vec::new();
     loop {
         buf.clear();
+        let start = r.buffer_position() as usize;
         let (res, ev) = r
             .read_resolved_event_into(&mut buf)
             .map_err(|e| DocxError::Xml(e.to_string()))?;
@@ -576,14 +583,55 @@ fn parse_with(
                 if stack.len() >= depth && (bounded_projection || matches!(ev, Event::Start(_))) {
                     return Err(DocxError::Limit("XML nesting too deep".into()));
                 }
+                if !bounded_projection && el.name == "a:custGeom" && capture.is_none() {
+                    let fragment = crate::geometry_source::Capture::begin(
+                        &r,
+                        e,
+                        start,
+                        stack.len(),
+                        geometry_budget,
+                        &geometry_scopes,
+                    );
+                    if matches!(ev, Event::Empty(_)) {
+                        el.kids.push(Node::GeometrySource(fragment.finish(
+                            bytes,
+                            r.buffer_position() as usize,
+                            &mut geometry_budget,
+                        )));
+                    } else {
+                        capture = Some(fragment);
+                    }
+                }
                 if matches!(ev, Event::Start(_)) {
+                    if !bounded_projection
+                        && capture.is_none()
+                        && let Some(scope) =
+                            crate::geometry_source::Compatibility::at(&r, &el, stack.len())
+                    {
+                        geometry_scopes.push(scope);
+                    }
                     stack.push(el);
                 } else {
                     attach(&mut stack, &mut root, el);
                 }
             }
             Event::End(_) => {
-                if let Some(el) = stack.pop() {
+                if let Some(mut el) = stack.pop() {
+                    if geometry_scopes
+                        .last()
+                        .is_some_and(|s| s.depth == stack.len())
+                    {
+                        geometry_scopes.pop();
+                    }
+                    if capture.as_ref().is_some_and(|c| c.depth == stack.len())
+                        && let Some(fragment) = capture.take()
+                    {
+                        el.kids.push(Node::GeometrySource(fragment.finish(
+                            bytes,
+                            r.buffer_position() as usize,
+                            &mut geometry_budget,
+                        )));
+                    }
                     attach(&mut stack, &mut root, el);
                 }
             }
