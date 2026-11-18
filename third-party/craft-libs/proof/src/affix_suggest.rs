@@ -18,7 +18,9 @@
 //! round, so a call costs a few thousand dictionary lookups at most.
 
 mod edits;
+mod space;
 use edits::map_variants;
+pub(crate) use space::Split;
 mod ranking;
 pub(crate) use ranking::weighted_distance;
 
@@ -53,7 +55,7 @@ const COST_SWAP: u32 = 14;
 const COST_DROP_OR_ADD: u32 = 15;
 pub(crate) const COST_MISTYPE: u32 = 16;
 const COST_SCAN: u32 = 20;
-/// A missing space ranked after every one-word candidate (English: [`Split::Custom`]).
+/// A missing space ranked after every one-word candidate (English: [`Split::LongWords`]).
 pub(crate) const COST_SPLIT_LAST: u32 = COST_SCAN + 4 * 3 + 1;
 
 /// What a language adds to its dictionary's tables.
@@ -77,21 +79,6 @@ pub(crate) struct Tuning {
     /// Offer a word only the dictionary capitalizes (a name, an abbreviation: `Col`, `Wis`) only
     /// when the word itself is capitalized, and never as half of a missing space (`Che Que`).
     pub strict_case: bool,
-}
-
-/// Where a missing space may go.
-pub(crate) enum Split {
-    /// Anywhere, dearer when a half is shorter than three letters.
-    Anywhere,
-    /// After a short word that often runs into the next one (`na pewno`, `w ogóle`) or before one
-    /// that runs into the word before (`kocham cię`), dearer between two longer halves, and never
-    /// leaving a stray short half (`że ka`).
-    Near {
-        leading: &'static [&'static str],
-        trailing: &'static [&'static str],
-    },
-    /// The language's own rule: the cost of the halves `a b`, or `None` to skip them.
-    Custom(fn(&str, &str) -> Option<u32>),
 }
 
 impl Tuning {
@@ -219,43 +206,48 @@ impl Collector<'_> {
     /// Keep `cand` if each of its words is in the dictionary (`compounds`: flag-based compounds
     /// count); whether it was.
     fn accept(&mut self, cand: &str, cost: u32, compounds: bool) -> bool {
-        let mut words = Vec::new();
-        let mut cost = cost;
         let names = if cand.contains(' ') {
             self.split_names
         } else {
             self.names
         };
         let d = self.d;
-        let mut work = self.compound_work;
-        let pieces = &mut self.pieces;
-        let mut is_word = |w: &str| {
+        let (work, pieces) = (&mut self.compound_work, &mut self.pieces);
+        let mut valid = |piece: &str| {
             if compounds {
-                d.flag_compound_spending_suggestible(w, &mut work, pieces)
+                d.flag_compound_spending_suggestible(piece, work, pieces)
             } else {
-                d.contains_suggestible_with(w, false)
+                d.contains_suggestible_with(piece, false)
             }
         };
+        let mut rewritten = String::new();
+        let (mut byte, mut copied) = (0, 0);
+        let mut cost = cost;
         for part in cand.split(' ') {
-            if is_word(part) {
-                words.push(part.to_string());
-            } else if !names {
-                self.compound_work = work;
-                return false;
-            } else {
-                let c = self.d.initial_upper(part);
-                if !is_word(&c) {
-                    self.compound_work = work;
+            let end = byte + part.len();
+            if !valid(part) {
+                if !names {
                     return false;
                 }
-                words.push(c);
-                // A name ranks after a common word at the same distance (`moze` → `może`, then
-                // `Mozę`).
+                let name = d.initial_upper(part);
+                if !valid(&name) {
+                    return false;
+                }
+                // Preserve original separators, including those in a dictionary REP
+                // phrase. Only allocate a replacement when a name changes case.
+                rewritten.push_str(&cand[copied..byte]);
+                rewritten.push_str(&name);
+                copied = end;
                 cost += 1;
             }
+            byte = end + 1;
         }
-        self.compound_work = work;
-        self.keep(words.join(" "), cost);
+        if copied == 0 {
+            self.keep(cand.to_owned(), cost);
+        } else {
+            rewritten.push_str(&cand[copied..]);
+            self.keep(rewritten, cost);
+        }
         true
     }
 
@@ -313,28 +305,6 @@ pub(crate) fn fold(c: char, map: &[Vec<char>]) -> char {
         .find(|g| g.contains(&l))
         .and_then(|g| g.first().copied())
         .unwrap_or(l)
-}
-
-/// The cost of a missing space between `a` and `b`, or `None` when the split isn't offered.
-fn split_cost(split: &Split, a: &str, b: &str) -> Option<u32> {
-    let long = |part: &str| part.chars().count() >= 3;
-    match split {
-        Split::Anywhere => Some(if long(a) && long(b) {
-            COST_SPLIT
-        } else {
-            COST_SPLIT_SHORT
-        }),
-        Split::Near { leading, trailing } => {
-            if (leading.contains(&a) && long(b)) || (long(a) && trailing.contains(&b)) {
-                Some(COST_SPLIT)
-            } else if long(a) && long(b) {
-                Some(COST_SPLIT_LONG)
-            } else {
-                None
-            }
-        }
-        Split::Custom(cost) => cost(a, b),
-    }
 }
 
 /// Spelling suggestions for `word` from `d`, best first, at most `max`, in the word's letter case.

@@ -6,8 +6,9 @@
       "path": "crates/proof/Cargo.toml",
       "target": "third-party/craft-libs/proof/Cargo.toml",
       "sha256": "6fd3a5c366ca9513bbd4d4c2446a0cfbd7439346aa6b12436df13d0b3b94364f",
-      "modified": false,
-      "target_sha256": "6fd3a5c366ca9513bbd4d4c2446a0cfbd7439346aa6b12436df13d0b3b94364f"
+      "modified": true,
+      "target_sha256": "97762cf93d654d41434155dc2248db828f3f5dd87f0553d2690126541ad74d3d",
+      "changes": "Use the same pinned Unicode grapheme segmenter already present in the host application."
     },
     {
       "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
@@ -84,8 +85,8 @@
       "target": "third-party/craft-libs/proof/src/affix_suggest.rs",
       "sha256": "4c39ed382531386a97467a04802e69c6255581bd7ea816697b241e9c20d3ebff",
       "modified": true,
-      "target_sha256": "bead61147984a79a55afee4ef29e21a070e998ad7defbfb65285f220d4681f88",
-      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md. JoyOffice ranks verified candidates and computes bounded weighted adjacent-transposition distances in src/affix_suggest/ranking.rs. Independent implementation SHA-256 4978096601bf7447d14766944ffb8729efc30e55760920aefed7a5d9c346a96e. JoyOffice enumerates MAP, REP, KEY, TRY and split candidates with bounded scratch storage and streams stem scores. Candidate implementation SHA-256 b5cab085eef4e28107727d12f39360e36c6316ecfe896b71a781d2957efba868. Suggestions use the same language-specific lower, upper and initial case mappings as recognition."
+      "target_sha256": "ec7155ab44c57ad05c1b053fd3a07f826b362e06f8238a2ec16a4147c08c35f9",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md. JoyOffice ranks verified candidates and computes bounded weighted adjacent-transposition distances in src/affix_suggest/ranking.rs. Independent implementation SHA-256 4978096601bf7447d14766944ffb8729efc30e55760920aefed7a5d9c346a96e. JoyOffice enumerates MAP, REP, KEY, TRY and split candidates with bounded scratch storage and streams stem scores. Candidate implementation SHA-256 b5cab085eef4e28107727d12f39360e36c6316ecfe896b71a781d2957efba868. Suggestions use the same language-specific lower, upper and initial case mappings as recognition. JoyOffice filters phrase components while preserving source separators and proper-name casing. Split policy lives in src/affix_suggest/space.rs (SHA-256 19a7a2f4c2e1636fc1929a399c4853a66f16b1e3547bf03a0736945963a5e2d9); src/affix_suggest/edits.rs now calls it (SHA-256 0d938082c472b04dac9f9b8d0da1420eadb813d853d5bb6dddf82ea84c31364e)."
     },
     {
       "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
@@ -102,8 +103,8 @@
       "target": "third-party/craft-libs/proof/src/cs/grammar.rs",
       "sha256": "263f25209a3ab11a5868e6b11dec63c21f1eed26c9c996fbe25b7f4e5ea3b852",
       "modified": true,
-      "target_sha256": "140a2300255fe40c9bc1deb877442ab9882f6fea24ac9ba463fb6f5436471e81",
-      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+      "target_sha256": "e1a3984e02eea2b7bea4a77770bf509285798cb1428dff9d63ccad9f5ee3bd5e",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md. JoyOffice evaluates adjacent tokens once while keeping localized wording and byte ranges."
     },
     {
       "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
@@ -155,8 +156,8 @@
       "target": "third-party/craft-libs/proof/src/english.rs",
       "sha256": "3fea8460848ec16c09aae5e84ddc439d1821df35e26bb7cf1fd880cc9130e3c0",
       "modified": true,
-      "target_sha256": "372668b13131326097a863b3d051942a8327bc96eb79588adfd63a9c93bf5ca0",
-      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+      "target_sha256": "1c6c2f9aedeb75e4522db68767dad8a617edf43ae00dfd7ef5d839fa6333d792",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md. English long-word split policy uses the JoyOffice boundary evaluator."
     },
     {
       "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
@@ -164,8 +165,8 @@
       "target": "third-party/craft-libs/proof/src/es/grammar.rs",
       "sha256": "c934f6040835ee0d5218c861bf6fc19983db29faafab44c2f244f5d1f48f897a",
       "modified": true,
-      "target_sha256": "db4b175a794df5c9cc1d0cf0ad13cef21003a338ace6b6e9702de698fd6d5c2b",
-      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+      "target_sha256": "123835d348551c575645ba9766b3929b4e021884a505169ef23b9aad68c0ca7a",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md. JoyOffice evaluates adjacent tokens once while keeping localized wording and byte ranges."
     },
     {
       "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
@@ -209,8 +210,8 @@
       "target": "third-party/craft-libs/proof/src/hr/grammar.rs",
       "sha256": "4378a15d4c81b14e50d3d303f862d8a2bf20e9a37115475c2d2c2d34a42ec68b",
       "modified": true,
-      "target_sha256": "516fa20180814f0ab9b01fe7fb12bb339708877cf5f9a2792e65eab52bd66fec",
-      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+      "target_sha256": "7a34751c0305035ecd94af98056a513cf690d0d0c742d0f0c0ba2e2964a6395c",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md. JoyOffice evaluates adjacent tokens once while keeping localized wording and byte ranges."
     },
     {
       "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
@@ -262,8 +263,8 @@
       "target": "third-party/craft-libs/proof/src/id/grammar.rs",
       "sha256": "ea871e4c8fa69e9e7be11b48f48bf0e864fbcde2f00c2e5d7834563b39aa68d3",
       "modified": true,
-      "target_sha256": "710dee77db6f2515c074719c0be07ff4001798a0411a6e66561ac28fff73cb6f",
-      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+      "target_sha256": "48f2c77dba2f59a9b1e772933c637cfee815d9954bb873892c017afa6712ec4b",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md. JoyOffice evaluates adjacent tokens once while keeping localized wording and byte ranges."
     },
     {
       "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
@@ -297,8 +298,8 @@
       "target": "third-party/craft-libs/proof/src/it/grammar.rs",
       "sha256": "9192c47b68e8a216e55fc19a5ed0915c312e183e9effe1dd5a0dc33dac3eacf5",
       "modified": true,
-      "target_sha256": "2cbefc6ab8f7ec3969ff2a312e78f1913fbd0da71b90ad3991062d6afe6aa2f2",
-      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+      "target_sha256": "9cfac93bca49ed43880344909d1d58e064e275183ba958a4e1460aa508bd6df1",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md. JoyOffice evaluates adjacent tokens once while keeping localized wording and byte ranges."
     },
     {
       "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
@@ -341,8 +342,8 @@
       "target": "third-party/craft-libs/proof/src/lib.rs",
       "sha256": "3fb1db1dd5af3ecebbe2eec2b1d122ca825203f7cd76b101bab336db3ca0ed49",
       "modified": true,
-      "target_sha256": "757063e390e3ac11379d032ffb7ea97abfc63d81354d3bbf2ceee667eed53729",
-      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md. JoyOffice streams multilingual word boundaries using the original UTF-8 offsets and dictionary punctuation rules."
+      "target_sha256": "0b583a9e36682c11e7a1a3df500a198a49477766286b3350b1ab95f7c3231ff0",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md. JoyOffice streams multilingual word boundaries using the original UTF-8 offsets and dictionary punctuation rules. JoyOffice checks repeated words across original source ranges in src/repeated.rs (SHA-256 9a4d4b001ae97b7947b45b54842feef75a661bbe37d777c9d6c3b7a5045c3ca1)."
     },
     {
       "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
@@ -386,8 +387,8 @@
       "target": "third-party/craft-libs/proof/src/pl/grammar.rs",
       "sha256": "5f0bafcb7dffc83822879d844af58799d6557fceb8e9090b7aba9834f310cb3f",
       "modified": true,
-      "target_sha256": "f02803c32d2951f9163ad5224890b1f57355fe3c7be9c32e7588b5751e184cfe",
-      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+      "target_sha256": "3b25f76b95fa76c89796f69c3f91bfdeaab313c257daef69de3220668050ef49",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md. JoyOffice evaluates adjacent tokens once while keeping localized wording and byte ranges."
     },
     {
       "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
@@ -421,8 +422,8 @@
       "target": "third-party/craft-libs/proof/src/pt/grammar.rs",
       "sha256": "97ceb5b43f8715d7af949635e2f995d06727ef34248661ee469582231b4734f8",
       "modified": true,
-      "target_sha256": "f4b151444671a62cd10ccfe8537acc437fe115fe6b6aee91d8d8e85cb5f0aa6c",
-      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+      "target_sha256": "6e3bf5e9465578be89127f9fb8e0752bf82a4bbe27993bd05d29c0b492afc625",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md. JoyOffice evaluates adjacent tokens once while keeping localized wording and byte ranges."
     },
     {
       "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
@@ -465,8 +466,8 @@
       "target": "third-party/craft-libs/proof/src/ru/grammar.rs",
       "sha256": "94eccca5052dd343333246282c173b5ed334f96aacb2a3a979c0ecdbb7268b2f",
       "modified": true,
-      "target_sha256": "2e4e9acf2b312ca249f02d0ade87ad7eb119bd761bb5503fddf973ba88872088",
-      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+      "target_sha256": "34f10ab7746751845acec58ba99265724586cc2cf9567603d92f9319086f3f04",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md. JoyOffice evaluates adjacent tokens once while keeping localized wording and byte ranges."
     },
     {
       "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
@@ -492,8 +493,8 @@
       "target": "third-party/craft-libs/proof/src/ru/suggest.rs",
       "sha256": "00d508fb0cb6383fc53b3a937a6633f3ac245ce575a698a65bcce96a4e9f3528",
       "modified": true,
-      "target_sha256": "8de6baaf91ab93a1394a78829078f86ef673bb329e3239f37a6c94f1cd6dc353",
-      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+      "target_sha256": "1704d5831ab26b29784f11fcc5b02f1740b866e7763f2920118a8e4e7ea5d2b9",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md. Russian preposition and infinitive split policy uses the JoyOffice boundary evaluator."
     },
     {
       "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
@@ -545,8 +546,8 @@
       "target": "third-party/craft-libs/proof/src/tr/grammar.rs",
       "sha256": "e278b7515512fef894dee36a89d4daa5b091977203f384e6bee49e3c49c0bc97",
       "modified": true,
-      "target_sha256": "0744206f97885c0b1227b526b33db244a1d3a395c8c43ad8aa7e05063e49ae31",
-      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+      "target_sha256": "46c7f4dc98380f59ded39c831341a0ad031821a9e7b6bdf52df52699fe63bf04",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md. JoyOffice evaluates adjacent tokens once while keeping localized wording and byte ranges."
     },
     {
       "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",

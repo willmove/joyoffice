@@ -1,0 +1,398 @@
+{
+  "baseline": "c81da92d",
+  "production": "Nine language grammar modules stream repeated-word ranges from the shared visitor. Missing-space candidates in the English, Russian and affix-backed suggesters are limited to extended grapheme boundaries. Each language retains its own stop list, message and replacement selection.",
+  "scope": "The 12 locale profiles include four Spanish variants. Lexical analysis, idiom and clause-specific grammar in the remaining language backends still require their own comparisons.",
+  "rollback": "Rebuild c81da92d with the existing lexicon directories. Both readers preserve the corrected text and language when reopening the other writer's DOCX. The old split algorithm can again suggest a space within the test grapheme.",
+  "platforms": {
+    "macOS": {
+      "binaries": [
+        "e3fec1701e048f9f010eba443c5210dc1369246c717f41d1ac17db0ee4861851",
+        "1201f7cbcd0dcb39e927ad835a6798361bb94ffcf6613811d83edfe7318b2b80"
+      ],
+      "nativeGrammar": {
+        "cs-CZ": {
+          "paragraphs": 10,
+          "expectedRepetitions": 3,
+          "allGrammarIssues": 3
+        },
+        "hr-HR": {
+          "paragraphs": 9,
+          "expectedRepetitions": 3,
+          "allGrammarIssues": 3
+        },
+        "id-ID": {
+          "paragraphs": 9,
+          "expectedRepetitions": 3,
+          "allGrammarIssues": 3
+        },
+        "it-IT": {
+          "paragraphs": 9,
+          "expectedRepetitions": 3,
+          "allGrammarIssues": 3
+        },
+        "pl-PL": {
+          "paragraphs": 9,
+          "expectedRepetitions": 3,
+          "allGrammarIssues": 3
+        },
+        "pt-BR": {
+          "paragraphs": 9,
+          "expectedRepetitions": 3,
+          "allGrammarIssues": 3
+        },
+        "ru-RU": {
+          "paragraphs": 9,
+          "expectedRepetitions": 3,
+          "allGrammarIssues": 3
+        },
+        "tr-TR": {
+          "paragraphs": 11,
+          "expectedRepetitions": 3,
+          "allGrammarIssues": 3
+        },
+        "es-ES": {
+          "paragraphs": 10,
+          "expectedRepetitions": 4,
+          "allGrammarIssues": 4
+        },
+        "es-MX": {
+          "paragraphs": 10,
+          "expectedRepetitions": 4,
+          "allGrammarIssues": 4
+        },
+        "es-419": {
+          "paragraphs": 10,
+          "expectedRepetitions": 4,
+          "allGrammarIssues": 4
+        },
+        "es-UY": {
+          "paragraphs": 10,
+          "expectedRepetitions": 4,
+          "allGrammarIssues": 4
+        }
+      },
+      "graphemeSplits": {
+        "baseline": {
+          "preq́post": [
+            "preq ́post",
+            "preq́ post"
+          ],
+          "bluehouse": [
+            "blue house"
+          ]
+        },
+        "candidate": {
+          "preq́post": [
+            "preq́ post"
+          ],
+          "bluehouse": [
+            "blue house"
+          ]
+        }
+      },
+      "windows": {
+        "grammar": {
+          "binarySha256": "5a058049a16b1d47d648a9a14cd2a705db5fefdcb76fe55294d967b4a4d49a05",
+          "sourceSha256": "d23da8e7ecc743b3373d761c51fb721305a63321cf28d706fbcb6dc87b7851ad",
+          "selectedWord": "Škola škola",
+          "displayedSuggestions": [
+            "Škola"
+          ],
+          "replacement": "Škola",
+          "undoRedo": true,
+          "savedAndReopened": true,
+          "originalUnchanged": true,
+          "roundtripReadersByWriter": {
+            "baseline": [
+              "baseline",
+              "candidate"
+            ],
+            "candidate": [
+              "baseline",
+              "candidate"
+            ]
+          }
+        },
+        "spelling": {
+          "binarySha256": "5a058049a16b1d47d648a9a14cd2a705db5fefdcb76fe55294d967b4a4d49a05",
+          "sourceSha256": "46ac74237710c0ab19862b9f8451b954949292526a76d12614dd6ddf1b34b00f",
+          "selectedWord": "preq́post",
+          "displayedSuggestions": [
+            "preq́ post"
+          ],
+          "replacement": "preq́ post",
+          "undoRedo": true,
+          "savedAndReopened": true,
+          "originalUnchanged": true,
+          "roundtripReadersByWriter": {
+            "baseline": [
+              "baseline",
+              "candidate"
+            ],
+            "candidate": [
+              "baseline",
+              "candidate"
+            ]
+          }
+        }
+      },
+      "display": "native macOS AX",
+      "publishedPacks": {
+        "count": 75,
+        "indexSha256": "b35c7aef0591177f18233b551da16035dcd615549ff874e169ffd19f16fea74b",
+        "probes": 1499,
+        "spellingIssues": 1196,
+        "issuesWithSuggestions": 1179,
+        "orderedResultsSha256": "4c36652dec37c20c050db192e44a40d8a6b6c5e6238e082d0b42e006a4c6024d"
+      },
+      "workspace": {
+        "ui": {
+          "passed": 78,
+          "failed": 0,
+          "ignored": 0
+        },
+        "joyword": {
+          "passed": 3696,
+          "failed": 0,
+          "ignored": 2
+        },
+        "joydeck": {
+          "passed": 1015,
+          "failed": 0,
+          "ignored": 0
+        },
+        "joysheet": {
+          "passed": 1487,
+          "failed": 0,
+          "ignored": 1
+        }
+      },
+      "proofUnit": {
+        "passed": 486,
+        "failed": 0,
+        "ignored": 0
+      },
+      "spdx": {
+        "target": "aarch64-apple-darwin",
+        "packages": 513,
+        "sourceFiles": 1074,
+        "spdxSha256": "940967897977db9672e9f5566f43a7671cefe6e0565af91e058177f6599ca1a3",
+        "missingLicenseTexts": [],
+        "sharedCrates": [
+          "joyoffice-cfb",
+          "joyoffice-drawingml",
+          "joyoffice-fonts",
+          "joyoffice-metafile",
+          "joyoffice-omml",
+          "joyoffice-opc",
+          "joyoffice-theme",
+          "joyoffice-ui"
+        ],
+        "runtimeLegacyDependencies": [
+          "craft-atomic",
+          "craft-font-store",
+          "craft-proof"
+        ]
+      }
+    },
+    "UOS25": {
+      "binaries": [
+        "80c6163738633c664415970df5d762530a573df1e0903a77d40af2c1160f4951",
+        "d205468a075bbda965197043d8da9276da8c57129a867ec78f8e0aa09cbd6934"
+      ],
+      "nativeGrammar": {
+        "cs-CZ": {
+          "paragraphs": 10,
+          "expectedRepetitions": 3,
+          "allGrammarIssues": 3
+        },
+        "hr-HR": {
+          "paragraphs": 9,
+          "expectedRepetitions": 3,
+          "allGrammarIssues": 3
+        },
+        "id-ID": {
+          "paragraphs": 9,
+          "expectedRepetitions": 3,
+          "allGrammarIssues": 3
+        },
+        "it-IT": {
+          "paragraphs": 9,
+          "expectedRepetitions": 3,
+          "allGrammarIssues": 3
+        },
+        "pl-PL": {
+          "paragraphs": 9,
+          "expectedRepetitions": 3,
+          "allGrammarIssues": 3
+        },
+        "pt-BR": {
+          "paragraphs": 9,
+          "expectedRepetitions": 3,
+          "allGrammarIssues": 3
+        },
+        "ru-RU": {
+          "paragraphs": 9,
+          "expectedRepetitions": 3,
+          "allGrammarIssues": 3
+        },
+        "tr-TR": {
+          "paragraphs": 11,
+          "expectedRepetitions": 3,
+          "allGrammarIssues": 3
+        },
+        "es-ES": {
+          "paragraphs": 10,
+          "expectedRepetitions": 4,
+          "allGrammarIssues": 4
+        },
+        "es-MX": {
+          "paragraphs": 10,
+          "expectedRepetitions": 4,
+          "allGrammarIssues": 4
+        },
+        "es-419": {
+          "paragraphs": 10,
+          "expectedRepetitions": 4,
+          "allGrammarIssues": 4
+        },
+        "es-UY": {
+          "paragraphs": 10,
+          "expectedRepetitions": 4,
+          "allGrammarIssues": 4
+        }
+      },
+      "graphemeSplits": {
+        "baseline": {
+          "preq́post": [
+            "preq ́post",
+            "preq́ post"
+          ],
+          "bluehouse": [
+            "blue house"
+          ]
+        },
+        "candidate": {
+          "preq́post": [
+            "preq́ post"
+          ],
+          "bluehouse": [
+            "blue house"
+          ]
+        }
+      },
+      "windows": {
+        "grammar": {
+          "binarySha256": "4a1a9aceffd6634e0fad3e84f840a8717df21d34b1aca9da1dab03dd99b18e44",
+          "sourceSha256": "d23da8e7ecc743b3373d761c51fb721305a63321cf28d706fbcb6dc87b7851ad",
+          "selectedWord": "Škola škola",
+          "displayedSuggestions": [
+            "Škola"
+          ],
+          "replacement": "Škola",
+          "undoRedo": true,
+          "savedAndReopened": true,
+          "originalUnchanged": true,
+          "roundtripReadersByWriter": {
+            "baseline": [
+              "baseline",
+              "candidate"
+            ],
+            "candidate": [
+              "baseline",
+              "candidate"
+            ]
+          }
+        },
+        "spelling": {
+          "binarySha256": "4a1a9aceffd6634e0fad3e84f840a8717df21d34b1aca9da1dab03dd99b18e44",
+          "sourceSha256": "46ac74237710c0ab19862b9f8451b954949292526a76d12614dd6ddf1b34b00f",
+          "selectedWord": "preq́post",
+          "displayedSuggestions": [
+            "preq́ post"
+          ],
+          "replacement": "preq́ post",
+          "undoRedo": true,
+          "savedAndReopened": true,
+          "originalUnchanged": true,
+          "roundtripReadersByWriter": {
+            "baseline": [
+              "baseline",
+              "candidate"
+            ],
+            "candidate": [
+              "baseline",
+              "candidate"
+            ]
+          }
+        }
+      },
+      "display": "physical UOS 25 DDE :0, test-only session/accessibility bus",
+      "publishedPacks": {
+        "count": 75,
+        "indexSha256": "b35c7aef0591177f18233b551da16035dcd615549ff874e169ffd19f16fea74b",
+        "probes": 1499,
+        "spellingIssues": 1196,
+        "issuesWithSuggestions": 1179,
+        "orderedResultsSha256": "4c36652dec37c20c050db192e44a40d8a6b6c5e6238e082d0b42e006a4c6024d"
+      },
+      "workspace": {
+        "ui": {
+          "passed": 82,
+          "failed": 0,
+          "ignored": 0
+        },
+        "joyword": {
+          "passed": 3700,
+          "failed": 0,
+          "ignored": 2
+        },
+        "joydeck": {
+          "passed": 1020,
+          "failed": 0,
+          "ignored": 0
+        },
+        "joysheet": {
+          "passed": 1487,
+          "failed": 0,
+          "ignored": 1
+        }
+      },
+      "proofUnit": {
+        "passed": 486,
+        "failed": 0,
+        "ignored": 0
+      },
+      "spdx": {
+        "target": "x86_64-unknown-linux-gnu",
+        "packages": 602,
+        "sourceFiles": 1079,
+        "spdxSha256": "21c81fa059076e2245b27d9fca825803f3f0447be6f9e90af5d31d95d640611c",
+        "missingLicenseTexts": [],
+        "sharedCrates": [
+          "joyoffice-cfb",
+          "joyoffice-drawingml",
+          "joyoffice-fonts",
+          "joyoffice-metafile",
+          "joyoffice-omml",
+          "joyoffice-opc",
+          "joyoffice-theme",
+          "joyoffice-ui"
+        ],
+        "runtimeLegacyDependencies": [
+          "craft-atomic",
+          "craft-font-store",
+          "craft-proof"
+        ]
+      }
+    }
+  },
+  "vendoredClippy": {
+    "production": "--lib -- -D warnings passed on both systems",
+    "allTargetsOnUOS": {
+      "baselineDiagnostics": 475,
+      "candidateDiagnostics": 475,
+      "sameDiagnosticClassesAndCounts": true
+    }
+  }
+}

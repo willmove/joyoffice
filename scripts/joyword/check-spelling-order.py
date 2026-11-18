@@ -36,7 +36,7 @@ def make_document(document, locale, words):
     make["package"](document, body+"<w:sectPr/>")
 
 
-def results(binary, root, locale, words):
+def results(binary, root, locale, words, kind="spelling"):
     document = root / "sample.docx"
     if not document.exists():
         make_document(document, locale, words)
@@ -50,7 +50,10 @@ def results(binary, root, locale, words):
     messages = [json.loads(line)["result"] for line in response.stdout.splitlines()]
     assert len(messages) == 2 and not any(m["isError"] for m in messages)
     issues = json.loads(messages[1]["content"][0]["text"])
-    return [{k:i[k] for k in ("start","end","text","suggestions","lang")} for i in issues if i["kind"] == "spelling"]
+    fields = ("start","end","text","suggestions","lang")
+    if kind == "grammar":
+        fields += ("message",)
+    return [{k:i[k] for k in fields} for i in issues if i["kind"] == kind]
 
 
 def write_dictionary(folder, locale, affix, words):

@@ -3,7 +3,7 @@
 //! Indonesian spelling (PUEBI) writes reduplication with a hyphen (`anak-anak`), the hyphenated
 //! form is offered first, then the single word.
 
-use crate::{Issue, IssueKind, ProofLang, words};
+use crate::{Issue, IssueKind, ProofLang};
 
 fn issue(start: usize, end: usize, message: String, suggestions: Vec<String>) -> Issue {
     Issue {
@@ -18,33 +18,18 @@ fn issue(start: usize, end: usize, message: String, suggestions: Vec<String>) ->
 
 pub fn check(text: &str) -> Vec<Issue> {
     let mut issues = Vec::new();
-    repeated_words(text, &words(text), &mut issues);
+    crate::repeated::visit(text, crate::word_ranges(text), ProofLang::Id, &[], |pair| {
+        let (first, second) = (pair.first, pair.second);
+        issues.push(issue(
+            pair.range.start,
+            pair.range.end,
+            format!("Kata berulang: “{second}”"),
+            vec![format!("{first}-{second}"), first.to_owned()],
+        ));
+    });
     spaces(text, &mut issues);
     issues.sort_by_key(|i| (i.start, i.end));
     issues
-}
-
-fn repeated_words(text: &str, ws: &[(usize, usize)], v: &mut Vec<Issue>) {
-    for pair in ws.windows(2) {
-        let [(a0, b0), (a1, b1)] = pair else { continue };
-        let (Some(w0), Some(w1), Some(gap)) =
-            (text.get(*a0..*b0), text.get(*a1..*b1), text.get(*b0..*a1))
-        else {
-            continue;
-        };
-        if !gap.is_empty()
-            && gap.chars().all(char::is_whitespace)
-            && w0.chars().all(char::is_alphabetic)
-            && w0.to_lowercase() == w1.to_lowercase()
-        {
-            v.push(issue(
-                *a0,
-                *b1,
-                format!("Kata berulang: “{w1}”"),
-                vec![format!("{w0}-{w1}"), w0.to_string()],
-            ));
-        }
-    }
 }
 
 fn spaces(text: &str, v: &mut Vec<Issue>) {

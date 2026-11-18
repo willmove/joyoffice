@@ -195,30 +195,6 @@ fn ends_sentence(gap: &str, prev: &str) -> bool {
             .all(|c| c.is_whitespace() || matches!(c, '"' | '“' | '«' | '(' | '[' | '\'' | '—'))
 }
 
-fn repeated_words(text: &str, ws: &[(usize, usize)], v: &mut Vec<Issue>) {
-    for pair in ws.windows(2) {
-        let [(a0, b0), (a1, b1)] = pair else { continue };
-        let (Some(w0), Some(w1), Some(gap)) =
-            (text.get(*a0..*b0), text.get(*a1..*b1), text.get(*b0..*a1))
-        else {
-            continue;
-        };
-        if !gap.is_empty()
-            && gap.chars().all(char::is_whitespace)
-            && w0.chars().all(char::is_alphabetic)
-            && w0.to_lowercase() == w1.to_lowercase()
-            && !ALLOWED_REPEATS.contains(&w0.to_lowercase().as_str())
-        {
-            v.push(issue(
-                *a0,
-                *b1,
-                format!("Parola ripetuta: \"{w1}\""),
-                vec![w0.to_string()],
-            ));
-        }
-    }
-}
-
 fn spaces(text: &str, v: &mut Vec<Issue>) {
     for (i, c) in text.char_indices() {
         if c != ' ' {
@@ -456,7 +432,21 @@ pub fn check(text: &str) -> Vec<Issue> {
 pub fn check_with(text: &str, capital_first: bool) -> Vec<Issue> {
     let ws: Vec<(usize, usize)> = words(text);
     let mut v = Vec::new();
-    repeated_words(text, &ws, &mut v);
+    crate::repeated::visit(
+        text,
+        ws.iter().copied(),
+        ProofLang::It,
+        ALLOWED_REPEATS,
+        |pair| {
+            let (first, second) = (pair.first, pair.second);
+            v.push(issue(
+                pair.range.start,
+                pair.range.end,
+                format!("Parola ripetuta: \"{second}\""),
+                vec![first.to_owned()],
+            ));
+        },
+    );
     spaces(text, &mut v);
     sentence_capitals(text, &ws, capital_first, &mut v);
     doubled_punctuation(text, &mut v);

@@ -530,16 +530,10 @@ pub(crate) fn suggest(word: &str, max: usize, lang: ProofLang) -> Vec<String> {
 /// words of three letters or more and after every one-word candidate (`publically` → `publicly`
 /// before `public ally`), and no abbreviation or name offered for a lower-case word (`col`, `Wis`).
 const TUNING: Tuning = Tuning {
-    split: Split::Custom(split_cost),
+    split: Split::LongWords,
     strict_case: true,
     ..Tuning::DEFAULT
 };
-
-/// The cost of a missing space in English ([`TUNING`]).
-fn split_cost(a: &str, b: &str) -> Option<u32> {
-    (a.chars().count() >= 3 && b.chars().count() >= 3)
-        .then_some(crate::affix_suggest::COST_SPLIT_LAST)
-}
 
 /// Letters an edit may add or put in a word's place.
 const ALPHABET: &str = "abcdefghijklmnopqrstuvwxyz'";

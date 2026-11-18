@@ -6,9 +6,7 @@
 //! dices?`), and `(?)` and `(!)`, which mark doubt or surprise, stand alone. No other
 //! Spanish-specific grammar, comma or sentence-capital rules are inferred.
 
-use unicode_normalization::UnicodeNormalization;
-
-use crate::{Issue, IssueKind, ProofLang, words};
+use crate::{Issue, IssueKind, ProofLang};
 
 fn issue(
     start: usize,
@@ -31,42 +29,20 @@ fn issue(
 /// every one).
 pub fn check(text: &str, lang: ProofLang) -> Vec<Issue> {
     let mut issues = Vec::new();
-    repeated_words(text, &words(text), lang, &mut issues);
+    crate::repeated::visit(text, crate::word_ranges(text), lang, &[], |pair| {
+        let (first, second) = (pair.first, pair.second);
+        issues.push(issue(
+            pair.range.start,
+            pair.range.end,
+            format!("Palabra repetida: «{second}»"),
+            vec![first.to_owned()],
+            lang,
+        ));
+    });
     spaces(text, lang, &mut issues);
     opening_marks(text, lang, &mut issues);
     issues.sort_by_key(|i| (i.start, i.end));
     issues
-}
-
-fn repeated_words(text: &str, ws: &[(usize, usize)], lang: ProofLang, v: &mut Vec<Issue>) {
-    // Letters and the combining marks of a decomposed word (`tambie\u{301}n`); a composed and a
-    // decomposed spelling of one word are the same word.
-    let letters = |w: &str| {
-        w.chars()
-            .all(|c| c.is_alphabetic() || unicode_normalization::char::is_combining_mark(c))
-    };
-    let folded = |w: &str| w.nfc().collect::<String>().to_lowercase();
-    for pair in ws.windows(2) {
-        let [(a0, b0), (a1, b1)] = pair else { continue };
-        let (Some(w0), Some(w1), Some(gap)) =
-            (text.get(*a0..*b0), text.get(*a1..*b1), text.get(*b0..*a1))
-        else {
-            continue;
-        };
-        if !gap.is_empty()
-            && gap.chars().all(char::is_whitespace)
-            && letters(w0)
-            && folded(w0) == folded(w1)
-        {
-            v.push(issue(
-                *a0,
-                *b1,
-                format!("Palabra repetida: «{w1}»"),
-                vec![w0.to_string()],
-                lang,
-            ));
-        }
-    }
 }
 
 fn spaces(text: &str, lang: ProofLang, v: &mut Vec<Issue>) {

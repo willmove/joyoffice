@@ -145,35 +145,22 @@ pub fn check_with(text: &str, capital_first: bool) -> Vec<Issue> {
     let mut v = Vec::new();
     let ws = words(text);
 
-    // 1. Repeated words (`kelime kelime`)
-    for pair in ws.windows(2) {
-        let (w1, w2) = match (
-            text.get(pair[0].0..pair[0].1),
-            text.get(pair[1].0..pair[1].1),
-        ) {
-            (Some(a), Some(b)) => (a, b),
-            _ => continue,
-        };
-        let gap = match text.get(pair[0].1..pair[1].0) {
-            Some(g) => g,
-            None => continue,
-        };
-        let only_spaces = gap.chars().all(|c| c == ' ' || c == '\t');
-        let lower1 = turkish_to_lower(w1);
-        let lower2 = turkish_to_lower(w2);
-        // Words, not numbers or codes (`1 1`, `A1 A1`); `Ankara'da Ankara'da` is one.
-        let word = w1.chars().any(char::is_alphabetic) && !w1.chars().any(|c| c.is_numeric());
-        if only_spaces && word && lower1 == lower2 && !ALLOWED_REPEATS.contains(&lower1.as_str()) {
+    crate::repeated::visit(
+        text,
+        ws.iter().copied(),
+        ProofLang::Tr,
+        ALLOWED_REPEATS,
+        |pair| {
             v.push(Issue {
-                start: pair[1].0,
-                end: pair[1].1,
+                start: pair.second_start,
+                end: pair.range.end,
                 kind: IssueKind::Grammar,
                 message: "Yinelenen sözcük".into(),
                 suggestions: Vec::new(),
                 lang: ProofLang::Tr,
             });
-        }
-    }
+        },
+    );
 
     // 2. Spaces before punctuation and double spaces
     let chars: Vec<(usize, char)> = text.char_indices().collect();

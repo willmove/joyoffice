@@ -5,7 +5,7 @@
 //! for a missing space (`незнаю` → `не знаю`, `вобщем` → `в общем`).
 
 use crate::affix::AffixDict;
-use crate::affix_suggest::{COST_OTHER_MAP, COST_SPLIT, COST_SPLIT_LONG, Split, Tuning};
+use crate::affix_suggest::{COST_OTHER_MAP, Split, Tuning};
 
 /// Letters confused with each other: a slip inside a group is cheaper than another typo.
 const MAP: &[&str] = &[
@@ -116,7 +116,13 @@ const COST_SPLIT_PREPOSITION: u32 = 17;
 
 /// What Russian adds to its dictionary's tables.
 const TUNING: Tuning = Tuning {
-    split: Split::Custom(split),
+    split: Split::WithPrepositions {
+        leading: LEADING_WORDS,
+        trailing: TRAILING_WORDS,
+        prepositions: PREPOSITIONS,
+        verb_endings: &["ть", "ться", "ти", "чь"],
+        short_cost: COST_SPLIT_PREPOSITION,
+    },
     alphabet: ALPHABET,
     map: MAP,
     rep: REP,
@@ -132,27 +138,6 @@ fn map_cost(from: char, to: char) -> u32 {
         COST_YO
     } else {
         COST_OTHER_MAP
-    }
-}
-
-/// A missing space: cheap after a short leading word or before a short trailing one, dearer after
-/// a short preposition or between two longer words, never leaving a stray short half.
-fn split(a: &str, b: &str) -> Option<u32> {
-    let long = |p: &str| p.chars().count() >= 3;
-    // A preposition takes a noun, not a verb (`с генерировать` isn't a fix for
-    // `сгенерировать`); after one or two letters a split is likelier wrong than a typo.
-    let preposition = PREPOSITIONS.contains(&a);
-    if preposition && ["ть", "ться", "ти", "чь"].iter().any(|e| b.ends_with(e)) {
-        return None;
-    }
-    if preposition && a.chars().count() <= 2 && LEADING_WORDS.contains(&a) && long(b) {
-        Some(COST_SPLIT_PREPOSITION)
-    } else if (LEADING_WORDS.contains(&a) && long(b)) || (long(a) && TRAILING_WORDS.contains(&b)) {
-        Some(COST_SPLIT)
-    } else if long(a) && long(b) {
-        Some(COST_SPLIT_LONG)
-    } else {
-        None
     }
 }
 

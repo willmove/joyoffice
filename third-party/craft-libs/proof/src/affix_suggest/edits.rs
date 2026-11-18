@@ -1,6 +1,6 @@
 //! Enumerate dictionary-directed edits in the order in which tied candidates are offered.
 //! KEY, TRY, MAP and REP are supplied by the dictionary or the language profile.
-use super::{COST_DROP_OR_ADD, COST_KEY, COST_SWAP, MAX_MAP_VARIANTS, Tuning, split_cost};
+use super::{COST_DROP_OR_ADD, COST_KEY, COST_SWAP, MAX_MAP_VARIANTS, Tuning};
 
 /// Indices come from char_indices or match_indices on the original word. Reuse
 /// one allocation for candidates the collector can reject or deduplicate.
@@ -45,16 +45,9 @@ pub(super) fn visit<'a>(
         .map(|(byte, _)| byte)
         .chain(std::iter::once(word.len()))
         .collect();
-    for &byte in boundaries
-        .iter()
-        .skip(1)
-        .take(chars.len().saturating_sub(1))
-    {
-        let (left, right) = word.split_at(byte);
-        if let Some(cost) = split_cost(&tuning.split, left, right) {
-            offer(edit.apply(byte, byte, [' ']), cost);
-        }
-    }
+    tuning.split.visit(word, chars.len(), |byte, cost| {
+        offer(edit.apply(byte, byte, [' ']), cost)
+    });
     for row in keyboard.split('|').take(32) {
         let mut keys = row.chars().take(128);
         let Some(mut previous) = keys.next() else {
