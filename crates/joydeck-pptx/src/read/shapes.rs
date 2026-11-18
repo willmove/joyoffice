@@ -199,10 +199,7 @@ fn base(imp: &mut Imp, part: &Part, ctx: &mut IdCtx, nv: Option<&El>) -> Shape {
 
 fn preset_geom(pg: &El) -> Geom {
     let name = pg.attr("prst").unwrap_or("rect").to_string();
-    let defaults: Vec<f64> = preset::info(&name)
-        .map(|i| i.defaults.to_vec())
-        .unwrap_or_default();
-    let mut adj = defaults;
+    let mut adj = preset::adjustment_defaults(&name).to_vec();
     let mut any = false;
     if let Some(av) = pg.child("avLst") {
         for gd in av.children_named("gd").take(16) {

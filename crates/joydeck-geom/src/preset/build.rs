@@ -3,7 +3,7 @@ use super::builder::{
     mid_sites, orient, polygon_regular, shade, simple, spec_pts, star, star_text_rect, stroke_only,
     tip_handle, vis,
 };
-use super::catalog::{FillMode, Geometry, Handle, info};
+use super::catalog::{FillMode, Geometry, Handle, adjustment_defaults};
 use super::shapes::{action_button, cloud, math, ribbon, scroll, wedge_rect};
 use super::{Arc, BezPath, Point, Rect, Vec2, extra};
 
@@ -35,7 +35,7 @@ pub fn build(name: &str, w: f64, h: f64, adj: &[f64]) -> Option<Geometry> {
     if !(w.is_finite() && h.is_finite()) {
         return None;
     }
-    let defaults = info(name).map(|i| i.defaults).unwrap_or(&[]);
+    let defaults = adjustment_defaults(name);
     let c = Ctx {
         name,
         w: w.max(0.0),
@@ -44,6 +44,7 @@ pub fn build(name: &str, w: f64, h: f64, adj: &[f64]) -> Option<Geometry> {
         defaults,
     };
     super::office_shapes::rectangle(name, c.w, c.h, c.a(0), c.a(1))
+        .or_else(|| super::office_shapes::connector(name, c.w, c.h, adj))
         .or_else(|| rect_and_triangle_shapes(&c))
         .or_else(|| polygon_and_symbol_shapes(&c))
         .or_else(|| bracket_and_arrow_shapes(&c))
@@ -1842,61 +1843,6 @@ fn callout_wave_and_connector_shapes(c: &Ctx) -> Option<Geometry> {
                 text_rect: full,
                 handles: vec![],
                 sites: mid_sites(w, h),
-            }
-        }
-        "line" | "straightConnector1" => {
-            let l = Pb::new().m(0.0, 0.0).l(w, h).take();
-            Geometry {
-                paths: vec![stroke_only(l)],
-                text_rect: full,
-                handles: vec![],
-                sites: vec![Point::ZERO, Point::new(w, h)],
-            }
-        }
-        "bentConnector2" => {
-            let l = Pb::new().m(0.0, 0.0).l(w, 0.0).l(w, h).take();
-            Geometry {
-                paths: vec![stroke_only(l)],
-                text_rect: full,
-                handles: vec![],
-                sites: vec![Point::ZERO, Point::new(w, h)],
-            }
-        }
-        "bentConnector3" | "bentConnector4" | "bentConnector5" => {
-            let x = w * a(0) / 1e5;
-            let l = Pb::new().m(0.0, 0.0).l(x, 0.0).l(x, h).l(w, h).take();
-            let mut g = Geometry {
-                paths: vec![stroke_only(l)],
-                text_rect: full,
-                handles: vec![],
-                sites: vec![Point::ZERO, Point::new(w, h)],
-            };
-            g.handles.push(Handle::new(
-                0,
-                Point::new(0.0, h / 2.0),
-                Vec2::new(w / 1e5, 0.0),
-                a(0),
-                -1e6,
-                1e6,
-            ));
-            g
-        }
-        "curvedConnector2" | "curvedConnector3" | "curvedConnector4" | "curvedConnector5" => {
-            let x = w * if name == "curvedConnector2" {
-                100000.0
-            } else {
-                a(0)
-            } / 1e5;
-            let l = Pb::new()
-                .m(0.0, 0.0)
-                .c(x / 2.0, 0.0, x, h / 4.0, x, h / 2.0)
-                .c(x, h * 0.75, (x + w) / 2.0, h, w, h)
-                .take();
-            Geometry {
-                paths: vec![stroke_only(l)],
-                text_rect: full,
-                handles: vec![],
-                sites: vec![Point::ZERO, Point::new(w, h)],
             }
         }
         _ => return None,

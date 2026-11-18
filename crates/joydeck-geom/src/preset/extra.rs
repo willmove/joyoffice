@@ -13,15 +13,6 @@ pub(super) fn build(name: &str, w: f64, h: f64, a: &dyn Fn(usize) -> f64) -> Opt
     let full = Rect::new(0.0, 0.0, w, h);
     let mut b = Pb::new();
     let g = match name {
-        "lineInv" => {
-            let l = b.m(0.0, h).l(w, 0.0).take();
-            Geometry {
-                paths: vec![stroke_only(l)],
-                text_rect: full,
-                handles: vec![],
-                sites: vec![Point::new(0.0, h), Point::new(w, 0.0)],
-            }
-        }
         "nonIsoscelesTrapezoid" => {
             let max = 50000.0 * w / ss.max(1e-9);
             let (v1, v2) = (a(0).clamp(0.0, max), a(1).clamp(0.0, max));

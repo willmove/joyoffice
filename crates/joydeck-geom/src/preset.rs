@@ -21,8 +21,8 @@ use builder::{
     stroke_only, vis,
 };
 pub use catalog::{
-    CATALOG, Category, FillMode, Geometry, Handle, PresetInfo, SubPath, info, is_line_like,
-    mitred_by_default,
+    CATALOG, Category, FillMode, Geometry, Handle, PresetInfo, SubPath, adjustment_defaults, info,
+    is_line_like, mitred_by_default,
 };
 
 mod extra;

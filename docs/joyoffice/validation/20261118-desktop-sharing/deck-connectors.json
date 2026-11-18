@@ -1,0 +1,200 @@
+{
+  "macOS": {
+    "gallery": {
+      "shapeInstances": 30,
+      "presets": [
+        "line",
+        "lineInv",
+        "straightConnector1",
+        "bentConnector2",
+        "bentConnector3",
+        "curvedConnector3"
+      ],
+      "adjustments": [
+        null,
+        0,
+        50000,
+        100000,
+        [
+          20000,
+          75000,
+          35000
+        ]
+      ],
+      "pptxParametersPreserved": true,
+      "imageSize": [
+        960,
+        540
+      ],
+      "changedPixelsFromPreviousRenderer": 0,
+      "rgbSha256": [
+        "dac8ad9b66467e73571357e55e6a47c3f659b14333231aca7aebb7875dbd4653",
+        "dac8ad9b66467e73571357e55e6a47c3f659b14333231aca7aebb7875dbd4653",
+        "dac8ad9b66467e73571357e55e6a47c3f659b14333231aca7aebb7875dbd4653",
+        "dac8ad9b66467e73571357e55e6a47c3f659b14333231aca7aebb7875dbd4653"
+      ],
+      "bothVersionsReopenedRegeneratedFile": true,
+      "presentationObject": "p:cxnSp",
+      "referenceRgbSha256": "dac8ad9b66467e73571357e55e6a47c3f659b14333231aca7aebb7875dbd4653",
+      "changedPixelsFromPublishedGuides": 0,
+      "definitionsSha256": "2f7c868d857c1e3c4b5a6068759fe0e07d77ad58377a6618d1b02ba3507b6939"
+    },
+    "fileOnly": {
+      "shapeInstances": 25,
+      "presets": [
+        "curvedConnector2",
+        "bentConnector4",
+        "curvedConnector4",
+        "bentConnector5",
+        "curvedConnector5"
+      ],
+      "adjustments": [
+        null,
+        0,
+        50000,
+        100000,
+        [
+          20000,
+          75000,
+          35000
+        ]
+      ],
+      "pptxParametersPreserved": true,
+      "imageSize": [
+        960,
+        540
+      ],
+      "changedPixelsFromPreviousRenderer": 12071,
+      "rgbSha256": [
+        "ae36f8f6f5a20778b1cfcfe9f024138207d93037cd3241ac2521bc696d362646",
+        "1816c18927fa66c6b406e96f59143f933e5850eda5e9c1e05a1a42863a7c5cea",
+        "1816c18927fa66c6b406e96f59143f933e5850eda5e9c1e05a1a42863a7c5cea",
+        "ae36f8f6f5a20778b1cfcfe9f024138207d93037cd3241ac2521bc696d362646"
+      ],
+      "bothVersionsReopenedRegeneratedFile": true,
+      "presentationObject": "p:cxnSp",
+      "referenceRgbSha256": "1816c18927fa66c6b406e96f59143f933e5850eda5e9c1e05a1a42863a7c5cea",
+      "changedPixelsFromPublishedGuides": 0,
+      "definitionsSha256": "2f7c868d857c1e3c4b5a6068759fe0e07d77ad58377a6618d1b02ba3507b6939"
+    },
+    "productGates": {
+      "desktop": {
+        "exitCode": 0,
+        "logSha256": "8b1fd2394f7b6f177ede882431154a419bd9f404f00add314c912e91a7fc0ec0"
+      },
+      "ui": {
+        "exitCode": 0,
+        "logSha256": "a3f5c0f72f60ea08ee7839770507e2b64f57292014e0e2b53f75f5e7592e240d",
+        "passed": 75,
+        "failed": 0,
+        "ignored": 0
+      },
+      "joydeck": {
+        "exitCode": 0,
+        "logSha256": "e94693bc2299b0521ec0d8c19fd3c5dfd08639d5e209cc1ef916861a31d07372",
+        "passed": 998,
+        "failed": 0,
+        "ignored": 0
+      }
+    }
+  },
+  "UOS": {
+    "gallery": {
+      "shapeInstances": 30,
+      "presets": [
+        "line",
+        "lineInv",
+        "straightConnector1",
+        "bentConnector2",
+        "bentConnector3",
+        "curvedConnector3"
+      ],
+      "adjustments": [
+        null,
+        0,
+        50000,
+        100000,
+        [
+          20000,
+          75000,
+          35000
+        ]
+      ],
+      "pptxParametersPreserved": true,
+      "imageSize": [
+        960,
+        540
+      ],
+      "changedPixelsFromPreviousRenderer": 0,
+      "rgbSha256": [
+        "dac8ad9b66467e73571357e55e6a47c3f659b14333231aca7aebb7875dbd4653",
+        "dac8ad9b66467e73571357e55e6a47c3f659b14333231aca7aebb7875dbd4653",
+        "dac8ad9b66467e73571357e55e6a47c3f659b14333231aca7aebb7875dbd4653",
+        "dac8ad9b66467e73571357e55e6a47c3f659b14333231aca7aebb7875dbd4653"
+      ],
+      "bothVersionsReopenedRegeneratedFile": true,
+      "presentationObject": "p:cxnSp",
+      "referenceRgbSha256": "dac8ad9b66467e73571357e55e6a47c3f659b14333231aca7aebb7875dbd4653",
+      "changedPixelsFromPublishedGuides": 0,
+      "definitionsSha256": "2f7c868d857c1e3c4b5a6068759fe0e07d77ad58377a6618d1b02ba3507b6939"
+    },
+    "fileOnly": {
+      "shapeInstances": 25,
+      "presets": [
+        "curvedConnector2",
+        "bentConnector4",
+        "curvedConnector4",
+        "bentConnector5",
+        "curvedConnector5"
+      ],
+      "adjustments": [
+        null,
+        0,
+        50000,
+        100000,
+        [
+          20000,
+          75000,
+          35000
+        ]
+      ],
+      "pptxParametersPreserved": true,
+      "imageSize": [
+        960,
+        540
+      ],
+      "changedPixelsFromPreviousRenderer": 12071,
+      "rgbSha256": [
+        "ae36f8f6f5a20778b1cfcfe9f024138207d93037cd3241ac2521bc696d362646",
+        "1816c18927fa66c6b406e96f59143f933e5850eda5e9c1e05a1a42863a7c5cea",
+        "1816c18927fa66c6b406e96f59143f933e5850eda5e9c1e05a1a42863a7c5cea",
+        "ae36f8f6f5a20778b1cfcfe9f024138207d93037cd3241ac2521bc696d362646"
+      ],
+      "bothVersionsReopenedRegeneratedFile": true,
+      "presentationObject": "p:cxnSp",
+      "referenceRgbSha256": "1816c18927fa66c6b406e96f59143f933e5850eda5e9c1e05a1a42863a7c5cea",
+      "changedPixelsFromPublishedGuides": 0,
+      "definitionsSha256": "2f7c868d857c1e3c4b5a6068759fe0e07d77ad58377a6618d1b02ba3507b6939"
+    },
+    "productGates": {
+      "desktop": {
+        "exitCode": 0,
+        "logSha256": "658632356d3becae36d19b43fc147b50203959c9f2a14b009970de21a9cb12b0"
+      },
+      "ui": {
+        "exitCode": 0,
+        "logSha256": "801c2ee97563dadc0fd09e59c994c2724fc9846a3244e93f641e249986b97a16",
+        "passed": 79,
+        "failed": 0,
+        "ignored": 0
+      },
+      "joydeck": {
+        "exitCode": 0,
+        "logSha256": "fbcfe6ccf735932f071fd467443d7c14e7ef134330ce47319ece098136118ce1",
+        "passed": 1003,
+        "failed": 0,
+        "ignored": 0
+      }
+    }
+  }
+}

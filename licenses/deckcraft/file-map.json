@@ -76,14 +76,15 @@
       "source_path": "crates/geom/src/preset/build.rs",
       "source_sha256": "0f20c9e24506d28aaa495311d6d653279dcd297f898e5d10104bc2526ab8b154",
       "target_path": "crates/joydeck-geom/src/preset/build.rs",
-      "adapted_sha256": "bb9e4b429755250e886294ac637111c078d48ab6675fb850eb8c91aea29f6a0f",
+      "adapted_sha256": "0fe3cbdef46fc86d674310661649f3c8a0048e4ba2685695504490820034cf67",
       "changes": [
         "crate/import namespace deckcraft -> joydeck",
         "LF normalization",
         "package description credits origin",
         "rustfmt using repository Unix newline policy",
         "Independently derive rounded rectangles and the four straight arrows from the DrawingML adjustment guides and connector coordinates.",
-        "Replace all gallery rectangle branches with the JoyOffice parameterized corner builder."
+        "Replace all gallery rectangle branches with the JoyOffice parameterized corner builder.",
+        "Derive straight, orthogonal and smoothed DrawingML connector paths and adjustments from the published coordinate guides, including multi-bend defaults when opening and writing PPTX."
       ]
     },
     {
@@ -103,25 +104,27 @@
       "source_path": "crates/geom/src/preset/catalog.rs",
       "source_sha256": "20743d98648bcf7ff0fd56694cc1ecb941d7b3f4b8fe6494ece25278741ff4c7",
       "target_path": "crates/joydeck-geom/src/preset/catalog.rs",
-      "adapted_sha256": "b95c8f517964c462a6f1162b99a2239372bbca08dbb3f22f7b45e7a6206abc5c",
+      "adapted_sha256": "318773b5c91ec7eecf5216cf9cff5861ad3ee12ed33c0b09d169e5b234dce0c7",
       "changes": [
         "crate/import namespace deckcraft -> joydeck",
         "LF normalization",
         "package description credits origin",
-        "rustfmt using repository Unix newline policy"
+        "rustfmt using repository Unix newline policy",
+        "Derive straight, orthogonal and smoothed DrawingML connector paths and adjustments from the published coordinate guides, including multi-bend defaults when opening and writing PPTX."
       ]
     },
     {
       "source_path": "crates/geom/src/preset/extra.rs",
       "source_sha256": "8c93e1910fe4326296182a582be0a776f7ac6a3644b349110895319d7b8a01f9",
       "target_path": "crates/joydeck-geom/src/preset/extra.rs",
-      "adapted_sha256": "dee9400580dfb06512364f5256088eb81cee889f4d5ef3f6c2ed586a10454355",
+      "adapted_sha256": "fd7a82899eb92d62da3b5b6b3d28e9055d974beb9c59ee366f595b3d7e636a59",
       "changes": [
         "crate/import namespace deckcraft -> joydeck",
         "LF normalization",
         "package description credits origin",
         "rustfmt using repository Unix newline policy",
-        "test-only assertion lint allowances; production no-panic guards retained"
+        "test-only assertion lint allowances; production no-panic guards retained",
+        "Derive straight, orthogonal and smoothed DrawingML connector paths and adjustments from the published coordinate guides, including multi-bend defaults when opening and writing PPTX."
       ]
     },
     {
@@ -152,14 +155,15 @@
       "source_path": "crates/geom/src/preset.rs",
       "source_sha256": "94c4d928be5b4d8f44d570ce5c3376d6128617ab8cc14a7450b1c0383c6190fd",
       "target_path": "crates/joydeck-geom/src/preset.rs",
-      "adapted_sha256": "3c36c04ebcc8a9bff26ec55323d933475a9829612c936880cdd763ccd88bf5b0",
+      "adapted_sha256": "035fa39ef5a952d045f4f0c3d62513918d71fb670b0674d4045fd8d2d47085de",
       "changes": [
         "crate/import namespace deckcraft -> joydeck",
         "LF normalization",
         "package description credits origin",
         "rustfmt using repository Unix newline policy",
         "test-only assertion lint allowances; production no-panic guards retained",
-        "Independently derive rounded rectangles and the four straight arrows from the DrawingML adjustment guides and connector coordinates."
+        "Independently derive rounded rectangles and the four straight arrows from the DrawingML adjustment guides and connector coordinates.",
+        "Derive straight, orthogonal and smoothed DrawingML connector paths and adjustments from the published coordinate guides, including multi-bend defaults when opening and writing PPTX."
       ]
     },
     {
@@ -1742,12 +1746,13 @@
       "source_path": "crates/pptx/src/read/shapes.rs",
       "source_sha256": "9df34bf672f801a9fe96569f10829fa82486d39b225c9231da2adbb0b4ced9f8",
       "target_path": "crates/joydeck-pptx/src/read/shapes.rs",
-      "adapted_sha256": "f8f6927f75b38a2f836a4a8e6e97e1e7e693b1cacc9abe8f8d7834989625bd2c",
+      "adapted_sha256": "9b86c5bd6386259935ba963d2b510e90ee3e947a6f8b3b932d52a9d08986e826",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
-        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
+        "Derive straight, orthogonal and smoothed DrawingML connector paths and adjustments from the published coordinate guides, including multi-bend defaults when opening and writing PPTX."
       ]
     },
     {
@@ -1832,12 +1837,13 @@
       "source_path": "crates/pptx/src/write/shapes.rs",
       "source_sha256": "386f88a4a3ca7b7b1434028d1360f17ff16af7c0eca4b75cb5e73a38e7aced1a",
       "target_path": "crates/joydeck-pptx/src/write/shapes.rs",
-      "adapted_sha256": "aa2e751748b2263771d25354a20c7f6abccb9b92ce0718e4de21c6df5eeeeb80",
+      "adapted_sha256": "66b02e7bee6d3636ab2b63b9b2475f301c83d30f06b0ee84bf6ba26d2763152d",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
-        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
+        "Derive straight, orthogonal and smoothed DrawingML connector paths and adjustments from the published coordinate guides, including multi-bend defaults when opening and writing PPTX."
       ]
     },
     {

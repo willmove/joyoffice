@@ -1,5 +1,6 @@
 """Compare independent DrawingML shapes through rendering, native PPTX writing and old-version reading."""
 import argparse
+import copy
 import hashlib
 import json
 from pathlib import Path
@@ -15,11 +16,13 @@ P = "http://schemas.openxmlformats.org/presentationml/2006/main"
 KINDS = ["roundRect", "rightArrow", "leftArrow", "downArrow", "upArrow", "leftRightArrow", "upDownArrow"]
 RECTANGLES = ["rect", "roundRect", "snip1Rect", "snip2SameRect", "snip2DiagRect",
               "snipRoundRect", "round1Rect", "round2SameRect", "round2DiagRect"]
+GALLERY_CONNECTORS = ["line", "lineInv", "straightConnector1", "bentConnector2", "bentConnector3", "curvedConnector3"]
+FILE_CONNECTORS = ["curvedConnector2", "bentConnector4", "curvedConnector4", "bentConnector5", "curvedConnector5"]
 ADJUST = [None, 0, 50_000, 100_000]
 COLOR = (30, 112, 206)
 
 
-def fixture(dest, kinds, adjustments, rectangles):
+def fixture(dest, kinds, adjustments, rectangles, connectors=False):
     with ZipFile(ROOT / "tests/fixtures/joydeck/independent.pptx") as src, ZipFile(dest, "x", ZIP_DEFLATED) as new:
         for name in src.namelist():
             data = src.read(name)
@@ -28,8 +31,8 @@ def fixture(dest, kinds, adjustments, rectangles):
                 tree = slide.find(".//{*}spTree")
                 for old in list(tree)[2:]:
                     tree.remove(old)
-                stride_x, stride_y = (970000, 950000) if rectangles else (1280000, 1220000)
-                width, height = (820000, 770000) if rectangles else (1100000, 920000)
+                stride_x, stride_y = (970000, 950000) if rectangles or connectors else (1280000, 1220000)
+                width, height = (820000, 770000) if rectangles or connectors else (1100000, 920000)
                 for col, kind in enumerate(kinds):
                     for row, adjust in enumerate(adjustments):
                         idx = 2 + col * len(adjustments) + row
@@ -38,16 +41,25 @@ def fixture(dest, kinds, adjustments, rectangles):
                             names = ["adj"] if kind in ("roundRect", "snip1Rect", "round1Rect") else ["adj1", "adj2"]
                             values = adjust if isinstance(adjust, tuple) else (adjust, adjust)
                             av = "".join(f'<a:gd name="{n}" fmla="val {v}"/>' for n, v in zip(names, values))
+                        if connectors:
+                            guides = max(0, int(kind[-1]) - 2) if "Connector" in kind else 0
+                            values = adjust if isinstance(adjust, tuple) else (adjust,) * guides
+                            av = "" if adjust is None else "".join(
+                                f'<a:gd name="adj{i + 1}" fmla="val {v}"/>' for i, v in enumerate(values[:guides]))
+                        style = ('<a:noFill/><a:ln w="38100"><a:solidFill><a:srgbClr val="1E70CE"/>'
+                                 '</a:solidFill></a:ln>') if connectors else (
+                                 '<a:solidFill><a:srgbClr val="1E70CE"/></a:solidFill><a:ln><a:noFill/></a:ln>')
                         x, y = 160000 + col * stride_x, 300000 + row * stride_y
                         # Exercise the text rectangle on old documents as well as its filled outline.
                         label = ('<p:txBody><a:bodyPr/><a:lstStyle/><a:p><a:r><a:rPr sz="900"/>'
                                  '<a:t>Test</a:t></a:r></a:p></p:txBody>') if rectangles else ""
+                        tag, nv, details = ("cxnSp", "nvCxnSpPr", "cNvCxnSpPr") if connectors else ("sp", "nvSpPr", "cNvSpPr")
                         tree.append(ET.fromstring(f"""
-                        <p:sp xmlns:p="{P}" xmlns:a="{A}"><p:nvSpPr><p:cNvPr id="{idx}" name="{kind}-{row}"/>
-                        <p:cNvSpPr/><p:nvPr/></p:nvSpPr><p:spPr><a:xfrm><a:off x="{x}" y="{y}"/>
+                        <p:{tag} xmlns:p="{P}" xmlns:a="{A}"><p:{nv}><p:cNvPr id="{idx}" name="{kind}-{row}"/>
+                        <p:{details}/><p:nvPr/></p:{nv}><p:spPr><a:xfrm><a:off x="{x}" y="{y}"/>
                         <a:ext cx="{width}" cy="{height}"/></a:xfrm><a:prstGeom prst="{kind}"><a:avLst>{av}</a:avLst>
-                        </a:prstGeom><a:solidFill><a:srgbClr val="1E70CE"/></a:solidFill><a:ln><a:noFill/></a:ln>
-                        </p:spPr>{label}</p:sp>"""))
+                        </a:prstGeom>{style}
+                        </p:spPr>{label}</p:{tag}>"""))
                 data = ET.tostring(slide, encoding="utf-8")
             new.writestr(name, data)
 
@@ -57,7 +69,37 @@ def presets(path):
         slide = ET.fromstring(archive.read("ppt/slides/slide1.xml"))
     return {shape.find(".//{*}cNvPr").get("name"):
             [geo.get("prst"), {g.get("name"): g.get("fmla") for g in geo.findall(".//{*}gd")}]
-            for shape in slide.findall(".//{*}sp") if (geo := shape.find(".//{*}prstGeom")) is not None}
+            for shape in slide.findall(".//{*}spTree/*") if (geo := shape.find(".//{*}prstGeom")) is not None}
+
+
+def make_connector_reference(source, output, definitions):
+    # Render the unmodified ECMA guide equations as custom geometry in the previous CLI,
+    # independent of both versions' preset generators.
+    spec = ET.parse(definitions).getroot()
+    with ZipFile(source) as src, ZipFile(output, "x", ZIP_DEFLATED) as dst:
+        for name in src.namelist():
+            data = src.read(name)
+            if name == "ppt/slides/slide1.xml":
+                slide = ET.fromstring(data)
+                for props in slide.findall(".//{*}cxnSp/{*}spPr"):
+                    preset = props.find("{*}prstGeom")
+                    ref = spec.find(preset.get("prst"))
+                    assert ref is not None
+                    custom = ET.Element(f"{{{A}}}custGeom")
+                    for part in ref:
+                        custom.append(copy.deepcopy(part))
+                    overrides = {g.get("name"): g.get("fmla") for g in preset.findall(".//{*}gd")}
+                    for guide in custom.findall("{*}avLst/{*}gd"):
+                        if guide.get("name") in overrides:
+                            guide.set("fmla", overrides.pop(guide.get("name")))
+                    assert not overrides
+                    for path in custom.findall("{*}pathLst/{*}path"):
+                        path.set("fill", "none")
+                    position = list(props).index(preset)
+                    props.remove(preset)
+                    props.insert(position, custom)
+                data = ET.tostring(slide, encoding="utf-8")
+            dst.writestr(name, data)
 
 
 def run(cli, *args):
@@ -89,15 +131,21 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for arg in ("baseline", "candidate", "output"):
         parser.add_argument(arg, type=Path)
-    parser.add_argument("--family", choices=["arrows", "rectangles"], default="arrows")
+    parser.add_argument("--family", choices=["arrows", "rectangles", "connectors", "file-connectors"], default="arrows")
+    parser.add_argument("--definitions", type=Path, help="ECMA-376 Part 1 presetShapeDefinitions.xml for connector reference images")
     args = parser.parse_args()
     rectangles = args.family == "rectangles"
-    kinds = RECTANGLES if rectangles else KINDS
-    adjustments = [*ADJUST, (20_000, 35_000)] if rectangles else ADJUST
+    connectors = args.family in ("connectors", "file-connectors")
+    if connectors and args.definitions is None:
+        parser.error("connector families require --definitions")
+    kinds = {"arrows": KINDS, "rectangles": RECTANGLES, "connectors": GALLERY_CONNECTORS,
+             "file-connectors": FILE_CONNECTORS}[args.family]
+    adjustments = [*ADJUST, (20_000, 75_000, 35_000)] if connectors else (
+        [*ADJUST, (20_000, 35_000)] if rectangles else ADJUST)
     out = args.output.resolve()
     out.mkdir(exist_ok=False, parents=True)
     src, generation = out / "presets.pptx", out / "regenerated.pptx"
-    fixture(src, kinds, adjustments, rectangles)
+    fixture(src, kinds, adjustments, rectangles, connectors)
     before = presets(src)
     assert len(before) == len(kinds) * len(adjustments)
     run(args.candidate, "exchange", src, "--mode", "regenerate", "--output", generation)
@@ -112,12 +160,23 @@ def main():
     if encoded[1] != encoded[2] or encoded[0] != encoded[3]:
         raise ValueError("reopened shape pixels differ from original on the same reader")
     different = sum(a != b for a, b in zip(struct.iter_unpack("3B", encoded[0]), struct.iter_unpack("3B", encoded[1])))
-    if different:
+    if different and args.family != "file-connectors":
         raise ValueError(f"{different} pixels differ from the previous renderer")
     report = {"shapeInstances":len(before), "presets":kinds, "adjustments":adjustments, "pptxParametersPreserved":True,
               "imageSize":images[0][0], "changedPixelsFromPreviousRenderer":different,
               "rgbSha256":[hashlib.sha256(raw).hexdigest() for raw in encoded],
               "bothVersionsReopenedRegeneratedFile":True}
+    if connectors:
+        reference = out / "ecma-reference.pptx"
+        make_connector_reference(src, reference, args.definitions)
+        _, expected = render(args.baseline, reference, out / "standard")
+        reference_diff = sum(a != b for a, b in zip(struct.iter_unpack("3B", expected),
+                                                     struct.iter_unpack("3B", encoded[1])))
+        if reference_diff:
+            raise ValueError(f"{reference_diff} pixels differ from the independent DrawingML guide rendering")
+        report.update(presentationObject="p:cxnSp", referenceRgbSha256=hashlib.sha256(expected).hexdigest(),
+                      changedPixelsFromPublishedGuides=reference_diff,
+                      definitionsSha256=hashlib.sha256(args.definitions.read_bytes()).hexdigest())
     (out / "report.json").write_text(json.dumps(report, indent=2) + "\n")
 
 

@@ -799,6 +799,16 @@ pub fn info(name: &str) -> Option<&'static PresetInfo> {
     CATALOG.iter().find(|p| p.name == name)
 }
 
+/// File-format defaults also cover multi-bend connectors that are opened from PPTX but
+/// do not have individual entries in the insertion gallery.
+pub fn adjustment_defaults(name: &str) -> &'static [f64] {
+    match name {
+        "bentConnector4" | "curvedConnector4" => &[50_000.; 2],
+        "bentConnector5" | "curvedConnector5" => &[50_000.; 3],
+        _ => info(name).map_or(&[], |entry| entry.defaults),
+    }
+}
+
 /// Whether PowerPoint joins this preset's outline with sharp (miter) corners when the line names
 /// no join (it rounds them otherwise). Observed per preset on its export: the plus, the right,
 /// up and down block arrows (not the left one), chevrons, stars from five points up, the

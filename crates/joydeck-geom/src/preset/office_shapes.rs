@@ -1,8 +1,87 @@
 //! ECMA-376 Part 1 §20.1.9.18 and the DrawingML geometry attachment, 5th edition.
 //! Use the head length and shaft thickness in shape coordinates before applying orientation.
-use super::builder::{Corner, Dir, Pb, corner_rect, fill, len_thick, simple};
+use super::builder::{Corner, Dir, Pb, corner_rect, fill, len_thick, simple, stroke_only};
 use super::catalog::{Geometry, Handle};
-use kurbo::{Point, Rect, Vec2};
+use kurbo::{BezPath, Point, Rect, Vec2};
+
+/// DrawingML §20.1.9.18. The curved presets round the corners of the orthogonal
+/// route. Each two adjacent corners share their midpoint as the end of one cubic
+/// and the start of the next, including when an adjustment lies outside the frame.
+pub(super) fn connector(name: &str, w: f64, h: f64, adjustments: &[f64]) -> Option<Geometry> {
+    let legs = match name {
+        "line" | "lineInv" | "straightConnector1" => 1,
+        "bentConnector2" | "curvedConnector2" => 2,
+        "bentConnector3" | "curvedConnector3" => 3,
+        "bentConnector4" | "curvedConnector4" => 4,
+        "bentConnector5" | "curvedConnector5" => 5,
+        _ => return None,
+    };
+    let value = |index: usize| match adjustments.get(index) {
+        Some(v) if v.is_finite() => *v,
+        Some(_) => 0.,
+        None => 50_000.,
+    };
+    let (start, end) = if name == "lineInv" {
+        (Point::new(0., h), Point::new(w, 0.))
+    } else {
+        (Point::ORIGIN, Point::new(w, h))
+    };
+    let x = if legs >= 3 {
+        w * value(0) / 100_000.
+    } else {
+        w
+    };
+    let y = if legs >= 4 {
+        h * value(1) / 100_000.
+    } else {
+        h
+    };
+    let last_x = if legs == 5 {
+        w * value(2) / 100_000.
+    } else {
+        w
+    };
+    let corners = [
+        Point::new(x, 0.),
+        Point::new(x, y),
+        Point::new(last_x, y),
+        Point::new(last_x, h),
+    ];
+    let corners = &corners[..legs - 1];
+    let mut outline = BezPath::new();
+    outline.move_to(start);
+    if name.starts_with("curved") {
+        let mut from = start;
+        for (i, &corner) in corners.iter().enumerate() {
+            let to = corners
+                .get(i + 1)
+                .map_or(end, |&next| corner.midpoint(next));
+            outline.curve_to(from.midpoint(corner), corner.midpoint(to), to);
+            from = to;
+        }
+    } else {
+        for &corner in corners {
+            outline.line_to(corner);
+        }
+        outline.line_to(end);
+    }
+    let mut handles = Vec::new();
+    for (i, pair) in corners.windows(2).enumerate() {
+        let center = pair[0].midpoint(pair[1]);
+        let (origin, dir) = if i == 1 {
+            (Point::new(center.x, 0.), Vec2::new(0., h / 100_000.))
+        } else {
+            (Point::new(0., center.y), Vec2::new(w / 100_000., 0.))
+        };
+        handles.push(Handle::new(i, origin, dir, value(i), -1e6, 1e6));
+    }
+    Some(Geometry {
+        paths: vec![stroke_only(outline)],
+        text_rect: Rect::new(0., 0., w, h),
+        handles,
+        sites: vec![start, end],
+    })
+}
 
 /// ECMA's corner guides are measured against the shorter shape side. The document keeps
 /// its original preset and values; text placement and connector indices retain the editor's
@@ -223,6 +302,42 @@ pub(super) fn opposed_arrows(vertical: bool, w: f64, h: f64, shaft: f64, head: f
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn connector_guides_route_every_leg_and_keep_draggable_adjustments() -> Result<(), &'static str>
+    {
+        use kurbo::PathEl;
+        for curved in [false, true] {
+            for legs in 2..=5 {
+                let name = format!("{}Connector{legs}", if curved { "curved" } else { "bent" });
+                let g = connector(&name, 200., 80., &[25_000., 75_000., 60_000.])
+                    .ok_or("missing connector")?;
+                let path = g.paths[0].path.elements();
+                assert_eq!(g.sites, [Point::ORIGIN, Point::new(200., 80.)]);
+                assert_eq!(g.handles.len(), legs - 2);
+                assert_eq!(path.len(), if curved { legs } else { legs + 1 });
+                if legs == 5 {
+                    assert_eq!(g.handles[0].pos, Point::new(50., 30.));
+                    assert_eq!(g.handles[1].pos, Point::new(85., 60.));
+                    assert_eq!(g.handles[2].pos, Point::new(120., 70.));
+                    if curved {
+                        assert_eq!(
+                            path[2],
+                            PathEl::CurveTo(
+                                Point::new(50., 45.),
+                                Point::new(67.5, 60.),
+                                Point::new(85., 60.)
+                            )
+                        );
+                    } else {
+                        assert_eq!(path[3], PathEl::LineTo(Point::new(120., 60.)));
+                    }
+                }
+            }
+        }
+        Ok(())
+    }
+
     use kurbo::Shape;
 
     #[test]
