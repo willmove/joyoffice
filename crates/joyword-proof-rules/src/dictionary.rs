@@ -3,7 +3,9 @@
 //! See the Hunspell 5 manual, under FLAG, PFX/SFX and COMPOUNDRULE.
 mod compound;
 mod condition;
+mod entries;
 mod flags;
+pub use entries::{alias_index, entry, entry_bytes, visit_compact_roots, write_compact_root};
 
 pub use compound::{MAX_COMPOUND_TOKENS, Repeat, compound_pattern};
 pub use condition::{Condition, condition};

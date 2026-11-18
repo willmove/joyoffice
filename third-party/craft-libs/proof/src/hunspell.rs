@@ -750,22 +750,7 @@ fn comment_field(dir: &str, field: impl Fn(usize) -> Option<String>) -> usize {
 /// comes first, so an entry may hold spaces (`ad hoc`); with neither, at the end of the line
 /// (`kot/B 12` has the flags `B 12`, as in Hunspell).
 pub(crate) fn dic_entry_end(line: &[u8]) -> usize {
-    let blank = |b: &u8| matches!(b, b' ' | b'\t');
-    let morph = line
-        .windows(4)
-        .position(|w| matches!(w, [a, b, c, b':'] if blank(a) && !blank(b) && !blank(c)));
-    let tab = line.iter().position(|&b| b == b'\t');
-    let end = match (morph, tab) {
-        (Some(m), Some(t)) => m.min(t),
-        (m, t) => match m.or(t) {
-            Some(e) => e,
-            None => line.len(),
-        },
-    };
-    // Blanks before the morphological field or the line end aren't part of the entry.
-    line.get(..end).map_or(end, |e| {
-        e.iter().rposition(|b| !blank(b)).map_or(0, |k| k + 1)
-    })
+    joyword_proof_rules::dictionary::entry_bytes(line).len()
 }
 
 /// A UTF-8 `.dic` with single-byte flags: the word is UTF-8, the flags after `/` are bytes.

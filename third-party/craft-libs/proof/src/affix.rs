@@ -525,13 +525,7 @@ impl Rules {
         if !self.aliases_on {
             return None;
         }
-        let digits = written.bytes().take_while(u8::is_ascii_digit).count();
-        let i = written
-            .get(..digits)?
-            .parse::<usize>()
-            .ok()?
-            .checked_sub(1)?;
-        (i < self.aliases.len()).then_some(i)
+        joyword_proof_rules::dictionary::alias_index(written, self.aliases.len())
     }
 
     /// `w` without the `IGNORE` characters.
@@ -601,6 +595,7 @@ fn zero_empty(s: &str) -> String {
 /// U+FE0F VARIATION SELECTOR-16 asks for the emoji form of the character before it. A dictionary
 /// that uses an emoji as a flag may write it after the flag (RLA-ES Spanish: `PFX ☎️`, `banco/S☎️`),
 /// but it is not a flag of its own: it is dropped wherever flags are read.
+#[cfg(test)]
 const EMOJI_SELECTOR: char = '\u{fe0f}';
 
 /// A flag as written in the source, before it gets a dense id: a character (one-character mode),
@@ -1081,47 +1076,28 @@ impl AffixDict {
         let aff = aff.strip_prefix('\u{feff}').unwrap_or(aff);
         let dic = dic.strip_prefix('\u{feff}').unwrap_or(dic);
         let rules = parse_aff(aff, english)?;
-        let mut stems: Vec<(String, String)> = Vec::new();
+        let mut stems = Vec::new();
         let mut flag_text = FlagText::new(max_flags);
         for (n, line) in dic.lines().enumerate() {
-            // The entry may hold spaces (`ad hoc/B\tpo:adv`); it ends where Hunspell ends it.
-            // Leading blanks belong to it, as in Hunspell (`  lab` is no `lab`).
-            let tok = line
-                .get(..crate::hunspell::dic_entry_end(line.as_bytes()))
-                .unwrap_or_default();
-            if tok.is_empty() {
+            if n == 0
+                && line[..joyword_proof_rules::dictionary::entry_bytes(line.as_bytes()).len()]
+                    .parse::<usize>()
+                    .is_ok()
+            {
                 continue;
             }
-            if n == 0 && tok.parse::<usize>().is_ok() {
-                continue;
-            }
-            // `\/` is a literal slash in a word; the first plain `/` starts the flags.
-            let mut word = String::new();
-            let mut flags = String::new();
-            let mut chars = tok.chars().peekable();
-            let mut in_flags = false;
-            while let Some(c) = chars.next() {
-                if in_flags {
-                    if c != EMOJI_SELECTOR {
-                        flags.push(c);
-                    }
-                } else if c == '\\' && chars.peek() == Some(&'/') {
-                    word.push('/');
-                    chars.next();
-                } else if c == '/' {
-                    in_flags = true;
-                } else {
-                    word.push(c);
-                }
-            }
-            let word = rules.strip_ignored(&word);
+            let entry = joyword_proof_rules::dictionary::entry(line);
+            let word = if rules.ignore.is_empty() {
+                entry.root
+            } else {
+                std::borrow::Cow::Owned(rules.strip_ignored(&entry.root))
+            };
+            // The installed WCAFF2 representation reserves a literal slash for flags.
             if word.is_empty() || word.len() > MAX_WORD_BYTES || word.contains(['\n', '/']) {
                 continue;
             }
-            // With an `AF` table the field stays an alias number here: build() reads each alias
-            // once, and every stem using it shares those flags.
-            flag_text.add(&flags)?;
-            stems.push((word, flags));
+            flag_text.add(&entry.flags)?;
+            stems.push((word.into_owned(), entry.flags));
         }
         AffixDict::build(
             rules,
@@ -1136,7 +1112,7 @@ impl AffixDict {
     /// buffer, within the `max_flags` budget: the stems as `(word, start, end, is a word)`, and the keys.
     fn read_stem_flags(
         rules: &Rules,
-        stems: Vec<(String, String)>,
+        stems: Vec<(String, std::borrow::Cow<'_, str>)>,
         entry_cap: usize,
         max_flags: usize,
     ) -> Result<StemFlags, String> {
@@ -1207,7 +1183,7 @@ impl AffixDict {
     /// The stems' flags may number `max_flags` in all ([`MAX_STEM_FLAGS`]), counted as they are read.
     fn build(
         rules: Rules,
-        stems: Vec<(String, String)>,
+        stems: Vec<(String, std::borrow::Cow<'_, str>)>,
         comments: Vec<String>,
         entry_cap: usize,
         max_flags: usize,
@@ -2693,14 +2669,7 @@ impl AffixDict {
         for i in 0..self.len() {
             let Some(w) = self.word(i) else { continue };
             let b = w.as_bytes();
-            let p = prev
-                .iter()
-                .zip(b)
-                .take_while(|(x, y)| x == y)
-                .count()
-                .min(255);
-            raw.push(p as u8);
-            raw.extend_from_slice(b.get(p..).unwrap_or_default());
+            joyword_proof_rules::dictionary::write_compact_root(&mut raw, prev, b);
             // The homonyms kept apart each on a line, or their flags merged; then the
             // ONLYINCOMPOUND homonyms' flags. The same stem again is merged back on reading.
             let at = u32::try_from(i).ok();
@@ -2842,43 +2811,19 @@ impl AffixDict {
             }
         }
         let body = raw.get(words_at + 7..).unwrap_or_default();
-        let mut stems: Vec<(String, String)> = Vec::new();
+        let mut stems = Vec::new();
         let mut flag_text = FlagText::new(MAX_STEM_FLAGS);
-        let mut cur: Vec<u8> = Vec::new();
-        let mut i = 0;
-        while let Some(&p) = body.get(i) {
-            let rest = body.get(i + 1..).unwrap_or_default();
-            let len = rest
-                .iter()
-                .position(|&b| b == b'\n')
-                .ok_or("affix dictionary: truncated")?;
-            let line = rest.get(..len).unwrap_or_default();
-            i += len + 2;
-            let p = p as usize;
-            if p > cur.len() {
-                return Err("affix dictionary: bad prefix".into());
-            }
-            let (tail, flags) = match line.iter().position(|&b| b == b'/') {
-                Some(k) => (
-                    line.get(..k).unwrap_or_default(),
-                    line.get(k + 1..).unwrap_or_default(),
-                ),
-                None => (line, &[][..]),
-            };
-            cur.truncate(p);
-            cur.extend_from_slice(tail);
-            let word =
-                std::str::from_utf8(&cur).map_err(|_| "affix dictionary: bad utf-8 in a stem")?;
-            let flags =
-                std::str::from_utf8(flags).map_err(|_| "affix dictionary: bad utf-8 in flags")?;
-            if word.is_empty() || word.len() > MAX_WORD_BYTES {
-                return Err("affix dictionary: bad stem".into());
-            }
-            flag_text
-                .add(flags)
-                .map_err(|e| format!("affix dictionary: {e}"))?;
-            stems.push((word.to_string(), flags.to_string()));
-        }
+        joyword_proof_rules::dictionary::visit_compact_roots(
+            body,
+            MAX_WORD_BYTES,
+            |word, flags| {
+                flag_text
+                    .add(flags)
+                    .map_err(|e| format!("affix dictionary: {e}"))?;
+                stems.push((word.to_owned(), std::borrow::Cow::Borrowed(flags)));
+                Ok(())
+            },
+        )?;
         AffixDict::build(rules, stems, comments, MAX_FLAGS_PER_STEM, MAX_STEM_FLAGS)
     }
 }

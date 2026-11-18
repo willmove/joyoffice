@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 import runpy
 import subprocess
+import zlib
 from tempfile import TemporaryDirectory
 
 MORPH = runpy.run_path(str(Path(__file__).with_name("check-morphology.py")))
@@ -54,7 +55,7 @@ def compare(folder, programs, reference, aff, dic, words):
             assert compact_answers(reader, compact, words) == source[0]
     assert hashes[0] == hashes[1], hashes
     return {
-        **diagnostics, "words": len(words), "accepted": sum(source[0]),
+        **diagnostics, "referenceWordDifferences": [[word, got, want] for word, got, want in zip(words, source[0], expected, strict=True) if got != want], "words": len(words), "accepted": sum(source[0]),
         "referenceDifferences": sum(a != b for a, b in zip(expected, source[0], strict=True)),
         "referenceDiagnostic": bool(reference.diagnostic), "answersSha256": hashlib.sha256(bytes(source[0])).hexdigest(),
         "compactSha256": hashes, "bothReadersOnBothWriters": True,
@@ -79,10 +80,70 @@ def grammars(folder, versions, oracle):
     return result
 
 
-def review(old, new, desktop, out):
+def entry_cases(folder, programs, reference):
+    result = {}
+    for mode, suffix in (('UTF-8', 'S'), ('long', 'Sx'), ('num', '65000')):
+        for aliases in (False, True):
+            for use_ignore in (False, True):
+                flag = '1' if aliases else suffix
+                aff = (f'SET UTF-8\nFLAG {mode}\n' + ('IGNORE -\n' if use_ignore else '') +
+                       (f'AF 2\nAF {suffix}\nAF {suffix}\n' if aliases else '') +
+                       f'SFX {suffix} N 1\nSFX {suffix} 0 s .\n').encode()
+                stems = (['data', 'ad hoc', '猫', '東京', 'mädchen', '𐐀word', 'a-b', 'abcdefghijA',
+                          'abcdefghijB', 'x' * 47 + 'A', 'x' * 47 + 'B', '鲁', '鲃'])
+                written = [stem + '/' + flag + ('\tpo:noun' if i % 2 else '  st:meta')
+                           for i, stem in enumerate(stems)]
+                written.extend(['cat/' + flag, 'cat', 'unflagged   ', '  padded'])
+                if aliases:
+                    written.extend(['aliasprefix/0002tail', 'emptyalias/0', 'outside/3'])
+                words = list(dict.fromkeys([v for stem in [*stems, 'cat', 'unflagged', 'padded', 'ab',
+                                              'aliasprefix', 'emptyalias', 'outside'] for v in [stem, stem + 's']]))
+                dic = ('\ufeff' + str(len(written)) + '\n' + '\n'.join(written) + '\n').encode()
+                row = compare(folder, programs, reference, aff, dic, words)
+                # Both Word generations accept terminal padding; they also retain valid
+                # non-BMP letters with IGNORE enabled. Hunspell 1.7.5 differs in these cases.
+                retained = ['𐐀word', '𐐀words'] if use_ignore else []
+                retained.append('unflagged')
+                assert not row["referenceDiagnostic"] and row["referenceWordDifferences"] == [[w, True, False] for w in retained], row
+                result[f'{mode} aliases={aliases} ignore={use_ignore}'] = row
+    return result
+
+
+def compact_boundaries(folder, readers):
+    # The length byte is binary. Both 10 and 47 are valid even at line starts.
+    valid = (b'\x00abcdefghijA\n\x0aB\n\x00' + b'x' * 47 + b'A\n/B\n'
+             + b'\x00' + '鲁'.encode() + b'\n\x02' + '鲃'.encode()[2:] + b'\n')
+    words = ['abcdefghijA', 'abcdefghijB', 'x' * 47 + 'A', 'x' * 47 + 'B', '鲁', '鲃', 'missing']
+    path = folder / 'boundary.affix'
+    def write(content):
+        zipped = zlib.compressobj(wbits=-15)
+        path.write_bytes(zipped.compress(b'WCAFF2\nWORDS\n' + content) + zipped.flush())
+    write(valid)
+    expected = [True] * 6 + [False]
+    assert all(compact_answers(reader, path, words) == expected for reader in readers)
+    errors = {}
+    for label, body in [('missing LF', b'\0text'), ('prefix beyond previous', b'\x02x\n'),
+                        ('empty first entry', b'\0/S\n'), ('long stem', b'\0' + b'x' * 121 + b'\n'),
+                        ('invalid stem UTF-8', b'\0\xff\n'), ('invalid flag UTF-8', b'\0cat/\xff\n')]:
+        write(body)
+        messages = []
+        for reader in readers:
+            proc = subprocess.run([reader, 'check', path], input='', text=True, capture_output=True, timeout=60)
+            assert proc.returncode and 'affix dictionary:' in proc.stderr
+            messages.append(proc.stderr.strip())
+        assert messages[0] == messages[1]
+        errors[label] = messages[0]
+    return {'validWords': dict(zip(words, expected)), 'rejections': errors}
+
+
+def review(old, new, desktop, out, entries=False):
     dictionary = out / "dictionary"
     aff = b"SET UTF-8\nFLAG num\nTRY workse\nSFX 65535 N 1\nSFX 65535 0 s [ck]\n"
-    SPELL["write_dictionary"](dictionary, "nl", aff, b"1\nwork/65535\n")
+    stems = b"1\nwork/65535\n"
+    if entries:
+        aff += b"AF 1\nAF 65535\n"
+        stems = b"1\nwork/0001tail  st:work\n"
+    SPELL["write_dictionary"](dictionary, "nl", aff, stems)
     before, current = [SPELL["results"](cli, dictionary, "nl", ["workss", "works"]) for cli in (old, new)]
     assert current == before and [row["text"] for row in current] == ["workss"], current
     assert current[0]["suggestions"][0] == "works", current
@@ -99,6 +160,7 @@ if __name__ == "__main__":
     ap.add_argument("reference", type=Path, help="Hunspell shared library")
     ap.add_argument("packs", type=Path)
     ap.add_argument("output", type=Path)
+    ap.add_argument("--entries", action="store_true", help="also test source entries, AF aliases and compact binary boundaries")
     ap.add_argument("--review", nargs=3, type=Path, metavar=("OLD_CLI", "NEW_CLI", "DESKTOP"))
     a = ap.parse_args()
     tools = [[(a.tools / (kind + "-" + tag)).resolve() for tag in ("baseline", "candidate")] for kind in ("check", "compact")]
@@ -112,6 +174,9 @@ if __name__ == "__main__":
     with TemporaryDirectory() as temp:
         folder = Path(temp)
         data["grammars"] = grammars(folder, tools, oracle)
+        if a.entries:
+            data["entries"] = entry_cases(folder, tools, oracle)
+            data["compactBoundaries"] = compact_boundaries(folder, tools[1])
         for entry in json.loads(index.read_text())["packs"]:
             tag = entry["locale"]
             archive = a.packs / (tag + ".tar.zst")
@@ -120,5 +185,5 @@ if __name__ == "__main__":
             words = SPELL["sample_words"](aff, dic)
             data["packs"][tag] = compare(folder, tools, oracle, aff, dic, words)
     if a.review:
-        data["desktop"] = review(*(v.resolve() for v in a.review), out)
+        data["desktop"] = review(*(v.resolve() for v in a.review), out, entries=a.entries)
     (out / "report.json").write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n")
