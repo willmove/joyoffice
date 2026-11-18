@@ -53,6 +53,7 @@ mod ctx;
 mod floats;
 mod flow;
 mod headers;
+pub mod hyphenation;
 mod incremental;
 mod notes;
 mod page;
@@ -348,15 +349,20 @@ pub struct DocLayout {
     pub ms: f64,
     /// Text box stories laid out (each time a box's text was).
     pub text_boxes: usize,
-    /// Only set for a geometry-preserving replacement of one page's text.
-    pub(crate) page_patch: Option<(std::sync::Weak<DocLayout>, usize)>,
+    /// Only set when pages outside the affected range retain their geometry and contents.
+    pub(crate) page_patch: Option<(std::sync::Weak<DocLayout>, std::ops::Range<usize>)>,
 }
 
 impl DocLayout {
     /// Return the only page that needs repainting when the caller holds the exact base layout.
     pub fn changed_page_from(&self, base: &Arc<Self>) -> Option<usize> {
-        let (previous, page) = self.page_patch.as_ref()?;
-        std::ptr::eq(previous.as_ptr(), Arc::as_ptr(base)).then_some(*page)
+        let pages = self.changed_pages_from(base)?;
+        (pages.len() == 1).then_some(pages.start)
+    }
+
+    pub fn changed_pages_from(&self, base: &Arc<Self>) -> Option<std::ops::Range<usize>> {
+        let (previous, pages) = self.page_patch.as_ref()?;
+        std::ptr::eq(previous.as_ptr(), Arc::as_ptr(base)).then(|| pages.clone())
     }
 }
 

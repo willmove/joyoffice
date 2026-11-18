@@ -6,20 +6,21 @@
       "source_path": "crates/color/Cargo.toml",
       "source_sha256": "a40ec478be86aa7afa1c445ae975a6fad88ccafcebdc7e09ddfd1e170f76c707",
       "target_path": "crates/joydeck-color/Cargo.toml",
-      "adapted_sha256": "a65ac11c1e4dd642932680258f66bdc7b5885a9bb6a7d45edf6261d2b9c69524",
+      "adapted_sha256": "622f0009a1b90d3b064957f8f02872259aa7f6a5bda2e7283f5f2d8159abb61f",
       "changes": [
         "crate/import namespace deckcraft -> joydeck",
         "LF normalization",
         "package description credits origin",
         "rustfmt using repository Unix newline policy",
-        "inherit JoyOffice Rust/repository metadata and keep package private"
+        "inherit JoyOffice Rust/repository metadata and keep package private",
+        "Share hexadecimal DrawingML color parsing and serialization while keeping Deck short forms and alpha handling."
       ]
     },
     {
       "source_path": "crates/color/src/lib.rs",
       "source_sha256": "93b024e9e9031f8cb1ac73dd4a325ce23099a4e4b1ebd347c085f2674b21addc",
       "target_path": "crates/joydeck-color/src/lib.rs",
-      "adapted_sha256": "03596e80002915146e1a49abf4a9cce502bf218649c50283e3c5dd1582f2e2ea",
+      "adapted_sha256": "e8727717eee66bbf5ae0e506844c100f0f152973cf8bd7550e5fe8be1b6d02ee",
       "changes": [
         "crate/import namespace deckcraft -> joydeck",
         "LF normalization",
@@ -27,7 +28,8 @@
         "rustfmt using repository Unix newline policy",
         "preserve upstream rgba constructor with local Clippy style annotation",
         "test-only assertion lint allowances; production no-panic guards retained",
-        "scoped Clippy style allowances preserve imported public representations"
+        "scoped Clippy style allowances preserve imported public representations",
+        "Share hexadecimal DrawingML color parsing and serialization while keeping Deck short forms and alpha handling."
       ]
     },
     {
@@ -74,12 +76,13 @@
       "source_path": "crates/geom/src/preset/build.rs",
       "source_sha256": "0f20c9e24506d28aaa495311d6d653279dcd297f898e5d10104bc2526ab8b154",
       "target_path": "crates/joydeck-geom/src/preset/build.rs",
-      "adapted_sha256": "6906cb3da000efe18cd1ceab77218c95e2253862ce6991bbe714095a8c0c36d8",
+      "adapted_sha256": "3c943f8f5dfd20116840ed4145a7442277a1907a18e198cde68423105ce60747",
       "changes": [
         "crate/import namespace deckcraft -> joydeck",
         "LF normalization",
         "package description credits origin",
-        "rustfmt using repository Unix newline policy"
+        "rustfmt using repository Unix newline policy",
+        "Independently derive rounded rectangles and the four straight arrows from the DrawingML adjustment guides and connector coordinates."
       ]
     },
     {
@@ -147,13 +150,14 @@
       "source_path": "crates/geom/src/preset.rs",
       "source_sha256": "94c4d928be5b4d8f44d570ce5c3376d6128617ab8cc14a7450b1c0383c6190fd",
       "target_path": "crates/joydeck-geom/src/preset.rs",
-      "adapted_sha256": "4e4ada1f226be3a811b16ddfe989a6d94ca5e812f9037572e224de0eac392e6f",
+      "adapted_sha256": "3c36c04ebcc8a9bff26ec55323d933475a9829612c936880cdd763ccd88bf5b0",
       "changes": [
         "crate/import namespace deckcraft -> joydeck",
         "LF normalization",
         "package description credits origin",
         "rustfmt using repository Unix newline policy",
-        "test-only assertion lint allowances; production no-panic guards retained"
+        "test-only assertion lint allowances; production no-panic guards retained",
+        "Independently derive rounded rectangles and the four straight arrows from the DrawingML adjustment guides and connector coordinates."
       ]
     },
     {

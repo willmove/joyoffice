@@ -28,6 +28,8 @@ pub(super) fn run(input: &Path, page: usize, count: usize, output: &Path) -> Res
     let start = Instant::now();
     let scene = cache.build(p, page, scale, &|| false)?;
     let cold = start.elapsed().as_micros() as u64;
+    let cold_hashed = cache.stats.media_hashed_bytes;
+    let mut peak_cache = cache.stats.cache_bytes;
     let reference = doc.render(page, scale, &Cancellation::default())?;
     let actual = joydeck_render::scene::raster(&scene, scale)?;
     let mut bad = 0usize;
@@ -77,6 +79,7 @@ pub(super) fn run(input: &Path, page: usize, count: usize, output: &Path) -> Res
         let start = Instant::now();
         let _ = cache.build(&model, page, scale, &|| false)?;
         cached.push(start.elapsed().as_micros() as u64);
+        peak_cache = peak_cache.max(cache.stats.cache_bytes);
     }
     let fonts: Vec<_> = scene
         .nodes
@@ -91,7 +94,7 @@ pub(super) fn run(input: &Path, page: usize, count: usize, output: &Path) -> Res
         .collect::<std::collections::BTreeSet<_>>()
         .into_iter()
         .collect();
-    let report = serde_json::json!({"input":input,"source_sha256":format!("{:x}",Sha256::digest(doc.original.as_ref())),"page":page+1,"scale":scale,"build":"release flag must be recorded by runner","consumer":"headless vello_cpu scene reference; GPUI comparison requires desktop screenshots","workload":"alternate +1/-1 pt translation of first native object; no text reshaping expected","translated_shape":id,"cold_scene_build_us":cold,"cpu_full_page":percentiles(&cpu),"cached_scene_build":percentiles(&cached),"scene_stats":cache.stats,"font_bytes_sha256_and_face":fonts,"parity":{"channels_over_12":bad,"fraction":fraction,"mean_absolute_error":absolute as f64/reference.pixels.len() as f64,"max_error":peak,"fixed_fraction_limit":0.01,"passed":fraction<=0.01},"presentation_latency":"unmeasured: CPU preparation is not GPU draw or presented-frame latency"});
+    let report = serde_json::json!({"input":input,"source_sha256":format!("{:x}",Sha256::digest(doc.original.as_ref())),"page":page+1,"scale":scale,"build":"release flag must be recorded by runner","consumer":"headless vello_cpu scene reference; GPUI comparison requires desktop screenshots","workload":"alternate +1/-1 pt translation of first native object; no text reshaping expected","translated_shape":id,"cold_scene_build_us":cold,"cold_media_hashed_bytes":cold_hashed,"repeated_media_hashed_bytes":cache.stats.media_hashed_bytes-cold_hashed,"peak_estimated_geometry_cache_bytes":peak_cache,"cpu_full_page":percentiles(&cpu),"cached_scene_build":percentiles(&cached),"scene_stats":cache.stats,"font_bytes_sha256_and_face":fonts,"parity":{"channels_over_12":bad,"fraction":fraction,"mean_absolute_error":absolute as f64/reference.pixels.len() as f64,"max_error":peak,"fixed_fraction_limit":0.01,"passed":fraction<=0.01},"presentation_latency":"unmeasured: CPU preparation is not GPU draw or presented-frame latency"});
     std::fs::create_dir(output).map_err(|e| format!("output directory must be new: {e}"))?;
     joydeck_shell::platform::publish(&output.join("cpu.png"), &reference.to_png(), false)?;
     joydeck_shell::platform::publish(&output.join("scene-reference.png"), &actual.to_png(), false)?;

@@ -53,10 +53,17 @@ pub fn check(bytes: &[u8]) -> Result<(), String> {
                 "the DIFAT chain is longer than the file or leaves it (sector {next})"
             ));
         }
-        let at = (next as usize + 1) * sector_len;
+        let sector = joyoffice_cfb::sector_bytes(bytes, sector_len, next)
+            .ok_or_else(|| format!("the DIFAT sector leaves the file (sector {next})"))?;
+        let entry = |i: usize| {
+            sector
+                .get(4 * i..4 * i + 4)
+                .and_then(|word| word.try_into().ok())
+                .map(u32::from_le_bytes)
+        };
         let entries = sector_len / 4 - 1;
-        difat.extend((0..entries).map(|i| u32_at(at + i * 4).unwrap_or(FREE)));
-        next = u32_at(at + entries * 4).unwrap_or(END_OF_CHAIN);
+        difat.extend((0..entries).map(|i| entry(i).unwrap_or(FREE)));
+        next = entry(entries).unwrap_or(END_OF_CHAIN);
     }
     while difat.len() > HEADER_ENTRIES && difat.len() > num_fat_sectors && difat.last() == Some(&0)
     {

@@ -63,3 +63,26 @@ UOS 25 x86_64 的 DDE 用户会话、物理显示器 `:0`、系统 Fcitx5 和发
 ## Sheet 工作簿与重算
 
 两份用户授权工作簿各自用默认与候选 CLI 验证往返，原始工作表没有公式。脚本在临时副本中按实际数值位置加入算式和汇总，生成独立期望缓存，逐格核对两种实现及往返结果。两端分别匹配 916/916 和 16/16。报告只记录摘要、计数和计时。复跑使用 `scripts/joysheet/verify-business-workbooks.py --help`。桌面扇出测量另用 `scripts/joysheet/bench-fanout.py`，每组 20 次编辑，验证撤销、重做和 XLSX 重开。[业务结果](business-workbooks.json) · [历史基线与候选](recalculation.json)
+
+## 分页、媒体与形状
+
+运行 `cargo run --locked --release -p joyword-engine --example chapter_reflow` 可重建 1,000 页语料并交替插入和删除四个会换行的短句。两端各执行 20 次计时。比较的第一个版本持有暖机的完整布局缓存；候选计时包括改段落和生成新布局。前两次改动另逐页比较所有放置项、行区间与命中，核对三页修改区及相邻两页的光栅和 PDF 字节。[逐次结果](chapter-reflow.json)
+
+`joydeck-cli scene-bench tests/fixtures/joydeck/r6-r7/delivery-media.pptx --page 1 --iterations 25 --output NEW_DIR` 记录媒体哈希量、CPU 全页渲染、缓存构建和几何缓存大小。标题编辑和同 ID 换图的正确性另由 `joydeck-render` 的缓存用例验证。`scripts/joydeck/check-preset-shapes.py OLD_CLI NEW_CLI NEW_DIR` 为五种形状各生成四种调整设置，核对 XML，再让两个版本渲染原件和新版本重新生成的文件。设计资料取自 ECMA-376 第一部分 §20.1.9 及附带的预设几何 XML（SHA-256 为 `2f7c868d857c1e3c4b5a6068759fe0e07d77ad58377a6618d1b02ba3507b6939`）。[场景结果](deck-media.json) · [几何结果](deck-presets.json) · [ECMA 第五版第一部分](https://ecma-international.org/wp-content/uploads/ECMA-376-1_5th_edition_december_2016.zip)
+
+## Sheet 默认采用与原生显示帧
+
+两个 Release 构建来自同一份源码，分别关闭和启用标量批处理。按基线、候选、候选、基线的顺序测试，两个顺序均有每配置 20 次有效编辑。UOS 计时期间停止编译。下表为合并 40 个样本的最近秩 P95。RSS 为两轮中较高的进程生命周期峰值，包含保存、撤销和重开。真实工作簿结果另见上节。
+
+| 平台与行数 | 引擎 P95 毫秒 | 提交到 CPU 绘制 P95 毫秒 | 请求到显示 P95 毫秒 | 峰值 RSS MiB |
+| --- | --- | --- | --- | --- |
+| macOS 100 | 0.208 → 0.206 | 21.60 → 18.04 | 81.16 → 81.21 | 142.13 → 142.14 |
+| macOS 100,000 | 71.23 → 50.63 | 81.79 → 62.50 | 144.51 → 116.06 | 1111.20 → 1115.69 |
+| UOS 100 | 0.558 → 0.538 | 15.80 → 15.22 | 47.59 → 42.51 | 140.60 → 141.21 |
+| UOS 100,000 | 205.17 → 155.91 | 217.40 → 168.61 | 203.97 → 138.72 | 1062.42 → 1062.80 |
+
+CPU 与显示来自独立运行。显示用例在 A1 交替提交 17 和 88，逐次读回 B1，按 B1:B3 的两个已校准像素摘要匹配帧。时间从发送本机编辑请求前算起，包含传输与调度。macOS 采用 ScreenCaptureKit 的 WindowServer 显示时间，UOS 采用 X Present 的 pixmap 完成事件并在收到事件时采样同一窗口。编译观察器可用 `swiftc -parse-as-library scripts/desktop_frames/window.swift -o /tmp/window-frames`，X11 可用 `cc -O2 scripts/desktop_frames/xpresent.c -o /tmp/window-frames -lX11 -lXpresent`。运行 `python3 scripts/joysheet/measure-presentation.py APP /tmp/window-frames NEW_DIR --rows 100000`。两端的引擎收益均超过 15%，小表 P95 与 RSS 均满足预算。已将合格子集设为默认，新进程可用 `JOYSHEET_SCALAR_RECALC=0` 恢复通用路径。[逐次引擎数据](same-source-recalculation.json) · [逐次显示数据](desktop-presentation.json) · [Apple 显示时间定义](https://developer.apple.com/documentation/screencapturekit/scstreamframeinfo/displaytime)
+
+## 功能区原生验收
+
+用 `python3 scripts/verify_shared_ribbon.py PRODUCT APP NEW_DIR` 启动独立配置的产品窗口。macOS 读取 AX 树，UOS 在 DDE 实机桌面上读取 AT-SPI 树。两端分别在 1180、740 窗宽下验证分组可达、键盘折叠后消失并可恢复。Word、Sheet 覆盖中英文，Deck 覆盖当前提供的中文功能区。[20 组实测](ribbon.json)

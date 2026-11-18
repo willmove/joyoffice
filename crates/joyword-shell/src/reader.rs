@@ -411,6 +411,10 @@ impl Reader {
     pub fn geometry(&self) -> &DocLayout {
         &self.layout
     }
+    pub fn changed_pages_from(&self, scene: &RasterScene) -> Option<std::ops::Range<usize>> {
+        self.layout.changed_pages_from(&scene.layout)
+    }
+
     pub fn changed_page_from(&self, scene: &RasterScene) -> Option<usize> {
         self.layout.changed_page_from(&scene.layout)
     }

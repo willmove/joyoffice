@@ -19,6 +19,7 @@ unimplemented = "deny"
 unreachable = "deny"
 
 [dependencies]
+joyoffice-omml.workspace = true
 joyoffice-opc.workspace = true
 joyword-model = { workspace = true }
 joyword-geom = { workspace = true }

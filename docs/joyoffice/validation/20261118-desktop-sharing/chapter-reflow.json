@@ -1,0 +1,218 @@
+{
+  "macOS": {
+    "allPageComparisons": 2000,
+    "hitComparisons": 6000,
+    "pages": 1000,
+    "rasterAndPdfCompared": "affected pages and both neighboring pages for insertion and deletion",
+    "samples": [
+      {
+        "changedPages": 3,
+        "editThroughLayoutMs": 1.282,
+        "fullLayoutMs": 3.139917
+      },
+      {
+        "changedPages": 3,
+        "editThroughLayoutMs": 0.892375,
+        "fullLayoutMs": 2.4785839999999997
+      },
+      {
+        "changedPages": 3,
+        "editThroughLayoutMs": 0.762625,
+        "fullLayoutMs": 2.3042499999999997
+      },
+      {
+        "changedPages": 3,
+        "editThroughLayoutMs": 0.663459,
+        "fullLayoutMs": 2.5122500000000003
+      },
+      {
+        "changedPages": 3,
+        "editThroughLayoutMs": 0.6938340000000001,
+        "fullLayoutMs": 2.2323749999999998
+      },
+      {
+        "changedPages": 3,
+        "editThroughLayoutMs": 0.702791,
+        "fullLayoutMs": 2.0884169999999997
+      },
+      {
+        "changedPages": 3,
+        "editThroughLayoutMs": 0.610958,
+        "fullLayoutMs": 1.9884579999999998
+      },
+      {
+        "changedPages": 3,
+        "editThroughLayoutMs": 0.5946670000000001,
+        "fullLayoutMs": 1.9867499999999998
+      },
+      {
+        "changedPages": 3,
+        "editThroughLayoutMs": 0.621584,
+        "fullLayoutMs": 1.986084
+      },
+      {
+        "changedPages": 3,
+        "editThroughLayoutMs": 0.582292,
+        "fullLayoutMs": 1.950333
+      },
+      {
+        "changedPages": 3,
+        "editThroughLayoutMs": 0.596333,
+        "fullLayoutMs": 2.0078750000000003
+      },
+      {
+        "changedPages": 3,
+        "editThroughLayoutMs": 0.6268330000000001,
+        "fullLayoutMs": 2.0753749999999997
+      },
+      {
+        "changedPages": 3,
+        "editThroughLayoutMs": 0.611625,
+        "fullLayoutMs": 1.984209
+      },
+      {
+        "changedPages": 3,
+        "editThroughLayoutMs": 0.593416,
+        "fullLayoutMs": 1.96125
+      },
+      {
+        "changedPages": 3,
+        "editThroughLayoutMs": 0.617792,
+        "fullLayoutMs": 2.134834
+      },
+      {
+        "changedPages": 3,
+        "editThroughLayoutMs": 0.6474169999999999,
+        "fullLayoutMs": 2.4151670000000003
+      },
+      {
+        "changedPages": 3,
+        "editThroughLayoutMs": 0.693833,
+        "fullLayoutMs": 2.3194589999999997
+      },
+      {
+        "changedPages": 3,
+        "editThroughLayoutMs": 0.657333,
+        "fullLayoutMs": 2.056792
+      },
+      {
+        "changedPages": 3,
+        "editThroughLayoutMs": 0.6046670000000001,
+        "fullLayoutMs": 1.977584
+      },
+      {
+        "changedPages": 3,
+        "editThroughLayoutMs": 0.592,
+        "fullLayoutMs": 1.970625
+      }
+    ]
+  },
+  "UOS": {
+    "allPageComparisons": 2000,
+    "hitComparisons": 6000,
+    "pages": 1000,
+    "rasterAndPdfCompared": "affected pages and both neighboring pages for insertion and deletion",
+    "samples": [
+      {
+        "changedPages": 3,
+        "editThroughLayoutMs": 1.3408840000000002,
+        "fullLayoutMs": 3.3705879999999997
+      },
+      {
+        "changedPages": 3,
+        "editThroughLayoutMs": 1.264945,
+        "fullLayoutMs": 3.2677
+      },
+      {
+        "changedPages": 3,
+        "editThroughLayoutMs": 1.1985940000000002,
+        "fullLayoutMs": 3.231865
+      },
+      {
+        "changedPages": 3,
+        "editThroughLayoutMs": 0.89046,
+        "fullLayoutMs": 2.999219
+      },
+      {
+        "changedPages": 3,
+        "editThroughLayoutMs": 0.8484430000000001,
+        "fullLayoutMs": 3.258373
+      },
+      {
+        "changedPages": 3,
+        "editThroughLayoutMs": 1.133204,
+        "fullLayoutMs": 3.343559
+      },
+      {
+        "changedPages": 3,
+        "editThroughLayoutMs": 0.761533,
+        "fullLayoutMs": 2.77554
+      },
+      {
+        "changedPages": 3,
+        "editThroughLayoutMs": 0.944629,
+        "fullLayoutMs": 2.679504
+      },
+      {
+        "changedPages": 3,
+        "editThroughLayoutMs": 0.8196399999999999,
+        "fullLayoutMs": 2.9379570000000004
+      },
+      {
+        "changedPages": 3,
+        "editThroughLayoutMs": 1.415451,
+        "fullLayoutMs": 2.7984720000000003
+      },
+      {
+        "changedPages": 3,
+        "editThroughLayoutMs": 0.734664,
+        "fullLayoutMs": 2.766432
+      },
+      {
+        "changedPages": 3,
+        "editThroughLayoutMs": 0.9108970000000001,
+        "fullLayoutMs": 2.476502
+      },
+      {
+        "changedPages": 3,
+        "editThroughLayoutMs": 0.804722,
+        "fullLayoutMs": 2.858462
+      },
+      {
+        "changedPages": 3,
+        "editThroughLayoutMs": 0.888797,
+        "fullLayoutMs": 3.827675
+      },
+      {
+        "changedPages": 3,
+        "editThroughLayoutMs": 1.224511,
+        "fullLayoutMs": 3.2638030000000002
+      },
+      {
+        "changedPages": 3,
+        "editThroughLayoutMs": 0.912259,
+        "fullLayoutMs": 2.493133
+      },
+      {
+        "changedPages": 3,
+        "editThroughLayoutMs": 1.1569180000000001,
+        "fullLayoutMs": 3.353988
+      },
+      {
+        "changedPages": 3,
+        "editThroughLayoutMs": 1.389402,
+        "fullLayoutMs": 2.668294
+      },
+      {
+        "changedPages": 3,
+        "editThroughLayoutMs": 0.784455,
+        "fullLayoutMs": 2.755934
+      },
+      {
+        "changedPages": 3,
+        "editThroughLayoutMs": 0.7768919999999999,
+        "fullLayoutMs": 2.597915
+      }
+    ]
+  }
+}

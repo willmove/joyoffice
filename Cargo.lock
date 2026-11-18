@@ -3949,6 +3949,7 @@ dependencies = [
 name = "joydeck-color"
 version = "0.2.0"
 dependencies = [
+ "joyoffice-drawingml",
  "serde",
 ]
 
@@ -4412,6 +4413,8 @@ dependencies = [
  "aes 0.9.3",
  "flate2",
  "joyoffice-cfb",
+ "joyoffice-drawingml",
+ "joyoffice-omml",
  "joysheet-core",
  "joysheet-formula",
  "joysheet-model",
@@ -4465,6 +4468,7 @@ dependencies = [
  "cfb",
  "image",
  "jiff",
+ "joyoffice-cfb",
  "joyword-geom",
  "joyword-model",
  "log",
@@ -4487,6 +4491,7 @@ dependencies = [
  "hmac 0.13.0",
  "image",
  "jiff",
+ "joyoffice-omml",
  "joyoffice-opc",
  "joyword-geom",
  "joyword-model",
@@ -4623,6 +4628,7 @@ name = "joyword-model"
 version = "0.2.0"
 dependencies = [
  "base64 0.22.1",
+ "joyoffice-cfb",
  "joyword-geom",
  "log",
  "proptest",

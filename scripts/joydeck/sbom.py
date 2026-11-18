@@ -93,6 +93,16 @@ def source_hashes(data, packages, reached):
                      'licenses/joyoffice/MSVC-RUNTIME-NOTICE.txt'))
     is_word = any(packages[i]['name'] in ('joyword', 'joyword-cli') for i in reached)
     is_sheet = any(packages[i]['name'] == 'joysheet' for i in reached)
+    for identifier in reached:
+        package = packages[identifier]
+        if package.get('source'):
+            files.update(supplement_files(package, is_sheet))
+    for identifier in local:
+        directory = Path(packages[identifier]['manifest_path']).parent
+        files.update(p for p in directory.iterdir() if p.is_file() and
+                     p.name.upper().startswith(('LICENSE', 'LICENCE', 'COPYING', 'NOTICE', 'UNLICENSE')))
+        if directory.is_relative_to(ROOT / 'third-party/gpui-pre-linux'):
+            files.add(ROOT / 'licenses/gpui/NOTICE.md')
     if is_sheet:
         for identifier in reached & workspace:
             directory = Path(packages[identifier]['manifest_path']).parent
@@ -183,6 +193,25 @@ def verified_supplement_files(folder):
     return hashes
 
 
+def supplement_files(package, sheet_product):
+    name = package['name']
+    version = package['version']
+    key = name + '-' + version
+    files = verified_supplement_files(LICENSES / 'dependency-notices' / key)
+    files.update(verified_supplement_files(ROOT / 'licenses/joyoffice/dependency-notices' / key))
+    sheet_notices = ROOT / 'docs/joysheet/third-party' / name
+    versioned = sheet_notices / version
+    if versioned.is_dir():
+        files.update(verified_supplement_files(versioned))
+    elif sheet_product:
+        files.update(verified_supplement_files(sheet_notices))
+    elif (sheet_notices / 'SOURCE.json').is_file():
+        reference = json.loads((sheet_notices / 'SOURCE.json').read_text(encoding='utf-8'))
+        if reference.get('package') == key:
+            files.update(verified_supplement_files(sheet_notices))
+    return files
+
+
 def generate(output, target, profile='release', roots=('joydeck', 'joydeck-cli'), features=(), require_license_texts=False):
     product = roots[0].split('-')[0] if roots else 'joydeck'
     data, packages, reached, edges, root_ids = graph(target, roots, features)
@@ -228,16 +257,8 @@ def generate(output, target, profile='release', roots=('joydeck', 'joydeck-cli')
                 candidates.append(ROOT / 'licenses/gpui/NOTICE.md')
             else:
                 candidates.append(ROOT / 'LICENSE')
-        supplement = LICENSES / 'dependency-notices' / (p['name'] + '-' + p['version'])
-        supplement_hashes = verified_supplement_files(supplement)
+        supplement_hashes = supplement_files(p, product == 'joysheet')
         candidates.extend(supplement_hashes)
-        if product == 'joysheet':
-            supplement = ROOT / 'docs/joysheet/third-party' / p['name']
-            versioned = supplement / p['version']
-            if versioned.is_dir():
-                supplement = versioned
-            supplement_hashes.update(verified_supplement_files(supplement))
-            candidates.extend(supplement_hashes)
         copied = []
         for candidate in sorted(set(candidates)):
             if not candidate.is_file() or not 0 < candidate.stat().st_size <= 2 * 1024 * 1024:
@@ -285,7 +306,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('output', type=Path)
     parser.add_argument('--target', required=True)
-    parser.add_argument('--root', action='append', choices=['joydeck', 'joydeck-cli', 'joyword', 'joyword-cli'])
+    parser.add_argument('--root', action='append', choices=['joydeck', 'joydeck-cli', 'joyword', 'joyword-cli', 'joysheet', 'joysheet-cli'])
     parser.add_argument('--feature', action='append', default=[])
     args = parser.parse_args()
     result = generate(args.output, args.target, roots=tuple(args.root or ['joydeck', 'joydeck-cli']), features=args.feature)

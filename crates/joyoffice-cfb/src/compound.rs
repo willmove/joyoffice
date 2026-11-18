@@ -4,7 +4,7 @@ use std::collections::HashMap;
 
 use crate::budget::{CfbBudget, CfbError};
 use crate::directory::{Directory, EntryType};
-use crate::fat::{FatTable, sector_offset, traverse_chain};
+use crate::fat::{FatTable, traverse_chain};
 use crate::header::{CfbHeader, ENDOFCHAIN, FREESECT};
 
 #[derive(Debug)]
@@ -112,11 +112,8 @@ impl CompoundFile {
         let sec_size = self.header.sector_size;
 
         for &sec in &chain {
-            let offset = sector_offset(sec, sec_size)?;
-            if offset + sec_size > self.data.len() {
-                return Err(CfbError::UnexpectedEof);
-            }
-            let chunk = &self.data[offset..offset + sec_size];
+            let chunk =
+                crate::complete_sector(&self.data, sec_size, sec).ok_or(CfbError::UnexpectedEof)?;
             let needed = size.saturating_sub(out.len());
             let take = needed.min(sec_size);
             out.extend_from_slice(&chunk[..take]);

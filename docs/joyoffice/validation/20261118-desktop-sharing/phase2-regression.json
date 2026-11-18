@@ -1,0 +1,70 @@
+{
+  "macOS": {
+    "desktop": {
+      "exitCode": 0,
+      "logSha256": "fc55b573f7cf66495c35fae869485cdc2191009db6e71402f9945bd4424f14d1"
+    },
+    "ui": {
+      "exitCode": 0,
+      "logSha256": "7bfab6cd1f894f1ac9c92950c16f80d42ee23e707e24ca57ff761a112ee15224",
+      "passed": 75,
+      "failed": 0,
+      "ignored": 0
+    },
+    "joyword": {
+      "exitCode": 0,
+      "logSha256": "a27fbb7e1a4c0709ee005069106409a0bd3610eaef925c0abcfdf2a610de7acc",
+      "passed": 3668,
+      "failed": 0,
+      "ignored": 2
+    },
+    "joydeck": {
+      "exitCode": 0,
+      "logSha256": "800e47a1eb8d2102c2a1c5de3fa1541ee7415748515a82d2e188560c8a4701db",
+      "passed": 992,
+      "failed": 0,
+      "ignored": 0
+    },
+    "joysheet": {
+      "exitCode": 0,
+      "logSha256": "6f66020193bbdb1ca32cb842e1f29b4742b84c6edcd1945887b5b7dad0659d46",
+      "passed": 1451,
+      "failed": 0,
+      "ignored": 1
+    }
+  },
+  "UOS": {
+    "desktop": {
+      "exitCode": 0,
+      "logSha256": "17d0f31ddd6f63c8b4ad32d1b6e681d29db487a497aaf5a441563c9005f4c25d"
+    },
+    "ui": {
+      "exitCode": 0,
+      "logSha256": "b195c309d48da3e012a89182c81153d0ae91362dffb427b0cf04d2f7a0f67310",
+      "passed": 79,
+      "failed": 0,
+      "ignored": 0
+    },
+    "joyword": {
+      "exitCode": 0,
+      "logSha256": "0f15df27822d841b6c9746a1960f9ee5c908628ecccfb96776bdaa6fbd8f8d70",
+      "passed": 3672,
+      "failed": 0,
+      "ignored": 2
+    },
+    "joydeck": {
+      "exitCode": 0,
+      "logSha256": "4538c3e79d7237b43f56adf2ba732099b84f6e52868f5cb4031fc356fe4df974",
+      "passed": 997,
+      "failed": 0,
+      "ignored": 0
+    },
+    "joysheet": {
+      "exitCode": 0,
+      "logSha256": "7242a1e1bb6d329941188778e9d5ac2b7da77adc056631e84a5747696acae735",
+      "passed": 1451,
+      "failed": 0,
+      "ignored": 1
+    }
+  }
+}

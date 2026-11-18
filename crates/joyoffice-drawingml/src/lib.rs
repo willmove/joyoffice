@@ -3,6 +3,19 @@
 use quick_xml::events::Event;
 use quick_xml::reader::Reader;
 
+/// ECMA-376 ST_HexColorRGB. Input consists of three hexadecimal octets.
+pub fn parse_srgb(value: &str) -> Option<[u8; 3]> {
+    if value.len() != 6 || !value.bytes().all(|b| b.is_ascii_hexdigit()) {
+        return None;
+    }
+    let rgb = u32::from_str_radix(value, 16).ok()?.to_be_bytes();
+    Some([rgb[1], rgb[2], rgb[3]])
+}
+
+pub fn srgb_hex([r, g, b]: [u8; 3]) -> String {
+    format!("{r:02X}{g:02X}{b:02X}")
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DrawingBudget {
     pub max_shapes: usize,

@@ -53,10 +53,7 @@ fn directory_names(b: &[u8]) -> Option<Vec<String>> {
     }
     let size = 1usize << shift;
     let per = size / 4;
-    let sector = |id: u32| -> Option<&[u8]> {
-        let start = (id as usize).checked_add(1)?.checked_mul(size)?;
-        b.get(start..start.checked_add(size)?)
-    };
+    let sector = |id| joyoffice_cfb::complete_sector(b, size, id);
     // The DIFAT: the FAT's sector ids, 109 in the header then chained DIFAT sectors.
     let mut difat: Vec<u32> = (0..109).filter_map(|i| u32_at(b, 76 + i * 4)).filter(|&s| s < MAX_REG_SECT).collect();
     let mut next = u32_at(b, 68)?;
@@ -147,10 +144,7 @@ impl<'a> Compound<'a> {
         let per = sector_size / 4;
         // Sectors that physically exist after the header sector: every chain is bounded by it.
         let sectors = (b.len() / sector_size).saturating_sub(1);
-        let sector = |id: u32| -> Option<&[u8]> {
-            let start = (id as usize).checked_add(1)?.checked_mul(sector_size)?;
-            b.get(start..start.checked_add(sector_size)?)
-        };
+        let sector = |id| joyoffice_cfb::complete_sector(b, sector_size, id);
         // DIFAT: 109 FAT sector ids in the header, then chained DIFAT sectors.
         let mut fat_sectors: Vec<u32> = (0..109).filter_map(|i| u32_at(b, 76 + i * 4)).filter(|&s| s < MAX_REG_SECT).collect();
         let mut next = u32_at(b, 68).ok_or_else(|| bad("truncated header"))?;
@@ -230,9 +224,7 @@ impl<'a> Compound<'a> {
                 Some(_) => return Err("damaged compound file: sector chain loops".into()),
                 None => return Err("damaged compound file: sector missing from the FAT".into()),
             }
-            let start = (id as usize).checked_add(1).and_then(|i| i.checked_mul(self.sector_size));
-            let s = start
-                .and_then(|s| self.bytes.get(s..s.checked_add(self.sector_size)?.min(self.bytes.len())))
+            let s = joyoffice_cfb::sector_bytes(self.bytes, self.sector_size, id)
                 .ok_or("damaged compound file: sector out of range (the file may be truncated)")?;
             cut = s.len() < self.sector_size;
             out.extend_from_slice(s);

@@ -57,7 +57,7 @@ impl Rgba {
         }
         let byte = |i: usize| s.get(i..i + 2).and_then(|h| u8::from_str_radix(h, 16).ok());
         match s.len() {
-            6 => Some(Rgba::rgb(byte(0)?, byte(2)?, byte(4)?)),
+            6 => joyoffice_drawingml::parse_srgb(s).map(|[r, g, b]| Self::rgb(r, g, b)),
             8 => Some(Rgba::rgba(byte(0)?, byte(2)?, byte(4)?, byte(6)?)),
             3 => {
                 let n = |i: usize| {
@@ -72,7 +72,7 @@ impl Rgba {
     }
     /// `RRGGBB` uppercase (no alpha).
     pub fn hex(&self) -> String {
-        format!("{:02X}{:02X}{:02X}", self.r, self.g, self.b)
+        joyoffice_drawingml::srgb_hex([self.r, self.g, self.b])
     }
     pub fn with_alpha(self, a: u8) -> Self {
         Rgba { a, ..self }

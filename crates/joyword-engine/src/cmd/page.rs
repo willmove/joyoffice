@@ -248,7 +248,8 @@ fn manual_hyphenation(s: &mut Session, v: &Value) -> CmdResult {
                 {
                     continue;
                 }
-                let points = joyword_proof::hyphen::hyphen_points(word, &lim);
+                let points =
+                    joyword_layout::hyphenation::points(word, &lim, joyword_proof::ProofLang::En);
                 // The room left at the end of the line above, and the width of each first part.
                 let room = prev.right - prev.end_x();
                 let hyphen_w = para

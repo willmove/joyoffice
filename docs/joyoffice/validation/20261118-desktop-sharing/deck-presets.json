@@ -1,0 +1,60 @@
+{
+  "macOS": {
+    "shapeInstances": 20,
+    "presets": [
+      "roundRect",
+      "rightArrow",
+      "leftArrow",
+      "downArrow",
+      "upArrow"
+    ],
+    "adjustments": [
+      null,
+      0,
+      50000,
+      100000
+    ],
+    "pptxParametersPreserved": true,
+    "imageSize": [
+      960,
+      540
+    ],
+    "changedPixelsFromPreviousRenderer": 0,
+    "rgbSha256": [
+      "4cf85b78f65fe68194c2ba1d41cdd8a48e35fbed3c35508c68a387616351a063",
+      "4cf85b78f65fe68194c2ba1d41cdd8a48e35fbed3c35508c68a387616351a063",
+      "4cf85b78f65fe68194c2ba1d41cdd8a48e35fbed3c35508c68a387616351a063",
+      "4cf85b78f65fe68194c2ba1d41cdd8a48e35fbed3c35508c68a387616351a063"
+    ],
+    "bothVersionsReopenedRegeneratedFile": true
+  },
+  "UOS": {
+    "shapeInstances": 20,
+    "presets": [
+      "roundRect",
+      "rightArrow",
+      "leftArrow",
+      "downArrow",
+      "upArrow"
+    ],
+    "adjustments": [
+      null,
+      0,
+      50000,
+      100000
+    ],
+    "pptxParametersPreserved": true,
+    "imageSize": [
+      960,
+      540
+    ],
+    "changedPixelsFromPreviousRenderer": 0,
+    "rgbSha256": [
+      "4cf85b78f65fe68194c2ba1d41cdd8a48e35fbed3c35508c68a387616351a063",
+      "4cf85b78f65fe68194c2ba1d41cdd8a48e35fbed3c35508c68a387616351a063",
+      "4cf85b78f65fe68194c2ba1d41cdd8a48e35fbed3c35508c68a387616351a063",
+      "4cf85b78f65fe68194c2ba1d41cdd8a48e35fbed3c35508c68a387616351a063"
+    ],
+    "bothVersionsReopenedRegeneratedFile": true
+  }
+}

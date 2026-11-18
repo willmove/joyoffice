@@ -12,4 +12,5 @@ description = "JoyDeck (adapted from DeckCraft) colour: RGB/HSL, theme colour sl
 workspace = true
 
 [dependencies]
+joyoffice-drawingml.workspace = true
 serde = { workspace = true }

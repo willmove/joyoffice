@@ -16,7 +16,8 @@ too_many_arguments = "allow"
 type_complexity = "allow"
 
 [features]
-# Compare the bounded JoyOffice scalar evaluator against the default calculation path.
+# Validated dense scalar batches; the general evaluator remains available for every formula.
+default = ["scalar-pilot"]
 scalar-pilot = []
 
 [dependencies]

@@ -286,3 +286,53 @@ pub(crate) fn probe_visit_range(wb: &Workbook, pending: &[(&str, &str)], range: 
     })
     .then_some(seen)
 }
+
+/// One dirty closure mixes the batched scalar subset and normal evaluator. Replaying all
+/// formulas in a cloned workbook also checks dependency discovery after each edit.
+#[test]
+fn dense_cross_sheet_edits_match_full_recalc_with_spills_errors_and_iteration() -> Result<(), Box<dyn std::error::Error>> {
+    use joysheet_core::CellError;
+    use joysheet_model::Sheet;
+    let mut book = Workbook::new();
+    book.sheets.push(std::sync::Arc::new(Sheet::new("Inputs")));
+    let source = CellRef::new(0, 0);
+    let sum = CellRef::new(0, 3);
+    let spill = CellRef::new(0, 5);
+    let blocker = CellRef::new(1, 5);
+    let err = CellRef::new(0, 7);
+    let sh = book.sheet_mut(0).ok_or("missing output")?;
+    for row in 0..600 {
+        sh.set_cell(CellRef::new(row, 1), Cell::formula(Formula::new(&format!("=Inputs!A1+{row}"))));
+    }
+    for (at, formula) in [(sum, "=SUM(B1:B600)"), (spill, "=SEQUENCE(Inputs!A1)"), (err, "=Inputs!A1/0")] {
+        sh.set_cell(at, Cell::formula(Formula::new(formula)));
+    }
+    let mut calc = Calc::new();
+    calc.recalc_all(&mut book);
+    for (value, blocked, iteration) in [(3, false, false), (5, true, false), (2, false, false), (3, false, true), (1, false, false)] {
+        book.calc.iterative = iteration;
+        book.sheet_mut(1).ok_or("missing input")?.set_value(source, Value::Number(f64::from(value)));
+        let sh = book.sheet_mut(0).ok_or("missing output")?;
+        if blocked {
+            sh.set_value(blocker, Value::Number(42.));
+        } else {
+            sh.remove_cell(blocker);
+        }
+        let mut reference = book.clone();
+        let mut full = Calc::new();
+        #[cfg(feature = "scalar-pilot")]
+        {
+            full.scalar_batches = false;
+        }
+        full.recalc_all(&mut reference);
+        calc.cells_changed(&mut book, &[(1, source), (0, blocker)]);
+        assert_eq!(book, reference);
+        assert!(calc.last_recalc_cells >= 603);
+        let sh = book.sheet(0).ok_or("missing output")?;
+        assert_eq!(sh.value(sum), Value::Number(599. * 600. / 2. + 600. * f64::from(value)));
+        assert_eq!(sh.value(err), Value::Error(CellError::Div0));
+        assert_eq!(sh.value(spill), if blocked { Value::Error(CellError::Spill) } else { Value::Number(1.) });
+        assert_eq!(sh.value(CellRef::new(4, 5)), Value::Empty);
+    }
+    Ok(())
+}

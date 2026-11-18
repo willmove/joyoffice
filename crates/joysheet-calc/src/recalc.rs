@@ -35,6 +35,8 @@ use pass_host::{PassHost, spills_as_before};
 pub struct Calc {
     pub graph: Graph,
     rng: u64,
+    #[cfg(feature = "scalar-pilot")]
+    scalar_batches: bool,
     /// Fixed "now" for deterministic tests; `None` = system clock.
     pub fixed_now: Option<f64>,
     /// Cells whose formulas have errors from cycles.
@@ -44,7 +46,15 @@ pub struct Calc {
 
 impl Default for Calc {
     fn default() -> Self {
-        Calc { graph: Graph::default(), rng: 0x9E37_79B9_7F4A_7C15, fixed_now: None, circular: vec![], last_recalc_cells: 0 }
+        Calc {
+            graph: Graph::default(),
+            rng: 0x9E37_79B9_7F4A_7C15,
+            #[cfg(feature = "scalar-pilot")]
+            scalar_batches: std::env::var_os("JOYSHEET_SCALAR_RECALC").as_deref() != Some(std::ffi::OsStr::new("0")),
+            fixed_now: None,
+            circular: vec![],
+            last_recalc_cells: 0,
+        }
     }
 }
 
@@ -357,7 +367,8 @@ impl Calc {
             #[cfg(feature = "scalar-pilot")]
             let mut literals = HashMap::default();
             #[cfg(feature = "scalar-pilot")]
-            let batch_literals = dirty.len() >= 512 && !wb.calc.iterative && wb.sheets.iter().all(|sheet| sheet.spill_ranges.is_empty());
+            let batch_literals =
+                self.scalar_batches && dirty.len() >= 512 && !wb.calc.iterative && wb.sheets.iter().all(|sheet| sheet.spill_ranges.is_empty());
             for k in &dirty {
                 if let Some(formula) = wb.sheet(k.0).and_then(|s| s.cell(k.1)).and_then(|c| c.formula.as_ref())
                     && let Some(expr) = formula.expr_arc()

@@ -49,8 +49,18 @@ pub fn math_xml(e: &MathExpr) -> String {
         MathExpr::Row(v) => v.iter().map(math_xml).collect(),
         MathExpr::Fraction(a, b) => format!("<m:f><m:fPr/><m:num>{}</m:num><m:den>{}</m:den></m:f>", math_xml(a), math_xml(b)),
         MathExpr::Radical(a) => format!("<m:rad><m:radPr><m:degHide m:val=\"1\"/></m:radPr><m:deg/><m:e>{}</m:e></m:rad>", math_xml(a)),
-        MathExpr::Superscript(a, b) => format!("<m:sSup><m:e>{}</m:e><m:sup>{}</m:sup></m:sSup>", math_xml(a), math_xml(b)),
-        MathExpr::Subscript(a, b) => format!("<m:sSub><m:e>{}</m:e><m:sub>{}</m:sub></m:sSub>", math_xml(a), math_xml(b)),
+        MathExpr::Superscript(base, exponent) | MathExpr::Subscript(base, exponent) => {
+            use joyoffice_omml::{Script, ScriptArg};
+            let kind = if matches!(e, MathExpr::Superscript(..)) { Script::Sup } else { Script::Sub };
+            let mut result = String::new();
+            kind.write(&mut result, |arg, out| {
+                out.push_str(&math_xml(match arg {
+                    ScriptArg::Base => base,
+                    _ => exponent,
+                }));
+            });
+            result
+        }
     }
 }
 pub fn equation_body(e: &MathExpr) -> String {

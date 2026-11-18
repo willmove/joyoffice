@@ -117,20 +117,20 @@ impl DocumentCanvas {
             .map_or_else(PageIndex::default, |r| PageIndex::new(&r.summary.pages));
     }
     pub(super) fn refresh_changed_page(&mut self) -> bool {
-        let Some(page) = self.reader.as_ref().and_then(|reader| {
+        let Some(pages) = self.reader.as_ref().and_then(|reader| {
             self.scene
                 .as_ref()
-                .and_then(|scene| reader.changed_page_from(scene))
+                .and_then(|scene| reader.changed_pages_from(scene))
         }) else {
             return false;
         };
         self.discard_scene();
         for (&(_, _, cached_page), cached) in &mut self.images {
-            if cached_page != page {
+            if !pages.contains(&cached_page) {
                 cached.epoch = self.epoch;
             }
         }
-        self.failed.remove(&page);
+        self.failed.retain(|page, _| !pages.contains(page));
         true
     }
     fn needs_raster(&self, page: usize) -> bool {

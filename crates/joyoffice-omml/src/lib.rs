@@ -1,5 +1,8 @@
 //! Office Math Markup Language (OMML) subset and linear math mapping (ECMA-376 Part 1 §22).
 
+mod script;
+pub use script::{Script, ScriptArg};
+
 use quick_xml::events::{BytesStart, Event};
 use quick_xml::reader::Reader;
 
@@ -135,29 +138,19 @@ impl MathElement {
                 den.write_omml_body(out);
                 out.push_str("</m:den></m:f>");
             }
-            Self::Superscript { base, sup } => {
-                out.push_str("<m:sSup><m:e>");
-                base.write_omml_body(out);
-                out.push_str("</m:e><m:sup>");
-                sup.write_omml_body(out);
-                out.push_str("</m:sup></m:sSup>");
-            }
-            Self::Subscript { base, sub } => {
-                out.push_str("<m:sSub><m:e>");
-                base.write_omml_body(out);
-                out.push_str("</m:e><m:sub>");
-                sub.write_omml_body(out);
-                out.push_str("</m:sub></m:sSub>");
-            }
-            Self::SubSup { base, sub, sup } => {
-                out.push_str("<m:sSubSup><m:e>");
-                base.write_omml_body(out);
-                out.push_str("</m:e><m:sub>");
-                sub.write_omml_body(out);
-                out.push_str("</m:sub><m:sup>");
-                sup.write_omml_body(out);
-                out.push_str("</m:sup></m:sSubSup>");
-            }
+            Self::Superscript { base, sup } => Script::Sup.write(out, |arg, out| match arg {
+                ScriptArg::Base => base.write_omml_body(out),
+                _ => sup.write_omml_body(out),
+            }),
+            Self::Subscript { base, sub } => Script::Sub.write(out, |arg, out| match arg {
+                ScriptArg::Base => base.write_omml_body(out),
+                _ => sub.write_omml_body(out),
+            }),
+            Self::SubSup { base, sub, sup } => Script::SubSup.write(out, |arg, out| match arg {
+                ScriptArg::Base => base.write_omml_body(out),
+                ScriptArg::Sub => sub.write_omml_body(out),
+                ScriptArg::Sup => sup.write_omml_body(out),
+            }),
             Self::Radical { base, deg } => {
                 out.push_str("<m:rad><m:radPr>");
                 if deg.is_none() {

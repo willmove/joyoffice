@@ -2,13 +2,14 @@
 import argparse
 import json
 from pathlib import Path
+import posixpath
 import platform
-import select
 import shutil
 import time
+import xml.etree.ElementTree as ET
 import zipfile
 
-from native_pilot_support import ROOT, SheetControl, app, digest, port, wait
+from native_pilot_support import ROOT, DeckControl, SheetControl, app, digest, port, wait
 from probe_native_ime import mac_keys, mac_target, run, system_events
 
 
@@ -115,39 +116,33 @@ def deck(binary, out):
     env = {"JOYDECK_CONFIG_DIR":str(out / "profile"), "JOYDECK_RECOVERY_DIR":str(out / "recovery")}
     args = ["--control-stdio=" + str(out)]
 
-    sequence = 0
-    def call(p, method, **guard):
-        nonlocal sequence
-        sequence += 1
-        msg = {"protocolVersion":"joydeck-control-1","requestId":str(sequence),"method":method,"params":{},**guard}
-        p.stdin.write(json.dumps(msg) + "\n")
-        p.stdin.flush()
-        if not select.select([p.stdout], [], [], 5)[0]:
-            raise TimeoutError(method)
-        reply = json.loads(p.stdout.readline())
-        if "error" in reply:
-            raise ValueError(str(reply["error"]))
-        return reply["result"]
-
-    def inspect(p):
-        state = call(p, "document.status")
-        return call(p, "document.inspect", target=state["documentId"], expectedRevision=state["revision"])
-
     with app(binary, [str(original), *args], out, env) as p:
-        slides = wait(lambda: inspect(p), "presentation", p)["slides"]
+        client = DeckControl(p)
+        slides = wait(client.inspect, "presentation", p)["slides"]
         panel = Panel(p)
         panel.open()
         panel.cancel()
         panel.open()
+        client.edit({"command":"page.add"})
+        assert len(client.inspect()["slides"]) == len(slides) + 1
+        stale = out / "过时 副本.pptx"
+        panel.submit(stale)
+        panel.open()
+        assert not stale.exists()
         panel.submit(target)
         wait(target.is_file, "PowerPoint copy", p)
     with zipfile.ZipFile(target) as z:
-        assert "ppt/slides/slide3.xml" in z.namelist()
+        ids = ET.fromstring(z.read("ppt/presentation.xml")).findall(".//{*}sldId")
+        targets = {rel.get("Id"):rel.get("Target") for rel in ET.fromstring(z.read("ppt/_rels/presentation.xml.rels"))}
+        slide_rel = "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id"
+        paths = {posixpath.normpath(posixpath.join("ppt", targets[item.attrib[slide_rel]])).lstrip("/") for item in ids}
+        assert len(paths) == 4 and all(ET.fromstring(z.read(path)).tag.endswith("}sld") for path in paths)
     with app(binary, [str(target), *args], out, env, "reopen.log") as p:
-        opened = wait(lambda: inspect(p), "fresh presentation", p)["slides"]
-        assert len(opened) == len(slides) == 3 and opened[0]["notes"] == slides[0]["notes"]
+        opened = wait(DeckControl(p).inspect, "fresh presentation", p)["slides"]
+        assert len(slides) == 3 and len(opened) == 4 and opened[0]["notes"] == slides[0]["notes"]
+    assert not stale.exists()
     assert digest(original) == initial_hash
-    return ["cancel then retry", "independent PPTX inspection and fresh process readback", "original hash unchanged"]
+    return ["cancel then retry", "late result after edit rejected before file creation", "four slides in independent PPTX inspection and fresh process readback", "original hash unchanged"]
 
 
 if __name__ == "__main__":

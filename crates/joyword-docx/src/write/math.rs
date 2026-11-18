@@ -311,28 +311,25 @@ fn node(w: &mut W, n: &MNode, depth: usize) {
             sub,
             sup,
         } => {
-            let (el, pr) = match kind {
-                ScriptKind::Sup => ("m:sSup", "m:sSupPr"),
-                ScriptKind::Sub => ("m:sSub", "m:sSubPr"),
-                ScriptKind::SubSup => ("m:sSubSup", "m:sSubSupPr"),
-                ScriptKind::Pre => ("m:sPre", "m:sPrePr"),
+            use joyoffice_omml::{Script, ScriptArg};
+            let script = match kind {
+                ScriptKind::Sup => Script::Sup,
+                ScriptKind::Sub => Script::Sub,
+                ScriptKind::SubSup => Script::SubSup,
+                ScriptKind::Pre => Script::Pre,
             };
+            let (el, pr) = script.tags();
             w.open(el, &[]);
             w.open(pr, &[]);
             ctrl(w);
             w.close(pr);
-            if *kind == ScriptKind::Pre {
-                arg(w, "m:sub", sub, depth);
-                arg(w, "m:sup", sup, depth);
-                arg(w, "m:e", base, depth);
-            } else {
-                arg(w, "m:e", base, depth);
-                if matches!(kind, ScriptKind::Sub | ScriptKind::SubSup) {
-                    arg(w, "m:sub", sub, depth);
-                }
-                if matches!(kind, ScriptKind::Sup | ScriptKind::SubSup) {
-                    arg(w, "m:sup", sup, depth);
-                }
+            for &child in script.arguments() {
+                let nodes = match child {
+                    ScriptArg::Base => base,
+                    ScriptArg::Sub => sub,
+                    ScriptArg::Sup => sup,
+                };
+                arg(w, child.tag(), nodes, depth);
             }
             w.close(el);
         }

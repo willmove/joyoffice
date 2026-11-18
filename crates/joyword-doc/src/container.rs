@@ -44,10 +44,7 @@ fn has_zeroed_minifat_sector(bytes: &[u8]) -> bool {
         Some([12, 0]) => 4096,
         _ => return false,
     };
-    let sector = |id: u32| {
-        let offset = (id as usize).checked_add(1)?.checked_mul(sector_size)?;
-        bytes.get(offset..offset.checked_add(sector_size)?)
-    };
+    let sector = |id| joyoffice_cfb::complete_sector(bytes, sector_size, id);
     let Some(id) = u32_at(MINIFAT_HEADER_OFFSET) else {
         return false;
     };

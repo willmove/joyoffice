@@ -1,0 +1,116 @@
+{
+  "macOS": {
+    "joyword": {
+      "target": "aarch64-apple-darwin",
+      "packages": 517,
+      "sourceFiles": 1051,
+      "spdxSha256": "8067339f5671eacf5643f79335346eea4f493ec44332cd19a5f0d74bf05b64a6",
+      "missingLicenseTexts": [],
+      "sharedCrates": [
+        "joyoffice-cfb",
+        "joyoffice-fonts",
+        "joyoffice-metafile",
+        "joyoffice-omml",
+        "joyoffice-opc",
+        "joyoffice-theme",
+        "joyoffice-ui"
+      ],
+      "runtimeLegacyDependencies": [
+        "craft-atomic",
+        "craft-font-catalog",
+        "craft-font-store",
+        "craft-proof"
+      ]
+    },
+    "joydeck": {
+      "target": "aarch64-apple-darwin",
+      "packages": 473,
+      "sourceFiles": 507,
+      "spdxSha256": "1cea5cfc6d8f0313e7eb01fe7dbe260305ad3e1e041a7ff8374ad9035a55a78f",
+      "missingLicenseTexts": [],
+      "sharedCrates": [
+        "joyoffice-drawingml",
+        "joyoffice-fonts",
+        "joyoffice-metafile",
+        "joyoffice-opc",
+        "joyoffice-theme",
+        "joyoffice-ui"
+      ],
+      "runtimeLegacyDependencies": [
+        "joydeck-legacy"
+      ]
+    },
+    "joysheet": {
+      "target": "aarch64-apple-darwin",
+      "packages": 452,
+      "sourceFiles": 1163,
+      "spdxSha256": "7fda2f31a85eaaf3bb45de03b565f649d26eec68ff6a1afb97e3e628bcf36a59",
+      "missingLicenseTexts": [],
+      "sharedCrates": [
+        "joyoffice-cfb",
+        "joyoffice-drawingml",
+        "joyoffice-omml",
+        "joyoffice-theme",
+        "joyoffice-ui"
+      ],
+      "runtimeLegacyDependencies": []
+    }
+  },
+  "UOS": {
+    "joyword": {
+      "target": "x86_64-unknown-linux-gnu",
+      "packages": 605,
+      "sourceFiles": 1056,
+      "spdxSha256": "bd9fda3bf5c0c8fae3f52060ccea6bbf90805f94538b0df86299e1a1799878e2",
+      "missingLicenseTexts": [],
+      "sharedCrates": [
+        "joyoffice-cfb",
+        "joyoffice-fonts",
+        "joyoffice-metafile",
+        "joyoffice-omml",
+        "joyoffice-opc",
+        "joyoffice-theme",
+        "joyoffice-ui"
+      ],
+      "runtimeLegacyDependencies": [
+        "craft-atomic",
+        "craft-font-catalog",
+        "craft-font-store",
+        "craft-proof"
+      ]
+    },
+    "joydeck": {
+      "target": "x86_64-unknown-linux-gnu",
+      "packages": 565,
+      "sourceFiles": 513,
+      "spdxSha256": "00fb657bc3ea8c8a006fbd173cad7f2d97cda975578c1ac6b8169898ff834986",
+      "missingLicenseTexts": [],
+      "sharedCrates": [
+        "joyoffice-drawingml",
+        "joyoffice-fonts",
+        "joyoffice-metafile",
+        "joyoffice-opc",
+        "joyoffice-theme",
+        "joyoffice-ui"
+      ],
+      "runtimeLegacyDependencies": [
+        "joydeck-legacy"
+      ]
+    },
+    "joysheet": {
+      "target": "x86_64-unknown-linux-gnu",
+      "packages": 555,
+      "sourceFiles": 1161,
+      "spdxSha256": "c642ad49399bfe0dfcfb982a49a0b501861ded754f4b7d993ea99fa0123690cb",
+      "missingLicenseTexts": [],
+      "sharedCrates": [
+        "joyoffice-cfb",
+        "joyoffice-drawingml",
+        "joyoffice-omml",
+        "joyoffice-theme",
+        "joyoffice-ui"
+      ],
+      "runtimeLegacyDependencies": []
+    }
+  }
+}

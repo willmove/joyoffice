@@ -78,5 +78,31 @@
       "ignored": 0,
       "sha256": "5bb18a62b28331eed366f2723e578d90fbd0c7f252bc3f9702836d44bf2d4184"
     }
+  },
+  "deckEditWhilePanelOpen": {
+    "macOS": {
+      "platform": "macOS-27.2.1-arm64-arm-64bit-Mach-O",
+      "product": "deck",
+      "binarySha256": "136f914be2255aeaad19790ab009b5cde498137ff4aa0db4c57d9f3316e3281c",
+      "passed": true,
+      "checks": [
+        "cancel then retry",
+        "late result after edit rejected before file creation",
+        "four slides in independent PPTX inspection and fresh process readback",
+        "original hash unchanged"
+      ]
+    },
+    "UOS": {
+      "platform": "Linux-6.18.57-061857-generic-x86_64-with-glibc2.38",
+      "product": "deck",
+      "binarySha256": "d6a0f6900af3a82d9d85f23b03b8977cb258079fd25ecde61935fdccd494b376",
+      "passed": true,
+      "checks": [
+        "cancel then retry",
+        "late result after edit rejected before file creation",
+        "four slides in independent PPTX inspection and fresh process readback",
+        "original hash unchanged"
+      ]
+    }
   }
 }

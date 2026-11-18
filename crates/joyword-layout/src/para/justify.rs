@@ -132,7 +132,7 @@ pub(super) fn hyphenation_points(
                             .map(|e| lang_at(runs, e.saturating_sub(first)))
                             .unwrap_or_default();
                         let offs: Vec<usize> = w.char_indices().map(|(o, _)| o).collect();
-                        for pt in joyword_proof::hyphen::hyphen_points_in(w, &lim, lang) {
+                        for pt in crate::hyphenation::points(w, &lim, lang) {
                             if let Some(o) = offs.get(pt) {
                                 bytes.push(a + o);
                             }

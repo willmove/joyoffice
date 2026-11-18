@@ -47,6 +47,7 @@ actions!(
         NextCell,
         PreviousCell,
         SaveAs,
+        ToggleRibbon,
         PresentStart,
         PresentCurrent
     ]
@@ -972,6 +973,10 @@ impl Render for Viewer {
             .on_action(cx.listener(Self::zoom_out))
             .on_action(cx.listener(Self::fit))
             .on_action(cx.listener(Self::report))
+            .on_action(cx.listener(|s, _: &ToggleRibbon, _, cx| {
+                s.ribbon_collapsed = !s.ribbon_collapsed;
+                cx.notify();
+            }))
             .on_action(cx.listener(|s, _: &PresentStart, _, cx| s.start_show(true, false, cx)))
             .on_action(cx.listener(|s, _: &PresentCurrent, _, cx| s.start_show(false, false, cx)))
             .child(
@@ -1024,6 +1029,9 @@ pub fn bind(cx: &mut App) {
         KeyBinding::new("ctrl-s", Save, Some("Viewer")),
         KeyBinding::new("ctrl-shift-s", SaveAs, Some("Viewer")),
         KeyBinding::new("cmd-shift-s", SaveAs, Some("Viewer")),
+        KeyBinding::new("ctrl-f1", ToggleRibbon, Some("Viewer")),
+        #[cfg(target_os = "macos")]
+        KeyBinding::new("cmd-f1", ToggleRibbon, Some("Viewer")),
         KeyBinding::new("f5", PresentStart, Some("Viewer")),
         KeyBinding::new("shift-f5", PresentCurrent, Some("Viewer")),
         KeyBinding::new("cmd-s", Save, Some("Viewer")),

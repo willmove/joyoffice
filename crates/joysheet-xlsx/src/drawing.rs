@@ -78,11 +78,11 @@ fn read_anchor(a: &El, sheet: &Sheet) -> Option<Anchor> {
 
 /// Colour of a DrawingML colour choice inside `e` (e.g. a `solidFill`).
 pub fn dml_color(e: &El) -> Option<Color> {
-    if let Some(c) = e.child("srgbClr").and_then(|c| c.attr("val")) {
-        return Color::from_hex(c);
-    }
-    if let Some(c) = e.child("sysClr").and_then(|c| c.attr("lastClr")) {
-        return Color::from_hex(c);
+    if let Some(value) = e.child("srgbClr").and_then(|c| c.attr("val")).or_else(|| e.child("sysClr").and_then(|c| c.attr("lastClr"))) {
+        return match joyoffice_drawingml::parse_srgb(value) {
+            Some([r, g, b]) => Some(Color::Rgb(u32::from_be_bytes([0, r, g, b]))),
+            None => Color::from_hex(value),
+        };
     }
     if let Some(c) = e.child("schemeClr").and_then(|c| c.attr("val")) {
         let i = match c {
@@ -355,8 +355,8 @@ pub(crate) fn xfrm(a: &Anchor, tag: &str) -> String {
 }
 
 pub fn srgb(c: &Color, theme: &Theme) -> Option<String> {
-    let [r, g, b] = c.resolve(theme)?;
-    Some(format!("<a:srgbClr val=\"{r:02X}{g:02X}{b:02X}\"/>"))
+    let hex = joyoffice_drawingml::srgb_hex(c.resolve(theme)?);
+    Some(format!("<a:srgbClr val=\"{hex}\"/>"))
 }
 
 /// One drawing object to write.

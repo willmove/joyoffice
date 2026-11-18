@@ -41,3 +41,7 @@ The optional `joysheet-calc/scalar-pilot` feature dispatches one operation on a 
 The inline editor in `crates/joysheet-ui-gpui/src/grid.rs` expands its overlay while the system input method owns marked text. The existing viewport and frozen-pane bounds constrain that overlay. macOS acceptance compared the same narrow cell before and after the change and reopened the saved text in a fresh process. [Native validation](../joyoffice/validation/20261118-refactor/README.md)
 
 - 普通另存与关闭前保存共用窗口、文档及版本快照，单写者在落盘前重新核验。原生面板取消可重试，过时结果不会写入新工作簿。涉及 `joysheet-ui-gpui` 与 `joysheet-app`。
+
+The dense scalar candidate precomputes literal arithmetic on ordinary numeric cells, including named-sheet references, in batches of 512 or more. Formulas with array metadata and passes with iteration or existing spills use the general evaluator. The XLS reader uses the shared CFB sector accessors, and DrawingML RGB and OMML script serialization use the host format crates. Interactive tests cover the shared ribbon group and launcher. [Validation and rollout](../joyoffice/REFACTOR-ROADMAP.md)
+
+The direct numeric batch is enabled by default after same-source desktop comparisons on macOS and UOS. Set `JOYSHEET_SCALAR_RECALC=0` before launch to return the workbook to the general evaluator.

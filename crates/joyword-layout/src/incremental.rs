@@ -1,4 +1,4 @@
-//! Reuse pagination for an in-place paragraph edit that cannot change page flow.
+//! Reuse unchanged page geometry, or repaginate a bounded chapter at stable page starts.
 
 use std::sync::Weak;
 
@@ -123,7 +123,9 @@ impl Previous {
         let current = self.layout.upgrade()?;
         let path = Path::top(block);
         let [(page, item)] = current.index.get(&(StoryRef::Body, path))?.as_slice() else {
-            return None;
+            return self
+                .reflow(doc, opts, block, &current)
+                .map(|layout| (block, layout));
         };
         let page_ref = current.pages.get(*page)?;
         let Placed::Lines {
@@ -166,7 +168,9 @@ impl Previous {
             },
         );
         if !same_flow(old, &new) {
-            return None;
+            return self
+                .reflow(doc, opts, block, &current)
+                .map(|layout| (block, layout));
         }
 
         let mut next = (*current).clone();
@@ -174,9 +178,174 @@ impl Previous {
             return None;
         };
         *para = Arc::new(new);
-        next.page_patch = Some((Arc::downgrade(&current), *page));
+        next.page_patch = Some((Arc::downgrade(&current), *page..*page + 1));
         Some((block, next))
     }
+
+    /// Reflow a plain chapter bracketed by explicit page starts. First replay its old
+    /// geometry and match every line against the original pages. A different page count,
+    /// unstable entry state or a paragraph that depends on surrounding stories uses the
+    /// complete paginator. The UI can keep pages on both sides of a successful replacement.
+    fn reflow(
+        &self,
+        doc: &Document,
+        opts: &LayoutOptions,
+        block: usize,
+        current: &Arc<DocLayout>,
+    ) -> Option<DocLayout> {
+        const MAX_BLOCKS: usize = 128;
+        const MAX_PAGES: usize = 16;
+        let is_start = |i: usize| -> bool {
+            doc.body
+                .get(i)
+                .and_then(|b| b.as_para())
+                .is_some_and(|p| doc.styles.resolve_para(&p.props).page_break_before)
+        };
+        let start = (block.saturating_sub(MAX_BLOCKS)..=block)
+            .rev()
+            .find(|&i| i == 0 || is_start(i))?;
+        let end = (block + 1..=doc.body.len().min(start.saturating_add(MAX_BLOCKS)))
+            .find(|&i| i == doc.body.len() || is_start(i))?;
+        let page_at = |i| {
+            current
+                .index
+                .get(&(StoryRef::Body, Path::top(i)))?
+                .first()
+                .map(|&(p, _)| p)
+        };
+        let first = page_at(start)?;
+        let stop = if end == doc.body.len() {
+            current.pages.len()
+        } else {
+            page_at(end)?
+        };
+        let original = current.pages.get(first..stop)?;
+        if original.is_empty()
+            || original.len() > MAX_PAGES
+            || doc.last_section.title_page
+            || doc.body[start..end].iter().any(|b| {
+                let Some(p) = b.as_para() else { return true };
+                let r = doc.styles.resolve_para(&p.props);
+                r.numbering.is_some()
+                    || r.keep_next
+                    || r.mirror_indents
+                    || r.contextual_spacing
+                    || r.borders.is_some()
+                    || r.shading.is_some()
+                    || !p.objects.is_empty()
+                    || p.section.is_some()
+            })
+        {
+            return None;
+        }
+        // A break-before at the top and a break taken after a paragraph can treat space before
+        // differently. Admit a new entry state only when this spacing is zero in both cases.
+        let heading = doc.styles.resolve_para(&doc.body[start].as_para()?.props);
+        if heading.space_before != 0. || heading.before_auto {
+            return None;
+        }
+        let mut fragment = doc.clone();
+        fragment.body = self.body[start..end].to_vec();
+        let mut scratch = LayoutCache::new();
+        let old = layout(&fragment, &mut scratch, &self.options);
+        if old.pages.len() != original.len()
+            || !old
+                .pages
+                .iter()
+                .zip(original)
+                .all(|(piece, original)| same_page_entry(piece, original, start))
+        {
+            return None;
+        }
+        fragment.body[block - start] = doc.body[block].clone();
+        let replacement = layout(&fragment, &mut scratch, opts);
+        if replacement.pages.len() != original.len() {
+            return None;
+        }
+        let mut next = current.as_ref().clone();
+        for i in start..end {
+            next.index.remove(&(StoryRef::Body, Path::top(i)));
+        }
+        for (local, mut page) in replacement.pages.into_iter().enumerate() {
+            let absolute = first + local;
+            let target = next.pages.get_mut(absolute)?;
+            for (index, item) in page.items.iter_mut().enumerate() {
+                let Placed::Lines {
+                    story: StoryRef::Body,
+                    path,
+                    ..
+                } = item
+                else {
+                    return None;
+                };
+                if path.depth() != 0 {
+                    return None;
+                }
+                *path = Path::top(start + path.last());
+                next.index
+                    .entry((StoryRef::Body, path.clone()))
+                    .or_default()
+                    .push((absolute, index));
+            }
+            target.items = page.items;
+            target.first_block = start + page.first_block;
+        }
+        next.page_patch = Some((Arc::downgrade(current), first..stop));
+        Some(next)
+    }
+}
+
+fn same_page_entry(piece: &super::Page, original: &super::Page, start: usize) -> bool {
+    if piece.w != original.w
+        || piece.h != original.h
+        || piece.body != original.body
+        || piece.first_block + start != original.first_block
+        || piece.items.len() != original.items.len()
+        || !original.header.is_empty()
+        || !original.footer.is_empty()
+        || !original.float_tables.is_empty()
+    {
+        return false;
+    }
+    piece
+        .items
+        .iter()
+        .zip(&original.items)
+        .all(|(a, b)| match (a, b) {
+            (
+                Placed::Lines {
+                    story: StoryRef::Body,
+                    path: ap,
+                    para: a,
+                    l0: al,
+                    l1: ae,
+                    x: ax,
+                    y: ay,
+                    turn: TextDirection::Horizontal,
+                },
+                Placed::Lines {
+                    story: StoryRef::Body,
+                    path: bp,
+                    para: b,
+                    l0: bl,
+                    l1: be,
+                    x: bx,
+                    y: by,
+                    turn: TextDirection::Horizontal,
+                },
+            ) => {
+                ap.depth() == 0
+                    && bp.depth() == 0
+                    && ap.last() + start == bp.last()
+                    && (al, ae, ax, ay) == (bl, be, bx, by)
+                    && same_flow(a, b)
+                    && a.lines
+                        .iter()
+                        .zip(&b.lines)
+                        .all(|(a, b)| (a.c0, a.c1) == (b.c0, b.c1))
+            }
+            _ => false,
+        })
 }
 
 fn ordinary_edit(before: &Paragraph, after: &Paragraph) -> bool {
@@ -285,6 +454,51 @@ mod tests {
         let full = layout(&doc, &mut LayoutCache::new(), &opts);
         assert_eq!(wrapped.index, full.index);
         assert_eq!(format!("{:?}", wrapped.pages), format!("{:?}", full.pages));
+        Ok(())
+    }
+
+    #[test]
+    fn chapter_reflow_matches_full_pagination_after_inserting_and_deleting_lines()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let mut doc = Document::new();
+        doc.body.clear();
+        doc.styles.default_chr.font = Some("Source Sans 3".into());
+        doc.last_section.page_h = 240.;
+        doc.last_section.margin_top = 24.;
+        doc.last_section.margin_bottom = 24.;
+        let text = "Alpha beta gamma. ".repeat(9);
+        for _ in 0..64 {
+            for i in 0..12 {
+                let mut p = Paragraph::with_text(&text, Default::default());
+                p.props.page_break_before = Some(i == 0);
+                p.props.space_before = Some(0.);
+                doc.body.push(joyword_model::para_block(p));
+            }
+        }
+        let opts = LayoutOptions::default();
+        let mut cache = LayoutCache::new();
+        let mut previous = layout_shared(&doc, &mut cache, &opts);
+        let block = 32 * 12 + 3;
+        let change = "Extra words that wrap. ".repeat(4);
+        for insert in [true, false] {
+            let para = doc.para_mut(StoryRef::Body, &Path::top(block))?;
+            if insert {
+                para.insert_text(0, &change, &Default::default())?;
+            } else {
+                para.delete(0, change.len())?;
+            }
+            let next = layout_shared(&doc, &mut cache, &opts);
+            let pages = next
+                .changed_pages_from(&previous)
+                .ok_or("expected local chapter reflow")?;
+            assert!(pages.len() >= 2 && pages.len() < 16);
+            let full = layout(&doc, &mut LayoutCache::new(), &opts);
+            assert_eq!(next.index, full.index);
+            for (a, b) in next.pages.iter().zip(&full.pages) {
+                assert_eq!(format!("{a:?}"), format!("{b:?}"));
+            }
+            previous = next;
+        }
         Ok(())
     }
 

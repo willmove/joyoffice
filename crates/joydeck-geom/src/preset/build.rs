@@ -75,25 +75,8 @@ fn rect_and_triangle_shapes(c: &Ctx) -> Option<Geometry> {
         | "actionButtonDocument"
         | "actionButtonSound"
         | "actionButtonHelp" => action_button(name, w, h),
-        "roundRect" => {
-            let v = a(0).clamp(0.0, 50000.0);
-            let r = ss * v / 100000.0;
-            let mut g = simple(
-                corner_rect(w, h, [Corner::Round(r); 4]),
-                full.inset(-r * 0.29289),
-                w,
-                h,
-            );
-            g.handles.push(Handle::new(
-                0,
-                Point::ZERO,
-                Vec2::new(ss / 100000.0, 0.0),
-                v,
-                0.0,
-                50000.0,
-            ));
-            g
-        }
+        "roundRect" => super::office_shapes::rounded_rectangle(w, h, a(0)),
+
         "flowChartAlternateProcess" => simple(
             corner_rect(w, h, [Corner::Round(ss / 6.0); 4]),
             full.inset(-ss / 6.0 * 0.29289),
@@ -1216,10 +1199,10 @@ fn bracket_and_arrow_shapes(c: &Ctx) -> Option<Geometry> {
                 sites: mid_sites(w, h),
             }
         }
-        "rightArrow" => arrow(Dir::Right, w, h, a(0), a(1)),
-        "leftArrow" => arrow(Dir::Left, w, h, a(0), a(1)),
-        "upArrow" => arrow(Dir::Up, w, h, a(0), a(1)),
-        "downArrow" => arrow(Dir::Down, w, h, a(0), a(1)),
+        "rightArrow" => super::office_shapes::straight_arrow(Dir::Right, w, h, a(0), a(1)),
+        "leftArrow" => super::office_shapes::straight_arrow(Dir::Left, w, h, a(0), a(1)),
+        "upArrow" => super::office_shapes::straight_arrow(Dir::Up, w, h, a(0), a(1)),
+        "downArrow" => super::office_shapes::straight_arrow(Dir::Down, w, h, a(0), a(1)),
         "leftRightArrow" => double_arrow(false, w, h, a(0), a(1)),
         "upDownArrow" => double_arrow(true, w, h, a(0), a(1)),
         "notchedRightArrow" | "stripedRightArrow" => {

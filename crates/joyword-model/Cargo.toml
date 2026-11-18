@@ -25,6 +25,7 @@ unreachable = "deny"
 test-support = []
 
 [dependencies]
+joyoffice-cfb.workspace = true
 joyword-geom = { workspace = true }
 base64 = { workspace = true }
 log = { workspace = true }

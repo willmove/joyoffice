@@ -12,6 +12,7 @@ use serde::{Deserialize, Serialize};
 mod build;
 mod builder;
 mod catalog;
+mod office_shapes;
 mod shapes;
 
 pub use build::build;
