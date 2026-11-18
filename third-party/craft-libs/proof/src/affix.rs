@@ -33,13 +33,12 @@
 //! a sorted set of ids, interned once in a flat table, so membership is a binary search in a few
 //! ids and a dictionary with thousands of flags (Serbian: 1,903) costs no more per lookup.
 //!
-//! Lookups never panic: stems sit in one string, found through an open-addressing hash table, and
+//! Lookups never panic: stems sit in one string, found through compact, lexically ordered buckets, and
 //! a probe allocates only small scratch strings for the candidate roots it tries.
 
 use std::collections::HashMap;
-use std::hash::Hasher;
 
-use crate::patterns::{FxHasher, FxMap};
+use crate::patterns::FxMap;
 
 mod compound;
 mod letter_case;
@@ -52,13 +51,13 @@ use edges::EdgeIndex;
 
 pub(crate) use compound::{MAX_SUGGEST_COMPOUND_WORK, Pieces};
 
-const MAGIC: &str = "WCAFF2";
+use joyword_proof_rules::dictionary::compact::{
+    self, Directive, SIGNATURE as MAGIC, Setting, WordFlag,
+};
 /// Most bytes the compact format inflates to, written or read.
 const MAX_INFLATED: usize = 64 << 20;
 /// Longest word (in bytes) looked up; longer input is never a dictionary word.
 pub const MAX_WORD_BYTES: usize = 120;
-/// Empty slot in the stem hash table.
-const EMPTY: u32 = u32::MAX;
 /// Longest input converted (`ICONV`) and stripped of `IGNORE` characters before a lookup: longer
 /// input can't come down to [`MAX_WORD_BYTES`] in a real dictionary, so it is no word and is
 /// never converted (the conversion would cost time on hostile input for nothing).
@@ -203,8 +202,8 @@ pub struct AffixDict {
     no_suggest: Option<u16>,
     /// Stems with SUBSTANDARD are correct too, and likewise never suggested.
     substandard: Option<u16>,
-    /// Open-addressing hash table of stem indices (`EMPTY` = free).
-    table: Vec<u32>,
+    /// Row numbers in the shared, byte-sorted stem pool.
+    stem_index: joyword_proof_rules::dictionary::StemIndex,
     /// How the source wrote flags (kept for the compact format).
     flag_mode: FlagMode,
     /// Each flag id's flag as the source wrote it, sorted (the id is the index).
@@ -362,12 +361,6 @@ impl Conv {
         }
         out.map_or(std::borrow::Cow::Borrowed(w), std::borrow::Cow::Owned)
     }
-}
-
-fn hash_str(s: &str) -> u64 {
-    let mut h = FxHasher::default();
-    h.write(s.as_bytes());
-    h.finish()
 }
 
 /// Letter case of a word.
@@ -1494,6 +1487,8 @@ impl AffixDict {
         d.suffixes = build_rules(rules.suffixes, sfx_cont, &mut d)?;
         d.flag_keys = flag_keys;
         d.index();
+        d.stem_index = joyword_proof_rules::dictionary::StemIndex::build(&d.words, &d.offs)
+            .map_err(|e| format!("affix dictionary: {e}"))?;
         Ok(d)
     }
 
@@ -1589,7 +1584,7 @@ impl AffixDict {
         }
     }
 
-    /// Build the suffix index and the stem hash table.
+    /// Build the affix and continuation indexes.
     fn index(&mut self) {
         let mut idx: FxMap<Box<str>, Vec<SfxGroup>> = FxMap::default();
         // Each (appended, stripped) pair's group, found by hash rather than by scanning the
@@ -1668,21 +1663,6 @@ impl AffixDict {
             .max()
             .unwrap_or(0);
         self.sfx_index = EdgeIndex::build(idx);
-        let n = self.len();
-        let size = (n.max(1) * 2).next_power_of_two();
-        let mut table = vec![EMPTY; size];
-        let mask = size - 1;
-        for i in 0..n {
-            let Some(w) = self.word(i) else { continue };
-            let mut slot = hash_str(w) as usize & mask;
-            while table.get(slot).is_some_and(|&t| t != EMPTY) {
-                slot = (slot + 1) & mask;
-            }
-            if let (Some(t), Ok(i)) = (table.get_mut(slot), u32::try_from(i)) {
-                *t = i;
-            }
-        }
-        self.table = table;
     }
 
     /// Charge the dictionary's existing work budget for each possible Unicode split, even
@@ -1832,22 +1812,8 @@ impl AffixDict {
 
     /// Index and flag set of the stem `w`, whatever flags it carries.
     fn stem_lookup(&self, w: &str) -> Option<(u32, &[u16])> {
-        if self.table.is_empty() {
-            return None;
-        }
-        let mask = self.table.len() - 1;
-        let mut slot = hash_str(w) as usize & mask;
-        for _ in 0..self.table.len() {
-            let t = *self.table.get(slot)?;
-            if t == EMPTY {
-                return None;
-            }
-            if self.word(t as usize) == Some(w) {
-                return Some((t, self.set(*self.flags.get(t as usize)?)));
-            }
-            slot = (slot + 1) & mask;
-        }
-        None
+        let row = self.stem_index.find(&self.words, &self.offs, w)?;
+        Some((row, self.set(*self.flags.get(row as usize)?)))
     }
 
     /// Do the continuation classes of `r` hold `flag`?
@@ -2707,110 +2673,88 @@ impl AffixDict {
     pub fn from_bytes(data: &[u8]) -> Result<AffixDict, String> {
         let raw = miniz_oxide::inflate::decompress_to_vec_with_limit(data, MAX_INFLATED)
             .map_err(|e| format!("affix dictionary: inflate failed: {:?}", e.status))?;
-        let words_at = raw
-            .windows(7)
-            .position(|w| w == b"\nWORDS\n")
-            .ok_or("affix dictionary: no WORDS section")?;
-        let head = std::str::from_utf8(raw.get(..words_at).unwrap_or_default())
-            .map_err(|_| "affix dictionary: bad utf-8 in the rules")?;
-        let mut lines = head.lines();
-        if lines.next() != Some(MAGIC) {
-            return Err("affix dictionary: bad header".into());
-        }
+        let header = compact::Header::read(&raw)?;
+        let body = header.roots;
         let mut rules = Rules::default();
         let mut comments = Vec::new();
-        for line in lines {
-            if let Some(c) = line.strip_prefix("# ") {
-                comments.push(c.to_string());
-                continue;
-            }
-            let f: Vec<&str> = split_fields(line).collect();
-            let at = |k: usize| f.get(k).copied().unwrap_or("");
-            if at(0) == "LANG" {
-                rules.letter_case = LetterCase::of(at(1));
-            }
-            match at(0) {
-                "FLAG" => rules
-                    .set_mode(at(1))
-                    .map_err(|e| format!("affix dictionary: {e}"))?,
-                "TRY" => rules.try_chars = cap_try(at(1)),
-                "KEY" => rules.key = at(1).to_string(),
-                "FULLSTRIP" => rules.full_strip = true,
-                "CHECKSHARPS" => rules.check_sharps = true,
-                directive @ ("FORBIDDENWORD" | "NOSUGGEST" | "SUBSTANDARD" | "KEEPCASE"
-                | "ONLYINCOMPOUND" | "NEEDAFFIX" | "CIRCUMFIX") => {
-                    let c = rules.one_flag(at(1)).map_err(|e| {
-                        format!("affix dictionary: bad {directive} in `{line}`: {e}")
-                    })?;
-                    match directive {
-                        "FORBIDDENWORD" => rules.forbidden = Some(c),
-                        "NOSUGGEST" => rules.no_suggest = Some(c),
-                        "SUBSTANDARD" => rules.substandard = Some(c),
-                        "KEEPCASE" => rules.keepcase = Some(c),
-                        "ONLYINCOMPOUND" => rules.only_in_compound = Some(c),
-                        "NEEDAFFIX" => rules.need_affix = Some(c),
-                        _ => rules.circumfix = Some(c),
+        header.visit(|line, directive| {
+            match directive {
+                Directive::Comment(comment) => comments.push(comment.to_owned()),
+                Directive::FullStrip => rules.full_strip = true,
+                Directive::CheckSharps => rules.check_sharps = true,
+                Directive::Setting(setting, text) => match setting {
+                    Setting::Flags => rules
+                        .set_mode(text)
+                        .map_err(|e| format!("affix dictionary: {e}"))?,
+                    Setting::Try => rules.try_chars = cap_try(text),
+                    Setting::Keyboard => rules.key = text.to_owned(),
+                    Setting::Ignore => rules.ignore = text.chars().collect(),
+                    Setting::Map => rules.map.push(text.chars().collect()),
+                    Setting::CompoundRule => {
+                        if rules.compound_rules.len() >= MAX_COMPOUND_RULES {
+                            return Err("affix dictionary: too many COMPOUNDRULE patterns".into());
+                        }
+                        rules.compound_rules.push(text.to_owned());
                     }
-                }
-                conv @ ("ICONV" | "OCONV") if f.len() == 3 => {
-                    rules
-                        .push_conv(conv == "OCONV", at(1), at(2))
-                        .map_err(|e| format!("affix dictionary: {e}"))?;
-                }
-                "IGNORE" => rules.ignore = at(1).chars().collect(),
-                "COMPOUNDMIN" => {
-                    let min = at(1)
-                        .parse::<usize>()
-                        .map_err(|_| format!("affix dictionary: bad `{line}`"))?;
-                    rules.compound_min = Some(min.clamp(1, MAX_COMPOUND_BYTES));
-                }
-                "COMPOUNDRULE" => {
-                    if rules.compound_rules.len() >= MAX_COMPOUND_RULES {
-                        return Err("affix dictionary: too many COMPOUNDRULE patterns".into());
-                    }
-                    rules.compound_rules.push(at(1).to_string());
-                }
-                d if compound::is_directive(d) => {
-                    let mut cpd = std::mem::take(&mut rules.cpd);
-                    let read = cpd.read(&f, &mut |x| rules.one_flag(x));
-                    rules.cpd = cpd;
-                    read.map_err(|e| format!("affix dictionary: bad `{line}`: {e}"))?;
-                }
-                "MAP" => rules.map.push(at(1).chars().collect()),
-                "REP" => rules
-                    .rep
-                    .push((at(1).replace('_', " "), at(2).replace('_', " "))),
-                kind @ ("PFX" | "SFX") => {
-                    let flag = rules
-                        .one_flag(at(1))
+                },
+                Directive::WordFlag(kind, text) => {
+                    let value = rules
+                        .one_flag(text)
                         .map_err(|e| format!("affix dictionary: bad flag in `{line}`: {e}"))?;
-                    if f.len() != 6 {
-                        return Err(format!("affix dictionary: bad rule `{line}`"));
-                    }
-                    // Continuation classes ride on the appended field, as in the `.aff` source.
-                    let (add, cont) = match at(4).split_once('/') {
-                        Some((a, c)) => (zero_empty(a), c.to_string()),
-                        None => (zero_empty(at(4)), String::new()),
+                    let slot = match kind {
+                        WordFlag::Forbidden => &mut rules.forbidden,
+                        WordFlag::NoSuggest => &mut rules.no_suggest,
+                        WordFlag::Substandard => &mut rules.substandard,
+                        WordFlag::KeepCase => &mut rules.keepcase,
+                        WordFlag::CompoundOnly => &mut rules.only_in_compound,
+                        WordFlag::NeedAffix => &mut rules.need_affix,
+                        WordFlag::Circumfix => &mut rules.circumfix,
                     };
+                    *slot = Some(value);
+                }
+                Directive::Conversion { output, from, to } => rules
+                    .push_conv(output, from, to)
+                    .map_err(|e| format!("affix dictionary: {e}"))?,
+                Directive::Replace(from, to) => rules
+                    .rep
+                    .push((from.replace('_', " "), to.replace('_', " "))),
+                Directive::CompoundMin(min) => {
+                    rules.compound_min = Some(min.clamp(1, MAX_COMPOUND_BYTES))
+                }
+                Directive::Compound(key, fields) => {
+                    if !compound::is_directive(key) {
+                        return Err(format!("affix dictionary: unknown line `{key}`"));
+                    }
+                    if key == "LANG" {
+                        rules.letter_case =
+                            LetterCase::of(fields.get(1).copied().unwrap_or_default());
+                    }
+                    let mut cpd = std::mem::take(&mut rules.cpd);
+                    cpd.read(&fields, &mut |text| rules.one_flag(text))
+                        .map_err(|e| format!("affix dictionary: bad `{line}`: {e}"))?;
+                    rules.cpd = cpd;
+                }
+                Directive::Affix(affix) => {
+                    let flag = rules
+                        .one_flag(affix.flag)
+                        .map_err(|e| format!("affix dictionary: bad flag in `{line}`: {e}"))?;
                     let rule: RawRule = (
                         flag,
-                        at(2) == "Y",
-                        zero_empty(at(3)),
-                        add,
-                        cont,
-                        ParsedCondition::read(at(5))?,
+                        affix.cross,
+                        affix.strip.to_owned(),
+                        affix.add.to_owned(),
+                        affix.continuation.to_owned(),
+                        ParsedCondition::read(affix.condition)?,
                     );
-                    if kind == "SFX" {
+                    if affix.suffix {
                         rules.suffixes.push(rule);
                     } else {
                         rules.prefixes.push(rule);
                     }
                 }
-                "" => {}
-                other => return Err(format!("affix dictionary: unknown line `{other}`")),
             }
-        }
-        let body = raw.get(words_at + 7..).unwrap_or_default();
+            Ok(())
+        })?;
         let mut stems = Vec::new();
         let mut flag_text = FlagText::new(MAX_STEM_FLAGS);
         joyword_proof_rules::dictionary::visit_compact_roots(

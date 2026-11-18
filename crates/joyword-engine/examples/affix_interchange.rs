@@ -18,6 +18,26 @@ fn main() -> Result<(), String> {
                 println!("{word}\t{}", u8::from(dict.check(&word)));
             }
         }
+        [cmd, path, words, repeats] if cmd == "lookup" => {
+            let dict = AffixDict::from_bytes(&fs::read(path).map_err(|e| e.to_string())?)?;
+            let text = fs::read_to_string(words).map_err(|e| e.to_string())?;
+            let queries: Vec<_> = text.lines().collect();
+            let repeats = repeats.parse::<usize>().map_err(|e| e.to_string())?;
+            let start = Instant::now();
+            let mut accepted = 0usize;
+            for _ in 0..repeats {
+                for &word in &queries {
+                    accepted += usize::from(dict.check(black_box(word)));
+                }
+            }
+            println!(
+                "{} {} {} {}",
+                dict.len(),
+                queries.len(),
+                accepted,
+                start.elapsed().as_nanos()
+            );
+        }
         [cmd, aff, dic, output] if cmd == "pack" || cmd == "time" => {
             let bytes = |name| fs::read(name).map_err(|e| format!("{name}: {e}"));
             let (rules, stems) = hunspell::decode(&bytes(aff)?, &bytes(dic)?)?;
@@ -39,7 +59,7 @@ fn main() -> Result<(), String> {
         }
         _ => {
             return Err(
-                "expected pack AFF DIC OUTPUT, check COMPACT, or time AFF DIC REPETITIONS".into(),
+                "expected pack AFF DIC OUTPUT, check COMPACT, lookup COMPACT WORDS REPETITIONS, or time AFF DIC REPETITIONS".into(),
             );
         }
     }

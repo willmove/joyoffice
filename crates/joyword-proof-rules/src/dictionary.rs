@@ -1,11 +1,14 @@
 //! The Hunspell flag, affix-condition and compound-pattern syntax used by Word.
 //! The adapter retains the dictionary text for compact-format interchange.
 //! See the Hunspell 5 manual, under FLAG, PFX/SFX and COMPOUNDRULE.
+pub mod compact;
 mod compound;
 mod condition;
 mod entries;
 mod flags;
+mod stem_index;
 pub use entries::{alias_index, entry, entry_bytes, visit_compact_roots, write_compact_root};
+pub use stem_index::StemIndex;
 
 pub use compound::{MAX_COMPOUND_TOKENS, Repeat, compound_pattern};
 pub use condition::{Condition, condition};

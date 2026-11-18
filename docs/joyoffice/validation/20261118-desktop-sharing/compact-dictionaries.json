@@ -1,0 +1,677 @@
+{
+  "baseline": "58bea36f",
+  "scope": "First-party WCAFF2 rule-header reader and bounded index for compact and text dictionary stems. Exact stem comparisons after fingerprint filtering preserve dictionary membership. Source assets and spelling rules keep their original provenance.",
+  "reference": "https://github.com/hunspell/hunspell/blob/v1.7.5/man/hunspell.5",
+  "method": "The current affix_interchange driver was compiled against each reader. The source checker, compact writer and reader were interchanged across 75 published language packs, 24 rule combinations and 12 entry/alias cases. Each writer produced identical bytes on each accepted input. Independently specified valid compact headers and damaged records were also consumed directly. The 24 previously documented differences from external Hunspell and three archives requiring count corrections in the external reference copy were retained.",
+  "timingMethod": "Four published dictionaries in optimized binaries. Take the first word from every floor(i*n/128)th valid unflagged-or-flagged alphabetic source word (3 to 20 characters), for i=0..127, and append a second probe suffixed zzq. Run this ordered list 24 times per sample under the in-process lookup clock. One warmup and eight alternating pairs. Compact opening also includes process launch and decompression, with seven alternating pairs. UOS was pinned to CPU 3. Index storage counts element bytes for bucket offsets, row numbers, and tags; it excludes allocator overhead and the shared stem pool.",
+  "platforms": {
+    "macOS": {
+      "product": {
+        "passed": 3712,
+        "failed": 0,
+        "ignored": 2
+      },
+      "standalone": {
+        "passed": 439,
+        "failed": 0,
+        "ignored": 51
+      },
+      "strictClippy": [
+        "joyword-proof-rules --all-targets",
+        "craft-proof --lib"
+      ],
+      "dictionaryToolsSha256": [
+        [
+          "0e27e6154581b48761ca964cfaa686bb0d3e10cf413d2a3b27a98745b11eb1f3",
+          "9889d95ec36f47209df21559b9f3136afef555e72f7482e6ea717463b0e5f8e2"
+        ],
+        [
+          "4ba8fb7052aaaf118e88e7a83f4c278752b5fa89696368e6ea12882516c19fd4",
+          "a93876e3a559a786f95e968bb7a11ff9189ec3d911fee58ed904c8033c2ba85f"
+        ]
+      ],
+      "hunspellSha256": "b1e589d497b261754917dbf0cbd6e2101443e86a0e3f778ee609fa6b803c4d58",
+      "open": {
+        "nl": {
+          "compactBytes": 633938,
+          "compactSha256": "88023fe15ac7b88eaa6ca52a8798c08fc33b3008151869f116a7c3e78c71f118",
+          "baselineMs": [
+            68.44225,
+            70.950958,
+            60.7075,
+            60.301041,
+            60.826875,
+            58.95925,
+            62.574917
+          ],
+          "candidateMs": [
+            62.902084,
+            72.062167,
+            66.4465,
+            61.271917,
+            65.386,
+            62.357541,
+            61.981416
+          ],
+          "baselineMedianMs": 60.826875,
+          "candidateMedianMs": 62.902084
+        },
+        "pl": {
+          "compactBytes": 872651,
+          "compactSha256": "376e12aad7721cd113be10d7784ddc1e9d1cc009ea41a032839127a24555ccd9",
+          "baselineMs": [
+            114.805459,
+            116.593458,
+            115.100042,
+            111.403208,
+            110.758125,
+            112.05325,
+            110.98825
+          ],
+          "candidateMs": [
+            117.910917,
+            115.875834,
+            116.62275,
+            115.606666,
+            117.416833,
+            114.679541,
+            113.426083
+          ],
+          "baselineMedianMs": 112.05325,
+          "candidateMedianMs": 115.875834
+        },
+        "es": {
+          "compactBytes": 184811,
+          "compactSha256": "13e5573d7351a4d24e2b597cb391d4e61644593427570936982613100a159d6b",
+          "baselineMs": [
+            26.240084,
+            24.213583,
+            24.071083,
+            25.303417,
+            25.257166,
+            23.836416,
+            23.955542
+          ],
+          "candidateMs": [
+            24.040958,
+            24.220958,
+            23.949625,
+            24.044541,
+            24.138792,
+            24.089666,
+            23.489083
+          ],
+          "baselineMedianMs": 24.213583,
+          "candidateMedianMs": 24.044541
+        },
+        "tr": {
+          "compactBytes": 1734155,
+          "compactSha256": "ce7876d44d12ddc9a676a2ffa43b6052e3ab094b2b226c35c0ead5725334093f",
+          "baselineMs": [
+            153.438583,
+            162.075084,
+            171.615667,
+            207.057708,
+            170.02125,
+            163.787791,
+            166.027833
+          ],
+          "candidateMs": [
+            168.3325,
+            164.833209,
+            179.938709,
+            170.79875,
+            217.834542,
+            275.963958,
+            174.674167
+          ],
+          "baselineMedianMs": 166.027833,
+          "candidateMedianMs": 174.674167
+        }
+      },
+      "lookup": {
+        "nl": {
+          "rootCount": 177019,
+          "queryCount": 256,
+          "queriesPerSample": 6144,
+          "acceptedPerSample": 2904,
+          "previousIndexBytes": 2097152,
+          "newIndexBytes": 1147243,
+          "nsPerQuery": {
+            "baseline": [
+              4398.30859375,
+              6139.194010416667,
+              4857.815104166667,
+              4518.581705729167,
+              7093.26171875,
+              7509.236653645833,
+              6253.791015625,
+              5742.770833333333
+            ],
+            "candidate": [
+              3431.1116536458335,
+              3544.3522135416665,
+              3833.2789713541665,
+              4073.3777669270835,
+              5541.293619791667,
+              4258.23974609375,
+              5315.680501302083,
+              4634.982584635417
+            ]
+          },
+          "medianNsPerQuery": {
+            "baseline": 5940.982421875,
+            "candidate": 4165.808756510417
+          }
+        },
+        "pl": {
+          "rootCount": 348901,
+          "queryCount": 256,
+          "queriesPerSample": 6144,
+          "acceptedPerSample": 3072,
+          "previousIndexBytes": 4194304,
+          "newIndexBytes": 2268797,
+          "nsPerQuery": {
+            "baseline": [
+              741.5432942708334,
+              414.5846354166667,
+              367.0992838541667,
+              338.0398763020833,
+              346.7068684895833,
+              336.0865885416667,
+              419.921875,
+              380.5813802083333
+            ],
+            "candidate": [
+              365.5530598958333,
+              520.9689127604166,
+              358.8800455729167,
+              323.79150390625,
+              316.4197591145833,
+              326.6126302083333,
+              335.1847330729167,
+              325.4734700520833
+            ]
+          },
+          "medianNsPerQuery": {
+            "baseline": 373.84033203125,
+            "candidate": 330.898681640625
+          }
+        },
+        "es": {
+          "rootCount": 55820,
+          "queryCount": 256,
+          "queriesPerSample": 6144,
+          "acceptedPerSample": 3072,
+          "previousIndexBytes": 524288,
+          "newIndexBytes": 344640,
+          "nsPerQuery": {
+            "baseline": [
+              292.06005859375,
+              203.68782552083334,
+              202.00602213541666,
+              206.39371744791666,
+              206.00732421875,
+              206.91585286458334,
+              206.46158854166666,
+              206.08854166666666
+            ],
+            "candidate": [
+              164.23209635416666,
+              167.609375,
+              166.57845052083334,
+              167.91455078125,
+              177.99886067708334,
+              162.95035807291666,
+              164.82210286458334,
+              164.24560546875
+            ]
+          },
+          "medianNsPerQuery": {
+            "baseline": 206.24112955729166,
+            "candidate": 165.70027669270834
+          }
+        },
+        "tr": {
+          "rootCount": 371056,
+          "queryCount": 256,
+          "queriesPerSample": 6144,
+          "acceptedPerSample": 3072,
+          "previousIndexBytes": 4194304,
+          "newIndexBytes": 2379572,
+          "nsPerQuery": {
+            "baseline": [
+              112.15543619791667,
+              118.97102864583333,
+              116.62467447916667,
+              114.64436848958333,
+              113.26090494791667,
+              112.9150390625,
+              112.02652994791667,
+              116.92301432291667
+            ],
+            "candidate": [
+              112.67757161458333,
+              110.92122395833333,
+              112.29117838541667,
+              119.93408203125,
+              109.7548828125,
+              106.59440104166667,
+              105.63151041666667,
+              105.81461588541667
+            ]
+          },
+          "medianNsPerQuery": {
+            "baseline": 113.95263671875,
+            "candidate": 110.33805338541666
+          }
+        }
+      },
+      "desktop": {
+        "binarySha256": "0cac0bf15ee24b159c9b7c73641e07e72bff42a782ae6b489a7d4d195eacd5f6",
+        "sourceSha256": "fd2922d68cff4ebaef4ef02f19b461abfaf72f0ac7d4d6c841151ff7e9fa7944",
+        "selectedWord": "workss",
+        "displayedSuggestions": [
+          "works",
+          "work"
+        ],
+        "replacement": "works",
+        "undoRedo": true,
+        "savedAndReopened": true,
+        "originalUnchanged": true,
+        "readersByWriter": {
+          "baseline": [
+            "baseline",
+            "candidate"
+          ],
+          "candidate": [
+            "baseline",
+            "candidate"
+          ]
+        }
+      },
+      "spdx": {
+        "target": "aarch64-apple-darwin",
+        "packages": 514,
+        "sourceFiles": 1092,
+        "spdxSha256": "6645938607b19478e00f3d52b566760643b4176badf0dea07d7021a174533c39",
+        "missingLicenseTexts": [],
+        "sharedCrates": [
+          "joyoffice-cfb",
+          "joyoffice-drawingml",
+          "joyoffice-fonts",
+          "joyoffice-metafile",
+          "joyoffice-omml",
+          "joyoffice-opc",
+          "joyoffice-theme",
+          "joyoffice-ui"
+        ],
+        "runtimeLegacyDependencies": [
+          "craft-atomic",
+          "craft-font-store",
+          "craft-proof"
+        ]
+      }
+    },
+    "UOS25": {
+      "product": {
+        "passed": 3716,
+        "failed": 0,
+        "ignored": 2
+      },
+      "standalone": {
+        "passed": 439,
+        "failed": 0,
+        "ignored": 51
+      },
+      "strictClippy": [
+        "joyword-proof-rules --all-targets",
+        "craft-proof --lib"
+      ],
+      "dictionaryToolsSha256": [
+        [
+          "09be1dd31ef0ff951871efc619f3dba30bab4e15c80d1d930aaf69bf9669e1ca",
+          "c4a540398035c57ccab884943e88f4647591f2aede608ba10ff300ff935e80dd"
+        ],
+        [
+          "45fb655fc3ec1667320fa948ac8a3b1a55154d6959ee010571570701b75e8ee7",
+          "87496d72df213f136ba5c6509e48935c8c3084fb692d674552d1eb913470c1fb"
+        ]
+      ],
+      "hunspellSha256": "96711c36b275890143b4dbbe3033df22e9c930511fc7877598dd7ef23a4b5f42",
+      "open": {
+        "nl": {
+          "compactBytes": 633938,
+          "compactSha256": "88023fe15ac7b88eaa6ca52a8798c08fc33b3008151869f116a7c3e78c71f118",
+          "baselineMs": [
+            59.251178,
+            60.864617,
+            61.387092,
+            61.706115,
+            58.779667,
+            59.535167,
+            62.753679
+          ],
+          "candidateMs": [
+            59.797176,
+            58.020418,
+            60.466409,
+            60.816699,
+            62.597444,
+            62.476783,
+            64.626772
+          ],
+          "baselineMedianMs": 60.864617,
+          "candidateMedianMs": 60.816699
+        },
+        "pl": {
+          "compactBytes": 872651,
+          "compactSha256": "376e12aad7721cd113be10d7784ddc1e9d1cc009ea41a032839127a24555ccd9",
+          "baselineMs": [
+            117.651131,
+            122.813576,
+            120.035699,
+            130.654927,
+            122.671807,
+            126.357473,
+            124.223332
+          ],
+          "candidateMs": [
+            122.036275,
+            123.568997,
+            122.126741,
+            136.163494,
+            129.40962,
+            130.329833,
+            122.532512
+          ],
+          "baselineMedianMs": 122.813576,
+          "candidateMedianMs": 123.568997
+        },
+        "es": {
+          "compactBytes": 184811,
+          "compactSha256": "13e5573d7351a4d24e2b597cb391d4e61644593427570936982613100a159d6b",
+          "baselineMs": [
+            25.359577,
+            27.715403,
+            25.77694,
+            25.341204,
+            25.567738,
+            26.272577,
+            25.691835
+          ],
+          "candidateMs": [
+            25.661049,
+            25.830038,
+            25.609274,
+            26.059426,
+            26.599634,
+            28.675587,
+            26.312849
+          ],
+          "baselineMedianMs": 25.691835,
+          "candidateMedianMs": 26.059426
+        },
+        "tr": {
+          "compactBytes": 1734155,
+          "compactSha256": "ce7876d44d12ddc9a676a2ffa43b6052e3ab094b2b226c35c0ead5725334093f",
+          "baselineMs": [
+            180.994958,
+            184.617741,
+            173.967185,
+            182.29776,
+            177.637232,
+            174.673746,
+            198.387055
+          ],
+          "candidateMs": [
+            184.299999,
+            184.244618,
+            180.298275,
+            183.552443,
+            186.269629,
+            187.963214,
+            211.049968
+          ],
+          "baselineMedianMs": 180.994958,
+          "candidateMedianMs": 184.299999
+        }
+      },
+      "lookup": {
+        "nl": {
+          "rootCount": 177019,
+          "queryCount": 256,
+          "queriesPerSample": 6144,
+          "acceptedPerSample": 2904,
+          "previousIndexBytes": 2097152,
+          "newIndexBytes": 1147243,
+          "nsPerQuery": {
+            "baseline": [
+              5284.760904947917,
+              5265.25439453125,
+              5228.262858072917,
+              5156.318196614583,
+              5202.683919270833,
+              5025.848795572917,
+              5131.6279296875,
+              5096.43994140625
+            ],
+            "candidate": [
+              4440.338541666667,
+              4489.1875,
+              4221.060709635417,
+              4171.812174479167,
+              4416.316731770833,
+              4328.452799479167,
+              4129.97314453125,
+              4102.810872395833
+            ]
+          },
+          "medianNsPerQuery": {
+            "baseline": 5179.501057942708,
+            "candidate": 4274.756754557292
+          }
+        },
+        "pl": {
+          "rootCount": 348901,
+          "queryCount": 256,
+          "queriesPerSample": 6144,
+          "acceptedPerSample": 3072,
+          "previousIndexBytes": 4194304,
+          "newIndexBytes": 2268797,
+          "nsPerQuery": {
+            "baseline": [
+              672.7937825520834,
+              504.5826822916667,
+              710.7097981770834,
+              534.82177734375,
+              673.2486979166666,
+              536.2859700520834,
+              558.9788411458334,
+              738.8518880208334
+            ],
+            "candidate": [
+              516.4697265625,
+              491.10107421875,
+              496.3025716145833,
+              816.8411458333334,
+              681.9788411458334,
+              556.8885091145834,
+              500.1539713541667,
+              648.4002278645834
+            ]
+          },
+          "medianNsPerQuery": {
+            "baseline": 615.8863118489584,
+            "candidate": 536.6791178385417
+          }
+        },
+        "es": {
+          "rootCount": 55820,
+          "queryCount": 256,
+          "queriesPerSample": 6144,
+          "acceptedPerSample": 3072,
+          "previousIndexBytes": 524288,
+          "newIndexBytes": 344640,
+          "nsPerQuery": {
+            "baseline": [
+              206.71402994791666,
+              215.61376953125,
+              215.48160807291666,
+              210.66178385416666,
+              208.39518229166666,
+              221.47412109375,
+              214.0908203125,
+              225.14778645833334
+            ],
+            "candidate": [
+              204.17854817708334,
+              179.92513020833334,
+              180.54654947916666,
+              177.13704427083334,
+              185.7724609375,
+              182.5048828125,
+              177.78092447916666,
+              177.90315755208334
+            ]
+          },
+          "medianNsPerQuery": {
+            "baseline": 214.78621419270831,
+            "candidate": 180.23583984375
+          }
+        },
+        "tr": {
+          "rootCount": 371056,
+          "queryCount": 256,
+          "queriesPerSample": 6144,
+          "acceptedPerSample": 3072,
+          "previousIndexBytes": 4194304,
+          "newIndexBytes": 2379572,
+          "nsPerQuery": {
+            "baseline": [
+              179.87125651041666,
+              127.70751953125,
+              138.52799479166666,
+              118.09521484375,
+              124.79996744791667,
+              117.69889322916667,
+              171.91910807291666,
+              117.79833984375
+            ],
+            "candidate": [
+              128.74609375,
+              128.92708333333334,
+              126.21533203125,
+              190.48649088541666,
+              126.87744140625,
+              124.24397786458333,
+              126.38167317708333,
+              122.65738932291667
+            ]
+          },
+          "medianNsPerQuery": {
+            "baseline": 126.25374348958334,
+            "candidate": 126.62955729166666
+          }
+        }
+      },
+      "desktop": {
+        "binarySha256": "e83677c07f5a4cb4f3f1f30c6e4d52b0a00eee76cc67d8ad36d677ec0f4dc028",
+        "sourceSha256": "fd2922d68cff4ebaef4ef02f19b461abfaf72f0ac7d4d6c841151ff7e9fa7944",
+        "selectedWord": "workss",
+        "displayedSuggestions": [
+          "works",
+          "work"
+        ],
+        "replacement": "works",
+        "undoRedo": true,
+        "savedAndReopened": true,
+        "originalUnchanged": true,
+        "readersByWriter": {
+          "baseline": [
+            "baseline",
+            "candidate"
+          ],
+          "candidate": [
+            "baseline",
+            "candidate"
+          ]
+        }
+      },
+      "spdx": {
+        "target": "x86_64-unknown-linux-gnu",
+        "packages": 603,
+        "sourceFiles": 1097,
+        "spdxSha256": "8ac60c6adb8e9970ac053e4d83e46b1723fc2d99d5e42c3a1d542a428ba6cb77",
+        "missingLicenseTexts": [],
+        "sharedCrates": [
+          "joyoffice-cfb",
+          "joyoffice-drawingml",
+          "joyoffice-fonts",
+          "joyoffice-metafile",
+          "joyoffice-omml",
+          "joyoffice-opc",
+          "joyoffice-theme",
+          "joyoffice-ui"
+        ],
+        "runtimeLegacyDependencies": [
+          "craft-atomic",
+          "craft-font-store",
+          "craft-proof"
+        ]
+      }
+    }
+  },
+  "rollback": "Use the previous reader/index from 58bea36f. Both product generations read either writer’s unchanged WCAFF2 bytes. The release still contains craft-proof, craft-atomic and craft-font-store.",
+  "matrix": {
+    "releaseIndexSha256": "b35c7aef0591177f18233b551da16035dcd615549ff874e169ffd19f16fea74b",
+    "compactBoundaries": {
+      "validWords": {
+        "abcdefghijA": true,
+        "abcdefghijB": true,
+        "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxA": true,
+        "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxB": true,
+        "鲁": true,
+        "鲃": true,
+        "missing": false
+      },
+      "rejections": {
+        "missing LF": "Error: \"affix dictionary: truncated\"",
+        "prefix beyond previous": "Error: \"affix dictionary: bad prefix\"",
+        "empty first entry": "Error: \"affix dictionary: bad stem\"",
+        "long stem": "Error: \"affix dictionary: bad stem\"",
+        "invalid stem UTF-8": "Error: \"affix dictionary: bad utf-8 in a stem\"",
+        "invalid flag UTF-8": "Error: \"affix dictionary: bad utf-8 in flags\""
+      }
+    },
+    "compactHeaders": {
+      "expectedWords": {
+        "numeric": 6,
+        "compound": 3,
+        "unicode": 3
+      },
+      "invalidHeadersRejectedByBoth": 11
+    },
+    "entries": {
+      "inputs": 12,
+      "queries": 480,
+      "referenceDifferences": 24,
+      "identicalTwoWriterBytes": 12,
+      "externalHeaderCountRepairsOnCopies": 0
+    },
+    "grammars": {
+      "inputs": 24,
+      "queries": 960,
+      "referenceDifferences": 0,
+      "identicalTwoWriterBytes": 24,
+      "externalHeaderCountRepairsOnCopies": 0
+    },
+    "packs": {
+      "inputs": 75,
+      "queries": 450,
+      "referenceDifferences": 0,
+      "identicalTwoWriterBytes": 75,
+      "externalHeaderCountRepairsOnCopies": 3
+    }
+  }
+}

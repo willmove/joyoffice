@@ -136,6 +136,41 @@ def compact_boundaries(folder, readers):
     return {'validWords': dict(zip(words, expected)), 'rejections': errors}
 
 
+def compact_headers(folder, readers):
+    path = folder / 'header.affix'
+    def write(header, roots):
+        raw = ('WCAFF2\n' + header + '\nWORDS\n').encode()
+        raw += b''.join(b'\0' + entry.encode() + b'\n' for entry in roots)
+        stream = zlib.compressobj(wbits=-15)
+        path.write_bytes(stream.compress(raw) + stream.flush())
+
+    scenarios = [
+        ('numeric', '# language data\nFLAG num\nTRY abc\nKEY a|b\nMAP aá\nREP ty po\nFULLSTRIP\nCHECKSHARPS\n'
+         'ICONV ph f\nOCONV f ph\nIGNORE !\nFORBIDDENWORD 9\nNEEDAFFIX 8\nPFX 2 Y 0 re .\nSFX 1 Y 0 s .',
+         ['cat/1','new/2','banned/9','form/1,8'], {'cats':True, 'renew':True, 'cat':True, 'banned':False, 'form':False, 'forms':True}),
+        ('compound', 'LANG nl_NL\nCOMPOUNDMIN 2\nCOMPOUNDFLAG C\nCOMPOUNDWORDMAX 3\nCHECKCOMPOUNDPATTERN 1\n'
+         'CHECKCOMPOUNDPATTERN z z # space separated annotation follows',
+         ['sun/C','ray/C'], {'sunray': True, 'ray':True, 'sxx':False}),
+        ('unicode', 'SFX\t\u00a0\tY\t0\té\t.', ['caf/\u00a0'], {'caf':True, 'café':True, 'cafe':False}),
+    ]
+    result = {}
+    for name, header, roots, reference in scenarios:
+        write(header, roots)
+        for reader in readers:
+            answers = compact_answers(reader,path,list(reference))
+            assert answers == list(reference.values()), (name,answers,reference)
+        result[name] = len(reference)
+    rejected = ['PFX A Y 0 x', 'SFX A Y 0 s . extra', 'ICONV x', 'OCONV a b c', 'FLAG missing',
+                'COMPOUNDMIN many', 'FORBIDDENWORD XX', 'NO_SUCH_SETTING a', 'COMPOUNDWORDMAX nope',
+                'CHECKCOMPOUNDPATTERN z z replacement', 'PFX A Y 0 pre .\nFLAG num']
+    for line in rejected:
+        write(line, ['root'])
+        for reader in readers:
+            proc = subprocess.run([reader, 'check', path], input='', capture_output=True, check=False, text=True, timeout=30)
+            assert proc.returncode != 0 and 'affix dictionary:' in proc.stderr, (line,proc.stderr)
+    return {'expectedWords': result, 'invalidHeadersRejectedByBoth': len(rejected)}
+
+
 def review(old, new, desktop, out, entries=False):
     dictionary = out / "dictionary"
     aff = b"SET UTF-8\nFLAG num\nTRY workse\nSFX 65535 N 1\nSFX 65535 0 s [ck]\n"
@@ -177,6 +212,7 @@ if __name__ == "__main__":
         if a.entries:
             data["entries"] = entry_cases(folder, tools, oracle)
             data["compactBoundaries"] = compact_boundaries(folder, tools[1])
+            data["compactHeaders"] = compact_headers(folder, tools[1])
         for entry in json.loads(index.read_text())["packs"]:
             tag = entry["locale"]
             archive = a.packs / (tag + ".tar.zst")
