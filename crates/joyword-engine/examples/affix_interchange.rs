@@ -38,6 +38,21 @@ fn main() -> Result<(), String> {
                 start.elapsed().as_nanos()
             );
         }
+        [cmd, path, repeats] if cmd == "serialize" => {
+            let original = fs::read(path).map_err(|e| e.to_string())?;
+            let dict = AffixDict::from_bytes(&original)?;
+            let repeats = repeats.parse::<usize>().map_err(|e| e.to_string())?;
+            let mut elapsed = std::time::Duration::ZERO;
+            for _ in 0..repeats {
+                let start = Instant::now();
+                let bytes = black_box(&dict).to_bytes()?;
+                elapsed += start.elapsed();
+                if bytes != original {
+                    return Err("compact dictionary changed during reserialization".into());
+                }
+            }
+            println!("{}", elapsed.as_nanos());
+        }
         [cmd, aff, dic, output] if cmd == "pack" || cmd == "time" => {
             let bytes = |name| fs::read(name).map_err(|e| format!("{name}: {e}"));
             let (rules, stems) = hunspell::decode(&bytes(aff)?, &bytes(dic)?)?;
@@ -59,7 +74,7 @@ fn main() -> Result<(), String> {
         }
         _ => {
             return Err(
-                "expected pack AFF DIC OUTPUT, check COMPACT, lookup COMPACT WORDS REPETITIONS, or time AFF DIC REPETITIONS".into(),
+                "expected pack AFF DIC OUTPUT, check COMPACT, lookup COMPACT WORDS REPETITIONS, serialize COMPACT REPETITIONS, or time AFF DIC REPETITIONS".into(),
             );
         }
     }

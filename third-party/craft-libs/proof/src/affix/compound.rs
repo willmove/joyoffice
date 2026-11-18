@@ -76,16 +76,9 @@ const MIDDLE: u8 = 2;
 const LAST: u8 = 4;
 
 /// The single-flag compounding directives, in the order [`Raw::flags`] keeps them.
-const FLAG_DIRECTIVES: [&str; 8] = [
-    "COMPOUNDFLAG",
-    "COMPOUNDBEGIN",
-    "COMPOUNDMIDDLE",
-    "COMPOUNDEND",
-    "COMPOUNDPERMITFLAG",
-    "COMPOUNDFORBIDFLAG",
-    "COMPOUNDROOT",
-    "FORCEUCASE",
-];
+use joyword_proof_rules::dictionary::compact_writer::{
+    COMPOUND_FLAGS as FLAG_DIRECTIVES, COMPOUND_SWITCHES as SWITCHES, Compounds,
+};
 const FLAG: usize = 0;
 const BEGIN: usize = 1;
 const MIDDLE_FLAG: usize = 2;
@@ -95,14 +88,6 @@ const FORBID: usize = 5;
 const ROOT: usize = 6;
 const FORCE_UCASE: usize = 7;
 
-/// The yes/no compounding directives, in the order [`Raw::switches`] keeps them.
-const SWITCHES: [&str; 5] = [
-    "CHECKCOMPOUNDDUP",
-    "CHECKCOMPOUNDREP",
-    "CHECKCOMPOUNDCASE",
-    "CHECKCOMPOUNDTRIPLE",
-    "SIMPLIFIEDTRIPLE",
-];
 const DUP: usize = 0;
 const REP: usize = 1;
 const CASE: usize = 2;
@@ -451,43 +436,18 @@ impl Compounding {
             .ok_or_else(|| "CHECKCOMPOUNDPATTERN: more than 63 distinct flags".to_string())
     }
 
-    /// The directives as compact-format lines (flags written by `write_flag`).
-    pub(super) fn write(&self, out: &mut String, write_flag: &impl Fn(FlagKey, &mut String)) {
-        let raw = &self.raw;
-        if raw.hungarian {
-            out.push_str("LANG hu\n");
-        }
-        for (name, key) in FLAG_DIRECTIVES.iter().zip(&raw.flags) {
-            if let Some(k) = key {
-                out.push_str(name);
-                out.push(' ');
-                write_flag(*k, out);
-                out.push('\n');
-            }
-        }
-        for (name, on) in SWITCHES.iter().zip(&raw.switches) {
-            if *on {
-                out.push_str(name);
-                out.push('\n');
-            }
-        }
-        if let Some(n) = raw.word_max {
-            out.push_str(&format!("COMPOUNDWORDMAX {n}\n"));
-        }
-        if let Some((n, vowels)) = &raw.syllable {
-            out.push_str(&format!("COMPOUNDSYLLABLE {n} {vowels}\n"));
-        }
-        if let Some(flags) = &raw.syllable_num {
-            out.push_str(&format!("SYLLABLENUM {flags}\n"));
-        }
-        if raw.no_suggestions {
-            out.push_str("MAXCPDSUGS 0\n");
-        }
-        if raw.no_split_suggestions {
-            out.push_str("NOSPLITSUGS\n");
-        }
-        for (end, begin) in &raw.patterns {
-            out.push_str(&format!("CHECKCOMPOUNDPATTERN {end} {begin}\n"));
+    pub(super) fn compact_settings(&self) -> Compounds<'_> {
+        let r = &self.raw;
+        Compounds {
+            flags: r.flags,
+            switches: r.switches,
+            hungarian: r.hungarian,
+            word_max: r.word_max,
+            syllable: r.syllable.as_ref().map(|(n, v)| (*n, v.as_str())),
+            syllable_num: r.syllable_num.as_deref(),
+            no_suggestions: r.no_suggestions,
+            no_split_suggestions: r.no_split_suggestions,
+            patterns: &r.patterns,
         }
     }
 }

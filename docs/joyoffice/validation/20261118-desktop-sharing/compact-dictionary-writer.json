@@ -1,0 +1,376 @@
+{
+  "baseline": "c0975b49",
+  "scope": "First-party WCAFF2 directive and compound-rule serialization in the shipped spelling path. Language pack data, compression format and locale resources retain their existing provenance.",
+  "reference": "https://github.com/hunspell/hunspell/blob/v1.7.5/man/hunspell.5",
+  "matrix": {
+    "releaseIndexSha256": "b35c7aef0591177f18233b551da16035dcd615549ff874e169ffd19f16fea74b",
+    "compactBoundaries": {
+      "validWords": {
+        "abcdefghijA": true,
+        "abcdefghijB": true,
+        "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxA": true,
+        "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxB": true,
+        "鲁": true,
+        "鲃": true,
+        "missing": false
+      },
+      "rejections": {
+        "missing LF": "Error: \"affix dictionary: truncated\"",
+        "prefix beyond previous": "Error: \"affix dictionary: bad prefix\"",
+        "empty first entry": "Error: \"affix dictionary: bad stem\"",
+        "long stem": "Error: \"affix dictionary: bad stem\"",
+        "invalid stem UTF-8": "Error: \"affix dictionary: bad utf-8 in a stem\"",
+        "invalid flag UTF-8": "Error: \"affix dictionary: bad utf-8 in flags\""
+      }
+    },
+    "compactHeaders": {
+      "expectedWords": {
+        "numeric": 6,
+        "compound": 3,
+        "unicode": 3
+      },
+      "invalidHeadersRejectedByBoth": 11
+    },
+    "entries": {
+      "inputs": 12,
+      "queries": 480,
+      "referenceDifferences": 24,
+      "identicalTwoWriterBytes": 12,
+      "externalHeaderCountRepairsOnCopies": 0
+    },
+    "grammars": {
+      "inputs": 24,
+      "queries": 960,
+      "referenceDifferences": 0,
+      "identicalTwoWriterBytes": 24,
+      "externalHeaderCountRepairsOnCopies": 0
+    },
+    "packs": {
+      "inputs": 75,
+      "queries": 450,
+      "referenceDifferences": 0,
+      "identicalTwoWriterBytes": 75,
+      "externalHeaderCountRepairsOnCopies": 3
+    }
+  },
+  "method": "Compiled the same affix_interchange driver against each writer. Tested source text, both compact outputs with both readers, official Hunspell probes, and damaged compact records. Timed the complete serialization of an already loaded dictionary including compression, two writes per sample, five alternating pairs in optimized builds.",
+  "platforms": {
+    "macOS": {
+      "product": {
+        "passed": 3715,
+        "failed": 0,
+        "ignored": 2
+      },
+      "standalone": {
+        "passed": 439,
+        "failed": 0,
+        "ignored": 51
+      },
+      "strictClippy": [
+        "joyword-proof-rules --all-targets",
+        "craft-proof --lib"
+      ],
+      "dictionaryToolsSha256": [
+        [
+          "9889d95ec36f47209df21559b9f3136afef555e72f7482e6ea717463b0e5f8e2",
+          "521a9e9c607c04e753872a39fd00074d9b4510c3e6b9900efad5bbbfa490382e"
+        ],
+        [
+          "a93876e3a559a786f95e968bb7a11ff9189ec3d911fee58ed904c8033c2ba85f",
+          "78312bb68dabfa1bb4641d04f4adbd781f0a8af27d197152f9949b3588ec80a4"
+        ]
+      ],
+      "hunspellSha256": "b1e589d497b261754917dbf0cbd6e2101443e86a0e3f778ee609fa6b803c4d58",
+      "serialization": {
+        "es": {
+          "sha256": "13e5573d7351a4d24e2b597cb391d4e61644593427570936982613100a159d6b",
+          "compactBytes": 184811,
+          "repetitionsPerRun": 2,
+          "baseline": [
+            51.6088965,
+            51.741437,
+            51.7966455,
+            51.5000835,
+            51.6271875
+          ],
+          "candidate": [
+            48.965729,
+            49.004875,
+            49.0482505,
+            49.067208,
+            49.0056875
+          ],
+          "baselineMedianMs": 51.6271875,
+          "candidateMedianMs": 49.0056875
+        },
+        "nl": {
+          "sha256": "88023fe15ac7b88eaa6ca52a8798c08fc33b3008151869f116a7c3e78c71f118",
+          "compactBytes": 633938,
+          "repetitionsPerRun": 2,
+          "baseline": [
+            85.311396,
+            83.834042,
+            85.139979,
+            85.4501665,
+            85.298896
+          ],
+          "candidate": [
+            81.751833,
+            81.273,
+            81.287021,
+            80.9923745,
+            81.2205415
+          ],
+          "baselineMedianMs": 85.298896,
+          "candidateMedianMs": 81.273
+        },
+        "pl": {
+          "sha256": "376e12aad7721cd113be10d7784ddc1e9d1cc009ea41a032839127a24555ccd9",
+          "compactBytes": 872651,
+          "repetitionsPerRun": 2,
+          "baseline": [
+            154.830396,
+            155.170771,
+            156.5335205,
+            156.513041,
+            158.160917
+          ],
+          "candidate": [
+            145.349333,
+            145.902,
+            146.0400625,
+            145.8268125,
+            147.331146
+          ],
+          "baselineMedianMs": 156.513041,
+          "candidateMedianMs": 145.902
+        },
+        "tr": {
+          "sha256": "ce7876d44d12ddc9a676a2ffa43b6052e3ab094b2b226c35c0ead5725334093f",
+          "compactBytes": 1734155,
+          "repetitionsPerRun": 2,
+          "baseline": [
+            183.3377705,
+            184.046896,
+            183.759875,
+            185.073625,
+            183.9995625
+          ],
+          "candidate": [
+            209.7276045,
+            176.595854,
+            176.0639165,
+            175.6991875,
+            175.810583
+          ],
+          "baselineMedianMs": 183.9995625,
+          "candidateMedianMs": 176.0639165
+        }
+      },
+      "desktop": {
+        "binarySha256": "775b6fb085501745294d43ebe564f6d8c28da2162897c14b1c48e06f9d94c499",
+        "sourceSha256": "fd2922d68cff4ebaef4ef02f19b461abfaf72f0ac7d4d6c841151ff7e9fa7944",
+        "selectedWord": "workss",
+        "displayedSuggestions": [
+          "works",
+          "work"
+        ],
+        "replacement": "works",
+        "undoRedo": true,
+        "savedAndReopened": true,
+        "originalUnchanged": true,
+        "readersByWriter": {
+          "baseline": [
+            "baseline",
+            "candidate"
+          ],
+          "candidate": [
+            "baseline",
+            "candidate"
+          ]
+        }
+      },
+      "spdx": {
+        "target": "aarch64-apple-darwin",
+        "packages": 514,
+        "sourceFiles": 1094,
+        "spdxSha256": "33dee4c531f4d24956eb6956d09f4166ad505b5cf5d7a42893dfd0257368f12d",
+        "missingLicenseTexts": [],
+        "sharedCrates": [
+          "joyoffice-cfb",
+          "joyoffice-drawingml",
+          "joyoffice-fonts",
+          "joyoffice-metafile",
+          "joyoffice-omml",
+          "joyoffice-opc",
+          "joyoffice-theme",
+          "joyoffice-ui"
+        ],
+        "runtimeLegacyDependencies": [
+          "craft-atomic",
+          "craft-font-store",
+          "craft-proof"
+        ]
+      }
+    },
+    "UOS25": {
+      "product": {
+        "passed": 3719,
+        "failed": 0,
+        "ignored": 2
+      },
+      "standalone": {
+        "passed": 439,
+        "failed": 0,
+        "ignored": 51
+      },
+      "strictClippy": [
+        "joyword-proof-rules --all-targets",
+        "craft-proof --lib"
+      ],
+      "dictionaryToolsSha256": [
+        [
+          "c4a540398035c57ccab884943e88f4647591f2aede608ba10ff300ff935e80dd",
+          "2425d35c04f1eb16f0943dce98bd4806e06c1b2627967c0409c628cdc2c2eb4a"
+        ],
+        [
+          "87496d72df213f136ba5c6509e48935c8c3084fb692d674552d1eb913470c1fb",
+          "f06a0745c6e2e3585ec6a9ab6ba9bc7f7f65889172aab22291191ece30289535"
+        ]
+      ],
+      "hunspellSha256": "96711c36b275890143b4dbbe3033df22e9c930511fc7877598dd7ef23a4b5f42",
+      "serialization": {
+        "es": {
+          "sha256": "13e5573d7351a4d24e2b597cb391d4e61644593427570936982613100a159d6b",
+          "compactBytes": 184811,
+          "repetitionsPerRun": 2,
+          "baseline": [
+            62.975712,
+            63.2268895,
+            63.0743085,
+            63.3501255,
+            63.387234
+          ],
+          "candidate": [
+            61.442469,
+            61.352048,
+            61.3645995,
+            61.3670935,
+            61.438495
+          ],
+          "baselineMedianMs": 63.2268895,
+          "candidateMedianMs": 61.3670935
+        },
+        "nl": {
+          "sha256": "88023fe15ac7b88eaa6ca52a8798c08fc33b3008151869f116a7c3e78c71f118",
+          "compactBytes": 633938,
+          "repetitionsPerRun": 2,
+          "baseline": [
+            111.1926445,
+            111.1980835,
+            111.052051,
+            111.7778175,
+            111.115314
+          ],
+          "candidate": [
+            108.4087445,
+            108.7460065,
+            109.140756,
+            108.9638095,
+            108.6969245
+          ],
+          "baselineMedianMs": 111.1926445,
+          "candidateMedianMs": 108.7460065
+        },
+        "pl": {
+          "sha256": "376e12aad7721cd113be10d7784ddc1e9d1cc009ea41a032839127a24555ccd9",
+          "compactBytes": 872651,
+          "repetitionsPerRun": 2,
+          "baseline": [
+            203.693959,
+            203.5391155,
+            204.287246,
+            203.5388775,
+            203.090853
+          ],
+          "candidate": [
+            197.238593,
+            197.6060265,
+            198.156924,
+            197.1318855,
+            198.6315765
+          ],
+          "baselineMedianMs": 203.5391155,
+          "candidateMedianMs": 197.6060265
+        },
+        "tr": {
+          "sha256": "ce7876d44d12ddc9a676a2ffa43b6052e3ab094b2b226c35c0ead5725334093f",
+          "compactBytes": 1734155,
+          "repetitionsPerRun": 2,
+          "baseline": [
+            241.370757,
+            245.8739015,
+            241.0549445,
+            242.561829,
+            241.8150555
+          ],
+          "candidate": [
+            236.879895,
+            236.05907,
+            237.449685,
+            235.026728,
+            235.027843
+          ],
+          "baselineMedianMs": 241.8150555,
+          "candidateMedianMs": 236.05907
+        }
+      },
+      "desktop": {
+        "binarySha256": "5e4f5ce68f509345d149dffc38408f1108a2f45b5915929c00811c5a656693ad",
+        "sourceSha256": "fd2922d68cff4ebaef4ef02f19b461abfaf72f0ac7d4d6c841151ff7e9fa7944",
+        "selectedWord": "workss",
+        "displayedSuggestions": [
+          "works",
+          "work"
+        ],
+        "replacement": "works",
+        "undoRedo": true,
+        "savedAndReopened": true,
+        "originalUnchanged": true,
+        "readersByWriter": {
+          "baseline": [
+            "baseline",
+            "candidate"
+          ],
+          "candidate": [
+            "baseline",
+            "candidate"
+          ]
+        }
+      },
+      "spdx": {
+        "target": "x86_64-unknown-linux-gnu",
+        "packages": 603,
+        "sourceFiles": 1099,
+        "spdxSha256": "662da74a1fa457e69c720d5a7faa0314a2912fa6281bbe8b131dc610ee476c90",
+        "missingLicenseTexts": [],
+        "sharedCrates": [
+          "joyoffice-cfb",
+          "joyoffice-drawingml",
+          "joyoffice-fonts",
+          "joyoffice-metafile",
+          "joyoffice-omml",
+          "joyoffice-opc",
+          "joyoffice-theme",
+          "joyoffice-ui"
+        ],
+        "runtimeLegacyDependencies": [
+          "craft-atomic",
+          "craft-font-store",
+          "craft-proof"
+        ]
+      }
+    }
+  },
+  "rollback": "Restore the writer from c0975b49. Both readers consume either generation of compact bytes. Existing language packs need no conversion."
+}

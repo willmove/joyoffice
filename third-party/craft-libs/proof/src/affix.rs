@@ -51,9 +51,10 @@ use edges::EdgeIndex;
 
 pub(crate) use compound::{MAX_SUGGEST_COMPOUND_WORK, Pieces};
 
-use joyword_proof_rules::dictionary::compact::{
-    self, Directive, SIGNATURE as MAGIC, Setting, WordFlag,
-};
+#[cfg(test)]
+use joyword_proof_rules::dictionary::compact::SIGNATURE as MAGIC;
+use joyword_proof_rules::dictionary::compact::{self, Directive, Setting, WordFlag};
+use joyword_proof_rules::dictionary::compact_writer::{Metadata, Writer};
 /// Most bytes the compact format inflates to, written or read.
 const MAX_INFLATED: usize = 64 << 20;
 /// Longest word (in bytes) looked up; longer input is never a dictionary word.
@@ -2486,151 +2487,96 @@ impl AffixDict {
     /// prefix length in bytes, the rest of the word, `/` and its flags if any). Flags are written
     /// as the `.aff` wrote them, so one-character data is the same as before `FLAG` lines existed.
     pub fn to_bytes(&self) -> Result<Vec<u8>, String> {
-        let mut out = String::new();
-        out.push_str(MAGIC);
-        out.push('\n');
-        if let Some(name) = self.flag_mode.name() {
-            out.push_str(&format!("FLAG {name}\n"));
-        }
-        for c in &self.comments {
-            out.push_str("# ");
-            out.push_str(c.trim());
-            out.push('\n');
-        }
-        if !self.try_chars.is_empty() {
-            out.push_str(&format!("TRY {}\n", self.try_chars));
-        }
-        if !self.key.is_empty() {
-            out.push_str(&format!("KEY {}\n", self.key));
-        }
-        for m in &self.map {
-            out.push_str(&format!("MAP {}\n", m.iter().collect::<String>()));
-        }
-        for (a, b) in &self.rep {
-            out.push_str(&format!(
-                "REP {} {}\n",
-                a.replace(' ', "_"),
-                b.replace(' ', "_")
-            ));
-        }
-        // In one-character mode a directive flag that no stem or rule uses isn't written, as
-        // before flag ids existed, so those dictionaries' compact data stays byte for byte the same.
-        let used = |flag: u16| {
-            self.flags
+        let flags = [
+            self.forbidden,
+            self.no_suggest,
+            self.substandard,
+            self.keepcase,
+            self.need_affix,
+            self.circumfix,
+        ];
+        // In single-character dictionaries a directive is present in WCAFF2
+        // only if its flag is referenced by a root, a homonym or a rule.
+        let mut used = vec![false; self.flag_keys.len()];
+        if self.flag_mode == FlagMode::Char
+            && flags
+                .iter()
+                .chain([&self.only_in_compound])
+                .any(Option::is_some)
+        {
+            let mut seen_sets = vec![false; self.set_offs.len()];
+            let rules = self.prefixes.iter().chain(&self.suffixes);
+            for set_id in self
+                .flags
                 .iter()
                 .chain(self.cpd_sets.values())
                 .chain(self.homonyms.values().flatten())
-                .any(|&id| self.set(id).contains(&flag))
-                || self
-                    .prefixes
-                    .iter()
-                    .chain(&self.suffixes)
-                    .any(|r| r.flag == flag || self.set(r.cont).contains(&flag))
-        };
-        if self.full_strip {
-            out.push_str("FULLSTRIP\n");
-        }
-        if self.check_sharps {
-            out.push_str("CHECKSHARPS\n");
-        }
-        for (directive, flag) in [
-            ("FORBIDDENWORD", self.forbidden),
-            ("NOSUGGEST", self.no_suggest),
-            ("SUBSTANDARD", self.substandard),
-            ("KEEPCASE", self.keepcase),
-            ("NEEDAFFIX", self.need_affix),
-            ("CIRCUMFIX", self.circumfix),
-        ] {
-            if let Some(flag) = flag.filter(|&f| self.flag_mode != FlagMode::Char || used(f)) {
-                out.push_str(directive);
-                out.push(' ');
-                self.write_flags(&[flag], &mut out);
-                out.push('\n');
-            }
-        }
-        for (name, table) in [("ICONV", &self.iconv), ("OCONV", &self.oconv)] {
-            for (a, b) in &table.pairs {
-                out.push_str(&format!("{name} {a} {b}\n"));
-            }
-        }
-        if !self.ignore.is_empty() {
-            out.push_str(&format!(
-                "IGNORE {}\n",
-                self.ignore.iter().collect::<String>()
-            ));
-        }
-        // ONLYINCOMPOUND goes after COMPOUNDMIN, as before flag ids, so one-character data stays
-        // byte for byte the same; without compound rules it is still written (its stems are no
-        // words on their own).
-        let only_in_compound = self
-            .only_in_compound
-            .filter(|&f| self.flag_mode != FlagMode::Char || used(f));
-        let write_only_in_compound = |out: &mut String| {
-            if let Some(flag) = only_in_compound {
-                out.push_str("ONLYINCOMPOUND ");
-                self.write_flags(&[flag], out);
-                out.push('\n');
-            }
-        };
-        if let Some(tag) = self.letter_case.tag() {
-            out.push_str(&format!("LANG {tag}\n"));
-        }
-        if self.compound_text.is_empty() && self.cpd.is_none() {
-            write_only_in_compound(&mut out);
-        } else {
-            out.push_str(&format!("COMPOUNDMIN {}\n", self.compound_min));
-            write_only_in_compound(&mut out);
-            for p in &self.compound_text {
-                out.push_str(&format!("COMPOUNDRULE {p}\n"));
-            }
-        }
-        if self.cpd.is_none() && !self.compound_rules.is_empty() {
-            for (directive, flag) in ["COMPOUNDPERMITFLAG", "COMPOUNDFORBIDFLAG"]
-                .into_iter()
-                .zip(self.rule_edge)
+                .chain(rules.clone().map(|r| &r.cont))
             {
-                if let Some(f) = flag {
-                    out.push_str(directive);
-                    out.push(' ');
-                    self.write_flags(&[f], &mut out);
-                    out.push('\n');
+                if let Some(seen) = seen_sets.get_mut(*set_id as usize)
+                    && !std::mem::replace(seen, true)
+                {
+                    for &id in self.set(*set_id) {
+                        used[usize::from(id)] = true;
+                    }
                 }
             }
-        }
-        if let Some(c) = &self.cpd {
-            c.write(&mut out, &|k, out: &mut String| {
-                self.flag_mode.write(std::iter::once(k), out)
-            });
-        }
-        let z = |s: &str| {
-            if s.is_empty() {
-                "0".to_string()
-            } else {
-                s.to_string()
-            }
-        };
-        for (kind, rules) in [("PFX", &self.prefixes), ("SFX", &self.suffixes)] {
             for r in rules {
-                let y = if r.cross { "Y" } else { "N" };
-                // Continuation classes ride on the appended field, as in the `.aff` source.
-                let mut add = z(&r.add);
-                let cont = self.set(r.cont);
-                if !cont.is_empty() {
-                    add.push('/');
-                    self.write_flags(cont, &mut add);
-                }
-                let mut flag = String::new();
-                self.write_flags(&[r.flag], &mut flag);
-                out.push_str(&format!(
-                    "{kind} {flag} {y} {} {} {}\n",
-                    z(&r.strip),
-                    add,
-                    r.cond_text
-                ));
+                used[usize::from(r.flag)] = true;
             }
         }
-        out.push_str("WORDS\n");
-        let mut raw = out.into_bytes();
+        let key = |id: Option<u16>| id.and_then(|i| self.flag_keys.get(usize::from(i)).copied());
+        let visible = |id: Option<u16>| {
+            key(id.filter(|&i| self.flag_mode != FlagMode::Char || used[usize::from(i)]))
+        };
+        let settings = Metadata {
+            mode: self.flag_mode,
+            comments: &self.comments,
+            try_chars: &self.try_chars,
+            keyboard: &self.key,
+            map: &self.map,
+            replacements: &self.rep,
+            full_strip: self.full_strip,
+            check_sharps: self.check_sharps,
+            word_flags: flags.map(visible),
+            input: &self.iconv.pairs,
+            output: &self.oconv.pairs,
+            ignore: &self.ignore,
+            language: self.letter_case.tag(),
+            compound_min: (!self.compound_text.is_empty() || self.cpd.is_some())
+                .then_some(self.compound_min),
+            compound_only: visible(self.only_in_compound),
+            compound_rules: &self.compound_text,
+            edge_flags: if self.cpd.is_none() && !self.compound_rules.is_empty() {
+                self.rule_edge.map(key)
+            } else {
+                [None; 2]
+            },
+        };
+        let mut writer = Writer::new(
+            &settings,
+            self.cpd.as_ref().map(|cpd| cpd.compact_settings()),
+        );
+        let mut flag = String::new();
+        let mut continuation = String::new();
+        for (suffix, rules) in [(false, &self.prefixes), (true, &self.suffixes)] {
+            for r in rules {
+                flag.clear();
+                self.write_flags(&[r.flag], &mut flag);
+                continuation.clear();
+                self.write_flags(self.set(r.cont), &mut continuation);
+                writer.affix(&compact::Affix {
+                    suffix,
+                    flag: &flag,
+                    cross: r.cross,
+                    strip: &r.strip,
+                    add: &r.add,
+                    continuation: &continuation,
+                    condition: &r.cond_text,
+                });
+            }
+        }
+        let mut raw = writer.into_root_buffer();
         let mut prev: &[u8] = &[];
         for i in 0..self.len() {
             let Some(w) = self.word(i) else { continue };
@@ -2651,9 +2597,10 @@ impl AffixDict {
                 }
                 let set = self.set(id);
                 if !set.is_empty() {
-                    let mut flags = String::from("/");
-                    self.write_flags(set, &mut flags);
-                    raw.extend_from_slice(flags.as_bytes());
+                    flag.clear();
+                    self.write_flags(set, &mut flag);
+                    raw.push(b'/');
+                    raw.extend_from_slice(flag.as_bytes());
                 }
                 raw.push(b'\n');
             }

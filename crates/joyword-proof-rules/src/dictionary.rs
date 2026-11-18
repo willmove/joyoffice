@@ -2,6 +2,7 @@
 //! The adapter retains the dictionary text for compact-format interchange.
 //! See the Hunspell 5 manual, under FLAG, PFX/SFX and COMPOUNDRULE.
 pub mod compact;
+pub mod compact_writer;
 mod compound;
 mod condition;
 mod entries;
