@@ -1,6 +1,7 @@
-//! First-party paragraph proofing rules. All offsets address the original UTF-8
-//! paragraph. The editor supplies its tokenization, language and issue wording.
+//! Installed dictionary syntax and paragraph proofing rules. The editor supplies
+//! tokenization, language and issue wording. Paragraph offsets address the original UTF-8.
 mod clauses;
+pub mod dictionary;
 mod english;
 mod italian;
 mod spanish;

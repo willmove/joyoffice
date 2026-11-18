@@ -1,0 +1,1677 @@
+{
+  "baseline": "24c70ff9",
+  "scope": "Replace the imported flag decoder, character conditions and compound-pattern tokenizer with dependency-free JoyWord dictionary syntax. Raw and WCAFF2 readers/writers share the parser. The compact bytes and archive data remain interchangeable.",
+  "reference": "https://github.com/hunspell/hunspell/blob/v1.7.5/man/hunspell.5",
+  "referenceVersion": "Hunspell 1.7.5, official C API",
+  "method": "Both text readers, both compact writers and each writer with both compact readers. Hunspell read the published pair directly except where it explicitly rejected header counts: only its private reference copy had its four counts corrected in es-uy, hy and ta. Both product builds always used original archive bytes. A 65535 flag in the desktop probe exercises retained file compatibility.",
+  "syntax": {
+    "grammars": {
+      "UTF-8 . .": {
+        "words": 40,
+        "accepted": 40,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "2432dbb70926df292595fa1c2dee4933cf81130572a2e29a27256d3bdb8e07e5",
+        "compactSha256": [
+          "b17571121d89c630309156c1647bd80139d7ce2df21847b29a625748c359dce1",
+          "b17571121d89c630309156c1647bd80139d7ce2df21847b29a625748c359dce1"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "UTF-8 [ack] [dkt]": {
+        "words": 40,
+        "accepted": 20,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "849a7747971e9ab058ed8103b1bf394a6ac15467dccf407954610cd39cde4f60",
+        "compactSha256": [
+          "d1a2ae6b8377fc74cfc5522c030023716385970e2223eb4caf92eb44450e56d4",
+          "d1a2ae6b8377fc74cfc5522c030023716385970e2223eb4caf92eb44450e56d4"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "UTF-8 [^ae] [^ae]": {
+        "words": 40,
+        "accepted": 33,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "31ae6f1c029073a578af16e2937cace4226b43f98b2f1e1b7f567fbc0f5ec7c0",
+        "compactSha256": [
+          "e3a5d52b1a645d7c2d26dffa15b477210d8cfd7b5c723e87c79adcb2da4fc258",
+          "e3a5d52b1a645d7c2d26dffa15b477210d8cfd7b5c723e87c79adcb2da4fc258"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "UTF-8 [c木水] [刻木é]": {
+        "words": 40,
+        "accepted": 20,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "de655e4c6e4bf8c074858229511631cd5788898b8963578aba3a525aa1a24783",
+        "compactSha256": [
+          "44dbced31fd122dad41f4ccc52d0915f96a9331fa5bffe19b97fbe834c758034",
+          "44dbced31fd122dad41f4ccc52d0915f96a9331fa5bffe19b97fbe834c758034"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "UTF-8 .a r.": {
+        "words": 40,
+        "accepted": 13,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "f7e3bc6e9e8cf7b9c4ec767913f724cf153de772e449f3bbac4ea03ec19bd638",
+        "compactSha256": [
+          "507427b0bc180a59891af62a560938e42b89b99d6be9e8280fc01b08c7fcdeaf",
+          "507427b0bc180a59891af62a560938e42b89b99d6be9e8280fc01b08c7fcdeaf"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "UTF-8 [ac][di] [ae][ték]": {
+        "words": 40,
+        "accepted": 12,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "488e56bc374689f0cc29315f39bbd0fca1399c073407e0681fb877fa82e94c12",
+        "compactSha256": [
+          "aa388a6f09c10825e8637dc8b276139e49a4721e1f4d535884a9ae993c8711fd",
+          "aa388a6f09c10825e8637dc8b276139e49a4721e1f4d535884a9ae993c8711fd"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "UTF-8 c é": {
+        "words": 40,
+        "accepted": 14,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "409cab5f83a9146fea8d5d82dd36deec51c0cf43a78dd78de3e277fa883cedea",
+        "compactSha256": [
+          "c642b64a91e18b4413bb4421b2b9a5a849b1aa164b305f962fdbe5525393bb0f",
+          "c642b64a91e18b4413bb4421b2b9a5a849b1aa164b305f962fdbe5525393bb0f"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "UTF-8 [^木]a [^t]k": {
+        "words": 40,
+        "accepted": 13,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "f7e3bc6e9e8cf7b9c4ec767913f724cf153de772e449f3bbac4ea03ec19bd638",
+        "compactSha256": [
+          "c94ee0317e1f048ade017a395cad48b5dd11c404b0c60290edcc51274c7a0306",
+          "c94ee0317e1f048ade017a395cad48b5dd11c404b0c60290edcc51274c7a0306"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "long . .": {
+        "words": 40,
+        "accepted": 40,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "2432dbb70926df292595fa1c2dee4933cf81130572a2e29a27256d3bdb8e07e5",
+        "compactSha256": [
+          "adfd9f460d3d20887e2f00ebda5f05d42adcfa07d7b3318fef8fd6b4da070d9b",
+          "adfd9f460d3d20887e2f00ebda5f05d42adcfa07d7b3318fef8fd6b4da070d9b"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "long [ack] [dkt]": {
+        "words": 40,
+        "accepted": 20,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "849a7747971e9ab058ed8103b1bf394a6ac15467dccf407954610cd39cde4f60",
+        "compactSha256": [
+          "854bf897c21b135968f49d9ee4322f1e49770b375ff12459b975821af48d8838",
+          "854bf897c21b135968f49d9ee4322f1e49770b375ff12459b975821af48d8838"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "long [^ae] [^ae]": {
+        "words": 40,
+        "accepted": 33,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "31ae6f1c029073a578af16e2937cace4226b43f98b2f1e1b7f567fbc0f5ec7c0",
+        "compactSha256": [
+          "f1aa9cdd0e2c5558e7748a50597155becf572c13dd94a21d198afe6caa462b0d",
+          "f1aa9cdd0e2c5558e7748a50597155becf572c13dd94a21d198afe6caa462b0d"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "long [c木水] [刻木é]": {
+        "words": 40,
+        "accepted": 20,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "de655e4c6e4bf8c074858229511631cd5788898b8963578aba3a525aa1a24783",
+        "compactSha256": [
+          "753e1b55af6aed0295728ccb7629e58d53cbcc3c009876e698215e9ec427006e",
+          "753e1b55af6aed0295728ccb7629e58d53cbcc3c009876e698215e9ec427006e"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "long .a r.": {
+        "words": 40,
+        "accepted": 13,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "f7e3bc6e9e8cf7b9c4ec767913f724cf153de772e449f3bbac4ea03ec19bd638",
+        "compactSha256": [
+          "2b0f0243dded955e834b776c63e8f0efd05bafcda5f176d0a8bd391614d25b00",
+          "2b0f0243dded955e834b776c63e8f0efd05bafcda5f176d0a8bd391614d25b00"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "long [ac][di] [ae][ték]": {
+        "words": 40,
+        "accepted": 12,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "488e56bc374689f0cc29315f39bbd0fca1399c073407e0681fb877fa82e94c12",
+        "compactSha256": [
+          "da7076775754381e3b905a659633f794d5ee8919cf3e556b72d5ee88fb42ff3e",
+          "da7076775754381e3b905a659633f794d5ee8919cf3e556b72d5ee88fb42ff3e"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "long c é": {
+        "words": 40,
+        "accepted": 14,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "409cab5f83a9146fea8d5d82dd36deec51c0cf43a78dd78de3e277fa883cedea",
+        "compactSha256": [
+          "1eb5402c9624af49250a2177d12ffbb3b39873776ed9770c18d80d8bb53bf273",
+          "1eb5402c9624af49250a2177d12ffbb3b39873776ed9770c18d80d8bb53bf273"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "long [^木]a [^t]k": {
+        "words": 40,
+        "accepted": 13,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "f7e3bc6e9e8cf7b9c4ec767913f724cf153de772e449f3bbac4ea03ec19bd638",
+        "compactSha256": [
+          "56e1fd97e369e82cf3990064c7f4cab3836ad7ac89aeba3913d8770b57b384fa",
+          "56e1fd97e369e82cf3990064c7f4cab3836ad7ac89aeba3913d8770b57b384fa"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "num . .": {
+        "words": 40,
+        "accepted": 40,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "2432dbb70926df292595fa1c2dee4933cf81130572a2e29a27256d3bdb8e07e5",
+        "compactSha256": [
+          "d37676ed11ff5445d95de1738fb443916997f48c59e5ce1308e88a253f65c3d1",
+          "d37676ed11ff5445d95de1738fb443916997f48c59e5ce1308e88a253f65c3d1"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "num [ack] [dkt]": {
+        "words": 40,
+        "accepted": 20,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "849a7747971e9ab058ed8103b1bf394a6ac15467dccf407954610cd39cde4f60",
+        "compactSha256": [
+          "ae26f3fb6844375c75c55fc3030000bf02acd94ffdf3cb798734f5e892525e34",
+          "ae26f3fb6844375c75c55fc3030000bf02acd94ffdf3cb798734f5e892525e34"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "num [^ae] [^ae]": {
+        "words": 40,
+        "accepted": 33,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "31ae6f1c029073a578af16e2937cace4226b43f98b2f1e1b7f567fbc0f5ec7c0",
+        "compactSha256": [
+          "2ffce0eabd809581144d5cea665115679750796dfd7c67dfc3219762536f6b08",
+          "2ffce0eabd809581144d5cea665115679750796dfd7c67dfc3219762536f6b08"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "num [c木水] [刻木é]": {
+        "words": 40,
+        "accepted": 20,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "de655e4c6e4bf8c074858229511631cd5788898b8963578aba3a525aa1a24783",
+        "compactSha256": [
+          "941f0a3c389e38c2416a6baaf7345255a4e9c3f643630c0716afbf57fac32d4c",
+          "941f0a3c389e38c2416a6baaf7345255a4e9c3f643630c0716afbf57fac32d4c"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "num .a r.": {
+        "words": 40,
+        "accepted": 13,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "f7e3bc6e9e8cf7b9c4ec767913f724cf153de772e449f3bbac4ea03ec19bd638",
+        "compactSha256": [
+          "34ac166ac4194871b01b91e5f49056f07b8ec28974c44160857f11e6484248e3",
+          "34ac166ac4194871b01b91e5f49056f07b8ec28974c44160857f11e6484248e3"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "num [ac][di] [ae][ték]": {
+        "words": 40,
+        "accepted": 12,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "488e56bc374689f0cc29315f39bbd0fca1399c073407e0681fb877fa82e94c12",
+        "compactSha256": [
+          "1c6e4c44ac4215abb228ca8f591b9ea9e4639f6dc2a66edc91511d9e6f73b6ce",
+          "1c6e4c44ac4215abb228ca8f591b9ea9e4639f6dc2a66edc91511d9e6f73b6ce"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "num c é": {
+        "words": 40,
+        "accepted": 14,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "409cab5f83a9146fea8d5d82dd36deec51c0cf43a78dd78de3e277fa883cedea",
+        "compactSha256": [
+          "fc1bc8666361ac463ded7e93890a6e9223aefc24708250ce502930e3a419243c",
+          "fc1bc8666361ac463ded7e93890a6e9223aefc24708250ce502930e3a419243c"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "num [^木]a [^t]k": {
+        "words": 40,
+        "accepted": 13,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "f7e3bc6e9e8cf7b9c4ec767913f724cf153de772e449f3bbac4ea03ec19bd638",
+        "compactSha256": [
+          "0830af08989094953381615e459e783b1ee7ca3db8550a6ab5ceaab99b945049",
+          "0830af08989094953381615e459e783b1ee7ca3db8550a6ab5ceaab99b945049"
+        ],
+        "bothReadersOnBothWriters": true
+      }
+    },
+    "packs": {
+      "af": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "3acd4173dd44f9d0596d2ac606d83038778c95c0979293e0d154364b3cb1594b",
+          "3acd4173dd44f9d0596d2ac606d83038778c95c0979293e0d154364b3cb1594b"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "ar": {
+        "words": 6,
+        "accepted": 3,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "7bd973c732d9cc2a4146da70fd2bd33d20ecdc2f0a7f3ced62175071fd51b47c",
+        "compactSha256": [
+          "245d594d13910af5e879a6d48c1362230feb615a796606066c2e8999621a718f",
+          "245d594d13910af5e879a6d48c1362230feb615a796606066c2e8999621a718f"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "be": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "6a015393dfbc183b7da67d4ffc05976c82eb817ed8441d51af40b20778dc7a6e",
+          "6a015393dfbc183b7da67d4ffc05976c82eb817ed8441d51af40b20778dc7a6e"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "bg": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "ea960509d5a520b8a2d7f34dcae9bc7dbb954427ef4af5f17bc93734029036ca",
+          "ea960509d5a520b8a2d7f34dcae9bc7dbb954427ef4af5f17bc93734029036ca"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "bs": {
+        "words": 6,
+        "accepted": 3,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "4d3f5c4578b68dc6d7071441fb7f22a5686721a4ec1fd7a663260a54f3c21e2d",
+        "compactSha256": [
+          "0a56c8a808f24d348333b76c1dd80b40d6466474ce42b5c6289ca9063b00af16",
+          "0a56c8a808f24d348333b76c1dd80b40d6466474ce42b5c6289ca9063b00af16"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "ca": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "3e3ebd331c1d059714498eb4ab87bc5a740472cd5489197e24d7ec7736f8ecc5",
+          "3e3ebd331c1d059714498eb4ab87bc5a740472cd5489197e24d7ec7736f8ecc5"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "ca-valencia": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "61760cd638cbd346c69ed3adecd51cfe3bae01c881867d4f9598178f518d4cd0",
+          "61760cd638cbd346c69ed3adecd51cfe3bae01c881867d4f9598178f518d4cd0"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "cs": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "5a8c537011ba1e3599be331b536c6a32cd97b571cfbe2fbca06ef48a906a2bb8",
+          "5a8c537011ba1e3599be331b536c6a32cd97b571cfbe2fbca06ef48a906a2bb8"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "cy": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "fe49269d54eb86a6b92d7aa7186da97db9913ae536592597c87381b9e653a9f5",
+          "fe49269d54eb86a6b92d7aa7186da97db9913ae536592597c87381b9e653a9f5"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "da": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "e392a61586f15f2950123ce2e0af9bda9e6b9d8deea91982fc0fb081c5790136",
+          "e392a61586f15f2950123ce2e0af9bda9e6b9d8deea91982fc0fb081c5790136"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "de": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "1b0ac5ac296fa2b18f9d2bedf7c600c0ea6f221f28cb102a73797b39d75fb439",
+          "1b0ac5ac296fa2b18f9d2bedf7c600c0ea6f221f28cb102a73797b39d75fb439"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "de-at": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "4c93bb19609b0703cc067bd56def0a42ce94a2d0a5f982fbbf3b348bbed8f797",
+          "4c93bb19609b0703cc067bd56def0a42ce94a2d0a5f982fbbf3b348bbed8f797"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "de-ch": {
+        "words": 6,
+        "accepted": 3,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "4d3f5c4578b68dc6d7071441fb7f22a5686721a4ec1fd7a663260a54f3c21e2d",
+        "compactSha256": [
+          "f64f7b79f015636cd7b07e7c7d1a371881b518df25a51e8acbc8465c985fabe8",
+          "f64f7b79f015636cd7b07e7c7d1a371881b518df25a51e8acbc8465c985fabe8"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "el": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "192760582ca020b3351b4ac2c7cc58ecd68fdbc91efecf12ca42d9841f2209e0",
+          "192760582ca020b3351b4ac2c7cc58ecd68fdbc91efecf12ca42d9841f2209e0"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "eo": {
+        "words": 6,
+        "accepted": 0,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "b0f66adc83641586656866813fd9dd0b8ebb63796075661ba45d1aa8089e1d44",
+        "compactSha256": [
+          "c04e1ab1a2ca30888807e603b800d8dc21ad74a70e4baa83acb8cc5f79e9e260",
+          "c04e1ab1a2ca30888807e603b800d8dc21ad74a70e4baa83acb8cc5f79e9e260"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "es": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "13e5573d7351a4d24e2b597cb391d4e61644593427570936982613100a159d6b",
+          "13e5573d7351a4d24e2b597cb391d4e61644593427570936982613100a159d6b"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "es-ar": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "cefbd09bbea8d154fa615babcd51af7de477050839a023f72ea5afb074e07fed",
+          "cefbd09bbea8d154fa615babcd51af7de477050839a023f72ea5afb074e07fed"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "es-bo": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "e32b2ebcaa3af0fae1c6dd1cdcfefb7691fa1e610769f93ace75dc5107e85483",
+          "e32b2ebcaa3af0fae1c6dd1cdcfefb7691fa1e610769f93ace75dc5107e85483"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "es-cl": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "a3ce80936b283d0dd2b40397dec7378386aafafbc66d289213c5eb6390a3320f",
+          "a3ce80936b283d0dd2b40397dec7378386aafafbc66d289213c5eb6390a3320f"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "es-co": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "4113e8a5915ef0ea28b776948ad56e72a1e507b20d87a39b6cebcc9bd0773a2a",
+          "4113e8a5915ef0ea28b776948ad56e72a1e507b20d87a39b6cebcc9bd0773a2a"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "es-cr": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "9f89d99287a73bcfcc851eaf283d19abab45fcd36211b8974c4ec678254f3bd7",
+          "9f89d99287a73bcfcc851eaf283d19abab45fcd36211b8974c4ec678254f3bd7"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "es-cu": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "1028321b9baca2cf5f46b0c278b44a94064fae0e86857153284e9cd37d378f75",
+          "1028321b9baca2cf5f46b0c278b44a94064fae0e86857153284e9cd37d378f75"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "es-do": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "9404c2129fb250c6a6cc5c83a7e02b69689fefaccf687cb206539e6b0d431d4a",
+          "9404c2129fb250c6a6cc5c83a7e02b69689fefaccf687cb206539e6b0d431d4a"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "es-ec": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "030e0ae8fd827df2a1bf7702363312adfbd6bac976bbfcba7dfa207641c81e41",
+          "030e0ae8fd827df2a1bf7702363312adfbd6bac976bbfcba7dfa207641c81e41"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "es-gq": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "7c2194c8f4e4846bab3288671269b6f33c5b01e6e1934811a9f9c53cf216ff50",
+          "7c2194c8f4e4846bab3288671269b6f33c5b01e6e1934811a9f9c53cf216ff50"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "es-gt": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "fcc2ff3750e670b4d26fe1e6916c2695164dd62f91d619d8b1b3e539f480c659",
+          "fcc2ff3750e670b4d26fe1e6916c2695164dd62f91d619d8b1b3e539f480c659"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "es-hn": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "aaf486253f779f5638661f19efce46dfbf658d8fdc2dbe1bb32f0e33b1657258",
+          "aaf486253f779f5638661f19efce46dfbf658d8fdc2dbe1bb32f0e33b1657258"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "es-mx": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "e83a53e60e97bd5ea87e8a9c09f35d91fbd8968ab39de0dc526c39827cfb6ad6",
+          "e83a53e60e97bd5ea87e8a9c09f35d91fbd8968ab39de0dc526c39827cfb6ad6"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "es-ni": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "6db93fff52145bb987f18f11480e0f17fc05a876c7cfc51956a979c886ac2841",
+          "6db93fff52145bb987f18f11480e0f17fc05a876c7cfc51956a979c886ac2841"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "es-pa": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "bef82b306e25f03babb6816e8e433b8ffa6d7ea839cd89e6cd9b9446d335e1dc",
+          "bef82b306e25f03babb6816e8e433b8ffa6d7ea839cd89e6cd9b9446d335e1dc"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "es-pe": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "230bec398548e5f441aac71d83385bec996bfcf3a581815aa48fcd16c47fb8bf",
+          "230bec398548e5f441aac71d83385bec996bfcf3a581815aa48fcd16c47fb8bf"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "es-ph": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "960229d4a1003210628081d9a6364805b21aec8af815284091b8a5dc1ed851da",
+          "960229d4a1003210628081d9a6364805b21aec8af815284091b8a5dc1ed851da"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "es-pr": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "bcf269c2ef46e6e5774dac1362e2f3774079a7e2304e8b406c6e1bd7d2523a7b",
+          "bcf269c2ef46e6e5774dac1362e2f3774079a7e2304e8b406c6e1bd7d2523a7b"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "es-py": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "4f2a46cac13ec082c668a745c54b63e775826d6132cded9e212b469b4e3d5688",
+          "4f2a46cac13ec082c668a745c54b63e775826d6132cded9e212b469b4e3d5688"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "es-sv": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "7fd4a181569be746d265719086a2df681ea2867b465ddb6b62451aaa9e470ca1",
+          "7fd4a181569be746d265719086a2df681ea2867b465ddb6b62451aaa9e470ca1"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "es-us": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "d5437a1d3c437b801b47f29a5cbb9b06827fd3d67b7a04ed033c13ca2613e845",
+          "d5437a1d3c437b801b47f29a5cbb9b06827fd3d67b7a04ed033c13ca2613e845"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "es-uy": {
+        "originalReferenceDiagnostic": "Failure loading aff file sample.aff",
+        "referenceCopyHeaderCounts": [
+          {
+            "line": 6053,
+            "rule": "SFX ô",
+            "declared": 138,
+            "actual": 137
+          }
+        ],
+        "originalReferenceDifferences": 0,
+        "countedAffixSha256": "ad199f6933a72c213a68f82f666ad2967552303e2177f9e5a84a11d6921a77a1",
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "8fd01267515313b8fc62815d06801b71af36713394d24229d802e73f5dc3fbd9",
+          "8fd01267515313b8fc62815d06801b71af36713394d24229d802e73f5dc3fbd9"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "es-ve": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "311c492f76c04744bc38d5d329091d22f609f13bec19e4d3d3063a0663f1153a",
+          "311c492f76c04744bc38d5d329091d22f609f13bec19e4d3d3063a0663f1153a"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "et": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "992fec3ceacc36b61c42ce122cb2f7ba1f020df8c2ec71a47ac0466c4d21b901",
+          "992fec3ceacc36b61c42ce122cb2f7ba1f020df8c2ec71a47ac0466c4d21b901"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "fa": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "b0558344e46874eab2fd5c799222bb9eda6ac745cc3080fbe4af8b93aa05b7bf",
+          "b0558344e46874eab2fd5c799222bb9eda6ac745cc3080fbe4af8b93aa05b7bf"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "fr": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "79d91f2af248900365505f5713edeece091642070eaf066f23837d80a8872de7",
+          "79d91f2af248900365505f5713edeece091642070eaf066f23837d80a8872de7"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "ga": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "9dbd0f5cee733f20282f3174ace661c0525cc0a889f71ccdfe2082cc24dd1129",
+          "9dbd0f5cee733f20282f3174ace661c0525cc0a889f71ccdfe2082cc24dd1129"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "gl": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "17249207c55b0bd4684c636d921fbc5dc1491897646926dd793ca5fe0b3a0567",
+          "17249207c55b0bd4684c636d921fbc5dc1491897646926dd793ca5fe0b3a0567"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "he": {
+        "words": 6,
+        "accepted": 3,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "4d3f5c4578b68dc6d7071441fb7f22a5686721a4ec1fd7a663260a54f3c21e2d",
+        "compactSha256": [
+          "b59291bc839a1ea07d2ef14395cf36ed416f3fcc53b35ebac338720256cc4d83",
+          "b59291bc839a1ea07d2ef14395cf36ed416f3fcc53b35ebac338720256cc4d83"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "hi": {
+        "words": 6,
+        "accepted": 3,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "4d3f5c4578b68dc6d7071441fb7f22a5686721a4ec1fd7a663260a54f3c21e2d",
+        "compactSha256": [
+          "772cf1d60df3abc394bb7ca776225dccbc6d62c57a944032dedaeaed606bdd04",
+          "772cf1d60df3abc394bb7ca776225dccbc6d62c57a944032dedaeaed606bdd04"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "hr": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "4f659f270afacc147bad6866e96a2cebef267c108a8bfec6145fe47ae55eee99",
+          "4f659f270afacc147bad6866e96a2cebef267c108a8bfec6145fe47ae55eee99"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "hu": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "2cea19746dae7062656543a7ea310c7d9124fe8ef7093e851c1a172588b67db4",
+          "2cea19746dae7062656543a7ea310c7d9124fe8ef7093e851c1a172588b67db4"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "hy": {
+        "originalReferenceDiagnostic": "Failure loading aff file sample.aff",
+        "referenceCopyHeaderCounts": [
+          {
+            "line": 735,
+            "rule": "SFX VD",
+            "declared": 171,
+            "actual": 172
+          }
+        ],
+        "originalReferenceDifferences": 0,
+        "countedAffixSha256": "e9bc375687e8975ee00ed3f8b75544f05fda0621196773fd428464a2915e0a8f",
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "fb29be9bf57c39cbd8e6afdf8712e374f0973daa725258b9a63783add7eedbf7",
+          "fb29be9bf57c39cbd8e6afdf8712e374f0973daa725258b9a63783add7eedbf7"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "id": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "94d30bfa31bb80c7ac2d89b5643c0069c049de7a5043440649676126060c6cb5",
+          "94d30bfa31bb80c7ac2d89b5643c0069c049de7a5043440649676126060c6cb5"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "is": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "8504a726e7c9deba0101d2f255c341b71301c176d22bdaf05c76a9658cce46a4",
+          "8504a726e7c9deba0101d2f255c341b71301c176d22bdaf05c76a9658cce46a4"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "it": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "d969a508f70cd5445c8d3e739d4619024c678f9f21b2a353c5a200d4d4acc56f",
+          "d969a508f70cd5445c8d3e739d4619024c678f9f21b2a353c5a200d4d4acc56f"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "ka": {
+        "words": 6,
+        "accepted": 1,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "10487d86ce3584e156874ed9b2650e8d772a8d1fdbb1c9111bf7e2fbcab18ccb",
+        "compactSha256": [
+          "91678bd8ca8f80d8b641dff49e9183aa109e19a48131d9c45278a4795ac9147f",
+          "91678bd8ca8f80d8b641dff49e9183aa109e19a48131d9c45278a4795ac9147f"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "ko": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "66d21d046d1d28b5cdb436ca16a62f5d0808520f43edfc9833d680b743c068a2",
+          "66d21d046d1d28b5cdb436ca16a62f5d0808520f43edfc9833d680b743c068a2"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "lt": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "92bd6685333a968db900b498898a756f45a9ed6b8d1d475059e12fd09e4f1ae6",
+          "92bd6685333a968db900b498898a756f45a9ed6b8d1d475059e12fd09e4f1ae6"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "lv": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "3af70ccd480dcf5a90505a3e1a9edc05e9972aa59b94c327992f7f1e955ee5d1",
+          "3af70ccd480dcf5a90505a3e1a9edc05e9972aa59b94c327992f7f1e955ee5d1"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "mk": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "ea312145bd40abeebf600a936662a5b8bfe4796d8a22a7efbebd439ea2cdc2d2",
+          "ea312145bd40abeebf600a936662a5b8bfe4796d8a22a7efbebd439ea2cdc2d2"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "nb": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "078373034285db111c599d632926aa0d40bd32882b6af0ed8b357c322083830e",
+          "078373034285db111c599d632926aa0d40bd32882b6af0ed8b357c322083830e"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "nl": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "88023fe15ac7b88eaa6ca52a8798c08fc33b3008151869f116a7c3e78c71f118",
+          "88023fe15ac7b88eaa6ca52a8798c08fc33b3008151869f116a7c3e78c71f118"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "nn": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "c513f2e2ad37a9ccd370eea4ff029bc797562b63e9212c3cac79b27791c33fb2",
+          "c513f2e2ad37a9ccd370eea4ff029bc797562b63e9212c3cac79b27791c33fb2"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "pl": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "376e12aad7721cd113be10d7784ddc1e9d1cc009ea41a032839127a24555ccd9",
+          "376e12aad7721cd113be10d7784ddc1e9d1cc009ea41a032839127a24555ccd9"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "pt-br": {
+        "words": 6,
+        "accepted": 3,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "4d3f5c4578b68dc6d7071441fb7f22a5686721a4ec1fd7a663260a54f3c21e2d",
+        "compactSha256": [
+          "1fa4b563a971707daf280837d8b1f0a01d956692d3468c1a5563da13c80546fa",
+          "1fa4b563a971707daf280837d8b1f0a01d956692d3468c1a5563da13c80546fa"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "pt-pt": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "9f9a772aacd1294dcb6ce8230ff9f84ceaafea6a007fb869bbf0f487bfb0b70e",
+          "9f9a772aacd1294dcb6ce8230ff9f84ceaafea6a007fb869bbf0f487bfb0b70e"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "ro": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "32001d4785d77e01b973298073c55e2abcf5a3f735c61b8a5edb4be9e18e4c55",
+          "32001d4785d77e01b973298073c55e2abcf5a3f735c61b8a5edb4be9e18e4c55"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "ru": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "9bd602a48990cfc90ad0a64a7e4def4ec551662c4cebb961eecb8c1e56e702fe",
+          "9bd602a48990cfc90ad0a64a7e4def4ec551662c4cebb961eecb8c1e56e702fe"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "sk": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "3e72631dabc9238a64b318250bad7a07754fc4a00286cacd744070d5be172301",
+          "3e72631dabc9238a64b318250bad7a07754fc4a00286cacd744070d5be172301"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "sl": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "d81fafb351b99d9ea90277e3c8b134d1d476fe3ee2979d31acf3b4d097e9271e",
+          "d81fafb351b99d9ea90277e3c8b134d1d476fe3ee2979d31acf3b4d097e9271e"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "sq": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "b4343a1af6ee5f1979802219a4fa1f758e665e6628ff66141728dfb0fea277eb",
+          "b4343a1af6ee5f1979802219a4fa1f758e665e6628ff66141728dfb0fea277eb"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "sr": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "313ac3c537bac2ff3e1dcec5b1d30b12bf10b4dfeadc191c47d21e732814a50d",
+          "313ac3c537bac2ff3e1dcec5b1d30b12bf10b4dfeadc191c47d21e732814a50d"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "sr-latn": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "a2421be1df1ba2bfe5cac3361e35469e9e1299c4727c05eac61d1c1c1ce3eaec",
+          "a2421be1df1ba2bfe5cac3361e35469e9e1299c4727c05eac61d1c1c1ce3eaec"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "sv": {
+        "words": 6,
+        "accepted": 1,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "10487d86ce3584e156874ed9b2650e8d772a8d1fdbb1c9111bf7e2fbcab18ccb",
+        "compactSha256": [
+          "c6f385f56658197da301e3db1997a1f94d765a20a6818e7ad0cfa7262758b7e9",
+          "c6f385f56658197da301e3db1997a1f94d765a20a6818e7ad0cfa7262758b7e9"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "sv-fi": {
+        "words": 6,
+        "accepted": 1,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "36c159d76b52e03e496363607c5940227f62f4e048df344b050159bc97bba3d7",
+        "compactSha256": [
+          "0bd9b786be2a9325d4c465595cecd0379c012de4536a7c4c044b4fa7b1711e75",
+          "0bd9b786be2a9325d4c465595cecd0379c012de4536a7c4c044b4fa7b1711e75"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "sw": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "8e4cb47fe70422b7d54ad1276ab3aee0979dd86ee8b63df0c3070ab1e867c3e6",
+          "8e4cb47fe70422b7d54ad1276ab3aee0979dd86ee8b63df0c3070ab1e867c3e6"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "ta": {
+        "originalReferenceDiagnostic": "Failure loading aff file sample.aff",
+        "referenceCopyHeaderCounts": [
+          {
+            "line": 132,
+            "rule": "SFX D",
+            "declared": 13,
+            "actual": 14
+          },
+          {
+            "line": 330,
+            "rule": "SFX v",
+            "declared": 4,
+            "actual": 5
+          }
+        ],
+        "originalReferenceDifferences": 0,
+        "countedAffixSha256": "41663eefdfc9b10db54817cb903b341d35d51b863d4e36581f163799690db4e6",
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "cfc76c8a72a3d351b203e501aa67ff6496cc6da2fc14be9a0d008a64d7f8b375",
+          "cfc76c8a72a3d351b203e501aa67ff6496cc6da2fc14be9a0d008a64d7f8b375"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "tr": {
+        "words": 6,
+        "accepted": 2,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "917140cbddb025737b7411f40c01f2e8c37ea61e77fa6bfaafafc680a60cc117",
+        "compactSha256": [
+          "ce7876d44d12ddc9a676a2ffa43b6052e3ab094b2b226c35c0ead5725334093f",
+          "ce7876d44d12ddc9a676a2ffa43b6052e3ab094b2b226c35c0ead5725334093f"
+        ],
+        "bothReadersOnBothWriters": true
+      },
+      "vi": {
+        "words": 6,
+        "accepted": 3,
+        "referenceDifferences": 0,
+        "referenceDiagnostic": false,
+        "answersSha256": "7bd973c732d9cc2a4146da70fd2bd33d20ecdc2f0a7f3ced62175071fd51b47c",
+        "compactSha256": [
+          "4b5152974ec928544f6a3b6ea0daa71aab4bb745cdb8e9f57035de2db3a6c969",
+          "4b5152974ec928544f6a3b6ea0daa71aab4bb745cdb8e9f57035de2db3a6c969"
+        ],
+        "bothReadersOnBothWriters": true
+      }
+    },
+    "releaseIndexSha256": "b35c7aef0591177f18233b551da16035dcd615549ff874e169ffd19f16fea74b"
+  },
+  "compoundRegression": {
+    "patterns": {
+      "grammarsOrPacks": 33,
+      "probes": 11385,
+      "previousReferenceDifferences": 0,
+      "candidateReferenceDifferences": 0
+    },
+    "permissions": {
+      "grammarsOrPacks": 116,
+      "probes": 7092,
+      "previousReferenceDifferences": 92,
+      "candidateReferenceDifferences": 92
+    },
+    "locales": {
+      "grammarsOrPacks": 12,
+      "probes": 312,
+      "previousReferenceDifferences": 0,
+      "candidateReferenceDifferences": 0
+    },
+    "hungarian": {
+      "grammarsOrPacks": 40,
+      "probes": 3080,
+      "previousReferenceDifferences": 0,
+      "candidateReferenceDifferences": 0
+    },
+    "published": {
+      "grammarsOrPacks": 75,
+      "probes": 5719,
+      "previousReferenceDifferences": 0,
+      "candidateReferenceDifferences": 0
+    }
+  },
+  "timingMethod": "Same optimized builds, 7 alternating pairs after warming, 2 compilations of already-decoded UTF-8 sources per observation. Time includes rule and dictionary indexing, excludes I/O and decoding. UOS pinned to one allowed core. Synthetic dictionary has 12000 rules and 9000 stems.",
+  "platforms": {
+    "macOS": {
+      "product": {
+        "passed": 3704,
+        "failed": 0,
+        "ignored": 2
+      },
+      "standalone": {
+        "passed": 485,
+        "failed": 0,
+        "ignored": 0
+      },
+      "strictClippy": [
+        "joyword-proof-rules --all-targets",
+        "affix_interchange example",
+        "standalone craft-proof --lib"
+      ],
+      "standaloneTestClippy": {
+        "previousDiagnostics": 476,
+        "candidateDiagnostics": 476,
+        "identicalDiagnosticCountsByMessage": true
+      },
+      "spdx": {
+        "target": "aarch64-apple-darwin",
+        "packages": 514,
+        "sourceFiles": 1089,
+        "spdxSha256": "9af12a3c9a9300971d28e7cb4122096a7c6a27c4985e84b6a8ac429a91651d4e",
+        "missingLicenseTexts": [],
+        "sharedCrates": [
+          "joyoffice-cfb",
+          "joyoffice-drawingml",
+          "joyoffice-fonts",
+          "joyoffice-metafile",
+          "joyoffice-omml",
+          "joyoffice-opc",
+          "joyoffice-theme",
+          "joyoffice-ui"
+        ],
+        "runtimeLegacyDependencies": [
+          "craft-atomic",
+          "craft-font-store",
+          "craft-proof"
+        ]
+      },
+      "desktop": {
+        "binarySha256": "2645367d6613e86749cf861d0f0973192209d12dd395c1efe3f59398b999a405",
+        "sourceSha256": "fd2922d68cff4ebaef4ef02f19b461abfaf72f0ac7d4d6c841151ff7e9fa7944",
+        "selectedWord": "workss",
+        "displayedSuggestions": [
+          "works",
+          "work"
+        ],
+        "replacement": "works",
+        "undoRedo": true,
+        "savedAndReopened": true,
+        "originalUnchanged": true,
+        "readersByWriter": {
+          "baseline": [
+            "baseline",
+            "candidate"
+          ],
+          "candidate": [
+            "baseline",
+            "candidate"
+          ]
+        }
+      },
+      "timing": {
+        "synthetic": {
+          "affixBytes": 294927,
+          "dictionaryBytes": 133895,
+          "baselineMs": [
+            26.854104,
+            27.223271,
+            27.045854,
+            27.005375,
+            26.4830625,
+            27.354021,
+            27.041083
+          ],
+          "candidateMs": [
+            25.4119375,
+            25.299625,
+            25.507958,
+            25.6236665,
+            24.8527085,
+            24.8765,
+            25.3715
+          ],
+          "baselineMedianMs": 27.041083,
+          "candidateMedianMs": 25.3715
+        },
+        "nl": {
+          "affixBytes": 46557,
+          "dictionaryBytes": 2488246,
+          "baselineMs": [
+            73.9385835,
+            74.4007085,
+            70.8769165,
+            73.8216875,
+            72.2655415,
+            76.4623125,
+            75.1385835
+          ],
+          "candidateMs": [
+            74.509646,
+            74.2331875,
+            71.403396,
+            73.215625,
+            71.642229,
+            74.0635,
+            73.096583
+          ],
+          "baselineMedianMs": 73.9385835,
+          "candidateMedianMs": 73.215625
+        },
+        "pl": {
+          "affixBytes": 257542,
+          "dictionaryBytes": 5252096,
+          "baselineMs": [
+            158.6736665,
+            156.290854,
+            159.914646,
+            156.9140835,
+            256.165729,
+            156.61375,
+            159.4805
+          ],
+          "candidateMs": [
+            158.9270625,
+            157.761625,
+            209.9208125,
+            166.834958,
+            195.608625,
+            162.8190625,
+            157.610729
+          ],
+          "baselineMedianMs": 158.6736665,
+          "candidateMedianMs": 162.8190625
+        },
+        "es": {
+          "affixBytes": 169202,
+          "dictionaryBytes": 715989,
+          "baselineMs": [
+            23.452167,
+            23.74125,
+            24.387104,
+            25.2381875,
+            24.32875,
+            23.637833,
+            23.526979
+          ],
+          "candidateMs": [
+            23.614625,
+            23.5765,
+            23.5702915,
+            23.88775,
+            23.354333,
+            23.17925,
+            23.14825
+          ],
+          "baselineMedianMs": 23.74125,
+          "candidateMedianMs": 23.5702915
+        },
+        "tr": {
+          "affixBytes": 240814,
+          "dictionaryBytes": 9117192,
+          "baselineMs": [
+            194.11725,
+            191.629854,
+            194.4486875,
+            198.115229,
+            192.632104,
+            192.5936665,
+            194.614125
+          ],
+          "candidateMs": [
+            196.189646,
+            192.914333,
+            192.8804165,
+            193.0422295,
+            193.487375,
+            223.2204165,
+            202.1114585
+          ],
+          "baselineMedianMs": 194.11725,
+          "candidateMedianMs": 193.487375
+        }
+      },
+      "hunspellLibrarySha256": "b1e589d497b261754917dbf0cbd6e2101443e86a0e3f778ee609fa6b803c4d58",
+      "checkerWriterSha256": [
+        [
+          "74bdf326ae7f9826a56957e676d4cd0816b5192d26f0d8caf58e6255b34e1f6b",
+          "7a26f8f682483873ca7627bbfbbb111f99562308fd9d0ff45d62aa1fc5946877"
+        ],
+        [
+          "440c10a7e55cf3e85a1638979e236bfc2255d8dfd27bba79e6d401b5815d9b9f",
+          "cb67e9ec7115aac59f890dbf0e9c11be77a4db88e155c6c5a923fcc560519801"
+        ]
+      ]
+    },
+    "UOS25": {
+      "product": {
+        "passed": 3708,
+        "failed": 0,
+        "ignored": 2
+      },
+      "standalone": {
+        "passed": 485,
+        "failed": 0,
+        "ignored": 0
+      },
+      "strictClippy": [
+        "joyword-proof-rules --all-targets",
+        "affix_interchange example",
+        "standalone craft-proof --lib"
+      ],
+      "standaloneTestClippy": {
+        "previousDiagnostics": 476,
+        "candidateDiagnostics": 476,
+        "identicalDiagnosticCountsByMessage": true
+      },
+      "spdx": {
+        "target": "x86_64-unknown-linux-gnu",
+        "packages": 603,
+        "sourceFiles": 1094,
+        "spdxSha256": "3db8f46d4698b57b68d2533c362f1829cbf43838153caa8cf45598aef44a9fae",
+        "missingLicenseTexts": [],
+        "sharedCrates": [
+          "joyoffice-cfb",
+          "joyoffice-drawingml",
+          "joyoffice-fonts",
+          "joyoffice-metafile",
+          "joyoffice-omml",
+          "joyoffice-opc",
+          "joyoffice-theme",
+          "joyoffice-ui"
+        ],
+        "runtimeLegacyDependencies": [
+          "craft-atomic",
+          "craft-font-store",
+          "craft-proof"
+        ]
+      },
+      "desktop": {
+        "binarySha256": "f685f8232e42d141acebf7d985eb87232d26e15765ddee1ff23c40406570e999",
+        "sourceSha256": "fd2922d68cff4ebaef4ef02f19b461abfaf72f0ac7d4d6c841151ff7e9fa7944",
+        "selectedWord": "workss",
+        "displayedSuggestions": [
+          "works",
+          "work"
+        ],
+        "replacement": "works",
+        "undoRedo": true,
+        "savedAndReopened": true,
+        "originalUnchanged": true,
+        "readersByWriter": {
+          "baseline": [
+            "baseline",
+            "candidate"
+          ],
+          "candidate": [
+            "baseline",
+            "candidate"
+          ]
+        }
+      },
+      "timing": {
+        "synthetic": {
+          "affixBytes": 294927,
+          "dictionaryBytes": 133895,
+          "baselineMs": [
+            27.31039,
+            29.39121,
+            31.104544,
+            28.1901365,
+            27.8402525,
+            25.5812725,
+            28.1373755
+          ],
+          "candidateMs": [
+            26.910805,
+            26.266283,
+            25.928466,
+            25.189722,
+            27.213453,
+            26.256861,
+            26.579886
+          ],
+          "baselineMedianMs": 28.1373755,
+          "candidateMedianMs": 26.266283
+        },
+        "nl": {
+          "affixBytes": 46557,
+          "dictionaryBytes": 2488246,
+          "baselineMs": [
+            93.5252285,
+            92.580258,
+            97.667969,
+            93.704661,
+            90.9809875,
+            95.1074485,
+            95.9022145
+          ],
+          "candidateMs": [
+            93.9019965,
+            112.9862785,
+            83.920538,
+            93.337496,
+            85.683773,
+            89.11798,
+            91.4092545
+          ],
+          "baselineMedianMs": 93.704661,
+          "candidateMedianMs": 91.4092545
+        },
+        "pl": {
+          "affixBytes": 257542,
+          "dictionaryBytes": 5252096,
+          "baselineMs": [
+            198.3469235,
+            196.170494,
+            200.632263,
+            202.291278,
+            195.2707115,
+            204.44411,
+            191.2921265
+          ],
+          "candidateMs": [
+            198.5096755,
+            213.599799,
+            194.715387,
+            196.202984,
+            190.2792115,
+            194.6282685,
+            195.551585
+          ],
+          "baselineMedianMs": 198.3469235,
+          "candidateMedianMs": 195.551585
+        },
+        "es": {
+          "affixBytes": 169202,
+          "dictionaryBytes": 715989,
+          "baselineMs": [
+            24.5834905,
+            27.1220365,
+            25.1634595,
+            24.267113,
+            26.605528,
+            26.6417345,
+            24.6781335
+          ],
+          "candidateMs": [
+            24.906105,
+            24.8731945,
+            23.1306475,
+            25.219302,
+            24.4354505,
+            26.3033615,
+            24.171603
+          ],
+          "baselineMedianMs": 25.1634595,
+          "candidateMedianMs": 24.8731945
+        },
+        "tr": {
+          "affixBytes": 240814,
+          "dictionaryBytes": 9117192,
+          "baselineMs": [
+            299.6330555,
+            289.8510275,
+            319.064835,
+            274.285868,
+            278.68385,
+            267.733337,
+            270.060012
+          ],
+          "candidateMs": [
+            285.1561175,
+            279.234814,
+            268.4272225,
+            268.0455765,
+            269.281474,
+            269.5959735,
+            265.810386
+          ],
+          "baselineMedianMs": 278.68385,
+          "candidateMedianMs": 269.281474
+        }
+      },
+      "hunspellLibrarySha256": "96711c36b275890143b4dbbe3033df22e9c930511fc7877598dd7ef23a4b5f42",
+      "checkerWriterSha256": [
+        [
+          "959370986e70bcfff72368bbdc80c699065b804a0523a66dde5d9854adccb553",
+          "afeba575135d467d24f9202c852a2a8a39190a8054937eeb82bf5c62081c9c5b"
+        ],
+        [
+          "4f52116b78ff48b212617c709a2b2a38dcdd858d5c2b7a1d7ccefed2c22951d1",
+          "2f8141c4c7bb221ee7446d0e6c60f056ec6f9fbbd2b803c3dcd5d76aa9730537"
+        ]
+      ]
+    }
+  },
+  "rollback": "Restore the old syntax adapter and source ledger from 24c70ff9. Native save/open was replayed with both binaries, and all 99 compact outputs were byte-identical across writers. No installed dictionary conversion is required."
+}

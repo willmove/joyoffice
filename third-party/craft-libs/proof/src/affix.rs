@@ -72,7 +72,7 @@ const MAX_CONV_BYTES: usize = 64;
 /// well above that; a longer field is hostile and is refused (`.aff`) or skipped (`.dic`, though
 /// its `FORBIDDENWORD` and `NOSUGGEST` flags still apply to the word). What all the flags of a
 /// dictionary may cost together is bounded by `MAX_SET_DATA`.
-pub const MAX_FLAGS_PER_ENTRY: usize = 8192;
+pub use joyword_proof_rules::dictionary::MAX_FLAGS_PER_ENTRY;
 /// Most flags one stem may carry once its homonyms (the same word on several `.dic` lines) are
 /// merged, and so most flags a stem line of the compact format may carry. Larger than
 /// [`MAX_FLAGS_PER_ENTRY`] because merged sets aren't `.dic` fields; a homonym that would take the
@@ -104,165 +104,14 @@ const UNSUPPORTED: &[&str] = &["COMPLEXPREFIXES", "PSEUDOROOT"];
 /// Most `COMPOUNDRULE` patterns kept, and most tokens in one: a hostile `.aff` can't make a
 /// compound check cost more than a few thousand stem lookups per word.
 const MAX_COMPOUND_RULES: usize = 64;
-const MAX_COMPOUND_TOKENS: usize = 32;
+use joyword_proof_rules::dictionary::MAX_COMPOUND_TOKENS;
 /// Longest word (in bytes) tried as a compound: each try looks up every substring.
 const MAX_COMPOUND_BYTES: usize = 48;
 
-/// How often a `COMPOUNDRULE` token's flag may repeat.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-enum Repeat {
-    Once,
-    /// `?`
-    Optional,
-    /// `*`
-    Any,
-}
-
-/// A `COMPOUNDRULE` pattern as written (`n*1t`, or `(aa)*(bb)` with long or numeric flags): its
-/// tokens, each a flag and how often it repeats.
-fn parse_compound_rule(pattern: &str, mode: FlagMode) -> Result<Vec<(FlagKey, Repeat)>, String> {
-    let mut out: Vec<(FlagKey, Repeat)> = Vec::new();
-    let mut chars = pattern.chars().filter(|&c| c != EMOJI_SELECTOR);
-    // With long or numeric flags, what isn't a flag in parentheses (the Mongolian dictionary
-    // writes such rules) is read as the CLI answers (black-box): a bracketed list (`[a0,a1]`) is
-    // skipped with its `*` or `?`, and a punctuation mark (`%?`, `.`) makes a rule that matches
-    // nothing (a token no stem carries).
-    let mut skipped = false;
-    while let Some(c) = chars.next() {
-        if mode != FlagMode::Char {
-            let skip = match c {
-                '[' => {
-                    if !chars.by_ref().any(|c| c == ']') {
-                        return Err(format!("COMPOUNDRULE `{pattern}`: `[` is not closed"));
-                    }
-                    true
-                }
-                '*' | '?' => skipped,
-                c if !c.is_alphanumeric() && !matches!(c, '(' | ')') => {
-                    return Ok(vec![(FlagKey::MAX, Repeat::Once)]);
-                }
-                _ => false,
-            };
-            skipped = skip;
-            if skip {
-                continue;
-            }
-        }
-        match c {
-            '*' | '?' => {
-                let Some(last) = out.last_mut().filter(|t| t.1 == Repeat::Once) else {
-                    return Err(format!("COMPOUNDRULE `{pattern}`: `{c}` follows no flag"));
-                };
-                last.1 = if c == '*' {
-                    Repeat::Any
-                } else {
-                    Repeat::Optional
-                };
-            }
-            '(' => {
-                let mut inner = String::new();
-                loop {
-                    match chars.next() {
-                        Some(')') => break,
-                        Some(c) if inner.len() < MAX_COMPOUND_BYTES => inner.push(c),
-                        _ => return Err(format!("COMPOUNDRULE `{pattern}`: `(` is not closed")),
-                    }
-                }
-                let key = mode
-                    .parse_one(&inner)
-                    .map_err(|e| format!("COMPOUNDRULE `{pattern}`: {e}"))?;
-                out.push((key, Repeat::Once));
-            }
-            // In one-character mode a `)` that closes no group is a flag (Swedish: `)k`), as the
-            // CLI reads it.
-            ')' if mode == FlagMode::Char => out.push((FlagKey::from(c), Repeat::Once)),
-            ')' => return Err(format!("COMPOUNDRULE `{pattern}`: `)` closes no group")),
-            c if mode == FlagMode::Char => out.push((FlagKey::from(c), Repeat::Once)),
-            _ => {
-                return Err(format!(
-                    "COMPOUNDRULE `{pattern}`: long and numeric flags are written in ( )"
-                ));
-            }
-        }
-        if out.len() > MAX_COMPOUND_TOKENS {
-            return Err(format!(
-                "COMPOUNDRULE `{pattern}`: more than {MAX_COMPOUND_TOKENS} flags"
-            ));
-        }
-    }
-    if out.is_empty() {
-        return Err("COMPOUNDRULE with no flags".into());
-    }
-    Ok(out)
-}
-
-/// One character class of a rule's condition.
-#[derive(Clone, Debug, PartialEq, Eq)]
-enum Cond {
-    Any,
-    Char(char),
-    /// Sorted and deduplicated.
-    Set {
-        negated: bool,
-        chars: Box<[char]>,
-    },
-}
-
-impl Cond {
-    fn matches(&self, c: char) -> bool {
-        match self {
-            Cond::Any => true,
-            Cond::Char(x) => *x == c,
-            Cond::Set { negated, chars } => chars.binary_search(&c).is_ok() != *negated,
-        }
-    }
-}
-
-/// Parse a Hunspell condition (`.`, `[^i]e`, `[km]anie`…).
-fn parse_cond(text: &str) -> Result<Box<[Cond]>, String> {
-    if text == "." {
-        return Ok(Box::new([]));
-    }
-    let mut out = Vec::new();
-    let mut chars = text.chars();
-    while let Some(c) = chars.next() {
-        match c {
-            '.' => out.push(Cond::Any),
-            '[' => {
-                let mut set = Vec::new();
-                let mut negated = false;
-                let mut closed = false;
-                let mut first = true;
-                for d in chars.by_ref() {
-                    if d == ']' {
-                        closed = true;
-                        break;
-                    }
-                    if first && d == '^' {
-                        negated = true;
-                    } else {
-                        set.push(d);
-                    }
-                    first = false;
-                }
-                if !closed {
-                    return Err(format!("unclosed `[` in condition `{text}`"));
-                }
-                // Sorted, so a character is looked up, not compared with each (a hostile
-                // condition can list thousands).
-                set.sort_unstable();
-                set.dedup();
-                out.push(Cond::Set {
-                    negated,
-                    chars: set.into_boxed_slice(),
-                });
-            }
-            ']' => return Err(format!("stray `]` in condition `{text}`")),
-            c => out.push(Cond::Char(c)),
-        }
-    }
-    Ok(out.into_boxed_slice())
-}
+pub use joyword_proof_rules::dictionary::FlagMode;
+use joyword_proof_rules::dictionary::{
+    Condition as Cond, Repeat, compound_pattern as parse_compound_rule, condition as parse_cond,
+};
 
 /// Steps one simple-word check takes at most, all prefixes and suffix chains together. A step is
 /// about one rule tried: a rule, a character class of its condition, [`FLAGS_PER_STEP`] flags
@@ -702,7 +551,23 @@ fn split_fields(line: &str) -> impl Iterator<Item = &str> {
 }
 
 /// A rule as parsed from text, before flags get ids: `(flag, cross, strip, add, cont, cond)`.
-type RawRule = (FlagKey, bool, String, String, String, String);
+type RawRule = (FlagKey, bool, String, String, String, ParsedCondition);
+
+/// Keep the source spelling for lossless compact writes alongside the program
+/// compiled when this rule was first checked.
+struct ParsedCondition {
+    text: Box<str>,
+    atoms: Box<[Cond]>,
+}
+
+impl ParsedCondition {
+    fn read(text: &str) -> Result<Self, String> {
+        Ok(Self {
+            text: text.into(),
+            atoms: parse_cond(text)?,
+        })
+    }
+}
 
 /// Most distinct `TRY` characters kept; a hostile `.aff` could otherwise make every suggestion
 /// round cost time and memory proportional to the file size.
@@ -741,149 +606,6 @@ const EMOJI_SELECTOR: char = '\u{fe0f}';
 /// A flag as written in the source, before it gets a dense id: a character (one-character mode),
 /// two characters (`FLAG long`, the first in the high 32 bits) or a number (`FLAG num`).
 type FlagKey = u64;
-
-/// How flags are written: the `.aff`'s `FLAG` line, also kept in the compact format. Every flag
-/// field (`.dic` entries, `PFX`/`SFX` flags and continuation classes, `FORBIDDENWORD`…) is read
-/// and written here, and nowhere else.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-pub enum FlagMode {
-    /// One character per flag (no `FLAG` line, `FLAG UTF-8`, `FLAG DEFAULT`).
-    #[default]
-    Char,
-    /// Two characters per flag (`FLAG long`): `Aa`, `B1`. Read as characters of the decoded
-    /// text, where Hunspell reads two bytes: the same for the ASCII flags real dictionaries use,
-    /// different only for a non-ASCII flag in a UTF-8 file.
-    Long,
-    /// Decimal numbers from 0 to 65,535 separated by commas (`FLAG num`): `12,104`. As in
-    /// Hunspell, each number is the item's leading digits: Nepali writes `0/17X` for flag 17.
-    Num,
-}
-
-impl FlagMode {
-    /// The mode a `FLAG` line names, if this engine reads it.
-    fn from_name(name: &str) -> Option<FlagMode> {
-        match name {
-            "UTF-8" | "DEFAULT" | "utf-8" | "default" | "UTF8" | "" => Some(FlagMode::Char),
-            "long" | "LONG" => Some(FlagMode::Long),
-            "num" | "NUM" => Some(FlagMode::Num),
-            _ => None,
-        }
-    }
-
-    /// The `FLAG` value the compact format writes (one-character mode writes no line).
-    fn name(self) -> Option<&'static str> {
-        match self {
-            FlagMode::Char => None,
-            FlagMode::Long => Some("long"),
-            FlagMode::Num => Some("num"),
-        }
-    }
-
-    /// The flags of a field (`.dic` flags, continuation classes), in source order, at most
-    /// [`MAX_FLAGS_PER_ENTRY`]. An empty field has none.
-    fn parse(self, field: &str) -> Result<Vec<FlagKey>, String> {
-        self.parse_at_most(field, MAX_FLAGS_PER_ENTRY, false)
-    }
-
-    /// The flags of a field, at most `cap` of them. `lenient` (a `.dic` entry's flags) reads
-    /// malformed items as Hunspell does, keeping the word (checked black-box with the `hunspell`
-    /// CLI): under `FLAG num` an item that is no number from 0 to 65,535 (empty, `x2`, `-7`,
-    /// `70000`) is flag 0, and under `FLAG long` an odd last character is dropped. Otherwise
-    /// (continuation classes, which Hunspell drops the rule for, and the compact format) they are
-    /// an error.
-    fn parse_at_most(self, field: &str, cap: usize, lenient: bool) -> Result<Vec<FlagKey>, String> {
-        let mut out = Vec::new();
-        let mut push = |k: FlagKey| {
-            if out.len() >= cap {
-                return Err(format!(
-                    "more than {cap} flags in `{}`",
-                    field.chars().take(40).collect::<String>()
-                ));
-            }
-            out.push(k);
-            Ok(())
-        };
-        match self {
-            FlagMode::Char => {
-                for c in field.chars().filter(|&c| c != EMOJI_SELECTOR) {
-                    push(FlagKey::from(c))?;
-                }
-            }
-            FlagMode::Long => {
-                let mut chars = field.chars();
-                while let Some(a) = chars.next() {
-                    let Some(b) = chars.next() else {
-                        if lenient {
-                            break;
-                        }
-                        return Err(format!(
-                            "long flags `{field}` have an odd number of characters"
-                        ));
-                    };
-                    push((FlagKey::from(a) << 32) | FlagKey::from(b))?;
-                }
-            }
-            FlagMode::Num if field.is_empty() => {}
-            FlagMode::Num => {
-                for item in field.split(',') {
-                    // The leading digits (no sign), 0 to 65,535: at most five digits. Hunspell
-                    // reads flag 0 too, and the Turkish dictionary uses it (`SFX 0 N 1`).
-                    // Leading zeros don't count (`000001` is 1, as in Hunspell).
-                    let digits = item.bytes().take_while(u8::is_ascii_digit).count();
-                    let d = item
-                        .get(..digits)
-                        .unwrap_or_default()
-                        .trim_start_matches('0');
-                    let n = match d.len() {
-                        _ if digits == 0 => None,
-                        0 => Some(0),
-                        1..=5 => d.parse::<u32>().ok().filter(|&n| n <= 0xffff),
-                        _ => None,
-                    };
-                    match n {
-                        Some(n) => push(FlagKey::from(n))?,
-                        None if lenient => push(0)?,
-                        None => {
-                            return Err(format!(
-                                "`{}` is not a flag number (0 to 65535)",
-                                item.chars().take(20).collect::<String>()
-                            ));
-                        }
-                    }
-                }
-            }
-        }
-        Ok(out)
-    }
-
-    /// The one flag of a field (`PFX`/`SFX` flags, `FORBIDDENWORD`, `NOSUGGEST`…).
-    fn parse_one(self, field: &str) -> Result<FlagKey, String> {
-        match self.parse(field)?.as_slice() {
-            [k] => Ok(*k),
-            _ => Err(format!("`{field}` is not one flag")),
-        }
-    }
-
-    /// Append the flags `keys` to `out` as the source writes them.
-    fn write(self, keys: impl Iterator<Item = FlagKey>, out: &mut String) {
-        let ch = |k: FlagKey| u32::try_from(k).ok().and_then(char::from_u32);
-        for (i, k) in keys.enumerate() {
-            match self {
-                FlagMode::Char => out.extend(ch(k)),
-                FlagMode::Long => {
-                    out.extend(ch(k >> 32));
-                    out.extend(ch(k & 0xffff_ffff));
-                }
-                FlagMode::Num => {
-                    if i > 0 {
-                        out.push(',');
-                    }
-                    out.push_str(&k.to_string());
-                }
-            }
-        }
-    }
-}
 
 /// Stem flags that rule a lookup out: `FORBIDDENWORD` always, and per lookup `NOSUGGEST` and
 /// `SUBSTANDARD` (suggestions), `KEEPCASE` (case variants of a word) or `NEEDAFFIX` (a stem on
@@ -1264,7 +986,8 @@ fn parse_aff(aff: &str, english: bool) -> Result<Rules, String> {
                     None => (at(3), ""),
                 };
                 let cond = if f.len() >= 5 { at(4) } else { "." };
-                parse_cond(cond).map_err(|e| format!("line {}: {e}", n + 1))?;
+                let condition =
+                    ParsedCondition::read(cond).map_err(|e| format!("line {}: {e}", n + 1))?;
                 let c = cross.get(&(suffix, flag)).copied().unwrap_or(false);
                 let rule: RawRule = (
                     flag,
@@ -1272,7 +995,7 @@ fn parse_aff(aff: &str, english: bool) -> Result<Rules, String> {
                     zero_empty(at(2)),
                     zero_empty(add),
                     cont.to_string(),
-                    cond.to_string(),
+                    condition,
                 );
                 if suffix {
                     r.suffixes.push(rule);
@@ -1785,8 +1508,8 @@ impl AffixDict {
                         strip: strip.into(),
                         add: add.into(),
                         cont,
-                        cond: parse_cond(&cond)?,
-                        cond_text: cond.into(),
+                        cond: cond.atoms,
+                        cond_text: cond.text,
                     })
                 })
                 .collect()
@@ -3106,7 +2829,7 @@ impl AffixDict {
                         zero_empty(at(3)),
                         add,
                         cont,
-                        at(5).to_string(),
+                        ParsedCondition::read(at(5))?,
                     );
                     if kind == "SFX" {
                         rules.suffixes.push(rule);
