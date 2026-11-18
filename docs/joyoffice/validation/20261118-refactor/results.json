@@ -1,0 +1,500 @@
+{
+  "baseCommit": "06aff812",
+  "binaries": {
+    "refactor-calc-base": "1af91b28e6bfc25631780b4d2bebc69ebf69256a1190baf1c7e97a58407ab26b",
+    "refactor-calc-pilot": "2a3172a6cb674d5572ee4a9b5f77e9d9679771c90a040c433a5b23018a1292ce",
+    "refactor-sheet-base": "e3e590d91628ba19aa5d0965c3702d31227d416d3ecc8c86b6b552ce3767a4b9",
+    "refactor-sheet-pilot": "0d0ed5ceb7ee30e0593b59488cd9a7ab582ba6abbd49cdf7938cfaa8da4e6597"
+  },
+  "corpus": {
+    "cliBinaries": {
+      "base": "e2693b8aed1d98f31f55ba7e63204e192d9fe1a1f8c1f5ba3137b14e6ee4f6b2",
+      "pilot": "59afe0b97c2954662a54b4deca9e426e49d8e82be9765d4882b34e752849ae15"
+    },
+    "command": "joysheet-cli check docs/joysheet/samples --json",
+    "files": [
+      {
+        "checked": 0,
+        "matched": 0,
+        "path": "docs/joysheet/samples/M5-workflow.xlsx",
+        "roundTripDifferences": [],
+        "sha256": "936d4dc5fb8e2ba164cf188122f82907c94144d42bbd1a84b3751496baae8389"
+      },
+      {
+        "checked": 0,
+        "matched": 0,
+        "path": "docs/joysheet/samples/M6-workflow.xlsx",
+        "roundTripDifferences": [],
+        "sha256": "1cfbb09edbc3ddc817a84704595af48bb9076085c7c4133122a8476cd8767f28"
+      },
+      {
+        "checked": 4,
+        "matched": 4,
+        "path": "docs/joysheet/samples/M7-workflow.xlsx",
+        "roundTripDifferences": [],
+        "sha256": "31b566eff1f9e1e457a58fe29a9e7e7d42ba28e57ed1c137524d1536f2f87bc9"
+      },
+      {
+        "checked": 0,
+        "matched": 0,
+        "path": "docs/joysheet/samples/Windows-boundaries.xlsx",
+        "roundTripDifferences": [],
+        "sha256": "fcf64a910eb135efb8a06fee0c630599fe3b9a603299285562c3fdaab8578581"
+      },
+      {
+        "checked": 0,
+        "matched": 0,
+        "path": "docs/joysheet/samples/Windows-format.xlsx",
+        "roundTripDifferences": [],
+        "sha256": "cf286276d7e5bbb080d27f0fa8e1905f31d6bf4a1df040e701aa1180526415a1"
+      },
+      {
+        "checked": 0,
+        "matched": 0,
+        "path": "docs/joysheet/samples/Windows-objects.xlsx",
+        "roundTripDifferences": [],
+        "sha256": "ed91d8da8242b592bfcc0a422869871e4279e018d12c1149c6fcd45a39d97812"
+      },
+      {
+        "checked": 1,
+        "matched": 1,
+        "path": "docs/joysheet/samples/Windows-quality.xlsx",
+        "roundTripDifferences": [],
+        "sha256": "018c8fcf4b996e570ec36521dcad4f765efdeb7996b8b601554915a5003f1631"
+      }
+    ],
+    "reportSha256": "b5a7bbf40006958c2686451173ca0589d0da1f39028cbbd82fb3435121d357f4",
+    "totals": {
+      "boolAsNumber": 0,
+      "categoriesDiffering": {},
+      "checked": 5,
+      "failedToOpen": 0,
+      "files": 7,
+      "formulaCells": 5,
+      "matched": 5,
+      "mismatched": 0,
+      "noOracle": 0,
+      "opened": 7,
+      "roundTripDiffering": 0,
+      "roundTripFailed": 0,
+      "volatile": 0
+    }
+  },
+  "desktopPeakRss": {
+    "rows": 100000,
+    "samples": {
+      "base": [
+        1152139264,
+        1150009344
+      ],
+      "pilot": [
+        1153302528,
+        1159036928
+      ]
+    },
+    "scope": "separate AB, BA runs; child process lifetime including creation, edits, save and reopen",
+    "units": "bytes"
+  },
+  "measurements": [
+    {
+      "ms": {
+        "dependencyMs": {
+          "p50": 0.0046,
+          "p95": 0.008
+        },
+        "evaluationMs": {
+          "p50": 0.0223,
+          "p95": 0.0258
+        },
+        "preparationMs": {
+          "p50": 0.0024,
+          "p95": 0.003
+        },
+        "recalcMs": {
+          "p50": 0.0335,
+          "p95": 0.0407
+        },
+        "writebackMs": {
+          "p50": 0.002,
+          "p95": 0.0024
+        }
+      },
+      "peakRssBytesPerRun": [
+        3686400,
+        3719168
+      ],
+      "rows": 100,
+      "scope": "calc",
+      "variant": "base"
+    },
+    {
+      "ms": {
+        "dependencyMs": {
+          "p50": 0.0064,
+          "p95": 0.0139
+        },
+        "evaluationMs": {
+          "p50": 0.0208,
+          "p95": 0.0277
+        },
+        "preparationMs": {
+          "p50": 0.0042,
+          "p95": 0.0069
+        },
+        "recalcMs": {
+          "p50": 0.0378,
+          "p95": 0.0628
+        },
+        "writebackMs": {
+          "p50": 0.004,
+          "p95": 0.0063
+        }
+      },
+      "peakRssBytesPerRun": [
+        3702784,
+        3751936
+      ],
+      "rows": 100,
+      "scope": "calc",
+      "variant": "pilot"
+    },
+    {
+      "ms": {
+        "dependencyMs": {
+          "p50": 0.3143,
+          "p95": 0.3602
+        },
+        "evaluationMs": {
+          "p50": 1.6038,
+          "p95": 2.2357
+        },
+        "preparationMs": {
+          "p50": 0.4479,
+          "p95": 0.5202
+        },
+        "recalcMs": {
+          "p50": 2.5412,
+          "p95": 3.3337
+        },
+        "writebackMs": {
+          "p50": 0.1633,
+          "p95": 0.1836
+        }
+      },
+      "peakRssBytesPerRun": [
+        17514496,
+        17481728
+      ],
+      "rows": 10000,
+      "scope": "calc",
+      "variant": "base"
+    },
+    {
+      "ms": {
+        "dependencyMs": {
+          "p50": 0.3028,
+          "p95": 0.3468
+        },
+        "evaluationMs": {
+          "p50": 1.0011,
+          "p95": 1.2727
+        },
+        "preparationMs": {
+          "p50": 0.4289,
+          "p95": 0.485
+        },
+        "recalcMs": {
+          "p50": 1.9325,
+          "p95": 2.2691
+        },
+        "writebackMs": {
+          "p50": 0.1608,
+          "p95": 0.1906
+        }
+      },
+      "peakRssBytesPerRun": [
+        17563648,
+        17547264
+      ],
+      "rows": 10000,
+      "scope": "calc",
+      "variant": "pilot"
+    },
+    {
+      "ms": {
+        "dependencyMs": {
+          "p50": 2.9212,
+          "p95": 2.9973
+        },
+        "evaluationMs": {
+          "p50": 27.7518,
+          "p95": 28.6258
+        },
+        "preparationMs": {
+          "p50": 6.699,
+          "p95": 7.0328
+        },
+        "recalcMs": {
+          "p50": 40.6013,
+          "p95": 41.6238
+        },
+        "writebackMs": {
+          "p50": 2.6162,
+          "p95": 2.8758
+        }
+      },
+      "peakRssBytesPerRun": [
+        135217152,
+        135217152
+      ],
+      "rows": 100000,
+      "scope": "calc",
+      "variant": "base"
+    },
+    {
+      "ms": {
+        "dependencyMs": {
+          "p50": 2.8975,
+          "p95": 2.9672
+        },
+        "evaluationMs": {
+          "p50": 20.5774,
+          "p95": 21.4264
+        },
+        "preparationMs": {
+          "p50": 6.6024,
+          "p95": 6.984
+        },
+        "recalcMs": {
+          "p50": 33.2597,
+          "p95": 34.3213
+        },
+        "writebackMs": {
+          "p50": 2.6103,
+          "p95": 3.0181
+        }
+      },
+      "peakRssBytesPerRun": [
+        135233536,
+        135135232
+      ],
+      "rows": 100000,
+      "scope": "calc",
+      "variant": "pilot"
+    },
+    {
+      "ms": {
+        "dependencyMs": {
+          "p50": 0.0126,
+          "p95": 0.0168
+        },
+        "engineMs": {
+          "p50": 0.1477,
+          "p95": 0.2082
+        },
+        "evaluationMs": {
+          "p50": 0.044,
+          "p95": 0.0575
+        },
+        "firstPaintMs": {
+          "p50": 12.0426,
+          "p95": 21.6944
+        },
+        "preparationMs": {
+          "p50": 0.0127,
+          "p95": 0.019
+        },
+        "recalcMs": {
+          "p50": 0.0932,
+          "p95": 0.1335
+        },
+        "writebackMs": {
+          "p50": 0.0176,
+          "p95": 0.0562
+        }
+      },
+      "rows": 100,
+      "scope": "desktop",
+      "variant": "base"
+    },
+    {
+      "ms": {
+        "dependencyMs": {
+          "p50": 0.0145,
+          "p95": 0.021
+        },
+        "engineMs": {
+          "p50": 0.1532,
+          "p95": 0.2132
+        },
+        "evaluationMs": {
+          "p50": 0.0346,
+          "p95": 0.0517
+        },
+        "firstPaintMs": {
+          "p50": 12.3391,
+          "p95": 15.3727
+        },
+        "preparationMs": {
+          "p50": 0.0126,
+          "p95": 0.0177
+        },
+        "recalcMs": {
+          "p50": 0.084,
+          "p95": 0.1135
+        },
+        "writebackMs": {
+          "p50": 0.0132,
+          "p95": 0.0205
+        }
+      },
+      "rows": 100,
+      "scope": "desktop",
+      "variant": "pilot"
+    },
+    {
+      "ms": {
+        "dependencyMs": {
+          "p50": 3.8874,
+          "p95": 4.27
+        },
+        "engineMs": {
+          "p50": 62.3853,
+          "p95": 71.139
+        },
+        "evaluationMs": {
+          "p50": 34.7466,
+          "p95": 39.1553
+        },
+        "firstPaintMs": {
+          "p50": 74.6631,
+          "p95": 82.1674
+        },
+        "preparationMs": {
+          "p50": 8.7163,
+          "p95": 9.8443
+        },
+        "recalcMs": {
+          "p50": 58.3614,
+          "p95": 65.7975
+        },
+        "writebackMs": {
+          "p50": 10.9388,
+          "p95": 13.5361
+        }
+      },
+      "rows": 100000,
+      "scope": "desktop",
+      "variant": "base"
+    },
+    {
+      "ms": {
+        "dependencyMs": {
+          "p50": 3.9114,
+          "p95": 4.478
+        },
+        "engineMs": {
+          "p50": 58.5246,
+          "p95": 64.0975
+        },
+        "evaluationMs": {
+          "p50": 28.8462,
+          "p95": 31.5321
+        },
+        "firstPaintMs": {
+          "p50": 71.3062,
+          "p95": 78.6882
+        },
+        "preparationMs": {
+          "p50": 8.9164,
+          "p95": 9.7862
+        },
+        "recalcMs": {
+          "p50": 54.7177,
+          "p95": 60.243
+        },
+        "writebackMs": {
+          "p50": 11.9016,
+          "p95": 14.8377
+        }
+      },
+      "rows": 100000,
+      "scope": "desktop",
+      "variant": "pilot"
+    }
+  ],
+  "native": {
+    "deck": {
+      "binarySha256": "0762670b141c562ed333e0a56a6e7854ea9cb596613c3e40d61129247680662d",
+      "checks": {
+        "chineseNoteIsNew": true,
+        "notesInSavedPptx": true
+      },
+      "events": "System Events keyboard through macOS Pinyin",
+      "passed": true,
+      "platform": "macOS 27.2.1 Apple silicon",
+      "pptxSha256": "71963f8e671edfc10da8404ad9b6def8b5b38ed7a89818438c570e0fcfaefb41"
+    },
+    "sheet": {
+      "binarySha256": "e3e590d91628ba19aa5d0965c3702d31227d416d3ecc8c86b6b552ce3767a4b9",
+      "checks": {
+        "edit.redo": true,
+        "edit.undo": true,
+        "reopened": true,
+        "systemPinyinCommit": true,
+        "systemPreedit": true
+      },
+      "events": "System Events keyboard through macOS Pinyin",
+      "passed": true,
+      "platform": "macOS 27.2.1 Apple silicon",
+      "xlsxSha256": "89c0f3ebd6473abb2b7180d7ddd440f7d2e52d23325d3fdc164ccf75fb84ad62"
+    },
+    "stock": {
+      "binarySha256": "d4e4a1d6fea96b02d0aa0e637afa412e04e46f4ad794ff4bf6e9ba9708d92091",
+      "checks": [
+        "focused=true marked=true",
+        "marked=false utf16=2 chinese=true",
+        "marked=true",
+        "marked=false utf16=2 chinese=true",
+        "marked=false utf16=0 chinese=false"
+      ],
+      "events": "OS synthetic keys",
+      "inputMethod": "com.apple.inputmethod.SCIM.ITABC",
+      "passed": true,
+      "system": "macOS-27.2.1-arm64-arm-64bit-Mach-O"
+    },
+    "word": {
+      "binarySha256": "705dd696f04143c188c2563d0074f2bce687042a38e37cccc74a14beb0bc91ba",
+      "checks": {
+        "cancelPreservesDraft": true,
+        "independentDocxReadback": true,
+        "singleUndo": true,
+        "sourceUnchanged": true,
+        "systemPinyinCommit": true
+      },
+      "copySha256": "b73488f86d86137ed846a4109529988451656557a3a275ddcac3a5e24aecda14",
+      "events": "System Events keyboard through macOS Pinyin and actual AppKit Save panel",
+      "passed": true,
+      "sourceSha256": "7f234d546783332adac448fecd8132cd0dc71900fa208e0b94021b33bdaf8cfb",
+      "system": "27.2.1",
+      "trace": [
+        "joyword-save picker-requested",
+        "joyword-save picker-cancelled",
+        "joyword-save picker-requested",
+        "joyword-save picker-selected",
+        "joyword-save write-start",
+        "joyword-save readback-verified"
+      ]
+    }
+  },
+  "order": [
+    "AB (base,pilot)",
+    "BA (pilot,base)"
+  ],
+  "p95": "nearest rank over 40 pooled samples per variant/size; stages overlap",
+  "platform": "macOS 27.2.1 arm64 / Apple M4",
+  "profile": "--release --target aarch64-apple-darwin --locked",
+  "rust": "1.98.1",
+  "samplesPerRun": 20,
+  "warmupsPerRun": 2
+}

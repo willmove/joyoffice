@@ -1,0 +1,244 @@
+{
+  "platform": "Apple M4 / macOS 27.2.1 arm64 / Rust 1.98.1",
+  "baseCommit": "06aff812d1d17d3b2be350bcb927feeef61eff6a",
+  "native": {
+    "word": {
+      "passed": true,
+      "product": "word",
+      "checks": [
+        "candidate shown",
+        "selected Chinese",
+        "Escape discarded second preedit",
+        "one native undo and redo",
+        "cancel kept draft",
+        "rejected format kept draft",
+        "retry to Chinese/space path",
+        "ordinary save to copy",
+        "original hash unchanged",
+        "fresh desktop process readback"
+      ],
+      "system": "27.2.1",
+      "binarySha256": "705dd696f04143c188c2563d0074f2bce687042a38e37cccc74a14beb0bc91ba",
+      "events": "System Events keyboard through macOS Pinyin",
+      "inputMethod": "com.apple.inputmethod.SCIM.ITABC",
+      "candidateBoundsInWindow": [
+        711,
+        390,
+        397,
+        28
+      ],
+      "trace": [
+        "picker-requested",
+        "picker-cancelled",
+        "picker-requested",
+        "picker-selected",
+        "job-rejected",
+        "picker-requested",
+        "picker-selected",
+        "write-start",
+        "readback-verified",
+        "write-start",
+        "readback-verified"
+      ],
+      "sourceSha256": "7f234d546783332adac448fecd8132cd0dc71900fa208e0b94021b33bdaf8cfb",
+      "copySha256": "eed37c8d331835925b5980370ecf77edc778c88c6653dd624cc82694a2dec598"
+    },
+    "deck": {
+      "passed": true,
+      "product": "deck",
+      "checks": [
+        "candidate shown",
+        "selected Chinese",
+        "Escape discarded second preedit",
+        "notes persisted after Tab",
+        "one native undo and redo",
+        "independent PPTX notes XML",
+        "original hash unchanged",
+        "fresh desktop process readback"
+      ],
+      "system": "27.2.1",
+      "binarySha256": "0762670b141c562ed333e0a56a6e7854ea9cb596613c3e40d61129247680662d",
+      "events": "System Events keyboard through macOS Pinyin",
+      "inputMethod": "com.apple.inputmethod.SCIM.ITABC",
+      "candidateBoundsInWindow": [
+        238,
+        855,
+        397,
+        28
+      ],
+      "sourceSha256": "d6f81497635b517ae63c071f987d3da57449072939630456303871474950e691",
+      "copySha256": "71963f8e671edfc10da8404ad9b6def8b5b38ed7a89818438c570e0fcfaefb41"
+    },
+    "sheetBeforeFix": {
+      "passed": false,
+      "product": "sheet",
+      "checks": [
+        "candidate shown",
+        "selected Chinese",
+        "Escape discarded second preedit",
+        "typed directly into selected cell",
+        "Tab committed cell",
+        "one native undo and redo",
+        "fresh desktop process readback"
+      ],
+      "system": "27.2.1",
+      "binarySha256": "e3e590d91628ba19aa5d0965c3702d31227d416d3ecc8c86b6b552ce3767a4b9",
+      "events": "System Events keyboard through macOS Pinyin",
+      "inputMethod": "com.apple.inputmethod.SCIM.ITABC",
+      "candidateBoundsInWindow": [
+        46,
+        293,
+        397,
+        28
+      ],
+      "copySha256": "89c0f3ebd6473abb2b7180d7ddd440f7d2e52d23325d3fdc164ccf75fb84ad62",
+      "error": "Full Pinyin spelling is not visible on a single line in the captured cell editor."
+    },
+    "sheet": {
+      "passed": true,
+      "product": "sheet",
+      "checks": [
+        "candidate shown",
+        "selected Chinese",
+        "Escape discarded second preedit",
+        "typed directly into selected cell",
+        "Tab committed cell",
+        "one native undo and redo",
+        "fresh desktop process readback",
+        "complete Pinyin visible on one line"
+      ],
+      "system": "27.2.1",
+      "binarySha256": "8cad6e124753042d7dd559eed1e9832bea66d50555c1dcada39a2ff273057efd",
+      "events": "System Events keyboard through macOS Pinyin",
+      "inputMethod": "com.apple.inputmethod.SCIM.ITABC",
+      "candidateBoundsInWindow": [
+        46,
+        293,
+        397,
+        28
+      ],
+      "copySha256": "89c0f3ebd6473abb2b7180d7ddd440f7d2e52d23325d3fdc164ccf75fb84ad62"
+    }
+  },
+  "captures": {
+    "word-preedit.png": {
+      "sha256": "379f3f2f890fb41d9ad36bc03ca8b62ab176b5e8119fbef392446b5518d48c4c",
+      "content": "focused test editor and native candidate panel"
+    },
+    "deck-preedit.png": {
+      "sha256": "3c3633e7be7a99dc9e024b391a268d688d9b3fb88f64f4b9072c9eb9a57e61e9",
+      "content": "focused test editor and native candidate panel"
+    },
+    "sheet-preedit-before.png": {
+      "sha256": "82e004c831d21f790c4c1a611b67c7d4e1ddb16c7493440d566971518e1eeb0b",
+      "content": "focused test editor and native candidate panel"
+    },
+    "sheet-preedit-after.png": {
+      "sha256": "5bb4bc225b1e44a9d71f22863e82bff77da2f1082eab35ddae9d965e260ef0df",
+      "content": "focused test editor and native candidate panel"
+    }
+  },
+  "stockProbe": {
+    "passed": true,
+    "system": "macOS-27.2.1-arm64-arm-64bit-Mach-O",
+    "events": "OS synthetic keys",
+    "checks": [
+      "focused=true marked=true",
+      "marked=false utf16=2 chinese=true",
+      "marked=true",
+      "marked=false utf16=2 chinese=true",
+      "marked=false utf16=0 chinese=false"
+    ],
+    "inputMethod": "com.apple.inputmethod.SCIM.ITABC",
+    "binarySha256": "ad4e77f97cd4bdcf6dc36da42ec2827d1088741ce9d8f46de213b3bce726e8da"
+  },
+  "crossVariantWorkbooks": [
+    {
+      "from": "base",
+      "to": "pilot",
+      "sourceSha256": "23856c3f72bcd2837e8c0ac2f92f060cd5f2d6af3c55b84fd8bee97147231099",
+      "copySha256": "f0a0fe0a32a271b492ed8031154678da1d1c6ee5acf08907cfbd6bfca523cfbc",
+      "editedA1": 23,
+      "finalSum": 5002350000,
+      "xmlFormulasMatched": 100001,
+      "reopenedInWritingVariantOfSource": {
+        "boolAsNumber": 0,
+        "categoriesDiffering": {},
+        "checked": 100001,
+        "failedToOpen": 0,
+        "files": 1,
+        "formulaCells": 100001,
+        "matched": 100001,
+        "mismatched": 0,
+        "noOracle": 0,
+        "opened": 1,
+        "roundTripDiffering": 0,
+        "roundTripFailed": 0,
+        "volatile": 0
+      }
+    },
+    {
+      "from": "pilot",
+      "to": "base",
+      "sourceSha256": "23856c3f72bcd2837e8c0ac2f92f060cd5f2d6af3c55b84fd8bee97147231099",
+      "copySha256": "f0a0fe0a32a271b492ed8031154678da1d1c6ee5acf08907cfbd6bfca523cfbc",
+      "editedA1": 23,
+      "finalSum": 5002350000,
+      "xmlFormulasMatched": 100001,
+      "reopenedInWritingVariantOfSource": {
+        "boolAsNumber": 0,
+        "categoriesDiffering": {},
+        "checked": 100001,
+        "failedToOpen": 0,
+        "files": 1,
+        "formulaCells": 100001,
+        "matched": 100001,
+        "mismatched": 0,
+        "noOracle": 0,
+        "opened": 1,
+        "roundTripDiffering": 0,
+        "roundTripFailed": 0,
+        "volatile": 0
+      }
+    }
+  ],
+  "sheetUiRegression": [
+    "view.freezeTopRow at 125%, preedit guard, commit and undo",
+    "view.freezeFirstColumn at 125%, preedit guard, commit and undo",
+    "XLSX LF/CRLF/blank lines and wrap style survive double-click/Enter/Tab/Shift navigation and F2/Escape without dirtying",
+    "inline and formula-bar edits append at the caret and preserve line breaks and full style",
+    "multiline text and imported cell styles survive XLSX save/close/reopen"
+  ],
+  "desktopFanoutAfterFix": {
+    "binarySha256": "8cad6e124753042d7dd559eed1e9832bea66d50555c1dcada39a2ff273057efd",
+    "rows": 100000,
+    "edits": 20,
+    "formulasPerEdit": [
+      100001
+    ],
+    "undoRedoAndXlsxVerified": true,
+    "peakRssBytes": 1151942656
+  },
+  "checks": {
+    "word": {
+      "passed": 3654,
+      "failed": 0,
+      "ignored": 2
+    },
+    "deck": {
+      "passed": 983,
+      "failed": 0,
+      "ignored": 0
+    },
+    "sheet": {
+      "passed": 1439,
+      "failed": 0,
+      "ignored": 1
+    },
+    "calcAndEngineWithPilot": {
+      "passed": 696,
+      "failed": 0,
+      "ignored": 1
+    }
+  }
+}

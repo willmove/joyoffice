@@ -15,6 +15,10 @@ all = { level = "warn", priority = -1 }
 too_many_arguments = "allow"
 type_complexity = "allow"
 
+[features]
+# Compare the bounded JoyOffice scalar evaluator against the default calculation path.
+scalar-pilot = []
+
 [dependencies]
 joysheet-core = { workspace = true }
 joysheet-formula = { workspace = true }

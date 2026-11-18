@@ -926,7 +926,7 @@ fn paint_cell_text(
 }
 
 impl Desktop {
-    pub fn render_grid(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement + use<> {
+    pub fn render_grid(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement + use<> {
         let view = cx.entity();
         let paper_accent = self.preferences.theme_preset().with_dark(false).palette(joyoffice_ui::Brand::Sheet).accent;
         let mut body = div()
@@ -1003,6 +1003,8 @@ impl Desktop {
                 ),
             );
         }
+        let inline_preedit =
+            self.draft.as_ref().is_some_and(|d| d.inline) && self.editor.update(cx, |s, cx| s.marked_text_range(window, cx).is_some());
         if let (Some(view), Some(geo)) = (self.view(), self.geometry.as_ref()) {
             let active = self.draft.as_ref().map(|d| d.cell).unwrap_or_else(|| self.selection().active);
             let freeze = view.sheet().and_then(|s| s.freeze).unwrap_or((0, 0));
@@ -1013,6 +1015,13 @@ impl Desktop {
             }
             let right = if active.col < freeze.1 { ROW_HEADER + self.layout.frozen_width } else { self.layout.width };
             let bottom = if active.row < freeze.0 { COL_HEADER + self.layout.frozen_height } else { self.layout.height };
+            if inline_preedit {
+                // The native candidate window follows the textarea caret. Allow one legible
+                // line even in a narrow cell, still clipped to the current viewport quadrant.
+                let rem = f32::from(window.rem_size());
+                rect.width = rect.width.max(8. * rem);
+                rect.height = rect.height.max(2. * rem);
+            }
             rect.width = rect.width.min((right - rect.x).max(0.));
             rect.height = rect.height.min((bottom - rect.y).max(0.));
             if rect.x >= ROW_HEADER && rect.y >= COL_HEADER && rect.x < self.layout.width && rect.y < self.layout.height {

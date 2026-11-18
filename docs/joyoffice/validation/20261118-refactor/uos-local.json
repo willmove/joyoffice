@@ -1,0 +1,213 @@
+{
+  "wordIme": {
+    "passed": false,
+    "probeCompleted": true,
+    "nativeImeVerified": false,
+    "inputMethod": "com.sogou.ime.ng.fcitx5.uos",
+    "eventSource": "X11 OS synthetic ASCII keys through the active system input method",
+    "duringText": "合作协议：甲方与乙方于 2026 年签署。zhongwen",
+    "afterText": "合作协议：甲方与乙方于 2026 年签署。zhongwen1"
+  },
+  "deckIme": {
+    "passed": false,
+    "probeCompleted": true,
+    "nativeImeVerified": false,
+    "inputMethod": "com.sogou.ime.ng.fcitx5.uos",
+    "eventSource": "X11 OS synthetic ASCII keys through active system input method; desktop stdio readback",
+    "duringContainsPinyin": true,
+    "afterContainsPinyin": true,
+    "afterContainsChinese": true
+  },
+  "sheetIme": {
+    "passed": false,
+    "probeCompleted": true,
+    "nativeImeVerified": false,
+    "inputMethod": "com.sogou.ime.ng.fcitx5.uos",
+    "eventSource": "X11 OS synthetic ASCII keys through active system input method; production control readback",
+    "binarySha256": "c375caef14e932befceb21ab610e11c667c541fd64f78e722c144ebd603f718f",
+    "duringEditor": {
+      "cell": "A1",
+      "text": "zhongwen",
+      "inline": true,
+      "doc": 2
+    },
+    "duringComposing": false,
+    "afterSelectionEditor": {
+      "cell": "A1",
+      "text": "zhongwen1",
+      "inline": true,
+      "doc": 2
+    },
+    "cellValue": "zhongwen1"
+  },
+  "stock": {
+    "passed": false,
+    "system": "Linux-6.18.57-061857-generic-x86_64-with-glibc2.38",
+    "events": "OS synthetic keys",
+    "checks": [],
+    "environment": {
+      "LANG": "zh_CN.UTF-8",
+      "LC_ALL": "C.UTF-8",
+      "LC_CTYPE": "C.UTF-8",
+      "XMODIFIERS": "@im=fcitx",
+      "XDG_SESSION_TYPE": "x11"
+    },
+    "ximServers": "XIM_SERVERS(ATOM) = @server=fcitx, @server=fcitx",
+    "ximSelectionOwner": 0,
+    "inputMethod": "com.sogou.ime.ng.fcitx5.uos",
+    "error": "timed out waiting for focused=true marked=true"
+  },
+  "deckDde": {
+    "passed": true,
+    "eventSource": "DDE native file dialog and X11 synthetic keyboard/pointer",
+    "checks": [
+      "File > Save As opens a native dde-file-dialog window",
+      "native filename and Save button create a valid three-page PPTX"
+    ],
+    "savedSha256": "6f910f601f020fa7a603ccda943c5b1dfe6bc156ae2435b18626d22e2c662e10"
+  },
+  "sheetFanout": {
+    "system": "Linux 6.18.57-061857-generic x86_64",
+    "rows": 100000,
+    "binarySha256": "c375caef14e932befceb21ab610e11c667c541fd64f78e722c144ebd603f718f",
+    "scope": "commit handler through first matching worksheet CPU paint; no GPU presentation",
+    "undoRedoAndXlsxVerified": true,
+    "desktopPeakRssBytes": 1121927168,
+    "samples": 20,
+    "formulasPerEdit": [
+      100001
+    ],
+    "cliSavedWorkbookCheck": {
+      "files": 1,
+      "opened": 1,
+      "failedToOpen": 0,
+      "formulaCells": 100001,
+      "checked": 100001,
+      "matched": 100001,
+      "mismatched": 0,
+      "noOracle": 0,
+      "volatile": 0,
+      "boolAsNumber": 0,
+      "roundTripFailed": 0,
+      "roundTripDiffering": 0,
+      "categoriesDiffering": {}
+    }
+  },
+  "gtkPlain": "zhongwen1",
+  "gtkShift": "中文",
+  "xlib": "zhongwen1",
+  "xlibShift": "zhongwen1",
+  "binarySha256": {
+    "joyword": "03d6d982a1ba1999a3b7d130d9df73d40e263a90e7a4d87baf79f5cafabf9508",
+    "joydeck": "04a99f537c3a4e4387d16d790ac473b1bc176cd4f65a232270ebff3517d40436",
+    "joysheet": "c375caef14e932befceb21ab610e11c667c541fd64f78e722c144ebd603f718f",
+    "joysheet-cli": "9f1a04b5ac4dc2b0556a6dc13d745adb1f838541d07234dfae9508b38102f692",
+    "examples/ime_probe": "cc2745997d1194316766cfa51f98354db7f799925e12a4b268af040baeb8db7a"
+  },
+  "ximDirect": [
+    "locale C.UTF-8 supported True",
+    "XIM selection owner: 0x0 modifiers: b'@im=fcitx'",
+    "XOpenIM: False"
+  ],
+  "ximReopenAttempt": [
+    "2026-11-18T08:50:16+08:00",
+    "XIM_SERVERS(ATOM) = @server=fcitx, @server=fcitx",
+    "locale C.UTF-8 supported True",
+    "XIM selection owner: 0x0 modifiers: b'@im=fcitx'",
+    "XOpenIM: False"
+  ],
+  "sourceHead": "06aff812d1d17d3b2be350bcb927feeef61eff6a",
+  "desktop": {
+    "system": "UOS Desktop 25 Professional, X11/DDE",
+    "kernel": "6.18.57-061857-generic",
+    "arch": "x86_64"
+  },
+  "wordDde": {
+    "passed": true,
+    "sourceSha256": "7f234d546783332adac448fecd8132cd0dc71900fa208e0b94021b33bdaf8cfb",
+    "checks": [
+      "cancel preserves draft",
+      "unsupported extension preserves draft",
+      "edited DOCX independently read back",
+      "source hash unchanged"
+    ],
+    "copySha256": "9f83327bc7f048bced6630bc08856bc3691016e50463b021c3cd7994c525c806",
+    "trace": [
+      "joyword-save picker-requested",
+      "joyword-save picker-cancelled",
+      "joyword-save picker-requested",
+      "joyword-save picker-selected",
+      "joyword-save job-rejected",
+      "joyword-save picker-requested",
+      "joyword-save picker-selected",
+      "joyword-save write-start",
+      "joyword-save readback-verified"
+    ],
+    "freshProcessReadback": true,
+    "captureSha256": "fa0799f5f5cf3bbaf9b5c986ecdfd12bfa2d8e6da910b1bb316692b7347fbbff",
+    "passingRunsWithFinalHarness": 2
+  },
+  "sheetEditor": {
+    "checks": [
+      "view.freezeTopRow at 125%: synthetic composition, commit and undo",
+      "view.freezeFirstColumn at 125%: synthetic composition, commit and undo",
+      "XLSX LF/CRLF/blank lines and wrap style survive double-click/Enter/Tab/Shift navigation and F2/Escape without dirtying",
+      "inline and formula-bar edits append at the caret and preserve line breaks and full style",
+      "multiline text and imported cell styles survive XLSX save/close/reopen"
+    ],
+    "passed": true
+  },
+  "wordDesktop": {
+    "passed": true,
+    "binarySha256": "03d6d982a1ba1999a3b7d130d9df73d40e263a90e7a4d87baf79f5cafabf9508",
+    "checks": [
+      "actual X11 window opens the isolated Chinese/space DOCX path",
+      "OS keyboard typing, undo and redo reach the live editing session",
+      "Kit search input accepts text without changing document content",
+      "OS Save with explicit metadata replacement confirmation writes only the disposable DOCX",
+      "fresh desktop process reopens saved text; repository fixture hash is unchanged"
+    ],
+    "eventSource": "X11 OS synthetic keys, actual window pixels and authenticated live document control",
+    "nativeImeVerified": false
+  },
+  "finalFcitxState": 2,
+  "checks": {
+    "joyword": {
+      "passed": 2998,
+      "failed": 5,
+      "ignored": 2,
+      "exit": 1,
+      "knownLayoutFailures": [
+        "tests::a_symbol_bullet_sizes_its_line_by_the_symbol_font",
+        "tests::justified_lines_shrink_spaces_in_word_2013_mode",
+        "tests::last_rewrap_pass_keeps_early_floats_clear_of_text",
+        "tests::legacy_form_fields_are_drawn",
+        "tests::long_footnotes_continue_on_the_next_page"
+      ]
+    },
+    "joydeck": {
+      "passed": 988,
+      "failed": 0,
+      "ignored": 0,
+      "exit": 0
+    },
+    "joysheet": {
+      "passed": 1439,
+      "failed": 0,
+      "ignored": 1,
+      "exit": 0
+    },
+    "word-ui": {
+      "passed": 32,
+      "failed": 0,
+      "ignored": 0,
+      "exit": 0
+    },
+    "scalar-pilot": {
+      "passed": 696,
+      "failed": 0,
+      "ignored": 1,
+      "exit": 0
+    }
+  }
+}

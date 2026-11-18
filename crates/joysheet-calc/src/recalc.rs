@@ -21,6 +21,8 @@ use crate::eval::{Area, Evaluator, Host, precedents, stack_position};
 
 mod graph;
 mod pass_host;
+#[cfg(feature = "scalar-pilot")]
+mod scalar_pilot;
 
 #[cfg(test)]
 use graph::Intervals;

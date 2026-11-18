@@ -3,6 +3,13 @@ use super::*;
 use gpui::base::FocusTrapElement as _;
 use std::path::PathBuf;
 
+// No paths or document text are written to the opt-in diagnostic stream.
+fn trace_save(stage: &str) {
+    if std::env::var_os("JOYWORD_SAVE_TRACE").as_deref() == Some(std::ffi::OsStr::new("1")) {
+        eprintln!("joyword-save {stage}");
+    }
+}
+
 fn run_desktop_save(
     job: joyword_shell::editing::SaveJob,
 ) -> Result<joyword_shell::editing::SaveReceipt, String> {
@@ -279,27 +286,45 @@ impl JoyWord {
                 reader.summary.name.trim_end_matches(".docx")
             )
         };
+        self.saving = true;
+        trace_save("picker-requested");
         let receiver = cx.prompt_for_new_path(&directory, Some(&suggestion));
-        self.canvas.dialog_task = Some(cx.spawn(async move |view, cx| match receiver.await {
-            Ok(Ok(Some(path))) => {
-                let _ = view.update(cx, |v, cx| {
-                    if v.canvas
-                        .reader
-                        .as_ref()
-                        .is_some_and(|r| r.engine().document_id() == document)
-                    {
+        // Keep this operation alive independently of file-open and export dialogs.
+        cx.spawn(async move |view, cx| {
+            let choice = receiver.await;
+            let _ = view.update(cx, |v, cx| {
+                v.saving = false;
+                cx.notify();
+                if v.canvas
+                    .reader
+                    .as_ref()
+                    .is_none_or(|r| r.engine().document_id() != document)
+                {
+                    trace_save("picker-stale");
+                    return;
+                }
+                match choice {
+                    Ok(Ok(Some(path))) => {
+                        trace_save("picker-selected");
                         v.start_save(path, true, false, cx);
                     }
-                });
-            }
-            Ok(Ok(None)) => {}
-            _ => {
-                let _ = view.update(cx, |v, cx| {
-                    v.shell.notice = Some("Save dialog failed; document remains unsaved".into());
-                    cx.notify();
-                });
-            }
-        }));
+                    Ok(Ok(None)) => trace_save("picker-cancelled"),
+                    _ => {
+                        trace_save("picker-failed");
+                        v.shell.notice = Some(
+                            v.shell
+                                .tr(
+                                    "无法取得另存位置，修改仍保留。",
+                                    "Save dialog failed; changes retained.",
+                                )
+                                .into(),
+                        );
+                    }
+                }
+            });
+        })
+        .detach();
+        cx.notify();
     }
     pub(super) fn confirm_original(&mut self, cx: &mut Context<Self>) {
         let Some(token) = self.replace_confirm.take() else {
@@ -347,6 +372,7 @@ impl JoyWord {
         let job = match reader.save_job(path, new_file) {
             Ok(job) => job,
             Err(e) => {
+                trace_save("job-rejected");
                 self.shell.notice = Some(e);
                 cx.notify();
                 return;
@@ -364,11 +390,17 @@ impl JoyWord {
                 .tr("正在校验并保存 DOCX…", "Verifying and saving DOCX…")
                 .into(),
         );
+        trace_save("write-start");
         let work = cx
             .background_executor()
             .spawn(async move { run_desktop_save(job) });
         self.save_task = Some(cx.spawn(async move |view, cx| {
             let result = work.await;
+            trace_save(if result.is_ok() {
+                "readback-verified"
+            } else {
+                "write-failed"
+            });
             let _ = view.update(cx, |v, cx| {
                 v.saving = false;
                 if let Some(reader) = v
@@ -436,6 +468,52 @@ mod tests {
         fn drop(&mut self) {
             let _ = std::fs::remove_dir_all(&self.0);
         }
+    }
+
+    #[gpui::test]
+    fn save_as_owns_one_picker_and_can_retry_after_cancel(cx: &mut TestAppContext) {
+        cx.update(gpui_kit::init);
+        let (view, cx) = cx.add_window_view(JoyWord::new);
+        view.update(cx, |v, cx| {
+            let mut reader = Reader::blank(&AtomicBool::new(false)).unwrap();
+            reader.replace_text(None, "中文草稿").unwrap();
+            v.canvas.reader = Some(reader);
+            v.save_document(true, cx);
+            v.save_document(true, cx);
+            assert!(v.saving);
+        });
+        assert!(cx.did_prompt_for_new_path());
+        cx.simulate_new_path_selection(|_| None);
+        cx.run_until_parked();
+        assert!(!cx.did_prompt_for_new_path());
+        view.update(cx, |v, cx| {
+            assert!(!v.saving);
+            assert!(v.canvas.reader.as_ref().unwrap().is_dirty());
+            v.save_document(true, cx);
+        });
+        let suffix = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let directory = OutputDirectory(
+            std::env::temp_dir().join(format!("joyword-picker-{}-{suffix}", std::process::id())),
+        );
+        std::fs::create_dir(&directory.0).unwrap();
+        let path = directory.0.join("中文 副本.docx");
+        // A response belonging to a replaced document must never write the new document.
+        view.update(cx, |v, _| {
+            let mut replacement = Reader::blank(&AtomicBool::new(false)).unwrap();
+            replacement.replace_text(None, "另一个文档").unwrap();
+            v.canvas.reader = Some(replacement);
+        });
+        cx.simulate_new_path_selection(|_| Some(path.clone()));
+        cx.run_until_parked();
+        assert!(!path.exists());
+        view.read_with(cx, |v, _| {
+            let reader = v.canvas.reader.as_ref().unwrap();
+            assert!(!v.saving && reader.is_dirty());
+            assert_eq!(reader.body_text(), "另一个文档");
+        });
     }
 
     #[gpui::test]
@@ -574,7 +652,12 @@ mod tests {
             assert!(!v.saving && v.confirm_discard);
             assert!(v.canvas.reader.as_ref().unwrap().is_dirty());
             assert_eq!(v.canvas.reader.as_ref().unwrap().body_text(), expected);
-            assert!(v.shell.notice.as_ref().unwrap().contains("保存失败"));
+            let prefix = v.shell.tr("保存失败", "Save failed");
+            assert!(
+                v.shell.notice.as_ref().unwrap().contains(prefix),
+                "{:?}",
+                v.shell.notice
+            );
         });
         assert_eq!(std::fs::read(&path).unwrap(), original);
         cx.update(|w, cx| w.draw(cx).clear(cx));
