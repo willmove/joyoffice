@@ -367,3 +367,11 @@ Apple M4 的 Metal 和 UOS 25 Radeon 890M 的 Vulkan 各完成 1,850 帧 GPU／C
 macOS 原生窗口在 73 页与 75 页间执行插入、撤销和重做，UOS 真机在 73 页与 77 页间执行同样操作。每次均实际显示四处字段所在的页。保存重开后，两个版本对每页输出的 PDF 栅格相同。原本 54 个续注段落及嵌套表格保留，另核对了四种新旧写入／读回组合、页码重起及未改动的源文件。[机器记录](distant-page-fields.json) · [窗口复验](../../../../scripts/joyword/check-section-reflow.py)
 
 相同文件通过发布优化构建交替运行两代排版器，每个版本每端 60 次编辑。旧版 60 次触发完整分页，新版 60 次使用局部结果。正常编辑入口的中位耗时在 macOS 从 64.16 降到 2.80 ms，UOS 从 60.83 降到 3.10 ms。每轮第一次增页和删页另比较整篇的页面内容、命中坐标、光栅像素及固定布局 PDF。回退提交为 `577d86b5`。在旧版源码上运行同一计时程序时，传入 `--grow 73 --allow-full` 即可计入原回退开销。[可复现计时入口](../../../../crates/joyword-engine/examples/chapter_reflow.rs)
+
+## Sheet 的进制转换和位运算
+
+JoySheet 的工程函数和数学函数共用整数转换实现。Excel 16.115 对两份构造的工作簿分别计算并保存，每份含 8,322 个公式。覆盖十位补码、位移边界、零的补位、超长文本、数字字符集和两个错误实参的优先级。对数值使用零容差，对文本和错误码逐字核对。macOS 和 UOS 上旧版分别有 938 和 941 格与参考值不同，新版两份均为零。两代程序分别读取两种写回结果，再算并比较公式、类型和值。[双平台明细及构建指纹](integer-formulas.json) · [独立参考的复验入口](../../../../scripts/joysheet/check-integer-formulas.py)
+
+两个实际窗口均在 A1 从 7 改为 12 时重算，经历初始、编辑、撤销、重做、新进程重开五种状态。每次检查 510 格，包含所有 236 个发生变化的结果。另存后核对全部 8,322 个缓存。复用了同一套读取和桌面工具复验现金流的 1,804 个独立缓存。两份授权业务原表都没有公式，派生副本的 916 和 16 个公式在两版之间无差异，原件摘要一致。
+
+两代优化构建对六种调用各交替计时 11 轮，每轮 100,000 次。以数值调用 BIN2DEC 的中位耗时在 macOS 从 230.38 降至 10.34 纳秒，在 UOS 从 329.62 降至 32.80 纳秒。48 位移位在两端分别由 11.44 降至 9.17、20.89 降至 19.62 纳秒。回退到 `6136f1aa` 可重开本批另存的 XLSX，旧版重新计算时会重现上述结果差异。[计时程序](../../../../crates/joysheet-functions/examples/integer_conversion.rs) · [Excel BASE](https://support.microsoft.com/en-us/excel/functions/base-function) · [Excel DECIMAL](https://support.microsoft.com/en-us/excel/functions/decimal-function) · [Excel BITLSHIFT](https://support.microsoft.com/en-us/excel/functions/bitlshift-function)

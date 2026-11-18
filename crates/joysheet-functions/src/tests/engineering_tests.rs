@@ -13,6 +13,23 @@ fn cx(v: Value, re: f64, im: f64) {
 }
 
 #[test]
+fn radix_functions_preserve_types_error_order_and_width() {
+    is_text(ev("DEC2HEX", vec![t("१२"), n(4.)]), "000C");
+    is_err(ev("HEX2BIN", vec![t(" 10")]), CellError::Num);
+    is_err(ev("DEC2OCT", vec![e(CellError::NA), n(0.)]), CellError::Num);
+    is_err(ev("DEC2BIN", vec![n(-1.), b(true)]), CellError::Value);
+    is_text(ev("BASE", vec![n(0.), n(16.), n(0.)]), "");
+    is_text(ev("BASE", vec![n(0.), n(16.)]), "0");
+    close(ev("DECIMAL", vec![t(" 0xFh"), n(16.)]), 15.);
+    is_err(ev("DECIMAL", vec![t("00b"), n(2.)]), CellError::Num);
+    is_err(ev("DECIMAL", vec![t(&"0".repeat(256)), e(CellError::NA)]), CellError::Value);
+    close(ev("DECIMAL", vec![t("20000000000000"), n(16.)]), (1u64 << 53) as f64);
+    close(ev("BITLSHIFT", vec![n(1.), n(49.)]), 0.);
+    is_err(ev("BITLSHIFT", vec![n(1.), n(48.)]), CellError::Num);
+    close(ev("BITRSHIFT", vec![n(0.), n(54.)]), 0.);
+}
+
+#[test]
 fn base_conversions() {
     close(ev("BIN2DEC", vec![n(1100100.0)]), 100.0);
     close(ev("BIN2DEC", vec![n(1111111111.0)]), -1.0);

@@ -16,9 +16,10 @@ mod criteria;
 mod matrix;
 mod roman_base;
 
+use crate::radix::{base, decimal};
 use criteria::{averageif, averageifs, countif, countifs, maxifs, minifs, sumif, sumifs};
 use matrix::{mdeterm, minverse, mmult, munit};
-use roman_base::{arabic, base, decimal, roman};
+use roman_base::{arabic, roman};
 
 // ---------------------------------------------------------------------------------------------
 // Lifting tables

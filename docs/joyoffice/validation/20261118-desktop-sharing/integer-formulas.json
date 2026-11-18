@@ -1,0 +1,751 @@
+{
+  "baseline": "6136f1aa has the same JoySheet sources as 577d86b5. The retained baseline CLI originates from this unchanged Sheet source. The release microbenchmark uses 577d86b5 with the same driver for both versions.",
+  "reference": "Microsoft Excel for Mac 16.115 fully recalculated and separately saved the two constructed reference workbooks. A1 changes from 7 to 12. Worksheet XML and cached numeric, text and error values were retained; author and local workbook-path properties were removed. Numeric comparisons have zero tolerance. Empty strings, padding, exact error types and formulas are checked separately.",
+  "implementation": "Twelve signed binary, decimal, octal and hexadecimal conversions, five 48-bit operators and two variable-radix conversions share one first-party implementation. The 77 Unicode decimal-digit blocks in the probe include the ASCII and 18 other scripts recognized for numeric arguments by this Excel build. Encoded digits are ASCII. The reference covers signed ten-digit inputs, omitted and explicit width, 48-bit bounds, argument-error order, long UTF-16 strings and rounding above 2^53.",
+  "timing": "Six public worksheet results are asserted before timing. Both optimized programs dispatch via the normal registry. Each series contains 11 interleaved runs of 100,000 calls. Units are nanoseconds per call. These timings measure the function kernel.",
+  "rollback": "Rebuild 6136f1aa or restore the affected registrations and implementations from it. Both readers recalculate either writer’s workbook. The earlier reader reproduces the recorded numeric, text and error differences. Raw user workbooks have no formulas and are independently retained.",
+  "platforms": {
+    "macOS": {
+      "binaries": [
+        "f53ecde9606d7b9ced0903ebef5e1d2083f1a92c20abfcaa8ffaa4557c4c0935",
+        "645f5a0faf806471dff2f9e7d15fecc0f757bfdb1e2f670d15ff99ac3d1cb164"
+      ],
+      "excel": {
+        "base": {
+          "sourceSha256": "cbe47fcb985a097868b12a42b31d43f5d9710891b61a0ecdaf704bd4c4e7236b",
+          "independentByFunction": {
+            "DEC2BIN": 168,
+            "DEC2OCT": 168,
+            "DEC2HEX": 337,
+            "BIN2DEC": 54,
+            "BIN2OCT": 168,
+            "BIN2HEX": 168,
+            "OCT2DEC": 54,
+            "OCT2BIN": 168,
+            "OCT2HEX": 168,
+            "HEX2DEC": 130,
+            "HEX2BIN": 168,
+            "HEX2OCT": 168,
+            "BITAND": 119,
+            "BITOR": 196,
+            "BITXOR": 119,
+            "BITLSHIFT": 1435,
+            "BITRSHIFT": 1435,
+            "BASE": 1296,
+            "DECIMAL": 1803
+          },
+          "candidateDifferences": 0,
+          "bothGenerationsRecalculatedBothWriters": true,
+          "baselineDifferencesByFunction": {
+            "DEC2BIN": 45,
+            "DEC2OCT": 45,
+            "DEC2HEX": 72,
+            "BIN2DEC": 2,
+            "BIN2OCT": 55,
+            "BIN2HEX": 55,
+            "OCT2DEC": 2,
+            "OCT2BIN": 46,
+            "OCT2HEX": 46,
+            "HEX2DEC": 2,
+            "HEX2BIN": 47,
+            "HEX2OCT": 47,
+            "BITLSHIFT": 86,
+            "BITRSHIFT": 86,
+            "DECIMAL": 188,
+            "BASE": 93,
+            "BITOR": 19,
+            "BITAND": 1,
+            "BITXOR": 1
+          },
+          "baselineDifferences": 938
+        },
+        "edit": {
+          "sourceSha256": "9c962f0ac86ef57945264e191dc7436c1d302bf6d503488004ad40228ec6693e",
+          "independentByFunction": {
+            "DEC2BIN": 168,
+            "DEC2OCT": 168,
+            "DEC2HEX": 337,
+            "BIN2DEC": 54,
+            "BIN2OCT": 168,
+            "BIN2HEX": 168,
+            "OCT2DEC": 54,
+            "OCT2BIN": 168,
+            "OCT2HEX": 168,
+            "HEX2DEC": 130,
+            "HEX2BIN": 168,
+            "HEX2OCT": 168,
+            "BITAND": 119,
+            "BITOR": 196,
+            "BITXOR": 119,
+            "BITLSHIFT": 1435,
+            "BITRSHIFT": 1435,
+            "BASE": 1296,
+            "DECIMAL": 1803
+          },
+          "candidateDifferences": 0,
+          "bothGenerationsRecalculatedBothWriters": true,
+          "baselineDifferencesByFunction": {
+            "DEC2BIN": 45,
+            "DEC2OCT": 45,
+            "DEC2HEX": 72,
+            "BIN2DEC": 2,
+            "BIN2OCT": 55,
+            "BIN2HEX": 55,
+            "OCT2DEC": 2,
+            "OCT2BIN": 46,
+            "OCT2HEX": 46,
+            "HEX2DEC": 2,
+            "HEX2BIN": 47,
+            "HEX2OCT": 47,
+            "BITLSHIFT": 86,
+            "BITRSHIFT": 86,
+            "DECIMAL": 191,
+            "BASE": 93,
+            "BITOR": 19,
+            "BITAND": 1,
+            "BITXOR": 1
+          },
+          "baselineDifferences": 941
+        }
+      },
+      "native": {
+        "changedCells": 236,
+        "checkedPerState": 510,
+        "states": 5,
+        "savedTypedCaches": 8322,
+        "undoRedoAndFreshReopen": true,
+        "originalUnchanged": true
+      },
+      "referenceFamilyRegression": {
+        "family": "NPV IRR MIRR XNPV XIRR",
+        "independentCaches": 1804,
+        "candidateDifferences": 0,
+        "baselineDifferences": 298,
+        "bothReadersBothWriters": true,
+        "native": {
+          "changedCells": 21,
+          "checkedPerState": 52,
+          "states": 5,
+          "savedTypedCaches": 902,
+          "undoRedoAndFreshReopen": true,
+          "originalUnchanged": true
+        }
+      },
+      "product": {
+        "passed": 1489,
+        "failed": 0,
+        "ignored": 1
+      },
+      "desktopUI": {
+        "passed": 78,
+        "failed": 0,
+        "ignored": 0
+      },
+      "businessSamples": [
+        {
+          "sourceSha256": "521576e13e1ced708e2f7efac270da864053d9b05ce6216831970f3fa9fdc126",
+          "originalFormulaCells": 0,
+          "derivedFormulaCells": 916
+        },
+        {
+          "sourceSha256": "7034ab68c7c22f09a07114767d912c4bf8e87849d35e03bb76c15e9ef25e984d",
+          "originalFormulaCells": 0,
+          "derivedFormulaCells": 16
+        }
+      ],
+      "timing": {
+        "binary-number": {
+          "baseline": {
+            "nanosecondsPerCall": [
+              234.92541,
+              224.87417,
+              226.09375,
+              236.06208,
+              226.87791,
+              230.3825,
+              230.50375,
+              229.68334,
+              229.25584,
+              231.1725,
+              231.25125
+            ],
+            "medianNs": 230.3825
+          },
+          "candidate": {
+            "nanosecondsPerCall": [
+              10.34208,
+              10.36917,
+              10.31541,
+              10.29167,
+              10.30375,
+              10.34125,
+              10.35625,
+              10.52625,
+              10.2875,
+              10.425,
+              10.14791
+            ],
+            "medianNs": 10.34125
+          }
+        },
+        "binary-text": {
+          "baseline": {
+            "nanosecondsPerCall": [
+              55.90583,
+              50.59167,
+              51.50833,
+              56.93958,
+              49.15542,
+              49.36125,
+              48.12458,
+              48.66459,
+              48.4675,
+              48.19708,
+              48.0875
+            ],
+            "medianNs": 49.15542
+          },
+          "candidate": {
+            "nanosecondsPerCall": [
+              10.1575,
+              10.16292,
+              9.67,
+              10.72125,
+              10.67167,
+              10.4175,
+              10.42958,
+              11.01167,
+              9.57416,
+              11.21416,
+              9.52542
+            ],
+            "medianNs": 10.4175
+          }
+        },
+        "pad-hexadecimal": {
+          "baseline": {
+            "nanosecondsPerCall": [
+              117.63458,
+              114.12666,
+              113.87958,
+              130.58708,
+              113.55333,
+              118.23791,
+              115.5175,
+              116.6375,
+              114.55208,
+              115.77417,
+              116.50458
+            ],
+            "medianNs": 115.77417
+          },
+          "candidate": {
+            "nanosecondsPerCall": [
+              48.585,
+              47.83542,
+              47.68875,
+              52.19458,
+              47.6525,
+              52.73125,
+              47.79458,
+              47.65166,
+              48.02875,
+              47.11625,
+              49.66708
+            ],
+            "medianNs": 47.83542
+          }
+        },
+        "base-36": {
+          "baseline": {
+            "nanosecondsPerCall": [
+              101.55334,
+              102.43167,
+              95.02792,
+              109.62875,
+              101.55125,
+              96.7,
+              101.17958,
+              102.01833,
+              102.75166,
+              101.92459,
+              104.67583
+            ],
+            "medianNs": 101.92459
+          },
+          "candidate": {
+            "nanosecondsPerCall": [
+              49.35291,
+              48.34459,
+              48.95417,
+              50.66333,
+              48.01125,
+              51.26833,
+              48.36917,
+              48.555,
+              49.7525,
+              49.47541,
+              49.11083
+            ],
+            "medianNs": 49.11083
+          }
+        },
+        "read-hexadecimal": {
+          "baseline": {
+            "nanosecondsPerCall": [
+              38.865,
+              39.4575,
+              39.80333,
+              43.26042,
+              39.31916,
+              40.41666,
+              40.75834,
+              39.31709,
+              39.40042,
+              39.29958,
+              40.325
+            ],
+            "medianNs": 39.4575
+          },
+          "candidate": {
+            "nanosecondsPerCall": [
+              17.26042,
+              15.00834,
+              17.02375,
+              17.34166,
+              15.24583,
+              17.10084,
+              15.75416,
+              15.26667,
+              17.08916,
+              15.635,
+              17.36791
+            ],
+            "medianNs": 17.02375
+          }
+        },
+        "shift": {
+          "baseline": {
+            "nanosecondsPerCall": [
+              11.2,
+              11.44417,
+              11.4475,
+              11.755,
+              11.43333,
+              11.43375,
+              11.43459,
+              11.43625,
+              11.6375,
+              11.43417,
+              11.49167
+            ],
+            "medianNs": 11.43625
+          },
+          "candidate": {
+            "nanosecondsPerCall": [
+              9.42291,
+              9.09334,
+              9.07667,
+              9.28708,
+              9.09375,
+              9.17,
+              9.0625,
+              8.36083,
+              9.1975,
+              9.30083,
+              9.29083
+            ],
+            "medianNs": 9.17
+          }
+        }
+      },
+      "spdx": {
+        "target": "aarch64-apple-darwin",
+        "packages": 454,
+        "sourceFiles": 1228,
+        "spdxSha256": "f55f02ce6b8634564ef987eb7d4fb50fbcd606feaadfa8cdb31d2a69a8d95599",
+        "missingLicenseTexts": [],
+        "sharedCrates": [
+          "joyoffice-cfb",
+          "joyoffice-drawingml",
+          "joyoffice-omml",
+          "joyoffice-opc",
+          "joyoffice-theme",
+          "joyoffice-ui"
+        ],
+        "runtimeLegacyDependencies": []
+      }
+    },
+    "UOS25": {
+      "binaries": [
+        "0522bb6530535591ca03febd4416592a5a8727ff505d00278d1b65fea2c804a7",
+        "2e2523eee9b14a5c83157c0839e55788ac25bf75761d0c3d536614cb674ce33a"
+      ],
+      "excel": {
+        "base": {
+          "sourceSha256": "cbe47fcb985a097868b12a42b31d43f5d9710891b61a0ecdaf704bd4c4e7236b",
+          "independentByFunction": {
+            "DEC2BIN": 168,
+            "DEC2OCT": 168,
+            "DEC2HEX": 337,
+            "BIN2DEC": 54,
+            "BIN2OCT": 168,
+            "BIN2HEX": 168,
+            "OCT2DEC": 54,
+            "OCT2BIN": 168,
+            "OCT2HEX": 168,
+            "HEX2DEC": 130,
+            "HEX2BIN": 168,
+            "HEX2OCT": 168,
+            "BITAND": 119,
+            "BITOR": 196,
+            "BITXOR": 119,
+            "BITLSHIFT": 1435,
+            "BITRSHIFT": 1435,
+            "BASE": 1296,
+            "DECIMAL": 1803
+          },
+          "candidateDifferences": 0,
+          "bothGenerationsRecalculatedBothWriters": true,
+          "baselineDifferencesByFunction": {
+            "DEC2BIN": 45,
+            "DEC2OCT": 45,
+            "DEC2HEX": 72,
+            "BIN2DEC": 2,
+            "BIN2OCT": 55,
+            "BIN2HEX": 55,
+            "OCT2DEC": 2,
+            "OCT2BIN": 46,
+            "OCT2HEX": 46,
+            "HEX2DEC": 2,
+            "HEX2BIN": 47,
+            "HEX2OCT": 47,
+            "BITLSHIFT": 86,
+            "BITRSHIFT": 86,
+            "DECIMAL": 188,
+            "BASE": 93,
+            "BITOR": 19,
+            "BITAND": 1,
+            "BITXOR": 1
+          },
+          "baselineDifferences": 938
+        },
+        "edit": {
+          "sourceSha256": "9c962f0ac86ef57945264e191dc7436c1d302bf6d503488004ad40228ec6693e",
+          "independentByFunction": {
+            "DEC2BIN": 168,
+            "DEC2OCT": 168,
+            "DEC2HEX": 337,
+            "BIN2DEC": 54,
+            "BIN2OCT": 168,
+            "BIN2HEX": 168,
+            "OCT2DEC": 54,
+            "OCT2BIN": 168,
+            "OCT2HEX": 168,
+            "HEX2DEC": 130,
+            "HEX2BIN": 168,
+            "HEX2OCT": 168,
+            "BITAND": 119,
+            "BITOR": 196,
+            "BITXOR": 119,
+            "BITLSHIFT": 1435,
+            "BITRSHIFT": 1435,
+            "BASE": 1296,
+            "DECIMAL": 1803
+          },
+          "candidateDifferences": 0,
+          "bothGenerationsRecalculatedBothWriters": true,
+          "baselineDifferencesByFunction": {
+            "DEC2BIN": 45,
+            "DEC2OCT": 45,
+            "DEC2HEX": 72,
+            "BIN2DEC": 2,
+            "BIN2OCT": 55,
+            "BIN2HEX": 55,
+            "OCT2DEC": 2,
+            "OCT2BIN": 46,
+            "OCT2HEX": 46,
+            "HEX2DEC": 2,
+            "HEX2BIN": 47,
+            "HEX2OCT": 47,
+            "BITLSHIFT": 86,
+            "BITRSHIFT": 86,
+            "DECIMAL": 191,
+            "BASE": 93,
+            "BITOR": 19,
+            "BITAND": 1,
+            "BITXOR": 1
+          },
+          "baselineDifferences": 941
+        }
+      },
+      "native": {
+        "changedCells": 236,
+        "checkedPerState": 510,
+        "states": 5,
+        "savedTypedCaches": 8322,
+        "undoRedoAndFreshReopen": true,
+        "originalUnchanged": true
+      },
+      "referenceFamilyRegression": {
+        "family": "NPV IRR MIRR XNPV XIRR",
+        "independentCaches": 1804,
+        "candidateDifferences": 0,
+        "baselineDifferences": 298,
+        "bothReadersBothWriters": true,
+        "native": {
+          "changedCells": 21,
+          "checkedPerState": 52,
+          "states": 5,
+          "savedTypedCaches": 902,
+          "undoRedoAndFreshReopen": true,
+          "originalUnchanged": true
+        }
+      },
+      "product": {
+        "passed": 1489,
+        "failed": 0,
+        "ignored": 1
+      },
+      "desktopUI": {
+        "passed": 82,
+        "failed": 0,
+        "ignored": 0
+      },
+      "businessSamples": [
+        {
+          "sourceSha256": "521576e13e1ced708e2f7efac270da864053d9b05ce6216831970f3fa9fdc126",
+          "originalFormulaCells": 0,
+          "derivedFormulaCells": 916
+        },
+        {
+          "sourceSha256": "7034ab68c7c22f09a07114767d912c4bf8e87849d35e03bb76c15e9ef25e984d",
+          "originalFormulaCells": 0,
+          "derivedFormulaCells": 16
+        }
+      ],
+      "timing": {
+        "binary-number": {
+          "baseline": {
+            "nanosecondsPerCall": [
+              296.82046,
+              263.28399,
+              331.75017,
+              326.24353,
+              344.76892,
+              234.45882,
+              346.76876,
+              244.9188,
+              343.09616,
+              334.80404,
+              329.61899
+            ],
+            "medianNs": 329.61899
+          },
+          "candidate": {
+            "nanosecondsPerCall": [
+              31.02058,
+              32.09514,
+              31.11595,
+              37.36274,
+              33.2802,
+              32.47894,
+              32.80222,
+              55.24386,
+              31.84848,
+              33.02864,
+              36.22266
+            ],
+            "medianNs": 32.80222
+          }
+        },
+        "binary-text": {
+          "baseline": {
+            "nanosecondsPerCall": [
+              58.53656,
+              62.17139,
+              88.20578,
+              79.69625,
+              93.36138,
+              55.9815,
+              79.68323,
+              52.31952,
+              80.70129,
+              81.20651,
+              86.58452
+            ],
+            "medianNs": 79.69625
+          },
+          "candidate": {
+            "nanosecondsPerCall": [
+              20.36885,
+              20.19182,
+              20.62813,
+              20.12921,
+              29.80857,
+              22.27933,
+              15.78519,
+              38.29545,
+              20.26657,
+              21.29754,
+              25.73043
+            ],
+            "medianNs": 20.62813
+          }
+        },
+        "pad-hexadecimal": {
+          "baseline": {
+            "nanosecondsPerCall": [
+              105.58527,
+              91.82868,
+              149.80342,
+              139.02937,
+              145.69703,
+              98.37733,
+              150.08123,
+              100.49769,
+              161.74901,
+              140.25902,
+              134.57525
+            ],
+            "medianNs": 139.02937
+          },
+          "candidate": {
+            "nanosecondsPerCall": [
+              41.91515,
+              76.8175,
+              68.65061,
+              61.0226,
+              62.47184,
+              74.6192,
+              53.35912,
+              97.56404,
+              82.731,
+              75.63515,
+              61.03762
+            ],
+            "medianNs": 68.65061
+          }
+        },
+        "base-36": {
+          "baseline": {
+            "nanosecondsPerCall": [
+              77.57669,
+              89.19979,
+              105.19395,
+              89.39234,
+              115.54134,
+              106.43893,
+              138.76289,
+              72.72074,
+              166.86624,
+              116.62811,
+              138.40022
+            ],
+            "medianNs": 106.43893
+          },
+          "candidate": {
+            "nanosecondsPerCall": [
+              51.46486,
+              63.23022,
+              62.37096,
+              69.41661,
+              65.01237,
+              49.22488,
+              42.17472,
+              71.1711,
+              97.86178,
+              67.3855,
+              70.88999
+            ],
+            "medianNs": 65.01237
+          }
+        },
+        "read-hexadecimal": {
+          "baseline": {
+            "nanosecondsPerCall": [
+              55.01454,
+              44.23568,
+              68.02237,
+              46.51323,
+              77.23907,
+              47.17194,
+              82.39328,
+              43.3661,
+              69.62388,
+              70.93238,
+              73.59363
+            ],
+            "medianNs": 68.02237
+          },
+          "candidate": {
+            "nanosecondsPerCall": [
+              19.88888,
+              28.47874,
+              28.22989,
+              28.42665,
+              38.70049,
+              29.61972,
+              19.61978,
+              23.739,
+              52.48533,
+              30.23976,
+              33.75917
+            ],
+            "medianNs": 28.47874
+          }
+        },
+        "shift": {
+          "baseline": {
+            "nanosecondsPerCall": [
+              17.06402,
+              15.08802,
+              20.8886,
+              16.14044,
+              23.16625,
+              14.29367,
+              24.48726,
+              14.52028,
+              33.27959,
+              22.01726,
+              21.43459
+            ],
+            "medianNs": 20.8886
+          },
+          "candidate": {
+            "nanosecondsPerCall": [
+              13.82682,
+              19.22867,
+              19.61718,
+              19.22206,
+              19.8499,
+              20.41573,
+              12.96415,
+              12.89572,
+              44.74781,
+              21.06602,
+              20.42084
+            ],
+            "medianNs": 19.61718
+          }
+        }
+      },
+      "spdx": {
+        "target": "x86_64-unknown-linux-gnu",
+        "packages": 556,
+        "sourceFiles": 1226,
+        "spdxSha256": "a9b57076ec4917b8aa26eb14d1567c729438806c2bf81c05a5250d0dacc59674",
+        "missingLicenseTexts": [],
+        "sharedCrates": [
+          "joyoffice-cfb",
+          "joyoffice-drawingml",
+          "joyoffice-omml",
+          "joyoffice-opc",
+          "joyoffice-theme",
+          "joyoffice-ui"
+        ],
+        "runtimeLegacyDependencies": []
+      }
+    }
+  }
+}
