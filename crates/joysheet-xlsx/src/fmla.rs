@@ -2,23 +2,41 @@
 //! prefixes for newer functions).
 
 use joysheet_formula::Expr;
-use joysheet_model::Formula;
+use joysheet_model::{Formula, Workbook};
 
-/// Formula text for a file.
-pub fn to_file(f: &Formula) -> String {
-    match f.expr() {
-        Some(e) => expr_to_file(e),
-        None => f.text.clone(),
+/// Excel writes an unqualified table referring to all data rows as `Sales[]`.
+/// A local or workbook name takes precedence. LET/LAMBDA bindings have already
+/// been qualified by the time a free name reaches the file spelling pass.
+#[derive(Clone, Copy, Default)]
+pub(crate) struct FileFormulas<'a> {
+    tables: Option<(&'a Workbook, usize)>,
+}
+impl<'a> FileFormulas<'a> {
+    pub(crate) fn on_sheet(wb: &'a Workbook, sheet: usize) -> Self {
+        Self { tables: wb.sheets.iter().any(|s| !s.tables.is_empty()).then_some((wb, sheet)) }
+    }
+    fn table(&self, name: &str) -> Option<&'a str> {
+        let (wb, scope) = self.tables?;
+        let (si, ti) = wb.table(name)?;
+        wb.name(name, scope).is_none().then(|| wb.sheets[si].tables[ti].name.as_str())
+    }
+    pub(crate) fn cell(self, f: &Formula) -> String {
+        f.expr().map_or_else(|| f.text.clone(), |e| expr_to_file(e, self))
+    }
+    pub(crate) fn text(self, text: &str) -> String {
+        let body = text.strip_prefix('=').unwrap_or(text);
+        joysheet_formula::parse(body).map_or_else(|_| body.to_string(), |e| expr_to_file(e, self))
     }
 }
 
-/// Arbitrary formula text (names, CF, validation) for a file. Unparseable text is kept.
+#[cfg(test)]
+fn to_file(f: &Formula) -> String {
+    FileFormulas::default().cell(f)
+}
+
+/// Arbitrary formula without a worksheet context.
 pub fn text_to_file(text: &str) -> String {
-    let body = text.strip_prefix('=').unwrap_or(text);
-    match joysheet_formula::parse(body) {
-        Ok(e) => expr_to_file(e),
-        Err(_) => body.to_string(),
-    }
+    FileFormulas::default().text(text)
 }
 
 const PARAM_PREFIX: &str = "_xlpm.";
@@ -83,9 +101,13 @@ fn prefix_params(e: Expr, scope: &[String]) -> Expr {
     }
 }
 
-fn expr_to_file(e: Expr) -> String {
+fn expr_to_file(e: Expr, file: FileFormulas<'_>) -> String {
     let e = prefix_params(e, &[]);
     let e = e.map(&mut |x| match x {
+        Expr::Name(n) => match file.table(&n) {
+            Some(table) => Expr::Name(format!("{table}[]")),
+            None => Expr::Name(n),
+        },
         Expr::Call(name, args) => match crate::tables::file_function_name(&name) {
             Some(n) => Expr::Call(n, args),
             None => Expr::Call(name, args),

@@ -13,14 +13,14 @@ fn cf_op_name(op: CfOperator) -> &'static str {
     }
 }
 
-fn cfvo_xml(v: &CfValueKind) -> String {
+fn cfvo_xml(v: &CfValueKind, formulas: FileFormulas) -> String {
     match v {
         CfValueKind::Min => "<cfvo type=\"min\"/>".into(),
         CfValueKind::Max => "<cfvo type=\"max\"/>".into(),
         CfValueKind::Number(n) => format!("<cfvo type=\"num\" val=\"{}\"/>", num(*n)),
         CfValueKind::Percent(n) => format!("<cfvo type=\"percent\" val=\"{}\"/>", num(*n)),
         CfValueKind::Percentile(n) => format!("<cfvo type=\"percentile\" val=\"{}\"/>", num(*n)),
-        CfValueKind::Formula(f) => format!("<cfvo type=\"formula\" val=\"{}\"/>", esc_attr(&text_to_file(f))),
+        CfValueKind::Formula(f) => format!("<cfvo type=\"formula\" val=\"{}\"/>", esc_attr(&formulas.text(f))),
     }
 }
 
@@ -40,23 +40,23 @@ fn solid_bar_ext(priority: u32) -> String {
 }
 
 /// An x14 `cfvo`: unlike the 2006 one it has no `val` attribute, the value is an `xm:f` child.
-pub(super) fn x14_cfvo(v: &CfValueKind) -> String {
+pub(super) fn x14_cfvo(v: &CfValueKind, formulas: FileFormulas) -> String {
     let (ty, val) = match v {
         CfValueKind::Min => return "<x14:cfvo type=\"min\"/>".into(),
         CfValueKind::Max => return "<x14:cfvo type=\"max\"/>".into(),
         CfValueKind::Number(n) => ("num", num(*n)),
         CfValueKind::Percent(n) => ("percent", num(*n)),
         CfValueKind::Percentile(n) => ("percentile", num(*n)),
-        CfValueKind::Formula(f) => ("formula", text_to_file(f)),
+        CfValueKind::Formula(f) => ("formula", formulas.text(f)),
     };
     format!("<x14:cfvo type=\"{ty}\"><xm:f>{}</xm:f></x14:cfvo>", esc(&val))
 }
 
-pub(super) fn cf_rule_xml(cf: &CondFormat, priority: u32, out: &mut Out) -> String {
+pub(super) fn cf_rule_xml(cf: &CondFormat, priority: u32, formulas: FileFormulas, out: &mut Out) -> String {
     let tl = cf.ranges.first().map(|r| r.start.a1()).unwrap_or_else(|| "A1".into());
     let stop = if cf.stop_if_true { " stopIfTrue=\"1\"" } else { "" };
     let mut dxf = |st: &Style| dxf_id(&mut out.dxfs, st);
-    let f = |x: &str| format!("<formula>{}</formula>", esc(&text_to_file(x)));
+    let f = |x: &str| format!("<formula>{}</formula>", esc(&formulas.text(x)));
     let simple = |ty: &str, st: &Style, extra: &str, body: String, dxf: &mut dyn FnMut(&Style) -> u32| {
         format!("<cfRule type=\"{ty}\" dxfId=\"{}\" priority=\"{priority}\"{stop}{extra}>{body}</cfRule>", dxf(st))
     };
@@ -139,7 +139,7 @@ pub(super) fn cf_rule_xml(cf: &CondFormat, priority: u32, out: &mut Out) -> Stri
         CfRule::ColorScale { stops } => {
             let mut b = String::from("<colorScale>");
             for (v, _) in stops {
-                b.push_str(&cfvo_xml(v));
+                b.push_str(&cfvo_xml(v, formulas));
             }
             for (_, c) in stops {
                 let _ = write!(b, "<color {}/>", color_attrs(c));
@@ -150,8 +150,8 @@ pub(super) fn cf_rule_xml(cf: &CondFormat, priority: u32, out: &mut Out) -> Stri
         CfRule::DataBar { min, max, color, show_value, gradient } => format!(
             "<cfRule type=\"dataBar\" priority=\"{priority}\"{stop}><dataBar{}>{}{}<color {}/></dataBar>{}</cfRule>",
             if *show_value { "" } else { " showValue=\"0\"" },
-            cfvo_xml(min),
-            cfvo_xml(max),
+            cfvo_xml(min, formulas),
+            cfvo_xml(max, formulas),
             if *color == Color::Auto { "rgb=\"FF638EC6\"".to_string() } else { color_attrs(color) },
             if *gradient { String::new() } else { solid_bar_ext(priority) }
         ),
@@ -173,7 +173,7 @@ pub(super) fn cf_rule_xml(cf: &CondFormat, priority: u32, out: &mut Out) -> Stri
                 _ => defaults.iter().collect(),
             };
             for t in cfvos {
-                b.push_str(&cfvo_xml(t));
+                b.push_str(&cfvo_xml(t, formulas));
             }
             b.push_str("</iconSet>");
             format!("<cfRule type=\"iconSet\" priority=\"{priority}\"{stop}>{b}</cfRule>")
@@ -181,15 +181,15 @@ pub(super) fn cf_rule_xml(cf: &CondFormat, priority: u32, out: &mut Out) -> Stri
     }
 }
 
-fn validation_formula(f: &str) -> String {
+fn validation_formula(f: &str, formulas: FileFormulas) -> String {
     let f = f.trim();
     if f.starts_with('"') {
         return esc(f);
     }
-    esc(&text_to_file(f.strip_prefix('=').unwrap_or(f)))
+    esc(&formulas.text(f.strip_prefix('=').unwrap_or(f)))
 }
 
-pub(super) fn validation_xml(v: &Validation) -> String {
+pub(super) fn validation_xml(v: &Validation, formulas: FileFormulas) -> String {
     let ty = match v.kind {
         ValidationKind::Any => "none",
         ValidationKind::Whole => "whole",
@@ -228,10 +228,10 @@ pub(super) fn validation_xml(v: &Validation) -> String {
     }
     let _ = write!(s, " sqref=\"{}\">", sqref(&v.ranges));
     if !v.f1.is_empty() {
-        let _ = write!(s, "<formula1>{}</formula1>", validation_formula(&v.f1));
+        let _ = write!(s, "<formula1>{}</formula1>", validation_formula(&v.f1, formulas));
     }
     if let Some(f2) = v.f2.as_ref().filter(|f| !f.is_empty()) {
-        let _ = write!(s, "<formula2>{}</formula2>", validation_formula(f2));
+        let _ = write!(s, "<formula2>{}</formula2>", validation_formula(f2, formulas));
     }
     s.push_str("</dataValidation>");
     s

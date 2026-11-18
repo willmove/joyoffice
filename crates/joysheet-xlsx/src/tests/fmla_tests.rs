@@ -82,3 +82,19 @@ fn let_lambda_params() {
     assert_eq!(to_file(&Formula::new("LET(f,LAMBDA(x,x*2),f(3))")), "_xlfn.LET(_xlpm.f,_xlfn.LAMBDA(_xlpm.x,_xlpm.x*2),_xlpm.F(3))");
     assert_eq!(from_file("_xlfn.LET(_xlpm.f,_xlfn.LAMBDA(_xlpm.x,_xlpm.x*2),_xlpm.f(3))"), "LET(f,LAMBDA(x,x*2),F(3))");
 }
+
+#[test]
+fn excel_table_names_preserve_lexical_and_sheet_name_shadowing() {
+    let (mut wb, _) = crate::read_xlsx(include_bytes!("../../../../scripts/joysheet/tests/data/reference-dependencies/0.xlsx")).unwrap();
+    let check = |wb: &Workbook, scope: usize, formula: &str, want: &str| {
+        let file = FileFormulas::on_sheet(wb, scope);
+        assert_eq!(file.cell(&Formula::new(formula)), want);
+        assert_eq!(file.text(formula), want);
+    };
+    check(&wb, 0, "SUM(sales)", "SUM(Sales[])");
+    check(&wb, 0, "LET(Sales,SUM(Sales),Sales)+SUM(Sales)", "_xlfn.LET(_xlpm.Sales,SUM(Sales[]),_xlpm.Sales)+SUM(Sales[])");
+    check(&wb, 0, "LAMBDA(Sales,Sales+1)(5)", "_xlfn.LAMBDA(_xlpm.Sales,_xlpm.Sales+1)(5)");
+    wb.names.push(joysheet_model::DefinedName { name: "Sales".into(), formula: "17".into(), scope: Some(1), hidden: false, comment: String::new() });
+    check(&wb, 0, "SUM(Sales)", "SUM(Sales[])");
+    check(&wb, 1, "SUM(Sales)", "SUM(Sales)");
+}

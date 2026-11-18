@@ -34,6 +34,8 @@ pub type Key = (usize, CellRef);
 pub(super) struct Node {
     pub(super) areas: Vec<Area>,
     pub(super) dynamic: bool,
+    pub(super) runtime: bool,
+    pub(super) observed: Option<Vec<Area>>,
 }
 
 /// Ranges wider than this many columns go to the per-sheet wide index instead of per-column ones.
@@ -174,9 +176,23 @@ pub struct Graph {
     /// sheet → row intervals of wider ranges, with their columns: (first, last, dependent)
     wide_deps: HashMap<usize, Intervals<(u32, u32, Key)>>,
     pub(super) dynamic: HashSet<Key>,
+    /// Volatile formulas whose runtime reads are not fully indexed.
+    pub(super) untracked: HashSet<Key>,
+    pub(super) observers: HashSet<Key>,
+    observed_edges: usize,
     /// Range indexes changed since the last [`Graph::settle`].
     unsettled_cols: HashSet<(usize, u32)>,
     unsettled_wide: HashSet<usize>,
+}
+
+fn observed_cost(areas: &[Area]) -> usize {
+    areas
+        .iter()
+        .map(|area| {
+            let width = area.range.width();
+            if width > WIDE { 1 } else { width as usize }
+        })
+        .sum()
 }
 
 impl Graph {
@@ -189,7 +205,7 @@ impl Graph {
 
     /// Index entries of a formula's precedents, without duplicates: single cells, column
     /// intervals and wide ranges.
-    fn entries(areas: &[Area]) -> (Vec<Key>, Vec<(usize, u32, u32, u32)>, Vec<(usize, RangeRef)>) {
+    fn entries<'a>(areas: impl Iterator<Item = &'a Area>) -> (Vec<Key>, Vec<(usize, u32, u32, u32)>, Vec<(usize, RangeRef)>) {
         let (mut cells, mut cols, mut wide) = (Vec::new(), Vec::new(), Vec::new());
         for a in areas {
             if a.range.is_single() {
@@ -213,7 +229,7 @@ impl Graph {
 
     pub(super) fn insert(&mut self, k: Key, node: Node) {
         self.remove(k);
-        let (cells, cols, wide) = Self::entries(&node.areas);
+        let (cells, cols, wide) = Self::entries(node.areas.iter().chain(node.observed.iter().flatten()));
         for c in cells {
             self.cell_deps.entry(c).or_default().insert(k);
         }
@@ -225,15 +241,22 @@ impl Graph {
             self.wide_deps.entry(s).or_default().insert(r.start.row, r.end.row, (r.start.col, r.end.col, k));
             self.unsettled_wide.insert(s);
         }
-        if node.dynamic {
+        if node.dynamic || (node.runtime && node.observed.is_none()) {
             self.dynamic.insert(k);
         }
+        if node.dynamic || node.runtime {
+            self.observers.insert(k);
+            if node.observed.is_none() {
+                self.untracked.insert(k);
+            }
+        }
+        self.observed_edges += observed_cost(node.observed.as_deref().unwrap_or_default());
         self.nodes.insert(k, node);
     }
 
-    pub(super) fn remove(&mut self, k: Key) {
-        let Some(old) = self.nodes.remove(&k) else { return };
-        let (cells, cols, wide) = Self::entries(&old.areas);
+    pub(super) fn remove(&mut self, k: Key) -> Option<Node> {
+        let old = self.nodes.remove(&k)?;
+        let (cells, cols, wide) = Self::entries(old.areas.iter().chain(old.observed.iter().flatten()));
         for c in cells {
             if let Some(v) = self.cell_deps.get_mut(&c) {
                 v.remove(&k);
@@ -255,6 +278,30 @@ impl Graph {
             }
         }
         self.dynamic.remove(&k);
+        self.untracked.remove(&k);
+        self.observers.remove(&k);
+        self.observed_edges -= observed_cost(old.observed.as_deref().unwrap_or_default());
+        Some(old)
+    }
+
+    pub(super) fn record_reads(&mut self, k: Key, mut areas: Option<Vec<Area>>) {
+        let Some(node) = self.nodes.get(&k) else { return };
+        if let Some(new) = &mut areas {
+            new.retain(|area| {
+                !node.areas.iter().any(|a| a.sheet == area.sheet && a.range.contains(area.range.start) && a.range.contains(area.range.end))
+            });
+            new.sort_unstable_by_key(|area| (area.sheet, area.range.start, area.range.end));
+            let retained = self.observed_edges - observed_cost(node.observed.as_deref().unwrap_or_default());
+            if retained + observed_cost(new) > 262_144 {
+                areas = None;
+            }
+        }
+        if node.observed != areas
+            && let Some(mut node) = self.remove(k)
+        {
+            node.observed = areas;
+            self.insert(k, node);
+        }
     }
 
     /// Tidies the range indexes changed by `insert`/`remove` (queries stay correct without it,
@@ -335,6 +382,9 @@ impl Graph {
 
     /// Precedent areas of a formula cell (for Trace Precedents).
     pub fn precedents_of(&self, k: Key) -> Vec<Area> {
-        self.nodes.get(&k).map(|n| n.areas.clone()).unwrap_or_default()
+        let Some(node) = self.nodes.get(&k) else { return Vec::new() };
+        let mut areas = node.areas.clone();
+        areas.extend(node.observed.iter().flatten().filter(|area| !node.areas.contains(area)));
+        areas
     }
 }

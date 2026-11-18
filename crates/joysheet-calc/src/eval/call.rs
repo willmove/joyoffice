@@ -277,7 +277,7 @@ impl<'h> Evaluator<'h> {
     fn array_choice(&mut self, name: &str, mut evaluated: Vec<Arg>, rest: &[Expr]) -> Ev {
         let Some(spec) = joysheet_functions::lookup(name) else { return err(CellError::Name) };
         evaluated.extend(rest.iter().map(|e| Arg::val(self.value(e))));
-        let mut ctx = FnCtx { ev: self, criteria: None, lambda: None };
+        let mut ctx = FnCtx { ev: self, criteria: None, database: None, lambda: None };
         Ev::V(joysheet_functions::call(spec, &evaluated, &mut ctx))
     }
 
@@ -301,6 +301,7 @@ impl<'h> Evaluator<'h> {
         let mut criteria_shape = None;
         // Database functions: the criteria range (argument 2), whose formulas are computed criteria.
         let mut criteria = None;
+        let mut database = None;
         // GROUPBY/PIVOTBY: the LAMBDA given as their function.
         let mut lambda = None;
         let lambda_at = match name {
@@ -317,11 +318,14 @@ impl<'h> Evaluator<'h> {
                 ev = Ev::V(Value::Empty);
             }
             if spec.category == joysheet_functions::Category::Database
-                && i == 2
                 && let Ev::R(areas) = &ev
                 && let [area] = areas.as_slice()
             {
-                criteria = Some(*area);
+                match i {
+                    0 => database = Some(*area),
+                    2 => criteria = Some(*area),
+                    _ => {}
+                }
             }
             if resizes_sum_range(name, args.len()) {
                 if i == 0 {
@@ -350,7 +354,7 @@ impl<'h> Evaluator<'h> {
             };
             evaluated.push(Arg { value, from_ref });
         }
-        let mut ctx = FnCtx { ev: self, criteria, lambda };
+        let mut ctx = FnCtx { ev: self, criteria, database, lambda };
         joysheet_functions::call(spec, &evaluated, &mut ctx).pipe(Ev::V)
     }
 
@@ -422,13 +426,13 @@ impl<'h> Evaluator<'h> {
         };
         let args = [Arg { value, from_ref }];
         if kind != Agg::Count {
-            match joysheet_functions::call(sum, &args, &mut FnCtx { ev: self, criteria: None, lambda: None }) {
+            match joysheet_functions::call(sum, &args, &mut FnCtx { ev: self, criteria: None, database: None, lambda: None }) {
                 Value::Number(n) => acc.sum += n,
                 other => return Err(Ev::V(other)),
             }
         }
         if kind != Agg::Sum {
-            match joysheet_functions::call(count, &args, &mut FnCtx { ev: self, criteria: None, lambda: None }) {
+            match joysheet_functions::call(count, &args, &mut FnCtx { ev: self, criteria: None, database: None, lambda: None }) {
                 Value::Number(n) => acc.count = acc.count.saturating_add(n as u64),
                 other => return Err(Ev::V(other)),
             }

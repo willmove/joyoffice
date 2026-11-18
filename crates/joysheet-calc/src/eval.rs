@@ -13,6 +13,9 @@ use joysheet_model::Workbook;
 
 mod array;
 mod call;
+mod dependencies;
+mod named_refs;
+pub(crate) use dependencies::cell_precedents;
 mod format;
 mod lambda;
 mod reference_fns;
@@ -145,12 +148,15 @@ pub struct Evaluator<'h> {
     /// runs out of work after the same number of calls that a legitimately wide one could
     /// make, instead of an amount of work that squares with array nesting (#2382).
     fuel: u64,
+    // None means the caller needs the conservative spill schedule.
+    pub(crate) observed: Option<Vec<Area>>,
 }
 
 struct FnCtx<'a, 'h> {
     ev: &'a mut Evaluator<'h>,
     /// The criteria argument of a database function, when it is a reference.
     criteria: Option<Area>,
+    database: Option<Area>,
     /// The LAMBDA given as the function argument of GROUPBY/PIVOTBY.
     lambda: Option<Arc<Lambda>>,
 }
@@ -167,15 +173,22 @@ impl Ctx for FnCtx<'_, '_> {
     }
     /// Excel's "formula as criteria": the formula is written for the first record, so its relative
     /// references move down to `record`'s row, and the database's labels name its fields.
-    /// Known gap: the shifted references are not dependencies of the calling cell. One that lands
-    /// outside both the database and the criteria cell's own precedents (say `=G2<H2` with column H
-    /// outside the database) is read here but not tracked, so editing that cell doesn't recalculate
-    /// the D-function until something else does.
+    /// The shifted cell references are recorded in the parent formula's dependency set.
     fn computed_criterion(&mut self, row: usize, col: usize, db: &Array, record: usize) -> Option<bool> {
         let area = self.criteria?;
         let at = area.range.start.offset(row as i64, col as i64).filter(|c| area.range.contains(*c))?;
         let expr = self.ev.host.workbook().sheet(area.sheet)?.cell(at)?.formula.as_ref()?.expr_arc()?;
         let shifted = joysheet_formula::adjust::shift_relative((*expr).clone(), record as i64 - 1, 0);
+        // A row-relative reference in a calculated criterion addresses a database
+        // record. Fixed rows and references produced by functions use the worksheet.
+        let shifted = if let Some(database) = self.database {
+            shifted.map(&mut |node| match node {
+                Expr::Ref(r) if !dependencies::criterion_reference(self.ev.host.workbook(), area.sheet, database, &r) => Expr::Error(CellError::Ref),
+                other => other,
+            })
+        } else {
+            shifted
+        };
         let env = (0..db.cols)
             .filter_map(|c| match db.get(0, c) {
                 Some(Value::Text(t)) if !t.trim().is_empty() => {
@@ -193,11 +206,18 @@ impl Ctx for FnCtx<'_, '_> {
             calls: self.ev.calls,
             stack_top: self.ev.stack_top,
             fuel: self.ev.fuel,
+            observed: self.ev.observed.take(),
         };
         let v = matches!(ev.value(&shifted).scalar().to_bool(), Ok(true));
         // The child's spend counts against this cell's budget.
         self.ev.fuel = ev.fuel;
+        self.ev.observed = ev.observed;
         Some(v)
+    }
+    fn database_formula_cell(&self, row: usize, col: usize) -> bool {
+        let Some(area) = self.database else { return false };
+        let Some(at) = area.range.start.offset(row as i64, col as i64).filter(|at| area.range.contains(*at)) else { return false };
+        self.ev.host.workbook().sheet(area.sheet).is_some_and(|s| s.cell(at).is_some_and(|cell| cell.formula.is_some()) || s.spill.contains_key(&at))
     }
     fn has_lambda(&self) -> bool {
         self.lambda.is_some()
@@ -216,7 +236,7 @@ impl Ctx for FnCtx<'_, '_> {
 
 impl<'h> Evaluator<'h> {
     pub fn new(host: &'h mut dyn Host, sheet: usize, at: CellRef) -> Self {
-        Evaluator { host, sheet, at, env: Vec::new(), depth: 0, calls: 0, stack_top: 0, fuel: LAMBDA_FUEL }
+        Evaluator { host, sheet, at, env: Vec::new(), depth: 0, calls: 0, stack_top: 0, fuel: LAMBDA_FUEL, observed: None }
     }
 
     /// Evaluates to a value (references are dereferenced; multi-cell → array).
@@ -307,15 +327,23 @@ impl<'h> Evaluator<'h> {
             self.stack_top = self.host.stack_top().unwrap_or(here);
         }
         if self.stack_top.abs_diff(here) > STACK_BUDGET {
+            self.observed = None;
             self.host.stack_exhausted();
             return err(CellError::Num);
         }
+        if self.observed.is_some() && !dependencies::can_trace(e) {
+            self.observed = None;
+        }
         self.depth += 1;
         if self.depth > MAX_DEPTH {
+            self.observed = None;
             self.depth -= 1;
             return err(CellError::Num);
         }
         let r = self.eval_inner(e);
+        if let Ev::R(areas) = &r {
+            dependencies::observe(&mut self.observed, areas);
+        }
         self.depth -= 1;
         r
     }
@@ -364,120 +392,23 @@ impl<'h> Evaluator<'h> {
         if let Some((_, v)) = self.env.iter().rev().find(|(k, _)| joysheet_formula::same_name(k, n)) {
             return v.clone();
         }
-        let wb = self.host.workbook();
-        // Sheet-qualified `Sheet1!Name`.
-        let (scope_sheet, bare) = match n.split_once('!') {
-            Some((s, b)) => match wb.sheet_index(&joysheet_core::unquote_sheet(s)) {
-                Some(i) => (i, b),
-                None => return err(CellError::Name),
-            },
-            None => (self.sheet, n),
-        };
-        if let Some(def) = wb.name(bare, scope_sheet) {
-            let text = def.formula.clone();
-            let scope = def.scope.unwrap_or(self.sheet);
-            return match joysheet_formula::parse_name(&text) {
-                Ok(expr) => {
-                    // Relative references in a name are relative to A1: used here, they move by
-                    // this cell's offset from it.
-                    let expr = if joysheet_formula::adjust::has_relative_refs(&expr) {
-                        joysheet_formula::adjust::shift_relative_wrapping(expr, self.at.row as i64, self.at.col as i64)
-                    } else {
-                        expr
-                    };
-                    let saved = self.sheet;
-                    // Unqualified references in a name refer to the scope sheet.
-                    self.sheet = scope;
-                    let r = self.eval(&expr);
-                    self.sheet = saved;
-                    r
-                }
-                Err(_) => err(CellError::Name),
-            };
+        match named_refs::name_target(self.host.workbook(), self.sheet, self.at, n) {
+            Some(named_refs::Target::Expression { sheet, expr }) => {
+                let previous = std::mem::replace(&mut self.sheet, sheet);
+                let value = self.eval(&expr);
+                self.sheet = previous;
+                value
+            }
+            Some(named_refs::Target::Table(area)) => Ev::R(vec![area]),
+            None => err(CellError::Name),
         }
-        // A table name alone means its data body.
-        if let Some((si, ti)) = wb.table(bare)
-            && let Some(t) = wb.sheet(si).and_then(|s| s.tables.get(ti))
-            && let Some(d) = t.data_range()
-        {
-            return Ev::R(vec![Area { sheet: si, range: d }]);
-        }
-        err(CellError::Name)
     }
 
-    fn structured(&mut self, s: &StructRef) -> Ev {
-        let wb = self.host.workbook();
-        let found = if s.table.is_empty() {
-            wb.sheet(self.sheet).and_then(|sh| sh.tables.iter().position(|t| t.range.contains(self.at)).map(|ti| (self.sheet, ti)))
-        } else {
-            wb.table(&s.table)
-        };
-        let Some((si, ti)) = found else { return err(CellError::Ref) };
-        let Some(t) = wb.sheet(si).and_then(|sh| sh.tables.get(ti)) else { return err(CellError::Ref) };
-        let mut r0 = t.range.start.row;
-        let mut r1 = t.range.end.row;
-        let data = t.data_range();
-        let items = &s.specifiers;
-        if items.is_empty() || items == &[StructItem::Data] {
-            match data {
-                Some(d) => {
-                    r0 = d.start.row;
-                    r1 = d.end.row;
-                }
-                None => return err(CellError::Ref),
-            }
-        } else if items.contains(&StructItem::ThisRow) {
-            if self.at.row < t.range.start.row || self.at.row > t.range.end.row {
-                return err(CellError::Value);
-            }
-            r0 = self.at.row;
-            r1 = self.at.row;
-        } else if !items.contains(&StructItem::All) {
-            let has = |i: StructItem| items.contains(&i);
-            let hdr = t.header_row.then_some(t.range.start.row);
-            let tot = t.totals_row.then_some(t.range.end.row);
-            let mut lo = u32::MAX;
-            let mut hi = 0;
-            let mut add = |a: u32, b: u32| {
-                lo = lo.min(a);
-                hi = hi.max(b);
-            };
-            if has(StructItem::Headers) {
-                match hdr {
-                    Some(h) => add(h, h),
-                    None => return err(CellError::Ref),
-                }
-            }
-            if has(StructItem::Data)
-                && let Some(d) = data
-            {
-                add(d.start.row, d.end.row);
-            }
-            if has(StructItem::Totals) {
-                match tot {
-                    Some(h) => add(h, h),
-                    None => return err(CellError::Ref),
-                }
-            }
-            if lo > hi {
-                return err(CellError::Ref);
-            }
-            r0 = lo;
-            r1 = hi;
+    fn structured(&mut self, reference: &StructRef) -> Ev {
+        match named_refs::table_area(self.host.workbook(), self.sheet, self.at, reference) {
+            Ok(area) => Ev::R(vec![area]),
+            Err(error) => err(error),
         }
-        let (mut c0, mut c1) = (t.range.start.col, t.range.end.col);
-        if let Some(a) = &s.col_start {
-            let Some(i) = t.column_index(a) else { return err(CellError::Ref) };
-            c0 = t.range.start.col + i as u32;
-            c1 = c0;
-            if let Some(b) = &s.col_end {
-                let Some(j) = t.column_index(b) else { return err(CellError::Ref) };
-                let cj = t.range.start.col + j as u32;
-                c0 = c0.min(cj);
-                c1 = c1.max(cj);
-            }
-        }
-        Ev::R(vec![Area { sheet: si, range: RangeRef::new(CellRef::new(r0, c0), CellRef::new(r1, c1)) }])
     }
 
     fn unary(&mut self, op: UnOp, x: &Expr) -> Ev {

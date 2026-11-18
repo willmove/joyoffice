@@ -113,6 +113,10 @@ pub trait Ctx {
     fn computed_criterion(&mut self, _row: usize, _col: usize, _db: &Array, _record: usize) -> Option<bool> {
         None
     }
+    /// Whether a database field is computed. DGET preserves an empty string returned by a formula.
+    fn database_formula_cell(&self, _row: usize, _col: usize) -> bool {
+        false
+    }
     /// For GROUPBY/PIVOTBY: whether their function argument is a LAMBDA (its value is then not used).
     fn has_lambda(&self) -> bool {
         false

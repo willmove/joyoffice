@@ -15,6 +15,8 @@ pub(super) struct PassHost<'a> {
     wb: &'a Workbook,
     exprs: &'a HashMap<Key, std::sync::Arc<Expr>>,
     pub(super) results: HashMap<Key, Value>,
+    pub(super) trace: Option<&'a HashSet<Key>>,
+    pub(super) observed: HashMap<Key, Option<Vec<Area>>>,
     pending: HashSet<Key>,
     in_progress: HashSet<Key>,
     /// New spills found during the pass: anchor → array.
@@ -73,6 +75,8 @@ impl<'a> PassHost<'a> {
             wb,
             exprs,
             results: HashMap::with_capacity_and_hasher(exprs.len(), Default::default()),
+            trace: None,
+            observed: HashMap::default(),
             pending: exprs.keys().copied().collect(),
             in_progress: HashSet::default(),
             spills: HashMap::default(),
@@ -240,7 +244,11 @@ impl PassHost<'_> {
         }
         let expr = std::sync::Arc::clone(expr);
         let outer_out_of_stack = std::mem::replace(&mut self.out_of_stack, false);
-        let v = self.formula_value(k, &expr);
+        let trace = self.trace.is_some_and(|keys| keys.contains(&k));
+        let mut ev = Evaluator::new(self, k.0, k.1);
+        ev.observed = trace.then(Vec::new);
+        let v = ev.value(&expr);
+        let observed = ev.observed;
         let out_of_stack = std::mem::replace(&mut self.out_of_stack, outer_out_of_stack);
         if out_of_stack && self.depth > 1 && self.suspend.is_none() {
             // It ran out of the stack left below the formulas that read it: it is calculated
@@ -271,6 +279,10 @@ impl PassHost<'_> {
             Some(range) => fit_to_range(v, range),
             None => v,
         };
+        if trace {
+            let reads = if matches!(v, Value::Error(CellError::Circ | CellError::Num)) { None } else { observed };
+            self.observed.insert(k, reads);
+        }
         self.depth -= 1;
         self.in_progress.remove(&k);
         self.pending.remove(&k);
@@ -315,10 +327,6 @@ impl PassHost<'_> {
         };
         self.results.insert(k, v.clone());
         v
-    }
-
-    fn formula_value(&mut self, k: Key, expr: &Expr) -> Value {
-        Evaluator::new(self, k.0, k.1).value(expr)
     }
 
     /// A formula's previous value for iterative calculation: from the last iteration, else the

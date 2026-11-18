@@ -10,7 +10,7 @@ use joysheet_model::{
 };
 
 use crate::drawing::{Obj, image_content_type, image_ext};
-use crate::fmla::text_to_file;
+use crate::fmla::FileFormulas;
 use crate::styles::{color_attrs, dxf_id};
 use crate::tables::{paper_id, px_to_col_width, px_to_pt};
 use crate::write::{
@@ -36,6 +36,7 @@ pub fn write_sheet(wb: &Workbook, si: usize, selected: bool, out: &mut Out) -> (
     let mut ole_images = Vec::new();
     let mut ole_count = 0u32;
     let Some(sheet) = wb.sheet(si) else { return (String::new(), rels) };
+    let formulas = FileFormulas::on_sheet(wb, si);
     let nstyles = wb.styles.len() as u32;
     let sid = |s: joysheet_model::StyleId| if s.0 < nstyles { s.0 } else { 0 };
 
@@ -303,7 +304,7 @@ pub fn write_sheet(wb: &Workbook, si: usize, selected: bool, out: &mut Out) -> (
                 let f = cell?.formula.as_ref()?;
                 (f.array.is_none() && crate::array_formula::needs_array(wb, si, *c, f)).then_some(RangeRef::cell(*c))
             });
-            write_cell(&mut s, *c, cell, sheet.cell_pictures.get(c), ov, ex, array.as_ref(), &sid, out);
+            write_cell(&mut s, *c, cell, sheet.cell_pictures.get(c), ov, ex, array.as_ref(), &sid, formulas, out);
         }
         s.push_str("</row>");
     }
@@ -370,14 +371,14 @@ pub fn write_sheet(wb: &Workbook, si: usize, selected: bool, out: &mut Out) -> (
             s,
             "<conditionalFormatting sqref=\"{}\">{}</conditionalFormatting>",
             sqref(&cf.ranges),
-            cf_rule_xml(cf, prio.get(i).copied().unwrap_or(1), out)
+            cf_rule_xml(cf, prio.get(i).copied().unwrap_or(1), formulas, out)
         );
     }
     let vals: Vec<&Validation> = sheet.validations.iter().filter(|v| !v.ranges.is_empty()).collect();
     if !vals.is_empty() {
         let _ = write!(s, "<dataValidations count=\"{}\">", vals.len());
         for v in vals {
-            s.push_str(&validation_xml(v));
+            s.push_str(&validation_xml(v, formulas));
         }
         s.push_str("</dataValidations>");
     }
@@ -610,7 +611,7 @@ pub fn write_sheet(wb: &Workbook, si: usize, selected: bool, out: &mut Out) -> (
             out.table_id += 1;
             let n = out.tables;
             let name = table_name(&t.name, &mut used_names, out.table_id);
-            let xml = table_xml(t, cols, &name, out.table_id, out);
+            let xml = table_xml(t, cols, &name, out.table_id, formulas, out);
             out.part(&format!("xl/tables/table{n}.xml"), Some(CT_TABLE), xml.into_bytes());
             let rid = rels.add("table", &format!("../tables/table{n}.xml"));
             let _ = write!(parts, "<tablePart r:id=\"{rid}\"/>");
@@ -636,7 +637,7 @@ pub fn write_sheet(wb: &Workbook, si: usize, selected: bool, out: &mut Out) -> (
         );
         for (cf, p) in &solid_bars {
             if let CfRule::DataBar { min, max, .. } = &cf.rule {
-                let (id, lo, hi) = (solid_bar_id(*p), x14_cfvo(min), x14_cfvo(max));
+                let (id, lo, hi) = (solid_bar_id(*p), x14_cfvo(min, formulas), x14_cfvo(max, formulas));
                 let _ = write!(s, "<x14:conditionalFormatting><x14:cfRule type=\"dataBar\" id=\"{id}\"><x14:dataBar gradient=\"0\">{lo}{hi}");
                 let _ = write!(s, "</x14:dataBar></x14:cfRule><xm:sqref>{}</xm:sqref></x14:conditionalFormatting>", sqref(&cf.ranges));
             }
@@ -681,6 +682,7 @@ fn write_cell(
     extra: Option<&Value>,
     dynamic: Option<&RangeRef>,
     sid: &dyn Fn(joysheet_model::StyleId) -> u32,
+    formulas: FileFormulas,
     out: &mut Out,
 ) {
     let style = cell.map(|x| sid(x.style)).unwrap_or(0);
@@ -728,7 +730,7 @@ fn write_cell(
         };
         s.push_str(t);
         s.push('>');
-        let text = esc(&crate::fmla::to_file(f));
+        let text = esc(&formulas.cell(f));
         match (f.array, dynamic) {
             (Some(r), _) => {
                 let _ = write!(s, "<f t=\"array\" ref=\"{}\">{text}</f>", r.a1());

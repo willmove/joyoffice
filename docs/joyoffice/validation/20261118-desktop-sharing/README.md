@@ -291,3 +291,9 @@ Apple M4 和 UOS 真机的 Radeon 890M 各自运行了 49 种效果、185 组效
 JoyDeck 现在用同一组归一化坐标描述推入、覆盖和揭开。PowerPoint 16.115 在 macOS 上导出的 25 页视频共 1,752 帧。验证器采样 24 种效果／方向组合各 15 个时刻，记录进场面积、重心和颜色。覆盖和揭开的轨迹只用向左、向左上两种方向校准，其余方向的 180 个样本平均位移误差从 2.37% 降至 0.97%，P95 从 7.41% 降至 4.86%。在另一个包含纹理和透明图层的 925 帧回归中，变化的 46 帧全部属于覆盖和揭开。端点 370 帧完全相同。回退到 `f5810bd0` 可直接打开新版写出的 PPTX。[原始测量](../../../../tests/fixtures/joydeck/slide-motion-reference.json) · [生成和复验脚本](../../../../scripts/joydeck/check-slide-motion.py) · [格式规范](https://ecma-international.org/publications-and-standards/standards/ecma-376/)
 
 同一批参考文件暴露出自动翻页会截断转场。设置 1,600 ms 转场和 767 ms 停留的 22 页，在旧播放器中全部提前翻页；新版在 2.366 秒仍显示原页，2.368 秒已前进或到达结束画面。双平台另用真实窗口验证了自动播放、暂停和恢复，各用两代读写器交叉读回保存的 PPTX。macOS 的 Metal 与 CPU 均验证了相同时间的暂停画面。UOS 真机在登录界面时验证了自动和手动 CPU 回退。用户会话恢复后，同一程序在独立 KWin 窗口选中 Radeon 890M／Vulkan，推入和覆盖转场完成暂停、恢复及自动翻页。两种画布各 925 帧，最大通道差均为 2。开发用例强制使用 llvmpipe 时，另一个立体特效有一个通道相差 3 级，超出硬件对照采用的 2 级容差。[双平台结果](slide-motion.json) · [微软的自动翻页计时说明](https://support.microsoft.com/en-us/powerpoint/set-the-timing-and-speed-of-a-transition) · [上一轮硬件结果](transition-gpu.json)
+
+## Sheet 名称依赖、数据库函数与文件读回
+
+同一公式中的相对名称按所在单元格解析，工作表局部名称优先。运行时取得的范围可跟随 INDIRECT、OFFSET 和溢出目标移动；不完整的读取、迭代计算以及超出范围预算的情况使用保守调度。修改无关单元格时，Excel 易失函数仍会计算。通过 `JOYSHEET_REFERENCE_DEPENDENCIES=0` 可在同一程序中切回保守调度。[微软关于易失函数和重算的说明](https://learn.microsoft.com/en-us/office/vba/excel/concepts/excel-performance/excel-improving-calculation-performance)
+
+Excel 16.115 分别保存三种输入状态。205 个公式覆盖数据库分类的全部 12 个函数，包括错误传播、单条／多条／零条匹配、公式返回的空字符串、计算条件的相对与绝对引用，以及名称、表格和溢出目标。每个平台比较 615 个带类型的缓存，旧版 111 处差异，新版为零。每份文件经过两代读写器的四种组合。真实编辑窗口还核对六个编辑、撤销、重做和重开状态，每个状态比较 38 格。桌面输入 `SUM(Sales)` 后，保存得到与 Excel 相同的 `SUM(Sales[])`。两份授权业务原件均无公式，另在副本验证 916 和 16 个计算结果。原件摘要保持一致。[双平台结果与重算计时](reference-dependencies.json) · [验证脚本](../../../../scripts/joysheet/check-reference-dependencies.py) · [DSUM 语义](https://support.microsoft.com/en-us/excel/functions/dsum-function)

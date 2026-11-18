@@ -1,0 +1,457 @@
+{
+  "baseline": "a37e6d4e (the intervening Radeon commit changes evidence only)",
+  "reference": "Microsoft Excel for Mac 16.115, native calculation and Save. Three independently calculated workbooks with 205 formulas each. Only the local path and author metadata were removed. The formula cells and their typed caches were preserved.",
+  "scope": "All twelve database functions, workbook- and sheet-scoped names, aliases, relative references, tables, volatile and spill readers, calculated criteria and Excel table serialization.",
+  "comparison": "Formula contents and typed caches on save; numeric tolerance 1e-12. Displayed values use 1e-9 because General rounds. Older and current CLI recalculated every combination of writer and reader. Native editor edits, undo, redo, retarget, save and fresh process reopen.",
+  "bench": "4,096 named formulas; two warmups, 20 samples per edit; all 4,096 results checked after every edit and every mode. Microsecond timings measure the recalculation call in the same release binary. Shared edits must still update the entire column.",
+  "fallback": "JOYSHEET_REFERENCE_DEPENDENCIES=0 keeps the conservative schedule for names and runtime database reads. Rebuilding the baseline restores the previous function and writer implementations. Existing files with bare table references remain readable.",
+  "limits": "The two supplied business originals contain zero formula cells. The two unchanged files and copies with independently calculated expected results were checked separately. The other calculation categories and XLS/XLSX formats retain their own migration backlog.",
+  "platforms": {
+    "macOS": {
+      "binaries": [
+        "5d1e83dd681d996ef85ef313d61eb9176724ce2a0495d0afb95b50b843bbaf25",
+        "e029fcbca9dd9c17c5ac92d999365226c55d18563f73a4ec7fd0f7e735657187"
+      ],
+      "workbooks": {
+        "0.xlsx": {
+          "sha256": "03f12f8f3af2fa10433334e82966c4e1596e38040debac21ea53983b9d9b5332",
+          "formulas": 205,
+          "baselineDifferences": [
+            "J15",
+            "J16",
+            "J17",
+            "J18",
+            "J22",
+            "J31",
+            "J34",
+            "J35",
+            "J39",
+            "J46",
+            "J49",
+            "J54",
+            "J96",
+            "J106",
+            "J109",
+            "J110",
+            "J114",
+            "J121",
+            "J124",
+            "J125",
+            "J129",
+            "J136",
+            "J139",
+            "J140",
+            "J144",
+            "J151",
+            "J154",
+            "J159",
+            "J166",
+            "J169",
+            "J174",
+            "J181",
+            "J184",
+            "J189",
+            "J196",
+            "J199",
+            "J204"
+          ],
+          "candidateDifferences": 0,
+          "conservativeDifferences": 0,
+          "typedSavedCaches": 205,
+          "oldNewReaderWriterPairs": 4
+        },
+        "1.xlsx": {
+          "sha256": "27c1317fdf861bf03ba97d9b4188a591c2ffb5f1b210e598a72740dd3503c70c",
+          "formulas": 205,
+          "baselineDifferences": [
+            "J15",
+            "J16",
+            "J17",
+            "J18",
+            "J22",
+            "J31",
+            "J34",
+            "J35",
+            "J39",
+            "J46",
+            "J49",
+            "J54",
+            "J96",
+            "J106",
+            "J109",
+            "J110",
+            "J114",
+            "J121",
+            "J124",
+            "J125",
+            "J129",
+            "J136",
+            "J139",
+            "J140",
+            "J144",
+            "J151",
+            "J154",
+            "J159",
+            "J166",
+            "J169",
+            "J174",
+            "J181",
+            "J184",
+            "J189",
+            "J196",
+            "J199",
+            "J204"
+          ],
+          "candidateDifferences": 0,
+          "conservativeDifferences": 0,
+          "typedSavedCaches": 205,
+          "oldNewReaderWriterPairs": 4
+        },
+        "2.xlsx": {
+          "sha256": "4c2142bcef937c5ae564e194c0fbe0cf2420e03ec4285d98f7a52b1f400f3360",
+          "formulas": 205,
+          "baselineDifferences": [
+            "J15",
+            "J16",
+            "J17",
+            "J18",
+            "J22",
+            "J31",
+            "J34",
+            "J35",
+            "J39",
+            "J46",
+            "J49",
+            "J54",
+            "J96",
+            "J106",
+            "J109",
+            "J110",
+            "J114",
+            "J121",
+            "J124",
+            "J125",
+            "J129",
+            "J136",
+            "J139",
+            "J140",
+            "J144",
+            "J151",
+            "J154",
+            "J159",
+            "J166",
+            "J169",
+            "J174",
+            "J181",
+            "J184",
+            "J189",
+            "J196",
+            "J199",
+            "J204"
+          ],
+          "candidateDifferences": 0,
+          "conservativeDifferences": 0,
+          "typedSavedCaches": 205,
+          "oldNewReaderWriterPairs": 4
+        }
+      },
+      "desktop": {
+        "binarySha256": "b619eb60afab9fc3dd0099055eec88320e9c99f9f7aab0787de908b31b400f7e",
+        "states": 6,
+        "cellsPerState": 38,
+        "editedComputedCriteria": [
+          12,
+          37
+        ],
+        "undoRedo": true,
+        "savedTypedCaches": 205,
+        "legacyBareTableInput": "SUM(Sales[])",
+        "freshProcessReopen": true,
+        "originalsUnchanged": true
+      },
+      "engineMicroseconds": {
+        "conservative": {
+          "unrelated": {
+            "dirty": 4096,
+            "p50": 7459.042,
+            "p95": 11670.625
+          },
+          "local": {
+            "dirty": 4096,
+            "p50": 8108.354,
+            "p95": 15006.666
+          },
+          "shared": {
+            "dirty": 4096,
+            "p50": 5858.396,
+            "p95": 10391.542
+          }
+        },
+        "selective": {
+          "unrelated": {
+            "dirty": 0,
+            "p50": 9.312,
+            "p95": 10.25
+          },
+          "local": {
+            "dirty": 1,
+            "p50": 24.938,
+            "p95": 33.125
+          },
+          "shared": {
+            "dirty": 4096,
+            "p50": 6061.792,
+            "p95": 9024.916
+          }
+        }
+      },
+      "productChecks": {
+        "joysheet": {
+          "passed": 1485,
+          "failed": 0,
+          "ignored": 1
+        },
+        "ui": {
+          "passed": 78,
+          "failed": 0,
+          "ignored": 0
+        }
+      },
+      "business": [
+        {
+          "sourceSha256": "521576e13e1ced708e2f7efac270da864053d9b05ce6216831970f3fa9fdc126",
+          "originalFormulaCells": 0,
+          "derivedFormulaCells": 916
+        },
+        {
+          "sourceSha256": "7034ab68c7c22f09a07114767d912c4bf8e87849d35e03bb76c15e9ef25e984d",
+          "originalFormulaCells": 0,
+          "derivedFormulaCells": 16
+        }
+      ]
+    },
+    "UOS25": {
+      "binaries": [
+        "10297d69e38dcce0dd07f5976eb65a7b78a7950dc29133bf27c487eb59b81b08",
+        "e531e0ac671ea841a9e3b5d63f5c9f46f55d6ef08e1bbfe9b53042582ca2a05e"
+      ],
+      "workbooks": {
+        "0.xlsx": {
+          "sha256": "03f12f8f3af2fa10433334e82966c4e1596e38040debac21ea53983b9d9b5332",
+          "formulas": 205,
+          "baselineDifferences": [
+            "J15",
+            "J16",
+            "J17",
+            "J18",
+            "J22",
+            "J31",
+            "J34",
+            "J35",
+            "J39",
+            "J46",
+            "J49",
+            "J54",
+            "J96",
+            "J106",
+            "J109",
+            "J110",
+            "J114",
+            "J121",
+            "J124",
+            "J125",
+            "J129",
+            "J136",
+            "J139",
+            "J140",
+            "J144",
+            "J151",
+            "J154",
+            "J159",
+            "J166",
+            "J169",
+            "J174",
+            "J181",
+            "J184",
+            "J189",
+            "J196",
+            "J199",
+            "J204"
+          ],
+          "candidateDifferences": 0,
+          "conservativeDifferences": 0,
+          "typedSavedCaches": 205,
+          "oldNewReaderWriterPairs": 4
+        },
+        "1.xlsx": {
+          "sha256": "27c1317fdf861bf03ba97d9b4188a591c2ffb5f1b210e598a72740dd3503c70c",
+          "formulas": 205,
+          "baselineDifferences": [
+            "J15",
+            "J16",
+            "J17",
+            "J18",
+            "J22",
+            "J31",
+            "J34",
+            "J35",
+            "J39",
+            "J46",
+            "J49",
+            "J54",
+            "J96",
+            "J106",
+            "J109",
+            "J110",
+            "J114",
+            "J121",
+            "J124",
+            "J125",
+            "J129",
+            "J136",
+            "J139",
+            "J140",
+            "J144",
+            "J151",
+            "J154",
+            "J159",
+            "J166",
+            "J169",
+            "J174",
+            "J181",
+            "J184",
+            "J189",
+            "J196",
+            "J199",
+            "J204"
+          ],
+          "candidateDifferences": 0,
+          "conservativeDifferences": 0,
+          "typedSavedCaches": 205,
+          "oldNewReaderWriterPairs": 4
+        },
+        "2.xlsx": {
+          "sha256": "4c2142bcef937c5ae564e194c0fbe0cf2420e03ec4285d98f7a52b1f400f3360",
+          "formulas": 205,
+          "baselineDifferences": [
+            "J15",
+            "J16",
+            "J17",
+            "J18",
+            "J22",
+            "J31",
+            "J34",
+            "J35",
+            "J39",
+            "J46",
+            "J49",
+            "J54",
+            "J96",
+            "J106",
+            "J109",
+            "J110",
+            "J114",
+            "J121",
+            "J124",
+            "J125",
+            "J129",
+            "J136",
+            "J139",
+            "J140",
+            "J144",
+            "J151",
+            "J154",
+            "J159",
+            "J166",
+            "J169",
+            "J174",
+            "J181",
+            "J184",
+            "J189",
+            "J196",
+            "J199",
+            "J204"
+          ],
+          "candidateDifferences": 0,
+          "conservativeDifferences": 0,
+          "typedSavedCaches": 205,
+          "oldNewReaderWriterPairs": 4
+        }
+      },
+      "desktop": {
+        "binarySha256": "16ec3a4336411e9a5d2d0c0bb9e3ff8317d3e0299b9a3626792d16ecf67ed02d",
+        "states": 6,
+        "cellsPerState": 38,
+        "editedComputedCriteria": [
+          12,
+          37
+        ],
+        "undoRedo": true,
+        "savedTypedCaches": 205,
+        "legacyBareTableInput": "SUM(Sales[])",
+        "freshProcessReopen": true,
+        "originalsUnchanged": true
+      },
+      "engineMicroseconds": {
+        "conservative": {
+          "unrelated": {
+            "dirty": 4096,
+            "p50": 5706.276,
+            "p95": 6247.667
+          },
+          "local": {
+            "dirty": 4096,
+            "p50": 5612.658,
+            "p95": 5770.249
+          },
+          "shared": {
+            "dirty": 4096,
+            "p50": 5606.506,
+            "p95": 5942.295
+          }
+        },
+        "selective": {
+          "unrelated": {
+            "dirty": 0,
+            "p50": 10.123,
+            "p95": 12.243
+          },
+          "local": {
+            "dirty": 1,
+            "p50": 19.21,
+            "p95": 21.479
+          },
+          "shared": {
+            "dirty": 4096,
+            "p50": 5599.128,
+            "p95": 5750.592
+          }
+        }
+      },
+      "productChecks": {
+        "joysheet": {
+          "passed": 1485,
+          "failed": 0,
+          "ignored": 1
+        },
+        "ui": {
+          "passed": 82,
+          "failed": 0,
+          "ignored": 0
+        }
+      },
+      "business": [
+        {
+          "sourceSha256": "521576e13e1ced708e2f7efac270da864053d9b05ce6216831970f3fa9fdc126",
+          "originalFormulaCells": 0,
+          "derivedFormulaCells": 916
+        },
+        {
+          "sourceSha256": "7034ab68c7c22f09a07114767d912c4bf8e87849d35e03bb76c15e9ef25e984d",
+          "originalFormulaCells": 0,
+          "derivedFormulaCells": 16
+        }
+      ]
+    }
+  }
+}

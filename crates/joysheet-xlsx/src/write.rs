@@ -318,7 +318,8 @@ pub fn write_xlsx_named(wb: &Workbook, kind: XlsxKind, book_name: Option<&str>) 
         if !n.comment.is_empty() {
             let _ = write!(names, " comment=\"{}\"", esc_attr(&n.comment));
         }
-        let _ = write!(names, ">{}</definedName>", esc(&crate::fmla::text_to_file(&n.formula)));
+        let file = crate::fmla::FileFormulas::on_sheet(wb, n.scope.unwrap_or(usize::MAX));
+        let _ = write!(names, ">{}</definedName>", esc(&file.text(&n.formula)));
     }
     names.push_str(&crate::timeline::defined_names(wb));
     for (i, f) in out.chart_names.iter().enumerate() {

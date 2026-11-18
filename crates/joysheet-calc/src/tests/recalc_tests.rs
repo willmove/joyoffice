@@ -366,3 +366,115 @@ fn dense_cross_sheet_edits_match_full_recalc_with_spills_errors_and_iteration() 
     }
     Ok(())
 }
+
+#[test]
+fn name_dependencies_follow_scope_relative_rows_and_workbook_edits() {
+    use joysheet_model::{DefinedName, Sheet};
+    let mut wb = Workbook::new();
+    wb.sheets.push(std::sync::Arc::new(Sheet::new("Prices")));
+    for (name, formula, scope) in
+        [("RowPrice", "$B1", Some(1)), ("Subtotal", "Prices!RowPrice*2", None), ("LivePrice", "INDIRECT(\"Prices!B2\")", None)]
+    {
+        wb.names.push(DefinedName { name: name.into(), formula: formula.into(), scope, hidden: false, comment: String::new() });
+    }
+    let pos = |addr| CellRef::parse(addr).unwrap();
+    for (addr, text) in [("D2", "Subtotal"), ("D3", "Subtotal"), ("E2", "D2+D3"), ("F2", "LivePrice")] {
+        wb.sheet_mut(0).unwrap().cells.set(pos(addr), Cell::formula(Formula::new(text)));
+    }
+    wb.sheet_mut(1).unwrap().set_value(pos("B2"), Value::Number(7.));
+    wb.sheet_mut(1).unwrap().set_value(pos("B3"), Value::Number(19.));
+    let mut calc = Calc::new();
+    calc.recalc_all(&mut wb);
+    assert_eq!(wb.sheet(0).unwrap().value(pos("E2")), Value::Number(52.));
+    assert_eq!(calc.graph.precedents_of((0, pos("D3"))), [super::Area { sheet: 1, range: RangeRef::new(pos("B3"), pos("B3")) }]);
+    wb.sheet_mut(1).unwrap().set_value(pos("A8"), Value::Number(10.));
+    calc.cells_changed(&mut wb, &[(1, pos("A8"))]);
+    assert_eq!(calc.last_recalc_cells, 1); // The volatile name still runs.
+    wb.sheet_mut(1).unwrap().set_value(pos("B2"), Value::Number(11.));
+    calc.cells_changed(&mut wb, &[(1, pos("B2"))]);
+    assert_eq!(calc.last_recalc_cells, 3);
+    assert_eq!(wb.sheet(0).unwrap().value(pos("E2")), Value::Number(60.));
+    assert_eq!(wb.sheet(0).unwrap().value(pos("F2")), Value::Number(11.));
+}
+
+#[test]
+fn cyclic_names_and_lexical_bindings_keep_the_conservative_schedule() {
+    use joysheet_model::DefinedName;
+    let mut wb = Workbook::new();
+    for (name, expr) in [("LoopOne", "LoopTwo"), ("LoopTwo", "LoopOne"), ("Counter", "RAND()")] {
+        wb.names.push(DefinedName { name: name.into(), formula: expr.into(), scope: None, hidden: false, comment: String::new() });
+    }
+    let at = CellRef::new(3, 4);
+    for text in ["LoopOne", "Counter", "LET(Counter,7,Counter+1)"] {
+        let expr = Formula::new(text).expr().unwrap();
+        assert!(super::cell_precedents(&wb, 0, Some(at), &expr).1, "{text}");
+    }
+}
+
+#[test]
+fn moving_indirect_indexes_the_current_target_and_volatile_cells_run_once_per_edit() {
+    let at = |s| CellRef::parse(s).unwrap();
+    let mut wb = Workbook::new();
+    let sh = wb.sheet_mut(0).unwrap();
+    sh.set_value(at("A1"), Value::Text("D2".into()));
+    sh.set_value(at("D2"), Value::Number(7.));
+    sh.set_value(at("E3"), Value::Number(19.));
+    for (addr, expr) in [("B1", "INDIRECT(A1)"), ("H1", "RAND()"), ("J1", "SEQUENCE(D2)")] {
+        sh.cells.set(at(addr), Cell::formula(Formula::new(expr)));
+    }
+    let mut calc = Calc::new();
+    calc.recalc_all(&mut wb);
+    let mut readers = Vec::new();
+    calc.graph.dependents(0, at("D2"), &mut readers);
+    assert!(readers.contains(&(0, at("B1"))));
+    wb.sheet_mut(0).unwrap().set_value(at("A1"), Value::Text("E3".into()));
+    calc.cells_changed(&mut wb, &[(0, at("A1"))]);
+    assert_eq!(calc.last_recalc_cells, 2);
+    assert_eq!(wb.sheet(0).unwrap().value(at("B1")), Value::Number(19.));
+    readers.clear();
+    calc.graph.dependents(0, at("D2"), &mut readers);
+    assert!(!readers.contains(&(0, at("B1"))));
+    readers.clear();
+    calc.graph.dependents(0, at("E3"), &mut readers);
+    assert!(readers.contains(&(0, at("B1"))));
+    wb.sheet_mut(0).unwrap().set_value(at("D2"), Value::Number(3.));
+    calc.cells_changed(&mut wb, &[(0, at("D2"))]);
+    assert_eq!(calc.last_recalc_cells, 3); // No RAND/INDIRECT replay during spill writeback.
+    wb.sheet_mut(0).unwrap().cells.set(at("B1"), Cell::formula(Formula::new("INDIRECT(\"J5\")")));
+    calc.cells_changed(&mut wb, &[(0, at("B1"))]);
+    wb.sheet_mut(0).unwrap().set_value(at("D2"), Value::Number(8.));
+    calc.cells_changed(&mut wb, &[(0, at("D2"))]);
+    assert_eq!(wb.sheet(0).unwrap().value(at("B1")), Value::Number(5.));
+    assert_eq!(calc.last_recalc_cells, 4); // Only the spill's reader needs a second pass.
+}
+
+#[test]
+fn computed_database_criteria_track_shifted_records_outside_the_table() {
+    let at = |s| CellRef::parse(s).unwrap();
+    let mut wb = Workbook::new();
+    let sh = wb.sheet_mut(0).unwrap();
+    sh.set_value(at("A1"), Value::Text("Amount".into()));
+    sh.set_value(at("C1"), Value::Text("Match".into()));
+    for (a, n) in [("A2", 12.), ("A3", 25.), ("A4", 5.), ("H2", 10.), ("H3", 30.), ("H4", 5.)] {
+        sh.set_value(at(a), Value::Number(n));
+    }
+    sh.cells.set(at("C2"), Cell::formula(Formula::new("A2>INDEX($H$2:$H$4,ROW(A2)-1)")));
+    sh.cells.set(at("D1"), Cell::formula(Formula::new("DSUM(A1:A4,\"Amount\",C1:C2)")));
+    let mut rollback_book = wb.clone();
+    let mut rollback = Calc::new();
+    rollback.reference_dependencies = false;
+    rollback.recalc_all(&mut rollback_book);
+    rollback_book.sheet_mut(0).unwrap().set_value(at("H3"), Value::Number(5.));
+    rollback.cells_changed(&mut rollback_book, &[(0, at("H3"))]);
+    assert_eq!(rollback_book.sheet(0).unwrap().value(at("D1")), Value::Number(37.));
+    let mut calc = Calc::new();
+    calc.recalc_all(&mut wb);
+    assert_eq!(wb.sheet(0).unwrap().value(at("D1")), Value::Number(12.));
+    wb.sheet_mut(0).unwrap().set_value(at("H3"), Value::Number(5.));
+    calc.cells_changed(&mut wb, &[(0, at("H3"))]);
+    assert_eq!(wb.sheet(0).unwrap().value(at("D1")), Value::Number(37.));
+    assert_eq!(calc.last_recalc_cells, 2);
+    wb.sheet_mut(0).unwrap().set_value(at("K20"), Value::Number(1.));
+    calc.cells_changed(&mut wb, &[(0, at("K20"))]);
+    assert_eq!(calc.last_recalc_cells, 0);
+}

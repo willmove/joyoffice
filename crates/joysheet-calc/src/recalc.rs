@@ -17,7 +17,7 @@ use joysheet_core::{Array, CellError, CellRef, RangeRef, Value};
 use joysheet_formula::Expr;
 use joysheet_model::{CalcMode, Workbook};
 
-use crate::eval::{Area, Evaluator, Host, precedents, stack_position};
+use crate::eval::{Area, Evaluator, Host, cell_precedents, stack_position};
 
 mod cycles;
 mod graph;
@@ -36,6 +36,7 @@ use pass_host::{PassHost, spills_as_before};
 pub struct Calc {
     pub graph: Graph,
     rng: u64,
+    reference_dependencies: bool,
     #[cfg(feature = "scalar-pilot")]
     scalar_batches: bool,
     /// Fixed "now" for deterministic tests; `None` = system clock.
@@ -49,6 +50,7 @@ impl Default for Calc {
     fn default() -> Self {
         Calc {
             graph: Graph::default(),
+            reference_dependencies: std::env::var_os("JOYSHEET_REFERENCE_DEPENDENCIES").as_deref() != Some(std::ffi::OsStr::new("0")),
             rng: 0x9E37_79B9_7F4A_7C15,
             #[cfg(feature = "scalar-pilot")]
             scalar_batches: std::env::var_os("JOYSHEET_SCALAR_RECALC").as_deref() != Some(std::ffi::OsStr::new("0")),
@@ -71,6 +73,11 @@ impl Calc {
         now_serial()
     }
 
+    fn node(&self, wb: &Workbook, key: Key, expr: &Expr) -> Node {
+        let (areas, dynamic, runtime) = cell_precedents(wb, key.0, self.reference_dependencies.then_some(key.1), expr);
+        Node { areas, dynamic, runtime, observed: None }
+    }
+
     /// Rebuilds the graph from scratch.
     pub fn rebuild(&mut self, wb: &Workbook) {
         let _profile = crate::profile::scope(crate::profile::Phase::Dependency);
@@ -81,8 +88,7 @@ impl Calc {
                 if let Some(f) = &cell.formula
                     && let Some(e) = f.expr()
                 {
-                    let (areas, dynamic) = precedents(wb, si, &e);
-                    self.graph.insert((si, c), Node { areas, dynamic });
+                    self.graph.insert((si, c), self.node(wb, (si, c), &e));
                     if cell.value == Value::Error(CellError::Circ) {
                         circ.push((si, c));
                     }
@@ -161,8 +167,7 @@ impl Calc {
             let formula = wb.sheet(k.0).and_then(|s| s.cell(k.1)).and_then(|c| c.formula.clone());
             match formula.and_then(|f| f.expr()) {
                 Some(e) => {
-                    let (areas, dynamic) = precedents(wb, k.0, &e);
-                    self.graph.insert(k, Node { areas, dynamic });
+                    self.graph.insert(k, self.node(wb, k, &e));
                 }
                 None => {
                     self.graph.remove(k);
@@ -263,6 +268,10 @@ impl Calc {
     }
 
     fn dirty_closure(&self, _wb: &Workbook, seeds: &[Key]) -> Vec<Key> {
+        self.closure(seeds, &self.graph.dynamic)
+    }
+
+    fn closure(&self, seeds: &[Key], extra: &HashSet<Key>) -> Vec<Key> {
         let _profile = crate::profile::scope(crate::profile::Phase::Dependency);
         let mut seen: HashSet<Key> = HashSet::default();
         let mut queue: VecDeque<Key> = VecDeque::new();
@@ -278,7 +287,7 @@ impl Calc {
                 }
             }
         }
-        for k in &self.graph.dynamic {
+        for k in extra {
             if seen.insert(*k) {
                 queue.push_back(*k);
             }
@@ -298,7 +307,6 @@ impl Calc {
 
     /// Evaluates the dirty set and writes results (and spills) back.
     fn run(&mut self, wb: &mut Workbook, mut dirty: Vec<Key>, full: bool) {
-        let mut dynamic_again = !self.graph.dynamic.is_empty();
         self.last_recalc_cells = 0;
         for _round in 0..8 {
             if dirty.is_empty() {
@@ -336,9 +344,12 @@ impl Calc {
             let mut rng = self.rng;
             let tp = prof_now();
             let evaluation_profile = crate::profile::scope(crate::profile::Phase::Evaluation);
-            let (mut results, spills, cycles) = {
+            let (mut results, spills, cycles, observed) = {
                 let mut host = PassHost::new(wb, &exprs, &mut rng, now);
                 host.iterate = wb.calc.iterative;
+                if self.reference_dependencies && !host.iterate && !self.graph.observers.is_empty() {
+                    host.trace = Some(&self.graph.observers);
+                }
                 #[cfg(feature = "scalar-pilot")]
                 if !literals.is_empty() {
                     host.results = literals;
@@ -352,8 +363,14 @@ impl Calc {
                         eprintln!("  iterative calculation: {} passes over {} formulas", passes, host.tainted.len());
                     }
                 }
-                (host.results, host.spills, host.cycles)
+                (host.results, host.spills, host.cycles, host.observed)
             };
+            if !observed.is_empty() {
+                for (key, reads) in observed {
+                    self.graph.record_reads(key, reads);
+                }
+                self.graph.settle();
+            }
             self.rng = rng;
             drop(evaluation_profile);
             crate::profile::formulas(results.len());
@@ -379,6 +396,7 @@ impl Calc {
                     sheet.cells.write_values(group.iter().filter_map(|k| results.remove(k).map(|v| (k.1, v))));
                 }
             }
+            let mut spill_changed = false;
             for k in &dirty {
                 let new = spills.get(k);
                 let Some(sheet) = wb.sheet_mut(k.0) else { continue };
@@ -394,6 +412,7 @@ impl Calc {
                 {
                     continue;
                 }
+                spill_changed = true;
                 if let Some(r) = old {
                     for c in r.iter() {
                         sheet.spill.remove(&c);
@@ -449,12 +468,6 @@ impl Calc {
                     freed.push((k.0, o));
                 }
             }
-            // Formulas with references only known while evaluating (INDIRECT, OFFSET) may have read
-            // a spill area before it was laid out: they are evaluated once more.
-            if dynamic_again && !spills.is_empty() {
-                dynamic_again = false;
-                spill_changes.extend(self.graph.dynamic.iter().copied());
-            }
             // An area a formula no longer spills over may unblock another formula's array.
             for (si, o) in freed {
                 self.seed_blocked_anchors(wb, si, o.end, &mut spill_changes);
@@ -468,10 +481,10 @@ impl Calc {
             spill_changes.sort_by_key(|(s, c)| (*s, c.row, c.col));
             drop(writeback_profile);
             spill_changes.dedup();
-            if spill_changes.is_empty() {
+            if !spill_changed && spill_changes.is_empty() {
                 break;
             }
-            dirty = self.dirty_closure(wb, &spill_changes);
+            dirty = self.closure(&spill_changes, &self.graph.untracked);
         }
         // Loops among formulas the run did not evaluate stay listed while they are still formulas.
         // Iterative calculation reports none.

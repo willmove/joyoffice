@@ -254,7 +254,7 @@ impl<'h> Evaluator<'h> {
                         }
                     }
                 }
-                let mut ctx = FnCtx { ev: self, criteria: None, lambda: None };
+                let mut ctx = FnCtx { ev: self, criteria: None, database: None, lambda: None };
                 return match joysheet_functions::call(spec, &xargs, &mut ctx) {
                     Value::Number(p) if p >= 1.0 => {
                         let k = p as u32 - 1;

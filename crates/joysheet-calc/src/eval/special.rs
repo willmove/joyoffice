@@ -29,62 +29,11 @@ pub fn resized_sum_range(sum: RangeRef, height: u32, width: u32) -> RangeRef {
 /// Collects the static references of an expression with their sheets resolved; `dynamic` is
 /// set when the formula uses INDIRECT/OFFSET/names/tables whose targets can change.
 pub fn precedents(wb: &Workbook, sheet: usize, e: &Expr) -> (Vec<Area>, bool) {
-    let mut out = Vec::new();
-    let mut dynamic = false;
-    let push = |out: &mut Vec<Area>, r: &Reference, range: RangeRef| match &r.sheet {
-        SheetSel::Current => out.push(Area { sheet, range }),
-        SheetSel::Named(n) => {
-            if let Some(i) = wb.sheet_index(n) {
-                out.push(Area { sheet: i, range });
-            }
-        }
-        SheetSel::Span(a, b) => {
-            if let (Some(i), Some(j)) = (wb.sheet_index(a), wb.sheet_index(b)) {
-                for s in i.min(j)..=i.max(j) {
-                    out.push(Area { sheet: s, range });
-                }
-            }
-        }
-    };
-    e.walk(&mut |x| match x {
-        Expr::Ref(r) => push(&mut out, r, r.range()),
-        // The cells SUMIF/AVERAGEIF really read from the sum range (see `resized_sum_range`); when
-        // the criteria range's size isn't known statically, recalculate the formula every time.
-        Expr::Call(n, args) if resizes_sum_range(n, args.len()) => match (args.first(), args.get(2)) {
-            (Some(Expr::Ref(c)), Some(Expr::Ref(s))) => {
-                let (crit, sum) = (c.range(), s.range());
-                push(&mut out, s, resized_sum_range(sum, crit.height(), crit.width()));
-            }
-            (_, Some(Expr::Number(_) | Expr::Text(_) | Expr::Bool(_) | Expr::Error(_) | Expr::Array(_) | Expr::Missing)) => {}
-            _ => dynamic = true,
-        },
-        Expr::Call(n, _)
-            if matches!(n.as_str(), "INDIRECT" | "OFFSET" | "NOW" | "TODAY" | "RAND" | "RANDBETWEEN" | "RANDARRAY" | "CELL" | "INFO") =>
-        {
-            dynamic = true
-        }
-        Expr::Name(_) | Expr::Struct(_) => dynamic = true,
-        Expr::Call(n, _) if joysheet_functions::lookup(n).is_none() && !is_special(n) => dynamic = true,
-        // A range ending in a function's result (`A1:INDEX(B1:B9,n)`) covers the cells between
-        // the references inside it, not only those references.
-        Expr::Binary(BinOp::Range, a, b) if !matches!((&**a, &**b), (Expr::Ref(_), Expr::Ref(_))) => {
-            let mut inner = precedents(wb, sheet, a).0;
-            inner.extend(precedents(wb, sheet, b).0);
-            let mut boxes: Vec<Area> = Vec::new();
-            for area in inner {
-                match boxes.iter_mut().find(|x| x.sheet == area.sheet) {
-                    Some(x) => x.range = x.range.union(&area.range),
-                    None => boxes.push(area),
-                }
-            }
-            out.extend(boxes);
-        }
-        _ => {}
-    });
-    (out, dynamic)
+    let (areas, dynamic, _) = super::dependencies::cell_precedents(wb, sheet, None, e);
+    (areas, dynamic)
 }
 
-fn is_special(n: &str) -> bool {
+pub(super) fn is_special(n: &str) -> bool {
     matches!(
         n,
         "IF" | "IFS"
