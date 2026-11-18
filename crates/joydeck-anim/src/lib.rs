@@ -30,6 +30,7 @@ mod show;
 mod slide_motion;
 mod timeline;
 mod transition;
+mod transition_fabric;
 mod transition_fx;
 mod transition_geom;
 mod transition_mask;

@@ -971,7 +971,7 @@
       "source_path": "crates/anim/src/lib.rs",
       "source_sha256": "960fee50af9c7cd413c62db1a8222a1500247882f2b855e0f0a7e688132d733c",
       "target_path": "crates/joydeck-anim/src/lib.rs",
-      "adapted_sha256": "b903ca3c58369746e1fcf766c353c9156a7a84fa3f747b57a6fb24a7b696a240",
+      "adapted_sha256": "47ebef70a6a2c583d8cac305779c7e0d0a57ccd7854951917aa23cddb1632ac7",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -981,7 +981,8 @@
         "JoyOffice's contour-strip mask generator replaces the imported wipe and split opacity grids; see slides in tests/fixtures/joydeck/soft-mask-reference.json.",
         "Register the JoyOffice shape, wheel, random-bar and dissolve transition generator.",
         "Register the JoyOffice panel transition generator (transition_panels.rs, SHA-256 378954a7ffaa00a48f18d46623c6e8f96c5db049f5d4acf2b23aa7798b7438c6).",
-        "Register the host prism projection used by the audience, CPU and GPU renderers."
+        "Register the host prism projection used by the audience, CPU and GPU renderers.",
+        "Register the JoyOffice sheet and cloth transition generator."
       ]
     },
     {
@@ -1085,7 +1086,7 @@
       "source_path": "crates/anim/src/transition_fx.rs",
       "source_sha256": "d33982408786bf055bf487318d4fd6a6e79d4309812a1dd0b7f5807963c79dad",
       "target_path": "crates/joydeck-anim/src/transition_fx.rs",
-      "adapted_sha256": "f5af8a6ff6190c84e1d86c31ba60487a786b9f7aeae7f78622dbf86932a5b4ca",
+      "adapted_sha256": "75b04ec0e41601917bf6b5d86a7d804a5a8c7ab57996dff153204b405b415f29",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -1095,7 +1096,8 @@
         "JoyOffice's contour-strip mask generator replaces the imported wipe and split opacity grids; see slides in tests/fixtures/joydeck/soft-mask-reference.json.",
         "Dispatch shape, wheel, random-bar and dissolve to JoyOffice and retire the original generators.",
         "Route checker, blinds, comb and ripple variants to native tile, stripe and radial generators.",
-        "Remove the imported prism construction for Cube, Box, Rotate and Orbit. The first-party generator projects and clips the two moving faces of p14:prism. Independent references are in tests/fixtures/joydeck/prism-{plain,marked}-reference.json."
+        "Remove the imported prism construction for Cube, Box, Rotate and Orbit. The first-party generator projects and clips the two moving faces of p14:prism. Independent references are in tests/fixtures/joydeck/prism-{plain,marked}-reference.json.",
+        "Retire the imported fallOver, drape and curtains generators. Use independently measured normalized slide surfaces from transition_fabric.rs."
       ]
     },
     {

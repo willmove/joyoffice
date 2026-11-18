@@ -30,6 +30,12 @@ MASKS = (("wipe", "ru"), ("split", "vertOut"))
 PATTERNS = (("shape", "circle"), ("clock", "wedge"))
 PANELS = (("blinds", "horz"), ("ripple", "lu"))
 PRISMS = (("cube", "l"), ("orbit", "u"))
+FABRIC = (("fallOver", "l"), ("curtains", ""))
+PRESET_OPTIONS = {
+    "fallOver": ("l", "r"), "drape": ("l", "r"), "curtains": ("",), "wind": ("l", "r"),
+    "prestige": ("",), "fracture": ("",), "crush": ("",), "peelOff": ("l", "r"),
+    "pageCurlDouble": ("l", "r", "singleL", "singleR"), "airplane": ("l", "r"), "origami": ("l", "r"),
+}
 ET.register_namespace("p", P)
 ET.register_namespace("a", A)
 ET.register_namespace("p14", P14)
@@ -37,7 +43,12 @@ ET.register_namespace("p14", P14)
 
 def effect_xml(kind, option):
     tag, attrs, ns = kind, {}, P
-    if kind == "shape":
+    if kind in PRESET_OPTIONS:
+        inverse = option == "l" if kind in ("wind", "origami", "airplane") else option in ("r", "singleR")
+        preset = "pageCurlSingle" if kind == "pageCurlDouble" and option.startswith("single") else kind
+        tag, ns = "prstTrans", "http://schemas.microsoft.com/office/powerpoint/2012/main"
+        attrs = {"prst": preset, "invX": str(int(inverse))}
+    elif kind == "shape":
         if option in ("in", "out"):
             tag, attrs = "zoom", {"dir": option}
         else:
@@ -307,7 +318,11 @@ def play(binary, cli, doc, directory, mode, effects, software_fallback=False):
                 rf"show_transition_frame slide={slide} effect={kind} progress=([.\d]+) prepare_us=(\d+) pixels=(\d+)x(\d+)"
             )
             pause_from = (
-                0.22
+                (0.12 if mode == "cpu" else 0.37)
+                if kind == "curtains"
+                else (0.28 if mode == "cpu" else 0.55)
+                if kind == "fallOver"
+                else 0.22
                 if kind == "cover"
                 else 0.30
                 if kind in ("wipe", "split", "blinds")
@@ -553,7 +568,7 @@ def exchange(doc, directory, baseline, candidate, effects):
                 child = transition.find(tag)
                 assert child is not None and all(
                     (child.get(k, "0") in ("true", "1")) == (v == "1")
-                    if k in ("isContent", "isInverted") else child.get(k) == v
+                    if k in ("isContent", "isInverted", "invX") else child.get(k) == v
                     for k, v in attrs.items()
                 )
         for reader, tool in versions.items():
@@ -582,6 +597,7 @@ def main():
     parser.add_argument("--reference-cli", type=Path)
     parser.add_argument("--exchange-only", action="store_true")
     mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--fabric", action="store_true", help="exercise a falling sheet and two parting curtains")
     mode.add_argument("--prisms", action="store_true", help="exercise an outside turn and content-only inside turn")
     mode.add_argument("--panels", action="store_true", help="exercise Venetian blinds and a corner ripple")
     mode.add_argument(
@@ -602,7 +618,9 @@ def main():
     )
     args = parser.parse_args()
     effects = (
-        PRISMS
+        FABRIC
+        if args.fabric
+        else PRISMS
         if args.prisms
         else PANELS
         if args.panels

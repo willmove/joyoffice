@@ -81,9 +81,9 @@ pub(crate) fn layers(kind: &str, o: &str, t: f64, a: f64, depth: u32) -> Vec<Lay
         "comb" => crate::transition_panels::comb(o == "vert", t),
         "zoom" => zoom(o, t, a),
         "pan" => pan(o, t),
-        "fallOver" => fall_over(o == "r", t, a),
-        "drape" => drape(o == "r", t, a),
-        "curtains" => curtains(t, a),
+        "fallOver" => crate::transition_fabric::fall_over(o == "r", t),
+        "drape" => crate::transition_fabric::drape(o == "r", t),
+        "curtains" => crate::transition_fabric::curtains(t),
         "wind" => wind(o == "r", t, a),
         "prestige" => prestige(t, a),
         "fracture" => fracture(t, a),
@@ -254,84 +254,6 @@ fn zoom(o: &str, t: f64, a: f64) -> Vec<Layer> {
             ),
         ],
     }
-}
-
-fn fall_over(right: bool, t: f64, a: f64) -> Vec<Layer> {
-    // The old slide tips forward about its bottom edge and falls out of view.
-    let cam = Cam { a, d: 2.2 };
-    let u = ein(win(t, 0.0, 0.88));
-    let ang = 92.0 * u;
-    let pivot = v3(0.0, 0.5, 0.0);
-    let side = if right { 1.0 } else { -1.0 };
-    let pts = cam
-        .rect(FULL)
-        .map(|p| p.pitch(pivot, ang).roll(pivot, side * 6.0 * u));
-    let mut v = vec![Layer::full(New, 1.0)];
-    if u < 1.0 {
-        v.extend(card(
-            &cam,
-            Old,
-            FULL,
-            pts,
-            1.0,
-            facing_shade(pts, 0.4),
-            true,
-        ));
-    }
-    v
-}
-
-fn drape(right: bool, t: f64, a: f64) -> Vec<Layer> {
-    // The new slide drops from its top edge like cloth over the old one.
-    let cam = Cam { a, d: 2.2 };
-    let u = q2(win(t, 0.25, 0.62));
-    let wob = 4.0 * (1.0 - win(t, 0.6, 1.0)) * (win(t, 0.6, 1.0) * PI * 2.0).sin();
-    let ang = 90.0 * (1.0 - u) + wob * u;
-    let pivot = v3(0.0, -0.5, 0.0);
-    let side = if right { -1.0 } else { 1.0 };
-    let pts = cam
-        .rect(FULL)
-        .map(|p| p.pitch(pivot, -ang).roll(pivot, side * 3.0 * (1.0 - u)));
-    let mut v = vec![Layer::full(Old, 1.0)];
-    if u > 0.0 {
-        v.extend(card(
-            &cam,
-            New,
-            FULL,
-            pts,
-            1.0,
-            facing_shade(pts, 0.5),
-            true,
-        ));
-    }
-    v
-}
-
-fn curtains(t: f64, a: f64) -> Vec<Layer> {
-    // The old slide parts in the middle into two curtains drawn to the sides, then lifted away.
-    let open = q2(win(t, 0.0, 0.35));
-    let lift = ein(win(t, 0.62, 0.9));
-    let mut v = vec![Layer::full(New, 1.0)];
-    let w_top = 0.5 - 0.22 * open;
-    let w_bot = 0.5 - 0.12 * open;
-    let up = 0.15 * lift;
-    let sw = 0.75 * lift;
-    let left = [
-        [-sw, -up],
-        [w_top - sw, -up],
-        [w_bot - 0.6 * sw, 1.0 - up],
-        [-0.6 * sw, 1.0 - up],
-    ];
-    let right = [
-        [1.0 - w_top + sw, -up],
-        [1.0 + sw, -up],
-        [1.0 + 0.6 * sw, 1.0 - up],
-        [1.0 - w_bot + 0.6 * sw, 1.0 - up],
-    ];
-    v.push(Layer::quad(Old, [0.0, 0.0, 0.5, 1.0], left, 1.0));
-    v.push(Layer::quad(Old, [0.5, 0.0, 1.0, 1.0], right, 1.0));
-    let _ = a;
-    v
 }
 
 fn wind(right: bool, t: f64, a: f64) -> Vec<Layer> {

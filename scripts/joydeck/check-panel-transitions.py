@@ -20,6 +20,10 @@ CASES = ([("none", "")] + [(k, o) for k in ("checker", "blinds", "comb") for o i
 PRISMS = [("none", "")] + [(kind, direction) for kind in ("cube", "box", "rotate", "orbit") for direction in "lrud"]
 
 
+PRESETS = [("none", "")] + [(kind, opt) for kind, options in MOTION["window"]["PRESET_OPTIONS"].items() for opt in options]
+FABRIC_PRESETS = {"fallOver", "drape", "curtains"}
+
+
 def marked(path, cases=CASES):
     """Add neutral strokes to the two colored pages to measure their motion during transitions."""
     p, a = MOTION["P"], MOTION["window"]["A"]
@@ -100,13 +104,13 @@ def measure(movie, deck, raw, markers, cases=CASES):
                                  bytes(round(x * 255) for x in sample).hex()])
     return {"source": "PowerPoint 16.115 for macOS, 1920x1080, 30 fps, 1600 ms effects",
             "movieSha256": hashlib.sha256(movie.read_bytes()).hexdigest(), "frames": frame_count,
-            "family": "prisms" if cases == PRISMS else "panels",
+            "family": "presets2013" if cases == PRESETS else "prisms" if cases == PRISMS else "panels",
             "payloadSha256": MASKS["payloads"](deck), "markers": markers, "pixels": MASKS["SAMPLES"], "samples": observations}
 
 
-def prism_exchange(original, old, new, out, originals):
+def exchange_effects(original, old, new, out, originals, cases):
     versions = {"baseline": old, "candidate": new}
-    middle = [[i + 2, kind, direction, 0.5] for i, (kind, direction) in enumerate(PRISMS[1:])]
+    middle = [[i + 2, kind, direction, 0.5] for i, (kind, direction) in enumerate(cases[1:])]
     checked = {}
     for first, second in (("baseline", "candidate"), ("candidate", "baseline")):
         source = original
@@ -120,12 +124,16 @@ def prism_exchange(original, old, new, out, originals):
                     tree = ET.fromstring(archive.read(f"ppt/slides/slide{page}.xml"))
                     turn = tree.find(".//{*}transition")
                     assert turn is not None and turn.get(f"{{{MOTION['P14']}}}dur") == "1600"
-                    prism = turn.find(f"{{{MOTION['P14']}}}prism")
-                    assert prism is not None and prism.get("dir") == direction
-                    assert (prism.get("isContent") in ("true", "1")) == (kind in ("rotate", "orbit"))
-                    assert (prism.get("isInverted") in ("true", "1")) == (kind in ("box", "orbit"))
+                    xml_tag, attrs = MOTION["window"]["effect_xml"](kind, direction)
+                    effect = turn.find(xml_tag)
+                    assert effect is not None, (page, xml_tag)
+                    for key, value in attrs.items():
+                        if key in {"isContent", "isInverted", "invX"}:
+                            assert (effect.get(key, "0") in ("true", "1")) == (value == "1")
+                        else:
+                            assert effect.get(key) == value
             replay = out / f"{tag}-held.pptx"
-            MOTION["hold_for_sampling"](saved, replay, len(PRISMS))
+            MOTION["hold_for_sampling"](saved, replay, len(cases))
             checked[tag] = {}
             for reader, exe in versions.items():
                 images = MOTION["sample_cli"](exe, replay, middle, out / f"{tag}-{reader}-frames")
@@ -139,8 +147,9 @@ def prism_exchange(original, old, new, out, originals):
 def verify(reference, old, new, out):
     out.mkdir(parents=True)
     prisms = reference.get("family") == "prisms"
-    cases = PRISMS if prisms else CASES
-    original = out / ("立体翻转.pptx" if prisms else "棋盘百叶梳形波纹.pptx")
+    presets = reference.get("family") == "presets2013"
+    cases = PRESETS if presets else PRISMS if prisms else CASES
+    original = out / ("预设转场.pptx" if presets else "立体翻转.pptx" if prisms else "棋盘百叶梳形波纹.pptx")
     replay = out / "sample.pptx"
     markers = reference.get("markers", False)
     if markers:
@@ -154,7 +163,7 @@ def verify(reference, old, new, out):
     middle = {}
     for label, cli in (("baseline", old), ("candidate", new)):
         frames = MOTION["sample_cli"](cli, replay, rows, out / label)
-        if prisms:
+        if prisms or presets:
             middle[label] = [hashlib.sha256(frame).hexdigest() for row, frame in zip(rows, frames, strict=True) if row[3] == 0.5]
         errors = {}
         for (page, kind, option, _, target), frame in zip(rows, frames, strict=True):
@@ -162,11 +171,13 @@ def verify(reference, old, new, out):
             errors.setdefault(kind + "/" + option, []).extend(
                 abs(a - b / 255) for a, b in zip(actual, bytes.fromhex(target), strict=True))
         report[label] = {k: MASKS["summarize"](v) for k,v in errors.items()}
-    if prisms:
-        report["exchange"] = prism_exchange(original, old, new, out, middle)
+    if prisms or presets:
+        report["exchange"] = exchange_effects(original, old, new, out, middle, cases)
     (out / "report.json").write_text(json.dumps(report, indent=2) + "\n")
     for option, stats in report["candidate"].items():
-        if prisms and not markers and option.split("/")[0] in ("rotate", "orbit"):
+        if presets and option.split("/")[0] not in FABRIC_PRESETS:
+            assert stats == report["baseline"][option], (option, stats)
+        elif prisms and not markers and option.split("/")[0] in ("rotate", "orbit"):
             # There are no foreground shapes on the plain page. Only the two
             # backgrounds can contribute, through their original cross-fade.
             assert stats == report["baseline"][option] and stats["meanAbsoluteError"] < 0.035, (option, stats)
@@ -184,11 +195,13 @@ if __name__ == "__main__":
             sub.add_argument(name, type=Path)
         if mode != "verify":
             sub.add_argument("--markers", action="store_true")
-            sub.add_argument("--prisms", action="store_true", help="all four directions of the four p14:prism effects")
+            family = sub.add_mutually_exclusive_group()
+            family.add_argument("--presets", action="store_true", help="all 20 directions and variants of p15:prstTrans")
+            family.add_argument("--prisms", action="store_true", help="all four directions of the four p14:prism effects")
         if mode == "measure":
             sub.add_argument("--raw", type=Path)
     a = p.parse_args()
-    cases = PRISMS if getattr(a, "prisms", False) else CASES
+    cases = PRESETS if getattr(a, "presets", False) else PRISMS if getattr(a, "prisms", False) else CASES
     if a.mode == "generate":
         if a.markers:
             marked(a.deck, cases)
