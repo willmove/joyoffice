@@ -1,6 +1,6 @@
 use super::{Blocks, Deserialize, Document, Serialize};
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize, Default)]
 #[serde(default, rename_all = "camelCase")]
 pub struct Comment {
     pub author: String,
@@ -31,7 +31,7 @@ pub enum RevisionKind {
     Format,
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize, Default)]
 #[serde(default)]
 pub struct Revision {
     pub kind: RevisionKind,

@@ -33,12 +33,14 @@ pub(crate) struct Previous {
     settings: Settings,
     options: LayoutOptions,
     env: u64,
+    review: u64,
     layout: Weak<DocLayout>,
 }
 
 enum Change {
     Body(usize),
     Part(u32),
+    Review,
 }
 
 /// Reuse stable page geometry or paginate the affected section group to a checked exit.
@@ -48,12 +50,20 @@ pub fn layout_shared(
     opts: &LayoutOptions,
 ) -> Arc<DocLayout> {
     let start = now_ms();
+    let review = crate::cache::hash_of(&(&doc.comments, &doc.revisions));
     if let Some(mut previous) = cache.previous.take()
-        && let Some((change, mut next)) = previous.replace(doc, opts)
+        && let Some((change, mut next)) = previous.replace(doc, opts, review != previous.review)
     {
+        if review != previous.review {
+            // Author colours, revision decorations, and comment threads can change on distant pages.
+            let old_len = previous.layout.upgrade().map_or(0, |old| old.pages.len());
+            next.page_patch = Some((previous.layout.clone(), 0..old_len.max(next.pages.len())));
+            previous.review = review;
+        }
         next.ms = now_ms() - start;
         let next = Arc::new(next);
         match change {
+            Change::Review => {}
             Change::Body(block) => previous.body[block] = doc.body[block].clone(),
             Change::Part(id) => {
                 previous.notes.insert(id, doc.parts[&id].clone());
@@ -99,7 +109,7 @@ pub fn layout_shared(
                 .blocks
                 .iter()
                 .all(|b| b.as_para().is_some_and(|p| plain_paragraph(doc, p))),
-            _ => false,
+            joyword_model::PartKind::Comment => true,
         })
         && doc.body.iter().all(|block| match block.as_ref() {
             joyword_model::Block::Para(p) => {
@@ -153,6 +163,7 @@ pub fn layout_shared(
             settings: doc.settings.clone(),
             options: opts.clone(),
             env: cache.env,
+            review,
             layout: Arc::downgrade(&layout),
         });
     }
@@ -170,6 +181,8 @@ fn supported_body_object(object: &joyword_model::InlineObject) -> bool {
     matches!(
         object,
         NoteRef { .. }
+            | CommentStart { .. }
+            | CommentEnd { .. }
             | BookmarkStart { .. }
             | BookmarkEnd { .. }
             | Image { .. }
@@ -243,13 +256,18 @@ fn table_flow(
                                 return None;
                             }
                             if !p.objects.is_empty() {
-                                if !p.objects.iter().all(|o| {
-                                    matches!(o, joyword_model::InlineObject::Field { .. })
-                                        && supported_body_object(o)
-                                }) {
-                                    return None;
+                                for object in &p.objects {
+                                    use joyword_model::InlineObject::{
+                                        CommentEnd, CommentStart, Field,
+                                    };
+                                    match object {
+                                        Field { .. } if supported_body_object(object) => {
+                                            result = TableFlow::PageFields
+                                        }
+                                        CommentStart { .. } | CommentEnd { .. } => (),
+                                        _ => return None,
+                                    }
                                 }
-                                result = TableFlow::PageFields;
                             }
                             owns_typing |= typing.is_some_and(|word| p.rev == word.rev);
                         }
@@ -324,8 +342,6 @@ fn box_anchors(doc: &Document) -> Option<BTreeMap<u32, (usize, usize)>> {
 fn eligible(doc: &Document, opts: &LayoutOptions) -> bool {
     opts.view == ViewMode::Print
         && !opts.comment_balloons
-        && doc.comments.is_empty()
-        && doc.revisions.is_empty()
         && doc.footnote_separators.is_empty()
         && doc.endnote_separators.is_empty()
 }
@@ -340,7 +356,12 @@ fn uses_section_geometry(section: &SectionProps) -> bool {
 }
 
 impl Previous {
-    fn replace(&mut self, doc: &Document, opts: &LayoutOptions) -> Option<(Change, DocLayout)> {
+    fn replace(
+        &mut self,
+        doc: &Document,
+        opts: &LayoutOptions,
+        review_changed: bool,
+    ) -> Option<(Change, DocLayout)> {
         if self.body.len() != doc.body.len()
             || self.section != doc.last_section
             || self.settings != doc.settings
@@ -377,15 +398,8 @@ impl Previous {
                     .any(|(a, b)| !Arc::ptr_eq(a, b))
             {
                 if edited_part.is_some()
-                    || !matches!(
-                        new.kind,
-                        joyword_model::PartKind::Footnote
-                            | joyword_model::PartKind::Endnote
-                            | joyword_model::PartKind::TextBox
-                            | joyword_model::PartKind::Header
-                            | joyword_model::PartKind::Footer
-                    )
                     || !match new.kind {
+                        joyword_model::PartKind::Comment => true,
                         joyword_model::PartKind::TextBox => supported_box(doc, new),
                         joyword_model::PartKind::Footnote | joyword_model::PartKind::Endnote => new
                             .blocks
@@ -422,6 +436,13 @@ impl Previous {
         if let Some(id) = edited_part {
             if changes.next().is_some() {
                 return None;
+            }
+            if self.notes.get(&id)?.kind == joyword_model::PartKind::Comment {
+                let current = self.layout.upgrade()?;
+                let mut next = (*current).clone();
+                let pages = crate::balloons::pages_for_part(doc, &current, id);
+                next.page_patch = Some((Arc::downgrade(&current), pages));
+                return Some((Change::Part(id), next));
             }
             if matches!(
                 self.notes.get(&id)?.kind,
@@ -478,7 +499,12 @@ impl Previous {
                 .reflow_sections(doc, opts, anchor, &self.layout.upgrade()?)
                 .map(|layout| (Change::Part(id), layout));
         }
-        let (block, (before, after)) = changes.next()?;
+        let Some((block, (before, after))) = changes.next() else {
+            if review_changed && self.options.typing_word == opts.typing_word {
+                return Some((Change::Review, (*self.layout.upgrade()?).clone()));
+            }
+            return None;
+        };
         if changes.next().is_some() {
             return None;
         }

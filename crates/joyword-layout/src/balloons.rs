@@ -114,6 +114,34 @@ pub fn replies(doc: &Document) -> BTreeMap<u32, Vec<u32>> {
     m
 }
 
+/// Pages whose interactive balloons display text from a changed comment story, including replies.
+pub(crate) fn pages_for_part(
+    doc: &Document,
+    layout: &DocLayout,
+    part: u32,
+) -> std::ops::Range<usize> {
+    let mut roots: HashSet<_> = doc
+        .comments
+        .iter()
+        .filter(|(_, comment)| comment.part == part)
+        .map(|(&id, _)| root(doc, id))
+        .collect();
+    let mut pages = layout.pages.len()..0;
+    for (id, pos) in anchors(doc) {
+        if roots.contains(&id)
+            && let Some(caret) = layout.caret_on(&pos, 0)
+        {
+            roots.remove(&id);
+            pages.start = pages.start.min(caret.page);
+            pages.end = pages.end.max(caret.page + 1);
+        }
+    }
+    if !roots.is_empty() || pages.start > pages.end {
+        return 0..layout.pages.len();
+    }
+    pages
+}
+
 fn author_name(a: &str) -> &str {
     if a.trim().is_empty() { "Author" } else { a }
 }

@@ -112,6 +112,14 @@ pub(crate) fn env_hash(doc: &Document, opts: &LayoutOptions) -> u64 {
     opts.show_hidden.hash(&mut h);
     opts.hide_deleted.hash(&mut h);
     opts.hide_marked.hash(&mut h);
+    if opts.hide_marked.plain != opts.hide_marked.moved_from {
+        // Reclassifying an existing deletion can expose its glyphs without changing its paragraph.
+        for (id, revision) in doc.revisions.iter().enumerate() {
+            if revision.move_name.is_some() {
+                id.hash(&mut h);
+            }
+        }
+    }
     opts.deletions_in_balloons.hash(&mut h);
     opts.proofing.hash(&mut h);
     opts.numeral.hash(&mut h);

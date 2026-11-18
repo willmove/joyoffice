@@ -20,7 +20,7 @@ SECTIONS = runpy.run_path(str(Path(__file__).with_name('check-section-reflow.py'
 CORPUS = runpy.run_path(str(Path(__file__).with_name('check-complex-corpus.py')))
 
 
-def fixture(path, edited=False, facing_notes=False, structured=False, column_geometry=False, numbered_lines=False):
+def fixture(path, edited=False, facing_notes=False, structured=False, column_geometry=False, numbered_lines=False, reviewed=False):
     def text(value):
         return f'<w:r><w:t xml:space="preserve">{value}</w:t></w:r>'
 
@@ -64,6 +64,16 @@ def fixture(path, edited=False, facing_notes=False, structured=False, column_geo
             body = text('End')
         if facing_notes and section == 66:
             body += '<w:r><w:footnoteReference w:id="1"/></w:r>'
+        if reviewed and section in (34, 62):
+            cid = 0 if section == 34 else 1
+            marked = (f'<w:commentRangeStart w:id="{cid}"/>' + text(f'AnchorWitness{cid}') +
+                      f'<w:commentRangeEnd w:id="{cid}"/><w:r><w:commentReference w:id="{cid}"/></w:r>')
+            if section == 34:
+                marked += ('<w:del w:id="7" w:author="First reviewer" w:date="2020-01-01T00:00:00Z">'
+                           '<w:r><w:delText>DeletionWitness</w:delText></w:r></w:del>'
+                           '<w:ins w:id="8" w:author="Second reviewer" w:date="2020-01-02T00:00:00Z">'
+                           + text('InsertionWitness') + '</w:ins>')
+            paragraphs.append('<w:p>' + marked + '</w:p>')
         if column_geometry and section == 34:
             paragraphs.append(f'<w:p>{text("WestWitness")}<w:r><w:br w:type="column"/></w:r>{text("EastWitness")}</w:p>')
         if structured and section == 34:
@@ -93,6 +103,12 @@ def fixture(path, edited=False, facing_notes=False, structured=False, column_geo
             '</w:lvlOverride></w:num></w:numbering>')
         rels.append(('num', 'numbering', 'numbering.xml'))
         types['word/numbering.xml'] = prefix + 'numbering+xml'
+    if reviewed:
+        contents = ''.join(f'<w:comment w:id="{i}" w:author="Reviewer{i}" w:initials="R{i}" '
+                           f'w:date="2020-01-01T00:00:00Z"><w:p>{text(f"BalloonWitness{i}")}</w:p></w:comment>'
+                           for i in range(2))
+        extras['word/comments.xml'] = f'<w:comments xmlns:w="{CORPUS["W"]}">{contents}</w:comments>'
+        rels.append(('review', 'comments', 'comments.xml'))
     if facing_notes:
         note = ''.join(f'<w:p>{text(f"Continuation record {i:03}")}</w:p>' for i in range(58))
         extras['word/footnotes.xml'] = f'<w:footnotes xmlns:w="{CORPUS["W"]}"><w:footnote w:id="1">{note}</w:footnote></w:footnotes>'
@@ -205,11 +221,48 @@ def column_witnesses(pdf):
     return words
 
 
-def run(desktop, old, current, folder, facing_notes=False, structured=False, column_geometry=False, numbered_lines=False):
+def reviewed_content(path):
+    ns = {'w': CORPUS['W']}
+    with ZipFile(path) as archive:
+        main = ET.fromstring(archive.read('word/document.xml'))
+        comments = ET.fromstring(archive.read('word/comments.xml'))
+    attr = '{' + ns['w'] + '}'
+    tags = {kind: [node.get(attr + 'id') for node in main.findall('.//w:' + kind, ns)]
+            for kind in ('commentRangeStart', 'commentRangeEnd', 'commentReference')}
+    anchors = set(tags['commentRangeStart'])
+    assert len(anchors) == 2 and all(set(ids) == anchors for ids in tags.values()), tags
+    texts = {node.get(attr + 'id'): ''.join(node.itertext()).strip() for node in comments.findall('w:comment', ns)}
+    assert set(texts) == anchors and set(texts.values()) == {'BalloonWitness0','BalloonWitness1'}, texts
+    revisions = {kind: [(n.get(attr + 'author'), ''.join(n.itertext()).strip()) for n in main.findall('.//w:' + kind, ns)]
+                 for kind in ('ins', 'del')}
+    assert revisions == {'ins': [('Second reviewer', 'InsertionWitness')], 'del': [('First reviewer', 'DeletionWitness')]}, revisions
+    return {'comments': sorted(texts.values()), 'anchorTriples': len(anchors), 'revisions': revisions}
+
+
+def print_review(cli, document, pdf):
+    requests = [('open_document', {'path': str(document)}),
+                ('execute', {'command': 'file.exportPdf', 'params': {'path': str(pdf), 'markup': True}})]
+    lines = [json.dumps({'jsonrpc': '2.0', 'id': i, 'method': 'tools/call',
+                         'params': {'name': tool, 'arguments': args}}) for i, (tool, args) in enumerate(requests, 1)]
+    result = subprocess.run([cli, 'mcp', '--automation-read-root', document.parent, '--automation-write-root', pdf.parent],
+                            input='\n'.join(lines) + '\n', capture_output=True, text=True, check=True, timeout=60)
+    replies = [json.loads(line)['result'] for line in result.stdout.splitlines()]
+    assert len(replies) == 2 and all(not r.get('isError') for r in replies), replies
+    pages = subprocess.check_output(['pdftotext', '-layout', pdf, '-'], text=True).split('\f')
+    witnesses = {}
+    for word in ('BalloonWitness0', 'BalloonWitness1', 'AnchorWitness0', 'AnchorWitness1', 'DeletionWitness', 'InsertionWitness'):
+        (page,) = [number for number, content in enumerate(pages, 1) if word in content]
+        witnesses[word] = page
+    assert witnesses['BalloonWitness0'] == witnesses['AnchorWitness0']
+    assert witnesses['BalloonWitness1'] == witnesses['AnchorWitness1']
+    return witnesses
+
+
+def run(desktop, old, current, folder, facing_notes=False, structured=False, column_geometry=False, numbered_lines=False, reviewed=False):
     folder.mkdir(parents=True, exist_ok=False)
     original, working = folder / '原始.docx', folder / '分节 编辑.docx'
-    fixture(original, facing_notes=facing_notes, structured=structured, column_geometry=column_geometry, numbered_lines=numbered_lines)
-    fixture(folder / 'expanded.docx', edited=True, facing_notes=facing_notes, structured=structured, column_geometry=column_geometry, numbered_lines=numbered_lines)
+    fixture(original, facing_notes=facing_notes, structured=structured, column_geometry=column_geometry, numbered_lines=numbered_lines, reviewed=reviewed)
+    fixture(folder / 'expanded.docx', edited=True, facing_notes=facing_notes, structured=structured, column_geometry=column_geometry, numbered_lines=numbered_lines, reviewed=reviewed)
     source_hash = digest(original)
     shutil.copyfile(original, working)
     reference = []
@@ -225,7 +278,7 @@ def run(desktop, old, current, folder, facing_notes=False, structured=False, col
     def inspect():
         return word_request(n, 'document.inspect', key=key).get('result')
     def command(action, **params):
-        state = inspect()
+        state = wait(inspect, "current document revision", proc)
         answer = word_request(n, 'engine.execute', {'doc': state['doc'], 'version': state['version'], 'command': action, 'params': params}, key)
         assert answer['ok'], answer
     def events(offset):
@@ -299,6 +352,16 @@ def run(desktop, old, current, folder, facing_notes=False, structured=False, col
             assert continuous == list(range(5, 5 + len(continuous)))
         assert max(labels['expanded']) > max(labels['original']) and len(labels['expanded']) > len(labels['original'])
         formats['marginLabels'] = {k: labels[k] for k in ('original', 'expanded')}
+    if reviewed:
+        formats['reviewByWriter'] = {name: reviewed_content(file) for name, file in
+            [('source', original), ('native', working), ('baseline', folder / 'baseline-resaved.docx'),
+             ('candidate', folder / 'candidate-resaved.docx')]}
+        old_pdf, new_pdf = folder / 'old-review.pdf', folder / 'new-review.pdf'
+        prior, accepted = print_review(old, working, old_pdf), print_review(current, working, new_pdf)
+        assert prior == accepted
+        review_pages = SECTIONS['compare_rasters'](old_pdf, new_pdf)
+        assert len(review_pages) == after['pages']
+        formats['printedMarkup'] = {'witnessPages': accepted, 'comparedRasters': len(review_pages)}
     return {
         **formats, 'sourceSha256': source_hash, 'desktopSha256': digest(desktop),
         'original': before, 'expanded': after, 'nativePatches': patches, 'savedAndReopened': True,
@@ -315,7 +378,8 @@ if __name__ == '__main__':
     arg.add_argument('--structured', action='store_true', help='exercise continued and restarted lists, a frame, a drop cap and nested table fields')
     arg.add_argument('--column-geometry', action='store_true', help='exercise unequal columns, an explicit column break and both rotated text directions')
     arg.add_argument('--numbered-lines', action='store_true', help='exercise per-page, section and continuous margin line numbering')
+    arg.add_argument('--reviewed', action='store_true', help='include tracked revisions, anchored comments and independent printed markup')
     args = arg.parse_args()
     dest = args.output.resolve()
-    result = run(args.desktop.resolve(), args.baseline.resolve(), args.candidate.resolve(), dest, args.facing_notes, args.structured, args.column_geometry, args.numbered_lines)
+    result = run(args.desktop.resolve(), args.baseline.resolve(), args.candidate.resolve(), dest, args.facing_notes, args.structured, args.column_geometry, args.numbered_lines, args.reviewed)
     (dest / 'report.json').write_text(json.dumps(result, indent=2) + '\n')

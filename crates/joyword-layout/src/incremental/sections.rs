@@ -168,6 +168,7 @@ impl Window {
                     | PartKind::Footnote
                     | PartKind::Endnote
                     | PartKind::TextBox
+                    | PartKind::Comment
             )
         }) {
             return false;

@@ -834,3 +834,128 @@ fn numbered_lines_continue_across_edits_until_a_verified_restart()
     );
     Ok(())
 }
+
+#[test]
+fn reviewed_sections_and_reply_edits_match_full_layout_and_invalidate_their_balloons()
+-> Result<(), Box<dyn std::error::Error>> {
+    use joyword_model::{Comment, PartKind, Revision, RevisionKind};
+    let mut doc = Document::new();
+    doc.body.clear();
+    let paragraph =
+        |text: &str| joyword_model::para_block(Paragraph::with_text(text, Default::default()));
+    doc.revisions
+        .push(Revision::new(RevisionKind::Delete, "First reader", ""));
+    doc.revisions
+        .push(Revision::new(RevisionKind::Insert, "Second reader", ""));
+    for i in 0..68 {
+        doc.body.push(paragraph("Section entry"));
+        let mut reviewed = Paragraph::with_text(
+            "Reviewed sentence to illustrate separate visibility of moved deletions.",
+            Default::default(),
+        );
+        if i == 30 {
+            reviewed.runs[0].props.del = Some(0);
+        } else if i == 34 {
+            reviewed.runs[0].props.ins = Some(1);
+        }
+        doc.body.push(joyword_model::para_block(reviewed));
+        let mut end = Paragraph::with_text("End", Default::default());
+        if i < 67 {
+            end.section = Some(Box::new(doc.last_section.clone()));
+        }
+        doc.body.push(joyword_model::para_block(end));
+    }
+    let first = doc.add_part(
+        PartKind::Comment,
+        vec![paragraph("Please check this phrase")],
+    );
+    let reply = doc.add_part(PartKind::Comment, vec![paragraph("The phrase is correct")]);
+    for (id, part, parent) in [(7, first, None), (8, reply, Some(7))] {
+        doc.comments.insert(
+            id,
+            Comment {
+                author: "Reviewer".into(),
+                part,
+                parent,
+                ..Default::default()
+            },
+        );
+    }
+    let block = 34 * 3 + 1;
+    doc.insert_object(
+        &Pos::body(block, 8),
+        InlineObject::CommentEnd { id: 7 },
+        &Default::default(),
+    )?;
+    doc.insert_object(
+        &Pos::body(block, 0),
+        InlineObject::CommentStart { id: 7 },
+        &Default::default(),
+    )?;
+    let mut edited = doc.clone();
+    edited.insert_text(
+        &Pos::body(block, 5),
+        "insert inside the marked range ",
+        &Default::default(),
+    )?;
+    let mut replied = edited.clone();
+    replied.insert_text(
+        &Pos::new(StoryRef::Part(reply), Path::top(0), 4),
+        "updated reply ",
+        &Default::default(),
+    )?;
+    let mut renamed = replied.clone();
+    renamed.revisions[0].author = "A different reader".into();
+    for hide in [
+        HideDeleted::default(),
+        HideDeleted::ALL,
+        HideDeleted {
+            plain: true,
+            moved_from: false,
+        },
+    ] {
+        let opts = LayoutOptions {
+            hide_marked: hide,
+            ..Default::default()
+        };
+        let mut cache = LayoutCache::new();
+        let mut previous = layout_shared(&doc, &mut cache, &opts);
+        assert_eq!(previous.pages.len(), 68);
+        for (state, dirty) in [
+            (&edited, 34..35),
+            (&doc, 34..35),
+            (&edited, 34..35),
+            (&replied, 34..35),
+            (&renamed, 0..68),
+        ] {
+            let next = layout_shared(state, &mut cache, &opts);
+            let full = layout(state, &mut LayoutCache::new(), &opts);
+            assert_eq!(next.changed_pages_from(&previous), Some(dirty));
+            assert_eq!(next.index, full.index);
+            assert_eq!(format!("{:?}", next.pages), format!("{:?}", full.pages));
+            let pos = Pos::body(block, 4);
+            let (a, b) = (
+                next.caret_on(&pos, 0).unwrap(),
+                full.caret_on(&pos, 0).unwrap(),
+            );
+            assert_eq!((a.page, a.x, a.top), (b.page, b.x, b.top));
+            previous = next;
+        }
+        // Change only the revision table. A previously hidden deletion can now become visible.
+        let mut moved = renamed.clone();
+        moved.revisions[0].move_name = Some("Move1".into());
+        let next = layout_shared(&moved, &mut cache, &opts);
+        assert_eq!(
+            format!("{:?}", next.pages),
+            format!("{:?}", layout(&moved, &mut LayoutCache::new(), &opts).pages)
+        );
+        if hide.plain != hide.moved_from {
+            assert!(next.changed_pages_from(&previous).is_none());
+            assert_ne!(
+                format!("{:?}", next.pages[30]),
+                format!("{:?}", previous.pages[30])
+            );
+        }
+    }
+    Ok(())
+}

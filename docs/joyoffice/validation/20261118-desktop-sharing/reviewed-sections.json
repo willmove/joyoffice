@@ -1,0 +1,1274 @@
+{
+  "date": "2026-11-19",
+  "baseline": "87d48e8d",
+  "scope": "Editing a long reviewed document, anchored comments and replies, revision author changes, separate moved-from and ordinary deletion visibility, and printing with markup. The complete paginator still prepares the final print/PDF scene.",
+  "formatReference": "https://learn.microsoft.com/en-us/office/open-xml/word/how-to-insert-a-comment-into-a-word-processing-document",
+  "reproduce": "python3 scripts/joyword/check-field-propagation.py DESKTOP BASELINE_CLI CANDIDATE_CLI OUTPUT --reviewed",
+  "rollback": "Restore the previous review eligibility guard and cache rules from 87d48e8d. Both generations re-open the edited DOCX and produce identical PDF rasters with and without markup.",
+  "platforms": {
+    "macOS": {
+      "hardware": "Apple M4",
+      "native": {
+        "reviewByWriter": {
+          "source": {
+            "comments": [
+              "BalloonWitness0",
+              "BalloonWitness1"
+            ],
+            "anchorTriples": 2,
+            "revisions": {
+              "ins": [
+                [
+                  "Second reviewer",
+                  "InsertionWitness"
+                ]
+              ],
+              "del": [
+                [
+                  "First reviewer",
+                  "DeletionWitness"
+                ]
+              ]
+            }
+          },
+          "native": {
+            "comments": [
+              "BalloonWitness0",
+              "BalloonWitness1"
+            ],
+            "anchorTriples": 2,
+            "revisions": {
+              "ins": [
+                [
+                  "Second reviewer",
+                  "InsertionWitness"
+                ]
+              ],
+              "del": [
+                [
+                  "First reviewer",
+                  "DeletionWitness"
+                ]
+              ]
+            }
+          },
+          "baseline": {
+            "comments": [
+              "BalloonWitness0",
+              "BalloonWitness1"
+            ],
+            "anchorTriples": 2,
+            "revisions": {
+              "ins": [
+                [
+                  "Second reviewer",
+                  "InsertionWitness"
+                ]
+              ],
+              "del": [
+                [
+                  "First reviewer",
+                  "DeletionWitness"
+                ]
+              ]
+            }
+          },
+          "candidate": {
+            "comments": [
+              "BalloonWitness0",
+              "BalloonWitness1"
+            ],
+            "anchorTriples": 2,
+            "revisions": {
+              "ins": [
+                [
+                  "Second reviewer",
+                  "InsertionWitness"
+                ]
+              ],
+              "del": [
+                [
+                  "First reviewer",
+                  "DeletionWitness"
+                ]
+              ]
+            }
+          }
+        },
+        "printedMarkup": {
+          "witnessPages": {
+            "BalloonWitness0": 37,
+            "BalloonWitness1": 65,
+            "AnchorWitness0": 37,
+            "AnchorWitness1": 65,
+            "DeletionWitness": 37,
+            "InsertionWitness": 37
+          },
+          "comparedRasters": 71
+        },
+        "sourceSha256": "59467092cb4fbe1421c528ede28cd1cf9dd38f69370c0ea8133c10deb120c532",
+        "desktopSha256": "1c4ba886c1b99eb1acbcefa003b005a8037d0879436a0ffce1cf0b47ded93e5c",
+        "original": {
+          "notePages": [],
+          "pages": 68,
+          "editedPage": 35,
+          "firstDirtyPage": 3,
+          "fieldPages": [
+            65
+          ],
+          "followingPage": 67,
+          "restartPage": 68,
+          "fieldNumbers": [
+            99,
+            99,
+            99,
+            99,
+            99,
+            99,
+            99,
+            99,
+            99,
+            99,
+            99,
+            99
+          ]
+        },
+        "expanded": {
+          "notePages": [],
+          "pages": 71,
+          "editedPage": 37,
+          "firstDirtyPage": 3,
+          "fieldPages": [
+            67,
+            68
+          ],
+          "followingPage": 70,
+          "restartPage": 71,
+          "fieldNumbers": [
+            102,
+            102,
+            102,
+            102,
+            102,
+            102,
+            102,
+            102,
+            102,
+            102,
+            102,
+            102
+          ]
+        },
+        "nativePatches": [
+          {
+            "action": "text.insert",
+            "firstPage": 3,
+            "lastPage": 71,
+            "pages": 71,
+            "displayedPages": [
+              3,
+              67,
+              68,
+              70,
+              71
+            ]
+          },
+          {
+            "action": "edit.undo",
+            "firstPage": 3,
+            "lastPage": 71,
+            "pages": 68,
+            "displayedPages": [
+              3,
+              65,
+              67,
+              68
+            ]
+          },
+          {
+            "action": "edit.redo",
+            "firstPage": 3,
+            "lastPage": 71,
+            "pages": 71,
+            "displayedPages": [
+              3,
+              67,
+              68,
+              70,
+              71
+            ]
+          }
+        ],
+        "savedAndReopened": true,
+        "twoVersionPageRastersSha256": [
+          "f558beef401b7d0e813eff8491ffb318ca946eeaf76b3109781c07a5e0a38af0",
+          "f555e1db905051fd909b46bfddbe02dd60b0627fd9efd9616c54c6e93bbf043d",
+          "048e83e4036631a7cac2481390934ad183f9d9ed37ea303d11c9ab3c1df53bef",
+          "1f425185be4ae1bdbb78d247736fd926b690edf1df8eec0922473c4bfe951bac",
+          "9db893509c27e7911444810187a17297ccfb029c3df319f8d4f58f9fbbbd6ead",
+          "8c857efbb9efee46200a2b26433a250a12fb3d27057eacce760930504cd0e773",
+          "4f2b1a2d50d4fd25c75afad7bdf277f16bfbc53b5a988055931b9964621620c8",
+          "35164b060043834f0b038c1503c86d056f7e78168e611c02fa1c79d26e9e5190",
+          "6c4c579e7e3625c4944b663d96cdaba5ac9d12109d9dff3307ed0d8e12a42aea",
+          "3166b1c4041433f2048afa55a56734dfbf05e99dae3319832495dd0ded8eac21",
+          "5b4ff1d9add76512ae40d4169857b3334e053b93ef393f0a54d85f5c9f4b2537",
+          "1672407696276a3404a3645d8be489979006560470256e4d3ff0c521ef27563c",
+          "d8419c6c8cac07fa7bd504008da1d61e65b6e0e531b1fdc59d55f4b177aeb0fa",
+          "363b0bd853e017c19c407cf785a347d91196f670b1d9895008066332b7c2fe46",
+          "a1793d987e5b0d5cc0027f205d181ec75c402699cec5ce509a4e0fadda324225",
+          "ebfe3797f4551b44b7963386abe5efea30ca887ad22c21d8ed08833c6ce32eda",
+          "48e950ea5ae0cc0734a44b14732def46a307ae21bdb14c4b64a131b621b0744e",
+          "992b44155a67654e5c4ec91f0d161ec80183c6037cbe6f9dba5fce6125c0b049",
+          "6c91f0f86e215352ee047f5e28db0a3426a3c10a2bc0e06f4b049f7966afb881",
+          "4a42c5d3be8b5527f00c9101dc38c3e3a07ebd15141e5dce6f5d113ca7c200e8",
+          "d704f18c72dcc0395cbf5023036e9225060d59ec556c3f4620142d79b47df1ab",
+          "e49b7fa3f14745050e66cd8570e6301c38b62f85d6ed52c88448d8f9b486e994",
+          "65adbc541225bef165eac9fe661dc049b6982e04ec013cae2b76c6cdc67ea073",
+          "b53815d436bc7b83573971d73108f8e64fd196ca386eef4966734bebb0b2a3f7",
+          "a65537ec14ad16fb286d4a0c1be0f803f74dcfffb620059cea9b370abb7133df",
+          "4b9b0e13988dc5ad550099926e2ee2ef156241ed94ed54b9b3f4ae3da4c7e251",
+          "22de5ce8b9776dce97d79104944f7998582d49040c567868b1fe8d3076e7ab6b",
+          "d4670310c8dfdd6814b65045aa6eda8110b91966b2cb0d7abd30b40876b255dc",
+          "c55db3423aece8c05da7ee8d30b5706d570fa99921cc460e2f83e397331f06de",
+          "70a3a2061a4fc5bc126290099dfabbb64ccfe4320c1648c44edfabde8729cf77",
+          "db2bbfdefd051d4d19d6af8d79240698d4e6148fd39788dc9de69c75313cef23",
+          "725a61bbe85f268478655df7191b2f392e8f7e395890fc406c6aa7692ce3decd",
+          "a7d5c26cb1264480131d07209089a0e5eafcf84e6c7381e98c21f07b0f8822fc",
+          "128b6aa714f879b971f556a4899b283d8f1c509bd4af2066ce19d5c0b11df47c",
+          "9f4f7cae10a4e4b672329fffb9958c5018e37f0f91f0a7460fe4dc7085213f2a",
+          "9f4f7cae10a4e4b672329fffb9958c5018e37f0f91f0a7460fe4dc7085213f2a",
+          "60b0e395f376fdd80bea91b8f38a51334a3e397fc53ddf124d1b36ff0e84baab",
+          "9659076bac28b144cb4f02f6249155f8607e489d853eebbb625fbdd0fe4c202e",
+          "bfe1f0e2faf9a91ea40567173e56e8089767d9b08bb1008fc73e69771f9c5047",
+          "05a00fbb731a28fab5d5c46390c1da82c9fdda7391328bfc6469434649e5ef25",
+          "1fdb0ebfa46efe33d900123f46e8eabb073e362503aa5ea05c4493117ceba3d4",
+          "bbd3bea27909541011c26088d0a1e73978a1e99a275cf5e5ae6bc6e87aaab1cb",
+          "e92eade28bbcf1d42296bc9db3574ad4964f2a7d674ea8238f6c1c2e59eacd70",
+          "b2d6e812c39bc63c4f8eb7d24f057899228046712a199b53c2c9f535a0b23bb7",
+          "1a990e563efb617eb9838b18312aa2ae2ca873912617a4dd7297353caa8f4b25",
+          "58980cd6bcdebccb2e77f0ec02d4ccd71f9e80c85755289f1c524a0625fcc073",
+          "3c289670e8cb5adc0647c35de2171fb57eaa1b8b5c7957c922e5e0bae4e2f40b",
+          "d6d609d055dec2d84f7174e224d1aab1cc8f2061535d47590b850b74ac3c8102",
+          "c95ae6aceaffd471c5d55d8741c012bcdeb1b9fd9d24a304b49ad16d2fb84ce4",
+          "8c4f89b701d8a73ebaa33fd9bd38181f762658479f8389a2c9c939646c17be26",
+          "16da2d74f30e3a54178353652074d6d91230208c49b22bccb5e9ff3ff147906c",
+          "069f9d32f66ea45097707ddfbef9b0f98ea08edbb94fb517543d7f48f39c944c",
+          "6d43e911641ae613788227223c80502032195668213955f050656743a3e2196f",
+          "ea604b50dfb19a39713c18d938f11dc3a21819d2b1f3ed667364fac5c06efc1e",
+          "0f0ceb39fe52384ee9bfd4c3d9f8d2e43e14f7118baf2140826213399aa24734",
+          "b35d8d34e98595a740bb9e6101186fc72fd70470d6fbcc0c2234f22358f499cf",
+          "e8c0cf6d602ad6d05ca28b7bd5cdf631e005da5f200d5e23c5e6a3a072a75bcd",
+          "e6e11ad7c5e64e4c7886dc0cc721bb29fa9b17f4e291adee22bcabe7d553759d",
+          "74ed2f9d4a38ae8d41a51319006867c650ae993da116b0862ca54e630e8d789d",
+          "9a6643d44eccded06bfdca3bf3407307db4ec5c8fdbab93bfb2d0a6da00aa2ea",
+          "4b12543c2960b3e02ff1bb90ad10ca69116e62d022a6fe1e0ebf77576d047ce2",
+          "2b168587c44cdf23279fc6b7f171a85dc15e45368e3defef6df06005b9e4b370",
+          "bd532835012f49d7a66d69b400c1df9c373229c554a12c836346e4d898d13600",
+          "ed0cdaee5ec61a6f9297b6df5f6eeeaa24060f2b2d2168a883a997dde843d609",
+          "2fd53d2432d65a730623917f9000e041ebed1c9a80ca7117a70706c7bc1c5f68",
+          "975578baca223d966f472c6696b47ab3d3ff9dd8172c80cc24c61b976454d15e",
+          "f5182343b1361bd6e97b0ded863a6bd45dac697e0d9198a7d595e1bc645147a3",
+          "68b6aad1388c2ac37eeed6e4851939c4b3a20412831dfec2a2607b959a6a0c20",
+          "9e4f8f6b0209f271afe26b5a5ab7f3346c5092f61c229a66dcc3b663678633b8",
+          "2b1e639042114dcd8adb86cc8a0d81cbbbc4dae196baa58241ee61bd55da58a1",
+          "3ef2d263902442b28a745b0504634308d1f4d2bbbff82049c4e79d62b6521655"
+        ],
+        "crossVersion": {
+          "cliSha256": {
+            "baseline": "98676adb343a532697b7b36982900ab1c664112814a54709b4bd2a658b8ff329",
+            "candidate": "c47bdb52dcf5d6df9072af21ac3244bc96185a4c102798c0c9eea41fa848c006"
+          },
+          "writerReaderPairs": [
+            [
+              "baseline",
+              "baseline"
+            ],
+            [
+              "baseline",
+              "candidate"
+            ],
+            [
+              "candidate",
+              "baseline"
+            ],
+            [
+              "candidate",
+              "candidate"
+            ]
+          ],
+          "pageCount": 71,
+          "savedCopyUnchanged": true
+        }
+      },
+      "releaseTiming": {
+        "baseline": {
+          "sampleCount": 60,
+          "medianMs": 1.402792,
+          "p95Ms": 3.697542,
+          "fullFallbacks": 60,
+          "sceneComparisons": 417,
+          "hitComparisons": 1251,
+          "editThroughLayoutMs": [
+            [
+              3.733583,
+              0.934833,
+              3.1469169999999997,
+              0.890583,
+              3.112375,
+              1.3725,
+              3.0565420000000003,
+              1.026583,
+              3.697542,
+              0.9096249999999999,
+              2.707875,
+              0.885208,
+              3.955417,
+              1.1145829999999999,
+              2.6116249999999996,
+              0.9925419999999999,
+              3.380833,
+              1.192,
+              3.970917,
+              1.162834
+            ],
+            [
+              1.717667,
+              0.530333,
+              1.528833,
+              0.47825,
+              1.433084,
+              0.48258300000000004,
+              1.488375,
+              0.469375,
+              1.4563329999999999,
+              0.473209,
+              1.548292,
+              0.474208,
+              1.473709,
+              0.470292,
+              1.5095830000000001,
+              0.507875,
+              1.526709,
+              0.47175,
+              1.485625,
+              0.46954199999999996
+            ],
+            [
+              1.6258329999999999,
+              0.572875,
+              1.5510000000000002,
+              0.490917,
+              1.482125,
+              0.481958,
+              1.4679579999999999,
+              0.467167,
+              1.457292,
+              0.49295800000000006,
+              1.519334,
+              0.467334,
+              1.4565839999999999,
+              0.469958,
+              1.466917,
+              0.49525,
+              1.480833,
+              0.47612499999999996,
+              1.487625,
+              0.496709
+            ]
+          ]
+        },
+        "candidate": {
+          "sampleCount": 60,
+          "medianMs": 1.0134585,
+          "p95Ms": 2.8301670000000003,
+          "fullFallbacks": 0,
+          "sceneComparisons": 417,
+          "hitComparisons": 1251,
+          "editThroughLayoutMs": [
+            [
+              3.3235,
+              0.811792,
+              2.286083,
+              0.701875,
+              2.8301670000000003,
+              0.7967500000000001,
+              1.889333,
+              0.574125,
+              1.887292,
+              0.672875,
+              2.096209,
+              0.536625,
+              1.937917,
+              0.733417,
+              2.586417,
+              0.7389589999999999,
+              2.013916,
+              0.852833,
+              2.8259589999999997,
+              0.6662079999999999
+            ],
+            [
+              3.6840829999999998,
+              0.71875,
+              2.877875,
+              0.28075,
+              1.255416,
+              0.292042,
+              2.5274590000000003,
+              0.274042,
+              1.245959,
+              0.232417,
+              1.424334,
+              0.36416699999999996,
+              1.308083,
+              0.237458,
+              1.2911249999999999,
+              0.265459,
+              1.24475,
+              0.236042,
+              1.2472500000000002,
+              0.236542
+            ],
+            [
+              1.615417,
+              0.31858400000000003,
+              1.3964999999999999,
+              0.243084,
+              1.176542,
+              0.223625,
+              1.205166,
+              0.24812499999999998,
+              1.2974169999999998,
+              0.237083,
+              1.181958,
+              0.235958,
+              1.174084,
+              0.221417,
+              1.190042,
+              0.22125,
+              1.194125,
+              0.22175,
+              1.1906670000000001,
+              0.219958
+            ]
+          ]
+        }
+      },
+      "earlierRunDuringBuild": {
+        "baseline": {
+          "sampleCount": 60,
+          "medianMs": 1.0036875,
+          "p95Ms": 1.619959,
+          "fullFallbacks": 60,
+          "sceneComparisons": 417,
+          "hitComparisons": 1251,
+          "editThroughLayoutMs": [
+            [
+              1.841875,
+              0.5613750000000001,
+              1.5374169999999998,
+              0.4935,
+              1.448417,
+              0.495791,
+              1.619959,
+              0.5517500000000001,
+              1.554583,
+              0.502708,
+              1.5361660000000001,
+              0.498458,
+              1.533458,
+              0.5003749999999999,
+              1.500667,
+              0.504375,
+              1.524958,
+              0.49770800000000004,
+              1.488459,
+              0.495209
+            ],
+            [
+              1.703834,
+              0.551375,
+              1.548333,
+              0.494917,
+              1.446,
+              0.49304100000000006,
+              1.5015409999999998,
+              0.495,
+              1.485875,
+              0.48591599999999996,
+              1.497208,
+              0.475875,
+              1.466375,
+              0.481375,
+              1.483042,
+              0.508167,
+              1.482875,
+              0.49212500000000003,
+              1.485292,
+              0.48812500000000003
+            ],
+            [
+              1.799958,
+              0.5535,
+              1.5325,
+              0.49233299999999997,
+              1.461041,
+              0.486834,
+              1.46325,
+              0.48050000000000004,
+              1.487083,
+              0.513166,
+              1.5290830000000002,
+              0.48216699999999996,
+              1.489167,
+              0.477875,
+              1.4888329999999999,
+              0.474875,
+              1.4781250000000001,
+              0.5156660000000001,
+              1.5093750000000001,
+              0.47516600000000003
+            ]
+          ]
+        },
+        "candidate": {
+          "sampleCount": 60,
+          "medianMs": 0.7430005000000001,
+          "p95Ms": 1.360542,
+          "fullFallbacks": 0,
+          "sceneComparisons": 417,
+          "hitComparisons": 1251,
+          "editThroughLayoutMs": [
+            [
+              1.7225409999999999,
+              0.32337499999999997,
+              1.3014999999999999,
+              0.235208,
+              1.158792,
+              0.229542,
+              1.208666,
+              0.22575,
+              1.360542,
+              0.25012500000000004,
+              1.248,
+              0.243291,
+              1.2193749999999999,
+              0.238916,
+              1.2149999999999999,
+              0.239208,
+              1.2193749999999999,
+              0.245125,
+              1.222667,
+              0.22725
+            ],
+            [
+              1.6255410000000001,
+              0.301791,
+              1.314167,
+              0.23650000000000002,
+              1.256166,
+              0.23187500000000003,
+              1.212083,
+              0.22491699999999998,
+              1.215458,
+              0.224959,
+              1.2168750000000002,
+              0.22070900000000002,
+              1.201208,
+              0.27987500000000004,
+              1.261,
+              0.228708,
+              1.243125,
+              0.2255,
+              1.20725,
+              0.223166
+            ],
+            [
+              1.656208,
+              0.327209,
+              1.276084,
+              0.264291,
+              1.3066250000000001,
+              0.23641600000000002,
+              1.226708,
+              0.225916,
+              1.229792,
+              0.223542,
+              1.2155,
+              0.225375,
+              1.197625,
+              0.26154200000000005,
+              1.281541,
+              0.233208,
+              1.226375,
+              0.227458,
+              1.2080000000000002,
+              0.22612500000000002
+            ]
+          ]
+        }
+      },
+      "productGate": {
+        "command": "cargo xtask check joyword",
+        "passed": 3710,
+        "failed": 0,
+        "ignored": 2,
+        "strictModelLayoutClippy": true
+      },
+      "spdx": {
+        "target": "aarch64-apple-darwin",
+        "packages": 514,
+        "sourceFiles": 1090,
+        "spdxSha256": "e00a2249e152f6e6921d5da6594be62bcb95348cee50dcb081343c97252eae2e",
+        "missingLicenseTexts": [],
+        "sharedCrates": [
+          "joyoffice-cfb",
+          "joyoffice-drawingml",
+          "joyoffice-fonts",
+          "joyoffice-metafile",
+          "joyoffice-omml",
+          "joyoffice-opc",
+          "joyoffice-theme",
+          "joyoffice-ui"
+        ],
+        "runtimeLegacyDependencies": [
+          "craft-atomic",
+          "craft-font-store",
+          "craft-proof"
+        ]
+      }
+    },
+    "UOS25": {
+      "hardware": "UOS 25 x86_64 DDE X11",
+      "native": {
+        "reviewByWriter": {
+          "source": {
+            "comments": [
+              "BalloonWitness0",
+              "BalloonWitness1"
+            ],
+            "anchorTriples": 2,
+            "revisions": {
+              "ins": [
+                [
+                  "Second reviewer",
+                  "InsertionWitness"
+                ]
+              ],
+              "del": [
+                [
+                  "First reviewer",
+                  "DeletionWitness"
+                ]
+              ]
+            }
+          },
+          "native": {
+            "comments": [
+              "BalloonWitness0",
+              "BalloonWitness1"
+            ],
+            "anchorTriples": 2,
+            "revisions": {
+              "ins": [
+                [
+                  "Second reviewer",
+                  "InsertionWitness"
+                ]
+              ],
+              "del": [
+                [
+                  "First reviewer",
+                  "DeletionWitness"
+                ]
+              ]
+            }
+          },
+          "baseline": {
+            "comments": [
+              "BalloonWitness0",
+              "BalloonWitness1"
+            ],
+            "anchorTriples": 2,
+            "revisions": {
+              "ins": [
+                [
+                  "Second reviewer",
+                  "InsertionWitness"
+                ]
+              ],
+              "del": [
+                [
+                  "First reviewer",
+                  "DeletionWitness"
+                ]
+              ]
+            }
+          },
+          "candidate": {
+            "comments": [
+              "BalloonWitness0",
+              "BalloonWitness1"
+            ],
+            "anchorTriples": 2,
+            "revisions": {
+              "ins": [
+                [
+                  "Second reviewer",
+                  "InsertionWitness"
+                ]
+              ],
+              "del": [
+                [
+                  "First reviewer",
+                  "DeletionWitness"
+                ]
+              ]
+            }
+          }
+        },
+        "printedMarkup": {
+          "witnessPages": {
+            "BalloonWitness0": 37,
+            "BalloonWitness1": 65,
+            "AnchorWitness0": 37,
+            "AnchorWitness1": 65,
+            "DeletionWitness": 37,
+            "InsertionWitness": 37
+          },
+          "comparedRasters": 71
+        },
+        "sourceSha256": "59467092cb4fbe1421c528ede28cd1cf9dd38f69370c0ea8133c10deb120c532",
+        "desktopSha256": "385a2272e12dddb58ac11d3e8ab1a1ebac4428e86113a4c5f7bcd16af5d1cdc9",
+        "original": {
+          "notePages": [],
+          "pages": 68,
+          "editedPage": 35,
+          "firstDirtyPage": 3,
+          "fieldPages": [
+            65
+          ],
+          "followingPage": 67,
+          "restartPage": 68,
+          "fieldNumbers": [
+            99,
+            99,
+            99,
+            99,
+            99,
+            99,
+            99,
+            99,
+            99,
+            99,
+            99,
+            99
+          ]
+        },
+        "expanded": {
+          "notePages": [],
+          "pages": 71,
+          "editedPage": 37,
+          "firstDirtyPage": 3,
+          "fieldPages": [
+            67,
+            68
+          ],
+          "followingPage": 70,
+          "restartPage": 71,
+          "fieldNumbers": [
+            102,
+            102,
+            102,
+            102,
+            102,
+            102,
+            102,
+            102,
+            102,
+            102,
+            102,
+            102
+          ]
+        },
+        "nativePatches": [
+          {
+            "action": "text.insert",
+            "firstPage": 3,
+            "lastPage": 71,
+            "pages": 71,
+            "displayedPages": [
+              3,
+              67,
+              68,
+              70,
+              71
+            ]
+          },
+          {
+            "action": "edit.undo",
+            "firstPage": 3,
+            "lastPage": 71,
+            "pages": 68,
+            "displayedPages": [
+              3,
+              65,
+              67,
+              68
+            ]
+          },
+          {
+            "action": "edit.redo",
+            "firstPage": 3,
+            "lastPage": 71,
+            "pages": 71,
+            "displayedPages": [
+              3,
+              67,
+              68,
+              70,
+              71
+            ]
+          }
+        ],
+        "savedAndReopened": true,
+        "twoVersionPageRastersSha256": [
+          "f558beef401b7d0e813eff8491ffb318ca946eeaf76b3109781c07a5e0a38af0",
+          "f555e1db905051fd909b46bfddbe02dd60b0627fd9efd9616c54c6e93bbf043d",
+          "048e83e4036631a7cac2481390934ad183f9d9ed37ea303d11c9ab3c1df53bef",
+          "1f425185be4ae1bdbb78d247736fd926b690edf1df8eec0922473c4bfe951bac",
+          "9db893509c27e7911444810187a17297ccfb029c3df319f8d4f58f9fbbbd6ead",
+          "8c857efbb9efee46200a2b26433a250a12fb3d27057eacce760930504cd0e773",
+          "4f2b1a2d50d4fd25c75afad7bdf277f16bfbc53b5a988055931b9964621620c8",
+          "35164b060043834f0b038c1503c86d056f7e78168e611c02fa1c79d26e9e5190",
+          "6c4c579e7e3625c4944b663d96cdaba5ac9d12109d9dff3307ed0d8e12a42aea",
+          "3166b1c4041433f2048afa55a56734dfbf05e99dae3319832495dd0ded8eac21",
+          "5b4ff1d9add76512ae40d4169857b3334e053b93ef393f0a54d85f5c9f4b2537",
+          "1672407696276a3404a3645d8be489979006560470256e4d3ff0c521ef27563c",
+          "d8419c6c8cac07fa7bd504008da1d61e65b6e0e531b1fdc59d55f4b177aeb0fa",
+          "363b0bd853e017c19c407cf785a347d91196f670b1d9895008066332b7c2fe46",
+          "a1793d987e5b0d5cc0027f205d181ec75c402699cec5ce509a4e0fadda324225",
+          "ebfe3797f4551b44b7963386abe5efea30ca887ad22c21d8ed08833c6ce32eda",
+          "48e950ea5ae0cc0734a44b14732def46a307ae21bdb14c4b64a131b621b0744e",
+          "992b44155a67654e5c4ec91f0d161ec80183c6037cbe6f9dba5fce6125c0b049",
+          "6c91f0f86e215352ee047f5e28db0a3426a3c10a2bc0e06f4b049f7966afb881",
+          "4a42c5d3be8b5527f00c9101dc38c3e3a07ebd15141e5dce6f5d113ca7c200e8",
+          "d704f18c72dcc0395cbf5023036e9225060d59ec556c3f4620142d79b47df1ab",
+          "e49b7fa3f14745050e66cd8570e6301c38b62f85d6ed52c88448d8f9b486e994",
+          "65adbc541225bef165eac9fe661dc049b6982e04ec013cae2b76c6cdc67ea073",
+          "b53815d436bc7b83573971d73108f8e64fd196ca386eef4966734bebb0b2a3f7",
+          "a65537ec14ad16fb286d4a0c1be0f803f74dcfffb620059cea9b370abb7133df",
+          "4b9b0e13988dc5ad550099926e2ee2ef156241ed94ed54b9b3f4ae3da4c7e251",
+          "22de5ce8b9776dce97d79104944f7998582d49040c567868b1fe8d3076e7ab6b",
+          "d4670310c8dfdd6814b65045aa6eda8110b91966b2cb0d7abd30b40876b255dc",
+          "c55db3423aece8c05da7ee8d30b5706d570fa99921cc460e2f83e397331f06de",
+          "70a3a2061a4fc5bc126290099dfabbb64ccfe4320c1648c44edfabde8729cf77",
+          "db2bbfdefd051d4d19d6af8d79240698d4e6148fd39788dc9de69c75313cef23",
+          "725a61bbe85f268478655df7191b2f392e8f7e395890fc406c6aa7692ce3decd",
+          "a7d5c26cb1264480131d07209089a0e5eafcf84e6c7381e98c21f07b0f8822fc",
+          "128b6aa714f879b971f556a4899b283d8f1c509bd4af2066ce19d5c0b11df47c",
+          "9f4f7cae10a4e4b672329fffb9958c5018e37f0f91f0a7460fe4dc7085213f2a",
+          "9f4f7cae10a4e4b672329fffb9958c5018e37f0f91f0a7460fe4dc7085213f2a",
+          "60b0e395f376fdd80bea91b8f38a51334a3e397fc53ddf124d1b36ff0e84baab",
+          "9659076bac28b144cb4f02f6249155f8607e489d853eebbb625fbdd0fe4c202e",
+          "bfe1f0e2faf9a91ea40567173e56e8089767d9b08bb1008fc73e69771f9c5047",
+          "05a00fbb731a28fab5d5c46390c1da82c9fdda7391328bfc6469434649e5ef25",
+          "1fdb0ebfa46efe33d900123f46e8eabb073e362503aa5ea05c4493117ceba3d4",
+          "bbd3bea27909541011c26088d0a1e73978a1e99a275cf5e5ae6bc6e87aaab1cb",
+          "e92eade28bbcf1d42296bc9db3574ad4964f2a7d674ea8238f6c1c2e59eacd70",
+          "b2d6e812c39bc63c4f8eb7d24f057899228046712a199b53c2c9f535a0b23bb7",
+          "1a990e563efb617eb9838b18312aa2ae2ca873912617a4dd7297353caa8f4b25",
+          "58980cd6bcdebccb2e77f0ec02d4ccd71f9e80c85755289f1c524a0625fcc073",
+          "3c289670e8cb5adc0647c35de2171fb57eaa1b8b5c7957c922e5e0bae4e2f40b",
+          "d6d609d055dec2d84f7174e224d1aab1cc8f2061535d47590b850b74ac3c8102",
+          "c95ae6aceaffd471c5d55d8741c012bcdeb1b9fd9d24a304b49ad16d2fb84ce4",
+          "8c4f89b701d8a73ebaa33fd9bd38181f762658479f8389a2c9c939646c17be26",
+          "16da2d74f30e3a54178353652074d6d91230208c49b22bccb5e9ff3ff147906c",
+          "069f9d32f66ea45097707ddfbef9b0f98ea08edbb94fb517543d7f48f39c944c",
+          "6d43e911641ae613788227223c80502032195668213955f050656743a3e2196f",
+          "ea604b50dfb19a39713c18d938f11dc3a21819d2b1f3ed667364fac5c06efc1e",
+          "0f0ceb39fe52384ee9bfd4c3d9f8d2e43e14f7118baf2140826213399aa24734",
+          "b35d8d34e98595a740bb9e6101186fc72fd70470d6fbcc0c2234f22358f499cf",
+          "e8c0cf6d602ad6d05ca28b7bd5cdf631e005da5f200d5e23c5e6a3a072a75bcd",
+          "e6e11ad7c5e64e4c7886dc0cc721bb29fa9b17f4e291adee22bcabe7d553759d",
+          "74ed2f9d4a38ae8d41a51319006867c650ae993da116b0862ca54e630e8d789d",
+          "9a6643d44eccded06bfdca3bf3407307db4ec5c8fdbab93bfb2d0a6da00aa2ea",
+          "4b12543c2960b3e02ff1bb90ad10ca69116e62d022a6fe1e0ebf77576d047ce2",
+          "2b168587c44cdf23279fc6b7f171a85dc15e45368e3defef6df06005b9e4b370",
+          "bd532835012f49d7a66d69b400c1df9c373229c554a12c836346e4d898d13600",
+          "ed0cdaee5ec61a6f9297b6df5f6eeeaa24060f2b2d2168a883a997dde843d609",
+          "2fd53d2432d65a730623917f9000e041ebed1c9a80ca7117a70706c7bc1c5f68",
+          "975578baca223d966f472c6696b47ab3d3ff9dd8172c80cc24c61b976454d15e",
+          "f5182343b1361bd6e97b0ded863a6bd45dac697e0d9198a7d595e1bc645147a3",
+          "68b6aad1388c2ac37eeed6e4851939c4b3a20412831dfec2a2607b959a6a0c20",
+          "9e4f8f6b0209f271afe26b5a5ab7f3346c5092f61c229a66dcc3b663678633b8",
+          "2b1e639042114dcd8adb86cc8a0d81cbbbc4dae196baa58241ee61bd55da58a1",
+          "3ef2d263902442b28a745b0504634308d1f4d2bbbff82049c4e79d62b6521655"
+        ],
+        "crossVersion": {
+          "cliSha256": {
+            "baseline": "10387685e5985fd0139438d8cc7244628ba61c9cd789bf67afae3bc47354dee0",
+            "candidate": "bd2918136be936d0b487857ee957e2e7ae7d9671c3fdae0b2e50e2e84e2b265b"
+          },
+          "writerReaderPairs": [
+            [
+              "baseline",
+              "baseline"
+            ],
+            [
+              "baseline",
+              "candidate"
+            ],
+            [
+              "candidate",
+              "baseline"
+            ],
+            [
+              "candidate",
+              "candidate"
+            ]
+          ],
+          "pageCount": 71,
+          "savedCopyUnchanged": true
+        }
+      },
+      "releaseTiming": {
+        "baseline": {
+          "sampleCount": 60,
+          "medianMs": 1.0585385,
+          "p95Ms": 1.895331,
+          "fullFallbacks": 60,
+          "sceneComparisons": 417,
+          "hitComparisons": 1251,
+          "editThroughLayoutMs": [
+            [
+              2.340786,
+              0.603241,
+              1.548389,
+              0.494794,
+              2.702977,
+              0.429104,
+              1.535755,
+              0.422852,
+              1.454988,
+              0.42182,
+              1.471668,
+              0.47713099999999997,
+              2.33242,
+              0.421871,
+              1.433769,
+              0.42041799999999996,
+              1.475244,
+              0.42629799999999995,
+              1.5744859999999998,
+              0.616085
+            ],
+            [
+              1.845391,
+              0.7053680000000001,
+              1.762379,
+              0.491728,
+              1.4117089999999999,
+              0.433061,
+              1.613027,
+              0.431598,
+              1.895331,
+              0.451605,
+              1.6276929999999998,
+              0.436648,
+              1.457101,
+              0.429515,
+              1.4883380000000002,
+              0.435785,
+              1.539191,
+              0.46187399999999995,
+              1.5460440000000002,
+              0.441546
+            ],
+            [
+              1.873542,
+              0.6323350000000001,
+              1.56075,
+              0.45201600000000003,
+              1.559719,
+              0.704237,
+              1.5885420000000001,
+              0.429274,
+              1.6078270000000001,
+              0.429554,
+              1.481957,
+              0.429775,
+              1.45098,
+              0.42831199999999997,
+              1.635708,
+              0.43894099999999997,
+              1.513745,
+              0.43412300000000004,
+              1.613728,
+              0.435896
+            ]
+          ]
+        },
+        "candidate": {
+          "sampleCount": 60,
+          "medianMs": 0.8486955,
+          "p95Ms": 1.868523,
+          "fullFallbacks": 0,
+          "sceneComparisons": 417,
+          "hitComparisons": 1251,
+          "editThroughLayoutMs": [
+            [
+              1.868523,
+              0.409208,
+              1.414704,
+              0.253142,
+              1.2537909999999999,
+              0.23407699999999998,
+              1.304573,
+              0.393619,
+              1.334958,
+              0.23523000000000002,
+              1.257657,
+              0.232334,
+              1.250454,
+              0.23608099999999999,
+              1.300616,
+              0.229389,
+              1.52752,
+              0.23543,
+              1.2713729999999999,
+              0.228938
+            ],
+            [
+              1.893157,
+              0.5282250000000001,
+              1.4746329999999999,
+              0.29891599999999996,
+              1.150652,
+              0.23200400000000002,
+              1.398063,
+              0.22913799999999998,
+              1.245965,
+              0.234047,
+              1.230277,
+              0.238796,
+              1.815777,
+              0.250147,
+              1.304994,
+              0.233326,
+              1.2403950000000001,
+              0.231352,
+              1.2707510000000002,
+              0.233557
+            ],
+            [
+              1.933041,
+              0.546739,
+              1.408092,
+              0.27731700000000004,
+              1.3689399999999998,
+              0.24549800000000002,
+              1.2715429999999999,
+              0.237083,
+              2.126995,
+              0.250328,
+              1.245926,
+              0.26808000000000004,
+              1.320472,
+              0.234829,
+              1.2707709999999999,
+              0.24072000000000002,
+              1.369001,
+              0.280713,
+              1.294244,
+              0.24166100000000001
+            ]
+          ]
+        }
+      },
+      "earlierRunDuringBuild": {
+        "baseline": {
+          "sampleCount": 60,
+          "medianMs": 1.3119159999999999,
+          "p95Ms": 2.8855,
+          "fullFallbacks": 60,
+          "sceneComparisons": 417,
+          "hitComparisons": 1251,
+          "editThroughLayoutMs": [
+            [
+              4.491072,
+              0.956948,
+              2.514382,
+              0.746193,
+              3.169929,
+              0.766289,
+              2.574912,
+              0.6899700000000001,
+              1.970388,
+              0.895866,
+              2.0165830000000002,
+              0.568238,
+              1.70313,
+              0.5168440000000001,
+              1.6482599999999998,
+              0.495625,
+              2.250921,
+              0.5283249999999999,
+              1.909878,
+              0.504792
+            ],
+            [
+              2.8855,
+              0.975572,
+              2.602853,
+              0.757363,
+              2.138636,
+              0.6151530000000001,
+              3.223417,
+              0.6204430000000001,
+              1.824202,
+              0.6616080000000001,
+              1.706236,
+              0.5366000000000001,
+              2.68834,
+              0.685201,
+              1.928251,
+              0.574219,
+              1.768941,
+              0.53107,
+              2.181053,
+              0.608121
+            ],
+            [
+              2.788984,
+              0.802215,
+              2.18475,
+              0.760559,
+              2.270486,
+              0.7661290000000001,
+              1.9441199999999998,
+              0.515592,
+              1.902304,
+              0.638747,
+              1.847043,
+              0.5575880000000001,
+              2.0053520000000002,
+              0.5547030000000001,
+              1.854116,
+              0.568218,
+              2.13542,
+              0.554853,
+              1.758882,
+              0.5313
+            ]
+          ]
+        },
+        "candidate": {
+          "sampleCount": 60,
+          "medianMs": 1.200117,
+          "p95Ms": 2.937555,
+          "fullFallbacks": 0,
+          "sceneComparisons": 417,
+          "hitComparisons": 1251,
+          "editThroughLayoutMs": [
+            [
+              3.294807,
+              0.590438,
+              2.160646,
+              0.393429,
+              2.937555,
+              0.425787,
+              2.0526479999999996,
+              0.360528,
+              1.8782,
+              0.370747,
+              2.737068,
+              0.399389,
+              1.9154879999999999,
+              0.374944,
+              1.971059,
+              0.523126,
+              1.4843709999999999,
+              0.30626,
+              1.454536,
+              0.301931
+            ],
+            [
+              3.629648,
+              0.6655460000000001,
+              2.1099729999999997,
+              0.396424,
+              1.814403,
+              0.417522,
+              1.630688,
+              0.313763,
+              1.3695599999999999,
+              0.26294,
+              1.367548,
+              0.264053,
+              1.450429,
+              0.313783,
+              1.45663,
+              0.302562,
+              1.39638,
+              0.282055,
+              1.486474,
+              0.26085600000000003
+            ],
+            [
+              2.912849,
+              1.0326860000000002,
+              3.484553,
+              0.417673,
+              1.8277079999999999,
+              0.37200900000000003,
+              2.151169,
+              0.439533,
+              2.3041989999999997,
+              0.349849,
+              1.532268,
+              0.30548800000000004,
+              1.655613,
+              0.294338,
+              1.4777989999999999,
+              0.400912,
+              1.539321,
+              0.292114,
+              1.440551,
+              0.30224100000000004
+            ]
+          ]
+        }
+      },
+      "productGate": {
+        "command": "cargo xtask check joyword",
+        "passed": 3714,
+        "failed": 0,
+        "ignored": 2,
+        "strictModelLayoutClippy": true
+      },
+      "spdx": {
+        "target": "x86_64-unknown-linux-gnu",
+        "packages": 603,
+        "sourceFiles": 1095,
+        "spdxSha256": "eb4389009284ddc6efb31ec0c62d32acc5113b3a9c2ac5983e4eefef54ce29d5",
+        "missingLicenseTexts": [],
+        "sharedCrates": [
+          "joyoffice-cfb",
+          "joyoffice-drawingml",
+          "joyoffice-fonts",
+          "joyoffice-metafile",
+          "joyoffice-omml",
+          "joyoffice-opc",
+          "joyoffice-theme",
+          "joyoffice-ui"
+        ],
+        "runtimeLegacyDependencies": [
+          "craft-atomic",
+          "craft-font-store",
+          "craft-proof"
+        ]
+      }
+    }
+  }
+}
