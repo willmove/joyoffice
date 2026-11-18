@@ -139,3 +139,9 @@ Word 和 Deck 共用目录遍历及文件修订识别，塑形和回退顺序由
 对六种画廊线条与连接线使用五组参数，对另外五种导入预设使用同样五组参数。每个测试对象使用 PresentationML 的 `p:cxnSp`，包括折线、曲线及升降对角线。先让新旧 CLI 渲染原件和本版重新生成的 PPTX，再将 ECMA-376 附件中对应的几何路径及坐标公式作为 `a:custGeom`，专由旧版的自定义几何读取器生成参照图。两端 55 个连接实例均与参照完全相符。画廊的 30 个实例与旧版也完全相符。另 25 个实例的 960 × 540 合成页与旧版相差 12,071 个像素，两端相同。新旧版均保留预设名与调整值，旧版读回时仍画简化路径。
 
 复跑用 `python3 scripts/joydeck/check-preset-shapes.py OLD_CLI NEW_CLI NEW_DIR --family connectors --definitions PATH_TO_PRESET_XML`，第二组将族名换为 `file-connectors`。几何单测另核对所有控制点、两个端点以及五段连接线的三个拖动手柄。两端的 Deck 产品工程检查分别通过 998 与 1,003 项，六个入口联合构建与公共 UI 专项均通过。[合成页面摘要、规范指纹及回归](deck-connectors.json)
+
+## Sheet 查找向量与双版本互读
+
+六种查找函数直接读取原数组，保留首次／末次重复项、通配符、类型差异、二分查找及缺失结果。XLOOKUP 与 XMATCH 的正向及反向最邻近查找，在同一遍访问中记录候选并优先返回精确命中。两端分别对 4,096 行的真实桌面会话提交新键并撤销、重做，再直接检查 XLSX XML 的七个公式及其缓存值，最后在桌面重开。另有八个查找公式通过两版写入、两版重开的四种组合。六种查找、汇总与统计的独立 CLI 公式期望值合计 35 个。[原生验证](sheet-lookups.json) · [独立公式期望](version-rollback.json) · [Microsoft 查找语义](https://support.microsoft.com/en-gb/excel/functions/xlookup-function)
+
+性能用例每次由同一个 Release CLI 打开刚保存的工作簿，交替提交 12 次查找键并逐格核验最终值。基线和候选各预热一次，随后按 ABBA 各采 20 次。进程启动、打开及编辑合计的 P95 为macOS 14.43 → 13.74 ms，UOS 26.53 → 29.26 ms。复跑入口为 `python3 scripts/joysheet/check-lookup-edit.py DESKTOP NEW_DIR --compare-cli OLD_CLI NEW_CLI`。两台机器的产品工程检查均通过 1,471 项并按原配置忽略一项。最终 Release 重验两份授权业务原件及派生副本，原件摘要无变化，UOS 临时业务副本已清理。[原始计时和工程门禁](sheet-lookups.json) · [业务文件汇总](business-workbooks.json)

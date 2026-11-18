@@ -46,6 +46,34 @@ fn find_exact(x: &Value, hay: &[Value], wild: bool, reverse: bool) -> Option<usi
     if reverse { hay.iter().rposition(|v| lookup_equal(x, v, wild)) } else { hay.iter().position(|v| lookup_equal(x, v, wild)) }
 }
 
+/// A first row or first column can be searched in place, including a strided
+/// column in a wide table. Read absent cells as blanks, like a reference return.
+#[derive(Clone, Copy)]
+struct Keys<'a> {
+    values: &'a [Value],
+    count: usize,
+    stride: usize,
+}
+
+impl<'a> Keys<'a> {
+    fn slice(values: &'a [Value]) -> Self {
+        Self { values, count: values.len(), stride: 1 }
+    }
+
+    fn first_line(array: &'a Array, vertical: bool) -> Self {
+        let (count, stride) = if vertical { (array.rows, array.cols) } else { (array.cols, 1) };
+        let values = if array.rows == 0 || array.cols == 0 { &[][..] } else { &array.data };
+        Self { values, count, stride }
+    }
+
+    fn get(self, index: usize) -> Option<&'a Value> {
+        if index >= self.count {
+            return None;
+        }
+        Some(index.checked_mul(self.stride).and_then(|at| self.values.get(at)).unwrap_or(&Value::Empty))
+    }
+}
+
 /// Approximate match of VLOOKUP, HLOOKUP, LOOKUP and MATCH: the position of the largest entry
 /// `<= x` in data sorted ascending (`desc = false`), or of the smallest entry `>= x` in data
 /// sorted descending. Like Excel this is a bisection over the whole vector, so on unsorted data
@@ -61,8 +89,8 @@ fn find_exact(x: &Value, hay: &[Value], wild: bool, reverse: bool) -> Option<usi
 /// `HLOOKUP("STRING", {"INTEGRAL","DOUBLE","BLANK","STRING","REF","AREA (rows)",<blank>}, …)`
 /// finds "STRING" and `LOOKUP("DOUBLE", {"DOUBLE","BLANK","STRING","REF","AREA (rows)"}, …)`
 /// finds "DOUBLE". Work is linear in the vector length at worst.
-fn bsearch_last(x: &Value, hay: &[Value], desc: bool) -> Option<usize> {
-    let mut hi = hay.len().checked_sub(1)?;
+fn bsearch_last(x: &Value, hay: Keys<'_>, desc: bool) -> Option<usize> {
+    let mut hi = hay.count.checked_sub(1)?;
     let mut lo = 0usize;
     let mut best = None;
     while lo <= hi {
@@ -120,8 +148,8 @@ fn bsearch_upto(x: &Value, hay: &[Value], desc: bool) -> Option<usize> {
 }
 
 /// A 1-D view of an array (row or column), `None` when it is 2-D.
-fn vector(a: &Array) -> Option<Vec<Value>> {
-    if a.rows == 1 || a.cols == 1 { Some(a.data.clone()) } else { None }
+fn vector(a: &Array) -> Option<&[Value]> {
+    (a.rows == 1 || a.cols == 1).then_some(a.data.as_slice())
 }
 
 fn column(a: &Array, c: usize) -> Vec<Value> {
@@ -153,11 +181,17 @@ fn vh_lookup(args: &[Arg], vertical: bool) -> R<Value> {
     }
     let idx = (idx.trunc() as usize).saturating_sub(1);
     let approx = opt_bool(args, 3, true)?;
-    let (keys, len) = if vertical { (column(&table, 0), table.cols) } else { (row(&table, 0), table.rows) };
+    let keys = Keys::first_line(&table, vertical);
+    let len = if vertical { table.cols } else { table.rows };
     if idx >= len {
         return Err(CellError::Ref);
     }
-    let pos = if approx { bsearch_last(&x, &keys, false) } else { find_exact(&x, &keys, true, false) };
+    let pos = if approx {
+        bsearch_last(&x, keys, false)
+    } else {
+        let wildcard = matches!(&x, Value::Text(t) if has_wildcards(t));
+        (0..keys.count).find(|&i| keys.get(i).is_some_and(|v| lookup_equal(&x, v, wildcard)))
+    };
     let pos = pos.ok_or(CellError::NA)?;
     let v = if vertical { table.get(pos, idx) } else { table.get(idx, pos) };
     Ok(cell_result(v.cloned().unwrap_or(Value::Empty)))
@@ -179,8 +213,8 @@ fn lookup(args: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
     }
     let la = as_array(lv);
     if args.len() >= 3 {
-        let keys = if la.rows == 1 || la.cols == 1 { la.data.clone() } else { column(&la, 0) };
-        let pos = bsearch_last(&x, &keys, false).ok_or(CellError::NA)?;
+        let keys = vector(&la).map_or_else(|| Keys::first_line(&la, true), Keys::slice);
+        let pos = bsearch_last(&x, keys, false).ok_or(CellError::NA)?;
         let rv = &arg(args, 2)?.value;
         if let Value::Error(e) = rv {
             return Err(*e);
@@ -188,7 +222,7 @@ fn lookup(args: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
         let ra = as_array(rv);
         let v = if ra.rows == 1 || ra.cols == 1 {
             ra.data.get(pos).cloned()
-        } else if ra.rows >= keys.len() {
+        } else if ra.rows >= keys.count {
             ra.get(pos, 0).cloned()
         } else {
             None
@@ -198,12 +232,12 @@ fn lookup(args: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
     // Array form: search the first row of a wide array, else the first column; return the
     // matching entry from the last row / column.
     if la.cols > la.rows {
-        let keys = row(&la, 0);
-        let pos = bsearch_last(&x, &keys, false).ok_or(CellError::NA)?;
+        let keys = Keys::first_line(&la, false);
+        let pos = bsearch_last(&x, keys, false).ok_or(CellError::NA)?;
         Ok(cell_result(la.get(la.rows - 1, pos).cloned().unwrap_or(Value::Empty)))
     } else {
-        let keys = column(&la, 0);
-        let pos = bsearch_last(&x, &keys, false).ok_or(CellError::NA)?;
+        let keys = Keys::first_line(&la, true);
+        let pos = bsearch_last(&x, keys, false).ok_or(CellError::NA)?;
         Ok(cell_result(la.get(pos, la.cols - 1).cloned().unwrap_or(Value::Empty)))
     }
 }
@@ -214,14 +248,15 @@ fn match_fn(args: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
     if let Value::Error(e) = av {
         return Err(*e);
     }
-    let hay = vector(&as_array(av)).ok_or(CellError::NA)?;
+    let array = as_array(av);
+    let hay = vector(&array).ok_or(CellError::NA)?;
     let mt = opt_num(args, 2, 1.0)?;
     let pos = if mt == 0.0 {
-        find_exact(&x, &hay, true, false)
+        find_exact(&x, hay, true, false)
     } else if mt > 0.0 {
-        bsearch_last(&x, &hay, false)
+        bsearch_last(&x, Keys::slice(hay), false)
     } else {
-        bsearch_last(&x, &hay, true)
+        bsearch_last(&x, Keys::slice(hay), true)
     };
     pos.map(|p| Value::Number((p + 1) as f64)).ok_or(CellError::NA)
 }
@@ -261,37 +296,27 @@ fn xsearch(x: &Value, hay: &[Value], match_mode: i64, search_mode: i64) -> R<Opt
         });
     }
     let reverse = search_mode == -1;
-    if let Some(p) = find_exact(x, hay, match_mode == 2, reverse) {
-        return Ok(Some(p));
-    }
     if match_mode == 0 || match_mode == 2 {
-        return Ok(None);
+        return Ok(find_exact(x, hay, match_mode == 2, reverse));
     }
-    // Best candidate: the largest value below (mode -1) or smallest above (mode 1).
-    let order: Box<dyn Iterator<Item = usize>> = if reverse { Box::new((0..hay.len()).rev()) } else { Box::new(0..hay.len()) };
-    let mut best: Option<usize> = None;
-    for i in order {
-        let Some(v) = hay.get(i) else { continue };
-        if !same_type(x, v) {
-            continue;
+    // Exact matches take precedence even when a closer neighbor has already
+    // been seen. Equal neighbors keep the first index in the requested direction.
+    let wanted = if match_mode < 0 { Ordering::Less } else { Ordering::Greater };
+    let mut best: Option<(usize, &Value)> = None;
+    for step in 0..hay.len() {
+        let index = if reverse { hay.len() - 1 - step } else { step };
+        let value = &hay[index];
+        if lookup_equal(x, value, false) {
+            return Ok(Some(index));
         }
-        let o = lookup_order(v, x);
-        let candidate = if match_mode == -1 { o == Ordering::Less } else { o == Ordering::Greater };
-        if !candidate {
-            continue;
-        }
-        let better = match best.and_then(|b| hay.get(b)) {
-            None => true,
-            Some(bv) => {
-                let c = lookup_order(v, bv);
-                if match_mode == -1 { c == Ordering::Greater } else { c == Ordering::Less }
-            }
-        };
-        if better {
-            best = Some(i);
+        if same_type(value, x)
+            && lookup_order(value, x) == wanted
+            && best.is_none_or(|(_, previous)| lookup_order(value, previous) == wanted.reverse())
+        {
+            best = Some((index, value));
         }
     }
-    Ok(best)
+    Ok(best.map(|(index, _)| index))
 }
 
 fn bsearch_exact(x: &Value, hay: &[Value], desc: bool) -> Option<usize> {
@@ -320,7 +345,7 @@ fn xlookup(args: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
     }
     let mm = if has(args, 4) { opt_int(args, 4, 0)? } else { 0 };
     let sm = if has(args, 5) { opt_int(args, 5, 1)? } else { 1 };
-    match xsearch(&x, &hay, mm, sm)? {
+    match xsearch(&x, hay, mm, sm)? {
         Some(p) => {
             if vertical {
                 let r = row(&ra, p);
@@ -352,10 +377,11 @@ fn xmatch(args: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
     if let Value::Error(e) = lv {
         return Err(*e);
     }
-    let hay = vector(&as_array(lv)).ok_or(CellError::Value)?;
+    let array = as_array(lv);
+    let hay = vector(&array).ok_or(CellError::Value)?;
     let mm = if has(args, 2) { int(args, 2)? } else { 0 };
     let sm = if has(args, 3) { int(args, 3)? } else { 1 };
-    xsearch(&x, &hay, mm, sm)?.map(|p| Value::Number((p + 1) as f64)).ok_or(CellError::NA)
+    xsearch(&x, hay, mm, sm)?.map(|p| Value::Number((p + 1) as f64)).ok_or(CellError::NA)
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -569,3 +595,20 @@ pub(crate) fn specs() -> Vec<FnSpec> {
 #[cfg(test)]
 #[path = "tests/lookup_tests.rs"]
 mod tests;
+
+#[cfg(test)]
+mod borrowed_lookup_tests {
+    use super::*;
+
+    #[test]
+    fn strided_keys_borrow_original_cells_and_keep_missing_slots_blank() {
+        let matrix = Array { rows: 3, cols: 2, data: vec![Value::Text("first".into()), Value::Empty, Value::Number(5.)] };
+        let keys = Keys::first_line(&matrix, true);
+        assert!(std::ptr::eq(keys.get(0).unwrap_or(&Value::Empty), &matrix.data[0]));
+        assert!(std::ptr::eq(keys.get(1).unwrap_or(&Value::Empty), &matrix.data[2]));
+        assert_eq!(keys.get(2), Some(&Value::Empty));
+        assert_eq!(keys.get(3), None);
+        let row = Array::row(vec![Value::Number(1.), Value::Text("two".into())]);
+        assert_eq!(vector(&row).map(|values| values.as_ptr()), Some(row.data.as_ptr()));
+    }
+}

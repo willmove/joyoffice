@@ -1,7 +1,7 @@
 {
   "macOS": {
-    "previousBinarySha256": "e2693b8aed1d98f31f55ba7e63204e192d9fe1a1f8c1f5ba3137b14e6ee4f6b2",
-    "candidateBinarySha256": "15b1b20f064d1d7a70e8e0f38c9f7ba916ed526bd1657a01d107990695fc6089",
+    "previousBinarySha256": "b6dace6aafbdb064339f50713faa8f3ed4100ecd89a20e720d6ecb7c0aa0ad5a",
+    "candidateBinarySha256": "441922cbfac6de6d8df392e12e518676aac52308e80163d7e75776c117cc864d",
     "formulaExpectationsCheckedInBothVersions": {
       "=SUM({1,\"x\",2},TRUE,\"3\")": 7,
       "=SUM(1E16,1,-1E16)": 0,
@@ -58,6 +58,22 @@
         ],
         [
           1
+        ]
+      ],
+      "=MATCH(\"a*\",{\"Beta\",\"Abc\",\"Ax\"},0)": 2,
+      "=MATCH(2,{1,2,2,4},1)": 3,
+      "=VLOOKUP(5,{1,10;5,20;5,30;9,40},2,TRUE)": 30,
+      "=HLOOKUP(\"A*\",{\"Cat\",\"Abc\";1,2},2,FALSE)": 2,
+      "=LOOKUP(4,{1,3,5;11,13,15})": 13,
+      "=XMATCH(3,{8,2,2,6},-1,1)": 2,
+      "=XMATCH(3,{8,2,2,6},-1,-1)": 3,
+      "=XMATCH(4,{1,2,2,6,9},1,2)": 4,
+      "=XMATCH(4,{9,6,2,2,1},1,-2)": 2,
+      "=XLOOKUP(3,{7,1,2,2},{\"a\",\"b\",\"c\",\"d\"},\"missing\",-1,-1)": "d",
+      "=XLOOKUP(5,{1;5;9},{1,2;3,4;5,6})": [
+        [
+          3,
+          4
         ]
       ]
     },
@@ -288,11 +304,24 @@
         ],
         "writerReaderCombinations": 4
       }
-    ]
+    ],
+    "lookupXlsxRoundtrips": {
+      "formulas": {
+        "=VLOOKUP(5,A1:B4,2,TRUE)": "30",
+        "=HLOOKUP(5,A2:B3,2,FALSE)": "5",
+        "=LOOKUP(6,A1:A4,B1:B4)": "30",
+        "=MATCH(5,A1:A4,0)": "2",
+        "=XMATCH(6,A1:A4,-1,-1)": "3",
+        "=XLOOKUP(5,A1:A4,B1:B4,0,0,-1)": "30",
+        "=XLOOKUP(\"fo*\",A1:A5,B1:B5,0,2)": "50",
+        "=XMATCH(0,A1:A4,-1,1)": "#N/A"
+      },
+      "writerReaderCombinations": 4
+    }
   },
   "UOS": {
-    "previousBinarySha256": "f700749b8f3b29bdd611ee61aae46ad28add2d4e849809db4ae52d24450f68ff",
-    "candidateBinarySha256": "cc6d3bed58038dbe020787d19eef6e9459f5974eaa9da77cb5cafb9e171986d6",
+    "previousBinarySha256": "3e924af4c17bb37cf2d17ebc461fc94f25605c56b02d003c0995c7585340fc2f",
+    "candidateBinarySha256": "d0c4141226d3e0919fd43c47da762025a02766cbafaeb2341fc3bb7b69fed996",
     "formulaExpectationsCheckedInBothVersions": {
       "=SUM({1,\"x\",2},TRUE,\"3\")": 7,
       "=SUM(1E16,1,-1E16)": 0,
@@ -349,6 +378,22 @@
         ],
         [
           1
+        ]
+      ],
+      "=MATCH(\"a*\",{\"Beta\",\"Abc\",\"Ax\"},0)": 2,
+      "=MATCH(2,{1,2,2,4},1)": 3,
+      "=VLOOKUP(5,{1,10;5,20;5,30;9,40},2,TRUE)": 30,
+      "=HLOOKUP(\"A*\",{\"Cat\",\"Abc\";1,2},2,FALSE)": 2,
+      "=LOOKUP(4,{1,3,5;11,13,15})": 13,
+      "=XMATCH(3,{8,2,2,6},-1,1)": 2,
+      "=XMATCH(3,{8,2,2,6},-1,-1)": 3,
+      "=XMATCH(4,{1,2,2,6,9},1,2)": 4,
+      "=XMATCH(4,{9,6,2,2,1},1,-2)": 2,
+      "=XLOOKUP(3,{7,1,2,2},{\"a\",\"b\",\"c\",\"d\"},\"missing\",-1,-1)": "d",
+      "=XLOOKUP(5,{1;5;9},{1,2;3,4;5,6})": [
+        [
+          3,
+          4
         ]
       ]
     },
@@ -579,6 +624,19 @@
         ],
         "writerReaderCombinations": 4
       }
-    ]
+    ],
+    "lookupXlsxRoundtrips": {
+      "formulas": {
+        "=VLOOKUP(5,A1:B4,2,TRUE)": "30",
+        "=HLOOKUP(5,A2:B3,2,FALSE)": "5",
+        "=LOOKUP(6,A1:A4,B1:B4)": "30",
+        "=MATCH(5,A1:A4,0)": "2",
+        "=XMATCH(6,A1:A4,-1,-1)": "3",
+        "=XLOOKUP(5,A1:A4,B1:B4,0,0,-1)": "30",
+        "=XLOOKUP(\"fo*\",A1:A5,B1:B5,0,2)": "50",
+        "=XMATCH(0,A1:A4,-1,1)": "#N/A"
+      },
+      "writerReaderCombinations": 4
+    }
   }
 }
