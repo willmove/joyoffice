@@ -1,0 +1,1088 @@
+{
+  "baseline": "a347a2c0",
+  "compositor": "JoyOffice WGSL source-over composition of projected old/new slides and their transparent background/content parts, rendered offscreen on a native adapter. Submitted frames are read back for GPUI display and live video overlays. Morph renders editable shapes directly. The deterministic CPU raster remains the standalone CLI default.",
+  "budgets": {
+    "maxImageAndReadbackMiB": 192,
+    "maxLayers": 32768,
+    "maxTriangles": 128000,
+    "maxCoveredFrameMultiples": 96,
+    "maxReadbackWaitSeconds": 5
+  },
+  "independentChecks": "Both graphics APIs compared every pixel against the deterministic CPU reference. The 64x36 CPU digest matches the archived pre-optimization compositor. Missing outgoing slide and missing parts are compared separately. Desktop captures converted from their display ICC profile to sRGB on macOS, sampled at 3,864 locations on each paused window, checked against the older CLI at the exact show clock with a one-sample neighbourhood.",
+  "priority": "P2 D-GEOM",
+  "rollback": "JOYDECK_GPU_TRANSITIONS=0 selects deterministic CPU composition in the same binary. Unsupported devices, live slide animation/GIF sources, over-budget frames and errors fall back to CPU.",
+  "platforms": {
+    "macOS": {
+      "display": "Quartz, native audience window",
+      "deviceFrames": [
+        {
+          "adapter": "Apple M4",
+          "backend": "Metal",
+          "columns": [
+            "pixelsOver0",
+            "pixelsOver1",
+            "pixelsOver4",
+            "pixelsOver16",
+            "maximumChannelDifference"
+          ],
+          "cpuManifestSha256": "07b8e46c0995e6b0b8f3a3272b5b23ca0dc941995680e4a4540df20218f29466",
+          "missingSources": {
+            "frames": 48,
+            "maximumChannelDifference": 1
+          },
+          "size": [
+            64,
+            36
+          ],
+          "type": "IntegratedGpu",
+          "presets": 49,
+          "presetOptionPairs": 185,
+          "frames": 925,
+          "pixelsCompared": 2131200,
+          "endpointFramesExact": 370,
+          "maxChannelDifference": 1,
+          "pixelsWithAnyChannelDifference": 1283,
+          "pixelsOverOneChannelLevel": 0,
+          "pixelsOverTwoChannelLevels": 0,
+          "perFrameDifferenceManifestSha256": "9f6dc0c8941158977ad85dd5ad16289d27bd27e6275d4bd5defc52cc731a3504"
+        },
+        {
+          "adapter": "Apple M4",
+          "backend": "Metal",
+          "columns": [
+            "pixelsOver0",
+            "pixelsOver1",
+            "pixelsOver4",
+            "pixelsOver16",
+            "maximumChannelDifference"
+          ],
+          "cpuManifestSha256": "b254636f328088f9431de4542258a5497b8e89011ccc5ded2ab2dee19da99af9",
+          "missingSources": {
+            "frames": 48,
+            "maximumChannelDifference": 1
+          },
+          "size": [
+            193,
+            109
+          ],
+          "type": "IntegratedGpu",
+          "presets": 49,
+          "presetOptionPairs": 185,
+          "frames": 925,
+          "pixelsCompared": 19459225,
+          "endpointFramesExact": 370,
+          "maxChannelDifference": 1,
+          "pixelsWithAnyChannelDifference": 144544,
+          "pixelsOverOneChannelLevel": 0,
+          "pixelsOverTwoChannelLevels": 0,
+          "perFrameDifferenceManifestSha256": "433b3fba37531c85daff3177a5dd88eb00001dcdad664bb460130d644121df11"
+        }
+      ],
+      "nativeWindow": {
+        "sourceSha256": "4f8c514d37030575fe293f84534850928ee1cd02a3c90016cfd7a47dc106c117",
+        "binarySha256": "e0e62150acd619076a2a1d975a5b2362e3db032ac33d75e977cd834ae9377bb7",
+        "modes": {
+          "auto": {
+            "backend": "Metal / Apple M4",
+            "slides": {
+              "fade": {
+                "referenceMean": [
+                  101,
+                  63,
+                  134
+                ],
+                "outlyingSamples": 0,
+                "samples": 3864,
+                "pausedSeconds": 2.758593250000001,
+                "firstColor": [
+                  204,
+                  35,
+                  16
+                ],
+                "pausedColor": [
+                  101,
+                  63,
+                  134
+                ],
+                "settledColor": [
+                  36,
+                  82,
+                  208
+                ],
+                "screenshots": {
+                  "paused": "2c9672642d0b0e328db3e314f5d113ad20e8b622f0075bf7b6479689894fd108",
+                  "end": "831a36376097b6e30c6a29ca60dc93446323be43c509823fa0e80eeaf8b3c9bb"
+                },
+                "pixels": [
+                  1846,
+                  1038
+                ],
+                "preparation": {
+                  "frames": 94,
+                  "medianMs": 37.29,
+                  "p95Ms": 41.18
+                }
+              },
+              "checker": {
+                "referenceMean": [
+                  38.0,
+                  133.2,
+                  82.49
+                ],
+                "outlyingSamples": 0,
+                "samples": 3864,
+                "pausedSeconds": 2.685840791999999,
+                "firstColor": [
+                  36,
+                  82,
+                  208
+                ],
+                "pausedColor": [
+                  38.39,
+                  134.21,
+                  84.78
+                ],
+                "settledColor": [
+                  51,
+                  192,
+                  68
+                ],
+                "screenshots": {
+                  "paused": "6653d809dd94661b3acd0a64a04873fc9a4c15b88ac51f2f316d92c8d5e524d4",
+                  "end": "a3a70f307599930f5b036d1086f2118b740065e41129c5cf7035220b7f1c40d1"
+                },
+                "pixels": [
+                  1846,
+                  1038
+                ],
+                "preparation": {
+                  "frames": 95,
+                  "medianMs": 38.04,
+                  "p95Ms": 39.97
+                }
+              }
+            }
+          },
+          "cpu": {
+            "backend": "CPU",
+            "slides": {
+              "fade": {
+                "referenceMean": [
+                  98,
+                  64,
+                  137
+                ],
+                "outlyingSamples": 0,
+                "samples": 3864,
+                "pausedSeconds": 2.8185313750000014,
+                "firstColor": [
+                  204,
+                  35,
+                  16
+                ],
+                "pausedColor": [
+                  98,
+                  64,
+                  137
+                ],
+                "settledColor": [
+                  36,
+                  82,
+                  208
+                ],
+                "screenshots": {
+                  "paused": "323cdffa919fe937897449631a37e746221f4799750ffb98e3cc4f670e0f2dd9",
+                  "end": "831a36376097b6e30c6a29ca60dc93446323be43c509823fa0e80eeaf8b3c9bb"
+                },
+                "pixels": [
+                  1846,
+                  1038
+                ],
+                "preparation": {
+                  "frames": 56,
+                  "medianMs": 77.14,
+                  "p95Ms": 81.34
+                }
+              },
+              "checker": {
+                "referenceMean": [
+                  46.46,
+                  174.27,
+                  63.95
+                ],
+                "outlyingSamples": 27,
+                "samples": 3864,
+                "pausedSeconds": 3.3825352920000014,
+                "firstColor": [
+                  36,
+                  82,
+                  208
+                ],
+                "pausedColor": [
+                  46.08,
+                  172.93,
+                  63.79
+                ],
+                "settledColor": [
+                  51,
+                  192,
+                  68
+                ],
+                "screenshots": {
+                  "paused": "e66eaaa888d94777b66a691646a09a7b49ace1380beda25449486348fd37e083",
+                  "end": "a3a70f307599930f5b036d1086f2118b740065e41129c5cf7035220b7f1c40d1"
+                },
+                "pixels": [
+                  1846,
+                  1038
+                ],
+                "preparation": {
+                  "frames": 18,
+                  "medianMs": 212.48,
+                  "p95Ms": 611.69
+                }
+              }
+            }
+          }
+        }
+      },
+      "pptxExchange": {
+        "cliSha256": {
+          "baseline": "0730709055ccfc66fb182af5e0c03473aa0a926745e9e91b1ef7d8d55468b77c",
+          "candidate": "b2cdec0ca5864da5b4c24eaf0bd61cc6008c55a7768b5a556e4bcac0e894baa9"
+        },
+        "halfTimeFramesByWriterAndReader": {
+          "baseline-baseline": [
+            "493ea22394870762137a5004ab71288518a2f6240474ca0fc1c5b4be5bd84751",
+            "c8d4905b1db68e55460b82cb27ef6ca788a1cbbb977d966c2dc6f8aac021c8e4"
+          ],
+          "baseline-candidate": [
+            "493ea22394870762137a5004ab71288518a2f6240474ca0fc1c5b4be5bd84751",
+            "c8d4905b1db68e55460b82cb27ef6ca788a1cbbb977d966c2dc6f8aac021c8e4"
+          ],
+          "candidate-baseline": [
+            "493ea22394870762137a5004ab71288518a2f6240474ca0fc1c5b4be5bd84751",
+            "c8d4905b1db68e55460b82cb27ef6ca788a1cbbb977d966c2dc6f8aac021c8e4"
+          ],
+          "candidate-candidate": [
+            "493ea22394870762137a5004ab71288518a2f6240474ca0fc1c5b4be5bd84751",
+            "c8d4905b1db68e55460b82cb27ef6ca788a1cbbb977d966c2dc6f8aac021c8e4"
+          ]
+        }
+      },
+      "finalBinaryWindow": {
+        "sourceSha256": "4f8c514d37030575fe293f84534850928ee1cd02a3c90016cfd7a47dc106c117",
+        "binarySha256": "10322575193176529f6e27ff82fbc64c69d88d399a2ca8fb359ca2cefc50d2c5",
+        "modes": {
+          "auto": {
+            "backend": "Metal / Apple M4",
+            "slides": {
+              "fade": {
+                "referenceMean": [
+                  102,
+                  63,
+                  133
+                ],
+                "outlyingSamples": 0,
+                "samples": 3864,
+                "pausedSeconds": 2.739972332999999,
+                "firstColor": [
+                  204,
+                  35,
+                  16
+                ],
+                "pausedColor": [
+                  103,
+                  63,
+                  133
+                ],
+                "settledColor": [
+                  36,
+                  82,
+                  208
+                ],
+                "screenshots": {
+                  "paused": "0c86f718d56ce3d7610909b8ef4fa21f285f279b2c9c8460ecf36cad6148179a",
+                  "end": "831a36376097b6e30c6a29ca60dc93446323be43c509823fa0e80eeaf8b3c9bb"
+                },
+                "pixels": [
+                  1846,
+                  1038
+                ],
+                "preparation": {
+                  "frames": 90,
+                  "medianMs": 36.58,
+                  "p95Ms": 60.54
+                }
+              },
+              "checker": {
+                "referenceMean": [
+                  38.02,
+                  133.33,
+                  82.3
+                ],
+                "outlyingSamples": 0,
+                "samples": 3864,
+                "pausedSeconds": 2.687987833,
+                "firstColor": [
+                  36,
+                  82,
+                  208
+                ],
+                "pausedColor": [
+                  38.39,
+                  134.01,
+                  84.15
+                ],
+                "settledColor": [
+                  51,
+                  192,
+                  68
+                ],
+                "screenshots": {
+                  "paused": "78c9d9bb5826f0331f5b0c23c1b7dd225225dec8fc597e3adfd942f88b9cd2d2",
+                  "end": "a3a70f307599930f5b036d1086f2118b740065e41129c5cf7035220b7f1c40d1"
+                },
+                "pixels": [
+                  1846,
+                  1038
+                ],
+                "preparation": {
+                  "frames": 94,
+                  "medianMs": 36.32,
+                  "p95Ms": 38.56
+                }
+              }
+            }
+          },
+          "cpu": {
+            "backend": "CPU",
+            "slides": {
+              "fade": {
+                "referenceMean": [
+                  101,
+                  63,
+                  134
+                ],
+                "outlyingSamples": 0,
+                "samples": 3864,
+                "pausedSeconds": 2.7619029999999998,
+                "firstColor": [
+                  204,
+                  35,
+                  16
+                ],
+                "pausedColor": [
+                  101,
+                  63,
+                  134
+                ],
+                "settledColor": [
+                  36,
+                  82,
+                  208
+                ],
+                "screenshots": {
+                  "paused": "2c9672642d0b0e328db3e314f5d113ad20e8b622f0075bf7b6479689894fd108",
+                  "end": "831a36376097b6e30c6a29ca60dc93446323be43c509823fa0e80eeaf8b3c9bb"
+                },
+                "pixels": [
+                  1846,
+                  1038
+                ],
+                "preparation": {
+                  "frames": 57,
+                  "medianMs": 75.37,
+                  "p95Ms": 76.91
+                }
+              },
+              "checker": {
+                "referenceMean": [
+                  45.18,
+                  168.61,
+                  64.87
+                ],
+                "outlyingSamples": 20,
+                "samples": 3864,
+                "pausedSeconds": 3.280278582999999,
+                "firstColor": [
+                  36,
+                  82,
+                  208
+                ],
+                "pausedColor": [
+                  44.84,
+                  167.18,
+                  64.55
+                ],
+                "settledColor": [
+                  51,
+                  192,
+                  68
+                ],
+                "screenshots": {
+                  "paused": "c0be4e2d302e609a5a29af4dc89cedad76d0073af434ed16c1bed71dc3b95f4e",
+                  "end": "a3a70f307599930f5b036d1086f2118b740065e41129c5cf7035220b7f1c40d1"
+                },
+                "pixels": [
+                  1846,
+                  1038
+                ],
+                "preparation": {
+                  "frames": 19,
+                  "medianMs": 175.08,
+                  "p95Ms": 621.84
+                }
+              }
+            }
+          }
+        },
+        "exchange": {
+          "cliSha256": {
+            "baseline": "0730709055ccfc66fb182af5e0c03473aa0a926745e9e91b1ef7d8d55468b77c",
+            "candidate": "b2cdec0ca5864da5b4c24eaf0bd61cc6008c55a7768b5a556e4bcac0e894baa9"
+          },
+          "halfTimeFramesByWriterAndReader": {
+            "baseline-baseline": [
+              "493ea22394870762137a5004ab71288518a2f6240474ca0fc1c5b4be5bd84751",
+              "c8d4905b1db68e55460b82cb27ef6ca788a1cbbb977d966c2dc6f8aac021c8e4"
+            ],
+            "baseline-candidate": [
+              "493ea22394870762137a5004ab71288518a2f6240474ca0fc1c5b4be5bd84751",
+              "c8d4905b1db68e55460b82cb27ef6ca788a1cbbb977d966c2dc6f8aac021c8e4"
+            ],
+            "candidate-baseline": [
+              "493ea22394870762137a5004ab71288518a2f6240474ca0fc1c5b4be5bd84751",
+              "c8d4905b1db68e55460b82cb27ef6ca788a1cbbb977d966c2dc6f8aac021c8e4"
+            ],
+            "candidate-candidate": [
+              "493ea22394870762137a5004ab71288518a2f6240474ca0fc1c5b4be5bd84751",
+              "c8d4905b1db68e55460b82cb27ef6ca788a1cbbb977d966c2dc6f8aac021c8e4"
+            ]
+          }
+        }
+      },
+      "finalDeckProductTest": {
+        "passed": 1011,
+        "failed": 0,
+        "ignored": 0
+      },
+      "productAndUiTests": {
+        "joyword": {
+          "passed": 3692,
+          "failed": 0,
+          "ignored": 2
+        },
+        "joydeck": {
+          "passed": 1011,
+          "failed": 0,
+          "ignored": 0
+        },
+        "joysheet": {
+          "passed": 1480,
+          "failed": 0,
+          "ignored": 1
+        },
+        "ui": {
+          "passed": 78,
+          "failed": 0,
+          "ignored": 0
+        }
+      },
+      "strictSpdx": {
+        "joyword": {
+          "target": "aarch64-apple-darwin",
+          "packages": 513,
+          "sourceFiles": 1067,
+          "spdxSha256": "8862430ecc145d14100998dba83014672451505eac4af31ca171c4b4f0458768",
+          "missingLicenseTexts": [],
+          "sharedCrates": [
+            "joyoffice-cfb",
+            "joyoffice-drawingml",
+            "joyoffice-fonts",
+            "joyoffice-metafile",
+            "joyoffice-omml",
+            "joyoffice-opc",
+            "joyoffice-theme",
+            "joyoffice-ui"
+          ],
+          "runtimeLegacyDependencies": [
+            "craft-atomic",
+            "craft-font-store",
+            "craft-proof"
+          ]
+        },
+        "joydeck": {
+          "target": "aarch64-apple-darwin",
+          "packages": 490,
+          "sourceFiles": 528,
+          "spdxSha256": "c42ba110d1d3d37a40e4d6801c7badaf16c4cd0c048c268cd2a0ae6b57ec2b8e",
+          "missingLicenseTexts": [],
+          "sharedCrates": [
+            "joyoffice-drawingml",
+            "joyoffice-fonts",
+            "joyoffice-metafile",
+            "joyoffice-opc",
+            "joyoffice-theme",
+            "joyoffice-ui"
+          ],
+          "runtimeLegacyDependencies": [
+            "joydeck-legacy"
+          ]
+        },
+        "joysheet": {
+          "target": "aarch64-apple-darwin",
+          "packages": 454,
+          "sourceFiles": 1189,
+          "spdxSha256": "cc647a37ef7514fba375cfb0026615748c7cab7bddc7370bb0be7d0ae24ba016",
+          "missingLicenseTexts": [],
+          "sharedCrates": [
+            "joyoffice-cfb",
+            "joyoffice-drawingml",
+            "joyoffice-omml",
+            "joyoffice-opc",
+            "joyoffice-theme",
+            "joyoffice-ui"
+          ],
+          "runtimeLegacyDependencies": []
+        }
+      }
+    },
+    "UOS 25": {
+      "display": "native x86_64 UOS with an isolated X11/KWin desktop, Vulkan on the AMD integrated GPU",
+      "deviceFrames": [
+        {
+          "adapter": "AMD Radeon 890M Graphics (RADV GFX1150)",
+          "backend": "Vulkan",
+          "columns": [
+            "pixelsOver0",
+            "pixelsOver1",
+            "pixelsOver4",
+            "pixelsOver16",
+            "maximumChannelDifference"
+          ],
+          "cpuManifestSha256": "07b8e46c0995e6b0b8f3a3272b5b23ca0dc941995680e4a4540df20218f29466",
+          "missingSources": {
+            "frames": 48,
+            "maximumChannelDifference": 1
+          },
+          "size": [
+            64,
+            36
+          ],
+          "type": "IntegratedGpu",
+          "presets": 49,
+          "presetOptionPairs": 185,
+          "frames": 925,
+          "pixelsCompared": 2131200,
+          "endpointFramesExact": 370,
+          "maxChannelDifference": 2,
+          "pixelsWithAnyChannelDifference": 59964,
+          "pixelsOverOneChannelLevel": 97,
+          "pixelsOverTwoChannelLevels": 0,
+          "perFrameDifferenceManifestSha256": "bf8c141fc335ddb54a29976b7b82239baf75caca360b7a3c5d43c670d7ddc66d"
+        },
+        {
+          "adapter": "AMD Radeon 890M Graphics (RADV GFX1150)",
+          "backend": "Vulkan",
+          "columns": [
+            "pixelsOver0",
+            "pixelsOver1",
+            "pixelsOver4",
+            "pixelsOver16",
+            "maximumChannelDifference"
+          ],
+          "cpuManifestSha256": "b254636f328088f9431de4542258a5497b8e89011ccc5ded2ab2dee19da99af9",
+          "missingSources": {
+            "frames": 48,
+            "maximumChannelDifference": 1
+          },
+          "size": [
+            193,
+            109
+          ],
+          "type": "IntegratedGpu",
+          "presets": 49,
+          "presetOptionPairs": 185,
+          "frames": 925,
+          "pixelsCompared": 19459225,
+          "endpointFramesExact": 370,
+          "maxChannelDifference": 2,
+          "pixelsWithAnyChannelDifference": 787124,
+          "pixelsOverOneChannelLevel": 668,
+          "pixelsOverTwoChannelLevels": 0,
+          "perFrameDifferenceManifestSha256": "2ec11ee6a773feec6d79b3f9bac5f3723091bc762fa8e681ab57e1c42e071ade"
+        }
+      ],
+      "nativeWindow": {
+        "sourceSha256": "4f8c514d37030575fe293f84534850928ee1cd02a3c90016cfd7a47dc106c117",
+        "binarySha256": "6bb38cefa38acd0a214819f8fcb581de56806493e150cda4fa411dd00ce7eea1",
+        "modes": {
+          "auto": {
+            "backend": "Vulkan / AMD Radeon 890M Graphics (RADV GFX1150)",
+            "slides": {
+              "fade": {
+                "referenceMean": [
+                  116,
+                  59,
+                  116
+                ],
+                "outlyingSamples": 0,
+                "samples": 3864,
+                "pausedSeconds": 2.466714359,
+                "firstColor": [
+                  204,
+                  34,
+                  17
+                ],
+                "pausedColor": [
+                  116,
+                  59,
+                  116
+                ],
+                "settledColor": [
+                  35,
+                  82,
+                  208
+                ],
+                "screenshots": {
+                  "paused": "73bd1737f0ee9d06f0b214cf15515fc674f040cf8b6948447f9b81db30cc9890",
+                  "end": "4ca9d1a735e0936db93e494f8cd2fbfc793b9eae937ea2a5ab3c8c5c3ab893b6"
+                },
+                "pixels": [
+                  1100,
+                  619
+                ],
+                "preparation": {
+                  "frames": 112,
+                  "medianMs": 22.7,
+                  "p95Ms": 36.7
+                }
+              },
+              "checker": {
+                "referenceMean": [
+                  36.73,
+                  124.08,
+                  94.84
+                ],
+                "outlyingSamples": 17,
+                "samples": 3864,
+                "pausedSeconds": 2.494882435,
+                "firstColor": [
+                  35,
+                  82,
+                  208
+                ],
+                "pausedColor": [
+                  37.46,
+                  126.25,
+                  97.71
+                ],
+                "settledColor": [
+                  51,
+                  192,
+                  68
+                ],
+                "screenshots": {
+                  "paused": "694e0d37af44c3bd1dd5dcd8df059957b77885df58f4967eb01caf7969383814",
+                  "end": "95542873af0de4c95d60c10b6ec5aea3eec149c27987a4de3614c4ace94f8853"
+                },
+                "pixels": [
+                  1100,
+                  619
+                ],
+                "preparation": {
+                  "frames": 93,
+                  "medianMs": 31.69,
+                  "p95Ms": 46.94
+                }
+              }
+            }
+          },
+          "cpu": {
+            "backend": "CPU",
+            "slides": {
+              "fade": {
+                "referenceMean": [
+                  117,
+                  59,
+                  116
+                ],
+                "outlyingSamples": 0,
+                "samples": 3864,
+                "pausedSeconds": 2.4559707030000006,
+                "firstColor": [
+                  204,
+                  34,
+                  17
+                ],
+                "pausedColor": [
+                  117,
+                  59,
+                  116
+                ],
+                "settledColor": [
+                  35,
+                  82,
+                  208
+                ],
+                "screenshots": {
+                  "paused": "acff4e6a4cf40d6b14c6d3ebb72f0778ae7c9a463034310e1e75ed7574dab52f",
+                  "end": "4ca9d1a735e0936db93e494f8cd2fbfc793b9eae937ea2a5ab3c8c5c3ab893b6"
+                },
+                "pixels": [
+                  1100,
+                  619
+                ],
+                "preparation": {
+                  "frames": 88,
+                  "medianMs": 38.69,
+                  "p95Ms": 52.0
+                }
+              },
+              "checker": {
+                "referenceMean": [
+                  40.02,
+                  144.68,
+                  72.63
+                ],
+                "outlyingSamples": 0,
+                "samples": 3864,
+                "pausedSeconds": 2.888062133,
+                "firstColor": [
+                  35,
+                  82,
+                  208
+                ],
+                "pausedColor": [
+                  41.12,
+                  148.15,
+                  76.27
+                ],
+                "settledColor": [
+                  51,
+                  192,
+                  68
+                ],
+                "screenshots": {
+                  "paused": "7c592d054dcb544d6139ec19a6e64b85849e9b6b93bd5ce8863c5dab65fefc1f",
+                  "end": "95542873af0de4c95d60c10b6ec5aea3eec149c27987a4de3614c4ace94f8853"
+                },
+                "pixels": [
+                  1100,
+                  619
+                ],
+                "preparation": {
+                  "frames": 34,
+                  "medianMs": 105.57,
+                  "p95Ms": 289.3
+                }
+              }
+            }
+          }
+        }
+      },
+      "pptxExchange": {
+        "cliSha256": {
+          "baseline": "7cfc19c661ad12604a1bc6ec8755660f3aec0b9e91ae8940e9bf320a23332a2c",
+          "candidate": "43fc90ee74c656e96d39face443b32ff60f6839250176c0a4a3a817c6437fa2c"
+        },
+        "halfTimeFramesByWriterAndReader": {
+          "baseline-baseline": [
+            "493ea22394870762137a5004ab71288518a2f6240474ca0fc1c5b4be5bd84751",
+            "c8d4905b1db68e55460b82cb27ef6ca788a1cbbb977d966c2dc6f8aac021c8e4"
+          ],
+          "baseline-candidate": [
+            "493ea22394870762137a5004ab71288518a2f6240474ca0fc1c5b4be5bd84751",
+            "c8d4905b1db68e55460b82cb27ef6ca788a1cbbb977d966c2dc6f8aac021c8e4"
+          ],
+          "candidate-baseline": [
+            "493ea22394870762137a5004ab71288518a2f6240474ca0fc1c5b4be5bd84751",
+            "c8d4905b1db68e55460b82cb27ef6ca788a1cbbb977d966c2dc6f8aac021c8e4"
+          ],
+          "candidate-candidate": [
+            "493ea22394870762137a5004ab71288518a2f6240474ca0fc1c5b4be5bd84751",
+            "c8d4905b1db68e55460b82cb27ef6ca788a1cbbb977d966c2dc6f8aac021c8e4"
+          ]
+        }
+      },
+      "finalBinaryWindow": {
+        "sourceSha256": "4f8c514d37030575fe293f84534850928ee1cd02a3c90016cfd7a47dc106c117",
+        "binarySha256": "8b138dcd27e1701a482b8f90d3c12186ecd13281a4333ea19127e69d9da23b32",
+        "modes": {
+          "auto": {
+            "backend": "Vulkan / AMD Radeon 890M Graphics (RADV GFX1150)",
+            "slides": {
+              "fade": {
+                "referenceMean": [
+                  116,
+                  59,
+                  117
+                ],
+                "outlyingSamples": 0,
+                "samples": 3864,
+                "pausedSeconds": 2.4676196180000005,
+                "firstColor": [
+                  204,
+                  34,
+                  17
+                ],
+                "pausedColor": [
+                  116,
+                  59,
+                  117
+                ],
+                "settledColor": [
+                  35,
+                  82,
+                  208
+                ],
+                "screenshots": {
+                  "paused": "3dc91a7ad0c88e35c5380173bea52b88c9475b3a3623aa399c9271cd5ee081e5",
+                  "end": "4ca9d1a735e0936db93e494f8cd2fbfc793b9eae937ea2a5ab3c8c5c3ab893b6"
+                },
+                "pixels": [
+                  1100,
+                  619
+                ],
+                "preparation": {
+                  "frames": 137,
+                  "medianMs": 19.25,
+                  "p95Ms": 24.5
+                }
+              },
+              "checker": {
+                "referenceMean": [
+                  37.13,
+                  124.75,
+                  97.94
+                ],
+                "outlyingSamples": 0,
+                "samples": 3864,
+                "pausedSeconds": 2.4739345289999997,
+                "firstColor": [
+                  35,
+                  82,
+                  208
+                ],
+                "pausedColor": [
+                  37.57,
+                  126.08,
+                  99.55
+                ],
+                "settledColor": [
+                  51,
+                  192,
+                  68
+                ],
+                "screenshots": {
+                  "paused": "cd9de85eb6262faccc94aece886bb4b51ffd1e4bea345cdd7b533df0c3e88162",
+                  "end": "95542873af0de4c95d60c10b6ec5aea3eec149c27987a4de3614c4ace94f8853"
+                },
+                "pixels": [
+                  1100,
+                  619
+                ],
+                "preparation": {
+                  "frames": 135,
+                  "medianMs": 19.66,
+                  "p95Ms": 29.76
+                }
+              }
+            }
+          },
+          "cpu": {
+            "backend": "CPU",
+            "slides": {
+              "fade": {
+                "referenceMean": [
+                  115,
+                  59,
+                  117
+                ],
+                "outlyingSamples": 0,
+                "samples": 3864,
+                "pausedSeconds": 2.481454853,
+                "firstColor": [
+                  204,
+                  34,
+                  17
+                ],
+                "pausedColor": [
+                  115,
+                  59,
+                  117
+                ],
+                "settledColor": [
+                  35,
+                  82,
+                  208
+                ],
+                "screenshots": {
+                  "paused": "e596c1026fbab108c2c5d0e52708e0a8f6eb0a94194874f9a562f96938cfa048",
+                  "end": "4ca9d1a735e0936db93e494f8cd2fbfc793b9eae937ea2a5ab3c8c5c3ab893b6"
+                },
+                "pixels": [
+                  1100,
+                  619
+                ],
+                "preparation": {
+                  "frames": 94,
+                  "medianMs": 36.98,
+                  "p95Ms": 47.27
+                }
+              },
+              "checker": {
+                "referenceMean": [
+                  38.66,
+                  137.06,
+                  79.07
+                ],
+                "outlyingSamples": 16,
+                "samples": 3864,
+                "pausedSeconds": 2.7488651420000005,
+                "firstColor": [
+                  35,
+                  82,
+                  208
+                ],
+                "pausedColor": [
+                  39.56,
+                  139.93,
+                  82.08
+                ],
+                "settledColor": [
+                  51,
+                  192,
+                  68
+                ],
+                "screenshots": {
+                  "paused": "79d168c8990cb15c3f8b87b1f1f476106291bcbdfca19b89130e64ec0839fb2b",
+                  "end": "95542873af0de4c95d60c10b6ec5aea3eec149c27987a4de3614c4ace94f8853"
+                },
+                "pixels": [
+                  1100,
+                  619
+                ],
+                "preparation": {
+                  "frames": 39,
+                  "medianMs": 100.96,
+                  "p95Ms": 197.77
+                }
+              }
+            }
+          }
+        },
+        "exchange": {
+          "cliSha256": {
+            "baseline": "7cfc19c661ad12604a1bc6ec8755660f3aec0b9e91ae8940e9bf320a23332a2c",
+            "candidate": "43fc90ee74c656e96d39face443b32ff60f6839250176c0a4a3a817c6437fa2c"
+          },
+          "halfTimeFramesByWriterAndReader": {
+            "baseline-baseline": [
+              "493ea22394870762137a5004ab71288518a2f6240474ca0fc1c5b4be5bd84751",
+              "c8d4905b1db68e55460b82cb27ef6ca788a1cbbb977d966c2dc6f8aac021c8e4"
+            ],
+            "baseline-candidate": [
+              "493ea22394870762137a5004ab71288518a2f6240474ca0fc1c5b4be5bd84751",
+              "c8d4905b1db68e55460b82cb27ef6ca788a1cbbb977d966c2dc6f8aac021c8e4"
+            ],
+            "candidate-baseline": [
+              "493ea22394870762137a5004ab71288518a2f6240474ca0fc1c5b4be5bd84751",
+              "c8d4905b1db68e55460b82cb27ef6ca788a1cbbb977d966c2dc6f8aac021c8e4"
+            ],
+            "candidate-candidate": [
+              "493ea22394870762137a5004ab71288518a2f6240474ca0fc1c5b4be5bd84751",
+              "c8d4905b1db68e55460b82cb27ef6ca788a1cbbb977d966c2dc6f8aac021c8e4"
+            ]
+          }
+        }
+      },
+      "finalDeckProductTest": {
+        "passed": 1016,
+        "failed": 0,
+        "ignored": 0
+      },
+      "productAndUiTests": {
+        "joyword": {
+          "passed": 3696,
+          "failed": 0,
+          "ignored": 2
+        },
+        "joydeck": {
+          "passed": 1016,
+          "failed": 0,
+          "ignored": 0
+        },
+        "joysheet": {
+          "passed": 1480,
+          "failed": 0,
+          "ignored": 1
+        },
+        "ui": {
+          "passed": 82,
+          "failed": 0,
+          "ignored": 0
+        }
+      },
+      "strictSpdx": {
+        "joyword": {
+          "target": "x86_64-unknown-linux-gnu",
+          "packages": 602,
+          "sourceFiles": 1072,
+          "spdxSha256": "20981d382817d711951748e66a7e36a0d48c901cbcf1df995e38f668c718c236",
+          "missingLicenseTexts": [],
+          "sharedCrates": [
+            "joyoffice-cfb",
+            "joyoffice-drawingml",
+            "joyoffice-fonts",
+            "joyoffice-metafile",
+            "joyoffice-omml",
+            "joyoffice-opc",
+            "joyoffice-theme",
+            "joyoffice-ui"
+          ],
+          "runtimeLegacyDependencies": [
+            "craft-atomic",
+            "craft-font-store",
+            "craft-proof"
+          ]
+        },
+        "joydeck": {
+          "target": "x86_64-unknown-linux-gnu",
+          "packages": 565,
+          "sourceFiles": 534,
+          "spdxSha256": "16fedcbf044e6454a09300025b5aacbfb201b5c2ca3709938495a09591ffd276",
+          "missingLicenseTexts": [],
+          "sharedCrates": [
+            "joyoffice-drawingml",
+            "joyoffice-fonts",
+            "joyoffice-metafile",
+            "joyoffice-opc",
+            "joyoffice-theme",
+            "joyoffice-ui"
+          ],
+          "runtimeLegacyDependencies": [
+            "joydeck-legacy"
+          ]
+        },
+        "joysheet": {
+          "target": "x86_64-unknown-linux-gnu",
+          "packages": 556,
+          "sourceFiles": 1187,
+          "spdxSha256": "80e9dfaffd1494e45aba387c646a600a7bbd4626f5cdcdcb56daf6d7c0477dc6",
+          "missingLicenseTexts": [],
+          "sharedCrates": [
+            "joyoffice-cfb",
+            "joyoffice-drawingml",
+            "joyoffice-omml",
+            "joyoffice-opc",
+            "joyoffice-theme",
+            "joyoffice-ui"
+          ],
+          "runtimeLegacyDependencies": []
+        }
+      }
+    }
+  }
+}

@@ -23,9 +23,9 @@
     },
     "joydeck": {
       "target": "aarch64-apple-darwin",
-      "packages": 473,
-      "sourceFiles": 513,
-      "spdxSha256": "25dd5c4b17fd3a4d5d8915bcb20196fa395701510758e2fbb1a8566da0d23751",
+      "packages": 490,
+      "sourceFiles": 528,
+      "spdxSha256": "c42ba110d1d3d37a40e4d6801c7badaf16c4cd0c048c268cd2a0ae6b57ec2b8e",
       "missingLicenseTexts": [],
       "sharedCrates": [
         "joyoffice-drawingml",
@@ -81,8 +81,8 @@
     "joydeck": {
       "target": "x86_64-unknown-linux-gnu",
       "packages": 565,
-      "sourceFiles": 519,
-      "spdxSha256": "bbae6724b797f57304a353c77e75af4be373eea8930e61943dff5ca90564ad3d",
+      "sourceFiles": 534,
+      "spdxSha256": "16fedcbf044e6454a09300025b5aacbfb201b5c2ca3709938495a09591ffd276",
       "missingLicenseTexts": [],
       "sharedCrates": [
         "joyoffice-drawingml",

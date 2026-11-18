@@ -16,7 +16,7 @@ joydeck-text.workspace = true
 gpui-kit.workspace = true
 gpui_platform.workspace = true
 joyoffice-ui.workspace = true
-joydeck-shell.workspace = true
+joydeck-shell = { workspace = true, features = ["native-transitions"] }
 serde_json = { workspace = true, features = ["float_roundtrip"] }
 serde.workspace = true
 image = { workspace = true, features = ["png", "jpeg", "webp", "gif", "tiff", "bmp"] }

@@ -1115,13 +1115,14 @@
       "source_path": "crates/render/Cargo.toml",
       "source_sha256": "8aa25ab13f507069d45d9a06d68cefd43d412b84c7d3cd7fdfb25ce738886133",
       "target_path": "crates/joydeck-render/Cargo.toml",
-      "adapted_sha256": "d34b0e0f7c3c834c30c7fc735de131f9dbc08acd5a22f63cfe854fbf4a13e194",
+      "adapted_sha256": "3af21813fe3780f362be49eac37004cd9c0bd1a5d50d379b04f2fe4fd3dbcdaf",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
         "R4/R5 scene/content/workbook/font-revision adaptation, exact JoyOffice dependency reuse",
-        "R9: host workspace feature wiring and sole shared-library implementation"
+        "R9: host workspace feature wiring and sole shared-library implementation",
+        "Expose the optional JoyOffice device transition compositor. The standalone renderer and CLI keep CPU-only normal dependencies."
       ]
     },
     {
@@ -1248,7 +1249,7 @@
       "source_path": "crates/render/src/lib.rs",
       "source_sha256": "34736a5334491485d5026bfec7642fe44146d59332ea09a176ed0a10b3d1aa5b",
       "target_path": "crates/joydeck-render/src/lib.rs",
-      "adapted_sha256": "ae17730a55bda9a60be18ece7aded3ba85d9e30e71d47078ffec53754e2c4e4e",
+      "adapted_sha256": "6e39c6e7e095dd45b1b61ac0de77acb0b7a30e0971333c5dd21863c215b06148",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -1256,7 +1257,8 @@
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
         "R3 shared editable shape/cell text layout consumer; exact original font/renderer layout retained",
         "R4/R5 scene/content/workbook/font-revision adaptation, exact JoyOffice dependency reuse",
-        "R6/R7 version baseline, macro-preserve refusal, explicit previous transition/custom show order or rustfmt; no upstream checkout edits."
+        "R6/R7 version baseline, macro-preserve refusal, explicit previous transition/custom show order or rustfmt; no upstream checkout edits.",
+        "Expose the optional JoyOffice device transition compositor. The standalone renderer and CLI keep CPU-only normal dependencies."
       ]
     },
     {

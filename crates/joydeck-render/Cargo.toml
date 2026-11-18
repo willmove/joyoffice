@@ -7,10 +7,16 @@ publish = false
 license.workspace = true
 description = "DeckCraft renderer: slides, layouts and masters to pixels (vello_cpu): fills, outlines, effects, pictures, text, tables, charts"
 
+[features]
+transition-gpu = ["dep:wgpu", "dep:pollster", "dep:bytemuck"]
+
 [lints]
 workspace = true
 
 [dependencies]
+wgpu = { version = "=30.0.1", default-features = false, features = ["std", "wgsl", "metal", "vulkan", "dx12"], optional = true }
+pollster = { version = "=0.4.0", optional = true }
+bytemuck = { version = "=1.25.2", features = ["derive"], optional = true }
 joydeck-geom = { workspace = true }
 joydeck-color = { workspace = true }
 joydeck-metafile = { workspace = true }

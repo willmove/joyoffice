@@ -6,6 +6,9 @@ rust-version.workspace = true
 license.workspace = true
 publish = false
 
+[features]
+native-transitions = ["joydeck-render/transition-gpu"]
+
 [dependencies]
 joyoffice-theme.workspace = true
 joydeck-pdf.workspace = true

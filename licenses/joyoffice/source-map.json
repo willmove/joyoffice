@@ -512,12 +512,13 @@
     "target_path": "crates/joydeck-ui-gpui/src/slideshow.rs",
     "source_sha256": "ba57a296c7911ccd7767e4b655906fb1cc9b479ccc0f4e442f00e878acb1e17c",
     "local_changes": "Audience/presenter ownership, separate clocks/windows and media worker adapted to new immutable model; new GPUI controls, frame guards and CPU rendering.; 2026-11-13: device-pixel slideshow targets, single-flight resolution-aware invalidation and bounded static media raster reuse; retain animation, transition and media sampling",
-    "adapted_sha256": "bc044dd13311d4e0cf1140a45ff7ec82db0a59366b167b4fa5515baf9583d0f2",
+    "adapted_sha256": "ac24c983c6af3f3feb30307a1521b6357ec0832c087993a92bc129515d116a83",
     "font_environment": "Refresh font selection, editor geometry and rendering caches when installed font files change.",
     "text_hyperlinks": "Dispatch a validated URL returned by the slide show click player.",
     "product_branding": "Group audience and presenter windows with the JoyDeck desktop launcher.",
     "ribbon_collapse_navigation": "2026-11-13: route Up/Down through existing previous/next slideshow navigation, preserving animation and media behavior.",
-    "desktop_product_icons": "2026-11-18: embedded native product icons/logos for every product window; portable desktop registration and complete shared artwork source fingerprints; original attribution retained."
+    "desktop_product_icons": "2026-11-18: embedded native product icons/logos for every product window; portable desktop registration and complete shared artwork source fingerprints; original attribution retained.",
+    "transition_presentation": "The audience opts into the JoyOffice device compositor. Validation builds optionally report completed frame preparation and the sampled transition clock."
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",

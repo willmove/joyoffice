@@ -58,6 +58,13 @@ impl Player {
             .filter(|t| t.kind != "none")
             .map_or(0., |t| f64::from(t.duration_ms.min(60_000)) / 1000.)
     }
+    /// Normalized time of the incoming slide transition, while it is active.
+    pub fn transition_progress(&self) -> Option<f64> {
+        let duration = self.transition_duration();
+        (duration > 0. && self.transition_elapsed < duration)
+            .then(|| self.transition_elapsed / duration)
+    }
+
     fn changed(&mut self, old: usize, action: ShowAction) {
         if matches!(action, ShowAction::Slide(_)) {
             self.previous = Some(old);
@@ -238,6 +245,30 @@ impl Player {
                 },
             });
         }
+        let image = self.with_render_options(scale, |opts| {
+            if let Some(progress) = self.transition_progress() {
+                joydeck_render::render_transition_between(
+                    &self.model,
+                    self.state.slide,
+                    self.previous,
+                    progress,
+                    opts,
+                )
+            } else {
+                joydeck_render::render_slide(&self.model, self.state.slide, opts)
+            }
+        })?;
+        cancel.check()?;
+        if image.pixels.is_empty() {
+            return Err("show raster failed".into());
+        }
+        Ok(image)
+    }
+    pub(crate) fn with_render_options<T>(
+        &self,
+        scale: f64,
+        render: impl FnOnce(&joydeck_render::RenderOpts<'_>) -> T,
+    ) -> Result<T, String> {
         let _guard = crate::document::RENDER_LOCK
             .lock()
             .map_err(|_| "show renderer lock poisoned")?;
@@ -256,24 +287,13 @@ impl Player {
             threads: 0,
             ..Default::default()
         };
-        let duration = self.transition_duration();
-        let image = if duration > 0. && self.transition_elapsed < duration {
-            joydeck_render::render_transition_between(
-                &self.model,
-                self.state.slide,
-                self.previous,
-                self.transition_elapsed / duration,
-                &opts,
-            )
-        } else {
-            joydeck_render::render_slide(&self.model, self.state.slide, &opts)
-        };
-        cancel.check()?;
-        if image.pixels.is_empty() || panics != joydeck_render::panics_caught() {
-            return Err("show raster failed".into());
+        let result = render(&opts);
+        if joydeck_render::panics_caught() != panics {
+            return Err("show rasterization failed".into());
         }
-        Ok(image)
+        Ok(result)
     }
+
     fn shape_state(&self, tl: &Timeline, id: ShapeId) -> joydeck_render::ShapeState {
         let s = self.state.anim_state(tl, id, self.elapsed);
         joydeck_render::ShapeState {

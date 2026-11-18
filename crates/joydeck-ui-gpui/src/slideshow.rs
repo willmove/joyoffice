@@ -66,6 +66,8 @@ struct Audience {
     pointer: Point<Pixels>,
     ink: Vec<Vec<(f32, f32)>>,
     frames: u64,
+    #[cfg(feature = "validation")]
+    trace_transitions: bool,
 }
 impl Drop for Audience {
     fn drop(&mut self) {
@@ -181,6 +183,18 @@ impl Audience {
             return;
         }
         drop(r);
+        #[cfg(feature = "validation")]
+        let trace = self
+            .trace_transitions
+            .then(|| {
+                let tr = model.model.slides[model.state.slide].transition.as_ref()?;
+                Some((
+                    model.state.slide + 1,
+                    tr.kind.clone(),
+                    model.transition_progress()?,
+                ))
+            })
+            .flatten();
         let media = self.media.clone();
         let cache = self.raster_cache.clone();
         let cancel = self.cancel.clone();
@@ -227,6 +241,10 @@ impl Audience {
                         }
                         s.frames += 1;
                         let micros = started.elapsed().as_micros();
+                        #[cfg(feature = "validation")]
+                        if let Some((slide, kind, progress)) = &trace {
+                            eprintln!("JoyDeck show_transition_frame slide={slide} effect={kind} progress={progress:.8} prepare_us={micros} pixels={}x{}", target.width, target.height);
+                        }
                         s.prepare_total += micros;
                         s.prepare_peak = s.prepare_peak.max(micros);
                         s.prepare_count += 1;
@@ -542,7 +560,7 @@ pub(super) fn open(
                     prepare_count: 0,
                     retired: vec![],
                     requests: frames::Requests::default(),
-                    raster_cache: Arc::new(Mutex::new(RasterCache::default())),
+                    raster_cache: Arc::new(Mutex::new(RasterCache::for_audience())),
                     task: None,
                     clock: None,
                     bounds_observer: None,
@@ -559,6 +577,8 @@ pub(super) fn open(
                     pointer: Point::default(),
                     ink: vec![],
                     frames: 0,
+                    #[cfg(feature = "validation")]
+                    trace_transitions: std::env::var_os("JOYDECK_TRACE_TRANSITIONS").is_some(),
                 };
                 audience.bounds_observer =
                     Some(cx.observe_window_bounds(w, |_: &mut Audience, _, cx| {

@@ -37,6 +37,8 @@ mod radar;
 mod ramp;
 mod table;
 mod transition;
+#[cfg(feature = "transition-gpu")]
+pub mod transition_gpu;
 mod warp;
 
 use std::collections::HashMap;

@@ -5,6 +5,9 @@ use joydeck_model::Presentation;
 use joydeck_render::Image;
 use std::sync::Arc;
 
+#[cfg(feature = "native-transitions")]
+mod transitions;
+
 const MAX_SIDE: f64 = 8192.;
 const MAX_PIXELS: f64 = 16_000_000.;
 const MAX_SCALE: f64 = 8.;
@@ -83,15 +86,27 @@ struct CachedRaster {
     image: Image,
 }
 
-/// At most one raster (64 MB under the existing frame budget). Only retained for media
-/// compositing on a static page; continuously changing frames never incur a cache copy.
+/// Retains at most one static media raster (64 MB). A native audience may also
+/// hold a bounded device slide pair while a transition is playing.
 #[derive(Default)]
 pub struct RasterCache {
     cached: Option<CachedRaster>,
+    #[cfg(feature = "native-transitions")]
+    transitions: Option<transitions::Presenter>,
     pub renders: u64,
     pub hits: u64,
 }
 impl RasterCache {
+    /// Allow device composition for a presentation window. The deterministic raster API
+    /// and its callers keep their original output when constructing the default cache.
+    #[cfg(feature = "native-transitions")]
+    pub fn for_audience() -> Self {
+        Self {
+            transitions: Some(transitions::Presenter::default()),
+            ..Self::default()
+        }
+    }
+
     pub fn render(
         &mut self,
         player: &Player,
@@ -121,6 +136,13 @@ impl RasterCache {
             return Ok(cached.image.clone());
         }
         self.cached = None;
+        #[cfg(feature = "native-transitions")]
+        if let Some(presenter) = &mut self.transitions
+            && let Some(image) = presenter.frame(player, target, fonts, cancel)?
+        {
+            self.renders += 1;
+            return Ok(image);
+        }
         let image = player.frame(target.scale(), cancel)?;
         self.renders += 1;
         if retain && fonts == joydeck_fonts::FontDb::global().environment_revision() {
