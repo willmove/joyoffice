@@ -205,48 +205,6 @@ pub(super) fn arg_pairs(a: &[Arg], i: usize, j: usize) -> R<(Vec<f64>, Vec<f64>)
     pairs(&arg(a, i)?.value, &arg(a, j)?.value)
 }
 
-/// (sum of cross deviations, devsq x, devsq y, mean x, mean y).
-pub(super) fn moments(x: &[f64], y: &[f64]) -> R<(f64, f64, f64, f64, f64)> {
-    let mx = mean(x)?;
-    let my = mean(y)?;
-    let mut sxy = 0.0;
-    let mut sxx = 0.0;
-    let mut syy = 0.0;
-    for (a, b) in x.iter().zip(y) {
-        sxy += (a - mx) * (b - my);
-        sxx += (a - mx) * (a - mx);
-        syy += (b - my) * (b - my);
-    }
-    Ok((sxy, sxx, syy, mx, my))
-}
-
-pub(super) fn correl(x: &[f64], y: &[f64]) -> R<f64> {
-    if x.len() < 2 {
-        return Err(CellError::Div0);
-    }
-    let (sxy, sxx, syy, _, _) = moments(x, y)?;
-    if sxx == 0.0 || syy == 0.0 {
-        return Err(CellError::Div0);
-    }
-    Ok(sxy / (sxx * syy).sqrt())
-}
-
-pub(super) fn slope(y: &[f64], x: &[f64]) -> R<f64> {
-    let (sxy, sxx, _, _, _) = moments(x, y)?;
-    if sxx == 0.0 {
-        return Err(CellError::Div0);
-    }
-    Ok(sxy / sxx)
-}
-
-pub(super) fn intercept(y: &[f64], x: &[f64]) -> R<f64> {
-    let (sxy, sxx, _, mx, my) = moments(x, y)?;
-    if sxx == 0.0 {
-        return Err(CellError::Div0);
-    }
-    Ok(my - sxy / sxx * mx)
-}
-
 fn trunc_digits(r: f64, sig: f64) -> f64 {
     let f = 10f64.powi(sig as i32);
     if !f.is_finite() {

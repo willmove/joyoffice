@@ -9,13 +9,14 @@ use crate::{Arg, Ctx, FnSpec, VAR};
 
 mod descriptive;
 mod distributions;
+mod paired;
 mod regression;
 mod spread;
 
 pub use descriptive::{aggregate_values, aggregate_values_k};
 use descriptive::{
-    arg_nums, arg_pairs, correl, count_impl, counta_impl, countblank, frequency, geomean, harmean, intercept, large, median, mode_mult, mode_numbers,
-    mode_sngl, percentile_exc, percentile_inc, percentrank_impl, prob, quartile_exc, quartile_inc, rank_impl, slope, small, standardize, trimmean,
+    arg_nums, count_impl, counta_impl, countblank, frequency, geomean, harmean, large, median, mode_mult, mode_numbers, mode_sngl, percentile_exc,
+    percentile_inc, percentrank_impl, prob, quartile_exc, quartile_inc, rank_impl, small, standardize, trimmean,
 };
 use distributions::{
     beta_dist, beta_inv, betadist_legacy, binom_dist, binom_dist_range, binom_inv, chisq_dist, chisq_dist_rt, chisq_inv, chisq_inv_rt, chisq_test,
@@ -25,7 +26,7 @@ use distributions::{
 };
 #[cfg(test)]
 use regression::{MAX_REGRESSORS, check_regression_size};
-use regression::{covariance, forecast, linest_impl, steyx, trend_impl};
+use regression::{linest_impl, trend_impl};
 
 type C<'a> = &'a mut dyn Ctx;
 
@@ -290,23 +291,17 @@ pub(crate) fn specs() -> Vec<FnSpec> {
         )),
         f!("COUNTBLANK", 1, 1, Statistical, A, "COUNTBLANK(range)", "Counts empty cells and empty text in a range.", countblank),
         f!("CORREL", 2, 2, Statistical, A, "CORREL(array1, array2)", "Correlation coefficient of two data sets.", |a: &[Arg], _c: C| {
-            let (x, y) = arg_pairs(a, 0, 1)?;
-            num_val(correl(&x, &y)?)
+            paired::calculate(a, paired::Statistic::Correlation)
         }),
         f!("PEARSON", 2, 2, Statistical, A, "PEARSON(array1, array2)", "Pearson product-moment correlation coefficient.", |a: &[Arg], _c: C| {
-            let (x, y) = arg_pairs(a, 0, 1)?;
-            num_val(correl(&x, &y)?)
+            paired::calculate(a, paired::Statistic::Correlation)
         }),
-        f!("RSQ", 2, 2, Statistical, A, "RSQ(known_ys, known_xs)", "Square of the correlation coefficient.", |a: &[Arg], _c: C| {
-            let (y, x) = arg_pairs(a, 0, 1)?;
-            num_val(correl(&x, &y)?.powi(2))
-        }),
+        f!("RSQ", 2, 2, Statistical, A, "RSQ(known_ys, known_xs)", "Square of the correlation coefficient.", |a: &[Arg], _c: C| paired::calculate(
+            a,
+            paired::Statistic::SquaredCorrelation
+        )),
         f!("SLOPE", 2, 2, Statistical, A, "SLOPE(known_ys, known_xs)", "Slope of the least-squares regression line.", |a: &[Arg], _c: C| {
-            let (y, x) = arg_pairs(a, 0, 1)?;
-            if y.is_empty() {
-                return Err(CellError::Div0);
-            }
-            num_val(slope(&y, &x)?)
+            paired::calculate(a, paired::Statistic::Slope)
         }),
         f!(
             "INTERCEPT",
@@ -316,16 +311,28 @@ pub(crate) fn specs() -> Vec<FnSpec> {
             A,
             "INTERCEPT(known_ys, known_xs)",
             "Y-intercept of the least-squares regression line.",
-            |a: &[Arg], _c: C| {
-                let (y, x) = arg_pairs(a, 0, 1)?;
-                if y.is_empty() {
-                    return Err(CellError::Div0);
-                }
-                num_val(intercept(&y, &x)?)
-            }
+            |a: &[Arg], _c: C| paired::calculate(a, paired::Statistic::Intercept)
         ),
-        f!("STEYX", 2, 2, Statistical, A, "STEYX(known_ys, known_xs)", "Standard error of predicted y values in a regression.", steyx),
-        f!("FORECAST", 3, 3, Compatibility, S_FORECAST, "FORECAST(x, known_ys, known_xs)", "Predicts a value along a linear trend.", forecast),
+        f!(
+            "STEYX",
+            2,
+            2,
+            Statistical,
+            A,
+            "STEYX(known_ys, known_xs)",
+            "Standard error of predicted y values in a regression.",
+            |a: &[Arg], _c: C| paired::calculate(a, paired::Statistic::StandardError)
+        ),
+        f!(
+            "FORECAST",
+            3,
+            3,
+            Compatibility,
+            S_FORECAST,
+            "FORECAST(x, known_ys, known_xs)",
+            "Predicts a value along a linear trend.",
+            |a: &[Arg], _c: C| paired::calculate(a, paired::Statistic::Forecast)
+        ),
         f!(
             "FORECAST.LINEAR",
             3,
@@ -334,7 +341,7 @@ pub(crate) fn specs() -> Vec<FnSpec> {
             S_FORECAST,
             "FORECAST.LINEAR(x, known_ys, known_xs)",
             "Predicts a value along a linear trend.",
-            forecast
+            |a: &[Arg], _c: C| paired::calculate(a, paired::Statistic::Forecast)
         ),
         f!(
             "TREND",
@@ -377,14 +384,21 @@ pub(crate) fn specs() -> Vec<FnSpec> {
             |a: &[Arg], _c: C| { linest_impl(a, true) }
         ),
         f!("COVARIANCE.P", 2, 2, Statistical, A, "COVARIANCE.P(array1, array2)", "Population covariance of paired values.", |a: &[Arg], _c: C| {
-            covariance(a, false)
+            paired::calculate(a, paired::Statistic::PopulationCovariance)
         }),
         f!("COVARIANCE.S", 2, 2, Statistical, A, "COVARIANCE.S(array1, array2)", "Sample covariance of paired values.", |a: &[Arg], _c: C| {
-            covariance(a, true)
+            paired::calculate(a, paired::Statistic::SampleCovariance)
         }),
-        f!("COVAR", 2, 2, Compatibility, A, "COVAR(array1, array2)", "Population covariance of paired values.", |a: &[Arg], _c: C| covariance(
-            a, false
-        )),
+        f!(
+            "COVAR",
+            2,
+            2,
+            Compatibility,
+            A,
+            "COVAR(array1, array2)",
+            "Population covariance of paired values.",
+            |a: &[Arg], _c: C| paired::calculate(a, paired::Statistic::PopulationCovariance)
+        ),
         f!("DEVSQ", 1, VAR, Statistical, A, "DEVSQ(number1, [number2], ...)", "Sum of squared deviations from the mean.", |a: &[Arg], _c: C| {
             spread::calculate(a, SumSquares, Numbers)
         }),

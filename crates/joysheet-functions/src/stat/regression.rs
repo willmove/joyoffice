@@ -1,37 +1,4 @@
-use super::descriptive::{arg_pairs, intercept, moments, slope};
 use super::*;
-
-pub(super) fn forecast(a: &[Arg], _: C) -> R<Value> {
-    let x = num(a, 0)?;
-    let (ys, xs) = arg_pairs(a, 1, 2)?;
-    if ys.is_empty() {
-        return Err(CellError::Div0);
-    }
-    num_val(intercept(&ys, &xs)? + slope(&ys, &xs)? * x)
-}
-
-pub(super) fn steyx(a: &[Arg], _: C) -> R<Value> {
-    let (ys, xs) = arg_pairs(a, 0, 1)?;
-    let n = ys.len() as f64;
-    if ys.len() < 3 {
-        return Err(CellError::Div0);
-    }
-    let (sxy, sxx, syy, _, _) = moments(&xs, &ys)?;
-    if sxx == 0.0 {
-        return Err(CellError::Div0);
-    }
-    num_val(((syy - sxy * sxy / sxx) / (n - 2.0)).max(0.0).sqrt())
-}
-
-pub(super) fn covariance(a: &[Arg], sample: bool) -> R<Value> {
-    let (xs, ys) = arg_pairs(a, 0, 1)?;
-    let n = xs.len();
-    if n == 0 || (sample && n < 2) {
-        return Err(CellError::Div0);
-    }
-    let (sxy, ..) = moments(&xs, &ys)?;
-    num_val(sxy / if sample { (n - 1) as f64 } else { n as f64 })
-}
 
 // ---------------------------------------------------------------------------------------------
 // Regression (LINEST, LOGEST, TREND, GROWTH)

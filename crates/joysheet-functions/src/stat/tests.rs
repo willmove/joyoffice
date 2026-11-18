@@ -519,3 +519,25 @@ fn statistical_arrays_keep_their_origin_and_skew_needs_three_observations() {
     close(ev("VARA", vec![literal]), 18.);
     is_err(ev("SKEW.P", vec![n(2.), n(8.)]), CellError::Div0);
 }
+
+#[test]
+fn paired_statistics_preserve_correlation_at_extreme_scale_and_propagate_error_order() {
+    for scale in [1e100, 1e-100] {
+        let samples = [scale, 2. * scale, 3. * scale, 4. * scale];
+        for name in ["CORREL", "PEARSON", "RSQ"] {
+            close_tol(ev(name, vec![c(&samples), c(&samples)]), 1., 1e-14);
+        }
+    }
+    let large = [1e100, 2e100, 3e100];
+    is_err(ev("STEYX", vec![c(&large), c(&large)]), CellError::Num);
+    let huge = [1e200, 2e200, 3e200];
+    let tiny = [1e-200, 2e-200, 3e-200];
+    is_err(ev("SLOPE", vec![c(&tiny), c(&huge)]), CellError::Num);
+    is_err(ev("SLOPE", vec![c(&huge), c(&tiny)]), CellError::Div0);
+    close(ev("COVARIANCE.P", vec![c(&huge), c(&tiny)]), 2. / 3.);
+    let err = |e| rf(arr(vec![vec![Value::Error(e), nv(2.)]]));
+    for name in ["CORREL", "SLOPE", "COVARIANCE.P", "STEYX"] {
+        is_err(ev(name, vec![err(CellError::NA), err(CellError::Div0)]), CellError::NA);
+        is_err(ev(name, vec![err(CellError::Div0), err(CellError::NA)]), CellError::Div0);
+    }
+}

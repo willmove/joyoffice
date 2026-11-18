@@ -90,3 +90,7 @@ JoySheet uses one stored-value classification for the eight IS predicates, TYPE,
 ## Descriptive statistics and array argument coercion
 
 Twenty registrations for variance, deviation, skewness, kurtosis, and the A aggregates now use JoySheet’s streaming implementation. The input policy distinguishes scalar arguments, referenced cells, and evaluated arrays. The imported tabular helpers still serve inferential and aggregate callers. Two independent Excel workbooks cover 35 cases per registration at each of two input values. [Host implementation](../../crates/joysheet-functions/src/stat/spread.rs) · [Excel caches, desktop verification and rollback](../joyoffice/validation/20261118-desktop-sharing/statistical-spread.json)
+
+## Correlation, linear prediction and covariance
+
+Eleven registrations use the host paired-statistics implementation, including FORECAST.LINEAR and the legacy covariance alias. Each reads the original arguments twice, retains row-major error precedence and needs constant auxiliary storage. The previous paired-vector helper and the duplicate forecast fit have been removed. Both JoySheet desktops and Microsoft Excel exercised the same two workbooks. [Host implementation](../../crates/joysheet-functions/src/stat/paired.rs) · [File, desktop and release timing evidence](../joyoffice/validation/20261118-desktop-sharing/paired-regression.json)

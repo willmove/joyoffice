@@ -1,0 +1,1320 @@
+{
+  "previousWorkspaceCommit": "f39372b5",
+  "previousSheetCommit": "5b8759d2",
+  "scope": "Eleven formula registrations share a two-pass, row-major calculation on borrowed cell pairs with constant auxiliary storage. Empty, boolean and text pairs are skipped; worksheet errors, argument-length mismatch and numeric overflow retain their specific result types.",
+  "references": [
+    "https://support.microsoft.com/en-us/excel/functions/forecast-and-forecast-linear-functions",
+    "https://support.microsoft.com/en-us/excel/functions/steyx-function"
+  ],
+  "independentReference": "Excel for Mac 16.115 calculated both input states. Each of the eleven names covers 39 pair contexts. Each prediction name has five more cases for its scalar input. Numbers use a relative tolerance of 2e-12, no absolute tolerance. Addresses, formulas, types and errors must match exactly.",
+  "excelReopened": {
+    "base": {
+      "checked": 439,
+      "differences": 0,
+      "joySheetWriterSha256": "7eacabdc5faf7d65d579f8b8e96668cbb01eee5b339854518ded71ee8a595cfd",
+      "excelWriterSha256": "c944b254a45a20f9c0b083abd1e9b5a1d113a77a41f6f9cb937853512baf18f8"
+    },
+    "edit": {
+      "checked": 439,
+      "differences": 0,
+      "joySheetWriterSha256": "53b5ae2f2ebaa847ec74a4b4506e6e364da6533ba6114a5cbdca66e8d3fd62c4",
+      "excelWriterSha256": "4914bc53e7d630cfbc2aa6d1d0cd79ac9fd005e797fe1aef85ecf2eb006d234c"
+    }
+  },
+  "platforms": {
+    "macOS": {
+      "binaries": [
+        "a7d376a3468ccf63e1e33992dc66e35e70df4dcc9d7a11a5bf85706f14f186d9",
+        "d66e22e00ab900123b6d33ec06e751eff89d4bb7f35607f4f50712582857d590"
+      ],
+      "excel": {
+        "base": {
+          "sourceSha256": "f9b31a301a7517f416fec62d7ac0958f196c5a9105358cb9edd2e0b69e4082b8",
+          "independentByFunction": {
+            "CORREL": 39,
+            "PEARSON": 39,
+            "RSQ": 39,
+            "SLOPE": 39,
+            "INTERCEPT": 39,
+            "STEYX": 39,
+            "FORECAST": 44,
+            "FORECAST.LINEAR": 44,
+            "COVAR": 39,
+            "COVARIANCE.P": 39,
+            "COVARIANCE.S": 39
+          },
+          "baselineDifferences": [
+            [
+              "G21",
+              "CORREL(P2:P7,P2:P7)",
+              "1",
+              "0"
+            ],
+            [
+              "G22",
+              "CORREL(Q2:Q7,Q2:Q7)",
+              "1",
+              "#NUM!"
+            ],
+            [
+              "G37",
+              "CORREL(X2:X7,Y2:Y7)",
+              "#NUM!",
+              "#DIV/0!"
+            ],
+            [
+              "G38",
+              "CORREL(Y2:Y7,X2:X7)",
+              "#NUM!",
+              "#DIV/0!"
+            ],
+            [
+              "G60",
+              "PEARSON(P2:P7,P2:P7)",
+              "1",
+              "0"
+            ],
+            [
+              "G61",
+              "PEARSON(Q2:Q7,Q2:Q7)",
+              "1",
+              "#NUM!"
+            ],
+            [
+              "G76",
+              "PEARSON(X2:X7,Y2:Y7)",
+              "#NUM!",
+              "#DIV/0!"
+            ],
+            [
+              "G77",
+              "PEARSON(Y2:Y7,X2:X7)",
+              "#NUM!",
+              "#DIV/0!"
+            ],
+            [
+              "G99",
+              "RSQ(P2:P7,P2:P7)",
+              "1",
+              "0"
+            ],
+            [
+              "G100",
+              "RSQ(Q2:Q7,Q2:Q7)",
+              "1",
+              "#NUM!"
+            ],
+            [
+              "G115",
+              "RSQ(X2:X7,Y2:Y7)",
+              "#NUM!",
+              "#DIV/0!"
+            ],
+            [
+              "G116",
+              "RSQ(Y2:Y7,X2:X7)",
+              "#NUM!",
+              "#DIV/0!"
+            ],
+            [
+              "G155",
+              "SLOPE(Y2:Y7,X2:X7)",
+              "#NUM!",
+              "0"
+            ],
+            [
+              "G194",
+              "INTERCEPT(Y2:Y7,X2:X7)",
+              "#NUM!",
+              "3.5E-200"
+            ],
+            [
+              "G216",
+              "STEYX(P2:P7,P2:P7)",
+              "#NUM!",
+              "0"
+            ],
+            [
+              "G230",
+              "STEYX(X2:X7,X2:X7)",
+              "#NUM!",
+              "0"
+            ],
+            [
+              "G232",
+              "STEYX(X2:X7,Y2:Y7)",
+              "#NUM!",
+              "#DIV/0!"
+            ],
+            [
+              "G233",
+              "STEYX(Y2:Y7,X2:X7)",
+              "#NUM!",
+              "0"
+            ],
+            [
+              "G272",
+              "FORECAST(A1,Y2:Y7,X2:X7)",
+              "#NUM!",
+              "3.5E-200"
+            ],
+            [
+              "G316",
+              "FORECAST.LINEAR(A1,Y2:Y7,X2:X7)",
+              "#NUM!",
+              "3.5E-200"
+            ]
+          ],
+          "candidateDifferences": 0,
+          "bothGenerationsRecalculatedBothWriters": true
+        },
+        "edit": {
+          "sourceSha256": "f2e7f31ce587870c8b9bf1aec5fc332febc342ddc93eefec2a7a0318955b3e93",
+          "independentByFunction": {
+            "CORREL": 39,
+            "PEARSON": 39,
+            "RSQ": 39,
+            "SLOPE": 39,
+            "INTERCEPT": 39,
+            "STEYX": 39,
+            "FORECAST": 44,
+            "FORECAST.LINEAR": 44,
+            "COVAR": 39,
+            "COVARIANCE.P": 39,
+            "COVARIANCE.S": 39
+          },
+          "baselineDifferences": [
+            [
+              "G21",
+              "CORREL(P2:P7,P2:P7)",
+              "1",
+              "0"
+            ],
+            [
+              "G22",
+              "CORREL(Q2:Q7,Q2:Q7)",
+              "1",
+              "#NUM!"
+            ],
+            [
+              "G37",
+              "CORREL(X2:X7,Y2:Y7)",
+              "#NUM!",
+              "#DIV/0!"
+            ],
+            [
+              "G38",
+              "CORREL(Y2:Y7,X2:X7)",
+              "#NUM!",
+              "#DIV/0!"
+            ],
+            [
+              "G60",
+              "PEARSON(P2:P7,P2:P7)",
+              "1",
+              "0"
+            ],
+            [
+              "G61",
+              "PEARSON(Q2:Q7,Q2:Q7)",
+              "1",
+              "#NUM!"
+            ],
+            [
+              "G76",
+              "PEARSON(X2:X7,Y2:Y7)",
+              "#NUM!",
+              "#DIV/0!"
+            ],
+            [
+              "G77",
+              "PEARSON(Y2:Y7,X2:X7)",
+              "#NUM!",
+              "#DIV/0!"
+            ],
+            [
+              "G99",
+              "RSQ(P2:P7,P2:P7)",
+              "1",
+              "0"
+            ],
+            [
+              "G100",
+              "RSQ(Q2:Q7,Q2:Q7)",
+              "1",
+              "#NUM!"
+            ],
+            [
+              "G115",
+              "RSQ(X2:X7,Y2:Y7)",
+              "#NUM!",
+              "#DIV/0!"
+            ],
+            [
+              "G116",
+              "RSQ(Y2:Y7,X2:X7)",
+              "#NUM!",
+              "#DIV/0!"
+            ],
+            [
+              "G155",
+              "SLOPE(Y2:Y7,X2:X7)",
+              "#NUM!",
+              "0"
+            ],
+            [
+              "G194",
+              "INTERCEPT(Y2:Y7,X2:X7)",
+              "#NUM!",
+              "3.5E-200"
+            ],
+            [
+              "G216",
+              "STEYX(P2:P7,P2:P7)",
+              "#NUM!",
+              "0"
+            ],
+            [
+              "G230",
+              "STEYX(X2:X7,X2:X7)",
+              "#NUM!",
+              "0"
+            ],
+            [
+              "G232",
+              "STEYX(X2:X7,Y2:Y7)",
+              "#NUM!",
+              "#DIV/0!"
+            ],
+            [
+              "G233",
+              "STEYX(Y2:Y7,X2:X7)",
+              "#NUM!",
+              "0"
+            ],
+            [
+              "G272",
+              "FORECAST(A1,Y2:Y7,X2:X7)",
+              "#NUM!",
+              "3.5E-200"
+            ],
+            [
+              "G316",
+              "FORECAST.LINEAR(A1,Y2:Y7,X2:X7)",
+              "#NUM!",
+              "3.5E-200"
+            ]
+          ],
+          "candidateDifferences": 0,
+          "bothGenerationsRecalculatedBothWriters": true
+        }
+      },
+      "native": {
+        "changedCells": 60,
+        "checkedPerState": 74,
+        "states": 5,
+        "savedTypedCaches": 439,
+        "undoRedoAndFreshReopen": true,
+        "originalUnchanged": true
+      },
+      "product": {
+        "passed": 1493,
+        "failed": 0,
+        "ignored": 1
+      },
+      "strictClippy": "joysheet-functions --all-targets -- -D warnings",
+      "businessSamples": [
+        {
+          "sourceSha256": "521576e13e1ced708e2f7efac270da864053d9b05ce6216831970f3fa9fdc126",
+          "originalFormulaCells": 0,
+          "derivedFormulaCells": 916
+        },
+        {
+          "sourceSha256": "7034ab68c7c22f09a07114767d912c4bf8e87849d35e03bb76c15e9ef25e984d",
+          "originalFormulaCells": 0,
+          "derivedFormulaCells": 16
+        }
+      ],
+      "descriptiveStatisticsRegression": {
+        "bothStatesCachesChecked": 1400,
+        "differences": 0
+      },
+      "registryTimes": {
+        "CORREL-128": {
+          "baseline": [
+            957.15,
+            699.067,
+            688.483,
+            720.283,
+            662.333,
+            682.85,
+            683.017,
+            747.567,
+            756.15,
+            715.467,
+            753.6
+          ],
+          "candidate": [
+            182.8,
+            182.767,
+            180.65,
+            188.916,
+            180.883,
+            190.584,
+            185.75,
+            208.683,
+            180.483,
+            184.15,
+            186.333
+          ],
+          "repetitions": 2500,
+          "baselineMedianNs": 715.467,
+          "candidateMedianNs": 184.15
+        },
+        "SLOPE-128": {
+          "baseline": [
+            851.85,
+            715.167,
+            704.933,
+            698.117,
+            664.833,
+            679.25,
+            653.166,
+            759.25,
+            654.583,
+            670.65,
+            657.317
+          ],
+          "candidate": [
+            176.933,
+            180.833,
+            172.75,
+            174.05,
+            181.8,
+            180.533,
+            217.567,
+            178.567,
+            176.817,
+            183.133,
+            174.85
+          ],
+          "repetitions": 2500,
+          "baselineMedianNs": 679.25,
+          "candidateMedianNs": 178.567
+        },
+        "STEYX-128": {
+          "baseline": [
+            852.95,
+            738.15,
+            700.084,
+            720.884,
+            695.1,
+            677.9,
+            666.833,
+            739.15,
+            692.067,
+            769.234,
+            689.467
+          ],
+          "candidate": [
+            234.934,
+            193.05,
+            180.534,
+            222.65,
+            184.984,
+            183.866,
+            194.35,
+            182.7,
+            183.433,
+            194.333,
+            184.267
+          ],
+          "repetitions": 2500,
+          "baselineMedianNs": 700.084,
+          "candidateMedianNs": 184.984
+        },
+        "FORECAST-128": {
+          "baseline": [
+            993.55,
+            965.834,
+            836.683,
+            854.55,
+            802.917,
+            825.667,
+            879.784,
+            864.15,
+            938.017,
+            826.067,
+            792.617
+          ],
+          "candidate": [
+            260.116,
+            182.05,
+            184.05,
+            196.584,
+            192.933,
+            183.0,
+            184.367,
+            186.85,
+            183.333,
+            179.383,
+            203.6
+          ],
+          "repetitions": 2500,
+          "baselineMedianNs": 854.55,
+          "candidateMedianNs": 184.367
+        },
+        "COVARIANCE.P-128": {
+          "baseline": [
+            776.05,
+            753.883,
+            642.667,
+            693.417,
+            692.017,
+            667.2,
+            691.15,
+            703.834,
+            717.034,
+            718.667,
+            878.267
+          ],
+          "candidate": [
+            198.667,
+            180.483,
+            177.583,
+            187.1,
+            175.45,
+            181.417,
+            189.783,
+            176.983,
+            175.116,
+            180.317,
+            173.167
+          ],
+          "repetitions": 2500,
+          "baselineMedianNs": 703.834,
+          "candidateMedianNs": 180.317
+        },
+        "CORREL-32768": {
+          "baseline": [
+            117513.867,
+            104697.2,
+            95747.2,
+            102702.8,
+            98561.067,
+            103650.0,
+            100947.2,
+            100038.867,
+            110141.667,
+            103172.2,
+            136941.667
+          ],
+          "candidate": [
+            46333.333,
+            47938.867,
+            46205.533,
+            47502.8,
+            57322.2,
+            44338.867,
+            47980.533,
+            46825.0,
+            53472.267,
+            49169.4,
+            46388.867
+          ],
+          "repetitions": 15,
+          "baselineMedianNs": 103172.2,
+          "candidateMedianNs": 47502.8
+        },
+        "SLOPE-32768": {
+          "baseline": [
+            119136.133,
+            106661.067,
+            95016.667,
+            98041.667,
+            101111.133,
+            99236.133,
+            95150.0,
+            97747.2,
+            106922.2,
+            98297.2,
+            140700.0
+          ],
+          "candidate": [
+            47022.2,
+            46936.067,
+            45800.0,
+            48141.667,
+            46275.0,
+            47675.0,
+            46936.133,
+            46280.6,
+            47636.133,
+            47730.533,
+            76938.933
+          ],
+          "repetitions": 15,
+          "baselineMedianNs": 99236.133,
+          "candidateMedianNs": 47022.2
+        },
+        "STEYX-32768": {
+          "baseline": [
+            125380.533,
+            98486.067,
+            95227.733,
+            96452.8,
+            102836.133,
+            100483.333,
+            98847.267,
+            104602.8,
+            102313.867,
+            101855.533,
+            113972.2
+          ],
+          "candidate": [
+            44958.333,
+            45766.667,
+            45175.0,
+            48886.133,
+            44341.667,
+            46644.467,
+            48025.0,
+            47500.0,
+            49688.867,
+            49819.4,
+            65497.2
+          ],
+          "repetitions": 15,
+          "baselineMedianNs": 101855.533,
+          "candidateMedianNs": 47500.0
+        },
+        "FORECAST-32768": {
+          "baseline": [
+            186294.4,
+            149272.267,
+            156688.867,
+            178375.0,
+            156141.667,
+            170163.867,
+            150375.0,
+            165016.667,
+            161988.867,
+            186011.133,
+            154577.733
+          ],
+          "candidate": [
+            45025.0,
+            48333.333,
+            45072.2,
+            49227.733,
+            45275.0,
+            63691.667,
+            47513.867,
+            45652.8,
+            47808.333,
+            47425.0,
+            53586.133
+          ],
+          "repetitions": 15,
+          "baselineMedianNs": 161988.867,
+          "candidateMedianNs": 47513.867
+        },
+        "COVARIANCE.P-32768": {
+          "baseline": [
+            105355.6,
+            98977.8,
+            99247.2,
+            101408.333,
+            93636.133,
+            96511.133,
+            93630.6,
+            101955.533,
+            96813.933,
+            123186.133,
+            97708.333
+          ],
+          "candidate": [
+            50850.0,
+            53508.333,
+            45016.667,
+            48772.2,
+            47272.2,
+            50616.667,
+            49952.8,
+            45719.4,
+            47536.133,
+            53505.6,
+            49219.467
+          ],
+          "repetitions": 15,
+          "baselineMedianNs": 98977.8,
+          "candidateMedianNs": 49219.467
+        }
+      },
+      "spdx": {
+        "target": "aarch64-apple-darwin",
+        "packages": 454,
+        "sourceFiles": 1244,
+        "spdxSha256": "e3bc4d33e861a97808ccda5bd65c337896a69742c6c40e395f6650875e1e0c9c",
+        "missingLicenseTexts": [],
+        "sharedCrates": [
+          "joyoffice-cfb",
+          "joyoffice-drawingml",
+          "joyoffice-omml",
+          "joyoffice-opc",
+          "joyoffice-theme",
+          "joyoffice-ui"
+        ],
+        "runtimeLegacyDependencies": []
+      }
+    },
+    "UOS25": {
+      "binaries": [
+        "c12af44db83eeef5667ff616b242d306f38a7b7e43291b7bf5c379df91715ac8",
+        "03987f54b32c99670bfa7a45ccfaac661a5077a37fbd5750525a91e1547ff6e0"
+      ],
+      "excel": {
+        "base": {
+          "sourceSha256": "f9b31a301a7517f416fec62d7ac0958f196c5a9105358cb9edd2e0b69e4082b8",
+          "independentByFunction": {
+            "CORREL": 39,
+            "PEARSON": 39,
+            "RSQ": 39,
+            "SLOPE": 39,
+            "INTERCEPT": 39,
+            "STEYX": 39,
+            "FORECAST": 44,
+            "FORECAST.LINEAR": 44,
+            "COVAR": 39,
+            "COVARIANCE.P": 39,
+            "COVARIANCE.S": 39
+          },
+          "baselineDifferences": [
+            [
+              "G21",
+              "CORREL(P2:P7,P2:P7)",
+              "1",
+              "0"
+            ],
+            [
+              "G22",
+              "CORREL(Q2:Q7,Q2:Q7)",
+              "1",
+              "#NUM!"
+            ],
+            [
+              "G37",
+              "CORREL(X2:X7,Y2:Y7)",
+              "#NUM!",
+              "#DIV/0!"
+            ],
+            [
+              "G38",
+              "CORREL(Y2:Y7,X2:X7)",
+              "#NUM!",
+              "#DIV/0!"
+            ],
+            [
+              "G60",
+              "PEARSON(P2:P7,P2:P7)",
+              "1",
+              "0"
+            ],
+            [
+              "G61",
+              "PEARSON(Q2:Q7,Q2:Q7)",
+              "1",
+              "#NUM!"
+            ],
+            [
+              "G76",
+              "PEARSON(X2:X7,Y2:Y7)",
+              "#NUM!",
+              "#DIV/0!"
+            ],
+            [
+              "G77",
+              "PEARSON(Y2:Y7,X2:X7)",
+              "#NUM!",
+              "#DIV/0!"
+            ],
+            [
+              "G99",
+              "RSQ(P2:P7,P2:P7)",
+              "1",
+              "0"
+            ],
+            [
+              "G100",
+              "RSQ(Q2:Q7,Q2:Q7)",
+              "1",
+              "#NUM!"
+            ],
+            [
+              "G115",
+              "RSQ(X2:X7,Y2:Y7)",
+              "#NUM!",
+              "#DIV/0!"
+            ],
+            [
+              "G116",
+              "RSQ(Y2:Y7,X2:X7)",
+              "#NUM!",
+              "#DIV/0!"
+            ],
+            [
+              "G155",
+              "SLOPE(Y2:Y7,X2:X7)",
+              "#NUM!",
+              "0"
+            ],
+            [
+              "G194",
+              "INTERCEPT(Y2:Y7,X2:X7)",
+              "#NUM!",
+              "3.5E-200"
+            ],
+            [
+              "G216",
+              "STEYX(P2:P7,P2:P7)",
+              "#NUM!",
+              "0"
+            ],
+            [
+              "G230",
+              "STEYX(X2:X7,X2:X7)",
+              "#NUM!",
+              "0"
+            ],
+            [
+              "G232",
+              "STEYX(X2:X7,Y2:Y7)",
+              "#NUM!",
+              "#DIV/0!"
+            ],
+            [
+              "G233",
+              "STEYX(Y2:Y7,X2:X7)",
+              "#NUM!",
+              "0"
+            ],
+            [
+              "G272",
+              "FORECAST(A1,Y2:Y7,X2:X7)",
+              "#NUM!",
+              "3.5E-200"
+            ],
+            [
+              "G316",
+              "FORECAST.LINEAR(A1,Y2:Y7,X2:X7)",
+              "#NUM!",
+              "3.5E-200"
+            ]
+          ],
+          "candidateDifferences": 0,
+          "bothGenerationsRecalculatedBothWriters": true
+        },
+        "edit": {
+          "sourceSha256": "f2e7f31ce587870c8b9bf1aec5fc332febc342ddc93eefec2a7a0318955b3e93",
+          "independentByFunction": {
+            "CORREL": 39,
+            "PEARSON": 39,
+            "RSQ": 39,
+            "SLOPE": 39,
+            "INTERCEPT": 39,
+            "STEYX": 39,
+            "FORECAST": 44,
+            "FORECAST.LINEAR": 44,
+            "COVAR": 39,
+            "COVARIANCE.P": 39,
+            "COVARIANCE.S": 39
+          },
+          "baselineDifferences": [
+            [
+              "G21",
+              "CORREL(P2:P7,P2:P7)",
+              "1",
+              "0"
+            ],
+            [
+              "G22",
+              "CORREL(Q2:Q7,Q2:Q7)",
+              "1",
+              "#NUM!"
+            ],
+            [
+              "G37",
+              "CORREL(X2:X7,Y2:Y7)",
+              "#NUM!",
+              "#DIV/0!"
+            ],
+            [
+              "G38",
+              "CORREL(Y2:Y7,X2:X7)",
+              "#NUM!",
+              "#DIV/0!"
+            ],
+            [
+              "G60",
+              "PEARSON(P2:P7,P2:P7)",
+              "1",
+              "0"
+            ],
+            [
+              "G61",
+              "PEARSON(Q2:Q7,Q2:Q7)",
+              "1",
+              "#NUM!"
+            ],
+            [
+              "G76",
+              "PEARSON(X2:X7,Y2:Y7)",
+              "#NUM!",
+              "#DIV/0!"
+            ],
+            [
+              "G77",
+              "PEARSON(Y2:Y7,X2:X7)",
+              "#NUM!",
+              "#DIV/0!"
+            ],
+            [
+              "G99",
+              "RSQ(P2:P7,P2:P7)",
+              "1",
+              "0"
+            ],
+            [
+              "G100",
+              "RSQ(Q2:Q7,Q2:Q7)",
+              "1",
+              "#NUM!"
+            ],
+            [
+              "G115",
+              "RSQ(X2:X7,Y2:Y7)",
+              "#NUM!",
+              "#DIV/0!"
+            ],
+            [
+              "G116",
+              "RSQ(Y2:Y7,X2:X7)",
+              "#NUM!",
+              "#DIV/0!"
+            ],
+            [
+              "G155",
+              "SLOPE(Y2:Y7,X2:X7)",
+              "#NUM!",
+              "0"
+            ],
+            [
+              "G194",
+              "INTERCEPT(Y2:Y7,X2:X7)",
+              "#NUM!",
+              "3.5E-200"
+            ],
+            [
+              "G216",
+              "STEYX(P2:P7,P2:P7)",
+              "#NUM!",
+              "0"
+            ],
+            [
+              "G230",
+              "STEYX(X2:X7,X2:X7)",
+              "#NUM!",
+              "0"
+            ],
+            [
+              "G232",
+              "STEYX(X2:X7,Y2:Y7)",
+              "#NUM!",
+              "#DIV/0!"
+            ],
+            [
+              "G233",
+              "STEYX(Y2:Y7,X2:X7)",
+              "#NUM!",
+              "0"
+            ],
+            [
+              "G272",
+              "FORECAST(A1,Y2:Y7,X2:X7)",
+              "#NUM!",
+              "3.5E-200"
+            ],
+            [
+              "G316",
+              "FORECAST.LINEAR(A1,Y2:Y7,X2:X7)",
+              "#NUM!",
+              "3.5E-200"
+            ]
+          ],
+          "candidateDifferences": 0,
+          "bothGenerationsRecalculatedBothWriters": true
+        }
+      },
+      "native": {
+        "changedCells": 60,
+        "checkedPerState": 74,
+        "states": 5,
+        "savedTypedCaches": 439,
+        "undoRedoAndFreshReopen": true,
+        "originalUnchanged": true
+      },
+      "product": {
+        "passed": 1493,
+        "failed": 0,
+        "ignored": 1
+      },
+      "strictClippy": "joysheet-functions --all-targets -- -D warnings",
+      "businessSamples": [
+        {
+          "sourceSha256": "521576e13e1ced708e2f7efac270da864053d9b05ce6216831970f3fa9fdc126",
+          "originalFormulaCells": 0,
+          "derivedFormulaCells": 916
+        },
+        {
+          "sourceSha256": "7034ab68c7c22f09a07114767d912c4bf8e87849d35e03bb76c15e9ef25e984d",
+          "originalFormulaCells": 0,
+          "derivedFormulaCells": 16
+        }
+      ],
+      "descriptiveStatisticsRegression": {
+        "bothStatesCachesChecked": 1400,
+        "differences": 0
+      },
+      "registryTimes": {
+        "CORREL-128": {
+          "baseline": [
+            920.511,
+            653.132,
+            652.195,
+            626.247,
+            662.979,
+            652.315,
+            624.76,
+            666.493,
+            810.104,
+            645.827,
+            906.513
+          ],
+          "candidate": [
+            201.974,
+            176.263,
+            169.342,
+            167.086,
+            166.934,
+            167.635,
+            190.501,
+            175.986,
+            173.137,
+            172.888,
+            198.059
+          ],
+          "repetitions": 2500,
+          "baselineMedianNs": 653.132,
+          "candidateMedianNs": 173.137
+        },
+        "SLOPE-128": {
+          "baseline": [
+            941.429,
+            630.155,
+            636.033,
+            582.772,
+            603.726,
+            589.692,
+            597.655,
+            639.784,
+            641.92,
+            599.098,
+            881.904
+          ],
+          "candidate": [
+            200.415,
+            168.697,
+            165.391,
+            162.914,
+            172.933,
+            163.652,
+            171.939,
+            170.416,
+            170.929,
+            182.598,
+            201.349
+          ],
+          "repetitions": 2500,
+          "baselineMedianNs": 630.155,
+          "candidateMedianNs": 170.929
+        },
+        "STEYX-128": {
+          "baseline": [
+            909.951,
+            621.743,
+            794.492,
+            597.779,
+            603.774,
+            612.158,
+            603.281,
+            633.898,
+            640.365,
+            614.738,
+            964.608
+          ],
+          "candidate": [
+            203.469,
+            177.726,
+            172.732,
+            170.124,
+            170.164,
+            170.933,
+            179.581,
+            184.498,
+            176.936,
+            175.682,
+            220.757
+          ],
+          "repetitions": 2500,
+          "baselineMedianNs": 621.743,
+          "candidateMedianNs": 176.936
+        },
+        "FORECAST-128": {
+          "baseline": [
+            1100.072,
+            816.3,
+            837.222,
+            800.314,
+            785.162,
+            898.835,
+            788.256,
+            823.14,
+            836.857,
+            963.449,
+            1117.86
+          ],
+          "candidate": [
+            209.151,
+            171.17,
+            167.507,
+            166.148,
+            167.046,
+            175.674,
+            175.418,
+            175.237,
+            170.998,
+            174.656,
+            229.304
+          ],
+          "repetitions": 2500,
+          "baselineMedianNs": 836.857,
+          "candidateMedianNs": 174.656
+        },
+        "COVARIANCE.P-128": {
+          "baseline": [
+            948.161,
+            622.805,
+            623.839,
+            597.856,
+            592.437,
+            601.282,
+            609.256,
+            631.706,
+            639.36,
+            976.954,
+            921.5
+          ],
+          "candidate": [
+            204.863,
+            170.785,
+            167.507,
+            165.868,
+            165.736,
+            162.233,
+            173.866,
+            170.58,
+            168.168,
+            167.042,
+            216.665
+          ],
+          "repetitions": 2500,
+          "baselineMedianNs": 623.839,
+          "candidateMedianNs": 168.168
+        },
+        "CORREL-32768": {
+          "baseline": [
+            252841.267,
+            201092.4,
+            207394.6,
+            234508.333,
+            203611.667,
+            184657.0,
+            214984.533,
+            215287.733,
+            220770.467,
+            258078.2,
+            259247.6
+          ],
+          "candidate": [
+            46234.667,
+            42806.4,
+            41231.533,
+            68688.533,
+            43468.933,
+            42202.667,
+            45468.0,
+            45415.2,
+            42640.8,
+            43320.0,
+            47799.6
+          ],
+          "repetitions": 15,
+          "baselineMedianNs": 215287.733,
+          "candidateMedianNs": 43468.933
+        },
+        "SLOPE-32768": {
+          "baseline": [
+            258425.467,
+            216316.333,
+            196234.2,
+            196871.333,
+            211500.867,
+            177893.267,
+            322862.2,
+            253545.867,
+            232687.0,
+            253366.2,
+            254975.8
+          ],
+          "candidate": [
+            47757.467,
+            42149.2,
+            41027.867,
+            42225.4,
+            42452.4,
+            41361.133,
+            42497.133,
+            44700.533,
+            42022.333,
+            42227.333,
+            48026.0
+          ],
+          "repetitions": 15,
+          "baselineMedianNs": 232687.0,
+          "candidateMedianNs": 42227.333
+        },
+        "STEYX-32768": {
+          "baseline": [
+            235690.467,
+            215483.467,
+            197493.2,
+            205523.267,
+            226488.267,
+            179470.8,
+            220778.467,
+            201450.4,
+            225475.133,
+            255715.2,
+            274516.267
+          ],
+          "candidate": [
+            48737.267,
+            42188.667,
+            40820.8,
+            45665.667,
+            41234.867,
+            40986.467,
+            43295.333,
+            45132.733,
+            42149.933,
+            41870.733,
+            47563.133
+          ],
+          "repetitions": 15,
+          "baselineMedianNs": 220778.467,
+          "candidateMedianNs": 42188.667
+        },
+        "FORECAST-32768": {
+          "baseline": [
+            305355.467,
+            262669.2,
+            273109.0,
+            255592.933,
+            251932.2,
+            238591.8,
+            281781.533,
+            267647.067,
+            258486.933,
+            330024.0,
+            322047.333
+          ],
+          "candidate": [
+            45525.4,
+            42260.8,
+            41519.4,
+            40612.4,
+            80130.133,
+            41178.133,
+            47277.267,
+            42916.667,
+            60068.067,
+            41988.2,
+            47139.067
+          ],
+          "repetitions": 15,
+          "baselineMedianNs": 267647.067,
+          "candidateMedianNs": 42916.667
+        },
+        "COVARIANCE.P-32768": {
+          "baseline": [
+            244778.467,
+            196679.0,
+            192668.267,
+            184237.533,
+            201855.133,
+            208582.133,
+            268143.933,
+            201150.533,
+            195819.467,
+            252534.0,
+            252151.267
+          ],
+          "candidate": [
+            48226.333,
+            42101.133,
+            40760.0,
+            40255.067,
+            41124.0,
+            41646.333,
+            44872.867,
+            82213.267,
+            48740.667,
+            42062.4,
+            46748.333
+          ],
+          "repetitions": 15,
+          "baselineMedianNs": 201855.133,
+          "candidateMedianNs": 42101.133
+        }
+      },
+      "spdx": {
+        "target": "x86_64-unknown-linux-gnu",
+        "packages": 556,
+        "sourceFiles": 1242,
+        "spdxSha256": "b8ad441f5a2461af945dd4795e261c938eb3eb3e19f08a897c721733536d4384",
+        "missingLicenseTexts": [],
+        "sharedCrates": [
+          "joyoffice-cfb",
+          "joyoffice-drawingml",
+          "joyoffice-omml",
+          "joyoffice-opc",
+          "joyoffice-theme",
+          "joyoffice-ui"
+        ],
+        "runtimeLegacyDependencies": []
+      }
+    }
+  },
+  "timingMethod": "Eleven interleaved same-host release pairs in alternating order. Each range has 128 or 32,768 observations. Five functions invoked through the registry. Both binaries check their respective result on a high-magnitude correlation. Times in ns per invocation; individual sample counts are included.",
+  "rollback": "Restore paired registrations and the previous descriptive and regression helpers from f39372b5. Both released file readers recalculate both writer generations; the previous calculator reproduces its recorded extreme-magnitude results."
+}
