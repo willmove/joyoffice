@@ -149,7 +149,7 @@ pub(crate) fn flatten(args: &[Arg]) -> Vec<Value> {
 /// Numbers for aggregate functions (SUM, AVERAGE, MIN, STDEV…): inside references and arrays
 /// only numbers count (text, booleans and blanks are skipped); direct scalar arguments are
 /// coerced ("3" → 3, TRUE → 1, other text → `#VALUE!`). Errors propagate.
-fn visit_numbers(args: &[Arg], mut accept: impl FnMut(f64)) -> R<()> {
+pub(crate) fn visit_numbers(args: &[Arg], mut accept: impl FnMut(f64)) -> R<()> {
     for arg in args {
         let (cells, reference) = match &arg.value {
             Value::Array(array) => (array.data.as_slice(), true),

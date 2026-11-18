@@ -108,6 +108,18 @@ fn cash_flows() {
 }
 
 #[test]
+fn cash_flow_rates_keep_their_argument_and_date_contracts() {
+    let values = rf(col(&[-100.0, 20.0, 20.0, 25.0, 35.0, 50.0]));
+    let dates = rf(col(&[44000.0, 44365.0, 44730.0, 45095.0, 45460.0, 45825.0]));
+    is_err(ev("XNPV", vec![n(0.0), values.clone(), dates.clone()]), CellError::Num);
+    is_err(ev("XIRR", vec![values.clone(), dates.clone(), n(-0.3)]), CellError::Num);
+    close_tol(ev("IRR", vec![values.clone(), n(-0.3)]), 0.127534539192, 1e-9);
+    close_tol(ev("XIRR", vec![values.clone(), dates]), 0.127534539192, 1e-8);
+    is_err(ev("MIRR", vec![values, n(0.1), n(-1.0)]), CellError::Div0);
+    is_err(ev("XIRR", vec![n(-100.0), n(44000.0)]), CellError::NA);
+}
+
+#[test]
 fn depreciation() {
     close(ev("SLN", vec![n(30000.0), n(7500.0), n(10.0)]), 2250.0);
     is_err(ev("SLN", vec![n(30000.0), n(7500.0), n(0.0)]), CellError::Div0);

@@ -1977,6 +1977,9 @@ fn analysis_toolpak_value_params_reject_multi_cell_references() {
         ("F1", "1"),
         ("F2", "2"),
         ("F3", "11"),
+        ("D1", "45000"),
+        ("D2", "45000"),
+        ("D3", "45000"),
     ] {
         t.set(a, v);
     }
@@ -2023,12 +2026,15 @@ fn analysis_toolpak_value_params_reject_multi_cell_references() {
         ("=EOMONTH(A1:A3 A2:C2,0)", 45046.0),
         ("=EOMONTH(@A1:A3,0)", 45046.0),
         ("=WORKDAY(A1,1,A1:A3)", 45001.0),
-        ("=XNPV(0,B1:B3,A1:A3)", 6.0),
+        ("=XNPV(0.1,B1:B3,D1:D3)", 6.0),
     ] {
         t.set("H2", f);
         assert_eq!(t.num("H2"), want, "{f}");
         t.set("H2", "");
     }
+    t.set("H2", "=XNPV(0,B1:B3,A1:A3)");
+    assert_eq!(t.get("H2"), Value::Error(CellError::Num));
+    t.set("H2", "");
     // Arrays that aren't references lift; so does the WORKDAY.INTL/NETWORKDAYS.INTL weekend.
     for (f, below, right) in [
         ("=EOMONTH(A1:A3+0,0)", Value::Number(45046.0), Value::Empty),

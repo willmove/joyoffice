@@ -6,24 +6,23 @@
 use joysheet_core::date::{datetime_from_serial, days_in_month, is_leap, max_serial, serial_from_ymd};
 use joysheet_core::{CellError, DateSystem, Value};
 
-use crate::util::{R, S, array_numbers, as_array, flatten, has, num, num_val, numbers, opt_bool, opt_num, round_half_away, text, to_sig_digits};
+use crate::util::{R, S, flatten, has, num, num_val, opt_bool, opt_num, round_half_away, text, to_sig_digits};
 use crate::{Arg, Ctx, FnSpec, VAR};
 
+mod cashflow;
 mod day_count;
 mod depreciation;
 mod securities;
 mod tvm;
 
+use cashflow::{irr, mirr, npv, xirr, xnpv};
 use day_count::{coupdaybs, coupdays, coupdaysnc, coupncd, coupnum, couppcd};
 use depreciation::{amordegrc, amorlinc, db, ddb, sln, syd, vdb};
 use securities::{
     accrint, accrintm, disc, duration, intrate, mduration, oddfprice, oddfyield, oddlprice, oddlyield, price, pricedisc, pricemat, received, tbilleq,
     tbillprice, tbillyield, yield_, yielddisc, yieldmat,
 };
-use tvm::{
-    cumipmt, cumprinc, dollarde, dollarfr, effect, fv, fvschedule, ipmt, irr, ispmt, mirr, nominal, nper, npv, pduration, pmt, ppmt, pv, rate, rri,
-    xirr, xnpv,
-};
+use tvm::{cumipmt, cumprinc, dollarde, dollarfr, effect, fv, fvschedule, ipmt, ispmt, nominal, nper, pduration, pmt, ppmt, pv, rate, rri};
 
 fn type_arg(args: &[Arg], i: usize) -> R<f64> {
     Ok(if opt_num(args, i, 0.0)? != 0.0 { 1.0 } else { 0.0 })
