@@ -29,11 +29,9 @@ pub fn points(word: &str, limits: &Limits, language: ProofLang) -> Vec<usize> {
     {
         return Vec::new();
     }
-    // Installed language data takes precedence. The built-in dictionary gives positions as
-    // bits in a mask, so exact matches can be emitted without constructing character arrays.
-    if joyword_proof::packs::packs_dir().is_none()
-        && let Some(mask) = Dictionary::en_us().get(&word.to_ascii_lowercase())
-    {
+    // These four English variants use the embedded dictionary for hyphenation even
+    // with other language packs installed (see the proofing provider's locale table).
+    if let Some(mask) = Dictionary::en_us().get(&word.to_ascii_lowercase()) {
         return (first..=last.min(63))
             .filter(|&i| mask & (1u64 << i) != 0)
             .collect();

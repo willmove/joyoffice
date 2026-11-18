@@ -1,0 +1,76 @@
+{
+  "macOS": {
+    "shapeInstances": 45,
+    "presets": [
+      "rect",
+      "roundRect",
+      "snip1Rect",
+      "snip2SameRect",
+      "snip2DiagRect",
+      "snipRoundRect",
+      "round1Rect",
+      "round2SameRect",
+      "round2DiagRect"
+    ],
+    "adjustments": [
+      null,
+      0,
+      50000,
+      100000,
+      [
+        20000,
+        35000
+      ]
+    ],
+    "pptxParametersPreserved": true,
+    "imageSize": [
+      960,
+      540
+    ],
+    "changedPixelsFromPreviousRenderer": 0,
+    "rgbSha256": [
+      "d4afc6d16ad93c204286279f03ab0786f04d2d6216d96719d084ad648bf86519",
+      "d4afc6d16ad93c204286279f03ab0786f04d2d6216d96719d084ad648bf86519",
+      "d4afc6d16ad93c204286279f03ab0786f04d2d6216d96719d084ad648bf86519",
+      "d4afc6d16ad93c204286279f03ab0786f04d2d6216d96719d084ad648bf86519"
+    ],
+    "bothVersionsReopenedRegeneratedFile": true
+  },
+  "UOS": {
+    "shapeInstances": 45,
+    "presets": [
+      "rect",
+      "roundRect",
+      "snip1Rect",
+      "snip2SameRect",
+      "snip2DiagRect",
+      "snipRoundRect",
+      "round1Rect",
+      "round2SameRect",
+      "round2DiagRect"
+    ],
+    "adjustments": [
+      null,
+      0,
+      50000,
+      100000,
+      [
+        20000,
+        35000
+      ]
+    ],
+    "pptxParametersPreserved": true,
+    "imageSize": [
+      960,
+      540
+    ],
+    "changedPixelsFromPreviousRenderer": 0,
+    "rgbSha256": [
+      "7de85c306ed9443a5ac678ae5fa59cac3c8df6cf825af439de4899cdc1488abb",
+      "7de85c306ed9443a5ac678ae5fa59cac3c8df6cf825af439de4899cdc1488abb",
+      "7de85c306ed9443a5ac678ae5fa59cac3c8df6cf825af439de4899cdc1488abb",
+      "7de85c306ed9443a5ac678ae5fa59cac3c8df6cf825af439de4899cdc1488abb"
+    ],
+    "bothVersionsReopenedRegeneratedFile": true
+  }
+}

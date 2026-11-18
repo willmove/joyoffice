@@ -1017,6 +1017,8 @@ fn bind_document_keys(cx: &mut App) {
 }
 
 pub fn run() {
+    #[cfg(not(target_arch = "wasm32"))]
+    joyword_shell::authoring::configure_language_packs(true);
     let application = gpui_kit::application();
     #[cfg(target_os = "macos")]
     let open_requests = {

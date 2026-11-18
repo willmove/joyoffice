@@ -26,19 +26,19 @@
         "candidate": {
           "exit": 0,
           "counts": {
-            "files": 1,
-            "opened": 1,
-            "failedToOpen": 0,
-            "formulaCells": 0,
+            "boolAsNumber": 0,
+            "categoriesDiffering": {},
             "checked": 0,
+            "failedToOpen": 0,
+            "files": 1,
+            "formulaCells": 0,
             "matched": 0,
             "mismatched": 0,
             "noOracle": 0,
-            "volatile": 0,
-            "boolAsNumber": 0,
-            "roundTripFailed": 0,
+            "opened": 1,
             "roundTripDiffering": 0,
-            "categoriesDiffering": {}
+            "roundTripFailed": 0,
+            "volatile": 0
           }
         }
       },
@@ -64,38 +64,38 @@
         "candidate": {
           "exit": 0,
           "counts": {
-            "files": 1,
-            "opened": 1,
-            "failedToOpen": 0,
-            "formulaCells": 916,
+            "boolAsNumber": 0,
+            "categoriesDiffering": {},
             "checked": 916,
+            "failedToOpen": 0,
+            "files": 1,
+            "formulaCells": 916,
             "matched": 916,
             "mismatched": 0,
             "noOracle": 0,
-            "volatile": 0,
-            "boolAsNumber": 0,
-            "roundTripFailed": 0,
+            "opened": 1,
             "roundTripDiffering": 0,
-            "categoriesDiffering": {}
+            "roundTripFailed": 0,
+            "volatile": 0
           }
         }
       },
       "openAnd12FullRecalcsMs": {
         "baseline": [
-          20.356,
-          20.361,
-          20.642,
-          20.077,
-          20.833,
-          21.088
+          33.601,
+          30.652,
+          30.149,
+          23.627,
+          31.427,
+          38.387
         ],
         "candidate": [
-          19.34,
-          18.972,
-          19.939,
-          19.207,
-          20.882,
-          21.188
+          42.554,
+          44.816,
+          33.112,
+          27.654,
+          44.397,
+          43.128
         ]
       }
     },
@@ -125,19 +125,19 @@
         "candidate": {
           "exit": 0,
           "counts": {
-            "files": 1,
-            "opened": 1,
-            "failedToOpen": 0,
-            "formulaCells": 0,
+            "boolAsNumber": 0,
+            "categoriesDiffering": {},
             "checked": 0,
+            "failedToOpen": 0,
+            "files": 1,
+            "formulaCells": 0,
             "matched": 0,
             "mismatched": 0,
             "noOracle": 0,
-            "volatile": 0,
-            "boolAsNumber": 0,
-            "roundTripFailed": 0,
+            "opened": 1,
             "roundTripDiffering": 0,
-            "categoriesDiffering": {}
+            "roundTripFailed": 0,
+            "volatile": 0
           }
         }
       },
@@ -163,38 +163,38 @@
         "candidate": {
           "exit": 0,
           "counts": {
-            "files": 1,
-            "opened": 1,
-            "failedToOpen": 0,
-            "formulaCells": 16,
+            "boolAsNumber": 0,
+            "categoriesDiffering": {},
             "checked": 16,
+            "failedToOpen": 0,
+            "files": 1,
+            "formulaCells": 16,
             "matched": 16,
             "mismatched": 0,
             "noOracle": 0,
-            "volatile": 0,
-            "boolAsNumber": 0,
-            "roundTripFailed": 0,
+            "opened": 1,
             "roundTripDiffering": 0,
-            "categoriesDiffering": {}
+            "roundTripFailed": 0,
+            "volatile": 0
           }
         }
       },
       "openAnd12FullRecalcsMs": {
         "baseline": [
-          4.716,
-          4.819,
-          4.484,
-          4.311,
-          4.301,
-          4.234
+          7.355,
+          5.937,
+          6.754,
+          8.705,
+          8.565,
+          6.67
         ],
         "candidate": [
-          5.533,
-          5.204,
-          4.447,
-          4.434,
-          4.55,
-          4.502
+          5.977,
+          6.022,
+          10.079,
+          14.311,
+          7.832,
+          9.003
         ]
       }
     }
@@ -226,19 +226,19 @@
         "candidate": {
           "exit": 0,
           "counts": {
-            "files": 1,
-            "opened": 1,
-            "failedToOpen": 0,
-            "formulaCells": 0,
+            "boolAsNumber": 0,
+            "categoriesDiffering": {},
             "checked": 0,
+            "failedToOpen": 0,
+            "files": 1,
+            "formulaCells": 0,
             "matched": 0,
             "mismatched": 0,
             "noOracle": 0,
-            "volatile": 0,
-            "boolAsNumber": 0,
-            "roundTripFailed": 0,
+            "opened": 1,
             "roundTripDiffering": 0,
-            "categoriesDiffering": {}
+            "roundTripFailed": 0,
+            "volatile": 0
           }
         }
       },
@@ -264,38 +264,38 @@
         "candidate": {
           "exit": 0,
           "counts": {
-            "files": 1,
-            "opened": 1,
-            "failedToOpen": 0,
-            "formulaCells": 916,
+            "boolAsNumber": 0,
+            "categoriesDiffering": {},
             "checked": 916,
+            "failedToOpen": 0,
+            "files": 1,
+            "formulaCells": 916,
             "matched": 916,
             "mismatched": 0,
             "noOracle": 0,
-            "volatile": 0,
-            "boolAsNumber": 0,
-            "roundTripFailed": 0,
+            "opened": 1,
             "roundTripDiffering": 0,
-            "categoriesDiffering": {}
+            "roundTripFailed": 0,
+            "volatile": 0
           }
         }
       },
       "openAnd12FullRecalcsMs": {
         "baseline": [
-          25.067,
-          24.705,
-          31.18,
-          25.819,
-          24.824,
-          25.7
+          25.288,
+          31.442,
+          37.2,
+          26.299,
+          23.795,
+          27.708
         ],
         "candidate": [
-          25.149,
-          34.827,
-          25.784,
-          25.57,
-          26.293,
-          29.036
+          23.988,
+          35.479,
+          23.05,
+          37.557,
+          25.151,
+          23.16
         ]
       }
     },
@@ -325,19 +325,19 @@
         "candidate": {
           "exit": 0,
           "counts": {
-            "files": 1,
-            "opened": 1,
-            "failedToOpen": 0,
-            "formulaCells": 0,
+            "boolAsNumber": 0,
+            "categoriesDiffering": {},
             "checked": 0,
+            "failedToOpen": 0,
+            "files": 1,
+            "formulaCells": 0,
             "matched": 0,
             "mismatched": 0,
             "noOracle": 0,
-            "volatile": 0,
-            "boolAsNumber": 0,
-            "roundTripFailed": 0,
+            "opened": 1,
             "roundTripDiffering": 0,
-            "categoriesDiffering": {}
+            "roundTripFailed": 0,
+            "volatile": 0
           }
         }
       },
@@ -363,38 +363,38 @@
         "candidate": {
           "exit": 0,
           "counts": {
-            "files": 1,
-            "opened": 1,
-            "failedToOpen": 0,
-            "formulaCells": 16,
+            "boolAsNumber": 0,
+            "categoriesDiffering": {},
             "checked": 16,
+            "failedToOpen": 0,
+            "files": 1,
+            "formulaCells": 16,
             "matched": 16,
             "mismatched": 0,
             "noOracle": 0,
-            "volatile": 0,
-            "boolAsNumber": 0,
-            "roundTripFailed": 0,
+            "opened": 1,
             "roundTripDiffering": 0,
-            "categoriesDiffering": {}
+            "roundTripFailed": 0,
+            "volatile": 0
           }
         }
       },
       "openAnd12FullRecalcsMs": {
         "baseline": [
-          4.205,
-          4.994,
-          5.036,
-          5.121,
-          4.742,
-          4.447
+          4.604,
+          4.781,
+          4.087,
+          3.992,
+          4.28,
+          4.654
         ],
         "candidate": [
-          4.05,
-          4.292,
-          5.004,
-          6.315,
-          6.116,
-          4.816
+          3.391,
+          5.571,
+          4.224,
+          5.13,
+          4.66,
+          4.476
         ]
       }
     }

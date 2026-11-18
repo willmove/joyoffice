@@ -80,8 +80,7 @@ fn pack(e: &PackEntry) -> Pack {
         name: e.name.clone(),
         version: e.version.clone(),
         url: e.url.clone(),
-        // TODO(CP4): the index's optional `source` once craft-font-store's PackEntry carries it.
-        source: None,
+        source: e.source.clone(),
         size: e.size,
         licence: e.licence.clone(),
         class: e.class.clone(),
@@ -165,6 +164,28 @@ impl super::Backend for FontStoreBackend {
 #[cfg(test)]
 mod folder_tests {
     use super::*;
+    #[test]
+    fn display_uses_the_verified_dictionary_source_or_the_archive_on_old_indexes() {
+        let archive = "https://downloads.example.test/packs/nl.tar.zst";
+        let origin = "https://data.example.test/dictionaries/nl";
+        let mut index = serde_json::json!({"format":1,"release":"language-packs-2","packs":[{
+            "locale":"nl","name":"Nederlands","url":archive,"sha256":"a".repeat(64),
+            "size":123,"licence":"BSD-3-Clause","source":origin
+        }]});
+        for expected in [origin, archive] {
+            let parsed = PackIndex::from_json(index.to_string().as_bytes()).ok();
+            let displayed = parsed.as_ref().and_then(|i| i.pack("nl")).map(pack);
+            assert_eq!(displayed.as_ref().map(Pack::source_link), Some(expected));
+            assert_eq!(
+                displayed.as_ref().map(|p| p.licence.as_str()),
+                Some("BSD-3-Clause")
+            );
+            if let Some(fields) = index["packs"][0].as_object_mut() {
+                fields.remove("source");
+            }
+        }
+    }
+
     #[test]
     fn old_language_assets_and_consent_use_the_same_folder() {
         let loc = |var: &str| match var {

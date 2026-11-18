@@ -76,13 +76,14 @@
       "source_path": "crates/geom/src/preset/build.rs",
       "source_sha256": "0f20c9e24506d28aaa495311d6d653279dcd297f898e5d10104bc2526ab8b154",
       "target_path": "crates/joydeck-geom/src/preset/build.rs",
-      "adapted_sha256": "65f28c16256ccd49ae3b80880b07463026c6ac6c73349ac580faf81b4a61d7c9",
+      "adapted_sha256": "bb9e4b429755250e886294ac637111c078d48ab6675fb850eb8c91aea29f6a0f",
       "changes": [
         "crate/import namespace deckcraft -> joydeck",
         "LF normalization",
         "package description credits origin",
         "rustfmt using repository Unix newline policy",
-        "Independently derive rounded rectangles and the four straight arrows from the DrawingML adjustment guides and connector coordinates."
+        "Independently derive rounded rectangles and the four straight arrows from the DrawingML adjustment guides and connector coordinates.",
+        "Replace all gallery rectangle branches with the JoyOffice parameterized corner builder."
       ]
     },
     {

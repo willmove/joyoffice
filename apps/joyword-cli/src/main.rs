@@ -237,6 +237,25 @@ fn main() -> ExitCode {
         .spawn(|| {
             let args: Vec<_> = std::env::args_os().skip(1).collect();
             let command = args.first().and_then(|arg| arg.to_str());
+            // Document commands share the user's installed dictionaries with the desktop.
+            // The confined MCP server has its own roots and capabilities.
+            #[cfg(not(target_arch = "wasm32"))]
+            if matches!(
+                command,
+                Some(
+                    "inspect"
+                        | "text"
+                        | "render"
+                        | "convert"
+                        | "run"
+                        | "merge"
+                        | "exchange"
+                        | "epub"
+                        | "recover"
+                )
+            ) {
+                joyword_shell::authoring::configure_language_packs(false);
+            }
             let legacy_inspection = matches!(command, Some("inspect" | "text"))
                 && args.get(1).is_none_or(|arg| arg != "--session");
             let legacy_visual =

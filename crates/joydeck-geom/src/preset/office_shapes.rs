@@ -4,27 +4,72 @@ use super::builder::{Corner, Dir, Pb, corner_rect, fill, len_thick, simple};
 use super::catalog::{Geometry, Handle};
 use kurbo::{Point, Rect, Vec2};
 
-pub(super) fn rounded_rectangle(w: f64, h: f64, adjustment: f64) -> Geometry {
+/// ECMA's corner guides are measured against the shorter shape side. The document keeps
+/// its original preset and values; text placement and connector indices retain the editor's
+/// established layout, including its padding for mixed corners.
+pub(super) fn rectangle(name: &str, w: f64, h: f64, first: f64, second: f64) -> Option<Geometry> {
+    use Corner::{Round, Snip, Square};
     let unit = w.min(h) / 100_000.;
-    let amount = adjustment.clamp(0., 50_000.);
-    let radius = unit * amount;
-    let inner_margin = radius * 29_289. / 100_000.;
-    let text = Rect::new(
-        inner_margin,
-        inner_margin,
-        w - inner_margin,
-        h - inner_margin,
-    );
-    let mut shape = simple(corner_rect(w, h, [Corner::Round(radius); 4]), text, w, h);
-    shape.handles.push(Handle::new(
-        0,
-        Point::ORIGIN,
-        Vec2::new(unit, 0.),
-        amount,
-        0.,
-        50_000.,
-    ));
-    shape
+    let first = first.clamp(0., 50_000.);
+    let second = second.clamp(0., 50_000.);
+    let (a, b) = (unit * first, unit * second);
+    let full = Rect::new(0., 0., w, h);
+    let tl = Point::ORIGIN;
+    let tr = Point::new(w, 0.);
+    let bl = Point::new(0., h);
+    let right = Vec2::new(unit, 0.);
+    let left = -right;
+    let guide = |index, origin, direction, adjustment| {
+        Handle::new(index, origin, direction, adjustment, 0., 50_000.)
+    };
+    let round_inset = |radius: f64| radius * 29_289. / 100_000.;
+    let (corners, text, controls) = match name {
+        "rect" | "textBox" | "flowChartProcess" => ([Square; 4], full, vec![]),
+        "roundRect" => (
+            [Round(a); 4],
+            full.inset(-round_inset(a)),
+            vec![guide(0, tl, right, first)],
+        ),
+        "round1Rect" => (
+            [Square, Round(a), Square, Square],
+            full.inset(-round_inset(a)),
+            vec![guide(0, tr, left, first)],
+        ),
+        "snip1Rect" => (
+            [Square, Snip(a), Square, Square],
+            Rect::new(0., a / 2., w - a / 2., h),
+            vec![guide(0, tr, left, first)],
+        ),
+        "snipRoundRect" => (
+            [Round(a), Snip(b), Square, Square],
+            full.inset(-a.max(b) / 2.),
+            vec![guide(0, tl, right, first), guide(1, tr, left, second)],
+        ),
+        "snip2SameRect" | "round2SameRect" | "snip2DiagRect" | "round2DiagRect" => {
+            let (first_corner, second_corner, inset) = if name.starts_with("round") {
+                (Round(a), Round(b), round_inset(a.max(b)))
+            } else {
+                (Snip(a), Snip(b), a.max(b) / 2.)
+            };
+            if name.ends_with("SameRect") {
+                (
+                    [first_corner, first_corner, second_corner, second_corner],
+                    full.inset(-inset),
+                    vec![guide(0, tr, left, first), guide(1, bl, right, second)],
+                )
+            } else {
+                (
+                    [first_corner, second_corner, first_corner, second_corner],
+                    full.inset(-inset),
+                    vec![guide(0, tl, right, first), guide(1, tr, left, second)],
+                )
+            }
+        }
+        _ => return None,
+    };
+    let mut geometry = simple(corner_rect(w, h, corners), text, w, h);
+    geometry.handles = controls;
+    Some(geometry)
 }
 
 pub(super) fn straight_arrow(
@@ -179,6 +224,33 @@ pub(super) fn opposed_arrows(vertical: bool, w: f64, h: f64, shaft: f64, head: f
 mod tests {
     use super::*;
     use kurbo::Shape;
+
+    #[test]
+    fn every_rectangle_adj_handle_round_trips_from_its_declared_edge() -> Result<(), String> {
+        let w = 200.;
+        let h = 100.;
+        for entry in super::super::CATALOG
+            .iter()
+            .filter(|p| p.category == super::super::Category::Rectangles)
+        {
+            let g = super::super::build(entry.name, w, h, &[20_000., 35_000.])
+                .ok_or_else(|| format!("missing rectangle {}", entry.name))?;
+            assert_eq!(g.handles.len(), entry.defaults.len(), "{}", entry.name);
+            assert_eq!(g.sites.len(), 4);
+            assert!(g.paths[0].path.contains(Point::new(100., 50.)));
+            for (i, handle) in g.handles.iter().enumerate() {
+                let value = [20_000., 35_000.][i];
+                assert_eq!(handle.index, i);
+                assert_eq!(handle.value_at(handle.pos), value, "{}", entry.name);
+                assert_eq!(
+                    handle.value_at(handle.origin + handle.dir * 90_000.),
+                    50_000.
+                );
+                assert_eq!(handle.value_at(handle.origin - handle.dir * 10_000.), 0.);
+            }
+        }
+        Ok(())
+    }
 
     #[test]
     fn opposite_heads_have_independent_connectors_and_draggable_handles() {

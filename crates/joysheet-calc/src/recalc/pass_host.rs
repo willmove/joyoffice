@@ -323,12 +323,11 @@ impl PassHost<'_> {
 
     /// A formula's previous value for iterative calculation: from the last iteration, else the
     /// value it shows. Blank, and the `#CIRC!` of a loop calculated with iteration off, are 0.
-    fn previous(&self, k: Key) -> Value {
-        let v = match self.prev.get(&k) {
-            Some(v) => v.clone(),
-            None => self.wb.sheet(k.0).map(|s| s.value(k.1)).unwrap_or_default(),
-        };
-        if matches!(v, Value::Empty | Value::Error(CellError::Circ)) { Value::Number(0.0) } else { v }
+    fn previous(&self, k: Key) -> &Value {
+        match self.prev.get(&k).or_else(|| self.wb.sheet(k.0)?.value_ref(k.1)) {
+            None | Some(Value::Empty | Value::Error(CellError::Circ)) => &Value::Number(0.0),
+            Some(value) => value,
+        }
     }
 
     /// Reading `k` while it is being evaluated, with iterative calculation on: its previous value.
@@ -342,7 +341,7 @@ impl PassHost<'_> {
                 self.members.insert(k);
             }
         }
-        self.previous(k)
+        self.previous(k).clone()
     }
 
     /// Iterative calculation, after a first pass over `order` that met circular references. The
@@ -351,21 +350,30 @@ impl PassHost<'_> {
     /// has already produced (Gauss-Seidel), until no formula on a loop changes by `max_change` or
     /// more, or after `max_iterations` passes in all. Returns the number of passes.
     pub(super) fn iterate_loops(&mut self, order: &[Key], max_iterations: u32, max_change: f64) -> u32 {
-        let again: Vec<Key> = order.iter().copied().filter(|k| self.tainted.contains(k)).collect();
-        let set: HashSet<Key> = again.iter().copied().collect();
-        // Bounds the work whatever Maximum Iterations says.
-        let max_passes = u32::try_from(MAX_ITERATION_WORK / again.len().max(1)).unwrap_or(u32::MAX).max(1);
-        let mut passes = 1u32;
-        while passes < max_iterations.min(max_passes) && !self.converged(max_change) {
-            self.prev = again.iter().filter_map(|k| self.results.remove(k).map(|v| (*k, v))).collect();
-            self.pending = set.clone();
-            self.spills.retain(|a, _| !set.contains(a));
-            for k in &again {
-                self.calculate(*k);
+        let active: Vec<Key> = order.iter().copied().filter(|k| self.tainted.contains(k)).collect();
+        let work_limit = MAX_ITERATION_WORK / active.len().max(1);
+        let limit = max_iterations.min(u32::try_from(work_limit).unwrap_or(u32::MAX)).max(1);
+        for completed in 1..limit {
+            if self.converged(max_change) {
+                return completed;
             }
-            passes += 1;
+            // A new pass reads the previous result for a back edge and the current
+            // result for a visited cell. Keep the caller's evaluation order and
+            // reuse the allocated tables. Spills outside the active set survive.
+            self.prev.clear();
+            self.pending.clear();
+            for &key in &active {
+                if let Some(prior) = self.results.remove(&key) {
+                    self.prev.insert(key, prior);
+                }
+                self.pending.insert(key);
+                self.spills.remove(&key);
+            }
+            for &key in &active {
+                self.calculate(key);
+            }
         }
-        passes
+        limit
     }
 
     /// Whether every formula on a loop changed by less than `max_change` in the last pass (text,
@@ -373,7 +381,7 @@ impl PassHost<'_> {
     fn converged(&self, max_change: f64) -> bool {
         self.members.iter().all(|k| {
             let Some(new) = self.results.get(k) else { return true };
-            match (new, &self.previous(*k)) {
+            match (new, self.previous(*k)) {
                 (Value::Number(a), Value::Number(b)) => {
                     let d = (a - b).abs();
                     d < max_change || d == 0.0

@@ -43,7 +43,8 @@ pub fn build(name: &str, w: f64, h: f64, adj: &[f64]) -> Option<Geometry> {
         adj,
         defaults,
     };
-    rect_and_triangle_shapes(&c)
+    super::office_shapes::rectangle(name, c.w, c.h, c.a(0), c.a(1))
+        .or_else(|| rect_and_triangle_shapes(&c))
         .or_else(|| polygon_and_symbol_shapes(&c))
         .or_else(|| bracket_and_arrow_shapes(&c))
         .or_else(|| flowchart_and_star_shapes(&c))
@@ -60,9 +61,6 @@ fn rect_and_triangle_shapes(c: &Ctx) -> Option<Geometry> {
     let a = |i: usize| c.a(i);
     let mut b = Pb::new();
     let g = match c.name {
-        "rect" | "textBox" | "flowChartProcess" => {
-            simple(corner_rect(w, h, [Corner::Square; 4]), full, w, h)
-        }
         "actionButtonBlank"
         | "actionButtonBackPrevious"
         | "actionButtonForwardNext"
@@ -75,7 +73,6 @@ fn rect_and_triangle_shapes(c: &Ctx) -> Option<Geometry> {
         | "actionButtonDocument"
         | "actionButtonSound"
         | "actionButtonHelp" => action_button(name, w, h),
-        "roundRect" => super::office_shapes::rounded_rectangle(w, h, a(0)),
 
         "flowChartAlternateProcess" => simple(
             corner_rect(w, h, [Corner::Round(ss / 6.0); 4]),
@@ -83,157 +80,6 @@ fn rect_and_triangle_shapes(c: &Ctx) -> Option<Geometry> {
             w,
             h,
         ),
-        "snip1Rect" => {
-            let v = a(0).clamp(0.0, 50000.0);
-            let d = ss * v / 100000.0;
-            let mut g = simple(
-                corner_rect(
-                    w,
-                    h,
-                    [
-                        Corner::Square,
-                        Corner::Snip(d),
-                        Corner::Square,
-                        Corner::Square,
-                    ],
-                ),
-                Rect::new(0.0, d / 2.0, w - d / 2.0, h),
-                w,
-                h,
-            );
-            g.handles.push(Handle::new(
-                0,
-                Point::new(w, 0.0),
-                Vec2::new(-ss / 100000.0, 0.0),
-                v,
-                0.0,
-                50000.0,
-            ));
-            g
-        }
-        "snip2SameRect" => {
-            let (d1, d2) = (
-                ss * a(0).clamp(0.0, 50000.0) / 1e5,
-                ss * a(1).clamp(0.0, 50000.0) / 1e5,
-            );
-            simple(
-                corner_rect(
-                    w,
-                    h,
-                    [
-                        Corner::Snip(d1),
-                        Corner::Snip(d1),
-                        Corner::Snip(d2),
-                        Corner::Snip(d2),
-                    ],
-                ),
-                full.inset(-d1.max(d2) / 2.0),
-                w,
-                h,
-            )
-        }
-        "snip2DiagRect" => {
-            let (d1, d2) = (
-                ss * a(0).clamp(0.0, 50000.0) / 1e5,
-                ss * a(1).clamp(0.0, 50000.0) / 1e5,
-            );
-            simple(
-                corner_rect(
-                    w,
-                    h,
-                    [
-                        Corner::Snip(d1),
-                        Corner::Snip(d2),
-                        Corner::Snip(d1),
-                        Corner::Snip(d2),
-                    ],
-                ),
-                full.inset(-d1.max(d2) / 2.0),
-                w,
-                h,
-            )
-        }
-        "snipRoundRect" => {
-            let (r, d) = (
-                ss * a(0).clamp(0.0, 50000.0) / 1e5,
-                ss * a(1).clamp(0.0, 50000.0) / 1e5,
-            );
-            simple(
-                corner_rect(
-                    w,
-                    h,
-                    [
-                        Corner::Round(r),
-                        Corner::Snip(d),
-                        Corner::Square,
-                        Corner::Square,
-                    ],
-                ),
-                full.inset(-r.max(d) / 2.0),
-                w,
-                h,
-            )
-        }
-        "round1Rect" => {
-            let r = ss * a(0).clamp(0.0, 50000.0) / 1e5;
-            simple(
-                corner_rect(
-                    w,
-                    h,
-                    [
-                        Corner::Square,
-                        Corner::Round(r),
-                        Corner::Square,
-                        Corner::Square,
-                    ],
-                ),
-                full.inset(-r * 0.29289),
-                w,
-                h,
-            )
-        }
-        "round2SameRect" => {
-            let (r1, r2) = (
-                ss * a(0).clamp(0.0, 50000.0) / 1e5,
-                ss * a(1).clamp(0.0, 50000.0) / 1e5,
-            );
-            simple(
-                corner_rect(
-                    w,
-                    h,
-                    [
-                        Corner::Round(r1),
-                        Corner::Round(r1),
-                        Corner::Round(r2),
-                        Corner::Round(r2),
-                    ],
-                ),
-                full.inset(-r1.max(r2) * 0.29289),
-                w,
-                h,
-            )
-        }
-        "round2DiagRect" => {
-            let (r1, r2) = (
-                ss * a(0).clamp(0.0, 50000.0) / 1e5,
-                ss * a(1).clamp(0.0, 50000.0) / 1e5,
-            );
-            simple(
-                corner_rect(
-                    w,
-                    h,
-                    [
-                        Corner::Round(r1),
-                        Corner::Round(r2),
-                        Corner::Round(r1),
-                        Corner::Round(r2),
-                    ],
-                ),
-                full.inset(-r1.max(r2) * 0.29289),
-                w,
-                h,
-            )
-        }
         "ellipse" | "flowChartConnector" => {
             let mut g = simple(
                 b.ellipse(w / 2.0, h / 2.0, w / 2.0, h / 2.0).take(),

@@ -19,6 +19,7 @@ use joysheet_model::{CalcMode, Workbook};
 
 use crate::eval::{Area, Evaluator, Host, precedents, stack_position};
 
+mod cycles;
 mod graph;
 mod pass_host;
 #[cfg(feature = "scalar-pilot")]
@@ -56,70 +57,6 @@ impl Default for Calc {
             last_recalc_cells: 0,
         }
     }
-}
-
-/// Pops one finished component off Tarjan's stack, labelling its nodes with `comp_index`. The
-/// component is everything up to and including `root`.
-fn pop_component(stack: &mut Vec<usize>, on_stack: &mut [bool], comp: &mut [usize], comp_index: usize, root: usize) {
-    while let Some(w) = stack.pop() {
-        on_stack[w] = false;
-        comp[w] = comp_index;
-        if w == root {
-            break;
-        }
-    }
-}
-
-/// Strongly connected components of a graph given as adjacency lists (Tarjan, iterative): each
-/// node's component index, and the number of nodes in each component.
-fn components(edges: &[Vec<usize>]) -> (Vec<usize>, Vec<usize>) {
-    let n = edges.len();
-    let (mut low, mut num) = (vec![0usize; n], vec![usize::MAX; n]);
-    let (mut on_stack, mut stack, mut comp) = (vec![false; n], Vec::new(), vec![usize::MAX; n]);
-    let (mut next, mut comps) = (0usize, 0usize);
-    for root in 0..n {
-        if num[root] != usize::MAX {
-            continue;
-        }
-        let mut call: Vec<(usize, usize)> = vec![(root, 0)];
-        num[root] = next;
-        low[root] = next;
-        next += 1;
-        stack.push(root);
-        on_stack[root] = true;
-        while let Some(top) = call.last_mut() {
-            let v = top.0;
-            if let Some(&w) = edges.get(v).and_then(|e| e.get(top.1)) {
-                top.1 += 1;
-                if num[w] == usize::MAX {
-                    num[w] = next;
-                    low[w] = next;
-                    next += 1;
-                    stack.push(w);
-                    on_stack[w] = true;
-                    call.push((w, 0));
-                } else if on_stack[w] {
-                    low[v] = low[v].min(num[w]);
-                }
-                continue;
-            }
-            call.pop();
-            if let Some(&(u, _)) = call.last() {
-                low[u] = low[u].min(low[v]);
-            }
-            if low[v] == num[v] {
-                pop_component(&mut stack, &mut on_stack, &mut comp, comps, v);
-                comps += 1;
-            }
-        }
-    }
-    let mut size = vec![0usize; comps];
-    for &c in &comp {
-        if let Some(s) = size.get_mut(c) {
-            *s += 1;
-        }
-    }
-    (comp, size)
 }
 
 impl Calc {
@@ -178,21 +115,20 @@ impl Calc {
                 e
             })
             .collect();
-        // Loop members: nodes in a component of more than one, or with an edge to themselves.
-        let (comp, size) = components(&edges);
-        let on_loop = |i: usize| comp.get(i).and_then(|c| size.get(*c)).is_some_and(|s| *s > 1) || edges.get(i).is_some_and(|e| e.contains(&i));
-        // A formula with dynamic references (INDIRECT, OFFSET) may close a loop the graph can't see.
-        let mut out: Vec<Key> =
-            self.circular.iter().copied().filter(|k| index.get(k).is_some_and(|&i| on_loop(i) || self.graph.dynamic.contains(k))).collect();
-        let mut covered: HashSet<usize> = out.iter().filter_map(|k| index.get(k)).filter_map(|&i| comp.get(i).copied()).collect();
+        let groups = cycles::cycle_groups(&edges);
+        // Dynamic references can close a loop absent from the static dependency graph.
+        let mut out: Vec<Key> = self
+            .circular
+            .iter()
+            .copied()
+            .filter(|key| index.get(key).is_some_and(|&i| groups[i] != cycles::ACYCLIC || self.graph.dynamic.contains(key)))
+            .collect();
+        let mut covered: HashSet<usize> = out.iter().map(|key| groups[index[key]]).collect();
         let mut order: Vec<usize> = (0..n).collect();
-        order.sort_by_key(|&i| circ.get(i).map(|(s, c)| (*s, c.row, c.col)));
+        order.sort_by_key(|&i| (circ[i].0, circ[i].1.row, circ[i].1.col));
         for i in order {
-            if let (Some(&c), Some(&k)) = (comp.get(i), circ.get(i))
-                && on_loop(i)
-                && covered.insert(c)
-            {
-                out.push(k);
+            if groups[i] != cycles::ACYCLIC && covered.insert(groups[i]) {
+                out.push(circ[i]);
             }
         }
         out

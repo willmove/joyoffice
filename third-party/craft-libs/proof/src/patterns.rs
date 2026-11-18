@@ -5,7 +5,7 @@
 //! Kołodziejska, Bogusław Jackowski and Marek Ryćko (hyph-utf8 `hyph-pl.tex`, used under its MIT
 //! licence option), bundled unmodified: [`Patterns::parse`] reads TeX's `\patterns{…}` and
 //! `\hyphenation{…}` blocks directly. Patterns are stored in a hash map keyed by the packed letter
-//! string, so applying them to a word costs `O(len × max_pattern_len)` lookups.
+//! string, with a bounded index of the pattern lengths present at each initial letter pair.
 
 use std::collections::HashMap;
 use std::hash::{BuildHasherDefault, Hasher};
@@ -114,7 +114,8 @@ pub struct Patterns {
     alpha: Alphabet,
     /// Packed letters → inter-letter values (`len + 1` entries).
     map: FxMap<u128, Box<[u8]>>,
-    max_len: usize,
+    /// Row = first code, column = second code (zero for a singleton), bit n = length n + 1.
+    lengths: Vec<[u32; 64]>,
     /// Lowercase word → its break points (char indices), overriding the patterns.
     exceptions: HashMap<String, Box<[usize]>>,
 }
@@ -191,7 +192,12 @@ impl Patterns {
         if codes.is_empty() || codes.len() > MAX_PATTERN_LEN {
             return false;
         }
-        self.max_len = self.max_len.max(codes.len());
+        let first = usize::from(codes[0]);
+        let second = usize::from(codes.get(1).copied().unwrap_or(0));
+        if self.lengths.len() <= first {
+            self.lengths.resize(first + 1, [0; 64]);
+        }
+        self.lengths[first][second] |= 1 << (codes.len() - 1);
         self.map.insert(pack(&codes), vals.into_boxed_slice());
         true
     }
@@ -238,6 +244,10 @@ impl Patterns {
         self.map.len()
     }
 
+    pub(crate) fn prefix_index_bytes(&self) -> u64 {
+        (self.lengths.capacity() * std::mem::size_of::<[u32; 64]>()) as u64
+    }
+
     pub fn is_empty(&self) -> bool {
         self.map.is_empty()
     }
@@ -255,10 +265,34 @@ impl Patterns {
             codes.push(k);
         }
         codes.push(1);
-        let mut vals = vec![0u8; codes.len() + 1];
-        apply(&self.map, self.max_len, &codes, &mut vals);
-        // Padded position p sits before padded char p; word char i is padded char i + 1.
-        vals.get(1..codes.len()).map(<[u8]>::to_vec)
+        // Liang's overlapping patterns vote by maximum weight at each original letter gap.
+        // Only lengths registered for this prefix can have a vote. The outside of each
+        // boundary dot is discarded while combining, without allocating another result.
+        let mut weights = vec![0; word.len() + 1];
+        for start in 0..codes.len() {
+            let suffix = &codes[start..];
+            let Some(lengths) = self.lengths.get(usize::from(suffix[0])) else {
+                continue;
+            };
+            let second = usize::from(suffix.get(1).copied().unwrap_or(0));
+            let mask = lengths[0] | lengths[second];
+            let depth = (u32::BITS - mask.leading_zeros()) as usize;
+            let mut letters = 0u128;
+            for (i, &code) in suffix.iter().take(depth).enumerate() {
+                letters = (letters << 6) | u128::from(code);
+                if mask & (1 << i) == 0 {
+                    continue;
+                }
+                let key = letters | (((i + 1) as u128) << 120);
+                if let Some(votes) = self.map.get(&key) {
+                    let source = &votes[usize::from(start == 0)..];
+                    for (out, vote) in weights[start.saturating_sub(1)..].iter_mut().zip(source) {
+                        *out = (*out).max(*vote);
+                    }
+                }
+            }
+        }
+        Some(weights)
     }
 
     /// Break points (char indices, a hyphen goes before that char) of a lowercase word.
@@ -373,9 +407,44 @@ mod tests {
     }
 
     #[test]
+    fn prefix_lengths_match_all_substrings_for_five_language_tables() {
+        let custom = Patterns::parse("1a a2b a5b a2b3c .a6bc1d 2de. de7a");
+        for set in [
+            &custom,
+            Patterns::en_us(),
+            Patterns::de(),
+            Patterns::it(),
+            Patterns::pl(),
+            Patterns::pt(),
+        ] {
+            let patterns = set.to_tex();
+            // Include patterns throughout each alphabet and patterns longer than their prefixes.
+            for pattern in patterns
+                .iter()
+                .step_by((patterns.len() / 256).max(1))
+                .take(256)
+            {
+                let word: Vec<char> = pattern.chars().filter(|c| c.is_alphabetic()).collect();
+                let codes: Vec<u8> = std::iter::once(1)
+                    .chain(word.iter().map(|&c| set.alpha.code(c)))
+                    .chain(std::iter::once(1))
+                    .collect();
+                let mut reference = vec![0; codes.len() + 1];
+                apply(&set.map, MAX_PATTERN_LEN, &codes, &mut reference);
+                assert_eq!(
+                    set.values(&word).as_deref(),
+                    Some(&reference[1..codes.len()]),
+                    "{pattern}"
+                );
+            }
+        }
+        assert!(custom.values(&['λ']).is_none());
+    }
+
+    #[test]
     fn apply_tolerates_short_value_buffers() {
         let p = Patterns::parse("a1b");
         let mut vals = [0u8; 1];
-        apply(&p.map, p.max_len, &[1, 2, 3, 1], &mut vals);
+        apply(&p.map, MAX_PATTERN_LEN, &[1, 2, 3, 1], &mut vals);
     }
 }

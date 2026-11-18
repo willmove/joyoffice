@@ -9,6 +9,8 @@ pub use joyword_engine::cmd::phonetic::state as phonetic_state;
 pub use joyword_engine::cmd::{table_mouse, table_resize};
 pub use joyword_engine::doc::para::Wrap;
 pub use joyword_engine::doc::{InlineObject, Path as DocPath, Pos, StoryRef};
+#[cfg(not(target_arch = "wasm32"))]
+pub use joyword_engine::packs::use_font_store as configure_language_packs;
 pub use joyword_layout::hit::ObjectHit;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};

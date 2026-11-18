@@ -1,0 +1,84 @@
+{
+  "macOS": {
+    "desktop": {
+      "exitCode": 0,
+      "logSha256": "1694551572b6e17546d4650e7fbdaf7b2d2b0f9fc8c8292032ad93e2b574b296"
+    },
+    "ui": {
+      "exitCode": 0,
+      "logSha256": "7b822702767c5f5f70f98b7be9a6c4e6f029201f94b3c7d4bd861de774ea0be4",
+      "passed": 75,
+      "failed": 0,
+      "ignored": 0
+    },
+    "joyword": {
+      "exitCode": 0,
+      "logSha256": "7cda53e0bf7ccc8f556dcebb78f028e5375c366f4638deffa557371efaa27ada",
+      "passed": 3676,
+      "failed": 0,
+      "ignored": 2
+    },
+    "joydeck": {
+      "exitCode": 0,
+      "logSha256": "fcc367bca2493005d004e9f9d48fad829e7a98050b65911029be5f96cf37f5a0",
+      "passed": 997,
+      "failed": 0,
+      "ignored": 0
+    },
+    "joysheet": {
+      "exitCode": 0,
+      "logSha256": "69be9f3c81182d3d3f204e1958794d743481ba0d4aec1da732cfec036f2db018",
+      "passed": 1470,
+      "failed": 0,
+      "ignored": 1
+    },
+    "proof": {
+      "exitCode": 0,
+      "logSha256": "b29b4d99d2c2a9b2b4f378b598a24aa8c80f71492b1b28c846a9e838bf6f9839",
+      "passed": 475,
+      "failed": 0,
+      "ignored": 1
+    }
+  },
+  "UOS": {
+    "desktop": {
+      "exitCode": 0,
+      "logSha256": "bdd08709d8177ebc1fde14472beaecbfccf64032c72cd2476e5b997a7a7c45ba"
+    },
+    "ui": {
+      "exitCode": 0,
+      "logSha256": "151b5b50cdb5394084532e2334f8d8587320a2eae295895ba42d66de988011ef",
+      "passed": 79,
+      "failed": 0,
+      "ignored": 0
+    },
+    "joyword": {
+      "exitCode": 0,
+      "logSha256": "7ae7456e701ff61530feeb783aff75a7620d610465c4bf8537c6deae9828719b",
+      "passed": 3680,
+      "failed": 0,
+      "ignored": 2
+    },
+    "joydeck": {
+      "exitCode": 0,
+      "logSha256": "2d24a7c205ad484c8f02a733d35190b971ba8975d2474934a995d6617eaa502e",
+      "passed": 1002,
+      "failed": 0,
+      "ignored": 0
+    },
+    "joysheet": {
+      "exitCode": 0,
+      "logSha256": "650a52c5c9b791e192086f2355885dd2fdcc0daf985facc8e1b97e62313b6c49",
+      "passed": 1470,
+      "failed": 0,
+      "ignored": 1
+    },
+    "proof": {
+      "exitCode": 0,
+      "logSha256": "1b00dd22093441e05699c24bba528ebccaab08ff85ff028bac4d4e575c167d2d",
+      "passed": 475,
+      "failed": 0,
+      "ignored": 1
+    }
+  }
+}

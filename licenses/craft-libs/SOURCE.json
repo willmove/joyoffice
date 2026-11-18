@@ -368,8 +368,8 @@
       "target": "third-party/craft-libs/proof/src/packs.rs",
       "sha256": "92093ab2198e5ecde158cf41972a451baf6e44f4cf3de22793db4f1438622dc4",
       "modified": true,
-      "target_sha256": "0ff02887f3bea51751dd15b62d948f4adc8ee293c91462921514b8847c6464cb",
-      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+      "target_sha256": "123e5e85c7f9cc52a29a0ba8305ab2acad9da3213f4699fb5469c5b8d8a64993",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md. Include the compiled prefix index allocation in the installed language pattern cache budget."
     },
     {
       "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
@@ -377,8 +377,8 @@
       "target": "third-party/craft-libs/proof/src/patterns.rs",
       "sha256": "cb4dbc5869c7da89290efe1f02e52a19b7d49f164c7f26cfb2bf280bb7c6927f",
       "modified": true,
-      "target_sha256": "00ec51e89f95e7858ec9d94586180fac2f1428d4167beed14c578c321f2ab115",
-      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+      "target_sha256": "2806e5f57dc181563e86f211eff725010e248b066402b7677be008bf51fec566",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md. JoyOffice indexes candidate lengths by the first two symbols and accumulates Liang weights at original letter gaps."
     },
     {
       "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",

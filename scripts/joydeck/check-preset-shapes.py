@@ -13,11 +13,13 @@ ROOT = Path(__file__).resolve().parents[2]
 A = "http://schemas.openxmlformats.org/drawingml/2006/main"
 P = "http://schemas.openxmlformats.org/presentationml/2006/main"
 KINDS = ["roundRect", "rightArrow", "leftArrow", "downArrow", "upArrow", "leftRightArrow", "upDownArrow"]
+RECTANGLES = ["rect", "roundRect", "snip1Rect", "snip2SameRect", "snip2DiagRect",
+              "snipRoundRect", "round1Rect", "round2SameRect", "round2DiagRect"]
 ADJUST = [None, 0, 50_000, 100_000]
 COLOR = (30, 112, 206)
 
 
-def fixture(dest):
+def fixture(dest, kinds, adjustments, rectangles):
     with ZipFile(ROOT / "tests/fixtures/joydeck/independent.pptx") as src, ZipFile(dest, "x", ZIP_DEFLATED) as new:
         for name in src.namelist():
             data = src.read(name)
@@ -26,20 +28,26 @@ def fixture(dest):
                 tree = slide.find(".//{*}spTree")
                 for old in list(tree)[2:]:
                     tree.remove(old)
-                for col, kind in enumerate(KINDS):
-                    for row, adjust in enumerate(ADJUST):
-                        idx = 2 + col * len(ADJUST) + row
+                stride_x, stride_y = (970000, 950000) if rectangles else (1280000, 1220000)
+                width, height = (820000, 770000) if rectangles else (1100000, 920000)
+                for col, kind in enumerate(kinds):
+                    for row, adjust in enumerate(adjustments):
+                        idx = 2 + col * len(adjustments) + row
                         av = ""
-                        if adjust is not None:
-                            names = ["adj"] if kind == "roundRect" else ["adj1", "adj2"]
-                            av = "".join(f'<a:gd name="{n}" fmla="val {adjust}"/>' for n in names)
-                        x, y = 160000 + col * 1280000, 300000 + row * 1220000
+                        if adjust is not None and kind != "rect":
+                            names = ["adj"] if kind in ("roundRect", "snip1Rect", "round1Rect") else ["adj1", "adj2"]
+                            values = adjust if isinstance(adjust, tuple) else (adjust, adjust)
+                            av = "".join(f'<a:gd name="{n}" fmla="val {v}"/>' for n, v in zip(names, values))
+                        x, y = 160000 + col * stride_x, 300000 + row * stride_y
+                        # Exercise the text rectangle on old documents as well as its filled outline.
+                        label = ('<p:txBody><a:bodyPr/><a:lstStyle/><a:p><a:r><a:rPr sz="900"/>'
+                                 '<a:t>Test</a:t></a:r></a:p></p:txBody>') if rectangles else ""
                         tree.append(ET.fromstring(f"""
                         <p:sp xmlns:p="{P}" xmlns:a="{A}"><p:nvSpPr><p:cNvPr id="{idx}" name="{kind}-{row}"/>
                         <p:cNvSpPr/><p:nvPr/></p:nvSpPr><p:spPr><a:xfrm><a:off x="{x}" y="{y}"/>
-                        <a:ext cx="1100000" cy="920000"/></a:xfrm><a:prstGeom prst="{kind}"><a:avLst>{av}</a:avLst>
+                        <a:ext cx="{width}" cy="{height}"/></a:xfrm><a:prstGeom prst="{kind}"><a:avLst>{av}</a:avLst>
                         </a:prstGeom><a:solidFill><a:srgbClr val="1E70CE"/></a:solidFill><a:ln><a:noFill/></a:ln>
-                        </p:spPr></p:sp>"""))
+                        </p:spPr>{label}</p:sp>"""))
                 data = ET.tostring(slide, encoding="utf-8")
             new.writestr(name, data)
 
@@ -81,13 +89,17 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for arg in ("baseline", "candidate", "output"):
         parser.add_argument(arg, type=Path)
+    parser.add_argument("--family", choices=["arrows", "rectangles"], default="arrows")
     args = parser.parse_args()
+    rectangles = args.family == "rectangles"
+    kinds = RECTANGLES if rectangles else KINDS
+    adjustments = [*ADJUST, (20_000, 35_000)] if rectangles else ADJUST
     out = args.output.resolve()
     out.mkdir(exist_ok=False, parents=True)
     src, generation = out / "presets.pptx", out / "regenerated.pptx"
-    fixture(src)
+    fixture(src, kinds, adjustments, rectangles)
     before = presets(src)
-    assert len(before) == len(KINDS) * len(ADJUST)
+    assert len(before) == len(kinds) * len(adjustments)
     run(args.candidate, "exchange", src, "--mode", "regenerate", "--output", generation)
     after = presets(generation)
     if before != after:
@@ -100,7 +112,9 @@ def main():
     if encoded[1] != encoded[2] or encoded[0] != encoded[3]:
         raise ValueError("reopened shape pixels differ from original on the same reader")
     different = sum(a != b for a, b in zip(struct.iter_unpack("3B", encoded[0]), struct.iter_unpack("3B", encoded[1])))
-    report = {"shapeInstances":len(before), "presets":KINDS, "adjustments":ADJUST, "pptxParametersPreserved":True,
+    if different:
+        raise ValueError(f"{different} pixels differ from the previous renderer")
+    report = {"shapeInstances":len(before), "presets":kinds, "adjustments":adjustments, "pptxParametersPreserved":True,
               "imageSize":images[0][0], "changedPixelsFromPreviousRenderer":different,
               "rgbSha256":[hashlib.sha256(raw).hexdigest() for raw in encoded],
               "bothVersionsReopenedRegeneratedFile":True}

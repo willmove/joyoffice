@@ -10,11 +10,23 @@
 | --- | --- | --- |
 | P0 · 三产品 UI 和保存事务 | macOS 系统拼音、UOS 25 DDE 独立 Fcitx5 拼音和用户默认搜狗均完成三产品选词、取消、撤销、保存和重开。Word 原生另存取消可重试，Sheet 绑定工作簿版本，Deck 在第二个窗口选择期间能拒绝第一个窗口编辑前的旧结果 | 本轮 P0 全部通过。输入回归分别保留客户端与服务端预编辑。保存回退按单产品恢复选择器，保留文档版本和单写者校验。[输入](validation/20261118-desktop-sharing/README.md#uos-中文输入) · [原生另存](validation/20261118-desktop-sharing/save-target.json) |
 | P1 · Word 排版、OPC | DOCX 重复解压由 120,016 字节降为 0。千页中段改字每次更新三页。自然分页的 800 段正文、96 页文档里的嵌入表格已和完整分页逐页、逐命中对照。五类复杂 DOCX 另经两代保存和旧版读回 | 含分节、等宽双栏和脚注的文档，正文编辑后行几何不变时可复用其余页，修改脚注会触发完整布局。浮动／嵌套表格及改变列平衡、脚注保留高度的跨页局部重排仍待迁移。现有页边界不能证明收敛时，自动走完整分页。[千页耗时](validation/20261118-desktop-sharing/chapter-reflow.json) · [复杂 DOCX](validation/20261118-desktop-sharing/complex-docx.json) |
-| P1 · Deck 渲染、几何 | 富媒体首轮哈希 519,969 字节，随后 25 次移动对象合计 0 字节。已测同 ID 换图、撤销及真实桌面重绘。圆角矩形、四个单向和两个双向箭头共 28 个实例通过预设参数、两代读回及逐像素对照 | 透视层 CPU 三角形改为按扫描行求覆盖区。49 种转场、185 种效果／选项的 925 帧在两端与旧版逐像素相同。其余几何按族回退和复验。[场景与显示帧](validation/20261118-desktop-sharing/deck-media.json) · [几何](validation/20261118-desktop-sharing/deck-presets.json) |
-| P1 · Sheet 计算 | 至少 512 个脏公式时，合格的同表／跨表数值引用加字面量默认批量计算。100k 行引擎 P95 在 macOS 为 71.23 → 50.63 ms，在 UOS 为 205.17 → 155.91 ms。两端小表和 RSS 均在 5% 预算内。另验混合范围、公式引用、溢出阻塞／收缩和迭代 | 清空远端阻塞格或原溢出区域收缩时，现仅搜索所在工作表内可能再次溢出的锚点。普通表和迭代仍由通用求值器处理。已用同一发布二进制实际演练 `JOYSHEET_SCALAR_RECALC=0`、撤销、保存和重开。下一次扩大条件沿用逐格检查及同源计时。[引擎](validation/20261118-desktop-sharing/same-source-recalculation.json) · [实际显示](validation/20261118-desktop-sharing/desktop-presentation.json) · [回退](validation/20261118-desktop-sharing/scalar-rollback.json) |
+| P1 · Deck 渲染、几何 | 富媒体首轮哈希 519,969 字节，随后 25 次移动对象合计 0 字节。已测同 ID 换图、撤销及真实桌面重绘。圆角矩形、四个单向和两个双向箭头共 28 个实例通过预设参数、两代读回及逐像素对照 | 透视层 CPU 三角形改为按扫描行求覆盖区。49 种转场、185 种效果／选项的 925 帧在两端与旧版逐像素相同。九种矩形预设也已全部接入新的参数化角点生成器。45 个带文字实例在两端新旧版本输出相同，几何手柄另验拖动至极值。其余几何按族回退和复验。[场景与显示帧](validation/20261118-desktop-sharing/deck-media.json) · [几何](validation/20261118-desktop-sharing/deck-presets.json) |
+| P1 · Sheet 计算 | 至少 512 个脏公式时，合格的同表／跨表数值引用加字面量默认批量计算。100k 行引擎 P95 在 macOS 为 71.23 → 50.63 ms，在 UOS 为 205.17 → 155.91 ms。两端小表和 RSS 均在 5% 预算内。另验混合范围、公式引用、溢出阻塞／收缩和迭代 | 清空远端阻塞格或原溢出区域收缩时，现仅搜索所在工作表内可能再次溢出的锚点。循环引用分组和迭代轮次调度已替换。动态表达式继续由通用求值器解释。已用同一发布二进制实际演练 `JOYSHEET_SCALAR_RECALC=0`、撤销、保存和重开。下一次扩大条件沿用逐格检查及同源计时。[引擎](validation/20261118-desktop-sharing/same-source-recalculation.json) · [实际显示](validation/20261118-desktop-sharing/desktop-presentation.json) · [回退](validation/20261118-desktop-sharing/scalar-rollback.json) |
 | P1 · 桌面共享 | Word／Sheet 共用保存提示；Word／Deck 共用 WMF／EMF 有界读取、OPC 已验成员和系统字体遍历；三应用共用功能区分组与有界 ZIP 成员解压，Sheet 保留按需加载。两平台完成 20 组原生可访问树验收，其中 Word／Sheet 的 16 组实际打开并关闭了字体面板 | 功能区命令由产品负责，公共呈现可按产品回退。Deck 现有中文界面和 UOS 最小窗宽分别按真实环境记录。[功能区](validation/20261118-desktop-sharing/ribbon.json) · [字体](validation/20261118-desktop-sharing/font-catalog.json) |
-| P2 · Word 旧调用退役 | `craft-font-catalog` 已退出桌面和 CLI 发行依赖。宿主字体清单检测变化，已有语言包目录继续可读。自动与手动断词对所有语言应用自研的段落限制；十个语言标签的 390 组对照覆盖大小写、组合符与复合词。多语拼写现直接流式遍历原文词区间。DOC 与 XLS 共用 CFB 扇区，Word 与 Sheet 共用 OMML 上下标 | 多语校对、语言包下载／安装和其余复杂分页仍有旧实现。下一批用带授权的多语词典检查建议与断词位置，回退时保留安装目录、授权和上一个读写版本。[语言包入口](../../crates/joyword-engine/src/packs/store.rs) · [发行依赖](validation/20261118-desktop-sharing/distribution.json) |
-| P2 · Deck、Sheet 旧调用退役 | Deck 已移除双向箭头旧生成器；普通和投影纹理均有自研的覆盖合成路径。Deck／Sheet 共用 DrawingML RGB。Sheet 十个汇总／逻辑函数改为保序归约；中位数、众数族、大小顺序统计与频数直方图也已替换。新旧版均读回七份工作簿并核对 24 个独立公式期望值 | 其余形状族、特效层生成、其余公式族及 XLS／XLSX 格式语义逐项迁移。每次核对旧版文件读回和来源／许可。Deck 只读迁移桥继续承担旧文件入口。[公式与工作簿](validation/20261118-desktop-sharing/version-rollback.json) · [来源账本](../joysheet/UPSTREAM-PATCHES.md) |
+| P2 · Word 旧调用退役 | `craft-font-catalog` 已退出桌面和 CLI 发行依赖。宿主字体清单检测变化，已有语言包目录继续可读。自动与手动断词对所有语言应用自研的段落限制；十个语言标签的 390 组对照覆盖大小写、组合符与复合词。多语拼写现直接流式遍历原文词区间。Liang 断词按前两个字母筛选可能的模式长度，已在五种随附语言数据上逐位置对照。DOC 与 XLS 共用 CFB 扇区，Word 与 Sheet 共用 OMML 上下标 | 拼写词典、语言包获取／安装与部分复杂分页仍有旧实现。原生窗口和 CLI 已从既有语言包目录读回断词数据；下一批对照多语建议的次序与词形规则，回退时保留安装目录、授权和上一个读写版本。[语言包入口](../../crates/joyword-engine/src/packs/store.rs) · [发行依赖](validation/20261118-desktop-sharing/distribution.json) |
+| P2 · Deck、Sheet 旧调用退役 | Deck 已移除双向箭头和矩形族的旧分派；普通和投影纹理均有自研的覆盖合成路径。Deck／Sheet 共用 DrawingML RGB。Sheet 十个汇总／逻辑函数改为保序归约；中位数、众数族、大小顺序统计与频数直方图也已替换。新旧版均读回七份工作簿并核对 24 个独立公式期望值 | 其余形状族、特效层生成、其余公式族及 XLS／XLSX 格式语义逐项迁移。每次核对旧版文件读回和来源／许可。Deck 只读迁移桥继续承担旧文件入口。[公式与工作簿](validation/20261118-desktop-sharing/version-rollback.json) · [来源账本](../joysheet/UPSTREAM-PATCHES.md) |
+
+
+### 尚未退役的生产代码
+
+| 编号与优先级 | 下一项可验收的交付 | 前置条件与验收指标 | 回退 |
+| --- | --- | --- | --- |
+| W-LAYOUT · P1／P2 | P1 补跨页脚注高度或栏平衡变化后的失效范围，P2 扩展到浮动对象、嵌套表格和复杂分节 | 复用已通过的自然页、表格、双栏脚注和千页桌面基线。对每次新增、删除和撤销比较完整布局的页、行、脚注编号、命中与 PDF；只有下游检查点一致才复用 | 每次编辑都可走已有完整分页，保留原件 |
+| W-PROOF · P2 | 替换 Hunspell 词形判定和拼写建议排序，迁移语言包下载、安装及失败恢复 | 沿用旧版语言包目录、已登记的授权数据及用户同意记录。对每种启用语言核对词形、建议顺序、断词位置。安装测试覆盖实际发行包、摘要错误、取消和旧目录读回 | 按语言保留旧词典后端。恢复原安装器使用同一目录、许可与索引 |
+| D-GEOM · P2 | 继续交付连接线、流程图、复合箭头、标注等形状族，以及转场层生成和 GPU 呈现 | 画廊登记 183 种预设。本轮独立几何已覆盖九种矩形和六种箭头，其他预设仍须逐族证明。按默认、非对称和边界参数比文字框、连接点、命中、光栅和两代 PPTX，GPU 效果与 CPU 对照 | 按族恢复生成器或 CPU 渲染。历史文件继续走现有只读迁移桥 |
+| S-CALC · P2 | 其余公式族、数组扩展和动态引用求值，及 XLS／XLSX 的产品格式映射 | 两端 CLI 登记 514 个公开函数名、14 种分类。已替换的汇总、统计、循环分组和迭代调度有独立期望；其余按函数族补边界值、错误类型、浮点顺序以及旧版保存读回。文件适配另比格式、未知对象和拒绝结果 | 按函数或对象切回旧路径。密集标量批处理可单独在同一程序中关闭 |
+
+以上登记数包含别名和共用实现，不用来计算自研比例。P0 的三个桌面输入和另存阻断均已关闭。[字体与语言包来源](../../licenses/craft-libs/SOURCE.json) · [形状来源](../../licenses/deckcraft/file-map.json) · [表格迁移账本](../joysheet/UPSTREAM-PATCHES.md)
 
 ## 分批交付
 
@@ -152,7 +164,11 @@ cargo tree --locked --offline -e normal,build -p joyword-cli
 **本批回归。** 在本机 macOS 上，Word／Deck／Sheet 分别通过 3,672／995／1,452 项；UOS 实机分别通过 3,676／1,000／1,452 项，失败数均为零。独立运行的三个字体模块在两端分别通过 159／161 项；语言包存储库的两种特性配置在每端各通过 32 项。产品总数含部分公共用例。[测试结果及日志摘要](validation/20261118-desktop-sharing/retirement-regression.json)
 
 
-**后续切片的验收边界。** Word 已将多语词边界和文档断词限制接入编辑路径，词典、拼写建议与语言包校验仍有上游代码。Deck 的 CPU 透视光栅已替换，形状库中的其他预设及动画层生成仍有 DeckCraft 实现。Sheet 的 XLS 加密识别和三产品 ZIP 读取已进一步合并，单元格模型、迭代求解和其余函数族仍有 GridCraft 实现。六个发行入口的 Cargo 闭包能证明整库退出，内嵌到第一方 crate 的源码按调用与原始指纹逐项登记。[转场逐帧](validation/20261118-desktop-sharing/transition-raster.json) · [来源及实测](validation/20261118-desktop-sharing/README.md#后续替换的验证范围)
+**后续切片的验收边界。** Word 已将多语词边界和文档断词限制接入编辑路径，词典、拼写建议与语言包校验仍有上游代码。Deck 的 CPU 透视光栅已替换，形状库中的其他预设及动画层生成仍有 DeckCraft 实现。Sheet 的 XLS 加密识别和三产品 ZIP 读取已进一步合并，当时的单元格模型、迭代求解和其余函数族仍含 GridCraft 实现。后续已替换循环分组与迭代调度，表达式求值与数组扩展仍有旧调用。六个发行入口的 Cargo 闭包能证明整库退出，内嵌到第一方 crate 的源码按调用与原始指纹逐项登记。[转场逐帧](validation/20261118-desktop-sharing/transition-raster.json) · [来源及实测](validation/20261118-desktop-sharing/README.md#后续替换的验证范围)
 
 
 **系统键盘与本批验收。** 1,000 页文档第 500 页的系统键入至首次完整文档读回 P95 为 macOS 51.41 ms、UOS 41.77 ms。窗口编辑命令插入 240 个字符与撤销的应答 P95 分别为 36.11 ms、28.68 ms，显示合成时间另行计量。两端三产品工程检查全部通过，Word／Deck／Sheet 在本机为 3,675／996／1,468 项，在 UOS 为 3,679／1,001／1,468 项。合并 ZIP 读取后重新检查了五类 DOCX、七份仓库 XLSX、两份授权工作簿及其派生副本和两产品图元渲染。[千页桌面逐次数据](validation/20261118-desktop-sharing/word-desktop-edit.json) · [双平台回归](validation/20261118-desktop-sharing/extended-regression.json)
+
+**语言包、矩形和循环公式。** Word 桌面与 CLI 已从同一用户存储加载词典。两端实测原生窗口重开、拒绝未授权下载、拒绝摘要不符的安装、安装后重新分页及移除恢复。75 种语言的正式索引和其中的荷兰语发行包均通过固定摘要校验。UOS 直连 GitHub 超时，经本机 HTTPS 代理完成下载。Deck 的九种矩形共 45 个实例在两代读写与两平台渲染中均无像素差异。Sheet 的循环检测与独立可达性判定对照了全部 65,536 种四顶点有向图，并验证了五万节点链。四组真实 XLSX 迭代设置均通过新旧读写器的四种组合。[语言包](validation/20261118-desktop-sharing/language-packs.json) · [矩形](validation/20261118-desktop-sharing/deck-rectangles.json) · [工作簿](validation/20261118-desktop-sharing/version-rollback.json)
+
+本批 macOS 的 Word、Deck、Sheet 分别通过 3,676、997、1,470 项工程回归，UOS 25 分别通过 3,680、1,002、1,470 项。六个桌面与 CLI 入口均构建成功，两端校对库各另通过 475 项。其余生产路径、验收与回退列在页首。[分项与日志摘要](validation/20261118-desktop-sharing/cycle-regression.json)

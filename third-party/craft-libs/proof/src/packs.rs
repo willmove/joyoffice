@@ -713,6 +713,7 @@ fn pattern_bytes(p: &Patterns) -> u64 {
     (p.len() as u64)
         .saturating_add(p.exception_count() as u64)
         .saturating_mul(BYTES_PER_PATTERN)
+        .saturating_add(p.prefix_index_bytes())
 }
 
 /// Remember `lang`'s pack patterns (`bytes` of them): over [`MAX_HYPHENATION_LOOKUPS`] languages
@@ -772,7 +773,8 @@ mod tests {
             "hy3ph he2n hena4 hen5at 1na n2at 1tio 2io o2n",
         ));
         let bytes = pattern_bytes(&p);
-        assert_eq!(bytes, 9 * BYTES_PER_PATTERN);
+        assert!(p.prefix_index_bytes() > 0);
+        assert_eq!(bytes, 9 * BYTES_PER_PATTERN + p.prefix_index_bytes());
         let lang = |t: &str| ProofLang::from_tag(Some(t));
         let budget = bytes * 2;
         remember_patterns(&mut s, lang("nl"), Some(p.clone()), bytes, budget);

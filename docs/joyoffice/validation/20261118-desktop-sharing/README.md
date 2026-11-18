@@ -115,3 +115,15 @@ Word 和 Deck 共用目录遍历及文件修订识别，塑形和回退顺序由
 两端 Release 原生窗口打开同一份 1,000 页 DOCX，定位第 500 页，各项预热两次后采样 20 次。系统键盘输入数字 7 和退格，从发送原生事件到首次读回正确的整份正文，P95 为 macOS 51.41 ms、UOS 41.77 ms，包含读回及调度开销。通过同一窗口的编辑命令交替插入 240 个字符和撤销，操作应答 P95 为 36.11 ms、28.68 ms。每次均核对整份正文、插入位置及页数，原件 SHA-256 一致。复跑命令为 `python3 scripts/joyword/measure-desktop-edit.py RELEASE_JOYWORD NEW_DIR`。[逐次桌面测量](word-desktop-edit.json)
 
 本批全产品工程检查在 macOS 通过 Word 3,675、Deck 996、Sheet 1,468 项，在 UOS 25 真机分别通过 3,679、1,001、1,468 项。每端 Word 原有两项、Sheet 原有一项按其测试配置忽略。校对库专项每端通过 474 项、忽略一项。两端各八份 WMF／EMF 页面及 PDF 光栅与同机旧版相符。另用最终 Release 重新读取两份授权工作簿及含公式的派生副本，原件摘要均保持一致，UOS 临时输入副本已清理。额外试跑字体库测试目标的全量 Clippy 拒绝了基线已有的测试 `unwrap`（`joyword-fonts/src/color.rs`）；仓库规定的三产品工程检查全部通过。[回归分项](extended-regression.json) · [原件与派生工作簿](business-workbooks.json) · [产品许可闭包](distribution.json)
+
+## 安装词典、矩形族与循环重算
+
+| 产品 | 两端验证方式 | 可复核的结果 |
+| --- | --- | --- |
+| Word | 在隔离的原有目录启动全新的桌面进程和 CLI。用同一荷兰语 DOCX 比较未安装、整词例外、按音节断词、卸载四种状态。再实际下载固定的正式索引和荷兰语包，检查词形、词表、断词与许可文件 | macOS 四次页数分别为 15、21、15、15，UOS 为 20、24、20、20。各平台每次 GUI 与 CLI 匹配，原件摘要相同。拒绝关闭网络同意时刷新，拒绝损坏的安装包。两端均核对正式索引中的 75 个条目、756,670 字节荷兰语包的 SHA-256 和授权。UOS 直连下载超时，随后经 SSH 转发到本机已配置的 HTTPS 代理，产品自行完成 HTTPS 下载、校验、安装与卸载。[语言包记录](language-packs.json) |
+| Deck | 对画廊的九种矩形各生成五组参数，包括非对称角点。在新旧版分别渲染原件和重新生成的 PPTX，检查文字、预设名与调整值 | 每端 45 个实例，四次 960 × 540 画面的同机 RGB 摘要相同。调整手柄和兼容别名另有几何单测。[矩形对照](deck-rectangles.json) |
+| Sheet | 按独立传递闭包枚举四顶点有向图，另测五万节点长链。经 CLI 打开、保存并重开四种实际迭代设置，逐个读取 XLSX 的公式、缓存和迭代属性 | 65,536 张图的成环节点和分组相符。轮数限制、变化阈值、文本与错误、关闭迭代四组各有四种新旧读写组合。两个版本的例子在三轮后为 3 与 6，再次打开重算为 6 与 12。两台机器的最终 Release 再次读回两份业务原件，带公式的派生副本分别匹配 916 和 16 个预期值，UOS 已清理临时业务文件。[循环与往返](version-rollback.json) · [业务工作簿](business-workbooks.json) |
+
+可复跑的入口为 `python3 scripts/joyword/check-installed-language-pack.py CLI DESKTOP NEW_DIR --published`、`python3 scripts/joydeck/check-preset-shapes.py OLD_CLI NEW_CLI NEW_DIR --family rectangles` 和 `python3 scripts/joysheet/check-version-rollback.py --help`。每次 GUI 测试使用独立配置和新进程。荷兰语发行数据与许可按正式索引核对，词典内容保留原许可。[固定发行清单](https://github.com/storytold/craft-i18n/releases/tag/language-packs-2)
+
+本批采用各消费产品工程命令，macOS 与 UOS 的 Word 分别通过 3,676 与 3,680 项，Deck 通过 997 与 1,002 项，Sheet 均通过 1,470 项。两台机器均另跑校对库的 475 个用例，原有一项忽略。公共 UI 另通过 75 与 79 项，部分用例已包含在产品工程检查中。两端均完成桌面和 CLI 联合构建，且六份产品发行清单均找到依赖许可文本。[产品与专项回归](cycle-regression.json) · [发行范围](distribution.json)
