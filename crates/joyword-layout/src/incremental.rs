@@ -85,7 +85,7 @@ pub fn layout_shared(
             ..Default::default()
         },
     ));
-    let mut requires_section_flow = endnotes.is_some();
+    let mut requires_section_flow = endnotes.is_some() || uses_section_geometry(&doc.last_section);
     let mut body_fields = false;
     if layout.pages.len() >= MIN_PAGES
         && eligible(doc, opts)
@@ -105,7 +105,10 @@ pub fn layout_shared(
             joyword_model::Block::Para(p) => {
                 let props = doc.styles.resolve_para(&p.props);
                 let listed = props.numbering.is_some_and(|n| n.num != 0);
-                requires_section_flow |= props.frame.is_some() || props.drop_cap > 0 || listed;
+                requires_section_flow |= props.frame.is_some()
+                    || props.drop_cap > 0
+                    || listed
+                    || p.section.as_deref().is_some_and(uses_section_geometry);
                 (!listed || capture_list_starts)
                     && p.section.as_deref().is_none_or(eligible_section)
                     && p.objects.iter().all(|object| {
@@ -330,10 +333,15 @@ fn eligible(doc: &Document, opts: &LayoutOptions) -> bool {
 }
 
 fn eligible_section(section: &SectionProps) -> bool {
-    section.columns.widths.is_empty()
-        && section.text_direction == TextDirection::Horizontal
-        && section.valign == PageVAlign::Top
-        && section.line_numbers.is_none()
+    section.line_numbers.is_none()
+}
+
+// A single paragraph cannot determine which column width to use after a break,
+// the turned page coordinates, or the vertical offset of a whole page.
+fn uses_section_geometry(section: &SectionProps) -> bool {
+    !section.columns.widths.is_empty()
+        || section.text_direction.is_turned()
+        || section.valign != PageVAlign::Top
 }
 
 impl Previous {

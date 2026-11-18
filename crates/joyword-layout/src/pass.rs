@@ -746,6 +746,12 @@ pub(crate) fn layout_pass(
             (balance, sec.tops.body),
         );
         (block, boxes_discarded) = (next, boxes_discarded + discarded);
+        if origin.trailing_sentinel && si + 1 == sections.len() {
+            // The following section contributes only its first paragraph. Its
+            // column dividers end at the bottom of the *whole* column and are
+            // retained on the original suffix page after the entry is checked.
+            pb.column_lines = None;
+        }
         if let Some(schedule) = origin.endnotes
             && !(origin.trailing_sentinel && si + 1 == sections.len())
             && !pb.pages.is_empty()

@@ -1,0 +1,1147 @@
+{
+  "previousWorkspaceCommit": "ff419c49",
+  "previousWordCommit": "f39372b5",
+  "scope": "Use checked section pagination for explicitly sized columns, both quarter-turn text directions and page vertical alignment. The synthetic first paragraph of the following section proves the text entry; its column rules keep the full height already computed on the actual suffix page. Any unproven entry or exit uses full pagination.",
+  "limits": {
+    "pagesPerEdit": 16,
+    "blocksPerEdit": 256
+  },
+  "references": [
+    "https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.columns.equalwidth",
+    "https://ecma-international.org/publications-and-standards/standards/ecma-376/"
+  ],
+  "fixture": "68 sections. Two unequal-column sections have 134- and 308-point columns, a 26-point gutter and a separating rule. One explicit column break. Two adjacent sections use tbRl/center and btLr/bottom. A separate Rust test edits the second column in all three orientations, with right-to-left column order in the bottom-to-top case. Each edit checks the entire page sequence, actual line index, coordinate-to-position and position-to-coordinate results against full layout.",
+  "rollback": "Restore the previous eligibility and trailing-section handling from ff419c49. The same document then uses full layout. Both product versions read both writer outputs.",
+  "platforms": {
+    "macOS": {
+      "native": {
+        "geometryByWriter": {
+          "source": {
+            "columnsTwips": [
+              [
+                [
+                  2680,
+                  520
+                ],
+                [
+                  6160,
+                  0
+                ]
+              ],
+              [
+                [
+                  2680,
+                  520
+                ],
+                [
+                  6160,
+                  0
+                ]
+              ]
+            ],
+            "directions": [
+              "tbRl",
+              "btLr"
+            ],
+            "verticalAlignments": [
+              "center",
+              "bottom"
+            ],
+            "columnBreaks": 1
+          },
+          "native": {
+            "columnsTwips": [
+              [
+                [
+                  2680,
+                  520
+                ],
+                [
+                  6160,
+                  0
+                ]
+              ],
+              [
+                [
+                  2680,
+                  520
+                ],
+                [
+                  6160,
+                  0
+                ]
+              ]
+            ],
+            "directions": [
+              "tbRl",
+              "btLr"
+            ],
+            "verticalAlignments": [
+              "center",
+              "bottom"
+            ],
+            "columnBreaks": 1
+          },
+          "baseline": {
+            "columnsTwips": [
+              [
+                [
+                  2680,
+                  520
+                ],
+                [
+                  6160,
+                  0
+                ]
+              ],
+              [
+                [
+                  2680,
+                  520
+                ],
+                [
+                  6160,
+                  0
+                ]
+              ]
+            ],
+            "directions": [
+              "tbRl",
+              "btLr"
+            ],
+            "verticalAlignments": [
+              "center",
+              "bottom"
+            ],
+            "columnBreaks": 1
+          },
+          "candidate": {
+            "columnsTwips": [
+              [
+                [
+                  2680,
+                  520
+                ],
+                [
+                  6160,
+                  0
+                ]
+              ],
+              [
+                [
+                  2680,
+                  520
+                ],
+                [
+                  6160,
+                  0
+                ]
+              ]
+            ],
+            "directions": [
+              "tbRl",
+              "btLr"
+            ],
+            "verticalAlignments": [
+              "center",
+              "bottom"
+            ],
+            "columnBreaks": 1
+          }
+        },
+        "pdfColumnWitnesses": {
+          "original": {
+            "WestWitness": [
+              35,
+              72.0,
+              85.26
+            ],
+            "EastWitness": [
+              35,
+              232.0,
+              72.0
+            ]
+          },
+          "expanded": {
+            "WestWitness": [
+              38,
+              232.0,
+              536.0918
+            ],
+            "EastWitness": [
+              39,
+              72.0,
+              72.0
+            ]
+          },
+          "old": {
+            "WestWitness": [
+              38,
+              232.0,
+              536.0918
+            ],
+            "EastWitness": [
+              39,
+              72.0,
+              72.0
+            ]
+          },
+          "new": {
+            "WestWitness": [
+              38,
+              232.0,
+              536.0918
+            ],
+            "EastWitness": [
+              39,
+              72.0,
+              72.0
+            ]
+          }
+        },
+        "sourceSha256": "fd77c16cb2dcab491b4e20f23e42188352ca7ad9a48ed3a170ab27782dd9137c",
+        "desktopSha256": "5ea3298c15834b20f23bd37411b12fe443316a9ba51c0554e3960f7e7baf03a5",
+        "original": {
+          "notePages": [],
+          "pages": 68,
+          "editedPage": 35,
+          "firstDirtyPage": 3,
+          "fieldPages": [
+            65
+          ],
+          "followingPage": 67,
+          "restartPage": 68,
+          "fieldNumbers": [
+            99,
+            99,
+            99,
+            99,
+            99,
+            99,
+            99,
+            99,
+            99,
+            99,
+            99,
+            99
+          ]
+        },
+        "expanded": {
+          "notePages": [],
+          "pages": 73,
+          "editedPage": 38,
+          "firstDirtyPage": 3,
+          "fieldPages": [
+            69,
+            70
+          ],
+          "followingPage": 72,
+          "restartPage": 73,
+          "fieldNumbers": [
+            104,
+            104,
+            104,
+            104,
+            104,
+            104,
+            104,
+            104,
+            104,
+            104,
+            104,
+            104
+          ]
+        },
+        "nativePatches": [
+          {
+            "action": "text.insert",
+            "firstPage": 3,
+            "lastPage": 73,
+            "pages": 73,
+            "displayedPages": [
+              3,
+              69,
+              70,
+              72,
+              73
+            ]
+          },
+          {
+            "action": "edit.undo",
+            "firstPage": 3,
+            "lastPage": 73,
+            "pages": 68,
+            "displayedPages": [
+              3,
+              65,
+              67,
+              68
+            ]
+          },
+          {
+            "action": "edit.redo",
+            "firstPage": 3,
+            "lastPage": 73,
+            "pages": 73,
+            "displayedPages": [
+              3,
+              69,
+              70,
+              72,
+              73
+            ]
+          }
+        ],
+        "savedAndReopened": true,
+        "twoVersionPageRastersSha256": [
+          "f558beef401b7d0e813eff8491ffb318ca946eeaf76b3109781c07a5e0a38af0",
+          "f555e1db905051fd909b46bfddbe02dd60b0627fd9efd9616c54c6e93bbf043d",
+          "208e8def8df5a4804bdaeeb008e5c4e8a3f3f948790a2cfb47f14d292ed6d7df",
+          "1f425185be4ae1bdbb78d247736fd926b690edf1df8eec0922473c4bfe951bac",
+          "9db893509c27e7911444810187a17297ccfb029c3df319f8d4f58f9fbbbd6ead",
+          "8c857efbb9efee46200a2b26433a250a12fb3d27057eacce760930504cd0e773",
+          "4f2b1a2d50d4fd25c75afad7bdf277f16bfbc53b5a988055931b9964621620c8",
+          "35164b060043834f0b038c1503c86d056f7e78168e611c02fa1c79d26e9e5190",
+          "6c4c579e7e3625c4944b663d96cdaba5ac9d12109d9dff3307ed0d8e12a42aea",
+          "3166b1c4041433f2048afa55a56734dfbf05e99dae3319832495dd0ded8eac21",
+          "5b4ff1d9add76512ae40d4169857b3334e053b93ef393f0a54d85f5c9f4b2537",
+          "1672407696276a3404a3645d8be489979006560470256e4d3ff0c521ef27563c",
+          "d8419c6c8cac07fa7bd504008da1d61e65b6e0e531b1fdc59d55f4b177aeb0fa",
+          "363b0bd853e017c19c407cf785a347d91196f670b1d9895008066332b7c2fe46",
+          "a1793d987e5b0d5cc0027f205d181ec75c402699cec5ce509a4e0fadda324225",
+          "ebfe3797f4551b44b7963386abe5efea30ca887ad22c21d8ed08833c6ce32eda",
+          "48e950ea5ae0cc0734a44b14732def46a307ae21bdb14c4b64a131b621b0744e",
+          "992b44155a67654e5c4ec91f0d161ec80183c6037cbe6f9dba5fce6125c0b049",
+          "6c91f0f86e215352ee047f5e28db0a3426a3c10a2bc0e06f4b049f7966afb881",
+          "4a42c5d3be8b5527f00c9101dc38c3e3a07ebd15141e5dce6f5d113ca7c200e8",
+          "d704f18c72dcc0395cbf5023036e9225060d59ec556c3f4620142d79b47df1ab",
+          "e49b7fa3f14745050e66cd8570e6301c38b62f85d6ed52c88448d8f9b486e994",
+          "65adbc541225bef165eac9fe661dc049b6982e04ec013cae2b76c6cdc67ea073",
+          "b53815d436bc7b83573971d73108f8e64fd196ca386eef4966734bebb0b2a3f7",
+          "a65537ec14ad16fb286d4a0c1be0f803f74dcfffb620059cea9b370abb7133df",
+          "4b9b0e13988dc5ad550099926e2ee2ef156241ed94ed54b9b3f4ae3da4c7e251",
+          "22de5ce8b9776dce97d79104944f7998582d49040c567868b1fe8d3076e7ab6b",
+          "d4670310c8dfdd6814b65045aa6eda8110b91966b2cb0d7abd30b40876b255dc",
+          "c55db3423aece8c05da7ee8d30b5706d570fa99921cc460e2f83e397331f06de",
+          "70a3a2061a4fc5bc126290099dfabbb64ccfe4320c1648c44edfabde8729cf77",
+          "db2bbfdefd051d4d19d6af8d79240698d4e6148fd39788dc9de69c75313cef23",
+          "725a61bbe85f268478655df7191b2f392e8f7e395890fc406c6aa7692ce3decd",
+          "a7d5c26cb1264480131d07209089a0e5eafcf84e6c7381e98c21f07b0f8822fc",
+          "19ba386992effbbc009110bea01a8ab3e8aa5af879dc818ff679849406c4455b",
+          "9296e738bd519d5ad2a8fb29d9d67bdf4c4640321b087ec02bd52105b2eccad9",
+          "9296e738bd519d5ad2a8fb29d9d67bdf4c4640321b087ec02bd52105b2eccad9",
+          "9296e738bd519d5ad2a8fb29d9d67bdf4c4640321b087ec02bd52105b2eccad9",
+          "c6a65a34892c6b2866c5aaf090e7ecdb8fe82c0ae15414e35956d22aa95dba5f",
+          "0ae4a10d7f5f965926e092899523a8367932ff473149bc674feb35c2f53018e2",
+          "8c8d1c039e7b4368ce19a77f065cdcfe7d4e0dc585e4f6057eb0802786cc709a",
+          "61769dfe738f0129f4a8326701cac4cf522c89aa5d0a17bcfc9825741675f822",
+          "05a00fbb731a28fab5d5c46390c1da82c9fdda7391328bfc6469434649e5ef25",
+          "1fdb0ebfa46efe33d900123f46e8eabb073e362503aa5ea05c4493117ceba3d4",
+          "bbd3bea27909541011c26088d0a1e73978a1e99a275cf5e5ae6bc6e87aaab1cb",
+          "e92eade28bbcf1d42296bc9db3574ad4964f2a7d674ea8238f6c1c2e59eacd70",
+          "b2d6e812c39bc63c4f8eb7d24f057899228046712a199b53c2c9f535a0b23bb7",
+          "1a990e563efb617eb9838b18312aa2ae2ca873912617a4dd7297353caa8f4b25",
+          "58980cd6bcdebccb2e77f0ec02d4ccd71f9e80c85755289f1c524a0625fcc073",
+          "3c289670e8cb5adc0647c35de2171fb57eaa1b8b5c7957c922e5e0bae4e2f40b",
+          "d6d609d055dec2d84f7174e224d1aab1cc8f2061535d47590b850b74ac3c8102",
+          "c95ae6aceaffd471c5d55d8741c012bcdeb1b9fd9d24a304b49ad16d2fb84ce4",
+          "8c4f89b701d8a73ebaa33fd9bd38181f762658479f8389a2c9c939646c17be26",
+          "16da2d74f30e3a54178353652074d6d91230208c49b22bccb5e9ff3ff147906c",
+          "069f9d32f66ea45097707ddfbef9b0f98ea08edbb94fb517543d7f48f39c944c",
+          "6d43e911641ae613788227223c80502032195668213955f050656743a3e2196f",
+          "ea604b50dfb19a39713c18d938f11dc3a21819d2b1f3ed667364fac5c06efc1e",
+          "0f0ceb39fe52384ee9bfd4c3d9f8d2e43e14f7118baf2140826213399aa24734",
+          "b35d8d34e98595a740bb9e6101186fc72fd70470d6fbcc0c2234f22358f499cf",
+          "e8c0cf6d602ad6d05ca28b7bd5cdf631e005da5f200d5e23c5e6a3a072a75bcd",
+          "e6e11ad7c5e64e4c7886dc0cc721bb29fa9b17f4e291adee22bcabe7d553759d",
+          "74ed2f9d4a38ae8d41a51319006867c650ae993da116b0862ca54e630e8d789d",
+          "9a6643d44eccded06bfdca3bf3407307db4ec5c8fdbab93bfb2d0a6da00aa2ea",
+          "4b12543c2960b3e02ff1bb90ad10ca69116e62d022a6fe1e0ebf77576d047ce2",
+          "2b168587c44cdf23279fc6b7f171a85dc15e45368e3defef6df06005b9e4b370",
+          "bd532835012f49d7a66d69b400c1df9c373229c554a12c836346e4d898d13600",
+          "ed0cdaee5ec61a6f9297b6df5f6eeeaa24060f2b2d2168a883a997dde843d609",
+          "07d09c1adf62439f90f3b1ca6b7f3b0f3ba5ec879527e7d9e19feff84ab34c69",
+          "975578baca223d966f472c6696b47ab3d3ff9dd8172c80cc24c61b976454d15e",
+          "f5182343b1361bd6e97b0ded863a6bd45dac697e0d9198a7d595e1bc645147a3",
+          "5dcaca2d0742ca5dc48f94d173a3f3b38f3b6e12c11a4383174cde8c344be8d7",
+          "9e4f8f6b0209f271afe26b5a5ab7f3346c5092f61c229a66dcc3b663678633b8",
+          "353f711d39624468de6ebae3f7ce24dbfd5542c996ba0f1018b891696021e800",
+          "11d4d628758386764b2eeb422c0f7d254a0676126c5e8f37c6f9c588a62ecb5c"
+        ],
+        "crossVersion": {
+          "cliSha256": {
+            "baseline": "ba8187186047bd55fd2a3b183ce1e425e2895601483c6d9ced5a79c3d548cc72",
+            "candidate": "fc6976d304404e46b813fc4d2bfadaa3ecef9d2f0ee77a8113fe43f29c04e2d5"
+          },
+          "writerReaderPairs": [
+            [
+              "baseline",
+              "baseline"
+            ],
+            [
+              "baseline",
+              "candidate"
+            ],
+            [
+              "candidate",
+              "baseline"
+            ],
+            [
+              "candidate",
+              "candidate"
+            ]
+          ],
+          "pageCount": 73,
+          "savedCopyUnchanged": true
+        }
+      },
+      "releaseComparison": {
+        "baseline": {
+          "sampleCount": 60,
+          "medianMs": 1.03825,
+          "p95Ms": 1.66725,
+          "fullFallbacks": 60,
+          "pagesCompared": 423,
+          "caretHitsCompared": 1269,
+          "editThroughLayoutMs": [
+            [
+              1.943708,
+              0.5792080000000001,
+              1.596625,
+              0.49712499999999993,
+              1.5549579999999998,
+              0.535084,
+              1.5662079999999998,
+              0.49700000000000005,
+              1.570333,
+              0.496625,
+              1.586792,
+              0.49458300000000005,
+              1.527541,
+              0.49791699999999994,
+              1.555625,
+              0.49775,
+              1.587042,
+              0.494458,
+              1.53775,
+              0.4947079999999999
+            ],
+            [
+              1.822666,
+              0.5626249999999999,
+              1.594375,
+              0.503958,
+              1.557709,
+              0.4946249999999999,
+              1.536208,
+              0.48825,
+              1.548958,
+              0.48641599999999996,
+              1.535625,
+              0.484333,
+              1.4972919999999998,
+              0.491625,
+              1.66725,
+              0.495042,
+              1.584666,
+              0.49,
+              1.534125,
+              0.4947079999999999
+            ],
+            [
+              1.74475,
+              0.564917,
+              1.618334,
+              0.503125,
+              1.572584,
+              0.499875,
+              1.5456249999999998,
+              0.499416,
+              1.553917,
+              0.494167,
+              1.537833,
+              0.49537500000000007,
+              1.589375,
+              0.5121249999999999,
+              1.5711659999999998,
+              0.49708300000000005,
+              1.576166,
+              0.48925,
+              1.524875,
+              0.48908399999999996
+            ]
+          ]
+        },
+        "candidate": {
+          "sampleCount": 60,
+          "medianMs": 0.7769375000000001,
+          "p95Ms": 1.392834,
+          "fullFallbacks": 0,
+          "pagesCompared": 423,
+          "caretHitsCompared": 1269,
+          "editThroughLayoutMs": [
+            [
+              1.776667,
+              0.34808300000000003,
+              1.306916,
+              0.24570899999999998,
+              1.205792,
+              0.226916,
+              1.252916,
+              0.226458,
+              1.217084,
+              0.225458,
+              1.2563749999999998,
+              0.225,
+              1.392834,
+              0.244084,
+              1.2304169999999999,
+              0.23258299999999998,
+              1.234667,
+              0.222958,
+              1.242334,
+              0.223375
+            ],
+            [
+              1.723792,
+              0.331875,
+              1.31175,
+              0.23566700000000002,
+              1.3118750000000001,
+              0.238375,
+              1.2704170000000001,
+              0.225625,
+              1.22875,
+              0.224,
+              1.283833,
+              0.223792,
+              1.254792,
+              0.225417,
+              1.336834,
+              0.243833,
+              1.265625,
+              0.233292,
+              1.23025,
+              0.23049999999999998
+            ],
+            [
+              1.70325,
+              0.329584,
+              1.292042,
+              0.271458,
+              1.298167,
+              0.232125,
+              1.266084,
+              0.225625,
+              1.216125,
+              0.22262500000000002,
+              1.243708,
+              0.22391699999999998,
+              1.228917,
+              0.26875,
+              1.273917,
+              0.236167,
+              1.257333,
+              0.22529200000000002,
+              1.255333,
+              0.222208
+            ]
+          ]
+        }
+      },
+      "product": {
+        "passed": 3708,
+        "failed": 0,
+        "ignored": 2
+      },
+      "strictClippy": "joyword-layout --lib -- -D warnings",
+      "spdx": {
+        "target": "aarch64-apple-darwin",
+        "packages": 514,
+        "sourceFiles": 1090,
+        "spdxSha256": "33caf0ee46d83bde163b81c69a5d0c04027a21df2ee6f77d37dde4293af2caba",
+        "missingLicenseTexts": [],
+        "sharedCrates": [
+          "joyoffice-cfb",
+          "joyoffice-drawingml",
+          "joyoffice-fonts",
+          "joyoffice-metafile",
+          "joyoffice-omml",
+          "joyoffice-opc",
+          "joyoffice-theme",
+          "joyoffice-ui"
+        ],
+        "runtimeLegacyDependencies": [
+          "craft-atomic",
+          "craft-font-store",
+          "craft-proof"
+        ]
+      }
+    },
+    "UOS25": {
+      "native": {
+        "geometryByWriter": {
+          "source": {
+            "columnsTwips": [
+              [
+                [
+                  2680,
+                  520
+                ],
+                [
+                  6160,
+                  0
+                ]
+              ],
+              [
+                [
+                  2680,
+                  520
+                ],
+                [
+                  6160,
+                  0
+                ]
+              ]
+            ],
+            "directions": [
+              "tbRl",
+              "btLr"
+            ],
+            "verticalAlignments": [
+              "center",
+              "bottom"
+            ],
+            "columnBreaks": 1
+          },
+          "native": {
+            "columnsTwips": [
+              [
+                [
+                  2680,
+                  520
+                ],
+                [
+                  6160,
+                  0
+                ]
+              ],
+              [
+                [
+                  2680,
+                  520
+                ],
+                [
+                  6160,
+                  0
+                ]
+              ]
+            ],
+            "directions": [
+              "tbRl",
+              "btLr"
+            ],
+            "verticalAlignments": [
+              "center",
+              "bottom"
+            ],
+            "columnBreaks": 1
+          },
+          "baseline": {
+            "columnsTwips": [
+              [
+                [
+                  2680,
+                  520
+                ],
+                [
+                  6160,
+                  0
+                ]
+              ],
+              [
+                [
+                  2680,
+                  520
+                ],
+                [
+                  6160,
+                  0
+                ]
+              ]
+            ],
+            "directions": [
+              "tbRl",
+              "btLr"
+            ],
+            "verticalAlignments": [
+              "center",
+              "bottom"
+            ],
+            "columnBreaks": 1
+          },
+          "candidate": {
+            "columnsTwips": [
+              [
+                [
+                  2680,
+                  520
+                ],
+                [
+                  6160,
+                  0
+                ]
+              ],
+              [
+                [
+                  2680,
+                  520
+                ],
+                [
+                  6160,
+                  0
+                ]
+              ]
+            ],
+            "directions": [
+              "tbRl",
+              "btLr"
+            ],
+            "verticalAlignments": [
+              "center",
+              "bottom"
+            ],
+            "columnBreaks": 1
+          }
+        },
+        "pdfColumnWitnesses": {
+          "original": {
+            "WestWitness": [
+              35,
+              72.0,
+              85.26
+            ],
+            "EastWitness": [
+              35,
+              232.0,
+              72.0
+            ]
+          },
+          "expanded": {
+            "WestWitness": [
+              38,
+              232.0,
+              536.0918
+            ],
+            "EastWitness": [
+              39,
+              72.0,
+              72.0
+            ]
+          },
+          "old": {
+            "WestWitness": [
+              38,
+              232.0,
+              536.0918
+            ],
+            "EastWitness": [
+              39,
+              72.0,
+              72.0
+            ]
+          },
+          "new": {
+            "WestWitness": [
+              38,
+              232.0,
+              536.0918
+            ],
+            "EastWitness": [
+              39,
+              72.0,
+              72.0
+            ]
+          }
+        },
+        "sourceSha256": "fd77c16cb2dcab491b4e20f23e42188352ca7ad9a48ed3a170ab27782dd9137c",
+        "desktopSha256": "40d8bc27d972978d03ced02281ae7cf679cc004f0e9945982c2aa1085f1ed6ea",
+        "original": {
+          "notePages": [],
+          "pages": 68,
+          "editedPage": 35,
+          "firstDirtyPage": 3,
+          "fieldPages": [
+            65
+          ],
+          "followingPage": 67,
+          "restartPage": 68,
+          "fieldNumbers": [
+            99,
+            99,
+            99,
+            99,
+            99,
+            99,
+            99,
+            99,
+            99,
+            99,
+            99,
+            99
+          ]
+        },
+        "expanded": {
+          "notePages": [],
+          "pages": 73,
+          "editedPage": 38,
+          "firstDirtyPage": 3,
+          "fieldPages": [
+            69,
+            70
+          ],
+          "followingPage": 72,
+          "restartPage": 73,
+          "fieldNumbers": [
+            104,
+            104,
+            104,
+            104,
+            104,
+            104,
+            104,
+            104,
+            104,
+            104,
+            104,
+            104
+          ]
+        },
+        "nativePatches": [
+          {
+            "action": "text.insert",
+            "firstPage": 3,
+            "lastPage": 73,
+            "pages": 73,
+            "displayedPages": [
+              3,
+              69,
+              70,
+              72,
+              73
+            ]
+          },
+          {
+            "action": "edit.undo",
+            "firstPage": 3,
+            "lastPage": 73,
+            "pages": 68,
+            "displayedPages": [
+              3,
+              65,
+              67,
+              68
+            ]
+          },
+          {
+            "action": "edit.redo",
+            "firstPage": 3,
+            "lastPage": 73,
+            "pages": 73,
+            "displayedPages": [
+              3,
+              69,
+              70,
+              72,
+              73
+            ]
+          }
+        ],
+        "savedAndReopened": true,
+        "twoVersionPageRastersSha256": [
+          "f558beef401b7d0e813eff8491ffb318ca946eeaf76b3109781c07a5e0a38af0",
+          "f555e1db905051fd909b46bfddbe02dd60b0627fd9efd9616c54c6e93bbf043d",
+          "208e8def8df5a4804bdaeeb008e5c4e8a3f3f948790a2cfb47f14d292ed6d7df",
+          "1f425185be4ae1bdbb78d247736fd926b690edf1df8eec0922473c4bfe951bac",
+          "9db893509c27e7911444810187a17297ccfb029c3df319f8d4f58f9fbbbd6ead",
+          "8c857efbb9efee46200a2b26433a250a12fb3d27057eacce760930504cd0e773",
+          "4f2b1a2d50d4fd25c75afad7bdf277f16bfbc53b5a988055931b9964621620c8",
+          "35164b060043834f0b038c1503c86d056f7e78168e611c02fa1c79d26e9e5190",
+          "6c4c579e7e3625c4944b663d96cdaba5ac9d12109d9dff3307ed0d8e12a42aea",
+          "3166b1c4041433f2048afa55a56734dfbf05e99dae3319832495dd0ded8eac21",
+          "5b4ff1d9add76512ae40d4169857b3334e053b93ef393f0a54d85f5c9f4b2537",
+          "1672407696276a3404a3645d8be489979006560470256e4d3ff0c521ef27563c",
+          "d8419c6c8cac07fa7bd504008da1d61e65b6e0e531b1fdc59d55f4b177aeb0fa",
+          "363b0bd853e017c19c407cf785a347d91196f670b1d9895008066332b7c2fe46",
+          "a1793d987e5b0d5cc0027f205d181ec75c402699cec5ce509a4e0fadda324225",
+          "ebfe3797f4551b44b7963386abe5efea30ca887ad22c21d8ed08833c6ce32eda",
+          "48e950ea5ae0cc0734a44b14732def46a307ae21bdb14c4b64a131b621b0744e",
+          "992b44155a67654e5c4ec91f0d161ec80183c6037cbe6f9dba5fce6125c0b049",
+          "6c91f0f86e215352ee047f5e28db0a3426a3c10a2bc0e06f4b049f7966afb881",
+          "4a42c5d3be8b5527f00c9101dc38c3e3a07ebd15141e5dce6f5d113ca7c200e8",
+          "d704f18c72dcc0395cbf5023036e9225060d59ec556c3f4620142d79b47df1ab",
+          "e49b7fa3f14745050e66cd8570e6301c38b62f85d6ed52c88448d8f9b486e994",
+          "65adbc541225bef165eac9fe661dc049b6982e04ec013cae2b76c6cdc67ea073",
+          "b53815d436bc7b83573971d73108f8e64fd196ca386eef4966734bebb0b2a3f7",
+          "a65537ec14ad16fb286d4a0c1be0f803f74dcfffb620059cea9b370abb7133df",
+          "4b9b0e13988dc5ad550099926e2ee2ef156241ed94ed54b9b3f4ae3da4c7e251",
+          "22de5ce8b9776dce97d79104944f7998582d49040c567868b1fe8d3076e7ab6b",
+          "d4670310c8dfdd6814b65045aa6eda8110b91966b2cb0d7abd30b40876b255dc",
+          "c55db3423aece8c05da7ee8d30b5706d570fa99921cc460e2f83e397331f06de",
+          "70a3a2061a4fc5bc126290099dfabbb64ccfe4320c1648c44edfabde8729cf77",
+          "db2bbfdefd051d4d19d6af8d79240698d4e6148fd39788dc9de69c75313cef23",
+          "725a61bbe85f268478655df7191b2f392e8f7e395890fc406c6aa7692ce3decd",
+          "a7d5c26cb1264480131d07209089a0e5eafcf84e6c7381e98c21f07b0f8822fc",
+          "19ba386992effbbc009110bea01a8ab3e8aa5af879dc818ff679849406c4455b",
+          "9296e738bd519d5ad2a8fb29d9d67bdf4c4640321b087ec02bd52105b2eccad9",
+          "9296e738bd519d5ad2a8fb29d9d67bdf4c4640321b087ec02bd52105b2eccad9",
+          "9296e738bd519d5ad2a8fb29d9d67bdf4c4640321b087ec02bd52105b2eccad9",
+          "c6a65a34892c6b2866c5aaf090e7ecdb8fe82c0ae15414e35956d22aa95dba5f",
+          "0ae4a10d7f5f965926e092899523a8367932ff473149bc674feb35c2f53018e2",
+          "8c8d1c039e7b4368ce19a77f065cdcfe7d4e0dc585e4f6057eb0802786cc709a",
+          "61769dfe738f0129f4a8326701cac4cf522c89aa5d0a17bcfc9825741675f822",
+          "05a00fbb731a28fab5d5c46390c1da82c9fdda7391328bfc6469434649e5ef25",
+          "1fdb0ebfa46efe33d900123f46e8eabb073e362503aa5ea05c4493117ceba3d4",
+          "bbd3bea27909541011c26088d0a1e73978a1e99a275cf5e5ae6bc6e87aaab1cb",
+          "e92eade28bbcf1d42296bc9db3574ad4964f2a7d674ea8238f6c1c2e59eacd70",
+          "b2d6e812c39bc63c4f8eb7d24f057899228046712a199b53c2c9f535a0b23bb7",
+          "1a990e563efb617eb9838b18312aa2ae2ca873912617a4dd7297353caa8f4b25",
+          "58980cd6bcdebccb2e77f0ec02d4ccd71f9e80c85755289f1c524a0625fcc073",
+          "3c289670e8cb5adc0647c35de2171fb57eaa1b8b5c7957c922e5e0bae4e2f40b",
+          "d6d609d055dec2d84f7174e224d1aab1cc8f2061535d47590b850b74ac3c8102",
+          "c95ae6aceaffd471c5d55d8741c012bcdeb1b9fd9d24a304b49ad16d2fb84ce4",
+          "8c4f89b701d8a73ebaa33fd9bd38181f762658479f8389a2c9c939646c17be26",
+          "16da2d74f30e3a54178353652074d6d91230208c49b22bccb5e9ff3ff147906c",
+          "069f9d32f66ea45097707ddfbef9b0f98ea08edbb94fb517543d7f48f39c944c",
+          "6d43e911641ae613788227223c80502032195668213955f050656743a3e2196f",
+          "ea604b50dfb19a39713c18d938f11dc3a21819d2b1f3ed667364fac5c06efc1e",
+          "0f0ceb39fe52384ee9bfd4c3d9f8d2e43e14f7118baf2140826213399aa24734",
+          "b35d8d34e98595a740bb9e6101186fc72fd70470d6fbcc0c2234f22358f499cf",
+          "e8c0cf6d602ad6d05ca28b7bd5cdf631e005da5f200d5e23c5e6a3a072a75bcd",
+          "e6e11ad7c5e64e4c7886dc0cc721bb29fa9b17f4e291adee22bcabe7d553759d",
+          "74ed2f9d4a38ae8d41a51319006867c650ae993da116b0862ca54e630e8d789d",
+          "9a6643d44eccded06bfdca3bf3407307db4ec5c8fdbab93bfb2d0a6da00aa2ea",
+          "4b12543c2960b3e02ff1bb90ad10ca69116e62d022a6fe1e0ebf77576d047ce2",
+          "2b168587c44cdf23279fc6b7f171a85dc15e45368e3defef6df06005b9e4b370",
+          "bd532835012f49d7a66d69b400c1df9c373229c554a12c836346e4d898d13600",
+          "ed0cdaee5ec61a6f9297b6df5f6eeeaa24060f2b2d2168a883a997dde843d609",
+          "07d09c1adf62439f90f3b1ca6b7f3b0f3ba5ec879527e7d9e19feff84ab34c69",
+          "975578baca223d966f472c6696b47ab3d3ff9dd8172c80cc24c61b976454d15e",
+          "f5182343b1361bd6e97b0ded863a6bd45dac697e0d9198a7d595e1bc645147a3",
+          "5dcaca2d0742ca5dc48f94d173a3f3b38f3b6e12c11a4383174cde8c344be8d7",
+          "9e4f8f6b0209f271afe26b5a5ab7f3346c5092f61c229a66dcc3b663678633b8",
+          "353f711d39624468de6ebae3f7ce24dbfd5542c996ba0f1018b891696021e800",
+          "11d4d628758386764b2eeb422c0f7d254a0676126c5e8f37c6f9c588a62ecb5c"
+        ],
+        "crossVersion": {
+          "cliSha256": {
+            "baseline": "67e6e31520818d706e82da897e7b633fd28a36cea934f8e67bd148f2f7f4605a",
+            "candidate": "1ee2e40d536b06481885ef6753a29c105a14e2c3ff1557e0809358ac05b280ae"
+          },
+          "writerReaderPairs": [
+            [
+              "baseline",
+              "baseline"
+            ],
+            [
+              "baseline",
+              "candidate"
+            ],
+            [
+              "candidate",
+              "baseline"
+            ],
+            [
+              "candidate",
+              "candidate"
+            ]
+          ],
+          "pageCount": 73,
+          "savedCopyUnchanged": true
+        }
+      },
+      "releaseComparison": {
+        "baseline": {
+          "sampleCount": 60,
+          "medianMs": 1.116563,
+          "p95Ms": 2.994588,
+          "fullFallbacks": 60,
+          "pagesCompared": 423,
+          "caretHitsCompared": 1269,
+          "editThroughLayoutMs": [
+            [
+              3.328079,
+              0.6764180000000001,
+              1.7260170000000001,
+              0.49490500000000004,
+              1.461484,
+              0.45846899999999996,
+              1.636825,
+              0.509602,
+              1.6534950000000002,
+              0.464189,
+              1.6240009999999998,
+              0.468317,
+              1.8681780000000001,
+              0.454982,
+              2.257771,
+              0.46204500000000004,
+              1.669414,
+              0.459411,
+              1.630743,
+              0.460733
+            ],
+            [
+              2.35548,
+              0.668934,
+              2.523247,
+              0.771642,
+              1.59045,
+              0.49299200000000004,
+              1.6647260000000002,
+              0.45646499999999995,
+              1.91881,
+              0.569673,
+              1.700842,
+              0.46985,
+              1.685062,
+              0.457337,
+              1.64537,
+              0.458589,
+              3.316328,
+              0.500356,
+              1.713996,
+              0.46544199999999997
+            ],
+            [
+              1.9759650000000002,
+              0.708225,
+              3.1330519999999997,
+              0.545208,
+              1.560084,
+              0.474478,
+              1.558141,
+              0.468938,
+              2.300148,
+              0.532073,
+              1.865153,
+              0.456014,
+              1.550376,
+              0.45375,
+              1.572356,
+              0.465081,
+              2.994588,
+              0.46759599999999996,
+              1.566076,
+              0.469439
+            ]
+          ]
+        },
+        "candidate": {
+          "sampleCount": 60,
+          "medianMs": 1.077,
+          "p95Ms": 2.7189240000000003,
+          "fullFallbacks": 0,
+          "pagesCompared": 423,
+          "caretHitsCompared": 1269,
+          "editThroughLayoutMs": [
+            [
+              2.0381090000000004,
+              0.496848,
+              1.649919,
+              0.29540099999999997,
+              1.2344089999999999,
+              0.24895599999999998,
+              1.351002,
+              0.247603,
+              2.74961,
+              0.308334,
+              1.409368,
+              0.255217,
+              1.374835,
+              0.24213300000000001,
+              1.473175,
+              0.254946,
+              2.518247,
+              0.258793,
+              1.389141,
+              0.243776
+            ],
+            [
+              3.496687,
+              0.504333,
+              3.0267969999999997,
+              0.379655,
+              1.355219,
+              0.275133,
+              1.46471,
+              0.24837399999999998,
+              1.592905,
+              0.926014,
+              1.558481,
+              0.251139,
+              1.357904,
+              0.258994,
+              1.4025859999999999,
+              0.270706,
+              1.49204,
+              0.60651,
+              2.034663,
+              0.274181
+            ],
+            [
+              2.7189240000000003,
+              0.687638,
+              1.494354,
+              0.302624,
+              1.227986,
+              0.25818199999999997,
+              1.327328,
+              0.25183099999999997,
+              1.850275,
+              0.25729,
+              1.398759,
+              0.246361,
+              1.3903240000000001,
+              0.25374399999999997,
+              1.4141270000000001,
+              0.254887,
+              1.6580139999999999,
+              0.26807000000000003,
+              1.444512,
+              0.260026
+            ]
+          ]
+        }
+      },
+      "product": {
+        "passed": 3712,
+        "failed": 0,
+        "ignored": 2
+      },
+      "strictClippy": "joyword-layout --lib -- -D warnings",
+      "spdx": {
+        "target": "x86_64-unknown-linux-gnu",
+        "packages": 603,
+        "sourceFiles": 1095,
+        "spdxSha256": "26e5a9d9a74b421a8ece77227916061d6dddd63e7a820d0ebc629ae4cfeb5410",
+        "missingLicenseTexts": [],
+        "sharedCrates": [
+          "joyoffice-cfb",
+          "joyoffice-drawingml",
+          "joyoffice-fonts",
+          "joyoffice-metafile",
+          "joyoffice-omml",
+          "joyoffice-opc",
+          "joyoffice-theme",
+          "joyoffice-ui"
+        ],
+        "runtimeLegacyDependencies": [
+          "craft-atomic",
+          "craft-font-store",
+          "craft-proof"
+        ]
+      }
+    }
+  }
+}

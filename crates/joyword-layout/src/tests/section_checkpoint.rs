@@ -670,3 +670,92 @@ fn section_lists_drop_caps_frames_and_table_fields_survive_edit_undo_and_redo()
     );
     Ok(())
 }
+
+#[test]
+fn section_reflow_preserves_column_breaks_rotated_text_and_caret_positions()
+-> Result<(), Box<dyn std::error::Error>> {
+    use joyword_model::section::PageVAlign;
+
+    for (turn, align) in [
+        (TextDirection::Horizontal, PageVAlign::Top),
+        (TextDirection::Down, PageVAlign::Center),
+        (TextDirection::Up, PageVAlign::Bottom),
+    ] {
+        let mut doc = Document::new();
+        doc.body.clear();
+        doc.styles.default_chr.font = Some("Source Sans 3".into());
+        let mut edit = 0;
+        for i in 0..68 {
+            let mut section = doc.last_section.clone();
+            section.columns.count = 2;
+            section.columns.widths = vec![(134., 26.), (308., 0.)];
+            section.columns.separator = true;
+            if i == 34 {
+                section.text_direction = turn;
+                section.valign = align;
+                section.rtl = turn == TextDirection::Up;
+            }
+            for text in [
+                format!("Section {i}"),
+                "First column\u{e}Second column".into(),
+                "Column witness".into(),
+            ] {
+                if i == 34 && text == "Column witness" {
+                    edit = doc.body.len();
+                }
+                doc.body
+                    .push(joyword_model::para_block(Paragraph::with_text(
+                        &text,
+                        Default::default(),
+                    )));
+            }
+            let mut end = Paragraph::with_text("End", Default::default());
+            if i < 67 {
+                end.section = Some(Box::new(section));
+            } else {
+                doc.last_section = section;
+            }
+            doc.body.push(joyword_model::para_block(end));
+        }
+
+        let at = Pos::body(edit, 0);
+        let opts = LayoutOptions::default();
+        let mut edited = doc.clone();
+        edited.insert_text(
+            &at,
+            &"Words in the second column. ".repeat(290),
+            &Default::default(),
+        )?;
+        let mut cache = LayoutCache::new();
+        let mut previous = layout_shared(&doc, &mut cache, &opts);
+        let before = previous.caret(&at).unwrap();
+        let first = previous.caret(&Pos::body(edit - 2, 0)).unwrap();
+        assert_eq!(first.page, before.page);
+        assert!((first.x - before.x).abs() > 50. || (first.top - before.top).abs() > 50.);
+        for state in [&edited, &doc, &edited] {
+            let next = layout_shared(state, &mut cache, &opts);
+            let complete = layout(state, &mut LayoutCache::new(), &opts);
+            let changed = next.changed_pages_from(&previous).expect("checked section");
+            assert_eq!(changed.start, 34);
+            assert_eq!(next.pages.len(), complete.pages.len());
+            assert_eq!(next.index, complete.index);
+            for (page, (got, want)) in next.pages.iter().zip(&complete.pages).enumerate() {
+                assert_eq!(
+                    format!("{got:?}"),
+                    format!("{want:?}"),
+                    "page {page}, {turn:?}"
+                );
+            }
+            for pos in [&at, &Pos::body(edit - 1, 13), &Pos::body(edit + 1, 2)] {
+                let caret = complete.caret(pos).unwrap();
+                assert_eq!(next.caret(pos), Some(caret));
+                assert_eq!(
+                    next.hit(caret.page, caret.x, caret.top, StoryRef::Body),
+                    complete.hit(caret.page, caret.x, caret.top, StoryRef::Body)
+                );
+            }
+            previous = next;
+        }
+    }
+    Ok(())
+}

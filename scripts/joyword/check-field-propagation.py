@@ -7,6 +7,7 @@ import re
 import runpy
 import secrets
 import shutil
+import subprocess
 import sys
 from zipfile import ZipFile
 import xml.etree.ElementTree as ET
@@ -19,7 +20,7 @@ SECTIONS = runpy.run_path(str(Path(__file__).with_name('check-section-reflow.py'
 CORPUS = runpy.run_path(str(Path(__file__).with_name('check-complex-corpus.py')))
 
 
-def fixture(path, edited=False, facing_notes=False, structured=False):
+def fixture(path, edited=False, facing_notes=False, structured=False, column_geometry=False):
     def text(value):
         return f'<w:r><w:t xml:space="preserve">{value}</w:t></w:r>'
 
@@ -38,6 +39,12 @@ def fixture(path, edited=False, facing_notes=False, structured=False):
             props += '<w:type w:val="evenPage"/><w:pgMar w:left="740" w:right="1220"/>'
         if section == 64:
             props += '<w:pgSz w:w="3680" w:h="1500"/><w:pgMar w:top="400" w:bottom="400" w:left="400" w:right="400"/>'
+        if column_geometry and section in (33, 35):
+            props += ('<w:textDirection w:val="tbRl"/><w:vAlign w:val="center"/>' if section == 33
+                      else '<w:textDirection w:val="btLr"/><w:vAlign w:val="bottom"/>')
+        if column_geometry and section in (34, 36):
+            props += ('<w:cols w:num="2" w:equalWidth="0" w:sep="1">'
+                      '<w:col w:w="2680" w:space="520"/><w:col w:w="6160"/></w:cols>')
         end = f'<w:sectPr>{props}</w:sectPr>'
         spacing = '<w:spacing w:after="0"/>'
         number = ''
@@ -52,6 +59,8 @@ def fixture(path, edited=False, facing_notes=False, structured=False):
             body = text('End')
         if facing_notes and section == 66:
             body += '<w:r><w:footnoteReference w:id="1"/></w:r>'
+        if column_geometry and section == 34:
+            paragraphs.append(f'<w:p>{text("WestWitness")}<w:r><w:br w:type="column"/></w:r>{text("EastWitness")}</w:p>')
         if structured and section == 34:
             paragraphs.append(f'<w:p><w:pPr><w:framePr w:dropCap="drop" w:lines="3" w:hSpace="75"/></w:pPr>{text("C")}</w:p>')
             paragraphs.append(f'<w:p>{text("opper section caption with a raised initial.")}</w:p>')
@@ -137,11 +146,40 @@ def structured_content(document):
     return summary
 
 
-def run(desktop, old, current, folder, facing_notes=False, structured=False):
+def section_geometry(document):
+    ns = {'w': CORPUS['W']}
+    name = lambda key: '{%s}%s' % (ns['w'], key)
+    with ZipFile(document) as archive:
+        root = ET.fromstring(archive.read('word/document.xml'))
+    columns = []
+    for group in root.findall('.//w:cols/w:col/..', ns):
+        if group.get(name('equalWidth')) == '0' and group.get(name('sep')) in ('1', 'true'):
+            columns.append([(int(col.get(name('w'))), int(col.get(name('space'), '0'))) for col in group.findall('w:col', ns)])
+    turns = [value.get(name('val')) for value in root.findall('.//w:sectPr/w:textDirection', ns)]
+    align = [value.get(name('val')) for value in root.findall('.//w:sectPr/w:vAlign', ns)]
+    breaks = sum(element.get(name('type')) == 'column' for element in root.findall('.//w:br', ns))
+    assert columns == [[(2680, 520), (6160, 0)]] * 2, columns
+    assert turns == ['tbRl', 'btLr'] and align == ['center', 'bottom'] and breaks == 1, (turns, align, breaks)
+    return {'columnsTwips': columns, 'directions': turns, 'verticalAlignments': align, 'columnBreaks': breaks}
+
+
+def column_witnesses(pdf):
+    root = ET.fromstring(subprocess.check_output(['pdftotext', '-bbox', str(pdf), '-']))
+    words = {}
+    for i, page in enumerate(root.findall('.//{*}page'), 1):
+        for word in page.findall('.//{*}word'):
+            if word.text in ('WestWitness', 'EastWitness'):
+                assert word.text not in words
+                words[word.text] = [i, float(word.get('xMin')), float(word.get('yMin'))]
+    assert len(words) == 2, words
+    return words
+
+
+def run(desktop, old, current, folder, facing_notes=False, structured=False, column_geometry=False):
     folder.mkdir(parents=True, exist_ok=False)
     original, working = folder / '原始.docx', folder / '分节 编辑.docx'
-    fixture(original, facing_notes=facing_notes, structured=structured)
-    fixture(folder / 'expanded.docx', edited=True, facing_notes=facing_notes, structured=structured)
+    fixture(original, facing_notes=facing_notes, structured=structured, column_geometry=column_geometry)
+    fixture(folder / 'expanded.docx', edited=True, facing_notes=facing_notes, structured=structured, column_geometry=column_geometry)
     source_hash = digest(original)
     shutil.copyfile(original, working)
     reference = []
@@ -208,6 +246,15 @@ def run(desktop, old, current, folder, facing_notes=False, structured=False):
     formats = ({'structuredContentByWriter': {name: structured_content(folder / file) for name, file in
                 [('original', original.name), ('native', working.name), ('baseline', 'baseline-resaved.docx'),
                  ('candidate', 'candidate-resaved.docx')]}} if structured else {})
+    if column_geometry:
+        formats['geometryByWriter'] = {name: section_geometry(file) for name, file in
+            [('source', original), ('native', working), ('baseline', folder / 'baseline-resaved.docx'),
+             ('candidate', folder / 'candidate-resaved.docx')]}
+        witnesses = {key: column_witnesses(folder / (key + '.pdf')) for key in ('original', 'expanded', 'old', 'new')}
+        west, east = (witnesses['original'][k] for k in ('WestWitness', 'EastWitness'))
+        assert west[0] == east[0] and abs(east[1] - west[1] - 160.) < .5, witnesses
+        assert witnesses['expanded'] == witnesses['old'] == witnesses['new'], witnesses
+        formats['pdfColumnWitnesses'] = witnesses
     return {
         **formats, 'sourceSha256': source_hash, 'desktopSha256': digest(desktop),
         'original': before, 'expanded': after, 'nativePatches': patches, 'savedAndReopened': True,
@@ -222,7 +269,8 @@ if __name__ == '__main__':
         arg.add_argument(key, type=Path)
     arg.add_argument('--facing-notes', action='store_true', help='include mirrored sections, an even start, a numbering restart and a continued footnote')
     arg.add_argument('--structured', action='store_true', help='exercise continued and restarted lists, a frame, a drop cap and nested table fields')
+    arg.add_argument('--column-geometry', action='store_true', help='exercise unequal columns, an explicit column break and both rotated text directions')
     args = arg.parse_args()
     dest = args.output.resolve()
-    result = run(args.desktop.resolve(), args.baseline.resolve(), args.candidate.resolve(), dest, args.facing_notes, args.structured)
+    result = run(args.desktop.resolve(), args.baseline.resolve(), args.candidate.resolve(), dest, args.facing_notes, args.structured, args.column_geometry)
     (dest / 'report.json').write_text(json.dumps(result, indent=2) + '\n')
