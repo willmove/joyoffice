@@ -201,3 +201,11 @@ FILTER、SORT、SORTBY、UNIQUE 现在直接读取输入行或列，按索引决
 新的排版路径在分节出口与后一节首段重新对齐后复用后续的页内容。后续逻辑页码随物理页增减，遇到显式重新编号则停止传播。回归还覆盖文档末节、重新从 7 开始编号，以及后方含奇数起始节时回到完整分页。每台机器用同一个 Release 程序交替插入、删除共 100 次。macOS 完整分页与编辑加增量分页的 P50 为 1.200 → 1.028 ms，P95 为 1.877 → 1.764 ms。UOS 的 P50 为 2.001 → 1.867 ms，P95 为 4.359 → 4.204 ms。两端分别比较了 710／715 个页面对象和 2,130／2,145 个命中点，并对受影响页和邻页核对 RGB 与 PDF。跨节续注、带字段的页眉页脚及奇偶页布局仍保留完整分页。[实现与回退](../../../../crates/joyword-layout/src/incremental/sections.rs)
 
 GUI 复跑用 `python3 scripts/joyword/check-section-reflow.py DESKTOP NEW_DIR --grow --compare-cli OLD_CLI NEW_CLI`。Release 计时入口为 `cargo run --release -p joyword-engine --example chapter_reflow -- NEW_DIR/原始分节.docx --grow`。同一轮完整回归在 macOS 的 Word／Deck／Sheet 分别通过 3,681／1,001／1,473 项，在 UOS 分别通过 3,685／1,006／1,473 项。[原始采样](page-count-reflow.json)
+
+## JoyDeck 的 12 种动作按钮与透明填充
+
+“帮助”现在显示问号及圆点，“声音”显示喇叭与三道声波，“文档”分别绘制纸面和折角。12 个按钮按 DrawingML 附件分别构造底板、图标、阴影和描边。缩放时图标保持方形，边框填满整个按钮。四个连接点从右侧开始顺时针排列。在 45% 不透明度测试中发现，部分镜像图标与底板轮廓同向时，底板会多涂一次。现在按奇偶规则给图标留孔，双平台都通过了透明填充的独立图像对照。[实现](../../../../crates/joydeck-geom/src/preset/action_buttons.rs) · [DrawingML 预设附件](https://ecma-international.org/wp-content/uploads/ECMA-376-1_5th_edition_december_2016.zip)
+
+macOS 与 UOS 各检查横、竖、方三种尺寸及普通、带文字、半透明、虚线四种呈现，共 12 张 960 × 540 页面、144 个形状实例。参照由旧版将标准附件作为自定义几何独立渲染。每版重新打开新版生成的 PPTX 后，结果与各自初次打开原件相同。相对独立参照，每张页面有 166 至 438 个像素的 RGB 不完全相同；逐点双向检查，一像素邻域之外的填充／背景／描边类别差异为零，通道强度超出邻域容差的点每页最多 25 个，出现在竖版虚线页。已有 29 个流程图的六张组合页也重验，两代结果逐字节相同。[双平台图像摘要、连接点及工程回归](action-buttons.json)
+
+12 种按钮另验六种宽高组合，包含零宽、零高和双零。实机回归按独立参照取样，每端验证 5,240 次旋转前后的指针命中或排除，另在原生窗口实际移动、拉伸声音按钮、撤销、重做、保存副本并重开。两端均核实原件 SHA-256 相同。复跑用 `python3 scripts/joydeck/check-flowcharts.py OLD_CLI NEW_CLI PRESET_XML NEW_DIR --family buttons --desktop NEW_DESKTOP`。[复跑入口](../../../../scripts/joydeck/check-flowcharts.py)

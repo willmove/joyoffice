@@ -4,7 +4,7 @@ use super::builder::{
     tip_handle, vis,
 };
 use super::catalog::{FillMode, Geometry, Handle, adjustment_defaults};
-use super::shapes::{action_button, cloud, math, ribbon, scroll, wedge_rect};
+use super::shapes::{cloud, math, ribbon, scroll, wedge_rect};
 use super::{Arc, BezPath, Point, Rect, Vec2, extra};
 
 /// Size and adjust values shared by every preset-shape builder.
@@ -44,6 +44,7 @@ pub fn build(name: &str, w: f64, h: f64, adj: &[f64]) -> Option<Geometry> {
         defaults,
     };
     super::flowchart::build(name, c.w, c.h)
+        .or_else(|| super::action_buttons::build(name, c.w, c.h))
         .or_else(|| super::office_shapes::rectangle(name, c.w, c.h, c.a(0), c.a(1)))
         .or_else(|| super::office_shapes::connector(name, c.w, c.h, adj))
         .or_else(|| rect_and_triangle_shapes(&c))
@@ -55,26 +56,12 @@ pub fn build(name: &str, w: f64, h: f64, adj: &[f64]) -> Option<Geometry> {
 }
 
 fn rect_and_triangle_shapes(c: &Ctx) -> Option<Geometry> {
-    let name = c.name;
     let w = c.w;
     let h = c.h;
     let ss = c.w.min(c.h);
     let a = |i: usize| c.a(i);
     let mut b = Pb::new();
     let g = match c.name {
-        "actionButtonBlank"
-        | "actionButtonBackPrevious"
-        | "actionButtonForwardNext"
-        | "actionButtonBeginning"
-        | "actionButtonEnd"
-        | "actionButtonHome"
-        | "actionButtonInformation"
-        | "actionButtonReturn"
-        | "actionButtonMovie"
-        | "actionButtonDocument"
-        | "actionButtonSound"
-        | "actionButtonHelp" => action_button(name, w, h),
-
         "ellipse" => {
             let mut g = simple(
                 b.ellipse(w / 2.0, h / 2.0, w / 2.0, h / 2.0).take(),

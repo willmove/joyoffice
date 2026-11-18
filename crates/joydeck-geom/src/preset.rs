@@ -8,6 +8,7 @@
 use kurbo::{Arc, BezPath, Point, Rect, Vec2};
 use serde::{Deserialize, Serialize};
 
+mod action_buttons;
 mod build;
 mod builder;
 mod catalog;

@@ -108,7 +108,7 @@ def run(cli, *args):
     return subprocess.run([str(cli), *map(str, args)], check=True, capture_output=True, timeout=150)
 
 
-def render(cli, path, out):
+def render(cli, path, out, fill_opacity=1.0):
     run(cli, "render", path, "--output", out, "--page", 1, "--scale", 1)
     png = next(out.glob("*.png"))
     with png.open("rb") as f:
@@ -125,7 +125,13 @@ def render(cli, path, out):
         with Image.open(png) as image:
             pixels = image.convert("RGB").tobytes()
     assert len(pixels) == width * height * 3
-    assert sum(rgb == COLOR for rgb in struct.iter_unpack("3B", pixels)) > 1000
+    if fill_opacity == 1.0:
+        assert sum(rgb == COLOR for rgb in struct.iter_unpack("3B", pixels)) > 1000
+    else:
+        from collections import Counter
+        target = [round(v * fill_opacity + 255 * (1 - fill_opacity)) for v in COLOR]
+        counts = Counter(struct.iter_unpack("3B", pixels))
+        assert sum(n for rgb, n in counts.items() if all(abs(a-b) <= 1 for a,b in zip(rgb, target))) > 1000
     return (width, height), pixels
 
 

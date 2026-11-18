@@ -1,4 +1,4 @@
-"""Compare all DrawingML flowcharts in old and new Deck builds, then resize one in the native editor."""
+"""Compare fixed DrawingML presets with standard geometry and resize a shape in the native editor."""
 
 import argparse
 import copy
@@ -31,7 +31,7 @@ def sha(data):
     return hashlib.sha256(data).hexdigest()
 
 
-def board(dest, names, size, labels):
+def board(dest, names, size, labels, style="solid"):
     seed = ROOT / "tests/fixtures/joydeck/independent.pptx"
     with ZipFile(seed) as src, ZipFile(dest, "x", ZIP_DEFLATED) as out:
         for part in src.namelist():
@@ -54,14 +54,19 @@ def board(dest, names, size, labels):
                         if labels
                         else ""
                     )
-                    tree.append(
-                        ET.fromstring(f'''<p:sp xmlns:p="{P}" xmlns:a="{A}">
+                    shape = ET.fromstring(f'''<p:sp xmlns:p="{P}" xmlns:a="{A}">
 <p:nvSpPr><p:cNvPr id="{i + 2}" name="{name}"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>
 <p:spPr><a:xfrm><a:off x="{x}" y="{y}"/><a:ext cx="{size[0]}" cy="{size[1]}"/></a:xfrm>
 <a:prstGeom prst="{name}"><a:avLst/></a:prstGeom>
 <a:solidFill><a:srgbClr val="1E70CE"/></a:solidFill>
 <a:ln w="19050"><a:solidFill><a:srgbClr val="17212E"/></a:solidFill></a:ln></p:spPr>{label}</p:sp>''')
-                    )
+                    props = shape.find("{*}spPr")
+                    if style == "transparent":
+                        color = props.find("{*}solidFill/{*}srgbClr")
+                        ET.SubElement(color, f"{{{A}}}alpha", val="45000")
+                    elif style == "dashed":
+                        ET.SubElement(props.find("{*}ln"), f"{{{A}}}prstDash", val="dash")
+                    tree.append(shape)
                 data = ET.tostring(doc, encoding="utf-8")
             out.writestr(part, data)
 
@@ -72,7 +77,7 @@ def differences(lhs, rhs):
 
 
 def text_frame(shape, w, h):
-    values = dict(w=w, h=h, l=0.0, t=0.0, r=w, b=h, hc=w / 2, vc=h / 2)
+    values = dict(w=w, h=h, l=0.0, t=0.0, r=w, b=h, hc=w / 2, vc=h / 2, ss=min(w, h))
     for name, distance in (("wd", w), ("hd", h), ("ssd", min(w, h))):
         for divisor in (2, 3, 4, 5, 6, 8, 10):
             values[name + str(divisor)] = distance / divisor
@@ -200,6 +205,11 @@ def reference_hits(pixels, dims, names, size):
                 flags.append(
                     "1"
                     if colors == {bytes((30, 112, 206))}
+                    or (
+                        name.startswith("actionButton")
+                        and len(colors) == 1
+                        and bytes((255, 255, 255)) not in colors
+                    )
                     else "0"
                     if colors == {bytes((255, 255, 255))}
                     else "."
@@ -208,14 +218,14 @@ def reference_hits(pixels, dims, names, size):
     return rows
 
 
-def native(binary, scene, out):
+def native(binary, scene, out, count, target_name):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
     from native_pilot_support import DeckControl, app, wait
 
     out.mkdir()
     source_hash = sha(scene.read_bytes())
     config = {"JOYDECK_CONFIG_DIR": str(out / "profile"), "JOYDECK_RECOVERY_DIR": str(out / "recovery")}
-    saved = out / "流程图 修改.pptx"
+    saved = out / "预设形状 修改.pptx"
 
     def launch(path):
         return [str(path), "--window-size=1100x740", "--control-stdio=" + str(out)]
@@ -225,10 +235,10 @@ def native(binary, scene, out):
 
     with app(binary, launch(scene), out, config) as process:
         client = DeckControl(process)
-        first = wait(client.inspect, "flowchart slide opened", process)
+        first = wait(client.inspect, "preset slide opened", process)
         shapes = objects(first)
-        assert len(shapes) == 29
-        target = next(s for s in shapes if s.get("name") == "flowChartDocument")
+        assert len(shapes) == count
+        target = next(s for s in shapes if s.get("name") == target_name)
 
         def selected():
             return next(s["transform"] for s in objects(client.inspect()) if s["id"] == target["id"])
@@ -255,17 +265,17 @@ def native(binary, scene, out):
     with app(binary, launch(saved), out, config, "reopened.log") as process:
         client = DeckControl(process)
         reopened = objects(wait(client.inspect, "resized shape reopened", process))
-        shape = next(s for s in reopened if s["name"] == "flowChartDocument")
-        assert len(reopened) == 29 and all(
+        shape = next(s for s in reopened if s["name"] == target_name)
+        assert len(reopened) == count and all(
             abs(shape["transform"][k] - after[k]) < 0.001 for k in ("x", "y", "w", "h")
         )
     with ZipFile(saved) as z:
         slide = ET.fromstring(z.read("ppt/slides/slide1.xml"))
-        assert len(slide.findall(".//{*}prstGeom")) == 29
+        assert len(slide.findall(".//{*}prstGeom")) == count
     return {
         "binarySha256": sha(binary.read_bytes()),
         "shapes": len(reopened),
-        "resized": "flowChartDocument",
+        "resized": target_name,
         "before": before,
         "after": after,
         "undoRedo": True,
@@ -274,11 +284,15 @@ def native(binary, scene, out):
     }
 
 
-def verify(old, new, definitions, out, desktop):
+def verify(old, new, definitions, out, desktop, family):
     assert sha(definitions.read_bytes()) == SPEC_SHA
     spec = ET.parse(definitions).getroot()
-    names = [node.tag for node in spec if node.tag.startswith("flowChart")]
-    assert len(names) == 29
+    prefix, count, target_name = {
+        "flowcharts": ("flowChart", 29, "flowChartDocument"),
+        "buttons": ("actionButton", 12, "actionButtonSound"),
+    }[family]
+    names = [node.tag for node in spec if node.tag.startswith(prefix)]
+    assert len(names) == count
     report = {
         "definitionsSha256": SPEC_SHA,
         "shapes": names,
@@ -290,12 +304,15 @@ def verify(old, new, definitions, out, desktop):
     render = support["render"]
     presets = support["presets"]
     for kind, size in SIZES.items():
-        for labels in (False, True):
-            name = kind + ("-text" if labels else "-outline")
+        variants = [(False, "solid", "outline"), (True, "solid", "text")]
+        if family == "buttons":
+            variants.extend([(False, "transparent", "transparent"), (False, "dashed", "dashed")])
+        for labels, style, suffix in variants:
+            name = f"{kind}-{suffix}"
             directory = out / name
             directory.mkdir()
             src, ref, second = (directory / (k + ".pptx") for k in ("preset", "custom", "regenerated"))
-            board(src, names, size, labels)
+            board(src, names, size, labels, style)
             support["make_geometry_reference"](src, ref, definitions, False)
             if labels:
                 labelled = directory / "custom-text.pptx"
@@ -303,8 +320,9 @@ def verify(old, new, definitions, out, desktop):
                 ref = labelled
             run(new, "exchange", src, "--mode", "regenerate", "--output", second)
             assert presets(src) == presets(second)
-            (width, height), expected = render(old, ref, directory / "reference")
-            if not labels:
+            opacity = 0.45 if style == "transparent" else 1.0
+            (width, height), expected = render(old, ref, directory / "reference", opacity)
+            if not labels and style == "solid":
                 hits.extend(reference_hits(expected, (width, height), names, size))
             results = {}
             for label, cli, deck in [
@@ -313,7 +331,7 @@ def verify(old, new, definitions, out, desktop):
                 ("oldReopened", old, second),
                 ("newReopened", new, second),
             ]:
-                dims, pixels = render(cli, deck, directory / label)
+                dims, pixels = render(cli, deck, directory / label, opacity)
                 assert dims == (width, height)
                 results[label] = pixels
             assert results["old"] == results["oldReopened"] and results["new"] == results["newReopened"]
@@ -323,7 +341,7 @@ def verify(old, new, definitions, out, desktop):
             assert paint_outliers == 0, (name, paint_outliers)
             report["boards"][name] = {
                 "size": [width, height],
-                "shapes": 29,
+                "shapes": count,
                 "rgbSha256": {k: sha(v) for k, v in results.items()},
                 "referenceSha256": sha(expected),
                 "referenceDifferentPixels": differences(expected, results["new"]),
@@ -333,7 +351,9 @@ def verify(old, new, definitions, out, desktop):
             }
     (out / "reference-hits.txt").write_text("\n".join(hits) + "\n")
     if desktop:
-        report["native"] = native(desktop, out / "wide-text/preset.pptx", out / "desktop")
+        report["native"] = native(
+            desktop, out / "wide-text/preset.pptx", out / "desktop", count, target_name
+        )
     (out / "report.json").write_text(json.dumps(report, indent=2) + "\n")
     return report
 
@@ -343,6 +363,7 @@ if __name__ == "__main__":
     for key in ("baseline", "candidate", "definitions", "output"):
         parser.add_argument(key, type=Path)
     parser.add_argument("--desktop", type=Path)
+    parser.add_argument("--family", choices=("flowcharts", "buttons"), default="flowcharts")
     args = parser.parse_args()
     output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=False)
@@ -352,4 +373,5 @@ if __name__ == "__main__":
         args.definitions.resolve(),
         output,
         args.desktop and args.desktop.resolve(),
+        args.family,
     )

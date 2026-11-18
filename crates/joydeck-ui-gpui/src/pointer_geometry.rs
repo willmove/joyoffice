@@ -221,13 +221,16 @@ mod tests {
     use super::*;
 
     #[test]
-    fn flowchart_pointer_hits_follow_independently_rendered_fill_regions()
+    fn preset_pointer_hits_follow_independently_rendered_fill_regions()
     -> Result<(), Box<dyn std::error::Error>> {
         use joydeck_model::{ColorRef, Geom, Line, Presentation, Rgba};
         let deck = Presentation::default();
         let slide = deck.slides.first().ok_or("missing blank slide")?;
         let ctx = resolve::Ctx::for_slide(&deck, slide).ok_or("missing slide context")?;
-        for row in include_str!("../tests/flowchart-hits.txt").lines() {
+        for row in include_str!("../tests/flowchart-hits.txt")
+            .lines()
+            .chain(include_str!("../tests/action-button-hits.txt").lines())
+        {
             let cols: Vec<_> = row.split_whitespace().collect();
             let [name, width, height, samples] = cols.as_slice() else {
                 return Err("bad hit fixture".into());

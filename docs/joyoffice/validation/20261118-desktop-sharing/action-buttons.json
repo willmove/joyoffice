@@ -1,0 +1,881 @@
+{
+  "baselineCommit": "063d9144",
+  "galleryPresetsReplaced": 12,
+  "galleryTotalAfter": 62,
+  "galleryTotal": 183,
+  "macOS": {
+    "buttons": {
+      "definitionsSha256": "2f7c868d857c1e3c4b5a6068759fe0e07d77ad58377a6618d1b02ba3507b6939",
+      "shapes": [
+        "actionButtonBackPrevious",
+        "actionButtonBeginning",
+        "actionButtonBlank",
+        "actionButtonDocument",
+        "actionButtonEnd",
+        "actionButtonForwardNext",
+        "actionButtonHelp",
+        "actionButtonHome",
+        "actionButtonInformation",
+        "actionButtonMovie",
+        "actionButtonReturn",
+        "actionButtonSound"
+      ],
+      "renderers": [
+        "e4f70d72c91f7546d80ec85f8e1e3b6be2ba71d8c87d12b8af667b89b462d7c0",
+        "310f5e1ffbb48af4accc81fb3bd5eb2d300bd488dacd96557e12e88d28dc6643"
+      ],
+      "boards": {
+        "wide-outline": {
+          "size": [
+            960,
+            540
+          ],
+          "shapes": 12,
+          "rgbSha256": {
+            "old": "c7683bb615fa73233e03bd025d769d0fec44e0d81cc4382b1115ecf8ee977dce",
+            "new": "91e6e59b87ce16b408df8b541824e7f6f0b9496b153f045ee3ce1c25ac81d782",
+            "oldReopened": "c7683bb615fa73233e03bd025d769d0fec44e0d81cc4382b1115ecf8ee977dce",
+            "newReopened": "91e6e59b87ce16b408df8b541824e7f6f0b9496b153f045ee3ce1c25ac81d782"
+          },
+          "referenceSha256": "d8329d9c81b6940f9f081efcbeadef9079b2b6407e12806398dc6d00d033f541",
+          "referenceDifferentPixels": 385,
+          "referencePixelsBeyondRgbNeighborhood": 2,
+          "referencePaintPixelsBeyondOnePixel": 0,
+          "oldDifferentPixels": 11270
+        },
+        "wide-text": {
+          "size": [
+            960,
+            540
+          ],
+          "shapes": 12,
+          "rgbSha256": {
+            "old": "c7fdb261eba41a6f4588010a5a99205584d066ea747c139008e2bf42d78887c5",
+            "new": "6f983ebe9f95b4ce8b58de667cc92d640b0c8d7b8096fc8241739f911ab0e0c5",
+            "oldReopened": "c7fdb261eba41a6f4588010a5a99205584d066ea747c139008e2bf42d78887c5",
+            "newReopened": "6f983ebe9f95b4ce8b58de667cc92d640b0c8d7b8096fc8241739f911ab0e0c5"
+          },
+          "referenceSha256": "8f3a801f6c322e57f2826aab314a634db016c02547262b4376b1302279c06043",
+          "referenceDifferentPixels": 385,
+          "referencePixelsBeyondRgbNeighborhood": 2,
+          "referencePaintPixelsBeyondOnePixel": 0,
+          "oldDifferentPixels": 11270
+        },
+        "wide-transparent": {
+          "size": [
+            960,
+            540
+          ],
+          "shapes": 12,
+          "rgbSha256": {
+            "old": "8a2db397f431ff618d3d8e89a601483411c890e5d539e1a29a795e4f2f27b70c",
+            "new": "47a6d40b75dbf6e08904280f1f3a775fa53e7bceca26d1971529eeaa874a5113",
+            "oldReopened": "8a2db397f431ff618d3d8e89a601483411c890e5d539e1a29a795e4f2f27b70c",
+            "newReopened": "47a6d40b75dbf6e08904280f1f3a775fa53e7bceca26d1971529eeaa874a5113"
+          },
+          "referenceSha256": "bc3e33d755cfdb4b0c85655a03e6c89eb54e9323f77d00955aa5f280a2765d4c",
+          "referenceDifferentPixels": 389,
+          "referencePixelsBeyondRgbNeighborhood": 2,
+          "referencePaintPixelsBeyondOnePixel": 0,
+          "oldDifferentPixels": 12066
+        },
+        "wide-dashed": {
+          "size": [
+            960,
+            540
+          ],
+          "shapes": 12,
+          "rgbSha256": {
+            "old": "bb3f6227855d8462756717c49d58fb0979de27d25dca04bb81f4ea66263b5b2e",
+            "new": "1bdedd45de682eb7dbce081928bbd75dc9380951d8785fa02c10bf3a94600306",
+            "oldReopened": "bb3f6227855d8462756717c49d58fb0979de27d25dca04bb81f4ea66263b5b2e",
+            "newReopened": "1bdedd45de682eb7dbce081928bbd75dc9380951d8785fa02c10bf3a94600306"
+          },
+          "referenceSha256": "3e40996fb2a3776f88d65c721eec4f3030a26b6c3e9eec5564bc470b43dd3779",
+          "referenceDifferentPixels": 166,
+          "referencePixelsBeyondRgbNeighborhood": 0,
+          "referencePaintPixelsBeyondOnePixel": 0,
+          "oldDifferentPixels": 10827
+        },
+        "tall-outline": {
+          "size": [
+            960,
+            540
+          ],
+          "shapes": 12,
+          "rgbSha256": {
+            "old": "d2e5830701ebd6a3b40c85e2020b56587b580e35d01f931022048955e26a2fb7",
+            "new": "de6acdf1b4b080047a73461c94bd12c17f604cd3f97de610ab8381ad68f44155",
+            "oldReopened": "d2e5830701ebd6a3b40c85e2020b56587b580e35d01f931022048955e26a2fb7",
+            "newReopened": "de6acdf1b4b080047a73461c94bd12c17f604cd3f97de610ab8381ad68f44155"
+          },
+          "referenceSha256": "7dd3138f543c3ed18957f8274956353a46c3eca509fe6ff5b89c917164c1801e",
+          "referenceDifferentPixels": 372,
+          "referencePixelsBeyondRgbNeighborhood": 2,
+          "referencePaintPixelsBeyondOnePixel": 0,
+          "oldDifferentPixels": 9037
+        },
+        "tall-text": {
+          "size": [
+            960,
+            540
+          ],
+          "shapes": 12,
+          "rgbSha256": {
+            "old": "951cfdc9c71aa3bb5843bb738107c8f90ef87350d3176d4bee6a972ae6254cab",
+            "new": "ce5063f13dc7c7866de0b4ba5db0c28cc864a93e832e2eea3bd58e96caa7183d",
+            "oldReopened": "951cfdc9c71aa3bb5843bb738107c8f90ef87350d3176d4bee6a972ae6254cab",
+            "newReopened": "ce5063f13dc7c7866de0b4ba5db0c28cc864a93e832e2eea3bd58e96caa7183d"
+          },
+          "referenceSha256": "c8deb7c279c850280b0106927c83ad0612509b91552991212d244e9e6f109f9c",
+          "referenceDifferentPixels": 372,
+          "referencePixelsBeyondRgbNeighborhood": 2,
+          "referencePaintPixelsBeyondOnePixel": 0,
+          "oldDifferentPixels": 9037
+        },
+        "tall-transparent": {
+          "size": [
+            960,
+            540
+          ],
+          "shapes": 12,
+          "rgbSha256": {
+            "old": "7843b8a500bc58aa25a47975eec8a38d3cf62a32892dd10451136b749e7f61f2",
+            "new": "60428467d1b54792e6235b9943cfd3d06a8820c9672d8752fa8fff0a26f2df06",
+            "oldReopened": "7843b8a500bc58aa25a47975eec8a38d3cf62a32892dd10451136b749e7f61f2",
+            "newReopened": "60428467d1b54792e6235b9943cfd3d06a8820c9672d8752fa8fff0a26f2df06"
+          },
+          "referenceSha256": "f710d4e8fcb27af6d89131771f55da2be1e562a2903947a765ccd00d72af2f0b",
+          "referenceDifferentPixels": 377,
+          "referencePixelsBeyondRgbNeighborhood": 1,
+          "referencePaintPixelsBeyondOnePixel": 0,
+          "oldDifferentPixels": 9634
+        },
+        "tall-dashed": {
+          "size": [
+            960,
+            540
+          ],
+          "shapes": 12,
+          "rgbSha256": {
+            "old": "a6a2f3e91a5255d62485a80c34bf93175a83ab9fdc8bbf3a69fc9420c0f71ca9",
+            "new": "971d4c82fc0592c78e9fba0e68146a8eb7e25d7edb385b2fcd8de9e59edd280e",
+            "oldReopened": "a6a2f3e91a5255d62485a80c34bf93175a83ab9fdc8bbf3a69fc9420c0f71ca9",
+            "newReopened": "971d4c82fc0592c78e9fba0e68146a8eb7e25d7edb385b2fcd8de9e59edd280e"
+          },
+          "referenceSha256": "21b4ca6500f40a206d25cdb1b1a4d17a74e12323241ab1ec2de475ea055b7036",
+          "referenceDifferentPixels": 306,
+          "referencePixelsBeyondRgbNeighborhood": 25,
+          "referencePaintPixelsBeyondOnePixel": 0,
+          "oldDifferentPixels": 8650
+        },
+        "square-outline": {
+          "size": [
+            960,
+            540
+          ],
+          "shapes": 12,
+          "rgbSha256": {
+            "old": "32c42173ce55f186290b3309be70b77b794279885511e2b418fa7e72f01bf4c0",
+            "new": "797f751f9334db4ed1c626e58df992caa1a72de1dec16451db2d6ae53793af8e",
+            "oldReopened": "32c42173ce55f186290b3309be70b77b794279885511e2b418fa7e72f01bf4c0",
+            "newReopened": "797f751f9334db4ed1c626e58df992caa1a72de1dec16451db2d6ae53793af8e"
+          },
+          "referenceSha256": "76a771b564e824a5bb82d13bc2fe9c17145da39538a1f52ed417911376a6725f",
+          "referenceDifferentPixels": 432,
+          "referencePixelsBeyondRgbNeighborhood": 3,
+          "referencePaintPixelsBeyondOnePixel": 0,
+          "oldDifferentPixels": 22885
+        },
+        "square-text": {
+          "size": [
+            960,
+            540
+          ],
+          "shapes": 12,
+          "rgbSha256": {
+            "old": "2393cadcefff267f5c2661e0cbf331a602125dd96eab7521166820798ca13d12",
+            "new": "44db813757e5aeed3a412772631e509be71b176dd87426dffb9f636db7706402",
+            "oldReopened": "2393cadcefff267f5c2661e0cbf331a602125dd96eab7521166820798ca13d12",
+            "newReopened": "44db813757e5aeed3a412772631e509be71b176dd87426dffb9f636db7706402"
+          },
+          "referenceSha256": "c249814c817fe2badb9fe88ec1e9f626305ad300aae1654456fc2cb0b9e681f6",
+          "referenceDifferentPixels": 432,
+          "referencePixelsBeyondRgbNeighborhood": 3,
+          "referencePaintPixelsBeyondOnePixel": 0,
+          "oldDifferentPixels": 22885
+        },
+        "square-transparent": {
+          "size": [
+            960,
+            540
+          ],
+          "shapes": 12,
+          "rgbSha256": {
+            "old": "ad2a7e124f6fe2a1a1087b217551764ea595f0e5d1e06e25bc91505d26dd4d08",
+            "new": "9d2891331c1c93e470c64de33ad35dc31eb6d5fc5acfb98c720ee89e0124450a",
+            "oldReopened": "ad2a7e124f6fe2a1a1087b217551764ea595f0e5d1e06e25bc91505d26dd4d08",
+            "newReopened": "9d2891331c1c93e470c64de33ad35dc31eb6d5fc5acfb98c720ee89e0124450a"
+          },
+          "referenceSha256": "a41dc70d807faeccac319e77cb903c6e84e6fb5f0e2695079fb2dba59b60a1bd",
+          "referenceDifferentPixels": 438,
+          "referencePixelsBeyondRgbNeighborhood": 3,
+          "referencePaintPixelsBeyondOnePixel": 0,
+          "oldDifferentPixels": 24718
+        },
+        "square-dashed": {
+          "size": [
+            960,
+            540
+          ],
+          "shapes": 12,
+          "rgbSha256": {
+            "old": "f1a711b79485739076b529e40c979a5167fce5554f2fdcbe82c69538572395d4",
+            "new": "f2f88cd314608fb011d949884d0f07558a4a3f8dfcbc6ea11ae0f4f762506095",
+            "oldReopened": "f1a711b79485739076b529e40c979a5167fce5554f2fdcbe82c69538572395d4",
+            "newReopened": "f2f88cd314608fb011d949884d0f07558a4a3f8dfcbc6ea11ae0f4f762506095"
+          },
+          "referenceSha256": "9226ce04140ad8a105e0859ffdcc06ba3863f5b75b865f886cc74d8d5734fc9d",
+          "referenceDifferentPixels": 264,
+          "referencePixelsBeyondRgbNeighborhood": 8,
+          "referencePaintPixelsBeyondOnePixel": 0,
+          "oldDifferentPixels": 22153
+        }
+      },
+      "native": {
+        "binarySha256": "51bc316ed2dcaf9099ea88d037164c9f192554a3b79937fae5e8ad33fec67247",
+        "shapes": 12,
+        "resized": "actionButtonSound",
+        "before": {
+          "x": 796.8503937007874,
+          "y": 132.28346456692913,
+          "w": 133.85826771653544,
+          "h": 53.54330708661417
+        },
+        "after": {
+          "x": 801.8503937007874,
+          "y": 135.28346456692913,
+          "w": 150.85826771653544,
+          "h": 62.54330708661417
+        },
+        "undoRedo": true,
+        "savedAndReopened": true,
+        "sourceUnchanged": true
+      }
+    },
+    "flowchartRegression": {
+      "definitionsSha256": "2f7c868d857c1e3c4b5a6068759fe0e07d77ad58377a6618d1b02ba3507b6939",
+      "shapes": [
+        "flowChartAlternateProcess",
+        "flowChartCollate",
+        "flowChartConnector",
+        "flowChartDecision",
+        "flowChartDelay",
+        "flowChartDisplay",
+        "flowChartDocument",
+        "flowChartExtract",
+        "flowChartInputOutput",
+        "flowChartInternalStorage",
+        "flowChartMagneticDisk",
+        "flowChartMagneticDrum",
+        "flowChartMagneticTape",
+        "flowChartManualInput",
+        "flowChartManualOperation",
+        "flowChartMerge",
+        "flowChartMultidocument",
+        "flowChartOfflineStorage",
+        "flowChartOffpageConnector",
+        "flowChartOnlineStorage",
+        "flowChartOr",
+        "flowChartPredefinedProcess",
+        "flowChartPreparation",
+        "flowChartProcess",
+        "flowChartPunchedCard",
+        "flowChartPunchedTape",
+        "flowChartSort",
+        "flowChartSummingJunction",
+        "flowChartTerminator"
+      ],
+      "renderers": [
+        "e4f70d72c91f7546d80ec85f8e1e3b6be2ba71d8c87d12b8af667b89b462d7c0",
+        "310f5e1ffbb48af4accc81fb3bd5eb2d300bd488dacd96557e12e88d28dc6643"
+      ],
+      "boards": {
+        "wide-outline": {
+          "size": [
+            960,
+            540
+          ],
+          "shapes": 29,
+          "rgbSha256": {
+            "old": "0213713ec9b913f42f7160f4190c3a1a156725f05ef0c310dc9641064f3bda31",
+            "new": "0213713ec9b913f42f7160f4190c3a1a156725f05ef0c310dc9641064f3bda31",
+            "oldReopened": "0213713ec9b913f42f7160f4190c3a1a156725f05ef0c310dc9641064f3bda31",
+            "newReopened": "0213713ec9b913f42f7160f4190c3a1a156725f05ef0c310dc9641064f3bda31"
+          },
+          "referenceSha256": "7382941cf4d8f4cf6ddb4798b8c116dd8d626aa1d019eb2133286d3d724e075b",
+          "referenceDifferentPixels": 260,
+          "referencePixelsBeyondRgbNeighborhood": 0,
+          "referencePaintPixelsBeyondOnePixel": 0,
+          "oldDifferentPixels": 0
+        },
+        "wide-text": {
+          "size": [
+            960,
+            540
+          ],
+          "shapes": 29,
+          "rgbSha256": {
+            "old": "eda17ee88a16a1a55944b45d1122c72caf6a561362a87ee825ad8138a4554dc8",
+            "new": "eda17ee88a16a1a55944b45d1122c72caf6a561362a87ee825ad8138a4554dc8",
+            "oldReopened": "eda17ee88a16a1a55944b45d1122c72caf6a561362a87ee825ad8138a4554dc8",
+            "newReopened": "eda17ee88a16a1a55944b45d1122c72caf6a561362a87ee825ad8138a4554dc8"
+          },
+          "referenceSha256": "31ef29465d52dab93537104e586c76904712c7daad4c9975b8b34fd3c14fcf8c",
+          "referenceDifferentPixels": 263,
+          "referencePixelsBeyondRgbNeighborhood": 0,
+          "referencePaintPixelsBeyondOnePixel": 0,
+          "oldDifferentPixels": 0
+        },
+        "tall-outline": {
+          "size": [
+            960,
+            540
+          ],
+          "shapes": 29,
+          "rgbSha256": {
+            "old": "cec2eaa1a8bf2641b42fba940b4358ea7ef41c7746d1a50da42c151d1ef2f123",
+            "new": "cec2eaa1a8bf2641b42fba940b4358ea7ef41c7746d1a50da42c151d1ef2f123",
+            "oldReopened": "cec2eaa1a8bf2641b42fba940b4358ea7ef41c7746d1a50da42c151d1ef2f123",
+            "newReopened": "cec2eaa1a8bf2641b42fba940b4358ea7ef41c7746d1a50da42c151d1ef2f123"
+          },
+          "referenceSha256": "91ebbfbe1cd5f71a200ef937d09c725d91b58bc414932fe5f83f8970ed003562",
+          "referenceDifferentPixels": 664,
+          "referencePixelsBeyondRgbNeighborhood": 4,
+          "referencePaintPixelsBeyondOnePixel": 0,
+          "oldDifferentPixels": 0
+        },
+        "tall-text": {
+          "size": [
+            960,
+            540
+          ],
+          "shapes": 29,
+          "rgbSha256": {
+            "old": "eb8f619db218e70dde4a686d959b881bfe5524d45dcf3100218e6c42deee5604",
+            "new": "eb8f619db218e70dde4a686d959b881bfe5524d45dcf3100218e6c42deee5604",
+            "oldReopened": "eb8f619db218e70dde4a686d959b881bfe5524d45dcf3100218e6c42deee5604",
+            "newReopened": "eb8f619db218e70dde4a686d959b881bfe5524d45dcf3100218e6c42deee5604"
+          },
+          "referenceSha256": "9df94d4620bfec86edc3d8651bde6f58aef715b98559674992cbb308c52e1d02",
+          "referenceDifferentPixels": 664,
+          "referencePixelsBeyondRgbNeighborhood": 4,
+          "referencePaintPixelsBeyondOnePixel": 0,
+          "oldDifferentPixels": 0
+        },
+        "square-outline": {
+          "size": [
+            960,
+            540
+          ],
+          "shapes": 29,
+          "rgbSha256": {
+            "old": "2c2943f8816ce43b834d708a8e3795ad7e2a7a5aef734d16b1767c7cdc8e63d1",
+            "new": "2c2943f8816ce43b834d708a8e3795ad7e2a7a5aef734d16b1767c7cdc8e63d1",
+            "oldReopened": "2c2943f8816ce43b834d708a8e3795ad7e2a7a5aef734d16b1767c7cdc8e63d1",
+            "newReopened": "2c2943f8816ce43b834d708a8e3795ad7e2a7a5aef734d16b1767c7cdc8e63d1"
+          },
+          "referenceSha256": "8efdff5f05bb5c2d37a7089a49ed368b1235a9b8ce074eca7f0de630d760e89d",
+          "referenceDifferentPixels": 231,
+          "referencePixelsBeyondRgbNeighborhood": 0,
+          "referencePaintPixelsBeyondOnePixel": 0,
+          "oldDifferentPixels": 0
+        },
+        "square-text": {
+          "size": [
+            960,
+            540
+          ],
+          "shapes": 29,
+          "rgbSha256": {
+            "old": "84dbed63c65e154b4466cc43c202eb5080bfb9a3942958c8eb063fb08b6e0430",
+            "new": "84dbed63c65e154b4466cc43c202eb5080bfb9a3942958c8eb063fb08b6e0430",
+            "oldReopened": "84dbed63c65e154b4466cc43c202eb5080bfb9a3942958c8eb063fb08b6e0430",
+            "newReopened": "84dbed63c65e154b4466cc43c202eb5080bfb9a3942958c8eb063fb08b6e0430"
+          },
+          "referenceSha256": "39271136f682ede9d22f1b26cdee0b54e56c919467f4452fc8234e7c63c7f6e6",
+          "referenceDifferentPixels": 233,
+          "referencePixelsBeyondRgbNeighborhood": 0,
+          "referencePaintPixelsBeyondOnePixel": 0,
+          "oldDifferentPixels": 0
+        }
+      }
+    },
+    "gates": {
+      "desktop": {
+        "exit": 0,
+        "logSha256": "ec47d3f9882ec410fd8dc2062e425789a4b6a7a32d21b73e2f46a2ea0d0d14c4"
+      },
+      "ui": {
+        "exit": 0,
+        "logSha256": "497e8212a7ed744209bedf219de81ec3c3eb9ad356a70a1c2e4d619282bd99e7",
+        "passed": 76,
+        "failed": 0,
+        "ignored": 0
+      },
+      "joydeck": {
+        "exit": 0,
+        "logSha256": "07e5df2c23ac328b3e9ee4082ecb72ddce8add0e3ed83a9a6865c56a8c901c92",
+        "passed": 1002,
+        "failed": 0,
+        "ignored": 0
+      }
+    }
+  },
+  "UOS": {
+    "buttons": {
+      "definitionsSha256": "2f7c868d857c1e3c4b5a6068759fe0e07d77ad58377a6618d1b02ba3507b6939",
+      "shapes": [
+        "actionButtonBackPrevious",
+        "actionButtonBeginning",
+        "actionButtonBlank",
+        "actionButtonDocument",
+        "actionButtonEnd",
+        "actionButtonForwardNext",
+        "actionButtonHelp",
+        "actionButtonHome",
+        "actionButtonInformation",
+        "actionButtonMovie",
+        "actionButtonReturn",
+        "actionButtonSound"
+      ],
+      "renderers": [
+        "7714d92cda9a791e4a34b2ee187cbe03de1296e0cdd935b79d7c449e5305ba32",
+        "7cfc19c661ad12604a1bc6ec8755660f3aec0b9e91ae8940e9bf320a23332a2c"
+      ],
+      "boards": {
+        "wide-outline": {
+          "size": [
+            960,
+            540
+          ],
+          "shapes": 12,
+          "rgbSha256": {
+            "old": "c7683bb615fa73233e03bd025d769d0fec44e0d81cc4382b1115ecf8ee977dce",
+            "new": "91e6e59b87ce16b408df8b541824e7f6f0b9496b153f045ee3ce1c25ac81d782",
+            "oldReopened": "c7683bb615fa73233e03bd025d769d0fec44e0d81cc4382b1115ecf8ee977dce",
+            "newReopened": "91e6e59b87ce16b408df8b541824e7f6f0b9496b153f045ee3ce1c25ac81d782"
+          },
+          "referenceSha256": "d8329d9c81b6940f9f081efcbeadef9079b2b6407e12806398dc6d00d033f541",
+          "referenceDifferentPixels": 385,
+          "referencePixelsBeyondRgbNeighborhood": 2,
+          "referencePaintPixelsBeyondOnePixel": 0,
+          "oldDifferentPixels": 11270
+        },
+        "wide-text": {
+          "size": [
+            960,
+            540
+          ],
+          "shapes": 12,
+          "rgbSha256": {
+            "old": "84cb4abed1692fc7724cc7a0c38e49085bd19866c1c9bd0f7d832bfc5fa83497",
+            "new": "06d62edb9da59bc7f82dcd8a7f642250b7d2e5cf6a882800e6f14f9807c77b22",
+            "oldReopened": "84cb4abed1692fc7724cc7a0c38e49085bd19866c1c9bd0f7d832bfc5fa83497",
+            "newReopened": "06d62edb9da59bc7f82dcd8a7f642250b7d2e5cf6a882800e6f14f9807c77b22"
+          },
+          "referenceSha256": "f42e7924f7432cbcc50203008435f512e8d481a5fcd5c8b884b6b55cf561c2d6",
+          "referenceDifferentPixels": 385,
+          "referencePixelsBeyondRgbNeighborhood": 2,
+          "referencePaintPixelsBeyondOnePixel": 0,
+          "oldDifferentPixels": 11270
+        },
+        "wide-transparent": {
+          "size": [
+            960,
+            540
+          ],
+          "shapes": 12,
+          "rgbSha256": {
+            "old": "8a2db397f431ff618d3d8e89a601483411c890e5d539e1a29a795e4f2f27b70c",
+            "new": "47a6d40b75dbf6e08904280f1f3a775fa53e7bceca26d1971529eeaa874a5113",
+            "oldReopened": "8a2db397f431ff618d3d8e89a601483411c890e5d539e1a29a795e4f2f27b70c",
+            "newReopened": "47a6d40b75dbf6e08904280f1f3a775fa53e7bceca26d1971529eeaa874a5113"
+          },
+          "referenceSha256": "bf5e0689a2e3fd1ce92f93c391886b15007ba2154ec1640d423c18c5fd171c31",
+          "referenceDifferentPixels": 389,
+          "referencePixelsBeyondRgbNeighborhood": 2,
+          "referencePaintPixelsBeyondOnePixel": 0,
+          "oldDifferentPixels": 12066
+        },
+        "wide-dashed": {
+          "size": [
+            960,
+            540
+          ],
+          "shapes": 12,
+          "rgbSha256": {
+            "old": "bb3f6227855d8462756717c49d58fb0979de27d25dca04bb81f4ea66263b5b2e",
+            "new": "1bdedd45de682eb7dbce081928bbd75dc9380951d8785fa02c10bf3a94600306",
+            "oldReopened": "bb3f6227855d8462756717c49d58fb0979de27d25dca04bb81f4ea66263b5b2e",
+            "newReopened": "1bdedd45de682eb7dbce081928bbd75dc9380951d8785fa02c10bf3a94600306"
+          },
+          "referenceSha256": "3e40996fb2a3776f88d65c721eec4f3030a26b6c3e9eec5564bc470b43dd3779",
+          "referenceDifferentPixels": 166,
+          "referencePixelsBeyondRgbNeighborhood": 0,
+          "referencePaintPixelsBeyondOnePixel": 0,
+          "oldDifferentPixels": 10827
+        },
+        "tall-outline": {
+          "size": [
+            960,
+            540
+          ],
+          "shapes": 12,
+          "rgbSha256": {
+            "old": "d2e5830701ebd6a3b40c85e2020b56587b580e35d01f931022048955e26a2fb7",
+            "new": "de6acdf1b4b080047a73461c94bd12c17f604cd3f97de610ab8381ad68f44155",
+            "oldReopened": "d2e5830701ebd6a3b40c85e2020b56587b580e35d01f931022048955e26a2fb7",
+            "newReopened": "de6acdf1b4b080047a73461c94bd12c17f604cd3f97de610ab8381ad68f44155"
+          },
+          "referenceSha256": "7dd3138f543c3ed18957f8274956353a46c3eca509fe6ff5b89c917164c1801e",
+          "referenceDifferentPixels": 372,
+          "referencePixelsBeyondRgbNeighborhood": 2,
+          "referencePaintPixelsBeyondOnePixel": 0,
+          "oldDifferentPixels": 9037
+        },
+        "tall-text": {
+          "size": [
+            960,
+            540
+          ],
+          "shapes": 12,
+          "rgbSha256": {
+            "old": "43a34f3ea0f226e0fbfddeac7f258a9a6f031cde7c333b5f3741d34c4b2bd1bc",
+            "new": "ae999936c417b450ebc3b5370cf5c5d89648ad76241ce15de5240c88b89922ac",
+            "oldReopened": "43a34f3ea0f226e0fbfddeac7f258a9a6f031cde7c333b5f3741d34c4b2bd1bc",
+            "newReopened": "ae999936c417b450ebc3b5370cf5c5d89648ad76241ce15de5240c88b89922ac"
+          },
+          "referenceSha256": "99bd5e92889721093da856901adb2b67cacea13e3a486e0c9f8d843cd45afc20",
+          "referenceDifferentPixels": 372,
+          "referencePixelsBeyondRgbNeighborhood": 2,
+          "referencePaintPixelsBeyondOnePixel": 0,
+          "oldDifferentPixels": 9037
+        },
+        "tall-transparent": {
+          "size": [
+            960,
+            540
+          ],
+          "shapes": 12,
+          "rgbSha256": {
+            "old": "7843b8a500bc58aa25a47975eec8a38d3cf62a32892dd10451136b749e7f61f2",
+            "new": "60428467d1b54792e6235b9943cfd3d06a8820c9672d8752fa8fff0a26f2df06",
+            "oldReopened": "7843b8a500bc58aa25a47975eec8a38d3cf62a32892dd10451136b749e7f61f2",
+            "newReopened": "60428467d1b54792e6235b9943cfd3d06a8820c9672d8752fa8fff0a26f2df06"
+          },
+          "referenceSha256": "f710d4e8fcb27af6d89131771f55da2be1e562a2903947a765ccd00d72af2f0b",
+          "referenceDifferentPixels": 377,
+          "referencePixelsBeyondRgbNeighborhood": 1,
+          "referencePaintPixelsBeyondOnePixel": 0,
+          "oldDifferentPixels": 9634
+        },
+        "tall-dashed": {
+          "size": [
+            960,
+            540
+          ],
+          "shapes": 12,
+          "rgbSha256": {
+            "old": "a6a2f3e91a5255d62485a80c34bf93175a83ab9fdc8bbf3a69fc9420c0f71ca9",
+            "new": "971d4c82fc0592c78e9fba0e68146a8eb7e25d7edb385b2fcd8de9e59edd280e",
+            "oldReopened": "a6a2f3e91a5255d62485a80c34bf93175a83ab9fdc8bbf3a69fc9420c0f71ca9",
+            "newReopened": "971d4c82fc0592c78e9fba0e68146a8eb7e25d7edb385b2fcd8de9e59edd280e"
+          },
+          "referenceSha256": "21b4ca6500f40a206d25cdb1b1a4d17a74e12323241ab1ec2de475ea055b7036",
+          "referenceDifferentPixels": 306,
+          "referencePixelsBeyondRgbNeighborhood": 25,
+          "referencePaintPixelsBeyondOnePixel": 0,
+          "oldDifferentPixels": 8650
+        },
+        "square-outline": {
+          "size": [
+            960,
+            540
+          ],
+          "shapes": 12,
+          "rgbSha256": {
+            "old": "32c42173ce55f186290b3309be70b77b794279885511e2b418fa7e72f01bf4c0",
+            "new": "797f751f9334db4ed1c626e58df992caa1a72de1dec16451db2d6ae53793af8e",
+            "oldReopened": "32c42173ce55f186290b3309be70b77b794279885511e2b418fa7e72f01bf4c0",
+            "newReopened": "797f751f9334db4ed1c626e58df992caa1a72de1dec16451db2d6ae53793af8e"
+          },
+          "referenceSha256": "76a771b564e824a5bb82d13bc2fe9c17145da39538a1f52ed417911376a6725f",
+          "referenceDifferentPixels": 432,
+          "referencePixelsBeyondRgbNeighborhood": 3,
+          "referencePaintPixelsBeyondOnePixel": 0,
+          "oldDifferentPixels": 22885
+        },
+        "square-text": {
+          "size": [
+            960,
+            540
+          ],
+          "shapes": 12,
+          "rgbSha256": {
+            "old": "2192d409fb0edd0641b842ecab6a63fcef72c60f7af8f1db3ea251ca2656399c",
+            "new": "9394d7ec733a2b346a93370a3768bd59d91cfcfc66f9bc3aef8bff09a9df3d8e",
+            "oldReopened": "2192d409fb0edd0641b842ecab6a63fcef72c60f7af8f1db3ea251ca2656399c",
+            "newReopened": "9394d7ec733a2b346a93370a3768bd59d91cfcfc66f9bc3aef8bff09a9df3d8e"
+          },
+          "referenceSha256": "8f5ffdf5dae202242520f0fd4dbc2f8e2c7a5c7c61bda0243c7555def1764c53",
+          "referenceDifferentPixels": 432,
+          "referencePixelsBeyondRgbNeighborhood": 3,
+          "referencePaintPixelsBeyondOnePixel": 0,
+          "oldDifferentPixels": 22885
+        },
+        "square-transparent": {
+          "size": [
+            960,
+            540
+          ],
+          "shapes": 12,
+          "rgbSha256": {
+            "old": "ad2a7e124f6fe2a1a1087b217551764ea595f0e5d1e06e25bc91505d26dd4d08",
+            "new": "9d2891331c1c93e470c64de33ad35dc31eb6d5fc5acfb98c720ee89e0124450a",
+            "oldReopened": "ad2a7e124f6fe2a1a1087b217551764ea595f0e5d1e06e25bc91505d26dd4d08",
+            "newReopened": "9d2891331c1c93e470c64de33ad35dc31eb6d5fc5acfb98c720ee89e0124450a"
+          },
+          "referenceSha256": "f9c299df503b8cf7ed22d2b1f26de35926c41266fb8660f062b8770305009315",
+          "referenceDifferentPixels": 438,
+          "referencePixelsBeyondRgbNeighborhood": 3,
+          "referencePaintPixelsBeyondOnePixel": 0,
+          "oldDifferentPixels": 24718
+        },
+        "square-dashed": {
+          "size": [
+            960,
+            540
+          ],
+          "shapes": 12,
+          "rgbSha256": {
+            "old": "f1a711b79485739076b529e40c979a5167fce5554f2fdcbe82c69538572395d4",
+            "new": "f2f88cd314608fb011d949884d0f07558a4a3f8dfcbc6ea11ae0f4f762506095",
+            "oldReopened": "f1a711b79485739076b529e40c979a5167fce5554f2fdcbe82c69538572395d4",
+            "newReopened": "f2f88cd314608fb011d949884d0f07558a4a3f8dfcbc6ea11ae0f4f762506095"
+          },
+          "referenceSha256": "9226ce04140ad8a105e0859ffdcc06ba3863f5b75b865f886cc74d8d5734fc9d",
+          "referenceDifferentPixels": 264,
+          "referencePixelsBeyondRgbNeighborhood": 8,
+          "referencePaintPixelsBeyondOnePixel": 0,
+          "oldDifferentPixels": 22153
+        }
+      },
+      "native": {
+        "binarySha256": "2722602e52de174134d551454067b2650aed74d6c4270b834d2885769e8c0a6a",
+        "shapes": 12,
+        "resized": "actionButtonSound",
+        "before": {
+          "x": 796.8503937007874,
+          "y": 132.28346456692913,
+          "w": 133.85826771653544,
+          "h": 53.54330708661417
+        },
+        "after": {
+          "x": 801.8503937007874,
+          "y": 135.28346456692913,
+          "w": 150.85826771653544,
+          "h": 62.54330708661417
+        },
+        "undoRedo": true,
+        "savedAndReopened": true,
+        "sourceUnchanged": true
+      }
+    },
+    "flowchartRegression": {
+      "definitionsSha256": "2f7c868d857c1e3c4b5a6068759fe0e07d77ad58377a6618d1b02ba3507b6939",
+      "shapes": [
+        "flowChartAlternateProcess",
+        "flowChartCollate",
+        "flowChartConnector",
+        "flowChartDecision",
+        "flowChartDelay",
+        "flowChartDisplay",
+        "flowChartDocument",
+        "flowChartExtract",
+        "flowChartInputOutput",
+        "flowChartInternalStorage",
+        "flowChartMagneticDisk",
+        "flowChartMagneticDrum",
+        "flowChartMagneticTape",
+        "flowChartManualInput",
+        "flowChartManualOperation",
+        "flowChartMerge",
+        "flowChartMultidocument",
+        "flowChartOfflineStorage",
+        "flowChartOffpageConnector",
+        "flowChartOnlineStorage",
+        "flowChartOr",
+        "flowChartPredefinedProcess",
+        "flowChartPreparation",
+        "flowChartProcess",
+        "flowChartPunchedCard",
+        "flowChartPunchedTape",
+        "flowChartSort",
+        "flowChartSummingJunction",
+        "flowChartTerminator"
+      ],
+      "renderers": [
+        "7714d92cda9a791e4a34b2ee187cbe03de1296e0cdd935b79d7c449e5305ba32",
+        "7cfc19c661ad12604a1bc6ec8755660f3aec0b9e91ae8940e9bf320a23332a2c"
+      ],
+      "boards": {
+        "wide-outline": {
+          "size": [
+            960,
+            540
+          ],
+          "shapes": 29,
+          "rgbSha256": {
+            "old": "0213713ec9b913f42f7160f4190c3a1a156725f05ef0c310dc9641064f3bda31",
+            "new": "0213713ec9b913f42f7160f4190c3a1a156725f05ef0c310dc9641064f3bda31",
+            "oldReopened": "0213713ec9b913f42f7160f4190c3a1a156725f05ef0c310dc9641064f3bda31",
+            "newReopened": "0213713ec9b913f42f7160f4190c3a1a156725f05ef0c310dc9641064f3bda31"
+          },
+          "referenceSha256": "7382941cf4d8f4cf6ddb4798b8c116dd8d626aa1d019eb2133286d3d724e075b",
+          "referenceDifferentPixels": 260,
+          "referencePixelsBeyondRgbNeighborhood": 0,
+          "referencePaintPixelsBeyondOnePixel": 0,
+          "oldDifferentPixels": 0
+        },
+        "wide-text": {
+          "size": [
+            960,
+            540
+          ],
+          "shapes": 29,
+          "rgbSha256": {
+            "old": "bbacee27de26ec5a8906a8372dcd8e5a83a9d6706cefb2f1f822fd37e00407ed",
+            "new": "bbacee27de26ec5a8906a8372dcd8e5a83a9d6706cefb2f1f822fd37e00407ed",
+            "oldReopened": "bbacee27de26ec5a8906a8372dcd8e5a83a9d6706cefb2f1f822fd37e00407ed",
+            "newReopened": "bbacee27de26ec5a8906a8372dcd8e5a83a9d6706cefb2f1f822fd37e00407ed"
+          },
+          "referenceSha256": "b1fabbd308a300365358bcc68c53e8ee664f70334cf97c444db6a814b7a84d93",
+          "referenceDifferentPixels": 264,
+          "referencePixelsBeyondRgbNeighborhood": 0,
+          "referencePaintPixelsBeyondOnePixel": 0,
+          "oldDifferentPixels": 0
+        },
+        "tall-outline": {
+          "size": [
+            960,
+            540
+          ],
+          "shapes": 29,
+          "rgbSha256": {
+            "old": "cec2eaa1a8bf2641b42fba940b4358ea7ef41c7746d1a50da42c151d1ef2f123",
+            "new": "cec2eaa1a8bf2641b42fba940b4358ea7ef41c7746d1a50da42c151d1ef2f123",
+            "oldReopened": "cec2eaa1a8bf2641b42fba940b4358ea7ef41c7746d1a50da42c151d1ef2f123",
+            "newReopened": "cec2eaa1a8bf2641b42fba940b4358ea7ef41c7746d1a50da42c151d1ef2f123"
+          },
+          "referenceSha256": "91ebbfbe1cd5f71a200ef937d09c725d91b58bc414932fe5f83f8970ed003562",
+          "referenceDifferentPixels": 664,
+          "referencePixelsBeyondRgbNeighborhood": 4,
+          "referencePaintPixelsBeyondOnePixel": 0,
+          "oldDifferentPixels": 0
+        },
+        "tall-text": {
+          "size": [
+            960,
+            540
+          ],
+          "shapes": 29,
+          "rgbSha256": {
+            "old": "0f54baad5ce22729fc57f33c768776c3773da649be913b51a75a1e546662e571",
+            "new": "0f54baad5ce22729fc57f33c768776c3773da649be913b51a75a1e546662e571",
+            "oldReopened": "0f54baad5ce22729fc57f33c768776c3773da649be913b51a75a1e546662e571",
+            "newReopened": "0f54baad5ce22729fc57f33c768776c3773da649be913b51a75a1e546662e571"
+          },
+          "referenceSha256": "e369c73d31b5c4eefc6cbb1f076bf8e9133e0be42d9b95ad7d5270407e4f1269",
+          "referenceDifferentPixels": 664,
+          "referencePixelsBeyondRgbNeighborhood": 4,
+          "referencePaintPixelsBeyondOnePixel": 0,
+          "oldDifferentPixels": 0
+        },
+        "square-outline": {
+          "size": [
+            960,
+            540
+          ],
+          "shapes": 29,
+          "rgbSha256": {
+            "old": "2c2943f8816ce43b834d708a8e3795ad7e2a7a5aef734d16b1767c7cdc8e63d1",
+            "new": "2c2943f8816ce43b834d708a8e3795ad7e2a7a5aef734d16b1767c7cdc8e63d1",
+            "oldReopened": "2c2943f8816ce43b834d708a8e3795ad7e2a7a5aef734d16b1767c7cdc8e63d1",
+            "newReopened": "2c2943f8816ce43b834d708a8e3795ad7e2a7a5aef734d16b1767c7cdc8e63d1"
+          },
+          "referenceSha256": "8efdff5f05bb5c2d37a7089a49ed368b1235a9b8ce074eca7f0de630d760e89d",
+          "referenceDifferentPixels": 231,
+          "referencePixelsBeyondRgbNeighborhood": 0,
+          "referencePaintPixelsBeyondOnePixel": 0,
+          "oldDifferentPixels": 0
+        },
+        "square-text": {
+          "size": [
+            960,
+            540
+          ],
+          "shapes": 29,
+          "rgbSha256": {
+            "old": "6f229d14d278ee49692fe0d46a8aa06ed0ac7aded88601b6caa0ff8032f55382",
+            "new": "6f229d14d278ee49692fe0d46a8aa06ed0ac7aded88601b6caa0ff8032f55382",
+            "oldReopened": "6f229d14d278ee49692fe0d46a8aa06ed0ac7aded88601b6caa0ff8032f55382",
+            "newReopened": "6f229d14d278ee49692fe0d46a8aa06ed0ac7aded88601b6caa0ff8032f55382"
+          },
+          "referenceSha256": "ba99a0630ab03d4905e56705d922576d210f4554509ca5c28282159b6ef203b0",
+          "referenceDifferentPixels": 233,
+          "referencePixelsBeyondRgbNeighborhood": 0,
+          "referencePaintPixelsBeyondOnePixel": 0,
+          "oldDifferentPixels": 0
+        }
+      }
+    },
+    "gates": {
+      "desktop": {
+        "exit": 0,
+        "logSha256": "7ef583009a56d8d0c41e0ddad093854d72f0785547058b8ed850c4883e4ef960"
+      },
+      "ui": {
+        "exit": 0,
+        "logSha256": "eb3ca53965d46e46376a109f1be3c5d7c8cb0ba52870ab5481a2a4c9b512aa3c",
+        "passed": 80,
+        "failed": 0,
+        "ignored": 0
+      },
+      "joydeck": {
+        "exit": 0,
+        "logSha256": "53bc59df142f24674cfc0ce7a38da21afda72060659b31096406bbd3b93f88a8",
+        "passed": 1007,
+        "failed": 0,
+        "ignored": 0
+      }
+    }
+  },
+  "geometry": {
+    "shapes": 12,
+    "sizesIncludingDegenerate": 6,
+    "expectedLayersAndPen": true,
+    "clockwiseSitesFromRightAndFullTextRect": true
+  },
+  "pointer": {
+    "aspectRatioCases": 36,
+    "interiorSamplesPerAngle": 2548,
+    "edgeSamplesExcluded": 368,
+    "rotationDegrees": [
+      0,
+      37
+    ],
+    "additionalExteriorSamples": 144,
+    "assertedResultsPerPlatform": 5240
+  }
+}

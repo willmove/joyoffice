@@ -1,7 +1,7 @@
 //! Fixed DrawingML flowchart silhouettes, text frames and ordered glue sites.
 //! Dimensions follow ECMA-376 Part 1's DrawingML preset geometry attachment.
 //! Coordinates on each symbol's design grid are scaled independently in X and Y.
-use super::builder::{Pb, fill, fill_only, mid_sites, stroke_only};
+use super::builder::{Pb, ellipse_arc, fill, fill_only, mid_sites, stroke_only};
 use super::catalog::{FillMode, Geometry, SubPath};
 use kurbo::{BezPath, Point, Rect};
 
@@ -18,53 +18,6 @@ use Step::{Arc, Close, Curve, Line, Move};
 struct Frame {
     w: f64,
     h: f64,
-}
-
-// Endpoints shared by a line and a quadrant must be numerically identical.
-// A tiny closing segment can otherwise give the stroked seam an extra join.
-fn direction(degrees: f64) -> (f64, f64) {
-    match degrees.rem_euclid(360.) {
-        0. => (1., 0.),
-        90. => (0., 1.),
-        180. => (-1., 0.),
-        270. => (0., -1.),
-        angle => {
-            let (sin, cos) = angle.to_radians().sin_cos();
-            (cos, sin)
-        }
-    }
-}
-
-fn ellipse_arc(path: &mut Pb, rx: f64, ry: f64, start: f64, sweep: f64) -> &mut Pb {
-    let (sx, sy) = direction(start);
-    let (cx, cy) = (path.cur.x - rx * sx, path.cur.y - ry * sy);
-    // A quarter-circle cubic stays within 0.000273 radii. Bisect large
-    // quadrants to keep board and export curves smooth at larger dimensions.
-    let radius = rx.max(ry);
-    let divisions = if radius <= 180. {
-        1.
-    } else {
-        (radius * 0.000273 / 0.05)
-            .powf(1. / 6.)
-            .ceil()
-            .clamp(1., 16.)
-    };
-    let pieces = (sweep.abs() * divisions / 90.).ceil() as u32;
-    let step = sweep / f64::from(pieces);
-    let tangent = (step.to_radians() / 4.).tan() * 4. / 3.;
-    for index in 0..pieces {
-        let (x0, y0) = direction(start + step * f64::from(index));
-        let (x1, y1) = direction(start + step * f64::from(index + 1));
-        path.c(
-            cx + rx * (x0 - tangent * y0),
-            cy + ry * (y0 + tangent * x0),
-            cx + rx * (x1 + tangent * y1),
-            cy + ry * (y1 - tangent * x1),
-            cx + rx * x1,
-            cy + ry * y1,
-        );
-    }
-    path
 }
 
 impl Frame {

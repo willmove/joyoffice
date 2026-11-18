@@ -1,6 +1,4 @@
-use super::builder::{
-    Corner, Pb, corner_rect, fill, mid_sites, shade, simple, stroke_only, tip_handle,
-};
+use super::builder::{Pb, fill, mid_sites, shade, simple, stroke_only, tip_handle};
 use super::catalog::{FillMode, Geometry};
 use super::{Point, Rect};
 
@@ -418,106 +416,6 @@ pub(super) fn scroll(vertical: bool, w: f64, h: f64, a0: f64) -> Geometry {
     Geometry {
         paths: vec![fill(b.take()), shade(curl.take(), FillMode::DarkenLess)],
         text_rect: text,
-        handles: vec![],
-        sites: mid_sites(w, h),
-    }
-}
-
-pub(super) fn action_button(name: &str, w: f64, h: f64) -> Geometry {
-    let body = corner_rect(w, h, [Corner::Square; 4]);
-    let ss = w.min(h);
-    let (cx, cy) = (w / 2.0, h / 2.0);
-    let s = ss * 0.3;
-    let mut g = Pb::new();
-    match name {
-        "actionButtonBackPrevious" => {
-            g.poly(&[(cx + s, cy - s), (cx + s, cy + s), (cx - s, cy)]);
-        }
-        "actionButtonForwardNext" => {
-            g.poly(&[(cx - s, cy - s), (cx - s, cy + s), (cx + s, cy)]);
-        }
-        "actionButtonBeginning" => {
-            g.poly(&[(cx + s, cy - s), (cx + s, cy + s), (cx - s * 0.6, cy)]);
-            g.poly(&[
-                (cx - s, cy - s),
-                (cx - s * 0.7, cy - s),
-                (cx - s * 0.7, cy + s),
-                (cx - s, cy + s),
-            ]);
-        }
-        "actionButtonEnd" => {
-            g.poly(&[(cx - s, cy - s), (cx - s, cy + s), (cx + s * 0.6, cy)]);
-            g.poly(&[
-                (cx + s * 0.7, cy - s),
-                (cx + s, cy - s),
-                (cx + s, cy + s),
-                (cx + s * 0.7, cy + s),
-            ]);
-        }
-        "actionButtonHome" => {
-            g.poly(&[
-                (cx, cy - s),
-                (cx + s, cy),
-                (cx + s * 0.7, cy),
-                (cx + s * 0.7, cy + s),
-                (cx - s * 0.7, cy + s),
-                (cx - s * 0.7, cy),
-                (cx - s, cy),
-            ]);
-        }
-        "actionButtonInformation" | "actionButtonHelp" => {
-            g.ellipse(cx, cy, s, s);
-        }
-        "actionButtonReturn" => {
-            g.m(cx + s, cy - s * 0.6)
-                .l(cx + s, cy + s * 0.2)
-                .q(cx + s, cy + s * 0.8, cx + s * 0.4, cy + s * 0.8)
-                .l(cx - s * 0.5, cy + s * 0.8);
-            g.l(cx - s * 0.5, cy + s * 0.4)
-                .l(cx - s, cy + s * 0.9)
-                .l(cx - s * 0.5, cy + s * 1.4)
-                .l(cx - s * 0.5, cy + s)
-                .l(cx + s * 0.6, cy + s)
-                .l(cx + s * 0.6, cy - s * 0.6)
-                .z();
-        }
-        "actionButtonMovie" => {
-            g.poly(&[
-                (cx - s, cy - s * 0.6),
-                (cx + s * 0.4, cy - s * 0.6),
-                (cx + s * 0.4, cy + s * 0.6),
-                (cx - s, cy + s * 0.6),
-            ]);
-            g.poly(&[
-                (cx + s * 0.4, cy),
-                (cx + s, cy - s * 0.5),
-                (cx + s, cy + s * 0.5),
-            ]);
-        }
-        "actionButtonDocument" => {
-            g.poly(&[
-                (cx - s * 0.7, cy - s),
-                (cx + s * 0.3, cy - s),
-                (cx + s * 0.7, cy - s * 0.6),
-                (cx + s * 0.7, cy + s),
-                (cx - s * 0.7, cy + s),
-            ]);
-        }
-        "actionButtonSound" => {
-            g.poly(&[
-                (cx - s, cy - s * 0.35),
-                (cx - s * 0.5, cy - s * 0.35),
-                (cx, cy - s),
-                (cx, cy + s),
-                (cx - s * 0.5, cy + s * 0.35),
-                (cx - s, cy + s * 0.35),
-            ]);
-        }
-        _ => {}
-    }
-    Geometry {
-        paths: vec![fill(body), shade(g.take(), FillMode::DarkenLess)],
-        text_rect: Rect::new(0.0, 0.0, w, h),
         handles: vec![],
         sites: mid_sites(w, h),
     }

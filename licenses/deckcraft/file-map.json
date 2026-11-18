@@ -77,7 +77,7 @@
       "source_path": "crates/geom/src/preset/build.rs",
       "source_sha256": "0f20c9e24506d28aaa495311d6d653279dcd297f898e5d10104bc2526ab8b154",
       "target_path": "crates/joydeck-geom/src/preset/build.rs",
-      "adapted_sha256": "271eaa83cf2d63aba46bf1b18892f1e5dd077441718d2a987334622687543699",
+      "adapted_sha256": "1a2acdd9da31d4159ab027062d92deeb7d796542a76785eaca133ee9f884bcef",
       "changes": [
         "crate/import namespace deckcraft -> joydeck",
         "LF normalization",
@@ -86,20 +86,22 @@
         "Independently derive rounded rectangles and the four straight arrows from the DrawingML adjustment guides and connector coordinates.",
         "Replace all gallery rectangle branches with the JoyOffice parameterized corner builder.",
         "Derive straight, orthogonal and smoothed DrawingML connector paths and adjustments from the published coordinate guides, including multi-bend defaults when opening and writing PPTX.",
-        "Route all fixed DrawingML flowcharts through the independently implemented JoyOffice geometry family."
+        "Route all fixed DrawingML flowcharts through the independently implemented JoyOffice geometry family.",
+        "Remove the previous twelve-button dispatch and use the host DrawingML button family."
       ]
     },
     {
       "source_path": "crates/geom/src/preset/builder.rs",
       "source_sha256": "26d0f06d29087a8ac5895105d80a32884ef4c7212ca6628ab6c42331991054ae",
       "target_path": "crates/joydeck-geom/src/preset/builder.rs",
-      "adapted_sha256": "68eca34ab37538a200770732911e4a3726aa7c81848f4f60b8754aae449f3cc3",
+      "adapted_sha256": "49d3470cdd113136a3c05b8403dd2c8bbc4fe22da659edc4ed953a8ca3dc6b7b",
       "changes": [
         "crate/import namespace deckcraft -> joydeck",
         "LF normalization",
         "package description credits origin",
         "rustfmt using repository Unix newline policy",
-        "Independently derive rounded rectangles and the four straight arrows from the DrawingML adjustment guides and connector coordinates."
+        "Independently derive rounded rectangles and the four straight arrows from the DrawingML adjustment guides and connector coordinates.",
+        "Share endpoint-stable quadrant arcs between the host action buttons and flowcharts."
       ]
     },
     {
@@ -134,12 +136,13 @@
       "source_path": "crates/geom/src/preset/shapes.rs",
       "source_sha256": "8e6ee19c5ea29805df9285991c69a9c0c6d153c82a0d1ebee75c48ff39b1a696",
       "target_path": "crates/joydeck-geom/src/preset/shapes.rs",
-      "adapted_sha256": "a3777bc87214cb2534b79782becff320c399d0f90336fe0580f62ea17c2478f2",
+      "adapted_sha256": "e8418e7cf42a179df71b457cc6c6f3659dbfe3498740411a620985d24f7bfba9",
       "changes": [
         "crate/import namespace deckcraft -> joydeck",
         "LF normalization",
         "package description credits origin",
-        "rustfmt using repository Unix newline policy"
+        "rustfmt using repository Unix newline policy",
+        "Remove the simplified action-button generator after replacement by independent shaded geometry."
       ]
     },
     {
@@ -158,7 +161,7 @@
       "source_path": "crates/geom/src/preset.rs",
       "source_sha256": "94c4d928be5b4d8f44d570ce5c3376d6128617ab8cc14a7450b1c0383c6190fd",
       "target_path": "crates/joydeck-geom/src/preset.rs",
-      "adapted_sha256": "a92f3efc4a959a64b25be920a255d8aa796bf09473332921bf07bb10a817b502",
+      "adapted_sha256": "5028b818e8fb784d5455eacb0f4c71850eb8723b3b982bdf046588c03c4497e8",
       "changes": [
         "crate/import namespace deckcraft -> joydeck",
         "LF normalization",
@@ -167,7 +170,8 @@
         "test-only assertion lint allowances; production no-panic guards retained",
         "Independently derive rounded rectangles and the four straight arrows from the DrawingML adjustment guides and connector coordinates.",
         "Derive straight, orthogonal and smoothed DrawingML connector paths and adjustments from the published coordinate guides, including multi-bend defaults when opening and writing PPTX.",
-        "Route all fixed DrawingML flowcharts through the independently implemented JoyOffice geometry family."
+        "Route all fixed DrawingML flowcharts through the independently implemented JoyOffice geometry family.",
+        "Dispatch the complete action-button family to JoyOffice geometry."
       ]
     },
     {
