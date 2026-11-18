@@ -9,6 +9,7 @@ import secrets
 import shutil
 import sys
 from zipfile import ZipFile
+import xml.etree.ElementTree as ET
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from native_pilot_support import app, digest, port, wait, word_request
@@ -18,7 +19,7 @@ SECTIONS = runpy.run_path(str(Path(__file__).with_name('check-section-reflow.py'
 CORPUS = runpy.run_path(str(Path(__file__).with_name('check-complex-corpus.py')))
 
 
-def fixture(path, edited=False, facing_notes=False):
+def fixture(path, edited=False, facing_notes=False, structured=False):
     def text(value):
         return f'<w:r><w:t xml:space="preserve">{value}</w:t></w:r>'
 
@@ -39,7 +40,10 @@ def fixture(path, edited=False, facing_notes=False):
             props += '<w:pgSz w:w="3680" w:h="1500"/><w:pgMar w:top="400" w:bottom="400" w:left="400" w:right="400"/>'
         end = f'<w:sectPr>{props}</w:sectPr>'
         spacing = '<w:spacing w:after="0"/>'
-        paragraphs.append(f'<w:p><w:pPr>{spacing}</w:pPr>{text(title)}</w:p>')
+        number = ''
+        if structured and 8 <= section <= 43:
+            number = f'<w:numPr><w:ilvl w:val="0"/><w:numId w:val="{1 if section < 35 else 2}"/></w:numPr>'
+        paragraphs.append(f'<w:p><w:pPr>{number}{spacing}</w:pPr>{text(title)}</w:p>')
         if section == 64:
             body = (field('PAGE') + text(' ')) * 12
         elif section in (2, 66, 67):
@@ -48,6 +52,18 @@ def fixture(path, edited=False, facing_notes=False):
             body = text('End')
         if facing_notes and section == 66:
             body += '<w:r><w:footnoteReference w:id="1"/></w:r>'
+        if structured and section == 34:
+            paragraphs.append(f'<w:p><w:pPr><w:framePr w:dropCap="drop" w:lines="3" w:hSpace="75"/></w:pPr>{text("C")}</w:p>')
+            paragraphs.append(f'<w:p>{text("opper section caption with a raised initial.")}</w:p>')
+            paragraphs.append(f'<w:p><w:pPr><w:framePr w:w="2180" w:y="60" w:hAnchor="text" w:vAnchor="text" w:wrap="around"/></w:pPr>{text("Framed annotation")}</w:p>')
+        if structured and section in (2, 66):
+            def cell(contents, width):
+                return (f'<w:tbl><w:tblPr><w:tblW w:w="{width}" w:type="dxa"/></w:tblPr><w:tblGrid>'
+                        f'<w:gridCol w:w="{width}"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:w="{width}" w:type="dxa"/>'
+                        f'</w:tcPr>{contents}</w:tc></w:tr></w:tbl>')
+            inner = cell(f'<w:p>{body}</w:p>', 3200)
+            paragraphs.append(cell(inner + '<w:p/>', 3900))
+            body = text('End')
         paragraphs.append(f'<w:p><w:pPr>{spacing}{end if section < 67 else ""}</w:pPr>{body}</w:p>')
     paragraphs.append(end)
     styles = f'<w:styles xmlns:w="{CORPUS["W"]}"><w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Source Sans 3" w:hAnsi="Source Sans 3"/></w:rPr></w:rPrDefault></w:docDefaults></w:styles>'
@@ -55,6 +71,14 @@ def fixture(path, edited=False, facing_notes=False):
     extras = {'word/styles.xml': styles}
     prefix = 'application/vnd.openxmlformats-officedocument.wordprocessingml.'
     types = {'word/styles.xml': prefix + 'styles+xml'}
+    if structured:
+        extras['word/numbering.xml'] = (f'<w:numbering xmlns:w="{CORPUS["W"]}"><w:abstractNum w:abstractNumId="0">'
+            '<w:lvl w:ilvl="0"><w:start w:val="1"/><w:numFmt w:val="decimal"/><w:lvlText w:val="%1."/>'
+            '<w:suff w:val="space"/></w:lvl></w:abstractNum><w:num w:numId="1"><w:abstractNumId w:val="0"/></w:num>'
+            '<w:num w:numId="2"><w:abstractNumId w:val="0"/><w:lvlOverride w:ilvl="0"><w:startOverride w:val="9"/>'
+            '</w:lvlOverride></w:num></w:numbering>')
+        rels.append(('num', 'numbering', 'numbering.xml'))
+        types['word/numbering.xml'] = prefix + 'numbering+xml'
     if facing_notes:
         note = ''.join(f'<w:p>{text(f"Continuation record {i:03}")}</w:p>' for i in range(58))
         extras['word/footnotes.xml'] = f'<w:footnotes xmlns:w="{CORPUS["W"]}"><w:footnote w:id="1">{note}</w:footnote></w:footnotes>'
@@ -64,7 +88,7 @@ def fixture(path, edited=False, facing_notes=False):
     CORPUS['package'](path, ''.join(paragraphs), rels, extras, types)
 
 
-def observed(pages):
+def observed(pages, structured=False):
     def title(section):
         return next(index for index, content in enumerate(pages, 1) if re.search(rf'\bSection\s+{section}\b', content))
 
@@ -83,21 +107,47 @@ def observed(pages):
     note_pages = [i for i, page in enumerate(pages, 1) if 'Continuation record' in page]
     if note_pages:
         assert len(note_pages) >= 2 and sum(p.count('Continuation record') for p in pages) == 58
-    return {'notePages': note_pages, 'pages': len(pages), 'editedPage': title(34), 'firstDirtyPage': title(2), 'fieldPages': list(range(start, stop)),
+    labels = {}
+    if structured:
+        for section in (*range(8, 34), *range(35, 44)):
+            expected = section - 7 if section < 35 else section - 26
+            content = ' '.join(pages[title(section) - 1].split())
+            assert re.search(rf'\b{expected}\.\s*Section {section}\b', content), (section, expected, content)
+            labels[section] = expected
+        assert any('Framed annotation' in text for text in pages)
+    return {**({'listNumbers': labels} if structured else {}), 'notePages': note_pages, 'pages': len(pages), 'editedPage': title(34), 'firstDirtyPage': title(2), 'fieldPages': list(range(start, stop)),
             'followingPage': title(66), 'restartPage': title(67), 'fieldNumbers': fields}
 
 
-def run(desktop, old, current, folder, facing_notes=False):
+def structured_content(document):
+    ns = {'w': CORPUS['W']}
+    with ZipFile(document) as z:
+        doc = ET.fromstring(z.read('word/document.xml'))
+        numbers = ET.fromstring(z.read('word/numbering.xml'))
+    frames = doc.findall('.//w:framePr', ns)
+    caps = [f for f in frames if f.get('{%s}dropCap' % ns['w']) == 'drop']
+    summary = {
+        'numberedParagraphs': len(doc.findall('.//w:numPr', ns)),
+        'numberRestartsAtNine': sum(n.get('{%s}val' % ns['w']) == '9' for n in numbers.findall('.//w:startOverride', ns)),
+        'nestedTables': len(doc.findall('.//w:tc/w:tbl', ns)),
+        'threeLineDropCaps': sum(f.get('{%s}lines' % ns['w']) == '3' for f in caps),
+        'textFrames': len(frames) - len(caps),
+    }
+    assert summary == dict(numberedParagraphs=36, numberRestartsAtNine=1, nestedTables=2, threeLineDropCaps=1, textFrames=1), summary
+    return summary
+
+
+def run(desktop, old, current, folder, facing_notes=False, structured=False):
     folder.mkdir(parents=True, exist_ok=False)
     original, working = folder / '原始.docx', folder / '分节 编辑.docx'
-    fixture(original, facing_notes=facing_notes)
-    fixture(folder / 'expanded.docx', edited=True, facing_notes=facing_notes)
+    fixture(original, facing_notes=facing_notes, structured=structured)
+    fixture(folder / 'expanded.docx', edited=True, facing_notes=facing_notes, structured=structured)
     source_hash = digest(original)
     shutil.copyfile(original, working)
     reference = []
     for name, file in [('original', original), ('expanded', folder / 'expanded.docx')]:
         pdf = folder / (name + '.pdf')
-        reference.append(observed(SECTIONS['printed_pages'](old, file, pdf)))
+        reference.append(observed(SECTIONS['printed_pages'](old, file, pdf), structured))
     before, after = reference
     assert len(before['fieldPages']) == 1 and len(after['fieldPages']) == (3 if facing_notes else 2)
     assert bool(before['notePages']) == bool(after['notePages']) == facing_notes
@@ -151,14 +201,18 @@ def run(desktop, old, current, folder, facing_notes=False):
         assert reopened['text'] == expected_text and len(reopened['summary']['pages']) == after['pages']
     pdfs = [folder / 'old.pdf', folder / 'new.pdf']
     for cli, pdf in zip((old, current), pdfs):
-        assert observed(SECTIONS['printed_pages'](cli, working, pdf)) == after
+        assert observed(SECTIONS['printed_pages'](cli, working, pdf), structured) == after
     rasters = SECTIONS['compare_rasters'](*pdfs)
     assert len(rasters) == after['pages'] and digest(original) == source_hash
+    exchange = SECTIONS['verify_readers'](folder, old, current, after['pages'])
+    formats = ({'structuredContentByWriter': {name: structured_content(folder / file) for name, file in
+                [('original', original.name), ('native', working.name), ('baseline', 'baseline-resaved.docx'),
+                 ('candidate', 'candidate-resaved.docx')]}} if structured else {})
     return {
-        'sourceSha256': source_hash, 'desktopSha256': digest(desktop),
+        **formats, 'sourceSha256': source_hash, 'desktopSha256': digest(desktop),
         'original': before, 'expanded': after, 'nativePatches': patches, 'savedAndReopened': True,
         'twoVersionPageRastersSha256': rasters,
-        'crossVersion': SECTIONS['verify_readers'](folder, old, current, after['pages']),
+        'crossVersion': exchange,
     }
 
 
@@ -167,7 +221,8 @@ if __name__ == '__main__':
     for key in ('desktop', 'baseline', 'candidate', 'output'):
         arg.add_argument(key, type=Path)
     arg.add_argument('--facing-notes', action='store_true', help='include mirrored sections, an even start, a numbering restart and a continued footnote')
+    arg.add_argument('--structured', action='store_true', help='exercise continued and restarted lists, a frame, a drop cap and nested table fields')
     args = arg.parse_args()
     dest = args.output.resolve()
-    result = run(args.desktop.resolve(), args.baseline.resolve(), args.candidate.resolve(), dest, args.facing_notes)
+    result = run(args.desktop.resolve(), args.baseline.resolve(), args.candidate.resolve(), dest, args.facing_notes, args.structured)
     (dest / 'report.json').write_text(json.dumps(result, indent=2) + '\n')

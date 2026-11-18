@@ -387,6 +387,8 @@ pub(crate) struct PageOrigin<'a> {
     preceding_sections: u32,
     outside_pages: u32,
     endnotes: Option<&'a notes::Endnotes>,
+    list_seed: Option<&'a Counters>,
+    capture_list_starts: bool,
     /// The trailing paragraph of the next section proves the exit but is not its actual end.
     trailing_sentinel: bool,
 }

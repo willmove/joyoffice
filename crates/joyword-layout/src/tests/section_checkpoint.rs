@@ -560,3 +560,113 @@ fn a_remote_field_can_repaginate_its_own_section_and_invalidate_other_fields()
     }
     Ok(())
 }
+
+#[test]
+fn section_lists_drop_caps_frames_and_table_fields_survive_edit_undo_and_redo()
+-> Result<(), Box<dyn std::error::Error>> {
+    use joyword_model::{
+        ListKind,
+        props::{NumRef, TextFrame},
+    };
+    let mut doc = Document::new();
+    doc.body.clear();
+    doc.styles.default_chr.font = Some("Source Sans 3".into());
+    let num = doc.numbering.add_list(ListKind::Legal);
+    let mut restart = doc.numbering.nums[0].clone();
+    restart.id = num + 1;
+    restart.start_overrides = vec![(0, 9)];
+    doc.numbering.nums.push(restart);
+    let mut edit = 0;
+    for i in 0..68 {
+        let mut p = Paragraph::with_text(&format!("Section {i}"), Default::default());
+        p.props.numbering = Some(NumRef {
+            num: if i < 35 { num } else { num + 1 },
+            level: (i % 3) as u8,
+        });
+        if i == 34 {
+            edit = doc.body.len();
+            p.props.drop_cap = Some(3);
+            p.props.drop_cap_distance = Some(5.);
+        }
+        doc.body.push(joyword_model::para_block(p));
+        if i == 34 {
+            let mut caption = Paragraph::with_text("Framed text", Default::default());
+            caption.props.frame = Some(TextFrame {
+                w: Some(72.),
+                x: 18.,
+                ..Default::default()
+            });
+            doc.body.push(joyword_model::para_block(caption));
+        }
+        if [2, 65].contains(&i) {
+            let mut f = Paragraph::with_text("Table totals ", Default::default());
+            for instr in ["PAGE", "NUMPAGES", "SECTION", "SECTIONPAGES"] {
+                f.insert_object(
+                    f.text.len(),
+                    InlineObject::Field {
+                        code: false,
+                        form: String::new(),
+                        instr: instr.into(),
+                        result: "00".into(),
+                        locked: false,
+                        dirty: false,
+                    },
+                    &Default::default(),
+                )?;
+            }
+            let mut outer = Table::new(1, 1, 320.);
+            let mut inner = Table::new(1, 1, 280.);
+            inner.rows[0].cells[0].blocks = vec![joyword_model::para_block(f)];
+            outer.rows[0].cells[0].blocks = vec![Arc::new(Block::Table(inner))];
+            doc.body.push(Arc::new(Block::Table(outer)));
+        }
+        let mut end = Paragraph::with_text("End", Default::default());
+        if i < 67 {
+            end.section = Some(Box::new(doc.last_section.clone()));
+        }
+        doc.body.push(joyword_model::para_block(end));
+    }
+    let opts = LayoutOptions::default();
+    let mut edited = doc.clone();
+    edited.insert_text(
+        &Pos::body(edit, 0),
+        &"Edited clause. ".repeat(740),
+        &Default::default(),
+    )?;
+    let mut cache = LayoutCache::new();
+    let mut old = layout_shared(&doc, &mut cache, &opts);
+    let initial = old.pages.len();
+    for state in [&edited, &doc, &edited] {
+        let next = layout_shared(state, &mut cache, &opts);
+        let full = layout(state, &mut LayoutCache::new(), &opts);
+        assert_eq!(
+            next.changed_pages_from(&old),
+            Some(2..old.pages.len().max(next.pages.len()))
+        );
+        assert_eq!(next.pages.len() > initial, std::ptr::eq(state, &edited));
+        assert_eq!(next.index, full.index);
+        for (i, (candidate, expected)) in next.pages.iter().zip(&full.pages).enumerate() {
+            assert_eq!(
+                format!("{candidate:?}"),
+                format!("{expected:?}"),
+                "page {i}"
+            );
+            assert_eq!(
+                next.hit(i, 82., 82., StoryRef::Body),
+                full.hit(i, 82., 82., StoryRef::Body)
+            );
+        }
+        old = next;
+    }
+    // A list-format change affects following sections and requires a fresh set of counters.
+    let paragraph = edited.para_mut(StoryRef::Body, &Path::top(edit))?;
+    paragraph.props.numbering = None;
+    let reset = layout_shared(&edited, &mut cache, &opts);
+    assert_eq!(reset.changed_pages_from(&old), None);
+    let expected = layout(&edited, &mut LayoutCache::new(), &opts);
+    assert_eq!(
+        format!("{:?}", reset.pages),
+        format!("{:?}", expected.pages)
+    );
+    Ok(())
+}

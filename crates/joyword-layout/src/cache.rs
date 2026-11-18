@@ -42,6 +42,8 @@ pub struct LayoutCache {
     pub(crate) outlines: Outlines,
     pub(crate) env: u64,
     pub(crate) previous: Option<super::incremental::Previous>,
+    /// Exact list state entering each section of the last requested pagination pass.
+    pub(crate) list_starts: Vec<super::Counters>,
     pub(crate) used: HashSet<Key>,
     /// The STYLEREF style index of the last pass and what it was built from: the body blocks
     /// (shared, so an edited block is a different pointer) and `env` (styles and numbering). Kept
@@ -67,6 +69,7 @@ impl LayoutCache {
         self.outlines.clear();
         self.styleref = None;
         self.previous = None;
+        self.list_starts.clear();
     }
 
     /// The STYLEREF style index for `doc`, rebuilt only when the body or the styles changed.

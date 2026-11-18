@@ -345,7 +345,7 @@ impl Line {
 }
 
 /// The list label drawn on the first text line (after an opening page break, if any).
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Label {
     pub text: String,
     /// Maximum line ascent of every shaped font in the label, including its leading.
@@ -377,7 +377,7 @@ pub struct RubyLayout {
 }
 
 /// One font run of a list label.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct LabelRun {
     /// Index into `ParaLayout::styles`.
     pub style: u32,

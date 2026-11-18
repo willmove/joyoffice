@@ -16,7 +16,7 @@ struct Window {
     blocks: Range<usize>,
     pages: Range<usize>,
     first_section: usize,
-    sentinel: bool,
+    next_section: Option<usize>,
     initial_note: Option<(usize, u32)>,
 }
 
@@ -77,7 +77,7 @@ impl Window {
             });
         (start < end
             && pages.get(start)?.first_block == self.blocks.start
-            && (!self.sentinel || pages.get(end)?.first_block == self.blocks.end))
+            && (self.next_section.is_none() || pages.get(end)?.first_block == self.blocks.end))
             .then_some(start..end)
     }
 
@@ -139,7 +139,6 @@ impl Window {
             if !plain_paragraph(doc, p)
                 || p.text.is_empty()
                 || props.keep_next
-                || props.numbering.is_some()
                 || p.text.contains(['\u{c}', '\u{e}'])
                 || current.pages.get(stop)?.first_block != end
             {
@@ -150,7 +149,7 @@ impl Window {
             blocks: start..end,
             pages: first..stop,
             first_section,
-            sentinel: next_section.is_some(),
+            next_section,
             initial_note: None,
         })
     }
@@ -183,11 +182,6 @@ impl Window {
             .enumerate()
             .filter_map(|(b, p)| Some((b, p.as_para()?)))
         {
-            if self.blocks.contains(&block)
-                && doc.styles.resolve_para(&para.props).numbering.is_some()
-            {
-                return false;
-            }
             for object in &para.objects {
                 let InlineObject::NoteRef { id, .. } = object else {
                     if !supported_body_object(object) {
@@ -271,9 +265,9 @@ impl Window {
 
     fn fragment(&self, doc: &Document, current: &[Page], body: &Blocks) -> Option<Document> {
         let mut fragment = doc.clone();
-        let end = self.blocks.end + usize::from(self.sentinel);
+        let end = self.blocks.end + usize::from(self.next_section.is_some());
         fragment.body = body.get(self.blocks.start..end)?.to_vec();
-        if self.sentinel {
+        if self.next_section.is_some() {
             fragment.last_section = doc
                 .sections()
                 .into_iter()
@@ -303,19 +297,31 @@ impl Window {
         cache: &mut LayoutCache,
         current: &[Page],
         endnotes: Option<&crate::notes::Endnotes>,
+        list_starts: &[crate::Counters],
     ) -> Option<Repaginated> {
         let outside = current
             .len()
-            .checked_sub(self.pages.len() + usize::from(self.sentinel))?;
+            .checked_sub(self.pages.len() + usize::from(self.next_section.is_some()))?;
         let origin = crate::PageOrigin {
             endnotes,
-            trailing_sentinel: self.sentinel,
+            list_seed: list_starts.get(self.first_section),
+            capture_list_starts: !list_starts.is_empty() && self.next_section.is_some(),
+            trailing_sentinel: self.next_section.is_some(),
             preceding_pages: self.pages.start,
             preceding_sections: u32::try_from(self.first_section).ok()?,
             outside_pages: u32::try_from(outside).ok()?,
         };
         let mut pages = crate::layout_at(doc, cache, opts, origin).pages;
-        let count = pages.len().checked_sub(usize::from(self.sentinel))?;
+        if origin.capture_list_starts
+            && let Some(next) = self.next_section
+            && cache.list_starts.last()? != list_starts.get(next)?
+        {
+            // Reusing the suffix would change a later list label, possibly in a different list level.
+            return None;
+        }
+        let count = pages
+            .len()
+            .checked_sub(usize::from(self.next_section.is_some()))?;
         if !(1..=16).contains(&count) {
             return None;
         }
@@ -333,7 +339,7 @@ impl Window {
             relocate_items(&mut page.items, u32::try_from(self.blocks.start).ok()?)?;
         }
         let mut exit_number_delta = 0;
-        if self.sentinel {
+        if self.next_section.is_some() {
             let exit = pages.pop()?;
             let mut expected = current.get(self.pages.end)?.clone();
             expected.items.truncate(1);
@@ -584,45 +590,52 @@ fn collect_changed_fields(
                 .zip(&pages[replacement_end..]),
         );
     for (old, new) in reused {
-        for item in &new.items {
-            let Placed::Lines {
-                story: StoryRef::Body,
-                path,
-                para,
-                ..
-            } = item
-            else {
-                continue;
-            };
-            if !para.has_page_fields {
-                continue;
-            }
-            let block = *path.0.first()? as usize;
-            let si = sections.partition_point(|(last, _)| *last < block);
-            if doc
-                .para(StoryRef::Body, path)?
-                .objects
-                .iter()
-                .any(|object| {
-                    let InlineObject::Field {
-                        instr,
-                        locked: false,
-                        ..
-                    } = object
-                    else {
-                        return false;
-                    };
-                    match crate::fields::field_name(instr).as_str() {
-                        "PAGE" => old.number != new.number,
-                        "NUMPAGES" => old_totals.pages != new_totals.pages,
-                        "SECTIONPAGES" => old_totals.section(si) != new_totals.section(si),
-                        _ => false,
+        let mut pending = vec![new.items.as_slice()];
+        while let Some(items) = pending.pop() {
+            for item in items {
+                if let Placed::Clip { items, .. } = item {
+                    pending.push(items);
+                    continue;
+                }
+                let Placed::Lines {
+                    story: StoryRef::Body,
+                    path,
+                    para,
+                    ..
+                } = item
+                else {
+                    continue;
+                };
+                if !para.has_page_fields {
+                    continue;
+                }
+                let block = *path.0.first()? as usize;
+                let si = sections.partition_point(|(last, _)| *last < block);
+                if doc
+                    .para(StoryRef::Body, path)?
+                    .objects
+                    .iter()
+                    .any(|object| {
+                        let InlineObject::Field {
+                            instr,
+                            locked: false,
+                            ..
+                        } = object
+                        else {
+                            return false;
+                        };
+                        match crate::fields::field_name(instr).as_str() {
+                            "PAGE" => old.number != new.number,
+                            "NUMPAGES" => old_totals.pages != new_totals.pages,
+                            "SECTIONPAGES" => old_totals.section(si) != new_totals.section(si),
+                            _ => false,
+                        }
+                    })
+                {
+                    blocks.insert(block);
+                    if blocks.len() > 256 {
+                        return None;
                     }
-                })
-            {
-                blocks.insert(block);
-                if blocks.len() > 256 {
-                    return None;
                 }
             }
         }
@@ -694,6 +707,7 @@ impl Previous {
             cache,
             &current.pages,
             self.endnotes.as_ref(),
+            &self.list_starts,
         )?;
         (old.pages.len() == window.pages.len()
             && old.exit_number_delta == 0
@@ -729,7 +743,14 @@ impl Previous {
         };
         window.pages = located;
         let fragment = window.fragment(doc, pages, &doc.body)?;
-        let next = window.pages(&fragment, opts, &mut cache, pages, self.endnotes.as_ref())?;
+        let next = window.pages(
+            &fragment,
+            opts,
+            &mut cache,
+            pages,
+            self.endnotes.as_ref(),
+            &self.list_starts,
+        )?;
         pass.consume(next.pages.len().saturating_sub(reserved), 0)?;
         let delta = next.pages.len() as i64 - window.pages.len() as i64;
         let shifted_suffix = if delta == 0 && next.exit_number_delta == 0 {
@@ -834,6 +855,7 @@ impl Previous {
             &mut cache,
             &current.pages,
             self.endnotes.as_ref(),
+            &self.list_starts,
         )?;
         pass.consume(
             replacement.pages.len().saturating_sub(window.pages.len()),

@@ -26,6 +26,7 @@ pub(crate) struct Previous {
     /// First and last body anchor for a text story, including all its linked frames.
     boxes: BTreeMap<u32, (usize, usize)>,
     body_fields: bool,
+    list_starts: Vec<crate::Counters>,
     /// Keep shaping work for the last verified edit and its bounded set of field sections.
     checked_section: Option<sections::SectionCache>,
     section: SectionProps,
@@ -65,12 +66,22 @@ pub fn layout_shared(
     }
 
     let endnotes = crate::notes::Endnotes::collect(doc, opts.hides_deleted(StoryRef::Body));
+    // Bound the number of saved list instances across all section boundaries.
+    // Each instance can have at most nine live levels.
+    let capture_list_starts = !doc.numbering.nums.is_empty()
+        && doc
+            .sections()
+            .len()
+            .saturating_mul(doc.numbering.nums.len())
+            <= 8192
+        && eligible(doc, opts);
     let layout = Arc::new(crate::layout_at(
         doc,
         cache,
         opts,
         crate::PageOrigin {
             endnotes: endnotes.as_ref(),
+            capture_list_starts,
             ..Default::default()
         },
     ));
@@ -93,8 +104,9 @@ pub fn layout_shared(
         && doc.body.iter().all(|block| match block.as_ref() {
             joyword_model::Block::Para(p) => {
                 let props = doc.styles.resolve_para(&p.props);
-                props.frame.is_none()
-                    && props.drop_cap == 0
+                let listed = props.numbering.is_some_and(|n| n.num != 0);
+                requires_section_flow |= props.frame.is_some() || props.drop_cap > 0 || listed;
+                (!listed || capture_list_starts)
                     && p.section.as_deref().is_none_or(eligible_section)
                     && p.objects.iter().all(|object| {
                         body_fields |= matches!(object, joyword_model::InlineObject::Field { .. });
@@ -103,7 +115,8 @@ pub fn layout_shared(
                     })
             }
             joyword_model::Block::Table(t) => table_flow(doc, t, None).is_some_and(|flow| {
-                requires_section_flow |= flow == TableFlow::Section;
+                requires_section_flow |= flow != TableFlow::Inline;
+                body_fields |= flow == TableFlow::PageFields;
                 true
             }),
         })
@@ -116,6 +129,7 @@ pub fn layout_shared(
             notes: doc.parts.clone(),
             requires_section_flow,
             body_fields,
+            list_starts: std::mem::take(&mut cache.list_starts),
             media: doc.media.clone(),
             page_stories: doc.parts.values().any(|p| {
                 matches!(
@@ -183,6 +197,7 @@ fn plain_paragraph(doc: &Document, p: &Paragraph) -> bool {
 enum TableFlow {
     Inline,
     Section,
+    PageFields,
 }
 
 /// Tables with nested cells or floating anchors require the section's complete
@@ -200,7 +215,7 @@ fn table_flow(
         if table.rows.len() > 128 || depth > joyword_model::table::MAX_TABLE_DEPTH {
             return None;
         }
-        if depth > 0 || table.props.float.is_some() {
+        if result == TableFlow::Inline && (depth > 0 || table.props.float.is_some()) {
             result = TableFlow::Section;
         }
         for row in &table.rows {
@@ -216,13 +231,26 @@ fn table_flow(
                 for block in &cell.blocks {
                     match block.as_ref() {
                         joyword_model::Block::Table(t) => pending.push((t, depth + 1)),
-                        joyword_model::Block::Para(p)
-                            if plain_paragraph(doc, p)
-                                && doc.styles.resolve_para(&p.props).numbering.is_none() =>
-                        {
+                        joyword_model::Block::Para(p) => {
+                            let props = doc.styles.resolve_para(&p.props);
+                            if p.section.is_some()
+                                || props.frame.is_some()
+                                || props.drop_cap != 0
+                                || props.numbering.is_some()
+                            {
+                                return None;
+                            }
+                            if !p.objects.is_empty() {
+                                if !p.objects.iter().all(|o| {
+                                    matches!(o, joyword_model::InlineObject::Field { .. })
+                                        && supported_body_object(o)
+                                }) {
+                                    return None;
+                                }
+                                result = TableFlow::PageFields;
+                            }
                             owns_typing |= typing.is_some_and(|word| p.rev == word.rev);
                         }
-                        _ => return None,
                     }
                 }
             }
@@ -236,7 +264,10 @@ fn supported_box(doc: &Document, part: &joyword_model::Part) -> bool {
         joyword_model::Block::Para(p) => {
             plain_paragraph(doc, p) && doc.styles.resolve_para(&p.props).numbering.is_none()
         }
-        joyword_model::Block::Table(t) => table_flow(doc, t, None).is_some(),
+        joyword_model::Block::Table(t) => matches!(
+            table_flow(doc, t, None),
+            Some(TableFlow::Inline | TableFlow::Section)
+        ),
     })
 }
 
@@ -791,6 +822,9 @@ fn same_items(left: &[Placed], right: &[Placed], start: usize) -> bool {
                     && (al, ae, ax, ay, at) == (bl, be, bx, by, bt)
                     && a.rp == b.rp
                     && a.styles == b.styles
+                    && a.label == b.label
+                    && a.drop_cap == b.drop_cap
+                    && a.drop_cap_w == b.drop_cap_w
                     && a.issues == b.issues
                     && a.height == b.height
                     && a.notes == b.notes

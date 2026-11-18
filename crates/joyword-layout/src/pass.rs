@@ -677,7 +677,11 @@ pub(crate) fn layout_pass(
     origin: super::PageOrigin<'_>,
 ) -> Pass {
     reset_cache(doc, cache, opts);
+    cache.list_starts.clear();
     let mut ctx = new_ctx(doc, cache, opts, (note_pages, totals), origin.endnotes);
+    if let Some(seed) = origin.list_seed {
+        ctx.counters.clone_from(seed);
+    }
     let hf = Arc::clone(&ctx.hf);
     let sections = &hf.sections;
     let mode = Mode::of(opts.view, origin.preceding_pages);
@@ -696,6 +700,9 @@ pub(crate) fn layout_pass(
     let turned = turned_sections(&mut ctx, sections, mode.web);
     let mut prev_turn = TextDirection::Horizontal;
     for (si, (end, sect)) in sections.iter().enumerate() {
+        if origin.capture_list_starts {
+            ctx.cache.list_starts.push(ctx.counters.clone());
+        }
         let turn = if mode.reflow {
             TextDirection::Horizontal
         } else {

@@ -392,7 +392,7 @@ impl Numbering {
 }
 
 /// Running list counters while walking a document in order.
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq, Eq)]
 pub struct Counters {
     /// Per abstract list: current value per level.
     state: HashMap<u32, [u32; 9]>,
@@ -405,7 +405,7 @@ pub struct Counters {
 }
 
 /// Whether a level has counted yet, and the value its next item takes if a start override says so.
-#[derive(Default, Debug, Clone, Copy)]
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq)]
 struct LevelFlags {
     started: bool,
     first: Option<u32>,
