@@ -4190,6 +4190,7 @@ name = "joyoffice-ui"
 version = "0.2.0"
 dependencies = [
  "gpui-kit",
+ "image",
  "joyoffice-theme",
 ]
 

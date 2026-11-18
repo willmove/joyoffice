@@ -79,9 +79,15 @@ def source_hashes(data, packages, reached):
         if (directory / 'build.rs').is_file():
             files.add(directory / 'build.rs')
         files.update(directory.glob('*.rc'))
+    if any(packages[i]['name'] == 'joyoffice-ui' for i in reached):
+        # The shared UI embeds all three brands. Product-only source archives
+        # and before/after build fingerprints must contain those actual inputs.
+        files.update(ROOT / 'assets/brand' / f'{product}.{extension}'
+                     for product in ('joyword', 'joydeck', 'joysheet') for extension in ('svg', 'ico'))
     for product in {packages[i]['name'] for i in reached} & {'joyword', 'joydeck', 'joysheet'}:
         files.update(ROOT / 'assets/brand' / f'{product}.{extension}' for extension in ('svg', 'ico', 'icns'))
-        files.update(ROOT / 'scripts' / script for script in ('product_icons.py', 'generate_product_icons.py'))
+        files.update(ROOT / 'scripts' / script for script in
+                     ('product_icons.py', 'generate_product_icons.py', 'install_linux_desktop.py'))
         files.update(ROOT / name for name in ('scripts/package_windows.py',
                      'scripts/windows/joyoffice.nsi', 'scripts/verify_release_assets.py',
                      'licenses/joyoffice/MSVC-RUNTIME-NOTICE.txt'))

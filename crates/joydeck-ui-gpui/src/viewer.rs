@@ -1112,7 +1112,6 @@ pub fn open_window(
 ) -> Result<(AnyWindowHandle, Entity<Viewer>)> {
     let result = gpui_kit::open_window(
         WindowOptions {
-            app_id: Some("joydeck".into()),
             window_bounds: Some(WindowBounds::Windowed(Bounds::centered(
                 None,
                 size(px(dimensions.0), px(dimensions.1)),
@@ -1123,7 +1122,7 @@ pub fn open_window(
                 appears_transparent: cfg!(target_os = "macos"),
                 ..Default::default()
             }),
-            ..Default::default()
+            ..joyoffice_ui::product_window_options(joyoffice_ui::Brand::Deck)
         },
         cx,
         move |w, cx| {

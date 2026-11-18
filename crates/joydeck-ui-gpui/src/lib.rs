@@ -126,16 +126,7 @@ impl Workspace {
                     .flex()
                     .items_center()
                     .gap_3()
-                    .child(
-                        div()
-                            .rounded(px(7.))
-                            .px_2()
-                            .py_1()
-                            .bg(rgb(p.accent))
-                            .text_color(rgb(p.on_accent))
-                            .font_weight(FontWeight::BOLD)
-                            .child("JD"),
-                    )
+                    .child(joyoffice_ui::product_logo(joyoffice_ui::Brand::Deck, 30.))
                     .child(div().font_weight(FontWeight::SEMIBOLD).child("JoyDeck"))
                     .child(
                         div()
@@ -809,14 +800,13 @@ pub fn run(arguments: impl Iterator<Item = String>) -> Result<(), String> {
             } else {
                 gpui_kit::open_window(
                     WindowOptions {
-                        app_id: Some("joydeck".into()),
                         window_bounds: Some(WindowBounds::Windowed(Bounds::centered(
                             None,
                             size(px(window_size.0), px(window_size.1)),
                             cx,
                         ))),
                         window_min_size: Some(size(px(800.), px(600.))),
-                        ..Default::default()
+                        ..joyoffice_ui::product_window_options(joyoffice_ui::Brand::Deck)
                     },
                     cx,
                     move |window, cx| {

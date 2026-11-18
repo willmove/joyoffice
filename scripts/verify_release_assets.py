@@ -182,6 +182,11 @@ def verify_branding(read_file, root, product, platform):
                 raise ValueError(f'Incorrect app icon reference: {contents}Info.plist')
         match_asset(contents + 'Resources/' + icon, icon)
     elif platform == 'linux':
+        installer = root + 'install-desktop.py'
+        expected = Path(__file__).with_name('install_linux_desktop.py').read_bytes()
+        with read_file(installer) as stream:
+            if stream.read(len(expected) + 1) != expected:
+                raise ValueError(f'Incorrect desktop installer: {installer}')
         prefixes = ('Joysheet.AppDir/usr/', 'debian/usr/') if product == 'joysheet' else ('',)
         for prefix in prefixes:
             share = root + prefix + 'share/'

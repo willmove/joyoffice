@@ -164,6 +164,7 @@ impl Viewer {
             .px_3()
             .when(cfg!(target_os = "macos"), |d| d.pl(px(82.)))
             .gap_1()
+            .child(joyoffice_ui::product_logo(joyoffice_ui::Brand::Deck, 22.))
             .child(
                 Button::new("file-home")
                     .ghost()

@@ -1,0 +1,35 @@
+{
+  "passed": true,
+  "platform": "UOS 25 x86_64 X11/DDE",
+  "visibleDesktopVerified": false,
+  "launchWorkingDirectory": "/tmp",
+  "products": {
+    "joyword": {
+      "window": "148897793",
+      "properties": "WM_CLASS(STRING) = \"joyword\", \"joyword\"\n_NET_WM_NAME(UTF8_STRING) = \"未命名 1 — JoyWord\"\n",
+      "width": 256,
+      "height": 256,
+      "argbPixelsMatchProductIco": true,
+      "argbPropertySha256": "f79a183a6fcd15178e8ad3f0ca5662ed4e9915e4d454897fba71f780df6ee248",
+      "binarySha256": "ddf13f4682bedc0afc826ac7819d90e1c19af501169029cd1fe9a62b589775ac"
+    },
+    "joydeck": {
+      "window": "148897793",
+      "properties": "WM_CLASS(STRING) = \"joydeck\", \"joydeck\"\n_NET_WM_NAME(UTF8_STRING) = \"演示文稿1 - JoyDeck\"\n",
+      "width": 256,
+      "height": 256,
+      "argbPixelsMatchProductIco": true,
+      "argbPropertySha256": "ef7d46007593bd392d5092d2ac4ca579b3b2664815f2b82c95075acbfcf43c92",
+      "binarySha256": "87fdc2c86ef0215c5eda50aab26417283aa736eb69a05a5f9885c14242f3f71e"
+    },
+    "joysheet": {
+      "window": "148897793",
+      "properties": "WM_CLASS(STRING) = \"joysheet\", \"joysheet\"\n_NET_WM_NAME(UTF8_STRING) = \"Joysheet\"\n",
+      "width": 256,
+      "height": 256,
+      "argbPixelsMatchProductIco": true,
+      "argbPropertySha256": "a94aa7a2d42817e102e183089e45216ae5fe4776dc175b3a2581ebc70fd4b4b4",
+      "binarySha256": "67c8f28ef9c3299bb241f96019249adcd4fea9d6cca6e65f939d61b1fdff6b37"
+    }
+  }
+}

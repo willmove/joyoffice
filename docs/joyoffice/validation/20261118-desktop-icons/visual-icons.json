@@ -1,0 +1,26 @@
+{
+  "passed": true,
+  "platform": "UOS Desktop 25 Professional x86_64 X11/DDE",
+  "display": [
+    2560,
+    1600
+  ],
+  "scale": 1.25,
+  "launch": "host systemd user transient services, current Debug binaries",
+  "eventSource": "X11 OS synthetic activation, mouse clicks and Alt+Tab",
+  "checks": {
+    "taskbarAllThreeProducts": true,
+    "altTabAllThreeProducts": true,
+    "inAppLogosAllThreeProducts": true,
+    "deckAudienceAndPresenterWindowIcons": true
+  },
+  "screenshots": [
+    "gui/taskbar.png",
+    "gui/alt-tab.png",
+    "gui/joyword-header.png",
+    "gui/joydeck-header.png",
+    "gui/joysheet-header.png"
+  ],
+  "userDocumentsModified": false,
+  "realUserApplicationRegistrationModified": false
+}

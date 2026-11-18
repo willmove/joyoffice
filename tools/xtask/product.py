@@ -210,7 +210,23 @@ def main(argv=None):
             run([sys.executable, "scripts/joydeck/build-windows-helpers.py", "--output", Path(data["target_directory"]) / ("release" if args.release else "debug")])
         if extra[:1] == ["--"]:
             extra = extra[1:]
-        run(["cargo", "run", "--locked", "-p", PRODUCTS[args.product][1] if args.headless else PRODUCTS[args.product][0], *options, "--", *extra])
+        if sys.platform == "darwin" and not args.headless:
+            output = subprocess.check_output(
+                ["cargo", "build", "--locked", "-p", args.product, *options,
+                 "--message-format=json-render-diagnostics"], cwd=ROOT, text=True, encoding='utf-8')
+            artifacts = [json.loads(line) for line in output.splitlines() if line.strip()]
+            binaries = [Path(item['executable']) for item in artifacts
+                        if item.get('reason') == 'compiler-artifact' and item.get('executable')
+                        and item.get('target', {}).get('name') == args.product]
+            if len(binaries) != 1:
+                raise ValueError("Cargo did not report one desktop executable for " + args.product)
+            sys.path.insert(0, str(ROOT / "scripts"))
+            from product_icons import development_bundle
+            executable = development_bundle(binaries[0], args.product, manifest_version(args.product),
+                                             Path(data["target_directory"]) / "dev" / args.product)
+            run([str(executable), *extra])
+        else:
+            run(["cargo", "run", "--locked", "-p", PRODUCTS[args.product][1] if args.headless else PRODUCTS[args.product][0], *options, "--", *extra])
     elif args.command in ("build", "stage"):
         applications = [PRODUCTS[args.product][1]] if args.headless else list(PRODUCTS[args.product])
         run(["cargo", "build", *[v for name in applications for v in ("-p", name)], "--locked", *options, *extra])

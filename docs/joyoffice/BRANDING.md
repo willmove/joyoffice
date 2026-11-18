@@ -13,12 +13,20 @@
 | 平台 | 图标接入 |
 | --- | --- |
 | Windows | Cargo 在桌面 EXE 中嵌入多尺寸 ICO，资源编号为 GPUI 加载的 `1`。JoySheet NSIS 安装器和卸载器也使用该 ICO。 |
-| macOS | `cargo xtask package <产品> --release` 将 ICNS 放入 `.app/Contents/Resources/`，由 `Info.plist` 的 `CFBundleIconFile` 引用。JoyWord 的本地开发应用包使用同一入口函数。 |
-| Linux | 桌面入口使用 `share/applications/` 下的 `.desktop`，可缩放图标位于 `share/icons/hicolor/scalable/apps/`。JoySheet 的 deb 与 AppDir 在 `usr/share/` 内使用同样布局。 |
+| macOS | 正式打包和 `cargo xtask run <产品>` 的开发 `.app` 都由 `CFBundleIconFile` 引用 `Contents/Resources/` 内的 ICNS。裸 Mach-O 文件不提供 bundle 图标，开发时使用工程运行入口。 |
+| Linux | 每个 GPUI 窗口从内嵌 ICO 解码 RGBA，向 X11 设置 `_NET_WM_ICON`，直接运行编译产物也有图标。桌面入口使用 `.desktop`，SVG 位于 `share/icons/hicolor/scalable/apps/`；JoySheet deb/AppDir 使用相同布局。Wayland 仍由匹配 `app_id` 的已注册桌面项提供图标。 |
 
-JoyWord 和 JoyDeck 的 Linux 便携包可以直接运行解压后的应用。如需桌面菜单入口，将产品可执行文件放在 `PATH` 上，例如 `~/.local/bin/`，并将包中的 `share/` 内容合入 `${XDG_DATA_HOME:-$HOME/.local/share}/`。JoySheet 的 deb 由包管理器安装这些资源。
+Linux 便携包解压到固定位置后，运行 `python3 install-desktop.py --product joyword`（或 `joydeck`、`joysheet`），把所属 SVG 和启动器注册到 `${XDG_DATA_HOME:-$HOME/.local/share}/`。启动器使用可执行文件的绝对路径，支持中文、空格和特殊字符，不依赖 `PATH`；移动应用后重新运行。JoySheet AppDir 内也有此脚本，deb 由包管理器安装资源。开发构建可在仓库根运行：
+
+```sh
+python3 scripts/install_linux_desktop.py --product joyword --binary target/debug/joyword
+```
+
+三产品的应用内品牌位置使用内嵌 SVG，所有窗口创建入口复用 `joyoffice_ui::product_window_options`，包括 Deck 示例、编辑器、放映和演示者窗口。资源不依赖启动时的工作目录；CLI 不创建桌面图标。
 
 各包包含所属产品的 `assets/brand/<产品>.svg`。发布检查逐字节核对归档中的 SVG、macOS ICNS 和 Linux 桌面图标，并检查平台图标引用。
+
+2026-11-18 缺失图标的原因、修复和验证边界见[桌面图标验证](validation/20261118-desktop-icons/README.md)。
 
 ## 更新图标
 

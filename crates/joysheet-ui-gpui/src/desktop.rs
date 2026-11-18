@@ -36,10 +36,9 @@ impl NativeFocus {
 }
 pub fn open(engine: EngineClient, id: Option<u64>, cx: &mut App) -> Result<(), String> {
     let options = WindowOptions {
-        app_id: Some("joysheet".into()),
         window_bounds: Some(WindowBounds::Windowed(Bounds::centered(None, size(px(1440.0), px(900.0)), cx))),
         titlebar: Some(TitlebarOptions { title: Some("Joysheet".into()), ..Default::default() }),
-        ..Default::default()
+        ..joyoffice_ui::product_window_options(joyoffice_ui::Brand::Sheet)
     };
     let (handle, _) =
         gpui_kit::open_window(options, cx, |window, cx| cx.new(|cx| Desktop::new(engine, id, window, cx))).map_err(|e| e.to_string())?;

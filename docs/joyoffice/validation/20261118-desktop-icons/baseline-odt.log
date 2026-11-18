@@ -1,0 +1,22 @@
+     Running unittests src/lib.rs (target/debug/deps/joyword_formats-9e4c6f0fb9803277)
+
+running 1 test
+test odt::tests::pictures_over_the_budget_are_not_inflated ... FAILED
+
+failures:
+
+---- odt::tests::pictures_over_the_budget_are_not_inflated stdout ----
+
+thread 'odt::tests::pictures_over_the_budget_are_not_inflated' (40863) panicked at crates/joyword-formats/src/odt/tests.rs:117:5:
+assertion `left == right` failed
+  left: 1000
+ right: 0
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    odt::tests::pictures_over_the_budget_are_not_inflated
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 305 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p joyword-formats --lib`

@@ -8,7 +8,7 @@ import shutil
 import subprocess
 
 from project import run
-from product_icons import bundle_icon, linux_launcher
+from product_icons import bundle_icon, copy_linux_installer, linux_launcher
 
 
 def windows_installer(directory, *, prepare_only=False):
@@ -52,6 +52,8 @@ def bundle(directory, version):
             run(["xcrun", "notarytool", "submit", str(image), "--keychain-profile", os.environ["JOYSHEET_NOTARY_PROFILE"], "--wait"])
             run(["xcrun", "stapler", "staple", str(image)])
     elif system == "Linux":
+        linux_launcher(directory, "joysheet")
+        copy_linux_installer(directory)
         app = directory / "Joysheet.AppDir"
         deb = directory / "debian"
         for stage in (app, deb):
@@ -66,6 +68,7 @@ def bundle(directory, version):
             if stage == app:
                 shutil.copy2(desktop, app / desktop.name)
                 shutil.copy2(icon, app / icon.name)
+                copy_linux_installer(app)
         launcher = app / "AppRun"
         launcher.write_text('#!/bin/sh\nHERE=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)\nexec "$HERE/usr/bin/joysheet" "$@"\n', encoding="utf-8")
         launcher.chmod(0o755)

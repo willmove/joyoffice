@@ -17,6 +17,27 @@ finally:
 
 
 class LocalDependencySources(unittest.TestCase):
+    def test_shared_ui_fingerprints_every_embedded_brand(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            ui = root / 'crates/joyoffice-ui'
+            ui.mkdir(parents=True)
+            (ui / 'Cargo.toml').write_text('[package]\nname="joyoffice-ui"\n')
+            assets = root / 'assets/brand'
+            assets.mkdir(parents=True)
+            for product in ('joyword', 'joydeck', 'joysheet'):
+                for extension in ('svg', 'ico'):
+                    (assets / f'{product}.{extension}').write_bytes(b'artwork')
+            packages = {'ui': {'name': 'joyoffice-ui', 'source': None,
+                               'manifest_path': str(ui / 'Cargo.toml')}}
+            with mock.patch.object(sbom, 'ROOT', root):
+                before = sbom.source_hashes({'workspace_members': []}, packages, {'ui'})
+                (assets / 'joydeck.ico').write_bytes(b'changed artwork')
+                after = sbom.source_hashes({'workspace_members': []}, packages, {'ui'})
+            for asset in assets.iterdir():
+                self.assertIn(asset.relative_to(root).as_posix(), before)
+            self.assertNotEqual(before['assets/brand/joydeck.ico'], after['assets/brand/joydeck.ico'])
+
     def test_excluded_local_dependency_changes_the_product_fingerprint(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

@@ -24,7 +24,7 @@ import tarfile
 import tempfile
 import zipfile
 from pathlib import Path
-from product_icons import bundle_icon, copy_logo, linux_launcher
+from product_icons import bundle_icon, copy_logo, copy_linux_installer, linux_launcher
 
 README = """JoyWord {version} ({platform}-{arch}) - unsigned package
 JoyWord {version}（{platform}-{arch}）—— 未签名软件包
@@ -44,8 +44,8 @@ Windows: unsigned; SmartScreen may require "More info -> Run anyway".
 Windows：未签名；SmartScreen 可能需要「更多信息 → 仍要运行」。
 Linux: GPUI system libraries (Vulkan/X11/Wayland stack) must be installed.
 Linux：需预装 GPUI 系统依赖（Vulkan/X11/Wayland 等组件）。
-Linux desktop menu: place joyword on PATH and merge share/ into your XDG data directory.
-Linux 桌面菜单：将 joyword 放入 PATH，并将 share/ 中的内容合入 XDG 数据目录。
+Linux desktop menu: run python3 install-desktop.py --product joyword after extraction.
+Linux 桌面菜单：解压到固定位置后运行 python3 install-desktop.py --product joyword。
 """
 
 
@@ -186,6 +186,7 @@ def main() -> int:
         copy_logo(staging, "joyword")
         if args.platform == "linux":
             linux_launcher(staging, "joyword")
+            copy_linux_installer(staging)
         materials.extend((p.relative_to(staging).as_posix(), p, False)
                          for p in sorted(staging.rglob("*"))
                          if p.is_file() and p != readme)

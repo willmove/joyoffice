@@ -160,6 +160,28 @@ class ProductRouting(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'does not belong'):
             product.release_target('joysheet-v0.1.4', product='joydeck', root=self.root)
 
+    def test_macos_desktop_run_uses_cargo_artifact_inside_product_bundle(self):
+        data = {**graph(), 'target_directory': self.root / 'target'}
+        for name in product.PRODUCTS:
+            with self.subTest(product=name):
+                binary = self.root / 'custom-target/release' / name
+                binary.parent.mkdir(parents=True, exist_ok=True)
+                binary.write_bytes(b'native executable')
+                binary.chmod(0o755)
+                output = json.dumps({'reason': 'compiler-artifact', 'target': {'name': name},
+                                     'executable': str(binary)})
+                with patch.object(product.sys, 'platform', 'darwin'), \
+                        patch.object(product, 'metadata', return_value=data), \
+                        patch.object(product.subprocess, 'check_output', return_value=output) as build, \
+                        patch.object(product, 'run') as run:
+                    product.main(['run', name, '--release', '--', '中文 document'])
+                self.assertIn('--release', build.call_args.args[0])
+                executable, argument = run.call_args.args[0]
+                executable = Path(executable)
+                self.assertEqual(executable.read_bytes(), binary.read_bytes())
+                self.assertEqual(executable.parts[-3:], ('Contents', 'MacOS', name))
+                self.assertEqual(argument, '中文 document')
+
     def test_sheet_headless_selects_core_and_cli_without_ui_adapter(self):
         chosen = product.product_packages(graph(), 'joysheet', headless=True)
         self.assertEqual(chosen, ['joysheet-cli', 'joysheet-engine', 'joysheet-model'])

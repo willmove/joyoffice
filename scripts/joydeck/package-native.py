@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / 'tools/xtask'))
 sys.path.insert(0, str(ROOT / 'scripts'))
 from product import manifest_version, native_environment  # noqa: E402
-from product_icons import BRAND, bundle_icon, copy_logo, linux_launcher  # noqa: E402
+from product_icons import BRAND, bundle_icon, copy_logo, copy_linux_installer, linux_launcher  # noqa: E402
 
 
 def sha256(path):
@@ -25,7 +25,8 @@ def sha256(path):
 
 def source_snapshot():
     paths = [ROOT / p for p in ['Cargo.toml', 'Cargo.lock', 'rust-toolchain.toml', 'rustfmt.toml', '.gitattributes', 'LICENSE', 'THIRD_PARTY-JOYDECK.md']]
-    paths += [BRAND / f'joydeck.{ext}' for ext in ('svg', 'ico', 'icns')]
+    paths += [BRAND / f'{product}.{ext}' for product in ('joyword', 'joydeck', 'joysheet') for ext in ('svg', 'ico')]
+    paths += [BRAND / 'joydeck.icns']
     for folder in ['.cargo', 'apps', 'crates', 'tools', 'scripts', 'tests/fixtures', 'licenses', 'packaging', 'third-party']:
         paths += [p for p in (ROOT / folder).rglob('*') if p.is_file() and '__pycache__' not in p.parts and p.suffix != '.pyc']
     records = {p.relative_to(ROOT).as_posix(): sha256(p) for p in sorted(set(paths))}
@@ -175,6 +176,7 @@ def main():
         }))
     elif system == 'linux':
         linux_launcher(output, 'joydeck')
+        copy_linux_installer(output)
     # Preserve the host's SPDX/build metadata contract for release verification.
     import sbom as suite_sbom
     dependency_info = suite_sbom.generate(output / 'SBOM.spdx.json', target, args.profile,

@@ -14,6 +14,7 @@ impl Desktop {
             .items_center()
             .gap_3()
             .bg(rgb(if self.preferences.dark { self.palette().header } else { 0xebedef }))
+            .child(joyoffice_ui::product_logo(joyoffice_ui::Brand::Sheet, 20.))
             .child(div().font_weight(FontWeight::BOLD).text_color(rgb(self.palette().accent)).child("Joysheet"))
             .child(self.toolbar_button("new", self.label("新建", "New"), "file.new", json!({}), cx))
             .child(div().id("open").cursor_pointer().child(self.label("打开", "Open")).on_click(cx.listener(|this, _, w, cx| this.pick_open(w, cx))))

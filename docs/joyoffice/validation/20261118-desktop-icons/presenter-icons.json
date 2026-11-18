@@ -1,0 +1,22 @@
+[
+  {
+    "window": "159383581",
+    "properties": "_NET_WM_NAME(UTF8_STRING) = \"JoyDeck · 放映\"\nWM_CLASS(STRING) = \"joydeck\", \"joydeck\"\n",
+    "iconSize": [
+      256,
+      256
+    ],
+    "argbPixelsMatchDeckIco": true,
+    "argbPropertySha256": "ef7d46007593bd392d5092d2ac4ca579b3b2664815f2b82c95075acbfcf43c92"
+  },
+  {
+    "window": "159383595",
+    "properties": "_NET_WM_NAME(UTF8_STRING) = \"JoyDeck · 演示者视图\"\nWM_CLASS(STRING) = \"joydeck\", \"joydeck\"\n",
+    "iconSize": [
+      256,
+      256
+    ],
+    "argbPixelsMatchDeckIco": true,
+    "argbPropertySha256": "ef7d46007593bd392d5092d2ac4ca579b3b2664815f2b82c95075acbfcf43c92"
+  }
+]

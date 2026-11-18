@@ -5,7 +5,8 @@
     "target_path": "crates/joyoffice-ui/Cargo.toml",
     "source_sha256": "567500515b66356c40ea3e65f11f160093b88f78edf1a834ae138e7047a52da9",
     "local_changes": "CRLF normalized to LF; inherit the unified JoyOffice workspace version; 2026-11-11: shared application theme catalog, persistent preset selection and palette projection; preserve document colors and original source identity",
-    "adapted_sha256": "71444487bf526468f1a945a4082ae91309110589592a91d61827a1a7c0373a19"
+    "adapted_sha256": "d36a0a5e43308904e02cc76b7932ba3e1fb6eea9f214239b63447b9b2d7937b9",
+    "desktop_product_icons": "2026-11-18: embedded native product icons/logos for every product window; portable desktop registration and complete shared artwork source fingerprints; original attribution retained."
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
@@ -13,7 +14,8 @@
     "target_path": "crates/joyoffice-ui/src/lib.rs",
     "source_sha256": "08e23515fe8a44ea93dda33be7d47554c6c6fc4240f35f2fb27b6339fcd7c5cc",
     "local_changes": "CRLF normalized to LF; content otherwise unchanged; 2026-11-11: shared application theme catalog, persistent preset selection and palette projection; preserve document colors and original source identity",
-    "adapted_sha256": "1d275c8be8c91e66cb91e0e5e91d725dc1ec0160e612041577365361cf164ae9"
+    "adapted_sha256": "02a3d2ccbd635c3b83599b9c0b50dd2b62a0e668afc47769a3af382f1a5a5661",
+    "desktop_product_icons": "2026-11-18: embedded native product icons/logos for every product window; portable desktop registration and complete shared artwork source fingerprints; original attribution retained."
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
@@ -68,7 +70,7 @@
     "source_path": "scripts/joydeck/package-native.py",
     "target_path": "scripts/joydeck/package-native.py",
     "source_sha256": "a4ae844b6c2488524872bc69e418673dce6cd1599530447e9efc54ab6be1398e",
-    "adapted_sha256": "d238060a986831a4cbe55be150d70a5c4d61f38bdcbbe7dbba00ead6351508b2",
+    "adapted_sha256": "ec8c11e879efe129bd8c9c885f5b3d22880e6849bf5bdd5a50a852e898716ce1",
     "local_changes": "adapt product packaging and Cargo artifact discovery; add source checks, selected SBOM and atomic ZIP; LF; R1 rustfmt and bounded reader/CPU-renderer/palette/notes adapters as applicable; R2 editable viewer adapter, background save/recovery, command-driven gestures, coordinate anchoring and close guard; rustfmt; R4/R5 scene/content workspace adaptation; R6/R7 adapter additions and repository rustfmt/LF normalization.; R8 native editor, clipboard or product package version adaptation; R9 host integration and explicit command schema negotiation",
     "r9_ui2_gui_fix": "Include reviewed local platform-adapter source in package fingerprint",
     "unified_version": "Resolve the host workspace package version and render it in the bundled README",
@@ -79,7 +81,8 @@
     "safety_integration": "Retain host build-dependency identities in cross-target metadata while selecting only the target normal/build tree (6643745c).",
     "product_branding": "Package the approved product logo, macOS bundle icon and Linux launcher from the shared JoyOffice branding assets.",
     "release_architecture": "Use the Rust host target for package architecture labels, including Windows ARM64.",
-    "stable_package_labels": "Use the normal release package label for the suite release layout."
+    "stable_package_labels": "Use the normal release package label for the suite release layout.",
+    "desktop_product_icons": "2026-11-18: embedded native product icons/logos for every product window; portable desktop registration and complete shared artwork source fingerprints; original attribution retained."
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
@@ -150,7 +153,7 @@
     "source_path": "apps/joydeck/src/viewer.rs",
     "target_path": "crates/joydeck-ui-gpui/src/viewer.rs",
     "source_sha256": "249104bdece51947664a50fe4b8166f358662e78d0000ed7d0024b10fade5584",
-    "adapted_sha256": "4f22cc4d7128f1f160de216d17c497c09df09ca52d8fd22e82cc876f9dbdd9c5",
+    "adapted_sha256": "147cab675114951919bf67a9b3a358ff9f42764dd38ea0012f11c148bdc301b0",
     "local_changes": "Reuse asynchronous read-only viewer, generation guards, cancellation, virtual thumbnail rail and bounded cache; adapt to DeckCraft model and shared CPU renderer; R1 branding and aspect fit; upstream validation modules deferred; R1 rustfmt and bounded reader/CPU-renderer/palette/notes adapters as applicable; R2 editable viewer adapter, background save/recovery, command-driven gestures, coordinate anchoring and close guard; rustfmt; R4/R5 scene/content workspace adaptation; R6/R7 adapter additions and repository rustfmt/LF normalization.; R8 native editor, clipboard or product package version adaptation; R9-UI1 native formatting controls and schema-2 validation/history compatibility (see slice evidence); 2026-11-11: shared application theme catalog, persistent preset selection and palette projection; preserve document colors and original source identity",
     "r9_ui2_adaptation": "Formatting, desktop control and reviewed preservation validation; LF source representation.",
     "r9_ui2_gui_fix": "Synchronize every editor palette with GPUI Kit application theme during render",
@@ -166,7 +169,8 @@
     "product_branding": "Set the editor window app ID to match the Linux desktop launcher.",
     "macos_powerpoint_ribbon": "Integrate the macOS window title bar and register reference ribbon panels.",
     "powerpoint_file_page": "Render the file page across the editor area with independent navigation, search and bounded template preview state.",
-    "ribbon_collapse_navigation": "2026-11-13: retain ribbon selection while collapsed, render the File tab strip, and bind Up/Down to existing slide navigation outside text input."
+    "ribbon_collapse_navigation": "2026-11-13: retain ribbon selection while collapsed, render the File tab strip, and bind Up/Down to existing slide navigation outside text input.",
+    "desktop_product_icons": "2026-11-18: embedded native product icons/logos for every product window; portable desktop registration and complete shared artwork source fingerprints; original attribution retained."
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
@@ -497,11 +501,12 @@
     "target_path": "crates/joydeck-ui-gpui/src/slideshow.rs",
     "source_sha256": "ba57a296c7911ccd7767e4b655906fb1cc9b479ccc0f4e442f00e878acb1e17c",
     "local_changes": "Audience/presenter ownership, separate clocks/windows and media worker adapted to new immutable model; new GPUI controls, frame guards and CPU rendering.; 2026-11-13: device-pixel slideshow targets, single-flight resolution-aware invalidation and bounded static media raster reuse; retain animation, transition and media sampling",
-    "adapted_sha256": "ae2dd0e352f16c3c95622d70de6d9d5ea988da548a2b5da8e614fb61bf752917",
+    "adapted_sha256": "bc044dd13311d4e0cf1140a45ff7ec82db0a59366b167b4fa5515baf9583d0f2",
     "font_environment": "Refresh font selection, editor geometry and rendering caches when installed font files change.",
     "text_hyperlinks": "Dispatch a validated URL returned by the slide show click player.",
     "product_branding": "Group audience and presenter windows with the JoyDeck desktop launcher.",
-    "ribbon_collapse_navigation": "2026-11-13: route Up/Down through existing previous/next slideshow navigation, preserving animation and media behavior."
+    "ribbon_collapse_navigation": "2026-11-13: route Up/Down through existing previous/next slideshow navigation, preserving animation and media behavior.",
+    "desktop_product_icons": "2026-11-18: embedded native product icons/logos for every product window; portable desktop registration and complete shared artwork source fingerprints; original attribution retained."
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
@@ -628,7 +633,7 @@
     "target_path": "crates/joydeck-ui-gpui/src/chrome.rs",
     "source_sha256": "efd229d2bca36c8887fa16026f4946bbe3240cd9ea9b1b9b65c8c83c11933438",
     "local_changes": "R8 per-tab bounded GPUI construction frames follow the old JoyDeck ribbon pattern; split Home into groups and keep intrinsic horizontal scroll width on default MSVC stack.; 2026-11-11: shared application theme catalog, persistent preset selection and palette projection; preserve document colors and original source identity",
-    "adapted_sha256": "84eb522e42a487e89594d46a68d8388b146f9efafeae2643f28891cc5a8eec96",
+    "adapted_sha256": "0a4e53f54c637e166815cb153953073592d7bbd349b431a8465244ffd7c8e180",
     "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained.",
     "cancellable_open": "Add an explicit cancel action to the status bar while opening a document.",
     "shared_document_view": "Separate window selection and state from the shared editor session and preserve revision guards.",
@@ -638,6 +643,7 @@
     "footer_menu": "Expose the existing atomic slide footer commands through the Insert ribbon.",
     "macos_powerpoint_ribbon": "Arrange the native ribbon using the observed macOS PowerPoint tab order, spacing and command groups.",
     "powerpoint_file_page": "Retain the File ribbon tab on every desktop platform and route both file entries to the updated file page.",
-    "ribbon_collapse_navigation": "2026-11-13: toggle the selected ribbon tab on double-click and retain the tab strip for expanded or collapsed File pages."
+    "ribbon_collapse_navigation": "2026-11-13: toggle the selected ribbon tab on double-click and retain the tab strip for expanded or collapsed File pages.",
+    "desktop_product_icons": "2026-11-18: embedded native product icons/logos for every product window; portable desktop registration and complete shared artwork source fingerprints; original attribution retained."
   }
 ]

@@ -1,0 +1,39 @@
+{
+  "passed": true,
+  "realUserProfileModified": false,
+  "products": {
+    "joyword": {
+      "launcher": "launcher-data/applications/joyword.desktop",
+      "executable": "便携 包/joyword/joyword",
+      "gioLaunchPassed": true,
+      "windowIconSize": [
+        256,
+        256
+      ],
+      "windowIconPropertySha256": "f79a183a6fcd15178e8ad3f0ca5662ed4e9915e4d454897fba71f780df6ee248",
+      "installedSvgMatchesProduct": true
+    },
+    "joydeck": {
+      "launcher": "launcher-data/applications/joydeck.desktop",
+      "executable": "便携 包/joydeck/joydeck",
+      "gioLaunchPassed": true,
+      "windowIconSize": [
+        256,
+        256
+      ],
+      "windowIconPropertySha256": "ef7d46007593bd392d5092d2ac4ca579b3b2664815f2b82c95075acbfcf43c92",
+      "installedSvgMatchesProduct": true
+    },
+    "joysheet": {
+      "launcher": "launcher-data/applications/joysheet.desktop",
+      "executable": "便携 包/joysheet/joysheet",
+      "gioLaunchPassed": true,
+      "windowIconSize": [
+        256,
+        256
+      ],
+      "windowIconPropertySha256": "a94aa7a2d42817e102e183089e45216ae5fe4776dc175b3a2581ebc70fd4b4b4",
+      "installedSvgMatchesProduct": true
+    }
+  }
+}

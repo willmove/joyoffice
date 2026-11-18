@@ -34,7 +34,7 @@ def binary(platform, arch):
 
 
 def package(directory, product, version, platform, arch, *,
-            missing_cli=False, wrong_arch=False, wrong_icon=False):
+            missing_cli=False, wrong_arch=False, wrong_icon=False, wrong_desktop_installer=False):
     name = assets.filename(product, version, platform, arch)
     path = directory / name
     root = name[:-4] + '/' if product in {'joydeck', 'joysheet'} else ''
@@ -66,6 +66,8 @@ def package(directory, product, version, platform, arch, *,
         files[contents + 'Info.plist'] = plistlib.dumps({'CFBundleIconFile': icon})
         files[contents + 'Resources/' + icon] = (assets.BRAND / icon).read_bytes()
     elif platform == 'linux':
+        installer = Path(assets.__file__).with_name('install_linux_desktop.py').read_bytes()
+        files[root + 'install-desktop.py'] = b'old installer' if wrong_desktop_installer else installer
         prefixes = ('Joysheet.AppDir/usr/', 'debian/usr/') if product == 'joysheet' else ('',)
         for prefix in prefixes:
             share = root + prefix + 'share/'
@@ -128,6 +130,11 @@ class ReleaseAssets(unittest.TestCase):
         self.matrix('joydeck', wrong_icon=True)
         with self.assertRaisesRegex(ValueError, 'Incorrect product icon'):
             assets.verify_assets(self.directory, 'joydeck', '0.1.0')
+
+    def test_rejects_stale_linux_desktop_installer(self):
+        self.matrix('joyword', wrong_desktop_installer=True)
+        with self.assertRaisesRegex(ValueError, 'Incorrect desktop installer'):
+            assets.verify_assets(self.directory, 'joyword', '0.1.0')
 
     def test_sheet_cannot_publish_a_package_without_its_cli(self):
         self.matrix('joysheet', missing_cli=True)

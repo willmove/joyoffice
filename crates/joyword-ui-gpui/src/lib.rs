@@ -418,6 +418,7 @@ impl JoyWord {
             .items_center()
             .gap_2()
             .bg(rgb(p.header))
+            .child(joyoffice_ui::product_logo(joyoffice_ui::Brand::Word, 20.))
             .child(
                 div()
                     .font_weight(gpui::FontWeight::BOLD)
@@ -1128,14 +1129,13 @@ pub fn run() {
             let bounds = Bounds::centered(None, size(px(1440.0), px(900.0)), cx);
             let result = gpui_kit::open_window(
                 WindowOptions {
-                    app_id: Some("joyword".into()),
                     window_bounds: Some(WindowBounds::Windowed(bounds)),
                     window_min_size: Some(size(px(700.0), px(500.0))),
                     titlebar: Some(gpui::TitlebarOptions {
                         title: Some("JoyWord".into()),
                         ..Default::default()
                     }),
-                    ..Default::default()
+                    ..joyoffice_ui::product_window_options(joyoffice_ui::Brand::Word)
                 },
                 cx,
                 |window, cx| {

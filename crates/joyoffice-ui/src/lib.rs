@@ -1,7 +1,7 @@
 //! Product-neutral presentation primitives. No editor, command or persistence state.
 //!
-//! Applications own identity, accessibility, focus routing and activation. These
-//! surfaces only supply the shared visual vocabulary and interaction states.
+//! Applications select their brand and own accessibility, focus routing and
+//! activation. These surfaces supply shared visuals and native icon resources.
 pub use gpui_kit::assets::IconName;
 use gpui_kit::component::Icon;
 use gpui_kit::{Div, ParentElement, Styled, div, px, rgb};
@@ -9,6 +9,8 @@ use gpui_kit::{Div, ParentElement, Styled, div, px, rgb};
 pub use joyoffice_theme::{Brand, Palette, ThemePreset};
 mod appearance;
 pub use appearance::{AppliedTheme, apply_theme, theme_preview};
+mod branding;
+pub use branding::{product_logo, product_window_options};
 
 /// Logical pixels; document zoom never changes application chrome dimensions.
 pub mod metrics {
