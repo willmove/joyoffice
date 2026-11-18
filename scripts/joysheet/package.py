@@ -192,7 +192,7 @@ def package(profile, validation, output=None):
                                ("Run performance benchmark.cmd", "-Performance -FormulaCases")]:
                 (destination / name).write_text('@echo off\r\ncd /d "%~dp0"\r\npwsh.exe -NoProfile -File '
                     f'"scripts\\joysheet\\desktop-smoke.ps1" -BinaryDirectory "." -Stage M1 {args} %*\r\npause\r\n', encoding="utf-8")
-    from native import bundle
+    from native import bundle, windows_installer
     bundle(destination, version)
     source_archive(destination.parent / (destination.name + "-source.zip"), before, version)
     sbom.require_unchanged_sources(before, source_snapshot(target, features))
@@ -206,6 +206,8 @@ def package(profile, validation, output=None):
                 archive.write(path, destination.name + "/" + path.relative_to(destination).as_posix())
     archive_path.with_name(archive_path.name + ".sha256").write_text(
         hashlib.sha256(archive_path.read_bytes()).hexdigest() + "  " + archive_path.name + "\n", encoding="ascii")
+    if system == "windows":
+        windows_installer(destination)
     print(destination)
     return destination
 

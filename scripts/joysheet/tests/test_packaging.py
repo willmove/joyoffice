@@ -1,4 +1,5 @@
 """Exercise package boundaries and Cargo artifact selection without rebuilding."""
+import hashlib
 import importlib.util
 import json
 from pathlib import Path
@@ -6,6 +7,7 @@ import sys
 import tomllib
 import unittest
 import tempfile
+import zipfile
 from unittest.mock import patch
 
 SCRIPTS = Path(__file__).resolve().parents[1]
@@ -65,6 +67,53 @@ class Packaging(unittest.TestCase):
                     patch.object(package.sbom, 'graph', return_value=graph):
                 with self.assertRaisesRegex(ValueError, 'Missing dependency license texts'):
                     package.sbom.generate(root / 'SBOM.json', 'host', roots=project.APPLICATIONS, require_license_texts=True)
+
+    def test_windows_installer_uses_the_final_portable_payload(self):
+        import native
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            docs = root / "docs/joysheet"
+            docs.mkdir(parents=True)
+            (root / "scripts/joysheet").mkdir(parents=True)
+            (root / "LICENSE").touch()
+            for name in ("LICENSE-MIT", "LICENSE-APACHE", "NOTICE", "ATTRIBUTION.md"):
+                (docs / name).touch()
+            artifacts = {name: root / (name + ".exe") for name in ("joysheet", "joysheet-cli")}
+            for path in artifacts.values():
+                path.write_bytes(b"fixture binary")
+            destination = root / "payload"
+            runtime = destination / "vcruntime140.dll"
+            manifest = destination / "PAYLOAD-SHA256.json"
+            phases = []
+
+            def run(command):
+                if "-PrepareOnly" in command:
+                    self.assertFalse(manifest.exists())
+                    runtime.write_bytes(b"fixture runtime")
+                    phases.append("prepare")
+                    return
+                names = json.loads(manifest.read_text(encoding="utf-8"))
+                self.assertEqual(names[runtime.name], hashlib.sha256(runtime.read_bytes()).hexdigest())
+                with zipfile.ZipFile(root / "payload.zip") as portable:
+                    self.assertEqual(portable.read("payload/PAYLOAD-SHA256.json"), manifest.read_bytes())
+                    self.assertEqual(portable.read("payload/vcruntime140.dll"), runtime.read_bytes())
+                phases.append("compile")
+
+            with (
+                patch.object(package, "ROOT", root),
+                patch.object(package, "INTEGRATION_DOCS", ()),
+                patch.object(package, "manifest_version", return_value="0.2.0"),
+                patch.object(package, "host_target", return_value="x86_64-pc-windows-msvc"),
+                patch.object(package, "build", return_value=artifacts),
+                patch.object(package, "source_snapshot", return_value={}),
+                patch.object(package, "source_archive"),
+                patch.object(package.sbom, "generate", return_value={"lockSha256": "fixture"}),
+                patch.object(package.platform, "system", return_value="Windows"),
+                patch.object(native, "run", side_effect=run),
+            ):
+                self.assertEqual(package.package("release", False, destination), destination.resolve())
+            self.assertEqual(phases, ["prepare", "compile"])
 
     def test_standalone_workspace_keeps_consumed_shared_crates_and_features(self):
         source = '''[workspace]

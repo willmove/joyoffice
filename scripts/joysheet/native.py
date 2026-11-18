@@ -11,12 +11,17 @@ from project import run
 from product_icons import bundle_icon, linux_launcher
 
 
+def windows_installer(directory, *, prepare_only=False):
+    run(["pwsh.exe", "-NoProfile", "-File", "scripts/joysheet/package-windows.ps1",
+         "-Directory", str(directory), "-Output", str(directory.parent / (directory.name + "-setup.exe")),
+         *(["-PrepareOnly"] if prepare_only else [])])
+
+
 def bundle(directory, version):
     system = platform.system()
     target = json.loads((directory / "BUILD.json").read_text(encoding="utf-8"))["target"]
     if system == "Windows":
-        run(["pwsh.exe", "-NoProfile", "-File", "scripts/joysheet/package-windows.ps1",
-             "-Directory", str(directory), "-Output", str(directory.parent / (directory.name + "-setup.exe"))])
+        windows_installer(directory, prepare_only=True)
     elif system == "Darwin":
         app = directory / "Joysheet.app/Contents"
         binaries = app / "MacOS"
