@@ -21,7 +21,7 @@ use joyword_model::props::{Border, BorderStyle, CharProps, Rgb, TextColor};
 use joyword_model::{Document, Paragraph, Pos, StoryRef};
 
 use crate::display::{author_order, revision_color};
-use crate::{BoxInput, BoxLayout, Ctx, DocLayout, Edges, Placed, fit_box, layout_box, push_para};
+use crate::{BoxInput, BoxLayout, Ctx, DocLayout, Edges, Placed, layout_box, push_para};
 
 /// Width of the markup area beside each page (points): the editor's.
 pub const MARKUP_AREA: f32 = 216.0;
@@ -258,7 +258,7 @@ pub(crate) fn add(ctx: &mut Ctx, lay: &mut DocLayout) {
             }
             let avail = bottom - top;
             let (items, h) = if c.h > avail {
-                (fit_box(c.items, avail - PAD), avail)
+                (crate::textbox::fit_box(&c.items, avail - PAD), avail)
             } else {
                 (c.items, c.h)
             };

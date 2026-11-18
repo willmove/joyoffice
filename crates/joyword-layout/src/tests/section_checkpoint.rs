@@ -203,3 +203,185 @@ fn body_total_before_the_window_never_keeps_a_stale_cached_value()
     assert_eq!(after.index, full.index);
     Ok(())
 }
+
+#[test]
+fn clipped_groups_linked_boxes_and_distant_endnotes_reflow_at_their_displayed_section()
+-> Result<(), Box<dyn std::error::Error>> {
+    use joyword_model::{
+        PartKind,
+        para::{CanvasStyle, Float, GroupChild, NoteKind, ShapeKind, Wrap},
+        section::NotePos,
+    };
+
+    let paragraph =
+        |text: &str| joyword_model::para_block(Paragraph::with_text(text, Default::default()));
+    let mut doc = Document::new();
+    doc.body.clear();
+    doc.settings.endnote_pr.pos = Some(NotePos::DocEnd);
+    for si in 0..70 {
+        doc.body.extend([
+            paragraph("Heading"),
+            paragraph("Body"),
+            paragraph("Frame anchor"),
+            paragraph("End"),
+        ]);
+        if si < 69 {
+            let mut sect = doc.last_section.clone();
+            if si == 35 {
+                sect.endnote_pr.pos = Some(NotePos::SectEnd);
+            }
+            doc.para_mut(StoryRef::Body, &Path::top(si * 4 + 3))?
+                .section = Some(Box::new(sect));
+        }
+    }
+    let head = doc.add_part(
+        PartKind::TextBox,
+        vec![paragraph(&"Linked text ".repeat(30))],
+    );
+    let tail = doc.add_part(PartKind::TextBox, vec![paragraph("")]);
+    doc.parts.get_mut(&head).ok_or("missing frame")?.body.next = Some(tail);
+    let shape = |id| InlineObject::Shape {
+        kind: ShapeKind::TextBox,
+        w: 90.,
+        h: 40.,
+        fill: None,
+        stroke: None,
+        stroke_width: 0.,
+        float: Float {
+            wrap: Wrap::Square,
+            ..Default::default()
+        },
+        story: Some(id),
+        effects: Default::default(),
+        freeform: None,
+        extra: Default::default(),
+    };
+    let group = InlineObject::Group {
+        w: 140.,
+        h: 70.,
+        ch_w: 140.,
+        ch_h: 70.,
+        float: Float {
+            wrap: Wrap::Square,
+            rot: 14.,
+            flip_h: true,
+            ..Default::default()
+        },
+        canvas: Some(CanvasStyle::default()),
+        children: vec![
+            GroupChild {
+                x: 12.,
+                y: 8.,
+                obj: shape(head),
+            },
+            GroupChild {
+                x: 112.,
+                y: 9.,
+                obj: picture(48., 25., Default::default()),
+            },
+        ],
+    };
+    doc.insert_object(&Pos::body(34 * 4 + 2, 0), group, &Default::default())?;
+    doc.insert_object(&Pos::body(35 * 4 + 2, 0), shape(tail), &Default::default())?;
+    let mut ids = Vec::new();
+    for (section, label) in [
+        (2, "Earlier mark"),
+        (35, "Local mark"),
+        (54, "Document mark"),
+        (63, "Last mark"),
+    ] {
+        let id = doc.add_part(PartKind::Endnote, vec![paragraph(label)]);
+        doc.insert_object(
+            &Pos::body(section * 4 + 1, 0),
+            InlineObject::NoteRef {
+                kind: NoteKind::Endnote,
+                id,
+                custom: String::new(),
+            },
+            &Default::default(),
+        )?;
+        ids.push(id);
+    }
+    let opts = LayoutOptions::default();
+    let mut cache = LayoutCache::new();
+    let mut old = layout_shared(&doc, &mut cache, &opts);
+    assert_eq!(old.pages.len(), 70);
+    for (&id, wanted) in ids.iter().zip([35, 35, 69, 69]) {
+        let pages = &old.index[&(StoryRef::Part(id), Path::top(0))];
+        assert_eq!(old.pages[pages[0].0].section, wanted);
+    }
+    assert!(
+        old.pages
+            .iter()
+            .flat_map(|p| &p.items)
+            .any(|it| matches!(it,Placed::Clip{items,..} if !items.is_empty()))
+    );
+    for (pos, text, first, last) in [
+        (
+            Pos::body(34 * 4 + 1, 0),
+            "Expanded body ".repeat(1050),
+            34,
+            69,
+        ),
+        (
+            Pos::new(StoryRef::Part(head), Path::top(0), 0),
+            "Edit first frame ".repeat(5),
+            34,
+            35,
+        ),
+        (
+            Pos::new(StoryRef::Part(ids[0]), Path::top(0), 0),
+            "Edited deferred endnote ".to_string(),
+            35,
+            35,
+        ),
+        (
+            Pos::new(StoryRef::Part(ids[2]), Path::top(0), 0),
+            "Edited document endnote ".repeat(9),
+            69,
+            69,
+        ),
+    ] {
+        let before = doc.clone();
+        doc.insert_text(&pos, &text, &Default::default())?;
+        for version in [&doc, &before, &doc] {
+            let changed = layout_shared(version, &mut cache, &opts);
+            let dirty = changed
+                .changed_pages_from(&old)
+                .ok_or_else(|| format!("full layout for {pos:?}"))?;
+            assert!(
+                changed.pages[dirty.start].section <= first,
+                "{pos:?}: {dirty:?}"
+            );
+            assert!(
+                dirty.end
+                    >= changed
+                        .pages
+                        .iter()
+                        .rposition(|p| p.section <= last)
+                        .unwrap()
+                        + 1
+            );
+            let rebuilt = layout(version, &mut LayoutCache::new(), &opts);
+            assert_eq!(changed.index, rebuilt.index);
+            assert_eq!(changed.pages.len(), rebuilt.pages.len());
+            for (pi, (a, b)) in changed.pages.iter().zip(&rebuilt.pages).enumerate() {
+                assert_eq!(format!("{a:?}"), format!("{b:?}"), "page {pi} {pos:?}");
+                if (*a).section == 34 || a.section == 35 || a.section == 69 {
+                    for story in [
+                        StoryRef::Body,
+                        StoryRef::Part(head),
+                        StoryRef::Part(ids[0]),
+                        StoryRef::Part(ids[2]),
+                    ] {
+                        for (x, y) in [(75., 78.), (120., 135.), (150., 190.)] {
+                            assert_eq!(changed.hit(pi, x, y, story), rebuilt.hit(pi, x, y, story));
+                        }
+                    }
+                }
+            }
+            old = changed;
+        }
+    }
+    Ok(())
+}

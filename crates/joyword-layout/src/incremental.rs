@@ -22,6 +22,9 @@ pub(crate) struct Previous {
     requires_section_flow: bool,
     media: BTreeMap<String, Arc<Vec<u8>>>,
     page_stories: bool,
+    endnotes: Option<crate::notes::Endnotes>,
+    /// First and last body anchor for a text story, including all its linked frames.
+    boxes: BTreeMap<u32, (usize, usize)>,
     body_fields: bool,
     /// Only the most recently verified section keeps its paragraph shaping cache.
     checked_section: Option<(std::ops::Range<usize>, Box<LayoutCache>)>,
@@ -61,8 +64,17 @@ pub fn layout_shared(
         return next;
     }
 
-    let layout = Arc::new(layout(doc, cache, opts));
-    let mut requires_section_flow = false;
+    let endnotes = crate::notes::Endnotes::collect(doc, opts.hides_deleted(StoryRef::Body));
+    let layout = Arc::new(crate::layout_at(
+        doc,
+        cache,
+        opts,
+        crate::PageOrigin {
+            endnotes: endnotes.as_ref(),
+            ..Default::default()
+        },
+    ));
+    let mut requires_section_flow = endnotes.is_some();
     let mut body_fields = false;
     if layout.pages.len() >= MIN_PAGES
         && eligible(doc, opts)
@@ -71,6 +83,7 @@ pub fn layout_shared(
                 .blocks
                 .iter()
                 .all(|b| b.as_para().is_some_and(|p| running_paragraph(doc, p))),
+            joyword_model::PartKind::TextBox => supported_box(doc, part),
             joyword_model::PartKind::Footnote | joyword_model::PartKind::Endnote => part
                 .blocks
                 .iter()
@@ -94,8 +107,11 @@ pub fn layout_shared(
                 true
             }),
         })
+        && let Some(boxes) = box_anchors(doc)
     {
         cache.previous = Some(Previous {
+            boxes,
+            endnotes,
             body: doc.body.clone(),
             notes: doc.parts.clone(),
             requires_section_flow,
@@ -142,7 +158,8 @@ fn supported_body_object(object: &joyword_model::InlineObject) -> bool {
             | BookmarkEnd { .. }
             | Image { .. }
             | Graphic { .. }
-            | Shape { story: None, .. }
+            | Shape { .. }
+            | Group { .. }
     )
 }
 
@@ -214,6 +231,63 @@ fn table_flow(
     owns_typing.then_some(result)
 }
 
+fn supported_box(doc: &Document, part: &joyword_model::Part) -> bool {
+    part.blocks.iter().all(|b| match b.as_ref() {
+        joyword_model::Block::Para(p) => {
+            plain_paragraph(doc, p) && doc.styles.resolve_para(&p.props).numbering.is_none()
+        }
+        joyword_model::Block::Table(t) => table_flow(doc, t, None).is_some(),
+    })
+}
+
+fn box_anchors(doc: &Document) -> Option<BTreeMap<u32, (usize, usize)>> {
+    let mut anchors = BTreeMap::new();
+    if !doc
+        .parts
+        .values()
+        .any(|p| p.kind == joyword_model::PartKind::TextBox)
+    {
+        return Some(anchors);
+    }
+    // Tables admitted by table_flow have no drawing objects. All other
+    // eligible frames are in body paragraphs, including the children of groups.
+    for (block, p) in doc
+        .body
+        .iter()
+        .enumerate()
+        .filter_map(|(i, b)| Some((i, b.as_para()?)))
+    {
+        let mut pending: Vec<_> = p.objects.iter().filter(|o| o.is_drawing()).collect();
+        while let Some(o) = pending.pop() {
+            match o {
+                joyword_model::InlineObject::Group { children, .. } => {
+                    pending.extend(children.iter().map(|child| &child.obj))
+                }
+                joyword_model::InlineObject::Shape {
+                    story: Some(id), ..
+                } => {
+                    if doc.parts.get(id)?.kind != joyword_model::PartKind::TextBox {
+                        return None;
+                    }
+                    anchors.entry(*id).or_insert((block, block)).1 = block;
+                }
+                _ => {}
+            }
+        }
+    }
+    for chain in doc.text_box_chains() {
+        let mut bounds = (usize::MAX, 0);
+        for id in &chain {
+            let (first, last) = *anchors.get(id)?;
+            bounds = (bounds.0.min(first), bounds.1.max(last));
+        }
+        for id in chain {
+            anchors.insert(id, bounds);
+        }
+    }
+    Some(anchors)
+}
+
 fn eligible(doc: &Document, opts: &LayoutOptions) -> bool {
     opts.view == ViewMode::Print
         && !opts.comment_balloons
@@ -249,6 +323,9 @@ impl Previous {
                     ..opts.clone()
                 })
             || self.env != env_hash(doc, opts)
+            || (self.endnotes.is_some()
+                && self.endnotes
+                    != crate::notes::Endnotes::collect(doc, opts.hides_deleted(StoryRef::Body)))
         {
             return None;
         }
@@ -269,16 +346,23 @@ impl Previous {
                     || !matches!(
                         new.kind,
                         joyword_model::PartKind::Footnote
+                            | joyword_model::PartKind::Endnote
+                            | joyword_model::PartKind::TextBox
                             | joyword_model::PartKind::Header
                             | joyword_model::PartKind::Footer
                     )
-                    || !new.blocks.iter().all(|b| {
-                        b.as_para().is_some_and(|p| {
-                            plain_paragraph(doc, p)
-                                && (new.kind == joyword_model::PartKind::Footnote
-                                    || running_paragraph(doc, p))
-                        })
-                    })
+                    || !match new.kind {
+                        joyword_model::PartKind::TextBox => supported_box(doc, new),
+                        joyword_model::PartKind::Footnote | joyword_model::PartKind::Endnote => new
+                            .blocks
+                            .iter()
+                            .all(|b| b.as_para().is_some_and(|p| plain_paragraph(doc, p))),
+                        _ => new.blocks.iter().all(|b| {
+                            b.as_para().is_some_and(|p| {
+                                plain_paragraph(doc, p) && running_paragraph(doc, p)
+                            })
+                        }),
+                    }
                     || [(self.options.typing_word, old), (opts.typing_word, new)]
                         .into_iter()
                         .any(|(word, part)| {
@@ -341,8 +425,21 @@ impl Previous {
                 self.checked_section = None;
                 return Some((Change::Part(id), next));
             }
-            let anchor = doc.body.iter().position(|b| b.as_para().is_some_and(|p| p.objects.iter().any(|o|
-                matches!(o, joyword_model::InlineObject::NoteRef { id: target, .. } if *target == id))))?;
+            let anchor = match doc.parts.get(&id)?.kind {
+                joyword_model::PartKind::TextBox => self.boxes.get(&id)?.0,
+                joyword_model::PartKind::Endnote => {
+                    let plan = self.endnotes.as_ref()?;
+                    if let Some(section) = plan.sections.iter().position(|ids| ids.contains(&id)) {
+                        doc.sections().get(section)?.0
+                    } else if plan.document.contains(&id) {
+                        doc.body.len().checked_sub(1)?
+                    } else {
+                        return None;
+                    }
+                }
+                _ => doc.body.iter().position(|b| b.as_para().is_some_and(|p| p.objects.iter().any(|o|
+                    matches!(o, joyword_model::InlineObject::NoteRef { id: target, .. } if *target == id))))?,
+            };
             return self
                 .reflow_sections(doc, opts, anchor, &self.layout.upgrade()?)
                 .map(|layout| (Change::Part(id), layout));
@@ -671,7 +768,7 @@ fn same_items(left: &[Placed], right: &[Placed], start: usize) -> bool {
                     l1: ae,
                     x: ax,
                     y: ay,
-                    turn: TextDirection::Horizontal,
+                    turn: at,
                 },
                 Placed::Lines {
                     story: right_story,
@@ -681,7 +778,7 @@ fn same_items(left: &[Placed], right: &[Placed], start: usize) -> bool {
                     l1: be,
                     x: bx,
                     y: by,
-                    turn: TextDirection::Horizontal,
+                    turn: bt,
                 },
             ) => {
                 let path_matches = left_story == right_story
@@ -691,7 +788,7 @@ fn same_items(left: &[Placed], right: &[Placed], start: usize) -> bool {
                     };
                 path_matches
                     && a.shown == b.shown
-                    && (al, ae, ax, ay) == (bl, be, bx, by)
+                    && (al, ae, ax, ay, at) == (bl, be, bx, by, bt)
                     && a.rp == b.rp
                     && a.styles == b.styles
                     && a.issues == b.issues
@@ -708,7 +805,7 @@ fn same_items(left: &[Placed], right: &[Placed], start: usize) -> bool {
                     table: at,
                     row: ar,
                     cell: ai,
-                    story: StoryRef::Body,
+                    story: as_,
                     clip: ap,
                 },
                 Placed::Cell {
@@ -717,10 +814,26 @@ fn same_items(left: &[Placed], right: &[Placed], start: usize) -> bool {
                     table: bt,
                     row: br,
                     cell: bi,
-                    story: StoryRef::Body,
+                    story: bs,
                     clip: bp,
                 },
-            ) => same_body_path(at, bt, start) && (a, ac, ar, ai, ap) == (b, bc, br, bi, bp),
+            ) => {
+                as_ == bs
+                    && (if *as_ == StoryRef::Body {
+                        same_body_path(at, bt, start)
+                    } else {
+                        at == bt
+                    })
+                    && (a, ac, ar, ai, ap) == (b, bc, br, bi, bp)
+            }
+            (
+                Placed::Clip { rect, spin, items },
+                Placed::Clip {
+                    rect: r,
+                    spin: s,
+                    items: i,
+                },
+            ) => rect == r && spin == s && same_items(items, i, start),
             (Placed::Fill { rect: a, color: ac }, Placed::Fill { rect: b, color: bc }) => {
                 (a, ac) == (b, bc)
             }

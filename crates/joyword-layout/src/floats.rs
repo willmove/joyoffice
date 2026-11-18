@@ -388,7 +388,6 @@ fn float_items(
                 // carries the turn (drawn as the turn around the clip).
                 Some(c) => {
                     let members = group_members(o, rect)
-                        .into_iter()
                         .flat_map(|(r, m)| {
                             float_items(m, r, (Spin::default(), centre), story, path, off)
                         })
@@ -419,7 +418,6 @@ fn float_items(
                     ]
                 }
                 None => group_members(o, rect)
-                    .into_iter()
                     .flat_map(|(r, c)| float_items(c, r, (spin, centre), story, path, off))
                     .collect(),
             }
@@ -449,13 +447,10 @@ fn carried(rect: Rect, spin: Spin, centre: Point) -> Rect {
     Rect::new(rect.x + nx - cx, rect.y + ny - cy, rect.w, rect.h)
 }
 
-fn group_members(o: &InlineObject, rect: Rect) -> Vec<(Rect, &InlineObject)> {
-    // Hidden members aren't placed (nor their text boxes laid out).
-    o.group_rects(rect.x, rect.y, rect.w, rect.h)
-        .into_iter()
-        .filter(|(_, c)| !c.frame().is_some_and(|(_, _, f)| f.hidden))
-        .map(|([x, y, w, h], c)| (Rect::new(x, y, w, h), c))
-        .collect()
+fn group_members(o: &InlineObject, rect: Rect) -> impl Iterator<Item = (Rect, &InlineObject)> {
+    o.group_frames(rect.x, rect.y, rect.w, rect.h)
+        .filter(|(_, child)| !child.frame().is_some_and(|(_, _, f)| f.hidden))
+        .map(|([x, y, w, h], child)| (Rect::new(x, y, w, h), child))
 }
 
 /// Position the floating objects anchored in `p` for a paragraph whose text starts at `y0` in
@@ -736,7 +731,6 @@ pub(crate) fn place_objects(ctx: &mut Ctx, req: &ObjectPlacement) -> (Vec<Placed
             let centre = Point::new(rect.x + rect.w / 2.0, rect.y + rect.h / 2.0);
             let boxes: Vec<(u32, Rect)> = match obj {
                 InlineObject::Group { .. } => group_members(obj, rect)
-                    .into_iter()
                     .filter_map(|(r, c)| {
                         c.text_box()
                             .filter(|id| {

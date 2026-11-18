@@ -114,6 +114,62 @@ pub(crate) fn note_info(
     m
 }
 
+/// Resolve the destination of every endnote in the original document. A
+/// section-end setting also drains earlier notes deferred by previous sections.
+/// A fragment can then place a note whose reference is outside its body.
+#[derive(PartialEq, Eq)]
+pub(crate) struct Endnotes {
+    pub(crate) labels: HashMap<u32, fields::NoteNum>,
+    pub(crate) sections: Vec<Vec<u32>>,
+    pub(crate) document: Vec<u32>,
+}
+
+impl Endnotes {
+    pub(crate) fn collect(doc: &Document, hide_deleted: HideDeleted) -> Option<Self> {
+        let is_endnote = |id: &u32| {
+            doc.parts
+                .get(id)
+                .is_some_and(|p| p.kind == joyword_model::PartKind::Endnote)
+        };
+        if !doc
+            .parts
+            .values()
+            .any(|p| p.kind == joyword_model::PartKind::Endnote)
+        {
+            return None;
+        }
+        let mut labels = note_info(doc, hide_deleted, &HashMap::new());
+        labels.retain(|id, _| is_endnote(id));
+        let sections = doc.sections();
+        let mut destinations = vec![None; sections.len()];
+        let mut next = None;
+        for (i, (_, sect)) in sections.iter().enumerate().rev() {
+            if doc.note_options(sect, true).pos == joyword_model::section::NotePos::SectEnd {
+                next = Some(i);
+            }
+            destinations[i] = next;
+        }
+        let mut ordered: Vec<_> = labels
+            .iter()
+            .map(|(&id, label)| (label.order, id, label.section))
+            .collect();
+        ordered.sort_unstable();
+        let mut by_section = vec![Vec::new(); sections.len()];
+        let mut document = Vec::new();
+        for (_, id, anchor) in ordered {
+            match destinations.get(anchor).copied().flatten() {
+                Some(section) => by_section[section].push(id),
+                None => document.push(id),
+            }
+        }
+        Some(Self {
+            labels,
+            sections: by_section,
+            document,
+        })
+    }
+}
+
 /// Note part ids → numbers, numbered on (see [`note_info`]).
 #[cfg(test)]
 pub(crate) fn note_numbers(doc: &Document, hide_deleted: HideDeleted) -> HashMap<u32, u32> {
@@ -487,7 +543,7 @@ pub(crate) const MAX_NOTE_PASSES: usize = 3;
 
 /// Place endnotes `ids` below the text so far: a separator (the document's own, else a short
 /// line), then each note, moving to the next column or page when one doesn't fit.
-pub(crate) fn place_endnotes(ctx: &mut Ctx, pb: &mut PageBuilder, ids: Vec<u32>, block: usize) {
+pub(crate) fn place_endnotes(ctx: &mut Ctx, pb: &mut PageBuilder, ids: &[u32], block: usize) {
     if ids.is_empty() || pb.web {
         return;
     }
@@ -523,7 +579,7 @@ pub(crate) fn place_endnotes(ctx: &mut Ctx, pb: &mut PageBuilder, ids: Vec<u32>,
         pb.y += 8.0;
     }
     let mut added = 0usize;
-    for id in ids {
+    for &id in ids {
         let Some(part) = ctx.doc.parts.get(&id) else {
             continue;
         };

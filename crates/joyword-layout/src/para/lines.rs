@@ -157,6 +157,7 @@ pub(super) fn break_lines(
     env: &ParaEnv,
     mark_style: u32,
     level: Option<&Level>,
+    frame_start: Option<usize>,
 ) {
     let width = env.width.max(MIN_LINE_WIDTH);
     let mirrored = pl
@@ -165,9 +166,16 @@ pub(super) fn break_lines(
         .then(|| mirrored_exclusions(env.exclusions, width));
     let exclusions = mirrored.as_deref().unwrap_or(env.exclusions);
     let mut bk = Breaker::new(pl, (env, exclusions), mark_style, level);
+    // A linked frame can begin inside a line at this width. Use the original
+    // source offset so fields, bidirectional runs and grapheme hit positions survive.
+    let boundary = frame_start.and_then(|byte| {
+        let i = pl.clusters.partition_point(|c| c.start < byte);
+        (pl.clusters.get(i)?.start == byte).then_some(i)
+    });
     loop {
         let mut sc = bk.begin_line(pl);
-        sc.scan(&mut bk, pl);
+        let stop = boundary.filter(|&i| i > sc.c0).unwrap_or(bk.n);
+        sc.scan(&mut bk, pl, stop);
         if sc.skip {
             bk.skip_row(&sc);
             continue;
@@ -936,8 +944,15 @@ fn justify_line(
 
 impl Scan {
     /// Put clusters on the line until it is full or ends.
-    fn scan(&mut self, bk: &mut Breaker, pl: &mut ParaLayout) {
-        while self.j < bk.n && !self.step(bk, pl) {}
+    fn scan(&mut self, bk: &mut Breaker, pl: &mut ParaLayout, stop: usize) {
+        while self.j < stop {
+            if self.step(bk, pl) {
+                return;
+            }
+        }
+        if stop < bk.n {
+            self.end = LineEnd::Wrap;
+        }
     }
 
     /// Put the cluster at `j` on the line. True when the line ends here.

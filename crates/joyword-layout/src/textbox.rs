@@ -14,7 +14,10 @@ use joyword_geom::Rect;
 use joyword_model::props::{TextDirection, TextVert, VAlign};
 use joyword_model::{Block, Blocks, Path, StoryRef, TextBody};
 
-use crate::{BoxInput, Ctx, Placed, fit_box, layout_box};
+use crate::{BoxInput, Ctx, Placed, layout_box};
+mod frame;
+use frame::FrameLayout;
+pub(crate) use frame::fit_box;
 
 /// Linked text boxes for one layout, worked out when a linked box is first laid out.
 #[derive(Default)]
@@ -136,7 +139,7 @@ pub(crate) fn box_items(ctx: &mut Ctx, id: u32, rect: Rect, depth: usize) -> Vec
             if body.auto_fit {
                 inner
             } else {
-                fit_box(inner, across)
+                fit_box(&inner, across)
             }
         }
     };
@@ -249,6 +252,7 @@ fn chain_share(ctx: &mut Ctx, id: u32, depth: usize) -> Option<Vec<Placed>> {
 
 /// Where a box's text starts: the line holding byte `byte` of paragraph `path`.
 struct Cut {
+    story: StoryRef,
     path: Path,
     byte: usize,
 }
@@ -272,6 +276,38 @@ fn flow_key(len: f32, vert: TextVert) -> (i32, TextVert) {
     ((len * 20.0).round() as i32, vert)
 }
 
+/// Bound repeated shaping when every frame starts in the middle of a line
+/// at the new width. The charge counts input bytes and a minimum for each
+/// block and table cell. A large chain uses its narrowest frame throughout.
+const FRAME_REFLOW_BUDGET: usize = 256 * 1024;
+
+fn fits_reflow_budget(blocks: &Blocks, remaining: &mut usize) -> bool {
+    for block in blocks {
+        let charge = match &**block {
+            Block::Para(p) => p.text.len().saturating_add(32),
+            Block::Table(t) => {
+                for row in &t.rows {
+                    for cell in &row.cells {
+                        let Some(left) = remaining.checked_sub(32) else {
+                            return false;
+                        };
+                        *remaining = left;
+                        if !fits_reflow_budget(&cell.blocks, remaining) {
+                            return false;
+                        }
+                    }
+                }
+                32
+            }
+        };
+        let Some(left) = remaining.checked_sub(charge) else {
+            return false;
+        };
+        *remaining = left;
+    }
+    true
+}
+
 /// Split the text of `chain`'s first box over its boxes.
 fn flow(ctx: &mut Ctx, chain: &[u32], depth: usize) -> Vec<Vec<Placed>> {
     let Some(&head) = chain.first() else {
@@ -292,56 +328,80 @@ fn flow(ctx: &mut Ctx, chain: &[u32], depth: usize) -> Vec<Vec<Placed>> {
     // time), sharing a layout with the boxes before it of the same length.
     let snap = (ctx.counters.clone(), ctx.eq_count);
     let mut after = None;
-    let mut layouts: Vec<((i32, TextVert), Vec<Placed>)> = Vec::new();
+    let frames: Vec<_> = chain
+        .iter()
+        .map(|id| {
+            let body = ctx.doc.parts.get(id).map(|p| p.body).unwrap_or_default();
+            let (w, h) = sizes.get(id).copied().unwrap_or_default();
+            let (len, across) = frame(&body, w, h);
+            (len, body.vert, across)
+        })
+        .collect();
+    let (first, vert, _) = frames[0];
+    let mut budget = FRAME_REFLOW_BUDGET / frames.len();
+    let shared = (frames
+        .iter()
+        .any(|&(w, v, _)| flow_key(w, v) != flow_key(first, vert))
+        && !fits_reflow_budget(&blocks, &mut budget))
+    .then(|| {
+        frames
+            .iter()
+            .map(|&(w, v, _)| (w, v))
+            .min_by_key(|&(w, v)| (flow_key(w, v).0, v != TextVert::Stacked))
+            .unwrap_or((first, vert))
+    });
+    let mut layouts: Vec<((i32, TextVert), f32, FrameLayout)> = Vec::new();
     let mut out = Vec::with_capacity(chain.len());
     // Where the next box's text starts: `Some(None)` at the beginning, `None` when all is shown.
     let mut start: Option<Option<Cut>> = Some(None);
-    for id in chain {
+    for (len, vert, across) in frames {
         let Some(cut) = start.take() else {
             out.push(Vec::new());
             continue;
         };
-        let body = ctx.doc.parts.get(id).map(|p| p.body).unwrap_or_default();
-        let (w, h) = sizes.get(id).copied().unwrap_or((0.0, 0.0));
-        let (len, across) = frame(&body, w, h);
-        let key = flow_key(len, body.vert);
+        let (len, vert) = shared.unwrap_or((len, vert));
+        let key = flow_key(len, vert);
         // Past the cap the box takes the nearest layout in its direction: the widest line length
         // that fits it, else the narrowest. The first box in a direction is laid out (one more
         // layout for each of the few directions at most).
-        let near = || {
+        let closest = || {
             layouts
                 .iter()
-                .filter(|((_, v), _)| *v == key.1)
-                .min_by_key(|((k, _), _)| (*k > key.0, k.abs_diff(key.0)))
+                .enumerate()
+                .filter(|(_, ((_, v), _, _))| *v == key.1)
+                .min_by_key(|(_, ((k, _), _, _))| (*k > key.0, k.abs_diff(key.0)))
+                .map(|(index, _)| index)
         };
-        let kept = layouts.iter().find(|(k, _)| *k == key).or_else(|| {
-            if layouts.len() >= MAX_FLOW_WIDTHS {
-                near()
-            } else {
-                None
-            }
-        });
-        let items = match kept {
-            Some((_, items)) => items.clone(),
+        let cached = layouts
+            .iter()
+            .position(|(k, _, _)| *k == key)
+            .or_else(|| (layouts.len() >= MAX_FLOW_WIDTHS).then(closest).flatten());
+        let index = match cached {
+            Some(i) => i,
             None => {
                 (ctx.counters, ctx.eq_count) = (snap.0.clone(), snap.1);
-                let items = lay(ctx, head, &blocks, len, body.vert, depth);
+                let items = lay(ctx, head, &blocks, len, vert, depth);
                 after.get_or_insert_with(|| (ctx.counters.clone(), ctx.eq_count));
-                layouts.push((key, items.clone()));
-                items
+                let i = layouts.len();
+                layouts.push((key, len, FrameLayout::new(items)));
+                i
             }
         };
-        let items = match &cut {
-            None => items,
-            Some(cut) => match cut_y(&items, cut) {
-                Some(top) => from_y(items, top),
-                None => {
-                    out.push(Vec::new());
-                    continue;
-                }
-            },
+        let ((_, layout_vert), width, layout) = &mut layouts[index];
+        if let Some(cut) = &cut
+            && layout.needs_break(cut)
+        {
+            (ctx.counters, ctx.eq_count) = (snap.0.clone(), snap.1);
+            let previous = ctx
+                .frame_start
+                .replace((cut.story, cut.path.clone(), cut.byte));
+            *layout = FrameLayout::new(lay(ctx, head, &blocks, *width, *layout_vert, depth));
+            ctx.frame_start = previous;
+        }
+        let Some((kept, next)) = layout.share(cut.as_ref(), across) else {
+            out.push(Vec::new());
+            continue;
         };
-        let (kept, next) = fit_flow(items, across);
         start = next.map(Some);
         out.push(kept);
     }
@@ -350,140 +410,4 @@ fn flow(ctx: &mut Ctx, chain: &[u32], depth: usize) -> Vec<Vec<Placed>> {
     }
     ctx.boxes.leave();
     out
-}
-
-/// Where `cut` is in a layout: the top of the line holding its byte.
-fn cut_y(items: &[Placed], cut: &Cut) -> Option<f32> {
-    items.iter().find_map(|it| match it {
-        Placed::Lines {
-            path,
-            para,
-            l0,
-            l1,
-            y,
-            ..
-        } if *path == cut.path => {
-            let first = para.lines.get(*l0)?;
-            let k = (*l0..*l1)
-                .find(|k| para.lines.get(*k).is_some_and(|l| l.stop > cut.byte))
-                .unwrap_or(l1.saturating_sub(1).max(*l0));
-            para.lines.get(k).map(|l| y + l.top - first.top)
-        }
-        _ => None,
-    })
-}
-
-/// The items from `top` down, moved up to start at 0.
-fn from_y(items: Vec<Placed>, top: f32) -> Vec<Placed> {
-    let lim = top - 0.5;
-    let mut out = Vec::with_capacity(items.len());
-    for it in items {
-        if let Some(r) = it.turned_bounds() {
-            if r.y >= lim {
-                out.push(it);
-            }
-            continue;
-        }
-        match it {
-            Placed::Lines {
-                story,
-                path,
-                para,
-                l0,
-                l1,
-                x,
-                y,
-                turn,
-            } => {
-                let Some(first) = para.lines.get(l0) else {
-                    continue;
-                };
-                let Some(k) = (l0..l1).find(|k| {
-                    para.lines
-                        .get(*k)
-                        .is_some_and(|l| y + l.top - first.top >= lim)
-                }) else {
-                    continue;
-                };
-                let ky = para.lines.get(k).map_or(y, |l| y + l.top - first.top);
-                out.push(Placed::Lines {
-                    story,
-                    path,
-                    para,
-                    l0: k,
-                    l1,
-                    x,
-                    y: ky,
-                    turn,
-                });
-            }
-            Placed::Fill { rect, color } if rect.bottom() > lim => {
-                let y0 = rect.y.max(top);
-                out.push(Placed::Fill {
-                    rect: Rect::new(rect.x, y0, rect.w, rect.bottom() - y0),
-                    color,
-                });
-            }
-            Placed::Rule { y0, y1, .. } if y0.max(y1) >= lim => out.push(it),
-            Placed::Image { rect, .. }
-            | Placed::Shape { rect, .. }
-            | Placed::Graphic { rect, .. }
-            | Placed::Clip { rect, .. }
-            | Placed::Cell { rect, .. }
-            | Placed::Object { rect, .. }
-                if rect.y >= lim =>
-            {
-                out.push(it)
-            }
-            _ => {}
-        }
-    }
-    for it in &mut out {
-        it.translate(0.0, -top);
-    }
-    out
-}
-
-/// What fits in `across` (see [`fit_box`]), and where the text left over starts.
-fn fit_flow(items: Vec<Placed>, across: f32) -> (Vec<Placed>, Option<Cut>) {
-    let limit = across + 0.5;
-    let mut kept_line = false;
-    let mut cut: Option<(f32, Cut)> = None;
-    for it in &items {
-        if it.turned_bounds().is_some() {
-            continue;
-        }
-        let Placed::Lines {
-            path,
-            para,
-            l0,
-            l1,
-            y,
-            ..
-        } = it
-        else {
-            continue;
-        };
-        let Some(first) = para.lines.get(*l0) else {
-            continue;
-        };
-        for k in *l0..*l1 {
-            let Some(l) = para.lines.get(k) else { break };
-            let ly = y + l.top - first.top;
-            if ly + l.height > limit && kept_line {
-                if cut.as_ref().is_none_or(|(cy, _)| ly < *cy) {
-                    cut = Some((
-                        ly,
-                        Cut {
-                            path: path.clone(),
-                            byte: l.start,
-                        },
-                    ));
-                }
-                break;
-            }
-            kept_line = true;
-        }
-    }
-    (fit_box(items, across), cut.map(|(_, c)| c))
 }

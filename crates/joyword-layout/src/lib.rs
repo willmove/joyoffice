@@ -63,7 +63,7 @@ mod table_flow;
 
 #[cfg(test)]
 use boxes::{BOX_INSET_X, BOX_INSET_Y};
-use boxes::{BoxInput, BoxLayout, Edges, fit_box, layout_box, push_para};
+use boxes::{BoxInput, BoxLayout, Edges, layout_box, push_para};
 pub use cache::LayoutCache;
 use cache::{MAX_TOTAL_PASSES, Totals};
 #[cfg(test)]
@@ -368,15 +368,27 @@ impl DocLayout {
 
 /// Lay out the whole document.
 pub fn layout(doc: &Document, cache: &mut LayoutCache, opts: &LayoutOptions) -> DocLayout {
-    layout_at(doc, cache, opts, PageOrigin::default())
+    let endnotes = notes::Endnotes::collect(doc, opts.hides_deleted(StoryRef::Body));
+    layout_at(
+        doc,
+        cache,
+        opts,
+        PageOrigin {
+            endnotes: endnotes.as_ref(),
+            ..PageOrigin::default()
+        },
+    )
 }
 
 /// The sheet side, section number and document total seen by a fragment.
 #[derive(Clone, Copy, Default)]
-pub(crate) struct PageOrigin {
+pub(crate) struct PageOrigin<'a> {
     preceding_pages: usize,
     preceding_sections: u32,
     outside_pages: u32,
+    endnotes: Option<&'a notes::Endnotes>,
+    /// The trailing paragraph of the next section proves the exit but is not its actual end.
+    trailing_sentinel: bool,
 }
 
 /// A section fragment starts on an existing physical sheet even when its
@@ -385,7 +397,7 @@ fn layout_at(
     doc: &Document,
     cache: &mut LayoutCache,
     opts: &LayoutOptions,
-    origin: PageOrigin,
+    origin: PageOrigin<'_>,
 ) -> DocLayout {
     let t0 = now_ms();
     // Page totals shown in the body (`NUMPAGES`, `SECTIONPAGES`) are known only after

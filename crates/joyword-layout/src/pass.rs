@@ -1,5 +1,3 @@
-use std::collections::VecDeque;
-
 use super::cache::{LayoutCache, Totals, env_hash, hash_of};
 use super::ctx::{Ctx, Pass, with_pct_base};
 use super::floats::{EarlyFloats, WrapArea, early_covered};
@@ -73,8 +71,26 @@ fn new_ctx<'a>(
     cache: &'a mut LayoutCache,
     opts: &'a LayoutOptions,
     (note_pages, totals): (&HashMap<u32, usize>, &Totals),
+    endnotes: Option<&crate::notes::Endnotes>,
 ) -> Ctx<'a> {
-    let notes = note_info(doc, opts.hides_deleted(StoryRef::Body), note_pages);
+    let has_footnotes = || {
+        doc.parts
+            .values()
+            .any(|p| p.kind == joyword_model::PartKind::Footnote)
+    };
+    let mut notes = if endnotes.is_some() && !has_footnotes() {
+        HashMap::new()
+    } else {
+        note_info(doc, opts.hides_deleted(StoryRef::Body), note_pages)
+    };
+    if let Some(endnotes) = endnotes {
+        notes.retain(|id, _| {
+            !doc.parts
+                .get(id)
+                .is_some_and(|p| p.kind == joyword_model::PartKind::Endnote)
+        });
+        notes.extend(endnotes.labels.iter().map(|(&id, &label)| (id, label)));
+    }
     let notes_hash = hash_of(&{
         let mut v: Vec<_> = notes.iter().map(|(a, b)| (*a, b.n, b.fmt)).collect();
         v.sort_by_key(|(a, ..)| *a);
@@ -103,6 +119,7 @@ fn new_ctx<'a>(
         eq_count: 0,
         boxes: joyword_model::BoxBudget::default(),
         chains: Default::default(),
+        frame_start: None,
         grid: para::Grid::default(),
         uses_totals: false,
         track_totals: true,
@@ -231,25 +248,6 @@ fn new_page_builder<'p>(
         settle,
         column_lines: None,
     }
-}
-
-/// Endnotes in document order, with the section of their reference; placed at the end of a
-/// section that keeps them there, else at the end of the document.
-fn endnote_queue(ctx: &Ctx) -> VecDeque<(u32, usize)> {
-    let mut ids: Vec<(u32, u32, usize)> = ctx
-        .fields
-        .notes
-        .iter()
-        .filter(|(id, _)| {
-            ctx.doc
-                .parts
-                .get(id)
-                .is_some_and(|p| p.kind == joyword_model::PartKind::Endnote)
-        })
-        .map(|(id, n)| (n.order, *id, n.section))
-        .collect();
-    ids.sort();
-    ids.into_iter().map(|(_, id, sect)| (id, sect)).collect()
 }
 
 /// Vertical sections are laid out on their pages turned on their side (see `vertical`).
@@ -474,26 +472,6 @@ fn place_section_blocks<'p>(
     (block, discarded)
 }
 
-/// Endnotes at the end of the section: those referenced so far.
-fn section_endnotes(
-    ctx: &mut Ctx,
-    pb: &mut PageBuilder,
-    endnotes: &mut VecDeque<(u32, usize)>,
-    (sect, si, block): (&SectionProps, usize, usize),
-) {
-    if ctx.doc.note_options(sect, true).pos != joyword_model::section::NotePos::SectEnd
-        || pb.pages.is_empty()
-    {
-        return;
-    }
-    let mut here = Vec::new();
-    while let Some((id, _)) = endnotes.front().filter(|(_, s)| *s <= si).copied() {
-        endnotes.pop_front();
-        here.push(id);
-    }
-    place_endnotes(ctx, pb, here, block.saturating_sub(1));
-}
-
 /// Finish the pages: vertical alignment, the footnotes still continuing after the last page
 /// (each page takes at least a line of the first note, so this ends; the cap is a backstop), and
 /// the turned pages of vertical sections.
@@ -611,7 +589,7 @@ pub(super) fn same_story_limits(
         let totals = Totals::of(pages, &doc.sections());
         let notes = super::notes::footnote_pages(doc, pages);
         reset_cache(doc, cache, opts);
-        let mut ctx = new_ctx(doc, cache, opts, (&notes, &totals));
+        let mut ctx = new_ctx(doc, cache, opts, (&notes, &totals), None);
         ctx.mirror = doc.settings.mirror_margins;
         let links = Arc::clone(&ctx.hf);
         links
@@ -636,7 +614,7 @@ pub(super) fn refresh_page_stories(
     let totals = Totals::of(pages, &sections);
     let notes = super::notes::footnote_pages(doc, pages);
     reset_cache(doc, cache, opts);
-    let mut ctx = new_ctx(doc, cache, opts, (&notes, &totals));
+    let mut ctx = new_ctx(doc, cache, opts, (&notes, &totals), None);
     ctx.mirror = doc.settings.mirror_margins;
     for page in pages.iter_mut() {
         page.header.clear();
@@ -696,10 +674,10 @@ pub(crate) fn layout_pass(
     note_pages: &HashMap<u32, usize>,
     (totals, may_repeat): (&Totals, bool),
     (early, may_rewrap): (&EarlyFloats, bool),
-    origin: super::PageOrigin,
+    origin: super::PageOrigin<'_>,
 ) -> Pass {
     reset_cache(doc, cache, opts);
-    let mut ctx = new_ctx(doc, cache, opts, (note_pages, totals));
+    let mut ctx = new_ctx(doc, cache, opts, (note_pages, totals), origin.endnotes);
     let hf = Arc::clone(&ctx.hf);
     let sections = &hf.sections;
     let mode = Mode::of(opts.view, origin.preceding_pages);
@@ -712,7 +690,6 @@ pub(crate) fn layout_pass(
     let web_sect = mode.reflow.then(|| reflow_sect(first_sect, opts));
     let sect_ref = web_sect.as_ref().unwrap_or(first_sect);
     let mut pb = new_page_builder(sect_ref, early, mode.web, !may_rewrap && !mode.reflow);
-    let mut endnotes = endnote_queue(&ctx);
     // Text boxes laid out in balancing attempts that were thrown away.
     let mut boxes_discarded = 0usize;
     let mut block = 0usize;
@@ -762,14 +739,25 @@ pub(crate) fn layout_pass(
             (balance, sec.tops.body),
         );
         (block, boxes_discarded) = (next, boxes_discarded + discarded);
-        section_endnotes(&mut ctx, &mut pb, &mut endnotes, (sect, si, block));
+        if let Some(schedule) = origin.endnotes
+            && !(origin.trailing_sentinel && si + 1 == sections.len())
+            && !pb.pages.is_empty()
+            && let Some(ids) = schedule
+                .sections
+                .get(origin.preceding_sections as usize + si)
+        {
+            place_endnotes(&mut ctx, &mut pb, ids, block.saturating_sub(1));
+        }
     }
     if pb.pages.is_empty() {
         pb.new_page(0, sect_ref.margin_top);
     }
     // The rest of the endnotes after the last paragraph.
-    let rest: Vec<u32> = endnotes.into_iter().map(|(id, _)| id).collect();
-    place_endnotes(&mut ctx, &mut pb, rest, block);
+    if !origin.trailing_sentinel
+        && let Some(schedule) = origin.endnotes
+    {
+        place_endnotes(&mut ctx, &mut pb, &schedule.document, block);
+    }
     let mut pages = finish_pages(pb, doc, sections, mode.web);
     if mode.web {
         fit_web_page(&mut pages);

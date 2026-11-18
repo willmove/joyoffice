@@ -335,32 +335,50 @@ impl InlineObject {
     /// A group's members placed in a `w` × `h` box at (`x`, `y`): each member's rectangle
     /// (x, y, w, h) and the member. Empty for anything else.
     pub fn group_rects(&self, x: f32, y: f32, w: f32, h: f32) -> Vec<([f32; 4], &InlineObject)> {
-        let InlineObject::Group {
-            ch_w,
-            ch_h,
-            children,
-            ..
-        } = self
-        else {
-            return Vec::new();
+        self.group_frames(x, y, w, h).collect()
+    }
+
+    /// Visit the frames in drawing order without building an intermediate rectangle list.
+    pub fn group_frames(
+        &self,
+        x: f32,
+        y: f32,
+        w: f32,
+        h: f32,
+    ) -> impl Iterator<Item = ([f32; 4], &InlineObject)> {
+        let finite = |v: f32| if v.is_finite() { v } else { 0.0 };
+        let scale = |extent: f32, source: f32| {
+            if finite(source) > 0.0 {
+                finite(extent) / source
+            } else {
+                1.0
+            }
         };
-        let fin = |v: f32| if v.is_finite() { v } else { 0.0 };
-        let sx = if fin(*ch_w) > 0.0 { fin(w) / ch_w } else { 1.0 };
-        let sy = if fin(*ch_h) > 0.0 { fin(h) / ch_h } else { 1.0 };
+        let (children, sx, sy) = match self {
+            InlineObject::Group {
+                ch_w,
+                ch_h,
+                children,
+                ..
+            } => (children.as_slice(), scale(w, *ch_w), scale(h, *ch_h)),
+            _ => (&[][..], 1.0, 1.0),
+        };
         children
             .iter()
             .take(MAX_GROUP_CHILDREN)
-            .filter_map(|c| {
-                let (cw, chh, _) = c.obj.frame()?;
-                let r = [
-                    x + fin(c.x) * sx,
-                    y + fin(c.y) * sy,
-                    (fin(cw) * sx).clamp(0.0, 4000.0),
-                    (fin(chh) * sy).clamp(0.0, 4000.0),
+            .filter_map(move |child| {
+                if matches!(child.obj, InlineObject::Group { .. }) {
+                    return None;
+                }
+                let (width, height, _) = child.obj.frame()?;
+                let frame = [
+                    x + finite(child.x) * sx,
+                    y + finite(child.y) * sy,
+                    (finite(width) * sx).clamp(0., 4000.),
+                    (finite(height) * sy).clamp(0., 4000.),
                 ];
-                (!matches!(c.obj, InlineObject::Group { .. })).then_some((r, &c.obj))
+                Some((frame, &child.obj))
             })
-            .collect()
     }
     /// A legacy form field's definition (`FORMCHECKBOX`, `FORMTEXT`, `FORMDROPDOWN`), read from
     /// the `w:ffData` it keeps; `None` for anything else.

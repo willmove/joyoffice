@@ -614,7 +614,7 @@ pub(super) fn object_draws(
         }
         InlineObject::Group { .. } => {
             let mut members = Vec::new();
-            for ([x, y, w, h], c) in o.group_rects(rect.x, rect.y, rect.w, rect.h) {
+            for ([x, y, w, h], c) in o.group_frames(rect.x, rect.y, rect.w, rect.h) {
                 if c.frame().is_some_and(|(_, _, f)| f.hidden) {
                     continue;
                 }

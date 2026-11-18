@@ -102,7 +102,11 @@ impl Window {
         if doc.parts.values().any(|p| {
             !matches!(
                 p.kind,
-                PartKind::Header | PartKind::Footer | PartKind::Footnote
+                PartKind::Header
+                    | PartKind::Footer
+                    | PartKind::Footnote
+                    | PartKind::Endnote
+                    | PartKind::TextBox
             )
         }) {
             return false;
@@ -132,6 +136,14 @@ impl Window {
                 // A duplicate anywhere in the document can change an earlier label.
                 if !ids.insert(*id) {
                     return false;
+                }
+                // Endnote labels and their actual destination come from the whole document.
+                if doc
+                    .parts
+                    .get(id)
+                    .is_some_and(|p| p.kind == PartKind::Endnote)
+                {
+                    continue;
                 }
                 prior |= block < self.blocks.start;
                 later |= block >= self.blocks.end;
@@ -228,12 +240,15 @@ impl Window {
         opts: &LayoutOptions,
         cache: &mut LayoutCache,
         current: &DocLayout,
+        endnotes: Option<&crate::notes::Endnotes>,
     ) -> Option<Repaginated> {
         let outside = current
             .pages
             .len()
             .checked_sub(self.pages.len() + usize::from(self.sentinel))?;
         let origin = crate::PageOrigin {
+            endnotes,
+            trailing_sentinel: self.sentinel,
             preceding_pages: self.pages.start,
             preceding_sections: u32::try_from(self.first_section).ok()?,
             outside_pages: u32::try_from(outside).ok()?,
@@ -254,47 +269,7 @@ impl Window {
             for path in &mut page.float_tables {
                 shift(path)?;
             }
-            for item in &mut page.items {
-                let path = match item {
-                    Placed::Lines {
-                        story: StoryRef::Body,
-                        path,
-                        ..
-                    }
-                    | Placed::Cell {
-                        story: StoryRef::Body,
-                        table: path,
-                        ..
-                    }
-                    | Placed::Object {
-                        story: StoryRef::Body,
-                        path,
-                        ..
-                    }
-                    | Placed::Graphic {
-                        story: StoryRef::Body,
-                        path,
-                        ..
-                    }
-                    | Placed::Image {
-                        story: StoryRef::Body,
-                        path,
-                        ..
-                    } => path,
-                    Placed::Shape {
-                        object: Some(pos), ..
-                    } if pos.story == StoryRef::Body => &mut pos.path,
-                    Placed::Shape { object: None, .. } => continue,
-                    Placed::Lines {
-                        story: StoryRef::Part(_),
-                        ..
-                    }
-                    | Placed::Fill { .. }
-                    | Placed::Rule { .. } => continue,
-                    _ => return None,
-                };
-                shift(path)?;
-            }
+            relocate_items(&mut page.items, u32::try_from(self.blocks.start).ok()?)?;
         }
         let mut exit_number_delta = 0;
         if self.sentinel {
@@ -312,6 +287,36 @@ impl Window {
             exit_number_delta,
         })
     }
+}
+
+/// Body paths in a clipped canvas are relative to the fragment as well.
+fn relocate_items(items: &mut [Placed], start: u32) -> Option<()> {
+    for item in items {
+        let (story, path) = match item {
+            Placed::Lines { story, path, .. }
+            | Placed::Image { story, path, .. }
+            | Placed::Object { story, path, .. }
+            | Placed::Graphic { story, path, .. }
+            | Placed::Cell {
+                story, table: path, ..
+            } => (*story, path),
+            Placed::Shape {
+                object: Some(pos), ..
+            } => (pos.story, &mut pos.path),
+            Placed::Clip { items, .. } => {
+                relocate_items(items, start)?;
+                continue;
+            }
+            Placed::Shape { object: None, .. } | Placed::Fill { .. } | Placed::Rule { .. } => {
+                continue;
+            }
+        };
+        if story == StoryRef::Body {
+            let block = path.0.first_mut()?;
+            *block = block.checked_add(start)?;
+        }
+    }
+    Some(())
 }
 
 // A changed physical page count can change which side of the sheet an odd
@@ -527,7 +532,12 @@ impl Previous {
         mut window: Window,
         current: &Arc<DocLayout>,
     ) -> Option<DocLayout> {
-        if !window.independent_notes(doc, opts, current) {
+        if self.boxes.values().any(|&(first, last)| {
+            first < window.blocks.end
+                && last >= window.blocks.start
+                && !(window.blocks.contains(&first) && window.blocks.contains(&last))
+        }) || !window.independent_notes(doc, opts, current)
+        {
             return None;
         }
         // On first entry replay the old section against the real document.
@@ -539,7 +549,13 @@ impl Previous {
                 let mut cache = Box::new(LayoutCache::new());
                 let mut before = window.fragment(doc, current, &self.body)?;
                 before.parts.clone_from(&self.notes);
-                let old = window.pages(&before, &self.options, &mut cache, current)?;
+                let old = window.pages(
+                    &before,
+                    &self.options,
+                    &mut cache,
+                    current,
+                    self.endnotes.as_ref(),
+                )?;
                 if old.pages.len() != window.pages.len()
                     || old.exit_number_delta != 0
                     || !old
@@ -554,7 +570,8 @@ impl Previous {
             }
         };
         let after = window.fragment(doc, current, &doc.body)?;
-        let replacement = window.pages(&after, opts, &mut cache, current)?;
+        let replacement =
+            window.pages(&after, opts, &mut cache, current, self.endnotes.as_ref())?;
         let moved = replacement.pages.len() != window.pages.len();
         let count = current.pages.len() - window.pages.len() + replacement.pages.len();
         let mut pages = Vec::with_capacity(count);

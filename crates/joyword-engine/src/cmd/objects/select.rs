@@ -317,8 +317,7 @@ pub(super) fn shown_members(
     let [x, y, w, h] = [x, y, w, h].map(joyword_geom::finite);
     let (gx, gy) = (x + w / 2.0, y + h / 2.0);
     group
-        .group_rects(x, y, w, h)
-        .into_iter()
+        .group_frames(x, y, w, h)
         .map(|([mx, my, mw, mh], c)| {
             let own = c.frame().map(|(_, _, f)| f.spin()).unwrap_or_default();
             let (cx, cy) = outer.apply(gx, gy, mx + mw / 2.0, my + mh / 2.0);

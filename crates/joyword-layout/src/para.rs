@@ -47,6 +47,7 @@ pub use model::{
     ParaEnv, RubyLayout, StyleRun, VisCl,
 };
 pub use paragraph::layout_para;
+pub(crate) use paragraph::layout_para_from;
 #[cfg(test)]
 pub(crate) use paragraph::word_widths;
 pub use proof::{ProofRun, is_list_item, paragraph_issues, proof_runs, proof_text};
@@ -467,7 +468,7 @@ mod label_spacing_tests {
             };
         }
         let mark_style = pl.clusters[0].style;
-        break_lines(&mut pl, &env, mark_style, Some(&level));
+        break_lines(&mut pl, &env, mark_style, Some(&level), None);
         pl.lines
     }
 

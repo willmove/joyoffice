@@ -109,7 +109,8 @@
       "source": "crates/doc/src/document.rs",
       "target": "crates/joyword-model/src/document.rs",
       "source_sha256": "87c3b84312b7bb083b08864b620946ed79fb025dfeb530ce4122774243777195",
-      "changes": "Package/module naming and explicit source license only; formatter may normalize whitespace."
+      "changes": "Package/module naming and explicit source license only; formatter may normalize whitespace. JoyOffice traverses grouped drawing frames lazily during editing, painting, selection and story sizing.",
+      "adapted_sha256": "558d619b72c3219bd3143b4349028d33e3d4d927d7ef237c98c71c0f2da615e7"
     },
     {
       "source": "crates/doc/src/edit/tests.rs",
@@ -261,7 +262,8 @@
       "source": "crates/doc/src/para/inline_object.rs",
       "target": "crates/joyword-model/src/para/inline_object.rs",
       "source_sha256": "acd03de1c54804848854628ca47af8144de1a190f9db0d50258b5dc143e216da",
-      "changes": "Package/module naming and explicit source license only; formatter may normalize whitespace."
+      "changes": "Package/module naming and explicit source license only; formatter may normalize whitespace. JoyOffice traverses grouped drawing frames lazily during editing, painting, selection and story sizing.",
+      "adapted_sha256": "fe755b9d28ecde226a10d9a4b412c3cda582282bc46926da66ff3f3e867cd02d"
     },
     {
       "source": "crates/doc/src/para/run.rs",
@@ -603,13 +605,15 @@
       "source": "crates/layout/src/balloons.rs",
       "target": "crates/joyword-layout/src/balloons.rs",
       "source_sha256": "e54f49b643381381538eab2d3be95949d4dd1ee06b70713a1625c3fb54d809f9",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md."
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. JoyOffice selects visible frame items by source position, including differently sized continuations and existing cell and graphic clipping.",
+      "adapted_sha256": "bdd22f836d13417ea00a8897dcaac567eda76c30d43f2c0815150102754cd34b"
     },
     {
       "source": "crates/layout/src/boxes.rs",
       "target": "crates/joyword-layout/src/boxes.rs",
       "source_sha256": "6ce620d39d7d8ca731365557a0abcf598391ae333a692cc958adf6cd0f48ce1a",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md."
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. JoyOffice selects visible frame items by source position, including differently sized continuations and existing cell and graphic clipping.",
+      "adapted_sha256": "321d30446922c2d1c0e45f72aa2c2ce61f1fffde12f82223fe25145194bf37ab"
     },
     {
       "source": "crates/layout/src/cache.rs",
@@ -627,7 +631,8 @@
       "source": "crates/layout/src/ctx.rs",
       "target": "crates/joyword-layout/src/ctx.rs",
       "source_sha256": "e139781516402504d0874ab21f380af6e54aa5b59516bae311fd4a4236362890",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md."
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. JoyOffice breaks at the first unread source cluster for a linked frame while retaining the paragraph’s editing positions.",
+      "adapted_sha256": "fb0b625de01da4618bb3d7a5f21e734d13ffdc3ec8edc7e19770d17a82ed6d15"
     },
     {
       "source": "crates/layout/src/display.rs",
@@ -645,7 +650,8 @@
       "source": "crates/layout/src/floats.rs",
       "target": "crates/joyword-layout/src/floats.rs",
       "source_sha256": "7e38b3dd2699960ab2934776807e0f1a00fd28cfcc5dbdd5e119e6ff65323018",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md."
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. JoyOffice traverses grouped drawing frames lazily during editing, painting, selection and story sizing.",
+      "adapted_sha256": "c73822c37d470df5143a56c47c82637eb5428fa382bd3b4ce33b3891dcd800a0"
     },
     {
       "source": "crates/layout/src/flow.rs",
@@ -676,7 +682,8 @@
       "source": "crates/layout/src/lib.rs",
       "target": "crates/joyword-layout/src/lib.rs",
       "source_sha256": "6cd7d6a483226590845e9955c9b7d1dacfcca5e22e7d3de7579e591e4b281926",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md."
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. JoyOffice resolves original endnote destinations and numbering for both full pagination and a bounded section edit.",
+      "adapted_sha256": "5e851e4421ad48fb8572bcf10d2b76198e341f58123810e923d270d4eb805299"
     },
     {
       "source": "crates/layout/src/math.rs",
@@ -688,8 +695,8 @@
       "source": "crates/layout/src/notes.rs",
       "target": "crates/joyword-layout/src/notes.rs",
       "source_sha256": "9749d79e2eb226346fd50f6dd3436668ee92b0cebd565e0a83ec502eb81d396c",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Count note order independently of displayed labels and skip unrelated drawing objects.",
-      "adapted_sha256": "b3645feb672027d43639e6ae84a1b954e872dad3dbf5aa7f0e8bc650b0e31ce9"
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Count note order independently of displayed labels and skip unrelated drawing objects. JoyOffice resolves original endnote destinations and numbering for both full pagination and a bounded section edit.",
+      "adapted_sha256": "b8fffc743497cdecfc6e0d011084be9a62702bc06d2faeafbfaaba8ba5ab12b4"
     },
     {
       "source": "crates/layout/src/outline.rs",
@@ -707,14 +714,15 @@
       "source": "crates/layout/src/para.rs",
       "target": "crates/joyword-layout/src/para.rs",
       "source_sha256": "ac5c8d9d14a9b14c7e72a9fc78f8de1dc24c2ea883e5c5b88a5f4ca68ab2c256",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md."
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. JoyOffice breaks at the first unread source cluster for a linked frame while retaining the paragraph’s editing positions.",
+      "adapted_sha256": "c18d01756aa0aea0175d57d25b807be924d42822122b268d0aca3e5e829148e2"
     },
     {
       "source": "crates/layout/src/pass.rs",
       "target": "crates/joyword-layout/src/pass.rs",
       "source_sha256": "a548d8440a73d4d7ca5750fda6396059d1fa8948cadf99583ff32bb4b841c8c7",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Share the paragraph location index with section-local pagination.",
-      "adapted_sha256": "f498e66edccf0b484d9b28b27fea1b930d1547f9fbb4de50bfa3ba1085f78402"
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Share the paragraph location index with section-local pagination. JoyOffice resolves original endnote destinations and numbering for both full pagination and a bounded section edit.",
+      "adapted_sha256": "20b4eb6e85fb5fe79d1f34df92860575f355f22559c3b5ce6405d814a3fe6b20"
     },
     {
       "source": "crates/layout/src/placed.rs",
@@ -751,7 +759,8 @@
       "source": "crates/layout/src/textbox.rs",
       "target": "crates/joyword-layout/src/textbox.rs",
       "source_sha256": "209c2077101214b927555583a2a93bd8dd604314d331612fc270b3dc4b150a4e",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md."
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. JoyOffice selects visible frame items by source position, including differently sized continuations and existing cell and graphic clipping.",
+      "adapted_sha256": "d018a66b0c53860265125e6c7ddd0b3da5b3d9261d1e870d3f4f5318c260d0a2"
     },
     {
       "source": "crates/layout/src/vertical.rs",
@@ -787,7 +796,8 @@
       "source": "crates/layout/src/display/objects.rs",
       "target": "crates/joyword-layout/src/display/objects.rs",
       "source_sha256": "7d846c7e67e6e279b9bf7f7a07a710dd8567e44e948b3bc923e4839884307144",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md."
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. JoyOffice traverses grouped drawing frames lazily during editing, painting, selection and story sizing.",
+      "adapted_sha256": "ae566b9ddacddcc0db239f6d356880139f52375dd6720a5ca04244413051fd60"
     },
     {
       "source": "crates/layout/src/display/options.rs",
@@ -883,7 +893,8 @@
       "source": "crates/layout/src/para/lines.rs",
       "target": "crates/joyword-layout/src/para/lines.rs",
       "source_sha256": "af43ee8cc8a22cb7e5d81c43d3795faa1f467721bd5fe3edc6ba446986520cb1",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md."
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. JoyOffice breaks at the first unread source cluster for a linked frame while retaining the paragraph’s editing positions.",
+      "adapted_sha256": "ca20aded3a586096f3dc8ccab7345ef983bc5fe3b83e04f1b9afdcc3be7a9df0"
     },
     {
       "source": "crates/layout/src/para/model.rs",
@@ -896,7 +907,8 @@
       "source": "crates/layout/src/para/paragraph.rs",
       "target": "crates/joyword-layout/src/para/paragraph.rs",
       "source_sha256": "131a504c673f08998428c791586d532b04cb570b537fa26593eb7cb96639c58a",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md."
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. JoyOffice breaks at the first unread source cluster for a linked frame while retaining the paragraph’s editing positions.",
+      "adapted_sha256": "527b122e6d6b031fec9808d0b3252d9349744ed2a759943b9714707ba8cbc541"
     },
     {
       "source": "crates/layout/src/para/proof.rs",
@@ -992,7 +1004,8 @@
       "source": "crates/layout/src/tests/textbox.rs",
       "target": "crates/joyword-layout/src/tests/textbox.rs",
       "source_sha256": "c4c0ed2b5f3752973a4585da2fe6a0c667d2a77b30f53f70323ddfd634f5578b",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md."
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. JoyOffice compares complete layouts and guards exact source continuity across linked text frames.",
+      "adapted_sha256": "7bcecd58b4176e89e86a78b324c1b4d203a878f0cabe977de0569294b62d9bc8"
     },
     {
       "source": "crates/layout/src/tests/vertical.rs",
@@ -3111,7 +3124,8 @@
       "source": "crates/engine/src/cmd/objects/select.rs",
       "target": "crates/joyword-engine/src/cmd/objects/select.rs",
       "source_sha256": "ebe3fd14fcc09d6f487fb8a6990eeb4367fbdfb7310978f5363782ca26479d1b",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md."
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. JoyOffice traverses grouped drawing frames lazily during editing, painting, selection and story sizing.",
+      "adapted_sha256": "781d7bb64c02f36d410afe75ef5641ecefec272c5b3521157cebe7f6d2a8a7dc"
     },
     {
       "source": "crates/engine/src/cmd/objects/shape.rs",

@@ -191,6 +191,66 @@ fn linked_boxes_continue_the_text() {
 }
 
 #[test]
+fn differently_sized_frames_show_each_source_cluster_once() {
+    use unicode_segmentation::UnicodeSegmentation;
+
+    // Include combining characters, different writing directions and the long-chain budget.
+    for (count, repeat, expect_end) in [(22, 8, true), (36, 800, false)] {
+        let mut d = Document::from_text(&vec!["p"; count].join("\n"));
+        let text = "开卷 Aße e\u{301} קריאה word ".repeat(repeat);
+        let mut head = None;
+        let mut previous = None;
+        for i in 0..count {
+            let width = if i % 2 == 0 { 74.0 } else { 178.0 };
+            let id = text_box(
+                &mut d,
+                i,
+                if i == 0 { &text } else { "" },
+                width,
+                51.0,
+                TextBody::default(),
+            );
+            head.get_or_insert(id);
+            if let Some(prev) = previous {
+                d.parts.get_mut(&prev).unwrap().body.next = Some(id);
+            }
+            previous = Some(id);
+        }
+        let head = StoryRef::Part(head.unwrap());
+        let boundaries: std::collections::HashSet<_> = text
+            .grapheme_indices(true)
+            .map(|(i, _)| i)
+            .chain([text.len()])
+            .collect();
+        let mut cursor = 0;
+        let mut used = 0;
+        for item in lay(&d).pages.iter().flat_map(|page| &page.items) {
+            let Placed::Lines {
+                story,
+                para,
+                l0,
+                l1,
+                ..
+            } = item
+            else {
+                continue;
+            };
+            if *story != head {
+                continue;
+            }
+            used += 1;
+            for line in &para.lines[*l0..*l1] {
+                assert_eq!(line.start, cursor, "frame {used}");
+                assert!(boundaries.contains(&line.stop));
+                cursor = line.stop;
+            }
+        }
+        assert!(used > 2 && cursor > 0);
+        assert_eq!(cursor == text.len(), expect_end);
+    }
+}
+
+#[test]
 fn hostile_link_chains_stay_bounded() {
     // Boxes linking in a circle show their own text; a box linking to itself too.
     let mut d = Document::from_text("one\ntwo\nthree");

@@ -278,7 +278,12 @@ pub(crate) fn layout_box(ctx: &mut Ctx, input: BoxInput<'_>) -> BoxLayout {
             Block::Para(p) => {
                 let label = ctx.next_label(p);
                 let listed = label.is_some();
-                let mut pl = ctx.para_labelled(p, width, table, &[], label.clone());
+                let frame_start = ctx
+                    .frame_start
+                    .as_ref()
+                    .and_then(|(s, at, byte)| (*s == story && at.0 == path).then_some(*byte));
+                let mut pl =
+                    ctx.para_labelled_from(p, width, table, &[], label.clone(), frame_start);
                 // A text frame (a footer's page number in a frame, say) is placed apart, like a
                 // floating object, and the text after it wraps around it; it takes no room in
                 // the flow.
@@ -287,7 +292,7 @@ pub(crate) fn layout_box(ctx: &mut Ctx, input: BoxInput<'_>) -> BoxLayout {
                         fr.w.unwrap_or_else(|| natural_width(&pl))
                             .clamp(1.0, 1584.0);
                     let pf = if (fw - width).abs() > 0.01 {
-                        ctx.para_labelled(p, fw, table, &[], label)
+                        ctx.para_labelled_from(p, fw, table, &[], label, frame_start)
                     } else {
                         pl
                     };
@@ -379,7 +384,7 @@ pub(crate) fn layout_box(ctx: &mut Ctx, input: BoxInput<'_>) -> BoxLayout {
                 }
                 let rel = rel_exclusions(&excl, 0.0, y);
                 if !rel.is_empty() {
-                    pl = ctx.para_labelled(p, width, table, &rel, label);
+                    pl = ctx.para_labelled_from(p, width, table, &rel, label, frame_start);
                 }
                 // Bordered paragraphs: room for their borders, those of a group joined in one box.
                 let cell = table.map(|t| &t.para);
@@ -672,94 +677,6 @@ pub(crate) const BOX_INSET_X: f32 = 7.2;
 
 #[cfg(test)]
 pub(crate) const BOX_INSET_Y: f32 = 3.6;
-
-/// Keep what fits in a box `height` tall (items relative to its top): lines that don't fit are
-/// dropped (whole lines; a line that only partly fits too) and so is anything starting below.
-/// The first line always stays, so even a tiny box shows the start of its text.
-pub(crate) fn fit_box(items: Vec<Placed>, height: f32) -> Vec<Placed> {
-    let limit = height + 0.5;
-    let mut out = Vec::with_capacity(items.len());
-    let mut kept_line = false;
-    for it in items {
-        if let Some(r) = it.turned_bounds() {
-            // Turned text (in a table cell) stays whole.
-            if r.y < limit {
-                out.push(it);
-            }
-            continue;
-        }
-        match it {
-            Placed::Lines {
-                story,
-                path,
-                para,
-                l0,
-                l1,
-                x,
-                y,
-                turn,
-            } => {
-                let Some(first) = para.lines.get(l0) else {
-                    continue;
-                };
-                let mut end = l0;
-                for k in l0..l1 {
-                    let Some(l) = para.lines.get(k) else { break };
-                    if y + (l.top - first.top) + l.height > limit && kept_line {
-                        break;
-                    }
-                    end = k + 1;
-                    kept_line = true;
-                }
-                if end > l0 {
-                    out.push(Placed::Lines {
-                        story,
-                        path,
-                        para,
-                        l0,
-                        l1: end,
-                        x,
-                        y,
-                        turn,
-                    });
-                }
-            }
-            Placed::Fill { rect, color } if rect.y < limit => {
-                out.push(Placed::Fill {
-                    rect: Rect::new(rect.x, rect.y, rect.w, rect.h.min(limit - rect.y)),
-                    color,
-                });
-            }
-            Placed::Rule {
-                x0,
-                y0,
-                x1,
-                y1,
-                border,
-            } if y0.min(y1) < limit => {
-                out.push(Placed::Rule {
-                    x0,
-                    y0: y0.min(limit),
-                    x1,
-                    y1: y1.min(limit),
-                    border,
-                });
-            }
-            Placed::Image { rect, .. }
-            | Placed::Shape { rect, .. }
-            | Placed::Graphic { rect, .. }
-            | Placed::Clip { rect, .. }
-            | Placed::Cell { rect, .. }
-            | Placed::Object { rect, .. }
-                if rect.y < limit =>
-            {
-                out.push(it);
-            }
-            _ => {}
-        }
-    }
-    out
-}
 
 /// Word joins neighbouring paragraphs with the same borders and indents into one box: the top
 /// border goes above the first of them only, the bottom one below the last, and the shading and

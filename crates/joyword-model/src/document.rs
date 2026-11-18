@@ -742,7 +742,7 @@ impl Document {
                                 out.entry(*id).or_insert((*w, *h));
                             }
                             InlineObject::Group { w, h, .. } => {
-                                for (r, c) in o.group_rects(0.0, 0.0, *w, *h) {
+                                for (r, c) in o.group_frames(0.0, 0.0, *w, *h) {
                                     if let Some(id) = c.text_box().filter(|id| ids.contains(id)) {
                                         out.entry(id).or_insert((r[2], r[3]));
                                     }

@@ -31,6 +31,8 @@ pub(crate) struct Ctx<'a> {
     pub(crate) boxes: joyword_model::BoxBudget,
     /// Linked text boxes (Create Link).
     pub(crate) chains: textbox::Chains,
+    /// Exact paragraph offset at the start of a differently sized linked frame.
+    pub(crate) frame_start: Option<(StoryRef, joyword_model::Path, usize)>,
     /// The current section's document grid (body text only: none for headers and footers).
     pub(crate) grid: para::Grid,
     /// Whether tracked deletions are left out in the story being laid out
@@ -265,16 +267,30 @@ impl Ctx<'_> {
         exclusions: &[para::Exclusion],
         label: Option<(String, Level)>,
     ) -> Arc<ParaLayout> {
+        self.para_labelled_from(p, width, table, exclusions, label, None)
+    }
+
+    pub(crate) fn para_labelled_from(
+        &mut self,
+        p: &Paragraph,
+        width: f32,
+        table: Option<&para::CellText>,
+        exclusions: &[para::Exclusion],
+        label: Option<(String, Level)>,
+        frame_start: Option<usize>,
+    ) -> Arc<ParaLayout> {
         let fitted = self.fitted_boxes(p);
         let (key, eq_number) = self.para_key(p, width, table, exclusions, label.as_ref(), &fitted);
-        self.cache.used.insert(key.clone());
-        if let Some(pl) = self.cache.paras.get(&key) {
-            self.cache.hits += 1;
-            return pl.clone();
+        if frame_start.is_none() {
+            self.cache.used.insert(key.clone());
+            if let Some(pl) = self.cache.paras.get(&key) {
+                self.cache.hits += 1;
+                return pl.clone();
+            }
         }
         self.cache.misses += 1;
         let typing = key.typing;
-        let pl = Arc::new(para::layout_para(
+        let pl = Arc::new(para::layout_para_from(
             p,
             &self.para_env(ParaEnvInput {
                 width,
@@ -285,8 +301,13 @@ impl Ctx<'_> {
                 typing_word: typing,
                 fitted: &fitted,
             }),
+            frame_start,
         ));
-        self.cache.paras.insert(key, pl.clone());
+        // The selected frame owns a resumed paragraph. Other frames and future
+        // edits should keep using the ordinary paragraph at this width.
+        if frame_start.is_none() {
+            self.cache.paras.insert(key, pl.clone());
+        }
         pl
     }
 
