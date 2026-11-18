@@ -152,147 +152,7 @@ fn issue(start: usize, end: usize, message: String, suggestions: Vec<String>) ->
     }
 }
 
-/// Is `c` an apostrophe (straight or typographic)?
-fn is_apostrophe(c: char) -> bool {
-    matches!(c, '\'' | '’')
-}
-
-/// `pò` (never accented) and `po` without its apostrophe → `po'`. `Po` (the river) is left alone.
-fn po(text: &str, ws: &[(usize, usize)], v: &mut Vec<Issue>) {
-    for (a, b) in ws {
-        let Some(w) = text.get(*a..*b) else { continue };
-        let apostrophe = text
-            .get(*b..)
-            .and_then(|r| r.chars().next())
-            .is_some_and(is_apostrophe);
-        let fix = match w {
-            "pò" => "po'",
-            "Pò" => "Po'",
-            "po" if !apostrophe => "po'",
-            _ => continue,
-        };
-        v.push(issue(
-            *a,
-            *b,
-            "Si scrive «po'», con l'apostrofo e senza accento".into(),
-            vec![fix.into()],
-        ));
-    }
-}
-
-/// `qual'è` → `qual è` (any case): the fix when `word` is `qual` + apostrophe + `è`/`era`.
-pub(crate) fn qual_elided(word: &str) -> Option<String> {
-    let head_end = word
-        .char_indices()
-        .take(4)
-        .last()
-        .map(|(i, c)| i + c.len_utf8())?;
-    let (head, rest) = (word.get(..head_end)?, word.get(head_end..)?);
-    let tail = rest.strip_prefix(is_apostrophe)?;
-    let tail_ok = matches!(tail.to_lowercase().as_str(), "è" | "era");
-    (head.eq_ignore_ascii_case("qual") && tail_ok).then(|| format!("{head} {tail}"))
-}
-
-fn qual_e(text: &str, ws: &[(usize, usize)], v: &mut Vec<Issue>) {
-    for (a, b) in ws {
-        if let Some(fix) = text.get(*a..*b).and_then(qual_elided) {
-            v.push(issue(
-                *a,
-                *b,
-                "«Qual è» si scrive senza apostrofo".into(),
-                vec![fix],
-            ));
-        }
-    }
-}
-
-/// `E'` for the verb → `È`. A quoted letter (`la lettera 'E'`) is left alone.
-fn e_apostrophe(text: &str, ws: &[(usize, usize)], v: &mut Vec<Issue>) {
-    for (a, b) in ws {
-        if text.get(*a..*b) != Some("E") {
-            continue;
-        }
-        let mut after = text.get(*b..).unwrap_or("").chars();
-        let Some(ap) = after.next().filter(|&c| is_apostrophe(c)) else {
-            continue;
-        };
-        let ends = after.next().is_none_or(char::is_whitespace);
-        let quoted = text
-            .get(..*a)
-            .and_then(|t| t.chars().next_back())
-            .is_some_and(|c| is_apostrophe(c) || c == '‘');
-        if ends && !quoted {
-            v.push(issue(
-                *a,
-                *b + ap.len_utf8(),
-                "«È» si scrive con l'accento, non con l'apostrofo".into(),
-                vec!["È".into()],
-            ));
-        }
-    }
-}
-
-/// Does `w` (lower case) start with a vowel or `h`, as the words `un'` elides before?
-fn starts_with_vowel(w: &str) -> bool {
-    w.chars()
-        .next()
-        .is_some_and(|c| "aeiouhàèéìòóù".contains(c))
-}
-
-/// Is `w` (lower case) a feminine word in `-a` (`altra`, `amica`, `ora`), as far as the ending
-/// tells?
-fn feminine_in_a(w: &str) -> bool {
-    w.chars().count() >= 2
-        && w.ends_with('a')
-        && !MASCULINE_A_ENDINGS.iter().any(|e| w.ends_with(e))
-        && !NOT_FEMININE_IN_A.contains(&w)
-}
-
-/// `un'` before a masculine word (`un'altro` → `un altro`), and `un` without the apostrophe
-/// before a feminine one (`un altra` → `un'altra`). Only lower-case words: a name's gender isn't
-/// in its ending.
-fn un_apostrophe(text: &str, ws: &[(usize, usize)], v: &mut Vec<Issue>) {
-    for (a, b) in ws {
-        let Some(w) = text.get(*a..*b) else { continue };
-        let Some((head, tail)) = w.split_once(is_apostrophe) else {
-            continue;
-        };
-        if UN_FORMS.contains(&head.to_lowercase().as_str())
-            && tail.chars().all(|c| c.is_alphabetic() && c.is_lowercase())
-            && starts_with_vowel(tail)
-            && tail.ends_with('o')
-            && !FEMININE_IN_O.contains(&tail)
-        {
-            v.push(issue(
-                *a,
-                *b,
-                format!("Davanti a un nome maschile «{head}» non vuole l'apostrofo"),
-                vec![format!("{head} {tail}")],
-            ));
-        }
-    }
-    for pair in ws.windows(2) {
-        let [(a0, b0), (a1, b1)] = pair else { continue };
-        let (Some(w0), Some(w1), Some(gap)) =
-            (text.get(*a0..*b0), text.get(*a1..*b1), text.get(*b0..*a1))
-        else {
-            continue;
-        };
-        if gap == " "
-            && UN_FORMS.contains(&w0.to_lowercase().as_str())
-            && w1.chars().all(|c| c.is_alphabetic() && c.is_lowercase())
-            && starts_with_vowel(w1)
-            && feminine_in_a(w1)
-        {
-            v.push(issue(
-                *a0,
-                *b1,
-                format!("Davanti a un nome femminile si scrive «{w0}'», con l'apostrofo"),
-                vec![format!("{w0}'{w1}")],
-            ));
-        }
-    }
-}
+pub(crate) use joyword_proof_rules::italian_qual as qual_elided;
 
 /// Grammar issues in a paragraph of Italian text, in order.
 pub fn check(text: &str) -> Vec<Issue> {
@@ -328,10 +188,27 @@ pub fn check_with(text: &str, capital_first: bool) -> Vec<Issue> {
         ABBREVIATIONS,
         &mut v,
     );
-    po(text, &ws, &mut v);
-    qual_e(text, &ws, &mut v);
-    e_apostrophe(text, &ws, &mut v);
-    un_apostrophe(text, &ws, &mut v);
+    use joyword_proof_rules::{ItalianForms, ItalianIssue};
+    let forms = ItalianForms {
+        articles: UN_FORMS,
+        feminine_o: FEMININE_IN_O,
+        masculine_endings: MASCULINE_A_ENDINGS,
+        ambiguous_a: NOT_FEMININE_IN_A,
+    };
+    joyword_proof_rules::italian_elisions(text, &ws, forms, |span, kind, fix| {
+        let label = match kind {
+            ItalianIssue::Truncation => "Si scrive «po'», con l'apostrofo e senza accento".into(),
+            ItalianIssue::Qual => "«Qual è» si scrive senza apostrofo".into(),
+            ItalianIssue::Accent => "«È» si scrive con l'accento, non con l'apostrofo".into(),
+            ItalianIssue::Masculine(head) => {
+                format!("Davanti a un nome maschile «{head}» non vuole l'apostrofo")
+            }
+            ItalianIssue::Feminine(head) => {
+                format!("Davanti a un nome femminile si scrive «{head}'», con l'apostrofo")
+            }
+        };
+        v.push(issue(span.start, span.end, label, vec![fix]));
+    });
     v.sort_by_key(|i| (i.start, i.end));
     v
 }

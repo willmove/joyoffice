@@ -1,0 +1,1550 @@
+{
+  "baseline": "a0a7db3f",
+  "scope": "Move local lexical and clause decisions for English, Spanish, Italian, Polish, Russian and Turkish into joyword-proof-rules. Keep licensed vocabulary, localized messages and the review adapter at their original source. English combines article and adjacent word checks in one borrowed word traversal.",
+  "references": [
+    "https://dictionary.cambridge.org/grammar/british-grammar/a-an",
+    "https://www.rae.es/dpd/signos%20de%20interrogaci%C3%B3n%20y%20exclamaci%C3%B3n",
+    "https://accademiadellacrusca.it/it/consulenza/larticolo-indeterminativo/82",
+    "https://accademiadellacrusca.it/it/contenuti/qual-e-il-problema-lortografia/7435",
+    "https://rjp.pan.pl/app/uploads/2025/06/2-zalacznik-do-komunikatu-Zasady-pisowni-06-24-wersja-ostateczna-jednolita.pdf",
+    "https://gramota.ru/biblioteka/spravochniki/pravila-russkoy-orfografii-i-punktuatsii/znaki-prepinaniya-v-slozhnopodchinennom-predlozhenii",
+    "https://tdk.gov.tr/icerik/yazim-kurallari/noktalama-isaretleri-aciklamalar/"
+  ],
+  "cases": {
+    "cases": 318,
+    "sameIssues": 84,
+    "replacedOrRemoved": 17,
+    "newOrCorrected": 65
+  },
+  "profiles": {
+    "en-US": {
+      "cases": 44,
+      "sameIssues": 3,
+      "replacedOrRemoved": 2,
+      "newOrCorrected": 14,
+      "orderedGrammarSha256": "97b5afd27252bf409b511bc59fd617137205216e356bae254fbf64282951b053"
+    },
+    "en-GB": {
+      "cases": 44,
+      "sameIssues": 3,
+      "replacedOrRemoved": 2,
+      "newOrCorrected": 14,
+      "orderedGrammarSha256": "97b5afd27252bf409b511bc59fd617137205216e356bae254fbf64282951b053"
+    },
+    "en-CA": {
+      "cases": 44,
+      "sameIssues": 3,
+      "replacedOrRemoved": 2,
+      "newOrCorrected": 14,
+      "orderedGrammarSha256": "97b5afd27252bf409b511bc59fd617137205216e356bae254fbf64282951b053"
+    },
+    "en-AU": {
+      "cases": 44,
+      "sameIssues": 3,
+      "replacedOrRemoved": 2,
+      "newOrCorrected": 14,
+      "orderedGrammarSha256": "97b5afd27252bf409b511bc59fd617137205216e356bae254fbf64282951b053"
+    },
+    "es-ES": {
+      "cases": 21,
+      "sameIssues": 12,
+      "replacedOrRemoved": 0,
+      "newOrCorrected": 2,
+      "orderedGrammarSha256": "b372862473841f4a51e027b67bde57a1d5864537c59cccf7608eefdfab9233ae"
+    },
+    "es-MX": {
+      "cases": 21,
+      "sameIssues": 12,
+      "replacedOrRemoved": 0,
+      "newOrCorrected": 2,
+      "orderedGrammarSha256": "b372862473841f4a51e027b67bde57a1d5864537c59cccf7608eefdfab9233ae"
+    },
+    "es-419": {
+      "cases": 21,
+      "sameIssues": 12,
+      "replacedOrRemoved": 0,
+      "newOrCorrected": 2,
+      "orderedGrammarSha256": "b372862473841f4a51e027b67bde57a1d5864537c59cccf7608eefdfab9233ae"
+    },
+    "es-UY": {
+      "cases": 21,
+      "sameIssues": 12,
+      "replacedOrRemoved": 0,
+      "newOrCorrected": 2,
+      "orderedGrammarSha256": "b372862473841f4a51e027b67bde57a1d5864537c59cccf7608eefdfab9233ae"
+    },
+    "it-IT": {
+      "cases": 14,
+      "sameIssues": 7,
+      "replacedOrRemoved": 0,
+      "newOrCorrected": 0,
+      "orderedGrammarSha256": "7a984ee9a7776464c756ef068b7216b4820278fa683ccdf6b75b14ff342cc880"
+    },
+    "ru-RU": {
+      "cases": 14,
+      "sameIssues": 5,
+      "replacedOrRemoved": 0,
+      "newOrCorrected": 1,
+      "orderedGrammarSha256": "c9ba39a0ac47440c3c436251efdbe072986ff13164fa2db4f42f923c42d75777"
+    },
+    "pl-PL": {
+      "cases": 12,
+      "sameIssues": 6,
+      "replacedOrRemoved": 0,
+      "newOrCorrected": 0,
+      "orderedGrammarSha256": "e3897dcd0469b63f761a551b50ba496171d599f187b6df858618ecbceb5cd3aa"
+    },
+    "tr-TR": {
+      "cases": 18,
+      "sameIssues": 6,
+      "replacedOrRemoved": 9,
+      "newOrCorrected": 0,
+      "orderedGrammarSha256": "e587bea6cd5773541cbe69af75b086ba1043e10f5ef60ee34001c168efedd6ac"
+    }
+  },
+  "punctuationRegression": {
+    "paragraphs": 11356,
+    "issuesReproduced": 6526,
+    "profiles": {
+      "cs-CZ": {
+        "paragraphs": 668,
+        "independentExpectations": 23,
+        "matchingGrammarIssues": 286,
+        "correctedFalsePositives": 0,
+        "orderedIssuesSha256": "d0f217ba2b64efaef16cda78ae353afa0ecd28aa16d52acaa355e7b603e780a5"
+      },
+      "hr-HR": {
+        "paragraphs": 668,
+        "independentExpectations": 23,
+        "matchingGrammarIssues": 492,
+        "correctedFalsePositives": 0,
+        "orderedIssuesSha256": "0ba006705caa3517013a89b4277cb54816d3ac393312720ef915dd46d3466fb6"
+      },
+      "id-ID": {
+        "paragraphs": 668,
+        "independentExpectations": 23,
+        "matchingGrammarIssues": 286,
+        "correctedFalsePositives": 0,
+        "orderedIssuesSha256": "980484bfe6a99110005c4d82cd8101f99120816e27cba5228f6b7198ebc2245d"
+      },
+      "it-IT": {
+        "paragraphs": 668,
+        "independentExpectations": 23,
+        "matchingGrammarIssues": 1121,
+        "correctedFalsePositives": 0,
+        "orderedIssuesSha256": "488e9788bc8efa69101abd9e9b52c8e40e8069e4003196dffee28083c60a5728"
+      },
+      "pl-PL": {
+        "paragraphs": 668,
+        "independentExpectations": 23,
+        "matchingGrammarIssues": 436,
+        "correctedFalsePositives": 0,
+        "orderedIssuesSha256": "cf111b1f9a48998181ab854844f3625587a4e937b643cc9cb63c3d1aba487f27"
+      },
+      "pt-BR": {
+        "paragraphs": 668,
+        "independentExpectations": 23,
+        "matchingGrammarIssues": 490,
+        "correctedFalsePositives": 0,
+        "orderedIssuesSha256": "68700efa63c18f956d2fa114130f4d53928ac8468e61363571fd79e7bbafbc60"
+      },
+      "ru-RU": {
+        "paragraphs": 668,
+        "independentExpectations": 23,
+        "matchingGrammarIssues": 436,
+        "correctedFalsePositives": 0,
+        "orderedIssuesSha256": "0f8862bff115846ef2d644735af02c5b740fb0a5c3a9d3b77e95f6e23679b83e"
+      },
+      "tr-TR": {
+        "paragraphs": 668,
+        "independentExpectations": 23,
+        "matchingGrammarIssues": 369,
+        "correctedFalsePositives": 0,
+        "orderedIssuesSha256": "589d158e2e78cbb828df2faf278503e7a5a42400567134ea99684af13f9db611"
+      },
+      "es-ES": {
+        "paragraphs": 668,
+        "independentExpectations": 23,
+        "matchingGrammarIssues": 432,
+        "correctedFalsePositives": 0,
+        "orderedIssuesSha256": "4fd48fa15927bcc8de2701a29e92f004056619194d98268b07e5233b6b4fab0c"
+      },
+      "es-MX": {
+        "paragraphs": 668,
+        "independentExpectations": 23,
+        "matchingGrammarIssues": 432,
+        "correctedFalsePositives": 0,
+        "orderedIssuesSha256": "4fd48fa15927bcc8de2701a29e92f004056619194d98268b07e5233b6b4fab0c"
+      },
+      "es-419": {
+        "paragraphs": 668,
+        "independentExpectations": 23,
+        "matchingGrammarIssues": 432,
+        "correctedFalsePositives": 0,
+        "orderedIssuesSha256": "4fd48fa15927bcc8de2701a29e92f004056619194d98268b07e5233b6b4fab0c"
+      },
+      "es-UY": {
+        "paragraphs": 668,
+        "independentExpectations": 23,
+        "matchingGrammarIssues": 432,
+        "correctedFalsePositives": 0,
+        "orderedIssuesSha256": "4fd48fa15927bcc8de2701a29e92f004056619194d98268b07e5233b6b4fab0c"
+      },
+      "pt-PT": {
+        "paragraphs": 668,
+        "independentExpectations": 23,
+        "matchingGrammarIssues": 490,
+        "correctedFalsePositives": 0,
+        "orderedIssuesSha256": "1b108179351c128d0e93923acfb3b5d8987fc7ac9574b06a199d75794a22d504"
+      },
+      "en-US": {
+        "paragraphs": 668,
+        "independentExpectations": 23,
+        "matchingGrammarIssues": 98,
+        "correctedFalsePositives": 0,
+        "orderedIssuesSha256": "1b052f5f617b553b1d6a8b95c21cf0594f64a8fa02bcf9056257f7795d8d9b18"
+      },
+      "en-GB": {
+        "paragraphs": 668,
+        "independentExpectations": 23,
+        "matchingGrammarIssues": 98,
+        "correctedFalsePositives": 0,
+        "orderedIssuesSha256": "1b052f5f617b553b1d6a8b95c21cf0594f64a8fa02bcf9056257f7795d8d9b18"
+      },
+      "en-AU": {
+        "paragraphs": 668,
+        "independentExpectations": 23,
+        "matchingGrammarIssues": 98,
+        "correctedFalsePositives": 0,
+        "orderedIssuesSha256": "1b052f5f617b553b1d6a8b95c21cf0594f64a8fa02bcf9056257f7795d8d9b18"
+      },
+      "en-CA": {
+        "paragraphs": 668,
+        "independentExpectations": 23,
+        "matchingGrammarIssues": 98,
+        "correctedFalsePositives": 0,
+        "orderedIssuesSha256": "1b052f5f617b553b1d6a8b95c21cf0594f64a8fa02bcf9056257f7795d8d9b18"
+      }
+    }
+  },
+  "dictionaryRegression": {
+    "repositoryIndexSha256": "b35c7aef0591177f18233b551da16035dcd615549ff874e169ffd19f16fea74b",
+    "releasedPacks": 75,
+    "inputWords": 450,
+    "perPack": {
+      "af": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "97b1203c3d07b75ed8d977deb539f5d41c9f3e80b96ced6e3b89e87df0ae7626",
+        "archiveSha256": "0198c0e3fd9f9e6468c6d26a3a90743c793da5f8c4d481a416cc4f97e8d17b36"
+      },
+      "ar": {
+        "probes": 6,
+        "spellingIssues": 3,
+        "issuesWithSuggestions": 3,
+        "orderedIssueSha256": "759fb72b751a8b657516a9ba519f3c1b95cc958e09c0bf69ef3ddade8c27a520",
+        "archiveSha256": "105fab8bc7ef73d26b4237dc94c3b58ec6f7965b4cc5cc1c37e89b52d0e37dc4"
+      },
+      "be": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "9a23a8c47828470942d5131431a2585dc0d7beac267117f6379b0486bf42e54f",
+        "archiveSha256": "4c119fd1885844d3ad9c1956364a8e95bad9cfc0cedb27b645c0465e8dc993b8"
+      },
+      "bg": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "8ca974d12050ad058ab0b912f2ec3e3521027b6275638402096d19b9de931c55",
+        "archiveSha256": "84cf5fa840dc3788a815ee8d500b9e00a726a25da4fef9fd15e01906fbbb7c37"
+      },
+      "bs": {
+        "probes": 6,
+        "spellingIssues": 3,
+        "issuesWithSuggestions": 3,
+        "orderedIssueSha256": "023de75fe3d9ba13ab0141d2515e5d519db074745468818e6c11187de3184d36",
+        "archiveSha256": "0dc1ede06e2a7a9a385305d14a6133c0d170b2d1fcfe87625d06f82ecd5e4b2c"
+      },
+      "ca": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "48d7bd58ea3f5caaa8c3d07b29ea1d0150722f29c53163fa5e8227bde67c305d",
+        "archiveSha256": "5cf36479501e03cc29c99c02ba8bdbf065f541fa14d687733a9ef2e8a6972ff4"
+      },
+      "ca-valencia": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "37e0b0a189b25eaad0b4897a08bac0a55a56d4adb268d13d84ac4ed145360da4",
+        "archiveSha256": "c40f65e7c6b371bd1fb1662619480183a71d81aacccf598d82cc342bf4092333"
+      },
+      "cs": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "f05a7f7c87cbab094a75bd241ee5b0a0dd2905b8fc4ad279f04b59da4794d0d6",
+        "archiveSha256": "6d3789e9908cdd114fa1eb4dad95a82149d3e49309acb537de48f67c87c027cf"
+      },
+      "cy": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "4b7a8c56182d17aff61498f251e3bd43da3a8557083c256a83e680f836c6eabc",
+        "archiveSha256": "559a4df06039696382553800d452da51bbad65b2df1590fd6df09fbc55632d42"
+      },
+      "da": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "1992cd5f45ce46217a0e055a7e807a661c859639a2d7c8128a1d329c0f830076",
+        "archiveSha256": "68a4978510f4bc69bb16ab5d4dfe9de75be71ccd76cce5a21cc12e526359ea3a"
+      },
+      "de": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "107008df628c074281dfb8cef5ef334432819a7a36ea3f4fbb6db5b4326875d0",
+        "archiveSha256": "861430d65af4cd3dddc8144bd9eccf1d1e5da24abc0b5d5f0f60ffac8c4c05a1"
+      },
+      "de-at": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "533015c0f9386a23363956ccf6c65515d22922d6e8aedc4a2fb3afb719f4cbcb",
+        "archiveSha256": "70823c0a434445cb843aba72f4d70e0101d205bbb55e8ebcb98e7a09fb5de088"
+      },
+      "de-ch": {
+        "probes": 6,
+        "spellingIssues": 3,
+        "issuesWithSuggestions": 3,
+        "orderedIssueSha256": "9337f630469f740c0e9a831d1eeea885d3de03e706bf139c89091e94a5293f2e",
+        "archiveSha256": "c1242c6da8f44d2539ab5d18a23b1ce80ae527e00d7c22922bc533c98d9903f3"
+      },
+      "el": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "61763c9b39855cee2a21418e0c4fdb5e4a38a6eeb2c89c32bf309e443aced2c5",
+        "archiveSha256": "ca0d6fda0663427c928929304fe5764bcc4f5418fa541026ce27266ec244da80"
+      },
+      "eo": {
+        "probes": 6,
+        "spellingIssues": 6,
+        "issuesWithSuggestions": 5,
+        "orderedIssueSha256": "79ed5236dad9b741fffbd5dbbffe8a77ca2b75fe8e17eb77dafbc4aab10cc147",
+        "archiveSha256": "97982818c8be6a394f8cb6d507626dedeab98762b6e4c5a28c87ed8f270fd301"
+      },
+      "es": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "18fc358fb088bfa9d2e0a660f1cc78ca36a8bce7683bafb38d9009ab25971920",
+        "archiveSha256": "31e3a9d112066c418e9312e507aed03b507fdd2d649e6a81172fdb1f7be8ebe4"
+      },
+      "es-ar": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "d9a5b823c607d888a7ec9a2c9c4286b862756d6cc542c27f1a84c1cae1357c94",
+        "archiveSha256": "31bc649ec7c381a3be4e95553e4f5e28117958e747aabca09a7c38ab737c4cf7"
+      },
+      "es-bo": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "30986702577311b18ba39de3ffec4c89cf9c4cc7540380953bb364c87cce716d",
+        "archiveSha256": "bff0e90891b74dad17471eb79890d414f12b2b70e325a99af9dc791c73a1e956"
+      },
+      "es-cl": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "f353356d6185f2c2aaf50758ddc4b028695694f04ebd25a380a0e6528f997447",
+        "archiveSha256": "e1efdda0d10b8c195b6f170fbee0d8689e20cb9549c385f9323dd60df4fe9bbc"
+      },
+      "es-co": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "49490e9855e5a1002e22ad90145e6f831615ccb20ad82f42b89f626a711c0520",
+        "archiveSha256": "3824591ceeae5d7b1f1f44863e245430a33a44de058e071ecd88906866ff2e9d"
+      },
+      "es-cr": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "ecc0d4bfa5a30d9c944ed2306c98058c7997b078a8b2bafe8b6a318272efa5e8",
+        "archiveSha256": "e973cc567b7bba53d9a964a15b0eff8f386b2aee0806d2aa7523580113096822"
+      },
+      "es-cu": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "257b3635926050e7235635ee1f06b74fb5d2fda16ff401356c5c86b9f348c12d",
+        "archiveSha256": "b03b9b2d5eede205ed9adb0c722c2cdc86814d63e337e11b237a54b2e60fcdfa"
+      },
+      "es-do": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "9c8c2bf60f916931e54ed1ecdf4555132abfc9fe702306e5b9feedbff7066f14",
+        "archiveSha256": "0e7cfb370aaabdbef4261e6da0b7139e1806239b43f897ee0a31c7258074fed6"
+      },
+      "es-ec": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "edfc245f470c50f1213f20a8ea1e815f97b82f84516efc0e97c0e135d38dc25e",
+        "archiveSha256": "efb6ceb9c653b2dd4be10f9dc62c24ca0d49c5f34b70f855d931faf5a1c37b4a"
+      },
+      "es-gq": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "5666ac5270931da2a4177ce74c23add5e5d124a727621b5ef123b131f800966f",
+        "archiveSha256": "ffb539a3e32f6272ab316be2715d2e3ebd93c515692d97e41a6741d2e1762eb3"
+      },
+      "es-gt": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "2fb4f22997a3d6ac044ea5ab9551cbf69b3cec228af0a26bbe81de45b6183e24",
+        "archiveSha256": "c2c066fee70226a548149925e4c170a15ce4b01b9dd74c4b46fa33deae4cbce5"
+      },
+      "es-hn": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "1d680492e1f4241be1d7b8b96182378361c76d56b18077b49a917d9414b38dca",
+        "archiveSha256": "15bd24fd16a55c06d7a51515b63a07846f185aa8d14d991a571a0173d343e921"
+      },
+      "es-mx": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "2e1080a120c142346778212308678fa4b75dcb674f683563e84b88721c271f3a",
+        "archiveSha256": "45b46aa4b0990b540733134baece06f9e926d6719b9b8da10b731dbc8ec6a535"
+      },
+      "es-ni": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "59e3ef05da88c271557a1f662cd81e56a11fa6692b4785bf11a06d4cead0c9b9",
+        "archiveSha256": "24b17b9eab9c7948b169a8df7b1600cfb8690487c08c7c083d3890485c0f1493"
+      },
+      "es-pa": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "654690cba726cf7af420e47b7713915aee930999069fda748828118c79ada680",
+        "archiveSha256": "7e38a308841d739388cc1794dd8bc749353353943ae6dcf9dcb42b1e454ffeae"
+      },
+      "es-pe": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "6b063929879562974b3bd425a871739486ff1b981efd2f199d85fbdaeea9b598",
+        "archiveSha256": "b26829b1f8dbb90575712acf91e128e069d8d3817297232fa976e39c6b1cf0c3"
+      },
+      "es-ph": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "c4142ed4cf2815c95ef9f2c37b0960f1098de6a87703eecf85d00a359a200b17",
+        "archiveSha256": "b674b5aac7a64ae870946ed1f4a8784cb143bd793dc69caa1c7a72269db8a116"
+      },
+      "es-pr": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "2d9127c9667121a0890222f1424f8cbf4cc7933b4f9f16cfc30b9e22679fbd68",
+        "archiveSha256": "0e2d9256782690459447813128010111c1b2b9d3b9b6be069c1dfee9667b9ffd"
+      },
+      "es-py": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "dbc15dd34ffe979cb07744e64194f16efaf1cc5ca58d705960e219e478aa026f",
+        "archiveSha256": "5dbf1e88dc2098eb3327a6e2175a6ec8daff6e7ba7efb2fec4ccb5078d6aac4b"
+      },
+      "es-sv": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "de9b332373d17621d920288736f0418eeedad925160f4298f6c96f3e9f1235dd",
+        "archiveSha256": "80be1c16ac73ab5d7f51e4d9e5490307f65d0608a55ed1b431e03eadbcd6aa56"
+      },
+      "es-us": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "5e90e008de4848bb18dc4ba93041c36948ef2146fcac222fe5dd9964b56d1ac0",
+        "archiveSha256": "8f19a00606d291ca69c618905f179c8f979e221cb8accaa62451ae4f8cbd0bc1"
+      },
+      "es-uy": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "49e661b90c81bc19af2c218b1ed5cb059188ce21f220c4e97ef2e8a3c411d8ce",
+        "archiveSha256": "cbe1c0cf4c7126dd8f4e8a2d3856a990cbe9b5e213beae572efe81e24942d909"
+      },
+      "es-ve": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "1ec2ca12810a0add202324fd65a0ca896a137c04a9ac8fe03cc7230b6b1a66c4",
+        "archiveSha256": "91ea1311bcf759f9e0b1760e0774537c85def43a25a934370d4d27304ec6eb13"
+      },
+      "et": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "bf45c556d40522566c4cfc42949c7136b75f8e885abc60ee943025252080a3f0",
+        "archiveSha256": "06bd06d3ef7c796cfcdb8e01ba02e1590a453fe299e86c9f210b5ed82783d8c5"
+      },
+      "fa": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "9fc136d0721fd5e953588c20564269bc43a9d90f2d25e85b445c25e63399cea5",
+        "archiveSha256": "a3770cf8694f97f1fe3a26f6ead97b5472e55f3a5d7d33087fb017ad851ff209"
+      },
+      "fr": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "9ec3b733fc65b05d0fee2380bcc6cabfd81214d0d75dc509b4752aa59018830d",
+        "archiveSha256": "62b340e78f46264c14848f03c8d7475da4e777b5ee9ac047e9fd9b1f58030cd9"
+      },
+      "ga": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "9e64f6e6d884d34945199b677e1cddbaec04aa9a64023414483c8e85adb84da5",
+        "archiveSha256": "15ca21fc7976ab8cd4a97ac55c3a43c8b115e409dd0f0c5303e0be64907b7141"
+      },
+      "gl": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "eb144c08cc4d9052515bb506017ccac7c2b245bae39afaff06758e98aa0152ab",
+        "archiveSha256": "506d4ae8a18d68272b5f0a52f578605ac3fd25b00768b73ba876de4b26335876"
+      },
+      "he": {
+        "probes": 6,
+        "spellingIssues": 3,
+        "issuesWithSuggestions": 3,
+        "orderedIssueSha256": "307a55e6545cd0d7068b9625127e00a56c7d206f0fa1f790fed7aaa63362272b",
+        "archiveSha256": "266565763ee5bbf1895cd26a199528c4fb1409e1b9b929b888b1e35cf159dc63"
+      },
+      "hi": {
+        "probes": 6,
+        "spellingIssues": 3,
+        "issuesWithSuggestions": 3,
+        "orderedIssueSha256": "50e6cddeff35d38e0c5cd06341d92947b23d4aaddf9f3ded5544ac0c9fab3a61",
+        "archiveSha256": "0452c97581606c10bb6cb564309291b69c34b1424821400407d70751246bdb05"
+      },
+      "hr": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "2b4b75ae29157eadfd91d917522d3c75ce91d432699dcfc438be0fa553ca9f78",
+        "archiveSha256": "f304e92b1b87348ec1919e412646be78fcf0b57174804276be57cde7066a1013"
+      },
+      "hu": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "efb29a0fb6d6d48102ab4adce97cc8356e365b44407a3866c25b32c43cbd964c",
+        "archiveSha256": "9ae3044520d3e831a41afee60024f44697929173c9093926e50436da7dd63704"
+      },
+      "hy": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "d9f8dd7165f33360c77393a7d7bd38468fb7485648947139145141dd3465c5f4",
+        "archiveSha256": "d942e8b9b2b76f5c15beb5251712e6cafc0fe57c7864caac4d295f5504f55981"
+      },
+      "id": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "ee0c86fa53d1f420271390ddc0188ba220e33b34759f0690e5e7a3c76bbbecf2",
+        "archiveSha256": "8c929ddee98dc3594c161ab874b3763e9bdda140e20444e58d114c843053ca30"
+      },
+      "is": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "fb29857b92b264bfc4d2e85d1852fd5784143a246334eb235ecc2213eb269a1b",
+        "archiveSha256": "5844f324c733c1a2a45e69b2da187746a24349ee01a247cfd6e3706c0eb8dfbe"
+      },
+      "it": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "8f2d9a82d62f20d0689a9de2a9d4a16840bd3c965febf725b294d11763c584ae",
+        "archiveSha256": "e8117470e64f7dfcf6158d32f80235733ac1191bb3f73863633b3be41fd1a0d8"
+      },
+      "ka": {
+        "probes": 6,
+        "spellingIssues": 5,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "1fe56f30e5feb47d8e3f759b65337e478d8d4d37dada52f6823219fc8fd6fae4",
+        "archiveSha256": "90818b236dfc7d8571bcd4c8807a0e88b60a605e9dbcac76fd03e053f4d90023"
+      },
+      "ko": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 2,
+        "orderedIssueSha256": "f3f33c0f5f6bacfcb62da07dbc9594fc0e78fffefa10872b23d2085e0aff3616",
+        "archiveSha256": "c9c596938cff8c11315d9319c1c882ddc55f75d04bd00e9d65744265a5b57b74"
+      },
+      "lt": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "86a6389395ed04da4ed885c9c8da919209e60ebabbca9b80b6b16a320ded02f2",
+        "archiveSha256": "956d78726030b38738ca6ef4431d468493f276909a2c77ae473de0e6fbae55e7"
+      },
+      "lv": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "e7f00174f180aabef4ffc071f1b07d4687da62f87c2e20c9ece0f2f1299ce6c8",
+        "archiveSha256": "d10593aab77ddd91cc8480e208f32e555cdbfade8e7abc99280ce8484ac1a775"
+      },
+      "mk": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "6c0cbb91dcbf2803ccc0509074ad9c78df9eb302dfdb10ae6da8c0b627d1d2e3",
+        "archiveSha256": "0123e9280a978f2dd516dde40a52521fb56836125e2969d7f1356c2ae2292c10"
+      },
+      "nb": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "e13187a29bd2853a273869d3cf5ad19f22108840bc132f9aa479600d9fc821f4",
+        "archiveSha256": "a662ae1451b8405416682e8aac4b036eaff09987e7cbcd3008f32915b678d40b"
+      },
+      "nl": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "6abb560d76d2def71e913a38e55b3f20e57d529ae23ab1609be5480f3ba0692c",
+        "archiveSha256": "6e26118ef28d0faca48b5b55d7be9f364b1de5e73adbcb739d6e0fb2a517c7f0"
+      },
+      "nn": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "03eaf23a045fc8f9649b2cba4d31d1ec40ca516d33a711e2dee82ad89a065b96",
+        "archiveSha256": "cb047afb24c0f2d9918e6d461deed17ed93519258e3486de55916e327f111710"
+      },
+      "pl": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "a51df6e07ba0c729f32e26fc315813733fee2befbfd86b13e4d8bfbfefb11c44",
+        "archiveSha256": "41dcb6f74911776cdd284f91f6df3a67e2853a50db38821a2192c6b5a234b89f"
+      },
+      "pt-br": {
+        "probes": 6,
+        "spellingIssues": 3,
+        "issuesWithSuggestions": 3,
+        "orderedIssueSha256": "088b5d003fe7ca01d56324da147ebeba369ba60466bab4f7aa8cca76dbd7b668",
+        "archiveSha256": "14ce880350496c624ff277d7b855d43bb4fc90cf1b827249d09bfec16a6d7cab"
+      },
+      "pt-pt": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "e41cc7698542b6161e82cdff79259356d86a14f189ff90470a82c3632b1f2f19",
+        "archiveSha256": "8ba0dd73da7dbea2376a8586b38d55cd97d30b04634864ab9a94ad68f0a612bf"
+      },
+      "ro": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "da4c82a8e71fb41d90cd389cab3eb94fcc1fdf59c44f77b8123225874019a12f",
+        "archiveSha256": "1683a29ac5cb6b88b8ae7192ee022223218bcd8a67c9cbb62df5fd07a6d94b7a"
+      },
+      "ru": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "361e1e4960385be953a1c2e535c7c00484768483124da616d601496717036bdb",
+        "archiveSha256": "862bce34075d1e61b033ba7b519e0bbe5917de8138bca0b49ac7a435442061f5"
+      },
+      "sk": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "b8b445f56555c1862891cdaceafc0fbd883847d429465a9c19e4c4f149501e58",
+        "archiveSha256": "22f43fd4db47d08f1379cd5fd2cba79175f39dcfd51711dc21aa69cc5b0ea313"
+      },
+      "sl": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "bed8cb1f5ef4f6b4b8279f58612d8fb978613ffd0e03705074530b822c011601",
+        "archiveSha256": "ca77e7be5eb80041d51d9c2898ba42605d310622e52af41748e5d6557d44dcf1"
+      },
+      "sq": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "bfe3802d9af1403aeb2001c9a33ad1fd39389040305a59453dbd565f01227581",
+        "archiveSha256": "e556ae365f35918679211ad7696ee1e6c5910dc3982a4c14d1be964963515736"
+      },
+      "sr": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "8cfc0013f450e2c65e406baa409fe6c0597ae1f84e330f21ad5177c0e7ea203f",
+        "archiveSha256": "d54fbc68111ff026ae02c5869e5ea35b999d05ff1ea9cc1ca701d2689c12f52f"
+      },
+      "sr-latn": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "83621c9fd90f1565fcd373e162b48be84a565c0d5def33d461d9572351b6c5da",
+        "archiveSha256": "f6103608a3a047fa0db43e8b4edf7a17aeb89204fe346f70915137792cb24b97"
+      },
+      "sv": {
+        "probes": 6,
+        "spellingIssues": 5,
+        "issuesWithSuggestions": 5,
+        "orderedIssueSha256": "d51b01b3bcadc39f79029520347a0fd8a0b5b3d8104b3484ba0e4b1e95b5af4b",
+        "archiveSha256": "f7549c8c846f0464018b7056208f83a2b6fcafdf1d7c378ff8678e42756d0ccd"
+      },
+      "sv-fi": {
+        "probes": 6,
+        "spellingIssues": 5,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "1dce6fcc67c7d223ee35e08a82c9a1098b1dbf83dffbc0901e576c0e92dc450e",
+        "archiveSha256": "614bad17bca1fbb8d5ca20149b8386a095bda92276b9de0d15804762fca80316"
+      },
+      "sw": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "46054fc7ec9b3c37f50f9694f91383d6eb650c8e7eccb957bfac5c3dc3e0a600",
+        "archiveSha256": "e7f47470764f20a017eea2dcb1f17108b280089faf1c71702367eeceb2de33ba"
+      },
+      "ta": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "4ff7806fb2fdb1d3444ccb6f70fc82a7d1fe2eeba16c9de6c62023b6c3b5f47c",
+        "archiveSha256": "c07020ba0ce3c56420459b3cc0ac2ad85ed77693f75696f3aad7f2437a1b282b"
+      },
+      "tr": {
+        "probes": 6,
+        "spellingIssues": 4,
+        "issuesWithSuggestions": 4,
+        "orderedIssueSha256": "f3f2286f2f8ae9db346ce9a41ba0d07e155a6aac7f3108bedbf2119d1d2e7408",
+        "archiveSha256": "056c2d156dbe2e4d02eae7bf991fc778fdfbe51afa44d071e9ac2336eb88ab5f"
+      },
+      "vi": {
+        "probes": 6,
+        "spellingIssues": 3,
+        "issuesWithSuggestions": 3,
+        "orderedIssueSha256": "00b4d57432b6d4840508a660356df125d6f29ae9ba6fd10602c07c2fc6e6d15c",
+        "archiveSha256": "82002e98835740b3a2418d9af76d2cfb2766781279462dd366089df542f5ab53"
+      }
+    },
+    "synthetic": {
+      "nl": {
+        "probes": 12,
+        "spellingIssues": 9,
+        "issuesWithSuggestions": 6,
+        "orderedIssueSha256": "5c192af4907f4d68155ece2f1c74a503d9d1475c958f28e124d27b91566bd5d9"
+      },
+      "sv": {
+        "probes": 12,
+        "spellingIssues": 9,
+        "issuesWithSuggestions": 6,
+        "orderedIssueSha256": "4a5e6184d05d82cadb7d2a1eee642cfc0759772f34d21cd581210a915aa9099d"
+      },
+      "da": {
+        "probes": 12,
+        "spellingIssues": 9,
+        "issuesWithSuggestions": 6,
+        "orderedIssueSha256": "789dbd89cd02b97801874d8a8faac5e5331475bac78d512766abf588356deb5f"
+      },
+      "fi": {
+        "probes": 12,
+        "spellingIssues": 9,
+        "issuesWithSuggestions": 6,
+        "orderedIssueSha256": "8fb48d6e343d87499913debfeb7348cd6fae50b005a23898c26d3b47770e52ae"
+      }
+    }
+  },
+  "timingMethod": "Seven alternating optimized binary pairs per dataset, 500 paragraphs per observation, microseconds per paragraph. Both programs use the same input and release settings. UOS both pinned to CPU 3. Counts reflect candidate findings; independent labeled cases establish correctness.",
+  "platforms": {
+    "macOS": {
+      "cliSha256": [
+        "45f4ccbf0438ea393ec466680474a0d1df0c6107c9e62a97a085d9a52d7b4d40",
+        "5d6d4b9f674cb8b43db78c79a57b98446aed0aa32142de0336ecc040d2de9b9b"
+      ],
+      "desktop": {
+        "es-ES": {
+          "binarySha256": "6b6cbf5bec66bbff6c905f12c4b279da114cdbb2220733a5ae5f15f3faad9945",
+          "sourceSha256": "ef09fa3fa9aac6d6684eadfa4760f1ea7053cd0dfd1138c328f90c7844b6b153",
+          "selectedWord": "Vienes?",
+          "displayedSuggestions": [
+            "¿Vienes?"
+          ],
+          "replacement": "¿Vienes?",
+          "undoRedo": true,
+          "savedAndReopened": true,
+          "originalUnchanged": true,
+          "readersByWriter": {
+            "baseline": [
+              "baseline",
+              "candidate"
+            ],
+            "candidate": [
+              "baseline",
+              "candidate"
+            ]
+          }
+        },
+        "it-IT": {
+          "binarySha256": "6b6cbf5bec66bbff6c905f12c4b279da114cdbb2220733a5ae5f15f3faad9945",
+          "sourceSha256": "7b945c9af35751d487520983abedbc4eb91bd4d8bf49b4e383d07b9922ec1ac6",
+          "selectedWord": "Un amica",
+          "displayedSuggestions": [
+            "Un'amica"
+          ],
+          "replacement": "Un'amica",
+          "undoRedo": true,
+          "savedAndReopened": true,
+          "originalUnchanged": true,
+          "readersByWriter": {
+            "baseline": [
+              "baseline",
+              "candidate"
+            ],
+            "candidate": [
+              "baseline",
+              "candidate"
+            ]
+          }
+        }
+      },
+      "product": {
+        "passed": 3701,
+        "failed": 0,
+        "ignored": 2
+      },
+      "standaloneProof": {
+        "passed": 485,
+        "failed": 0,
+        "ignored": 0
+      },
+      "strictClippy": [
+        "joyword-proof-rules (all targets)",
+        "craft-proof (standalone)",
+        "editorial_proof example"
+      ],
+      "timing": {
+        "en": {
+          "issuesPerParagraph": 0,
+          "repetitions": 500,
+          "baseline": [
+            7.97,
+            15.379,
+            7.887,
+            15.089,
+            17.917,
+            8.007,
+            8.637
+          ],
+          "candidate": [
+            7.833,
+            17.104,
+            8.302,
+            7.901,
+            16.078,
+            13.583,
+            8.595
+          ],
+          "baselineMedianUs": 8.637,
+          "candidateMedianUs": 8.595
+        },
+        "cs": {
+          "issuesPerParagraph": 0,
+          "repetitions": 500,
+          "baseline": [
+            11.163,
+            11.287,
+            11.3,
+            11.205,
+            28.784,
+            11.651,
+            11.015
+          ],
+          "candidate": [
+            11.015,
+            24.479,
+            11.076,
+            11.052,
+            11.389,
+            18.653,
+            11.212
+          ],
+          "baselineMedianUs": 11.287,
+          "candidateMedianUs": 11.212
+        },
+        "pl": {
+          "issuesPerParagraph": 0,
+          "repetitions": 500,
+          "baseline": [
+            30.437,
+            34.31,
+            29.67,
+            29.881,
+            54.144,
+            39.231,
+            33.181
+          ],
+          "candidate": [
+            22.565,
+            22.023,
+            21.187,
+            21.246,
+            19.961,
+            31.476,
+            20.475
+          ],
+          "baselineMedianUs": 33.181,
+          "candidateMedianUs": 21.246
+        },
+        "tr": {
+          "issuesPerParagraph": 0,
+          "repetitions": 500,
+          "baseline": [
+            51.582,
+            39.947,
+            39.487,
+            57.29,
+            55.829,
+            61.147,
+            52.733
+          ],
+          "candidate": [
+            44.342,
+            51.61,
+            28.112,
+            52.648,
+            37.35,
+            49.732,
+            30.173
+          ],
+          "baselineMedianUs": 52.733,
+          "candidateMedianUs": 44.342
+        },
+        "it-edits": {
+          "issuesPerParagraph": 96,
+          "repetitions": 500,
+          "baseline": [
+            24.277,
+            24.469,
+            23.083,
+            21.725,
+            32.147,
+            30.959,
+            26.1
+          ],
+          "candidate": [
+            29.705,
+            33.947,
+            19.772,
+            24.876,
+            21.725,
+            25.571,
+            18.23
+          ],
+          "baselineMedianUs": 24.469,
+          "candidateMedianUs": 24.876
+        },
+        "ru-edits": {
+          "issuesPerParagraph": 96,
+          "repetitions": 500,
+          "baseline": [
+            103.728,
+            245.005,
+            114.396,
+            175.799,
+            121.839,
+            129.979,
+            178.607
+          ],
+          "candidate": [
+            188.43,
+            119.894,
+            168.487,
+            97.806,
+            178.264,
+            148.369,
+            88.123
+          ],
+          "baselineMedianUs": 129.979,
+          "candidateMedianUs": 148.369
+        },
+        "es-questions": {
+          "issuesPerParagraph": 24,
+          "repetitions": 500,
+          "baseline": [
+            19.702,
+            56.051,
+            20.7,
+            40.161,
+            19.89,
+            21.36,
+            26.495
+          ],
+          "candidate": [
+            21.916,
+            25.049,
+            39.862,
+            18.334,
+            35.613,
+            43.666,
+            18.212
+          ],
+          "baselineMedianUs": 21.36,
+          "candidateMedianUs": 25.049
+        },
+        "en-articles": {
+          "issuesPerParagraph": 0,
+          "repetitions": 500,
+          "baseline": [
+            6.533,
+            16.297,
+            7.636,
+            8.875,
+            13.988,
+            6.801,
+            7.383
+          ],
+          "candidate": [
+            6.895,
+            12.363,
+            16.773,
+            6.057,
+            10.861,
+            5.983,
+            6.154
+          ],
+          "baselineMedianUs": 7.636,
+          "candidateMedianUs": 6.895
+        },
+        "pl-clauses": {
+          "issuesPerParagraph": 48,
+          "repetitions": 500,
+          "baseline": [
+            28.096,
+            47.568,
+            28.566,
+            53.255,
+            38.701,
+            39.174,
+            32.961
+          ],
+          "candidate": [
+            56.065,
+            32.334,
+            46.607,
+            21.652,
+            45.247,
+            29.969,
+            21.564
+          ],
+          "baselineMedianUs": 38.701,
+          "candidateMedianUs": 32.334
+        },
+        "ru-clauses": {
+          "issuesPerParagraph": 48,
+          "repetitions": 500,
+          "baseline": [
+            79.506,
+            154.742,
+            80.008,
+            137.745,
+            161.057,
+            97.737,
+            116.548
+          ],
+          "candidate": [
+            142.764,
+            120.173,
+            127.06,
+            69.438,
+            145.322,
+            97.86,
+            70.349
+          ],
+          "baselineMedianUs": 116.548,
+          "candidateMedianUs": 120.173
+        },
+        "it-elisions": {
+          "issuesPerParagraph": 48,
+          "repetitions": 500,
+          "baseline": [
+            25.213,
+            28.433,
+            27.462,
+            41.63,
+            66.597,
+            30.28,
+            43.952
+          ],
+          "candidate": [
+            40.126,
+            27.437,
+            35.776,
+            21.695,
+            38.183,
+            33.089,
+            19.976
+          ],
+          "baselineMedianUs": 30.28,
+          "candidateMedianUs": 33.089
+        },
+        "tr-conjunctions": {
+          "issuesPerParagraph": 24,
+          "repetitions": 500,
+          "baseline": [
+            27.017,
+            89.758,
+            27.445,
+            62.31,
+            96.833,
+            32.564,
+            35.866
+          ],
+          "candidate": [
+            37.143,
+            33.254,
+            49.783,
+            25.179,
+            40.999,
+            27.927,
+            21.533
+          ],
+          "baselineMedianUs": 35.866,
+          "candidateMedianUs": 33.254
+        }
+      },
+      "spdx": {
+        "target": "aarch64-apple-darwin",
+        "packages": 514,
+        "sourceFiles": 1084,
+        "spdxSha256": "7f2f41564bfc844fde72556ec552a4e4455f182e3fc3dde8a59c23471532cb23",
+        "missingLicenseTexts": [],
+        "sharedCrates": [
+          "joyoffice-cfb",
+          "joyoffice-drawingml",
+          "joyoffice-fonts",
+          "joyoffice-metafile",
+          "joyoffice-omml",
+          "joyoffice-opc",
+          "joyoffice-theme",
+          "joyoffice-ui"
+        ],
+        "runtimeLegacyDependencies": [
+          "craft-atomic",
+          "craft-font-store",
+          "craft-proof"
+        ]
+      }
+    },
+    "UOS25": {
+      "cliSha256": [
+        "613502384ed81fd0e97a7fe6c00f1689279f8bf4e3c660d391fa54a99b18dd2c",
+        "6f7dd5560aa5f01a25066f8facaed4ae96087ddaa0b21ef940ed17ba33783ba1"
+      ],
+      "desktop": {
+        "es-ES": {
+          "binarySha256": "5b3efe26f7f354178f555954f3b924d185cd53f8d044c0e10be72ca493aa4120",
+          "sourceSha256": "ef09fa3fa9aac6d6684eadfa4760f1ea7053cd0dfd1138c328f90c7844b6b153",
+          "selectedWord": "Vienes?",
+          "displayedSuggestions": [
+            "¿Vienes?"
+          ],
+          "replacement": "¿Vienes?",
+          "undoRedo": true,
+          "savedAndReopened": true,
+          "originalUnchanged": true,
+          "readersByWriter": {
+            "baseline": [
+              "baseline",
+              "candidate"
+            ],
+            "candidate": [
+              "baseline",
+              "candidate"
+            ]
+          }
+        },
+        "it-IT": {
+          "binarySha256": "5b3efe26f7f354178f555954f3b924d185cd53f8d044c0e10be72ca493aa4120",
+          "sourceSha256": "7b945c9af35751d487520983abedbc4eb91bd4d8bf49b4e383d07b9922ec1ac6",
+          "selectedWord": "Un amica",
+          "displayedSuggestions": [
+            "Un'amica"
+          ],
+          "replacement": "Un'amica",
+          "undoRedo": true,
+          "savedAndReopened": true,
+          "originalUnchanged": true,
+          "readersByWriter": {
+            "baseline": [
+              "baseline",
+              "candidate"
+            ],
+            "candidate": [
+              "baseline",
+              "candidate"
+            ]
+          }
+        }
+      },
+      "product": {
+        "passed": 3705,
+        "failed": 0,
+        "ignored": 2
+      },
+      "standaloneProof": {
+        "passed": 485,
+        "failed": 0,
+        "ignored": 0
+      },
+      "strictClippy": [
+        "joyword-proof-rules (all targets)",
+        "craft-proof (standalone)",
+        "editorial_proof example"
+      ],
+      "timing": {
+        "en": {
+          "issuesPerParagraph": 0,
+          "repetitions": 500,
+          "baseline": [
+            14.827,
+            9.817,
+            8.332,
+            8.615,
+            10.541,
+            8.39,
+            10.041
+          ],
+          "candidate": [
+            7.896,
+            7.837,
+            12.894,
+            7.825,
+            7.765,
+            9.164,
+            7.934
+          ],
+          "baselineMedianUs": 9.817,
+          "candidateMedianUs": 7.896
+        },
+        "cs": {
+          "issuesPerParagraph": 0,
+          "repetitions": 500,
+          "baseline": [
+            21.924,
+            12.083,
+            11.705,
+            14.783,
+            12.095,
+            12.064,
+            11.96
+          ],
+          "candidate": [
+            15.005,
+            12.286,
+            20.737,
+            11.472,
+            11.918,
+            11.154,
+            11.137
+          ],
+          "baselineMedianUs": 12.083,
+          "candidateMedianUs": 11.918
+        },
+        "pl": {
+          "issuesPerParagraph": 0,
+          "repetitions": 500,
+          "baseline": [
+            41.811,
+            25.251,
+            24.491,
+            23.952,
+            25.252,
+            25.419,
+            26.018
+          ],
+          "candidate": [
+            18.044,
+            17.515,
+            31.87,
+            17.447,
+            17.869,
+            20.063,
+            19.134
+          ],
+          "baselineMedianUs": 25.252,
+          "candidateMedianUs": 18.044
+        },
+        "tr": {
+          "issuesPerParagraph": 0,
+          "repetitions": 500,
+          "baseline": [
+            65.157,
+            40.622,
+            41.0,
+            40.069,
+            40.321,
+            40.843,
+            41.512
+          ],
+          "candidate": [
+            29.436,
+            28.128,
+            45.262,
+            28.426,
+            29.777,
+            31.686,
+            29.501
+          ],
+          "baselineMedianUs": 40.843,
+          "candidateMedianUs": 29.501
+        },
+        "it-edits": {
+          "issuesPerParagraph": 96,
+          "repetitions": 500,
+          "baseline": [
+            31.52,
+            19.608,
+            21.019,
+            19.038,
+            19.856,
+            20.49,
+            21.423
+          ],
+          "candidate": [
+            15.975,
+            14.141,
+            23.223,
+            15.277,
+            14.193,
+            14.739,
+            14.594
+          ],
+          "baselineMedianUs": 20.49,
+          "candidateMedianUs": 14.739
+        },
+        "ru-edits": {
+          "issuesPerParagraph": 96,
+          "repetitions": 500,
+          "baseline": [
+            151.245,
+            144.158,
+            138.564,
+            134.481,
+            135.576,
+            138.845,
+            141.226
+          ],
+          "candidate": [
+            122.613,
+            120.829,
+            122.513,
+            121.01,
+            120.677,
+            125.915,
+            163.643
+          ],
+          "baselineMedianUs": 138.845,
+          "candidateMedianUs": 122.513
+        },
+        "es-questions": {
+          "issuesPerParagraph": 24,
+          "repetitions": 500,
+          "baseline": [
+            17.276,
+            18.963,
+            19.083,
+            17.386,
+            17.63,
+            19.941,
+            18.99
+          ],
+          "candidate": [
+            17.462,
+            16.399,
+            15.433,
+            16.556,
+            15.147,
+            17.058,
+            22.679
+          ],
+          "baselineMedianUs": 18.963,
+          "candidateMedianUs": 16.556
+        },
+        "en-articles": {
+          "issuesPerParagraph": 0,
+          "repetitions": 500,
+          "baseline": [
+            7.187,
+            6.816,
+            11.965,
+            8.216,
+            6.647,
+            6.694,
+            6.85
+          ],
+          "candidate": [
+            6.515,
+            7.044,
+            6.529,
+            6.377,
+            8.115,
+            7.048,
+            6.507
+          ],
+          "baselineMedianUs": 6.85,
+          "candidateMedianUs": 6.529
+        },
+        "pl-clauses": {
+          "issuesPerParagraph": 48,
+          "repetitions": 500,
+          "baseline": [
+            24.814,
+            24.586,
+            37.763,
+            22.274,
+            23.409,
+            25.105,
+            24.804
+          ],
+          "candidate": [
+            22.079,
+            20.208,
+            20.613,
+            21.085,
+            19.897,
+            20.427,
+            20.097
+          ],
+          "baselineMedianUs": 24.804,
+          "candidateMedianUs": 20.427
+        },
+        "ru-clauses": {
+          "issuesPerParagraph": 48,
+          "repetitions": 500,
+          "baseline": [
+            101.742,
+            101.879,
+            148.809,
+            106.81,
+            99.165,
+            102.152,
+            102.019
+          ],
+          "candidate": [
+            91.511,
+            91.601,
+            89.426,
+            89.54,
+            93.18,
+            94.34,
+            90.444
+          ],
+          "baselineMedianUs": 102.019,
+          "candidateMedianUs": 91.511
+        },
+        "it-elisions": {
+          "issuesPerParagraph": 48,
+          "repetitions": 500,
+          "baseline": [
+            23.136,
+            20.614,
+            36.425,
+            22.612,
+            21.766,
+            21.356,
+            20.872
+          ],
+          "candidate": [
+            16.576,
+            18.325,
+            16.767,
+            18.088,
+            18.648,
+            18.715,
+            19.259
+          ],
+          "baselineMedianUs": 21.766,
+          "candidateMedianUs": 18.325
+        },
+        "tr-conjunctions": {
+          "issuesPerParagraph": 24,
+          "repetitions": 500,
+          "baseline": [
+            30.864,
+            27.231,
+            45.29,
+            28.227,
+            26.868,
+            29.905,
+            26.576
+          ],
+          "candidate": [
+            21.723,
+            20.506,
+            20.23,
+            21.104,
+            20.649,
+            21.275,
+            21.51
+          ],
+          "baselineMedianUs": 28.227,
+          "candidateMedianUs": 21.104
+        }
+      },
+      "spdx": {
+        "target": "x86_64-unknown-linux-gnu",
+        "packages": 603,
+        "sourceFiles": 1089,
+        "spdxSha256": "daf54b8f9820be961353b4fbb616d3c312af6ef162a40e40b71b6b779aae286d",
+        "missingLicenseTexts": [],
+        "sharedCrates": [
+          "joyoffice-cfb",
+          "joyoffice-drawingml",
+          "joyoffice-fonts",
+          "joyoffice-metafile",
+          "joyoffice-omml",
+          "joyoffice-opc",
+          "joyoffice-theme",
+          "joyoffice-ui"
+        ],
+        "runtimeLegacyDependencies": [
+          "craft-atomic",
+          "craft-font-store",
+          "craft-proof"
+        ]
+      }
+    }
+  },
+  "rollback": "Restore the six language dispatches and matching source ledger from a0a7db3f. No changes to file format, installed word lists, settings or language pack data. Previous and current readers both open files saved by either writer."
+}

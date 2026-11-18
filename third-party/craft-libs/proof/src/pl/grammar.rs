@@ -240,18 +240,6 @@ fn issue(start: usize, end: usize, message: String, suggestions: Vec<String>) ->
     }
 }
 
-/// Polish vowels (and the accented vowels of loanwords).
-fn is_vowel(c: char) -> bool {
-    matches!(
-        c.to_lowercase().next().unwrap_or(c),
-        'a' | 'ą' | 'e' | 'ę' | 'i' | 'o' | 'ó' | 'u' | 'y' | 'é' | 'á' | 'ö' | 'ü' | 'í' | 'ú'
-    )
-}
-
-fn is_consonant(c: char) -> bool {
-    c.is_alphabetic() && !is_vowel(c)
-}
-
 /// Grammar issues in a paragraph of Polish text, in order.
 pub fn check(text: &str) -> Vec<Issue> {
     check_with(text, true)
@@ -286,95 +274,37 @@ pub fn check_with(text: &str, capital_first: bool) -> Vec<Issue> {
         ABBREVIATIONS,
         &mut v,
     );
-    missing_commas(text, &ws, &mut v);
-    we_ze(text, &ws, &mut v);
-    v.sort_by_key(|i| (i.start, i.end));
-    v
-}
-
-fn missing_commas(text: &str, ws: &[(usize, usize)], v: &mut Vec<Issue>) {
-    for k in 1..ws.len() {
-        let (Some(&(pa, pb)), Some(&(a, b))) = (ws.get(k - 1), ws.get(k)) else {
-            continue;
-        };
-        let (Some(prev), Some(w), Some(gap)) = (text.get(pa..pb), text.get(a..b), text.get(pb..a))
-        else {
-            continue;
-        };
-        if !CLAUSE_OPENERS.contains(&w)
-            || gap.is_empty()
-            || !gap.chars().all(|c| c == ' ' || c == '\u{a0}')
-        {
-            continue;
-        }
-        if !prev.chars().all(char::is_alphabetic) {
-            continue;
-        }
-        let p = prev.to_lowercase();
-        let p = p.as_str();
-        if NO_COMMA_AFTER.contains(&p) {
-            continue;
-        }
-        if w.starts_with("któr") && (PREPOSITIONS.contains(&p) || p == "to") {
-            continue;
-        }
+    let lexicon = joyword_proof_rules::ClauseVocabulary::Polish {
+        openers: CLAUSE_OPENERS,
+        exceptions: NO_COMMA_AFTER,
+        prepositions: PREPOSITIONS,
+    };
+    joyword_proof_rules::subordinate_commas(text, &ws, lexicon, |span, word| {
         v.push(issue(
-            pb,
-            b,
-            format!("Brak przecinka przed „{w}”"),
-            vec![format!(", {w}")],
+            span.start,
+            span.end,
+            format!("Brak przecinka przed „{word}”"),
+            vec![format!(", {word}")],
         ));
-    }
-}
-
-fn we_ze(text: &str, ws: &[(usize, usize)], v: &mut Vec<Issue>) {
+    });
     for pair in ws.windows(2) {
-        let [(a0, b0), (a1, b1)] = pair else { continue };
-        let (Some(w0), Some(w1), Some(gap)) =
-            (text.get(*a0..*b0), text.get(*a1..*b1), text.get(*b0..*a1))
-        else {
-            continue;
-        };
-        if gap != " " && gap != "\u{a0}" {
+        let ((a, b), (c, d)) = (pair[0], pair[1]);
+        if !matches!(text.get(b..c), Some(" " | "\u{a0}")) {
             continue;
         }
-        let next = w1.to_lowercase();
-        let c: Vec<char> = next.chars().collect();
-        let at = |i: usize| c.get(i).copied();
-        let (long, wanted) = match w0 {
-            "w" | "W" => (
-                "we",
-                (at(0) == Some('w') && at(1).is_some_and(is_consonant)) || next == "mnie",
-            ),
-            "z" | "Z" => {
-                // The first sound: `sz` is one consonant (`z szafy`, but `ze szkoły`).
-                let after = if at(0) == Some('s') && at(1) == Some('z') {
-                    at(2)
-                } else {
-                    at(1)
-                };
-                let sibilant = matches!(at(0), Some('s' | 'z' | 'ś' | 'ź' | 'ż'));
-                (
-                    "ze",
-                    (sibilant && after.is_some_and(is_consonant)) || next == "mną",
-                )
-            }
-            _ => continue,
-        };
-        if wanted {
-            let fixed = if w0.starts_with(char::is_uppercase) {
-                crate::affix::capitalize(long)
-            } else {
-                long.to_string()
-            };
+        if let (Some(word), Some(next)) = (text.get(a..b), text.get(c..d))
+            && let Some((long, fix)) = joyword_proof_rules::polish_preposition(word, next)
+        {
             v.push(issue(
-                *a0,
-                *b0,
+                a,
+                b,
                 format!("Przed tym słowem piszemy „{long}”"),
-                vec![fixed],
+                vec![fix.into()],
             ));
         }
     }
+    v.sort_by_key(|i| (i.start, i.end));
+    v
 }
 
 #[cfg(test)]

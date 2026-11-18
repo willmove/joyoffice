@@ -480,58 +480,21 @@ pub fn check_with(text: &str, capital_first: bool) -> Vec<Issue> {
         ABBREVIATIONS,
         &mut v,
     );
-    missing_commas(text, &ws, &mut v);
+    let lexicon = joyword_proof_rules::ClauseVocabulary::Russian {
+        openers: CLAUSE_OPENERS,
+        exceptions: NO_COMMA_AFTER,
+        prepositions: PREPOSITIONS,
+    };
+    joyword_proof_rules::subordinate_commas(text, &ws, lexicon, |span, word| {
+        v.push(issue(
+            span.start,
+            span.end,
+            format!("Возможно, пропущена запятая перед «{word}»"),
+            vec![format!(", {word}")],
+        ));
+    });
     v.sort_by_key(|i| (i.start, i.end));
     v
-}
-
-fn missing_commas(text: &str, ws: &[(usize, usize)], v: &mut Vec<Issue>) {
-    for k in 1..ws.len() {
-        let (Some(&(pa, pb)), Some(&(a, b))) = (ws.get(k - 1), ws.get(k)) else {
-            continue;
-        };
-        let (Some(prev), Some(w), Some(gap)) = (text.get(pa..pb), text.get(a..b), text.get(pb..a))
-        else {
-            continue;
-        };
-        if gap.is_empty()
-            || !gap.chars().all(|c| c == ' ' || c == '\u{a0}')
-            || !prev.chars().all(char::is_alphabetic)
-        {
-            continue;
-        }
-        let lw = w.to_lowercase();
-        let next = ws
-            .get(k + 1)
-            .and_then(|&(na, nb)| text.get(na..nb))
-            .map(str::to_lowercase);
-        let next_gap_plain = ws
-            .get(k + 1)
-            .and_then(|&(na, _)| text.get(b..na))
-            .is_some_and(|g| g.chars().all(|c| c == ' ' || c == '\u{a0}'));
-        // `потому что`, `оттого что`: the comma goes before the first word.
-        let compound = matches!(lw.as_str(), "потому" | "оттого")
-            && next.as_deref() == Some("что")
-            && next_gap_plain;
-        if !compound && !CLAUSE_OPENERS.contains(&lw.as_str()) {
-            continue;
-        }
-        // `хотя бы` is a particle (`хотя бы раз`).
-        if lw == "хотя" && next.as_deref() == Some("бы") {
-            continue;
-        }
-        let p = prev.to_lowercase();
-        let p = p.as_str();
-        if NO_COMMA_AFTER.contains(&p) || PREPOSITIONS.contains(&p) {
-            continue;
-        }
-        v.push(issue(
-            pb,
-            b,
-            format!("Возможно, пропущена запятая перед «{w}»"),
-            vec![format!(", {w}")],
-        ));
-    }
 }
 
 #[cfg(test)]

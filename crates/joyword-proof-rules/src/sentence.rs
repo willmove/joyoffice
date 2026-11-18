@@ -91,7 +91,7 @@ fn boundary(lang: Language, previous: &str, gap: &str, abbreviations: &[&str]) -
             .all(|c| opening(lang, c) || (lang == Language::Italian && c.is_whitespace()))
 }
 
-fn capitalize(word: &str, lang: Language) -> String {
+pub fn capitalize(word: &str, lang: Language) -> String {
     let mut chars = word.chars();
     let Some(first) = chars.next() else {
         return String::new();

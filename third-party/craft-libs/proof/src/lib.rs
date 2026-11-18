@@ -1157,72 +1157,34 @@ pub fn check_grammar(text: &str) -> Vec<Issue> {
 fn grammar_en(text: &str, capital_first: bool) -> Vec<Issue> {
     let mut v = Vec::new();
     let ws = words(text);
-    for pair in ws.windows(2) {
-        let [(a0, b0), (a1, b1)] = pair else { continue };
-        let (Some(w0), Some(w1), Some(gap)) =
-            (text.get(*a0..*b0), text.get(*a1..*b1), text.get(*b0..*a1))
-        else {
-            continue;
+    joyword_proof_rules::english_words(text, &ws, |span, kind| {
+        use joyword_proof_rules::EnglishIssue;
+        let (message, replacement) = match kind {
+            EnglishIssue::Repeated { first, second } => {
+                (format!("Repeated word: \"{second}\""), first)
+            }
+            EnglishIssue::Article(fix) => {
+                let label = if fix.eq_ignore_ascii_case("an") {
+                    "Use \"an\" before a vowel sound"
+                } else {
+                    "Use \"a\" before a consonant sound"
+                };
+                (label.to_owned(), fix)
+            }
         };
-        if gap.trim().is_empty()
-            && w0.eq_ignore_ascii_case(w1)
-            && w0.chars().all(char::is_alphabetic)
-            && !matches!(w0.to_lowercase().as_str(), "had" | "that" | "bye" | "so")
-        {
-            v.push(Issue {
-                start: *a0,
-                end: *b1,
-                kind: IssueKind::Grammar,
-                message: format!("Repeated word: \"{w1}\""),
-                suggestions: vec![w0.to_string()],
-                lang: ProofLang::En,
-            });
-        }
-        if gap == " "
-            && (w0 == "a" || w0 == "A")
-            && w1.chars().next().is_some_and(|c| "aeiouAEIOU".contains(c))
-            && !starts_consonant_sound(w1)
-        {
-            v.push(Issue {
-                start: *a0,
-                end: *b0,
-                kind: IssueKind::Grammar,
-                message: "Use \"an\" before a vowel sound".into(),
-                suggestions: vec![if w0 == "A" { "An" } else { "an" }.into()],
-                lang: ProofLang::En,
-            });
-        }
-        if gap == " "
-            && (w0 == "an" || w0 == "An")
-            && w1
-                .chars()
-                .next()
-                .is_some_and(|c| c.is_alphabetic() && !"aeiouAEIOUhH".contains(c))
-            && !w1.chars().all(char::is_uppercase)
-        {
-            v.push(Issue {
-                start: *a0,
-                end: *b0,
-                kind: IssueKind::Grammar,
-                message: "Use \"a\" before a consonant sound".into(),
-                suggestions: vec![if w0 == "An" { "A" } else { "a" }.into()],
-                lang: ProofLang::En,
-            });
-        }
-    }
+        v.push(Issue {
+            start: span.start,
+            end: span.end,
+            kind: IssueKind::Grammar,
+            message,
+            suggestions: vec![replacement.to_owned()],
+            lang: ProofLang::En,
+        });
+    });
     editorial::punctuation(text, ProofLang::En, &mut v);
     editorial::capitals(text, &ws, ProofLang::En, capital_first, &[], &mut v);
     v.sort_by_key(|i| i.start);
     v
-}
-
-fn starts_consonant_sound(w: &str) -> bool {
-    let l = w.to_lowercase();
-    [
-        "uni", "use", "usu", "eu", "one", "once", "ubiq", "uti", "ure", "uro",
-    ]
-    .iter()
-    .any(|p| l.starts_with(p))
 }
 
 /// Held by tests that change the dictionaries folder or rely on what it holds, so a folder change

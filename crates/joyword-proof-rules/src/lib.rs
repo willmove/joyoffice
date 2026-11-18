@@ -1,10 +1,18 @@
 //! First-party paragraph proofing rules. All offsets address the original UTF-8
 //! paragraph. The editor supplies its tokenization, language and issue wording.
+mod clauses;
+mod english;
+mod italian;
+mod spanish;
+pub use clauses::{ClauseVocabulary, conjunction_comma, polish_preposition, subordinate_commas};
+pub use english::{EnglishIssue, english_article, english_words};
+pub use italian::{ItalianForms, ItalianIssue, italian_elisions, italian_qual};
+pub use spanish::spanish_opening_marks;
 mod punctuation;
 mod sentence;
 
 pub use punctuation::{MarkIssue, Punctuation, punctuation};
-pub use sentence::sentence_case;
+pub use sentence::{capitalize, sentence_case};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Language {
@@ -104,5 +112,56 @@ mod tests {
         assert_eq!(fixes("Finì. —domani", Language::Italian, false), ["Domani"]);
         assert!(fixes("item,", Language::Portuguese, true).is_empty());
         assert_eq!(fixes("item,", Language::English, true), ["Item"]);
+    }
+}
+
+#[cfg(test)]
+mod lexical_tests {
+    use super::*;
+
+    #[test]
+    fn article_suggestions_use_sound_and_skip_unresolved_acronyms() {
+        for (article, word, fix) in [
+            ("a", "hour", Some("an")),
+            ("An", "university", Some("A")),
+            ("a", "MRI", Some("an")),
+            ("an", "UFO", Some("a")),
+            ("a", "unidentified", Some("an")),
+            ("an", "honest", None),
+            ("a", "SQL", None),
+            ("an", "hotel", None),
+            ("a", "herb", None),
+            ("an", "hors", None),
+            ("a", "urologist", None),
+            ("an", "RMX", None),
+            ("a", "one", None),
+            ("A", "EU", None),
+        ] {
+            assert_eq!(english_article(article, word), fix, "{article} {word}");
+        }
+    }
+
+    #[test]
+    fn punctuation_stays_in_its_clause_and_points_into_the_original_text() {
+        let text = "Ana: ¿¡Sí!? Envía a alguien@example.es. Cuándo? https://a.es/¿? Vendrás!";
+        let mut found = Vec::new();
+        spanish_opening_marks(
+            text,
+            |w| w.contains('@') || w.contains("://"),
+            |span, opener| found.push((text[span].to_owned(), opener)),
+        );
+        assert_eq!(
+            found,
+            [
+                (String::from("Cuándo?"), '¿'),
+                (String::from("Vendrás!"), '¡')
+            ]
+        );
+        assert_eq!(conjunction_comma(" \u{a0},\t"), Some(3));
+        assert_eq!(conjunction_comma("», "), None);
+        assert_eq!(conjunction_comma(",\n"), None);
+        assert_eq!(polish_preposition("Z", "szkoły"), Some(("ze", "Ze")));
+        assert_eq!(polish_preposition("z", "szafy"), None);
+        assert_eq!(italian_qual("QUAL’ERA"), Some("QUAL ERA".into()));
     }
 }

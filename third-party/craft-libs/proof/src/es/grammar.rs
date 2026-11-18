@@ -40,140 +40,23 @@ pub fn check(text: &str, lang: ProofLang) -> Vec<Issue> {
         ));
     });
     crate::editorial::punctuation(text, lang, &mut issues);
-    opening_marks(text, lang, &mut issues);
-    issues.sort_by_key(|i| (i.start, i.end));
-    issues
-}
-
-/// Does the character `b` at byte `j` end what comes before it, so a question or exclamation after
-/// it starts there? Sentence ends, clause breaks, line breaks and the start of a quotation or
-/// parenthesis do, but not punctuation inside a word (`3.5`, `10:30`) or inside an address
-/// (`example.com`, `https:`), except a mark ending an address (`…/? Vienes mañana?`).
-fn ends_clause(text: &str, addresses: &[(usize, usize)], j: usize, b: char) -> bool {
-    let after = j + b.len_utf8();
-    if let Some((_, end)) = address_at(addresses, j) {
-        return matches!(b, '?' | '!' | '.') && end == after;
-    }
-    let inside_word = matches!(b, '.' | ':' | ';')
-        && text
-            .get(after..)
-            .and_then(|r| r.chars().next())
-            .is_some_and(char::is_alphanumeric);
-    !inside_word
-        && matches!(
-            b,
-            '.' | '?'
-                | '!'
-                | '…'
-                | ':'
-                | ';'
-                | '\n'
-                | '\r'
-                | '\t'
-                | '«'
-                | '“'
-                | '"'
-                | '('
-                | '['
-                | '—'
-        )
-}
-
-/// The one of the `addresses` ([`address_ranges`]) that byte `j` is inside, if any. The ranges come
-/// in text order and never overlap, so this is a binary search, O(log m) for m addresses: a paragraph
-/// of thousands of addresses costs O(n log m) when every character before a question mark asks
-/// (#3562 review), not the O(n m) of a scan per character.
-fn address_at(addresses: &[(usize, usize)], j: usize) -> Option<(usize, usize)> {
-    let after_start = addresses.partition_point(|&(s, _)| s <= j);
-    let (s, e) = *addresses.get(after_start.checked_sub(1)?)?;
-    (s <= j && j < e).then_some((s, e))
-}
-
-/// The byte ranges of the whitespace-delimited tokens of `text` that are web or e-mail addresses
-/// (`https://example.com/?`, `www.example.com`, `ana@example.com`), as spelling skips them.
-fn address_ranges(text: &str) -> Vec<(usize, usize)> {
-    let mut out = Vec::new();
-    let mut start = None;
-    // A final space ends the last token.
-    for (i, c) in text
-        .char_indices()
-        .chain(std::iter::once((text.len(), ' ')))
-    {
-        if !c.is_whitespace() {
-            start = start.or(Some(i));
-        } else if let Some(s) = start.take()
-            && text.get(s..i).is_some_and(crate::is_address)
-        {
-            out.push((s, i));
-        }
-    }
-    out
-}
-
-/// A closing `?` or `!` with no opening `¿` or `¡` before it. Openers are counted left to right, like
-/// brackets, and each closing mark takes one back (either opener pairs with either closer:
-/// `¡Qué dices?`), so what sits between them doesn't matter: quotes, parentheses, dashes, an
-/// ellipsis or an abbreviation's full stop (`¿Viene el Sr. García?`, `¿Leíste «Rayuela»?`) all belong
-/// to the question. Only a closing mark with nothing open is flagged, and then the sentence it
-/// closes starts after the last clause break ([`ends_clause`]). Marks in web and e-mail addresses
-/// aren't sentence punctuation, and neither is punctuation inside an address or a word
-/// (`example.com`, `3.5`, `10:30`) a sentence's start.
-fn opening_marks(text: &str, lang: ProofLang, v: &mut Vec<Issue>) {
-    let addresses = address_ranges(text);
-    // Openers not closed yet: a run of them (`¡¡`) counts once, like a run of closers (`!!`).
-    let mut open = 0usize;
-    for (i, c) in text.char_indices() {
-        let before = text.get(..i).unwrap_or("");
-        let prev = before.chars().next_back();
-        let (opener, message) = match c {
-            '¿' | '¡' => {
-                if !matches!(prev, Some('¿' | '¡')) {
-                    open += 1;
-                }
-                continue;
-            }
-            '?' => ('¿', "Falta el signo de interrogación de apertura (¿)"),
-            '!' => ('¡', "Falta el signo de exclamación de apertura (¡)"),
-            _ => continue,
+    joyword_proof_rules::spanish_opening_marks(text, crate::is_address, |span, opener| {
+        let message = if opener == '¿' {
+            "Falta el signo de interrogación de apertura (¿)"
+        } else {
+            "Falta el signo de exclamación de apertura (¡)"
         };
-        let next = text.get(i + 1..).and_then(|r| r.chars().next());
-        // `?!` and `!!!` are handled at their first mark; `(?)` stands alone; `?q=`, `a!b` and a
-        // mark ending an address (`https://example.com/?`) aren't sentence ends.
-        if matches!(prev, Some('?' | '!'))
-            || (prev == Some('(') && next == Some(')'))
-            || next.is_some_and(char::is_alphanumeric)
-            || address_at(&addresses, i).is_some()
-        {
-            continue;
-        }
-        if open > 0 {
-            open -= 1;
-            continue;
-        }
-        let from = before
-            .char_indices()
-            .rev()
-            .find(|&(j, b)| matches!(b, '¿' | '¡') || ends_clause(text, &addresses, j, b));
-        let start = from.map_or(0, |(j, b)| j + b.len_utf8());
-        let Some(sentence) = text.get(start..i) else {
-            continue;
-        };
-        let lead = sentence.len() - sentence.trim_start().len();
-        let start = start + lead;
-        let Some(sentence) = text.get(start..i + 1) else {
-            continue;
-        };
-        if !sentence.chars().any(char::is_alphabetic) {
-            continue;
-        }
-        v.push(issue(
-            start,
-            i + 1,
+        let replacement = format!("{opener}{}", &text[span.clone()]);
+        issues.push(issue(
+            span.start,
+            span.end,
             message.into(),
-            vec![format!("{opener}{sentence}")],
+            vec![replacement],
             lang,
         ));
-    }
+    });
+    issues.sort_by_key(|i| (i.start, i.end));
+    issues
 }
 
 #[cfg(test)]
@@ -418,26 +301,19 @@ mod tests {
     }
 
     #[test]
-    fn address_lookup_finds_the_range_a_byte_is_in() {
-        let ranges = [(2, 5), (7, 8), (10, 20)];
-        let inside = |j| address_at(&ranges, j);
-        assert_eq!([0, 1].map(inside), [None, None], "before the first");
-        assert_eq!(
-            [2, 3, 4].map(inside),
-            [Some((2, 5)); 3],
-            "the start is inside, the end is not"
-        );
-        assert_eq!([5, 6].map(inside), [None, None], "between ranges");
-        assert_eq!(
-            [7, 10, 19].map(inside),
-            [Some((7, 8)), Some((10, 20)), Some((10, 20))]
-        );
-        assert_eq!(
-            [8, 9, 20, 99].map(inside),
-            [None; 4],
-            "after a range, and after the last"
-        );
-        assert_eq!(address_at(&[], 3), None);
+    fn questions_after_addresses_start_at_the_last_clause() {
+        for (text, expected) in [
+            ("https://a.test/?q=2? Vienes?", "Vienes?"),
+            ("Envía el correo a ana@example.es. Cuándo?", "Cuándo?"),
+            ("Cuesta 3.5; vienes?", "vienes?"),
+        ] {
+            let found: Vec<_> = check(text, ProofLang::Es)
+                .into_iter()
+                .filter(|r| r.message.contains("apertura"))
+                .map(|r| text[r.start..r.end].to_owned())
+                .collect();
+            assert_eq!(found, [expected]);
+        }
     }
 
     /// Maintainer review on #3562: a paragraph of thousands of addresses followed by a question was

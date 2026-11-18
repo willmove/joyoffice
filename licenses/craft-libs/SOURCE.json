@@ -165,8 +165,8 @@
       "target": "third-party/craft-libs/proof/src/es/grammar.rs",
       "sha256": "c934f6040835ee0d5218c861bf6fc19983db29faafab44c2f244f5d1f48f897a",
       "modified": true,
-      "target_sha256": "58e9824535ec66be8a25880c2fccd7ece1dfeaae28ae490edbe90ed8a50ef815",
-      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md. JoyOffice evaluates adjacent tokens once while keeping localized wording and byte ranges. JoyWord supplies punctuation and horizontal spacing through its independent editorial engine. This profile keeps its original capitalization policy."
+      "target_sha256": "3be57814f0fde918c30d300d44477cb7e9f340f461aef444a4a48c27ca625225",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md. JoyOffice evaluates adjacent tokens once while keeping localized wording and byte ranges. JoyWord supplies punctuation and horizontal spacing through its independent editorial engine. This profile keeps its original capitalization policy. Licensed language vocabulary and localized messages are retained. Spanish opening marks use the first-party streaming clause and address scanner."
     },
     {
       "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
@@ -298,8 +298,8 @@
       "target": "third-party/craft-libs/proof/src/it/grammar.rs",
       "sha256": "9192c47b68e8a216e55fc19a5ed0915c312e183e9effe1dd5a0dc33dac3eacf5",
       "modified": true,
-      "target_sha256": "6e3d60a555cfd0c702722ae257b21b09975ba337b28ca4230d18e1ab8183f5b1",
-      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md. JoyOffice evaluates adjacent tokens once while keeping localized wording and byte ranges. JoyWord supplies the punctuation and sentence-case decisions through its independent editorial engine. Local idiom and conjunction rules retain their language data."
+      "target_sha256": "7a33365f0435efee618211fc29ee06c967fb4b98fd81529e5b9b1e13e4b79ebe",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md. JoyOffice evaluates adjacent tokens once while keeping localized wording and byte ranges. JoyWord supplies the punctuation and sentence-case decisions through its independent editorial engine. Local idiom and conjunction rules retain their language data. Licensed language vocabulary and localized messages are retained. Italian elision decisions use the first-party engine, including the spelling adapter for qual."
     },
     {
       "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
@@ -342,8 +342,8 @@
       "target": "third-party/craft-libs/proof/src/lib.rs",
       "sha256": "3fb1db1dd5af3ecebbe2eec2b1d122ca825203f7cd76b101bab336db3ca0ed49",
       "modified": true,
-      "target_sha256": "ec76d624689a5fd4c2fc1afce496c127a9df01f028518ea8c70fb561a02dff84",
-      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md. JoyOffice streams multilingual word boundaries using the original UTF-8 offsets and dictionary punctuation rules. JoyOffice checks repeated words across original source ranges in src/repeated.rs (SHA-256 9a4d4b001ae97b7947b45b54842feef75a661bbe37d777c9d6c3b7a5045c3ca1). The English desktop review uses the first-party punctuation and sentence-case engine. Localized messages are adapted in proof/src/editorial.rs (SHA-256 b4db82bb24aded0c85c8b6c3b7cd08bb1f3ffc56a09d270c46e881a006e10a11)."
+      "target_sha256": "de993ff4edc19217976a919299400e34572f99e2b4260689e8bb067ac39eb250",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md. JoyOffice streams multilingual word boundaries using the original UTF-8 offsets and dictionary punctuation rules. JoyOffice checks repeated words across original source ranges in src/repeated.rs (SHA-256 9a4d4b001ae97b7947b45b54842feef75a661bbe37d777c9d6c3b7a5045c3ca1). The English desktop review uses the first-party punctuation and sentence-case engine. Localized messages are adapted in proof/src/editorial.rs (SHA-256 b4db82bb24aded0c85c8b6c3b7cd08bb1f3ffc56a09d270c46e881a006e10a11). Licensed language vocabulary and localized messages are retained. English repetition and indefinite articles share a single pass over original text ranges."
     },
     {
       "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
@@ -387,8 +387,8 @@
       "target": "third-party/craft-libs/proof/src/pl/grammar.rs",
       "sha256": "5f0bafcb7dffc83822879d844af58799d6557fceb8e9090b7aba9834f310cb3f",
       "modified": true,
-      "target_sha256": "5861cb2c63f4343f2ab3be980b127c5f3c693355e2982161efaebc466fceaad4",
-      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md. JoyOffice evaluates adjacent tokens once while keeping localized wording and byte ranges. JoyWord supplies the punctuation and sentence-case decisions through its independent editorial engine. Local idiom and conjunction rules retain their language data."
+      "target_sha256": "7e3512f9e670fb1f754cf027e7340fd86e9eec317269e7733521815d9e75d13c",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md. JoyOffice evaluates adjacent tokens once while keeping localized wording and byte ranges. JoyWord supplies the punctuation and sentence-case decisions through its independent editorial engine. Local idiom and conjunction rules retain their language data. Licensed language vocabulary and localized messages are retained. Polish clause punctuation and preposition forms use the first-party engine."
     },
     {
       "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
@@ -466,8 +466,8 @@
       "target": "third-party/craft-libs/proof/src/ru/grammar.rs",
       "sha256": "94eccca5052dd343333246282c173b5ed334f96aacb2a3a979c0ecdbb7268b2f",
       "modified": true,
-      "target_sha256": "6c63cd16c28da107f72673cc95db9a4a0f9a5cd76c564c9227d2679ce991de5f",
-      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md. JoyOffice evaluates adjacent tokens once while keeping localized wording and byte ranges. JoyWord supplies the punctuation and sentence-case decisions through its independent editorial engine. Local idiom and conjunction rules retain their language data."
+      "target_sha256": "ac524efb9b1928fbbe2e6c00ad5236951b67d12769e82d28398a57f47d6bd62a",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md. JoyOffice evaluates adjacent tokens once while keeping localized wording and byte ranges. JoyWord supplies the punctuation and sentence-case decisions through its independent editorial engine. Local idiom and conjunction rules retain their language data. Licensed language vocabulary and localized messages are retained. Russian clause punctuation uses the first-party engine."
     },
     {
       "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",
@@ -546,8 +546,8 @@
       "target": "third-party/craft-libs/proof/src/tr/grammar.rs",
       "sha256": "e278b7515512fef894dee36a89d4daa5b091977203f384e6bee49e3c49c0bc97",
       "modified": true,
-      "target_sha256": "dabc820593217b64c2edd7be41699abf461a5bd6f701cc01874c554cf589a210",
-      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md. JoyOffice evaluates adjacent tokens once while keeping localized wording and byte ranges. JoyWord supplies the punctuation and sentence-case decisions through its independent editorial engine. Local idiom and conjunction rules retain their language data."
+      "target_sha256": "fbfe3898738f789641089a421dd04caf30cbf6a6b75b821d12affbe5ac2ca46f",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md. JoyOffice evaluates adjacent tokens once while keeping localized wording and byte ranges. JoyWord supplies the punctuation and sentence-case decisions through its independent editorial engine. Local idiom and conjunction rules retain their language data. Licensed language vocabulary and localized messages are retained. Turkish conjunction gaps and capitalization use the first-party engine."
     },
     {
       "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",

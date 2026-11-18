@@ -35,6 +35,36 @@ fn main() {
             ProofLang::Ru,
             "Сегодня день хороший ,  но погода меняется. потом мы обсудим работу.. ",
         ),
+        (
+            "es-questions",
+            ProofLang::Es,
+            "Consulte https://ejemplo.es/a?b=2. ¿Viene hoy? Mañana también? ",
+        ),
+        (
+            "en-articles",
+            ProofLang::En,
+            "Our visitor spent an hour at a university. The reader opened a book. ",
+        ),
+        (
+            "pl-clauses",
+            ProofLang::Pl,
+            "Wiem że czytasz. Z szkoły idziemy we wtorek. ",
+        ),
+        (
+            "ru-clauses",
+            ProofLang::Ru,
+            "Знаю что он придёт. Ушёл потому что устал. ",
+        ),
+        (
+            "it-elisions",
+            ProofLang::It,
+            "Un amica sa qual’è la strada. Il Po è lungo. ",
+        ),
+        (
+            "tr-conjunctions",
+            ProofLang::Tr,
+            "Ali, ve Veli geldi. Bugün okuduk ve yarın yazacağız. ",
+        ),
     ];
     for (label, lang, fragment) in paragraphs {
         let text = fragment.repeat(24);

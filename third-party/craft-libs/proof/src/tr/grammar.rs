@@ -164,43 +164,34 @@ pub fn check_with(text: &str, capital_first: bool) -> Vec<Issue> {
 
     crate::editorial::punctuation(text, ProofLang::Tr, &mut v);
 
-    // 3. Comma before or after conjunctions (`ali, ve veli` or `ve, veli`)
-    for (i, &(w_start, w_end)) in ws.iter().enumerate() {
-        let word = match text.get(w_start..w_end) {
-            Some(w) => turkish_to_lower(w),
-            None => continue,
+    for pair in ws.windows(2) {
+        let ((a, b), (c, d)) = (pair[0], pair[1]);
+        let Some(offset) = text
+            .get(b..c)
+            .and_then(joyword_proof_rules::conjunction_comma)
+        else {
+            continue;
         };
-        // Check comma before conjunction
-        if CONJUNCTIONS_NO_PRE_COMMA.contains(&word.as_str())
-            && i > 0
-            && let Some(between) = text.get(ws[i - 1].1..w_start)
-            && let Some(comma_pos) = between.find(',')
-        {
-            let actual_pos = ws[i - 1].1 + comma_pos;
+        let (Some(left), Some(right)) = (text.get(a..b), text.get(c..d)) else {
+            continue;
+        };
+        let mut report = |word: &str, position: &str| {
             v.push(Issue {
-                start: actual_pos,
-                end: actual_pos + 1,
+                start: b + offset,
+                end: b + offset + 1,
                 kind: IssueKind::Grammar,
-                message: format!("'{word}' bağlacından önce virgül konulmaz"),
+                message: format!("'{word}' bağlacından {position} virgül konulmaz"),
                 suggestions: vec![String::new()],
                 lang: ProofLang::Tr,
-            });
+            })
+        };
+        let left = turkish_to_lower(left);
+        if CONJUNCTIONS_NO_POST_COMMA.contains(&left.as_str()) {
+            report(&left, "sonra");
         }
-        // Check comma after conjunction
-        if CONJUNCTIONS_NO_POST_COMMA.contains(&word.as_str())
-            && i + 1 < ws.len()
-            && let Some(between) = text.get(w_end..ws[i + 1].0)
-            && let Some(comma_pos) = between.find(',')
-        {
-            let actual_pos = w_end + comma_pos;
-            v.push(Issue {
-                start: actual_pos,
-                end: actual_pos + 1,
-                kind: IssueKind::Grammar,
-                message: format!("'{word}' bağlacından sonra virgül konulmaz"),
-                suggestions: vec![String::new()],
-                lang: ProofLang::Tr,
-            });
+        let right = turkish_to_lower(right);
+        if CONJUNCTIONS_NO_PRE_COMMA.contains(&right.as_str()) {
+            report(&right, "önce");
         }
     }
 
@@ -218,19 +209,7 @@ pub fn check_with(text: &str, capital_first: bool) -> Vec<Issue> {
 
 /// Capitalize according to Turkish rules (`i` -> `İ`, `ı` -> `I`).
 pub fn turkish_capitalize(s: &str) -> String {
-    let mut chars = s.chars();
-    let Some(first) = chars.next() else {
-        return String::new();
-    };
-    let first_cap = match first {
-        'i' => 'İ',
-        'ı' => 'I',
-        other => other.to_uppercase().next().unwrap_or(other),
-    };
-    let mut out = String::with_capacity(s.len() + 1);
-    out.push(first_cap);
-    out.push_str(chars.as_str());
-    out
+    joyword_proof_rules::capitalize(s, joyword_proof_rules::Language::Turkish)
 }
 
 #[cfg(test)]
