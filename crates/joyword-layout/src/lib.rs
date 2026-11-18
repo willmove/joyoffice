@@ -368,6 +368,17 @@ impl DocLayout {
 
 /// Lay out the whole document.
 pub fn layout(doc: &Document, cache: &mut LayoutCache, opts: &LayoutOptions) -> DocLayout {
+    layout_at(doc, cache, opts, 0)
+}
+
+/// A section fragment starts on an existing physical sheet even when its
+/// displayed page number has been restarted.
+fn layout_at(
+    doc: &Document,
+    cache: &mut LayoutCache,
+    opts: &LayoutOptions,
+    preceding_pages: usize,
+) -> DocLayout {
     let t0 = now_ms();
     // Page totals shown in the body (`NUMPAGES`, `SECTIONPAGES`) are known only after
     // paginating: lay out again with the totals found until they hold (bounded). Footnotes
@@ -387,9 +398,9 @@ pub fn layout(doc: &Document, cache: &mut LayoutCache, opts: &LayoutOptions) -> 
             cache,
             opts,
             &note_pages,
-            &totals,
-            passes < MAX_TOTAL_PASSES,
+            (&totals, passes < MAX_TOTAL_PASSES),
             (&early, rewraps < MAX_REWRAP_PASSES),
+            preceding_pages,
         ) {
             Pass::Again(t) => {
                 totals = t;

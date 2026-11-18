@@ -268,3 +268,74 @@ fn nested_cells_and_floating_tables_retain_hit_paths_after_local_reflow() {
         }
     }
 }
+
+#[test]
+fn facing_sections_reuse_pages_after_replaying_parity_and_number_restarts() {
+    let (mut doc, block, note) = fixture();
+    doc.settings.mirror_margins = true;
+    doc.settings.even_odd_headers = true;
+    let ends: Vec<_> = doc.sections().into_iter().map(|(end, _)| end).collect();
+    for (i, &end) in ends.iter().enumerate() {
+        let props = if i + 1 == ends.len() {
+            &mut doc.last_section
+        } else {
+            doc.para_mut(StoryRef::Body, &Path::top(end))
+                .unwrap()
+                .section
+                .as_deref_mut()
+                .unwrap()
+        };
+        props.margin_left = 88.0;
+        props.margin_right = 55.0;
+        props.gutter = 12.0;
+        if i == 34 || i == 55 {
+            props.start = SectionStart::OddPage;
+        }
+        if i == 36 {
+            props.start = SectionStart::EvenPage;
+        }
+        if i == 38 {
+            props.page_num_start = Some(6);
+        }
+    }
+    let (opts, mut cache) = (LayoutOptions::default(), LayoutCache::new());
+    let mut old = layout_shared(&doc, &mut cache, &opts);
+    let first = old.pages.iter().position(|p| p.section == 34).unwrap();
+    let original_length = old.pages.len();
+    let mut saw_growth = false;
+    for repeats in [18, 430, 730] {
+        let text = "Changed clause. ".repeat(repeats);
+        for add in [true, false] {
+            let para = doc.para_mut(StoryRef::Body, &Path::top(block + 2)).unwrap();
+            if add {
+                para.insert_text(0, &text, &Default::default()).unwrap();
+            } else {
+                para.delete(0, text.len()).unwrap();
+            }
+            let next = layout_shared(&doc, &mut cache, &opts);
+            let full = layout(&doc, &mut LayoutCache::new(), &opts);
+            let dirty = next
+                .changed_pages_from(&old)
+                .expect("verified facing section");
+            assert_eq!(dirty.start, first);
+            if next.pages.len() != old.pages.len() {
+                assert_eq!(dirty.end, next.pages.len().max(old.pages.len()));
+                saw_growth = true;
+            }
+            compare(&doc, &next, &full, dirty, note);
+            for (section, odd) in [(34, true), (36, false), (55, true)] {
+                let entry = next.pages.iter().find(|p| p.section == section).unwrap();
+                assert_eq!(entry.number % 2 == 1, odd);
+            }
+            assert_eq!(
+                next.pages.iter().find(|p| p.section == 38).unwrap().number,
+                6
+            );
+            if !add {
+                assert_eq!(next.pages.len(), original_length);
+            }
+            old = next;
+        }
+    }
+    assert!(saw_growth);
+}

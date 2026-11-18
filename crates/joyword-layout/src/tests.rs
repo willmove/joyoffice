@@ -14574,9 +14574,9 @@ fn footer_page_total_needs_one_body_pass() {
             &mut LayoutCache::new(),
             &LayoutOptions::default(),
             &HashMap::new(),
-            &totals,
-            true,
+            (&totals, true),
             (&EarlyFloats::new(), true),
+            0,
         )
     };
     assert!(
@@ -20053,9 +20053,9 @@ fn last_rewrap_pass_keeps_early_floats_clear_of_text() {
             &mut LayoutCache::new(),
             &LayoutOptions::default(),
             &HashMap::new(),
-            &totals,
-            false,
+            (&totals, false),
             (&EarlyFloats::new(), false),
+            0,
         );
         let Pass::Done(l) = pass else {
             panic!("a last pass is done")

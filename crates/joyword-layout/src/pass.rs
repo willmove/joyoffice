@@ -23,14 +23,16 @@ use super::{
 struct Mode {
     web: bool,
     reflow: bool,
+    preceding_pages: usize,
 }
 
 impl Mode {
-    fn of(view: ViewMode) -> Self {
+    fn of(view: ViewMode, preceding_pages: usize) -> Self {
         let web = matches!(view, ViewMode::Web | ViewMode::Draft | ViewMode::Outline);
         Mode {
             web,
             reflow: web || view == ViewMode::Read,
+            preceding_pages,
         }
     }
 }
@@ -374,7 +376,13 @@ fn start_section_page<'p>(
         sec.start,
         sec.sect.page_num_start,
         pb.number,
-        pb.pages.len(),
+        // The first local page already has the verified entering number. Later
+        // restarts use the physical side of this fragment in the whole document.
+        if pb.pages.is_empty() {
+            0
+        } else {
+            mode.preceding_pages + pb.pages.len()
+        },
         s.even_odd_headers,
         s.mirror_margins,
     );
@@ -614,15 +622,15 @@ pub(crate) fn layout_pass(
     cache: &mut LayoutCache,
     opts: &LayoutOptions,
     note_pages: &HashMap<u32, usize>,
-    totals: &Totals,
-    may_repeat: bool,
+    (totals, may_repeat): (&Totals, bool),
     (early, may_rewrap): (&EarlyFloats, bool),
+    preceding_pages: usize,
 ) -> Pass {
     reset_cache(doc, cache, opts);
     let mut ctx = new_ctx(doc, cache, opts, (note_pages, totals));
     let hf = Arc::clone(&ctx.hf);
     let sections = &hf.sections;
-    let mode = Mode::of(opts.view);
+    let mode = Mode::of(opts.view, preceding_pages);
     ctx.mirror = doc.settings.mirror_margins && !mode.reflow;
     (ctx.stacked_marks, ctx.quiet_marks) = section_marks(doc, opts, sections);
     let outline = (opts.view == ViewMode::Outline)

@@ -93,6 +93,8 @@ pub fn layout_shared(
             complex_tables,
             checked_section: None,
             section_context: complex_tables
+                || doc.settings.even_odd_headers
+                || doc.settings.mirror_margins
                 || !doc.parts.is_empty()
                 || doc.last_section.columns.count != 1
                 || doc.body.iter().any(|b| {
@@ -174,7 +176,6 @@ fn eligible(doc: &Document, opts: &LayoutOptions) -> bool {
         && doc.media.is_empty()
         && doc.footnote_separators.is_empty()
         && doc.endnote_separators.is_empty()
-        && !doc.settings.mirror_margins
         && eligible_section(&doc.last_section)
 }
 

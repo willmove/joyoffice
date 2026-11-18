@@ -19,17 +19,30 @@ struct Repaginated {
 }
 
 impl Window {
-    fn find(doc: &Document, current: &DocLayout, block: usize) -> Option<Self> {
+    fn find(doc: &Document, current: &DocLayout, block: usize, extend: usize) -> Option<Self> {
         let sections = doc.sections();
         let at = sections.iter().position(|(end, _)| *end >= block)?;
         let first_section = (0..=at)
             .rev()
             .find(|&i| i == 0 || sections[i].1.start != SectionStart::Continuous)?;
-        let next_section =
-            (at + 1..sections.len()).find(|&i| sections[i].1.start != SectionStart::Continuous);
-        if doc.settings.even_odd_headers
-            || (first_section != 0 && sections[first_section].1.start != SectionStart::NextPage)
-            || next_section.is_some_and(|i| sections[i].1.start != SectionStart::NextPage)
+        let page_start = |i: usize| {
+            matches!(
+                sections[i].1.start,
+                SectionStart::NextPage | SectionStart::OddPage | SectionStart::EvenPage
+            )
+        };
+        let mut starts =
+            (at + 1..sections.len()).filter(|&i| sections[i].1.start != SectionStart::Continuous);
+        let next_section = if extend == 0 {
+            starts.next()
+        } else {
+            starts.nth(extend - 1)?;
+            starts.next()
+        };
+        if (first_section != 0 && !page_start(first_section))
+            || (first_section + 1..next_section.unwrap_or(sections.len()))
+                .any(|i| sections[i].1.start == SectionStart::NextColumn)
+            || next_section.is_some_and(|i| !page_start(i))
         {
             return None;
         }
@@ -198,7 +211,7 @@ impl Window {
         cache: &mut LayoutCache,
         current: &DocLayout,
     ) -> Option<Repaginated> {
-        let mut pages = layout(doc, cache, opts).pages;
+        let mut pages = crate::layout_at(doc, cache, opts, self.pages.start).pages;
         let count = pages.len().checked_sub(usize::from(self.sentinel))?;
         if !(1..=16).contains(&count) {
             return None;
@@ -257,11 +270,13 @@ impl Window {
 
 // A changed physical page count can change which side of the sheet an odd
 // or even section begins on. Only reuse a suffix independent of that choice.
-// The caller has already excluded facing headers, mirror margins and fields.
+// Number restarts end propagation of a displayed-number delta. The physical
+// offset persists to later facing-page restarts.
 fn append_shifted_suffix(
     doc: &Document,
     suffix: &[Page],
     number_delta: i64,
+    physical_delta: i64,
     output: &mut Vec<Page>,
 ) -> Option<()> {
     let Some(first) = suffix.first() else {
@@ -269,15 +284,22 @@ fn append_shifted_suffix(
     };
     let sections = doc.sections();
     let mut restart = sections.len();
+    let same_sheet_side = physical_delta % 2 == 0;
+    let same_number_side = number_delta % 2 == 0;
+    if !same_number_side && (doc.settings.mirror_margins || doc.settings.even_odd_headers) {
+        return None;
+    }
     for (i, (_, section)) in sections.iter().enumerate().skip(first.section) {
+        let reset = section.page_num_start.is_some();
         match section.start {
-            SectionStart::NextPage => {
-                if i > first.section && section.page_num_start.is_some() {
-                    restart = restart.min(i);
-                }
-            }
-            SectionStart::Continuous if section.page_num_start.is_none() => {}
+            SectionStart::NextPage
+                if !reset || !doc.settings.even_odd_headers || same_sheet_side => {}
+            SectionStart::OddPage | SectionStart::EvenPage if same_number_side || i >= restart => {}
+            SectionStart::Continuous if !reset => continue,
             _ => return None,
+        }
+        if reset && i > first.section {
+            restart = restart.min(i);
         }
     }
     for old in suffix {
@@ -328,7 +350,30 @@ impl Previous {
         block: usize,
         current: &Arc<DocLayout>,
     ) -> Option<DocLayout> {
-        let mut window = Window::find(doc, current, block)?;
+        let facing = doc.settings.even_odd_headers
+            || doc.settings.mirror_margins
+            || doc
+                .sections()
+                .iter()
+                .any(|(_, s)| matches!(s.start, SectionStart::OddPage | SectionStart::EvenPage));
+        // An added page may be absorbed by a later odd/even break. Carry layout
+        // through successive fresh starts until the exit and suffix agree.
+        for extend in 0..=if facing { 3 } else { 0 } {
+            let window = Window::find(doc, current, block, extend)?;
+            if let Some(next) = self.reflow_window(doc, opts, window, current) {
+                return Some(next);
+            }
+        }
+        None
+    }
+
+    fn reflow_window(
+        &mut self,
+        doc: &Document,
+        opts: &LayoutOptions,
+        mut window: Window,
+        current: &Arc<DocLayout>,
+    ) -> Option<DocLayout> {
         if !window.independent_notes(doc, opts, current) {
             return None;
         }
@@ -364,7 +409,13 @@ impl Previous {
         pages.extend(replacement.pages);
         let suffix = &current.pages[window.pages.end..];
         let dirty = if moved {
-            append_shifted_suffix(doc, suffix, replacement.exit_number_delta, &mut pages)?;
+            append_shifted_suffix(
+                doc,
+                suffix,
+                replacement.exit_number_delta,
+                count as i64 - current.pages.len() as i64,
+                &mut pages,
+            )?;
             // Bitmap caches are indexed by physical page. Also invalidate any
             // former tail pages, so a later undo cannot reuse a stale bitmap.
             window.pages.start..count.max(current.pages.len())

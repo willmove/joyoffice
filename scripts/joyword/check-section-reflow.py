@@ -5,6 +5,7 @@ from pathlib import Path
 import runpy
 import secrets
 import shutil
+import subprocess
 import sys
 import xml.etree.ElementTree as ET
 from zipfile import ZipFile
@@ -14,11 +15,18 @@ from native_pilot_support import app, digest, port, wait, word_request
 from verify_save_changes import word_keys
 
 
-def fixture(path):
+def fixture(path, facing=False):
     make = runpy.run_path(str(Path(__file__).with_name("check-complex-corpus.py")))
     body = []
     for section in range(70):
         props = '<w:type w:val="continuous"/>' if section == 35 else ""
+        margins = '<w:pgMar w:left="1760" w:right="1100" w:gutter="240" w:top="1440" w:bottom="1440" w:header="720" w:footer="720"/>' if facing else ""
+        if facing and section in (34, 36, 55):
+            kind = "evenPage" if section == 36 else "oddPage"
+            props = f'<w:type w:val="{kind}"/>'
+        props += margins
+        if facing and section == 38:
+            props += '<w:pgNumType w:start="6"/>'
         if section == 34:
             props += '<w:cols w:num="2"/>'
         texts = [f"Section {section}", "Text after the heading"]
@@ -37,15 +45,27 @@ def fixture(path):
                 inside = f'<w:tbl>{wp.format("")}{grid}<w:tr><w:tc>{value}</w:tc></w:tr></w:tbl>'
                 floating = '<w:tblpPr w:horzAnchor="text" w:vertAnchor="text" w:tblpX="100" w:leftFromText="80"/>'
                 body.append(f'<w:tbl>{wp.format(floating)}{grid}<w:tr><w:tc>{inside}<w:p/></w:tc></w:tr></w:tbl>')
-    body.append("<w:sectPr/>")
+    body.append(f"<w:sectPr>{margins}</w:sectPr>")
     notes = "".join(f'<w:footnote w:id="{i}"><w:p><w:r><w:t>Numbered note {i}</w:t></w:r></w:p></w:footnote>' for i in (1, 2, 3))
-    make["package"](path, "".join(body), [("n", "footnotes", "footnotes.xml")],
-                    {"word/footnotes.xml": f'<w:footnotes xmlns:w="{make["W"]}">{notes}</w:footnotes>'})
+    extra = {"word/footnotes.xml": f'<w:footnotes xmlns:w="{make["W"]}">{notes}</w:footnotes>'}
+    rels = [("n", "footnotes", "footnotes.xml")]
+    types = {}
+    if facing:
+        rels.append(("s", "settings", "settings.xml"))
+        extra["word/settings.xml"] = f'<w:settings xmlns:w="{make["W"]}"><w:mirrorMargins/><w:evenAndOddHeaders/></w:settings>'
+        types["word/settings.xml"] = "application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml"
+    make["package"](path, "".join(body), rels, extra, types)
 
 
-def verify(binary, out, grow=False):
+def printed_pages(cli, docx, pdf):
+    subprocess.run([cli, "convert", docx, pdf], capture_output=True, check=True, timeout=120)
+    text = subprocess.check_output(["pdftotext", "-layout", pdf, "-"], timeout=120).decode()
+    return text.rstrip("\f").split("\f")
+
+
+def verify(binary, out, grow=False, facing=False, reference_cli=None):
     original, working = out / "原始分节.docx", out / "分节 编辑.docx"
-    fixture(original)
+    fixture(original, facing)
     sha = digest(original)
     shutil.copyfile(original, working)
     key, number = secrets.token_hex(32), port()
@@ -74,10 +94,18 @@ def verify(binary, out, grow=False):
     with app(binary, args, out, env) as proc:
         first = wait(inspect, "opened reference", proc)
         total = len(first["summary"]["pages"])
-        assert total == 69
+        first_page = 35
+        if facing:
+            reference = printed_pages(reference_cli or binary.with_name("joyword-cli"), original, out / "original.pdf")
+            assert len(reference) == total
+            first_page = next(i for i, text in enumerate(reference, 1) if "Section 34" in text)
+            next_side = next(i for i, text in enumerate(reference, 1) if "Section 36" in text)
+            assert first_page % 2 == 1 and next_side % 2 == 0
+        else:
+            assert total == 69
         previous_pages = total
-        command("edit.goto", page=35)
-        wait(lambda: any(e.get("stage") == "raster_installed" and e.get("page") == 35 for e in events(0)),
+        command("edit.goto", page=first_page)
+        wait(lambda: any(e.get("stage") == "raster_installed" and e.get("page") == first_page for e in events(0)),
              "chapter displayed", proc)
         expected = first["text"].replace("Section 34", insert + "Section 34", 1)
         for action in ("text.insert", "edit.undo", "edit.redo"):
@@ -92,11 +120,15 @@ def verify(binary, out, grow=False):
                 assert current_pages == total
             patch = wait(lambda: next((e for e in events(offset) if e.get("stage") == "layout_patch"), None),
                          "affected pages calculated by the editor", proc)
-            last_dirty = max(previous_pages, current_pages) if grow else 35
-            assert (patch["firstPage"], patch["lastPage"]) == (35, last_dirty), patch
-            wait(lambda: any(e.get("stage") == "raster_installed" and 35 <= e.get("page", 0) <= last_dirty for e in events(offset)),
+            last_dirty = patch["lastPage"]
+            assert patch["firstPage"] == first_page, patch
+            if previous_pages != current_pages:
+                assert last_dirty == max(previous_pages, current_pages), patch
+            else:
+                assert first_page <= last_dirty <= first_page + (8 if facing else 0), patch
+            wait(lambda: any(e.get("stage") == "raster_installed" and first_page <= e.get("page", 0) <= last_dirty for e in events(offset)),
                  "edited page raster", proc)
-            patches.append({"action": action, "firstPage": 35, "lastPage": last_dirty, "pageCount": current_pages})
+            patches.append({"action": action, "firstPage": first_page, "lastPage": last_dirty, "pageCount": current_pages})
             previous_pages = current_pages
         keypress = word_keys(proc)
         keypress("new")
@@ -110,6 +142,11 @@ def verify(binary, out, grow=False):
                 return False
             assert doc.find(".//{*}tbl/{*}tr/{*}tc/{*}tbl") is not None
             assert doc.find(".//{*}tblpPr") is not None
+            if facing:
+                with ZipFile(working) as z:
+                    settings = ET.fromstring(z.read("word/settings.xml"))
+                assert settings.find("{*}mirrorMargins") is not None and settings.find("{*}evenAndOddHeaders") is not None
+                assert sum(next((v for k,v in t.attrib.items() if k.endswith('}val')),None) in ("evenPage","oddPage") for t in doc.findall(".//{*}sectPr/{*}type")) == 3
             assert sum("Numbered note" in "".join(n.itertext()) for n in notes) == 3
             return True
         wait(saved, "saved document and numbered notes", proc)
@@ -146,12 +183,18 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("desktop", type=Path)
     parser.add_argument("output", type=Path)
+    parser.add_argument("--facing", action="store_true", help="include odd/even starts, mirrored margins and a numbered restart")
     parser.add_argument("--grow", action="store_true", help="expand the edited section across fresh pages")
     parser.add_argument("--compare-cli", nargs=2, type=Path, metavar=("BASELINE", "CANDIDATE"))
     args = parser.parse_args()
     dest = args.output.resolve()
     dest.mkdir(parents=True, exist_ok=False)
-    report = verify(args.desktop.resolve(), dest, args.grow)
+    report = verify(args.desktop.resolve(), dest, args.grow, args.facing, args.compare_cli[0].resolve() if args.compare_cli else None)
+    if args.facing and args.compare_cli:
+        saved = dest / "分节 编辑.docx"
+        printed = [printed_pages(program.resolve(), saved, dest / f"edited-{i}.pdf") for i,program in enumerate(args.compare_cli)]
+        assert printed[0] == printed[1] and len(printed[0]) == report["reopenedPageCount"]
+        report["matchingPrintedPages"] = len(printed[0])
     if args.compare_cli:
         report["crossVersion"] = verify_readers(dest, *(p.resolve() for p in args.compare_cli),
                                                 report["reopenedPageCount"])

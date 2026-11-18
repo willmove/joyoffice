@@ -1,0 +1,152 @@
+{
+  "baseline": "e7ace7f7",
+  "fixture": "70 sections and 69 initial pages, asymmetric mirrored margins and a gutter, different even and odd headers enabled, explicit odd/even breaks and an independent page-number restart, three numbered footnotes, a floating table with a nested cell. No header/footer parts in this fixture.",
+  "verification": "At each of six edits and reversals compare every page and hit index, six body/footnote hits per page, RGB in the affected range including adjacent pages, and fixed-layout PDF bytes against a fresh layout. Force full pagination if no verified exit within 16 pages, 256 blocks and three downstream section starts.",
+  "platforms": {
+    "macOS": {
+      "binarySha256": "a3431f36659eac689e06285c0e08c35f2611f23e6e0c207f08dc3b78a670ee88",
+      "sourceSha256": "39f19fed41507bc8f45c837670f1837612318792afbaa05f44c4fb581b28dbb5",
+      "pages": 69,
+      "sections": 70,
+      "numberedNotes": 3,
+      "nativePatches": [
+        {
+          "action": "text.insert",
+          "firstPage": 35,
+          "lastPage": 73,
+          "pageCount": 73
+        },
+        {
+          "action": "edit.undo",
+          "firstPage": 35,
+          "lastPage": 73,
+          "pageCount": 69
+        },
+        {
+          "action": "edit.redo",
+          "firstPage": 35,
+          "lastPage": 73,
+          "pageCount": 73
+        }
+      ],
+      "reopenedPageCount": 73,
+      "savedAndReopened": true,
+      "sourceUnchanged": true,
+      "savedNestedAndFloatingTable": true,
+      "matchingPrintedPages": 73,
+      "crossVersion": {
+        "cliSha256": {
+          "baseline": "05372f7b3702be24462498539c6424e640c2efafd39928761bf4688b17c6dca1",
+          "candidate": "14f2cca4074bf3f189441327ae5d9c4afed1aca70df62e2d5923cdc46321d028"
+        },
+        "writerReaderPairs": [
+          [
+            "baseline",
+            "baseline"
+          ],
+          [
+            "baseline",
+            "candidate"
+          ],
+          [
+            "candidate",
+            "baseline"
+          ],
+          [
+            "candidate",
+            "candidate"
+          ]
+        ],
+        "pageCount": 73,
+        "savedCopyUnchanged": true
+      },
+      "display": "native Quartz",
+      "productAndUiTests": {
+        "joyword": {
+          "passed": 3692,
+          "failed": 0,
+          "ignored": 2
+        },
+        "ui": {
+          "passed": 78,
+          "failed": 0,
+          "ignored": 0
+        }
+      },
+      "productionClippy": "strict layout and engine library targets passed, also covered by the product engineering check"
+    },
+    "UOS 25": {
+      "binarySha256": "302eddd48fe045b7f2280eee4370b5e75ace44f17b35612449d8a7a6cf5855f1",
+      "sourceSha256": "39f19fed41507bc8f45c837670f1837612318792afbaa05f44c4fb581b28dbb5",
+      "pages": 69,
+      "sections": 70,
+      "numberedNotes": 3,
+      "nativePatches": [
+        {
+          "action": "text.insert",
+          "firstPage": 35,
+          "lastPage": 75,
+          "pageCount": 75
+        },
+        {
+          "action": "edit.undo",
+          "firstPage": 35,
+          "lastPage": 75,
+          "pageCount": 69
+        },
+        {
+          "action": "edit.redo",
+          "firstPage": 35,
+          "lastPage": 75,
+          "pageCount": 75
+        }
+      ],
+      "reopenedPageCount": 75,
+      "savedAndReopened": true,
+      "sourceUnchanged": true,
+      "savedNestedAndFloatingTable": true,
+      "matchingPrintedPages": 75,
+      "crossVersion": {
+        "cliSha256": {
+          "baseline": "717299e2fdd400d507de8995866d3a6763415b291f522f36c8f63a8970fdcf4b",
+          "candidate": "387144caf56e4d657fbf39e910ac4a137b7b47a311db08139b15a2f8033ed717"
+        },
+        "writerReaderPairs": [
+          [
+            "baseline",
+            "baseline"
+          ],
+          [
+            "baseline",
+            "candidate"
+          ],
+          [
+            "candidate",
+            "baseline"
+          ],
+          [
+            "candidate",
+            "candidate"
+          ]
+        ],
+        "pageCount": 75,
+        "savedCopyUnchanged": true
+      },
+      "display": "native UOS x86_64 using an isolated X11 / KWin session",
+      "productAndUiTests": {
+        "joyword": {
+          "passed": 3696,
+          "failed": 0,
+          "ignored": 2
+        },
+        "ui": {
+          "passed": 82,
+          "failed": 0,
+          "ignored": 0
+        }
+      },
+      "productionClippy": "strict layout and engine library targets passed, also covered by the product engineering check"
+    }
+  },
+  "additionalLintCheck": "The optional clippy --all-targets also lints unit-test assertions under the production deny(unwrap_used, expect_used, panic) settings. This command fails. A clean macOS checkout of the baseline and the candidate both report 1082 layout and 3968 engine unit-test lint errors. The repository-prescribed product check and the production library lint both pass."
+}
