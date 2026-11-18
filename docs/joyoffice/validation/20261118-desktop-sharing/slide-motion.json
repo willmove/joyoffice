@@ -541,6 +541,228 @@
         "binarySha256": "693135cbfff5122c5c15fda098f905a7b23c28bffa9f00fd0f0039d0ca6fb60a",
         "modes": {
           "auto": {
+            "backend": "Vulkan / AMD Radeon 890M Graphics (RADV GFX1150)",
+            "slides": {
+              "push": {
+                "referenceMean": [
+                  147.67,
+                  50,
+                  80.67
+                ],
+                "outlyingSamples": 0,
+                "samples": 3864,
+                "pausedSeconds": 1.9730226299999998,
+                "firstColor": [
+                  204,
+                  34,
+                  17
+                ],
+                "pausedColor": [
+                  147.67,
+                  50,
+                  80.67
+                ],
+                "settledColor": [
+                  35,
+                  82,
+                  208
+                ],
+                "screenshots": {
+                  "paused": "a9a76b47aa9227694011cd526717194c15ba0c538e2387862bdc1eb594ca0500",
+                  "end": "84c7a4a3877e95a29e7cd664911623a71e2961cea766f13fd096ef2313763f82"
+                },
+                "pixels": [
+                  1100,
+                  619
+                ],
+                "preparation": {
+                  "frames": 136,
+                  "medianMs": 17.05,
+                  "p95Ms": 26.32
+                }
+              },
+              "cover": {
+                "referenceMean": [
+                  38.06,
+                  103.07,
+                  181.19
+                ],
+                "outlyingSamples": 0,
+                "samples": 3864,
+                "pausedSeconds": 1.1489657370000002,
+                "firstColor": [
+                  35,
+                  82,
+                  208
+                ],
+                "pausedColor": [
+                  38.22,
+                  104.12,
+                  179.85
+                ],
+                "settledColor": [
+                  51,
+                  192,
+                  68
+                ],
+                "screenshots": {
+                  "paused": "35831eab279beaad9ba0d07b0addf84a1f1319cce7dad2bc14bf8df13adbdbc5",
+                  "end": "5cb32a336b7479423dcf3ebdd6d891c56d0ba631d0a4bd1477ad687c1d20a30b"
+                },
+                "pixels": [
+                  1100,
+                  619
+                ],
+                "preparation": {
+                  "frames": 139,
+                  "medianMs": 16.82,
+                  "p95Ms": 22.71
+                }
+              }
+            }
+          },
+          "cpu": {
+            "backend": "CPU",
+            "slides": {
+              "push": {
+                "referenceMean": [
+                  129.56,
+                  55.14,
+                  101.13
+                ],
+                "outlyingSamples": 0,
+                "samples": 3864,
+                "pausedSeconds": 2.272136417,
+                "firstColor": [
+                  204,
+                  34,
+                  17
+                ],
+                "pausedColor": [
+                  129.56,
+                  55.14,
+                  101.13
+                ],
+                "settledColor": [
+                  35,
+                  82,
+                  208
+                ],
+                "screenshots": {
+                  "paused": "82af2dda5277581c149580547b155296ecb8f507d8890f4612ee88b118d69b47",
+                  "end": "23e1c221db7a207cda1b6bb1addf0e92f5ad6745b954fe7b2f180e063e1476f7"
+                },
+                "pixels": [
+                  1100,
+                  619
+                ],
+                "preparation": {
+                  "frames": 19,
+                  "medianMs": 225.96,
+                  "p95Ms": 255.03
+                }
+              },
+              "cover": {
+                "referenceMean": [
+                  39,
+                  109.5,
+                  173
+                ],
+                "outlyingSamples": 0,
+                "samples": 3864,
+                "pausedSeconds": 1.248467654,
+                "firstColor": [
+                  35,
+                  82,
+                  208
+                ],
+                "pausedColor": [
+                  39,
+                  109.5,
+                  173
+                ],
+                "settledColor": [
+                  51,
+                  192,
+                  68
+                ],
+                "screenshots": {
+                  "paused": "69aeb10e2b8a0c83c2c952ca6d319b5c8c77a3dd59f5eeb7412ed7b7f6f3265b",
+                  "end": "5cb32a336b7479423dcf3ebdd6d891c56d0ba631d0a4bd1477ad687c1d20a30b"
+                },
+                "pixels": [
+                  1100,
+                  619
+                ],
+                "preparation": {
+                  "frames": 60,
+                  "medianMs": 27.25,
+                  "p95Ms": 218.52
+                }
+              }
+            }
+          }
+        },
+        "automaticWindow": {
+          "durationMs": 1600,
+          "holdMs": 767,
+          "lastObservedPushProgress": 0.98926795,
+          "observedFromKeyDispatchSeconds": 2.461
+        },
+        "exchange": {
+          "cliSha256": {
+            "baseline": "7cfc19c661ad12604a1bc6ec8755660f3aec0b9e91ae8940e9bf320a23332a2c",
+            "candidate": "83244afe1892aebc6350e272873c6d41bc9e7a9fd67e950cf7132962a3c1e245"
+          },
+          "halfTimeFramesByWriterAndReader": {
+            "baseline-baseline": [
+              "005ab451c83e2f2116a7d23d87f859b2a547c0e10dcf41c83370d5a50d3ee0c3",
+              "2b9b4765d191ffa893c3465b28710836d265f5ae03255395e0f7d69b29324243"
+            ],
+            "baseline-candidate": [
+              "005ab451c83e2f2116a7d23d87f859b2a547c0e10dcf41c83370d5a50d3ee0c3",
+              "07b1c8e71ce2b06caf3fb9faf68d2cb3deab37bd8303fa3054394d966b003355"
+            ],
+            "candidate-baseline": [
+              "005ab451c83e2f2116a7d23d87f859b2a547c0e10dcf41c83370d5a50d3ee0c3",
+              "2b9b4765d191ffa893c3465b28710836d265f5ae03255395e0f7d69b29324243"
+            ],
+            "candidate-candidate": [
+              "005ab451c83e2f2116a7d23d87f859b2a547c0e10dcf41c83370d5a50d3ee0c3",
+              "07b1c8e71ce2b06caf3fb9faf68d2cb3deab37bd8303fa3054394d966b003355"
+            ]
+          }
+        }
+      },
+      "patternedFrames": {
+        "compared": 925,
+        "changed": {
+          "cover": 27,
+          "uncover": 19
+        },
+        "unchanged": 879,
+        "exactEndpoints": 370,
+        "sha256": "698e55fcd1ac9622d007aca58422f5c5695ffe23fb44c585af8b03ec8df88606"
+      },
+      "productChecks": {
+        "joydeck": {
+          "passed": 1018,
+          "failed": 0,
+          "ignored": 0
+        },
+        "ui": {
+          "passed": 82,
+          "failed": 0,
+          "ignored": 0
+        }
+      },
+      "deviceAccess": "After Wilmer signed in, the same binary and PPTX were replayed on the physical Radeon in an isolated KWin/X11 window. Both hardware-auto and explicit CPU advanced to slide three. The earlier greeter-session run records automatic CPU fallback.",
+      "optionalSoftwareAdapter": "Explicitly forcing llvmpipe for the developer-only pixel test gave maximum channel difference 3 at window/horz/22 (hardware acceptance budget 2). The desktop automatically excludes this adapter.",
+      "softwareFallbackWindow": {
+        "sourceSha256": "34189366ed6c8f36a3f18471da1b2d93a5a634e25859ee0616500fcc4a06713c",
+        "binarySha256": "693135cbfff5122c5c15fda098f905a7b23c28bffa9f00fd0f0039d0ca6fb60a",
+        "modes": {
+          "auto": {
             "backend": "CPU fallback / llvmpipe (LLVM 17.0.6, 256 bits)",
             "slides": {
               "push": {
@@ -734,30 +956,36 @@
           }
         }
       },
-      "patternedFrames": {
-        "compared": 925,
-        "changed": {
-          "cover": 27,
-          "uncover": 19
+      "adapterChecks": [
+        {
+          "adapter": "AMD Radeon 890M Graphics (RADV GFX1150)",
+          "backend": "Vulkan",
+          "size": [
+            64,
+            36
+          ],
+          "frames": 925,
+          "maxChannelDifference": 2,
+          "missingSources": {
+            "frames": 48,
+            "maximumChannelDifference": 1
+          }
         },
-        "unchanged": 879,
-        "exactEndpoints": 370,
-        "sha256": "698e55fcd1ac9622d007aca58422f5c5695ffe23fb44c585af8b03ec8df88606"
-      },
-      "productChecks": {
-        "joydeck": {
-          "passed": 1018,
-          "failed": 0,
-          "ignored": 0
-        },
-        "ui": {
-          "passed": 82,
-          "failed": 0,
-          "ignored": 0
+        {
+          "adapter": "AMD Radeon 890M Graphics (RADV GFX1150)",
+          "backend": "Vulkan",
+          "size": [
+            193,
+            109
+          ],
+          "frames": 925,
+          "maxChannelDifference": 2,
+          "missingSources": {
+            "frames": 48,
+            "maximumChannelDifference": 1
+          }
         }
-      },
-      "deviceAccess": "Host rebooted during this phase. The seat belonged to the greeter. Native KWin/X11 on the UOS host verified automatic software-adapter fallback and explicit CPU selection. f5810bd0 has separate prior physical RADV measurements.",
-      "optionalSoftwareAdapter": "Explicitly forcing llvmpipe for the developer-only pixel test gave maximum channel difference 3 at window/horz/22 (hardware acceptance budget 2). The desktop automatically excludes this adapter."
+      ]
     }
   }
 }
