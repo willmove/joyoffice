@@ -11,6 +11,7 @@ description = "DeckCraft metafiles (ported from WordCraft): parses Windows WMF a
 workspace = true
 
 [dependencies]
+joyoffice-metafile.workspace = true
 kurbo = { workspace = true, features = ["serde"] }
 thiserror = { workspace = true }
 image = { workspace = true, features = ["png", "jpeg", "webp", "gif", "tiff", "bmp"] }

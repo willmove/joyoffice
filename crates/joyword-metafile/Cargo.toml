@@ -19,5 +19,6 @@ unimplemented = "deny"
 unreachable = "deny"
 
 [dependencies]
+joyoffice-metafile.workspace = true
 kurbo = { workspace = true }
 thiserror = { workspace = true }

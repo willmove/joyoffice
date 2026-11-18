@@ -4019,6 +4019,7 @@ name = "joydeck-metafile"
 version = "0.2.0"
 dependencies = [
  "image",
+ "joyoffice-metafile",
  "kurbo 0.13.1",
  "thiserror 2.0.21",
 ]
@@ -4164,6 +4165,10 @@ version = "0.2.0"
 dependencies = [
  "quick-xml",
 ]
+
+[[package]]
+name = "joyoffice-metafile"
+version = "0.2.0"
 
 [[package]]
 name = "joyoffice-omml"
@@ -4601,6 +4606,7 @@ dependencies = [
 name = "joyword-metafile"
 version = "0.2.0"
 dependencies = [
+ "joyoffice-metafile",
  "kurbo 0.13.1",
  "thiserror 2.0.21",
 ]

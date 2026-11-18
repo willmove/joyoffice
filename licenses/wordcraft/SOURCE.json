@@ -420,7 +420,7 @@
       "source": "crates/metafile/src/bytes.rs",
       "target": "crates/joyword-metafile/src/bytes.rs",
       "source_sha256": "ef49693acf1b635386f7cb20cbaa4132059bebee8859713d632048a9ee606123",
-      "changes": "Package/module naming and explicit source license only; formatter may normalize whitespace."
+      "changes": "Delegates to the original checked byte reader in crates/joyoffice-metafile/src/lib.rs, now shared with JoyDeck."
     },
     {
       "source": "crates/metafile/src/canvas.rs",

@@ -410,23 +410,25 @@
       "source_path": "crates/metafile/Cargo.toml",
       "source_sha256": "671d63f1daa3371ca4de65b4e8c1cfb3ad000c294b7a45436721eb81c5d77f58",
       "target_path": "crates/joydeck-metafile/Cargo.toml",
-      "adapted_sha256": "80c6e36f8522ab93262225bd8658035f338bd902fb1b3e278f0a26be76232304",
+      "adapted_sha256": "1377487d588d2aac5b0c697246f2b5b14fb2965faad762a02cadef06940e68b7",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
-        "R9: host workspace feature wiring and sole shared-library implementation"
+        "R9: host workspace feature wiring and sole shared-library implementation",
+        "Use the shared joyoffice-metafile record reader; original implementation and attribution moved to crates/joyoffice-metafile/src/lib.rs."
       ]
     },
     {
       "source_path": "crates/metafile/src/bytes.rs",
       "source_sha256": "ef49693acf1b635386f7cb20cbaa4132059bebee8859713d632048a9ee606123",
       "target_path": "crates/joydeck-metafile/src/bytes.rs",
-      "adapted_sha256": "ef49693acf1b635386f7cb20cbaa4132059bebee8859713d632048a9ee606123",
+      "adapted_sha256": "d00656397f9d767dbe44d0395dc399dbb881335f4c43f1399eb7399c9f6ad2d4",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
-        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream"
+        "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
+        "Use the shared joyoffice-metafile record reader; original implementation and attribution moved to crates/joyoffice-metafile/src/lib.rs."
       ]
     },
     {
@@ -2358,6 +2360,15 @@
       "powerpoint_file_page": "Retain the File ribbon tab on every desktop platform and route both file entries to the updated file page.",
       "ribbon_collapse_navigation": "2026-11-13: toggle the selected ribbon tab on double-click and retain the tab strip for expanded or collapsed File pages.",
       "desktop_product_icons": "2026-11-18: embedded native product icons/logos for every product window; portable desktop registration and complete shared artwork source fingerprints; original attribution retained."
+    },
+    {
+      "source_path": "crates/metafile/src/bytes.rs",
+      "source_sha256": "ef49693acf1b635386f7cb20cbaa4132059bebee8859713d632048a9ee606123",
+      "target_path": "crates/joyoffice-metafile/src/lib.rs",
+      "adapted_sha256": "dad83efbf5f110c9a915341c525f8eba54fa345993d2b7fa0a015fcba580e601",
+      "changes": [
+        "share the identical checked byte reader with JoyWord and test truncated and overflowing coordinates"
+      ]
     }
   ]
 }

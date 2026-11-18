@@ -1,0 +1,11 @@
+[package]
+name = "joyoffice-metafile"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish = false
+license = "MIT OR Apache-2.0"
+description = "Checked little-endian record and point reads for the Word and Deck metafile parsers"
+
+[lints]
+workspace = true

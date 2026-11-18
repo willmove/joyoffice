@@ -1,0 +1,155 @@
+{
+  "stage": "meta",
+  "platforms": {
+    "mac": {
+      "joyword": {
+        "passed": 3657,
+        "failed": 0,
+        "ignored": 2,
+        "failedTests": [],
+        "logSha256": "7e7010f8482ff14d9c99ae7c81a27b0ff63d55984f9cd2ed3324190f16c8ee83"
+      },
+      "joydeck": {
+        "passed": 986,
+        "failed": 0,
+        "ignored": 0,
+        "failedTests": [],
+        "logSha256": "1a8247abf836864ebf9581977c3eb918663f9d2950de34a10ce9421a43782398"
+      },
+      "joysheet": {
+        "passed": 1440,
+        "failed": 0,
+        "ignored": 1,
+        "failedTests": [],
+        "logSha256": "8441d6c2f71f2ccfb88b601854dd4de9a66aeb9a48d4a184b293cd584748cd04"
+      },
+      "ui": {
+        "passed": 75,
+        "failed": 0,
+        "ignored": 0,
+        "failedTests": [],
+        "logSha256": "b0abf0397522bb878856cffffa987756fbb4d5c3d58ce4a6f0be81ca0a24f429"
+      },
+      "matchedPixels": {
+        "word-wmf": {
+          "screenScene": {
+            "rgbSha256": "0eff233dc2e3d3ebecd28781ad12a564547da5b82d066d1945808fd516e7320c",
+            "trianglePixels": 15522
+          },
+          "pdfRaster": {
+            "rgbSha256": "282b7d01ecaed8343298056f83f56858bd5d09e7ea8e567f43861970f2e30ad4",
+            "trianglePixels": 15736
+          }
+        },
+        "word-emf": {
+          "screenScene": {
+            "rgbSha256": "91a869436f0ad8dd7f361bc365945201314a3fc152277ca908c4cb3780bd42d2",
+            "trianglePixels": 12177
+          },
+          "pdfRaster": {
+            "rgbSha256": "8b211ba5ccc05711abb46e8f32f5052e284bd8c05ca6aa33ceb8af8da7a5b2c4",
+            "trianglePixels": 12372
+          }
+        },
+        "deck-wmf": {
+          "screenScene": {
+            "rgbSha256": "224d490d3bb534372bb1e56bc48a63824def6d955fc9644622662804f9e43ba6",
+            "trianglePixels": 8960
+          },
+          "pdfRaster": {
+            "rgbSha256": "e78ba582ae2ec1171664f9a0232a6a06ff7df60e74673a2cfdf9206e380bc32d",
+            "trianglePixels": 16311
+          }
+        },
+        "deck-emf": {
+          "screenScene": {
+            "rgbSha256": "a725d3bd5e6e39080a0d06af217e7d353025bd8c744083328ea34511c36718d6",
+            "trianglePixels": 7048
+          },
+          "pdfRaster": {
+            "rgbSha256": "b76c42d64f50f802d0b3f78d85896884812f6658835075d9ae2b3b0af9d6c678",
+            "trianglePixels": 12859
+          }
+        }
+      }
+    },
+    "uos": {
+      "joyword": {
+        "passed": 3001,
+        "failed": 5,
+        "ignored": 2,
+        "failedTests": [
+          "tests::a_symbol_bullet_sizes_its_line_by_the_symbol_font",
+          "tests::justified_lines_shrink_spaces_in_word_2013_mode",
+          "tests::last_rewrap_pass_keeps_early_floats_clear_of_text",
+          "tests::legacy_form_fields_are_drawn",
+          "tests::long_footnotes_continue_on_the_next_page"
+        ],
+        "logSha256": "e664730a24bcba7c703ff8ce2736b292ff931bdf5dfec48a0f0537defc39488b"
+      },
+      "joydeck": {
+        "passed": 991,
+        "failed": 0,
+        "ignored": 0,
+        "failedTests": [],
+        "logSha256": "9d503f622a157a1452a4f3e25b177058a2f14ca085e2c70f71df60759c432ecf"
+      },
+      "joysheet": {
+        "passed": 1440,
+        "failed": 0,
+        "ignored": 1,
+        "failedTests": [],
+        "logSha256": "fc9affc54123b6ae37eb7698a07ae185ac2492114e15960e748e2ec452978049"
+      },
+      "ui": {
+        "passed": 79,
+        "failed": 0,
+        "ignored": 0,
+        "failedTests": [],
+        "logSha256": "bb45be3cd0f8cc500bcf894cf82b0e9e1c21adc86e7ce2d042a0301298c9c6fb"
+      },
+      "matchedPixels": {
+        "word-wmf": {
+          "screenScene": {
+            "rgbSha256": "0eff233dc2e3d3ebecd28781ad12a564547da5b82d066d1945808fd516e7320c",
+            "trianglePixels": 15522
+          },
+          "pdfRaster": {
+            "rgbSha256": "282b7d01ecaed8343298056f83f56858bd5d09e7ea8e567f43861970f2e30ad4",
+            "trianglePixels": 15736
+          }
+        },
+        "word-emf": {
+          "screenScene": {
+            "rgbSha256": "91a869436f0ad8dd7f361bc365945201314a3fc152277ca908c4cb3780bd42d2",
+            "trianglePixels": 12177
+          },
+          "pdfRaster": {
+            "rgbSha256": "8b211ba5ccc05711abb46e8f32f5052e284bd8c05ca6aa33ceb8af8da7a5b2c4",
+            "trianglePixels": 12372
+          }
+        },
+        "deck-wmf": {
+          "screenScene": {
+            "rgbSha256": "37f331ac2e8ed2bfdd14a7479fe692874749dd0b0fd343810c696984b0f9aa2d",
+            "trianglePixels": 8960
+          },
+          "pdfRaster": {
+            "rgbSha256": "7e486ff46c9b05dd85eb2917c5cb4ae385f0fc02419bf09b40bc8345d953b315",
+            "trianglePixels": 16311
+          }
+        },
+        "deck-emf": {
+          "screenScene": {
+            "rgbSha256": "bc15a02f21cde36e155c78c6b0faaac1cf3ce95e365d92527ff2a2a00ba4f097",
+            "trianglePixels": 7048
+          },
+          "pdfRaster": {
+            "rgbSha256": "61428f24abddddcb558a6b54c6157a31248223f46b03ed2b2163cc0346c3c095",
+            "trianglePixels": 12859
+          }
+        }
+      }
+    }
+  }
+}
