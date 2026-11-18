@@ -712,7 +712,8 @@
       "source": "crates/layout/src/pass.rs",
       "target": "crates/joyword-layout/src/pass.rs",
       "source_sha256": "a548d8440a73d4d7ca5750fda6396059d1fa8948cadf99583ff32bb4b841c8c7",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md."
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Share the paragraph location index with section-local pagination.",
+      "adapted_sha256": "f498e66edccf0b484d9b28b27fea1b930d1547f9fbb4de50bfa3ba1085f78402"
     },
     {
       "source": "crates/layout/src/placed.rs",
@@ -887,7 +888,8 @@
       "source": "crates/layout/src/para/model.rs",
       "target": "crates/joyword-layout/src/para/model.rs",
       "source_sha256": "a60228d1af533c838d139fa513c37635c1492fcbcbf25ecdebdee0f986efa4e7",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md."
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Compare complete line, cluster, visual caret and glyph coordinates when replaying a section boundary.",
+      "adapted_sha256": "db381283b611784a5c0e31097f125fd11c3feb942f5759f1b3635d9e20f8b84d"
     },
     {
       "source": "crates/layout/src/para/paragraph.rs",
@@ -2480,7 +2482,8 @@
       "source": "crates/engine/tests/it/main.rs",
       "target": "crates/joyword-engine/tests/it/main.rs",
       "source_sha256": "550ba35aaa11fa24fae1e0c946973ba805c71ee7ba05c7fdd3095c61057409b2",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md."
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Register native section-reflow, floating-table and nested-cell differential tests.",
+      "adapted_sha256": "0875eb5955747182436f4c4449c6d91f5d25474ec30fc43da3c5594ae8ce8351"
     },
     {
       "source": "crates/engine/tests/it/odt_sections.rs",

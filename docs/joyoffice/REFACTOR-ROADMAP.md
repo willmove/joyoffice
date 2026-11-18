@@ -9,7 +9,7 @@
 | 优先级与负责模块 | 已经替换且经过验证的范围 | 下一项交付及回退 |
 | --- | --- | --- |
 | P0 · 三产品 UI 和保存事务 | macOS 系统拼音、UOS 25 DDE 独立 Fcitx5 拼音和用户默认搜狗均完成三产品选词、取消、撤销、保存和重开。Word 原生另存取消可重试，Sheet 绑定工作簿版本，Deck 在第二个窗口选择期间能拒绝第一个窗口编辑前的旧结果 | 本轮 P0 全部通过。输入回归分别保留客户端与服务端预编辑。保存回退按单产品恢复选择器，保留文档版本和单写者校验。[输入](validation/20261118-desktop-sharing/README.md#uos-中文输入) · [原生另存](validation/20261118-desktop-sharing/save-target.json) |
-| P1 · Word 排版、OPC | DOCX 重复解压由 120,016 字节降为 0。千页中段改字每次更新三页。自然分页的 800 段正文、96 页文档里的嵌入表格已和完整分页逐页、逐命中对照。五类复杂 DOCX 另经两代保存和旧版读回 | 含分节、等宽双栏和脚注的文档，正文编辑后行几何不变时可复用其余页，修改脚注会触发完整布局。浮动／嵌套表格及改变列平衡、脚注保留高度的跨页局部重排仍待迁移。现有页边界不能证明收敛时，自动走完整分页。[千页耗时](validation/20261118-desktop-sharing/chapter-reflow.json) · [复杂 DOCX](validation/20261118-desktop-sharing/complex-docx.json) |
+| P1 · Word 排版、OPC | DOCX 重复解压由 120,016 字节降为 0。千页中段改字每次更新三页。自然分页的 800 段正文、96 页文档里的嵌入表格已和完整分页逐页、逐命中对照。五类复杂 DOCX 另经两代保存和旧版读回 | 含连续分节、等宽双栏和脚注的长文档，现可按章节重新计算栏平衡、脚注留白及浮动／嵌套表格，并核对后一节的真实首段。独立边界和页数一致时复用两侧页面，跨出边界时自动完整分页。[千页耗时](validation/20261118-desktop-sharing/chapter-reflow.json) · [复杂 DOCX](validation/20261118-desktop-sharing/complex-docx.json) |
 | P1 · Deck 渲染、几何 | 富媒体首轮哈希 519,969 字节，随后 25 次移动对象合计 0 字节。已测同 ID 换图、撤销及真实桌面重绘。圆角矩形、四个单向和两个双向箭头共 28 个实例通过预设参数、两代读回及逐像素对照 | 透视层 CPU 三角形改为按扫描行求覆盖区。49 种转场、185 种效果／选项的 925 帧在两端与旧版逐像素相同。九种矩形预设也已全部接入新的参数化角点生成器。45 个带文字实例在两端新旧版本输出相同，几何手柄另验拖动至极值。其余几何按族回退和复验。[场景与显示帧](validation/20261118-desktop-sharing/deck-media.json) · [几何](validation/20261118-desktop-sharing/deck-presets.json) |
 | P1 · Sheet 计算 | 至少 512 个脏公式时，合格的同表／跨表数值引用加字面量默认批量计算。100k 行引擎 P95 在 macOS 为 71.23 → 50.63 ms，在 UOS 为 205.17 → 155.91 ms。两端小表和 RSS 均在 5% 预算内。另验混合范围、公式引用、溢出阻塞／收缩和迭代 | 清空远端阻塞格或原溢出区域收缩时，现仅搜索所在工作表内可能再次溢出的锚点。循环引用分组和迭代轮次调度已替换。动态表达式继续由通用求值器解释。已用同一发布二进制实际演练 `JOYSHEET_SCALAR_RECALC=0`、撤销、保存和重开。下一次扩大条件沿用逐格检查及同源计时。[引擎](validation/20261118-desktop-sharing/same-source-recalculation.json) · [实际显示](validation/20261118-desktop-sharing/desktop-presentation.json) · [回退](validation/20261118-desktop-sharing/scalar-rollback.json) |
 | P1 · 桌面共享 | Word／Sheet 共用保存提示；Word／Deck 共用 WMF／EMF 有界读取、OPC 已验成员和系统字体遍历；三应用共用功能区分组与有界 ZIP 成员解压，Sheet 保留按需加载。两平台完成 20 组原生可访问树验收，其中 Word／Sheet 的 16 组实际打开并关闭了字体面板 | 功能区命令由产品负责，公共呈现可按产品回退。Deck 现有中文界面和 UOS 最小窗宽分别按真实环境记录。[功能区](validation/20261118-desktop-sharing/ribbon.json) · [字体](validation/20261118-desktop-sharing/font-catalog.json) |
@@ -21,14 +21,14 @@
 
 | 编号与优先级 | 下一项可验收的交付 | 前置条件与验收指标 | 回退 |
 | --- | --- | --- | --- |
-| W-LAYOUT · P1／P2 | P1 已能在完整分页后按实际绘制内容复用邻页。继续将脚注高度或栏平衡变化的分页计算缩小到受影响的章节，P2 扩展到浮动对象、嵌套表格和复杂分节 | 复用已通过的自然页、表格、双栏脚注和千页桌面基线。对每次新增、删除和撤销比较完整布局的页、行、脚注编号、命中与 PDF；只有下游检查点一致才复用 | 每次编辑都可走已有完整分页，保留原件 |
+| W-LAYOUT · P2 | P1 章节重排已覆盖脚注增高、连续分节栏平衡、带浮动定位的嵌套表格和真实窗口编辑。P2 继续替换分节页数改变、页眉页脚／字段、浮动绘图锚点和跨节续注时的传播 | 复用已通过的自然页、表格、双栏脚注和千页桌面基线。对每次新增、删除和撤销比较完整布局的页、行、脚注编号、命中与 PDF；只有下游检查点一致才复用 | 每次编辑都可走已有完整分页，保留原件 |
 | W-PROOF · P2 | 替换 Hunspell 词形判定和拼写建议排序，迁移语言包下载、安装及失败恢复 | 沿用旧版语言包目录、已登记的授权数据及用户同意记录。对每种启用语言核对词形、建议顺序、断词位置。安装测试覆盖实际发行包、摘要错误、取消和旧目录读回 | 按语言保留旧词典后端。恢复原安装器使用同一目录、许可与索引 |
 | D-GEOM · P2 | 继续交付流程图、复合箭头、标注等形状族，以及转场层生成和 GPU 呈现 | 画廊登记 183 种预设。已覆盖九种矩形、六种箭头及六种画廊线条／连接线。另五种只从文件导入的连接线按标准补齐拐点；其他预设仍须逐族证明。按默认、非对称和边界参数比文字框、连接点、命中、光栅和两代 PPTX，GPU 效果与 CPU 对照 | 按族恢复生成器或 CPU 渲染。历史文件继续走现有只读迁移桥 |
 | S-CALC · P2 | 其余公式族、数组扩展和动态引用求值，及 XLS／XLSX 的产品格式映射 | 两端 CLI 登记 514 个公开函数名、14 种分类。已替换的汇总、统计、查找、循环分组和迭代调度有独立期望；其余按函数族补边界值、错误类型、浮点顺序以及旧版保存读回。文件适配另比格式、未知对象和拒绝结果 | 按函数或对象切回旧路径。密集标量批处理可单独在同一程序中关闭 |
 
 以上登记数包含别名和共用实现，不用来计算自研比例。P0 的三个桌面输入和另存阻断均已关闭。[字体与语言包来源](../../licenses/craft-libs/SOURCE.json) · [形状来源](../../licenses/deckcraft/file-map.json) · [表格迁移账本](../joysheet/UPSTREAM-PATCHES.md)
 
-**最近一次各产品回归。** 采用同一任务分支上各产品最后一次影响其代码的提交。macOS 的 Word、Deck、Sheet 分别通过 3,677、998、1,471 项，UOS 25 真机分别通过 3,681、1,003、1,471 项。三个产品的失败数均为零。首轮 P0 和两项指定共享改造已验收。上表四项仍包含运行中的旧代码。[Word](validation/20261118-desktop-sharing/page-repaint.json) · [Deck](validation/20261118-desktop-sharing/deck-connectors.json) · [Sheet](validation/20261118-desktop-sharing/sheet-lookups.json)
+**最近一次各产品回归。** 采用同一任务分支上各产品最后一次影响其代码的提交。macOS 的 Word、Deck、Sheet 分别通过 3,679、998、1,471 项，UOS 25 真机分别通过 3,683、1,003、1,471 项。三个产品的失败数均为零。首轮 P0、两项指定共享改造及路线图阶段 2 所列 P1 场景已验收。上表四项仍包含运行中的旧代码。[Word](validation/20261118-desktop-sharing/section-reflow.json) · [Deck](validation/20261118-desktop-sharing/deck-connectors.json) · [Sheet](validation/20261118-desktop-sharing/sheet-lookups.json)
 
 ## 分批交付
 
@@ -180,3 +180,6 @@ cargo tree --locked --offline -e normal,build -p joyword-cli
 **Deck 线条与连接线。** 六种画廊线条和五种文件连接线共 55 个实例，使用真实的 PPTX 连接对象。新旧版均能读回形状和调整值，最新版对照公开规范中的自定义几何渲染，两个平台均为 0 个差异像素。画廊组保留旧版外观。五种导入形状修正旧版将不同拐点简化为同一路径的问题，旧版打开时仍显示原先的简化外观。[逐族对照与回退](validation/20261118-desktop-sharing/deck-connectors.json)
 
 **Sheet 查找。** MATCH、XMATCH、LOOKUP、XLOOKUP、HLOOKUP 和 VLOOKUP 直接搜索工作簿中的向量及矩阵的首行或首列。精确匹配与前向／反向的最邻近匹配共用一次遍历。原生窗口在 4,096 行、每键重复两次的工作簿上编辑、撤销、重做并保存，重开后七个依赖格的公式和值均正确。XLSX 的八个查找公式另经两版写入和读回。最终 Release 各 100 次打开并连续编辑的 P95 为 macOS 14.13 → 13.88 ms、UOS 27.95 → 26.59 ms；验收记录同时保留最初 20 次中 UOS 的回退。其他数组扩展与格式语义按页首 S-CALC 继续验收。[桌面与计时](validation/20261118-desktop-sharing/sheet-lookups.json) · [两代互读](validation/20261118-desktop-sharing/version-rollback.json)
+
+
+**Word 分节重排。** 在前后独立起页的章节组中，编辑正文、脚注或嵌套单元格会重新计算整组的行、栏和脚注位置。两端 70 节、69 页的原生窗口在第 35 页编辑、撤销、重做均只更新第 35 页。保存副本经独立 XML 解析及新进程重开，三条编号脚注、连续分节和带浮动定位的嵌套表格均保留。超长续注、跨节页数变化或下一节入口无法核对时自动完整分页。[普通窗口、Release 计时与产品回归](validation/20261118-desktop-sharing/section-reflow.json)

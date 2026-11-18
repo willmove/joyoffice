@@ -112,7 +112,7 @@ impl StyleRun {
 }
 
 /// A positioned glyph inside its cluster.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Glyph {
     pub gid: u32,
     /// The style that shaped this glyph. Atomic fields can contain several fallback faces.
@@ -138,7 +138,7 @@ pub enum ClKind {
 
 /// One drawing segment of a grapheme cluster (or object, tab, break).
 /// Font/style changes may split its drawing; paragraph edit/wrap boundaries keep it atomic.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Cluster {
     pub start: usize,
     pub end: usize,
@@ -172,7 +172,7 @@ pub enum LineEnd {
 
 /// A laid-out line. Coordinates are relative to the paragraph's content box: x from the
 /// column's left edge, y from the top of the first line.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Line {
     pub top: f32,
     pub height: f32,

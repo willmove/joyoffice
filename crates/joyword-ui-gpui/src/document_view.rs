@@ -143,6 +143,7 @@ impl DocumentCanvas {
             return false;
         };
         self.discard_scene();
+        perf::layout_patch(&pages);
         self.keep_unaffected_images(&pages);
         self.failed.retain(|page, _| !pages.contains(page));
         true

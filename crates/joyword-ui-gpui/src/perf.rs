@@ -20,3 +20,13 @@ pub(super) fn elapsed(stage: &str, ms: f64, page: usize) {
         page + 1
     );
 }
+
+pub(super) fn layout_patch(pages: &std::ops::Range<usize>) {
+    if start().is_some() {
+        eprintln!(
+            "joyword-perf {{\"stage\":\"layout_patch\",\"firstPage\":{},\"lastPage\":{}}}",
+            pages.start + 1,
+            pages.end
+        );
+    }
+}

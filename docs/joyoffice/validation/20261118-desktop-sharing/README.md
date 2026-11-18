@@ -145,3 +145,11 @@ Word 和 Deck 共用目录遍历及文件修订识别，塑形和回退顺序由
 六种查找函数直接读取原数组，保留首次／末次重复项、通配符、类型差异、二分查找及缺失结果。XLOOKUP 与 XMATCH 的正向及反向最邻近查找，在同一遍访问中记录候选并优先返回精确命中。两端分别对 4,096 行的真实桌面会话提交新键并撤销、重做，再直接检查 XLSX XML 的七个公式及其缓存值，最后在桌面重开。另有八个查找公式通过两版写入、两版重开的四种组合。六种查找、汇总与统计的独立 CLI 公式期望值合计 35 个。[原生验证](sheet-lookups.json) · [独立公式期望](version-rollback.json) · [Microsoft 查找语义](https://support.microsoft.com/en-gb/excel/functions/xlookup-function)
 
 性能用例每次由同一个 Release CLI 打开刚保存的工作簿，交替提交 12 次查找键并逐格核验最终值。基线和候选各预热一次，随后按 ABBA 各采 20 次。进程启动、打开及编辑合计的 P95 为 macOS 14.43 → 13.74 ms，UOS 26.53 → 29.26 ms。随后消除扫描不匹配键时重复的排序比较，按每组 20 次交替采用 ABBA 和 BAAB，将同机旧版和最终版各测 100 次。macOS 的 P50 为 13.58 → 13.01 ms，P95 为 14.13 → 13.88 ms；UOS 的 P50 为 23.05 → 22.72 ms，P95 为 27.95 → 26.59 ms。两组数据均包含进程启动、打开和编辑，不能单独衡量函数的求值时间。复跑用 `python3 scripts/joysheet/check-lookup-edit.py DESKTOP NEW_DIR --compare-cli OLD_CLI NEW_CLI --timing-rounds 5`。两台机器的产品工程检查均通过 1,471 项并按原配置忽略一项。最终 Release 重验两份授权业务原件及派生副本，原件摘要无变化，UOS 临时业务副本已清理。[原始计时和工程门禁](sheet-lookups.json) · [业务文件汇总](business-workbooks.json)
+
+## Word 脚注、连续分节与嵌套表格
+
+原生窗口打开 70 节、69 页的 DOCX。第 35 页使用等宽双栏，之后的连续节与它共用一页。文档含三条连续编号的脚注，浮动表格的单元格内还有一张表。两端都执行了插入、撤销和重做，三次布局更新的起止页均为 35。保存后独立读取 DOCX 的正文、脚注及表格定位，再启动新进程重开。最初的文件摘要保持一致。工程专项另对脚注加长／删回、栏平衡变化和两种嵌套表格的单元格编辑进行完整分页对照，核对全部页、正文与脚注的光标命中、受影响页和两侧邻页的 RGB、PDF。续注超出组末时实测回到完整分页。[桌面与产品结果](section-reflow.json)
+
+Release 在同一份原生测试文档的第二条脚注交替插入和删除，五个新进程各执行 20 次。macOS 完整分页与编辑加局部分页的 P50 为 0.585 → 0.411 ms，P95 为 0.648 → 0.559 ms。UOS P50 为 0.591 → 0.422 ms，P95 为 1.000 → 1.017 ms。两端中位数均下降，UOS 尾部有约 0.018 ms 回退。每台机器另完成 690 次逐页比较和 2,070 次命中检查。记录中保留了每次都重新核验旧布局的初版、加入章节缓存的中间版与最终版的计时。macOS 产品回归通过 3,679 项，UOS 通过 3,683 项。两端公共 UI 和桌面／CLI 联合构建也通过。[逐次计时](section-reflow.json)
+
+复跑用 `python3 scripts/joyword/check-section-reflow.py DESKTOP NEW_DIR`，随后运行 `cargo run --release -p joyword-engine --example chapter_reflow -- NEW_DIR/原始分节.docx`。该例省略文件名时仍执行原有的千页中段增删基准。当前局部计算限于原布局至少 64 页、连续节组最多 256 个正文块和 16 页。分节改变总页数、外部字段、复杂浮动绘图和无法验证的入口继续使用完整分页。[生产入口](../../../../crates/joyword-layout/src/incremental/sections.rs)

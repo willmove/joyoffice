@@ -1,9 +1,9 @@
-//! Compare incremental and full layout on alternating insertions and deletions in a 1,000-page document.
+//! Compare incremental and full pagination on a 1,000-page chapter or the numbered footnote in the native section fixture.
 use joyword_layout::{LayoutCache, LayoutOptions, layout, layout_shared};
 use joyword_model::{Document, Path, StoryRef, para::Paragraph, para_block};
 use std::time::Instant;
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn thousand_page_chapter() -> (Document, Path) {
     let mut doc = Document::new();
     doc.body.clear();
     doc.styles.default_chr.font = Some("Source Sans 3".into());
@@ -33,16 +33,34 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         p.props.space_before = Some(0.);
         doc.body.push(para_block(p));
     }
+    (doc, Path::top(start + 3))
+}
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let (mut doc, story, path, expected_pages) = if let Some(filename) = std::env::args_os().nth(1)
+    {
+        let doc = joyword_docx::read(&std::fs::read(filename)?)?;
+        let (&note, _) = doc
+            .parts
+            .iter()
+            .find(|(id, _)| doc.plain_text(StoryRef::Part(**id)) == "Numbered note 2")
+            .ok_or("expected the 69-page section fixture from check-section-reflow.py")?;
+        (doc, StoryRef::Part(note), Path::top(0), 69)
+    } else {
+        let (doc, path) = thousand_page_chapter();
+        (doc, StoryRef::Body, path, 1000)
+    };
+    let opts = LayoutOptions::default();
     let mut cache = LayoutCache::new();
     let mut full_cache = LayoutCache::new();
     let mut previous = layout_shared(&doc, &mut cache, &opts);
-    assert_eq!(previous.pages.len(), 1000);
+    assert_eq!(previous.pages.len(), expected_pages);
     let _ = layout(&doc, &mut full_cache, &opts);
-    let change = "Extra words that wrap. ".repeat(4);
+    let change = "Extra words that wrap. ".repeat(if story == StoryRef::Body { 4 } else { 14 });
     let mut timings = Vec::new();
     for i in 0..20 {
         let begin = Instant::now();
-        let para = doc.para_mut(StoryRef::Body, &Path::top(start + 3))?;
+        let para = doc.para_mut(story, &path)?;
         if i % 2 == 0 {
             para.insert_text(0, &change, &Default::default())?;
         } else {
@@ -60,10 +78,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             for (p, (a, b)) in next.pages.iter().zip(&full.pages).enumerate() {
                 assert_eq!(format!("{a:?}"), format!("{b:?}"));
                 for (x, y) in [(75., 60.), (145., 120.), (245., 160.)] {
-                    assert_eq!(
-                        next.hit(p, x, y, StoryRef::Body),
-                        full.hit(p, x, y, StoryRef::Body)
-                    );
+                    assert_eq!(next.hit(p, x, y, story), full.hit(p, x, y, story));
                 }
             }
             let pages = ((changed.start - 1)..=(changed.end)).collect::<Vec<_>>();
@@ -88,7 +103,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     println!(
         "{}",
-        serde_json::json!({"pages":1000,"samples":timings,"allPageComparisons":2000,"hitComparisons":6000,"rasterAndPdfCompared":"affected pages and both neighboring pages for insertion and deletion"})
+        serde_json::json!({"pages":expected_pages,"samples":timings,"allPageComparisons":expected_pages*2,"hitComparisons":expected_pages*6,"rasterAndPdfCompared":"affected pages and both neighboring pages for insertion and deletion"})
     );
     Ok(())
 }

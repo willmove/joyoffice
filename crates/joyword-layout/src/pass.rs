@@ -590,7 +590,7 @@ fn evict_unused(cache: &mut LayoutCache) {
     }
 }
 
-fn index_lines(pages: &[Page]) -> HashMap<(StoryRef, Path), Vec<(usize, usize)>> {
+pub(super) fn index_lines(pages: &[Page]) -> HashMap<(StoryRef, Path), Vec<(usize, usize)>> {
     let mut index: HashMap<(StoryRef, Path), Vec<(usize, usize)>> = HashMap::new();
     for (pi, p) in pages.iter().enumerate() {
         for (ii, it) in p.items.iter().enumerate() {

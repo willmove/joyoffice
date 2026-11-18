@@ -1,5 +1,7 @@
 //! Reuse unchanged page geometry, or repaginate a bounded chapter at stable page starts.
 
+mod sections;
+
 use std::{collections::BTreeMap, sync::Weak};
 
 use joyword_model::{Settings, section::PageVAlign};
@@ -17,6 +19,9 @@ pub(crate) struct Previous {
     body: Blocks,
     notes: BTreeMap<u32, joyword_model::Part>,
     section_context: bool,
+    complex_tables: bool,
+    /// Only the most recently verified section keeps its paragraph shaping cache.
+    checked_section: Option<(std::ops::Range<usize>, Box<LayoutCache>)>,
     section: SectionProps,
     settings: Settings,
     options: LayoutOptions,
@@ -24,8 +29,12 @@ pub(crate) struct Previous {
     layout: Weak<DocLayout>,
 }
 
-/// Return the editor's layout. A paragraph wholly on one page can be replaced in situ if
-/// its vertical geometry is unchanged and the document has no dependent objects or stories.
+enum Change {
+    Body(usize),
+    Footnote(u32),
+}
+
+/// Reuse stable page geometry or paginate the affected section group to a checked exit.
 pub fn layout_shared(
     doc: &Document,
     cache: &mut LayoutCache,
@@ -33,11 +42,16 @@ pub fn layout_shared(
 ) -> Arc<DocLayout> {
     let start = now_ms();
     if let Some(mut previous) = cache.previous.take()
-        && let Some((block, mut next)) = previous.replace(doc, opts)
+        && let Some((change, mut next)) = previous.replace(doc, opts)
     {
         next.ms = now_ms() - start;
         let next = Arc::new(next);
-        previous.body[block] = doc.body[block].clone();
+        match change {
+            Change::Body(block) => previous.body[block] = doc.body[block].clone(),
+            Change::Footnote(id) => {
+                previous.notes.insert(id, doc.parts[&id].clone());
+            }
+        }
         previous.options.typing_word = opts.typing_word;
         previous.layout = Arc::downgrade(&next);
         cache.previous = Some(previous);
@@ -45,6 +59,7 @@ pub fn layout_shared(
     }
 
     let layout = Arc::new(layout(doc, cache, opts));
+    let mut complex_tables = false;
     if layout.pages.len() >= MIN_PAGES
         && eligible(doc, opts)
         && doc.parts.values().all(|part| {
@@ -66,13 +81,19 @@ pub fn layout_shared(
                         .iter()
                         .all(|o| matches!(o, joyword_model::InlineObject::NoteRef { .. }))
             }
-            joyword_model::Block::Table(t) => plain_table(doc, t),
+            joyword_model::Block::Table(t) => table_flow(doc, t, None).is_some_and(|flow| {
+                complex_tables |= flow == TableFlow::Section;
+                true
+            }),
         })
     {
         cache.previous = Some(Previous {
             body: doc.body.clone(),
             notes: doc.parts.clone(),
-            section_context: !doc.parts.is_empty()
+            complex_tables,
+            checked_section: None,
+            section_context: complex_tables
+                || !doc.parts.is_empty()
                 || doc.last_section.columns.count != 1
                 || doc.body.iter().any(|b| {
                     b.as_para()
@@ -93,32 +114,56 @@ fn plain_paragraph(doc: &Document, p: &Paragraph) -> bool {
     p.section.is_none() && p.objects.is_empty() && r.frame.is_none() && r.drop_cap == 0
 }
 
-fn plain_table(doc: &Document, table: &joyword_model::Table) -> bool {
-    if table.props.float.is_some() || table.rows.len() > 128 {
-        return false;
-    }
-    let mut cells = 0usize;
-    let mut paragraphs = 0usize;
-    for row in &table.rows {
-        cells = cells.saturating_add(row.cells.len());
-        if cells > 512 {
-            return false;
+#[derive(PartialEq, Eq)]
+enum TableFlow {
+    Inline,
+    Section,
+}
+
+/// Tables with nested cells or floating anchors require the section's complete
+/// flow state. Bound the total visited cells and blocks across every nested table.
+fn table_flow(
+    doc: &Document,
+    table: &joyword_model::Table,
+    typing: Option<crate::TypingWord>,
+) -> Option<TableFlow> {
+    let mut owns_typing = typing.is_none();
+    let mut pending = vec![(table, 0)];
+    let mut result = TableFlow::Inline;
+    let (mut cells, mut blocks) = (0usize, 0usize);
+    while let Some((table, depth)) = pending.pop() {
+        if table.rows.len() > 128 || depth > joyword_model::table::MAX_TABLE_DEPTH {
+            return None;
         }
-        for cell in &row.cells {
-            paragraphs = paragraphs.saturating_add(cell.blocks.len());
-            if paragraphs > 512
-                || !cell.blocks.iter().all(|block| {
-                    block.as_para().is_some_and(|p| {
-                        plain_paragraph(doc, p)
-                            && doc.styles.resolve_para(&p.props).numbering.is_none()
-                    })
-                })
-            {
-                return false;
+        if depth > 0 || table.props.float.is_some() {
+            result = TableFlow::Section;
+        }
+        for row in &table.rows {
+            cells = cells.checked_add(row.cells.len())?;
+            if cells > 512 {
+                return None;
+            }
+            for cell in &row.cells {
+                blocks = blocks.checked_add(cell.blocks.len())?;
+                if blocks > 512 {
+                    return None;
+                }
+                for block in &cell.blocks {
+                    match block.as_ref() {
+                        joyword_model::Block::Table(t) => pending.push((t, depth + 1)),
+                        joyword_model::Block::Para(p)
+                            if plain_paragraph(doc, p)
+                                && doc.styles.resolve_para(&p.props).numbering.is_none() =>
+                        {
+                            owns_typing |= typing.is_some_and(|word| p.rev == word.rev);
+                        }
+                        _ => return None,
+                    }
+                }
             }
         }
     }
-    true
+    owns_typing.then_some(result)
 }
 
 fn eligible(doc: &Document, opts: &LayoutOptions) -> bool {
@@ -141,24 +186,12 @@ fn eligible_section(section: &SectionProps) -> bool {
 }
 
 impl Previous {
-    fn replace(&self, doc: &Document, opts: &LayoutOptions) -> Option<(usize, DocLayout)> {
+    fn replace(&mut self, doc: &Document, opts: &LayoutOptions) -> Option<(Change, DocLayout)> {
         if self.body.len() != doc.body.len()
             || self.section != doc.last_section
             || self.settings != doc.settings
             || !eligible(doc, opts)
             || self.notes.len() != doc.parts.len()
-            || self.notes.iter().any(|(id, old)| {
-                doc.parts.get(id).is_none_or(|new| {
-                    old.kind != new.kind
-                        || old.body != new.body
-                        || old.blocks.len() != new.blocks.len()
-                        || old
-                            .blocks
-                            .iter()
-                            .zip(&new.blocks)
-                            .any(|(a, b)| !Arc::ptr_eq(a, b))
-                })
-            })
             || self.options
                 != (LayoutOptions {
                     typing_word: self.options.typing_word,
@@ -168,45 +201,101 @@ impl Previous {
         {
             return None;
         }
+        let mut edited_note = None;
+        for (id, old) in &self.notes {
+            let new = doc.parts.get(id)?;
+            if old.kind != new.kind || old.body != new.body {
+                return None;
+            }
+            if old.blocks.len() != new.blocks.len()
+                || old
+                    .blocks
+                    .iter()
+                    .zip(&new.blocks)
+                    .any(|(a, b)| !Arc::ptr_eq(a, b))
+            {
+                if edited_note.is_some()
+                    || new.kind != joyword_model::PartKind::Footnote
+                    || !new
+                        .blocks
+                        .iter()
+                        .all(|b| b.as_para().is_some_and(|p| plain_paragraph(doc, p)))
+                    || [(self.options.typing_word, old), (opts.typing_word, new)]
+                        .into_iter()
+                        .any(|(word, part)| {
+                            word.is_some_and(|w| {
+                                !part
+                                    .blocks
+                                    .iter()
+                                    .any(|b| b.as_para().is_some_and(|p| p.rev == w.rev))
+                            })
+                        })
+                {
+                    return None;
+                }
+                edited_note = Some(*id);
+            }
+        }
         let mut changes = self
             .body
             .iter()
             .zip(&doc.body)
             .enumerate()
             .filter(|(_, (before, after))| !Arc::ptr_eq(before, after));
+        if let Some(id) = edited_note {
+            if changes.next().is_some() {
+                return None;
+            }
+            let anchor = doc.body.iter().position(|b| b.as_para().is_some_and(|p| p.objects.iter().any(|o|
+                matches!(o, joyword_model::InlineObject::NoteRef { id: target, .. } if *target == id))))?;
+            return self
+                .reflow_sections(doc, opts, anchor, &self.layout.upgrade()?)
+                .map(|layout| (Change::Footnote(id), layout));
+        }
         let (block, (before, after)) = changes.next()?;
         if changes.next().is_some() {
             return None;
         }
-        if let (Some(_), Some(table)) = (before.as_table(), after.as_table()) {
-            if self.options.typing_word.is_some()
-                || opts.typing_word.is_some()
-                || !plain_table(doc, table)
+        if let (Some(old), Some(table)) = (before.as_table(), after.as_table()) {
+            if table_flow(doc, old, self.options.typing_word)?
+                != table_flow(doc, table, opts.typing_word)?
             {
                 return None;
             }
             let current = self.layout.upgrade()?;
             return self
                 .reflow(doc, opts, block, &current)
-                .map(|layout| (block, layout));
+                .map(|layout| (Change::Body(block), layout));
         }
         let (before, after) = (before.as_para()?, after.as_para()?);
-        if !ordinary_edit(before, after)
-            || self
-                .options
-                .typing_word
-                .is_some_and(|t| t.rev != before.rev)
+        if self
+            .options
+            .typing_word
+            .is_some_and(|t| t.rev != before.rev)
             || opts.typing_word.is_some_and(|t| t.rev != after.rev)
         {
             return None;
         }
 
         let current = self.layout.upgrade()?;
+        if self.complex_tables || !ordinary_edit(before, after) {
+            if before.props != after.props
+                || before.section != after.section
+                || before.mark != after.mark
+                || before.objects != after.objects
+                || !self.section_context
+            {
+                return None;
+            }
+            return self
+                .reflow_sections(doc, opts, block, &current)
+                .map(|layout| (Change::Body(block), layout));
+        }
         let path = Path::top(block);
         let [(page, item)] = current.index.get(&(StoryRef::Body, path))?.as_slice() else {
             return self
                 .reflow(doc, opts, block, &current)
-                .map(|layout| (block, layout));
+                .map(|layout| (Change::Body(block), layout));
         };
         let page_ref = current.pages.get(*page)?;
         let Placed::Lines {
@@ -261,7 +350,7 @@ impl Previous {
         if !same_flow(old, &new) {
             return self
                 .reflow(doc, opts, block, &current)
-                .map(|layout| (block, layout));
+                .map(|layout| (Change::Body(block), layout));
         }
 
         let mut next = (*current).clone();
@@ -270,7 +359,8 @@ impl Previous {
         };
         *para = Arc::new(new);
         next.page_patch = Some((Arc::downgrade(&current), *page..*page + 1));
-        Some((block, next))
+        self.checked_section = None;
+        Some((Change::Body(block), next))
     }
 
     /// Reflow a plain chapter bracketed by explicit page starts. First replay its old
@@ -278,7 +368,7 @@ impl Previous {
     /// unstable entry state or a paragraph that depends on surrounding stories uses the
     /// complete paginator. The UI can keep pages on both sides of a successful replacement.
     fn reflow(
-        &self,
+        &mut self,
         doc: &Document,
         opts: &LayoutOptions,
         block: usize,
@@ -286,10 +376,8 @@ impl Previous {
     ) -> Option<DocLayout> {
         const MAX_BLOCKS: usize = 128;
         const MAX_PAGES: usize = 16;
-        // Geometry-preserving edits can reuse pages that contain notes or multiple columns.
-        // Inter-page changes there must also propagate note reservations and column balancing.
         if self.section_context {
-            return None;
+            return self.reflow_sections(doc, opts, block, current);
         }
         let is_start = |i: usize| -> bool {
             doc.body
@@ -356,7 +444,9 @@ impl Previous {
             || doc.last_section.title_page
             || doc.body[start..end].iter().any(|b| {
                 let Some(p) = b.as_para() else {
-                    return b.as_table().is_none_or(|t| !plain_table(doc, t));
+                    return b
+                        .as_table()
+                        .is_none_or(|t| table_flow(doc, t, None) != Some(TableFlow::Inline));
                 };
                 let r = doc.styles.resolve_para(&p.props);
                 (natural
@@ -464,7 +554,12 @@ fn same_page_entry(piece: &super::Page, original: &super::Page, start: usize) ->
         || piece.items.len() != original.items.len()
         || !original.header.is_empty()
         || !original.footer.is_empty()
-        || !original.float_tables.is_empty()
+        || piece.float_tables.len() != original.float_tables.len()
+        || !piece
+            .float_tables
+            .iter()
+            .zip(&original.float_tables)
+            .all(|(a, b)| same_body_path(a, b, start))
     {
         return false;
     }
@@ -475,7 +570,7 @@ fn same_page_entry(piece: &super::Page, original: &super::Page, start: usize) ->
         .all(|(a, b)| match (a, b) {
             (
                 Placed::Lines {
-                    story: StoryRef::Body,
+                    story: left_story,
                     path: ap,
                     para: a,
                     l0: al,
@@ -485,7 +580,7 @@ fn same_page_entry(piece: &super::Page, original: &super::Page, start: usize) ->
                     turn: TextDirection::Horizontal,
                 },
                 Placed::Lines {
-                    story: StoryRef::Body,
+                    story: right_story,
                     path: bp,
                     para: b,
                     l0: bl,
@@ -495,13 +590,20 @@ fn same_page_entry(piece: &super::Page, original: &super::Page, start: usize) ->
                     turn: TextDirection::Horizontal,
                 },
             ) => {
-                same_body_path(ap, bp, start)
+                let path_matches = left_story == right_story
+                    && match left_story {
+                        StoryRef::Body => same_body_path(ap, bp, start),
+                        StoryRef::Part(_) => ap == bp,
+                    };
+                path_matches
+                    && a.shown == b.shown
                     && (al, ae, ax, ay) == (bl, be, bx, by)
-                    && same_flow(a, b)
-                    && a.lines
-                        .iter()
-                        .zip(&b.lines)
-                        .all(|(a, b)| (a.c0, a.c1) == (b.c0, b.c1))
+                    && a.rp == b.rp
+                    && a.height == b.height
+                    && a.notes == b.notes
+                    && a.lines == b.lines
+                    && a.glyphs == b.glyphs
+                    && a.clusters == b.clusters
             }
             (
                 Placed::Cell {
