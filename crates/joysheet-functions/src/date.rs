@@ -4,18 +4,20 @@ use joysheet_core::date::{DateTime, datetime_from_serial, days_in_month, is_leap
 use joysheet_core::parse::parse_input;
 use joysheet_core::{CellError, DateSystem, Value};
 
-use crate::util::{R, S, arg, as_array, has, num, num_val, opt_bool, opt_num, scalar, text, to_int};
+use crate::util::{R, S, arg, has, num, num_val, opt_bool, opt_num, scalar, text, to_int};
 use crate::{Arg, Ctx, FnSpec};
 
-const MAX_SERIAL: f64 = 2_958_465.0;
+mod workweek;
+use workweek::{CalendarDates, Workweek};
+
 /// NETWORKDAYS / WORKDAY: start, end/days scalar; holidays take arrays.
 const ND: &[bool] = &[true, true, false];
 const NDI: &[bool] = &[true, true, true, false];
 
-/// A date serial argument (truncated to whole days when `whole`). Out of range → `#NUM!`.
+/// A date serial, including its fractional day, in the workbook's date system.
 fn serial_arg(a: &[Arg], i: usize, sys: DateSystem) -> R<f64> {
     let n = scalar(arg(a, i)?).to_number_in(sys)?;
-    if !(0.0..MAX_SERIAL + 1.0).contains(&n) {
+    if !(0.0..(joysheet_core::date::max_serial(sys) + 1) as f64).contains(&n) {
         return Err(CellError::Num);
     }
     Ok(n)
@@ -292,15 +294,13 @@ fn days360_core(d1: &DateTime, d2: &DateTime, european: bool) -> i64 {
 }
 
 /// Weekend mask indexed by weekday (0 = Sunday).
-fn weekend_mask(v: Option<&Arg>) -> R<[bool; 7]> {
+fn weekend_mask(v: Option<&Arg>, error_argument: CellError) -> R<[bool; 7]> {
     let Some(arg) = v else { return Ok([true, false, false, false, false, false, true]) };
     match scalar(arg) {
         Value::Empty if !arg.from_ref => Ok([true, false, false, false, false, false, true]),
         Value::Text(t) => {
             let b = t.as_bytes();
-            // All seven days marked as the weekend is a valid string: Microsoft documents
-            // NETWORKDAYS.INTL as "Using 1111111 will always return 0" and WORKDAY.INTL as
-            // rejecting it, which `workday_core`'s `per_week == 0` guard already implements.
+            // All-weekend calendars can count days but cannot select a working day.
             if b.len() != 7 || !b.iter().all(|c| *c == b'0' || *c == b'1') {
                 return Err(CellError::Value);
             }
@@ -311,7 +311,7 @@ fn weekend_mask(v: Option<&Arg>) -> R<[bool; 7]> {
             }
             Ok(m)
         }
-        Value::Error(e) => Err(e),
+        Value::Error(_) => Err(error_argument),
         other => {
             let k = to_int(other.to_number()?)?;
             let mut m = [false; 7];
@@ -328,119 +328,48 @@ fn weekend_mask(v: Option<&Arg>) -> R<[bool; 7]> {
     }
 }
 
-fn holidays(v: Option<&Arg>, sys: DateSystem) -> R<Vec<i64>> {
-    let mut out = Vec::new();
-    if let Some(a) = v {
-        for x in as_array(&a.value).iter() {
-            match x {
-                Value::Empty => {}
-                Value::Error(e) => return Err(*e),
-                other => {
-                    let n = other.to_number_in(sys)?;
-                    if !(0.0..MAX_SERIAL + 1.0).contains(&n) {
-                        return Err(CellError::Num);
-                    }
-                    out.push(n.floor() as i64);
-                }
-            }
-        }
-    }
-    out.sort_unstable();
-    out.dedup();
-    Ok(out)
-}
-
-/// Working days in [a, b] (a ≤ b) ignoring holidays.
-fn count_workdays(sys: DateSystem, a: i64, b: i64, mask: &[bool; 7]) -> i64 {
-    let per_week = mask.iter().filter(|w| !**w).count() as i64;
-    let total = b - a + 1;
-    let weeks = total / 7;
-    let mut n = weeks * per_week;
-    let mut d = a + weeks * 7;
-    while d <= b {
-        if !mask[weekday0(sys, d)] {
-            n += 1;
-        }
-        d += 1;
-    }
-    n
-}
-
-fn networkdays_core(a: &[Arg], c: &mut dyn Ctx, mask: [bool; 7], hol: Option<&Arg>) -> R<Value> {
-    let sys = c.date_system();
-    let s = day_arg(a, 0, sys)?;
-    let e = day_arg(a, 1, sys)?;
-    let hs = holidays(hol, sys)?;
-    let (lo, hi, sign) = if s <= e { (s, e, 1) } else { (e, s, -1) };
-    let mut n = count_workdays(sys, lo, hi, &mask);
-    n -= hs.iter().filter(|&&h| h >= lo && h <= hi && !mask[weekday0(sys, h)]).count() as i64;
-    num_val((n * sign) as f64)
+fn networkdays_core(a: &[Arg], c: &mut dyn Ctx, international: bool) -> R<Value> {
+    let dates = CalendarDates::new(c);
+    let start = dates.day(a, 0)?;
+    let end = dates.day(a, 1)?;
+    let weekend = weekend_mask(if international { a.get(2) } else { None }, CellError::Value)?;
+    let calendar = Workweek::new(dates, weekend, a.get(if international { 3 } else { 2 }), dates.origin())?;
+    num_val(calendar.inclusive(start, end) as f64)
 }
 
 fn networkdays(a: &[Arg], c: &mut dyn Ctx) -> R<Value> {
-    networkdays_core(a, c, weekend_mask(None)?, a.get(2))
+    networkdays_core(a, c, false)
 }
-
 fn networkdays_intl(a: &[Arg], c: &mut dyn Ctx) -> R<Value> {
-    let mask = weekend_mask(a.get(2))?;
-    networkdays_core(a, c, mask, a.get(3))
+    networkdays_core(a, c, true)
 }
 
-/// Moves `n` (> 0) working days from `start` in direction `dir`, ignoring holidays.
-fn advance(sys: DateSystem, start: i64, n: i64, dir: i64, mask: &[bool; 7], per_week: i64) -> i64 {
-    let weeks = (n - 1) / per_week;
-    let mut cur = start + dir * 7 * weeks;
-    let mut rem = n - weeks * per_week;
-    while rem > 0 {
-        cur += dir;
-        if !mask[weekday0(sys, cur)] {
-            rem -= 1;
-        }
-    }
-    cur
-}
-
-fn workday_core(a: &[Arg], c: &mut dyn Ctx, mask: [bool; 7], hol: Option<&Arg>) -> R<Value> {
-    let sys = c.date_system();
-    let start = day_arg(a, 0, sys)?;
-    let days = num(a, 1)?.trunc();
-    if days.abs() > 1e7 {
+fn workday_core(a: &[Arg], c: &mut dyn Ctx, international: bool) -> R<Value> {
+    let dates = CalendarDates::new(c);
+    let start = dates.day(a, 0)?;
+    let days = dates.number(&scalar(arg(a, 1)?))?.trunc();
+    // WORKDAY checks its serial bounds in the 1900 epoch before it reads
+    // weekend or holiday arguments. This also applies to a zero displacement.
+    let last = joysheet_core::date::max_serial(dates.sys);
+    let estimate = start as f64 + days + dates.origin() as f64;
+    if !(0.0..=last as f64).contains(&estimate) {
         return Err(CellError::Num);
     }
-    let days = days as i64;
-    let hs = holidays(hol, sys)?;
-    let per_week = mask.iter().filter(|w| !**w).count() as i64;
-    if per_week == 0 {
-        return Err(CellError::Value);
-    }
-    if days == 0 {
+    if days == 0.0 {
         return num_val(start as f64);
     }
-    let dir = days.signum();
-    let mut cur = start;
-    let mut rem = days.abs();
-    while rem > 0 {
-        let next = advance(sys, cur, rem, dir, &mask, per_week);
-        let (lo, hi) = if dir > 0 { (cur + 1, next) } else { (next, cur - 1) };
-        rem = hs.iter().filter(|&&h| h >= lo && h <= hi && !mask[weekday0(sys, h)]).count() as i64;
-        cur = next;
-        if !(0..=MAX_SERIAL as i64).contains(&cur) {
-            return Err(CellError::Num);
-        }
-    }
-    num_val(cur as f64)
+    let weekend = weekend_mask(if international { a.get(2) } else { None }, CellError::Num)?;
+    // WORKDAY interprets holidays in workbook coordinates even when supplied as literal text.
+    let calendar = Workweek::new(dates, weekend, a.get(if international { 3 } else { 2 }), 0)?;
+    num_val(calendar.offset(start, days as i64, last)? as f64)
 }
-
 fn workday(a: &[Arg], c: &mut dyn Ctx) -> R<Value> {
-    workday_core(a, c, weekend_mask(None)?, a.get(2))
+    workday_core(a, c, false)
 }
-
 fn workday_intl(a: &[Arg], c: &mut dyn Ctx) -> R<Value> {
-    let mask = weekend_mask(a.get(2))?;
-    workday_core(a, c, mask, a.get(3))
+    workday_core(a, c, true)
 }
 
-/// Excel's YEARFRAC for a basis (0–4) between two whole-day serials.
 pub(crate) fn yearfrac_core(sys: DateSystem, s: i64, e: i64, basis: i64) -> R<f64> {
     let (s, e) = if s <= e { (s, e) } else { (e, s) };
     let d1 = dt(sys, s as f64)?;

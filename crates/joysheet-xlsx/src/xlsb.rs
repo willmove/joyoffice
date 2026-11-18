@@ -4,13 +4,14 @@
 
 use std::sync::Arc;
 
-use joysheet_core::{CellError, CellRef, DateSystem, MAX_COLS, MAX_ROWS, RangeRef, Value};
+use joysheet_core::{CellRef, DateSystem, MAX_COLS, MAX_ROWS, RangeRef, Value};
 use joysheet_model::{Cell, Sheet, Visibility, Workbook};
 use quick_xml::NsReader;
 use quick_xml::XmlVersion;
 use quick_xml::events::Event;
 use quick_xml::name::ResolveResult;
 
+use crate::binary_scalar::{error_value, rk_number};
 use crate::package::{Package, Rel, normalize, resolve, split_dir};
 use crate::{IoError, ReadReport};
 
@@ -520,19 +521,6 @@ fn shared_strings(bytes: &[u8], budget: &mut Budget, report: &mut ReadReport) ->
     Err(invalid("missing shared-string end record"))
 }
 
-fn error(code: u8) -> Result<CellError, IoError> {
-    Ok(match code {
-        0x00 => CellError::Null,
-        0x07 => CellError::Div0,
-        0x0f => CellError::Value,
-        0x17 => CellError::Ref,
-        0x1d => CellError::Name,
-        0x24 => CellError::Num,
-        0x2a => CellError::NA,
-        0x2b => CellError::GettingData,
-        _ => return Err(invalid("unknown cell error code")),
-    })
-}
 fn boolean(b: &mut Bytes<'_>) -> Result<bool, IoError> {
     match b.u8()? {
         0 => Ok(false),
@@ -555,15 +543,13 @@ fn value(id: u16, b: &mut Bytes<'_>, strings: &[Arc<str>], budget: &mut Budget) 
     let value = match id {
         1 => Value::Empty,
         2 => {
-            let rk = b.u32()?;
-            let n = if rk & 2 != 0 { ((rk as i32) >> 2) as f64 } else { f64::from_bits(u64::from(rk & !3) << 32) };
-            let n = if rk & 1 != 0 { n / 100.0 } else { n };
+            let n = rk_number(b.u32()?);
             if !n.is_finite() {
                 return Err(invalid("nonfinite RK number"));
             }
             Value::Number(n)
         }
-        3 | 11 => Value::Error(error(b.u8()?)?),
+        3 | 11 => Value::Error(error_value(b.u8()?).ok_or_else(|| invalid("unknown cell error code"))?),
         4 | 10 => Value::Bool(boolean(b)?),
         5 | 9 => Value::Number(b.f64()?),
         6 | 8 | 62 => {

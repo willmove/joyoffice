@@ -161,7 +161,23 @@ struct FnCtx<'a, 'h> {
     lambda: Option<Arc<Lambda>>,
 }
 
+fn simplified_chinese_region(category: &str) -> bool {
+    let locale = ["LC_ALL", category, "LANG"]
+        .iter()
+        .find_map(|key| std::env::var(key).ok().filter(|v| !v.is_empty()))
+        .or_else(sys_locale::get_locale)
+        .unwrap_or_default()
+        .to_ascii_lowercase()
+        .replace('_', "-");
+    let tag = locale.split(['.', '@']).next().unwrap_or_default();
+    tag == "zh" || tag.starts_with("zh-hans") || tag.starts_with("zh-cn") || tag.starts_with("zh-sg")
+}
+
 impl Ctx for FnCtx<'_, '_> {
+    fn year_first_calendar_dates(&self) -> bool {
+        static YEAR_FIRST: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+        *YEAR_FIRST.get_or_init(|| simplified_chinese_region("LC_TIME"))
+    }
     fn date_system(&self) -> joysheet_core::DateSystem {
         self.ev.host.workbook().date_system
     }

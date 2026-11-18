@@ -8,19 +8,7 @@ use std::sync::OnceLock;
 fn table_item_language() -> TableItemLanguage {
     static LANGUAGE: OnceLock<TableItemLanguage> = OnceLock::new();
     *LANGUAGE.get_or_init(|| {
-        let locale = ["LC_ALL", "LC_MESSAGES", "LANG"]
-            .iter()
-            .find_map(|key| std::env::var(key).ok().filter(|v| !v.is_empty()))
-            .or_else(sys_locale::get_locale)
-            .unwrap_or_default()
-            .to_ascii_lowercase()
-            .replace('_', "-");
-        let tag = locale.split(['.', '@']).next().unwrap_or_default();
-        if tag == "zh" || tag.starts_with("zh-hans") || tag.starts_with("zh-cn") || tag.starts_with("zh-sg") {
-            TableItemLanguage::SimplifiedChinese
-        } else {
-            TableItemLanguage::English
-        }
+        if super::simplified_chinese_region("LC_MESSAGES") { TableItemLanguage::SimplifiedChinese } else { TableItemLanguage::English }
     })
 }
 

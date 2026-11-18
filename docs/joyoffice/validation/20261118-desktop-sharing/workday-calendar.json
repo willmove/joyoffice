@@ -1,0 +1,563 @@
+{
+  "baseline": "f57d494b",
+  "reference": "由 Microsoft Excel for Mac 16.115 计算并保存。工作簿涵盖 1900 和 1904 日期系统，地区样本使用 zh_CN 和 en_US。四份二进制工作簿另由 Excel 从同一组已知类型和数值导出。",
+  "scope": [
+    "NETWORKDAYS, NETWORKDAYS.INTL, WORKDAY, WORKDAY.INTL",
+    "BIFF8 and BIFF12 signed, scaled and IEEE-754 RK values and cell, formula-cache and formula-literal error decoding"
+  ],
+  "comparison": "12 份 XLSX 含 3,268 个公式结果。两代读写器的每种组合都核对公式、重算和源件摘要。候选写入的类型也与 Excel 原缓存比较。4 份 XLS／XLSB 各检查 70 个非空结果，另存时比对底层数值，再由两个版本读回。",
+  "benchmark": "同一工作簿函数公开入口的 Release 微基准。对连续 12 或 1,200 个排除工作日，在两端分别从这段日期的两侧选一天。样本内每次核对返回值。独立构建两版，先预热，再交替顺序采样 11 轮。",
+  "rollback": "恢复原有四个函数或旧二进制标量读取器。已有格式仍可被旧版读取。旧版重算时会重现登记的结果差异。",
+  "limits": [
+    "XLSB 导入只读取缓存，带提示另存 XLSX。XLS 中无法识别的错误值明确拒绝，不能表示的公式常量在存在有效独立缓存时继续保留缓存及警告。",
+    "日期文本的地区对照覆盖美式英语和简体中文。其他地区沿用现有解析。授权的两份业务表原本均无公式，工作日性能数据来自独立构造的有公式样本。"
+  ],
+  "platforms": {
+    "macOS": {
+      "binaries": [
+        "370dbdb9efce1257374afab19baaf21b60874e499a3147ff80bd33adab79f84f",
+        "b0151879123cbb4b842a3b20f093c86e8a14e5de204ee8b11a92a4f3a59998fd"
+      ],
+      "calendars": {
+        "arguments-1900.xlsx": {
+          "sha256": "95092790025191347925ef7bb0b927ab26907e4f6804f90c060ae12c1174d9cb",
+          "locale": "zh",
+          "formulas": 210,
+          "baselineDifferences": 4,
+          "candidateDifferences": 0,
+          "candidateSavedTypedCaches": 210,
+          "readerWriterPairs": 4
+        },
+        "arguments-1904.xlsx": {
+          "sha256": "02b813e6dbf411f5bff77fec1d1b2b290911f0d7a0031764dc35ba31960ce108",
+          "locale": "zh",
+          "formulas": 210,
+          "baselineDifferences": 87,
+          "candidateDifferences": 0,
+          "candidateSavedTypedCaches": 210,
+          "readerWriterPairs": 4
+        },
+        "calendar-1900.xlsx": {
+          "sha256": "24e1c433392311e132e8611ea9b5eccd601ad6923c01f03837d8b888ed877e52",
+          "locale": "zh",
+          "formulas": 304,
+          "baselineDifferences": 17,
+          "candidateDifferences": 0,
+          "candidateSavedTypedCaches": 304,
+          "readerWriterPairs": 4
+        },
+        "calendar-1904.xlsx": {
+          "sha256": "81e331797d8affbc5c95311f3166aab742a63bd2a44e53ec6b2dcef35ee4fc3f",
+          "locale": "zh",
+          "formulas": 304,
+          "baselineDifferences": 57,
+          "candidateDifferences": 0,
+          "candidateSavedTypedCaches": 304,
+          "readerWriterPairs": 4
+        },
+        "edited-1900.xlsx": {
+          "sha256": "0f8a398f15dfabcc84d68cf36acb3922c46b218024eb78d66663ad07863d8cbe",
+          "locale": "zh",
+          "formulas": 304,
+          "baselineDifferences": 17,
+          "candidateDifferences": 0,
+          "candidateSavedTypedCaches": 304,
+          "readerWriterPairs": 4
+        },
+        "edited-1904.xlsx": {
+          "sha256": "269d5d9be236b4d07161aa6b55ffa8ab12b7c08e3de03e4e52c8365188a0c55a",
+          "locale": "zh",
+          "formulas": 304,
+          "baselineDifferences": 57,
+          "candidateDifferences": 0,
+          "candidateSavedTypedCaches": 304,
+          "readerWriterPairs": 4
+        },
+        "limits-1900.xlsx": {
+          "sha256": "215cfdfae3cb1f5e883a57d0643590c0846ac464feb143603677b948c0f86280",
+          "locale": "zh",
+          "formulas": 240,
+          "baselineDifferences": 32,
+          "candidateDifferences": 0,
+          "candidateSavedTypedCaches": 240,
+          "readerWriterPairs": 4
+        },
+        "limits-1904.xlsx": {
+          "sha256": "28599d947618ff167725f56a99067478eaf1ed7361c04d1b5fde6c89ff1e11df",
+          "locale": "zh",
+          "formulas": 240,
+          "baselineDifferences": 88,
+          "candidateDifferences": 0,
+          "candidateSavedTypedCaches": 240,
+          "readerWriterPairs": 4
+        },
+        "regional-en-1900.xlsx": {
+          "sha256": "0a7223332ca4c133f70a9d0fa3337fedb277818754924a5de03d49cdb3432c24",
+          "locale": "en",
+          "formulas": 288,
+          "baselineDifferences": 0,
+          "candidateDifferences": 0,
+          "candidateSavedTypedCaches": 288,
+          "readerWriterPairs": 4
+        },
+        "regional-en-1904.xlsx": {
+          "sha256": "c6d44642d32724d91ee13b7a34c115004bb053250d223b62e6f6adff3a190218",
+          "locale": "en",
+          "formulas": 288,
+          "baselineDifferences": 165,
+          "candidateDifferences": 0,
+          "candidateSavedTypedCaches": 288,
+          "readerWriterPairs": 4
+        },
+        "regional-zh-1900.xlsx": {
+          "sha256": "95ae1d371aa67a7136cd5b9badb2b6693505136ab1aa4e5cca90c0d549e6df74",
+          "locale": "zh",
+          "formulas": 288,
+          "baselineDifferences": 2,
+          "candidateDifferences": 0,
+          "candidateSavedTypedCaches": 288,
+          "readerWriterPairs": 4
+        },
+        "regional-zh-1904.xlsx": {
+          "sha256": "d1e1fb66d2c9bec9eed065688bf706660f61193f572bf779715571d92d93f033",
+          "locale": "zh",
+          "formulas": 288,
+          "baselineDifferences": 165,
+          "candidateDifferences": 0,
+          "candidateSavedTypedCaches": 288,
+          "readerWriterPairs": 4
+        }
+      },
+      "binaryReaders": {
+        "scalars-1900.xls": {
+          "sha256": "d55bb7582f4c3a04a3c4021ad933e8ae7a1595b4948483bbc3fcca2f40ab16cf",
+          "checkedCells": 70,
+          "readerWriterPairs": 4,
+          "importedFormulas": 50
+        },
+        "scalars-1900.xlsb": {
+          "sha256": "e8931946e7df7570ea97ee9373053098466583a0a078dbd4a783b93eab4aa29d",
+          "checkedCells": 70,
+          "readerWriterPairs": 4,
+          "importedFormulas": 0
+        },
+        "scalars-1904.xls": {
+          "sha256": "de75c2201417e4318a4416c975ae7b94ed9ce2b7f7cae44aac42511d4c97d1c3",
+          "checkedCells": 70,
+          "readerWriterPairs": 4,
+          "importedFormulas": 50
+        },
+        "scalars-1904.xlsb": {
+          "sha256": "70ef6f77369c0417924ba45363a4147d664b4c0376e26406a780d6b6d186a9cd",
+          "checkedCells": 70,
+          "readerWriterPairs": 4,
+          "importedFormulas": 0
+        }
+      },
+      "native": {
+        "1900": {
+          "changedFormulaResults": 27,
+          "cellsPerState": 45,
+          "states": 5,
+          "savedTypedCaches": 304,
+          "undoRedo": true,
+          "freshProcessReopen": true,
+          "originalUnchanged": true
+        },
+        "1904": {
+          "changedFormulaResults": 24,
+          "cellsPerState": 42,
+          "states": 5,
+          "savedTypedCaches": 304,
+          "undoRedo": true,
+          "freshProcessReopen": true,
+          "originalUnchanged": true
+        }
+      },
+      "releaseTiming": {
+        "unit": "microseconds per checked WORKDAY selection",
+        "samples": {
+          "old": {
+            "12": [
+              0.2232,
+              0.2063,
+              0.2297,
+              0.2177,
+              0.2183,
+              0.2056,
+              0.2161,
+              0.2122,
+              0.2169,
+              0.2237,
+              0.2191
+            ],
+            "1200": [
+              425.9688,
+              431.3438,
+              426.7795,
+              427.0555,
+              421.967,
+              421.7552,
+              418.9844,
+              433.0087,
+              427.0677,
+              418.3281,
+              425.493
+            ]
+          },
+          "new": {
+            "12": [
+              0.1825,
+              0.1936,
+              0.1928,
+              0.189,
+              0.1983,
+              0.1942,
+              0.1828,
+              0.1866,
+              0.191,
+              0.1943,
+              0.1986
+            ],
+            "1200": [
+              6.2083,
+              6.1094,
+              6.2135,
+              6.1337,
+              6.1649,
+              6.0365,
+              6.066,
+              6.0816,
+              6.0121,
+              7.0382,
+              6.1285
+            ]
+          }
+        },
+        "median": {
+          "old": {
+            "12": 0.2177,
+            "1200": 425.9688
+          },
+          "new": {
+            "12": 0.1928,
+            "1200": 6.1285
+          }
+        }
+      },
+      "productChecks": {
+        "joysheet": {
+          "passed": 1487,
+          "failed": 0,
+          "ignored": 1
+        },
+        "ui": {
+          "passed": 78,
+          "failed": 0,
+          "ignored": 0
+        }
+      },
+      "business": [
+        {
+          "sourceSha256": "521576e13e1ced708e2f7efac270da864053d9b05ce6216831970f3fa9fdc126",
+          "originalFormulaCells": 0,
+          "derivedFormulaCells": 916
+        },
+        {
+          "sourceSha256": "7034ab68c7c22f09a07114767d912c4bf8e87849d35e03bb76c15e9ef25e984d",
+          "originalFormulaCells": 0,
+          "derivedFormulaCells": 16
+        }
+      ],
+      "spdx": {
+        "target": "aarch64-apple-darwin",
+        "packages": 454,
+        "sourceFiles": 1217,
+        "spdxSha256": "73a306fc5786a300b885973f59f20ab33ce60efae3a3872e1dc0d859964c4166",
+        "missingLicenseTexts": [],
+        "sharedCrates": [
+          "joyoffice-cfb",
+          "joyoffice-drawingml",
+          "joyoffice-omml",
+          "joyoffice-opc",
+          "joyoffice-theme",
+          "joyoffice-ui"
+        ],
+        "runtimeLegacyDependencies": []
+      }
+    },
+    "UOS": {
+      "binaries": [
+        "90913dd65dca918fc4b1566533263744fcf7bc059b5d43ec8c9cfa80eac4adeb",
+        "0921c55cdc398f6af4c1b43aa26ea68acaa6c5fd3997a4aa1e992f5b0bcedad9"
+      ],
+      "calendars": {
+        "arguments-1900.xlsx": {
+          "sha256": "95092790025191347925ef7bb0b927ab26907e4f6804f90c060ae12c1174d9cb",
+          "locale": "zh",
+          "formulas": 210,
+          "baselineDifferences": 4,
+          "candidateDifferences": 0,
+          "candidateSavedTypedCaches": 210,
+          "readerWriterPairs": 4
+        },
+        "arguments-1904.xlsx": {
+          "sha256": "02b813e6dbf411f5bff77fec1d1b2b290911f0d7a0031764dc35ba31960ce108",
+          "locale": "zh",
+          "formulas": 210,
+          "baselineDifferences": 87,
+          "candidateDifferences": 0,
+          "candidateSavedTypedCaches": 210,
+          "readerWriterPairs": 4
+        },
+        "calendar-1900.xlsx": {
+          "sha256": "24e1c433392311e132e8611ea9b5eccd601ad6923c01f03837d8b888ed877e52",
+          "locale": "zh",
+          "formulas": 304,
+          "baselineDifferences": 17,
+          "candidateDifferences": 0,
+          "candidateSavedTypedCaches": 304,
+          "readerWriterPairs": 4
+        },
+        "calendar-1904.xlsx": {
+          "sha256": "81e331797d8affbc5c95311f3166aab742a63bd2a44e53ec6b2dcef35ee4fc3f",
+          "locale": "zh",
+          "formulas": 304,
+          "baselineDifferences": 57,
+          "candidateDifferences": 0,
+          "candidateSavedTypedCaches": 304,
+          "readerWriterPairs": 4
+        },
+        "edited-1900.xlsx": {
+          "sha256": "0f8a398f15dfabcc84d68cf36acb3922c46b218024eb78d66663ad07863d8cbe",
+          "locale": "zh",
+          "formulas": 304,
+          "baselineDifferences": 17,
+          "candidateDifferences": 0,
+          "candidateSavedTypedCaches": 304,
+          "readerWriterPairs": 4
+        },
+        "edited-1904.xlsx": {
+          "sha256": "269d5d9be236b4d07161aa6b55ffa8ab12b7c08e3de03e4e52c8365188a0c55a",
+          "locale": "zh",
+          "formulas": 304,
+          "baselineDifferences": 57,
+          "candidateDifferences": 0,
+          "candidateSavedTypedCaches": 304,
+          "readerWriterPairs": 4
+        },
+        "limits-1900.xlsx": {
+          "sha256": "215cfdfae3cb1f5e883a57d0643590c0846ac464feb143603677b948c0f86280",
+          "locale": "zh",
+          "formulas": 240,
+          "baselineDifferences": 32,
+          "candidateDifferences": 0,
+          "candidateSavedTypedCaches": 240,
+          "readerWriterPairs": 4
+        },
+        "limits-1904.xlsx": {
+          "sha256": "28599d947618ff167725f56a99067478eaf1ed7361c04d1b5fde6c89ff1e11df",
+          "locale": "zh",
+          "formulas": 240,
+          "baselineDifferences": 88,
+          "candidateDifferences": 0,
+          "candidateSavedTypedCaches": 240,
+          "readerWriterPairs": 4
+        },
+        "regional-en-1900.xlsx": {
+          "sha256": "0a7223332ca4c133f70a9d0fa3337fedb277818754924a5de03d49cdb3432c24",
+          "locale": "en",
+          "formulas": 288,
+          "baselineDifferences": 0,
+          "candidateDifferences": 0,
+          "candidateSavedTypedCaches": 288,
+          "readerWriterPairs": 4
+        },
+        "regional-en-1904.xlsx": {
+          "sha256": "c6d44642d32724d91ee13b7a34c115004bb053250d223b62e6f6adff3a190218",
+          "locale": "en",
+          "formulas": 288,
+          "baselineDifferences": 165,
+          "candidateDifferences": 0,
+          "candidateSavedTypedCaches": 288,
+          "readerWriterPairs": 4
+        },
+        "regional-zh-1900.xlsx": {
+          "sha256": "95ae1d371aa67a7136cd5b9badb2b6693505136ab1aa4e5cca90c0d549e6df74",
+          "locale": "zh",
+          "formulas": 288,
+          "baselineDifferences": 2,
+          "candidateDifferences": 0,
+          "candidateSavedTypedCaches": 288,
+          "readerWriterPairs": 4
+        },
+        "regional-zh-1904.xlsx": {
+          "sha256": "d1e1fb66d2c9bec9eed065688bf706660f61193f572bf779715571d92d93f033",
+          "locale": "zh",
+          "formulas": 288,
+          "baselineDifferences": 165,
+          "candidateDifferences": 0,
+          "candidateSavedTypedCaches": 288,
+          "readerWriterPairs": 4
+        }
+      },
+      "binaryReaders": {
+        "scalars-1900.xls": {
+          "sha256": "d55bb7582f4c3a04a3c4021ad933e8ae7a1595b4948483bbc3fcca2f40ab16cf",
+          "checkedCells": 70,
+          "readerWriterPairs": 4,
+          "importedFormulas": 50
+        },
+        "scalars-1900.xlsb": {
+          "sha256": "e8931946e7df7570ea97ee9373053098466583a0a078dbd4a783b93eab4aa29d",
+          "checkedCells": 70,
+          "readerWriterPairs": 4,
+          "importedFormulas": 0
+        },
+        "scalars-1904.xls": {
+          "sha256": "de75c2201417e4318a4416c975ae7b94ed9ce2b7f7cae44aac42511d4c97d1c3",
+          "checkedCells": 70,
+          "readerWriterPairs": 4,
+          "importedFormulas": 50
+        },
+        "scalars-1904.xlsb": {
+          "sha256": "70ef6f77369c0417924ba45363a4147d664b4c0376e26406a780d6b6d186a9cd",
+          "checkedCells": 70,
+          "readerWriterPairs": 4,
+          "importedFormulas": 0
+        }
+      },
+      "native": {
+        "1900": {
+          "changedFormulaResults": 27,
+          "cellsPerState": 45,
+          "states": 5,
+          "savedTypedCaches": 304,
+          "undoRedo": true,
+          "freshProcessReopen": true,
+          "originalUnchanged": true
+        },
+        "1904": {
+          "changedFormulaResults": 24,
+          "cellsPerState": 42,
+          "states": 5,
+          "savedTypedCaches": 304,
+          "undoRedo": true,
+          "freshProcessReopen": true,
+          "originalUnchanged": true
+        }
+      },
+      "releaseTiming": {
+        "unit": "microseconds per checked WORKDAY selection",
+        "samples": {
+          "old": {
+            "12": [
+              0.3074,
+              0.3044,
+              0.3007,
+              0.3065,
+              0.302,
+              0.3081,
+              0.2996,
+              0.2981,
+              0.3164,
+              0.3144,
+              0.3044
+            ],
+            "1200": [
+              653.4726,
+              770.7116,
+              553.386,
+              508.933,
+              578.4797,
+              579.9303,
+              732.7912,
+              525.3412,
+              606.2795,
+              434.2269,
+              622.156
+            ]
+          },
+          "new": {
+            "12": [
+              0.2501,
+              0.2082,
+              0.2532,
+              0.2748,
+              0.2554,
+              0.2641,
+              0.2502,
+              0.2954,
+              0.2517,
+              0.2487,
+              0.2528
+            ],
+            "1200": [
+              10.9032,
+              7.376,
+              11.2209,
+              10.9525,
+              11.0647,
+              12.6318,
+              10.9404,
+              11.1507,
+              10.9349,
+              11.1082,
+              10.9086
+            ]
+          }
+        },
+        "median": {
+          "old": {
+            "12": 0.3044,
+            "1200": 579.9303
+          },
+          "new": {
+            "12": 0.2528,
+            "1200": 10.9525
+          }
+        }
+      },
+      "productChecks": {
+        "joysheet": {
+          "passed": 1487,
+          "failed": 0,
+          "ignored": 1
+        },
+        "ui": {
+          "passed": 82,
+          "failed": 0,
+          "ignored": 0
+        }
+      },
+      "business": [
+        {
+          "sourceSha256": "521576e13e1ced708e2f7efac270da864053d9b05ce6216831970f3fa9fdc126",
+          "originalFormulaCells": 0,
+          "derivedFormulaCells": 916
+        },
+        {
+          "sourceSha256": "7034ab68c7c22f09a07114767d912c4bf8e87849d35e03bb76c15e9ef25e984d",
+          "originalFormulaCells": 0,
+          "derivedFormulaCells": 16
+        }
+      ],
+      "spdx": {
+        "target": "x86_64-unknown-linux-gnu",
+        "packages": 556,
+        "sourceFiles": 1215,
+        "spdxSha256": "f151bf0b854540a6f5fcac6a919253b6f15feff37e0228c803212cc5d6821edc",
+        "missingLicenseTexts": [],
+        "sharedCrates": [
+          "joyoffice-cfb",
+          "joyoffice-drawingml",
+          "joyoffice-omml",
+          "joyoffice-opc",
+          "joyoffice-theme",
+          "joyoffice-ui"
+        ],
+        "runtimeLegacyDependencies": []
+      }
+    }
+  }
+}

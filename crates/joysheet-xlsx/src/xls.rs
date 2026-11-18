@@ -19,10 +19,11 @@ use std::sync::Arc;
 use joysheet_core::{CellRef, DateSystem, MAX_COLS, MAX_ROWS, RangeRef, Value};
 use joysheet_model::{CalcMode, CalcSettings, Cell, DefinedName, Formula, LineInfo, NumFmt, Sheet, Style, StyleId, Visibility, Workbook};
 
+use crate::binary_scalar::{error_value, rk_number};
 use crate::cfb::Compound;
 use crate::tables::{builtin_format, col_width_to_px, pt_to_px};
 use crate::{IoError, ReadReport};
-use formula::{Links, Mode, SupBook, Unsupported, Xti, cell_error, decode};
+use formula::{Links, Mode, SupBook, Unsupported, Xti, decode};
 use records::{Cursor, Record, Records};
 
 const MAX_CELLS: usize = 4_000_000;
@@ -480,12 +481,6 @@ impl SheetState<'_> {
     }
 }
 
-/// RK number ([MS-XLS] 2.5.217): a 30-bit integer or the top of an IEEE double, maybe ×100.
-fn rk(v: u32) -> Value {
-    let n = if v & 2 != 0 { f64::from((v as i32) >> 2) } else { f64::from_bits(u64::from(v & !3) << 32) };
-    Value::number(if v & 1 != 0 { n / 100.0 } else { n })
-}
-
 /// Attaches every pending formula to its anchor's template, returning how many shared
 /// templates were expanded. An anchor whose template can't be imported is refused once:
 /// its followers re-decode the same template for nothing, so they are skipped instead (they
@@ -619,7 +614,7 @@ fn sheet_record(rec: &Record<'_>, st: &mut SheetState<'_>, budget: &mut Budget, 
         }
         0x027E => {
             let (r, col, x) = (c.u16()?, c.u16()?, c.u16()?);
-            let v = rk(c.u32()?);
+            let v = Value::number(rk_number(c.u32()?));
             st.put(budget, r, col, x, v)?;
         }
         0x00BD => {
@@ -628,7 +623,7 @@ fn sheet_record(rec: &Record<'_>, st: &mut SheetState<'_>, budget: &mut Budget, 
             let n = c.remaining().saturating_sub(2) / 6;
             for i in 0..n {
                 let x = c.u16()?;
-                let v = rk(c.u32()?);
+                let v = Value::number(rk_number(c.u32()?));
                 let col = u16::try_from(usize::from(first) + i).unwrap_or(u16::MAX);
                 st.put(budget, r, col, x, v)?;
             }
@@ -652,7 +647,8 @@ fn sheet_record(rec: &Record<'_>, st: &mut SheetState<'_>, budget: &mut Budget, 
         0x0205 => {
             let (r, col, x) = (c.u16()?, c.u16()?, c.u16()?);
             let (v, is_err) = (c.u8()?, c.u8()?);
-            let v = if is_err != 0 { Value::Error(cell_error(v)) } else { Value::Bool(v != 0) };
+            let v =
+                if is_err != 0 { Value::Error(error_value(v).ok_or_else(|| invalid("unknown BIFF8 cell error code"))?) } else { Value::Bool(v != 0) };
             st.put(budget, r, col, x, v)?;
         }
         0x0201 => {
@@ -822,7 +818,7 @@ fn formula_cell(c: &mut Cursor<'_, '_>, st: &mut SheetState<'_>, budget: &mut Bu
                 Value::Empty
             }
             0x01 => Value::Bool(b2 != 0),
-            0x02 => Value::Error(cell_error(b2)),
+            0x02 => Value::Error(error_value(b2).ok_or_else(|| invalid("unknown BIFF8 cached error code"))?),
             0x03 => Value::from(""),
             _ => Value::Empty,
         }

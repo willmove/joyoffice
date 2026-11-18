@@ -285,5 +285,19 @@ fn date_text_arguments_use_the_workbook_date_system() {
     close(crate::call(crate::lookup("DAY").unwrap(), &[t("2/29/1904")], &mut ctx), 29.0);
     close(crate::call(crate::lookup("DAYS").unwrap(), &[t("1/2/2020"), t("1/1/2020")], &mut ctx), 1.0);
     let networkdays = crate::lookup("NETWORKDAYS").unwrap();
-    close(crate::call(networkdays, &[t("1/6/2020"), t("1/10/2020"), t("1/8/2020")], &mut ctx), 4.0);
+    // Recalculated by English Excel in an actual 1904 workbook. The text
+    // arguments go through its absolute-serial conversion.
+    close(crate::call(networkdays, &[t("1/6/2020"), t("1/10/2020"), t("1/8/2020")], &mut ctx), 3.0);
+}
+
+#[test]
+fn workday_selection_and_count_treat_1904_literal_holidays_differently() {
+    let mut ctx = TestCtx { sys: joysheet_core::DateSystem::D1904, ..TestCtx::default() };
+    let workday = crate::lookup("WORKDAY.INTL").unwrap();
+    close(crate::call(workday, &[t("1461"), n(1.0), n(1.0), t("1460")], &mut ctx), 0.0);
+    close(crate::call(workday, &[t("1461"), n(1.0), n(1.0), t("0")], &mut ctx), 3.0);
+    is_err(crate::call(workday, &[n(1.0), n(-1.0), n(1.0), t("0")], &mut ctx), CellError::Num);
+    let count = crate::lookup("NETWORKDAYS").unwrap();
+    close(crate::call(count, &[n(0.0), n(25.0), t("0")], &mut ctx), 18.0);
+    close(crate::call(count, &[n(25.0), n(0.0), t("1462")], &mut ctx), -17.0);
 }

@@ -315,3 +315,11 @@ Apple M4 Metal 与 UOS Radeon 890M Vulkan 各对 1,850 帧执行像素比较。�
 新旧两代 JoyWord 在同一套词典上逐词与 Hunspell 1.7.5 的独立 C API 比较。两台机器各运行 11,385 个规则序列、7,092 个位置及词缀许可、312 个语言大小写和 3,080 个匈牙利语音节用例。75 个发行包另有 5,719 个结果，旧版两处差异在新版均已校正。92 个合成用例的词尾带有显式禁用的词根，JoyWord 旧版和新版均按原有词典契约拒绝，Hunspell 的组合规则接受；其余合成结果一致。程序继续限制字节、规则数、词缀搜索工作量和同形词数量。[逐项计数、耗时与双平台回归](compound-permissions.json) · [规则与语料](../../../../scripts/joyword/check-compound-permissions.py) · [Hunspell 1.7.5 格式](https://github.com/hunspell/hunspell/blob/v1.7.5/man/hunspell.5)
 
 在两端的实际 JoyWord 校对窗口中，输入 `redsunenn` 可见 `redsunen` 和 `redsunens` 两项建议。已更正的复合词和土耳其语大写词通过撤销、重做、保存和全新进程重开。两代读写器的四种组合均保留了正文和大小写。同一发行目录仍可供旧版读取，构建时使用的语法与语言数据保留原有归属。[复合词实现](../../../../third-party/craft-libs/proof/src/affix/rule_program.rs) · [来源和许可](../../../../licenses/craft-libs/SOURCE.json)
+
+## Sheet 工作日历和 Excel 二进制数值
+
+JoySheet 现按周和排除日期的序号计算工作日。两端各对照了十二份 Excel 16.115 工作簿的 3,268 个缓存，旧版差异 691 处，新版为零。样本覆盖倒序区间、重复或连续假日、七日全休、零位移、日期上界、1904 纪元和英中文本日期。两次 Excel 原生编辑还提供了节假日变更的独立期望。JoySheet 的原生窗口在 1900／1904 样本分别跟踪到 27／24 个受影响的结果，撤销、重做、另存和新进程重开均通过。[平台数据及回退](workday-calendar.json) · [可重复验收](../../../../scripts/joysheet/check-workday-calendar.py)
+
+Release 函数微基准中，连续排除 1,200 个工作日时，每次正向或反向选择的中位数在 macOS 从 425.97 降到 6.13 微秒，在 UOS 从 579.93 降到 10.95 微秒。12 个排除日分别从 0.218 降到 0.193、从 0.304 降到 0.253 微秒。两份授权业务表的原件哈希核对通过，两份临时副本的 916 和 16 个派生公式经两代程序读回。[基准源码](../../../../crates/joysheet-functions/examples/workday_calendar.rs)
+
+XLS 与 XLSB 共用压缩数值和错误码读取，四份 Excel 导出各检查 70 个非空单元格。XLS 每份的 50 个公式经另存 XLSX 后仍可重算。XLSB 按现行导入契约保留类型和缓存，并在桌面及 CLI 提示功能范围。每个输入均完成新旧版写入与读回的四种组合。仓库样本只含构造的数据，已移除本机目录和作者资料。[二进制读取实现](../../../../crates/joysheet-xlsx/src/binary_scalar.rs) · [来源记录](../../../joysheet/UPSTREAM-PATCHES.md)

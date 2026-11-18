@@ -61,24 +61,6 @@ pub(super) fn function(iftab: u16) -> Option<(&'static str, i8)> {
     FTAB.binary_search_by_key(&iftab, |(i, _, _)| *i).ok().and_then(|i| FTAB.get(i)).map(|(_, n, a)| (*n, *a))
 }
 
-fn error_code(code: u8) -> Option<CellError> {
-    Some(match code {
-        0x00 => CellError::Null,
-        0x07 => CellError::Div0,
-        0x0F => CellError::Value,
-        0x17 => CellError::Ref,
-        0x1D => CellError::Name,
-        0x24 => CellError::Num,
-        0x2A => CellError::NA,
-        0x2B => CellError::GettingData,
-        _ => return None,
-    })
-}
-
-pub(super) fn cell_error(code: u8) -> CellError {
-    error_code(code).unwrap_or(CellError::NA)
-}
-
 struct Bytes<'a> {
     b: &'a [u8],
     pos: usize,
@@ -287,7 +269,7 @@ pub(super) fn decode(rgce: &[u8], rgcb: &[u8], base: CellRef, mode: Mode, links:
             }
             0x1C => {
                 let e = t.u8()?;
-                push(&mut stack, kids, Expr::Error(error_code(e).ok_or(Unsupported("unknown error constant"))?))?;
+                push(&mut stack, kids, Expr::Error(crate::binary_scalar::error_value(e).ok_or(Unsupported("unknown error constant"))?))?;
             }
             0x1D => push(&mut stack, kids, Expr::Bool(t.u8()? != 0))?,
             0x1E => push(&mut stack, kids, Expr::Number(f64::from(t.u16()?)))?,
@@ -463,7 +445,7 @@ fn array_constant(b: &mut Bytes<'_>) -> Result<Expr, Unsupported> {
                 0x10 => {
                     let e = b.u8()?;
                     b.take(7)?;
-                    Expr::Error(error_code(e).ok_or(Unsupported("unknown error constant"))?)
+                    Expr::Error(crate::binary_scalar::error_value(e).ok_or(Unsupported("unknown error constant"))?)
                 }
                 _ => return Err(Unsupported("unknown array constant value")),
             });

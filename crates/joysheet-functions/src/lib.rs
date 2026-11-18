@@ -103,6 +103,10 @@ impl Arg {
 /// Services a function may need from the host.
 pub trait Ctx {
     fn date_system(&self) -> DateSystem;
+    /// Whether working-day functions use a year-first numeric date grammar.
+    fn year_first_calendar_dates(&self) -> bool {
+        false
+    }
     /// Current local date-time serial.
     fn now_serial(&self) -> f64;
     /// Uniform in [0, 1).

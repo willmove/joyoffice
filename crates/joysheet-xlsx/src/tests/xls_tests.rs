@@ -616,6 +616,34 @@ fn one_sheet_with(sheet_records: &[u8]) -> Vec<u8> {
 }
 
 #[test]
+fn biff8_error_cells_cached_formulas_and_constants_keep_their_own_error() {
+    for (wire, expected) in [
+        (0, CellError::Null),
+        (7, CellError::Div0),
+        (15, CellError::Value),
+        (23, CellError::Ref),
+        (29, CellError::Name),
+        (36, CellError::Num),
+        (42, CellError::NA),
+        (43, CellError::GettingData),
+    ] {
+        let records = cat(&[&rec(0x0205, &cat(&[&cell(0, 1, 0), &[wire, 1]])), &formula(0, 2, special(2, wire), &[0x1c, wire])]);
+        let (wb, _) = read_xls(&one_sheet_with(&records)).unwrap();
+        assert_eq!(v(&wb, 0, "B1"), Value::Error(expected));
+        assert_eq!(v(&wb, 0, "C1"), Value::Error(expected));
+        assert!(ftext(&wb, "C1").is_some());
+    }
+    for record in [rec(0x0205, &cat(&[&cell(0, 1, 0), &[0xff, 1]])), formula(0, 2, special(2, 0xff), &ptg_int(1))] {
+        assert!(matches!(read_xls(&one_sheet_with(&record)), Err(IoError::Format(message)) if message.contains("error code")));
+    }
+    let unsupported = formula(0, 2, special(2, 7), &[0x1c, 0xff]);
+    let (wb, report) = read_xls(&one_sheet_with(&unsupported)).unwrap();
+    assert_eq!(v(&wb, 0, "C1"), Value::Error(CellError::Div0));
+    assert!(ftext(&wb, "C1").is_none());
+    assert!(!report.warnings.is_empty());
+}
+
+#[test]
 fn xls_window2_right_to_left_sheet_opens_right_to_left() {
     let window2 = |flags: u16| rec(0x023E, &u16s(&[flags, 0, 0, 64, 0, 0, 0, 0, 0]));
     let view = |file: &[u8]| {
