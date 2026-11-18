@@ -8,7 +8,7 @@
 //! decompression, and the CRC-32 is verified. Budgets are applied before any
 //! data is inflated.
 
-use std::io::{Read, Write};
+use std::io::Write;
 use std::ops::Range;
 
 use flate2::Compression;
@@ -342,14 +342,14 @@ impl<'a> ZipArchive<'a> {
         let expected = to_usize(entry.uncompressed_size, "item data")?;
         let output = match entry.method {
             Method::Stored => data.to_vec(),
-            Method::Deflated => {
-                let mut output = Vec::with_capacity(expected.min(1 << 20));
-                DeflateDecoder::new(data)
-                    .take(entry.uncompressed_size.saturating_add(1))
-                    .read_to_end(&mut output)
-                    .map_err(|_| corrupt())?;
-                output
-            }
+            Method::Deflated => match crate::read_bounded_member(
+                DeflateDecoder::new(data),
+                entry.uncompressed_size,
+                entry.uncompressed_size.min(1 << 20),
+            ) {
+                crate::MemberRead::Complete(bytes) => bytes,
+                _ => return Err(corrupt()),
+            },
         };
         if output.len() != expected || crc32fast::hash(&output) != entry.crc32 {
             return Err(corrupt());

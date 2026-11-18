@@ -7,6 +7,19 @@ use crate::header::CfbHeader;
 pub const NOSTREAM: u32 = 0xFFFFFFFF;
 pub const ENTRY_SIZE: usize = 128;
 
+/// UTF-16LE units in the 64-byte directory name field, excluding its counted terminator.
+/// Callers decide how to handle an out-of-range size and invalid Unicode for their format.
+pub fn directory_name_units(entry: &[u8; ENTRY_SIZE]) -> impl ExactSizeIterator<Item = u16> + '_ {
+    let size = usize::from(u16::from_le_bytes([entry[64], entry[65]]));
+    let used = size.min(64).saturating_sub(2);
+    entry[..used]
+        .as_chunks::<2>()
+        .0
+        .iter()
+        .copied()
+        .map(u16::from_le_bytes)
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum EntryType {
     Unallocated = 0,
@@ -42,18 +55,14 @@ pub struct DirEntry {
 
 impl DirEntry {
     pub fn parse(id: u32, bytes: &[u8]) -> Result<Self, CfbError> {
-        if bytes.len() < ENTRY_SIZE {
-            return Err(CfbError::UnexpectedEof);
-        }
+        let bytes = bytes
+            .first_chunk::<ENTRY_SIZE>()
+            .ok_or(CfbError::UnexpectedEof)?;
 
         let name_bytes_len = u16::from_le_bytes([bytes[0x40], bytes[0x41]]) as usize;
         let name = if name_bytes_len > 2 && name_bytes_len <= 64 {
-            let (chunks, _) = bytes[0..name_bytes_len - 2].as_chunks::<2>();
-            let u16_chars: Vec<u16> = chunks
-                .iter()
-                .map(|c| u16::from_le_bytes([c[0], c[1]]))
-                .collect();
-            String::from_utf16(&u16_chars)
+            char::decode_utf16(directory_name_units(bytes))
+                .collect::<Result<String, _>>()
                 .map_err(|_| CfbError::MalformedDirectory("invalid UTF-16 in entry name"))?
         } else {
             String::new()

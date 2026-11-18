@@ -4,7 +4,7 @@
 //! CFB files without one. Every read is bounds-checked and every loop bounded.
 
 /// The CFB signature at the start of the file.
-pub(crate) const SIGNATURE: [u8; 8] = [0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1];
+pub(crate) use joyoffice_cfb::CFB_SIGNATURE as SIGNATURE;
 
 const END_OF_CHAIN: u32 = 0xFFFF_FFFE;
 /// Sector ids at or above this are markers (free, end of chain, FAT/DIFAT sector), not sectors.
@@ -31,10 +31,7 @@ fn u32_at(b: &[u8], at: usize) -> Option<u32> {
 /// when the structure can't be followed (truncated or malformed), falls back to scanning the
 /// bytes for the UTF-16LE stream names.
 pub(crate) fn is_encrypted(bytes: &[u8]) -> bool {
-    match directory_names(bytes) {
-        Some(names) => names.iter().any(|n| ENCRYPTED_STREAMS.iter().any(|e| n.eq_ignore_ascii_case(e))),
-        None => ENCRYPTED_STREAMS.iter().any(|e| contains_utf16(bytes, e)),
-    }
+    directory_has_encryption(bytes).unwrap_or_else(|| ENCRYPTED_STREAMS.iter().any(|e| contains_utf16(bytes, e)))
 }
 
 fn contains_utf16(hay: &[u8], needle: &str) -> bool {
@@ -42,8 +39,8 @@ fn contains_utf16(hay: &[u8], needle: &str) -> bool {
     !n.is_empty() && hay.windows(n.len()).any(|w| w == n.as_slice())
 }
 
-/// Names of every directory entry, or `None` when the directory can't be read.
-fn directory_names(b: &[u8]) -> Option<Vec<String>> {
+/// Finish checking the chain even after a match: a broken tail selects the legacy raw-name fallback.
+fn directory_has_encryption(b: &[u8]) -> Option<bool> {
     if !b.starts_with(&SIGNATURE) {
         return None;
     }
@@ -70,28 +67,30 @@ fn directory_names(b: &[u8]) -> Option<Vec<String>> {
         let fat_sector = *difat.get(idx / per)?;
         u32_at(sector(fat_sector)?, (idx % per) * 4)
     };
-    let mut names = Vec::new();
+    let mut found = false;
     let mut id = u32_at(b, 48)?;
     for _ in 0..MAX_DIR_SECTORS {
         if id == END_OF_CHAIN {
-            return Some(names);
+            return Some(found);
         }
         if id >= MAX_REG_SECT {
             return None;
         }
         let s = sector(id)?;
-        for e in s.as_chunks::<128>().0 {
-            let len = usize::from(u16_at(e, 64)?);
-            if !(2..=64).contains(&len) {
-                continue;
-            }
-            let units: Vec<u16> = (0..(len - 2) / 2).filter_map(|i| u16_at(e, i * 2)).collect();
-            names.push(String::from_utf16_lossy(&units));
+        if !found {
+            found = s.as_chunks::<128>().0.iter().any(|entry| {
+                let len = u16::from_le_bytes([entry[64], entry[65]]);
+                (2..=64).contains(&len)
+                    && ENCRYPTED_STREAMS.iter().any(|name| {
+                        let units = joyoffice_cfb::directory_name_units(entry);
+                        units.len() == name.len()
+                            && units.zip(name.bytes()).all(|(unit, b)| u8::try_from(unit).is_ok_and(|c| c.eq_ignore_ascii_case(&b)))
+                    })
+            });
         }
         id = fat_next(id)?;
     }
-    // A directory longer than the bound (or a cyclic chain): report what was read.
-    Some(names)
+    Some(found)
 }
 
 /// Directory entry type of a stream object ([MS-CFB] 2.6.1).
@@ -174,14 +173,12 @@ impl<'a> Compound<'a> {
         let dir_start = u32_at(b, 48).ok_or_else(|| bad("truncated header"))?;
         let dir = cf.read_chain(dir_start, u64::MAX)?;
         for e in dir.as_chunks::<128>().0 {
-            let len = usize::from(u16_at(e, 64).unwrap_or(0)).min(64);
-            let units: Vec<u16> = (0..len.saturating_sub(2) / 2).filter_map(|i| u16_at(e, i * 2)).collect();
             let mut size = u32_at(e, 120).map(u64::from).unwrap_or(0);
             if major >= 4 {
                 size |= u64::from(u32_at(e, 124).unwrap_or(0)) << 32;
             }
             cf.entries.push(DirEntry {
-                name: String::from_utf16_lossy(&units),
+                name: char::decode_utf16(joyoffice_cfb::directory_name_units(e)).map(|c| c.unwrap_or(char::REPLACEMENT_CHARACTER)).collect(),
                 kind: e.get(66).copied().unwrap_or(0),
                 left: u32_at(e, 68).unwrap_or(NO_STREAM),
                 right: u32_at(e, 72).unwrap_or(NO_STREAM),

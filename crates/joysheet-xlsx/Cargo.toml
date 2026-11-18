@@ -22,6 +22,7 @@ test-support = []
 
 [dependencies]
 joyoffice-drawingml.workspace = true
+joyoffice-opc.workspace = true
 joyoffice-omml.workspace = true
 # zip's deflate-flate2 feature deliberately leaves backend selection to callers.
 # Keep standalone XLSX tests and WASM on the same existing pure-Rust backend.

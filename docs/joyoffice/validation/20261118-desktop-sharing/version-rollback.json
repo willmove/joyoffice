@@ -1,7 +1,7 @@
 {
   "macOS": {
     "previousBinarySha256": "e2693b8aed1d98f31f55ba7e63204e192d9fe1a1f8c1f5ba3137b14e6ee4f6b2",
-    "candidateBinarySha256": "599e40d9743f5effb9614fa288ce3c287eb52366a938f96eab8157254a057062",
+    "candidateBinarySha256": "25c4c1dc7ace5ad46d8f062118ceb55fabe61f5e557a41d06ebb8c11742e0501",
     "formulaExpectationsCheckedInBothVersions": {
       "=SUM({1,\"x\",2},TRUE,\"3\")": 7,
       "=SUM(1E16,1,-1E16)": 0,
@@ -26,7 +26,40 @@
       },
       "=XOR({\"x\",\"y\"})": {
         "error": "#VALUE!"
-      }
+      },
+      "=MEDIAN(9,1,7,3)": 5,
+      "=MEDIAN(9,1,7)": 7,
+      "=MODE(7,5,7,5)": 7,
+      "=MODE.SNGL(2,3,4)": {
+        "error": "#N/A"
+      },
+      "=MODE.MULT({4,1,4,9,1,9,2})": [
+        [
+          4
+        ],
+        [
+          1
+        ],
+        [
+          9
+        ]
+      ],
+      "=LARGE({7,3,3,1},2)": 3,
+      "=SMALL({8,1,3},1.1)": 3,
+      "=FREQUENCY({1,2,3,4},{3,1,3})": [
+        [
+          2
+        ],
+        [
+          1
+        ],
+        [
+          0
+        ],
+        [
+          1
+        ]
+      ]
     },
     "previousVersionReopenedCandidateCopies": [
       {
@@ -173,7 +206,7 @@
   },
   "UOS": {
     "previousBinarySha256": "f700749b8f3b29bdd611ee61aae46ad28add2d4e849809db4ae52d24450f68ff",
-    "candidateBinarySha256": "3cae2ec84f16e45dedd350ae78533aa35e55f7bf3f6efd878fd9142032061257",
+    "candidateBinarySha256": "994b79c5e2949121f03797336e2cddc5bf48ce7c2a2950628e5a3b541ba4d254",
     "formulaExpectationsCheckedInBothVersions": {
       "=SUM({1,\"x\",2},TRUE,\"3\")": 7,
       "=SUM(1E16,1,-1E16)": 0,
@@ -198,7 +231,40 @@
       },
       "=XOR({\"x\",\"y\"})": {
         "error": "#VALUE!"
-      }
+      },
+      "=MEDIAN(9,1,7,3)": 5,
+      "=MEDIAN(9,1,7)": 7,
+      "=MODE(7,5,7,5)": 7,
+      "=MODE.SNGL(2,3,4)": {
+        "error": "#N/A"
+      },
+      "=MODE.MULT({4,1,4,9,1,9,2})": [
+        [
+          4
+        ],
+        [
+          1
+        ],
+        [
+          9
+        ]
+      ],
+      "=LARGE({7,3,3,1},2)": 3,
+      "=SMALL({8,1,3},1.1)": 3,
+      "=FREQUENCY({1,2,3,4},{3,1,3})": [
+        [
+          2
+        ],
+        [
+          1
+        ],
+        [
+          0
+        ],
+        [
+          1
+        ]
+      ]
     },
     "previousVersionReopenedCandidateCopies": [
       {

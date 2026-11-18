@@ -1,6 +1,6 @@
 //! Reuse unchanged page geometry, or repaginate a bounded chapter at stable page starts.
 
-use std::sync::Weak;
+use std::{collections::BTreeMap, sync::Weak};
 
 use joyword_model::{Settings, section::PageVAlign};
 
@@ -15,6 +15,8 @@ const MIN_PAGES: usize = 64;
 
 pub(crate) struct Previous {
     body: Blocks,
+    notes: BTreeMap<u32, joyword_model::Part>,
+    section_context: bool,
     section: SectionProps,
     settings: Settings,
     options: LayoutOptions,
@@ -45,13 +47,37 @@ pub fn layout_shared(
     let layout = Arc::new(layout(doc, cache, opts));
     if layout.pages.len() >= MIN_PAGES
         && eligible(doc, opts)
+        && doc.parts.values().all(|part| {
+            matches!(
+                part.kind,
+                joyword_model::PartKind::Footnote | joyword_model::PartKind::Endnote
+            ) && part
+                .blocks
+                .iter()
+                .all(|b| b.as_para().is_some_and(|p| plain_paragraph(doc, p)))
+        })
         && doc.body.iter().all(|block| match block.as_ref() {
-            joyword_model::Block::Para(p) => plain_paragraph(doc, p),
+            joyword_model::Block::Para(p) => {
+                let props = doc.styles.resolve_para(&p.props);
+                props.frame.is_none()
+                    && props.drop_cap == 0
+                    && p.section.as_deref().is_none_or(eligible_section)
+                    && p.objects
+                        .iter()
+                        .all(|o| matches!(o, joyword_model::InlineObject::NoteRef { .. }))
+            }
             joyword_model::Block::Table(t) => plain_table(doc, t),
         })
     {
         cache.previous = Some(Previous {
             body: doc.body.clone(),
+            notes: doc.parts.clone(),
+            section_context: !doc.parts.is_empty()
+                || doc.last_section.columns.count != 1
+                || doc.body.iter().any(|b| {
+                    b.as_para()
+                        .is_some_and(|p| p.section.is_some() || !p.objects.is_empty())
+                }),
             section: doc.last_section.clone(),
             settings: doc.settings.clone(),
             options: opts.clone(),
@@ -96,17 +122,19 @@ fn plain_table(doc: &Document, table: &joyword_model::Table) -> bool {
 }
 
 fn eligible(doc: &Document, opts: &LayoutOptions) -> bool {
-    let section = &doc.last_section;
     opts.view == ViewMode::Print
         && !opts.comment_balloons
-        && doc.parts.is_empty()
         && doc.comments.is_empty()
         && doc.revisions.is_empty()
         && doc.media.is_empty()
         && doc.footnote_separators.is_empty()
+        && doc.endnote_separators.is_empty()
         && !doc.settings.mirror_margins
-        && section.columns.count == 1
-        && section.columns.widths.is_empty()
+        && eligible_section(&doc.last_section)
+}
+
+fn eligible_section(section: &SectionProps) -> bool {
+    section.columns.widths.is_empty()
         && section.text_direction == TextDirection::Horizontal
         && section.valign == PageVAlign::Top
         && section.line_numbers.is_none()
@@ -118,6 +146,19 @@ impl Previous {
             || self.section != doc.last_section
             || self.settings != doc.settings
             || !eligible(doc, opts)
+            || self.notes.len() != doc.parts.len()
+            || self.notes.iter().any(|(id, old)| {
+                doc.parts.get(id).is_none_or(|new| {
+                    old.kind != new.kind
+                        || old.body != new.body
+                        || old.blocks.len() != new.blocks.len()
+                        || old
+                            .blocks
+                            .iter()
+                            .zip(&new.blocks)
+                            .any(|(a, b)| !Arc::ptr_eq(a, b))
+                })
+            })
             || self.options
                 != (LayoutOptions {
                     typing_word: self.options.typing_word,
@@ -185,11 +226,21 @@ impl Previous {
         {
             return None;
         }
+        let section = if self.section_context {
+            doc.sections().into_iter().find(|(end, _)| *end >= block)?.1
+        } else {
+            &self.section
+        };
+        let width = if section.columns.count == 1 {
+            section.text_width().max(18.)
+        } else {
+            section.column_boxes().first()?.1
+        };
         let new = para::layout_para(
             after,
             &para::ParaEnv {
                 doc,
-                width: self.section.text_width().max(18.0),
+                width,
                 label: None,
                 fields: &FieldCtx::default(),
                 show_hidden: opts.show_hidden,
@@ -202,7 +253,7 @@ impl Previous {
                 exclusions: &[],
                 eq_number: 0,
                 read_line_spacing: None,
-                grid: para::Grid::of(doc, &self.section),
+                grid: para::Grid::of(doc, section),
                 fit_objects: false,
                 fitted: &[],
             },
@@ -235,6 +286,11 @@ impl Previous {
     ) -> Option<DocLayout> {
         const MAX_BLOCKS: usize = 128;
         const MAX_PAGES: usize = 16;
+        // Geometry-preserving edits can reuse pages that contain notes or multiple columns.
+        // Inter-page changes there must also propagate note reservations and column balancing.
+        if self.section_context {
+            return None;
+        }
         let is_start = |i: usize| -> bool {
             doc.body
                 .get(i)
@@ -493,7 +549,9 @@ fn same_page_entry(piece: &super::Page, original: &super::Page, start: usize) ->
 fn ordinary_edit(before: &Paragraph, after: &Paragraph) -> bool {
     before.props == after.props
         && before.mark == after.mark
+        && before.section.is_none()
         && after.section.is_none()
+        && before.objects.is_empty()
         && after.objects.is_empty()
         && [&before.text, &after.text].into_iter().all(|text| {
             !text.is_empty()
@@ -521,6 +579,8 @@ fn same_flow(old: &para::ParaLayout, new: &para::ParaLayout) -> bool {
             // Page fitting can use the text bottom instead of the line height.
             before.top == after.top
                 && before.height == after.height
+                && before.left == after.left
+                && before.right == after.right
                 && before.baseline == after.baseline
                 && before.text_desc == after.text_desc
                 && before.end == after.end
@@ -730,6 +790,78 @@ mod tests {
             .get(&(StoryRef::Body, path))
             .ok_or("new cell index")?;
         assert!(bounds.iter().all(|(page, _)| *page == 48));
+        Ok(())
+    }
+
+    #[test]
+    fn keeps_section_columns_and_footnotes_when_editing_their_page()
+    -> Result<(), Box<dyn std::error::Error>> {
+        use joyword_model::{InlineObject, PartKind, Pos, para::NoteKind};
+        let mut doc = Document::new();
+        doc.body.clear();
+        doc.styles.default_chr.font = Some("Source Sans 3".into());
+        for page in 0..80 {
+            let mut text = Paragraph::with_text("First body line", Default::default());
+            text.props.page_break_before = Some(page != 0);
+            doc.body.push(joyword_model::para_block(text));
+            doc.body
+                .push(joyword_model::para_block(Paragraph::with_text(
+                    "Second body line",
+                    Default::default(),
+                )));
+        }
+        let mut first_section = doc.last_section.clone();
+        first_section.columns.count = 2;
+        doc.para_mut(StoryRef::Body, &Path::top(119))?.section = Some(Box::new(first_section));
+        let note = doc.add_part(
+            PartKind::Footnote,
+            vec![joyword_model::para_block(Paragraph::with_text(
+                "Note on the edited page",
+                Default::default(),
+            ))],
+        );
+        doc.insert_object(
+            &Pos::body(80, 5),
+            InlineObject::NoteRef {
+                kind: NoteKind::Footnote,
+                id: note,
+                custom: String::new(),
+            },
+            &Default::default(),
+        )?;
+        let mut cache = LayoutCache::new();
+        let opts = LayoutOptions::default();
+        let old = layout_shared(&doc, &mut cache, &opts);
+        let target = Path::top(81);
+        let &(page, _) = old
+            .index
+            .get(&(StoryRef::Body, target.clone()))
+            .and_then(|v| v.first())
+            .ok_or("body index")?;
+        let note_path = (StoryRef::Part(note), Path::top(0));
+        assert!(
+            old.index
+                .get(&note_path)
+                .is_some_and(|v| v.iter().any(|(p, _)| *p == page))
+        );
+        doc.para_mut(StoryRef::Body, &target)?
+            .insert_text(0, "Text ", &Default::default())?;
+        let next = layout_shared(&doc, &mut cache, &opts);
+        assert_eq!(next.changed_pages_from(&old), Some(page..page + 1));
+        let full = layout(&doc, &mut LayoutCache::new(), &opts);
+        assert_eq!(full.index, next.index);
+        assert_eq!(format!("{:?}", full.pages), format!("{:?}", next.pages));
+        // An independent note edit can change the space reserved below the columns.
+        doc.para_mut(StoryRef::Part(note), &Path::top(0))?
+            .insert_text(0, &"Long note ".repeat(90), &Default::default())?;
+        doc.para_mut(StoryRef::Body, &target)?
+            .insert_text(0, "New ", &Default::default())?;
+        let changed = layout_shared(&doc, &mut cache, &opts);
+        assert!(changed.changed_pages_from(&next).is_none());
+        assert_eq!(
+            changed.index,
+            layout(&doc, &mut LayoutCache::new(), &opts).index
+        );
         Ok(())
     }
 

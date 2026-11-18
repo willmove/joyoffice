@@ -48,6 +48,11 @@ def verify(old, new, report):
             '=AND("TRUE",{TRUE,"ignore",1})':True, '=OR({0,"TRUE",FALSE})':False,
             '=XOR({TRUE,FALSE,TRUE})':False, '=AND(FALSE,1/0)':{"error":"#DIV/0!"},
             '=OR(TRUE,NA())':{"error":"#N/A"}, '=XOR({"x","y"})':{"error":"#VALUE!"},
+            '=MEDIAN(9,1,7,3)':5, '=MEDIAN(9,1,7)':7,
+            '=MODE(7,5,7,5)':7, '=MODE.SNGL(2,3,4)':{"error":"#N/A"},
+            '=MODE.MULT({4,1,4,9,1,9,2})':[[4],[1],[9]],
+            '=LARGE({7,3,3,1},2)':3, '=SMALL({8,1,3},1.1)':3,
+            '=FREQUENCY({1,2,3,4},{3,1,3})':[[2],[1],[0],[1]],
         }
         for expression, value in expected.items():
             for reader in (old,new):

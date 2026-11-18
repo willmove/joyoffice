@@ -38,31 +38,34 @@ fn sorted(mut v: Vec<f64>) -> Vec<f64> {
     v
 }
 
-pub(super) fn median(v: Vec<f64>) -> R<f64> {
+pub(super) fn median(mut v: Vec<f64>) -> R<f64> {
     if v.is_empty() {
         return Err(CellError::Num);
     }
-    let s = sorted(v);
-    let n = s.len();
-    let hi = s.get(n / 2).copied().unwrap_or(0.0);
-    if n % 2 == 1 { Ok(hi) } else { Ok(s.get(n / 2 - 1).copied().unwrap_or(0.0).midpoint(hi)) }
+    let length = v.len();
+    let (lower, high, _) = v.select_nth_unstable_by(length / 2, f64::total_cmp);
+    if length.is_multiple_of(2) {
+        let low = lower.iter().copied().max_by(f64::total_cmp).ok_or(CellError::Num)?;
+        Ok(low.midpoint(*high))
+    } else {
+        Ok(*high)
+    }
 }
 
 /// Values occurring at least twice, ordered by first occurrence, with their (equal, maximal) count.
 fn modes(v: &[f64]) -> Vec<f64> {
-    let mut counts: Vec<(f64, usize)> = Vec::new();
-    for &x in v {
-        if let Some(e) = counts.iter_mut().find(|e| e.0 == x) {
-            e.1 += 1;
-        } else {
-            counts.push((x, 1));
-        }
+    let key = |x: f64| if x == 0. { 0 } else { x.to_bits() };
+    let mut counts = std::collections::HashMap::new();
+    let mut best = 0usize;
+    for &x in v.iter().filter(|x| !x.is_nan()) {
+        let count = counts.entry(key(x)).or_insert(0);
+        *count += 1;
+        best = best.max(*count);
     }
-    let best = counts.iter().map(|e| e.1).max().unwrap_or(0);
     if best < 2 {
         return Vec::new();
     }
-    counts.into_iter().filter(|e| e.1 == best).map(|e| e.0).collect()
+    v.iter().copied().filter(|&x| counts.remove(&key(x)) == Some(best)).collect()
 }
 
 pub(super) fn mode_sngl(v: &[f64]) -> R<f64> {
@@ -111,15 +114,14 @@ pub(super) fn max_of(v: &[f64]) -> f64 {
 }
 
 /// k-th largest (k is rounded up like Excel).
-fn kth(v: Vec<f64>, k: f64, largest: bool) -> R<f64> {
+fn kth(mut v: Vec<f64>, k: f64, largest: bool) -> R<f64> {
     let k = k.ceil();
     if k.is_nan() || k < 1.0 || k > v.len() as f64 {
         return Err(CellError::Num);
     }
-    let s = sorted(v);
     let k = k as usize;
-    let idx = if largest { s.len() - k } else { k - 1 };
-    s.get(idx).copied().ok_or(CellError::Num)
+    let idx = if largest { v.len() - k } else { k - 1 };
+    Ok(*v.select_nth_unstable_by(idx, f64::total_cmp).1)
 }
 
 fn interp(s: &[f64], pos: f64) -> R<f64> {
@@ -440,11 +442,13 @@ pub(super) fn frequency(a: &[Arg], _: C) -> R<Value> {
     if bins.is_empty() {
         return col_value(vec![data.len() as f64]);
     }
-    let mut order: Vec<usize> = (0..bins.len()).collect();
-    order.sort_by(|&i, &j| bins.get(i).copied().unwrap_or(0.0).total_cmp(&bins.get(j).copied().unwrap_or(0.0)));
     let mut counts = vec![0.0; bins.len() + 1];
+    let overflow = bins.len();
+    let mut ordered: Vec<_> = bins.into_iter().enumerate().filter(|(_, limit)| !limit.is_nan()).collect();
+    ordered.sort_by(|a, b| a.1.total_cmp(&b.1));
     for x in data {
-        let slot = order.iter().find(|&&i| x <= bins.get(i).copied().unwrap_or(f64::INFINITY)).copied().unwrap_or(bins.len());
+        let index = ordered.partition_point(|(_, limit)| *limit < x);
+        let slot = ordered.get(index).filter(|(_, limit)| x <= *limit).map_or(overflow, |&(slot, _)| slot);
         if let Some(c) = counts.get_mut(slot) {
             *c += 1.0;
         }

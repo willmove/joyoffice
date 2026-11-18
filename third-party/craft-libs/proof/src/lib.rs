@@ -877,37 +877,26 @@ fn in_dialect(s: &str, word: &str, lang: ProofLang) -> String {
 /// Words in `text`: (byte start, byte end). Combining marks belong to the word they follow, so a
 /// word typed decomposed (`tambie\u{301}n`, NFD) is one word, as its precomposed form is.
 pub fn words(text: &str) -> Vec<(usize, usize)> {
-    let mut out = Vec::new();
-    let mut start: Option<usize> = None;
-    let is_w = |c: char| {
-        c.is_alphanumeric()
-            || c == '\''
-            || c == '’'
-            || c == '-'
-            || unicode_normalization::char::is_combining_mark(c)
-    };
-    for (i, c) in text.char_indices() {
-        match (start, is_w(c)) {
-            (None, true) => start = Some(i),
-            (Some(s), false) => {
-                out.push((s, i));
-                start = None;
+    word_ranges(text).collect()
+}
+
+/// Scan the original UTF-8 offsets once. Punctuation joins two word characters; at the
+/// ends it contributes no bytes to the result. Keep combining marks with the stored text.
+fn word_ranges(text: &str) -> impl Iterator<Item = (usize, usize)> + '_ {
+    let mut chars = text.char_indices();
+    let core = |c: char| c.is_alphanumeric() || unicode_normalization::char::is_combining_mark(c);
+    std::iter::from_fn(move || {
+        let (start, first) = chars.find(|&(_, c)| core(c))?;
+        let mut end = start + first.len_utf8();
+        for (offset, c) in chars.by_ref() {
+            if core(c) {
+                end = offset + c.len_utf8();
+            } else if !matches!(c, '\'' | '’' | '-') {
+                break;
             }
-            _ => {}
         }
-    }
-    if let Some(s) = start {
-        out.push((s, text.len()));
-    }
-    // Trim surrounding apostrophes/hyphens.
-    out.into_iter()
-        .filter_map(|(a, b)| {
-            let w = text.get(a..b)?;
-            let lead = w.len() - w.trim_start_matches(['\'', '’', '-']).len();
-            let trail = w.len() - w.trim_end_matches(['\'', '’', '-']).len();
-            (a + lead < b - trail).then_some((a + lead, b - trail))
-        })
-        .collect()
+        Some((start, end))
+    })
 }
 
 /// Spelling issues in a paragraph of English text (no suggestions; ask [`suggest`] on demand).
@@ -937,8 +926,7 @@ pub fn check_spelling_in(text: &str, lang: ProofLang) -> Vec<Issue> {
 /// cost quadratic scanning (#1335).
 fn spelling_issues(text: &str, lang: impl Fn(usize) -> ProofLang, opts: &Options) -> Vec<Issue> {
     let mut token = (0, 0, false);
-    words(text)
-        .into_iter()
+    word_ranges(text)
         .filter_map(|(a, b)| {
             if a < token.0 || a >= token.1 {
                 token = enclosing_token(text, a, b);
@@ -4336,6 +4324,25 @@ mod tests {
                 "{d}"
             );
         }
+    }
+
+    #[test]
+    fn multilingual_ranges_preserve_original_offsets_and_internal_connectors() {
+        let text = " --’cafe\u{301}--’ Österreich l’été — 中文１２３, п’ять… -’ à-re’! ";
+        let expected = [
+            "cafe\u{301}",
+            "Österreich",
+            "l’été",
+            "中文１２３",
+            "п’ять",
+            "à-re",
+        ];
+        let got: Vec<_> = word_ranges(text)
+            .map(|(start, end)| &text[start..end])
+            .collect();
+        assert_eq!(got, expected);
+        assert_eq!(word_ranges(" -'’—-- ").next(), None);
+        assert_eq!(words("’’\u{301}中文--"), [(6, 14)]);
     }
 
     /// Combining marks stay in their word (#3562 review): a decomposed word is one word, with the

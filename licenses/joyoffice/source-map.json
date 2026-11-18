@@ -107,9 +107,10 @@
     "source_path": "crates/joyoffice-opc/src/lib.rs",
     "target_path": "crates/joyoffice-opc/src/lib.rs",
     "source_sha256": "073949433fe217bcaad7ba34313fd49e183c98580ec8c32462780e490b678c2f",
-    "adapted_sha256": "3c844a6309b7b320dec21fa8f33669f97048f4a688e3c7907f3d75624056af04",
+    "adapted_sha256": "e8cbd4cf6be059823157ae29d8ce0a5be6c8d7f5948fed086a131a7b665e4157",
     "local_changes": "LF normalization; fallible cursor conversions under stricter local panic policy; test-only assertion allowances",
-    "verified_opc_read": "Reuse verified OPC buffers while preserving format reader budgets and ZIP name decoding."
+    "verified_opc_read": "Reuse verified OPC buffers while preserving format reader budgets and ZIP name decoding.",
+    "roadmap_refactor": "Share bounded decompression and byte accounting across Word, Deck and Sheet."
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
@@ -142,8 +143,9 @@
     "source_path": "crates/joyoffice-opc/src/zip.rs",
     "target_path": "crates/joyoffice-opc/src/zip.rs",
     "source_sha256": "ca48284426f24a6afb05c12dd5376cc470e0cb7ca683f660c4640885e7e554b0",
-    "adapted_sha256": "8f8d3cbe288d3f6193d589314bc20115bbc7e5e26fcba2d66ebe44612f5c2a60",
-    "local_changes": "LF normalization; fallible cursor conversions under stricter local panic policy; test-only assertion allowances; R1 rustfmt and bounded reader/CPU-renderer/palette/notes adapters as applicable"
+    "adapted_sha256": "a77a6ff6ad30e793f5f5bf0011320b456f021fb524e6d79eb5171c2c723d4878",
+    "local_changes": "LF normalization; fallible cursor conversions under stricter local panic policy; test-only assertion allowances; R1 rustfmt and bounded reader/CPU-renderer/palette/notes adapters as applicable",
+    "roadmap_refactor": "Share bounded decompression and byte accounting across Word, Deck and Sheet."
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",

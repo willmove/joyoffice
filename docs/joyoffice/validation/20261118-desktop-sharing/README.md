@@ -95,8 +95,8 @@ Word 和 Sheet 的 16 个字体组用例还通过原生可访问按钮打开相�
 | 产品 | 直接验证 | 仍有生产调用的部分 |
 | --- | --- | --- |
 | Word | 自然分页与完整分页逐页比较；另在 96 页文档第 49 页编辑表格，核验行／格路径与命中索引。前版 CLI 读回本版生成的含脚注、公式、OLE、图表和 SmartArt 的五类 DOCX | 多语词典与安装器、复杂跨页传播和未迁移的格式语义。[分页用例](../../../../crates/joyword-layout/src/incremental.rs) · [DOCX 两代保存](complex-docx.json) |
-| Deck | 七种预设各用默认、0、50,000、100,000，28 个形状在新旧程序内重新生成和读回，每台机器的 960 × 540 页面有 0 个差异像素。混合透明扫描行覆盖全部 256 种输入 alpha。富媒体页背景撤销与重作交替进行，20 次采样的实际呈现 P95 为 macOS 92.57 ms、UOS 55.09 ms | 其他预设和透视层；只读迁移桥负责旧文件。[形状](deck-presets.json) · [Release 显示帧](deck-media.json) |
-| Sheet | 上版与本版各自核对七个工作簿的结构和检查结果，两个版本均与 16 个独立公式预期值吻合。同一发布程序默认和开启回退各运行 20 次一万行编辑，每次检查 10,001 个公式并验证撤销、重做和 XLSX 读回 | 其他函数、通用依赖调度与格式适配。[七个工作簿及公式](version-rollback.json) · [同程序回退](scalar-rollback.json) |
+| Deck | 七种预设各用默认、0、50,000、100,000，28 个形状在新旧程序内重新生成和读回，每台机器的 960 × 540 页面有 0 个差异像素。混合透明扫描行覆盖全部 256 种输入 alpha。富媒体页背景撤销与重作交替进行，20 次采样的实际呈现 P95 为 macOS 92.57 ms、UOS 55.09 ms | 该检查点尚余其他预设和透视层。CPU 透视层后续已完成 925 帧对照，旧文件由只读迁移桥处理。[形状](deck-presets.json) · [Release 显示帧](deck-media.json) |
+| Sheet | 上版与本版各自核对七个工作簿的结构和检查结果，该检查点的两个版本均与 16 个独立公式预期值吻合，后续扩至 24 个。同一发布程序默认和开启回退各运行 20 次一万行编辑，每次检查 10,001 个公式并验证撤销、重做和 XLSX 读回 | 其他函数、通用依赖调度与格式适配。[七个工作簿及公式](version-rollback.json) · [同程序回退](scalar-rollback.json) |
 
 Word 和 Deck 共用目录遍历及文件修订识别，塑形和回退顺序由产品维护。每端五个新进程分别记录首次和第二次扫描，字体面数保持相同。Word 的重复扫描中位数在 macOS 为 25.66 → 8.45 ms，在 UOS 为 6.81 → 1.88 ms。Deck 在 UOS 为 4.51 → 2.49 ms，在 macOS 为 17.18 → 18.46 ms，首次扫描在 macOS 也有波动（60.63 → 69.94 ms）。这些是分批观测值。系统字体来自本机安装；仓库保留字体资源和词典原许可。运行 `python3 scripts/measure-font-catalog.py OUTPUT.json` 可重测。[逐次结果](font-catalog.json)
 
@@ -104,3 +104,14 @@ Word 和 Deck 共用目录遍历及文件修订识别，塑形和回退顺序由
 
 
 本批 macOS／UOS 产品检查分别为 Word 3,672／3,676、Deck 995／1,000、Sheet 1,452／1,452，全部通过。UI 专项为 75／79，字体专项为 159／161，与产品检查部分重叠。独立的语言包存储库分别以原默认目录功能和宿主关闭目录功能测试，均为 32 项通过、1 项按库原配置忽略。复现时对三个产品分别使用 `cargo xtask check PRODUCT`；存储库在 `third-party/craft-libs/font-store/Cargo.toml` 的独立工作区内执行 `cargo test --locked -p craft-font-store` 以及加上 `--no-default-features` 的同一命令。[计数及日志摘要](retirement-regression.json)
+
+
+## 后续替换的验证范围
+
+- **Word 校对和分页。** 拼写直接遍历原始 UTF-8 词区间。断词仍由安装的语言数据或内置规则提供候选，宿主按原始字符位置、每段首尾字母数和大小写统一筛选。十个语言标签 × 13 个词／混合输入 × 三组限制逐一与先前实现对照。词典和词形资源沿用原许可。含分节、两栏和实际脚注的长文另验正文编辑只更新脚注所在页、所有页与索引相同，同时改动脚注时自动回到完整排版。[Unicode 词界及语言定制](https://www.unicode.org/reports/tr29/#Word_Boundaries) · [语言数据及许可](../../../../third-party/craft-i18n/language-data/README.md)
+- **Deck 转场。** 预乘透明图纹在入场页、退场页及分开的背景／内容层上参与投影变换。两端各用改动前后两个渲染器检查 49 种转场、185 个效果与选项组合，进度为 0、22%、50%、78% 和 100%。925 组 RGBA 图片的差异数均为零。基线与候选各运行 `cargo run --locked -p joydeck-render --example transition_pixels` 比较完整结果。该测试覆盖离屏 CPU 投影和合成，原生桌面呈现时间见富媒体页实测。[逐帧结果](transition-raster.json) · [源覆盖公式](https://www.w3.org/TR/compositing-1/#porterduffcompositingoperators_srcover)
+- **Sheet 统计和文件。** MEDIAN、LARGE 和 SMALL 按秩选择，MODE、MODE.SNGL 和 MODE.MULT 按频次统计并保留首次出现次序，FREQUENCY 按有序阈值二分并写回原始桶位置。远距离清除阻塞格和溢出收缩仅查询相应工作表的潜在锚点。CFB 目录名在 Word 严格解码、Sheet 容错读取及加密检测中复用，仍按产品原有约定处理畸形数据。XLSX 的按需部件、Word 的可选部件和公共 OPC 的严格 ZIP 解压各自保留 CRC 与预算失败行为。[工作簿和公式](version-rollback.json) · [MS-CFB 目录项](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-cfb/60fe8611-66c3-496b-b70d-a504c94c9ace)
+
+两端 Release 原生窗口打开同一份 1,000 页 DOCX，定位第 500 页，各项预热两次后采样 20 次。系统键盘输入数字 7 和退格，从发送原生事件到首次读回正确的整份正文，P95 为 macOS 51.41 ms、UOS 41.77 ms，包含读回及调度开销。通过同一窗口的编辑命令交替插入 240 个字符和撤销，操作应答 P95 为 36.11 ms、28.68 ms。每次均核对整份正文、插入位置及页数，原件 SHA-256 一致。复跑命令为 `python3 scripts/joyword/measure-desktop-edit.py RELEASE_JOYWORD NEW_DIR`。[逐次桌面测量](word-desktop-edit.json)
+
+本批全产品工程检查在 macOS 通过 Word 3,675、Deck 996、Sheet 1,468 项，在 UOS 25 真机分别通过 3,679、1,001、1,468 项。每端 Word 原有两项、Sheet 原有一项按其测试配置忽略。校对库专项每端通过 474 项、忽略一项。两端各八份 WMF／EMF 页面及 PDF 光栅与同机旧版相符。另用最终 Release 重新读取两份授权工作簿及含公式的派生副本，原件摘要均保持一致，UOS 临时输入副本已清理。额外试跑字体库测试目标的全量 Clippy 拒绝了基线已有的测试 `unwrap`（`joyword-fonts/src/color.rs`）；仓库规定的三产品工程检查全部通过。[回归分项](extended-regression.json) · [原件与派生工作簿](business-workbooks.json) · [产品许可闭包](distribution.json)

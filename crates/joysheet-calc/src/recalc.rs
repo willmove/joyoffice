@@ -283,11 +283,7 @@ impl Calc {
         }
         // An emptied cell can unblock an anchor any distance above or to the left of it.
         for (si, end) in emptied {
-            for &(s, c) in self.graph.nodes.keys() {
-                if s == si && c.row <= end.row && c.col <= end.col && wb.sheet(s).is_some_and(|sh| sh.value(c) == Value::Error(CellError::Spill)) {
-                    seeds.push((s, c));
-                }
-            }
+            self.seed_blocked_anchors(wb, si, end, &mut seeds);
         }
         // Spill areas of changed anchors also change.
         for &k in changed {
@@ -315,6 +311,18 @@ impl Calc {
         self.graph.dependents_of_range(sheet, range, out);
         if let Some(sh) = wb.sheet(sheet) {
             out.extend(sh.cells.iter_formulas(range).map(|(c, _)| (sheet, c)));
+        }
+    }
+
+    /// A spill extends right and down. Only indexed formula cells above and to the left
+    /// on this sheet can be unblocked; other sheets can still be reached as dependents.
+    fn seed_blocked_anchors(&self, wb: &Workbook, sheet: usize, end: CellRef, out: &mut Vec<Key>) {
+        let Some(sh) = wb.sheet(sheet) else { return };
+        let area = RangeRef::new(CellRef::new(0, 0), end);
+        for (cell, _) in sh.cells.iter_formulas(area) {
+            if sh.value(cell) == Value::Error(CellError::Spill) && self.graph.nodes.contains_key(&(sheet, cell)) {
+                out.push((sheet, cell));
+            }
         }
     }
 
@@ -513,15 +521,7 @@ impl Calc {
             }
             // An area a formula no longer spills over may unblock another formula's array.
             for (si, o) in freed {
-                for &(s, c) in self.graph.nodes.keys() {
-                    if s == si
-                        && c.row <= o.end.row
-                        && c.col <= o.end.col
-                        && wb.sheet(s).is_some_and(|sh| sh.value(c) == Value::Error(CellError::Spill))
-                    {
-                        spill_changes.push((s, c));
-                    }
-                }
+                self.seed_blocked_anchors(wb, si, o.end, &mut spill_changes);
             }
             if full {
                 // Everything was already evaluated once; spill dependents need another pass.

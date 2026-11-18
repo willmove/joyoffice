@@ -2,7 +2,7 @@
 //! resolution; writing a zip package deterministically.
 
 use std::collections::HashMap;
-use std::io::{Cursor, Read, Write};
+use std::io::{Cursor, Write};
 use zip::HasZipMetadata;
 
 use crate::IoError;
@@ -75,27 +75,27 @@ impl<'a> Package<'a> {
         }
         let remaining = MAX_TOTAL.saturating_sub(self.total);
         let limit = maximum.min(remaining);
-        let mut out = Vec::with_capacity(f.size().min(16 * 1024 * 1024) as usize);
-        let read = (&mut f).take(limit + 1).read_to_end(&mut out).map_err(|e| {
-            // A read that fails partway has already spent decompression work and buffered data
-            // the package budget never sees: count the allowance as spent, so a loop over many
-            // broken parts can't decompress it over and over.
-            self.total = MAX_TOTAL;
-            IoError::Zip(format!("{part}: {e}"))
-        });
-        if out.len() as u64 > limit {
-            // The allowance was spent getting here; make the exhaustion terminal instead of
-            // letting later reads pay the same decompression cost again.
-            self.total = MAX_TOTAL;
-            return Err(IoError::TooLarge(if remaining < maximum {
-                "package expands to more than 1 GB".into()
-            } else {
-                format!("{part} expands to more than {maximum} bytes")
-            }));
+        let declared = f.size();
+        match joyoffice_opc::read_bounded_member(&mut f, limit, declared) {
+            joyoffice_opc::MemberRead::Complete(bytes) => {
+                self.total += bytes.len() as u64;
+                Ok(Some(bytes))
+            }
+            joyoffice_opc::MemberRead::Limit(_) => {
+                self.total = MAX_TOTAL;
+                Err(IoError::TooLarge(if remaining < maximum {
+                    "package expands to more than 1 GB".into()
+                } else {
+                    format!("{part} expands to more than {maximum} bytes")
+                }))
+            }
+            joyoffice_opc::MemberRead::Failed { cause, .. } => {
+                // A reader can emit bytes before reporting a bad CRC. Exhaust the package's
+                // allowance on error, as on the original on-demand path.
+                self.total = MAX_TOTAL;
+                Err(IoError::Zip(format!("{part}: {cause}")))
+            }
         }
-        read?;
-        self.total += out.len() as u64;
-        Ok(Some(out))
     }
 
     pub fn read_xml(&mut self, part: &str) -> Result<Option<El>, IoError> {

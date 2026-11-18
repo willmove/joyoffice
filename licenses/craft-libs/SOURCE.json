@@ -341,8 +341,8 @@
       "target": "third-party/craft-libs/proof/src/lib.rs",
       "sha256": "3fb1db1dd5af3ecebbe2eec2b1d122ca825203f7cd76b101bab336db3ca0ed49",
       "modified": true,
-      "target_sha256": "848c2db93b55699f5d9474cf8df472ea1f3d84224afab27d6a9b9c9c3e43703d",
-      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md."
+      "target_sha256": "757063e390e3ac11379d032ffb7ea97abfc63d81354d3bbf2ceee667eed53729",
+      "changes": "Host Skrifa/Fontique API alignment; bounded font registration; vendored proof language-data default; Windows/Unix environment path portability and regular-file validation; private stock Krilla adapter where applicable. See evidence/R2/README.md. JoyOffice streams multilingual word boundaries using the original UTF-8 offsets and dictionary punctuation rules."
     },
     {
       "commit": "47c9f62530db72bc5c3831c86653b47b20c640be",

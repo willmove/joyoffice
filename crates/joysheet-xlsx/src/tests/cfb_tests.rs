@@ -40,9 +40,20 @@ pub(crate) fn build(streams: &[&str]) -> Vec<u8> {
 #[test]
 fn reads_directory_names() {
     let b = build(&["EncryptionInfo", "EncryptedPackage"]);
-    assert_eq!(directory_names(&b), Some(vec!["Root Entry".into(), "EncryptionInfo".into(), "EncryptedPackage".into()]));
+    let compound = Compound::open(&b).unwrap();
+    assert_eq!(compound.entries.iter().take(3).map(|e| e.name.as_str()).collect::<Vec<_>>(), ["Root Entry", "EncryptionInfo", "EncryptedPackage"]);
     assert!(is_encrypted(&b));
     assert!(!is_encrypted(&build(&["Workbook", "\u{5}SummaryInformation"])));
+}
+
+#[test]
+fn encryption_scan_keeps_case_and_corrupt_tail_policies() {
+    let mut b = build(&["encryptedpackage"]);
+    assert_eq!(directory_has_encryption(&b), Some(true));
+    b[516..520].copy_from_slice(&99u32.to_le_bytes());
+    assert_eq!(directory_has_encryption(&b), None);
+    assert!(!is_encrypted(&b));
+    assert!(!is_encrypted(&build(&["EncryptedPackagE附", "EncryptionInf"])));
 }
 
 #[test]

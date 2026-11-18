@@ -8,12 +8,14 @@
 //! knowledge lives here.
 
 mod budget;
+mod member;
 mod package;
 mod part;
 mod xml;
 mod zip;
 
 pub use budget::{Budget, BudgetError};
+pub use member::{MemberRead, read_bounded_member};
 pub use package::{
     CONTENT_TYPES_NAMESPACE, Diagnostic, ExternalKind, OpcError, Package, Part,
     RELATIONSHIPS_NAMESPACE, Relationship, Target, take_matching_member,

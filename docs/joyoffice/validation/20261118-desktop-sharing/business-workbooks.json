@@ -26,19 +26,19 @@
         "candidate": {
           "exit": 0,
           "counts": {
-            "boolAsNumber": 0,
-            "categoriesDiffering": {},
-            "checked": 0,
-            "failedToOpen": 0,
             "files": 1,
+            "opened": 1,
+            "failedToOpen": 0,
             "formulaCells": 0,
+            "checked": 0,
             "matched": 0,
             "mismatched": 0,
             "noOracle": 0,
-            "opened": 1,
-            "roundTripDiffering": 0,
+            "volatile": 0,
+            "boolAsNumber": 0,
             "roundTripFailed": 0,
-            "volatile": 0
+            "roundTripDiffering": 0,
+            "categoriesDiffering": {}
           }
         }
       },
@@ -64,38 +64,38 @@
         "candidate": {
           "exit": 0,
           "counts": {
-            "boolAsNumber": 0,
-            "categoriesDiffering": {},
-            "checked": 916,
-            "failedToOpen": 0,
             "files": 1,
+            "opened": 1,
+            "failedToOpen": 0,
             "formulaCells": 916,
+            "checked": 916,
             "matched": 916,
             "mismatched": 0,
             "noOracle": 0,
-            "opened": 1,
-            "roundTripDiffering": 0,
+            "volatile": 0,
+            "boolAsNumber": 0,
             "roundTripFailed": 0,
-            "volatile": 0
+            "roundTripDiffering": 0,
+            "categoriesDiffering": {}
           }
         }
       },
       "openAnd12FullRecalcsMs": {
         "baseline": [
-          21.789,
-          21.819,
-          20.779,
-          21.616,
-          22.054,
-          21.973
+          20.356,
+          20.361,
+          20.642,
+          20.077,
+          20.833,
+          21.088
         ],
         "candidate": [
-          20.559,
-          20.695,
-          19.933,
-          20.603,
-          19.61,
-          20.128
+          19.34,
+          18.972,
+          19.939,
+          19.207,
+          20.882,
+          21.188
         ]
       }
     },
@@ -125,19 +125,19 @@
         "candidate": {
           "exit": 0,
           "counts": {
-            "boolAsNumber": 0,
-            "categoriesDiffering": {},
-            "checked": 0,
-            "failedToOpen": 0,
             "files": 1,
+            "opened": 1,
+            "failedToOpen": 0,
             "formulaCells": 0,
+            "checked": 0,
             "matched": 0,
             "mismatched": 0,
             "noOracle": 0,
-            "opened": 1,
-            "roundTripDiffering": 0,
+            "volatile": 0,
+            "boolAsNumber": 0,
             "roundTripFailed": 0,
-            "volatile": 0
+            "roundTripDiffering": 0,
+            "categoriesDiffering": {}
           }
         }
       },
@@ -163,38 +163,38 @@
         "candidate": {
           "exit": 0,
           "counts": {
-            "boolAsNumber": 0,
-            "categoriesDiffering": {},
-            "checked": 16,
-            "failedToOpen": 0,
             "files": 1,
+            "opened": 1,
+            "failedToOpen": 0,
             "formulaCells": 16,
+            "checked": 16,
             "matched": 16,
             "mismatched": 0,
             "noOracle": 0,
-            "opened": 1,
-            "roundTripDiffering": 0,
+            "volatile": 0,
+            "boolAsNumber": 0,
             "roundTripFailed": 0,
-            "volatile": 0
+            "roundTripDiffering": 0,
+            "categoriesDiffering": {}
           }
         }
       },
       "openAnd12FullRecalcsMs": {
         "baseline": [
-          5.937,
-          6.245,
-          6.038,
-          5.255,
-          5.475,
-          5.205
+          4.716,
+          4.819,
+          4.484,
+          4.311,
+          4.301,
+          4.234
         ],
         "candidate": [
-          5.559,
-          5.424,
-          5.474,
-          5.14,
-          6.963,
-          6.237
+          5.533,
+          5.204,
+          4.447,
+          4.434,
+          4.55,
+          4.502
         ]
       }
     }
@@ -226,19 +226,19 @@
         "candidate": {
           "exit": 0,
           "counts": {
-            "boolAsNumber": 0,
-            "categoriesDiffering": {},
-            "checked": 0,
-            "failedToOpen": 0,
             "files": 1,
+            "opened": 1,
+            "failedToOpen": 0,
             "formulaCells": 0,
+            "checked": 0,
             "matched": 0,
             "mismatched": 0,
             "noOracle": 0,
-            "opened": 1,
-            "roundTripDiffering": 0,
+            "volatile": 0,
+            "boolAsNumber": 0,
             "roundTripFailed": 0,
-            "volatile": 0
+            "roundTripDiffering": 0,
+            "categoriesDiffering": {}
           }
         }
       },
@@ -264,38 +264,38 @@
         "candidate": {
           "exit": 0,
           "counts": {
-            "boolAsNumber": 0,
-            "categoriesDiffering": {},
-            "checked": 916,
-            "failedToOpen": 0,
             "files": 1,
+            "opened": 1,
+            "failedToOpen": 0,
             "formulaCells": 916,
+            "checked": 916,
             "matched": 916,
             "mismatched": 0,
             "noOracle": 0,
-            "opened": 1,
-            "roundTripDiffering": 0,
+            "volatile": 0,
+            "boolAsNumber": 0,
             "roundTripFailed": 0,
-            "volatile": 0
+            "roundTripDiffering": 0,
+            "categoriesDiffering": {}
           }
         }
       },
       "openAnd12FullRecalcsMs": {
         "baseline": [
-          22.775,
-          28.418,
-          56.258,
-          29.725,
-          28.503,
-          64.677
+          25.067,
+          24.705,
+          31.18,
+          25.819,
+          24.824,
+          25.7
         ],
         "candidate": [
-          28.142,
-          23.538,
-          64.843,
-          54.689,
-          41.056,
-          27.564
+          25.149,
+          34.827,
+          25.784,
+          25.57,
+          26.293,
+          29.036
         ]
       }
     },
@@ -325,19 +325,19 @@
         "candidate": {
           "exit": 0,
           "counts": {
-            "boolAsNumber": 0,
-            "categoriesDiffering": {},
-            "checked": 0,
-            "failedToOpen": 0,
             "files": 1,
+            "opened": 1,
+            "failedToOpen": 0,
             "formulaCells": 0,
+            "checked": 0,
             "matched": 0,
             "mismatched": 0,
             "noOracle": 0,
-            "opened": 1,
-            "roundTripDiffering": 0,
+            "volatile": 0,
+            "boolAsNumber": 0,
             "roundTripFailed": 0,
-            "volatile": 0
+            "roundTripDiffering": 0,
+            "categoriesDiffering": {}
           }
         }
       },
@@ -363,38 +363,38 @@
         "candidate": {
           "exit": 0,
           "counts": {
-            "boolAsNumber": 0,
-            "categoriesDiffering": {},
-            "checked": 16,
-            "failedToOpen": 0,
             "files": 1,
+            "opened": 1,
+            "failedToOpen": 0,
             "formulaCells": 16,
+            "checked": 16,
             "matched": 16,
             "mismatched": 0,
             "noOracle": 0,
-            "opened": 1,
-            "roundTripDiffering": 0,
+            "volatile": 0,
+            "boolAsNumber": 0,
             "roundTripFailed": 0,
-            "volatile": 0
+            "roundTripDiffering": 0,
+            "categoriesDiffering": {}
           }
         }
       },
       "openAnd12FullRecalcsMs": {
         "baseline": [
-          5.824,
-          4.181,
-          5.546,
-          4.673,
-          5.766,
-          5.008
+          4.205,
+          4.994,
+          5.036,
+          5.121,
+          4.742,
+          4.447
         ],
         "candidate": [
-          4.042,
-          3.562,
-          5.136,
-          3.739,
-          5.25,
-          5.007
+          4.05,
+          4.292,
+          5.004,
+          6.315,
+          6.116,
+          4.816
         ]
       }
     }

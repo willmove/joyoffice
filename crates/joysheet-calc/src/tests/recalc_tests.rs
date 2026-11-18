@@ -287,6 +287,36 @@ pub(crate) fn probe_visit_range(wb: &Workbook, pending: &[(&str, &str)], range: 
     .then_some(seen)
 }
 
+#[test]
+fn clearing_a_distant_blocker_retries_only_the_matching_sheets_anchors() -> Result<(), Box<dyn std::error::Error>> {
+    use joysheet_core::CellError;
+    use joysheet_model::Sheet;
+    let mut book = Workbook::new();
+    book.sheets.push(std::sync::Arc::new(Sheet::new("Other")));
+    let (anchor, blocker) = (CellRef::new(0, 0), CellRef::new(180, 0));
+    for sheet in &mut book.sheets {
+        let input = std::sync::Arc::make_mut(sheet);
+        input.set_cell(anchor, Cell::formula(Formula::new("=SEQUENCE(200)")));
+        input.set_value(blocker, Value::Number(7.));
+    }
+    let mut calc = Calc::new();
+    calc.recalc_all(&mut book);
+    for index in [1, 0] {
+        assert_eq!(book.sheet(index).ok_or("missing sheet")?.value(anchor), Value::Error(CellError::Spill));
+        book.sheet_mut(index).ok_or("missing sheet")?.remove_cell(blocker);
+        calc.cells_changed(&mut book, &[(index, blocker)]);
+        assert_eq!(book.sheet(index).ok_or("missing sheet")?.value(blocker), Value::Number(181.));
+        let mut full = book.clone();
+        Calc::new().recalc_all(&mut full);
+        for (a, b) in book.sheets.iter().zip(&full.sheets) {
+            assert_eq!(a.value(anchor), b.value(anchor));
+            assert_eq!(a.spill, b.spill);
+            assert_eq!(a.spill_ranges, b.spill_ranges);
+        }
+    }
+    Ok(())
+}
+
 /// One dirty closure mixes the batched scalar subset and normal evaluator. Replaying all
 /// formulas in a cloned workbook also checks dependency discovery after each edit.
 #[test]

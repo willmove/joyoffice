@@ -45,7 +45,7 @@ LAYERS = {
     "joysheet-calc": {"joysheet-core", "joysheet-numfmt", "joysheet-formula", "joysheet-functions", "joysheet-model"},
     "joysheet-chart": {"joysheet-core", "joysheet-model", "joysheet-calc", "joysheet-numfmt"},
     "joysheet-pdf": set(),
-    "joysheet-xlsx": {"joyoffice-omml", "joyoffice-drawingml", "joysheet-core", "joysheet-formula", "joysheet-model", "joyoffice-cfb"},
+    "joysheet-xlsx": {"joyoffice-opc", "joyoffice-omml", "joyoffice-drawingml", "joysheet-core", "joysheet-formula", "joysheet-model", "joyoffice-cfb"},
     "joysheet-engine": {"joysheet-core", "joysheet-numfmt", "joysheet-formula", "joysheet-functions", "joysheet-model", "joysheet-calc", "joysheet-xlsx", "joysheet-chart", "joysheet-pdf"},
     "joysheet-mcp": {"joysheet-engine"},
     "joysheet-protocol": set(),

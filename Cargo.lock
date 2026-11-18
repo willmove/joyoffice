@@ -4372,6 +4372,7 @@ dependencies = [
  "joyoffice-cfb",
  "joyoffice-drawingml",
  "joyoffice-omml",
+ "joyoffice-opc",
  "joysheet-core",
  "joysheet-formula",
  "joysheet-model",
@@ -4554,6 +4555,7 @@ dependencies = [
  "serde_json",
  "unicode-bidi",
  "unicode-linebreak",
+ "unicode-normalization",
  "unicode-segmentation",
 ]
 

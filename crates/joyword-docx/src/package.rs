@@ -2,7 +2,7 @@
 
 use std::collections::hash_map::Entry;
 use std::collections::{BTreeMap, HashMap, HashSet};
-use std::io::{Cursor, Read, Write};
+use std::io::{Cursor, Write};
 use std::sync::Arc;
 
 use crate::DocxError;
@@ -411,22 +411,23 @@ impl Package {
                 files.insert(name, Arc::new(data));
                 continue;
             }
-            let mut buf = Vec::with_capacity(f.size().min(16 * 1024 * 1024) as usize);
-            let read = (&mut f).take(room + 1).read_to_end(&mut buf);
-            // Charged whether or not the read succeeds: an entry inflates in full before its CRC
-            // is checked, so failed entries would otherwise inflate without limit (#3723).
-            stats.inflated_bytes = stats.inflated_bytes.saturating_add(buf.len() as u64);
-            total = total.saturating_add(buf.len() as u64);
-            if buf.len() as u64 > room {
-                return Err(DocxError::Limit(format!(
-                    "part {name} decompresses past the size limit"
-                )));
-            }
-            if let Err(e) = read {
-                // A corrupt entry: keep going unless it's a part we can't do without.
-                log::warn!("docx: zip entry {name} unreadable: {e}");
-                continue;
-            }
+            let declared = f.size();
+            let read = joyoffice_opc::read_bounded_member(&mut f, room, declared);
+            // Optional parts can fail their checksum after inflation. Charge every produced byte.
+            stats.inflated_bytes = stats.inflated_bytes.saturating_add(read.produced());
+            total = total.saturating_add(read.produced());
+            let buf = match read {
+                joyoffice_opc::MemberRead::Complete(bytes) => bytes,
+                joyoffice_opc::MemberRead::Limit(_) => {
+                    return Err(DocxError::Limit(format!(
+                        "part {name} decompresses past the size limit"
+                    )));
+                }
+                joyoffice_opc::MemberRead::Failed { cause, .. } => {
+                    log::warn!("docx: skipping unreadable part {name}: {cause}");
+                    continue;
+                }
+            };
             files.insert(name, Arc::new(buf));
         }
         Ok((Package::new(files), stats))

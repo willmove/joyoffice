@@ -1,0 +1,34 @@
+{
+  "macOS": {
+    "presets": 49,
+    "presetAndOptionPairs": 185,
+    "progressPercent": [
+      0,
+      22,
+      50,
+      78,
+      100
+    ],
+    "rgbaFrames": 925,
+    "frameWidth": 64,
+    "frameHeight": 36,
+    "mismatchedFrames": 0,
+    "rgbaHashManifestSha256": "f97672cfd659a6625e97062cb2aa1642ba9f5dbf31cc281d9818ac601855cb4f"
+  },
+  "UOS": {
+    "presets": 49,
+    "presetAndOptionPairs": 185,
+    "progressPercent": [
+      0,
+      22,
+      50,
+      78,
+      100
+    ],
+    "rgbaFrames": 925,
+    "frameWidth": 64,
+    "frameHeight": 36,
+    "mismatchedFrames": 0,
+    "rgbaHashManifestSha256": "f97672cfd659a6625e97062cb2aa1642ba9f5dbf31cc281d9818ac601855cb4f"
+  }
+}

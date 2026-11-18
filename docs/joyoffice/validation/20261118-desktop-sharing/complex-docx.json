@@ -2,7 +2,7 @@
   "macOS": {
     "binarySha256": {
       "baseline": "fc283cd3eb5ac54c6e69000f9aac53b0f52115e82dfb6db4607482406515b804",
-      "candidate": "511abfdda69f10cab50f6e749a4164c1a754af73792323cdab77021f72926094"
+      "candidate": "83135d37ff8b535661e08d3c9f732591f7fdcab54bc4e5da812d5cb82bd88dfb"
     },
     "cases": [
       {
@@ -55,7 +55,7 @@
   "UOS": {
     "binarySha256": {
       "baseline": "111f7529472d4569514937ed70c7f8f9f15c7edc965efa1f2619cca742ab1a4c",
-      "candidate": "28e88f9db68b1edf7d02439ce8a6449eff8434def544b4c3694401b0741f6f53"
+      "candidate": "3cff4c0fce0b59c8929066c9bc7c57df4cae0605395ea2e5f0155ecdb69d5cf5"
     },
     "cases": [
       {

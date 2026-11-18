@@ -492,7 +492,8 @@
       "source": "crates/fonts/src/fontdb.rs",
       "target": "crates/joyword-fonts/src/fontdb.rs",
       "source_sha256": "74b521a03307dd4d97bc053947119c1557b4b704b1cdb7d5222119c6ddd527f0",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md."
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Keep an ordered discovery snapshot and a per-database scan mutex.",
+      "adapted_sha256": "47bcc981ad3fe112ddfc3c2655134fcd6b1fc87ac24fc84dfe17d2c8b7cc71ba"
     },
     {
       "source": "crates/fonts/src/lib.rs",
@@ -534,7 +535,8 @@
       "source": "crates/fonts/src/fontdb/catalog.rs",
       "target": "crates/joyword-fonts/src/fontdb/catalog.rs",
       "source_sha256": "18f3d1f7445a963ac93124b37231ea3d40d00f615c56408fb02750ba5748013b",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md."
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Use shared font file enumeration and filesystem revisions when refreshing the published family catalog.",
+      "adapted_sha256": "67e0ba13d9a67961cb8e4b717e5d544318d1dd60c8871ffc65c3df887e971cfc"
     },
     {
       "source": "crates/fonts/src/fontdb/face.rs",
@@ -654,7 +656,8 @@
       "source": "crates/layout/src/headers.rs",
       "target": "crates/joyword-layout/src/headers.rs",
       "source_sha256": "f6b8b158d0601416195c0c3e364d972e5628040c69dc4fa0302201c42215e972",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md."
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Resolve physical and displayed section parity separately at numbering restarts.",
+      "adapted_sha256": "96ebe8d4d2dd52cbe943c8f5495283c5089e58252b84ff768b7c8f978f397410"
     },
     {
       "source": "crates/layout/src/hit.rs",
@@ -684,7 +687,8 @@
       "source": "crates/layout/src/notes.rs",
       "target": "crates/joyword-layout/src/notes.rs",
       "source_sha256": "9749d79e2eb226346fd50f6dd3436668ee92b0cebd565e0a83ec502eb81d396c",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md."
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Count note order independently of displayed labels and skip unrelated drawing objects.",
+      "adapted_sha256": "b3645feb672027d43639e6ae84a1b954e872dad3dbf5aa7f0e8bc650b0e31ce9"
     },
     {
       "source": "crates/layout/src/outline.rs",
@@ -732,7 +736,8 @@
       "source": "crates/layout/src/table_flow.rs",
       "target": "crates/joyword-layout/src/table_flow.rs",
       "source_sha256": "65032b7e682a8e2c8170ba4af850020716139db0c07eedf84963dd11e7f32444",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md."
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Walk the initial contiguous repeating header rows without a list of row indexes.",
+      "adapted_sha256": "abe178ab18db9efb0efaa97ddd8dcde224cb951243a1de421877619423e29f9c"
     },
     {
       "source": "crates/layout/src/tests.rs",
@@ -1110,7 +1115,8 @@
       "source": "crates/docx/src/package.rs",
       "target": "crates/joyword-docx/src/package.rs",
       "source_sha256": "0d0baf9549aa23a1345b70f5f58b9a00e5f608db8d2f1ecf17e2c410f3d853cf",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md."
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Share verified package members and bounded decoding with the host. Charge partial output on read errors.",
+      "adapted_sha256": "89eb48d0e9d53440f6e9d6c8f27d72b7b5c21feadb0553f1a912bb0ad222b2ce"
     },
     {
       "source": "crates/docx/src/read.rs",
@@ -2827,7 +2833,8 @@
       "source": "crates/engine/src/packs/store.rs",
       "target": "crates/joyword-engine/src/packs/store.rs",
       "source_sha256": "4f30cacc6a745d0aee605ffcab943203c0dcd03a2003eb980763a65226ef6b89",
-      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md."
+      "changes": "JoyWord package/module naming; host-pinned dependencies and API adapters (HarfRust/Skrifa, ZIP 9, dual digest/HMAC, stock Krilla); deterministic revision property order under GPUI JSON feature union; production no-panic lint retained. Source tests retained; test-only fixture helpers allow assertions. See evidence/R2/README.md. Resolve the existing language-pack folder independently of craft-font-catalog while preserving consent and cached data.",
+      "adapted_sha256": "90961935970d7d2176d756c17f71245e7a66057eb4143cbf034f31ec3f9a7e4d"
     },
     {
       "source": "crates/engine/src/recovery/desktop.rs",

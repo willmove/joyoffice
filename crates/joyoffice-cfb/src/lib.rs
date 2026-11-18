@@ -11,7 +11,7 @@ mod writer;
 
 pub use budget::{CfbBudget, CfbError};
 pub use compound::CompoundFile;
-pub use directory::{DirEntry, EntryType};
+pub use directory::{DirEntry, EntryType, directory_name_units};
 pub use header::{CFB_SIGNATURE, HEADER_SIZE};
 pub use writer::CfbWriter;
 

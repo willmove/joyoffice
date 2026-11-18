@@ -1,0 +1,94 @@
+{
+  "macOS": {
+    "desktop": {
+      "exitCode": 0,
+      "logSha256": "ac6b52d41d7c158875d246975937f8c86319d02d4851450649596fdd1083808a"
+    },
+    "ui": {
+      "exitCode": 0,
+      "logSha256": "f9949c077709822dd8dd9b29325d33c0c44b8f807664bfb6e49ae65d05ffef74",
+      "passed": 75,
+      "failed": 0,
+      "ignored": 0
+    },
+    "joyword": {
+      "exitCode": 0,
+      "logSha256": "4912ad996e304e8bce8a72f0bbc1a0d0cd41970940e65d992daf4bcde8912814",
+      "passed": 3675,
+      "failed": 0,
+      "ignored": 2
+    },
+    "joydeck": {
+      "exitCode": 0,
+      "logSha256": "ffe9924ee08d56bd8a2803a906d3df8def5c0bb658f39de01df91a66f867414c",
+      "passed": 996,
+      "failed": 0,
+      "ignored": 0
+    },
+    "joysheet": {
+      "exitCode": 0,
+      "logSha256": "693d4d8772ed720c67f4f90143b3a7d658611aff91b2bdfec23b378cc426d8f5",
+      "passed": 1468,
+      "failed": 0,
+      "ignored": 1
+    },
+    "multilingual": {
+      "exitCode": 0,
+      "logSha256": "a9abe9a3bb47b843a1f55efcaa15ce4bd079be5fdaee4c10904dd8b828804c51",
+      "passed": 474,
+      "failed": 0,
+      "ignored": 1
+    },
+    "metafileRenders": {
+      "sameAsPriorVersion": 8,
+      "differing": 0,
+      "fixtureOutputSha256": "6181059b9cb0021d7cafcc2bfde506d790391d32db9a7eff4996894aa7074fdc"
+    }
+  },
+  "UOS": {
+    "desktop": {
+      "exitCode": 0,
+      "logSha256": "caee1d3eabe45214263913cc6df159ff3ce1a70be57e3196fba822c59f373bf3"
+    },
+    "ui": {
+      "exitCode": 0,
+      "logSha256": "ecf2c004928762e0128e5aaf5767ec41547c4352203cf724dc934abc2205ea05",
+      "passed": 79,
+      "failed": 0,
+      "ignored": 0
+    },
+    "joyword": {
+      "exitCode": 0,
+      "logSha256": "20ba0c425f6e4674e5a8c92cb80cef4099506805cb953652e68842f2280c674f",
+      "passed": 3679,
+      "failed": 0,
+      "ignored": 2
+    },
+    "joydeck": {
+      "exitCode": 0,
+      "logSha256": "7dc1557e6fb3a0f093dc9fcd86b8baf0904f067f8eb5aeff4fe96d885b207f9d",
+      "passed": 1001,
+      "failed": 0,
+      "ignored": 0
+    },
+    "joysheet": {
+      "exitCode": 0,
+      "logSha256": "f574816fdb05efb5cd6fb3cbdbb28b2c16c4eae04db1ee94a9cb3074bc8465d3",
+      "passed": 1468,
+      "failed": 0,
+      "ignored": 1
+    },
+    "multilingual": {
+      "exitCode": 0,
+      "logSha256": "bb78f71b761e90f0d02611c7b5564a11eb5e01ee6d35d20d955a98ecf23249a2",
+      "passed": 474,
+      "failed": 0,
+      "ignored": 1
+    },
+    "metafileRenders": {
+      "sameAsPriorVersion": 8,
+      "differing": 0,
+      "fixtureOutputSha256": "4d48066c3ff33dfe919b9795e02c789e000eeefce2d1f005695f8abfccea4539"
+    }
+  }
+}

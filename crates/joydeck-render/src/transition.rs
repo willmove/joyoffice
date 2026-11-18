@@ -387,74 +387,81 @@ fn draw_mesh_layer(out: &mut Image, l: &Layer, tex: &Tex) {
     }
 }
 
-/// Rasterise one textured triangle: pixel centres inside it take the texture's colour at the
-/// barycentric texture coordinate, at the interpolated opacity, blended source-over.
+/// Rasterize only the scanline span covered by the projected triangle. Keep the established
+/// subpixel sample position so adjacent triangles agree about ownership of their shared edge.
 fn fill_triangle(out: &mut Image, p: [[f64; 2]; 3], uv: [[f64; 2]; 3], al: [f64; 3], tex: &Tex) {
-    let area =
-        (p[1][0] - p[0][0]) * (p[2][1] - p[0][1]) - (p[2][0] - p[0][0]) * (p[1][1] - p[0][1]);
-    if !area.is_finite() || area.abs() < 1e-12 {
-        return;
-    }
-    let (w, h) = (out.width as i64, out.height as i64);
-    let minx = p
-        .iter()
-        .map(|q| q[0])
-        .fold(f64::INFINITY, f64::min)
-        .floor()
-        .max(0.0) as i64;
-    let maxx = (p
-        .iter()
-        .map(|q| q[0])
-        .fold(f64::NEG_INFINITY, f64::max)
-        .ceil() as i64)
-        .min(w);
-    let miny = p
-        .iter()
-        .map(|q| q[1])
-        .fold(f64::INFINITY, f64::min)
-        .floor()
-        .max(0.0) as i64;
-    let maxy = (p
-        .iter()
-        .map(|q| q[1])
-        .fold(f64::NEG_INFINITY, f64::max)
-        .ceil() as i64)
-        .min(h);
-    if minx >= maxx || miny >= maxy {
-        return;
-    }
-    let edge = |a: [f64; 2], b: [f64; 2], x: f64, y: f64| {
-        (b[0] - a[0]) * (y - a[1]) - (b[1] - a[1]) * (x - a[0])
+    let edge = |a: [f64; 2], b: [f64; 2], sample: [f64; 2]| {
+        (b[0] - a[0]) * (sample[1] - a[1]) - (b[1] - a[1]) * (sample[0] - a[0])
     };
+    let area = edge(p[0], p[1], p[2]);
+    if !area.is_finite() || area.abs() < 1e-12 || out.width == 0 {
+        return;
+    }
     let width = out.width as usize;
-    for y in miny..maxy {
-        // Sample a hair off the pixel centre so a point on an edge shared by two triangles falls
-        // in exactly one of them (no double-blended seams).
-        let fy = y as f64 + 0.5 + 2.31e-6;
-        for x in minx..maxx {
-            let fx = x as f64 + 0.5 + 1.17e-6;
-            let w0 = edge(p[1], p[2], fx, fy) / area;
-            let w1 = edge(p[2], p[0], fx, fy) / area;
-            let w2 = edge(p[0], p[1], fx, fy) / area;
-            if w0 < 0.0 || w1 < 0.0 || w2 < 0.0 {
+    let height = f64::from(out.height);
+    let y0 = p
+        .iter()
+        .map(|v| v[1])
+        .fold(height, f64::min)
+        .floor()
+        .clamp(0., height) as usize;
+    let y1 = p
+        .iter()
+        .map(|v| v[1])
+        .fold(0., f64::max)
+        .ceil()
+        .clamp(0., height) as usize;
+    for (y, row) in out
+        .pixels
+        .chunks_exact_mut(width * 4)
+        .enumerate()
+        .take(y1)
+        .skip(y0)
+    {
+        let sy = y as f64 + 0.5 + 2.31e-6;
+        let (mut left, mut right) = (f64::INFINITY, f64::NEG_INFINITY);
+        for (a, b) in [(p[0], p[1]), (p[1], p[2]), (p[2], p[0])] {
+            if a[1] != b[1] && sy >= a[1].min(b[1]) && sy <= a[1].max(b[1]) {
+                let t = (sy - a[1]) / (b[1] - a[1]);
+                let x = a[0] + t * (b[0] - a[0]);
+                left = left.min(x);
+                right = right.max(x);
+            }
+        }
+        if left > right {
+            continue;
+        }
+        // Include one candidate pixel beyond the rounded intersections so the actual edge
+        // test decides coverage for thin triangles and vertices on sample centres.
+        let x0 = (left.floor() - 1.).clamp(0., width as f64) as usize;
+        let x1 = (right.ceil() + 1.).clamp(0., width as f64) as usize;
+        for (offset, pixel) in row[x0 * 4..x1 * 4]
+            .as_chunks_mut::<4>()
+            .0
+            .iter_mut()
+            .enumerate()
+        {
+            let sample = [(x0 + offset) as f64 + 0.5 + 1.17e-6, sy];
+            let w = [
+                edge(p[1], p[2], sample) / area,
+                edge(p[2], p[0], sample) / area,
+                edge(p[0], p[1], sample) / area,
+            ];
+            if w.iter().any(|&weight| weight < 0.) {
                 continue;
             }
-            let u = w0 * uv[0][0] + w1 * uv[1][0] + w2 * uv[2][0];
-            let v = w0 * uv[0][1] + w1 * uv[1][1] + w2 * uv[2][1];
-            let alpha = (w0 * al[0] + w1 * al[1] + w2 * al[2]) as f32;
-            if alpha <= 0.0 {
+            let interpolate =
+                |values: [f64; 3]| w[0] * values[0] + w[1] * values[1] + w[2] * values[2];
+            let opacity = interpolate(al) as f32;
+            if opacity <= 0. {
                 continue;
             }
-            let s = tex.sample(u, v);
-            let i = (y as usize * width + x as usize) * 4;
-            let Some(d) = out.pixels.get_mut(i..i + 4) else {
-                continue;
-            };
-            let sa = s[3] * alpha / 255.0;
-            for k in 0..4 {
-                let src = s[k] * alpha;
-                let v = src + d[k] as f32 * (1.0 - sa);
-                d[k] = v.round().clamp(0.0, 255.0) as u8;
+            let source = tex.sample(interpolate(uv.map(|v| v[0])), interpolate(uv.map(|v| v[1])));
+            let keep = 1. - source[3] * opacity / 255.;
+            for (dest, value) in pixel.iter_mut().zip(source) {
+                *dest = (value * opacity + f32::from(*dest) * keep)
+                    .round()
+                    .clamp(0., 255.) as u8;
             }
         }
     }
