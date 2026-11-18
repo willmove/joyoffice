@@ -377,43 +377,6 @@ pub(super) fn trimmean(a: &[Arg], _: C) -> R<Value> {
     num_val(mean(kept)?)
 }
 
-pub(super) fn kurt(v: &[f64]) -> R<f64> {
-    let n = v.len() as f64;
-    if v.len() < 4 {
-        return Err(CellError::Div0);
-    }
-    let m = mean(v)?;
-    let s = var_s(v)?.sqrt();
-    if s == 0.0 {
-        return Err(CellError::Div0);
-    }
-    let sum4: f64 = v.iter().map(|x| ((x - m) / s).powi(4)).sum();
-    Ok(n * (n + 1.0) / ((n - 1.0) * (n - 2.0) * (n - 3.0)) * sum4 - 3.0 * (n - 1.0).powi(2) / ((n - 2.0) * (n - 3.0)))
-}
-
-pub(super) fn skew(v: &[f64]) -> R<f64> {
-    let n = v.len() as f64;
-    if v.len() < 3 {
-        return Err(CellError::Div0);
-    }
-    let m = mean(v)?;
-    let s = var_s(v)?.sqrt();
-    if s == 0.0 {
-        return Err(CellError::Div0);
-    }
-    let sum3: f64 = v.iter().map(|x| ((x - m) / s).powi(3)).sum();
-    Ok(n / ((n - 1.0) * (n - 2.0)) * sum3)
-}
-
-pub(super) fn skew_p(v: &[f64]) -> R<f64> {
-    let m = mean(v)?;
-    let s = var_p(v)?.sqrt();
-    if s == 0.0 {
-        return Err(CellError::Div0);
-    }
-    Ok(v.iter().map(|x| ((x - m) / s).powi(3)).sum::<f64>() / v.len() as f64)
-}
-
 pub(super) fn geomean(v: &[f64]) -> R<f64> {
     if v.is_empty() || v.iter().any(|&x| x <= 0.0) {
         return Err(CellError::Num);
@@ -426,14 +389,6 @@ pub(super) fn harmean(v: &[f64]) -> R<f64> {
         return Err(CellError::Num);
     }
     Ok(v.len() as f64 / v.iter().map(|x| 1.0 / x).sum::<f64>())
-}
-
-pub(super) fn avedev(v: &[f64]) -> R<f64> {
-    if v.is_empty() {
-        return Err(CellError::Num);
-    }
-    let m = mean(v)?;
-    Ok(v.iter().map(|x| (x - m).abs()).sum::<f64>() / v.len() as f64)
 }
 
 pub(super) fn frequency(a: &[Arg], _: C) -> R<Value> {

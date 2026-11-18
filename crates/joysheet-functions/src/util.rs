@@ -184,19 +184,36 @@ pub(crate) fn flatten(args: &[Arg]) -> Vec<Value> {
 /// Numbers for aggregate functions (SUM, AVERAGE, MIN, STDEV…): inside references and arrays
 /// only numbers count (text, booleans and blanks are skipped); direct scalar arguments are
 /// coerced ("3" → 3, TRUE → 1, other text → `#VALUE!`). Errors propagate.
-pub(crate) fn visit_numbers(args: &[Arg], mut accept: impl FnMut(f64)) -> R<()> {
+pub(crate) fn visit_numbers(args: &[Arg], accept: impl FnMut(f64)) -> R<()> {
+    visit_stat_numbers(args, NumberInput::Numbers, accept)
+}
+
+#[derive(Clone, Copy, PartialEq)]
+pub(crate) enum NumberInput {
+    Numbers,
+    IncludeReferenceValues,
+    AverageA,
+}
+
+/// Direct arguments coerce as scalars. Excel makes two further distinctions
+/// in constant/computed arrays: AVERAGEA counts text as zero and skips booleans;
+/// the other A statistics count either only when the array is a cell reference.
+pub(crate) fn visit_stat_numbers(args: &[Arg], input: NumberInput, mut accept: impl FnMut(f64)) -> R<()> {
     for arg in args {
-        let (cells, reference) = match &arg.value {
-            Value::Array(array) => (array.data.as_slice(), true),
-            scalar => (std::slice::from_ref(scalar), arg.from_ref),
+        let (cells, aggregate) = match &arg.value {
+            Value::Array(a) => (a.data.as_slice(), true),
+            v => (std::slice::from_ref(v), arg.from_ref),
         };
+        let include_reference = input != NumberInput::Numbers && arg.from_ref;
         for cell in cells {
             match cell {
-                Value::Number(number) => accept(*number),
-                Value::Error(error) => return Err(*error),
+                Value::Number(v) => accept(*v),
+                Value::Error(e) => return Err(*e),
                 Value::Empty => {}
-                _ if reference => {}
-                literal => accept(literal.to_number()?),
+                Value::Bool(b) if include_reference => accept(f64::from(*b)),
+                Value::Text(_) if include_reference || (aggregate && input == NumberInput::AverageA) => accept(0.),
+                _ if aggregate => {}
+                direct => accept(direct.to_number()?),
             }
         }
     }
@@ -218,33 +235,6 @@ pub(crate) fn fold_numbers(args: &[Arg], initial: f64, combine: impl Fn(f64, f64
         count += 1;
     })?;
     Ok((count, result))
-}
-
-/// Numbers for the "A" aggregates (AVERAGEA, MAXA, STDEVA…): inside references and arrays text
-/// counts as 0 and booleans as 1/0, blanks are skipped; direct arguments coerce as in
-/// [`numbers`].
-pub(crate) fn numbers_a(args: &[Arg]) -> R<Vec<f64>> {
-    let mut out = Vec::new();
-    for a in args {
-        match &a.value {
-            Value::Array(arr) => {
-                for v in arr.iter() {
-                    match v {
-                        Value::Number(n) => out.push(*n),
-                        Value::Bool(b) => out.push(if *b { 1.0 } else { 0.0 }),
-                        Value::Text(_) => out.push(0.0),
-                        Value::Error(e) => return Err(*e),
-                        _ => {}
-                    }
-                }
-            }
-            Value::Error(e) => return Err(*e),
-            Value::Empty => {}
-            Value::Text(_) if a.from_ref => out.push(0.0),
-            v => out.push(v.to_number()?),
-        }
-    }
-    Ok(out)
 }
 
 /// Numbers of a single array-like argument where only numbers count (text, booleans, blanks

@@ -86,3 +86,7 @@ The twelve signed BIN, OCT, DEC and HEX conversions, five bit operators and BASE
 ## Value and reference information
 
 JoySheet uses one stored-value classification for the eight IS predicates, TYPE, ERROR.TYPE and N. ISEVEN and ISODD share the numeric conversion used by the engineering functions. An ordinary imported TYPE expression retains Excel's implicit intersection through edits and serialization. Array-entered formulas retain the identity of one-element arrays. The XLSX writer also emits the checkbox mapper name used by Excel. Both native desktops, both generations of readers and Excel for Mac were exercised on the same workbooks. [Calculation and file evidence](../joyoffice/validation/20261118-desktop-sharing/value-information.json)
+
+## Descriptive statistics and array argument coercion
+
+Twenty registrations for variance, deviation, skewness, kurtosis, and the A aggregates now use JoySheet’s streaming implementation. The input policy distinguishes scalar arguments, referenced cells, and evaluated arrays. The imported tabular helpers still serve inferential and aggregate callers. Two independent Excel workbooks cover 35 cases per registration at each of two input values. [Host implementation](../../crates/joysheet-functions/src/stat/spread.rs) · [Excel caches, desktop verification and rollback](../joyoffice/validation/20261118-desktop-sharing/statistical-spread.json)

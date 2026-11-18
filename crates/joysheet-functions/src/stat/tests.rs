@@ -506,3 +506,16 @@ fn aggregate_helper() {
     close(aggregate_values_k(9, &vals, &nv(2.0)), 9.0);
     is_err(aggregate_values_k(14, &vals, &nv(10.0)), CellError::Num);
 }
+
+#[test]
+fn statistical_arrays_keep_their_origin_and_skew_needs_three_observations() {
+    let values = arr(vec![vec![Value::Number(-8.), Value::Bool(true), Value::from("4"), Value::Number(-2.)]]);
+    let literal = crate::Arg::val(values);
+    let reference = crate::Arg::reference(literal.value.clone());
+    close(ev("MAXA", vec![literal.clone()]), -2.);
+    close(ev("MAXA", vec![reference.clone()]), 1.);
+    close(ev("AVERAGEA", vec![literal.clone()]), -10. / 3.);
+    close(ev("AVERAGEA", vec![reference]), -2.25);
+    close(ev("VARA", vec![literal]), 18.);
+    is_err(ev("SKEW.P", vec![n(2.), n(8.)]), CellError::Div0);
+}

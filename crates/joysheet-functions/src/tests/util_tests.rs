@@ -15,7 +15,9 @@ fn rounding() {
 fn aggregate_numbers() {
     let arr = Value::from(Array::new(1, 4, vec![Value::Number(1.0), Value::from("2"), Value::Bool(true), Value::Empty]).unwrap());
     assert_eq!(numbers(&[Arg::reference(arr.clone())]).unwrap(), vec![1.0]);
-    assert_eq!(numbers_a(&[Arg::reference(arr)]).unwrap(), vec![1.0, 0.0, 1.0]);
+    let mut values = Vec::new();
+    visit_stat_numbers(&[Arg::reference(arr)], NumberInput::IncludeReferenceValues, |v| values.push(v)).unwrap();
+    assert_eq!(values, vec![1.0, 0.0, 1.0]);
     assert_eq!(numbers(&[Arg::val("3"), Arg::val(true)]).unwrap(), vec![3.0, 1.0]);
     assert_eq!(numbers(&[Arg::val("x")]), Err(CellError::Value));
     assert_eq!(numbers(&[Arg::reference("x")]).unwrap(), Vec::<f64>::new());

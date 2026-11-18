@@ -4,18 +4,18 @@
 use joysheet_core::{CellError, Value};
 
 use crate::special::{erf, gamma, invert, ln_beta, ln_gamma, norm_cdf, norm_inv, norm_pdf, reg_gamma_p, reg_gamma_q, reg_inc_beta};
-use crate::util::{A, R, S, arg, array_numbers, array_val, as_array, boolean, fold_numbers, has, num, num_val, numbers, numbers_a, opt_num};
+use crate::util::{A, R, S, arg, array_numbers, array_val, as_array, boolean, fold_numbers, has, num, num_val, numbers, opt_num};
 use crate::{Arg, Ctx, FnSpec, VAR};
 
 mod descriptive;
 mod distributions;
 mod regression;
+mod spread;
 
 pub use descriptive::{aggregate_values, aggregate_values_k};
 use descriptive::{
-    arg_nums, arg_pairs, avedev, correl, count_impl, counta_impl, countblank, devsq, frequency, geomean, harmean, intercept, kurt, large, max_of,
-    mean, median, min_of, mode_mult, mode_numbers, mode_sngl, percentile_exc, percentile_inc, percentrank_impl, prob, quartile_exc, quartile_inc,
-    rank_impl, skew, skew_p, slope, small, standardize, trimmean, var_p, var_s,
+    arg_nums, arg_pairs, correl, count_impl, counta_impl, countblank, frequency, geomean, harmean, intercept, large, median, mode_mult, mode_numbers,
+    mode_sngl, percentile_exc, percentile_inc, percentrank_impl, prob, quartile_exc, quartile_inc, rank_impl, slope, small, standardize, trimmean,
 };
 use distributions::{
     beta_dist, beta_inv, betadist_legacy, binom_dist, binom_dist_range, binom_inv, chisq_dist, chisq_dist_rt, chisq_inv, chisq_inv_rt, chisq_test,
@@ -32,6 +32,9 @@ type C<'a> = &'a mut dyn Ctx;
 // ---------------------------------------------------------------------------------------------
 // Registration
 // ---------------------------------------------------------------------------------------------
+
+use crate::util::NumberInput::{AverageA, IncludeReferenceValues, Numbers};
+use spread::Statistic::*;
 
 const S_ARR_K: &[bool] = &[false, true];
 const S_RANK: &[bool] = &[true, false, true];
@@ -59,7 +62,7 @@ pub(crate) fn specs() -> Vec<FnSpec> {
             A,
             "AVERAGEA(value1, [value2], ...)",
             "Mean counting text as 0 and logical values as 1 or 0.",
-            |a: &[Arg], _c: C| num_val(mean(&numbers_a(a)?)?)
+            |a: &[Arg], _c: C| spread::calculate(a, Mean, AverageA)
         ),
         f!("MEDIAN", 1, VAR, Statistical, A, "MEDIAN(number1, [number2], ...)", "Middle value of the numbers.", |a: &[Arg], _c: C| num_val(median(
             numbers(a)?
@@ -71,18 +74,27 @@ pub(crate) fn specs() -> Vec<FnSpec> {
             num_val(mode_sngl(&mode_numbers(a)?)?)
         }),
         f!("MODE.MULT", 1, VAR, Statistical, A, "MODE.MULT(number1, [number2], ...)", "Vertical array of all the most frequent numbers.", mode_mult),
-        f!("STDEV", 1, VAR, Compatibility, A, "STDEV(number1, [number2], ...)", "Sample standard deviation.", |a: &[Arg], _c: C| num_val(
-            var_s(&numbers(a)?)?.sqrt()
+        f!("STDEV", 1, VAR, Compatibility, A, "STDEV(number1, [number2], ...)", "Sample standard deviation.", |a: &[Arg], _c: C| spread::calculate(
+            a,
+            SampleDeviation,
+            Numbers
         )),
-        f!("STDEV.S", 1, VAR, Statistical, A, "STDEV.S(number1, [number2], ...)", "Sample standard deviation.", |a: &[Arg], _c: C| num_val(
-            var_s(&numbers(a)?)?.sqrt()
-        )),
-        f!("STDEV.P", 1, VAR, Statistical, A, "STDEV.P(number1, [number2], ...)", "Population standard deviation.", |a: &[Arg], _c: C| num_val(
-            var_p(&numbers(a)?)?.sqrt()
-        )),
-        f!("STDEVP", 1, VAR, Compatibility, A, "STDEVP(number1, [number2], ...)", "Population standard deviation.", |a: &[Arg], _c: C| num_val(
-            var_p(&numbers(a)?)?.sqrt()
-        )),
+        f!(
+            "STDEV.S",
+            1,
+            VAR,
+            Statistical,
+            A,
+            "STDEV.S(number1, [number2], ...)",
+            "Sample standard deviation.",
+            |a: &[Arg], _c: C| spread::calculate(a, SampleDeviation, Numbers)
+        ),
+        f!("STDEV.P", 1, VAR, Statistical, A, "STDEV.P(number1, [number2], ...)", "Population standard deviation.", |a: &[Arg], _c: C| {
+            spread::calculate(a, PopulationDeviation, Numbers)
+        }),
+        f!("STDEVP", 1, VAR, Compatibility, A, "STDEVP(number1, [number2], ...)", "Population standard deviation.", |a: &[Arg], _c: C| {
+            spread::calculate(a, PopulationDeviation, Numbers)
+        }),
         f!(
             "STDEVA",
             1,
@@ -91,7 +103,7 @@ pub(crate) fn specs() -> Vec<FnSpec> {
             A,
             "STDEVA(value1, [value2], ...)",
             "Sample standard deviation counting text as 0 and logicals as 1/0.",
-            |a: &[Arg], _c: C| { num_val(var_s(&numbers_a(a)?)?.sqrt()) }
+            |a: &[Arg], _c: C| spread::calculate(a, SampleDeviation, IncludeReferenceValues)
         ),
         f!(
             "STDEVPA",
@@ -101,16 +113,28 @@ pub(crate) fn specs() -> Vec<FnSpec> {
             A,
             "STDEVPA(value1, [value2], ...)",
             "Population standard deviation counting text as 0 and logicals as 1/0.",
-            |a: &[Arg], _c: C| { num_val(var_p(&numbers_a(a)?)?.sqrt()) }
+            |a: &[Arg], _c: C| spread::calculate(a, PopulationDeviation, IncludeReferenceValues)
         ),
-        f!("VAR", 1, VAR, Compatibility, A, "VAR(number1, [number2], ...)", "Sample variance.", |a: &[Arg], _c: C| num_val(var_s(&numbers(a)?)?)),
-        f!("VAR.S", 1, VAR, Statistical, A, "VAR.S(number1, [number2], ...)", "Sample variance.", |a: &[Arg], _c: C| num_val(var_s(&numbers(a)?)?)),
-        f!("VAR.P", 1, VAR, Statistical, A, "VAR.P(number1, [number2], ...)", "Population variance.", |a: &[Arg], _c: C| num_val(var_p(&numbers(
-            a
-        )?)?)),
-        f!("VARP", 1, VAR, Compatibility, A, "VARP(number1, [number2], ...)", "Population variance.", |a: &[Arg], _c: C| num_val(var_p(&numbers(
-            a
-        )?)?)),
+        f!("VAR", 1, VAR, Compatibility, A, "VAR(number1, [number2], ...)", "Sample variance.", |a: &[Arg], _c: C| spread::calculate(
+            a,
+            SampleVariance,
+            Numbers
+        )),
+        f!("VAR.S", 1, VAR, Statistical, A, "VAR.S(number1, [number2], ...)", "Sample variance.", |a: &[Arg], _c: C| spread::calculate(
+            a,
+            SampleVariance,
+            Numbers
+        )),
+        f!("VAR.P", 1, VAR, Statistical, A, "VAR.P(number1, [number2], ...)", "Population variance.", |a: &[Arg], _c: C| spread::calculate(
+            a,
+            PopulationVariance,
+            Numbers
+        )),
+        f!("VARP", 1, VAR, Compatibility, A, "VARP(number1, [number2], ...)", "Population variance.", |a: &[Arg], _c: C| spread::calculate(
+            a,
+            PopulationVariance,
+            Numbers
+        )),
         f!(
             "VARA",
             1,
@@ -119,7 +143,7 @@ pub(crate) fn specs() -> Vec<FnSpec> {
             A,
             "VARA(value1, [value2], ...)",
             "Sample variance counting text as 0 and logicals as 1/0.",
-            |a: &[Arg], _c: C| num_val(var_s(&numbers_a(a)?)?)
+            |a: &[Arg], _c: C| spread::calculate(a, SampleVariance, IncludeReferenceValues)
         ),
         f!(
             "VARPA",
@@ -129,7 +153,7 @@ pub(crate) fn specs() -> Vec<FnSpec> {
             A,
             "VARPA(value1, [value2], ...)",
             "Population variance counting text as 0 and logicals as 1/0.",
-            |a: &[Arg], _c: C| num_val(var_p(&numbers_a(a)?)?)
+            |a: &[Arg], _c: C| spread::calculate(a, PopulationVariance, IncludeReferenceValues)
         ),
         f!("MIN", 0, VAR, Statistical, A, "MIN(number1, [number2], ...)", "Smallest number (0 when there are none).", |a: &[Arg], _c: C| {
             let (count, n) = fold_numbers(a, f64::INFINITY, f64::min)?;
@@ -143,7 +167,7 @@ pub(crate) fn specs() -> Vec<FnSpec> {
             A,
             "MINA(value1, [value2], ...)",
             "Smallest value counting text as 0 and logicals as 1/0.",
-            |a: &[Arg], _c: C| num_val(min_of(&numbers_a(a)?))
+            |a: &[Arg], _c: C| spread::calculate(a, Minimum, IncludeReferenceValues)
         ),
         f!("MAX", 1, VAR, Statistical, A, "MAX(number1, [number2], ...)", "Largest number (0 when there are none).", |a: &[Arg], _c: C| {
             let (count, n) = fold_numbers(a, f64::NEG_INFINITY, f64::max)?;
@@ -157,7 +181,7 @@ pub(crate) fn specs() -> Vec<FnSpec> {
             A,
             "MAXA(value1, [value2], ...)",
             "Largest value counting text as 0 and logicals as 1/0.",
-            |a: &[Arg], _c: C| num_val(max_of(&numbers_a(a)?))
+            |a: &[Arg], _c: C| spread::calculate(a, Maximum, IncludeReferenceValues)
         ),
         f!("LARGE", 2, 2, Statistical, S_ARR_K, "LARGE(array, k)", "The k-th largest number in a data set.", large),
         f!("SMALL", 2, 2, Statistical, S_ARR_K, "SMALL(array, k)", "The k-th smallest number in a data set.", small),
@@ -362,14 +386,10 @@ pub(crate) fn specs() -> Vec<FnSpec> {
             a, false
         )),
         f!("DEVSQ", 1, VAR, Statistical, A, "DEVSQ(number1, [number2], ...)", "Sum of squared deviations from the mean.", |a: &[Arg], _c: C| {
-            let v = numbers(a)?;
-            if v.is_empty() {
-                return Err(CellError::Num);
-            }
-            num_val(devsq(&v))
+            spread::calculate(a, SumSquares, Numbers)
         }),
         f!("AVEDEV", 1, VAR, Statistical, A, "AVEDEV(number1, [number2], ...)", "Average absolute deviation from the mean.", |a: &[Arg], _c: C| {
-            num_val(avedev(&numbers(a)?)?)
+            spread::calculate(a, MeanDeviation, Numbers)
         }),
         f!("GEOMEAN", 1, VAR, Statistical, A, "GEOMEAN(number1, [number2], ...)", "Geometric mean of positive numbers.", |a: &[Arg], _c: C| num_val(
             geomean(&numbers(a)?)?
@@ -378,13 +398,19 @@ pub(crate) fn specs() -> Vec<FnSpec> {
             harmean(&numbers(a)?)?
         )),
         f!("TRIMMEAN", 2, 2, Statistical, S_ARR_K, "TRIMMEAN(array, percent)", "Mean after trimming a fraction of points from both ends.", trimmean),
-        f!("KURT", 1, VAR, Statistical, A, "KURT(number1, [number2], ...)", "Excess kurtosis of a sample.", |a: &[Arg], _c: C| num_val(kurt(
-            &numbers(a)?
-        )?)),
-        f!("SKEW", 1, VAR, Statistical, A, "SKEW(number1, [number2], ...)", "Sample skewness.", |a: &[Arg], _c: C| num_val(skew(&numbers(a)?)?)),
-        f!("SKEW.P", 1, VAR, Statistical, A, "SKEW.P(number1, [number2], ...)", "Population skewness.", |a: &[Arg], _c: C| num_val(skew_p(
-            &numbers(a)?
-        )?)),
+        f!("KURT", 1, VAR, Statistical, A, "KURT(number1, [number2], ...)", "Excess kurtosis of a sample.", |a: &[Arg], _c: C| spread::calculate(
+            a,
+            ExcessKurtosis,
+            Numbers
+        )),
+        f!("SKEW", 1, VAR, Statistical, A, "SKEW(number1, [number2], ...)", "Sample skewness.", |a: &[Arg], _c: C| spread::calculate(
+            a, SampleSkew, Numbers
+        )),
+        f!("SKEW.P", 1, VAR, Statistical, A, "SKEW.P(number1, [number2], ...)", "Population skewness.", |a: &[Arg], _c: C| spread::calculate(
+            a,
+            PopulationSkew,
+            Numbers
+        )),
         f!("STANDARDIZE", 3, 3, Statistical, S, "STANDARDIZE(x, mean, standard_dev)", "Z-score of a value.", standardize),
         f!(
             "FREQUENCY",

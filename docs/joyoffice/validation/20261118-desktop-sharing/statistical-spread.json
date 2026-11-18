@@ -1,0 +1,1145 @@
+{
+  "previousSheetCommit": "0d1a7f08",
+  "previousWorkspaceCommit": "b3f9c7e4",
+  "scope": "Twenty descriptive statistics, counting legacy names separately, read arguments in sheet order using constant scratch storage. The summation, centered variance pass and standardized moment pass are separate to preserve behavior at large offsets. Existing inferential and aggregate functions continue to use their own helpers.",
+  "independentReference": "Two workbooks independently recalculated and saved in Microsoft Excel for Mac 16.115, with A1 equal to 7 and 12. Each contains 35 contexts per function. Values and errors retain their Excel types. Numeric comparison allows 2e-12 relative and, only for skew and kurtosis near zero, 2e-13 absolute.",
+  "references": [
+    "https://support.microsoft.com/en-us/excel/statistical-functions-reference",
+    "https://support.microsoft.com/en-us/excel/functions/averagea-function",
+    "https://support.microsoft.com/en-us/excel/functions/vara-function",
+    "https://support.microsoft.com/en-us/excel/functions/skew-p-function",
+    "https://support.microsoft.com/en-us/excel/functions/kurt-function"
+  ],
+  "excelReopened": {
+    "base": {
+      "checked": 700,
+      "differences": 0,
+      "joySheetWriterSha256": "57eab4c83bbb107e22c5d2eb43e466e527ebcfc992e143abb5a62e48bd26b5fc",
+      "excelWriterSha256": "243f665f4811743b42d897cbd882850ca089b2411e57fec9a616c1d568663605"
+    },
+    "edit": {
+      "checked": 700,
+      "differences": 0,
+      "joySheetWriterSha256": "007f0c2ff3a40f0f25a5d7a49b03fe95b15318b87302f71556c175a3df5e7045",
+      "excelWriterSha256": "dc6dd08f68d25197bd33170bba501c4bec514a3abd19c6c991bac924ac1ef3a9"
+    }
+  },
+  "platforms": {
+    "macOS": {
+      "binaries": [
+        "d831817b246a764446a9835704e99f984402614fa952f8821af4e478754a1216",
+        "a7d376a3468ccf63e1e33992dc66e35e70df4dcc9d7a11a5bf85706f14f186d9"
+      ],
+      "excel": {
+        "base": {
+          "sourceSha256": "04781be480ab8d79505e8d74403bd69187df294639034f2485b3a1ef0131f4b2",
+          "independentByFunction": {
+            "AVERAGEA": 35,
+            "MINA": 35,
+            "MAXA": 35,
+            "VAR": 35,
+            "VAR.S": 35,
+            "VAR.P": 35,
+            "VARP": 35,
+            "VARA": 35,
+            "VARPA": 35,
+            "STDEV": 35,
+            "STDEV.S": 35,
+            "STDEV.P": 35,
+            "STDEVP": 35,
+            "STDEVA": 35,
+            "STDEVPA": 35,
+            "DEVSQ": 35,
+            "AVEDEV": 35,
+            "SKEW": 35,
+            "SKEW.P": 35,
+            "KURT": 35
+          },
+          "candidateDifferences": 0,
+          "bothGenerationsRecalculatedBothWriters": true,
+          "baselineDifferences": 32,
+          "baselineDifferencesByFunction": {
+            "AVERAGEA": 4,
+            "MINA": 2,
+            "MAXA": 2,
+            "VARA": 5,
+            "VARPA": 5,
+            "STDEVA": 5,
+            "STDEVPA": 5,
+            "SKEW.P": 4
+          },
+          "examples": [
+            [
+              "G30",
+              "AVERAGEA({-8,TRUE,\"4\",-2})",
+              "-3.3333333333333335",
+              "-2.25"
+            ],
+            [
+              "G31",
+              "AVERAGEA({6,FALSE,\"3\",8})",
+              "4.666666666666667",
+              "3.5"
+            ],
+            [
+              "G32",
+              "AVERAGEA({TRUE,FALSE,\"txt\"})",
+              "0",
+              "0.3333333333333333"
+            ],
+            [
+              "G33",
+              "AVERAGEA({1,2;3,TRUE})",
+              "2",
+              "1.75"
+            ]
+          ]
+        },
+        "edit": {
+          "sourceSha256": "2f31857d0692a47385058cb745d6b242c3893d89df7fb1dcc76c29e51b0ac4cc",
+          "independentByFunction": {
+            "AVERAGEA": 35,
+            "MINA": 35,
+            "MAXA": 35,
+            "VAR": 35,
+            "VAR.S": 35,
+            "VAR.P": 35,
+            "VARP": 35,
+            "VARA": 35,
+            "VARPA": 35,
+            "STDEV": 35,
+            "STDEV.S": 35,
+            "STDEV.P": 35,
+            "STDEVP": 35,
+            "STDEVA": 35,
+            "STDEVPA": 35,
+            "DEVSQ": 35,
+            "AVEDEV": 35,
+            "SKEW": 35,
+            "SKEW.P": 35,
+            "KURT": 35
+          },
+          "candidateDifferences": 0,
+          "bothGenerationsRecalculatedBothWriters": true,
+          "baselineDifferences": 32,
+          "baselineDifferencesByFunction": {
+            "AVERAGEA": 4,
+            "MINA": 2,
+            "MAXA": 2,
+            "VARA": 5,
+            "VARPA": 5,
+            "STDEVA": 5,
+            "STDEVPA": 5,
+            "SKEW.P": 4
+          },
+          "examples": [
+            [
+              "G30",
+              "AVERAGEA({-8,TRUE,\"4\",-2})",
+              "-3.3333333333333335",
+              "-2.25"
+            ],
+            [
+              "G31",
+              "AVERAGEA({6,FALSE,\"3\",8})",
+              "4.666666666666667",
+              "3.5"
+            ],
+            [
+              "G32",
+              "AVERAGEA({TRUE,FALSE,\"txt\"})",
+              "0",
+              "0.3333333333333333"
+            ],
+            [
+              "G33",
+              "AVERAGEA({1,2;3,TRUE})",
+              "2",
+              "1.75"
+            ]
+          ]
+        }
+      },
+      "native": {
+        "changedCells": 60,
+        "checkedPerState": 83,
+        "states": 5,
+        "savedTypedCaches": 700,
+        "undoRedoAndFreshReopen": true,
+        "originalUnchanged": true
+      },
+      "product": {
+        "passed": 1492,
+        "failed": 0,
+        "ignored": 1
+      },
+      "strictClippy": "joysheet-functions --all-targets -- -D warnings",
+      "businessSamples": [
+        {
+          "sourceSha256": "521576e13e1ced708e2f7efac270da864053d9b05ce6216831970f3fa9fdc126",
+          "originalFormulaCells": 0,
+          "derivedFormulaCells": 916
+        },
+        {
+          "sourceSha256": "7034ab68c7c22f09a07114767d912c4bf8e87849d35e03bb76c15e9ef25e984d",
+          "originalFormulaCells": 0,
+          "derivedFormulaCells": 16
+        }
+      ],
+      "informationRegression": {
+        "cachesChecked": 1734,
+        "differences": 0,
+        "preservedTypeEntryModes": true
+      },
+      "registryTimes": {
+        "AVERAGEA-128": {
+          "baseline": [
+            341.55,
+            455.634,
+            381.267,
+            352.35,
+            324.767,
+            318.816,
+            324.416,
+            324.7,
+            336.634,
+            338.533,
+            331.417
+          ],
+          "candidate": [
+            203.866,
+            152.667,
+            79.434,
+            82.933,
+            70.917,
+            71.366,
+            72.7,
+            70.817,
+            70.984,
+            71.734,
+            72.383
+          ],
+          "repetitions": 2500,
+          "baselineMedianNs": 336.634,
+          "candidateMedianNs": 72.383
+        },
+        "VAR.S-128": {
+          "baseline": [
+            409.067,
+            520.733,
+            446.267,
+            420.934,
+            380.8,
+            383.583,
+            385.2,
+            394.4,
+            404.65,
+            404.767,
+            378.316
+          ],
+          "candidate": [
+            376.083,
+            286.134,
+            163.683,
+            171.133,
+            150.283,
+            165.967,
+            158.566,
+            151.25,
+            153.333,
+            153.217,
+            161.683
+          ],
+          "repetitions": 2500,
+          "baselineMedianNs": 404.65,
+          "candidateMedianNs": 161.683
+        },
+        "STDEVPA-128": {
+          "baseline": [
+            416.967,
+            530.8,
+            457.25,
+            399.367,
+            398.367,
+            396.417,
+            393.633,
+            406.134,
+            416.433,
+            416.2,
+            396.133
+          ],
+          "candidate": [
+            424.867,
+            285.766,
+            167.75,
+            178.534,
+            160.35,
+            163.716,
+            159.15,
+            166.35,
+            159.867,
+            163.05,
+            155.516
+          ],
+          "repetitions": 2500,
+          "baselineMedianNs": 406.134,
+          "candidateMedianNs": 163.716
+        },
+        "AVEDEV-128": {
+          "baseline": [
+            404.084,
+            518.683,
+            437.683,
+            400.517,
+            394.133,
+            392.0,
+            386.6,
+            387.05,
+            413.8,
+            401.284,
+            393.7
+          ],
+          "candidate": [
+            334.117,
+            278.217,
+            161.617,
+            168.983,
+            159.983,
+            160.9,
+            150.367,
+            151.15,
+            150.783,
+            151.383,
+            155.2
+          ],
+          "repetitions": 2500,
+          "baselineMedianNs": 400.517,
+          "candidateMedianNs": 159.983
+        },
+        "SKEW-128": {
+          "baseline": [
+            494.367,
+            633.184,
+            529.266,
+            480.6,
+            497.333,
+            480.816,
+            483.467,
+            483.25,
+            502.767,
+            519.383,
+            490.383
+          ],
+          "candidate": [
+            822.367,
+            1017.034,
+            266.667,
+            264.884,
+            256.2,
+            270.184,
+            265.25,
+            264.9,
+            260.584,
+            266.9,
+            268.333
+          ],
+          "repetitions": 2500,
+          "baselineMedianNs": 494.367,
+          "candidateMedianNs": 266.667
+        },
+        "KURT-128": {
+          "baseline": [
+            495.883,
+            609.616,
+            531.217,
+            486.15,
+            481.417,
+            498.7,
+            481.316,
+            491.55,
+            500.567,
+            510.767,
+            503.333
+          ],
+          "candidate": [
+            809.433,
+            456.4,
+            266.117,
+            265.033,
+            262.417,
+            266.533,
+            264.816,
+            254.784,
+            261.266,
+            263.0,
+            261.05
+          ],
+          "repetitions": 2500,
+          "baselineMedianNs": 498.7,
+          "candidateMedianNs": 264.816
+        },
+        "AVERAGEA-32768": {
+          "baseline": [
+            47661.133,
+            51433.333,
+            62658.333,
+            57550.0,
+            39352.8,
+            44930.533,
+            56002.733,
+            41663.867,
+            52188.933,
+            37875.0,
+            37419.4
+          ],
+          "candidate": [
+            45347.2,
+            33269.4,
+            20244.467,
+            20613.867,
+            19352.733,
+            21819.4,
+            21008.333,
+            20063.867,
+            20808.333,
+            20022.2,
+            19263.867
+          ],
+          "repetitions": 15,
+          "baselineMedianNs": 47661.133,
+          "candidateMedianNs": 20613.867
+        },
+        "VAR.S-32768": {
+          "baseline": [
+            66416.667,
+            83397.2,
+            72527.8,
+            60111.133,
+            65338.867,
+            75963.933,
+            63327.733,
+            72661.133,
+            65069.467,
+            59572.2,
+            62044.467
+          ],
+          "candidate": [
+            88225.0,
+            66277.8,
+            42705.533,
+            39244.467,
+            40141.667,
+            41197.267,
+            41425.0,
+            39291.667,
+            40305.533,
+            41000.0,
+            40808.333
+          ],
+          "repetitions": 15,
+          "baselineMedianNs": 65338.867,
+          "candidateMedianNs": 41000.0
+        },
+        "STDEVPA-32768": {
+          "baseline": [
+            63950.0,
+            67255.6,
+            84827.8,
+            50075.0,
+            77108.333,
+            63869.467,
+            59313.867,
+            61338.933,
+            60908.333,
+            64369.4,
+            65377.733
+          ],
+          "candidate": [
+            122727.8,
+            67680.533,
+            42163.867,
+            39208.333,
+            40927.8,
+            42863.867,
+            41180.6,
+            41477.8,
+            41080.533,
+            40977.8,
+            41047.267
+          ],
+          "repetitions": 15,
+          "baselineMedianNs": 63950.0,
+          "candidateMedianNs": 41180.6
+        },
+        "AVEDEV-32768": {
+          "baseline": [
+            73969.467,
+            80472.267,
+            69880.533,
+            59405.6,
+            62866.667,
+            55494.467,
+            62052.733,
+            48522.2,
+            74044.467,
+            60180.533,
+            60197.267
+          ],
+          "candidate": [
+            110844.467,
+            65788.867,
+            42138.867,
+            40147.267,
+            40225.0,
+            41486.133,
+            40800.0,
+            40797.2,
+            41433.333,
+            41016.667,
+            40816.667
+          ],
+          "repetitions": 15,
+          "baselineMedianNs": 62052.733,
+          "candidateMedianNs": 41016.667
+        },
+        "SKEW-32768": {
+          "baseline": [
+            82819.467,
+            119127.8,
+            107127.8,
+            93066.667,
+            92855.533,
+            87483.333,
+            94688.933,
+            82150.0,
+            107727.8,
+            95997.2,
+            93697.2
+          ],
+          "candidate": [
+            142158.333,
+            97880.6,
+            62288.933,
+            61413.867,
+            61825.0,
+            63069.467,
+            62400.0,
+            61747.2,
+            62233.333,
+            62386.067,
+            62200.0
+          ],
+          "repetitions": 15,
+          "baselineMedianNs": 93697.2,
+          "candidateMedianNs": 62288.933
+        },
+        "KURT-32768": {
+          "baseline": [
+            107572.267,
+            124625.0,
+            105550.0,
+            95163.867,
+            93036.067,
+            106291.667,
+            92816.667,
+            94186.133,
+            107466.667,
+            93966.667,
+            95569.467
+          ],
+          "candidate": [
+            142305.533,
+            93600.0,
+            63663.933,
+            61755.533,
+            62250.0,
+            62875.0,
+            62897.2,
+            61888.867,
+            63947.2,
+            62605.533,
+            62277.8
+          ],
+          "repetitions": 15,
+          "baselineMedianNs": 95569.467,
+          "candidateMedianNs": 62875.0
+        }
+      },
+      "spdx": {
+        "target": "aarch64-apple-darwin",
+        "packages": 454,
+        "sourceFiles": 1240,
+        "spdxSha256": "5a1abc49c3d8fe6f4645331f87417ed56bf8825f4f7d744846c19c397fe876a7",
+        "missingLicenseTexts": [],
+        "sharedCrates": [
+          "joyoffice-cfb",
+          "joyoffice-drawingml",
+          "joyoffice-omml",
+          "joyoffice-opc",
+          "joyoffice-theme",
+          "joyoffice-ui"
+        ],
+        "runtimeLegacyDependencies": []
+      }
+    },
+    "UOS25": {
+      "binaries": [
+        "ce5ce7a7d2baca0b86118f9bf6a8fffe72a661616eca213bc3c140e21416faa6",
+        "c12af44db83eeef5667ff616b242d306f38a7b7e43291b7bf5c379df91715ac8"
+      ],
+      "excel": {
+        "base": {
+          "sourceSha256": "04781be480ab8d79505e8d74403bd69187df294639034f2485b3a1ef0131f4b2",
+          "independentByFunction": {
+            "AVERAGEA": 35,
+            "MINA": 35,
+            "MAXA": 35,
+            "VAR": 35,
+            "VAR.S": 35,
+            "VAR.P": 35,
+            "VARP": 35,
+            "VARA": 35,
+            "VARPA": 35,
+            "STDEV": 35,
+            "STDEV.S": 35,
+            "STDEV.P": 35,
+            "STDEVP": 35,
+            "STDEVA": 35,
+            "STDEVPA": 35,
+            "DEVSQ": 35,
+            "AVEDEV": 35,
+            "SKEW": 35,
+            "SKEW.P": 35,
+            "KURT": 35
+          },
+          "candidateDifferences": 0,
+          "bothGenerationsRecalculatedBothWriters": true,
+          "baselineDifferences": 32,
+          "baselineDifferencesByFunction": {
+            "AVERAGEA": 4,
+            "MINA": 2,
+            "MAXA": 2,
+            "VARA": 5,
+            "VARPA": 5,
+            "STDEVA": 5,
+            "STDEVPA": 5,
+            "SKEW.P": 4
+          },
+          "examples": [
+            [
+              "G30",
+              "AVERAGEA({-8,TRUE,\"4\",-2})",
+              "-3.3333333333333335",
+              "-2.25"
+            ],
+            [
+              "G31",
+              "AVERAGEA({6,FALSE,\"3\",8})",
+              "4.666666666666667",
+              "3.5"
+            ],
+            [
+              "G32",
+              "AVERAGEA({TRUE,FALSE,\"txt\"})",
+              "0",
+              "0.3333333333333333"
+            ],
+            [
+              "G33",
+              "AVERAGEA({1,2;3,TRUE})",
+              "2",
+              "1.75"
+            ]
+          ]
+        },
+        "edit": {
+          "sourceSha256": "2f31857d0692a47385058cb745d6b242c3893d89df7fb1dcc76c29e51b0ac4cc",
+          "independentByFunction": {
+            "AVERAGEA": 35,
+            "MINA": 35,
+            "MAXA": 35,
+            "VAR": 35,
+            "VAR.S": 35,
+            "VAR.P": 35,
+            "VARP": 35,
+            "VARA": 35,
+            "VARPA": 35,
+            "STDEV": 35,
+            "STDEV.S": 35,
+            "STDEV.P": 35,
+            "STDEVP": 35,
+            "STDEVA": 35,
+            "STDEVPA": 35,
+            "DEVSQ": 35,
+            "AVEDEV": 35,
+            "SKEW": 35,
+            "SKEW.P": 35,
+            "KURT": 35
+          },
+          "candidateDifferences": 0,
+          "bothGenerationsRecalculatedBothWriters": true,
+          "baselineDifferences": 32,
+          "baselineDifferencesByFunction": {
+            "AVERAGEA": 4,
+            "MINA": 2,
+            "MAXA": 2,
+            "VARA": 5,
+            "VARPA": 5,
+            "STDEVA": 5,
+            "STDEVPA": 5,
+            "SKEW.P": 4
+          },
+          "examples": [
+            [
+              "G30",
+              "AVERAGEA({-8,TRUE,\"4\",-2})",
+              "-3.3333333333333335",
+              "-2.25"
+            ],
+            [
+              "G31",
+              "AVERAGEA({6,FALSE,\"3\",8})",
+              "4.666666666666667",
+              "3.5"
+            ],
+            [
+              "G32",
+              "AVERAGEA({TRUE,FALSE,\"txt\"})",
+              "0",
+              "0.3333333333333333"
+            ],
+            [
+              "G33",
+              "AVERAGEA({1,2;3,TRUE})",
+              "2",
+              "1.75"
+            ]
+          ]
+        }
+      },
+      "native": {
+        "changedCells": 60,
+        "checkedPerState": 83,
+        "states": 5,
+        "savedTypedCaches": 700,
+        "undoRedoAndFreshReopen": true,
+        "originalUnchanged": true
+      },
+      "product": {
+        "passed": 1492,
+        "failed": 0,
+        "ignored": 1
+      },
+      "strictClippy": "joysheet-functions --all-targets -- -D warnings",
+      "businessSamples": [
+        {
+          "sourceSha256": "521576e13e1ced708e2f7efac270da864053d9b05ce6216831970f3fa9fdc126",
+          "originalFormulaCells": 0,
+          "derivedFormulaCells": 916
+        },
+        {
+          "sourceSha256": "7034ab68c7c22f09a07114767d912c4bf8e87849d35e03bb76c15e9ef25e984d",
+          "originalFormulaCells": 0,
+          "derivedFormulaCells": 16
+        }
+      ],
+      "informationRegression": {
+        "cachesChecked": 1734,
+        "differences": 0,
+        "preservedTypeEntryModes": true
+      },
+      "registryTimes": {
+        "AVERAGEA-128": {
+          "baseline": [
+            417.015,
+            249.334,
+            243.752,
+            247.639,
+            255.493,
+            253.714,
+            249.398,
+            255.582,
+            249.11,
+            263.764,
+            250.841
+          ],
+          "candidate": [
+            74.187,
+            74.019,
+            108.69,
+            75.281,
+            75.622,
+            76.287,
+            76.559,
+            76.86,
+            78.299,
+            74.532,
+            74.54
+          ],
+          "repetitions": 2500,
+          "baselineMedianNs": 250.841,
+          "candidateMedianNs": 75.622
+        },
+        "VAR.S-128": {
+          "baseline": [
+            431.995,
+            308.249,
+            307.196,
+            308.133,
+            338.1,
+            541.23,
+            359.034,
+            333.038,
+            314.629,
+            312.2,
+            310.898
+          ],
+          "candidate": [
+            159.543,
+            158.324,
+            212.431,
+            160.24,
+            164.796,
+            191.938,
+            172.79,
+            160.749,
+            160.484,
+            159.699,
+            159.687
+          ],
+          "repetitions": 2500,
+          "baselineMedianNs": 314.629,
+          "candidateMedianNs": 160.484
+        },
+        "STDEVPA-128": {
+          "baseline": [
+            515.478,
+            331.568,
+            335.844,
+            335.475,
+            381.118,
+            374.017,
+            455.293,
+            356.994,
+            339.538,
+            335.932,
+            361.029
+          ],
+          "candidate": [
+            163.45,
+            166.062,
+            190.435,
+            164.98,
+            166.708,
+            193.805,
+            166.724,
+            165.998,
+            166.134,
+            164.52,
+            164.371
+          ],
+          "repetitions": 2500,
+          "baselineMedianNs": 356.994,
+          "candidateMedianNs": 166.062
+        },
+        "AVEDEV-128": {
+          "baseline": [
+            386.7,
+            316.208,
+            304.511,
+            310.281,
+            349.132,
+            333.628,
+            324.84,
+            319.594,
+            315.542,
+            312.621,
+            309.223
+          ],
+          "candidate": [
+            200.176,
+            190.912,
+            189.048,
+            198.056,
+            196.794,
+            206.192,
+            185.955,
+            191.084,
+            184.532,
+            181.374,
+            182.933
+          ],
+          "repetitions": 2500,
+          "baselineMedianNs": 316.208,
+          "candidateMedianNs": 190.912
+        },
+        "SKEW-128": {
+          "baseline": [
+            472.18,
+            472.212,
+            466.834,
+            507.552,
+            494.741,
+            497.446,
+            480.142,
+            487.207,
+            477.434,
+            477.782,
+            473.867
+          ],
+          "candidate": [
+            480.711,
+            480.539,
+            482.435,
+            483.661,
+            495.338,
+            493.595,
+            496.817,
+            500.892,
+            489.488,
+            487.76,
+            485.472
+          ],
+          "repetitions": 2500,
+          "baselineMedianNs": 477.782,
+          "candidateMedianNs": 487.76
+        },
+        "KURT-128": {
+          "baseline": [
+            472.673,
+            472.472,
+            485.26,
+            554.213,
+            498.977,
+            499.141,
+            480.743,
+            487.904,
+            482.643,
+            478.123,
+            530.45
+          ],
+          "candidate": [
+            482.831,
+            480.375,
+            485.096,
+            485.188,
+            494.02,
+            494.998,
+            541.126,
+            490.253,
+            492.36,
+            566.199,
+            488.313
+          ],
+          "repetitions": 2500,
+          "baselineMedianNs": 485.26,
+          "candidateMedianNs": 490.253
+        },
+        "AVERAGEA-32768": {
+          "baseline": [
+            45543.6,
+            45652.467,
+            45885.533,
+            51519.133,
+            52828.867,
+            45471.467,
+            45180.933,
+            45111.467,
+            44408.867,
+            43815.133,
+            42919.467
+          ],
+          "candidate": [
+            20811.267,
+            20229.467,
+            20711.067,
+            29737.467,
+            20994.867,
+            20862.0,
+            21659.467,
+            20409.2,
+            20326.333,
+            20717.733,
+            20296.333
+          ],
+          "repetitions": 15,
+          "baselineMedianNs": 45471.467,
+          "candidateMedianNs": 20717.733
+        },
+        "VAR.S-32768": {
+          "baseline": [
+            58421.067,
+            64755.267,
+            64337.867,
+            72193.467,
+            66414.933,
+            61668.333,
+            60524.867,
+            62235.333,
+            64017.267,
+            58799.8,
+            58775.0
+          ],
+          "candidate": [
+            39978.8,
+            40305.4,
+            40940.533,
+            62127.8,
+            41400.067,
+            41217.0,
+            41175.667,
+            40543.2,
+            40450.333,
+            40595.267,
+            41258.467
+          ],
+          "repetitions": 15,
+          "baselineMedianNs": 62235.333,
+          "candidateMedianNs": 40940.533
+        },
+        "STDEVPA-32768": {
+          "baseline": [
+            61706.4,
+            62535.2,
+            60751.933,
+            76695.0,
+            84296.867,
+            65635.533,
+            64442.067,
+            63378.733,
+            63805.533,
+            87632.933,
+            61761.133
+          ],
+          "candidate": [
+            40248.0,
+            40383.533,
+            40196.533,
+            40799.667,
+            41053.4,
+            41038.067,
+            40980.6,
+            40418.933,
+            40397.6,
+            40593.933,
+            40404.267
+          ],
+          "repetitions": 15,
+          "baselineMedianNs": 63805.533,
+          "candidateMedianNs": 40418.933
+        },
+        "AVEDEV-32768": {
+          "baseline": [
+            58326.867,
+            62453.067,
+            62394.333,
+            115310.667,
+            127641.8,
+            94994.333,
+            60417.333,
+            62726.867,
+            62226.667,
+            62393.6,
+            59097.667
+          ],
+          "candidate": [
+            46526.733,
+            46650.933,
+            48553.8,
+            40279.4,
+            44362.8,
+            46041.867,
+            41995.8,
+            40578.6,
+            40289.4,
+            46985.533,
+            41936.4
+          ],
+          "repetitions": 15,
+          "baselineMedianNs": 62394.333,
+          "candidateMedianNs": 44362.8
+        },
+        "SKEW-32768": {
+          "baseline": [
+            108498.933,
+            108883.667,
+            109177.467,
+            111019.467,
+            120915.533,
+            110247.467,
+            111087.667,
+            111724.8,
+            112474.867,
+            109364.467,
+            129862.467
+          ],
+          "candidate": [
+            119711.333,
+            123100.867,
+            121854.533,
+            122977.333,
+            122582.533,
+            122781.6,
+            123496.933,
+            135729.2,
+            121568.733,
+            121109.933,
+            122503.133
+          ],
+          "repetitions": 15,
+          "baselineMedianNs": 111019.467,
+          "candidateMedianNs": 122582.533
+        },
+        "KURT-32768": {
+          "baseline": [
+            107953.267,
+            107747.6,
+            114087.133,
+            119940.4,
+            116068.067,
+            111793.6,
+            110889.267,
+            122687.4,
+            113026.533,
+            112209.667,
+            109368.467
+          ],
+          "candidate": [
+            120496.133,
+            122191.867,
+            123699.267,
+            120761.2,
+            151526.0,
+            123147.6,
+            123301.867,
+            123044.067,
+            121275.467,
+            122657.4,
+            125053.733
+          ],
+          "repetitions": 15,
+          "baselineMedianNs": 112209.667,
+          "candidateMedianNs": 123044.067
+        }
+      },
+      "spdx": {
+        "target": "x86_64-unknown-linux-gnu",
+        "packages": 556,
+        "sourceFiles": 1238,
+        "spdxSha256": "6c121a9660ea9d92f5dc9111ddb050241b48c4e12149ded0edbe7536679a0099",
+        "missingLicenseTexts": [],
+        "sharedCrates": [
+          "joyoffice-cfb",
+          "joyoffice-drawingml",
+          "joyoffice-omml",
+          "joyoffice-opc",
+          "joyoffice-theme",
+          "joyoffice-ui"
+        ],
+        "runtimeLegacyDependencies": []
+      }
+    }
+  },
+  "timingMethod": "Eleven interleaved release benchmark pairs, alternately starting with each binary. Six registry calls on ranges of 128 (2,500 repetitions) and 32,768 (15 repetitions). Both binaries check their distinct SKEW.P result on two numbers. Values in nanoseconds per call. UOS pinned to CPU 3.",
+  "rollback": "Restore the statistical registrations, helpers and the previous argument coercion from b3f9c7e4. Both writers retain the formulas and both readers open their results; the prior calculator reproduces the documented errors for array constants and two-value population skewness. Keep the originals."
+}
