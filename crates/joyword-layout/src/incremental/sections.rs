@@ -5,6 +5,13 @@ use crate::{Page, SectionStart, pass::index_lines};
 use joyword_model::{InlineObject, PartKind};
 use std::{collections::BTreeSet, ops::Range};
 
+pub(super) struct SectionCache {
+    blocks: Range<usize>,
+    layout: Box<LayoutCache>,
+    /// Only sections replayed into the immediately preceding layout can skip old-page verification.
+    field_layouts: BTreeMap<(usize, usize), LayoutCache>,
+}
+
 struct Window {
     blocks: Range<usize>,
     pages: Range<usize>,
@@ -207,7 +214,7 @@ impl Window {
             })
     }
 
-    fn fragment(&self, doc: &Document, current: &DocLayout, body: &Blocks) -> Option<Document> {
+    fn fragment(&self, doc: &Document, current: &[Page], body: &Blocks) -> Option<Document> {
         let mut fragment = doc.clone();
         let end = self.blocks.end + usize::from(self.sentinel);
         fragment.body = body.get(self.blocks.start..end)?.to_vec();
@@ -223,7 +230,7 @@ impl Window {
         // restarts see the same entering page as the full paginator.
         if self.first_section != 0 {
             let first = section_at(&mut fragment, 0)?;
-            first.page_num_start = Some(current.pages.get(self.pages.start)?.number);
+            first.page_num_start = Some(current.get(self.pages.start)?.number);
             let links = crate::headers::HfLinks::new(doc.sections());
             first.headers = links.heads.set(self.first_section);
             first.footers = links.feet.set(self.first_section);
@@ -239,11 +246,10 @@ impl Window {
         doc: &Document,
         opts: &LayoutOptions,
         cache: &mut LayoutCache,
-        current: &DocLayout,
+        current: &[Page],
         endnotes: Option<&crate::notes::Endnotes>,
     ) -> Option<Repaginated> {
         let outside = current
-            .pages
             .len()
             .checked_sub(self.pages.len() + usize::from(self.sentinel))?;
         let origin = crate::PageOrigin {
@@ -274,7 +280,7 @@ impl Window {
         let mut exit_number_delta = 0;
         if self.sentinel {
             let exit = pages.pop()?;
-            let mut expected = current.pages.get(self.pages.end)?.clone();
+            let mut expected = current.get(self.pages.end)?.clone();
             expected.items.truncate(1);
             exit_number_delta = i64::from(exit.number) - i64::from(expected.number);
             expected.number = exit.number;
@@ -525,6 +531,165 @@ impl Previous {
         None
     }
 
+    fn independent_window(
+        &self,
+        window: &mut Window,
+        doc: &Document,
+        opts: &LayoutOptions,
+        current: &DocLayout,
+    ) -> bool {
+        !self.boxes.values().any(|&(first, last)| {
+            first < window.blocks.end
+                && last >= window.blocks.start
+                && !(window.blocks.contains(&first) && window.blocks.contains(&last))
+        }) && window.independent_notes(doc, opts, current)
+    }
+
+    fn check_previous_window(
+        &self,
+        window: &Window,
+        doc: &Document,
+        cache: &mut LayoutCache,
+        current: &DocLayout,
+    ) -> Option<()> {
+        let mut before = window.fragment(doc, &current.pages, &self.body)?;
+        before.parts.clone_from(&self.notes);
+        let old = window.pages(
+            &before,
+            &self.options,
+            cache,
+            &current.pages,
+            self.endnotes.as_ref(),
+        )?;
+        (old.pages.len() == window.pages.len()
+            && old.exit_number_delta == 0
+            && old
+                .pages
+                .iter()
+                .zip(&current.pages[window.pages.clone()])
+                .all(|(a, b)| equivalent_page(a, b)))
+        .then_some(())
+    }
+
+    /// A distant field can move its neighbours even when only one digit changes.
+    /// Replay its entire section with the new totals and original entry state;
+    /// a changed exit, page count, or exhausted budget goes to the full paginator.
+    fn refresh_remote_fields(
+        &self,
+        doc: &Document,
+        opts: &LayoutOptions,
+        edited: &Window,
+        current: &DocLayout,
+        pages: &mut [Page],
+        field_layouts: &mut BTreeMap<(usize, usize), LayoutCache>,
+    ) -> Option<usize> {
+        let replacement_end = pages.len() - (current.pages.len() - edited.pages.end);
+        let sections = doc.sections();
+        let old_totals = crate::cache::Totals::of(&current.pages, &sections);
+        let new_totals = crate::cache::Totals::of(pages, &sections);
+        let reused = current.pages[..edited.pages.start]
+            .iter()
+            .zip(&pages[..edited.pages.start])
+            .chain(
+                current.pages[edited.pages.end..]
+                    .iter()
+                    .zip(&pages[replacement_end..]),
+            );
+        let mut blocks = BTreeSet::new();
+        for (old, new) in reused {
+            for item in &new.items {
+                let Placed::Lines {
+                    story: StoryRef::Body,
+                    path,
+                    para,
+                    ..
+                } = item
+                else {
+                    continue;
+                };
+                if !para.has_page_fields {
+                    continue;
+                }
+                let block = *path.0.first()? as usize;
+                let si = sections.partition_point(|(last, _)| *last < block);
+                if doc
+                    .para(StoryRef::Body, path)?
+                    .objects
+                    .iter()
+                    .any(|object| {
+                        let InlineObject::Field {
+                            instr,
+                            locked: false,
+                            ..
+                        } = object
+                        else {
+                            return false;
+                        };
+                        match crate::fields::field_name(instr).as_str() {
+                            "PAGE" => old.number != new.number,
+                            "NUMPAGES" => old_totals.pages != new_totals.pages,
+                            "SECTIONPAGES" => old_totals.section(si) != new_totals.section(si),
+                            _ => false,
+                        }
+                    })
+                {
+                    blocks.insert(block);
+                    if blocks.len() > 256 {
+                        return None;
+                    }
+                }
+            }
+        }
+
+        let mut previous_fields = std::mem::take(field_layouts);
+        let mut first_dirty = edited.pages.start;
+        let mut checked_to = 0;
+        let mut page_count = edited.pages.len().max(replacement_end - edited.pages.start);
+        let mut block_count = edited.blocks.len();
+        for block in blocks {
+            if block < checked_to {
+                continue;
+            }
+            let mut remote = Window::find(doc, current, block, 0, 0)?;
+            let start = if remote.pages.end <= edited.pages.start {
+                remote.pages.start
+            } else {
+                replacement_end + remote.pages.start.checked_sub(edited.pages.end)?
+            };
+            let length = remote.pages.len();
+            page_count += length;
+            block_count += remote.blocks.len();
+            if page_count > 16
+                || block_count > 256
+                || !self.independent_window(&mut remote, doc, opts, current)
+            {
+                return None;
+            }
+            let key = (remote.blocks.start, remote.blocks.end);
+            let mut cache = match previous_fields.remove(&key) {
+                Some(cache) => cache,
+                None => {
+                    let mut cache = LayoutCache::new();
+                    self.check_previous_window(&remote, doc, &mut cache, current)?;
+                    cache
+                }
+            };
+            remote.pages = start..start + length;
+            let fragment = remote.fragment(doc, pages, &doc.body)?;
+            let next = remote.pages(&fragment, opts, &mut cache, pages, self.endnotes.as_ref())?;
+            if next.pages.len() != length || next.exit_number_delta != 0 {
+                return None;
+            }
+            for (page, updated) in pages[remote.pages].iter_mut().zip(next.pages) {
+                *page = updated;
+            }
+            field_layouts.insert(key, cache);
+            checked_to = remote.blocks.end;
+            first_dirty = first_dirty.min(start);
+        }
+        Some(first_dirty)
+    }
+
     fn reflow_window(
         &mut self,
         doc: &Document,
@@ -532,52 +697,33 @@ impl Previous {
         mut window: Window,
         current: &Arc<DocLayout>,
     ) -> Option<DocLayout> {
-        if self.boxes.values().any(|&(first, last)| {
-            first < window.blocks.end
-                && last >= window.blocks.start
-                && !(window.blocks.contains(&first) && window.blocks.contains(&last))
-        }) || !window.independent_notes(doc, opts, current)
-        {
+        if !self.independent_window(&mut window, doc, opts, current) {
             return None;
         }
         // On first entry replay the old section against the real document.
         // A successfully produced replacement is already a verified base for
         // the next edit of that same section. Reuse only its private shaping cache.
-        let mut cache = match self.checked_section.take() {
-            Some((blocks, cache)) if blocks == window.blocks => cache,
+        let (mut cache, mut field_layouts) = match self.checked_section.take() {
+            Some(cache) if cache.blocks == window.blocks => (cache.layout, cache.field_layouts),
             _ => {
                 let mut cache = Box::new(LayoutCache::new());
-                let mut before = window.fragment(doc, current, &self.body)?;
-                before.parts.clone_from(&self.notes);
-                let old = window.pages(
-                    &before,
-                    &self.options,
-                    &mut cache,
-                    current,
-                    self.endnotes.as_ref(),
-                )?;
-                if old.pages.len() != window.pages.len()
-                    || old.exit_number_delta != 0
-                    || !old
-                        .pages
-                        .iter()
-                        .zip(&current.pages[window.pages.clone()])
-                        .all(|(a, b)| equivalent_page(a, b))
-                {
-                    return None;
-                }
-                cache
+                self.check_previous_window(&window, doc, &mut cache, current)?;
+                (cache, BTreeMap::new())
             }
         };
-        let after = window.fragment(doc, current, &doc.body)?;
-        let replacement =
-            window.pages(&after, opts, &mut cache, current, self.endnotes.as_ref())?;
+        let after = window.fragment(doc, &current.pages, &doc.body)?;
+        let replacement = window.pages(
+            &after,
+            opts,
+            &mut cache,
+            &current.pages,
+            self.endnotes.as_ref(),
+        )?;
         let moved = replacement.pages.len() != window.pages.len();
         let count = current.pages.len() - window.pages.len() + replacement.pages.len();
         let mut pages = Vec::with_capacity(count);
         pages.extend_from_slice(&current.pages[..window.pages.start]);
         pages.extend(replacement.pages);
-        let replacement_end = pages.len();
         let suffix = &current.pages[window.pages.end..];
         let mut dirty = if moved {
             append_shifted_suffix(
@@ -598,62 +744,25 @@ impl Previous {
             window.pages.clone()
         };
         if self.body_fields && moved {
-            // A body field can change wrapping on an otherwise untouched page.
-            // Reflow through that page, or let the whole paginator settle it.
-            let sections = doc.sections();
-            let old_totals = crate::cache::Totals::of(&current.pages, &sections);
-            let new_totals = crate::cache::Totals::of(&pages, &sections);
-            let reused = current.pages[..window.pages.start]
-                .iter()
-                .zip(&pages[..window.pages.start])
-                .chain(
-                    current.pages[window.pages.end..]
-                        .iter()
-                        .zip(&pages[replacement_end..]),
-                );
-            for (old, new) in reused {
-                for item in &new.items {
-                    let Placed::Lines {
-                        story: StoryRef::Body,
-                        path,
-                        para,
-                        ..
-                    } = item
-                    else {
-                        continue;
-                    };
-                    if !para.has_page_fields {
-                        continue;
-                    }
-                    let block = *path.0.first()? as usize;
-                    let si = sections.partition_point(|(last, _)| *last < block);
-                    if doc
-                        .para(StoryRef::Body, path)?
-                        .objects
-                        .iter()
-                        .any(|object| match object {
-                            InlineObject::Field {
-                                instr,
-                                locked: false,
-                                ..
-                            } => match crate::fields::field_name(instr).as_str() {
-                                "PAGE" => old.number != new.number,
-                                "NUMPAGES" => old_totals.pages != new_totals.pages,
-                                "SECTIONPAGES" => old_totals.section(si) != new_totals.section(si),
-                                _ => false,
-                            },
-                            _ => false,
-                        })
-                    {
-                        return None;
-                    }
-                }
-            }
+            dirty.start = dirty.start.min(self.refresh_remote_fields(
+                doc,
+                opts,
+                &window,
+                current,
+                &mut pages,
+                &mut field_layouts,
+            )?);
+        } else {
+            field_layouts.clear();
         }
         if self.page_stories {
             dirty = update_page_stories(doc, opts, &mut cache, &mut pages, current, dirty);
         }
-        self.checked_section = Some((window.blocks, cache));
+        self.checked_section = Some(SectionCache {
+            blocks: window.blocks,
+            layout: cache,
+            field_layouts,
+        });
         Some(DocLayout {
             index: index_lines(&pages),
             pages,

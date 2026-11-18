@@ -156,26 +156,25 @@ fn section_reflow_matches_complete_body_fields_running_stories_anchor_hits_and_e
 }
 
 #[test]
-fn body_total_before_the_window_never_keeps_a_stale_cached_value()
+fn distant_fields_reflow_their_sections_and_fall_back_beyond_the_page_budget()
 -> Result<(), Box<dyn std::error::Error>> {
+    let field = |instr: &str| InlineObject::Field {
+        instr: instr.into(),
+        result: "old".into(),
+        locked: false,
+        dirty: false,
+        code: false,
+        form: String::new(),
+    };
     let mut doc = Document::new();
     doc.body.clear();
     doc.styles.default_chr.font = Some("Source Sans 3".into());
     for i in 0..68 {
         let mut p = Paragraph::with_text("Section start", Default::default());
-        if i == 0 {
-            p.insert_object(
-                0,
-                InlineObject::Field {
-                    instr: "NUMPAGES".into(),
-                    result: "old".into(),
-                    locked: false,
-                    dirty: false,
-                    code: false,
-                    form: String::new(),
-                },
-                &Default::default(),
-            )?;
+        if i == 0 || i == 64 {
+            for instr in ["NUMPAGES", "PAGE \\* ROMAN", "SECTIONPAGES", "SECTION"] {
+                p.insert_object(0, field(instr), &Default::default())?;
+            }
         }
         doc.body.push(joyword_model::para_block(p));
         let mut last = Paragraph::with_text("End", Default::default());
@@ -185,22 +184,48 @@ fn body_total_before_the_window_never_keeps_a_stale_cached_value()
         doc.body.push(joyword_model::para_block(last));
     }
     let opts = LayoutOptions::default();
-    let mut cache = LayoutCache::new();
-    let old = layout_shared(&doc, &mut cache, &opts);
-    doc.insert_text(
-        &Pos::body(68, 0),
-        &"Extra text ".repeat(1200),
-        &Default::default(),
-    )?;
-    let after = layout_shared(&doc, &mut cache, &opts);
-    assert!(after.pages.len() > old.pages.len());
-    assert_eq!(after.changed_pages_from(&old), None);
-    let full = layout(&doc, &mut LayoutCache::new(), &opts);
-    assert_eq!(
-        format!("{:?}", after.pages[0]),
-        format!("{:?}", full.pages[0])
-    );
-    assert_eq!(after.index, full.index);
+    for many in [false, true] {
+        let mut before = doc.clone();
+        if many {
+            for i in (2..32).step_by(2) {
+                // Keep each following section's entering paragraph a plain sentinel.
+                before.insert_object(
+                    &Pos::body(i * 2 + 1, 0),
+                    field("NUMPAGES"),
+                    &Default::default(),
+                )?;
+            }
+        }
+        let mut edited = before.clone();
+        edited.insert_text(
+            &Pos::body(68, 0),
+            &"Extra text ".repeat(1200),
+            &Default::default(),
+        )?;
+        let mut cache = LayoutCache::new();
+        let mut last = layout_shared(&before, &mut cache, &opts);
+        let initial_pages = last.pages.len();
+        for state in [&edited, &before, &edited] {
+            let next = layout_shared(state, &mut cache, &opts);
+            let full = layout(state, &mut LayoutCache::new(), &opts);
+            assert_eq!(next.pages.len(), full.pages.len());
+            assert_eq!(
+                next.pages.len() > initial_pages,
+                std::ptr::eq(state, &edited)
+            );
+            let dirty = (!many).then_some(0..next.pages.len().max(last.pages.len()));
+            assert_eq!(next.changed_pages_from(&last), dirty);
+            assert_eq!(next.index, full.index);
+            for (pi, (actual, expected)) in next.pages.iter().zip(&full.pages).enumerate() {
+                assert_eq!(format!("{actual:?}"), format!("{expected:?}"), "page {pi}");
+                assert_eq!(
+                    next.hit(pi, 130., 78., StoryRef::Body),
+                    full.hit(pi, 130., 78., StoryRef::Body)
+                );
+            }
+            last = next;
+        }
+    }
     Ok(())
 }
 

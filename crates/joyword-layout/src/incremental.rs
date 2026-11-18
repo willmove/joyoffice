@@ -26,8 +26,8 @@ pub(crate) struct Previous {
     /// First and last body anchor for a text story, including all its linked frames.
     boxes: BTreeMap<u32, (usize, usize)>,
     body_fields: bool,
-    /// Only the most recently verified section keeps its paragraph shaping cache.
-    checked_section: Option<(std::ops::Range<usize>, Box<LayoutCache>)>,
+    /// Keep shaping work for the last verified edit and its bounded set of field sections.
+    checked_section: Option<sections::SectionCache>,
     section: SectionProps,
     settings: Settings,
     options: LayoutOptions,

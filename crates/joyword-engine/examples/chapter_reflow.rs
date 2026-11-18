@@ -1,4 +1,6 @@
-//! Compare incremental and full pagination on a 1,000-page chapter or the numbered footnote in the native section fixture.
+//! Compare incremental and full pagination on a 1,000-page chapter or a native section fixture.
+//! Pass a fixture followed by `--grow [initial-page-count]` to add and remove pages.
+//! Append `--allow-full` when measuring a baseline that falls back to full pagination.
 use joyword_layout::{LayoutCache, LayoutOptions, layout, layout_shared};
 use joyword_model::{Document, Path, StoryRef, para::Paragraph, para_block};
 use std::time::Instant;
@@ -40,10 +42,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let grow = std::env::args_os()
         .nth(2)
         .is_some_and(|arg| arg == "--grow");
+    let allow_full = std::env::args_os().skip(2).any(|arg| arg == "--allow-full");
     let (mut doc, story, path, expected_pages) = if let Some(filename) = std::env::args_os().nth(1)
     {
         let doc = joyword_docx::read(&std::fs::read(filename)?)?;
         if grow {
+            let expected_pages = std::env::args()
+                .nth(3)
+                .filter(|arg| arg != "--allow-full")
+                .map(|pages| pages.parse::<usize>())
+                .transpose()?
+                .unwrap_or(69);
             let block = doc
                 .body
                 .iter()
@@ -52,7 +61,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         .is_some_and(|p| p.text.starts_with("Section 34"))
                 })
                 .ok_or("missing middle heading in the section fixture")?;
-            (doc, StoryRef::Body, Path::top(block), 69)
+            (doc, StoryRef::Body, Path::top(block), expected_pages)
         } else {
             let (&note, _) = doc
                 .parts
@@ -78,6 +87,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
     let mut timings = Vec::new();
     let mut compared = 0;
+    let mut full_fallbacks = 0;
     for i in 0..20 {
         let begin = Instant::now();
         let para = doc.para_mut(story, &path)?;
@@ -88,7 +98,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         let next = layout_shared(&doc, &mut cache, &opts);
         let edit_ms = begin.elapsed().as_secs_f64() * 1000.;
-        let changed = next.changed_pages_from(&previous).ok_or("full fallback")?;
+        let changed = match next.changed_pages_from(&previous) {
+            Some(range) => range,
+            None if allow_full => {
+                full_fallbacks += 1;
+                0..next.pages.len().max(previous.pages.len())
+            }
+            None => return Err("full fallback".into()),
+        };
         let begin = Instant::now();
         let full = layout(&doc, &mut full_cache, &opts);
         let full_ms = begin.elapsed().as_secs_f64() * 1000.;
@@ -128,7 +145,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     println!(
         "{}",
-        serde_json::json!({"pages":expected_pages,"samples":timings,"allPageComparisons":compared,"hitComparisons":compared*3,"rasterAndPdfCompared":"affected pages and available neighboring pages for insertion and deletion"})
+        serde_json::json!({"pages":expected_pages,"samples":timings,"fullFallbacks":full_fallbacks,"allPageComparisons":compared,"hitComparisons":compared*3,"rasterAndPdfCompared":"affected pages and available neighboring pages for insertion and deletion"})
     );
     Ok(())
 }

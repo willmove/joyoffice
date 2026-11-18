@@ -1,6 +1,7 @@
 """Edit a section with newspaper columns, nested tables and numbered footnotes in the native Word window."""
 import argparse
 import json
+import re
 from pathlib import Path
 import runpy
 import secrets
@@ -29,7 +30,10 @@ def picture_anchor():
         </wp:anchor></w:drawing></w:r>'''
 
 
-def fixture(path, facing=False, stories=False, anchors=False):
+REMOTE_SECTIONS = (0, 22, 37, 62)
+
+
+def fixture(path, facing=False, stories=False, anchors=False, remote_fields=False):
     make = runpy.run_path(str(Path(__file__).with_name("check-complex-corpus.py")))
     body = []
     for section in range(70):
@@ -64,6 +68,10 @@ def fixture(path, facing=False, stories=False, anchors=False):
                 objects = picture_anchor()
             if anchors and section == 34 and i == 4:
                 objects = "".join(f'<w:r><w:t xml:space="preserve"> Body-{key}=</w:t></w:r><w:fldSimple w:instr="{key}"><w:r><w:t>12345</w:t></w:r></w:fldSimple>' for key in ("PAGE","NUMPAGES","SECTION","SECTIONPAGES"))
+            if remote_fields and section in REMOTE_SECTIONS and i == 1:
+                for field in ("PAGE", "NUMPAGES", "SECTION", "SECTIONPAGES"):
+                    objects += (f'<w:r><w:t xml:space="preserve"> R{section}-{field}=</w:t></w:r>'
+                                f'<w:fldSimple w:instr="{field}"><w:r><w:t>12345</w:t></w:r></w:fldSimple>')
             note = f'<w:r><w:footnoteReference w:id="{note_id}"/></w:r>' if note_id else ""
             body.append(f"<w:p>{marker}<w:r><w:t>{text}</w:t></w:r>{objects}{note}</w:p>")
             if section == 34 and i == 1:
@@ -124,9 +132,27 @@ def compare_rasters(first, second):
         return groups[0]
 
 
-def verify(binary, out, grow=False, facing=False, reference_cli=None, stories=False, anchors=False):
+def distant_values(pages):
+    observed = {}
+    for section in REMOTE_SECTIONS:
+        prefix = f"R{section}-"
+        position, page = next((i, text) for i, text in enumerate(pages, 1) if prefix in text)
+        compact = "".join(page.split())
+        values = {key: int(re.search(re.escape(prefix + key + "=") + r"(\d+)", compact)[1])
+                  for key in ("PAGE", "NUMPAGES", "SECTION", "SECTIONPAGES")}
+        # After section 38 Word restarts the displayed number at six. Find the
+        # actual page where the restart landed rather than assuming no blank pages.
+        restart = next(i for i, text in enumerate(pages, 1) if "Section 38" in text)
+        number = position if section < 38 else 6 + position - restart
+        assert values == {"PAGE": number, "NUMPAGES": len(pages), "SECTION": section + 1,
+                          "SECTIONPAGES": 1}, (section, position, values, number)
+        observed[str(section)] = {"physicalPage": position, **values}
+    return observed
+
+
+def verify(binary, out, grow=False, facing=False, reference_cli=None, stories=False, anchors=False, remote_fields=False):
     original, working = out / "原始分节.docx", out / "分节 编辑.docx"
-    fixture(original, facing, stories, anchors)
+    fixture(original, facing, stories, anchors, remote_fields)
     sha = digest(original)
     shutil.copyfile(original, working)
     key, number = secrets.token_hex(32), port()
@@ -152,6 +178,7 @@ def verify(binary, out, grow=False, facing=False, reference_cli=None, stories=Fa
 
     insert = "Edited clause. " * (740 if grow else 18)
     patches = []
+    remote_checks = {}
     with app(binary, args, out, env) as proc:
         first = wait(inspect, "opened reference", proc)
         total = len(first["summary"]["pages"])
@@ -159,6 +186,8 @@ def verify(binary, out, grow=False, facing=False, reference_cli=None, stories=Fa
         if facing:
             reference = printed_pages(reference_cli or binary.with_name("joyword-cli"), original, out / "original.pdf")
             assert len(reference) == total
+            if remote_fields:
+                remote_checks["original"] = distant_values(reference)
             first_page = next(i for i, text in enumerate(reference, 1) if "Section 34" in text)
             next_side = next(i for i, text in enumerate(reference, 1) if "Section 36" in text)
             assert first_page % 2 == 1 and next_side % 2 == 0
@@ -190,6 +219,18 @@ def verify(binary, out, grow=False, facing=False, reference_cli=None, stories=Fa
             wait(lambda: any(e.get("stage") == "raster_installed" and first_page <= e.get("page", 0) <= last_dirty for e in events(offset)),
                  "edited page raster", proc)
             patches.append({"action": action, "firstPage": patch["firstPage"], "lastPage": last_dirty, "pageCount": current_pages})
+            if remote_fields:
+                visits = []
+                for label, original_field in remote_checks["original"].items():
+                    page = original_field["physicalPage"]
+                    if int(label) > 35:
+                        page += current_pages - total
+                    command("edit.goto", page=page)
+                    wait(lambda: any(e.get("stage") == "raster_installed" and e.get("page") == page
+                                     for e in events(offset)), "distant field page displayed", proc)
+                    visits.append(page)
+                patches[-1]["distantPagesDisplayed"] = visits
+                command("edit.goto", page=first_page)
             previous_pages = current_pages
         keypress = word_keys(proc)
         keypress("new")
@@ -217,7 +258,7 @@ def verify(binary, out, grow=False, facing=False, reference_cli=None, stories=Fa
     assert digest(original) == sha
     return {"binarySha256": digest(binary), "sourceSha256": sha, "pages": total, "sections": 70, "numberedNotes": 3,
             "nativePatches": patches, "reopenedPageCount": previous_pages, "savedAndReopened": True, "sourceUnchanged": True,
-            "savedNestedAndFloatingTable": True}
+            "savedNestedAndFloatingTable": True, **({"distantFieldValues": remote_checks} if remote_fields else {})}
 
 
 def verify_readers(out, baseline, candidate, pages):
@@ -249,15 +290,24 @@ if __name__ == "__main__":
     parser.add_argument("--stories", action="store_true", help="exercise linked first/even/default headers and global page fields")
     parser.add_argument("--grow", action="store_true", help="expand the edited section across fresh pages")
     parser.add_argument("--compare-cli", nargs=2, type=Path, metavar=("BASELINE", "CANDIDATE"))
+    parser.add_argument("--remote-fields", action="store_true", help="verify body page fields before and after a distant edit and numbering restart")
     args = parser.parse_args()
+    if args.remote_fields and not (args.facing and args.grow and args.compare_cli):
+        parser.error("--remote-fields requires --facing, --grow and --compare-cli")
     dest = args.output.resolve()
     dest.mkdir(parents=True, exist_ok=False)
-    report = verify(args.desktop.resolve(), dest, args.grow, args.facing, args.compare_cli[0].resolve() if args.compare_cli else None, args.stories, args.anchors)
+    report = verify(args.desktop.resolve(), dest, args.grow, args.facing, args.compare_cli[0].resolve() if args.compare_cli else None, args.stories, args.anchors, args.remote_fields)
     if args.facing and args.compare_cli:
         saved = dest / "分节 编辑.docx"
         printed = [printed_pages(program.resolve(), saved, dest / f"edited-{i}.pdf") for i,program in enumerate(args.compare_cli)]
         assert printed[0] == printed[1] and len(printed[0]) == report["reopenedPageCount"]
         report["matchingPrintedPages"] = len(printed[0])
+        if args.remote_fields:
+            observed = distant_values(printed[1])
+            report["distantFieldValues"]["saved"] = observed
+            for index, patch in enumerate(report["nativePatches"]):
+                values = report["distantFieldValues"]["original"] if index == 1 else observed
+                assert patch["distantPagesDisplayed"] == [v["physicalPage"] for v in values.values()]
         if args.anchors:
             pages=printed[0]
             continuation=[i+1 for i,p in enumerate(pages) if "Continuation record" in p]

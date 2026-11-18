@@ -1,0 +1,1168 @@
+{
+  "baseline": "577d86b5",
+  "fixture": "70 sections with physical facing-page starts, mirrored margins, a numbering restart, a continued footnote, wrapped drawing, nested floating table and body PAGE/NUMPAGES/SECTION/SECTIONPAGES at sections 1, 23, 38 and 63 (one-based).",
+  "method": "Locate changed body fields using the full-document page and section counts and numbered physical pages. Reflow disjoint owning section groups, verify each former entry, exit and note boundary, and accept a replacement only at the same physical span and numbered exit. Cache the previous verified group only across consecutive edits to the same main section.",
+  "workBounds": {
+    "totalPagesForEditedAndFieldSections": 16,
+    "totalBodyBlocksForEditedAndFieldSections": 256,
+    "outsideBudget": "Use the full paginator. Tests exercise both a sparse pair of distant fields and an edit affecting 15 additional sections; every page and hit index matches full pagination on insert, undo and redo."
+  },
+  "benchmark": "The same source for the release timing loop was compiled against the old and new layout. Three interleaved runs of 20 insertions/deletions per version, recording all individual samples. Baseline proceeds through the normal incremental entry and records the actual full fallbacks. Candidate requires a valid patch each time. Timings include document text mutation and normal layout. Each sample also times a separate direct full pagination; this comparison bypasses baseline lookup and fallback overhead. The first insertion and deletion per run are also checked against fresh full output for all page items, three hits per page, raster bytes and fixed-layout PDF.",
+  "rollback": "Rebuild 577d86b5 for the original working document format and full fallback. If a remote field moves its own exit, a note or linked drawing crosses an unverified boundary, or the combined budget is exceeded, this version still uses full pagination.",
+  "platforms": {
+    "macOS": {
+      "native": {
+        "binarySha256": "affc4e201831a9ca26af6b3f4e585452b982752cb3d653d1c142605797727fea",
+        "sourceSha256": "bdce088611e1bd69d3e98d76f7a5a7e0b7e46aac0c069b7c8d28175020afdae5",
+        "pages": 73,
+        "sections": 70,
+        "numberedNotes": 3,
+        "nativePatches": [
+          {
+            "action": "text.insert",
+            "firstPage": 1,
+            "lastPage": 75,
+            "pageCount": 75,
+            "distantPagesDisplayed": [
+              1,
+              23,
+              43,
+              68
+            ]
+          },
+          {
+            "action": "edit.undo",
+            "firstPage": 1,
+            "lastPage": 75,
+            "pageCount": 73,
+            "distantPagesDisplayed": [
+              1,
+              23,
+              41,
+              66
+            ]
+          },
+          {
+            "action": "edit.redo",
+            "firstPage": 1,
+            "lastPage": 75,
+            "pageCount": 75,
+            "distantPagesDisplayed": [
+              1,
+              23,
+              43,
+              68
+            ]
+          }
+        ],
+        "reopenedPageCount": 75,
+        "savedAndReopened": true,
+        "sourceUnchanged": true,
+        "savedNestedAndFloatingTable": true,
+        "distantFieldValues": {
+          "original": {
+            "0": {
+              "physicalPage": 1,
+              "PAGE": 1,
+              "NUMPAGES": 73,
+              "SECTION": 1,
+              "SECTIONPAGES": 1
+            },
+            "22": {
+              "physicalPage": 23,
+              "PAGE": 23,
+              "NUMPAGES": 73,
+              "SECTION": 23,
+              "SECTIONPAGES": 1
+            },
+            "37": {
+              "physicalPage": 41,
+              "PAGE": 41,
+              "NUMPAGES": 73,
+              "SECTION": 38,
+              "SECTIONPAGES": 1
+            },
+            "62": {
+              "physicalPage": 66,
+              "PAGE": 30,
+              "NUMPAGES": 73,
+              "SECTION": 63,
+              "SECTIONPAGES": 1
+            }
+          },
+          "saved": {
+            "0": {
+              "physicalPage": 1,
+              "PAGE": 1,
+              "NUMPAGES": 75,
+              "SECTION": 1,
+              "SECTIONPAGES": 1
+            },
+            "22": {
+              "physicalPage": 23,
+              "PAGE": 23,
+              "NUMPAGES": 75,
+              "SECTION": 23,
+              "SECTIONPAGES": 1
+            },
+            "37": {
+              "physicalPage": 43,
+              "PAGE": 43,
+              "NUMPAGES": 75,
+              "SECTION": 38,
+              "SECTIONPAGES": 1
+            },
+            "62": {
+              "physicalPage": 68,
+              "PAGE": 30,
+              "NUMPAGES": 75,
+              "SECTION": 63,
+              "SECTIONPAGES": 1
+            }
+          }
+        },
+        "matchingPrintedPages": 75,
+        "continuedNotePages": [
+          39,
+          40,
+          41
+        ],
+        "continuedParagraphs": 54,
+        "anchorSurvivedSave": true,
+        "rasterSha256At48Dpi": [
+          "da774a6ef2097fbb3c571d4edd00c78057307b22652c70ef631e2e887b6db857",
+          "1e2c8fe607aa12cb9f8721959ffe5c40991948a930a189892574fa62ad056a02",
+          "bbb2d52046fe30ca028fc9cec16704608a3971d569489f996341010205657a7d",
+          "590757dc7f2ab18f6524934eb92fe0932d4ca54aa84180a5968f210f32ee4324",
+          "18c5e033ccc433ffb1582ca79c60bed71e297ab83831edbd134353b738489760",
+          "5903ee48bcedbb1d26220e1add55c3da1710ed467fe7a113a461394cd87a10e4",
+          "b47ef79ecffd6fb70bcfffac7469671ca88f92fa207928077b4c063c7afa9fbe",
+          "c3176dc19921e1ac76101015d43856b1abe90af40e561d08d14dd5a9a65d75d2",
+          "5857b93590983a9121fa2d50e1b7012d8b663947de881e1eb2a4ff2ffa60d419",
+          "4cf1caa9fa02f5ac452800c547681c094f4fab8e984ea5ef9d3c16907e2aa764",
+          "a87061f20f76fe8d929ab31858e96e0e3f273bb7e41d91046ae6da6187cd3fc2",
+          "8ccfb153d7e8ac7cba1f2129912511c927f9d93804aaad0a9d51ac9ba10730b6",
+          "2d34d356c2ff3e04fcba470c868b7b5d3e25a2ff18b518bd65483eac8c094a81",
+          "4a8c11aff38ab55320eabfb45f78dd524fe1076d421d8ea3c5fa2cef64d91c57",
+          "8421526b63ddf640b6d7a79a0c9bf4dafff0c5051a1c1348f02f65945b8acbd0",
+          "990038829bda120f8ae3aefcd432db4aa8f4a10883209db148e36d6424f063c4",
+          "5df797bc3d513af37538df22edb859105862686b3aae8a88511341394a62de3f",
+          "134de85c19a9a14884f0efd02be59f0813cbea31dce68c3b835fd2733e80cca4",
+          "a0987d4847d5484c7b0c27426853ba3e971881cd48ad3f8ce8b2833c1f41654d",
+          "4c7548d7a724ffe7a343318cc76b2786c75398fe36caaf12e017ed2d1f586e2e",
+          "25ce2c0c51137c465c25fab76ec7093db7fe428cefe999b260cd6ff9c17c6c7e",
+          "2d02a03e89d53e32ee45737d90d4169c49e7fa48be46f939df8a050278273ef4",
+          "8f9267e0a34f2cdc995cf4c3ca265a2158f2e633962abb79948c8cd2f93c2b04",
+          "709b2ff5eee9b3e2d1452b1d144588531f15fdd55c662cb86f2062b6854f74ec",
+          "27a5a13823141362e949afd395bc5215a42117e7fe6f98e3096a66dafbf1f4f0",
+          "ac2d24f3f60f83f837a3b5733ff1dd13135f063fb92072e3bd5988dd3d48a96a",
+          "f8f0b6ac8ed04936a162204cd4afbd5bf9afc33863c4cbfebcb9daf36f9f2b91",
+          "db33e221d181b2fd6392440d3b9b2df15f1390090ddb2b7648b8c6518d80bcb6",
+          "458ed209f060785f2be42c74caffef4ac87a4bd8d4a3cbfe6a6d62fb64de2b39",
+          "390440e19f26e7c305aee3e617a8feac3ffd45b398f729211a997f6488c0d3dc",
+          "a920b37359eb6f105541c8259efe41e2d23e8320a1233ec7dd9079b0d671bc6b",
+          "8bc7c206e7c8eda4ae0812f03acd466ebcfde0e0931db0a14d8c8efb70e66952",
+          "3ad543d837d023c879d0b2770c27d7b55a468bf0a7e3a1c11bf0cc2dd55cd0c6",
+          "2d842f3cf7ee6ece30036d062d569e494165b027346f0cbc3c9f6a7a3a18a9e0",
+          "322b87c8cd9cfdfadf9203b00a0c4ff9b21f88bb03a0fcb1c47960cab45c7337",
+          "4492ec65c57536a1a6be74c773bb818ced354a8a4a85d8fde58e186cd09a5c50",
+          "a9c6a3c7c0fd6041927d8bea96be58443d9aa47a30140d6f2e34fe737d90461d",
+          "17d8fd149625610776dd6d612c944adf4292ea00176db055ab36a9b4982285d2",
+          "97760a613446277bcbef4db151b45218c49ef157b1b849e6d202d0cb82f20682",
+          "cf77ad1bbc1288066de49f43b1cad210f3e522385b67681f4606bf0c219e7f65",
+          "eff600a31c60c499912853977bce078cb80cfa0b41ad980ab955ec6821bab945",
+          "a5c90e6122e97a1211f70429b4ffc8793670270dfedf56ee04288c2b414038d8",
+          "d60b5acf3697588a14595a04cd9ea46965e598664f6bf40edb0ec1a8fd8302bc",
+          "75ea9ca0177ce34ca194613d3738969d8909e4a3eb5bb52f96bfb7fa6f54d10f",
+          "78fd7f47557e5e23cf4ed1c52f3139e45d26b3bc2b0d4c93f0718cf2cc9b9d93",
+          "82f072539f8d4f89ce9df23696e6adfe9759136a82a5468d78880824bfabad66",
+          "d9161abae0f8acbc0ab7ef0448c73ad53fca65cc55d413e9a099770e3965c8b5",
+          "587bcb35bc3734d2779669780c8c126461469c4a3289944c2830d4403713a6f7",
+          "f68c8ebd8203e7df7f604216742354053bdc03bcfee8df746db459a2a3d5f43d",
+          "e3da9028d722c8d9f736dfddabbed62e23205e5e15a4cadbafb6c9538c7ed155",
+          "48bc152812f9591b6d511d9803361d9e87662be1f90618be37f1abd25f233990",
+          "d713f4bc10e5f4f0147681d40a6ab756c6467a9db18e2b04745fa2a929139902",
+          "5f67c814db5feb67f2f7650afb8949ca8cd5a38d3b93e4bd1581fa6fff3383bc",
+          "11c82034d1783a2efe80e20f1fec3218d72c07a0db686b13032688292b718e19",
+          "01a1d7f4d59f9c8b4bbbe32b5f0aeb7760f2626dfa222c7b8197f5e76b25898f",
+          "8aef7945344b499dc8ddb14f51dc628da4d18ebecc1324fdab831b644112df7d",
+          "898b8f7dd0c637ed906f3bba90610570ca3b35e4ce64729db7d0276a47e8e81c",
+          "d59074819a81625b197c5cad7def313856270f8b8106174e76c6da161e939173",
+          "b2d4653e9098f52257e967dfe64bf4e8ea3abc451c3ee0d26cca3424f088a9df",
+          "bd1f27263432b10b1cdf79fa14f41d86b7dc37db6ea7d6fdb591c74dfb1ed6bc",
+          "59fb3a135643af20e9c36c717f47a4ff96aca9e40c0fc1d74fc2fa4e2030bbfe",
+          "a69fd51e877cee5207a0ff8b80fa854d8c07547d1dbf06c2418b79c0efcb0807",
+          "a8b4595ea52d7ee0493b0b3259ee9b50cdd1034eafa902839c4a822577f56075",
+          "f6496307f5ebd0fc315a33fff1f4be2a84456e8ef64f10d67eb61a7629b95084",
+          "c58407192d8f4a0848a9ec98c1b5f52d2726804e81819e9fc5c8fa4c783300a2",
+          "0de298ea430fcd689acb82fbd8bf13fad5e42b55a2022ca750f3718cf25dd2c0",
+          "153f924af9185bcde87a98584fd8e334dcad5ff7e687413dbcf2eefa78bbe7d9",
+          "254ef8f5411479bcb29c7a9f9fe0e4cbaac09482748133a175650de7a758a810",
+          "12e19609f37f66c6f9218b88ad3dce03f666161c4b3136db4c8850a2089c3bab",
+          "7d9be87cf5492e6f3bff3ffe7abcaa774c74456631096077dfb63b63f484aa9b",
+          "2dfda0ca6898b1dff447101a7a1c6f9d6869c2f7b53e9d20b92ecba16e904f1d",
+          "359387440c051148ddb80c6d9fd5fce8cc38289f1d7be2d26515c829b96420bd",
+          "95fd0a174897d8aa9327dfae963578f37665dddcde3b17eac73d6ccd7a1a5f5f",
+          "b1586642790cc5f84f00f8e56aff657a413920034da741087a5f8490790cd834",
+          "1099a393f03ca2e38b32c8a45ae73ed9e4fae201f09a3d9557deaede026ef96a"
+        ],
+        "everyPageHasCorrectTotal": true,
+        "runningStories": [
+          "default",
+          "even",
+          "first",
+          "inherited",
+          "newDefault",
+          "footer"
+        ],
+        "crossVersion": {
+          "cliSha256": {
+            "baseline": "746da90955b66f17711229dd79872073599a2263cf0184a0e5806107e085e449",
+            "candidate": "e0776473e0bc1e278b5474ad9cf01baf3b3b7bbfb222601cf8e605c7351ff93f"
+          },
+          "writerReaderPairs": [
+            [
+              "baseline",
+              "baseline"
+            ],
+            [
+              "baseline",
+              "candidate"
+            ],
+            [
+              "candidate",
+              "baseline"
+            ],
+            [
+              "candidate",
+              "candidate"
+            ]
+          ],
+          "pageCount": 75,
+          "savedCopyUnchanged": true
+        }
+      },
+      "releaseBenchmark": {
+        "baseline": {
+          "sampleCount": 60,
+          "medianMs": 64.15810400000001,
+          "p95Ms": 104.157291,
+          "runs": [
+            {
+              "allPagesCompared": 148,
+              "hitsCompared": 444,
+              "fallbacks": 20,
+              "editThroughLayoutMs": [
+                77.459834,
+                95.894791,
+                79.471584,
+                54.937374999999996,
+                53.601292,
+                67.22437500000001,
+                65.530208,
+                71.70524999999999,
+                58.469874999999995,
+                90.10374999999999,
+                74.957583,
+                63.598749999999995,
+                57.841166,
+                55.029917,
+                46.89575,
+                48.716083,
+                47.5175,
+                47.151875000000004,
+                44.146375,
+                44.251041
+              ],
+              "directFullMs": [
+                6.181583,
+                2.672042,
+                4.100582999999999,
+                2.296292,
+                4.291167000000001,
+                3.864208,
+                3.1379580000000002,
+                3.2954999999999997,
+                4.123167,
+                4.54025,
+                4.7708330000000005,
+                3.9200839999999997,
+                4.137875,
+                2.053625,
+                2.8032500000000002,
+                2.08625,
+                2.944084,
+                1.9997090000000002,
+                2.9495419999999997,
+                2.065084
+              ]
+            },
+            {
+              "allPagesCompared": 148,
+              "hitsCompared": 444,
+              "fallbacks": 20,
+              "editThroughLayoutMs": [
+                64.404375,
+                60.845291,
+                51.690292,
+                60.322584,
+                58.637916,
+                53.413166,
+                53.758916,
+                60.300792,
+                55.270374999999994,
+                52.232958,
+                45.813,
+                57.958959,
+                58.647999999999996,
+                59.379041,
+                55.954542000000004,
+                63.911833,
+                57.885583,
+                70.739958,
+                63.42995799999999,
+                70.235791
+              ],
+              "directFullMs": [
+                8.555292000000001,
+                2.843458,
+                3.3725,
+                3.8655,
+                4.381333000000001,
+                2.3097920000000003,
+                2.909208,
+                3.5975,
+                3.258625,
+                2.244042,
+                3.362584,
+                2.185708,
+                3.738125,
+                3.339708,
+                3.525417,
+                2.701542,
+                3.754541,
+                2.893958,
+                3.999,
+                2.7966670000000002
+              ]
+            },
+            {
+              "allPagesCompared": 148,
+              "hitsCompared": 444,
+              "fallbacks": 20,
+              "editThroughLayoutMs": [
+                73.99745800000001,
+                68.868292,
+                73.48908399999999,
+                69.137125,
+                78.652333,
+                81.02779100000001,
+                83.134083,
+                99.399917,
+                94.498791,
+                171.659042,
+                150.809792,
+                175.390875,
+                100.2315,
+                93.360208,
+                104.157291,
+                92.516625,
+                83.2435,
+                98.650417,
+                57.476167000000004,
+                73.548209
+              ],
+              "directFullMs": [
+                7.872832999999999,
+                2.694292,
+                3.673417,
+                2.630458,
+                6.227125,
+                2.257667,
+                7.150458,
+                5.886,
+                3.006208,
+                5.353,
+                7.465584,
+                9.234792,
+                5.215542,
+                7.42175,
+                4.397958,
+                5.879792,
+                6.913833,
+                3.264625,
+                3.599,
+                3.0165
+              ]
+            }
+          ]
+        },
+        "candidate": {
+          "sampleCount": 60,
+          "medianMs": 2.7979374999999997,
+          "p95Ms": 5.638083,
+          "runs": [
+            {
+              "allPagesCompared": 148,
+              "hitsCompared": 444,
+              "fallbacks": 0,
+              "editThroughLayoutMs": [
+                8.887832999999999,
+                3.64975,
+                2.93925,
+                1.8363749999999999,
+                2.735708,
+                1.885708,
+                2.7052080000000003,
+                1.67975,
+                2.612542,
+                1.865834,
+                3.018417,
+                1.796208,
+                2.974875,
+                1.554791,
+                2.672458,
+                1.799417,
+                2.793292,
+                1.787666,
+                3.047916,
+                1.8994579999999999
+              ],
+              "directFullMs": [
+                5.854500000000001,
+                2.25125,
+                3.453625,
+                2.329792,
+                3.379792,
+                2.393458,
+                3.31,
+                2.246167,
+                3.3457500000000002,
+                2.301875,
+                3.204958,
+                2.37325,
+                3.243166,
+                2.539625,
+                3.3014170000000003,
+                2.521208,
+                3.81825,
+                2.451833,
+                3.32325,
+                2.773292
+              ]
+            },
+            {
+              "allPagesCompared": 148,
+              "hitsCompared": 444,
+              "fallbacks": 0,
+              "editThroughLayoutMs": [
+                9.375875,
+                5.100333,
+                3.0344170000000004,
+                2.6994160000000003,
+                3.036833,
+                2.0496659999999998,
+                3.006542,
+                2.113583,
+                3.4433749999999996,
+                2.063,
+                3.1575,
+                1.967,
+                3.312167,
+                1.8442910000000001,
+                3.1202080000000003,
+                2.309917,
+                2.604833,
+                2.404875,
+                2.924875,
+                1.908292
+              ],
+              "directFullMs": [
+                6.55125,
+                2.448625,
+                3.79225,
+                2.55075,
+                3.5199160000000003,
+                2.6778750000000002,
+                3.649584,
+                2.376542,
+                3.697417,
+                2.867333,
+                3.691,
+                2.6345829999999997,
+                3.8461250000000002,
+                2.703666,
+                4.0130419999999996,
+                2.9224170000000003,
+                3.64825,
+                2.81175,
+                3.793,
+                2.188583
+              ]
+            },
+            {
+              "allPagesCompared": 148,
+              "hitsCompared": 444,
+              "fallbacks": 0,
+              "editThroughLayoutMs": [
+                16.617041,
+                4.087000000000001,
+                2.602541,
+                1.5731670000000002,
+                2.492625,
+                1.66825,
+                2.689042,
+                3.362041,
+                4.048,
+                3.618417,
+                3.218291,
+                2.802583,
+                3.4245,
+                3.329875,
+                3.835125,
+                3.8134580000000002,
+                5.638083,
+                1.601583,
+                3.350792,
+                2.9895
+              ],
+              "directFullMs": [
+                9.688459,
+                2.254166,
+                2.925667,
+                2.079292,
+                2.983,
+                2.176666,
+                5.250333,
+                3.346833,
+                6.13975,
+                4.491084,
+                4.221375,
+                3.25175,
+                4.497916,
+                4.198208999999999,
+                6.585792,
+                2.741708,
+                4.268792,
+                2.334667,
+                3.2885,
+                2.374708
+              ]
+            }
+          ]
+        }
+      },
+      "product": {
+        "passed": 3696,
+        "failed": 0,
+        "ignored": 2
+      },
+      "desktopUI": {
+        "passed": 78,
+        "failed": 0,
+        "ignored": 0
+      },
+      "spdx": {
+        "target": "aarch64-apple-darwin",
+        "packages": 513,
+        "sourceFiles": 1074,
+        "spdxSha256": "352da3163a49aa4132ee1173493424fcabcf3a4c5c11544e082f490410ae8d7b",
+        "missingLicenseTexts": [],
+        "sharedCrates": [
+          "joyoffice-cfb",
+          "joyoffice-drawingml",
+          "joyoffice-fonts",
+          "joyoffice-metafile",
+          "joyoffice-omml",
+          "joyoffice-opc",
+          "joyoffice-theme",
+          "joyoffice-ui"
+        ],
+        "runtimeLegacyDependencies": [
+          "craft-atomic",
+          "craft-font-store",
+          "craft-proof"
+        ]
+      },
+      "finalExampleFallbacks": 0
+    },
+    "UOS25": {
+      "native": {
+        "binarySha256": "3058cc7df52c08ed6f2e2dfb61bcfdf0413a3e8d62c922cd5b93dbbcb1c6e72a",
+        "sourceSha256": "bdce088611e1bd69d3e98d76f7a5a7e0b7e46aac0c069b7c8d28175020afdae5",
+        "pages": 73,
+        "sections": 70,
+        "numberedNotes": 3,
+        "nativePatches": [
+          {
+            "action": "text.insert",
+            "firstPage": 1,
+            "lastPage": 77,
+            "pageCount": 77,
+            "distantPagesDisplayed": [
+              1,
+              23,
+              45,
+              70
+            ]
+          },
+          {
+            "action": "edit.undo",
+            "firstPage": 1,
+            "lastPage": 77,
+            "pageCount": 73,
+            "distantPagesDisplayed": [
+              1,
+              23,
+              41,
+              66
+            ]
+          },
+          {
+            "action": "edit.redo",
+            "firstPage": 1,
+            "lastPage": 77,
+            "pageCount": 77,
+            "distantPagesDisplayed": [
+              1,
+              23,
+              45,
+              70
+            ]
+          }
+        ],
+        "reopenedPageCount": 77,
+        "savedAndReopened": true,
+        "sourceUnchanged": true,
+        "savedNestedAndFloatingTable": true,
+        "distantFieldValues": {
+          "original": {
+            "0": {
+              "physicalPage": 1,
+              "PAGE": 1,
+              "NUMPAGES": 73,
+              "SECTION": 1,
+              "SECTIONPAGES": 1
+            },
+            "22": {
+              "physicalPage": 23,
+              "PAGE": 23,
+              "NUMPAGES": 73,
+              "SECTION": 23,
+              "SECTIONPAGES": 1
+            },
+            "37": {
+              "physicalPage": 41,
+              "PAGE": 41,
+              "NUMPAGES": 73,
+              "SECTION": 38,
+              "SECTIONPAGES": 1
+            },
+            "62": {
+              "physicalPage": 66,
+              "PAGE": 30,
+              "NUMPAGES": 73,
+              "SECTION": 63,
+              "SECTIONPAGES": 1
+            }
+          },
+          "saved": {
+            "0": {
+              "physicalPage": 1,
+              "PAGE": 1,
+              "NUMPAGES": 77,
+              "SECTION": 1,
+              "SECTIONPAGES": 1
+            },
+            "22": {
+              "physicalPage": 23,
+              "PAGE": 23,
+              "NUMPAGES": 77,
+              "SECTION": 23,
+              "SECTIONPAGES": 1
+            },
+            "37": {
+              "physicalPage": 45,
+              "PAGE": 45,
+              "NUMPAGES": 77,
+              "SECTION": 38,
+              "SECTIONPAGES": 1
+            },
+            "62": {
+              "physicalPage": 70,
+              "PAGE": 30,
+              "NUMPAGES": 77,
+              "SECTION": 63,
+              "SECTIONPAGES": 1
+            }
+          }
+        },
+        "matchingPrintedPages": 77,
+        "continuedNotePages": [
+          40,
+          41,
+          42
+        ],
+        "continuedParagraphs": 54,
+        "anchorSurvivedSave": true,
+        "rasterSha256At48Dpi": [
+          "2b99a81bd44cd025457781d03adfa82d7cc0736c34a8953c30f9f79a25822c51",
+          "fe09006de32fe3321116ae06497fb56ad2391538034fa3afe89cde002b189ccb",
+          "c7f156dec4b4be212cd3439813820a8b92533f6394eb0855ace348cf1fc5afba",
+          "009917203e9b7e03bca18b46649e1ed3abb8647fe717d81c7c4d234df1606e35",
+          "431e1f5c26af793fe16a8a054aad00b7c63a16d3ca5e4150dc95bacf5142e933",
+          "75c9b311ea8b69014cd25d0baae7c67c8a26787092feae4a119e46d6782eb013",
+          "b1adbcf13f0683811f709aa4f7d878145a93243a6221aa9728da2354e5e62440",
+          "29965ccae78408a8d1f0923dbc61e4ee27c60d221940394a0785b5b8ff3cf449",
+          "51d66385d06584c63c2638cdebb97425a66d04963449dc5fa49d72f66e026122",
+          "b8dafde7a49f6f41fb1495aa3634cea24d9c261f609706d5abe4071073c65a72",
+          "3a1f720910d7232f1e415ff6a6ffb564593a8dbd9ee73eab742879e073c5c407",
+          "cc0fec03f2a59aa5a14bdc761e87b3dd5ebbc4056896479d050a9c872e79f6e8",
+          "55c9438ccb25c8a045313f96cbe1510568a539908efdef103cc690c70ee1f287",
+          "b6f07b2ef96af0a27dac8743ec8d26c748452c738f28129e3948f1c6ce28c5fe",
+          "5165bd659c2577f5a88a78d18e8ed1d3cf88afdcf217d0b58549c9420f9e1370",
+          "5994987cd84a06439df32bbc215af1244a395cf977d8001dd4256d9479775c1d",
+          "d31ae935e564e3007f530a00b126c47dcd439dc795a8ca7cd4cb4156c03c8488",
+          "4a83f32ca53f0781159d43e6ef0977b03ede82cac1dfbecb17a15b29f8d304a3",
+          "6fc5a6ad544df4e2ff14e7e5a0f0d352cf130fcc9df1ab5cb27a26af5fe8d71b",
+          "f09736f1b7da98986de7371643b6b1396eb286e946be8b999c0f6b3c3067b0c4",
+          "71c6b12a536d58781f190528151be71c17cb3374c6f21cfb6b931f2eaa3acb0e",
+          "32ccc3cebf6eecaeb5a4d0144413f97c50326bfc28028f143461a870df79cc66",
+          "ff9fad85a22ca4c4e446278ade2c4aa3df2237934b321fe6bfc2f527d8859241",
+          "d8fdf3e36eedf428854c20285e22a30ad14f8fb7a8fcf3a8c7b5d6e01873e9f6",
+          "27c5dbb3a62005530056473c00c3c87ee8939914852d0d43641954fafc8e54d5",
+          "458869fbfd1e3c536ced2b92e1873c12c59098b7740a3251bfdf38d3ccb82d85",
+          "bcbeef75bdd4787e5635722cad7ab89da70bd52de251b40e6daf2874ee42b57d",
+          "7e4fb181f2aa879cf9c42e30682dfee9e37f22516561e420307aa8421a9f425e",
+          "88d4a9a653bfd7d68d6192d804b5a7e1454b5de4add21cd55a281f627e5a377d",
+          "09003f8c35726cda93fd4d0379bd68f2b95efaf708093e5b0d6099944270194f",
+          "fbc73ff93f43239c21e19233259ae30367c66fd09d7c04e6eb5abfe5427ffc18",
+          "64583226695fba5bc64eb6aa26968f488fb93b487acd71d6029f765d9d6b0fbb",
+          "ac79087be75dc95dd430e9b02a03564b2e941fc058f2d44c2ca61c5f0d2b9dd7",
+          "87080d170005684680554563ab9ef12b6f45a2615ae9a762fffa6b1e7c4f07a1",
+          "b52a9514b2e028d6aefc03628ddd06beaaf4fcd03e0bf2fda4ad989f23fb6e8a",
+          "137d9d1b3813e3742eff66ec37b081c1bb27faf51109115a19e0d2276dff21c0",
+          "e3d1c89481671f0f895cfbf05a280f493b217dc054476f5c56b51bfce7dc7f1a",
+          "d02b88ad6fed9216d1cea92d0f85509bf58e3294e1227a0c4ac5daa18205900c",
+          "c9a8d535df42d948194dbe23f4771a9bb20b849712869e366982f1be03212447",
+          "1ad2aad62e86a7e2604fb8ef9e55a85a4b0ed658fc1192a5f6e15650d9a82adf",
+          "a3c2d501e98074c060d0a8492678214788f788caca9820aeb21c7f42b11ffc29",
+          "635043b8ebd4c5fa3eb18d7eda132588d800c78b3946f2110e00d2d710fbb467",
+          "a4250c4a049d993cdef37d8d631ab8caf94c571a4c2657eba2464507a83b9c41",
+          "796ee29edbe2575bbbbbae2c948f6de35428933b47810b4a37246c517e473b60",
+          "58f680c38c20c1fa63be5b344c1fb08e380c4908ce31bde184b7b4e4806c032c",
+          "51e673bd58fab6542159c414fbc81862f253044a3923b35c492abaa7d232e5b0",
+          "f591c463813b610e3467adf642cbd7bbb0c00c32367aa3375470b9425528ef53",
+          "f2198942f989251133afd8cb8cf50f2d2b1340657cf82e70c4940565adb2cc21",
+          "6b274201a441088a0cee9a4deea7fa251c39fab6204cab647020dcecd9528e73",
+          "1591585cda9d16b6f539aa3cac37bd60fa9f610458611bf612dab280be535c35",
+          "7c74829535bed6d7b43a7802063987e9dd6ec5a13b6e6c22f0212ed82fa2abaa",
+          "4130769034b2f5f2b89627b06d5c49a2069f1ea9c028409ef94e6e85bbac6ba0",
+          "edec377eac83ef7eadf6568ab2b6073fdb158e80d6676346e6e4793f9fd18c20",
+          "2bead8fef88eb4a66876f7bfa57c59ec9ce52fbda0db1be2632d04210afa462c",
+          "a0322298f0e324b2c79a685d31ad8be09a04be53f4701aff10ed9b789d5cd8d9",
+          "387f436aa2093610b1e658e09528b3716d5f01983607fd25a6b995af4a12caf3",
+          "78cce0b2b49175be8ce456f6c4d15f3b4bb97ac51cf4bb8c71d88ae40984d20a",
+          "46c1b1853100ad27631d43a4b311cc11b401a7c51ade02fc1dfa01226d5245d6",
+          "a068dd44af0d1ab6deee76c2c80db1e1f4d9139a98aa04c5667a63127d3df8d8",
+          "75bc29845ab23bcf2a573e4caebb69b6c2bb5d3a37f3812e91da577828645a5b",
+          "e991414b3a201a4a9cc666c8f6a55e0c9f3519376165d9298e0f6a97cdb622c0",
+          "76481a01c092d387f2d452cdf71c5c8a65c4edab497bf8aa32c495797bb97121",
+          "aa400d270ca31ef448443540ef16d12e38b8f439dabe2cbcd6cee19a8657cea3",
+          "1e04f7b322ed3d7a1c1c0fe23e9d3f33ed3bf109c2ad98da35376ca3f6c97783",
+          "8f079a419f273daabca86d65d5f44635b5ace8a1eefc76a942eb53d026a61ee1",
+          "67f2ed7bfd4631ff85a7a1c56244576da16b979c1f0b8a71950ee778633047fa",
+          "b5bf41ebfdd5cc5338eefcd09a0a1921d8225b7fe1050d17c9b6be4eba6f60a3",
+          "93f9de05672f1f8302c41f6deeaae856a618ff2664b2a61228b6d040bbdaa0e0",
+          "9f5b27f40d1ecf715708d2820131a119198d6001e1d917836b1f76f76cfd7c1c",
+          "d9d5485af4bab2a8e48fb35930cb04379ef38cc58efba64dea2de53338e4dd19",
+          "23c260af7ac9597a68df01dbd90265cc898e27a9fdd84716ec15faba1f159f2b",
+          "f60fa5ea37bb4b4a3df6fffbf8f647a0ce555d83292d8d313a8b9252235ae057",
+          "72543929f786029619ad9166e1fb03269e27858d3028e9c977172275818cc728",
+          "0b229fb94f7891184f5051ede2260d2a77010abf271863287597075ac48bbc0a",
+          "b303077eeb99105ce4ddb7d3138e9f20346b9b9aa6b01b11e92bebbc8bdc2a47",
+          "865f57eb96d162ce7f6e100dcb41eac6d2ec06ecbc4adc5a9469dea71891e531",
+          "fd527636036448b396b812616a97673f16e0153869959839c0667ef6212352ce"
+        ],
+        "everyPageHasCorrectTotal": true,
+        "runningStories": [
+          "default",
+          "even",
+          "first",
+          "inherited",
+          "newDefault",
+          "footer"
+        ],
+        "crossVersion": {
+          "cliSha256": {
+            "baseline": "81946371cb03a7b5ac3954a26e651294e808a3d8a5116a33ac4f304b1ae1eb50",
+            "candidate": "9ca02a782ef1a8e3e1985dde59ae64ba60c93a2dbeecd56607314cc4d9eb3813"
+          },
+          "writerReaderPairs": [
+            [
+              "baseline",
+              "baseline"
+            ],
+            [
+              "baseline",
+              "candidate"
+            ],
+            [
+              "candidate",
+              "baseline"
+            ],
+            [
+              "candidate",
+              "candidate"
+            ]
+          ],
+          "pageCount": 77,
+          "savedCopyUnchanged": true
+        }
+      },
+      "releaseBenchmark": {
+        "baseline": {
+          "sampleCount": 60,
+          "medianMs": 60.831050000000005,
+          "p95Ms": 66.41585699999999,
+          "runs": [
+            {
+              "allPagesCompared": 150,
+              "hitsCompared": 450,
+              "fallbacks": 20,
+              "editThroughLayoutMs": [
+                61.641735000000004,
+                64.775931,
+                61.323285999999996,
+                59.385514,
+                56.678174,
+                59.763501,
+                54.319348000000005,
+                58.844391,
+                57.508364,
+                68.016372,
+                61.344707,
+                64.0428,
+                58.210460999999995,
+                65.061481,
+                57.537457,
+                61.854132,
+                58.085302999999996,
+                66.112381,
+                59.433163,
+                58.62858
+              ],
+              "directFullMs": [
+                8.953411999999998,
+                2.3412149999999996,
+                3.523173,
+                2.539736,
+                4.354593,
+                2.334803,
+                3.877587,
+                3.029606,
+                4.93037,
+                4.300786,
+                4.761063,
+                3.5707690000000003,
+                3.6306480000000003,
+                2.3808570000000002,
+                3.815916,
+                2.476821,
+                4.526928000000001,
+                2.4439919999999997,
+                4.547454999999999,
+                2.317231
+              ]
+            },
+            {
+              "allPagesCompared": 150,
+              "hitsCompared": 450,
+              "fallbacks": 20,
+              "editThroughLayoutMs": [
+                70.548996,
+                60.771707,
+                68.063921,
+                63.471745,
+                61.368262,
+                62.867166000000005,
+                58.586125,
+                60.476220999999995,
+                58.088111,
+                62.125198,
+                59.16093,
+                61.683955,
+                58.535103,
+                61.204353000000005,
+                60.890393,
+                62.305725,
+                59.15484,
+                64.121797,
+                62.216605,
+                63.06168099999999
+              ],
+              "directFullMs": [
+                10.149826000000001,
+                2.6340470000000002,
+                3.968292,
+                2.4810890000000003,
+                3.888197,
+                2.457937,
+                4.718395999999999,
+                2.890163,
+                3.888337,
+                2.450173,
+                3.945451,
+                2.473836,
+                4.55051,
+                2.3752560000000003,
+                3.900208,
+                2.467916,
+                4.106363,
+                2.577504,
+                4.229297,
+                2.575771
+              ]
+            },
+            {
+              "allPagesCompared": 150,
+              "hitsCompared": 450,
+              "fallbacks": 20,
+              "editThroughLayoutMs": [
+                63.57882099999999,
+                66.41585699999999,
+                57.1629,
+                60.998571,
+                57.735421,
+                64.23044399999999,
+                60.978795000000005,
+                65.26950500000001,
+                62.228207,
+                60.026256000000004,
+                58.64216,
+                60.165879,
+                58.350039,
+                60.722531000000004,
+                57.047942,
+                62.495503,
+                56.437934000000006,
+                58.745809,
+                55.672352000000004,
+                58.422008999999996
+              ],
+              "directFullMs": [
+                7.855256999999999,
+                3.175561,
+                4.078803,
+                2.383842,
+                3.8352809999999997,
+                2.6037019999999997,
+                4.2657229999999995,
+                2.63016,
+                4.123675,
+                2.559361,
+                4.918399,
+                2.461463,
+                3.930704,
+                2.3765599999999996,
+                4.515417,
+                2.497309,
+                3.892063,
+                2.4187760000000003,
+                3.9883389999999994,
+                2.389342
+              ]
+            }
+          ]
+        },
+        "candidate": {
+          "sampleCount": 60,
+          "medianMs": 3.0954355,
+          "p95Ms": 6.136593,
+          "runs": [
+            {
+              "allPagesCompared": 150,
+              "hitsCompared": 450,
+              "fallbacks": 0,
+              "editThroughLayoutMs": [
+                12.849232,
+                4.422367,
+                3.62065,
+                1.8700990000000002,
+                3.5386010000000003,
+                1.71106,
+                3.105143,
+                1.846797,
+                3.171995,
+                1.786948,
+                3.3199430000000003,
+                1.708785,
+                3.085728,
+                1.9576569999999998,
+                3.122755,
+                1.6813360000000002,
+                3.260014,
+                1.670015,
+                3.040415,
+                1.7751460000000001
+              ],
+              "directFullMs": [
+                8.106492999999999,
+                3.3293009999999996,
+                3.9736520000000004,
+                2.389883,
+                3.844938,
+                2.233138,
+                3.5449729999999997,
+                2.1762449999999998,
+                3.4190840000000002,
+                2.1082509999999997,
+                3.660774,
+                2.137034,
+                3.609129,
+                2.334974,
+                3.790879,
+                2.156379,
+                3.570499,
+                2.124892,
+                3.3683419999999997,
+                2.118841
+              ]
+            },
+            {
+              "allPagesCompared": 150,
+              "hitsCompared": 450,
+              "fallbacks": 0,
+              "editThroughLayoutMs": [
+                14.200718,
+                4.85857,
+                3.392646,
+                1.764877,
+                3.447004,
+                1.928375,
+                3.3617500000000002,
+                1.9705009999999998,
+                3.1215829999999998,
+                1.630153,
+                3.4167300000000003,
+                1.7301440000000001,
+                3.179078,
+                1.9590200000000002,
+                3.437497,
+                2.054945,
+                3.671303,
+                1.798819,
+                3.344308,
+                1.714787
+              ],
+              "directFullMs": [
+                8.276100999999999,
+                2.672487,
+                3.695466,
+                2.408898,
+                3.93415,
+                2.431298,
+                4.659949,
+                2.277079,
+                3.558127,
+                2.433703,
+                3.720291,
+                2.292817,
+                4.331061,
+                2.400583,
+                3.831904,
+                2.926568,
+                4.011901,
+                2.218692,
+                3.700114,
+                2.171517
+              ]
+            },
+            {
+              "allPagesCompared": 150,
+              "hitsCompared": 450,
+              "fallbacks": 0,
+              "editThroughLayoutMs": [
+                12.240236,
+                6.136593,
+                3.4853140000000002,
+                1.743318,
+                3.146669,
+                1.805903,
+                3.120762,
+                1.8022850000000001,
+                3.2126390000000002,
+                1.770738,
+                3.0317,
+                2.116026,
+                3.219572,
+                1.795253,
+                3.2060869999999997,
+                1.791977,
+                3.1643410000000003,
+                1.824245,
+                3.1296779999999997,
+                1.740934
+              ],
+              "directFullMs": [
+                8.038649999999999,
+                4.920533000000001,
+                3.690508,
+                2.237697,
+                4.03843,
+                2.188577,
+                3.461671,
+                2.5038199999999997,
+                3.476629,
+                2.110256,
+                3.982679,
+                2.181895,
+                3.454669,
+                2.5967189999999998,
+                3.506262,
+                2.110436,
+                3.940041,
+                2.117348,
+                3.6696099999999996,
+                2.538274
+              ]
+            }
+          ]
+        }
+      },
+      "product": {
+        "passed": 3700,
+        "failed": 0,
+        "ignored": 2
+      },
+      "desktopUI": {
+        "passed": 82,
+        "failed": 0,
+        "ignored": 0
+      },
+      "spdx": {
+        "target": "x86_64-unknown-linux-gnu",
+        "packages": 602,
+        "sourceFiles": 1079,
+        "spdxSha256": "36750aaa83835ae29cf0b319ea7e2e59a0e967cdf428b190440ce74f173bbff8",
+        "missingLicenseTexts": [],
+        "sharedCrates": [
+          "joyoffice-cfb",
+          "joyoffice-drawingml",
+          "joyoffice-fonts",
+          "joyoffice-metafile",
+          "joyoffice-omml",
+          "joyoffice-opc",
+          "joyoffice-theme",
+          "joyoffice-ui"
+        ],
+        "runtimeLegacyDependencies": [
+          "craft-atomic",
+          "craft-font-store",
+          "craft-proof"
+        ]
+      },
+      "finalExampleFallbacks": 0
+    }
+  }
+}
