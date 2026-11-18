@@ -9,7 +9,10 @@
 use std::cmp::Ordering;
 use std::collections::HashMap;
 
-use joysheet_core::{Array, CellError, Value, sort_compare};
+use joysheet_core::{Array, CellError, Value};
+
+mod selection;
+use selection::{filter, sort, sortby, unique};
 
 use crate::util::{A, MAX_CELLS, R, arg, array_val, as_array, has, num, opt_bool, scalar};
 use crate::{Arg, Ctx, FnSpec, VAR};
@@ -19,11 +22,7 @@ use crate::{Arg, Ctx, FnSpec, VAR};
 
 /// Argument `i` as an owned array; error values propagate.
 fn arr_arg(args: &[Arg], i: usize) -> R<Array> {
-    let v = &arg(args, i)?.value;
-    if let Value::Error(e) = v {
-        return Err(*e);
-    }
-    Ok(as_array(v).into_owned())
+    selection::input(args, i).map(std::borrow::Cow::into_owned)
 }
 
 fn rows_of(a: &Array) -> Vec<Vec<Value>> {
@@ -107,46 +106,11 @@ fn truthy(v: &Value) -> R<bool> {
 // ---------------------------------------------------------------------------------------------
 // FILTER / SORT / SORTBY / UNIQUE
 
-fn filter(args: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    let a = arr_arg(args, 0)?;
-    let inc = arr_arg(args, 1)?;
-    let keep_rows = inc.cols == 1 && inc.rows == a.rows;
-    let keep_cols = !keep_rows && inc.rows == 1 && inc.cols == a.cols;
-    if !keep_rows && !keep_cols {
-        return Err(CellError::Value);
-    }
-    let flags: Vec<bool> = inc.data.iter().map(truthy).collect::<R<_>>()?;
-    let grid = rows_of(&a);
-    let out: Vec<Vec<Value>> = if keep_rows {
-        grid.into_iter().zip(flags.iter()).filter(|(_, f)| **f).map(|(r, _)| r).collect()
-    } else {
-        grid.into_iter().map(|r| r.into_iter().zip(flags.iter()).filter(|(_, f)| **f).map(|(v, _)| v).collect::<Vec<_>>()).collect()
-    };
-    if out.is_empty() || out.iter().all(Vec::is_empty) {
-        if has(args, 2) {
-            return Ok(arg(args, 2)?.value.clone());
-        }
-        return Err(CellError::Calc);
-    }
-    from_rows(out, &Value::Empty)
-}
-
 /// Compares two key vectors with per-key orders (1 ascending, -1 descending).
 fn cmp_keys(a: &[Value], b: &[Value], orders: &[i64]) -> Ordering {
     for (i, ord) in orders.iter().enumerate() {
         let (Some(x), Some(y)) = (a.get(i), b.get(i)) else { continue };
-        let o = sort_compare(x, y);
-        let o = if *ord < 0 {
-            // Blanks stay last even when descending.
-            match (x, y) {
-                (Value::Empty, Value::Empty) => Ordering::Equal,
-                (Value::Empty, _) => Ordering::Greater,
-                (_, Value::Empty) => Ordering::Less,
-                _ => o.reverse(),
-            }
-        } else {
-            o
-        };
+        let o = selection::ordered(x, y, *ord);
         if o != Ordering::Equal {
             return o;
         }
@@ -163,95 +127,6 @@ fn int_list(v: &Value) -> R<Vec<i64>> {
             if !n.is_finite() || n.abs() > 1e15 { Err(CellError::Value) } else { Ok(n.trunc() as i64) }
         })
         .collect()
-}
-
-fn sort(args: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    let a = arr_arg(args, 0)?;
-    let by_col = opt_bool(args, 3, false)?;
-    let a = if by_col { a.transpose() } else { a };
-    let idx = if has(args, 1) { int_list(&arg(args, 1)?.value)? } else { vec![1] };
-    let ord = if has(args, 2) { int_list(&arg(args, 2)?.value)? } else { vec![1] };
-    if idx.is_empty() || idx.iter().any(|&i| i < 1 || i as usize > a.cols) || ord.iter().any(|&o| o != 1 && o != -1) {
-        return Err(CellError::Value);
-    }
-    if ord.len() > 1 && ord.len() != idx.len() {
-        return Err(CellError::Value);
-    }
-    let orders: Vec<i64> = (0..idx.len()).map(|i| *ord.get(i).or(ord.first()).unwrap_or(&1)).collect();
-    let mut lines: Vec<(Vec<Value>, Vec<Value>)> =
-        rows_of(&a).into_iter().map(|r| (idx.iter().map(|&i| r.get(i as usize - 1).cloned().unwrap_or(Value::Empty)).collect(), r)).collect();
-    lines.sort_by(|x, y| cmp_keys(&x.0, &y.0, &orders));
-    let out = Array::new(a.rows, a.cols, lines.into_iter().flat_map(|(_, r)| r).collect()).ok_or(CellError::Calc)?;
-    Ok(Value::from(if by_col { out.transpose() } else { out }))
-}
-
-fn sortby(args: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    let a = arr_arg(args, 0)?;
-    let mut keys: Vec<Array> = Vec::new();
-    let mut orders: Vec<i64> = Vec::new();
-    let mut i = 1;
-    while i < args.len() {
-        keys.push(arr_arg(args, i)?);
-        let o = if has(args, i + 1) { num(args, i + 1)?.trunc() as i64 } else { 1 };
-        if o != 1 && o != -1 {
-            return Err(CellError::Value);
-        }
-        orders.push(o);
-        i += 2;
-    }
-    let first = keys.first().ok_or(CellError::Value)?;
-    let by_rows = first.cols == 1 && first.rows == a.rows;
-    let by_cols = !by_rows && first.rows == 1 && first.cols == a.cols;
-    if !by_rows && !by_cols {
-        return Err(CellError::Value);
-    }
-    for k in &keys {
-        let ok = if by_rows { k.cols == 1 && k.rows == a.rows } else { k.rows == 1 && k.cols == a.cols };
-        if !ok {
-            return Err(CellError::Value);
-        }
-    }
-    let base = if by_rows { a } else { a.transpose() };
-    let mut lines: Vec<(Vec<Value>, Vec<Value>)> = rows_of(&base)
-        .into_iter()
-        .enumerate()
-        .map(|(r, row)| (keys.iter().map(|k| k.data.get(r).cloned().unwrap_or(Value::Empty)).collect(), row))
-        .collect();
-    lines.sort_by(|x, y| cmp_keys(&x.0, &y.0, &orders));
-    let out = Array::new(base.rows, base.cols, lines.into_iter().flat_map(|(_, r)| r).collect()).ok_or(CellError::Calc)?;
-    Ok(Value::from(if by_rows { out } else { out.transpose() }))
-}
-
-fn unique(args: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    let a = arr_arg(args, 0)?;
-    let by_col = opt_bool(args, 1, false)?;
-    let once = opt_bool(args, 2, false)?;
-    let base = if by_col { a.transpose() } else { a };
-    let lines = rows_of(&base);
-    let mut counts: HashMap<String, usize> = HashMap::new();
-    for l in &lines {
-        *counts.entry(row_key(l)).or_insert(0) += 1;
-    }
-    let mut seen = std::collections::HashSet::new();
-    let mut out = Vec::new();
-    for l in lines {
-        let k = row_key(&l);
-        let c = counts.get(&k).copied().unwrap_or(0);
-        if once && c != 1 {
-            continue;
-        }
-        if seen.insert(k) {
-            out.push(l);
-        }
-    }
-    if out.is_empty() {
-        return Err(CellError::Calc);
-    }
-    let v = from_rows(out, &Value::Empty)?;
-    if by_col && let Value::Array(arr) = &v {
-        return Ok(Value::from(arr.transpose()));
-    }
-    Ok(v)
 }
 
 // ---------------------------------------------------------------------------------------------

@@ -185,3 +185,11 @@ macOS 与 UOS 真机均通过 87 组文字框和连接点坐标对照。独立�
 Word 的桌面、CLI、缓存索引和安装入口现共用宿主编写的索引与包内容读取器。索引保留发行顺序，一次遍历检查语言标签、摘要、容量、来源与重复项。安装器按 tar 成员名识别词典、模式与许可文件，在临时目录逐个写入并核对清单声明。现有 tar、TOML、JSON 和 Zstandard 库负责通用格式解码。多个 Zstandard 帧共享同一个解码工作区。压缩包 128 MiB、单成员 64 MiB、总内容 256 MiB 和条目数等预算继续生效，尾部 tar 填充也纳入解压预算。[实现](../../../../third-party/craft-libs/font-store/src/language_packs/contents.rs) · [RFC 8878 的帧结构](https://www.rfc-editor.org/rfc/rfc8878.html#section-3.1)
 
 两个平台各用发行索引和全部 75 个包做新旧版交替安装、覆盖、读取和卸载。每端逐一对照 569 个文件的摘要，其中包含 276 个许可文件。真实桌面另下载荷兰语包，核对安装及卸载前后的分页和原始文档。专项回归覆盖 1,024 项索引的顺序与边界、跨帧读取、目录项、便携文件名、重复条目、保留未知清单字段及超过 1 MiB 的有效清单。正式档案字节和新旧版安装清单保持兼容。macOS 与 UOS 的 Word 产品回归分别通过 3,679 与 3,683 项，存储库各通过 36 项，原有一项忽略。恢复到上次发布器可直接读取相同目录和索引。[双平台结果](pack-contents.json)
+
+## JoySheet 的动态筛选、多键排序与去重
+
+FILTER、SORT、SORTBY、UNIQUE 现在直接读取输入行或列，按索引决定输出顺序，最后分配结果。按列排序也能直接读取原数组。去重键保留值类型、数值零、错误类型和大小写不敏感的文本语义，按首次出现的顺序输出。稳定的多键排序和逆序中空格的位置继续沿用产品比较规则。分组和透视汇总使用同一排序规则。[筛选](https://support.microsoft.com/en-us/excel/functions/filter-function) · [排序](https://support.microsoft.com/en-us/excel/functions/sort-function) · [按键排序](https://support.microsoft.com/en-us/excel/functions/sortby-function) · [去重](https://support.microsoft.com/en-us/excel/functions/unique-function)
+
+七个公式分别由新旧 CLI 写入，两代都重开并读取 96 个单元格，还逐一核对 XLSX 中公式和溢出区域。两个原生桌面均从旧版工作簿开始，改变筛选阈值、撤销、重做、清空结果、放置阻塞单元格，读到 `#SPILL!`，移除阻塞后恢复，再保存副本并用新进程重开。两端各有八个完整的 96 格快照。另回归七份仓库工作簿与两个获准业务样本。原始业务文件均没有公式，派生副本分别核对了 916 和 16 个公式，UOS 临时副本已清理。[逐次结果与公式](array-selection.json) · [复跑脚本](../../../../scripts/joysheet/check-array-selection.py)
+
+4,096 行的固定表上，两版发布程序交替启动，各取 40 个样本，每次打开工作簿、提交六次阈值编辑并核对四个独立计算结果。macOS 的 P50 从 34.25 降至 28.42 ms，P95 从 36.02 降至 29.54 ms。UOS 的 P50 从 44.14 降至 36.18 ms，P95 从 55.37 降至 46.40 ms。计时包含打开与六次计算。两端 Sheet 产品回归均通过 1,473 项。[发布程序指纹与原始计时](array-selection.json)
