@@ -19,6 +19,11 @@ import product_icons as icons
 import install_linux_desktop as desktop
 
 
+def installed_icon_value(data, product):
+    icon = data.resolve() / 'icons/hicolor/scalable/apps' / f'{product}.svg'
+    return str(icon).replace('\\', r'\\')
+
+
 class ProductIcons(unittest.TestCase):
     def test_development_bundles_use_the_selected_product_artwork_and_executable(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -55,12 +60,15 @@ class ProductIcons(unittest.TestCase):
                 icons.copy_logo(root, product)
                 icons.copy_linux_installer(root)
                 subprocess.run([sys.executable, root / 'install-desktop.py', '--product', product],
-                               cwd='/', env={**os.environ, 'XDG_DATA_HOME': str(data)}, check=True,
+                               cwd=base.anchor, env={**os.environ, 'XDG_DATA_HOME': str(data)}, check=True,
                                stdout=subprocess.PIPE)
                 entry = data / 'applications' / (product + '.desktop')
-                self.assertIn(f'Exec="{binary}" %f', entry.read_text())
-                self.assertIn(f'StartupWMClass={product}', entry.read_text())
-                self.assertIn(f'Icon={data}/icons/hicolor/scalable/apps/{product}.svg\n', entry.read_text())
+                content = entry.read_text(encoding='utf-8')
+                # Exec quotes a path and then escapes it a second time as a string value.
+                executable = str(binary).replace('\\', r'\\\\')
+                self.assertIn(f'Exec="{executable}" %f', content)
+                self.assertIn(f'StartupWMClass={product}', content)
+                self.assertIn(f'Icon={installed_icon_value(data, product)}\n', content)
                 self.assertEqual((data / 'icons/hicolor/scalable/apps' / (product + '.svg')).read_bytes(),
                                  (icons.BRAND / (product + '.svg')).read_bytes())
 
@@ -110,7 +118,7 @@ class ProductIcons(unittest.TestCase):
                 entry.write_bytes(original.encode())
                 desktop.refresh_icon(product, icons.BRAND / (product + '.svg'), data)
                 expected = original.replace(f'Icon={product}\r\n',
-                                            f'Icon={data}/icons/hicolor/scalable/apps/{product}.svg\r\n')
+                                            f'Icon={installed_icon_value(data, product)}\r\n')
                 self.assertEqual(entry.read_bytes(), expected.encode())
                 entry.write_bytes(original.replace(f'Icon={product}', f'  Icon = {product}').encode())
                 desktop.refresh_icon(product, icons.BRAND / (product + '.svg'), data)
@@ -129,7 +137,8 @@ class ProductIcons(unittest.TestCase):
             entry.parent.mkdir()
             entry.write_bytes(b'[Desktop Entry]')
             desktop.refresh_icon('joyword', icons.BRAND / 'joyword.svg', data)
-            self.assertTrue(entry.read_text().startswith('[Desktop Entry]\nIcon=/'))
+            self.assertEqual(entry.read_text(encoding='utf-8'),
+                             f'[Desktop Entry]\nIcon={installed_icon_value(data, "joyword")}\n')
             entry.write_bytes(b'[Desktop Action New]\nIcon=other\n')
             with self.assertRaises(ValueError):
                 desktop.refresh_icon('joyword', icons.BRAND / 'joyword.svg', data)
@@ -178,9 +187,12 @@ class ProductIcons(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             binary = root / 'not-executable'
-            binary.touch()
             with self.assertRaises(ValueError):
                 desktop.install('joyword', binary, icons.BRAND / 'joyword.svg', root / 'data')
+            if os.name == 'posix':
+                binary.touch(mode=0o644)
+                with self.assertRaises(ValueError):
+                    desktop.install('joyword', binary, icons.BRAND / 'joyword.svg', root / 'data')
             self.assertFalse((root / 'data').exists())
 
 
