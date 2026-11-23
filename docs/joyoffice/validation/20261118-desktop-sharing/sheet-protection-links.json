@@ -1,0 +1,81 @@
+{
+  "date": "2026-11-23",
+  "baseline": "70b6029d",
+  "scope": "Unify worksheet protection, legacy/iterated password hashes, and bounded hyperlinks across BIFF8 (.xls Protect 0x0012 / Password 0x0013 / FeatHdr 0x0867 EnhancedProtection), BIFF12 (.xlsb BrtSheetProtection 535 / fail-closed BrtSheetProtectionIso 678 / BrtHLink 494 with worksheet .rels), and SpreadsheetML (.xlsx) via shared crates/joysheet-xlsx/src/sheet_meta.rs; add explicit XLSB unimported worksheet-part warnings (PivotTables, drawings, comments, tables) and enforce MAX_FIELDS / MAX_ITEMS caps with warnings in crates/joysheet-xlsx/src/pivot/read.rs.",
+  "specifications": [
+    "https://learn.microsoft.com/en-us/openspecs/office_file_formats/ms-xls/97c3bb7a-f5c7-48e0-a502-799f6814e132",
+    "https://learn.microsoft.com/en-us/openspecs/office_file_formats/ms-xlsb/35163621-2c9d-483d-954d-f8d128fc97b1",
+    "https://learn.microsoft.com/en-us/openspecs/office_file_formats/ms-xlsb/a9782462-1231-41e3-b99e-091f2f1e1151"
+  ],
+  "reproduce": [
+    "cargo test --locked --offline -p joysheet-xlsx",
+    "python3 scripts/joysheet/check-sheet-protection-links.py OLD_CLI NEW_CLI OUTPUT --desktop JOYSHEET"
+  ],
+  "rollback": "Restore crates/joysheet-xlsx/src/{lib.rs,read.rs,write.rs,sheet_read.rs,sheet_read/parts.rs,sheet_write.rs,sheet_write/parts.rs,xls.rs,xlsb.rs,pivot/read.rs} and remove crates/joysheet-xlsx/src/sheet_meta.rs from commit 70b6029d.",
+  "platforms": {
+    "macOS": {
+      "os": "macOS 27.2.1 (26B131)",
+      "arch": "aarch64-apple-darwin",
+      "rustc": "1.98.1 (48a229cea 2026-09-01)",
+      "unitTests": {
+        "joysheetXlsxPassed": 299,
+        "joysheetXlsxFailed": 0,
+        "xtaskCheckJoysheetPassed": 1521,
+        "xtaskCheckJoysheetIgnored": 1
+      },
+      "protectionAndLinksMatrix": {
+        "cliSha256": [
+          "1e33170f3963ec9b0ac284850de898f60ca2d198c69841e886e3bd8dc7b941b7",
+          "56ca9132aadf60b6220830716b1c3f1d14c7c3e1fa215a672e19db7030bae0b7"
+        ],
+        "workbooks": {
+          "protected_links.xls": {
+            "sourceSha256": "5ff6dce7dcb313c63d01adc3cce40687a8488f87d21be9c09025b987ef2a89c5",
+            "baselineDroppedProtection": true,
+            "candidatePreservedProtection": true,
+            "candidateBlocksProtectedEdit": true,
+            "readerWriterPairs": 4
+          },
+          "protected_links.xlsb": {
+            "sourceSha256": "9a04ba7d01cbd156696dd05f1ea35fdc9a242ff756c7d7bd78b74b7ff659ed28",
+            "baselineDroppedProtectionAndLinks": true,
+            "candidatePreservedProtectionAndLinks": true,
+            "candidateBlocksProtectedEdit": true,
+            "readerWriterPairs": 4
+          },
+          "protected_links.xlsx": {
+            "sourceSha256": "9483615795310451f122afcb325bec0d801f5167b27699af5151af274fe40f40",
+            "candidatePreservedProtectionAndLinks": true,
+            "candidateBlocksProtectedEdit": true,
+            "readerWriterPairs": 4
+          },
+          "open_links.xls": {
+            "sourceSha256": "95f8055b145b210e68809579d78bc9b0d786d2c659ccea9b3240c472c069d2c7",
+            "candidatePreservedOpenState": true,
+            "candidateBlocksProtectedEdit": false,
+            "readerWriterPairs": 4
+          },
+          "open_links.xlsb": {
+            "sourceSha256": "f2522b02e9930cbc47092294c2608d051e6fb19e9cc703c3e2dd172a37f86c31",
+            "baselineDroppedLinks": true,
+            "candidatePreservedLinks": true,
+            "candidateBlocksProtectedEdit": false,
+            "readerWriterPairs": 4
+          },
+          "open_links.xlsx": {
+            "sourceSha256": "f8a1838b2ad8146d46124c66b967cfc030cb4a849892e38b1ce130c73067cf5a",
+            "candidatePreservedLinks": true,
+            "candidateBlocksProtectedEdit": false,
+            "readerWriterPairs": 4
+          }
+        },
+        "nativeDesktopBooksVerified": 6,
+        "originalsUnchanged": true
+      }
+    },
+    "UOS25": {
+      "status": "pending_host",
+      "note": "No UOS 25 real machine attached in this session; re-run scripts/joysheet/check-sheet-protection-links.py once connected."
+    }
+  }
+}

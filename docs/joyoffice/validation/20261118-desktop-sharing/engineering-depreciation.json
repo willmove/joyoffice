@@ -1,0 +1,105 @@
+{
+  "date": "2026-11-23",
+  "baseline": "70b6029d",
+  "scope": "First-party rewrites of complex arithmetic (crates/joysheet-functions/src/engineering/complex.rs: Smith's overflow/underflow-safe division, cancellation-free principal square root, binary exponentiation, zero-allocation borrowed array fold), integer-order Bessel functions (crates/joysheet-functions/src/engineering/bessel.rs: Hankel asymptotic + Miller backward recurrence + half-period quadrature for J_n, Neumann/Hankel for Y_n, rescaled positive power series for I_n, exponentially scaled asymptotic/quadrature K_n), asset depreciation (crates/joysheet-functions/src/financial/depreciation.rs: O(1)-memory streaming VDB replacing up to 80 MiB temporary Vec<f64> schedules plus SLN/SYD/DB/DDB/AMORLINC/AMORDEGRC), and precision hardening of statistical special-function foundations (crates/joysheet-functions/src/special.rs: range-reduced negative gamma reflection, ln_1p beta tail accuracy, finite probability clamping).",
+  "functionsReplaced": [
+    "COMPLEX",
+    "IMABS",
+    "IMAGINARY",
+    "IMREAL",
+    "IMARGUMENT",
+    "IMCONJUGATE",
+    "IMCOS",
+    "IMCOSH",
+    "IMCOT",
+    "IMCSC",
+    "IMCSCH",
+    "IMDIV",
+    "IMEXP",
+    "IMLN",
+    "IMLOG10",
+    "IMLOG2",
+    "IMPOWER",
+    "IMPRODUCT",
+    "IMSEC",
+    "IMSECH",
+    "IMSIN",
+    "IMSINH",
+    "IMSQRT",
+    "IMSUB",
+    "IMSUM",
+    "IMTAN",
+    "BESSELJ",
+    "BESSELY",
+    "BESSELI",
+    "BESSELK",
+    "SLN",
+    "SYD",
+    "DB",
+    "DDB",
+    "VDB",
+    "AMORLINC",
+    "AMORDEGRC"
+  ],
+  "oracleProvenance": "Independent Python mathematical specification oracle (cmath, DLMF 10 Bessel integrals/asymptotics/Wronskians, Microsoft Excel depreciation schedules, and math.gamma/lgamma/erf/erfc); cross-checked cell-by-cell against untouched baseline (70b6029d) and candidate Release CLIs across 4 reader-writer pairs plus live macOS desktop. Candidate fixes 3 baseline numerical defects (extreme-scale IMDIV overflow/underflow and negative-axis IMSQRT catastrophic cancellation). Direct interactive Microsoft Excel 16.115 recalculation remains pending macOS Excel App Sandbox grant.",
+  "reproduce": [
+    "cargo test --locked --offline -p joysheet-functions -p joysheet-calc",
+    "python3 scripts/joysheet/check-engineering-depreciation.py OLD_CLI NEW_CLI OUTPUT --desktop JOYSHEET"
+  ],
+  "rollback": "Restore crates/joysheet-functions/src/{engineering.rs,engineering/complex.rs,engineering/bessel.rs,financial/depreciation.rs,special.rs} from commit 70b6029d.",
+  "platforms": {
+    "macOS": {
+      "os": "macOS 27.2.1 (26B131)",
+      "arch": "aarch64-apple-darwin",
+      "rustc": "1.98.1 (48a229cea 2026-09-01)",
+      "unitTests": {
+        "joysheetFunctionsPassed": 161,
+        "joysheetFunctionsFailed": 0,
+        "joysheetCalcPassed": 110,
+        "joysheetCalcIgnored": 1
+      },
+      "crossVersionAndDesktop": {
+        "binaries": [
+          "1e33170f3963ec9b0ac284850de898f60ca2d198c69841e886e3bd8dc7b941b7",
+          "56ca9132aadf60b6220830716b1c3f1d14c7c3e1fa215a672e19db7030bae0b7"
+        ],
+        "excel": {
+          "base": {
+            "sourceSha256": "b26bb83f49e05ed43fed6696a3c0fab2d20016564082bbc459cba93f9fe64d36",
+            "formulaCount": 80,
+            "baselineDifferences": [
+              ["G19", "IMDIV(\"1e200+1e200i\",\"1e200+1e200i\")", "1", "#NUM!"],
+              ["G20", "IMDIV(\"1e-200+1e-200i\",\"1e-200+1e-200i\")", "1", "#NUM!"],
+              ["G21", "IMREAL(IMSQRT(\"-1e16+i\"))", "5e-09", "0"]
+            ],
+            "candidateDifferences": 0,
+            "bothGenerationsRecalculatedBothWriters": true
+          },
+          "edit": {
+            "sourceSha256": "6f4f702e400acf753a046aa8e04cc4ddedba27cfb806d00d621f0a2703146c9a",
+            "formulaCount": 80,
+            "baselineDifferences": [
+              ["G19", "IMDIV(\"1e200+1e200i\",\"1e200+1e200i\")", "1", "#NUM!"],
+              ["G20", "IMDIV(\"1e-200+1e-200i\",\"1e-200+1e-200i\")", "1", "#NUM!"],
+              ["G21", "IMREAL(IMSQRT(\"-1e16+i\"))", "5e-09", "0"]
+            ],
+            "candidateDifferences": 0,
+            "bothGenerationsRecalculatedBothWriters": true
+          }
+        },
+        "native": {
+          "changedCells": 30,
+          "checkedPerState": 31,
+          "states": 5,
+          "savedTypedCaches": 80,
+          "undoRedoAndFreshReopen": true,
+          "originalUnchanged": true
+        }
+      }
+    },
+    "UOS25": {
+      "status": "pending_host",
+      "note": "No UOS 25 real machine attached in this session; re-run scripts/joysheet/check-engineering-depreciation.py once connected."
+    }
+  }
+}

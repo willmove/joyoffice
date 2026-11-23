@@ -558,3 +558,11 @@ JoyWord 语言包存储（目录定位、同意配置、有界 HTTP 下载、Zst
 ## Sheet 工作表打印设置、页边距、页眉页脚与手工分页符
 
 新增共享 `crates/joysheet-xlsx/src/sheet_print.rs`，统一 BIFF8（`.xls`）、BIFF12（`.xlsb`）与 SpreadsheetML（`.xlsx`）的打印选项、6 向页边距、纸张／缩放／横竖向／适应页数、页眉页脚与手工行列分页符（此前 `.xls` 与 `.xlsb` 导入全部丢弃这些打印属性），并在三格式上统一执行分页符上限与 255 字符页眉页脚截断预算。在 Apple M4 macOS 27.2.1 上以 `cf34edb1` 为基线运行 `scripts/joysheet/check-sheet-print.py`，6 份三格式样本通过 24 组两代互读与原生窗口 `pageLayout.pageSetup` 编辑／撤销／重做／保存／新进程重开（原件摘要不变）。UOS 25 待实机补验。[macOS 实测与文件记录](sheet-print.json) · [复验脚本](../../../../scripts/joysheet/check-sheet-print.py)
+
+## Sheet 复数／贝塞尔／资产折旧与特殊函数数值加固
+
+第一方重写 `crates/joysheet-functions/src/engineering/complex.rs`（Smith 防上下溢复数除法、负实轴消相抵 `IMSQRT`、二进制快速幂 `IMPOWER` 及零分配借用数组折叠 `IMSUM`/`IMPRODUCT`）、`crates/joysheet-functions/src/engineering/bessel.rs`（`BESSELJ` 的 Hankel 渐近＋Miller 递推＋半周期求积、`BESSELY`、`BESSELI` 周期重缩放正项级数及指数缩放 `BESSELK`）与 `crates/joysheet-functions/src/financial/depreciation.rs`（`VDB` 改为常量空间流式累计，消除大年限下最高 80 MiB `Vec<f64>` 临时分配，并同步重写 `SLN`/`SYD`/`DB`/`DDB`/`AMORLINC`/`AMORDEGRC`），同时加固 `crates/joysheet-functions/src/special.rs`（负参数反射归约、`ln_1p` 不完全 Beta 尾部精度与有限概率区间钳制）。在 Apple M4 macOS 27.2.1 上以 `70b6029d` 为基线运行 `scripts/joysheet/check-engineering-depreciation.py`，两份 80 公式工作簿通过四组合两代互读且候选零差异（同步修复基线 `IMDIV` 极值上下溢与 `IMSQRT` 负轴消相抵 3 处数值缺陷），原生 `joysheet` 桌面完成 30 个联动格的编辑、撤销、重做、保存与新进程重开（原件摘要不变）。Excel 16.115 实时重算与 UOS 25 待补验。[macOS 实测记录](engineering-depreciation.json) · [复验脚本](../../../../scripts/joysheet/check-engineering-depreciation.py)
+
+## Sheet 工作表保护、超链接与透视／XLSB 边界加固
+
+新增共享 `crates/joysheet-xlsx/src/sheet_meta.rs`，统一 BIFF8（`.xls` `Protect` `0x0012`／`Password` `0x0013`／`FeatHdr` `0x0867` `EnhancedProtection`）、BIFF12（`.xlsb` `BrtSheetProtection` `535`／失效关闭的 `BrtSheetProtectionIso` `678`／`BrtHLink` `494` 及其工作表 `.rels`）与 SpreadsheetML（`.xlsx`）的工作表保护、密码哈希与有界超链接（10,000 格／8 MiB 上限）。此前 `.xls`/`.xlsb` 导入会静默丢弃工作表保护与 `.xlsb` 超链接；现已补齐导入并在 `.xlsb` 存在未导入的透视表／绘图／批注／表关系时发出明确告警，同时在 `crates/joysheet-xlsx/src/pivot/read.rs` 强制落盘 `MAX_FIELDS` 与 `MAX_ITEMS` 预算截断告警。在 Apple M4 macOS 27.2.1 上以 `70b6029d` 为基线运行 `scripts/joysheet/check-sheet-protection-links.py`，6 份三格式样本通过 24 组两代互读、受保护写入拒绝与原生桌面错密拒绝／解锁／加链／加锁／撤销／重做／保存／重开全流程（原件摘要不变），`cargo xtask check joysheet` 通过 1,521 项（1 忽略）。UOS 25 待实机补验。[macOS 实测与文件记录](sheet-protection-links.json) · [复验脚本](../../../../scripts/joysheet/check-sheet-protection-links.py)
