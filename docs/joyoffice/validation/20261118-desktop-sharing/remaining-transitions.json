@@ -1,0 +1,99 @@
+{
+  "date": "2026-11-22",
+  "baseline": "32562303",
+  "scope": "Replace all remaining 17 imported DeckCraft transition kinds (48 effect/option combinations: reveal, flash, honeycomb, glitter, vortex, shred, switch, flip, gallery, doors/bifold, zoom, pan, ferris, conveyor, window, flythrough, and deterministic random dispatch) with first-party JoyOffice layer generators in crates/joydeck-anim/src/{transition_subtle,transition_particles,transition_stage,transition_dynamic,transition_surface,transition_fx}.rs.",
+  "replacedTransitions": {
+    "kinds": 17,
+    "options": 48,
+    "modules": [
+      "crates/joydeck-anim/src/transition_subtle.rs",
+      "crates/joydeck-anim/src/transition_particles.rs",
+      "crates/joydeck-anim/src/transition_stage.rs",
+      "crates/joydeck-anim/src/transition_dynamic.rs",
+      "crates/joydeck-anim/src/transition_surface.rs",
+      "crates/joydeck-anim/src/transition_fx.rs"
+    ],
+    "list": [
+      "reveal (4)",
+      "flash (1)",
+      "honeycomb (1)",
+      "glitter (8)",
+      "vortex (4)",
+      "shred (4)",
+      "switch (2)",
+      "flip (2)",
+      "gallery (2)",
+      "doors/bifold (2)",
+      "zoom (3)",
+      "pan (4)",
+      "ferris (2)",
+      "conveyor (2)",
+      "window (2)",
+      "flythrough (4)",
+      "random (deterministic dispatch)"
+    ]
+  },
+  "reproduce": [
+    "cargo test --locked --offline -p joydeck-anim",
+    "cargo test --locked --offline -p joydeck-render transition",
+    "cargo run --locked --offline -p joydeck-render --features transition-gpu --example transition_pixels -- --gpu 64 36",
+    "cargo run --locked --offline -p joydeck-render --features transition-gpu --example transition_pixels -- --gpu 193 109",
+    "python3 scripts/joydeck/check_sources.py"
+  ],
+  "rollback": "Restore transition_fx.rs, transition_geom.rs, transition_surface.rs, lib.rs, and licenses/deckcraft/file-map.json from commit 32562303, or switch slideshow composition to CPU.",
+  "platforms": {
+    "macOS": {
+      "os": "macOS 27.2.1 (26B131)",
+      "arch": "aarch64-apple-darwin",
+      "gpu": "Apple M4 (Metal)",
+      "rustc": "1.98.1 (48a229cea 2026-09-01)",
+      "unitTests": {
+        "joydeckAnimPassed": 116,
+        "joydeckAnimFailed": 0,
+        "joydeckRenderTransitionPassed": 9,
+        "joydeckRenderTransitionFailed": 0
+      },
+      "gpuVsCpuParity": {
+        "totalFrames": 1850,
+        "sizes": [
+          {
+            "width": 64,
+            "height": 36,
+            "frames": 925,
+            "maximumChannelDifference": 1,
+            "pixelsOver1": 0,
+            "missingSourceChecks": 48,
+            "missingSourceMaxChannelDifference": 1
+          },
+          {
+            "width": 193,
+            "height": 109,
+            "frames": 925,
+            "maximumChannelDifference": 1,
+            "pixelsOver1": 0,
+            "missingSourceChecks": 48,
+            "missingSourceMaxChannelDifference": 1
+          }
+        ]
+      },
+      "pptxTwoGenerationExchange": {
+        "transitionKinds": 17,
+        "cases": 48,
+        "crossVersionRegeneratePairs": 192,
+        "cliSha256": [
+          "2b105cc057e0f49e9648c311b8855252af5cdee9e2617516297cc6503cff9d4e",
+          "08e2f3ced31874f9d7c8d340c2820ea60bf05995956698364aa90e0ab835e84a"
+        ]
+      },
+      "sourceMapVerification": {
+        "script": "scripts/joydeck/check_sources.py",
+        "filesChecked": 292,
+        "passed": true
+      }
+    },
+    "UOS": {
+      "status": "pending",
+      "note": "No UOS 25 x86_64 physical host (Vulkan Radeon 890M) attached during 2026-11-22 run; rerun transition_pixels --gpu and slideshow checks on UOS when available."
+    }
+  }
+}

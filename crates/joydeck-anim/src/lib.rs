@@ -30,6 +30,7 @@ mod show;
 mod slide_motion;
 mod timeline;
 mod transition;
+mod transition_dynamic;
 mod transition_fabric;
 mod transition_fold;
 mod transition_fx;
@@ -37,8 +38,11 @@ mod transition_geom;
 mod transition_mask;
 mod transition_panels;
 mod transition_paper;
+mod transition_particles;
 mod transition_pattern;
 mod transition_prism;
+mod transition_stage;
+mod transition_subtle;
 mod transition_surface;
 
 #[cfg(test)]
