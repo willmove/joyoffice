@@ -1,0 +1,95 @@
+{
+  "date": "2026-11-23",
+  "baseline": "cf34edb1",
+  "scope": "Complete first-party migration of the text and date modules by moving formatting/conversion functions (VALUE, NUMBERVALUE, FIXED, DOLLAR, USDOLLAR, BAHTTEXT, VALUETOTEXT, ARRAYTOTEXT) into crates/joysheet-functions/src/text/format.rs, modern delimiter and regex functions (TEXTBEFORE, TEXTAFTER, TEXTSPLIT, REGEXTEST, REGEXEXTRACT, REGEXREPLACE) into crates/joysheet-functions/src/text/modern.rs with ASCII zero-Vec<char> fast paths, and calendar date/time/day-count functions (DATE, TIME, YEAR, MONTH, DAY, HOUR, MINUTE, SECOND, NOW, TODAY, WEEKDAY, WEEKNUM, ISOWEEKNUM, EDATE, EOMONTH, DATEDIF, DATEVALUE, TIMEVALUE, DAYS, DAYS360, YEARFRAC) into crates/joysheet-functions/src/date/calendar.rs.",
+  "functionsReplaced": [
+    "VALUE",
+    "NUMBERVALUE",
+    "FIXED",
+    "DOLLAR",
+    "USDOLLAR",
+    "BAHTTEXT",
+    "VALUETOTEXT",
+    "ARRAYTOTEXT",
+    "TEXTBEFORE",
+    "TEXTAFTER",
+    "TEXTSPLIT",
+    "REGEXTEST",
+    "REGEXEXTRACT",
+    "REGEXREPLACE",
+    "DATE",
+    "TIME",
+    "YEAR",
+    "MONTH",
+    "DAY",
+    "HOUR",
+    "MINUTE",
+    "SECOND",
+    "NOW",
+    "TODAY",
+    "WEEKDAY",
+    "WEEKNUM",
+    "ISOWEEKNUM",
+    "EDATE",
+    "EOMONTH",
+    "DATEDIF",
+    "DATEVALUE",
+    "TIMEVALUE",
+    "DAYS",
+    "DAYS360",
+    "YEARFRAC"
+  ],
+  "oracleProvenance": "Independent Python specification oracle grounded in Microsoft Excel documentation (including 2023 non-leap vs 2024 leap-year transitions, Act/Act YEARFRAC, US/EU DAYS360, multi-delimiter TEXTSPLIT/TEXTBEFORE/TEXTAFTER, and PCRE/Excel REGEXREPLACE backreferences); cross-checked cell-by-cell against untouched baseline (cf34edb1) and candidate CLIs across 4 reader-writer pairs plus live macOS desktop. Direct interactive Microsoft Excel 16.115 recalculation remains pending macOS Excel App Sandbox grant.",
+  "reproduce": [
+    "cargo test --locked --offline -p joysheet-functions -p joysheet-calc",
+    "python3 scripts/joysheet/check-modern-text-date.py OLD_CLI NEW_CLI OUTPUT --desktop JOYSHEET"
+  ],
+  "rollback": "Restore crates/joysheet-functions/src/{text.rs,date.rs} and remove crates/joysheet-functions/src/{text/format.rs,text/modern.rs,date/calendar.rs} from commit cf34edb1.",
+  "platforms": {
+    "macOS": {
+      "os": "macOS 27.2.1 (26B131)",
+      "arch": "aarch64-apple-darwin",
+      "rustc": "1.98.1 (48a229cea 2026-09-01)",
+      "unitTests": {
+        "joysheetFunctionsPassed": 161,
+        "joysheetFunctionsFailed": 0,
+        "joysheetCalcPassed": 110,
+        "joysheetCalcIgnored": 1
+      },
+      "crossVersionAndDesktop": {
+        "binaries": [
+          "470361605ed7966a72bf6f7b587d6ea5ae9d7dae1194535280b6d84cd54ea97d",
+          "1e33170f3963ec9b0ac284850de898f60ca2d198c69841e886e3bd8dc7b941b7"
+        ],
+        "excel": {
+          "base": {
+            "sourceSha256": "b313e491124d4b961e146f14b4edc996811ef84016610e3939e4ebadd4ffca68",
+            "formulaCount": 59,
+            "baselineDifferences": [],
+            "candidateDifferences": 0,
+            "bothGenerationsRecalculatedBothWriters": true
+          },
+          "edit": {
+            "sourceSha256": "78bc4d387ed8698fd399453a9a26ffb5d2c07e40997b48c14d7bb47775df1371",
+            "formulaCount": 59,
+            "baselineDifferences": [],
+            "candidateDifferences": 0,
+            "bothGenerationsRecalculatedBothWriters": true
+          }
+        },
+        "native": {
+          "changedCells": 21,
+          "checkedPerState": 24,
+          "states": 5,
+          "savedTypedCaches": 59,
+          "undoRedoAndFreshReopen": true,
+          "originalUnchanged": true
+        }
+      }
+    },
+    "UOS25": {
+      "status": "pending_host",
+      "note": "No UOS 25 real machine attached in this session; re-run scripts/joysheet/check-modern-text-date.py once connected."
+    }
+  }
+}

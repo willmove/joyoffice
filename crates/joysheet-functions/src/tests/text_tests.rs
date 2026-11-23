@@ -308,3 +308,18 @@ fn classic_text_unicode_and_streaming_boundaries() {
     is_text(ev("TEXTJOIN", vec![av(row_t(&[",", "|"])), b(true), t(""), t("x"), t(""), t("y"), t("z")]), "x,y|z");
     is_err(ev("TEXTJOIN", vec![t(","), b(true), t("x"), e(CellError::Div0)]), CellError::Div0);
 }
+
+#[test]
+fn modern_text_ascii_and_unicode_parity() {
+    // ASCII fast path and Unicode path both honor overlapping negative instances and multi-delimiter longest match.
+    is_text(ev("TEXTBEFORE", vec![t("a--b-c"), av(row_t(&["-", "--"]))]), "a");
+    is_text(ev("TEXTAFTER", vec![t("a--b-c"), av(row_t(&["-", "--"]))]), "b-c");
+    is_text(ev("TEXTBEFORE", vec![t("甲——乙—丙"), av(row_t(&["—", "——"]))]), "甲");
+    is_text(ev("TEXTAFTER", vec![t("甲——乙—丙"), av(row_t(&["—", "——"]))]), "乙—丙");
+    let v = ev("TEXTSPLIT", vec![t("甲、乙；丙、丁"), t("、"), t("；")]);
+    assert_eq!(rows_of(&v), vec![vec![tv("甲"), tv("乙")], vec![tv("丙"), tv("丁")]]);
+    // REGEXREPLACE preserves $$ literal dollar alongside $1 capture references.
+    is_text(ev("REGEXREPLACE", vec![t("price 42"), t("(\\d+)"), t("$$$1.00")]), "price $42.00");
+    // NUMBERVALUE multi-percent & custom group/decimal separators.
+    close(ev("NUMBERVALUE", vec![t(" 1.250,50%% "), t(","), t(".")]), 0.12505);
+}
