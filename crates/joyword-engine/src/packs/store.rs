@@ -1,24 +1,24 @@
-//! The font store as the packs [`Backend`](super::Backend): its folder, its consent setting, the
-//! pinned pack index and verified installs (craft-libs `craft-font-store`, kind `language-pack`).
+//! First-party language-pack [`Backend`](super::Backend): folder location, consent setting,
+//! pinned pack index, and verified transactional installs.
 
 use std::path::PathBuf;
 use std::sync::{Mutex, PoisonError};
 
-use craft_font_store::{FontStore, Network, PackEntry, PackIndex, PackIndexPin};
-
+use super::storage::{
+    Caller, Network, PackEntry, PackIndex, PackIndexPin, PackStore, language_pack_index_overridden,
+};
 use super::{Cancel, Pack};
 
 /// The pack index this build trusts: craft-i18n's second Language pack release,
 /// language-packs-2 (75 packs, built from craft-i18n `20467b63`), pinned by the sha256 of its `index.json`.
-/// `CRAFT_LANGUAGE_PACK_INDEX` (read by the font store itself) points WordCraft at a local or test
-/// index instead, for trying packs before they are released.
+/// `CRAFT_LANGUAGE_PACK_INDEX` points JoyWord at a local or test index instead, for testing.
 pub const PACK_INDEX: PackIndexPin = PackIndexPin {
     url: "https://github.com/storytold/craft-i18n/releases/download/language-packs-2/index.json",
     sha256: "b35c7aef0591177f18233b551da16035dcd615549ff874e169ffd19f16fea74b",
 };
 
 pub(super) struct FontStoreBackend {
-    store: FontStore,
+    store: PackStore,
     /// The index last read or fetched; installs take their entry (url, size, sha256) from it.
     index: Mutex<Option<PackIndex>>,
 }
@@ -56,13 +56,9 @@ impl FontStoreBackend {
 
     /// A store in `dir`.
     pub(super) fn in_dir(dir: PathBuf, user: bool) -> Self {
-        let caller = if user {
-            craft_font_store::Caller::User
-        } else {
-            craft_font_store::Caller::Agent
-        };
+        let caller = if user { Caller::User } else { Caller::Agent };
         Self {
-            store: FontStore::new(dir, caller),
+            store: PackStore::new(dir, caller),
             index: Mutex::new(None),
         }
     }
@@ -101,7 +97,7 @@ impl super::Backend for FontStoreBackend {
     fn fetch_index(&self, cancel: &Cancel) -> Result<Vec<Pack>, String> {
         let index = self
             .store
-            .fetch_language_pack_index(&PACK_INDEX, &cancel.0)
+            .fetch_language_pack_index(&PACK_INDEX, cancel)
             .map_err(|e| e.to_string())?;
         Ok(self.keep(index))
     }
@@ -139,9 +135,7 @@ impl super::Backend for FontStoreBackend {
             .ok_or_else(|| format!("there is no language pack for {}", pack.locale))?
             .clone();
         self.store
-            .install_language_pack(&index, &entry, &cancel.0, &mut |p| {
-                progress(p.done, p.total)
-            })
+            .install_language_pack(&index, &entry, cancel, &mut |p| progress(p.done, p.total))
             .map(|_| ())
             .map_err(|e| e.to_string())
     }
@@ -153,7 +147,7 @@ impl super::Backend for FontStoreBackend {
     }
 
     fn index_override(&self) -> Option<String> {
-        craft_font_store::language_pack_index_overridden()
+        language_pack_index_overridden()
     }
 
     fn packs_dir(&self) -> Option<PathBuf> {

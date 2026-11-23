@@ -1,0 +1,85 @@
+{
+  "date": "2026-11-22",
+  "baseline": "32562303",
+  "scope": "Retire all remaining third-party/craft-libs runtime crates (craft-font-store, craft-atomic, craft-proof; craft-font-catalog already retired) from JoyWord's production dependency graph and workspace Cargo.lock. Move language-pack storage, HTTP transfer, archive unpacking, and recoverable publication into first-party crates/joyword-engine/src/packs/, and promote multilingual proofing into first-party workspace crate crates/joyword-proof (retaining embedded third-party/craft-i18n/language-data and upstream MIT/Apache-2.0 attribution notices under licenses/craft-libs and licenses/craft-i18n).",
+  "retiredDependencies": [
+    "craft-font-catalog",
+    "craft-font-store",
+    "craft-atomic",
+    "craft-proof"
+  ],
+  "firstPartyReplacements": {
+    "languagePackStorage": [
+      "crates/joyword-engine/src/packs.rs",
+      "crates/joyword-engine/src/packs/store.rs",
+      "crates/joyword-engine/src/packs/storage.rs",
+      "crates/joyword-engine/src/packs/http.rs",
+      "crates/joyword-engine/src/packs/contents.rs",
+      "crates/joyword-engine/src/packs/transaction.rs",
+      "crates/joyword-engine/src/packs/transfer.rs"
+    ],
+    "proofingCrate": "crates/joyword-proof"
+  },
+  "reproduce": [
+    "for app in joyword joyword-cli joydeck joydeck-cli joysheet joysheet-cli; do cargo tree --locked --offline -e normal,build -p $app | rg -i craft-; done",
+    "cargo test --locked --offline -p joyword-proof -p joyword-proof-rules",
+    "cargo test --locked --offline -p joyword-engine packs",
+    "python3 scripts/joyword/check-installed-language-pack.py target/debug/joyword-cli target/debug/joyword OUTPUT",
+    "cargo xtask check joyword && cargo xtask check joydeck && cargo xtask check joysheet"
+  ],
+  "rollback": "Restore Cargo.toml, Cargo.lock, crates/joyword-engine/Cargo.toml, crates/joyword-engine/src/packs*, and scripts/check_gates.py from commit 32562303; existing user store directories (<store>/settings.json, indexes/language-packs.json, language-packs.json, language-packs/<locale>/) remain byte-compatible.",
+  "platforms": {
+    "macOS": {
+      "os": "macOS 27.2.1 (26B131)",
+      "arch": "aarch64-apple-darwin",
+      "rustc": "1.98.1 (48a229cea 2026-09-01)",
+      "cargoLockCraftEntries": 0,
+      "cargoTreeCraftEdges": {
+        "joyword": 0,
+        "joyword-cli": 0,
+        "joydeck": 0,
+        "joydeck-cli": 0,
+        "joysheet": 0,
+        "joysheet-cli": 0
+      },
+      "sbomClosure": {
+        "joyword": { "packages": 512, "craftPackages": [], "hasJoywordProof": true, "missingLicenseTexts": [] },
+        "joydeck": { "packages": 490, "craftPackages": [], "hasJoywordProof": false, "missingLicenseTexts": [] },
+        "joysheet": { "packages": 454, "craftPackages": [], "hasJoywordProof": false, "missingLicenseTexts": [] }
+      },
+      "targetedTests": {
+        "joywordProof": { "passed": 485, "failed": 0, "ignored": 0 },
+        "joywordProofRules": { "passed": 12, "failed": 0, "ignored": 0 },
+        "joywordEnginePacks": { "passed": 22, "failed": 0, "ignored": 0 }
+      },
+      "liveInstalledLanguagePack": {
+        "cliSha256": "e56cbc3989be238db9e85a45e6490b9b43aed64aa1537cb5ccbe16214186ac1f",
+        "desktopSha256": "1aa440b4ebdb662606749b88ce01c86f57ff7b08e094a71b2bd4f267b5b467bc",
+        "fixtureSha256": "34574dba513adf7c6f569a31fc39d2ae0e733a27ab0cc53ff86d56318894b80a",
+        "archiveSha256": [
+          "a0b06d9531233160598c4d146a708c1c52a57e6aec6eb379ae1a75035106100f",
+          "bdd7a0b0e7fe9c24d4c3ee78e41ea90459e9052d1a68492bc9249b5fdc9174e6"
+        ],
+        "desktopAndCliPages": {
+          "before": 15,
+          "wholeWordException": 21,
+          "syllableExceptions": 15,
+          "afterRemoval": 15
+        },
+        "refusedConsentOff": true,
+        "refusedChangedArchive": true,
+        "licenseAndInstallRecordVerified": true,
+        "sourceDocumentUnchanged": true
+      },
+      "crossProductRegression": {
+        "joyword": { "passed": 4204, "failed": 0, "ignored": 2 },
+        "joydeck": { "passed": 1033, "failed": 0, "ignored": 0 },
+        "joysheet": { "passed": 1500, "failed": 0, "ignored": 1 }
+      }
+    },
+    "UOS": {
+      "status": "pending",
+      "note": "No UOS 25 x86_64 physical host attached during 2026-11-22 run; rerun xtask check and check-installed-language-pack.py on UOS when available."
+    }
+  }
+}

@@ -1,0 +1,115 @@
+//! Generic repeated-word and spacing checks with Czech messages.
+//! No Czech-specific grammar, comma or sentence-capital rules are inferred.
+
+use crate::{Issue, IssueKind, ProofLang};
+
+fn issue(start: usize, end: usize, message: String, suggestions: Vec<String>) -> Issue {
+    Issue {
+        start,
+        end,
+        kind: IssueKind::Grammar,
+        message,
+        suggestions,
+        lang: ProofLang::Cs,
+    }
+}
+
+pub fn check(text: &str) -> Vec<Issue> {
+    let mut issues = Vec::new();
+    crate::repeated::visit(
+        text,
+        crate::word_ranges(text),
+        ProofLang::Cs,
+        ALLOWED_REPEATS,
+        |pair| {
+            let (first, second) = (pair.first, pair.second);
+            issues.push(issue(
+                pair.range.start,
+                pair.range.end,
+                format!("Opakované slovo: „{second}“"),
+                vec![first.to_owned()],
+            ));
+        },
+    );
+    crate::editorial::punctuation(text, ProofLang::Cs, &mut issues);
+    issues.sort_by_key(|i| (i.start, i.end));
+    issues
+}
+
+/// Words Czech repeats on purpose (`ne ne`, `ano ano`, `už už`, `to to`).
+const ALLOWED_REPEATS: &[&str] = &[
+    "ne", "ano", "už", "to", "jo", "no", "tak", "pryč", "dál", "pomalu", "honem",
+];
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// craft-libs#495 review: intentional repeats aren't marked; others still are.
+    #[test]
+    fn intentional_repeats_are_fine() {
+        for text in [
+            "Ne ne, to nechci.",
+            "Ano ano, přijdu.",
+            "Už už odcházel.",
+            "To to bylo krásné.",
+        ] {
+            assert!(check(text).is_empty(), "{text}: {:?}", check(text));
+        }
+        assert_eq!(check("Byl byl doma.").len(), 1);
+    }
+
+    #[test]
+    fn repeated_words_and_spaces_have_czech_messages() {
+        let text = "Město město ,  škola.";
+        let issues = check(text);
+        assert_eq!(issues.len(), 3, "{issues:?}");
+        assert_eq!(issues[0].message, "Opakované slovo: „město“");
+        assert_eq!(issues[0].suggestions, ["Město"]);
+        assert!(
+            issues
+                .iter()
+                .any(|i| i.message == "Mezera před interpunkcí" && &text[i.start..i.end] == " ,")
+        );
+        assert!(issues.iter().any(|i| i.message == "Dvojitá mezera"));
+        assert!(
+            issues
+                .iter()
+                .all(|i| i.lang == ProofLang::Cs && i.kind == IssueKind::Grammar)
+        );
+        for text in [
+            "město. škola",
+            "Dr. Novák",
+            "A apple",
+            "Město, město!",
+            "Úsměv :) Číslo .5 a tečky ...",
+        ] {
+            assert!(check(text).is_empty(), "{text}");
+        }
+    }
+
+    #[test]
+    fn ratios_and_scores_keep_their_spaces() {
+        for text in ["3 : 1", "1 : 2", "Skóre 12 : 10.", "Poměr 1 : 100."] {
+            assert!(check(text).is_empty(), "{text}: {:?}", check(text));
+        }
+        for text in ["Slovo : další", "3 : slovo", "slovo : 1", "3 :"] {
+            assert!(
+                check(text)
+                    .iter()
+                    .any(|i| i.message == "Mezera před interpunkcí"),
+                "{text}"
+            );
+        }
+    }
+
+    proptest::proptest! {
+        #[test]
+        fn never_panics_and_ranges_are_valid(s in "\\PC{0,80}") {
+            for issue in check(&s) {
+                proptest::prop_assert!(issue.start <= issue.end && issue.end <= s.len());
+                proptest::prop_assert!(s.is_char_boundary(issue.start) && s.is_char_boundary(issue.end));
+            }
+        }
+    }
+}

@@ -722,6 +722,10 @@ mod tests {
                     .is_ok_and(|rel| rel.components().any(|c| c.as_os_str() == "tests"))
                 || path.starts_with(src.join("io"))
                 || path == src.join("recovery/desktop.rs")
+                || path == src.join("packs/contents.rs")
+                || path == src.join("packs/storage.rs")
+                || path == src.join("packs/transaction.rs")
+                || path == src.join("packs/transfer.rs")
             {
                 continue;
             }

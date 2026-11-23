@@ -22,7 +22,17 @@ use serde::Serialize;
 use crate::{CmdError, Session};
 
 #[cfg(not(target_arch = "wasm32"))]
+mod contents;
+#[cfg(not(target_arch = "wasm32"))]
+mod http;
+#[cfg(not(target_arch = "wasm32"))]
+mod storage;
+#[cfg(not(target_arch = "wasm32"))]
 mod store;
+#[cfg(not(target_arch = "wasm32"))]
+mod transaction;
+#[cfg(not(target_arch = "wasm32"))]
+mod transfer;
 
 /// Longest locale tag taken, in bytes (BCP 47 tags in practice stay under 20).
 pub const MAX_LOCALE_LEN: usize = 35;
@@ -68,31 +78,17 @@ pub struct Installed {
     pub path: PathBuf,
 }
 
-/// Stops a download. On the desktop it is the font store's own flag, which a download watches
-/// even while the server sends nothing.
+/// Stops a download cleanly from another thread, even while a server sends nothing.
 #[derive(Clone, Debug, Default)]
-pub struct Cancel(
-    #[cfg(not(target_arch = "wasm32"))] pub(crate) craft_font_store::Cancel,
-    #[cfg(target_arch = "wasm32")] Arc<AtomicBool>,
-);
+pub struct Cancel(Arc<AtomicBool>);
 
 impl Cancel {
     pub fn new() -> Self {
         Self::default()
     }
-    #[cfg(not(target_arch = "wasm32"))]
-    pub fn cancel(&self) {
-        self.0.cancel();
-    }
-    #[cfg(not(target_arch = "wasm32"))]
-    pub fn is_cancelled(&self) -> bool {
-        self.0.is_cancelled()
-    }
-    #[cfg(target_arch = "wasm32")]
     pub fn cancel(&self) {
         self.0.store(true, Ordering::Relaxed);
     }
-    #[cfg(target_arch = "wasm32")]
     pub fn is_cancelled(&self) -> bool {
         self.0.load(Ordering::Relaxed)
     }

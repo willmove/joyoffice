@@ -51,8 +51,12 @@ js-sys = "0.3"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 getrandom = { workspace = true }
-# Language packs (CP4.3): downloaded, verified and unpacked by the suite's font store.
-craft-font-store = { workspace = true }
+# First-party language-pack storage: pinned HTTPS index, SHA-256 verification and bounded zstd/tar unpack.
+ruzstd = { workspace = true }
+sha2 = { workspace = true }
+tar = { workspace = true }
+toml = { workspace = true }
+ureq = { workspace = true }
 
 [target.'cfg(unix)'.dependencies]
 # O_NONBLOCK, so a path swapped for a named pipe can't block `open` (#3666).

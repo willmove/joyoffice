@@ -1,0 +1,363 @@
+//! Turkish grammar and punctuation checks: cheap, rule-based and tuned to stay quiet when unsure.
+//! Messages are in Turkish.
+//!
+//! - **Repeated word** (`çok çok`), except idiomatic reduplications and doublings (`ALLOWED_REPEATS`:
+//!   `yavaş yavaş`, `tıkır tıkır`, `adım adım`).
+//! - **Space before punctuation** (`ev ,`) and **double spaces**.
+//! - **Capital letter at the start of a sentence**, knowing Turkish abbreviations (`vb.`, `vs.`,
+//!   `prof.`, `dr.`, `mad.`, `yy.`, `s.`…) after which lowercase or numbers may continue.
+//! - **No comma before/after conjunctions**: `ve`, `veya`, `yahut`, `ile`, `de`, `da`, `hem ... hem`,
+//!   `ne ... ne` conjunctions should not have commas immediately before or after them.
+//! - **Doubled punctuation** (`..`, `,,`, `;;`).
+
+use super::suggest::turkish_to_lower;
+use crate::{Issue, IssueKind, ProofLang, words};
+
+/// Turkish reduplications and emphatic word pairings that are intentionally repeated.
+const ALLOWED_REPEATS: &[&str] = &[
+    "yavaş",
+    "hızlı",
+    "koşa",
+    "güle",
+    "adım",
+    "kara",
+    "tıkır",
+    "şakır",
+    "akın",
+    "ağır",
+    "açık",
+    "ayrı",
+    "bire",
+    "bir",
+    "boş",
+    "bölük",
+    "buram",
+    "cana",
+    "can",
+    "cılk",
+    "çifter",
+    "çit",
+    "dalga",
+    "damla",
+    "deste",
+    "didik",
+    "dizi",
+    "dolu",
+    "deste",
+    "döne",
+    "eğri",
+    "enine",
+    "epey",
+    "fıkır",
+    "fırıl",
+    "gece",
+    "gıcır",
+    "gide",
+    "günü",
+    "güzel",
+    "halk",
+    "harıl",
+    "hık",
+    "hım",
+    "horul",
+    "ılık",
+    "ışıl",
+    "için",
+    "içten",
+    "iğne",
+    "iri",
+    "iyiden",
+    "iyi",
+    "kaba",
+    "kaç",
+    "kat",
+    "kaynar",
+    "kelli",
+    "kese",
+    "kıtır",
+    "kıvrım",
+    "koca",
+    "kol",
+    "kucak",
+    "kütür",
+    "mırıl",
+    "öbek",
+    "parça",
+    "patır",
+    "pıtır",
+    "sabah",
+    "salına",
+    "salkım",
+    "sap",
+    "sara",
+    "sarı",
+    "serin",
+    "sıra",
+    "sırım",
+    "sıkı",
+    "sırılsıklam",
+    "tane",
+    "teker",
+    "tek",
+    "tıpış",
+    "top",
+    "tutam",
+    "uzun",
+    "üçer",
+    "üst",
+    "yalan",
+    "yana",
+    "yan",
+    "yarım",
+    "yer",
+    "yudum",
+    "yığın",
+    "yürekten",
+    "yüz",
+    "zaman",
+    "zor",
+];
+
+/// Turkish abbreviations that end with a period and after which lower case may continue.
+const ABBREVIATIONS: &[&str] = &[
+    "vb", "vs", "vd", "bkz", "bknz", "ör", "örnek", "mad", "md", "s", "sf", "sn", "dk", "sa", "yy",
+    "m", "km", "cm", "mm", "gr", "kg", "mg", "dr", "prof", "doç", "yrd", "av", "ist", "ank", "izm",
+    "cad", "sok", "mah", "apt", "no", "tel", "faks", "tl", "kr", "krş", "ltd", "şti", "tbmm",
+    "meb", "möt", "mö", "ms",
+];
+
+/// Conjunctions that must not be preceded by a comma.
+const CONJUNCTIONS_NO_PRE_COMMA: &[&str] = &["ve", "veya", "yahut", "velev", "veyahut", "de", "da"];
+
+/// Conjunctions that must not be followed by a comma. Not `ister` and `gerek`: they are
+/// conjunctions only in `ister … ister` / `gerek … gerek`; otherwise `ister` is the verb
+/// (`Kim ister, gelsin.`) and `gerek` a noun or adjective, and a comma after them is correct.
+const CONJUNCTIONS_NO_POST_COMMA: &[&str] = &["ve", "veya", "yahut", "veyahut", "hem"];
+
+/// Check grammar and punctuation in a Turkish text block.
+pub fn check(text: &str) -> Vec<Issue> {
+    check_with(text, true)
+}
+
+/// [`check`] where `capital_first` says whether the text's first word must start a sentence with a capital
+/// (false for a list item, which may be a fragment).
+pub fn check_with(text: &str, capital_first: bool) -> Vec<Issue> {
+    let mut v = Vec::new();
+    let ws = words(text);
+
+    crate::repeated::visit(
+        text,
+        ws.iter().copied(),
+        ProofLang::Tr,
+        ALLOWED_REPEATS,
+        |pair| {
+            v.push(Issue {
+                start: pair.second_start,
+                end: pair.range.end,
+                kind: IssueKind::Grammar,
+                message: "Yinelenen sözcük".into(),
+                suggestions: Vec::new(),
+                lang: ProofLang::Tr,
+            });
+        },
+    );
+
+    crate::editorial::punctuation(text, ProofLang::Tr, &mut v);
+
+    for pair in ws.windows(2) {
+        let ((a, b), (c, d)) = (pair[0], pair[1]);
+        let Some(offset) = text
+            .get(b..c)
+            .and_then(joyword_proof_rules::conjunction_comma)
+        else {
+            continue;
+        };
+        let (Some(left), Some(right)) = (text.get(a..b), text.get(c..d)) else {
+            continue;
+        };
+        let mut report = |word: &str, position: &str| {
+            v.push(Issue {
+                start: b + offset,
+                end: b + offset + 1,
+                kind: IssueKind::Grammar,
+                message: format!("'{word}' bağlacından {position} virgül konulmaz"),
+                suggestions: vec![String::new()],
+                lang: ProofLang::Tr,
+            })
+        };
+        let left = turkish_to_lower(left);
+        if CONJUNCTIONS_NO_POST_COMMA.contains(&left.as_str()) {
+            report(&left, "sonra");
+        }
+        let right = turkish_to_lower(right);
+        if CONJUNCTIONS_NO_PRE_COMMA.contains(&right.as_str()) {
+            report(&right, "önce");
+        }
+    }
+
+    crate::editorial::capitals(
+        text,
+        &ws,
+        ProofLang::Tr,
+        capital_first,
+        ABBREVIATIONS,
+        &mut v,
+    );
+    v.sort_by_key(|issue| (issue.start, issue.end));
+    v
+}
+
+/// Capitalize according to Turkish rules (`i` -> `İ`, `ı` -> `I`).
+pub fn turkish_capitalize(s: &str) -> String {
+    joyword_proof_rules::capitalize(s, joyword_proof_rules::Language::Turkish)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// CodeRabbit on craft-libs#484/#489: emoticons, decimals and scores aren't stray spaces;
+    /// ordinals and file or web names don't end a sentence.
+    #[test]
+    fn emoticons_numbers_ordinals_and_names_are_left_alone() {
+        for ok in [
+            "Harika :)",
+            "Tamam ;)",
+            "Süper :D",
+            "Oran .5 oldu.",
+            "Maç 3 : 1 bitti.",
+            "Ali 5. sınıfta okuyor.",
+            "Bina 21. yüzyıldan kalma.",
+            "Dosyayı rapor.txt olarak kaydet.",
+            "Adres www.example.com olarak yazıldı.",
+        ] {
+            assert!(check(ok).is_empty(), "{ok}: {:?}", check(ok));
+        }
+        assert_eq!(
+            check("Gel , bak.").len(),
+            1,
+            "a real stray space is still flagged"
+        );
+        for bad in ["Not :bu", "Ne ?Bu", "Peki ;Dün", "Evet !"] {
+            assert!(
+                check(bad)
+                    .iter()
+                    .any(|i| i.message.starts_with("Noktalama")),
+                "{bad}: {:?}",
+                check(bad)
+            );
+        }
+        assert!(check("Harika :-) dedi.").is_empty() && check("Peki ;P").is_empty());
+        assert_eq!(
+            check("Geldi. bu iyi.").len(),
+            1,
+            "a real sentence start is still flagged"
+        );
+    }
+
+    #[test]
+    fn clean_turkish_text_produces_no_issues() {
+        let text = "Bu bir test cümlesidir. Kitap ve defter aldım. Çocuk yavaş yavaş yürüdü.";
+        assert!(check(text).is_empty());
+    }
+
+    #[test]
+    fn repeated_words_flagged_except_allowed() {
+        let text = "Gitti gitti ama bulamadı.";
+        let issues = check(text);
+        assert_eq!(issues.len(), 1);
+        assert_eq!(issues[0].message, "Yinelenen sözcük");
+
+        // Allowed repeat
+        let text2 = "Çocuk yavaş yavaş ilerliyordu.";
+        assert!(check(text2).is_empty());
+    }
+
+    #[test]
+    fn space_before_punctuation_flagged() {
+        let text = "Merhaba , dünya!";
+        let issues = check(text);
+        assert_eq!(issues.len(), 1);
+        assert_eq!(
+            issues[0].message,
+            "Noktalama işaretinden önce boşluk bırakılmaz"
+        );
+    }
+
+    #[test]
+    fn comma_around_conjunctions_flagged() {
+        let text = "Elma, ve armut.";
+        let issues = check(text);
+        assert_eq!(issues.len(), 1);
+        assert!(issues[0].message.contains("virgül konulmaz"));
+
+        let text2 = "Elma ve, armut.";
+        let issues2 = check(text2);
+        assert_eq!(issues2.len(), 1);
+        assert!(
+            issues2[0]
+                .message
+                .contains("'ve' bağlacından sonra virgül konulmaz")
+        );
+    }
+
+    /// `de`/`da`, `ne` and `ya` often take a comma after them in correct Turkish, so no mark
+    /// (craft-libs#488 review).
+    #[test]
+    fn a_comma_after_de_ne_or_ya_is_fine() {
+        for text in [
+            "Ali de, Veli de geldi.",
+            "Ne, sen mi geldin?",
+            "Ya, bilmiyorum.",
+            "Bu mesele de, haklı olan bizdik.",
+            "Kim ister, gelsin.",
+            "Ali ister, Veli istemez.",
+            "Gerek, yok.",
+        ] {
+            assert!(check(text).is_empty(), "{text}: {:?}", check(text));
+        }
+    }
+
+    /// craft-libs#495 review: initials (`A.Ş.`, `T.C.`) and `İst.` end no sentence, and Turkish
+    /// case folding finds `Işık ışık`; a word with an apostrophe is still a repeat.
+    #[test]
+    fn turkish_case_and_initials() {
+        for text in [
+            "Şirket A.Ş. bugün açıldı.",
+            "O T.C. vatandaşı.",
+            "Adres İst. caddesi.",
+        ] {
+            assert!(check(text).is_empty(), "{text}: {:?}", check(text));
+        }
+        for text in ["Işık ışık yandı.", "Ankara'da Ankara'da kaldık."] {
+            assert_eq!(
+                check(text)
+                    .iter()
+                    .filter(|i| i.message == "Yinelenen sözcük")
+                    .count(),
+                1,
+                "{text}"
+            );
+        }
+    }
+
+    /// Repeated numbers are not repeated words (craft-libs#488 review).
+    #[test]
+    fn repeated_numbers_are_not_flagged() {
+        for text in [
+            "Skor 1 1 bitti.",
+            "Toplam 100 100 değil.",
+            "Oda A1 A1 değil.",
+        ] {
+            assert!(check(text).is_empty(), "{text}: {:?}", check(text));
+        }
+    }
+
+    #[test]
+    fn sentence_capitalization_respects_abbreviations() {
+        let text = "Dr. ahmet geldi. Fakat geç kaldı.";
+        let issues = check(text);
+        // "Dr. ahmet" does not flag "ahmet" because "Dr." is in ABBREVIATIONS.
+        assert!(issues.is_empty());
+    }
+}

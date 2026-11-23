@@ -20,7 +20,7 @@
 
 Word 和 Deck 共用 WMF／EMF 的有界读取与系统字体枚举。三产品都使用公共 OPC 读取，产品决定部件名、对象预算、未知 XML 保留及写回。Word 和 Sheet 共用 CFB 扇区／目录读取与 OMML 上下标，三产品都消费 DrawingML。Word／Deck 复用自定义几何公式和椭圆弧，Deck／Sheet 复用颜色处理。[公共库与各桌面、CLI 的调用关系](REFACTOR-ROADMAP.md#已在生产入口使用的公共代码)
 
-Word 的 `joyword-proof-rules` 从原文 UTF-8 范围产生标点、空白和句首大小写建议，零第三方依赖。既有校对适配层传入语言、词区间和缩略词表，并提供相应语言的消息。桌面审阅、CLI 及 DOCX 修正仍通过同一编辑会话。Deck 和 Sheet 使用各自的文本编辑入口。[规则实现](../../crates/joyword-proof-rules/src/lib.rs) · [语言适配](../../third-party/craft-libs/proof/src/editorial.rs)
+Word 的 `joyword-proof` 与 `joyword-proof-rules` 现均为第一方工作区组件：`joyword-proof-rules` 从原文 UTF-8 范围产生标点、空白和句首大小写建议，零第三方依赖；`joyword-proof` 负责多语拼写、词缀形态、建议排序、断词与语言包读取，语言包存储与事务安装归属 `joyword-engine/src/packs/`，桌面与 CLI 不再依赖外部 `craft-libs` crate。桌面审阅、CLI 及 DOCX 修正仍通过同一编辑会话。Deck 和 Sheet 使用各自的文本编辑入口。[规则实现](../../crates/joyword-proof-rules/src/lib.rs) · [语言适配](../../crates/joyword-proof/src/editorial.rs)
 
 公共 UI 持有呈现组件，产品适配层传入命令、焦点、可访问名称和保存状态。Word 的流式分页、Deck 的固定画布与 Sheet 的单写者计算引擎分别维护。每次抽取列出至少两个实际调用产品、各自的正常入口和可独立恢复的旧路径。共享组件的调用矩阵、首批候选与验收条件见[桌面应用共享复用](REFACTOR-ROADMAP.md#桌面应用共享复用)。
 

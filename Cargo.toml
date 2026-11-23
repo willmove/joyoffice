@@ -37,6 +37,7 @@ members = [
     "crates/joyword-engine",
     "crates/joyword-layout",
     "crates/joyword-model",
+    "crates/joyword-proof",
     "crates/joyword-proof-rules",
     "crates/joyword-pdf",
     "crates/joyword-render",
@@ -95,6 +96,7 @@ default-members = [
     "crates/joyword-engine",
     "crates/joyword-layout",
     "crates/joyword-model",
+    "crates/joyword-proof",
     "crates/joyword-proof-rules",
     "crates/joyword-pdf",
     "crates/joyword-render",
@@ -222,9 +224,12 @@ vello_common = { version = "=0.2.0", default-features = false }
 # JoyWord Wordcraft-derived model, layout and editor.
 joyword-mcp = { path = "crates/joyword-mcp" }
 joyword-control-key = { path = "crates/joyword-control-key" }
-joyword-proof = { version = "=0.1.0", package = "craft-proof", path = "third-party/craft-libs/proof" }
-craft-font-store = { version = "=0.1.0", default-features = false, path = "third-party/craft-libs/font-store" }
-craft-font-catalog = { version = "=0.1.0", path = "third-party/craft-libs/font-catalog" }
+joyword-proof = { version = "=0.2.0", path = "crates/joyword-proof" }
+joyword-proof-rules = { version = "=0.2.0", path = "crates/joyword-proof-rules" }
+ruzstd = { version = "=0.9.1", default-features = false, features = ["std"] }
+tar = { version = "=0.4.46", default-features = false }
+toml = { version = "=1.1.8", default-features = false, features = ["parse", "serde", "std"] }
+ureq = { version = "=3.5.1", default-features = false, features = ["rustls", "gzip"] }
 joyword-fonts = { version = "=0.2.0", path = "crates/joyword-fonts" }
 joyword-formats = { version = "=0.2.0", path = "crates/joyword-formats" }
 wuff = "=0.2.9"

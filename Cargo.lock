@@ -1323,43 +1323,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "craft-atomic"
-version = "0.1.0"
-dependencies = [
- "rustix",
-]
-
-[[package]]
-name = "craft-font-store"
-version = "0.1.0"
-dependencies = [
- "craft-atomic",
- "flate2",
- "log",
- "ruzstd",
- "serde",
- "serde_json",
- "sha2 0.10.9",
- "skrifa 0.42.1",
- "tar",
- "thiserror 2.0.21",
- "toml 1.1.8+spec-1.1.0",
- "ureq",
-]
-
-[[package]]
-name = "craft-proof"
-version = "0.1.0"
-dependencies = [
- "joyword-proof-rules",
- "log",
- "miniz_oxide 0.9.1",
- "toml 1.1.8+spec-1.1.0",
- "unicode-normalization",
- "unicode-segmentation",
-]
-
-[[package]]
 name = "crc32fast"
 version = "1.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4480,8 +4443,6 @@ name = "joyword-engine"
 version = "0.2.0"
 dependencies = [
  "cfb",
- "craft-font-store",
- "craft-proof",
  "encoding_rs",
  "getrandom 0.3.4",
  "image",
@@ -4494,15 +4455,21 @@ dependencies = [
  "joyword-layout",
  "joyword-model",
  "joyword-pdf",
+ "joyword-proof",
  "joyword-render",
  "js-sys",
  "libc",
  "log",
  "regex",
  "regex-automata",
+ "ruzstd",
  "serde",
  "serde_json",
+ "sha2 0.10.9",
+ "tar",
  "thiserror 2.0.21",
+ "toml 1.1.8+spec-1.1.0",
+ "ureq",
  "zeroize",
  "zip",
 ]
@@ -4553,12 +4520,12 @@ dependencies = [
 name = "joyword-layout"
 version = "0.2.0"
 dependencies = [
- "craft-proof",
  "image",
  "joyword-fonts",
  "joyword-geom",
  "joyword-metafile",
  "joyword-model",
+ "joyword-proof",
  "js-sys",
  "kurbo 0.13.1",
  "log",
@@ -4626,6 +4593,19 @@ dependencies = [
  "kurbo 0.13.1",
  "log",
  "thiserror 2.0.21",
+]
+
+[[package]]
+name = "joyword-proof"
+version = "0.2.0"
+dependencies = [
+ "joyword-proof-rules",
+ "log",
+ "miniz_oxide 0.9.1",
+ "proptest",
+ "toml 1.1.8+spec-1.1.0",
+ "unicode-normalization",
+ "unicode-segmentation",
 ]
 
 [[package]]
