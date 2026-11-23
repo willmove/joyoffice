@@ -133,6 +133,26 @@ class Packaging(unittest.TestCase):
             self.assertIn('Icon=joysheet\n', appdir.read_text())
             self.assertNotIn(str(directory), installed.read_text() + appdir.read_text())
 
+    def test_source_snapshot_keeps_patches_outside_host_dependency_graph(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            patch_manifest = root / "third-party/gpui-pre-linux/Cargo.toml"
+            patch_manifest.parent.mkdir(parents=True)
+            patch_manifest.write_bytes(b"local Linux patch manifest")
+            (root / "Cargo.toml").write_text(
+                '[patch.crates-io]\ngpui-pre-linux = { path = "third-party/gpui-pre-linux" }\n',
+                encoding="utf-8",
+            )
+            (root / "LICENSE").touch()
+            with (
+                patch.object(package, "ROOT", root),
+                patch.object(package, "INTEGRATION_DOCS", ()),
+                patch.object(package.sbom, "snapshot", return_value={}),
+            ):
+                snapshot = package.source_snapshot("x86_64-pc-windows-msvc", ())
+            self.assertEqual(snapshot["third-party/gpui-pre-linux/Cargo.toml"],
+                             hashlib.sha256(patch_manifest.read_bytes()).hexdigest())
+
     def test_standalone_workspace_keeps_consumed_shared_crates_and_features(self):
         source = '''[workspace]
 members = ["apps/joyword", "apps/joysheet", "crates/joyoffice-opc"]

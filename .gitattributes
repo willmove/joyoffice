@@ -62,6 +62,7 @@ docs/joydeck/upstream-tests/** -text
 tests/fixtures/joydeck/** -text
 crates/joyoffice-ui/** text=auto eol=lf
 crates/joyoffice-opc/** text=auto eol=lf
+crates/joyoffice-metafile/** text=auto eol=lf
 scripts/verify_gpui_pre_provenance.py text=auto eol=lf
 scripts/gpui_pre_reviewed_deviations.json text=auto eol=lf
 tools/xtask/src/main.rs text=auto eol=lf
@@ -94,8 +95,9 @@ licenses/gpui/** -text
 licenses/wordcraft/** -text
 docs/joyword/r8/migration/** -text whitespace=cr-at-eol,-blank-at-eof,-blank-at-eol
 
-# Preserve the exact reviewed AccessKit package bytes.
+# Preserve the exact reviewed GPUI and AccessKit patch bytes.
 third-party/accesskit_windows/** -text -whitespace
+third-party/gpui-pre-linux/** -text
 licenses/accesskit-windows/source.json -text
 
 # The ECMA-376 attachment is distributed with its original BOM and CRLF bytes.

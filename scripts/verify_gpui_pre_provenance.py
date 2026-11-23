@@ -652,7 +652,9 @@ def fetch_zed(repo, remote, revs, branch):
     oldest = min(int(git(repo, "log", "-1", "--format=%ct", rev)) for rev in revs) - HISTORY_MARGIN
     since = time.strftime("%Y-%m-%d %H:%M:%S +0000", time.gmtime(oldest))
     ref = f"refs/remotes/zed/{branch}"
-    git(repo, *fetch, "--filter=tree:0", f"--shallow-since={since}", "zed", f"+refs/heads/{branch}:{ref}")
+    # A tree-less shallow fetch can fail during server-side pack traversal of
+    # the already shallow pinned commits. Keep trees for ancestry and file checks.
+    git(repo, *fetch, "--filter=blob:none", f"--shallow-since={since}", "zed", f"+refs/heads/{branch}:{ref}")
     return ref, "zed" if partial else None
 
 

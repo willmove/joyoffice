@@ -39,8 +39,8 @@
     "source_path": "scripts/verify_gpui_pre_provenance.py",
     "target_path": "scripts/verify_gpui_pre_provenance.py",
     "source_sha256": "cc8f0c60d19e9576943906043ce34ef1ad0f12fbfa4e8b5c08d647fb5d329af6",
-    "local_changes": "CRLF normalized to LF; R9: enforce identical LF checkout bytes on Windows/Linux/macOS; pin both reviewed Linux backend files for editable and read-only X11 windows; 2026-11-18: support legacy Git with a full shallow-commit fallback while retaining partial blob fetches on modern Git",
-    "adapted_sha256": "fe6130459a2577caee3b3871c8fff48fbc2568b46787bfb34250f02cf599710f",
+    "local_changes": "CRLF normalized to LF; R9: enforce identical LF checkout bytes on Windows/Linux/macOS; pin both reviewed Linux backend files for editable and read-only X11 windows; 2026-11-18: support legacy Git with a full shallow-commit fallback while retaining partial blob fetches on modern Git; 2026-11-23: retain tree objects during the shallow ancestry fetch",
+    "adapted_sha256": "33defaa813c295af7911164171305593df944933bbabfb149e5dffe7e8695191",
     "verified_opc_read": "Reuse verified OPC buffers while preserving format reader budgets and ZIP name decoding."
   },
   {

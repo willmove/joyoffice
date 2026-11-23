@@ -45,10 +45,11 @@ def write_json(path, value):
 
 def source_snapshot(target, features):
     snapshot = sbom.snapshot(target, roots=APPLICATIONS, features=features)
-    # Cargo resolves path patches before filtering for a host target. Include
-    # the Windows patch in Linux source archives as well so the extracted
-    # workspace resolves the same lock on both platforms.
-    for folder in ("tools/xtask", ".cargo", "third-party/accesskit_windows", "licenses/accesskit-windows"):
+    # Cargo loads every local patch before filtering for a host target.
+    manifest = tomllib.loads((ROOT / "Cargo.toml").read_text(encoding="utf-8"))
+    patches = manifest.get("patch", {}).get("crates-io", {})
+    patch_folders = [spec["path"] for spec in patches.values() if isinstance(spec, dict) and "path" in spec]
+    for folder in ("tools/xtask", ".cargo", "licenses/accesskit-windows", "licenses/gpui", *patch_folders):
         for path in (ROOT / folder).rglob("*"):
             if path.is_file() and not {"__pycache__", "target", ".git"} & set(path.relative_to(ROOT).parts):
                 snapshot[path.relative_to(ROOT).as_posix()] = hashlib.sha256(path.read_bytes()).hexdigest()
