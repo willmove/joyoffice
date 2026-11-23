@@ -1,0 +1,397 @@
+{
+  "date": "2026-11-23",
+  "baseline": "86d1d282",
+  "scope": "Unify worksheet display options (showFormulas, showGridLines, showRowColHeaders, showZeros, showOutlineSymbols, rightToLeft), view modes (normal, pageBreakPreview, pageLayout), active/fallback zoom percentages (treating 0 as unset instead of clamping to 10%, and emitting view-specific XML zoom attributes), and outline summary direction (summaryBelow, summaryRight) across BIFF8 (.xls WINDOW2/SCL/WSBOOL), BIFF12 (.xlsb BrtWsView/BrtWsProp), and SpreadsheetML (.xlsx <sheetView>/<outlinePr>) via shared helpers in crates/joysheet-xlsx/src/sheet_view.rs.",
+  "specifications": [
+    "https://learn.microsoft.com/en-us/openspecs/office_file_formats/ms-xls/f1c94c24-0650-454a-94df-c03f8a36922c",
+    "https://learn.microsoft.com/en-us/openspecs/office_file_formats/ms-xls/04c612cc-a2e6-4982-8673-b4c5e9214954",
+    "https://learn.microsoft.com/en-us/openspecs/office_file_formats/ms-xlsb/6534b39f-00b9-40b2-a1db-f60b6d16466d",
+    "https://learn.microsoft.com/en-us/openspecs/office_file_formats/ms-xlsb/18908a62-f92d-4c8d-939b-7d982cf50141"
+  ],
+  "reproduce": [
+    "cargo test --locked --offline -p joysheet-xlsx",
+    "python3 scripts/joysheet/check-sheet-display.py OLD_CLI NEW_CLI OUTPUT --desktop JOYSHEET",
+    "python3 scripts/joysheet/check-sheet-panes.py OLD_CLI NEW_CLI OUTPUT --desktop JOYSHEET"
+  ],
+  "rollback": "Restore crates/joysheet-xlsx/src/{sheet_view.rs,sheet_read.rs,sheet_write.rs,xls.rs,xlsb.rs} from commit 86d1d282.",
+  "platforms": {
+    "macOS": {
+      "os": "macOS 27.2.1 (26B131)",
+      "arch": "aarch64-apple-darwin",
+      "rustc": "1.98.1 (48a229cea 2026-09-01)",
+      "unitTests": {
+        "joysheetXlsxPassed": 288,
+        "joysheetXlsxFailed": 0
+      },
+      "sheetDisplayMatrix": {
+        "cliSha256": [
+          "3b5ac80345a71597c459df87f41387d6a69e0138a00da53a99a04f1c59d03513",
+          "aae8100af484e9afce56cde6b224b2b9042892bba7763b234226e4998c4448c4"
+        ],
+        "workbooks": {
+          "layout_outline.xls": {
+            "sourceSha256": "17e8b3e5eaa30db8089f5ec1cd874b212939f8cb4a4af05af8cd2710b6898191",
+            "writerDisplay": {
+              "baseline": [
+                false,
+                true,
+                true,
+                true,
+                true,
+                false,
+                "normal",
+                100,
+                true,
+                true
+              ],
+              "candidate": [
+                false,
+                true,
+                true,
+                true,
+                true,
+                false,
+                "normal",
+                135,
+                false,
+                false
+              ]
+            },
+            "readerWriterPairs": 4
+          },
+          "layout_outline.xlsb": {
+            "sourceSha256": "1119f125eb97a8a2b5522d0a9927c09db02ac8f468612b81685804d31efbfd41",
+            "writerDisplay": {
+              "baseline": [
+                false,
+                true,
+                true,
+                true,
+                true,
+                false,
+                "normal",
+                100,
+                true,
+                true
+              ],
+              "candidate": [
+                false,
+                true,
+                true,
+                true,
+                true,
+                false,
+                "pageLayout",
+                135,
+                false,
+                false
+              ]
+            },
+            "readerWriterPairs": 4
+          },
+          "layout_outline.xlsx": {
+            "sourceSha256": "b55448149219837f8b9cfd7daab16ebc6fa81670dae9a0fd8831f6fb9aaf66ba",
+            "writerDisplay": {
+              "baseline": [
+                false,
+                true,
+                true,
+                true,
+                true,
+                false,
+                "pageLayout",
+                10,
+                false,
+                false
+              ],
+              "candidate": [
+                false,
+                true,
+                true,
+                true,
+                true,
+                false,
+                "pageLayout",
+                135,
+                false,
+                false
+              ]
+            },
+            "readerWriterPairs": 4
+          },
+          "page_break.xls": {
+            "sourceSha256": "14feb631c5f1887a44537d94214ef493cc5be7ad30cb4be744cba4bd6b38a3aa",
+            "writerDisplay": {
+              "baseline": [
+                true,
+                false,
+                true,
+                false,
+                true,
+                false,
+                "normal",
+                100,
+                true,
+                true
+              ],
+              "candidate": [
+                true,
+                false,
+                true,
+                false,
+                false,
+                false,
+                "pageBreakPreview",
+                85,
+                false,
+                true
+              ]
+            },
+            "readerWriterPairs": 4
+          },
+          "page_break.xlsb": {
+            "sourceSha256": "454709c1e43025509d50e5885daf7d3092bbf33707c5be219f80a03c2ef7bc80",
+            "writerDisplay": {
+              "baseline": [
+                false,
+                true,
+                true,
+                true,
+                true,
+                false,
+                "normal",
+                100,
+                true,
+                true
+              ],
+              "candidate": [
+                true,
+                false,
+                true,
+                false,
+                false,
+                false,
+                "pageBreakPreview",
+                85,
+                false,
+                true
+              ]
+            },
+            "readerWriterPairs": 4
+          },
+          "page_break.xlsx": {
+            "sourceSha256": "e0252904050a21508e18691aea7d72f37bf92516c38780ffa581a2e3caa7089b",
+            "writerDisplay": {
+              "baseline": [
+                true,
+                false,
+                true,
+                false,
+                false,
+                false,
+                "pageBreakPreview",
+                10,
+                false,
+                true
+              ],
+              "candidate": [
+                true,
+                false,
+                true,
+                false,
+                false,
+                false,
+                "pageBreakPreview",
+                85,
+                false,
+                true
+              ]
+            },
+            "readerWriterPairs": 4
+          },
+          "rtl_zoom.xls": {
+            "sourceSha256": "2dca3ad5d63f73b490ed248eee57e3e16c1e66d6dbbaece58fb0fb6dbd42e5fb",
+            "writerDisplay": {
+              "baseline": [
+                false,
+                true,
+                false,
+                false,
+                true,
+                true,
+                "normal",
+                100,
+                true,
+                true
+              ],
+              "candidate": [
+                false,
+                true,
+                false,
+                false,
+                false,
+                true,
+                "normal",
+                154,
+                true,
+                false
+              ]
+            },
+            "readerWriterPairs": 4
+          },
+          "rtl_zoom.xlsb": {
+            "sourceSha256": "0dfec67b7d618bdc01f533b8670522cadb6b514c36a15b779667f19305acd8ae",
+            "writerDisplay": {
+              "baseline": [
+                false,
+                true,
+                true,
+                true,
+                true,
+                false,
+                "normal",
+                100,
+                true,
+                true
+              ],
+              "candidate": [
+                false,
+                true,
+                false,
+                false,
+                false,
+                true,
+                "normal",
+                154,
+                true,
+                false
+              ]
+            },
+            "readerWriterPairs": 4
+          },
+          "rtl_zoom.xlsx": {
+            "sourceSha256": "9142ae7c13a630a0bc568cfb75a87b74bd19a15b340bb4c8c4f3f2733f82a620",
+            "writerDisplay": {
+              "baseline": [
+                false,
+                true,
+                false,
+                false,
+                false,
+                true,
+                "normal",
+                154,
+                true,
+                false
+              ],
+              "candidate": [
+                false,
+                true,
+                false,
+                false,
+                false,
+                true,
+                "normal",
+                154,
+                true,
+                false
+              ]
+            },
+            "readerWriterPairs": 4
+          }
+        },
+        "desktopSha256": "bdbbde340ec6d426e83e0db9afc8c803a54c860545bffcb21d3fbb9b8eb8914e",
+        "desktop": {
+          "cases": {
+            "layout_outline.xls": {
+              "loadedSummary": {
+                "summaryBelow": false,
+                "summaryRight": false
+              },
+              "savedZoom": 125,
+              "savedGridlines": false
+            },
+            "layout_outline.xlsb": {
+              "loadedSummary": {
+                "summaryBelow": false,
+                "summaryRight": false
+              },
+              "savedZoom": 125,
+              "savedGridlines": false
+            },
+            "layout_outline.xlsx": {
+              "loadedSummary": {
+                "summaryBelow": false,
+                "summaryRight": false
+              },
+              "savedZoom": 125,
+              "savedGridlines": false
+            },
+            "page_break.xls": {
+              "loadedSummary": {
+                "summaryBelow": false,
+                "summaryRight": true
+              },
+              "savedZoom": 125,
+              "savedGridlines": true
+            },
+            "page_break.xlsb": {
+              "loadedSummary": {
+                "summaryBelow": false,
+                "summaryRight": true
+              },
+              "savedZoom": 125,
+              "savedGridlines": true
+            },
+            "page_break.xlsx": {
+              "loadedSummary": {
+                "summaryBelow": false,
+                "summaryRight": true
+              },
+              "savedZoom": 125,
+              "savedGridlines": true
+            },
+            "rtl_zoom.xls": {
+              "loadedSummary": {
+                "summaryBelow": true,
+                "summaryRight": false
+              },
+              "savedZoom": 125,
+              "savedGridlines": false
+            },
+            "rtl_zoom.xlsb": {
+              "loadedSummary": {
+                "summaryBelow": true,
+                "summaryRight": false
+              },
+              "savedZoom": 125,
+              "savedGridlines": false
+            },
+            "rtl_zoom.xlsx": {
+              "loadedSummary": {
+                "summaryBelow": true,
+                "summaryRight": false
+              },
+              "savedZoom": 125,
+              "savedGridlines": false
+            }
+          },
+          "undoRedo": true,
+          "freshProcessReopen": true
+        },
+        "originalsUnchanged": true
+      },
+      "excelSheetPanesRegression": {
+        "fixturesChecked": 12,
+        "desktopCasesChecked": 12,
+        "undoRedo": true,
+        "freshProcessReopen": true,
+        "originalsUnchanged": true
+      }
+    },
+    "UOS": {
+      "status": "pending",
+      "note": "No UOS 25 x86_64 physical host attached during 2026-11-23 run; rerun check-sheet-display.py and check-sheet-panes.py on UOS when available."
+    }
+  }
+}

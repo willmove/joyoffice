@@ -688,3 +688,52 @@ fn xls_window1_uses_the_first_complete_view_and_ignores_unknown_tabs() {
         assert!(report.warnings.iter().any(|s| s.contains("truncated workbook window")));
     }
 }
+
+#[test]
+fn xls_display_options_view_mode_zoom_and_outline_summary_survive_xlsx_save() {
+    // WSBOOL: fShowAutoBreaks (0x0001), fRowSumsBelow = 0, fColSumsRight = 0 (no 0x0040/0x0080).
+    let wsbool = rec(0x0081, &u16s(&[0x0001]));
+    // WINDOW2: formulas=1, gridlines=0, headings=0, zeros=0, rtl=1, outlineSymbols=0, fSLV=1 (PageBreakPreview), wScaleSLV=85.
+    let flags = 0x0001 | 0x0040 | 0x0800;
+    let window2 = rec(0x023E, &u16s(&[flags, 0, 0, 64, 0, 85, 110, 0, 0]));
+    // Active zoom via SCL (77 / 50 = 154%) overrides wScaleSLV, while a second WINDOW2+SCL is ignored.
+    let scl = rec(0x00A0, &u16s(&[77, 50]));
+    let second_window = rec(0x023E, &u16s(&[0x00B6, 0, 0, 64, 0, 0, 0, 0, 0]));
+    let second_scl = rec(0x00A0, &u16s(&[50, 100]));
+    let data = one_sheet_with(&cat(&[&wsbool, &window2, &scl, &second_window, &second_scl]));
+    let (wb, _) = read_xls(&data).unwrap();
+    let sh = &wb.sheets[0];
+    assert!(sh.show_formulas);
+    assert!(!sh.show_gridlines);
+    assert!(!sh.show_headings);
+    assert!(!sh.show_zeros);
+    assert!(!sh.show_outline_symbols);
+    assert!(sh.right_to_left);
+    assert_eq!(sh.view, joysheet_model::SheetViewMode::PageBreakPreview);
+    assert_eq!(sh.zoom, 154);
+    assert!(!sh.summary_below);
+    assert!(!sh.summary_right);
+
+    let (rt, _) = read_xlsx(&write_xlsx(&wb).unwrap()).unwrap();
+    let rsh = &rt.sheets[0];
+    assert_eq!(
+        (
+            rsh.show_formulas,
+            rsh.show_gridlines,
+            rsh.show_headings,
+            rsh.show_zeros,
+            rsh.show_outline_symbols,
+            rsh.right_to_left,
+            rsh.view,
+            rsh.zoom,
+            rsh.summary_below,
+            rsh.summary_right
+        ),
+        (true, false, false, false, false, true, joysheet_model::SheetViewMode::PageBreakPreview, 154, false, false)
+    );
+
+    // Without SCL, WINDOW2 wScaleSLV supplies the PageBreakPreview zoom and malformed SCL (den=0) is ignored.
+    let fallback_data = one_sheet_with(&cat(&[&window2, &rec(0x00A0, &u16s(&[120, 0]))]));
+    let (wb2, _) = read_xls(&fallback_data).unwrap();
+    assert_eq!(wb2.sheets[0].zoom, 85);
+}

@@ -603,12 +603,40 @@ fn worksheet(bytes: &[u8], name: &str, strings: &[Arc<str>], budget: &mut Budget
                 view.finish(&mut sheet);
                 return Ok(sheet);
             }
+            147 if !data && payload.len() >= 2 => {
+                crate::sheet_view::apply_outline_summary(&mut sheet, b.u16()?);
+            }
             137 if !data && payload.len() >= 30 => {
                 if view.begin() {
-                    b.take(6)?;
+                    let flags = b.u16()?;
+                    let xl_view = b.u32()?;
                     if let Some(cell) = crate::sheet_view::cell(b.u32()?, b.u32()?) {
                         sheet.view_top_left = cell;
                     }
+                    b.take(4)?; // icvHdr + reserved
+                    let scale = u32::from(b.u16()?);
+                    let scale_normal = u32::from(b.u16()?);
+                    let scale_slv = u32::from(b.u16()?);
+                    let scale_plv = u32::from(b.u16()?);
+                    let mode = match xl_view {
+                        1 => joysheet_model::SheetViewMode::PageBreakPreview,
+                        2 => joysheet_model::SheetViewMode::PageLayout,
+                        _ => joysheet_model::SheetViewMode::Normal,
+                    };
+                    let on = |bit: u16| flags & bit != 0;
+                    crate::sheet_view::apply_display(
+                        &mut sheet,
+                        crate::sheet_view::DisplayOptions {
+                            show_formulas: on(0x0002),
+                            show_gridlines: on(0x0004),
+                            show_headings: on(0x0008),
+                            show_zeros: on(0x0010),
+                            show_outline_symbols: on(0x0100),
+                            right_to_left: on(0x0020),
+                            view: mode,
+                            zoom: crate::sheet_view::resolve_zoom(mode, scale, scale_normal, scale_slv, scale_plv),
+                        },
+                    );
                 }
             }
             138 => view.reading = false,

@@ -133,7 +133,7 @@ pub fn read_sheet(cx: &mut Ctx<'_>, part: &str, name: &str) -> Result<Sheet, IoE
                 }
                 fit_to_page = e.child("pageSetUpPr").is_some_and(|p| p.flag("fitToPage", false));
             }
-            "sheetViews" => read_views(e, &mut sheet)?,
+            "sheetViews" => crate::sheet_view::read_xml_views(e, &mut sheet)?,
             "sheetFormatPr" => {
                 if let Some(h) = e.attr_f64("defaultRowHeight") {
                     let px = pt_to_px(h);
@@ -328,36 +328,6 @@ fn read_protected_ranges(e: &El, sheet: &mut Sheet) {
         let title = p.attr("name").unwrap_or("").to_string();
         sheet.edit_ranges.push(EditRange { title, ranges, password, security_descriptor: p.attr("securityDescriptor").map(str::to_string) });
     }
-}
-
-fn read_views(e: &El, sheet: &mut Sheet) -> Result<(), IoError> {
-    let Some(v) = e.child("sheetView") else { return Ok(()) };
-    sheet.show_gridlines = v.flag("showGridLines", true);
-    sheet.show_headings = v.flag("showRowColHeaders", true);
-    sheet.show_formulas = v.flag("showFormulas", false);
-    sheet.show_zeros = v.flag("showZeros", true);
-    sheet.show_outline_symbols = v.flag("showOutlineSymbols", true);
-    sheet.right_to_left = v.flag("rightToLeft", false);
-    sheet.view = v.attr("view").and_then(joysheet_model::SheetViewMode::parse).unwrap_or_default();
-    if let Some(z) = v.attr_u32("zoomScale") {
-        sheet.zoom = z.clamp(10, 400) as u16;
-    }
-    if let Some(c) = v.attr("topLeftCell").and_then(CellRef::parse) {
-        sheet.view_top_left = c;
-    }
-    let mut active_pane = None;
-    if let Some(p) = v.child("pane") {
-        if matches!(p.attr("state"), Some("frozen") | Some("frozenSplit")) {
-            let cols = p.attr_f64("xSplit").unwrap_or(0.0).clamp(0.0, (MAX_COLS - 1) as f64) as u32;
-            let rows = p.attr_f64("ySplit").unwrap_or(0.0).clamp(0.0, (MAX_ROWS - 1) as f64) as u32;
-            if rows > 0 || cols > 0 {
-                let pane = p.attr("topLeftCell").and_then(CellRef::parse).unwrap_or_default();
-                crate::sheet_view::freeze(sheet, rows, cols, pane);
-            }
-        }
-        active_pane = p.attr("activePane");
-    }
-    crate::sheet_view::read_selections(v, sheet, active_pane)
 }
 
 fn read_cols(cx: &Ctx<'_>, e: &El, sheet: &mut Sheet, remaining: &mut u64) -> Result<(), IoError> {

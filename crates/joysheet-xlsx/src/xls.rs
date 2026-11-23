@@ -793,6 +793,9 @@ fn sheet_record(rec: &Record<'_>, st: &mut SheetState<'_>, budget: &mut Budget, 
                 st.sheet.default_row_height = pt_to_px(f64::from(height) / 20.0);
             }
         }
+        WSBOOL if c.remaining() >= 2 => {
+            crate::sheet_view::apply_outline_summary(&mut st.sheet, c.u16()?);
+        }
         0x023E => {
             let flags = if c.remaining() >= WINDOW2_MIN_LEN { c.u16().ok() } else { None };
             let Some(flags) = flags else { return Ok(()) };
@@ -804,12 +807,30 @@ fn sheet_record(rec: &Record<'_>, st: &mut SheetState<'_>, budget: &mut Budget, 
             if col < 256 {
                 st.sheet.view_top_left = CellRef::new(row, col);
             }
+            let _ = c.skip(4); // icvHdr
+            let (scale_slv, scale_normal) = if c.remaining() >= 4 { (u32::from(c.u16()?), u32::from(c.u16()?)) } else { (0, 0) };
             let on = |bit: u16| flags & bit != 0;
-            st.sheet.show_formulas = on(0x0001);
-            st.sheet.show_gridlines = on(0x0002);
-            st.sheet.show_headings = on(0x0004);
-            st.sheet.show_zeros = on(0x0010);
-            st.sheet.right_to_left = on(0x0040);
+            let view = if on(0x0800) { joysheet_model::SheetViewMode::PageBreakPreview } else { joysheet_model::SheetViewMode::Normal };
+            let zoom = crate::sheet_view::resolve_zoom(view, 0, scale_normal, scale_slv, 0);
+            crate::sheet_view::apply_display(
+                &mut st.sheet,
+                crate::sheet_view::DisplayOptions {
+                    show_formulas: on(0x0001),
+                    show_gridlines: on(0x0002),
+                    show_headings: on(0x0004),
+                    show_zeros: on(0x0010),
+                    show_outline_symbols: on(0x0080),
+                    right_to_left: on(0x0040),
+                    view,
+                    zoom,
+                },
+            );
+        }
+        0x00A0 if st.view.reading && c.remaining() >= 4 => {
+            let (num, den) = (c.u16()?, c.u16()?);
+            if let Some(zoom) = crate::sheet_view::biff8_scl_zoom(num, den) {
+                st.sheet.zoom = zoom;
+            }
         }
         0x0041 if st.view.reading && c.remaining() >= 9 => {
             let (cols, rows) = (u32::from(c.u16()?), u32::from(c.u16()?));

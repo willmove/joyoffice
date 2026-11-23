@@ -352,3 +352,68 @@ fn xlsb_book_view_reads_the_first_complete_view_in_its_collection() {
         assert!(report.warnings.iter().any(|s| s.contains("truncated workbook view")));
     }
 }
+
+#[test]
+fn xlsb_display_options_view_mode_zoom_and_outline_summary_survive_xlsx_save() {
+    let ws_view = |flags: u16, xl_view: u32, w_scale: u16, w_normal: u16, w_slv: u16, w_plv: u16| {
+        let mut p = Vec::with_capacity(30);
+        p.extend(flags.to_le_bytes());
+        p.extend(xl_view.to_le_bytes());
+        p.extend(2u32.to_le_bytes()); // rwTop = row 3
+        p.extend(3u32.to_le_bytes()); // colLeft = col D
+        p.extend([0x40, 0, 0, 0]);
+        p.extend(w_scale.to_le_bytes());
+        p.extend(w_normal.to_le_bytes());
+        p.extend(w_slv.to_le_bytes());
+        p.extend(w_plv.to_le_bytes());
+        p.extend(0u32.to_le_bytes());
+        record(137, &p)
+    };
+    // BrtWsProp: summaryBelow=0, summaryRight=1 (0x0080 set, 0x0040 clear).
+    let mut ws_prop = vec![0u8; 23];
+    ws_prop[0..2].copy_from_slice(&0x0081u16.to_le_bytes());
+    let mut head = record(129, &[]);
+    head.extend(record(147, &ws_prop));
+    // Primary view: PageLayout (2), formulas=1 (0x0002), gridlines=0, headings=1 (0x0008), zeros=0, rtl=1 (0x0020), outlineSymbols=0, wScale=0 -> fallback wScalePLV=135.
+    head.extend(ws_view(0x0002 | 0x0008 | 0x0020, 2, 0, 100, 75, 135));
+    head.extend(record(138, &[]));
+    // Secondary view must be ignored.
+    head.extend(ws_view(0x039c, 0, 90, 90, 0, 0));
+    head.extend(record(138, &[]));
+    head.extend(record(145, &[]));
+    head.extend(record(146, &[]));
+    head.extend(record(130, &[]));
+
+    let (wb, _) = read_xlsb(&file(&head)).unwrap();
+    let sh = &wb.sheets[0];
+    assert!(sh.show_formulas);
+    assert!(!sh.show_gridlines);
+    assert!(sh.show_headings);
+    assert!(!sh.show_zeros);
+    assert!(!sh.show_outline_symbols);
+    assert!(sh.right_to_left);
+    assert_eq!(sh.view, joysheet_model::SheetViewMode::PageLayout);
+    assert_eq!(sh.zoom, 135);
+    assert_eq!(sh.view_top_left, CellRef::new(2, 3));
+    assert!(!sh.summary_below);
+    assert!(sh.summary_right);
+
+    let (rt, _) = read_xlsx(&write_xlsx(&wb).unwrap()).unwrap();
+    let rsh = &rt.sheets[0];
+    assert_eq!(
+        (
+            rsh.show_formulas,
+            rsh.show_gridlines,
+            rsh.show_headings,
+            rsh.show_zeros,
+            rsh.show_outline_symbols,
+            rsh.right_to_left,
+            rsh.view,
+            rsh.zoom,
+            rsh.view_top_left,
+            rsh.summary_below,
+            rsh.summary_right
+        ),
+        (true, false, true, false, false, true, joysheet_model::SheetViewMode::PageLayout, 135, CellRef::new(2, 3), false, true)
+    );
+}

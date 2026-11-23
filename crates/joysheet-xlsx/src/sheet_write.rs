@@ -130,64 +130,7 @@ pub fn write_sheet(wb: &Workbook, si: usize, selected: bool, out: &mut Out) -> (
     let _ = write!(s, "<dimension ref=\"{}\"/>", used.map(|u| u.a1()).unwrap_or_else(|| "A1".into()));
 
     // sheetViews
-    s.push_str("<sheetViews><sheetView");
-    if selected {
-        s.push_str(" tabSelected=\"1\"");
-    }
-    if !sheet.show_gridlines {
-        s.push_str(" showGridLines=\"0\"");
-    }
-    if !sheet.show_headings {
-        s.push_str(" showRowColHeaders=\"0\"");
-    }
-    if sheet.show_formulas {
-        s.push_str(" showFormulas=\"1\"");
-    }
-    if !sheet.show_zeros {
-        s.push_str(" showZeros=\"0\"");
-    }
-    if !sheet.show_outline_symbols {
-        s.push_str(" showOutlineSymbols=\"0\"");
-    }
-    if sheet.right_to_left {
-        s.push_str(" rightToLeft=\"1\"");
-    }
-    if sheet.view != joysheet_model::SheetViewMode::Normal {
-        let _ = write!(s, " view=\"{}\"", sheet.view.as_str());
-    }
-    if sheet.zoom != 100 && (10..=400).contains(&sheet.zoom) {
-        let _ = write!(s, " zoomScale=\"{0}\" zoomScaleNormal=\"{0}\"", sheet.zoom);
-    }
-    let (rows, cols) = sheet.freeze.unwrap_or_default();
-    let top = sheet.view_top_left;
-    let main_origin = CellRef::new(if rows == 0 { top.row } else { 0 }, if cols == 0 { top.col } else { 0 });
-    if main_origin != CellRef::default() {
-        let _ = write!(s, " topLeftCell=\"{}\"", main_origin.a1());
-    }
-    s.push_str(" workbookViewId=\"0\">");
-    if let Some((rows, cols)) = sheet.freeze
-        && (rows > 0 || cols > 0)
-    {
-        let pane = crate::sheet_view::active_name(sheet);
-        s.push_str("<pane");
-        if cols > 0 {
-            let _ = write!(s, " xSplit=\"{cols}\"");
-        }
-        if rows > 0 {
-            let _ = write!(s, " ySplit=\"{rows}\"");
-        }
-        let _ = write!(
-            s,
-            " topLeftCell=\"{}\" activePane=\"{pane}\" state=\"frozen\"/>",
-            CellRef::new(
-                if rows == 0 { 0 } else { rows.max(top.row).min(joysheet_core::MAX_ROWS - 1) },
-                if cols == 0 { 0 } else { cols.max(top.col).min(joysheet_core::MAX_COLS - 1) }
-            )
-            .a1()
-        );
-    }
-    crate::sheet_view::write_selections(&mut s, sheet);
-    s.push_str("</sheetView></sheetViews>");
+    crate::sheet_view::write_xml_views(&mut s, sheet, selected);
 
     // sheetFormatPr
     let max_row_outline = sheet.rows.values().map(|r| r.outline).max().unwrap_or(0);
