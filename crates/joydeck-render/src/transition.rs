@@ -239,59 +239,25 @@ fn draw_layer(out: &mut Image, l: &Layer, tex: &Tex) {
 /// Exact-size textures and uniform-opacity rectangles need neither triangle coverage nor
 /// bilinear sampling. Keep the mesh path for perspective, subpixel motion and feathering.
 fn draw_pixel_aligned_rect(out: &mut Image, l: &Layer, tex: &Tex) -> bool {
-    let [a, b, c, d] = l.quad;
-    if b != [c[0], a[1]]
-        || d != [a[0], c[1]]
-        || c[0] <= a[0]
-        || c[1] <= a[1]
-        || l.fade != [1.; 4]
-        || !l.alpha.is_finite()
-        || l.alpha > 1.
-        || l.quad.iter().flatten().any(|v| !v.is_finite())
+    let (w, h) = (out.width as usize, out.height as usize);
+    if let Tex::Image(image) = tex
+        && (image.width != out.width
+            || image.height != out.height
+            || image.pixels.len() != out.pixels.len())
     {
         return false;
     }
-    let (w, h) = (out.width as usize, out.height as usize);
-    let bounds = |lo: f64, hi: f64, side: usize| {
-        (
-            ((lo * side as f64 - 0.5).ceil()).clamp(0., side as f64) as usize,
-            ((hi * side as f64 - 0.5).ceil()).clamp(0., side as f64) as usize,
-        )
-    };
-    let (x0, x1) = bounds(a[0], c[0], w);
-    let (y0, y1) = bounds(a[1], c[1], h);
-    let (dx, dy) = match tex {
-        Tex::Image(image) => {
-            let [u, v, z, t] = l.uv;
-            if image.width != out.width
-                || image.height != out.height
-                || image.pixels.len() != out.pixels.len()
-                || v != [z[0], u[1]]
-                || t != [u[0], z[1]]
-                || ((z[0] - u[0]) - (c[0] - a[0])).abs() > 1e-12
-                || ((z[1] - u[1]) - (c[1] - a[1])).abs() > 1e-12
-            {
-                return false;
-            }
-            let dx = (u[0] - a[0]) * w as f64;
-            let dy = (u[1] - a[1]) * h as f64;
-            if !dx.is_finite()
-                || !dy.is_finite()
-                || (dx - dx.round()).abs() > 1e-9
-                || (dy - dy.round()).abs() > 1e-9
-                || x0 as f64 + dx < 0.
-                || x1 as f64 + dx > w as f64
-                || y0 as f64 + dy < 0.
-                || y1 as f64 + dy > h as f64
-            {
-                return false;
-            }
-            (dx.round() as isize, dy.round() as isize)
-        }
-        Tex::Solid(_) => (0, 0),
+    let Some(PixelAlignedRect {
+        x,
+        y,
+        offset: [dx, dy],
+    }) = pixel_aligned_rect(l, w, h, matches!(tex, Tex::Solid(_)))
+    else {
+        return false;
     };
     let alpha = l.alpha as f32;
-    for y in y0..y1 {
+    let (x0, x1) = (x.start, x.end);
+    for y in y {
         let row = &mut out.pixels[(y * w + x0) * 4..(y * w + x1) * 4];
         match tex {
             Tex::Image(image) => {
@@ -327,6 +293,71 @@ fn draw_pixel_aligned_rect(out: &mut Image, l: &Layer, tex: &Tex) -> bool {
         }
     }
     true
+}
+
+pub(crate) struct PixelAlignedRect {
+    pub(crate) x: std::ops::Range<usize>,
+    pub(crate) y: std::ops::Range<usize>,
+    pub(crate) offset: [isize; 2],
+}
+
+pub(crate) fn pixel_aligned_rect(
+    l: &Layer,
+    w: usize,
+    h: usize,
+    solid: bool,
+) -> Option<PixelAlignedRect> {
+    let [a, b, c, d] = l.quad;
+    if b != [c[0], a[1]]
+        || d != [a[0], c[1]]
+        || c[0] <= a[0]
+        || c[1] <= a[1]
+        || l.fade != [1.; 4]
+        || !l.alpha.is_finite()
+        || l.alpha > 1.
+        || l.quad.iter().flatten().any(|v| !v.is_finite())
+    {
+        return None;
+    }
+    let bounds = |lo: f64, hi: f64, side: usize| {
+        (
+            ((lo * side as f64 - 0.5).ceil()).clamp(0., side as f64) as usize,
+            ((hi * side as f64 - 0.5).ceil()).clamp(0., side as f64) as usize,
+        )
+    };
+    let (x0, x1) = bounds(a[0], c[0], w);
+    let (y0, y1) = bounds(a[1], c[1], h);
+    let offset = if solid {
+        [0, 0]
+    } else {
+        let [u, v, z, t] = l.uv;
+        if v != [z[0], u[1]]
+            || t != [u[0], z[1]]
+            || ((z[0] - u[0]) - (c[0] - a[0])).abs() > 1e-12
+            || ((z[1] - u[1]) - (c[1] - a[1])).abs() > 1e-12
+        {
+            return None;
+        }
+        let dx = (u[0] - a[0]) * w as f64;
+        let dy = (u[1] - a[1]) * h as f64;
+        if !dx.is_finite()
+            || !dy.is_finite()
+            || (dx - dx.round()).abs() > 1e-9
+            || (dy - dy.round()).abs() > 1e-9
+            || x0 as f64 + dx < 0.
+            || x1 as f64 + dx > w as f64
+            || y0 as f64 + dy < 0.
+            || y1 as f64 + dy > h as f64
+        {
+            return None;
+        }
+        [dx.round() as isize, dy.round() as isize]
+    };
+    Some(PixelAlignedRect {
+        x: x0..x1,
+        y: y0..y1,
+        offset,
+    })
 }
 
 /// Premultiplied source-over on a clipped scanline. Decorations often leave fully
@@ -390,10 +421,7 @@ fn draw_mesh_layer(out: &mut Image, l: &Layer, tex: &Tex) {
 /// Rasterize only the scanline span covered by the projected triangle. Keep the established
 /// subpixel sample position so adjacent triangles agree about ownership of their shared edge.
 fn fill_triangle(out: &mut Image, p: [[f64; 2]; 3], uv: [[f64; 2]; 3], al: [f64; 3], tex: &Tex) {
-    let edge = |a: [f64; 2], b: [f64; 2], sample: [f64; 2]| {
-        (b[0] - a[0]) * (sample[1] - a[1]) - (b[1] - a[1]) * (sample[0] - a[0])
-    };
-    let area = edge(p[0], p[1], p[2]);
+    let area = triangle_edge(p[0], p[1], p[2]);
     if !area.is_finite() || area.abs() < 1e-12 || out.width == 0 {
         return;
     }
@@ -418,35 +446,17 @@ fn fill_triangle(out: &mut Image, p: [[f64; 2]; 3], uv: [[f64; 2]; 3], al: [f64;
         .take(y1)
         .skip(y0)
     {
-        let sy = y as f64 + 0.5 + 2.31e-6;
-        let (mut left, mut right) = (f64::INFINITY, f64::NEG_INFINITY);
-        for (a, b) in [(p[0], p[1]), (p[1], p[2]), (p[2], p[0])] {
-            if a[1] != b[1] && sy >= a[1].min(b[1]) && sy <= a[1].max(b[1]) {
-                let t = (sy - a[1]) / (b[1] - a[1]);
-                let x = a[0] + t * (b[0] - a[0]);
-                left = left.min(x);
-                right = right.max(x);
-            }
-        }
-        if left > right {
+        let sy = sample_y(y);
+        let Some((x0, x1)) = triangle_row_candidates(p, sy, width) else {
             continue;
-        }
-        // Include one candidate pixel beyond the rounded intersections so the actual edge
-        // test decides coverage for thin triangles and vertices on sample centres.
-        let x0 = (left.floor() - 1.).clamp(0., width as f64) as usize;
-        let x1 = (right.ceil() + 1.).clamp(0., width as f64) as usize;
+        };
         for (offset, pixel) in row[x0 * 4..x1 * 4]
             .as_chunks_mut::<4>()
             .0
             .iter_mut()
             .enumerate()
         {
-            let sample = [(x0 + offset) as f64 + 0.5 + 1.17e-6, sy];
-            let w = [
-                edge(p[1], p[2], sample) / area,
-                edge(p[2], p[0], sample) / area,
-                edge(p[0], p[1], sample) / area,
-            ];
+            let w = triangle_weights(p, [sample_x(x0 + offset), sy], area);
             if w.iter().any(|&weight| weight < 0.) {
                 continue;
             }
@@ -465,6 +475,49 @@ fn fill_triangle(out: &mut Image, p: [[f64; 2]; 3], uv: [[f64; 2]; 3], al: [f64;
             }
         }
     }
+}
+
+pub(crate) fn sample_x(x: usize) -> f64 {
+    x as f64 + 0.5 + 1.17e-6
+}
+
+pub(crate) fn sample_y(y: usize) -> f64 {
+    y as f64 + 0.5 + 2.31e-6
+}
+
+pub(crate) fn triangle_edge(a: [f64; 2], b: [f64; 2], sample: [f64; 2]) -> f64 {
+    (b[0] - a[0]) * (sample[1] - a[1]) - (b[1] - a[1]) * (sample[0] - a[0])
+}
+
+pub(crate) fn triangle_weights(p: [[f64; 2]; 3], sample: [f64; 2], area: f64) -> [f64; 3] {
+    [
+        triangle_edge(p[1], p[2], sample) / area,
+        triangle_edge(p[2], p[0], sample) / area,
+        triangle_edge(p[0], p[1], sample) / area,
+    ]
+}
+
+pub(crate) fn triangle_row_candidates(
+    p: [[f64; 2]; 3],
+    sy: f64,
+    width: usize,
+) -> Option<(usize, usize)> {
+    let (mut left, mut right) = (f64::INFINITY, f64::NEG_INFINITY);
+    for (a, b) in [(p[0], p[1]), (p[1], p[2]), (p[2], p[0])] {
+        if a[1] != b[1] && sy >= a[1].min(b[1]) && sy <= a[1].max(b[1]) {
+            let t = (sy - a[1]) / (b[1] - a[1]);
+            let x = a[0] + t * (b[0] - a[0]);
+            left = left.min(x);
+            right = right.max(x);
+        }
+    }
+    if left > right {
+        return None;
+    }
+    // The edge test decides ownership at rounded intersections and thin vertices.
+    let x0 = (left.floor() - 1.).clamp(0., width as f64) as usize;
+    let x1 = (right.ceil() + 1.).clamp(0., width as f64) as usize;
+    Some((x0, x1))
 }
 
 #[cfg(test)]

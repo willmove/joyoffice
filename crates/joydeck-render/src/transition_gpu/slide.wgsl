@@ -1,56 +1,74 @@
-// Original projected edges are evaluated in the fragment shader so neighbouring tiles
-// have the same coverage even on hardware with a coarse rasterizer subpixel grid.
-struct Vertex {
-    @builtin(position) position: vec4f,
-    @location(0) @interpolate(flat) edge0: vec4f,
-    @location(1) @interpolate(flat) edge1: vec4f,
-    @location(2) @interpolate(flat) edge2: vec4f,
-    @location(3) @interpolate(flat) factors: vec3f,
-    @location(4) @interpolate(flat) flags: u32,
-    @location(5) @interpolate(flat) attr0: vec3f,
-    @location(6) @interpolate(flat) attr1: vec3f,
-    @location(7) @interpolate(flat) attr2: vec3f,
-    @location(8) @interpolate(flat) origins: vec3f,
+// Each tile visits its intersecting primitives in paint order. Both coverage
+// and the 8-bit intermediate rounding follow the CPU compositor.
+struct Primitive {
+    step_x: vec3f,
+    flags: u32,
+    first_row: u32,
+    y_start: u32,
+    y_end: u32,
+    padding: u32,
 }
 
-@vertex
-fn vertex(@builtin(vertex_index) index: u32, @location(0) box: vec4f,
-          @location(1) a: vec4f, @location(2) b: vec4f, @location(3) c: vec4f,
-          @location(4) origins: vec3f, @location(5) factors: vec3f, @location(6) flags: u32,
-          @location(7) attr0: vec3f, @location(8) attr1: vec3f, @location(9) attr2: vec3f) -> Vertex {
-    let pos = vec2f(select(box.x, box.z, index == 1u || index == 2u || index == 4u),
-                    select(box.y, box.w, index == 2u || index == 4u || index == 5u));
-    return Vertex(vec4f(pos * vec2f(2, -2) + vec2f(-1, 1), 0, 1),
-                  a, b, c, factors, flags, attr0, attr1, attr2, origins);
+struct Row {
+    attributes: vec3f,
+    span: u32,
 }
 
 @group(0) @binding(0) var slides: texture_2d_array<f32>;
+@group(0) @binding(1) var output: texture_storage_2d<rgba8unorm, write>;
+@group(1) @binding(0) var<storage, read> primitives: array<Primitive>;
+@group(1) @binding(1) var<storage, read> rows: array<Row>;
+@group(1) @binding(2) var<storage, read> tiles: array<vec2u>;
+@group(1) @binding(3) var<storage, read> references: array<u32>;
 
-// The independent coordinate is x for a shallow edge and y for a steep one.
-fn distance(pixel: vec2f, coefficients: vec4f, origin: f32, swap: bool) -> f32 {
-    let at = select(pixel, pixel.yx, swap);
-    return fma(-coefficients.x, at.y - origin, at.x - coefficients.z) -
-           fma(coefficients.y, at.y - origin, coefficients.w);
+fn texel(at: vec2i, source: i32) -> vec4f {
+    return round(textureLoad(slides, at, source, 0) * 255.0);
 }
 
-@fragment
-fn fragment(v: Vertex) -> @location(0) vec4f {
-    let pixel = floor(v.position.xy);
-    let weights = v.factors * vec3f(distance(pixel, v.edge0, v.origins.x, (v.flags & 8u) != 0u),
-        distance(pixel, v.edge1, v.origins.y, (v.flags & 16u) != 0u), distance(pixel, v.edge2, v.origins.z, (v.flags & 32u) != 0u));
-    if any(weights < vec3f(0)) { discard; }
-    let attributes = v.attr0 * weights.x + v.attr1 * weights.y + v.attr2 * weights.z;
-    let source = v.flags & 7u;
-    if source == 6u { return vec4f(0, 0, 0, attributes.z); }
-    if source == 7u { return vec4f(attributes.z); }
+fn sample_slide(at: vec2f, source: i32, rect: bool) -> vec4f {
+    if source == 6 { return vec4f(0., 0., 0., 255.); }
+    if source == 7 { return vec4f(255.); }
+    if rect { return texel(vec2i(at), source); }
     let last = vec2i(textureDimensions(slides)) - vec2i(1);
-    let at = clamp(attributes.xy * vec2f(last + 1) - 0.5, vec2f(0), vec2f(last));
-    let lo = vec2i(floor(at));
+    let p = clamp(at, vec2f(0), vec2f(last));
+    let lo = vec2i(floor(p));
     let hi = min(lo + 1, last);
-    let f = fract(at);
-    let top = mix(textureLoad(slides, lo, i32(source), 0),
-                  textureLoad(slides, vec2i(hi.x, lo.y), i32(source), 0), f.x);
-    let bottom = mix(textureLoad(slides, vec2i(lo.x, hi.y), i32(source), 0),
-                     textureLoad(slides, hi, i32(source), 0), f.x);
-    return mix(top, bottom, f.y) * attributes.z;
+    let f = fract(p);
+    let a = texel(lo, source);
+    let b = texel(vec2i(hi.x, lo.y), source);
+    let c = texel(vec2i(lo.x, hi.y), source);
+    let d = texel(hi, source);
+    let top = a + (b - a) * f.x;
+    let bottom = c + (d - c) * f.x;
+    return top + (bottom - top) * f.y;
+}
+
+@compute @workgroup_size(8, 8)
+fn compose(@builtin(global_invocation_id) id: vec3u, @builtin(workgroup_id) tile_id: vec3u) {
+    let size = textureDimensions(output);
+    if any(id.xy >= size) { return; }
+    let tiles_x = (size.x + 7u) / 8u;
+    let bin = tiles[tile_id.y * tiles_x + tile_id.x];
+    var dst = vec4f(0., 0., 0., 255.);
+    for (var i = bin.x; i < bin.x + bin.y; i++) {
+        let primitive = primitives[references[i]];
+        if id.y < primitive.y_start || id.y >= primitive.y_end { continue; }
+        let row = rows[primitive.first_row + id.y - primitive.y_start];
+        let start = row.span & 65535u;
+        if id.x < start || id.x >= (row.span >> 16u) { continue; }
+        let attributes = row.attributes + primitive.step_x * f32(id.x - start);
+        let opacity = attributes.z;
+        if opacity <= 0. { continue; }
+        let source = i32(primitive.flags & 7u);
+        let rect = (primitive.flags & 8u) != 0u;
+        let src = sample_slide(attributes.xy, source, rect);
+        if rect && source < 6 && src.a == 255. {
+            let alpha = u32(floor(opacity * 65535. + 0.5));
+            dst = vec4f((vec4u(src) * alpha + vec4u(dst) * (65535u - alpha) + 32767u) / 65535u);
+        } else {
+            let keep = 1. - src.a * opacity / 255.;
+            dst = clamp(floor(src * opacity + dst * keep + 0.5), vec4f(0.), vec4f(255.));
+        }
+    }
+    textureStore(output, vec2i(id.xy), dst / 255.);
 }

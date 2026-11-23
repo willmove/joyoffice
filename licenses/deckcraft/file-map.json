@@ -1520,7 +1520,7 @@
       "source_path": "crates/render/src/transition.rs",
       "source_sha256": "bae8e69100dcf1d4b018d1a9fe7344b808d3086d0cd4221c10bba03585b726f0",
       "target_path": "crates/joydeck-render/src/transition.rs",
-      "adapted_sha256": "e3b65f1b07436e045cb5e550e830406439757935ad7252f676dcc0ab8e9f8e46",
+      "adapted_sha256": "5524ea05e81f029da2d10ef56f2188a39eb30c4e27dc0e51eab3f158a4c2d97c",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -1528,6 +1528,7 @@
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
         "R6/R7 version baseline, macro-preserve refusal, explicit previous transition/custom show order or rustfmt; no upstream checkout edits.",
         "2026-11-13: independently implemented pixel-aligned rectangle compositing fast path; retain mesh fallback and compare premultiplied alpha results within one channel level.",
+        "2026-11-24: share the exact pixel rectangle and triangle sample geometry with the GPU tile compositor.",
         "Independently composite mixed premultiplied scanlines, skipping empty blocks and copying fully opaque coverage.",
         "Scan-convert projected transition triangles over clipped horizontal spans, retaining the original sampling coordinates and premultiplied source-over."
       ]

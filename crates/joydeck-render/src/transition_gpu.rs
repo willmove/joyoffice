@@ -1,9 +1,10 @@
 //! Device-backed transition compositor for the native slideshow. The immutable sources,
 //! render target and readback buffer live for one slide pair at one device scale.
-mod triangle;
+mod geometry;
 
 use crate::{Image, SlideParts};
-use joydeck_anim::{Layer, Source, layer_mesh};
+use geometry::{FrameGeometry, TILE};
+use joydeck_anim::{Layer, Source};
 use std::{
     sync::{
         Arc,
@@ -12,17 +13,15 @@ use std::{
     },
     time::Duration,
 };
-use triangle::Triangle;
 use wgpu::util::DeviceExt;
 
 const FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Rgba8Unorm;
 const MAX_IMAGE_BYTES: u64 = 192 * 1024 * 1024;
-const MAX_TRIANGLES: usize = 128_000;
 
 pub struct Compositor {
     device: wgpu::Device,
     queue: wgpu::Queue,
-    pipeline: wgpu::RenderPipeline,
+    pipeline: wgpu::ComputePipeline,
     healthy: Arc<AtomicBool>,
     pub adapter: wgpu::AdapterInfo,
 }
@@ -31,7 +30,6 @@ pub struct SlidePair {
     owner: Arc<AtomicBool>,
     images: wgpu::BindGroup,
     target: wgpu::Texture,
-    view: wgpu::TextureView,
     readback: wgpu::Buffer,
     stride: u32,
     has_old: bool,
@@ -73,35 +71,12 @@ impl Compositor {
             let scope = device.push_error_scope(wgpu::ErrorFilter::Validation);
             let shader =
                 device.create_shader_module(wgpu::include_wgsl!("transition_gpu/slide.wgsl"));
-            let layout = wgpu::VertexBufferLayout {
-                array_stride: size_of::<Triangle>() as u64,
-                step_mode: wgpu::VertexStepMode::Instance,
-                attributes: &wgpu::vertex_attr_array![0 => Float32x4, 1 => Float32x4, 2 => Float32x4,
-                    3 => Float32x4, 4 => Float32x3, 5 => Float32x3, 6 => Uint32, 7 => Float32x3, 8 => Float32x3, 9 => Float32x3],
-            };
-            let pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+            let pipeline = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
                 label: Some("JoyDeck premultiplied transition layers"),
                 layout: None,
-                vertex: wgpu::VertexState {
-                    module: &shader,
-                    entry_point: Some("vertex"),
-                    compilation_options: Default::default(),
-                    buffers: &[Some(layout)],
-                },
-                primitive: wgpu::PrimitiveState::default(),
-                depth_stencil: None,
-                multisample: Default::default(),
-                fragment: Some(wgpu::FragmentState {
-                    module: &shader,
-                    entry_point: Some("fragment"),
-                    compilation_options: Default::default(),
-                    targets: &[Some(wgpu::ColorTargetState {
-                        format: FORMAT,
-                        blend: Some(wgpu::BlendState::PREMULTIPLIED_ALPHA_BLENDING),
-                        write_mask: wgpu::ColorWrites::ALL,
-                    })],
-                }),
-                multiview_mask: None,
+                module: &shader,
+                entry_point: Some("compose"),
+                compilation_options: Default::default(),
                 cache: None,
             });
             if let Some(e) = scope.pop().await {
@@ -204,22 +179,29 @@ impl Compositor {
                 extent,
             );
         }
-        let images = self.device.create_bind_group(&wgpu::BindGroupDescriptor {
-            label: Some("slide pair"),
-            layout: &self.pipeline.get_bind_group_layout(0),
-            entries: &[wgpu::BindGroupEntry {
-                binding: 0,
-                resource: wgpu::BindingResource::TextureView(
-                    &sources.create_view(&Default::default()),
-                ),
-            }],
-        });
         let target = texture(
             "transition output",
             1,
-            wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC,
+            wgpu::TextureUsages::STORAGE_BINDING | wgpu::TextureUsages::COPY_SRC,
         );
-        let view = target.create_view(&Default::default());
+        let images = self.device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("slide pair"),
+            layout: &self.pipeline.get_bind_group_layout(0),
+            entries: &[
+                wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: wgpu::BindingResource::TextureView(
+                        &sources.create_view(&Default::default()),
+                    ),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: wgpu::BindingResource::TextureView(
+                        &target.create_view(&Default::default()),
+                    ),
+                },
+            ],
+        });
         let stride = (width * 4).next_multiple_of(wgpu::COPY_BYTES_PER_ROW_ALIGNMENT);
         let readback = self.device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("transition readback"),
@@ -231,7 +213,6 @@ impl Compositor {
             owner: self.healthy.clone(),
             images,
             target,
-            view,
             readback,
             stride,
             has_old: old.is_some(),
@@ -248,66 +229,56 @@ impl Compositor {
         if !self.healthy.load(Ordering::Acquire) {
             return Err("transition device unavailable".into());
         }
-        let dimensions = [
-            f64::from(pair.target.width()),
-            f64::from(pair.target.height()),
-        ];
         if layers.len() > 32_768 {
             return Err("transition exceeds layer budget".into());
         }
-        let mut work = 0u64;
-        let max_work = u64::from(pair.target.width()) * u64::from(pair.target.height()) * 96;
-        let mut instances = Vec::new();
-        for layer in layers {
-            let Some(source) = pair.source(layer.source) else {
-                continue;
-            };
-            let (vertices, triangles) = layer_mesh(layer);
-            if instances.len() + triangles.len() > MAX_TRIANGLES {
-                return Err("transition exceeds mesh budget".into());
-            }
-            for indices in triangles {
-                if let Some((triangle, pixels)) =
-                    Triangle::new(indices.map(|i| vertices[i as usize]), dimensions, source)
-                {
-                    work += pixels;
-                    if work > max_work {
-                        return Err("transition exceeds output coverage budget".into());
-                    }
-                    instances.push(triangle);
-                }
-            }
-        }
+        let size = pair.target.size();
+        let geometry = FrameGeometry::prepare(
+            size.width,
+            size.height,
+            layers
+                .iter()
+                .filter_map(|layer| pair.source(layer.source).map(|source| (source, layer))),
+        )?;
+        let data = [
+            (
+                "transition primitives",
+                bytemuck::cast_slice(&geometry.primitives),
+            ),
+            ("transition scanlines", bytemuck::cast_slice(&geometry.rows)),
+            ("transition tiles", bytemuck::cast_slice(&geometry.tiles)),
+            (
+                "transition tile references",
+                bytemuck::cast_slice(&geometry.references),
+            ),
+        ];
+        let buffers = data.map(|(label, contents)| {
+            self.device
+                .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                    label: Some(label),
+                    usage: wgpu::BufferUsages::STORAGE,
+                    contents,
+                })
+        });
+        let frame = self.device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("transition tile geometry"),
+            layout: &self.pipeline.get_bind_group_layout(1),
+            entries: &std::array::from_fn::<_, 4, _>(|binding| wgpu::BindGroupEntry {
+                binding: binding as u32,
+                resource: buffers[binding].as_entire_binding(),
+            }),
+        });
         let mut encoder = self.device.create_command_encoder(&Default::default());
         {
-            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+            let mut pass = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor {
                 label: Some("compose projected slides"),
-                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view: &pair.view,
-                    depth_slice: None,
-                    resolve_target: None,
-                    ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
-                        store: wgpu::StoreOp::Store,
-                    },
-                })],
                 ..Default::default()
             });
-            if !instances.is_empty() {
-                let geometry = self
-                    .device
-                    .create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                        label: Some("transition triangles"),
-                        usage: wgpu::BufferUsages::VERTEX,
-                        contents: bytemuck::cast_slice(&instances),
-                    });
-                pass.set_pipeline(&self.pipeline);
-                pass.set_bind_group(0, &pair.images, &[]);
-                pass.set_vertex_buffer(0, geometry.slice(..));
-                pass.draw(0..6, 0..instances.len() as u32);
-            }
+            pass.set_pipeline(&self.pipeline);
+            pass.set_bind_group(0, &pair.images, &[]);
+            pass.set_bind_group(1, &frame, &[]);
+            pass.dispatch_workgroups(size.width.div_ceil(TILE), size.height.div_ceil(TILE), 1);
         }
-        let size = pair.target.size();
         encoder.copy_texture_to_buffer(
             pair.target.as_image_copy(),
             wgpu::TexelCopyBufferInfo {
