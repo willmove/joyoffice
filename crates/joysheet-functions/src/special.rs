@@ -26,8 +26,9 @@ pub(crate) fn ln_gamma(x: f64) -> f64 {
         return f64::NAN;
     }
     if x < 0.5 {
-        // Reflection.
-        let s = (PI * x).sin().abs();
+        // Range-reduced reflection avoids sin(pi * x) accuracy loss for negative arguments.
+        let frac = x - x.floor();
+        let s = (PI * frac).sin();
         return (PI / s).ln() - ln_gamma(1.0 - x);
     }
     if x < 15.0 && x == x.floor() {
@@ -64,7 +65,10 @@ pub(crate) fn gamma(x: f64) -> f64 {
         return f;
     }
     if x < 0.5 {
-        return PI / ((PI * x).sin() * gamma(1.0 - x));
+        let floor = x.floor();
+        let sin_mag = (PI * (x - floor)).sin();
+        let sign = if (floor as i64) & 1 == 0 { 1.0 } else { -1.0 };
+        return sign * PI / (sin_mag * gamma(1.0 - x));
     }
     if x > 171.7 {
         return f64::INFINITY;
@@ -88,7 +92,8 @@ pub(crate) fn reg_gamma_p(a: f64, x: f64) -> f64 {
     if x.is_infinite() {
         return 1.0;
     }
-    if x < a + 1.0 { gamma_series(a, x) } else { 1.0 - gamma_cf(a, x) }
+    let out = if x < a + 1.0 { gamma_series(a, x) } else { 1.0 - gamma_cf(a, x) };
+    if out.is_finite() { out.clamp(0.0, 1.0) } else { out }
 }
 
 /// Regularised upper incomplete gamma Q(a, x) = 1 − P(a, x).
@@ -102,7 +107,8 @@ pub(crate) fn reg_gamma_q(a: f64, x: f64) -> f64 {
     if x.is_infinite() {
         return 0.0;
     }
-    if x < a + 1.0 { 1.0 - gamma_series(a, x) } else { gamma_cf(a, x) }
+    let out = if x < a + 1.0 { 1.0 - gamma_series(a, x) } else { gamma_cf(a, x) };
+    if out.is_finite() { out.clamp(0.0, 1.0) } else { out }
 }
 
 fn gamma_series(a: f64, x: f64) -> f64 {
@@ -196,9 +202,10 @@ pub(crate) fn reg_inc_beta(x: f64, a: f64, b: f64) -> f64 {
     if x == 1.0 {
         return 1.0;
     }
-    let ln_bt = -ln_beta(a, b) + a * x.ln() + b * (1.0 - x).ln();
+    let ln_bt = -ln_beta(a, b) + a * x.ln() + b * (-x).ln_1p();
     let bt = ln_bt.exp();
-    if x < (a + 1.0) / (a + b + 2.0) { bt * beta_cf(a, b, x) / a } else { 1.0 - bt * beta_cf(b, a, 1.0 - x) / b }
+    let out = if x < (a + 1.0) / (a + b + 2.0) { bt * beta_cf(a, b, x) / a } else { 1.0 - bt * beta_cf(b, a, 1.0 - x) / b };
+    if out.is_finite() { out.clamp(0.0, 1.0) } else { out }
 }
 
 fn beta_cf(a: f64, b: f64, x: f64) -> f64 {

@@ -148,6 +148,11 @@ fn depreciation() {
     is_err(ev("VDB", vec![n(2400.0), n(300.0), n(10.0), n(5.0), n(4.0)]), CellError::Num);
     close_tol(ev("AMORLINC", vec![n(2400.0), d(2008, 8, 19), d(2008, 12, 31), n(300.0), n(1.0), n(0.15), n(1.0)]), 360.0, 1e-9);
     close(ev("AMORDEGRC", vec![n(2400.0), d(2008, 8, 19), d(2008, 12, 31), n(300.0), n(1.0), n(0.15), n(1.0)]), 776.0);
+    // Streaming VDB handles large lives in O(1) memory, respects no_switch, and handles salvage >= cost.
+    close_tol(ev("VDB", vec![n(100000.0), n(1000.0), n(100000.0), n(0.0), n(100000.0)]), 99000.0, 1e-9);
+    close_tol(ev("VDB", vec![n(2400.0), n(100.0), n(10.0), n(0.0), n(10.0), n(2.0), b(true)]), 2400.0 * (1.0 - 0.8f64.powi(10)), 1e-9);
+    close(ev("VDB", vec![n(2400.0), n(100.0), n(10.0), n(0.0), n(10.0), n(2.0), b(false)]), 2300.0);
+    close(ev("VDB", vec![n(500.0), n(800.0), n(5.0), n(0.0), n(3.0)]), 0.0);
 }
 
 #[test]

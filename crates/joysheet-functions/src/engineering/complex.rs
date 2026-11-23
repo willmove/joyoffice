@@ -1,7 +1,15 @@
-use super::*;
+//! First-party Excel complex-number arithmetic, parsing, and formatting.
+//!
+//! Covers `COMPLEX`, `IMABS`, `IMAGINARY`, `IMREAL`, `IMARGUMENT`, `IMCONJUGATE`,
+//! `IMDIV`, `IMSUB`, `IMPOWER`, `IMSUM`, `IMPRODUCT`, and the algebraic kernel
+//! (`Cx`) shared by `IMEXP`, `IMLN`, `IMLOG10`, `IMLOG2`, `IMSQRT`, and complex
+//! trigonometric/hyperbolic functions.
+//!
+//! Uses Smith's overflow/underflow-safe complex division, cancellation-free
+//! principal square root, binary exponentiation for exact small integer powers,
+//! and zero-allocation borrowed array folding for `IMSUM`/`IMPRODUCT`.
 
-// ---------------------------------------------------------------------------------------------
-// Complex numbers
+use super::*;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub(super) struct Cx {
@@ -9,260 +17,316 @@ pub(super) struct Cx {
     pub(super) im: f64,
 }
 
+pub(super) const ONE: Cx = Cx { re: 1.0, im: 0.0 };
+
 impl Cx {
-    pub(super) fn new(re: f64, im: f64) -> Cx {
-        Cx { re, im }
+    pub(super) const fn new(re: f64, im: f64) -> Self {
+        Self { re, im }
     }
-    fn add(self, o: Cx) -> Cx {
-        Cx::new(self.re + o.re, self.im + o.im)
+
+    const fn is_zero(self) -> bool {
+        self.re == 0.0 && self.im == 0.0
     }
-    fn sub(self, o: Cx) -> Cx {
-        Cx::new(self.re - o.re, self.im - o.im)
+
+    fn add(self, rhs: Self) -> Self {
+        Self::new(self.re + rhs.re, self.im + rhs.im)
     }
-    fn mul(self, o: Cx) -> Cx {
-        Cx::new(self.re * o.re - self.im * o.im, self.re * o.im + self.im * o.re)
+
+    fn sub(self, rhs: Self) -> Self {
+        Self::new(self.re - rhs.re, self.im - rhs.im)
     }
-    pub(super) fn div(self, o: Cx) -> R<Cx> {
-        let d = o.re * o.re + o.im * o.im;
-        if d == 0.0 {
+
+    fn mul(self, rhs: Self) -> Self {
+        Self::new(self.re * rhs.re - self.im * rhs.im, self.re * rhs.im + self.im * rhs.re)
+    }
+
+    /// Smith's scaling division avoids intermediate overflow (`|rhs| ~ 1e200`)
+    /// and underflow (`|rhs| ~ 1e-200`) in `rhs.re^2 + rhs.im^2`.
+    pub(super) fn div(self, rhs: Self) -> R<Self> {
+        if rhs.is_zero() {
             return Err(CellError::Num);
         }
-        Ok(Cx::new((self.re * o.re + self.im * o.im) / d, (self.im * o.re - self.re * o.im) / d))
+        let out = if rhs.re.abs() >= rhs.im.abs() {
+            let ratio = rhs.im / rhs.re;
+            let denom = rhs.re + rhs.im * ratio;
+            Self::new((self.re + self.im * ratio) / denom, (self.im - self.re * ratio) / denom)
+        } else {
+            let ratio = rhs.re / rhs.im;
+            let denom = rhs.im + rhs.re * ratio;
+            Self::new((self.re * ratio + self.im) / denom, (self.im * ratio - self.re) / denom)
+        };
+        if out.re.is_finite() && out.im.is_finite() { Ok(out) } else { Err(CellError::Num) }
     }
+
     pub(super) fn abs(self) -> f64 {
         self.re.hypot(self.im)
     }
+
     fn arg(self) -> f64 {
         self.im.atan2(self.re)
     }
-    pub(super) fn exp(self) -> Cx {
-        let e = self.re.exp();
-        Cx::new(e * self.im.cos(), e * self.im.sin())
+
+    /// Cancellation- and overflow-safe principal square root.
+    pub(super) fn sqrt(self) -> Self {
+        if self.is_zero() {
+            return Self::new(0.0, 0.0);
+        }
+        let w = (0.5 * self.abs() + 0.5 * self.re.abs()).sqrt();
+        if self.re >= 0.0 { Self::new(w, self.im / (2.0 * w)) } else { Self::new(self.im.abs() / (2.0 * w), if self.im < 0.0 { -w } else { w }) }
     }
-    pub(super) fn ln(self) -> R<Cx> {
-        if self.re == 0.0 && self.im == 0.0 {
+
+    pub(super) fn exp(self) -> Self {
+        let scale = self.re.exp();
+        Self::new(scale * self.im.cos(), scale * self.im.sin())
+    }
+
+    pub(super) fn ln(self) -> R<Self> {
+        if self.is_zero() {
             return Err(CellError::Num);
         }
-        Ok(Cx::new(self.abs().ln(), self.arg()))
+        Ok(Self::new(self.abs().ln(), self.arg()))
     }
-    pub(super) fn sin(self) -> Cx {
-        Cx::new(self.re.sin() * self.im.cosh(), self.re.cos() * self.im.sinh())
+
+    pub(super) fn sin(self) -> Self {
+        Self::new(self.re.sin() * self.im.cosh(), self.re.cos() * self.im.sinh())
     }
-    pub(super) fn cos(self) -> Cx {
-        Cx::new(self.re.cos() * self.im.cosh(), -self.re.sin() * self.im.sinh())
+
+    pub(super) fn cos(self) -> Self {
+        Self::new(self.re.cos() * self.im.cosh(), -self.re.sin() * self.im.sinh())
     }
-    pub(super) fn sinh(self) -> Cx {
-        Cx::new(self.re.sinh() * self.im.cos(), self.re.cosh() * self.im.sin())
+
+    pub(super) fn sinh(self) -> Self {
+        Self::new(self.re.sinh() * self.im.cos(), self.re.cosh() * self.im.sin())
     }
-    pub(super) fn cosh(self) -> Cx {
-        Cx::new(self.re.cosh() * self.im.cos(), self.re.sinh() * self.im.sin())
+
+    pub(super) fn cosh(self) -> Self {
+        Self::new(self.re.cosh() * self.im.cos(), self.re.sinh() * self.im.sin())
     }
-    fn powf(self, n: f64) -> R<Cx> {
-        if self.re == 0.0 && self.im == 0.0 {
-            return if n > 0.0 { Ok(Cx::new(0.0, 0.0)) } else { Err(CellError::Num) };
+
+    fn pow_int(self, mut exp: u32) -> Self {
+        let mut base = self;
+        let mut acc = ONE;
+        while exp > 0 {
+            if exp & 1 == 1 {
+                acc = acc.mul(base);
+            }
+            exp >>= 1;
+            if exp > 0 {
+                base = base.mul(base);
+            }
         }
-        let r = self.abs().powf(n);
-        let t = self.arg() * n;
-        Ok(Cx::new(r * t.cos(), r * t.sin()))
+        acc
+    }
+
+    fn powf(self, exponent: f64) -> R<Self> {
+        if self.is_zero() {
+            return if exponent > 0.0 { Ok(Self::new(0.0, 0.0)) } else { Err(CellError::Num) };
+        }
+        let radius = self.abs().powf(exponent);
+        let angle = self.arg() * exponent;
+        Ok(Self::new(radius * angle.cos(), radius * angle.sin()))
     }
 }
 
-pub(super) const ONE: Cx = Cx { re: 1.0, im: 0.0 };
-
-/// Parses a real number written in a complex string (no spaces, optional exponent).
-fn parse_real(s: &str) -> Option<f64> {
-    if s.is_empty() || s.contains(char::is_whitespace) {
+/// Parses an ASCII real token without surrounding whitespace.
+fn parse_real_token(token: &str) -> Option<f64> {
+    if token.is_empty() {
         return None;
     }
-    let ok = s.chars().all(|c| c.is_ascii_digit() || matches!(c, '.' | 'e' | 'E' | '+' | '-'));
-    if !ok {
+    if !token.bytes().all(|b| b.is_ascii_digit() || matches!(b, b'.' | b'e' | b'E' | b'+' | b'-')) {
         return None;
     }
-    s.parse::<f64>().ok().filter(|v| v.is_finite())
+    token.parse::<f64>().ok().filter(|v| v.is_finite())
 }
 
-/// Parses "a+bi" forms. Returns the number and its suffix ('i', 'j' or none).
-pub(super) fn parse_complex(s: &str) -> R<(Cx, Option<char>)> {
-    if s.is_empty() {
+/// Parses Excel `"a+bi"` / `"a+bj"` complex text into `(value, optional_suffix)`.
+pub(super) fn parse_complex(text: &str) -> R<(Cx, Option<char>)> {
+    if text.is_empty() {
         return Ok((Cx::new(0.0, 0.0), None));
     }
-    let suffix = match s.chars().last() {
-        Some(c @ ('i' | 'j')) => Some(c),
+    let bytes = text.as_bytes();
+    let suffix = match bytes.last().copied() {
+        Some(b'i') => Some('i'),
+        Some(b'j') => Some('j'),
         _ => None,
     };
     let Some(sfx) = suffix else {
-        return parse_real(s).map(|r| (Cx::new(r, 0.0), None)).ok_or(CellError::Num);
+        return parse_real_token(text).map(|re| (Cx::new(re, 0.0), None)).ok_or(CellError::Num);
     };
-    let body = &s[..s.len() - 1];
-    // Split at the last sign that is not at the start and not part of an exponent.
-    let bytes = body.as_bytes();
-    let mut split = None;
-    for i in (1..bytes.len()).rev() {
-        let c = bytes.get(i).copied().unwrap_or(0);
-        let prev = bytes.get(i - 1).copied().unwrap_or(0);
-        if (c == b'+' || c == b'-') && prev != b'e' && prev != b'E' {
-            split = Some(i);
+    let body = &text[..text.len() - 1];
+    let body_bytes = body.as_bytes();
+    let mut split_at = None;
+    for idx in (1..body_bytes.len()).rev() {
+        let cur = body_bytes.get(idx).copied().unwrap_or(0);
+        let prev = body_bytes.get(idx - 1).copied().unwrap_or(0);
+        if (cur == b'+' || cur == b'-') && prev != b'e' && prev != b'E' {
+            split_at = Some(idx);
             break;
         }
     }
-    let (re_s, im_s) = match split {
-        Some(i) => (&body[..i], &body[i..]),
+    let (re_part, im_part) = match split_at {
+        Some(idx) => (&body[..idx], &body[idx..]),
         None => ("", body),
     };
-    let re = if re_s.is_empty() { 0.0 } else { parse_real(re_s).ok_or(CellError::Num)? };
-    let im = match im_s {
+    let re = if re_part.is_empty() { 0.0 } else { parse_real_token(re_part).ok_or(CellError::Num)? };
+    let im = match im_part {
         "" | "+" => 1.0,
         "-" => -1.0,
-        t => parse_real(t).ok_or(CellError::Num)?,
+        other => parse_real_token(other).ok_or(CellError::Num)?,
     };
     Ok((Cx::new(re, im), Some(sfx)))
 }
 
-fn cx_of(v: &Value) -> R<(Cx, Option<char>)> {
-    match v {
+fn value_to_complex(value: &Value) -> R<(Cx, Option<char>)> {
+    match value {
         Value::Number(n) => Ok((Cx::new(*n, 0.0), None)),
         Value::Empty => Ok((Cx::new(0.0, 0.0), None)),
         Value::Bool(_) => Err(CellError::Value),
-        Value::Error(e) => Err(*e),
-        Value::Text(t) => parse_complex(t),
-        Value::Array(a) => cx_of(a.data.first().unwrap_or(&Value::Empty)),
+        Value::Error(err) => Err(*err),
+        Value::Text(s) => parse_complex(s),
+        Value::Array(arr) => value_to_complex(arr.data.first().unwrap_or(&Value::Empty)),
     }
 }
 
-fn cx_arg(a: &[Arg], i: usize) -> R<(Cx, Option<char>)> {
-    cx_of(&a.get(i).map(scalar).unwrap_or(Value::Empty))
+fn complex_arg(args: &[Arg], idx: usize) -> R<(Cx, Option<char>)> {
+    let val = args.get(idx).map(scalar).unwrap_or(Value::Empty);
+    value_to_complex(&val)
 }
 
-fn merge_suffix(acc: Option<char>, s: Option<char>) -> R<Option<char>> {
-    match (acc, s) {
-        (Some(x), Some(y)) if x != y => Err(CellError::Value),
-        (Some(x), _) => Ok(Some(x)),
-        (None, y) => Ok(y),
+fn combine_suffix(acc: Option<char>, next: Option<char>) -> R<Option<char>> {
+    match (acc, next) {
+        (Some(a), Some(b)) if a != b => Err(CellError::Value),
+        (Some(a), _) => Ok(Some(a)),
+        (None, b) => Ok(b),
     }
 }
 
-fn fmt_complex(z: Cx, suffix: char) -> R<Value> {
+/// Rounds to 15 significant digits (Excel precision) and normalizes `-0.0` to `0.0`.
+fn normalize_component(value: f64) -> f64 {
+    let rounded = format!("{value:.14e}").parse::<f64>().unwrap_or(value);
+    if rounded == 0.0 { 0.0 } else { rounded }
+}
+
+fn format_complex(z: Cx, suffix: char) -> R<Value> {
     if !z.re.is_finite() || !z.im.is_finite() {
         return Err(CellError::Num);
     }
-    let re = clean(z.re);
-    let im = clean(z.im);
-    let mut s = String::new();
+    let re = normalize_component(z.re);
+    let im = normalize_component(z.im);
+    let mut out = String::with_capacity(32);
     if im == 0.0 {
-        s.push_str(&number_to_text(re));
-        return text_val(s);
+        out.push_str(&number_to_text(re));
+        return text_val(out);
     }
     if re != 0.0 {
-        s.push_str(&number_to_text(re));
+        out.push_str(&number_to_text(re));
         if im > 0.0 {
-            s.push('+');
+            out.push('+');
         }
     }
     if im == -1.0 {
-        s.push('-');
+        out.push('-');
     } else if im != 1.0 {
-        s.push_str(&number_to_text(im));
+        out.push_str(&number_to_text(im));
     }
-    s.push(suffix);
-    text_val(s)
+    out.push(suffix);
+    text_val(out)
 }
 
-/// Rounds to 15 significant digits so values like 0.999999999999999999 print as 1.
-fn clean(x: f64) -> f64 {
-    let s = format!("{:.14e}", x);
-    s.parse().unwrap_or(x)
-}
-
-pub(super) fn complex(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    let re = num(a, 0)?;
-    let im = num(a, 1)?;
-    let sfx = if has(a, 2) { text(a, 2)? } else { "i".into() };
-    let sfx = match sfx.as_str() {
-        "i" | "" => 'i',
+pub(super) fn complex(args: &[Arg], _ctx: &mut dyn Ctx) -> R<Value> {
+    let re = num(args, 0)?;
+    let im = num(args, 1)?;
+    let suffix = if has(args, 2) { text(args, 2)? } else { "i".into() };
+    let unit = match suffix.as_str() {
+        "" | "i" => 'i',
         "j" => 'j',
         _ => return Err(CellError::Value),
     };
-    fmt_complex(Cx::new(re, im), sfx)
+    format_complex(Cx::new(re, im), unit)
 }
 
-pub(super) fn im_unary(a: &[Arg], f: fn(Cx) -> R<Cx>) -> R<Value> {
-    let (z, s) = cx_arg(a, 0)?;
-    fmt_complex(f(z)?, s.unwrap_or('i'))
+pub(super) fn im_unary(args: &[Arg], op: fn(Cx) -> R<Cx>) -> R<Value> {
+    let (z, sfx) = complex_arg(args, 0)?;
+    format_complex(op(z)?, sfx.unwrap_or('i'))
 }
 
-fn im_real_fn(a: &[Arg], f: fn(Cx) -> R<f64>) -> R<Value> {
-    let (z, _) = cx_arg(a, 0)?;
-    num_val(f(z)?)
+fn im_scalar(args: &[Arg], op: fn(Cx) -> R<f64>) -> R<Value> {
+    let (z, _) = complex_arg(args, 0)?;
+    num_val(op(z)?)
 }
 
-pub(super) fn imabs(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    im_real_fn(a, |z| Ok(z.abs()))
+pub(super) fn imabs(args: &[Arg], _ctx: &mut dyn Ctx) -> R<Value> {
+    im_scalar(args, |z| Ok(z.abs()))
 }
 
-pub(super) fn imreal(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    im_real_fn(a, |z| Ok(z.re))
+pub(super) fn imreal(args: &[Arg], _ctx: &mut dyn Ctx) -> R<Value> {
+    im_scalar(args, |z| Ok(z.re))
 }
 
-pub(super) fn imaginary(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    im_real_fn(a, |z| Ok(z.im))
+pub(super) fn imaginary(args: &[Arg], _ctx: &mut dyn Ctx) -> R<Value> {
+    im_scalar(args, |z| Ok(z.im))
 }
 
-pub(super) fn imargument(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    im_real_fn(a, |z| if z.re == 0.0 && z.im == 0.0 { Err(CellError::Div0) } else { Ok(z.arg()) })
+pub(super) fn imargument(args: &[Arg], _ctx: &mut dyn Ctx) -> R<Value> {
+    im_scalar(args, |z| if z.is_zero() { Err(CellError::Div0) } else { Ok(z.arg()) })
 }
 
-fn im_binary(a: &[Arg], f: fn(Cx, Cx) -> R<Cx>) -> R<Value> {
-    let (x, s1) = cx_arg(a, 0)?;
-    let (y, s2) = cx_arg(a, 1)?;
-    let s = merge_suffix(s1, s2)?;
-    fmt_complex(f(x, y)?, s.unwrap_or('i'))
+fn im_binary(args: &[Arg], op: fn(Cx, Cx) -> R<Cx>) -> R<Value> {
+    let (lhs, s1) = complex_arg(args, 0)?;
+    let (rhs, s2) = complex_arg(args, 1)?;
+    let sfx = combine_suffix(s1, s2)?;
+    format_complex(op(lhs, rhs)?, sfx.unwrap_or('i'))
 }
 
-pub(super) fn imdiv(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    im_binary(a, Cx::div)
+pub(super) fn imdiv(args: &[Arg], _ctx: &mut dyn Ctx) -> R<Value> {
+    im_binary(args, Cx::div)
 }
 
-pub(super) fn imsub(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    im_binary(a, |x, y| Ok(x.sub(y)))
+pub(super) fn imsub(args: &[Arg], _ctx: &mut dyn Ctx) -> R<Value> {
+    im_binary(args, |x, y| Ok(x.sub(y)))
 }
 
-pub(super) fn impower(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    let (z, s) = cx_arg(a, 0)?;
-    let n = num(a, 1)?;
-    // Integer powers by repeated multiplication are exact for small Gaussian integers.
-    let r = if n == n.trunc() && n.abs() <= 64.0 && !(z.re == 0.0 && z.im == 0.0) {
-        let mut acc = ONE;
-        for _ in 0..(n.abs() as u32) {
-            acc = acc.mul(z);
-        }
-        if n < 0.0 { ONE.div(acc)? } else { acc }
+pub(super) fn impower(args: &[Arg], _ctx: &mut dyn Ctx) -> R<Value> {
+    let (z, sfx) = complex_arg(args, 0)?;
+    let exponent = num(args, 1)?;
+    let res = if exponent == exponent.trunc() && exponent.abs() <= 64.0 && !z.is_zero() {
+        let powered = z.pow_int(exponent.abs() as u32);
+        if exponent < 0.0 { ONE.div(powered)? } else { powered }
     } else {
-        z.powf(n)?
+        z.powf(exponent)?
     };
-    fmt_complex(r, s.unwrap_or('i'))
+    format_complex(res, sfx.unwrap_or('i'))
 }
 
-fn im_fold(a: &[Arg], init: Cx, f: fn(Cx, Cx) -> Cx) -> R<Value> {
+fn fold_complex_args(args: &[Arg], init: Cx, combine: fn(Cx, Cx) -> Cx) -> R<Value> {
     let mut acc = init;
     let mut sfx = None;
-    for arg in a {
-        let direct = !matches!(arg.value, Value::Array(_));
-        for v in flatten(std::slice::from_ref(arg)) {
-            if matches!(v, Value::Empty) && !direct {
-                continue;
+    for arg in args {
+        match &arg.value {
+            Value::Array(arr) => {
+                for cell in &arr.data {
+                    if matches!(cell, Value::Empty) {
+                        continue;
+                    }
+                    let (z, s) = value_to_complex(cell)?;
+                    sfx = combine_suffix(sfx, s)?;
+                    acc = combine(acc, z);
+                }
             }
-            let (z, s) = cx_of(&v)?;
-            sfx = merge_suffix(sfx, s)?;
-            acc = f(acc, z);
+            scalar_val => {
+                let (z, s) = value_to_complex(scalar_val)?;
+                sfx = combine_suffix(sfx, s)?;
+                acc = combine(acc, z);
+            }
         }
     }
-    fmt_complex(acc, sfx.unwrap_or('i'))
+    format_complex(acc, sfx.unwrap_or('i'))
 }
 
-pub(super) fn imsum(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    im_fold(a, Cx::new(0.0, 0.0), Cx::add)
+pub(super) fn imsum(args: &[Arg], _ctx: &mut dyn Ctx) -> R<Value> {
+    fold_complex_args(args, Cx::new(0.0, 0.0), Cx::add)
 }
 
-pub(super) fn improduct(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    im_fold(a, ONE, Cx::mul)
+pub(super) fn improduct(args: &[Arg], _ctx: &mut dyn Ctx) -> R<Value> {
+    fold_complex_args(args, ONE, Cx::mul)
 }

@@ -6,7 +6,7 @@ use std::f64::consts::PI;
 use joysheet_core::{CellError, Value, number_to_text};
 
 use crate::special::{erf, erfc};
-use crate::util::{A, R, S, flatten, has, num, num_val, opt_num, scalar, text, text_val};
+use crate::util::{A, R, S, has, num, num_val, opt_num, scalar, text, text_val};
 use crate::{Arg, Ctx, FnSpec, VAR};
 
 use crate::radix;
@@ -61,12 +61,7 @@ im1!(imexp, |z: Cx| Ok(z.exp()));
 im1!(imln, |z: Cx| z.ln());
 im1!(imlog10, |z: Cx| z.ln().map(|l| Cx::new(l.re / std::f64::consts::LN_10, l.im / std::f64::consts::LN_10)));
 im1!(imlog2, |z: Cx| z.ln().map(|l| Cx::new(l.re / std::f64::consts::LN_2, l.im / std::f64::consts::LN_2)));
-im1!(imsqrt, |z: Cx| {
-    let m = z.abs();
-    let re = ((m + z.re) / 2.0).sqrt();
-    let im = ((m - z.re) / 2.0).sqrt();
-    Ok(Cx::new(re, if z.im < 0.0 { -im } else { im }))
-});
+im1!(imsqrt, |z: Cx| Ok(z.sqrt()));
 im1!(imsin, |z: Cx| Ok(z.sin()));
 im1!(imcos, |z: Cx| Ok(z.cos()));
 im1!(imtan, |z: Cx| z.sin().div(z.cos()));

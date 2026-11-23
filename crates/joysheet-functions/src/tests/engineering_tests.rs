@@ -187,6 +187,15 @@ fn complex_numbers() {
     let Value::Text(csh) = ev("IMCSCH", vec![t("4+3i")]) else { panic!() };
     cx(ev("IMPRODUCT", vec![t(&sh), t(&csh)]), 1.0, 0.0);
     cx(ev("IMSUM", vec![t("1.5e1+2E-1j")]), 15.0, 0.2);
+    // Smith's division avoids overflow and underflow on extreme magnitudes.
+    is_text(ev("IMDIV", vec![t("1e200+1e200i"), t("1e200+1e200i")]), "1");
+    is_text(ev("IMDIV", vec![t("1e-200+1e-200i"), t("1e-200+1e-200i")]), "1");
+    cx(ev("IMDIV", vec![t("3e200+4e200i"), t("1e200-2e200i")]), -1.0, 2.0);
+    // Cancellation-free principal square root near the negative real axis.
+    cx(ev("IMSQRT", vec![t("-1e16+i")]), 5e-9, 1e8);
+    // Exact binary exponentiation for positive and negative integer powers.
+    is_text(ev("IMPOWER", vec![t("1+i"), n(16.0)]), "256");
+    cx(ev("IMPOWER", vec![t("3+4i"), n(-2.0)]), -7.0 / 625.0, -24.0 / 625.0);
 }
 
 #[test]
@@ -230,7 +239,30 @@ fn bessel() {
         let expect = 2.0 / (std::f64::consts::PI * x);
         assert!((w - expect).abs() < 1e-9 * expect.max(1.0), "x={x}: {w} vs {expect}");
     }
-    // Large orders and arguments stay finite.
+    // Large orders and arguments stay finite, and modified Bessel Wronskian holds across regimes:
+    // I_1(x) K_0(x) + I_0(x) K_1(x) = 1/x.
     assert!(matches!(ev("BESSELJ", vec![n(50.0), n(3.0)]), Value::Number(_)));
     assert!(matches!(ev("BESSELK", vec![n(30.0), n(5.0)]), Value::Number(_)));
+    assert!(matches!(ev("BESSELI", vec![n(500.0), n(100.0)]), Value::Number(_)));
+    for x in [0.5, 5.0, 20.0, 35.0, 40.0, 60.0] {
+        let i0 = match ev("BESSELI", vec![n(x), n(0.0)]) {
+            Value::Number(v) => v,
+            _ => panic!(),
+        };
+        let i1 = match ev("BESSELI", vec![n(x), n(1.0)]) {
+            Value::Number(v) => v,
+            _ => panic!(),
+        };
+        let k0 = match ev("BESSELK", vec![n(x), n(0.0)]) {
+            Value::Number(v) => v,
+            _ => panic!(),
+        };
+        let k1 = match ev("BESSELK", vec![n(x), n(1.0)]) {
+            Value::Number(v) => v,
+            _ => panic!(),
+        };
+        let w = i1 * k0 + i0 * k1;
+        let expect = 1.0 / x;
+        assert!((w - expect).abs() < 1e-10 * expect, "modified Wronskian x={x}: {w} vs {expect}");
+    }
 }
