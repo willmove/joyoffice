@@ -550,3 +550,11 @@ JoyWord 语言包存储（目录定位、同意配置、有界 HTTP 下载、Zst
 ## Sheet 工作表默认尺寸、隐藏行列与分级大纲
 
 新增共享 `crates/joysheet-xlsx/src/sheet_dims.rs`，统一 BIFF8（`.xls` 的 `DEFCOLWIDTH`/`STANDARDWIDTH`/`DEFAULTROWHEIGHT`/`COLINFO`/`ROW`）、BIFF12（`.xlsb` 的 `BrtWsFmtInfo`/`BrtColInfo`/`BrtRowHdr`）与 SpreadsheetML（`.xlsx` 的 `<sheetFormatPr>`/`<cols>`/`<row>`）的默认列宽／行高、隐藏行列、自定义尺寸及分级大纲／折叠状态并共用 `MAX_COLUMN_ASSIGNMENTS` 预算。同步修复三类格式缺陷：XLSX 改为在 `<row>` 流式读取前先解析 `<sheetFormatPr>`；BIFF8 补齐默认／标准列宽并正确遵守 `ROW` `fDefault`（`0x8000`）；BIFF12 补齐 `BrtWsFmtInfo`、`BrtColInfo` 与 `BrtRowHdr` 全量读取（此前丢弃 9 字节行头并跳过列宽与默认尺寸）。在 Apple M4 macOS 27.2.1 上以 `1274238d` 为基线运行 `scripts/joysheet/check-sheet-dims.py`，6 份三格式样本通过 24 组两代互读及原生桌面分组、撤销、重做、保存与新进程重开，12 份 `sheet-panes` 样本回归零回归（原件摘要不变）。UOS 25 待实机补验。[macOS 实测与文件记录](sheet-dims.json) · [复验脚本](../../../../scripts/joysheet/check-sheet-dims.py)
+
+## Sheet 现代文本／正则／格式化与日历日期全族收口
+
+将剩余文本与日期函数全部迁入第一方模块：`crates/joysheet-functions/src/text/format.rs`（`VALUE`/`NUMBERVALUE`/`FIXED`/`DOLLAR`/`USDOLLAR`/`BAHTTEXT`/`VALUETOTEXT`/`ARRAYTOTEXT`）、`crates/joysheet-functions/src/text/modern.rs`（`TEXTBEFORE`/`TEXTAFTER`/`TEXTSPLIT`/`REGEXTEST`/`REGEXEXTRACT`/`REGEXREPLACE`，增加 ASCII 零 `Vec<char>` 快路径）以及 `crates/joysheet-functions/src/date/calendar.rs`（21 个日历与计日函数）。至此 `text.rs` 与 `date.rs` 全部登记名均已转为第一方自研实现。在 Apple M4 macOS 27.2.1 上以 `cf34edb1` 为基线运行 `scripts/joysheet/check-modern-text-date.py`，两份 59 公式工作簿（2023 平年与 2024 闰年切换）通过四组合两代互读零差异，原生窗口完成 21 个联动格编辑／撤销／重做／保存／重开（原件摘要不变）。Excel 16.115 与 UOS 25 待补验。[macOS 实测记录](modern-text-date.json) · [复验脚本](../../../../scripts/joysheet/check-modern-text-date.py)
+
+## Sheet 工作表打印设置、页边距、页眉页脚与手工分页符
+
+新增共享 `crates/joysheet-xlsx/src/sheet_print.rs`，统一 BIFF8（`.xls`）、BIFF12（`.xlsb`）与 SpreadsheetML（`.xlsx`）的打印选项、6 向页边距、纸张／缩放／横竖向／适应页数、页眉页脚与手工行列分页符（此前 `.xls` 与 `.xlsb` 导入全部丢弃这些打印属性），并在三格式上统一执行分页符上限与 255 字符页眉页脚截断预算。在 Apple M4 macOS 27.2.1 上以 `cf34edb1` 为基线运行 `scripts/joysheet/check-sheet-print.py`，6 份三格式样本通过 24 组两代互读与原生窗口 `pageLayout.pageSetup` 编辑／撤销／重做／保存／新进程重开（原件摘要不变）。UOS 25 待实机补验。[macOS 实测与文件记录](sheet-print.json) · [复验脚本](../../../../scripts/joysheet/check-sheet-print.py)
