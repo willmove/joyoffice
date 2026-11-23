@@ -772,3 +772,39 @@ fn biff8_default_dimensions_and_outline_levels_roundtrip() {
     assert_eq!(rsh.rows.get(&1).map(|r| (r.hidden, r.outline, r.collapsed, r.custom)), Some((true, 3, true, true)));
     assert_eq!(rsh.rows.get(&2).map(|r| (r.outline, r.size)), Some((1, None)));
 }
+
+#[test]
+fn biff8_print_setup_margins_headers_and_breaks_roundtrip() {
+    let wsbool = rec(0x0081, &u16s(&[0x01C1])); // fFitToPage | summaryBelow | summaryRight
+    let pheaders = rec(0x002A, &u16s(&[1]));
+    let pgrid = rec(0x002B, &u16s(&[1]));
+    let hcenter = rec(0x0083, &u16s(&[1]));
+    let vcenter = rec(0x0084, &u16s(&[1]));
+    let left_m = rec(0x0026, &0.5f64.to_le_bytes());
+    let right_m = rec(0x0027, &0.6f64.to_le_bytes());
+    let top_m = rec(0x0028, &0.8f64.to_le_bytes());
+    let bottom_m = rec(0x0029, &0.9f64.to_le_bytes());
+    let hdr = rec(0x0014, &xlstr("&CTitle"));
+    let ftr = rec(0x0015, &xlstr("Page &P"));
+    // SETUP: paperSize=9 (A4), scale=85, pageStart=1, fitW=2, fitH=3, grbit=0 (Landscape), res=300, vres=300, hdrM=0.35, ftrM=0.4, copies=1
+    let setup = rec(0x00A1, &cat(&[&u16s(&[9, 85, 1, 2, 3, 0, 300, 300]), &0.35f64.to_le_bytes(), &0.4f64.to_le_bytes(), &1u16.to_le_bytes()]));
+    let hbrk = rec(0x001B, &u16s(&[2, 10, 0, 255, 25, 0, 255]));
+    let vbrk = rec(0x001A, &u16s(&[1, 4, 0, 65535]));
+    let data = one_sheet_with(&cat(&[
+        &wsbool, &pheaders, &pgrid, &hcenter, &vcenter, &left_m, &right_m, &top_m, &bottom_m, &hdr, &ftr, &setup, &hbrk, &vbrk,
+    ]));
+    let (wb, _) = read_xls(&data).unwrap();
+    let p = &wb.sheets[0].print;
+    assert!(p.gridlines && p.headings && p.center_h && p.center_v);
+    assert_eq!(p.paper, "A4");
+    assert_eq!(p.scale, 85);
+    assert_eq!(p.orientation, joysheet_model::Orientation::Landscape);
+    assert_eq!(p.fit_to, Some((2, 3)));
+    assert_eq!(p.margins, [0.5, 0.6, 0.8, 0.9, 0.35, 0.4]);
+    assert_eq!((p.header.as_str(), p.footer.as_str()), ("&CTitle", "Page &P"));
+    assert_eq!(p.row_breaks, vec![10, 25]);
+    assert_eq!(p.col_breaks, vec![4]);
+
+    let (rt, _) = read_xlsx(&write_xlsx(&wb).unwrap()).unwrap();
+    assert_eq!(rt.sheets[0].print, wb.sheets[0].print);
+}

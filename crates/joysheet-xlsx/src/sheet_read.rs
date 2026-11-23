@@ -8,8 +8,8 @@ use joysheet_core::{CellError, CellRef, DateSystem, MAX_COLS, MAX_ROWS, RangeRef
 use joysheet_formula::Expr;
 use joysheet_model::{
     AutoFilter, Cell, CfOperator, CfRule, CfValueKind, Comment, CondFormat, EditRange, ErrorStyle, FilterCriterion, Formula, Hyperlink, NoteBox,
-    NoteCorner, Orientation, PasswordHash, Sheet, SheetProtection, Sparkline, SparklineKind, Table, TableColumn, TotalsFn, Validation,
-    ValidationKind, XmlColumnPr,
+    NoteCorner, PasswordHash, Sheet, SheetProtection, Sparkline, SparklineKind, Table, TableColumn, TotalsFn, Validation, ValidationKind,
+    XmlColumnPr,
 };
 
 use crate::IoError;
@@ -17,8 +17,8 @@ use crate::fmla::from_file;
 use crate::package::Rel;
 use crate::read::Ctx;
 use crate::sheet_dims::{MAX_COLUMN_ASSIGNMENTS, RowSpec, apply_row_info, read_xml_cols, read_xml_format_pr};
+use crate::sheet_print::{read_xml_breaks, read_xml_header_footer, read_xml_page_margins, read_xml_page_setup, read_xml_print_options};
 use crate::styles::read_color;
-use crate::tables::paper_name;
 use crate::xml::{self, El};
 
 mod parts;
@@ -159,56 +159,15 @@ pub fn read_sheet(cx: &mut Ctx<'_>, part: &str, name: &str) -> Result<Sheet, IoE
             }
             "hyperlinks" => read_hyperlinks(cx, name, e, &rels, &mut sheet),
             "autoFilter" => sheet.autofilter = read_autofilter(cx, e),
-            "printOptions" => {
-                sheet.print.gridlines = e.flag("gridLines", false);
-                sheet.print.headings = e.flag("headings", false);
-                sheet.print.center_h = e.flag("horizontalCentered", false);
-                sheet.print.center_v = e.flag("verticalCentered", false);
-            }
-            "pageMargins" => {
-                let m = &mut sheet.print.margins;
-                for (i, k) in ["left", "right", "top", "bottom", "header", "footer"].iter().enumerate() {
-                    if let (Some(v), Some(slot)) = (e.attr_f64(k), m.get_mut(i)) {
-                        *slot = v.clamp(0.0, 50.0) as f32;
-                    }
-                }
-            }
+            "printOptions" => read_xml_print_options(e, &mut sheet),
+            "pageMargins" => read_xml_page_margins(e, &mut sheet),
             "pageSetup" => {
-                if e.attr("orientation") == Some("landscape") {
-                    sheet.print.orientation = Orientation::Landscape;
-                }
-                if let Some(p) = e.attr_u32("paperSize").and_then(paper_name) {
-                    sheet.print.paper = p.to_string();
-                }
-                if let Some(s) = e.attr_u32("scale") {
-                    sheet.print.scale = s.clamp(10, 400) as u16;
-                }
-                if fit_to_page || root.child("sheetPr").and_then(|p| p.child("pageSetUpPr")).is_some_and(|p| p.flag("fitToPage", false)) {
-                    let w = e.attr_u32("fitToWidth").unwrap_or(1).min(32767) as u16;
-                    let h = e.attr_u32("fitToHeight").unwrap_or(1).min(32767) as u16;
-                    sheet.print.fit_to = Some((w, h));
-                }
+                let fit = fit_to_page || root.child("sheetPr").and_then(|p| p.child("pageSetUpPr")).is_some_and(|p| p.flag("fitToPage", false));
+                read_xml_page_setup(e, &mut sheet, fit);
             }
-            "headerFooter" => {
-                let pr = &mut sheet.print;
-                for (tag, slot) in [
-                    ("oddHeader", &mut pr.header),
-                    ("oddFooter", &mut pr.footer),
-                    ("evenHeader", &mut pr.even_header),
-                    ("evenFooter", &mut pr.even_footer),
-                    ("firstHeader", &mut pr.first_header),
-                    ("firstFooter", &mut pr.first_footer),
-                ] {
-                    // Excel caps each at 255 characters; a hostile file can't make them huge.
-                    *slot = e.child(tag).map(|h| h.text.chars().take(255).collect()).unwrap_or_default();
-                }
-                pr.different_first = e.flag("differentFirst", false);
-                pr.different_odd_even = e.flag("differentOddEven", false);
-                pr.hf_scale_with_doc = e.flag("scaleWithDoc", true);
-                pr.hf_align_with_margins = e.flag("alignWithMargins", true);
-            }
-            "rowBreaks" => sheet.print.row_breaks = e.kids("brk").filter_map(|b| b.attr_u32("id")).filter(|&r| r > 0 && r < MAX_ROWS).collect(),
-            "colBreaks" => sheet.print.col_breaks = e.kids("brk").filter_map(|b| b.attr_u32("id")).filter(|&c| c > 0 && c < MAX_COLS).collect(),
+            "headerFooter" => read_xml_header_footer(e, &mut sheet),
+            "rowBreaks" => read_xml_breaks(e, &mut sheet, true),
+            "colBreaks" => read_xml_breaks(e, &mut sheet, false),
             "sheetProtection" if e.flag("sheet", false) => {
                 sheet.protection = Some(SheetProtection {
                     password: read_password(e, ""),

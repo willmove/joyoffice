@@ -1,0 +1,74 @@
+{
+  "date": "2026-11-23",
+  "baseline": "cf34edb1",
+  "scope": "Unify worksheet print options, page margins, page setup (paper size, scale, portrait/landscape orientation, fit-to-page), header/footer text and flags, and manual row/column page breaks across BIFF8 (.xls PrintHeaders/PrintGridLines/HCenter/VCenter/Margins/Header/Footer/Setup/HorizontalPageBreaks/VerticalPageBreaks/WsBool), BIFF12 (.xlsb BrtPrintOptions/BrtMargins/BrtPageSetup/BrtBeginHeaderFooter/BrtBeginRwBrk/BrtBeginColBrk/BrtBrk/BrtWsProp), and SpreadsheetML (.xlsx) via shared crates/joysheet-xlsx/src/sheet_print.rs.",
+  "specifications": [
+    "https://learn.microsoft.com/en-us/openspecs/office_file_formats/ms-xls/6b2e5e07-9954-4c60-9340-4161e2a3c4a2",
+    "https://learn.microsoft.com/en-us/openspecs/office_file_formats/ms-xlsb/9944c3d3-3a03-4db3-b4c5-58c28d7307e9",
+    "https://learn.microsoft.com/en-us/openspecs/office_file_formats/ms-xlsb/6573b3cf-32bc-4a94-b614-141b88a87518"
+  ],
+  "reproduce": [
+    "cargo test --locked --offline -p joysheet-xlsx",
+    "python3 scripts/joysheet/check-sheet-print.py OLD_CLI NEW_CLI OUTPUT --desktop JOYSHEET"
+  ],
+  "rollback": "Restore crates/joysheet-xlsx/src/{lib.rs,sheet_read.rs,sheet_write.rs,xls.rs,xlsb.rs} and remove crates/joysheet-xlsx/src/sheet_print.rs from commit cf34edb1.",
+  "platforms": {
+    "macOS": {
+      "os": "macOS 27.2.1 (26B131)",
+      "arch": "aarch64-apple-darwin",
+      "rustc": "1.98.1 (48a229cea 2026-09-01)",
+      "unitTests": {
+        "joysheetXlsxPassed": 296,
+        "joysheetXlsxFailed": 0
+      },
+      "sheetPrintMatrix": {
+        "cliSha256": [
+          "470361605ed7966a72bf6f7b587d6ea5ae9d7dae1194535280b6d84cd54ea97d",
+          "1e33170f3963ec9b0ac284850de898f60ca2d198c69841e886e3bd8dc7b941b7"
+        ],
+        "workbooks": {
+          "landscape_a4.xls": {
+            "sourceSha256": "586e77c84e26076bff516348cecd447726a682d1d224592f16f871198d69fb05",
+            "baselineDroppedPrintSetup": true,
+            "candidatePreservedAllFields": true,
+            "readerWriterPairs": 4
+          },
+          "landscape_a4.xlsb": {
+            "sourceSha256": "22cff0e26f2ccd48f83cd72eb7948bd8552c566f99a40142163891370fc73216",
+            "baselineDroppedPrintSetup": true,
+            "candidatePreservedAllFields": true,
+            "readerWriterPairs": 4
+          },
+          "landscape_a4.xlsx": {
+            "sourceSha256": "c9d61ca44bfb58b4317290e939eff9204c385351f7a29bf7e73f1a133124c7b8",
+            "candidatePreservedAllFields": true,
+            "readerWriterPairs": 4
+          },
+          "fit_breaks.xls": {
+            "sourceSha256": "18f77a0c0372880f8d65ddef5bc27a3a753c53e14224cdadcd0ad96ec9b4e33c",
+            "baselineDroppedPrintSetup": true,
+            "candidatePreservedAllFields": true,
+            "readerWriterPairs": 4
+          },
+          "fit_breaks.xlsb": {
+            "sourceSha256": "ca68ece9a60e4899515172e825925a1e6c9122b4c4299bc469fc08f538ee3443",
+            "baselineDroppedPrintSetup": true,
+            "candidatePreservedAllFields": true,
+            "readerWriterPairs": 4
+          },
+          "fit_breaks.xlsx": {
+            "sourceSha256": "e37761ad371784369bb9fd886475896682623285386443d3ef854c3899ff83f6",
+            "candidatePreservedAllFields": true,
+            "readerWriterPairs": 4
+          }
+        },
+        "nativeDesktopBooksVerified": 6,
+        "originalsUnchanged": true
+      }
+    },
+    "UOS25": {
+      "status": "pending_host",
+      "note": "No UOS 25 real machine attached in this session; re-run scripts/joysheet/check-sheet-print.py once connected."
+    }
+  }
+}

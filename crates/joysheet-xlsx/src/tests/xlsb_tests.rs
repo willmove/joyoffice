@@ -481,3 +481,67 @@ fn xlsb_sheet_format_cols_and_row_headers_survive_xlsx_save() {
     assert_eq!(rsh.rows.get(&1).map(|r| (r.hidden, r.outline, r.collapsed, r.custom)), Some((true, 3, true, true)));
     assert_eq!(rsh.rows.get(&2).map(|r| (r.outline, r.size)), Some((1, None)));
 }
+
+#[test]
+fn xlsb_print_setup_margins_headers_and_breaks_survive_xlsx_save() {
+    let mut ws_prop = vec![0u8; 23];
+    ws_prop[0..2].copy_from_slice(&0x01C1u16.to_le_bytes()); // fFitToPage | summaryBelow | summaryRight
+    let print_opts = record(477, &0x000Fu16.to_le_bytes()); // hcenter|vcenter|headings|gridlines
+    let mut margins = Vec::with_capacity(48);
+    for m in [0.5f64, 0.6, 0.8, 0.9, 0.35, 0.4] {
+        margins.extend(m.to_le_bytes());
+    }
+    let mut setup = Vec::with_capacity(34);
+    for v in [9u32, 85, 300, 300, 1, 1, 2, 3] {
+        setup.extend(v.to_le_bytes());
+    }
+    setup.extend(0u16.to_le_bytes()); // grbit=0 -> Landscape, valid printer settings
+    let mut hf = Vec::new();
+    hf.extend((0x0001u16 | 0x0002 | 0x0004).to_le_bytes()); // diffOddEven | diffFirst | scaleWithDoc (alignMargins=false)
+    for s in [Some("&CTitle"), Some("Page &P"), Some("&CEven"), None, Some("&CFirst"), None] {
+        match s {
+            Some(t) => hf.extend(wide(t)),
+            None => hf.extend(u32::MAX.to_le_bytes()),
+        }
+    }
+    let brk = |id: u32, manual: u32| {
+        let mut b = Vec::with_capacity(20);
+        for v in [id, 0, 255, manual, 0] {
+            b.extend(v.to_le_bytes());
+        }
+        record(396, &b)
+    };
+    let mut ws = record(129, &[]);
+    ws.extend(record(147, &ws_prop));
+    ws.extend(record(145, &[]));
+    ws.extend(record(146, &[]));
+    ws.extend(print_opts);
+    ws.extend(record(476, &margins));
+    ws.extend(record(478, &setup));
+    ws.extend(record(479, &hf));
+    ws.extend(record(392, &[]));
+    ws.extend(brk(10, 1));
+    ws.extend(brk(20, 0)); // automatic break ignored
+    ws.extend(brk(25, 1));
+    ws.extend(record(393, &[]));
+    ws.extend(record(394, &[]));
+    ws.extend(brk(4, 1));
+    ws.extend(record(395, &[]));
+    ws.extend(record(130, &[]));
+
+    let (wb, _) = read_xlsb(&file(&ws)).unwrap();
+    let p = &wb.sheets[0].print;
+    assert!(p.gridlines && p.headings && p.center_h && p.center_v);
+    assert_eq!(p.paper, "A4");
+    assert_eq!(p.scale, 85);
+    assert_eq!(p.orientation, joysheet_model::Orientation::Landscape);
+    assert_eq!(p.fit_to, Some((2, 3)));
+    assert_eq!(p.margins, [0.5, 0.6, 0.8, 0.9, 0.35, 0.4]);
+    assert_eq!((p.header.as_str(), p.footer.as_str(), p.even_header.as_str(), p.first_header.as_str()), ("&CTitle", "Page &P", "&CEven", "&CFirst"));
+    assert!(p.different_odd_even && p.different_first && p.hf_scale_with_doc && !p.hf_align_with_margins);
+    assert_eq!(p.row_breaks, vec![10, 25]);
+    assert_eq!(p.col_breaks, vec![4]);
+
+    let (rt, _) = read_xlsx(&write_xlsx(&wb).unwrap()).unwrap();
+    assert_eq!(rt.sheets[0].print, wb.sheets[0].print);
+}

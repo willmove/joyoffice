@@ -5,14 +5,14 @@ use std::fmt::Write as _;
 
 use joysheet_core::{CellError, CellRef, MAX_COLS, MAX_ROWS, RangeRef, Value};
 use joysheet_model::{
-    Cell, CfOperator, CfRule, CfValueKind, Color, CondFormat, ErrorStyle, FilterCriterion, LineInfo, NoteBox, NoteCorner, Orientation, Sheet,
-    SparklineKind, Style, Table, TotalsFn, Validation, ValidationKind, Workbook, default_icon_thresholds, icon_count,
+    Cell, CfOperator, CfRule, CfValueKind, Color, CondFormat, ErrorStyle, FilterCriterion, LineInfo, NoteBox, NoteCorner, Sheet, SparklineKind,
+    Style, Table, TotalsFn, Validation, ValidationKind, Workbook, default_icon_thresholds, icon_count,
 };
 
 use crate::drawing::{Obj, image_content_type, image_ext};
 use crate::fmla::FileFormulas;
 use crate::styles::{color_attrs, dxf_id};
-use crate::tables::{paper_id, px_to_pt};
+use crate::tables::px_to_pt;
 use crate::write::{
     CT_CHART, CT_COMMENTS, CT_DRAWING, CT_TABLE, CT_THREADED_COMMENTS, NS_MAIN, NS_REL, NS_THREADED, Out, REL_THREADED_COMMENT, Rels, XML_DECL,
 };
@@ -299,76 +299,10 @@ pub fn write_sheet(wb: &Workbook, si: usize, selected: bool, out: &mut Out) -> (
         s.push_str("</hyperlinks>");
     }
     // Printing.
-    let p = &sheet.print;
-    if p.gridlines || p.headings || p.center_h || p.center_v {
-        s.push_str("<printOptions");
-        for (a, v) in [("horizontalCentered", p.center_h), ("verticalCentered", p.center_v), ("headings", p.headings), ("gridLines", p.gridlines)] {
-            if v {
-                let _ = write!(s, " {a}=\"1\"");
-            }
-        }
-        s.push_str("/>");
-    }
+    crate::sheet_print::write_xml_print_options(&mut s, sheet);
     // Unmodelled content kept from the source file (printer settings, controls, OLE objects…).
     let kept = crate::passthrough::SheetKept::write(sheet, &mut rels, out);
-    let m = |i: usize| num(p.margins.get(i).copied().unwrap_or(0.75) as f64);
-    let _ =
-        write!(s, "<pageMargins left=\"{}\" right=\"{}\" top=\"{}\" bottom=\"{}\" header=\"{}\" footer=\"{}\"/>", m(0), m(1), m(2), m(3), m(4), m(5));
-    s.push_str("<pageSetup");
-    if let Some(id) = paper_id(&p.paper)
-        && id != 1
-    {
-        let _ = write!(s, " paperSize=\"{id}\"");
-    }
-    if p.scale != 100 && (10..=400).contains(&p.scale) {
-        let _ = write!(s, " scale=\"{}\"", p.scale);
-    }
-    if let Some((w, h)) = p.fit_to {
-        let _ = write!(s, " fitToWidth=\"{w}\" fitToHeight=\"{h}\"");
-    }
-    let _ = write!(s, " orientation=\"{}\"", if p.orientation == Orientation::Landscape { "landscape" } else { "portrait" });
-    if let Some(id) = kept.page_setup_id() {
-        let _ = write!(s, " r:id=\"{id}\"");
-    }
-    s.push_str("/>");
-    if p.has_header_footer() || p.different_first || p.different_odd_even || !p.hf_scale_with_doc || !p.hf_align_with_margins {
-        s.push_str("<headerFooter");
-        for (attr, on, default) in [
-            ("differentOddEven", p.different_odd_even, false),
-            ("differentFirst", p.different_first, false),
-            ("scaleWithDoc", p.hf_scale_with_doc, true),
-            ("alignWithMargins", p.hf_align_with_margins, true),
-        ] {
-            if on != default {
-                let _ = write!(s, " {attr}=\"{}\"", u8::from(on));
-            }
-        }
-        s.push('>');
-        // CT_HeaderFooter's element order.
-        for (tag, text) in [
-            ("oddHeader", &p.header),
-            ("oddFooter", &p.footer),
-            ("evenHeader", &p.even_header),
-            ("evenFooter", &p.even_footer),
-            ("firstHeader", &p.first_header),
-            ("firstFooter", &p.first_footer),
-        ] {
-            if !text.is_empty() {
-                let _ = write!(s, "<{tag}>{}</{tag}>", esc(text));
-            }
-        }
-        s.push_str("</headerFooter>");
-    }
-    for (tag, list, max) in [("rowBreaks", &p.row_breaks, 16383u32), ("colBreaks", &p.col_breaks, 1048575)] {
-        let list: Vec<u32> = list.iter().copied().filter(|&b| b > 0).collect();
-        if !list.is_empty() {
-            let _ = write!(s, "<{tag} count=\"{0}\" manualBreakCount=\"{0}\">", list.len());
-            for b in list {
-                let _ = write!(s, "<brk id=\"{b}\" max=\"{max}\" man=\"1\"/>");
-            }
-            let _ = write!(s, "</{tag}>");
-        }
-    }
+    crate::sheet_print::write_xml_page_setup_and_breaks(&mut s, sheet, kept.page_setup_id(), num);
 
     // Drawing: pictures, charts, shapes.
     if !sheet.images.is_empty() || !sheet.charts.is_empty() || !sheet.shapes.is_empty() {

@@ -423,6 +423,7 @@ fn parsed(c: &mut Cursor<'_, '_>) -> Result<Parsed, IoError> {
 
 struct SheetState<'g> {
     view: crate::sheet_view::BinaryView,
+    print: crate::sheet_print::BinaryPrint,
     col_assignments_left: u64,
     has_standard_width: bool,
     g: &'g Globals,
@@ -564,6 +565,7 @@ fn worksheet(
     }
     let mut st = SheetState {
         view: Default::default(),
+        print: Default::default(),
         col_assignments_left: crate::sheet_dims::MAX_COLUMN_ASSIGNMENTS,
         has_standard_width: false,
         g,
@@ -612,6 +614,7 @@ fn worksheet(
         report.warn(format!("Some formulas use {why}; their saved results were kept as values."));
     }
     st.view.finish(&mut st.sheet);
+    st.print.finish(&mut st.sheet);
     Ok(Some((st.sheet, st.calc)))
 }
 
@@ -797,7 +800,51 @@ fn sheet_record(rec: &Record<'_>, st: &mut SheetState<'_>, budget: &mut Budget, 
             }
         }
         WSBOOL if c.remaining() >= 2 => {
-            crate::sheet_view::apply_outline_summary(&mut st.sheet, c.u16()?);
+            let flags = c.u16()?;
+            crate::sheet_view::apply_outline_summary(&mut st.sheet, flags);
+            st.print.apply_ws_flags(flags);
+        }
+        0x002A if c.remaining() >= 2 => st.sheet.print.headings = c.u16()? != 0,
+        0x002B if c.remaining() >= 2 => st.sheet.print.gridlines = c.u16()? != 0,
+        0x0083 if c.remaining() >= 2 => st.sheet.print.center_h = c.u16()? != 0,
+        0x0084 if c.remaining() >= 2 => st.sheet.print.center_v = c.u16()? != 0,
+        0x0026 if c.remaining() >= 8 => crate::sheet_print::set_margin(&mut st.sheet, 0, c.f64()?),
+        0x0027 if c.remaining() >= 8 => crate::sheet_print::set_margin(&mut st.sheet, 1, c.f64()?),
+        0x0028 if c.remaining() >= 8 => crate::sheet_print::set_margin(&mut st.sheet, 2, c.f64()?),
+        0x0029 if c.remaining() >= 8 => crate::sheet_print::set_margin(&mut st.sheet, 3, c.f64()?),
+        0x0014 if c.remaining() >= 3 => st.sheet.print.header = crate::sheet_print::clamp_hf_text(&c.string()?),
+        0x0015 if c.remaining() >= 3 => st.sheet.print.footer = crate::sheet_print::clamp_hf_text(&c.string()?),
+        0x00A1 if c.remaining() >= 34 => {
+            let paper = u32::from(c.u16()?);
+            let scale = u32::from(c.u16()?);
+            let _page_start = c.u16()?;
+            let fit_w = u32::from(c.u16()?);
+            let fit_h = u32::from(c.u16()?);
+            let grbit = c.u16()?;
+            let _res = c.u16()?;
+            let _vres = c.u16()?;
+            let hdr_margin = c.f64()?;
+            let ftr_margin = c.f64()?;
+            let _copies = c.u16()?;
+            st.print.apply_setup(&mut st.sheet, paper, scale, fit_w, fit_h, grbit);
+            crate::sheet_print::set_margin(&mut st.sheet, 4, hdr_margin);
+            crate::sheet_print::set_margin(&mut st.sheet, 5, ftr_margin);
+        }
+        0x001B if c.remaining() >= 2 => {
+            let n = usize::from(c.u16()?);
+            for _ in 0..n.min(c.remaining() / 6).min(crate::sheet_print::MAX_PAGE_BREAKS) {
+                let row = u32::from(c.u16()?);
+                c.skip(4)?;
+                crate::sheet_print::push_row_break(&mut st.sheet, row);
+            }
+        }
+        0x001A if c.remaining() >= 2 => {
+            let n = usize::from(c.u16()?);
+            for _ in 0..n.min(c.remaining() / 6).min(crate::sheet_print::MAX_PAGE_BREAKS) {
+                let col = u32::from(c.u16()?);
+                c.skip(4)?;
+                crate::sheet_print::push_col_break(&mut st.sheet, col);
+            }
         }
         0x023E => {
             let flags = if c.remaining() >= WINDOW2_MIN_LEN { c.u16().ok() } else { None };

@@ -588,6 +588,8 @@ fn worksheet(bytes: &[u8], name: &str, strings: &[Arc<str>], budget: &mut Budget
     records.first(129, report)?;
     let mut sheet = Sheet::new(name);
     let mut view = crate::sheet_view::BinaryView::default();
+    let mut print = crate::sheet_print::BinaryPrint::default();
+    let mut break_axis: Option<bool> = None; // Some(true) = row breaks, Some(false) = col breaks
     let mut col_assignments_left = crate::sheet_dims::MAX_COLUMN_ASSIGNMENTS;
     let mut data = false;
     let mut data_seen = false;
@@ -602,10 +604,13 @@ fn worksheet(bytes: &[u8], name: &str, strings: &[Arc<str>], budget: &mut Budget
                 }
                 records.end(payload, report)?;
                 view.finish(&mut sheet);
+                print.finish(&mut sheet);
                 return Ok(sheet);
             }
             147 if !data && payload.len() >= 2 => {
-                crate::sheet_view::apply_outline_summary(&mut sheet, b.u16()?);
+                let flags = b.u16()?;
+                crate::sheet_view::apply_outline_summary(&mut sheet, flags);
+                print.apply_ws_flags(flags);
             }
             485 if !data && payload.len() >= 10 => {
                 let dx_gcol = b.u32()?;
@@ -779,6 +784,54 @@ fn worksheet(bytes: &[u8], name: &str, strings: &[Arc<str>], budget: &mut Budget
                     return Err(IoError::TooLarge("XLSB exceeds 100000 merges".into()));
                 }
                 sheet.merges.push(RangeRef::new(CellRef::new(r0, c0), CellRef::new(r1, c1)));
+            }
+            477 if !data && payload.len() >= 2 => {
+                crate::sheet_print::apply_biff12_print_options(&mut sheet, b.u16()?);
+            }
+            476 if !data && payload.len() >= 48 => {
+                let margins = [b.f64()?, b.f64()?, b.f64()?, b.f64()?, b.f64()?, b.f64()?];
+                crate::sheet_print::apply_margins(&mut sheet, margins);
+            }
+            478 if !data && payload.len() >= 34 => {
+                let paper = b.u32()?;
+                let scale = b.u32()?;
+                let _res = b.u32()?;
+                let _vres = b.u32()?;
+                let _copies = b.u32()?;
+                let _page_start = b.u32()?;
+                let fit_w = b.u32()?;
+                let fit_h = b.u32()?;
+                let grbit = b.u16()?;
+                print.apply_setup(&mut sheet, paper, scale, fit_w, fit_h, grbit);
+            }
+            479 if !data && payload.len() >= 26 => {
+                let grbit = b.u16()?;
+                let pr = &mut sheet.print;
+                pr.different_odd_even = grbit & 0x0001 != 0;
+                pr.different_first = grbit & 0x0002 != 0;
+                pr.hf_scale_with_doc = grbit & 0x0004 != 0;
+                pr.hf_align_with_margins = grbit & 0x0008 != 0;
+                for slot in [&mut pr.header, &mut pr.footer, &mut pr.even_header, &mut pr.even_footer, &mut pr.first_header, &mut pr.first_footer] {
+                    *slot = b.string(32767, true)?.map(|s| crate::sheet_print::clamp_hf_text(&s)).unwrap_or_default();
+                }
+            }
+            392 if !data => break_axis = Some(true),
+            393 => break_axis = None,
+            394 if !data => break_axis = Some(false),
+            395 => break_axis = None,
+            396 if !data && payload.len() >= 20 => {
+                let id_val = b.u32()?;
+                let _start = b.u32()?;
+                let _end = b.u32()?;
+                let manual = b.u32()? != 0;
+                let _pivot = b.u32()?;
+                if manual {
+                    match break_axis {
+                        Some(true) => crate::sheet_print::push_row_break(&mut sheet, id_val),
+                        Some(false) => crate::sheet_print::push_col_break(&mut sheet, id_val),
+                        None => {}
+                    }
+                }
             }
             _ => {}
         }
