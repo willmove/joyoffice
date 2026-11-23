@@ -1,128 +1,255 @@
-use super::*;
+//! Single-pass conditional worksheet aggregates (`COUNTIF`, `COUNTIFS`, `SUMIF`, `SUMIFS`,
+//! `AVERAGEIF`, `AVERAGEIFS`, `MAXIFS`, `MINIFS`) using pre-compiled criteria and constant-space
+//! accumulators.
 
-// ---------------------------------------------------------------------------------------------
-// Criteria aggregates
+use joysheet_core::{CellError, DateSystem, Value};
 
-/// Values at the matched positions of `target` for every (range, criteria) pair.
-fn criteria_mask(a: &[Arg], first_pair: usize, rows: usize, cols: usize) -> R<Vec<bool>> {
+use crate::criteria::Criterion;
+use crate::util::{R, arg, has, num_val};
+use crate::{Arg, Ctx};
+
+#[derive(Clone, Copy)]
+struct GridView<'a> {
+    rows: usize,
+    cols: usize,
+    cells: &'a [Value],
+}
+
+impl<'a> GridView<'a> {
+    fn from_value(v: &'a Value) -> Self {
+        match v {
+            Value::Array(arr) => Self { rows: arr.rows, cols: arr.cols, cells: arr.data.as_slice() },
+            other => Self { rows: 1, cols: 1, cells: std::slice::from_ref(other) },
+        }
+    }
+
+    #[inline]
+    fn len(self) -> usize {
+        self.rows.saturating_mul(self.cols)
+    }
+
+    #[inline]
+    fn get_rc(self, r: usize, c: usize) -> Option<&'a Value> {
+        if r < self.rows && c < self.cols { self.cells.get(r * self.cols + c) } else { None }
+    }
+}
+
+#[derive(Clone, Copy)]
+enum Aggregate {
+    Sum,
+    Average,
+    Max,
+    Min,
+}
+
+struct Fold {
+    kind: Aggregate,
+    sum: f64,
+    count: usize,
+    extreme: Option<f64>,
+}
+
+impl Fold {
+    fn new(kind: Aggregate) -> Self {
+        Self { kind, sum: 0.0, count: 0, extreme: None }
+    }
+
+    #[inline]
+    fn push(&mut self, value: &Value) -> R<()> {
+        match value {
+            Value::Number(x) => match self.kind {
+                Aggregate::Sum => self.sum += *x,
+                Aggregate::Average => {
+                    self.sum += *x;
+                    self.count += 1;
+                }
+                Aggregate::Max => {
+                    self.extreme = Some(match self.extreme {
+                        Some(best) => best.max(*x),
+                        None => *x,
+                    });
+                }
+                Aggregate::Min => {
+                    self.extreme = Some(match self.extreme {
+                        Some(best) => best.min(*x),
+                        None => *x,
+                    });
+                }
+            },
+            Value::Error(e) => return Err(*e),
+            _ => {}
+        }
+        Ok(())
+    }
+
+    fn finish(self) -> R<Value> {
+        match self.kind {
+            Aggregate::Sum => num_val(self.sum),
+            Aggregate::Average => {
+                if self.count == 0 {
+                    Err(CellError::Div0)
+                } else {
+                    num_val(self.sum / self.count as f64)
+                }
+            }
+            Aggregate::Max | Aggregate::Min => num_val(self.extreme.unwrap_or(0.0)),
+        }
+    }
+}
+
+fn compile_pairs<'a>(a: &'a [Arg], first_pair: usize, rows: usize, cols: usize, date_system: DateSystem) -> R<Vec<(GridView<'a>, Criterion)>> {
     let rest = a.get(first_pair..).unwrap_or(&[]);
     if rest.is_empty() || rest.len() % 2 != 0 {
         return Err(CellError::Value);
     }
-    // A text criterion over 255 characters is `#VALUE!` only when there is a single criteria
-    // pair. With two or more pairs Excel matches its first 255 characters instead.
     let single_pair = rest.len() == 2;
-    let mut mask = vec![true; rows.saturating_mul(cols)];
-    for pair in rest.chunks(2) {
-        let (Some(range), Some(crit)) = (pair.first(), pair.get(1)) else { return Err(CellError::Value) };
-        let r = as_array(&range.value);
-        if r.rows != rows || r.cols != cols {
+    let mut pairs = Vec::with_capacity(rest.len() / 2);
+    for chunk in rest.chunks(2) {
+        let (Some(range_arg), Some(crit_arg)) = (chunk.first(), chunk.get(1)) else {
+            return Err(CellError::Value);
+        };
+        let grid = GridView::from_value(&range_arg.value);
+        if grid.rows != rows || grid.cols != cols {
             return Err(CellError::Value);
         }
-        let scalar = crit.value.scalar();
-        let c = if single_pair { Criterion::parse_arg(&scalar)? } else { Criterion::parse_arg_truncated(&scalar) };
-        for (m, v) in mask.iter_mut().zip(r.iter()) {
-            if *m && !c.matches(v) {
-                *m = false;
+        let crit_val = match &crit_arg.value {
+            Value::Array(arr) => arr.data.first().unwrap_or(&Value::Empty),
+            other => other,
+        };
+        let criterion =
+            if single_pair { Criterion::parse_arg_in(crit_val, date_system)? } else { Criterion::parse_arg_truncated_in(crit_val, date_system) };
+        pairs.push((grid, criterion));
+    }
+    Ok(pairs)
+}
+
+#[inline]
+fn all_match(pairs: &[(GridView<'_>, Criterion)], idx: usize) -> bool {
+    for (grid, criterion) in pairs {
+        let Some(cell) = grid.cells.get(idx) else { return false };
+        if !criterion.matches(cell) {
+            return false;
+        }
+    }
+    true
+}
+
+fn fold_ifs(a: &[Arg], kind: Aggregate, date_system: DateSystem) -> R<Value> {
+    let target = GridView::from_value(&arg(a, 0)?.value);
+    let pairs = compile_pairs(a, 1, target.rows, target.cols, date_system)?;
+    let mut fold = Fold::new(kind);
+    let total = target.len().min(target.cells.len());
+    if let [(grid, criterion)] = pairs.as_slice() {
+        for (cell, value) in grid.cells.iter().zip(target.cells.iter()).take(total) {
+            if criterion.matches(cell) {
+                fold.push(value)?;
+            }
+        }
+    } else {
+        for (idx, value) in target.cells.iter().enumerate().take(total) {
+            if all_match(&pairs, idx) {
+                fold.push(value)?;
             }
         }
     }
-    Ok(mask)
+    fold.finish()
 }
 
-/// Numbers in `target` where `mask` is set (errors at matched positions propagate).
-fn masked_numbers(target: &Array, mask: &[bool]) -> R<Vec<f64>> {
-    let mut out = Vec::new();
-    for (v, m) in target.iter().zip(mask.iter()) {
-        if !*m {
-            continue;
-        }
-        match v {
-            Value::Number(n) => out.push(*n),
-            Value::Error(e) => return Err(*e),
-            _ => {}
-        }
-    }
-    Ok(out)
-}
-
-pub(super) fn countifs(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    let first = as_array(&crate::util::arg(a, 0)?.value);
-    let mask = criteria_mask(a, 0, first.rows, first.cols)?;
-    num_val(mask.iter().filter(|m| **m).count() as f64)
-}
-
-/// The values of the `*IFS` target range with the mask from its pairs.
-fn ifs_numbers(a: &[Arg]) -> R<Vec<f64>> {
-    let target = as_array(&crate::util::arg(a, 0)?.value);
-    let mask = criteria_mask(a, 1, target.rows, target.cols)?;
-    masked_numbers(&target, &mask)
-}
-
-pub(super) fn sumifs(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    num_val(ifs_numbers(a)?.iter().sum())
-}
-
-pub(super) fn averageifs(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    let v = ifs_numbers(a)?;
-    if v.is_empty() {
-        return Err(CellError::Div0);
-    }
-    num_val(v.iter().sum::<f64>() / v.len() as f64)
-}
-
-pub(super) fn maxifs(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    let v = ifs_numbers(a)?;
-    num_val(v.iter().copied().reduce(f64::max).unwrap_or(0.0))
-}
-
-pub(super) fn minifs(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    let v = ifs_numbers(a)?;
-    num_val(v.iter().copied().reduce(f64::min).unwrap_or(0.0))
-}
-
-pub(super) fn countif(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    let range = as_array(&crate::util::arg(a, 0)?.value);
-    let c = Criterion::parse_arg(&crate::util::arg(a, 1)?.value.scalar())?;
-    num_val(range.iter().filter(|v| c.matches(v)).count() as f64)
-}
-
-/// SUMIF / AVERAGEIF: matched numbers from the sum range, read at the criteria range's positions.
-/// Excel sizes a sum range reference like the criteria range, anchored at its own top-left cell;
-/// the evaluator does that resizing (it has the references), so cells line up one to one here.
-fn if_numbers(a: &[Arg]) -> R<Vec<f64>> {
-    let range = as_array(&crate::util::arg(a, 0)?.value);
-    let c = Criterion::parse_arg(&crate::util::arg(a, 1)?.value.scalar())?;
-    let sum_range = if has(a, 2) { Some(as_array(&crate::util::arg(a, 2)?.value)) } else { None };
-    let mut out = Vec::new();
-    for r in 0..range.rows {
-        for col in 0..range.cols {
-            let Some(v) = range.get(r, col) else { continue };
-            if !c.matches(v) {
-                continue;
+fn fold_if(a: &[Arg], kind: Aggregate, date_system: DateSystem) -> R<Value> {
+    let range = GridView::from_value(&arg(a, 0)?.value);
+    let crit_val = match &arg(a, 1)?.value {
+        Value::Array(arr) => arr.data.first().unwrap_or(&Value::Empty),
+        other => other,
+    };
+    let criterion = Criterion::parse_arg_in(crit_val, date_system)?;
+    let mut fold = Fold::new(kind);
+    if !has(a, 2) {
+        for cell in range.cells.iter().take(range.len()) {
+            if criterion.matches(cell) {
+                fold.push(cell)?;
             }
-            let target = match &sum_range {
-                Some(s) => s.get(r, col),
-                None => Some(v),
-            };
-            match target {
-                Some(Value::Number(n)) => out.push(*n),
-                Some(Value::Error(e)) => return Err(*e),
-                _ => {}
+        }
+        return fold.finish();
+    }
+    let target = GridView::from_value(&arg(a, 2)?.value);
+    if target.rows == range.rows && target.cols == range.cols {
+        for (cell, value) in range.cells.iter().zip(target.cells.iter()).take(range.len()) {
+            if criterion.matches(cell) {
+                fold.push(value)?;
+            }
+        }
+    } else {
+        for r in 0..range.rows {
+            for col in 0..range.cols {
+                let Some(cell) = range.get_rc(r, col) else { continue };
+                if criterion.matches(cell)
+                    && let Some(value) = target.get_rc(r, col)
+                {
+                    fold.push(value)?;
+                }
             }
         }
     }
-    Ok(out)
+    fold.finish()
 }
 
-pub(super) fn sumif(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    num_val(if_numbers(a)?.iter().sum())
-}
-
-pub(super) fn averageif(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    let v = if_numbers(a)?;
-    if v.is_empty() {
-        return Err(CellError::Div0);
+pub(super) fn countif(a: &[Arg], c: &mut dyn Ctx) -> R<Value> {
+    let range = GridView::from_value(&arg(a, 0)?.value);
+    let crit_val = match &arg(a, 1)?.value {
+        Value::Array(arr) => arr.data.first().unwrap_or(&Value::Empty),
+        other => other,
+    };
+    let criterion = Criterion::parse_arg_in(crit_val, c.date_system())?;
+    let mut count = 0usize;
+    for cell in range.cells.iter().take(range.len()) {
+        if criterion.matches(cell) {
+            count += 1;
+        }
     }
-    num_val(v.iter().sum::<f64>() / v.len() as f64)
+    num_val(count as f64)
+}
+
+pub(super) fn countifs(a: &[Arg], c: &mut dyn Ctx) -> R<Value> {
+    let first = GridView::from_value(&arg(a, 0)?.value);
+    let pairs = compile_pairs(a, 0, first.rows, first.cols, c.date_system())?;
+    let total = first.len().min(first.cells.len());
+    let mut count = 0usize;
+    if let [(grid, criterion)] = pairs.as_slice() {
+        for cell in grid.cells.iter().take(total) {
+            if criterion.matches(cell) {
+                count += 1;
+            }
+        }
+    } else {
+        for idx in 0..total {
+            if all_match(&pairs, idx) {
+                count += 1;
+            }
+        }
+    }
+    num_val(count as f64)
+}
+
+pub(super) fn sumif(a: &[Arg], c: &mut dyn Ctx) -> R<Value> {
+    fold_if(a, Aggregate::Sum, c.date_system())
+}
+
+pub(super) fn averageif(a: &[Arg], c: &mut dyn Ctx) -> R<Value> {
+    fold_if(a, Aggregate::Average, c.date_system())
+}
+
+pub(super) fn sumifs(a: &[Arg], c: &mut dyn Ctx) -> R<Value> {
+    fold_ifs(a, Aggregate::Sum, c.date_system())
+}
+
+pub(super) fn averageifs(a: &[Arg], c: &mut dyn Ctx) -> R<Value> {
+    fold_ifs(a, Aggregate::Average, c.date_system())
+}
+
+pub(super) fn maxifs(a: &[Arg], c: &mut dyn Ctx) -> R<Value> {
+    fold_ifs(a, Aggregate::Max, c.date_system())
+}
+
+pub(super) fn minifs(a: &[Arg], c: &mut dyn Ctx) -> R<Value> {
+    fold_ifs(a, Aggregate::Min, c.date_system())
 }

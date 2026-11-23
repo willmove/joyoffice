@@ -1,0 +1,323 @@
+{
+  "date": "2026-11-23",
+  "baseline": "86d1d282",
+  "scope": "Replace criteria/wildcard matcher (crates/joysheet-functions/src/criteria.rs) and conditional aggregate family (COUNTIF, COUNTIFS, SUMIF, SUMIFS, AVERAGEIF, AVERAGEIFS, MAXIFS, MINIFS in crates/joysheet-functions/src/math/criteria.rs) with pre-compiled wildcard patterns, zero-clone borrowed predicates, DateSystem-aware date criteria parsing, and single-pass constant-space streaming accumulators.",
+  "functionsReplaced": [
+    "COUNTIF",
+    "COUNTIFS",
+    "SUMIF",
+    "SUMIFS",
+    "AVERAGEIF",
+    "AVERAGEIFS",
+    "MAXIFS",
+    "MINIFS"
+  ],
+  "sharedCallersUpdated": [
+    "crates/joysheet-functions/src/database/records.rs (DateSystem-aware Criterion::parse_in)",
+    "crates/joysheet-functions/src/lookup.rs (pre-compiled LookupMatcher for wildcard exact searches)"
+  ],
+  "oracleProvenance": "Independent Python specification oracle grounded in Microsoft Excel documentation for COUNTIF(S), SUMIF(S), AVERAGEIF(S), MAXIFS, MINIFS, and SEARCH; cross-checked cell-by-cell against untouched baseline (86d1d282) and candidate CLIs across 4 reader-writer pairs plus live macOS desktop. Direct interactive Microsoft Excel 16.115 recalculation remains pending macOS Excel App Sandbox grant.",
+  "reproduce": [
+    "cargo test --locked --offline -p joysheet-functions -p joysheet-calc",
+    "cargo run --locked --release -p joysheet-functions --example statistical_spread -- criteria",
+    "python3 scripts/joysheet/check-conditional-aggregates.py OLD_CLI NEW_CLI OUTPUT --desktop JOYSHEET"
+  ],
+  "rollback": "Restore crates/joysheet-functions/src/{criteria.rs,math/criteria.rs,database/records.rs,lookup.rs,math.rs} from commit 86d1d282.",
+  "platforms": {
+    "macOS": {
+      "os": "macOS 27.2.1 (26B131)",
+      "arch": "aarch64-apple-darwin",
+      "rustc": "1.98.1 (48a229cea 2026-09-01)",
+      "unitTests": {
+        "joysheetFunctionsPassed": 158,
+        "joysheetFunctionsFailed": 0,
+        "joysheetCalcPassed": 110,
+        "joysheetCalcIgnored": 1
+      },
+      "crossVersionAndDesktop": {
+        "binaries": [
+          "3b5ac80345a71597c459df87f41387d6a69e0138a00da53a99a04f1c59d03513",
+          "aae8100af484e9afce56cde6b224b2b9042892bba7763b234226e4998c4448c4"
+        ],
+        "excel": {
+          "base": {
+            "sourceSha256": "01dcfcd7d0730d90eaf6ee43b84120835a09fcd788fabeae174151d995fe487c",
+            "independentByFunction": {
+              "COUNTIF": 39,
+              "SUMIF": 12,
+              "AVERAGEIF": 6,
+              "COUNTIFS": 7,
+              "SUMIFS": 16,
+              "AVERAGEIFS": 6,
+              "MAXIFS": 7,
+              "MINIFS": 7,
+              "SEARCH": 4
+            },
+            "baselineDifferences": [],
+            "candidateDifferences": 0,
+            "bothGenerationsRecalculatedBothWriters": true
+          },
+          "edit": {
+            "sourceSha256": "ccc708dee5a222d3f57442dd29fa9b91d72e848b5cafc7a32a65082bb3e46b3e",
+            "independentByFunction": {
+              "COUNTIF": 39,
+              "SUMIF": 12,
+              "AVERAGEIF": 6,
+              "COUNTIFS": 7,
+              "SUMIFS": 16,
+              "AVERAGEIFS": 6,
+              "MAXIFS": 7,
+              "MINIFS": 7,
+              "SEARCH": 4
+            },
+            "baselineDifferences": [],
+            "candidateDifferences": 0,
+            "bothGenerationsRecalculatedBothWriters": true
+          }
+        },
+        "native": {
+          "changedCells": 17,
+          "checkedPerState": 20,
+          "states": 5,
+          "savedTypedCaches": 104,
+          "undoRedoAndFreshReopen": true,
+          "originalUnchanged": true
+        }
+      },
+      "releaseTimingAbBa5Rounds": {
+        "COUNTIF-128": {
+          "baselineMedianUs": 13.614,
+          "candidateMedianUs": 1.019,
+          "speedup": 13.36,
+          "baselineRunsUs": [
+            13.725,
+            13.206,
+            13.614,
+            13.7,
+            13.368
+          ],
+          "candidateRunsUs": [
+            0.993,
+            1.019,
+            1.064,
+            1.043,
+            1.015
+          ]
+        },
+        "COUNTIF_WILD-128": {
+          "baselineMedianUs": 13.522,
+          "candidateMedianUs": 2.552,
+          "speedup": 5.3,
+          "baselineRunsUs": [
+            14.093,
+            13.645,
+            13.521,
+            13.506,
+            13.522
+          ],
+          "candidateRunsUs": [
+            2.548,
+            2.498,
+            2.676,
+            2.552,
+            2.589
+          ]
+        },
+        "SUMIF-128": {
+          "baselineMedianUs": 13.34,
+          "candidateMedianUs": 1.021,
+          "speedup": 13.07,
+          "baselineRunsUs": [
+            13.634,
+            13.34,
+            13.331,
+            13.31,
+            13.36
+          ],
+          "candidateRunsUs": [
+            1.021,
+            1.019,
+            1.092,
+            1.06,
+            1.002
+          ]
+        },
+        "SUMIFS-128": {
+          "baselineMedianUs": 15.702,
+          "candidateMedianUs": 1.545,
+          "speedup": 10.16,
+          "baselineRunsUs": [
+            15.694,
+            15.827,
+            15.744,
+            15.702,
+            15.632
+          ],
+          "candidateRunsUs": [
+            1.474,
+            1.472,
+            1.545,
+            1.608,
+            1.593
+          ]
+        },
+        "AVERAGEIFS-128": {
+          "baselineMedianUs": 12.205,
+          "candidateMedianUs": 2.437,
+          "speedup": 5.01,
+          "baselineRunsUs": [
+            12.117,
+            12.383,
+            12.205,
+            12.341,
+            12.172
+          ],
+          "candidateRunsUs": [
+            2.437,
+            2.417,
+            2.487,
+            2.414,
+            2.503
+          ]
+        },
+        "MAXIFS-128": {
+          "baselineMedianUs": 15.165,
+          "candidateMedianUs": 1.355,
+          "speedup": 11.19,
+          "baselineRunsUs": [
+            15.133,
+            15.107,
+            15.202,
+            15.165,
+            15.293
+          ],
+          "candidateRunsUs": [
+            1.335,
+            1.339,
+            1.424,
+            1.355,
+            1.424
+          ]
+        },
+        "COUNTIF-32768": {
+          "baselineMedianUs": 3333.072,
+          "candidateMedianUs": 198.619,
+          "speedup": 16.78,
+          "baselineRunsUs": [
+            3333.944,
+            3287.55,
+            3333.072,
+            3362.442,
+            3303.753
+          ],
+          "candidateRunsUs": [
+            190.9,
+            204.214,
+            202.903,
+            198.619,
+            193.553
+          ]
+        },
+        "COUNTIF_WILD-32768": {
+          "baselineMedianUs": 3405.092,
+          "candidateMedianUs": 512.225,
+          "speedup": 6.65,
+          "baselineRunsUs": [
+            3405.092,
+            3339.867,
+            3409.736,
+            3432.664,
+            3402.342
+          ],
+          "candidateRunsUs": [
+            512.225,
+            507.561,
+            514.097,
+            506.928,
+            517.233
+          ]
+        },
+        "SUMIF-32768": {
+          "baselineMedianUs": 3385.964,
+          "candidateMedianUs": 200.575,
+          "speedup": 16.88,
+          "baselineRunsUs": [
+            3372.306,
+            3359.442,
+            3409.606,
+            3396.086,
+            3385.964
+          ],
+          "candidateRunsUs": [
+            200.575,
+            195.761,
+            204.061,
+            193.558,
+            203.55
+          ]
+        },
+        "SUMIFS-32768": {
+          "baselineMedianUs": 3955.992,
+          "candidateMedianUs": 266.036,
+          "speedup": 14.87,
+          "baselineRunsUs": [
+            3956.694,
+            3955.992,
+            3933.069,
+            4002.917,
+            3931.628
+          ],
+          "candidateRunsUs": [
+            272.008,
+            261.689,
+            279.289,
+            266.036,
+            265.994
+          ]
+        },
+        "AVERAGEIFS-32768": {
+          "baselineMedianUs": 2865.05,
+          "candidateMedianUs": 523.472,
+          "speedup": 5.47,
+          "baselineRunsUs": [
+            2897.089,
+            2848.089,
+            2865.05,
+            2871.939,
+            2864.767
+          ],
+          "candidateRunsUs": [
+            527.611,
+            523.472,
+            521.986,
+            526.975,
+            518.186
+          ]
+        },
+        "MAXIFS-32768": {
+          "baselineMedianUs": 3745.664,
+          "candidateMedianUs": 255.972,
+          "speedup": 14.63,
+          "baselineRunsUs": [
+            3745.664,
+            3729.956,
+            3759.994,
+            3776.611,
+            3732.494
+          ],
+          "candidateRunsUs": [
+            255.972,
+            247.956,
+            262.453,
+            251.311,
+            259.394
+          ]
+        }
+      }
+    },
+    "UOS": {
+      "status": "pending",
+      "note": "No UOS 25 x86_64 physical host attached during 2026-11-23 run; rerun check-conditional-aggregates.py and statistical_spread -- criteria on UOS when available."
+    }
+  }
+}

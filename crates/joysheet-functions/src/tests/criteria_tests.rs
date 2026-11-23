@@ -61,4 +61,51 @@ fn wildcards() {
     assert!(wildcard_match("i*", "\u{130}stanbul"));
     assert!(has_wildcards("a*"));
     assert!(!has_wildcards("abc"));
+    assert!(has_wildcards("a~b"));
+}
+
+#[test]
+fn compiled_wildcard_specializations_and_unicode() {
+    // Prefix, suffix, contains, exact, general, collapsed stars, escapes and non-ASCII > 128 bytes.
+    assert!(wildcard_match("**", ""));
+    assert!(wildcard_match("**", "hello"));
+    assert!(wildcard_match("foo**", "FOOBAR"));
+    assert!(!wildcard_match("foo*", "fo"));
+    assert!(wildcard_match("*bar", "FOOBAR"));
+    assert!(!wildcard_match("*bar", "ba"));
+    assert!(wildcard_match("*mid*", "xxMIDyy"));
+    assert!(!wildcard_match("*mid*", "xxmiy"));
+    assert!(wildcard_match("*~**", "a*b"));
+    assert!(!wildcard_match("*~**", "ab"));
+    assert!(wildcard_match("end~", "end~"));
+    assert!(wildcard_match("*is*", "A\u{130}STANBUL"));
+    assert!(wildcard_match("*\u{130}s*", "aistanbul"));
+    assert!(wildcard_match("a?c", "a\u{130}c"));
+    let long_unicode = format!("{}\u{130}stanbul{}", "中".repeat(60), "文".repeat(20));
+    assert!(long_unicode.len() > STACK_CHARS);
+    assert!(wildcard_match("*istanbul*", &long_unicode));
+    assert!(wildcard_match("中*istanbul*文", &long_unicode));
+    assert_eq!(wildcard_find("istanbul", &long_unicode, 0), Some(60));
+    assert_eq!(wildcard_find("?", "a", 0), Some(0));
+    assert_eq!(wildcard_find("??", "a", 0), None);
+    assert_eq!(wildcard_find("*", "abc", 3), Some(3));
+    assert_eq!(wildcard_find("*", "abc", 4), None);
+}
+
+#[test]
+fn criteria_date_system_and_borrowed_array_values() {
+    let serial_1900 = joysheet_core::date::serial_from_ymd(DateSystem::D1900, 2020, 1, 1).unwrap() as f64;
+    let serial_1904 = joysheet_core::date::serial_from_ymd(DateSystem::D1904, 2020, 1, 1).unwrap() as f64;
+    assert_ne!(serial_1900, serial_1904);
+    let c1900 = Criterion::parse_in(&Value::from("=2020-01-01"), DateSystem::D1900);
+    let c1904 = Criterion::parse_in(&Value::from("=2020-01-01"), DateSystem::D1904);
+    assert!(c1900.matches(&Value::Number(serial_1900)));
+    assert!(!c1900.matches(&Value::Number(serial_1904)));
+    assert!(c1904.matches(&Value::Number(serial_1904)));
+    assert!(!c1904.matches(&Value::Number(serial_1900)));
+    // Empty criterion cell matches numeric zero and numeric text "0", not empty cells.
+    let c_empty = Criterion::parse(&Value::Empty);
+    assert!(c_empty.matches(&Value::Number(0.0)));
+    assert!(c_empty.matches(&Value::from("0")));
+    assert!(!c_empty.matches(&Value::Empty));
 }

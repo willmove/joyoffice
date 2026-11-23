@@ -3,9 +3,8 @@
 
 use std::f64::consts::PI;
 
-use joysheet_core::{Array, CellError, Value};
+use joysheet_core::{CellError, Value};
 
-use crate::criteria::Criterion;
 use crate::util::{
     A, MAX_CELLS, R, S, array_val, as_array, check_size, fold_numbers, has, num, num_val, numbers, opt_num, round_half_away, text, text_val,
     to_sig_digits,

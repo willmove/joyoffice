@@ -7,7 +7,7 @@ use std::cmp::Ordering;
 
 use joysheet_core::{Array, CellError, Value, col_to_letters, compare};
 
-use crate::criteria::{has_wildcards, lookup_equal};
+use crate::criteria::{LookupMatcher, lookup_equal};
 use crate::util::{R, arg, array_val, as_array, has, int, num, opt_bool, opt_int, opt_num, text, text_val};
 use crate::{Arg, Ctx, FnSpec};
 
@@ -42,8 +42,8 @@ fn same_type(a: &Value, b: &Value) -> bool {
 
 /// Exact search (first match, or last when `reverse`). Text needles match wildcards when `wild`.
 fn find_exact(x: &Value, hay: &[Value], wild: bool, reverse: bool) -> Option<usize> {
-    let wild = wild && matches!(x, Value::Text(t) if has_wildcards(t));
-    if reverse { hay.iter().rposition(|v| lookup_equal(x, v, wild)) } else { hay.iter().position(|v| lookup_equal(x, v, wild)) }
+    let matcher = LookupMatcher::new(x, wild);
+    if reverse { hay.iter().rposition(|v| matcher.matches(v)) } else { hay.iter().position(|v| matcher.matches(v)) }
 }
 
 /// A first row or first column can be searched in place, including a strided
@@ -189,8 +189,8 @@ fn vh_lookup(args: &[Arg], vertical: bool) -> R<Value> {
     let pos = if approx {
         bsearch_last(&x, keys, false)
     } else {
-        let wildcard = matches!(&x, Value::Text(t) if has_wildcards(t));
-        (0..keys.count).find(|&i| keys.get(i).is_some_and(|v| lookup_equal(&x, v, wildcard)))
+        let matcher = LookupMatcher::new(&x, true);
+        (0..keys.count).find(|&i| keys.get(i).is_some_and(|v| matcher.matches(v)))
     };
     let pos = pos.ok_or(CellError::NA)?;
     let v = if vertical { table.get(pos, idx) } else { table.get(idx, pos) };

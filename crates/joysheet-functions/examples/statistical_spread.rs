@@ -20,6 +20,9 @@ impl Ctx for Context {
 
 fn main() -> Result<(), &'static str> {
     let mut context = Context;
+    if std::env::args().nth(1).as_deref() == Some("criteria") {
+        return criteria(&mut context);
+    }
     if std::env::args().nth(1).as_deref() == Some("multivariate") {
         return multivariate(&mut context);
     }
@@ -115,5 +118,55 @@ fn multivariate(context: &mut Context) -> Result<(), &'static str> {
             println!("{name}-{size},{repetitions},{}", start.elapsed().as_nanos());
         }
     }
+    Ok(())
+}
+
+fn criteria(context: &mut Context) -> Result<(), &'static str> {
+    let regions = ["north", "south", "east", "west", "İstanbul"];
+    let tags_list = ["alpha", "beta", "gamma", "delta"];
+    for (size, repetitions) in [(128, 2500), (32768, 15)] {
+        let mut labels = Vec::with_capacity(size);
+        let mut tags = Vec::with_capacity(size);
+        let mut values = Vec::with_capacity(size);
+        for i in 0..size {
+            if i % 19 == 0 {
+                labels.push(Value::Empty);
+            } else {
+                labels.push(Value::from(format!("{}-{:02}", regions[i % regions.len()], i % 100)));
+            }
+            tags.push(Value::from(tags_list[(i / 3) % tags_list.len()]));
+            values.push(Value::Number(((i * 17) % 127) as f64 - 40.));
+        }
+        let labels = Arg::reference(Array::new(size, 1, labels).ok_or("invalid labels")?);
+        let tags = Arg::reference(Array::new(size, 1, tags).ok_or("invalid tags")?);
+        let values = Arg::reference(Array::new(size, 1, values).ok_or("invalid values")?);
+
+        measure("COUNTIF", &[labels.clone(), Arg::val("north*")], size, repetitions, context)?;
+        measure_as("COUNTIF_WILD", "COUNTIF", &[labels.clone(), Arg::val("*th-*2")], size, repetitions, context)?;
+        measure("SUMIF", &[labels.clone(), Arg::val("north*"), values.clone()], size, repetitions, context)?;
+        measure(
+            "SUMIFS",
+            &[values.clone(), labels.clone(), Arg::val("north*"), tags.clone(), Arg::val("alpha"), values.clone(), Arg::val(">0")],
+            size,
+            repetitions,
+            context,
+        )?;
+        measure("AVERAGEIFS", &[values.clone(), labels.clone(), Arg::val("*0?"), tags.clone(), Arg::val("<>delta")], size, repetitions, context)?;
+        measure("MAXIFS", &[values.clone(), labels.clone(), Arg::val("south*"), tags.clone(), Arg::val("beta")], size, repetitions, context)?;
+    }
+    Ok(())
+}
+
+fn measure_as(label: &str, name: &str, args: &[Arg], size: usize, repetitions: usize, context: &mut Context) -> Result<(), &'static str> {
+    let function = lookup(name).ok_or("missing function")?;
+    let Value::Number(value) = call(function, args, context) else {
+        return Err("expected a numeric result");
+    };
+    assert!(value.is_finite());
+    let start = Instant::now();
+    for _ in 0..repetitions {
+        black_box(call(function, black_box(args), context));
+    }
+    println!("{label}-{size},{repetitions},{}", start.elapsed().as_nanos());
     Ok(())
 }

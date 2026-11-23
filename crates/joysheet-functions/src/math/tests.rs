@@ -490,3 +490,27 @@ fn criteria_cut_inside_a_surrogate_pair() {
     close(sumifs(format!(">={}", e.repeat(128))), 1.0 + 2.0);
     close(sumifs(format!("<={}", e.repeat(128))), 3.0);
 }
+
+#[test]
+fn conditional_aggregates_streaming_edge_cases() {
+    let tags = arr(vec![vec![tv("a")], vec![tv("b")], vec![tv("a")], vec![tv("c")], vec![tv("a")]]);
+    let target = arr(vec![
+        vec![nv(-10.0)],
+        vec![Value::Error(Div0)], // Unmatched error must not propagate.
+        vec![nv(-3.5)],
+        vec![tv("999")],
+        vec![Value::Bool(true)], // Matched non-numeric is ignored.
+    ]);
+    close(ev("SUMIFS", vec![rf(target.clone()), rf(tags.clone()), t("a")]), -13.5);
+    close(ev("AVERAGEIFS", vec![rf(target.clone()), rf(tags.clone()), t("a")]), -6.75);
+    close(ev("MAXIFS", vec![rf(target.clone()), rf(tags.clone()), t("a")]), -3.5);
+    close(ev("MINIFS", vec![rf(target.clone()), rf(tags.clone()), t("a")]), -10.0);
+    // Matched text-only cells yield #DIV/0! for AVERAGEIFS and 0 for MAXIFS/MINIFS.
+    is_err(ev("AVERAGEIFS", vec![rf(target.clone()), rf(tags.clone()), t("c")]), Div0);
+    close(ev("MAXIFS", vec![rf(target.clone()), rf(tags.clone()), t("c")]), 0.0);
+    close(ev("MINIFS", vec![rf(target.clone()), rf(tags.clone()), t("c")]), 0.0);
+    // Matched error propagates.
+    is_err(ev("MAXIFS", vec![rf(target.clone()), rf(tags.clone()), t("b")]), Div0);
+    is_err(ev("MINIFS", vec![rf(target.clone()), rf(tags.clone()), t("b")]), Div0);
+    is_err(ev("AVERAGEIFS", vec![rf(target), rf(tags), t("b")]), Div0);
+}

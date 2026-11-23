@@ -51,7 +51,7 @@ enum Predicate {
     Formula(usize, usize),
 }
 
-fn criteria(db: &Array, criteria: &Array) -> Vec<Vec<Predicate>> {
+fn criteria(db: &Array, criteria: &Array, date_system: joysheet_core::DateSystem) -> Vec<Vec<Predicate>> {
     let fields: Vec<_> = (0..criteria.cols)
         .map(|c| match criteria.get(0, c) {
             Some(Value::Text(t)) => column(db, t),
@@ -75,14 +75,14 @@ fn criteria(db: &Array, criteria: &Array) -> Vec<Vec<Predicate>> {
                         Value::Text(s)
                             if !s.starts_with(['=', '<', '>'])
                                 && !s.ends_with('*')
-                                && joysheet_core::parse::parse_number_text(s).is_none()
+                                && joysheet_core::parse::parse_number_text_in(s, date_system).is_none()
                                 && !s.eq_ignore_ascii_case("TRUE")
                                 && !s.eq_ignore_ascii_case("FALSE")
                                 && CellError::parse(s).is_none() =>
                         {
-                            Criterion::parse(&Value::from(format!("{s}*")))
+                            Criterion::parse_in(&Value::from(format!("{s}*")), date_system)
                         }
-                        other => Criterion::parse(other),
+                        other => Criterion::parse_in(other, date_system),
                     };
                     Some(Predicate::Field(*field, pattern))
                 })
@@ -103,7 +103,7 @@ pub(super) fn evaluate(op: Operation, args: &[Arg], ctx: &mut dyn Ctx) -> R<Valu
     let database = argument(0)?;
     let filter = argument(2)?;
     let field = field(args, &database, op)?;
-    let conditions = criteria(&database, &filter);
+    let conditions = criteria(&database, &filter, ctx.date_system());
     let mut n = 0usize;
     let mut sum = 0.;
     let mut product = 1.;
