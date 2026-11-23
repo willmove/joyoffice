@@ -287,3 +287,24 @@ fn regex() {
     is_text(ev("REGEXREPLACE", vec![t("John Smith"), t("(\\w+) (\\w+)"), t("$2, $1")]), "Smith, John");
     is_text(ev("REGEXREPLACE", vec![t("ab"), t("(a)"), t("$1x")]), "axb");
 }
+
+#[test]
+fn classic_text_unicode_and_streaming_boundaries() {
+    // Multi-byte UTF-8 and 4-byte emoji slicing without Vec<char> indexing drift.
+    let s = "甲乙😀丙丁";
+    is_text(ev("LEFT", vec![t(s), n(3.0)]), "甲乙😀");
+    is_text(ev("RIGHT", vec![t(s), n(3.0)]), "😀丙丁");
+    is_text(ev("MID", vec![t(s), n(2.0), n(3.0)]), "乙😀丙");
+    is_text(ev("REPLACE", vec![t(s), n(3.0), n(1.0), t("★")]), "甲乙★丙丁");
+    close(ev("FIND", vec![t("丙"), t(s), n(2.0)]), 4.0);
+    close(ev("FIND", vec![t("😀"), t(s)]), 3.0);
+    is_err(ev("FIND", vec![t("😀"), t(s), n(4.0)]), CellError::Value);
+    // TRIM collapses only ASCII space U+0020 and preserves tabs / NBSP.
+    is_text(ev("TRIM", vec![t("  a\u{00A0}b   \tc  ")]), "a\u{00A0}b \tc");
+    // CLEAN fast path and control stripping.
+    is_text(ev("CLEAN", vec![t("plain-ascii")]), "plain-ascii");
+    is_text(ev("CLEAN", vec![t("\u{0}\u{1F}ok\u{7}")]), "ok");
+    // Streaming TEXTJOIN with cyclic delimiters and error propagation.
+    is_text(ev("TEXTJOIN", vec![av(row_t(&[",", "|"])), b(true), t(""), t("x"), t(""), t("y"), t("z")]), "x,y|z");
+    is_err(ev("TEXTJOIN", vec![t(","), b(true), t("x"), e(CellError::Div0)]), CellError::Div0);
+}

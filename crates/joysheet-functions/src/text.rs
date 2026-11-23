@@ -1,14 +1,19 @@
 //! Text functions.
 
+mod classic;
+
 use joysheet_core::parse::parse_number_text_in;
 use joysheet_core::{CellError, Value, number_to_text};
 
-use crate::criteria::wildcard_find;
 use crate::util::{
-    A, MAX_CELLS, MAX_TEXT, R, S, arg, array_val, as_array, boolean, has, int, num, num_val, opt_bool, opt_int, opt_num, round_half_away, scalar,
-    text, text_val,
+    A, MAX_CELLS, MAX_TEXT, R, S, arg, array_val, as_array, has, int, num, num_val, opt_bool, opt_int, opt_num, round_half_away, scalar, text,
+    text_val,
 };
 use crate::{Arg, Ctx, FnSpec, VAR};
+use classic::{
+    char_fn, check_len, clean, code, concat, concatenate, exact, find, identity, left, len, lower, mid, proper, push_capped, replace, rept, right,
+    search, substitute, t_fn, textjoin, trim, unichar, unicode, upper,
+};
 
 const TJ: &[bool] = &[false, true, false];
 const TB: &[bool] = &[true, false, true, true, true, false];
@@ -17,280 +22,6 @@ const ATT: &[bool] = &[false, true];
 
 fn chars(s: &str) -> Vec<char> {
     s.chars().collect()
-}
-
-fn check_len(s: String) -> R<Value> {
-    if s.len() > MAX_TEXT && s.chars().count() > MAX_TEXT {
-        return Err(CellError::Value);
-    }
-    text_val(s)
-}
-
-/// Pushes `piece` onto `out`, failing once the result exceeds the cell limit.
-fn push_capped(out: &mut String, piece: &str) -> R<()> {
-    out.push_str(piece);
-    if out.len() > MAX_TEXT * 4 {
-        return Err(CellError::Value);
-    }
-    Ok(())
-}
-
-fn concatenate(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    let mut out = String::new();
-    for x in a {
-        push_capped(&mut out, &scalar(x).to_text()?)?;
-    }
-    check_len(out)
-}
-
-fn concat(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    let mut out = String::new();
-    for x in a {
-        for v in as_array(&x.value).iter() {
-            push_capped(&mut out, &v.to_text()?)?;
-        }
-    }
-    check_len(out)
-}
-
-fn textjoin(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    let delims: Vec<String> = as_array(&arg(a, 0)?.value).iter().map(|v| v.to_text()).collect::<R<_>>()?;
-    let ignore = boolean(a, 1)?;
-    let mut items = Vec::new();
-    for x in a.iter().skip(2) {
-        for v in as_array(&x.value).iter() {
-            let s = v.to_text()?;
-            if ignore && s.is_empty() {
-                continue;
-            }
-            items.push(s);
-        }
-    }
-    let mut out = String::new();
-    for (i, s) in items.iter().enumerate() {
-        if i > 0 && !delims.is_empty() {
-            push_capped(&mut out, &delims[(i - 1) % delims.len()])?;
-        }
-        push_capped(&mut out, s)?;
-    }
-    check_len(out)
-}
-
-fn count_arg(a: &[Arg], i: usize, default: f64) -> R<usize> {
-    let n = opt_num(a, i, default)?;
-    if n < 0.0 || n.is_nan() {
-        return Err(CellError::Value);
-    }
-    Ok(if n > 1e9 { 1_000_000_000 } else { n.trunc() as usize })
-}
-
-fn left(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    let s = text(a, 0)?;
-    let n = count_arg(a, 1, 1.0)?;
-    text_val(s.chars().take(n).collect::<String>())
-}
-
-fn right(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    let s = chars(&text(a, 0)?);
-    let n = count_arg(a, 1, 1.0)?.min(s.len());
-    text_val(s[s.len() - n..].iter().collect::<String>())
-}
-
-fn mid(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    let s = text(a, 0)?;
-    let start = num(a, 1)?;
-    if start.is_nan() || start < 1.0 {
-        return Err(CellError::Value);
-    }
-    let n = count_arg(a, 2, 0.0)?;
-    let start = if start > 1e9 { 1_000_000_000 } else { start as usize };
-    text_val(s.chars().skip(start - 1).take(n).collect::<String>())
-}
-
-fn len(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    num_val(text(a, 0)?.chars().count() as f64)
-}
-
-fn lower(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    text_val(text(a, 0)?.to_lowercase())
-}
-
-fn upper(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    text_val(text(a, 0)?.to_uppercase())
-}
-
-fn proper(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    let s = text(a, 0)?;
-    let mut out = String::with_capacity(s.len());
-    let mut prev_letter = false;
-    for ch in s.chars() {
-        if ch.is_alphabetic() {
-            if prev_letter {
-                out.extend(ch.to_lowercase());
-            } else {
-                out.extend(ch.to_uppercase());
-            }
-            prev_letter = true;
-        } else {
-            out.push(ch);
-            prev_letter = false;
-        }
-    }
-    text_val(out)
-}
-
-fn trim(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    let s = text(a, 0)?;
-    text_val(s.split(' ').filter(|w| !w.is_empty()).collect::<Vec<_>>().join(" "))
-}
-
-fn clean(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    text_val(text(a, 0)?.chars().filter(|c| (*c as u32) >= 32).collect::<String>())
-}
-
-fn substitute(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    let s = text(a, 0)?;
-    let old = text(a, 1)?;
-    let new = text(a, 2)?;
-    if old.is_empty() {
-        return text_val(s);
-    }
-    if has(a, 3) {
-        let inst = num(a, 3)?;
-        if inst.is_nan() || inst < 1.0 {
-            return Err(CellError::Value);
-        }
-        let inst = inst.trunc() as usize;
-        match s.match_indices(old.as_str()).nth(inst - 1) {
-            Some((pos, _)) => {
-                let mut out = String::with_capacity(s.len() + new.len());
-                out.push_str(&s[..pos]);
-                out.push_str(&new);
-                out.push_str(&s[pos + old.len()..]);
-                check_len(out)
-            }
-            None => text_val(s),
-        }
-    } else {
-        let count = s.matches(old.as_str()).count();
-        if new.len() > old.len() && s.len() + count.saturating_mul(new.len() - old.len()) > MAX_TEXT * 4 {
-            return Err(CellError::Value);
-        }
-        check_len(s.replace(old.as_str(), &new))
-    }
-}
-
-fn replace(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    let s = chars(&text(a, 0)?);
-    let start = num(a, 1)?;
-    if start.is_nan() || start < 1.0 {
-        return Err(CellError::Value);
-    }
-    let n = count_arg(a, 2, 0.0)?;
-    let new = text(a, 3)?;
-    let start = (if start > 1e9 { 1_000_000_000 } else { start as usize } - 1).min(s.len());
-    let end = start.saturating_add(n).min(s.len());
-    let mut out: String = s[..start].iter().collect();
-    out.push_str(&new);
-    out.extend(s[end..].iter());
-    check_len(out)
-}
-
-fn rept(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    let s = text(a, 0)?;
-    let n = num(a, 1)?;
-    if n.is_nan() || n < 0.0 {
-        return Err(CellError::Value);
-    }
-    let n = n.trunc();
-    let total = s.chars().count() as f64 * n;
-    if total > MAX_TEXT as f64 {
-        return Err(CellError::Value);
-    }
-    text_val(s.repeat(n as usize))
-}
-
-fn find_impl(a: &[Arg], wild: bool) -> R<Value> {
-    let needle = text(a, 0)?;
-    let hay = text(a, 1)?;
-    let start = opt_num(a, 2, 1.0)?;
-    let hc = chars(&hay);
-    if (start.is_nan() || start < 1.0) || start > hc.len().max(1) as f64 {
-        return Err(CellError::Value);
-    }
-    let start = start as usize - 1;
-    if needle.is_empty() {
-        return num_val((start + 1) as f64);
-    }
-    let pos = if wild {
-        wildcard_find(&needle, &hay, start)
-    } else {
-        let nc = chars(&needle);
-        (start..hc.len()).find(|&i| hc.get(i..i + nc.len()).is_some_and(|w| w == nc.as_slice()))
-    };
-    match pos {
-        Some(p) => num_val((p + 1) as f64),
-        None => Err(CellError::Value),
-    }
-}
-
-fn find(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    find_impl(a, false)
-}
-
-fn search(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    find_impl(a, true)
-}
-
-fn exact(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    Ok(Value::Bool(text(a, 0)? == text(a, 1)?))
-}
-
-/// Windows-1252 code points 128–159.
-const CP1252: [u32; 32] = [
-    0x20AC, 0x81, 0x201A, 0x0192, 0x201E, 0x2026, 0x2020, 0x2021, 0x02C6, 0x2030, 0x0160, 0x2039, 0x0152, 0x8D, 0x017D, 0x8F, 0x90, 0x2018, 0x2019,
-    0x201C, 0x201D, 0x2022, 0x2013, 0x2014, 0x02DC, 0x2122, 0x0161, 0x203A, 0x0153, 0x9D, 0x017E, 0x0178,
-];
-
-fn char_fn(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    let n = num(a, 0)?.trunc();
-    if !(1.0..=255.0).contains(&n) {
-        return Err(CellError::Value);
-    }
-    let n = n as u32;
-    let cp = if (128..160).contains(&n) { CP1252[(n - 128) as usize] } else { n };
-    text_val(char::from_u32(cp).map(String::from).unwrap_or_default())
-}
-
-fn code(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    let s = text(a, 0)?;
-    let ch = s.chars().next().ok_or(CellError::Value)?;
-    let cp = ch as u32;
-    let code = if cp < 128 || (160..256).contains(&cp) {
-        cp
-    } else if let Some(i) = CP1252.iter().position(|&x| x == cp) {
-        128 + i as u32
-    } else {
-        63
-    };
-    num_val(code as f64)
-}
-
-fn unichar(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    let n = num(a, 0)?.trunc();
-    if !(1.0..=1_114_111.0).contains(&n) {
-        return Err(CellError::Value);
-    }
-    match char::from_u32(n as u32) {
-        Some(c) => text_val(c.to_string()),
-        None => Err(CellError::NA),
-    }
-}
-
-fn unicode(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    let s = text(a, 0)?;
-    let ch = s.chars().next().ok_or(CellError::Value)?;
-    num_val(ch as u32 as f64)
 }
 
 /// VALUE: a blank cell reads as 0, but empty or blank text is not a number (observed:
@@ -484,18 +215,6 @@ fn bahttext(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
         out.push_str("ถ้วน");
     }
     text_val(out)
-}
-
-fn t_fn(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    match scalar(arg(a, 0)?) {
-        Value::Text(t) => Ok(Value::Text(t)),
-        Value::Error(e) => Err(e),
-        _ => text_val(""),
-    }
-}
-
-fn identity(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    text_val(text(a, 0)?)
 }
 
 /// Lower-cased char sequence with one char per input char (keeps positions aligned).

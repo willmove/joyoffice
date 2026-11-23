@@ -514,3 +514,36 @@ fn conditional_aggregates_streaming_edge_cases() {
     is_err(ev("MINIFS", vec![rf(target.clone()), rf(tags.clone()), t("b")]), Div0);
     is_err(ev("AVERAGEIFS", vec![rf(target), rf(tags), t("b")]), Div0);
 }
+
+#[test]
+fn matrix_scaled_lu_and_identities() {
+    // Row-scaled pivoting handles wide row-magnitude disparity accurately.
+    let scaled = arr(vec![vec![nv(1e-12), nv(1.0)], vec![nv(1.0), nv(1.0)]]);
+    let inv = ev("MINVERSE", vec![av(scaled.clone())]);
+    let prod = rows_of(&ev("MMULT", vec![av(scaled.clone()), av(inv)]));
+    close_tol(prod[0][0].clone(), 1.0, 1e-12);
+    close_tol(prod[0][1].clone(), 0.0, 1e-12);
+    close_tol(prod[1][0].clone(), 0.0, 1e-12);
+    close_tol(prod[1][1].clone(), 1.0, 1e-12);
+    close_tol(ev("MDETERM", vec![av(scaled)]), -1.0, 1e-11);
+
+    // 4x4 nonsymmetric matrix: MMULT(A, MINVERSE(A)) == MUNIT(4).
+    let a = arr(vec![
+        vec![nv(2.0), nv(1.0), nv(1.0), nv(0.0)],
+        vec![nv(4.0), nv(3.0), nv(3.0), nv(1.0)],
+        vec![nv(8.0), nv(7.0), nv(9.0), nv(5.0)],
+        vec![nv(6.0), nv(7.0), nv(9.0), nv(8.0)],
+    ]);
+    close(ev("MDETERM", vec![av(a.clone())]), 8.0);
+    let a_inv = ev("MINVERSE", vec![av(a.clone())]);
+    let id = rows_of(&ev("MMULT", vec![av(a), av(a_inv)]));
+    for (r, row) in id.iter().enumerate() {
+        for (c, val) in row.iter().enumerate() {
+            close_tol(val.clone(), if r == c { 1.0 } else { 0.0 }, 1e-12);
+        }
+    }
+    // 1x1 matrix edge cases.
+    close(ev("MDETERM", vec![n(5.0)]), 5.0);
+    assert_eq!(rows_of(&ev("MINVERSE", vec![n(4.0)])), vec![vec![nv(0.25)]]);
+    is_err(ev("MINVERSE", vec![n(0.0)]), Num);
+}
