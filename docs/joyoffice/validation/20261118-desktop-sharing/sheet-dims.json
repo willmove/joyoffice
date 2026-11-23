@@ -1,0 +1,86 @@
+{
+  "date": "2026-11-23",
+  "baseline": "1274238d",
+  "scope": "Unify worksheet default column width / row height, hidden rows and columns, custom dimensions, and outline/collapsed levels across BIFF8 (.xls DEFCOLWIDTH/STANDARDWIDTH/DEFAULTROWHEIGHT/COLINFO/ROW), BIFF12 (.xlsb BrtWsFmtInfo/BrtColInfo/BrtRowHdr), and SpreadsheetML (.xlsx <sheetFormatPr>/<cols>/<row>) through shared helpers in crates/joysheet-xlsx/src/sheet_dims.rs. Also stream <sheetFormatPr> before <row> in XLSX so row height comparisons use the worksheet's real defaultRowHeight, and honor BIFF8 ROW fDefault (0x8000).",
+  "specifications": [
+    "https://learn.microsoft.com/en-us/openspecs/office_file_formats/ms-xlsb/24916c49-7f4e-41e0-85b9-5880d7e39f1e",
+    "https://learn.microsoft.com/en-us/openspecs/office_file_formats/ms-xlsb/6c91a4b6-7220-48aa-b3a4-a1e8f77e2dc5",
+    "https://learn.microsoft.com/en-us/openspecs/office_file_formats/ms-xlsb/3f75101b-828c-4b02-b8df-4f08d6c43e7b",
+    "https://learn.microsoft.com/en-us/openspecs/office_file_formats/ms-xls/51d93009-396d-40d4-9425-7206c592246a"
+  ],
+  "reproduce": [
+    "cargo test --locked --offline -p joysheet-xlsx",
+    "python3 scripts/joysheet/check-sheet-dims.py OLD_CLI NEW_CLI OUTPUT --desktop JOYSHEET",
+    "python3 scripts/joysheet/check-sheet-panes.py OLD_CLI NEW_CLI OUTPUT"
+  ],
+  "rollback": "Restore crates/joysheet-xlsx/src/{lib.rs,sheet_read.rs,sheet_write.rs,xls.rs,xlsb.rs} and remove crates/joysheet-xlsx/src/sheet_dims.rs from commit 1274238d.",
+  "platforms": {
+    "macOS": {
+      "os": "macOS 27.2.1 (26B131)",
+      "arch": "aarch64-apple-darwin",
+      "rustc": "1.98.1 (48a229cea 2026-09-01)",
+      "unitTests": {
+        "joysheetXlsxPassed": 293,
+        "joysheetXlsxFailed": 0
+      },
+      "sheetDimsMatrix": {
+        "cliSha256": [
+          "bfad25c01b8d1fae3b54a2893234f0b9d1b02bde4112a063b678724316d4cded",
+          "470361605ed7966a72bf6f7b587d6ea5ae9d7dae1194535280b6d84cd54ea97d"
+        ],
+        "workbooks": {
+          "custom_defaults.xls": {
+            "sourceSha256": "bad50f77f8e070a324060708237d47ea81d5b0633f83594685bac442590a4abc",
+            "baselineDefaultColCustom": false,
+            "candidateDefaultColCustom": true,
+            "readerWriterPairs": 4
+          },
+          "custom_defaults.xlsb": {
+            "sourceSha256": "ee072e3bfa0d8b64324d0d1f6a1c7d57c589c02a32e3cab301640099959de25e",
+            "baselineDefaultRowPt": 15.0,
+            "candidateDefaultRowPt": 24.0,
+            "baselineColB": [false, 0, false, false],
+            "candidateColB": [false, 1, false, true],
+            "baselineRow2Ht": null,
+            "candidateRow2Ht": 15.0,
+            "readerWriterPairs": 4
+          },
+          "custom_defaults.xlsx": {
+            "sourceSha256": "68d6293c23424f4388a003b0e92f04548f741020b80b0d26a02f270c33d2a9e2",
+            "baselineRow2Ht": null,
+            "candidateRow2Ht": 15.0,
+            "baselineRow3HasSpuriousHt": true,
+            "candidateRow3HasSpuriousHt": false,
+            "readerWriterPairs": 4
+          },
+          "grouped_outline.xls": {
+            "sourceSha256": "4d7bd4318f7962c88340a0b1202ef5deb098820a0edfee719c62202ebe67bae6",
+            "baselineDefaultColCustom": false,
+            "candidateDefaultColCustom": true,
+            "baselineRow3HasSpuriousHt": true,
+            "candidateRow3HasSpuriousHt": false,
+            "readerWriterPairs": 4
+          },
+          "grouped_outline.xlsb": {
+            "sourceSha256": "2f34e760fde29ea620fee592e198b7103d10c9f4a58aa6287af4ff9f19acc770",
+            "baselineOutlineLevels": [0, 0],
+            "candidateOutlineLevels": [3, 2],
+            "readerWriterPairs": 4
+          },
+          "grouped_outline.xlsx": {
+            "sourceSha256": "57525006c6429515403337e78192381ee8e732a37ed07c92896b01f8f3156f79",
+            "candidateOutlineLevels": [3, 2],
+            "readerWriterPairs": 4
+          }
+        },
+        "nativeDesktopBooksVerified": 6,
+        "sheetPanesRegressionPassed": true,
+        "originalsUnchanged": true
+      }
+    },
+    "UOS25": {
+      "status": "pending_host",
+      "note": "No UOS 25 real machine attached in this session; re-run scripts/joysheet/check-sheet-dims.py once connected."
+    }
+  }
+}

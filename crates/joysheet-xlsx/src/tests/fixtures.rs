@@ -692,6 +692,22 @@ fn custom_widths_equal_to_the_default_round_trip() {
 }
 
 #[test]
+fn sheet_format_pr_applies_before_streaming_rows() {
+    let body = r#"<sheetFormatPr defaultRowHeight="24"/>
+      <sheetData>
+        <row r="1" ht="15"><c r="A1"><v>1</v></c></row>
+        <row r="2" ht="24"><c r="A2"><v>2</v></c></row>
+      </sheetData>"#;
+    let (wb, _) = read_xlsx(&minimal(body, &[], "", "")).unwrap();
+    let s = wb.sheet(0).unwrap();
+    assert_eq!(s.default_row_height, 32.0);
+    // Row 1 (15pt = 20px) differs from the sheet's 24pt (32px) default and must be preserved.
+    assert_eq!(s.rows.get(&0).and_then(|r| r.size), Some(20.0));
+    // Row 2 (24pt automatic) matches the sheet's 24pt default and is omitted as noise.
+    assert_eq!(s.rows.get(&1), None);
+}
+
+#[test]
 fn every_skipped_drawing_object_is_reported() {
     let frame = |row: u32, rid: &str| {
         format!(

@@ -588,6 +588,7 @@ fn worksheet(bytes: &[u8], name: &str, strings: &[Arc<str>], budget: &mut Budget
     records.first(129, report)?;
     let mut sheet = Sheet::new(name);
     let mut view = crate::sheet_view::BinaryView::default();
+    let mut col_assignments_left = crate::sheet_dims::MAX_COLUMN_ASSIGNMENTS;
     let mut data = false;
     let mut data_seen = false;
     let mut row = None;
@@ -605,6 +606,25 @@ fn worksheet(bytes: &[u8], name: &str, strings: &[Arc<str>], budget: &mut Budget
             }
             147 if !data && payload.len() >= 2 => {
                 crate::sheet_view::apply_outline_summary(&mut sheet, b.u16()?);
+            }
+            485 if !data && payload.len() >= 10 => {
+                let dx_gcol = b.u32()?;
+                let cch_def_col = b.u16()?;
+                let miy_def_row = b.u16()?;
+                let grbit = b.u16()?;
+                let default_col = (dx_gcol != u32::MAX && dx_gcol > 0).then(|| f64::from(dx_gcol) / 256.0);
+                let base_col = (cch_def_col > 0).then(|| f64::from(cch_def_col));
+                let default_row = (grbit & 0x0002 == 0 && miy_def_row > 0).then(|| f64::from(miy_def_row) / 20.0);
+                crate::sheet_dims::apply_sheet_defaults(&mut sheet, default_col, base_col, default_row);
+            }
+            60 if !data && payload.len() >= 18 => {
+                let first = b.u32()?;
+                let last = b.u32()?;
+                let coldx = b.u32()?;
+                let _ixfe = b.u32()?;
+                let flags = b.u16()?;
+                let spec = crate::sheet_dims::binary_col_spec(coldx, flags, None);
+                crate::sheet_dims::apply_col_span(&mut sheet, first, last, MAX_COLS - 1, spec, &mut col_assignments_left)?;
             }
             137 if !data && payload.len() >= 30 => {
                 if view.begin() {
@@ -700,7 +720,21 @@ fn worksheet(bytes: &[u8], name: &str, strings: &[Arc<str>], budget: &mut Budget
                 if r >= MAX_ROWS || row.is_some_and(|previous| r <= previous) {
                     return Err(invalid("row is out of bounds or unordered"));
                 }
-                b.take(9)?;
+                let _ixfe = b.u32()?;
+                let miy_rw = b.u16()?;
+                let _flags0 = b.u8()?;
+                let flags1 = b.u8()?;
+                let _flags2 = b.u8()?;
+                let outline = flags1 & 7;
+                let collapsed = flags1 & 0x08 != 0;
+                let hidden = flags1 & 0x10 != 0;
+                let custom = flags1 & 0x20 != 0;
+                let height_pt = (miy_rw > 0).then(|| f64::from(miy_rw) / 20.0);
+                crate::sheet_dims::apply_row_info(
+                    &mut sheet,
+                    r,
+                    crate::sheet_dims::RowSpec { height_pt, custom_height: custom, hidden, outline, collapsed, style: None },
+                );
                 let spans = b.u32()?;
                 if spans > 16 {
                     return Err(invalid("too many row spans"));

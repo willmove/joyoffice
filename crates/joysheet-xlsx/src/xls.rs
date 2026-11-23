@@ -17,11 +17,11 @@ use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 
 use joysheet_core::{CellRef, DateSystem, MAX_COLS, MAX_ROWS, RangeRef, Value};
-use joysheet_model::{CalcMode, CalcSettings, Cell, DefinedName, Formula, LineInfo, NumFmt, Sheet, Style, StyleId, Visibility, Workbook};
+use joysheet_model::{CalcMode, CalcSettings, Cell, DefinedName, Formula, NumFmt, Sheet, Style, StyleId, Visibility, Workbook};
 
 use crate::binary_scalar::{error_value, rk_number};
 use crate::cfb::Compound;
-use crate::tables::{builtin_format, col_width_to_px, pt_to_px};
+use crate::tables::builtin_format;
 use crate::{IoError, ReadReport};
 use formula::{Links, Mode, SupBook, Unsupported, Xti, decode};
 use records::{Cursor, Record, Records};
@@ -423,6 +423,8 @@ fn parsed(c: &mut Cursor<'_, '_>) -> Result<Parsed, IoError> {
 
 struct SheetState<'g> {
     view: crate::sheet_view::BinaryView,
+    col_assignments_left: u64,
+    has_standard_width: bool,
     g: &'g Globals,
     styles: &'g [StyleId],
     sheet: Sheet,
@@ -562,6 +564,8 @@ fn worksheet(
     }
     let mut st = SheetState {
         view: Default::default(),
+        col_assignments_left: crate::sheet_dims::MAX_COLUMN_ASSIGNMENTS,
+        has_standard_width: false,
         g,
         styles,
         sheet: Sheet::new(&bs.name),
@@ -736,32 +740,26 @@ fn sheet_record(rec: &Record<'_>, st: &mut SheetState<'_>, budget: &mut Budget, 
                 }
             }
         }
+        0x0055 => {
+            let chars = c.u16()?;
+            if !st.has_standard_width && chars > 0 {
+                crate::sheet_dims::apply_sheet_defaults(&mut st.sheet, None, Some(f64::from(chars)), None);
+            }
+        }
+        0x0099 => {
+            let dx = c.u16()?;
+            if dx > 0 {
+                st.has_standard_width = true;
+                crate::sheet_dims::apply_sheet_defaults(&mut st.sheet, Some(f64::from(dx) / 256.0), None, None);
+            }
+        }
         0x007D => {
             let (first, last) = (c.u16()?, c.u16()?);
             let width = c.u16()?;
             let x = c.u16()?;
             let flags = c.u16()?;
-            let last = last.min(255);
-            if first > last {
-                return Ok(());
-            }
-            let mut info = LineInfo::default();
-            let px = col_width_to_px(f64::from(width) / 256.0);
-            if flags & 0x0002 != 0 || px != st.sheet.default_col_width {
-                info.size = Some(px);
-            }
-            info.hidden = flags & 0x0001 != 0;
-            info.outline = ((flags >> 8) & 7) as u8;
-            info.collapsed = flags & 0x1000 != 0;
-            let style = st.style(x);
-            if style != StyleId::DEFAULT {
-                info.style = Some(style);
-            }
-            if info != LineInfo::default() {
-                for col in first..=last {
-                    st.sheet.cols.insert(u32::from(col), info);
-                }
-            }
+            let spec = crate::sheet_dims::binary_col_spec(u32::from(width), flags, Some(st.style(x)));
+            crate::sheet_dims::apply_col_span(&mut st.sheet, u32::from(first), u32::from(last), 255, spec, &mut st.col_assignments_left)?;
         }
         0x0208 => {
             let r = c.u16()?;
@@ -769,28 +767,33 @@ fn sheet_record(rec: &Record<'_>, st: &mut SheetState<'_>, budget: &mut Budget, 
             let height = c.u16()?;
             c.skip(4)?;
             let flags = c.u32()?;
-            let mut info = LineInfo { custom: flags & 0x40 != 0, hidden: flags & 0x20 != 0, ..LineInfo::default() };
-            let px = pt_to_px(f64::from(height & 0x7FFF) / 20.0);
-            if info.custom || (px - st.sheet.default_row_height).abs() > 0.5 {
-                info.size = Some(px);
-            }
-            info.outline = (flags & 7) as u8;
-            info.collapsed = flags & 0x10 != 0;
-            if flags & 0x80 != 0 {
-                let style = st.style(((flags >> 16) & 0x0FFF) as u16);
-                if style != StyleId::DEFAULT {
-                    info.style = Some(style);
-                }
-            }
-            if info != LineInfo::default() && u32::from(r) < MAX_ROWS {
-                st.sheet.rows.insert(u32::from(r), info);
-            }
+            let custom = flags & 0x40 != 0;
+            let default_height = height & 0x8000 != 0;
+            let height_pt = (!default_height || custom).then(|| f64::from(height & 0x7FFF) / 20.0).filter(|&pt| pt > 0.0);
+            let style = if flags & 0x80 != 0 {
+                let s = st.style(((flags >> 16) & 0x0FFF) as u16);
+                (s != StyleId::DEFAULT).then_some(s)
+            } else {
+                None
+            };
+            crate::sheet_dims::apply_row_info(
+                &mut st.sheet,
+                u32::from(r),
+                crate::sheet_dims::RowSpec {
+                    height_pt,
+                    custom_height: custom,
+                    hidden: flags & 0x20 != 0,
+                    outline: (flags & 7) as u8,
+                    collapsed: flags & 0x10 != 0,
+                    style,
+                },
+            );
         }
         0x0225 => {
             let flags = c.u16()?;
             let height = c.u16()?;
             if flags & 0x0002 == 0 && height > 0 {
-                st.sheet.default_row_height = pt_to_px(f64::from(height) / 20.0);
+                crate::sheet_dims::apply_sheet_defaults(&mut st.sheet, None, None, Some(f64::from(height) / 20.0));
             }
         }
         WSBOOL if c.remaining() >= 2 => {

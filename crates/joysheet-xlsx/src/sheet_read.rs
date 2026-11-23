@@ -7,8 +7,8 @@ use joysheet_core::date::{serial_from_ymd, time_fraction};
 use joysheet_core::{CellError, CellRef, DateSystem, MAX_COLS, MAX_ROWS, RangeRef, Value};
 use joysheet_formula::Expr;
 use joysheet_model::{
-    AutoFilter, Cell, CfOperator, CfRule, CfValueKind, Comment, CondFormat, EditRange, ErrorStyle, FilterCriterion, Formula, Hyperlink, LineInfo,
-    NoteBox, NoteCorner, Orientation, PasswordHash, Sheet, SheetProtection, Sparkline, SparklineKind, Table, TableColumn, TotalsFn, Validation,
+    AutoFilter, Cell, CfOperator, CfRule, CfValueKind, Comment, CondFormat, EditRange, ErrorStyle, FilterCriterion, Formula, Hyperlink, NoteBox,
+    NoteCorner, Orientation, PasswordHash, Sheet, SheetProtection, Sparkline, SparklineKind, Table, TableColumn, TotalsFn, Validation,
     ValidationKind, XmlColumnPr,
 };
 
@@ -16,8 +16,9 @@ use crate::IoError;
 use crate::fmla::from_file;
 use crate::package::Rel;
 use crate::read::Ctx;
+use crate::sheet_dims::{MAX_COLUMN_ASSIGNMENTS, RowSpec, apply_row_info, read_xml_cols, read_xml_format_pr};
 use crate::styles::read_color;
-use crate::tables::{col_width_to_px, paper_name, pt_to_px};
+use crate::tables::paper_name;
 use crate::xml::{self, El};
 
 mod parts;
@@ -82,7 +83,6 @@ const MAX_HYPERLINK_CELLS: u64 = 10_000;
 /// Target and tooltip bytes kept for hyperlinks of one sheet, over all cells: the same URL is
 /// copied for every cell of its range, so length × cells must stay bounded whatever the file.
 const MAX_HYPERLINK_BYTES: u64 = 8 * 1024 * 1024;
-const MAX_COLUMN_ASSIGNMENTS: u64 = 1_000_000;
 /// Most dynamic-array and legacy-array ranges of one sheet.
 const MAX_DYNAMIC_RANGES: usize = 65_536;
 /// Worst-case cells inside the dynamic ranges the sheet declares. Beyond it further ranges are
@@ -102,8 +102,12 @@ pub fn read_sheet(cx: &mut Ctx<'_>, part: &str, name: &str) -> Result<Sheet, IoE
     let rels = cx.pkg.rels(part)?;
     let mut sheet = Sheet::new(name);
     let mut st = RowState::default();
-    let res = xml::parse_streaming(&bytes, &["row"], &mut |row| {
-        read_row(cx, &mut sheet, &mut st, &row);
+    let res = xml::parse_streaming(&bytes, &["sheetFormatPr", "row"], &mut |el| {
+        if el.name == "sheetFormatPr" {
+            read_xml_format_pr(&el, &mut sheet);
+        } else {
+            read_row(cx, &mut sheet, &mut st, &el);
+        }
         Ok(())
     });
     let root = match res {
@@ -134,24 +138,8 @@ pub fn read_sheet(cx: &mut Ctx<'_>, part: &str, name: &str) -> Result<Sheet, IoE
                 fit_to_page = e.child("pageSetUpPr").is_some_and(|p| p.flag("fitToPage", false));
             }
             "sheetViews" => crate::sheet_view::read_xml_views(e, &mut sheet)?,
-            "sheetFormatPr" => {
-                if let Some(h) = e.attr_f64("defaultRowHeight") {
-                    let px = pt_to_px(h);
-                    if px > 0.0 {
-                        sheet.default_row_height = px;
-                    }
-                }
-                if let Some(w) = e.attr_f64("defaultColWidth") {
-                    let px = col_width_to_px(w);
-                    if px > 0.0 {
-                        sheet.default_col_width = px;
-                    }
-                } else if let Some(b) = e.attr_f64("baseColWidth") {
-                    let px = ((b.clamp(0.0, 255.0) * 7.0 + 5.0) / 8.0).ceil() * 8.0;
-                    sheet.default_col_width = px as f32;
-                }
-            }
-            "cols" => read_cols(cx, e, &mut sheet, &mut column_assignments_left)?,
+            "sheetFormatPr" => read_xml_format_pr(e, &mut sheet),
+            "cols" => read_xml_cols(cx, e, &mut sheet, &mut column_assignments_left)?,
             "mergeCells" => {
                 for m in e.kids("mergeCell") {
                     if let Some(r) = m.attr("ref").and_then(RangeRef::parse)
@@ -330,46 +318,6 @@ fn read_protected_ranges(e: &El, sheet: &mut Sheet) {
     }
 }
 
-fn read_cols(cx: &Ctx<'_>, e: &El, sheet: &mut Sheet, remaining: &mut u64) -> Result<(), IoError> {
-    for c in e.kids("col") {
-        let (Some(min), Some(max)) = (c.attr_u32("min"), c.attr_u32("max")) else { continue };
-        if min == 0 || min > MAX_COLS || max < min {
-            continue;
-        }
-        let max = max.min(MAX_COLS);
-        let mut info = LineInfo::default();
-        // A width without `customWidth` that equals the default is just the default.
-        if let Some(w) = c.attr_f64("width") {
-            let px = col_width_to_px(w);
-            if c.flag("customWidth", false) || px != sheet.default_col_width {
-                info.size = Some(px);
-            }
-        }
-        info.hidden = c.flag("hidden", false);
-        info.outline = c.attr_u32("outlineLevel").unwrap_or(0).min(7) as u8;
-        info.collapsed = c.flag("collapsed", false);
-        if let Some(s) = c.attr_u32("style") {
-            let id = cx.style(Some(s));
-            if id != joysheet_model::StyleId::DEFAULT {
-                info.style = Some(id);
-            }
-        }
-        // A custom width equal to the default still pins the column (Standard Width leaves it alone).
-        if info == LineInfo::default() {
-            continue;
-        }
-        // Overlapping declarations repeat work even when the final map stays small.
-        // Charge the clipped span before expansion, sharing the budget across <cols> blocks.
-        *remaining = remaining
-            .checked_sub(u64::from(max - min + 1))
-            .ok_or_else(|| IoError::TooLarge(format!("sheet \"{}\": more than {MAX_COLUMN_ASSIGNMENTS} expanded column assignments", sheet.name)))?;
-        for col in (min - 1)..max {
-            sheet.cols.insert(col, info);
-        }
-    }
-    Ok(())
-}
-
 fn read_row(cx: &mut Ctx<'_>, sheet: &mut Sheet, st: &mut RowState, row: &El) {
     st.rows += 1;
     let r = match row.attr_u32("r") {
@@ -385,25 +333,21 @@ fn read_row(cx: &mut Ctx<'_>, sheet: &mut Sheet, st: &mut RowState, row: &El) {
         return;
     }
     st.next_row = r + 1;
-    let mut info = LineInfo::default();
-    if let Some(ht) = row.attr_f64("ht") {
-        info.custom = row.flag("customHeight", false);
-        // Automatic heights equal to the default are noise.
-        if info.custom || (pt_to_px(ht) - sheet.default_row_height).abs() > 0.5 {
-            info.size = Some(pt_to_px(ht));
-        }
-    }
-    info.hidden = row.flag("hidden", false);
-    info.outline = row.attr_u32("outlineLevel").unwrap_or(0).min(7) as u8;
-    info.collapsed = row.flag("collapsed", false);
-    if row.flag("customFormat", false)
-        && let Some(s) = row.attr_u32("s")
-    {
-        info.style = Some(cx.style(Some(s)));
-    }
-    if info != LineInfo::default() {
-        sheet.rows.insert(r, info);
-    }
+    let height_pt = row.attr_f64("ht");
+    let custom_height = height_pt.is_some() && row.flag("customHeight", false);
+    let style = if row.flag("customFormat", false) { row.attr_u32("s").map(|s| cx.style(Some(s))) } else { None };
+    apply_row_info(
+        sheet,
+        r,
+        RowSpec {
+            height_pt,
+            custom_height,
+            hidden: row.flag("hidden", false),
+            outline: row.attr_u32("outlineLevel").unwrap_or(0).min(7) as u8,
+            collapsed: row.flag("collapsed", false),
+            style,
+        },
+    );
     let mut next_col = 0u32;
     for c in row.kids("c") {
         let pos = match c.attr("r") {

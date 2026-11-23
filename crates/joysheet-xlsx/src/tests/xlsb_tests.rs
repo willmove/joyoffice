@@ -417,3 +417,67 @@ fn xlsb_display_options_view_mode_zoom_and_outline_summary_survive_xlsx_save() {
         (true, false, true, false, false, true, joysheet_model::SheetViewMode::PageLayout, 135, CellRef::new(2, 3), false, true)
     );
 }
+
+#[test]
+fn xlsb_sheet_format_cols_and_row_headers_survive_xlsx_save() {
+    // BrtWsFmtInfo (485): dxGCol=12*256, cchDefColWidth=10, miyDefRwHeight=480 (24pt), grbit=0x0001 (fUnsynced).
+    let mut fmt = Vec::with_capacity(12);
+    fmt.extend((12u32 * 256).to_le_bytes());
+    fmt.extend(10u16.to_le_bytes());
+    fmt.extend(480u16.to_le_bytes());
+    fmt.extend(1u16.to_le_bytes());
+    fmt.extend([3u8, 2u8]);
+
+    // BrtColInfo (60): cols 1..=2, coldx=20*256, ixfe=0, flags=hidden|userSet|outline=2|collapsed.
+    let mut col_info = Vec::with_capacity(18);
+    col_info.extend(1u32.to_le_bytes());
+    col_info.extend(2u32.to_le_bytes());
+    col_info.extend((20u32 * 256).to_le_bytes());
+    col_info.extend(0u32.to_le_bytes());
+    col_info.extend((0x0001u16 | 0x0002 | (2 << 8) | 0x1000).to_le_bytes());
+
+    // BrtRowHdr (0): row 1, ixfe=0, miyRw=600 (30pt), flags1 = outline=3 | collapsed(0x08) | hidden(0x10) | unsynced(0x20), 0 spans.
+    let mut row1 = Vec::with_capacity(17);
+    row1.extend(1u32.to_le_bytes());
+    row1.extend(0u32.to_le_bytes());
+    row1.extend(600u16.to_le_bytes());
+    row1.extend([0u8, 3u8 | 0x08 | 0x10 | 0x20, 0u8]);
+    row1.extend(0u32.to_le_bytes());
+
+    // BrtRowHdr (0): row 2, miyRw=480 (matches 24pt default, not custom) -> only outline=1 should be stored, size=None.
+    let mut row2 = Vec::with_capacity(17);
+    row2.extend(2u32.to_le_bytes());
+    row2.extend(0u32.to_le_bytes());
+    row2.extend(480u16.to_le_bytes());
+    row2.extend([0u8, 1u8, 0u8]);
+    row2.extend(0u32.to_le_bytes());
+
+    let mut ws = record(129, &[]);
+    ws.extend(record(485, &fmt));
+    ws.extend(record(60, &col_info));
+    ws.extend(record(145, &[]));
+    ws.extend(record(0, &row1));
+    ws.extend(record(0, &row2));
+    ws.extend(record(146, &[]));
+    ws.extend(record(130, &[]));
+
+    let (wb, _) = read_xlsb(&file(&ws)).unwrap();
+    let sh = &wb.sheets[0];
+    assert!((sh.default_row_height - 32.0).abs() < 0.1);
+    assert!(sh.default_col_width > 80.0);
+    let c1 = sh.cols.get(&1).copied().unwrap();
+    assert!(c1.hidden && c1.collapsed && c1.outline == 2 && c1.size.is_some());
+    let r1 = sh.rows.get(&1).copied().unwrap();
+    assert!(r1.hidden && r1.collapsed && r1.custom && r1.outline == 3);
+    assert!((r1.size.unwrap() - 40.0).abs() < 0.1);
+    let r2 = sh.rows.get(&2).copied().unwrap();
+    assert_eq!(r2.outline, 1);
+    assert_eq!(r2.size, None);
+
+    let (rt, _) = read_xlsx(&write_xlsx(&wb).unwrap()).unwrap();
+    let rsh = &rt.sheets[0];
+    assert!((rsh.default_row_height - sh.default_row_height).abs() < 0.1);
+    assert_eq!(rsh.cols.get(&1).map(|c| (c.hidden, c.outline, c.collapsed)), Some((true, 2, true)));
+    assert_eq!(rsh.rows.get(&1).map(|r| (r.hidden, r.outline, r.collapsed, r.custom)), Some((true, 3, true, true)));
+    assert_eq!(rsh.rows.get(&2).map(|r| (r.outline, r.size)), Some((1, None)));
+}

@@ -737,3 +737,38 @@ fn xls_display_options_view_mode_zoom_and_outline_summary_survive_xlsx_save() {
     let (wb2, _) = read_xls(&fallback_data).unwrap();
     assert_eq!(wb2.sheets[0].zoom, 85);
 }
+
+#[test]
+fn biff8_default_dimensions_and_outline_levels_roundtrip() {
+    // DEFCOLWIDTH=10, STANDARDWIDTH=12*256, DEFAULTROWHEIGHT=24pt (480 twips),
+    // COLINFO cols 1..=2 width=20*256 hidden+custom+outline=2+collapsed,
+    // ROW r=1 height=30pt custom+hidden+outline=3+collapsed,
+    // ROW r=2 height=0x8000 (fDefault set, non-custom) -> must NOT override default height.
+    let defcol = rec(0x0055, &u16s(&[10]));
+    let stdwidth = rec(0x0099, &u16s(&[12 * 256]));
+    let defrow = rec(0x0225, &u16s(&[0, 480]));
+    let colinfo = rec(0x007D, &u16s(&[1, 2, 20 * 256, 0, 0x0001 | 0x0002 | (2 << 8) | 0x1000, 0]));
+    let row_custom = rec(0x0208, &cat(&[&u16s(&[1, 0, 1, 600, 0, 0]), &(3u32 | 0x10 | 0x20 | 0x40).to_le_bytes()]));
+    let row_default = rec(0x0208, &cat(&[&u16s(&[2, 0, 1, 0x8000, 0, 0]), &(1u32).to_le_bytes()]));
+    let data = one_sheet_with(&cat(&[&defcol, &stdwidth, &defrow, &colinfo, &row_custom, &row_default]));
+    let (wb, _) = read_xls(&data).unwrap();
+    let sh = &wb.sheets[0];
+    assert!((sh.default_row_height - 32.0).abs() < 0.1, "got {}", sh.default_row_height);
+    assert!(sh.default_col_width > 80.0, "got {}", sh.default_col_width);
+    let c1 = sh.cols.get(&1).copied().unwrap();
+    assert!(c1.hidden && c1.collapsed && c1.outline == 2 && c1.size.is_some());
+    let r1 = sh.rows.get(&1).copied().unwrap();
+    assert!(r1.hidden && r1.collapsed && r1.custom && r1.outline == 3);
+    assert!((r1.size.unwrap() - 40.0).abs() < 0.1);
+    let r2 = sh.rows.get(&2).copied().unwrap();
+    assert_eq!(r2.outline, 1);
+    assert_eq!(r2.size, None);
+
+    let (rt, _) = read_xlsx(&write_xlsx(&wb).unwrap()).unwrap();
+    let rsh = &rt.sheets[0];
+    assert!((rsh.default_row_height - sh.default_row_height).abs() < 0.1);
+    assert!((rsh.default_col_width - sh.default_col_width).abs() < 0.5);
+    assert_eq!(rsh.cols.get(&1).map(|c| (c.hidden, c.outline, c.collapsed)), Some((true, 2, true)));
+    assert_eq!(rsh.rows.get(&1).map(|r| (r.hidden, r.outline, r.collapsed, r.custom)), Some((true, 3, true, true)));
+    assert_eq!(rsh.rows.get(&2).map(|r| (r.outline, r.size)), Some((1, None)));
+}

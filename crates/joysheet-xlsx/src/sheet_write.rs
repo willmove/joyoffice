@@ -12,7 +12,7 @@ use joysheet_model::{
 use crate::drawing::{Obj, image_content_type, image_ext};
 use crate::fmla::FileFormulas;
 use crate::styles::{color_attrs, dxf_id};
-use crate::tables::{paper_id, px_to_col_width, px_to_pt};
+use crate::tables::{paper_id, px_to_pt};
 use crate::write::{
     CT_CHART, CT_COMMENTS, CT_DRAWING, CT_TABLE, CT_THREADED_COMMENTS, NS_MAIN, NS_REL, NS_THREADED, Out, REL_THREADED_COMMENT, Rels, XML_DECL,
 };
@@ -133,67 +133,10 @@ pub fn write_sheet(wb: &Workbook, si: usize, selected: bool, out: &mut Out) -> (
     crate::sheet_view::write_xml_views(&mut s, sheet, selected);
 
     // sheetFormatPr
-    let max_row_outline = sheet.rows.values().map(|r| r.outline).max().unwrap_or(0);
-    let max_col_outline = sheet.cols.values().map(|r| r.outline).max().unwrap_or(0);
-    s.push_str("<sheetFormatPr");
-    if (sheet.default_col_width - joysheet_model::DEFAULT_COL_WIDTH).abs() > 0.01 {
-        let _ = write!(s, " defaultColWidth=\"{}\"", num(px_to_col_width(sheet.default_col_width)));
-    }
-    let _ = write!(s, " defaultRowHeight=\"{}\"", num(px_to_pt(sheet.default_row_height)));
-    if (sheet.default_row_height - joysheet_model::DEFAULT_ROW_HEIGHT).abs() > 0.01 {
-        s.push_str(" customHeight=\"1\"");
-    }
-    if max_row_outline > 0 {
-        let _ = write!(s, " outlineLevelRow=\"{max_row_outline}\"");
-    }
-    if max_col_outline > 0 {
-        let _ = write!(s, " outlineLevelCol=\"{max_col_outline}\"");
-    }
-    s.push_str("/>");
+    crate::sheet_dims::write_xml_format_pr(&mut s, sheet, num);
 
     // cols: runs of identical settings.
-    if !sheet.cols.is_empty() {
-        s.push_str("<cols>");
-        let mut run: Option<(u32, u32, LineInfo)> = None;
-        let flush = |s: &mut String, r: (u32, u32, LineInfo)| {
-            let (a, b, i) = r;
-            let w = i.size.unwrap_or(sheet.default_col_width);
-            let _ = write!(s, "<col min=\"{}\" max=\"{}\" width=\"{}\"", a + 1, b + 1, num(px_to_col_width(w)));
-            if let Some(st) = i.style {
-                let _ = write!(s, " style=\"{}\"", sid(st));
-            }
-            if i.hidden {
-                s.push_str(" hidden=\"1\"");
-            }
-            if i.size.is_some() {
-                s.push_str(" customWidth=\"1\"");
-            }
-            if i.outline > 0 {
-                let _ = write!(s, " outlineLevel=\"{}\"", i.outline.min(7));
-            }
-            if i.collapsed {
-                s.push_str(" collapsed=\"1\"");
-            }
-            s.push_str("/>");
-        };
-        for (&c, info) in &sheet.cols {
-            if c >= joysheet_core::MAX_COLS {
-                continue;
-            }
-            run = match run {
-                Some((a, b, i)) if b + 1 == c && i == *info => Some((a, c, i)),
-                Some(r) => {
-                    flush(&mut s, r);
-                    Some((c, c, *info))
-                }
-                None => Some((c, c, *info)),
-            };
-        }
-        if let Some(r) = run {
-            flush(&mut s, r);
-        }
-        s.push_str("</cols>");
-    }
+    crate::sheet_dims::write_xml_cols(&mut s, sheet, sid, num);
 
     // sheetData
     let mut keys: BTreeSet<CellRef> = sheet.cells.iter().map(|(c, _)| c).collect();
