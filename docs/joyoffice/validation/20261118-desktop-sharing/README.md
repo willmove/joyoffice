@@ -518,3 +518,19 @@ JoyWord 接管 WCAFF2 头部、词形及复合词指令写出。75 个发行词�
 ## Deck 五向涟漪的双页折射
 
 独立 PowerPoint 视频分别使用原页和带定位标记的页面。五种波源在两组片源中误差均下降，带标记的左上角方向从 3.8059% 降到 3.8048%，其余四向的变化见逐项记录。另六种栅格、百叶窗和梳齿选项的输出与基线相同。macOS 的 M4 Metal 和 UOS 25 的 Radeon 890M Vulkan 各运行 1,850 帧硬件与 CPU 对照；五个方向分别启动真实放映、暂停、稳定显示和退出。两端硬件与强制 CPU 放映各方向的 3,864 个采样点均在既定容差内。完整产品回归分别通过 1,024、1,029 项。回退可恢复旧波纹生成器，或单独切换 CPU 渲染。两代读写器已交叉重开文件。[像素和文件记录](ripple-refraction.json)
+
+## Sheet 工作表分窗选区与滚动原点
+
+提交 `d1e12eb2` 在 BIFF8（`.xls`）、BIFF12（`.xlsb`）与 SpreadsheetML（`.xlsx`）三种格式之间统一保留每张工作表的冻结窗格拆分、活动窗格、活动单元格、多区域 `sqref` 选区及滚动原点（`topLeftCell`／窗格起点）。在 Apple M4 macOS 27.2.1（Rust 1.98.1）上以 `affbabfb` 为基线运行 `scripts/joysheet/check-sheet-panes.py`，12 份 Excel 导出样本（`columns`、`quadrants`、`rows`、`unfrozen` × 三格式）全部通过 48 组新旧读写交叉验证；原生 `joysheet` 桌面窗口逐份完成打开、编辑、撤销、重做、多区域选择（`AA50:AC51,AG56:AH57`）、滚动、保存与新进程重开，12 份原件摘要不变。JoySheet 产品工程回归通过 1,500 项（原有 1 项忽略）。UOS 25 真机未连接，待后续在实机补跑同一脚本。[macOS 实测与文件记录](sheet-panes.json)
+
+## Word 分节边界增删与重锚绘图局部拼接
+
+提交 `c132b7ef` 在局部布局拼接中支持重锚浮动绘图和四类分节边界（`NextPage`、`Continuous`、`OddPage`、`EvenPage`）的插入与移除重算。在 Apple M4 macOS 27.2.1 上，`joyword-layout` 的 `section_checkpoint` 专项 11 项全部通过；`chapter_reflow --section-splice` 14 步对照中整篇回退降为 0，完成 956 次逐页比较、2,868 次光标命中比较以及光栅／确定性 PDF 核对。`scripts/joyword/check-section-splice.py` 以 `affbabfb` 为基线核验四类分节符命令（68 → 69 节），新旧两版 CLI 导出的 69 页文字层与逐页栅格完全一致、两代重存 DOCX 逐字节相同（`78cd9fb10a…`），原生 `joyword --control` 窗口实测插入、撤销与重做均触发第 35 页起的有界 `layout_patch`。UOS 25 真机未连接，待实机补验。[macOS 对照与桌面记录](section-splice.json) · [复验脚本](../../../../scripts/joyword/check-section-splice.py)
+
+## Deck 剩余 17 种转场自研替换
+
+`crates/joydeck-anim/src/` 新增 `transition_subtle.rs`、`transition_particles.rs`、`transition_stage.rs` 与 `transition_dynamic.rs`，并扩展 `transition_surface.rs` 共享 3D 透视相机、哈希与缓动基元，将剩余全部 17 种导入转场（48 个效果／选项组合：`reveal`、`flash`、`honeycomb`、`glitter`、`vortex`、`shred`、`switch`、`flip`、`gallery`、`doors`/`bifold`、`zoom`、`pan`、`ferris`、`conveyor`、`window`、`flythrough` 及确定性 `random` 分派）迁为第一方 JoyOffice 图层生成器，`transition_fx.rs` 仅保留纯第一方路由。至此全部 49 种 PresentationML 转场均已由第一方代码生成。在 Apple M4 macOS 27.2.1 上：`joydeck-anim` 116 项与 `joydeck-render` `transition` 9 项全通；Metal GPU 与 CPU 在 `64×36` 及 `193×109` 两种尺寸共 1,850 帧对照全部通过（最大通道差 1、差值大于 1 的像素为 0）；新旧两代 `joydeck-cli` 完成 17 类／48 选项／192 组 PPTX 重建往返；`scripts/joydeck/check_sources.py` 292 份文件指纹全通；JoyDeck 产品工程回归通过 1,033 项。UOS 25 Vulkan 真机未连接，待实机补验。[macOS GPU 与互读记录](remaining-transitions.json)
+
+## Word 校对与语言包存储退役（`craft-libs` 全退出）
+
+JoyWord 语言包存储（目录定位、同意配置、有界 HTTP 下载、Zstandard／tar 解包、文件锁与可恢复目录发布事务）已迁入第一方 `crates/joyword-engine/src/packs/`（`storage.rs`、`http.rs`、`contents.rs`、`transaction.rs`、`transfer.rs`），多语校对引擎（拼写、Hunspell 词缀与复合词、建议排序、断词、语言包加载及内置语言数据嵌入）已迁入第一方工作区 crate `crates/joyword-proof`（继续保留 `third-party/craft-i18n/language-data` 词表／断词数据及 `licenses/craft-libs`、`licenses/craft-i18n` 原许可声明）。`Cargo.lock` 以及六个应用入口（`joyword`、`joyword-cli`、`joydeck`、`joydeck-cli`、`joysheet`、`joysheet-cli`）的普通／构建依赖闭包均已清零全部 `craft-*`（`craft-font-catalog`、`craft-font-store`、`craft-atomic`、`craft-proof`）；三产品 SBOM（512／490／454 包）许可全文齐备且无任何 `craft-*` 依赖。在 Apple M4 macOS 27.2.1 上：`joyword-proof` 485 项、`joyword-proof-rules` 12 项与 `joyword-engine packs` 22 项全部通过；`scripts/joyword/check-installed-language-pack.py` 实测原生 `joyword` 桌面与 CLI 的未安装／整词例外／音节断词／卸载四态页数一致（15／21／15／15）、拒绝未同意刷新与损坏归档；跨产品全量工程回归在 macOS 分别通过 Word 4,204（2 忽略）、Deck 1,033、Sheet 1,500（1 忽略）项，失败均为零。UOS 25 真机未连接，待实机补验。[macOS 退役与回归记录](proof-and-packs-retirement.json)

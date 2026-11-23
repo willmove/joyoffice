@@ -1,0 +1,148 @@
+{
+  "date": "2026-11-22",
+  "commit": "d1e12eb2",
+  "baseline": "affbabfb",
+  "scope": "Persist per-sheet pane selections (including multi-area sqref), active cell, frozen-pane active pane, and scroll origins across XLS (BIFF8), XLSB (BIFF12), and XLSX (SpreadsheetML).",
+  "formats": [
+    "https://learn.microsoft.com/en-us/openspecs/office_file_formats/ms-xls/101b33c3-432b-4962-b10f-f74437e9e4a1",
+    "https://learn.microsoft.com/en-us/openspecs/office_file_formats/ms-xlsb/0f7f2f82-0907-48b9-8f13-027f789a473a",
+    "https://ecma-international.org/wp-content/uploads/ECMA-376-1_5th_edition_december_2016.zip"
+  ],
+  "reproduce": "python3 scripts/joysheet/check-sheet-panes.py OLD_CLI NEW_CLI OUTPUT --desktop JOYSHEET",
+  "rollback": "Restore the BIFF8, BIFF12, and SpreadsheetML sheet-view adapters prior to d1e12eb2 while keeping editable XLSX workbooks intact.",
+  "platforms": {
+    "macOS": {
+      "os": "macOS 27.2.1 (26B131)",
+      "arch": "aarch64-apple-darwin",
+      "rustc": "1.98.1 (48a229cea 2026-09-01)",
+      "cliSha256": [
+        "97c1f71a4a984cd9ff3020d85f1a9a5ceeaf83f56347689036fffc4159e64825",
+        "936e5226206baf00fbc1cf09f869994ccc14d9beed84667b0fae9185842ab1ce"
+      ],
+      "desktopSha256": "b39b5ba10eae9b341e8518f78ed139d62aa61cb504fc3722ab9d2fe7cd331372",
+      "fixturesCount": 12,
+      "totalReaderWriterPairs": 48,
+      "workbooks": {
+        "columns.xls": {
+          "sourceSha256": "cc4b800a667644dd223123273476e39caa7b534d45370a445afede933213d76e",
+          "writerViews": {
+            "baseline": [0, 0, "A1", "topLeft", "A1", "A1", 0],
+            "candidate": [0, 2, "G4", "topRight", "I7", "I7:J9", 0]
+          },
+          "readerWriterPairs": 4
+        },
+        "columns.xlsb": {
+          "sourceSha256": "9be77c26fa4179c0e0d57cef393f4ef48ca41da9625f8da91178b16a55a1026f",
+          "writerViews": {
+            "baseline": [0, 0, "A1", "topLeft", "A1", "A1", 0],
+            "candidate": [0, 2, "G4", "topRight", "I7", "I7:J9", 0]
+          },
+          "readerWriterPairs": 4
+        },
+        "columns.xlsx": {
+          "sourceSha256": "cb1ca92dc34a8ffb51f07031c4c4a0598e4db80113188b462dcfa4355ea66dde",
+          "writerViews": {
+            "baseline": [0, 2, "G1", "topRight", "I7", "I7", 0],
+            "candidate": [0, 2, "G4", "topRight", "I7", "I7:J9", 0]
+          },
+          "readerWriterPairs": 4
+        },
+        "quadrants.xls": {
+          "sourceSha256": "b67b4cab5d90dd14bf7e37bfa6087ff8c6d9019da8137a0718722e8ef020a837",
+          "writerViews": {
+            "baseline": [0, 0, "A1", "topLeft", "A1", "A1", 0],
+            "candidate": [3, 2, "E8", "bottomRight", "P16", "K11:M13 P16:Q17", 1]
+          },
+          "readerWriterPairs": 4
+        },
+        "quadrants.xlsb": {
+          "sourceSha256": "d1ea5dd3937edb5aee8bfb0dc4c477e5e59eb22ff02a4445f1b64c04ceaaf318",
+          "writerViews": {
+            "baseline": [0, 0, "A1", "topLeft", "A1", "A1", 0],
+            "candidate": [3, 2, "E8", "bottomRight", "P16", "K11:M13 P16:Q17", 1]
+          },
+          "readerWriterPairs": 4
+        },
+        "quadrants.xlsx": {
+          "sourceSha256": "95ef5a80ab3a8c3e72208f228dc6fb5d14fa774849610b40d63b9270dd0195a4",
+          "writerViews": {
+            "baseline": [3, 2, "E8", "bottomRight", "P16", "P16", 0],
+            "candidate": [3, 2, "E8", "bottomRight", "P16", "K11:M13 P16:Q17", 1]
+          },
+          "readerWriterPairs": 4
+        },
+        "rows.xls": {
+          "sourceSha256": "b2d4332d3cbf7304d2dbab42def4b3b1b5ac8840a78bd46cbee3396cd2abd9b6",
+          "writerViews": {
+            "baseline": [0, 0, "A1", "topLeft", "A1", "A1", 0],
+            "candidate": [4, 0, "D11", "bottomLeft", "D12", "D12:F15", 0]
+          },
+          "readerWriterPairs": 4
+        },
+        "rows.xlsb": {
+          "sourceSha256": "c2803de62a1ecd0fd41ed1bea21b783cbba1d5a967d593c3e61b920ea5dc1490",
+          "writerViews": {
+            "baseline": [0, 0, "A1", "topLeft", "A1", "A1", 0],
+            "candidate": [4, 0, "D11", "bottomLeft", "D12", "D12:F15", 0]
+          },
+          "readerWriterPairs": 4
+        },
+        "rows.xlsx": {
+          "sourceSha256": "b05c90ca9bc80d9e0e7380054a4990bb7169fc6a88d270c16704094df9db563e",
+          "writerViews": {
+            "baseline": [4, 0, "A11", "bottomLeft", "D12", "D12", 0],
+            "candidate": [4, 0, "D11", "bottomLeft", "D12", "D12:F15", 0]
+          },
+          "readerWriterPairs": 4
+        },
+        "unfrozen.xls": {
+          "sourceSha256": "3a0e0b6e642bff5e48d21fafa722cb3e49f21da6fdf40c3c5f71e1b807e0b597",
+          "writerViews": {
+            "baseline": [0, 0, "A1", "topLeft", "A1", "A1", 0],
+            "candidate": [0, 0, "D9", "topLeft", "Q21", "M14:N17 Q21:R23", 1]
+          },
+          "readerWriterPairs": 4
+        },
+        "unfrozen.xlsb": {
+          "sourceSha256": "00608a1e9f5dbe7cbf155dfc4f860aa1a2496bd304e736462e774b20367b79c8",
+          "writerViews": {
+            "baseline": [0, 0, "A1", "topLeft", "A1", "A1", 0],
+            "candidate": [0, 0, "D9", "topLeft", "Q21", "M14:N17 Q21:R23", 1]
+          },
+          "readerWriterPairs": 4
+        },
+        "unfrozen.xlsx": {
+          "sourceSha256": "12c69f95107961a02a58225e8b225beb64e7c3ccfe271fa5bf690ce20088aeb9",
+          "writerViews": {
+            "baseline": [0, 0, "D9", "topLeft", "Q21", "Q21", 0],
+            "candidate": [0, 0, "D9", "topLeft", "Q21", "M14:N17 Q21:R23", 1]
+          },
+          "readerWriterPairs": 4
+        }
+      },
+      "desktop": {
+        "cases": {
+          "columns.xls": { "originalOrigin": "G4", "editedCell": "I7", "savedOrigin": "M24" },
+          "columns.xlsb": { "originalOrigin": "G4", "editedCell": "I7", "savedOrigin": "N26" },
+          "columns.xlsx": { "originalOrigin": "G4", "editedCell": "I7", "savedOrigin": "M24" },
+          "quadrants.xls": { "originalOrigin": "E8", "editedCell": "P16", "savedOrigin": "M27" },
+          "quadrants.xlsb": { "originalOrigin": "E8", "editedCell": "P16", "savedOrigin": "N29" },
+          "quadrants.xlsx": { "originalOrigin": "E8", "editedCell": "P16", "savedOrigin": "M27" },
+          "rows.xls": { "originalOrigin": "D11", "editedCell": "D12", "savedOrigin": "K28" },
+          "rows.xlsb": { "originalOrigin": "D11", "editedCell": "D12", "savedOrigin": "L30" },
+          "rows.xlsx": { "originalOrigin": "D11", "editedCell": "D12", "savedOrigin": "K28" },
+          "unfrozen.xls": { "originalOrigin": "D9", "editedCell": "Q21", "savedOrigin": "K24" },
+          "unfrozen.xlsb": { "originalOrigin": "D9", "editedCell": "Q21", "savedOrigin": "L26" },
+          "unfrozen.xlsx": { "originalOrigin": "D9", "editedCell": "Q21", "savedOrigin": "K24" }
+        },
+        "undoRedo": true,
+        "freshProcessReopen": true
+      },
+      "originalsUnchanged": true
+    },
+    "UOS": {
+      "status": "pending",
+      "note": "No UOS 25 x86_64 physical host attached during 2026-11-22 closure run; rerun check-sheet-panes.py on UOS when available."
+    }
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "date": "2026-11-22",
+  "commit": "c132b7ef",
+  "baseline": "affbabfb",
+  "scope": "Rebase section boundaries (NextPage, Continuous, OddPage, EvenPage insert/remove) and reanchored floating drawings in JoyWord incremental layout splices, with full-layout oracle equivalence across pages, hits, rasters, and fixed-layout PDFs.",
+  "reproduce": [
+    "cargo test --locked --offline -p joyword-layout section_checkpoint",
+    "cargo run --locked --release -p joyword-engine --example chapter_reflow -- --section-splice",
+    "python3 scripts/joyword/check-section-splice.py NEW_DESKTOP OLD_CLI NEW_CLI OUTPUT"
+  ],
+  "rollback": "Restore joyword-layout/src/incremental/sections.rs prior to c132b7ef; structural section-boundary edits and reanchored drawings fall back to full document pagination.",
+  "platforms": {
+    "macOS": {
+      "os": "macOS 27.2.1 (26B131)",
+      "arch": "aarch64-apple-darwin",
+      "rustc": "1.98.1 (48a229cea 2026-09-01)",
+      "unitTests": {
+        "filter": "section_checkpoint",
+        "passed": 11,
+        "failed": 0
+      },
+      "oracle": {
+        "mode": "section-splice",
+        "steps": 14,
+        "fullFallbacks": 0,
+        "allPageComparisons": 956,
+        "hitComparisons": 2868,
+        "samples": [
+          { "step": "move_anchor", "pageCount": 68, "changedPages": 1, "editThroughLayoutMs": 3.142459, "fullLayoutMs": 3.663333 },
+          { "step": "restore_anchor", "pageCount": 68, "changedPages": 1, "editThroughLayoutMs": 1.789375, "fullLayoutMs": 3.195292 },
+          { "step": "insert_nextPage", "pageCount": 69, "changedPages": 35, "editThroughLayoutMs": 1.740583, "fullLayoutMs": 2.998459 },
+          { "step": "remove_boundary", "pageCount": 68, "changedPages": 35, "editThroughLayoutMs": 1.566125, "fullLayoutMs": 2.811291 },
+          { "step": "restore_doc", "pageCount": 68, "changedPages": 34, "editThroughLayoutMs": 1.803833, "fullLayoutMs": 2.830541 },
+          { "step": "insert_continuous", "pageCount": 68, "changedPages": 34, "editThroughLayoutMs": 1.729, "fullLayoutMs": 3.15775 },
+          { "step": "remove_boundary", "pageCount": 67, "changedPages": 35, "editThroughLayoutMs": 2.856, "fullLayoutMs": 3.039417 },
+          { "step": "restore_doc", "pageCount": 68, "changedPages": 35, "editThroughLayoutMs": 1.72, "fullLayoutMs": 2.9845 },
+          { "step": "insert_oddPage", "pageCount": 70, "changedPages": 36, "editThroughLayoutMs": 2.553083, "fullLayoutMs": 2.921875 },
+          { "step": "remove_boundary", "pageCount": 68, "changedPages": 37, "editThroughLayoutMs": 2.701916, "fullLayoutMs": 2.868875 },
+          { "step": "restore_doc", "pageCount": 68, "changedPages": 35, "editThroughLayoutMs": 1.615958, "fullLayoutMs": 2.882916 },
+          { "step": "insert_evenPage", "pageCount": 69, "changedPages": 35, "editThroughLayoutMs": 2.696458, "fullLayoutMs": 3.159125 },
+          { "step": "remove_boundary", "pageCount": 69, "changedPages": 36, "editThroughLayoutMs": 2.676041, "fullLayoutMs": 2.943584 },
+          { "step": "restore_doc", "pageCount": 68, "changedPages": 36, "editThroughLayoutMs": 1.673791, "fullLayoutMs": 2.776875 }
+        ]
+      },
+      "crossVersionAndDesktop": {
+        "sourceSha256": "0631ae23dfcfad88f9aba9ade336f4b6aabf569007ad8a64043fc26993223848",
+        "desktopSha256": "d5ea9a90d0e1c054955a8e869a37b4b13f0f88a44fd21d4884e670def3128ae0",
+        "cliSha256": [
+          "57cfb03892820aedff907f67638dd56e1e8e0fd98f73861382cb19afe64ba842",
+          "bdbb0e8b4dc308a44308b3a75d6db9111789f0cc356861d7b6ee8322270b0336"
+        ],
+        "initialSections": 68,
+        "savedSections": 69,
+        "finalPages": 69,
+        "mcpBreaksVerified": ["nextPage", "continuous", "oddPage", "evenPage"],
+        "twoVersionPageRastersCount": 69,
+        "twoVersionRastersMatch": true,
+        "crossVersion": {
+          "baseline": {
+            "sections": 69,
+            "sha256": "78cd9fb10a671dfbc8cc9ac7c7d0d9f1d94ce5af5dd527977a1798c42910cbd6"
+          },
+          "candidate": {
+            "sections": 69,
+            "sha256": "78cd9fb10a671dfbc8cc9ac7c7d0d9f1d94ce5af5dd527977a1798c42910cbd6"
+          }
+        },
+        "nativePatches": [
+          { "action": "text.insert", "firstPage": 35, "lastPage": 69, "pages": 69 },
+          { "action": "edit.undo", "firstPage": 35, "lastPage": 69, "pages": 69 },
+          { "action": "edit.redo", "firstPage": 35, "lastPage": 69, "pages": 69 }
+        ],
+        "originalsUnchanged": true
+      }
+    },
+    "UOS": {
+      "status": "pending",
+      "note": "No UOS 25 x86_64 physical host attached during 2026-11-22 closure run; rerun chapter_reflow --section-splice and check-section-splice.py on UOS when available."
+    }
+  }
+}
