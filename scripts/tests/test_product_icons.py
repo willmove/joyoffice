@@ -44,8 +44,9 @@ class ProductIcons(unittest.TestCase):
 
     def test_portable_installer_is_self_contained_and_does_not_require_path(self):
         with tempfile.TemporaryDirectory() as temporary:
-            root = Path(temporary) / '中文 portable directory'
-            data = Path(temporary) / 'isolated data'
+            base = Path(temporary).resolve()
+            root = base / '中文 portable directory'
+            data = base / 'isolated data'
             root.mkdir()
             for product in desktop.PRODUCTS:
                 binary = root / product
@@ -99,7 +100,7 @@ class ProductIcons(unittest.TestCase):
 
     def test_refresh_repairs_only_the_main_icon_preserving_custom_launch_commands(self):
         with tempfile.TemporaryDirectory() as temporary:
-            data = Path(temporary)
+            data = Path(temporary).resolve()
             for product in desktop.PRODUCTS:
                 entry = data / 'applications' / (product + '.desktop')
                 entry.parent.mkdir(exist_ok=True)
