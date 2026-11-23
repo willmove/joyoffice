@@ -1,0 +1,19 @@
+{
+  "platform": "Linux-6.18.57-061857-generic-x86_64-with-glibc2.38",
+  "product": "sheet",
+  "binarySha256": "b11069a19df210f2a1ee76e015c1b22cce4ecf3ec48dfa5560b630b5c82afe17",
+  "passed": true,
+  "checks": [
+    "cancel then retry",
+    "late result after edit rejected before file creation",
+    "independent XLSX and fresh process readback",
+    "original hash unchanged"
+  ],
+  "activation": "file-menu",
+  "x11SaveButtons": [
+    42,
+    56,
+    100,
+    391
+  ]
+}

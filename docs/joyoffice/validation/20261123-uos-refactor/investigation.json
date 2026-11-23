@@ -1,0 +1,99 @@
+{
+  "initialReports": {
+    "ime-word": {
+      "passed": false,
+      "method": "com.sogou.ime.ng.fcitx5.uos",
+      "display": ":0",
+      "binarySha256": "836c0bb2dc0a9dffafa25cbe3ef52cf8ce3dd0d75f987973cc62bcf527a073a9",
+      "ximSelectionOwner": 73400321,
+      "preedit": "server",
+      "error": "selected 中文: "
+    },
+    "ime-deck": {
+      "passed": false,
+      "method": "com.sogou.ime.ng.fcitx5.uos",
+      "display": ":0",
+      "binarySha256": "2a748a03ec5487773106ab6452aa04a8806f1b015645f5122ef4aa6259f50a2d",
+      "ximSelectionOwner": 73400321,
+      "preedit": "server",
+      "error": "selected 中文: "
+    },
+    "ime-sheet": {
+      "passed": false,
+      "method": "com.sogou.ime.ng.fcitx5.uos",
+      "display": ":0",
+      "binarySha256": "b11069a19df210f2a1ee76e015c1b22cce4ecf3ec48dfa5560b630b5c82afe17",
+      "ximSelectionOwner": 73400321,
+      "preedit": "server",
+      "error": "product marked range: "
+    },
+    "ime-probe": {
+      "passed": false,
+      "system": "Linux-6.18.57-061857-generic-x86_64-with-glibc2.38",
+      "events": "OS synthetic keys",
+      "binary": "/home/Wilmer/Coding/joyoffice/target/debug/examples/ime_probe",
+      "checks": [],
+      "environment": {
+        "LANG": "zh_CN.UTF-8",
+        "LC_ALL": null,
+        "LC_CTYPE": null,
+        "XMODIFIERS": "@im=fcitx",
+        "XDG_SESSION_TYPE": "x11"
+      },
+      "ximServers": "XIM_SERVERS(ATOM) = @server=joyoffice-qa-242465, @server=joyoffice-qa-231994, @server=fcitx",
+      "ximSelectionOwner": 73400321,
+      "inputMethod": "com.sogou.ime.ng.fcitx5.uos",
+      "error": "server-side preedit must leave the input empty until selection"
+    },
+    "ime-probe-shift": {
+      "passed": true,
+      "system": "Linux-6.18.57-061857-generic-x86_64-with-glibc2.38",
+      "events": "OS synthetic keys",
+      "binary": "/home/Wilmer/Coding/joyoffice/target/debug/examples/ime_probe",
+      "checks": [
+        "marked=false utf16=2 chinese=true",
+        "marked=false utf16=0 chinese=false"
+      ],
+      "environment": {
+        "LANG": "zh_CN.UTF-8",
+        "LC_ALL": null,
+        "LC_CTYPE": null,
+        "XMODIFIERS": "@im=fcitx",
+        "XDG_SESSION_TYPE": "x11"
+      },
+      "ximServers": "XIM_SERVERS(ATOM) = @server=joyoffice-qa-242465, @server=joyoffice-qa-231994, @server=fcitx",
+      "ximSelectionOwner": 73400321,
+      "inputMethod": "com.sogou.ime.ng.fcitx5.uos",
+      "temporaryModeToggle": "Shift_L",
+      "preedit": "server",
+      "restoredMode": true
+    },
+    "save-target-sheet": {
+      "platform": "Linux-6.18.57-061857-generic-x86_64-with-glibc2.38",
+      "product": "sheet",
+      "binarySha256": "b11069a19df210f2a1ee76e015c1b22cce4ecf3ec48dfa5560b630b5c82afe17",
+      "passed": false
+    },
+    "save-target-deck": {
+      "platform": "Linux-6.18.57-061857-generic-x86_64-with-glibc2.38",
+      "product": "deck",
+      "binarySha256": "2a748a03ec5487773106ab6452aa04a8806f1b015645f5122ef4aa6259f50a2d",
+      "passed": false
+    }
+  },
+  "keyboardInterception": {
+    "window": "134217731",
+    "title": "Kimi Code",
+    "pid": "784686",
+    "comm": "kimi-code",
+    "testWindow": "148897793"
+  },
+  "classifications": {
+    "ime": "Sogou internal English mode: stock probe also fails unchanged; temporary Shift_L passes stock field and all three products, then restores mode. No service restart.",
+    "save": "Ctrl+Shift+S activated Kimi Code instead of the test application. Native File/Save As mouse activation passes; this does not certify this global shortcut on the current desktop. AT-SPI typelib is unavailable; explicit coordinates were verified from actual 1800x1125 window images.",
+    "deckWindow": "Initial loose color tolerance accepted a CPU orbit frame at progress 0.91791521 as settled. Tightened endpoint color tolerance from 3 to 1, retaining cross-backend comparison; final prisms and new-effect checks pass.",
+    "sectionCommand": "An initial verify_section_reflow call omitted its required DOCX path. Correct chapter_reflow --section-splice and desktop/two-version checks pass.",
+    "sheetModeWrapper": "A temporary diagnostic wrapper sent Escape after successful composition, discarding the cell draft. Final supported --sogou-shift restores mode without this extra Escape; native Sheet commit/undo/redo/save/reopen passes.",
+    "transitionFixture": "Initial added matrix used p14:newsflash; corrected the fixture to the PresentationML p:newsflash element. Final 48 cases / 192 pairs pass."
+  }
+}

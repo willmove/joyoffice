@@ -1,5 +1,7 @@
 # Joysheet 实施状态
 
+2026-11-23 UOS 25 x86_64：源码 `22036e02` 的产品检查 **1,524 通过、1 项既有忽略、0 失败**，fmt、严格 Clippy 与 Debug automation 桌面／CLI 构建通过。四个公式族的八份规范工作簿、604 个公式缓存对照及原生编辑／撤销／重做／保存／新进程重开通过；窗格、显示、尺寸、打印和保护／超链接共 39 份三格式导入、156 组两版读写组合通过。13 组原生冒烟、默认搜狗中文模式和文件页原生另存的过时结果拒绝通过。未在本机运行 Excel 实时重算或设备打印；完整 Linux／M8 条件不关闭。[本轮证据](../joyoffice/validation/20261123-uos-refactor/README.md)
+
 2026-11-17 UOS Desktop 25 Professional x86_64：当前 Debug automation 构建在 X11／DDE、125% 缩放下完成 13 组原生回归，含 Unicode／emoji、公式与历史、合成组合态、系统剪贴板、格式表单、关闭取消、中文路径 XLSX 保存重开及多行 LF／CRLF 与样式保留。产品 check 1,439 项通过、1 项既有忽略，fmt、all-targets 严格 Clippy 通过。首轮截图失去前台焦点，临时停用输入法后完整复跑通过；搜狗／Fcitx5 真实拼音仍直通且无组合态，系统 IME 未通过。合成事件、X11 窗口像素和真实系统按键分别记录，不关闭完整 Linux／M8 验收。[本轮证据与边界](../joyoffice/validation/20261117-uos-desktop/README.md)
 
 2026-11-16：工作区与内部精确版本约束统一为 0.2.0；后续按正常 GitHub Release 发布，不再标记预览版。保留独立产品标签、六平台产物校验和已有验收边界；本次未创建发布标签或公开新包。[发布规则与平台扩展](../joyoffice/RELEASE-PLATFORMS.md)

@@ -141,8 +141,89 @@
       "originalsUnchanged": true
     },
     "UOS": {
-      "status": "pending",
-      "note": "No UOS 25 x86_64 physical host attached during 2026-11-22 closure run; rerun check-sheet-panes.py on UOS when available."
+      "status": "passed",
+      "date": "2026-11-23",
+      "sourceCommit": "22036e0209a38156748c5c6c61682f6c23519360",
+      "baselineCommit": "32562303551d29dc9152e801b03c5b94cad8c2db",
+      "os": "UOS Desktop 25 Professional x86_64",
+      "profile": "Debug",
+      "display": "X11 / DDE / GPUI scaleFactor 1.25",
+      "previousStatus": {
+        "status": "pending",
+        "note": "No UOS 25 x86_64 physical host attached during 2026-11-22 closure run; rerun check-sheet-panes.py on UOS when available."
+      },
+      "scope": "This batch on the named UOS host; full product/platform qualification remains open.",
+      "report": "../20261123-uos-refactor/README.md",
+      "evidence": "../20261123-uos-refactor/sheet-panes.json",
+      "nativeDesktop": {
+        "cases": {
+          "columns.xls": {
+            "originalOrigin": "G4",
+            "editedCell": "I7",
+            "savedOrigin": "M24"
+          },
+          "columns.xlsb": {
+            "originalOrigin": "G4",
+            "editedCell": "I7",
+            "savedOrigin": "M24"
+          },
+          "columns.xlsx": {
+            "originalOrigin": "G4",
+            "editedCell": "I7",
+            "savedOrigin": "M24"
+          },
+          "quadrants.xls": {
+            "originalOrigin": "E8",
+            "editedCell": "P16",
+            "savedOrigin": "M27"
+          },
+          "quadrants.xlsb": {
+            "originalOrigin": "E8",
+            "editedCell": "P16",
+            "savedOrigin": "M27"
+          },
+          "quadrants.xlsx": {
+            "originalOrigin": "E8",
+            "editedCell": "P16",
+            "savedOrigin": "M27"
+          },
+          "rows.xls": {
+            "originalOrigin": "D11",
+            "editedCell": "D12",
+            "savedOrigin": "K28"
+          },
+          "rows.xlsb": {
+            "originalOrigin": "D11",
+            "editedCell": "D12",
+            "savedOrigin": "K28"
+          },
+          "rows.xlsx": {
+            "originalOrigin": "D11",
+            "editedCell": "D12",
+            "savedOrigin": "K28"
+          },
+          "unfrozen.xls": {
+            "originalOrigin": "D9",
+            "editedCell": "Q21",
+            "savedOrigin": "K24"
+          },
+          "unfrozen.xlsb": {
+            "originalOrigin": "D9",
+            "editedCell": "Q21",
+            "savedOrigin": "K24"
+          },
+          "unfrozen.xlsx": {
+            "originalOrigin": "D9",
+            "editedCell": "Q21",
+            "savedOrigin": "K24"
+          }
+        },
+        "undoRedo": true,
+        "freshProcessReopen": true
+      },
+      "originalsUnchanged": true,
+      "workbooks": 12,
+      "readerWriterPairs": 48
     }
   }
 }

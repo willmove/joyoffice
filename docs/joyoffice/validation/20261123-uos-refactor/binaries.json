@@ -1,0 +1,23 @@
+{
+  "candidateCommit": "22036e0209a38156748c5c6c61682f6c23519360",
+  "profile": "debug",
+  "candidate": {
+    "joydeck": "2a748a03ec5487773106ab6452aa04a8806f1b015645f5122ef4aa6259f50a2d",
+    "joysheet-cli": "d7016cf54987015acb5016743ec570c72843bc295e71343f14b309f8a7cffca7",
+    "joydeck-cli": "b150e023e4c0c20406e30840fc9603d513539868605ace344d4504d21db53f49",
+    "joysheet": "b11069a19df210f2a1ee76e015c1b22cce4ecf3ec48dfa5560b630b5c82afe17",
+    "joyword": "836c0bb2dc0a9dffafa25cbe3ef52cf8ce3dd0d75f987973cc62bcf527a073a9",
+    "joyword-cli": "82d2252a9acac5ab433a8a02cb31d2a47ef4e4a7aaf80713a4f921626394c8ac"
+  },
+  "baseline": {
+    "joysheet-cli": "f6808298045113318e4c6e4932b4fdd74d3ff9758b171b5442c189aa5848c24d",
+    "joydeck-cli": "7b7b369d8a43d7244202b7d76ef681eb44b84301a35e2aeab1032677732411f9",
+    "joyword-cli": "a23addd9f7c362b07970806fcaeeb84e394eea3e8db7745d483544335dd946a0"
+  },
+  "verificationScripts": {
+    "scripts/verify_uos_native_ime.py": "f4214c1d9a26e85690d6b3af89c5b08c327011d016dcf089d2ce4ceacc3b1216",
+    "scripts/verify_native_save_target.py": "362faa85ab35789280a27a932e01d820d6cddf9701d481ec05fb2399330d3c50",
+    "scripts/joydeck/check-transition-window.py": "d750a94baf8cbafb2f2afb5b14f4033e8a551cced22627663b6b0416712760e6",
+    "docs/joyoffice/validation/20261123-uos-refactor/scripts/transition-exchange.py": "3727ac20267e698be9b7c616a45f7c7e95127293366fc7eb8c085292cffc9524"
+  }
+}

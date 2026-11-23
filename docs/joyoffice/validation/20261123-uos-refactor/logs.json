@@ -1,0 +1,242 @@
+{
+  "target/uos-refactor-20261123/save-target-deck.log": {
+    "sha256": "93c4f96b3887acdf288441d1375e842b3c68f9fd4dee2cf6c19ef1fc3026b7a8",
+    "bytes": 912
+  },
+  "target/uos-refactor-20261123/proof-packs-tests.log": {
+    "sha256": "32bfe0502e041bdea8d6f25768de7e4003116538fb439ff2a3d5cd52bb0e56b1",
+    "bytes": 2588
+  },
+  "target/uos-refactor-20261123/conditional-aggregates.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "target/uos-refactor-20261123/sheet-panes.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "target/uos-refactor-20261123/ime-deck-isolated.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "target/uos-refactor-20261123/ime-sheet-verified.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "target/uos-refactor-20261123/python-tests.log": {
+    "sha256": "36bd2ea47d1e2f7f180564d6dd4525fa974ec9af1b4cf0fd737f1ed71b58c9f4",
+    "bytes": 13585
+  },
+  "target/uos-refactor-20261123/save-deck-isolated.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "target/uos-refactor-20261123/deck-window-final.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "target/uos-refactor-20261123/sheet-dims.log": {
+    "sha256": "72c825c593b1036ddb3fb0d43a8d9fa9f8ee8f3ad91e096bd9fda7fa5d3f528a",
+    "bytes": 7681
+  },
+  "target/uos-refactor-20261123/language-pack.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "target/uos-refactor-20261123/deck-window-isolated.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "target/uos-refactor-20261123/save-menu-sheet-final.log": {
+    "sha256": "8a207a7d39b212545cc8223e0c0ffed2f35053723383b6fd644010ecdb04ea2a",
+    "bytes": 95
+  },
+  "target/uos-refactor-20261123/gpu-small.log": {
+    "sha256": "2ee895dc2503ffa38e034ba5417201f024544bd2110d52417aa14da98b7b9fe5",
+    "bytes": 28416
+  },
+  "target/uos-refactor-20261123/deck-window.log": {
+    "sha256": "ecc37783e623d665ec4ec03a72a31630aa4ab96a27eadc80419fb74c31978e45",
+    "bytes": 299
+  },
+  "target/uos-refactor-20261123/check-sheet.log": {
+    "sha256": "e457b406ff6c2d8414e71b142aa94258c4703e9a28062f74c699f792db42afb4",
+    "bytes": 116717
+  },
+  "target/uos-refactor-20261123/ime-sheet.log": {
+    "sha256": "58f01ca717c9e25d87cd55b11b1f16dd1fd488e2f718ac984651b59b6bed5a5f",
+    "bytes": 707
+  },
+  "target/uos-refactor-20261123/remaining-transition-exchange.log": {
+    "sha256": "415182ef0e5754485ef6c9e9d2c740690bd79021aaaa6a02743a873cca7aacdc",
+    "bytes": 777
+  },
+  "target/uos-refactor-20261123/check-word.log": {
+    "sha256": "8ad67a57e508a47478f47165aedc6f7d85bcb74b7019968a7e5e13618b2423b4",
+    "bytes": 316181
+  },
+  "target/uos-refactor-20261123/sheet-print.log": {
+    "sha256": "2b0986c1b12bf2b10203c4988b6417ac80239d5937f3755547468b72995bc4ee",
+    "bytes": 8506
+  },
+  "target/uos-refactor-20261123/gates.log": {
+    "sha256": "d6d2d885b45c8bda36616a57320c6df15834db54d0b51b7e077a439f369640ac",
+    "bytes": 27
+  },
+  "target/uos-refactor-20261123/proof-tests.log": {
+    "sha256": "72714a0f8a4370d8aaf71464dce5d18e8a4348275df6ff0450fc12a87d0a5b31",
+    "bytes": 33611
+  },
+  "target/uos-refactor-20261123/matrix-classic-text.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "target/uos-refactor-20261123/docs-before.log": {
+    "sha256": "a87aedf0cc43fd12d2521de8ba7090179ad807c18c5e54d7b1c1a8437ab0f0d4",
+    "bytes": 83
+  },
+  "target/uos-refactor-20261123/save-menu-deck.log": {
+    "sha256": "2c0c8e36bc0854779982fdc07dd6f48b2a44d0a53564c91a3b2fad0c66340230",
+    "bytes": 1088
+  },
+  "target/uos-refactor-20261123/ime-word-verified.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "target/uos-refactor-20261123/deck-new-window-final.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "target/uos-refactor-20261123/build-word.log": {
+    "sha256": "cccce302498d228a4c338f7cbb17f0482990a35ef66fa7ba1684e767f1af0201",
+    "bytes": 251
+  },
+  "target/uos-refactor-20261123/sheet-smoke.log": {
+    "sha256": "233e347d778d0381b476822a783dc07a9c03adb857b20aa0938c9fbd72928566",
+    "bytes": 988
+  },
+  "target/uos-refactor-20261123/engineering-depreciation.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "target/uos-refactor-20261123/rerun-native.log": {
+    "sha256": "6216e6b26ddb4d8707e256a57f38bae4e8a62bd9f25d8c6d91c4dcf5bcd20bbd",
+    "bytes": 1273
+  },
+  "target/uos-refactor-20261123/section-oracle.log": {
+    "sha256": "f0f50c0871d22cf56de1a2e5affb5555684b0b4ec3047b9443a4c2bc2c034962",
+    "bytes": 2845
+  },
+  "target/uos-refactor-20261123/modern-text-date.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "target/uos-refactor-20261123/save-target-sheet.log": {
+    "sha256": "8e28666ca20212fc3e13458c42ecfdf02852413db7c3392d6501335ad1f866fd",
+    "bytes": 826
+  },
+  "target/uos-refactor-20261123/deck-new-window.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "target/uos-refactor-20261123/section-algorithm.log": {
+    "sha256": "43338c1deeca4319f7f823300fae35fc53d8acfbffe3c6706ea8d1263acf80d7",
+    "bytes": 1819
+  },
+  "target/uos-refactor-20261123/gpu-large.log": {
+    "sha256": "a34b72cbc65cec576cb751a2ede506b704585cd64f14a95a8c3ed3262775cbb0",
+    "bytes": 26766
+  },
+  "target/uos-refactor-20261123/check-deck.log": {
+    "sha256": "f4cb9a6d83bc6b74e9aa0dbfecdbf0ea53d05a6fcc0295d5836e8a061c22521d",
+    "bytes": 87042
+  },
+  "target/uos-refactor-20261123/ime-probe.log": {
+    "sha256": "e3cc17207e772aaccb5bc2806a8d5fac3501f7c844d02bfb0cdc5fae6e320dd6",
+    "bytes": 486
+  },
+  "target/uos-refactor-20261123/ime-probe-shift.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "target/uos-refactor-20261123/deck-window-verified.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "target/uos-refactor-20261123/ime-deck-verified.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "target/uos-refactor-20261123/deck-new-window-isolated.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "target/uos-refactor-20261123/baseline-build.log": {
+    "sha256": "3bad8ac927f76a8ac59e674e4e69373fa209d8e68c15b3ee9ef7a4b877d96075",
+    "bytes": 7102
+  },
+  "target/uos-refactor-20261123/build-deck.log": {
+    "sha256": "e5021f32175d74160118957b83ea04147553c73e65594129ac5bccd3e4387e51",
+    "bytes": 458
+  },
+  "target/uos-refactor-20261123/save-menu-deck-final.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "target/uos-refactor-20261123/section-splice.log": {
+    "sha256": "f79ec6b84219c0987ad5d9909a9ea79dfd1ae5f5e6f9845d7f781237aabd8c48",
+    "bytes": 1230
+  },
+  "target/uos-refactor-20261123/remaining-transition-exchange-final.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "target/uos-refactor-20261123/ime-word.log": {
+    "sha256": "17fe8f0fd352815b2b459aa146cc5c9c707daeaca2a800a161744de113b5cf91",
+    "bytes": 740
+  },
+  "target/uos-refactor-20261123/build-sheet.log": {
+    "sha256": "25bf8d0a4d65ef82da3b91754ebeb8f47be76196e32bbe5edaf4cfd58b75eb49",
+    "bytes": 715
+  },
+  "target/uos-refactor-20261123/save-menu-sheet.log": {
+    "sha256": "7377f73f1dbd27be21167d229d7f4ed77c4289583192f004f658c245729956e6",
+    "bytes": 983
+  },
+  "target/uos-refactor-20261123/resolve-native.log": {
+    "sha256": "a449ea132bc5d42a5f3daa0a0afdc27027341af480716ef3a2ae01b28c29599c",
+    "bytes": 469
+  },
+  "target/uos-refactor-20261123/ime-deck.log": {
+    "sha256": "240a3462a392f2b1d6f4bf216820df29fce86384499a681e9fa2fae6ec6c0c50",
+    "bytes": 732
+  },
+  "target/uos-refactor-20261123/python-tests-final.log": {
+    "sha256": "73cd7a95df9441b1fc8c400dc379f5b9ad670054e0b7387748b17352616f3eba",
+    "bytes": 13585
+  },
+  "target/uos-refactor-20261123/sheet-protection-links.log": {
+    "sha256": "0f7c2539ad8accf335109a27cc5f0d8253e983b736b3450cbebbf4f8e104fc44",
+    "bytes": 7484
+  },
+  "target/uos-refactor-20261123/sheet-display.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "target/uos-refactor-20261123/python-tests-delivery.log": {
+    "sha256": "641daf6691ab67feee9c04730f07b42d0beafe89cdc6f701bd4b77bdd1364ecf",
+    "bytes": 13585
+  },
+  "target/uos-refactor-20261123/gates-delivery.log": {
+    "sha256": "d6d2d885b45c8bda36616a57320c6df15834db54d0b51b7e077a439f369640ac",
+    "bytes": 27
+  },
+  "target/uos-refactor-20261123/docs-delivery.log": {
+    "sha256": "a87aedf0cc43fd12d2521de8ba7090179ad807c18c5e54d7b1c1a8437ab0f0d4",
+    "bytes": 83
+  },
+  "target/uos-refactor-20261123/deck-docs-delivery.log": {
+    "sha256": "6a12348653fe7d1db8922d5e20cdf464a9bf9c4fc691ee8d9a111aa8335dc8f7",
+    "bytes": 41
+  }
+}

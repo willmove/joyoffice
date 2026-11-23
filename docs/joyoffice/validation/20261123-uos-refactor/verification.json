@@ -1,0 +1,163 @@
+{
+  "date": "2026-11-23",
+  "sourceCommit": "22036e0209a38156748c5c6c61682f6c23519360",
+  "baselineCommit": "32562303551d29dc9152e801b03c5b94cad8c2db",
+  "result": "passed_with_documented_environment_constraints",
+  "productChecks": {
+    "word": {
+      "passed": 4211,
+      "failed": 0,
+      "ignored": 2
+    },
+    "deck": {
+      "passed": 1041,
+      "failed": 0,
+      "ignored": 0
+    },
+    "sheet": {
+      "passed": 1524,
+      "failed": 0,
+      "ignored": 1
+    }
+  },
+  "pythonUnitTests": {
+    "run": 211,
+    "passed": 209,
+    "skipped": 2
+  },
+  "targetedTests": {
+    "proof": 485,
+    "proofRules": 12,
+    "packs": 22
+  },
+  "gpuVsCpu": [
+    {
+      "size": [
+        64,
+        36
+      ],
+      "frames": 925,
+      "adapter": "AMD Radeon 890M Graphics (RADV GFX1150)",
+      "backend": "Vulkan",
+      "maximumChannelDifference": 2,
+      "pixelsOver1": 73,
+      "pixelsOver2": 0,
+      "endpointDifferences": 0,
+      "missingSources": {
+        "frames": 48,
+        "maximumChannelDifference": 1
+      }
+    },
+    {
+      "size": [
+        193,
+        109
+      ],
+      "frames": 925,
+      "adapter": "AMD Radeon 890M Graphics (RADV GFX1150)",
+      "backend": "Vulkan",
+      "maximumChannelDifference": 2,
+      "pixelsOver1": 491,
+      "pixelsOver2": 0,
+      "endpointDifferences": 0,
+      "missingSources": {
+        "frames": 48,
+        "maximumChannelDifference": 1
+      }
+    }
+  ],
+  "word": {
+    "oracleSteps": 14,
+    "fullFallbacks": 0,
+    "pageComparisons": 956,
+    "hitComparisons": 2868,
+    "crossVersionPdfPages": 69,
+    "nativeBoundedReflow": true,
+    "languagePackInstallReplaceRemove": true,
+    "publishedDutchPackVerified": true
+  },
+  "sheet": {
+    "formulaWorkbooks": 8,
+    "formulaCaches": 604,
+    "formulaNativeChangedCells": [
+      17,
+      22,
+      21,
+      30
+    ],
+    "formatWorkbooks": 39,
+    "formatReaderWriterPairs": 156,
+    "nativeSmokeGroups": 13
+  },
+  "deck": {
+    "remainingTransitionKinds": 17,
+    "remainingTransitionOptions": 48,
+    "pptxReaderWriterPairs": 192,
+    "realWindowEffects": [
+      "cube/l",
+      "orbit/u",
+      "glitter/r",
+      "vortex/l"
+    ],
+    "backends": [
+      "Vulkan",
+      "CPU rollback"
+    ]
+  },
+  "ime": {
+    "allProductsPassed": true,
+    "system": "Fcitx5 / UOS Sogou",
+    "preedit": "server",
+    "initialMode": "English",
+    "explicitTemporaryChineseMode": true,
+    "modeRestored": true,
+    "eventSource": "X11 OS synthetic keys"
+  },
+  "nativeSave": {
+    "products": [
+      "sheet",
+      "deck"
+    ],
+    "activation": "File / Save As controls through X11 pointer events",
+    "cancelRetryAndStaleResultRejection": true,
+    "keyboardShortcutBlockedBy": "Kimi Code global Ctrl+Shift+S"
+  },
+  "limitations": [
+    "Debug conformance runs; no Release performance claim",
+    "No physical keyboard certification, full IME candidate geometry acceptance or human signoff",
+    "No Wayland, ARM/LoongArch/Kylin, screen-reader speech, multi-display switching, device printing, installed-package, signing or upgrade qualification",
+    "No live Excel/PowerPoint/WPS application opened on this host; formula/reference caches and two JoyOffice generations are distinct evidence",
+    "Full legacy UI/feature parity and product milestones remain open"
+  ],
+  "screenshots": {
+    "ime-word.png": "8e8b5cf893c5cd841eb225c8fbc8c8ad2002e4b59cfe14d4196d78156312d3fc",
+    "ime-deck.png": "258803225e844330ca663b2025469c41756024274bee15c4ead319f487472c10",
+    "ime-sheet.png": "20671a87a2f6d94997163f611ad101f0adafc76ff06362bd63b4e825303d581f",
+    "sheet-roundtrip.png": "0bfada54bf65de1363d20fb37fb7f5e4427bc4144e4103bd0bb9b17543286f1a",
+    "deck-cube.png": "95be8d7bdffc807673aa84a572525c1ead2de8e53397a121ee10ee0f3931620a",
+    "deck-glitter.png": "59925b77b2eba7e6e9ad01923950e9ebffe6a7640557d80bbd75681605c3e2ea",
+    "sheet-file-menu.png": "928c1fdf16f4883d0ffac71d4cc7793cf9ae97f58201a182dda15e07c2983af0"
+  },
+  "deliveryChecks": {
+    "python-tests-delivery": {
+      "exitCode": 0,
+      "logSha256": "641daf6691ab67feee9c04730f07b42d0beafe89cdc6f701bd4b77bdd1364ecf",
+      "log": "target/uos-refactor-20261123/python-tests-delivery.log"
+    },
+    "gates-delivery": {
+      "exitCode": 0,
+      "logSha256": "d6d2d885b45c8bda36616a57320c6df15834db54d0b51b7e077a439f369640ac",
+      "log": "target/uos-refactor-20261123/gates-delivery.log"
+    },
+    "docs-delivery": {
+      "exitCode": 0,
+      "logSha256": "a87aedf0cc43fd12d2521de8ba7090179ad807c18c5e54d7b1c1a8437ab0f0d4",
+      "log": "target/uos-refactor-20261123/docs-delivery.log"
+    },
+    "deck-docs-delivery": {
+      "exitCode": 0,
+      "logSha256": "6a12348653fe7d1db8922d5e20cdf464a9bf9c4fc691ee8d9a111aa8335dc8f7",
+      "log": "target/uos-refactor-20261123/deck-docs-delivery.log"
+    }
+  }
+}

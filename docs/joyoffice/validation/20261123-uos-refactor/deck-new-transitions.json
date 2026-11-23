@@ -1,0 +1,179 @@
+{
+  "binarySha256": "2a748a03ec5487773106ab6452aa04a8806f1b015645f5122ef4aa6259f50a2d",
+  "sourceSha256": "e2ee15007c278982fc3658f4ab411723b3829209b5cd7a9e9546db8b44516bbb",
+  "effects": [
+    [
+      "glitter",
+      "r"
+    ],
+    [
+      "vortex",
+      "l"
+    ]
+  ],
+  "modes": {
+    "auto": {
+      "backend": "Vulkan / AMD Radeon 890M Graphics (RADV GFX1150)",
+      "slides": {
+        "glitter": {
+          "referenceMean": [
+            99.49,
+            52.95,
+            102.37
+          ],
+          "outlyingSamples": 19,
+          "samples": 3864,
+          "pausedSeconds": 2.4658971160000016,
+          "firstColor": [
+            204,
+            34,
+            17
+          ],
+          "pausedColor": [
+            99.54,
+            53.1,
+            102.45
+          ],
+          "settledColor": [
+            35,
+            82,
+            208
+          ],
+          "screenshots": {
+            "paused": "59925b77b2eba7e6e9ad01923950e9ebffe6a7640557d80bbd75681605c3e2ea",
+            "end": "f9661c0d6a44db42293e5892738133b2aedeab901c0da677ad80d2989bead866"
+          },
+          "pixels": [
+            1376,
+            774
+          ],
+          "preparation": {
+            "frames": 136,
+            "medianMs": 25.62,
+            "p95Ms": 36.36
+          }
+        },
+        "vortex": {
+          "referenceMean": [
+            0.02,
+            0.06,
+            0.12
+          ],
+          "outlyingSamples": 0,
+          "samples": 3864,
+          "pausedSeconds": 2.3892805220000004,
+          "firstColor": [
+            35,
+            82,
+            208
+          ],
+          "pausedColor": [
+            0.02,
+            0.05,
+            0.1
+          ],
+          "settledColor": [
+            51,
+            192,
+            68
+          ],
+          "screenshots": {
+            "paused": "71b5ec4e917bbc5d8a294c75a11a089b1f82740099238ba356cebc04d1679bf5",
+            "end": "8c387e36e7b1f73104488abc07d6f2b267b8c42465a61ce3792733a14d591a03"
+          },
+          "pixels": [
+            1376,
+            774
+          ],
+          "preparation": {
+            "frames": 140,
+            "medianMs": 24.65,
+            "p95Ms": 33.04
+          }
+        }
+      }
+    },
+    "cpu": {
+      "backend": "CPU",
+      "slides": {
+        "glitter": {
+          "referenceMean": [
+            82.24,
+            57.29,
+            119.53
+          ],
+          "outlyingSamples": 14,
+          "samples": 3864,
+          "pausedSeconds": 2.7488646800000005,
+          "firstColor": [
+            204,
+            34,
+            17
+          ],
+          "pausedColor": [
+            82.0,
+            57.23,
+            119.38
+          ],
+          "settledColor": [
+            35,
+            82,
+            208
+          ],
+          "screenshots": {
+            "paused": "39fbe4ebe194d35f60b1729c6d0343dcc13e129f847fc709634b0a9905fb5452",
+            "end": "f9661c0d6a44db42293e5892738133b2aedeab901c0da677ad80d2989bead866"
+          },
+          "pixels": [
+            1376,
+            774
+          ],
+          "preparation": {
+            "frames": 42,
+            "medianMs": 95.55,
+            "p95Ms": 200.38
+          }
+        },
+        "vortex": {
+          "referenceMean": [
+            0.17,
+            0.64,
+            0.23
+          ],
+          "outlyingSamples": 2,
+          "samples": 3864,
+          "pausedSeconds": 2.569675449999999,
+          "firstColor": [
+            35,
+            82,
+            208
+          ],
+          "pausedColor": [
+            0.16,
+            0.61,
+            0.22
+          ],
+          "settledColor": [
+            51,
+            192,
+            68
+          ],
+          "screenshots": {
+            "paused": "08007532f16dbe5b5d32fa0167cda0ac5b650e3e7228107e0d0c7960c7310e30",
+            "end": "8c387e36e7b1f73104488abc07d6f2b267b8c42465a61ce3792733a14d591a03"
+          },
+          "pixels": [
+            1376,
+            774
+          ],
+          "preparation": {
+            "frames": 40,
+            "medianMs": 105.52,
+            "p95Ms": 179.22
+          }
+        }
+      }
+    }
+  },
+  "sourceUnchanged": true
+}

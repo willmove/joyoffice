@@ -1,0 +1,37 @@
+{
+  "date": "2026-11-23",
+  "sourceCommit": "22036e0209a38156748c5c6c61682f6c23519360",
+  "branch": "feat/uos-refactor-validation-20261123",
+  "main": "32562303551d29dc9152e801b03c5b94cad8c2db",
+  "originalBranch": "feat/refactor-native-roadmap",
+  "initialWorkingTree": "clean",
+  "osRelease": "PRETTY_NAME=\"UOS Desktop 25 Professional\"\nNAME=\"Uos\"\nVERSION_ID=\"25\"\nVERSION=\"25\"\nID=uos\nHOME_URL=\"https://www.chinauos.com/\"\nBUG_REPORT_URL=\"http://bbs.chinauos.com\"\nVERSION_CODENAME=snipe\n",
+  "kernel": {
+    "system": "Linux",
+    "node": "Wilmer-PC",
+    "release": "6.18.57-061857-generic",
+    "version": "#202610151035 SMP PREEMPT_DYNAMIC Thu Oct 15 10:59:14 UTC 2026",
+    "machine": "x86_64",
+    "processor": ""
+  },
+  "cpu": "AMD Ryzen AI 9 HX 370 w/ Radeon 890M",
+  "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)\nbinary: rustc\ncommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\ncommit-date: 2026-09-01\nhost: x86_64-unknown-linux-gnu\nrelease: 1.98.1\nLLVM version: 22.1.8",
+  "cargo": "cargo 1.98.1 (797e8a9bc 2026-08-05)",
+  "python": "3.12.13",
+  "display": {
+    "DISPLAY": ":0",
+    "XDG_SESSION_TYPE": "x11",
+    "XDG_CURRENT_DESKTOP": "DDE",
+    "XMODIFIERS": "@im=fcitx",
+    "GDK_SCALE": null,
+    "QT_SCALE_FACTOR": null
+  },
+  "xrandr": "Screen 0: minimum 320 x 200, current 2560 x 1600, maximum 16384 x 16384\nDisplayPort-0 disconnected (normal left inverted right x axis y axis)\nHDMI-A-0 disconnected (normal left inverted right x axis y axis)\nDisplayPort-1 disconnected (normal left inverted right x axis y axis)\nDisplayPort-2 connected primary 2560x1600+0+0 (normal left inverted right x axis y axis) 294mm x 165mm\n   2560x1600     59.97 + 144.00*  120.01  \n   2560x1440    144.00   120.00    59.95  \n   1920x1200     59.88  \n   1920x1080    120.00   119.88    60.00    50.00    25.00    24.00    23.98  \n   1680x1050     59.95  \n   1600x900      60.00  \n   1280x1024     75.02    60.02  \n   1440x900      59.89  \n   1152x864      59.97  \n   1280x720      60.00    50.00    59.94  \n   1024x768      75.03    70.07    60.00  \n   800x600       72.19    75.00    60.32    56.25  \n   720x576       50.00  \n   640x480       75.00    72.81    60.00    59.94  \nDisplayPort-3 disconnected (normal left inverted right x axis y axis)\nDisplayPort-4 disconnected (normal left inverted right x axis y axis)\nDisplayPort-5 disconnected (normal left inverted right x axis y axis)\nDisplayPort-6 disconnected (normal left inverted right x axis y axis)",
+  "fcitxMethod": "com.sogou.ime.ng.fcitx5.uos",
+  "fcitxState": "2",
+  "cargoLockSha256": "239fec006231874d6f1d991e754158ca83891292c4212fd439b33095f6bf22af",
+  "appScaleFactor": 1.25,
+  "xftDpi": 120,
+  "ddeScaleFactor": 1.0,
+  "ddeWindowScale": 1
+}

@@ -1,0 +1,90 @@
+{
+  "binaries": [
+    "f6808298045113318e4c6e4932b4fdd74d3ff9758b171b5442c189aa5848c24d",
+    "d7016cf54987015acb5016743ec570c72843bc295e71343f14b309f8a7cffca7"
+  ],
+  "excel": {
+    "base": {
+      "sourceSha256": "cfd12308246251159aff60a049ba113256ba7bc7391312182c5caa3e4d781e60",
+      "independentByFunction": {
+        "MDETERM": 3,
+        "INDEX": 11,
+        "SUM": 2,
+        "MINVERSE": 1,
+        "MMULT": 1,
+        "MUNIT": 1,
+        "CONCATENATE": 1,
+        "CONCAT": 1,
+        "TEXTJOIN": 3,
+        "LEFT": 2,
+        "RIGHT": 2,
+        "MID": 2,
+        "LEN": 2,
+        "LOWER": 1,
+        "UPPER": 1,
+        "PROPER": 1,
+        "TRIM": 2,
+        "CLEAN": 2,
+        "SUBSTITUTE": 3,
+        "REPLACE": 2,
+        "REPT": 1,
+        "FIND": 4,
+        "SEARCH": 2,
+        "EXACT": 2,
+        "CHAR": 1,
+        "CODE": 1,
+        "UNICHAR": 1,
+        "UNICODE": 1,
+        "T": 2
+      },
+      "baselineDifferences": [],
+      "candidateDifferences": 0,
+      "bothGenerationsRecalculatedBothWriters": true
+    },
+    "edit": {
+      "sourceSha256": "5e24c7c7b79271522f2f1cb333ae2ac765041caec687ca483eb3518adf5d0d0d",
+      "independentByFunction": {
+        "MDETERM": 3,
+        "INDEX": 11,
+        "SUM": 2,
+        "MINVERSE": 1,
+        "MMULT": 1,
+        "MUNIT": 1,
+        "CONCATENATE": 1,
+        "CONCAT": 1,
+        "TEXTJOIN": 3,
+        "LEFT": 2,
+        "RIGHT": 2,
+        "MID": 2,
+        "LEN": 2,
+        "LOWER": 1,
+        "UPPER": 1,
+        "PROPER": 1,
+        "TRIM": 2,
+        "CLEAN": 2,
+        "SUBSTITUTE": 3,
+        "REPLACE": 2,
+        "REPT": 1,
+        "FIND": 4,
+        "SEARCH": 2,
+        "EXACT": 2,
+        "CHAR": 1,
+        "CODE": 1,
+        "UNICHAR": 1,
+        "UNICODE": 1,
+        "T": 2
+      },
+      "baselineDifferences": [],
+      "candidateDifferences": 0,
+      "bothGenerationsRecalculatedBothWriters": true
+    }
+  },
+  "native": {
+    "changedCells": 22,
+    "checkedPerState": 24,
+    "states": 5,
+    "savedTypedCaches": 59,
+    "undoRedoAndFreshReopen": true,
+    "originalUnchanged": true
+  }
+}

@@ -390,8 +390,101 @@
       }
     },
     "UOS": {
-      "status": "pending",
-      "note": "No UOS 25 x86_64 physical host attached during 2026-11-23 run; rerun check-sheet-display.py and check-sheet-panes.py on UOS when available."
+      "status": "passed",
+      "date": "2026-11-23",
+      "sourceCommit": "22036e0209a38156748c5c6c61682f6c23519360",
+      "baselineCommit": "32562303551d29dc9152e801b03c5b94cad8c2db",
+      "os": "UOS Desktop 25 Professional x86_64",
+      "profile": "Debug",
+      "display": "X11 / DDE / GPUI scaleFactor 1.25",
+      "previousStatus": {
+        "status": "pending",
+        "note": "No UOS 25 x86_64 physical host attached during 2026-11-23 run; rerun check-sheet-display.py and check-sheet-panes.py on UOS when available."
+      },
+      "scope": "This batch on the named UOS host; full product/platform qualification remains open.",
+      "report": "../20261123-uos-refactor/README.md",
+      "evidence": "../20261123-uos-refactor/sheet-display.json",
+      "nativeDesktop": {
+        "cases": {
+          "layout_outline.xls": {
+            "loadedSummary": {
+              "summaryBelow": false,
+              "summaryRight": false
+            },
+            "savedZoom": 125,
+            "savedGridlines": false
+          },
+          "layout_outline.xlsb": {
+            "loadedSummary": {
+              "summaryBelow": false,
+              "summaryRight": false
+            },
+            "savedZoom": 125,
+            "savedGridlines": false
+          },
+          "layout_outline.xlsx": {
+            "loadedSummary": {
+              "summaryBelow": false,
+              "summaryRight": false
+            },
+            "savedZoom": 125,
+            "savedGridlines": false
+          },
+          "page_break.xls": {
+            "loadedSummary": {
+              "summaryBelow": false,
+              "summaryRight": true
+            },
+            "savedZoom": 125,
+            "savedGridlines": true
+          },
+          "page_break.xlsb": {
+            "loadedSummary": {
+              "summaryBelow": false,
+              "summaryRight": true
+            },
+            "savedZoom": 125,
+            "savedGridlines": true
+          },
+          "page_break.xlsx": {
+            "loadedSummary": {
+              "summaryBelow": false,
+              "summaryRight": true
+            },
+            "savedZoom": 125,
+            "savedGridlines": true
+          },
+          "rtl_zoom.xls": {
+            "loadedSummary": {
+              "summaryBelow": true,
+              "summaryRight": false
+            },
+            "savedZoom": 125,
+            "savedGridlines": false
+          },
+          "rtl_zoom.xlsb": {
+            "loadedSummary": {
+              "summaryBelow": true,
+              "summaryRight": false
+            },
+            "savedZoom": 125,
+            "savedGridlines": false
+          },
+          "rtl_zoom.xlsx": {
+            "loadedSummary": {
+              "summaryBelow": true,
+              "summaryRight": false
+            },
+            "savedZoom": 125,
+            "savedGridlines": false
+          }
+        },
+        "undoRedo": true,
+        "freshProcessReopen": true
+      },
+      "originalsUnchanged": true,
+      "workbooks": 9,
+      "readerWriterPairs": 36
     }
   }
 }

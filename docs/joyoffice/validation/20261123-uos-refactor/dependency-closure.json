@@ -1,0 +1,26 @@
+{
+  "joyword": {
+    "craftEdges": [],
+    "sha256": "946485dc885e98092a857ee2376558c81af1fe0ef935b6d19511fece87cdc03e"
+  },
+  "joyword-cli": {
+    "craftEdges": [],
+    "sha256": "320de6574de0bf25291806af7e1e01750a1c607ff0a58ec577dec53bdc080393"
+  },
+  "joydeck": {
+    "craftEdges": [],
+    "sha256": "68b7b487d2a9f73a2bf19606855be1cc739201be7f21f6148753ca78fd867080"
+  },
+  "joydeck-cli": {
+    "craftEdges": [],
+    "sha256": "30239277b83601b8b51b59083d25cbb8e5bceb9cc52d75580d2aa93b6c220268"
+  },
+  "joysheet": {
+    "craftEdges": [],
+    "sha256": "0d52441b95cca5e494f13164d2bd856c74a4d34bcae57e6f200360049d48e0b1"
+  },
+  "joysheet-cli": {
+    "craftEdges": [],
+    "sha256": "b35392936d55ecf1ff3cec2d6fd7f630eb255c7df2256091b9d5f0cb7b519f49"
+  }
+}

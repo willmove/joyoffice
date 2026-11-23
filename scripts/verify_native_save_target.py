@@ -15,8 +15,9 @@ from probe_native_ime import mac_keys, mac_target, run, system_events
 
 
 class Panel:
-    def __init__(self, process):
+    def __init__(self, process, x11_save_buttons=None):
         self.process = process
+        self.x11_save_buttons = x11_save_buttons
         self.mac = platform.system() == "Darwin"
         if self.mac:
             self.owner = mac_target(process.pid)
@@ -44,7 +45,15 @@ class Panel:
             mac_keys(self.process.pid, ["1 using {command down, shift down}"])
         else:
             run("xdotool", "windowactivate", "--sync", self.window)
-            run("xdotool", "key", "--clearmodifiers", "ctrl+shift+s")
+            if self.x11_save_buttons:
+                file_x, file_y, save_x, save_y = self.x11_save_buttons
+                run("xdotool", "mousemove", "--window", self.window, str(file_x), str(file_y), "click", "1")
+                time.sleep(.3)
+                if run("xdotool", "getactivewindow") != self.window:
+                    raise RuntimeError("test application lost focus before Save As")
+                run("xdotool", "mousemove", "--window", self.window, str(save_x), str(save_y), "click", "1")
+            else:
+                run("xdotool", "key", "--clearmodifiers", "ctrl+shift+s")
         self.dialog = wait(self.visible, "native save panel", self.process)
 
     def xevent(self, *args):
@@ -86,7 +95,7 @@ class Panel:
         wait(lambda: not self.visible(), "panel acceptance", self.process)
 
 
-def sheet(binary, out):
+def sheet(binary, out, x11_save_buttons=None):
     cfg, number = out / "profile", port()
     client = SheetControl(number, cfg)
     call = client.call
@@ -100,7 +109,7 @@ def sheet(binary, out):
         change = lambda text: call("engine.execute", command="cell.set", params={"cell":"A1","input":text})
         change("第一版")
         call("ui.awaitIdle")
-        panel = Panel(p)
+        panel = Panel(p, x11_save_buttons)
         panel.open()
         panel.cancel()
         panel.open()
@@ -122,19 +131,19 @@ def sheet(binary, out):
     return ["cancel then retry", "late result after edit rejected before file creation", "independent XLSX and fresh process readback", "original hash unchanged"]
 
 
-def deck(binary, out, other_view=False, x11_buttons=None):
+def deck(binary, out, other_view=False, x11_buttons=None, x11_save_buttons=None):
     original, target = out / "原件.pptx", out / "演示 副本.pptx"
     if other_view:
         target = out / "four-slides.pptx"
     shutil.copyfile(ROOT / "tests/fixtures/joydeck/independent.pptx", original)
     initial_hash = digest(original)
-    env = {"JOYDECK_CONFIG_DIR":str(out / "profile"), "JOYDECK_RECOVERY_DIR":str(out / "recovery")}
+    env = {"XDG_CONFIG_HOME":str(out / "profile"), "XDG_STATE_HOME":str(out / "state")}
     args = ["--control-stdio=" + str(out)]
 
     with app(binary, [str(original), *args], out, env) as p:
         client = DeckControl(p)
         slides = wait(client.inspect, "presentation", p)["slides"]
-        panel = Panel(p)
+        panel = Panel(p, x11_save_buttons)
         if other_view:
             if x11_buttons:
                 for x, y in zip(x11_buttons[::2], x11_buttons[1::2]):
@@ -185,8 +194,11 @@ if __name__ == "__main__":
     parser.add_argument("binary", type=Path)
     parser.add_argument("output", type=Path)
     parser.add_argument("--other-view", action="store_true", help="open the native Deck picker in a second view of the same document")
+    parser.add_argument("--x11-save-buttons", type=int, nargs=4, metavar=("FILE_X", "FILE_Y", "SAVE_X", "SAVE_Y"), help="Window-relative File / Save As centers verified on this X11 desktop; avoids desktop shortcut interception")
     parser.add_argument("--x11-view-buttons", type=int, nargs=4, metavar=("VIEW_X","VIEW_Y","NEW_X","NEW_Y"), help="window-relative centers from the native accessibility tree on the same X11 desktop")
     args = parser.parse_args()
+    if args.x11_save_buttons and platform.system() != "Linux":
+        parser.error("--x11-save-buttons requires Linux X11")
     if args.x11_view_buttons and (platform.system() != "Linux" or not args.other_view):
         parser.error("--x11-view-buttons requires an X11 --other-view check")
     if args.product != "deck" and args.other_view:
@@ -195,7 +207,10 @@ if __name__ == "__main__":
     out.mkdir(parents=True, exist_ok=False)
     result = {"platform":platform.platform(),"product":args.product,"binarySha256":digest(binary),"passed":False}
     try:
-        result["checks"] = sheet(binary,out) if args.product == "sheet" else deck(binary,out,args.other_view,args.x11_view_buttons)
+        result["checks"] = sheet(binary,out,args.x11_save_buttons) if args.product == "sheet" else deck(binary,out,args.other_view,args.x11_view_buttons,args.x11_save_buttons)
+        result["activation"] = "file-menu" if args.x11_save_buttons else "keyboard"
+        if args.x11_save_buttons:
+            result["x11SaveButtons"] = args.x11_save_buttons
         result["passed"] = True
     finally:
         (out / "report.json").write_text(json.dumps(result, indent=2) + "\n")

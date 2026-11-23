@@ -1,0 +1,50 @@
+{
+  "sourceSha256": "0631ae23dfcfad88f9aba9ade336f4b6aabf569007ad8a64043fc26993223848",
+  "desktopSha256": "836c0bb2dc0a9dffafa25cbe3ef52cf8ce3dd0d75f987973cc62bcf527a073a9",
+  "cliSha256": [
+    "a23addd9f7c362b07970806fcaeeb84e394eea3e8db7745d483544335dd946a0",
+    "82d2252a9acac5ab433a8a02cb31d2a47ef4e4a7aaf80713a4f921626394c8ac"
+  ],
+  "initialSections": 68,
+  "savedSections": 69,
+  "finalPages": 69,
+  "mcpBreaksVerified": [
+    "nextPage",
+    "continuous",
+    "oddPage",
+    "evenPage"
+  ],
+  "twoVersionPageRastersCount": 69,
+  "twoVersionRastersMatch": true,
+  "crossVersion": {
+    "baseline": {
+      "sections": 69,
+      "sha256": "6d4a9e404a7cbd720fd4868d09d365e41afdc2844cde98baed7988fe79e51711"
+    },
+    "candidate": {
+      "sections": 69,
+      "sha256": "6d4a9e404a7cbd720fd4868d09d365e41afdc2844cde98baed7988fe79e51711"
+    }
+  },
+  "nativePatches": [
+    {
+      "action": "text.insert",
+      "firstPage": 35,
+      "lastPage": 69,
+      "pages": 69
+    },
+    {
+      "action": "edit.undo",
+      "firstPage": 35,
+      "lastPage": 69,
+      "pages": 69
+    },
+    {
+      "action": "edit.redo",
+      "firstPage": 35,
+      "lastPage": 69,
+      "pages": 69
+    }
+  ],
+  "originalsUnchanged": true
+}

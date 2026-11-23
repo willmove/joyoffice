@@ -1,5 +1,7 @@
 # JoyDeck 界面与功能对照
 
+2026-11-23：UOS 真机已补验输入、原生另存和四种放映窗口场景；49 类转场的 Vulkan 对照与剩余文件选项读回通过。该结果覆盖重构切片，不关闭本页的完整 UI 对齐或 JD-906；当前 98 项任务为完成 41、进行中 50、已实现待验收 4、待开始 3。[证据与边界](../joyoffice/validation/20261123-uos-refactor/README.md)
+
 2026-11-03，主参照为本机 DeckCraft 0.14.1；PowerPoint 用于中文菜单、保存和基础编辑习惯核对。当前技术栈为 JoyOffice 的 GPUI Kit 0.9.1 / GPUI pre 0.3.12；升级范围见 [公共依赖记录](../joyoffice/GPUI-KIT-0.9.1-UPGRADE.md)。没有复制微软图标、品牌素材或系统字体。
 
 ## 原因与验收修正

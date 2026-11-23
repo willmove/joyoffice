@@ -16,8 +16,9 @@ from probe_native_ime import run, x11_selection_owner
 
 
 class Input:
-    def __init__(self, p):
+    def __init__(self, p, sogou_shift=False):
         self.p = p
+        self.sogou_shift = sogou_shift
         self.win = wait(lambda: run("xdotool", "search", "--onlyvisible", "--pid", str(p.pid)).splitlines()[0], "X11 window", p)
         run("xdotool", "windowactivate", "--sync", self.win)
         geometry = run("xdotool", "getwindowgeometry", "--shell", self.win)
@@ -38,6 +39,22 @@ class Input:
         wait(lambda: run("fcitx5-remote", "-n") == method, "active input method", self.p)
 
     def compose(self, out, committed, marked=None):
+        if not self.sogou_shift:
+            return self._compose(out, committed, marked)
+        if run("fcitx5-remote", "-n") != "com.sogou.ime.ng.fcitx5.uos":
+            raise RuntimeError("--sogou-shift expects the UOS Sogou input method")
+        self.key("Shift_L")
+        try:
+            return self._compose(out, committed, marked)
+        except Exception:
+            self.key("Escape")
+            raise
+        finally:
+            # A completed composition is already cancelled by _compose. An extra
+            # Escape here would discard the committed text in a Sheet cell draft.
+            self.key("Shift_L")
+
+    def _compose(self, out, committed, marked=None):
         self.key(*"zhongwen")
         time.sleep(.45)
         if marked is not None:
@@ -52,7 +69,7 @@ class Input:
         wait(committed, "cancel retained the first selection", self.p)
 
 
-def word(binary, out, method):
+def word(binary, out, method, sogou_shift=False):
     source = out/"验证.docx"
     shutil.copyfile(ROOT/"assets/samples/letter.docx", source)
     number, secret = port(), secrets.token_hex(32)
@@ -61,7 +78,7 @@ def word(binary, out, method):
     inspect = lambda: word_request(number, "document.inspect", key=secret).get("result")
     with app(binary,args,out,env) as p:
         start = wait(inspect,"loaded Word",p)
-        key = Input(p)
+        key = Input(p, sogou_shift)
         key.activate(method)
         command = {"command":"caret.docEnd","doc":start["doc"],"version":start["version"],"params":{}}
         assert word_request(number,"engine.execute",command,secret)["ok"]
@@ -89,10 +106,10 @@ def word(binary, out, method):
     return source
 
 
-def deck(binary, out, method):
+def deck(binary, out, method, sogou_shift=False):
     source, target = out/"source.pptx", out/"验证.pptx"
     shutil.copyfile(ROOT/"tests/fixtures/joydeck/r1-preview.pptx",source)
-    env = {"JOYDECK_CONFIG_DIR":str(out/"profile"),"XDG_STATE_HOME":str(out/"state")}
+    env = {"XDG_CONFIG_HOME":str(out/"profile"),"XDG_STATE_HOME":str(out/"state")}
     count = 0
     def call(p, command, params=None, guarded=True):
         nonlocal count
@@ -112,7 +129,7 @@ def deck(binary, out, method):
     notes = lambda p: call(p,"document.inspect")["slides"][0]["notes"]
     with app(binary,[str(source),"--control-stdio="+str(out)],out,env) as p:
         initial = wait(lambda: notes(p),"Deck notes",p)
-        key = Input(p)
+        key = Input(p, sogou_shift)
         x, y = int(key.geom["WIDTH"])//2, int(key.geom["HEIGHT"])-51
         run("xdotool","mousemove","--window",key.win,str(x),str(y),"click","1")
         key.activate(method)
@@ -131,14 +148,14 @@ def deck(binary, out, method):
     return target
 
 
-def sheet(binary, out, method, server_preedit=False):
+def sheet(binary, out, method, server_preedit=False, sogou_shift=False):
     target, cfg, number = out/"验证.xlsx", out/"profile", port()
     ctrl = SheetControl(number,cfg)
     args, env = ["--control",str(number),"--diagnostics"], {"JOYSHEET_CONFIG_DIR":str(cfg)}
     token_vars = ("JOYSHEET_CONTROL_TOKEN","GRIDCRAFT_CONTROL_TOKEN")
     with app(binary,args,out,env,unset=token_vars) as p:
         ctrl.wait(lambda v:v["perf"]["frame"]>1,"loaded Sheet",p)
-        key = Input(p)
+        key = Input(p, sogou_shift)
         ctrl.call("ui.cell.click",cell="A1")
         key.activate(method)
         def selected():
@@ -178,6 +195,7 @@ if __name__ == "__main__":
     ap.add_argument("output",type=Path)
     ap.add_argument("--method", default="pinyin")
     ap.add_argument("--server-preedit", action="store_true", help="The XIM server displays preedit and sends only committed text")
+    ap.add_argument("--sogou-shift", action="store_true", help="Temporarily switch Sogou from its internal English mode to Chinese, then restore it")
     opt=ap.parse_args()
     out,binary=opt.output.resolve(),opt.binary.resolve()
     out.mkdir(parents=True,exist_ok=False)
@@ -189,11 +207,15 @@ if __name__ == "__main__":
         if not report["ximSelectionOwner"]:
             raise RuntimeError("the X11 input method has no owner on this display")
         report["preedit"] = "server" if opt.server_preedit else "client"
+        if opt.sogou_shift:
+            report["temporaryModeToggle"] = "Shift_L"
         if opt.product == "sheet":
-            target = sheet(binary, out, opt.method, opt.server_preedit)
+            target = sheet(binary, out, opt.method, opt.server_preedit, opt.sogou_shift)
         else:
-            target = {"word":word,"deck":deck}[opt.product](binary,out,opt.method)
+            target = {"word":word,"deck":deck}[opt.product](binary,out,opt.method,opt.sogou_shift)
         report.update(passed=True,fileSha256=digest(target),candidateSha256=digest(out/"candidate.png"))
+        if opt.sogou_shift:
+            report["restoredMode"] = True
     except Exception as error:
         report["error"]=str(error)
         raise

@@ -1,0 +1,300 @@
+{
+  "kinds": 17,
+  "cases": 48,
+  "readerWriterPairs": 192,
+  "binaries": {
+    "baseline": "7b7b369d8a43d7244202b7d76ef681eb44b84301a35e2aeab1032677732411f9",
+    "candidate": "b150e023e4c0c20406e30840fc9603d513539868605ace344d4504d21db53f49"
+  },
+  "originalsUnchanged": true,
+  "casesVerified": [
+    {
+      "kind": "reveal",
+      "option": "smoothlyLeft",
+      "sourceSha256": "b8c56dc6bc77d008d4f1fa46581a45a0dcdcbbcff1a594ecf9ba98eda22b8b96",
+      "readerWriterPairs": 4
+    },
+    {
+      "kind": "reveal",
+      "option": "smoothlyRight",
+      "sourceSha256": "ad1e52456f9f15e8bd161ee12e1532bf59e401c83b1c29de8d7c60f256d3fc8b",
+      "readerWriterPairs": 4
+    },
+    {
+      "kind": "reveal",
+      "option": "blackLeft",
+      "sourceSha256": "3ccfab1c45ed8ce5c868c3b42d4bcf77ed3fe5a7778dae947eaa37cf5060f4e9",
+      "readerWriterPairs": 4
+    },
+    {
+      "kind": "reveal",
+      "option": "blackRight",
+      "sourceSha256": "607a9c8e21dca8aa549ca05daa3e5dc1291b7d83f7c0f1f460e2176f750fdc5f",
+      "readerWriterPairs": 4
+    },
+    {
+      "kind": "flash",
+      "option": "",
+      "sourceSha256": "745cbd8fbb66a8b275f703e1b948c7d1c3213d1df3945b485112772321f66442",
+      "readerWriterPairs": 4
+    },
+    {
+      "kind": "honeycomb",
+      "option": "",
+      "sourceSha256": "6839dc0dfa62aa4eef57ca709422c797743ad5adbf261b033be9057e34660e8d",
+      "readerWriterPairs": 4
+    },
+    {
+      "kind": "glitter",
+      "option": "l",
+      "sourceSha256": "ef3bc5dd66807df875b3b9afadaa5abd465bbd18f69274b98c2e407e4d908051",
+      "readerWriterPairs": 4
+    },
+    {
+      "kind": "glitter",
+      "option": "r",
+      "sourceSha256": "be45dc3ad085d22f4ea5f2e527f871bc1f79bc4d11502ced13d1c503dbfb9e3e",
+      "readerWriterPairs": 4
+    },
+    {
+      "kind": "glitter",
+      "option": "u",
+      "sourceSha256": "9130af9b1c027fad282d6c525d5e31cab73acbca375bf3c70a2d7eb7e59033b4",
+      "readerWriterPairs": 4
+    },
+    {
+      "kind": "glitter",
+      "option": "d",
+      "sourceSha256": "4d7dad0bfc54116b8d9f3f0eddd3bd32f4b97884229c19df33b08c35eabba6ca",
+      "readerWriterPairs": 4
+    },
+    {
+      "kind": "glitter",
+      "option": "hexL",
+      "sourceSha256": "9b84f9763d62fe2aa89f0f5ef910642f4fcefba5a47e3bac04f6b225e548dba2",
+      "readerWriterPairs": 4
+    },
+    {
+      "kind": "glitter",
+      "option": "hexR",
+      "sourceSha256": "bde6fae7d1fb3ccca62f3a3345473001188622dd26da1993057d38e63eb181f7",
+      "readerWriterPairs": 4
+    },
+    {
+      "kind": "glitter",
+      "option": "hexU",
+      "sourceSha256": "d99898318dff4896d5acddd20b233130725d032381dfe2c697e3f517a91a6d86",
+      "readerWriterPairs": 4
+    },
+    {
+      "kind": "glitter",
+      "option": "hexD",
+      "sourceSha256": "d7d8feff89902cebcae776f3bd204cf36db7c597ec9081f9268171ed6de78c93",
+      "readerWriterPairs": 4
+    },
+    {
+      "kind": "vortex",
+      "option": "l",
+      "sourceSha256": "559e0f0b2417688517aad3943a20bdf2b78eb23a3d3a21ad5ca58e3f11201864",
+      "readerWriterPairs": 4
+    },
+    {
+      "kind": "vortex",
+      "option": "r",
+      "sourceSha256": "9c6933f1107f3c5ce6d05350750b9c6d421fea848d510a457e62a05fa345eeed",
+      "readerWriterPairs": 4
+    },
+    {
+      "kind": "vortex",
+      "option": "u",
+      "sourceSha256": "d3eff15c0cd14d636fd6f7df942425b03eebd2af1e1f54bbd21dbf5a7ca16af9",
+      "readerWriterPairs": 4
+    },
+    {
+      "kind": "vortex",
+      "option": "d",
+      "sourceSha256": "63c88d2ef28e1b6db32ec241d5068a3b60fe59deb9eba49958c3494fc2dc067c",
+      "readerWriterPairs": 4
+    },
+    {
+      "kind": "shred",
+      "option": "stripsIn",
+      "sourceSha256": "6ffe559b1b3ee8a21048e7886a34a2664dcad6365d3109137c82f6393659d402",
+      "readerWriterPairs": 4
+    },
+    {
+      "kind": "shred",
+      "option": "stripsOut",
+      "sourceSha256": "63761cedc7209d6618d40b780c18e8a4fe8564d17e01cae4f7a402bbac7a5594",
+      "readerWriterPairs": 4
+    },
+    {
+      "kind": "shred",
+      "option": "particlesIn",
+      "sourceSha256": "ea4b5952f6fb74a482cf8798b83158e50ecd50f40f8e148379ea1804c66b3352",
+      "readerWriterPairs": 4
+    },
+    {
+      "kind": "shred",
+      "option": "particlesOut",
+      "sourceSha256": "7aa46bebdce574e1a20b7d3d3ae20c364a7b8198a1ffa61e80d4bed1c96ac592",
+      "readerWriterPairs": 4
+    },
+    {
+      "kind": "switch",
+      "option": "l",
+      "sourceSha256": "3c49fa82dd534f47f680d761e4ed35c1508915ae43457fa06775f24ec57e9a7c",
+      "readerWriterPairs": 4
+    },
+    {
+      "kind": "switch",
+      "option": "r",
+      "sourceSha256": "f31c4bcd6cc3148969a35036158927cf7631458df0af4c199486f78e093a4863",
+      "readerWriterPairs": 4
+    },
+    {
+      "kind": "flip",
+      "option": "l",
+      "sourceSha256": "fcaf7accd5d621e31b0c25b339c236b8b731a191707cacf40286c275ce23b0d1",
+      "readerWriterPairs": 4
+    },
+    {
+      "kind": "flip",
+      "option": "r",
+      "sourceSha256": "4510627cf6c067fdbcc78e63a6a1ee925f6c200498b27c36fd24e3cd061b02a5",
+      "readerWriterPairs": 4
+    },
+    {
+      "kind": "gallery",
+      "option": "l",
+      "sourceSha256": "fe3b1d2fa0f997cab7334eb0b984ed01794ae4c1ecb3cd24e4d711706007f2b4",
+      "readerWriterPairs": 4
+    },
+    {
+      "kind": "gallery",
+      "option": "r",
+      "sourceSha256": "a8a93b5c4ec5acb83c1b8d5a2fcc20d270e383e0a7d86df818286e900a1472d3",
+      "readerWriterPairs": 4
+    },
+    {
+      "kind": "doors",
+      "option": "vert",
+      "sourceSha256": "d5a753ee376079b01dd8d8885760b608e9212878d55eb5b5bd266f46daae624c",
+      "readerWriterPairs": 4
+    },
+    {
+      "kind": "doors",
+      "option": "horz",
+      "sourceSha256": "45669efa9a2d4c83e02f4e17dafb5b038cc3d62415ff2a3b1aac56eb7c6765c7",
+      "readerWriterPairs": 4
+    },
+    {
+      "kind": "zoom",
+      "option": "in",
+      "sourceSha256": "dab3247412b7bc011e663cff608f7639505cab9ba3db656a53ee7f864bb01b8f",
+      "readerWriterPairs": 4
+    },
+    {
+      "kind": "zoom",
+      "option": "out",
+      "sourceSha256": "561710f7c2495cb1567d39db5fd79570785ae717e1ffa5d1dcff2ef0bfeebef6",
+      "readerWriterPairs": 4
+    },
+    {
+      "kind": "zoom",
+      "option": "rotate",
+      "sourceSha256": "c3f420c6a5db6d562ef73a7b9a28741af67ce74709fd070da4275806f1535f07",
+      "readerWriterPairs": 4
+    },
+    {
+      "kind": "pan",
+      "option": "u",
+      "sourceSha256": "73ea8b7da5935557fb459e120db1dbfbf4718716aa65fda4be67c75d849d55e0",
+      "readerWriterPairs": 4
+    },
+    {
+      "kind": "pan",
+      "option": "d",
+      "sourceSha256": "1a5639de53d31a9f1b6439af2c22a4b6579bf9517124d2c3564eed4fb9c14401",
+      "readerWriterPairs": 4
+    },
+    {
+      "kind": "pan",
+      "option": "l",
+      "sourceSha256": "2bf782dd3d13a0586af9ba14092bca3562e348a817322bc194245f665d42a550",
+      "readerWriterPairs": 4
+    },
+    {
+      "kind": "pan",
+      "option": "r",
+      "sourceSha256": "5850f0d9d9bf3c348b8c81f821f9a7328fa7769ac7e9694084c1f0a102a718f8",
+      "readerWriterPairs": 4
+    },
+    {
+      "kind": "ferris",
+      "option": "l",
+      "sourceSha256": "0d0d9f7fc3291653f154fa9f5a0b5654c3d1a757949d4c243cd9cef3304e170a",
+      "readerWriterPairs": 4
+    },
+    {
+      "kind": "ferris",
+      "option": "r",
+      "sourceSha256": "a641bcdefdb49d3cfff6a682251c7efdafd2874c6d7a1ff0516e38c0b9e244a8",
+      "readerWriterPairs": 4
+    },
+    {
+      "kind": "conveyor",
+      "option": "l",
+      "sourceSha256": "0db568028270ac5b9c2bbc8d9dbfcb8ede52af856f6b05bbcd6db726ced24f7c",
+      "readerWriterPairs": 4
+    },
+    {
+      "kind": "conveyor",
+      "option": "r",
+      "sourceSha256": "aac5c92754719115e1a3dac419298972d9f4efc0460a3578ffccb5ffa5597bf7",
+      "readerWriterPairs": 4
+    },
+    {
+      "kind": "window",
+      "option": "vert",
+      "sourceSha256": "d38a08b8bbdf61eb0c7a5906d12a141e246f71d716d15321ab33aa2645b38615",
+      "readerWriterPairs": 4
+    },
+    {
+      "kind": "window",
+      "option": "horz",
+      "sourceSha256": "a26fd465dc18fca46aa9888271a6cf5e55b3e23e12093b8d32340728710c80ac",
+      "readerWriterPairs": 4
+    },
+    {
+      "kind": "flythrough",
+      "option": "in",
+      "sourceSha256": "bddf67fef43ef3c866e5b5a553e05c94876821345e6f824d2623c37b75d0ef81",
+      "readerWriterPairs": 4
+    },
+    {
+      "kind": "flythrough",
+      "option": "out",
+      "sourceSha256": "88b72b18e2685203ecf9c9133f6b8ae9acfc52fbc0c0de39ae230c4a05aca30e",
+      "readerWriterPairs": 4
+    },
+    {
+      "kind": "flythrough",
+      "option": "inBounce",
+      "sourceSha256": "ae9f34b30b39300f0535c37cfea7e679a2df1690e4522a786c59a01bcd050016",
+      "readerWriterPairs": 4
+    },
+    {
+      "kind": "flythrough",
+      "option": "outBounce",
+      "sourceSha256": "8bc6549d7df3210a912a8cccddd832ff250e3d5f6380aea22321c6f45889c42d",
+      "readerWriterPairs": 4
+    },
+    {
+      "kind": "random",
+      "option": "",
+      "sourceSha256": "eb3273e2d99b431a7018c0493477a920b45621e77f840aef235a8ee23792faa3",
+      "readerWriterPairs": 4
+    }
+  ]
+}

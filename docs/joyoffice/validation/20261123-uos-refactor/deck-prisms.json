@@ -1,0 +1,192 @@
+{
+  "sourceSha256": "fb2ffda407739420692c371929e9e60f5ba3a2bfc3ac02f0f423df59fb7a3d9b",
+  "binarySha256": "2a748a03ec5487773106ab6452aa04a8806f1b015645f5122ef4aa6259f50a2d",
+  "modes": {
+    "auto": {
+      "backend": "Vulkan / AMD Radeon 890M Graphics (RADV GFX1150)",
+      "slides": {
+        "cube": {
+          "referenceMean": [
+            97.75,
+            50.47,
+            100.18
+          ],
+          "outlyingSamples": 0,
+          "samples": 3864,
+          "pausedSeconds": 2.46056473,
+          "firstColor": [
+            204,
+            34,
+            17
+          ],
+          "pausedColor": [
+            98.07,
+            50.52,
+            100.2
+          ],
+          "settledColor": [
+            35,
+            82,
+            208
+          ],
+          "screenshots": {
+            "paused": "95be8d7bdffc807673aa84a572525c1ead2de8e53397a121ee10ee0f3931620a",
+            "end": "f9661c0d6a44db42293e5892738133b2aedeab901c0da677ad80d2989bead866"
+          },
+          "pixels": [
+            1376,
+            774
+          ],
+          "preparation": {
+            "frames": 138,
+            "medianMs": 23.71,
+            "p95Ms": 36.4
+          }
+        },
+        "orbit": {
+          "referenceMean": [
+            43,
+            139,
+            135
+          ],
+          "outlyingSamples": 0,
+          "samples": 3864,
+          "pausedSeconds": 2.458014332999999,
+          "firstColor": [
+            35,
+            82,
+            208
+          ],
+          "pausedColor": [
+            43,
+            139,
+            135
+          ],
+          "settledColor": [
+            51,
+            192,
+            68
+          ],
+          "screenshots": {
+            "paused": "a87aa5552070095b74cb4ddf9a3b20741049336015500b98ff2c9c0e892cf26d",
+            "end": "8c387e36e7b1f73104488abc07d6f2b267b8c42465a61ce3792733a14d591a03"
+          },
+          "pixels": [
+            1376,
+            774
+          ],
+          "preparation": {
+            "frames": 139,
+            "medianMs": 23.34,
+            "p95Ms": 31.57
+          }
+        }
+      }
+    },
+    "cpu": {
+      "backend": "CPU",
+      "slides": {
+        "cube": {
+          "referenceMean": [
+            72.31,
+            56.66,
+            125.7
+          ],
+          "outlyingSamples": 0,
+          "samples": 3864,
+          "pausedSeconds": 2.8387743050000007,
+          "firstColor": [
+            204,
+            34,
+            17
+          ],
+          "pausedColor": [
+            72.41,
+            56.67,
+            125.71
+          ],
+          "settledColor": [
+            35,
+            82,
+            208
+          ],
+          "screenshots": {
+            "paused": "60db3b49809742ee19eaeac3d0bc522c33884880d183f42b386db0887cb4ca54",
+            "end": "f9661c0d6a44db42293e5892738133b2aedeab901c0da677ad80d2989bead866"
+          },
+          "pixels": [
+            1376,
+            774
+          ],
+          "preparation": {
+            "frames": 14,
+            "medianMs": 330.41,
+            "p95Ms": 354.02
+          }
+        },
+        "orbit": {
+          "referenceMean": [
+            46,
+            156,
+            114
+          ],
+          "outlyingSamples": 0,
+          "samples": 3864,
+          "pausedSeconds": 2.9703706600000004,
+          "firstColor": [
+            35,
+            82,
+            208
+          ],
+          "pausedColor": [
+            46,
+            156,
+            114
+          ],
+          "settledColor": [
+            51,
+            192,
+            68
+          ],
+          "screenshots": {
+            "paused": "0c5330e2123a52119cde3933560bda902d76721ffa539aea800c3b7c528271b8",
+            "end": "8c387e36e7b1f73104488abc07d6f2b267b8c42465a61ce3792733a14d591a03"
+          },
+          "pixels": [
+            1376,
+            774
+          ],
+          "preparation": {
+            "frames": 15,
+            "medianMs": 305.02,
+            "p95Ms": 350.42
+          }
+        }
+      }
+    }
+  },
+  "exchange": {
+    "cliSha256": {
+      "baseline": "7b7b369d8a43d7244202b7d76ef681eb44b84301a35e2aeab1032677732411f9",
+      "candidate": "b150e023e4c0c20406e30840fc9603d513539868605ace344d4504d21db53f49"
+    },
+    "halfTimeFramesByWriterAndReader": {
+      "baseline-baseline": [
+        "f4419ca010a63de40a818d5b374bdf6fe94b75c8e2f09e62ed0406797b6b4230",
+        "4b3629907c47facf48509059b977ec4ebf2ea3a38d144a0a510db6fac5a09e9c"
+      ],
+      "baseline-candidate": [
+        "f4419ca010a63de40a818d5b374bdf6fe94b75c8e2f09e62ed0406797b6b4230",
+        "4b3629907c47facf48509059b977ec4ebf2ea3a38d144a0a510db6fac5a09e9c"
+      ],
+      "candidate-baseline": [
+        "f4419ca010a63de40a818d5b374bdf6fe94b75c8e2f09e62ed0406797b6b4230",
+        "4b3629907c47facf48509059b977ec4ebf2ea3a38d144a0a510db6fac5a09e9c"
+      ],
+      "candidate-candidate": [
+        "f4419ca010a63de40a818d5b374bdf6fe94b75c8e2f09e62ed0406797b6b4230",
+        "4b3629907c47facf48509059b977ec4ebf2ea3a38d144a0a510db6fac5a09e9c"
+      ]
+    }
+  }
+}

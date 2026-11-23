@@ -1,0 +1,50 @@
+{
+  "binaries": [
+    "f6808298045113318e4c6e4932b4fdd74d3ff9758b171b5442c189aa5848c24d",
+    "d7016cf54987015acb5016743ec570c72843bc295e71343f14b309f8a7cffca7"
+  ],
+  "excel": {
+    "base": {
+      "sourceSha256": "01dcfcd7d0730d90eaf6ee43b84120835a09fcd788fabeae174151d995fe487c",
+      "independentByFunction": {
+        "COUNTIF": 39,
+        "SUMIF": 12,
+        "AVERAGEIF": 6,
+        "COUNTIFS": 7,
+        "SUMIFS": 16,
+        "AVERAGEIFS": 6,
+        "MAXIFS": 7,
+        "MINIFS": 7,
+        "SEARCH": 4
+      },
+      "baselineDifferences": [],
+      "candidateDifferences": 0,
+      "bothGenerationsRecalculatedBothWriters": true
+    },
+    "edit": {
+      "sourceSha256": "ccc708dee5a222d3f57442dd29fa9b91d72e848b5cafc7a32a65082bb3e46b3e",
+      "independentByFunction": {
+        "COUNTIF": 39,
+        "SUMIF": 12,
+        "AVERAGEIF": 6,
+        "COUNTIFS": 7,
+        "SUMIFS": 16,
+        "AVERAGEIFS": 6,
+        "MAXIFS": 7,
+        "MINIFS": 7,
+        "SEARCH": 4
+      },
+      "baselineDifferences": [],
+      "candidateDifferences": 0,
+      "bothGenerationsRecalculatedBothWriters": true
+    }
+  },
+  "native": {
+    "changedCells": 17,
+    "checkedPerState": 20,
+    "states": 5,
+    "savedTypedCaches": 104,
+    "undoRedoAndFreshReopen": true,
+    "originalUnchanged": true
+  }
+}

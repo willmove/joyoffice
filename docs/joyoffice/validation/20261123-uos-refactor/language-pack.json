@@ -1,0 +1,35 @@
+{
+  "cliSha256": "82d2252a9acac5ab433a8a02cb31d2a47ef4e4a7aaf80713a4f921626394c8ac",
+  "desktopSha256": "836c0bb2dc0a9dffafa25cbe3ef52cf8ce3dd0d75f987973cc62bcf527a073a9",
+  "fixtureSha256": "34574dba513adf7c6f569a31fc39d2ae0e733a27ab0cc53ff86d56318894b80a",
+  "archiveSha256": [
+    "a0b06d9531233160598c4d146a708c1c52a57e6aec6eb379ae1a75035106100f",
+    "bdd7a0b0e7fe9c24d4c3ee78e41ea90459e9052d1a68492bc9249b5fdc9174e6"
+  ],
+  "desktopAndCliPages": {
+    "before": 20,
+    "wholeWordException": 24,
+    "syllableExceptions": 20,
+    "afterRemoval": 20
+  },
+  "refusedConsentOff": true,
+  "refusedChangedArchive": true,
+  "licenseAndInstallRecordVerified": true,
+  "sourceDocumentUnchanged": true,
+  "published": {
+    "releaseIndexSha256": "b35c7aef0591177f18233b551da16035dcd615549ff874e169ffd19f16fea74b",
+    "indexEntries": 75,
+    "locale": "nl",
+    "archiveSha256": "6e26118ef28d0faca48b5b55d7be9f364b1de5e73adbcb739d6e0fb2a517c7f0",
+    "archiveBytes": 756670,
+    "source": "https://github.com/LibreOffice/dictionaries/tree/4f1df64b2e8e14751aa7c2205d170ca016071315/nl_NL",
+    "license": "BSD-3-Clause AND MIT",
+    "checkedFiles": [
+      "spelling.aff",
+      "spelling.dic",
+      "hyphenation.pat",
+      "LICENCES/"
+    ],
+    "desktopAndCliPages": 20
+  }
+}

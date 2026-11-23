@@ -316,8 +316,33 @@
       }
     },
     "UOS": {
-      "status": "pending",
-      "note": "No UOS 25 x86_64 physical host attached during 2026-11-23 run; rerun check-conditional-aggregates.py and statistical_spread -- criteria on UOS when available."
+      "status": "passed",
+      "date": "2026-11-23",
+      "sourceCommit": "22036e0209a38156748c5c6c61682f6c23519360",
+      "baselineCommit": "32562303551d29dc9152e801b03c5b94cad8c2db",
+      "os": "UOS Desktop 25 Professional x86_64",
+      "profile": "Debug",
+      "display": "X11 / DDE / GPUI scaleFactor 1.25",
+      "previousStatus": {
+        "status": "pending",
+        "note": "No UOS 25 x86_64 physical host attached during 2026-11-23 run; rerun check-conditional-aggregates.py and statistical_spread -- criteria on UOS when available."
+      },
+      "scope": "This batch on the named UOS host; full product/platform qualification remains open.",
+      "report": "../20261123-uos-refactor/README.md",
+      "evidence": "../20261123-uos-refactor/conditional-aggregates.json",
+      "nativeDesktop": {
+        "changedCells": 17,
+        "checkedPerState": 20,
+        "states": 5,
+        "savedTypedCaches": 104,
+        "undoRedoAndFreshReopen": true,
+        "originalUnchanged": true
+      },
+      "originalsUnchanged": true,
+      "workbooks": 2,
+      "formulaCaches": 208,
+      "candidateDifferences": 0,
+      "liveExcelRecalculation": "not run on this host; remains pending"
     }
   }
 }

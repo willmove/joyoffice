@@ -1,0 +1,8 @@
+{
+  "removedOnlyThisRunPaths": 8,
+  "preservedOtherPaths": 12,
+  "cleanedRecentSha256": "9b1c62b7fe9099463be8eee95ed4c29982288d3b86e4b191085feb0fa62428d7",
+  "note": "Initial Deck drivers used unrecognized JOYDECK_CONFIG_DIR/JOYDECK_RECOVERY_DIR overrides. Replaced with supported XDG_CONFIG_HOME and XDG_STATE_HOME; only recent paths under this run output were removed. CLI reference and exchange subprocesses also now use the isolated XDG directories. Original non-test entries from the pre-cleanup snapshot restored.",
+  "subsequentIsolatedRunsPreservedSharedRecent": true,
+  "removedThisRunPathsAfterCliRetest": 20
+}

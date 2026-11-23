@@ -253,7 +253,8 @@ def reference_frame(binary, doc, directory, slide, seconds):
         binary,
         ["control", "--root", str(doc.parent)],
         directory,
-        {},
+        {"XDG_CONFIG_HOME": str(directory / "reference-config"),
+         "XDG_STATE_HOME": str(directory / "reference-state")},
         f"reference-{slide}.log",
     ) as proc:
         client = DeckControl(proc)
@@ -287,6 +288,7 @@ def play(binary, cli, doc, directory, mode, effects, duration_ms, software_fallb
         "JOYDECK_GPU_TRANSITIONS": "0" if mode == "cpu" else "1",
         "JOYDECK_TRACE_TRANSITIONS": "1",
         "XDG_CONFIG_HOME": str(directory / "config"),
+        "XDG_STATE_HOME": str(directory / "state"),
     }
     log = directory / "desktop.log"
 
@@ -415,7 +417,10 @@ def play(binary, cli, doc, directory, mode, effects, duration_ms, software_fallb
                 )
                 return (
                     average(pixels)
-                    if all(close_color(pixel, target, 3) for pixel in pixels)
+                    # A slow CPU composition can approach the final color while
+                    # it is still showing an intermediate frame. Keep this bound
+                    # as strict as the cross-backend endpoint comparison below.
+                    if all(close_color(pixel, target, 1) for pixel in pixels)
                     else None
                 )
 
@@ -491,6 +496,7 @@ def play_automatic(binary, directory):
         {
             "JOYDECK_TRACE_TRANSITIONS": "1",
             "XDG_CONFIG_HOME": str(directory / "config"),
+            "XDG_STATE_HOME": str(directory / "state"),
         },
     ) as proc:
         log = directory / "desktop.log"
@@ -566,6 +572,8 @@ def exchange(doc, directory, baseline, candidate, effects, duration_ms):
         saved = directory / f"{writer}.pptx"
         subprocess.run(
             [exe, "exchange", doc, "--mode", "regenerate", "--output", saved],
+            env={**os.environ, "XDG_CONFIG_HOME": str(directory / "config"),
+                 "XDG_STATE_HOME": str(directory / "state")},
             capture_output=True,
             check=True,
         )

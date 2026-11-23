@@ -8,6 +8,8 @@ JoyOffice is a desktop office suite built with **Rust and GPUI Kit**. Its applic
 
 This overview reflects the repository as of **2026-11-18**.
 
+**2026-11-23 UOS follow-up:** the current refactor checkout passed Word 4,211, Deck 1,041 and Sheet 1,524 product tests, plus targeted native desktop and file roundtrip checks. Twelve pending UOS batch records are updated; complete feature/UI parity and platform qualification remain open. [Progress, evidence and limits](docs/joyoffice/validation/20261123-uos-refactor/README.md).
+
 ## Download and install
 
 JoyWord, JoySheet and JoyDeck **v0.2.0** are available below. Each portable archive includes the desktop app and CLI.
@@ -227,6 +229,8 @@ The root project is licensed under [MIT](LICENSE). Imported code and assets reta
 JoyOffice 是使用 **Rust 和 GPUI Kit** 构建的桌面 Office 套件。**JoyWord**、**JoySheet**、**JoyDeck** 与仓库内第一方库和工具共用套件版本。每款产品都提供原生桌面应用和无界面 CLI。
 
 本文概况截至 **2026-11-18**。
+
+**2026-11-23 UOS 补验：** 当前重构源码通过 Word 4,211、Deck 1,041、Sheet 1,524 项产品测试及限定原生桌面、文件往返验证，12 批 UOS 待验记录已更新；完整功能／界面对齐与平台资格仍开放。[进展分析、实机证据与边界](docs/joyoffice/validation/20261123-uos-refactor/README.md)。
 
 ## 下载与安装
 

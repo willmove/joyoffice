@@ -79,8 +79,37 @@
       }
     },
     "UOS25": {
-      "status": "pending_host",
-      "note": "No UOS 25 real machine attached in this session; re-run scripts/joysheet/check-sheet-dims.py once connected."
+      "status": "passed",
+      "date": "2026-11-23",
+      "sourceCommit": "22036e0209a38156748c5c6c61682f6c23519360",
+      "baselineCommit": "32562303551d29dc9152e801b03c5b94cad8c2db",
+      "os": "UOS Desktop 25 Professional x86_64",
+      "profile": "Debug",
+      "display": "X11 / DDE / GPUI scaleFactor 1.25",
+      "previousStatus": {
+        "status": "pending_host",
+        "note": "No UOS 25 real machine attached in this session; re-run scripts/joysheet/check-sheet-dims.py once connected."
+      },
+      "scope": "This batch on the named UOS host; full product/platform qualification remains open.",
+      "report": "../20261123-uos-refactor/README.md",
+      "evidence": "../20261123-uos-refactor/sheet-dims.json",
+      "nativeDesktop": {
+        "books": [
+          "custom_defaults.xls",
+          "custom_defaults.xlsb",
+          "custom_defaults.xlsx",
+          "grouped_outline.xls",
+          "grouped_outline.xlsb",
+          "grouped_outline.xlsx"
+        ],
+        "logs": {
+          "edit": "/home/Wilmer/Coding/joyoffice/target/uos-refactor-20261123/sheet-dims/native/edit.log",
+          "reopen": "/home/Wilmer/Coding/joyoffice/target/uos-refactor-20261123/sheet-dims/native/reopen.log"
+        }
+      },
+      "originalsUnchanged": true,
+      "workbooks": 6,
+      "readerWriterPairs": 24
     }
   }
 }

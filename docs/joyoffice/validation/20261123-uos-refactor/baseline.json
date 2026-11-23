@@ -1,0 +1,26 @@
+{
+  "commit": "32562303551d29dc9152e801b03c5b94cad8c2db",
+  "command": [
+    "cargo",
+    "build",
+    "--locked",
+    "--offline",
+    "--manifest-path",
+    "/home/Wilmer/Coding/joyoffice/target/uos-refactor-20261123/baseline-source/Cargo.toml",
+    "--target-dir",
+    "/home/Wilmer/Coding/joyoffice/target",
+    "-p",
+    "joyword-cli",
+    "-p",
+    "joydeck-cli",
+    "-p",
+    "joysheet-cli"
+  ],
+  "exitCode": 0,
+  "elapsedSeconds": 61.94797897338867,
+  "binaries": {
+    "joysheet-cli": "f6808298045113318e4c6e4932b4fdd74d3ff9758b171b5442c189aa5848c24d",
+    "joydeck-cli": "7b7b369d8a43d7244202b7d76ef681eb44b84301a35e2aeab1032677732411f9",
+    "joyword-cli": "a23addd9f7c362b07970806fcaeeb84e394eea3e8db7745d483544335dd946a0"
+  }
+}

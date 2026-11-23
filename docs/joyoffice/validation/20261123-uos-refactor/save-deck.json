@@ -1,0 +1,19 @@
+{
+  "platform": "Linux-6.18.57-061857-generic-x86_64-with-glibc2.38",
+  "product": "deck",
+  "binarySha256": "2a748a03ec5487773106ab6452aa04a8806f1b015645f5122ef4aa6259f50a2d",
+  "passed": true,
+  "checks": [
+    "cancel then retry",
+    "late result after edit rejected before file creation",
+    "four slides in independent PPTX inspection and fresh process readback",
+    "original hash unchanged"
+  ],
+  "activation": "file-menu",
+  "x11SaveButtons": [
+    29,
+    58,
+    95,
+    653
+  ]
+}

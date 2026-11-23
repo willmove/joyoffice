@@ -1,0 +1,184 @@
+[
+  {
+    "name": "check-word",
+    "command": [
+      "cargo",
+      "xtask",
+      "check",
+      "joyword"
+    ],
+    "exitCode": 0,
+    "elapsedSeconds": 180.71,
+    "log": "target/uos-refactor-20261123/check-word.log",
+    "logSha256": "8ad67a57e508a47478f47165aedc6f7d85bcb74b7019968a7e5e13618b2423b4",
+    "tests": {
+      "passed": 4211,
+      "failed": 0,
+      "ignored": 2
+    }
+  },
+  {
+    "name": "check-deck",
+    "command": [
+      "cargo",
+      "xtask",
+      "check",
+      "joydeck"
+    ],
+    "exitCode": 0,
+    "elapsedSeconds": 44.92,
+    "log": "target/uos-refactor-20261123/check-deck.log",
+    "logSha256": "f4cb9a6d83bc6b74e9aa0dbfecdbf0ea53d05a6fcc0295d5836e8a061c22521d",
+    "tests": {
+      "passed": 1041,
+      "failed": 0,
+      "ignored": 0
+    }
+  },
+  {
+    "name": "check-sheet",
+    "command": [
+      "cargo",
+      "xtask",
+      "check",
+      "joysheet"
+    ],
+    "exitCode": 0,
+    "elapsedSeconds": 77.68,
+    "log": "target/uos-refactor-20261123/check-sheet.log",
+    "logSha256": "e457b406ff6c2d8414e71b142aa94258c4703e9a28062f74c699f792db42afb4",
+    "tests": {
+      "passed": 1524,
+      "failed": 0,
+      "ignored": 1
+    }
+  },
+  {
+    "name": "build-word",
+    "command": [
+      "cargo",
+      "xtask",
+      "build",
+      "joyword"
+    ],
+    "exitCode": 0,
+    "elapsedSeconds": 1.12,
+    "log": "target/uos-refactor-20261123/build-word.log",
+    "logSha256": "cccce302498d228a4c338f7cbb17f0482990a35ef66fa7ba1684e767f1af0201"
+  },
+  {
+    "name": "build-deck",
+    "command": [
+      "cargo",
+      "xtask",
+      "build",
+      "joydeck",
+      "--validation"
+    ],
+    "exitCode": 0,
+    "elapsedSeconds": 6.53,
+    "log": "target/uos-refactor-20261123/build-deck.log",
+    "logSha256": "e5021f32175d74160118957b83ea04147553c73e65594129ac5bccd3e4387e51"
+  },
+  {
+    "name": "build-sheet",
+    "command": [
+      "cargo",
+      "xtask",
+      "build",
+      "joysheet",
+      "--validation"
+    ],
+    "exitCode": 0,
+    "elapsedSeconds": 20.73,
+    "log": "target/uos-refactor-20261123/build-sheet.log",
+    "logSha256": "25bf8d0a4d65ef82da3b91754ebeb8f47be76196e32bbe5edaf4cfd58b75eb49"
+  },
+  {
+    "name": "gpu-small",
+    "command": [
+      "cargo",
+      "run",
+      "--locked",
+      "--offline",
+      "-p",
+      "joydeck-render",
+      "--features",
+      "transition-gpu",
+      "--example",
+      "transition_pixels",
+      "--",
+      "--gpu",
+      "64",
+      "36"
+    ],
+    "exitCode": 0,
+    "elapsedSeconds": 28.92,
+    "log": "target/uos-refactor-20261123/gpu-small.log",
+    "logSha256": "2ee895dc2503ffa38e034ba5417201f024544bd2110d52417aa14da98b7b9fe5"
+  },
+  {
+    "name": "gpu-large",
+    "command": [
+      "cargo",
+      "run",
+      "--locked",
+      "--offline",
+      "-p",
+      "joydeck-render",
+      "--features",
+      "transition-gpu",
+      "--example",
+      "transition_pixels",
+      "--",
+      "--gpu",
+      "193",
+      "109"
+    ],
+    "exitCode": 0,
+    "elapsedSeconds": 6.33,
+    "log": "target/uos-refactor-20261123/gpu-large.log",
+    "logSha256": "a34b72cbc65cec576cb751a2ede506b704585cd64f14a95a8c3ed3262775cbb0"
+  },
+  {
+    "name": "section-algorithm",
+    "command": [
+      "cargo",
+      "run",
+      "--locked",
+      "--offline",
+      "-p",
+      "joyword-shell",
+      "--example",
+      "verify_section_reflow"
+    ],
+    "exitCode": 1,
+    "elapsedSeconds": 30.01,
+    "log": "target/uos-refactor-20261123/section-algorithm.log",
+    "logSha256": "43338c1deeca4319f7f823300fae35fc53d8acfbffe3c6706ea8d1263acf80d7",
+    "classification": "driver invocation missing DOCX argument",
+    "supersededBy": "section-oracle"
+  },
+  {
+    "name": "gates",
+    "command": [
+      "python3",
+      "scripts/check_gates.py"
+    ],
+    "exitCode": 0,
+    "elapsedSeconds": 2.52,
+    "log": "target/uos-refactor-20261123/gates.log",
+    "logSha256": "d6d2d885b45c8bda36616a57320c6df15834db54d0b51b7e077a439f369640ac"
+  },
+  {
+    "name": "docs-before",
+    "command": [
+      "python3",
+      "scripts/check_docs.py"
+    ],
+    "exitCode": 0,
+    "elapsedSeconds": 0.06,
+    "log": "target/uos-refactor-20261123/docs-before.log",
+    "logSha256": "a87aedf0cc43fd12d2521de8ba7090179ad807c18c5e54d7b1c1a8437ab0f0d4"
+  }
+]

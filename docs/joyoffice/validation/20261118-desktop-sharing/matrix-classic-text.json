@@ -87,8 +87,33 @@
       }
     },
     "UOS25": {
-      "status": "pending_host",
-      "note": "No UOS 25 real machine attached in this session; re-run scripts/joysheet/check-matrix-classic-text.py and cargo xtask check joysheet once connected."
+      "status": "passed",
+      "date": "2026-11-23",
+      "sourceCommit": "22036e0209a38156748c5c6c61682f6c23519360",
+      "baselineCommit": "32562303551d29dc9152e801b03c5b94cad8c2db",
+      "os": "UOS Desktop 25 Professional x86_64",
+      "profile": "Debug",
+      "display": "X11 / DDE / GPUI scaleFactor 1.25",
+      "previousStatus": {
+        "status": "pending_host",
+        "note": "No UOS 25 real machine attached in this session; re-run scripts/joysheet/check-matrix-classic-text.py and cargo xtask check joysheet once connected."
+      },
+      "scope": "This batch on the named UOS host; full product/platform qualification remains open.",
+      "report": "../20261123-uos-refactor/README.md",
+      "evidence": "../20261123-uos-refactor/matrix-classic-text.json",
+      "nativeDesktop": {
+        "changedCells": 22,
+        "checkedPerState": 24,
+        "states": 5,
+        "savedTypedCaches": 59,
+        "undoRedoAndFreshReopen": true,
+        "originalUnchanged": true
+      },
+      "originalsUnchanged": true,
+      "workbooks": 2,
+      "formulaCaches": 118,
+      "candidateDifferences": 0,
+      "liveExcelRecalculation": "not run on this host; remains pending"
     }
   }
 }

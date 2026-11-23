@@ -1,0 +1,359 @@
+{
+  "cliSha256": [
+    "f6808298045113318e4c6e4932b4fdd74d3ff9758b171b5442c189aa5848c24d",
+    "d7016cf54987015acb5016743ec570c72843bc295e71343f14b309f8a7cffca7"
+  ],
+  "workbooks": {
+    "custom_defaults.xls": {
+      "sourceSha256": "bad50f77f8e070a324060708237d47ea81d5b0633f83594685bac442590a4abc",
+      "writerDims": {
+        "baseline": {
+          "defaultRowPt": 24.0,
+          "defaultColCustom": false,
+          "colB": [
+            false,
+            1,
+            false,
+            true
+          ],
+          "row2": [
+            false,
+            0,
+            false,
+            false,
+            15.0
+          ],
+          "row3": [
+            false,
+            0,
+            false,
+            false
+          ],
+          "outlineLevelRow": 0,
+          "outlineLevelCol": 1
+        },
+        "candidate": {
+          "defaultRowPt": 24.0,
+          "defaultColCustom": true,
+          "colB": [
+            false,
+            1,
+            false,
+            true
+          ],
+          "row2": [
+            false,
+            0,
+            false,
+            false,
+            15.0
+          ],
+          "row3": [
+            false,
+            0,
+            false,
+            false
+          ],
+          "outlineLevelRow": 0,
+          "outlineLevelCol": 1
+        }
+      },
+      "readerWriterPairs": 4
+    },
+    "custom_defaults.xlsb": {
+      "sourceSha256": "ee072e3bfa0d8b64324d0d1f6a1c7d57c589c02a32e3cab301640099959de25e",
+      "writerDims": {
+        "baseline": {
+          "defaultRowPt": 15.0,
+          "defaultColCustom": false,
+          "colB": [
+            false,
+            0,
+            false,
+            false
+          ],
+          "row2": [
+            false,
+            0,
+            false,
+            false,
+            null
+          ],
+          "row3": [
+            false,
+            0,
+            false,
+            false
+          ],
+          "outlineLevelRow": 0,
+          "outlineLevelCol": 0
+        },
+        "candidate": {
+          "defaultRowPt": 24.0,
+          "defaultColCustom": true,
+          "colB": [
+            false,
+            1,
+            false,
+            true
+          ],
+          "row2": [
+            false,
+            0,
+            false,
+            false,
+            15.0
+          ],
+          "row3": [
+            false,
+            0,
+            false,
+            false
+          ],
+          "outlineLevelRow": 0,
+          "outlineLevelCol": 1
+        }
+      },
+      "readerWriterPairs": 4
+    },
+    "custom_defaults.xlsx": {
+      "sourceSha256": "68d6293c23424f4388a003b0e92f04548f741020b80b0d26a02f270c33d2a9e2",
+      "writerDims": {
+        "baseline": {
+          "defaultRowPt": 24.0,
+          "defaultColCustom": true,
+          "colB": [
+            false,
+            1,
+            false,
+            true
+          ],
+          "row2": [
+            false,
+            0,
+            false,
+            false,
+            null
+          ],
+          "row3": [
+            false,
+            0,
+            false,
+            true
+          ],
+          "outlineLevelRow": 0,
+          "outlineLevelCol": 1
+        },
+        "candidate": {
+          "defaultRowPt": 24.0,
+          "defaultColCustom": true,
+          "colB": [
+            false,
+            1,
+            false,
+            true
+          ],
+          "row2": [
+            false,
+            0,
+            false,
+            false,
+            15.0
+          ],
+          "row3": [
+            false,
+            0,
+            false,
+            false
+          ],
+          "outlineLevelRow": 0,
+          "outlineLevelCol": 1
+        }
+      },
+      "readerWriterPairs": 4
+    },
+    "grouped_outline.xls": {
+      "sourceSha256": "4d7bd4318f7962c88340a0b1202ef5deb098820a0edfee719c62202ebe67bae6",
+      "writerDims": {
+        "baseline": {
+          "defaultRowPt": 24.0,
+          "defaultColCustom": false,
+          "colB": [
+            true,
+            2,
+            true,
+            true
+          ],
+          "row2": [
+            true,
+            3,
+            true,
+            true,
+            30.0
+          ],
+          "row3": [
+            false,
+            1,
+            false,
+            true
+          ],
+          "outlineLevelRow": 3,
+          "outlineLevelCol": 2
+        },
+        "candidate": {
+          "defaultRowPt": 24.0,
+          "defaultColCustom": true,
+          "colB": [
+            true,
+            2,
+            true,
+            true
+          ],
+          "row2": [
+            true,
+            3,
+            true,
+            true,
+            30.0
+          ],
+          "row3": [
+            false,
+            1,
+            false,
+            false
+          ],
+          "outlineLevelRow": 3,
+          "outlineLevelCol": 2
+        }
+      },
+      "readerWriterPairs": 4
+    },
+    "grouped_outline.xlsb": {
+      "sourceSha256": "2f34e760fde29ea620fee592e198b7103d10c9f4a58aa6287af4ff9f19acc770",
+      "writerDims": {
+        "baseline": {
+          "defaultRowPt": 15.0,
+          "defaultColCustom": false,
+          "colB": [
+            false,
+            0,
+            false,
+            false
+          ],
+          "row2": [
+            false,
+            0,
+            false,
+            false,
+            null
+          ],
+          "row3": [
+            false,
+            0,
+            false,
+            false
+          ],
+          "outlineLevelRow": 0,
+          "outlineLevelCol": 0
+        },
+        "candidate": {
+          "defaultRowPt": 24.0,
+          "defaultColCustom": true,
+          "colB": [
+            true,
+            2,
+            true,
+            true
+          ],
+          "row2": [
+            true,
+            3,
+            true,
+            true,
+            30.0
+          ],
+          "row3": [
+            false,
+            1,
+            false,
+            false
+          ],
+          "outlineLevelRow": 3,
+          "outlineLevelCol": 2
+        }
+      },
+      "readerWriterPairs": 4
+    },
+    "grouped_outline.xlsx": {
+      "sourceSha256": "57525006c6429515403337e78192381ee8e732a37ed07c92896b01f8f3156f79",
+      "writerDims": {
+        "baseline": {
+          "defaultRowPt": 24.0,
+          "defaultColCustom": true,
+          "colB": [
+            true,
+            2,
+            true,
+            true
+          ],
+          "row2": [
+            true,
+            3,
+            true,
+            true,
+            30.0
+          ],
+          "row3": [
+            false,
+            1,
+            false,
+            false
+          ],
+          "outlineLevelRow": 3,
+          "outlineLevelCol": 2
+        },
+        "candidate": {
+          "defaultRowPt": 24.0,
+          "defaultColCustom": true,
+          "colB": [
+            true,
+            2,
+            true,
+            true
+          ],
+          "row2": [
+            true,
+            3,
+            true,
+            true,
+            30.0
+          ],
+          "row3": [
+            false,
+            1,
+            false,
+            false
+          ],
+          "outlineLevelRow": 3,
+          "outlineLevelCol": 2
+        }
+      },
+      "readerWriterPairs": 4
+    }
+  },
+  "native": {
+    "books": [
+      "custom_defaults.xls",
+      "custom_defaults.xlsb",
+      "custom_defaults.xlsx",
+      "grouped_outline.xls",
+      "grouped_outline.xlsb",
+      "grouped_outline.xlsx"
+    ],
+    "logs": {
+      "edit": "/home/Wilmer/Coding/joyoffice/target/uos-refactor-20261123/sheet-dims/native/edit.log",
+      "reopen": "/home/Wilmer/Coding/joyoffice/target/uos-refactor-20261123/sheet-dims/native/reopen.log"
+    }
+  },
+  "originalsUnchanged": true
+}

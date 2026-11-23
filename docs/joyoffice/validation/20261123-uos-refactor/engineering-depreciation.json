@@ -1,0 +1,130 @@
+{
+  "binaries": [
+    "f6808298045113318e4c6e4932b4fdd74d3ff9758b171b5442c189aa5848c24d",
+    "d7016cf54987015acb5016743ec570c72843bc295e71343f14b309f8a7cffca7"
+  ],
+  "excel": {
+    "base": {
+      "sourceSha256": "b26bb83f49e05ed43fed6696a3c0fab2d20016564082bbc459cba93f9fe64d36",
+      "independentByFunction": {
+        "COMPLEX": 5,
+        "IMABS": 1,
+        "IMREAL": 16,
+        "IMAGINARY": 5,
+        "IMARGUMENT": 2,
+        "IMCONJUGATE": 1,
+        "IMSUM": 3,
+        "IMSUB": 1,
+        "IMPRODUCT": 2,
+        "IMDIV": 4,
+        "IMSQRT": 2,
+        "IMPOWER": 2,
+        "BESSELJ": 6,
+        "BESSELY": 2,
+        "BESSELI": 3,
+        "BESSELK": 3,
+        "SLN": 2,
+        "SYD": 2,
+        "DB": 2,
+        "DDB": 1,
+        "VDB": 5,
+        "AMORLINC": 1,
+        "AMORDEGRC": 1,
+        "GAMMA": 2,
+        "GAMMALN.PRECISE": 1,
+        "ERF": 1,
+        "ERFC": 1,
+        "NORM.S.DIST": 1,
+        "BETA.DIST": 1,
+        "CHISQ.DIST": 1
+      },
+      "baselineDifferences": [
+        [
+          "G19",
+          "IMDIV(\"1e200+1e200i\",\"1e200+1e200i\")",
+          "1",
+          "#NUM!"
+        ],
+        [
+          "G20",
+          "IMDIV(\"1e-200+1e-200i\",\"1e-200+1e-200i\")",
+          "1",
+          "#NUM!"
+        ],
+        [
+          "G21",
+          "IMREAL(IMSQRT(\"-1e16+i\"))",
+          "5e-09",
+          "0"
+        ]
+      ],
+      "candidateDifferences": 0,
+      "bothGenerationsRecalculatedBothWriters": true
+    },
+    "edit": {
+      "sourceSha256": "6f4f702e400acf753a046aa8e04cc4ddedba27cfb806d00d621f0a2703146c9a",
+      "independentByFunction": {
+        "COMPLEX": 5,
+        "IMABS": 1,
+        "IMREAL": 16,
+        "IMAGINARY": 5,
+        "IMARGUMENT": 2,
+        "IMCONJUGATE": 1,
+        "IMSUM": 3,
+        "IMSUB": 1,
+        "IMPRODUCT": 2,
+        "IMDIV": 4,
+        "IMSQRT": 2,
+        "IMPOWER": 2,
+        "BESSELJ": 6,
+        "BESSELY": 2,
+        "BESSELI": 3,
+        "BESSELK": 3,
+        "SLN": 2,
+        "SYD": 2,
+        "DB": 2,
+        "DDB": 1,
+        "VDB": 5,
+        "AMORLINC": 1,
+        "AMORDEGRC": 1,
+        "GAMMA": 2,
+        "GAMMALN.PRECISE": 1,
+        "ERF": 1,
+        "ERFC": 1,
+        "NORM.S.DIST": 1,
+        "BETA.DIST": 1,
+        "CHISQ.DIST": 1
+      },
+      "baselineDifferences": [
+        [
+          "G19",
+          "IMDIV(\"1e200+1e200i\",\"1e200+1e200i\")",
+          "1",
+          "#NUM!"
+        ],
+        [
+          "G20",
+          "IMDIV(\"1e-200+1e-200i\",\"1e-200+1e-200i\")",
+          "1",
+          "#NUM!"
+        ],
+        [
+          "G21",
+          "IMREAL(IMSQRT(\"-1e16+i\"))",
+          "5e-09",
+          "0"
+        ]
+      ],
+      "candidateDifferences": 0,
+      "bothGenerationsRecalculatedBothWriters": true
+    }
+  },
+  "native": {
+    "changedCells": 30,
+    "checkedPerState": 31,
+    "states": 5,
+    "savedTypedCaches": 80,
+    "undoRedoAndFreshReopen": true,
+    "originalUnchanged": true
+  }
+}

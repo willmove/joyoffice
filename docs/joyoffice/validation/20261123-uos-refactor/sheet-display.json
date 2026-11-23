@@ -1,0 +1,358 @@
+{
+  "cliSha256": [
+    "f6808298045113318e4c6e4932b4fdd74d3ff9758b171b5442c189aa5848c24d",
+    "d7016cf54987015acb5016743ec570c72843bc295e71343f14b309f8a7cffca7"
+  ],
+  "workbooks": {
+    "layout_outline.xls": {
+      "sourceSha256": "17e8b3e5eaa30db8089f5ec1cd874b212939f8cb4a4af05af8cd2710b6898191",
+      "writerDisplay": {
+        "baseline": [
+          false,
+          true,
+          true,
+          true,
+          true,
+          false,
+          "normal",
+          100,
+          true,
+          true
+        ],
+        "candidate": [
+          false,
+          true,
+          true,
+          true,
+          true,
+          false,
+          "normal",
+          135,
+          false,
+          false
+        ]
+      },
+      "readerWriterPairs": 4
+    },
+    "layout_outline.xlsb": {
+      "sourceSha256": "1119f125eb97a8a2b5522d0a9927c09db02ac8f468612b81685804d31efbfd41",
+      "writerDisplay": {
+        "baseline": [
+          false,
+          true,
+          true,
+          true,
+          true,
+          false,
+          "normal",
+          100,
+          true,
+          true
+        ],
+        "candidate": [
+          false,
+          true,
+          true,
+          true,
+          true,
+          false,
+          "pageLayout",
+          135,
+          false,
+          false
+        ]
+      },
+      "readerWriterPairs": 4
+    },
+    "layout_outline.xlsx": {
+      "sourceSha256": "b55448149219837f8b9cfd7daab16ebc6fa81670dae9a0fd8831f6fb9aaf66ba",
+      "writerDisplay": {
+        "baseline": [
+          false,
+          true,
+          true,
+          true,
+          true,
+          false,
+          "pageLayout",
+          10,
+          false,
+          false
+        ],
+        "candidate": [
+          false,
+          true,
+          true,
+          true,
+          true,
+          false,
+          "pageLayout",
+          135,
+          false,
+          false
+        ]
+      },
+      "readerWriterPairs": 4
+    },
+    "page_break.xls": {
+      "sourceSha256": "14feb631c5f1887a44537d94214ef493cc5be7ad30cb4be744cba4bd6b38a3aa",
+      "writerDisplay": {
+        "baseline": [
+          true,
+          false,
+          true,
+          false,
+          true,
+          false,
+          "normal",
+          100,
+          true,
+          true
+        ],
+        "candidate": [
+          true,
+          false,
+          true,
+          false,
+          false,
+          false,
+          "pageBreakPreview",
+          85,
+          false,
+          true
+        ]
+      },
+      "readerWriterPairs": 4
+    },
+    "page_break.xlsb": {
+      "sourceSha256": "454709c1e43025509d50e5885daf7d3092bbf33707c5be219f80a03c2ef7bc80",
+      "writerDisplay": {
+        "baseline": [
+          false,
+          true,
+          true,
+          true,
+          true,
+          false,
+          "normal",
+          100,
+          true,
+          true
+        ],
+        "candidate": [
+          true,
+          false,
+          true,
+          false,
+          false,
+          false,
+          "pageBreakPreview",
+          85,
+          false,
+          true
+        ]
+      },
+      "readerWriterPairs": 4
+    },
+    "page_break.xlsx": {
+      "sourceSha256": "e0252904050a21508e18691aea7d72f37bf92516c38780ffa581a2e3caa7089b",
+      "writerDisplay": {
+        "baseline": [
+          true,
+          false,
+          true,
+          false,
+          false,
+          false,
+          "pageBreakPreview",
+          10,
+          false,
+          true
+        ],
+        "candidate": [
+          true,
+          false,
+          true,
+          false,
+          false,
+          false,
+          "pageBreakPreview",
+          85,
+          false,
+          true
+        ]
+      },
+      "readerWriterPairs": 4
+    },
+    "rtl_zoom.xls": {
+      "sourceSha256": "2dca3ad5d63f73b490ed248eee57e3e16c1e66d6dbbaece58fb0fb6dbd42e5fb",
+      "writerDisplay": {
+        "baseline": [
+          false,
+          true,
+          false,
+          false,
+          true,
+          true,
+          "normal",
+          100,
+          true,
+          true
+        ],
+        "candidate": [
+          false,
+          true,
+          false,
+          false,
+          false,
+          true,
+          "normal",
+          154,
+          true,
+          false
+        ]
+      },
+      "readerWriterPairs": 4
+    },
+    "rtl_zoom.xlsb": {
+      "sourceSha256": "0dfec67b7d618bdc01f533b8670522cadb6b514c36a15b779667f19305acd8ae",
+      "writerDisplay": {
+        "baseline": [
+          false,
+          true,
+          true,
+          true,
+          true,
+          false,
+          "normal",
+          100,
+          true,
+          true
+        ],
+        "candidate": [
+          false,
+          true,
+          false,
+          false,
+          false,
+          true,
+          "normal",
+          154,
+          true,
+          false
+        ]
+      },
+      "readerWriterPairs": 4
+    },
+    "rtl_zoom.xlsx": {
+      "sourceSha256": "9142ae7c13a630a0bc568cfb75a87b74bd19a15b340bb4c8c4f3f2733f82a620",
+      "writerDisplay": {
+        "baseline": [
+          false,
+          true,
+          false,
+          false,
+          false,
+          true,
+          "normal",
+          154,
+          true,
+          false
+        ],
+        "candidate": [
+          false,
+          true,
+          false,
+          false,
+          false,
+          true,
+          "normal",
+          154,
+          true,
+          false
+        ]
+      },
+      "readerWriterPairs": 4
+    }
+  },
+  "desktopSha256": "b11069a19df210f2a1ee76e015c1b22cce4ecf3ec48dfa5560b630b5c82afe17",
+  "desktop": {
+    "cases": {
+      "layout_outline.xls": {
+        "loadedSummary": {
+          "summaryBelow": false,
+          "summaryRight": false
+        },
+        "savedZoom": 125,
+        "savedGridlines": false
+      },
+      "layout_outline.xlsb": {
+        "loadedSummary": {
+          "summaryBelow": false,
+          "summaryRight": false
+        },
+        "savedZoom": 125,
+        "savedGridlines": false
+      },
+      "layout_outline.xlsx": {
+        "loadedSummary": {
+          "summaryBelow": false,
+          "summaryRight": false
+        },
+        "savedZoom": 125,
+        "savedGridlines": false
+      },
+      "page_break.xls": {
+        "loadedSummary": {
+          "summaryBelow": false,
+          "summaryRight": true
+        },
+        "savedZoom": 125,
+        "savedGridlines": true
+      },
+      "page_break.xlsb": {
+        "loadedSummary": {
+          "summaryBelow": false,
+          "summaryRight": true
+        },
+        "savedZoom": 125,
+        "savedGridlines": true
+      },
+      "page_break.xlsx": {
+        "loadedSummary": {
+          "summaryBelow": false,
+          "summaryRight": true
+        },
+        "savedZoom": 125,
+        "savedGridlines": true
+      },
+      "rtl_zoom.xls": {
+        "loadedSummary": {
+          "summaryBelow": true,
+          "summaryRight": false
+        },
+        "savedZoom": 125,
+        "savedGridlines": false
+      },
+      "rtl_zoom.xlsb": {
+        "loadedSummary": {
+          "summaryBelow": true,
+          "summaryRight": false
+        },
+        "savedZoom": 125,
+        "savedGridlines": false
+      },
+      "rtl_zoom.xlsx": {
+        "loadedSummary": {
+          "summaryBelow": true,
+          "summaryRight": false
+        },
+        "savedZoom": 125,
+        "savedGridlines": false
+      }
+    },
+    "undoRedo": true,
+    "freshProcessReopen": true
+  },
+  "originalsUnchanged": true
+}

@@ -1,0 +1,375 @@
+{
+  "cliSha256": [
+    "f6808298045113318e4c6e4932b4fdd74d3ff9758b171b5442c189aa5848c24d",
+    "d7016cf54987015acb5016743ec570c72843bc295e71343f14b309f8a7cffca7"
+  ],
+  "workbooks": {
+    "fit_breaks.xls": {
+      "sourceSha256": "18f77a0c0372880f8d65ddef5bc27a3a753c53e14224cdadcd0ad96ec9b4e33c",
+      "writerPrint": {
+        "baseline": {
+          "gridlines": false,
+          "headings": false,
+          "centerH": false,
+          "centerV": false,
+          "margins": [
+            0.7,
+            0.7,
+            0.75,
+            0.75,
+            0.3,
+            0.3
+          ],
+          "paperSize": 1,
+          "scale": 100,
+          "orientation": "portrait",
+          "fitTo": null,
+          "header": "",
+          "footer": "",
+          "rowBreaks": [],
+          "colBreaks": []
+        },
+        "candidate": {
+          "gridlines": false,
+          "headings": true,
+          "centerH": false,
+          "centerV": true,
+          "margins": [
+            0.7,
+            0.7,
+            1.0,
+            1.0,
+            0.3,
+            0.3
+          ],
+          "paperSize": 1,
+          "scale": 100,
+          "orientation": "portrait",
+          "fitTo": [
+            2,
+            3
+          ],
+          "header": "&LReport",
+          "footer": "&R&D",
+          "rowBreaks": [
+            12
+          ],
+          "colBreaks": [
+            6,
+            12
+          ]
+        }
+      },
+      "readerWriterPairs": 4
+    },
+    "fit_breaks.xlsb": {
+      "sourceSha256": "ca68ece9a60e4899515172e825925a1e6c9122b4c4299bc469fc08f538ee3443",
+      "writerPrint": {
+        "baseline": {
+          "gridlines": false,
+          "headings": false,
+          "centerH": false,
+          "centerV": false,
+          "margins": [
+            0.7,
+            0.7,
+            0.75,
+            0.75,
+            0.3,
+            0.3
+          ],
+          "paperSize": 1,
+          "scale": 100,
+          "orientation": "portrait",
+          "fitTo": null,
+          "header": "",
+          "footer": "",
+          "rowBreaks": [],
+          "colBreaks": []
+        },
+        "candidate": {
+          "gridlines": false,
+          "headings": true,
+          "centerH": false,
+          "centerV": true,
+          "margins": [
+            0.7,
+            0.7,
+            1.0,
+            1.0,
+            0.3,
+            0.3
+          ],
+          "paperSize": 1,
+          "scale": 100,
+          "orientation": "portrait",
+          "fitTo": [
+            2,
+            3
+          ],
+          "header": "&LReport",
+          "footer": "&R&D",
+          "rowBreaks": [
+            12
+          ],
+          "colBreaks": [
+            6,
+            12
+          ]
+        }
+      },
+      "readerWriterPairs": 4
+    },
+    "fit_breaks.xlsx": {
+      "sourceSha256": "d463e56bda23393535b689bbb7f0ee46fe09d9aba26d6796ebee7a3c9acf5ab3",
+      "writerPrint": {
+        "baseline": {
+          "gridlines": false,
+          "headings": true,
+          "centerH": false,
+          "centerV": true,
+          "margins": [
+            0.7,
+            0.7,
+            1.0,
+            1.0,
+            0.3,
+            0.3
+          ],
+          "paperSize": 1,
+          "scale": 100,
+          "orientation": "portrait",
+          "fitTo": [
+            2,
+            3
+          ],
+          "header": "&LReport",
+          "footer": "&R&D",
+          "rowBreaks": [
+            12
+          ],
+          "colBreaks": [
+            6,
+            12
+          ]
+        },
+        "candidate": {
+          "gridlines": false,
+          "headings": true,
+          "centerH": false,
+          "centerV": true,
+          "margins": [
+            0.7,
+            0.7,
+            1.0,
+            1.0,
+            0.3,
+            0.3
+          ],
+          "paperSize": 1,
+          "scale": 100,
+          "orientation": "portrait",
+          "fitTo": [
+            2,
+            3
+          ],
+          "header": "&LReport",
+          "footer": "&R&D",
+          "rowBreaks": [
+            12
+          ],
+          "colBreaks": [
+            6,
+            12
+          ]
+        }
+      },
+      "readerWriterPairs": 4
+    },
+    "landscape_a4.xls": {
+      "sourceSha256": "586e77c84e26076bff516348cecd447726a682d1d224592f16f871198d69fb05",
+      "writerPrint": {
+        "baseline": {
+          "gridlines": false,
+          "headings": false,
+          "centerH": false,
+          "centerV": false,
+          "margins": [
+            0.7,
+            0.7,
+            0.75,
+            0.75,
+            0.3,
+            0.3
+          ],
+          "paperSize": 1,
+          "scale": 100,
+          "orientation": "portrait",
+          "fitTo": null,
+          "header": "",
+          "footer": "",
+          "rowBreaks": [],
+          "colBreaks": []
+        },
+        "candidate": {
+          "gridlines": true,
+          "headings": true,
+          "centerH": true,
+          "centerV": false,
+          "margins": [
+            0.5,
+            0.6,
+            0.8,
+            0.9,
+            0.35,
+            0.4
+          ],
+          "paperSize": 9,
+          "scale": 85,
+          "orientation": "landscape",
+          "fitTo": null,
+          "header": "&CTitle",
+          "footer": "Page &P",
+          "rowBreaks": [
+            10,
+            25
+          ],
+          "colBreaks": [
+            4
+          ]
+        }
+      },
+      "readerWriterPairs": 4
+    },
+    "landscape_a4.xlsb": {
+      "sourceSha256": "22cff0e26f2ccd48f83cd72eb7948bd8552c566f99a40142163891370fc73216",
+      "writerPrint": {
+        "baseline": {
+          "gridlines": false,
+          "headings": false,
+          "centerH": false,
+          "centerV": false,
+          "margins": [
+            0.7,
+            0.7,
+            0.75,
+            0.75,
+            0.3,
+            0.3
+          ],
+          "paperSize": 1,
+          "scale": 100,
+          "orientation": "portrait",
+          "fitTo": null,
+          "header": "",
+          "footer": "",
+          "rowBreaks": [],
+          "colBreaks": []
+        },
+        "candidate": {
+          "gridlines": true,
+          "headings": true,
+          "centerH": true,
+          "centerV": false,
+          "margins": [
+            0.5,
+            0.6,
+            0.8,
+            0.9,
+            0.35,
+            0.4
+          ],
+          "paperSize": 9,
+          "scale": 85,
+          "orientation": "landscape",
+          "fitTo": null,
+          "header": "&CTitle",
+          "footer": "Page &P",
+          "rowBreaks": [
+            10,
+            25
+          ],
+          "colBreaks": [
+            4
+          ]
+        }
+      },
+      "readerWriterPairs": 4
+    },
+    "landscape_a4.xlsx": {
+      "sourceSha256": "c9d61ca44bfb58b4317290e939eff9204c385351f7a29bf7e73f1a133124c7b8",
+      "writerPrint": {
+        "baseline": {
+          "gridlines": true,
+          "headings": true,
+          "centerH": true,
+          "centerV": false,
+          "margins": [
+            0.5,
+            0.6,
+            0.8,
+            0.9,
+            0.35,
+            0.4
+          ],
+          "paperSize": 9,
+          "scale": 85,
+          "orientation": "landscape",
+          "fitTo": null,
+          "header": "&CTitle",
+          "footer": "Page &P",
+          "rowBreaks": [
+            10,
+            25
+          ],
+          "colBreaks": [
+            4
+          ]
+        },
+        "candidate": {
+          "gridlines": true,
+          "headings": true,
+          "centerH": true,
+          "centerV": false,
+          "margins": [
+            0.5,
+            0.6,
+            0.8,
+            0.9,
+            0.35,
+            0.4
+          ],
+          "paperSize": 9,
+          "scale": 85,
+          "orientation": "landscape",
+          "fitTo": null,
+          "header": "&CTitle",
+          "footer": "Page &P",
+          "rowBreaks": [
+            10,
+            25
+          ],
+          "colBreaks": [
+            4
+          ]
+        }
+      },
+      "readerWriterPairs": 4
+    }
+  },
+  "native": {
+    "books": [
+      "fit_breaks.xls",
+      "fit_breaks.xlsb",
+      "fit_breaks.xlsx",
+      "landscape_a4.xls",
+      "landscape_a4.xlsb",
+      "landscape_a4.xlsx"
+    ],
+    "logs": {
+      "edit": "/home/Wilmer/Coding/joyoffice/target/uos-refactor-20261123/sheet-print/native/edit.log",
+      "reopen": "/home/Wilmer/Coding/joyoffice/target/uos-refactor-20261123/sheet-print/native/reopen.log"
+    }
+  },
+  "originalsUnchanged": true
+}

@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "method": "com.sogou.ime.ng.fcitx5.uos",
+  "display": ":0",
+  "binarySha256": "b11069a19df210f2a1ee76e015c1b22cce4ecf3ec48dfa5560b630b5c82afe17",
+  "ximSelectionOwner": 73400321,
+  "preedit": "server",
+  "temporaryModeToggle": "Shift_L",
+  "fileSha256": "89c0f3ebd6473abb2b7180d7ddd440f7d2e52d23325d3fdc164ccf75fb84ad62",
+  "candidateSha256": "20671a87a2f6d94997163f611ad101f0adafc76ff06362bd63b4e825303d581f",
+  "restoredMode": true
+}

@@ -1,0 +1,107 @@
+{
+  "allPageComparisons": 956,
+  "fullFallbacks": 0,
+  "hitComparisons": 2868,
+  "mode": "section-splice",
+  "samples": [
+    {
+      "changedPages": 1,
+      "editThroughLayoutMs": 3.354891,
+      "fullLayoutMs": 3.783617,
+      "pageCount": 68,
+      "step": "move_anchor"
+    },
+    {
+      "changedPages": 1,
+      "editThroughLayoutMs": 2.7384910000000002,
+      "fullLayoutMs": 3.7328040000000002,
+      "pageCount": 68,
+      "step": "restore_anchor"
+    },
+    {
+      "changedPages": 35,
+      "editThroughLayoutMs": 2.157506,
+      "fullLayoutMs": 3.793656,
+      "pageCount": 69,
+      "step": "insert_nextPage"
+    },
+    {
+      "changedPages": 35,
+      "editThroughLayoutMs": 2.254874,
+      "fullLayoutMs": 3.698011,
+      "pageCount": 68,
+      "step": "remove_boundary"
+    },
+    {
+      "changedPages": 34,
+      "editThroughLayoutMs": 3.28868,
+      "fullLayoutMs": 5.5832180000000005,
+      "pageCount": 68,
+      "step": "restore_doc"
+    },
+    {
+      "changedPages": 34,
+      "editThroughLayoutMs": 4.824285000000001,
+      "fullLayoutMs": 5.291933,
+      "pageCount": 68,
+      "step": "insert_continuous"
+    },
+    {
+      "changedPages": 35,
+      "editThroughLayoutMs": 3.486383,
+      "fullLayoutMs": 3.595062,
+      "pageCount": 67,
+      "step": "remove_boundary"
+    },
+    {
+      "changedPages": 35,
+      "editThroughLayoutMs": 3.339874,
+      "fullLayoutMs": 5.533416,
+      "pageCount": 68,
+      "step": "restore_doc"
+    },
+    {
+      "changedPages": 36,
+      "editThroughLayoutMs": 5.176051,
+      "fullLayoutMs": 7.25894,
+      "pageCount": 70,
+      "step": "insert_oddPage"
+    },
+    {
+      "changedPages": 37,
+      "editThroughLayoutMs": 3.482806,
+      "fullLayoutMs": 3.4982450000000003,
+      "pageCount": 68,
+      "step": "remove_boundary"
+    },
+    {
+      "changedPages": 35,
+      "editThroughLayoutMs": 1.8858679999999999,
+      "fullLayoutMs": 3.426143,
+      "pageCount": 68,
+      "step": "restore_doc"
+    },
+    {
+      "changedPages": 35,
+      "editThroughLayoutMs": 5.421911,
+      "fullLayoutMs": 5.611729,
+      "pageCount": 69,
+      "step": "insert_evenPage"
+    },
+    {
+      "changedPages": 36,
+      "editThroughLayoutMs": 6.076872,
+      "fullLayoutMs": 7.533774,
+      "pageCount": 69,
+      "step": "remove_boundary"
+    },
+    {
+      "changedPages": 36,
+      "editThroughLayoutMs": 3.4807420000000002,
+      "fullLayoutMs": 5.6218580000000005,
+      "pageCount": 68,
+      "step": "restore_doc"
+    }
+  ],
+  "steps": 14
+}

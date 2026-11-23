@@ -92,8 +92,67 @@
       }
     },
     "UOS": {
-      "status": "pending",
-      "note": "No UOS 25 x86_64 physical host (Vulkan Radeon 890M) attached during 2026-11-22 run; rerun transition_pixels --gpu and slideshow checks on UOS when available."
+      "status": "passed",
+      "date": "2026-11-23",
+      "sourceCommit": "22036e0209a38156748c5c6c61682f6c23519360",
+      "baselineCommit": "32562303551d29dc9152e801b03c5b94cad8c2db",
+      "os": "UOS Desktop 25 Professional x86_64",
+      "profile": "Debug",
+      "display": "X11 / DDE / GPUI scaleFactor 1.25",
+      "previousStatus": {
+        "status": "pending",
+        "note": "No UOS 25 x86_64 physical host (Vulkan Radeon 890M) attached during 2026-11-22 run; rerun transition_pixels --gpu and slideshow checks on UOS when available."
+      },
+      "scope": "This batch on the named UOS host; full product/platform qualification remains open.",
+      "report": "../20261123-uos-refactor/README.md",
+      "gpuVsCpuParity": [
+        {
+          "size": [
+            64,
+            36
+          ],
+          "frames": 925,
+          "adapter": "AMD Radeon 890M Graphics (RADV GFX1150)",
+          "backend": "Vulkan",
+          "maximumChannelDifference": 2,
+          "pixelsOver1": 73,
+          "pixelsOver2": 0,
+          "endpointDifferences": 0,
+          "missingSources": {
+            "frames": 48,
+            "maximumChannelDifference": 1
+          }
+        },
+        {
+          "size": [
+            193,
+            109
+          ],
+          "frames": 925,
+          "adapter": "AMD Radeon 890M Graphics (RADV GFX1150)",
+          "backend": "Vulkan",
+          "maximumChannelDifference": 2,
+          "pixelsOver1": 491,
+          "pixelsOver2": 0,
+          "endpointDifferences": 0,
+          "missingSources": {
+            "frames": 48,
+            "maximumChannelDifference": 1
+          }
+        }
+      ],
+      "pptxTwoGenerationExchange": {
+        "transitionKinds": 17,
+        "cases": 48,
+        "crossVersionRegeneratePairs": 192,
+        "evidence": "../20261123-uos-refactor/remaining-transition-exchange.json"
+      },
+      "nativeWindowEffects": [
+        "cube/l",
+        "orbit/u",
+        "glitter/r",
+        "vortex/l"
+      ]
     }
   }
 }

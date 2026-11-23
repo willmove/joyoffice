@@ -1,0 +1,266 @@
+{
+  "cliSha256": [
+    "f6808298045113318e4c6e4932b4fdd74d3ff9758b171b5442c189aa5848c24d",
+    "d7016cf54987015acb5016743ec570c72843bc295e71343f14b309f8a7cffca7"
+  ],
+  "workbooks": {
+    "open_links.xls": {
+      "sourceSha256": "95f8055b145b210e68809579d78bc9b0d786d2c659ccea9b3240c472c069d2c7",
+      "writerMeta": {
+        "baseline": {
+          "protection": {
+            "protected": false
+          },
+          "hyperlinks": {}
+        },
+        "candidate": {
+          "protection": {
+            "protected": false
+          },
+          "hyperlinks": {}
+        }
+      },
+      "candidateBlocksProtectedEdit": false,
+      "readerWriterPairs": 4
+    },
+    "open_links.xlsb": {
+      "sourceSha256": "f2522b02e9930cbc47092294c2608d051e6fb19e9cc703c3e2dd172a37f86c31",
+      "writerMeta": {
+        "baseline": {
+          "protection": {
+            "protected": false
+          },
+          "hyperlinks": {}
+        },
+        "candidate": {
+          "protection": {
+            "protected": false
+          },
+          "hyperlinks": {
+            "A1": {
+              "target": "https://example.org/home",
+              "tooltip": "Home",
+              "external": true
+            },
+            "A2": {
+              "target": "Notes!A1",
+              "tooltip": null,
+              "external": false
+            }
+          }
+        }
+      },
+      "candidateBlocksProtectedEdit": false,
+      "readerWriterPairs": 4
+    },
+    "open_links.xlsx": {
+      "sourceSha256": "f8a1838b2ad8146d46124c66b967cfc030cb4a849892e38b1ce130c73067cf5a",
+      "writerMeta": {
+        "baseline": {
+          "protection": {
+            "protected": false
+          },
+          "hyperlinks": {
+            "A1": {
+              "target": "https://example.org/home",
+              "tooltip": "Home",
+              "external": true
+            },
+            "A2": {
+              "target": "Notes!A1",
+              "tooltip": null,
+              "external": false
+            }
+          }
+        },
+        "candidate": {
+          "protection": {
+            "protected": false
+          },
+          "hyperlinks": {
+            "A1": {
+              "target": "https://example.org/home",
+              "tooltip": "Home",
+              "external": true
+            },
+            "A2": {
+              "target": "Notes!A1",
+              "tooltip": null,
+              "external": false
+            }
+          }
+        }
+      },
+      "candidateBlocksProtectedEdit": false,
+      "readerWriterPairs": 4
+    },
+    "protected_links.xls": {
+      "sourceSha256": "5ff6dce7dcb313c63d01adc3cce40687a8488f87d21be9c09025b987ef2a89c5",
+      "writerMeta": {
+        "baseline": {
+          "protection": {
+            "protected": false
+          },
+          "hyperlinks": {}
+        },
+        "candidate": {
+          "protection": {
+            "protected": true,
+            "password": "83AF",
+            "selectLocked": false,
+            "selectUnlocked": true,
+            "formatCells": true,
+            "formatColumns": false,
+            "formatRows": false,
+            "insertColumns": false,
+            "insertRows": false,
+            "deleteColumns": false,
+            "deleteRows": false,
+            "sort": true,
+            "autoFilter": true
+          },
+          "hyperlinks": {}
+        }
+      },
+      "candidateBlocksProtectedEdit": true,
+      "readerWriterPairs": 4
+    },
+    "protected_links.xlsb": {
+      "sourceSha256": "9a04ba7d01cbd156696dd05f1ea35fdc9a242ff756c7d7bd78b74b7ff659ed28",
+      "writerMeta": {
+        "baseline": {
+          "protection": {
+            "protected": false
+          },
+          "hyperlinks": {}
+        },
+        "candidate": {
+          "protection": {
+            "protected": true,
+            "password": "83AF",
+            "selectLocked": false,
+            "selectUnlocked": true,
+            "formatCells": true,
+            "formatColumns": false,
+            "formatRows": false,
+            "insertColumns": false,
+            "insertRows": false,
+            "deleteColumns": false,
+            "deleteRows": false,
+            "sort": true,
+            "autoFilter": true
+          },
+          "hyperlinks": {
+            "A1": {
+              "target": "https://example.org/spec#sec",
+              "tooltip": "Spec Link",
+              "external": true
+            },
+            "B1": {
+              "target": "https://example.org/spec#sec",
+              "tooltip": "Spec Link",
+              "external": true
+            },
+            "A2": {
+              "target": "Notes!B2",
+              "tooltip": null,
+              "external": false
+            }
+          }
+        }
+      },
+      "candidateBlocksProtectedEdit": true,
+      "readerWriterPairs": 4
+    },
+    "protected_links.xlsx": {
+      "sourceSha256": "9483615795310451f122afcb325bec0d801f5167b27699af5151af274fe40f40",
+      "writerMeta": {
+        "baseline": {
+          "protection": {
+            "protected": true,
+            "password": "83AF",
+            "selectLocked": false,
+            "selectUnlocked": true,
+            "formatCells": true,
+            "formatColumns": false,
+            "formatRows": false,
+            "insertColumns": false,
+            "insertRows": false,
+            "deleteColumns": false,
+            "deleteRows": false,
+            "sort": true,
+            "autoFilter": true
+          },
+          "hyperlinks": {
+            "A1": {
+              "target": "https://example.org/spec#sec",
+              "tooltip": "Spec Link",
+              "external": true
+            },
+            "B1": {
+              "target": "https://example.org/spec#sec",
+              "tooltip": "Spec Link",
+              "external": true
+            },
+            "A2": {
+              "target": "Notes!B2",
+              "tooltip": null,
+              "external": false
+            }
+          }
+        },
+        "candidate": {
+          "protection": {
+            "protected": true,
+            "password": "83AF",
+            "selectLocked": false,
+            "selectUnlocked": true,
+            "formatCells": true,
+            "formatColumns": false,
+            "formatRows": false,
+            "insertColumns": false,
+            "insertRows": false,
+            "deleteColumns": false,
+            "deleteRows": false,
+            "sort": true,
+            "autoFilter": true
+          },
+          "hyperlinks": {
+            "A1": {
+              "target": "https://example.org/spec#sec",
+              "tooltip": "Spec Link",
+              "external": true
+            },
+            "B1": {
+              "target": "https://example.org/spec#sec",
+              "tooltip": "Spec Link",
+              "external": true
+            },
+            "A2": {
+              "target": "Notes!B2",
+              "tooltip": null,
+              "external": false
+            }
+          }
+        }
+      },
+      "candidateBlocksProtectedEdit": true,
+      "readerWriterPairs": 4
+    }
+  },
+  "native": {
+    "books": [
+      "open_links.xls",
+      "open_links.xlsb",
+      "open_links.xlsx",
+      "protected_links.xls",
+      "protected_links.xlsb",
+      "protected_links.xlsx"
+    ],
+    "logs": {
+      "edit": "/home/Wilmer/Coding/joyoffice/target/uos-refactor-20261123/sheet-protection-links/native/edit.log",
+      "reopen": "/home/Wilmer/Coding/joyoffice/target/uos-refactor-20261123/sheet-protection-links/native/reopen.log"
+    }
+  },
+  "originalsUnchanged": true
+}
