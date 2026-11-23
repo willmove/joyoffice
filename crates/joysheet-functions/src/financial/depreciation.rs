@@ -85,37 +85,40 @@ pub(super) fn ddb(args: &[Arg], _ctx: &mut dyn Ctx) -> R<Value> {
     num_val(dep.max(0.0))
 }
 
-/// Streams declining-balance depreciation with optional straight-line switch,
-/// accumulating only the overlap with `[start, end]` in `O(1)` space.
-fn vdb_accumulate(cost: f64, salvage: f64, life: f64, start: f64, end: f64, factor: f64, no_switch: bool, periods: usize) -> f64 {
+/// Streams the depreciation schedule in constant space. When switching is
+/// allowed, a fractional start sets the period boundaries after the initial
+/// short period (for example, 0, 0.5, 1.5, ...). With no switch the schedule
+/// uses fixed integer boundaries and prorates the overlap with the window.
+fn vdb_accumulate(cost: f64, salvage: f64, life: f64, start: f64, end: f64, factor: f64, no_switch: bool) -> f64 {
+    let rate = (factor / life).min(1.0);
+    let first = if no_switch { 0.0 } else { start.fract() };
+    let mut period_start: f64 = 0.0;
+    let mut period_end = if first > 0.0 { first } else { 1.0 };
     let mut book = cost;
-    let mut straight_line: Option<f64> = None;
+    let mut straight_line = None;
     let mut total = 0.0;
-    for idx in 0..periods {
-        let room = (book - salvage).max(0.0);
-        if room == 0.0 {
-            break;
-        }
-        let p0 = idx as f64;
-        let dep = if let Some(sl) = straight_line {
-            sl.min(room)
+    while period_start < end && book > salvage {
+        let room = book - salvage;
+        let depreciation = if let Some(amount) = straight_line {
+            amount
         } else {
-            let db_step = (book * factor / life).min(room);
-            let remaining = life - p0;
-            let sl_step = if remaining > 0.0 { (book - salvage) / remaining.max(1.0) } else { 0.0 };
-            if !no_switch && sl_step > db_step {
-                straight_line = Some(sl_step);
-                sl_step.min(room)
+            let declining = (book * rate).min(room);
+            let straight = room / (life - period_start).max(1.0);
+            if !no_switch && straight > declining {
+                straight_line = Some(straight);
+                straight
             } else {
-                db_step
+                declining
             }
         };
-        let p1 = p0 + 1.0;
-        if p1 > start {
-            let overlap = (p1.min(end) - p0.max(start)).max(0.0);
-            total += dep * overlap;
-        }
-        book -= dep;
+        let cutoff = period_end.min(end);
+        total += depreciation * (cutoff - period_start.max(start)).max(0.0);
+        // A fixed straight-line amount is prorated before updating the book.
+        // Capping the full period at the residual first would understate a
+        // short final period after an earlier switch.
+        book -= depreciation * (cutoff - period_start);
+        period_start = period_end;
+        period_end += 1.0;
     }
     total
 }
@@ -131,11 +134,10 @@ pub(super) fn vdb(args: &[Arg], _ctx: &mut dyn Ctx) -> R<Value> {
     if cost < 0.0 || salvage < 0.0 || life <= 0.0 || start < 0.0 || end < start || end > life || factor <= 0.0 {
         return Err(CellError::Num);
     }
-    let periods = end.ceil();
-    if periods > MAX_VDB_PERIODS {
+    if end.ceil() > MAX_VDB_PERIODS {
         return Err(CellError::Num);
     }
-    num_val(vdb_accumulate(cost, salvage, life, start, end, factor, no_switch, periods as usize))
+    num_val(vdb_accumulate(cost, salvage, life, start, end, factor, no_switch))
 }
 
 pub(super) fn amorlinc(args: &[Arg], ctx: &mut dyn Ctx) -> R<Value> {

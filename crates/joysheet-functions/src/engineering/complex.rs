@@ -305,9 +305,6 @@ fn fold_complex_args(args: &[Arg], init: Cx, combine: fn(Cx, Cx) -> Cx) -> R<Val
         match &arg.value {
             Value::Array(arr) => {
                 for cell in &arr.data {
-                    if matches!(cell, Value::Empty) {
-                        continue;
-                    }
                     let (z, s) = value_to_complex(cell)?;
                     sfx = combine_suffix(sfx, s)?;
                     acc = combine(acc, z);

@@ -151,6 +151,10 @@ fn complex_numbers() {
     is_err(ev("IMDIV", vec![t("1+i"), t("0")]), CellError::Num);
     is_text(ev("IMPRODUCT", vec![t("3+4i"), t("5-3i")]), "27+11i");
     is_text(ev("IMPRODUCT", vec![t("1+2i"), n(30.0)]), "30+60i");
+    let sparse = rf(arr(vec![vec![tv("3+4i"), Value::Empty, tv("5-3i")]]));
+    is_text(ev("IMPRODUCT", vec![sparse.clone()]), "0");
+    is_err(ev("IMPRODUCT", vec![sparse, t("1+j")]), CellError::Value);
+    is_text(ev("IMPRODUCT", vec![rf(arr(vec![vec![Value::Empty, Value::Empty]]))]), "0");
     is_text(ev("IMSUM", vec![t("3+4i"), t("5-3i")]), "8+i");
     is_text(ev("IMSUM", vec![rf(arr(vec![vec![tv("1+i"), Value::Empty, tv("2")]]))]), "3+i");
     is_text(ev("IMSUB", vec![t("13+4i"), t("5+3i")]), "8+i");

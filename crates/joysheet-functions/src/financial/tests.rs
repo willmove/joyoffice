@@ -148,6 +148,19 @@ fn depreciation() {
     is_err(ev("VDB", vec![n(2400.0), n(300.0), n(10.0), n(5.0), n(4.0)]), CellError::Num);
     close_tol(ev("AMORLINC", vec![n(2400.0), d(2008, 8, 19), d(2008, 12, 31), n(300.0), n(1.0), n(0.15), n(1.0)]), 360.0, 1e-9);
     close(ev("AMORDEGRC", vec![n(2400.0), d(2008, 8, 19), d(2008, 12, 31), n(300.0), n(1.0), n(0.15), n(1.0)]), 776.0);
+    // Microsoft Excel 16.0.20625.20108, including a late start near salvage
+    // and a partial final period after switching to straight-line depreciation.
+    for (life, start, end, factor, no_switch, expected) in [
+        (10.0, 1.5, 4.25, 1.5, false, 677.020_218_75),
+        (12.0, 1.5, 4.25, 1.5, false, 602.737_426_757_812_5),
+        (10.0, 1.5, 4.25, 1.5, true, 681.165_562_5),
+        (10.0, 9.25, 10.0, 2.0, false, 4.512_314_88),
+        (10.5, 7.75, 10.5, 0.75, false, 550.0),
+        (3.5, 3.0, 3.5, 1.5, false, 73.906_705_539_358_63),
+    ] {
+        close(ev("VDB", vec![n(2400.0), n(300.0), n(life), n(start), n(end), n(factor), b(no_switch)]), expected);
+    }
+
     // Streaming VDB handles large lives in O(1) memory, respects no_switch, and handles salvage >= cost.
     close_tol(ev("VDB", vec![n(100000.0), n(1000.0), n(100000.0), n(0.0), n(100000.0)]), 99000.0, 1e-9);
     close_tol(ev("VDB", vec![n(2400.0), n(100.0), n(10.0), n(0.0), n(10.0), n(2.0), b(true)]), 2400.0 * (1.0 - 0.8f64.powi(10)), 1e-9);
