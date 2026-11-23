@@ -745,3 +745,21 @@ fn two_value_fields_without_columns_hide_the_values_row() {
     assert!(t.contains("firstHeaderRow=\"1\""), "{t}");
     assert!(!t.contains("hideValuesRow"), "{t}");
 }
+
+#[test]
+fn oversized_pivot_cache_fields_are_capped_with_warning() {
+    let mut cache = String::from(
+        r#"<pivotCacheDefinition xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><cacheSource type="worksheet"><worksheetSource ref="A1:B3"/></cacheSource><cacheFields count="16386">"#,
+    );
+    cache.push_str(r#"<cacheField name="K"><sharedItems><s v="x"/></sharedItems></cacheField>"#);
+    cache.push_str(r#"<cacheField name="V"><sharedItems><n v="1"/></sharedItems></cacheField>"#);
+    for i in 2..16_386 {
+        use std::fmt::Write as _;
+        let _ = write!(cache, r#"<cacheField name="F{i}"><sharedItems/></cacheField>"#);
+    }
+    cache.push_str("</cacheFields></pivotCacheDefinition>");
+    let table = r#"<pivotTableDefinition name="Capped" cacheId="1"><location ref="D1:E3"/><pivotFields><pivotField axis="axisRow"><items><item x="0"/><item t="default"/></items></pivotField><pivotField dataField="1"/></pivotFields><rowFields><field x="0"/></rowFields><dataFields><dataField name="Sum of V" fld="1"/></dataFields></pivotTableDefinition>"#;
+    let (wb, report) = read_xlsx(&with_pivot(table, Some(&cache))).unwrap();
+    assert_eq!(wb.sheet(0).unwrap().pivots.len(), 1);
+    assert!(report.warnings.iter().any(|w| w.contains("more than 16384 fields")), "{:?}", report.warnings);
+}

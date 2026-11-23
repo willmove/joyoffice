@@ -7,16 +7,15 @@ use joysheet_core::date::{serial_from_ymd, time_fraction};
 use joysheet_core::{CellError, CellRef, DateSystem, MAX_COLS, MAX_ROWS, RangeRef, Value};
 use joysheet_formula::Expr;
 use joysheet_model::{
-    AutoFilter, Cell, CfOperator, CfRule, CfValueKind, Comment, CondFormat, EditRange, ErrorStyle, FilterCriterion, Formula, Hyperlink, NoteBox,
-    NoteCorner, PasswordHash, Sheet, SheetProtection, Sparkline, SparklineKind, Table, TableColumn, TotalsFn, Validation, ValidationKind,
-    XmlColumnPr,
+    AutoFilter, Cell, CfOperator, CfRule, CfValueKind, Comment, CondFormat, EditRange, ErrorStyle, FilterCriterion, Formula, NoteBox, NoteCorner,
+    Sheet, Sparkline, SparklineKind, Table, TableColumn, TotalsFn, Validation, ValidationKind, XmlColumnPr,
 };
 
 use crate::IoError;
 use crate::fmla::from_file;
-use crate::package::Rel;
 use crate::read::Ctx;
 use crate::sheet_dims::{MAX_COLUMN_ASSIGNMENTS, RowSpec, apply_row_info, read_xml_cols, read_xml_format_pr};
+use crate::sheet_meta::{read_password, read_xml_hyperlinks, read_xml_protection};
 use crate::sheet_print::{read_xml_breaks, read_xml_header_footer, read_xml_page_margins, read_xml_page_setup, read_xml_print_options};
 use crate::styles::read_color;
 use crate::xml::{self, El};
@@ -25,7 +24,7 @@ mod parts;
 mod rules;
 
 pub use parts::{read_autofilter, read_table};
-use parts::{read_comments, read_hyperlinks, read_note_shapes, read_threaded};
+use parts::{read_comments, read_note_shapes, read_threaded};
 use rules::{read_cf, read_validation};
 
 struct Shared {
@@ -79,10 +78,6 @@ fn push_dynamic(st: &mut RowState, range: RangeRef) {
     st.dynamic.push(range);
 }
 
-const MAX_HYPERLINK_CELLS: u64 = 10_000;
-/// Target and tooltip bytes kept for hyperlinks of one sheet, over all cells: the same URL is
-/// copied for every cell of its range, so length × cells must stay bounded whatever the file.
-const MAX_HYPERLINK_BYTES: u64 = 8 * 1024 * 1024;
 /// Most dynamic-array and legacy-array ranges of one sheet.
 const MAX_DYNAMIC_RANGES: usize = 65_536;
 /// Worst-case cells inside the dynamic ranges the sheet declares. Beyond it further ranges are
@@ -157,7 +152,7 @@ pub fn read_sheet(cx: &mut Ctx<'_>, part: &str, name: &str) -> Result<Sheet, IoE
                     }
                 }
             }
-            "hyperlinks" => read_hyperlinks(cx, name, e, &rels, &mut sheet),
+            "hyperlinks" => read_xml_hyperlinks(cx, name, e, &rels, &mut sheet),
             "autoFilter" => sheet.autofilter = read_autofilter(cx, e),
             "printOptions" => read_xml_print_options(e, &mut sheet),
             "pageMargins" => read_xml_page_margins(e, &mut sheet),
@@ -168,22 +163,10 @@ pub fn read_sheet(cx: &mut Ctx<'_>, part: &str, name: &str) -> Result<Sheet, IoE
             "headerFooter" => read_xml_header_footer(e, &mut sheet),
             "rowBreaks" => read_xml_breaks(e, &mut sheet, true),
             "colBreaks" => read_xml_breaks(e, &mut sheet, false),
-            "sheetProtection" if e.flag("sheet", false) => {
-                sheet.protection = Some(SheetProtection {
-                    password: read_password(e, ""),
-                    legacy_password_hash: None,
-                    select_locked: !e.flag("selectLockedCells", false),
-                    select_unlocked: !e.flag("selectUnlockedCells", false),
-                    format_cells: !e.flag("formatCells", true),
-                    format_columns: !e.flag("formatColumns", true),
-                    format_rows: !e.flag("formatRows", true),
-                    insert_columns: !e.flag("insertColumns", true),
-                    insert_rows: !e.flag("insertRows", true),
-                    delete_columns: !e.flag("deleteColumns", true),
-                    delete_rows: !e.flag("deleteRows", true),
-                    sort: !e.flag("sort", true),
-                    autofilter: !e.flag("autoFilter", true),
-                });
+            "sheetProtection" => {
+                if let Some(prot) = read_xml_protection(e) {
+                    sheet.protection = Some(prot);
+                }
             }
             "drawing" => {
                 if let Some(rel) = e.attr("id").and_then(|id| rels.iter().find(|r| r.id == id)) {
@@ -232,35 +215,6 @@ pub fn read_sheet(cx: &mut Ctx<'_>, part: &str, name: &str) -> Result<Sheet, IoE
         }
     }
     Ok(sheet)
-}
-
-/// A protection password hash: the iterated attributes (`algorithmName`, `hashValue`,
-/// `saltValue`, `spinCount`) or the legacy 16-bit `password`, each name preceded by `prefix`
-/// (`workbook` gives `workbookHashValue`…). One that can't be read keeps a hash that never
-/// matches, so what it protects stays locked rather than open.
-pub(crate) fn read_password(e: &El, prefix: &str) -> Option<PasswordHash> {
-    let attr = |base: &str| e.attr(&password_attr(prefix, base));
-    if attr("algorithmName").is_some() || attr("hashValue").is_some() {
-        return Some(PasswordHash::Iterated {
-            algorithm: attr("algorithmName").unwrap_or("").to_string(),
-            hash: attr("hashValue").unwrap_or("").to_string(),
-            salt: attr("saltValue").unwrap_or("").to_string(),
-            spin_count: e.attr_u32(&password_attr(prefix, "spinCount")).unwrap_or(0),
-        });
-    }
-    attr("password").map(|h| match u16::from_str_radix(h.trim(), 16) {
-        Ok(h) => PasswordHash::Legacy(h),
-        Err(_) => PasswordHash::Iterated { algorithm: String::new(), hash: String::new(), salt: String::new(), spin_count: 0 },
-    })
-}
-
-/// `base` preceded by `prefix` in camel case: ("workbook", "hashValue") → `workbookHashValue`.
-pub(crate) fn password_attr(prefix: &str, base: &str) -> String {
-    let mut chars = base.chars();
-    match chars.next() {
-        Some(c) if !prefix.is_empty() => format!("{prefix}{}{}", c.to_ascii_uppercase(), chars.as_str()),
-        _ => base.to_string(),
-    }
 }
 
 /// Allow Edit Ranges. A range whose password can't be read keeps a hash that never matches

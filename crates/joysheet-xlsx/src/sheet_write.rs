@@ -21,7 +21,6 @@ use crate::xml::{encode_xstring, esc, esc_attr, num};
 mod parts;
 mod rules;
 
-pub(crate) use parts::password_attrs;
 use parts::{autofilter_xml, comments_xml, protected_ranges_xml, table_columns, table_name, table_xml, thread_ids, threaded_xml, vml_xml};
 use rules::{cf_rule_xml, solid_bar_id, validation_xml, x14_cfvo};
 
@@ -193,32 +192,7 @@ pub fn write_sheet(wb: &Workbook, si: usize, selected: bool, out: &mut Out) -> (
 
     // sheetProtection
     if let Some(p) = &sheet.protection {
-        s.push_str("<sheetProtection sheet=\"1\" objects=\"1\" scenarios=\"1\"");
-        for (attr, allowed) in [
-            ("formatCells", p.format_cells),
-            ("formatColumns", p.format_columns),
-            ("formatRows", p.format_rows),
-            ("insertColumns", p.insert_columns),
-            ("insertRows", p.insert_rows),
-            ("deleteColumns", p.delete_columns),
-            ("deleteRows", p.delete_rows),
-            ("sort", p.sort),
-            ("autoFilter", p.autofilter),
-        ] {
-            if allowed {
-                let _ = write!(s, " {attr}=\"0\"");
-            }
-        }
-        if !p.select_locked {
-            s.push_str(" selectLockedCells=\"1\"");
-        }
-        if !p.select_unlocked {
-            s.push_str(" selectUnlockedCells=\"1\"");
-        }
-        if let Some(h) = &p.password {
-            s.push_str(&password_attrs(h, ""));
-        }
-        s.push_str("/>");
+        crate::sheet_meta::write_xml_protection(&mut s, p);
     }
     s.push_str(&protected_ranges_xml(sheet));
     // autoFilter (a sheet filter overlapping a table would be invalid).
@@ -263,41 +237,7 @@ pub fn write_sheet(wb: &Workbook, si: usize, selected: bool, out: &mut Out) -> (
         }
         s.push_str("</dataValidations>");
     }
-    if !sheet.hyperlinks.is_empty() {
-        s.push_str("<hyperlinks>");
-        for (c, h) in &sheet.hyperlinks {
-            let t = h.target.trim();
-            if t.is_empty() {
-                continue;
-            }
-            // `external` is what the file said, or what Insert › Link chose; the scheme test covers
-            // links made before the flag existed.
-            let external = h.external
-                || t.contains("://")
-                || t.to_ascii_lowercase().starts_with("mailto:")
-                || t.starts_with("\\\\")
-                || t.to_ascii_lowercase().starts_with("file:");
-            let _ = write!(s, "<hyperlink ref=\"{}\"", c.a1());
-            if external {
-                let (url, loc) = match t.split_once('#') {
-                    Some((u, l)) if !u.is_empty() => (u, Some(l)),
-                    _ => (t, None),
-                };
-                let id = rels.add_external("hyperlink", url);
-                let _ = write!(s, " r:id=\"{id}\"");
-                if let Some(l) = loc {
-                    let _ = write!(s, " location=\"{}\"", esc_attr(l));
-                }
-            } else {
-                let _ = write!(s, " location=\"{}\" display=\"{}\"", esc_attr(t.trim_start_matches('#')), esc_attr(t.trim_start_matches('#')));
-            }
-            if let Some(tt) = &h.tooltip {
-                let _ = write!(s, " tooltip=\"{}\"", esc_attr(tt));
-            }
-            s.push_str("/>");
-        }
-        s.push_str("</hyperlinks>");
-    }
+    crate::sheet_meta::write_xml_hyperlinks(&mut s, sheet, &mut rels);
     // Printing.
     crate::sheet_print::write_xml_print_options(&mut s, sheet);
     // Unmodelled content kept from the source file (printer settings, controls, OLE objects…).

@@ -115,7 +115,9 @@ pub fn read_xlsb(bytes: &[u8]) -> Result<(Workbook, ReadReport), IoError> {
         }
         check_type(&types, &rel.target, WORKSHEET)?;
         wb.check_sheet_name(&info.name, None).map_err(invalid)?;
-        let mut sheet = worksheet(&required(&mut package, &rel.target)?, &info.name, &strings, &mut budget, &mut report)?;
+        let sheet_rels = optional_relationships(&mut package, &rel.target)?;
+        warn_unimported_sheet_rels(&sheet_rels, &mut report);
+        let mut sheet = worksheet(&required(&mut package, &rel.target)?, &info.name, &strings, &sheet_rels, &mut budget, &mut report)?;
         sheet.visibility = info.visibility;
         if active_tab == Some(index) {
             active_sheet = Some(wb.sheets.len());
@@ -226,12 +228,9 @@ fn check_type(types: &[Entry], path: &str, expected: &str) -> Result<(), IoError
     Ok(())
 }
 
-fn relationships(package: &mut Package<'_>, path: &str) -> Result<Vec<Rel>, IoError> {
-    let (dir, file) = split_dir(path);
-    let relpath = if dir.is_empty() { format!("_rels/{file}.rels") } else { format!("{dir}/_rels/{file}.rels") };
-    let data = package.read_limited(&relpath, MAX_META)?.ok_or_else(|| invalid(format!("missing relationships for {path}")))?;
+fn parse_relationships(data: &[u8], dir: &str) -> Result<Vec<Rel>, IoError> {
     let mut out: Vec<Rel> = vec![];
-    for e in metadata(&data, REL_NS, b"Relationships")? {
+    for e in metadata(data, REL_NS, b"Relationships")? {
         if e.name != "Relationship" {
             continue;
         }
@@ -251,6 +250,37 @@ fn relationships(package: &mut Package<'_>, path: &str) -> Result<Vec<Rel>, IoEr
         out.push(Rel { id: id.into(), kind, target: if external { target.into() } else { resolve(dir, target) }, external });
     }
     Ok(out)
+}
+
+fn relationships(package: &mut Package<'_>, path: &str) -> Result<Vec<Rel>, IoError> {
+    let (dir, file) = split_dir(path);
+    let relpath = if dir.is_empty() { format!("_rels/{file}.rels") } else { format!("{dir}/_rels/{file}.rels") };
+    let data = package.read_limited(&relpath, MAX_META)?.ok_or_else(|| invalid(format!("missing relationships for {path}")))?;
+    parse_relationships(&data, dir)
+}
+
+fn optional_relationships(package: &mut Package<'_>, path: &str) -> Result<Vec<Rel>, IoError> {
+    let (dir, file) = split_dir(path);
+    let relpath = if dir.is_empty() { format!("_rels/{file}.rels") } else { format!("{dir}/_rels/{file}.rels") };
+    let Some(data) = package.read_limited(&relpath, MAX_META)? else {
+        return Ok(vec![]);
+    };
+    parse_relationships(&data, dir)
+}
+
+fn warn_unimported_sheet_rels(rels: &[Rel], report: &mut ReadReport) {
+    for rel in rels {
+        if rel.external {
+            continue;
+        }
+        match rel.kind.as_str() {
+            "pivotTable" => report.warn("PivotTables in XLSB files are not imported; their cached values were kept."),
+            "drawing" | "vmlDrawing" => report.warn("Charts, pictures and shapes in XLSB files are not imported."),
+            "comments" | "threadedComment" => report.warn("Cell comments in XLSB files are not imported."),
+            "table" => report.warn("Tables in XLSB files are not imported; their cell values were kept."),
+            _ => {}
+        }
+    }
 }
 
 struct Bytes<'a> {
@@ -583,12 +613,21 @@ fn value(id: u16, b: &mut Bytes<'_>, strings: &[Arc<str>], budget: &mut Budget) 
     Ok(value)
 }
 
-fn worksheet(bytes: &[u8], name: &str, strings: &[Arc<str>], budget: &mut Budget, report: &mut ReadReport) -> Result<Sheet, IoError> {
+fn worksheet(
+    bytes: &[u8],
+    name: &str,
+    strings: &[Arc<str>],
+    sheet_rels: &[Rel],
+    budget: &mut Budget,
+    report: &mut ReadReport,
+) -> Result<Sheet, IoError> {
     let mut records = Records::new(bytes);
     records.first(129, report)?;
     let mut sheet = Sheet::new(name);
     let mut view = crate::sheet_view::BinaryView::default();
     let mut print = crate::sheet_print::BinaryPrint::default();
+    let mut protection = crate::sheet_meta::BinaryProtection::default();
+    let mut links = crate::sheet_meta::HyperlinkBudget::default();
     let mut break_axis: Option<bool> = None; // Some(true) = row breaks, Some(false) = col breaks
     let mut col_assignments_left = crate::sheet_dims::MAX_COLUMN_ASSIGNMENTS;
     let mut data = false;
@@ -605,6 +644,7 @@ fn worksheet(bytes: &[u8], name: &str, strings: &[Arc<str>], budget: &mut Budget
                 records.end(payload, report)?;
                 view.finish(&mut sheet);
                 print.finish(&mut sheet);
+                protection.finish(&mut sheet);
                 return Ok(sheet);
             }
             147 if !data && payload.len() >= 2 => {
@@ -832,6 +872,35 @@ fn worksheet(bytes: &[u8], name: &str, strings: &[Arc<str>], budget: &mut Budget
                         None => {}
                     }
                 }
+            }
+            494 if !data && payload.len() >= 28 => {
+                let (r0, r1, c0, c1) = (b.u32()?, b.u32()?, b.u32()?, b.u32()?);
+                let rel_id = b.string(255, true)?;
+                let location = b.text(4096)?;
+                let tooltip = b.text(4096)?;
+                let _display = b.text(4096)?;
+                b.finish()?;
+                if r0 > r1 || c0 > c1 || r1 >= MAX_ROWS || c1 >= MAX_COLS {
+                    report.warn("Invalid XLSB hyperlink ranges were skipped.");
+                    continue;
+                }
+                let range = RangeRef::new(CellRef::new(r0, c0), CellRef::new(r1, c1));
+                let tooltip_opt = (!tooltip.is_empty()).then_some(tooltip.as_str());
+                if let Some(link) = crate::sheet_meta::resolve_hyperlink(rel_id.as_deref(), Some(location.as_str()), tooltip_opt, sheet_rels) {
+                    links.insert_range(&mut sheet, name, range, link, &mut |msg| report.warn(msg));
+                }
+            }
+            535 if !data && payload.len() >= 66 => {
+                let password = b.u16()?;
+                let mut flags = [0u32; 16];
+                for slot in &mut flags {
+                    *slot = b.u32()?;
+                }
+                protection.apply_biff12_protection(password, flags);
+            }
+            678 if !data => {
+                protection.mark_iso_password();
+                report.warn("XLSB worksheet uses an ISO protection hash; the sheet stays locked with an unmatchable password hash.");
             }
             _ => {}
         }

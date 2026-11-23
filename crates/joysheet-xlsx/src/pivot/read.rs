@@ -100,8 +100,22 @@ fn read_cache(cx: &mut Ctx<'_>, part: &str, sheet_name: &str) -> Option<CacheIn>
     let sys = cx.date_system;
     let mut fields = Vec::new();
     if let Some(cf) = x.child("cacheFields") {
-        for f in cf.kids("cacheField").take(MAX_FIELDS) {
-            let items = f.child("sharedItems").map(|si| si.children.iter().map(|e| item_label_el(e, sys)).collect()).unwrap_or_default();
+        let mut field_count = 0usize;
+        for f in cf.kids("cacheField") {
+            field_count += 1;
+            if field_count > MAX_FIELDS {
+                cx.warn(format!("PivotTable cache has more than {MAX_FIELDS} fields; extra fields were skipped"));
+                break;
+            }
+            let items = f
+                .child("sharedItems")
+                .map(|si| {
+                    if si.children.len() > MAX_ITEMS {
+                        cx.warn(format!("PivotTable field has more than {MAX_ITEMS} shared items; extra items were skipped"));
+                    }
+                    si.children.iter().take(MAX_ITEMS).map(|e| item_label_el(e, sys)).collect()
+                })
+                .unwrap_or_default();
             let group = f.child("fieldGroup").map(|g| {
                 let base = g.attr_u32("base").map(|b| b as usize);
                 let by = match g.child("rangePr").map(|r| r.attr("groupBy").unwrap_or("range")) {
@@ -111,7 +125,15 @@ fn read_cache(cx: &mut Ctx<'_>, part: &str, sheet_name: &str) -> Option<CacheIn>
                     Some("days") => Some(PivotDateGroup::Days),
                     _ => None,
                 };
-                let gi = g.child("groupItems").map(|gi| gi.children.iter().map(|e| item_label_el(e, sys)).collect()).unwrap_or_default();
+                let gi = g
+                    .child("groupItems")
+                    .map(|gi| {
+                        if gi.children.len() > MAX_ITEMS {
+                            cx.warn(format!("PivotTable field has more than {MAX_ITEMS} group items; extra items were skipped"));
+                        }
+                        gi.children.iter().take(MAX_ITEMS).map(|e| item_label_el(e, sys)).collect()
+                    })
+                    .unwrap_or_default();
                 (base, by, gi)
             });
             fields.push(FieldIn {
@@ -168,9 +190,9 @@ pub fn read_pivots(cx: &mut Ctx<'_>, caches: &mut CachesIn, sheet_part: &str, sh
     Ok(out)
 }
 
-/// A pivot field's data items (not subtotal or grand-total items).
+/// A pivot field's data items (not subtotal or grand-total items), bounded by [`MAX_ITEMS`].
 fn items_of(e: &El) -> Vec<&El> {
-    e.child("items").map(|it| it.kids("item").filter(|i| i.attr("t").is_none_or(|t| t == "data")).collect()).unwrap_or_default()
+    e.child("items").map(|it| it.kids("item").filter(|i| i.attr("t").is_none_or(|t| t == "data")).take(MAX_ITEMS).collect()).unwrap_or_default()
 }
 
 /// (source column name, date grouping) of a cache field used on an axis.
@@ -212,14 +234,14 @@ fn read_table(cx: &mut Ctx<'_>, x: &El, cache: &CacheIn, id: u32) -> Option<Pivo
         cx.warn(format!("PivotTable \"{}\" has no valid location; kept as plain cells", pt.name));
         return None;
     };
-    let pfs: Vec<&El> = x.child("pivotFields").map(|p| p.kids("pivotField").collect()).unwrap_or_default();
+    let pfs: Vec<&El> = x.child("pivotFields").map(|p| p.kids("pivotField").take(MAX_FIELDS).collect()).unwrap_or_default();
     let pf = |i: usize| pfs.get(i).copied();
     let idx_list = |name: &str, attr: &str| -> Vec<i64> {
-        x.child(name).map(|e| e.children.iter().filter_map(|f| f.attr_i64(attr)).collect()).unwrap_or_default()
+        x.child(name).map(|e| e.children.iter().take(MAX_FIELDS).filter_map(|f| f.attr_i64(attr)).collect()).unwrap_or_default()
     };
     let row_x = idx_list("rowFields", "x");
     let col_x = idx_list("colFields", "x");
-    let pages: Vec<&El> = x.child("pageFields").map(|p| p.kids("pageField").collect()).unwrap_or_default();
+    let pages: Vec<&El> = x.child("pageFields").map(|p| p.kids("pageField").take(MAX_FIELDS).collect()).unwrap_or_default();
 
     // Layout from the first axis field (pivotField defaults: compact and outline on).
     let first_axis = row_x.iter().chain(col_x.iter()).find(|i| **i >= 0).and_then(|i| pf(*i as usize));
@@ -322,7 +344,7 @@ fn read_table(cx: &mut Ctx<'_>, x: &El, cache: &CacheIn, id: u32) -> Option<Pivo
 
     // Values.
     if let Some(df) = x.child("dataFields") {
-        for d in df.kids("dataField") {
+        for d in df.kids("dataField").take(MAX_FIELDS) {
             let Some(i) = d.attr_u32("fld").map(|i| i as usize) else { continue };
             let Some(f) = cache.fields.get(i) else { continue };
             let func = match d.attr("subtotal") {

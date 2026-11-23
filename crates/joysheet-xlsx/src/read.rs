@@ -245,7 +245,7 @@ pub fn read_xlsx(bytes: &[u8]) -> Result<(Workbook, ReadReport), IoError> {
     }
     if let Some(p) = wb_xml.child("workbookProtection") {
         wb.protected_structure = p.flag("lockStructure", false);
-        wb.structure_password = if wb.protected_structure { crate::sheet_read::read_password(p, "workbook") } else { None };
+        wb.structure_password = if wb.protected_structure { crate::sheet_meta::read_password(p, "workbook") } else { None };
     }
     let active_tab = wb_xml.path(&["bookViews", "workbookView"]).and_then(|v| v.attr_u32("activeTab")).unwrap_or(0) as usize;
 

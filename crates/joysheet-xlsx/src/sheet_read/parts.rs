@@ -1,41 +1,5 @@
 use super::*;
 
-pub(super) fn read_hyperlinks(cx: &mut Ctx<'_>, name: &str, e: &El, rels: &[Rel], sheet: &mut Sheet) {
-    let mut cells = 0u64;
-    let mut bytes = 0u64;
-    for h in e.kids("hyperlink") {
-        let Some(range) = h.attr("ref").and_then(RangeRef::parse) else { continue };
-        let mut target = h.attr("id").and_then(|id| rels.iter().find(|r| r.id == id)).map(|r| r.target.clone()).unwrap_or_default();
-        // A relationship is a file or web page; a bare `location` is a place in this workbook.
-        let external = !target.is_empty();
-        if let Some(loc) = h.attr("location").filter(|l| !l.is_empty()) {
-            if target.is_empty() {
-                target = loc.trim_start_matches('#').to_string();
-            } else {
-                target = format!("{target}#{loc}");
-            }
-        }
-        if target.is_empty() {
-            continue;
-        }
-        let link = Hyperlink { target: target.clone(), tooltip: h.attr("tooltip").map(str::to_string), external };
-        let link_bytes = (target.len() + link.tooltip.as_ref().map_or(0, |t| t.len())) as u64;
-        for c in range.iter() {
-            if cells >= MAX_HYPERLINK_CELLS {
-                cx.warn(format!("sheet \"{name}\": hyperlinks past the first {MAX_HYPERLINK_CELLS} cells were dropped"));
-                return;
-            }
-            if bytes.saturating_add(link_bytes) > MAX_HYPERLINK_BYTES {
-                cx.warn(format!("sheet \"{name}\": hyperlink targets past {MAX_HYPERLINK_BYTES} bytes were dropped"));
-                return;
-            }
-            cells += 1;
-            bytes += link_bytes;
-            sheet.hyperlinks.insert(c, link.clone());
-        }
-    }
-}
-
 fn filter_op(s: Option<&str>) -> &'static str {
     match s.unwrap_or("equal") {
         "lessThan" => "<",

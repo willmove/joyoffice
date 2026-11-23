@@ -303,25 +303,6 @@ pub(super) fn threaded_xml(sheet: &Sheet, ids: &BTreeMap<CellRef, Vec<String>>, 
     s
 }
 
-/// A protection password hash as attributes, each name preceded by `prefix` (see
-/// [`crate::sheet_read::read_password`]).
-pub(crate) fn password_attrs(h: &joysheet_model::PasswordHash, prefix: &str) -> String {
-    let name = |base: &str| crate::sheet_read::password_attr(prefix, base);
-    match h {
-        joysheet_model::PasswordHash::Legacy(h) => format!(" {}=\"{h:04X}\"", name("password")),
-        joysheet_model::PasswordHash::Iterated { algorithm, hash, salt, spin_count } => format!(
-            " {}=\"{}\" {}=\"{}\" {}=\"{}\" {}=\"{spin_count}\"",
-            name("algorithmName"),
-            esc_attr(algorithm),
-            name("hashValue"),
-            esc_attr(hash),
-            name("saltValue"),
-            esc_attr(salt),
-            name("spinCount")
-        ),
-    }
-}
-
 /// Allow Edit Ranges: `<protectedRanges>` (after `sheetProtection`).
 pub(super) fn protected_ranges_xml(sheet: &Sheet) -> String {
     let mut s = String::new();
@@ -329,7 +310,7 @@ pub(super) fn protected_ranges_xml(sheet: &Sheet) -> String {
         let sqref: Vec<String> = r.ranges.iter().map(|x| x.a1()).collect();
         let _ = write!(s, "<protectedRange name=\"{}\" sqref=\"{}\"", esc_attr(&r.title), sqref.join(" "));
         if let Some(h) = &r.password {
-            s.push_str(&password_attrs(h, ""));
+            s.push_str(&crate::sheet_meta::write_password_attrs(h, ""));
         }
         if let Some(sd) = &r.security_descriptor {
             let _ = write!(s, " securityDescriptor=\"{}\"", esc_attr(sd));

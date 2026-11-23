@@ -424,6 +424,7 @@ fn parsed(c: &mut Cursor<'_, '_>) -> Result<Parsed, IoError> {
 struct SheetState<'g> {
     view: crate::sheet_view::BinaryView,
     print: crate::sheet_print::BinaryPrint,
+    protection: crate::sheet_meta::BinaryProtection,
     col_assignments_left: u64,
     has_standard_width: bool,
     g: &'g Globals,
@@ -566,6 +567,7 @@ fn worksheet(
     let mut st = SheetState {
         view: Default::default(),
         print: Default::default(),
+        protection: Default::default(),
         col_assignments_left: crate::sheet_dims::MAX_COLUMN_ASSIGNMENTS,
         has_standard_width: false,
         g,
@@ -615,6 +617,7 @@ fn worksheet(
     }
     st.view.finish(&mut st.sheet);
     st.print.finish(&mut st.sheet);
+    st.protection.finish(&mut st.sheet);
     Ok(Some((st.sheet, st.calc)))
 }
 
@@ -904,6 +907,17 @@ fn sheet_record(rec: &Record<'_>, st: &mut SheetState<'_>, budget: &mut Budget, 
                     areas.push(RangeRef::new(CellRef::new(r1, c1), CellRef::new(r2, c2)));
                 }
                 st.view.select(pane, joysheet_model::sheet::PaneSelection { active: CellRef::new(row, col), active_area: index, areas })?;
+            }
+        }
+        0x0012 if c.remaining() >= 2 => st.protection.set_protected(c.u16()? != 0),
+        0x0013 if c.remaining() >= 2 => st.protection.set_legacy_password(c.u16()?),
+        0x0867 if c.remaining() >= 19 => {
+            c.skip(12)?; // FrtHeader
+            let isf = c.u16()?;
+            c.skip(1)?; // reserved
+            let cb = c.u32()?;
+            if isf == 0x0002 && cb == 0xFFFF_FFFF && c.remaining() >= 4 {
+                st.protection.apply_biff8_enhanced(c.u32()?);
             }
         }
         0x001C => report.warn("Cell comments in .xls files are not imported yet."),

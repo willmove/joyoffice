@@ -545,3 +545,99 @@ fn xlsb_print_setup_margins_headers_and_breaks_survive_xlsx_save() {
     let (rt, _) = read_xlsx(&write_xlsx(&wb).unwrap()).unwrap();
     assert_eq!(rt.sheets[0].print, wb.sheets[0].print);
 }
+
+#[test]
+fn xlsb_sheet_protection_hyperlinks_and_unimported_part_warnings_survive_xlsx_save() {
+    let brt_prot = |pw: u16, flags: [u32; 16]| {
+        let mut out = Vec::with_capacity(66);
+        out.extend(pw.to_le_bytes());
+        for f in flags {
+            out.extend(f.to_le_bytes());
+        }
+        record(535, &out)
+    };
+    let brt_hlink = |r0: u32, r1: u32, c0: u32, c1: u32, rel_id: &str, loc: &str, tip: &str, disp: &str| {
+        let mut out = Vec::new();
+        for v in [r0, r1, c0, c1] {
+            out.extend(v.to_le_bytes());
+        }
+        out.extend(wide(rel_id));
+        out.extend(wide(loc));
+        out.extend(wide(tip));
+        out.extend(wide(disp));
+        record(494, &out)
+    };
+
+    // Protected sheet with legacy hash 0x83AF ("password"):
+    // fLocked=1, formatCells=1, insertRows=1, sort=1, autoFilter=1, selUnlocked=1, selLocked=0.
+    let mut flags = [0u32; 16];
+    flags[0] = 1; // fLocked
+    flags[3] = 1; // fFormatCells
+    flags[7] = 1; // fInsertRows
+    flags[12] = 1; // fSort
+    flags[13] = 1; // fAutoFilter
+    flags[15] = 1; // fSelUnlockedCells
+    let mut tail = brt_prot(0x83AF, flags);
+    tail.extend(brt_hlink(0, 0, 0, 1, "hl1", "sec", "Docs Tip", "Docs"));
+    tail.extend(brt_hlink(1, 1, 0, 0, "", "Hidden!B2", "", "Jump"));
+    let ws = worksheet(&[row(0), cell(6, 0, &wide("Docs"))].concat(), &tail);
+
+    let sheet_rels = concat!(
+        r#"<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">"#,
+        r#"<Relationship Id="hl1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="https://example.org/spec" TargetMode="External"/>"#,
+        r#"<Relationship Id="pt1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/pivotTable" Target="../pivots/pt1.bin"/>"#,
+        r#"<Relationship Id="dr1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/drawing" Target="../drawings/d1.xml"/>"#,
+        r#"</Relationships>"#,
+    );
+    let zip = make_zip(&[
+        ("[Content_Types].xml", TYPES.as_bytes()),
+        ("_rels/.rels", ROOT.as_bytes()),
+        ("records/book.bin", &book(false)),
+        ("records/_rels/book.bin.rels", RELS.as_bytes()),
+        ("data/one.bin", &ws),
+        ("data/_rels/one.bin.rels", sheet_rels.as_bytes()),
+        ("data/two.bin", &worksheet(&[], &[])),
+        ("text/strings.bin", &sst()),
+    ]);
+
+    let (wb, report) = read_xlsb(&zip).unwrap();
+    let sh = &wb.sheets[0];
+    let prot = sh.protection.as_ref().unwrap();
+    assert_eq!(prot.password, Some(joysheet_model::PasswordHash::Legacy(0x83AF)));
+    assert!(prot.password.as_ref().unwrap().verify("password").unwrap());
+    assert!(!prot.select_locked && prot.select_unlocked);
+    assert!(prot.format_cells && prot.insert_rows && prot.sort && prot.autofilter);
+    assert!(!prot.delete_rows && !prot.format_columns);
+
+    let ext_a1 = sh.hyperlinks.get(&CellRef::new(0, 0)).unwrap();
+    let ext_b1 = sh.hyperlinks.get(&CellRef::new(0, 1)).unwrap();
+    assert_eq!(ext_a1.target, "https://example.org/spec#sec");
+    assert_eq!(ext_a1.tooltip.as_deref(), Some("Docs Tip"));
+    assert!(ext_a1.external);
+    assert_eq!(ext_a1, ext_b1);
+    let int_a2 = sh.hyperlinks.get(&CellRef::new(1, 0)).unwrap();
+    assert_eq!(int_a2.target, "Hidden!B2");
+    assert_eq!(int_a2.tooltip, None);
+    assert!(!int_a2.external);
+
+    assert!(report.warnings.iter().any(|w| w.contains("PivotTables in XLSB")));
+    assert!(report.warnings.iter().any(|w| w.contains("Charts, pictures and shapes in XLSB")));
+
+    let (rt, _) = read_xlsx(&write_xlsx(&wb).unwrap()).unwrap();
+    assert_eq!(rt.sheets[0].protection, sh.protection);
+    assert_eq!(rt.sheets[0].hyperlinks, sh.hyperlinks);
+
+    // ISO protection hash keeps sheet fail-closed with an unmatchable password hash.
+    let mut iso_tail = brt_prot(0, flags);
+    iso_tail.extend(record(678, &[0; 16]));
+    let (wb_iso, rep_iso) = read_xlsb(&file(&worksheet(&[], &iso_tail))).unwrap();
+    let iso_pw = wb_iso.sheets[0].protection.as_ref().unwrap().password.as_ref().unwrap();
+    assert!(matches!(iso_pw, joysheet_model::PasswordHash::Iterated { algorithm, .. } if algorithm.is_empty()));
+    assert!(rep_iso.warnings.iter().any(|w| w.contains("ISO protection hash")));
+
+    // Oversized XLSB hyperlink range is capped at MAX_HYPERLINK_CELLS (10,000) with warning.
+    let huge = brt_hlink(0, 11_999, 0, 0, "", "Hidden!A1", "", "Many");
+    let (wb_cap, rep_cap) = read_xlsb(&file(&worksheet(&[], &huge))).unwrap();
+    assert_eq!(wb_cap.sheets[0].hyperlinks.len(), 10_000);
+    assert!(rep_cap.warnings.iter().any(|w| w.contains("past the first 10000 cells")));
+}

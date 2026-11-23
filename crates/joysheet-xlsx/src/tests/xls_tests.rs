@@ -808,3 +808,42 @@ fn biff8_print_setup_margins_headers_and_breaks_roundtrip() {
     let (rt, _) = read_xlsx(&write_xlsx(&wb).unwrap()).unwrap();
     assert_eq!(rt.sheets[0].print, wb.sheets[0].print);
 }
+
+#[test]
+fn biff8_sheet_protection_password_and_enhanced_flags_roundtrip() {
+    let protect = rec(0x0012, &u16s(&[1]));
+    let password = rec(0x0013, &u16s(&[0x83AF])); // legacy hash of "password"
+    // FeatHdr (0x0867): FrtHeader (12B) + isf=2 (ISFPROTECTION) + reserved=1 + cb=0xFFFFFFFF + EnhancedProtection.
+    // Allow format_cells (0x0004), sort (0x0800), autofilter (0x1000), select_unlocked (0x4000); block select_locked (0x0400 clear).
+    let enhanced_bits: u32 = 0x0004 | 0x0800 | 0x1000 | 0x4000;
+    let mut feathdr_payload = Vec::with_capacity(23);
+    feathdr_payload.extend(0x0867u16.to_le_bytes());
+    feathdr_payload.extend([0u8; 10]);
+    feathdr_payload.extend(2u16.to_le_bytes());
+    feathdr_payload.push(1);
+    feathdr_payload.extend(0xFFFF_FFFFu32.to_le_bytes());
+    feathdr_payload.extend(enhanced_bits.to_le_bytes());
+    let feathdr = rec(0x0867, &feathdr_payload);
+
+    let (wb, _) = read_xls(&one_sheet_with(&cat(&[&protect, &password, &feathdr]))).unwrap();
+    let prot = wb.sheets[0].protection.as_ref().unwrap();
+    assert_eq!(prot.password, Some(joysheet_model::PasswordHash::Legacy(0x83AF)));
+    assert!(prot.password.as_ref().unwrap().verify("password").unwrap());
+    assert!(!prot.select_locked);
+    assert!(prot.select_unlocked);
+    assert!(prot.format_cells && !prot.format_columns && !prot.format_rows);
+    assert!(prot.sort && prot.autofilter);
+    assert!(!prot.insert_rows && !prot.delete_rows);
+
+    let (rt, _) = read_xlsx(&write_xlsx(&wb).unwrap()).unwrap();
+    assert_eq!(rt.sheets[0].protection, wb.sheets[0].protection);
+
+    // Legacy PROTECT=1 without FeatHdr uses Excel's default selection permissions.
+    let (wb_legacy, _) = read_xls(&one_sheet_with(&protect)).unwrap();
+    let p_leg = wb_legacy.sheets[0].protection.as_ref().unwrap();
+    assert!(p_leg.select_locked && p_leg.select_unlocked && !p_leg.format_cells && !p_leg.sort);
+
+    // PROTECT=0 leaves sheet unprotected even if PASSWORD/FeatHdr are present.
+    let (wb_open, _) = read_xls(&one_sheet_with(&cat(&[&rec(0x0012, &u16s(&[0])), &password, &feathdr]))).unwrap();
+    assert!(wb_open.sheets[0].protection.is_none());
+}
