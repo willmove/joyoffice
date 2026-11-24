@@ -237,6 +237,11 @@ pub(super) fn parse_index(bytes: &[u8], allow_local: bool) -> Result<PackIndex, 
         if !archive_allowed {
             return Err(for_pack("invalid dictionary archive location"));
         }
+        if let Some(fallback) = &pack.fallback_url
+            && (!pack.url.starts_with("https://") || !https_url(fallback) || fallback == &pack.url)
+        {
+            return Err(for_pack("invalid dictionary archive fallback"));
+        }
         if let Some(source) = &pack.source
             && (source.len() > 2048 || !https_url(source))
         {
@@ -276,6 +281,7 @@ mod tests {
     -> Result<(), Box<dyn std::error::Error>> {
         let entry = PackEntry {
             locale: String::new(),
+            fallback_url: None,
             name: " Sprache ".into(),
             version: String::new(),
             url: "https://example.org/archive".into(),

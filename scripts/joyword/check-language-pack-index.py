@@ -55,7 +55,16 @@ def verify(old, candidate, legacy, output):
     readback(old)
     readback(candidate)
     assert not first_party.exists()
-    assert len(reference) == 75 and json.loads(bundled.read_bytes())["packs"] == reference
+    published = json.loads(bundled.read_bytes())["packs"]
+    remapped = []
+    for item in published:
+        original_item = item.copy()
+        fallback = original_item.pop("fallback_url", None)
+        if fallback is not None:
+            original_item["url"] = fallback
+        remapped.append(original_item)
+    assert len(reference) == 75 and remapped == reference
+    assert sum("fallback_url" in item for item in published) == 41
     run(candidate, refresh, True)
     assert first_party.read_bytes() == bundled.read_bytes()
     readback(candidate)
@@ -70,8 +79,25 @@ def verify(old, candidate, legacy, output):
     assert run(old, install) == absent
     assert first_party.read_bytes() == bundled.read_bytes()
     assert settings.read_bytes() == consent and sha(fixture) == original
+    hosted = next(item for item in published if item["locale"] == "nl").copy()
+    override = output / "host-probe.json"
+    env["CRAFT_LANGUAGE_PACK_INDEX"] = str(override)
+
+    def refresh_override(item):
+        override.write_text(json.dumps({"format": 1, "release": "joyword-language-packs-1", "packs": [item]}), encoding="utf-8")
+        run(candidate, refresh, True)
+
+    fallback = hosted.pop("fallback_url")
+    refresh_override(hosted)
+    readback(candidate)
+    refresh_override(dict(hosted, url=hosted["url"].replace("nl.tar.zst", "missing-nl.tar.zst"), fallback_url=fallback))
+    readback(candidate)
+    refresh_override(dict(hosted, sha256="a" * 64, fallback_url=fallback))
+    run(candidate, install)
+    assert json.loads((store / "language-packs.json").read_bytes())["packs"] == []
     evidence = dict(packs=len(reference), consentRefused=True, bundledRefresh=True,
                     verifiedLegacyCacheMigration=True, rollbackReadsOriginalCache=True,
+                    hostedPrimary=True, upstreamFallback=True, invalidDigestRejectedOnBothOrigins=True,
                     corruptCacheRejected=True, indexSha256=sha(bundled), originalSourceSha256=original)
     (output / "report.json").write_text(json.dumps(evidence, indent=2) + "\n", encoding="utf-8")
 

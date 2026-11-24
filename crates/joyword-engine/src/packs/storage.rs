@@ -139,6 +139,8 @@ pub(super) struct PackEntry {
     #[serde(default)]
     pub version: String,
     pub url: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub fallback_url: Option<String>,
     pub sha256: String,
     pub size: u64,
     pub licence: String,

@@ -1,4 +1,9 @@
-use super::day_count::{basis_arg, coup_daybs, coup_days, coup_daysnc, coupons, date, day_count, freq_arg, shift_months, year_basis, year_frac, ymd};
+//! Coupon calendars determine accrual before settlement. Security pricing sums
+//! the remaining cash flows on that calendar, then deducts accrued interest.
+use super::day_count::{
+    basis_arg, coup_daybs, coup_days, coup_daysnc, coupon_index, coupons, date, day_count, freq_arg, shift_months, year_basis, year_frac, ymd,
+};
+use super::tvm::annuity;
 use super::*;
 
 // ---------------------------------------------------------------------------------------------
@@ -19,50 +24,23 @@ pub(super) fn accrint(a: &[Arg], c: &mut dyn Ctx) -> R<Value> {
     let eom = anchor.2 == days_in_month(anchor.0, anchor.1);
     let step = (12.0 / freq) as i64;
     let cd = |j: i64| shift_months(sys, anchor, j * step, eom);
-    // Coupon index of the period containing a date: cd(j) <= date < cd(j+1).
-    let index_of = |d: f64| -> R<i64> {
-        let mut j = (((d - first) / 365.25 * freq).floor() as i64).clamp(-200_000, 200_000);
-        let mut guard = 0;
-        while cd(j)? > d {
-            j -= 1;
-            guard += 1;
-            if guard > 400_000 {
-                return Err(CellError::Num);
-            }
-        }
-        while cd(j + 1)? <= d {
-            j += 1;
-            guard += 1;
-            if guard > 400_000 {
-                return Err(CellError::Num);
-            }
-        }
-        Ok(j)
-    };
-    let start = if calc_method || settle <= first { issue } else { cd(index_of(settle)?)? };
-    let mut j = index_of(start)?;
+    let index_of = |d| coupon_index(sys, anchor, step, d);
+    let final_period = index_of(settle)?;
+    let start = if calc_method || settle <= first { issue } else { cd(final_period)? };
+    let begin = index_of(start)?;
+    if final_period - begin >= 100_000 {
+        return Err(CellError::Num);
+    }
     let mut sum = 0.0;
-    let mut guard = 0;
-    loop {
-        let (p0, p1) = (cd(j)?, cd(j + 1)?);
+    for j in begin..=final_period {
+        let p0 = cd(j)?;
         if p0 >= settle {
             break;
         }
+        let p1 = cd(j + 1)?;
         let from = p0.max(start);
         let to = p1.min(settle);
-        if to > from {
-            let nl = match basis {
-                1 => p1 - p0,
-                3 => 365.0 / freq,
-                _ => 360.0 / freq,
-            };
-            sum += day_count(sys, from, to, basis)? / nl;
-        }
-        j += 1;
-        guard += 1;
-        if guard > 100_000 {
-            return Err(CellError::Num);
-        }
+        sum += span(sys, from, to, basis)? / normal_length(p0, p1, freq, basis);
     }
     num_val(par * rate / freq * sum)
 }
@@ -170,9 +148,10 @@ fn mat_terms(a: &[Arg], sys: DateSystem) -> R<(f64, f64, f64, f64, f64)> {
     if s >= m || issue >= s || rate < 0.0 || x < 0.0 {
         return Err(CellError::Num);
     }
-    let dim = year_frac(sys, issue, m, b)?;
-    let dsm = year_frac(sys, s, m, b)?;
-    let ai = year_frac(sys, issue, s, b)?;
+    let denominator = year_basis(sys, b, issue)?;
+    let dim = day_count(sys, issue, m, b)? / denominator;
+    let dsm = day_count(sys, s, m, b)? / denominator;
+    let ai = day_count(sys, issue, s, b)? / denominator;
     Ok((dim, dsm, ai, rate, x))
 }
 
@@ -191,40 +170,71 @@ pub(super) fn yieldmat(a: &[Arg], c: &mut dyn Ctx) -> R<Value> {
 }
 
 struct Bond {
-    n: f64,
-    e: f64,
-    a: f64,
-    dsc: f64,
+    coupons: f64,
+    accrued: f64,
+    next: f64,
     freq: f64,
 }
 
 fn bond(sys: DateSystem, settle: f64, mat: f64, freq: f64, basis: u32) -> R<Bond> {
     let c = coupons(sys, settle, mat, freq)?;
     let e = coup_days(&c, freq, basis);
-    let a = coup_daybs(sys, &c, settle, basis)?;
-    let dsc = coup_daysnc(sys, &c, settle, freq, basis)?;
+    let a = coup_daybs(sys, &c, settle, freq, basis)?;
     if e <= 0.0 {
         return Err(CellError::Num);
     }
-    Ok(Bond { n: c.num, e, a, dsc, freq })
+    // PRICE and DURATION use the complement of elapsed days for the fixed
+    // actual/360 and actual/365 coupon conventions.
+    let remaining = if matches!(basis, 2 | 3) { e - a } else { coup_daysnc(sys, &c, settle, freq, basis)? };
+    Ok(Bond { coupons: c.num, accrued: a / e, next: remaining / e, freq })
+}
+
+/// Present value of face value and a regular stream of installments. For the
+/// first payment, time is measured in fractional coupon periods.
+fn coupon_value(coupon: f64, face: f64, first: f64, periods: f64, rate: f64) -> f64 {
+    let log = rate.ln_1p();
+    let face_value = face * (-(first + periods - 1.0) * log).exp();
+    if coupon == 0.0 {
+        return face_value;
+    }
+    let discount = -(rate / (1.0 + rate));
+    face_value + coupon * (-first * log).exp() * annuity(discount, periods)
 }
 
 fn bond_price(b: &Bond, rate: f64, yld: f64, red: f64) -> f64 {
-    let f = b.freq;
-    let coupon = 100.0 * rate / f;
-    let accrued = coupon * b.a / b.e;
-    if b.n == 1.0 {
-        return (red + coupon) / (1.0 + b.dsc / b.e * yld / f) - accrued;
+    let coupon = 100.0 * rate / b.freq;
+    let period_rate = yld / b.freq;
+    let gross =
+        if b.coupons == 1.0 { (red + coupon) / (1.0 + b.next * period_rate) } else { coupon_value(coupon, red, b.next, b.coupons, period_rate) };
+    gross - coupon * b.accrued
+}
+
+fn implied_yield(price: f64, frequency: f64, value: impl Fn(f64) -> f64) -> R<Value> {
+    // Work in log growth so the bracket cannot cross a zero discount divisor.
+    let evaluate = |x: f64| value(frequency * x.exp_m1()) - price;
+    let mut low = (-0.999_999_f64).ln_1p();
+    let mut high = (1.0 / frequency).ln_1p();
+    for _ in 0..60 {
+        if evaluate(high) <= 0.0 {
+            break;
+        }
+        high = (2.0 * high.exp_m1()).ln_1p();
     }
-    let base = 1.0 + yld / f;
-    let frac = b.dsc / b.e;
-    let mut sum = red / base.powf(b.n - 1.0 + frac);
-    let mut k = 1.0;
-    while k <= b.n {
-        sum += coupon / base.powf(k - 1.0 + frac);
-        k += 1.0;
+    if !(evaluate(low) >= 0.0 && evaluate(high) <= 0.0) {
+        return Err(CellError::Num);
     }
-    sum - accrued
+    for _ in 0..100 {
+        let middle = low.midpoint(high);
+        if middle == low || middle == high {
+            break;
+        }
+        if evaluate(middle) > 0.0 {
+            low = middle;
+        } else {
+            high = middle;
+        }
+    }
+    num_val(frequency * low.midpoint(high).exp_m1())
 }
 
 pub(super) fn price(a: &[Arg], c: &mut dyn Ctx) -> R<Value> {
@@ -243,31 +253,15 @@ pub(super) fn yield_(a: &[Arg], c: &mut dyn Ctx) -> R<Value> {
     if rate < 0.0 || pr <= 0.0 || red <= 0.0 {
         return Err(CellError::Num);
     }
-    let b = bond(c.date_system(), s, m, f, basis)?;
-    if b.n == 1.0 {
-        let base = pr / 100.0 + b.a / b.e * rate / f;
-        return num_val(((red / 100.0 + rate / f) - base) / base * f * b.e / b.dsc);
+    let sys = c.date_system();
+    let b = bond(sys, s, m, f, basis)?;
+    if b.coupons == 1.0 {
+        let terms = if matches!(basis, 2 | 3) { bond(sys, s, m, f, 1)? } else { b };
+        let coupon = rate * 100.0 / f;
+        let gross = pr + terms.accrued * coupon;
+        return num_val((red + coupon - gross) / gross * f / terms.next);
     }
-    // Price is decreasing in yield: bisect on [0, hi].
-    let g = |y: f64| bond_price(&b, rate, y, red) - pr;
-    let (mut lo, mut hi) = (-0.999_999 * f, 1.0);
-    let mut guard = 0;
-    while g(hi) > 0.0 && guard < 60 {
-        hi *= 2.0;
-        guard += 1;
-    }
-    if !(g(lo) >= 0.0 && g(hi) <= 0.0) {
-        return Err(CellError::Num);
-    }
-    for _ in 0..200 {
-        let mid = 0.5 * (lo + hi);
-        if g(mid) > 0.0 {
-            lo = mid;
-        } else {
-            hi = mid;
-        }
-    }
-    num_val(0.5 * (lo + hi))
+    implied_yield(pr, f, |y| bond_price(&b, rate, y, red))
 }
 
 fn duration_calc(a: &[Arg], sys: DateSystem) -> R<(f64, f64, f64)> {
@@ -277,23 +271,24 @@ fn duration_calc(a: &[Arg], sys: DateSystem) -> R<(f64, f64, f64)> {
         return Err(CellError::Num);
     }
     let b = bond(sys, s, m, f, basis)?;
-    let c = coupon * 100.0 / f;
-    let y = 1.0 + yld / f;
-    let frac = b.dsc / b.e;
-    let (mut wsum, mut psum) = (0.0, 0.0);
-    let mut k = 1.0;
-    while k <= b.n {
-        let t = k - 1.0 + frac;
-        let cf = if k == b.n { c + 100.0 } else { c };
-        let pv = cf / y.powf(t);
-        wsum += t * pv;
-        psum += pv;
-        k += 1.0;
+    let installment = coupon * 100.0 / f;
+    let period_rate = yld / f;
+    let discount = 1.0 / (1.0 + period_rate);
+    let count = b.coupons as usize;
+    if installment == 0.0 {
+        return Ok(((b.next + b.coupons - 1.0) / f, yld, f));
     }
-    if psum == 0.0 {
-        return Err(CellError::Num);
+    // The first coupon's discount factor is common to numerator and denominator.
+    let mut factor = 1.0;
+    let mut total = 0.0;
+    let mut duration = 0.0;
+    for period in 0..count {
+        let amount = (installment + if period + 1 == count { 100.0 } else { 0.0 }) * factor;
+        total += amount;
+        duration += period as f64 * amount;
+        factor *= discount;
     }
-    Ok((wsum / psum / f, yld, f))
+    Ok(((b.next + duration / total) / f, yld, f))
 }
 
 pub(super) fn duration(a: &[Arg], c: &mut dyn Ctx) -> R<Value> {
@@ -386,15 +381,10 @@ fn odd_first(sys: DateSystem, settle: f64, mat: f64, issue: f64, first: f64, fre
 
 fn odd_first_price(t: &OddFirst, rate: f64, yld: f64, red: f64) -> f64 {
     let coupon = 100.0 * rate / t.freq;
-    let base = 1.0 + yld / t.freq;
+    let discount_rate = yld / t.freq;
     let lead = t.nq + t.frac;
-    let mut p = red / base.powf(t.n + lead) + coupon * t.dc / base.powf(lead);
-    let mut k = 1.0;
-    while k <= t.n {
-        p += coupon / base.powf(k + lead);
-        k += 1.0;
-    }
-    p - coupon * t.acc
+    let stub = coupon * t.dc * (-lead * discount_rate.ln_1p()).exp();
+    coupon_value(coupon, red, lead + 1.0, t.n, discount_rate) + stub - coupon * t.acc
 }
 
 /// settlement, maturity, issue, first_coupon, rate, yld/pr, redemption, frequency, [basis].
@@ -421,27 +411,7 @@ pub(super) fn oddfyield(a: &[Arg], c: &mut dyn Ctx) -> R<Value> {
     if pr <= 0.0 {
         return Err(CellError::Num);
     }
-    // The price falls as the yield rises: bracket the root, then bisect.
-    let g = |y: f64| odd_first_price(&t, rate, y, red) - pr;
-    let (mut lo, mut hi) = (-0.999_999 * t.freq, 1.0);
-    let mut guard = 0;
-    while g(hi) > 0.0 && guard < 60 {
-        hi *= 2.0;
-        guard += 1;
-    }
-    // NaN fails both comparisons.
-    if !(g(lo) >= 0.0 && g(hi) <= 0.0) {
-        return Err(CellError::Num);
-    }
-    for _ in 0..200 {
-        let mid = 0.5 * (lo + hi);
-        if g(mid) > 0.0 {
-            lo = mid;
-        } else {
-            hi = mid;
-        }
-    }
-    num_val(0.5 * (lo + hi))
+    implied_yield(pr, t.freq, |y| odd_first_price(&t, rate, y, red))
 }
 
 /// Σ DCi/NLi, Σ Ai/NLi and Σ DSCi/NLi over an odd last period.
@@ -461,7 +431,7 @@ fn odd_last(sys: DateSystem, settle: f64, mat: f64, last: f64, freq: f64, basis:
             return Err(CellError::Num);
         }
         let end = shift_months(sys, anchor, k * step, eom)?;
-        let nl = normal_length(start, end, freq, basis);
+        let nl = normal_length(start, end, freq, if matches!(basis, 2 | 3) { 1 } else { basis });
         if nl <= 0.0 {
             return Err(CellError::Num);
         }

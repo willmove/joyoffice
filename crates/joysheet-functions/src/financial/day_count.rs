@@ -137,6 +137,16 @@ pub(super) struct Coupon {
     pub(super) num: f64,
 }
 
+/// Period containing the date on an anchored coupon calendar. The month
+/// difference identifies the candidate, then the coupon day settles the tie.
+pub(super) fn coupon_index(sys: DateSystem, anchor: (i32, u32, u32), step: i64, date: f64) -> R<i64> {
+    let (year, month, _) = ymd(sys, date)?;
+    let months = i64::from(year - anchor.0) * 12 + i64::from(month) - i64::from(anchor.1);
+    let index = months.div_euclid(step);
+    let eom = anchor.2 == days_in_month(anchor.0, anchor.1);
+    if shift_months(sys, anchor, index * step, eom)? > date { Ok(index - 1) } else { Ok(index) }
+}
+
 pub(super) fn coupons(sys: DateSystem, settle: f64, mat: f64, freq: f64) -> R<Coupon> {
     if settle >= mat {
         return Err(CellError::Num);
@@ -144,20 +154,12 @@ pub(super) fn coupons(sys: DateSystem, settle: f64, mat: f64, freq: f64) -> R<Co
     let anchor = ymd(sys, mat)?;
     let eom = anchor.2 == days_in_month(anchor.0, anchor.1);
     let step = (12.0 / freq) as i64;
-    // Estimate the count from the span, then adjust.
-    let mut k = (((mat - settle) / 365.25 * freq).floor() as i64).max(1);
-    while k > 1 && shift_months(sys, anchor, -(k - 1) * step, eom)? <= settle {
-        k -= 1;
-    }
-    let mut guard = 0;
-    while shift_months(sys, anchor, -k * step, eom)? > settle {
-        k += 1;
-        guard += 1;
-        if guard > 100_000 {
-            return Err(CellError::Num);
-        }
-    }
-    Ok(Coupon { pcd: shift_months(sys, anchor, -k * step, eom)?, ncd: shift_months(sys, anchor, -(k - 1) * step, eom)?, num: k as f64 })
+    let previous = coupon_index(sys, anchor, step, settle)?.min(-1);
+    Ok(Coupon {
+        pcd: shift_months(sys, anchor, previous * step, eom)?,
+        ncd: shift_months(sys, anchor, (previous + 1) * step, eom)?,
+        num: -previous as f64,
+    })
 }
 
 pub(super) fn coup_days(c: &Coupon, freq: f64, basis: u32) -> f64 {
@@ -168,13 +170,20 @@ pub(super) fn coup_days(c: &Coupon, freq: f64, basis: u32) -> f64 {
     }
 }
 
-pub(super) fn coup_daybs(sys: DateSystem, c: &Coupon, settle: f64, basis: u32) -> R<f64> {
-    day_count(sys, c.pcd, settle, basis)
+pub(super) fn coup_daybs(sys: DateSystem, c: &Coupon, settle: f64, freq: f64, basis: u32) -> R<f64> {
+    let elapsed = day_count(sys, c.pcd, settle, basis)?;
+    // Excel's 1904 workbook convention caps European 30/360 accrual
+    // inside the current coupon period, including on February schedules.
+    if sys == DateSystem::D1904 && basis == 4 {
+        return Ok(elapsed.min(coup_days(c, freq, basis) - 1.0));
+    }
+    Ok(elapsed)
 }
 
 pub(super) fn coup_daysnc(sys: DateSystem, c: &Coupon, settle: f64, freq: f64, basis: u32) -> R<f64> {
-    match basis {
-        0 | 4 => Ok(coup_days(c, freq, basis) - coup_daybs(sys, c, settle, basis)?),
+    match (basis, sys) {
+        (4, DateSystem::D1900) => day_count(sys, settle, c.ncd, basis),
+        (0 | 4, _) => Ok(coup_days(c, freq, basis) - coup_daybs(sys, c, settle, freq, basis)?),
         _ => Ok(c.ncd - settle),
     }
 }
@@ -187,8 +196,8 @@ fn coup_args(a: &[Arg], sys: DateSystem) -> R<(f64, f64, f64, u32, Coupon)> {
 }
 
 pub(super) fn coupdaybs(a: &[Arg], cx: &mut dyn Ctx) -> R<Value> {
-    let (s, _, _, b, c) = coup_args(a, cx.date_system())?;
-    num_val(coup_daybs(cx.date_system(), &c, s, b)?)
+    let (s, _, f, b, c) = coup_args(a, cx.date_system())?;
+    num_val(coup_daybs(cx.date_system(), &c, s, f, b)?)
 }
 
 pub(super) fn coupdays(a: &[Arg], cx: &mut dyn Ctx) -> R<Value> {

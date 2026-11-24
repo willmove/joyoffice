@@ -1,0 +1,6203 @@
+{
+  "date": "2026-11-24",
+  "host": "Windows x64",
+  "frozen": "14cbb296",
+  "previous": "ccf067b2",
+  "excelVersion": "16.0.20625.20108",
+  "word": {
+    "release": "https://github.com/willmove/joyoffice/releases/tag/joyword-language-packs-1",
+    "licenceAuditSha256": "0f3b3db8dd4b43e6306c5dfc3c12ffd0ea3be7bc1226a79c85972242373bc1c7",
+    "auditedPacks": 75,
+    "sourceRecords": 339,
+    "hosted": 41,
+    "originalDistribution": 34,
+    "retainedOriginLocales": [
+      "af",
+      "be",
+      "bg",
+      "ca",
+      "ca-valencia",
+      "cs",
+      "cy",
+      "de",
+      "de-at",
+      "de-ch",
+      "eo",
+      "et",
+      "ga",
+      "gl",
+      "he",
+      "hi",
+      "hr",
+      "hy",
+      "id",
+      "is",
+      "it",
+      "ko",
+      "lv",
+      "mk",
+      "nb",
+      "nn",
+      "pt-pt",
+      "sl",
+      "sq",
+      "sv",
+      "sv-fi",
+      "sw",
+      "ta",
+      "vi"
+    ],
+    "localIndexAndRefusal": {
+      "packs": 75,
+      "consentRefused": true,
+      "bundledRefresh": true,
+      "verifiedLegacyCacheMigration": true,
+      "rollbackReadsOriginalCache": true,
+      "hostedPrimary": true,
+      "upstreamFallback": true,
+      "invalidDigestRejectedOnBothOrigins": true,
+      "corruptCacheRejected": true,
+      "indexSha256": "53d0d064f3908a1da74f4761d6c7be27b7e040d4a4682e5624646026bfe6aabf",
+      "originalSourceSha256": "24b72693cba6fbeb3cfe187af5932fc763846d12d51c2a6e8e77b3a2cce75d3f"
+    },
+    "frozenExchange": {
+      "consentDigestSizeUnavailable": {
+        "consent": "downloading is turned off: turn it on in WordCraft (File › Options › Language, or an Install button there)",
+        "errors": {
+          "digest": "nl.tar.zst was rejected: sha256 mismatch",
+          "oversize": "downloading nl.tar.zst failed: the response is larger than 756670 bytes",
+          "unavailable": "downloading nl.tar.zst failed: HTTP 404"
+        },
+        "restored": {
+          "locale": "zz",
+          "name": "Inventory recovery",
+          "release": "",
+          "version": "",
+          "licence": "CC0-1.0",
+          "sha256": "",
+          "size": 0
+        }
+      },
+      "crossVersionInventoryRecovery": true,
+      "oversizedInventoryRetained": true,
+      "sourceSha256": "3fb205d1d4372374832f6e27cc199c69bed02b2d932e1f193ba0e2665aad606c",
+      "publishedArchives": {
+        "baselineSha256": "6e833cb91ab13e8ce8e03e9edfe8d87e2ad2bb84a481d427713a1a37e813f55e",
+        "candidateSha256": "32a657ca13fc594e115c0415a3991b41646dd7cb83c50bbbf979fee4127aeed5",
+        "indexSha256": "b35c7aef0591177f18233b551da16035dcd615549ff874e169ffd19f16fea74b",
+        "archives": 75,
+        "regularFiles": 569,
+        "licenseFiles": 276,
+        "archiveBytes": 41923267,
+        "firstInstalledWithOld": 37,
+        "firstInstalledWithNew": 38,
+        "crossVersionReinstalls": 75,
+        "crossVersionInventoryVerified": true,
+        "verifiedCrashStates": [
+          [
+            "replace",
+            "journal"
+          ],
+          [
+            "replace",
+            "old-moved"
+          ],
+          [
+            "replace",
+            "candidate-published"
+          ],
+          [
+            "replace",
+            "inventory-written"
+          ],
+          [
+            "remove",
+            "journal"
+          ],
+          [
+            "remove",
+            "old-moved"
+          ],
+          [
+            "remove",
+            "candidate-published"
+          ],
+          [
+            "remove",
+            "inventory-written"
+          ]
+        ],
+        "concurrentInstallRequests": 4,
+        "allRemoved": true,
+        "originalUnchanged": true,
+        "consentOffRefused": true
+      }
+    },
+    "publicAssets": [
+      {
+        "name": "ar.tar.zst",
+        "size": 1125231,
+        "sha256": "105fab8bc7ef73d26b4237dc94c3b58ec6f7965b4cc5cc1c37e89b52d0e37dc4"
+      },
+      {
+        "name": "bs.tar.zst",
+        "size": 120096,
+        "sha256": "0dc1ede06e2a7a9a385305d14a6133c0d170b2d1fcfe87625d06f82ecd5e4b2c"
+      },
+      {
+        "name": "da.tar.zst",
+        "size": 783278,
+        "sha256": "68a4978510f4bc69bb16ab5d4dfe9de75be71ccd76cce5a21cc12e526359ea3a"
+      },
+      {
+        "name": "el.tar.zst",
+        "size": 1733844,
+        "sha256": "ca0d6fda0663427c928929304fe5764bcc4f5418fa541026ce27266ec244da80"
+      },
+      {
+        "name": "es-ar.tar.zst",
+        "size": 223431,
+        "sha256": "31bc649ec7c381a3be4e95553e4f5e28117958e747aabca09a7c38ab737c4cf7"
+      },
+      {
+        "name": "es-bo.tar.zst",
+        "size": 221101,
+        "sha256": "bff0e90891b74dad17471eb79890d414f12b2b70e325a99af9dc791c73a1e956"
+      },
+      {
+        "name": "es-cl.tar.zst",
+        "size": 221978,
+        "sha256": "e1efdda0d10b8c195b6f170fbee0d8689e20cb9549c385f9323dd60df4fe9bbc"
+      },
+      {
+        "name": "es-co.tar.zst",
+        "size": 236775,
+        "sha256": "3824591ceeae5d7b1f1f44863e245430a33a44de058e071ecd88906866ff2e9d"
+      },
+      {
+        "name": "es-cr.tar.zst",
+        "size": 220403,
+        "sha256": "e973cc567b7bba53d9a964a15b0eff8f386b2aee0806d2aa7523580113096822"
+      },
+      {
+        "name": "es-cu.tar.zst",
+        "size": 221036,
+        "sha256": "b03b9b2d5eede205ed9adb0c722c2cdc86814d63e337e11b237a54b2e60fcdfa"
+      },
+      {
+        "name": "es-do.tar.zst",
+        "size": 220099,
+        "sha256": "0e7cfb370aaabdbef4261e6da0b7139e1806239b43f897ee0a31c7258074fed6"
+      },
+      {
+        "name": "es-ec.tar.zst",
+        "size": 220558,
+        "sha256": "efb6ceb9c653b2dd4be10f9dc62c24ca0d49c5f34b70f855d931faf5a1c37b4a"
+      },
+      {
+        "name": "es-gq.tar.zst",
+        "size": 263271,
+        "sha256": "ffb539a3e32f6272ab316be2715d2e3ebd93c515692d97e41a6741d2e1762eb3"
+      },
+      {
+        "name": "es-gt.tar.zst",
+        "size": 220307,
+        "sha256": "c2c066fee70226a548149925e4c170a15ce4b01b9dd74c4b46fa33deae4cbce5"
+      },
+      {
+        "name": "es-hn.tar.zst",
+        "size": 220818,
+        "sha256": "15bd24fd16a55c06d7a51515b63a07846f185aa8d14d991a571a0173d343e921"
+      },
+      {
+        "name": "es-mx.tar.zst",
+        "size": 228166,
+        "sha256": "45b46aa4b0990b540733134baece06f9e926d6719b9b8da10b731dbc8ec6a535"
+      },
+      {
+        "name": "es-ni.tar.zst",
+        "size": 220535,
+        "sha256": "24b17b9eab9c7948b169a8df7b1600cfb8690487c08c7c083d3890485c0f1493"
+      },
+      {
+        "name": "es-pa.tar.zst",
+        "size": 220251,
+        "sha256": "7e38a308841d739388cc1794dd8bc749353353943ae6dcf9dcb42b1e454ffeae"
+      },
+      {
+        "name": "es-pe.tar.zst",
+        "size": 225469,
+        "sha256": "b26829b1f8dbb90575712acf91e128e069d8d3817297232fa976e39c6b1cf0c3"
+      },
+      {
+        "name": "es-ph.tar.zst",
+        "size": 254496,
+        "sha256": "b674b5aac7a64ae870946ed1f4a8784cb143bd793dc69caa1c7a72269db8a116"
+      },
+      {
+        "name": "es-pr.tar.zst",
+        "size": 220113,
+        "sha256": "0e2d9256782690459447813128010111c1b2b9d3b9b6be069c1dfee9667b9ffd"
+      },
+      {
+        "name": "es-py.tar.zst",
+        "size": 220286,
+        "sha256": "5dbf1e88dc2098eb3327a6e2175a6ec8daff6e7ba7efb2fec4ccb5078d6aac4b"
+      },
+      {
+        "name": "es-sv.tar.zst",
+        "size": 220429,
+        "sha256": "80be1c16ac73ab5d7f51e4d9e5490307f65d0608a55ed1b431e03eadbcd6aa56"
+      },
+      {
+        "name": "es-us.tar.zst",
+        "size": 219960,
+        "sha256": "8f19a00606d291ca69c618905f179c8f979e221cb8accaa62451ae4f8cbd0bc1"
+      },
+      {
+        "name": "es-uy.tar.zst",
+        "size": 220713,
+        "sha256": "cbe1c0cf4c7126dd8f4e8a2d3856a990cbe9b5e213beae572efe81e24942d909"
+      },
+      {
+        "name": "es-ve.tar.zst",
+        "size": 221366,
+        "sha256": "91ea1311bcf759f9e0b1760e0774537c85def43a25a934370d4d27304ec6eb13"
+      },
+      {
+        "name": "es.tar.zst",
+        "size": 224881,
+        "sha256": "31e3a9d112066c418e9312e507aed03b507fdd2d649e6a81172fdb1f7be8ebe4"
+      },
+      {
+        "name": "fa.tar.zst",
+        "size": 309335,
+        "sha256": "a3770cf8694f97f1fe3a26f6ead97b5472e55f3a5d7d33087fb017ad851ff209"
+      },
+      {
+        "name": "fr.tar.zst",
+        "size": 311121,
+        "sha256": "62b340e78f46264c14848f03c8d7475da4e777b5ee9ac047e9fd9b1f58030cd9"
+      },
+      {
+        "name": "hu.tar.zst",
+        "size": 893829,
+        "sha256": "9ae3044520d3e831a41afee60024f44697929173c9093926e50436da7dd63704"
+      },
+      {
+        "name": "index.json",
+        "size": 48327,
+        "sha256": "53d0d064f3908a1da74f4761d6c7be27b7e040d4a4682e5624646026bfe6aabf"
+      },
+      {
+        "name": "ka.tar.zst",
+        "size": 468883,
+        "sha256": "90818b236dfc7d8571bcd4c8807a0e88b60a605e9dbcac76fd03e053f4d90023"
+      },
+      {
+        "name": "lt.tar.zst",
+        "size": 292028,
+        "sha256": "956d78726030b38738ca6ef4431d468493f276909a2c77ae473de0e6fbae55e7"
+      },
+      {
+        "name": "nl.tar.zst",
+        "size": 756670,
+        "sha256": "6e26118ef28d0faca48b5b55d7be9f364b1de5e73adbcb739d6e0fb2a517c7f0"
+      },
+      {
+        "name": "pl.tar.zst",
+        "size": 1118443,
+        "sha256": "41dcb6f74911776cdd284f91f6df3a67e2853a50db38821a2192c6b5a234b89f"
+      },
+      {
+        "name": "pt-br.tar.zst",
+        "size": 1183325,
+        "sha256": "14ce880350496c624ff277d7b855d43bb4fc90cf1b827249d09bfec16a6d7cab"
+      },
+      {
+        "name": "publication-audit.json",
+        "size": 189590,
+        "sha256": "0f3b3db8dd4b43e6306c5dfc3c12ffd0ea3be7bc1226a79c85972242373bc1c7"
+      },
+      {
+        "name": "ro.tar.zst",
+        "size": 529049,
+        "sha256": "1683a29ac5cb6b88b8ae7192ee022223218bcd8a67c9cbb62df5fd07a6d94b7a"
+      },
+      {
+        "name": "ru.tar.zst",
+        "size": 506685,
+        "sha256": "862bce34075d1e61b033ba7b519e0bbe5917de8138bca0b49ac7a435442061f5"
+      },
+      {
+        "name": "sk.tar.zst",
+        "size": 585997,
+        "sha256": "22f43fd4db47d08f1379cd5fd2cba79175f39dcfd51711dc21aa69cc5b0ea313"
+      },
+      {
+        "name": "sr-latn.tar.zst",
+        "size": 863816,
+        "sha256": "f6103608a3a047fa0db43e8b4edf7a17aeb89204fe346f70915137792cb24b97"
+      },
+      {
+        "name": "sr.tar.zst",
+        "size": 901285,
+        "sha256": "d54fbc68111ff026ae02c5869e5ea35b999d05ff1ea9cc1ca701d2689c12f52f"
+      },
+      {
+        "name": "tr.tar.zst",
+        "size": 1760692,
+        "sha256": "056c2d156dbe2e4d02eae7bf991fc778fdfbe51afa44d071e9ac2336eb88ab5f"
+      }
+    ],
+    "publicationReproducedByteForByte": true,
+    "nativeWindows": {
+      "cliSha256": "32a657ca13fc594e115c0415a3991b41646dd7cb83c50bbbf979fee4127aeed5",
+      "desktopSha256": "69f6f44c0a615c94ae0d691b5a52589c69298a4fd2381ccc2f4eeb8aa25f0835",
+      "fixtureSha256": "dbedd43e0ae6258b494b6f19c43f9ac332c0e5d7412e6649431a13eb44b9257e",
+      "archiveSha256": [
+        "e1ab4eb8c195d0463a5a1f3f6ac98f0179fdb7c1ab7f4129feac796ed261995c",
+        "4dc140265269cf70b56a7d10bb09e04707170f724e9933451693cf25f2e64c05"
+      ],
+      "desktopAndCliPages": {
+        "before": 14,
+        "wholeWordException": 21,
+        "syllableExceptions": 14,
+        "afterRemoval": 14
+      },
+      "refusedConsentOff": true,
+      "refusedChangedArchive": true,
+      "licenseAndInstallRecordVerified": true,
+      "sourceDocumentUnchanged": true,
+      "published": {
+        "releaseIndexSha256": "53d0d064f3908a1da74f4761d6c7be27b7e040d4a4682e5624646026bfe6aabf",
+        "indexEntries": 75,
+        "locale": "nl",
+        "archiveSha256": "6e26118ef28d0faca48b5b55d7be9f364b1de5e73adbcb739d6e0fb2a517c7f0",
+        "archiveBytes": 756670,
+        "source": "https://github.com/LibreOffice/dictionaries/tree/4f1df64b2e8e14751aa7c2205d170ca016071315/nl_NL",
+        "license": "BSD-3-Clause AND MIT",
+        "checkedFiles": [
+          "spelling.aff",
+          "spelling.dic",
+          "hyphenation.pat",
+          "LICENCES/"
+        ],
+        "desktopAndCliPages": 14
+      },
+      "desktopTestCopyStackReserveBytes": 33554432
+    }
+  },
+  "sheet": {
+    "workbooks": {
+      "1900": {
+        "sourceSha256": "1279a93fde29b7a21306b7edb5e9bba4dd9ed0adbbb09c885b333f47c70905dd",
+        "excelSha256": "61529c7caca19b922368334794875ce9ba6aff13e7453033bd883b0b13bffed9",
+        "cases": 416,
+        "dateSystem": "1900",
+        "binarySha256": {
+          "frozen": "d2f55cf2cc07a7f89e84b576b2f18ad1e097b47bab94790268183281e97deec5",
+          "prior": "840a3aa0fa28075d576f9d03c06c266e7871fee7d10d980690dc4298b1e3c6bf",
+          "candidate": "2ba27ccf2cd4f684f68920f712d8c205d2551ab7ccebbdd1fad1bc1875a00524"
+        },
+        "registeredNames": 52,
+        "differencesByFunction": {
+          "frozen": {
+            "PV": 1,
+            "CUMIPMT": 1,
+            "CUMPRINC": 1,
+            "NPER": 2,
+            "RATE": 1,
+            "RRI": 1,
+            "XIRR": 1,
+            "COUPDAYSNC": 1,
+            "PRICEMAT": 1,
+            "YIELDMAT": 1,
+            "PRICE": 4,
+            "YIELD": 4,
+            "DURATION": 2,
+            "MDURATION": 2,
+            "ODDFPRICE": 2,
+            "ODDFYIELD": 2,
+            "ODDLPRICE": 2,
+            "ODDLYIELD": 2,
+            "FORECAST.ETS": 31,
+            "FORECAST.ETS.CONFINT": 10,
+            "FORECAST.ETS.SEASONALITY": 2,
+            "FORECAST.ETS.STAT": 27
+          },
+          "prior": {
+            "PV": 1,
+            "CUMIPMT": 1,
+            "CUMPRINC": 1,
+            "NPER": 2,
+            "RATE": 1,
+            "RRI": 1,
+            "XIRR": 1,
+            "COUPDAYSNC": 1,
+            "PRICEMAT": 1,
+            "YIELDMAT": 1,
+            "PRICE": 4,
+            "YIELD": 4,
+            "DURATION": 2,
+            "MDURATION": 2,
+            "ODDFPRICE": 2,
+            "ODDFYIELD": 2,
+            "ODDLPRICE": 2,
+            "ODDLYIELD": 2,
+            "FORECAST.ETS": 31,
+            "FORECAST.ETS.CONFINT": 10,
+            "FORECAST.ETS.SEASONALITY": 2,
+            "FORECAST.ETS.STAT": 27
+          },
+          "candidate": {
+            "RATE": 1,
+            "XIRR": 1,
+            "ODDFPRICE": 2,
+            "ODDFYIELD": 2,
+            "FORECAST.ETS": 31,
+            "FORECAST.ETS.CONFINT": 10,
+            "FORECAST.ETS.SEASONALITY": 2,
+            "FORECAST.ETS.STAT": 27
+          }
+        },
+        "changedCells": [
+          "G15",
+          "G46",
+          "G53",
+          "G60",
+          "G61",
+          "G66",
+          "G97",
+          "G140",
+          "G202",
+          "G207",
+          "G213",
+          "G214",
+          "G218",
+          "G219",
+          "G223",
+          "G224",
+          "G228",
+          "G229",
+          "G235",
+          "G236",
+          "G240",
+          "G241",
+          "G280",
+          "G281",
+          "G285",
+          "G286"
+        ],
+        "resolvedExcelDifferences": [
+          "G15",
+          "G46",
+          "G53",
+          "G60",
+          "G61",
+          "G97",
+          "G140",
+          "G202",
+          "G207",
+          "G213",
+          "G214",
+          "G218",
+          "G219",
+          "G223",
+          "G224",
+          "G228",
+          "G229",
+          "G235",
+          "G236",
+          "G240",
+          "G241",
+          "G280",
+          "G281",
+          "G285",
+          "G286"
+        ],
+        "newExcelDifferences": [],
+        "crossVersionReadbacks": 4,
+        "fullLocalReportSha256": "aeac1f8aae0b14cc4e1ee1a982ff8cb6ff5a8867f84a4836f0a0d974f56b5744",
+        "remainingDifferences": [
+          {
+            "cell": "G66",
+            "formula": "RATE(12,-100,1200)",
+            "excel": [
+              "n",
+              "-4.3434156497998736E-10"
+            ],
+            "frozen": [
+              "n",
+              "-1.0070079874102734E-9"
+            ],
+            "prior": [
+              "n",
+              "-1.0070079874102734E-9"
+            ],
+            "candidate": [
+              "n",
+              "-1.4304372612484818E-17"
+            ]
+          },
+          {
+            "cell": "G118",
+            "formula": "XIRR(H1:H6,I1:I6)",
+            "excel": [
+              "n",
+              "0.11035357117652894"
+            ],
+            "frozen": [
+              "n",
+              "0.11035356816902"
+            ],
+            "prior": [
+              "n",
+              "0.11035356816902"
+            ],
+            "candidate": [
+              "n",
+              "0.11035356816902"
+            ]
+          },
+          {
+            "cell": "G265",
+            "formula": "ODDFPRICE(DATE(2008,11,11),DATE(2021,3,1),DATE(2007,1,20),DATE(2009,3,1),0.0785,0.0625,100,2,2)",
+            "excel": [
+              "n",
+              "113.10586349144469"
+            ],
+            "frozen": [
+              "n",
+              "113.34125618351327"
+            ],
+            "prior": [
+              "n",
+              "113.34125618351327"
+            ],
+            "candidate": [
+              "n",
+              "113.3412561835133"
+            ]
+          },
+          {
+            "cell": "G266",
+            "formula": "ODDFPRICE(DATE(2008,11,11),DATE(2021,3,1),DATE(2007,1,20),DATE(2009,3,1),0.0785,0.0625,100,2,3)",
+            "excel": [
+              "n",
+              "113.32443302342598"
+            ],
+            "frozen": [
+              "n",
+              "113.34554465517002"
+            ],
+            "prior": [
+              "n",
+              "113.34554465517002"
+            ],
+            "candidate": [
+              "n",
+              "113.34554465517002"
+            ]
+          },
+          {
+            "cell": "G275",
+            "formula": "ODDFYIELD(DATE(2008,11,11),DATE(2021,3,1),DATE(2007,1,20),DATE(2009,3,1),0.0785,84.50,100,2,2)",
+            "excel": [
+              "n",
+              "9.9740186562483887E-2"
+            ],
+            "frozen": [
+              "n",
+              "0.10011039815452238"
+            ],
+            "prior": [
+              "n",
+              "0.10011039815452238"
+            ],
+            "candidate": [
+              "n",
+              "0.10011039815452256"
+            ]
+          },
+          {
+            "cell": "G276",
+            "formula": "ODDFYIELD(DATE(2008,11,11),DATE(2021,3,1),DATE(2007,1,20),DATE(2009,3,1),0.0785,84.50,100,2,3)",
+            "excel": [
+              "n",
+              "0.10009986965864662"
+            ],
+            "frozen": [
+              "n",
+              "0.10013314940450724"
+            ],
+            "prior": [
+              "n",
+              "0.10013314940450724"
+            ],
+            "candidate": [
+              "n",
+              "0.10013314940450725"
+            ]
+          },
+          {
+            "cell": "G288",
+            "formula": "FORECAST.ETS(20.0,A1:A24,D1:D24,0)",
+            "excel": [
+              "n",
+              "43"
+            ],
+            "frozen": [
+              "e",
+              "#NUM!"
+            ],
+            "prior": [
+              "e",
+              "#NUM!"
+            ],
+            "candidate": [
+              "e",
+              "#NUM!"
+            ]
+          },
+          {
+            "cell": "G289",
+            "formula": "FORECAST.ETS(20.0,A1:A24,D1:D24,1)",
+            "excel": [
+              "n",
+              "43"
+            ],
+            "frozen": [
+              "e",
+              "#NUM!"
+            ],
+            "prior": [
+              "e",
+              "#NUM!"
+            ],
+            "candidate": [
+              "e",
+              "#NUM!"
+            ]
+          },
+          {
+            "cell": "G290",
+            "formula": "FORECAST.ETS(20.0,A1:A24,D1:D24,4)",
+            "excel": [
+              "n",
+              "43"
+            ],
+            "frozen": [
+              "e",
+              "#NUM!"
+            ],
+            "prior": [
+              "e",
+              "#NUM!"
+            ],
+            "candidate": [
+              "e",
+              "#NUM!"
+            ]
+          },
+          {
+            "cell": "G303",
+            "formula": "FORECAST.ETS(20.0,B1:B24,D1:D24,0)",
+            "excel": [
+              "n",
+              "49.214779519297046"
+            ],
+            "frozen": [
+              "e",
+              "#NUM!"
+            ],
+            "prior": [
+              "e",
+              "#NUM!"
+            ],
+            "candidate": [
+              "e",
+              "#NUM!"
+            ]
+          },
+          {
+            "cell": "G304",
+            "formula": "FORECAST.ETS(20.0,B1:B24,D1:D24,1)",
+            "excel": [
+              "n",
+              "43.755127464016432"
+            ],
+            "frozen": [
+              "e",
+              "#NUM!"
+            ],
+            "prior": [
+              "e",
+              "#NUM!"
+            ],
+            "candidate": [
+              "e",
+              "#NUM!"
+            ]
+          },
+          {
+            "cell": "G305",
+            "formula": "FORECAST.ETS(20.0,B1:B24,D1:D24,4)",
+            "excel": [
+              "n",
+              "41"
+            ],
+            "frozen": [
+              "e",
+              "#NUM!"
+            ],
+            "prior": [
+              "e",
+              "#NUM!"
+            ],
+            "candidate": [
+              "e",
+              "#NUM!"
+            ]
+          },
+          {
+            "cell": "G306",
+            "formula": "FORECAST.ETS(24.5,B1:B24,D1:D24,0)",
+            "excel": [
+              "n",
+              "52.985253183869091"
+            ],
+            "frozen": [
+              "n",
+              "53.11182268605804"
+            ],
+            "prior": [
+              "n",
+              "53.11182268605804"
+            ],
+            "candidate": [
+              "n",
+              "53.11182268605804"
+            ]
+          },
+          {
+            "cell": "G307",
+            "formula": "FORECAST.ETS(24.5,B1:B24,D1:D24,1)",
+            "excel": [
+              "n",
+              "53.797160319339085"
+            ],
+            "frozen": [
+              "n",
+              "54"
+            ],
+            "prior": [
+              "n",
+              "54"
+            ],
+            "candidate": [
+              "n",
+              "54"
+            ]
+          },
+          {
+            "cell": "G309",
+            "formula": "FORECAST.ETS(25.0,B1:B24,D1:D24,0)",
+            "excel": [
+              "n",
+              "53.404194702154889"
+            ],
+            "frozen": [
+              "n",
+              "53.68899248173852"
+            ],
+            "prior": [
+              "n",
+              "53.68899248173852"
+            ],
+            "candidate": [
+              "n",
+              "53.68899248173852"
+            ]
+          },
+          {
+            "cell": "G310",
+            "formula": "FORECAST.ETS(25.0,B1:B24,D1:D24,1)",
+            "excel": [
+              "n",
+              "60.099335838235881"
+            ],
+            "frozen": [
+              "n",
+              "63"
+            ],
+            "prior": [
+              "n",
+              "63"
+            ],
+            "candidate": [
+              "n",
+              "63"
+            ]
+          },
+          {
+            "cell": "G312",
+            "formula": "FORECAST.ETS(28.0,B1:B24,D1:D24,0)",
+            "excel": [
+              "n",
+              "55.917843811869552"
+            ],
+            "frozen": [
+              "n",
+              "57.15201125582138"
+            ],
+            "prior": [
+              "n",
+              "57.15201125582138"
+            ],
+            "candidate": [
+              "n",
+              "57.15201125582138"
+            ]
+          },
+          {
+            "cell": "G313",
+            "formula": "FORECAST.ETS(28.0,B1:B24,D1:D24,1)",
+            "excel": [
+              "n",
+              "51.234842136868146"
+            ],
+            "frozen": [
+              "n",
+              "49"
+            ],
+            "prior": [
+              "n",
+              "49"
+            ],
+            "candidate": [
+              "n",
+              "49"
+            ]
+          },
+          {
+            "cell": "G315",
+            "formula": "FORECAST.ETS(33.0,B1:B24,D1:D24,0)",
+            "excel": [
+              "n",
+              "60.107258994727395"
+            ],
+            "frozen": [
+              "n",
+              "62.92370921262615"
+            ],
+            "prior": [
+              "n",
+              "62.92370921262615"
+            ],
+            "candidate": [
+              "n",
+              "62.92370921262615"
+            ]
+          },
+          {
+            "cell": "G316",
+            "formula": "FORECAST.ETS(33.0,B1:B24,D1:D24,1)",
+            "excel": [
+              "n",
+              "67.579050511087601"
+            ],
+            "frozen": [
+              "n",
+              "71"
+            ],
+            "prior": [
+              "n",
+              "71"
+            ],
+            "candidate": [
+              "n",
+              "71"
+            ]
+          },
+          {
+            "cell": "G318",
+            "formula": "FORECAST.ETS(20.0,C1:C24,D1:D24,0)",
+            "excel": [
+              "n",
+              "96.812036286070864"
+            ],
+            "frozen": [
+              "e",
+              "#NUM!"
+            ],
+            "prior": [
+              "e",
+              "#NUM!"
+            ],
+            "candidate": [
+              "e",
+              "#NUM!"
+            ]
+          },
+          {
+            "cell": "G319",
+            "formula": "FORECAST.ETS(20.0,C1:C24,D1:D24,1)",
+            "excel": [
+              "n",
+              "96.812036286070864"
+            ],
+            "frozen": [
+              "e",
+              "#NUM!"
+            ],
+            "prior": [
+              "e",
+              "#NUM!"
+            ],
+            "candidate": [
+              "e",
+              "#NUM!"
+            ]
+          },
+          {
+            "cell": "G320",
+            "formula": "FORECAST.ETS(20.0,C1:C24,D1:D24,4)",
+            "excel": [
+              "n",
+              "96.319763793893244"
+            ],
+            "frozen": [
+              "e",
+              "#NUM!"
+            ],
+            "prior": [
+              "e",
+              "#NUM!"
+            ],
+            "candidate": [
+              "e",
+              "#NUM!"
+            ]
+          },
+          {
+            "cell": "G321",
+            "formula": "FORECAST.ETS(24.5,C1:C24,D1:D24,0)",
+            "excel": [
+              "n",
+              "105.74674813889216"
+            ],
+            "frozen": [
+              "n",
+              "105.56969696969688"
+            ],
+            "prior": [
+              "n",
+              "105.56969696969688"
+            ],
+            "candidate": [
+              "n",
+              "105.5696969696969"
+            ]
+          },
+          {
+            "cell": "G322",
+            "formula": "FORECAST.ETS(24.5,C1:C24,D1:D24,1)",
+            "excel": [
+              "n",
+              "105.74674813889216"
+            ],
+            "frozen": [
+              "n",
+              "105.49543146639019"
+            ],
+            "prior": [
+              "n",
+              "105.49543146639019"
+            ],
+            "candidate": [
+              "n",
+              "105.4954314663902"
+            ]
+          },
+          {
+            "cell": "G323",
+            "formula": "FORECAST.ETS(24.5,C1:C24,D1:D24,4)",
+            "excel": [
+              "n",
+              "105.98290542664816"
+            ],
+            "frozen": [
+              "n",
+              "105.866287878788"
+            ],
+            "prior": [
+              "n",
+              "105.866287878788"
+            ],
+            "candidate": [
+              "n",
+              "105.866287878788"
+            ]
+          },
+          {
+            "cell": "G324",
+            "formula": "FORECAST.ETS(25.0,C1:C24,D1:D24,0)",
+            "excel": [
+              "n",
+              "106.73949390031675"
+            ],
+            "frozen": [
+              "n",
+              "106.56363636363628"
+            ],
+            "prior": [
+              "n",
+              "106.56363636363628"
+            ],
+            "candidate": [
+              "n",
+              "106.56363636363629"
+            ]
+          },
+          {
+            "cell": "G325",
+            "formula": "FORECAST.ETS(25.0,C1:C24,D1:D24,1)",
+            "excel": [
+              "n",
+              "106.73949390031675"
+            ],
+            "frozen": [
+              "n",
+              "107.00710226869077"
+            ],
+            "prior": [
+              "n",
+              "107.00710226869077"
+            ],
+            "candidate": [
+              "n",
+              "107.00710226869079"
+            ]
+          },
+          {
+            "cell": "G326",
+            "formula": "FORECAST.ETS(25.0,C1:C24,D1:D24,4)",
+            "excel": [
+              "n",
+              "107.64627195733264"
+            ],
+            "frozen": [
+              "n",
+              "107.53787878787891"
+            ],
+            "prior": [
+              "n",
+              "107.53787878787891"
+            ],
+            "candidate": [
+              "n",
+              "107.53787878787891"
+            ]
+          },
+          {
+            "cell": "G327",
+            "formula": "FORECAST.ETS(28.0,C1:C24,D1:D24,0)",
+            "excel": [
+              "n",
+              "112.69596846886428"
+            ],
+            "frozen": [
+              "n",
+              "112.52727272727265"
+            ],
+            "prior": [
+              "n",
+              "112.52727272727265"
+            ],
+            "candidate": [
+              "n",
+              "112.52727272727266"
+            ]
+          },
+          {
+            "cell": "G328",
+            "formula": "FORECAST.ETS(28.0,C1:C24,D1:D24,1)",
+            "excel": [
+              "n",
+              "112.69596846886428"
+            ],
+            "frozen": [
+              "n",
+              "115.77712708249427"
+            ],
+            "prior": [
+              "n",
+              "115.77712708249427"
+            ],
+            "candidate": [
+              "n",
+              "115.77712708249429"
+            ]
+          },
+          {
+            "cell": "G329",
+            "formula": "FORECAST.ETS(28.0,C1:C24,D1:D24,4)",
+            "excel": [
+              "n",
+              "112.3193139980341"
+            ],
+            "frozen": [
+              "n",
+              "112.23409090909101"
+            ],
+            "prior": [
+              "n",
+              "112.23409090909101"
+            ],
+            "candidate": [
+              "n",
+              "112.23409090909101"
+            ]
+          },
+          {
+            "cell": "G330",
+            "formula": "FORECAST.ETS(33.0,C1:C24,D1:D24,0)",
+            "excel": [
+              "n",
+              "122.62342608311016"
+            ],
+            "frozen": [
+              "n",
+              "122.46666666666658"
+            ],
+            "prior": [
+              "n",
+              "122.46666666666658"
+            ],
+            "candidate": [
+              "n",
+              "122.4666666666666"
+            ]
+          },
+          {
+            "cell": "G331",
+            "formula": "FORECAST.ETS(33.0,C1:C24,D1:D24,1)",
+            "excel": [
+              "n",
+              "122.62342608311016"
+            ],
+            "frozen": [
+              "n",
+              "125.89383510550012"
+            ],
+            "prior": [
+              "n",
+              "125.89383510550012"
+            ],
+            "candidate": [
+              "n",
+              "125.89383510550014"
+            ]
+          },
+          {
+            "cell": "G332",
+            "formula": "FORECAST.ETS(33.0,C1:C24,D1:D24,4)",
+            "excel": [
+              "n",
+              "123.6458221614735"
+            ],
+            "frozen": [
+              "n",
+              "123.61666666666677"
+            ],
+            "prior": [
+              "n",
+              "123.61666666666677"
+            ],
+            "candidate": [
+              "n",
+              "123.61666666666677"
+            ]
+          },
+          {
+            "cell": "G334",
+            "formula": "FORECAST.ETS(25,A1:A24,D1:D24,8761)",
+            "excel": [
+              "n",
+              "53"
+            ],
+            "frozen": [
+              "e",
+              "#NUM!"
+            ],
+            "prior": [
+              "e",
+              "#NUM!"
+            ],
+            "candidate": [
+              "e",
+              "#NUM!"
+            ]
+          },
+          {
+            "cell": "G335",
+            "formula": "FORECAST.ETS(13,E1:E8,F1:F8,0,0)",
+            "excel": [
+              "n",
+              "124.85451566540739"
+            ],
+            "frozen": [
+              "n",
+              "117.2727272727273"
+            ],
+            "prior": [
+              "n",
+              "117.2727272727273"
+            ],
+            "candidate": [
+              "n",
+              "117.27272727272728"
+            ]
+          },
+          {
+            "cell": "G345",
+            "formula": "FORECAST.ETS.CONFINT(25,B1:B24,D1:D24,0.8,0)",
+            "excel": [
+              "n",
+              "9.4956652500563745"
+            ],
+            "frozen": [
+              "n",
+              "8.655188027089023"
+            ],
+            "prior": [
+              "n",
+              "8.655188027089007"
+            ],
+            "candidate": [
+              "n",
+              "8.655188027089007"
+            ]
+          },
+          {
+            "cell": "G346",
+            "formula": "FORECAST.ETS.CONFINT(25,B1:B24,D1:D24,0.95,1)",
+            "excel": [
+              "n",
+              "5.4099852603823102"
+            ],
+            "frozen": [
+              "n",
+              "0"
+            ],
+            "prior": [
+              "n",
+              "0"
+            ],
+            "candidate": [
+              "n",
+              "0"
+            ]
+          },
+          {
+            "cell": "G349",
+            "formula": "FORECAST.ETS.CONFINT(33,B1:B24,D1:D24,0.8,0)",
+            "excel": [
+              "n",
+              "10.1220584723537"
+            ],
+            "frozen": [
+              "n",
+              "9.178266855886532"
+            ],
+            "prior": [
+              "n",
+              "9.178266855886514"
+            ],
+            "candidate": [
+              "n",
+              "9.178266855886514"
+            ]
+          },
+          {
+            "cell": "G350",
+            "formula": "FORECAST.ETS.CONFINT(33,B1:B24,D1:D24,0.95,1)",
+            "excel": [
+              "n",
+              "5.7695305178560794"
+            ],
+            "frozen": [
+              "n",
+              "0"
+            ],
+            "prior": [
+              "n",
+              "0"
+            ],
+            "candidate": [
+              "n",
+              "0"
+            ]
+          },
+          {
+            "cell": "G353",
+            "formula": "FORECAST.ETS.CONFINT(25,C1:C24,D1:D24,0.8,0)",
+            "excel": [
+              "n",
+              "3.348058615164641"
+            ],
+            "frozen": [
+              "n",
+              "3.1187472131688483"
+            ],
+            "prior": [
+              "n",
+              "3.1187472131688425"
+            ],
+            "candidate": [
+              "n",
+              "3.1187472131688416"
+            ]
+          },
+          {
+            "cell": "G354",
+            "formula": "FORECAST.ETS.CONFINT(25,C1:C24,D1:D24,0.95,1)",
+            "excel": [
+              "n",
+              "5.1204137861305359"
+            ],
+            "frozen": [
+              "n",
+              "1.6730821347635458"
+            ],
+            "prior": [
+              "n",
+              "1.673082134763546"
+            ],
+            "candidate": [
+              "n",
+              "1.6730821347635503"
+            ]
+          },
+          {
+            "cell": "G355",
+            "formula": "FORECAST.ETS.CONFINT(25,C1:C24,D1:D24,0.99,4)",
+            "excel": [
+              "n",
+              "6.6762858772822078"
+            ],
+            "frozen": [
+              "n",
+              "6.304259674428385"
+            ],
+            "prior": [
+              "n",
+              "6.3042596744283985"
+            ],
+            "candidate": [
+              "n",
+              "6.3042596744283985"
+            ]
+          },
+          {
+            "cell": "G357",
+            "formula": "FORECAST.ETS.CONFINT(33,C1:C24,D1:D24,0.8,0)",
+            "excel": [
+              "n",
+              "3.4913108314558117"
+            ],
+            "frozen": [
+              "n",
+              "3.1187472131688483"
+            ],
+            "prior": [
+              "n",
+              "3.1187472131688425"
+            ],
+            "candidate": [
+              "n",
+              "3.1187472131688416"
+            ]
+          },
+          {
+            "cell": "G358",
+            "formula": "FORECAST.ETS.CONFINT(33,C1:C24,D1:D24,0.95,1)",
+            "excel": [
+              "n",
+              "5.3394991449915521"
+            ],
+            "frozen": [
+              "n",
+              "1.7838653720769135"
+            ],
+            "prior": [
+              "n",
+              "1.7838653720769138"
+            ],
+            "candidate": [
+              "n",
+              "1.7838653720769186"
+            ]
+          },
+          {
+            "cell": "G359",
+            "formula": "FORECAST.ETS.CONFINT(33,C1:C24,D1:D24,0.99,4)",
+            "excel": [
+              "n",
+              "7.118354812206297"
+            ],
+            "frozen": [
+              "n",
+              "6.304259674428385"
+            ],
+            "prior": [
+              "n",
+              "6.3042596744283985"
+            ],
+            "candidate": [
+              "n",
+              "6.3042596744283985"
+            ]
+          },
+          {
+            "cell": "G362",
+            "formula": "FORECAST.ETS.SEASONALITY(B1:B24,D1:D24)",
+            "excel": [
+              "n",
+              "2"
+            ],
+            "frozen": [
+              "n",
+              "4"
+            ],
+            "prior": [
+              "n",
+              "4"
+            ],
+            "candidate": [
+              "n",
+              "4"
+            ]
+          },
+          {
+            "cell": "G363",
+            "formula": "FORECAST.ETS.SEASONALITY(C1:C24,D1:D24)",
+            "excel": [
+              "n",
+              "0"
+            ],
+            "frozen": [
+              "n",
+              "5"
+            ],
+            "prior": [
+              "n",
+              "5"
+            ],
+            "candidate": [
+              "n",
+              "5"
+            ]
+          },
+          {
+            "cell": "G364",
+            "formula": "FORECAST.ETS.STAT(A1:A24,D1:D24,1,0)",
+            "excel": [
+              "n",
+              "0.9"
+            ],
+            "frozen": [
+              "n",
+              "0.05"
+            ],
+            "prior": [
+              "n",
+              "0.05"
+            ],
+            "candidate": [
+              "n",
+              "0.05"
+            ]
+          },
+          {
+            "cell": "G365",
+            "formula": "FORECAST.ETS.STAT(A1:A24,D1:D24,1,4)",
+            "excel": [
+              "n",
+              "0.751"
+            ],
+            "frozen": [
+              "n",
+              "0.05"
+            ],
+            "prior": [
+              "n",
+              "0.05"
+            ],
+            "candidate": [
+              "n",
+              "0.05"
+            ]
+          },
+          {
+            "cell": "G366",
+            "formula": "FORECAST.ETS.STAT(A1:A24,D1:D24,2,0)",
+            "excel": [
+              "n",
+              "1E-3"
+            ],
+            "frozen": [
+              "n",
+              "0.05"
+            ],
+            "prior": [
+              "n",
+              "0.05"
+            ],
+            "candidate": [
+              "n",
+              "0.05"
+            ]
+          },
+          {
+            "cell": "G367",
+            "formula": "FORECAST.ETS.STAT(A1:A24,D1:D24,2,4)",
+            "excel": [
+              "n",
+              "1E-3"
+            ],
+            "frozen": [
+              "n",
+              "0.05"
+            ],
+            "prior": [
+              "n",
+              "0.05"
+            ],
+            "candidate": [
+              "n",
+              "0.05"
+            ]
+          },
+          {
+            "cell": "G369",
+            "formula": "FORECAST.ETS.STAT(A1:A24,D1:D24,3,4)",
+            "excel": [
+              "n",
+              "1E-3"
+            ],
+            "frozen": [
+              "n",
+              "0.05"
+            ],
+            "prior": [
+              "n",
+              "0.05"
+            ],
+            "candidate": [
+              "n",
+              "0.05"
+            ]
+          },
+          {
+            "cell": "G382",
+            "formula": "FORECAST.ETS.STAT(B1:B24,D1:D24,1,0)",
+            "excel": [
+              "n",
+              "0.126"
+            ],
+            "frozen": [
+              "n",
+              "0.020939467731432175"
+            ],
+            "prior": [
+              "n",
+              "0.020939467731432175"
+            ],
+            "candidate": [
+              "n",
+              "0.020939467731432175"
+            ]
+          },
+          {
+            "cell": "G383",
+            "formula": "FORECAST.ETS.STAT(B1:B24,D1:D24,1,4)",
+            "excel": [
+              "n",
+              "0.751"
+            ],
+            "frozen": [
+              "n",
+              "0.05"
+            ],
+            "prior": [
+              "n",
+              "0.05"
+            ],
+            "candidate": [
+              "n",
+              "0.05"
+            ]
+          },
+          {
+            "cell": "G384",
+            "formula": "FORECAST.ETS.STAT(B1:B24,D1:D24,2,0)",
+            "excel": [
+              "n",
+              "1E-3"
+            ],
+            "frozen": [
+              "n",
+              "1"
+            ],
+            "prior": [
+              "n",
+              "1"
+            ],
+            "candidate": [
+              "n",
+              "1"
+            ]
+          },
+          {
+            "cell": "G385",
+            "formula": "FORECAST.ETS.STAT(B1:B24,D1:D24,2,4)",
+            "excel": [
+              "n",
+              "1E-3"
+            ],
+            "frozen": [
+              "n",
+              "0.05"
+            ],
+            "prior": [
+              "n",
+              "0.05"
+            ],
+            "candidate": [
+              "n",
+              "0.05"
+            ]
+          },
+          {
+            "cell": "G387",
+            "formula": "FORECAST.ETS.STAT(B1:B24,D1:D24,3,4)",
+            "excel": [
+              "n",
+              "1E-3"
+            ],
+            "frozen": [
+              "n",
+              "0.05"
+            ],
+            "prior": [
+              "n",
+              "0.05"
+            ],
+            "candidate": [
+              "n",
+              "0.05"
+            ]
+          },
+          {
+            "cell": "G388",
+            "formula": "FORECAST.ETS.STAT(B1:B24,D1:D24,4,0)",
+            "excel": [
+              "n",
+              "0.57977523425493249"
+            ],
+            "frozen": [
+              "n",
+              "0.5126380215989785"
+            ],
+            "prior": [
+              "n",
+              "0.5126380215989785"
+            ],
+            "candidate": [
+              "n",
+              "0.5126380215989785"
+            ]
+          },
+          {
+            "cell": "G390",
+            "formula": "FORECAST.ETS.STAT(B1:B24,D1:D24,5,0)",
+            "excel": [
+              "n",
+              "0.13813301972529268"
+            ],
+            "frozen": [
+              "n",
+              "0.14632426136370688"
+            ],
+            "prior": [
+              "n",
+              "0.14632426136370688"
+            ],
+            "candidate": [
+              "n",
+              "0.14632426136370688"
+            ]
+          },
+          {
+            "cell": "G392",
+            "formula": "FORECAST.ETS.STAT(B1:B24,D1:D24,6,0)",
+            "excel": [
+              "n",
+              "6.7088277106642185"
+            ],
+            "frozen": [
+              "n",
+              "6.017924601379314"
+            ],
+            "prior": [
+              "n",
+              "6.017924601379314"
+            ],
+            "candidate": [
+              "n",
+              "6.017924601379314"
+            ]
+          },
+          {
+            "cell": "G394",
+            "formula": "FORECAST.ETS.STAT(B1:B24,D1:D24,7,0)",
+            "excel": [
+              "n",
+              "7.2346016078196413"
+            ],
+            "frozen": [
+              "n",
+              "6.7536791025735825"
+            ],
+            "prior": [
+              "n",
+              "6.7536791025735825"
+            ],
+            "candidate": [
+              "n",
+              "6.7536791025735825"
+            ]
+          },
+          {
+            "cell": "G400",
+            "formula": "FORECAST.ETS.STAT(C1:C24,D1:D24,1,0)",
+            "excel": [
+              "n",
+              "0.1"
+            ],
+            "frozen": [
+              "n",
+              "0"
+            ],
+            "prior": [
+              "n",
+              "0"
+            ],
+            "candidate": [
+              "n",
+              "0"
+            ]
+          },
+          {
+            "cell": "G401",
+            "formula": "FORECAST.ETS.STAT(C1:C24,D1:D24,1,4)",
+            "excel": [
+              "n",
+              "0.126"
+            ],
+            "frozen": [
+              "n",
+              "0"
+            ],
+            "prior": [
+              "n",
+              "0"
+            ],
+            "candidate": [
+              "n",
+              "0"
+            ]
+          },
+          {
+            "cell": "G402",
+            "formula": "FORECAST.ETS.STAT(C1:C24,D1:D24,2,0)",
+            "excel": [
+              "n",
+              "1E-3"
+            ],
+            "frozen": [
+              "n",
+              "0.15000000000000002"
+            ],
+            "prior": [
+              "n",
+              "0.15000000000000002"
+            ],
+            "candidate": [
+              "n",
+              "0.15000000000000002"
+            ]
+          },
+          {
+            "cell": "G403",
+            "formula": "FORECAST.ETS.STAT(C1:C24,D1:D24,2,4)",
+            "excel": [
+              "n",
+              "1E-3"
+            ],
+            "frozen": [
+              "n",
+              "0.2166666666666667"
+            ],
+            "prior": [
+              "n",
+              "0.2166666666666667"
+            ],
+            "candidate": [
+              "n",
+              "0.2166666666666667"
+            ]
+          },
+          {
+            "cell": "G405",
+            "formula": "FORECAST.ETS.STAT(C1:C24,D1:D24,3,4)",
+            "excel": [
+              "n",
+              "1E-3"
+            ],
+            "frozen": [
+              "n",
+              "0"
+            ],
+            "prior": [
+              "n",
+              "0"
+            ],
+            "candidate": [
+              "n",
+              "0"
+            ]
+          },
+          {
+            "cell": "G406",
+            "formula": "FORECAST.ETS.STAT(C1:C24,D1:D24,4,0)",
+            "excel": [
+              "n",
+              "0.52541403131305364"
+            ],
+            "frozen": [
+              "n",
+              "0.505430680430682"
+            ],
+            "prior": [
+              "n",
+              "0.505430680430682"
+            ],
+            "candidate": [
+              "n",
+              "0.5054306804306815"
+            ]
+          },
+          {
+            "cell": "G407",
+            "formula": "FORECAST.ETS.STAT(C1:C24,D1:D24,4,4)",
+            "excel": [
+              "n",
+              "0.59484479862564599"
+            ],
+            "frozen": [
+              "n",
+              "0.5024468586968588"
+            ],
+            "prior": [
+              "n",
+              "0.5024468586968588"
+            ],
+            "candidate": [
+              "n",
+              "0.5024468586968588"
+            ]
+          },
+          {
+            "cell": "G408",
+            "formula": "FORECAST.ETS.STAT(C1:C24,D1:D24,5,0)",
+            "excel": [
+              "n",
+              "2.1548650012134636E-2"
+            ],
+            "frozen": [
+              "n",
+              "0.025013947036533504"
+            ],
+            "prior": [
+              "n",
+              "0.025013947036533504"
+            ],
+            "candidate": [
+              "n",
+              "0.025013947036533476"
+            ]
+          },
+          {
+            "cell": "G409",
+            "formula": "FORECAST.ETS.STAT(C1:C24,D1:D24,5,4)",
+            "excel": [
+              "n",
+              "2.4668127241613508E-2"
+            ],
+            "frozen": [
+              "n",
+              "0.024598215864455843"
+            ],
+            "prior": [
+              "n",
+              "0.024598215864455843"
+            ],
+            "candidate": [
+              "n",
+              "0.024598215864455843"
+            ]
+          },
+          {
+            "cell": "G410",
+            "formula": "FORECAST.ETS.STAT(C1:C24,D1:D24,6,0)",
+            "excel": [
+              "n",
+              "2.1016561252522146"
+            ],
+            "frozen": [
+              "n",
+              "1.9997474747474808"
+            ],
+            "prior": [
+              "n",
+              "1.9997474747474808"
+            ],
+            "candidate": [
+              "n",
+              "1.9997474747474788"
+            ]
+          },
+          {
+            "cell": "G411",
+            "formula": "FORECAST.ETS.STAT(C1:C24,D1:D24,6,4)",
+            "excel": [
+              "n",
+              "2.3793791945025839"
+            ],
+            "frozen": [
+              "n",
+              "1.9879419191919194"
+            ],
+            "prior": [
+              "n",
+              "1.9879419191919194"
+            ],
+            "candidate": [
+              "n",
+              "1.9879419191919194"
+            ]
+          },
+          {
+            "cell": "G412",
+            "formula": "FORECAST.ETS.STAT(C1:C24,D1:D24,7,0)",
+            "excel": [
+              "n",
+              "2.5192638138502979"
+            ],
+            "frozen": [
+              "n",
+              "2.433571380987331"
+            ],
+            "prior": [
+              "n",
+              "2.433571380987331"
+            ],
+            "candidate": [
+              "n",
+              "2.4335713809873307"
+            ]
+          },
+          {
+            "cell": "G413",
+            "formula": "FORECAST.ETS.STAT(C1:C24,D1:D24,7,4)",
+            "excel": [
+              "n",
+              "2.6406867049965319"
+            ],
+            "frozen": [
+              "n",
+              "2.4474679536188897"
+            ],
+            "prior": [
+              "n",
+              "2.4474679536188897"
+            ],
+            "candidate": [
+              "n",
+              "2.4474679536188897"
+            ]
+          }
+        ]
+      },
+      "1904": {
+        "sourceSha256": "48728d6de736d6f082bf4aca0cffc3490a5f959c189b9a805f886fadc8d6848f",
+        "excelSha256": "76693d05fa9849f0b47b538b3c13cc8e0b7cfd489e53598dbe6133c9ee3bc472",
+        "cases": 416,
+        "dateSystem": "1904",
+        "binarySha256": {
+          "frozen": "d2f55cf2cc07a7f89e84b576b2f18ad1e097b47bab94790268183281e97deec5",
+          "prior": "840a3aa0fa28075d576f9d03c06c266e7871fee7d10d980690dc4298b1e3c6bf",
+          "candidate": "2ba27ccf2cd4f684f68920f712d8c205d2551ab7ccebbdd1fad1bc1875a00524"
+        },
+        "registeredNames": 52,
+        "differencesByFunction": {
+          "frozen": {
+            "PV": 1,
+            "CUMIPMT": 1,
+            "CUMPRINC": 1,
+            "NPER": 2,
+            "RATE": 1,
+            "RRI": 1,
+            "XIRR": 1,
+            "PRICEMAT": 1,
+            "YIELDMAT": 1,
+            "PRICE": 4,
+            "YIELD": 4,
+            "DURATION": 2,
+            "MDURATION": 2,
+            "ODDFPRICE": 2,
+            "ODDFYIELD": 2,
+            "ODDLPRICE": 2,
+            "ODDLYIELD": 2,
+            "FORECAST.ETS": 31,
+            "FORECAST.ETS.CONFINT": 10,
+            "FORECAST.ETS.SEASONALITY": 2,
+            "FORECAST.ETS.STAT": 27
+          },
+          "prior": {
+            "PV": 1,
+            "CUMIPMT": 1,
+            "CUMPRINC": 1,
+            "NPER": 2,
+            "RATE": 1,
+            "RRI": 1,
+            "XIRR": 1,
+            "PRICEMAT": 1,
+            "YIELDMAT": 1,
+            "PRICE": 4,
+            "YIELD": 4,
+            "DURATION": 2,
+            "MDURATION": 2,
+            "ODDFPRICE": 2,
+            "ODDFYIELD": 2,
+            "ODDLPRICE": 2,
+            "ODDLYIELD": 2,
+            "FORECAST.ETS": 31,
+            "FORECAST.ETS.CONFINT": 10,
+            "FORECAST.ETS.SEASONALITY": 2,
+            "FORECAST.ETS.STAT": 27
+          },
+          "candidate": {
+            "RATE": 1,
+            "XIRR": 1,
+            "ODDFPRICE": 2,
+            "ODDFYIELD": 2,
+            "FORECAST.ETS": 31,
+            "FORECAST.ETS.CONFINT": 10,
+            "FORECAST.ETS.SEASONALITY": 2,
+            "FORECAST.ETS.STAT": 27
+          }
+        },
+        "changedCells": [
+          "G15",
+          "G46",
+          "G53",
+          "G60",
+          "G61",
+          "G66",
+          "G97",
+          "G202",
+          "G207",
+          "G213",
+          "G214",
+          "G218",
+          "G219",
+          "G223",
+          "G224",
+          "G228",
+          "G229",
+          "G235",
+          "G236",
+          "G240",
+          "G241",
+          "G280",
+          "G281",
+          "G285",
+          "G286"
+        ],
+        "resolvedExcelDifferences": [
+          "G15",
+          "G46",
+          "G53",
+          "G60",
+          "G61",
+          "G97",
+          "G202",
+          "G207",
+          "G213",
+          "G214",
+          "G218",
+          "G219",
+          "G223",
+          "G224",
+          "G228",
+          "G229",
+          "G235",
+          "G236",
+          "G240",
+          "G241",
+          "G280",
+          "G281",
+          "G285",
+          "G286"
+        ],
+        "newExcelDifferences": [],
+        "crossVersionReadbacks": 4,
+        "fullLocalReportSha256": "87da860296783340059e2e9862020d64458e795d028b75e61a344f47fd750481",
+        "remainingDifferences": [
+          {
+            "cell": "G66",
+            "formula": "RATE(12,-100,1200)",
+            "excel": [
+              "n",
+              "-4.3434156497998736E-10"
+            ],
+            "frozen": [
+              "n",
+              "-1.0070079874102734E-9"
+            ],
+            "prior": [
+              "n",
+              "-1.0070079874102734E-9"
+            ],
+            "candidate": [
+              "n",
+              "-1.4304372612484818E-17"
+            ]
+          },
+          {
+            "cell": "G118",
+            "formula": "XIRR(H1:H6,I1:I6)",
+            "excel": [
+              "n",
+              "0.11035357117652894"
+            ],
+            "frozen": [
+              "n",
+              "0.11035356816902"
+            ],
+            "prior": [
+              "n",
+              "0.11035356816902"
+            ],
+            "candidate": [
+              "n",
+              "0.11035356816902"
+            ]
+          },
+          {
+            "cell": "G265",
+            "formula": "ODDFPRICE(DATE(2008,11,11),DATE(2021,3,1),DATE(2007,1,20),DATE(2009,3,1),0.0785,0.0625,100,2,2)",
+            "excel": [
+              "n",
+              "113.10586349144469"
+            ],
+            "frozen": [
+              "n",
+              "113.34125618351327"
+            ],
+            "prior": [
+              "n",
+              "113.34125618351327"
+            ],
+            "candidate": [
+              "n",
+              "113.3412561835133"
+            ]
+          },
+          {
+            "cell": "G266",
+            "formula": "ODDFPRICE(DATE(2008,11,11),DATE(2021,3,1),DATE(2007,1,20),DATE(2009,3,1),0.0785,0.0625,100,2,3)",
+            "excel": [
+              "n",
+              "113.32443302342598"
+            ],
+            "frozen": [
+              "n",
+              "113.34554465517002"
+            ],
+            "prior": [
+              "n",
+              "113.34554465517002"
+            ],
+            "candidate": [
+              "n",
+              "113.34554465517002"
+            ]
+          },
+          {
+            "cell": "G275",
+            "formula": "ODDFYIELD(DATE(2008,11,11),DATE(2021,3,1),DATE(2007,1,20),DATE(2009,3,1),0.0785,84.50,100,2,2)",
+            "excel": [
+              "n",
+              "9.9740186562483887E-2"
+            ],
+            "frozen": [
+              "n",
+              "0.10011039815452238"
+            ],
+            "prior": [
+              "n",
+              "0.10011039815452238"
+            ],
+            "candidate": [
+              "n",
+              "0.10011039815452256"
+            ]
+          },
+          {
+            "cell": "G276",
+            "formula": "ODDFYIELD(DATE(2008,11,11),DATE(2021,3,1),DATE(2007,1,20),DATE(2009,3,1),0.0785,84.50,100,2,3)",
+            "excel": [
+              "n",
+              "0.10009986965864662"
+            ],
+            "frozen": [
+              "n",
+              "0.10013314940450724"
+            ],
+            "prior": [
+              "n",
+              "0.10013314940450724"
+            ],
+            "candidate": [
+              "n",
+              "0.10013314940450725"
+            ]
+          },
+          {
+            "cell": "G288",
+            "formula": "FORECAST.ETS(20.0,A1:A24,D1:D24,0)",
+            "excel": [
+              "n",
+              "43"
+            ],
+            "frozen": [
+              "e",
+              "#NUM!"
+            ],
+            "prior": [
+              "e",
+              "#NUM!"
+            ],
+            "candidate": [
+              "e",
+              "#NUM!"
+            ]
+          },
+          {
+            "cell": "G289",
+            "formula": "FORECAST.ETS(20.0,A1:A24,D1:D24,1)",
+            "excel": [
+              "n",
+              "43"
+            ],
+            "frozen": [
+              "e",
+              "#NUM!"
+            ],
+            "prior": [
+              "e",
+              "#NUM!"
+            ],
+            "candidate": [
+              "e",
+              "#NUM!"
+            ]
+          },
+          {
+            "cell": "G290",
+            "formula": "FORECAST.ETS(20.0,A1:A24,D1:D24,4)",
+            "excel": [
+              "n",
+              "43"
+            ],
+            "frozen": [
+              "e",
+              "#NUM!"
+            ],
+            "prior": [
+              "e",
+              "#NUM!"
+            ],
+            "candidate": [
+              "e",
+              "#NUM!"
+            ]
+          },
+          {
+            "cell": "G303",
+            "formula": "FORECAST.ETS(20.0,B1:B24,D1:D24,0)",
+            "excel": [
+              "n",
+              "49.214779519297046"
+            ],
+            "frozen": [
+              "e",
+              "#NUM!"
+            ],
+            "prior": [
+              "e",
+              "#NUM!"
+            ],
+            "candidate": [
+              "e",
+              "#NUM!"
+            ]
+          },
+          {
+            "cell": "G304",
+            "formula": "FORECAST.ETS(20.0,B1:B24,D1:D24,1)",
+            "excel": [
+              "n",
+              "43.755127464016432"
+            ],
+            "frozen": [
+              "e",
+              "#NUM!"
+            ],
+            "prior": [
+              "e",
+              "#NUM!"
+            ],
+            "candidate": [
+              "e",
+              "#NUM!"
+            ]
+          },
+          {
+            "cell": "G305",
+            "formula": "FORECAST.ETS(20.0,B1:B24,D1:D24,4)",
+            "excel": [
+              "n",
+              "41"
+            ],
+            "frozen": [
+              "e",
+              "#NUM!"
+            ],
+            "prior": [
+              "e",
+              "#NUM!"
+            ],
+            "candidate": [
+              "e",
+              "#NUM!"
+            ]
+          },
+          {
+            "cell": "G306",
+            "formula": "FORECAST.ETS(24.5,B1:B24,D1:D24,0)",
+            "excel": [
+              "n",
+              "52.985253183869091"
+            ],
+            "frozen": [
+              "n",
+              "53.11182268605804"
+            ],
+            "prior": [
+              "n",
+              "53.11182268605804"
+            ],
+            "candidate": [
+              "n",
+              "53.11182268605804"
+            ]
+          },
+          {
+            "cell": "G307",
+            "formula": "FORECAST.ETS(24.5,B1:B24,D1:D24,1)",
+            "excel": [
+              "n",
+              "53.797160319339085"
+            ],
+            "frozen": [
+              "n",
+              "54"
+            ],
+            "prior": [
+              "n",
+              "54"
+            ],
+            "candidate": [
+              "n",
+              "54"
+            ]
+          },
+          {
+            "cell": "G309",
+            "formula": "FORECAST.ETS(25.0,B1:B24,D1:D24,0)",
+            "excel": [
+              "n",
+              "53.404194702154889"
+            ],
+            "frozen": [
+              "n",
+              "53.68899248173852"
+            ],
+            "prior": [
+              "n",
+              "53.68899248173852"
+            ],
+            "candidate": [
+              "n",
+              "53.68899248173852"
+            ]
+          },
+          {
+            "cell": "G310",
+            "formula": "FORECAST.ETS(25.0,B1:B24,D1:D24,1)",
+            "excel": [
+              "n",
+              "60.099335838235881"
+            ],
+            "frozen": [
+              "n",
+              "63"
+            ],
+            "prior": [
+              "n",
+              "63"
+            ],
+            "candidate": [
+              "n",
+              "63"
+            ]
+          },
+          {
+            "cell": "G312",
+            "formula": "FORECAST.ETS(28.0,B1:B24,D1:D24,0)",
+            "excel": [
+              "n",
+              "55.917843811869552"
+            ],
+            "frozen": [
+              "n",
+              "57.15201125582138"
+            ],
+            "prior": [
+              "n",
+              "57.15201125582138"
+            ],
+            "candidate": [
+              "n",
+              "57.15201125582138"
+            ]
+          },
+          {
+            "cell": "G313",
+            "formula": "FORECAST.ETS(28.0,B1:B24,D1:D24,1)",
+            "excel": [
+              "n",
+              "51.234842136868146"
+            ],
+            "frozen": [
+              "n",
+              "49"
+            ],
+            "prior": [
+              "n",
+              "49"
+            ],
+            "candidate": [
+              "n",
+              "49"
+            ]
+          },
+          {
+            "cell": "G315",
+            "formula": "FORECAST.ETS(33.0,B1:B24,D1:D24,0)",
+            "excel": [
+              "n",
+              "60.107258994727395"
+            ],
+            "frozen": [
+              "n",
+              "62.92370921262615"
+            ],
+            "prior": [
+              "n",
+              "62.92370921262615"
+            ],
+            "candidate": [
+              "n",
+              "62.92370921262615"
+            ]
+          },
+          {
+            "cell": "G316",
+            "formula": "FORECAST.ETS(33.0,B1:B24,D1:D24,1)",
+            "excel": [
+              "n",
+              "67.579050511087601"
+            ],
+            "frozen": [
+              "n",
+              "71"
+            ],
+            "prior": [
+              "n",
+              "71"
+            ],
+            "candidate": [
+              "n",
+              "71"
+            ]
+          },
+          {
+            "cell": "G318",
+            "formula": "FORECAST.ETS(20.0,C1:C24,D1:D24,0)",
+            "excel": [
+              "n",
+              "96.812036286070864"
+            ],
+            "frozen": [
+              "e",
+              "#NUM!"
+            ],
+            "prior": [
+              "e",
+              "#NUM!"
+            ],
+            "candidate": [
+              "e",
+              "#NUM!"
+            ]
+          },
+          {
+            "cell": "G319",
+            "formula": "FORECAST.ETS(20.0,C1:C24,D1:D24,1)",
+            "excel": [
+              "n",
+              "96.812036286070864"
+            ],
+            "frozen": [
+              "e",
+              "#NUM!"
+            ],
+            "prior": [
+              "e",
+              "#NUM!"
+            ],
+            "candidate": [
+              "e",
+              "#NUM!"
+            ]
+          },
+          {
+            "cell": "G320",
+            "formula": "FORECAST.ETS(20.0,C1:C24,D1:D24,4)",
+            "excel": [
+              "n",
+              "96.319763793893244"
+            ],
+            "frozen": [
+              "e",
+              "#NUM!"
+            ],
+            "prior": [
+              "e",
+              "#NUM!"
+            ],
+            "candidate": [
+              "e",
+              "#NUM!"
+            ]
+          },
+          {
+            "cell": "G321",
+            "formula": "FORECAST.ETS(24.5,C1:C24,D1:D24,0)",
+            "excel": [
+              "n",
+              "105.74674813889216"
+            ],
+            "frozen": [
+              "n",
+              "105.56969696969688"
+            ],
+            "prior": [
+              "n",
+              "105.56969696969688"
+            ],
+            "candidate": [
+              "n",
+              "105.5696969696969"
+            ]
+          },
+          {
+            "cell": "G322",
+            "formula": "FORECAST.ETS(24.5,C1:C24,D1:D24,1)",
+            "excel": [
+              "n",
+              "105.74674813889216"
+            ],
+            "frozen": [
+              "n",
+              "105.49543146639019"
+            ],
+            "prior": [
+              "n",
+              "105.49543146639019"
+            ],
+            "candidate": [
+              "n",
+              "105.4954314663902"
+            ]
+          },
+          {
+            "cell": "G323",
+            "formula": "FORECAST.ETS(24.5,C1:C24,D1:D24,4)",
+            "excel": [
+              "n",
+              "105.98290542664816"
+            ],
+            "frozen": [
+              "n",
+              "105.866287878788"
+            ],
+            "prior": [
+              "n",
+              "105.866287878788"
+            ],
+            "candidate": [
+              "n",
+              "105.866287878788"
+            ]
+          },
+          {
+            "cell": "G324",
+            "formula": "FORECAST.ETS(25.0,C1:C24,D1:D24,0)",
+            "excel": [
+              "n",
+              "106.73949390031675"
+            ],
+            "frozen": [
+              "n",
+              "106.56363636363628"
+            ],
+            "prior": [
+              "n",
+              "106.56363636363628"
+            ],
+            "candidate": [
+              "n",
+              "106.56363636363629"
+            ]
+          },
+          {
+            "cell": "G325",
+            "formula": "FORECAST.ETS(25.0,C1:C24,D1:D24,1)",
+            "excel": [
+              "n",
+              "106.73949390031675"
+            ],
+            "frozen": [
+              "n",
+              "107.00710226869077"
+            ],
+            "prior": [
+              "n",
+              "107.00710226869077"
+            ],
+            "candidate": [
+              "n",
+              "107.00710226869079"
+            ]
+          },
+          {
+            "cell": "G326",
+            "formula": "FORECAST.ETS(25.0,C1:C24,D1:D24,4)",
+            "excel": [
+              "n",
+              "107.64627195733264"
+            ],
+            "frozen": [
+              "n",
+              "107.53787878787891"
+            ],
+            "prior": [
+              "n",
+              "107.53787878787891"
+            ],
+            "candidate": [
+              "n",
+              "107.53787878787891"
+            ]
+          },
+          {
+            "cell": "G327",
+            "formula": "FORECAST.ETS(28.0,C1:C24,D1:D24,0)",
+            "excel": [
+              "n",
+              "112.69596846886428"
+            ],
+            "frozen": [
+              "n",
+              "112.52727272727265"
+            ],
+            "prior": [
+              "n",
+              "112.52727272727265"
+            ],
+            "candidate": [
+              "n",
+              "112.52727272727266"
+            ]
+          },
+          {
+            "cell": "G328",
+            "formula": "FORECAST.ETS(28.0,C1:C24,D1:D24,1)",
+            "excel": [
+              "n",
+              "112.69596846886428"
+            ],
+            "frozen": [
+              "n",
+              "115.77712708249427"
+            ],
+            "prior": [
+              "n",
+              "115.77712708249427"
+            ],
+            "candidate": [
+              "n",
+              "115.77712708249429"
+            ]
+          },
+          {
+            "cell": "G329",
+            "formula": "FORECAST.ETS(28.0,C1:C24,D1:D24,4)",
+            "excel": [
+              "n",
+              "112.3193139980341"
+            ],
+            "frozen": [
+              "n",
+              "112.23409090909101"
+            ],
+            "prior": [
+              "n",
+              "112.23409090909101"
+            ],
+            "candidate": [
+              "n",
+              "112.23409090909101"
+            ]
+          },
+          {
+            "cell": "G330",
+            "formula": "FORECAST.ETS(33.0,C1:C24,D1:D24,0)",
+            "excel": [
+              "n",
+              "122.62342608311016"
+            ],
+            "frozen": [
+              "n",
+              "122.46666666666658"
+            ],
+            "prior": [
+              "n",
+              "122.46666666666658"
+            ],
+            "candidate": [
+              "n",
+              "122.4666666666666"
+            ]
+          },
+          {
+            "cell": "G331",
+            "formula": "FORECAST.ETS(33.0,C1:C24,D1:D24,1)",
+            "excel": [
+              "n",
+              "122.62342608311016"
+            ],
+            "frozen": [
+              "n",
+              "125.89383510550012"
+            ],
+            "prior": [
+              "n",
+              "125.89383510550012"
+            ],
+            "candidate": [
+              "n",
+              "125.89383510550014"
+            ]
+          },
+          {
+            "cell": "G332",
+            "formula": "FORECAST.ETS(33.0,C1:C24,D1:D24,4)",
+            "excel": [
+              "n",
+              "123.6458221614735"
+            ],
+            "frozen": [
+              "n",
+              "123.61666666666677"
+            ],
+            "prior": [
+              "n",
+              "123.61666666666677"
+            ],
+            "candidate": [
+              "n",
+              "123.61666666666677"
+            ]
+          },
+          {
+            "cell": "G334",
+            "formula": "FORECAST.ETS(25,A1:A24,D1:D24,8761)",
+            "excel": [
+              "n",
+              "53"
+            ],
+            "frozen": [
+              "e",
+              "#NUM!"
+            ],
+            "prior": [
+              "e",
+              "#NUM!"
+            ],
+            "candidate": [
+              "e",
+              "#NUM!"
+            ]
+          },
+          {
+            "cell": "G335",
+            "formula": "FORECAST.ETS(13,E1:E8,F1:F8,0,0)",
+            "excel": [
+              "n",
+              "124.85451566540739"
+            ],
+            "frozen": [
+              "n",
+              "117.2727272727273"
+            ],
+            "prior": [
+              "n",
+              "117.2727272727273"
+            ],
+            "candidate": [
+              "n",
+              "117.27272727272728"
+            ]
+          },
+          {
+            "cell": "G345",
+            "formula": "FORECAST.ETS.CONFINT(25,B1:B24,D1:D24,0.8,0)",
+            "excel": [
+              "n",
+              "9.4956652500563745"
+            ],
+            "frozen": [
+              "n",
+              "8.655188027089023"
+            ],
+            "prior": [
+              "n",
+              "8.655188027089007"
+            ],
+            "candidate": [
+              "n",
+              "8.655188027089007"
+            ]
+          },
+          {
+            "cell": "G346",
+            "formula": "FORECAST.ETS.CONFINT(25,B1:B24,D1:D24,0.95,1)",
+            "excel": [
+              "n",
+              "5.4099852603823102"
+            ],
+            "frozen": [
+              "n",
+              "0"
+            ],
+            "prior": [
+              "n",
+              "0"
+            ],
+            "candidate": [
+              "n",
+              "0"
+            ]
+          },
+          {
+            "cell": "G349",
+            "formula": "FORECAST.ETS.CONFINT(33,B1:B24,D1:D24,0.8,0)",
+            "excel": [
+              "n",
+              "10.1220584723537"
+            ],
+            "frozen": [
+              "n",
+              "9.178266855886532"
+            ],
+            "prior": [
+              "n",
+              "9.178266855886514"
+            ],
+            "candidate": [
+              "n",
+              "9.178266855886514"
+            ]
+          },
+          {
+            "cell": "G350",
+            "formula": "FORECAST.ETS.CONFINT(33,B1:B24,D1:D24,0.95,1)",
+            "excel": [
+              "n",
+              "5.7695305178560794"
+            ],
+            "frozen": [
+              "n",
+              "0"
+            ],
+            "prior": [
+              "n",
+              "0"
+            ],
+            "candidate": [
+              "n",
+              "0"
+            ]
+          },
+          {
+            "cell": "G353",
+            "formula": "FORECAST.ETS.CONFINT(25,C1:C24,D1:D24,0.8,0)",
+            "excel": [
+              "n",
+              "3.348058615164641"
+            ],
+            "frozen": [
+              "n",
+              "3.1187472131688483"
+            ],
+            "prior": [
+              "n",
+              "3.1187472131688425"
+            ],
+            "candidate": [
+              "n",
+              "3.1187472131688416"
+            ]
+          },
+          {
+            "cell": "G354",
+            "formula": "FORECAST.ETS.CONFINT(25,C1:C24,D1:D24,0.95,1)",
+            "excel": [
+              "n",
+              "5.1204137861305359"
+            ],
+            "frozen": [
+              "n",
+              "1.6730821347635458"
+            ],
+            "prior": [
+              "n",
+              "1.673082134763546"
+            ],
+            "candidate": [
+              "n",
+              "1.6730821347635503"
+            ]
+          },
+          {
+            "cell": "G355",
+            "formula": "FORECAST.ETS.CONFINT(25,C1:C24,D1:D24,0.99,4)",
+            "excel": [
+              "n",
+              "6.6762858772822078"
+            ],
+            "frozen": [
+              "n",
+              "6.304259674428385"
+            ],
+            "prior": [
+              "n",
+              "6.3042596744283985"
+            ],
+            "candidate": [
+              "n",
+              "6.3042596744283985"
+            ]
+          },
+          {
+            "cell": "G357",
+            "formula": "FORECAST.ETS.CONFINT(33,C1:C24,D1:D24,0.8,0)",
+            "excel": [
+              "n",
+              "3.4913108314558117"
+            ],
+            "frozen": [
+              "n",
+              "3.1187472131688483"
+            ],
+            "prior": [
+              "n",
+              "3.1187472131688425"
+            ],
+            "candidate": [
+              "n",
+              "3.1187472131688416"
+            ]
+          },
+          {
+            "cell": "G358",
+            "formula": "FORECAST.ETS.CONFINT(33,C1:C24,D1:D24,0.95,1)",
+            "excel": [
+              "n",
+              "5.3394991449915521"
+            ],
+            "frozen": [
+              "n",
+              "1.7838653720769135"
+            ],
+            "prior": [
+              "n",
+              "1.7838653720769138"
+            ],
+            "candidate": [
+              "n",
+              "1.7838653720769186"
+            ]
+          },
+          {
+            "cell": "G359",
+            "formula": "FORECAST.ETS.CONFINT(33,C1:C24,D1:D24,0.99,4)",
+            "excel": [
+              "n",
+              "7.118354812206297"
+            ],
+            "frozen": [
+              "n",
+              "6.304259674428385"
+            ],
+            "prior": [
+              "n",
+              "6.3042596744283985"
+            ],
+            "candidate": [
+              "n",
+              "6.3042596744283985"
+            ]
+          },
+          {
+            "cell": "G362",
+            "formula": "FORECAST.ETS.SEASONALITY(B1:B24,D1:D24)",
+            "excel": [
+              "n",
+              "2"
+            ],
+            "frozen": [
+              "n",
+              "4"
+            ],
+            "prior": [
+              "n",
+              "4"
+            ],
+            "candidate": [
+              "n",
+              "4"
+            ]
+          },
+          {
+            "cell": "G363",
+            "formula": "FORECAST.ETS.SEASONALITY(C1:C24,D1:D24)",
+            "excel": [
+              "n",
+              "0"
+            ],
+            "frozen": [
+              "n",
+              "5"
+            ],
+            "prior": [
+              "n",
+              "5"
+            ],
+            "candidate": [
+              "n",
+              "5"
+            ]
+          },
+          {
+            "cell": "G364",
+            "formula": "FORECAST.ETS.STAT(A1:A24,D1:D24,1,0)",
+            "excel": [
+              "n",
+              "0.9"
+            ],
+            "frozen": [
+              "n",
+              "0.05"
+            ],
+            "prior": [
+              "n",
+              "0.05"
+            ],
+            "candidate": [
+              "n",
+              "0.05"
+            ]
+          },
+          {
+            "cell": "G365",
+            "formula": "FORECAST.ETS.STAT(A1:A24,D1:D24,1,4)",
+            "excel": [
+              "n",
+              "0.751"
+            ],
+            "frozen": [
+              "n",
+              "0.05"
+            ],
+            "prior": [
+              "n",
+              "0.05"
+            ],
+            "candidate": [
+              "n",
+              "0.05"
+            ]
+          },
+          {
+            "cell": "G366",
+            "formula": "FORECAST.ETS.STAT(A1:A24,D1:D24,2,0)",
+            "excel": [
+              "n",
+              "1E-3"
+            ],
+            "frozen": [
+              "n",
+              "0.05"
+            ],
+            "prior": [
+              "n",
+              "0.05"
+            ],
+            "candidate": [
+              "n",
+              "0.05"
+            ]
+          },
+          {
+            "cell": "G367",
+            "formula": "FORECAST.ETS.STAT(A1:A24,D1:D24,2,4)",
+            "excel": [
+              "n",
+              "1E-3"
+            ],
+            "frozen": [
+              "n",
+              "0.05"
+            ],
+            "prior": [
+              "n",
+              "0.05"
+            ],
+            "candidate": [
+              "n",
+              "0.05"
+            ]
+          },
+          {
+            "cell": "G369",
+            "formula": "FORECAST.ETS.STAT(A1:A24,D1:D24,3,4)",
+            "excel": [
+              "n",
+              "1E-3"
+            ],
+            "frozen": [
+              "n",
+              "0.05"
+            ],
+            "prior": [
+              "n",
+              "0.05"
+            ],
+            "candidate": [
+              "n",
+              "0.05"
+            ]
+          },
+          {
+            "cell": "G382",
+            "formula": "FORECAST.ETS.STAT(B1:B24,D1:D24,1,0)",
+            "excel": [
+              "n",
+              "0.126"
+            ],
+            "frozen": [
+              "n",
+              "0.020939467731432175"
+            ],
+            "prior": [
+              "n",
+              "0.020939467731432175"
+            ],
+            "candidate": [
+              "n",
+              "0.020939467731432175"
+            ]
+          },
+          {
+            "cell": "G383",
+            "formula": "FORECAST.ETS.STAT(B1:B24,D1:D24,1,4)",
+            "excel": [
+              "n",
+              "0.751"
+            ],
+            "frozen": [
+              "n",
+              "0.05"
+            ],
+            "prior": [
+              "n",
+              "0.05"
+            ],
+            "candidate": [
+              "n",
+              "0.05"
+            ]
+          },
+          {
+            "cell": "G384",
+            "formula": "FORECAST.ETS.STAT(B1:B24,D1:D24,2,0)",
+            "excel": [
+              "n",
+              "1E-3"
+            ],
+            "frozen": [
+              "n",
+              "1"
+            ],
+            "prior": [
+              "n",
+              "1"
+            ],
+            "candidate": [
+              "n",
+              "1"
+            ]
+          },
+          {
+            "cell": "G385",
+            "formula": "FORECAST.ETS.STAT(B1:B24,D1:D24,2,4)",
+            "excel": [
+              "n",
+              "1E-3"
+            ],
+            "frozen": [
+              "n",
+              "0.05"
+            ],
+            "prior": [
+              "n",
+              "0.05"
+            ],
+            "candidate": [
+              "n",
+              "0.05"
+            ]
+          },
+          {
+            "cell": "G387",
+            "formula": "FORECAST.ETS.STAT(B1:B24,D1:D24,3,4)",
+            "excel": [
+              "n",
+              "1E-3"
+            ],
+            "frozen": [
+              "n",
+              "0.05"
+            ],
+            "prior": [
+              "n",
+              "0.05"
+            ],
+            "candidate": [
+              "n",
+              "0.05"
+            ]
+          },
+          {
+            "cell": "G388",
+            "formula": "FORECAST.ETS.STAT(B1:B24,D1:D24,4,0)",
+            "excel": [
+              "n",
+              "0.57977523425493249"
+            ],
+            "frozen": [
+              "n",
+              "0.5126380215989785"
+            ],
+            "prior": [
+              "n",
+              "0.5126380215989785"
+            ],
+            "candidate": [
+              "n",
+              "0.5126380215989785"
+            ]
+          },
+          {
+            "cell": "G390",
+            "formula": "FORECAST.ETS.STAT(B1:B24,D1:D24,5,0)",
+            "excel": [
+              "n",
+              "0.13813301972529268"
+            ],
+            "frozen": [
+              "n",
+              "0.14632426136370688"
+            ],
+            "prior": [
+              "n",
+              "0.14632426136370688"
+            ],
+            "candidate": [
+              "n",
+              "0.14632426136370688"
+            ]
+          },
+          {
+            "cell": "G392",
+            "formula": "FORECAST.ETS.STAT(B1:B24,D1:D24,6,0)",
+            "excel": [
+              "n",
+              "6.7088277106642185"
+            ],
+            "frozen": [
+              "n",
+              "6.017924601379314"
+            ],
+            "prior": [
+              "n",
+              "6.017924601379314"
+            ],
+            "candidate": [
+              "n",
+              "6.017924601379314"
+            ]
+          },
+          {
+            "cell": "G394",
+            "formula": "FORECAST.ETS.STAT(B1:B24,D1:D24,7,0)",
+            "excel": [
+              "n",
+              "7.2346016078196413"
+            ],
+            "frozen": [
+              "n",
+              "6.7536791025735825"
+            ],
+            "prior": [
+              "n",
+              "6.7536791025735825"
+            ],
+            "candidate": [
+              "n",
+              "6.7536791025735825"
+            ]
+          },
+          {
+            "cell": "G400",
+            "formula": "FORECAST.ETS.STAT(C1:C24,D1:D24,1,0)",
+            "excel": [
+              "n",
+              "0.1"
+            ],
+            "frozen": [
+              "n",
+              "0"
+            ],
+            "prior": [
+              "n",
+              "0"
+            ],
+            "candidate": [
+              "n",
+              "0"
+            ]
+          },
+          {
+            "cell": "G401",
+            "formula": "FORECAST.ETS.STAT(C1:C24,D1:D24,1,4)",
+            "excel": [
+              "n",
+              "0.126"
+            ],
+            "frozen": [
+              "n",
+              "0"
+            ],
+            "prior": [
+              "n",
+              "0"
+            ],
+            "candidate": [
+              "n",
+              "0"
+            ]
+          },
+          {
+            "cell": "G402",
+            "formula": "FORECAST.ETS.STAT(C1:C24,D1:D24,2,0)",
+            "excel": [
+              "n",
+              "1E-3"
+            ],
+            "frozen": [
+              "n",
+              "0.15000000000000002"
+            ],
+            "prior": [
+              "n",
+              "0.15000000000000002"
+            ],
+            "candidate": [
+              "n",
+              "0.15000000000000002"
+            ]
+          },
+          {
+            "cell": "G403",
+            "formula": "FORECAST.ETS.STAT(C1:C24,D1:D24,2,4)",
+            "excel": [
+              "n",
+              "1E-3"
+            ],
+            "frozen": [
+              "n",
+              "0.2166666666666667"
+            ],
+            "prior": [
+              "n",
+              "0.2166666666666667"
+            ],
+            "candidate": [
+              "n",
+              "0.2166666666666667"
+            ]
+          },
+          {
+            "cell": "G405",
+            "formula": "FORECAST.ETS.STAT(C1:C24,D1:D24,3,4)",
+            "excel": [
+              "n",
+              "1E-3"
+            ],
+            "frozen": [
+              "n",
+              "0"
+            ],
+            "prior": [
+              "n",
+              "0"
+            ],
+            "candidate": [
+              "n",
+              "0"
+            ]
+          },
+          {
+            "cell": "G406",
+            "formula": "FORECAST.ETS.STAT(C1:C24,D1:D24,4,0)",
+            "excel": [
+              "n",
+              "0.52541403131305364"
+            ],
+            "frozen": [
+              "n",
+              "0.505430680430682"
+            ],
+            "prior": [
+              "n",
+              "0.505430680430682"
+            ],
+            "candidate": [
+              "n",
+              "0.5054306804306815"
+            ]
+          },
+          {
+            "cell": "G407",
+            "formula": "FORECAST.ETS.STAT(C1:C24,D1:D24,4,4)",
+            "excel": [
+              "n",
+              "0.59484479862564599"
+            ],
+            "frozen": [
+              "n",
+              "0.5024468586968588"
+            ],
+            "prior": [
+              "n",
+              "0.5024468586968588"
+            ],
+            "candidate": [
+              "n",
+              "0.5024468586968588"
+            ]
+          },
+          {
+            "cell": "G408",
+            "formula": "FORECAST.ETS.STAT(C1:C24,D1:D24,5,0)",
+            "excel": [
+              "n",
+              "2.1548650012134636E-2"
+            ],
+            "frozen": [
+              "n",
+              "0.025013947036533504"
+            ],
+            "prior": [
+              "n",
+              "0.025013947036533504"
+            ],
+            "candidate": [
+              "n",
+              "0.025013947036533476"
+            ]
+          },
+          {
+            "cell": "G409",
+            "formula": "FORECAST.ETS.STAT(C1:C24,D1:D24,5,4)",
+            "excel": [
+              "n",
+              "2.4668127241613508E-2"
+            ],
+            "frozen": [
+              "n",
+              "0.024598215864455843"
+            ],
+            "prior": [
+              "n",
+              "0.024598215864455843"
+            ],
+            "candidate": [
+              "n",
+              "0.024598215864455843"
+            ]
+          },
+          {
+            "cell": "G410",
+            "formula": "FORECAST.ETS.STAT(C1:C24,D1:D24,6,0)",
+            "excel": [
+              "n",
+              "2.1016561252522146"
+            ],
+            "frozen": [
+              "n",
+              "1.9997474747474808"
+            ],
+            "prior": [
+              "n",
+              "1.9997474747474808"
+            ],
+            "candidate": [
+              "n",
+              "1.9997474747474788"
+            ]
+          },
+          {
+            "cell": "G411",
+            "formula": "FORECAST.ETS.STAT(C1:C24,D1:D24,6,4)",
+            "excel": [
+              "n",
+              "2.3793791945025839"
+            ],
+            "frozen": [
+              "n",
+              "1.9879419191919194"
+            ],
+            "prior": [
+              "n",
+              "1.9879419191919194"
+            ],
+            "candidate": [
+              "n",
+              "1.9879419191919194"
+            ]
+          },
+          {
+            "cell": "G412",
+            "formula": "FORECAST.ETS.STAT(C1:C24,D1:D24,7,0)",
+            "excel": [
+              "n",
+              "2.5192638138502979"
+            ],
+            "frozen": [
+              "n",
+              "2.433571380987331"
+            ],
+            "prior": [
+              "n",
+              "2.433571380987331"
+            ],
+            "candidate": [
+              "n",
+              "2.4335713809873307"
+            ]
+          },
+          {
+            "cell": "G413",
+            "formula": "FORECAST.ETS.STAT(C1:C24,D1:D24,7,4)",
+            "excel": [
+              "n",
+              "2.6406867049965319"
+            ],
+            "frozen": [
+              "n",
+              "2.4474679536188897"
+            ],
+            "prior": [
+              "n",
+              "2.4474679536188897"
+            ],
+            "candidate": [
+              "n",
+              "2.4474679536188897"
+            ]
+          }
+        ]
+      }
+    },
+    "europeanThirty360": {
+      "1900": {
+        "cells": 60,
+        "excelSha256": "2245b88bfb92ce5454b1b90a4391db8461ef331f1c66856bcd6df056eed55aa0"
+      },
+      "1904": {
+        "cells": 60,
+        "excelSha256": "615c81c2245baed90e1f93c8707b172a43aa97347baef963c516fdd7df3ef3c9"
+      }
+    },
+    "probability": {
+      "cases": 394,
+      "existingExcelDifferences": 22,
+      "crossVersionReadbacks": 4
+    },
+    "probabilityBoundaries": {
+      "sourceSha256": "dd8b42cec3a5adf901ddb6882b709fdcdd1650e810e9d5b31f09329a34a5f71e",
+      "excelSha256": "8ab6430dfe38231a0ee8dd2e6b24e4ad78d472ed652925f6a7100a25cf5cddf4",
+      "reviewed": [
+        {
+          "cell": "G2",
+          "formula": "CHISQ.INV.RT(1E-40,5)",
+          "frozen": [
+            "n",
+            "197.44468613194988"
+          ],
+          "prior": [
+            "n",
+            "197.44468613194988"
+          ],
+          "candidate": [
+            "n",
+            "197.44468613194988"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ],
+          "originalCell": "G109",
+          "decision": "保留冻结版结果",
+          "reasoning": "有限反解经半整数或整数上不完全 Gamma 递推独立校验",
+          "independentChiSquareRightTail": 1.0000000000000038e-40
+        },
+        {
+          "cell": "G3",
+          "formula": "CHIINV(1E-40,5)",
+          "frozen": [
+            "n",
+            "197.44468613194988"
+          ],
+          "prior": [
+            "n",
+            "197.44468613194988"
+          ],
+          "candidate": [
+            "n",
+            "197.44468613194988"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ],
+          "originalCell": "G114",
+          "decision": "保留冻结版结果",
+          "reasoning": "与 CHISQ.INV.RT 为相同右尾反解，独立回代通过",
+          "independentChiSquareRightTail": 1.0000000000000038e-40
+        },
+        {
+          "cell": "G4",
+          "formula": "BINOM.INV(1,0.5,0.5)",
+          "frozen": [
+            "n",
+            "0"
+          ],
+          "prior": [
+            "n",
+            "0"
+          ],
+          "candidate": [
+            "n",
+            "0"
+          ],
+          "excel": [
+            "n",
+            "1"
+          ],
+          "originalCell": "G192",
+          "decision": "保留冻结版结果",
+          "reasoning": "按公开定义取第一个累积概率大于或等于阈值的整数"
+        },
+        {
+          "cell": "G5",
+          "formula": "CRITBINOM(1,0.5,0.5)",
+          "frozen": [
+            "n",
+            "0"
+          ],
+          "prior": [
+            "n",
+            "0"
+          ],
+          "candidate": [
+            "n",
+            "0"
+          ],
+          "excel": [
+            "n",
+            "1"
+          ],
+          "originalCell": "G200",
+          "decision": "保留冻结版结果",
+          "reasoning": "旧别名沿用公开定义的含等号阈值"
+        },
+        {
+          "cell": "G6",
+          "formula": "GAMMA.DIST(0,1,2,FALSE)",
+          "frozen": [
+            "n",
+            "0.5"
+          ],
+          "prior": [
+            "n",
+            "0.5"
+          ],
+          "candidate": [
+            "n",
+            "0.5"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ],
+          "originalCell": "G249",
+          "decision": "保留冻结版结果",
+          "reasoning": "形状参数为 1 时零点右极限和指数密度均为 1/scale"
+        },
+        {
+          "cell": "G7",
+          "formula": "GAMMADIST(0,1,2,FALSE)",
+          "frozen": [
+            "n",
+            "0.5"
+          ],
+          "prior": [
+            "n",
+            "0.5"
+          ],
+          "candidate": [
+            "n",
+            "0.5"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ],
+          "originalCell": "G256",
+          "decision": "保留冻结版结果",
+          "reasoning": "旧别名保留指数密度的零点值"
+        },
+        {
+          "cell": "G8",
+          "formula": "BETA.DIST(0,1,2,FALSE)",
+          "frozen": [
+            "n",
+            "2"
+          ],
+          "prior": [
+            "n",
+            "2"
+          ],
+          "candidate": [
+            "n",
+            "2"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ],
+          "originalCell": "G283",
+          "decision": "保留冻结版结果",
+          "reasoning": "端点形状参数为 1 时，有限的单侧密度为另一形状参数除以区间宽度"
+        },
+        {
+          "cell": "G9",
+          "formula": "BETA.DIST(1,2,1,FALSE)",
+          "frozen": [
+            "n",
+            "2"
+          ],
+          "prior": [
+            "n",
+            "2"
+          ],
+          "candidate": [
+            "n",
+            "2"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ],
+          "originalCell": "G284",
+          "decision": "保留冻结版结果",
+          "reasoning": "端点形状参数为 1 时，有限的单侧密度为另一形状参数除以区间宽度"
+        },
+        {
+          "cell": "G10",
+          "formula": "BETA.INV(1,1,2)",
+          "frozen": [
+            "n",
+            "1"
+          ],
+          "prior": [
+            "n",
+            "1"
+          ],
+          "candidate": [
+            "n",
+            "1"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ],
+          "originalCell": "G292",
+          "decision": "保留冻结版结果",
+          "reasoning": "公开参数范围允许概率 1，分位数为区间上界"
+        },
+        {
+          "cell": "G11",
+          "formula": "BETAINV(1,1,2)",
+          "frozen": [
+            "n",
+            "1"
+          ],
+          "prior": [
+            "n",
+            "1"
+          ],
+          "candidate": [
+            "n",
+            "1"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ],
+          "originalCell": "G298",
+          "decision": "保留冻结版结果",
+          "reasoning": "旧别名保留概率 1 对应区间上界"
+        },
+        {
+          "cell": "G12",
+          "formula": "WEIBULL.DIST(0,1,5,FALSE)",
+          "frozen": [
+            "n",
+            "0.2"
+          ],
+          "prior": [
+            "n",
+            "0.2"
+          ],
+          "candidate": [
+            "n",
+            "0.2"
+          ],
+          "excel": [
+            "n",
+            "0"
+          ],
+          "originalCell": "G318",
+          "decision": "保留冻结版结果",
+          "reasoning": "形状为 1 时密度是 1/scale，小于 1 时发散并报告数字错误"
+        },
+        {
+          "cell": "G13",
+          "formula": "WEIBULL.DIST(0,0.5,5,FALSE)",
+          "frozen": [
+            "e",
+            "#NUM!"
+          ],
+          "prior": [
+            "e",
+            "#NUM!"
+          ],
+          "candidate": [
+            "e",
+            "#NUM!"
+          ],
+          "excel": [
+            "n",
+            "0"
+          ],
+          "originalCell": "G319",
+          "decision": "保留冻结版结果",
+          "reasoning": "形状为 1 时密度是 1/scale，小于 1 时发散并报告数字错误"
+        },
+        {
+          "cell": "G14",
+          "formula": "WEIBULL(0,1,5,FALSE)",
+          "frozen": [
+            "n",
+            "0.2"
+          ],
+          "prior": [
+            "n",
+            "0.2"
+          ],
+          "candidate": [
+            "n",
+            "0.2"
+          ],
+          "excel": [
+            "n",
+            "0"
+          ],
+          "originalCell": "G327",
+          "decision": "保留冻结版结果",
+          "reasoning": "旧别名保留相同的零点密度及非有限值契约"
+        },
+        {
+          "cell": "G15",
+          "formula": "WEIBULL(0,0.5,5,FALSE)",
+          "frozen": [
+            "e",
+            "#NUM!"
+          ],
+          "prior": [
+            "e",
+            "#NUM!"
+          ],
+          "candidate": [
+            "e",
+            "#NUM!"
+          ],
+          "excel": [
+            "n",
+            "0"
+          ],
+          "originalCell": "G328",
+          "decision": "保留冻结版结果",
+          "reasoning": "旧别名保留相同的零点密度及非有限值契约"
+        },
+        {
+          "cell": "G16",
+          "formula": "HYPGEOM.DIST(3,9,10,10,TRUE)",
+          "frozen": [
+            "e",
+            "#NUM!"
+          ],
+          "prior": [
+            "e",
+            "#NUM!"
+          ],
+          "candidate": [
+            "e",
+            "#NUM!"
+          ],
+          "excel": [
+            "n",
+            "0"
+          ],
+          "originalCell": "G337",
+          "decision": "保留冻结版结果",
+          "reasoning": "公开契约拒绝样本数或总体成功数为零，以及超出支持集的样本成功数"
+        },
+        {
+          "cell": "G17",
+          "formula": "HYPGEOM.DIST(2,4,0,20,TRUE)",
+          "frozen": [
+            "e",
+            "#NUM!"
+          ],
+          "prior": [
+            "e",
+            "#NUM!"
+          ],
+          "candidate": [
+            "e",
+            "#NUM!"
+          ],
+          "excel": [
+            "n",
+            "1"
+          ],
+          "originalCell": "G339",
+          "decision": "保留冻结版结果",
+          "reasoning": "公开契约拒绝样本数或总体成功数为零，以及超出支持集的样本成功数"
+        },
+        {
+          "cell": "G18",
+          "formula": "HYPGEOM.DIST(0,0,3,20,TRUE)",
+          "frozen": [
+            "e",
+            "#NUM!"
+          ],
+          "prior": [
+            "e",
+            "#NUM!"
+          ],
+          "candidate": [
+            "e",
+            "#NUM!"
+          ],
+          "excel": [
+            "n",
+            "1"
+          ],
+          "originalCell": "G340",
+          "decision": "保留冻结版结果",
+          "reasoning": "公开契约拒绝样本数或总体成功数为零，以及超出支持集的样本成功数"
+        },
+        {
+          "cell": "G19",
+          "formula": "HYPGEOMDIST(2,4,0,20)",
+          "frozen": [
+            "e",
+            "#NUM!"
+          ],
+          "prior": [
+            "e",
+            "#NUM!"
+          ],
+          "candidate": [
+            "e",
+            "#NUM!"
+          ],
+          "excel": [
+            "n",
+            "0"
+          ],
+          "originalCell": "G345",
+          "decision": "保留冻结版结果",
+          "reasoning": "旧别名继续拒绝总体成功数为零及超出支持集的输入"
+        },
+        {
+          "cell": "G20",
+          "formula": "NEGBINOM.DIST(0,1,0,FALSE)",
+          "frozen": [
+            "n",
+            "0"
+          ],
+          "prior": [
+            "n",
+            "0"
+          ],
+          "candidate": [
+            "n",
+            "0"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ],
+          "originalCell": "G348",
+          "decision": "保留冻结版结果",
+          "reasoning": "公开参数范围包含 0 和 1，使用成功概率端点的退化分布"
+        },
+        {
+          "cell": "G21",
+          "formula": "NEGBINOM.DIST(0,3,1,FALSE)",
+          "frozen": [
+            "n",
+            "1"
+          ],
+          "prior": [
+            "n",
+            "1"
+          ],
+          "candidate": [
+            "n",
+            "1"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ],
+          "originalCell": "G349",
+          "decision": "保留冻结版结果",
+          "reasoning": "公开参数范围包含 0 和 1，使用成功概率端点的退化分布"
+        },
+        {
+          "cell": "G22",
+          "formula": "NEGBINOM.DIST(0,3,1,TRUE)",
+          "frozen": [
+            "n",
+            "1"
+          ],
+          "prior": [
+            "n",
+            "1"
+          ],
+          "candidate": [
+            "n",
+            "1"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ],
+          "originalCell": "G350",
+          "decision": "保留冻结版结果",
+          "reasoning": "公开参数范围包含 0 和 1，使用成功概率端点的退化分布"
+        },
+        {
+          "cell": "G23",
+          "formula": "NEGBINOM.DIST(5,3,0,TRUE)",
+          "frozen": [
+            "n",
+            "0"
+          ],
+          "prior": [
+            "n",
+            "0"
+          ],
+          "candidate": [
+            "n",
+            "0"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ],
+          "originalCell": "G351",
+          "decision": "保留冻结版结果",
+          "reasoning": "公开参数范围包含 0 和 1，使用成功概率端点的退化分布"
+        }
+      ],
+      "adjacentControls": [
+        {
+          "cell": "G24",
+          "formula": "CHISQ.INV.RT(1E-15,5)",
+          "frozen": [
+            "n",
+            "79.63600321706647"
+          ],
+          "prior": [
+            "n",
+            "79.6360032170665"
+          ],
+          "candidate": [
+            "n",
+            "79.6360032170665"
+          ],
+          "excel": [
+            "n",
+            "79.636003217066502"
+          ],
+          "independentChiSquareRightTail": 9.999999999999975e-16
+        },
+        {
+          "cell": "G25",
+          "formula": "CHISQ.INV.RT(1E-16,5)",
+          "frozen": [
+            "n",
+            "84.4116831006333"
+          ],
+          "prior": [
+            "n",
+            "84.41168310063327"
+          ],
+          "candidate": [
+            "n",
+            "84.41168310063327"
+          ],
+          "excel": [
+            "n",
+            "84.411683100633269"
+          ],
+          "independentChiSquareRightTail": 9.999999999999991e-17
+        },
+        {
+          "cell": "G26",
+          "formula": "CHISQ.INV.RT(1E-17,5)",
+          "frozen": [
+            "n",
+            "89.17788117431701"
+          ],
+          "prior": [
+            "n",
+            "89.17788117431701"
+          ],
+          "candidate": [
+            "n",
+            "89.17788117431701"
+          ],
+          "excel": [
+            "n",
+            "89.177881174317008"
+          ],
+          "independentChiSquareRightTail": 1.0000000000000019e-17
+        },
+        {
+          "cell": "G27",
+          "formula": "CHISQ.INV.RT(1E-20,5)",
+          "frozen": [
+            "n",
+            "103.42897723775795"
+          ],
+          "prior": [
+            "n",
+            "103.42897723775795"
+          ],
+          "candidate": [
+            "n",
+            "103.42897723775795"
+          ],
+          "excel": [
+            "n",
+            "103.42897723775795"
+          ],
+          "independentChiSquareRightTail": 9.999999999999977e-21
+        },
+        {
+          "cell": "G28",
+          "formula": "CHISQ.INV.RT(1E-50,5)",
+          "frozen": [
+            "n",
+            "244.12729802747498"
+          ],
+          "prior": [
+            "n",
+            "244.12729802747504"
+          ],
+          "candidate": [
+            "n",
+            "244.12729802747504"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ],
+          "independentChiSquareRightTail": 9.99999999999987e-51
+        },
+        {
+          "cell": "G29",
+          "formula": "CHISQ.INV.RT(1E-100,5)",
+          "frozen": [
+            "n",
+            "476.37943706416263"
+          ],
+          "prior": [
+            "n",
+            "476.37943706416274"
+          ],
+          "candidate": [
+            "n",
+            "476.37943706416274"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ],
+          "independentChiSquareRightTail": 1.0000000000000001e-100
+        },
+        {
+          "cell": "G30",
+          "formula": "CHISQ.INV.RT(1E-300,5)",
+          "frozen": [
+            "n",
+            "1400.6405856530268"
+          ],
+          "prior": [
+            "n",
+            "1400.6405856530268"
+          ],
+          "candidate": [
+            "n",
+            "1400.6405856530268"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ],
+          "independentChiSquareRightTail": 1.0000000000000627e-300
+        },
+        {
+          "cell": "G31",
+          "formula": "CHISQ.INV.RT(1E-40,1)",
+          "frozen": [
+            "n",
+            "178.55925611137758"
+          ],
+          "prior": [
+            "n",
+            "178.55925611137764"
+          ],
+          "candidate": [
+            "n",
+            "178.55925611137764"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ],
+          "independentChiSquareRightTail": 9.999999999999877e-41
+        },
+        {
+          "cell": "G32",
+          "formula": "CHISQ.INV.RT(1E-40,2)",
+          "frozen": [
+            "n",
+            "184.20680743952363"
+          ],
+          "prior": [
+            "n",
+            "184.20680743952363"
+          ],
+          "candidate": [
+            "n",
+            "184.20680743952363"
+          ],
+          "excel": [
+            "n",
+            "184.20680743952366"
+          ],
+          "independentChiSquareRightTail": 1.0000000000000126e-40
+        },
+        {
+          "cell": "G33",
+          "formula": "CHISQ.INV.RT(1E-40,10)",
+          "frozen": [
+            "n",
+            "215.3589517869816"
+          ],
+          "prior": [
+            "n",
+            "215.35895178698166"
+          ],
+          "candidate": [
+            "n",
+            "215.35895178698166"
+          ],
+          "excel": [
+            "n",
+            "215.35895178698166"
+          ],
+          "independentChiSquareRightTail": 9.999999999999916e-41
+        },
+        {
+          "cell": "G34",
+          "formula": "CHIINV(1E-15,5)",
+          "frozen": [
+            "n",
+            "79.63600321706647"
+          ],
+          "prior": [
+            "n",
+            "79.6360032170665"
+          ],
+          "candidate": [
+            "n",
+            "79.6360032170665"
+          ],
+          "excel": [
+            "n",
+            "79.636003217066502"
+          ],
+          "independentChiSquareRightTail": 9.999999999999975e-16
+        },
+        {
+          "cell": "G35",
+          "formula": "CHIINV(1E-16,5)",
+          "frozen": [
+            "n",
+            "84.4116831006333"
+          ],
+          "prior": [
+            "n",
+            "84.41168310063327"
+          ],
+          "candidate": [
+            "n",
+            "84.41168310063327"
+          ],
+          "excel": [
+            "n",
+            "84.411683100633269"
+          ],
+          "independentChiSquareRightTail": 9.999999999999991e-17
+        },
+        {
+          "cell": "G36",
+          "formula": "CHIINV(1E-17,5)",
+          "frozen": [
+            "n",
+            "89.17788117431701"
+          ],
+          "prior": [
+            "n",
+            "89.17788117431701"
+          ],
+          "candidate": [
+            "n",
+            "89.17788117431701"
+          ],
+          "excel": [
+            "n",
+            "89.177881174317008"
+          ],
+          "independentChiSquareRightTail": 1.0000000000000019e-17
+        },
+        {
+          "cell": "G37",
+          "formula": "CHIINV(1E-20,5)",
+          "frozen": [
+            "n",
+            "103.42897723775795"
+          ],
+          "prior": [
+            "n",
+            "103.42897723775795"
+          ],
+          "candidate": [
+            "n",
+            "103.42897723775795"
+          ],
+          "excel": [
+            "n",
+            "103.42897723775795"
+          ],
+          "independentChiSquareRightTail": 9.999999999999977e-21
+        },
+        {
+          "cell": "G38",
+          "formula": "CHIINV(1E-50,5)",
+          "frozen": [
+            "n",
+            "244.12729802747498"
+          ],
+          "prior": [
+            "n",
+            "244.12729802747504"
+          ],
+          "candidate": [
+            "n",
+            "244.12729802747504"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ],
+          "independentChiSquareRightTail": 9.99999999999987e-51
+        },
+        {
+          "cell": "G39",
+          "formula": "CHIINV(1E-100,5)",
+          "frozen": [
+            "n",
+            "476.37943706416263"
+          ],
+          "prior": [
+            "n",
+            "476.37943706416274"
+          ],
+          "candidate": [
+            "n",
+            "476.37943706416274"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ],
+          "independentChiSquareRightTail": 1.0000000000000001e-100
+        },
+        {
+          "cell": "G40",
+          "formula": "CHIINV(1E-300,5)",
+          "frozen": [
+            "n",
+            "1400.6405856530268"
+          ],
+          "prior": [
+            "n",
+            "1400.6405856530268"
+          ],
+          "candidate": [
+            "n",
+            "1400.6405856530268"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ],
+          "independentChiSquareRightTail": 1.0000000000000627e-300
+        },
+        {
+          "cell": "G41",
+          "formula": "CHIINV(1E-40,1)",
+          "frozen": [
+            "n",
+            "178.55925611137758"
+          ],
+          "prior": [
+            "n",
+            "178.55925611137764"
+          ],
+          "candidate": [
+            "n",
+            "178.55925611137764"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ],
+          "independentChiSquareRightTail": 9.999999999999877e-41
+        },
+        {
+          "cell": "G42",
+          "formula": "CHIINV(1E-40,2)",
+          "frozen": [
+            "n",
+            "184.20680743952363"
+          ],
+          "prior": [
+            "n",
+            "184.20680743952363"
+          ],
+          "candidate": [
+            "n",
+            "184.20680743952363"
+          ],
+          "excel": [
+            "n",
+            "184.20680743952366"
+          ],
+          "independentChiSquareRightTail": 1.0000000000000126e-40
+        },
+        {
+          "cell": "G43",
+          "formula": "CHIINV(1E-40,10)",
+          "frozen": [
+            "n",
+            "215.3589517869816"
+          ],
+          "prior": [
+            "n",
+            "215.35895178698166"
+          ],
+          "candidate": [
+            "n",
+            "215.35895178698166"
+          ],
+          "excel": [
+            "n",
+            "215.35895178698166"
+          ],
+          "independentChiSquareRightTail": 9.999999999999916e-41
+        },
+        {
+          "cell": "G44",
+          "formula": "BINOM.INV(1,0.5,0.499999999999999)",
+          "frozen": [
+            "n",
+            "0"
+          ],
+          "prior": [
+            "n",
+            "0"
+          ],
+          "candidate": [
+            "n",
+            "0"
+          ],
+          "excel": [
+            "n",
+            "0"
+          ]
+        },
+        {
+          "cell": "G45",
+          "formula": "BINOM.INV(1,0.5,0.500000000000001)",
+          "frozen": [
+            "n",
+            "1"
+          ],
+          "prior": [
+            "n",
+            "1"
+          ],
+          "candidate": [
+            "n",
+            "1"
+          ],
+          "excel": [
+            "n",
+            "1"
+          ]
+        },
+        {
+          "cell": "G46",
+          "formula": "BINOM.INV(3,0.5,0.5)",
+          "frozen": [
+            "n",
+            "1"
+          ],
+          "prior": [
+            "n",
+            "2"
+          ],
+          "candidate": [
+            "n",
+            "1"
+          ],
+          "excel": [
+            "n",
+            "1"
+          ]
+        },
+        {
+          "cell": "G47",
+          "formula": "BINOM.INV(1,0.25,0.75)",
+          "frozen": [
+            "n",
+            "0"
+          ],
+          "prior": [
+            "n",
+            "0"
+          ],
+          "candidate": [
+            "n",
+            "0"
+          ],
+          "excel": [
+            "n",
+            "1"
+          ]
+        },
+        {
+          "cell": "G48",
+          "formula": "BINOM.INV(2,0.5,0.25)",
+          "frozen": [
+            "n",
+            "0"
+          ],
+          "prior": [
+            "n",
+            "0"
+          ],
+          "candidate": [
+            "n",
+            "0"
+          ],
+          "excel": [
+            "n",
+            "1"
+          ]
+        },
+        {
+          "cell": "G49",
+          "formula": "BINOM.INV(2,0.5,0.75)",
+          "frozen": [
+            "n",
+            "1"
+          ],
+          "prior": [
+            "n",
+            "1"
+          ],
+          "candidate": [
+            "n",
+            "1"
+          ],
+          "excel": [
+            "n",
+            "1"
+          ]
+        },
+        {
+          "cell": "G50",
+          "formula": "CRITBINOM(1,0.5,0.499999999999999)",
+          "frozen": [
+            "n",
+            "0"
+          ],
+          "prior": [
+            "n",
+            "0"
+          ],
+          "candidate": [
+            "n",
+            "0"
+          ],
+          "excel": [
+            "n",
+            "0"
+          ]
+        },
+        {
+          "cell": "G51",
+          "formula": "CRITBINOM(1,0.5,0.500000000000001)",
+          "frozen": [
+            "n",
+            "1"
+          ],
+          "prior": [
+            "n",
+            "1"
+          ],
+          "candidate": [
+            "n",
+            "1"
+          ],
+          "excel": [
+            "n",
+            "1"
+          ]
+        },
+        {
+          "cell": "G52",
+          "formula": "CRITBINOM(3,0.5,0.5)",
+          "frozen": [
+            "n",
+            "1"
+          ],
+          "prior": [
+            "n",
+            "2"
+          ],
+          "candidate": [
+            "n",
+            "1"
+          ],
+          "excel": [
+            "n",
+            "1"
+          ]
+        },
+        {
+          "cell": "G53",
+          "formula": "CRITBINOM(1,0.25,0.75)",
+          "frozen": [
+            "n",
+            "0"
+          ],
+          "prior": [
+            "n",
+            "0"
+          ],
+          "candidate": [
+            "n",
+            "0"
+          ],
+          "excel": [
+            "n",
+            "1"
+          ]
+        },
+        {
+          "cell": "G54",
+          "formula": "CRITBINOM(2,0.5,0.25)",
+          "frozen": [
+            "n",
+            "0"
+          ],
+          "prior": [
+            "n",
+            "0"
+          ],
+          "candidate": [
+            "n",
+            "0"
+          ],
+          "excel": [
+            "n",
+            "1"
+          ]
+        },
+        {
+          "cell": "G55",
+          "formula": "CRITBINOM(2,0.5,0.75)",
+          "frozen": [
+            "n",
+            "1"
+          ],
+          "prior": [
+            "n",
+            "1"
+          ],
+          "candidate": [
+            "n",
+            "1"
+          ],
+          "excel": [
+            "n",
+            "1"
+          ]
+        },
+        {
+          "cell": "G56",
+          "formula": "GAMMA.DIST(0,0.5,2,FALSE)",
+          "frozen": [
+            "e",
+            "#NUM!"
+          ],
+          "prior": [
+            "e",
+            "#NUM!"
+          ],
+          "candidate": [
+            "e",
+            "#NUM!"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G57",
+          "formula": "GAMMA.DIST(0,2,2,FALSE)",
+          "frozen": [
+            "n",
+            "0"
+          ],
+          "prior": [
+            "n",
+            "0"
+          ],
+          "candidate": [
+            "n",
+            "0"
+          ],
+          "excel": [
+            "n",
+            "0"
+          ]
+        },
+        {
+          "cell": "G58",
+          "formula": "GAMMA.DIST(0,1,2,TRUE)",
+          "frozen": [
+            "n",
+            "0"
+          ],
+          "prior": [
+            "n",
+            "0"
+          ],
+          "candidate": [
+            "n",
+            "0"
+          ],
+          "excel": [
+            "n",
+            "0"
+          ]
+        },
+        {
+          "cell": "G59",
+          "formula": "GAMMA.DIST(1E-20,1,2,FALSE)",
+          "frozen": [
+            "n",
+            "0.5"
+          ],
+          "prior": [
+            "n",
+            "0.5"
+          ],
+          "candidate": [
+            "n",
+            "0.5"
+          ],
+          "excel": [
+            "n",
+            "0.49999999999999867"
+          ]
+        },
+        {
+          "cell": "G60",
+          "formula": "GAMMA.DIST(0,1,1,FALSE)",
+          "frozen": [
+            "n",
+            "1"
+          ],
+          "prior": [
+            "n",
+            "1"
+          ],
+          "candidate": [
+            "n",
+            "1"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G61",
+          "formula": "GAMMADIST(0,0.5,2,FALSE)",
+          "frozen": [
+            "e",
+            "#NUM!"
+          ],
+          "prior": [
+            "e",
+            "#NUM!"
+          ],
+          "candidate": [
+            "e",
+            "#NUM!"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G62",
+          "formula": "GAMMADIST(0,2,2,FALSE)",
+          "frozen": [
+            "n",
+            "0"
+          ],
+          "prior": [
+            "n",
+            "0"
+          ],
+          "candidate": [
+            "n",
+            "0"
+          ],
+          "excel": [
+            "n",
+            "0"
+          ]
+        },
+        {
+          "cell": "G63",
+          "formula": "GAMMADIST(0,1,2,TRUE)",
+          "frozen": [
+            "n",
+            "0"
+          ],
+          "prior": [
+            "n",
+            "0"
+          ],
+          "candidate": [
+            "n",
+            "0"
+          ],
+          "excel": [
+            "n",
+            "0"
+          ]
+        },
+        {
+          "cell": "G64",
+          "formula": "GAMMADIST(1E-20,1,2,FALSE)",
+          "frozen": [
+            "n",
+            "0.5"
+          ],
+          "prior": [
+            "n",
+            "0.5"
+          ],
+          "candidate": [
+            "n",
+            "0.5"
+          ],
+          "excel": [
+            "n",
+            "0.49999999999999867"
+          ]
+        },
+        {
+          "cell": "G65",
+          "formula": "GAMMADIST(0,1,1,FALSE)",
+          "frozen": [
+            "n",
+            "1"
+          ],
+          "prior": [
+            "n",
+            "1"
+          ],
+          "candidate": [
+            "n",
+            "1"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G66",
+          "formula": "BETA.DIST(0,1,1,FALSE)",
+          "frozen": [
+            "n",
+            "1"
+          ],
+          "prior": [
+            "n",
+            "1"
+          ],
+          "candidate": [
+            "n",
+            "1"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G67",
+          "formula": "BETA.DIST(1,1,1,FALSE)",
+          "frozen": [
+            "n",
+            "1"
+          ],
+          "prior": [
+            "n",
+            "1"
+          ],
+          "candidate": [
+            "n",
+            "1"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G68",
+          "formula": "BETA.DIST(0,0.5,2,FALSE)",
+          "frozen": [
+            "e",
+            "#NUM!"
+          ],
+          "prior": [
+            "e",
+            "#NUM!"
+          ],
+          "candidate": [
+            "e",
+            "#NUM!"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G69",
+          "formula": "BETA.DIST(1,2,0.5,FALSE)",
+          "frozen": [
+            "e",
+            "#NUM!"
+          ],
+          "prior": [
+            "e",
+            "#NUM!"
+          ],
+          "candidate": [
+            "e",
+            "#NUM!"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G70",
+          "formula": "BETA.DIST(0,2,2,FALSE)",
+          "frozen": [
+            "n",
+            "0"
+          ],
+          "prior": [
+            "n",
+            "0"
+          ],
+          "candidate": [
+            "n",
+            "0"
+          ],
+          "excel": [
+            "n",
+            "0"
+          ]
+        },
+        {
+          "cell": "G71",
+          "formula": "BETA.DIST(1,2,2,FALSE)",
+          "frozen": [
+            "n",
+            "0"
+          ],
+          "prior": [
+            "n",
+            "0"
+          ],
+          "candidate": [
+            "n",
+            "0"
+          ],
+          "excel": [
+            "n",
+            "0"
+          ]
+        },
+        {
+          "cell": "G72",
+          "formula": "BETA.DIST(0,1,2,TRUE)",
+          "frozen": [
+            "n",
+            "0"
+          ],
+          "prior": [
+            "n",
+            "0"
+          ],
+          "candidate": [
+            "n",
+            "0"
+          ],
+          "excel": [
+            "n",
+            "0"
+          ]
+        },
+        {
+          "cell": "G73",
+          "formula": "BETA.DIST(1,2,1,TRUE)",
+          "frozen": [
+            "n",
+            "1"
+          ],
+          "prior": [
+            "n",
+            "1"
+          ],
+          "candidate": [
+            "n",
+            "1"
+          ],
+          "excel": [
+            "n",
+            "1"
+          ]
+        },
+        {
+          "cell": "G74",
+          "formula": "BETA.DIST(-2,1,2,FALSE,-2,3)",
+          "frozen": [
+            "n",
+            "0.4"
+          ],
+          "prior": [
+            "n",
+            "0.4"
+          ],
+          "candidate": [
+            "n",
+            "0.4"
+          ],
+          "excel": [
+            "n",
+            "0"
+          ]
+        },
+        {
+          "cell": "G75",
+          "formula": "BETA.DIST(3,2,1,FALSE,-2,3)",
+          "frozen": [
+            "n",
+            "0.4"
+          ],
+          "prior": [
+            "n",
+            "0.4"
+          ],
+          "candidate": [
+            "n",
+            "0.4"
+          ],
+          "excel": [
+            "n",
+            "0"
+          ]
+        },
+        {
+          "cell": "G76",
+          "formula": "BETA.INV(1,2,2)",
+          "frozen": [
+            "n",
+            "1"
+          ],
+          "prior": [
+            "n",
+            "1"
+          ],
+          "candidate": [
+            "n",
+            "1"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G77",
+          "formula": "BETA.INV(1,1,1)",
+          "frozen": [
+            "n",
+            "1"
+          ],
+          "prior": [
+            "n",
+            "1"
+          ],
+          "candidate": [
+            "n",
+            "1"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G78",
+          "formula": "BETA.INV(1,2,0.5,-2,3)",
+          "frozen": [
+            "n",
+            "3"
+          ],
+          "prior": [
+            "n",
+            "3"
+          ],
+          "candidate": [
+            "n",
+            "3"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G79",
+          "formula": "BETA.INV(0.999999999999999,1,2)",
+          "frozen": [
+            "n",
+            "0.9999999683350325"
+          ],
+          "prior": [
+            "n",
+            "0.9999999683898636"
+          ],
+          "candidate": [
+            "n",
+            "0.9999999683898636"
+          ],
+          "excel": [
+            "n",
+            "0.9999999683898636"
+          ]
+        },
+        {
+          "cell": "G80",
+          "formula": "BETAINV(1,2,2)",
+          "frozen": [
+            "n",
+            "1"
+          ],
+          "prior": [
+            "n",
+            "1"
+          ],
+          "candidate": [
+            "n",
+            "1"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G81",
+          "formula": "BETAINV(1,1,1)",
+          "frozen": [
+            "n",
+            "1"
+          ],
+          "prior": [
+            "n",
+            "1"
+          ],
+          "candidate": [
+            "n",
+            "1"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G82",
+          "formula": "BETAINV(1,2,0.5,-2,3)",
+          "frozen": [
+            "n",
+            "3"
+          ],
+          "prior": [
+            "n",
+            "3"
+          ],
+          "candidate": [
+            "n",
+            "3"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G83",
+          "formula": "BETAINV(0.999999999999999,1,2)",
+          "frozen": [
+            "n",
+            "0.9999999683350325"
+          ],
+          "prior": [
+            "n",
+            "0.9999999683898636"
+          ],
+          "candidate": [
+            "n",
+            "0.9999999683898636"
+          ],
+          "excel": [
+            "n",
+            "0.9999999683898636"
+          ]
+        },
+        {
+          "cell": "G84",
+          "formula": "WEIBULL.DIST(0,2,5,FALSE)",
+          "frozen": [
+            "n",
+            "0"
+          ],
+          "prior": [
+            "n",
+            "0"
+          ],
+          "candidate": [
+            "n",
+            "0"
+          ],
+          "excel": [
+            "n",
+            "0"
+          ]
+        },
+        {
+          "cell": "G85",
+          "formula": "WEIBULL.DIST(0,1,5,TRUE)",
+          "frozen": [
+            "n",
+            "0"
+          ],
+          "prior": [
+            "n",
+            "0"
+          ],
+          "candidate": [
+            "n",
+            "0"
+          ],
+          "excel": [
+            "n",
+            "0"
+          ]
+        },
+        {
+          "cell": "G86",
+          "formula": "WEIBULL.DIST(1E-20,1,5,FALSE)",
+          "frozen": [
+            "n",
+            "0.2"
+          ],
+          "prior": [
+            "n",
+            "0.2"
+          ],
+          "candidate": [
+            "n",
+            "0.2"
+          ],
+          "excel": [
+            "n",
+            "0.20000000000000004"
+          ]
+        },
+        {
+          "cell": "G87",
+          "formula": "WEIBULL.DIST(1E-20,0.5,5,FALSE)",
+          "frozen": [
+            "n",
+            "2236067977.39979"
+          ],
+          "prior": [
+            "n",
+            "2236067977.399791"
+          ],
+          "candidate": [
+            "n",
+            "2236067977.399791"
+          ],
+          "excel": [
+            "n",
+            "2236067977.3997908"
+          ]
+        },
+        {
+          "cell": "G88",
+          "formula": "WEIBULL(0,2,5,FALSE)",
+          "frozen": [
+            "n",
+            "0"
+          ],
+          "prior": [
+            "n",
+            "0"
+          ],
+          "candidate": [
+            "n",
+            "0"
+          ],
+          "excel": [
+            "n",
+            "0"
+          ]
+        },
+        {
+          "cell": "G89",
+          "formula": "WEIBULL(0,1,5,TRUE)",
+          "frozen": [
+            "n",
+            "0"
+          ],
+          "prior": [
+            "n",
+            "0"
+          ],
+          "candidate": [
+            "n",
+            "0"
+          ],
+          "excel": [
+            "n",
+            "0"
+          ]
+        },
+        {
+          "cell": "G90",
+          "formula": "WEIBULL(1E-20,1,5,FALSE)",
+          "frozen": [
+            "n",
+            "0.2"
+          ],
+          "prior": [
+            "n",
+            "0.2"
+          ],
+          "candidate": [
+            "n",
+            "0.2"
+          ],
+          "excel": [
+            "n",
+            "0.20000000000000004"
+          ]
+        },
+        {
+          "cell": "G91",
+          "formula": "WEIBULL(1E-20,0.5,5,FALSE)",
+          "frozen": [
+            "n",
+            "2236067977.39979"
+          ],
+          "prior": [
+            "n",
+            "2236067977.399791"
+          ],
+          "candidate": [
+            "n",
+            "2236067977.399791"
+          ],
+          "excel": [
+            "n",
+            "2236067977.3997908"
+          ]
+        },
+        {
+          "cell": "G92",
+          "formula": "HYPGEOM.DIST(3,9,10,10,FALSE)",
+          "frozen": [
+            "e",
+            "#NUM!"
+          ],
+          "prior": [
+            "e",
+            "#NUM!"
+          ],
+          "candidate": [
+            "e",
+            "#NUM!"
+          ],
+          "excel": [
+            "n",
+            "0"
+          ]
+        },
+        {
+          "cell": "G93",
+          "formula": "HYPGEOM.DIST(9,9,10,10,TRUE)",
+          "frozen": [
+            "n",
+            "1"
+          ],
+          "prior": [
+            "n",
+            "1"
+          ],
+          "candidate": [
+            "n",
+            "1"
+          ],
+          "excel": [
+            "n",
+            "1"
+          ]
+        },
+        {
+          "cell": "G94",
+          "formula": "HYPGEOM.DIST(0,4,0,20,TRUE)",
+          "frozen": [
+            "e",
+            "#NUM!"
+          ],
+          "prior": [
+            "e",
+            "#NUM!"
+          ],
+          "candidate": [
+            "e",
+            "#NUM!"
+          ],
+          "excel": [
+            "n",
+            "1"
+          ]
+        },
+        {
+          "cell": "G95",
+          "formula": "HYPGEOM.DIST(2,4,0,20,FALSE)",
+          "frozen": [
+            "e",
+            "#NUM!"
+          ],
+          "prior": [
+            "e",
+            "#NUM!"
+          ],
+          "candidate": [
+            "e",
+            "#NUM!"
+          ],
+          "excel": [
+            "n",
+            "0"
+          ]
+        },
+        {
+          "cell": "G96",
+          "formula": "HYPGEOM.DIST(0,0,3,20,FALSE)",
+          "frozen": [
+            "e",
+            "#NUM!"
+          ],
+          "prior": [
+            "e",
+            "#NUM!"
+          ],
+          "candidate": [
+            "e",
+            "#NUM!"
+          ],
+          "excel": [
+            "n",
+            "1"
+          ]
+        },
+        {
+          "cell": "G97",
+          "formula": "HYPGEOM.DIST(0,0,0,20,TRUE)",
+          "frozen": [
+            "e",
+            "#NUM!"
+          ],
+          "prior": [
+            "e",
+            "#NUM!"
+          ],
+          "candidate": [
+            "e",
+            "#NUM!"
+          ],
+          "excel": [
+            "n",
+            "1"
+          ]
+        },
+        {
+          "cell": "G98",
+          "formula": "HYPGEOM.DIST(0,4,0,20,FALSE)",
+          "frozen": [
+            "e",
+            "#NUM!"
+          ],
+          "prior": [
+            "e",
+            "#NUM!"
+          ],
+          "candidate": [
+            "e",
+            "#NUM!"
+          ],
+          "excel": [
+            "n",
+            "1"
+          ]
+        },
+        {
+          "cell": "G99",
+          "formula": "HYPGEOM.DIST(5,4,3,20,TRUE)",
+          "frozen": [
+            "e",
+            "#NUM!"
+          ],
+          "prior": [
+            "e",
+            "#NUM!"
+          ],
+          "candidate": [
+            "e",
+            "#NUM!"
+          ],
+          "excel": [
+            "n",
+            "1"
+          ]
+        },
+        {
+          "cell": "G100",
+          "formula": "HYPGEOM.DIST(0,4,3,3,TRUE)",
+          "frozen": [
+            "e",
+            "#NUM!"
+          ],
+          "prior": [
+            "e",
+            "#NUM!"
+          ],
+          "candidate": [
+            "e",
+            "#NUM!"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G101",
+          "formula": "HYPGEOM.DIST(0,0,0,0,TRUE)",
+          "frozen": [
+            "e",
+            "#NUM!"
+          ],
+          "prior": [
+            "e",
+            "#NUM!"
+          ],
+          "candidate": [
+            "e",
+            "#NUM!"
+          ],
+          "excel": [
+            "n",
+            "1"
+          ]
+        },
+        {
+          "cell": "G102",
+          "formula": "HYPGEOM.DIST(0,2,4,3,TRUE)",
+          "frozen": [
+            "e",
+            "#NUM!"
+          ],
+          "prior": [
+            "e",
+            "#NUM!"
+          ],
+          "candidate": [
+            "e",
+            "#NUM!"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G103",
+          "formula": "HYPGEOMDIST(0,4,0,20)",
+          "frozen": [
+            "e",
+            "#NUM!"
+          ],
+          "prior": [
+            "e",
+            "#NUM!"
+          ],
+          "candidate": [
+            "e",
+            "#NUM!"
+          ],
+          "excel": [
+            "n",
+            "1"
+          ]
+        },
+        {
+          "cell": "G104",
+          "formula": "HYPGEOMDIST(0,0,3,20)",
+          "frozen": [
+            "e",
+            "#NUM!"
+          ],
+          "prior": [
+            "e",
+            "#NUM!"
+          ],
+          "candidate": [
+            "e",
+            "#NUM!"
+          ],
+          "excel": [
+            "n",
+            "1"
+          ]
+        },
+        {
+          "cell": "G105",
+          "formula": "HYPGEOMDIST(0,0,0,20)",
+          "frozen": [
+            "e",
+            "#NUM!"
+          ],
+          "prior": [
+            "e",
+            "#NUM!"
+          ],
+          "candidate": [
+            "e",
+            "#NUM!"
+          ],
+          "excel": [
+            "n",
+            "1"
+          ]
+        },
+        {
+          "cell": "G106",
+          "formula": "HYPGEOMDIST(3,9,10,10)",
+          "frozen": [
+            "e",
+            "#NUM!"
+          ],
+          "prior": [
+            "e",
+            "#NUM!"
+          ],
+          "candidate": [
+            "e",
+            "#NUM!"
+          ],
+          "excel": [
+            "n",
+            "0"
+          ]
+        },
+        {
+          "cell": "G107",
+          "formula": "HYPGEOMDIST(9,9,10,10)",
+          "frozen": [
+            "n",
+            "1"
+          ],
+          "prior": [
+            "n",
+            "1"
+          ],
+          "candidate": [
+            "n",
+            "1"
+          ],
+          "excel": [
+            "n",
+            "1"
+          ]
+        },
+        {
+          "cell": "G108",
+          "formula": "NEGBINOM.DIST(0,1,0,TRUE)",
+          "frozen": [
+            "n",
+            "0"
+          ],
+          "prior": [
+            "n",
+            "0"
+          ],
+          "candidate": [
+            "n",
+            "0"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G109",
+          "formula": "NEGBINOM.DIST(0,3,1E-14,FALSE)",
+          "frozen": [
+            "n",
+            "1.0000000000000034E-42"
+          ],
+          "prior": [
+            "n",
+            "1.0000000000000034E-42"
+          ],
+          "candidate": [
+            "n",
+            "1.0000000000000034E-42"
+          ],
+          "excel": [
+            "n",
+            "1.0000000000000034E-42"
+          ]
+        },
+        {
+          "cell": "G110",
+          "formula": "NEGBINOM.DIST(0,3,0.99999999999999,TRUE)",
+          "frozen": [
+            "n",
+            "0.99999999999997"
+          ],
+          "prior": [
+            "n",
+            "0.99999999999997"
+          ],
+          "candidate": [
+            "n",
+            "0.99999999999997"
+          ],
+          "excel": [
+            "n",
+            "0.99999999999997002"
+          ]
+        },
+        {
+          "cell": "G111",
+          "formula": "NEGBINOM.DIST(3,1,1,FALSE)",
+          "frozen": [
+            "n",
+            "0"
+          ],
+          "prior": [
+            "n",
+            "0"
+          ],
+          "candidate": [
+            "n",
+            "0"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G112",
+          "formula": "NEGBINOM.DIST(3,1,1,TRUE)",
+          "frozen": [
+            "n",
+            "1"
+          ],
+          "prior": [
+            "n",
+            "1"
+          ],
+          "candidate": [
+            "n",
+            "1"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G113",
+          "formula": "NEGBINOM.DIST(5,3,0,FALSE)",
+          "frozen": [
+            "n",
+            "0"
+          ],
+          "prior": [
+            "n",
+            "0"
+          ],
+          "candidate": [
+            "n",
+            "0"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G114",
+          "formula": "NEGBINOM.DIST(0,1,1,FALSE)",
+          "frozen": [
+            "n",
+            "1"
+          ],
+          "prior": [
+            "n",
+            "1"
+          ],
+          "candidate": [
+            "n",
+            "1"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G115",
+          "formula": "NEGBINOMDIST(0,1,0)",
+          "frozen": [
+            "n",
+            "0"
+          ],
+          "prior": [
+            "n",
+            "0"
+          ],
+          "candidate": [
+            "n",
+            "0"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G116",
+          "formula": "NEGBINOMDIST(0,3,1)",
+          "frozen": [
+            "n",
+            "1"
+          ],
+          "prior": [
+            "n",
+            "1"
+          ],
+          "candidate": [
+            "n",
+            "1"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G117",
+          "formula": "NEGBINOMDIST(3,1,1)",
+          "frozen": [
+            "n",
+            "0"
+          ],
+          "prior": [
+            "n",
+            "0"
+          ],
+          "candidate": [
+            "n",
+            "0"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G118",
+          "formula": "NEGBINOMDIST(5,3,0)",
+          "frozen": [
+            "n",
+            "0"
+          ],
+          "prior": [
+            "n",
+            "0"
+          ],
+          "candidate": [
+            "n",
+            "0"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ]
+        }
+      ],
+      "independentChiSquareChecks": 22,
+      "correctedSymmetricBinomialMedians": 2
+    },
+    "commonKernels": {
+      "sourceSha256": "50c35d24ece5ff72f582a519925ae2ec3e75ccd219771cc7576370c86b29ca04",
+      "byFunction": {
+        "GAMMALN.PRECISE": 18,
+        "ERF": 18,
+        "ERFC": 18,
+        "NORM.S.DIST": 18,
+        "NORM.S.INV": 18,
+        "BETA.DIST": 36,
+        "GAMMA.DIST": 48
+      },
+      "comparisons": 174
+    },
+    "otherFormulaFamilies": {
+      "conditional-aggregates": {
+        "workbooks": 2,
+        "formulaCaches": 208,
+        "crossVersionReadbacks": 8
+      },
+      "engineering-depreciation": {
+        "workbooks": 2,
+        "formulaCaches": 160,
+        "crossVersionReadbacks": 8
+      },
+      "matrix-classic-text": {
+        "workbooks": 2,
+        "formulaCaches": 118,
+        "crossVersionReadbacks": 8
+      },
+      "modern-text-date": {
+        "workbooks": 2,
+        "formulaCaches": 118,
+        "crossVersionReadbacks": 8
+      }
+    }
+  },
+  "frozenPilots": {
+    "wordProbes": 2324,
+    "deckFixtures": 9,
+    "sheetFormulas": 428,
+    "sheetBaselineDifferences": [],
+    "sheetReopenDifferences": {
+      "old-to-old": 0,
+      "old-to-new": 0,
+      "new-to-old": 0,
+      "new-to-new": 0
+    }
+  },
+  "checks": {
+    "joywordHeadlessPassed": true,
+    "joysheetHeadless": {
+      "passed": 1483,
+      "failed": 0,
+      "ignored": 1
+    }
+  }
+}

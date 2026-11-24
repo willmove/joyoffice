@@ -33,6 +33,7 @@ impl FileSpec<'_> {
         &self,
         store: &PackStore,
         url: &str,
+        fallback: Option<&str>,
         local: bool,
         cancel: &Cancel,
         progress: &mut dyn FnMut(u64),
@@ -43,14 +44,11 @@ impl FileSpec<'_> {
         }
         let check = |bytes: &[u8]| self.verify(bytes);
         let remote = |url: &str, progress: &mut dyn FnMut(u64)| {
-            store.fetch(
-                &[url.to_owned()],
-                self.limit,
-                self.name,
-                cancel,
-                progress,
-                &check,
-            )
+            let mirrors: Vec<String> = std::iter::once(url)
+                .chain(fallback)
+                .map(str::to_owned)
+                .collect();
+            store.fetch(&mirrors, self.limit, self.name, cancel, progress, &check)
         };
         let error = |detail: String| Error::Download {
             what: self.name.to_owned(),
@@ -116,7 +114,7 @@ pub(super) fn index(store: &PackStore, location: &str, cancel: &Cancel) -> Resul
         exact_size: false,
         sha: None,
     }
-    .receive(store, location, true, cancel, &mut |_| {})
+    .receive(store, location, None, true, cancel, &mut |_| {})
 }
 
 pub(super) fn archive(
@@ -132,10 +130,17 @@ pub(super) fn archive(
         exact_size: true,
         sha: Some(&pack.sha256),
     }
-    .receive(store, &pack.url, local, cancel, &mut |done| {
-        progress(Progress {
-            done,
-            total: pack.size,
-        });
-    })
+    .receive(
+        store,
+        &pack.url,
+        pack.fallback_url.as_deref(),
+        local,
+        cancel,
+        &mut |done| {
+            progress(Progress {
+                done,
+                total: pack.size,
+            });
+        },
+    )
 }

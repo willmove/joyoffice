@@ -1,3 +1,4 @@
+//! Annuities are a sequence of equal cash flows plus two endpoint balances.
 use super::*;
 
 // ---------------------------------------------------------------------------------------------
@@ -32,20 +33,16 @@ fn pmt_calc(rate: f64, nper: f64, pv: f64, fv: f64, typ: f64) -> f64 {
     }
 }
 
-fn fv_calc(rate: f64, nper: f64, pmt: f64, pv: f64, typ: f64) -> f64 {
+/// Sum of `periods` consecutive powers of `1 + rate`, starting at power zero.
+pub(super) fn annuity(rate: f64, periods: f64) -> f64 {
     if rate == 0.0 {
-        return -(pv + pmt * nper);
+        return periods;
     }
-    let p = (1.0 + rate).powf(nper);
-    -(pv * p + pmt * (1.0 + rate * typ) * (p - 1.0) / rate)
-}
-
-fn pv_calc(rate: f64, nper: f64, pmt: f64, fv: f64, typ: f64) -> f64 {
-    if rate == 0.0 {
-        return -(fv + pmt * nper);
+    if rate <= -1.0 {
+        // Keep the integer-power behavior at and beyond a zero growth factor.
+        return ((1.0 + rate).powf(periods) - 1.0) / rate;
     }
-    let p = (1.0 + rate).powf(nper);
-    -(fv + pmt * (1.0 + rate * typ) * (p - 1.0) / rate) / p
+    (periods * rate.ln_1p()).exp_m1() / rate
 }
 
 pub(super) fn pmt(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
@@ -57,14 +54,29 @@ pub(super) fn pmt(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
     num_val(pmt_calc(rate, nper, pv, fv, typ))
 }
 
+/// FV and PV round the growth factor before taking its difference from one.
+fn worksheet_growth(rate: f64, periods: f64) -> (f64, f64) {
+    let growth = (1.0 + rate).powf(periods);
+    let deposits = if rate == 0.0 { periods } else { (growth - 1.0) / rate };
+    (growth, deposits)
+}
+
 pub(super) fn fv(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    let (rate, nper, pmt) = (num(a, 0)?, num(a, 1)?, num(a, 2)?);
-    num_val(fv_calc(rate, nper, pmt, opt_num(a, 3, 0.0)?, type_arg(a, 4)?))
+    let (rate, periods, payment) = (num(a, 0)?, num(a, 1)?, num(a, 2)?);
+    let (present, due) = (opt_num(a, 3, 0.0)?, type_arg(a, 4)?);
+    let (growth, deposits) = worksheet_growth(rate, periods);
+    num_val(-present * growth - payment * (1.0 + due * rate) * deposits)
 }
 
 pub(super) fn pv(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    let (rate, nper, pmt) = (num(a, 0)?, num(a, 1)?, num(a, 2)?);
-    num_val(pv_calc(rate, nper, pmt, opt_num(a, 3, 0.0)?, type_arg(a, 4)?))
+    let (rate, periods, payment) = (num(a, 0)?, num(a, 1)?, num(a, 2)?);
+    let (future, due) = (opt_num(a, 3, 0.0)?, type_arg(a, 4)?);
+    let (growth, deposits) = worksheet_growth(rate, periods);
+    if growth == 0.0 {
+        return Err(CellError::Div0);
+    }
+    let cash = future + payment * (1.0 + due * rate) * deposits;
+    num_val(-cash / growth)
 }
 
 pub(super) fn nper(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
@@ -72,30 +84,31 @@ pub(super) fn nper(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
     let (fv, typ) = (opt_num(a, 3, 0.0)?, type_arg(a, 4)?);
     if rate == 0.0 {
         if pmt == 0.0 {
-            return Err(CellError::Num);
+            return Err(CellError::Div0);
         }
         return num_val(-(pv + fv) / pmt);
     }
-    let numer = pmt * (1.0 + rate * typ) - fv * rate;
-    let denom = pv * rate + pmt * (1.0 + rate * typ);
-    if denom == 0.0 {
+    let net_payment = pv * rate + pmt * (1.0 + rate * typ);
+    if rate <= -1.0 || net_payment == 0.0 {
         return Err(CellError::Num);
     }
-    let q = numer / denom;
-    if q <= 0.0 || rate <= -1.0 {
-        return Err(CellError::Num);
+    if 1.0 + rate == 1.0 {
+        return Err(CellError::Div0);
     }
-    num_val(q.ln() / (1.0 + rate).ln())
+    // The difference of the two endpoints remains representable near zero rate.
+    let change = -rate * (pv + fv) / net_payment;
+    let log_ratio = if change.abs() < 0.5 { change.ln_1p() } else { ((pmt * (1.0 + rate * typ) - fv * rate) / net_payment).ln() };
+    num_val(log_ratio / rate.ln_1p())
 }
 
-fn ipmt_calc(rate: f64, per: f64, nper: f64, pv: f64, fv: f64, typ: f64) -> f64 {
-    let p = pmt_calc(rate, nper, pv, fv, typ);
+fn period_interest(rate: f64, per: f64, nper: f64, payment: f64, future: f64, typ: f64) -> f64 {
     if typ == 1.0 && per == 1.0 {
         return 0.0;
     }
-    let bal = fv_calc(rate, per - 1.0, p, pv, typ);
-    let i = bal * rate;
-    if typ == 1.0 { i / (1.0 + rate) } else { i }
+    // Discount the remaining installments back to the interest date. This
+    // avoids subtracting two growing balances near the end of a long loan.
+    let exponent = (per - 1.0 - nper) * rate.ln_1p();
+    -payment * exponent.exp_m1() + future * (rate / (1.0 + rate * typ)) * exponent.exp()
 }
 
 pub(super) fn ipmt(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
@@ -104,7 +117,7 @@ pub(super) fn ipmt(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
     if per < 1.0 || per > np || np == 0.0 {
         return Err(CellError::Num);
     }
-    num_val(ipmt_calc(rate, per, np, pv, fv, typ))
+    num_val(period_interest(rate, per, np, pmt_calc(rate, np, pv, fv, typ), fv, typ))
 }
 
 pub(super) fn ppmt(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
@@ -113,26 +126,31 @@ pub(super) fn ppmt(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
     if per < 1.0 || per > np || np == 0.0 {
         return Err(CellError::Num);
     }
-    num_val(pmt_calc(rate, np, pv, fv, typ) - ipmt_calc(rate, per, np, pv, fv, typ))
+    let payment = pmt_calc(rate, np, pv, fv, typ);
+    num_val(payment - period_interest(rate, per, np, payment, fv, typ))
 }
 
 fn cumulative(a: &[Arg], principal: bool) -> R<Value> {
     let (rate, np, pv) = (num(a, 0)?, num(a, 1)?, num(a, 2)?);
-    let (start, end, typ) = (num(a, 3)?.trunc(), num(a, 4)?.trunc(), num(a, 5)?);
-    let np_i = np.trunc();
-    if rate <= 0.0 || np_i <= 0.0 || pv <= 0.0 || start < 1.0 || end < start || end > np_i || (typ != 0.0 && typ != 1.0) {
+    let (start, end, typ) = (num(a, 3)?, num(a, 4)?, num(a, 5)?);
+    if rate <= 0.0 || np <= 0.0 || pv <= 0.0 || start < 1.0 || end < start || end > np || (typ != 0.0 && typ != 1.0) {
         return Err(CellError::Num);
     }
-    if end - start > 1e7 || np_i > 1e15 {
+    if end - start > 1e7 || np > 1e15 {
         return Err(CellError::Num);
     }
-    let p = pmt_calc(rate, np_i, pv, 0.0, typ);
+    let payment = pmt_calc(rate, np, pv, 0.0, typ);
     let mut sum = 0.0;
-    let mut per = start;
-    while per <= end {
-        let i = ipmt_calc(rate, per, np_i, pv, 0.0, typ);
-        sum += if principal { p - i } else { i };
-        per += 1.0;
+    let log = rate.ln_1p();
+    for period in start.ceil() as u64..=end.floor() as u64 {
+        let weight = (period as f64 - 1.0 - np) * log;
+        sum += if typ == 1.0 && period == 1 {
+            if principal { payment } else { 0.0 }
+        } else if principal {
+            payment * weight.exp()
+        } else {
+            -payment * weight.exp_m1()
+        };
     }
     num_val(sum)
 }
@@ -145,87 +163,63 @@ pub(super) fn cumprinc(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
     cumulative(a, true)
 }
 
-/// Newton iteration with a numeric derivative, keeping the rate above -1.
-fn newton(f: impl Fn(f64) -> f64, guess: f64) -> Option<f64> {
-    let mut x = guess;
-    for _ in 0..200 {
-        let y = f(x);
-        if !y.is_finite() {
-            return None;
-        }
-        let h = 1e-6 * x.abs().max(1e-3);
-        let d = (f(x + h) - f(x - h)) / (2.0 * h);
-        if d == 0.0 || !d.is_finite() {
-            return None;
-        }
-        let mut nx = x - y / d;
-        if nx <= -1.0 {
-            nx = (x - 1.0) / 2.0;
-            if nx <= -1.0 {
-                nx = -0.999_999_999;
-            }
-        }
-        if (nx - x).abs() < 1e-12 * nx.abs().max(1.0) {
-            return Some(nx);
-        }
-        x = nx;
+/// The sum and derivative of the geometric series in log-growth coordinates.
+fn annuity_slope(log: f64, periods: f64) -> (f64, f64) {
+    if (log * periods.max(1.0)).abs() < 1e-5 {
+        let linear = (periods - 1.0) / 2.0;
+        let quadratic = (periods - 1.0) * (2.0 * periods - 1.0) / 12.0;
+        return (periods * (1.0 + log * (linear + log * quadratic)), periods * (linear + 2.0 * log * quadratic));
     }
-    None
-}
-
-/// Tries Newton from the guess and a few fallback starting points; then bisection over a
-/// bracket if one can be found.
-fn solve_rate(f: impl Fn(f64) -> f64, guess: f64) -> R<f64> {
-    let check = |r: f64| f(r).is_finite() && f(r).abs() < 1e-7 * (1.0 + f(guess).abs().min(1e12));
-    for g in [guess, 0.1, 0.01, 0.5, -0.5, 1.0, 0.001, 5.0, -0.9, 10.0] {
-        if let Some(r) = newton(&f, g)
-            && r > -1.0
-            && check(r)
-        {
-            return Ok(r);
-        }
-    }
-    // Scan for a sign change and bisect.
-    let grid: Vec<f64> = [-0.999_999, -0.99, -0.9, -0.5, -0.2, 0.0, 0.05, 0.1, 0.2, 0.5, 1.0, 2.0, 5.0, 10.0, 100.0, 1000.0].to_vec();
-    for w in grid.windows(2) {
-        let (mut lo, mut hi) = match w {
-            [a, b] => (*a, *b),
-            _ => continue,
-        };
-        let (flo, fhi) = (f(lo), f(hi));
-        if !(flo.is_finite() && fhi.is_finite()) || flo * fhi > 0.0 {
-            continue;
-        }
-        let lo_neg = flo < 0.0;
-        for _ in 0..200 {
-            let mid = 0.5 * (lo + hi);
-            let fm = f(mid);
-            if (fm < 0.0) == lo_neg {
-                lo = mid;
-            } else {
-                hi = mid;
-            }
-        }
-        return Ok(0.5 * (lo + hi));
-    }
-    Err(CellError::Num)
+    let rate = log.exp_m1();
+    let end = (log * periods).exp();
+    let sum = (log * periods).exp_m1() / rate;
+    (sum, (periods * end - sum * log.exp()) / rate)
 }
 
 pub(super) fn rate(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
-    let (np, pmt, pv) = (num(a, 0)?, num(a, 1)?, num(a, 2)?);
-    let (fv, typ, guess) = (opt_num(a, 3, 0.0)?, type_arg(a, 4)?, opt_num(a, 5, 0.1)?);
-    if np <= 0.0 {
+    let (periods, payment, present) = (num(a, 0)?, num(a, 1)?, num(a, 2)?);
+    let (future, due, guess) = (opt_num(a, 3, 0.0)?, type_arg(a, 4)?, opt_num(a, 5, 0.1)?);
+    if periods <= 0.0 {
         return Err(CellError::Num);
     }
-    let f = |r: f64| {
-        if r.abs() < 1e-12 {
-            pv + pmt * np + fv
+    // Use the endpoint at which every discount is at most one. The set of
+    // roots is the same at both endpoints, even near the boundary rate of -1.
+    let scale = present.abs().max(future.abs()).max(payment.abs()).max(f64::MIN_POSITIVE);
+    let (present, future, payment) = (present / scale, future / scale, payment / scale);
+    let balance = |log: f64| {
+        let (x, first, last, shift, terminal_period, sign) = if log > 0.0 {
+            (-log, present, future, 1.0 - due, periods, -1.0)
+        } else if future == 0.0 && due == 1.0 {
+            // Rebase at the latest payment to eliminate the common factor
+            // that goes to zero as the rate approaches -1.
+            (log, 0.0, present, 0.0, periods - 1.0, 1.0)
         } else {
-            let p = (1.0 + r).powf(np);
-            pv * p + pmt * (1.0 + r * typ) * (p - 1.0) / r + fv
-        }
+            (log, future, present, due, periods, 1.0)
+        };
+        let (sum, slope) = annuity_slope(x, periods);
+        let installments = payment * (shift * x).exp();
+        let terminal = last * (terminal_period * x).exp();
+        (first + installments * sum + terminal, sign * (installments * (slope + shift * sum) + terminal_period * terminal))
     };
-    num_val(solve_rate(f, guess)?)
+    for seed in [guess, 0.0, 0.1, -0.5, 0.5, 1.0, -0.9, 5.0, 10.0] {
+        let mut x = seed.ln_1p();
+        for _ in 0..100 {
+            let (residual, slope) = balance(x);
+            let step = residual / slope;
+            if residual == 0.0 || (residual.abs() <= 4.0 * f64::EPSILON && step.abs() <= 1e-12) {
+                return num_val(x.exp_m1());
+            }
+            if !step.is_finite() {
+                break;
+            }
+            let next = x - step.clamp(-1.0, 1.0);
+            if next == x || next < -36.0 || next > 709.0 {
+                break;
+            }
+            x = next;
+        }
+    }
+    Err(CellError::Num)
 }
 
 pub(super) fn fvschedule(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
@@ -247,7 +241,7 @@ pub(super) fn effect(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
     if nom <= 0.0 || n < 1.0 {
         return Err(CellError::Num);
     }
-    num_val((1.0 + nom / n).powf(n) - 1.0)
+    num_val((n * (nom / n).ln_1p()).exp_m1())
 }
 
 pub(super) fn nominal(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
@@ -255,7 +249,7 @@ pub(super) fn nominal(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
     if eff <= 0.0 || n < 1.0 {
         return Err(CellError::Num);
     }
-    num_val(n * ((1.0 + eff).powf(1.0 / n) - 1.0))
+    num_val(n * (eff.ln_1p() / n).exp_m1())
 }
 
 pub(super) fn ispmt(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
@@ -271,15 +265,20 @@ pub(super) fn pduration(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
     if rate <= 0.0 || pv <= 0.0 || fv <= 0.0 {
         return Err(CellError::Num);
     }
-    num_val((fv.ln() - pv.ln()) / (1.0 + rate).ln())
+    let change = (fv - pv) / pv;
+    let log = if change.abs() < 0.5 { change.ln_1p() } else { fv.ln() - pv.ln() };
+    num_val(log / (1.0 + rate).ln())
 }
 
 pub(super) fn rri(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
     let (np, pv, fv) = (num(a, 0)?, num(a, 1)?, num(a, 2)?);
-    if np <= 0.0 || pv == 0.0 {
+    let ratio = fv / pv;
+    if np <= 0.0 || pv == 0.0 || ratio < 0.0 {
         return Err(CellError::Num);
     }
-    num_val((fv / pv).powf(1.0 / np) - 1.0)
+    let change = (fv - pv) / pv;
+    let log = if change.abs() < 0.5 { change.ln_1p() } else { ratio.ln() };
+    num_val((log / np).exp_m1())
 }
 
 fn dollar_digits(fraction: f64) -> R<f64> {

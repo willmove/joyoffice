@@ -46,8 +46,13 @@ def stage(source, output, *, check):
                               source=entry.get("source"), licence=entry["licence"], distributionClass=entry["class"],
                               licenceFiles=notices, files=files))
     index = encoded({"format": 1, "release": RELEASE, "packs": previous["packs"]})
-    if check and INDEX.read_bytes() != index:
-        raise ValueError("Bundled JoyWord index differs from the assembled index")
+    if check:
+        bundled = json.loads(INDEX.read_bytes())
+        for entry in bundled["packs"]:
+            if fallback := entry.pop("fallback_url", None):
+                entry["url"] = fallback
+        if encoded(bundled) != index:
+            raise ValueError("Bundled JoyWord metadata differs from the original release snapshot")
     embedded = []
     for folder in ("crates/joyword-proof/data", "third-party/craft-i18n/language-data"):
         for path in sorted((ROOT / folder).rglob("*")):

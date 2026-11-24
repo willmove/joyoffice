@@ -1,29 +1,10 @@
-//! The FORECAST.ETS family: additive-error, additive-trend, additive-seasonality (AAA)
-//! exponential smoothing over an evenly spaced timeline.
+//! Additive exponential smoothing on a regular numeric or calendar timeline.
 //!
-//! Model (Hyndman, Koehler, Ord & Snyder, "Forecasting with Exponential Smoothing: The State
-//! Space Approach", 2008, ETS(A,A,A), component form):
-//!
-//! ```text
-//! ŷ_t = l_{t-1} + b_{t-1} + s_{t-m}        e_t = y_t − ŷ_t
-//! l_t = l_{t-1} + b_{t-1} + α·e_t
-//! b_t = b_{t-1} + α·β·e_t
-//! s_t = s_{t-m} + γ·e_t
-//! ```
-//!
-//! Initial states follow the book's heuristic (§2.6.1): seasonal indices from a classical
-//! decomposition (centred moving average) of the first seasons, level and trend from a straight
-//! line fitted to the first ten seasonally adjusted values. α, β and γ (each in [0, 1]) minimise
-//! the sum of squared one-step errors: a coarse grid, then a Nelder–Mead simplex clamped to the
-//! box. Excel does not document its optimiser, so fitted parameters (and the last digits of
-//! forecasts on noisy data) can differ from Excel's; exact data (straight lines, exactly
-//! repeating seasons) forecast exactly either way.
-//!
-//! Seasonality detection: the autocorrelation of the linearly detrended series; the highest local
-//! peak above the 95% white-noise bound (2/√n) at a lag of at most n/2 (and at most 8,760).
-//!
-//! Prediction intervals use the model's h-step forecast variance (the book's Table 6.1, class 1):
-//! `σ²·(1 + Σ_{j=1}^{h−1} (α + αβ·j + γ·[j mod m = 0])²)`, σ² = SSE / n, with the normal quantile.
+//! The model follows Hyndman and Athanasopoulos, *Forecasting: Principles and
+//! Practice*, 3rd ed., chapters 8.3–8.7. Each observation corrects the
+//! projected level, slope and seasonal phase by a share of its innovation.
+//! Excel documents the AAA model and its argument contract. Its parameter
+//! estimation procedure and starting values are implementation-specific.
 
 use joysheet_core::date::{datetime_from_serial, days_in_month_in, serial_from_ymd};
 use joysheet_core::{CellError, DateSystem, Value};
@@ -454,271 +435,204 @@ impl Timeline {
     }
 }
 
-// ---------------------------------------------------------------------------------------------
-// Seasonality detection
-// ---------------------------------------------------------------------------------------------
-
-/// Residuals of the least-squares line through `y` (x = 0, 1, 2…).
-fn detrend(y: &[f64]) -> Vec<f64> {
-    let (a, b) = line(y.iter().enumerate().map(|(i, v)| (i as f64, *v)));
-    y.iter().enumerate().map(|(i, v)| v - (a + b * i as f64)).collect()
+/// The fitted line at the first observation and its slope. The observations
+/// are on a unit-spaced axis so its centered sum of squares is closed form.
+fn regression(values: &[f64]) -> (f64, f64) {
+    let count = values.len() as f64;
+    if count < 2.0 {
+        return (values.first().copied().unwrap_or(0.0), 0.0);
+    }
+    let center = (count - 1.0) / 2.0;
+    let mean = values.iter().sum::<f64>() / count;
+    let covariance: f64 = values.iter().enumerate().map(|(i, y)| (i as f64 - center) * (y - mean)).sum();
+    let slope = covariance / (count * (count - 1.0) * (count + 1.0) / 12.0);
+    (mean - center * slope, slope)
 }
 
-/// (intercept, slope) of the least-squares line through the points (slope 0 for one point).
-fn line(points: impl Iterator<Item = (f64, f64)> + Clone) -> (f64, f64) {
-    let (mut n, mut sx, mut sy) = (0.0, 0.0, 0.0);
-    for (x, y) in points.clone() {
-        n += 1.0;
-        sx += x;
-        sy += y;
-    }
-    if n == 0.0 {
-        return (0.0, 0.0);
-    }
-    let (mx, my) = (sx / n, sy / n);
-    let (mut sxy, mut sxx) = (0.0, 0.0);
-    for (x, y) in points {
-        sxy += (x - mx) * (y - my);
-        sxx += (x - mx) * (x - mx);
-    }
-    let b = if sxx > 0.0 { sxy / sxx } else { 0.0 };
-    (my - b * mx, b)
+fn residuals(values: &[f64]) -> Vec<f64> {
+    let (base, slope) = regression(values);
+    values.iter().enumerate().map(|(i, y)| y - (base + slope * i as f64)).collect()
 }
 
-/// The detected season length, 0 when the series shows none.
 pub(crate) fn detect_season(y: &[f64]) -> usize {
-    let n = y.len();
-    if n < 4 {
+    if y.len() < 4 {
         return 0;
     }
-    let r = detrend(y);
-    let var: f64 = r.iter().map(|v| v * v).sum();
-    let scale: f64 = y.iter().map(|v| v * v).sum::<f64>();
-    if !(var.is_finite() && var > 1e-20 * scale.max(f64::MIN_POSITIVE)) {
+    let noise = residuals(y);
+    let energy = noise.iter().map(|r| r * r).sum::<f64>();
+    let signal = y.iter().map(|y| y * y).sum::<f64>();
+    if !energy.is_finite() || energy <= 1e-20 * signal.max(f64::MIN_POSITIVE) {
         return 0;
     }
-    let max_lag = (n / 2).min(MAX_SEASON);
-    let acf: Vec<f64> = (0..=max_lag.saturating_add(1).min(n.saturating_sub(1)))
-        .map(|k| r.iter().skip(k).zip(r.iter()).map(|(a, b)| a * b).sum::<f64>() / var)
-        .collect();
-    let bound = 2.0 / (n as f64).sqrt();
-    let mut best = 0usize;
-    let mut best_r = bound;
-    for k in 2..=max_lag {
-        let (Some(&prev), Some(&here)) = (acf.get(k - 1), acf.get(k)) else { break };
-        let next = acf.get(k + 1).copied().unwrap_or(f64::NEG_INFINITY);
-        if here > prev && here >= next && here > best_r {
-            best = k;
-            best_r = here;
+    let correlation = |lag| noise.iter().zip(noise.iter().skip(lag)).map(|(a, b)| a * b).sum::<f64>() / energy;
+    let mut peak = (0, 2.0 / (noise.len() as f64).sqrt());
+    let (mut left, mut center) = (correlation(1), correlation(2));
+    for lag in 2..=(noise.len() / 2).min(MAX_SEASON) {
+        let right = correlation(lag + 1);
+        if center > left && center >= right && center > peak.1 {
+            peak = (lag, center);
         }
+        (left, center) = (center, right);
     }
-    best
+    peak.0
 }
-
-// ---------------------------------------------------------------------------------------------
-// Model
-// ---------------------------------------------------------------------------------------------
-
-#[derive(Clone, Debug)]
-struct Init {
-    level: f64,
-    trend: f64,
-    /// Seasonal state for positions 0..m (empty without seasonality).
-    season: Vec<f64>,
-}
-
-/// Initial states (Hyndman et al. 2008, §2.6.1).
-fn initial_states(y: &[f64], m: usize) -> Init {
-    let n = y.len();
-    let mut season = vec![0.0; m];
-    if m >= 2 {
-        if n >= 2 * m {
-            // Classical decomposition of the first seasons: centred moving average as the trend.
-            let len = n.min(4 * m).max(2 * m);
-            let w = y.get(..len).unwrap_or(y);
-            let mut prefix = Vec::with_capacity(w.len() + 1);
-            prefix.push(0.0);
-            let mut acc = 0.0;
-            for v in w {
-                acc += v;
-                prefix.push(acc);
-            }
-            let sum = |a: usize, b: usize| prefix.get(b).copied().unwrap_or(0.0) - prefix.get(a).copied().unwrap_or(0.0);
-            let h = m / 2;
-            let mut totals = vec![0.0; m];
-            let mut counts = vec![0usize; m];
-            for t in h..w.len().saturating_sub(h) {
-                let ma = if m % 2 == 1 {
-                    sum(t - h, t + h + 1) / m as f64
-                } else {
-                    let ends = w.get(t - h).copied().unwrap_or(0.0) + w.get(t + h).copied().unwrap_or(0.0);
-                    (sum(t - h + 1, t + h) + ends / 2.0) / m as f64
-                };
-                if let (Some(tot), Some(c), Some(v)) = (totals.get_mut(t % m), counts.get_mut(t % m), w.get(t)) {
-                    *tot += v - ma;
-                    *c += 1;
-                }
-            }
-            for ((s, tot), c) in season.iter_mut().zip(&totals).zip(&counts) {
-                *s = if *c > 0 { tot / *c as f64 } else { 0.0 };
-            }
-        } else {
-            // Under two seasons: deviations from a straight line through the data.
-            let r = detrend(y);
-            let mut counts = vec![0usize; m];
-            for (t, v) in r.iter().enumerate() {
-                if let (Some(s), Some(c)) = (season.get_mut(t % m), counts.get_mut(t % m)) {
-                    *s += v;
-                    *c += 1;
-                }
-            }
-            for (s, c) in season.iter_mut().zip(&counts) {
-                if *c > 0 {
-                    *s /= *c as f64;
-                }
-            }
-        }
-        let mean = season.iter().sum::<f64>() / m as f64;
-        for s in &mut season {
-            *s -= mean;
-        }
-    }
-    let k = n.min(INIT_POINTS);
-    let adjusted = y.iter().take(k).enumerate().map(|(t, v)| {
-        let s = if m >= 2 { season.get(t % m).copied().unwrap_or(0.0) } else { 0.0 };
-        ((t + 1) as f64, v - s)
-    });
-    let (level, trend) = line(adjusted);
-    Init { level, trend, season }
-}
-
-/// Smoothing parameters (α, β, γ).
-type Params = [f64; 3];
 
 #[derive(Clone, Debug)]
 struct State {
     level: f64,
     trend: f64,
     season: Vec<f64>,
-    sse: f64,
 }
 
-/// Runs the filter over the data; `errors` collects the one-step errors when given.
-fn filter(y: &[f64], init: &Init, p: Params, mut errors: Option<&mut Vec<f64>>) -> State {
-    let [alpha, beta, gamma] = p;
-    let m = init.season.len();
-    let (mut l, mut b) = (init.level, init.trend);
-    let mut season = init.season.clone();
-    let mut sse = 0.0;
-    for (t, v) in y.iter().enumerate() {
-        let slot = if m > 0 { season.get_mut(t % m) } else { None };
-        let s = slot.as_ref().map_or(0.0, |s| **s);
-        let e = v - (l + b + s);
-        if let Some(slot) = slot {
-            *slot = s + gamma * e;
+impl State {
+    /// Estimate seasonal offsets from centered moving means of the first
+    /// cycles. For an even period the mean lies between observations.
+    fn initial(y: &[f64], period: usize) -> Self {
+        let mut offsets = vec![0.0; period];
+        if period > 0 {
+            let mut counts = vec![0usize; period];
+            let mut add = |position: usize, residual: f64| {
+                let phase = position % period;
+                if let (Some(total), Some(count)) = (offsets.get_mut(phase), counts.get_mut(phase)) {
+                    *total += residual;
+                    *count += 1;
+                }
+            };
+            if y.len() >= 2 * period {
+                let prefix: Vec<f64> = std::iter::once(0.0)
+                    .chain(y.iter().take(4 * period).scan(0.0, |sum, value| {
+                        *sum += value;
+                        Some(*sum)
+                    }))
+                    .collect();
+                let mean = |i| -> Option<f64> { Some((prefix.get(i + period)? - prefix.get(i)?) / period as f64) };
+                let half = period / 2;
+                for (i, observed) in y.iter().take(prefix.len() - 1).skip(half).enumerate() {
+                    let Some(mut trend) = mean(i) else { break };
+                    if period.is_multiple_of(2) {
+                        let Some(next) = mean(i + 1) else { break };
+                        trend = trend.midpoint(next);
+                    }
+                    add(i + half, observed - trend);
+                }
+            } else {
+                for (i, error) in residuals(y).into_iter().enumerate() {
+                    add(i, error);
+                }
+            }
+            for (phase, count) in offsets.iter_mut().zip(counts) {
+                *phase /= count.max(1) as f64;
+            }
+            let mean = offsets.iter().sum::<f64>() / period as f64;
+            for phase in &mut offsets {
+                *phase -= mean;
+            }
         }
-        l = l + b + alpha * e;
-        b += alpha * beta * e;
-        sse += e * e;
-        if let Some(errs) = errors.as_deref_mut() {
-            errs.push(e);
+        let adjusted: Vec<_> =
+            y.iter().take(INIT_POINTS).enumerate().map(|(i, value)| value - offsets.get(i % period.max(1)).copied().unwrap_or_default()).collect();
+        let (base, trend) = regression(&adjusted);
+        Self { level: base - trend, trend, season: offsets }
+    }
+
+    fn observe(&mut self, i: usize, observed: f64, [level, slope, season]: [f64; 3]) -> f64 {
+        let index = i % self.season.len().max(1);
+        let phase = self.season.get_mut(index);
+        let projected = self.level + self.trend;
+        let error = observed - (projected + phase.as_deref().copied().unwrap_or_default());
+        self.level = projected + level * error;
+        self.trend += slope * error;
+        if let Some(offset) = phase {
+            *offset += season * error;
         }
+        error
     }
-    State { level: l, trend: b, season, sse }
 }
 
-fn objective(y: &[f64], init: &Init, p: Params) -> f64 {
-    let sse = filter(y, init, p, None).sse;
-    if sse.is_finite() { sse } else { f64::INFINITY }
+type Parameters = [f64; 3];
+
+fn gains([alpha, beta, gamma]: Parameters) -> Parameters {
+    [alpha, alpha * beta, gamma]
 }
 
-fn clamp(p: Params, active: usize) -> Params {
-    let mut q = [0.0; 3];
-    for (i, (o, v)) in q.iter_mut().zip(p).enumerate() {
-        *o = if i < active { v.clamp(0.0, 1.0) } else { 0.0 };
-    }
-    q
+#[derive(Clone, Copy)]
+struct Trial {
+    coefficients: Parameters,
+    loss: f64,
 }
 
-/// Minimises the SSE over the active parameters (α, β and, with seasonality, γ) in [0, 1].
-fn optimise(y: &[f64], init: &Init) -> Params {
-    let active = if init.season.is_empty() { 2 } else { 3 };
-    let f = |p: Params| objective(y, init, clamp(p, active));
-    // Coarse grid.
-    const GRID: [f64; 5] = [0.05, 0.25, 0.5, 0.75, 0.95];
-    let mut best: (Params, f64) = ([0.5, 0.1, 0.1], f64::INFINITY);
-    for a in GRID {
-        for b in GRID {
-            for g in if active == 3 { &GRID[..] } else { &GRID[..1] } {
-                let p = clamp([a, b, *g], active);
-                let v = f(p);
-                if v < best.1 {
-                    best = (p, v);
+fn project([a, b, c]: Parameters, [x, y, z]: Parameters, step: f64) -> Parameters {
+    [a + step * (x - a), b + step * (y - b), c + step * (z - c)]
+}
+
+/// Bound the simplex search to valid smoothing coefficients. Reuse the
+/// same seasonal state allocation for all objective evaluations.
+fn estimate(y: &[f64], initial: &State) -> Parameters {
+    let dimensions = if initial.season.is_empty() { 2 } else { 3 };
+    let mut scratch = initial.clone();
+    let mut evaluate = |mut coefficients: Parameters| {
+        for (i, value) in coefficients.iter_mut().enumerate() {
+            *value = if i < dimensions { value.clamp(0.0, 1.0) } else { 0.0 };
+        }
+        scratch.level = initial.level;
+        scratch.trend = initial.trend;
+        scratch.season.copy_from_slice(&initial.season);
+        let gains = gains(coefficients);
+        let loss = y.iter().copied().enumerate().map(|(i, observed)| scratch.observe(i, observed, gains).powi(2)).sum::<f64>();
+        Trial { coefficients, loss: if loss.is_finite() { loss } else { f64::INFINITY } }
+    };
+    const SEEDS: [f64; 5] = [0.05, 0.25, 0.5, 0.75, 0.95];
+    let mut seed = Trial { coefficients: [0.5, 0.1, if dimensions == 2 { 0.0 } else { 0.1 }], loss: f64::INFINITY };
+    for alpha in SEEDS {
+        for beta in SEEDS {
+            for &gamma in SEEDS.iter().take(if dimensions == 2 { 1 } else { SEEDS.len() }) {
+                let trial = evaluate([alpha, beta, gamma]);
+                if trial.loss < seed.loss {
+                    seed = trial;
                 }
             }
         }
     }
-    // Nelder–Mead from the best grid point, clamped to the box.
-    let mut simplex: Vec<(Params, f64)> = vec![best];
-    for i in 0..active {
-        let mut p = best.0;
-        if let Some(x) = p.get_mut(i) {
-            *x = if *x > 0.5 { *x - 0.1 } else { *x + 0.1 };
+    let mut vertices = [seed; 4];
+    for (i, vertex) in vertices.iter_mut().skip(1).take(dimensions).enumerate() {
+        let mut coefficients = seed.coefficients;
+        if let Some(value) = coefficients.get_mut(i) {
+            *value += if *value > 0.5 { -0.1 } else { 0.1 };
         }
-        let p = clamp(p, active);
-        simplex.push((p, f(p)));
+        *vertex = evaluate(coefficients);
     }
-    let lerp = |a: Params, b: Params, t: f64| -> Params {
-        let mut o = [0.0; 3];
-        for ((o, x), y) in o.iter_mut().zip(a).zip(b) {
-            *o = x + t * (y - x);
-        }
-        clamp(o, active)
-    };
+    let Some(simplex) = vertices.get_mut(..=dimensions) else { return seed.coefficients };
     for _ in 0..NM_ITERATIONS {
-        simplex.sort_by(|a, b| a.1.total_cmp(&b.1));
-        let (Some(&lo), Some(&hi)) = (simplex.first(), simplex.last()) else { break };
-        let second = simplex.len().checked_sub(2).and_then(|i| simplex.get(i)).map_or(hi.1, |s| s.1);
-        let size = simplex.iter().map(|s| s.0.iter().zip(lo.0).map(|(a, b)| (a - b).abs()).fold(0.0, f64::max)).fold(0.0, f64::max);
-        if (hi.1 - lo.1).abs() <= 1e-12 * lo.1.abs() + 1e-300 || size < 1e-7 {
+        simplex.sort_by(|a, b| a.loss.total_cmp(&b.loss));
+        let Some((worst, face)) = simplex.split_last_mut() else { break };
+        let (Some(&best), Some(second_worst)) = (face.first(), face.last()) else { break };
+        let diameter = face
+            .iter()
+            .chain(std::iter::once(&*worst))
+            .flat_map(|v| v.coefficients.into_iter().zip(best.coefficients))
+            .map(|(x, y)| (x - y).abs())
+            .fold(0.0, f64::max);
+        if worst.loss - best.loss <= 1e-12 * best.loss.abs() + 1e-300 || diameter < 1e-7 {
             break;
         }
-        let k = simplex.len().saturating_sub(1).max(1) as f64;
-        let mut c = [0.0; 3];
-        for s in simplex.iter().take(simplex.len().saturating_sub(1)) {
-            for (ci, x) in c.iter_mut().zip(s.0) {
-                *ci += x / k;
-            }
-        }
-        let reflected = lerp(c, hi.0, -1.0);
-        let fr = f(reflected);
-        let replace = if fr < lo.1 {
-            let expanded = lerp(c, hi.0, -2.0);
-            let fe = f(expanded);
-            Some(if fe < fr { (expanded, fe) } else { (reflected, fr) })
-        } else if fr < second {
-            Some((reflected, fr))
+        let center = std::array::from_fn(|i| face.iter().filter_map(|v| v.coefficients.get(i)).map(|x| x / dimensions as f64).sum());
+        let reflection = evaluate(project(center, worst.coefficients, -1.0));
+        if reflection.loss < best.loss {
+            let expansion = evaluate(project(center, worst.coefficients, -2.0));
+            *worst = if expansion.loss < reflection.loss { expansion } else { reflection };
+        } else if reflection.loss < second_worst.loss {
+            *worst = reflection;
         } else {
-            let contracted = lerp(c, hi.0, 0.5);
-            let fc = f(contracted);
-            if fc < hi.1 { Some((contracted, fc)) } else { None }
-        };
-        match replace {
-            Some(v) => {
-                if let Some(last) = simplex.last_mut() {
-                    *last = v;
-                }
-            }
-            None => {
-                for s in simplex.iter_mut().skip(1) {
-                    let p = lerp(lo.0, s.0, 0.5);
-                    *s = (p, f(p));
+            let contraction = evaluate(project(center, worst.coefficients, 0.5));
+            if contraction.loss < worst.loss {
+                *worst = contraction;
+            } else {
+                for vertex in simplex.iter_mut().skip(1) {
+                    *vertex = evaluate(project(best.coefficients, vertex.coefficients, 0.5));
                 }
             }
         }
     }
-    simplex.sort_by(|a, b| a.1.total_cmp(&b.1));
-    clamp(simplex.first().map_or(best.0, |s| s.0), active)
+    simplex.iter().min_by(|a, b| a.loss.total_cmp(&b.loss)).map_or(seed.coefficients, |trial| trial.coefficients)
 }
 
 /// A fitted model.
@@ -729,18 +643,19 @@ pub(crate) struct Fit {
     pub gamma: f64,
     pub m: usize,
     n: usize,
+    mse: f64,
     state: State,
     pub errors: Vec<f64>,
 }
 
 pub(crate) fn fit(y: &[f64], m: usize) -> Fit {
     let m = if m >= 2 { m } else { 0 };
-    let init = initial_states(y, m);
-    let p = optimise(y, &init);
-    let mut errors = Vec::with_capacity(y.len());
-    let state = filter(y, &init, p, Some(&mut errors));
-    let [alpha, beta, gamma] = p;
-    Fit { alpha, beta, gamma, m, n: y.len(), state, errors }
+    let mut state = State::initial(y, m);
+    let [alpha, beta, gamma] = estimate(y, &state);
+    let gains = gains([alpha, beta, gamma]);
+    let errors: Vec<_> = y.iter().copied().enumerate().map(|(i, value)| state.observe(i, value, gains)).collect();
+    let mse = errors.iter().map(|error| error * error).sum::<f64>() / y.len().max(1) as f64;
+    Fit { alpha, beta, gamma, m, n: y.len(), mse, state, errors }
 }
 
 impl Fit {
@@ -763,7 +678,6 @@ impl Fit {
 
     /// Standard deviation of the forecast error `h` steps ahead.
     pub fn forecast_sd(&self, h: f64) -> f64 {
-        let sigma2 = self.state.sse / self.n.max(1) as f64;
         let k = (h.ceil().max(1.0)) - 1.0;
         let (a, b, g) = (self.alpha, self.alpha * self.beta, self.gamma);
         // Σ_{j=1}^{k} (a + b·j)² + seasonal terms, in closed form.
@@ -773,7 +687,7 @@ impl Fit {
             let q = (k / m).floor();
             sum += 2.0 * g * (q * a + b * m * q * (q + 1.0) / 2.0) + g * g * q;
         }
-        (sigma2 * (1.0 + sum)).max(0.0).sqrt()
+        (self.mse * (1.0 + sum)).max(0.0).sqrt()
     }
 }
 
