@@ -14,6 +14,7 @@ Existing archives are refused rather than overwritten, matching the CLI conventi
 import argparse
 import importlib.util
 import json
+import platform
 import subprocess
 import hashlib
 import plistlib
@@ -24,6 +25,7 @@ import tarfile
 import tempfile
 import zipfile
 from pathlib import Path
+from package_installers import build_linux_deb, build_macos_dmg
 from product_icons import bundle_icon, copy_logo, copy_linux_installer, linux_launcher
 
 README = """JoyWord {version} ({platform}-{arch}) - unsigned package
@@ -135,9 +137,19 @@ def main() -> int:
     if not binary.is_file():
         sys.exit(f"binary not found: {binary} (run cargo build -p joyword --release --locked)")
     extension = {"macos": "zip", "windows": "zip", "linux": "tar.gz"}[args.platform]
-    asset = args.out / f"joyword-{args.version}-{args.platform}-{args.arch}.{extension}"
-    if asset.exists():
-        sys.exit(f"refusing to overwrite existing archive: {asset}")
+    stem = f"joyword-{args.version}-{args.platform}-{args.arch}"
+    asset = args.out / f"{stem}.{extension}"
+    extra_outputs = []
+    if args.platform == "linux":
+        linux_zip = args.out / f"{stem}.zip"
+        linux_deb = args.out / f"{stem}.deb"
+        extra_outputs = [linux_zip] + ([linux_deb] if platform.system() == "Linux" and args.cli else [])
+    elif args.platform == "macos" and platform.system() == "Darwin":
+        macos_dmg = args.out / f"{stem}.dmg"
+        extra_outputs = [macos_dmg]
+    for candidate in (asset, *extra_outputs):
+        if candidate.exists():
+            sys.exit(f"refusing to overwrite existing archive: {candidate}")
     args.out.mkdir(parents=True, exist_ok=True)
     root = Path(__file__).resolve().parents[1]
     spec = importlib.util.spec_from_file_location("products", root / "tools/xtask/product.py")
@@ -190,10 +202,19 @@ def main() -> int:
         materials.extend((p.relative_to(staging).as_posix(), p, False)
                          for p in sorted(staging.rglob("*"))
                          if p.is_file() and p != readme)
+        produced = [asset]
         if args.platform == "macos":
             bundle = app_bundle(binary, args.version, staging)
             if args.cli:
                 shutil.copy2(args.cli, bundle / "Contents/MacOS/joyword-cli")
+            resources = bundle / "Contents/Resources"
+            for arcname, source, _ in materials:
+                dest = resources / arcname
+                dest.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(source, dest)
+            if platform.system() == "Darwin":
+                build_macos_dmg("joyword", bundle, macos_dmg)
+                produced.append(macos_dmg)
             entries = [(p.relative_to(staging).as_posix(), p, "MacOS" in p.parts)
                        for p in sorted(bundle.rglob("*")) if p.is_file()]
             make_zip(entries + materials, asset)
@@ -207,9 +228,22 @@ def main() -> int:
             if args.cli:
                 entries.append(("joyword-cli", args.cli, True))
             make_tar_gz(entries + materials, asset)
-    sidecar = write_sidecar(asset)
-    print(asset)
-    print(sidecar)
+            make_zip(entries + materials, linux_zip)
+            produced.append(linux_zip)
+            if platform.system() == "Linux" and args.cli:
+                doc_entries = [(arcname, source) for arcname, source, _ in materials
+                               if not arcname.startswith(("share/", "assets/")) and arcname != "install-desktop.py"]
+                build_linux_deb(
+                    "joyword", args.version, args.arch, linux_deb,
+                    binary=binary, cli_binary=args.cli, doc_entries=doc_entries,
+                )
+                produced.append(linux_deb)
+    for item in produced:
+        sidecar = item.with_name(item.name + ".sha256")
+        if not sidecar.is_file():
+            sidecar = write_sidecar(item)
+        print(item)
+        print(sidecar)
     return 0
 
 

@@ -16,6 +16,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / 'tools/xtask'))
 sys.path.insert(0, str(ROOT / 'scripts'))
 from product import manifest_version, native_environment  # noqa: E402
+from package_installers import build_linux_deb, build_macos_dmg, create_tar_gz_from_directory, write_sha256_sidecar  # noqa: E402
 from product_icons import BRAND, bundle_icon, copy_logo, copy_linux_installer, linux_launcher  # noqa: E402
 
 
@@ -117,7 +118,11 @@ def main():
     name = args.name or (f'joydeck-{version}-{system}-{arch}-release' if args.release_layout else None) or output_name(version, system, arch, args.profile, before['sha256'])
     output = ROOT / 'dist/joydeck' / name
     archive = output.with_name(output.name + '.zip')
-    if output.exists() or archive.exists():
+    tar_archive = output.with_name(output.name + '.tar.gz')
+    deb_package = output.with_name(output.name + '.deb')
+    dmg_package = output.with_name(output.name + '.dmg')
+    extra_outputs = [tar_archive, deb_package] if system == 'linux' else ([dmg_package] if system == 'macos' else [])
+    if any(path.exists() for path in (output, archive, *extra_outputs)):
         raise FileExistsError(f'Existing output is preserved: {output}')
     output.mkdir(parents=True)
     if system == 'windows':
@@ -164,9 +169,12 @@ def main():
             'CFBundleExecutable': 'JoyDeck',
             'CFBundleIdentifier': 'dev.joyoffice.joydeck',
             'CFBundleName': 'JoyDeck',
+            'CFBundleDisplayName': 'JoyDeck',
+            'CFBundleShortVersionString': version,
             'CFBundleVersion': version,
             'CFBundlePackageType': 'APPL',
             'CFBundleIconFile': bundle_icon(contents, 'joydeck'),
+            'NSHighResolutionCapable': True,
             'CFBundleDocumentTypes': [{
                 'CFBundleTypeName': 'PowerPoint presentation',
                 'CFBundleTypeRole': 'Editor',
@@ -190,11 +198,37 @@ def main():
         'dependencyPackages': dependency_info['packages']}, indent=2) + '\n', encoding='utf-8')
     if before != source_snapshot():
         raise ValueError('Source changed while preparing suite metadata')
+    if system == 'macos':
+        resources = output / 'JoyDeck.app/Contents/Resources'
+        for folder in ('assets', 'licenses', 'samples'):
+            shutil.copytree(output / folder, resources / folder)
+        for meta_file in ('LICENSE', 'THIRD_PARTY-JOYDECK.md', 'README.md', 'SBOM.spdx.json', 'SOURCE-HASHES.json', 'BUILD-INFO.json', 'sbom.json'):
+            shutil.copy2(output / meta_file, resources / meta_file)
+        build_macos_dmg('joydeck', output / 'JoyDeck.app', dmg_package)
     hashes = {p.relative_to(output).as_posix(): sha256(p) for p in sorted(output.rglob('*')) if p.is_file()}
     (output / 'SHA256SUMS').write_text(''.join(f'{value}  {key}\n' for key, value in hashes.items()), encoding='utf-8')
     create_archive(output, archive)
-    archive.with_suffix('.zip.sha256').write_text(f'{sha256(archive)}  {archive.name}\n', encoding='utf-8')
+    write_sha256_sidecar(archive)
+    if system == 'linux':
+        create_tar_gz_from_directory(output, tar_archive, root_prefix=output.name)
+        write_sha256_sidecar(tar_archive)
+        doc_entries = [(name, output / name) for name in ('LICENSE', 'THIRD_PARTY-JOYDECK.md', 'README.md', 'SBOM.spdx.json', 'SOURCE-HASHES.json', 'BUILD-INFO.json', 'sbom.json')]
+        doc_entries += [(p.relative_to(output).as_posix(), p) for p in sorted((output / 'licenses').rglob('*')) if p.is_file()]
+        build_linux_deb(
+            'joydeck', version, arch, deb_package,
+            binary=output / 'joydeck', cli_binary=output / 'joydeck-cli',
+            doc_entries=doc_entries,
+        )
     report = {'directory': str(output), 'archive': str(archive), 'archive_sha256': sha256(archive), 'source_sha256': before['sha256'], 'target': target, 'profile': args.profile, 'sbom_packages': len(dependencies), 'missing_license_texts': dependency_info['missingLicenseTexts'], 'signed': False}
+    if system == 'macos' and dmg_package.is_file():
+        report['dmg'] = str(dmg_package)
+        report['dmg_sha256'] = sha256(dmg_package)
+    elif system == 'linux':
+        report['tar_gz'] = str(tar_archive)
+        report['tar_gz_sha256'] = sha256(tar_archive)
+        if deb_package.is_file():
+            report['deb'] = str(deb_package)
+            report['deb_sha256'] = sha256(deb_package)
     args.evidence.write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
     print(json.dumps(report, ensure_ascii=False))
 

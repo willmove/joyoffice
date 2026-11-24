@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-"""Verify the complete, product-specific release matrix before publication."""
+"""Verify the complete, aligned release matrix and UOS/Debian ABI contracts before publication."""
 import argparse
 import hashlib
+import io
 import json
 from pathlib import Path
 import plistlib
+import re
 import stat
 import struct
 import subprocess
@@ -23,26 +25,41 @@ TARGETS = {('linux', 'x86_64'): 'x86_64-unknown-linux-gnu',
 MATRIX = tuple(TARGETS)
 BRAND = Path(__file__).resolve().parents[1] / 'assets/brand'
 MAC_APPS = {'joyword': 'JoyWord', 'joydeck': 'JoyDeck', 'joysheet': 'Joysheet'}
+MAX_LINUX_GLIBC = (2, 28, 0)
+GLIBC_VERSION_RE = re.compile(r'^GLIBC_(\d+)\.(\d+)(?:\.(\d+))?$')
+
+
+def archive_stem(product, version, platform, arch):
+    release = '' if product == 'joyword' else '-release'
+    return f'{product}-{version}-{platform}-{arch}{release}'
 
 
 def filename(product, version, platform, arch):
-    suffix = '-release.zip' if product in {'joydeck', 'joysheet'} else (
-        '.tar.gz' if platform == 'linux' else '.zip')
-    return f'{product}-{version}-{platform}-{arch}{suffix}'
+    stem = archive_stem(product, version, platform, arch)
+    suffix = '.tar.gz' if product == 'joyword' and platform == 'linux' else '.zip'
+    return f'{stem}{suffix}'
+
+
+def portable_filenames(product, version, platform, arch):
+    stem = archive_stem(product, version, platform, arch)
+    if platform == 'linux':
+        primary = f'{stem}.tar.gz' if product == 'joyword' else f'{stem}.zip'
+        secondary = f'{stem}.zip' if product == 'joyword' else f'{stem}.tar.gz'
+        return (primary, secondary)
+    return (f'{stem}.zip',)
 
 
 def installer_filename(product, version, platform, arch):
-    if product != 'joysheet' and platform != 'windows':
-        raise ValueError('Only JoySheet has macOS/Linux installers')
+    stem = archive_stem(product, version, platform, arch)
     suffix = {'windows': '-setup.exe', 'macos': '.dmg', 'linux': '.deb'}[platform]
-    release = '' if product == 'joyword' else '-release'
-    return f'{product}-{version}-{platform}-{arch}{release}{suffix}'
+    return f'{stem}{suffix}'
 
 
 def expected_files(product, version):
-    assets = [filename(product, version, *pair) for pair in MATRIX]
-    assets += [installer_filename(product, version, *pair) for pair in MATRIX
-               if product == 'joysheet' or pair[0] == 'windows']
+    assets = []
+    for pair in MATRIX:
+        assets.extend(portable_filenames(product, version, *pair))
+        assets.append(installer_filename(product, version, *pair))
     return set(assets + [name + '.sha256' for name in assets])
 
 
@@ -67,6 +84,65 @@ def executable_header(stream, platform, arch):
                 valid = pe == b'PE\0\0' + struct.pack('<H', machine)
     if not valid:
         raise ValueError(f'invalid {platform} {arch} executable header')
+
+
+def elf_glibc_versions(data):
+    """Return all GLIBC_* symbol version requirements recorded in a 64-bit little-endian ELF."""
+    if len(data) < 64 or data[:6] != b'\x7fELF\x02\x01':
+        return []
+    e_shoff = struct.unpack_from('<Q', data, 40)[0]
+    e_shentsize, e_shnum = struct.unpack_from('<HH', data, 58)
+    if e_shoff == 0 or e_shnum == 0 or e_shentsize < 64:
+        return []
+    if e_shoff + e_shentsize * e_shnum > len(data):
+        return []
+    sections = []
+    for index in range(e_shnum):
+        offset = e_shoff + index * e_shentsize
+        sh_type = struct.unpack_from('<I', data, offset + 4)[0]
+        sh_offset, sh_size = struct.unpack_from('<QQ', data, offset + 24)
+        sh_link = struct.unpack_from('<I', data, offset + 40)[0]
+        sections.append((sh_type, sh_offset, sh_size, sh_link))
+    versions = set()
+    for sh_type, sh_offset, sh_size, sh_link in sections:
+        if sh_type != 0x6ffffffe or sh_link >= len(sections):  # SHT_GNU_verneed
+            continue
+        _, str_offset, str_size, _ = sections[sh_link]
+        if sh_offset + sh_size > len(data) or str_offset + str_size > len(data):
+            continue
+        strtab = data[str_offset:str_offset + str_size]
+        pos = sh_offset
+        end = sh_offset + sh_size
+        while pos + 16 <= end:
+            vn_cnt, _vn_file, vn_aux, vn_next = struct.unpack_from('<HIII', data, pos + 2)
+            aux_pos = pos + vn_aux
+            for _ in range(vn_cnt):
+                if aux_pos + 16 > end:
+                    break
+                vna_name, vna_next = struct.unpack_from('<II', data, aux_pos + 8)
+                if vna_name < len(strtab):
+                    nul = strtab.find(b'\0', vna_name)
+                    name = strtab[vna_name:nul if nul != -1 else len(strtab)].decode('ascii', errors='ignore')
+                    if GLIBC_VERSION_RE.match(name):
+                        versions.add(name)
+                if vna_next == 0:
+                    break
+                aux_pos += vna_next
+            if vn_next == 0:
+                break
+            pos += vn_next
+    return sorted(versions)
+
+
+def check_linux_glibc_versions(data, label, max_version=MAX_LINUX_GLIBC):
+    for name in elf_glibc_versions(data):
+        match = GLIBC_VERSION_RE.match(name)
+        if not match:
+            continue
+        parsed = (int(match[1]), int(match[2]), int(match[3] or 0))
+        if parsed > max_version:
+            limit = f'GLIBC_{max_version[0]}.{max_version[1]}'
+            raise ValueError(f'{label}: requires {name}, exceeding UOS baseline {limit}')
 
 
 def validate_members(members, is_zip, root, platform):
@@ -120,7 +196,8 @@ def verify_archive(path, product, version, platform, arch):
         names = [item.filename if is_zip else item.name for item in members]
         if len(names) != len(set(names)):
             raise ValueError(f'{path.name}: duplicate archive entries')
-        root = path.name[:-4] + '/' if product in {'joydeck', 'joysheet'} else ''
+        stem = path.name[:-7] if path.name.endswith('.tar.gz') else path.name[:-4]
+        root = stem + '/' if product in {'joydeck', 'joysheet'} else ''
         validate_members(members, is_zip, root, platform)
         index = dict(zip(names, members))
 
@@ -153,7 +230,12 @@ def verify_archive(path, product, version, platform, arch):
                                 root + 'Joysheet.app/Contents/MacOS/joysheet-cli']
         for name in executables:
             with read_file(name) as stream:
-                executable_header(stream, platform, arch)
+                if platform == 'linux':
+                    payload = stream.read()
+                    executable_header(io.BytesIO(payload), platform, arch)
+                    check_linux_glibc_versions(payload, f'{path.name}:{name}')
+                else:
+                    executable_header(stream, platform, arch)
             if platform != 'windows':
                 item = index[name]
                 mode = (item.external_attr >> 16) if is_zip else item.mode
@@ -200,6 +282,59 @@ def verify_branding(read_file, root, product, platform):
                 raise ValueError(f'Incorrect desktop icon or launcher reference: {desktop}')
 
 
+def verify_deb(path, product, version, arch):
+    """Verify Debian metadata, xz/gz compatibility (for UOS 20 dpkg 1.19), icons, and ELF ABI."""
+    members = subprocess.check_output(['ar', 't', str(path)], text=True).splitlines()
+    if any(name.endswith('.zst') for name in members):
+        raise ValueError(f'{path.name}: zstd-compressed Debian members are incompatible with UOS 20 dpkg')
+    if not any(name in ('data.tar.xz', 'data.tar.gz') for name in members):
+        raise ValueError(f'{path.name}: missing xz/gz data tarball')
+    control = subprocess.check_output(['dpkg-deb', '--field', str(path)], text=True)
+    fields = {}
+    for line in control.splitlines():
+        if ':' in line and not line[0].isspace():
+            key, value = line.split(':', 1)
+            fields[key.strip()] = value.strip()
+    deb_arch = {'x86_64': 'amd64', 'aarch64': 'arm64'}[arch]
+    if (fields.get('Package') != product or fields.get('Version') != version
+            or fields.get('Architecture') != deb_arch):
+        raise ValueError(f'{path.name}: inconsistent Debian package metadata')
+    depends = fields.get('Depends', '')
+    if 'libssl3t64' in depends or 'libc6 (>= 2.39)' in depends or 'libc6 (>= 2.28)' not in depends:
+        raise ValueError(f'{path.name}: Debian Depends incompatible with UOS 20/25: {depends}')
+    raw_tar = subprocess.check_output(['dpkg-deb', '--fsys-tarfile', str(path)])
+    logo = f'{product}.svg'
+    expected_svg = (BRAND / logo).read_bytes()
+    seen = set()
+    with tarfile.open(fileobj=io.BytesIO(raw_tar), mode='r:') as archive:
+        for item in archive.getmembers():
+            name = item.name.lstrip('./')
+            if name in (f'usr/bin/{product}', f'usr/bin/{product}-cli'):
+                if not item.isfile() or not (item.mode & 0o111):
+                    raise ValueError(f'{path.name}: non-executable binary {name}')
+                payload = archive.extractfile(item).read()
+                executable_header(io.BytesIO(payload), 'linux', arch)
+                check_linux_glibc_versions(payload, f'{path.name}:{name}')
+                seen.add(name)
+            elif name == f'usr/share/icons/hicolor/scalable/apps/{logo}':
+                if archive.extractfile(item).read() != expected_svg:
+                    raise ValueError(f'{path.name}: incorrect product icon {name}')
+                seen.add('icon')
+            elif name == f'usr/share/applications/{product}.desktop':
+                lines = archive.extractfile(item).read().decode('utf-8').splitlines()
+                required = {
+                    f'Icon=/usr/share/icons/hicolor/scalable/apps/{logo}',
+                    f'Exec={product} %f',
+                    f'StartupWMClass={product}',
+                }
+                if not required.issubset(lines):
+                    raise ValueError(f'{path.name}: incorrect desktop launcher {name}')
+                seen.add('desktop')
+    missing = {f'usr/bin/{product}', f'usr/bin/{product}-cli', 'icon', 'desktop'} - seen
+    if missing:
+        raise ValueError(f'{path.name}: missing Debian payload entries: {sorted(missing)}')
+
+
 def digest_file(path):
     with path.open('rb') as stream:
         return hashlib.file_digest(stream, 'sha256').hexdigest()
@@ -210,10 +345,7 @@ def prepare_installer(directory, product, version, platform, arch):
     if platform == 'macos':
         subprocess.run(['hdiutil', 'verify', str(path)], check=True)
     elif platform == 'linux':
-        control = subprocess.check_output(['dpkg-deb', '--field', str(path)], text=True)
-        deb_arch = {'x86_64': 'amd64', 'aarch64': 'arm64'}[arch]
-        if not {'Package: joysheet', f'Version: {version}', f'Architecture: {deb_arch}'}.issubset(control.splitlines()):
-            raise ValueError(f'{path.name}: inconsistent Debian package metadata')
+        verify_deb(path, product, version, arch)
     else:
         # NSIS uses a 32-bit bootstrapper for both payload architectures.
         with path.open('rb') as stream:
@@ -237,9 +369,10 @@ def verify_assets(directory, product, version):
             raise ValueError(f'{path.name}: SHA-256 sidecar does not match')
         print(f'Verified checksum for {path.name}: {digest}')
     for platform, arch in MATRIX:
-        path = directory / filename(product, version, platform, arch)
-        verify_archive(path, product, version, platform, arch)
-        print(f'Verified archive contents for {path.name}')
+        for name in portable_filenames(product, version, platform, arch):
+            path = directory / name
+            verify_archive(path, product, version, platform, arch)
+            print(f'Verified archive contents for {path.name}')
 
 
 def main():
@@ -251,8 +384,8 @@ def main():
     args = parser.parse_args()
     if args.prepare_installer:
         pair = tuple(args.prepare_installer)
-        if pair not in MATRIX or (args.product != 'joysheet' and pair[0] != 'windows'):
-            parser.error('Installer preparation requires a supported product/platform/architecture')
+        if pair not in MATRIX:
+            parser.error('Installer preparation requires a supported platform/architecture')
         prepare_installer(args.directory, args.product, args.version, *pair)
     else:
         verify_assets(args.directory, args.product, args.version)

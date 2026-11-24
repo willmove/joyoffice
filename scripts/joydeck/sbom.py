@@ -90,7 +90,8 @@ def source_hashes(data, packages, reached):
     for product in {packages[i]['name'] for i in reached} & {'joyword', 'joydeck', 'joysheet'}:
         files.update(ROOT / 'assets/brand' / f'{product}.{extension}' for extension in ('svg', 'ico', 'icns'))
         files.update(ROOT / 'scripts' / script for script in
-                     ('product_icons.py', 'generate_product_icons.py', 'install_linux_desktop.py'))
+                     ('product_icons.py', 'generate_product_icons.py', 'install_linux_desktop.py',
+                      'package_installers.py'))
         files.update(ROOT / name for name in ('scripts/package_windows.py',
                      'scripts/windows/joyoffice.nsi', 'scripts/verify_release_assets.py',
                      'licenses/joyoffice/MSVC-RUNTIME-NOTICE.txt'))

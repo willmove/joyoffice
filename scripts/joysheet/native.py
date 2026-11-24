@@ -6,8 +6,12 @@ import platform
 import plistlib
 import shutil
 import subprocess
+import sys
 
-from project import run
+from project import ROOT, run
+if str(ROOT / "scripts") not in sys.path:
+    sys.path.insert(0, str(ROOT / "scripts"))
+from package_installers import build_macos_dmg, deb_control
 from product_icons import bundle_icon, copy_linux_installer, linux_launcher
 
 
@@ -43,14 +47,8 @@ def bundle(directory, version):
                           "CFBundleDocumentTypes": [{"CFBundleTypeName": "Spreadsheet workbook",
                               "CFBundleTypeRole": "Editor", "LSHandlerRank": "Alternate",
                               "CFBundleTypeExtensions": ["xlsx", "xls", "xlsb", "ods", "csv", "tsv"]}]}, output)
-        identity = os.environ.get("JOYSHEET_MAC_SIGN_IDENTITY", "-")
-        run(["codesign", "--force", "--deep", "--sign", identity,
-             *(["--options", "runtime", "--timestamp"] if identity != "-" else []), str(app.parent)])
         image = directory.parent / (directory.name + ".dmg")
-        run(["hdiutil", "create", "-ov", "-format", "UDZO", "-volname", "Joysheet", "-srcfolder", str(app.parent), str(image)])
-        if os.environ.get("JOYSHEET_NOTARY_PROFILE"):
-            run(["xcrun", "notarytool", "submit", str(image), "--keychain-profile", os.environ["JOYSHEET_NOTARY_PROFILE"], "--wait"])
-            run(["xcrun", "stapler", "staple", str(image)])
+        build_macos_dmg("joysheet", app.parent, image, runner=run)
     elif system == "Linux":
         linux_launcher(directory, "joysheet")
         copy_linux_installer(directory)
@@ -61,9 +59,14 @@ def bundle(directory, version):
             binaries.mkdir(parents=True)
             for name in ("joysheet", "joysheet-cli"):
                 shutil.copy2(directory / name, binaries / name)
+                (binaries / name).chmod(0o755)
             licenses = stage / "usr/share/doc/joysheet/licenses"
             shutil.copytree(directory / "dependency-licenses", licenses)
             shutil.copy2(directory / "LICENSE-JOYOFFICE", licenses / "LICENSE-JOYOFFICE")
+            for meta in ("LICENSE-MIT", "LICENSE-APACHE", "NOTICE", "ATTRIBUTION.md",
+                         "SBOM.spdx.json", "BUILD-INFO.json", "SOURCE-HASHES.json"):
+                if (directory / meta).is_file():
+                    shutil.copy2(directory / meta, stage / "usr/share/doc/joysheet" / meta)
             desktop, icon = linux_launcher(stage / "usr", "joysheet", system_install=stage == deb)
             if stage == app:
                 shutil.copy2(desktop, app / desktop.name)
@@ -74,9 +77,11 @@ def bundle(directory, version):
         launcher.chmod(0o755)
         control = deb / "DEBIAN/control"
         control.parent.mkdir()
-        architecture = {"x86_64": "amd64", "aarch64": "arm64"}[target.split("-", 1)[0]]
-        control.write_text(f"Package: joysheet\nVersion: {version}\nArchitecture: {architecture}\nMaintainer: Joysheet contributors\nSection: editors\nPriority: optional\nDepends: libc6 (>= 2.39), libfontconfig1, libx11-xcb1, libxkbcommon-x11-0, libssl3t64, libvulkan1, libwayland-client0, libzstd1, poppler-utils, xdg-utils\nDescription: JoySheet desktop spreadsheet editor\n", encoding="utf-8")
-        run(["dpkg-deb", "--build", "--root-owner-group", str(deb), str(directory.parent / (directory.name + ".deb"))])
+        control.parent.chmod(0o755)
+        arch = target.split("-", 1)[0]
+        control.write_text(deb_control("joysheet", version, arch), encoding="utf-8", newline="\n")
+        control.chmod(0o644)
+        run(["dpkg-deb", "-Zxz", "--build", "--root-owner-group", str(deb), str(directory.parent / (directory.name + ".deb"))])
         run(["tar", "-czf", str(directory.parent / (directory.name + "-appdir.tar.gz")), "-C", str(directory), "Joysheet.AppDir"])
     else:
         raise ValueError("Unsupported native platform: " + system)

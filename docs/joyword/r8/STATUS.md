@@ -1,5 +1,7 @@
 # JoyWord 宿主任务状态
 
+2026-11-24：工作区与内部精确版本约束统一为 0.3.0；拉齐三产品全六平台发布包格式（新增 macOS DMG、Linux DEB 与 Linux ZIP），Linux x86_64/ARM64 切换至 Debian 10（glibc 2.28）基线与 xz 压缩 DEB 以兼容 UOS 20/25（含 ARM64）。[发布规则与平台扩展](../../joyoffice/RELEASE-PLATFORMS.md)
+
 2026-11-23 UOS 25 x86_64：源码 `22036e02` 的产品检查 **4,211 通过、2 项既有忽略、0 失败**，fmt、严格 Clippy 与 Debug 桌面／CLI 构建通过。分节边界／绘图重锚 14 步与完整分页对照、69 页两版 PDF 像素及 DOCX 读回、原生插入／撤销／重做均通过；校对 485、规则 12、语言包存储 22 项及实际安装／替换／卸载和固定发行荷兰语包通过。六应用依赖闭包无 `craft-*`；默认搜狗中文模式的选词、取消、历史及保存重开通过。旧功能、正式打印、完整平台与发行矩阵保持开放。[本轮证据](../../joyoffice/validation/20261123-uos-refactor/README.md)
 
 2026-11-17 UOS Desktop 25 Professional x86_64：在 X11／DDE、125% 缩放的当前源码 Debug 构建上，中文路径打开、系统合成键鼠编辑与撤销重做、查找、普通保存重开、中文模板创建及居中未保存弹框的取消／保存／放弃均通过，DOCX 独立读回一致。DDE 原生另存可打开，但点击保存后 60 秒仍无目标文件，单列失败；搜狗／Fcitx5 拼音直通且无候选，系统 IME 仍未通过。产品 check 为 1,937 通过、1 项既有 Page Up 导航失败并提前停止，UI 31 项另行通过；上述结果不关闭 Linux 全平台或 R8 父任务。[本轮三产品证据与边界](../../joyoffice/validation/20261117-uos-desktop/README.md)

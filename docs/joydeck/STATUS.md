@@ -1,5 +1,7 @@
 # JoyDeck 当前状态
 
+2026-11-24：工作区与内部精确版本约束统一为 0.3.0；拉齐三产品全六平台发布包格式（Windows EXE/ZIP、macOS DMG/ZIP、Linux DEB/TAR.GZ/ZIP），Linux x86_64/ARM64 切换至 Debian 10（glibc 2.28）基线与 xz 压缩 DEB 以兼容 UOS 20/25（含 ARM64）。[发布规则与平台扩展](../joyoffice/RELEASE-PLATFORMS.md)
+
 2026-11-24 Windows 11 x64：放映 GPU 合成沿用 CPU 的像素覆盖规则，按图层顺序在计算着色器中合成，并保留每层 8 位舍入。Intel Arc 140T 的 Vulkan 与 DX12、NVIDIA RTX 5060 Laptop 的 Vulkan 均通过 64×36 和 193×109 的 925 帧矩阵。Intel Vulkan 另通过 321×181 矩阵。合计 6,475 帧最大通道差 1，起止帧逐字节相同，336 次缺失图层检查也在门槛内。Intel Vulkan 实屏确认立方体和轨道转场中间帧、终态和退出，绘制尺寸为 3200×1801。GPU 几何超预算或设备不可用时继续走 CPU 回退。本轮结果覆盖 Windows Debug 构建，Release 性能和其他平台的计算着色器后端仍待复测。
 
 2026-11-23 UOS 25 x86_64：源码 `22036e02` 的产品检查 **1,041 通过、0 失败**，fmt、严格 Clippy 与 Debug validation 桌面／CLI 构建通过。Radeon 890M Vulkan 两尺寸 1,850 帧满足现有门槛（最大通道差 2、端点完全一致）；剩余 17 类／48 选项的 192 组两版 PPTX 往返通过，四种转场在真实窗口与 CPU 回退对照通过。默认搜狗中文模式的备注选词／取消／撤销／保存重开及文件页原生另存、取消重试和过时结果拒绝通过。本机 Ctrl+Shift+S 被外部全局热键截获，首测和修正单列。JD-802/803/804 与完整界面／旧功能验收保持开放。[本轮证据](../joyoffice/validation/20261123-uos-refactor/README.md)
