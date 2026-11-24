@@ -622,6 +622,14 @@ impl JoyWord {
             return;
         };
         let tr = |zh, en| self.shell.tr(zh, en);
+        let suggestions = result["suggestions"]
+            .as_array()
+            .filter(|_| id == "review.spelling")
+            .into_iter()
+            .flatten()
+            .filter_map(Value::as_str)
+            .map(str::to_owned)
+            .collect::<Vec<_>>();
         let (title, rows) = match id {
             "review.wordCount" => (
                 tr("字数统计", "Word Count"),
@@ -671,43 +679,89 @@ impl JoyWord {
                         ),
                         (
                             tr("建议", "Suggestions"),
-                            review_suggestions(
-                                &result["suggestions"],
-                                tr("没有建议", "No suggestions"),
-                            ),
+                            if suggestions.is_empty() {
+                                tr("没有建议", "No suggestions").into()
+                            } else {
+                                String::new()
+                            },
                         ),
                     ]
                 },
             ),
         };
+        let target = self.canvas.reader.as_ref().map(|reader| {
+            let engine = reader.engine();
+            (
+                engine.document_id(),
+                engine.rev(),
+                reader.presentation_revision(),
+                engine.sel.clone(),
+            )
+        });
+        let owner = cx.weak_entity();
         w.open_dialog(cx, move |dialog, _, _| {
-            dialog
-                .title(title)
-                .width(px(390.))
-                .child(
-                    div()
-                        .flex()
-                        .flex_col()
-                        .gap_2()
-                        .children(rows.iter().enumerate().map(|(index, (label, value))| {
-                            let text: SharedString = if label.is_empty() {
-                                value.clone()
-                            } else {
-                                format!("{label} {value}")
-                            }
-                            .into();
-                            div()
-                                .id(("proofing-result", index))
-                                .role(gpui::accesskit::Role::Label)
-                                .aria_label(text.clone())
-                                .aria_value(text)
-                                .flex()
-                                .justify_between()
-                                .gap_3()
-                                .child(*label)
-                                .child(value.clone())
-                        })),
-                )
+            dialog.title(title).width(px(390.)).child(
+                div()
+                    .flex()
+                    .flex_col()
+                    .gap_2()
+                    .children(rows.iter().enumerate().map(|(index, (label, value))| {
+                        let text: SharedString = if label.is_empty() {
+                            value.clone()
+                        } else {
+                            format!("{label} {value}")
+                        }
+                        .into();
+                        div()
+                            .id(("proofing-result", index))
+                            .role(gpui::accesskit::Role::Label)
+                            .aria_label(text.clone())
+                            .aria_value(text)
+                            .flex()
+                            .justify_between()
+                            .gap_3()
+                            .child(*label)
+                            .child(value.clone())
+                    }))
+                    .children(suggestions.iter().enumerate().map(|(index, suggestion)| {
+                        let owner = owner.clone();
+                        let target = target.clone();
+                        let suggestion = suggestion.clone();
+                        Button::new(("proofing-suggestion", index))
+                            .ghost()
+                            .label(suggestion.clone())
+                            .on_click(move |_, w, cx| {
+                                let _ = owner.update(cx, |view, cx| {
+                                    let is_current =
+                                        view.canvas.reader.as_ref().is_some_and(|reader| {
+                                            let engine = reader.engine();
+                                            target.as_ref().is_some_and(
+                                                |(doc, rev, presentation, selection)| {
+                                                    *doc == engine.document_id()
+                                                        && *rev == engine.rev()
+                                                        && *presentation
+                                                            == reader.presentation_revision()
+                                                        && *selection == engine.sel
+                                                },
+                                            )
+                                        });
+                                    if is_current
+                                        && view
+                                            .try_edit(
+                                                "review.applySuggestion",
+                                                &json!({"text": suggestion}),
+                                                w,
+                                                cx,
+                                            )
+                                            .is_ok()
+                                    {
+                                        w.close_dialog(cx);
+                                        w.focus(&view.focus, cx);
+                                    }
+                                });
+                            })
+                    })),
+            )
         });
     }
 }

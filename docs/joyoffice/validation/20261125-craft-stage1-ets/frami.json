@@ -1,0 +1,202 @@
+{
+  "igerman98": {
+    "version": "20161207",
+    "sourceSha256": "17296f03c5fea62d76ecc530ebe80f6adc430278f58d472dc1842d71612960a8"
+  },
+  "locales": {
+    "de": {
+      "upstreamRelease": "https://extensions.openoffice.org/de/projectrelease/german-de-de-frami-dictionaries-20170112.html",
+      "upstreamArchiveSha256": "af515015e306c634373b5382808a39691200de3439811d2f1502e9b91c23b46a",
+      "pinnedArchiveSha256": "861430d65af4cd3dddc8144bd9eccf1d1e5da24abc0b5d5f0f60ffac8c4c05a1",
+      "sourceNotices": {
+        "de_DE_frami/COPYING_GPLv2.txt": "e7431ac20e815b6797369e802f9e4bb1b0082485060d8b096235f035d741bd89",
+        "de_DE_frami/COPYING_GPLv3.txt": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903",
+        "de_DE_frami/de_DE_frami_README.txt": "4a11da56f07ecad662143f3c6b0124f572ddf491a4009edff95acd0b2383ba27"
+      },
+      "aff": {
+        "upstreamSha256": "089a1b446a91d51b19d9b7b9529c3d2ee48678e0443bd50e56cc9ec2155a4c38",
+        "pinnedSha256": "646bf3333ac69c23e9d794533ee5241d6f755c359e8fe10a648f87613743d594",
+        "byteIdentical": false,
+        "lineInsertions": [
+          {
+            "targetLine": 534,
+            "value": "MAP 7"
+          },
+          {
+            "targetLine": 535,
+            "value": "MAP (ss)ß"
+          },
+          {
+            "targetLine": 536,
+            "value": "MAP (ue)ü"
+          },
+          {
+            "targetLine": 537,
+            "value": "MAP (Ue)Ü"
+          },
+          {
+            "targetLine": 538,
+            "value": "MAP (oe)ö"
+          },
+          {
+            "targetLine": 539,
+            "value": "MAP (Oe)Ö"
+          },
+          {
+            "targetLine": 540,
+            "value": "MAP (ae)ä"
+          },
+          {
+            "targetLine": 541,
+            "value": "MAP (Ae)Ä"
+          }
+        ]
+      },
+      "dic": {
+        "upstreamSha256": "52d2484a70681386d979e958f2f828a976f0dcdaa680038f371bc70abcf7463a",
+        "pinnedSha256": "4ca3c958b0e5545910999bc246f668840bf8ede3df8e5e6790d05edd5a586c38",
+        "byteIdentical": false,
+        "lineInsertions": [
+          {
+            "targetLine": 74127,
+            "value": "ratenvereinbarung/Pm"
+          },
+          {
+            "targetLine": 74233,
+            "value": "Rattenvereinbarung/dSTp"
+          }
+        ]
+      },
+      "correspondingFramiBuildInputs": "OpenOffice archive contains editable release dictionaries and GPL notices. The preferred Frami word sources and conversion from the igerman98 base are still unverified."
+    },
+    "de-at": {
+      "upstreamRelease": "https://extensions.openoffice.org/en/projectrelease/german-de-frami-dictionaries-20170112.html",
+      "upstreamArchiveSha256": "778335e9f74b21b5a7f43448d5d58a40b5acdfa678a9975bf909aa54296fcf79",
+      "pinnedArchiveSha256": "70823c0a434445cb843aba72f4d70e0101d205bbb55e8ebcb98e7a09fb5de088",
+      "sourceNotices": {
+        "de_AT_frami/COPYING_GPLv2.txt": "e7431ac20e815b6797369e802f9e4bb1b0082485060d8b096235f035d741bd89",
+        "de_AT_frami/COPYING_GPLv3.txt": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903",
+        "de_AT_frami/de_AT_frami_README.txt": "4a11da56f07ecad662143f3c6b0124f572ddf491a4009edff95acd0b2383ba27"
+      },
+      "aff": {
+        "upstreamSha256": "2e1d4c4a4e73d8d0f0b1c991f94d7e01d3409bd0fcfc2410fd2043a2bd82f759",
+        "pinnedSha256": "8b428f6215e36e145626e3d150cd0ffe273e1ad9a9ec0a1bbd31ee468ee39edc",
+        "byteIdentical": false,
+        "lineInsertions": [
+          {
+            "targetLine": 534,
+            "value": "MAP 7"
+          },
+          {
+            "targetLine": 535,
+            "value": "MAP (ss)ß"
+          },
+          {
+            "targetLine": 536,
+            "value": "MAP (ue)ü"
+          },
+          {
+            "targetLine": 537,
+            "value": "MAP (Ue)Ü"
+          },
+          {
+            "targetLine": 538,
+            "value": "MAP (oe)ö"
+          },
+          {
+            "targetLine": 539,
+            "value": "MAP (Oe)Ö"
+          },
+          {
+            "targetLine": 540,
+            "value": "MAP (ae)ä"
+          },
+          {
+            "targetLine": 541,
+            "value": "MAP (Ae)Ä"
+          },
+          {
+            "targetLine": 543,
+            "value": ""
+          }
+        ]
+      },
+      "dic": {
+        "upstreamSha256": "64bb70f83280a5debbc2a68675baa6b6615b2263d4b8097eb224a48632169e06",
+        "pinnedSha256": "d821e0a5a029b66df696c982a4cd55eb792139c33716ccbde364941db2448cbb",
+        "byteIdentical": false,
+        "lineInsertions": [
+          {
+            "targetLine": 73908,
+            "value": "Rattenvereinbarung/dSTp"
+          },
+          {
+            "targetLine": 212034,
+            "value": "ratenvereinbarung/Pozm"
+          }
+        ]
+      },
+      "correspondingFramiBuildInputs": "OpenOffice archive contains editable release dictionaries and GPL notices. The preferred Frami word sources and conversion from the igerman98 base are still unverified."
+    },
+    "de-ch": {
+      "upstreamRelease": "https://extensions.openoffice.org/de/projectrelease/german-de-ch-frami-dictionaries-20170112.html",
+      "upstreamArchiveSha256": "d2e0c8c1d59e5e56c7e2580ae8ecae98094869fedc093fc8e4674cffd2b5991a",
+      "pinnedArchiveSha256": "c1242c6da8f44d2539ab5d18a23b1ce80ae527e00d7c22922bc533c98d9903f3",
+      "sourceNotices": {
+        "de_CH_frami/COPYING_GPLv2.txt": "e7431ac20e815b6797369e802f9e4bb1b0082485060d8b096235f035d741bd89",
+        "de_CH_frami/COPYING_GPLv3.txt": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903",
+        "de_CH_frami/de_CH_frami_README.txt": "4a11da56f07ecad662143f3c6b0124f572ddf491a4009edff95acd0b2383ba27"
+      },
+      "aff": {
+        "upstreamSha256": "982842d9e50abc3fafa08f4999741f717469dd907c3471d5340944d7217f10a6",
+        "pinnedSha256": "d86884be4c3f07e5e08057884856feabf2872b4e2f90a587a11376082bc4126b",
+        "byteIdentical": false,
+        "lineInsertions": [
+          {
+            "targetLine": 534,
+            "value": "MAP 7"
+          },
+          {
+            "targetLine": 535,
+            "value": "MAP (ss)ß"
+          },
+          {
+            "targetLine": 536,
+            "value": "MAP (ue)ü"
+          },
+          {
+            "targetLine": 537,
+            "value": "MAP (Ue)Ü"
+          },
+          {
+            "targetLine": 538,
+            "value": "MAP (oe)ö"
+          },
+          {
+            "targetLine": 539,
+            "value": "MAP (Oe)Ö"
+          },
+          {
+            "targetLine": 540,
+            "value": "MAP (ae)ä"
+          },
+          {
+            "targetLine": 541,
+            "value": "MAP (Ae)Ä"
+          },
+          {
+            "targetLine": 543,
+            "value": ""
+          }
+        ]
+      },
+      "dic": {
+        "upstreamSha256": "80a4df38cdc3e16d2f042f8eba4a99668ab9c075662e4262c62f8bba46c7bd16",
+        "pinnedSha256": "80a4df38cdc3e16d2f042f8eba4a99668ab9c075662e4262c62f8bba46c7bd16",
+        "byteIdentical": true,
+        "lineInsertions": []
+      },
+      "correspondingFramiBuildInputs": "OpenOffice archive contains editable release dictionaries and GPL notices. The preferred Frami word sources and conversion from the igerman98 base are still unverified."
+    }
+  }
+}

@@ -107,16 +107,33 @@ fn straight_line_forecasts_exactly() {
 fn seasonal_series_is_detected_and_continued() {
     let ys = seasonal(24);
     let ts = timeline(24);
-    close(ev("FORECAST.ETS.SEASONALITY", vec![range(&ys), range(&ts)]), 4.0);
+    close(ev("FORECAST.ETS.SEASONALITY", vec![range(&ys), range(&ts)]), 2.0);
+    let quarterly: Vec<f64> = (0..24).map(|i| 15.0 + i as f64 + [0.0, 6.0, 0.0, -6.0][i % 4]).collect();
+    close(ev("FORECAST.ETS.SEASONALITY", vec![range(&quarterly), range(&ts)]), 4.0);
     // t = 27 is the third position of the pattern: 3 + 54 + 7.
-    close_tol(ev("FORECAST.ETS", vec![n(27.0), range(&ys), range(&ts)]), 64.0, 1e-7);
+    close_tol(ev("FORECAST.ETS", vec![n(27.0), range(&ys), range(&ts), n(4.0)]), 64.0, 1e-7);
     close_tol(ev("FORECAST.ETS", vec![n(28.0), range(&ys), range(&ts), n(4.0)]), 50.0, 1e-7);
+    close_tol(ev("FORECAST.ETS", vec![n(1.5), range(&ys), range(&ts), n(4.0)]), -0.5, 1e-9);
     // Timeline order does not matter.
     let mut rev_y = ys.clone();
     let mut rev_t = ts.clone();
     rev_y.reverse();
     rev_t.reverse();
-    close_tol(ev("FORECAST.ETS", vec![n(27.0), range(&rev_y), range(&rev_t)]), 64.0, 1e-7);
+    close_tol(ev("FORECAST.ETS", vec![n(27.0), range(&rev_y), range(&rev_t), n(4.0)]), 64.0, 1e-7);
+}
+
+#[test]
+fn noisy_seasonal_fit_matches_excel_point_interval_and_tail_statistics() {
+    let ys: Vec<_> = (0..24).map(|i| 31.0 + i as f64 + [8.0, -3.0, 4.0, -9.0][i % 4]).collect();
+    let ts = timeline(ys.len());
+    for (season, expected_forecast, expected_width, expected_rmse) in [
+        (0.0, 60.107_258_994_727_395, 15.480_352_557_480_712, 7.234_601_607_819_641),
+        (1.0, 67.579_050_511_087_6, 5.769_530_517_856_079, 2.756_555_295_532_11),
+    ] {
+        close(ev("FORECAST.ETS", vec![n(33.0), range(&ys), range(&ts), n(season)]), expected_forecast);
+        close(ev("FORECAST.ETS.CONFINT", vec![n(33.0), range(&ys), range(&ts), n(0.95), n(season)]), expected_width);
+        close(ev("FORECAST.ETS.STAT", vec![range(&ys), range(&ts), n(7.0), n(season)]), expected_rmse);
+    }
 }
 
 #[test]

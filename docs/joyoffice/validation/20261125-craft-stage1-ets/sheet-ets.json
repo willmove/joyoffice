@@ -1,0 +1,628 @@
+{
+  "excel": "16.0.20625.20108",
+  "baseline": "14cbb296",
+  "prior": "4b7d3711",
+  "suites": {
+    "auto": {
+      "sourceSha256": "c1b63d171bec983c2aac2dbe3672407f73ba190a660eb3619b3564c7df84ebe4",
+      "excelSha256": "8324375ca3b93019180f3b4dc8b2ca0f53b60a67ddbd60ab1ab0a7335017edfe",
+      "dateSystem": "1900",
+      "cases": 174,
+      "binarySha256": {
+        "frozen": "d2f55cf2cc07a7f89e84b576b2f18ad1e097b47bab94790268183281e97deec5",
+        "prior": "9b8d6799f798cd854048f10dfc08f8993173711edfcf244213b681dca4c01b09",
+        "candidate": "150780e491b11bcb8e678de49fde8ad64f6af069ff5a300ebcd1a44f9f2647b0"
+      },
+      "differencesByFunction": {
+        "frozen": {
+          "FORECAST.ETS.SEASONALITY": 66
+        },
+        "prior": {
+          "FORECAST.ETS.SEASONALITY": 66
+        },
+        "candidate": {
+          "FORECAST.ETS.SEASONALITY": 21
+        }
+      },
+      "resolved": 45,
+      "newDifferences": [],
+      "crossVersionReadbacks": 4
+    },
+    "ets-fractional-1900": {
+      "sourceSha256": "ebd2a2984966c3176994f43e59b0bf87157be30e4b5036561edde3d206e8ea3b",
+      "excelSha256": "57dcee3825ea67a2bd31bc709df6c0934117afccab6a480140027a1b7aebea52",
+      "dateSystem": "1900",
+      "cases": 202,
+      "binarySha256": {
+        "frozen": "d2f55cf2cc07a7f89e84b576b2f18ad1e097b47bab94790268183281e97deec5",
+        "prior": "9b8d6799f798cd854048f10dfc08f8993173711edfcf244213b681dca4c01b09",
+        "candidate": "150780e491b11bcb8e678de49fde8ad64f6af069ff5a300ebcd1a44f9f2647b0"
+      },
+      "differencesByFunction": {
+        "frozen": {
+          "FORECAST.ETS.CONFINT": 163
+        },
+        "prior": {
+          "FORECAST.ETS.CONFINT": 84
+        },
+        "candidate": {}
+      },
+      "resolved": 84,
+      "newDifferences": [],
+      "crossVersionReadbacks": 4
+    },
+    "ets-fractional-1904": {
+      "sourceSha256": "60c68c1706852bd83985ed67c7f9348586084a34fa22f8af3331dfc261fe8427",
+      "excelSha256": "bac5e88aadbdfb77edef4e24f77963852632e5534c3763dca646b272d10a0530",
+      "dateSystem": "1904",
+      "cases": 202,
+      "binarySha256": {
+        "frozen": "d2f55cf2cc07a7f89e84b576b2f18ad1e097b47bab94790268183281e97deec5",
+        "prior": "9b8d6799f798cd854048f10dfc08f8993173711edfcf244213b681dca4c01b09",
+        "candidate": "150780e491b11bcb8e678de49fde8ad64f6af069ff5a300ebcd1a44f9f2647b0"
+      },
+      "differencesByFunction": {
+        "frozen": {
+          "FORECAST.ETS.CONFINT": 163
+        },
+        "prior": {
+          "FORECAST.ETS.CONFINT": 84
+        },
+        "candidate": {}
+      },
+      "resolved": 84,
+      "newDifferences": [],
+      "crossVersionReadbacks": 4
+    },
+    "ets-model-1900": {
+      "sourceSha256": "e2c49ca5bacc5d7dcb6d682a698d4f0ac323f93ab10cca078409de1dd9ef606e",
+      "excelSha256": "c0d403e7839d264fb704e09e1f4087b869ee6f463be8792dd7c053fc488254d1",
+      "dateSystem": "1900",
+      "cases": 366,
+      "binarySha256": {
+        "frozen": "d2f55cf2cc07a7f89e84b576b2f18ad1e097b47bab94790268183281e97deec5",
+        "prior": "9b8d6799f798cd854048f10dfc08f8993173711edfcf244213b681dca4c01b09",
+        "candidate": "150780e491b11bcb8e678de49fde8ad64f6af069ff5a300ebcd1a44f9f2647b0"
+      },
+      "differencesByFunction": {
+        "frozen": {
+          "FORECAST.ETS.STAT": 264,
+          "FORECAST.ETS.CONFINT": 22
+        },
+        "prior": {
+          "FORECAST.ETS.STAT": 175,
+          "FORECAST.ETS.CONFINT": 14
+        },
+        "candidate": {
+          "FORECAST.ETS.STAT": 112
+        }
+      },
+      "resolved": 77,
+      "newDifferences": [],
+      "crossVersionReadbacks": 4
+    },
+    "ets-model-1904": {
+      "sourceSha256": "d95ae9dea8e279021c16c97d242d963d3543f1be1d1d6913000208f864aeb403",
+      "excelSha256": "ea6832d63988a3c7ef8d3c769143dbace4e0660d1441b13047680891bd781b3f",
+      "dateSystem": "1904",
+      "cases": 366,
+      "binarySha256": {
+        "frozen": "d2f55cf2cc07a7f89e84b576b2f18ad1e097b47bab94790268183281e97deec5",
+        "prior": "9b8d6799f798cd854048f10dfc08f8993173711edfcf244213b681dca4c01b09",
+        "candidate": "150780e491b11bcb8e678de49fde8ad64f6af069ff5a300ebcd1a44f9f2647b0"
+      },
+      "differencesByFunction": {
+        "frozen": {
+          "FORECAST.ETS.STAT": 264,
+          "FORECAST.ETS.CONFINT": 22
+        },
+        "prior": {
+          "FORECAST.ETS.STAT": 175,
+          "FORECAST.ETS.CONFINT": 14
+        },
+        "candidate": {
+          "FORECAST.ETS.STAT": 112
+        }
+      },
+      "resolved": 77,
+      "newDifferences": [],
+      "crossVersionReadbacks": 4
+    },
+    "fit-1900": {
+      "sourceSha256": "dde9bda063ac44c83eba418c2886f4417d507b1edbdc6c39df1b5367d723eca1",
+      "excelSha256": "da497b424e4255cffd244b09694bb86bf050244fced349596c21f897e16fba60",
+      "dateSystem": "1900",
+      "cases": 1125,
+      "binarySha256": {
+        "frozen": "d2f55cf2cc07a7f89e84b576b2f18ad1e097b47bab94790268183281e97deec5",
+        "prior": "9b8d6799f798cd854048f10dfc08f8993173711edfcf244213b681dca4c01b09",
+        "candidate": "150780e491b11bcb8e678de49fde8ad64f6af069ff5a300ebcd1a44f9f2647b0"
+      },
+      "differencesByFunction": {
+        "frozen": {
+          "FORECAST.ETS.STAT": 488,
+          "FORECAST.ETS": 383,
+          "FORECAST.ETS.CONFINT": 160
+        },
+        "prior": {
+          "FORECAST.ETS.STAT": 488,
+          "FORECAST.ETS": 381,
+          "FORECAST.ETS.CONFINT": 160
+        },
+        "candidate": {
+          "FORECAST.ETS.STAT": 94,
+          "FORECAST.ETS": 84,
+          "FORECAST.ETS.CONFINT": 39
+        }
+      },
+      "resolved": 812,
+      "newDifferences": [],
+      "crossVersionReadbacks": 4
+    },
+    "fit-1904": {
+      "sourceSha256": "b295ddfba7523d9dd681512f58261c3ef9dca5708810c8d61898eaeb96abf7bd",
+      "excelSha256": "af69a215063654b8a55eea3671d8611143237abfa4961facec9631552fff2036",
+      "dateSystem": "1904",
+      "cases": 1125,
+      "binarySha256": {
+        "frozen": "d2f55cf2cc07a7f89e84b576b2f18ad1e097b47bab94790268183281e97deec5",
+        "prior": "9b8d6799f798cd854048f10dfc08f8993173711edfcf244213b681dca4c01b09",
+        "candidate": "150780e491b11bcb8e678de49fde8ad64f6af069ff5a300ebcd1a44f9f2647b0"
+      },
+      "differencesByFunction": {
+        "frozen": {
+          "FORECAST.ETS.STAT": 488,
+          "FORECAST.ETS": 383,
+          "FORECAST.ETS.CONFINT": 160
+        },
+        "prior": {
+          "FORECAST.ETS.STAT": 488,
+          "FORECAST.ETS": 381,
+          "FORECAST.ETS.CONFINT": 160
+        },
+        "candidate": {
+          "FORECAST.ETS.STAT": 94,
+          "FORECAST.ETS": 84,
+          "FORECAST.ETS.CONFINT": 39
+        }
+      },
+      "resolved": 812,
+      "newDifferences": [],
+      "crossVersionReadbacks": 4
+    },
+    "historical-1900": {
+      "sourceSha256": "ed5f28f461537f58a48e80830122c74361f6834f89d2b24a994e3c8e2a8f0025",
+      "excelSha256": "fe88bc1f082be53256a11399106d0d4a9ac9cd2a7fbe032917547ab678a35707",
+      "dateSystem": "1900",
+      "cases": 243,
+      "binarySha256": {
+        "frozen": "d2f55cf2cc07a7f89e84b576b2f18ad1e097b47bab94790268183281e97deec5",
+        "prior": "9b8d6799f798cd854048f10dfc08f8993173711edfcf244213b681dca4c01b09",
+        "candidate": "150780e491b11bcb8e678de49fde8ad64f6af069ff5a300ebcd1a44f9f2647b0"
+      },
+      "differencesByFunction": {
+        "frozen": {
+          "FORECAST.ETS": 79,
+          "FORECAST.ETS.CONFINT": 8,
+          "ODDFPRICE": 35
+        },
+        "prior": {
+          "FORECAST.ETS": 54,
+          "FORECAST.ETS.CONFINT": 2
+        },
+        "candidate": {
+          "FORECAST.ETS": 1
+        }
+      },
+      "resolved": 55,
+      "newDifferences": [],
+      "crossVersionReadbacks": 4
+    },
+    "historical-1904": {
+      "sourceSha256": "e7622eaaacae128d25208aed8b61d2f12313bf5e1550dafc56751ba6740e0af6",
+      "excelSha256": "852369c3ce929bef857cb113aa95e8461df1e69a59653340cc701d0b0b22ea7e",
+      "dateSystem": "1904",
+      "cases": 243,
+      "binarySha256": {
+        "frozen": "d2f55cf2cc07a7f89e84b576b2f18ad1e097b47bab94790268183281e97deec5",
+        "prior": "9b8d6799f798cd854048f10dfc08f8993173711edfcf244213b681dca4c01b09",
+        "candidate": "150780e491b11bcb8e678de49fde8ad64f6af069ff5a300ebcd1a44f9f2647b0"
+      },
+      "differencesByFunction": {
+        "frozen": {
+          "FORECAST.ETS": 79,
+          "FORECAST.ETS.CONFINT": 8,
+          "ODDFPRICE": 38
+        },
+        "prior": {
+          "FORECAST.ETS": 54,
+          "FORECAST.ETS.CONFINT": 2
+        },
+        "candidate": {
+          "FORECAST.ETS": 1
+        }
+      },
+      "resolved": 55,
+      "newDifferences": [],
+      "crossVersionReadbacks": 4
+    },
+    "main-1900": {
+      "sourceSha256": "1279a93fde29b7a21306b7edb5e9bba4dd9ed0adbbb09c885b333f47c70905dd",
+      "excelSha256": "7ee86438c1963c6b8049865f8f89c1d42742546dbe082ed98fe2aa350b0fd72a",
+      "dateSystem": "1900",
+      "cases": 416,
+      "binarySha256": {
+        "frozen": "d2f55cf2cc07a7f89e84b576b2f18ad1e097b47bab94790268183281e97deec5",
+        "prior": "9b8d6799f798cd854048f10dfc08f8993173711edfcf244213b681dca4c01b09",
+        "candidate": "150780e491b11bcb8e678de49fde8ad64f6af069ff5a300ebcd1a44f9f2647b0"
+      },
+      "differencesByFunction": {
+        "frozen": {
+          "PV": 1,
+          "CUMIPMT": 1,
+          "CUMPRINC": 1,
+          "NPER": 2,
+          "RATE": 1,
+          "RRI": 1,
+          "XIRR": 1,
+          "COUPDAYSNC": 1,
+          "PRICEMAT": 1,
+          "YIELDMAT": 1,
+          "PRICE": 4,
+          "YIELD": 4,
+          "DURATION": 2,
+          "MDURATION": 2,
+          "ODDFPRICE": 2,
+          "ODDFYIELD": 2,
+          "ODDLPRICE": 2,
+          "ODDLYIELD": 2,
+          "FORECAST.ETS": 31,
+          "FORECAST.ETS.CONFINT": 10,
+          "FORECAST.ETS.SEASONALITY": 2,
+          "FORECAST.ETS.STAT": 27
+        },
+        "prior": {
+          "RATE": 1,
+          "XIRR": 1,
+          "FORECAST.ETS": 27,
+          "FORECAST.ETS.CONFINT": 10,
+          "FORECAST.ETS.SEASONALITY": 2,
+          "FORECAST.ETS.STAT": 22
+        },
+        "candidate": {
+          "RATE": 1,
+          "XIRR": 1,
+          "FORECAST.ETS": 1
+        }
+      },
+      "resolved": 60,
+      "newDifferences": [],
+      "resolvedRows": [
+        "G303",
+        "G304",
+        "G306",
+        "G307",
+        "G309",
+        "G310",
+        "G312",
+        "G313",
+        "G315",
+        "G316",
+        "G318",
+        "G319",
+        "G320",
+        "G321",
+        "G322",
+        "G323",
+        "G324",
+        "G325",
+        "G326",
+        "G327",
+        "G328",
+        "G329",
+        "G330",
+        "G331",
+        "G332",
+        "G335",
+        "G345",
+        "G346",
+        "G349",
+        "G350",
+        "G353",
+        "G354",
+        "G355",
+        "G357",
+        "G358",
+        "G359",
+        "G362",
+        "G363",
+        "G382",
+        "G383",
+        "G384",
+        "G385",
+        "G387",
+        "G388",
+        "G390",
+        "G392",
+        "G394",
+        "G400",
+        "G401",
+        "G402",
+        "G403",
+        "G405",
+        "G406",
+        "G407",
+        "G408",
+        "G409",
+        "G410",
+        "G411",
+        "G412",
+        "G413"
+      ],
+      "remainingRows": [
+        {
+          "cell": "G66",
+          "formula": "RATE(12,-100,1200)",
+          "excel": [
+            "n",
+            "-4.3434156497998736E-10"
+          ],
+          "frozen": [
+            "n",
+            "-1.0070079874102734E-9"
+          ],
+          "prior": [
+            "n",
+            "-1.4304372612484818E-17"
+          ],
+          "candidate": [
+            "n",
+            "-1.4304372612484818E-17"
+          ]
+        },
+        {
+          "cell": "G118",
+          "formula": "XIRR(H1:H6,I1:I6)",
+          "excel": [
+            "n",
+            "0.11035357117652894"
+          ],
+          "frozen": [
+            "n",
+            "0.11035356816902"
+          ],
+          "prior": [
+            "n",
+            "0.11035356816902"
+          ],
+          "candidate": [
+            "n",
+            "0.11035356816902"
+          ]
+        },
+        {
+          "cell": "G334",
+          "formula": "FORECAST.ETS(25,A1:A24,D1:D24,8761)",
+          "excel": [
+            "n",
+            "53"
+          ],
+          "frozen": [
+            "e",
+            "#NUM!"
+          ],
+          "prior": [
+            "e",
+            "#NUM!"
+          ],
+          "candidate": [
+            "e",
+            "#NUM!"
+          ]
+        }
+      ],
+      "crossVersionReadbacks": 4
+    },
+    "main-1904": {
+      "sourceSha256": "48728d6de736d6f082bf4aca0cffc3490a5f959c189b9a805f886fadc8d6848f",
+      "excelSha256": "fdd7e8a2b38152b36895af1ae422c3d2999cd917416c795dc47eaf22ac8244bb",
+      "dateSystem": "1904",
+      "cases": 416,
+      "binarySha256": {
+        "frozen": "d2f55cf2cc07a7f89e84b576b2f18ad1e097b47bab94790268183281e97deec5",
+        "prior": "9b8d6799f798cd854048f10dfc08f8993173711edfcf244213b681dca4c01b09",
+        "candidate": "150780e491b11bcb8e678de49fde8ad64f6af069ff5a300ebcd1a44f9f2647b0"
+      },
+      "differencesByFunction": {
+        "frozen": {
+          "PV": 1,
+          "CUMIPMT": 1,
+          "CUMPRINC": 1,
+          "NPER": 2,
+          "RATE": 1,
+          "RRI": 1,
+          "XIRR": 1,
+          "PRICEMAT": 1,
+          "YIELDMAT": 1,
+          "PRICE": 4,
+          "YIELD": 4,
+          "DURATION": 2,
+          "MDURATION": 2,
+          "ODDFPRICE": 2,
+          "ODDFYIELD": 2,
+          "ODDLPRICE": 2,
+          "ODDLYIELD": 2,
+          "FORECAST.ETS": 31,
+          "FORECAST.ETS.CONFINT": 10,
+          "FORECAST.ETS.SEASONALITY": 2,
+          "FORECAST.ETS.STAT": 27
+        },
+        "prior": {
+          "RATE": 1,
+          "XIRR": 1,
+          "FORECAST.ETS": 27,
+          "FORECAST.ETS.CONFINT": 10,
+          "FORECAST.ETS.SEASONALITY": 2,
+          "FORECAST.ETS.STAT": 22
+        },
+        "candidate": {
+          "RATE": 1,
+          "XIRR": 1,
+          "FORECAST.ETS": 1
+        }
+      },
+      "resolved": 60,
+      "newDifferences": [],
+      "resolvedRows": [
+        "G303",
+        "G304",
+        "G306",
+        "G307",
+        "G309",
+        "G310",
+        "G312",
+        "G313",
+        "G315",
+        "G316",
+        "G318",
+        "G319",
+        "G320",
+        "G321",
+        "G322",
+        "G323",
+        "G324",
+        "G325",
+        "G326",
+        "G327",
+        "G328",
+        "G329",
+        "G330",
+        "G331",
+        "G332",
+        "G335",
+        "G345",
+        "G346",
+        "G349",
+        "G350",
+        "G353",
+        "G354",
+        "G355",
+        "G357",
+        "G358",
+        "G359",
+        "G362",
+        "G363",
+        "G382",
+        "G383",
+        "G384",
+        "G385",
+        "G387",
+        "G388",
+        "G390",
+        "G392",
+        "G394",
+        "G400",
+        "G401",
+        "G402",
+        "G403",
+        "G405",
+        "G406",
+        "G407",
+        "G408",
+        "G409",
+        "G410",
+        "G411",
+        "G412",
+        "G413"
+      ],
+      "remainingRows": [
+        {
+          "cell": "G66",
+          "formula": "RATE(12,-100,1200)",
+          "excel": [
+            "n",
+            "-4.3434156497998736E-10"
+          ],
+          "frozen": [
+            "n",
+            "-1.0070079874102734E-9"
+          ],
+          "prior": [
+            "n",
+            "-1.4304372612484818E-17"
+          ],
+          "candidate": [
+            "n",
+            "-1.4304372612484818E-17"
+          ]
+        },
+        {
+          "cell": "G118",
+          "formula": "XIRR(H1:H6,I1:I6)",
+          "excel": [
+            "n",
+            "0.11035357117652894"
+          ],
+          "frozen": [
+            "n",
+            "0.11035356816902"
+          ],
+          "prior": [
+            "n",
+            "0.11035356816902"
+          ],
+          "candidate": [
+            "n",
+            "0.11035356816902"
+          ]
+        },
+        {
+          "cell": "G334",
+          "formula": "FORECAST.ETS(25,A1:A24,D1:D24,8761)",
+          "excel": [
+            "n",
+            "53"
+          ],
+          "frozen": [
+            "e",
+            "#NUM!"
+          ],
+          "prior": [
+            "e",
+            "#NUM!"
+          ],
+          "candidate": [
+            "e",
+            "#NUM!"
+          ]
+        }
+      ],
+      "crossVersionReadbacks": 4
+    },
+    "season-start-corrected": {
+      "sourceSha256": "700b5c3841c43a36c34c90c70ae770e71e8ef45c90d6d8fc8fc08e4e25295b15",
+      "excelSha256": "552f347388ac93105dbb101406cb33dea6843a9dfd8adca5db9e7515302e8ea7",
+      "dateSystem": "1900",
+      "cases": 2670,
+      "binarySha256": {
+        "frozen": "d2f55cf2cc07a7f89e84b576b2f18ad1e097b47bab94790268183281e97deec5",
+        "prior": "9b8d6799f798cd854048f10dfc08f8993173711edfcf244213b681dca4c01b09",
+        "candidate": "150780e491b11bcb8e678de49fde8ad64f6af069ff5a300ebcd1a44f9f2647b0"
+      },
+      "differencesByFunction": {
+        "frozen": {
+          "FORECAST.ETS.STAT": 945,
+          "FORECAST.ETS": 1725
+        },
+        "prior": {
+          "FORECAST.ETS.STAT": 945,
+          "FORECAST.ETS": 1725
+        },
+        "candidate": {}
+      },
+      "resolved": 2670,
+      "newDifferences": [],
+      "crossVersionReadbacks": 4
+    }
+  }
+}

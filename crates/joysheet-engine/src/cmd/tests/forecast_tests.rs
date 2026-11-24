@@ -44,11 +44,11 @@ fn forecast_sheet_builds_table_formulas_and_chart() {
     assert_eq!(formula(&s, 0, "C18"), "FORECAST.ETS(A18,$B$2:$B$17,$A$2:$A$17,1,1)");
     assert_eq!(formula(&s, 0, "D18"), "C18-FORECAST.ETS.CONFINT(A18,$B$2:$B$17,$A$2:$A$17,0.95,1,1)");
     assert_eq!(formula(&s, 0, "H2"), "FORECAST.ETS.STAT($B$2:$B$17,$A$2:$A$17,1,1,1)");
-    // Future timeline and the exact continuation of the seasonal series (t = 17 → 10 + 34 + 3).
+    // Excel 16 detects a two-step season in this series and fits the generated formula.
     assert_eq!(value(&s, 0, "A18"), Value::Number(17.0));
     assert_eq!(value(&s, 0, "A21"), Value::Number(20.0));
     let c18 = value(&s, 0, "C18").as_f64().unwrap();
-    assert!((c18 - 47.0).abs() < 1e-6, "{c18}");
+    assert!((c18 - 46.772_275_533_849_45).abs() < 1e-9, "{c18}");
     let (lo, hi) = (value(&s, 0, "D19").as_f64().unwrap(), value(&s, 0, "E19").as_f64().unwrap());
     assert!(lo <= hi);
     assert_eq!(sh.tables.first().map(|t| t.range.a1()), Some("A1:E21".into()));
@@ -129,9 +129,9 @@ fn forecast_start_hindcasts_over_the_actuals() {
     assert_eq!(value(&s, 0, "C13"), value(&s, 0, "B13"));
     assert_eq!(formula(&s, 0, "C14"), "FORECAST.ETS(A14,$B$2:$B$13,$A$2:$A$13,1,1)");
     assert_eq!(formula(&s, 0, "C19"), "FORECAST.ETS(A19,$B$2:$B$13,$A$2:$A$13,1,1)");
-    // The exact seasonal series is recovered, and the actual is still shown next to it.
+    // Excel 16 also detects two steps in the truncated history. Keep the actual next to the forecast.
     let c14 = value(&s, 0, "C14").as_f64().unwrap();
-    assert!((c14 - 39.0).abs() < 1e-6, "{c14}"); // t = 13: 10 + 26 + 3
+    assert!((c14 - 38.406_577_110_312_57).abs() < 1e-9, "{c14}");
     assert!(value(&s, 0, "B14").as_f64().is_some());
     // Start at the last point or one step later: as without forecastStart.
     for start in [json!(16), json!(17)] {

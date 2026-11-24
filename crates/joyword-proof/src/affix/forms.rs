@@ -1,7 +1,9 @@
 //! Enumerate a stem's licensed forms in the forward direction. The selected
 //! rule and its continuation stay together until the whole derivation is checked.
 use super::{AffixDict, MAX_FORMS, MAX_FORMS_WORK, MAX_WORD_BYTES, Rule, has};
-use std::borrow::Cow;
+use std::cmp::Reverse;
+use std::collections::BinaryHeap;
+use std::slice;
 
 impl AffixDict {
     /// Forms of this stem, subject to the per-stem enumeration budget.
@@ -47,31 +49,59 @@ struct Expansion<'a> {
 
 /// Merge only the rules granted by these flags, in source order. The common
 /// one-class case borrows the dictionary's already ordered list.
+enum OrderedRules<'a> {
+    Single(slice::Iter<'a, u32>),
+    Merge {
+        heads: BinaryHeap<Reverse<(u32, usize)>>,
+        tails: Vec<slice::Iter<'a, u32>>,
+    },
+}
+
+impl Iterator for OrderedRules<'_> {
+    type Item = u32;
+
+    fn next(&mut self) -> Option<u32> {
+        match self {
+            Self::Single(rules) => rules.next().copied(),
+            Self::Merge { heads, tails } => {
+                let Reverse((rule, class)) = heads.pop()?;
+                if let Some(next) = tails.get_mut(class).and_then(Iterator::next) {
+                    heads.push(Reverse((*next, class)));
+                }
+                Some(rule)
+            }
+        }
+    }
+}
+
 fn ordered<'a>(
     by_flag: &'a [Vec<u32>],
     flags: &[u16],
     budget: &mut usize,
-) -> Option<Cow<'a, [u32]>> {
+) -> Option<OrderedRules<'a>> {
     *budget = budget.checked_sub(flags.len())?;
     let mut groups = flags
         .iter()
         .map(|&f| by_flag[usize::from(f)].as_slice())
         .filter(|s| !s.is_empty());
     let Some(first) = groups.next() else {
-        return Some(Cow::Borrowed(&[]));
+        return Some(OrderedRules::Single([].iter()));
     };
     let Some(second) = groups.next() else {
-        return Some(Cow::Borrowed(first));
+        return Some(OrderedRules::Single(first.iter()));
     };
-    *budget = budget.checked_sub(first.len() + second.len())?;
-    let mut ids = Vec::from(first);
-    ids.extend_from_slice(second);
-    for group in groups {
+    let mut heads = Vec::new();
+    let mut tails = Vec::new();
+    for group in [first, second].into_iter().chain(groups) {
         *budget = budget.checked_sub(group.len())?;
-        ids.extend_from_slice(group);
+        let mut rules = group.iter();
+        heads.push(Reverse((*rules.next()?, tails.len())));
+        tails.push(rules);
     }
-    ids.sort_unstable();
-    Some(Cow::Owned(ids))
+    Some(OrderedRules::Merge {
+        heads: heads.into(),
+        tails,
+    })
 }
 
 impl Expansion<'_> {
@@ -109,7 +139,7 @@ impl Expansion<'_> {
         let Some(suffixes) = ordered(&d.sfx_by_flag, self.root_flags, &mut index_budget) else {
             return;
         };
-        for &index in suffixes.iter() {
+        for index in suffixes {
             if !self.step() {
                 return;
             }
@@ -145,7 +175,7 @@ impl Expansion<'_> {
             else {
                 return;
             };
-            for &id in suffixes.iter() {
+            for id in suffixes {
                 if !self.step() {
                     return;
                 }
@@ -159,7 +189,7 @@ impl Expansion<'_> {
             return;
         };
         let crossable: Vec<_> = first.iter().filter(|(_, s)| s.cross).collect();
-        for &id in prefixes.iter() {
+        for id in prefixes {
             if !self.step() {
                 return;
             }
@@ -197,7 +227,7 @@ impl Expansion<'_> {
             else {
                 return;
             };
-            for &id in suffixes.iter() {
+            for id in suffixes {
                 if !self.step() {
                     return;
                 }

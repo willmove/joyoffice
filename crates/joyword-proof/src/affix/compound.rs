@@ -504,7 +504,7 @@ struct Search<'a> {
     first_excluded: Excluded,
     capitalized: bool,
     /// Per piece `(start, end)` in chars: its infos as a range of `infos`.
-    memo: Vec<Option<(u32, u32)>>,
+    memo: crate::patterns::FxMap<(usize, usize), (u32, u32)>,
     infos: Vec<Info>,
     /// The parts so far: start and end char, and the info.
     path: Vec<(usize, usize, Info)>,
@@ -513,6 +513,24 @@ struct Search<'a> {
     near: Option<bool>,
     /// Pieces analysed by earlier checks with the same exclusions.
     cache: Option<&'a mut Pieces>,
+}
+
+struct Splits {
+    start: usize,
+    end: usize,
+    infos: std::ops::Range<u32>,
+    overlap: Option<usize>,
+}
+
+impl Splits {
+    fn new(start: usize, minimum: usize, overlap: Option<usize>) -> Self {
+        Self {
+            start,
+            end: start.saturating_add(minimum).saturating_sub(1),
+            infos: 0..0,
+            overlap,
+        }
+    }
 }
 
 impl AffixDict {
@@ -561,7 +579,6 @@ impl AffixDict {
             .chain(std::iter::once(w.len()))
             .collect();
         let chars: Vec<char> = w.chars().collect();
-        let n = cuts.len();
         let mut s = Search {
             c,
             w,
@@ -570,7 +587,7 @@ impl AffixDict {
             excluded,
             first_excluded,
             capitalized,
-            memo: vec![None; n * n],
+            memo: Default::default(),
             infos: Vec::new(),
             path: Vec::with_capacity(MAX_PARTS),
             work: MAX_WORK - (*budget).min(MAX_WORK),
@@ -578,7 +595,7 @@ impl AffixDict {
             cache,
         };
         let start = s.work;
-        let found = self.parts_from(&mut s, 0);
+        let found = self.find_parts(&mut s);
         *budget = budget.saturating_sub(s.work.saturating_sub(start).max(1));
         found
     }
@@ -617,7 +634,7 @@ impl AffixDict {
                 excluded: excluded.without_keep(),
                 first_excluded: excluded,
                 capitalized,
-                memo: vec![None; (n + 1) * (n + 1)],
+                memo: Default::default(),
                 infos: Vec::new(),
                 path: Vec::new(),
                 work: MAX_WORK - (*budget).min(MAX_WORK),
@@ -664,73 +681,77 @@ impl AffixDict {
         Some((from.min(to), from.max(to)))
     }
 
-    /// Can the rest of the word, from char `start`, be split into parts after `s.path`?
-    fn parts_from(&self, s: &mut Search, start: usize) -> bool {
+    /// Try partitions in boundary order. Each frame owns the next cut and
+    /// analysis to visit. A simplified triple may retry with one shared letter.
+    fn find_parts(&self, s: &mut Search) -> bool {
         let total = s.chars.len();
-        let count = s.path.len();
         let min = self.compound_min.max(1);
-        for end in start.saturating_add(min)..=total {
-            s.work += 1;
-            if s.work > MAX_WORK {
-                return false;
-            }
-            let last = end == total;
-            if !last && count + 1 >= MAX_PARTS {
-                break;
-            }
-            let place = if last {
-                LAST
-            } else if count == 0 {
-                FIRST
-            } else {
-                MIDDLE
-            };
-            let (a, b) = self.infos_of(s, start, end);
-            for k in a..b {
-                // Each way of the piece costs a step, and a step per pattern at the boundary.
+        let mut pending = Vec::with_capacity(MAX_PARTS);
+        pending.push(Splits::new(0, min, None));
+        while let Some(split) = pending.last_mut() {
+            if let Some(index) = split.infos.next() {
                 s.work += 1 + s.c.patterns.len();
                 if s.work > MAX_WORK {
                     return false;
                 }
-                let Some(info) = s.infos.get(k as usize).copied() else {
+                let start = split.start;
+                let end = split.end;
+                let last = end == total;
+                let place = if last {
+                    LAST
+                } else if s.path.is_empty() {
+                    FIRST
+                } else {
+                    MIDDLE
+                };
+                let Some(info) = s.infos.get(index as usize).copied() else {
                     continue;
                 };
                 if info.pos & place == 0 || !self.boundary_ok(s, start, &info) {
                     continue;
                 }
                 s.path.push((start, end, info));
-                let ok = if last {
-                    self.whole_ok(s)
-                } else {
-                    self.words_ok(s, false) && self.next_parts(s, end)
-                };
-                s.path.pop();
-                if ok {
+                if last && self.whole_ok(s) {
                     return true;
                 }
+                if !last && self.words_ok(s, false) {
+                    let overlap = end
+                        .checked_sub(2)
+                        .filter(|&prior| {
+                            s.c.simplified && s.chars.get(prior) == s.chars.get(prior + 1)
+                        })
+                        .map(|prior| prior + 1);
+                    pending.push(Splits::new(end, min, overlap));
+                } else {
+                    s.path.pop();
+                }
+                continue;
+            }
+            if split.end < total {
+                split.end += 1;
+                s.work += 1;
+                if s.work > MAX_WORK {
+                    return false;
+                }
+                if split.end == total || s.path.len() + 1 < MAX_PARTS {
+                    let (start, end) = self.infos_of(s, split.start, split.end);
+                    split.infos = start..end;
+                    continue;
+                }
+            }
+            if let Some(overlap) = split.overlap.take() {
+                *split = Splits::new(overlap, min, None);
+            } else {
+                pending.pop();
+                s.path.pop();
             }
         }
         false
     }
 
-    /// After a part ending at char `end`: the next part starts there, or (`SIMPLIFIEDTRIPLE`)
-    /// one char earlier when the part ends in a double letter.
-    fn next_parts(&self, s: &mut Search, end: usize) -> bool {
-        if self.parts_from(s, end) {
-            return true;
-        }
-        let double = end >= 2
-            && s.chars
-                .get(end - 1)
-                .is_some_and(|c| s.chars.get(end - 2) == Some(c));
-        s.c.simplified && double && self.parts_from(s, end - 1)
-    }
-
     /// The analyses of the piece from char `a` to char `b`, computed once: a range of `s.infos`.
     fn infos_of(&self, s: &mut Search, a: usize, b: usize) -> (u32, u32) {
-        let n = s.cuts.len();
-        let slot = a.saturating_mul(n).saturating_add(b);
-        if let Some(Some(r)) = s.memo.get(slot) {
+        if let Some(r) = s.memo.get(&(a, b)) {
             return *r;
         }
         let from = u32::try_from(s.infos.len()).unwrap_or(u32::MAX);
@@ -779,9 +800,7 @@ impl AffixDict {
             s.infos.extend(found);
         }
         let to = u32::try_from(s.infos.len()).unwrap_or(u32::MAX);
-        if let Some(m) = s.memo.get_mut(slot) {
-            *m = Some((from, to));
-        }
+        s.memo.insert((a, b), (from, to));
         (from, to)
     }
 
