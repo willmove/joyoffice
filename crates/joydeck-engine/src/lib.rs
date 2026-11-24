@@ -10,7 +10,8 @@ mod authoring;
 mod content;
 mod footer;
 pub use footer::{ExistingFooterSummary, existing_footer_summary};
-mod history_cost;
+mod history;
+use history::History;
 mod review;
 mod workspace;
 pub use review::ReviewAction;
@@ -282,15 +283,9 @@ pub const COMMANDS: &[&str] = &[
     "redo",
 ];
 #[derive(Clone)]
-struct Entry {
-    state: EditorSnapshot,
-    cost: usize,
-}
-#[derive(Clone)]
 pub struct Session {
     state: EditorSnapshot,
-    undo: Vec<Entry>,
-    redo: Vec<Entry>,
+    history: History,
     saved: Option<u64>,
     revision: u64,
     next_content: u64,
@@ -307,8 +302,7 @@ impl Session {
                 },
                 content_id: 0,
             },
-            undo: vec![],
-            redo: vec![],
+            history: History::default(),
             saved: saved.then_some(0),
             revision: 0,
             next_content: 1,
@@ -333,10 +327,10 @@ impl Session {
         self.saved != Some(self.state.content_id)
     }
     pub fn can_undo(&self) -> bool {
-        !self.undo.is_empty()
+        self.history.can_undo()
     }
     pub fn can_redo(&self) -> bool {
-        !self.redo.is_empty()
+        self.history.can_redo()
     }
     pub fn mark_saved(&mut self, content_id: u64) {
         self.saved = Some(content_id);
@@ -395,39 +389,22 @@ impl Session {
         {
             return Err("no active slide".into());
         }
-        if matches!(cmd, Command::Undo | Command::Redo) {
-            let (from, to) = if matches!(cmd, Command::Undo) {
-                (&mut self.undo, &mut self.redo)
-            } else {
-                (&mut self.redo, &mut self.undo)
-            };
-            let Some(entry) = from.pop() else {
-                return Ok(false);
-            };
-            let cost = history_cost::undo_cost(&self.state.model, &entry.state.model);
-            to.push(Entry {
-                state: std::mem::replace(&mut self.state, entry.state),
-                cost,
-            });
-            self.revision += 1;
-            return Ok(true);
+        let history_changed = match cmd {
+            Command::Undo => Some(self.history.undo(&mut self.state)),
+            Command::Redo => Some(self.history.redo(&mut self.state)),
+            _ => None,
+        };
+        if let Some(changed) = history_changed {
+            self.revision += u64::from(changed);
+            return Ok(changed);
         }
         let Some(mut next) = self.prepare_edit(&self.state.selection, cmd)? else {
             return Ok(false);
         };
         next.content_id = self.next_content;
         self.next_content += 1;
-        let cost = history_cost::undo_cost(&self.state.model, &next.model);
-        self.undo.push(Entry {
-            state: std::mem::replace(&mut self.state, next),
-            cost,
-        });
-        self.redo.clear();
+        self.history.record(&mut self.state, next);
         self.revision += 1;
-        let mut cost: usize = self.undo.iter().map(|e| e.cost).sum();
-        while self.undo.len() > 1 && (self.undo.len() > 128 || cost > 64 << 20) {
-            cost = cost.saturating_sub(self.undo.remove(0).cost);
-        }
         Ok(true)
     }
 

@@ -1,0 +1,45 @@
+{
+  "sourceSha256": "6e3aa914dd5f40cd261ab35ceff2f1b584f100fa0ffb0569f6cb9af53bed6933",
+  "buildSha256": {
+    "frozen": "f8fd32a31570e241f17ced00dbce66f7e2ae53739b18e3c70bea03c2e78794f7",
+    "prior": "18760218c321d161af13a05998cdccb1229c99a71c6ea327be31a8f29b6bd784",
+    "candidate": "c49d563462e0a81c3f6b923a993557bfe874482aadfeed89e373d40ae780eb08"
+  },
+  "observations": [
+    "open",
+    "select",
+    "edit text",
+    "stale undo",
+    "reorder pages",
+    "insert PNG",
+    "undo PNG",
+    "undo reorder",
+    "redo reorder",
+    "redo PNG",
+    "saved",
+    "reopen",
+    "new edit after undo",
+    "128 undo steps retained after 130 edits"
+  ],
+  "requestsPerBuild": 29,
+  "readbacks": 9,
+  "nativeWindows": {
+    "inputSha256": "6e3aa914dd5f40cd261ab35ceff2f1b584f100fa0ffb0569f6cb9af53bed6933",
+    "outputSha256": "b5b32240fbfda3d0502c948a0be0bf51c5c5384cf492322279775da94098d88c",
+    "candidateSha256": "d24647656544c7ffbca0edd0a57e5c792a58994e508300718235596abb5b0b3c",
+    "pageCounts": [
+      3,
+      4,
+      3,
+      4,
+      4
+    ],
+    "retainedNewPage": 2,
+    "cliIndependentReadbacks": 2
+  },
+  "productChecks": {
+    "joyword": 4185,
+    "joysheet": 1521,
+    "joydeck": 1038
+  }
+}

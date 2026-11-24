@@ -2316,9 +2316,12 @@
       "target_path": "crates/joydeck-engine/src/history_cost.rs",
       "source_sha256": "5f9bfddf317c43c3ccc51a82b3fdca56ccd27420e5d68d9935fbae02d813175f",
       "adapted_sha256": "52c51343889bf296269354f49a8c8ac9fa147f6e9257876a1ac50985de737908",
+      "retired": true,
+      "last_verified_in": "e2fff1f3",
       "changes": [
         "Extract pure copy-on-write history memory estimation; no engine IO/PDF/media services imported",
-        "R2 shared preservation writer entry point or rustfmt; history cost extraction kept pure"
+        "R2 shared preservation writer entry point or rustfmt; history cost extraction kept pure",
+        "Craft replacement stage 2 moves history into a JoyOffice snapshot queue with explicit retention charges"
       ]
     },
     {
