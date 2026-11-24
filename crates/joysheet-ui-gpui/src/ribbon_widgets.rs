@@ -487,15 +487,15 @@ impl Desktop {
         ];
         let mut recent = div().flex().flex_col().gap_2().child(div().text_lg().child(self.label("最近", "Recent")));
         for (i, path) in self.preferences.recent.iter().take(12).enumerate() {
-            let path = path.clone();
             let open = path.clone();
+            let label = SharedString::from(path.as_str());
             recent = recent.child(
                 Button::new(("backstage-recent", i))
                     .ghost()
                     .h(px(42.))
-                    .justify_start()
                     .icon(crate::ribbon_icons::icon(I::FileSpreadsheet))
-                    .label(path)
+                    .accessibility_label(label.clone())
+                    .child(div().flex_1().min_w_0().truncate().child(label))
                     .on_click(cx.listener(move |v, _, w, cx| {
                         v.ribbon_tab = 1;
                         v.commit(After::OpenPaths(vec![open.clone()]), w, cx);
@@ -545,6 +545,7 @@ impl Desktop {
             .child(
                 div()
                     .flex_1()
+                    .min_w_0()
                     .p_8()
                     .flex()
                     .flex_col()
