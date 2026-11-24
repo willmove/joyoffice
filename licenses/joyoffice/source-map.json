@@ -296,8 +296,8 @@
     "source_path": "crates/joydeck-model/src/geometry.rs",
     "target_path": "crates/joydeck-legacy/src/model/geometry.rs",
     "source_sha256": "95facc1d3eb4fbeda6f1f28ed5e072e433e74013adaed50fad9d517b6e428657",
-    "adapted_sha256": "2d352414c40f4d357763db5e132eb39e14c88e4938fb3ba0f7e9a55e55b890f6",
-    "local_changes": "Read-only legacy v1 DTO/format snapshot; private namespace; one-time public OOXML conversion only. Upstream test modules not imported as new-product evidence."
+    "adapted_sha256": "efd14405073f96524aee14292534beebf8476e6553e8aa8a7ec5878e7d55cf86",
+    "local_changes": "Read-only legacy v1 DTO/format snapshot; private namespace; one-time public OOXML conversion only. Upstream test modules not imported as new-product evidence. Stage 1 removed legacy editor geometry and routes display through the v2 DrawingML reader."
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
@@ -352,8 +352,8 @@
     "source_path": "crates/joydeck-model/src/preset.rs",
     "target_path": "crates/joydeck-legacy/src/model/preset.rs",
     "source_sha256": "3f1b758a2f2c16b51171b65f11283eb7f91975093970616804f749816e6e10c0",
-    "adapted_sha256": "8388c5a285036ee6a5632443ec761d1102ff3a2dcedd93d27e4f98b0ca6003a1",
-    "local_changes": "Read-only legacy v1 DTO/format snapshot; private namespace; one-time public OOXML conversion only. Upstream test modules not imported as new-product evidence.; R6/R7 adapter additions and repository rustfmt/LF normalization."
+    "adapted_sha256": "a296dda2a95876cf84a3c9976064a8b2605e6f1e6deab35bd5cd7bf06e24f726",
+    "local_changes": "Read-only legacy v1 DTO/format snapshot; private namespace; one-time public OOXML conversion only. Upstream test modules not imported as new-product evidence.; R6/R7 adapter additions and repository rustfmt/LF normalization. Stage 1 removed legacy editor geometry and routes display through the v2 DrawingML reader."
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
@@ -393,7 +393,9 @@
     "target_path": "crates/joydeck-legacy/src/model/preset/vendor/build.rs",
     "source_sha256": "f8e2c57fe3d72b36f95167ce840b96238cd5abab98e5c76b954fe32557488f0a",
     "adapted_sha256": "6906cb3da000efe18cd1ceab77218c95e2253862ce6991bbe714095a8c0c36d8",
-    "local_changes": "Read-only legacy v1 DTO/format snapshot; private namespace; one-time public OOXML conversion only. Upstream test modules not imported as new-product evidence."
+    "local_changes": "Read-only legacy v1 DTO/format snapshot; private namespace; one-time public OOXML conversion only. Upstream test modules not imported as new-product evidence.",
+    "last_verified_in": "14cbb296",
+    "retired": true
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
@@ -401,7 +403,9 @@
     "target_path": "crates/joydeck-legacy/src/model/preset/vendor/builder.rs",
     "source_sha256": "19652603dd2883511dfbaaf12cd779fb7f308f2d056c70cce07a11723a3a8512",
     "adapted_sha256": "5d2b557f93dcf6ec92a982ecd95ba60266a522d025609b30f33afc62496b82fa",
-    "local_changes": "Read-only legacy v1 DTO/format snapshot; private namespace; one-time public OOXML conversion only. Upstream test modules not imported as new-product evidence."
+    "local_changes": "Read-only legacy v1 DTO/format snapshot; private namespace; one-time public OOXML conversion only. Upstream test modules not imported as new-product evidence.",
+    "last_verified_in": "14cbb296",
+    "retired": true
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
@@ -409,7 +413,9 @@
     "target_path": "crates/joydeck-legacy/src/model/preset/vendor/catalog.rs",
     "source_sha256": "46c0ab3e926b8c765854269070fe5de02f5a05128e9fed42066c992b8ce385ad",
     "adapted_sha256": "b95c8f517964c462a6f1162b99a2239372bbca08dbb3f22f7b45e7a6206abc5c",
-    "local_changes": "Read-only legacy v1 DTO/format snapshot; private namespace; one-time public OOXML conversion only. Upstream test modules not imported as new-product evidence."
+    "local_changes": "Read-only legacy v1 DTO/format snapshot; private namespace; one-time public OOXML conversion only. Upstream test modules not imported as new-product evidence.",
+    "last_verified_in": "14cbb296",
+    "retired": true
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
@@ -417,7 +423,9 @@
     "target_path": "crates/joydeck-legacy/src/model/preset/vendor/extra.rs",
     "source_sha256": "ac2031d87d0e3f467c29c1f23cfcfaa02aa02483cc7db625250699ed55de2660",
     "adapted_sha256": "65ae9f87af2352d4b5a414df7cde811bfc8ab6580d567913dee95fbf227690d4",
-    "local_changes": "Read-only legacy v1 DTO/format snapshot; private namespace; one-time public OOXML conversion only. Upstream test modules not imported as new-product evidence.; R6/R7 adapter additions and repository rustfmt/LF normalization."
+    "local_changes": "Read-only legacy v1 DTO/format snapshot; private namespace; one-time public OOXML conversion only. Upstream test modules not imported as new-product evidence.; R6/R7 adapter additions and repository rustfmt/LF normalization.",
+    "last_verified_in": "14cbb296",
+    "retired": true
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
@@ -425,7 +433,9 @@
     "target_path": "crates/joydeck-legacy/src/model/preset/vendor/mod.rs",
     "source_sha256": "b0410e86845244c9b38a41eba9adbb2545de13f4e5a77e20501124e070a05f97",
     "adapted_sha256": "a8d2dfd93cfe45bb9b0040850812a27d0cd4afa8d79821f472fb3841093d7e4b",
-    "local_changes": "Read-only legacy v1 DTO/format snapshot; private namespace; one-time public OOXML conversion only. Upstream test modules not imported as new-product evidence.; R6/R7 adapter additions and repository rustfmt/LF normalization."
+    "local_changes": "Read-only legacy v1 DTO/format snapshot; private namespace; one-time public OOXML conversion only. Upstream test modules not imported as new-product evidence.; R6/R7 adapter additions and repository rustfmt/LF normalization.",
+    "last_verified_in": "14cbb296",
+    "retired": true
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
@@ -433,7 +443,9 @@
     "target_path": "crates/joydeck-legacy/src/model/preset/vendor/shapes.rs",
     "source_sha256": "ba505feccebda0690f296d59961919fec0c609b42eb1bcaa331d0c108df3a85e",
     "adapted_sha256": "a3777bc87214cb2534b79782becff320c399d0f90336fe0580f62ea17c2478f2",
-    "local_changes": "Read-only legacy v1 DTO/format snapshot; private namespace; one-time public OOXML conversion only. Upstream test modules not imported as new-product evidence."
+    "local_changes": "Read-only legacy v1 DTO/format snapshot; private namespace; one-time public OOXML conversion only. Upstream test modules not imported as new-product evidence.",
+    "last_verified_in": "14cbb296",
+    "retired": true
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",

@@ -4,6 +4,8 @@ The JoyDeck application, document model, native schema, OPC/PresentationML adapt
 
 2026-11-01: `crates/joydeck-model/src/preset/vendor/` contains preset geometry and regression tests adapted from DeckCraft commit `82573331a8f2b87ccb536b9b66d55b90295f2111`, Copyright (c) 2026 ArtCraft Team and the DeckCraft contributors, used under MIT. The retained license and immutable upstream file map are in `licenses/joydeck/deckcraft-geometry/`. Local changes are Rust formatting, removal of unused re-exports and separation of test-module bodies. No DeckCraft document model, renderer, UI, fonts, artwork or branding is included. JoyDeck owns the bounded model, native/PPTX and scene adapters. `kurbo =0.13.1` (MIT OR Apache-2.0, https://github.com/linebender/kurbo) was already resolved in Cargo.lock and is now a direct geometry dependency, without additional features.
 
+2026-11-24: The six legacy preset geometry source files have been retired from the v1 reader. The historical file hashes and license remain recorded. The reader keeps the 183 wire-format names and adjustment defaults as compatibility data and runs them through the current DrawingML geometry path. [Repository source map](../joyoffice/source-map.json)
+
 | Dependency | Version | License | Purpose / upstream |
 |---|---|---|---|
 | GPUI Kit / Base / Component / Assets | 0.9.1 | Apache-2.0 | Desktop UI; https://github.com/longbridge/gpui-kit |

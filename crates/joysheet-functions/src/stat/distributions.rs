@@ -1,521 +1,205 @@
+//! Worksheet probability distributions and tests.
+//!
+//! Distribution formulas follow the NIST Engineering Statistics Handbook
+//! (https://www.itl.nist.gov/div898/handbook/eda/section3/eda366.htm) and
+//! DLMF §§8.2, 8.4 and 8.17. Parameter and error contracts follow the worksheet
+//! function registry and Microsoft's statistical function reference.
+
 use super::descriptive::{arg_nums, arg_pairs, mean, var_s};
 use super::*;
+use crate::special::{beta_tail, erf, gamma, invert, ln_beta, ln_gamma, norm_cdf, norm_inv, norm_pdf, reg_gamma_p, reg_gamma_q, reg_inc_beta};
+use std::f64::consts::PI;
 
-// ---------------------------------------------------------------------------------------------
-// Distributions
-// ---------------------------------------------------------------------------------------------
+const QUANTILE_LIMIT: f64 = 1e60;
 
-fn ln_comb(n: f64, k: f64) -> f64 {
-    ln_gamma(n + 1.0) - ln_gamma(k + 1.0) - ln_gamma(n - k + 1.0)
+fn open_probability(p: f64) -> bool {
+    0.0 < p && p < 1.0
 }
 
-fn t_upper(t: f64, v: f64) -> f64 {
-    // P(T > t) for t ≥ 0.
-    0.5 * reg_inc_beta(v / (v + t * t), v / 2.0, 0.5)
+fn optional_flag(args: &[Arg], index: usize, default: bool) -> R<bool> {
+    if args.len() <= index { Ok(default) } else { boolean(args, index) }
 }
 
-fn t_cdf(t: f64, v: f64) -> f64 {
-    if t >= 0.0 { 1.0 - t_upper(t, v) } else { t_upper(-t, v) }
+fn normal(x: f64, mean: f64, sd: f64, cumulative: bool) -> f64 {
+    let z = (x - mean) / sd;
+    if cumulative { norm_cdf(z) } else { norm_pdf(z) / sd }
 }
 
-fn t_pdf(t: f64, v: f64) -> f64 {
-    (ln_gamma((v + 1.0) / 2.0) - ln_gamma(v / 2.0) - 0.5 * (v * std::f64::consts::PI).ln() - (v + 1.0) / 2.0 * (1.0 + t * t / v).ln()).exp()
-}
-
-/// t ≥ 0 with P(T > t) = q, q in (0, 0.5].
-fn t_inv_upper(q: f64, v: f64) -> f64 {
-    if q >= 0.5 {
-        return 0.0;
-    }
-    invert(|t| t_upper(t, v), q, 0.0, 1.0, 1e60)
-}
-
-fn chi_inv(p: f64, v: f64) -> f64 {
-    if p <= 0.0 {
-        return 0.0;
-    }
-    invert(|x| reg_gamma_p(v / 2.0, x / 2.0), p, 0.0, v.max(1.0), 1e60)
-}
-
-fn chi_inv_rt(q: f64, v: f64) -> f64 {
-    if q >= 1.0 {
-        return 0.0;
-    }
-    invert(|x| reg_gamma_q(v / 2.0, x / 2.0), q, 0.0, v.max(1.0), 1e60)
-}
-
-fn f_cdf(x: f64, d1: f64, d2: f64) -> f64 {
-    if x <= 0.0 {
-        return 0.0;
-    }
-    reg_inc_beta(d1 * x / (d1 * x + d2), d1 / 2.0, d2 / 2.0)
-}
-
-fn f_upper(x: f64, d1: f64, d2: f64) -> f64 {
-    if x <= 0.0 {
-        return 1.0;
-    }
-    reg_inc_beta(d2 / (d2 + d1 * x), d2 / 2.0, d1 / 2.0)
-}
-
-fn f_pdf(x: f64, d1: f64, d2: f64) -> f64 {
-    if x == 0.0 {
-        return if d1 < 2.0 {
-            f64::INFINITY
-        } else if d1 == 2.0 {
-            1.0
-        } else {
-            0.0
-        };
-    }
-    ((d1 / 2.0) * (d1 / d2).ln() + (d1 / 2.0 - 1.0) * x.ln() - ((d1 + d2) / 2.0) * (1.0 + d1 * x / d2).ln() - ln_beta(d1 / 2.0, d2 / 2.0)).exp()
-}
-
-fn binom_pmf(k: f64, n: f64, p: f64) -> f64 {
-    if k < 0.0 || k > n {
-        return 0.0;
-    }
-    if p == 0.0 {
-        return if k == 0.0 { 1.0 } else { 0.0 };
-    }
-    if p == 1.0 {
-        return if k == n { 1.0 } else { 0.0 };
-    }
-    (ln_comb(n, k) + k * p.ln() + (n - k) * (1.0 - p).ln()).exp()
-}
-
-fn binom_cdf(k: f64, n: f64, p: f64) -> f64 {
-    if k < 0.0 {
-        return 0.0;
-    }
-    if k >= n {
-        return 1.0;
-    }
-    if n <= 10_000.0 {
-        let mut s = 0.0;
-        let mut i = 0.0;
-        while i <= k {
-            s += binom_pmf(i, n, p);
-            i += 1.0;
-        }
-        return s.min(1.0);
-    }
-    if p == 0.0 {
-        return 1.0;
-    }
-    if p == 1.0 {
-        return 0.0;
-    }
-    reg_inc_beta(1.0 - p, n - k, k + 1.0)
-}
-
-fn poisson_pmf(x: f64, m: f64) -> f64 {
-    if m == 0.0 {
-        return if x == 0.0 { 1.0 } else { 0.0 };
-    }
-    (-m + x * m.ln() - ln_gamma(x + 1.0)).exp()
-}
-
-fn poisson_cdf(x: f64, m: f64) -> f64 {
-    if m == 0.0 {
-        return 1.0;
-    }
-    if x <= 1000.0 {
-        let mut s = 0.0;
-        let mut i = 0.0;
-        while i <= x {
-            s += poisson_pmf(i, m);
-            i += 1.0;
-        }
-        return s.min(1.0);
-    }
-    reg_gamma_q(x + 1.0, m)
+fn normal_quantile(p: f64) -> f64 {
+    if p > 0.5 { -norm_inv(1.0 - p) } else { norm_inv(p) }
 }
 
 pub(super) fn norm_dist(a: &[Arg], _: C) -> R<Value> {
-    let (x, m, sd, cum) = (num(a, 0)?, num(a, 1)?, num(a, 2)?, boolean(a, 3)?);
+    let (x, center, sd, cumulative) = (num(a, 0)?, num(a, 1)?, num(a, 2)?, boolean(a, 3)?);
     if sd <= 0.0 {
         return Err(CellError::Num);
     }
-    let z = (x - m) / sd;
-    num_val(if cum { norm_cdf(z) } else { norm_pdf(z) / sd })
-}
-
-pub(super) fn norm_inv_fn(a: &[Arg], _: C) -> R<Value> {
-    let (p, m, sd) = (num(a, 0)?, num(a, 1)?, num(a, 2)?);
-    if !(p > 0.0 && p < 1.0) || sd <= 0.0 {
-        return Err(CellError::Num);
-    }
-    num_val(m + sd * norm_inv(p))
+    num_val(normal(x, center, sd, cumulative))
 }
 
 pub(super) fn norm_s_dist(a: &[Arg], _: C) -> R<Value> {
-    let z = num(a, 0)?;
-    let cum = if a.len() > 1 { boolean(a, 1)? } else { true };
-    num_val(if cum { norm_cdf(z) } else { norm_pdf(z) })
+    num_val(normal(num(a, 0)?, 0.0, 1.0, optional_flag(a, 1, true)?))
+}
+
+pub(super) fn norm_inv_fn(a: &[Arg], _: C) -> R<Value> {
+    let (p, center, sd) = (num(a, 0)?, num(a, 1)?, num(a, 2)?);
+    if !open_probability(p) || sd <= 0.0 {
+        return Err(CellError::Num);
+    }
+    num_val(center + sd * normal_quantile(p))
 }
 
 pub(super) fn norm_s_inv(a: &[Arg], _: C) -> R<Value> {
     let p = num(a, 0)?;
-    if !(p > 0.0 && p < 1.0) {
+    if !open_probability(p) {
         return Err(CellError::Num);
     }
-    num_val(norm_inv(p))
+    num_val(normal_quantile(p))
 }
 
-fn df_arg(a: &[Arg], i: usize) -> R<f64> {
-    let v = num(a, i)?.trunc();
-    if v < 1.0 {
+pub(super) fn lognorm_dist(a: &[Arg], _: C) -> R<Value> {
+    let (x, center, sd) = (num(a, 0)?, num(a, 1)?, num(a, 2)?);
+    let cumulative = optional_flag(a, 3, true)?;
+    if x <= 0.0 || sd <= 0.0 {
         return Err(CellError::Num);
     }
-    Ok(v)
+    let result = normal(x.ln(), center, sd, cumulative);
+    num_val(if cumulative { result } else { result / x })
+}
+
+pub(super) fn lognorm_inv(a: &[Arg], _: C) -> R<Value> {
+    let (p, center, sd) = (num(a, 0)?, num(a, 1)?, num(a, 2)?);
+    if !open_probability(p) || sd <= 0.0 {
+        return Err(CellError::Num);
+    }
+    num_val((center + sd * normal_quantile(p)).exp())
+}
+
+// The small coordinate of the beta transform survives rounding when x is near
+// zero or very large. The complement supplies the Student density's log term.
+fn beta_coordinates(odds: f64) -> (f64, f64) {
+    let tail = 1.0 / (1.0 + odds);
+    let head = if odds < 1.0 { odds * tail } else { 1.0 - tail };
+    (head, tail)
+}
+
+fn student_right(x: f64, df: f64) -> f64 {
+    let (head, tail) = beta_coordinates((x / df.sqrt()).powi(2));
+    let outside = 0.5 * beta_tail(head, tail, 0.5, df * 0.5, true);
+    if x < 0.0 { 1.0 - outside } else { outside }
+}
+
+fn student_density(x: f64, df: f64) -> f64 {
+    let half = df / 2.0;
+    let slope = (x / df.sqrt()).powi(2).ln_1p();
+    (-ln_beta(0.5, half) - 0.5 * df.ln() - (half + 0.5) * slope).exp()
+}
+
+fn student_quantile_upper(p: f64, df: f64) -> f64 {
+    if df == 1.0 {
+        // The Cauchy inverse has simple forms on either side of the quarter point.
+        return if p < 0.25 { (PI * p).tan().recip() } else { (PI * (0.5 - p)).tan() };
+    }
+    if p == 0.5 { 0.0 } else { invert(|x| student_right(x, df), p, 0.0, 1.0, QUANTILE_LIMIT) }
+}
+
+fn degrees(a: &[Arg], index: usize) -> R<f64> {
+    let df = num(a, index)?.trunc();
+    if df >= 1.0 { Ok(df) } else { Err(CellError::Num) }
 }
 
 pub(super) fn t_dist(a: &[Arg], _: C) -> R<Value> {
-    let x = num(a, 0)?;
-    let v = df_arg(a, 1)?;
-    let cum = boolean(a, 2)?;
-    num_val(if cum { t_cdf(x, v) } else { t_pdf(x, v) })
-}
-
-pub(super) fn t_dist_2t(a: &[Arg], _: C) -> R<Value> {
-    let x = num(a, 0)?;
-    let v = df_arg(a, 1)?;
-    if x < 0.0 {
-        return Err(CellError::Num);
-    }
-    num_val(2.0 * t_upper(x, v))
+    let (x, df) = (num(a, 0)?, degrees(a, 1)?);
+    num_val(if boolean(a, 2)? { student_right(-x, df) } else { student_density(x, df) })
 }
 
 pub(super) fn t_dist_rt(a: &[Arg], _: C) -> R<Value> {
-    let x = num(a, 0)?;
-    let v = df_arg(a, 1)?;
-    num_val(1.0 - t_cdf(x, v))
+    num_val(student_right(num(a, 0)?, degrees(a, 1)?))
+}
+
+pub(super) fn t_dist_2t(a: &[Arg], _: C) -> R<Value> {
+    let (x, df) = (num(a, 0)?, degrees(a, 1)?);
+    if x < 0.0 {
+        return Err(CellError::Num);
+    }
+    num_val(2.0 * student_right(x, df))
+}
+
+fn tail_count(a: &[Arg], index: usize) -> R<f64> {
+    let count = num(a, index)?.trunc();
+    if count == 1.0 || count == 2.0 { Ok(count) } else { Err(CellError::Num) }
 }
 
 pub(super) fn tdist_legacy(a: &[Arg], _: C) -> R<Value> {
-    let x = num(a, 0)?;
-    let v = df_arg(a, 1)?;
-    let tails = num(a, 2)?.trunc();
-    if x < 0.0 || !(tails == 1.0 || tails == 2.0) {
+    let (x, df, tails) = (num(a, 0)?, degrees(a, 1)?, tail_count(a, 2)?);
+    if x < 0.0 {
         return Err(CellError::Num);
     }
-    num_val(tails * t_upper(x, v))
+    num_val(tails * student_right(x, df))
 }
 
 pub(super) fn t_inv(a: &[Arg], _: C) -> R<Value> {
-    let p = num(a, 0)?;
-    let v = df_arg(a, 1)?;
-    if !(p > 0.0 && p < 1.0) {
+    let (p, df) = (num(a, 0)?, degrees(a, 1)?);
+    if !open_probability(p) {
         return Err(CellError::Num);
     }
-    num_val(if p < 0.5 { -t_inv_upper(p, v) } else { t_inv_upper(1.0 - p, v) })
+    let magnitude = student_quantile_upper(p.min(1.0 - p), df);
+    num_val(magnitude.copysign(p - 0.5))
 }
 
 pub(super) fn t_inv_2t(a: &[Arg], _: C) -> R<Value> {
-    let p = num(a, 0)?;
-    let v = df_arg(a, 1)?;
+    let (p, df) = (num(a, 0)?, degrees(a, 1)?);
     if !(p > 0.0 && p <= 1.0) {
         return Err(CellError::Num);
     }
-    num_val(t_inv_upper(p / 2.0, v))
+    num_val(student_quantile_upper(p / 2.0, df))
 }
 
-pub(super) fn t_test(a: &[Arg], _: C) -> R<Value> {
-    let tails = num(a, 2)?.trunc();
-    let ty = num(a, 3)?.trunc();
-    if !(tails == 1.0 || tails == 2.0) || !(1.0..=3.0).contains(&ty) {
-        return Err(CellError::Num);
-    }
-    let (t, v) = if ty == 1.0 {
-        let (x, y) = arg_pairs(a, 0, 1)?;
-        let d: Vec<f64> = x.iter().zip(&y).map(|(p, q)| p - q).collect();
-        let n = d.len() as f64;
-        let sd = var_s(&d)?.sqrt();
-        if sd == 0.0 {
-            return Err(CellError::Div0);
-        }
-        (mean(&d)? / (sd / n.sqrt()), n - 1.0)
-    } else {
-        let x = arg_nums(a, 0)?;
-        let y = arg_nums(a, 1)?;
-        let (n1, n2) = (x.len() as f64, y.len() as f64);
-        let (v1, v2) = (var_s(&x)?, var_s(&y)?);
-        let diff = mean(&x)? - mean(&y)?;
-        if ty == 2.0 {
-            let df = n1 + n2 - 2.0;
-            let sp = ((n1 - 1.0) * v1 + (n2 - 1.0) * v2) / df;
-            let se = (sp * (1.0 / n1 + 1.0 / n2)).sqrt();
-            if se == 0.0 {
-                return Err(CellError::Div0);
-            }
-            (diff / se, df)
-        } else {
-            let (a1, a2) = (v1 / n1, v2 / n2);
-            let se = (a1 + a2).sqrt();
-            if se == 0.0 {
-                return Err(CellError::Div0);
-            }
-            let df = (a1 + a2).powi(2) / (a1 * a1 / (n1 - 1.0) + a2 * a2 / (n2 - 1.0));
-            (diff / se, df)
-        }
-    };
-    num_val(tails * t_upper(t.abs(), v))
-}
-
-pub(super) fn chisq_dist(a: &[Arg], _: C) -> R<Value> {
-    let x = num(a, 0)?;
-    let v = df_arg(a, 1)?;
-    let cum = boolean(a, 2)?;
-    if x < 0.0 || v > 1e10 {
-        return Err(CellError::Num);
-    }
-    if cum {
-        return num_val(reg_gamma_p(v / 2.0, x / 2.0));
-    }
+fn gamma_density(x: f64, shape: f64, scale: f64) -> f64 {
     if x == 0.0 {
-        return if v == 2.0 {
-            num_val(0.5)
-        } else if v < 2.0 {
-            Err(CellError::Num)
+        return if shape == 1.0 {
+            scale.recip()
+        } else if shape > 1.0 {
+            0.0
         } else {
-            num_val(0.0)
+            f64::INFINITY
         };
     }
-    num_val(((v / 2.0 - 1.0) * x.ln() - x / 2.0 - (v / 2.0) * 2f64.ln() - ln_gamma(v / 2.0)).exp())
+    let log_z = x.ln() - scale.ln();
+    ((shape - 1.0) * log_z - x / scale - ln_gamma(shape) - scale.ln()).exp()
 }
 
-pub(super) fn chisq_dist_rt(a: &[Arg], _: C) -> R<Value> {
-    let x = num(a, 0)?;
-    let v = df_arg(a, 1)?;
-    if x < 0.0 || v > 1e10 {
-        return Err(CellError::Num);
-    }
-    num_val(reg_gamma_q(v / 2.0, x / 2.0))
-}
-
-pub(super) fn chisq_inv(a: &[Arg], _: C) -> R<Value> {
-    let p = num(a, 0)?;
-    let v = df_arg(a, 1)?;
-    if !(0.0..1.0).contains(&p) || v > 1e10 {
-        return Err(CellError::Num);
-    }
-    num_val(chi_inv(p, v))
-}
-
-pub(super) fn chisq_inv_rt(a: &[Arg], _: C) -> R<Value> {
-    let p = num(a, 0)?;
-    let v = df_arg(a, 1)?;
-    if !(p > 0.0 && p <= 1.0) || v > 1e10 {
-        return Err(CellError::Num);
-    }
-    num_val(chi_inv_rt(p, v))
-}
-
-pub(super) fn chisq_test(a: &[Arg], _: C) -> R<Value> {
-    let act = as_array(&arg(a, 0)?.value).into_owned();
-    let exp = as_array(&arg(a, 1)?.value).into_owned();
-    if act.rows != exp.rows || act.cols != exp.cols {
-        return Err(CellError::NA);
-    }
-    let mut x2 = 0.0;
-    for (o, e) in act.data.iter().zip(&exp.data) {
-        if let Value::Error(err) = o {
-            return Err(*err);
-        }
-        if let Value::Error(err) = e {
-            return Err(*err);
-        }
-        if let (Value::Number(o), Value::Number(e)) = (o, e) {
-            if *e == 0.0 {
-                return Err(CellError::Div0);
-            }
-            x2 += (o - e).powi(2) / e;
-        }
-    }
-    let df = if act.rows > 1 && act.cols > 1 { ((act.rows - 1) * (act.cols - 1)) as f64 } else { (act.data.len().saturating_sub(1)) as f64 };
-    if df < 1.0 {
-        return Err(CellError::NA);
-    }
-    num_val(reg_gamma_q(df / 2.0, x2 / 2.0))
-}
-
-fn f_args(a: &[Arg]) -> R<(f64, f64, f64)> {
-    let x = num(a, 0)?;
-    let d1 = num(a, 1)?.trunc();
-    let d2 = num(a, 2)?.trunc();
-    if d1 < 1.0 || d2 < 1.0 || d1 >= 1e10 || d2 >= 1e10 {
-        return Err(CellError::Num);
-    }
-    Ok((x, d1, d2))
-}
-
-pub(super) fn f_dist(a: &[Arg], _: C) -> R<Value> {
-    let (x, d1, d2) = f_args(a)?;
-    let cum = boolean(a, 3)?;
-    if x < 0.0 {
-        return Err(CellError::Num);
-    }
-    num_val(if cum { f_cdf(x, d1, d2) } else { f_pdf(x, d1, d2) })
-}
-
-pub(super) fn f_dist_rt(a: &[Arg], _: C) -> R<Value> {
-    let (x, d1, d2) = f_args(a)?;
-    if x < 0.0 {
-        return Err(CellError::Num);
-    }
-    num_val(f_upper(x, d1, d2))
-}
-
-pub(super) fn f_inv(a: &[Arg], _: C) -> R<Value> {
-    let (p, d1, d2) = f_args(a)?;
-    if !(0.0..1.0).contains(&p) {
-        return Err(CellError::Num);
-    }
-    if p == 0.0 {
-        return num_val(0.0);
-    }
-    num_val(invert(|x| f_cdf(x, d1, d2), p, 0.0, 1.0, 1e60))
-}
-
-pub(super) fn f_inv_rt(a: &[Arg], _: C) -> R<Value> {
-    let (p, d1, d2) = f_args(a)?;
-    if !(p > 0.0 && p <= 1.0) {
-        return Err(CellError::Num);
-    }
-    if p == 1.0 {
-        return num_val(0.0);
-    }
-    num_val(invert(|x| f_upper(x, d1, d2), p, 0.0, 1.0, 1e60))
-}
-
-pub(super) fn f_test(a: &[Arg], _: C) -> R<Value> {
-    let x = arg_nums(a, 0)?;
-    let y = arg_nums(a, 1)?;
-    let (v1, v2) = (var_s(&x)?, var_s(&y)?);
-    if v1 == 0.0 || v2 == 0.0 {
-        return Err(CellError::Div0);
-    }
-    let f = v1 / v2;
-    let (d1, d2) = ((x.len() - 1) as f64, (y.len() - 1) as f64);
-    let c = f_cdf(f, d1, d2);
-    num_val((2.0 * c.min(1.0 - c)).min(1.0))
-}
-
-pub(super) fn binom_dist(a: &[Arg], _: C) -> R<Value> {
-    let k = num(a, 0)?.trunc();
-    let n = num(a, 1)?.trunc();
-    let p = num(a, 2)?;
-    let cum = boolean(a, 3)?;
-    if k < 0.0 || k > n || !(0.0..=1.0).contains(&p) {
-        return Err(CellError::Num);
-    }
-    num_val(if cum { binom_cdf(k, n, p) } else { binom_pmf(k, n, p) })
-}
-
-pub(super) fn binom_dist_range(a: &[Arg], _: C) -> R<Value> {
-    let n = num(a, 0)?.trunc();
-    let p = num(a, 1)?;
-    let s1 = num(a, 2)?.trunc();
-    let s2 = if has(a, 3) { num(a, 3)?.trunc() } else { s1 };
-    if !(0.0..=1e15).contains(&n) || !(0.0..=1.0).contains(&p) || s1 < 0.0 || s1 > n || s2 < s1 || s2 > n {
-        return Err(CellError::Num);
-    }
-    if s2 - s1 > 10_000.0 {
-        return num_val(binom_cdf(s2, n, p) - binom_cdf(s1 - 1.0, n, p));
-    }
-    let mut s = 0.0;
-    let mut k = s1;
-    while k <= s2 {
-        s += binom_pmf(k, n, p);
-        k += 1.0;
-    }
-    num_val(s)
-}
-
-pub(super) fn binom_inv(a: &[Arg], _: C) -> R<Value> {
-    let n = num(a, 0)?.trunc();
-    let p = num(a, 1)?;
-    let alpha = num(a, 2)?;
-    if n < 0.0 || !(0.0..=1.0).contains(&p) || !(0.0..=1.0).contains(&alpha) {
-        return Err(CellError::Num);
-    }
-    // Smallest k with cdf(k) ≥ alpha, by bisection on the integer k.
-    let (mut lo, mut hi) = (0.0f64, n);
-    if binom_cdf(0.0, n, p) >= alpha {
-        return num_val(0.0);
-    }
-    while hi - lo > 1.0 {
-        let mid = ((lo + hi) / 2.0).floor();
-        // Above 2^53 adjacent f64 values are more than 1 apart, so the gap can stop shrinking.
-        if mid <= lo || mid >= hi {
-            break;
-        }
-        if binom_cdf(mid, n, p) >= alpha {
-            hi = mid;
-        } else {
-            lo = mid;
-        }
-    }
-    num_val(hi)
-}
-
-pub(super) fn poisson_dist(a: &[Arg], _: C) -> R<Value> {
-    let x = num(a, 0)?.trunc();
-    let m = num(a, 1)?;
-    let cum = boolean(a, 2)?;
-    if x < 0.0 || m < 0.0 {
-        return Err(CellError::Num);
-    }
-    num_val(if cum { poisson_cdf(x, m) } else { poisson_pmf(x, m) })
-}
-
-pub(super) fn expon_dist(a: &[Arg], _: C) -> R<Value> {
-    let (x, l, cum) = (num(a, 0)?, num(a, 1)?, boolean(a, 2)?);
-    if x < 0.0 || l <= 0.0 {
-        return Err(CellError::Num);
-    }
-    num_val(if cum { -(-l * x).exp_m1() } else { l * (-l * x).exp() })
-}
-
-pub(super) fn gamma_fn(a: &[Arg], _: C) -> R<Value> {
-    let x = num(a, 0)?;
-    let g = gamma(x);
-    if !g.is_finite() {
-        return Err(CellError::Num);
-    }
-    num_val(g)
+fn gamma_quantile(p: f64, shape: f64, scale: f64, upper: bool) -> f64 {
+    let anchor = (shape * scale).clamp(1e-300, QUANTILE_LIMIT);
+    invert(
+        |x| {
+            if upper { reg_gamma_q(shape, x / scale) } else { reg_gamma_p(shape, x / scale) }
+        },
+        p,
+        0.0,
+        anchor,
+        QUANTILE_LIMIT,
+    )
 }
 
 pub(super) fn gamma_dist(a: &[Arg], _: C) -> R<Value> {
-    let (x, al, be, cum) = (num(a, 0)?, num(a, 1)?, num(a, 2)?, boolean(a, 3)?);
-    if x < 0.0 || al <= 0.0 || be <= 0.0 {
+    let (x, shape, scale, cumulative) = (num(a, 0)?, num(a, 1)?, num(a, 2)?, boolean(a, 3)?);
+    if x < 0.0 || shape <= 0.0 || scale <= 0.0 {
         return Err(CellError::Num);
     }
-    if cum {
-        return num_val(reg_gamma_p(al, x / be));
-    }
-    if x == 0.0 {
-        return if al < 1.0 {
-            Err(CellError::Num)
-        } else if al == 1.0 {
-            num_val(1.0 / be)
-        } else {
-            num_val(0.0)
-        };
-    }
-    num_val(((al - 1.0) * x.ln() - x / be - al * be.ln() - ln_gamma(al)).exp())
+    num_val(if cumulative { reg_gamma_p(shape, x / scale) } else { gamma_density(x, shape, scale) })
 }
 
 pub(super) fn gamma_inv(a: &[Arg], _: C) -> R<Value> {
-    let (p, al, be) = (num(a, 0)?, num(a, 1)?, num(a, 2)?);
-    if !(0.0..1.0).contains(&p) || al <= 0.0 || be <= 0.0 {
+    let (p, shape, scale) = (num(a, 0)?, num(a, 1)?, num(a, 2)?);
+    if !(0.0..1.0).contains(&p) || shape <= 0.0 || scale <= 0.0 {
         return Err(CellError::Num);
     }
-    if p == 0.0 {
-        return num_val(0.0);
-    }
-    num_val(invert(|x| reg_gamma_p(al, x / be), p, 0.0, (al * be).max(1e-3), 1e60))
+    num_val(if p > 0.5 { gamma_quantile(1.0 - p, shape, scale, true) } else { gamma_quantile(p, shape, scale, false) })
+}
+
+pub(super) fn gamma_fn(a: &[Arg], _: C) -> R<Value> {
+    num_val(gamma(num(a, 0)?))
 }
 
 pub(super) fn gammaln(a: &[Arg], _: C) -> R<Value> {
@@ -526,177 +210,461 @@ pub(super) fn gammaln(a: &[Arg], _: C) -> R<Value> {
     num_val(ln_gamma(x))
 }
 
-fn beta_bounds(a: &[Arg], i: usize) -> R<(f64, f64)> {
-    let lo = if has(a, i) { num(a, i)? } else { 0.0 };
-    let hi = if has(a, i + 1) { num(a, i + 1)? } else { 1.0 };
+pub(super) fn chisq_dist(a: &[Arg], _: C) -> R<Value> {
+    let (x, df, cumulative) = (num(a, 0)?, degrees(a, 1)?, boolean(a, 2)?);
+    if x < 0.0 || df > 1e10 {
+        return Err(CellError::Num);
+    }
+    num_val(if cumulative { reg_gamma_p(df / 2.0, x / 2.0) } else { gamma_density(x, df / 2.0, 2.0) })
+}
+
+pub(super) fn chisq_dist_rt(a: &[Arg], _: C) -> R<Value> {
+    let (x, df) = (num(a, 0)?, degrees(a, 1)?);
+    if x < 0.0 || df > 1e10 {
+        return Err(CellError::Num);
+    }
+    num_val(reg_gamma_q(df / 2.0, x / 2.0))
+}
+
+fn chisq_quantile(a: &[Arg], upper: bool) -> R<Value> {
+    let (p, df) = (num(a, 0)?, degrees(a, 1)?);
+    if df > 1e10 || !(0.0..=1.0).contains(&p) || p == if upper { 0.0 } else { 1.0 } {
+        return Err(CellError::Num);
+    }
+    let (p, upper) = if p > 0.5 { (1.0 - p, !upper) } else { (p, upper) };
+    num_val(gamma_quantile(p, df / 2.0, 2.0, upper))
+}
+
+pub(super) fn chisq_inv(a: &[Arg], _: C) -> R<Value> {
+    chisq_quantile(a, false)
+}
+
+pub(super) fn chisq_inv_rt(a: &[Arg], _: C) -> R<Value> {
+    chisq_quantile(a, true)
+}
+
+fn f_parameters(a: &[Arg]) -> R<(f64, f64, f64)> {
+    let (value, d1, d2) = (num(a, 0)?, num(a, 1)?.trunc(), num(a, 2)?.trunc());
+    if !(1.0..1e10).contains(&d1) || !(1.0..1e10).contains(&d2) {
+        return Err(CellError::Num);
+    }
+    Ok((value, d1 * 0.5, d2 * 0.5))
+}
+
+fn fisher_probability(x: f64, first: f64, second: f64, upper: bool) -> f64 {
+    let (head, tail) = beta_coordinates(x * (first / second));
+    beta_tail(head, tail, first, second, upper)
+}
+
+fn fisher_density(x: f64, first: f64, second: f64) -> f64 {
+    if x == 0.0 {
+        return if first == 1.0 {
+            1.0
+        } else if first > 1.0 {
+            0.0
+        } else {
+            f64::INFINITY
+        };
+    }
+    let odds = x * (first / second);
+    if odds.is_infinite() {
+        return 0.0;
+    }
+    let log_tail = -odds.ln_1p();
+    let log_head = if odds <= 1.0 { odds.ln() + log_tail } else { -(1.0 / odds).ln_1p() };
+    (first * log_head + second * log_tail - ln_beta(first, second) - x.ln()).exp()
+}
+
+pub(super) fn f_dist(a: &[Arg], _: C) -> R<Value> {
+    let (x, first, second) = f_parameters(a)?;
+    let cumulative = boolean(a, 3)?;
+    if x < 0.0 {
+        return Err(CellError::Num);
+    }
+    num_val(if cumulative { fisher_probability(x, first, second, false) } else { fisher_density(x, first, second) })
+}
+
+pub(super) fn f_dist_rt(a: &[Arg], _: C) -> R<Value> {
+    let (x, first, second) = f_parameters(a)?;
+    if x < 0.0 {
+        return Err(CellError::Num);
+    }
+    num_val(fisher_probability(x, first, second, true))
+}
+
+fn fisher_quantile(a: &[Arg], upper: bool) -> R<Value> {
+    let (p, first, second) = f_parameters(a)?;
+    if !(0.0..=1.0).contains(&p) || p == if upper { 0.0 } else { 1.0 } {
+        return Err(CellError::Num);
+    }
+    let (p, upper) = if p > 0.5 { (1.0 - p, !upper) } else { (p, upper) };
+    num_val(invert(|x| fisher_probability(x, first, second, upper), p, 0.0, 1.0, QUANTILE_LIMIT))
+}
+
+pub(super) fn f_inv(a: &[Arg], _: C) -> R<Value> {
+    fisher_quantile(a, false)
+}
+
+pub(super) fn f_inv_rt(a: &[Arg], _: C) -> R<Value> {
+    fisher_quantile(a, true)
+}
+
+fn beta_bounds(a: &[Arg], bounds_at: usize) -> R<(f64, f64)> {
+    let lo = if has(a, bounds_at) { num(a, bounds_at)? } else { 0.0 };
+    let hi = if has(a, bounds_at + 1) { num(a, bounds_at + 1)? } else { 1.0 };
     if lo >= hi {
         return Err(CellError::Num);
     }
     Ok((lo, hi))
 }
 
+fn beta_distribution(x: f64, shape: f64, other: f64, (lo, hi): (f64, f64), cumulative: bool) -> R<Value> {
+    if shape <= 0.0 || other <= 0.0 || !(lo..=hi).contains(&x) {
+        return Err(CellError::Num);
+    }
+    let width = hi - lo;
+    let (z, complement) = ((x - lo) / width, (hi - x) / width);
+    if cumulative {
+        return num_val(beta_tail(z, complement, shape, other, false));
+    }
+    if z == 0.0 || complement == 0.0 {
+        let (edge, opposite) = if z == 0.0 { (shape, other) } else { (other, shape) };
+        return if edge < 1.0 { Err(CellError::Num) } else { num_val(if edge == 1.0 { opposite / width } else { 0.0 }) };
+    }
+    num_val(((shape - 1.0) * z.ln() + (other - 1.0) * complement.ln() - ln_beta(shape, other) - width.ln()).exp())
+}
+
 pub(super) fn beta_dist(a: &[Arg], _: C) -> R<Value> {
-    let (x, al, be, cum) = (num(a, 0)?, num(a, 1)?, num(a, 2)?, boolean(a, 3)?);
-    let (lo, hi) = beta_bounds(a, 4)?;
-    if al <= 0.0 || be <= 0.0 || x < lo || x > hi {
-        return Err(CellError::Num);
-    }
-    let z = (x - lo) / (hi - lo);
-    if cum {
-        return num_val(reg_inc_beta(z, al, be));
-    }
-    if (z == 0.0 && al < 1.0) || (z == 1.0 && be < 1.0) {
-        return Err(CellError::Num);
-    }
-    let lp = if z == 0.0 || z == 1.0 {
-        let base = if z == 0.0 { al } else { be };
-        if base == 1.0 { -ln_beta(al, be) } else { f64::NEG_INFINITY }
-    } else {
-        (al - 1.0) * z.ln() + (be - 1.0) * (1.0 - z).ln() - ln_beta(al, be)
-    };
-    num_val(lp.exp() / (hi - lo))
+    let (x, shape, other, cumulative) = (num(a, 0)?, num(a, 1)?, num(a, 2)?, boolean(a, 3)?);
+    beta_distribution(x, shape, other, beta_bounds(a, 4)?, cumulative)
 }
 
 pub(super) fn betadist_legacy(a: &[Arg], _: C) -> R<Value> {
-    let (x, al, be) = (num(a, 0)?, num(a, 1)?, num(a, 2)?);
-    let (lo, hi) = beta_bounds(a, 3)?;
-    if al <= 0.0 || be <= 0.0 || x < lo || x > hi {
-        return Err(CellError::Num);
-    }
-    num_val(reg_inc_beta((x - lo) / (hi - lo), al, be))
+    let (x, shape, other) = (num(a, 0)?, num(a, 1)?, num(a, 2)?);
+    beta_distribution(x, shape, other, beta_bounds(a, 3)?, true)
 }
 
 pub(super) fn beta_inv(a: &[Arg], _: C) -> R<Value> {
-    let (p, al, be) = (num(a, 0)?, num(a, 1)?, num(a, 2)?);
+    let (p, shape, other) = (num(a, 0)?, num(a, 1)?, num(a, 2)?);
     let (lo, hi) = beta_bounds(a, 3)?;
-    if al <= 0.0 || be <= 0.0 || !(0.0..=1.0).contains(&p) {
+    if shape <= 0.0 || other <= 0.0 || !(p > 0.0 && p <= 1.0) {
         return Err(CellError::Num);
     }
-    let z = if p == 0.0 {
-        0.0
-    } else if p == 1.0 {
-        1.0
+    let result = if p <= 0.5 {
+        lo + (hi - lo) * invert(|z| reg_inc_beta(z, shape, other), p, 0.0, 1.0, 1.0)
     } else {
-        invert(|x| reg_inc_beta(x, al, be), p, 0.0, 1.0, 1.0)
+        hi - (hi - lo) * invert(|z| reg_inc_beta(z, other, shape), 1.0 - p, 0.0, 1.0, 1.0)
     };
-    num_val(lo + z * (hi - lo))
+    num_val(result)
 }
 
-pub(super) fn lognorm_dist(a: &[Arg], _: C) -> R<Value> {
-    let (x, m, sd) = (num(a, 0)?, num(a, 1)?, num(a, 2)?);
-    let cum = if a.len() > 3 { boolean(a, 3)? } else { true };
-    if x <= 0.0 || sd <= 0.0 {
+pub(super) fn expon_dist(a: &[Arg], _: C) -> R<Value> {
+    let (x, rate, cumulative) = (num(a, 0)?, num(a, 1)?, boolean(a, 2)?);
+    if x < 0.0 || rate <= 0.0 {
         return Err(CellError::Num);
     }
-    let z = (x.ln() - m) / sd;
-    num_val(if cum { norm_cdf(z) } else { norm_pdf(z) / (x * sd) })
-}
-
-pub(super) fn lognorm_inv(a: &[Arg], _: C) -> R<Value> {
-    let (p, m, sd) = (num(a, 0)?, num(a, 1)?, num(a, 2)?);
-    if !(p > 0.0 && p < 1.0) || sd <= 0.0 {
-        return Err(CellError::Num);
-    }
-    num_val((m + sd * norm_inv(p)).exp())
+    let log_survival = -(x * rate);
+    num_val(if cumulative { -log_survival.exp_m1() } else { rate * log_survival.exp() })
 }
 
 pub(super) fn weibull_dist(a: &[Arg], _: C) -> R<Value> {
-    let (x, al, be, cum) = (num(a, 0)?, num(a, 1)?, num(a, 2)?, boolean(a, 3)?);
-    if x < 0.0 || al <= 0.0 || be <= 0.0 {
+    let (x, shape, scale, cumulative) = (num(a, 0)?, num(a, 1)?, num(a, 2)?, boolean(a, 3)?);
+    if x < 0.0 || shape <= 0.0 || scale <= 0.0 {
         return Err(CellError::Num);
     }
-    let t = (x / be).powf(al);
-    num_val(if cum { -(-t).exp_m1() } else { al / be.powf(al) * x.powf(al - 1.0) * (-t).exp() })
+    let log_z = x.ln() - scale.ln();
+    let power = (shape * log_z).exp();
+    if cumulative {
+        return num_val(-(-power).exp_m1());
+    }
+    if x == 0.0 {
+        return num_val(gamma_density(x, shape, scale));
+    }
+    if power.is_infinite() {
+        let factor = (shape / scale.powf(shape)) * x.powf(shape - 1.0);
+        return num_val(factor * 0.0);
+    }
+    num_val((shape.ln() - scale.ln() + (shape - 1.0) * log_z - power).exp())
 }
 
-pub(super) fn hypgeom_dist(a: &[Arg], _: C) -> R<Value> {
-    let k = num(a, 0)?.trunc();
-    let n = num(a, 1)?.trunc();
-    let kk = num(a, 2)?.trunc();
-    let nn = num(a, 3)?.trunc();
-    let cum = if a.len() > 4 { boolean(a, 4)? } else { false };
-    if k < 0.0 || n <= 0.0 || kk <= 0.0 || nn <= 0.0 || n > nn || kk > nn || k > n.min(kk) || k < (n - nn + kk).max(0.0) {
+fn log_combinations(n: f64, k: f64) -> f64 {
+    let small = k.min(n - k);
+    if small <= 64.0 {
+        // Summing the short product avoids subtracting nearly equal log gammas.
+        return (1..=small as u32)
+            .map(|j| {
+                let j = f64::from(j);
+                ((n - small + j) / j).ln()
+            })
+            .sum();
+    }
+    -(n + 1.0).ln() - ln_beta(k + 1.0, n - k + 1.0)
+}
+
+fn binomial_mass(k: f64, trials: f64, p: f64) -> f64 {
+    if p == 0.0 || p == 1.0 {
+        return if k == p * trials { 1.0 } else { 0.0 };
+    }
+    (log_combinations(trials, k) + k * p.ln() + (trials - k) * (-p).ln_1p()).exp()
+}
+
+fn binomial_tail(k: f64, trials: f64, p: f64, upper: bool) -> f64 {
+    if k < 0.0 || k >= trials {
+        return if (k < 0.0) == upper { 1.0 } else { 0.0 };
+    }
+    // The survival probability is I_p(k+1, n-k), DLMF 8.17.5.
+    beta_tail(p, 1.0 - p, k + 1.0, trials - k, !upper)
+}
+
+pub(super) fn binom_dist(a: &[Arg], _: C) -> R<Value> {
+    let (k, n, p) = (num(a, 0)?.trunc(), num(a, 1)?.trunc(), num(a, 2)?);
+    let cumulative = boolean(a, 3)?;
+    if k < 0.0 || k > n || !(0.0..=1.0).contains(&p) {
         return Err(CellError::Num);
     }
-    let pmf = |i: f64| (ln_comb(kk, i) + ln_comb(nn - kk, n - i) - ln_comb(nn, n)).exp();
-    if !cum {
-        return num_val(pmf(k));
-    }
-    let mut s = 0.0;
-    let mut i = (n - nn + kk).max(0.0);
-    if k - i > 1e6 || i + 1.0 == i {
+    num_val(if cumulative { binomial_tail(k, n, p, false) } else { binomial_mass(k, n, p) })
+}
+
+pub(super) fn binom_dist_range(a: &[Arg], _: C) -> R<Value> {
+    let (n, p, first) = (num(a, 0)?.trunc(), num(a, 1)?, num(a, 2)?.trunc());
+    let last = if has(a, 3) { num(a, 3)?.trunc() } else { first };
+    if !(0.0..=1e15).contains(&n) || !(0.0..=1.0).contains(&p) || first < 0.0 || first > last || last > n {
         return Err(CellError::Num);
     }
-    while i <= k {
-        s += pmf(i);
-        i += 1.0;
+    if first == last {
+        return num_val(binomial_mass(first, n, p));
     }
-    num_val(s.min(1.0))
+    let before = binomial_tail(first - 1.0, n, p, false);
+    let range = if before <= 0.5 {
+        binomial_tail(last, n, p, false) - before
+    } else {
+        binomial_tail(first - 1.0, n, p, true) - binomial_tail(last, n, p, true)
+    };
+    num_val(range.clamp(0.0, 1.0))
+}
+
+pub(super) fn binom_inv(a: &[Arg], _: C) -> R<Value> {
+    let (n, p, alpha) = (num(a, 0)?.trunc(), num(a, 1)?, num(a, 2)?);
+    if n < 0.0 || !open_probability(p) || !open_probability(alpha) {
+        return Err(CellError::Num);
+    }
+    // At the median of the symmetric distribution an exact CDF tie can
+    // round to either side of one half. Its lower median is floor(n / 2).
+    if p == 0.5 && alpha == 0.5 {
+        return num_val((n / 2.0).floor());
+    }
+    // Keep a known failing and a known passing integer. On large numbers use
+    // progress in representable f64 values as well as the integer stopping rule.
+    let mut lower = -1.0;
+    let mut upper = n;
+    while upper - lower > 1.0 {
+        let mid = (lower + (upper - lower) * 0.5).floor();
+        if mid <= lower || mid >= upper {
+            break;
+        }
+        if binomial_tail(mid, n, p, false) >= alpha {
+            upper = mid;
+        } else {
+            lower = mid;
+        }
+    }
+    num_val(upper)
+}
+
+pub(super) fn poisson_dist(a: &[Arg], _: C) -> R<Value> {
+    let (k, rate, cumulative) = (num(a, 0)?.trunc(), num(a, 1)?, boolean(a, 2)?);
+    if k < 0.0 || rate < 0.0 {
+        return Err(CellError::Num);
+    }
+    if cumulative {
+        return num_val(reg_gamma_q(k + 1.0, rate));
+    }
+    if rate == 0.0 {
+        return num_val(if k == 0.0 { 1.0 } else { 0.0 });
+    }
+    num_val((k * rate.ln() - rate - ln_gamma(k + 1.0)).exp())
 }
 
 pub(super) fn negbinom_dist(a: &[Arg], _: C) -> R<Value> {
-    let f = num(a, 0)?.trunc();
-    let s = num(a, 1)?.trunc();
-    let p = num(a, 2)?;
-    let cum = if a.len() > 3 { boolean(a, 3)? } else { false };
-    if f < 0.0 || s < 1.0 || !(0.0..=1.0).contains(&p) {
+    let (failures, successes, p) = (num(a, 0)?.trunc(), num(a, 1)?.trunc(), num(a, 2)?);
+    let cumulative = optional_flag(a, 3, false)?;
+    if failures < 0.0 || successes < 1.0 || !(0.0..=1.0).contains(&p) {
         return Err(CellError::Num);
     }
-    if cum {
-        if p == 0.0 {
-            return num_val(0.0);
-        }
-        return num_val(reg_inc_beta(p, s, f + 1.0));
+    if cumulative {
+        return num_val(reg_inc_beta(p, successes, failures + 1.0));
     }
     if p == 0.0 || p == 1.0 {
-        return num_val(if p == 1.0 && f == 0.0 { 1.0 } else { 0.0 });
+        return num_val(if p == 1.0 && failures == 0.0 { 1.0 } else { 0.0 });
     }
-    num_val((ln_comb(f + s - 1.0, s - 1.0) + s * p.ln() + f * (1.0 - p).ln()).exp())
+    let arrangements = log_combinations(failures + (successes - 1.0), failures);
+    num_val((arrangements + successes * p.ln() + failures * (-p).ln_1p()).exp())
+}
+
+pub(super) fn hypgeom_dist(a: &[Arg], _: C) -> R<Value> {
+    let (hits, draws, marked, population) = (num(a, 0)?.trunc(), num(a, 1)?.trunc(), num(a, 2)?.trunc(), num(a, 3)?.trunc());
+    let cumulative = optional_flag(a, 4, false)?;
+    let misses = population - marked;
+    let first = (draws - misses).max(0.0);
+    let last = draws.min(marked);
+    if draws <= 0.0 || marked <= 0.0 || draws > population || marked > population || !(first..=last).contains(&hits) {
+        return Err(CellError::Num);
+    }
+    let mass = |k: f64| (log_combinations(marked, k) + log_combinations(misses, draws - k) - log_combinations(population, draws)).exp();
+    if !cumulative {
+        return num_val(mass(hits));
+    }
+    if hits - first > 1e6 || hits + 1.0 == hits {
+        return Err(CellError::Num);
+    }
+    if hits == last {
+        return num_val(1.0);
+    }
+
+    // Start at the largest term in the requested interval, then use adjacent
+    // mass ratios in each direction so an underflow at an end cannot erase the sum.
+    let mode = ((draws + 1.0) * ((marked + 1.0) / (population + 2.0))).floor();
+    let pivot = mode.clamp(first, hits);
+    let peak = mass(pivot);
+    let mut total = peak;
+    let mut term = peak;
+    let mut k = pivot;
+    while k > first {
+        term *= (k / (marked - k + 1.0)) * ((misses - (draws - k)) / (draws - k + 1.0));
+        total += term;
+        k -= 1.0;
+    }
+    term = peak;
+    k = pivot;
+    while k < hits {
+        term *= ((marked - k) / (k + 1.0)) * ((draws - k) / (misses - (draws - k) + 1.0));
+        total += term;
+        k += 1.0;
+    }
+    num_val(total.min(1.0))
+}
+
+fn confidence_parameters(a: &[Arg]) -> R<(f64, f64, f64)> {
+    let (alpha, sd, n) = (num(a, 0)?, num(a, 1)?, num(a, 2)?.trunc());
+    if !open_probability(alpha) || sd <= 0.0 || n < 1.0 {
+        return Err(CellError::Num);
+    }
+    Ok((alpha * 0.5, sd / n.sqrt(), n))
 }
 
 pub(super) fn confidence_norm(a: &[Arg], _: C) -> R<Value> {
-    let (al, sd, n) = (num(a, 0)?, num(a, 1)?, num(a, 2)?.trunc());
-    if !(al > 0.0 && al < 1.0) || sd <= 0.0 || n < 1.0 {
-        return Err(CellError::Num);
-    }
-    num_val(norm_inv(1.0 - al / 2.0) * sd / n.sqrt())
+    let (tail, standard_error, _) = confidence_parameters(a)?;
+    num_val(normal_quantile(1.0 - tail) * standard_error)
 }
 
 pub(super) fn confidence_t(a: &[Arg], _: C) -> R<Value> {
-    let (al, sd, n) = (num(a, 0)?, num(a, 1)?, num(a, 2)?.trunc());
-    if !(al > 0.0 && al < 1.0) || sd <= 0.0 || n < 1.0 {
-        return Err(CellError::Num);
-    }
+    let (tail, standard_error, n) = confidence_parameters(a)?;
     if n == 1.0 {
         return Err(CellError::Div0);
     }
-    num_val(t_inv_upper(al / 2.0, n - 1.0) * sd / n.sqrt())
+    num_val(student_quantile_upper(tail, n - 1.0) * standard_error)
+}
+
+fn t_statistic(a: &[Arg], kind: f64) -> R<(f64, f64)> {
+    if kind == 1.0 {
+        let (left, right) = arg_pairs(a, 0, 1)?;
+        let differences: Vec<f64> = left.into_iter().zip(right).map(|(x, y)| x - y).collect();
+        let n = differences.len() as f64;
+        let standard_error = (var_s(&differences)? / n).sqrt();
+        if standard_error == 0.0 {
+            return Err(CellError::Div0);
+        }
+        return Ok((mean(&differences)? / standard_error, n - 1.0));
+    }
+    let left = arg_nums(a, 0)?;
+    let right = arg_nums(a, 1)?;
+    let (v_left, v_right) = (var_s(&left)?, var_s(&right)?);
+    let (n_left, n_right) = (left.len() as f64, right.len() as f64);
+    let (df_left, df_right) = (n_left - 1.0, n_right - 1.0);
+    let (variance, df) = if kind == 2.0 {
+        let df = df_left + df_right;
+        let pooled = (df_left * v_left + df_right * v_right) / df;
+        (pooled / n_left + pooled / n_right, df)
+    } else {
+        let (s_left, s_right) = (v_left / n_left, v_right / n_right);
+        let variance = s_left + s_right;
+        let df = ((s_left / variance).powi(2) / df_left + (s_right / variance).powi(2) / df_right).recip();
+        (variance, df)
+    };
+    if variance == 0.0 {
+        return Err(CellError::Div0);
+    }
+    Ok(((mean(&left)? - mean(&right)?) / variance.sqrt(), df))
+}
+
+pub(super) fn t_test(a: &[Arg], _: C) -> R<Value> {
+    let (tails, kind) = (num(a, 2)?.trunc(), num(a, 3)?.trunc());
+    if !(tails == 1.0 || tails == 2.0) || !(1.0..=3.0).contains(&kind) {
+        return Err(CellError::Num);
+    }
+    let (statistic, df) = t_statistic(a, kind)?;
+    num_val(tails * student_right(statistic.abs(), df))
+}
+
+pub(super) fn f_test(a: &[Arg], _: C) -> R<Value> {
+    let (left, right) = (arg_nums(a, 0)?, arg_nums(a, 1)?);
+    let (v_left, v_right) = (var_s(&left)?, var_s(&right)?);
+    if v_left == 0.0 || v_right == 0.0 {
+        return Err(CellError::Div0);
+    }
+    let x = v_left / v_right;
+    let (first, second) = ((left.len() - 1) as f64 * 0.5, (right.len() - 1) as f64 * 0.5);
+    let lower = fisher_probability(x, first, second, false);
+    let upper = fisher_probability(x, first, second, true);
+    num_val((2.0 * lower.min(upper)).min(1.0))
+}
+
+pub(super) fn chisq_test(a: &[Arg], _: C) -> R<Value> {
+    let actual = as_array(&arg(a, 0)?.value);
+    let expected = as_array(&arg(a, 1)?.value);
+    if (actual.rows, actual.cols) != (expected.rows, expected.cols) {
+        return Err(CellError::NA);
+    }
+    let statistic = actual.data.iter().zip(&expected.data).try_fold(0.0, |sum, (actual, expected)| match (actual, expected) {
+        (Value::Error(error), _) | (_, Value::Error(error)) => Err(*error),
+        (Value::Number(_), Value::Number(expected)) if *expected == 0.0 => Err(CellError::Div0),
+        (Value::Number(actual), Value::Number(expected)) => Ok(sum + (actual - expected).powi(2) / expected),
+        _ => Ok(sum),
+    })?;
+    let df = if actual.rows == 1 || actual.cols == 1 {
+        actual.data.len().saturating_sub(1)
+    } else {
+        actual.rows.saturating_sub(1) * actual.cols.saturating_sub(1)
+    };
+    if df == 0 {
+        return Err(CellError::NA);
+    }
+    num_val(reg_gamma_q(df as f64 * 0.5, statistic * 0.5))
 }
 
 pub(super) fn z_test(a: &[Arg], _: C) -> R<Value> {
-    let v = arg_nums(a, 0)?;
-    let x = num(a, 1)?;
-    if v.is_empty() {
+    let sample = arg_nums(a, 0)?;
+    let center = num(a, 1)?;
+    if sample.is_empty() {
         return Err(CellError::NA);
     }
-    let sd = if has(a, 2) { num(a, 2)? } else { var_s(&v)?.sqrt() };
+    let supplied = has(a, 2);
+    let sd = if supplied { num(a, 2)? } else { var_s(&sample)?.sqrt() };
     if sd <= 0.0 {
-        return Err(if has(a, 2) { CellError::Num } else { CellError::Div0 });
+        return Err(if supplied { CellError::Num } else { CellError::Div0 });
     }
-    let z = (mean(&v)? - x) / (sd / (v.len() as f64).sqrt());
-    num_val(1.0 - norm_cdf(z))
+    let z = (mean(&sample)? - center) / (sd / (sample.len() as f64).sqrt());
+    num_val(norm_cdf(-z))
 }
 
 pub(super) fn fisher(a: &[Arg], _: C) -> R<Value> {
-    let x = num(a, 0)?;
-    if x <= -1.0 || x >= 1.0 {
+    let correlation = num(a, 0)?;
+    if correlation <= -1.0 || correlation >= 1.0 {
         return Err(CellError::Num);
     }
-    num_val(0.5 * ((1.0 + x) / (1.0 - x)).ln())
+    num_val(((1.0 + correlation) / (1.0 - correlation)).ln() * 0.5)
 }
 
 pub(super) fn gauss(a: &[Arg], _: C) -> R<Value> {
-    let z = num(a, 0)?;
-    // Φ(z) − 0.5 = erf(z/√2)/2, accurate near zero.
-    num_val(0.5 * erf(z / std::f64::consts::SQRT_2))
+    num_val(erf(num(a, 0)? / std::f64::consts::SQRT_2) * 0.5)
 }

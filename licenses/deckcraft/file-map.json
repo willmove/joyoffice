@@ -1655,7 +1655,7 @@
       "source_path": "crates/pptx/Cargo.toml",
       "source_sha256": "30a783dcadbf5eb12d1e93df304c77586d1d82013cee8c8c2147ce42345fc86a",
       "target_path": "crates/joydeck-pptx/Cargo.toml",
-      "adapted_sha256": "8daacaab55800ede392dfa48b1f9449b5221cf84bd67ae38782adbc214d49cb2",
+      "adapted_sha256": "cc530dedf71c257e7e6135653b92ec703bea8713ae4c670b152b945261dafb82",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -1663,19 +1663,21 @@
         "R4/R5 scene/content/workbook/font-revision adaptation, exact JoyOffice dependency reuse",
         "R9: host workspace feature wiring and sole shared-library implementation",
         "Reuse verified OPC buffers while preserving format reader budgets and ZIP name decoding.",
-        "Use host DrawingML geometry when importing custom paths."
+        "Use host DrawingML geometry when importing custom paths.",
+        "Use host CFB sector and directory-name helpers in the encrypted-package probe."
       ]
     },
     {
       "source_path": "crates/pptx/src/cfb.rs",
       "source_sha256": "83c07c34dfe9647ffe5fd594f3b779527b4932f3ae0b63bcbbb9e135944cc4ad",
       "target_path": "crates/joydeck-pptx/src/cfb.rs",
-      "adapted_sha256": "4dbec21d8f3fcb94a6d6d0052d2a57b233749c7b349bd18305f93221c5ceec82",
+      "adapted_sha256": "b1bbf46c82acb56def8f95230c6647747d6eb15061b5be7a21b59f5ea7b5b663",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
-        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
+        "The production probe now uses a JoyOffice metadata walk based on MS-CFB and MS-OFFCRYPTO. The original fingerprint remains as historical provenance."
       ]
     },
     {
@@ -2442,10 +2444,12 @@
       "source_path": "crates/metafile/src/bytes.rs",
       "source_sha256": "ef49693acf1b635386f7cb20cbaa4132059bebee8859713d632048a9ee606123",
       "target_path": "crates/joyoffice-metafile/src/lib.rs",
-      "adapted_sha256": "dad83efbf5f110c9a915341c525f8eba54fa345993d2b7fa0a015fcba580e601",
+      "adapted_sha256": "3b7669c2afdfdd17ff23595b7fbd62d496dac4841f0dd23187ead01056191f51",
       "changes": [
-        "share the identical checked byte reader with JoyWord and test truncated and overflowing coordinates"
-      ]
+        "share the identical checked byte reader with JoyWord and test truncated and overflowing coordinates",
+        "Stage 1 follow-up: independently implemented bounded field and coordinate views from MS-WMF and MS-EMF, checked against the frozen shared reader."
+      ],
+      "baseline_adapted_sha256": "dad83efbf5f110c9a915341c525f8eba54fa345993d2b7fa0a015fcba580e601"
     }
   ]
 }

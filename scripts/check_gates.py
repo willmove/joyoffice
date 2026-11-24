@@ -68,7 +68,7 @@ LAYERS = {
     'joydeck-metafile': {'joyoffice-metafile'},
     'joydeck-model': {'joydeck-color', 'joydeck-geom'},
     'joydeck-pdf': {'joydeck-fonts', 'joydeck-model', 'joydeck-render', 'joydeck-text'},
-    'joydeck-pptx': {'joyoffice-drawingml', 'joyoffice-opc', 'joydeck-color', 'joydeck-geom', 'joydeck-model'},
+    'joydeck-pptx': {'joyoffice-cfb', 'joyoffice-drawingml', 'joyoffice-opc', 'joydeck-color', 'joydeck-geom', 'joydeck-model'},
     'joydeck-render': {'joydeck-anim', 'joydeck-color', 'joydeck-fonts', 'joydeck-geom', 'joydeck-metafile', 'joydeck-model', 'joydeck-text'},
     'joydeck-shell': {'joyoffice-theme', 'joydeck-anim', 'joydeck-engine', 'joydeck-fonts', 'joydeck-format', 'joydeck-legacy', 'joydeck-model', 'joydeck-pdf', 'joydeck-pptx', 'joydeck-render', 'joyoffice-opc'},
     'joydeck-text': {'joydeck-color', 'joydeck-fonts', 'joydeck-geom', 'joydeck-model'},

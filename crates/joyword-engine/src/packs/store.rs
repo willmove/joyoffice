@@ -5,17 +5,9 @@ use std::path::PathBuf;
 use std::sync::{Mutex, PoisonError};
 
 use super::storage::{
-    Caller, Network, PackEntry, PackIndex, PackIndexPin, PackStore, language_pack_index_overridden,
+    Caller, Network, PackEntry, PackIndex, PackStore, language_pack_index_overridden,
 };
 use super::{Cancel, Pack};
-
-/// The pack index this build trusts: craft-i18n's second Language pack release,
-/// language-packs-2 (75 packs, built from craft-i18n `20467b63`), pinned by the sha256 of its `index.json`.
-/// `CRAFT_LANGUAGE_PACK_INDEX` points JoyWord at a local or test index instead, for testing.
-pub const PACK_INDEX: PackIndexPin = PackIndexPin {
-    url: "https://github.com/storytold/craft-i18n/releases/download/language-packs-2/index.json",
-    sha256: "b35c7aef0591177f18233b551da16035dcd615549ff874e169ffd19f16fea74b",
-};
 
 pub(super) struct FontStoreBackend {
     store: PackStore,
@@ -89,7 +81,7 @@ impl super::Backend for FontStoreBackend {
     fn index(&self) -> Result<Vec<Pack>, String> {
         Ok(self
             .store
-            .cached_language_pack_index(&PACK_INDEX)
+            .cached_language_pack_index()
             .map(|i| self.keep(i))
             .unwrap_or_default())
     }
@@ -97,7 +89,7 @@ impl super::Backend for FontStoreBackend {
     fn fetch_index(&self, cancel: &Cancel) -> Result<Vec<Pack>, String> {
         let index = self
             .store
-            .fetch_language_pack_index(&PACK_INDEX, cancel)
+            .fetch_language_pack_index(cancel)
             .map_err(|e| e.to_string())?;
         Ok(self.keep(index))
     }
@@ -126,7 +118,7 @@ impl super::Backend for FontStoreBackend {
                 Some(i) => i,
                 None => self
                     .store
-                    .cached_language_pack_index(&PACK_INDEX)
+                    .cached_language_pack_index()
                     .ok_or("the list of Language packs hasn't been fetched")?,
             }
         };

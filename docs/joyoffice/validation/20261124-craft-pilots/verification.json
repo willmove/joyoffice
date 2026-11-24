@@ -1,0 +1,457 @@
+{
+  "date": "2026-11-24",
+  "platform": "Windows 11 x64, local Debug builds",
+  "rust": "1.98.1",
+  "localArchive": "backups/craft-replacement-20261124",
+  "buildArguments": [
+    "--locked",
+    "--offline",
+    "-p",
+    "joyword",
+    "-p",
+    "joyword-cli",
+    "-p",
+    "joydeck",
+    "-p",
+    "joydeck-cli",
+    "-p",
+    "joysheet",
+    "-p",
+    "joysheet-cli",
+    "--features",
+    "joysheet/automation"
+  ],
+  "baseline": {
+    "commit": "14cbb29616d7c0ababbf40a8f6c0218b996e7ae8",
+    "seconds": 426,
+    "binarySha256": {
+      "joyword": "93b9264a533f75d5a0dfecc86b457e773c300f04c36f8ab9b0d9e5ffc1582ed9",
+      "joyword-cli": "6e833cb91ab13e8ce8e03e9edfe8d87e2ad2bb84a481d427713a1a37e813f55e",
+      "joydeck": "58ca28ebada8d5e737ad788c78f74e402771379a2fb4c5cb19fbd98125033e93",
+      "joydeck-cli": "f8fd32a31570e241f17ced00dbce66f7e2ae53739b18e3c70bea03c2e78794f7",
+      "joysheet": "03791f6be0ef6b44f07918a648dd3d07bfc53e7eea478d15938de42c08a76d3d",
+      "joysheet-cli": "d2f55cf2cc07a7f89e84b576b2f18ad1e097b47bab94790268183281e97deec5"
+    },
+    "cargoLockSha256": "fade410cb091af9b97a89e07b058c1f012a4f320f0e726ae93e612543e1fe545",
+    "referenceFont": {
+      "name": "arial.ttf",
+      "sha256": "edfbd22a3d088fc2f5d7c79b8c9c732df6dc878a60f0a80be0f92a3c7a634404",
+      "face": 0
+    },
+    "variantDataSha256": "94d8c694ee7067515041921d2f0bb1f8623718d6eb7f563e19e173425dc551ec",
+    "inputsSha256": {
+      "convert-excel.xlsx": "f47f851434ac1db13c0d77d614796a52496fc77cad74573278ee4e47cb17c0d5",
+      "convert.xlsx": "bb59b9f600926b0d3dcecd7b2ef861a855f345057b878fca1b548ca0ff15c490",
+      "office-encrypted.pptx": "d65d03b1a09bbe4afcb3807cf1fdfaaa01af30504530892c7999c86660466ab8",
+      "ordinary-ole-with-marker.pptx": "9a05c7f495865bba21314f0fe351f5fdf1b25a6810131d5ff961bcf60cbe2e22",
+      "ordinary-ole.pptx": "b964b88ebaf59ab09a6972959d52e72be4f40c8d56f776df7fee57e87a261d89",
+      "plain-marker.pptx": "395ca6306b38c778d16b50af8f32db797710f97f7ad6d1b353a85820560e4d6b",
+      "plain.pptx": "91b43ac18c7edbd039262bb68541187c8d39260ac8e5985aeea0d123a940e6f1",
+      "truncated-cfb-with-marker.pptx": "9519c456b435dcca76026b6cc15ed264ce452243d8f81f9162c0c3edb3424175",
+      "truncated-cfb.pptx": "6dda1524c96123bdeaba431bb8bcf4eaae977606559d411919ffdda50edf3efe",
+      "v3-package.pptx": "5be468ab96d8eb53b1b8f0adc2ed79105a1942f89c9bd3a91ae55a43b1748482",
+      "v4-info.pptx": "179e622b7d2c3afd7c5ecddb58a8eacdddc391de29d2a3ce8e7bf999bab77cdd",
+      "word/en-AU/0/sample.docx": "383655934f3349731dd87381e28de05ae6bcfa894f1d273489f66ab38d292a25",
+      "word/en-AU/1/sample.docx": "1d1be88bc6b60012e9543a3fa21498582a5f2c7fddee3bb4beba1b2ed3968f09",
+      "word/en-AU/2/sample.docx": "7711b3ce73543c1c086f8668520a8572f37f20694011fa9f09f4a270d269a0fc",
+      "word/en-AU/3/sample.docx": "bbf99df778b9aff0f0e56e70eecb4ad262032abf6024da186419bfee347dde18",
+      "word/en-CA/0/sample.docx": "447e77d4316c4119abdae5b7d97bd3f82992f7539be0311c5902935d3be634e2",
+      "word/en-CA/1/sample.docx": "db9521372d342d2b4825b4e5c947e8bba71160fe2a92272e08b1f6ce298e710c",
+      "word/en-CA/2/sample.docx": "abecb075235a32cf0b51a0ad8725def4ecb8d499edcfd803103b08233a57970c",
+      "word/en-CA/3/sample.docx": "dea9e7b061f42129a73acc250694f9685f7f11b07e13d6fb3fac8b8b5a7195a6",
+      "word/en-GB/0/sample.docx": "b22db1a92a80ac4a977f604702aaa72f555ef6bc1cf8a34b7516d83acbb40961",
+      "word/en-GB/1/sample.docx": "c8ce0a4104ed10048fa890091efa4f193c41de0e5847788f3ea0c996379f6e3f",
+      "word/en-GB/2/sample.docx": "45043fa6411054e5688f7da9e90ac66c85e133d818a0e2be87aac552dea7bf6f",
+      "word/en-GB/3/sample.docx": "50bea963c9f4f5d14064f62439eac6ad8ba180810f3a688651c62b33b908b319",
+      "word/en-US/0/sample.docx": "db800ca95e60510d3706ccf9d1f2e117ac05c5fb21fc83ffafa8ea5fa694fc31",
+      "word/en-US/1/sample.docx": "77853a316eb9cc7e29b536b24bafe611c8fe5b66dc4be03a6f9518e478af7fb5",
+      "word/en-US/2/sample.docx": "2d2f70b2fa969b6f44df616791b350bda7973ebc6dde78d256dd33c274807f1f",
+      "word/en-US/3/sample.docx": "b553467eb46b02de6df6f2cad25e70c3e93741441f2ec1709f0212c2fb89494c"
+    },
+    "sourceLedgerGitBlobSha256": {
+      "licenses/wordcraft/SOURCE.json": "63fcd8c1ccaa215699364cce9c8207e45df461f794d025bb92ff815573158dc6",
+      "licenses/deckcraft/file-map.json": "3ade8ba31f058263ff4e639f984b525c23cc7756cad6d148ec918faf33d53353",
+      "licenses/joydeck/deckcraft-geometry/SOURCE.json": "1dcf925166d45e31d7c6c916487fd965e8b6af26d495afd0f2d1163f6178e8b7",
+      "licenses/craft-libs/SOURCE.json": "3299772e5329d26d49175ad58e07cf7e13db9725ca769327fe40f5fa19c0179f",
+      "licenses/craft-i18n/SOURCE.json": "6f155fc73063ae1ce901563f964361750d7f7a036d4f5f658c6422deda8a4a24",
+      "docs/joysheet/upstream-source.json": "b33a6e6e8132be51a1c83815f0f2dad731d841553a5c85ffa7af6c955a5a8270",
+      "docs/joyoffice/validation/joysheet-migration-map.json": "fed08d3253c95c67f0217d2d3de09b326f4941c98196d7d147159610192e66fd"
+    },
+    "originalReportSha256": "39109440d49bc9c3511a41c9c6293cd303dedb1b7e7d539038bceb510a36022f"
+  },
+  "candidate": {
+    "firstIncrementalBuildSeconds": 82,
+    "finalIncrementalBuildSeconds": 51.9,
+    "binarySha256": {
+      "joyword": "0429c928fb35c0fc9db0a2a2bca9dead6f7c5a1540512eaa90f0668a2059fb27",
+      "joyword-cli": "10635a20cb9e0403d1241a7d219ee009984f8a68fbb5784bea051172fea611cf",
+      "joydeck": "ce72418c0b6d5c2916109082d0c63e12cdd1255166ee22127c35350aeda851c2",
+      "joydeck-cli": "ed7dcb523d923812f7c3a12dfa9b630639e56907dd6636bb285c763c520bb41e",
+      "joysheet": "9cd93c009532a1a305cdf1ab80c325de6005890de173a675ea779e10ca2c7f9b",
+      "joysheet-cli": "a9d92513e326421f27d4a42bc1ea5b3650dc75ba1967df504e1f811a43162ec3"
+    },
+    "cargoLockSha256": "00e1e2471d430609cebe490af1073ec70bfc0ec99050e962c37e3afe908d02fd",
+    "source": {
+      "word": {
+        "path": "crates/joyword-proof/src/en_variants.rs",
+        "baselineGitBlobSha256": "858f83a73f38489d1da266913fbf609d3656511ad7b7b159e1687184171d0c6b",
+        "candidateFileSha256": "aefe1e8e53ccd3c0407c297031193cb07a4efff7f0dde2ebc2cab607f805081f"
+      },
+      "deck": {
+        "path": "crates/joydeck-pptx/src/cfb.rs",
+        "baselineGitBlobSha256": "4dbec21d8f3fcb94a6d6d0052d2a57b233749c7b349bd18305f93221c5ceec82",
+        "candidateFileSha256": "b1bbf46c82acb56def8f95230c6647747d6eb15061b5be7a21b59f5ea7b5b663"
+      },
+      "sheet": {
+        "path": "crates/joysheet-functions/src/engineering/units.rs",
+        "baselineGitBlobSha256": "c6109173ea4d0343b620c46dee8ef70386291dab925d632640b3252b4f2d079d",
+        "candidateFileSha256": "e60aaac2f521b9028128a5dcc9878f47a5f5bfd67bdfde6a87b6bec903c48446"
+      }
+    },
+    "fullReportSha256": "e8b8d93e62bad2425dd763d43005034e22f2ee7abea31b05780ba0966a61813a"
+  },
+  "word": {
+    "documents": 16,
+    "probes": 2324,
+    "identicalIssueRows": 813,
+    "desktop": {
+      "14cbb296": {
+        "review": {
+          "issue": "发现的问题 colour",
+          "suggestions": "建议 color, cooler, colder, colon, colons, colors"
+        },
+        "binarySha256": "60153c94f7b804cb7d8993bcb8bc74dd83e2d7c1e5ec5801e49ed37e699722fe",
+        "stackReserveBytes": 33554432
+      },
+      "final": {
+        "review": {
+          "issue": "发现的问题 colour",
+          "suggestions": "建议 color, cooler, colder, colon, colons, colors"
+        },
+        "binarySha256": "3f6ef5cfd2e4b2ab60d360f15c052ee4495dbb5b07ee411e6235fc3dbb86d365",
+        "stackReserveBytes": 33554432,
+        "editUndoRedoSaveReopen": true
+      }
+    },
+    "desktopInputSha256": "4cd54ca88388e612b60fab0f25ce50047d4f1500a0b024dc9c15149202e9bf15",
+    "savedCopySha256": "414bd5cddc12bbeb926145d9ee6ed60164121ca88f8f291925fca87a565d6ac0"
+  },
+  "deck": {
+    "identicalOpenResults": {
+      "office-encrypted.pptx": {
+        "exit": 1,
+        "error": "JoyDeck CLI: encrypted Office files are not supported; decrypt a copy first"
+      },
+      "ordinary-ole-with-marker.pptx": {
+        "exit": 1,
+        "error": "JoyDeck CLI: invalid package: NotZip"
+      },
+      "ordinary-ole.pptx": {
+        "exit": 1,
+        "error": "JoyDeck CLI: invalid package: NotZip"
+      },
+      "plain-marker.pptx": {
+        "exit": 1,
+        "error": "JoyDeck CLI: invalid package: NotZip"
+      },
+      "plain.pptx": {
+        "exit": 0,
+        "error": ""
+      },
+      "truncated-cfb-with-marker.pptx": {
+        "exit": 1,
+        "error": "JoyDeck CLI: encrypted Office files are not supported; decrypt a copy first"
+      },
+      "truncated-cfb.pptx": {
+        "exit": 1,
+        "error": "JoyDeck CLI: invalid package: NotZip"
+      },
+      "v3-package.pptx": {
+        "exit": 1,
+        "error": "JoyDeck CLI: encrypted Office files are not supported; decrypt a copy first"
+      },
+      "v4-info.pptx": {
+        "exit": 1,
+        "error": "JoyDeck CLI: encrypted Office files are not supported; decrypt a copy first"
+      }
+    },
+    "desktop": {
+      "14cbb296-plain": {
+        "message": "R6/R7 opened=true pages=1",
+        "processAlive": true
+      },
+      "14cbb296-office-encrypted": {
+        "message": "open_failed=true reason=encrypted Office files",
+        "processAlive": true
+      },
+      "final-plain": {
+        "message": "R6/R7 opened=true pages=1",
+        "processAlive": true
+      },
+      "final-office-encrypted": {
+        "message": "open_failed=true reason=encrypted Office files",
+        "processAlive": true
+      }
+    },
+    "encryptedFileProducer": "WPS Presentation"
+  },
+  "sheet": {
+    "formulas": 428,
+    "baselineDifferences": 0,
+    "readerWriterDifferences": {
+      "old-to-old": 0,
+      "old-to-new": 0,
+      "new-to-old": 0,
+      "new-to-new": 0
+    },
+    "microsoftExcelVersion": "16.0.20625.20108",
+    "excelReferenceSha256": "09a2e57335e356a6f226680c82ec533e5a110ca2b2cb677e966c112f6e3ce0de",
+    "preExistingExcelDifferences": [
+      [
+        "G7",
+        [
+          "CONVERT(1,\"u\",\"g\")",
+          "n",
+          "1.6605390666E-24"
+        ],
+        [
+          "CONVERT(1,\"u\",\"g\")",
+          "n",
+          "1.660538782E-24"
+        ]
+      ],
+      [
+        "G8",
+        [
+          "CONVERT(1,\"g\",\"u\")",
+          "n",
+          "6.022140762081122E23"
+        ],
+        [
+          "CONVERT(1,\"g\",\"u\")",
+          "n",
+          "6.0221417942167639E+23"
+        ]
+      ],
+      [
+        "G50",
+        [
+          "CONVERT(1,\"parsec\",\"m\")",
+          "n",
+          "3.085677581491367E16"
+        ],
+        [
+          "CONVERT(1,\"parsec\",\"m\")",
+          "n",
+          "3.0856775812815532E+16"
+        ]
+      ],
+      [
+        "G51",
+        [
+          "CONVERT(1,\"m\",\"parsec\")",
+          "n",
+          "3.240779289444365E-17"
+        ],
+        [
+          "CONVERT(1,\"m\",\"parsec\")",
+          "n",
+          "3.2407792896647253E-17"
+        ]
+      ],
+      [
+        "G52",
+        [
+          "CONVERT(1,\"pc\",\"m\")",
+          "n",
+          "3.085677581491367E16"
+        ],
+        [
+          "CONVERT(1,\"pc\",\"m\")",
+          "n",
+          "3.0856775812815532E+16"
+        ]
+      ],
+      [
+        "G53",
+        [
+          "CONVERT(1,\"m\",\"pc\")",
+          "n",
+          "3.240779289444365E-17"
+        ],
+        [
+          "CONVERT(1,\"m\",\"pc\")",
+          "n",
+          "3.2407792896647253E-17"
+        ]
+      ],
+      [
+        "G84",
+        [
+          "CONVERT(1,\"mmHg\",\"Pa\")",
+          "n",
+          "133.322387415"
+        ],
+        [
+          "CONVERT(1,\"mmHg\",\"Pa\")",
+          "n",
+          "133.322"
+        ]
+      ],
+      [
+        "G85",
+        [
+          "CONVERT(1,\"Pa\",\"mmHg\")",
+          "n",
+          "0.007500615758456563"
+        ],
+        [
+          "CONVERT(1,\"Pa\",\"mmHg\")",
+          "n",
+          "7.5006375541921064E-3"
+        ]
+      ],
+      [
+        "G106",
+        [
+          "CONVERT(1,\"eV\",\"J\")",
+          "n",
+          "1.602176634E-19"
+        ],
+        [
+          "CONVERT(1,\"eV\",\"J\")",
+          "n",
+          "1.602176487E-19"
+        ]
+      ],
+      [
+        "G107",
+        [
+          "CONVERT(1,\"J\",\"eV\")",
+          "n",
+          "6.241509074460763E18"
+        ],
+        [
+          "CONVERT(1,\"J\",\"eV\")",
+          "n",
+          "6.2415096471204178E+18"
+        ]
+      ],
+      [
+        "G108",
+        [
+          "CONVERT(1,\"ev\",\"J\")",
+          "n",
+          "1.602176634E-19"
+        ],
+        [
+          "CONVERT(1,\"ev\",\"J\")",
+          "n",
+          "1.602176487E-19"
+        ]
+      ],
+      [
+        "G109",
+        [
+          "CONVERT(1,\"J\",\"ev\")",
+          "n",
+          "6.241509074460763E18"
+        ],
+        [
+          "CONVERT(1,\"J\",\"ev\")",
+          "n",
+          "6.2415096471204178E+18"
+        ]
+      ]
+    ],
+    "newExcelDifferences": 0,
+    "wpsReferenceSha256": "f47f851434ac1db13c0d77d614796a52496fc77cad74573278ee4e47cb17c0d5",
+    "preExistingWpsDifferenceCount": 237,
+    "desktop": {
+      "changedCells": 2,
+      "checkedPerState": 17,
+      "states": 5,
+      "savedTypedCaches": 428,
+      "undoRedoAndFreshReopen": true,
+      "originalUnchanged": true
+    },
+    "existingRegressionFamilies": {
+      "conditional-aggregates": {
+        "workbooks": 2,
+        "cachedFormulas": 208,
+        "readerWriterCombinations": 8,
+        "reportSha256": "e7769c31b79a0b4b78d3d89bdda519246df65718f70e44f3164588fbac7dc323"
+      },
+      "matrix-classic-text": {
+        "workbooks": 2,
+        "cachedFormulas": 118,
+        "readerWriterCombinations": 8,
+        "reportSha256": "f8a8fcc02621943692bea011361fe5f22da65ab3963bec35e049eb6fb66d5764"
+      },
+      "modern-text-date": {
+        "workbooks": 2,
+        "cachedFormulas": 118,
+        "readerWriterCombinations": 8,
+        "reportSha256": "c3c9a845c0056cd2db7c8660364f17cebe4b27ce8f7d3fd5f07f429e073d6450"
+      },
+      "engineering-depreciation": {
+        "workbooks": 2,
+        "cachedFormulas": 160,
+        "readerWriterCombinations": 8,
+        "reportSha256": "ab66b369ae7e6640cad882ab0ed55b1254d1eb14979de13b02ee80dcb71fe765"
+      }
+    }
+  },
+  "engineeringChecks": {
+    "joywordHeadlessSerial": {"passed": 4147, "failed": 0, "ignored": 2},
+    "joydeckHeadless": {"passed": 1016, "failed": 0, "ignored": 0},
+    "joysheetHeadless": {"passed": 1482, "failed": 0, "ignored": 1},
+    "allProductsFmtAndStrictClippy": true,
+    "targetedCrateTestsPassed": 714,
+    "wordInitialLayoutTiming": {
+      "test": "a_megabyte_long_word_lays_out_quickly",
+      "seconds": 16.96,
+      "limitSeconds": 15,
+      "passedSerialRecheck": true
+    },
+    "sourceRecordsVerified": 292,
+    "repositoryGatesPassed": true,
+    "archiveFilesVerified": 44,
+    "replayFromArchivePassed": true,
+    "lockfileDependencyAdded": ["joydeck-pptx", "joyoffice-cfb"]
+  },
+  "effortRemainingPersonWeeks": {
+    "baselineOtherPaths": [
+      2,
+      4
+    ],
+    "stage1Word": [
+      13,
+      20
+    ],
+    "stage1Deck": [
+      5,
+      8
+    ],
+    "stage1Sheet": [
+      15,
+      25
+    ],
+    "stage1Shared": [
+      2,
+      4
+    ],
+    "stage1Subtotal": [
+      35,
+      57
+    ],
+    "stages2To5": [
+      226,
+      381
+    ],
+    "total": [
+      263,
+      442
+    ]
+  }
+}

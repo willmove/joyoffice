@@ -36,6 +36,7 @@ licenses/joydeck/** -text
 tests/fixtures/fonts/OFL.txt -whitespace
 
 # Product code uses one stable source representation across host platforms.
+crates/joyword-engine/data/language-pack-index.json text eol=lf
 apps/joysheet*/** text=auto eol=lf
 crates/joysheet-*/** text=auto eol=lf
 tools/joysheet/** text=auto eol=lf

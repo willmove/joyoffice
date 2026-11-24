@@ -15,18 +15,25 @@ def main():
     fonts = json.loads((ROOT / 'licenses/fonts/sources.json').read_text(encoding='utf-8'))
     records += [{'target_path': r['path'], 'source_sha256': r['sha256']} for r in fonts['files']]
     errors = []
+    retired = 0
     patched = json.loads((ROOT / 'licenses/accesskit-windows/source.json').read_text(encoding='utf-8'))
     records += [{'target_path': 'third-party/accesskit_windows/' + name,
                  'source_sha256': digest} for name, digest in patched['files'].items()]
     for record in records:
         path = (ROOT / record['target_path']).resolve()
+        if record.get('retired'):
+            retired += 1
+            if not path.is_relative_to(ROOT) or path.exists() or not record.get('last_verified_in'):
+                errors.append('invalid retired source record: ' + record['target_path'])
+            continue
         if not path.is_relative_to(ROOT) or not path.is_file():
             errors.append('invalid imported target: ' + record['target_path'])
             continue
         expected = record.get('adapted_sha256', record['source_sha256'])
         if hashlib.sha256(path.read_bytes()).hexdigest() != expected:
             errors.append('unrecorded imported-source modification: ' + record['target_path'])
-    print('\n'.join(errors) if errors else f'Imported source records passed ({len(records)} files)')
+    print('\n'.join(errors) if errors else
+          f'Imported source records passed ({len(records) - retired} files, {retired} retired)')
     return bool(errors)
 
 

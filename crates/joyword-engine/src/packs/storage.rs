@@ -38,6 +38,10 @@ const MAX_SETTINGS_BYTES: u64 = 1 << 20;
 const SETTINGS: &str = "settings.json";
 const INDEX_CACHE: &str = "indexes";
 const INDEX_CACHE_NAME: &str = "language-packs.json";
+const JOYWORD_INDEX_CACHE: &str = "indexes/joyword-language-packs.json";
+const JOYWORD_INDEX: &[u8] = include_bytes!("../../data/language-pack-index.json");
+const LEGACY_INDEX_SHA256: &str =
+    "b35c7aef0591177f18233b551da16035dcd615549ff874e169ffd19f16fea74b";
 const INSTALLED: &str = "language-packs.json";
 const STAGING: &str = ".staging";
 const LOCK: &str = ".lock";
@@ -121,12 +125,6 @@ pub(super) fn sha256_hex(bytes: &[u8]) -> String {
     out
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct PackIndexPin {
-    pub url: &'static str,
-    pub sha256: &'static str,
-}
-
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub(super) struct PackIndex {
     pub format: u32,
@@ -183,30 +181,6 @@ impl PackIndex {
 
     pub(super) fn pack(&self, locale: &str) -> Option<&PackEntry> {
         self.packs.iter().find(|p| p.locale == locale)
-    }
-}
-
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub(super) enum IndexSource {
-    Pinned(PackIndexPin),
-    Override(String),
-}
-
-impl IndexSource {
-    fn from_env(pin: &PackIndexPin) -> Self {
-        match language_pack_index_overridden() {
-            Some(v) => {
-                log::warn!(
-                    "{LANGUAGE_PACK_INDEX_ENV}={v}: the Language pack index is NOT the pinned one and its sha256 is not checked (testing only)"
-                );
-                Self::Override(v)
-            }
-            None => Self::Pinned(*pin),
-        }
-    }
-
-    pub(super) fn is_override(&self) -> bool {
-        matches!(self, Self::Override(_))
     }
 }
 
@@ -528,28 +502,47 @@ impl PackStore {
         }
     }
 
-    pub(super) fn cached_language_pack_index(&self, pin: &PackIndexPin) -> Option<PackIndex> {
-        let source = IndexSource::from_env(pin);
-        let bytes = read_limited(
-            &self.dir.join(INDEX_CACHE).join(INDEX_CACHE_NAME),
-            MAX_PACK_INDEX_BYTES,
-        )?;
-        match source {
-            IndexSource::Pinned(p) if sha256_hex(&bytes) != p.sha256 => None,
-            _ => PackIndex::parse(&bytes, source.is_override()).ok(),
+    pub(super) fn cached_language_pack_index(&self) -> Option<PackIndex> {
+        let legacy = || {
+            crate::io::read_regular_file_within(
+                &self.dir.join(INDEX_CACHE).join(INDEX_CACHE_NAME),
+                MAX_PACK_INDEX_BYTES,
+            )
+        };
+        if language_pack_index_overridden().is_some() {
+            return PackIndex::parse(&legacy()?, true).ok();
         }
+        let first_party = crate::io::read_regular_file_within(
+            &self.dir.join(JOYWORD_INDEX_CACHE),
+            MAX_PACK_INDEX_BYTES,
+        );
+        // A verified legacy cache also indicates the user has already requested
+        // the catalogue. Keep its bytes available to older installations.
+        if first_party.as_deref() == Some(JOYWORD_INDEX)
+            || legacy().is_some_and(|bytes| sha256_hex(&bytes) == LEGACY_INDEX_SHA256)
+        {
+            return PackIndex::parse(JOYWORD_INDEX, false).ok();
+        }
+        None
     }
 
-    pub(super) fn fetch_language_pack_index(
-        &self,
-        pin: &PackIndexPin,
-        cancel: &Cancel,
-    ) -> Result<PackIndex, Error> {
-        let source = IndexSource::from_env(pin);
-        let bytes = transfer::index(self, &source, cancel)?;
-        let index = PackIndex::parse(&bytes, source.is_override())?;
-        fs::create_dir_all(self.dir.join(INDEX_CACHE)).map_err(io("creating the index folder"))?;
-        self.write_file(&format!("{INDEX_CACHE}/{INDEX_CACHE_NAME}"), &bytes)?;
+    pub(super) fn fetch_language_pack_index(&self, cancel: &Cancel) -> Result<PackIndex, Error> {
+        self.require_network()?;
+        if cancel.is_cancelled() {
+            return Err(Error::Cancelled);
+        }
+        if let Some(location) = language_pack_index_overridden() {
+            log::warn!("{LANGUAGE_PACK_INDEX_ENV} is set; using an unpinned test catalogue");
+            let bytes = transfer::index(self, &location, cancel)?;
+            let index = PackIndex::parse(&bytes, true)?;
+            self.write_file(&format!("{INDEX_CACHE}/{INDEX_CACHE_NAME}"), &bytes)?;
+            return Ok(index);
+        }
+        let index = PackIndex::parse(JOYWORD_INDEX, false)?;
+        if cancel.is_cancelled() {
+            return Err(Error::Cancelled);
+        }
+        self.write_file(JOYWORD_INDEX_CACHE, JOYWORD_INDEX)?;
         Ok(index)
     }
 
@@ -608,65 +601,92 @@ impl PackStore {
 
     pub(super) fn read_installed(&self) -> Result<Installed, Error> {
         let path = self.dir.join(INSTALLED);
-        let there = fs::symlink_metadata(&path).is_ok();
-        if let Some(i) = self.read_record() {
-            return Ok(i);
+        let saved = crate::io::read_regular_file_within(&path, MAX_PACK_INDEX_BYTES);
+        if let Some(bytes) = &saved
+            && let Ok(inventory) = serde_json::from_slice(bytes)
+        {
+            return Ok(inventory);
         }
-        let rebuilt = self.installed_from_disk();
-        if !there && rebuilt.packs.is_empty() {
+        let record_metadata = fs::symlink_metadata(&path).ok();
+        let had_record = saved.is_some() || record_metadata.is_some();
+        let packs = self.scan_installed_packs();
+        if !had_record && packs.is_empty() {
             return Ok(Installed::default());
         }
+        let inventory = Installed { version: 1, packs };
         log::warn!(
             "{}: {}; rebuilt from the Language pack folders",
             path.display(),
-            if there { "can't be read" } else { "missing" }
+            if had_record {
+                "can't be read"
+            } else {
+                "missing"
+            }
         );
-        if there {
-            let _ = fs::copy(&path, self.dir.join(format!("{INSTALLED}.bad")));
+        let quarantine = self.dir.join(format!("{INSTALLED}.bad"));
+        if let Some(bytes) = saved {
+            let _ = atomic_replace(&quarantine, &bytes);
+        } else if record_metadata.is_some_and(|m| m.is_file()) {
+            // Preserve an oversized or unreadable regular file without reading
+            // it into memory. If publication fails, restore the original name.
+            fs::rename(&path, &quarantine).map_err(io("preserving the Language pack list"))?;
+            if let Err(error) = self.write_installed(&inventory) {
+                let _ = fs::rename(&quarantine, &path);
+                return Err(error);
+            }
+            return Ok(inventory);
         }
-        self.write_installed(&rebuilt)?;
-        Ok(rebuilt)
+        self.write_installed(&inventory)?;
+        Ok(inventory)
     }
 
-    fn read_record(&self) -> Option<Installed> {
-        read_limited(&self.dir.join(INSTALLED), MAX_PACK_INDEX_BYTES)
-            .and_then(|b| serde_json::from_slice::<Installed>(&b).ok())
-    }
+    fn scan_installed_packs(&self) -> Vec<InstalledLanguagePack> {
+        #[derive(Default, Deserialize)]
+        struct PackLabel {
+            name: Option<toml::Value>,
+            licence: Option<toml::Value>,
+        }
 
-    fn installed_from_disk(&self) -> Installed {
-        let mut packs: Vec<InstalledLanguagePack> = fs::read_dir(self.language_packs_dir())
-            .into_iter()
-            .flatten()
-            .flatten()
-            .filter_map(|e| e.file_name().into_string().ok())
-            .filter(|l| is_locale(l))
-            .take(MAX_PACKS)
-            .map(|locale| {
-                let info = read_limited(
-                    &self.language_packs_dir().join(&locale).join("pack.toml"),
-                    MAX_PACK_TOML_BYTES,
-                )
-                .and_then(|b| String::from_utf8(b).ok())
-                .and_then(|t| t.parse::<toml::Table>().ok());
-                let field = |k: &str| {
-                    info.as_ref()
-                        .and_then(|t| t.get(k))
-                        .and_then(toml::Value::as_str)
-                        .map(plain_text)
-                };
-                InstalledLanguagePack {
-                    name: field("name").unwrap_or_else(|| locale.clone()),
-                    licence: field("licence").unwrap_or_default(),
-                    locale,
-                    release: String::new(),
-                    version: String::new(),
-                    sha256: String::new(),
-                    size: 0,
-                }
-            })
-            .collect();
-        packs.sort_by(|a, b| a.locale.cmp(&b.locale));
-        Installed { version: 1, packs }
+        let mut packs = Vec::new();
+        let Ok(entries) = fs::read_dir(self.language_packs_dir()) else {
+            return packs;
+        };
+        for entry in entries.filter_map(Result::ok) {
+            let Ok(locale) = entry.file_name().into_string() else {
+                continue;
+            };
+            if !is_locale(&locale) {
+                continue;
+            }
+            let label: PackLabel = crate::io::read_regular_file_within(
+                &entry.path().join("pack.toml"),
+                MAX_PACK_TOML_BYTES,
+            )
+            .and_then(|bytes| toml::from_str(std::str::from_utf8(&bytes).ok()?).ok())
+            .unwrap_or_default();
+            packs.push(InstalledLanguagePack {
+                name: label
+                    .name
+                    .as_ref()
+                    .and_then(toml::Value::as_str)
+                    .map_or_else(|| locale.clone(), plain_text),
+                licence: label
+                    .licence
+                    .as_ref()
+                    .and_then(toml::Value::as_str)
+                    .map_or_else(String::new, plain_text),
+                locale,
+                release: String::new(),
+                version: String::new(),
+                sha256: String::new(),
+                size: 0,
+            });
+            if packs.len() == MAX_PACKS {
+                break;
+            }
+        }
+        packs.sort_unstable_by(|left, right| left.locale.cmp(&right.locale));
+        packs
     }
 
     pub(super) fn write_installed(&self, installed: &Installed) -> Result<(), Error> {

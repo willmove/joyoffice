@@ -32,7 +32,7 @@ def check():
     if len(commands) != 329 or len({r['command_id'] for r in commands}) != 329:
         errors.append('command inventory IDs changed without a reviewed baseline update')
     for source in json.loads((ROOT / 'licenses/joyoffice/source-map.json').read_text(encoding='utf-8')):
-        if not (ROOT / source['target_path']).is_file():
+        if not source.get('retired') and not (ROOT / source['target_path']).is_file():
             errors.append('missing imported source: ' + source['target_path'])
     return errors
 

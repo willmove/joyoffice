@@ -36,7 +36,7 @@ def make_document(document, locale, words):
     make["package"](document, body+"<w:sectPr/>")
 
 
-def results(binary, root, locale, words, kind="spelling"):
+def results(binary, root, locale, words, kind="spelling", *, encoding="utf-8"):
     document = root / "sample.docx"
     if not document.exists():
         make_document(document, locale, words)
@@ -45,7 +45,7 @@ def results(binary, root, locale, words, kind="spelling"):
                     "params":{"name":name, "arguments":args}})+"\n" for i, (name,args) in enumerate(calls))
     response = subprocess.run([binary, "mcp", "--automation-read-root", root], input=stdin,
                               env={**os.environ, "JOYWORD_CONFIG_DIR": str(root/"profile"),
-                                   "WORDCRAFT_DICTIONARIES": str(root)}, text=True, capture_output=True,
+                                   "WORDCRAFT_DICTIONARIES": str(root)}, encoding=encoding, capture_output=True,
                               check=True, timeout=180)
     messages = [json.loads(line)["result"] for line in response.stdout.splitlines()]
     assert len(messages) == 2 and not any(m["isError"] for m in messages)

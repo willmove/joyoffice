@@ -12,6 +12,7 @@ description = "DeckCraft PPTX: Office Open XML (PresentationML/DrawingML) import
 workspace = true
 
 [dependencies]
+joyoffice-cfb.workspace = true
 joyoffice-drawingml.workspace = true
 joyoffice-opc.workspace = true
 joydeck-model = { workspace = true }

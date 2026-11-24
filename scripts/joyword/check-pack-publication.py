@@ -9,20 +9,23 @@ import runpy
 import subprocess
 import tarfile
 
+try:
+    from compression import zstd
+except ImportError:
+    zstd = None
+
 
 def sha(data):
     return hashlib.sha256(data).hexdigest()
 
 
 def manifest(archive):
-    files = {}
+    if zstd is not None:
+        with zstd.open(archive, "rb") as stream, tarfile.open(fileobj=stream, mode="r|") as tar:
+            return files_in(tar)
     with subprocess.Popen(["zstd", "-dq", "-c", archive], stdout=subprocess.PIPE) as process:
         with tarfile.open(fileobj=process.stdout, mode="r|") as tar:
-            for member in tar:
-                if member.isfile():
-                    name = member.name.removeprefix("./")
-                    assert name not in files
-                    files[name] = sha(tar.extractfile(member).read())
+            files = files_in(tar)
         for _ in iter(lambda: process.stdout.read(65536), b""):
             pass
         process.stdout.close()
@@ -30,7 +33,17 @@ def manifest(archive):
     return files
 
 
-def verify(old, new, released, out):
+def files_in(tar):
+    files = {}
+    for member in tar:
+        if member.isfile():
+            name = member.name.removeprefix("./")
+            assert name not in files
+            files[name] = sha(tar.extractfile(member).read())
+    return files
+
+
+def verify(old, new, released, out, archive_base=None):
     proof = runpy.run_path(str(Path(__file__).with_name("check-spelling-order.py")))
     pin = proof["PUBLISHED_INDEX"]
     index = json.loads((released / "index.json").read_bytes())
@@ -49,7 +62,7 @@ def verify(old, new, released, out):
         archive = released / (locale + ".tar.zst")
         assert archive.stat().st_size == entry["size"] and sha(archive.read_bytes()) == entry["sha256"]
         expected[locale] = manifest(archive)
-        entry["url"] = str(archive)
+        entry["url"] = f"{archive_base}/{archive.name}" if archive_base else str(archive)
     local_index.write_text(json.dumps(index))
     env = dict(os.environ, JOYWORD_CONFIG_DIR=str(out/"settings"), CRAFT_FONT_STORE=str(folder),
                CRAFT_LANGUAGE_PACK_INDEX=str(local_index))
@@ -67,7 +80,7 @@ def verify(old, new, released, out):
         run(binary, ["proof.packs"])
         # The CLI's run command prints the document summary. Read the public
         # on-disk inventory independently after the normal command has returned.
-        inventory = json.loads(cache.read_text())["packs"]
+        inventory = json.loads(cache.read_bytes())["packs"]
         tags = {row["locale"] for row in inventory}
         assert len(tags) == len(inventory)
         assert tags == {d.name for d in pools.iterdir() if d.is_dir()}
@@ -115,16 +128,19 @@ def verify(old, new, released, out):
             assert installed(new)==set(locales) and not journal.exists()
             assert actual(locale)==expected[locale] and installed(old)==set(locales)
             crash_points.append([action,step])
-    # Reinstall with the other version to verify publication over an older
-    # directory and its own inventory, then remove with both program versions.
+    # Remove and reinstall with the other version. The CLI returns an already
+    # installed result without downloading if the locale is still present.
     for binary, group in [(new,locales[:split]),(old,locales[split:])]:
         for i in range(0,len(group),8):
-            run(binary,[operation("installPack",tag) for tag in group[i:i+8]])
+            batch = group[i:i+8]
+            run(binary,[operation("removePack",tag) for tag in batch])
+            run(binary,[operation("installPack",tag) for tag in batch])
     for tag in locales:
         assert actual(tag)==expected[tag]
-    # Separate CLI processes share the inventory. Exercise two simultaneous
-    # replacements of one locale along with writes to unrelated entries.
+    # Separate CLI processes share the inventory. Request the same locale
+    # concurrently alongside installs of unrelated entries.
     parallel = [locales[0], locales[1], locales[0], locales[2]]
+    run(new, [operation("removePack", tag) for tag in sorted(set(parallel))])
     with ThreadPoolExecutor(max_workers=len(parallel)) as workers:
         list(workers.map(lambda tag: run(new, [operation("installPack", tag)]), parallel))
     assert installed(new)==installed(old)==set(locales)
@@ -139,9 +155,9 @@ def verify(old, new, released, out):
             "archives":len(locales),"regularFiles":sum(len(x) for x in expected.values()),
             "licenseFiles":sum(sum(k.startswith("LICENCES/") for k in x) for x in expected.values()),
             "archiveBytes":sum(e["size"] for e in index["packs"]),"firstInstalledWithOld":split,
-            "firstInstalledWithNew":len(locales)-split,"crossVersionReplacements":len(locales),
+            "firstInstalledWithNew":len(locales)-split,"crossVersionReinstalls":len(locales),
             "crossVersionInventoryVerified":True,"verifiedCrashStates":crash_points,
-            "concurrentReplacements":len(parallel),"allRemoved":True,
+            "concurrentInstallRequests":len(parallel),"allRemoved":True,
             "originalUnchanged":True,"consentOffRefused":True}
 
 

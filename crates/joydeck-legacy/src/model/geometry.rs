@@ -46,42 +46,6 @@ pub fn union(objects: &[Object]) -> Rect {
     r.h = (bottom - r.y).max(1.);
     r
 }
-pub fn hit(o: &Object, x: f32, y: f32) -> bool {
-    let (x, y) = rotate(x - o.x - o.width / 2., y - o.y - o.height / 2., -o.rotation);
-    let (x, y) = (x + o.width / 2., y + o.height / 2.);
-    if o.kind == "preset" {
-        return crate::preset::hit(o, x, y);
-    }
-    if o.kind == "ellipse" {
-        return ((x - o.width / 2.) / (o.width / 2.).max(0.1)).powi(2)
-            + ((y - o.height / 2.) / (o.height / 2.).max(0.1)).powi(2)
-            <= 1.;
-    }
-    if o.kind == "arrow" {
-        let u = x / o.width.max(0.1);
-        let v = y / o.height.max(0.1);
-        return (0. ..=0.65).contains(&u) && (0.25..=0.75).contains(&v)
-            || (0.65..=1.).contains(&u) && (v - 0.5).abs() <= (1. - u) / 0.7;
-    }
-    if o.kind == "roundRect" {
-        let r = 12f32.min(o.width / 2.).min(o.height / 2.).max(0.);
-        let cx = x.clamp(r, (o.width - r).max(r));
-        let cy = y.clamp(r, (o.height - r).max(r));
-        return (x - cx).hypot(y - cy) <= r;
-    }
-    if o.kind == "line" {
-        let den = (o.width * o.width + o.height * o.height).max(0.1);
-        let t = ((x * o.width + y * o.height) / den).clamp(0., 1.);
-        return (x - t * o.width).hypot(y - t * o.height) <= 4. + o.stroke_width / 2.;
-    }
-    Rect {
-        x: 0.,
-        y: 0.,
-        w: o.width,
-        h: o.height,
-    }
-    .contains(x, y)
-}
 #[derive(Clone, Copy, PartialEq)]
 pub enum Mode {
     Move,

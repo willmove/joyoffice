@@ -1,117 +1,87 @@
-//! Just enough of the Compound File Binary (CFB/OLE2) container to tell a password-protected
-//! presentation apart: PowerPoint wraps an encrypted `.pptx` in a CFB holding `EncryptionInfo`
-//! and `EncryptedPackage` streams (ECMA-376 / [MS-OFFCRYPTO]) instead of a zip. Every read is
-//! bounds-checked and every loop bounded. Copied from GridCraft's `crates/xlsx/src/cfb.rs`.
+//! CFB directory probe for Office encrypted packages (MS-CFB and MS-OFFCRYPTO).
+//! The Deck open path uses the result to select its password-protection diagnostic.
 
-/// The CFB signature at the start of the file.
-const SIGNATURE: [u8; 8] = [0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1];
+use joyoffice_cfb::{CFB_SIGNATURE, complete_sector, directory_name_units};
 
-const END_OF_CHAIN: u32 = 0xFFFF_FFFE;
-/// Sector ids at or above this are markers (free, end of chain, FAT/DIFAT sector), not sectors.
-const MAX_REG_SECT: u32 = 0xFFFF_FFFA;
-/// Directory sectors followed at most (4096 entries with 512-byte sectors).
-const MAX_DIR_SECTORS: usize = 1024;
-/// DIFAT sectors followed at most.
-const MAX_DIFAT_SECTORS: usize = 1024;
+const DIRECTORY_LIMIT: usize = 1024;
+const DIFAT_LIMIT: usize = 1024;
+const END_OF_CHAIN: u32 = 0xffff_fffe;
+const FIRST_RESERVED_SECTOR: u32 = 0xffff_fffa;
+const STREAMS: [&str; 2] = ["EncryptionInfo", "EncryptedPackage"];
 
-/// Stream names that mark an encrypted (password-protected) OOXML package.
-const ENCRYPTED_STREAMS: [&str; 2] = ["EncryptedPackage", "EncryptionInfo"];
-
-fn u16_at(b: &[u8], at: usize) -> Option<u16> {
-    let s = b.get(at..at.checked_add(2)?)?;
-    Some(u16::from_le_bytes([*s.first()?, *s.get(1)?]))
-}
-
-fn u32_at(b: &[u8], at: usize) -> Option<u32> {
-    let s = b.get(at..at.checked_add(4)?)?;
-    Some(u32::from_le_bytes([
-        *s.first()?,
-        *s.get(1)?,
-        *s.get(2)?,
-        *s.get(3)?,
-    ]))
-}
-
-/// Whether `bytes` is a compound file holding an encryption stream. Walks the directory through
-/// the FAT; when the structure can't be followed (truncated or malformed), falls back to scanning
-/// the bytes for the UTF-16LE stream names.
 pub(crate) fn is_encrypted(bytes: &[u8]) -> bool {
-    if !bytes.starts_with(&SIGNATURE) {
-        return false;
-    }
-    match directory_names(bytes) {
-        Some(names) => names
-            .iter()
-            .any(|n| ENCRYPTED_STREAMS.iter().any(|e| n.eq_ignore_ascii_case(e))),
-        None => ENCRYPTED_STREAMS.iter().any(|e| contains_utf16(bytes, e)),
-    }
+    bytes.starts_with(&CFB_SIGNATURE)
+        && directory_mentions_encryption(bytes).unwrap_or_else(|| {
+            // Preserve the diagnostic for truncated containers carrying a literal stream marker.
+            STREAMS.iter().any(|name| {
+                let marker: Vec<_> = name.encode_utf16().flat_map(u16::to_le_bytes).collect();
+                bytes.windows(marker.len()).any(|chunk| chunk == marker)
+            })
+        })
 }
 
-fn contains_utf16(hay: &[u8], needle: &str) -> bool {
-    let n: Vec<u8> = needle.encode_utf16().flat_map(u16::to_le_bytes).collect();
-    !n.is_empty() && hay.windows(n.len()).any(|w| w == n.as_slice())
+fn le_words(bytes: &[u8]) -> impl Iterator<Item = u32> + '_ {
+    bytes
+        .as_chunks::<4>()
+        .0
+        .iter()
+        .copied()
+        .map(u32::from_le_bytes)
 }
 
-/// Names of every directory entry, or `None` when the directory can't be read.
-fn directory_names(b: &[u8]) -> Option<Vec<String>> {
-    if !b.starts_with(&SIGNATURE) {
-        return None;
-    }
-    let shift = u16_at(b, 30)?;
-    if shift != 9 && shift != 12 {
-        return None;
-    }
-    let size = 1usize << shift;
-    let per = size / 4;
-    let sector = |id: u32| -> Option<&[u8]> {
-        let start = (id as usize).checked_add(1)?.checked_mul(size)?;
-        b.get(start..start.checked_add(size)?)
+/// Walk metadata only. Stream data and the mini FAT are irrelevant to detection.
+fn directory_mentions_encryption(bytes: &[u8]) -> Option<bool> {
+    let shift = u16::from_le_bytes(bytes.get(30..32)?.try_into().ok()?);
+    let sector_size = match shift {
+        9 => 512,
+        12 => 4096,
+        _ => return None,
     };
-    // The DIFAT: the FAT's sector ids, 109 in the header then chained DIFAT sectors.
-    let mut difat: Vec<u32> = (0..109)
-        .filter_map(|i| u32_at(b, 76 + i * 4))
-        .filter(|&s| s < MAX_REG_SECT)
+    let sector = |id| complete_sector(bytes, sector_size, id);
+    let entries_per_fat = sector_size / 4;
+    let is_regular = |id: &u32| *id < FIRST_RESERVED_SECTOR;
+    let mut fat_sectors: Vec<_> = le_words(bytes.get(76..).unwrap_or_default())
+        .take(109)
+        .filter(is_regular)
         .collect();
-    let mut next = u32_at(b, 68)?;
-    for _ in 0..MAX_DIFAT_SECTORS {
-        if next >= MAX_REG_SECT {
+
+    let mut index_sector = le_words(bytes.get(68..)?).next()?;
+    for _ in 0..DIFAT_LIMIT {
+        if !is_regular(&index_sector) {
             break;
         }
-        let s = sector(next)?;
-        difat.extend(
-            (0..per - 1)
-                .filter_map(|i| u32_at(s, i * 4))
-                .filter(|&x| x < MAX_REG_SECT),
-        );
-        next = u32_at(s, (per - 1) * 4)?;
+        let table = sector(index_sector)?;
+        let (entries, next) = table.split_at(table.len() - 4);
+        fat_sectors.extend(le_words(entries).filter(is_regular));
+        index_sector = le_words(next).next()?;
     }
-    let fat_next = |id: u32| -> Option<u32> {
-        let idx = id as usize;
-        let fat_sector = *difat.get(idx / per)?;
-        u32_at(sector(fat_sector)?, (idx % per) * 4)
-    };
-    let mut names = Vec::new();
-    let mut id = u32_at(b, 48)?;
-    for _ in 0..MAX_DIR_SECTORS {
-        if id == END_OF_CHAIN {
-            return Some(names);
+
+    let mut directory = le_words(bytes.get(48..)?).next()?;
+    let mut match_found = false;
+    for _ in 0..DIRECTORY_LIMIT {
+        if directory == END_OF_CHAIN {
+            break;
         }
-        if id >= MAX_REG_SECT {
+        if !is_regular(&directory) {
             return None;
         }
-        let s = sector(id)?;
-        for e in s.as_chunks::<128>().0 {
-            let len = usize::from(u16_at(e, 64)?);
-            if !(2..=64).contains(&len) {
-                continue;
+        let contents = sector(directory)?;
+        match_found |= contents.as_chunks::<128>().0.iter().any(|entry| {
+            if !(2..=64).contains(&u16::from_le_bytes([entry[64], entry[65]])) {
+                return false;
             }
-            let units: Vec<u16> = (0..(len - 2) / 2)
-                .filter_map(|i| u16_at(e, i * 2))
-                .collect();
-            names.push(String::from_utf16_lossy(&units));
-        }
-        id = fat_next(id)?;
+            STREAMS.iter().any(|name| {
+                let units = directory_name_units(entry);
+                units.len() == name.len()
+                    && units.zip(name.bytes()).all(|(unit, ascii)| {
+                        u8::try_from(unit).is_ok_and(|b| b.eq_ignore_ascii_case(&ascii))
+                    })
+            })
+        });
+        let position = directory as usize;
+        let fat = sector(*fat_sectors.get(position / entries_per_fat)?)?;
+        let next_offset = (position % entries_per_fat) * 4;
+        directory = le_words(fat.get(next_offset..)?).next()?;
     }
-    // A directory longer than the bound (or a cyclic chain): report what was read.
-    Some(names)
+    Some(match_found)
 }

@@ -83,7 +83,9 @@ def pixels(path):
 def render(bin_dir, out):
     samples = {}
     for ext, product, page in [("docx", "word", 1), ("pptx", "deck", 2)]:
-        binary = str(bin_dir / ("joy" + product + "-cli"))
+        binary = bin_dir / ("joy" + product + "-cli")
+        if not binary.is_file():
+            binary = binary.with_suffix(".exe")
         for kind in ("wmf", "emf"):
             prefix = f"{product}-{kind}"
             path, pngs, pdf = out / f"{kind}.{ext}", out / (prefix + "-png"), out / (prefix + ".pdf")

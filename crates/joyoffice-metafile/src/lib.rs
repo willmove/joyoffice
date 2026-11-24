@@ -1,8 +1,5 @@
-//! Bounds-checked little-endian access to hostile input. Every read returns `None` past the end, so
-//! a truncated or lying size field stops the parse instead of panicking.
-//!
-//! Extracted from the identical WordCraft and DeckCraft readers. Original sources and
-//! licenses are recorded in licenses/wordcraft and licenses/deckcraft.
+//! Bounded views of WMF and EMF record payloads. The byte order, POINTS,
+//! POINTL and FLOAT encodings follow [MS-WMF] and [MS-EMF].
 
 /// A borrowed WMF or EMF record; callers enforce the format-specific record budgets.
 #[derive(Clone, Copy)]
@@ -10,55 +7,68 @@ pub struct Bytes<'a>(pub &'a [u8]);
 
 impl<'a> Bytes<'a> {
     pub fn slice(&self, off: usize, len: usize) -> Option<&'a [u8]> {
-        self.0.get(off..off.checked_add(len)?)
+        let (_, rest) = self.0.split_at_checked(off)?;
+        let (field, _) = rest.split_at_checked(len)?;
+        Some(field)
     }
 
     pub fn tail(&self, off: usize) -> Option<Bytes<'a>> {
-        self.0.get(off..).map(Bytes)
+        let (_, rest) = self.0.split_at_checked(off)?;
+        Some(Bytes(rest))
     }
 
-    fn arr<const N: usize>(&self, off: usize) -> Option<[u8; N]> {
-        self.slice(off, N)?.try_into().ok()
+    fn field<const WIDTH: usize>(&self, off: usize) -> Option<[u8; WIDTH]> {
+        self.tail(off)?.0.first_chunk().copied()
     }
 
     pub fn u16(&self, off: usize) -> Option<u16> {
-        Some(u16::from_le_bytes(self.arr(off)?))
+        self.field(off).map(u16::from_le_bytes)
     }
 
     pub fn i16(&self, off: usize) -> Option<i16> {
-        Some(i16::from_le_bytes(self.arr(off)?))
+        self.field(off).map(i16::from_le_bytes)
     }
 
     pub fn u32(&self, off: usize) -> Option<u32> {
-        Some(u32::from_le_bytes(self.arr(off)?))
+        self.field(off).map(u32::from_le_bytes)
     }
 
     pub fn i32(&self, off: usize) -> Option<i32> {
-        Some(i32::from_le_bytes(self.arr(off)?))
+        self.field(off).map(i32::from_le_bytes)
     }
 
     pub fn f32(&self, off: usize) -> Option<f32> {
-        Some(f32::from_le_bytes(self.arr(off)?))
+        self.u32(off).map(f32::from_bits)
     }
 
     /// `n` consecutive (x, y) pairs of 16- or 32-bit signed integers starting at `off`.
     pub fn points(&self, off: usize, n: usize, wide: bool) -> Option<Vec<(f64, f64)>> {
-        let sz = if wide { 8 } else { 4 };
-        let raw = self.slice(off, n.checked_mul(sz)?)?;
-        let mut out = Vec::with_capacity(n);
-        for c in raw.chunks_exact(sz) {
-            let p = if wide {
-                let x = i32::from_le_bytes(c.get(0..4)?.try_into().ok()?);
-                let y = i32::from_le_bytes(c.get(4..8)?.try_into().ok()?);
-                (f64::from(x), f64::from(y))
-            } else {
-                let x = i16::from_le_bytes(c.get(0..2)?.try_into().ok()?);
-                let y = i16::from_le_bytes(c.get(2..4)?.try_into().ok()?);
-                (f64::from(x), f64::from(y))
-            };
-            out.push(p);
-        }
-        Some(out)
+        let width = if wide { 8 } else { 4 };
+        let raw = self.slice(off, n.checked_mul(width)?)?;
+        let points = if wide {
+            let (points, _) = raw.as_chunks::<8>();
+            points
+                .iter()
+                .map(|&[a, b, c, d, e, f, g, h]| {
+                    (
+                        f64::from(i32::from_le_bytes([a, b, c, d])),
+                        f64::from(i32::from_le_bytes([e, f, g, h])),
+                    )
+                })
+                .collect()
+        } else {
+            let (points, _) = raw.as_chunks::<4>();
+            points
+                .iter()
+                .map(|&[a, b, c, d]| {
+                    (
+                        f64::from(i16::from_le_bytes([a, b])),
+                        f64::from(i16::from_le_bytes([c, d])),
+                    )
+                })
+                .collect()
+        };
+        Some(points)
     }
 }
 
@@ -90,5 +100,22 @@ mod tests {
         );
         assert_eq!(data.f32(5).map(f32::to_bits), Some(0x01020304));
         assert_eq!(data.u32(6), None);
+    }
+
+    #[test]
+    fn signed_extremes_float_payloads_and_boundary_offsets_are_preserved() {
+        let payload = [0x00, 0x80, 0xff, 0x7f, 0x34, 0x12, 0xc0, 0xff];
+        let record = Bytes(&payload);
+        assert_eq!(
+            record.points(0, 1, false),
+            Some(vec![(-32_768.0, 32_767.0)])
+        );
+        assert_eq!(record.i16(2), Some(i16::MAX));
+        assert_eq!(record.u16(0), Some(0x8000));
+        assert_eq!(record.f32(4).map(f32::to_bits), Some(0xffc0_1234));
+        assert_eq!(record.slice(8, 0), Some(&[][..]));
+        assert!(record.points(9, 0, false).is_none());
+        assert!(record.slice(1, usize::MAX).is_none());
+        assert!(record.i32(usize::MAX).is_none());
     }
 }

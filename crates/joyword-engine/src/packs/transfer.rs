@@ -2,8 +2,8 @@
 use super::Cancel;
 use super::http::{Client, Timeouts};
 use super::storage::{
-    Error, IndexSource, MAX_PACK_INDEX_BYTES, PackEntry, PackStore, Progress, VerifyError, io,
-    local_source, sha256_hex,
+    Error, MAX_PACK_INDEX_BYTES, PackEntry, PackStore, Progress, VerifyError, io, local_source,
+    sha256_hex,
 };
 use std::io::Read;
 
@@ -109,22 +109,14 @@ impl FileSpec<'_> {
     }
 }
 
-pub(super) fn index(
-    store: &PackStore,
-    source: &IndexSource,
-    cancel: &Cancel,
-) -> Result<Vec<u8>, Error> {
-    let (url, digest) = match source {
-        IndexSource::Pinned(pin) => (pin.url, Some(pin.sha256)),
-        IndexSource::Override(location) => (location.as_str(), None),
-    };
+pub(super) fn index(store: &PackStore, location: &str, cancel: &Cancel) -> Result<Vec<u8>, Error> {
     FileSpec {
         name: "the Language pack index",
         limit: MAX_PACK_INDEX_BYTES,
         exact_size: false,
-        sha: digest,
+        sha: None,
     }
-    .receive(store, url, source.is_override(), cancel, &mut |_| {})
+    .receive(store, location, true, cancel, &mut |_| {})
 }
 
 pub(super) fn archive(

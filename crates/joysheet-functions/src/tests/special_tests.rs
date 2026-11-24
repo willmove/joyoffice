@@ -37,3 +37,14 @@ fn incomplete() {
     close(norm_inv(1e-10), -6.361_340_902_404_056, 1e-10);
     close(invert(|x| x * x, 2.0, 0.0, 1.0, 10.0), 2f64.sqrt(), 1e-14);
 }
+
+#[test]
+fn shared_kernels_preserve_small_tails_and_unbalanced_parameters() {
+    assert!((reg_gamma_q(2.5, 197.444_686_131_949_88 / 2.0) / 1e-40 - 1.0).abs() < 2e-13);
+    close(ln_beta(1.0, 1e100), -100.0 * 10_f64.ln(), 3e-15);
+    assert_eq!(reg_inc_beta(0.5, 2.0, 2.0), 0.5);
+    let near_midpoint = 0.5_f64.next_down();
+    let expected = (near_midpoint - 0.5) * (2.0 * PI).sqrt();
+    assert!((norm_inv(near_midpoint) / expected - 1.0).abs() < 1e-14);
+    close(norm_inv(1e-300), -37.047_096_299_361_2, 1e-14);
+}

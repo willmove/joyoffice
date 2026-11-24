@@ -11,6 +11,11 @@ import subprocess
 import sys
 import tarfile
 
+try:
+    from compression import zstd
+except ImportError:
+    zstd = None
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from native_pilot_support import app, digest, port, wait, word_request
 
@@ -69,8 +74,10 @@ def check(cli, gui, out, published=False):
                 header = tarfile.TarInfo(name)
                 header.size = len(raw)
                 tar.addfile(header, io.BytesIO(raw))
-        archive.write_bytes(subprocess.run(["zstd", "-q", "-c"], input=stream.getvalue(),
-                                           capture_output=True, check=True).stdout)
+        raw = stream.getvalue()
+        data = zstd.compress(raw) if zstd is not None else subprocess.run(
+            ["zstd", "-q", "-c"], input=raw, capture_output=True, check=True).stdout
+        archive.write_bytes(data)
         record = {"locale": "nl", "name": "Nederlands", "url": str(archive), "sha256": digest(archive),
                   "size": archive.stat().st_size, "licence": "CC0-1.0", "class": "Embeddable",
                   "spelling": False, "hyphenation": True, "source": "https://example.org/joyoffice-fixture"}
@@ -113,8 +120,13 @@ def check(cli, gui, out, published=False):
     if published:
         env["CRAFT_LANGUAGE_PACK_INDEX"] = ""
         run(refresh)
-        cached = store / "indexes/language-packs.json"
-        expected_index = "b35c7aef0591177f18233b551da16035dcd615549ff874e169ffd19f16fea74b"
+        cached = store / "indexes/joyword-language-packs.json"
+        if cached.is_file():
+            origin = Path(__file__).resolve().parents[2] / "crates/joyword-engine/data/language-pack-index.json"
+            expected_index = digest(origin)
+        else:
+            cached = store / "indexes/language-packs.json"
+            expected_index = "b35c7aef0591177f18233b551da16035dcd615549ff874e169ffd19f16fea74b"
         assert digest(cached) == expected_index
         entries = json.loads(cached.read_bytes())["packs"]
         entry = next(row for row in entries if row["locale"] == "nl")
