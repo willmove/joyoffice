@@ -1,0 +1,91 @@
+{
+  "frozenCommit": "14cbb29616d7c0ababbf40a8f6c0218b996e7ae8",
+  "historyCommit": "205fc433",
+  "cli": {
+    "frozenSha256": "f8fd32a31570e241f17ced00dbce66f7e2ae53739b18e3c70bea03c2e78794f7",
+    "candidateSha256": "663eb2f1c8c7acd19046a168738488167825d313c4143b3622824fc8e4f4a64a",
+    "sourceSha256": "e13a81b7ac34282d38b75ac5bab6b27d690578473176add2ee76d01d834a9a63",
+    "destinationSha256": "6e3aa914dd5f40cd261ab35ceff2f1b584f100fa0ffb0569f6cb9af53bed6933",
+    "sharedPictureChecks": {
+      "frozen": {
+        "pictureShapes": 2,
+        "pictureMedia": 1,
+        "undoRedo": true
+      },
+      "candidate": {
+        "pictureShapes": 2,
+        "pictureMedia": 1,
+        "undoRedo": true
+      }
+    },
+    "nativeCrossReadbacks": 4,
+    "candidateGroupReadbacks": 4,
+    "frozenGroupPasteRefused": true
+  },
+  "windows": {
+    "nativeBinarySha256": "1a1e83f8dc7e35ba52505be41031dd560eb716725881c0ae4e9abc05378ad11e",
+    "frozenNativeBinarySha256": "58ca28ebada8d5e737ad788c78f74e402771379a2fb4c5cb19fbd98125033e93",
+    "inputSourceSha256": "1d557501d10c473f1094ae321b8eeb8040d6f13c8d1bee1cacbf1cc1004e52a4",
+    "inputDestinationSha256": "6e3aa914dd5f40cd261ab35ceff2f1b584f100fa0ffb0569f6cb9af53bed6933",
+    "crossDocumentReadbacks": 4,
+    "results": {
+      ".joydeck": {
+        "newRootNames": [
+          "Transfer group",
+          "Layout test"
+        ],
+        "mediaParts": 1,
+        "connector": {
+          "type": "connector",
+          "start": [
+            28,
+            1
+          ],
+          "end": [
+            29,
+            2
+          ]
+        },
+        "font": "Arial",
+        "color": "A15721",
+        "removedSourceSlideLink": true,
+        "retainedWebLink": true,
+        "sha256": "88319685df4b344939b7b31174cf1f9f07e26b31f3f0575ce860bc8bcc25a425"
+      },
+      ".pptx": {
+        "newRootNames": [
+          "Transfer group",
+          "Layout test"
+        ],
+        "mediaParts": 1,
+        "connector": {
+          "type": "connector",
+          "start": [
+            28,
+            1
+          ],
+          "end": [
+            29,
+            2
+          ]
+        },
+        "font": "Arial",
+        "color": "A15721",
+        "removedSourceSlideLink": true,
+        "retainedWebLink": true,
+        "sha256": "9aa744c410ce931f0aaf65ea51ff57c70ee3ec5ac0d9af3344d9b5b84c5f650d"
+      }
+    },
+    "sameDocumentReadbacks": 2,
+    "sameDocumentSourceSlideLink": 107,
+    "sameDocumentOutputSha256": "c37215a7dadf828218859095b1ce617766f7dfbf0c62193db6903b9ba8591be7"
+  },
+  "r2Commands": {
+    "frozen": 20,
+    "candidate": 20
+  },
+  "productTests": {
+    "passed": 1042,
+    "failed": 0
+  }
+}

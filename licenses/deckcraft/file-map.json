@@ -2358,9 +2358,12 @@
       "source_sha256": "2f635edb0e1d8a0325c6245434ba1eb84d2c50649b73e2109ae8e806944ce354",
       "target_path": "crates/joydeck-engine/src/media_refs.rs",
       "adapted_sha256": "38a7a931873198e693d820230932ff1c81b1afb7665a557cfcb6c2146d9275ba",
+      "retired": true,
+      "last_verified_in": "205fc433",
       "changes": [
         "R8: adapt typed media references / object ID and resource remapping / layout and theme tokens to pure engine or GPUI Kit; no egui dependency",
-        "rustfmt; bounded transactions, errors and clipboard serialization; original MIT attribution retained"
+        "rustfmt; bounded transactions, errors and clipboard serialization; original MIT attribution retained",
+        "Replaced with JoyOffice media slot declarations in Craft replacement stage 2"
       ]
     },
     {
@@ -2368,10 +2371,13 @@
       "source_sha256": "7e715a5f006693a518ff367bce66a79b7cbe9d3b985ef006f192723ae9c114b4",
       "target_path": "crates/joydeck-engine/src/transfer.rs",
       "adapted_sha256": "d4e10bc13c5a300d3564a7f17e5799e84b3b5226a5b62139247a75596cd67fe0",
+      "retired": true,
+      "last_verified_in": "205fc433",
       "changes": [
         "R8: adapt typed media references / object ID and resource remapping / layout and theme tokens to pure engine or GPUI Kit; no egui dependency",
         "rustfmt; bounded transactions, errors and clipboard serialization; original MIT attribution retained",
-        "JD-307: deduplicate embedded media only against embedded resources with matching content type and bytes"
+        "JD-307: deduplicate embedded media only against embedded resources with matching content type and bytes",
+        "Replaced with JoyOffice object tree preparation and resource import in Craft replacement stage 2"
       ]
     },
     {

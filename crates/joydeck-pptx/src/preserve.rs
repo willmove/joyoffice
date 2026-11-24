@@ -893,6 +893,9 @@ pub fn export_preserving(
             } else {
                 let mut e = generated.clone();
                 link_relationships.rebind_generated(&mut e)?;
+                link_relationships.rebind_generated_images(&mut e, &mut |target| {
+                    pictures.target(&gen_pkg, target, &mut parts, &mut ct)
+                })?;
                 field_ids.reassign_tree(&mut e);
                 e
             };

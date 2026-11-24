@@ -145,7 +145,9 @@ pub(super) fn accept(
         if t.shapes.len() != 1 {
             return Err("accept exactly one object".into());
         }
-        transfer::paste(st, t)?;
+        let mut portable = t.clone();
+        crate::clipboard::scope_objects(&mut portable, None);
+        transfer::paste(st, &portable, target)?;
         let p = Arc::make_mut(&mut st.model);
         let slide = Arc::make_mut(&mut p.slides[page]);
         let mut shape = slide.shapes.pop().ok_or("accepted object missing")?;
@@ -154,7 +156,11 @@ pub(super) fn accept(
             x.y -= 18.;
         }
         if let (Some(id), Some(at)) = (target, at) {
-            shape.id = id;
+            if (shape.is_group() || slide.shapes[at].is_group())
+                && let Some(origin) = st.origins.get_mut(&slide.id)
+            {
+                origin.shapes.remove(&id);
+            }
             slide.shapes[at] = shape;
             st.selection.shapes = vec![id];
         } else {

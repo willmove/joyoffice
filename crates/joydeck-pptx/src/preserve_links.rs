@@ -102,6 +102,33 @@ impl Relationships<'_> {
         Ok(())
     }
 
+    /// A new object can refer to images at any depth, including a picture
+    /// bullet, a group member, or the original behind an artistic effect.
+    pub(super) fn rebind_generated_images(
+        &mut self,
+        element: &mut El,
+        import: &mut impl FnMut(&str) -> Result<String, PptxError>,
+    ) -> Result<(), PptxError> {
+        if matches!(element.name.as_str(), "a:blip" | "a14:imgLayer") {
+            if element.attr("r:link").is_some_and(|id| !id.is_empty()) {
+                return Err(error("edited linked resources need .joydeck Save As"));
+            }
+            if let Some(id) = element.attr("r:embed") {
+                let relationship = self
+                    .generated
+                    .get(id)
+                    .filter(|rel| rel.kind == "image" && !rel.external)
+                    .ok_or_else(|| error("missing generated embedded image relationship"))?;
+                let target = import(&relationship.target)?;
+                element.set_attr("r:embed", &self.add("image", &target, false));
+            }
+        }
+        for child in element.elements_mut() {
+            self.rebind_generated_images(child, import)?;
+        }
+        Ok(())
+    }
+
     fn set_click(
         &mut self,
         run: &mut El,

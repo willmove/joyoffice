@@ -17,7 +17,10 @@ mod workspace;
 pub use review::ReviewAction;
 pub use workspace::WorkspaceAction;
 pub mod clipboard;
+mod clipboard_appearance;
+#[path = "media_slots.rs"]
 pub mod media_refs;
+#[path = "object_clipboard.rs"]
 pub mod transfer;
 pub use content::ContentAction;
 pub mod formatting;
@@ -537,7 +540,7 @@ fn apply(st: &mut EditorSnapshot, cmd: Command) -> std::result::Result<(), Strin
         return text_resources::apply(st, *slide, target, expected, body, resources);
     }
     if let Command::PasteObjects { transfer } = &cmd {
-        return transfer::paste(st, transfer);
+        return transfer::paste(st, transfer, None);
     }
     if let Some(result) = content::apply(st, &cmd) {
         return result;

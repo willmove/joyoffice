@@ -1,7 +1,7 @@
 //! Document-local link references on data received from the system clipboard.
 use crate::{
     Command, media_refs,
-    transfer::{PASTE_OFFSET, Transfer},
+    transfer::{MAX_GROUP_DEPTH, PASTE_OFFSET, Transfer},
 };
 use joydeck_model::{
     Presentation, Shape, ShapeKind, TextBody, Xfrm,
@@ -99,6 +99,27 @@ impl LinkScope<'_> {
             }
         }
     }
+
+    fn objects(&mut self, shapes: &mut [Shape], depth: usize) {
+        for shape in shapes {
+            self.link(&mut shape.click);
+            self.link(&mut shape.hover);
+            if let Some(body) = &mut shape.text {
+                self.text(body);
+            }
+            match &mut shape.kind {
+                ShapeKind::Table(table) => {
+                    for cell in table.rows.iter_mut().flat_map(|row| &mut row.cells) {
+                        self.text(&mut cell.text);
+                    }
+                }
+                ShapeKind::Group { children, .. } if depth < MAX_GROUP_DEPTH => {
+                    self.objects(children, depth + 1);
+                }
+                _ => {}
+            }
+        }
+    }
 }
 
 /// Scope a rich text fragment to a verified open document. The text clipboard
@@ -127,18 +148,7 @@ pub fn scope_objects(transfer: &mut Transfer, document: Option<&Presentation>) -
         transfer_media: true,
         adjusted: false,
     };
-    for shape in &mut transfer.shapes {
-        scope.link(&mut shape.click);
-        scope.link(&mut shape.hover);
-        if let Some(body) = &mut shape.text {
-            scope.text(body);
-        }
-        if let ShapeKind::Table(table) = &mut shape.kind {
-            for cell in table.rows.iter_mut().flat_map(|row| &mut row.cells) {
-                scope.text(&mut cell.text);
-            }
-        }
-    }
+    scope.objects(&mut transfer.shapes, 0);
     if scope.adjusted {
         let mut retained = BTreeSet::new();
         media_refs::visit::shapes(&transfer.shapes, &mut |id| {

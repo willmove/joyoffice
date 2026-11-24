@@ -298,7 +298,7 @@ impl<'a> Pictures<'a> {
         }
     }
 
-    fn target(
+    pub(super) fn target(
         &mut self,
         generated: &opc::Package,
         source: &str,
@@ -534,7 +534,7 @@ pub(super) fn shape(
         ));
     }
     let resource = match new.kind {
-        ShapeKind::Picture { .. } => "blipFill",
+        ShapeKind::Picture { .. } if old.is_some() => "blipFill",
         ShapeKind::Chart(_) => "graphic",
         _ => return Ok(()),
     };

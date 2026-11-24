@@ -1,5 +1,8 @@
 //! Staged text plus embedded picture resources. No UI, I/O or content execution.
-use crate::{Command, EditorSnapshot, TextTarget, authoring, media_refs, text, transfer::Resource};
+use crate::{
+    Command, EditorSnapshot, TextTarget, authoring, media_refs, text,
+    transfer::{MediaImport, Resource},
+};
 use joydeck_model::{MediaId, Presentation, TextBody};
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::Arc;
@@ -110,25 +113,15 @@ pub(crate) fn apply(
     {
         return Err("text resource draft is stale".into());
     }
-    let p = Arc::make_mut(&mut snapshot.model);
-    let mut mapping = BTreeMap::new();
-    for resource in resources {
-        let id = p
-            .add_media(
-                &resource.name,
-                &resource.content_type,
-                resource.data.clone(),
-            )
-            .ok_or("media ID exhausted")?;
-        mapping.insert(resource.id, id);
-    }
+    let media = MediaImport::prepare(&snapshot.model, resources)?;
     let mut remapped = body.clone();
     media_refs::visit_mut::text(&mut remapped, &mut |id| {
-        if let Some(mapped) = mapping.get(id) {
-            *id = *mapped;
-        }
+        *id = media.ids[id];
     });
-    authoring::set_body(p, page, target, remapped)
+    let p = Arc::make_mut(&mut snapshot.model);
+    authoring::set_body(p, page, target, remapped)?;
+    media.install(p);
+    Ok(())
 }
 
 /// Private resource namespace for a complete text editing draft. No model writes
