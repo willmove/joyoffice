@@ -13,7 +13,21 @@
 
 实现入口：[发布工作流](../../.github/workflows/release.yml)、[版本路由](../../tools/xtask/product.py)。准备版本与说明不触发公开发布；本次没有创建产品标签或执行发布工作流。
 
-## 当前公开包
+## v0.3.0 起拉齐的发布矩阵与 UOS 兼容基线
+
+2026-11-24 起，JoyWord、JoySheet、JoyDeck 在六组系统／架构上拉齐为完全一致的 14 项产物（加 14 份 SHA-256 校验文件，共 28 项资产）：
+
+| 系统／架构 | JoyWord | JoySheet | JoyDeck |
+| --- | --- | --- | --- |
+| Windows x86_64 / ARM64 | Setup EXE、ZIP | Setup EXE、ZIP | Setup EXE、ZIP |
+| macOS Intel / Apple 芯片 | DMG、ZIP 内含 `.app` | DMG、ZIP 内含 `.app` | DMG、ZIP 内含 `.app` |
+| Linux x86_64 / ARM64 | DEB、TAR.GZ、ZIP | DEB、TAR.GZ、ZIP | DEB、TAR.GZ、ZIP |
+
+- Linux x86_64 与 ARM64 发布构建切换至 **Debian 10 Buster（glibc 2.28）** 容器基线，覆盖 **UOS 20（glibc 2.28）** 与 **UOS 25（glibc 2.38）**（含 x86_64 与 ARM64）以及 Debian 10–13 / Ubuntu 20.04–24.04。
+- 三产品共用 [scripts/package_installers.py](../../scripts/package_installers.py) 生成 macOS DMG 与 xz 压缩（`dpkg-deb -Zxz`）的 Linux DEB，DEB 依赖使用 `libc6 (>= 2.28)` 与 `libgcc-s1 | libgcc1` 等跨发行版通用包名，移除 `libssl3t64` 和 `libc6 (>= 2.39)` 限制。
+- [scripts/verify_release_assets.py](../../scripts/verify_release_assets.py) 自动校验全部 28 项资产、Linux 二进制 ELF 最高 GLIBC 符号版本（`<= GLIBC_2.28`）、DEB 非 zstd 压缩与 UOS 兼容依赖字段。UOS ARM64 真机仍按根 AGENTS.md 保留未实机验证说明。
+
+## 历史基线（v0.1.4 / v0.2.0）
 
 截至本文日期，三个 v0.1.4 发布均覆盖下面六组系统／架构，每个产物均有 SHA-256 sidecar。
 

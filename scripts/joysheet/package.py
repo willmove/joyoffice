@@ -34,6 +34,7 @@ sys.path.insert(0, str(ROOT / "scripts/joydeck"))
 sys.path.insert(0, str(ROOT / "scripts"))
 try:
     import sbom
+    from package_installers import create_tar_gz_from_directory, write_sha256_sidecar
     from product_icons import BRAND, copy_logo
 finally:
     del sys.path[:2]
@@ -205,8 +206,11 @@ def package(profile, validation, output=None):
         for path in sorted(destination.rglob("*")):
             if path.is_file():
                 archive.write(path, destination.name + "/" + path.relative_to(destination).as_posix())
-    archive_path.with_name(archive_path.name + ".sha256").write_text(
-        hashlib.sha256(archive_path.read_bytes()).hexdigest() + "  " + archive_path.name + "\n", encoding="ascii")
+    write_sha256_sidecar(archive_path)
+    if system == "linux":
+        tar_path = destination.parent / (destination.name + ".tar.gz")
+        create_tar_gz_from_directory(destination, tar_path, root_prefix=destination.name)
+        write_sha256_sidecar(tar_path)
     if system == "windows":
         windows_installer(destination)
     print(destination)

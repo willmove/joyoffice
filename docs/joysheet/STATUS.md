@@ -1,5 +1,7 @@
 # Joysheet 实施状态
 
+2026-11-24：工作区与内部精确版本约束统一为 0.3.0；拉齐三产品全六平台发布包格式（Windows EXE/ZIP、macOS DMG/ZIP、Linux DEB/TAR.GZ/ZIP），修复 Linux DEB 依赖（移除 `libssl3t64` 与 `libc6 >= 2.39`）与 xz 压缩，Linux x86_64/ARM64 切换至 glibc 2.28 基线以兼容 UOS 20/25（含 ARM64）。[发布规则与平台扩展](../joyoffice/RELEASE-PLATFORMS.md)
+
 2026-11-23 UOS 25 x86_64：源码 `22036e02` 的产品检查 **1,524 通过、1 项既有忽略、0 失败**，fmt、严格 Clippy 与 Debug automation 桌面／CLI 构建通过。四个公式族的八份规范工作簿、604 个公式缓存对照及原生编辑／撤销／重做／保存／新进程重开通过；窗格、显示、尺寸、打印和保护／超链接共 39 份三格式导入、156 组两版读写组合通过。13 组原生冒烟、默认搜狗中文模式和文件页原生另存的过时结果拒绝通过。未在本机运行 Excel 实时重算或设备打印；完整 Linux／M8 条件不关闭。[本轮证据](../joyoffice/validation/20261123-uos-refactor/README.md)
 
 2026-11-17 UOS Desktop 25 Professional x86_64：当前 Debug automation 构建在 X11／DDE、125% 缩放下完成 13 组原生回归，含 Unicode／emoji、公式与历史、合成组合态、系统剪贴板、格式表单、关闭取消、中文路径 XLSX 保存重开及多行 LF／CRLF 与样式保留。产品 check 1,439 项通过、1 项既有忽略，fmt、all-targets 严格 Clippy 通过。首轮截图失去前台焦点，临时停用输入法后完整复跑通过；搜狗／Fcitx5 真实拼音仍直通且无组合态，系统 IME 未通过。合成事件、X11 窗口像素和真实系统按键分别记录，不关闭完整 Linux／M8 验收。[本轮证据与边界](../joyoffice/validation/20261117-uos-desktop/README.md)
@@ -39,7 +41,7 @@
 
 2026-11-01 UOS 25 x86_64 增量：产品检查 1400 项通过、1 项忽略，桌面／CLI debug 构建和 10 组原生 GUI 回归通过；新增文件权限、Linux 截图能力声明已修复。原生回归使用 X11 窗口截图和合成输入，不等于系统 IME、Wayland、读屏或 M8 全矩阵通过。逐项证据与边界见 [UOS 三产品验证](../joyoffice/validation/20261101-uos/README.md)。
 
-应用和 CLI 当前使用 JoyOffice 统一版本 **0.2.0**。下表功能基线来自 2026-10-30 的 **M8-preview6** 及其后续增量。M0–M8 全量迁移仍在推进。
+应用和 CLI 当前使用 JoyOffice 统一版本 **0.3.0**。下表功能基线来自 2026-10-30 的 **M8-preview6** 及其后续增量。M0–M8 全量迁移仍在推进。
 
 | 阶段 | 已实现 | 尚未满足的阶段验收 |
 | --- | --- | --- |

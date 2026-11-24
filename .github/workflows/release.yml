@@ -98,11 +98,23 @@ jobs:
           # 3.12.10 is the newest Windows ARM64 binary in setup-python's 3.12 series.
           python-version: ${{ matrix.os == 'windows-11-arm' && '3.12.10' || '3.12' }}
           architecture: ${{ matrix.arch == 'aarch64' && 'arm64' || 'x64' }}
-      - name: Linux system libraries
+      - name: Linux glibc 2.28 build container (UOS 20/25 compatible)
         if: runner.os == 'Linux'
+        shell: bash
         run: |
-          sudo apt-get update
-          sudo apt-get install -y clang cmake pkg-config libfontconfig1-dev libfreetype6-dev libxkbcommon-dev libxkbcommon-x11-dev libwayland-dev libxcb1-dev libxcb-shape0-dev libxcb-xfixes0-dev libxcb-randr0-dev libxcb-xinput-dev libxcb-xkb-dev libx11-xcb-dev libvulkan-dev libssl-dev libasound2-dev
+          docker build -t joyoffice-glibc228 - <<'DOCKERFILE'
+          FROM debian:buster-slim
+          RUN printf 'deb http://archive.debian.org/debian buster main\ndeb http://archive.debian.org/debian-security buster/updates main\n' > /etc/apt/sources.list \
+            && apt-get -o Acquire::Check-Valid-Until=false update \
+            && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+                 build-essential pkg-config \
+                 libfontconfig1-dev libfreetype6-dev \
+                 libxkbcommon-dev libxkbcommon-x11-dev \
+                 libwayland-dev libxcb1-dev libxcb-shape0-dev libxcb-xfixes0-dev \
+                 libxcb-randr0-dev libxcb-xinput-dev libxcb-xkb-dev libx11-xcb-dev \
+                 libvulkan-dev libasound2-dev ca-certificates \
+            && rm -rf /var/lib/apt/lists/*
+          DOCKERFILE
       - name: macOS Metal toolchain
         if: runner.os == 'macOS'
         run: |
@@ -119,12 +131,49 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             target
-          key: ${{ runner.os }}-${{ matrix.arch }}-${{ needs.resolve.outputs.product }}-release-${{ hashFiles('Cargo.lock') }}
+          key: ${{ runner.os == 'Linux' && 'Linux-glibc228' || runner.os }}-${{ matrix.arch }}-${{ needs.resolve.outputs.product }}-release-${{ hashFiles('Cargo.lock') }}
       - name: Build and package selected product
         shell: bash
         env:
           RELEASE_PRODUCT: ${{ needs.resolve.outputs.product }}
         run: |
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            cargo fetch --locked
+            HOST_CARGO="$(command -v cargo)"
+            TOOLCHAIN_BIN="$(dirname "$(rustup which cargo)")"
+            CARGO_HOME_DIR="${CARGO_HOME:-$HOME/.cargo}"
+            RUSTUP_HOME_DIR="${RUSTUP_HOME:-$HOME/.rustup}"
+            mounts=(-v "$HOME:$HOME" -v "/tmp:/tmp")
+            for extra in "$CARGO_HOME_DIR" "$RUSTUP_HOME_DIR" "$TOOLCHAIN_BIN" "$GITHUB_WORKSPACE"; do
+              case "$extra" in
+                "$HOME"|"$HOME"/*) ;;
+                *) mounts+=(-v "$extra:$extra") ;;
+              esac
+            done
+            docker rm -f joyoffice-glibc228 >/dev/null 2>&1 || true
+            docker run -d --name joyoffice-glibc228 \
+              -u "$(id -u):$(id -g)" \
+              -e HOME="$HOME" \
+              -e CARGO_HOME="$CARGO_HOME_DIR" \
+              -e RUSTUP_HOME="$RUSTUP_HOME_DIR" \
+              -e PATH="$TOOLCHAIN_BIN:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" \
+              -e CARGO_TERM_COLOR=always \
+              "${mounts[@]}" \
+              -w "$GITHUB_WORKSPACE" \
+              joyoffice-glibc228 sleep infinity
+            trap 'docker rm -f joyoffice-glibc228 >/dev/null 2>&1 || true' EXIT
+            mkdir -p "$RUNNER_TEMP/glibc228-bin"
+            cat > "$RUNNER_TEMP/glibc228-bin/cargo" <<WRAPPER
+          #!/usr/bin/env bash
+          set -euo pipefail
+          if [ "\${1:-}" = "build" ]; then
+            exec docker exec -w "\$PWD" joyoffice-glibc228 "$TOOLCHAIN_BIN/cargo" "\$@"
+          fi
+          exec "$HOST_CARGO" "\$@"
+          WRAPPER
+            chmod +x "$RUNNER_TEMP/glibc228-bin/cargo"
+            export PATH="$RUNNER_TEMP/glibc228-bin:$PATH"
+          fi
           if [ "$RELEASE_PRODUCT" = "joydeck" ]; then
             cargo xtask package joydeck --release --release-layout
           else
@@ -145,7 +194,6 @@ jobs:
           if [ "$RELEASE_PRODUCT" = joydeck ]; then base="$base-release"; fi
           python scripts/package_windows.py --product "$RELEASE_PRODUCT" --version "$RELEASE_VERSION" --arch "$RELEASE_ARCH" --archive "dist/$RELEASE_PRODUCT/$base.zip" --output "dist/$RELEASE_PRODUCT/$base-setup.exe"
       - name: Verify and checksum the installer
-        if: runner.os == 'Windows' || needs.resolve.outputs.product == 'joysheet'
         run: python scripts/verify_release_assets.py "dist/${{ needs.resolve.outputs.product }}" "${{ needs.resolve.outputs.product }}" "${{ needs.resolve.outputs.version }}" --prepare-installer "${{ matrix.platform }}" "${{ matrix.arch }}"
       - name: Test Windows installation, installed CLI and safe uninstall
         if: runner.os == 'Windows'
@@ -166,12 +214,18 @@ jobs:
             dist/${{ needs.resolve.outputs.product }}/${{ needs.resolve.outputs.product }}-${{ needs.resolve.outputs.version }}-${{ matrix.platform }}-${{ matrix.arch }}.zip.sha256
             dist/${{ needs.resolve.outputs.product }}/${{ needs.resolve.outputs.product }}-${{ needs.resolve.outputs.version }}-${{ matrix.platform }}-${{ matrix.arch }}.tar.gz
             dist/${{ needs.resolve.outputs.product }}/${{ needs.resolve.outputs.product }}-${{ needs.resolve.outputs.version }}-${{ matrix.platform }}-${{ matrix.arch }}.tar.gz.sha256
-            dist/${{ needs.resolve.outputs.product }}/${{ needs.resolve.outputs.product }}-${{ needs.resolve.outputs.version }}-${{ matrix.platform }}-${{ matrix.arch }}-release.zip
-            dist/${{ needs.resolve.outputs.product }}/${{ needs.resolve.outputs.product }}-${{ needs.resolve.outputs.version }}-${{ matrix.platform }}-${{ matrix.arch }}-release.zip.sha256
-            dist/${{ needs.resolve.outputs.product }}/${{ needs.resolve.outputs.product }}-${{ needs.resolve.outputs.version }}-${{ matrix.platform }}-${{ matrix.arch }}-release-setup.exe
-            dist/${{ needs.resolve.outputs.product }}/${{ needs.resolve.outputs.product }}-${{ needs.resolve.outputs.version }}-${{ matrix.platform }}-${{ matrix.arch }}-release-setup.exe.sha256
+            dist/${{ needs.resolve.outputs.product }}/${{ needs.resolve.outputs.product }}-${{ needs.resolve.outputs.version }}-${{ matrix.platform }}-${{ matrix.arch }}.dmg
+            dist/${{ needs.resolve.outputs.product }}/${{ needs.resolve.outputs.product }}-${{ needs.resolve.outputs.version }}-${{ matrix.platform }}-${{ matrix.arch }}.dmg.sha256
+            dist/${{ needs.resolve.outputs.product }}/${{ needs.resolve.outputs.product }}-${{ needs.resolve.outputs.version }}-${{ matrix.platform }}-${{ matrix.arch }}.deb
+            dist/${{ needs.resolve.outputs.product }}/${{ needs.resolve.outputs.product }}-${{ needs.resolve.outputs.version }}-${{ matrix.platform }}-${{ matrix.arch }}.deb.sha256
             dist/${{ needs.resolve.outputs.product }}/${{ needs.resolve.outputs.product }}-${{ needs.resolve.outputs.version }}-${{ matrix.platform }}-${{ matrix.arch }}-setup.exe
             dist/${{ needs.resolve.outputs.product }}/${{ needs.resolve.outputs.product }}-${{ needs.resolve.outputs.version }}-${{ matrix.platform }}-${{ matrix.arch }}-setup.exe.sha256
+            dist/${{ needs.resolve.outputs.product }}/${{ needs.resolve.outputs.product }}-${{ needs.resolve.outputs.version }}-${{ matrix.platform }}-${{ matrix.arch }}-release.zip
+            dist/${{ needs.resolve.outputs.product }}/${{ needs.resolve.outputs.product }}-${{ needs.resolve.outputs.version }}-${{ matrix.platform }}-${{ matrix.arch }}-release.zip.sha256
+            dist/${{ needs.resolve.outputs.product }}/${{ needs.resolve.outputs.product }}-${{ needs.resolve.outputs.version }}-${{ matrix.platform }}-${{ matrix.arch }}-release.tar.gz
+            dist/${{ needs.resolve.outputs.product }}/${{ needs.resolve.outputs.product }}-${{ needs.resolve.outputs.version }}-${{ matrix.platform }}-${{ matrix.arch }}-release.tar.gz.sha256
+            dist/${{ needs.resolve.outputs.product }}/${{ needs.resolve.outputs.product }}-${{ needs.resolve.outputs.version }}-${{ matrix.platform }}-${{ matrix.arch }}-release-setup.exe
+            dist/${{ needs.resolve.outputs.product }}/${{ needs.resolve.outputs.product }}-${{ needs.resolve.outputs.version }}-${{ matrix.platform }}-${{ matrix.arch }}-release-setup.exe.sha256
             dist/${{ needs.resolve.outputs.product }}/${{ needs.resolve.outputs.product }}-${{ needs.resolve.outputs.version }}-${{ matrix.platform }}-${{ matrix.arch }}-release.dmg
             dist/${{ needs.resolve.outputs.product }}/${{ needs.resolve.outputs.product }}-${{ needs.resolve.outputs.version }}-${{ matrix.platform }}-${{ matrix.arch }}-release.dmg.sha256
             dist/${{ needs.resolve.outputs.product }}/${{ needs.resolve.outputs.product }}-${{ needs.resolve.outputs.version }}-${{ matrix.platform }}-${{ matrix.arch }}-release.deb

@@ -125,10 +125,17 @@ class Packaging(unittest.TestCase):
             for name in ('joysheet', 'joysheet-cli', 'LICENSE-JOYOFFICE'):
                 (directory / name).write_bytes(b'fixture')
             (directory / 'dependency-licenses').mkdir()
-            with patch.object(native.platform, 'system', return_value='Linux'), patch.object(native, 'run'):
-                native.bundle(directory, '0.2.0')
+            with patch.object(native.platform, 'system', return_value='Linux'), patch.object(native, 'run') as run_cmd:
+                native.bundle(directory, '0.3.0')
             installed = directory / 'debian/usr/share/applications/joysheet.desktop'
             self.assertIn('Icon=/usr/share/icons/hicolor/scalable/apps/joysheet.svg\n', installed.read_text())
+            control = (directory / 'debian/DEBIAN/control').read_text(encoding='utf-8')
+            self.assertIn('libc6 (>= 2.28)', control)
+            self.assertNotIn('libssl3t64', control)
+            self.assertNotIn('2.39', control)
+            dpkg_calls = [call.args[0] for call in run_cmd.call_args_list if call.args[0][0] == 'dpkg-deb']
+            self.assertEqual(len(dpkg_calls), 1)
+            self.assertIn('-Zxz', dpkg_calls[0])
             appdir = directory / 'Joysheet.AppDir/joysheet.desktop'
             self.assertIn('Icon=joysheet\n', appdir.read_text())
             self.assertNotIn(str(directory), installed.read_text() + appdir.read_text())

@@ -67,7 +67,7 @@ class ReleaseWorkflow(unittest.TestCase):
 
     def run_step(self, name, product='joyword'):
         env = dict(os.environ, GH_TEST_PYTHON=sys.executable, GH_TEST_STUB=str(self.stub),
-                   RELEASE_PRODUCT=product, RELEASE_VERSION='0.2.0', RELEASE_TAG=product + '-v0.2.0',
+                   RELEASE_PRODUCT=product, RELEASE_VERSION='0.3.0', RELEASE_TAG=product + '-v0.3.0',
                    GITHUB_REPOSITORY='example/joyoffice')
         # A shell function makes it impossible for these steps to call a real gh.
         script = 'gh() { "$GH_TEST_PYTHON" "$GH_TEST_STUB" "$@"; }\n' + release_step(name)
@@ -75,7 +75,7 @@ class ReleaseWorkflow(unittest.TestCase):
                               env=env, text=True, encoding='utf-8', capture_output=True)
 
     def notes(self, product='joyword'):
-        path = self.root / 'docs/releases' / (product + '-v0.2.0.md')
+        path = self.root / 'docs/releases' / (product + '-v0.3.0.md')
         path.parent.mkdir(parents=True, exist_ok=True)
         body = (ROOT / 'docs/releases' / path.name).read_text(encoding='utf-8')
         path.write_text(body, encoding='utf-8')
@@ -93,7 +93,7 @@ class ReleaseWorkflow(unittest.TestCase):
                     self.assertTrue(state['isDraft'])
                     self.assertFalse(state['isPrerelease'])
                     self.assertFalse(state['isLatest'])
-                    self.assertEqual(state['title'], title + ' v0.2.0')
+                    self.assertEqual(state['title'], title + ' v0.3.0')
                 result = self.run_step('Publish completed release', product)
                 self.assertEqual(result.returncode, 0, result.stderr)
                 state = json.loads(self.state_path.read_text())
@@ -105,7 +105,7 @@ class ReleaseWorkflow(unittest.TestCase):
         notes = self.notes()
         for changes in [{'isDraft': False}, {'isPrerelease': True}, {'isPrerelease': None},
                         {'body': notes + '\nUnexpected change'}]:
-            state = dict(isDraft=True, isPrerelease=False, body=notes, title='JoyWord v0.2.0')
+            state = dict(isDraft=True, isPrerelease=False, body=notes, title='JoyWord v0.3.0')
             state.update(changes)
             with self.subTest(changes=list(changes)):
                 self.state_path.write_text(json.dumps(state), encoding='utf-8')

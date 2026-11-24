@@ -72,7 +72,7 @@
     "source_path": "scripts/joydeck/package-native.py",
     "target_path": "scripts/joydeck/package-native.py",
     "source_sha256": "a4ae844b6c2488524872bc69e418673dce6cd1599530447e9efc54ab6be1398e",
-    "adapted_sha256": "ec8c11e879efe129bd8c9c885f5b3d22880e6849bf5bdd5a50a852e898716ce1",
+    "adapted_sha256": "8e00997eaba2e0961b3672746ac4284d3d11b8653da8ef363c64a572c0c8dd18",
     "local_changes": "adapt product packaging and Cargo artifact discovery; add source checks, selected SBOM and atomic ZIP; LF; R1 rustfmt and bounded reader/CPU-renderer/palette/notes adapters as applicable; R2 editable viewer adapter, background save/recovery, command-driven gestures, coordinate anchoring and close guard; rustfmt; R4/R5 scene/content workspace adaptation; R6/R7 adapter additions and repository rustfmt/LF normalization.; R8 native editor, clipboard or product package version adaptation; R9 host integration and explicit command schema negotiation",
     "r9_ui2_gui_fix": "Include reviewed local platform-adapter source in package fingerprint",
     "unified_version": "Resolve the host workspace package version and render it in the bundled README",
@@ -84,7 +84,8 @@
     "product_branding": "Package the approved product logo, macOS bundle icon and Linux launcher from the shared JoyOffice branding assets.",
     "release_architecture": "Use the Rust host target for package architecture labels, including Windows ARM64.",
     "stable_package_labels": "Use the normal release package label for the suite release layout.",
-    "desktop_product_icons": "2026-11-18: embedded native product icons/logos for every product window; portable desktop registration and complete shared artwork source fingerprints; original attribution retained."
+    "desktop_product_icons": "2026-11-18: embedded native product icons/logos for every product window; portable desktop registration and complete shared artwork source fingerprints; original attribution retained.",
+    "release_parity_uos": "2026-11-24: align macOS DMG, Linux DEB (xz, glibc 2.28 UOS 20/25 compatible), and Linux TAR.GZ outputs via shared package_installers."
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",

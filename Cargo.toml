@@ -110,7 +110,7 @@ default-members = [
 resolver = "3"
 
 [workspace.package]
-version = "0.2.0"
+version = "0.3.0"
 edition = "2024"
 rust-version = "1.98"
 license = "MIT"
@@ -166,20 +166,20 @@ joyoffice-theme = { path = "crates/joyoffice-theme" }
 # forward the existing development-only shader feature; application APIs use Kit.
 gpui_platform = { package = "gpui-pre-platform", version = "=0.3.12", features = ["font-kit", "wayland", "x11"] }
 joyword-agent = { path = "crates/joyword-agent", default-features = false }
-joyoffice-fonts = { version = "=0.2.0", path = "crates/joyoffice-fonts" }
-joyoffice-metafile = { version = "=0.2.0", path = "crates/joyoffice-metafile" }
-joyoffice-cfb = { version = "=0.2.0", path = "crates/joyoffice-cfb" }
-joyoffice-drawingml = { version = "=0.2.0", path = "crates/joyoffice-drawingml" }
-joyoffice-omml = { version = "=0.2.0", path = "crates/joyoffice-omml" }
-joyoffice-opc = { version = "=0.2.0", path = "crates/joyoffice-opc" }
+joyoffice-fonts = { version = "=0.3.0", path = "crates/joyoffice-fonts" }
+joyoffice-metafile = { version = "=0.3.0", path = "crates/joyoffice-metafile" }
+joyoffice-cfb = { version = "=0.3.0", path = "crates/joyoffice-cfb" }
+joyoffice-drawingml = { version = "=0.3.0", path = "crates/joyoffice-drawingml" }
+joyoffice-omml = { version = "=0.3.0", path = "crates/joyoffice-omml" }
+joyoffice-opc = { version = "=0.3.0", path = "crates/joyoffice-opc" }
 joyword-corpus = { path = "crates/joyword-corpus" }
-joyword-doc = { version = "=0.2.0", path = "crates/joyword-doc" }
-joyword-docx = { version = "=0.2.0", path = "crates/joyword-docx" }
-joyword-engine = { version = "=0.2.0", path = "crates/joyword-engine" }
-joyword-layout = { version = "=0.2.0", path = "crates/joyword-layout" }
-joyword-model = { version = "=0.2.0", path = "crates/joyword-model" }
-joyword-pdf = { version = "=0.2.0", path = "crates/joyword-pdf" }
-joyword-render = { version = "=0.2.0", path = "crates/joyword-render" }
+joyword-doc = { version = "=0.3.0", path = "crates/joyword-doc" }
+joyword-docx = { version = "=0.3.0", path = "crates/joyword-docx" }
+joyword-engine = { version = "=0.3.0", path = "crates/joyword-engine" }
+joyword-layout = { version = "=0.3.0", path = "crates/joyword-layout" }
+joyword-model = { version = "=0.3.0", path = "crates/joyword-model" }
+joyword-pdf = { version = "=0.3.0", path = "crates/joyword-pdf" }
+joyword-render = { version = "=0.3.0", path = "crates/joyword-render" }
 joyword-shell = { path = "crates/joyword-shell" }
 crc32fast = "=1.5.2"
 harfrust = "=0.8.4"
@@ -224,14 +224,14 @@ vello_common = { version = "=0.2.0", default-features = false }
 # JoyWord Wordcraft-derived model, layout and editor.
 joyword-mcp = { path = "crates/joyword-mcp" }
 joyword-control-key = { path = "crates/joyword-control-key" }
-joyword-proof = { version = "=0.2.0", path = "crates/joyword-proof" }
-joyword-proof-rules = { version = "=0.2.0", path = "crates/joyword-proof-rules" }
+joyword-proof = { version = "=0.3.0", path = "crates/joyword-proof" }
+joyword-proof-rules = { version = "=0.3.0", path = "crates/joyword-proof-rules" }
 ruzstd = { version = "=0.9.1", default-features = false, features = ["std"] }
 tar = { version = "=0.4.46", default-features = false }
 toml = { version = "=1.1.8", default-features = false, features = ["parse", "serde", "std"] }
 ureq = { version = "=3.5.1", default-features = false, features = ["rustls", "gzip"] }
-joyword-fonts = { version = "=0.2.0", path = "crates/joyword-fonts" }
-joyword-formats = { version = "=0.2.0", path = "crates/joyword-formats" }
+joyword-fonts = { version = "=0.3.0", path = "crates/joyword-fonts" }
+joyword-formats = { version = "=0.3.0", path = "crates/joyword-formats" }
 wuff = "=0.2.9"
 brotli-decompressor = "=5.0.3"
 unicode-script = "=0.5.8"
@@ -244,8 +244,8 @@ hmac-sha1 = { package = "hmac", version = "=0.13.0" }
 zeroize = "=1.9.1"
 regex-automata = { version = "=0.4.18", default-features = false, features = ["std", "syntax", "meta", "nfa-pikevm", "unicode"] }
 libc = "=0.2.186"
-joyword-geom = { version = "=0.2.0", path = "crates/joyword-geom" }
-joyword-metafile = { version = "=0.2.0", path = "crates/joyword-metafile" }
+joyword-geom = { version = "=0.3.0", path = "crates/joyword-geom" }
+joyword-metafile = { version = "=0.3.0", path = "crates/joyword-metafile" }
 proptest = "=1.11.0"
 joyword-ui-gpui = { path = "crates/joyword-ui-gpui" }
 
