@@ -1,0 +1,2910 @@
+{
+  "date": "2026-11-24",
+  "host": "Windows x64",
+  "frozen": "14cbb296",
+  "previous": "fecec53c",
+  "excelVersion": "16.0.20625.20108",
+  "word": {
+    "release": "https://github.com/willmove/joyoffice/releases/tag/joyword-language-packs-2",
+    "audited": 34,
+    "verifiedPinnedSourceUrls": 132,
+    "newlyHosted": 18,
+    "totalHosted": 59,
+    "remainingOriginal": 16,
+    "reviewSha256": "d177e00c9d640145d114d9dace3c43ec5dd899ecfb123e3f5c59dbfd7f665458",
+    "publicAssets": [
+      {
+        "name": "be.tar.zst",
+        "size": 1344193,
+        "sha256": "4c119fd1885844d3ad9c1956364a8e95bad9cfc0cedb27b645c0465e8dc993b8"
+      },
+      {
+        "name": "ca-valencia.tar.zst",
+        "size": 659812,
+        "sha256": "c40f65e7c6b371bd1fb1662619480183a71d81aacccf598d82cc342bf4092333"
+      },
+      {
+        "name": "ca.tar.zst",
+        "size": 658839,
+        "sha256": "5cf36479501e03cc29c99c02ba8bdbf065f541fa14d687733a9ef2e8a6972ff4"
+      },
+      {
+        "name": "cs.tar.zst",
+        "size": 841476,
+        "sha256": "6d3789e9908cdd114fa1eb4dad95a82149d3e49309acb537de48f67c87c027cf"
+      },
+      {
+        "name": "cy.tar.zst",
+        "size": 252016,
+        "sha256": "559a4df06039696382553800d452da51bbad65b2df1590fd6df09fbc55632d42"
+      },
+      {
+        "name": "eo.tar.zst",
+        "size": 164014,
+        "sha256": "97982818c8be6a394f8cb6d507626dedeab98762b6e4c5a28c87ed8f270fd301"
+      },
+      {
+        "name": "he.tar.zst",
+        "size": 840439,
+        "sha256": "266565763ee5bbf1895cd26a199528c4fb1409e1b9b929b888b1e35cf159dc63"
+      },
+      {
+        "name": "hr.tar.zst",
+        "size": 222172,
+        "sha256": "f304e92b1b87348ec1919e412646be78fcf0b57174804276be57cde7066a1013"
+      },
+      {
+        "name": "hy.tar.zst",
+        "size": 270334,
+        "sha256": "d942e8b9b2b76f5c15beb5251712e6cafc0fe57c7864caac4d295f5504f55981"
+      },
+      {
+        "name": "id.tar.zst",
+        "size": 170730,
+        "sha256": "8c929ddee98dc3594c161ab874b3763e9bdda140e20444e58d114c843053ca30"
+      },
+      {
+        "name": "index.json",
+        "size": 50445,
+        "sha256": "722cf48671d8f208464c0b2e04f68bfccecb45a6af4f2b07aa4a069cc00dd70a"
+      },
+      {
+        "name": "is.tar.zst",
+        "size": 621203,
+        "sha256": "5844f324c733c1a2a45e69b2da187746a24349ee01a247cfd6e3706c0eb8dfbe"
+      },
+      {
+        "name": "it.tar.zst",
+        "size": 325186,
+        "sha256": "e8117470e64f7dfcf6158d32f80235733ac1191bb3f73863633b3be41fd1a0d8"
+      },
+      {
+        "name": "lv.tar.zst",
+        "size": 334765,
+        "sha256": "d10593aab77ddd91cc8480e208f32e555cdbfade8e7abc99280ce8484ac1a775"
+      },
+      {
+        "name": "mk.tar.zst",
+        "size": 513288,
+        "sha256": "0123e9280a978f2dd516dde40a52521fb56836125e2969d7f1356c2ae2292c10"
+      },
+      {
+        "name": "publication-audit.json",
+        "size": 99773,
+        "sha256": "7215b0b13cae7551bdc524690fec14d90f62942ebac6da2b9f61fef11190051d"
+      },
+      {
+        "name": "sl.tar.zst",
+        "size": 982831,
+        "sha256": "ca77e7be5eb80041d51d9c2898ba42605d310622e52af41748e5d6557d44dcf1"
+      },
+      {
+        "name": "sources-and-notices.zip",
+        "size": 50740698,
+        "sha256": "0485fa5a9590728af8d8885254ac238add218c60f1df914aec5f5df9ad38e3c7"
+      },
+      {
+        "name": "sq.tar.zst",
+        "size": 592038,
+        "sha256": "e556ae365f35918679211ad7696ee1e6c5910dc3982a4c14d1be964963515736"
+      },
+      {
+        "name": "sv-fi.tar.zst",
+        "size": 652424,
+        "sha256": "614bad17bca1fbb8d5ca20149b8386a095bda92276b9de0d15804762fca80316"
+      },
+      {
+        "name": "sv.tar.zst",
+        "size": 1084403,
+        "sha256": "f7549c8c846f0464018b7056208f83a2b6fcafdf1d7c378ff8678e42756d0ccd"
+      }
+    ],
+    "reproducedPublicationAssets": true,
+    "reinstalled": {
+      "baselineSha256": "6e833cb91ab13e8ce8e03e9edfe8d87e2ad2bb84a481d427713a1a37e813f55e",
+      "candidateSha256": "f1bef9ce6e71a6441f19935c9ba03294498c0be396b42bbb8bf6a38ad1e0bf0e",
+      "indexSha256": "b35c7aef0591177f18233b551da16035dcd615549ff874e169ffd19f16fea74b",
+      "archives": 75,
+      "regularFiles": 569,
+      "licenseFiles": 276,
+      "archiveBytes": 41923267,
+      "firstInstalledWithOld": 37,
+      "firstInstalledWithNew": 38,
+      "crossVersionReinstalls": 75,
+      "crossVersionInventoryVerified": true,
+      "verifiedCrashStates": [
+        [
+          "replace",
+          "journal"
+        ],
+        [
+          "replace",
+          "old-moved"
+        ],
+        [
+          "replace",
+          "candidate-published"
+        ],
+        [
+          "replace",
+          "inventory-written"
+        ],
+        [
+          "remove",
+          "journal"
+        ],
+        [
+          "remove",
+          "old-moved"
+        ],
+        [
+          "remove",
+          "candidate-published"
+        ],
+        [
+          "remove",
+          "inventory-written"
+        ]
+      ],
+      "concurrentInstallRequests": 4,
+      "allRemoved": true,
+      "originalUnchanged": true,
+      "consentOffRefused": true
+    },
+    "localRollback": [
+      {
+        "packs": 75,
+        "verifiedLocale": "he",
+        "hostedPacks": 59,
+        "consentRefused": true,
+        "bundledRefresh": true,
+        "frozenReadsAndRemovesCandidateInstall": true,
+        "verifiedLegacyCacheMigration": true,
+        "rollbackReadsOriginalCache": true,
+        "hostedPrimary": true,
+        "upstreamFallback": true,
+        "invalidDigestRejectedOnBothOrigins": true,
+        "corruptCacheRejected": true,
+        "indexSha256": "722cf48671d8f208464c0b2e04f68bfccecb45a6af4f2b07aa4a069cc00dd70a",
+        "originalSourceSha256": "24b72693cba6fbeb3cfe187af5932fc763846d12d51c2a6e8e77b3a2cce75d3f"
+      },
+      {
+        "packs": 75,
+        "verifiedLocale": "ca",
+        "hostedPacks": 59,
+        "consentRefused": true,
+        "bundledRefresh": true,
+        "frozenReadsAndRemovesCandidateInstall": true,
+        "verifiedLegacyCacheMigration": true,
+        "rollbackReadsOriginalCache": true,
+        "hostedPrimary": true,
+        "upstreamFallback": true,
+        "invalidDigestRejectedOnBothOrigins": true,
+        "corruptCacheRejected": true,
+        "indexSha256": "722cf48671d8f208464c0b2e04f68bfccecb45a6af4f2b07aa4a069cc00dd70a",
+        "originalSourceSha256": "24b72693cba6fbeb3cfe187af5932fc763846d12d51c2a6e8e77b3a2cce75d3f"
+      }
+    ]
+  },
+  "sheet": {
+    "epochs": {
+      "1900": {
+        "sourceSha256": "1279a93fde29b7a21306b7edb5e9bba4dd9ed0adbbb09c885b333f47c70905dd",
+        "excelSha256": "7ee86438c1963c6b8049865f8f89c1d42742546dbe082ed98fe2aa350b0fd72a",
+        "cases": 416,
+        "dateSystem": "1900",
+        "binarySha256": {
+          "frozen": "d2f55cf2cc07a7f89e84b576b2f18ad1e097b47bab94790268183281e97deec5",
+          "prior": "2ba27ccf2cd4f684f68920f712d8c205d2551ab7ccebbdd1fad1bc1875a00524",
+          "candidate": "36094a34e0062de05dc50eab28685ad59e355bd6aa15d2adea8d57cbe2375a23"
+        },
+        "registeredNames": 52,
+        "differencesByFunction": {
+          "frozen": {
+            "PV": 1,
+            "CUMIPMT": 1,
+            "CUMPRINC": 1,
+            "NPER": 2,
+            "RATE": 1,
+            "RRI": 1,
+            "XIRR": 1,
+            "COUPDAYSNC": 1,
+            "PRICEMAT": 1,
+            "YIELDMAT": 1,
+            "PRICE": 4,
+            "YIELD": 4,
+            "DURATION": 2,
+            "MDURATION": 2,
+            "ODDFPRICE": 2,
+            "ODDFYIELD": 2,
+            "ODDLPRICE": 2,
+            "ODDLYIELD": 2,
+            "FORECAST.ETS": 31,
+            "FORECAST.ETS.CONFINT": 10,
+            "FORECAST.ETS.SEASONALITY": 2,
+            "FORECAST.ETS.STAT": 27
+          },
+          "prior": {
+            "RATE": 1,
+            "XIRR": 1,
+            "ODDFPRICE": 2,
+            "ODDFYIELD": 2,
+            "FORECAST.ETS": 31,
+            "FORECAST.ETS.CONFINT": 10,
+            "FORECAST.ETS.SEASONALITY": 2,
+            "FORECAST.ETS.STAT": 27
+          },
+          "candidate": {
+            "RATE": 1,
+            "XIRR": 1,
+            "FORECAST.ETS": 27,
+            "FORECAST.ETS.CONFINT": 10,
+            "FORECAST.ETS.SEASONALITY": 2,
+            "FORECAST.ETS.STAT": 27
+          }
+        },
+        "resolvedExcelDifferences": [
+          "G265",
+          "G266",
+          "G275",
+          "G276",
+          "G288",
+          "G289",
+          "G290",
+          "G305"
+        ],
+        "newExcelDifferences": [],
+        "crossVersionReadbacks": 4,
+        "localMainReportSha256": "e63e79cd14707e8eb857742f7b8cf54f4dd6f1d5e2dda35a6cb23624b9df8e24",
+        "diagnostics": {
+          "sourceSha256": "ed5f28f461537f58a48e80830122c74361f6834f89d2b24a994e3c8e2a8f0025",
+          "excelSha256": "fe88bc1f082be53256a11399106d0d4a9ac9cd2a7fbe032917547ab678a35707",
+          "cases": 243,
+          "matches": {
+            "ODDFPRICE": {
+              "cases": 120,
+              "frozen": 85,
+              "prior": 85,
+              "candidate": 109
+            },
+            "FORECAST.ETS": {
+              "cases": 105,
+              "frozen": 26,
+              "prior": 26,
+              "candidate": 51
+            },
+            "FORECAST.ETS.CONFINT": {
+              "cases": 18,
+              "frozen": 10,
+              "prior": 10,
+              "candidate": 10
+            }
+          },
+          "newDifferences": []
+        }
+      },
+      "1904": {
+        "sourceSha256": "48728d6de736d6f082bf4aca0cffc3490a5f959c189b9a805f886fadc8d6848f",
+        "excelSha256": "fdd7e8a2b38152b36895af1ae422c3d2999cd917416c795dc47eaf22ac8244bb",
+        "cases": 416,
+        "dateSystem": "1904",
+        "binarySha256": {
+          "frozen": "d2f55cf2cc07a7f89e84b576b2f18ad1e097b47bab94790268183281e97deec5",
+          "prior": "2ba27ccf2cd4f684f68920f712d8c205d2551ab7ccebbdd1fad1bc1875a00524",
+          "candidate": "36094a34e0062de05dc50eab28685ad59e355bd6aa15d2adea8d57cbe2375a23"
+        },
+        "registeredNames": 52,
+        "differencesByFunction": {
+          "frozen": {
+            "PV": 1,
+            "CUMIPMT": 1,
+            "CUMPRINC": 1,
+            "NPER": 2,
+            "RATE": 1,
+            "RRI": 1,
+            "XIRR": 1,
+            "PRICEMAT": 1,
+            "YIELDMAT": 1,
+            "PRICE": 4,
+            "YIELD": 4,
+            "DURATION": 2,
+            "MDURATION": 2,
+            "ODDFPRICE": 2,
+            "ODDFYIELD": 2,
+            "ODDLPRICE": 2,
+            "ODDLYIELD": 2,
+            "FORECAST.ETS": 31,
+            "FORECAST.ETS.CONFINT": 10,
+            "FORECAST.ETS.SEASONALITY": 2,
+            "FORECAST.ETS.STAT": 27
+          },
+          "prior": {
+            "RATE": 1,
+            "XIRR": 1,
+            "ODDFPRICE": 2,
+            "ODDFYIELD": 2,
+            "FORECAST.ETS": 31,
+            "FORECAST.ETS.CONFINT": 10,
+            "FORECAST.ETS.SEASONALITY": 2,
+            "FORECAST.ETS.STAT": 27
+          },
+          "candidate": {
+            "RATE": 1,
+            "XIRR": 1,
+            "FORECAST.ETS": 27,
+            "FORECAST.ETS.CONFINT": 10,
+            "FORECAST.ETS.SEASONALITY": 2,
+            "FORECAST.ETS.STAT": 27
+          }
+        },
+        "resolvedExcelDifferences": [
+          "G265",
+          "G266",
+          "G275",
+          "G276",
+          "G288",
+          "G289",
+          "G290",
+          "G305"
+        ],
+        "newExcelDifferences": [],
+        "crossVersionReadbacks": 4,
+        "localMainReportSha256": "8487701ab4e2b6df27b211b1c39fc45b58f9a4b9feeb47c12d8be61cda962434",
+        "diagnostics": {
+          "sourceSha256": "e7622eaaacae128d25208aed8b61d2f12313bf5e1550dafc56751ba6740e0af6",
+          "excelSha256": "852369c3ce929bef857cb113aa95e8461df1e69a59653340cc701d0b0b22ea7e",
+          "cases": 243,
+          "matches": {
+            "ODDFPRICE": {
+              "cases": 120,
+              "frozen": 82,
+              "prior": 82,
+              "candidate": 106
+            },
+            "FORECAST.ETS": {
+              "cases": 105,
+              "frozen": 26,
+              "prior": 26,
+              "candidate": 51
+            },
+            "FORECAST.ETS.CONFINT": {
+              "cases": 18,
+              "frozen": 10,
+              "prior": 10,
+              "candidate": 10
+            }
+          },
+          "newDifferences": []
+        }
+      }
+    },
+    "reviewSha256": "ea8b0e1dfa5746381865c7829f4f2eb15fe2b5e81d44c97973acbcae3fb0ac54",
+    "mathematicalChecks": {
+      "RATE": {
+        "exactRoot": "0",
+        "candidateResidual": "-1.115741063773815878479887604597292330998159720057E-13",
+        "excelResidual": "-0.0000033878642137108558797059948606459340910526184140909485665"
+      },
+      "XIRR": {
+        "independentRoot": "0.11035356816901999712687876408847932737110941597054907929663602261",
+        "candidateResidual": "-7.323284022514214832198017028992429147727381162431E-14",
+        "excelResidual": "-0.00007665824104549228033247584932577355091338248996343578462375"
+      },
+      "ETSPeriodicity": {
+        "B": "Every 4-step increment is 4. The 2-step increments alternate by phase.",
+        "C": {
+          "detrendedLag5Autocorrelation": 0.6832616584059995,
+          "noiseBound": 0.4082482904638631
+        }
+      }
+    },
+    "probability": {
+      "cases": 394,
+      "previousExcelDifferences": 22,
+      "crossVersionReadbacks": 4
+    },
+    "boundaries": {
+      "sourceSha256": "dd8b42cec3a5adf901ddb6882b709fdcdd1650e810e9d5b31f09329a34a5f71e",
+      "excelSha256": "8ab6430dfe38231a0ee8dd2e6b24e4ad78d472ed652925f6a7100a25cf5cddf4",
+      "reviewed": [
+        {
+          "cell": "G2",
+          "formula": "CHISQ.INV.RT(1E-40,5)",
+          "frozen": [
+            "n",
+            "197.44468613194988"
+          ],
+          "prior": [
+            "n",
+            "197.44468613194988"
+          ],
+          "candidate": [
+            "n",
+            "197.44468613194988"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ],
+          "originalCell": "G109",
+          "decision": "保留冻结版结果",
+          "reasoning": "有限反解经半整数或整数上不完全 Gamma 递推独立校验",
+          "independentChiSquareRightTail": 1.0000000000000038e-40
+        },
+        {
+          "cell": "G3",
+          "formula": "CHIINV(1E-40,5)",
+          "frozen": [
+            "n",
+            "197.44468613194988"
+          ],
+          "prior": [
+            "n",
+            "197.44468613194988"
+          ],
+          "candidate": [
+            "n",
+            "197.44468613194988"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ],
+          "originalCell": "G114",
+          "decision": "保留冻结版结果",
+          "reasoning": "与 CHISQ.INV.RT 为相同右尾反解，独立回代通过",
+          "independentChiSquareRightTail": 1.0000000000000038e-40
+        },
+        {
+          "cell": "G4",
+          "formula": "BINOM.INV(1,0.5,0.5)",
+          "frozen": [
+            "n",
+            "0"
+          ],
+          "prior": [
+            "n",
+            "0"
+          ],
+          "candidate": [
+            "n",
+            "0"
+          ],
+          "excel": [
+            "n",
+            "1"
+          ],
+          "originalCell": "G192",
+          "decision": "保留冻结版结果",
+          "reasoning": "按公开定义取第一个累积概率大于或等于阈值的整数"
+        },
+        {
+          "cell": "G5",
+          "formula": "CRITBINOM(1,0.5,0.5)",
+          "frozen": [
+            "n",
+            "0"
+          ],
+          "prior": [
+            "n",
+            "0"
+          ],
+          "candidate": [
+            "n",
+            "0"
+          ],
+          "excel": [
+            "n",
+            "1"
+          ],
+          "originalCell": "G200",
+          "decision": "保留冻结版结果",
+          "reasoning": "旧别名沿用公开定义的含等号阈值"
+        },
+        {
+          "cell": "G6",
+          "formula": "GAMMA.DIST(0,1,2,FALSE)",
+          "frozen": [
+            "n",
+            "0.5"
+          ],
+          "prior": [
+            "n",
+            "0.5"
+          ],
+          "candidate": [
+            "n",
+            "0.5"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ],
+          "originalCell": "G249",
+          "decision": "保留冻结版结果",
+          "reasoning": "形状参数为 1 时零点右极限和指数密度均为 1/scale"
+        },
+        {
+          "cell": "G7",
+          "formula": "GAMMADIST(0,1,2,FALSE)",
+          "frozen": [
+            "n",
+            "0.5"
+          ],
+          "prior": [
+            "n",
+            "0.5"
+          ],
+          "candidate": [
+            "n",
+            "0.5"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ],
+          "originalCell": "G256",
+          "decision": "保留冻结版结果",
+          "reasoning": "旧别名保留指数密度的零点值"
+        },
+        {
+          "cell": "G8",
+          "formula": "BETA.DIST(0,1,2,FALSE)",
+          "frozen": [
+            "n",
+            "2"
+          ],
+          "prior": [
+            "n",
+            "2"
+          ],
+          "candidate": [
+            "n",
+            "2"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ],
+          "originalCell": "G283",
+          "decision": "保留冻结版结果",
+          "reasoning": "端点形状参数为 1 时，有限的单侧密度为另一形状参数除以区间宽度"
+        },
+        {
+          "cell": "G9",
+          "formula": "BETA.DIST(1,2,1,FALSE)",
+          "frozen": [
+            "n",
+            "2"
+          ],
+          "prior": [
+            "n",
+            "2"
+          ],
+          "candidate": [
+            "n",
+            "2"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ],
+          "originalCell": "G284",
+          "decision": "保留冻结版结果",
+          "reasoning": "端点形状参数为 1 时，有限的单侧密度为另一形状参数除以区间宽度"
+        },
+        {
+          "cell": "G10",
+          "formula": "BETA.INV(1,1,2)",
+          "frozen": [
+            "n",
+            "1"
+          ],
+          "prior": [
+            "n",
+            "1"
+          ],
+          "candidate": [
+            "n",
+            "1"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ],
+          "originalCell": "G292",
+          "decision": "保留冻结版结果",
+          "reasoning": "公开参数范围允许概率 1，分位数为区间上界"
+        },
+        {
+          "cell": "G11",
+          "formula": "BETAINV(1,1,2)",
+          "frozen": [
+            "n",
+            "1"
+          ],
+          "prior": [
+            "n",
+            "1"
+          ],
+          "candidate": [
+            "n",
+            "1"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ],
+          "originalCell": "G298",
+          "decision": "保留冻结版结果",
+          "reasoning": "旧别名保留概率 1 对应区间上界"
+        },
+        {
+          "cell": "G12",
+          "formula": "WEIBULL.DIST(0,1,5,FALSE)",
+          "frozen": [
+            "n",
+            "0.2"
+          ],
+          "prior": [
+            "n",
+            "0.2"
+          ],
+          "candidate": [
+            "n",
+            "0.2"
+          ],
+          "excel": [
+            "n",
+            "0"
+          ],
+          "originalCell": "G318",
+          "decision": "保留冻结版结果",
+          "reasoning": "形状为 1 时密度是 1/scale，小于 1 时发散并报告数字错误"
+        },
+        {
+          "cell": "G13",
+          "formula": "WEIBULL.DIST(0,0.5,5,FALSE)",
+          "frozen": [
+            "e",
+            "#NUM!"
+          ],
+          "prior": [
+            "e",
+            "#NUM!"
+          ],
+          "candidate": [
+            "e",
+            "#NUM!"
+          ],
+          "excel": [
+            "n",
+            "0"
+          ],
+          "originalCell": "G319",
+          "decision": "保留冻结版结果",
+          "reasoning": "形状为 1 时密度是 1/scale，小于 1 时发散并报告数字错误"
+        },
+        {
+          "cell": "G14",
+          "formula": "WEIBULL(0,1,5,FALSE)",
+          "frozen": [
+            "n",
+            "0.2"
+          ],
+          "prior": [
+            "n",
+            "0.2"
+          ],
+          "candidate": [
+            "n",
+            "0.2"
+          ],
+          "excel": [
+            "n",
+            "0"
+          ],
+          "originalCell": "G327",
+          "decision": "保留冻结版结果",
+          "reasoning": "旧别名保留相同的零点密度及非有限值契约"
+        },
+        {
+          "cell": "G15",
+          "formula": "WEIBULL(0,0.5,5,FALSE)",
+          "frozen": [
+            "e",
+            "#NUM!"
+          ],
+          "prior": [
+            "e",
+            "#NUM!"
+          ],
+          "candidate": [
+            "e",
+            "#NUM!"
+          ],
+          "excel": [
+            "n",
+            "0"
+          ],
+          "originalCell": "G328",
+          "decision": "保留冻结版结果",
+          "reasoning": "旧别名保留相同的零点密度及非有限值契约"
+        },
+        {
+          "cell": "G16",
+          "formula": "HYPGEOM.DIST(3,9,10,10,TRUE)",
+          "frozen": [
+            "e",
+            "#NUM!"
+          ],
+          "prior": [
+            "e",
+            "#NUM!"
+          ],
+          "candidate": [
+            "e",
+            "#NUM!"
+          ],
+          "excel": [
+            "n",
+            "0"
+          ],
+          "originalCell": "G337",
+          "decision": "保留冻结版结果",
+          "reasoning": "公开契约拒绝样本数或总体成功数为零，以及超出支持集的样本成功数"
+        },
+        {
+          "cell": "G17",
+          "formula": "HYPGEOM.DIST(2,4,0,20,TRUE)",
+          "frozen": [
+            "e",
+            "#NUM!"
+          ],
+          "prior": [
+            "e",
+            "#NUM!"
+          ],
+          "candidate": [
+            "e",
+            "#NUM!"
+          ],
+          "excel": [
+            "n",
+            "1"
+          ],
+          "originalCell": "G339",
+          "decision": "保留冻结版结果",
+          "reasoning": "公开契约拒绝样本数或总体成功数为零，以及超出支持集的样本成功数"
+        },
+        {
+          "cell": "G18",
+          "formula": "HYPGEOM.DIST(0,0,3,20,TRUE)",
+          "frozen": [
+            "e",
+            "#NUM!"
+          ],
+          "prior": [
+            "e",
+            "#NUM!"
+          ],
+          "candidate": [
+            "e",
+            "#NUM!"
+          ],
+          "excel": [
+            "n",
+            "1"
+          ],
+          "originalCell": "G340",
+          "decision": "保留冻结版结果",
+          "reasoning": "公开契约拒绝样本数或总体成功数为零，以及超出支持集的样本成功数"
+        },
+        {
+          "cell": "G19",
+          "formula": "HYPGEOMDIST(2,4,0,20)",
+          "frozen": [
+            "e",
+            "#NUM!"
+          ],
+          "prior": [
+            "e",
+            "#NUM!"
+          ],
+          "candidate": [
+            "e",
+            "#NUM!"
+          ],
+          "excel": [
+            "n",
+            "0"
+          ],
+          "originalCell": "G345",
+          "decision": "保留冻结版结果",
+          "reasoning": "旧别名继续拒绝总体成功数为零及超出支持集的输入"
+        },
+        {
+          "cell": "G20",
+          "formula": "NEGBINOM.DIST(0,1,0,FALSE)",
+          "frozen": [
+            "n",
+            "0"
+          ],
+          "prior": [
+            "n",
+            "0"
+          ],
+          "candidate": [
+            "n",
+            "0"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ],
+          "originalCell": "G348",
+          "decision": "保留冻结版结果",
+          "reasoning": "公开参数范围包含 0 和 1，使用成功概率端点的退化分布"
+        },
+        {
+          "cell": "G21",
+          "formula": "NEGBINOM.DIST(0,3,1,FALSE)",
+          "frozen": [
+            "n",
+            "1"
+          ],
+          "prior": [
+            "n",
+            "1"
+          ],
+          "candidate": [
+            "n",
+            "1"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ],
+          "originalCell": "G349",
+          "decision": "保留冻结版结果",
+          "reasoning": "公开参数范围包含 0 和 1，使用成功概率端点的退化分布"
+        },
+        {
+          "cell": "G22",
+          "formula": "NEGBINOM.DIST(0,3,1,TRUE)",
+          "frozen": [
+            "n",
+            "1"
+          ],
+          "prior": [
+            "n",
+            "1"
+          ],
+          "candidate": [
+            "n",
+            "1"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ],
+          "originalCell": "G350",
+          "decision": "保留冻结版结果",
+          "reasoning": "公开参数范围包含 0 和 1，使用成功概率端点的退化分布"
+        },
+        {
+          "cell": "G23",
+          "formula": "NEGBINOM.DIST(5,3,0,TRUE)",
+          "frozen": [
+            "n",
+            "0"
+          ],
+          "prior": [
+            "n",
+            "0"
+          ],
+          "candidate": [
+            "n",
+            "0"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ],
+          "originalCell": "G351",
+          "decision": "保留冻结版结果",
+          "reasoning": "公开参数范围包含 0 和 1，使用成功概率端点的退化分布"
+        }
+      ],
+      "adjacentControls": [
+        {
+          "cell": "G24",
+          "formula": "CHISQ.INV.RT(1E-15,5)",
+          "frozen": [
+            "n",
+            "79.63600321706647"
+          ],
+          "prior": [
+            "n",
+            "79.6360032170665"
+          ],
+          "candidate": [
+            "n",
+            "79.6360032170665"
+          ],
+          "excel": [
+            "n",
+            "79.636003217066502"
+          ],
+          "independentChiSquareRightTail": 9.999999999999975e-16
+        },
+        {
+          "cell": "G25",
+          "formula": "CHISQ.INV.RT(1E-16,5)",
+          "frozen": [
+            "n",
+            "84.4116831006333"
+          ],
+          "prior": [
+            "n",
+            "84.41168310063327"
+          ],
+          "candidate": [
+            "n",
+            "84.41168310063327"
+          ],
+          "excel": [
+            "n",
+            "84.411683100633269"
+          ],
+          "independentChiSquareRightTail": 9.999999999999991e-17
+        },
+        {
+          "cell": "G26",
+          "formula": "CHISQ.INV.RT(1E-17,5)",
+          "frozen": [
+            "n",
+            "89.17788117431701"
+          ],
+          "prior": [
+            "n",
+            "89.17788117431701"
+          ],
+          "candidate": [
+            "n",
+            "89.17788117431701"
+          ],
+          "excel": [
+            "n",
+            "89.177881174317008"
+          ],
+          "independentChiSquareRightTail": 1.0000000000000019e-17
+        },
+        {
+          "cell": "G27",
+          "formula": "CHISQ.INV.RT(1E-20,5)",
+          "frozen": [
+            "n",
+            "103.42897723775795"
+          ],
+          "prior": [
+            "n",
+            "103.42897723775795"
+          ],
+          "candidate": [
+            "n",
+            "103.42897723775795"
+          ],
+          "excel": [
+            "n",
+            "103.42897723775795"
+          ],
+          "independentChiSquareRightTail": 9.999999999999977e-21
+        },
+        {
+          "cell": "G28",
+          "formula": "CHISQ.INV.RT(1E-50,5)",
+          "frozen": [
+            "n",
+            "244.12729802747498"
+          ],
+          "prior": [
+            "n",
+            "244.12729802747504"
+          ],
+          "candidate": [
+            "n",
+            "244.12729802747504"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ],
+          "independentChiSquareRightTail": 9.99999999999987e-51
+        },
+        {
+          "cell": "G29",
+          "formula": "CHISQ.INV.RT(1E-100,5)",
+          "frozen": [
+            "n",
+            "476.37943706416263"
+          ],
+          "prior": [
+            "n",
+            "476.37943706416274"
+          ],
+          "candidate": [
+            "n",
+            "476.37943706416274"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ],
+          "independentChiSquareRightTail": 1.0000000000000001e-100
+        },
+        {
+          "cell": "G30",
+          "formula": "CHISQ.INV.RT(1E-300,5)",
+          "frozen": [
+            "n",
+            "1400.6405856530268"
+          ],
+          "prior": [
+            "n",
+            "1400.6405856530268"
+          ],
+          "candidate": [
+            "n",
+            "1400.6405856530268"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ],
+          "independentChiSquareRightTail": 1.0000000000000627e-300
+        },
+        {
+          "cell": "G31",
+          "formula": "CHISQ.INV.RT(1E-40,1)",
+          "frozen": [
+            "n",
+            "178.55925611137758"
+          ],
+          "prior": [
+            "n",
+            "178.55925611137764"
+          ],
+          "candidate": [
+            "n",
+            "178.55925611137764"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ],
+          "independentChiSquareRightTail": 9.999999999999877e-41
+        },
+        {
+          "cell": "G32",
+          "formula": "CHISQ.INV.RT(1E-40,2)",
+          "frozen": [
+            "n",
+            "184.20680743952363"
+          ],
+          "prior": [
+            "n",
+            "184.20680743952363"
+          ],
+          "candidate": [
+            "n",
+            "184.20680743952363"
+          ],
+          "excel": [
+            "n",
+            "184.20680743952366"
+          ],
+          "independentChiSquareRightTail": 1.0000000000000126e-40
+        },
+        {
+          "cell": "G33",
+          "formula": "CHISQ.INV.RT(1E-40,10)",
+          "frozen": [
+            "n",
+            "215.3589517869816"
+          ],
+          "prior": [
+            "n",
+            "215.35895178698166"
+          ],
+          "candidate": [
+            "n",
+            "215.35895178698166"
+          ],
+          "excel": [
+            "n",
+            "215.35895178698166"
+          ],
+          "independentChiSquareRightTail": 9.999999999999916e-41
+        },
+        {
+          "cell": "G34",
+          "formula": "CHIINV(1E-15,5)",
+          "frozen": [
+            "n",
+            "79.63600321706647"
+          ],
+          "prior": [
+            "n",
+            "79.6360032170665"
+          ],
+          "candidate": [
+            "n",
+            "79.6360032170665"
+          ],
+          "excel": [
+            "n",
+            "79.636003217066502"
+          ],
+          "independentChiSquareRightTail": 9.999999999999975e-16
+        },
+        {
+          "cell": "G35",
+          "formula": "CHIINV(1E-16,5)",
+          "frozen": [
+            "n",
+            "84.4116831006333"
+          ],
+          "prior": [
+            "n",
+            "84.41168310063327"
+          ],
+          "candidate": [
+            "n",
+            "84.41168310063327"
+          ],
+          "excel": [
+            "n",
+            "84.411683100633269"
+          ],
+          "independentChiSquareRightTail": 9.999999999999991e-17
+        },
+        {
+          "cell": "G36",
+          "formula": "CHIINV(1E-17,5)",
+          "frozen": [
+            "n",
+            "89.17788117431701"
+          ],
+          "prior": [
+            "n",
+            "89.17788117431701"
+          ],
+          "candidate": [
+            "n",
+            "89.17788117431701"
+          ],
+          "excel": [
+            "n",
+            "89.177881174317008"
+          ],
+          "independentChiSquareRightTail": 1.0000000000000019e-17
+        },
+        {
+          "cell": "G37",
+          "formula": "CHIINV(1E-20,5)",
+          "frozen": [
+            "n",
+            "103.42897723775795"
+          ],
+          "prior": [
+            "n",
+            "103.42897723775795"
+          ],
+          "candidate": [
+            "n",
+            "103.42897723775795"
+          ],
+          "excel": [
+            "n",
+            "103.42897723775795"
+          ],
+          "independentChiSquareRightTail": 9.999999999999977e-21
+        },
+        {
+          "cell": "G38",
+          "formula": "CHIINV(1E-50,5)",
+          "frozen": [
+            "n",
+            "244.12729802747498"
+          ],
+          "prior": [
+            "n",
+            "244.12729802747504"
+          ],
+          "candidate": [
+            "n",
+            "244.12729802747504"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ],
+          "independentChiSquareRightTail": 9.99999999999987e-51
+        },
+        {
+          "cell": "G39",
+          "formula": "CHIINV(1E-100,5)",
+          "frozen": [
+            "n",
+            "476.37943706416263"
+          ],
+          "prior": [
+            "n",
+            "476.37943706416274"
+          ],
+          "candidate": [
+            "n",
+            "476.37943706416274"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ],
+          "independentChiSquareRightTail": 1.0000000000000001e-100
+        },
+        {
+          "cell": "G40",
+          "formula": "CHIINV(1E-300,5)",
+          "frozen": [
+            "n",
+            "1400.6405856530268"
+          ],
+          "prior": [
+            "n",
+            "1400.6405856530268"
+          ],
+          "candidate": [
+            "n",
+            "1400.6405856530268"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ],
+          "independentChiSquareRightTail": 1.0000000000000627e-300
+        },
+        {
+          "cell": "G41",
+          "formula": "CHIINV(1E-40,1)",
+          "frozen": [
+            "n",
+            "178.55925611137758"
+          ],
+          "prior": [
+            "n",
+            "178.55925611137764"
+          ],
+          "candidate": [
+            "n",
+            "178.55925611137764"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ],
+          "independentChiSquareRightTail": 9.999999999999877e-41
+        },
+        {
+          "cell": "G42",
+          "formula": "CHIINV(1E-40,2)",
+          "frozen": [
+            "n",
+            "184.20680743952363"
+          ],
+          "prior": [
+            "n",
+            "184.20680743952363"
+          ],
+          "candidate": [
+            "n",
+            "184.20680743952363"
+          ],
+          "excel": [
+            "n",
+            "184.20680743952366"
+          ],
+          "independentChiSquareRightTail": 1.0000000000000126e-40
+        },
+        {
+          "cell": "G43",
+          "formula": "CHIINV(1E-40,10)",
+          "frozen": [
+            "n",
+            "215.3589517869816"
+          ],
+          "prior": [
+            "n",
+            "215.35895178698166"
+          ],
+          "candidate": [
+            "n",
+            "215.35895178698166"
+          ],
+          "excel": [
+            "n",
+            "215.35895178698166"
+          ],
+          "independentChiSquareRightTail": 9.999999999999916e-41
+        },
+        {
+          "cell": "G44",
+          "formula": "BINOM.INV(1,0.5,0.499999999999999)",
+          "frozen": [
+            "n",
+            "0"
+          ],
+          "prior": [
+            "n",
+            "0"
+          ],
+          "candidate": [
+            "n",
+            "0"
+          ],
+          "excel": [
+            "n",
+            "0"
+          ]
+        },
+        {
+          "cell": "G45",
+          "formula": "BINOM.INV(1,0.5,0.500000000000001)",
+          "frozen": [
+            "n",
+            "1"
+          ],
+          "prior": [
+            "n",
+            "1"
+          ],
+          "candidate": [
+            "n",
+            "1"
+          ],
+          "excel": [
+            "n",
+            "1"
+          ]
+        },
+        {
+          "cell": "G46",
+          "formula": "BINOM.INV(3,0.5,0.5)",
+          "frozen": [
+            "n",
+            "1"
+          ],
+          "prior": [
+            "n",
+            "2"
+          ],
+          "candidate": [
+            "n",
+            "1"
+          ],
+          "excel": [
+            "n",
+            "1"
+          ]
+        },
+        {
+          "cell": "G47",
+          "formula": "BINOM.INV(1,0.25,0.75)",
+          "frozen": [
+            "n",
+            "0"
+          ],
+          "prior": [
+            "n",
+            "0"
+          ],
+          "candidate": [
+            "n",
+            "0"
+          ],
+          "excel": [
+            "n",
+            "1"
+          ]
+        },
+        {
+          "cell": "G48",
+          "formula": "BINOM.INV(2,0.5,0.25)",
+          "frozen": [
+            "n",
+            "0"
+          ],
+          "prior": [
+            "n",
+            "0"
+          ],
+          "candidate": [
+            "n",
+            "0"
+          ],
+          "excel": [
+            "n",
+            "1"
+          ]
+        },
+        {
+          "cell": "G49",
+          "formula": "BINOM.INV(2,0.5,0.75)",
+          "frozen": [
+            "n",
+            "1"
+          ],
+          "prior": [
+            "n",
+            "1"
+          ],
+          "candidate": [
+            "n",
+            "1"
+          ],
+          "excel": [
+            "n",
+            "1"
+          ]
+        },
+        {
+          "cell": "G50",
+          "formula": "CRITBINOM(1,0.5,0.499999999999999)",
+          "frozen": [
+            "n",
+            "0"
+          ],
+          "prior": [
+            "n",
+            "0"
+          ],
+          "candidate": [
+            "n",
+            "0"
+          ],
+          "excel": [
+            "n",
+            "0"
+          ]
+        },
+        {
+          "cell": "G51",
+          "formula": "CRITBINOM(1,0.5,0.500000000000001)",
+          "frozen": [
+            "n",
+            "1"
+          ],
+          "prior": [
+            "n",
+            "1"
+          ],
+          "candidate": [
+            "n",
+            "1"
+          ],
+          "excel": [
+            "n",
+            "1"
+          ]
+        },
+        {
+          "cell": "G52",
+          "formula": "CRITBINOM(3,0.5,0.5)",
+          "frozen": [
+            "n",
+            "1"
+          ],
+          "prior": [
+            "n",
+            "2"
+          ],
+          "candidate": [
+            "n",
+            "1"
+          ],
+          "excel": [
+            "n",
+            "1"
+          ]
+        },
+        {
+          "cell": "G53",
+          "formula": "CRITBINOM(1,0.25,0.75)",
+          "frozen": [
+            "n",
+            "0"
+          ],
+          "prior": [
+            "n",
+            "0"
+          ],
+          "candidate": [
+            "n",
+            "0"
+          ],
+          "excel": [
+            "n",
+            "1"
+          ]
+        },
+        {
+          "cell": "G54",
+          "formula": "CRITBINOM(2,0.5,0.25)",
+          "frozen": [
+            "n",
+            "0"
+          ],
+          "prior": [
+            "n",
+            "0"
+          ],
+          "candidate": [
+            "n",
+            "0"
+          ],
+          "excel": [
+            "n",
+            "1"
+          ]
+        },
+        {
+          "cell": "G55",
+          "formula": "CRITBINOM(2,0.5,0.75)",
+          "frozen": [
+            "n",
+            "1"
+          ],
+          "prior": [
+            "n",
+            "1"
+          ],
+          "candidate": [
+            "n",
+            "1"
+          ],
+          "excel": [
+            "n",
+            "1"
+          ]
+        },
+        {
+          "cell": "G56",
+          "formula": "GAMMA.DIST(0,0.5,2,FALSE)",
+          "frozen": [
+            "e",
+            "#NUM!"
+          ],
+          "prior": [
+            "e",
+            "#NUM!"
+          ],
+          "candidate": [
+            "e",
+            "#NUM!"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G57",
+          "formula": "GAMMA.DIST(0,2,2,FALSE)",
+          "frozen": [
+            "n",
+            "0"
+          ],
+          "prior": [
+            "n",
+            "0"
+          ],
+          "candidate": [
+            "n",
+            "0"
+          ],
+          "excel": [
+            "n",
+            "0"
+          ]
+        },
+        {
+          "cell": "G58",
+          "formula": "GAMMA.DIST(0,1,2,TRUE)",
+          "frozen": [
+            "n",
+            "0"
+          ],
+          "prior": [
+            "n",
+            "0"
+          ],
+          "candidate": [
+            "n",
+            "0"
+          ],
+          "excel": [
+            "n",
+            "0"
+          ]
+        },
+        {
+          "cell": "G59",
+          "formula": "GAMMA.DIST(1E-20,1,2,FALSE)",
+          "frozen": [
+            "n",
+            "0.5"
+          ],
+          "prior": [
+            "n",
+            "0.5"
+          ],
+          "candidate": [
+            "n",
+            "0.5"
+          ],
+          "excel": [
+            "n",
+            "0.49999999999999867"
+          ]
+        },
+        {
+          "cell": "G60",
+          "formula": "GAMMA.DIST(0,1,1,FALSE)",
+          "frozen": [
+            "n",
+            "1"
+          ],
+          "prior": [
+            "n",
+            "1"
+          ],
+          "candidate": [
+            "n",
+            "1"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G61",
+          "formula": "GAMMADIST(0,0.5,2,FALSE)",
+          "frozen": [
+            "e",
+            "#NUM!"
+          ],
+          "prior": [
+            "e",
+            "#NUM!"
+          ],
+          "candidate": [
+            "e",
+            "#NUM!"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G62",
+          "formula": "GAMMADIST(0,2,2,FALSE)",
+          "frozen": [
+            "n",
+            "0"
+          ],
+          "prior": [
+            "n",
+            "0"
+          ],
+          "candidate": [
+            "n",
+            "0"
+          ],
+          "excel": [
+            "n",
+            "0"
+          ]
+        },
+        {
+          "cell": "G63",
+          "formula": "GAMMADIST(0,1,2,TRUE)",
+          "frozen": [
+            "n",
+            "0"
+          ],
+          "prior": [
+            "n",
+            "0"
+          ],
+          "candidate": [
+            "n",
+            "0"
+          ],
+          "excel": [
+            "n",
+            "0"
+          ]
+        },
+        {
+          "cell": "G64",
+          "formula": "GAMMADIST(1E-20,1,2,FALSE)",
+          "frozen": [
+            "n",
+            "0.5"
+          ],
+          "prior": [
+            "n",
+            "0.5"
+          ],
+          "candidate": [
+            "n",
+            "0.5"
+          ],
+          "excel": [
+            "n",
+            "0.49999999999999867"
+          ]
+        },
+        {
+          "cell": "G65",
+          "formula": "GAMMADIST(0,1,1,FALSE)",
+          "frozen": [
+            "n",
+            "1"
+          ],
+          "prior": [
+            "n",
+            "1"
+          ],
+          "candidate": [
+            "n",
+            "1"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G66",
+          "formula": "BETA.DIST(0,1,1,FALSE)",
+          "frozen": [
+            "n",
+            "1"
+          ],
+          "prior": [
+            "n",
+            "1"
+          ],
+          "candidate": [
+            "n",
+            "1"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G67",
+          "formula": "BETA.DIST(1,1,1,FALSE)",
+          "frozen": [
+            "n",
+            "1"
+          ],
+          "prior": [
+            "n",
+            "1"
+          ],
+          "candidate": [
+            "n",
+            "1"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G68",
+          "formula": "BETA.DIST(0,0.5,2,FALSE)",
+          "frozen": [
+            "e",
+            "#NUM!"
+          ],
+          "prior": [
+            "e",
+            "#NUM!"
+          ],
+          "candidate": [
+            "e",
+            "#NUM!"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G69",
+          "formula": "BETA.DIST(1,2,0.5,FALSE)",
+          "frozen": [
+            "e",
+            "#NUM!"
+          ],
+          "prior": [
+            "e",
+            "#NUM!"
+          ],
+          "candidate": [
+            "e",
+            "#NUM!"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G70",
+          "formula": "BETA.DIST(0,2,2,FALSE)",
+          "frozen": [
+            "n",
+            "0"
+          ],
+          "prior": [
+            "n",
+            "0"
+          ],
+          "candidate": [
+            "n",
+            "0"
+          ],
+          "excel": [
+            "n",
+            "0"
+          ]
+        },
+        {
+          "cell": "G71",
+          "formula": "BETA.DIST(1,2,2,FALSE)",
+          "frozen": [
+            "n",
+            "0"
+          ],
+          "prior": [
+            "n",
+            "0"
+          ],
+          "candidate": [
+            "n",
+            "0"
+          ],
+          "excel": [
+            "n",
+            "0"
+          ]
+        },
+        {
+          "cell": "G72",
+          "formula": "BETA.DIST(0,1,2,TRUE)",
+          "frozen": [
+            "n",
+            "0"
+          ],
+          "prior": [
+            "n",
+            "0"
+          ],
+          "candidate": [
+            "n",
+            "0"
+          ],
+          "excel": [
+            "n",
+            "0"
+          ]
+        },
+        {
+          "cell": "G73",
+          "formula": "BETA.DIST(1,2,1,TRUE)",
+          "frozen": [
+            "n",
+            "1"
+          ],
+          "prior": [
+            "n",
+            "1"
+          ],
+          "candidate": [
+            "n",
+            "1"
+          ],
+          "excel": [
+            "n",
+            "1"
+          ]
+        },
+        {
+          "cell": "G74",
+          "formula": "BETA.DIST(-2,1,2,FALSE,-2,3)",
+          "frozen": [
+            "n",
+            "0.4"
+          ],
+          "prior": [
+            "n",
+            "0.4"
+          ],
+          "candidate": [
+            "n",
+            "0.4"
+          ],
+          "excel": [
+            "n",
+            "0"
+          ]
+        },
+        {
+          "cell": "G75",
+          "formula": "BETA.DIST(3,2,1,FALSE,-2,3)",
+          "frozen": [
+            "n",
+            "0.4"
+          ],
+          "prior": [
+            "n",
+            "0.4"
+          ],
+          "candidate": [
+            "n",
+            "0.4"
+          ],
+          "excel": [
+            "n",
+            "0"
+          ]
+        },
+        {
+          "cell": "G76",
+          "formula": "BETA.INV(1,2,2)",
+          "frozen": [
+            "n",
+            "1"
+          ],
+          "prior": [
+            "n",
+            "1"
+          ],
+          "candidate": [
+            "n",
+            "1"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G77",
+          "formula": "BETA.INV(1,1,1)",
+          "frozen": [
+            "n",
+            "1"
+          ],
+          "prior": [
+            "n",
+            "1"
+          ],
+          "candidate": [
+            "n",
+            "1"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G78",
+          "formula": "BETA.INV(1,2,0.5,-2,3)",
+          "frozen": [
+            "n",
+            "3"
+          ],
+          "prior": [
+            "n",
+            "3"
+          ],
+          "candidate": [
+            "n",
+            "3"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G79",
+          "formula": "BETA.INV(0.999999999999999,1,2)",
+          "frozen": [
+            "n",
+            "0.9999999683350325"
+          ],
+          "prior": [
+            "n",
+            "0.9999999683898636"
+          ],
+          "candidate": [
+            "n",
+            "0.9999999683898636"
+          ],
+          "excel": [
+            "n",
+            "0.9999999683898636"
+          ]
+        },
+        {
+          "cell": "G80",
+          "formula": "BETAINV(1,2,2)",
+          "frozen": [
+            "n",
+            "1"
+          ],
+          "prior": [
+            "n",
+            "1"
+          ],
+          "candidate": [
+            "n",
+            "1"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G81",
+          "formula": "BETAINV(1,1,1)",
+          "frozen": [
+            "n",
+            "1"
+          ],
+          "prior": [
+            "n",
+            "1"
+          ],
+          "candidate": [
+            "n",
+            "1"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G82",
+          "formula": "BETAINV(1,2,0.5,-2,3)",
+          "frozen": [
+            "n",
+            "3"
+          ],
+          "prior": [
+            "n",
+            "3"
+          ],
+          "candidate": [
+            "n",
+            "3"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G83",
+          "formula": "BETAINV(0.999999999999999,1,2)",
+          "frozen": [
+            "n",
+            "0.9999999683350325"
+          ],
+          "prior": [
+            "n",
+            "0.9999999683898636"
+          ],
+          "candidate": [
+            "n",
+            "0.9999999683898636"
+          ],
+          "excel": [
+            "n",
+            "0.9999999683898636"
+          ]
+        },
+        {
+          "cell": "G84",
+          "formula": "WEIBULL.DIST(0,2,5,FALSE)",
+          "frozen": [
+            "n",
+            "0"
+          ],
+          "prior": [
+            "n",
+            "0"
+          ],
+          "candidate": [
+            "n",
+            "0"
+          ],
+          "excel": [
+            "n",
+            "0"
+          ]
+        },
+        {
+          "cell": "G85",
+          "formula": "WEIBULL.DIST(0,1,5,TRUE)",
+          "frozen": [
+            "n",
+            "0"
+          ],
+          "prior": [
+            "n",
+            "0"
+          ],
+          "candidate": [
+            "n",
+            "0"
+          ],
+          "excel": [
+            "n",
+            "0"
+          ]
+        },
+        {
+          "cell": "G86",
+          "formula": "WEIBULL.DIST(1E-20,1,5,FALSE)",
+          "frozen": [
+            "n",
+            "0.2"
+          ],
+          "prior": [
+            "n",
+            "0.2"
+          ],
+          "candidate": [
+            "n",
+            "0.2"
+          ],
+          "excel": [
+            "n",
+            "0.20000000000000004"
+          ]
+        },
+        {
+          "cell": "G87",
+          "formula": "WEIBULL.DIST(1E-20,0.5,5,FALSE)",
+          "frozen": [
+            "n",
+            "2236067977.39979"
+          ],
+          "prior": [
+            "n",
+            "2236067977.399791"
+          ],
+          "candidate": [
+            "n",
+            "2236067977.399791"
+          ],
+          "excel": [
+            "n",
+            "2236067977.3997908"
+          ]
+        },
+        {
+          "cell": "G88",
+          "formula": "WEIBULL(0,2,5,FALSE)",
+          "frozen": [
+            "n",
+            "0"
+          ],
+          "prior": [
+            "n",
+            "0"
+          ],
+          "candidate": [
+            "n",
+            "0"
+          ],
+          "excel": [
+            "n",
+            "0"
+          ]
+        },
+        {
+          "cell": "G89",
+          "formula": "WEIBULL(0,1,5,TRUE)",
+          "frozen": [
+            "n",
+            "0"
+          ],
+          "prior": [
+            "n",
+            "0"
+          ],
+          "candidate": [
+            "n",
+            "0"
+          ],
+          "excel": [
+            "n",
+            "0"
+          ]
+        },
+        {
+          "cell": "G90",
+          "formula": "WEIBULL(1E-20,1,5,FALSE)",
+          "frozen": [
+            "n",
+            "0.2"
+          ],
+          "prior": [
+            "n",
+            "0.2"
+          ],
+          "candidate": [
+            "n",
+            "0.2"
+          ],
+          "excel": [
+            "n",
+            "0.20000000000000004"
+          ]
+        },
+        {
+          "cell": "G91",
+          "formula": "WEIBULL(1E-20,0.5,5,FALSE)",
+          "frozen": [
+            "n",
+            "2236067977.39979"
+          ],
+          "prior": [
+            "n",
+            "2236067977.399791"
+          ],
+          "candidate": [
+            "n",
+            "2236067977.399791"
+          ],
+          "excel": [
+            "n",
+            "2236067977.3997908"
+          ]
+        },
+        {
+          "cell": "G92",
+          "formula": "HYPGEOM.DIST(3,9,10,10,FALSE)",
+          "frozen": [
+            "e",
+            "#NUM!"
+          ],
+          "prior": [
+            "e",
+            "#NUM!"
+          ],
+          "candidate": [
+            "e",
+            "#NUM!"
+          ],
+          "excel": [
+            "n",
+            "0"
+          ]
+        },
+        {
+          "cell": "G93",
+          "formula": "HYPGEOM.DIST(9,9,10,10,TRUE)",
+          "frozen": [
+            "n",
+            "1"
+          ],
+          "prior": [
+            "n",
+            "1"
+          ],
+          "candidate": [
+            "n",
+            "1"
+          ],
+          "excel": [
+            "n",
+            "1"
+          ]
+        },
+        {
+          "cell": "G94",
+          "formula": "HYPGEOM.DIST(0,4,0,20,TRUE)",
+          "frozen": [
+            "e",
+            "#NUM!"
+          ],
+          "prior": [
+            "e",
+            "#NUM!"
+          ],
+          "candidate": [
+            "e",
+            "#NUM!"
+          ],
+          "excel": [
+            "n",
+            "1"
+          ]
+        },
+        {
+          "cell": "G95",
+          "formula": "HYPGEOM.DIST(2,4,0,20,FALSE)",
+          "frozen": [
+            "e",
+            "#NUM!"
+          ],
+          "prior": [
+            "e",
+            "#NUM!"
+          ],
+          "candidate": [
+            "e",
+            "#NUM!"
+          ],
+          "excel": [
+            "n",
+            "0"
+          ]
+        },
+        {
+          "cell": "G96",
+          "formula": "HYPGEOM.DIST(0,0,3,20,FALSE)",
+          "frozen": [
+            "e",
+            "#NUM!"
+          ],
+          "prior": [
+            "e",
+            "#NUM!"
+          ],
+          "candidate": [
+            "e",
+            "#NUM!"
+          ],
+          "excel": [
+            "n",
+            "1"
+          ]
+        },
+        {
+          "cell": "G97",
+          "formula": "HYPGEOM.DIST(0,0,0,20,TRUE)",
+          "frozen": [
+            "e",
+            "#NUM!"
+          ],
+          "prior": [
+            "e",
+            "#NUM!"
+          ],
+          "candidate": [
+            "e",
+            "#NUM!"
+          ],
+          "excel": [
+            "n",
+            "1"
+          ]
+        },
+        {
+          "cell": "G98",
+          "formula": "HYPGEOM.DIST(0,4,0,20,FALSE)",
+          "frozen": [
+            "e",
+            "#NUM!"
+          ],
+          "prior": [
+            "e",
+            "#NUM!"
+          ],
+          "candidate": [
+            "e",
+            "#NUM!"
+          ],
+          "excel": [
+            "n",
+            "1"
+          ]
+        },
+        {
+          "cell": "G99",
+          "formula": "HYPGEOM.DIST(5,4,3,20,TRUE)",
+          "frozen": [
+            "e",
+            "#NUM!"
+          ],
+          "prior": [
+            "e",
+            "#NUM!"
+          ],
+          "candidate": [
+            "e",
+            "#NUM!"
+          ],
+          "excel": [
+            "n",
+            "1"
+          ]
+        },
+        {
+          "cell": "G100",
+          "formula": "HYPGEOM.DIST(0,4,3,3,TRUE)",
+          "frozen": [
+            "e",
+            "#NUM!"
+          ],
+          "prior": [
+            "e",
+            "#NUM!"
+          ],
+          "candidate": [
+            "e",
+            "#NUM!"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G101",
+          "formula": "HYPGEOM.DIST(0,0,0,0,TRUE)",
+          "frozen": [
+            "e",
+            "#NUM!"
+          ],
+          "prior": [
+            "e",
+            "#NUM!"
+          ],
+          "candidate": [
+            "e",
+            "#NUM!"
+          ],
+          "excel": [
+            "n",
+            "1"
+          ]
+        },
+        {
+          "cell": "G102",
+          "formula": "HYPGEOM.DIST(0,2,4,3,TRUE)",
+          "frozen": [
+            "e",
+            "#NUM!"
+          ],
+          "prior": [
+            "e",
+            "#NUM!"
+          ],
+          "candidate": [
+            "e",
+            "#NUM!"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G103",
+          "formula": "HYPGEOMDIST(0,4,0,20)",
+          "frozen": [
+            "e",
+            "#NUM!"
+          ],
+          "prior": [
+            "e",
+            "#NUM!"
+          ],
+          "candidate": [
+            "e",
+            "#NUM!"
+          ],
+          "excel": [
+            "n",
+            "1"
+          ]
+        },
+        {
+          "cell": "G104",
+          "formula": "HYPGEOMDIST(0,0,3,20)",
+          "frozen": [
+            "e",
+            "#NUM!"
+          ],
+          "prior": [
+            "e",
+            "#NUM!"
+          ],
+          "candidate": [
+            "e",
+            "#NUM!"
+          ],
+          "excel": [
+            "n",
+            "1"
+          ]
+        },
+        {
+          "cell": "G105",
+          "formula": "HYPGEOMDIST(0,0,0,20)",
+          "frozen": [
+            "e",
+            "#NUM!"
+          ],
+          "prior": [
+            "e",
+            "#NUM!"
+          ],
+          "candidate": [
+            "e",
+            "#NUM!"
+          ],
+          "excel": [
+            "n",
+            "1"
+          ]
+        },
+        {
+          "cell": "G106",
+          "formula": "HYPGEOMDIST(3,9,10,10)",
+          "frozen": [
+            "e",
+            "#NUM!"
+          ],
+          "prior": [
+            "e",
+            "#NUM!"
+          ],
+          "candidate": [
+            "e",
+            "#NUM!"
+          ],
+          "excel": [
+            "n",
+            "0"
+          ]
+        },
+        {
+          "cell": "G107",
+          "formula": "HYPGEOMDIST(9,9,10,10)",
+          "frozen": [
+            "n",
+            "1"
+          ],
+          "prior": [
+            "n",
+            "1"
+          ],
+          "candidate": [
+            "n",
+            "1"
+          ],
+          "excel": [
+            "n",
+            "1"
+          ]
+        },
+        {
+          "cell": "G108",
+          "formula": "NEGBINOM.DIST(0,1,0,TRUE)",
+          "frozen": [
+            "n",
+            "0"
+          ],
+          "prior": [
+            "n",
+            "0"
+          ],
+          "candidate": [
+            "n",
+            "0"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G109",
+          "formula": "NEGBINOM.DIST(0,3,1E-14,FALSE)",
+          "frozen": [
+            "n",
+            "1.0000000000000034E-42"
+          ],
+          "prior": [
+            "n",
+            "1.0000000000000034E-42"
+          ],
+          "candidate": [
+            "n",
+            "1.0000000000000034E-42"
+          ],
+          "excel": [
+            "n",
+            "1.0000000000000034E-42"
+          ]
+        },
+        {
+          "cell": "G110",
+          "formula": "NEGBINOM.DIST(0,3,0.99999999999999,TRUE)",
+          "frozen": [
+            "n",
+            "0.99999999999997"
+          ],
+          "prior": [
+            "n",
+            "0.99999999999997"
+          ],
+          "candidate": [
+            "n",
+            "0.99999999999997"
+          ],
+          "excel": [
+            "n",
+            "0.99999999999997002"
+          ]
+        },
+        {
+          "cell": "G111",
+          "formula": "NEGBINOM.DIST(3,1,1,FALSE)",
+          "frozen": [
+            "n",
+            "0"
+          ],
+          "prior": [
+            "n",
+            "0"
+          ],
+          "candidate": [
+            "n",
+            "0"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G112",
+          "formula": "NEGBINOM.DIST(3,1,1,TRUE)",
+          "frozen": [
+            "n",
+            "1"
+          ],
+          "prior": [
+            "n",
+            "1"
+          ],
+          "candidate": [
+            "n",
+            "1"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G113",
+          "formula": "NEGBINOM.DIST(5,3,0,FALSE)",
+          "frozen": [
+            "n",
+            "0"
+          ],
+          "prior": [
+            "n",
+            "0"
+          ],
+          "candidate": [
+            "n",
+            "0"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G114",
+          "formula": "NEGBINOM.DIST(0,1,1,FALSE)",
+          "frozen": [
+            "n",
+            "1"
+          ],
+          "prior": [
+            "n",
+            "1"
+          ],
+          "candidate": [
+            "n",
+            "1"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G115",
+          "formula": "NEGBINOMDIST(0,1,0)",
+          "frozen": [
+            "n",
+            "0"
+          ],
+          "prior": [
+            "n",
+            "0"
+          ],
+          "candidate": [
+            "n",
+            "0"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G116",
+          "formula": "NEGBINOMDIST(0,3,1)",
+          "frozen": [
+            "n",
+            "1"
+          ],
+          "prior": [
+            "n",
+            "1"
+          ],
+          "candidate": [
+            "n",
+            "1"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G117",
+          "formula": "NEGBINOMDIST(3,1,1)",
+          "frozen": [
+            "n",
+            "0"
+          ],
+          "prior": [
+            "n",
+            "0"
+          ],
+          "candidate": [
+            "n",
+            "0"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G118",
+          "formula": "NEGBINOMDIST(5,3,0)",
+          "frozen": [
+            "n",
+            "0"
+          ],
+          "prior": [
+            "n",
+            "0"
+          ],
+          "candidate": [
+            "n",
+            "0"
+          ],
+          "excel": [
+            "e",
+            "#NUM!"
+          ]
+        }
+      ],
+      "independentChiSquareChecks": 22,
+      "correctedSymmetricBinomialMedians": 2
+    },
+    "numericKernels": {
+      "sourceSha256": "50c35d24ece5ff72f582a519925ae2ec3e75ccd219771cc7576370c86b29ca04",
+      "byFunction": {
+        "GAMMALN.PRECISE": 18,
+        "ERF": 18,
+        "ERFC": 18,
+        "NORM.S.DIST": 18,
+        "NORM.S.INV": 18,
+        "BETA.DIST": 36,
+        "GAMMA.DIST": 48
+      },
+      "comparisons": 174
+    },
+    "otherFormulaFamilies": {
+      "conditional-aggregates": {
+        "workbooks": 2,
+        "formulaCaches": 208,
+        "crossVersionReadbacks": 8
+      },
+      "engineering-depreciation": {
+        "workbooks": 2,
+        "formulaCaches": 160,
+        "crossVersionReadbacks": 8
+      },
+      "matrix-classic-text": {
+        "workbooks": 2,
+        "formulaCaches": 118,
+        "crossVersionReadbacks": 8
+      },
+      "modern-text-date": {
+        "workbooks": 2,
+        "formulaCaches": 118,
+        "crossVersionReadbacks": 8
+      }
+    }
+  },
+  "frozenPilots": {
+    "wordProbes": 2324,
+    "deckFiles": 9,
+    "convertFormulas": 428
+  },
+  "joysheetHeadless": {
+    "passed": 1483,
+    "failed": 0,
+    "ignored": 1
+  }
+}

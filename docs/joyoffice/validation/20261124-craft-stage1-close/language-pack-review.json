@@ -1,0 +1,244 @@
+{
+  "previousAuditSha256": "0f3b3db8dd4b43e6306c5dfc3c12ffd0ea3be7bc1226a79c85972242373bc1c7",
+  "supplement": {
+    "GPL-3.0.txt": {
+      "url": "https://www.gnu.org/licenses/gpl-3.0.txt",
+      "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
+    },
+    "LGPL-2.1.txt": {
+      "url": "https://www.gnu.org/licenses/lgpl-2.1.txt",
+      "sha256": "20e50fe7aae3e56378ebf0417d9de904f55a0e61e4df315333e632a4d3555d95"
+    },
+    "hspell-1.4.tar.gz": {
+      "url": "https://hspell.sourceforge.net/hspell-1.4.tar.gz",
+      "sha256": "7310f5d58740d21d6d215c1179658602ef7da97a816bc1497c8764be97aabea3"
+    },
+    "hspell-1.4.dsc": {
+      "url": "https://deb.debian.org/debian/pool/main/h/hspell/hspell_1.4-3.1.dsc",
+      "sha256": "cf50dcd3d18d578fc299e6b7e36d0064e452fb5d349c7b88ea3777f2e6a31c8d"
+    },
+    "hspell-debian.tar.xz": {
+      "url": "https://deb.debian.org/debian/pool/main/h/hspell/hspell_1.4-3.1.debian.tar.xz",
+      "sha256": "bbec3cf406ce603cc1108e7ee28b39cc7969c0c4679cabc639c656ea7b866bfd"
+    },
+    "softcatala-source.tar.gz": {
+      "url": "https://codeload.github.com/Softcatala/catalan-dict-tools/tar.gz/d1fc142c482699f487c2ca78b9ae9ba8646f908f",
+      "sha256": "7d07b4ac8e8806621ee88f2e807359b353af1722b70655409eb0d4342aebf628"
+    },
+    "it_IT_COPYING": {
+      "url": "https://raw.githubusercontent.com/LibreOffice/dictionaries/4f1df64b2e8e14751aa7c2205d170ca016071315/it_IT/legacy/it_IT_COPYING",
+      "sha256": "3e41d215a0d9ce21c1fa982d48d2958d539a51011f469f741b51f97e2595ec7e"
+    },
+    "it_IT_README.1st": {
+      "url": "https://raw.githubusercontent.com/LibreOffice/dictionaries/4f1df64b2e8e14751aa7c2205d170ca016071315/it_IT/legacy/it_IT_README.1st",
+      "sha256": "0328874f246fa9511fb19be6fc38db57f1351b00356e7c7187de59529fb04e6f"
+    },
+    "it_IT_README.txt": {
+      "url": "https://raw.githubusercontent.com/LibreOffice/dictionaries/4f1df64b2e8e14751aa7c2205d170ca016071315/it_IT/legacy/it_IT_README.txt",
+      "sha256": "ec6332fd60cca5d4cd1b69c78aebae33bb49ccea856ed1d69722e3a23f0dfc82"
+    },
+    "it_IT_license.txt": {
+      "url": "https://raw.githubusercontent.com/LibreOffice/dictionaries/4f1df64b2e8e14751aa7c2205d170ca016071315/it_IT/legacy/it_IT_license.txt",
+      "sha256": "4de624abc748506298e7be68f2213e422673b43e1674da4b376804096b87dcec"
+    }
+  },
+  "packs": {
+    "af": {
+      "status": "upstream",
+      "reason": "The current affix file selects LGPL 2.1 or later and traces rules to a BSD ispell input. The exact inherited BSD permission text has yet to be identified."
+    },
+    "be": {
+      "status": "hosted",
+      "licenceSelection": "CC-BY-SA-4.0 (spelling), MIT (hyphenation)",
+      "reason": "The original maintainer identifies the Belarusian Grammar Database and both authors and offers CC BY-SA 4.0. The unmodified dictionary and its attribution are included.",
+      "supplement": []
+    },
+    "bg": {
+      "status": "upstream",
+      "reason": "The pinned Bulgarian pair is an encoding conversion. The pinned folder has GPLv2 text, while the pack lists three choices. The original Bulgarian spelling source and its matching grant still need to be tied to the converted pair."
+    },
+    "ca": {
+      "status": "hosted",
+      "licenceSelection": "GPL-2.0-or-later (spelling), LPPL-1.3c (hyphenation)",
+      "reason": "The Softcatala v3.0.8 source snapshot includes the editable roots, affix-generation tools, and a Hunspell pair byte-identical to this archive.",
+      "supplement": [
+        "softcatala-source.tar.gz"
+      ]
+    },
+    "ca-valencia": {
+      "status": "hosted",
+      "licenceSelection": "GPL-2.0-or-later (spelling), LPPL-1.3c (hyphenation)",
+      "reason": "The Softcatala v3.0.8 source snapshot includes the editable roots and Valencia generator outputs. Both spelling files match the original archive byte for byte.",
+      "supplement": [
+        "softcatala-source.tar.gz"
+      ]
+    },
+    "cs": {
+      "status": "hosted",
+      "licenceSelection": "GPL-2.0-only (spelling), GPL-2.0-or-later (hyphenation)",
+      "reason": "The upstream README identifies Miroslav Pošta’s 2021 editorial update to the editable Hunspell pair. The distinct Pavel Ševeček TeX patterns retain their own licence and author metadata.",
+      "supplement": []
+    },
+    "cy": {
+      "status": "hosted",
+      "licenceSelection": "LGPL-3.0-or-later (spelling), MIT (hyphenation)",
+      "reason": "Troi and Bangor University’s preferred text files and copyright notices are pinned in the maintainer repository. Include the underlying GPLv3 text alongside LGPLv3.",
+      "supplement": [
+        "GPL-3.0.txt"
+      ]
+    },
+    "de": {
+      "status": "upstream",
+      "reason": "The author’s igerman98 20161207 source was obtained. Frami 20170109 supplements and the corresponding transformation for the de-DE output have yet to be identified."
+    },
+    "de-at": {
+      "status": "upstream",
+      "reason": "The author’s igerman98 20161207 source was obtained. The Frami Austrian supplements and exact dictionary conversion still require evidence."
+    },
+    "de-ch": {
+      "status": "upstream",
+      "reason": "The author’s igerman98 20161207 source was obtained. The Frami Swiss supplements and exact dictionary conversion still require evidence."
+    },
+    "eo": {
+      "status": "hosted",
+      "licenceSelection": "GPL-2.0-or-later (spelling), LPPL-1.3c (hyphenation)",
+      "reason": "The original editable Esperanto affix carries the author’s GPL declaration and the native .tex pattern carries its separate LPPL notice. Both texts and the original notices are included.",
+      "supplement": []
+    },
+    "et": {
+      "status": "upstream",
+      "reason": "The fixed README includes the Institute of the Estonian Language licence and its acknowledgement request. The matching Institute word list and Jaak Pruulmann’s MySpell adaptation inputs remain unverified."
+    },
+    "ga": {
+      "status": "upstream",
+      "reason": "The original Irish notice is present. The author describes an ispell conversion, and the exact preferred ispell input and version 5.1 conversion have yet to be verified."
+    },
+    "gl": {
+      "status": "upstream",
+      "reason": "The Proxecto Trasno 20.08 README cites a License-gl.txt. That notice is absent from the fixed source folder, and the exact GPL version and underlying inputs are still unresolved."
+    },
+    "he": {
+      "status": "hosted",
+      "licenceSelection": "AGPL-3.0-or-later (spelling)",
+      "reason": "Both dictionary files match Debian myspell-he 1.4-3.1. Include Hspell 1.4 and Debian’s corresponding patches, packaging scripts and descriptor with matching source SHA-256 values.",
+      "supplement": [
+        "hspell-1.4.tar.gz",
+        "hspell-1.4.dsc",
+        "hspell-debian.tar.xz"
+      ]
+    },
+    "hi": {
+      "status": "upstream",
+      "reason": "The original README links a GNU Aspell 0.01 word list and separately credits a Hunspell conversion. The exact mixture of the later Hindi Hunspell additions and the original conversion inputs remains unverified."
+    },
+    "hr": {
+      "status": "hosted",
+      "licenceSelection": "MPL-1.1 (spelling), LPPL-1.3c (hyphenation)",
+      "reason": "The original Croatian maintainer identifies the editable Hunspell files and tri-license. Use the MPL alternative and retain the full maintainer and contributors notice.",
+      "supplement": []
+    },
+    "hy": {
+      "status": "hosted",
+      "licenceSelection": "MPL-1.1 (spelling), LGPL-3.0-only (hyphenation)",
+      "reason": "The Armenian spelling data is published as editable text with the original MPL alternative. Sahak Petrosyan’s editable TeX pattern has its own LGPLv3 notice and is accompanied by full GPLv3 text.",
+      "supplement": [
+        "GPL-3.0.txt"
+      ]
+    },
+    "id": {
+      "status": "hosted",
+      "licenceSelection": "LGPL-3.0-only (spelling), GPL-2.0-only (hyphenation)",
+      "reason": "The 2.3.0 maintainer commit identifies the .dic as the editable root list and the .aff as the editable rules. Keep the two separately licensed files and include GPLv3 for LGPLv3.",
+      "supplement": [
+        "GPL-3.0.txt"
+      ]
+    },
+    "is": {
+      "status": "hosted",
+      "licenceSelection": "CC-BY-SA-3.0 (spelling), LPPL-1.3c (hyphenation)",
+      "reason": "The original notice attributes the public-domain word list and Icelandic Wiktionary additions and includes CC BY-SA 3.0. Include original data, authorship, licensor URI, and the independent Jörgen Pind patterns.",
+      "supplement": []
+    },
+    "it": {
+      "status": "hosted",
+      "licenceSelection": "GPL-3.0-only (spelling), MIT (hyphenation)",
+      "reason": "The current maintainer documents the preferred Hunspell pair. Include the four inherited spelling copyright and licence files from the pinned legacy folder.",
+      "supplement": [
+        "it_IT_COPYING",
+        "it_IT_README.1st",
+        "it_IT_README.txt",
+        "it_IT_license.txt"
+      ]
+    },
+    "ko": {
+      "status": "upstream",
+      "reason": "The exact 0.7.92 author source and composite GPLv3 and CC notices were obtained. The released affix matches, but the pinned LibreOffice dictionary has additional and removed entries. Neither 0.7.92 nor 0.7.93 supplies that exact word-list build."
+    },
+    "lv": {
+      "status": "hosted",
+      "licenceSelection": "LGPL-2.1-or-later (spelling), LGPL-2.1-only (hyphenation)",
+      "reason": "Janis Eisaks’s signed author header identifies the editable v1.4.0 rules and both source notices are supplied, including the separately authored TeX pattern.",
+      "supplement": []
+    },
+    "mk": {
+      "status": "hosted",
+      "licenceSelection": "GPL-3.0-or-later (spelling), GPL-1.0-or-later (hyphenation)",
+      "reason": "Mijoski’s dictionary grant accompanies the editable pair. The separate original Macedonian TeX pattern credits its authors under GPL. Carry both notices and their source filenames.",
+      "supplement": []
+    },
+    "nb": {
+      "status": "upstream",
+      "reason": "The pack generation combined Ordbanken, CLARIN PUB +BY neologisms, and words from Språkrådet. Neither the corresponding generation inputs and scripts nor a redistribution grant for the Språkrådet portion has been verified."
+    },
+    "nn": {
+      "status": "upstream",
+      "reason": "The pack generation combined Ordbanken, CLARIN PUB +BY neologisms, and words from Språkrådet. The Nynorsk-specific combined inputs and grant for the collected portion remain unverified."
+    },
+    "pt-pt": {
+      "status": "upstream",
+      "reason": "The README lists a tri-license but the original Portuguese spelling contributors’ supplementary notice names GPL and BSD. The exact applicable BSD version and upstream conversion/source chain still need to be resolved."
+    },
+    "sl": {
+      "status": "hosted",
+      "licenceSelection": "LGPL-2.1 (spelling), MIT (hyphenation)",
+      "reason": "The original contributor and OpenOffice intake notice identifies the exact spelling files as source. Include the LGPLv2.1 text expressly selected there, in addition to the unchanged upstream notices.",
+      "supplement": [
+        "LGPL-2.1.txt"
+      ]
+    },
+    "sq": {
+      "status": "hosted",
+      "licenceSelection": "GPL-2.0-or-later (spelling), MIT (hyphenation)",
+      "reason": "The upstream 1.6.4 notice and Luan Kelmendi’s original affix notice license the directly editable Albanian word list and rules.",
+      "supplement": []
+    },
+    "sv": {
+      "status": "hosted",
+      "licenceSelection": "LGPL-3.0-only (spelling), LPPL-1.3c (hyphenation)",
+      "reason": "The source dictionary carries the current author’s maintenance and copyright notice for the Hunspell text. Include GPLv3 underneath LGPLv3 and retain the exact original Swedish pattern.",
+      "supplement": [
+        "GPL-3.0.txt"
+      ]
+    },
+    "sv-fi": {
+      "status": "hosted",
+      "licenceSelection": "LGPL-3.0-only (spelling), LPPL-1.3c (hyphenation)",
+      "reason": "The Finland variant is part of the same pinned author-maintained Swedish source distribution. Include both its variant files and the exact shared pattern and notices.",
+      "supplement": [
+        "GPL-3.0.txt"
+      ]
+    },
+    "sw": {
+      "status": "upstream",
+      "reason": "The Jambo README identifies multiple source word lists. The exact release inputs and permissions for the TUKI and Kamusi portions have yet to be matched to the supplied Hunspell pair."
+    },
+    "ta": {
+      "status": "upstream",
+      "reason": "The original Apache extension carries a GPL description and different dictionary and affix bytes. The generic MPL 1.1 file in LibreOffice does not identify these spelling files or their author."
+    },
+    "vi": {
+      "status": "upstream",
+      "reason": "The 1.0.45 Vietnamese notice grants GPLv2 for the OpenOffice pack and names Hồ Ngọc Đức’s word list. The corresponding author data and the converter used for this fixed pair are still unverified."
+    }
+  }
+}

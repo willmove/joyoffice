@@ -8,7 +8,7 @@ import runpy
 import subprocess
 
 
-def verify(old, candidate, legacy, output):
+def verify(old, candidate, legacy, output, locale="nl", expected_hosted=41, expected_tag=None):
     output.mkdir(parents=True)
     fixture = output / "source.docx"
     helpers = runpy.run_path(str(Path(__file__).with_name("check-spelling-order.py")))
@@ -32,17 +32,19 @@ def verify(old, candidate, legacy, output):
         return done.stderr.strip()
 
     refresh = 'proof.packs={"refresh":true}'
-    install = 'proof.installPack={"locale":"nl"}'
-    remove = 'proof.removePack={"locale":"nl"}'
+    install = 'proof.installPack=' + json.dumps({"locale": locale})
+    remove = 'proof.removePack=' + json.dumps({"locale": locale})
     reference = json.loads(legacy.read_bytes())["packs"]
-    dutch = next(item for item in reference if item["locale"] == "nl")
+    original_pack = next(item for item in reference if item["locale"] == locale)
 
-    def readback(binary):
+    def readback(binary, rollback=None):
         run(binary, install, True)
         inventory = json.loads((store / "language-packs.json").read_bytes())
         record, = inventory["packs"]
-        assert (record["locale"], record["sha256"], record["size"]) == ("nl", dutch["sha256"], dutch["size"])
-        run(binary, remove, True)
+        assert (record["locale"], record["sha256"], record["size"]) == (locale, original_pack["sha256"], original_pack["size"])
+        if rollback:
+            run(rollback, "proof.packs", True)
+        run(rollback or binary, remove, True)
 
     assert run(old, refresh) == run(candidate, refresh)
     assert not first_party.exists() and not old_cache.exists()
@@ -64,10 +66,10 @@ def verify(old, candidate, legacy, output):
             original_item["url"] = fallback
         remapped.append(original_item)
     assert len(reference) == 75 and remapped == reference
-    assert sum("fallback_url" in item for item in published) == 41
+    assert sum("fallback_url" in item for item in published) == expected_hosted
     run(candidate, refresh, True)
     assert first_party.read_bytes() == bundled.read_bytes()
-    readback(candidate)
+    readback(candidate, old)
     readback(old)
     assert old_cache.read_bytes() == legacy.read_bytes()
     first_party.write_bytes(b'{"format":1,"packs":[]}')
@@ -79,7 +81,9 @@ def verify(old, candidate, legacy, output):
     assert run(old, install) == absent
     assert first_party.read_bytes() == bundled.read_bytes()
     assert settings.read_bytes() == consent and sha(fixture) == original
-    hosted = next(item for item in published if item["locale"] == "nl").copy()
+    hosted = next(item for item in published if item["locale"] == locale).copy()
+    if expected_tag:
+        assert hosted["url"] == f"https://github.com/willmove/joyoffice/releases/download/{expected_tag}/{locale}.tar.zst"
     override = output / "host-probe.json"
     env["CRAFT_LANGUAGE_PACK_INDEX"] = str(override)
 
@@ -90,12 +94,13 @@ def verify(old, candidate, legacy, output):
     fallback = hosted.pop("fallback_url")
     refresh_override(hosted)
     readback(candidate)
-    refresh_override(dict(hosted, url=hosted["url"].replace("nl.tar.zst", "missing-nl.tar.zst"), fallback_url=fallback))
+    refresh_override(dict(hosted, url=hosted["url"].replace(f"{locale}.tar.zst", f"missing-{locale}.tar.zst"), fallback_url=fallback))
     readback(candidate)
     refresh_override(dict(hosted, sha256="a" * 64, fallback_url=fallback))
     run(candidate, install)
     assert json.loads((store / "language-packs.json").read_bytes())["packs"] == []
-    evidence = dict(packs=len(reference), consentRefused=True, bundledRefresh=True,
+    evidence = dict(packs=len(reference), verifiedLocale=locale, hostedPacks=expected_hosted,
+                    consentRefused=True, bundledRefresh=True, frozenReadsAndRemovesCandidateInstall=True,
                     verifiedLegacyCacheMigration=True, rollbackReadsOriginalCache=True,
                     hostedPrimary=True, upstreamFallback=True, invalidDigestRejectedOnBothOrigins=True,
                     corruptCacheRejected=True, indexSha256=sha(bundled), originalSourceSha256=original)
@@ -106,5 +111,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ("baseline", "candidate", "legacy_index", "output"):
         parser.add_argument(name, type=Path)
+    parser.add_argument("--locale", default="nl")
+    parser.add_argument("--expected-hosted", type=int, default=41)
+    parser.add_argument("--expected-tag")
     args = parser.parse_args()
-    verify(*(getattr(args, name).resolve() for name in ("baseline", "candidate", "legacy_index", "output")))
+    verify(*(getattr(args, name).resolve() for name in ("baseline", "candidate", "legacy_index", "output")),
+           args.locale, args.expected_hosted, args.expected_tag)

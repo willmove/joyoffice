@@ -174,8 +174,11 @@ fn documented_errors() {
     let ys = seasonal(12);
     let ts = timeline(12);
     let ets = |args: Vec<Arg>| ev("FORECAST.ETS", args);
-    // Target before the end of the timeline.
-    is_err(ets(vec![n(5.0), range(&ys), range(&ts)]), CellError::Num);
+    // Desktop Excel returns fitted points within the timeline.
+    is_err(ets(vec![n(0.0), range(&ys), range(&ts)]), CellError::Num);
+    let history = |target| ets(vec![n(target), range(&[2.0, 4.0, 6.0]), range(&[1.0, 2.0, 3.0]), n(0.0)]);
+    close_tol(history(1.5), 3.0, 1e-12);
+    close_tol(history(3.0), 6.0, 1e-12);
     // Timeline and values of different sizes.
     is_err(ets(vec![n(13.0), range(&ys), range(&ts[..11])]), CellError::NA);
     // No constant step.

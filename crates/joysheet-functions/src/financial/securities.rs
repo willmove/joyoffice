@@ -363,7 +363,10 @@ fn odd_first(sys: DateSystem, settle: f64, mat: f64, issue: f64, first: f64, fre
             return Err(CellError::Num);
         }
         let from = start.max(issue);
-        dc += span(sys, from, end, basis)? / nl;
+        // Under the fixed actual bases, each complete quasi-coupon after
+        // the first contributes one installment. The issue stub and the
+        // accrued interest still use actual elapsed days over the fixed base.
+        dc += if matches!(basis, 2 | 3) && issue < start { 1.0 } else { span(sys, from, end, basis)? / nl };
         acc += span(sys, from, settle.min(end), basis)? / nl;
         if start <= settle && settle < end {
             nq = Some(k as f64);

@@ -1,0 +1,3820 @@
+{
+  "1900": {
+    "dateSystem": "1900",
+    "matching": 348,
+    "checked": 76,
+    "newDifferences": [],
+    "crossVersionReadbacks": 4,
+    "review": [
+      {
+        "cell": "G66",
+        "formula": "RATE(12,-100,1200)",
+        "excel": [
+          "n",
+          "-4.3434156497998736E-10"
+        ],
+        "frozen": [
+          "n",
+          "-1.0070079874102734E-9"
+        ],
+        "prior": [
+          "n",
+          "-1.4304372612484818E-17"
+        ],
+        "candidate": [
+          "n",
+          "-1.4304372612484818E-17"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "精确根",
+          "reason": "12 期等额支付合计正好等于本金。独立按期折现回代确认零利率根，保留候选值。"
+        }
+      },
+      {
+        "cell": "G118",
+        "formula": "XIRR(H1:H6,I1:I6)",
+        "excel": [
+          "n",
+          "0.11035357117652894"
+        ],
+        "frozen": [
+          "n",
+          "0.11035356816902"
+        ],
+        "prior": [
+          "n",
+          "0.11035356816902"
+        ],
+        "candidate": [
+          "n",
+          "0.11035356816902"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "精确根",
+          "reason": "按实际天数／365，以 65 位十进制独立计算 XNPV 零点。候选值贴合该根，保留候选求解结果。"
+        }
+      },
+      {
+        "cell": "G265",
+        "formula": "ODDFPRICE(DATE(2008,11,11),DATE(2021,3,1),DATE(2007,1,20),DATE(2009,3,1),0.0785,0.0625,100,2,2)",
+        "excel": [
+          "n",
+          "113.10586349144469"
+        ],
+        "frozen": [
+          "n",
+          "113.34125618351327"
+        ],
+        "prior": [
+          "n",
+          "113.3412561835133"
+        ],
+        "candidate": [
+          "n",
+          "113.10586349144467"
+        ],
+        "status": "matched",
+        "assessment": {
+          "category": "票息计算",
+          "reason": "实际／360完整准票息期按整期计。按修正的首期现金流直接估价，用零票息、零收益和带息三组额外公式分别隔离折现、应计和首期现金流。"
+        }
+      },
+      {
+        "cell": "G266",
+        "formula": "ODDFPRICE(DATE(2008,11,11),DATE(2021,3,1),DATE(2007,1,20),DATE(2009,3,1),0.0785,0.0625,100,2,3)",
+        "excel": [
+          "n",
+          "113.32443302342598"
+        ],
+        "frozen": [
+          "n",
+          "113.34554465517002"
+        ],
+        "prior": [
+          "n",
+          "113.34554465517002"
+        ],
+        "candidate": [
+          "n",
+          "113.32443302342598"
+        ],
+        "status": "matched",
+        "assessment": {
+          "category": "票息计算",
+          "reason": "实际／365完整准票息期按整期计。按修正的首期现金流直接估价，用零票息、零收益和带息三组额外公式分别隔离折现、应计和首期现金流。"
+        }
+      },
+      {
+        "cell": "G275",
+        "formula": "ODDFYIELD(DATE(2008,11,11),DATE(2021,3,1),DATE(2007,1,20),DATE(2009,3,1),0.0785,84.50,100,2,2)",
+        "excel": [
+          "n",
+          "9.9740186562483887E-2"
+        ],
+        "frozen": [
+          "n",
+          "0.10011039815452238"
+        ],
+        "prior": [
+          "n",
+          "0.10011039815452256"
+        ],
+        "candidate": [
+          "n",
+          "0.09974018651256836"
+        ],
+        "status": "matched",
+        "assessment": {
+          "category": "票息计算",
+          "reason": "实际／360完整准票息期按整期计。以修正的首期价格方程反解收益率，用零票息、零收益和带息三组额外公式分别隔离折现、应计和首期现金流。"
+        }
+      },
+      {
+        "cell": "G276",
+        "formula": "ODDFYIELD(DATE(2008,11,11),DATE(2021,3,1),DATE(2007,1,20),DATE(2009,3,1),0.0785,84.50,100,2,3)",
+        "excel": [
+          "n",
+          "0.10009986965864662"
+        ],
+        "frozen": [
+          "n",
+          "0.10013314940450724"
+        ],
+        "prior": [
+          "n",
+          "0.10013314940450725"
+        ],
+        "candidate": [
+          "n",
+          "0.1000998696435589"
+        ],
+        "status": "matched",
+        "assessment": {
+          "category": "票息计算",
+          "reason": "实际／365完整准票息期按整期计。以修正的首期价格方程反解收益率，用零票息、零收益和带息三组额外公式分别隔离折现、应计和首期现金流。"
+        }
+      },
+      {
+        "cell": "G288",
+        "formula": "FORECAST.ETS(20.0,A1:A24,D1:D24,0)",
+        "excel": [
+          "n",
+          "43"
+        ],
+        "frozen": [
+          "e",
+          "#NUM!"
+        ],
+        "prior": [
+          "e",
+          "#NUM!"
+        ],
+        "candidate": [
+          "n",
+          "43"
+        ],
+        "status": "matched",
+        "assessment": {
+          "category": "样本内拟合",
+          "reason": "A1:A24 的第 20.0 个时间位置，季节参数 0。改为读取该点的一步拟合值，匹配 Excel 16。"
+        }
+      },
+      {
+        "cell": "G289",
+        "formula": "FORECAST.ETS(20.0,A1:A24,D1:D24,1)",
+        "excel": [
+          "n",
+          "43"
+        ],
+        "frozen": [
+          "e",
+          "#NUM!"
+        ],
+        "prior": [
+          "e",
+          "#NUM!"
+        ],
+        "candidate": [
+          "n",
+          "43"
+        ],
+        "status": "matched",
+        "assessment": {
+          "category": "样本内拟合",
+          "reason": "A1:A24 的第 20.0 个时间位置，季节参数 1。改为读取该点的一步拟合值，匹配 Excel 16。"
+        }
+      },
+      {
+        "cell": "G290",
+        "formula": "FORECAST.ETS(20.0,A1:A24,D1:D24,4)",
+        "excel": [
+          "n",
+          "43"
+        ],
+        "frozen": [
+          "e",
+          "#NUM!"
+        ],
+        "prior": [
+          "e",
+          "#NUM!"
+        ],
+        "candidate": [
+          "n",
+          "43"
+        ],
+        "status": "matched",
+        "assessment": {
+          "category": "样本内拟合",
+          "reason": "A1:A24 的第 20.0 个时间位置，季节参数 4。改为读取该点的一步拟合值，匹配 Excel 16。"
+        }
+      },
+      {
+        "cell": "G303",
+        "formula": "FORECAST.ETS(20.0,B1:B24,D1:D24,0)",
+        "excel": [
+          "n",
+          "49.214779519297046"
+        ],
+        "frozen": [
+          "e",
+          "#NUM!"
+        ],
+        "prior": [
+          "e",
+          "#NUM!"
+        ],
+        "candidate": [
+          "n",
+          "47.79371973305547"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "样本内模型差异",
+          "reason": "B1:B24 的第 20.0 个时间位置，季节参数 0。现可取样本内拟合值，输出与 Excel 的状态估计仍有偏差。"
+        }
+      },
+      {
+        "cell": "G304",
+        "formula": "FORECAST.ETS(20.0,B1:B24,D1:D24,1)",
+        "excel": [
+          "n",
+          "43.755127464016432"
+        ],
+        "frozen": [
+          "e",
+          "#NUM!"
+        ],
+        "prior": [
+          "e",
+          "#NUM!"
+        ],
+        "candidate": [
+          "n",
+          "41"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "样本内模型差异",
+          "reason": "B1:B24 的第 20.0 个时间位置，季节参数 1。现可取样本内拟合值，输出与 Excel 的状态估计仍有偏差。"
+        }
+      },
+      {
+        "cell": "G305",
+        "formula": "FORECAST.ETS(20.0,B1:B24,D1:D24,4)",
+        "excel": [
+          "n",
+          "41"
+        ],
+        "frozen": [
+          "e",
+          "#NUM!"
+        ],
+        "prior": [
+          "e",
+          "#NUM!"
+        ],
+        "candidate": [
+          "n",
+          "41"
+        ],
+        "status": "matched",
+        "assessment": {
+          "category": "样本内拟合",
+          "reason": "B1:B24 的第 20.0 个时间位置，季节参数 4。改为读取该点的一步拟合值，匹配 Excel 16。"
+        }
+      },
+      {
+        "cell": "G306",
+        "formula": "FORECAST.ETS(24.5,B1:B24,D1:D24,0)",
+        "excel": [
+          "n",
+          "52.985253183869091"
+        ],
+        "frozen": [
+          "n",
+          "53.11182268605804"
+        ],
+        "prior": [
+          "n",
+          "53.11182268605804"
+        ],
+        "candidate": [
+          "n",
+          "53.11182268605804"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "样本外模型差异",
+          "reason": "B1:B24 在第 24.5 个时间位置和季节参数 0 下的预测。复核了数值类型及预测步，剩余差异在状态初始化或拟合系数。"
+        }
+      },
+      {
+        "cell": "G307",
+        "formula": "FORECAST.ETS(24.5,B1:B24,D1:D24,1)",
+        "excel": [
+          "n",
+          "53.797160319339085"
+        ],
+        "frozen": [
+          "n",
+          "54"
+        ],
+        "prior": [
+          "n",
+          "54"
+        ],
+        "candidate": [
+          "n",
+          "54"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "样本外模型差异",
+          "reason": "B1:B24 在第 24.5 个时间位置和季节参数 1 下的预测。复核了数值类型及预测步，剩余差异在状态初始化或拟合系数。"
+        }
+      },
+      {
+        "cell": "G309",
+        "formula": "FORECAST.ETS(25.0,B1:B24,D1:D24,0)",
+        "excel": [
+          "n",
+          "53.404194702154889"
+        ],
+        "frozen": [
+          "n",
+          "53.68899248173852"
+        ],
+        "prior": [
+          "n",
+          "53.68899248173852"
+        ],
+        "candidate": [
+          "n",
+          "53.68899248173852"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "样本外模型差异",
+          "reason": "B1:B24 在第 25.0 个时间位置和季节参数 0 下的预测。复核了数值类型及预测步，剩余差异在状态初始化或拟合系数。"
+        }
+      },
+      {
+        "cell": "G310",
+        "formula": "FORECAST.ETS(25.0,B1:B24,D1:D24,1)",
+        "excel": [
+          "n",
+          "60.099335838235881"
+        ],
+        "frozen": [
+          "n",
+          "63"
+        ],
+        "prior": [
+          "n",
+          "63"
+        ],
+        "candidate": [
+          "n",
+          "63"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "样本外模型差异",
+          "reason": "B1:B24 在第 25.0 个时间位置和季节参数 1 下的预测。复核了数值类型及预测步，剩余差异在状态初始化或拟合系数。"
+        }
+      },
+      {
+        "cell": "G312",
+        "formula": "FORECAST.ETS(28.0,B1:B24,D1:D24,0)",
+        "excel": [
+          "n",
+          "55.917843811869552"
+        ],
+        "frozen": [
+          "n",
+          "57.15201125582138"
+        ],
+        "prior": [
+          "n",
+          "57.15201125582138"
+        ],
+        "candidate": [
+          "n",
+          "57.15201125582138"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "样本外模型差异",
+          "reason": "B1:B24 在第 28.0 个时间位置和季节参数 0 下的预测。复核了数值类型及预测步，剩余差异在状态初始化或拟合系数。"
+        }
+      },
+      {
+        "cell": "G313",
+        "formula": "FORECAST.ETS(28.0,B1:B24,D1:D24,1)",
+        "excel": [
+          "n",
+          "51.234842136868146"
+        ],
+        "frozen": [
+          "n",
+          "49"
+        ],
+        "prior": [
+          "n",
+          "49"
+        ],
+        "candidate": [
+          "n",
+          "49"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "样本外模型差异",
+          "reason": "B1:B24 在第 28.0 个时间位置和季节参数 1 下的预测。复核了数值类型及预测步，剩余差异在状态初始化或拟合系数。"
+        }
+      },
+      {
+        "cell": "G315",
+        "formula": "FORECAST.ETS(33.0,B1:B24,D1:D24,0)",
+        "excel": [
+          "n",
+          "60.107258994727395"
+        ],
+        "frozen": [
+          "n",
+          "62.92370921262615"
+        ],
+        "prior": [
+          "n",
+          "62.92370921262615"
+        ],
+        "candidate": [
+          "n",
+          "62.92370921262615"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "样本外模型差异",
+          "reason": "B1:B24 在第 33.0 个时间位置和季节参数 0 下的预测。复核了数值类型及预测步，剩余差异在状态初始化或拟合系数。"
+        }
+      },
+      {
+        "cell": "G316",
+        "formula": "FORECAST.ETS(33.0,B1:B24,D1:D24,1)",
+        "excel": [
+          "n",
+          "67.579050511087601"
+        ],
+        "frozen": [
+          "n",
+          "71"
+        ],
+        "prior": [
+          "n",
+          "71"
+        ],
+        "candidate": [
+          "n",
+          "71"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "样本外模型差异",
+          "reason": "B1:B24 在第 33.0 个时间位置和季节参数 1 下的预测。复核了数值类型及预测步，剩余差异在状态初始化或拟合系数。"
+        }
+      },
+      {
+        "cell": "G318",
+        "formula": "FORECAST.ETS(20.0,C1:C24,D1:D24,0)",
+        "excel": [
+          "n",
+          "96.812036286070864"
+        ],
+        "frozen": [
+          "e",
+          "#NUM!"
+        ],
+        "prior": [
+          "e",
+          "#NUM!"
+        ],
+        "candidate": [
+          "n",
+          "96.62424242424237"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "样本内模型差异",
+          "reason": "C1:C24 的第 20.0 个时间位置，季节参数 0。现可取样本内拟合值，输出与 Excel 的状态估计仍有偏差。"
+        }
+      },
+      {
+        "cell": "G319",
+        "formula": "FORECAST.ETS(20.0,C1:C24,D1:D24,1)",
+        "excel": [
+          "n",
+          "96.812036286070864"
+        ],
+        "frozen": [
+          "e",
+          "#NUM!"
+        ],
+        "prior": [
+          "e",
+          "#NUM!"
+        ],
+        "candidate": [
+          "n",
+          "96.86119996109345"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "样本内模型差异",
+          "reason": "C1:C24 的第 20.0 个时间位置，季节参数 1。现可取样本内拟合值，输出与 Excel 的状态估计仍有偏差。"
+        }
+      },
+      {
+        "cell": "G320",
+        "formula": "FORECAST.ETS(20.0,C1:C24,D1:D24,4)",
+        "excel": [
+          "n",
+          "96.319763793893244"
+        ],
+        "frozen": [
+          "e",
+          "#NUM!"
+        ],
+        "prior": [
+          "e",
+          "#NUM!"
+        ],
+        "candidate": [
+          "n",
+          "96.15530303030312"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "样本内模型差异",
+          "reason": "C1:C24 的第 20.0 个时间位置，季节参数 4。现可取样本内拟合值，输出与 Excel 的状态估计仍有偏差。"
+        }
+      },
+      {
+        "cell": "G321",
+        "formula": "FORECAST.ETS(24.5,C1:C24,D1:D24,0)",
+        "excel": [
+          "n",
+          "105.74674813889216"
+        ],
+        "frozen": [
+          "n",
+          "105.56969696969688"
+        ],
+        "prior": [
+          "n",
+          "105.5696969696969"
+        ],
+        "candidate": [
+          "n",
+          "105.5696969696969"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "样本外模型差异",
+          "reason": "C1:C24 在第 24.5 个时间位置和季节参数 0 下的预测。复核了数值类型及预测步，剩余差异在状态初始化或拟合系数。"
+        }
+      },
+      {
+        "cell": "G322",
+        "formula": "FORECAST.ETS(24.5,C1:C24,D1:D24,1)",
+        "excel": [
+          "n",
+          "105.74674813889216"
+        ],
+        "frozen": [
+          "n",
+          "105.49543146639019"
+        ],
+        "prior": [
+          "n",
+          "105.4954314663902"
+        ],
+        "candidate": [
+          "n",
+          "105.4954314663902"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "样本外模型差异",
+          "reason": "C1:C24 在第 24.5 个时间位置和季节参数 1 下的预测。复核了数值类型及预测步，剩余差异在状态初始化或拟合系数。"
+        }
+      },
+      {
+        "cell": "G323",
+        "formula": "FORECAST.ETS(24.5,C1:C24,D1:D24,4)",
+        "excel": [
+          "n",
+          "105.98290542664816"
+        ],
+        "frozen": [
+          "n",
+          "105.866287878788"
+        ],
+        "prior": [
+          "n",
+          "105.866287878788"
+        ],
+        "candidate": [
+          "n",
+          "105.866287878788"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "样本外模型差异",
+          "reason": "C1:C24 在第 24.5 个时间位置和季节参数 4 下的预测。复核了数值类型及预测步，剩余差异在状态初始化或拟合系数。"
+        }
+      },
+      {
+        "cell": "G324",
+        "formula": "FORECAST.ETS(25.0,C1:C24,D1:D24,0)",
+        "excel": [
+          "n",
+          "106.73949390031675"
+        ],
+        "frozen": [
+          "n",
+          "106.56363636363628"
+        ],
+        "prior": [
+          "n",
+          "106.56363636363629"
+        ],
+        "candidate": [
+          "n",
+          "106.56363636363629"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "样本外模型差异",
+          "reason": "C1:C24 在第 25.0 个时间位置和季节参数 0 下的预测。复核了数值类型及预测步，剩余差异在状态初始化或拟合系数。"
+        }
+      },
+      {
+        "cell": "G325",
+        "formula": "FORECAST.ETS(25.0,C1:C24,D1:D24,1)",
+        "excel": [
+          "n",
+          "106.73949390031675"
+        ],
+        "frozen": [
+          "n",
+          "107.00710226869077"
+        ],
+        "prior": [
+          "n",
+          "107.00710226869079"
+        ],
+        "candidate": [
+          "n",
+          "107.00710226869079"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "样本外模型差异",
+          "reason": "C1:C24 在第 25.0 个时间位置和季节参数 1 下的预测。复核了数值类型及预测步，剩余差异在状态初始化或拟合系数。"
+        }
+      },
+      {
+        "cell": "G326",
+        "formula": "FORECAST.ETS(25.0,C1:C24,D1:D24,4)",
+        "excel": [
+          "n",
+          "107.64627195733264"
+        ],
+        "frozen": [
+          "n",
+          "107.53787878787891"
+        ],
+        "prior": [
+          "n",
+          "107.53787878787891"
+        ],
+        "candidate": [
+          "n",
+          "107.53787878787891"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "样本外模型差异",
+          "reason": "C1:C24 在第 25.0 个时间位置和季节参数 4 下的预测。复核了数值类型及预测步，剩余差异在状态初始化或拟合系数。"
+        }
+      },
+      {
+        "cell": "G327",
+        "formula": "FORECAST.ETS(28.0,C1:C24,D1:D24,0)",
+        "excel": [
+          "n",
+          "112.69596846886428"
+        ],
+        "frozen": [
+          "n",
+          "112.52727272727265"
+        ],
+        "prior": [
+          "n",
+          "112.52727272727266"
+        ],
+        "candidate": [
+          "n",
+          "112.52727272727266"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "样本外模型差异",
+          "reason": "C1:C24 在第 28.0 个时间位置和季节参数 0 下的预测。复核了数值类型及预测步，剩余差异在状态初始化或拟合系数。"
+        }
+      },
+      {
+        "cell": "G328",
+        "formula": "FORECAST.ETS(28.0,C1:C24,D1:D24,1)",
+        "excel": [
+          "n",
+          "112.69596846886428"
+        ],
+        "frozen": [
+          "n",
+          "115.77712708249427"
+        ],
+        "prior": [
+          "n",
+          "115.77712708249429"
+        ],
+        "candidate": [
+          "n",
+          "115.77712708249429"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "样本外模型差异",
+          "reason": "C1:C24 在第 28.0 个时间位置和季节参数 1 下的预测。复核了数值类型及预测步，剩余差异在状态初始化或拟合系数。"
+        }
+      },
+      {
+        "cell": "G329",
+        "formula": "FORECAST.ETS(28.0,C1:C24,D1:D24,4)",
+        "excel": [
+          "n",
+          "112.3193139980341"
+        ],
+        "frozen": [
+          "n",
+          "112.23409090909101"
+        ],
+        "prior": [
+          "n",
+          "112.23409090909101"
+        ],
+        "candidate": [
+          "n",
+          "112.23409090909101"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "样本外模型差异",
+          "reason": "C1:C24 在第 28.0 个时间位置和季节参数 4 下的预测。复核了数值类型及预测步，剩余差异在状态初始化或拟合系数。"
+        }
+      },
+      {
+        "cell": "G330",
+        "formula": "FORECAST.ETS(33.0,C1:C24,D1:D24,0)",
+        "excel": [
+          "n",
+          "122.62342608311016"
+        ],
+        "frozen": [
+          "n",
+          "122.46666666666658"
+        ],
+        "prior": [
+          "n",
+          "122.4666666666666"
+        ],
+        "candidate": [
+          "n",
+          "122.4666666666666"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "样本外模型差异",
+          "reason": "C1:C24 在第 33.0 个时间位置和季节参数 0 下的预测。复核了数值类型及预测步，剩余差异在状态初始化或拟合系数。"
+        }
+      },
+      {
+        "cell": "G331",
+        "formula": "FORECAST.ETS(33.0,C1:C24,D1:D24,1)",
+        "excel": [
+          "n",
+          "122.62342608311016"
+        ],
+        "frozen": [
+          "n",
+          "125.89383510550012"
+        ],
+        "prior": [
+          "n",
+          "125.89383510550014"
+        ],
+        "candidate": [
+          "n",
+          "125.89383510550014"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "样本外模型差异",
+          "reason": "C1:C24 在第 33.0 个时间位置和季节参数 1 下的预测。复核了数值类型及预测步，剩余差异在状态初始化或拟合系数。"
+        }
+      },
+      {
+        "cell": "G332",
+        "formula": "FORECAST.ETS(33.0,C1:C24,D1:D24,4)",
+        "excel": [
+          "n",
+          "123.6458221614735"
+        ],
+        "frozen": [
+          "n",
+          "123.61666666666677"
+        ],
+        "prior": [
+          "n",
+          "123.61666666666677"
+        ],
+        "candidate": [
+          "n",
+          "123.61666666666677"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "样本外模型差异",
+          "reason": "C1:C24 在第 33.0 个时间位置和季节参数 4 下的预测。复核了数值类型及预测步，剩余差异在状态初始化或拟合系数。"
+        }
+      },
+      {
+        "cell": "G334",
+        "formula": "FORECAST.ETS(25,A1:A24,D1:D24,8761)",
+        "excel": [
+          "n",
+          "53"
+        ],
+        "frozen": [
+          "e",
+          "#NUM!"
+        ],
+        "prior": [
+          "e",
+          "#NUM!"
+        ],
+        "candidate": [
+          "e",
+          "#NUM!"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "公开参数上限",
+          "reason": "Excel 16 对 8,761 返回数值，对 9,000 返回 #NUM!。Microsoft 公开参数上限为 8,760，保留现行上限。"
+        }
+      },
+      {
+        "cell": "G335",
+        "formula": "FORECAST.ETS(13,E1:E8,F1:F8,0,0)",
+        "excel": [
+          "n",
+          "124.85451566540739"
+        ],
+        "frozen": [
+          "n",
+          "117.2727272727273"
+        ],
+        "prior": [
+          "n",
+          "117.27272727272728"
+        ],
+        "candidate": [
+          "n",
+          "117.27272727272728"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "补零后拟合",
+          "reason": "缺失的第 3、7 位置补零后，候选版与 Excel 的拟合状态仍有差异。插值对照保持原有兼容结果。"
+        }
+      },
+      {
+        "cell": "G345",
+        "formula": "FORECAST.ETS.CONFINT(25,B1:B24,D1:D24,0.8,0)",
+        "excel": [
+          "n",
+          "9.4956652500563745"
+        ],
+        "frozen": [
+          "n",
+          "8.655188027089023"
+        ],
+        "prior": [
+          "n",
+          "8.655188027089007"
+        ],
+        "candidate": [
+          "n",
+          "8.655188027089007"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "置信区间",
+          "reason": "B1:B24 在目标 25、置信水平 0.8、季节参数 0 下的区间半宽。两端均返回数值，模型残差和远期方差估计仍有差异。"
+        }
+      },
+      {
+        "cell": "G346",
+        "formula": "FORECAST.ETS.CONFINT(25,B1:B24,D1:D24,0.95,1)",
+        "excel": [
+          "n",
+          "5.4099852603823102"
+        ],
+        "frozen": [
+          "n",
+          "0"
+        ],
+        "prior": [
+          "n",
+          "0"
+        ],
+        "candidate": [
+          "n",
+          "0"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "置信区间",
+          "reason": "B1:B24 在目标 25、置信水平 0.95、季节参数 1 下的区间半宽。两端均返回数值，模型残差和远期方差估计仍有差异。"
+        }
+      },
+      {
+        "cell": "G349",
+        "formula": "FORECAST.ETS.CONFINT(33,B1:B24,D1:D24,0.8,0)",
+        "excel": [
+          "n",
+          "10.1220584723537"
+        ],
+        "frozen": [
+          "n",
+          "9.178266855886532"
+        ],
+        "prior": [
+          "n",
+          "9.178266855886514"
+        ],
+        "candidate": [
+          "n",
+          "9.178266855886514"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "置信区间",
+          "reason": "B1:B24 在目标 33、置信水平 0.8、季节参数 0 下的区间半宽。两端均返回数值，模型残差和远期方差估计仍有差异。"
+        }
+      },
+      {
+        "cell": "G350",
+        "formula": "FORECAST.ETS.CONFINT(33,B1:B24,D1:D24,0.95,1)",
+        "excel": [
+          "n",
+          "5.7695305178560794"
+        ],
+        "frozen": [
+          "n",
+          "0"
+        ],
+        "prior": [
+          "n",
+          "0"
+        ],
+        "candidate": [
+          "n",
+          "0"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "置信区间",
+          "reason": "B1:B24 在目标 33、置信水平 0.95、季节参数 1 下的区间半宽。两端均返回数值，模型残差和远期方差估计仍有差异。"
+        }
+      },
+      {
+        "cell": "G353",
+        "formula": "FORECAST.ETS.CONFINT(25,C1:C24,D1:D24,0.8,0)",
+        "excel": [
+          "n",
+          "3.348058615164641"
+        ],
+        "frozen": [
+          "n",
+          "3.1187472131688483"
+        ],
+        "prior": [
+          "n",
+          "3.1187472131688416"
+        ],
+        "candidate": [
+          "n",
+          "3.1187472131688416"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "置信区间",
+          "reason": "C1:C24 在目标 25、置信水平 0.8、季节参数 0 下的区间半宽。两端均返回数值，模型残差和远期方差估计仍有差异。"
+        }
+      },
+      {
+        "cell": "G354",
+        "formula": "FORECAST.ETS.CONFINT(25,C1:C24,D1:D24,0.95,1)",
+        "excel": [
+          "n",
+          "5.1204137861305359"
+        ],
+        "frozen": [
+          "n",
+          "1.6730821347635458"
+        ],
+        "prior": [
+          "n",
+          "1.6730821347635503"
+        ],
+        "candidate": [
+          "n",
+          "1.6730821347635503"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "置信区间",
+          "reason": "C1:C24 在目标 25、置信水平 0.95、季节参数 1 下的区间半宽。两端均返回数值，模型残差和远期方差估计仍有差异。"
+        }
+      },
+      {
+        "cell": "G355",
+        "formula": "FORECAST.ETS.CONFINT(25,C1:C24,D1:D24,0.99,4)",
+        "excel": [
+          "n",
+          "6.6762858772822078"
+        ],
+        "frozen": [
+          "n",
+          "6.304259674428385"
+        ],
+        "prior": [
+          "n",
+          "6.3042596744283985"
+        ],
+        "candidate": [
+          "n",
+          "6.3042596744283985"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "置信区间",
+          "reason": "C1:C24 在目标 25、置信水平 0.99、季节参数 4 下的区间半宽。两端均返回数值，模型残差和远期方差估计仍有差异。"
+        }
+      },
+      {
+        "cell": "G357",
+        "formula": "FORECAST.ETS.CONFINT(33,C1:C24,D1:D24,0.8,0)",
+        "excel": [
+          "n",
+          "3.4913108314558117"
+        ],
+        "frozen": [
+          "n",
+          "3.1187472131688483"
+        ],
+        "prior": [
+          "n",
+          "3.1187472131688416"
+        ],
+        "candidate": [
+          "n",
+          "3.1187472131688416"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "置信区间",
+          "reason": "C1:C24 在目标 33、置信水平 0.8、季节参数 0 下的区间半宽。两端均返回数值，模型残差和远期方差估计仍有差异。"
+        }
+      },
+      {
+        "cell": "G358",
+        "formula": "FORECAST.ETS.CONFINT(33,C1:C24,D1:D24,0.95,1)",
+        "excel": [
+          "n",
+          "5.3394991449915521"
+        ],
+        "frozen": [
+          "n",
+          "1.7838653720769135"
+        ],
+        "prior": [
+          "n",
+          "1.7838653720769186"
+        ],
+        "candidate": [
+          "n",
+          "1.7838653720769186"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "置信区间",
+          "reason": "C1:C24 在目标 33、置信水平 0.95、季节参数 1 下的区间半宽。两端均返回数值，模型残差和远期方差估计仍有差异。"
+        }
+      },
+      {
+        "cell": "G359",
+        "formula": "FORECAST.ETS.CONFINT(33,C1:C24,D1:D24,0.99,4)",
+        "excel": [
+          "n",
+          "7.118354812206297"
+        ],
+        "frozen": [
+          "n",
+          "6.304259674428385"
+        ],
+        "prior": [
+          "n",
+          "6.3042596744283985"
+        ],
+        "candidate": [
+          "n",
+          "6.3042596744283985"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "置信区间",
+          "reason": "C1:C24 在目标 33、置信水平 0.99、季节参数 4 下的区间半宽。两端均返回数值，模型残差和远期方差估计仍有差异。"
+        }
+      },
+      {
+        "cell": "G362",
+        "formula": "FORECAST.ETS.SEASONALITY(B1:B24,D1:D24)",
+        "excel": [
+          "n",
+          "2"
+        ],
+        "frozen": [
+          "n",
+          "4"
+        ],
+        "prior": [
+          "n",
+          "4"
+        ],
+        "candidate": [
+          "n",
+          "4"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "自动季节判定",
+          "reason": "独立核对 B 序列，任意间隔 4 步的差均为 4，间隔 2 步的差随相位变动。保留候选周期 4 和 Excel 周期 2 的差异。"
+        }
+      },
+      {
+        "cell": "G363",
+        "formula": "FORECAST.ETS.SEASONALITY(C1:C24,D1:D24)",
+        "excel": [
+          "n",
+          "0"
+        ],
+        "frozen": [
+          "n",
+          "5"
+        ],
+        "prior": [
+          "n",
+          "5"
+        ],
+        "candidate": [
+          "n",
+          "5"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "自动季节判定",
+          "reason": "C 序列线性去趋势后，滞后 5 的归一自相关约 0.683，大于当前 0.408 白噪声阈值。候选选 5，Excel 选 0。"
+        }
+      },
+      {
+        "cell": "G364",
+        "formula": "FORECAST.ETS.STAT(A1:A24,D1:D24,1,0)",
+        "excel": [
+          "n",
+          "0.9"
+        ],
+        "frozen": [
+          "n",
+          "0.05"
+        ],
+        "prior": [
+          "n",
+          "0.05"
+        ],
+        "candidate": [
+          "n",
+          "0.05"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "无残差时的参数选择",
+          "reason": "A 序列是严格线性趋势，季节参数 0 下的预测一致，Alpha 因零损失下存在多组等价参数而不同。"
+        }
+      },
+      {
+        "cell": "G365",
+        "formula": "FORECAST.ETS.STAT(A1:A24,D1:D24,1,4)",
+        "excel": [
+          "n",
+          "0.751"
+        ],
+        "frozen": [
+          "n",
+          "0.05"
+        ],
+        "prior": [
+          "n",
+          "0.05"
+        ],
+        "candidate": [
+          "n",
+          "0.05"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "无残差时的参数选择",
+          "reason": "A 序列是严格线性趋势，季节参数 4 下的预测一致，Alpha 因零损失下存在多组等价参数而不同。"
+        }
+      },
+      {
+        "cell": "G366",
+        "formula": "FORECAST.ETS.STAT(A1:A24,D1:D24,2,0)",
+        "excel": [
+          "n",
+          "1E-3"
+        ],
+        "frozen": [
+          "n",
+          "0.05"
+        ],
+        "prior": [
+          "n",
+          "0.05"
+        ],
+        "candidate": [
+          "n",
+          "0.05"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "无残差时的参数选择",
+          "reason": "A 序列是严格线性趋势，季节参数 0 下的预测一致，Beta 因零损失下存在多组等价参数而不同。"
+        }
+      },
+      {
+        "cell": "G367",
+        "formula": "FORECAST.ETS.STAT(A1:A24,D1:D24,2,4)",
+        "excel": [
+          "n",
+          "1E-3"
+        ],
+        "frozen": [
+          "n",
+          "0.05"
+        ],
+        "prior": [
+          "n",
+          "0.05"
+        ],
+        "candidate": [
+          "n",
+          "0.05"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "无残差时的参数选择",
+          "reason": "A 序列是严格线性趋势，季节参数 4 下的预测一致，Beta 因零损失下存在多组等价参数而不同。"
+        }
+      },
+      {
+        "cell": "G369",
+        "formula": "FORECAST.ETS.STAT(A1:A24,D1:D24,3,4)",
+        "excel": [
+          "n",
+          "1E-3"
+        ],
+        "frozen": [
+          "n",
+          "0.05"
+        ],
+        "prior": [
+          "n",
+          "0.05"
+        ],
+        "candidate": [
+          "n",
+          "0.05"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "无残差时的参数选择",
+          "reason": "A 序列是严格线性趋势，季节参数 4 下的预测一致，Gamma 因零损失下存在多组等价参数而不同。"
+        }
+      },
+      {
+        "cell": "G382",
+        "formula": "FORECAST.ETS.STAT(B1:B24,D1:D24,1,0)",
+        "excel": [
+          "n",
+          "0.126"
+        ],
+        "frozen": [
+          "n",
+          "0.020939467731432175"
+        ],
+        "prior": [
+          "n",
+          "0.020939467731432175"
+        ],
+        "candidate": [
+          "n",
+          "0.020939467731432175"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "拟合系数",
+          "reason": "B1:B24、季节参数 0 的 Alpha 系数不同。保持当前有界拟合，继续记录 Excel 未公开的初始状态及优化选择差异。"
+        }
+      },
+      {
+        "cell": "G383",
+        "formula": "FORECAST.ETS.STAT(B1:B24,D1:D24,1,4)",
+        "excel": [
+          "n",
+          "0.751"
+        ],
+        "frozen": [
+          "n",
+          "0.05"
+        ],
+        "prior": [
+          "n",
+          "0.05"
+        ],
+        "candidate": [
+          "n",
+          "0.05"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "拟合系数",
+          "reason": "B1:B24、季节参数 4 的 Alpha 系数不同。保持当前有界拟合，继续记录 Excel 未公开的初始状态及优化选择差异。"
+        }
+      },
+      {
+        "cell": "G384",
+        "formula": "FORECAST.ETS.STAT(B1:B24,D1:D24,2,0)",
+        "excel": [
+          "n",
+          "1E-3"
+        ],
+        "frozen": [
+          "n",
+          "1"
+        ],
+        "prior": [
+          "n",
+          "1"
+        ],
+        "candidate": [
+          "n",
+          "1"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "拟合系数",
+          "reason": "B1:B24、季节参数 0 的 Beta 系数不同。保持当前有界拟合，继续记录 Excel 未公开的初始状态及优化选择差异。"
+        }
+      },
+      {
+        "cell": "G385",
+        "formula": "FORECAST.ETS.STAT(B1:B24,D1:D24,2,4)",
+        "excel": [
+          "n",
+          "1E-3"
+        ],
+        "frozen": [
+          "n",
+          "0.05"
+        ],
+        "prior": [
+          "n",
+          "0.05"
+        ],
+        "candidate": [
+          "n",
+          "0.05"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "拟合系数",
+          "reason": "B1:B24、季节参数 4 的 Beta 系数不同。保持当前有界拟合，继续记录 Excel 未公开的初始状态及优化选择差异。"
+        }
+      },
+      {
+        "cell": "G387",
+        "formula": "FORECAST.ETS.STAT(B1:B24,D1:D24,3,4)",
+        "excel": [
+          "n",
+          "1E-3"
+        ],
+        "frozen": [
+          "n",
+          "0.05"
+        ],
+        "prior": [
+          "n",
+          "0.05"
+        ],
+        "candidate": [
+          "n",
+          "0.05"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "拟合系数",
+          "reason": "B1:B24、季节参数 4 的 Gamma 系数不同。保持当前有界拟合，继续记录 Excel 未公开的初始状态及优化选择差异。"
+        }
+      },
+      {
+        "cell": "G388",
+        "formula": "FORECAST.ETS.STAT(B1:B24,D1:D24,4,0)",
+        "excel": [
+          "n",
+          "0.57977523425493249"
+        ],
+        "frozen": [
+          "n",
+          "0.5126380215989785"
+        ],
+        "prior": [
+          "n",
+          "0.5126380215989785"
+        ],
+        "candidate": [
+          "n",
+          "0.5126380215989785"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "残差统计",
+          "reason": "B1:B24、季节参数 0 的 MASE。两端均返回数值，统计量随一步预测残差的差别变化。"
+        }
+      },
+      {
+        "cell": "G390",
+        "formula": "FORECAST.ETS.STAT(B1:B24,D1:D24,5,0)",
+        "excel": [
+          "n",
+          "0.13813301972529268"
+        ],
+        "frozen": [
+          "n",
+          "0.14632426136370688"
+        ],
+        "prior": [
+          "n",
+          "0.14632426136370688"
+        ],
+        "candidate": [
+          "n",
+          "0.14632426136370688"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "残差统计",
+          "reason": "B1:B24、季节参数 0 的 SMAPE。两端均返回数值，统计量随一步预测残差的差别变化。"
+        }
+      },
+      {
+        "cell": "G392",
+        "formula": "FORECAST.ETS.STAT(B1:B24,D1:D24,6,0)",
+        "excel": [
+          "n",
+          "6.7088277106642185"
+        ],
+        "frozen": [
+          "n",
+          "6.017924601379314"
+        ],
+        "prior": [
+          "n",
+          "6.017924601379314"
+        ],
+        "candidate": [
+          "n",
+          "6.017924601379314"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "残差统计",
+          "reason": "B1:B24、季节参数 0 的 MAE。两端均返回数值，统计量随一步预测残差的差别变化。"
+        }
+      },
+      {
+        "cell": "G394",
+        "formula": "FORECAST.ETS.STAT(B1:B24,D1:D24,7,0)",
+        "excel": [
+          "n",
+          "7.2346016078196413"
+        ],
+        "frozen": [
+          "n",
+          "6.7536791025735825"
+        ],
+        "prior": [
+          "n",
+          "6.7536791025735825"
+        ],
+        "candidate": [
+          "n",
+          "6.7536791025735825"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "残差统计",
+          "reason": "B1:B24、季节参数 0 的 RMSE。两端均返回数值，统计量随一步预测残差的差别变化。"
+        }
+      },
+      {
+        "cell": "G400",
+        "formula": "FORECAST.ETS.STAT(C1:C24,D1:D24,1,0)",
+        "excel": [
+          "n",
+          "0.1"
+        ],
+        "frozen": [
+          "n",
+          "0"
+        ],
+        "prior": [
+          "n",
+          "0"
+        ],
+        "candidate": [
+          "n",
+          "0"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "拟合系数",
+          "reason": "C1:C24、季节参数 0 的 Alpha 系数不同。保持当前有界拟合，继续记录 Excel 未公开的初始状态及优化选择差异。"
+        }
+      },
+      {
+        "cell": "G401",
+        "formula": "FORECAST.ETS.STAT(C1:C24,D1:D24,1,4)",
+        "excel": [
+          "n",
+          "0.126"
+        ],
+        "frozen": [
+          "n",
+          "0"
+        ],
+        "prior": [
+          "n",
+          "0"
+        ],
+        "candidate": [
+          "n",
+          "0"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "拟合系数",
+          "reason": "C1:C24、季节参数 4 的 Alpha 系数不同。保持当前有界拟合，继续记录 Excel 未公开的初始状态及优化选择差异。"
+        }
+      },
+      {
+        "cell": "G402",
+        "formula": "FORECAST.ETS.STAT(C1:C24,D1:D24,2,0)",
+        "excel": [
+          "n",
+          "1E-3"
+        ],
+        "frozen": [
+          "n",
+          "0.15000000000000002"
+        ],
+        "prior": [
+          "n",
+          "0.15000000000000002"
+        ],
+        "candidate": [
+          "n",
+          "0.15000000000000002"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "拟合系数",
+          "reason": "C1:C24、季节参数 0 的 Beta 系数不同。保持当前有界拟合，继续记录 Excel 未公开的初始状态及优化选择差异。"
+        }
+      },
+      {
+        "cell": "G403",
+        "formula": "FORECAST.ETS.STAT(C1:C24,D1:D24,2,4)",
+        "excel": [
+          "n",
+          "1E-3"
+        ],
+        "frozen": [
+          "n",
+          "0.2166666666666667"
+        ],
+        "prior": [
+          "n",
+          "0.2166666666666667"
+        ],
+        "candidate": [
+          "n",
+          "0.2166666666666667"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "拟合系数",
+          "reason": "C1:C24、季节参数 4 的 Beta 系数不同。保持当前有界拟合，继续记录 Excel 未公开的初始状态及优化选择差异。"
+        }
+      },
+      {
+        "cell": "G405",
+        "formula": "FORECAST.ETS.STAT(C1:C24,D1:D24,3,4)",
+        "excel": [
+          "n",
+          "1E-3"
+        ],
+        "frozen": [
+          "n",
+          "0"
+        ],
+        "prior": [
+          "n",
+          "0"
+        ],
+        "candidate": [
+          "n",
+          "0"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "拟合系数",
+          "reason": "C1:C24、季节参数 4 的 Gamma 系数不同。保持当前有界拟合，继续记录 Excel 未公开的初始状态及优化选择差异。"
+        }
+      },
+      {
+        "cell": "G406",
+        "formula": "FORECAST.ETS.STAT(C1:C24,D1:D24,4,0)",
+        "excel": [
+          "n",
+          "0.52541403131305364"
+        ],
+        "frozen": [
+          "n",
+          "0.505430680430682"
+        ],
+        "prior": [
+          "n",
+          "0.5054306804306815"
+        ],
+        "candidate": [
+          "n",
+          "0.5054306804306815"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "残差统计",
+          "reason": "C1:C24、季节参数 0 的 MASE。两端均返回数值，统计量随一步预测残差的差别变化。"
+        }
+      },
+      {
+        "cell": "G407",
+        "formula": "FORECAST.ETS.STAT(C1:C24,D1:D24,4,4)",
+        "excel": [
+          "n",
+          "0.59484479862564599"
+        ],
+        "frozen": [
+          "n",
+          "0.5024468586968588"
+        ],
+        "prior": [
+          "n",
+          "0.5024468586968588"
+        ],
+        "candidate": [
+          "n",
+          "0.5024468586968588"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "残差统计",
+          "reason": "C1:C24、季节参数 4 的 MASE。两端均返回数值，统计量随一步预测残差的差别变化。"
+        }
+      },
+      {
+        "cell": "G408",
+        "formula": "FORECAST.ETS.STAT(C1:C24,D1:D24,5,0)",
+        "excel": [
+          "n",
+          "2.1548650012134636E-2"
+        ],
+        "frozen": [
+          "n",
+          "0.025013947036533504"
+        ],
+        "prior": [
+          "n",
+          "0.025013947036533476"
+        ],
+        "candidate": [
+          "n",
+          "0.025013947036533476"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "残差统计",
+          "reason": "C1:C24、季节参数 0 的 SMAPE。两端均返回数值，统计量随一步预测残差的差别变化。"
+        }
+      },
+      {
+        "cell": "G409",
+        "formula": "FORECAST.ETS.STAT(C1:C24,D1:D24,5,4)",
+        "excel": [
+          "n",
+          "2.4668127241613508E-2"
+        ],
+        "frozen": [
+          "n",
+          "0.024598215864455843"
+        ],
+        "prior": [
+          "n",
+          "0.024598215864455843"
+        ],
+        "candidate": [
+          "n",
+          "0.024598215864455843"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "残差统计",
+          "reason": "C1:C24、季节参数 4 的 SMAPE。两端均返回数值，统计量随一步预测残差的差别变化。"
+        }
+      },
+      {
+        "cell": "G410",
+        "formula": "FORECAST.ETS.STAT(C1:C24,D1:D24,6,0)",
+        "excel": [
+          "n",
+          "2.1016561252522146"
+        ],
+        "frozen": [
+          "n",
+          "1.9997474747474808"
+        ],
+        "prior": [
+          "n",
+          "1.9997474747474788"
+        ],
+        "candidate": [
+          "n",
+          "1.9997474747474788"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "残差统计",
+          "reason": "C1:C24、季节参数 0 的 MAE。两端均返回数值，统计量随一步预测残差的差别变化。"
+        }
+      },
+      {
+        "cell": "G411",
+        "formula": "FORECAST.ETS.STAT(C1:C24,D1:D24,6,4)",
+        "excel": [
+          "n",
+          "2.3793791945025839"
+        ],
+        "frozen": [
+          "n",
+          "1.9879419191919194"
+        ],
+        "prior": [
+          "n",
+          "1.9879419191919194"
+        ],
+        "candidate": [
+          "n",
+          "1.9879419191919194"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "残差统计",
+          "reason": "C1:C24、季节参数 4 的 MAE。两端均返回数值，统计量随一步预测残差的差别变化。"
+        }
+      },
+      {
+        "cell": "G412",
+        "formula": "FORECAST.ETS.STAT(C1:C24,D1:D24,7,0)",
+        "excel": [
+          "n",
+          "2.5192638138502979"
+        ],
+        "frozen": [
+          "n",
+          "2.433571380987331"
+        ],
+        "prior": [
+          "n",
+          "2.4335713809873307"
+        ],
+        "candidate": [
+          "n",
+          "2.4335713809873307"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "残差统计",
+          "reason": "C1:C24、季节参数 0 的 RMSE。两端均返回数值，统计量随一步预测残差的差别变化。"
+        }
+      },
+      {
+        "cell": "G413",
+        "formula": "FORECAST.ETS.STAT(C1:C24,D1:D24,7,4)",
+        "excel": [
+          "n",
+          "2.6406867049965319"
+        ],
+        "frozen": [
+          "n",
+          "2.4474679536188897"
+        ],
+        "prior": [
+          "n",
+          "2.4474679536188897"
+        ],
+        "candidate": [
+          "n",
+          "2.4474679536188897"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "残差统计",
+          "reason": "C1:C24、季节参数 4 的 RMSE。两端均返回数值，统计量随一步预测残差的差别变化。"
+        }
+      }
+    ]
+  },
+  "1904": {
+    "dateSystem": "1904",
+    "matching": 348,
+    "checked": 76,
+    "newDifferences": [],
+    "crossVersionReadbacks": 4,
+    "review": [
+      {
+        "cell": "G66",
+        "formula": "RATE(12,-100,1200)",
+        "excel": [
+          "n",
+          "-4.3434156497998736E-10"
+        ],
+        "frozen": [
+          "n",
+          "-1.0070079874102734E-9"
+        ],
+        "prior": [
+          "n",
+          "-1.4304372612484818E-17"
+        ],
+        "candidate": [
+          "n",
+          "-1.4304372612484818E-17"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "精确根",
+          "reason": "12 期等额支付合计正好等于本金。独立按期折现回代确认零利率根，保留候选值。"
+        }
+      },
+      {
+        "cell": "G118",
+        "formula": "XIRR(H1:H6,I1:I6)",
+        "excel": [
+          "n",
+          "0.11035357117652894"
+        ],
+        "frozen": [
+          "n",
+          "0.11035356816902"
+        ],
+        "prior": [
+          "n",
+          "0.11035356816902"
+        ],
+        "candidate": [
+          "n",
+          "0.11035356816902"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "精确根",
+          "reason": "按实际天数／365，以 65 位十进制独立计算 XNPV 零点。候选值贴合该根，保留候选求解结果。"
+        }
+      },
+      {
+        "cell": "G265",
+        "formula": "ODDFPRICE(DATE(2008,11,11),DATE(2021,3,1),DATE(2007,1,20),DATE(2009,3,1),0.0785,0.0625,100,2,2)",
+        "excel": [
+          "n",
+          "113.10586349144469"
+        ],
+        "frozen": [
+          "n",
+          "113.34125618351327"
+        ],
+        "prior": [
+          "n",
+          "113.3412561835133"
+        ],
+        "candidate": [
+          "n",
+          "113.10586349144467"
+        ],
+        "status": "matched",
+        "assessment": {
+          "category": "票息计算",
+          "reason": "实际／360完整准票息期按整期计。按修正的首期现金流直接估价，用零票息、零收益和带息三组额外公式分别隔离折现、应计和首期现金流。"
+        }
+      },
+      {
+        "cell": "G266",
+        "formula": "ODDFPRICE(DATE(2008,11,11),DATE(2021,3,1),DATE(2007,1,20),DATE(2009,3,1),0.0785,0.0625,100,2,3)",
+        "excel": [
+          "n",
+          "113.32443302342598"
+        ],
+        "frozen": [
+          "n",
+          "113.34554465517002"
+        ],
+        "prior": [
+          "n",
+          "113.34554465517002"
+        ],
+        "candidate": [
+          "n",
+          "113.32443302342598"
+        ],
+        "status": "matched",
+        "assessment": {
+          "category": "票息计算",
+          "reason": "实际／365完整准票息期按整期计。按修正的首期现金流直接估价，用零票息、零收益和带息三组额外公式分别隔离折现、应计和首期现金流。"
+        }
+      },
+      {
+        "cell": "G275",
+        "formula": "ODDFYIELD(DATE(2008,11,11),DATE(2021,3,1),DATE(2007,1,20),DATE(2009,3,1),0.0785,84.50,100,2,2)",
+        "excel": [
+          "n",
+          "9.9740186562483887E-2"
+        ],
+        "frozen": [
+          "n",
+          "0.10011039815452238"
+        ],
+        "prior": [
+          "n",
+          "0.10011039815452256"
+        ],
+        "candidate": [
+          "n",
+          "0.09974018651256836"
+        ],
+        "status": "matched",
+        "assessment": {
+          "category": "票息计算",
+          "reason": "实际／360完整准票息期按整期计。以修正的首期价格方程反解收益率，用零票息、零收益和带息三组额外公式分别隔离折现、应计和首期现金流。"
+        }
+      },
+      {
+        "cell": "G276",
+        "formula": "ODDFYIELD(DATE(2008,11,11),DATE(2021,3,1),DATE(2007,1,20),DATE(2009,3,1),0.0785,84.50,100,2,3)",
+        "excel": [
+          "n",
+          "0.10009986965864662"
+        ],
+        "frozen": [
+          "n",
+          "0.10013314940450724"
+        ],
+        "prior": [
+          "n",
+          "0.10013314940450725"
+        ],
+        "candidate": [
+          "n",
+          "0.1000998696435589"
+        ],
+        "status": "matched",
+        "assessment": {
+          "category": "票息计算",
+          "reason": "实际／365完整准票息期按整期计。以修正的首期价格方程反解收益率，用零票息、零收益和带息三组额外公式分别隔离折现、应计和首期现金流。"
+        }
+      },
+      {
+        "cell": "G288",
+        "formula": "FORECAST.ETS(20.0,A1:A24,D1:D24,0)",
+        "excel": [
+          "n",
+          "43"
+        ],
+        "frozen": [
+          "e",
+          "#NUM!"
+        ],
+        "prior": [
+          "e",
+          "#NUM!"
+        ],
+        "candidate": [
+          "n",
+          "43"
+        ],
+        "status": "matched",
+        "assessment": {
+          "category": "样本内拟合",
+          "reason": "A1:A24 的第 20.0 个时间位置，季节参数 0。改为读取该点的一步拟合值，匹配 Excel 16。"
+        }
+      },
+      {
+        "cell": "G289",
+        "formula": "FORECAST.ETS(20.0,A1:A24,D1:D24,1)",
+        "excel": [
+          "n",
+          "43"
+        ],
+        "frozen": [
+          "e",
+          "#NUM!"
+        ],
+        "prior": [
+          "e",
+          "#NUM!"
+        ],
+        "candidate": [
+          "n",
+          "43"
+        ],
+        "status": "matched",
+        "assessment": {
+          "category": "样本内拟合",
+          "reason": "A1:A24 的第 20.0 个时间位置，季节参数 1。改为读取该点的一步拟合值，匹配 Excel 16。"
+        }
+      },
+      {
+        "cell": "G290",
+        "formula": "FORECAST.ETS(20.0,A1:A24,D1:D24,4)",
+        "excel": [
+          "n",
+          "43"
+        ],
+        "frozen": [
+          "e",
+          "#NUM!"
+        ],
+        "prior": [
+          "e",
+          "#NUM!"
+        ],
+        "candidate": [
+          "n",
+          "43"
+        ],
+        "status": "matched",
+        "assessment": {
+          "category": "样本内拟合",
+          "reason": "A1:A24 的第 20.0 个时间位置，季节参数 4。改为读取该点的一步拟合值，匹配 Excel 16。"
+        }
+      },
+      {
+        "cell": "G303",
+        "formula": "FORECAST.ETS(20.0,B1:B24,D1:D24,0)",
+        "excel": [
+          "n",
+          "49.214779519297046"
+        ],
+        "frozen": [
+          "e",
+          "#NUM!"
+        ],
+        "prior": [
+          "e",
+          "#NUM!"
+        ],
+        "candidate": [
+          "n",
+          "47.79371973305547"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "样本内模型差异",
+          "reason": "B1:B24 的第 20.0 个时间位置，季节参数 0。现可取样本内拟合值，输出与 Excel 的状态估计仍有偏差。"
+        }
+      },
+      {
+        "cell": "G304",
+        "formula": "FORECAST.ETS(20.0,B1:B24,D1:D24,1)",
+        "excel": [
+          "n",
+          "43.755127464016432"
+        ],
+        "frozen": [
+          "e",
+          "#NUM!"
+        ],
+        "prior": [
+          "e",
+          "#NUM!"
+        ],
+        "candidate": [
+          "n",
+          "41"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "样本内模型差异",
+          "reason": "B1:B24 的第 20.0 个时间位置，季节参数 1。现可取样本内拟合值，输出与 Excel 的状态估计仍有偏差。"
+        }
+      },
+      {
+        "cell": "G305",
+        "formula": "FORECAST.ETS(20.0,B1:B24,D1:D24,4)",
+        "excel": [
+          "n",
+          "41"
+        ],
+        "frozen": [
+          "e",
+          "#NUM!"
+        ],
+        "prior": [
+          "e",
+          "#NUM!"
+        ],
+        "candidate": [
+          "n",
+          "41"
+        ],
+        "status": "matched",
+        "assessment": {
+          "category": "样本内拟合",
+          "reason": "B1:B24 的第 20.0 个时间位置，季节参数 4。改为读取该点的一步拟合值，匹配 Excel 16。"
+        }
+      },
+      {
+        "cell": "G306",
+        "formula": "FORECAST.ETS(24.5,B1:B24,D1:D24,0)",
+        "excel": [
+          "n",
+          "52.985253183869091"
+        ],
+        "frozen": [
+          "n",
+          "53.11182268605804"
+        ],
+        "prior": [
+          "n",
+          "53.11182268605804"
+        ],
+        "candidate": [
+          "n",
+          "53.11182268605804"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "样本外模型差异",
+          "reason": "B1:B24 在第 24.5 个时间位置和季节参数 0 下的预测。复核了数值类型及预测步，剩余差异在状态初始化或拟合系数。"
+        }
+      },
+      {
+        "cell": "G307",
+        "formula": "FORECAST.ETS(24.5,B1:B24,D1:D24,1)",
+        "excel": [
+          "n",
+          "53.797160319339085"
+        ],
+        "frozen": [
+          "n",
+          "54"
+        ],
+        "prior": [
+          "n",
+          "54"
+        ],
+        "candidate": [
+          "n",
+          "54"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "样本外模型差异",
+          "reason": "B1:B24 在第 24.5 个时间位置和季节参数 1 下的预测。复核了数值类型及预测步，剩余差异在状态初始化或拟合系数。"
+        }
+      },
+      {
+        "cell": "G309",
+        "formula": "FORECAST.ETS(25.0,B1:B24,D1:D24,0)",
+        "excel": [
+          "n",
+          "53.404194702154889"
+        ],
+        "frozen": [
+          "n",
+          "53.68899248173852"
+        ],
+        "prior": [
+          "n",
+          "53.68899248173852"
+        ],
+        "candidate": [
+          "n",
+          "53.68899248173852"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "样本外模型差异",
+          "reason": "B1:B24 在第 25.0 个时间位置和季节参数 0 下的预测。复核了数值类型及预测步，剩余差异在状态初始化或拟合系数。"
+        }
+      },
+      {
+        "cell": "G310",
+        "formula": "FORECAST.ETS(25.0,B1:B24,D1:D24,1)",
+        "excel": [
+          "n",
+          "60.099335838235881"
+        ],
+        "frozen": [
+          "n",
+          "63"
+        ],
+        "prior": [
+          "n",
+          "63"
+        ],
+        "candidate": [
+          "n",
+          "63"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "样本外模型差异",
+          "reason": "B1:B24 在第 25.0 个时间位置和季节参数 1 下的预测。复核了数值类型及预测步，剩余差异在状态初始化或拟合系数。"
+        }
+      },
+      {
+        "cell": "G312",
+        "formula": "FORECAST.ETS(28.0,B1:B24,D1:D24,0)",
+        "excel": [
+          "n",
+          "55.917843811869552"
+        ],
+        "frozen": [
+          "n",
+          "57.15201125582138"
+        ],
+        "prior": [
+          "n",
+          "57.15201125582138"
+        ],
+        "candidate": [
+          "n",
+          "57.15201125582138"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "样本外模型差异",
+          "reason": "B1:B24 在第 28.0 个时间位置和季节参数 0 下的预测。复核了数值类型及预测步，剩余差异在状态初始化或拟合系数。"
+        }
+      },
+      {
+        "cell": "G313",
+        "formula": "FORECAST.ETS(28.0,B1:B24,D1:D24,1)",
+        "excel": [
+          "n",
+          "51.234842136868146"
+        ],
+        "frozen": [
+          "n",
+          "49"
+        ],
+        "prior": [
+          "n",
+          "49"
+        ],
+        "candidate": [
+          "n",
+          "49"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "样本外模型差异",
+          "reason": "B1:B24 在第 28.0 个时间位置和季节参数 1 下的预测。复核了数值类型及预测步，剩余差异在状态初始化或拟合系数。"
+        }
+      },
+      {
+        "cell": "G315",
+        "formula": "FORECAST.ETS(33.0,B1:B24,D1:D24,0)",
+        "excel": [
+          "n",
+          "60.107258994727395"
+        ],
+        "frozen": [
+          "n",
+          "62.92370921262615"
+        ],
+        "prior": [
+          "n",
+          "62.92370921262615"
+        ],
+        "candidate": [
+          "n",
+          "62.92370921262615"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "样本外模型差异",
+          "reason": "B1:B24 在第 33.0 个时间位置和季节参数 0 下的预测。复核了数值类型及预测步，剩余差异在状态初始化或拟合系数。"
+        }
+      },
+      {
+        "cell": "G316",
+        "formula": "FORECAST.ETS(33.0,B1:B24,D1:D24,1)",
+        "excel": [
+          "n",
+          "67.579050511087601"
+        ],
+        "frozen": [
+          "n",
+          "71"
+        ],
+        "prior": [
+          "n",
+          "71"
+        ],
+        "candidate": [
+          "n",
+          "71"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "样本外模型差异",
+          "reason": "B1:B24 在第 33.0 个时间位置和季节参数 1 下的预测。复核了数值类型及预测步，剩余差异在状态初始化或拟合系数。"
+        }
+      },
+      {
+        "cell": "G318",
+        "formula": "FORECAST.ETS(20.0,C1:C24,D1:D24,0)",
+        "excel": [
+          "n",
+          "96.812036286070864"
+        ],
+        "frozen": [
+          "e",
+          "#NUM!"
+        ],
+        "prior": [
+          "e",
+          "#NUM!"
+        ],
+        "candidate": [
+          "n",
+          "96.62424242424237"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "样本内模型差异",
+          "reason": "C1:C24 的第 20.0 个时间位置，季节参数 0。现可取样本内拟合值，输出与 Excel 的状态估计仍有偏差。"
+        }
+      },
+      {
+        "cell": "G319",
+        "formula": "FORECAST.ETS(20.0,C1:C24,D1:D24,1)",
+        "excel": [
+          "n",
+          "96.812036286070864"
+        ],
+        "frozen": [
+          "e",
+          "#NUM!"
+        ],
+        "prior": [
+          "e",
+          "#NUM!"
+        ],
+        "candidate": [
+          "n",
+          "96.86119996109345"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "样本内模型差异",
+          "reason": "C1:C24 的第 20.0 个时间位置，季节参数 1。现可取样本内拟合值，输出与 Excel 的状态估计仍有偏差。"
+        }
+      },
+      {
+        "cell": "G320",
+        "formula": "FORECAST.ETS(20.0,C1:C24,D1:D24,4)",
+        "excel": [
+          "n",
+          "96.319763793893244"
+        ],
+        "frozen": [
+          "e",
+          "#NUM!"
+        ],
+        "prior": [
+          "e",
+          "#NUM!"
+        ],
+        "candidate": [
+          "n",
+          "96.15530303030312"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "样本内模型差异",
+          "reason": "C1:C24 的第 20.0 个时间位置，季节参数 4。现可取样本内拟合值，输出与 Excel 的状态估计仍有偏差。"
+        }
+      },
+      {
+        "cell": "G321",
+        "formula": "FORECAST.ETS(24.5,C1:C24,D1:D24,0)",
+        "excel": [
+          "n",
+          "105.74674813889216"
+        ],
+        "frozen": [
+          "n",
+          "105.56969696969688"
+        ],
+        "prior": [
+          "n",
+          "105.5696969696969"
+        ],
+        "candidate": [
+          "n",
+          "105.5696969696969"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "样本外模型差异",
+          "reason": "C1:C24 在第 24.5 个时间位置和季节参数 0 下的预测。复核了数值类型及预测步，剩余差异在状态初始化或拟合系数。"
+        }
+      },
+      {
+        "cell": "G322",
+        "formula": "FORECAST.ETS(24.5,C1:C24,D1:D24,1)",
+        "excel": [
+          "n",
+          "105.74674813889216"
+        ],
+        "frozen": [
+          "n",
+          "105.49543146639019"
+        ],
+        "prior": [
+          "n",
+          "105.4954314663902"
+        ],
+        "candidate": [
+          "n",
+          "105.4954314663902"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "样本外模型差异",
+          "reason": "C1:C24 在第 24.5 个时间位置和季节参数 1 下的预测。复核了数值类型及预测步，剩余差异在状态初始化或拟合系数。"
+        }
+      },
+      {
+        "cell": "G323",
+        "formula": "FORECAST.ETS(24.5,C1:C24,D1:D24,4)",
+        "excel": [
+          "n",
+          "105.98290542664816"
+        ],
+        "frozen": [
+          "n",
+          "105.866287878788"
+        ],
+        "prior": [
+          "n",
+          "105.866287878788"
+        ],
+        "candidate": [
+          "n",
+          "105.866287878788"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "样本外模型差异",
+          "reason": "C1:C24 在第 24.5 个时间位置和季节参数 4 下的预测。复核了数值类型及预测步，剩余差异在状态初始化或拟合系数。"
+        }
+      },
+      {
+        "cell": "G324",
+        "formula": "FORECAST.ETS(25.0,C1:C24,D1:D24,0)",
+        "excel": [
+          "n",
+          "106.73949390031675"
+        ],
+        "frozen": [
+          "n",
+          "106.56363636363628"
+        ],
+        "prior": [
+          "n",
+          "106.56363636363629"
+        ],
+        "candidate": [
+          "n",
+          "106.56363636363629"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "样本外模型差异",
+          "reason": "C1:C24 在第 25.0 个时间位置和季节参数 0 下的预测。复核了数值类型及预测步，剩余差异在状态初始化或拟合系数。"
+        }
+      },
+      {
+        "cell": "G325",
+        "formula": "FORECAST.ETS(25.0,C1:C24,D1:D24,1)",
+        "excel": [
+          "n",
+          "106.73949390031675"
+        ],
+        "frozen": [
+          "n",
+          "107.00710226869077"
+        ],
+        "prior": [
+          "n",
+          "107.00710226869079"
+        ],
+        "candidate": [
+          "n",
+          "107.00710226869079"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "样本外模型差异",
+          "reason": "C1:C24 在第 25.0 个时间位置和季节参数 1 下的预测。复核了数值类型及预测步，剩余差异在状态初始化或拟合系数。"
+        }
+      },
+      {
+        "cell": "G326",
+        "formula": "FORECAST.ETS(25.0,C1:C24,D1:D24,4)",
+        "excel": [
+          "n",
+          "107.64627195733264"
+        ],
+        "frozen": [
+          "n",
+          "107.53787878787891"
+        ],
+        "prior": [
+          "n",
+          "107.53787878787891"
+        ],
+        "candidate": [
+          "n",
+          "107.53787878787891"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "样本外模型差异",
+          "reason": "C1:C24 在第 25.0 个时间位置和季节参数 4 下的预测。复核了数值类型及预测步，剩余差异在状态初始化或拟合系数。"
+        }
+      },
+      {
+        "cell": "G327",
+        "formula": "FORECAST.ETS(28.0,C1:C24,D1:D24,0)",
+        "excel": [
+          "n",
+          "112.69596846886428"
+        ],
+        "frozen": [
+          "n",
+          "112.52727272727265"
+        ],
+        "prior": [
+          "n",
+          "112.52727272727266"
+        ],
+        "candidate": [
+          "n",
+          "112.52727272727266"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "样本外模型差异",
+          "reason": "C1:C24 在第 28.0 个时间位置和季节参数 0 下的预测。复核了数值类型及预测步，剩余差异在状态初始化或拟合系数。"
+        }
+      },
+      {
+        "cell": "G328",
+        "formula": "FORECAST.ETS(28.0,C1:C24,D1:D24,1)",
+        "excel": [
+          "n",
+          "112.69596846886428"
+        ],
+        "frozen": [
+          "n",
+          "115.77712708249427"
+        ],
+        "prior": [
+          "n",
+          "115.77712708249429"
+        ],
+        "candidate": [
+          "n",
+          "115.77712708249429"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "样本外模型差异",
+          "reason": "C1:C24 在第 28.0 个时间位置和季节参数 1 下的预测。复核了数值类型及预测步，剩余差异在状态初始化或拟合系数。"
+        }
+      },
+      {
+        "cell": "G329",
+        "formula": "FORECAST.ETS(28.0,C1:C24,D1:D24,4)",
+        "excel": [
+          "n",
+          "112.3193139980341"
+        ],
+        "frozen": [
+          "n",
+          "112.23409090909101"
+        ],
+        "prior": [
+          "n",
+          "112.23409090909101"
+        ],
+        "candidate": [
+          "n",
+          "112.23409090909101"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "样本外模型差异",
+          "reason": "C1:C24 在第 28.0 个时间位置和季节参数 4 下的预测。复核了数值类型及预测步，剩余差异在状态初始化或拟合系数。"
+        }
+      },
+      {
+        "cell": "G330",
+        "formula": "FORECAST.ETS(33.0,C1:C24,D1:D24,0)",
+        "excel": [
+          "n",
+          "122.62342608311016"
+        ],
+        "frozen": [
+          "n",
+          "122.46666666666658"
+        ],
+        "prior": [
+          "n",
+          "122.4666666666666"
+        ],
+        "candidate": [
+          "n",
+          "122.4666666666666"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "样本外模型差异",
+          "reason": "C1:C24 在第 33.0 个时间位置和季节参数 0 下的预测。复核了数值类型及预测步，剩余差异在状态初始化或拟合系数。"
+        }
+      },
+      {
+        "cell": "G331",
+        "formula": "FORECAST.ETS(33.0,C1:C24,D1:D24,1)",
+        "excel": [
+          "n",
+          "122.62342608311016"
+        ],
+        "frozen": [
+          "n",
+          "125.89383510550012"
+        ],
+        "prior": [
+          "n",
+          "125.89383510550014"
+        ],
+        "candidate": [
+          "n",
+          "125.89383510550014"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "样本外模型差异",
+          "reason": "C1:C24 在第 33.0 个时间位置和季节参数 1 下的预测。复核了数值类型及预测步，剩余差异在状态初始化或拟合系数。"
+        }
+      },
+      {
+        "cell": "G332",
+        "formula": "FORECAST.ETS(33.0,C1:C24,D1:D24,4)",
+        "excel": [
+          "n",
+          "123.6458221614735"
+        ],
+        "frozen": [
+          "n",
+          "123.61666666666677"
+        ],
+        "prior": [
+          "n",
+          "123.61666666666677"
+        ],
+        "candidate": [
+          "n",
+          "123.61666666666677"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "样本外模型差异",
+          "reason": "C1:C24 在第 33.0 个时间位置和季节参数 4 下的预测。复核了数值类型及预测步，剩余差异在状态初始化或拟合系数。"
+        }
+      },
+      {
+        "cell": "G334",
+        "formula": "FORECAST.ETS(25,A1:A24,D1:D24,8761)",
+        "excel": [
+          "n",
+          "53"
+        ],
+        "frozen": [
+          "e",
+          "#NUM!"
+        ],
+        "prior": [
+          "e",
+          "#NUM!"
+        ],
+        "candidate": [
+          "e",
+          "#NUM!"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "公开参数上限",
+          "reason": "Excel 16 对 8,761 返回数值，对 9,000 返回 #NUM!。Microsoft 公开参数上限为 8,760，保留现行上限。"
+        }
+      },
+      {
+        "cell": "G335",
+        "formula": "FORECAST.ETS(13,E1:E8,F1:F8,0,0)",
+        "excel": [
+          "n",
+          "124.85451566540739"
+        ],
+        "frozen": [
+          "n",
+          "117.2727272727273"
+        ],
+        "prior": [
+          "n",
+          "117.27272727272728"
+        ],
+        "candidate": [
+          "n",
+          "117.27272727272728"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "补零后拟合",
+          "reason": "缺失的第 3、7 位置补零后，候选版与 Excel 的拟合状态仍有差异。插值对照保持原有兼容结果。"
+        }
+      },
+      {
+        "cell": "G345",
+        "formula": "FORECAST.ETS.CONFINT(25,B1:B24,D1:D24,0.8,0)",
+        "excel": [
+          "n",
+          "9.4956652500563745"
+        ],
+        "frozen": [
+          "n",
+          "8.655188027089023"
+        ],
+        "prior": [
+          "n",
+          "8.655188027089007"
+        ],
+        "candidate": [
+          "n",
+          "8.655188027089007"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "置信区间",
+          "reason": "B1:B24 在目标 25、置信水平 0.8、季节参数 0 下的区间半宽。两端均返回数值，模型残差和远期方差估计仍有差异。"
+        }
+      },
+      {
+        "cell": "G346",
+        "formula": "FORECAST.ETS.CONFINT(25,B1:B24,D1:D24,0.95,1)",
+        "excel": [
+          "n",
+          "5.4099852603823102"
+        ],
+        "frozen": [
+          "n",
+          "0"
+        ],
+        "prior": [
+          "n",
+          "0"
+        ],
+        "candidate": [
+          "n",
+          "0"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "置信区间",
+          "reason": "B1:B24 在目标 25、置信水平 0.95、季节参数 1 下的区间半宽。两端均返回数值，模型残差和远期方差估计仍有差异。"
+        }
+      },
+      {
+        "cell": "G349",
+        "formula": "FORECAST.ETS.CONFINT(33,B1:B24,D1:D24,0.8,0)",
+        "excel": [
+          "n",
+          "10.1220584723537"
+        ],
+        "frozen": [
+          "n",
+          "9.178266855886532"
+        ],
+        "prior": [
+          "n",
+          "9.178266855886514"
+        ],
+        "candidate": [
+          "n",
+          "9.178266855886514"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "置信区间",
+          "reason": "B1:B24 在目标 33、置信水平 0.8、季节参数 0 下的区间半宽。两端均返回数值，模型残差和远期方差估计仍有差异。"
+        }
+      },
+      {
+        "cell": "G350",
+        "formula": "FORECAST.ETS.CONFINT(33,B1:B24,D1:D24,0.95,1)",
+        "excel": [
+          "n",
+          "5.7695305178560794"
+        ],
+        "frozen": [
+          "n",
+          "0"
+        ],
+        "prior": [
+          "n",
+          "0"
+        ],
+        "candidate": [
+          "n",
+          "0"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "置信区间",
+          "reason": "B1:B24 在目标 33、置信水平 0.95、季节参数 1 下的区间半宽。两端均返回数值，模型残差和远期方差估计仍有差异。"
+        }
+      },
+      {
+        "cell": "G353",
+        "formula": "FORECAST.ETS.CONFINT(25,C1:C24,D1:D24,0.8,0)",
+        "excel": [
+          "n",
+          "3.348058615164641"
+        ],
+        "frozen": [
+          "n",
+          "3.1187472131688483"
+        ],
+        "prior": [
+          "n",
+          "3.1187472131688416"
+        ],
+        "candidate": [
+          "n",
+          "3.1187472131688416"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "置信区间",
+          "reason": "C1:C24 在目标 25、置信水平 0.8、季节参数 0 下的区间半宽。两端均返回数值，模型残差和远期方差估计仍有差异。"
+        }
+      },
+      {
+        "cell": "G354",
+        "formula": "FORECAST.ETS.CONFINT(25,C1:C24,D1:D24,0.95,1)",
+        "excel": [
+          "n",
+          "5.1204137861305359"
+        ],
+        "frozen": [
+          "n",
+          "1.6730821347635458"
+        ],
+        "prior": [
+          "n",
+          "1.6730821347635503"
+        ],
+        "candidate": [
+          "n",
+          "1.6730821347635503"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "置信区间",
+          "reason": "C1:C24 在目标 25、置信水平 0.95、季节参数 1 下的区间半宽。两端均返回数值，模型残差和远期方差估计仍有差异。"
+        }
+      },
+      {
+        "cell": "G355",
+        "formula": "FORECAST.ETS.CONFINT(25,C1:C24,D1:D24,0.99,4)",
+        "excel": [
+          "n",
+          "6.6762858772822078"
+        ],
+        "frozen": [
+          "n",
+          "6.304259674428385"
+        ],
+        "prior": [
+          "n",
+          "6.3042596744283985"
+        ],
+        "candidate": [
+          "n",
+          "6.3042596744283985"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "置信区间",
+          "reason": "C1:C24 在目标 25、置信水平 0.99、季节参数 4 下的区间半宽。两端均返回数值，模型残差和远期方差估计仍有差异。"
+        }
+      },
+      {
+        "cell": "G357",
+        "formula": "FORECAST.ETS.CONFINT(33,C1:C24,D1:D24,0.8,0)",
+        "excel": [
+          "n",
+          "3.4913108314558117"
+        ],
+        "frozen": [
+          "n",
+          "3.1187472131688483"
+        ],
+        "prior": [
+          "n",
+          "3.1187472131688416"
+        ],
+        "candidate": [
+          "n",
+          "3.1187472131688416"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "置信区间",
+          "reason": "C1:C24 在目标 33、置信水平 0.8、季节参数 0 下的区间半宽。两端均返回数值，模型残差和远期方差估计仍有差异。"
+        }
+      },
+      {
+        "cell": "G358",
+        "formula": "FORECAST.ETS.CONFINT(33,C1:C24,D1:D24,0.95,1)",
+        "excel": [
+          "n",
+          "5.3394991449915521"
+        ],
+        "frozen": [
+          "n",
+          "1.7838653720769135"
+        ],
+        "prior": [
+          "n",
+          "1.7838653720769186"
+        ],
+        "candidate": [
+          "n",
+          "1.7838653720769186"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "置信区间",
+          "reason": "C1:C24 在目标 33、置信水平 0.95、季节参数 1 下的区间半宽。两端均返回数值，模型残差和远期方差估计仍有差异。"
+        }
+      },
+      {
+        "cell": "G359",
+        "formula": "FORECAST.ETS.CONFINT(33,C1:C24,D1:D24,0.99,4)",
+        "excel": [
+          "n",
+          "7.118354812206297"
+        ],
+        "frozen": [
+          "n",
+          "6.304259674428385"
+        ],
+        "prior": [
+          "n",
+          "6.3042596744283985"
+        ],
+        "candidate": [
+          "n",
+          "6.3042596744283985"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "置信区间",
+          "reason": "C1:C24 在目标 33、置信水平 0.99、季节参数 4 下的区间半宽。两端均返回数值，模型残差和远期方差估计仍有差异。"
+        }
+      },
+      {
+        "cell": "G362",
+        "formula": "FORECAST.ETS.SEASONALITY(B1:B24,D1:D24)",
+        "excel": [
+          "n",
+          "2"
+        ],
+        "frozen": [
+          "n",
+          "4"
+        ],
+        "prior": [
+          "n",
+          "4"
+        ],
+        "candidate": [
+          "n",
+          "4"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "自动季节判定",
+          "reason": "独立核对 B 序列，任意间隔 4 步的差均为 4，间隔 2 步的差随相位变动。保留候选周期 4 和 Excel 周期 2 的差异。"
+        }
+      },
+      {
+        "cell": "G363",
+        "formula": "FORECAST.ETS.SEASONALITY(C1:C24,D1:D24)",
+        "excel": [
+          "n",
+          "0"
+        ],
+        "frozen": [
+          "n",
+          "5"
+        ],
+        "prior": [
+          "n",
+          "5"
+        ],
+        "candidate": [
+          "n",
+          "5"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "自动季节判定",
+          "reason": "C 序列线性去趋势后，滞后 5 的归一自相关约 0.683，大于当前 0.408 白噪声阈值。候选选 5，Excel 选 0。"
+        }
+      },
+      {
+        "cell": "G364",
+        "formula": "FORECAST.ETS.STAT(A1:A24,D1:D24,1,0)",
+        "excel": [
+          "n",
+          "0.9"
+        ],
+        "frozen": [
+          "n",
+          "0.05"
+        ],
+        "prior": [
+          "n",
+          "0.05"
+        ],
+        "candidate": [
+          "n",
+          "0.05"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "无残差时的参数选择",
+          "reason": "A 序列是严格线性趋势，季节参数 0 下的预测一致，Alpha 因零损失下存在多组等价参数而不同。"
+        }
+      },
+      {
+        "cell": "G365",
+        "formula": "FORECAST.ETS.STAT(A1:A24,D1:D24,1,4)",
+        "excel": [
+          "n",
+          "0.751"
+        ],
+        "frozen": [
+          "n",
+          "0.05"
+        ],
+        "prior": [
+          "n",
+          "0.05"
+        ],
+        "candidate": [
+          "n",
+          "0.05"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "无残差时的参数选择",
+          "reason": "A 序列是严格线性趋势，季节参数 4 下的预测一致，Alpha 因零损失下存在多组等价参数而不同。"
+        }
+      },
+      {
+        "cell": "G366",
+        "formula": "FORECAST.ETS.STAT(A1:A24,D1:D24,2,0)",
+        "excel": [
+          "n",
+          "1E-3"
+        ],
+        "frozen": [
+          "n",
+          "0.05"
+        ],
+        "prior": [
+          "n",
+          "0.05"
+        ],
+        "candidate": [
+          "n",
+          "0.05"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "无残差时的参数选择",
+          "reason": "A 序列是严格线性趋势，季节参数 0 下的预测一致，Beta 因零损失下存在多组等价参数而不同。"
+        }
+      },
+      {
+        "cell": "G367",
+        "formula": "FORECAST.ETS.STAT(A1:A24,D1:D24,2,4)",
+        "excel": [
+          "n",
+          "1E-3"
+        ],
+        "frozen": [
+          "n",
+          "0.05"
+        ],
+        "prior": [
+          "n",
+          "0.05"
+        ],
+        "candidate": [
+          "n",
+          "0.05"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "无残差时的参数选择",
+          "reason": "A 序列是严格线性趋势，季节参数 4 下的预测一致，Beta 因零损失下存在多组等价参数而不同。"
+        }
+      },
+      {
+        "cell": "G369",
+        "formula": "FORECAST.ETS.STAT(A1:A24,D1:D24,3,4)",
+        "excel": [
+          "n",
+          "1E-3"
+        ],
+        "frozen": [
+          "n",
+          "0.05"
+        ],
+        "prior": [
+          "n",
+          "0.05"
+        ],
+        "candidate": [
+          "n",
+          "0.05"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "无残差时的参数选择",
+          "reason": "A 序列是严格线性趋势，季节参数 4 下的预测一致，Gamma 因零损失下存在多组等价参数而不同。"
+        }
+      },
+      {
+        "cell": "G382",
+        "formula": "FORECAST.ETS.STAT(B1:B24,D1:D24,1,0)",
+        "excel": [
+          "n",
+          "0.126"
+        ],
+        "frozen": [
+          "n",
+          "0.020939467731432175"
+        ],
+        "prior": [
+          "n",
+          "0.020939467731432175"
+        ],
+        "candidate": [
+          "n",
+          "0.020939467731432175"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "拟合系数",
+          "reason": "B1:B24、季节参数 0 的 Alpha 系数不同。保持当前有界拟合，继续记录 Excel 未公开的初始状态及优化选择差异。"
+        }
+      },
+      {
+        "cell": "G383",
+        "formula": "FORECAST.ETS.STAT(B1:B24,D1:D24,1,4)",
+        "excel": [
+          "n",
+          "0.751"
+        ],
+        "frozen": [
+          "n",
+          "0.05"
+        ],
+        "prior": [
+          "n",
+          "0.05"
+        ],
+        "candidate": [
+          "n",
+          "0.05"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "拟合系数",
+          "reason": "B1:B24、季节参数 4 的 Alpha 系数不同。保持当前有界拟合，继续记录 Excel 未公开的初始状态及优化选择差异。"
+        }
+      },
+      {
+        "cell": "G384",
+        "formula": "FORECAST.ETS.STAT(B1:B24,D1:D24,2,0)",
+        "excel": [
+          "n",
+          "1E-3"
+        ],
+        "frozen": [
+          "n",
+          "1"
+        ],
+        "prior": [
+          "n",
+          "1"
+        ],
+        "candidate": [
+          "n",
+          "1"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "拟合系数",
+          "reason": "B1:B24、季节参数 0 的 Beta 系数不同。保持当前有界拟合，继续记录 Excel 未公开的初始状态及优化选择差异。"
+        }
+      },
+      {
+        "cell": "G385",
+        "formula": "FORECAST.ETS.STAT(B1:B24,D1:D24,2,4)",
+        "excel": [
+          "n",
+          "1E-3"
+        ],
+        "frozen": [
+          "n",
+          "0.05"
+        ],
+        "prior": [
+          "n",
+          "0.05"
+        ],
+        "candidate": [
+          "n",
+          "0.05"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "拟合系数",
+          "reason": "B1:B24、季节参数 4 的 Beta 系数不同。保持当前有界拟合，继续记录 Excel 未公开的初始状态及优化选择差异。"
+        }
+      },
+      {
+        "cell": "G387",
+        "formula": "FORECAST.ETS.STAT(B1:B24,D1:D24,3,4)",
+        "excel": [
+          "n",
+          "1E-3"
+        ],
+        "frozen": [
+          "n",
+          "0.05"
+        ],
+        "prior": [
+          "n",
+          "0.05"
+        ],
+        "candidate": [
+          "n",
+          "0.05"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "拟合系数",
+          "reason": "B1:B24、季节参数 4 的 Gamma 系数不同。保持当前有界拟合，继续记录 Excel 未公开的初始状态及优化选择差异。"
+        }
+      },
+      {
+        "cell": "G388",
+        "formula": "FORECAST.ETS.STAT(B1:B24,D1:D24,4,0)",
+        "excel": [
+          "n",
+          "0.57977523425493249"
+        ],
+        "frozen": [
+          "n",
+          "0.5126380215989785"
+        ],
+        "prior": [
+          "n",
+          "0.5126380215989785"
+        ],
+        "candidate": [
+          "n",
+          "0.5126380215989785"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "残差统计",
+          "reason": "B1:B24、季节参数 0 的 MASE。两端均返回数值，统计量随一步预测残差的差别变化。"
+        }
+      },
+      {
+        "cell": "G390",
+        "formula": "FORECAST.ETS.STAT(B1:B24,D1:D24,5,0)",
+        "excel": [
+          "n",
+          "0.13813301972529268"
+        ],
+        "frozen": [
+          "n",
+          "0.14632426136370688"
+        ],
+        "prior": [
+          "n",
+          "0.14632426136370688"
+        ],
+        "candidate": [
+          "n",
+          "0.14632426136370688"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "残差统计",
+          "reason": "B1:B24、季节参数 0 的 SMAPE。两端均返回数值，统计量随一步预测残差的差别变化。"
+        }
+      },
+      {
+        "cell": "G392",
+        "formula": "FORECAST.ETS.STAT(B1:B24,D1:D24,6,0)",
+        "excel": [
+          "n",
+          "6.7088277106642185"
+        ],
+        "frozen": [
+          "n",
+          "6.017924601379314"
+        ],
+        "prior": [
+          "n",
+          "6.017924601379314"
+        ],
+        "candidate": [
+          "n",
+          "6.017924601379314"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "残差统计",
+          "reason": "B1:B24、季节参数 0 的 MAE。两端均返回数值，统计量随一步预测残差的差别变化。"
+        }
+      },
+      {
+        "cell": "G394",
+        "formula": "FORECAST.ETS.STAT(B1:B24,D1:D24,7,0)",
+        "excel": [
+          "n",
+          "7.2346016078196413"
+        ],
+        "frozen": [
+          "n",
+          "6.7536791025735825"
+        ],
+        "prior": [
+          "n",
+          "6.7536791025735825"
+        ],
+        "candidate": [
+          "n",
+          "6.7536791025735825"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "残差统计",
+          "reason": "B1:B24、季节参数 0 的 RMSE。两端均返回数值，统计量随一步预测残差的差别变化。"
+        }
+      },
+      {
+        "cell": "G400",
+        "formula": "FORECAST.ETS.STAT(C1:C24,D1:D24,1,0)",
+        "excel": [
+          "n",
+          "0.1"
+        ],
+        "frozen": [
+          "n",
+          "0"
+        ],
+        "prior": [
+          "n",
+          "0"
+        ],
+        "candidate": [
+          "n",
+          "0"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "拟合系数",
+          "reason": "C1:C24、季节参数 0 的 Alpha 系数不同。保持当前有界拟合，继续记录 Excel 未公开的初始状态及优化选择差异。"
+        }
+      },
+      {
+        "cell": "G401",
+        "formula": "FORECAST.ETS.STAT(C1:C24,D1:D24,1,4)",
+        "excel": [
+          "n",
+          "0.126"
+        ],
+        "frozen": [
+          "n",
+          "0"
+        ],
+        "prior": [
+          "n",
+          "0"
+        ],
+        "candidate": [
+          "n",
+          "0"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "拟合系数",
+          "reason": "C1:C24、季节参数 4 的 Alpha 系数不同。保持当前有界拟合，继续记录 Excel 未公开的初始状态及优化选择差异。"
+        }
+      },
+      {
+        "cell": "G402",
+        "formula": "FORECAST.ETS.STAT(C1:C24,D1:D24,2,0)",
+        "excel": [
+          "n",
+          "1E-3"
+        ],
+        "frozen": [
+          "n",
+          "0.15000000000000002"
+        ],
+        "prior": [
+          "n",
+          "0.15000000000000002"
+        ],
+        "candidate": [
+          "n",
+          "0.15000000000000002"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "拟合系数",
+          "reason": "C1:C24、季节参数 0 的 Beta 系数不同。保持当前有界拟合，继续记录 Excel 未公开的初始状态及优化选择差异。"
+        }
+      },
+      {
+        "cell": "G403",
+        "formula": "FORECAST.ETS.STAT(C1:C24,D1:D24,2,4)",
+        "excel": [
+          "n",
+          "1E-3"
+        ],
+        "frozen": [
+          "n",
+          "0.2166666666666667"
+        ],
+        "prior": [
+          "n",
+          "0.2166666666666667"
+        ],
+        "candidate": [
+          "n",
+          "0.2166666666666667"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "拟合系数",
+          "reason": "C1:C24、季节参数 4 的 Beta 系数不同。保持当前有界拟合，继续记录 Excel 未公开的初始状态及优化选择差异。"
+        }
+      },
+      {
+        "cell": "G405",
+        "formula": "FORECAST.ETS.STAT(C1:C24,D1:D24,3,4)",
+        "excel": [
+          "n",
+          "1E-3"
+        ],
+        "frozen": [
+          "n",
+          "0"
+        ],
+        "prior": [
+          "n",
+          "0"
+        ],
+        "candidate": [
+          "n",
+          "0"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "拟合系数",
+          "reason": "C1:C24、季节参数 4 的 Gamma 系数不同。保持当前有界拟合，继续记录 Excel 未公开的初始状态及优化选择差异。"
+        }
+      },
+      {
+        "cell": "G406",
+        "formula": "FORECAST.ETS.STAT(C1:C24,D1:D24,4,0)",
+        "excel": [
+          "n",
+          "0.52541403131305364"
+        ],
+        "frozen": [
+          "n",
+          "0.505430680430682"
+        ],
+        "prior": [
+          "n",
+          "0.5054306804306815"
+        ],
+        "candidate": [
+          "n",
+          "0.5054306804306815"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "残差统计",
+          "reason": "C1:C24、季节参数 0 的 MASE。两端均返回数值，统计量随一步预测残差的差别变化。"
+        }
+      },
+      {
+        "cell": "G407",
+        "formula": "FORECAST.ETS.STAT(C1:C24,D1:D24,4,4)",
+        "excel": [
+          "n",
+          "0.59484479862564599"
+        ],
+        "frozen": [
+          "n",
+          "0.5024468586968588"
+        ],
+        "prior": [
+          "n",
+          "0.5024468586968588"
+        ],
+        "candidate": [
+          "n",
+          "0.5024468586968588"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "残差统计",
+          "reason": "C1:C24、季节参数 4 的 MASE。两端均返回数值，统计量随一步预测残差的差别变化。"
+        }
+      },
+      {
+        "cell": "G408",
+        "formula": "FORECAST.ETS.STAT(C1:C24,D1:D24,5,0)",
+        "excel": [
+          "n",
+          "2.1548650012134636E-2"
+        ],
+        "frozen": [
+          "n",
+          "0.025013947036533504"
+        ],
+        "prior": [
+          "n",
+          "0.025013947036533476"
+        ],
+        "candidate": [
+          "n",
+          "0.025013947036533476"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "残差统计",
+          "reason": "C1:C24、季节参数 0 的 SMAPE。两端均返回数值，统计量随一步预测残差的差别变化。"
+        }
+      },
+      {
+        "cell": "G409",
+        "formula": "FORECAST.ETS.STAT(C1:C24,D1:D24,5,4)",
+        "excel": [
+          "n",
+          "2.4668127241613508E-2"
+        ],
+        "frozen": [
+          "n",
+          "0.024598215864455843"
+        ],
+        "prior": [
+          "n",
+          "0.024598215864455843"
+        ],
+        "candidate": [
+          "n",
+          "0.024598215864455843"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "残差统计",
+          "reason": "C1:C24、季节参数 4 的 SMAPE。两端均返回数值，统计量随一步预测残差的差别变化。"
+        }
+      },
+      {
+        "cell": "G410",
+        "formula": "FORECAST.ETS.STAT(C1:C24,D1:D24,6,0)",
+        "excel": [
+          "n",
+          "2.1016561252522146"
+        ],
+        "frozen": [
+          "n",
+          "1.9997474747474808"
+        ],
+        "prior": [
+          "n",
+          "1.9997474747474788"
+        ],
+        "candidate": [
+          "n",
+          "1.9997474747474788"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "残差统计",
+          "reason": "C1:C24、季节参数 0 的 MAE。两端均返回数值，统计量随一步预测残差的差别变化。"
+        }
+      },
+      {
+        "cell": "G411",
+        "formula": "FORECAST.ETS.STAT(C1:C24,D1:D24,6,4)",
+        "excel": [
+          "n",
+          "2.3793791945025839"
+        ],
+        "frozen": [
+          "n",
+          "1.9879419191919194"
+        ],
+        "prior": [
+          "n",
+          "1.9879419191919194"
+        ],
+        "candidate": [
+          "n",
+          "1.9879419191919194"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "残差统计",
+          "reason": "C1:C24、季节参数 4 的 MAE。两端均返回数值，统计量随一步预测残差的差别变化。"
+        }
+      },
+      {
+        "cell": "G412",
+        "formula": "FORECAST.ETS.STAT(C1:C24,D1:D24,7,0)",
+        "excel": [
+          "n",
+          "2.5192638138502979"
+        ],
+        "frozen": [
+          "n",
+          "2.433571380987331"
+        ],
+        "prior": [
+          "n",
+          "2.4335713809873307"
+        ],
+        "candidate": [
+          "n",
+          "2.4335713809873307"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "残差统计",
+          "reason": "C1:C24、季节参数 0 的 RMSE。两端均返回数值，统计量随一步预测残差的差别变化。"
+        }
+      },
+      {
+        "cell": "G413",
+        "formula": "FORECAST.ETS.STAT(C1:C24,D1:D24,7,4)",
+        "excel": [
+          "n",
+          "2.6406867049965319"
+        ],
+        "frozen": [
+          "n",
+          "2.4474679536188897"
+        ],
+        "prior": [
+          "n",
+          "2.4474679536188897"
+        ],
+        "candidate": [
+          "n",
+          "2.4474679536188897"
+        ],
+        "status": "retained",
+        "assessment": {
+          "category": "残差统计",
+          "reason": "C1:C24、季节参数 4 的 RMSE。两端均返回数值，统计量随一步预测残差的差别变化。"
+        }
+      }
+    ]
+  }
+}

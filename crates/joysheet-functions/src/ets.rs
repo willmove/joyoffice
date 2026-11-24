@@ -238,11 +238,19 @@ pub(crate) struct Series {
 }
 
 impl Series {
+    fn position(&self, target: f64) -> R<f64> {
+        let point = self.axis.position(target).ok_or(CellError::Num)?;
+        if !point.is_finite() {
+            return Err(CellError::Num);
+        }
+        Ok(point)
+    }
+
     /// Position of a time stamp relative to the last point (0 = last point, 1 = next step).
     pub fn horizon(&self, t: f64) -> R<f64> {
-        let p = self.axis.position(t).ok_or(CellError::Num)?;
+        let p = self.position(t)?;
         let h = p - (self.y.len() as f64 - 1.0);
-        if !h.is_finite() || h < -1e-9 {
+        if h < -1e-9 {
             return Err(CellError::Num);
         }
         Ok(h.max(0.0))
@@ -725,8 +733,24 @@ fn forecast_ets(a: &[Arg], c: C) -> R<Value> {
     let target = num(a, 0)?;
     let opts = options(a, Some(3), 4, 5)?;
     let p = prepare(a, c, 1, 2, opts)?;
-    let h = p.series.horizon(target)?;
-    num_val(fit(&p.series.y, p.m).forecast(h))
+    let position = p.series.position(target)?;
+    if position < -1e-9 {
+        return Err(CellError::Num);
+    }
+    let y = &p.series.y;
+    let end = y.len().saturating_sub(1) as f64;
+    let model = fit(y, p.m);
+    if position > end {
+        return num_val(model.forecast(position - end));
+    }
+    // Desktop Excel exposes the historical one-step fitted values when the
+    // target is within the series, including interpolation between samples.
+    let position = position.max(0.0);
+    let lo = position.floor() as usize;
+    let hi = position.ceil() as usize;
+    let fitted = |index| -> R<f64> { Ok(y.get(index).ok_or(CellError::Num)? - model.errors.get(index).ok_or(CellError::Num)?) };
+    let base = fitted(lo)?;
+    num_val(base + position.fract() * (fitted(hi)? - base))
 }
 
 fn forecast_ets_confint(a: &[Arg], c: C) -> R<Value> {

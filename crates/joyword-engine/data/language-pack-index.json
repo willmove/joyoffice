@@ -33,14 +33,15 @@
       "locale": "be",
       "name": "Беларуская",
       "version": "20467b63558f04fe075e83aaea501bd10f7fa684",
-      "url": "https://github.com/storytold/craft-i18n/releases/download/language-packs-2/be.tar.zst",
+      "url": "https://github.com/willmove/joyoffice/releases/download/joyword-language-packs-2/be.tar.zst",
       "sha256": "4c119fd1885844d3ad9c1956364a8e95bad9cfc0cedb27b645c0465e8dc993b8",
       "size": 1344193,
       "licence": "(LGPL-3.0-only OR CC-BY-SA-4.0) AND MIT",
       "class": "Download-only",
       "spelling": true,
       "hyphenation": true,
-      "source": "https://github.com/LibreOffice/dictionaries/tree/4f1df64b2e8e14751aa7c2205d170ca016071315/be_BY"
+      "source": "https://github.com/LibreOffice/dictionaries/tree/4f1df64b2e8e14751aa7c2205d170ca016071315/be_BY",
+      "fallback_url": "https://github.com/storytold/craft-i18n/releases/download/language-packs-2/be.tar.zst"
     },
     {
       "locale": "bg",
@@ -73,53 +74,57 @@
       "locale": "ca",
       "name": "Català",
       "version": "20467b63558f04fe075e83aaea501bd10f7fa684",
-      "url": "https://github.com/storytold/craft-i18n/releases/download/language-packs-2/ca.tar.zst",
+      "url": "https://github.com/willmove/joyoffice/releases/download/joyword-language-packs-2/ca.tar.zst",
       "sha256": "5cf36479501e03cc29c99c02ba8bdbf065f541fa14d687733a9ef2e8a6972ff4",
       "size": 658839,
       "licence": "(LGPL-2.1-or-later OR GPL-2.0-or-later) AND LPPL-1.3c",
       "class": "Download-only",
       "spelling": true,
       "hyphenation": true,
-      "source": "https://github.com/LibreOffice/dictionaries/tree/4f1df64b2e8e14751aa7c2205d170ca016071315/ca/dictionaries"
+      "source": "https://github.com/LibreOffice/dictionaries/tree/4f1df64b2e8e14751aa7c2205d170ca016071315/ca/dictionaries",
+      "fallback_url": "https://github.com/storytold/craft-i18n/releases/download/language-packs-2/ca.tar.zst"
     },
     {
       "locale": "ca-valencia",
       "name": "Català (valencià)",
       "version": "20467b63558f04fe075e83aaea501bd10f7fa684",
-      "url": "https://github.com/storytold/craft-i18n/releases/download/language-packs-2/ca-valencia.tar.zst",
+      "url": "https://github.com/willmove/joyoffice/releases/download/joyword-language-packs-2/ca-valencia.tar.zst",
       "sha256": "c40f65e7c6b371bd1fb1662619480183a71d81aacccf598d82cc342bf4092333",
       "size": 659812,
       "licence": "(LGPL-2.1-or-later OR GPL-2.0-or-later) AND LPPL-1.3c",
       "class": "Download-only",
       "spelling": true,
       "hyphenation": true,
-      "source": "https://github.com/LibreOffice/dictionaries/tree/4f1df64b2e8e14751aa7c2205d170ca016071315/ca/dictionaries"
+      "source": "https://github.com/LibreOffice/dictionaries/tree/4f1df64b2e8e14751aa7c2205d170ca016071315/ca/dictionaries",
+      "fallback_url": "https://github.com/storytold/craft-i18n/releases/download/language-packs-2/ca-valencia.tar.zst"
     },
     {
       "locale": "cs",
       "name": "Čeština",
       "version": "20467b63558f04fe075e83aaea501bd10f7fa684",
-      "url": "https://github.com/storytold/craft-i18n/releases/download/language-packs-2/cs.tar.zst",
+      "url": "https://github.com/willmove/joyoffice/releases/download/joyword-language-packs-2/cs.tar.zst",
       "sha256": "6d3789e9908cdd114fa1eb4dad95a82149d3e49309acb537de48f67c87c027cf",
       "size": 841476,
       "licence": "GPL-2.0-only AND GPL-2.0-or-later",
       "class": "Download-only",
       "spelling": true,
       "hyphenation": true,
-      "source": "https://github.com/LibreOffice/dictionaries/tree/4f1df64b2e8e14751aa7c2205d170ca016071315/cs_CZ"
+      "source": "https://github.com/LibreOffice/dictionaries/tree/4f1df64b2e8e14751aa7c2205d170ca016071315/cs_CZ",
+      "fallback_url": "https://github.com/storytold/craft-i18n/releases/download/language-packs-2/cs.tar.zst"
     },
     {
       "locale": "cy",
       "name": "Cymraeg",
       "version": "20467b63558f04fe075e83aaea501bd10f7fa684",
-      "url": "https://github.com/storytold/craft-i18n/releases/download/language-packs-2/cy.tar.zst",
+      "url": "https://github.com/willmove/joyoffice/releases/download/joyword-language-packs-2/cy.tar.zst",
       "sha256": "559a4df06039696382553800d452da51bbad65b2df1590fd6df09fbc55632d42",
       "size": 252016,
       "licence": "LGPL-3.0-or-later AND MIT",
       "class": "Download-only",
       "spelling": true,
       "hyphenation": true,
-      "source": "https://github.com/techiaith/hunspell-cy/tree/c2fc0d27706637877b6ef9e8b7ff169383f09b1e"
+      "source": "https://github.com/techiaith/hunspell-cy/tree/c2fc0d27706637877b6ef9e8b7ff169383f09b1e",
+      "fallback_url": "https://github.com/storytold/craft-i18n/releases/download/language-packs-2/cy.tar.zst"
     },
     {
       "locale": "da",
@@ -192,14 +197,15 @@
       "locale": "eo",
       "name": "Esperanto",
       "version": "20467b63558f04fe075e83aaea501bd10f7fa684",
-      "url": "https://github.com/storytold/craft-i18n/releases/download/language-packs-2/eo.tar.zst",
+      "url": "https://github.com/willmove/joyoffice/releases/download/joyword-language-packs-2/eo.tar.zst",
       "sha256": "97982818c8be6a394f8cb6d507626dedeab98762b6e4c5a28c87ed8f270fd301",
       "size": 164014,
       "licence": "GPL-2.0-or-later AND LPPL-1.3c",
       "class": "Download-only",
       "spelling": true,
       "hyphenation": true,
-      "source": "https://github.com/LibreOffice/dictionaries/tree/4f1df64b2e8e14751aa7c2205d170ca016071315/eo"
+      "source": "https://github.com/LibreOffice/dictionaries/tree/4f1df64b2e8e14751aa7c2205d170ca016071315/eo",
+      "fallback_url": "https://github.com/storytold/craft-i18n/releases/download/language-packs-2/eo.tar.zst"
     },
     {
       "locale": "es",
@@ -594,14 +600,15 @@
       "locale": "he",
       "name": "עברית",
       "version": "20467b63558f04fe075e83aaea501bd10f7fa684",
-      "url": "https://github.com/storytold/craft-i18n/releases/download/language-packs-2/he.tar.zst",
+      "url": "https://github.com/willmove/joyoffice/releases/download/joyword-language-packs-2/he.tar.zst",
       "sha256": "266565763ee5bbf1895cd26a199528c4fb1409e1b9b929b888b1e35cf159dc63",
       "size": 840439,
       "licence": "AGPL-3.0-or-later",
       "class": "Download-only",
       "spelling": true,
       "hyphenation": false,
-      "source": "https://github.com/LibreOffice/dictionaries/tree/4f1df64b2e8e14751aa7c2205d170ca016071315/he_IL"
+      "source": "https://github.com/LibreOffice/dictionaries/tree/4f1df64b2e8e14751aa7c2205d170ca016071315/he_IL",
+      "fallback_url": "https://github.com/storytold/craft-i18n/releases/download/language-packs-2/he.tar.zst"
     },
     {
       "locale": "hi",
@@ -620,14 +627,15 @@
       "locale": "hr",
       "name": "Hrvatski",
       "version": "20467b63558f04fe075e83aaea501bd10f7fa684",
-      "url": "https://github.com/storytold/craft-i18n/releases/download/language-packs-2/hr.tar.zst",
+      "url": "https://github.com/willmove/joyoffice/releases/download/joyword-language-packs-2/hr.tar.zst",
       "sha256": "f304e92b1b87348ec1919e412646be78fcf0b57174804276be57cde7066a1013",
       "size": 222172,
       "licence": "(GPL-2.0-only OR LGPL-2.1-only OR MPL-1.1) AND LPPL-1.3c",
       "class": "Download-only",
       "spelling": true,
       "hyphenation": true,
-      "source": "https://github.com/LibreOffice/dictionaries/tree/4f1df64b2e8e14751aa7c2205d170ca016071315/hr_HR"
+      "source": "https://github.com/LibreOffice/dictionaries/tree/4f1df64b2e8e14751aa7c2205d170ca016071315/hr_HR",
+      "fallback_url": "https://github.com/storytold/craft-i18n/releases/download/language-packs-2/hr.tar.zst"
     },
     {
       "locale": "hu",
@@ -647,53 +655,57 @@
       "locale": "hy",
       "name": "Հայերեն",
       "version": "20467b63558f04fe075e83aaea501bd10f7fa684",
-      "url": "https://github.com/storytold/craft-i18n/releases/download/language-packs-2/hy.tar.zst",
+      "url": "https://github.com/willmove/joyoffice/releases/download/joyword-language-packs-2/hy.tar.zst",
       "sha256": "d942e8b9b2b76f5c15beb5251712e6cafc0fe57c7864caac4d295f5504f55981",
       "size": 270334,
       "licence": "MPL-1.1 AND LGPL-3.0-only",
       "class": "Download-only",
       "spelling": true,
       "hyphenation": true,
-      "source": "https://github.com/wooorm/dictionaries/tree/8cfea406b505e4d7df52d5a19bce525df98c54ab/dictionaries/hy"
+      "source": "https://github.com/wooorm/dictionaries/tree/8cfea406b505e4d7df52d5a19bce525df98c54ab/dictionaries/hy",
+      "fallback_url": "https://github.com/storytold/craft-i18n/releases/download/language-packs-2/hy.tar.zst"
     },
     {
       "locale": "id",
       "name": "Bahasa Indonesia",
       "version": "20467b63558f04fe075e83aaea501bd10f7fa684",
-      "url": "https://github.com/storytold/craft-i18n/releases/download/language-packs-2/id.tar.zst",
+      "url": "https://github.com/willmove/joyoffice/releases/download/joyword-language-packs-2/id.tar.zst",
       "sha256": "8c929ddee98dc3594c161ab874b3763e9bdda140e20444e58d114c843053ca30",
       "size": 170730,
       "licence": "LGPL-3.0-only AND GPL-2.0-only",
       "class": "Download-only",
       "spelling": true,
       "hyphenation": true,
-      "source": "https://github.com/LibreOffice/dictionaries/tree/4f1df64b2e8e14751aa7c2205d170ca016071315/id"
+      "source": "https://github.com/LibreOffice/dictionaries/tree/4f1df64b2e8e14751aa7c2205d170ca016071315/id",
+      "fallback_url": "https://github.com/storytold/craft-i18n/releases/download/language-packs-2/id.tar.zst"
     },
     {
       "locale": "is",
       "name": "Íslenska",
       "version": "20467b63558f04fe075e83aaea501bd10f7fa684",
-      "url": "https://github.com/storytold/craft-i18n/releases/download/language-packs-2/is.tar.zst",
+      "url": "https://github.com/willmove/joyoffice/releases/download/joyword-language-packs-2/is.tar.zst",
       "sha256": "5844f324c733c1a2a45e69b2da187746a24349ee01a247cfd6e3706c0eb8dfbe",
       "size": 621203,
       "licence": "CC-BY-SA-3.0 AND LPPL-1.3c",
       "class": "Download-only",
       "spelling": true,
       "hyphenation": true,
-      "source": "https://github.com/LibreOffice/dictionaries/tree/4f1df64b2e8e14751aa7c2205d170ca016071315/is"
+      "source": "https://github.com/LibreOffice/dictionaries/tree/4f1df64b2e8e14751aa7c2205d170ca016071315/is",
+      "fallback_url": "https://github.com/storytold/craft-i18n/releases/download/language-packs-2/is.tar.zst"
     },
     {
       "locale": "it",
       "name": "Italiano",
       "version": "20467b63558f04fe075e83aaea501bd10f7fa684",
-      "url": "https://github.com/storytold/craft-i18n/releases/download/language-packs-2/it.tar.zst",
+      "url": "https://github.com/willmove/joyoffice/releases/download/joyword-language-packs-2/it.tar.zst",
       "sha256": "e8117470e64f7dfcf6158d32f80235733ac1191bb3f73863633b3be41fd1a0d8",
       "size": 325186,
       "licence": "GPL-3.0-only AND MIT",
       "class": "Download-only",
       "spelling": true,
       "hyphenation": true,
-      "source": "https://github.com/LibreOffice/dictionaries/tree/4f1df64b2e8e14751aa7c2205d170ca016071315/it_IT"
+      "source": "https://github.com/LibreOffice/dictionaries/tree/4f1df64b2e8e14751aa7c2205d170ca016071315/it_IT",
+      "fallback_url": "https://github.com/storytold/craft-i18n/releases/download/language-packs-2/it.tar.zst"
     },
     {
       "locale": "ka",
@@ -740,27 +752,29 @@
       "locale": "lv",
       "name": "Latviešu",
       "version": "20467b63558f04fe075e83aaea501bd10f7fa684",
-      "url": "https://github.com/storytold/craft-i18n/releases/download/language-packs-2/lv.tar.zst",
+      "url": "https://github.com/willmove/joyoffice/releases/download/joyword-language-packs-2/lv.tar.zst",
       "sha256": "d10593aab77ddd91cc8480e208f32e555cdbfade8e7abc99280ce8484ac1a775",
       "size": 334765,
       "licence": "LGPL-2.1-or-later AND LGPL-2.1-only",
       "class": "Download-only",
       "spelling": true,
       "hyphenation": true,
-      "source": "https://github.com/LibreOffice/dictionaries/tree/4f1df64b2e8e14751aa7c2205d170ca016071315/lv_LV"
+      "source": "https://github.com/LibreOffice/dictionaries/tree/4f1df64b2e8e14751aa7c2205d170ca016071315/lv_LV",
+      "fallback_url": "https://github.com/storytold/craft-i18n/releases/download/language-packs-2/lv.tar.zst"
     },
     {
       "locale": "mk",
       "name": "Македонски",
       "version": "20467b63558f04fe075e83aaea501bd10f7fa684",
-      "url": "https://github.com/storytold/craft-i18n/releases/download/language-packs-2/mk.tar.zst",
+      "url": "https://github.com/willmove/joyoffice/releases/download/joyword-language-packs-2/mk.tar.zst",
       "sha256": "0123e9280a978f2dd516dde40a52521fb56836125e2969d7f1356c2ae2292c10",
       "size": 513288,
       "licence": "GPL-3.0-or-later AND GPL-1.0-or-later",
       "class": "Download-only",
       "spelling": true,
       "hyphenation": true,
-      "source": "https://github.com/wooorm/dictionaries/tree/8cfea406b505e4d7df52d5a19bce525df98c54ab/dictionaries/mk"
+      "source": "https://github.com/wooorm/dictionaries/tree/8cfea406b505e4d7df52d5a19bce525df98c54ab/dictionaries/mk",
+      "fallback_url": "https://github.com/storytold/craft-i18n/releases/download/language-packs-2/mk.tar.zst"
     },
     {
       "locale": "nb",
@@ -889,27 +903,29 @@
       "locale": "sl",
       "name": "Slovenščina",
       "version": "20467b63558f04fe075e83aaea501bd10f7fa684",
-      "url": "https://github.com/storytold/craft-i18n/releases/download/language-packs-2/sl.tar.zst",
+      "url": "https://github.com/willmove/joyoffice/releases/download/joyword-language-packs-2/sl.tar.zst",
       "sha256": "ca77e7be5eb80041d51d9c2898ba42605d310622e52af41748e5d6557d44dcf1",
       "size": 982831,
       "licence": "LGPL-2.0-or-later AND MIT",
       "class": "Download-only",
       "spelling": true,
       "hyphenation": true,
-      "source": "https://github.com/LibreOffice/dictionaries/tree/4f1df64b2e8e14751aa7c2205d170ca016071315/sl_SI"
+      "source": "https://github.com/LibreOffice/dictionaries/tree/4f1df64b2e8e14751aa7c2205d170ca016071315/sl_SI",
+      "fallback_url": "https://github.com/storytold/craft-i18n/releases/download/language-packs-2/sl.tar.zst"
     },
     {
       "locale": "sq",
       "name": "Shqip",
       "version": "20467b63558f04fe075e83aaea501bd10f7fa684",
-      "url": "https://github.com/storytold/craft-i18n/releases/download/language-packs-2/sq.tar.zst",
+      "url": "https://github.com/willmove/joyoffice/releases/download/joyword-language-packs-2/sq.tar.zst",
       "sha256": "e556ae365f35918679211ad7696ee1e6c5910dc3982a4c14d1be964963515736",
       "size": 592038,
       "licence": "GPL-2.0-or-later AND MIT",
       "class": "Download-only",
       "spelling": true,
       "hyphenation": true,
-      "source": "https://github.com/LibreOffice/dictionaries/tree/4f1df64b2e8e14751aa7c2205d170ca016071315/sq_AL"
+      "source": "https://github.com/LibreOffice/dictionaries/tree/4f1df64b2e8e14751aa7c2205d170ca016071315/sq_AL",
+      "fallback_url": "https://github.com/storytold/craft-i18n/releases/download/language-packs-2/sq.tar.zst"
     },
     {
       "locale": "sr",
@@ -943,27 +959,29 @@
       "locale": "sv",
       "name": "Svenska",
       "version": "20467b63558f04fe075e83aaea501bd10f7fa684",
-      "url": "https://github.com/storytold/craft-i18n/releases/download/language-packs-2/sv.tar.zst",
+      "url": "https://github.com/willmove/joyoffice/releases/download/joyword-language-packs-2/sv.tar.zst",
       "sha256": "f7549c8c846f0464018b7056208f83a2b6fcafdf1d7c378ff8678e42756d0ccd",
       "size": 1084403,
       "licence": "LGPL-3.0-only AND LPPL-1.3c",
       "class": "Download-only",
       "spelling": true,
       "hyphenation": true,
-      "source": "https://github.com/LibreOffice/dictionaries/tree/4f1df64b2e8e14751aa7c2205d170ca016071315/sv_SE/dictionaries"
+      "source": "https://github.com/LibreOffice/dictionaries/tree/4f1df64b2e8e14751aa7c2205d170ca016071315/sv_SE/dictionaries",
+      "fallback_url": "https://github.com/storytold/craft-i18n/releases/download/language-packs-2/sv.tar.zst"
     },
     {
       "locale": "sv-fi",
       "name": "Svenska (Finland)",
       "version": "20467b63558f04fe075e83aaea501bd10f7fa684",
-      "url": "https://github.com/storytold/craft-i18n/releases/download/language-packs-2/sv-fi.tar.zst",
+      "url": "https://github.com/willmove/joyoffice/releases/download/joyword-language-packs-2/sv-fi.tar.zst",
       "sha256": "614bad17bca1fbb8d5ca20149b8386a095bda92276b9de0d15804762fca80316",
       "size": 652424,
       "licence": "LGPL-3.0-only AND LPPL-1.3c",
       "class": "Download-only",
       "spelling": true,
       "hyphenation": true,
-      "source": "https://github.com/LibreOffice/dictionaries/tree/4f1df64b2e8e14751aa7c2205d170ca016071315/sv_SE/dictionaries"
+      "source": "https://github.com/LibreOffice/dictionaries/tree/4f1df64b2e8e14751aa7c2205d170ca016071315/sv_SE/dictionaries",
+      "fallback_url": "https://github.com/storytold/craft-i18n/releases/download/language-packs-2/sv-fi.tar.zst"
     },
     {
       "locale": "sw",
