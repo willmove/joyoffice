@@ -25,8 +25,7 @@ mod ranking;
 pub(crate) use ranking::weighted_distance;
 
 use std::borrow::Cow;
-use std::cmp::Reverse;
-use std::collections::{BinaryHeap, HashMap, HashSet};
+use std::collections::{HashMap, HashSet};
 
 use crate::affix::{AffixDict, Casing, casing};
 
@@ -435,49 +434,30 @@ fn scan(col: &mut Collector, chars: &[char], map: &[Vec<char>]) {
     firsts.sort_unstable();
     firsts.dedup();
     let n = folded.len();
-    let mut best = BinaryHeap::<Reverse<(u32, usize, &str)>>::with_capacity(SCAN_STEMS);
-    for f in firsts {
-        let prefix = f.to_string();
-        for stem in d.stems_with_prefix(&prefix) {
-            let mut previous = ' ';
-            let mut length = 0usize;
-            let mut shared = 0usize;
-            for next in stem.chars().map(|c| fold(c, map)) {
-                shared += usize::from(pairs.contains(&(previous, next)));
-                length += 1;
-                previous = next;
-            }
-            if shared < 2 {
-                continue;
-            }
-            // Shared pairs, less the stem's letters the word doesn't explain, less a length gap
-            // beyond what an ending explains.
-            let extra = length.saturating_sub(shared);
-            let gap = length.abs_diff(n).saturating_sub(4);
-            let score = (shared * 4).saturating_sub(extra * 3 + gap * 2) as u32;
-            if score == 0 {
-                continue;
-            }
-            if best.len() < SCAN_STEMS {
-                best.push(Reverse((score, best.len(), stem)));
-            } else if let Some(mut weakest) = best.peek_mut() {
-                let Reverse((minimum, slot, _)) = *weakest;
-                if score > minimum {
-                    // Ties evict the earliest slot of the shortlist.
-                    *weakest = Reverse((score, slot, stem));
-                }
-            }
-        }
-    }
-    let mut best: Vec<_> = best
+    let stems = firsts
         .into_iter()
-        .map(|Reverse((score, _, stem))| (score, stem))
-        .collect();
-    best.sort_unstable_by(|a, b| b.0.cmp(&a.0).then(a.1.cmp(b.1)));
+        .flat_map(|first| d.stems_with_prefix(&first.to_string()));
+    let scored = stems.map(|stem| {
+        let mut previous = ' ';
+        let mut length = 0usize;
+        let mut shared = 0usize;
+        for next in stem.chars().map(|c| fold(c, map)) {
+            shared += usize::from(pairs.contains(&(previous, next)));
+            length += 1;
+            previous = next;
+        }
+        // Shared pairs, less the stem's letters the word doesn't explain, less a length gap
+        // beyond what an ending explains.
+        let extra = length.saturating_sub(shared);
+        let gap = length.abs_diff(n).saturating_sub(4);
+        let score = (shared * 4).saturating_sub(extra * 3 + gap * 2);
+        (stem, if shared >= 2 { score } else { 0 })
+    });
+    let best = ranking::stem_shortlist(scored, SCAN_STEMS);
     let related = |a: char, b: char| fold(a, map) == fold(b, map);
     let limit = 4;
     let mut budget = SCAN_FORMS_WORK;
-    for (_, stem) in best {
+    for stem in best {
         for form in d.forms_spending(stem, &mut budget) {
             let lf: Vec<char> = col.d.lower_word(&form).chars().collect();
             if lf.len().abs_diff(chars.len()) > 2 {

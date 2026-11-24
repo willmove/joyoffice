@@ -7,7 +7,7 @@ use gpui_kit::component::{
     scroll::{Scrollbar, ScrollbarMode},
 };
 use joydeck_engine::{Command, ContentAction, Session};
-use joyoffice_ui::{IconName as I, Palette};
+use joyoffice_ui::{IconName as I, Palette, display_path};
 use std::time::SystemTime;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -675,16 +675,12 @@ impl Viewer {
             Ok(files) => {
                 let mut count = 0;
                 for (index, recent) in files.iter().enumerate() {
-                    if !recent
-                        .path
-                        .to_string_lossy()
-                        .to_lowercase()
-                        .contains(&query)
-                    {
+                    let label = display_path(&recent.path);
+                    if !label.to_lowercase().contains(&query) {
                         continue;
                     }
                     count += 1;
-                    list = list.child(self.recent_file_row(index, recent, p, cx));
+                    list = list.child(self.recent_file_row(index, recent, label, p, cx));
                 }
                 if count == 0 {
                     list = list.child(
@@ -711,6 +707,7 @@ impl Viewer {
         &self,
         index: usize,
         recent: &joydeck_shell::storage::RecentFile,
+        label: String,
         p: Palette,
         cx: &mut Context<Self>,
     ) -> Button {
@@ -720,11 +717,8 @@ impl Viewer {
             .unwrap_or_default()
             .to_string_lossy()
             .into_owned();
-        let directory = path
-            .parent()
-            .map(|p| p.to_string_lossy().into_owned())
-            .unwrap_or_default();
-        let accessible = format!("打开最近文件 {}", path.display());
+        let directory = path.parent().map(display_path).unwrap_or_default();
+        let accessible = format!("打开最近文件 {label}");
         Button::new(("recent-file", index))
             .ghost()
             .w_full()
@@ -732,7 +726,7 @@ impl Viewer {
             .p_0()
             .rounded_none()
             .accessibility_label(accessible)
-            .tooltip(path.to_string_lossy().into_owned())
+            .tooltip(label)
             .child(
                 div()
                     .size_full()
@@ -796,7 +790,7 @@ impl Viewer {
                 div().text_size(px(14.)).text_color(rgb(p.muted)).child(
                     self.source
                         .as_ref()
-                        .map_or("文稿尚未保存".into(), |p| p.display().to_string()),
+                        .map_or_else(|| "文稿尚未保存".into(), |p| display_path(p)),
                 ),
             );
         if let Some(editor) = &self.editor {

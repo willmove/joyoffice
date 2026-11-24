@@ -2,9 +2,8 @@ use super::*;
 use gpui::component::scroll::ScrollableElement;
 use gpui::component::tooltip::Tooltip;
 use gpui::{Div, ElementId, KeyDownEvent, RenderImage, Role, Stateful, img, point};
-use joyoffice_ui::{IconName, icon};
+use joyoffice_ui::{IconName, display_path, icon};
 use std::{
-    path::Path,
     rc::Rc,
     sync::{Arc, OnceLock},
 };
@@ -1014,20 +1013,6 @@ fn file_control(
                 cx.stop_propagation();
             }
         }))
-}
-
-fn display_path(path: &Path) -> String {
-    let display = path.to_string_lossy();
-    #[cfg(windows)]
-    if let Some(std::path::Component::Prefix(prefix)) = path.components().next() {
-        use std::path::Prefix::{VerbatimDisk, VerbatimUNC};
-        match prefix.kind() {
-            VerbatimDisk(_) => return display[4..].to_owned(),
-            VerbatimUNC(_, _) => return format!(r"\\{}", &display[8..]),
-            _ => {}
-        }
-    }
-    display.into_owned()
 }
 
 #[cfg(test)]

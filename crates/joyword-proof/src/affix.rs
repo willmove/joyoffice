@@ -2067,9 +2067,10 @@ impl AffixDict {
             .matches(w)
             .flat_map(|(_, rules)| rules)
             .filter_map(|&i| self.prefixes.get(i as usize));
-        // What each rule leaves: (root, circumfix, needs another affix, cross, flag). The rules
-        // that leave the same root alike are answered together, in one walk each.
-        let mut taken: Vec<(String, bool, bool, bool, u16)> = Vec::new();
+        // Analyze one restored form per set of continuation requirements. Use
+        // lexical key order so a limited search visits the same plausible roots
+        // whether their prefix rules are adjacent in the dictionary or not.
+        let mut analyses = std::collections::BTreeMap::new();
         for r in rules {
             if !steps.spend(1 + r.cond.len()) {
                 return false;
@@ -2084,28 +2085,26 @@ impl AffixDict {
             if r.cond_matches(&root, false) {
                 // A circumfix prefix works only with its suffix, and one that needs another
                 // affix only with a suffix too.
-                taken.push((
+                let key = (
                     root,
                     self.cont_holds(r, self.circumfix),
                     self.cont_holds(r, self.need_affix),
-                    r.cross,
-                    r.flag,
-                ));
+                );
+                analyses
+                    .entry(key)
+                    .or_insert_with(Vec::new)
+                    .push((r.cross, r.flag));
             }
         }
-        taken.sort_unstable();
         let mut plain: Vec<u16> = Vec::new();
         let mut crossed: Vec<u16> = Vec::new();
-        for group in taken.chunk_by(|a, b| (&a.0, a.1, a.2) == (&b.0, b.1, b.2)) {
+        for ((root, circ, needs), group) in &analyses {
             if !steps.spend(group.len() + GROUP_STEPS) {
                 return false;
             }
-            let Some((root, circ, needs, ..)) = group.first() else {
-                continue;
-            };
             plain.clear();
             crossed.clear();
-            for &(.., cross, flag) in group {
+            for &(cross, flag) in group {
                 if !circ && !needs {
                     plain.push(flag);
                 }

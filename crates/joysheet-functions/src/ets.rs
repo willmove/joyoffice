@@ -248,12 +248,7 @@ impl Series {
 
     /// Position of a time stamp relative to the last point (0 = last point, 1 = next step).
     pub fn horizon(&self, t: f64) -> R<f64> {
-        let p = self.position(t)?;
-        let h = p - (self.y.len() as f64 - 1.0);
-        if h < -1e-9 {
-            return Err(CellError::Num);
-        }
-        Ok(h.max(0.0))
+        Ok(self.position(t)? - (self.y.len() as f64 - 1.0))
     }
 }
 
@@ -658,12 +653,32 @@ pub(crate) struct Fit {
 
 pub(crate) fn fit(y: &[f64], m: usize) -> Fit {
     let m = if m >= 2 { m } else { 0 };
-    let mut state = State::initial(y, m);
-    let [alpha, beta, gamma] = estimate(y, &state);
+    let (mut state, [alpha, beta, gamma]) = exact_affine_fit(y, m).unwrap_or_else(|| {
+        let state = State::initial(y, m);
+        let parameters = estimate(y, &state);
+        (state, parameters)
+    });
     let gains = gains([alpha, beta, gamma]);
     let errors: Vec<_> = y.iter().copied().enumerate().map(|(i, value)| state.observe(i, value, gains)).collect();
     let mse = errors.iter().map(|error| error * error).sum::<f64>() / y.len().max(1) as f64;
     Fit { alpha, beta, gamma, m, n: y.len(), mse, state, errors }
+}
+
+/// On an exactly linear integer series the residuals do not identify the gains.
+/// Excel 16 reports these defaults for zero, constant, rising and falling
+/// integer series, with the seasonal defaults requiring two complete cycles.
+fn exact_affine_fit(y: &[f64], period: usize) -> Option<(State, Parameters)> {
+    let [first, second, _, _, ..] = *y else { return None };
+    if period > y.len() / 2 || y.iter().any(|y| y.fract() != 0.0 || y.abs() >= 2.0_f64.powi(51)) {
+        return None;
+    }
+    let trend = second - first;
+    if !y.windows(2).all(|pair| pair[1] - pair[0] == trend) {
+        return None;
+    }
+    let state = State { level: first - trend, trend, season: vec![0.0; period] };
+    let parameters = if period == 0 { [0.9, 0.001, 0.0] } else { [0.751, 0.001, 0.001] };
+    Some((state, parameters))
 }
 
 impl Fit {
@@ -686,7 +701,10 @@ impl Fit {
 
     /// Standard deviation of the forecast error `h` steps ahead.
     pub fn forecast_sd(&self, h: f64) -> f64 {
-        let k = (h.ceil().max(1.0)) - 1.0;
+        if h <= 1.0 {
+            return (self.mse * h).max(0.0).sqrt();
+        }
+        let k = h.floor() - 1.0;
         let (a, b, g) = (self.alpha, self.alpha * self.beta, self.gamma);
         // Σ_{j=1}^{k} (a + b·j)² + seasonal terms, in closed form.
         let mut sum = k * a * a + a * b * k * (k + 1.0) + b * b * k * (k + 1.0) * (2.0 * k + 1.0) / 6.0;
@@ -694,6 +712,14 @@ impl Fit {
             let m = self.m as f64;
             let q = (k / m).floor();
             sum += 2.0 * g * (q * a + b * m * q * (q + 1.0) / 2.0) + g * g * q;
+        }
+        // Each extra step contributes the square of one innovation weight.
+        // Between sample points interpolate that contribution in variance space.
+        let portion = h.fract();
+        if portion > 0.0 {
+            let j = k + 1.0;
+            let seasonal = if self.m > 0 && j % self.m as f64 == 0.0 { g } else { 0.0 };
+            sum += portion * (a + b * j + seasonal).powi(2);
         }
         (self.mse * (1.0 + sum)).max(0.0).sqrt()
     }
@@ -762,10 +788,18 @@ fn forecast_ets_confint(a: &[Arg], c: C) -> R<Value> {
     let opts = options(a, Some(4), 5, 6)?;
     let p = prepare(a, c, 1, 2, opts)?;
     let h = p.series.horizon(target)?;
-    if h == 0.0 {
+    // Excel 16 reports zero strictly between the final two historical
+    // observations, excluding a thousandth of a step at each boundary.
+    const EDGE: f64 = 0.001;
+    if (-1.0 + EDGE..=-EDGE).contains(&h) {
+        return num_val(0.0);
+    }
+    if h < EDGE {
         return Err(CellError::Num);
     }
-    let z = norm_inv((1.0 + level) / 2.0);
+    let rounded = h.round();
+    let h = if (h - rounded).abs() < EDGE { rounded } else { h };
+    let z = -norm_inv((1.0 - level) / 2.0);
     num_val(z * fit(&p.series.y, p.m).forecast_sd(h))
 }
 

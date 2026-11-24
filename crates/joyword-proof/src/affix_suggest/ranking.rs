@@ -4,7 +4,7 @@
 
 use std::{
     cmp::Reverse,
-    collections::{BinaryHeap, HashMap},
+    collections::{BTreeSet, BinaryHeap, HashMap},
 };
 
 #[derive(Default)]
@@ -21,6 +21,32 @@ impl Row {
             .copied()
             .unwrap_or(outside)
     }
+}
+
+/// Keep a bounded set of positive stem scores. A better score takes the
+/// earliest slot among equally weak entries. The order consumed by the form
+/// expansion budget is descending score, then dictionary spelling.
+pub(super) fn stem_shortlist<'a>(
+    candidates: impl Iterator<Item = (&'a str, usize)>,
+    capacity: usize,
+) -> Vec<&'a str> {
+    let mut best = BTreeSet::new();
+    for (stem, score) in candidates.filter(|&(_, score)| score != 0) {
+        if best.len() < capacity {
+            best.insert((score, best.len(), stem));
+        } else if let Some(&(minimum, slot, _)) = best.first()
+            && score > minimum
+        {
+            let _ = best.pop_first();
+            best.insert((score, slot, stem));
+        }
+    }
+    let mut ordered: Vec<_> = best
+        .into_iter()
+        .map(|(score, _, stem)| (Reverse(score), stem))
+        .collect();
+    ordered.sort_unstable();
+    ordered.into_iter().map(|(_, stem)| stem).collect()
 }
 
 /// Insertions, deletions and transpositions cost two; related letters can be
@@ -105,6 +131,20 @@ pub(super) fn best_first(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn stem_shortlist_preserves_fallback_order_when_weak_scores_tie() {
+        let stems = [
+            ("áa", 2),
+            ("ab", 2),
+            ("ac", 2),
+            ("ad", 4),
+            ("aba", 4),
+            ("empty", 0),
+        ];
+        assert_eq!(stem_shortlist(stems.into_iter(), 2), ["aba", "ad"]);
+        assert_eq!(stem_shortlist(stems.into_iter().take(4), 2), ["ad", "ab"]);
+    }
 
     fn related(a: char, b: char) -> bool {
         matches!((a, b), ('a', 'á') | ('á', 'a'))

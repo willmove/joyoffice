@@ -82,43 +82,44 @@ impl<'a> Keys<'a> {
 ///   needle (text vs number vs logical, blanks, errors) is replaced by the nearest entry of the
 ///   needle's type below it in the window; when there is none the window moves up past it, so
 ///   entries of other types are skipped (`LOOKUP(9.9E+307, range)` finds the last number);
-/// - a probe equal to the needle ends the search at once (the run of equal entries that follows
-///   it is taken, so sorted duplicates give the last one).
+/// - a probe equal to the needle ends the search at the edge of its contiguous
+///   equal run: the last match ascending and the first match descending.
 ///
 /// Observed in Excel: `VLOOKUP(534, {"INTEGRAL";0;1;2;534;9999999999;-9999999999}, …)` finds 534,
 /// `HLOOKUP("STRING", {"INTEGRAL","DOUBLE","BLANK","STRING","REF","AREA (rows)",<blank>}, …)`
 /// finds "STRING" and `LOOKUP("DOUBLE", {"DOUBLE","BLANK","STRING","REF","AREA (rows)"}, …)`
 /// finds "DOUBLE". Work is linear in the vector length at worst.
-fn bsearch_last(x: &Value, hay: Keys<'_>, desc: bool) -> Option<usize> {
-    let mut hi = hay.count.checked_sub(1)?;
-    let mut lo = 0usize;
-    let mut best = None;
-    while lo <= hi {
-        let mid = lo + (hi - lo) / 2;
-        let Some(j) = (lo..=mid).rev().find(|&j| hay.get(j).is_some_and(|v| same_type(x, v))) else {
-            lo = mid + 1;
+fn bsearch_approx(x: &Value, hay: Keys<'_>, desc: bool) -> Option<usize> {
+    let mut remaining = 0..hay.count;
+    let mut preceding = None;
+    while !remaining.is_empty() {
+        let mid = remaining.start + (remaining.len() - 1) / 2;
+        let probe = (remaining.start..=mid).rev().find_map(|index| {
+            let value = hay.get(index)?;
+            same_type(x, value).then_some((index, value))
+        });
+        let Some((index, value)) = probe else {
+            remaining.start = mid + 1;
             continue;
         };
-        let v = hay.get(j)?;
-        let o = lookup_order(v, x);
-        if o == Ordering::Equal {
-            let mut k = j;
-            while hay.get(k + 1).is_some_and(|w| same_type(x, w) && lookup_order(w, x) == Ordering::Equal) {
-                k += 1;
+        let order = lookup_order(value, x);
+        match if desc { order.reverse() } else { order } {
+            Ordering::Less => {
+                preceding = Some(index);
+                remaining.start = mid + 1;
             }
-            return Some(k);
-        }
-        let before = if desc { o == Ordering::Greater } else { o == Ordering::Less };
-        if before {
-            best = Some(j);
-            lo = mid + 1;
-        } else if j == 0 {
-            break;
-        } else {
-            hi = j - 1;
+            Ordering::Greater => remaining.end = index,
+            Ordering::Equal => {
+                let equal = |next| hay.get(next).is_some_and(|value| same_type(x, value) && lookup_order(value, x) == Ordering::Equal);
+                return Some(if desc {
+                    index - (0..index).rev().take_while(|&next| equal(next)).count()
+                } else {
+                    index + (index + 1..hay.count).take_while(|&next| equal(next)).count()
+                });
+            }
         }
     }
-    best
+    preceding
 }
 
 /// Order of an entry relative to the needle for XLOOKUP / XMATCH binary search (search mode ±2):
@@ -132,19 +133,6 @@ fn binary_order(v: &Value, x: &Value, desc: bool) -> Ordering {
         _ if desc => lookup_order(v, x).reverse(),
         _ => lookup_order(v, x),
     }
-}
-
-/// Binary search for the first entry not ordered before the needle (`>= x` ascending, `<= x`
-/// descending).
-fn bsearch_first(x: &Value, hay: &[Value], desc: bool) -> Option<usize> {
-    let p = hay.partition_point(|v| binary_order(v, x, desc) == Ordering::Less);
-    (p < hay.len()).then_some(p)
-}
-
-/// Binary search for the last entry not ordered after the needle (`<= x` ascending, `>= x`
-/// descending).
-fn bsearch_upto(x: &Value, hay: &[Value], desc: bool) -> Option<usize> {
-    hay.partition_point(|v| binary_order(v, x, desc) != Ordering::Greater).checked_sub(1)
 }
 
 /// A 1-D view of an array (row or column), `None` when it is 2-D.
@@ -187,7 +175,7 @@ fn vh_lookup(args: &[Arg], vertical: bool) -> R<Value> {
         return Err(CellError::Ref);
     }
     let pos = if approx {
-        bsearch_last(&x, keys, false)
+        bsearch_approx(&x, keys, false)
     } else {
         let matcher = LookupMatcher::new(&x, true);
         (0..keys.count).find(|&i| keys.get(i).is_some_and(|v| matcher.matches(v)))
@@ -214,7 +202,7 @@ fn lookup(args: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
     let la = as_array(lv);
     if args.len() >= 3 {
         let keys = vector(&la).map_or_else(|| Keys::first_line(&la, true), Keys::slice);
-        let pos = bsearch_last(&x, keys, false).ok_or(CellError::NA)?;
+        let pos = bsearch_approx(&x, keys, false).ok_or(CellError::NA)?;
         let rv = &arg(args, 2)?.value;
         if let Value::Error(e) = rv {
             return Err(*e);
@@ -233,11 +221,11 @@ fn lookup(args: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
     // matching entry from the last row / column.
     if la.cols > la.rows {
         let keys = Keys::first_line(&la, false);
-        let pos = bsearch_last(&x, keys, false).ok_or(CellError::NA)?;
+        let pos = bsearch_approx(&x, keys, false).ok_or(CellError::NA)?;
         Ok(cell_result(la.get(la.rows - 1, pos).cloned().unwrap_or(Value::Empty)))
     } else {
         let keys = Keys::first_line(&la, true);
-        let pos = bsearch_last(&x, keys, false).ok_or(CellError::NA)?;
+        let pos = bsearch_approx(&x, keys, false).ok_or(CellError::NA)?;
         Ok(cell_result(la.get(pos, la.cols - 1).cloned().unwrap_or(Value::Empty)))
     }
 }
@@ -254,9 +242,9 @@ fn match_fn(args: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
     let pos = if mt == 0.0 {
         find_exact(&x, hay, true, false)
     } else if mt > 0.0 {
-        bsearch_last(&x, Keys::slice(hay), false)
+        bsearch_approx(&x, Keys::slice(hay), false)
     } else {
-        bsearch_last(&x, Keys::slice(hay), true)
+        bsearch_approx(&x, Keys::slice(hay), true)
     };
     pos.map(|p| Value::Number((p + 1) as f64)).ok_or(CellError::NA)
 }
@@ -271,29 +259,22 @@ fn xsearch(x: &Value, hay: &[Value], match_mode: i64, search_mode: i64) -> R<Opt
     }
     if search_mode.abs() == 2 {
         let desc = search_mode == -2;
-        if match_mode == 2 {
-            // Wildcards are not supported with binary search: Excel falls back to exact.
-            return Ok(bsearch_exact(x, hay, desc));
-        }
-        return Ok(match match_mode {
-            0 => bsearch_exact(x, hay, desc),
-            // Next smaller: last <= x (ascending) / first <= x (descending).
-            -1 => {
-                if desc {
-                    bsearch_first(x, hay, true)
-                } else {
-                    bsearch_upto(x, hay, false)
-                }
-            }
-            // Next larger: first >= x (ascending) / last >= x (descending).
-            _ => {
-                if desc {
-                    bsearch_upto(x, hay, true)
-                } else {
-                    bsearch_first(x, hay, false)
-                }
-            }
+        // Excel takes the first equal item ascending and the last descending.
+        // The split also locates the two neighbors when the exact key is absent.
+        let split = hay.partition_point(|value| {
+            let order = binary_order(value, x, desc);
+            order == Ordering::Less || (desc && order == Ordering::Equal)
         });
+        let before = split.checked_sub(1);
+        let after = (split < hay.len()).then_some(split);
+        let (larger, smaller) = if desc { (before, after) } else { (after, before) };
+        let exact = larger.filter(|&index| binary_order(&hay[index], x, desc) == Ordering::Equal);
+        // Binary wildcard searches use literal equality.
+        return Ok(exact.or(match match_mode {
+            -1 => smaller,
+            1 => larger,
+            _ => None,
+        }));
     }
     let reverse = search_mode == -1;
     if match_mode == 0 || match_mode == 2 {
@@ -318,12 +299,6 @@ fn xsearch(x: &Value, hay: &[Value], match_mode: i64, search_mode: i64) -> R<Opt
         }
     }
     Ok(best.map(|(index, _)| index))
-}
-
-fn bsearch_exact(x: &Value, hay: &[Value], desc: bool) -> Option<usize> {
-    let p = bsearch_first(x, hay, desc)?;
-    let v = hay.get(p)?;
-    if binary_order(v, x, desc) == Ordering::Equal { Some(p) } else { None }
 }
 
 fn xlookup(args: &[Arg], _c: &mut dyn Ctx) -> R<Value> {

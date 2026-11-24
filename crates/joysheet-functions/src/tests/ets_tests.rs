@@ -91,6 +91,11 @@ fn straight_line_forecasts_exactly() {
     close_tol(ev("FORECAST.ETS.CONFINT", vec![n(25.0), range(&ys), range(&ts)]), 0.0, 1e-9);
     close(ev("FORECAST.ETS.STAT", vec![range(&ys), range(&ts), n(8.0)]), 1.0);
     close_tol(ev("FORECAST.ETS.STAT", vec![range(&ys), range(&ts), n(6.0)]), 0.0, 1e-9);
+    for (season, parameters) in [(0.0, [0.9, 0.001, 0.0]), (4.0, [0.751, 0.001, 0.001])] {
+        for (index, parameter) in parameters.into_iter().enumerate() {
+            close(ev("FORECAST.ETS.STAT", vec![range(&ys), range(&ts), n((index + 1) as f64), n(season)]), parameter);
+        }
+    }
     // Target dates are lifted over arrays.
     let v = ev("FORECAST.ETS", vec![av(row(&[21.0, 22.0])), range(&ys), range(&ts)]);
     let r = rows_of(&v);
@@ -135,6 +140,10 @@ fn noisy_series_statistics_are_consistent() {
     assert!(conf(49.0, 0.95) > 0.0);
     assert!(conf(60.0, 0.95) > conf(49.0, 0.95), "the interval widens with the horizon");
     assert!(conf(49.0, 0.99) > conf(49.0, 0.95));
+    assert_eq!(conf(47.5, 0.95), 0.0);
+    assert!((conf(48.25, 0.95) - 0.5 * conf(49.0, 0.95)).abs() < 1e-12);
+    let variance_between_steps = (conf(49.0, 0.95).powi(2) + conf(50.0, 0.95).powi(2)) / 2.0;
+    assert!((conf(49.5, 0.95).powi(2) - variance_between_steps).abs() < 1e-12);
     // The forecast stays close to the noise-free continuation.
     match ev("FORECAST.ETS", vec![n(51.0), range(&ys), range(&ts)]) {
         Value::Number(x) => assert!((x - (3.0 + 102.0 + 7.0)).abs() < 3.0, "forecast {x}"),

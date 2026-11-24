@@ -47,14 +47,15 @@
       "locale": "bg",
       "name": "Български",
       "version": "20467b63558f04fe075e83aaea501bd10f7fa684",
-      "url": "https://github.com/storytold/craft-i18n/releases/download/language-packs-2/bg.tar.zst",
+      "url": "https://github.com/willmove/joyoffice/releases/download/joyword-language-packs-4/bg.tar.zst",
       "sha256": "84cf5fa840dc3788a815ee8d500b9e00a726a25da4fef9fd15e01906fbbb7c37",
       "size": 278562,
       "licence": "(GPL-2.0-or-later OR LGPL-2.0-or-later OR MPL-1.1) AND LicenseRef-hyph-bg",
       "class": "Download-only",
       "spelling": true,
       "hyphenation": true,
-      "source": "https://github.com/LibreOffice/dictionaries/tree/4f1df64b2e8e14751aa7c2205d170ca016071315/bg_BG"
+      "source": "https://github.com/LibreOffice/dictionaries/tree/4f1df64b2e8e14751aa7c2205d170ca016071315/bg_BG",
+      "fallback_url": "https://github.com/storytold/craft-i18n/releases/download/language-packs-2/bg.tar.zst"
     },
     {
       "locale": "bs",
@@ -588,14 +589,15 @@
       "locale": "gl",
       "name": "Galego",
       "version": "20467b63558f04fe075e83aaea501bd10f7fa684",
-      "url": "https://github.com/storytold/craft-i18n/releases/download/language-packs-2/gl.tar.zst",
+      "url": "https://github.com/willmove/joyoffice/releases/download/joyword-language-packs-4/gl.tar.zst",
       "sha256": "506d4ae8a18d68272b5f0a52f578605ac3fd25b00768b73ba876de4b26335876",
       "size": 1296191,
       "licence": "GPL-3.0-only AND Unlicense",
       "class": "Download-only",
       "spelling": true,
       "hyphenation": true,
-      "source": "https://github.com/LibreOffice/dictionaries/tree/4f1df64b2e8e14751aa7c2205d170ca016071315/gl"
+      "source": "https://github.com/LibreOffice/dictionaries/tree/4f1df64b2e8e14751aa7c2205d170ca016071315/gl",
+      "fallback_url": "https://github.com/storytold/craft-i18n/releases/download/language-packs-2/gl.tar.zst"
     },
     {
       "locale": "he",

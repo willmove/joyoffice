@@ -1,0 +1,114 @@
+{
+  "previousAuditSha256": "0f3b3db8dd4b43e6306c5dfc3c12ffd0ea3be7bc1226a79c85972242373bc1c7",
+  "supplement": {
+    "bg-4.1.zip": {
+      "url": "https://sourceforge.net/projects/bgoffice/files/OpenOffice.org%20Spell%20BG/4.1/OOo-spell-bg-4.1.zip/download",
+      "sha256": "69054124c6d0069d8f6f769f74867f197da5789121d1c5c5d374df03c7ff8c42"
+    },
+    "bgoffice_4.1.orig.tar.gz": {
+      "url": "https://deb.debian.org/debian/pool/main/b/bgoffice/bgoffice_4.1.orig.tar.gz",
+      "sha256": "d590182e90732923c4374996f3ec58d3bb216f6e81be08903d357a15f3d88c25"
+    },
+    "gl-20.08.tar.gz": {
+      "url": "https://gitlab.com/trasno/hunspell-gl/-/archive/20.08/hunspell-gl-20.08.tar.gz",
+      "sha256": "cc87e112d38d5f452a4045a06984280c4f0130e6e7536755b4eaed788486af54"
+    },
+    "REBUILD-BG-GL.md": {
+      "url": "JoyOffice source reconstruction notes",
+      "sha256": "44075c52f4d7b74d6f7d3ed48c534243821d8ed7e4933208910a8f0cb83054db"
+    }
+  },
+  "packs": {
+    "af": {
+      "status": "upstream",
+      "reason": "The current affix file selects LGPL 2.1 or later and traces rules to a BSD ispell input. LibreOffice's attribution independently names the same original list and permission, but does not include the exact BSD text inherited from it.",
+      "verifiedEvidence": {
+        "libreOfficeAttribution": "https://gimli.documentfoundation.org/share/readme/LICENSE.html"
+      }
+    },
+    "bg": {
+      "status": "hosted",
+      "licenceSelection": "GPL-2.0-only AND LicenseRef-hyph-bg",
+      "reason": "The author’s OpenOffice spelling 4.1 files reproduce the fixed pair byte for byte after decoding Windows-1251, normalizing line endings and updating the SET directive. The author's GPLv2 texts, word-class database and build materials, and the independent TeX pattern notice accompany the pack.",
+      "supplement": [
+        "bg-4.1.zip",
+        "bgoffice_4.1.orig.tar.gz",
+        "REBUILD-BG-GL.md"
+      ]
+    },
+    "de": {
+      "status": "upstream",
+      "reason": "The author’s igerman98 20161207 source was obtained. Frami 20170109 supplements and the corresponding transformation for the de-DE output have yet to be identified."
+    },
+    "de-at": {
+      "status": "upstream",
+      "reason": "The author’s igerman98 20161207 source was obtained. The Frami Austrian supplements and exact dictionary conversion still require evidence."
+    },
+    "de-ch": {
+      "status": "upstream",
+      "reason": "The author’s igerman98 20161207 source was obtained. The Frami Swiss supplements and exact dictionary conversion still require evidence."
+    },
+    "et": {
+      "status": "upstream",
+      "reason": "The fixed README includes the Institute of the Estonian Language licence and its acknowledgement request. The matching Institute word list and Jaak Pruulmann’s MySpell adaptation inputs remain unverified."
+    },
+    "gl": {
+      "status": "hosted",
+      "licenceSelection": "GPL-3.0-only AND Unlicense",
+      "reason": "The author’s Proxecto Trasno tag 20.08 includes the preferred editable modules, build system, and GPLv3 notices. Rebuilding with all selected modules reproduces every dictionary and affix line, with only two collation groups and one affix block moved relative to the frozen LibreOffice output. The fixed pack preserves the exact original order and the independent Unlicense TeX patterns.",
+      "supplement": [
+        "gl-20.08.tar.gz",
+        "REBUILD-BG-GL.md"
+      ]
+    },
+    "hi": {
+      "status": "upstream",
+      "reason": "The original README links a GNU Aspell 0.01 word list and separately credits a Hunspell conversion. The exact mixture of the later Hindi Hunspell additions and the original conversion inputs remains unverified."
+    },
+    "ko": {
+      "status": "upstream",
+      "reason": "The exact 0.7.92 author source and composite GPLv3 and CC notices were obtained. The released affix matches. The pinned dictionary incorporates a 2023-05-14 NIKL-derived build and the contributor's 2024 update to follow upstream additions and removals. The dated NIKL input and reproducible build for the first update remain unverified.",
+      "verifiedEvidence": {
+        "may2023Import": "https://gerrit.libreoffice.org/c/dictionaries/+/151732",
+        "august2024Import": "https://gerrit.libreoffice.org/c/dictionaries/+/172166",
+        "pinnedDictionaryCommit": "d0c939181ac181ce6479ae8604ef647055ccf44d",
+        "upstreamLexiconChanges": "https://github.com/spellcheck-ko/hunspell-dict-ko/commit/a404bda448e8024bd4a19680a7dce718a67ff350"
+      }
+    },
+    "nb": {
+      "status": "upstream",
+      "reason": "The pack generation combined Ordbanken, CLARIN PUB +BY neologisms, and words from Språkrådet. Neither the corresponding generation inputs and scripts nor a redistribution grant for the Språkrådet portion has been verified."
+    },
+    "nn": {
+      "status": "upstream",
+      "reason": "The pack generation combined Ordbanken, CLARIN PUB +BY neologisms, and words from Språkrådet. The Nynorsk-specific combined inputs and grant for the collected portion remain unverified."
+    },
+    "pt-pt": {
+      "status": "upstream",
+      "reason": "The README lists a tri-license but the original Portuguese spelling contributors’ supplementary notice names GPL and BSD. The exact applicable BSD version and upstream conversion/source chain still need to be resolved."
+    },
+    "sw": {
+      "status": "upstream",
+      "reason": "The Jambo README identifies multiple source word lists. The exact release inputs and permissions for the TUKI and Kamusi portions have yet to be matched to the supplied Hunspell pair."
+    },
+    "ta": {
+      "status": "upstream",
+      "reason": "The original Apache extension carries a GPL description and different dictionary and affix bytes. The generic MPL 1.1 file in LibreOffice does not identify these spelling files or their author."
+    },
+    "vi": {
+      "status": "upstream",
+      "reason": "The author's official OpenOffice 1.0.45 extension matches the pinned dictionary, affix and English notice byte for byte. The earlier Aspell package points to Viet39K.txt. Its decoded word list intersects 6561 of the 6630 unique Hunspell spellings after NFC and lowercasing. The exact source transformation, spelling adjustments and additional entries remain unverified.",
+      "verifiedEvidence": {
+        "openOffice": {
+          "url": "https://extensions.openoffice.org/en/projectrelease/vietnamese-spellchecker-1045.html",
+          "sha256": "a118861cd53235f029da9b8e4e8da0cd58d614cdd0981abf87b2bc76799b027c"
+        },
+        "aspellPreferredInputCandidate": {
+          "url": "https://ftp.gnu.org/gnu/aspell/dict/vi/aspell6-vi-0.01.1-1.tar.bz2",
+          "sha256": "3cd85d53bb62b0d104cb5c03e142c3bbe1ad64329d7beae057854816dc7e7c17",
+          "expandedWordListSha256": "4b5808495757604a8517955515a5e3d126cdb9fd29222b58ea29c91fb5bfa2ef"
+        }
+      }
+    }
+  }
+}

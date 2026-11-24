@@ -454,34 +454,39 @@ fn factdouble(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
 
 fn combin_of(n: f64, k: f64) -> R<f64> {
     let (n, k) = (n.trunc(), k.trunc());
-    if n < 0.0 || k < 0.0 || k > n {
+    // Excel 16 accepts populations below the signed 32-bit maximum.
+    if !(0.0..f64::from(i32::MAX)).contains(&n) || !(0.0..=n).contains(&k) {
         return Err(CellError::Num);
     }
-    let k = k.min(n - k);
-    if k > 1e7 {
-        let r = (crate::special::ln_gamma(n + 1.0) - crate::special::ln_gamma(k + 1.0) - crate::special::ln_gamma(n - k + 1.0)).exp();
-        return if r.is_finite() { Ok(r) } else { Err(CellError::Num) };
+    let k = k.min(n - k) as u32;
+    // Each factor is at least two once symmetry ensures n >= 2k.
+    if k >= f64::MAX_EXP as u32 {
+        return Err(CellError::Num);
     }
-    let mut r = 1.0f64;
-    let mut i = 1.0;
-    while i <= k {
-        r = r * (n - k + i) / i;
-        if !r.is_finite() {
+    let remainder = n - f64::from(k);
+    let mut coefficient = 1.0;
+    for i in 1..=k {
+        let divisor = f64::from(i);
+        let numerator = remainder + divisor;
+        let product = coefficient * numerator;
+        // Near the representable limit the quotient can still fit after the
+        // unscaled product has overflowed.
+        coefficient = if product.is_finite() { product / divisor } else { coefficient * (numerator / divisor) };
+        if !coefficient.is_finite() {
             return Err(CellError::Num);
         }
-        i += 1.0;
     }
-    Ok(if r < 9e15 { r.round() } else { r })
+    Ok(if coefficient < 9e15 { coefficient.round() } else { coefficient })
 }
 fn combin(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
     num_val(combin_of(num(a, 0)?, num(a, 1)?)?)
 }
 fn combina(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
     let (n, k) = (num(a, 0)?.trunc(), num(a, 1)?.trunc());
-    if n < 0.0 || k < 0.0 || n < k && n == 0.0 && k > 0.0 {
+    if n < 0.0 || k < 0.0 {
         return Err(CellError::Num);
     }
-    if k == 0.0 {
+    if n == 0.0 && k == 0.0 {
         return Ok(Value::Number(1.0));
     }
     num_val(combin_of(n + k - 1.0, k)?)
@@ -510,22 +515,34 @@ fn permutationa(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
     num_val(n.powf(k))
 }
 
+const INTEGER_FUNCTION_LIMIT: u64 = 1 << 53;
+
 fn integer_args(a: &[Arg]) -> R<Vec<u64>> {
     let v = numbers(a)?;
     v.iter()
         .map(|x| {
             let t = x.trunc();
-            if !(0.0..9.007_199_254_740_992e15).contains(&t) { Err(CellError::Num) } else { Ok(t as u64) }
+            if !(0.0..INTEGER_FUNCTION_LIMIT as f64).contains(&t) { Err(CellError::Num) } else { Ok(t as u64) }
         })
         .collect()
 }
 fn gcd2(mut a: u64, mut b: u64) -> u64 {
-    while b != 0 {
-        let t = a % b;
-        a = b;
-        b = t;
+    if a == 0 || b == 0 {
+        return a | b;
     }
-    a
+    // Binary GCD. Odd operands retain their common divisor after subtraction.
+    let power = (a | b).trailing_zeros();
+    a >>= a.trailing_zeros();
+    loop {
+        b >>= b.trailing_zeros();
+        if a > b {
+            std::mem::swap(&mut a, &mut b);
+        }
+        b -= a;
+        if b == 0 {
+            return a << power;
+        }
+    }
 }
 fn gcd(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
     let v = integer_args(a)?;
@@ -533,19 +550,17 @@ fn gcd(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
 }
 fn lcm(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
     let v = integer_args(a)?;
-    let mut acc = 1f64;
-    for &x in &v {
-        if x == 0 {
-            return Ok(Value::Number(0.0));
-        }
-        let accu = acc as u64;
-        let g = gcd2(accu, x);
-        acc = acc / g as f64 * x as f64;
-        if acc >= 9.007_199_254_740_992e15 {
-            return Err(CellError::Num);
-        }
+    // Validate all operands first. A zero makes the final result zero even
+    // when the least common multiple of an earlier prefix would overflow.
+    if v.contains(&0) {
+        return Ok(Value::Number(0.0));
     }
-    num_val(acc)
+    let mut acc = 1u64;
+    for x in v {
+        let a = acc / gcd2(acc, x);
+        acc = a.checked_mul(x).filter(|product| *product < INTEGER_FUNCTION_LIMIT).ok_or(CellError::Num)?;
+    }
+    num_val(acc as f64)
 }
 fn multinomial(a: &[Arg], _c: &mut dyn Ctx) -> R<Value> {
     let v = numbers(a)?;

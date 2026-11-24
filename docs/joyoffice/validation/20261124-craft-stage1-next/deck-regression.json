@@ -1,0 +1,78 @@
+{
+  "powerPoint16": {
+    "sourceSha256": "b0082e77547861d0e69ee0a00d04edc17613e350a7172670f89a2b053c096a15",
+    "exit": 1,
+    "message": "JoyDeck CLI: encrypted Office files are not supported; decrypt a copy first"
+  },
+  "legacyPresetNames": 183,
+  "presetObjects": 370,
+  "positive": {
+    "preset-catalog": {
+      "sourceSha256": "1a50b71fa08cc8feb785610666a6eba32dabfd0fbcbe6658260ab51320ca854b",
+      "slides": 13,
+      "sourceIds": 370,
+      "preserveSlideParts": 26,
+      "regenerateSlideParts": 26,
+      "exactRenderedPngs": 13
+    },
+    "legacy-1.11": {
+      "sourceSha256": "4d8187b2f5dffeca0a9ec5c57e5e092db297f12cb48cd47b47acb3eb72e1d3ef",
+      "slides": 1,
+      "sourceIds": 1,
+      "preserveSlideParts": 2,
+      "regenerateSlideParts": 2,
+      "exactRenderedPngs": 0,
+      "crossVersionEditAndUndo": {
+        "edit": {
+          "kind": "preset",
+          "name": "ellipse"
+        },
+        "undo": {
+          "kind": "preset",
+          "name": "triangle",
+          "adj": [
+            55000.0
+          ]
+        }
+      }
+    },
+    "legacy-1.0": {
+      "sourceSha256": "b01b770d75c5cf47851f8895ba916ebac000a530f1416cfc923dccfc6be044f9",
+      "slides": 20,
+      "sourceIds": 120,
+      "preserveSlideParts": 40,
+      "regenerateSlideParts": 40,
+      "exactRenderedPngs": 0
+    },
+    "legacy-review-media": {
+      "sourceSha256": "cf1e8aa32d97b2b29db68706351c59c0bcf268166f7df5400279f6113700f3e1",
+      "slides": 2,
+      "sourceIds": 2,
+      "preserveSlideParts": 4,
+      "regenerateSlideParts": 4,
+      "exactRenderedPngs": 0
+    }
+  },
+  "rejected": {
+    "extra-adjustment": {
+      "sourceSha256": "c3b12df0a54288cd3aabe443bb1370d451033e80620bb3e42a25bcd2d947bc0d",
+      "exit": 1,
+      "error": "JoyDeck CLI: legacy migration refused: 预设形状调整参数无效或超过预算"
+    },
+    "noninteger-adjustment": {
+      "sourceSha256": "9a08a0e26124cf882056ba5e7d0b42fb7f21fbfc53edcee4e51efd0d16746068",
+      "exit": 1,
+      "error": "JoyDeck CLI: legacy migration refused: 预设形状调整参数无效或超过预算"
+    },
+    "over-budget-adjustment": {
+      "sourceSha256": "27d33a7d962d00ca6c7f4123a13002bd8326ee89ec0700ae4340ab1b1bd5d4ee",
+      "exit": 1,
+      "error": "JoyDeck CLI: legacy migration refused: 预设形状调整参数无效或超过预算"
+    },
+    "unknown-name": {
+      "sourceSha256": "8857f3a9820e38e4b4ab1290573ed7bdf69ee25d261e129cdab2b55e5d281987",
+      "exit": 1,
+      "error": "JoyDeck CLI: legacy migration refused: 不支持的预设形状"
+    }
+  }
+}

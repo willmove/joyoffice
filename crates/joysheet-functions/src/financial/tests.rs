@@ -282,6 +282,23 @@ fn odd_first_rejects_a_regular_period_under_its_day_count_basis() {
 }
 
 #[test]
+fn odd_first_february_settlement_respects_the_workbook_date_system() {
+    for (sys, excel_price) in [(DateSystem::D1900, 114.023_029_176_096_1), (DateSystem::D1904, 114.018_693_395_221_97)] {
+        let date = |year, month, day| n(serial_from_ymd(sys, year, month, day).expect("valid test date"));
+        let settlement = date(2007, 2, 28);
+        let maturity = date(2021, 3, 1);
+        let issue = date(2007, 1, 20);
+        let first = date(2009, 3, 1);
+        let mut ctx = TestCtx { sys, ..TestCtx::default() };
+        for basis in [0.0, 4.0] {
+            let args = [settlement.clone(), maturity.clone(), issue.clone(), first.clone(), n(0.0785), n(0.0625), n(100.0), n(2.0), n(basis)];
+            let price = crate::lookup("ODDFPRICE").expect("registered price function");
+            close(crate::call(price, &args, &mut ctx), excel_price);
+        }
+    }
+}
+
+#[test]
 fn odd_periods_survive_hostile_input() {
     // Quarterly quasi-periods across the whole date range, huge rates and yields: a value or
     // an error, never a panic or a hang.

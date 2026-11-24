@@ -13,8 +13,8 @@
     "source_path": "crates/joyoffice-ui/src/lib.rs",
     "target_path": "crates/joyoffice-ui/src/lib.rs",
     "source_sha256": "08e23515fe8a44ea93dda33be7d47554c6c6fc4240f35f2fb27b6339fcd7c5cc",
-    "local_changes": "CRLF normalized to LF; 2026-11-11: shared application theme catalog, persistent preset selection and palette projection; preserve document colors and original source identity; 2026-11-18: export the shared Word and Sheet save changes dialog; 2026-11-18: Linux software graphics fallback bootstrap",
-    "adapted_sha256": "5e93be8866d2e71ab8012ccce27b0e8c3332855db7e2dbc537c84541a77cd441",
+    "local_changes": "CRLF normalized to LF; 2026-11-11: shared application theme catalog, persistent preset selection and palette projection; preserve document colors and original source identity; 2026-11-18: export the shared Word and Sheet save changes dialog; 2026-11-18: Linux software graphics fallback bootstrap; 2026-11-24: share the Windows path display conversion used by Word and Deck",
+    "adapted_sha256": "835b308325c1733b0e086df480c4b675d89348439e80d74c08213340652fec36",
     "desktop_product_icons": "2026-11-18: embedded native product icons/logos for every product window; portable desktop registration and complete shared artwork source fingerprints; original attribution retained.",
     "roadmap_refactor": "Expose accessible ribbon groups and launcher footers for all three desktops."
   },

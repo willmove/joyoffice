@@ -1,0 +1,16 @@
+{
+  "packs": 75,
+  "verifiedLocale": "gl",
+  "hostedPacks": 62,
+  "consentRefused": true,
+  "bundledRefresh": true,
+  "frozenReadsAndRemovesCandidateInstall": true,
+  "verifiedLegacyCacheMigration": true,
+  "rollbackReadsOriginalCache": true,
+  "hostedPrimary": true,
+  "upstreamFallback": true,
+  "invalidDigestRejectedOnBothOrigins": true,
+  "corruptCacheRejected": true,
+  "indexSha256": "f0a0a11550941b371369191411ae7c64fb0cf45f29a99c7b54978e0cfdfc3ff0",
+  "originalSourceSha256": "24b72693cba6fbeb3cfe187af5932fc763846d12d51c2a6e8e77b3a2cce75d3f"
+}

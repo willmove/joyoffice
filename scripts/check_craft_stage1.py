@@ -265,6 +265,9 @@ def deck_comparison(old, new, folder, out):
             # Either binary must be able to open the other binary's v2 result.
             other = new if label == "baseline" else old
             assert inspect == json.loads(run(other, "inspect", migrated))
+            # The byte count describes this generated container. Each reader
+            # must report its actual size before comparing document semantics.
+            assert inspect.pop("source_bytes") == migrated.stat().st_size
             with ZipFile(migrated) as archive:
                 report = json.loads(archive.read("migration/report.json"))
                 assert archive.read("migration/legacy-original.joydeck") == path.read_bytes()

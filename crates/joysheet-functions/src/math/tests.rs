@@ -200,8 +200,13 @@ fn combinatorics() {
     close(ev2("COMBIN", 8.9, 2.9), 28.0);
     is_err(ev2("COMBIN", 2.0, 3.0), Num);
     close(ev2("COMBIN", 60.0, 30.0), 118_264_581_564_861_424.0);
+    close(ev2("COMBIN", 1029.0, 514.0), 1.429_820_686_498_903_2e308);
+    is_err(ev2("COMBIN", 1030.0, 514.0), Num);
+    is_err(ev2("COMBIN", f64::from(i32::MAX), 0.0), Num);
     close(ev2("COMBINA", 4.0, 3.0), 20.0);
     close(ev2("COMBINA", 10.0, 3.0), 220.0);
+    close(ev2("COMBINA", 516.0, 514.0), 1.429_820_686_498_903_2e308);
+    is_err(ev2("COMBINA", 2.0, f64::from(i32::MAX) - 1.0), Num);
     close(ev2("PERMUT", 100.0, 3.0), 970_200.0);
     close(ev2("PERMUT", 3.0, 2.0), 6.0);
     is_err(ev2("PERMUT", 2.0, 3.0), Num);
@@ -214,6 +219,10 @@ fn combinatorics() {
     close(ev2("LCM", 24.0, 36.0), 72.0);
     close(ev2("LCM", 5.0, 2.0), 10.0);
     close(ev2("LCM", 5.0, 0.0), 0.0);
+    let large = [n(94_906_266.0), n(94_906_267.0)];
+    is_err(ev("LCM", large.to_vec()), Num);
+    close(ev("LCM", large.clone().into_iter().chain([n(0.0)]).collect()), 0.0);
+    is_err(ev("LCM", large.into_iter().chain([n(0.0), n(-1.0)]).collect()), Num);
     close(ev("MULTINOMIAL", vec![n(2.0), n(3.0), n(4.0)]), 1260.0);
     is_err(ev("MULTINOMIAL", vec![n(-1.0), n(2.0)]), Num);
 }

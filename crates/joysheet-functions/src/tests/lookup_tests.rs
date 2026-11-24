@@ -88,9 +88,9 @@ fn approximate_match_follows_bisection() {
     let words = ["STRING", "", "nospaces", "sp ace s", "endsWithSpace ", " beginsWithSpace", "non-numeric", "0", "0.000001", "1"];
     let e_col = arr(words.iter().map(|w| vec![tv(w)]).collect());
     is_text(ev("LOOKUP", vec![n(534.0), rf(arr(keys.into_iter().map(|k| vec![k]).collect())), rf(e_col)]), "endsWithSpace ");
-    // Sorted duplicates give the last one; descending data with MATCH -1 too.
+    // Excel 16 uses the last equal item ascending and the first descending.
     close(ev("MATCH", vec![n(2.0), av(row(&[1.0, 2.0, 2.0, 2.0, 3.0])), n(1.0)]), 4.0);
-    close(ev("MATCH", vec![n(20.0), av(row(&[40.0, 20.0, 20.0, 10.0])), n(-1.0)]), 3.0);
+    close(ev("MATCH", vec![n(20.0), av(row(&[40.0, 20.0, 20.0, 10.0])), n(-1.0)]), 2.0);
     // Only text and blanks: no number to find.
     is_err(ev("MATCH", vec![n(5.0), av(arr(vec![vec![tv("a"), Value::Empty, tv("b")]]))]), CellError::NA);
     // A long run of trailing blanks (whole-column lookups) still finds the last number.
@@ -186,6 +186,10 @@ fn xmatch() {
     close(ev("XMATCH", vec![n(25.0), rf(v.clone()), n(1.0)]), 3.0);
     close(ev("XMATCH", vec![n(25.0), rf(v.clone()), n(-1.0)]), 2.0);
     close(ev("XMATCH", vec![n(30.0), rf(v.clone()), n(0.0), n(2.0)]), 3.0);
+    for mode in [-1.0, 0.0, 1.0] {
+        close(ev("XMATCH", vec![n(2.0), rf(col(&[1.0, 2.0, 2.0, 4.0, 9.0])), n(mode), n(2.0)]), 2.0);
+        close(ev("XMATCH", vec![n(2.0), rf(col(&[9.0, 4.0, 2.0, 2.0, 1.0])), n(mode), n(-2.0)]), 4.0);
+    }
     close(ev("XMATCH", vec![t("a?c"), av(arr(vec![vec![tv("xyz"), tv("abc")]])), n(2.0)]), 2.0);
     let r = ev("XMATCH", vec![av(row(&[30.0, 10.0])), rf(v)]);
     assert_eq!(rows_of(&r), vec![vec![nv(3.0), nv(1.0)]]);

@@ -389,11 +389,32 @@ fn odd_first(sys: DateSystem, settle: f64, mat: f64, issue: f64, first: f64, fre
         // the first contributes one installment. The issue stub and the
         // accrued interest still use actual elapsed days over the fixed base.
         dc += if matches!(basis, 2 | 3) && issue < start { 1.0 } else { span(sys, from, end, basis)? / nl };
-        acc += span(sys, from, settle.min(end), basis)? / nl;
+        let mut accrued_days = span(sys, from, settle.min(end), basis)?;
         if start <= settle && settle < end {
             nq = Some(k as f64);
-            frac = span(sys, settle, end, basis)? / nl;
+            let mut remaining_days = span(sys, settle, end, basis)?;
+            if !eom && matches!(basis, 0 | 4) {
+                let (year, month, day) = ymd(sys, settle)?;
+                if month == 2 && day == days_in_month(year, 2) {
+                    let days_to_thirty = f64::from(30 - day);
+                    // On a day-of-month coupon calendar, Excel's 1904 clock
+                    // treats the February settlement as day 30 on both sides
+                    // of the split. The 1900 US discount uses the actual day.
+                    match sys {
+                        DateSystem::D1900 if basis == 0 => remaining_days += days_to_thirty,
+                        DateSystem::D1904 => {
+                            accrued_days += days_to_thirty;
+                            if basis == 4 {
+                                remaining_days -= days_to_thirty;
+                            }
+                        }
+                        _ => {}
+                    }
+                }
+            }
+            frac = remaining_days / nl;
         }
+        acc += accrued_days / nl;
         if start <= issue {
             break;
         }

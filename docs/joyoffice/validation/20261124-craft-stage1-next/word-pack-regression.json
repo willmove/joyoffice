@@ -1,0 +1,73 @@
+{
+  "consentDigestSizeUnavailable": {
+    "consent": "downloading is turned off: turn it on in WordCraft (File › Options › Language, or an Install button there)",
+    "errors": {
+      "digest": "nl.tar.zst was rejected: sha256 mismatch",
+      "oversize": "downloading nl.tar.zst failed: the response is larger than 756670 bytes",
+      "unavailable": "downloading nl.tar.zst failed: HTTP 404"
+    },
+    "restored": {
+      "locale": "zz",
+      "name": "Inventory recovery",
+      "release": "",
+      "version": "",
+      "licence": "CC0-1.0",
+      "sha256": "",
+      "size": 0
+    }
+  },
+  "crossVersionInventoryRecovery": true,
+  "oversizedInventoryRetained": true,
+  "sourceSha256": "3fb205d1d4372374832f6e27cc199c69bed02b2d932e1f193ba0e2665aad606c",
+  "publishedArchives": {
+    "baselineSha256": "6e833cb91ab13e8ce8e03e9edfe8d87e2ad2bb84a481d427713a1a37e813f55e",
+    "candidateSha256": "96146eb5d0dd226f735c55e73eb39cfe129524d9b40a57f8719b2bfa7c2ec094",
+    "indexSha256": "b35c7aef0591177f18233b551da16035dcd615549ff874e169ffd19f16fea74b",
+    "archives": 75,
+    "regularFiles": 569,
+    "licenseFiles": 276,
+    "archiveBytes": 41923267,
+    "firstInstalledWithOld": 37,
+    "firstInstalledWithNew": 38,
+    "crossVersionReinstalls": 75,
+    "crossVersionInventoryVerified": true,
+    "verifiedCrashStates": [
+      [
+        "replace",
+        "journal"
+      ],
+      [
+        "replace",
+        "old-moved"
+      ],
+      [
+        "replace",
+        "candidate-published"
+      ],
+      [
+        "replace",
+        "inventory-written"
+      ],
+      [
+        "remove",
+        "journal"
+      ],
+      [
+        "remove",
+        "old-moved"
+      ],
+      [
+        "remove",
+        "candidate-published"
+      ],
+      [
+        "remove",
+        "inventory-written"
+      ]
+    ],
+    "concurrentInstallRequests": 4,
+    "allRemoved": true,
+    "originalUnchanged": true,
+    "consentOffRefused": true
+  }
+}

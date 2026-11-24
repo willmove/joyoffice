@@ -5,6 +5,7 @@
 pub use gpui_kit::assets::IconName;
 use gpui_kit::component::Icon;
 use gpui_kit::{Div, ParentElement, Styled, div, px, rgb};
+use std::path::Path;
 
 pub use joyoffice_theme::{Brand, Palette, ThemePreset};
 mod appearance;
@@ -22,6 +23,21 @@ pub use linux_graphics::prepare_desktop_graphics;
 #[cfg(not(all(target_os = "linux", target_arch = "x86_64")))]
 pub fn prepare_desktop_graphics() -> Result<(), String> {
     Ok(())
+}
+
+/// Human-readable label for an existing path. Use the original path for I/O.
+pub fn display_path(path: &Path) -> String {
+    let display = path.to_string_lossy();
+    #[cfg(windows)]
+    if let Some(std::path::Component::Prefix(prefix)) = path.components().next() {
+        use std::path::Prefix::{VerbatimDisk, VerbatimUNC};
+        match prefix.kind() {
+            VerbatimDisk(_) => return display[4..].to_owned(),
+            VerbatimUNC(_, _) => return format!(r"\\{}", &display[8..]),
+            _ => {}
+        }
+    }
+    display.into_owned()
 }
 
 /// Logical pixels; document zoom never changes application chrome dimensions.
