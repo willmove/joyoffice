@@ -10,7 +10,6 @@ from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 
 TOOLS = runpy.run_path(str(Path(__file__).with_name("stage-hosted-language-packs.py")))
 TAG = "joyword-language-packs-2"
-ORIGIN = f"https://github.com/willmove/joyoffice/releases/download/{TAG}/"
 
 
 def zip_bytes(bundle, name, data):
@@ -19,7 +18,7 @@ def zip_bytes(bundle, name, data):
     bundle.writestr(member, data)
 
 
-def stage(archives, audit, cache, review, previous, out):
+def stage(archives, audit, cache, review, previous, out, tag=TAG):
     verify = TOOLS["digest"]
     decision = json.loads(review.read_bytes())
     raw_audit = audit.read_bytes()
@@ -29,12 +28,17 @@ def stage(archives, audit, cache, review, previous, out):
     if verify(original_bytes) != TOOLS["INDEX_SHA"]:
         raise ValueError("The original pack index differs from the pinned copy")
     original = {p["locale"]: p for p in json.loads(original_bytes)["packs"]}
-    records = {p["locale"]: p for p in json.loads(raw_audit)["packs"] if p["class"] == "Download-only"}
-    decisions = decision["packs"]
-    if set(decisions) != set(records) or len(records) != 34:
-        raise ValueError("Each of the 34 outstanding locales requires a decision")
-
     previous = json.loads(previous.read_bytes())
+    existing_hosts = {p["locale"] for p in previous["packs"] if "fallback_url" in p}
+    records = {
+        p["locale"]: p for p in json.loads(raw_audit)["packs"]
+        if p["class"] == "Download-only" and p["locale"] not in existing_hosts
+    }
+    decisions = decision["packs"]
+    if not records or set(decisions) != set(records):
+        raise ValueError("Each outstanding locale requires a decision")
+
+    origin = f"https://github.com/willmove/joyoffice/releases/download/{tag}/"
     assets = out / "assets"
     assets.mkdir(parents=True)
     published = []
@@ -85,13 +89,13 @@ def stage(archives, audit, cache, review, previous, out):
         base["url"] = item.get("fallback_url", item["url"])
         if base != source:
             raise ValueError(f"{locale}: previously bundled entry has changed its archive contract")
-        index.append(dict(source, url=f"{ORIGIN}{locale}.tar.zst", fallback_url=source["url"]) if locale in migrated else item)
+        index.append(dict(source, url=f"{origin}{locale}.tar.zst", fallback_url=source["url"]) if locale in migrated else item)
     if len(index) != 75 or {item["locale"] for item in index} != set(original) or not migrated:
         raise ValueError("Invalid complete index or empty release")
     # Keep the pack series identity shared by old and new stores.
     TOOLS["write"](assets / "index.json", dict(previous, packs=index))
     TOOLS["write"](assets / "publication-audit.json", dict(
-        tag=TAG, reviewed=len(records), verifiedSourceUrls=len(inputs), newHosts=len(migrated),
+        tag=tag, reviewed=len(records), verifiedSourceUrls=len(inputs), newHosts=len(migrated),
         upstream=len(records) - len(migrated), previousAuditSha256=verify(raw_audit),
         sourceBundleSha256=verify((assets / "sources-and-notices.zip").read_bytes()),
         supplement=decision["supplement"], packs=published,
@@ -103,4 +107,5 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     for argument in ("archives", "audit", "cache", "review", "previous", "output"):
         parser.add_argument(argument, type=Path)
+    parser.add_argument("--tag", default=TAG)
     stage(*vars(parser.parse_args()).values())

@@ -4,11 +4,12 @@
 //! DesignCraft's patgen (see `examples/hyphgen.rs`). The Polish set is the TeX one by Hanna
 //! Kołodziejska, Bogusław Jackowski and Marek Ryćko (hyph-utf8 `hyph-pl.tex`, used under its MIT
 //! licence option), bundled unmodified: [`Patterns::parse`] reads TeX's `\patterns{…}` and
-//! `\hyphenation{…}` blocks directly. Patterns are stored in a hash map keyed by the packed letter
-//! string, with a bounded index of the pattern lengths present at each initial letter pair.
+//! `\hyphenation{…}` blocks directly. The runtime matcher follows letter edges in a trie and
+//! combines the weights of every overlapping pattern as described in Liang's 1983 thesis.
 
 use std::collections::HashMap;
 use std::hash::{BuildHasherDefault, Hasher};
+use std::num::NonZeroU32;
 
 /// Word-boundary marker in patterns.
 pub const DOT: char = '.';
@@ -112,12 +113,20 @@ pub fn pack(codes: &[u8]) -> u128 {
 #[derive(Clone, Debug, Default)]
 pub struct Patterns {
     alpha: Alphabet,
-    /// Packed letters → inter-letter values (`len + 1` entries).
-    map: FxMap<u128, Box<[u8]>>,
-    /// Row = first code, column = second code (zero for a singleton), bit n = length n + 1.
-    lengths: Vec<[u32; 64]>,
+    nodes: Vec<Node>,
+    weights: Vec<u8>,
+    pattern_count: usize,
     /// Lowercase word → its break points (char indices), overriding the patterns.
     exceptions: HashMap<String, Box<[usize]>>,
+}
+
+#[derive(Clone, Debug, Default)]
+struct Node {
+    child: Option<NonZeroU32>,
+    sibling: Option<NonZeroU32>,
+    weight_offset: u32,
+    weight_count: u8,
+    letter: u8,
 }
 
 /// Which TeX block [`Patterns::parse`] is reading.
@@ -136,6 +145,10 @@ impl Patterns {
     /// commands' arguments (`\message{…}`) are skipped; outside any block, a token with a hyphen
     /// is an exception and anything else a pattern.
     pub fn parse(text: &str) -> Patterns {
+        Self::parse_bounded(text, u64::MAX).unwrap_or_default()
+    }
+
+    pub(crate) fn parse_bounded(text: &str, trie_budget: u64) -> Option<Self> {
         let mut p = Patterns::default();
         let mut block = Block::Patterns;
         for line in text.lines() {
@@ -164,6 +177,9 @@ impl Patterns {
                         p.insert_exception(tok);
                     } else {
                         p.insert(tok);
+                        if p.pattern_storage_bytes() > trie_budget {
+                            return None;
+                        }
                     }
                 }
                 if closes {
@@ -171,7 +187,7 @@ impl Patterns {
                 }
             }
         }
-        p
+        Some(p)
     }
 
     /// Add one pattern like `a1b`; returns false if it can't be represented.
@@ -192,14 +208,61 @@ impl Patterns {
         if codes.is_empty() || codes.len() > MAX_PATTERN_LEN {
             return false;
         }
-        let first = usize::from(codes[0]);
-        let second = usize::from(codes.get(1).copied().unwrap_or(0));
-        if self.lengths.len() <= first {
-            self.lengths.resize(first + 1, [0; 64]);
+        if self.nodes.is_empty() {
+            self.nodes.push(Node::default());
         }
-        self.lengths[first][second] |= 1 << (codes.len() - 1);
-        self.map.insert(pack(&codes), vals.into_boxed_slice());
+        let mut index = 0;
+        for code in codes {
+            if let Some(child) = self.edge(index, code) {
+                index = child;
+                continue;
+            }
+            let Some(child) = u32::try_from(self.nodes.len())
+                .ok()
+                .and_then(NonZeroU32::new)
+            else {
+                return false;
+            };
+            let sibling = self.nodes[index].child.replace(child);
+            self.nodes.push(Node {
+                letter: code,
+                sibling,
+                ..Node::default()
+            });
+            index = child.get() as usize;
+        }
+        let node = &mut self.nodes[index];
+        if node.weight_count == 0 {
+            let Ok(start) = u32::try_from(self.weights.len()) else {
+                return false;
+            };
+            node.weight_offset = start;
+            node.weight_count = vals.len() as u8;
+            self.weights.extend(vals);
+            self.pattern_count += 1;
+        } else {
+            let start = node.weight_offset as usize;
+            self.weights[start..start + vals.len()].copy_from_slice(&vals);
+        }
         true
+    }
+
+    fn edge(&self, index: usize, code: u8) -> Option<usize> {
+        self.children(index)
+            .find(|&child| self.nodes[child].letter == code)
+    }
+
+    fn children(&self, index: usize) -> impl Iterator<Item = usize> + '_ {
+        std::iter::successors(self.nodes[index].child, |child| {
+            self.nodes[child.get() as usize].sibling
+        })
+        .map(|child| child.get() as usize)
+    }
+
+    fn votes(&self, index: usize) -> &[u8] {
+        let node = &self.nodes[index];
+        let start = node.weight_offset as usize;
+        &self.weights[start..start + usize::from(node.weight_count)]
     }
 
     /// Add an exception word written with its hyphens (`ni-gdy`; no hyphen: never broken).
@@ -241,15 +304,15 @@ impl Patterns {
     }
 
     pub fn len(&self) -> usize {
-        self.map.len()
+        self.pattern_count
     }
 
-    pub(crate) fn prefix_index_bytes(&self) -> u64 {
-        (self.lengths.capacity() * std::mem::size_of::<[u32; 64]>()) as u64
+    pub(crate) fn pattern_storage_bytes(&self) -> u64 {
+        (self.nodes.capacity() * std::mem::size_of::<Node>() + self.weights.capacity()) as u64
     }
 
     pub fn is_empty(&self) -> bool {
-        self.map.is_empty()
+        self.pattern_count == 0
     }
 
     /// Inter-letter values for a lowercase word: `out[i]` is the value *before* char `i`
@@ -265,28 +328,20 @@ impl Patterns {
             codes.push(k);
         }
         codes.push(1);
-        // Liang's overlapping patterns vote by maximum weight at each original letter gap.
-        // Only lengths registered for this prefix can have a vote. The outside of each
-        // boundary dot is discarded while combining, without allocating another result.
         let mut weights = vec![0; word.len() + 1];
-        for start in 0..codes.len() {
-            let suffix = &codes[start..];
-            let Some(lengths) = self.lengths.get(usize::from(suffix[0])) else {
-                continue;
-            };
-            let second = usize::from(suffix.get(1).copied().unwrap_or(0));
-            let mask = lengths[0] | lengths[second];
-            let depth = (u32::BITS - mask.leading_zeros()) as usize;
-            let mut letters = 0u128;
-            for (i, &code) in suffix.iter().take(depth).enumerate() {
-                letters = (letters << 6) | u128::from(code);
-                if mask & (1 << i) == 0 {
-                    continue;
-                }
-                let key = letters | (((i + 1) as u128) << 120);
-                if let Some(votes) = self.map.get(&key) {
-                    let source = &votes[usize::from(start == 0)..];
-                    for (out, vote) in weights[start.saturating_sub(1)..].iter_mut().zip(source) {
+        if !self.nodes.is_empty() {
+            for start in 0..codes.len() {
+                let mut node = 0;
+                for &code in &codes[start..] {
+                    let Some(child) = self.edge(node, code) else {
+                        break;
+                    };
+                    node = child;
+                    // A gap outside either boundary marker is outside the result.
+                    for (out, vote) in weights[start.saturating_sub(1)..]
+                        .iter_mut()
+                        .zip(self.votes(node).iter().skip(usize::from(start == 0)))
+                    {
                         *out = (*out).max(*vote);
                     }
                 }
@@ -312,30 +367,43 @@ impl Patterns {
             .map(|c| (self.alpha.ascii[c as usize], c as char))
             .collect();
         rev.extend(self.alpha.other.iter().map(|&(c, k)| (k, c)));
-        let ch = |k: u8| rev.iter().find(|x| x.0 == k).map_or('?', |x| x.1);
-        let mut out: Vec<(String, String)> = self
-            .map
-            .iter()
-            .map(|(&key, vals)| {
-                let n = ((key >> 120) as usize).min(MAX_PATTERN_LEN);
-                let letters: Vec<char> = (0..n)
-                    .map(|i| ch(((key >> (6 * (n - 1 - i))) & 63) as u8))
-                    .collect();
-                let mut s = String::new();
-                for (i, l) in letters.iter().enumerate() {
-                    if let Some(&v) = vals.get(i).filter(|v| **v > 0) {
-                        s.push(char::from(b'0' + v.min(9)));
-                    }
-                    s.push(*l);
-                }
-                if let Some(&v) = vals.get(n).filter(|v| **v > 0) {
-                    s.push(char::from(b'0' + v.min(9)));
-                }
-                (letters.into_iter().collect(), s)
-            })
-            .collect();
+        let mut alphabet = ['?'; 64];
+        for (code, letter) in rev {
+            alphabet[usize::from(code)] = letter;
+        }
+        let mut out = Vec::with_capacity(self.pattern_count);
+        if !self.nodes.is_empty() {
+            self.write_patterns(0, &mut Vec::new(), &alphabet, &mut out);
+        }
         out.sort();
         out.into_iter().map(|x| x.1).collect()
+    }
+
+    fn write_patterns(
+        &self,
+        index: usize,
+        letters: &mut Vec<char>,
+        alphabet: &[char; 64],
+        out: &mut Vec<(String, String)>,
+    ) {
+        let weights = self.votes(index);
+        if !weights.is_empty() {
+            let mut notation = String::new();
+            for (i, &weight) in weights.iter().enumerate() {
+                if weight != 0 {
+                    notation.push(char::from(b'0' + weight));
+                }
+                if let Some(&letter) = letters.get(i) {
+                    notation.push(letter);
+                }
+            }
+            out.push((letters.iter().collect(), notation));
+        }
+        for child in self.children(index) {
+            letters.push(alphabet[usize::from(self.nodes[child].letter)]);
+            self.write_patterns(child, letters, alphabet, out);
+            letters.pop();
+        }
     }
 }
 
@@ -407,7 +475,7 @@ mod tests {
     }
 
     #[test]
-    fn prefix_lengths_match_all_substrings_for_five_language_tables() {
+    fn trie_matches_all_substrings_for_five_language_tables() {
         let custom = Patterns::parse("1a a2b a5b a2b3c .a6bc1d 2de. de7a");
         for set in [
             &custom,
@@ -418,6 +486,23 @@ mod tests {
             Patterns::pt(),
         ] {
             let patterns = set.to_tex();
+            let legacy: FxMap<_, _> = patterns
+                .iter()
+                .map(|pattern| {
+                    let mut codes = Vec::new();
+                    let mut weights = vec![0];
+                    for ch in pattern.chars() {
+                        if let Some(digit) = ch.to_digit(10) {
+                            let gap = weights.len() - 1;
+                            weights[gap] = digit as u8;
+                        } else {
+                            codes.push(set.alpha.code(ch));
+                            weights.push(0);
+                        }
+                    }
+                    (pack(&codes), weights.into_boxed_slice())
+                })
+                .collect();
             // Include patterns throughout each alphabet and patterns longer than their prefixes.
             for pattern in patterns
                 .iter()
@@ -430,7 +515,7 @@ mod tests {
                     .chain(std::iter::once(1))
                     .collect();
                 let mut reference = vec![0; codes.len() + 1];
-                apply(&set.map, MAX_PATTERN_LEN, &codes, &mut reference);
+                apply(&legacy, MAX_PATTERN_LEN, &codes, &mut reference);
                 assert_eq!(
                     set.values(&word).as_deref(),
                     Some(&reference[1..codes.len()]),
@@ -443,8 +528,9 @@ mod tests {
 
     #[test]
     fn apply_tolerates_short_value_buffers() {
-        let p = Patterns::parse("a1b");
+        let mut patterns = FxMap::default();
+        patterns.insert(pack(&[2, 3]), vec![0, 1, 0].into_boxed_slice());
         let mut vals = [0u8; 1];
-        apply(&p.map, MAX_PATTERN_LEN, &[1, 2, 3, 1], &mut vals);
+        apply(&patterns, MAX_PATTERN_LEN, &[1, 2, 3, 1], &mut vals);
     }
 }

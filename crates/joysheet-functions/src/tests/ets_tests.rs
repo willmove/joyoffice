@@ -195,6 +195,7 @@ fn documented_errors() {
     is_err(ets(vec![n(13.0), range(&[1.0, 2.0]), rf(arr(vec![vec![nv(1.0)], vec![tv("x")]]))]), CellError::Value);
     is_err(ets(vec![n(13.0), rf(arr(vec![vec![nv(1.0)], vec![Value::Error(CellError::Div0)]])), range(&[1.0, 2.0])]), CellError::Div0);
     // Confidence level outside (0, 1); statistic type outside 1–8.
+    is_err(ev("FORECAST.ETS.CONFINT", vec![n(12.0), range(&ys), range(&ts)]), CellError::Num);
     is_err(ev("FORECAST.ETS.CONFINT", vec![n(13.0), range(&ys), range(&ts), n(1.0)]), CellError::Num);
     is_err(ev("FORECAST.ETS.CONFINT", vec![n(13.0), range(&ys), range(&ts), n(0.0)]), CellError::Num);
     is_err(ev("FORECAST.ETS.STAT", vec![range(&ys), range(&ts), n(9.0)]), CellError::Num);

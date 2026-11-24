@@ -39,8 +39,8 @@ const MAX_HYPHENATION_LOOKUPS: usize = 256;
 /// [`MAX_HYPHENATION_LOOKUPS`] of them are kept, so they get a budget of their own, as the
 /// dictionaries do (`pack_lang::MAX_LOADED_BYTES`).
 const MAX_HYPHENATION_BYTES: u64 = 256 << 20;
-/// Estimated memory per pattern (its packed key, its values and the map's own room).
-const BYTES_PER_PATTERN: u64 = 64;
+/// Estimated memory per exception for its string, break points and map entry.
+const BYTES_PER_EXCEPTION: u64 = 64;
 /// A pack's description.
 const PACK_TOML: &str = "pack.toml";
 /// A pack's licence texts.
@@ -710,10 +710,9 @@ pub(crate) fn hyphenation(lang: ProofLang) -> Option<Arc<Patterns>> {
 
 /// Estimated memory of `p`.
 fn pattern_bytes(p: &Patterns) -> u64 {
-    (p.len() as u64)
-        .saturating_add(p.exception_count() as u64)
-        .saturating_mul(BYTES_PER_PATTERN)
-        .saturating_add(p.prefix_index_bytes())
+    (p.exception_count() as u64)
+        .saturating_mul(BYTES_PER_EXCEPTION)
+        .saturating_add(p.pattern_storage_bytes())
 }
 
 /// Remember `lang`'s pack patterns (`bytes` of them): over [`MAX_HYPHENATION_LOOKUPS`] languages
@@ -746,7 +745,12 @@ pub(crate) fn hyphenation_lookups() -> usize {
 fn load_patterns(path: &Path) -> Result<Patterns, String> {
     let bytes = read_capped(path, crate::hunspell::MAX_FILE)?;
     let text = String::from_utf8(bytes).map_err(|_| format!("{}: not UTF-8", path.display()))?;
-    let p = Patterns::parse(&text);
+    let p = Patterns::parse_bounded(&text, MAX_HYPHENATION_BYTES).ok_or_else(|| {
+        format!(
+            "{}: hyphenation patterns exceed the memory budget",
+            path.display()
+        )
+    })?;
     if p.is_empty() {
         return Err(format!("{}: no patterns", path.display()));
     }
@@ -773,8 +777,9 @@ mod tests {
             "hy3ph he2n hena4 hen5at 1na n2at 1tio 2io o2n",
         ));
         let bytes = pattern_bytes(&p);
-        assert!(p.prefix_index_bytes() > 0);
-        assert_eq!(bytes, 9 * BYTES_PER_PATTERN + p.prefix_index_bytes());
+        assert!(p.pattern_storage_bytes() > 0);
+        assert_eq!(bytes, p.pattern_storage_bytes());
+        assert!(Patterns::parse_bounded("hy3ph", 1).is_none());
         let lang = |t: &str| ProofLang::from_tag(Some(t));
         let budget = bytes * 2;
         remember_patterns(&mut s, lang("nl"), Some(p.clone()), bytes, budget);

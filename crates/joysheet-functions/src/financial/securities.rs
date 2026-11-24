@@ -326,6 +326,23 @@ fn span(sys: DateSystem, from: f64, to: f64, basis: u32) -> R<f64> {
     if to > from { day_count(sys, from, to, basis) } else { Ok(0.0) }
 }
 
+/// The regular-period check for ODDF* uses the US 30/360 February
+/// adjustment only when both dates are the last day of February.
+fn first_period_length(sys: DateSystem, issue: f64, first: f64, basis: u32) -> R<f64> {
+    if basis != 0 {
+        return day_count(sys, issue, first, basis);
+    }
+    let (iy, im, id) = ymd(sys, issue)?;
+    let (fy, fm, fd) = ymd(sys, first)?;
+    let months = f64::from((fy - iy) * 12 + fm as i32 - im as i32) * 30.0;
+    if im == 2 && fm == 2 && id == days_in_month(iy, im) && fd == days_in_month(fy, fm) {
+        return Ok(months);
+    }
+    let start = id.min(30);
+    let end = if start == 30 { fd.min(30) } else { fd };
+    Ok(months + f64::from(end) - f64::from(start))
+}
+
 /// The odd-first-period terms that ODDFPRICE and ODDFYIELD share.
 struct OddFirst {
     /// Coupons after the first coupon up to maturity.
@@ -349,6 +366,11 @@ fn odd_first(sys: DateSystem, settle: f64, mat: f64, issue: f64, first: f64, fre
     let eom = anchor.2 == days_in_month(anchor.0, anchor.1);
     let step = (12.0 / freq) as i64;
     let quasi = |k: i64| shift_months(sys, anchor, -k * step, eom);
+    let regular_start = quasi(1)?;
+    let regular_length = normal_length(regular_start, first, freq, basis);
+    if first_period_length(sys, issue, first, basis)? == regular_length {
+        return Err(CellError::Num);
+    }
     let (mut dc, mut acc) = (0.0, 0.0);
     let (mut nq, mut frac) = (None, 0.0);
     // Walk back from the first coupon: period k runs from quasi(k + 1) to quasi(k).

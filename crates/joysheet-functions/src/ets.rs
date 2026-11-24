@@ -762,6 +762,9 @@ fn forecast_ets_confint(a: &[Arg], c: C) -> R<Value> {
     let opts = options(a, Some(4), 5, 6)?;
     let p = prepare(a, c, 1, 2, opts)?;
     let h = p.series.horizon(target)?;
+    if h == 0.0 {
+        return Err(CellError::Num);
+    }
     let z = norm_inv((1.0 + level) / 2.0);
     num_val(z * fit(&p.series.y, p.m).forecast_sd(h))
 }

@@ -267,6 +267,21 @@ fn odd_periods() {
 }
 
 #[test]
+fn odd_first_rejects_a_regular_period_under_its_day_count_basis() {
+    let args =
+        |issue_day, x, basis| vec![d(2008, 11, 11), d(2021, 3, 1), d(2008, 9, issue_day), d(2009, 3, 1), n(0.0785), n(x), n(100.0), n(2.0), n(basis)];
+    for (function, x) in [("ODDFPRICE", 0.0625), ("ODDFYIELD", 84.50)] {
+        for basis in [0.0, 1.0, 4.0] {
+            is_err(ev(function, args(1, x, basis)), CellError::Num);
+        }
+        // This half year spans 181 actual days. The next issue day makes
+        // the 180-day ACT/360 period regular instead.
+        assert!(number(ev(function, args(1, x, 2.0))).is_finite());
+        is_err(ev(function, args(2, x, 2.0)), CellError::Num);
+    }
+}
+
+#[test]
 fn odd_periods_survive_hostile_input() {
     // Quarterly quasi-periods across the whole date range, huge rates and yields: a value or
     // an error, never a panic or a hang.

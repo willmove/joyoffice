@@ -1,7 +1,9 @@
 //! Desktop document pipeline adapted from JoyOffice's generation-gated canvas.
 use super::*;
 use crate::page_index::PageIndex;
-use gpui::{RenderImage, Task, img, point};
+use gpui::{
+    ContentMask, Corners, DevicePixels, ObjectFit, Pixels, RenderImage, Size, Task, canvas, point,
+};
 use joyword_render::requests::RasterRequestGate;
 use joyword_shell::reader::{MAX_CACHE_PIXELS, MAX_PAGE_PIXELS, RasterScene, Reader, WELCOME};
 use std::{
@@ -37,6 +39,50 @@ struct CachedPage {
     pixels: u64,
     last_used: u64,
     epoch: u64,
+}
+
+fn native_raster_bounds(
+    bounds: Bounds<Pixels>,
+    raster: Size<DevicePixels>,
+    dpi: f32,
+) -> Option<Bounds<Pixels>> {
+    let device_page = bounds.size.map(|length| f32::from(length) * dpi);
+    let raster = raster.map(|length| length.0 as f32);
+    // A full-resolution raster rounds the page extent up. Smaller rasters can
+    // come from the pixel budget and still need to be fitted into the page.
+    if (device_page.width - raster.width).abs() > 1.0
+        || (device_page.height - raster.height).abs() > 1.0
+    {
+        return None;
+    }
+    Some(Bounds {
+        origin: bounds.origin.map(|offset| {
+            let device = f32::from(offset) * dpi;
+            // Match GPUI's page and content-mask rounding at a half pixel.
+            px((device.abs() - 0.5).ceil().copysign(device) / dpi)
+        }),
+        size: raster.map(|length| px(length / dpi)),
+    })
+}
+
+fn page_raster(image: Arc<RenderImage>) -> impl gpui::IntoElement {
+    canvas(
+        |_, _, _| (),
+        move |bounds, (), window, _| {
+            let raster = image.size(0);
+            let (clip, destination) =
+                match native_raster_bounds(bounds, raster, window.scale_factor()) {
+                    // Keep layout coordinates for the page and its editing overlays. Clip
+                    // the rounded-up texture edge without fitting and filtering the pixels.
+                    Some(destination) => (destination, destination),
+                    None => (bounds, ObjectFit::Contain.get_bounds(bounds, raster)),
+                };
+            window.with_content_mask(Some(ContentMask { bounds }), |window| {
+                let _ = window.paint_image(clip, destination, Corners::default(), image, 0, false);
+            });
+        },
+    )
+    .size_full()
 }
 
 pub(super) struct DocumentCanvas {
@@ -724,7 +770,7 @@ impl JoyWord {
             .children(shown.map(|index| {
                 let size = &reader.summary.pages[index];
                 let content = match self.canvas.image(index) {
-                    Some(page) => img(page.image.clone()).size_full().into_any_element(),
+                    Some(page) => page_raster(page.image.clone()).into_any_element(),
                     None => div()
                         .p_6()
                         .text_color(rgb(p.muted))
@@ -792,6 +838,26 @@ impl JoyWord {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn page_raster_keeps_one_texel_per_device_pixel_at_fractional_dpi() {
+        let page = Bounds {
+            origin: point(px(21.3), px(-17.3)),
+            size: size(px(793.7), px(1122.5)),
+        };
+        let dpi = 1.25;
+        let raster = size(DevicePixels(993), DevicePixels(1404));
+        assert_eq!(
+            native_raster_bounds(page, raster, dpi),
+            Some(Bounds {
+                origin: point(px(27.0 / dpi), px(-22.0 / dpi)),
+                size: size(px(993.0 / dpi), px(1404.0 / dpi)),
+            }),
+        );
+        assert!(
+            native_raster_bounds(page, size(DevicePixels(883), DevicePixels(1249)), dpi).is_none()
+        );
+    }
 
     #[test]
     fn stale_page_remains_available_until_the_current_epoch_is_rendered() {

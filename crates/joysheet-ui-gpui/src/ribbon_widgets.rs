@@ -6,7 +6,7 @@ use crate::{
 use gpui_base::Selectable;
 use gpui_kit::{
     component::{
-        Disableable, Sizable,
+        Disableable, Sizable, WindowExt,
         button::{Button, ButtonVariants},
         input::Input,
         popover::Popover,
@@ -96,6 +96,11 @@ impl Desktop {
             "@settings" => {
                 self.ribbon_tab = 1;
                 self.daily_group = 20;
+            }
+            "@about" => {
+                let title = self.label("关于 JoySheet", "About JoySheet");
+                let version = format!("{} {}", self.label("版本", "Version"), env!("CARGO_PKG_VERSION"));
+                w.open_dialog(cx, move |dialog, _, _| dialog.title(title.clone()).child(version.clone()));
             }
             cmd if cmd.starts_with("@functions:") => {
                 self.function_category = Some(cmd.trim_start_matches("@functions:").into());
@@ -484,6 +489,7 @@ impl Desktop {
             t("export-pdf", "导出", "Export", I::FileOutput, "file.exportPdf").dialog(),
             t("file-close", "关闭", "Close", I::X, "@file-close"),
             t("file-options", "选项", "Options", I::Settings, "@settings"),
+            t("file-about", "关于", "About", I::Info, "@about"),
         ];
         let mut recent = div().flex().flex_col().gap_2().child(div().text_lg().child(self.label("最近", "Recent")));
         for (i, path) in self.preferences.recent.iter().take(12).enumerate() {
@@ -514,6 +520,7 @@ impl Desktop {
             .flex()
             .child(
                 div()
+                    .id("backstage-navigation")
                     .w(px(150.))
                     .h_full()
                     .p_3()
@@ -521,6 +528,7 @@ impl Desktop {
                     .flex()
                     .flex_col()
                     .gap_2()
+                    .overflow_y_scroll()
                     .child(
                         Button::new("backstage-back")
                             .ghost()
@@ -536,6 +544,7 @@ impl Desktop {
                         Button::new(tool.id)
                             .ghost()
                             .h(px(38.))
+                            .flex_shrink_0()
                             .justify_start()
                             .icon(crate::ribbon_icons::icon(tool.icon))
                             .label(self.label(tool.zh, tool.en))

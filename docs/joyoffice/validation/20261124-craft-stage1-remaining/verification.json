@@ -1,0 +1,1741 @@
+{
+  "date": "2026-11-24",
+  "host": "Windows x64",
+  "frozen": "14cbb296",
+  "previous": "2fa5a586",
+  "excelVersion": "16.0.20625.20108",
+  "word": {
+    "publication": {
+      "githubRelease": "https://github.com/willmove/joyoffice/releases/tag/joyword-language-packs-3",
+      "audited": 16,
+      "newlyHosted": 1,
+      "hosted": 60,
+      "originalOnly": 15,
+      "previousReleaseAssetsReproduced": 21,
+      "publicAssets": [
+        {
+          "name": "ga.tar.zst",
+          "size": 379961,
+          "sha256": "15ca21fc7976ab8cd4a97ac55c3a43c8b115e409dd0f0c5303e0be64907b7141"
+        },
+        {
+          "name": "index.json",
+          "size": 50562,
+          "sha256": "4a6555f3eee843ad9b4340088d3b9efebeec425010c41566e8dc32c4c82f8e5f"
+        },
+        {
+          "name": "publication-audit.json",
+          "size": 48355,
+          "sha256": "1190ccdea64eaf90674780f18ba49daa90d29ecdf843a72492c92b50a660d45e"
+        },
+        {
+          "name": "sources-and-notices.zip",
+          "size": 3313361,
+          "sha256": "998cf4b876d63264992caa897ceb07a02a30adc7ce9e5cf3608f4d879b520ae7"
+        }
+      ],
+      "rollback": {
+        "packs": 75,
+        "verifiedLocale": "ga",
+        "hostedPacks": 60,
+        "consentRefused": true,
+        "bundledRefresh": true,
+        "frozenReadsAndRemovesCandidateInstall": true,
+        "verifiedLegacyCacheMigration": true,
+        "rollbackReadsOriginalCache": true,
+        "hostedPrimary": true,
+        "upstreamFallback": true,
+        "invalidDigestRejectedOnBothOrigins": true,
+        "corruptCacheRejected": true,
+        "indexSha256": "4a6555f3eee843ad9b4340088d3b9efebeec425010c41566e8dc32c4c82f8e5f",
+        "originalSourceSha256": "24b72693cba6fbeb3cfe187af5932fc763846d12d51c2a6e8e77b3a2cce75d3f"
+      }
+    },
+    "originalArchives": {
+      "consentDigestSizeUnavailable": {
+        "consent": "downloading is turned off: turn it on in WordCraft (File › Options › Language, or an Install button there)",
+        "errors": {
+          "digest": "nl.tar.zst was rejected: sha256 mismatch",
+          "oversize": "downloading nl.tar.zst failed: the response is larger than 756670 bytes",
+          "unavailable": "downloading nl.tar.zst failed: HTTP 404"
+        },
+        "restored": {
+          "locale": "zz",
+          "name": "Inventory recovery",
+          "release": "",
+          "version": "",
+          "licence": "CC0-1.0",
+          "sha256": "",
+          "size": 0
+        }
+      },
+      "crossVersionInventoryRecovery": true,
+      "oversizedInventoryRetained": true,
+      "sourceSha256": "3fb205d1d4372374832f6e27cc199c69bed02b2d932e1f193ba0e2665aad606c",
+      "publishedArchives": {
+        "baselineSha256": "6e833cb91ab13e8ce8e03e9edfe8d87e2ad2bb84a481d427713a1a37e813f55e",
+        "candidateSha256": "ae5f7032f911ee12770c0e79679eefca43eb552ffc6bf947c1803e3dfb466df6",
+        "indexSha256": "b35c7aef0591177f18233b551da16035dcd615549ff874e169ffd19f16fea74b",
+        "archives": 75,
+        "regularFiles": 569,
+        "licenseFiles": 276,
+        "archiveBytes": 41923267,
+        "firstInstalledWithOld": 37,
+        "firstInstalledWithNew": 38,
+        "crossVersionReinstalls": 75,
+        "crossVersionInventoryVerified": true,
+        "verifiedCrashStates": [
+          [
+            "replace",
+            "journal"
+          ],
+          [
+            "replace",
+            "old-moved"
+          ],
+          [
+            "replace",
+            "candidate-published"
+          ],
+          [
+            "replace",
+            "inventory-written"
+          ],
+          [
+            "remove",
+            "journal"
+          ],
+          [
+            "remove",
+            "old-moved"
+          ],
+          [
+            "remove",
+            "candidate-published"
+          ],
+          [
+            "remove",
+            "inventory-written"
+          ]
+        ],
+        "concurrentInstallRequests": 4,
+        "allRemoved": true,
+        "originalUnchanged": true,
+        "consentOffRefused": true
+      }
+    },
+    "hyphenationRuntime": {
+      "en-US": {
+        "fixtureSha256": "03484625ec98f854784ea92e7ecbf17ae56ec3b052e404b5e2c0755559d71a6b",
+        "matchedManual": true,
+        "matchedRaster": true,
+        "rasterSha256": "accf392ca45e9d386d64c89b03797390195e7ca1e0f8c543e2286351aa3a5933",
+        "manual": {
+          "done": true
+        },
+        "automaticChangesRaster": true
+      },
+      "de-DE": {
+        "fixtureSha256": "42046a815e1d011351a057a8cc88a6049e64cbde35bbf8b71d7dad99faa74048",
+        "matchedManual": true,
+        "matchedRaster": true,
+        "rasterSha256": "57aab231c7594ddae8d136298e4440f1e09f271fa6522daef6bf476a8c3cf3e4",
+        "manual": {
+          "done": true
+        },
+        "automaticChangesRaster": true
+      },
+      "it-IT": {
+        "fixtureSha256": "7d06fb5ec66af51a1c570e802fac3b92540ed60ab4283f8f68c01af229327f0c",
+        "matchedManual": true,
+        "matchedRaster": true,
+        "rasterSha256": "e260bab957c03f5ebf26fb9a820c47b5488029d887cfd57bcc04100a2fb72bad",
+        "manual": {
+          "done": true
+        },
+        "automaticChangesRaster": true
+      },
+      "pl-PL": {
+        "fixtureSha256": "9a9ba2effd63827abd7da9d6e20d87d7380029054844b2244ab3fc92f9f2b67f",
+        "matchedManual": true,
+        "matchedRaster": true,
+        "rasterSha256": "c486d888969bbe1d731223fe5f23ee213fad073bdfc5143bfa3a2ff99cbaa04b",
+        "manual": {
+          "done": true
+        },
+        "automaticChangesRaster": true
+      },
+      "pt-PT": {
+        "fixtureSha256": "94f94d1a5d13b4fa51bc9459617219a72706cd6e94129326946aa705711df9c8",
+        "matchedManual": true,
+        "matchedRaster": true,
+        "rasterSha256": "731cd2b67030bf2315b362f9767dc797c9b7b8919942c734891047f76930c47a",
+        "manual": {
+          "word": "internacionalização",
+          "pos": {
+            "story": "body",
+            "path": [
+              0
+            ],
+            "off": 20
+          },
+          "points": [
+            2,
+            5,
+            7,
+            10,
+            12,
+            14,
+            16
+          ],
+          "suggest": 2
+        },
+        "automaticChangesRaster": true
+      }
+    },
+    "zoom": {
+      "fixtureSha256": "7c4bc6e512d7844767c7a10fc51ddd1ee28d6fdb8ce93c51469848f046620401",
+      "paper": "A4",
+      "displayZoomPercent": [
+        100,
+        125
+      ],
+      "layoutFingerprint": "7c4bc6e512d7844767c7a10fc51ddd1ee28d6fdb8ce93c51469848f046620401",
+      "pageGeometryMatches": true,
+      "layoutFingerprintMatches": true,
+      "nativeTextCompared": true,
+      "fractionalDpiUnitTest": true
+    }
+  },
+  "deck": {
+    "regression": {
+      "powerPoint16": {
+        "sourceSha256": "b0082e77547861d0e69ee0a00d04edc17613e350a7172670f89a2b053c096a15",
+        "exit": 1,
+        "message": "JoyDeck CLI: encrypted Office files are not supported; decrypt a copy first"
+      },
+      "legacyPresetNames": 183,
+      "presetObjects": 370,
+      "positive": {
+        "preset-catalog": {
+          "sourceSha256": "1a50b71fa08cc8feb785610666a6eba32dabfd0fbcbe6658260ab51320ca854b",
+          "slides": 13,
+          "sourceIds": 370,
+          "preserveSlideParts": 26,
+          "regenerateSlideParts": 26,
+          "exactRenderedPngs": 13
+        },
+        "legacy-1.11": {
+          "sourceSha256": "4d8187b2f5dffeca0a9ec5c57e5e092db297f12cb48cd47b47acb3eb72e1d3ef",
+          "slides": 1,
+          "sourceIds": 1,
+          "preserveSlideParts": 2,
+          "regenerateSlideParts": 2,
+          "exactRenderedPngs": 0,
+          "crossVersionEditAndUndo": {
+            "edit": {
+              "kind": "preset",
+              "name": "ellipse"
+            },
+            "undo": {
+              "kind": "preset",
+              "name": "triangle",
+              "adj": [
+                55000.0
+              ]
+            }
+          }
+        },
+        "legacy-1.0": {
+          "sourceSha256": "b01b770d75c5cf47851f8895ba916ebac000a530f1416cfc923dccfc6be044f9",
+          "slides": 20,
+          "sourceIds": 120,
+          "preserveSlideParts": 40,
+          "regenerateSlideParts": 40,
+          "exactRenderedPngs": 0
+        },
+        "legacy-review-media": {
+          "sourceSha256": "cf1e8aa32d97b2b29db68706351c59c0bcf268166f7df5400279f6113700f3e1",
+          "slides": 2,
+          "sourceIds": 2,
+          "preserveSlideParts": 4,
+          "regenerateSlideParts": 4,
+          "exactRenderedPngs": 0
+        }
+      },
+      "rejected": {
+        "extra-adjustment": {
+          "sourceSha256": "c3b12df0a54288cd3aabe443bb1370d451033e80620bb3e42a25bcd2d947bc0d",
+          "exit": 1,
+          "error": "JoyDeck CLI: legacy migration refused: 预设形状调整参数无效或超过预算"
+        },
+        "noninteger-adjustment": {
+          "sourceSha256": "9a08a0e26124cf882056ba5e7d0b42fb7f21fbfc53edcee4e51efd0d16746068",
+          "exit": 1,
+          "error": "JoyDeck CLI: legacy migration refused: 预设形状调整参数无效或超过预算"
+        },
+        "over-budget-adjustment": {
+          "sourceSha256": "27d33a7d962d00ca6c7f4123a13002bd8326ee89ec0700ae4340ab1b1bd5d4ee",
+          "exit": 1,
+          "error": "JoyDeck CLI: legacy migration refused: 预设形状调整参数无效或超过预算"
+        },
+        "unknown-name": {
+          "sourceSha256": "8857f3a9820e38e4b4ab1290573ed7bdf69ee25d261e129cdab2b55e5d281987",
+          "exit": 1,
+          "error": "JoyDeck CLI: legacy migration refused: 不支持的预设形状"
+        }
+      }
+    },
+    "about": {
+      "entry": "File > About",
+      "current": "0.2.0",
+      "checkedInNativeEditor": true
+    }
+  },
+  "sheet": {
+    "about": {
+      "entry": "File > About",
+      "current": "0.2.0",
+      "checkedInNativeEditor": true
+    },
+    "finance": {
+      "1900": {
+        "main": {
+          "sourceSha256": "1279a93fde29b7a21306b7edb5e9bba4dd9ed0adbbb09c885b333f47c70905dd",
+          "excelSha256": "7ee86438c1963c6b8049865f8f89c1d42742546dbe082ed98fe2aa350b0fd72a",
+          "cases": 416,
+          "dateSystem": "1900",
+          "binarySha256": {
+            "frozen": "d2f55cf2cc07a7f89e84b576b2f18ad1e097b47bab94790268183281e97deec5",
+            "prior": "36094a34e0062de05dc50eab28685ad59e355bd6aa15d2adea8d57cbe2375a23",
+            "candidate": "c58ea1e4d958ce4ce042b070eb647a3e7a686a1492be10a52a562d399af72b46"
+          },
+          "differencesByFunction": {
+            "frozen": {
+              "PV": 1,
+              "CUMIPMT": 1,
+              "CUMPRINC": 1,
+              "NPER": 2,
+              "RATE": 1,
+              "RRI": 1,
+              "XIRR": 1,
+              "COUPDAYSNC": 1,
+              "PRICEMAT": 1,
+              "YIELDMAT": 1,
+              "PRICE": 4,
+              "YIELD": 4,
+              "DURATION": 2,
+              "MDURATION": 2,
+              "ODDFPRICE": 2,
+              "ODDFYIELD": 2,
+              "ODDLPRICE": 2,
+              "ODDLYIELD": 2,
+              "FORECAST.ETS": 31,
+              "FORECAST.ETS.CONFINT": 10,
+              "FORECAST.ETS.SEASONALITY": 2,
+              "FORECAST.ETS.STAT": 27
+            },
+            "prior": {
+              "RATE": 1,
+              "XIRR": 1,
+              "FORECAST.ETS": 27,
+              "FORECAST.ETS.CONFINT": 10,
+              "FORECAST.ETS.SEASONALITY": 2,
+              "FORECAST.ETS.STAT": 27
+            },
+            "candidate": {
+              "RATE": 1,
+              "XIRR": 1,
+              "FORECAST.ETS": 27,
+              "FORECAST.ETS.CONFINT": 10,
+              "FORECAST.ETS.SEASONALITY": 2,
+              "FORECAST.ETS.STAT": 27
+            }
+          },
+          "resolvedExcelDifferences": [],
+          "newExcelDifferences": [],
+          "crossVersionReadbacks": 4
+        },
+        "previousControls": {
+          "sourceSha256": "ed5f28f461537f58a48e80830122c74361f6834f89d2b24a994e3c8e2a8f0025",
+          "excelSha256": "fe88bc1f082be53256a11399106d0d4a9ac9cd2a7fbe032917547ab678a35707",
+          "cases": 243,
+          "dateSystem": "1900",
+          "binarySha256": {
+            "frozen": "d2f55cf2cc07a7f89e84b576b2f18ad1e097b47bab94790268183281e97deec5",
+            "prior": "36094a34e0062de05dc50eab28685ad59e355bd6aa15d2adea8d57cbe2375a23",
+            "candidate": "c58ea1e4d958ce4ce042b070eb647a3e7a686a1492be10a52a562d399af72b46"
+          },
+          "differencesByFunction": {
+            "frozen": {
+              "FORECAST.ETS": 79,
+              "FORECAST.ETS.CONFINT": 8,
+              "ODDFPRICE": 35
+            },
+            "prior": {
+              "FORECAST.ETS.CONFINT": 8,
+              "FORECAST.ETS": 54,
+              "ODDFPRICE": 11
+            },
+            "candidate": {
+              "FORECAST.ETS.CONFINT": 5,
+              "FORECAST.ETS": 54,
+              "ODDFPRICE": 2
+            }
+          },
+          "resolvedExcelDifferences": [
+            "G39",
+            "G78",
+            "G117",
+            "G215",
+            "G216",
+            "G217",
+            "G218",
+            "G219",
+            "G220",
+            "G227",
+            "G228",
+            "G229"
+          ],
+          "newExcelDifferences": [],
+          "crossVersionReadbacks": 4
+        },
+        "newControls": {
+          "sourceSha256": "0d0398f7e5e7b76bae74f520ca001bb9bfed1819e80460513821ace341ccee03",
+          "excelSha256": "04a01bc95402ee122058dd15fecb0b37905556d03920180df43a6531441c9a17",
+          "cases": 261,
+          "dateSystem": "1900",
+          "binarySha256": {
+            "frozen": "d2f55cf2cc07a7f89e84b576b2f18ad1e097b47bab94790268183281e97deec5",
+            "prior": "36094a34e0062de05dc50eab28685ad59e355bd6aa15d2adea8d57cbe2375a23",
+            "candidate": "c58ea1e4d958ce4ce042b070eb647a3e7a686a1492be10a52a562d399af72b46"
+          },
+          "differencesByFunction": {
+            "frozen": {
+              "FORECAST.ETS.CONFINT": 29,
+              "ODDFPRICE": 52,
+              "ODDFYIELD": 52
+            },
+            "prior": {
+              "FORECAST.ETS.CONFINT": 29,
+              "ODDFPRICE": 49,
+              "ODDFYIELD": 49
+            },
+            "candidate": {
+              "FORECAST.ETS.CONFINT": 26,
+              "ODDFPRICE": 26,
+              "ODDFYIELD": 26
+            }
+          },
+          "resolvedExcelDifferences": [
+            "G10",
+            "G27",
+            "G44",
+            "G63",
+            "G64",
+            "G65",
+            "G66",
+            "G71",
+            "G72",
+            "G77",
+            "G78",
+            "G95",
+            "G96",
+            "G103",
+            "G104",
+            "G123",
+            "G124",
+            "G125",
+            "G126",
+            "G131",
+            "G132",
+            "G143",
+            "G144",
+            "G151",
+            "G152",
+            "G153",
+            "G154",
+            "G155",
+            "G156",
+            "G159",
+            "G160",
+            "G195",
+            "G196",
+            "G213",
+            "G214",
+            "G215",
+            "G216",
+            "G221",
+            "G222",
+            "G227",
+            "G228",
+            "G243",
+            "G244",
+            "G245",
+            "G246",
+            "G251",
+            "G252",
+            "G257",
+            "G258"
+          ],
+          "newExcelDifferences": [],
+          "crossVersionReadbacks": 4
+        }
+      },
+      "1904": {
+        "main": {
+          "sourceSha256": "48728d6de736d6f082bf4aca0cffc3490a5f959c189b9a805f886fadc8d6848f",
+          "excelSha256": "fdd7e8a2b38152b36895af1ae422c3d2999cd917416c795dc47eaf22ac8244bb",
+          "cases": 416,
+          "dateSystem": "1904",
+          "binarySha256": {
+            "frozen": "d2f55cf2cc07a7f89e84b576b2f18ad1e097b47bab94790268183281e97deec5",
+            "prior": "36094a34e0062de05dc50eab28685ad59e355bd6aa15d2adea8d57cbe2375a23",
+            "candidate": "c58ea1e4d958ce4ce042b070eb647a3e7a686a1492be10a52a562d399af72b46"
+          },
+          "differencesByFunction": {
+            "frozen": {
+              "PV": 1,
+              "CUMIPMT": 1,
+              "CUMPRINC": 1,
+              "NPER": 2,
+              "RATE": 1,
+              "RRI": 1,
+              "XIRR": 1,
+              "PRICEMAT": 1,
+              "YIELDMAT": 1,
+              "PRICE": 4,
+              "YIELD": 4,
+              "DURATION": 2,
+              "MDURATION": 2,
+              "ODDFPRICE": 2,
+              "ODDFYIELD": 2,
+              "ODDLPRICE": 2,
+              "ODDLYIELD": 2,
+              "FORECAST.ETS": 31,
+              "FORECAST.ETS.CONFINT": 10,
+              "FORECAST.ETS.SEASONALITY": 2,
+              "FORECAST.ETS.STAT": 27
+            },
+            "prior": {
+              "RATE": 1,
+              "XIRR": 1,
+              "FORECAST.ETS": 27,
+              "FORECAST.ETS.CONFINT": 10,
+              "FORECAST.ETS.SEASONALITY": 2,
+              "FORECAST.ETS.STAT": 27
+            },
+            "candidate": {
+              "RATE": 1,
+              "XIRR": 1,
+              "FORECAST.ETS": 27,
+              "FORECAST.ETS.CONFINT": 10,
+              "FORECAST.ETS.SEASONALITY": 2,
+              "FORECAST.ETS.STAT": 27
+            }
+          },
+          "resolvedExcelDifferences": [],
+          "newExcelDifferences": [],
+          "crossVersionReadbacks": 4
+        },
+        "previousControls": {
+          "sourceSha256": "e7622eaaacae128d25208aed8b61d2f12313bf5e1550dafc56751ba6740e0af6",
+          "excelSha256": "852369c3ce929bef857cb113aa95e8461df1e69a59653340cc701d0b0b22ea7e",
+          "cases": 243,
+          "dateSystem": "1904",
+          "binarySha256": {
+            "frozen": "d2f55cf2cc07a7f89e84b576b2f18ad1e097b47bab94790268183281e97deec5",
+            "prior": "36094a34e0062de05dc50eab28685ad59e355bd6aa15d2adea8d57cbe2375a23",
+            "candidate": "c58ea1e4d958ce4ce042b070eb647a3e7a686a1492be10a52a562d399af72b46"
+          },
+          "differencesByFunction": {
+            "frozen": {
+              "FORECAST.ETS": 79,
+              "FORECAST.ETS.CONFINT": 8,
+              "ODDFPRICE": 38
+            },
+            "prior": {
+              "FORECAST.ETS.CONFINT": 8,
+              "FORECAST.ETS": 54,
+              "ODDFPRICE": 14
+            },
+            "candidate": {
+              "FORECAST.ETS.CONFINT": 5,
+              "FORECAST.ETS": 54,
+              "ODDFPRICE": 5
+            }
+          },
+          "resolvedExcelDifferences": [
+            "G39",
+            "G78",
+            "G117",
+            "G215",
+            "G216",
+            "G217",
+            "G218",
+            "G219",
+            "G220",
+            "G227",
+            "G228",
+            "G229"
+          ],
+          "newExcelDifferences": [],
+          "crossVersionReadbacks": 4
+        },
+        "newControls": {
+          "sourceSha256": "eb7518426857410c142368bbc178e8d89afec5dba17499bd118a44489d0cff32",
+          "excelSha256": "0d1ec6c6ab4b0fb02f18f08700c981c375f5593fcf719612b511806e04585d0e",
+          "cases": 261,
+          "dateSystem": "1904",
+          "binarySha256": {
+            "frozen": "d2f55cf2cc07a7f89e84b576b2f18ad1e097b47bab94790268183281e97deec5",
+            "prior": "36094a34e0062de05dc50eab28685ad59e355bd6aa15d2adea8d57cbe2375a23",
+            "candidate": "c58ea1e4d958ce4ce042b070eb647a3e7a686a1492be10a52a562d399af72b46"
+          },
+          "differencesByFunction": {
+            "frozen": {
+              "FORECAST.ETS.CONFINT": 29,
+              "ODDFPRICE": 47,
+              "ODDFYIELD": 47
+            },
+            "prior": {
+              "FORECAST.ETS.CONFINT": 29,
+              "ODDFPRICE": 38,
+              "ODDFYIELD": 38
+            },
+            "candidate": {
+              "FORECAST.ETS.CONFINT": 26,
+              "ODDFPRICE": 18,
+              "ODDFYIELD": 18
+            }
+          },
+          "resolvedExcelDifferences": [
+            "G10",
+            "G27",
+            "G44",
+            "G63",
+            "G64",
+            "G65",
+            "G66",
+            "G71",
+            "G72",
+            "G77",
+            "G78",
+            "G95",
+            "G96",
+            "G123",
+            "G124",
+            "G125",
+            "G126",
+            "G131",
+            "G132",
+            "G153",
+            "G154",
+            "G155",
+            "G156",
+            "G159",
+            "G160",
+            "G195",
+            "G196",
+            "G213",
+            "G214",
+            "G215",
+            "G216",
+            "G221",
+            "G222",
+            "G227",
+            "G228",
+            "G243",
+            "G244",
+            "G245",
+            "G246",
+            "G251",
+            "G252",
+            "G257",
+            "G258"
+          ],
+          "newExcelDifferences": [],
+          "crossVersionReadbacks": 4
+        }
+      }
+    },
+    "convert": {
+      "cases": 273,
+      "cachedReads": 4,
+      "candidateVsFrozen": 273,
+      "differenceVsExcel": [
+        {
+          "cell": "G49",
+          "formula": "CONVERT(1,\"eV\",\"J\")",
+          "excel": [
+            "n",
+            "1.602176487E-19"
+          ],
+          "frozen": [
+            "n",
+            "1.602176634E-19"
+          ],
+          "prior": [
+            "n",
+            "1.602176634E-19"
+          ],
+          "candidate": [
+            "n",
+            "1.602176634E-19"
+          ]
+        },
+        {
+          "cell": "G50",
+          "formula": "CONVERT(1,\"J\",\"eV\")",
+          "excel": [
+            "n",
+            "6.2415096471204178E+18"
+          ],
+          "frozen": [
+            "n",
+            "6.241509074460763E18"
+          ],
+          "prior": [
+            "n",
+            "6.241509074460763E18"
+          ],
+          "candidate": [
+            "n",
+            "6.241509074460763E18"
+          ]
+        },
+        {
+          "cell": "G51",
+          "formula": "CONVERT(1,\"ev\",\"J\")",
+          "excel": [
+            "n",
+            "1.602176487E-19"
+          ],
+          "frozen": [
+            "n",
+            "1.602176634E-19"
+          ],
+          "prior": [
+            "n",
+            "1.602176634E-19"
+          ],
+          "candidate": [
+            "n",
+            "1.602176634E-19"
+          ]
+        },
+        {
+          "cell": "G52",
+          "formula": "CONVERT(1,\"J\",\"ev\")",
+          "excel": [
+            "n",
+            "6.2415096471204178E+18"
+          ],
+          "frozen": [
+            "n",
+            "6.241509074460763E18"
+          ],
+          "prior": [
+            "n",
+            "6.241509074460763E18"
+          ],
+          "candidate": [
+            "n",
+            "6.241509074460763E18"
+          ]
+        },
+        {
+          "cell": "G141",
+          "formula": "CONVERT(1,\"mmHg\",\"Pa\")",
+          "excel": [
+            "n",
+            "133.322"
+          ],
+          "frozen": [
+            "n",
+            "133.322387415"
+          ],
+          "prior": [
+            "n",
+            "133.322387415"
+          ],
+          "candidate": [
+            "n",
+            "133.322387415"
+          ]
+        },
+        {
+          "cell": "G142",
+          "formula": "CONVERT(1,\"Pa\",\"mmHg\")",
+          "excel": [
+            "n",
+            "7.5006375541921064E-3"
+          ],
+          "frozen": [
+            "n",
+            "0.007500615758456563"
+          ],
+          "prior": [
+            "n",
+            "0.007500615758456563"
+          ],
+          "candidate": [
+            "n",
+            "0.007500615758456563"
+          ]
+        },
+        {
+          "cell": "G213",
+          "formula": "CONVERT(1,\"u\",\"g\")",
+          "excel": [
+            "n",
+            "1.660538782E-24"
+          ],
+          "frozen": [
+            "n",
+            "1.6605390666E-24"
+          ],
+          "prior": [
+            "n",
+            "1.6605390666E-24"
+          ],
+          "candidate": [
+            "n",
+            "1.6605390666E-24"
+          ]
+        },
+        {
+          "cell": "G214",
+          "formula": "CONVERT(1,\"g\",\"u\")",
+          "excel": [
+            "n",
+            "6.0221417942167639E+23"
+          ],
+          "frozen": [
+            "n",
+            "6.022140762081122E23"
+          ],
+          "prior": [
+            "n",
+            "6.022140762081122E23"
+          ],
+          "candidate": [
+            "n",
+            "6.022140762081122E23"
+          ]
+        },
+        {
+          "cell": "G263",
+          "formula": "CONVERT(1,\"cmmHg\",\"Pa\")",
+          "excel": [
+            "n",
+            "1.3332200000000001"
+          ],
+          "frozen": [
+            "n",
+            "1.3332238741500002"
+          ],
+          "prior": [
+            "n",
+            "1.3332238741500002"
+          ],
+          "candidate": [
+            "n",
+            "1.3332238741500002"
+          ]
+        },
+        {
+          "cell": "G272",
+          "formula": "CONVERT(1,\"mmHg\",\"Torr\")",
+          "excel": [
+            "n",
+            "0.99999723661485318"
+          ],
+          "frozen": [
+            "n",
+            "1.0000001424663214"
+          ],
+          "prior": [
+            "n",
+            "1.0000001424663214"
+          ],
+          "candidate": [
+            "n",
+            "1.0000001424663214"
+          ]
+        }
+      ],
+      "absTolerance": 1e-300,
+      "relTolerance": 1e-09
+    },
+    "probability": {
+      "cases": 394,
+      "candidateVsExcel": [
+        {
+          "cell": "G109",
+          "formula": "CHISQ.INV.RT(1E-40,5)",
+          "actual": [
+            "n",
+            "197.44468613194988"
+          ],
+          "expected": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G114",
+          "formula": "CHIINV(1E-40,5)",
+          "actual": [
+            "n",
+            "197.44468613194988"
+          ],
+          "expected": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G192",
+          "formula": "BINOM.INV(1,0.5,0.5)",
+          "actual": [
+            "n",
+            "0"
+          ],
+          "expected": [
+            "n",
+            "1"
+          ]
+        },
+        {
+          "cell": "G200",
+          "formula": "CRITBINOM(1,0.5,0.5)",
+          "actual": [
+            "n",
+            "0"
+          ],
+          "expected": [
+            "n",
+            "1"
+          ]
+        },
+        {
+          "cell": "G249",
+          "formula": "GAMMA.DIST(0,1,2,FALSE)",
+          "actual": [
+            "n",
+            "0.5"
+          ],
+          "expected": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G256",
+          "formula": "GAMMADIST(0,1,2,FALSE)",
+          "actual": [
+            "n",
+            "0.5"
+          ],
+          "expected": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G283",
+          "formula": "BETA.DIST(0,1,2,FALSE)",
+          "actual": [
+            "n",
+            "2"
+          ],
+          "expected": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G284",
+          "formula": "BETA.DIST(1,2,1,FALSE)",
+          "actual": [
+            "n",
+            "2"
+          ],
+          "expected": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G292",
+          "formula": "BETA.INV(1,1,2)",
+          "actual": [
+            "n",
+            "1"
+          ],
+          "expected": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G298",
+          "formula": "BETAINV(1,1,2)",
+          "actual": [
+            "n",
+            "1"
+          ],
+          "expected": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G318",
+          "formula": "WEIBULL.DIST(0,1,5,FALSE)",
+          "actual": [
+            "n",
+            "0.2"
+          ],
+          "expected": [
+            "n",
+            "0"
+          ]
+        },
+        {
+          "cell": "G319",
+          "formula": "WEIBULL.DIST(0,0.5,5,FALSE)",
+          "actual": [
+            "e",
+            "#NUM!"
+          ],
+          "expected": [
+            "n",
+            "0"
+          ]
+        },
+        {
+          "cell": "G327",
+          "formula": "WEIBULL(0,1,5,FALSE)",
+          "actual": [
+            "n",
+            "0.2"
+          ],
+          "expected": [
+            "n",
+            "0"
+          ]
+        },
+        {
+          "cell": "G328",
+          "formula": "WEIBULL(0,0.5,5,FALSE)",
+          "actual": [
+            "e",
+            "#NUM!"
+          ],
+          "expected": [
+            "n",
+            "0"
+          ]
+        },
+        {
+          "cell": "G337",
+          "formula": "HYPGEOM.DIST(3,9,10,10,TRUE)",
+          "actual": [
+            "e",
+            "#NUM!"
+          ],
+          "expected": [
+            "n",
+            "0"
+          ]
+        },
+        {
+          "cell": "G339",
+          "formula": "HYPGEOM.DIST(2,4,0,20,TRUE)",
+          "actual": [
+            "e",
+            "#NUM!"
+          ],
+          "expected": [
+            "n",
+            "1"
+          ]
+        },
+        {
+          "cell": "G340",
+          "formula": "HYPGEOM.DIST(0,0,3,20,TRUE)",
+          "actual": [
+            "e",
+            "#NUM!"
+          ],
+          "expected": [
+            "n",
+            "1"
+          ]
+        },
+        {
+          "cell": "G345",
+          "formula": "HYPGEOMDIST(2,4,0,20)",
+          "actual": [
+            "e",
+            "#NUM!"
+          ],
+          "expected": [
+            "n",
+            "0"
+          ]
+        },
+        {
+          "cell": "G348",
+          "formula": "NEGBINOM.DIST(0,1,0,FALSE)",
+          "actual": [
+            "n",
+            "0"
+          ],
+          "expected": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G349",
+          "formula": "NEGBINOM.DIST(0,3,1,FALSE)",
+          "actual": [
+            "n",
+            "1"
+          ],
+          "expected": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G350",
+          "formula": "NEGBINOM.DIST(0,3,1,TRUE)",
+          "actual": [
+            "n",
+            "1"
+          ],
+          "expected": [
+            "e",
+            "#NUM!"
+          ]
+        },
+        {
+          "cell": "G351",
+          "formula": "NEGBINOM.DIST(5,3,0,TRUE)",
+          "actual": [
+            "n",
+            "0"
+          ],
+          "expected": [
+            "e",
+            "#NUM!"
+          ]
+        }
+      ],
+      "candidateVsBaseline": [
+        {
+          "cell": "G14",
+          "formula": "NORM.INV(0.999999999999999,3,2)",
+          "actual": [
+            "n",
+            "18.882888974831957"
+          ],
+          "expected": [
+            "n",
+            "18.88288895957923"
+          ]
+        },
+        {
+          "cell": "G19",
+          "formula": "NORMINV(0.999999999999999,3,2)",
+          "actual": [
+            "n",
+            "18.882888974831957"
+          ],
+          "expected": [
+            "n",
+            "18.88288895957923"
+          ]
+        },
+        {
+          "cell": "G32",
+          "formula": "NORM.S.INV(0.999999999999999)",
+          "actual": [
+            "n",
+            "7.9414444874159775"
+          ],
+          "expected": [
+            "n",
+            "7.941444479789615"
+          ]
+        },
+        {
+          "cell": "G37",
+          "formula": "NORMSINV(0.999999999999999)",
+          "actual": [
+            "n",
+            "7.9414444874159775"
+          ],
+          "expected": [
+            "n",
+            "7.941444479789615"
+          ]
+        },
+        {
+          "cell": "G46",
+          "formula": "T.DIST.RT(1E10,2)",
+          "actual": [
+            "n",
+            "5.0000000000000005E-21"
+          ],
+          "expected": [
+            "n",
+            "0"
+          ]
+        },
+        {
+          "cell": "G62",
+          "formula": "T.INV(0.50000000000001,1)",
+          "actual": [
+            "n",
+            "3.1390816482077687E-14"
+          ],
+          "expected": [
+            "n",
+            "1.053671212772351E-8"
+          ]
+        },
+        {
+          "cell": "G105",
+          "formula": "CHISQ.INV(0.999999999999999,3)",
+          "actual": [
+            "n",
+            "72.9441386711294"
+          ],
+          "expected": [
+            "n",
+            "72.9375"
+          ]
+        },
+        {
+          "cell": "G110",
+          "formula": "CHISQ.INV.RT(0.999999999999999,1)",
+          "actual": [
+            "n",
+            "1.5682863249083413E-30"
+          ],
+          "expected": [
+            "n",
+            "1.5777218104420236E-30"
+          ]
+        },
+        {
+          "cell": "G115",
+          "formula": "CHIINV(0.999999999999999,1)",
+          "actual": [
+            "n",
+            "1.5682863249083413E-30"
+          ],
+          "expected": [
+            "n",
+            "1.5777218104420236E-30"
+          ]
+        },
+        {
+          "cell": "G145",
+          "formula": "F.INV(0.999999999999999,2,6)",
+          "actual": [
+            "n",
+            "300076.9703999006"
+          ],
+          "expected": [
+            "n",
+            "294912"
+          ]
+        },
+        {
+          "cell": "G193",
+          "formula": "BINOM.INV(4,0.5,0)",
+          "actual": [
+            "e",
+            "#NUM!"
+          ],
+          "expected": [
+            "n",
+            "0"
+          ]
+        },
+        {
+          "cell": "G194",
+          "formula": "BINOM.INV(4,0.5,1)",
+          "actual": [
+            "e",
+            "#NUM!"
+          ],
+          "expected": [
+            "n",
+            "4"
+          ]
+        },
+        {
+          "cell": "G196",
+          "formula": "BINOM.INV(5,1,0.5)",
+          "actual": [
+            "e",
+            "#NUM!"
+          ],
+          "expected": [
+            "n",
+            "5"
+          ]
+        },
+        {
+          "cell": "G197",
+          "formula": "BINOM.INV(5,0,0.5)",
+          "actual": [
+            "e",
+            "#NUM!"
+          ],
+          "expected": [
+            "n",
+            "0"
+          ]
+        },
+        {
+          "cell": "G201",
+          "formula": "CRITBINOM(4,0.5,0)",
+          "actual": [
+            "e",
+            "#NUM!"
+          ],
+          "expected": [
+            "n",
+            "0"
+          ]
+        },
+        {
+          "cell": "G202",
+          "formula": "CRITBINOM(4,0.5,1)",
+          "actual": [
+            "e",
+            "#NUM!"
+          ],
+          "expected": [
+            "n",
+            "4"
+          ]
+        },
+        {
+          "cell": "G204",
+          "formula": "CRITBINOM(5,1,0.5)",
+          "actual": [
+            "e",
+            "#NUM!"
+          ],
+          "expected": [
+            "n",
+            "5"
+          ]
+        },
+        {
+          "cell": "G205",
+          "formula": "CRITBINOM(5,0,0.5)",
+          "actual": [
+            "e",
+            "#NUM!"
+          ],
+          "expected": [
+            "n",
+            "0"
+          ]
+        },
+        {
+          "cell": "G264",
+          "formula": "GAMMA.INV(0.999999999999999,3,2)",
+          "actual": [
+            "n",
+            "82.67674851978657"
+          ],
+          "expected": [
+            "n",
+            "82.6875"
+          ]
+        },
+        {
+          "cell": "G269",
+          "formula": "GAMMAINV(0.999999999999999,3,2)",
+          "actual": [
+            "n",
+            "82.67674851978657"
+          ],
+          "expected": [
+            "n",
+            "82.6875"
+          ]
+        },
+        {
+          "cell": "G291",
+          "formula": "BETA.INV(0,1,2)",
+          "actual": [
+            "e",
+            "#NUM!"
+          ],
+          "expected": [
+            "n",
+            "0"
+          ]
+        },
+        {
+          "cell": "G297",
+          "formula": "BETAINV(0,1,2)",
+          "actual": [
+            "e",
+            "#NUM!"
+          ],
+          "expected": [
+            "n",
+            "0"
+          ]
+        }
+      ],
+      "crossVersionReadbacks": 4
+    },
+    "probabilityBoundaries": {
+      "sourceSha256": "dd8b42cec3a5adf901ddb6882b709fdcdd1650e810e9d5b31f09329a34a5f71e",
+      "excelSha256": "8ab6430dfe38231a0ee8dd2e6b24e4ad78d472ed652925f6a7100a25cf5cddf4",
+      "reviewed": 22,
+      "adjacentControls": 95,
+      "independentChiSquareChecks": 22,
+      "correctedSymmetricBinomialMedians": 2
+    },
+    "independentKernels": {
+      "sourceSha256": "50c35d24ece5ff72f582a519925ae2ec3e75ccd219771cc7576370c86b29ca04",
+      "byFunction": {
+        "GAMMALN.PRECISE": 18,
+        "ERF": 18,
+        "ERFC": 18,
+        "NORM.S.DIST": 18,
+        "NORM.S.INV": 18,
+        "BETA.DIST": 36,
+        "GAMMA.DIST": 48
+      },
+      "comparisons": 174
+    },
+    "otherFamilies": {
+      "conditional-aggregates": {
+        "base": {
+          "sourceSha256": "01dcfcd7d0730d90eaf6ee43b84120835a09fcd788fabeae174151d995fe487c",
+          "independentByFunction": {
+            "COUNTIF": 39,
+            "SUMIF": 12,
+            "AVERAGEIF": 6,
+            "COUNTIFS": 7,
+            "SUMIFS": 16,
+            "AVERAGEIFS": 6,
+            "MAXIFS": 7,
+            "MINIFS": 7,
+            "SEARCH": 4
+          },
+          "baselineDifferences": [],
+          "candidateDifferences": 0,
+          "bothGenerationsRecalculatedBothWriters": true
+        },
+        "edit": {
+          "sourceSha256": "ccc708dee5a222d3f57442dd29fa9b91d72e848b5cafc7a32a65082bb3e46b3e",
+          "independentByFunction": {
+            "COUNTIF": 39,
+            "SUMIF": 12,
+            "AVERAGEIF": 6,
+            "COUNTIFS": 7,
+            "SUMIFS": 16,
+            "AVERAGEIFS": 6,
+            "MAXIFS": 7,
+            "MINIFS": 7,
+            "SEARCH": 4
+          },
+          "baselineDifferences": [],
+          "candidateDifferences": 0,
+          "bothGenerationsRecalculatedBothWriters": true
+        }
+      },
+      "engineering-depreciation": {
+        "base": {
+          "sourceSha256": "147fafe29c1e3076f5b144b478ef99cd8b1e86976c9baf133398296d55265840",
+          "independentByFunction": {
+            "COMPLEX": 5,
+            "IMABS": 1,
+            "IMREAL": 16,
+            "IMAGINARY": 5,
+            "IMARGUMENT": 2,
+            "IMCONJUGATE": 1,
+            "IMSUM": 3,
+            "IMSUB": 1,
+            "IMPRODUCT": 2,
+            "IMDIV": 4,
+            "IMSQRT": 2,
+            "IMPOWER": 2,
+            "BESSELJ": 6,
+            "BESSELY": 2,
+            "BESSELI": 3,
+            "BESSELK": 3,
+            "SLN": 2,
+            "SYD": 2,
+            "DB": 2,
+            "DDB": 1,
+            "VDB": 5,
+            "AMORLINC": 1,
+            "AMORDEGRC": 1,
+            "GAMMA": 2,
+            "GAMMALN.PRECISE": 1,
+            "ERF": 1,
+            "ERFC": 1,
+            "NORM.S.DIST": 1,
+            "BETA.DIST": 1,
+            "CHISQ.DIST": 1
+          },
+          "baselineDifferences": [],
+          "candidateDifferences": 0,
+          "bothGenerationsRecalculatedBothWriters": true
+        },
+        "edit": {
+          "sourceSha256": "4df256880e0ef8c6d44c62f2599d4033c6af34294bf1f3b62dc80d0c8b3da4f5",
+          "independentByFunction": {
+            "COMPLEX": 5,
+            "IMABS": 1,
+            "IMREAL": 16,
+            "IMAGINARY": 5,
+            "IMARGUMENT": 2,
+            "IMCONJUGATE": 1,
+            "IMSUM": 3,
+            "IMSUB": 1,
+            "IMPRODUCT": 2,
+            "IMDIV": 4,
+            "IMSQRT": 2,
+            "IMPOWER": 2,
+            "BESSELJ": 6,
+            "BESSELY": 2,
+            "BESSELI": 3,
+            "BESSELK": 3,
+            "SLN": 2,
+            "SYD": 2,
+            "DB": 2,
+            "DDB": 1,
+            "VDB": 5,
+            "AMORLINC": 1,
+            "AMORDEGRC": 1,
+            "GAMMA": 2,
+            "GAMMALN.PRECISE": 1,
+            "ERF": 1,
+            "ERFC": 1,
+            "NORM.S.DIST": 1,
+            "BETA.DIST": 1,
+            "CHISQ.DIST": 1
+          },
+          "baselineDifferences": [],
+          "candidateDifferences": 0,
+          "bothGenerationsRecalculatedBothWriters": true
+        }
+      },
+      "matrix-classic-text": {
+        "base": {
+          "sourceSha256": "cfd12308246251159aff60a049ba113256ba7bc7391312182c5caa3e4d781e60",
+          "independentByFunction": {
+            "MDETERM": 3,
+            "INDEX": 11,
+            "SUM": 2,
+            "MINVERSE": 1,
+            "MMULT": 1,
+            "MUNIT": 1,
+            "CONCATENATE": 1,
+            "CONCAT": 1,
+            "TEXTJOIN": 3,
+            "LEFT": 2,
+            "RIGHT": 2,
+            "MID": 2,
+            "LEN": 2,
+            "LOWER": 1,
+            "UPPER": 1,
+            "PROPER": 1,
+            "TRIM": 2,
+            "CLEAN": 2,
+            "SUBSTITUTE": 3,
+            "REPLACE": 2,
+            "REPT": 1,
+            "FIND": 4,
+            "SEARCH": 2,
+            "EXACT": 2,
+            "CHAR": 1,
+            "CODE": 1,
+            "UNICHAR": 1,
+            "UNICODE": 1,
+            "T": 2
+          },
+          "baselineDifferences": [],
+          "candidateDifferences": 0,
+          "bothGenerationsRecalculatedBothWriters": true
+        },
+        "edit": {
+          "sourceSha256": "5e24c7c7b79271522f2f1cb333ae2ac765041caec687ca483eb3518adf5d0d0d",
+          "independentByFunction": {
+            "MDETERM": 3,
+            "INDEX": 11,
+            "SUM": 2,
+            "MINVERSE": 1,
+            "MMULT": 1,
+            "MUNIT": 1,
+            "CONCATENATE": 1,
+            "CONCAT": 1,
+            "TEXTJOIN": 3,
+            "LEFT": 2,
+            "RIGHT": 2,
+            "MID": 2,
+            "LEN": 2,
+            "LOWER": 1,
+            "UPPER": 1,
+            "PROPER": 1,
+            "TRIM": 2,
+            "CLEAN": 2,
+            "SUBSTITUTE": 3,
+            "REPLACE": 2,
+            "REPT": 1,
+            "FIND": 4,
+            "SEARCH": 2,
+            "EXACT": 2,
+            "CHAR": 1,
+            "CODE": 1,
+            "UNICHAR": 1,
+            "UNICODE": 1,
+            "T": 2
+          },
+          "baselineDifferences": [],
+          "candidateDifferences": 0,
+          "bothGenerationsRecalculatedBothWriters": true
+        }
+      },
+      "modern-text-date": {
+        "base": {
+          "sourceSha256": "b313e491124d4b961e146f14b4edc996811ef84016610e3939e4ebadd4ffca68",
+          "independentByFunction": {
+            "VALUE": 3,
+            "NUMBERVALUE": 2,
+            "FIXED": 2,
+            "DOLLAR": 2,
+            "USDOLLAR": 1,
+            "BAHTTEXT": 2,
+            "VALUETOTEXT": 2,
+            "ARRAYTOTEXT": 2,
+            "TEXTBEFORE": 4,
+            "TEXTAFTER": 3,
+            "INDEX": 4,
+            "REGEXTEST": 2,
+            "REGEXEXTRACT": 1,
+            "REGEXREPLACE": 2,
+            "DATE": 2,
+            "TIME": 1,
+            "YEAR": 1,
+            "MONTH": 1,
+            "DAY": 1,
+            "HOUR": 1,
+            "MINUTE": 1,
+            "SECOND": 1,
+            "WEEKDAY": 1,
+            "WEEKNUM": 1,
+            "ISOWEEKNUM": 1,
+            "EDATE": 1,
+            "EOMONTH": 1,
+            "DATEDIF": 3,
+            "DATEVALUE": 1,
+            "TIMEVALUE": 1,
+            "DAYS": 1,
+            "DAYS360": 2,
+            "YEARFRAC": 5
+          },
+          "baselineDifferences": [],
+          "candidateDifferences": 0,
+          "bothGenerationsRecalculatedBothWriters": true
+        },
+        "edit": {
+          "sourceSha256": "78bc4d387ed8698fd399453a9a26ffb5d2c07e40997b48c14d7bb47775df1371",
+          "independentByFunction": {
+            "VALUE": 3,
+            "NUMBERVALUE": 2,
+            "FIXED": 2,
+            "DOLLAR": 2,
+            "USDOLLAR": 1,
+            "BAHTTEXT": 2,
+            "VALUETOTEXT": 2,
+            "ARRAYTOTEXT": 2,
+            "TEXTBEFORE": 4,
+            "TEXTAFTER": 3,
+            "INDEX": 4,
+            "REGEXTEST": 2,
+            "REGEXEXTRACT": 1,
+            "REGEXREPLACE": 2,
+            "DATE": 2,
+            "TIME": 1,
+            "YEAR": 1,
+            "MONTH": 1,
+            "DAY": 1,
+            "HOUR": 1,
+            "MINUTE": 1,
+            "SECOND": 1,
+            "WEEKDAY": 1,
+            "WEEKNUM": 1,
+            "ISOWEEKNUM": 1,
+            "EDATE": 1,
+            "EOMONTH": 1,
+            "DATEDIF": 3,
+            "DATEVALUE": 1,
+            "TIMEVALUE": 1,
+            "DAYS": 1,
+            "DAYS360": 2,
+            "YEARFRAC": 5
+          },
+          "baselineDifferences": [],
+          "candidateDifferences": 0,
+          "bothGenerationsRecalculatedBothWriters": true
+        }
+      }
+    }
+  },
+  "frozenPilots": {
+    "wordProbes": 2324,
+    "deckFiles": 9,
+    "sheetFormulas": 428,
+    "sheetBaselineDifferences": [],
+    "sheetCrossVersionReadbacks": {
+      "old-to-old": 0,
+      "old-to-new": 0,
+      "new-to-old": 0,
+      "new-to-new": 0
+    }
+  },
+  "rust": {
+    "passingTargetedTests": {
+      "passing": 724,
+      "failing": 0,
+      "ignored": 0
+    },
+    "productChecks": {
+      "joyword": {
+        "passing": 4184,
+        "failing": 0,
+        "ignored": 2
+      },
+      "joydeck": {
+        "passing": 1035,
+        "failing": 0,
+        "ignored": 0
+      },
+      "joysheet": {
+        "passing": 1519,
+        "failing": 0,
+        "ignored": 1
+      }
+    }
+  }
+}

@@ -574,14 +574,15 @@
       "locale": "ga",
       "name": "Gaeilge",
       "version": "20467b63558f04fe075e83aaea501bd10f7fa684",
-      "url": "https://github.com/storytold/craft-i18n/releases/download/language-packs-2/ga.tar.zst",
+      "url": "https://github.com/willmove/joyoffice/releases/download/joyword-language-packs-3/ga.tar.zst",
       "sha256": "15ca21fc7976ab8cd4a97ac55c3a43c8b115e409dd0f0c5303e0be64907b7141",
       "size": 379961,
       "licence": "GPL-2.0-or-later AND MIT",
       "class": "Download-only",
       "spelling": true,
       "hyphenation": true,
-      "source": "https://github.com/wooorm/dictionaries/tree/8cfea406b505e4d7df52d5a19bce525df98c54ab/dictionaries/ga"
+      "source": "https://github.com/wooorm/dictionaries/tree/8cfea406b505e4d7df52d5a19bce525df98c54ab/dictionaries/ga",
+      "fallback_url": "https://github.com/storytold/craft-i18n/releases/download/language-packs-2/ga.tar.zst"
     },
     {
       "locale": "gl",

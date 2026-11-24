@@ -421,6 +421,10 @@ impl Viewer {
                 )
                 .on_click(cx.listener(|s, _, w, cx| s.select_file_page(Page::Options, w, cx))),
             )
+            .child(
+                nav_button("file-about", "关于", I::Info, false, p)
+                    .on_click(|_, w, cx| crate::show_about(w, cx)),
+            )
     }
 
     #[inline(never)]
