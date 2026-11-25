@@ -107,9 +107,16 @@ impl Editor {
             None
         };
         let (model, origins, base) = if doc.info.format == "joydeck" {
-            let n = native::load(&doc.original, cancel)?;
-            let base = Document::from_bytes("original source".into(), n.source, cancel)?;
-            (n.model, n.manifest.origins, base)
+            let origin = doc
+                .project_origin
+                .as_ref()
+                .ok_or("missing native source binding")?;
+            import_warnings.extend(origin.migration_warnings.iter().cloned());
+            (
+                doc.presentation.clone(),
+                origin.bindings.clone(),
+                origin.source.clone(),
+            )
         } else if let Some(converted) = &migration {
             let base = Document::from_bytes(
                 "legacy public conversion.pptx".into(),
@@ -118,29 +125,15 @@ impl Editor {
             )?;
             let mut model = base.presentation.clone();
             crate::legacy_semantics::apply(&mut model, converted)?;
-            (model, original_bindings(&base.presentation), base)
+            (model, original_bindings(&base.presentation), Arc::new(base))
         } else {
             (
                 doc.presentation.clone(),
                 original_bindings(&doc.presentation),
-                doc,
+                Arc::new(doc),
             )
         };
         let session = Session::new(model, origins, true);
-        if native::sniff(&template) {
-            let entries = native::parts_cancellable(&template, cancel)?;
-            if let Some(report) = entries.get("migration/report.json") {
-                let report: serde_json::Value =
-                    serde_json::from_slice(report).map_err(|e| e.to_string())?;
-                if let Some(warnings) = report["warnings"].as_array() {
-                    import_warnings.extend(
-                        warnings
-                            .iter()
-                            .filter_map(|w| w.as_str().map(str::to_owned)),
-                    );
-                }
-            }
-        }
         if let Some(converted) = migration {
             cancel.check()?;
             let bytes =
@@ -161,7 +154,7 @@ impl Editor {
             session,
             source: None,
             fingerprint: None,
-            base: Arc::new(base),
+            base,
             template,
             recovery: Recovery::new(root),
             import_warnings,

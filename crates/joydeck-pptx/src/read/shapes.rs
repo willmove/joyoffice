@@ -6,8 +6,7 @@ use std::collections::{HashMap, HashSet};
 use joydeck_color::SchemeSlot;
 use joydeck_geom::{Xfrm, preset};
 use joydeck_model::style::{ColorRef, Effects, Fill};
-use joydeck_model::table::{Cell, Row, Table};
-use joydeck_model::text::{Anchor, TextDir};
+use joydeck_model::text::TextDir;
 use joydeck_model::{Geom, MediaClip, PhType, Placeholder, Shape, ShapeId, ShapeKind, ShapeStyle};
 
 use super::{Imp, Part, dml};
@@ -509,7 +508,7 @@ fn frame(imp: &mut Imp, part: &Part, ctx: &mut IdCtx, e: &El, depth: usize) -> S
     let uri = gd.and_then(|g| g.attr("uri")).unwrap_or("");
     if let Some(gd) = gd {
         if let Some(tbl) = gd.child("tbl") {
-            s.kind = ShapeKind::Table(table(imp, part, tbl));
+            s.kind = ShapeKind::Table(crate::table_part::decode(imp, part, tbl));
             return s;
         }
         if let Some(c) = gd.child("chart")
@@ -521,7 +520,7 @@ fn frame(imp: &mut Imp, part: &Part, ctx: &mut IdCtx, e: &El, depth: usize) -> S
                 super::read_chart_xml(bytes)
             }
         {
-            chart.kept = super::chart::capture_kept(imp, &rel.target);
+            chart.kept = crate::chart_sidecars::capture(imp, &rel.target);
             s.kind = ShapeKind::Chart(Box::new(chart));
             return s;
         }
@@ -932,101 +931,4 @@ fn diagram_outline(
         style_xml: raw("r:qs"),
         colors_xml: raw("r:cs"),
     })
-}
-
-fn table(imp: &mut Imp, part: &Part, tbl: &El) -> Table {
-    // A table naming no style is drawn by PowerPoint with thin dark grid lines ("No Style, Table
-    // Grid"), not without lines.
-    let mut t = Table {
-        style: "grid".into(),
-        first_row: false,
-        band_row: false,
-        ..Default::default()
-    };
-    if let Some(pr) = tbl.child("tblPr") {
-        t.background = pr
-            .elements()
-            .find(|e| e.local().ends_with("Fill") && e.local() != "noFill")
-            .and_then(|f| dml::fill_el(imp, part, f));
-        t.first_row = pr.bool("firstRow").unwrap_or(false);
-        t.first_col = pr.bool("firstCol").unwrap_or(false);
-        t.last_row = pr.bool("lastRow").unwrap_or(false);
-        t.last_col = pr.bool("lastCol").unwrap_or(false);
-        t.band_row = pr.bool("bandRow").unwrap_or(false);
-        t.band_col = pr.bool("bandCol").unwrap_or(false);
-        if let Some(id) = pr.child("tableStyleId").map(|e| e.text()) {
-            // A style the file defines is drawn from its definition (by its GUID).
-            // DeckCraft's own styles (written with GUIDs derived from their ids) map back to them.
-            let up = id.trim().to_ascii_uppercase();
-            t.style = if imp.table_style_ids.contains(&up) && !crate::tables::is_own_guid(&up) {
-                up
-            } else {
-                crate::tables::style_from_guid(id.trim())
-            };
-        }
-    }
-    t.cols = tbl
-        .child("tblGrid")
-        .map(|g| {
-            g.children_named("gridCol")
-                .take(1000)
-                .map(|c| dml::pt(c, "w").unwrap_or(72.0).clamp(0.0, 20_000.0))
-                .collect()
-        })
-        .unwrap_or_default();
-    for tr in tbl.children_named("tr").take(1000) {
-        let mut row = Row {
-            height: dml::pt(tr, "h").unwrap_or(0.0).clamp(0.0, 20_000.0),
-            cells: vec![],
-        };
-        for tc in tr.children_named("tc").take(1000) {
-            row.cells.push(cell(imp, part, tc));
-        }
-        t.rows.push(row);
-    }
-    if t.cols.is_empty() {
-        let n = t.rows.iter().map(|r| r.cells.len()).max().unwrap_or(0);
-        t.cols = vec![72.0; n];
-    }
-    t.normalize();
-    t
-}
-
-fn cell(imp: &mut Imp, part: &Part, tc: &El) -> Cell {
-    let mut c = Cell {
-        grid_span: tc.u32("gridSpan").unwrap_or(1).clamp(1, 1000),
-        row_span: tc.u32("rowSpan").unwrap_or(1).clamp(1, 1000),
-        h_merge: tc.bool("hMerge").unwrap_or(false),
-        v_merge: tc.bool("vMerge").unwrap_or(false),
-        ..Default::default()
-    };
-    if let Some(tx) = tc.child("txBody") {
-        c.text = dml::text_body(imp, part, tx);
-    }
-    if let Some(pr) = tc.child("tcPr") {
-        if ["marL", "marR", "marT", "marB"]
-            .iter()
-            .any(|n| pr.has_attr(n))
-        {
-            c.margins = Some([
-                dml::pt(pr, "marL").unwrap_or(7.2),
-                dml::pt(pr, "marR").unwrap_or(7.2),
-                dml::pt(pr, "marT").unwrap_or(3.6),
-                dml::pt(pr, "marB").unwrap_or(3.6),
-            ]);
-        }
-        c.anchor = pr.attr("anchor").and_then(Anchor::from_xml);
-        c.vertical = pr.attr("vert").and_then(TextDir::from_xml);
-        for (i, n) in ["lnL", "lnR", "lnT", "lnB"].iter().enumerate() {
-            if let Some(ln) = pr.child(n)
-                && let Some(b) = c.borders.get_mut(i)
-            {
-                *b = Some(dml::line(imp, part, ln));
-            }
-        }
-        c.diag_down = pr.child("lnTlToBr").map(|l| dml::line(imp, part, l));
-        c.diag_up = pr.child("lnBlToTr").map(|l| dml::line(imp, part, l));
-        c.fill = dml::fill_of(imp, part, pr);
-    }
-    c
 }

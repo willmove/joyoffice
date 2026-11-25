@@ -14,20 +14,33 @@
 )]
 #![forbid(unsafe_code)]
 
+mod archive;
 mod cfb;
+mod chart_cache;
+mod chart_sidecars;
+mod chartex_part;
 mod custgeom;
 mod dgm;
 mod maps;
+mod master_part;
+mod media_part;
 mod opc;
 mod png;
+mod presentation_parts;
 pub(crate) mod read;
+mod review_part;
+mod table_part;
 mod tables;
+mod theme_part;
+mod transition_part;
 mod write;
 mod xml;
+mod xml_read;
 
 /// The bounded XML reader the importer uses, for callers that read kept fragments (a shape's
 /// 3-D settings) instead of scanning strings.
 pub use xml::{Doc as XmlDoc, El as XmlEl, parse as parse_xml};
+pub use xml_read::validate as validate_xml_member;
 
 use joydeck_model::Presentation;
 mod preserve;
@@ -87,6 +100,13 @@ pub fn import_verified(
     members: std::collections::BTreeMap<String, Vec<u8>>,
 ) -> Result<(Presentation, Vec<String>), PptxError> {
     read::import_package(opc::Package::open_verified(bytes, members)?)
+}
+
+/// Import the bounded member inventory produced by the host document reader.
+pub fn import_parts(
+    members: std::collections::BTreeMap<String, Vec<u8>>,
+) -> Result<(Presentation, Vec<String>), PptxError> {
+    read::import_package(opc::Package::from_parts(members)?)
 }
 
 /// Read the theme of a `.thmx` file, or of a `.pptx` / `.potx`'s first master, with its media.

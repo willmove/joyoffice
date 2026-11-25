@@ -6,9 +6,7 @@
 
 use std::fmt::Write as _;
 
-use quick_xml::events::Event;
-
-use crate::PptxError;
+pub use crate::xml_read::parse;
 
 /// Maximum element nesting accepted when parsing.
 pub const MAX_DEPTH: usize = 256;
@@ -27,6 +25,8 @@ pub struct El {
 pub enum Node {
     El(El),
     Text(String),
+    /// An XML comment or processing instruction in a part being preserved.
+    Markup(String),
 }
 
 fn local_of(name: &str) -> &str {
@@ -46,6 +46,9 @@ impl El {
     /// Attribute by local name (`id` matches `id`; `r:id` matches `id` only when no plain `id`
     /// exists). Pass a qualified name (`r:id`) to require that prefix's local name with any prefix.
     pub fn attr(&self, name: &str) -> Option<&str> {
+        if let Some((_, value)) = self.attrs.iter().find(|(key, _)| key == name) {
+            return Some(value);
+        }
         if let Some((_, l)) = name.split_once(':') {
             return self
                 .attrs
@@ -55,12 +58,7 @@ impl El {
         }
         self.attrs
             .iter()
-            .find(|(k, _)| k == name)
-            .or_else(|| {
-                self.attrs
-                    .iter()
-                    .find(|(k, _)| !k.starts_with("xmlns") && local_of(k) == name)
-            })
+            .find(|(k, _)| !k.starts_with("xmlns") && local_of(k) == name)
             .map(|(_, v)| v.as_str())
     }
     pub fn has_attr(&self, name: &str) -> bool {
@@ -106,13 +104,13 @@ impl El {
     pub fn elements(&self) -> impl Iterator<Item = &El> {
         self.children.iter().filter_map(|n| match n {
             Node::El(e) => Some(e),
-            Node::Text(_) => None,
+            Node::Text(_) | Node::Markup(_) => None,
         })
     }
     pub fn elements_mut(&mut self) -> impl Iterator<Item = &mut El> {
         self.children.iter_mut().filter_map(|n| match n {
             Node::El(e) => Some(e),
-            Node::Text(_) => None,
+            Node::Text(_) | Node::Markup(_) => None,
         })
     }
     pub fn child(&self, local: &str) -> Option<&El> {
@@ -173,6 +171,7 @@ impl El {
                 match c {
                     Node::Text(t) => s.push_str(t),
                     Node::El(e) => rec(e, s, depth + 1),
+                    Node::Markup(_) => {}
                 }
             }
         }
@@ -209,6 +208,7 @@ fn write_el(e: &El, s: &mut String, depth: usize) {
         match c {
             Node::Text(t) => s.push_str(&esc(t)),
             Node::El(c) => write_el(c, s, depth + 1),
+            Node::Markup(raw) => s.push_str(raw),
         }
     }
     s.push_str("</");
@@ -231,185 +231,6 @@ impl Doc {
             .filter(|(k, _)| k == "xmlns" || k.starts_with("xmlns:"))
             .cloned()
             .collect()
-    }
-}
-
-/// Parse XML bytes into a DOM. Bounded depth and node count; entity references are resolved.
-pub fn parse(bytes: &[u8]) -> Result<Doc, PptxError> {
-    // Skip a UTF-8 BOM; UTF-16 parts (rare) are decoded first.
-    let owned;
-    let bytes = if bytes.starts_with(&[0xFF, 0xFE]) || bytes.starts_with(&[0xFE, 0xFF]) {
-        owned = decode_utf16(bytes);
-        owned.as_bytes()
-    } else {
-        bytes.strip_prefix(&[0xEF, 0xBB, 0xBF]).unwrap_or(bytes)
-    };
-    let mut reader = quick_xml::Reader::from_reader(bytes);
-    {
-        let c = reader.config_mut();
-        c.trim_text(false);
-        c.check_end_names = false;
-        c.allow_unmatched_ends = true;
-        c.expand_empty_elements = false;
-    }
-    let mut stack: Vec<El> = vec![];
-    let mut root: Option<El> = None;
-    let mut nodes = 0usize;
-    let mut buf = Vec::new();
-    loop {
-        let ev = reader
-            .read_event_into(&mut buf)
-            .map_err(|e| PptxError::Xml(format!("{e}")))?;
-        match ev {
-            Event::Start(b) | Event::Empty(b) if root.is_some() => {
-                // Content after the root element: ignore.
-                let _ = b;
-            }
-            Event::Start(b) => {
-                nodes += 1;
-                if nodes > MAX_NODES || stack.len() >= MAX_DEPTH {
-                    return Err(PptxError::Xml(
-                        "document too large or too deeply nested".into(),
-                    ));
-                }
-                stack.push(start_el(&b, &reader));
-            }
-            Event::Empty(b) => {
-                nodes += 1;
-                if nodes > MAX_NODES {
-                    return Err(PptxError::Xml("document too large".into()));
-                }
-                let el = start_el(&b, &reader);
-                match stack.last_mut() {
-                    Some(p) => p.children.push(Node::El(el)),
-                    None => root = Some(el),
-                }
-            }
-            Event::End(_) => {
-                if let Some(el) = stack.pop() {
-                    match stack.last_mut() {
-                        Some(p) => p.children.push(Node::El(el)),
-                        None => root = Some(el),
-                    }
-                }
-            }
-            Event::Text(t) => {
-                if let Some(p) = stack.last_mut() {
-                    let s = t.decode().map(|c| c.into_owned()).unwrap_or_default();
-                    push_text(p, &line_ends(s));
-                }
-            }
-            Event::CData(t) => {
-                if let Some(p) = stack.last_mut() {
-                    let s = String::from_utf8_lossy(&t).into_owned();
-                    push_text(p, &line_ends(s));
-                }
-            }
-            Event::GeneralRef(r) => {
-                if let Some(p) = stack.last_mut() {
-                    let s = if r.is_char_ref() {
-                        r.resolve_char_ref()
-                            .ok()
-                            .flatten()
-                            .map(String::from)
-                            .unwrap_or_default()
-                    } else {
-                        match r
-                            .decode()
-                            .map(|c| c.into_owned())
-                            .unwrap_or_default()
-                            .as_str()
-                        {
-                            "amp" => "&".into(),
-                            "lt" => "<".into(),
-                            "gt" => ">".into(),
-                            "quot" => "\"".into(),
-                            "apos" => "'".into(),
-                            _ => String::new(),
-                        }
-                    };
-                    push_text(p, &s);
-                }
-            }
-            Event::Eof => break,
-            _ => {}
-        }
-        buf.clear();
-    }
-    // Unclosed elements (truncated document): fold them up so partial content is still usable.
-    while let Some(el) = stack.pop() {
-        match stack.last_mut() {
-            Some(p) => p.children.push(Node::El(el)),
-            None => root = Some(el),
-        }
-    }
-    let root = root.ok_or_else(|| PptxError::Xml("no root element".into()))?;
-    Ok(Doc { root })
-}
-
-/// XML 1.0 §2.11: a literal CR LF or lone CR in the document reads as LF. A `&#13;` reference is
-/// not literal and reaches `push_text` through `GeneralRef`, so it stays a CR.
-fn line_ends(s: String) -> String {
-    if s.contains('\r') {
-        s.replace("\r\n", "\n").replace('\r', "\n")
-    } else {
-        s
-    }
-}
-
-fn push_text(p: &mut El, s: &str) {
-    if s.is_empty() {
-        return;
-    }
-    if let Some(Node::Text(t)) = p.children.last_mut() {
-        t.push_str(s);
-    } else {
-        p.children.push(Node::Text(s.to_string()));
-    }
-}
-
-fn start_el(b: &quick_xml::events::BytesStart, reader: &quick_xml::Reader<&[u8]>) -> El {
-    let name = String::from_utf8_lossy(b.name().as_ref()).into_owned();
-    let mut attrs = vec![];
-    for a in b.attributes().with_checks(false).flatten() {
-        let k = String::from_utf8_lossy(a.key.as_ref()).into_owned();
-        let v = a
-            .decoded_and_normalized_value(quick_xml::XmlVersion::Implicit1_0, reader.decoder())
-            .map(|c| c.into_owned())
-            .unwrap_or_else(|_| String::from_utf8_lossy(&a.value).into_owned());
-        attrs.push((k, v));
-    }
-    El {
-        name,
-        attrs,
-        children: vec![],
-    }
-}
-
-fn decode_utf16(bytes: &[u8]) -> String {
-    let le = bytes.starts_with(&[0xFF, 0xFE]);
-    let units: Vec<u16> = bytes
-        .get(2..)
-        .unwrap_or(&[])
-        .as_chunks::<2>()
-        .0
-        .iter()
-        .map(|c| {
-            if le {
-                u16::from_le_bytes(*c)
-            } else {
-                u16::from_be_bytes(*c)
-            }
-        })
-        .collect();
-    let s = String::from_utf16_lossy(&units);
-    // Drop the encoding declaration so quick-xml reads it as UTF-8.
-    match s
-        .strip_prefix("<?xml")
-        .and_then(|r| r.find("?>").map(|i| i + 7))
-    {
-        Some(end) => s.get(end..).unwrap_or("").to_string(),
-        None => s,
     }
 }
 

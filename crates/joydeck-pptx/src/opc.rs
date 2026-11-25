@@ -1,7 +1,10 @@
 //! Open Packaging Conventions: the zip container, part names, relationships and content types.
 
-use std::collections::HashMap;
-use std::io::{Cursor, Read, Write};
+use std::collections::{BTreeMap, HashMap};
+#[cfg(test)]
+use std::io::Write;
+use std::io::{Cursor, Read};
+use std::sync::Arc;
 
 use crate::PptxError;
 use crate::xml::{self, A, W};
@@ -39,11 +42,36 @@ pub const RT_CORE: &str =
 
 /// The files of a package, keyed by normalised part name (no leading slash, lowercase).
 pub struct Package {
-    parts: HashMap<String, (String, Vec<u8>)>,
+    parts: BTreeMap<String, (String, Arc<Vec<u8>>)>,
     ct_cache: std::sync::OnceLock<(HashMap<String, String>, HashMap<String, String>)>,
 }
 
 impl Package {
+    /// Take ownership of a checked member inventory without reopening the ZIP.
+    pub(super) fn from_parts(members: BTreeMap<String, Vec<u8>>) -> Result<Self, PptxError> {
+        if members.len() > MAX_ENTRIES {
+            return Err(PptxError::NotPptx("too many entries".into()));
+        }
+        let mut remaining = MAX_TOTAL;
+        let mut parts = BTreeMap::new();
+        for (name, bytes) in members {
+            let size = bytes.len() as u64;
+            if size > MAX_PART || size > remaining {
+                return Err(PptxError::NotPptx(format!(
+                    "part {name} exceeds size limits"
+                )));
+            }
+            remaining -= size;
+            if parts.insert(norm(&name), (name, Arc::new(bytes))).is_some() {
+                return Err(PptxError::NotPptx("ambiguous package part name".into()));
+            }
+        }
+        Ok(Self {
+            parts,
+            ct_cache: std::sync::OnceLock::new(),
+        })
+    }
+
     pub fn open(bytes: &[u8]) -> Result<Self, PptxError> {
         Self::open_within(bytes, MAX_PART, MAX_TOTAL, MAX_INFLATE_WORK)
     }
@@ -85,7 +113,7 @@ impl Package {
                 zip.len()
             )));
         }
-        let mut parts = HashMap::new();
+        let mut parts = BTreeMap::new();
         let mut total: u64 = 0;
         let mut work: u64 = 0;
         for i in 0..zip.len() {
@@ -125,7 +153,7 @@ impl Package {
             {
                 total += declared;
                 work += declared;
-                parts.insert(norm(&name), (name.replace('\\', "/"), data));
+                parts.insert(norm(&name), (name.replace('\\', "/"), Arc::new(data)));
                 continue;
             }
             let mut data = Vec::with_capacity(declared.min(16 * 1024 * 1024) as usize);
@@ -145,7 +173,7 @@ impl Package {
             }
             total = total.saturating_add(data.len() as u64);
             // A name kept with `\` would reach code that splits paths on `/`.
-            parts.insert(norm(&name), (name.replace('\\', "/"), data));
+            parts.insert(norm(&name), (name.replace('\\', "/"), Arc::new(data)));
         }
         Ok(Package {
             parts,
@@ -155,6 +183,10 @@ impl Package {
     pub fn get(&self, name: &str) -> Option<&[u8]> {
         self.parts.get(&norm(name)).map(|(_, d)| d.as_slice())
     }
+    pub(super) fn shared_member(&self, name: &str) -> Option<Arc<Vec<u8>>> {
+        self.parts.get(&norm(name)).map(|(_, bytes)| bytes.clone())
+    }
+
     /// An XML part's bytes, when it is within the XML size limit.
     pub fn xml_bytes(&self, name: &str) -> Option<&[u8]> {
         let b = self.get(name)?;
@@ -226,6 +258,12 @@ impl Package {
     }
     pub fn original_name(&self, name: &str) -> Option<&str> {
         self.parts.get(&norm(name)).map(|(n, _)| n.as_str())
+    }
+
+    pub(super) fn members(&self) -> impl Iterator<Item = (&str, &str, &[u8])> {
+        self.parts
+            .iter()
+            .map(|(key, (name, bytes))| (key.as_str(), name.as_str(), bytes.as_slice()))
     }
 }
 
@@ -549,46 +587,56 @@ impl PackageOut {
         }
         self.files.push((name.to_string(), data, false));
     }
-    pub fn finish(self) -> Result<Vec<u8>, PptxError> {
+    fn into_inventory(self) -> Vec<(String, Vec<u8>, bool)> {
         let mut ct = W::new();
         ct.open(
             "Types",
-            A::new().a(
-                "xmlns",
-                "http://schemas.openxmlformats.org/package/2006/content-types",
-            ),
+            A::new().a("xmlns", joyoffice_opc::CONTENT_TYPES_NAMESPACE),
         );
-        for (e, c) in &self.defaults {
-            ct.empty("Default", A::new().a("Extension", e).a("ContentType", c));
+        for (ext, value) in &self.defaults {
+            ct.empty(
+                "Default",
+                A::new().a("Extension", ext).a("ContentType", value),
+            );
         }
-        for (p, c) in &self.overrides {
-            ct.empty("Override", A::new().a("PartName", p).a("ContentType", c));
+        for (part, value) in &self.overrides {
+            ct.empty(
+                "Override",
+                A::new().a("PartName", part).a("ContentType", value),
+            );
         }
         ct.close("Types");
-        let mut zw = zip::ZipWriter::new(Cursor::new(Vec::new()));
-        let deflate = zip::write::SimpleFileOptions::default()
-            .compression_method(zip::CompressionMethod::Deflated);
-        let stored = zip::write::SimpleFileOptions::default()
-            .compression_method(zip::CompressionMethod::Stored);
-        let err = |e: &dyn std::fmt::Display| PptxError::Write(e.to_string());
-        zw.start_file("[Content_Types].xml", deflate)
-            .map_err(|e| err(&e))?;
-        zw.write_all(&ct.finish()).map_err(|e| err(&e))?;
-        let mut written = std::collections::HashSet::new();
-        for (name, data, compress) in &self.files {
-            // Zip entry names must be unique: a second part under a name already written is
-            // dropped rather than producing a package readers reject or resolve differently.
-            if !written.insert(norm(name)) {
+        let mut seen = std::collections::HashSet::new();
+        let mut files = Vec::with_capacity(self.files.len() + 1);
+        let types = "[Content_Types].xml";
+        files.push((types.into(), ct.finish(), true));
+        seen.insert(norm(types));
+        for (name, bytes, compress) in self.files {
+            if seen.insert(norm(&name)) {
+                files.push((name, bytes, compress));
+            } else {
                 log::warn!("pptx: part {name} written twice; keeping the first");
-                continue;
             }
-            let large = data.len() as u64 >= u32::MAX as u64 / 2;
-            let opts = if *compress { deflate } else { stored }.large_file(large);
-            zw.start_file(name.as_str(), opts).map_err(|e| err(&e))?;
-            zw.write_all(data).map_err(|e| err(&e))?;
         }
-        let cur = zw.finish().map_err(|e| err(&e))?;
-        Ok(cur.into_inner())
+        files
+    }
+
+    pub(super) fn editable_parts(self) -> Result<Package, PptxError> {
+        Package::from_parts(
+            self.into_inventory()
+                .into_iter()
+                .map(|(name, bytes, _)| (name, bytes))
+                .collect(),
+        )
+    }
+
+    pub fn finish(self) -> Result<Vec<u8>, PptxError> {
+        let entries = self.into_inventory();
+        crate::archive::write(
+            entries
+                .iter()
+                .map(|(name, bytes, compress)| (name.as_str(), bytes.as_slice(), *compress)),
+        )
     }
 }
 

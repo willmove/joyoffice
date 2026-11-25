@@ -144,8 +144,8 @@
     "source_path": "crates/joyoffice-opc/src/zip.rs",
     "target_path": "crates/joyoffice-opc/src/zip.rs",
     "source_sha256": "ca48284426f24a6afb05c12dd5376cc470e0cb7ca683f660c4640885e7e554b0",
-    "adapted_sha256": "a77a6ff6ad30e793f5f5bf0011320b456f021fb524e6d79eb5171c2c723d4878",
-    "local_changes": "LF normalization; fallible cursor conversions under stricter local panic policy; test-only assertion allowances; R1 rustfmt and bounded reader/CPU-renderer/palette/notes adapters as applicable",
+    "adapted_sha256": "cfe6c46e3e7d7f70b296a5fbb888c9a3f6eaebe36ac669dc098c1a0b4ca6ae15",
+    "local_changes": "LF normalization; fallible cursor conversions under stricter local panic policy; test-only assertion allowances; R1 rustfmt and bounded reader/CPU-renderer/palette/notes adapters as applicable; Expose Unix symlink metadata from the already checked central directory for policy at the product boundary.",
     "roadmap_refactor": "Share bounded decompression and byte accounting across Word, Deck and Sheet."
   },
   {

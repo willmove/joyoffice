@@ -1,36 +1,34 @@
 //! PPTX import: package → [`Presentation`].
 
 pub(crate) mod chart;
-mod chartex;
 pub(crate) mod dml;
-mod shapes;
+pub(super) mod shapes;
+use crate::theme_part as theme;
 pub(crate) use shapes::preset_geom;
-mod theme;
 mod timing;
 
+pub(crate) use crate::chartex_part::{chartex_from, read_chartex_xml};
 pub(crate) use chart::{chart_from as chart_from_el, read_chart_xml};
-pub(crate) use chartex::{chartex_from, read_chartex_xml};
 
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 
 use joydeck_geom::{Size, emu_to_pt};
-use joydeck_model::text::TextBody;
 use joydeck_model::{
-    Background, Comment, CustomShow, EmbeddedFont, Geom, HeaderFooter, Layout, LayoutId,
-    LayoutType, Master, MasterId, MediaId, MediaItem, PhType, Presentation, Properties, Section,
-    ShowSettings, Slide, SlideId, defaults,
+    CustomShow, EmbeddedFont, Geom, HeaderFooter, LayoutId, MediaId, MediaItem, PhType,
+    Presentation, Properties, Section, ShowSettings, Slide, SlideId, defaults,
 };
 
-use crate::PptxError;
 use crate::opc::{self, Package, Rels};
 use crate::xml::{Doc, El, Node};
+use crate::{PptxError, master_part};
 
 /// Import state shared by all parts.
 pub struct Imp<'a> {
     pub pkg: &'a Package,
     pub media: Vec<MediaItem>,
     pub media_by_part: HashMap<String, MediaId>,
+    pub media_by_uri: HashMap<String, MediaId>,
     pub next: u32,
     pub slide_by_part: HashMap<String, SlideId>,
     pub custom_show_names: HashMap<String, String>,
@@ -48,47 +46,6 @@ impl Imp<'_> {
     pub fn alloc(&mut self) -> u32 {
         self.next = self.next.saturating_add(1);
         self.next
-    }
-    /// Media item for an internal part, read once.
-    pub fn media_for(&mut self, part: &str) -> Option<MediaId> {
-        let key = opc::norm(part);
-        if let Some(m) = self.media_by_part.get(&key) {
-            return Some(*m);
-        }
-        let data = self.pkg.get(part)?.to_vec();
-        let name = opc::file_of(self.pkg.original_name(part).unwrap_or(part)).to_string();
-        let content_type = self
-            .pkg
-            .content_type(part)
-            .filter(|c| !c.is_empty())
-            .unwrap_or_else(|| crate::mime_for(&name).to_string());
-        let id = MediaId(self.alloc());
-        self.media.push(MediaItem {
-            id,
-            name,
-            content_type,
-            data: Arc::new(data),
-            link: None,
-        });
-        self.media_by_part.insert(key, id);
-        Some(id)
-    }
-    /// Media item for an external link.
-    pub fn media_link(&mut self, url: &str) -> MediaId {
-        if let Some(m) = self.media.iter().find(|m| m.link.as_deref() == Some(url)) {
-            return m.id;
-        }
-        let id = MediaId(self.alloc());
-        let name = url.rsplit('/').next().unwrap_or(url).to_string();
-        let content_type = crate::mime_for(&name).to_string();
-        self.media.push(MediaItem {
-            id,
-            name,
-            content_type,
-            data: Arc::new(vec![]),
-            link: Some(url.to_string()),
-        });
-        id
     }
 }
 
@@ -420,14 +377,14 @@ fn resolve_mc_rels(el: &mut El, depth: usize, rels: Option<&Rels>) {
     }
 }
 
-fn load(pkg: &Package, name: &str) -> Option<Doc> {
+pub(super) fn load(pkg: &Package, name: &str) -> Option<Doc> {
     let mut d = pkg.xml(name)?;
     let rels = pkg.rels(name);
     resolve_mc_rels(&mut d.root, 0, Some(&rels));
     Some(d)
 }
 
-fn max_cnvpr(el: &El, m: &mut u32) {
+pub(super) fn max_cnvpr(el: &El, m: &mut u32) {
     let mut v = vec![];
     el.find_all("cNvPr", &mut v);
     for c in v {
@@ -492,6 +449,7 @@ pub fn import_theme(
         pkg: &pkg,
         media: vec![],
         media_by_part: HashMap::new(),
+        media_by_uri: HashMap::new(),
         next: 0,
         slide_by_part: HashMap::new(),
         custom_show_names: HashMap::new(),
@@ -529,13 +487,18 @@ pub(super) fn import_package(pkg: Package) -> Result<(Presentation, Vec<String>)
     }
     let pres_part = Part::new(&pkg, &pres_path, &pres_doc);
 
-    let (master_paths, slide_entries) = master_and_slide_paths(pres_el, &pres_part);
-    let (docs, max_id) = load_part_docs(&pkg, &master_paths, &slide_entries);
+    let crate::presentation_parts::Inventory {
+        masters: master_paths,
+        slides: slide_entries,
+        documents: docs,
+        max_shape_id: max_id,
+    } = crate::presentation_parts::Inventory::read(&pkg, pres_el, &pres_part.rels);
 
     let mut imp = Imp {
         pkg: &pkg,
         media: vec![],
         media_by_part: HashMap::new(),
+        media_by_uri: HashMap::new(),
         next: max_id.max(1),
         slide_by_part: HashMap::new(),
         custom_show_names: HashMap::new(),
@@ -554,7 +517,7 @@ pub(super) fn import_package(pkg: Package) -> Result<(Presentation, Vec<String>)
     p.default_text_style = Default::default();
 
     read_presentation_settings(&mut imp, &mut p, &pres_part, pres_el);
-    let layout_by_part = read_masters(&mut imp, &mut p, &master_paths, &docs);
+    let layout_by_part = master_part::read_graph(&mut imp, &mut p, &master_paths, &docs);
     let file_slide_ids = read_slides(
         &mut imp,
         &mut p,
@@ -567,8 +530,7 @@ pub(super) fn import_package(pkg: Package) -> Result<(Presentation, Vec<String>)
     p.tags = tags(&imp, &pres_part, pres_el);
     read_custom_shows(&mut p, &imp, &pres_part, pres_el);
     read_guides_and_show(&mut p, &imp, &pres_part);
-    read_notes_master(&mut imp, &mut p, &pres_part);
-    read_handout_master(&mut imp, &mut p, &pres_part);
+    master_part::read_aux(&mut imp, &mut p, &pres_part);
     read_document_properties(&mut p, &pkg, &root_rels);
 
     p.kept_parts = kept_parts(&pkg, &pres_path);
@@ -581,84 +543,6 @@ pub(super) fn import_package(pkg: Package) -> Result<(Presentation, Vec<String>)
     p.next_id = imp.next;
     p.fix_next_id();
     Ok((p, lost_slides))
-}
-
-/// Masters, layouts and slides to read, in file order and without duplicates: (master paths,
-/// (file slide id, slide path)).
-fn master_and_slide_paths(pres_el: &El, pres_part: &Part) -> (Vec<String>, Vec<(u32, String)>) {
-    let master_paths: Vec<String> = pres_el
-        .child("sldMasterIdLst")
-        .map(|l| {
-            l.children_named("sldMasterId")
-                .filter_map(|m| pres_part.rels.target(m.attr("r:id").unwrap_or("")))
-                .map(String::from)
-                .collect()
-        })
-        .unwrap_or_default();
-    let mut master_paths: Vec<String> = if master_paths.is_empty() {
-        pres_part
-            .rels
-            .all_of("slideMaster")
-            .map(|r| r.target.clone())
-            .collect()
-    } else {
-        master_paths
-    };
-    let mut slide_entries: Vec<(u32, String)> = pres_el
-        .child("sldIdLst")
-        .map(|l| {
-            l.children_named("sldId")
-                .take(10_000)
-                .filter_map(|s| {
-                    Some((
-                        s.u32("id").unwrap_or(0),
-                        pres_part
-                            .rels
-                            .target(s.attr("r:id").unwrap_or(""))?
-                            .to_string(),
-                    ))
-                })
-                .collect()
-        })
-        .unwrap_or_default();
-    let mut seen_masters = HashSet::new();
-    master_paths.retain(|m| seen_masters.insert(opc::norm(m)));
-    let mut seen_slides = HashSet::new();
-    slide_entries.retain(|(_, p)| seen_slides.insert(opc::norm(p)));
-    (master_paths, slide_entries)
-}
-
-/// Loads every master, layout and slide part once. Returns them by normalized path and the
-/// largest shape id found in them.
-fn load_part_docs(
-    pkg: &Package,
-    master_paths: &[String],
-    slide_entries: &[(u32, String)],
-) -> (HashMap<String, Doc>, u32) {
-    let mut all_parts: Vec<String> = master_paths.to_vec();
-    let mut seen_layouts = HashSet::new();
-    for m in master_paths {
-        for r in pkg.rels(m).all_of("slideLayout") {
-            let key = opc::norm(&r.target);
-            if seen_layouts.insert(key) {
-                all_parts.push(r.target.clone());
-            }
-        }
-    }
-    all_parts.extend(slide_entries.iter().map(|(_, p)| p.clone()));
-    let mut docs: HashMap<String, Doc> = HashMap::new();
-    let mut max_id = 0u32;
-    for p in &all_parts {
-        let key = opc::norm(p);
-        if docs.contains_key(&key) {
-            continue;
-        }
-        if let Some(d) = load(pkg, p) {
-            max_cnvpr(&d.root, &mut max_id);
-            docs.insert(key, d);
-        }
-    }
-    (docs, max_id)
 }
 
 /// Allocates an id for every readable slide; slides that are missing or unreadable are recorded in
@@ -714,34 +598,9 @@ fn read_presentation_settings(imp: &mut Imp, p: &mut Presentation, pres_part: &P
         && let Some(d) = load(imp.pkg, &r.target)
     {
         let part = Part::new(imp.pkg, &r.target, &d);
-        p.table_styles = table_styles(imp, &part, &d.root);
+        p.table_styles = crate::table_part::decode_styles(imp, &part, &d.root);
         imp.table_style_ids = p.table_styles.iter().map(|s| s.id.clone()).collect();
     }
-}
-
-/// Reads the slide masters and their layouts; a file without a readable master gets a default one.
-fn read_masters(
-    imp: &mut Imp,
-    p: &mut Presentation,
-    master_paths: &[String],
-    docs: &HashMap<String, Doc>,
-) -> HashMap<String, LayoutId> {
-    let mut layout_by_part: HashMap<String, LayoutId> = HashMap::new();
-    for mp in master_paths {
-        let Some(doc) = docs.get(&opc::norm(mp)) else {
-            log::warn!("pptx: master {mp} missing; skipped");
-            continue;
-        };
-        let master = read_master(imp, mp, doc, docs, &mut layout_by_part);
-        p.masters.push(Arc::new(master));
-    }
-    if p.masters.is_empty() {
-        log::warn!("pptx: no readable slide master; using a default one");
-        let (m, _) = defaults::build_master(p.slide_size, Default::default(), imp.next);
-        imp.next = imp.next.saturating_add(200);
-        p.masters.push(Arc::new(m));
-    }
-    layout_by_part
 }
 
 /// Reads every registered slide with its notes and comments. Returns the slide ids by file id.
@@ -761,7 +620,7 @@ fn read_slides(
         .map(|l| l.id)
         .unwrap_or_default();
     let mut file_slide_ids: HashMap<u32, SlideId> = HashMap::new();
-    let mut notes_by_target: HashMap<String, TextBody> = HashMap::new();
+    let mut review = crate::review_part::Reader::new(pres_part);
     for (file_id, path, id) in slide_ids {
         let Some(doc) = docs.get(&opc::norm(path)) else {
             continue;
@@ -773,58 +632,11 @@ fn read_slides(
             .and_then(|r| layout_by_part.get(&opc::norm(&r.target)).copied())
             .unwrap_or(fallback_layout);
         let mut slide = read_slide(imp, &part, doc, *id, layout);
-        if let Some(notes) = slide_notes(imp, &part, &mut notes_by_target) {
-            slide.notes = notes;
-        }
-        read_slide_comments(pkg, pres_part, &part, &mut slide);
+        review.attach(imp, &part, &mut slide);
         file_slide_ids.insert(*file_id, *id);
         p.slides.push(Arc::new(slide));
     }
     file_slide_ids
-}
-
-/// The slide's notes text, read once per notes part.
-fn slide_notes(
-    imp: &mut Imp,
-    part: &Part,
-    cache: &mut HashMap<String, TextBody>,
-) -> Option<TextBody> {
-    let n = part.rels.first_of("notesSlide")?;
-    let key = opc::norm(&n.target);
-    if let Some(cached) = cache.get(&key) {
-        return Some(cached.clone());
-    }
-    let pkg = imp.pkg;
-    let nd = load(pkg, &n.target)?;
-    let np = Part::new(pkg, &n.target, &nd);
-    let notes = read_notes(imp, &np, &nd.root);
-    cache.insert(key, notes.clone());
-    Some(notes)
-}
-
-/// Comments. A modern part and the legacy part can describe the same threads (PowerPoint
-/// writes both): the modern one wins, its flattened legacy copy is skipped.
-fn read_slide_comments(pkg: &Package, pres_part: &Part, part: &Part, slide: &mut Slide) {
-    let mut parts: Vec<(Doc, bool)> = vec![];
-    for c in part.rels.all_of("comments") {
-        if let Some(cd) = pkg.xml(&c.target) {
-            // The content type names the modern part; a package that types it only through a
-            // Default entry instead of an Override is still modern when its root is p188.
-            let modern = pkg.content_type(&c.target).as_deref()
-                == Some(crate::write::CT_COMMENTS_MODERN)
-                || cd.root.prefix() == "p188";
-            parts.push((cd, modern));
-        }
-    }
-    let has_modern = parts.iter().any(|(_, m)| *m);
-    for (cd, modern) in parts {
-        if has_modern && !modern {
-            continue;
-        }
-        slide
-            .comments
-            .extend(read_comments(pkg, pres_part, &cd.root, modern));
-    }
 }
 
 /// Sections, and the extension elements the model does not understand (kept verbatim).
@@ -913,88 +725,6 @@ fn read_guides_and_show(p: &mut Presentation, imp: &Imp, pres_part: &Part) {
     {
         p.show = read_show(sp, &imp.custom_show_names);
     }
-}
-
-/// Theme, background, shapes and colour map shared by the notes and handout masters.
-fn read_aux_master(imp: &mut Imp, part: &Part, doc: &Doc, m: &mut Master) {
-    let mut ctx = shapes::IdCtx::default();
-    if let Some(csld) = doc.root.child("cSld") {
-        m.background = background(imp, part, csld);
-        if let Some(tree) = csld.child("spTree") {
-            m.shapes = shapes::sp_tree(imp, part, &mut ctx, tree, 0);
-        }
-    }
-    if let Some(cm) = doc.root.child("clrMap") {
-        m.color_map = color_map(cm);
-    }
-}
-
-/// Reads the part's own theme into the master, if it has one.
-fn read_master_theme(imp: &mut Imp, part: &Part, m: &mut Master) -> bool {
-    let pkg = imp.pkg;
-    if let Some(t) = part.rels.first_of("theme")
-        && let Some(td) = pkg.xml(&t.target)
-    {
-        let tp = Part::new(pkg, &t.target, &td);
-        m.theme = theme::read_theme(imp, &tp, &td.root);
-        return true;
-    }
-    false
-}
-
-fn read_notes_master(imp: &mut Imp, p: &mut Presentation, pres_part: &Part) {
-    let pkg = imp.pkg;
-    let Some(r) = pres_part.rels.first_of("notesMaster") else {
-        return;
-    };
-    let Some(d) = load(pkg, &r.target) else {
-        return;
-    };
-    let part = Part::new(pkg, &r.target, &d);
-    let mut m = Master {
-        id: MasterId(imp.alloc()),
-        name: "Notes Master".into(),
-        ..Default::default()
-    };
-    read_master_theme(imp, &part, &mut m);
-    read_aux_master(imp, &part, &d, &mut m);
-    // Notes text styles are the body's list style; slide masters use title/body/other instead.
-    if let Some(ns) = d.root.child("notesStyle") {
-        m.body_style = dml::list_style(imp, &part, ns);
-    }
-    p.notes_master = Some(Arc::new(m));
-}
-
-/// Handout master (header, footer, date and slide number for printed handouts).
-fn read_handout_master(imp: &mut Imp, p: &mut Presentation, pres_part: &Part) {
-    let pkg = imp.pkg;
-    let Some(r) = pres_part.rels.first_of("handoutMaster") else {
-        return;
-    };
-    let Some(d) = load(pkg, &r.target) else {
-        return;
-    };
-    let part = Part::new(pkg, &r.target, &d);
-    let mut m = Master {
-        id: MasterId(imp.alloc()),
-        name: "Handout Master".into(),
-        ..Default::default()
-    };
-    if !read_master_theme(imp, &part, &mut m)
-        && let Some(first) = p.masters.first()
-    {
-        m.theme = first.theme.clone();
-    }
-    if let Some(n) = d
-        .root
-        .child("cSld")
-        .and_then(|c| c.attr("name"))
-        .filter(|s| !s.is_empty())
-    {
-        m.name = n.to_string();
-    }
-    read_aux_master(imp, &part, &d, &mut m);
-    p.handout_master = Some(Arc::new(m));
 }
 
 fn read_document_properties(p: &mut Presentation, pkg: &Package, root_rels: &Rels) {
@@ -1123,14 +853,6 @@ pub fn rel_refs(el: &El) -> Vec<String> {
     out.sort();
     out.dedup();
     out
-}
-
-pub fn color_map(cm: &El) -> Vec<(String, String)> {
-    cm.attrs
-        .iter()
-        .filter(|(k, _)| !k.starts_with("xmlns"))
-        .map(|(k, v)| (k.clone(), v.clone()))
-        .collect()
 }
 
 /// A shape's text without an anchor of its own sits at the top, as the standard has it and as
@@ -1264,275 +986,6 @@ fn walk_shapes_mut(
     }
 }
 
-/// `a:tblStyleLst`: the table styles the file defines.
-fn table_styles(imp: &mut Imp, part: &Part, root: &El) -> Vec<joydeck_model::table::TableStyleDef> {
-    use joydeck_model::table::{TableBorder, TablePart, TablePartStyle, TableStyleDef};
-    root.children_named("tblStyle")
-        .take(256)
-        .filter_map(|st| {
-            let id = st.attr("styleId")?.to_ascii_uppercase();
-            let mut def = TableStyleDef {
-                id,
-                name: st.attr("styleName").unwrap_or("").to_string(),
-                raw: part.keep(st),
-                ..Default::default()
-            };
-            if let Some(bg) = st.child("tblBg") {
-                let mut ps = TablePartStyle::default();
-                if let Some(f) = bg.elements().find(|e| e.local().ends_with("Fill")) {
-                    ps.fill = dml::fill_el(imp, part, f);
-                }
-                if let Some(fr) = bg.child("fillRef") {
-                    ps.fill_ref = Some((
-                        fr.u32("idx").unwrap_or(0),
-                        dml::color(fr).unwrap_or(joydeck_model::ColorRef::scheme(
-                            joydeck_color::SchemeSlot::Accent1,
-                        )),
-                    ));
-                }
-                def.background = Some(ps);
-            }
-            for el in st.elements() {
-                let Some(kind) = TablePart::from_xml(el.local()) else {
-                    continue;
-                };
-                let mut ps = TablePartStyle::default();
-                if let Some(tx) = el.child("tcTxStyle") {
-                    ps.text_color = dml::color(tx);
-                    ps.bold = tx.attr("b").map(|v| v == "on");
-                    ps.italic = tx.attr("i").map(|v| v == "on");
-                }
-                if let Some(tc) = el.child("tcStyle") {
-                    if let Some(f) = tc.child("fill").and_then(|f| f.elements().next()) {
-                        ps.fill = dml::fill_el(imp, part, f);
-                    }
-                    if let Some(fr) = tc.child("fillRef") {
-                        ps.fill_ref = Some((
-                            fr.u32("idx").unwrap_or(0),
-                            dml::color(fr).unwrap_or(joydeck_model::ColorRef::scheme(
-                                joydeck_color::SchemeSlot::Accent1,
-                            )),
-                        ));
-                    }
-                    if let Some(bd) = tc.child("tcBdr") {
-                        for (i, side) in ["left", "right", "top", "bottom", "insideH", "insideV"]
-                            .iter()
-                            .enumerate()
-                        {
-                            let Some(b) = bd.child(side) else { continue };
-                            let border = if let Some(ln) = b.child("ln") {
-                                Some(TableBorder::Line {
-                                    line: dml::line(imp, part, ln),
-                                })
-                            } else {
-                                b.child("lnRef").map(|r| TableBorder::Ref {
-                                    idx: r.u32("idx").unwrap_or(0),
-                                    color: dml::color(r).unwrap_or(
-                                        joydeck_model::ColorRef::scheme(
-                                            joydeck_color::SchemeSlot::Accent1,
-                                        ),
-                                    ),
-                                })
-                            };
-                            if let Some(slot) = ps.borders.get_mut(i) {
-                                *slot = border;
-                            }
-                        }
-                    }
-                }
-                def.parts.push((kind, ps));
-            }
-            Some(def)
-        })
-        .collect()
-}
-
-fn background(imp: &mut Imp, part: &Part, csld: &El) -> Option<Background> {
-    let bg = csld.child("bg")?;
-    if let Some(pr) = bg.child("bgPr") {
-        return Some(Background::Fill {
-            fill: dml::fill_of(imp, part, pr).unwrap_or(joydeck_model::Fill::None),
-        });
-    }
-    let r = bg.child("bgRef")?;
-    Some(Background::Ref {
-        idx: r.u32("idx").unwrap_or(1001),
-        color: dml::color(r).unwrap_or(joydeck_model::ColorRef::scheme(
-            joydeck_color::SchemeSlot::Bg1,
-        )),
-    })
-}
-
-fn read_master(
-    imp: &mut Imp,
-    path: &str,
-    doc: &Doc,
-    docs: &HashMap<String, Doc>,
-    layout_by_part: &mut HashMap<String, LayoutId>,
-) -> Master {
-    let pkg = imp.pkg;
-    let part = Part::new(pkg, path, doc);
-    let root = &doc.root;
-    let mut m = Master {
-        placeholder_visibility: placeholder_visibility(root),
-        id: MasterId(0),
-        preserve: root.bool("preserve").unwrap_or(false),
-        ..Default::default()
-    };
-    if let Some(t) = part.rels.first_of("theme")
-        && let Some(td) = pkg.xml(&t.target)
-    {
-        let tp = Part::new(pkg, &t.target, &td);
-        m.theme = theme::read_theme(imp, &tp, &td.root);
-    }
-    m.id = MasterId(imp.alloc());
-    if let Some(cm) = root.child("clrMap") {
-        m.color_map = color_map(cm);
-    }
-    if let Some(csld) = root.child("cSld") {
-        m.name = csld.attr("name").unwrap_or("").to_string();
-        m.background = background(imp, &part, csld);
-        if let Some(tree) = csld.child("spTree") {
-            let mut ctx = shapes::IdCtx::default();
-            m.shapes = shapes::sp_tree(imp, &part, &mut ctx, tree, 0);
-        }
-    }
-    if m.name.is_empty() {
-        m.name = m.theme.name.clone();
-    }
-    if let Some(ts) = root.child("txStyles") {
-        if let Some(s) = ts.child("titleStyle") {
-            m.title_style = dml::list_style(imp, &part, s);
-        }
-        if let Some(s) = ts.child("bodyStyle") {
-            m.body_style = dml::list_style(imp, &part, s);
-        }
-        if let Some(s) = ts.child("otherStyle") {
-            m.other_style = dml::list_style(imp, &part, s);
-        }
-    }
-    // Layouts in list order, then any other related layouts.
-    let mut lpaths: Vec<String> = root
-        .child("sldLayoutIdLst")
-        .map(|l| {
-            l.children_named("sldLayoutId")
-                .filter_map(|x| part.rels.target(x.attr("r:id").unwrap_or("")))
-                .map(String::from)
-                .collect()
-        })
-        .unwrap_or_default();
-    for r in part.rels.all_of("slideLayout") {
-        if !lpaths.iter().any(|x| opc::norm(x) == opc::norm(&r.target)) {
-            lpaths.push(r.target.clone());
-        }
-    }
-    for lp in lpaths.iter().take(1000) {
-        let key = opc::norm(lp);
-        if layout_by_part.contains_key(&key) {
-            continue;
-        }
-        let Some(ld) = docs.get(&key) else { continue };
-        let lpart = Part::new(pkg, lp, ld);
-        let l = read_layout(imp, &lpart, ld);
-        layout_by_part.insert(key, l.id);
-        m.layouts.push(l);
-    }
-    if m.layouts.is_empty() {
-        // A master must have a layout for slides to use.
-        imp.next = imp.next.saturating_add(1);
-        m.layouts.push(Layout {
-            id: LayoutId(imp.next),
-            name: "Blank".into(),
-            kind: LayoutType::Blank,
-            show_master_shapes: true,
-            ..Default::default()
-        });
-    }
-    if let Some(ext) = root.child("extLst").filter(|e| !has_rel_refs(e)) {
-        m.raw_ext = Some(ext.elements().map(|e| part.keep(e)).collect());
-    }
-    m
-}
-
-// Only recognize the standard attribute-only subset. Unknown/invalid/duplicate
-// data remains unclassified, so callers cannot infer permission to create a footer.
-fn placeholder_visibility(root: &El) -> Option<joydeck_model::PlaceholderVisibility> {
-    let mut elements = root.children_named("hf");
-    let hf = elements.next()?;
-    const PRESENTATION_NS: &str = "http://schemas.openxmlformats.org/presentationml/2006/main";
-    let bound = hf
-        .attrs
-        .iter()
-        .chain(root.attrs.iter())
-        .find(|(name, _)| name == "xmlns:p");
-    if hf.name != "p:hf" || bound.is_none_or(|(_, value)| value != PRESENTATION_NS) {
-        return None;
-    }
-    if elements.next().is_some()
-        || hf.children.iter().any(|child| match child {
-            crate::xml::Node::El(_) => true,
-            crate::xml::Node::Text(text) => !text.trim().is_empty(),
-        })
-    {
-        return None;
-    }
-    let mut flags = joydeck_model::PlaceholderVisibility::default();
-    let mut seen = HashSet::new();
-    for (name, value) in &hf.attrs {
-        if name == "xmlns" || name.starts_with("xmlns:") {
-            continue;
-        }
-        if !seen.insert(name) {
-            return None;
-        }
-        let target = match name.as_str() {
-            "dt" => &mut flags.date,
-            "ftr" => &mut flags.footer,
-            "hdr" => &mut flags.header,
-            "sldNum" => &mut flags.slide_number,
-            _ => return None,
-        };
-        *target = Some(match value.trim() {
-            "true" | "1" => true,
-            "false" | "0" => false,
-            _ => return None,
-        });
-    }
-    Some(flags)
-}
-
-fn read_layout(imp: &mut Imp, part: &Part, doc: &Doc) -> Layout {
-    let root = &doc.root;
-    let mut l = Layout {
-        placeholder_visibility: placeholder_visibility(root),
-        id: LayoutId(imp.alloc()),
-        kind: LayoutType::from_xml(root.attr("type").unwrap_or("cust")),
-        show_master_shapes: root.bool("showMasterSp").unwrap_or(true),
-        preserve: root.bool("preserve").unwrap_or(false),
-        ..Default::default()
-    };
-    if let Some(csld) = root.child("cSld") {
-        l.name = csld.attr("name").unwrap_or("").to_string();
-        l.background = background(imp, part, csld);
-        if let Some(tree) = csld.child("spTree") {
-            let mut ctx = shapes::IdCtx::default();
-            l.shapes = shapes::sp_tree(imp, part, &mut ctx, tree, 0);
-        }
-    }
-    l.color_map = color_map_override(root);
-    if let Some(ext) = root.child("extLst").filter(|e| !has_rel_refs(e)) {
-        l.raw_ext = Some(ext.elements().map(|e| part.keep(e)).collect());
-    }
-    l
-}
-
-/// A layout's or slide's `clrMapOvr/overrideClrMapping` (None for `masterClrMapping` or none).
-fn color_map_override(root: &El) -> Option<Vec<(String, String)>> {
-    root.child("clrMapOvr")?
-        .child("overrideClrMapping")
-        .map(color_map)
-}
-
 fn read_slide(imp: &mut Imp, part: &Part, doc: &Doc, id: SlideId, layout: LayoutId) -> Slide {
     let root = &doc.root;
     let mut s = Slide {
@@ -1540,14 +993,14 @@ fn read_slide(imp: &mut Imp, part: &Part, doc: &Doc, id: SlideId, layout: Layout
         layout,
         hidden: root.bool("show") == Some(false),
         show_master_shapes: root.bool("showMasterSp").unwrap_or(true),
-        color_map: color_map_override(root),
+        color_map: master_part::read_override(root),
         ..Default::default()
     };
     let mut ctx = shapes::IdCtx::default();
     if let Some(csld) = root.child("cSld") {
         s.name = csld.attr("name").unwrap_or("").to_string();
         s.tags = tags(imp, part, csld);
-        s.background = background(imp, part, csld);
+        s.background = master_part::read_background(imp, part, csld);
         if let Some(tree) = csld.child("spTree") {
             s.shapes = shapes::sp_tree(imp, part, &mut ctx, tree, 0);
         }
@@ -1557,112 +1010,19 @@ fn read_slide(imp: &mut Imp, part: &Part, doc: &Doc, id: SlideId, layout: Layout
         }
     }
     if let Some(t) = root.child("transition") {
-        s.transition = timing::transition(imp, part, t);
+        s.transition = crate::transition_part::read(imp, part, t);
     }
     if let Some(t) = root.child("timing") {
         s.animations = timing::animations(imp, part, &ctx, t, &s.shapes);
         timing::media_settings(t, &ctx, &mut s.shapes);
     }
-    if let Some(ext) = root.child("extLst").filter(|e| !has_rel_refs(e)) {
-        s.raw_ext = Some(ext.elements().map(|e| part.keep(e)).collect());
-    }
+    s.raw_ext = extensions(part, root);
     s
 }
 
-fn read_notes(imp: &mut Imp, part: &Part, root: &El) -> TextBody {
-    let Some(tree) = root.path(&["cSld", "spTree"]) else {
-        return TextBody::default();
-    };
-    for sp in tree.children_named("sp") {
-        let ph = sp.path(&["nvSpPr", "nvPr", "ph"]);
-        let is_body = ph.is_some_and(|ph| {
-            matches!(ph.attr("type"), Some("body") | None) && ph.attr("type") != Some("sldImg")
-        });
-        if is_body && let Some(tx) = sp.child("txBody") {
-            let mut t = dml::text_body(imp, part, tx);
-            // Notes keep only content: drop body formatting from the notes master placeholder.
-            t.list_style = Default::default();
-            if t.is_empty() {
-                return TextBody::default();
-            }
-            return t;
-        }
-    }
-    TextBody::default()
-}
-
-fn read_comments(pkg: &Package, pres: &Part, root: &El, modern: bool) -> Vec<Comment> {
-    // Authors: legacy commentAuthors.xml (numeric ids) and modern authors.xml (GUIDs).
-    let mut authors: HashMap<String, (String, String)> = HashMap::new();
-    for kind in ["commentAuthors", "authors"] {
-        if let Some(r) = pres.rels.first_of(kind)
-            && let Some(d) = pkg.xml(&r.target)
-        {
-            for a in d.root.elements() {
-                if let Some(id) = a.attr("id") {
-                    authors.insert(
-                        id.to_string(),
-                        (
-                            a.attr("name").unwrap_or("").to_string(),
-                            a.attr("initials").unwrap_or("").to_string(),
-                        ),
-                    );
-                }
-            }
-        }
-    }
-    // Legacy positions are 1/8 pt; the modern part's p188:pos is an a:CT_Point2D in EMU.
-    let scale = if modern { 12_700.0 } else { 8.0 };
-    fn one(
-        e: &El,
-        authors: &HashMap<String, (String, String)>,
-        depth: usize,
-        scale: f64,
-    ) -> Comment {
-        let (author, initials) = e
-            .attr("authorId")
-            .and_then(|a| authors.get(a).cloned())
-            .unwrap_or_default();
-        let text = if let Some(t) = e.child("text") {
-            t.text()
-        } else if let Some(tb) = e.child("txBody") {
-            tb.children_named("p")
-                .map(|p| p.text())
-                .collect::<Vec<_>>()
-                .join("\n")
-        } else {
-            String::new()
-        };
-        let pos = e.child("pos");
-        let replies = if depth < 4 {
-            e.child("replyLst")
-                .map(|l| {
-                    l.children_named("reply")
-                        .take(1000)
-                        .map(|r| one(r, authors, depth + 1, scale))
-                        .collect()
-                })
-                .unwrap_or_default()
-        } else {
-            vec![]
-        };
-        Comment {
-            id: e.attr("id").or(e.attr("idx")).unwrap_or("").to_owned(),
-            author,
-            initials,
-            text,
-            date: e.attr("dt").or(e.attr("created")).unwrap_or("").to_string(),
-            x: pos.and_then(|p| p.f64("x")).unwrap_or(0.0) / scale,
-            y: pos.and_then(|p| p.f64("y")).unwrap_or(0.0) / scale,
-            resolved: e.attr("status") == Some("resolved"),
-            replies,
-            shape: None,
-        }
-    }
-    root.children_named("cm")
-        .take(10_000)
-        .map(|c| one(c, &authors, 0, scale))
-        .collect()
+pub(super) fn extensions(part: &Part, root: &El) -> Option<String> {
+    let node = root.child("extLst").filter(|node| !has_rel_refs(node))?;
+    Some(node.elements().map(|child| part.keep(child)).collect())
 }
 
 fn read_show(sp: &El, shows: &HashMap<String, String>) -> ShowSettings {

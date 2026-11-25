@@ -24,7 +24,6 @@ joydeck-fonts.workspace = true
 joydeck-format.workspace = true
 joydeck-pptx.workspace = true
 joyoffice-opc.workspace = true
-quick-xml.workspace = true
 zip.workspace = true
 image = { workspace = true, features = ["png", "jpeg", "webp", "gif", "tiff", "bmp"] }
 serde.workspace = true

@@ -1,139 +1,13 @@
 //! Transitions and the animation timing tree.
 
 use joydeck_model::anim::{
-    AnimClass, AnimStart, Animation, BuildRole, TextBuild, Transition, build_filled,
-    paragraph_build_roles,
+    AnimClass, AnimStart, Animation, BuildRole, TextBuild, build_filled, paragraph_build_roles,
 };
 use joydeck_model::{Shape, ShapeId, ShapeKind, find_shape};
 
+use super::Exp;
 use super::shapes::IdMap;
-use super::{Exp, Out};
-use crate::opc::{NS_MC, NS_P14, NS_P15, NS_P159};
 use crate::xml::{A, W};
-
-pub fn transition(w: &mut W, x: &mut Exp, o: &mut Out, t: &Transition) {
-    let adv_click = (!t.advance_on_click).then_some("0");
-    let adv_tm = t.advance_after_ms.map(|v| v.min(86_400_000));
-    let spd = match t.duration_ms {
-        0..=600 => "fast",
-        601..=900 => "med",
-        _ => "slow",
-    };
-    let sound = t.sound.and_then(|m| {
-        x.media_rel(o, m, "audio")
-            .map(|r| (r, x.p.media(m).map(|i| i.name.clone()).unwrap_or_default()))
-    });
-    let snd = |w: &mut W| {
-        if let Some((r, name)) = &sound {
-            w.open0("p:sndAc");
-            w.open("p:stSnd", A::new().t("loop", t.sound_loop));
-            let name = if name.is_empty() {
-                "sound.wav"
-            } else {
-                name.as_str()
-            };
-            w.empty("p:snd", A::new().a("r:embed", r).a("name", name));
-            w.close("p:stSnd");
-            w.close("p:sndAc");
-        } else if t.stop_sound {
-            w.open0("p:sndAc");
-            w.empty0("p:endSnd");
-            w.close("p:sndAc");
-        }
-    };
-    let mut effect = W::frag();
-    let ns = if t.kind == "none" {
-        Some("p")
-    } else {
-        super::super::maps::transition_to_xml(&mut effect, &t.kind, &t.option)
-    };
-    let ns = match ns {
-        Some(ns) => ns,
-        None => {
-            // Unknown kind: write the kept element if there is one, else a fade.
-            if let Some(raw) = &t.raw
-                && let Ok(d) = crate::xml::parse(raw.as_bytes())
-                && let Some(e) = d
-                    .root
-                    .elements()
-                    .find(|e| !matches!(e.local(), "sndAc" | "extLst"))
-                && !crate::read::has_rel_refs(e)
-            {
-                let prefix = e.prefix().to_string();
-                let mut ns_decl = d.ns_decls();
-                ns_decl.retain(|(k, _)| k == &format!("xmlns:{prefix}"));
-                let mut e2 = e.clone();
-                for (k, v) in ns_decl {
-                    e2.attrs.push((k, v));
-                }
-                effect.raw(&e2.to_xml());
-                match prefix.as_str() {
-                    "p14" => "p14",
-                    "p15" => "p15",
-                    "p159" => "p159",
-                    "p" => "p",
-                    _ => {
-                        effect = W::frag();
-                        effect.empty0("p:fade");
-                        "p"
-                    }
-                }
-            } else {
-                effect.empty0("p:fade");
-                "p"
-            }
-        }
-    };
-    let is_none = t.kind == "none";
-    let dur = t.duration_ms.min(60_000);
-    w.open("mc:AlternateContent", A::new().a("xmlns:mc", NS_MC));
-    let mut ch = A::new().a("xmlns:p14", NS_P14);
-    let req = match ns {
-        "p15" => {
-            ch = ch.a("xmlns:p15", NS_P15);
-            "p15"
-        }
-        "p159" => {
-            ch = ch.a("xmlns:p159", NS_P159);
-            "p159"
-        }
-        _ => "p14",
-    };
-    w.open("mc:Choice", ch.a("Requires", req));
-    w.open(
-        "p:transition",
-        A::new()
-            .a("spd", spd)
-            .o("p14:dur", (!is_none).then_some(dur))
-            .o("advClick", adv_click)
-            .o("advTm", adv_tm),
-    );
-    if !is_none {
-        w.raw(&effect.s);
-    }
-    snd(w);
-    w.close("p:transition");
-    w.close("mc:Choice");
-    w.open0("mc:Fallback");
-    w.open(
-        "p:transition",
-        A::new()
-            .a("spd", spd)
-            .o("advClick", adv_click)
-            .o("advTm", adv_tm),
-    );
-    if !is_none {
-        if ns == "p" {
-            w.raw(&effect.s);
-        } else {
-            w.empty0("p:fade");
-        }
-    }
-    snd(w);
-    w.close("p:transition");
-    w.close("mc:Fallback");
-    w.close("mc:AlternateContent");
-}
 
 /// One effect to write (an animation, or one paragraph of a by-paragraph build).
 struct Eff<'a> {
@@ -646,22 +520,23 @@ fn end_time(e: &Eff) -> u32 {
 /// click groups → after-groups → effects
 type Groups<'a> = Vec<(bool, Vec<Vec<Eff<'a>>>)>;
 
-fn group<'a>(effects: Vec<Eff<'a>>) -> Groups<'a> {
-    let mut clicks: Groups = vec![];
-    for e in effects {
-        match e.start {
-            AnimStart::OnClick => clicks.push((false, vec![vec![e]])),
-            AnimStart::WithPrevious => match clicks.last_mut().and_then(|c| c.1.last_mut()) {
-                Some(g) => g.push(e),
-                None => clicks.push((true, vec![vec![e]])),
-            },
-            AnimStart::AfterPrevious => match clicks.last_mut() {
-                Some(c) => c.1.push(vec![e]),
-                None => clicks.push((true, vec![vec![e]])),
-            },
+fn group(effects: Vec<Eff<'_>>) -> Groups<'_> {
+    let mut activations: Groups<'_> = Vec::new();
+    for effect in effects {
+        let automatic = effect.start != AnimStart::OnClick;
+        if automatic && let Some((_, batches)) = activations.last_mut() {
+            if effect.start == AnimStart::WithPrevious
+                && let Some(batch) = batches.last_mut()
+            {
+                batch.push(effect);
+            } else {
+                batches.push(vec![effect]);
+            }
+        } else {
+            activations.push((automatic, vec![vec![effect]]));
         }
     }
-    clicks
+    activations
 }
 
 fn click_pars(w: &mut W, x: &mut Exp, ids: &mut Ids, clicks: &Groups, interactive: bool) {

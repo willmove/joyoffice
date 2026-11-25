@@ -3,7 +3,6 @@
 pub(crate) mod chart;
 pub(crate) mod dml;
 mod shapes;
-mod theme;
 mod timing;
 mod workbook;
 
@@ -14,13 +13,13 @@ use joydeck_geom::Xfrm;
 use joydeck_model::text::{ListStyle, Paragraph, TextBody};
 use joydeck_model::theme::Theme;
 use joydeck_model::{
-    Background, Comment, Layout, LayoutId, Master, MediaId, PhType, Placeholder, Presentation,
-    Shape, ShapeId, Slide, SlideId, defaults,
+    Background, Layout, LayoutId, MediaId, PhType, Placeholder, Presentation, Shape, ShapeId,
+    Slide, SlideId, defaults,
 };
 
-use crate::PptxError;
 use crate::opc::{self, NS_A, NS_P, NS_P14, NS_P188, NS_R, PackageOut, RelsOut};
 use crate::xml::{A, W};
+use crate::{PptxError, master_part};
 
 pub(crate) const CT_PRES: &str =
     "application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml";
@@ -29,9 +28,9 @@ pub(crate) const CT_TEMPLATE: &str =
 pub(crate) const CT_SHOW: &str =
     "application/vnd.openxmlformats-officedocument.presentationml.slideshow.main+xml";
 const CT_SLIDE: &str = "application/vnd.openxmlformats-officedocument.presentationml.slide+xml";
-const CT_LAYOUT: &str =
+pub(super) const CT_LAYOUT: &str =
     "application/vnd.openxmlformats-officedocument.presentationml.slideLayout+xml";
-const CT_MASTER: &str =
+pub(super) const CT_MASTER: &str =
     "application/vnd.openxmlformats-officedocument.presentationml.slideMaster+xml";
 const CT_NOTES_MASTER: &str =
     "application/vnd.openxmlformats-officedocument.presentationml.notesMaster+xml";
@@ -39,7 +38,7 @@ const CT_HANDOUT_MASTER: &str =
     "application/vnd.openxmlformats-officedocument.presentationml.handoutMaster+xml";
 const CT_NOTES: &str =
     "application/vnd.openxmlformats-officedocument.presentationml.notesSlide+xml";
-const CT_THEME: &str = "application/vnd.openxmlformats-officedocument.theme+xml";
+pub(super) const CT_THEME: &str = "application/vnd.openxmlformats-officedocument.theme+xml";
 const CT_PRES_PROPS: &str =
     "application/vnd.openxmlformats-officedocument.presentationml.presProps+xml";
 const CT_VIEW_PROPS: &str =
@@ -69,9 +68,7 @@ pub struct Exp<'a> {
     error: Option<PptxError>,
     pub p: &'a Presentation,
     pub pkg: PackageOut,
-    media_parts: HashMap<MediaId, String>,
-    n_image: u32,
-    n_media: u32,
+    media: crate::media_part::Writer,
     n_chart: u32,
     n_diagram: u32,
     n_tags: u32,
@@ -80,7 +77,6 @@ pub struct Exp<'a> {
     n_kept: u32,
     pub slide_parts: HashMap<SlideId, String>,
     pub table_styles: Vec<String>,
-    placeholder: Option<String>,
 }
 
 /// A part being written: its name and relationships.
@@ -91,7 +87,7 @@ pub struct Out {
 }
 
 impl Out {
-    fn new(name: &str) -> Self {
+    pub(super) fn new(name: &str) -> Self {
         Out {
             name: name.to_string(),
             rels: RelsOut::default(),
@@ -105,113 +101,21 @@ impl Out {
     }
 }
 
-fn ext_for(content_type: &str, name: &str, data: &[u8]) -> String {
-    let by_ct = match content_type {
-        "image/png" => "png",
-        "image/jpeg" | "image/jpg" => "jpeg",
-        "image/gif" => "gif",
-        "image/bmp" => "bmp",
-        "image/tiff" => "tiff",
-        "image/svg+xml" => "svg",
-        "image/x-emf" | "image/emf" => "emf",
-        "image/x-wmf" | "image/wmf" => "wmf",
-        "image/webp" => "webp",
-        "video/mp4" => "mp4",
-        "video/quicktime" => "mov",
-        "video/x-ms-wmv" => "wmv",
-        "video/x-msvideo" => "avi",
-        "video/webm" => "webm",
-        "audio/mpeg" => "mp3",
-        "audio/wav" | "audio/x-wav" | "audio/wave" => "wav",
-        "audio/mp4" | "audio/x-m4a" => "m4a",
-        "audio/x-ms-wma" => "wma",
-        "audio/ogg" => "ogg",
-        "audio/flac" => "flac",
-        "model/gltf-binary" => "glb",
-        _ => "",
-    };
-    if !by_ct.is_empty() {
-        return by_ct.to_string();
-    }
-    if data.starts_with(b"\x89PNG") {
-        return "png".into();
-    }
-    if data.starts_with(&[0xFF, 0xD8]) {
-        return "jpeg".into();
-    }
-    if data.starts_with(b"GIF8") {
-        return "gif".into();
-    }
-    let e = name
-        .rsplit_once('.')
-        .map(|(_, e)| e.to_ascii_lowercase())
-        .unwrap_or_default();
-    if !e.is_empty() && e.len() <= 5 && e.chars().all(|c| c.is_ascii_alphanumeric()) {
-        e
-    } else {
-        "bin".into()
-    }
-}
-
 impl Exp<'_> {
-    fn media_part(&mut self, id: MediaId) -> Option<String> {
-        if let Some(p) = self.media_parts.get(&id) {
-            return Some(p.clone());
-        }
-        let m = self.p.media(id)?;
-        if m.data.is_empty() {
-            return None;
-        }
-        let ext = ext_for(&m.content_type, &m.name, &m.data);
-        let ct = if m.content_type.is_empty() || !m.content_type.contains('/') {
-            crate::mime_for(&format!("x.{ext}")).to_string()
-        } else {
-            m.content_type.clone()
-        };
-        let name = if ct.starts_with("image/") {
-            self.n_image += 1;
-            format!("ppt/media/image{}.{ext}", self.n_image)
-        } else {
-            self.n_media += 1;
-            format!("ppt/media/media{}.{ext}", self.n_media)
-        };
-        self.pkg.binary(&name, &ct, m.data.as_ref().clone());
-        self.media_parts.insert(id, name.clone());
-        Some(name)
+    pub fn media_rel(&mut self, owner: &mut Out, id: MediaId, kind: &str) -> Option<String> {
+        self.media
+            .relationship(self.p, &mut self.pkg, owner, id, kind, true)
     }
-    /// A relationship from `o` to a media item (embedded part, or external link).
-    pub fn media_rel(&mut self, o: &mut Out, id: MediaId, kind: &str) -> Option<String> {
-        let m = self.p.media(id)?;
-        if m.data.is_empty() {
-            let link = m.link.clone()?;
-            return Some(o.rels.add(kind, &link, true));
-        }
-        let part = self.media_part(id)?;
-        Some(o.rels.add(kind, &opc::relative(&o.name, &part), false))
+
+    pub fn media_rel_new(&mut self, owner: &mut Out, id: MediaId, kind: &str) -> Option<String> {
+        self.media
+            .relationship(self.p, &mut self.pkg, owner, id, kind, false)
     }
-    pub fn media_rel_new(&mut self, o: &mut Out, id: MediaId, kind: &str) -> Option<String> {
-        let m = self.p.media(id)?;
-        if m.data.is_empty() {
-            return None;
-        }
-        let part = self.media_part(id)?;
-        Some(o.rels.add(kind, &opc::relative(&o.name, &part), false))
+
+    pub fn placeholder_rel(&mut self, owner: &mut Out) -> String {
+        self.media.missing(&mut self.pkg, owner)
     }
-    /// A tiny transparent PNG for pictures whose image is missing.
-    pub fn placeholder_rel(&mut self, o: &mut Out) -> String {
-        let part = match &self.placeholder {
-            Some(p) => p.clone(),
-            None => {
-                self.n_image += 1;
-                let name = format!("ppt/media/image{}.png", self.n_image);
-                self.pkg
-                    .binary(&name, "image/png", crate::png::transparent_1x1());
-                self.placeholder = Some(name.clone());
-                name
-            }
-        };
-        o.rels.add("image", &opc::relative(&o.name, &part), false)
-    }
+
     /// The number of the next SmartArt graphic's parts.
     pub fn next_diagram(&mut self) -> u32 {
         self.n_diagram += 1;
@@ -238,7 +142,7 @@ impl Exp<'_> {
         let name = format!("ppt/charts/chartEx{}.xml", self.n_chartex);
         self.pkg.xml_part(&name, CT_CHARTEX, xml);
         if preserved {
-            chart::write_kept(&mut self.pkg, &name, c, &mut self.n_kept);
+            crate::chart_sidecars::write(&mut self.pkg, &name, c, &mut self.n_kept);
         } else if !c.kept.parts.is_empty() {
             log::warn!("pptx: chart data changed; the embedded workbook was not written back");
         }
@@ -285,7 +189,7 @@ impl Exp<'_> {
         };
         self.pkg.xml_part(&name, CT_CHART, xml);
         if preserved {
-            chart::write_kept(&mut self.pkg, &name, c, &mut self.n_kept);
+            crate::chart_sidecars::write(&mut self.pkg, &name, c, &mut self.n_kept);
         } else if !c.kept.parts.is_empty()
             && !matches!(
                 c.kind,
@@ -313,7 +217,7 @@ pub fn cust_data(w: &mut W, x: &mut Exp, o: &mut Out, tags: &Tags) {
     w.close("p:custDataLst");
 }
 
-fn root_open(w: &mut W, tag: &str, extra: A) {
+pub(super) fn root_open(w: &mut W, tag: &str, extra: A) {
     let mut a = A::new()
         .a("xmlns:a", NS_A)
         .a("xmlns:r", NS_R)
@@ -322,37 +226,9 @@ fn root_open(w: &mut W, tag: &str, extra: A) {
     w.open(tag, a);
 }
 
-fn background(w: &mut W, x: &mut Exp, o: &mut Out, bg: &Background) {
-    w.open0("p:bg");
-    match bg {
-        Background::Fill { fill } => {
-            w.open0("p:bgPr");
-            match fill {
-                joydeck_model::Fill::Background | joydeck_model::Fill::Group => {
-                    w.empty0("a:noFill")
-                }
-                f => dml::fill(w, x, o, f),
-            }
-            w.empty0("a:effectLst");
-            w.close("p:bgPr");
-        }
-        Background::Ref { idx, color } => {
-            let idx = if (1..=3).contains(idx) || (1001..=1003).contains(idx) {
-                *idx
-            } else {
-                1001
-            };
-            w.open("p:bgRef", A::new().a("idx", idx));
-            dml::color(w, color);
-            w.close("p:bgRef");
-        }
-    }
-    w.close("p:bg");
-}
-
 type Tags = [(String, String)];
 
-fn csld(
+pub(super) fn csld(
     w: &mut W,
     x: &mut Exp,
     o: &mut Out,
@@ -366,7 +242,7 @@ fn csld(
         A::new().o("name", (!name.is_empty()).then_some(name)),
     );
     if let Some(bg) = bg {
-        background(w, x, o, bg);
+        master_part::write_background(w, x, o, bg);
     }
     w.open0("p:spTree");
     shapes::tree_header(w);
@@ -384,54 +260,7 @@ fn csld(
     ids
 }
 
-const CLR_KEYS: [(&str, &str); 12] = [
-    ("bg1", "lt1"),
-    ("tx1", "dk1"),
-    ("bg2", "lt2"),
-    ("tx2", "dk2"),
-    ("accent1", "accent1"),
-    ("accent2", "accent2"),
-    ("accent3", "accent3"),
-    ("accent4", "accent4"),
-    ("accent5", "accent5"),
-    ("accent6", "accent6"),
-    ("hlink", "hlink"),
-    ("folHlink", "folHlink"),
-];
-
-fn clr_map(w: &mut W, map: &[(String, String)]) {
-    w.empty("p:clrMap", clr_map_attrs(map));
-}
-
-/// `p:clrMapOvr`: the layout's or slide's own colour map, else `a:masterClrMapping`.
-fn clr_map_ovr(w: &mut W, map: Option<&[(String, String)]>) {
-    w.open0("p:clrMapOvr");
-    match map {
-        Some(m) => w.empty("a:overrideClrMapping", clr_map_attrs(m)),
-        None => w.empty0("a:masterClrMapping"),
-    }
-    w.close("p:clrMapOvr");
-}
-
-/// The twelve colour map attributes, each a theme slot (the default for anything else).
-fn clr_map_attrs(map: &[(String, String)]) -> A {
-    let mut a = A::new();
-    for (k, d) in CLR_KEYS {
-        let v = map
-            .iter()
-            .find(|(mk, _)| mk == k)
-            .map(|(_, v)| v.as_str())
-            .filter(|v| {
-                joydeck_color::SchemeSlot::from_xml(v)
-                    .is_some_and(|s| joydeck_color::SchemeSlot::THEME.contains(&s))
-            })
-            .unwrap_or(d);
-        a = a.a(k, v);
-    }
-    a
-}
-
-fn ext_list(w: &mut W, raw: Option<&str>) {
+pub(super) fn ext_list(w: &mut W, raw: Option<&str>) {
     let Some(raw) = raw.filter(|r| !r.trim().is_empty()) else {
         return;
     };
@@ -456,7 +285,7 @@ fn ext_list(w: &mut W, raw: Option<&str>) {
 }
 
 /// Strip an `<p:extLst>` wrapper (masters/layouts keep the whole element).
-fn ext_children(raw: Option<&str>) -> Option<String> {
+pub(super) fn ext_children(raw: Option<&str>) -> Option<String> {
     let raw = raw?;
     let d = crate::xml::parse(raw.as_bytes()).ok()?;
     if d.root.is("extLst") {
@@ -672,7 +501,7 @@ fn notes_style() -> ListStyle {
 /// A plausible xsd:dateTime (`YYYY-MM-DD[THH:MM:SS(.frac)?(Z|±HH:MM)?]`): the ranges are
 /// checked, so a model value like `2025-13-45T99:99` falls back to the default instead of
 /// reaching a required `dt`/`created` attribute.
-fn valid_date(s: &str) -> bool {
+pub(super) fn valid_date(s: &str) -> bool {
     let b = s.as_bytes();
     let n = |r: std::ops::Range<usize>| s.get(r).and_then(|v| v.parse::<u32>().ok());
     let (Some(_), Some(mo), Some(d)) = (n(0..4), n(5..7), n(8..10)) else {
@@ -752,15 +581,17 @@ fn sanitized(p: &Presentation) -> std::borrow::Cow<'_, Presentation> {
 }
 
 pub fn export(p: &Presentation, main_ct: &str) -> Result<Vec<u8>, PptxError> {
+    assemble(p, main_ct)?.finish()
+}
+
+pub(super) fn assemble(p: &Presentation, main_ct: &str) -> Result<PackageOut, PptxError> {
     let p = sanitized(p);
     let p: &Presentation = &p;
     let mut x = Exp {
         error: None,
         p,
         pkg: PackageOut::default(),
-        media_parts: HashMap::new(),
-        n_image: 0,
-        n_media: 0,
+        media: Default::default(),
         n_chart: 0,
         n_diagram: 0,
         n_tags: 0,
@@ -768,7 +599,6 @@ pub fn export(p: &Presentation, main_ct: &str) -> Result<Vec<u8>, PptxError> {
         n_kept: 0,
         slide_parts: HashMap::new(),
         table_styles: vec![],
-        placeholder: None,
     };
     for (i, s) in p.slides.iter().enumerate() {
         x.slide_parts
@@ -776,55 +606,10 @@ pub fn export(p: &Presentation, main_ct: &str) -> Result<Vec<u8>, PptxError> {
     }
     let mut pres = Out::new("ppt/presentation.xml");
 
-    // Masters, themes and layouts.
-    let mut master_rids = vec![];
-    let mut layout_parts: HashMap<LayoutId, String> = HashMap::new();
-    let mut n_layout = 0u32;
-    let mut big_id: u64 = 2_147_483_648;
-    for (mi, m) in p.masters.iter().enumerate() {
-        let mname = format!("ppt/slideMasters/slideMaster{}.xml", mi + 1);
-        let tname = format!("ppt/theme/theme{}.xml", mi + 1);
-        let mut mo = Out::new(&mname);
-        let mut lrids = vec![];
-        for l in &m.layouts {
-            n_layout += 1;
-            let lname = format!("ppt/slideLayouts/slideLayout{n_layout}.xml");
-            layout_parts.insert(l.id, lname.clone());
-            let rid = mo
-                .rels
-                .add("slideLayout", &opc::relative(&mname, &lname), false);
-            lrids.push(rid);
-            let mut lo = Out::new(&lname);
-            lo.rels
-                .add("slideMaster", &opc::relative(&lname, &mname), false);
-            let xml = layout_xml(&mut x, &mut lo, l);
-            x.pkg.xml_part(&lname, CT_LAYOUT, xml);
-            x.pkg.rels(&lname, &lo.rels);
-        }
-        mo.rels.add("theme", &opc::relative(&mname, &tname), false);
-        let mut to = Out::new(&tname);
-        let txml = theme::theme_xml(&mut x, &mut to, &m.theme);
-        x.pkg.xml_part(&tname, CT_THEME, txml);
-        x.pkg.rels(&tname, &to.rels);
-        let master_id = big_id;
-        big_id += 1;
-        let mut layout_ids = vec![];
-        for rid in lrids {
-            layout_ids.push((big_id, rid));
-            big_id += 1;
-        }
-        let xml = master_xml(&mut x, &mut mo, m, &layout_ids);
-        x.pkg.xml_part(&mname, CT_MASTER, xml);
-        x.pkg.rels(&mname, &mo.rels);
-        master_rids.push((
-            master_id,
-            pres.rels.add(
-                "slideMaster",
-                &opc::relative("ppt/presentation.xml", &mname),
-                false,
-            ),
-        ));
-    }
+    let master_part::Written {
+        ids: master_rids,
+        layouts: layout_parts,
+    } = master_part::write_graph(&mut x, &mut pres);
 
     // Notes master when a slide has notes, or the file already has one (its header and footer
     // live on the master, not on the notes slides).
@@ -833,16 +618,11 @@ pub fn export(p: &Presentation, main_ct: &str) -> Result<Vec<u8>, PptxError> {
     if let Some(nm) = notes_master_write(p) {
         let tname = format!("ppt/theme/theme{}.xml", p.masters.len() + 1);
         let mut no = Out::new(notes_master);
-        no.rels
-            .add("theme", &opc::relative(notes_master, &tname), false);
         let theme = nm
             .theme
             .or_else(|| p.masters.first().map(|m| m.theme.clone()))
             .unwrap_or_default();
-        let mut to = Out::new(&tname);
-        let txml = theme::theme_xml(&mut x, &mut to, &theme);
-        x.pkg.xml_part(&tname, CT_THEME, txml);
-        x.pkg.rels(&tname, &to.rels);
+        master_part::write_theme(&mut x, &mut no, &tname, &theme);
         let mut w = W::new();
         root_open(&mut w, "p:notesMaster", A::new());
         csld(
@@ -854,7 +634,7 @@ pub fn export(p: &Presentation, main_ct: &str) -> Result<Vec<u8>, PptxError> {
             &nm.shapes,
             &[],
         );
-        clr_map(&mut w, &nm.color_map);
+        master_part::write_mapping(&mut w, &nm.color_map);
         dml::list_style(&mut w, &mut x, &mut no, "p:notesStyle", &nm.style);
         w.close("p:notesMaster");
         x.pkg.xml_part(notes_master, CT_NOTES_MASTER, w.finish());
@@ -874,12 +654,7 @@ pub fn export(p: &Presentation, main_ct: &str) -> Result<Vec<u8>, PptxError> {
         let tindex = p.masters.len() + 1 + usize::from(notes_master_rid.is_some());
         let tname = format!("ppt/theme/theme{tindex}.xml");
         let mut ho = Out::new(handout_path);
-        ho.rels
-            .add("theme", &opc::relative(handout_path, &tname), false);
-        let mut to = Out::new(&tname);
-        let txml = theme::theme_xml(&mut x, &mut to, &hm.theme);
-        x.pkg.xml_part(&tname, CT_THEME, txml);
-        x.pkg.rels(&tname, &to.rels);
+        master_part::write_theme(&mut x, &mut ho, &tname, &hm.theme);
         let mut w = W::new();
         root_open(&mut w, "p:handoutMaster", A::new());
         csld(
@@ -891,7 +666,7 @@ pub fn export(p: &Presentation, main_ct: &str) -> Result<Vec<u8>, PptxError> {
             &hm.shapes,
             &[],
         );
-        clr_map(&mut w, &hm.color_map);
+        master_part::write_mapping(&mut w, &hm.color_map);
         w.close("p:handoutMaster");
         x.pkg.xml_part(handout_path, CT_HANDOUT_MASTER, w.finish());
         x.pkg.rels(handout_path, &ho.rels);
@@ -902,9 +677,7 @@ pub fn export(p: &Presentation, main_ct: &str) -> Result<Vec<u8>, PptxError> {
         ));
     }
 
-    // Comment authors.
-    let mut authors: Vec<(String, String, u32)> = vec![];
-    let mut author_map: std::collections::HashMap<String, usize> = std::collections::HashMap::new();
+    let mut review = crate::review_part::Writer::default();
     let mut n_comments = 0u32;
 
     // Slides.
@@ -924,7 +697,7 @@ pub fn export(p: &Presentation, main_ct: &str) -> Result<Vec<u8>, PptxError> {
             no.rels
                 .add("notesMaster", &opc::relative(&nname, notes_master), false);
             no.rels.add("slide", &opc::relative(&nname, &sname), false);
-            let xml = notes_xml(&mut x, &mut no, &s.notes);
+            let xml = crate::review_part::notes_xml(&mut x, &mut no, &s.notes);
             x.pkg.xml_part(&nname, CT_NOTES, xml);
             x.pkg.rels(&nname, &no.rels);
         }
@@ -934,11 +707,8 @@ pub fn export(p: &Presentation, main_ct: &str) -> Result<Vec<u8>, PptxError> {
             let cname = format!("ppt/comments/comment{n_comments}.xml");
             so.rels
                 .add("comments", &opc::relative(&sname, &cname), false);
-            x.pkg.xml_part(
-                &cname,
-                CT_COMMENTS,
-                comments_xml(&s.comments, &mut authors, &mut author_map),
-            );
+            x.pkg
+                .xml_part(&cname, CT_COMMENTS, review.legacy(&s.comments));
             // The modern threaded part next to the flattened legacy one (issue #70):
             // PowerPoint 2021+ and DeckCraft read replies and resolved state from it,
             // older readers keep the legacy part.
@@ -949,7 +719,7 @@ pub fn export(p: &Presentation, main_ct: &str) -> Result<Vec<u8>, PptxError> {
             x.pkg.xml_part(
                 &mname,
                 CT_COMMENTS_MODERN,
-                modern_comments_xml(&s.comments, &cname, &mut authors, &mut author_map),
+                review.modern(&s.comments, &cname),
             );
             comment_rel = Some(rid);
         }
@@ -962,41 +732,10 @@ pub fn export(p: &Presentation, main_ct: &str) -> Result<Vec<u8>, PptxError> {
             false,
         ));
     }
-    if !authors.is_empty() {
-        let name = "ppt/commentAuthors.xml";
-        let mut w = W::new();
-        root_open(&mut w, "p:cmAuthorLst", A::new());
-        for (i, (n, ini, last)) in authors.iter().enumerate() {
-            w.empty(
-                "p:cmAuthor",
-                A::new()
-                    .a("id", i)
-                    .a("name", n)
-                    .a("initials", ini)
-                    .a("lastIdx", last)
-                    .a("clrIdx", i % 8),
-            );
-        }
-        w.close("p:cmAuthorLst");
-        x.pkg.xml_part(name, CT_AUTHORS, w.finish());
+    if let Some((legacy, modern)) = review.author_parts() {
+        x.pkg.xml_part("ppt/commentAuthors.xml", CT_AUTHORS, legacy);
         pres.rels.add("commentAuthors", "commentAuthors.xml", false);
-        // The modern authors part the threaded comments' authorId GUIDs point at.
-        let mut w = W::new();
-        w.open("p188:authorLst", A::new().a("xmlns:p188", NS_P188));
-        for (n, ini, _) in authors.iter() {
-            w.empty(
-                "p188:author",
-                A::new()
-                    .a("id", author_guid(n))
-                    .a("name", n)
-                    .a("initials", ini)
-                    .a("userId", "")
-                    .a("providerId", "None"),
-            );
-        }
-        w.close("p188:authorLst");
-        x.pkg
-            .xml_part("ppt/authors.xml", CT_AUTHORS_MODERN, w.finish());
+        x.pkg.xml_part("ppt/authors.xml", CT_AUTHORS_MODERN, modern);
         pres.rels.add(RT_AUTHORS_MODERN, "authors.xml", false);
     }
 
@@ -1073,64 +812,7 @@ pub fn export(p: &Presentation, main_ct: &str) -> Result<Vec<u8>, PptxError> {
     if let Some(error) = x.error {
         return Err(error);
     }
-    x.pkg.finish()
-}
-
-fn placeholder_visibility(w: &mut W, flags: Option<&joydeck_model::PlaceholderVisibility>) {
-    if let Some(flags) = flags {
-        let value = |v: Option<bool>| v.map(|b| if b { "1" } else { "0" });
-        w.empty(
-            "p:hf",
-            A::new()
-                .o("dt", value(flags.date))
-                .o("ftr", value(flags.footer))
-                .o("hdr", value(flags.header))
-                .o("sldNum", value(flags.slide_number)),
-        );
-    }
-}
-
-fn layout_xml(x: &mut Exp, o: &mut Out, l: &Layout) -> Vec<u8> {
-    let mut w = W::new();
-    root_open(
-        &mut w,
-        "p:sldLayout",
-        A::new()
-            .o("showMasterSp", (!l.show_master_shapes).then_some("0"))
-            .a("type", l.kind.xml())
-            .t("preserve", l.preserve),
-    );
-    csld(&mut w, x, o, &l.name, l.background.as_ref(), &l.shapes, &[]);
-    clr_map_ovr(&mut w, l.color_map.as_deref());
-    placeholder_visibility(&mut w, l.placeholder_visibility.as_ref());
-    ext_list(&mut w, ext_children(l.raw_ext.as_deref()).as_deref());
-    w.close("p:sldLayout");
-    w.finish()
-}
-
-fn master_xml(x: &mut Exp, o: &mut Out, m: &Master, layouts: &[(u64, String)]) -> Vec<u8> {
-    let mut w = W::new();
-    root_open(&mut w, "p:sldMaster", A::new().t("preserve", m.preserve));
-    csld(&mut w, x, o, &m.name, m.background.as_ref(), &m.shapes, &[]);
-    clr_map(&mut w, &m.color_map);
-    w.open0("p:sldLayoutIdLst");
-    for (id, rid) in layouts {
-        w.empty("p:sldLayoutId", A::new().a("id", id).a("r:id", rid));
-    }
-    w.close("p:sldLayoutIdLst");
-    placeholder_visibility(&mut w, m.placeholder_visibility.as_ref());
-    w.open0("p:txStyles");
-    let (dt, db, dother) = defaults::master_styles();
-    let pick = |s: &joydeck_model::text::ListStyle, d: joydeck_model::text::ListStyle| {
-        if s.is_empty() { d } else { s.clone() }
-    };
-    dml::list_style(&mut w, x, o, "p:titleStyle", &pick(&m.title_style, dt));
-    dml::list_style(&mut w, x, o, "p:bodyStyle", &pick(&m.body_style, db));
-    dml::list_style(&mut w, x, o, "p:otherStyle", &pick(&m.other_style, dother));
-    w.close("p:txStyles");
-    ext_list(&mut w, ext_children(m.raw_ext.as_deref()).as_deref());
-    w.close("p:sldMaster");
-    w.finish()
+    Ok(x.pkg)
 }
 
 fn slide_xml(x: &mut Exp, o: &mut Out, s: &Slide, comment_rel: Option<&str>) -> Vec<u8> {
@@ -1151,9 +833,9 @@ fn slide_xml(x: &mut Exp, o: &mut Out, s: &Slide, comment_rel: Option<&str>) -> 
         &s.shapes,
         &s.tags,
     );
-    clr_map_ovr(&mut w, s.color_map.as_deref());
+    master_part::write_override(&mut w, s.color_map.as_deref());
     if let Some(t) = &s.transition {
-        timing::transition(&mut w, x, o, t);
+        crate::transition_part::write(&mut w, x, o, t);
     }
     if !s.animations.is_empty() {
         timing::timing(&mut w, x, &s.animations, &s.shapes, &ids);
@@ -1161,228 +843,6 @@ fn slide_xml(x: &mut Exp, o: &mut Out, s: &Slide, comment_rel: Option<&str>) -> 
     slide_ext_list(&mut w, s.raw_ext.as_deref(), comment_rel);
     w.close("p:sld");
     w.finish()
-}
-
-fn notes_xml(x: &mut Exp, o: &mut Out, notes: &TextBody) -> Vec<u8> {
-    let mut w = W::new();
-    root_open(&mut w, "p:notes", A::new());
-    let img = Shape {
-        id: ShapeId(2),
-        name: "Slide Image Placeholder 1".into(),
-        ph: Some(Placeholder {
-            kind: PhType::SlideImage,
-            ..Default::default()
-        }),
-        ..Default::default()
-    };
-    let mut tb = notes.clone();
-    tb.body = Default::default();
-    let body = Shape {
-        id: ShapeId(3),
-        name: "Notes Placeholder 2".into(),
-        ph: Some(Placeholder {
-            kind: PhType::Body,
-            idx: 1,
-            ..Default::default()
-        }),
-        text: Some(tb),
-        ..Default::default()
-    };
-    csld(&mut w, x, o, "", None, &[img, body], &[]);
-    w.open0("p:clrMapOvr");
-    w.empty0("a:masterClrMapping");
-    w.close("p:clrMapOvr");
-    w.close("p:notes");
-    w.finish()
-}
-
-fn comments_xml(
-    list: &[Comment],
-    authors: &mut Vec<(String, String, u32)>,
-    author_map: &mut std::collections::HashMap<String, usize>,
-) -> Vec<u8> {
-    let mut w = W::new();
-    root_open(&mut w, "p:cmLst", A::new());
-    let mut flat: Vec<&Comment> = vec![];
-    for c in list.iter().take(10_000) {
-        flat.push(c);
-        for r in c.replies.iter().take(1000) {
-            flat.push(r);
-        }
-    }
-    for c in flat {
-        let ai = author_slot(c, authors, author_map);
-        let idx = match authors.get_mut(ai) {
-            Some(a) => {
-                a.2 += 1;
-                a.2
-            }
-            None => 1,
-        };
-        let dt = if valid_date(&c.date) {
-            c.date.clone()
-        } else {
-            "2024-01-01T00:00:00.000".into()
-        };
-        w.open("p:cm", A::new().a("authorId", ai).a("dt", dt).a("idx", idx));
-        let pos = |v: f64| {
-            if v.is_finite() {
-                (v * 8.0).round().clamp(0.0, 1.0e9) as i64
-            } else {
-                0
-            }
-        };
-        w.empty("p:pos", A::new().a("x", pos(c.x)).a("y", pos(c.y)));
-        w.elt("p:text", &c.text);
-        w.close("p:cm");
-    }
-    w.close("p:cmLst");
-    w.finish()
-}
-
-/// The author's slot in the shared bucket list, adding them on first use. Legacy parts index the
-/// list by number, the modern authors part gives every slot a GUID.
-fn author_slot(
-    c: &Comment,
-    authors: &mut Vec<(String, String, u32)>,
-    map: &mut std::collections::HashMap<String, usize>,
-) -> usize {
-    let author = if c.author.is_empty() {
-        "Author"
-    } else {
-        &c.author
-    };
-    if let Some(&i) = map.get(author) {
-        return i;
-    }
-    let ini = if c.initials.is_empty() {
-        author
-            .chars()
-            .filter(|ch| ch.is_alphabetic())
-            .take(2)
-            .collect()
-    } else {
-        c.initials.clone()
-    };
-    let idx = authors.len();
-    authors.push((author.to_string(), ini, 0));
-    map.insert(author.to_string(), idx);
-    idx
-}
-
-/// The modern (p188) threaded-comment part: replies nest and the resolved state is kept, which
-/// the flattened legacy part cannot express (issue #70).
-fn modern_comments_xml(
-    list: &[Comment],
-    part: &str,
-    authors: &mut Vec<(String, String, u32)>,
-    author_map: &mut std::collections::HashMap<String, usize>,
-) -> Vec<u8> {
-    let mut w = W::new();
-    w.open(
-        "p188:cmLst",
-        A::new()
-            .a("xmlns:p188", NS_P188)
-            .a("xmlns:a", NS_A)
-            .a("xmlns:r", NS_R),
-    );
-    for (ti, c) in list.iter().take(10_000).enumerate() {
-        modern_comment(&mut w, c, part, ti, authors, author_map, 0);
-    }
-    w.close("p188:cmLst");
-    w.finish()
-}
-
-fn modern_comment(
-    w: &mut W,
-    c: &Comment,
-    part: &str,
-    ti: usize,
-    authors: &mut Vec<(String, String, u32)>,
-    author_map: &mut std::collections::HashMap<String, usize>,
-    depth: usize,
-) {
-    let ai = author_slot(c, authors, author_map);
-    let author = authors
-        .get(ai)
-        .map(|(n, _, _)| n.clone())
-        .unwrap_or_default();
-    let dt = if valid_date(&c.date) {
-        c.date.clone()
-    } else {
-        "2024-01-01T00:00:00.000".into()
-    };
-    let mut a = A::new()
-        .a(
-            "id",
-            crate::tables::guid(&format!("joydeck-comment:{part}:{ti}")),
-        )
-        .a("authorId", author_guid(&author))
-        .a("created", dt);
-    if c.resolved {
-        a = a.a("status", "resolved");
-    }
-    w.open("p188:cm", a);
-    w.empty0("p188:unknownAnchor");
-    let emu = |v: f64| {
-        if v.is_finite() {
-            (v * 12_700.0).round().clamp(0.0, 1.0e9) as i64
-        } else {
-            0
-        }
-    };
-    w.empty("p188:pos", A::new().a("x", emu(c.x)).a("y", emu(c.y)));
-    if depth < 4 && !c.replies.is_empty() {
-        w.open0("p188:replyLst");
-        for (ri, r) in c.replies.iter().take(1000).enumerate() {
-            let ri_ai = author_slot(r, authors, author_map);
-            let r_author = authors
-                .get(ri_ai)
-                .map(|(n, _, _)| n.clone())
-                .unwrap_or_default();
-            let rdt = if valid_date(&r.date) {
-                r.date.clone()
-            } else {
-                "2024-01-01T00:00:00.000".into()
-            };
-            let mut ra = A::new()
-                .a(
-                    "id",
-                    crate::tables::guid(&format!("joydeck-comment:{part}:{ti}:{ri}")),
-                )
-                .a("authorId", author_guid(&r_author))
-                .a("created", rdt);
-            if r.resolved {
-                ra = ra.a("status", "resolved");
-            }
-            w.open("p188:reply", ra);
-            tx_body(w, &r.text);
-            w.close("p188:reply");
-        }
-        w.close("p188:replyLst");
-    }
-    tx_body(w, &c.text);
-    w.close("p188:cm");
-}
-
-/// An `a:txBody` with one paragraph per line, the shape the reader re-joins with `\n`.
-fn tx_body(w: &mut W, text: &str) {
-    w.open0("p188:txBody");
-    w.empty0("a:bodyPr");
-    for line in text.split('\n') {
-        w.open0("a:p");
-        w.open0("a:r");
-        w.empty("a:rPr", A::new().a("lang", "en-US"));
-        w.elt("a:t", line);
-        w.close("a:r");
-        w.close("a:p");
-    }
-    w.close("p188:txBody");
-}
-
-/// The modern author id for a name: the same GUID the authors part writes.
-fn author_guid(name: &str) -> String {
-    crate::tables::guid(&format!("joydeck-comment-author:{name}"))
 }
 
 /// Sections with every slide in exactly one section, in slide order.

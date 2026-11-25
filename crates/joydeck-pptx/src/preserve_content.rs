@@ -62,7 +62,7 @@ pub(super) fn globals(
     generated: &opc::Package,
     base: &Presentation,
     current: &Presentation,
-    parts: &mut BTreeMap<String, Vec<u8>>,
+    parts: &mut PartEdits<'_>,
     pres: &mut El,
 ) -> Result<(), PptxError> {
     if base.slide_size != current.slide_size {
@@ -224,7 +224,7 @@ pub(super) fn globals(
     }
     Ok(())
 }
-fn new_name(parts: &BTreeMap<String, Vec<u8>>, source: &str) -> String {
+fn new_name(parts: &PartEdits<'_>, source: &str) -> String {
     let (folder, file) = source.rsplit_once('/').unwrap_or(("ppt/media", source));
     let mut n = 1;
     loop {
@@ -238,7 +238,7 @@ fn new_name(parts: &BTreeMap<String, Vec<u8>>, source: &str) -> String {
 fn import_part(
     pkg: &opc::Package,
     source: &str,
-    parts: &mut BTreeMap<String, Vec<u8>>,
+    parts: &mut PartEdits<'_>,
     ct: &mut El,
     imported: &mut BTreeMap<String, String>,
     depth: usize,
@@ -302,7 +302,7 @@ impl<'a> Pictures<'a> {
         &mut self,
         generated: &opc::Package,
         source: &str,
-        parts: &mut BTreeMap<String, Vec<u8>>,
+        parts: &mut PartEdits<'_>,
         ct: &mut El,
     ) -> Result<String, PptxError> {
         let Some((kind, bytes)) = generated.content_type(source).zip(generated.get(source)) else {
@@ -322,13 +322,13 @@ impl<'a> Pictures<'a> {
             let mut index = HashMap::<_, Vec<_>>::new();
             for (path, data) in parts.iter() {
                 if data.len() <= 32 << 20
-                    && self.source.original_name(path) == Some(path.as_str())
+                    && self.source.original_name(path) == Some(path)
                     && let Some(kind) = self.source.content_type(path)
                     && kind.starts_with("image/")
                     && self.source.get(&opc::rels_path(path)).is_none()
                 {
-                    let key = (kind, self.fingerprint.hash_one(data.as_slice()));
-                    index.entry(key).or_default().push(path.clone());
+                    let key = (kind, self.fingerprint.hash_one(data));
+                    index.entry(key).or_default().push(path.to_owned());
                 }
             }
             index
@@ -338,7 +338,7 @@ impl<'a> Pictures<'a> {
             .or_default();
         if let Some(path) = candidates
             .iter()
-            .find(|path| parts.get(*path).is_some_and(|data| data == bytes))
+            .find(|path| parts.get(path).is_some_and(|data| data == bytes))
         {
             return Ok(path.clone());
         }
@@ -467,7 +467,7 @@ pub(super) fn shape(
     pkg: &opc::Package,
     gen_slide: &str,
     slide: &str,
-    parts: &mut BTreeMap<String, Vec<u8>>,
+    parts: &mut PartEdits<'_>,
     ct: &mut El,
     rels: &mut Vec<El>,
     pictures: &mut Pictures<'_>,

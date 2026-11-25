@@ -4,10 +4,9 @@ use std::collections::{HashMap, HashSet};
 
 use joydeck_geom::Xfrm;
 use joydeck_model::style::Fill;
-use joydeck_model::table::Table;
 use joydeck_model::{Geom, PhType, Shape, ShapeId, ShapeKind, ShapeStyle, walk};
 
-use super::dml::{self, emu, emu_pos};
+use super::dml;
 use super::{Exp, Out};
 use crate::opc::NS_MC;
 use crate::xml::{A, W};
@@ -460,7 +459,7 @@ pub fn shape(w: &mut W, x: &mut Exp, o: &mut Out, cx: &mut Ctx, s: &Shape, depth
                     "http://schemas.openxmlformats.org/drawingml/2006/table",
                 ),
             );
-            table(w, x, o, t);
+            crate::table_part::encode(w, x, o, t);
             w.close("a:graphicData");
             frame_close(w);
         }
@@ -923,89 +922,6 @@ fn frame_open(w: &mut W, x: &mut Exp, o: &mut Out, id: u32, s: &Shape) {
 fn frame_close(w: &mut W) {
     w.close("a:graphic");
     w.close("p:graphicFrame");
-}
-
-fn table(w: &mut W, x: &mut Exp, o: &mut Out, t: &Table) {
-    let mut t = t.clone();
-    t.normalize();
-    w.open0("a:tbl");
-    let (guid, _) = crate::tables::guid_for_style(&t.style);
-    if !x.table_styles.contains(&t.style) {
-        x.table_styles.push(t.style.clone());
-    }
-    w.open(
-        "a:tblPr",
-        A::new()
-            .t("firstRow", t.first_row)
-            .t("firstCol", t.first_col)
-            .t("lastRow", t.last_row)
-            .t("lastCol", t.last_col)
-            .t("bandRow", t.band_row)
-            .t("bandCol", t.band_col),
-    );
-    if let Some(f) = &t.background {
-        dml::fill(w, x, o, f);
-    }
-    w.elt("a:tableStyleId", &guid);
-    w.close("a:tblPr");
-    w.open0("a:tblGrid");
-    for c in &t.cols {
-        w.empty("a:gridCol", A::new().a("w", emu_pos(*c)));
-    }
-    w.close("a:tblGrid");
-    for row in &t.rows {
-        w.open("a:tr", A::new().a("h", emu_pos(row.height)));
-        for c in &row.cells {
-            w.open(
-                "a:tc",
-                A::new()
-                    .o("gridSpan", (c.grid_span > 1).then_some(c.grid_span))
-                    .o("rowSpan", (c.row_span > 1).then_some(c.row_span))
-                    .t("hMerge", c.h_merge)
-                    .t("vMerge", c.v_merge),
-            );
-            dml::text_body(w, x, o, "a:txBody", &c.text, false);
-            let mut a = A::new();
-            if let Some(m) = c.margins {
-                a = a
-                    .a("marL", emu(m[0]))
-                    .a("marR", emu(m[1]))
-                    .a("marT", emu(m[2]))
-                    .a("marB", emu(m[3]));
-            }
-            a = a.o("vert", c.vertical.map(|v| v.xml())).o(
-                "anchor",
-                c.anchor.map(|a| match a {
-                    joydeck_model::text::Anchor::Justified
-                    | joydeck_model::text::Anchor::Distributed => "t",
-                    other => other.xml(),
-                }),
-            );
-            w.open("a:tcPr", a);
-            for (tag, l) in [
-                ("a:lnL", &c.borders[0]),
-                ("a:lnR", &c.borders[1]),
-                ("a:lnT", &c.borders[2]),
-                ("a:lnB", &c.borders[3]),
-                ("a:lnTlToBr", &c.diag_down),
-                ("a:lnBlToTr", &c.diag_up),
-            ] {
-                if let Some(l) = l {
-                    dml::line(w, x, o, tag, l);
-                }
-            }
-            if let Some(f) = &c.fill {
-                match f {
-                    Fill::Background => {}
-                    f => dml::fill(w, x, o, f),
-                }
-            }
-            w.close("a:tcPr");
-            w.close("a:tc");
-        }
-        w.close("a:tr");
-    }
-    w.close("a:tbl");
 }
 
 fn media(w: &mut W, x: &mut Exp, o: &mut Out, id: u32, s: &Shape, m: &joydeck_model::MediaClip) {

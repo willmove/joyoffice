@@ -67,8 +67,16 @@ pub struct ZipEntry {
     pub crc32: u32,
     pub compressed_size: u64,
     pub uncompressed_size: u64,
+    is_symlink: bool,
     /// Byte range of the item's local header and compressed data.
     data: Range<usize>,
+}
+
+impl ZipEntry {
+    /// Unix file type metadata from the ZIP central directory.
+    pub fn is_symlink(&self) -> bool {
+        self.is_symlink
+    }
 }
 
 /// Little-endian cursor that reports truncation instead of panicking.
@@ -234,7 +242,7 @@ impl<'a> ZipArchive<'a> {
         if cursor.u32()? != CENTRAL_HEADER {
             return Err(ZipError::Malformed("bad central directory header"));
         }
-        let _made_by = cursor.u16()?;
+        let creator = cursor.u16()? >> 8;
         let _needed = cursor.u16()?;
         let flags = cursor.u16()?;
         let method = cursor.u16()?;
@@ -248,7 +256,7 @@ impl<'a> ZipArchive<'a> {
         let comment_len = usize::from(cursor.u16()?);
         let disk = cursor.u16()?;
         let _internal = cursor.u16()?;
-        let _external = cursor.u32()?;
+        let external_attributes = cursor.u32()?;
         let mut local_offset = u64::from(cursor.u32()?);
         let raw_name = cursor.take(name_len)?;
         let extra = cursor.take(extra_len)?;
@@ -318,6 +326,7 @@ impl<'a> ZipArchive<'a> {
             crc32,
             compressed_size,
             uncompressed_size,
+            is_symlink: creator == 3 && (external_attributes >> 16) & 0o170000 == 0o120000,
             // Header-inclusive span, so overlap checks also cover local headers.
             data: local..data_end,
         })

@@ -1,104 +1,52 @@
 //! Slide transitions (`p:transition`) and animations (`p:timing`).
 
 use joydeck_model::anim::{
-    AnimClass, AnimStart, Animation, BuildRole, TextBuild, Transition, build_filled,
-    paragraph_build_roles,
+    AnimClass, AnimStart, Animation, BuildRole, TextBuild, build_filled, paragraph_build_roles,
 };
 use joydeck_model::{Shape, ShapeKind, TextBody, find_shape, find_shape_mut};
 
 use super::shapes::IdCtx;
 use super::{Imp, Part, dml};
 use crate::maps;
+use crate::transition_part::milliseconds as ms_attr;
 use crate::xml::El;
-
-fn ms_attr(e: &El, name: &str) -> Option<u32> {
-    let v = e.attr(name)?.trim();
-    if v == "indefinite" {
-        return None;
-    }
-    v.parse::<f64>()
-        .ok()
-        .filter(|v| v.is_finite())
-        .map(|v| v.clamp(0.0, 86_400_000.0) as u32)
-}
-
-pub fn transition(imp: &mut Imp, part: &Part, t: &El) -> Option<Transition> {
-    let effect = t
-        .elements()
-        .find(|e| !matches!(e.local(), "sndAc" | "extLst"));
-    let mut tr = Transition {
-        advance_on_click: t.bool("advClick").unwrap_or(true),
-        advance_after_ms: ms_attr(t, "advTm"),
-        ..Default::default()
-    };
-    match effect.and_then(maps::transition_from_xml) {
-        Some((k, o)) => {
-            tr.kind = k;
-            tr.option = o;
-        }
-        None => match effect {
-            Some(e) => {
-                tr.kind = e.local().to_string();
-                tr.raw = Some(part.keep(t));
-            }
-            None => tr.kind = "none".into(),
-        },
-    }
-    let default_dur = joydeck_model::anim::TRANSITIONS
-        .iter()
-        .find(|x| x.0 == tr.kind)
-        .map(|x| x.3)
-        .unwrap_or(1000);
-    // `spd` defaults to "fast" in the schema; PowerPoint omits both attributes for 0.5 s.
-    tr.duration_ms = ms_attr(t, "dur").unwrap_or(match t.attr("spd") {
-        Some("med") => 750,
-        Some("slow") => default_dur.max(1000),
-        _ => 500,
-    });
-    if let Some(snd) = t.path(&["sndAc", "stSnd", "snd"]) {
-        tr.sound = dml::media_ref(imp, part, snd);
-        tr.sound_loop = t
-            .path(&["sndAc", "stSnd"])
-            .and_then(|s| s.attr("loop"))
-            .is_some_and(|v| v == "1" || v == "true");
-    }
-    tr.stop_sound = t.path(&["sndAc", "endSnd"]).is_some();
-    if tr.kind == "none"
-        && tr.advance_on_click
-        && tr.advance_after_ms.is_none()
-        && tr.sound.is_none()
-        && !tr.stop_sound
-    {
-        return None;
-    }
-    Some(tr)
-}
 
 struct Found<'a> {
     ctn: &'a El,
     trigger: Option<u32>,
 }
 
-fn collect<'a>(e: &'a El, trigger: Option<u32>, out: &mut Vec<Found<'a>>, depth: usize) {
-    if depth > 64 || out.len() > 10_000 {
-        return;
-    }
-    for c in e.elements() {
-        if c.is("cTn") && c.has_attr("presetClass") {
-            out.push(Found { ctn: c, trigger });
+fn collect(timing: &El) -> Vec<Found<'_>> {
+    let mut found = Vec::new();
+    let mut frames = vec![(timing.elements(), None, 0usize)];
+    while let Some((children, inherited, depth)) = frames.last_mut() {
+        let Some(node) = children.next() else {
+            frames.pop();
             continue;
+        };
+        if node.is("cTn") && node.has_attr("presetClass") {
+            found.push(Found {
+                ctn: node,
+                trigger: *inherited,
+            });
+            if found.len() == 10_000 {
+                break;
+            }
+        } else if *depth < 64 {
+            let trigger = if node.is("seq")
+                && let Some(time) = node.child("cTn")
+                && time.attr("nodeType") == Some("interactiveSeq")
+            {
+                time.path(&["stCondLst", "cond", "tgtEl", "spTgt"])
+                    .and_then(|target| target.u32("spid"))
+            } else {
+                *inherited
+            };
+            let level = *depth + 1;
+            frames.push((node.elements(), trigger, level));
         }
-        let mut trig = trigger;
-        if c.is("seq")
-            && let Some(ctn) = c.child("cTn")
-            && ctn.attr("nodeType") == Some("interactiveSeq")
-        {
-            trig = ctn
-                .path(&["stCondLst", "cond", "tgtEl", "spTgt"])
-                .and_then(|s| s.u32("spid"));
-        }
-        collect(c, trig, out, depth + 1);
     }
+    found
 }
 
 fn max_dur(e: &El, depth: usize) -> Option<u32> {
@@ -187,8 +135,7 @@ pub fn animations(
     let Some(tn) = timing.child("tnLst") else {
         return vec![];
     };
-    let mut found = vec![];
-    collect(tn, None, &mut found, 0);
+    let found = collect(tn);
     // Paragraph builds (`bldP build="p"`) by (spid, grpId).
     let by_para: Vec<(u32, String)> = timing
         .child("bldLst")

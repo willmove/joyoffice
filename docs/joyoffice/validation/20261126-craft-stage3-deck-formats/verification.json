@@ -1,0 +1,1488 @@
+{
+  "verifiedOn": "2026-11-26",
+  "platform": "Windows 11 x64 (10.0.26300)",
+  "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)",
+  "frozenCommit": "14cbb29616d7c0ababbf40a8f6c0218b996e7ae8",
+  "implementationParent": "a5a4edda8f7d7d3dcb149b5a7103d0695a66915b",
+  "cliSha256": {
+    "frozen": "f8fd32a31570e241f17ced00dbce66f7e2ae53739b18e3c70bea03c2e78794f7",
+    "candidate": "b045a9f14f36e5865ad469c568e91ea4c9ace3d208ae13949d95deacf6fe14bf"
+  },
+  "packageExchange": {
+    "modelReads": 234,
+    "writtenFiles": 100,
+    "exactPreserveFiles": 11,
+    "exactPreserveParts": 510,
+    "originalInputsUntouched": true,
+    "regeneratedPackagesHaveNoMissingTargets": true,
+    "probes": {
+      "retainedMarkup": [
+        "ppt/slides/Slide2.xml"
+      ],
+      "notesOnlyChangedParts": [
+        "ppt/notesSlides/notesSlide2.xml"
+      ],
+      "invalidInputs": {
+        "broken-pptx": {
+          "frozen": {
+            "status": 1,
+            "diagnostic": "JoyDeck CLI: invalid package: NotZip"
+          },
+          "candidate": {
+            "status": 1,
+            "diagnostic": "JoyDeck CLI: invalid package: NotZip"
+          }
+        },
+        "future-native": {
+          "frozen": {
+            "status": 1,
+            "diagnostic": "JoyDeck CLI: unsupported JoyDeck version/required capability; file kept unchanged"
+          },
+          "candidate": {
+            "status": 1,
+            "diagnostic": "JoyDeck CLI: unsupported JoyDeck version/required capability; file kept unchanged"
+          }
+        },
+        "unknown-capability": {
+          "frozen": {
+            "status": 1,
+            "diagnostic": "JoyDeck CLI: unsupported JoyDeck version/required capability; file kept unchanged"
+          },
+          "candidate": {
+            "status": 1,
+            "diagnostic": "JoyDeck CLI: unsupported JoyDeck version/required capability; file kept unchanged"
+          }
+        },
+        "unbound-source": {
+          "frozen": {
+            "status": 1,
+            "diagnostic": "JoyDeck CLI: source format/binding mismatch"
+          },
+          "candidate": {
+            "status": 1,
+            "diagnostic": "JoyDeck CLI: source format/binding mismatch"
+          }
+        },
+        "utf16-dtd": {
+          "frozen": {
+            "status": 1,
+            "diagnostic": "JoyDeck CLI: extra/utf16.xml: unclosed XML element"
+          },
+          "candidate": {
+            "status": 1,
+            "diagnostic": "JoyDeck CLI: extra/utf16.xml: DTDs are unsupported"
+          }
+        },
+        "symlink-metadata": {
+          "frozen": {
+            "status": 1,
+            "diagnostic": "JoyDeck CLI: symlink package entries are unsupported"
+          },
+          "candidate": {
+            "status": 1,
+            "diagnostic": "JoyDeck CLI: symlink package entries are unsupported"
+          }
+        },
+        "bad-member-crc": {
+          "frozen": {
+            "status": 1,
+            "diagnostic": "JoyDeck CLI: extra/check.bin: Corrupt { name: \"extra/check.bin\" }"
+          },
+          "candidate": {
+            "status": 1,
+            "diagnostic": "JoyDeck CLI: extra/check.bin: Corrupt { name: \"extra/check.bin\" }"
+          }
+        }
+      },
+      "preservingWritesRefused": [
+        "signed",
+        "macro-enabled"
+      ],
+      "encryptedOffice": {
+        "source": "PowerPoint 16 encrypted PPTX",
+        "sha256": "b0082e77547861d0e69ee0a00d04edc17613e350a7172670f89a2b053c096a15",
+        "sourceUnchanged": true,
+        "readers": [
+          {
+            "exitCode": 1,
+            "diagnostic": "JoyDeck CLI: encrypted Office files are not supported; decrypt a copy first",
+            "cliSha256": "f8fd32a31570e241f17ced00dbce66f7e2ae53739b18e3c70bea03c2e78794f7"
+          },
+          {
+            "exitCode": 1,
+            "diagnostic": "JoyDeck CLI: encrypted Office files are not supported; decrypt a copy first",
+            "cliSha256": "b045a9f14f36e5865ad469c568e91ea4c9ace3d208ae13949d95deacf6fe14bf"
+          }
+        ]
+      }
+    },
+    "templates": {
+      "potx": "application/vnd.openxmlformats-officedocument.presentationml.template.main+xml",
+      "ppsx": "application/vnd.openxmlformats-officedocument.presentationml.slideshow.main+xml"
+    },
+    "samples": [
+      {
+        "name": "independent.pptx",
+        "inputSha256": "6e3aa914dd5f40cd261ab35ceff2f1b584f100fa0ffb0569f6cb9af53bed6933",
+        "modelReads": 14,
+        "outputs": {
+          "native": {
+            "frozen": "eb5d9b755a35c840e70b6d6c43f5706bbf0ae2829a91c0819634009d1279b263",
+            "candidate": "bc03c9aee9c4c6de8df4a9241263bfb7c408fb8cb12b0bb25483e9879d8e4851"
+          },
+          "preserve": {
+            "frozen": "3506251b16de2bac3bca83e46cc241df543513c77f5a75f59edfea276b325dba",
+            "candidate": "3506251b16de2bac3bca83e46cc241df543513c77f5a75f59edfea276b325dba"
+          },
+          "regenerate": {
+            "frozen": "9031faa46266d441b533c4f79c01bc9ba58871e75a4d4817aea4950486986077",
+            "candidate": "9031faa46266d441b533c4f79c01bc9ba58871e75a4d4817aea4950486986077"
+          }
+        },
+        "exactPreservedParts": 52,
+        "regeneratedPackage": {
+          "relationshipSha256": "d22eff354cbf71fb6570bc588dfc3c7e2c1bf1a480319f328de73861879c6954",
+          "slideIds": [
+            256,
+            257,
+            258
+          ],
+          "masters": 1,
+          "layouts": 11,
+          "mediaAndEmbeddingParts": 1,
+          "slidesWithTiming": 0
+        }
+      },
+      {
+        "name": "m10-powerpoint-authored-motion.pptx",
+        "inputSha256": "4894295c02485ed37eef99e2bb93562661793a682ef0675257f5a0d7b869bfdd",
+        "modelReads": 14,
+        "outputs": {
+          "native": {
+            "frozen": "315e6e8765c03a83663a6d9db6f3ecb4ad5e2d57e1a51295474991e9d11c0327",
+            "candidate": "4766b6378a195bd51d813ad5154bbc0e78e8cbbad79964891a877c7c6a08e44a"
+          },
+          "preserve": {
+            "frozen": "2a30e06e50315e848c10b32aa17c4ec282495c939fd7cf89c3ba6643e065abeb",
+            "candidate": "2a30e06e50315e848c10b32aa17c4ec282495c939fd7cf89c3ba6643e065abeb"
+          },
+          "regenerate": {
+            "frozen": "a61485305e5130621e22f0fc87cfc31f7264491129a0bcae3c7a3d3d7a2eddcf",
+            "candidate": "a61485305e5130621e22f0fc87cfc31f7264491129a0bcae3c7a3d3d7a2eddcf"
+          }
+        },
+        "exactPreservedParts": 37,
+        "regeneratedPackage": {
+          "relationshipSha256": "d014f4def88326149f617d6dcc3712ba5652ac4a202e8a3a50bca6631e3b9c86",
+          "slideIds": [
+            256
+          ],
+          "masters": 1,
+          "layouts": 11,
+          "mediaAndEmbeddingParts": 0,
+          "slidesWithTiming": 1
+        }
+      },
+      {
+        "name": "m8-powerpoint-edited.pptx",
+        "inputSha256": "3d0728c6d07d787de01711f983ef0c3e6104f67cc66a2a0e91cc08f4c24040bd",
+        "modelReads": 14,
+        "outputs": {
+          "native": {
+            "frozen": "052f80f72057411200047184e072daea11ccfd9d21d683355b4058570fa8a691",
+            "candidate": "027828009b5b56e8335b069bf793469da5a4183ffba56fd9c140366a33a113a6"
+          },
+          "preserve": {
+            "frozen": "767d34a2e64c8418c687e74be10f84657fc6cdb00e91603845704d55a5a87a1c",
+            "candidate": "767d34a2e64c8418c687e74be10f84657fc6cdb00e91603845704d55a5a87a1c"
+          },
+          "regenerate": {
+            "frozen": "3f1a449fd5c8317785ee57b66325e2f8047ab3731aa56308772547c7d4653ae0",
+            "candidate": "3f1a449fd5c8317785ee57b66325e2f8047ab3731aa56308772547c7d4653ae0"
+          }
+        },
+        "exactPreservedParts": 19,
+        "regeneratedPackage": {
+          "relationshipSha256": "dec164709b6757579ea77f44d9b3cd565f2c19b7a161a8229e7c464ad63d71e7",
+          "slideIds": [
+            256
+          ],
+          "masters": 1,
+          "layouts": 1,
+          "mediaAndEmbeddingParts": 0,
+          "slidesWithTiming": 0
+        }
+      },
+      {
+        "name": "m9-powerpoint-edited-chart.pptx",
+        "inputSha256": "fb186510d923be988f8e721b8e66c8915b4bbc0eb3c6515f8e380af3eb577631",
+        "modelReads": 14,
+        "outputs": {
+          "native": {
+            "frozen": "1595713fdd8c9463c14c9a85fad799abc184c63382610c4e07fd0af30ba7e892",
+            "candidate": "406b90962dda7605c23afb65339145c28e87e25e6b35fa68fd0d0d173bcda086"
+          },
+          "preserve": {
+            "frozen": "6ffcf0b5aa04c0c6ba844cdd040fb7af76f9c63dec52dcacaf130a0756e5c88e",
+            "candidate": "6ffcf0b5aa04c0c6ba844cdd040fb7af76f9c63dec52dcacaf130a0756e5c88e"
+          },
+          "regenerate": {
+            "frozen": "cb64459a8af6f90cf9a3c55f12daeda100746e2d337e62c8b2c298c4382903e5",
+            "candidate": "6b3f4b3a53ad512ba4f7fa89a6ce89a5a517c0ea35cc5a012e2b716c9122faad"
+          }
+        },
+        "exactPreservedParts": 63,
+        "regeneratedPackage": {
+          "relationshipSha256": "1470193da5a31fd6b64411f56d0442d16a5916c950b0ec180e9bf275f2964e76",
+          "slideIds": [
+            256,
+            257,
+            258,
+            259,
+            260,
+            261,
+            262
+          ],
+          "masters": 1,
+          "layouts": 1,
+          "mediaAndEmbeddingParts": 5,
+          "slidesWithTiming": 7
+        }
+      },
+      {
+        "name": "m9-powerpoint-stale-cache.pptx",
+        "inputSha256": "f90322718427319ae4f2c2d6facab7468718a7c477c2c3029b726d5660e56fa1",
+        "modelReads": 14,
+        "outputs": {
+          "native": {
+            "frozen": "5b027ba35a48b27b20be0e198af1b0f7cf71c80af27416952e6a48e57e4a53c4",
+            "candidate": "0f39e0732ab2ccf9c152fde40d1b5da35aa68ad3d062beb922cd309546b5d40b"
+          },
+          "preserve": {
+            "frozen": "b01de4061362777c5545498c6a91da0d865311aa0d421d8bb522324238db8af1",
+            "candidate": "b01de4061362777c5545498c6a91da0d865311aa0d421d8bb522324238db8af1"
+          },
+          "regenerate": {
+            "frozen": "42291c533f4d0f08b97bb67c9ca58fd5aef82b9bac6329bf56adaad0775db94c",
+            "candidate": "55b95ebafe20101d46b9a24d0318ca1aa89bba1a397d0f371c10e209035744d2"
+          }
+        },
+        "exactPreservedParts": 63,
+        "regeneratedPackage": {
+          "relationshipSha256": "1470193da5a31fd6b64411f56d0442d16a5916c950b0ec180e9bf275f2964e76",
+          "slideIds": [
+            256,
+            257,
+            258,
+            259,
+            260,
+            261,
+            262
+          ],
+          "masters": 1,
+          "layouts": 1,
+          "mediaAndEmbeddingParts": 5,
+          "slidesWithTiming": 7
+        }
+      },
+      {
+        "name": "native-20.joydeck",
+        "inputSha256": "b01b770d75c5cf47851f8895ba916ebac000a530f1416cfc923dccfc6be044f9",
+        "modelReads": 14,
+        "outputs": {
+          "native": {
+            "frozen": "00cc0e6afc4ac68f13104233332ec982f47c9da26ea5be941762f6e3a263528d",
+            "candidate": "9e37c24822c02d74227aa8ce098a5070ba784e0595bc2523cd3c1e90f0a02733"
+          },
+          "preserve": {
+            "frozen": "ca81e1c8cbf5d8280fa6f597f91cb766e639f2e1c9dbe7df557f61b1c4990fb6",
+            "candidate": "ca81e1c8cbf5d8280fa6f597f91cb766e639f2e1c9dbe7df557f61b1c4990fb6"
+          },
+          "regenerate": {
+            "frozen": "401d0d8e5cf6a411b5223664c3fe7207bb125848c615bd1aae034f36577dfb2b",
+            "candidate": "401d0d8e5cf6a411b5223664c3fe7207bb125848c615bd1aae034f36577dfb2b"
+          }
+        },
+        "regeneratedPackage": {
+          "relationshipSha256": "7c7d4cbd0fccb3c495db7fb3d4b487aee3d940434f563037635529412e23ad7d",
+          "slideIds": [
+            256,
+            257,
+            258,
+            259,
+            260,
+            261,
+            262,
+            263,
+            264,
+            265,
+            266,
+            267,
+            268,
+            269,
+            270,
+            271,
+            272,
+            273,
+            274,
+            275
+          ],
+          "masters": 1,
+          "layouts": 1,
+          "mediaAndEmbeddingParts": 0,
+          "slidesWithTiming": 0
+        }
+      },
+      {
+        "name": "public-format-20.pptx",
+        "inputSha256": "b7b20112ec9105150a4721352df127eafa121f1d2a0c892de66f04ce7f8f5ffc",
+        "modelReads": 14,
+        "outputs": {
+          "native": {
+            "frozen": "e10126327e5f70987c599e4270fb91be022651fa8d05fd6e34e90a31623d4b78",
+            "candidate": "e03e5539975951c9e388665aa1220c24fe733b46fd74f82b01880d1730b51657"
+          },
+          "preserve": {
+            "frozen": "5263ec488be90b27f838a5702172f5e1bfb734326b4ce0bce4b7c16498005aae",
+            "candidate": "5263ec488be90b27f838a5702172f5e1bfb734326b4ce0bce4b7c16498005aae"
+          },
+          "regenerate": {
+            "frozen": "2a006b1ed5091bedcf4970672b2d139a4e2e37fc275d35ce18847cf6596a4aa0",
+            "candidate": "2a006b1ed5091bedcf4970672b2d139a4e2e37fc275d35ce18847cf6596a4aa0"
+          }
+        },
+        "exactPreservedParts": 24,
+        "regeneratedPackage": {
+          "relationshipSha256": "36de28e78d504c20dae42c8991d2ca04579ab8367e02eaf8cb83b54c2742c1ef",
+          "slideIds": [
+            256,
+            257,
+            258,
+            259,
+            260,
+            261,
+            262,
+            263,
+            264,
+            265,
+            266,
+            267,
+            268,
+            269,
+            270,
+            271,
+            272,
+            273,
+            274,
+            275
+          ],
+          "masters": 1,
+          "layouts": 11,
+          "mediaAndEmbeddingParts": 0,
+          "slidesWithTiming": 0
+        }
+      },
+      {
+        "name": "r1-preview.deckcraft",
+        "inputSha256": "7bff9a5b4984c8f4a3873dbe6f44ebdcac9b1792da67a91c61ace559b32aec5f",
+        "modelReads": 10,
+        "outputs": {
+          "native": {
+            "frozen": "e5ec83aea1f862e29bb571f7d9703e7ac878a1e5602886581a1831f6b7beb52a",
+            "candidate": "e4b5be47a2d9fdc9a42642b818b5fc7236f9ac93670b3982527a7ad598365ae7"
+          },
+          "regenerate": {
+            "frozen": "59988df0d3b2737022168cd151fad2d1de236e36a3a585f9f377007772a6045c",
+            "candidate": "59988df0d3b2737022168cd151fad2d1de236e36a3a585f9f377007772a6045c"
+          }
+        },
+        "regeneratedPackage": {
+          "relationshipSha256": "a875f718efc586c055eaa1157f9442c56c671d99bdb3595e3e1bbf5b9ecdb38f",
+          "slideIds": [
+            256,
+            257,
+            258
+          ],
+          "masters": 1,
+          "layouts": 11,
+          "mediaAndEmbeddingParts": 0,
+          "slidesWithTiming": 0
+        }
+      },
+      {
+        "name": "r1-preview.pptx",
+        "inputSha256": "d6f81497635b517ae63c071f987d3da57449072939630456303871474950e691",
+        "modelReads": 14,
+        "outputs": {
+          "native": {
+            "frozen": "4100d63b19783e5813dc816426eefe8af95e53704892eea172b3d40dafd350c5",
+            "candidate": "7c45b8ab30012a50c18b135ea77b275bbcc3a5c70ba24b018fc60cfb88b5ef3c"
+          },
+          "preserve": {
+            "frozen": "f7da3084fa702fa93b24b4c5723f652abd4a7f14399f082816fbae226d0b57b8",
+            "candidate": "f7da3084fa702fa93b24b4c5723f652abd4a7f14399f082816fbae226d0b57b8"
+          },
+          "regenerate": {
+            "frozen": "3b7114d5a2e58feb43561b7273ccc96fa8af36db66cdb68b38a30953f4cb8830",
+            "candidate": "3b7114d5a2e58feb43561b7273ccc96fa8af36db66cdb68b38a30953f4cb8830"
+          }
+        },
+        "exactPreservedParts": 49,
+        "regeneratedPackage": {
+          "relationshipSha256": "a875f718efc586c055eaa1157f9442c56c671d99bdb3595e3e1bbf5b9ecdb38f",
+          "slideIds": [
+            256,
+            257,
+            258
+          ],
+          "masters": 1,
+          "layouts": 11,
+          "mediaAndEmbeddingParts": 0,
+          "slidesWithTiming": 0
+        }
+      },
+      {
+        "name": "r4-r5/independent-complex.pptx",
+        "inputSha256": "3908ab2ead42451118627853ee5a245fe9591cd57bda14e1ebe2c808de544ffe",
+        "modelReads": 14,
+        "outputs": {
+          "native": {
+            "frozen": "2a86f499ba3a23b040710bef05586f140ac0e3c6339776e6b469749fa91bdf57",
+            "candidate": "258bd78e800c367c53a6bd54b8c9970d4c43fdb531ed411f471ab38675d783fa"
+          },
+          "preserve": {
+            "frozen": "86bc4233828399d68c249f0668a837c6d7cda9afef55d0720d1b70ed104196c6",
+            "candidate": "86bc4233828399d68c249f0668a837c6d7cda9afef55d0720d1b70ed104196c6"
+          },
+          "regenerate": {
+            "frozen": "3dd1d3de47f64e3a2d9a56a5b1593029f7743e0d1e6dbca023712cfea27af0ec",
+            "candidate": "3dd1d3de47f64e3a2d9a56a5b1593029f7743e0d1e6dbca023712cfea27af0ec"
+          }
+        },
+        "exactPreservedParts": 56,
+        "regeneratedPackage": {
+          "relationshipSha256": "4539a2a7053f3f73fb39bb985259f75fbd9896580d9ab5146e27d2b8f561562c",
+          "slideIds": [
+            256,
+            257,
+            258
+          ],
+          "masters": 1,
+          "layouts": 11,
+          "mediaAndEmbeddingParts": 2,
+          "slidesWithTiming": 0
+        }
+      },
+      {
+        "name": "r6-r7/delivery-media.pptx",
+        "inputSha256": "2644d3e6925aa788f7a4629c9a639ecfb4a5f9ba37951135a08db35102949067",
+        "modelReads": 14,
+        "outputs": {
+          "native": {
+            "frozen": "cd7a65289c082f30a0c36d1be0da1aced7bf2fe236aa97a8c0463b7846116e3f",
+            "candidate": "1ad512a038265447e60840031e4c84c4d3c86ebf7679d3f2e9c6549d6b2deee3"
+          },
+          "preserve": {
+            "frozen": "af3ff0ebb4e54ec3bbdedc1be172f8e56977e05c8d2158cadb175bc844566fc4",
+            "candidate": "af3ff0ebb4e54ec3bbdedc1be172f8e56977e05c8d2158cadb175bc844566fc4"
+          },
+          "regenerate": {
+            "frozen": "4da530df83bfc81107d2498b1d4ec20136d88b6b4c9397f19db119376d3e8375",
+            "candidate": "4da530df83bfc81107d2498b1d4ec20136d88b6b4c9397f19db119376d3e8375"
+          }
+        },
+        "exactPreservedParts": 54,
+        "regeneratedPackage": {
+          "relationshipSha256": "a8ed3fb2f6058d3b9f49f11a2fdb0747a9aa355e727f731b7e3650fd9e8062f1",
+          "slideIds": [
+            256,
+            257,
+            258
+          ],
+          "masters": 1,
+          "layouts": 11,
+          "mediaAndEmbeddingParts": 2,
+          "slidesWithTiming": 0
+        }
+      },
+      {
+        "name": "r6-r7/legacy-1.0.joydeck",
+        "inputSha256": "b01b770d75c5cf47851f8895ba916ebac000a530f1416cfc923dccfc6be044f9",
+        "modelReads": 14,
+        "outputs": {
+          "native": {
+            "frozen": "00cc0e6afc4ac68f13104233332ec982f47c9da26ea5be941762f6e3a263528d",
+            "candidate": "9e37c24822c02d74227aa8ce098a5070ba784e0595bc2523cd3c1e90f0a02733"
+          },
+          "preserve": {
+            "frozen": "ca81e1c8cbf5d8280fa6f597f91cb766e639f2e1c9dbe7df557f61b1c4990fb6",
+            "candidate": "ca81e1c8cbf5d8280fa6f597f91cb766e639f2e1c9dbe7df557f61b1c4990fb6"
+          },
+          "regenerate": {
+            "frozen": "401d0d8e5cf6a411b5223664c3fe7207bb125848c615bd1aae034f36577dfb2b",
+            "candidate": "401d0d8e5cf6a411b5223664c3fe7207bb125848c615bd1aae034f36577dfb2b"
+          }
+        },
+        "regeneratedPackage": {
+          "relationshipSha256": "7c7d4cbd0fccb3c495db7fb3d4b487aee3d940434f563037635529412e23ad7d",
+          "slideIds": [
+            256,
+            257,
+            258,
+            259,
+            260,
+            261,
+            262,
+            263,
+            264,
+            265,
+            266,
+            267,
+            268,
+            269,
+            270,
+            271,
+            272,
+            273,
+            274,
+            275
+          ],
+          "masters": 1,
+          "layouts": 1,
+          "mediaAndEmbeddingParts": 0,
+          "slidesWithTiming": 0
+        }
+      },
+      {
+        "name": "r6-r7/legacy-1.11.joydeck",
+        "inputSha256": "4d8187b2f5dffeca0a9ec5c57e5e092db297f12cb48cd47b47acb3eb72e1d3ef",
+        "modelReads": 14,
+        "outputs": {
+          "native": {
+            "frozen": "5d72a0cf0562f56a6e3a3e020aedff15127f5cc8d6db0bba0ca19c07bb7502ee",
+            "candidate": "9a4f9e505b6461930cc88f2be3f31973f9b6596b1d38a8ea0b7b047bdd811cb5"
+          },
+          "preserve": {
+            "frozen": "109c275863f894ae8d09b13660b7b60c3ff7da0e08270da0d64ad2941e45b248",
+            "candidate": "109c275863f894ae8d09b13660b7b60c3ff7da0e08270da0d64ad2941e45b248"
+          },
+          "regenerate": {
+            "frozen": "491065da87f4aadaeab1113ae6d64a57c92fd73b4bfaf4017e29e51fbc022cec",
+            "candidate": "491065da87f4aadaeab1113ae6d64a57c92fd73b4bfaf4017e29e51fbc022cec"
+          }
+        },
+        "regeneratedPackage": {
+          "relationshipSha256": "1e730865dcf6752fa2144c101f25a1ad7c15b93866a55b778755f8e9fcf79e96",
+          "slideIds": [
+            256
+          ],
+          "masters": 1,
+          "layouts": 1,
+          "mediaAndEmbeddingParts": 0,
+          "slidesWithTiming": 0
+        }
+      },
+      {
+        "name": "r6-r7/powerpoint-authored-motion.pptx",
+        "inputSha256": "4894295c02485ed37eef99e2bb93562661793a682ef0675257f5a0d7b869bfdd",
+        "modelReads": 14,
+        "outputs": {
+          "native": {
+            "frozen": "315e6e8765c03a83663a6d9db6f3ecb4ad5e2d57e1a51295474991e9d11c0327",
+            "candidate": "4766b6378a195bd51d813ad5154bbc0e78e8cbbad79964891a877c7c6a08e44a"
+          },
+          "preserve": {
+            "frozen": "2a30e06e50315e848c10b32aa17c4ec282495c939fd7cf89c3ba6643e065abeb",
+            "candidate": "2a30e06e50315e848c10b32aa17c4ec282495c939fd7cf89c3ba6643e065abeb"
+          },
+          "regenerate": {
+            "frozen": "a61485305e5130621e22f0fc87cfc31f7264491129a0bcae3c7a3d3d7a2eddcf",
+            "candidate": "a61485305e5130621e22f0fc87cfc31f7264491129a0bcae3c7a3d3d7a2eddcf"
+          }
+        },
+        "exactPreservedParts": 37,
+        "regeneratedPackage": {
+          "relationshipSha256": "d014f4def88326149f617d6dcc3712ba5652ac4a202e8a3a50bca6631e3b9c86",
+          "slideIds": [
+            256
+          ],
+          "masters": 1,
+          "layouts": 11,
+          "mediaAndEmbeddingParts": 0,
+          "slidesWithTiming": 1
+        }
+      },
+      {
+        "name": "r9-ui2/legacy-review-media.joydeck",
+        "inputSha256": "cf1e8aa32d97b2b29db68706351c59c0bcf268166f7df5400279f6113700f3e1",
+        "modelReads": 14,
+        "outputs": {
+          "native": {
+            "frozen": "630b08d7876cc455100d5fa32126ded1f35a0b935d355c40c0466ef5f72cb096",
+            "candidate": "d4280830ae89e7b082cc64db4be09c9825edf928ddfc2e1c9923d922b0513814"
+          },
+          "preserve": {
+            "frozen": "7395a6689456e2e4d40d23c8b1a1f85b798cd83a43965394a38d43a353f04a57",
+            "candidate": "b6ff728fbae74d0c27198a953acdf826eec52614d916275ed96f833f320396f4"
+          },
+          "regenerate": {
+            "frozen": "8c728cdc0041a24cccb3e620156f3028cd7dd1c937e5f64badaf41ba8aad1845",
+            "candidate": "8c728cdc0041a24cccb3e620156f3028cd7dd1c937e5f64badaf41ba8aad1845"
+          }
+        },
+        "existingDifference": "picture placeholder for legacy audio, introduced in phase 2",
+        "stage2CheckpointPreserveSha256": "b6ff728fbae74d0c27198a953acdf826eec52614d916275ed96f833f320396f4",
+        "regeneratedPackage": {
+          "relationshipSha256": "c90a9ff34878a90eb89bf44e0e1428da5c28f946f61c2f8cdb2aef31e25f0050",
+          "slideIds": [
+            256,
+            257
+          ],
+          "masters": 1,
+          "layouts": 1,
+          "mediaAndEmbeddingParts": 2,
+          "slidesWithTiming": 0
+        }
+      },
+      {
+        "name": "native-with-extension.joydeck",
+        "inputSha256": "1d81115633226f7a8d10a666f143ffdf31bd7bfd30941fa975edc824328a15fd",
+        "modelReads": 14,
+        "outputs": {
+          "native": {
+            "frozen": "dc6b1fb6dceb7304c00d077aaf87ce3c7da305d229b9e6625918c511e2f20bb4",
+            "candidate": "933a0dd673051b1be6a7323b2447fae20deac32159aae2b3fd5386d0ed12f1a6"
+          },
+          "preserve": {
+            "frozen": "3506251b16de2bac3bca83e46cc241df543513c77f5a75f59edfea276b325dba",
+            "candidate": "3506251b16de2bac3bca83e46cc241df543513c77f5a75f59edfea276b325dba"
+          },
+          "regenerate": {
+            "frozen": "9031faa46266d441b533c4f79c01bc9ba58871e75a4d4817aea4950486986077",
+            "candidate": "9031faa46266d441b533c4f79c01bc9ba58871e75a4d4817aea4950486986077"
+          }
+        },
+        "regeneratedPackage": {
+          "relationshipSha256": "d22eff354cbf71fb6570bc588dfc3c7e2c1bf1a480319f328de73861879c6954",
+          "slideIds": [
+            256,
+            257,
+            258
+          ],
+          "masters": 1,
+          "layouts": 11,
+          "mediaAndEmbeddingParts": 1,
+          "slidesWithTiming": 0
+        }
+      },
+      {
+        "name": "extended-chart-hierarchy.pptx",
+        "inputSha256": "1e68a035cbe989ab2937a81528d6b07df325abfd72e3e756fa195a8e3f976fa9",
+        "modelReads": 14,
+        "outputs": {
+          "native": {
+            "frozen": "027b06dafd095f5ad5e3ce2a16a413f92c8c07d38b28501ec88c1ce8092480d4",
+            "candidate": "f3b11e55ee6ef97ae5fc27b58696390fb3a3f7b646db6329b01f5264a45ea09e"
+          },
+          "preserve": {
+            "frozen": "fc571854786bc9cd4cce1694683e9c54dc4df80eb7968e3e25ce423913b78b5d",
+            "candidate": "fc571854786bc9cd4cce1694683e9c54dc4df80eb7968e3e25ce423913b78b5d"
+          },
+          "regenerate": {
+            "frozen": "f27eacef542eb05e9baf2254e2e47b9e3a501ae50a7cfed167da5d85d73fd1b3",
+            "candidate": "f27eacef542eb05e9baf2254e2e47b9e3a501ae50a7cfed167da5d85d73fd1b3"
+          }
+        },
+        "exactPreservedParts": 56,
+        "regeneratedPackage": {
+          "relationshipSha256": "a6424c4146e42fa952e55c56f0b85c7b9a5eba1496b4bb3e5225f5ed1b97caf7",
+          "slideIds": [
+            256,
+            257,
+            258
+          ],
+          "masters": 1,
+          "layouts": 11,
+          "mediaAndEmbeddingParts": 2,
+          "slidesWithTiming": 0
+        }
+      }
+    ],
+    "fullReportSha256": "a3ebb3df45416fe649d1160ad4c03abd44c1e413e6027d328a06d3c45af45311"
+  },
+  "powerPoint": {
+    "version": "16.0.20625.20108",
+    "applicationVersion": "16.0",
+    "frozenCliSha256": "f8fd32a31570e241f17ced00dbce66f7e2ae53739b18e3c70bea03c2e78794f7",
+    "candidateCliSha256": "b045a9f14f36e5865ad469c568e91ea4c9ace3d208ae13949d95deacf6fe14bf",
+    "cases": [
+      {
+        "input": "sample-09/preserve-candidate.pptx",
+        "inputSha256": "86bc4233828399d68c249f0668a837c6d7cda9afef55d0720d1b70ed104196c6",
+        "output": "01-preserve-candidate-powerpoint.pptx",
+        "outputSha256": "1ab39d5f999658b8595a8801f88e679fb80720e802b4b28ae71f9d7e0feee21a",
+        "slides": [
+          {
+            "id": 256,
+            "shapeTypes": [
+              17,
+              17,
+              1,
+              1,
+              1,
+              1,
+              17
+            ],
+            "effects": 0,
+            "notes": 3
+          },
+          {
+            "id": 257,
+            "shapeTypes": [
+              17,
+              17,
+              13,
+              3,
+              17
+            ],
+            "effects": 0,
+            "notes": 3
+          },
+          {
+            "id": 258,
+            "shapeTypes": [
+              17,
+              17,
+              1,
+              6,
+              19,
+              17
+            ],
+            "effects": 0,
+            "notes": 3
+          }
+        ]
+      },
+      {
+        "input": "sample-09/regenerate-candidate.pptx",
+        "inputSha256": "3dd1d3de47f64e3a2d9a56a5b1593029f7743e0d1e6dbca023712cfea27af0ec",
+        "output": "02-regenerate-candidate-powerpoint.pptx",
+        "outputSha256": "761e16ff9152bffab63e230b76154b009e4f23fcbbd5027e044bbe78d0a7e0ae",
+        "slides": [
+          {
+            "id": 256,
+            "shapeTypes": [
+              17,
+              17,
+              1,
+              1,
+              1,
+              1,
+              17
+            ],
+            "effects": 0,
+            "notes": 2
+          },
+          {
+            "id": 257,
+            "shapeTypes": [
+              17,
+              17,
+              13,
+              3,
+              17
+            ],
+            "effects": 0,
+            "notes": 2
+          },
+          {
+            "id": 258,
+            "shapeTypes": [
+              17,
+              17,
+              1,
+              6,
+              19,
+              17
+            ],
+            "effects": 0,
+            "notes": 2
+          }
+        ]
+      },
+      {
+        "input": "sample-10/preserve-candidate.pptx",
+        "inputSha256": "af3ff0ebb4e54ec3bbdedc1be172f8e56977e05c8d2158cadb175bc844566fc4",
+        "output": "03-preserve-candidate-powerpoint.pptx",
+        "outputSha256": "1426f9e5149171f45e6ae3533adc044e85e7a1147e4dbeedc37b7ea13683d2d7",
+        "slides": [
+          {
+            "id": 256,
+            "shapeTypes": [
+              17,
+              17,
+              17,
+              16
+            ],
+            "effects": 0,
+            "notes": 3
+          },
+          {
+            "id": 257,
+            "shapeTypes": [
+              17,
+              17
+            ],
+            "effects": 0,
+            "notes": 3
+          },
+          {
+            "id": 258,
+            "shapeTypes": [
+              17,
+              17,
+              17
+            ],
+            "effects": 0,
+            "notes": 3
+          }
+        ]
+      },
+      {
+        "input": "sample-10/regenerate-candidate.pptx",
+        "inputSha256": "4da530df83bfc81107d2498b1d4ec20136d88b6b4c9397f19db119376d3e8375",
+        "output": "04-regenerate-candidate-powerpoint.pptx",
+        "outputSha256": "87da16c865e13644e90ac201ce43b33ad8186434a0b835720869bb0a6e61a7c5",
+        "slides": [
+          {
+            "id": 256,
+            "shapeTypes": [
+              17,
+              17,
+              17,
+              16
+            ],
+            "effects": 0,
+            "notes": 2
+          },
+          {
+            "id": 257,
+            "shapeTypes": [
+              17,
+              17
+            ],
+            "effects": 0,
+            "notes": 2
+          },
+          {
+            "id": 258,
+            "shapeTypes": [
+              17,
+              17,
+              17
+            ],
+            "effects": 0,
+            "notes": 2
+          }
+        ]
+      },
+      {
+        "input": "sample-01/preserve-candidate.pptx",
+        "inputSha256": "2a30e06e50315e848c10b32aa17c4ec282495c939fd7cf89c3ba6643e065abeb",
+        "output": "05-preserve-candidate-powerpoint.pptx",
+        "outputSha256": "5d2789244abe69c45869d4a879e682714574c777426c7b5cf6e6ffa1791c80d8",
+        "slides": [
+          {
+            "id": 256,
+            "shapeTypes": [
+              14,
+              14
+            ],
+            "effects": 1,
+            "notes": 3
+          }
+        ]
+      },
+      {
+        "input": "sample-01/regenerate-candidate.pptx",
+        "inputSha256": "a61485305e5130621e22f0fc87cfc31f7264491129a0bcae3c7a3d3d7a2eddcf",
+        "output": "06-regenerate-candidate-powerpoint.pptx",
+        "outputSha256": "0de536a195bd7a3c9316336217edefd73b8bc899d7075fc2ad051d5f5277ad09",
+        "slides": [
+          {
+            "id": 256,
+            "shapeTypes": [
+              14,
+              14
+            ],
+            "effects": 1,
+            "notes": 3
+          }
+        ]
+      },
+      {
+        "input": "verified-matrix/generated.potx",
+        "inputSha256": "faca29671ae278e982fe2d8f1770f15010ea31af8090400963207bbdfbc5cb5a",
+        "output": "07-generated-powerpoint.pptx",
+        "outputSha256": "a886dd0ae0481bdf3e1f7b707e13591008ea4cf0882f541b6233c8b5723f19b3",
+        "slides": [
+          {
+            "id": 256,
+            "shapeTypes": [
+              17,
+              17,
+              1,
+              17
+            ],
+            "effects": 0,
+            "notes": 2
+          },
+          {
+            "id": 257,
+            "shapeTypes": [
+              17,
+              17,
+              1,
+              13,
+              19,
+              17
+            ],
+            "effects": 0,
+            "notes": 2
+          },
+          {
+            "id": 258,
+            "shapeTypes": [
+              17,
+              17,
+              1,
+              17
+            ],
+            "effects": 0,
+            "notes": 2
+          }
+        ]
+      },
+      {
+        "input": "verified-matrix/generated.ppsx",
+        "inputSha256": "1a334957264cc0c263ea18cbd7251c222586d40885f29f1f881b48376b4059a3",
+        "output": "08-generated-powerpoint.pptx",
+        "outputSha256": "e77cb902173c34bb05428e4c033cf818d8a6acfc088190c8d0c49b2a876401aa",
+        "slides": [
+          {
+            "id": 256,
+            "shapeTypes": [
+              17,
+              17,
+              1,
+              17
+            ],
+            "effects": 0,
+            "notes": 2
+          },
+          {
+            "id": 257,
+            "shapeTypes": [
+              17,
+              17,
+              1,
+              13,
+              19,
+              17
+            ],
+            "effects": 0,
+            "notes": 2
+          },
+          {
+            "id": 258,
+            "shapeTypes": [
+              17,
+              17,
+              1,
+              17
+            ],
+            "effects": 0,
+            "notes": 2
+          }
+        ]
+      },
+      {
+        "input": "verified-desktop/stage3-verified-preserve.pptx",
+        "inputSha256": "410ed0207ff5ff2b79ef45443026b223b696c98dd4b7223250e03a2a76ff041d",
+        "output": "09-stage3-verified-preserve-powerpoint.pptx",
+        "outputSha256": "30da4f74a04cc69f97108a4dda6fa4e9b72cb0968438e463ac52097f6e440cec",
+        "slides": [
+          {
+            "id": 256,
+            "shapeTypes": [
+              17,
+              17,
+              1,
+              1,
+              1,
+              1,
+              17
+            ],
+            "effects": 0,
+            "notes": 3
+          },
+          {
+            "id": 257,
+            "shapeTypes": [
+              17,
+              17,
+              13,
+              3,
+              17
+            ],
+            "effects": 0,
+            "notes": 3
+          },
+          {
+            "id": 258,
+            "shapeTypes": [
+              17,
+              17,
+              1,
+              6,
+              19,
+              17
+            ],
+            "effects": 0,
+            "notes": 3
+          }
+        ]
+      }
+    ]
+  },
+  "extendedChartPowerPointProbe": {
+    "status": "refused",
+    "diagnostic": "PowerPoint could not open the file.",
+    "candidateAndFrozenOutputSha256": "f27eacef542eb05e9baf2254e2e47b9e3a501ae50a7cfed167da5d85d73fd1b3",
+    "authoringAutomation": "AddChart2 returned an unexpected HRESULT"
+  },
+  "desktop": {
+    "pptx": {
+      "desktopSha256": "628c67095136b7b95ac201fa606f4e9d9c3ccadec87f786f09717ff82fc6c6c5",
+      "inputSha256": "3908ab2ead42451118627853ee5a245fe9591cd57bda14e1ebe2c808de544ffe",
+      "savedSha256": "410ed0207ff5ff2b79ef45443026b223b696c98dd4b7223250e03a2a76ff041d",
+      "changedParts": [
+        "ppt/notesSlides/notesSlide2.xml"
+      ],
+      "readers": 2,
+      "savedNotes": "R4/R5 original notes 2 | S3 final notes only",
+      "reopenedInDesktop": true
+    },
+    "joydeck": {
+      "desktopSha256": "628c67095136b7b95ac201fa606f4e9d9c3ccadec87f786f09717ff82fc6c6c5",
+      "sourcePackageSha256": "3908ab2ead42451118627853ee5a245fe9591cd57bda14e1ebe2c808de544ffe",
+      "savedSha256": "8c6feac876fc45719759b92f6903c128463efb591d010304b6fac2b533ec8c8c",
+      "sourcePackageExact": true,
+      "readers": 2,
+      "savedNotes": "R4/R5 original notes 1 | S3 final native",
+      "reopenedInDesktop": true
+    }
+  },
+  "transitionExchange": {
+    "kinds": 17,
+    "cases": 48,
+    "readerWriterPairs": 192,
+    "binaries": {
+      "baseline": "f8fd32a31570e241f17ced00dbce66f7e2ae53739b18e3c70bea03c2e78794f7",
+      "candidate": "b045a9f14f36e5865ad469c568e91ea4c9ace3d208ae13949d95deacf6fe14bf"
+    },
+    "originalsUnchanged": true
+  },
+  "stage2Regression": {
+    "transfer": {
+      "frozenSha256": "f8fd32a31570e241f17ced00dbce66f7e2ae53739b18e3c70bea03c2e78794f7",
+      "candidateSha256": "b045a9f14f36e5865ad469c568e91ea4c9ace3d208ae13949d95deacf6fe14bf",
+      "sourceSha256": "e13a81b7ac34282d38b75ac5bab6b27d690578473176add2ee76d01d834a9a63",
+      "destinationSha256": "6e3aa914dd5f40cd261ab35ceff2f1b584f100fa0ffb0569f6cb9af53bed6933",
+      "sharedPictureChecks": {
+        "frozen": {
+          "pictureShapes": 2,
+          "pictureMedia": 1,
+          "undoRedo": true
+        },
+        "candidate": {
+          "pictureShapes": 2,
+          "pictureMedia": 1,
+          "undoRedo": true
+        }
+      },
+      "nativeCrossReadbacks": 4,
+      "candidateGroupReadbacks": 4,
+      "frozenGroupPasteRefused": true
+    },
+    "coordinates": {
+      "fixtureSha256": "00078b443f05f35448ed03e4b585dccc7f18d2bb9256080a97157c6e65e7b7f8",
+      "binaries": {
+        "frozen": "f8fd32a31570e241f17ced00dbce66f7e2ae53739b18e3c70bea03c2e78794f7",
+        "candidate": "b045a9f14f36e5865ad469c568e91ea4c9ace3d208ae13949d95deacf6fe14bf"
+      },
+      "endpointTolerancePt": 0.001,
+      "readbacks": 32,
+      "preservedPackages": 8,
+      "rasterChecks": 6,
+      "exactUndoRedoComparisons": 16,
+      "endpointErrorsPt": {
+        "frozen-direct.joydeck": {
+          "105": [
+            5.2254230659723e-05,
+            9.250474245930341e-05
+          ],
+          "106": [
+            0.00010604907506758712,
+            221.15494094606993
+          ],
+          "108": [
+            67.28497657849131,
+            2.3423046282231315e-05
+          ],
+          "110": [
+            0.0,
+            110.8390768920509
+          ]
+        },
+        "frozen-direct.pptx": {
+          "105": [
+            5.2254230659723e-05,
+            9.250474245930341e-05
+          ],
+          "106": [
+            0.00010604907506758712,
+            221.15494094606993
+          ],
+          "108": [
+            67.28497657849131,
+            2.3423046282231315e-05
+          ],
+          "110": [
+            0.0,
+            110.8390768920509
+          ]
+        },
+        "frozen-scaled-rotated.joydeck": {
+          "105": [
+            4.609057881910435e-05,
+            9.805012174863153e-05
+          ],
+          "106": [
+            0.00011579378765772468,
+            270.14503902747975
+          ],
+          "108": [
+            55.077753686244954,
+            92.09235057137464
+          ],
+          "110": [
+            0.0,
+            46.371403638365095
+          ]
+        },
+        "frozen-scaled-rotated.pptx": {
+          "105": [
+            6.107957674623664e-05,
+            0.00011196911953489682
+          ],
+          "106": [
+            0.00010307267888007587,
+            270.145052384876
+          ],
+          "108": [
+            55.077753686244954,
+            92.09235057137464
+          ],
+          "110": [
+            0.0,
+            46.371403638365095
+          ]
+        },
+        "frozen-undo.joydeck": {
+          "105": [
+            5.2254230659723e-05,
+            9.250474245930341e-05
+          ],
+          "106": [
+            0.00010604907506758712,
+            221.15494094606993
+          ],
+          "108": [
+            67.28497657849131,
+            2.3423046282231315e-05
+          ],
+          "110": [
+            0.0,
+            110.8390768920509
+          ]
+        },
+        "frozen-undo.pptx": {
+          "105": [
+            5.2254230659723e-05,
+            9.250474245930341e-05
+          ],
+          "106": [
+            0.00010604907506758712,
+            221.15494094606993
+          ],
+          "108": [
+            67.28497657849131,
+            2.3423046282231315e-05
+          ],
+          "110": [
+            0.0,
+            110.8390768920509
+          ]
+        },
+        "frozen-redo.joydeck": {
+          "105": [
+            4.609057881910435e-05,
+            9.805012174863153e-05
+          ],
+          "106": [
+            0.00011579378765772468,
+            270.14503902747975
+          ],
+          "108": [
+            55.077753686244954,
+            92.09235057137464
+          ],
+          "110": [
+            0.0,
+            46.371403638365095
+          ]
+        },
+        "frozen-redo.pptx": {
+          "105": [
+            6.107957674623664e-05,
+            0.00011196911953489682
+          ],
+          "106": [
+            0.00010307267888007587,
+            270.145052384876
+          ],
+          "108": [
+            55.077753686244954,
+            92.09235057137464
+          ],
+          "110": [
+            0.0,
+            46.371403638365095
+          ]
+        },
+        "candidate-direct.joydeck": {
+          "105": [
+            5.2254230659723e-05,
+            9.250474245930341e-05
+          ],
+          "106": [
+            0.00010604907506758712,
+            1.1718571004216928e-13
+          ],
+          "108": [
+            5.684341886080802e-14,
+            2.342304616854843e-05
+          ],
+          "110": [
+            0.0,
+            1.1718571004216928e-13
+          ]
+        },
+        "candidate-direct.pptx": {
+          "105": [
+            5.2254230659723e-05,
+            9.250474245930341e-05
+          ],
+          "106": [
+            0.00013260207813615873,
+            3.570591935415055e-05
+          ],
+          "108": [
+            3.60549595721971e-05,
+            2.3423046282231315e-05
+          ],
+          "110": [
+            0.0,
+            4.631132287131188e-05
+          ]
+        },
+        "candidate-scaled-rotated.joydeck": {
+          "105": [
+            4.609057881910435e-05,
+            9.805012174863153e-05
+          ],
+          "106": [
+            0.00011579378765772468,
+            5.684341886080802e-14
+          ],
+          "108": [
+            5.684341886080802e-14,
+            1.1368683772161603e-13
+          ],
+          "110": [
+            1.1368683772161603e-13,
+            1.1718571004216928e-13
+          ]
+        },
+        "candidate-scaled-rotated.pptx": {
+          "105": [
+            6.107957674623664e-05,
+            0.00011196911953489682
+          ],
+          "106": [
+            0.000138981007473486,
+            4.414490453295717e-05
+          ],
+          "108": [
+            6.358803413412657e-05,
+            5.899600731531846e-05
+          ],
+          "110": [
+            0.0,
+            4.026605289021463e-05
+          ]
+        },
+        "candidate-undo.joydeck": {
+          "105": [
+            5.2254230659723e-05,
+            9.250474245930341e-05
+          ],
+          "106": [
+            0.00010604907506758712,
+            1.1718571004216928e-13
+          ],
+          "108": [
+            5.684341886080802e-14,
+            2.342304616854843e-05
+          ],
+          "110": [
+            0.0,
+            1.1718571004216928e-13
+          ]
+        },
+        "candidate-undo.pptx": {
+          "105": [
+            5.2254230659723e-05,
+            9.250474245930341e-05
+          ],
+          "106": [
+            0.00013260207813615873,
+            3.570591935415055e-05
+          ],
+          "108": [
+            3.60549595721971e-05,
+            2.3423046282231315e-05
+          ],
+          "110": [
+            0.0,
+            4.631132287131188e-05
+          ]
+        },
+        "candidate-redo.joydeck": {
+          "105": [
+            4.609057881910435e-05,
+            9.805012174863153e-05
+          ],
+          "106": [
+            0.00011579378765772468,
+            5.684341886080802e-14
+          ],
+          "108": [
+            5.684341886080802e-14,
+            1.1368683772161603e-13
+          ],
+          "110": [
+            1.1368683772161603e-13,
+            1.1718571004216928e-13
+          ]
+        },
+        "candidate-redo.pptx": {
+          "105": [
+            6.107957674623664e-05,
+            0.00011196911953489682
+          ],
+          "106": [
+            0.000138981007473486,
+            4.414490453295717e-05
+          ],
+          "108": [
+            6.358803413412657e-05,
+            5.899600731531846e-05
+          ],
+          "110": [
+            0.0,
+            4.026605289021463e-05
+          ]
+        }
+      },
+      "originalRasterPixelIdentical": true
+    },
+    "richText": {
+      "fixtureSha256": "b2d0e4af5515fac8138ce7c5ba3e9921284926b1e61c4e390249fb9af423d620",
+      "binaries": {
+        "frozen": "f8fd32a31570e241f17ced00dbce66f7e2ae53739b18e3c70bea03c2e78794f7",
+        "candidate": "b045a9f14f36e5865ad469c568e91ea4c9ace3d208ae13949d95deacf6fe14bf"
+      },
+      "originalRasterPixelIdentical": true,
+      "modelReadbacks": 28,
+      "historyComparisons": 14,
+      "preservedPptx": 6,
+      "typedUnicodeReadbacks": 4,
+      "combinedPptxAcceptedByCandidate": true,
+      "candidateLinksUseOpcNamespace": true,
+      "compatibleEditedRasterPixelIdentical": true,
+      "opaqueParagraphProtected": true
+    },
+    "shapesAndTheme": {
+      "fixtureSha256": "b2db6b96f9ee30012dc6aa8be604ebd68e0a28f274c8a9cbaf0a4cbd848a0e82",
+      "binaries": {
+        "frozen": "f8fd32a31570e241f17ced00dbce66f7e2ae53739b18e3c70bea03c2e78794f7",
+        "candidate": "b045a9f14f36e5865ad469c568e91ea4c9ace3d208ae13949d95deacf6fe14bf"
+      },
+      "neutralRasters": 2,
+      "pixelProbes": 83,
+      "changedMappingProbes": [
+        "Accent",
+        "Followed link",
+        "Hyperlink",
+        "Inherited fill",
+        "Inherited outline",
+        "Other accent"
+      ],
+      "changedTransformProbes": [
+        "Inverse and gray",
+        "RGB modulation"
+      ],
+      "readbacks": 56,
+      "historyReadbacks": 24,
+      "packageChecks": 8,
+      "rejections": 4
+    }
+  },
+  "cliRegression": {
+    "r1": 28,
+    "r2": 20,
+    "r3": 20,
+    "r4-r5": 23,
+    "r6-r7": 35,
+    "r6-r7McpResponses": 62
+  },
+  "rustTests": {
+    "joydeck": {
+      "passed": 1050,
+      "failed": 0,
+      "ignored": 0
+    },
+    "joywordHeadless": {
+      "passed": 4150,
+      "failed": 0,
+      "ignored": 2
+    },
+    "joysheetHeadless": {
+      "passed": 1486,
+      "failed": 0,
+      "ignored": 1
+    }
+  }
+}

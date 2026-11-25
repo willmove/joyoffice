@@ -1,6 +1,7 @@
 //! Chart parts: a `c:chartSpace` with cached categories and values.
 //! An unchanged chart also keeps the embedded workbook and the other parts it points at.
 
+use crate::chart_cache::{format_number as fmt_num, num_cache, num_lit, str_cache};
 use joydeck_model::chart::{Chart, ChartType, ErrorBars, Series, Trendline, TrendlineType};
 use joydeck_model::style::Fill;
 
@@ -20,14 +21,6 @@ fn col(i: usize) -> String {
         n = (n - 1) / 26;
     }
     s
-}
-
-fn fmt_num(v: f64) -> String {
-    if v == v.trunc() && v.abs() < 1e15 {
-        format!("{}", v as i64)
-    } else {
-        format!("{v}")
-    }
 }
 
 fn simple_fill(w: &mut W, f: &Fill) {
@@ -144,51 +137,6 @@ fn title(w: &mut W, text: &str, c: &Chart) {
     rich(w, text, c.text_color.as_ref());
     w.val("c:overlay", 0);
     w.close("c:title");
-}
-
-fn str_cache(w: &mut W, f: &str, vals: &[String]) {
-    w.open0("c:strRef");
-    w.elt("c:f", f);
-    w.open0("c:strCache");
-    w.val("c:ptCount", vals.len());
-    for (i, v) in vals.iter().enumerate() {
-        w.open("c:pt", A::new().a("idx", i));
-        w.elt("c:v", v);
-        w.close("c:pt");
-    }
-    w.close("c:strCache");
-    w.close("c:strRef");
-}
-
-fn num_cache(w: &mut W, f: &str, vals: &[Option<f64>]) {
-    w.open0("c:numRef");
-    w.elt("c:f", f);
-    w.open0("c:numCache");
-    w.elt("c:formatCode", "General");
-    w.val("c:ptCount", vals.len());
-    for (i, v) in vals.iter().enumerate() {
-        if let Some(v) = v.filter(|v| v.is_finite()) {
-            w.open("c:pt", A::new().a("idx", i));
-            w.elt("c:v", &fmt_num(v));
-            w.close("c:pt");
-        }
-    }
-    w.close("c:numCache");
-    w.close("c:numRef");
-}
-
-/// Numbers written into the chart itself (`c:numLit`), with no worksheet range behind them.
-fn num_lit(w: &mut W, vals: &[Option<f64>]) {
-    w.open0("c:numLit");
-    w.val("c:ptCount", vals.len());
-    for (i, v) in vals.iter().enumerate() {
-        if let Some(v) = v.filter(|v| v.is_finite()) {
-            w.open("c:pt", A::new().a("idx", i));
-            w.elt("c:v", &fmt_num(v));
-            w.close("c:pt");
-        }
-    }
-    w.close("c:numLit");
 }
 
 #[derive(Clone, Copy, PartialEq)]
@@ -851,33 +799,10 @@ pub fn chart_xml(c: &Chart) -> (Vec<u8>, bool) {
     (w.finish(), false)
 }
 
-/// The relationship ids of an unchanged chart that [`write_kept`] writes back: external ones, and
-/// internal ones whose part was kept.
-fn kept_rel_ids(c: &Chart) -> std::collections::HashSet<&str> {
-    let parts: std::collections::HashSet<String> = c
-        .kept
-        .parts
-        .iter()
-        .filter(|p| kept_payload(&p.name))
-        .map(|p| crate::opc::norm(&p.name))
-        .collect();
-    c.kept
-        .rels
-        .iter()
-        .filter(|r| r.external || parts.contains(&crate::opc::norm(&r.part)))
-        .map(|r| r.id.as_str())
-        .collect()
-}
-
-/// A kept part that is written as a part of its own (rels parts are rewritten instead).
-fn kept_payload(name: &str) -> bool {
-    !name.to_ascii_lowercase().ends_with(".rels") && crate::opc::sidecar_part(name)
-}
-
 /// Drop `c:externalData` / `c:userShapes` (and the `cx:` ones) that point at a relationship that
 /// is not written back: without the part PowerPoint repairs the file.
 fn drop_unkept_refs(root: &mut crate::xml::El, c: &Chart) {
-    let ids = kept_rel_ids(c);
+    let ids = crate::chart_sidecars::relationship_ids(c);
     fn rec(e: &mut crate::xml::El, ids: &std::collections::HashSet<&str>, depth: usize) {
         if depth > crate::xml::MAX_DEPTH {
             return;
@@ -893,113 +818,6 @@ fn drop_unkept_refs(root: &mut crate::xml::El, c: &Chart) {
         }
     }
     rec(root, &ids, 0);
-}
-
-/// A fresh name for a kept part: `ppt/<folder>/keptN.<ext>`. The writer generates no `kept…`
-/// names and `n` is unique within the package, so a kept part never lands on (or duplicates) a
-/// part the writer makes, whatever the source file called it.
-fn kept_name(original: &str, n: u32) -> String {
-    let norm = crate::opc::norm(original);
-    let area = norm.split('/').nth(1).unwrap_or("embeddings");
-    let area = if matches!(area, "embeddings" | "charts" | "drawings" | "media") {
-        area
-    } else {
-        "embeddings"
-    };
-    let file = crate::opc::file_of(&norm);
-    let ext = file
-        .rsplit_once('.')
-        .map(|(_, e)| e)
-        .filter(|e| !e.is_empty() && e.len() <= 8 && e.chars().all(|c| c.is_ascii_alphanumeric()))
-        .unwrap_or("bin");
-    format!("ppt/{area}/kept{n}.{ext}")
-}
-
-/// Write an unchanged chart's own relationships and the parts they reach. Each kept part is
-/// written under a fresh name ([`kept_name`]) and the relationships between kept parts are
-/// rewritten to those names; a relationship to anything that was not kept is dropped.
-/// `n_kept` numbers kept parts across the package.
-pub fn write_kept(pkg: &mut crate::opc::PackageOut, chart_name: &str, c: &Chart, n_kept: &mut u32) {
-    use std::collections::HashMap;
-
-    use crate::opc::{RelsOut, norm, relative, rels_path};
-
-    if c.kept.rels.is_empty() {
-        return;
-    }
-    // Original part name (normalized) → the name written.
-    let mut names: HashMap<String, String> = HashMap::new();
-    for p in c.kept.parts.iter().filter(|p| kept_payload(&p.name)) {
-        let key = norm(&p.name);
-        if names.contains_key(&key) {
-            continue;
-        }
-        *n_kept += 1;
-        let new = kept_name(&p.name, *n_kept);
-        let ct = if !p.content_type.is_empty() {
-            p.content_type.clone()
-        } else {
-            crate::mime_for(&p.name).to_string()
-        };
-        // An override per part: a kept part never sets the package-wide default for its extension.
-        pkg.xml_part(&new, &ct, p.bytes.clone());
-        names.insert(key, new);
-    }
-    let mut rels = RelsOut::default();
-    for r in &c.kept.rels {
-        if r.external {
-            rels.items
-                .push((r.id.clone(), r.rel_type.clone(), r.target.clone(), true));
-        } else if let Some(new) = names.get(&norm(&r.part)) {
-            rels.items.push((
-                r.id.clone(),
-                r.rel_type.clone(),
-                relative(chart_name, new),
-                false,
-            ));
-        } else {
-            log::warn!(
-                "pptx: chart relationship {} has no kept part; dropped",
-                r.id
-            );
-        }
-    }
-    pkg.rels(chart_name, &rels);
-    let mut parts_by_norm = std::collections::HashMap::new();
-    for p in &c.kept.parts {
-        parts_by_norm.entry(norm(&p.name)).or_insert(p);
-    }
-    let mut seen_payloads = std::collections::HashSet::new();
-    // The kept parts' own relationships, pointed at the new names.
-    for p in c.kept.parts.iter().filter(|p| kept_payload(&p.name)) {
-        let norm_name = norm(&p.name);
-        if !seen_payloads.insert(norm_name.clone()) {
-            continue;
-        }
-        let Some(new_source) = names.get(&norm_name) else {
-            continue;
-        };
-        let rp = norm(&rels_path(&p.name));
-        let Some(rels_part) = parts_by_norm.get(&rp) else {
-            continue;
-        };
-        let mut out = RelsOut::default();
-        for r in crate::opc::rels_from_bytes(&rels_part.bytes, &p.name).items {
-            if r.external {
-                out.items.push((r.id, r.ty, r.target_raw, true));
-            } else if let Some(new) = names.get(&norm(&r.target)) {
-                out.items
-                    .push((r.id, r.ty, relative(new_source, new), false));
-            } else {
-                log::warn!(
-                    "pptx: relationship {} of kept chart part {} has no kept target; dropped",
-                    r.id,
-                    p.name
-                );
-            }
-        }
-        pkg.rels(new_source, &out);
-    }
 }
 
 /// A `cx:tx` holding plain text.

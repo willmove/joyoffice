@@ -64,6 +64,7 @@ pub struct Document {
     /// Exact original package, including unsupported/unknown parts. R1 never writes it back.
     pub original: Arc<[u8]>,
     pub info: DocumentInfo,
+    pub(crate) project_origin: Option<Arc<crate::native::ProjectOrigin>>,
 }
 
 impl Document {
@@ -117,22 +118,16 @@ impl Document {
             return Ok(doc);
         }
         if crate::native::sniff(&bytes) {
-            let native = crate::native::load(&bytes, cancel)?;
+            let native = crate::native::decode(&bytes, cancel)?;
             let mut doc = Self::from_model(name, native.model)?;
-            if let Some(report) =
-                crate::native::parts_cancellable(&bytes, cancel)?.get("migration/report.json")
-            {
-                let report: serde_json::Value =
-                    serde_json::from_slice(report).map_err(|e| e.to_string())?;
-                if let Some(warnings) = report["warnings"].as_array() {
-                    doc.info.warnings.extend(
-                        warnings
-                            .iter()
-                            .filter_map(|w| w.as_str().map(str::to_owned))
-                            .take(100),
-                    );
-                }
-            }
+            doc.info
+                .warnings
+                .extend(native.migration_warnings.iter().take(100).cloned());
+            doc.project_origin = Some(Arc::new(crate::native::ProjectOrigin {
+                source: native.source,
+                bindings: native.manifest.origins,
+                migration_warnings: native.migration_warnings,
+            }));
             doc.original = bytes.into();
             doc.info.format = "joydeck".into();
             doc.info.source_bytes = doc.original.len();
@@ -154,8 +149,7 @@ impl Document {
             .map_err(|e| format!("invalid package: {e:?}"))?;
         let mut names = BTreeSet::new();
         let mut verified = BTreeMap::new();
-        let mut manifest = None;
-        let mut has_content_types = false;
+        let mut manifest = false;
         for (i, entry) in archive.entries().iter().enumerate() {
             cancel.check()?;
             let name = &entry.name;
@@ -168,47 +162,33 @@ impl Document {
             {
                 return Err(format!("unsafe or duplicate package path: {name}"));
             }
+            if entry.is_symlink() {
+                return Err("symlink package entries are unsupported".into());
+            }
             let part = archive.read(i).map_err(|e| format!("{name}: {e:?}"))?;
             if name == "presentation.json" {
-                manifest = Some(part.clone());
-            }
-            if name == "[Content_Types].xml" {
-                has_content_types = true;
+                manifest = true;
             }
             if name.ends_with(".xml") || name.ends_with(".rels") {
-                validate_xml(name, &part, &budget)?;
+                joydeck_pptx::validate_xml_member(
+                    &part,
+                    budget.max_xml_depth,
+                    budget.max_xml_nodes,
+                )
+                .map_err(|error| format!("{name}: {error}"))?;
             }
-            if pptx && !name.ends_with('/') {
+            if !name.ends_with('/') {
                 verified.insert(name.clone(), part);
             }
         }
-        // Reject symlink entries rather than passing filesystem semantics to format readers.
-        let mut zip =
-            zip::ZipArchive::new(std::io::Cursor::new(&bytes)).map_err(|e| e.to_string())?;
-        for i in 0..zip.len() {
-            cancel.check()?;
-            if zip
-                .by_index(i)
-                .map_err(|e| e.to_string())?
-                .unix_mode()
-                .is_some_and(|m| m & 0o170000 == 0o120000)
-            {
-                return Err("symlink package entries are unsupported".into());
-            }
-        }
-        let (format, p, mut warnings) = if let Some(json) = manifest {
-            let value: serde_json::Value = serde_json::from_slice(&json)
-                .map_err(|e| format!("invalid native manifest: {e}"))?;
-            if value["format"] != "deckcraft" || value["version"].as_u64() != Some(1) {
-                return Err(
-                    "unsupported .deckcraft format/version (only version 1 is supported)".into(),
-                );
-            }
-            let (p, w) = joydeck_format::load_checked(&bytes).map_err(|e| e.to_string())?;
+        let (format, p, mut warnings) = if manifest {
+            let (p, w) = joydeck_format::load_parts(verified).map_err(|error| match error {
+                joydeck_format::FormatError::NotOurs(reason) => reason,
+                error => error.to_string(),
+            })?;
             ("deckcraft", p, w)
-        } else if has_content_types {
-            let (p, w) =
-                joydeck_pptx::import_verified(&bytes, verified).map_err(|e| e.to_string())?;
+        } else if pptx {
+            let (p, w) = joydeck_pptx::import_parts(verified).map_err(|e| e.to_string())?;
             ("pptx", p, w)
         } else {
             return Err("unsupported package: expected PPTX or .deckcraft".into());
@@ -273,6 +253,7 @@ impl Document {
             presentation: p,
             original: bytes.into(),
             info,
+            project_origin: None,
         })
     }
 
@@ -381,6 +362,7 @@ impl Document {
             presentation,
             original: Arc::from([]),
             info,
+            project_origin: None,
         })
     }
 }
@@ -494,36 +476,6 @@ fn audit_model(
         }
     }
     Ok(())
-}
-
-fn validate_xml(name: &str, bytes: &[u8], budget: &joyoffice_opc::Budget) -> Result<(), String> {
-    use quick_xml::events::Event;
-    let mut reader = quick_xml::Reader::from_reader(bytes);
-    let mut depth = 0usize;
-    for _ in 0..budget.max_xml_nodes {
-        match reader
-            .read_event()
-            .map_err(|e| format!("{name}: invalid XML: {e}"))?
-        {
-            Event::Eof => {
-                return if depth == 0 {
-                    Ok(())
-                } else {
-                    Err(format!("{name}: unclosed XML element"))
-                };
-            }
-            Event::Start(_) => {
-                depth += 1;
-                if depth > budget.max_xml_depth {
-                    return Err(format!("{name}: XML depth budget exceeded"));
-                }
-            }
-            Event::End(_) => depth = depth.saturating_sub(1),
-            Event::DocType(_) => return Err(format!("{name}: DTDs are unsupported")),
-            _ => {}
-        }
-    }
-    Err(format!("{name}: XML node budget exceeded"))
 }
 
 /// A new output directory is required. Clean up only files created by this call on failure.

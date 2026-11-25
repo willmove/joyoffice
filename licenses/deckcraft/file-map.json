@@ -1613,8 +1613,11 @@
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
-        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
-      ]
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
+        "Retired. The model archive owns binary part routing and shared count and byte budgets."
+      ],
+      "retired": true,
+      "last_verified_in": "a5a4edda"
     },
     {
       "source_path": "crates/format/src/chart_parts_tests.rs",
@@ -1644,12 +1647,14 @@
       "source_path": "crates/format/src/lib.rs",
       "source_sha256": "b22413e017a2ce81282870713d06d22f085b32ec520af6afdcd6a7fc58b18d4e",
       "target_path": "crates/joydeck-format/src/lib.rs",
-      "adapted_sha256": "eb745ecff8c0782c516702ab1e2626fc5083c40f1f6c483fd2cb96224a98f08a",
+      "adapted_sha256": "603610d7d62c9ee632c85020a349af46cbc394aac6e2b708c673d1f277a38098",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
-        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
+        "Use the first-party model archive inventory and media/sidecar reader and writer.",
+        "Keep legacy numeric-null repair on the independent archive decoding path."
       ]
     },
     {
@@ -1734,14 +1739,16 @@
       "source_path": "crates/pptx/src/lib.rs",
       "source_sha256": "7886430c0095c036472d8a84d8b4d2eccf001b0c8660e5c2b43572f6a0f79c1f",
       "target_path": "crates/joydeck-pptx/src/lib.rs",
-      "adapted_sha256": "f2121ac4b162224fea6958986e4740d01108ee9549a19cba9f233af303ac96db",
+      "adapted_sha256": "b49275abb78adc2884345f37e785482f59d7bb0a78bfa55de54fe4dbee59d2b9",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
         "R2 shared preservation writer entry point or rustfmt; history cost extraction kept pure",
-        "Reuse verified OPC buffers while preserving format reader budgets and ZIP name decoding."
+        "Reuse verified OPC buffers while preserving format reader budgets and ZIP name decoding.",
+        "Route validated package members into the current PresentationML importer.",
+        "Use the JoyOffice ChartEx reader on the import and source comparison paths."
       ],
       "safety_integration": "Register footer import and preservation regression tests (d28049dc)."
     },
@@ -1761,14 +1768,15 @@
       "source_path": "crates/pptx/src/opc.rs",
       "source_sha256": "f7905174cd984e290e231dbed1c05dcece3379233feef91ee06f6975e4267ef9",
       "target_path": "crates/joydeck-pptx/src/opc.rs",
-      "adapted_sha256": "a8ff96cf5c81beeb400b8ffe90645b3001e0c038404b0453500232bf333d5dc5",
+      "adapted_sha256": "2c8283fcc07dec1da28063f13a1ca58dc380a4449a748f3b7628980061a4bb82",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
         "R9: resolve root officeDocument relationship for custom part paths; retain minimal packages without requiring unchanged masters",
-        "Reuse verified OPC buffers while preserving format reader budgets and ZIP name decoding."
+        "Reuse verified OPC buffers while preserving format reader budgets and ZIP name decoding.",
+        "Share the checked member inventory and ZIP writer between regenerated and preserved packages."
       ]
     },
     {
@@ -1787,12 +1795,13 @@
       "source_path": "crates/pptx/src/read/chart.rs",
       "source_sha256": "5b8801d22c205a63cf49ad9e87896eb7156f6a4beff7a0dada409b10694f5e3e",
       "target_path": "crates/joydeck-pptx/src/read/chart.rs",
-      "adapted_sha256": "7728ce331b2ea71bc4e419222a545881040f999e86186cc2376552dc10afa0e5",
+      "adapted_sha256": "6442484f0ee5e375f30f1a4886ab7460f7556e9e394d9e83c5a07041544e53dd",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
-        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
+        "Use the first-party sparse point reader and chart sidecar relationship inventory."
       ]
     },
     {
@@ -1804,8 +1813,11 @@
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
-        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
-      ]
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
+        "Superseded by the independent Office extended chart dimension reader."
+      ],
+      "retired": true,
+      "last_verified_in": "a5a4edda"
     },
     {
       "source_path": "crates/pptx/src/read/dml.rs",
@@ -1824,14 +1836,15 @@
       "source_path": "crates/pptx/src/read/shapes.rs",
       "source_sha256": "9df34bf672f801a9fe96569f10829fa82486d39b225c9231da2adbb0b4ced9f8",
       "target_path": "crates/joydeck-pptx/src/read/shapes.rs",
-      "adapted_sha256": "ccadc574efcd3cc6389a1f922ea4c26004de490a95fd776be4d3503debfea5ba",
+      "adapted_sha256": "1ed4f660d30f6312b59674109efc165c43db5f9ebad5c89311286e2306cfef20",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
         "Derive straight, orthogonal and smoothed DrawingML connector paths and adjustments from the published coordinate guides, including multi-bend defaults when opening and writing PPTX.",
-        "Use the same bounded preset reader to verify preservation writes."
+        "Use the same bounded preset reader to verify preservation writes.",
+        "Read table frames and chart sidecars through the new part readers."
       ]
     },
     {
@@ -1843,26 +1856,30 @@
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
-        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
-      ]
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
+        "Retired. The DrawingML theme part reader and writer share the same first-party style matrix code."
+      ],
+      "retired": true,
+      "last_verified_in": "a5a4edda"
     },
     {
       "source_path": "crates/pptx/src/read/timing.rs",
       "source_sha256": "6435746216469ece643c6295fbb2721893a869f7f4107e00361624b716444b80",
       "target_path": "crates/joydeck-pptx/src/read/timing.rs",
-      "adapted_sha256": "bc6487e99c12a9fb67694eae9953c2aba7902596f0e51fc9d5e3d424e0ddf026",
+      "adapted_sha256": "81d8fc8c3875c754186284736f9ed9f42c4e18c6b387e45c5ae638cfc0432c0f",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
-        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
+        "Read transition parts separately and walk effect nodes with an explicit bounded traversal."
       ]
     },
     {
       "source_path": "crates/pptx/src/read.rs",
       "source_sha256": "db5e0ece9be0db36fedf36fbd6efa95d9536be8060cce414b28ee94e298640ff",
       "target_path": "crates/joydeck-pptx/src/read.rs",
-      "adapted_sha256": "cd15c7808892f3518d3151f6e0624bbf9e56535d82322a07d21b7421d64c5e4e",
+      "adapted_sha256": "dadf8cc116c819cdb65092101f60e25386a90af2478db814e10237e5f020a4df",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
@@ -1871,7 +1888,10 @@
         "R9: resolve root officeDocument relationship for custom part paths; retain minimal packages without requiring unchanged masters",
         "preserve recognized layout and master header/footer visibility flags without resolving inheritance",
         "Reuse verified OPC buffers while preserving format reader budgets and ZIP name decoding.",
-        "Expose the bounded preset reader to the native save verifier."
+        "Expose the bounded preset reader to the native save verifier.",
+        "Use ordered, typed presentation references, shared media members and the dedicated notes and review reader.",
+        "Read slide, notes, and handout masters, layout inheritance, and background and color mappings through the master part codec.",
+        "Move DrawingML table style regions and the ChartEx reader to JoyOffice codecs."
       ],
       "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained.",
       "safety_integration": "Retain header flag and automatic date format in footer summaries without changing per-slide shapes (d28049dc)."
@@ -1892,12 +1912,13 @@
       "source_path": "crates/pptx/src/write/chart.rs",
       "source_sha256": "200e062c4bd2928c99200b4eb36004367be3f5923656e276fee393f4d728d4a9",
       "target_path": "crates/joydeck-pptx/src/write/chart.rs",
-      "adapted_sha256": "06cc022314ca6eb2a51366af17fd44db3d4c5eecb3956abc3948723d0f390a3d",
+      "adapted_sha256": "904be34f7b64fcf0c866f85d1b5fde6dfd261e8d511f2a26c3b5e18a6628f471",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
-        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
+        "Use the first-party sparse point writer and relocatable chart sidecars."
       ]
     },
     {
@@ -1917,14 +1938,15 @@
       "source_path": "crates/pptx/src/write/shapes.rs",
       "source_sha256": "386f88a4a3ca7b7b1434028d1360f17ff16af7c0eca4b75cb5e73a38e7aced1a",
       "target_path": "crates/joydeck-pptx/src/write/shapes.rs",
-      "adapted_sha256": "b5f000fa470b48374206a4e0646052a62395241eb644f22929a13f57f35f4794",
+      "adapted_sha256": "1238fa7e488f4a017f100136583840eb9f40d44dc34d327098718b8c5c2e5d63",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
         "Derive straight, orthogonal and smoothed DrawingML connector paths and adjustments from the published coordinate guides, including multi-bend defaults when opening and writing PPTX.",
-        "Retain the signed DrawingML range of borderCallout1 through regeneration."
+        "Retain the signed DrawingML range of borderCallout1 through regeneration.",
+        "Use the shared first-party DrawingML table codec."
       ]
     },
     {
@@ -1936,33 +1958,39 @@
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
-        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
-      ]
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
+        "Retired. Theme output uses the first-party DrawingML theme part writer."
+      ],
+      "retired": true,
+      "last_verified_in": "a5a4edda"
     },
     {
       "source_path": "crates/pptx/src/write/timing.rs",
       "source_sha256": "7f96aaf7ba84e9c5a21c059d74cc15fbb66566147168aa4581b67c8619030d1d",
       "target_path": "crates/joydeck-pptx/src/write/timing.rs",
-      "adapted_sha256": "0c605c4dff20a61e4a2ef1f3d2e0897c93a5835cef93fb48f3fa3f07c1d346e6",
+      "adapted_sha256": "442643d2e5f1544e063374f6e49b5a5411bcae3b193caf88aa089af59b143bde",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
-        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
+        "Use the first-party transition writer and organize timing groups by activation."
       ]
     },
     {
       "source_path": "crates/pptx/src/write.rs",
       "source_sha256": "ca721cabd36b0853a69a1f2e69cf02211100fe1b4f499ced1c066a3321a92e65",
       "target_path": "crates/joydeck-pptx/src/write.rs",
-      "adapted_sha256": "776722ba1b699eb3b4adf6306e72354d6f16575949edd5afe10c9bab224c348b",
+      "adapted_sha256": "7daa96ad404a2df5801031fb338242892d90cf1ed94dda499001680088c779e1",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
         "R4/R5 scene/content/workbook/font-revision adaptation, exact JoyOffice dependency reuse",
-        "preserve recognized layout and master header/footer visibility flags without resolving inheritance"
+        "preserve recognized layout and master header/footer visibility flags without resolving inheritance",
+        "Assemble resolved PresentationML members before writing, with first-party media, review and transition part writers.",
+        "Build the master, layout, and theme relationship graph through the master part codec."
       ],
       "dynamic_text_fields": "Support atomic dynamic text fields, native authoring, and separate rendered/source offsets."
     },
@@ -1970,12 +1998,13 @@
       "source_path": "crates/pptx/src/xml.rs",
       "source_sha256": "ce9a2c92b9399fe3928cd3b2f561e5a694f2e00cbf2426543f118ded6fb88569",
       "target_path": "crates/joydeck-pptx/src/xml.rs",
-      "adapted_sha256": "4ea19878cd65d39b0edb13f970d1411761ba79a073cf0c4b6608d63ee9c2ce74",
+      "adapted_sha256": "131d4e94757bf42480154380b5ef4b2d1bd0b30598137e110c920cb1e23d5e6a",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
-        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
+        "Use the first-party bounded lexical reader and preserve XML comments and processing instructions."
       ]
     },
     {

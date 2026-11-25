@@ -1,14 +1,12 @@
 //! Restricted R2 writer. Unchanged ZIP members are copied byte-for-byte (uncompressed).
 //! Existing shapes retain their original XML except edited transform/text and cNvPr identity.
+use crate::archive::{PartEdits, read_for_writeback};
 use crate::{
     PptxError, opc,
     xml::{El, Node},
 };
-use joydeck_model::{Presentation, Shape, ShapeId, ShapeKind, SlideId, TextBody};
-use std::{
-    collections::BTreeMap,
-    io::{Cursor, Read, Write},
-};
+use joydeck_model::{Presentation, Shape, ShapeId, ShapeKind, Slide, SlideId, TextBody};
+use std::collections::BTreeMap;
 #[path = "preserve_content.rs"]
 mod content;
 #[path = "preserve_fields.rs"]
@@ -404,24 +402,7 @@ fn patch_group_connectors(
     }
     Ok(())
 }
-fn read_parts(bytes: &[u8]) -> Result<BTreeMap<String, Vec<u8>>, PptxError> {
-    let mut z = zip::ZipArchive::new(Cursor::new(bytes)).map_err(|e| error(e.to_string()))?;
-    let mut out = BTreeMap::new();
-    for i in 0..z.len() {
-        let mut entry = z.by_index(i).map_err(|e| error(e.to_string()))?;
-        if entry.is_dir() {
-            continue;
-        }
-        let name = entry.name().map_err(|e| error(e.to_string()))?.to_string();
-        let mut bytes = vec![];
-        entry
-            .read_to_end(&mut bytes)
-            .map_err(|e| error(e.to_string()))?;
-        out.insert(name, bytes);
-    }
-    Ok(out)
-}
-fn unique(parts: &BTreeMap<String, Vec<u8>>, folder: &str, id: u32) -> String {
+fn unique(parts: &PartEdits<'_>, folder: &str, id: u32) -> String {
     let mut i = 0;
     loop {
         let n = format!("{folder}/joydeck-{id}-{i}.xml");
@@ -482,16 +463,49 @@ fn namespaces(root: &mut El) -> Result<(), PptxError> {
     }
     Ok(())
 }
+fn same_slide_part(slide: &Slide, original: &Slide) -> bool {
+    let Slide {
+        id,
+        layout,
+        name,
+        shapes,
+        background,
+        hidden,
+        show_master_shapes,
+        transition,
+        animations,
+        notes: _,
+        comments,
+        color_map,
+        tags,
+        raw_ext,
+    } = slide;
+    *id == original.id
+        && *layout == original.layout
+        && *name == original.name
+        && *shapes == original.shapes
+        && *background == original.background
+        && *hidden == original.hidden
+        && *show_master_shapes == original.show_master_shapes
+        && *transition == original.transition
+        && *animations == original.animations
+        && *comments == original.comments
+        && *color_map == original.color_map
+        && *tags == original.tags
+        && *raw_ext == original.raw_ext
+}
+
 pub fn export_preserving(
     original: &[u8],
     base: &Presentation,
     current: &Presentation,
     bindings: &[SlideBinding],
 ) -> Result<Vec<u8>, PptxError> {
-    let mut parts = read_parts(original)?;
+    let pkg = read_for_writeback(original)?;
+    let mut parts = PartEdits::new(&pkg);
     if parts
-        .keys()
-        .any(|p| p.to_ascii_lowercase().ends_with("vbaproject.bin"))
+        .iter()
+        .any(|(p, _)| p.to_ascii_lowercase().ends_with("vbaproject.bin"))
         || parts
             .get("[Content_Types].xml")
             .is_some_and(|b| String::from_utf8_lossy(b).contains("macroEnabled"))
@@ -500,12 +514,14 @@ pub fn export_preserving(
             "macro-enabled Office source cannot be saved as ordinary PPTX; retain the original in a .joydeck project or explicitly regenerate a copy",
         ));
     }
-    if parts.keys().any(|p| p.starts_with("_xmlsignatures/")) {
+    if parts
+        .iter()
+        .any(|(p, _)| opc::norm(p).starts_with("_xmlsignatures/"))
+    {
         return Err(error(
             "signed PPTX cannot be edited in place; save a .joydeck project",
         ));
     }
-    let pkg = opc::Package::open(original)?;
     let pres_path = pkg.presentation_path()?;
     let mut pres = pkg
         .xml(&pres_path)
@@ -517,14 +533,13 @@ pub fn export_preserving(
         .ok_or_else(|| error("missing slide list"))?
         .children_named("sldId")
         .map(|e| {
-            let rid = e
-                .attr("r:id")
+            e.attr("r:id")
                 .ok_or_else(|| error("missing slide relationship"))?;
             Ok((
                 e.clone(),
-                rels.target(rid)
+                crate::presentation_parts::target(e, &rels, "slide")
                     .ok_or_else(|| error("missing slide target"))?
-                    .to_string(),
+                    .to_owned(),
             ))
         })
         .collect::<Result<_, PptxError>>()?;
@@ -538,8 +553,7 @@ pub fn export_preserving(
             "PPTX slide structure with sections/custom shows needs .joydeck Save As",
         ));
     }
-    let generated = crate::export(current)?;
-    let gen_pkg = opc::Package::open(&generated)?;
+    let gen_pkg = crate::write::assemble(current, crate::write::CT_PRES)?.editable_parts()?;
     let mut ct = pkg
         .xml("[Content_Types].xml")
         .ok_or_else(|| error("missing content types"))?
@@ -630,7 +644,7 @@ pub fn export_preserving(
             )
             .ok_or_else(|| error("missing notes spTree"))?
             .elements_mut()
-            .find(|s| s.find("ph").is_some_and(|p| p.attr("type") == Some("body")))
+            .find(|shape| crate::review_part::speaker_shape(shape))
             .ok_or_else(|| error("no speaker notes placeholder"))?;
             if slide.notes.is_empty() {
                 let tx = child_mut(body, "txBody").ok_or_else(|| error("missing speaker body"))?;
@@ -650,7 +664,7 @@ pub fn export_preserving(
                     .path(&["cSld", "spTree"])
                     .and_then(|t| {
                         t.elements()
-                            .find(|s| s.find("ph").is_some_and(|p| p.attr("type") == Some("body")))
+                            .find(|shape| crate::review_part::speaker_shape(shape))
                     })
                     .and_then(|s| s.child("txBody"))
                     .cloned()
@@ -663,7 +677,7 @@ pub fn export_preserving(
             }
             parts.insert(notes.target, root.to_xml().into_bytes());
         }
-        if existing && slide.as_ref() == source_slide.as_ref() {
+        if existing && same_slide_part(slide, source_slide) {
             continue;
         }
         let mut root = pkg
@@ -1130,13 +1144,5 @@ pub fn export_preserving(
     {
         parts.insert("[Content_Types].xml".into(), ct.to_xml().into_bytes());
     }
-    let mut z = zip::ZipWriter::new(Cursor::new(vec![]));
-    let options = zip::write::SimpleFileOptions::default()
-        .compression_method(zip::CompressionMethod::Deflated);
-    for (name, bytes) in parts {
-        z.start_file(name, options)
-            .map_err(|e| error(e.to_string()))?;
-        z.write_all(&bytes).map_err(|e| error(e.to_string()))?;
-    }
-    Ok(z.finish().map_err(|e| error(e.to_string()))?.into_inner())
+    parts.finish()
 }
