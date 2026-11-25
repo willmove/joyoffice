@@ -40,47 +40,14 @@ pub fn apply(st: &mut EditorSnapshot, action: &WorkspaceAction) -> std::result::
         rotation,
     } = action
     {
-        for n in [*dx, *dy, *scale_x, *scale_y, *rotation] {
-            checked(n)?;
-        }
-        if !(0.001..=1000.).contains(scale_x) || !(0.001..=1000.).contains(scale_y) {
-            return Err("selection scale outside budget".into());
-        }
-        let p = st.model.as_ref();
-        let slide = p.slides.get(page).ok_or("missing slide")?;
-        let ctx = resolve::Ctx::for_slide(p, slide).ok_or("missing layout")?;
-        let mut original = vec![];
-        for id in &st.selection.shapes {
-            let shape = slide.shape(*id).ok_or("missing shape")?;
-            if shape.locked {
-                return Err("object is locked".into());
-            }
-            original.push((*id, resolve::xfrm(&ctx, shape)));
-        }
-        let bounds = original
-            .iter()
-            .map(|(_, x)| x.bounds())
-            .reduce(|a, b| a.union(b))
-            .ok_or("select at least one shape")?;
-        let center = bounds.center();
-        let angle = rotation.to_radians();
-        let (sin, cos) = angle.sin_cos();
-        let slide = Arc::make_mut(&mut Arc::make_mut(&mut st.model).slides[page]);
-        for (id, mut x) in original {
-            let c = x.center();
-            let rx = (c.x - center.x) * scale_x;
-            let ry = (c.y - center.y) * scale_y;
-            x.w = checked(x.w * scale_x)?;
-            x.h = checked(x.h * scale_y)?;
-            if x.w < 1. || x.h < 1. {
-                return Err("shape size must be at least 1 point".into());
-            }
-            x.x = checked(center.x + rx * cos - ry * sin + dx - x.w / 2.)?;
-            x.y = checked(center.y + rx * sin + ry * cos + dy - x.h / 2.)?;
-            x.rot = (x.rot + rotation).rem_euclid(360.);
-            slide.shape_mut(id).ok_or("missing shape")?.xfrm = Some(x);
-        }
-        return Ok(());
+        return shape_transform::apply(
+            st,
+            [*dx, *dy],
+            *rotation,
+            shape_transform::Change::Selection {
+                scale: [*scale_x, *scale_y],
+            },
+        );
     }
     let slides = match action {
         WorkspaceAction::DeleteSlides { slides }

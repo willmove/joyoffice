@@ -10,6 +10,56 @@ use std::sync::Arc;
 fn session(p: Presentation) -> Session {
     Session::new(p.clone(), original_bindings(&p), true)
 }
+
+#[test]
+fn invalid_later_shape_does_not_change_an_earlier_frame_in_the_draft() -> Result<(), String> {
+    let mut model = Presentation::default();
+    let first = ShapeId(model.alloc_id().ok_or("first id")?);
+    let second = ShapeId(model.alloc_id().ok_or("second id")?);
+    Arc::make_mut(&mut model.slides[0]).shapes.extend([
+        Shape {
+            id: first,
+            xfrm: Some(Xfrm::new(10.0, 25.0, 80.0, 40.0)),
+            ..Shape::default()
+        },
+        Shape {
+            id: second,
+            xfrm: Some(Xfrm::new(100.0, 25.0, 2.0, 2.0)),
+            ..Shape::default()
+        },
+    ]);
+    let mut s = session(model);
+    s.select(0, vec![first, second])?;
+    let mut draft = s.snapshot();
+    let model = Arc::clone(&draft.model);
+    for command in [
+        Command::Transform {
+            dx: 5.0,
+            dy: 5.0,
+            dw: -2.0,
+            dh: 0.0,
+            rotation: 20.0,
+        },
+        Command::Workspace {
+            action: joydeck_engine::WorkspaceAction::TransformSelection {
+                dx: 5.0,
+                dy: 5.0,
+                scale_x: 0.3,
+                scale_y: 1.0,
+                rotation: 20.0,
+            },
+        },
+    ] {
+        assert_eq!(
+            draft.stage_edit(command),
+            Err("shape size must be at least 1 point".into())
+        );
+        assert!(Arc::ptr_eq(&draft.model, &model));
+    }
+    assert!(!s.can_undo());
+    Ok(())
+}
+
 #[test]
 fn preset_insertion_is_atomic_and_undoable() {
     let mut s = session(Presentation::default());

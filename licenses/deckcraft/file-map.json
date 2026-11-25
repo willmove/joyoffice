@@ -51,14 +51,15 @@
       "source_path": "crates/geom/src/lib.rs",
       "source_sha256": "28929d4b6a2f93a402ffb96d4193beaa2b7dc3040ab700e2e70dbb0909e55449",
       "target_path": "crates/joydeck-geom/src/lib.rs",
-      "adapted_sha256": "9d11adb10484b333dce7caa398c41e72edccda9578c05f4f76fe5b8c9ac525d9",
+      "adapted_sha256": "ea4c89e8fa62fb226039f2dd2cf883594dc582aa9bf919ed4e0efdb24ca3e8b9",
       "changes": [
         "crate/import namespace deckcraft -> joydeck",
         "LF normalization",
         "package description credits origin",
         "rustfmt using repository Unix newline policy",
         "test-only assertion lint allowances; production no-panic guards retained",
-        "Expose fill winding with shared endpoints for native pointer hit testing on rotated shapes."
+        "Expose fill winding with shared endpoints for native pointer hit testing on rotated shapes.",
+        "Stage 2: retire the imported shape and group transform bodies, keeping the existing Xfrm API on the JoyDeck implementation."
       ]
     },
     {
@@ -170,7 +171,7 @@
       "source_path": "crates/geom/src/preset.rs",
       "source_sha256": "94c4d928be5b4d8f44d570ce5c3376d6128617ab8cc14a7450b1c0383c6190fd",
       "target_path": "crates/joydeck-geom/src/preset.rs",
-      "adapted_sha256": "6ef3e351241628c8a85ea55c61c5dd9da25cfaa6a594f084015ff8197ef69b45",
+      "adapted_sha256": "f2c14d07785ef86c2762c18baef12cd24db09a683286e761b57364197aa9d19a",
       "changes": [
         "crate/import namespace deckcraft -> joydeck",
         "LF normalization",
@@ -182,7 +183,8 @@
         "Route all fixed DrawingML flowcharts through the independently implemented JoyOffice geometry family.",
         "Dispatch the complete action-button family to JoyOffice geometry.",
         "Expose the host line callout geometry and editable leader vertices.",
-        "Route gallery geometry to the dedicated host families or compiled ECMA definitions."
+        "Route gallery geometry to the dedicated host families or compiled ECMA definitions.",
+        "Stage 2: share the JoyDeck connector endpoint definition with coordinate edits."
       ]
     },
     {
@@ -307,7 +309,7 @@
       "source_path": "crates/model/src/lib.rs",
       "source_sha256": "4b5a99b737768e630d877382837063a3f43ca12f9385ee8834e9437ed53b16d2",
       "target_path": "crates/joydeck-model/src/lib.rs",
-      "adapted_sha256": "62897b30118c0b04b2e04a7faa3e9e421ab7713cb52364a56b83425ed92a267f",
+      "adapted_sha256": "497fca2fc21e954b2742ebc05715e9e6580d9be84c4c4fc607302adc618fd7be",
       "changes": [
         "crate/import namespace deckcraft -> joydeck",
         "LF normalization",
@@ -317,7 +319,8 @@
         "scoped Clippy style allowances preserve imported public representations",
         "JD-307: deduplicate embedded media only against embedded resources with matching content type and bytes",
         "preserve recognized layout and master header/footer visibility flags without resolving inheritance",
-        "Apply a validated two-axis update to a native callout vertex."
+        "Apply a validated two-axis update to a native callout vertex.",
+        "Stage 2: expose the JoyDeck slide-coordinate and connector attachment solver."
       ],
       "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained."
     },
@@ -1386,13 +1389,14 @@
       "source_path": "crates/render/src/placed.rs",
       "source_sha256": "f2851a72da1ed824bfadafcc409a6ebbaa9a711671021ebdb4d46696d0f31f0c",
       "target_path": "crates/joydeck-render/src/placed.rs",
-      "adapted_sha256": "c243e47c95def28730f5b5d7122b4fcd1f63aa30c3da1e2e85310e6b8bf27646",
+      "adapted_sha256": "83fe7377bbc0744a4a64a50d61f9a3313ae93e0df9ff228d28a30d6b9e22c0fe",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
-        "R3 shared editable shape/cell text layout consumer; exact original font/renderer layout retained"
+        "R3 shared editable shape/cell text layout consumer; exact original font/renderer layout retained",
+        "Stage 2: compose group placement using the JoyDeck transform, shared with rendering and edits."
       ]
     },
     {
@@ -1435,12 +1439,13 @@
       "source_path": "crates/render/src/renderer.rs",
       "source_sha256": "6c42227ce19c97d04122d572f0a8b64f2866ade5de7df47660fe2c6066cefa65",
       "target_path": "crates/joydeck-render/src/renderer.rs",
-      "adapted_sha256": "6ff2d06852b1fae5b60b7ffff6ecdaa1a6c15d9dfcddc713b8e1b07bac77d390",
+      "adapted_sha256": "f0bd1598fb626a9fdd0375e84b3dbaf69a336d58e28b3702e9977fc78fdc846e",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
-        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
+        "Stage 2: compose group rendering using the JoyDeck transform and child frame."
       ]
     },
     {
@@ -1508,12 +1513,13 @@
       "source_path": "crates/render/src/text_draw.rs",
       "source_sha256": "50217a4b99adbffe34de7718973bc636bd91108df89bf25136b46739fce662be",
       "target_path": "crates/joydeck-render/src/text_draw.rs",
-      "adapted_sha256": "74f83d7b754baeb8ca506722572cac2d2b67a1542adbf78925de31a4299fc328",
+      "adapted_sha256": "bcf7b69f0803ea0298de6d0c1b54b95c7d085956e4a2ac344e8c1a513eb15299",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
-        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
+        "Stage 2: share point-sized group geometry with the JoyDeck connection-site solver."
       ]
     },
     {

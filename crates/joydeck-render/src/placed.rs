@@ -243,8 +243,7 @@ fn place(
     };
     match &s.kind {
         ShapeKind::Group { children, child } => {
-            let ch = Rect::new(child.x, child.y, child.x + child.w, child.y + child.h);
-            let gm = parent * joydeck_geom::group_child_affine(&x, ch);
+            let gm = parent * x.child_affine(child);
             for c in children {
                 place(out, rctx, fields, c, gm, depth + 1, me, own);
             }

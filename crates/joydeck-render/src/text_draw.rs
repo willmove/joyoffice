@@ -95,17 +95,8 @@ pub(crate) fn preview_empty_bullets(l: &mut joydeck_text::TextLayout) {
 /// Group child coordinates size the box while typography stays in slide points.
 /// `relative` removes the output view transform from `m`.
 pub(crate) fn group_text_space(m: Affine, relative: Affine, w: f64, h: f64) -> (f64, f64, Affine) {
-    let [a, b, c, d, ..] = relative.as_coeffs();
-    let (sx, sy) = (a.hypot(b), c.hypot(d));
-    let ok = |k: f64| k.is_finite() && k > 1e-9;
-    if !ok(sx) || !ok(sy) || ((sx - 1.0).abs() < 1e-9 && (sy - 1.0).abs() < 1e-9) {
-        return (w, h, m);
-    }
-    let (tw, th) = (w * sx, h * sy);
-    if !tw.is_finite() || !th.is_finite() {
-        return (w, h, m);
-    }
-    (tw, th, m * Affine::scale_non_uniform(1.0 / sx, 1.0 / sy))
+    let (size, output) = joydeck_geom::point_sized_box(m, relative, kurbo::Size::new(w, h));
+    (size.width, size.height, output)
 }
 
 /// Where text laid out in text rect `tr` is drawn, for a shape drawn with `m` (shape-local →

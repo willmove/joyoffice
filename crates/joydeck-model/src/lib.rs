@@ -17,6 +17,7 @@
 pub mod anim;
 pub mod bidi;
 pub mod chart;
+pub mod coordinates;
 pub mod defaults;
 pub mod edit;
 pub mod numfmt;

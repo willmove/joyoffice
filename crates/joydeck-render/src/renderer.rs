@@ -593,8 +593,7 @@ impl Renderer {
         }
         match &s.kind {
             ShapeKind::Group { children, child } => {
-                let ch = Rect::new(child.x, child.y, child.x + child.w, child.y + child.h);
-                let gm = parent * joydeck_geom::group_child_affine(&x, ch);
+                let gm = parent * x.child_affine(child);
                 // A group's own fill (a group filled with its parent's passes that on).
                 let own = match &s.fill {
                     Some(Fill::Group) | None => self.group_fill.clone(),

@@ -20,6 +20,8 @@
 
 第八批切换 JoySheet 的 ETS 自动季节识别、拟合初始状态和误差统计，双日期制主表各消除 60 条差异。JoyWord 切换复合词和多级词缀遍历，验证 75 包建议差分及原生更正、撤销和重开。已找到三个 Frami 原始归档与许可，首选构建源仍需核实。[第八批验收](validation/20261125-craft-stage1-ets/README.md)
 
+JoyDeck 阶段 2 已切换形状坐标、嵌套组变换和编辑时的预设连接线端点。冻结版和候选版通过 32 组交叉读回，Windows 桌面通过嵌套组旋转、缩放、撤销重做及两种格式保存重开。[形状坐标验收](validation/20261125-craft-stage2-deck-coordinates/README.md)
+
 | 剩余范围 | 人周 | 估算依据 |
 | --- | ---: | --- |
 | 阶段 0 其余路径的调用登记与专项基线 | 2–4 | 六个二进制及首批语料已集中冻结。复杂分页、放映与长尾文件需各补调用点、固定输入及预期结果。 |
@@ -83,12 +85,12 @@ WordCraft 0.15.0 的文档模型、编辑会话和完整分页仍在桌面与 CL
 
 ## JoyDeck · 62–106 人周
 
-DeckCraft 0.14.1 的演示模型、文本、动画、格式和渲染实现仍参与构建。现行编辑路径的 183 项预设形状、5 种文件连接线及 49 类 PresentationML 转场生成器已独立实现，继续参加回归。普通形状变换、动画时间线、对象效果及旧文件转换各有自己的代码路径。[逐文件来源](../../licenses/deckcraft/file-map.json) · [产品移植说明](../../THIRD_PARTY-JOYDECK.md) · [已替换的生成器](validation/20261123-uos-refactor/README.md)
+DeckCraft 0.14.1 的演示模型、文本、动画、格式和渲染实现仍参与构建。现行编辑路径的 183 项预设形状、5 种文件连接线及 49 类 PresentationML 转场生成器已独立实现，继续参加回归。静态形状和嵌套组变换已切换，动画时间线、对象效果及旧文件转换按各自路径推进。[逐文件来源](../../licenses/deckcraft/file-map.json) · [产品移植说明](../../THIRD_PARTY-JOYDECK.md) · [已替换的生成器](validation/20261123-uos-refactor/README.md)
 
 | 阶段与优先级 | 仍在用的派生代码及替换内容 | 人周 | 兼容性验收标准 |
 | --- | --- | ---: | --- |
 | 1 · 高，旧文件兼容 · 已验收 | `joydeck-pptx/src/cfb.rs` 已接入宿主 CFB 读取器。v1 迁移桥用旧格式的名称及调整元数据发出 DrawingML，由现行几何路径生成形状。原 `preset/vendor/` 的 6 个文件已退出构建。 | 6–10 | 正常 PPTX、已知加密容器及损坏输入的分类、提示和预算均有对照。旧 v1 样本经只读桥转入 v2，形状轮廓、调整值、连接点及对象 ID 可核对。迁移报告齐备，v2 附件中的旧原件逐字节匹配，重开后可编辑、撤销。 |
-| 2 · 高，演示模型与编辑 | 撤销历史、媒体引用和跨文稿对象资源映射已切换，`history_cost.rs`、`media_refs.rs` 和 `transfer.rs` 已退役。继续推进 `joydeck-model`、`joydeck-color`、`joydeck-geom` 的形状、富文本、主题色、坐标和变换。[历史验收](validation/20261125-craft-stage2-deck-history/README.md) · [跨文稿验收](validation/20261125-craft-stage2-deck-transfer/README.md) | 16–28 | 固定命令序列逐步比对页序、对象 ID、层级、主题绑定及撤销／重做。跨文稿粘贴含图片、母版、链接的对象，验证 ID 冲突、同一资源复用和清空历史后的媒体引用。多窗口编辑共用一个模型，过时修订按基线处理。 |
+| 2 · 高，演示模型与编辑 | 撤销历史、媒体引用、跨文稿资源映射、静态形状坐标与组变换已切换，`history_cost.rs`、`media_refs.rs` 和 `transfer.rs` 已退役。继续推进 `joydeck-model` 和 `joydeck-color` 中的形状数据、富文本和主题色路径。[历史验收](validation/20261125-craft-stage2-deck-history/README.md) · [跨文稿验收](validation/20261125-craft-stage2-deck-transfer/README.md) · [形状坐标验收](validation/20261125-craft-stage2-deck-coordinates/README.md) | 16–28 | 固定命令序列逐步比对页序、对象 ID、层级、主题绑定及撤销／重做。跨文稿粘贴含图片、母版、链接的对象，验证 ID 冲突、同一资源复用和清空历史后的媒体引用。嵌套组的旋转、翻转、缩放和连接端点须通过坐标与渲染对照及双格式读回。多窗口编辑共用一个模型，过时修订按基线处理。 |
 | 3 · 高，原生格式与 PPTX | 替换 `joydeck-format` 和 `joydeck-pptx` 的剩余读写。以母版、主题、表格、图表、媒体、备注、审阅、动画分别交付，覆盖 `.joydeck` v2、`.deckcraft` v1 导入与 PPTX。 | 18–30 | 在各自支持的读写方向上，两代 CLI 交叉读回，并用独立 XML 核对关系、ID、媒体散列、时间信息与保留部件。PowerPoint 打开代表样本、另存后由 JoyDeck 重开。超过能力的样本维持登记的保留、只读或拒绝行为。 |
 | 4 · 中，文本、放映与 PDF | `joydeck-fonts`、`joydeck-text`、`joydeck-metafile`、`joydeck-render`、`joydeck-anim`、`joydeck-pdf` 中的派生路径，包括文本适配、CPU 合成、缓动、对象动画、Morph、放映时间线及定位字形导出。 | 20–34 | 核对换行、字形命中、动画触发顺序、实际放映终态及 PDF 页、文字、链接和书签。复跑既有 1,850 帧 GPU／CPU 对照和 192 组文件互读。固定样本的首尾帧一致，中间帧每通道最大差沿用同配置 Metal ≤1、UOS Vulkan ≤2 的基线。 |
 | 4 · 低，功能区呈现 | 用宿主 GPUI 组件替换 `joydeck-ui-gpui/src/chrome.rs` 中来自上游 Ribbon、控件与主题的布局逻辑。 | 2–4 | 在原生宽窗、窄窗和深浅主题下核对可见命令、折叠、禁用状态、键盘焦点与动作结果。 |

@@ -4,7 +4,7 @@ use crate::{
     PptxError, opc,
     xml::{El, Node},
 };
-use joydeck_model::{Presentation, ShapeId, SlideId, TextBody};
+use joydeck_model::{Presentation, Shape, ShapeId, ShapeKind, SlideId, TextBody};
 use std::{
     collections::BTreeMap,
     io::{Cursor, Read, Write},
@@ -287,6 +287,122 @@ fn node_id(e: &El) -> Option<ShapeId> {
         return None;
     }
     e.find("cNvPr").and_then(|e| e.u32("id")).map(ShapeId)
+}
+
+fn patch_transform(source: &mut El, generated: &El) -> Result<(), PptxError> {
+    let (source, generated) = if source.is("graphicFrame") {
+        (source, generated)
+    } else {
+        let props = if source.is("grpSp") {
+            "grpSpPr"
+        } else {
+            "spPr"
+        };
+        (
+            child_mut(source, props).ok_or_else(|| error("missing original shape properties"))?,
+            generated
+                .child(props)
+                .ok_or_else(|| error("missing generated shape properties"))?,
+        )
+    };
+    let updated = generated
+        .child("xfrm")
+        .ok_or_else(|| error("missing generated transform"))?;
+    let Some(frame) = child_mut(source, "xfrm") else {
+        source.children.insert(0, Node::El(updated.clone()));
+        return Ok(());
+    };
+    copy_coordinate_attrs(frame, updated, &["rot", "flipH", "flipV"]);
+    // Preserve extension attributes and children of the original transform.
+    let fields = [
+        ("off", ["x", "y"]),
+        ("ext", ["cx", "cy"]),
+        ("chOff", ["x", "y"]),
+        ("chExt", ["cx", "cy"]),
+    ];
+    for (index, (name, attributes)) in fields.iter().enumerate() {
+        let Some(new) = updated.child(name) else {
+            continue;
+        };
+        if let Some(old) = child_mut(frame, name) {
+            copy_coordinate_attrs(old, new, attributes);
+        } else {
+            let position = frame.children.iter().position(|node| {
+                matches!(node, Node::El(element) if fields[index + 1..].iter().any(|(field, _)| element.is(field)))
+            }).unwrap_or(frame.children.len());
+            frame.children.insert(position, Node::El(new.clone()));
+        }
+    }
+    Ok(())
+}
+
+fn copy_coordinate_attrs(source: &mut El, updated: &El, names: &[&str]) {
+    source
+        .attrs
+        .retain(|(name, _)| !names.contains(&name.as_str()));
+    for name in names {
+        if let Some(value) = updated.attr(name) {
+            set(source, name, value.to_owned());
+        }
+    }
+}
+
+/// A coordinate edit can retarget a connector inside an otherwise preserved group.
+fn patch_group_connectors(
+    source: &mut El,
+    generated: &El,
+    before: &Shape,
+    after: &Shape,
+) -> Result<(), PptxError> {
+    let (
+        ShapeKind::Group {
+            children: before, ..
+        },
+        ShapeKind::Group {
+            children: after, ..
+        },
+    ) = (&before.kind, &after.kind)
+    else {
+        return Ok(());
+    };
+    if before == after {
+        return Ok(());
+    }
+    let mut original = BTreeMap::new();
+    for node in source
+        .elements_mut()
+        .filter(|node| matches!(node.local(), "grpSp" | "cxnSp"))
+    {
+        if let Some(id) = node_id(node) {
+            original.entry(id).or_insert(node);
+        }
+    }
+    let rendered: BTreeMap<_, _> = generated
+        .elements()
+        .filter_map(|node| Some((node_id(node)?, node)))
+        .collect();
+    let prior: BTreeMap<_, _> = before.iter().map(|shape| (shape.id, shape)).collect();
+    for shape in after {
+        if let Some(old) = prior.get(&shape.id).copied()
+            && old != shape
+            && matches!(
+                shape.kind,
+                ShapeKind::Group { .. } | ShapeKind::Connector { .. }
+            )
+        {
+            let original = original.get_mut(&shape.id).ok_or_else(|| {
+                error("cannot locate the grouped connector in the source; save .joydeck instead")
+            })?;
+            let rendered = rendered
+                .get(&shape.id)
+                .ok_or_else(|| error("missing generated grouped connector"))?;
+            if shape.xfrm != old.xfrm && matches!(shape.kind, ShapeKind::Connector { .. }) {
+                patch_transform(original, rendered)?;
+            }
+            patch_group_connectors(original, rendered, old, shape)?;
+        }
+    }
+    Ok(())
 }
 fn read_parts(bytes: &[u8]) -> Result<BTreeMap<String, Vec<u8>>, PptxError> {
     let mut z = zip::ZipArchive::new(Cursor::new(bytes)).map_err(|e| error(e.to_string()))?;
@@ -668,38 +784,9 @@ pub fn export_preserving(
                     set(nv, "id", shape.id.0.to_string());
                 }
                 if shape.xfrm != old.xfrm {
-                    let name = if e.is("grpSp") {
-                        "grpSpPr"
-                    } else if e.is("graphicFrame") {
-                        "xfrm"
-                    } else {
-                        "spPr"
-                    };
-                    let replacement = generated
-                        .child(name)
-                        .cloned()
-                        .ok_or_else(|| error("missing generated transform"))?;
-                    if name == "xfrm" {
-                        replace(&mut e, "xfrm", Some(replacement));
-                    } else {
-                        let source = child_mut(&mut e, name)
-                            .ok_or_else(|| error("missing original shape properties"))?;
-                        let x = replacement
-                            .child("xfrm")
-                            .cloned()
-                            .ok_or_else(|| error("missing generated transform"))?;
-                        replace(source, "xfrm", Some(x));
-                        // xfrm must precede the geometry/fill children in DrawingML.
-                        if let Some(at) = source
-                            .children
-                            .iter()
-                            .position(|n| matches!(n,Node::El(e) if e.is("xfrm")))
-                        {
-                            let x = source.children.remove(at);
-                            source.children.insert(0, x);
-                        }
-                    }
+                    patch_transform(&mut e, generated)?;
                 }
+                patch_group_connectors(&mut e, generated, old, shape)?;
                 if shape.text != old.text {
                     patch_text(
                         &mut e,

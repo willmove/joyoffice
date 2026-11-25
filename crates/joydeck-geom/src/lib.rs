@@ -1,4 +1,4 @@
-//! DeckCraft geometry: units, shape transforms and preset shape generators.
+//! JoyDeck geometry: units, shape transforms and preset shape generators.
 //!
 //! The document model keeps positions in points (1/72 inch) as `f64`. Office Open XML stores EMU
 //! (English Metric Units, 12 700 per point); [`emu_to_pt`] and [`pt_to_emu`] convert losslessly for
@@ -18,10 +18,12 @@ pub use hit::fill_winding;
 pub mod morph;
 pub mod preset;
 pub mod squircle;
+mod transform;
 pub mod warp;
 
 pub use kurbo::{Affine, BezPath, PathEl, Point, Rect, Shape as KurboShape, Size, Vec2};
 use serde::{Deserialize, Serialize};
+pub use transform::{Xfrm, group_child_affine, point_sized_box};
 
 /// EMU per point.
 pub const EMU_PER_PT: f64 = 12_700.0;
@@ -109,95 +111,6 @@ fn split_number(t: &str) -> Option<(f64, &str)> {
         .unwrap_or(t.len());
     let n: f64 = t.get(..end)?.parse().ok()?;
     Some((n, t.get(end..).unwrap_or("")))
-}
-
-/// A shape's placement on its slide (or in its group's child space): offset, extent, rotation
-/// (degrees clockwise) and flips. Rotation and flips are about the centre.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Serialize, Deserialize)]
-#[serde(default, rename_all = "camelCase")]
-pub struct Xfrm {
-    pub x: f64,
-    pub y: f64,
-    pub w: f64,
-    pub h: f64,
-    #[serde(skip_serializing_if = "is_zero")]
-    pub rot: f64,
-    #[serde(skip_serializing_if = "std::ops::Not::not")]
-    pub flip_h: bool,
-    #[serde(skip_serializing_if = "std::ops::Not::not")]
-    pub flip_v: bool,
-}
-
-fn is_zero(v: &f64) -> bool {
-    *v == 0.0
-}
-
-impl Xfrm {
-    pub fn new(x: f64, y: f64, w: f64, h: f64) -> Self {
-        Xfrm {
-            x,
-            y,
-            w,
-            h,
-            ..Default::default()
-        }
-    }
-    pub fn rect(&self) -> Rect {
-        Rect::new(self.x, self.y, self.x + self.w, self.y + self.h)
-    }
-    pub fn center(&self) -> Point {
-        Point::new(self.x + self.w / 2.0, self.y + self.h / 2.0)
-    }
-    /// Local shape space (0..w, 0..h) → parent space, applying flips and rotation about the centre.
-    pub fn affine(&self) -> Affine {
-        let c = Vec2::new(self.w / 2.0, self.h / 2.0);
-        let sx = if self.flip_h { -1.0 } else { 1.0 };
-        let sy = if self.flip_v { -1.0 } else { 1.0 };
-        Affine::translate(Vec2::new(self.x, self.y) + c)
-            * Affine::rotate(self.rot.to_radians())
-            * Affine::scale_non_uniform(sx, sy)
-            * Affine::translate(-c)
-    }
-    /// Axis-aligned bounds of the rotated box in parent space.
-    pub fn bounds(&self) -> Rect {
-        let a = self.affine();
-        let pts = [
-            Point::new(0.0, 0.0),
-            Point::new(self.w, 0.0),
-            Point::new(self.w, self.h),
-            Point::new(0.0, self.h),
-        ]
-        .map(|p| a * p);
-        let mut r = Rect::from_points(pts[0], pts[1]);
-        r = r.union_pt(pts[2]).union_pt(pts[3]);
-        r
-    }
-    /// True when no dimension is NaN/inf.
-    pub fn is_finite(&self) -> bool {
-        [self.x, self.y, self.w, self.h, self.rot]
-            .iter()
-            .all(|v| v.is_finite())
-    }
-    /// Rotation normalised to 0..360.
-    pub fn rot_norm(&self) -> f64 {
-        let r = self.rot % 360.0;
-        if r < 0.0 { r + 360.0 } else { r }
-    }
-}
-
-/// Maps a group's child coordinate space (`ch_off`, `ch_ext`) onto the group's own box.
-pub fn group_child_affine(group: &Xfrm, ch: Rect) -> Affine {
-    let sx = if ch.width().abs() > 1e-9 {
-        group.w / ch.width()
-    } else {
-        1.0
-    };
-    let sy = if ch.height().abs() > 1e-9 {
-        group.h / ch.height()
-    } else {
-        1.0
-    };
-    group.affine() * Affine::scale_non_uniform(sx, sy) * Affine::translate(-ch.origin().to_vec2())
 }
 
 /// Distance from `p` to the segment `a`–`b`.

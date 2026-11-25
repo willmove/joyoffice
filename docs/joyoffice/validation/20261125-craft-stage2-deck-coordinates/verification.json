@@ -1,0 +1,82 @@
+{
+  "frozenCommit": "14cbb29616d7c0ababbf40a8f6c0218b996e7ae8",
+  "checkpointCommit": "1c98bcb1bed0e9833f8b7b31c83d5250852005ab",
+  "frozenAndCandidateCliSha256": {
+    "frozen": "f8fd32a31570e241f17ced00dbce66f7e2ae53739b18e3c70bea03c2e78794f7",
+    "candidate": "fcf14e9abf6395c093586ff081c86acaeb5292f8c36ee64b8a26f5c7e9331937"
+  },
+  "fixtureSha256": "00078b443f05f35448ed03e4b585dccc7f18d2bb9256080a97157c6e65e7b7f8",
+  "cli": {
+    "readbacks": 32,
+    "exactUndoRedoComparisons": 16,
+    "preservedPptxPackages": 8,
+    "rastersWithEndpointChecks": 6,
+    "originalRasterPixelIdentical": true,
+    "endpointTolerancePt": 0.001,
+    "endpointResults": {
+      "frozen": {
+        "checks": 64,
+        "maxErrorPt": 270.145052384876,
+        "overTolerance": 28
+      },
+      "candidate": {
+        "checks": 64,
+        "maxErrorPt": 0.000138981007473486,
+        "overTolerance": 0
+      }
+    }
+  },
+  "windowsDesktop": {
+    "rotateHandle": true,
+    "resizeHandle": true,
+    "undo": 2,
+    "redo": 2,
+    "reopenedInNewProcesses": [
+      "pptx",
+      "joydeck"
+    ],
+    "candidateDesktopSha256": "a6f56f7b5f5ca864fe62c848b622ff6975d5bde5312d63121669a28b174f21e1",
+    "savedDocumentSha256": {
+      "pptx": "8b0505de1f84188948e5da34e229760080a074c12e4b6301aca2c592c3bf3303",
+      "joydeck": "436c889091fd014da01ddc0c004111236311a7ea44f7488ca35a5db811f87faf"
+    },
+    "readbacks": 4,
+    "maximumEndpointErrorPt": {
+      "frozen-pptx": 0.00017957558014519045,
+      "candidate-pptx": 0.00017957558014519045,
+      "frozen-joydeck": 0.00011753216278545696,
+      "candidate-joydeck": 0.00011753216278545696
+    },
+    "outerGroupFrames": {
+      "pptx": {
+        "x": 351.43984251968504,
+        "y": 194.96992125984252,
+        "w": 258.9624409448819,
+        "h": 197.39102362204724,
+        "rot": 65.40521666666666,
+        "flipH": true,
+        "flipV": false
+      },
+      "joydeck": {
+        "x": 351.43983893277107,
+        "y": 194.96992564542657,
+        "w": 258.9624287795851,
+        "h": 197.3909995520999,
+        "rot": 65.40522329914396,
+        "flipH": true,
+        "flipV": false
+      }
+    },
+    "pptxUnchangedOtherPartsAndExtension": true
+  },
+  "productRegression": {
+    "cargoXtaskCheckJoyDeck": true,
+    "rustTestsPassed": 1045,
+    "r2CommandsPassed": {
+      "frozen": 20,
+      "candidate": 20
+    },
+    "transferNativeReadbacks": 4,
+    "transferGroupReadbacks": 4
+  }
+}

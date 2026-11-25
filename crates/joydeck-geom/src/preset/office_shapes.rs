@@ -4,28 +4,42 @@ use super::builder::{Corner, Dir, Pb, corner_rect, fill, len_thick, simple, stro
 use super::catalog::{Geometry, Handle};
 use kurbo::{BezPath, Point, Rect, Vec2};
 
-/// DrawingML §20.1.9.18. The curved presets round the corners of the orthogonal
-/// route. Each two adjacent corners share their midpoint as the end of one cubic
-/// and the start of the next, including when an adjustment lies outside the frame.
-pub(super) fn connector(name: &str, w: f64, h: f64, adjustments: &[f64]) -> Option<Geometry> {
-    let legs = match name {
+fn connector_legs(name: &str) -> Option<usize> {
+    Some(match name {
         "line" | "lineInv" | "straightConnector1" => 1,
         "bentConnector2" | "curvedConnector2" => 2,
         "bentConnector3" | "curvedConnector3" => 3,
         "bentConnector4" | "curvedConnector4" => 4,
         "bentConnector5" | "curvedConnector5" => 5,
         _ => return None,
-    };
+    })
+}
+
+/// The connector's directed local diagonal, shared with edits that follow an attached shape.
+pub fn connector_endpoints(name: &str, w: f64, h: f64) -> Option<[Point; 2]> {
+    connector_legs(name)?;
+    Some(diagonal(name, w, h))
+}
+
+fn diagonal(name: &str, w: f64, h: f64) -> [Point; 2] {
+    if name == "lineInv" {
+        [Point::new(0., h), Point::new(w, 0.)]
+    } else {
+        [Point::ORIGIN, Point::new(w, h)]
+    }
+}
+
+/// DrawingML §20.1.9.18. The curved presets round the corners of the orthogonal
+/// route. Each two adjacent corners share their midpoint as the end of one cubic
+/// and the start of the next, including when an adjustment lies outside the frame.
+pub(super) fn connector(name: &str, w: f64, h: f64, adjustments: &[f64]) -> Option<Geometry> {
+    let legs = connector_legs(name)?;
     let value = |index: usize| match adjustments.get(index) {
         Some(v) if v.is_finite() => *v,
         Some(_) => 0.,
         None => 50_000.,
     };
-    let (start, end) = if name == "lineInv" {
-        (Point::new(0., h), Point::new(w, 0.))
-    } else {
-        (Point::ORIGIN, Point::new(w, h))
-    };
+    let [start, end] = diagonal(name, w, h);
     let x = if legs >= 3 {
         w * value(0) / 100_000.
     } else {

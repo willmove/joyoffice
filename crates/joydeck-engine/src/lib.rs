@@ -13,6 +13,7 @@ pub use footer::{ExistingFooterSummary, existing_footer_summary};
 mod history;
 use history::History;
 mod review;
+mod shape_transform;
 mod workspace;
 pub use review::ReviewAction;
 pub use workspace::WorkspaceAction;
@@ -548,6 +549,23 @@ fn apply(st: &mut EditorSnapshot, cmd: Command) -> std::result::Result<(), Strin
     if let Some(result) = authoring::apply(st, &cmd) {
         return result;
     }
+    if let Command::Transform {
+        dx,
+        dy,
+        dw,
+        dh,
+        rotation,
+    } = cmd
+    {
+        return shape_transform::apply(
+            st,
+            [dx, dy],
+            rotation,
+            shape_transform::Change::Frame {
+                size_delta: [dw, dh],
+            },
+        );
+    }
     let page = st.selection.page;
     let p = Arc::make_mut(&mut st.model);
     if matches!(cmd, Command::NewSlide | Command::DuplicateSlide) {
@@ -764,15 +782,6 @@ fn apply(st: &mut EditorSnapshot, cmd: Command) -> std::result::Result<(), Strin
         Arc::make_mut(&mut p.slides[page]).shapes.extend(copies);
         return Ok(());
     }
-    let transforms = {
-        let ctx = resolve::Ctx::for_slide(p, &p.slides[page]).ok_or("missing layout")?;
-        p.slides[page]
-            .shapes
-            .iter()
-            .filter(|s| matches!(cmd, Command::Transform { .. }) && selected.contains(&s.id))
-            .map(|s| (s.id, resolve::xfrm(&ctx, s)))
-            .collect::<BTreeMap<_, _>>()
-    };
     let slide = Arc::make_mut(&mut p.slides[page]);
     match cmd {
         Command::Delete => {
@@ -807,32 +816,6 @@ fn apply(st: &mut EditorSnapshot, cmd: Command) -> std::result::Result<(), Strin
                 {
                     slide.shapes.swap(i, j);
                 }
-            }
-        }
-        Command::Transform {
-            dx,
-            dy,
-            dw,
-            dh,
-            rotation,
-        } => {
-            for v in [dx, dy, dw, dh, rotation] {
-                checked(v)?;
-            }
-            for s in slide.shapes.iter_mut().filter(|s| selected.contains(&s.id)) {
-                if s.locked {
-                    return Err("object is locked".into());
-                }
-                let mut x = transforms[&s.id];
-                x.x = checked(x.x + dx)?;
-                x.y = checked(x.y + dy)?;
-                x.w = checked(x.w + dw)?;
-                x.h = checked(x.h + dh)?;
-                x.rot = (x.rot + rotation).rem_euclid(360.);
-                if x.w < 1. || x.h < 1. {
-                    return Err("shape size must be at least 1 point".into());
-                }
-                s.xfrm = Some(x);
             }
         }
         Command::ReplaceText { text } => {

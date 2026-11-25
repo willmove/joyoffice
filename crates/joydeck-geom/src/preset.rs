@@ -26,6 +26,7 @@ pub use catalog::{
     is_line_like, mitred_by_default,
 };
 pub use line_callout::LineCallout;
+pub use office_shapes::connector_endpoints;
 
 #[cfg(test)]
 mod extra;
