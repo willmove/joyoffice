@@ -29,15 +29,6 @@ pub fn ang(e: &El, name: &str) -> Option<f64> {
     e.f64(name).map(|v| v / 60_000.0)
 }
 
-fn lin_to_srgb(v: f64) -> f64 {
-    let v = v.clamp(0.0, 1.0);
-    if v <= 0.003_130_8 {
-        v * 12.92
-    } else {
-        1.055 * v.powf(1.0 / 2.4) - 0.055
-    }
-}
-
 /// A colour element (`srgbClr`, `schemeClr`, …) with its transforms.
 pub fn color_el(c: &El) -> Option<ColorRef> {
     let base = match c.local() {
@@ -64,9 +55,9 @@ pub fn color_el(c: &El) -> Option<ColorRef> {
             name: c.attr("val").unwrap_or("black").to_string(),
         },
         "scrgbClr" => {
-            let f = |n: &str| lin_to_srgb(c.f64(n).unwrap_or(0.0) / 100_000.0);
+            let component = |name| pct(c, name).unwrap_or(0.0);
             ColorBase::Rgb {
-                rgb: Rgba::from_f64(f("r"), f("g"), f("b"), 1.0),
+                rgb: Rgba::from_linear_rgb(component("r"), component("g"), component("b")),
             }
         }
         "hslClr" => {

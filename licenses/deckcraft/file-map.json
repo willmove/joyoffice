@@ -20,7 +20,7 @@
       "source_path": "crates/color/src/lib.rs",
       "source_sha256": "93b024e9e9031f8cb1ac73dd4a325ce23099a4e4b1ebd347c085f2674b21addc",
       "target_path": "crates/joydeck-color/src/lib.rs",
-      "adapted_sha256": "e8727717eee66bbf5ae0e506844c100f0f152973cf8bd7550e5fe8be1b6d02ee",
+      "adapted_sha256": "4dd2c6b171663130270894acd5951decd4be545f23527dc13926a4e2350de927",
       "changes": [
         "crate/import namespace deckcraft -> joydeck",
         "LF normalization",
@@ -29,7 +29,8 @@
         "preserve upstream rgba constructor with local Clippy style annotation",
         "test-only assertion lint allowances; production no-panic guards retained",
         "scoped Clippy style allowances preserve imported public representations",
-        "Share hexadecimal DrawingML color parsing and serialization while keeping Deck short forms and alpha handling."
+        "Share hexadecimal DrawingML color parsing and serialization while keeping Deck short forms and alpha handling.",
+        "Keep DrawingML names and the serialized color schema. Replace channel evaluation, color transforms and palette resolution with JoyDeck implementations."
       ]
     },
     {
@@ -310,7 +311,7 @@
       "source_path": "crates/model/src/lib.rs",
       "source_sha256": "4b5a99b737768e630d877382837063a3f43ca12f9385ee8834e9437ed53b16d2",
       "target_path": "crates/joydeck-model/src/lib.rs",
-      "adapted_sha256": "ae3a970785ff6df43f323753b8a4d0cb4200924a0a65f0193ab46a13f0d87b1e",
+      "adapted_sha256": "d3838e93104dc0937cd1108d7b59d3813225263f789fe95631b9553cbf9a3ddf",
       "changes": [
         "crate/import namespace deckcraft -> joydeck",
         "LF normalization",
@@ -322,9 +323,19 @@
         "preserve recognized layout and master header/footer visibility flags without resolving inheritance",
         "Apply a validated two-axis update to a native callout vertex.",
         "Stage 2: expose the JoyDeck slide-coordinate and connector attachment solver.",
-        "Stage 2: register the JoyDeck rich text model, editing, and style resolution."
+        "Stage 2: register the JoyDeck rich text model, editing, and style resolution.",
+        "Move compatible shape records into shape.rs and replace tree traversal and preset editing. Use the JoyDeck theme role mapper."
       ],
       "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained."
+    },
+    {
+      "source_path": "crates/model/src/lib.rs",
+      "source_sha256": "4b5a99b737768e630d877382837063a3f43ca12f9385ee8834e9437ed53b16d2",
+      "target_path": "crates/joydeck-model/src/shape.rs",
+      "adapted_sha256": "6bfa83a3cffbf3d2ea29342cc41cacf7962a86f8258f6e4c9662f588740fb622",
+      "changes": [
+        "Retain the serialized shape, placeholder and geometry record fields and compatible public helpers. Bounded shape tree traversal and basic preset editing are JoyDeck implementations."
+      ]
     },
     {
       "source_path": "crates/model/src/numfmt.rs",
@@ -343,26 +354,28 @@
       "source_path": "crates/model/src/resolve.rs",
       "source_sha256": "fa9f06a5f23b585e9c15b882c334a7a87b32690ed6f4571fe7e865de76a91feb",
       "target_path": "crates/joydeck-model/src/resolve.rs",
-      "adapted_sha256": "e6a2a872d5b9bc41877a0dac7d761a3d5d2658845ae995e136d4ade2e40fc02a",
+      "adapted_sha256": "668768ffc5573e0865e996c6a862798f36cc2ea1e91e89b3c580517c0875f294",
       "changes": [
         "crate/import namespace deckcraft -> joydeck",
         "LF normalization",
         "package description credits origin",
         "rustfmt using repository Unix newline policy",
-        "Stage 2: delegate paragraph, list, and run defaults to the JoyDeck text cascade."
+        "Stage 2: delegate paragraph, list, and run defaults to the JoyDeck text cascade.",
+        "Resolve all theme roles in one pass and use the active slide palette through the placeholder and style matrix cascade."
       ]
     },
     {
       "source_path": "crates/model/src/style.rs",
       "source_sha256": "b1d45ac675f57e9fa8c87d01354e164cbf45d6aa15b47f733d16cc7d391be576",
       "target_path": "crates/joydeck-model/src/style.rs",
-      "adapted_sha256": "2b89bbdd23dc04ae4161e366743fefcb6ce59b0771262c1d102392b778de925a",
+      "adapted_sha256": "c587106ce1be4cdf99e312780a1ad5c70b1c98e35928568bd2fb0df97d60d6f4",
       "changes": [
         "crate/import namespace deckcraft -> joydeck",
         "LF normalization",
         "package description credits origin",
         "rustfmt using repository Unix newline policy",
-        "scoped Clippy style allowances preserve imported public representations"
+        "scoped Clippy style allowances preserve imported public representations",
+        "Share ordered color evaluation between physical and mapped palette lookups."
       ]
     },
     {
@@ -409,12 +422,13 @@
       "source_path": "crates/model/src/theme.rs",
       "source_sha256": "f5f856c5fd5dc3a8f070a2895ffdbc6737ec5d5c4447b20e56ad674f2b2dcbaf",
       "target_path": "crates/joydeck-model/src/theme.rs",
-      "adapted_sha256": "4ab169b2596f4a06586295f0683c6881e299e6700575376e43ad7a25fe584ea7",
+      "adapted_sha256": "05e9b5adb73306f5be4bd1c161942a963038f490c6ede3a65ff81b21c37bcbf9",
       "changes": [
         "crate/import namespace deckcraft -> joydeck",
         "LF normalization",
         "package description credits origin",
-        "rustfmt using repository Unix newline policy"
+        "rustfmt using repository Unix newline policy",
+        "Use one style matrix fill index resolver for shape and background references."
       ]
     },
     {
@@ -1797,12 +1811,13 @@
       "source_path": "crates/pptx/src/read/dml.rs",
       "source_sha256": "17a01fb4afe822c403b621f3b8a550abe35a69abd90f134018fc19459415ab7a",
       "target_path": "crates/joydeck-pptx/src/read/dml.rs",
-      "adapted_sha256": "51239af4c6210239ac52decdbe469cd82bb93e19c6e71ea723ae7626f216a811",
+      "adapted_sha256": "2afc93d72f1adc6788a59efc40979ca2e5de995bc665ca6be8e6f0f5b0692f9b",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
-        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
+        "Use JoyDeck sRGB encoding for DrawingML linear RGB color input."
       ]
     },
     {

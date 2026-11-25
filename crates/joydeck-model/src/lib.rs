@@ -1,4 +1,4 @@
-//! The DeckCraft document model.
+//! JoyDeck's slide, master and document records.
 //!
 //! A [`Presentation`] has slide masters (each with a theme and layouts) and slides. Each slide
 //! uses a layout; placeholders on a slide inherit position, formatting and text styles from the
@@ -22,6 +22,7 @@ pub mod defaults;
 pub mod edit;
 pub mod numfmt;
 pub mod resolve;
+mod shape;
 pub mod style;
 pub mod table;
 pub mod text;
@@ -41,6 +42,10 @@ use serde::{Deserialize, Serialize};
 pub use anim::{AnimClass, AnimStart, Animation, Transition};
 pub use bidi::{first_strong_is_rtl, is_rtl_script};
 pub use chart::Chart;
+pub use shape::{
+    CustomPath, Geom, PhType, Placeholder, Shape, ShapeKind, find_shape, find_shape_mut, parent_of,
+    sibling_list_mut, walk,
+};
 pub use style::{ColorBase, ColorRef, Effects, Fill, Line, ShapeStyle};
 pub use table::{Cell, Table};
 pub use text::{Paragraph, Run, RunProps, TextBody};
@@ -93,181 +98,6 @@ pub enum ModelError {
 }
 
 pub type Result<T> = std::result::Result<T, ModelError>;
-
-/// Placeholder types.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub enum PhType {
-    Title,
-    CtrTitle,
-    SubTitle,
-    #[default]
-    Body,
-    Obj,
-    Chart,
-    Table,
-    ClipArt,
-    Diagram,
-    Media,
-    Picture,
-    Date,
-    Footer,
-    SlideNum,
-    Header,
-    SlideImage,
-}
-
-impl PhType {
-    pub fn xml(self) -> &'static str {
-        match self {
-            PhType::Title => "title",
-            PhType::CtrTitle => "ctrTitle",
-            PhType::SubTitle => "subTitle",
-            PhType::Body => "body",
-            PhType::Obj => "obj",
-            PhType::Chart => "chart",
-            PhType::Table => "tbl",
-            PhType::ClipArt => "clipArt",
-            PhType::Diagram => "dgm",
-            PhType::Media => "media",
-            PhType::Picture => "pic",
-            PhType::Date => "dt",
-            PhType::Footer => "ftr",
-            PhType::SlideNum => "sldNum",
-            PhType::Header => "hdr",
-            PhType::SlideImage => "sldImg",
-        }
-    }
-    pub fn from_xml(s: &str) -> Self {
-        match s {
-            "title" => PhType::Title,
-            "ctrTitle" => PhType::CtrTitle,
-            "subTitle" => PhType::SubTitle,
-            "obj" => PhType::Obj,
-            "chart" => PhType::Chart,
-            "tbl" => PhType::Table,
-            "clipArt" => PhType::ClipArt,
-            "dgm" => PhType::Diagram,
-            "media" => PhType::Media,
-            "pic" => PhType::Picture,
-            "dt" => PhType::Date,
-            "ftr" => PhType::Footer,
-            "sldNum" => PhType::SlideNum,
-            "hdr" => PhType::Header,
-            "sldImg" => PhType::SlideImage,
-            _ => PhType::Body,
-        }
-    }
-    pub fn is_title(self) -> bool {
-        matches!(self, PhType::Title | PhType::CtrTitle)
-    }
-    /// The prompt shown in an empty placeholder in Normal view.
-    pub fn prompt(self) -> &'static str {
-        match self {
-            PhType::Title | PhType::CtrTitle => "Click to add title",
-            PhType::SubTitle => "Click to add subtitle",
-            PhType::Body | PhType::Obj => "Click to add text",
-            PhType::Chart => "Click icon to add chart",
-            PhType::Table => "Click icon to add table",
-            PhType::Diagram => "Click icon to add SmartArt graphic",
-            PhType::Media => "Click icon to add media",
-            PhType::Picture | PhType::ClipArt => "Click icon to add picture",
-            PhType::Date => "Date",
-            PhType::Footer => "Footer",
-            PhType::SlideNum => "‹#›",
-            PhType::Header => "Header",
-            PhType::SlideImage => "",
-        }
-    }
-    /// Footer-row placeholders are not shown on slides unless the deck turns them on.
-    pub fn is_footer_kind(self) -> bool {
-        matches!(
-            self,
-            PhType::Date | PhType::Footer | PhType::SlideNum | PhType::Header
-        )
-    }
-}
-
-#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
-#[serde(default, rename_all = "camelCase")]
-pub struct Placeholder {
-    pub kind: PhType,
-    pub idx: u32,
-    /// `vert` orientation flag.
-    pub vertical: bool,
-    /// `quarter`, `half`, `full` size hint.
-    pub size: Option<String>,
-    pub has_custom_prompt: bool,
-}
-
-/// Shape geometry: a preset name with adjust values, or a custom path.
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase", tag = "kind")]
-pub enum Geom {
-    Preset {
-        name: String,
-        #[serde(default, skip_serializing_if = "Vec::is_empty")]
-        adj: Vec<f64>,
-    },
-    /// Custom geometry: sub-paths in their own coordinate space (w, h) scaled to the shape.
-    Custom { paths: Vec<CustomPath> },
-}
-
-impl Default for Geom {
-    fn default() -> Self {
-        Geom::Preset {
-            name: "rect".into(),
-            adj: vec![],
-        }
-    }
-}
-
-impl Geom {
-    pub fn preset(name: &str) -> Self {
-        Geom::Preset {
-            name: name.into(),
-            adj: vec![],
-        }
-    }
-    pub fn set_callout_vertex(&mut self, vertex: u8, x: i32, y: i32) -> bool {
-        let Self::Preset { name, adj } = self else {
-            return false;
-        };
-        joydeck_geom::preset::LineCallout::named(name)
-            .is_some_and(|callout| callout.set_vertex(adj, vertex, x, y))
-    }
-
-    pub fn preset_name(&self) -> Option<&str> {
-        match self {
-            Geom::Preset { name, .. } => Some(name),
-            Geom::Custom { .. } => None,
-        }
-    }
-}
-
-/// One sub-path of a custom geometry: SVG-like commands in path units.
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(default, rename_all = "camelCase")]
-pub struct CustomPath {
-    pub w: f64,
-    pub h: f64,
-    /// `M x y`, `L x y`, `C x1 y1 x2 y2 x y`, `Q x1 y1 x y`, `Z`.
-    pub d: String,
-    pub fill: joydeck_geom::preset::FillMode,
-    pub stroke: bool,
-}
-
-impl Default for CustomPath {
-    fn default() -> Self {
-        CustomPath {
-            w: 0.0,
-            h: 0.0,
-            d: String::new(),
-            fill: joydeck_geom::preset::FillMode::Norm,
-            stroke: true,
-        }
-    }
-}
 
 /// Embedded audio or video on a slide.
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
@@ -333,86 +163,6 @@ pub fn ink_sample_width(pen: f64, pressure: f32, legacy: bool) -> f64 {
     pen * f64::from(p)
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase", tag = "type")]
-pub enum ShapeKind {
-    /// An autoshape or text box.
-    Shape,
-    Picture {
-        fill: style::PictureFill,
-    },
-    Group {
-        children: Vec<Shape>,
-        /// Child coordinate space.
-        child: Xfrm,
-    },
-    Connector {
-        start: Option<(ShapeId, u32)>,
-        end: Option<(ShapeId, u32)>,
-    },
-    Table(Table),
-    Chart(Box<Chart>),
-    Media(MediaClip),
-    Ink {
-        strokes: Vec<InkStroke>,
-    },
-    /// A 3-D model (`p:contentPart` with a `model3d` relationship, usually a `.glb`).
-    /// `poster` is the fallback picture an `mc:AlternateContent` choice carried for older readers.
-    Model3d {
-        media: MediaId,
-        #[serde(default)]
-        poster: Option<MediaId>,
-    },
-    /// Something we read but don't model (SmartArt without fallback, OLE…): its XML is kept and its
-    /// fallback picture, if any, is shown.
-    Opaque {
-        xml: String,
-        preview: Option<MediaId>,
-        label: String,
-        /// The parts its XML points to (SmartArt data, an OLE embedding…), so a save writes them
-        /// back: (relationship id used in `xml`, relationship type, the part as a media item).
-        #[serde(default, skip_serializing_if = "Vec::is_empty")]
-        parts: Vec<(String, String, MediaId)>,
-    },
-}
-
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(default, rename_all = "camelCase")]
-pub struct Shape {
-    pub id: ShapeId,
-    pub name: String,
-    /// `None`: placeholder inheriting its box from the layout/master.
-    pub xfrm: Option<Xfrm>,
-    pub kind: ShapeKind,
-    pub geom: Geom,
-    pub ph: Option<Placeholder>,
-    /// `None`: inherited (placeholder chain or style); `Some(Fill::None)`: no fill.
-    pub fill: Option<Fill>,
-    pub line: Option<Line>,
-    pub effects: Option<Effects>,
-    pub style: Option<ShapeStyle>,
-    pub text: Option<TextBody>,
-    pub hidden: bool,
-    pub locked: bool,
-    /// Text box (`txBox="1"`): no fill, autosize, wrap off by default.
-    pub text_box: bool,
-    /// Alt text.
-    pub descr: String,
-    pub title: String,
-    pub decorative: bool,
-    pub click: Option<text::Hyperlink>,
-    pub hover: Option<text::Hyperlink>,
-    /// Add-in tags (`p:custDataLst` → `ppt/tags/tagN.xml`): name/value pairs kept for round trip.
-    #[serde(skip_serializing_if = "Vec::is_empty")]
-    pub tags: Vec<(String, String)>,
-    /// Unmodelled XML kept for round-trip (extension lists etc.).
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub raw_ext: Option<String>,
-    /// On a SmartArt group: the diagram's text outline, from which its shapes are regenerated.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub diagram: Option<Diagram>,
-}
-
 /// A SmartArt diagram's data: its layout and its outline of nodes (the Text Pane).
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 #[serde(default, rename_all = "camelCase")]
@@ -459,190 +209,6 @@ pub struct DiagramNode {
     /// The job title under the name (Name and Title Organization Chart).
     #[serde(skip_serializing_if = "String::is_empty")]
     pub title: String,
-}
-
-impl Default for Shape {
-    fn default() -> Self {
-        Shape {
-            id: ShapeId(0),
-            name: String::new(),
-            xfrm: None,
-            kind: ShapeKind::Shape,
-            geom: Geom::default(),
-            ph: None,
-            fill: None,
-            line: None,
-            effects: None,
-            style: None,
-            text: None,
-            hidden: false,
-            locked: false,
-            text_box: false,
-            descr: String::new(),
-            title: String::new(),
-            decorative: false,
-            click: None,
-            hover: None,
-            tags: vec![],
-            raw_ext: None,
-            diagram: None,
-        }
-    }
-}
-
-impl Shape {
-    /// A stand-in shape for laying out one table cell's `body`: a table, so the cell's text takes
-    /// the master's other-text style as PowerPoint's does.
-    pub fn table_cell(body: text::TextBody) -> Shape {
-        Shape {
-            text: Some(body),
-            kind: ShapeKind::Table(Table::default()),
-            ..Default::default()
-        }
-    }
-    pub fn is_placeholder(&self) -> bool {
-        self.ph.is_some()
-    }
-    pub fn ph_type(&self) -> Option<PhType> {
-        self.ph.as_ref().map(|p| p.kind)
-    }
-    pub fn is_group(&self) -> bool {
-        matches!(self.kind, ShapeKind::Group { .. })
-    }
-    pub fn children(&self) -> &[Shape] {
-        match &self.kind {
-            ShapeKind::Group { children, .. } => children,
-            _ => &[],
-        }
-    }
-    pub fn children_mut(&mut self) -> Option<&mut Vec<Shape>> {
-        match &mut self.kind {
-            ShapeKind::Group { children, .. } => Some(children),
-            _ => None,
-        }
-    }
-    /// Is this a line-like shape (no area)?
-    pub fn is_line(&self) -> bool {
-        matches!(self.kind, ShapeKind::Connector { .. })
-            || self
-                .geom
-                .preset_name()
-                .is_some_and(joydeck_geom::preset::is_line_like)
-    }
-    pub fn kind_name(&self) -> &'static str {
-        match &self.kind {
-            ShapeKind::Shape if self.ph.is_some() => "placeholder",
-            ShapeKind::Shape if self.text_box => "textBox",
-            ShapeKind::Shape => "shape",
-            ShapeKind::Picture { .. } => "picture",
-            ShapeKind::Group { .. } => "group",
-            ShapeKind::Connector { .. } => "connector",
-            ShapeKind::Table(_) => "table",
-            ShapeKind::Chart(_) => "chart",
-            ShapeKind::Media(m) if m.video => "video",
-            ShapeKind::Media(_) => "audio",
-            ShapeKind::Ink { .. } => "ink",
-            ShapeKind::Model3d { .. } => "model",
-            ShapeKind::Opaque { .. } => "object",
-        }
-    }
-}
-
-/// Walk shapes depth-first (groups included).
-pub fn walk<'a>(shapes: &'a [Shape], f: &mut dyn FnMut(&'a Shape, usize)) {
-    fn rec<'a>(shapes: &'a [Shape], depth: usize, f: &mut dyn FnMut(&'a Shape, usize)) {
-        if depth > 64 {
-            return;
-        }
-        for s in shapes {
-            f(s, depth);
-            rec(s.children(), depth + 1, f);
-        }
-    }
-    rec(shapes, 0, f);
-}
-
-pub fn find_shape(shapes: &[Shape], id: ShapeId) -> Option<&Shape> {
-    fn rec(shapes: &[Shape], id: ShapeId, depth: usize) -> Option<&Shape> {
-        if depth > 64 {
-            return None;
-        }
-        for s in shapes {
-            if s.id == id {
-                return Some(s);
-            }
-            if let Some(f) = rec(s.children(), id, depth + 1) {
-                return Some(f);
-            }
-        }
-        None
-    }
-    rec(shapes, id, 0)
-}
-
-pub fn find_shape_mut(shapes: &mut [Shape], id: ShapeId) -> Option<&mut Shape> {
-    fn rec(shapes: &mut [Shape], id: ShapeId, depth: usize) -> Option<&mut Shape> {
-        if depth > 64 {
-            return None;
-        }
-        for s in shapes.iter_mut() {
-            if s.id == id {
-                return Some(s);
-            }
-            if let ShapeKind::Group { children, .. } = &mut s.kind
-                && let Some(f) = rec(children, id, depth + 1)
-            {
-                return Some(f);
-            }
-        }
-        None
-    }
-    rec(shapes, id, 0)
-}
-
-/// The list holding `id` among its siblings: the tree's top level, or a group's children.
-pub fn sibling_list_mut(shapes: &mut Vec<Shape>, id: ShapeId) -> Option<&mut Vec<Shape>> {
-    fn rec(shapes: &mut Vec<Shape>, id: ShapeId, depth: usize) -> Option<&mut Vec<Shape>> {
-        if depth > 64 {
-            return None;
-        }
-        if shapes.iter().any(|s| s.id == id) {
-            return Some(shapes);
-        }
-        for s in shapes.iter_mut() {
-            if let ShapeKind::Group { children, .. } = &mut s.kind
-                && let Some(f) = rec(children, id, depth + 1)
-            {
-                return Some(f);
-            }
-        }
-        None
-    }
-    rec(shapes, id, 0)
-}
-
-/// The group directly holding `id`: `Some(None)` for a top-level shape, `None` when absent.
-pub fn parent_of(shapes: &[Shape], id: ShapeId) -> Option<Option<ShapeId>> {
-    fn rec(
-        shapes: &[Shape],
-        parent: Option<ShapeId>,
-        id: ShapeId,
-        depth: usize,
-    ) -> Option<Option<ShapeId>> {
-        if depth > 64 {
-            return None;
-        }
-        for s in shapes {
-            if s.id == id {
-                return Some(parent);
-            }
-            if let Some(f) = rec(s.children(), Some(s.id), id, depth + 1) {
-                return Some(f);
-            }
-        }
-        None
-    }
-    rec(shapes, None, id, 0)
 }
 
 /// Background of a slide, layout or master.
@@ -879,7 +445,7 @@ impl Master {
     pub fn layout(&self, id: LayoutId) -> Option<&Layout> {
         self.layouts.iter().find(|l| l.id == id)
     }
-    /// Resolve `bg1`/`tx1`/`bg2`/`tx2` through the colour map.
+    /// Resolve a document color role to its theme swatch.
     pub fn map_slot(&self, slot: SchemeSlot) -> SchemeSlot {
         map_slot(&self.color_map, slot)
     }
@@ -890,42 +456,13 @@ impl Master {
     /// The theme's colour scheme with `map` (a layout's or slide's override, or the master's own)
     /// applied.
     pub fn scheme_with(&self, map: &[(String, String)]) -> ColorScheme {
-        let mut s = self.theme.colors.clone();
-        if map.is_empty() {
-            return s;
-        }
-        let base = self.theme.colors.clone();
-        for (alias, slot) in [
-            (SchemeSlot::Bg1, SchemeSlot::Lt1),
-            (SchemeSlot::Tx1, SchemeSlot::Dk1),
-            (SchemeSlot::Bg2, SchemeSlot::Lt2),
-            (SchemeSlot::Tx2, SchemeSlot::Dk2),
-        ] {
-            s.set(slot, base.get(map_slot(map, alias)));
-        }
-        s
+        joydeck_color::ColorMapping::from_entries(map).project(&self.theme.colors)
     }
 }
 
-/// Resolve `bg1`/`tx1`/`bg2`/`tx2` through the colour map `map` (the default mapping when it has
-/// no entry).
+/// Find the theme swatch for a document color role.
 pub fn map_slot(map: &[(String, String)], slot: SchemeSlot) -> SchemeSlot {
-    let key = match slot {
-        SchemeSlot::Bg1 => "bg1",
-        SchemeSlot::Tx1 => "tx1",
-        SchemeSlot::Bg2 => "bg2",
-        SchemeSlot::Tx2 => "tx2",
-        other => return other,
-    };
-    map.iter()
-        .find(|(k, _)| k == key)
-        .and_then(|(_, v)| SchemeSlot::from_xml(v))
-        .unwrap_or(match slot {
-            SchemeSlot::Bg1 => SchemeSlot::Lt1,
-            SchemeSlot::Tx1 => SchemeSlot::Dk1,
-            SchemeSlot::Bg2 => SchemeSlot::Lt2,
-            _ => SchemeSlot::Dk2,
-        })
+    joydeck_color::ColorMapping::from_entries(map).slot(slot)
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]

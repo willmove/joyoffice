@@ -58,6 +58,17 @@ pub struct FormatScheme {
     pub bg_fills: Vec<Fill>,
 }
 
+impl FormatScheme {
+    /// Style references address one-based shape and background fill lists.
+    pub(crate) fn fill(&self, idx: u32) -> Option<&Fill> {
+        if idx >= 1001 {
+            self.bg_fills.get((idx - 1001) as usize)
+        } else {
+            self.fills.get(idx.checked_sub(1)? as usize)
+        }
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(default, rename_all = "camelCase")]
 pub struct Theme {

@@ -52,12 +52,20 @@ impl ColorRef {
     }
     /// Resolve against a colour scheme; `ph` substitutes `phClr` (style matrix colour).
     pub fn resolve(&self, scheme: &ColorScheme, ph: Option<Rgba>) -> Rgba {
+        self.resolve_with(|slot| scheme.get(slot), ph)
+    }
+
+    pub(crate) fn resolve_with(
+        &self,
+        lookup: impl Fn(SchemeSlot) -> Rgba,
+        ph: Option<Rgba>,
+    ) -> Rgba {
         let base = match &self.base {
             ColorBase::Rgb { rgb } => *rgb,
             ColorBase::Scheme {
                 slot: SchemeSlot::PhClr,
-            } => ph.unwrap_or_else(|| scheme.get(SchemeSlot::Accent1)),
-            ColorBase::Scheme { slot } => scheme.get(*slot),
+            } => ph.unwrap_or_else(|| lookup(SchemeSlot::Accent1)),
+            ColorBase::Scheme { slot } => lookup(*slot),
             ColorBase::Preset { name } => joydeck_color::preset(name).unwrap_or(Rgba::BLACK),
             ColorBase::System { last, .. } => *last,
         };

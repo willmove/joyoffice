@@ -31,64 +31,53 @@ pub struct Ctx<'a> {
 impl<'a> Ctx<'a> {
     pub fn for_slide(pres: &'a Presentation, slide: &Slide) -> Option<Ctx<'a>> {
         let (master, layout) = pres.master_for(slide)?;
-        let map = slide
-            .color_map
-            .as_ref()
-            .or(layout.and_then(|l| l.color_map.as_ref()))
-            .unwrap_or(&master.color_map)
-            .clone();
-        Some(Ctx {
+        Some(Self::new(
             pres,
             master,
             layout,
-            owner: Owner::Slide,
-            scheme: master.scheme_with(&map),
-            color_map: map,
-        })
+            Owner::Slide,
+            slide.color_map.as_deref(),
+        ))
     }
     pub fn for_layout(pres: &'a Presentation, master: &'a Master, layout: &'a Layout) -> Ctx<'a> {
-        let map = layout
-            .color_map
-            .as_ref()
-            .unwrap_or(&master.color_map)
-            .clone();
-        Ctx {
-            pres,
-            master,
-            layout: Some(layout),
-            owner: Owner::Layout,
-            scheme: master.scheme_with(&map),
-            color_map: map,
-        }
+        Self::new(pres, master, Some(layout), Owner::Layout, None)
     }
     pub fn for_master(pres: &'a Presentation, master: &'a Master) -> Ctx<'a> {
-        Ctx {
+        Self::new(pres, master, None, Owner::Master, None)
+    }
+
+    fn new(
+        pres: &'a Presentation,
+        master: &'a Master,
+        layout: Option<&'a Layout>,
+        owner: Owner,
+        slide_map: Option<&[(String, String)]>,
+    ) -> Self {
+        let entries = slide_map
+            .or_else(|| layout.and_then(|layout| layout.color_map.as_deref()))
+            .unwrap_or(&master.color_map);
+        Self {
             pres,
             master,
-            layout: None,
-            owner: Owner::Master,
-            scheme: master.scheme(),
-            color_map: master.color_map.clone(),
+            layout,
+            owner,
+            scheme: master.scheme_with(entries),
+            color_map: entries.to_vec(),
         }
     }
-    pub fn color(&self, c: &ColorRef, ph: Option<Rgba>) -> Rgba {
-        let c = match &c.base {
-            crate::ColorBase::Scheme { slot }
-                if matches!(
-                    slot,
-                    SchemeSlot::Bg1 | SchemeSlot::Tx1 | SchemeSlot::Bg2 | SchemeSlot::Tx2
-                ) =>
-            {
-                ColorRef {
-                    base: crate::ColorBase::Scheme {
-                        slot: crate::map_slot(&self.color_map, *slot),
-                    },
-                    mods: c.mods.clone(),
-                }
+
+    pub fn theme_color(&self, slot: SchemeSlot) -> Rgba {
+        let palette = match slot {
+            SchemeSlot::Dk1 | SchemeSlot::Lt1 | SchemeSlot::Dk2 | SchemeSlot::Lt2 => {
+                &self.master.theme.colors
             }
-            _ => c.clone(),
+            _ => &self.scheme,
         };
-        c.resolve(&self.master.theme.colors, ph)
+        palette.get(slot)
+    }
+
+    pub fn color(&self, color: &ColorRef, ph: Option<Rgba>) -> Rgba {
+        color.resolve_with(|slot| self.theme_color(slot), ph)
     }
 }
 
@@ -103,36 +92,25 @@ fn compatible(slide: PhType, other: PhType) -> bool {
     }
 }
 
-fn find_ph<'s>(shapes: &'s [Shape], shape: &Shape, by_idx: bool) -> Option<&'s Shape> {
-    let ph = shape.ph.as_ref()?;
-    if by_idx
-        && ph.idx != 0
-        && let Some(s) = shapes.iter().find(|s| {
-            s.ph.as_ref()
-                .is_some_and(|p| p.idx == ph.idx && compatible(ph.kind, p.kind))
-        })
-    {
-        return Some(s);
-    }
-    // Same type first, then a compatible one.
+fn layout_ph<'s>(shapes: &'s [Shape], ph: &crate::Placeholder) -> Option<&'s Shape> {
     shapes
         .iter()
-        .find(|s| {
-            s.ph.as_ref().is_some_and(|p| {
-                p.kind == ph.kind
-                    && (!by_idx || ph.idx == 0 || p.idx == ph.idx || ph.kind.is_title())
-            })
+        .filter_map(|shape| {
+            let candidate = shape.ph.as_ref()?;
+            let matches_kind = compatible(ph.kind, candidate.kind);
+            let rank = if ph.idx != 0 && ph.idx == candidate.idx && matches_kind {
+                0
+            } else if ph.kind == candidate.kind {
+                1
+            } else if matches_kind {
+                2
+            } else {
+                return None;
+            };
+            Some((rank, shape))
         })
-        .or_else(|| {
-            shapes
-                .iter()
-                .find(|s| s.ph.as_ref().is_some_and(|p| p.kind == ph.kind))
-        })
-        .or_else(|| {
-            shapes
-                .iter()
-                .find(|s| s.ph.as_ref().is_some_and(|p| compatible(ph.kind, p.kind)))
-        })
+        .min_by_key(|(rank, _)| *rank)
+        .map(|(_, shape)| shape)
 }
 
 fn master_ph(master: &Master, kind: PhType) -> Option<&Shape> {
@@ -151,13 +129,18 @@ pub fn parents<'a>(ctx: &Ctx<'a>, shape: &Shape) -> (Option<&'a Shape>, Option<&
     };
     match ctx.owner {
         Owner::Slide => {
-            let lp = ctx.layout.and_then(|l| find_ph(&l.shapes, shape, true));
+            let lp = ctx.layout.and_then(|layout| layout_ph(&layout.shapes, ph));
             let kind = lp.and_then(Shape::ph_type).unwrap_or(ph.kind);
             (lp, master_ph(ctx.master, kind))
         }
         Owner::Layout => (None, master_ph(ctx.master, ph.kind)),
         Owner::Master => (None, None),
     }
+}
+
+fn shape_layers<'a>(ctx: &Ctx<'a>, shape: &'a Shape) -> impl Iterator<Item = &'a Shape> {
+    let (layout, master) = parents(ctx, shape);
+    [Some(shape), layout, master].into_iter().flatten()
 }
 
 /// The text style group (title / body / other) a shape draws from. Text in a table takes the
@@ -207,92 +190,69 @@ pub fn xfrm(ctx: &Ctx, shape: &Shape) -> Xfrm {
 
 /// Effective fill and the style colour (`phClr`) to resolve it with.
 pub fn fill(ctx: &Ctx, shape: &Shape) -> (Option<Fill>, Option<Rgba>) {
-    let (lp, mp) = parents(ctx, shape);
-    let style_fill = |s: &Shape| {
-        s.style.as_ref().map(|st| {
-            let (idx, col) = &st.fill_ref;
-            let ph = ctx.color(col, None);
-            let f = match *idx {
-                0 => Some(Fill::None),
-                i if i >= 1001 => ctx
-                    .master
-                    .theme
-                    .format
-                    .bg_fills
-                    .get((i - 1001) as usize)
-                    .cloned(),
-                i => ctx.master.theme.format.fills.get((i - 1) as usize).cloned(),
-            };
-            (f, Some(ph))
-        })
-    };
-    for s in [Some(shape), lp, mp].into_iter().flatten() {
-        if let Some(f) = &s.fill {
-            // A gradient without stops (`a:gradFill` with no `a:gsLst`) takes them from the
-            // gradient its style refers to, keeping its own direction, as PowerPoint draws it.
-            if let Fill::Gradient(g) = f
-                && g.stops.is_empty()
-                && let Some((Some(Fill::Gradient(sg)), ph)) = style_fill(s)
+    let format = &ctx.master.theme.format;
+    for layer in shape_layers(ctx, shape) {
+        let style = layer.style.as_ref().map(|style| &style.fill_ref);
+        if let Some(direct) = &layer.fill {
+            // A local gradient may supply positioning and take its stops from the theme.
+            if let Fill::Gradient(gradient) = direct
+                && gradient.stops.is_empty()
+                && let Some((idx, color)) = style
+                && let Some(Fill::Gradient(reference)) = format.fill(*idx)
             {
-                let mut g = g.clone();
-                g.stops = sg.stops;
-                return (Some(Fill::Gradient(g)), ph);
+                let mut gradient = gradient.clone();
+                gradient.stops.clone_from(&reference.stops);
+                return (Some(Fill::Gradient(gradient)), Some(ctx.color(color, None)));
             }
-            return (Some(f.clone()), None);
+            return (Some(direct.clone()), None);
         }
-        if let Some(r) = style_fill(s) {
-            return r;
+        if let Some((idx, color)) = style {
+            let fill = if *idx == 0 {
+                Some(Fill::None)
+            } else {
+                format.fill(*idx).cloned()
+            };
+            return (fill, Some(ctx.color(color, None)));
         }
     }
-    if shape.text_box {
-        return (Some(Fill::None), None);
-    }
-    (None, None)
+    (shape.text_box.then_some(Fill::None), None)
 }
 
 pub fn line(ctx: &Ctx, shape: &Shape) -> (Line, Option<Rgba>) {
-    let (lp, mp) = parents(ctx, shape);
-    let mut out = Line::default();
-    let mut ph = None;
-    for s in [Some(shape), lp, mp].into_iter().flatten() {
-        if let Some(l) = &s.line {
-            out.inherit(l);
+    let mut line = Line::default();
+    for layer in shape_layers(ctx, shape) {
+        if let Some(direct) = &layer.line {
+            line.inherit(direct);
         }
-        if let Some(st) = &s.style {
-            let (idx, col) = &st.line_ref;
-            if ph.is_none() {
-                ph = Some(ctx.color(col, None));
+        if let Some(style) = &layer.style {
+            let (idx, color) = &style.line_ref;
+            match idx.checked_sub(1) {
+                None => line.inherit(&Line::none()),
+                Some(i) => {
+                    if let Some(reference) = ctx.master.theme.format.lines.get(i as usize) {
+                        line.inherit(reference);
+                    }
+                }
             }
-            if *idx == 0 {
-                out.inherit(&Line::none());
-            } else if let Some(l) = ctx.master.theme.format.lines.get((*idx - 1) as usize) {
-                out.inherit(l);
-            }
-            break;
+            return (line, Some(ctx.color(color, None)));
         }
     }
-    (out, ph)
+    (line, None)
 }
 
 pub fn effects(ctx: &Ctx, shape: &Shape) -> (Option<Effects>, Option<Rgba>) {
-    let (lp, mp) = parents(ctx, shape);
-    for s in [Some(shape), lp, mp].into_iter().flatten() {
-        if let Some(e) = &s.effects {
-            return (Some(e.clone()), None);
+    for layer in shape_layers(ctx, shape) {
+        if let Some(direct) = &layer.effects {
+            return (Some(direct.clone()), None);
         }
-        if let Some(st) = &s.style {
-            let (idx, col) = &st.effect_ref;
-            if *idx == 0 {
+        if let Some(style) = &layer.style {
+            let (idx, color) = &style.effect_ref;
+            let Some(i) = idx.checked_sub(1) else {
                 return (None, None);
-            }
+            };
             return (
-                ctx.master
-                    .theme
-                    .format
-                    .effects
-                    .get((*idx - 1) as usize)
-                    .cloned(),
-                Some(ctx.color(col, None)),
+                ctx.master.theme.format.effects.get(i as usize).cloned(),
+                Some(ctx.color(color, None)),
             );
         }
     }
@@ -376,28 +336,17 @@ pub fn text_color(ctx: &Ctx, r: &RunProps) -> Rgba {
 pub fn background(ctx: &Ctx, slide: Option<&Slide>) -> (Fill, Option<Rgba>) {
     let bg = slide
         .and_then(|s| s.background.as_ref())
-        .or(ctx.layout.and_then(|l| l.background.as_ref()))
+        .or_else(|| ctx.layout.and_then(|l| l.background.as_ref()))
         .or(ctx.master.background.as_ref());
     match bg {
         Some(Background::Fill { fill }) => (fill.clone(), None),
         Some(Background::Ref { idx, color }) => {
             let ph = ctx.color(color, None);
-            let f = if *idx >= 1001 {
-                ctx.master
-                    .theme
-                    .format
-                    .bg_fills
-                    .get((*idx - 1001) as usize)
-                    .cloned()
-            } else {
-                ctx.master
-                    .theme
-                    .format
-                    .fills
-                    .get(idx.saturating_sub(1) as usize)
-                    .cloned()
-            };
-            (f.unwrap_or(Fill::solid(ColorRef::rgb(ph))), Some(ph))
+            let fill = ctx.master.theme.format.fill((*idx).max(1)).cloned();
+            (
+                fill.unwrap_or_else(|| Fill::solid(ColorRef::rgb(ph))),
+                Some(ph),
+            )
         }
         None => (Fill::solid(ColorRef::scheme(SchemeSlot::Bg1)), None),
     }

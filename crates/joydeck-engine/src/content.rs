@@ -68,15 +68,18 @@ pub enum ContentAction {
         author: String,
     },
 }
-fn color(rgb: u32) -> Result<style::ColorRef, String> {
+fn rgb24(rgb: u32) -> Result<joydeck_model::Rgba, String> {
     if rgb > 0xffffff {
         return Err("color must be RGB24".into());
     }
-    Ok(style::ColorRef::rgb(joydeck_model::Rgba::rgb(
+    Ok(joydeck_model::Rgba::rgb(
         (rgb >> 16) as u8,
         (rgb >> 8) as u8,
         rgb as u8,
-    )))
+    ))
+}
+fn color(rgb: u32) -> Result<style::ColorRef, String> {
+    rgb24(rgb).map(style::ColorRef::rgb)
 }
 fn short(text: &str) -> Result<(), String> {
     if text.len() > 4096 {
@@ -179,7 +182,7 @@ fn edit(st: &mut EditorSnapshot, action: &ContentAction) -> Result<(), String> {
                 6 => joydeck_model::SchemeSlot::Accent6,
                 _ => return Err("accent slot must be 1..6".into()),
             };
-            let c = color(*rgb)?.resolve(&p.masters[0].theme.colors, None);
+            let c = rgb24(*rgb)?;
             let m = p
                 .masters
                 .iter_mut()
@@ -270,30 +273,12 @@ fn edit(st: &mut EditorSnapshot, action: &ContentAction) -> Result<(), String> {
                     }));
                 }
                 ContentAction::ShapePreset { name } => {
-                    if !matches!(s.kind, ShapeKind::Shape)
-                        || ![
-                            "rect",
-                            "roundRect",
-                            "ellipse",
-                            "triangle",
-                            "chevron",
-                            "hexagon",
-                            "star5",
-                            "rightArrow",
-                        ]
-                        .contains(&name.as_str())
-                    {
+                    if !s.set_basic_preset(name) {
                         return Err("choose a supported basic shape".into());
                     }
-                    s.geom = Geom::Preset {
-                        name: name.clone(),
-                        adj: vec![],
-                    };
                 }
                 ContentAction::CalloutPoint { vertex, x, y } => {
-                    if !matches!(s.kind, ShapeKind::Shape)
-                        || !s.geom.set_callout_vertex(*vertex, *x, *y)
-                    {
+                    if !s.set_callout_vertex(*vertex, *x, *y) {
                         return Err("invalid callout vertex or coordinates".into());
                     }
                 }

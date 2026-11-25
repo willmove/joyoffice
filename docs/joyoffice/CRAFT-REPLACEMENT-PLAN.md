@@ -2,7 +2,7 @@
 
 基线为 2026-11-24 的 JoyOffice 0.2.0，提交 `14cbb296`。目标是让三个产品当前支持的行为逐项切换到可追溯的独立实现。优先从 Word 校对、Deck 旧文件兼容和 Sheet 公式长尾开工，这三处可以通过现有产品入口比较替换前后的结果。启动估算 **268–450 人周**，其中第一阶段三个产品与共享读取器合计 **38–62 人周**，另有前置基线工作 **4–7 人周**。[既有重构路线](REFACTOR-ROADMAP.md) · [最近一次三产品原生回归](validation/20261123-uos-refactor/README.md)
 
-## 2026-11-25 阶段 1 进展与剩余估算
+## 2026-11-25 替换进展与剩余估算
 
 已冻结 `14cbb296` 的六个 Windows 桌面及 CLI 二进制、锁文件、验证字体标识与首批 27 份输入。英美拼写变体、加密 PPTX 识别以及 `CONVERT` 已切换到新实现。命令行差分覆盖 2,324 个拼写探针、9 个演示文件、428 条公式和 4 种双版本工作簿读写组合。[首批验收](validation/20261124-craft-pilots/README.md)
 
@@ -24,15 +24,17 @@ JoyDeck 阶段 2 已切换形状坐标、嵌套组变换和编辑时的预设连
 
 JoyDeck 阶段 2 已切换富文本的片段编辑、字符和段落样式继承及列表编号状态。含超链接的文字可和段落、列表格式一起在 PPTX 中保存，输出的网页和页内链接均使用 OPC 关系命名空间。[富文本验收](validation/20261125-craft-stage2-deck-rich-text/README.md)
 
+JoyDeck 阶段 2 已切换形状树查找、预设编辑、占位符外观继承和主题色解析。强调色与链接色随页面映射解析，反相、灰度和 RGB 调制对照 PowerPoint 16 修正。冻结版互读覆盖页序、嵌套组、自定义形状、主题与版式，以及双窗口共用的撤销重做。[形状与主题色验收](validation/20261125-craft-stage2-deck-shapes-theme/README.md)
+
 | 剩余范围 | 人周 | 估算依据 |
 | --- | ---: | --- |
 | 阶段 0 其余路径的调用登记与专项基线 | 2–4 | 六个二进制及首批语料已集中冻结。复杂分页、放映与长尾文件需各补调用点、固定输入及预期结果。 |
 | 阶段 1 · JoyWord | 5–9 | 剩余候选生成和校对入口替换及验证 4–6 人周。另有 13 个包的源材料、许可、托管及回退 1–3 人周，外部材料等待时间单计。 |
-| 阶段 1 · JoyDeck | 0 | 加密包、v1 预设迁移和最近文档路径已完成。后续文件对象兼容、动画和渲染继续按阶段 2–4 执行。 |
+| 阶段 1 · JoyDeck | 0 | 加密包、v1 预设迁移和最近文档路径已完成。 |
 | 阶段 1 · JoySheet | 4–7 | 扩展 ETS 参数与季节识别差异复核 1–2 人周，月底日历及金融计日 1–2 人周，按注册表收口剩余数学和查找分支 2–3 人周。 |
 | 阶段 1 · 公共图元读取 | 0 | 有界读取器已切换。两产品的 WMF／EMF 解释与绘制仍计入阶段 4。 |
-| 阶段 2–5 | 226–381 | 沿用下表各阶段的区间。三个试点的样本规模和复杂度尚不足以调整核心模型、格式和排版估算。 |
-| **合计** | **237–401** | 阶段 1 待办由 11–20 降至 9–16 人周。 |
+| 阶段 2–5 | 210–353 | 扣除 JoyDeck 阶段 2 的原估 16–28 人周。其余格式、排版和跨产品工作沿用下表估算。 |
+| **合计** | **221–373** | 阶段 1 待办共 9–16 人周，阶段 0 其余工作共 2–4 人周。 |
 
 第三批按完成范围从前次估算中扣减 6–11 人周。JoyWord 发布索引和资源清单扣减 1–2 人周，JoySheet 数值内核和边界复核扣减 3–5 人周，公共图元读取扣减 2–4 人周。
 
@@ -85,14 +87,14 @@ WordCraft 0.15.0 的文档模型、编辑会话和完整分页仍在桌面与 CL
 
 校对先运行建议顺序与语言包安装对照，分页则从桌面、PDF 和打印入口取证。Word 的 R8 交接列出了既有 CLI、恢复和另存契约。[拼写顺序脚本](../../scripts/joyword/check-spelling-order.py) · [语言包索引](../../crates/joyword-engine/src/packs/store.rs) · [分节重排脚本](../../scripts/joyword/check-section-splice.py) · [PDF 适配来源](../../crates/joyword-pdf/src/backend.rs) · [R8 兼容表](JOYWORD-R8-HANDOFF.md)
 
-## JoyDeck · 62–106 人周
+## JoyDeck · 剩余 40–68 人周
 
-DeckCraft 0.14.1 的演示模型、文本、动画、格式和渲染实现仍参与构建。现行编辑路径的 183 项预设形状、5 种文件连接线及 49 类 PresentationML 转场生成器已独立实现，继续参加回归。静态形状和嵌套组变换已切换，动画时间线、对象效果及旧文件转换按各自路径推进。[逐文件来源](../../licenses/deckcraft/file-map.json) · [产品移植说明](../../THIRD_PARTY-JOYDECK.md) · [已替换的生成器](validation/20261123-uos-refactor/README.md)
+DeckCraft 0.14.1 的兼容数据结构、文本布局、动画、格式和渲染实现仍参与构建。现行编辑路径的 183 项预设形状、5 种文件连接线及 49 类 PresentationML 转场生成器已独立实现，继续参加回归。剩余工作按原生与 PPTX 格式、文本与渲染、功能区呈现分别推进。[逐文件来源](../../licenses/deckcraft/file-map.json) · [产品移植说明](../../THIRD_PARTY-JOYDECK.md) · [已替换的生成器](validation/20261123-uos-refactor/README.md)
 
 | 阶段与优先级 | 仍在用的派生代码及替换内容 | 人周 | 兼容性验收标准 |
 | --- | --- | ---: | --- |
-| 1 · 高，旧文件兼容 · 已验收 | `joydeck-pptx/src/cfb.rs` 已接入宿主 CFB 读取器。v1 迁移桥用旧格式的名称及调整元数据发出 DrawingML，由现行几何路径生成形状。原 `preset/vendor/` 的 6 个文件已退出构建。 | 6–10 | 正常 PPTX、已知加密容器及损坏输入的分类、提示和预算均有对照。旧 v1 样本经只读桥转入 v2，形状轮廓、调整值、连接点及对象 ID 可核对。迁移报告齐备，v2 附件中的旧原件逐字节匹配，重开后可编辑、撤销。 |
-| 2 · 高，演示模型与编辑 | 撤销历史、媒体引用、跨文稿资源映射、静态形状与组变换、富文本模型编辑和样式继承已切换，`history_cost.rs`、`media_refs.rs` 和 `transfer.rs` 已退役。继续推进 `joydeck-model` 和 `joydeck-color` 的其余形状数据与主题色路径。[历史验收](validation/20261125-craft-stage2-deck-history/README.md) · [跨文稿验收](validation/20261125-craft-stage2-deck-transfer/README.md) · [形状坐标验收](validation/20261125-craft-stage2-deck-coordinates/README.md) · [富文本验收](validation/20261125-craft-stage2-deck-rich-text/README.md) | 16–28 | 固定命令序列逐步比对页序、对象 ID、层级、主题绑定及撤销／重做。跨文稿粘贴含图片、母版、链接的对象，验证 ID 冲突、同一资源复用和清空历史后的媒体引用。嵌套组的变换与连接端点，以及富文本格式、列表、链接与样式继承，须通过渲染对照及双格式读回。多窗口编辑共用一个模型，过时修订按基线处理。 |
+| 1 · 高，旧文件兼容 · 已验收 | `joydeck-pptx/src/cfb.rs` 已接入宿主 CFB 读取器。v1 迁移桥用旧格式的名称及调整元数据发出 DrawingML，由现行几何路径生成形状。原 `preset/vendor/` 的 6 个文件已退出构建。 | 0（原估 6–10） | 正常 PPTX、已知加密容器及损坏输入的分类、提示和预算均有对照。旧 v1 样本经只读桥转入 v2，形状轮廓、调整值、连接点及对象 ID 可核对。迁移报告齐备，v2 附件中的旧原件逐字节匹配，重开后可编辑、撤销。 |
+| 2 · 高，演示模型与编辑 · 已验收 | 已切换撤销历史、媒体引用、跨文稿资源映射、静态形状与组变换、富文本编辑与继承、形状树和预设编辑、主题色与占位符外观解析。[历史](validation/20261125-craft-stage2-deck-history/README.md) · [跨文稿](validation/20261125-craft-stage2-deck-transfer/README.md) · [形状坐标](validation/20261125-craft-stage2-deck-coordinates/README.md) · [富文本](validation/20261125-craft-stage2-deck-rich-text/README.md) · [形状与主题色](validation/20261125-craft-stage2-deck-shapes-theme/README.md) | 0（原估 16–28） | 固定命令序列逐步比对页序、对象 ID、层级、主题绑定及撤销／重做。跨文稿粘贴验证 ID 冲突、图片复用、母版与版式、链接和清空历史后的资源引用。嵌套组、连接线端点、富文本及主题色通过渲染对照和双格式读回。双窗口共享模型及撤销重做，控制命令拒绝过时修订。 |
 | 3 · 高，原生格式与 PPTX | 替换 `joydeck-format` 和 `joydeck-pptx` 的剩余读写。以母版、主题、表格、图表、媒体、备注、审阅、动画分别交付，覆盖 `.joydeck` v2、`.deckcraft` v1 导入与 PPTX。 | 18–30 | 在各自支持的读写方向上，两代 CLI 交叉读回，并用独立 XML 核对关系、ID、媒体散列、时间信息与保留部件。PowerPoint 打开代表样本、另存后由 JoyDeck 重开。超过能力的样本维持登记的保留、只读或拒绝行为。 |
 | 4 · 中，文本、放映与 PDF | `joydeck-fonts`、`joydeck-text`、`joydeck-metafile`、`joydeck-render`、`joydeck-anim`、`joydeck-pdf` 中的派生路径，包括文本适配、CPU 合成、缓动、对象动画、Morph、放映时间线及定位字形导出。 | 20–34 | 核对换行、字形命中、动画触发顺序、实际放映终态及 PDF 页、文字、链接和书签。复跑既有 1,850 帧 GPU／CPU 对照和 192 组文件互读。固定样本的首尾帧一致，中间帧每通道最大差沿用同配置 Metal ≤1、UOS Vulkan ≤2 的基线。 |
 | 4 · 低，功能区呈现 | 用宿主 GPUI 组件替换 `joydeck-ui-gpui/src/chrome.rs` 中来自上游 Ribbon、控件与主题的布局逻辑。 | 2–4 | 在原生宽窗、窄窗和深浅主题下核对可见命令、折叠、禁用状态、键盘焦点与动作结果。 |

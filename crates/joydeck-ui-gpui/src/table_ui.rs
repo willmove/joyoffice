@@ -226,11 +226,9 @@ impl Viewer {
         let style = table.map_or("", |table| table.style.as_str());
         let first_row = table.is_none_or(|table| table.first_row);
         let band_row = table.is_none_or(|table| table.band_row);
-        let master = self.editor.as_ref().and_then(|editor| {
+        let theme = self.editor.as_ref().and_then(|editor| {
             let model = editor.session.model();
-            model
-                .master_for(model.slides.get(self.page)?)
-                .map(|(master, _)| master)
+            joydeck_model::resolve::Ctx::for_slide(model, model.slide_at(self.page)?)
         });
         let mut tiles = gallery(self.palette());
         for (i, slot) in [
@@ -255,8 +253,8 @@ impl Viewer {
             } else {
                 format!("medium2-accent{i}")
             };
-            let c = master.map_or(0x326797, |master| {
-                let c = master.theme.colors.get(slot);
+            let c = theme.as_ref().map_or(0x326797, |ctx| {
+                let c = ctx.theme_color(slot);
                 u32::from_be_bytes([0, c.r, c.g, c.b])
             });
             tiles = tiles.child(

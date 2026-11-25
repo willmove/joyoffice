@@ -333,21 +333,22 @@ impl Viewer {
         cx: &mut Context<Self>,
     ) -> impl IntoElement {
         let view = cx.entity().downgrade();
-        let theme = self
-            .editor
+        let context = self.editor.as_ref().and_then(|e| {
+            let model = e.session.model();
+            joydeck_model::resolve::Ctx::for_slide(model, model.slide_at(self.page)?)
+        });
+        let theme = context
             .as_ref()
-            .and_then(|e| {
-                e.session
-                    .model()
-                    .master_for(&e.session.model().slides[self.page])
-            })
-            .map(|(m, _)| m.theme.colors.clone())
+            .map(|ctx| ctx.scheme.clone())
             .unwrap_or_else(|| joydeck_model::theme::Theme::default().colors);
         let state = self.formatting();
         let mixed = state.mixed.contains("fill");
         let selected = state.run.fill;
         let indicator = match selected {
-            Some(Fill::Solid { color }) => color.resolve(&theme, None),
+            Some(Fill::Solid { color }) => context.as_ref().map_or_else(
+                || color.resolve(&theme, None),
+                |ctx| ctx.color(&color, None),
+            ),
             _ => Rgba::BLACK,
         };
         let rgb_value = |c: Rgba| (c.r as u32) << 16 | (c.g as u32) << 8 | c.b as u32;
@@ -376,10 +377,10 @@ impl Viewer {
                 let mut panel = div().flex().flex_col().w(px(244.)).gap_2().text_sm();
                 panel = panel.child("主题颜色");
                 let slots = [
-                    SchemeSlot::Lt1,
-                    SchemeSlot::Dk1,
-                    SchemeSlot::Lt2,
-                    SchemeSlot::Dk2,
+                    SchemeSlot::Bg1,
+                    SchemeSlot::Tx1,
+                    SchemeSlot::Bg2,
+                    SchemeSlot::Tx2,
                     SchemeSlot::Accent1,
                     SchemeSlot::Accent2,
                     SchemeSlot::Accent3,

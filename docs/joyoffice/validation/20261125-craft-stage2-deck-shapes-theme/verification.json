@@ -1,0 +1,369 @@
+{
+  "fixtureSha256": "b2db6b96f9ee30012dc6aa8be604ebd68e0a28f274c8a9cbaf0a4cbd848a0e82",
+  "binaries": {
+    "frozen": "f8fd32a31570e241f17ced00dbce66f7e2ae53739b18e3c70bea03c2e78794f7",
+    "candidate": "606df3650f84b93456f1f59cbc7f3aa19d0d9609af3f90bd558faa984dc6ecc7",
+    "frozenCommit": "14cbb29616d7c0ababbf40a8f6c0218b996e7ae8",
+    "frozenDesktop": "58ca28ebada8d5e737ad788c78f74e402771379a2fb4c5cb19fbd98125033e93",
+    "desktopThemeAndHistory": "f7fa391a4503666ab9c749613b4462d74299879b7c8a0305010ad579de866763",
+    "candidateDesktop": "c6577424124903637d778d9d0d84f5e2b909b3c490a6321f68a3315ccb152335"
+  },
+  "neutralRasters": 2,
+  "pixelProbes": 83,
+  "changedMappingProbes": [
+    "Accent",
+    "Followed link",
+    "Hyperlink",
+    "Inherited fill",
+    "Inherited outline",
+    "Other accent"
+  ],
+  "changedTransformProbes": [
+    "Inverse and gray",
+    "RGB modulation"
+  ],
+  "readbacks": 56,
+  "historyReadbacks": 24,
+  "packageChecks": 8,
+  "rejections": 4,
+  "powerPoint16": {
+    "version": "16.0.20625.20108",
+    "slidePixels": 40,
+    "exactSlidePixels": 34,
+    "roundingDifferences": [
+      {
+        "page": 1,
+        "probe": "Tint then shade",
+        "expected": [
+          179,
+          183,
+          193
+        ],
+        "candidate": [
+          179,
+          182,
+          193
+        ]
+      },
+      {
+        "page": 1,
+        "probe": "Luminance",
+        "expected": [
+          41,
+          119,
+          197
+        ],
+        "candidate": [
+          41,
+          118,
+          197
+        ]
+      },
+      {
+        "page": 1,
+        "probe": "Saturation",
+        "expected": [
+          46,
+          104,
+          162
+        ],
+        "candidate": [
+          47,
+          104,
+          161
+        ]
+      },
+      {
+        "page": 2,
+        "probe": "Tint then shade",
+        "expected": [
+          179,
+          183,
+          193
+        ],
+        "candidate": [
+          179,
+          182,
+          193
+        ]
+      },
+      {
+        "page": 2,
+        "probe": "Luminance",
+        "expected": [
+          41,
+          119,
+          197
+        ],
+        "candidate": [
+          41,
+          118,
+          197
+        ]
+      },
+      {
+        "page": 2,
+        "probe": "Saturation",
+        "expected": [
+          46,
+          104,
+          162
+        ],
+        "candidate": [
+          47,
+          104,
+          161
+        ]
+      }
+    ],
+    "channelFixtureSha256": "ccdf8566bbe04090ae29eb49ebe857771c698e38a0ba10fbc756bcc12d1a6b1d",
+    "channelPixels": {
+      "Gray red": {
+        "powerpoint": [
+          54,
+          54,
+          54
+        ],
+        "candidate": [
+          54,
+          54,
+          54
+        ]
+      },
+      "Gray green": {
+        "powerpoint": [
+          182,
+          182,
+          182
+        ],
+        "candidate": [
+          182,
+          182,
+          182
+        ]
+      },
+      "Gray blue": {
+        "powerpoint": [
+          18,
+          18,
+          18
+        ],
+        "candidate": [
+          18,
+          18,
+          18
+        ]
+      },
+      "Gray varied": {
+        "powerpoint": [
+          94,
+          94,
+          94
+        ],
+        "candidate": [
+          94,
+          94,
+          94
+        ]
+      },
+      "Inverse varied": {
+        "powerpoint": [
+          253,
+          239,
+          202
+        ],
+        "candidate": [
+          253,
+          239,
+          202
+        ]
+      },
+      "Inverse darker": {
+        "powerpoint": [
+          254,
+          251,
+          252
+        ],
+        "candidate": [
+          254,
+          251,
+          252
+        ]
+      },
+      "Inverse saturated": {
+        "powerpoint": [
+          255,
+          0,
+          0
+        ],
+        "candidate": [
+          255,
+          0,
+          0
+        ]
+      },
+      "Red mod half": {
+        "powerpoint": [
+          92,
+          128,
+          128
+        ],
+        "candidate": [
+          92,
+          128,
+          128
+        ]
+      },
+      "Green x2": {
+        "powerpoint": [
+          208,
+          144,
+          238
+        ],
+        "candidate": [
+          208,
+          144,
+          238
+        ]
+      },
+      "Blue mod half": {
+        "powerpoint": [
+          16,
+          32,
+          176
+        ],
+        "candidate": [
+          16,
+          32,
+          176
+        ]
+      },
+      "Mod and invert": {
+        "powerpoint": [
+          239,
+          229,
+          249
+        ],
+        "candidate": [
+          239,
+          229,
+          249
+        ]
+      },
+      "Invert and mod": {
+        "powerpoint": [
+          162,
+          229,
+          249
+        ],
+        "candidate": [
+          162,
+          229,
+          249
+        ]
+      },
+      "Inverse and Gray": {
+        "powerpoint": [
+          239,
+          239,
+          239
+        ],
+        "candidate": [
+          239,
+          239,
+          239
+        ]
+      },
+      "Gray and Inverse": {
+        "powerpoint": [
+          242,
+          242,
+          242
+        ],
+        "candidate": [
+          242,
+          242,
+          242
+        ]
+      },
+      "Gray dark G": {
+        "powerpoint": [
+          92,
+          92,
+          92
+        ],
+        "candidate": [
+          92,
+          92,
+          92
+        ]
+      },
+      "Gray dark R": {
+        "powerpoint": [
+          27,
+          27,
+          27
+        ],
+        "candidate": [
+          27,
+          27,
+          27
+        ]
+      },
+      "Gray dark B": {
+        "powerpoint": [
+          9,
+          9,
+          9
+        ],
+        "candidate": [
+          9,
+          9,
+          9
+        ]
+      },
+      "Gray mixed": {
+        "powerpoint": [
+          85,
+          85,
+          85
+        ],
+        "candidate": [
+          85,
+          85,
+          85
+        ]
+      }
+    },
+    "savedBackAndReopened": {
+      "shape": "efdbae06e392637ff81d8e1863b8374692cb1caef49562c880382b44f97a6a58",
+      "reorder": "03e037c4fa7c2e9c028624d317bf053e61316f96f9ee1dc58f05c1b356f51b9b"
+    }
+  },
+  "desktop": {
+    "sharedContainedViews": 2,
+    "initialAccent1": "1658A4",
+    "editedAccent1": "2678D0",
+    "undoFromPeer": true,
+    "redoFromOriginatingView": true,
+    "coldOpenPages": 3,
+    "savedFileSha256": "c8e096e839b5a1b66abeae9ff77c02ecfa49788525c25e2cf600c60cc0d5f569"
+  },
+  "productTests": 1050,
+  "priorRegression": {
+    "coordinates": {
+      "readbacks": 32,
+      "history": 16,
+      "preservedPackages": 8,
+      "rasters": 6
+    },
+    "richText": {
+      "readbacks": 28,
+      "history": 14,
+      "preservedPackages": 6
+    },
+    "transferDatasets": 3,
+    "r2CommandsPerVersion": 20,
+    "r4R5ExecutableCalls": 23
+  }
+}
