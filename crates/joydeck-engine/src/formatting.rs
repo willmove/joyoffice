@@ -110,17 +110,10 @@ pub fn format_resolved(
         let original = body.paragraphs[pi].clone();
         let from = if pi == a.0 { a.1 } else { 0 };
         let to = if pi == b.0 { b.1 } else { original.char_len() };
-        let mut one = TextBody {
-            paragraphs: vec![original.clone()],
-            ..Default::default()
-        };
-        joydeck_model::edit::format(&mut one, (0, from), (0, to), &|r| {
+        joydeck_model::edit::format_paragraph(&mut body.paragraphs[pi], from..to, |r| {
             let effective = resolve(pi, &original, r);
             change(r, &effective);
         });
-        if let Some(p) = one.paragraphs.into_iter().next() {
-            body.paragraphs[pi] = p;
-        }
     }
     Ok(())
 }

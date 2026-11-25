@@ -1,5 +1,4 @@
 //! Range-scoped click actions on ordinary text runs.
-use super::runs;
 use joydeck_model::{
     TextBody,
     text::{Hyperlink, Run, RunKind},
@@ -18,7 +17,7 @@ pub fn selection(body: &TextBody, mut range: Range<usize>) -> Option<Selection> 
         // Treat the trailing boundary as part of the preceding link, like the caret style.
         let caret = range.start;
         let mut joined: Option<(Range<usize>, &Hyperlink)> = None;
-        for (span, run) in runs(body) {
+        for (span, run) in body.run_spans() {
             if let (RunKind::Text, Some(link)) = (&run.kind, &run.props.link) {
                 if let Some((previous, old)) = joined.as_mut()
                     && previous.end == span.start
@@ -42,7 +41,7 @@ pub fn selection(body: &TextBody, mut range: Range<usize>) -> Option<Selection> 
         }
         range = span;
     }
-    let mut selected = runs(body).filter(|(span, run)| {
+    let mut selected = body.run_spans().filter(|(span, run)| {
         run.kind == RunKind::Text && span.start < range.end && range.start < span.end
     });
     let (_, first) = selected.next()?;
@@ -67,7 +66,7 @@ pub fn plain_label(body: &TextBody, range: Range<usize>) -> Option<String> {
     let text = body.text();
     let label = text.get(range.clone())?;
     if label.chars().any(char::is_control)
-        || runs(body).any(|(span, run)| {
+        || body.run_spans().any(|(span, run)| {
             span.start < range.end && range.start < span.end && run.kind != RunKind::Text
         })
     {

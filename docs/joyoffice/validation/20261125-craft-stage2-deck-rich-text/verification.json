@@ -1,0 +1,53 @@
+{
+  "frozenCommit": "14cbb29616d7c0ababbf40a8f6c0218b996e7ae8",
+  "checkpointCommit": "ff53276a0ecf4d8e7eacb29cda65dda367881a4f",
+  "richTextCli": {
+    "fixtureSha256": "b2d0e4af5515fac8138ce7c5ba3e9921284926b1e61c4e390249fb9af423d620",
+    "binaries": {
+      "frozen": "f8fd32a31570e241f17ced00dbce66f7e2ae53739b18e3c70bea03c2e78794f7",
+      "candidate": "3f80018f9b4d95284a6e7228bf2300383557c7c855076c5f5f03a8f7adea2562"
+    },
+    "originalRasterPixelIdentical": true,
+    "modelReadbacks": 28,
+    "historyComparisons": 14,
+    "preservedPptx": 6,
+    "typedUnicodeReadbacks": 4,
+    "combinedPptxAcceptedByCandidate": true,
+    "candidateLinksUseOpcNamespace": true,
+    "compatibleEditedRasterPixelIdentical": true,
+    "opaqueParagraphProtected": true
+  },
+  "windowsDesktop": {
+    "formattingBuildSha256": "acf6c436c70a45e51c257b5be41f79f13b992a596de68a30a4f9e57b28ae5e65",
+    "finalDesktopSha256": "eb845e59558e2f510d11267a1d0b6cec4b973e94182f6fe4df2fb4f3c8630085",
+    "desktopFileSha256": {
+      "pptx": "a39b7ce828a8184d36912e42a63f73f4c5ae5e9e3f16d603c29fec0539986a9c",
+      "joydeck": "709565b1c5b63bb7835eabef1dd81201253a0a63d781a2e4b911ee0eead7a60e"
+    },
+    "modelReadbacks": 4,
+    "independentPptxReader": "python-pptx 1.0.2",
+    "independentLinks": [
+      "desktop-web",
+      "cli-web",
+      "cli-slide"
+    ],
+    "pptxOtherPartsByteIdentical": true,
+    "undo": 2,
+    "redo": 2,
+    "reopenedInNewProcesses": [
+      "pptx",
+      "joydeck"
+    ]
+  },
+  "productRegression": {
+    "cargoXtaskCheckJoyDeck": true,
+    "testsPassed": 1046,
+    "r3Commands": {
+      "frozen": 20,
+      "candidate": 20
+    },
+    "coordinateReadbacks": 32,
+    "transferNativeReadbacks": 4,
+    "transferGroupReadbacks": 4
+  }
+}

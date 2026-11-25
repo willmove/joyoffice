@@ -4,8 +4,10 @@
 use joydeck_color::{ColorScheme, Rgba, SchemeSlot};
 use joydeck_geom::Xfrm;
 
+pub use crate::text_cascade::{level_style, para, run};
+
 use crate::style::{ColorRef, Effects, Fill, Line};
-use crate::text::{Anchor, AutoFit, BodyProps, LevelStyle, ListStyle, ParaProps, RunProps};
+use crate::text::{Anchor, AutoFit, BodyProps, ListStyle, RunProps};
 use crate::{Background, Layout, Master, PhType, Presentation, Shape, Slide};
 
 /// Where a shape lives, for resolving inherited values.
@@ -343,95 +345,6 @@ pub fn body(ctx: &Ctx, shape: &Shape) -> BodyProps {
         space_first_last: Some(false),
     });
     b
-}
-
-/// The merged level style (paragraph + run defaults) for paragraphs at `level` in `shape`.
-pub fn level_style(ctx: &Ctx, shape: &Shape, level: u8) -> LevelStyle {
-    // A table's text inherits nothing from a placeholder the table sits in: PowerPoint draws it in
-    // the other-text style even under list styles on the layout's and master's placeholders.
-    let (lp, mp) = if matches!(shape.kind, crate::ShapeKind::Table(_)) {
-        (None, None)
-    } else {
-        parents(ctx, shape)
-    };
-    let mut out = LevelStyle::default();
-    let add = |out: &mut LevelStyle, ls: Option<&LevelStyle>| {
-        if let Some(l) = ls {
-            out.para.inherit(&l.para);
-            out.run.inherit(&l.run);
-        }
-    };
-    if let Some(t) = &shape.text {
-        add(&mut out, t.list_style.level(level));
-    }
-    for s in [lp, mp].into_iter().flatten() {
-        if let Some(t) = &s.text {
-            add(&mut out, t.list_style.level(level));
-        }
-    }
-    // Shape style font reference (theme font + colour) sits above the defaults.
-    if let Some(st) = shape.style.as_ref().or(lp.and_then(|s| s.style.as_ref())) {
-        let font = match st.font_ref.0.as_str() {
-            "major" => Some("+mj-lt".to_string()),
-            "minor" => Some("+mn-lt".to_string()),
-            _ => None,
-        };
-        let r = RunProps {
-            font,
-            fill: st.font_ref.1.clone().map(Fill::solid),
-            ..Default::default()
-        };
-        out.run.inherit(&r);
-    }
-    add(&mut out, master_list_style(ctx, shape).level(level));
-    add(&mut out, ctx.pres.default_text_style.level(level));
-    // Last resort.
-    out.run.inherit(&RunProps {
-        size: Some(18.0),
-        font: Some("+mn-lt".into()),
-        bold: Some(false),
-        italic: Some(false),
-        ..Default::default()
-    });
-    out.para.inherit(&ParaProps {
-        margin_left: Some(0.0),
-        indent: Some(0.0),
-        align: Some(crate::text::Align::Left),
-        ..Default::default()
-    });
-    out
-}
-
-/// Fully resolved run properties for `run` in paragraph `para` (explicit → paragraph style).
-pub fn run(ctx: &Ctx, shape: &Shape, para: &crate::text::Paragraph, run: &RunProps) -> RunProps {
-    let mut r = run.clone();
-    // Paragraph `defRPr` fills gaps in the run, and the list style (including the layout
-    // placeholder this shape inherits from) fills whatever is still unset.
-    r.inherit(&para.def_props);
-    let lvl = level_style(ctx, shape, para.level);
-    r.inherit(&lvl.run);
-    // Hyperlinked text is drawn in the theme's hyperlink colour and underlined, as in PowerPoint,
-    // unless the run itself sets a colour (honoured since PowerPoint 2019) or an underline
-    // (`u="none"` removes it). Colours and underlines from list styles don't count.
-    if r.link.is_some() {
-        // A colour or underline on the run, or on the same `defRPr` that carries the link, is
-        // kept. A colour that arrived only from a list style is not.
-        let from_def = run.link.is_none();
-        if run.fill.is_none() && !(from_def && para.def_props.fill.is_some()) {
-            r.fill = Some(Fill::solid(ColorRef::scheme(SchemeSlot::Hlink)));
-        }
-        if run.underline.is_none() && !(from_def && para.def_props.underline.is_some()) {
-            r.underline = Some("sng".into());
-        }
-    }
-    r
-}
-
-pub fn para(ctx: &Ctx, shape: &Shape, para: &crate::text::Paragraph) -> ParaProps {
-    let mut p = para.props.clone();
-    let lvl = level_style(ctx, shape, para.level);
-    p.inherit(&lvl.para);
-    p
 }
 
 /// Concrete font family for a run (theme references resolved).

@@ -452,6 +452,19 @@ fn rel_element(id: &str, kind: &str, target: &str) -> El {
         children: vec![],
     }
 }
+
+fn append_relationships(root: &mut El, relationships: impl IntoIterator<Item = El>) {
+    let name = if root.prefix().is_empty() {
+        "Relationship".to_owned()
+    } else {
+        format!("{}:Relationship", root.prefix())
+    };
+    root.children
+        .extend(relationships.into_iter().map(|mut relation| {
+            relation.name.clone_from(&name);
+            Node::El(relation)
+        }));
+}
 fn namespaces(root: &mut El) -> Result<(), PptxError> {
     for (prefix, ns) in [
         ("p", opc::NS_P),
@@ -583,11 +596,10 @@ pub fn export_preserving(
                 rid.push('x');
             }
             set(&mut id, "r:id", rid.clone());
-            pres_rels.children.push(Node::El(rel_element(
-                &rid,
-                "slide",
-                &opc::relative(&pres_path, part),
-            )));
+            append_relationships(
+                &mut pres_rels,
+                [rel_element(&rid, "slide", &opc::relative(&pres_path, part))],
+            );
             add_override(
                 &mut ct,
                 part,
@@ -1088,9 +1100,7 @@ pub fn export_preserving(
             } else {
                 relationship_root(&pkg, source_part)?
             };
-            relationships
-                .children
-                .extend(added_rels.into_iter().map(Node::El));
+            append_relationships(&mut relationships, added_rels);
             if slide.layout != source_slide.layout {
                 let target = content::layout_target(&pkg, base, slide.layout)?;
                 let rel = relationships

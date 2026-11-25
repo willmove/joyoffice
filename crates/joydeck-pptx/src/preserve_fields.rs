@@ -161,6 +161,58 @@ fn simple_run(run: &El, model: &Run) -> bool {
         })
 }
 
+fn editable_paragraph_props(props: &El, defaults: &RunProps) -> bool {
+    attrs_in(
+        props,
+        &[
+            "lvl",
+            "algn",
+            "marL",
+            "marR",
+            "indent",
+            "defTabSz",
+            "rtl",
+            "fontAlgn",
+            "eaLnBrk",
+            "latinLnBrk",
+            "hangingPunct",
+        ],
+    ) && props.elements().all(|node| {
+        if node.prefix() != props.prefix() {
+            return false;
+        }
+        let leaf = |element: &El, attrs: &[&str]| {
+            attrs_in(element, attrs) && element.elements().next().is_none()
+        };
+        match node.local() {
+            "lnSpc" | "spcBef" | "spcAft" => {
+                node.attrs.is_empty()
+                    && node.elements().count() == 1
+                    && node.elements().all(|child| {
+                        child.prefix() == props.prefix()
+                            && matches!(child.local(), "spcPts" | "spcPct")
+                            && leaf(child, &["val"])
+                    })
+            }
+            "buNone" | "buClrTx" | "buSzTx" | "buFontTx" => leaf(node, &[]),
+            "buChar" => leaf(node, &["char"]),
+            "buAutoNum" => leaf(node, &["type", "startAt"]),
+            "buSzPct" => leaf(node, &["val"]),
+            "buFont" => leaf(node, &["typeface"]),
+            "tabLst" => {
+                node.attrs.is_empty()
+                    && node.elements().all(|child| {
+                        child.prefix() == props.prefix()
+                            && child.is("tab")
+                            && leaf(child, &["pos", "algn"])
+                    })
+            }
+            "defRPr" => simple_props(node, defaults),
+            _ => false,
+        }
+    })
+}
+
 fn patch_para(
     raw: &mut El,
     generated: &El,
@@ -170,9 +222,27 @@ fn patch_para(
     relationships: &mut links::Relationships<'_>,
 ) -> Result<(), PptxError> {
     if old.level != new.level || old.props != new.props || old.def_props != new.def_props {
-        return Err(error(
-            "combined field and paragraph formatting edits require .joydeck Save As",
-        ));
+        if raw
+            .child("pPr")
+            .is_some_and(|props| !editable_paragraph_props(props, &old.def_props))
+        {
+            return Err(error(
+                "paragraph edit would rewrite opaque formatting; save .joydeck instead",
+            ));
+        }
+        let mut properties = generated.child("pPr").cloned();
+        if let Some(props) = &mut properties {
+            if props.find("buBlip").is_some() {
+                return Err(error("edited picture bullets require .joydeck Save As"));
+            }
+            relationships.rebind_generated(props)?;
+        }
+        let had_properties = raw.child("pPr").is_some();
+        if had_properties {
+            replace(raw, "pPr", properties);
+        } else if let Some(properties) = properties {
+            raw.children.insert(0, Node::El(properties));
+        }
     }
     let end_props = if old.end_props != new.end_props {
         if raw

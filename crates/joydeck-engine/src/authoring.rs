@@ -179,26 +179,32 @@ pub fn apply(st: &mut EditorSnapshot, cmd: &Command) -> Option<Result<(), String
 }
 fn run(st: &mut EditorSnapshot, cmd: &Command) -> Result<(), String> {
     let page = st.selection.page;
+    if let Command::SetTexts { edits } = cmd {
+        if edits.is_empty() || edits.len() > 256 {
+            return Err("text transaction requires 1–256 targets".into());
+        }
+        let mut staged = Arc::clone(&st.model);
+        let document = Arc::make_mut(&mut staged);
+        let mut bytes = 0usize;
+        for (index, edit) in edits.iter().enumerate() {
+            if edits[..index]
+                .iter()
+                .any(|prior| prior.target == edit.target)
+            {
+                return Err("duplicate text target".into());
+            }
+            bytes = bytes.saturating_add(edit.body.byte_len());
+            if bytes > 1 << 20 {
+                return Err("text transaction exceeds 1 MiB".into());
+            }
+            set_body(document, page, &edit.target, edit.body.clone())?;
+        }
+        st.model = staged;
+        return Ok(());
+    }
     let p = Arc::make_mut(&mut st.model);
     match cmd {
         Command::SetText { target, body } => set_body(p, page, target, body.as_ref().clone()),
-        Command::SetTexts { edits } => {
-            if edits.is_empty() || edits.len() > 256 {
-                return Err("text transaction requires 1–256 targets".into());
-            }
-            let mut bytes = 0usize;
-            for (i, edit) in edits.iter().enumerate() {
-                if edits[..i].iter().any(|prior| prior.target == edit.target) {
-                    return Err("duplicate text target".into());
-                }
-                bytes = bytes.saturating_add(edit.body.text().len());
-                if bytes > 1 << 20 {
-                    return Err("text transaction exceeds 1 MiB".into());
-                }
-                set_body(p, page, &edit.target, edit.body.clone())?;
-            }
-            Ok(())
-        }
         Command::EditText {
             target,
             start,

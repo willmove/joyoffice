@@ -9,29 +9,13 @@ use unicode_segmentation::UnicodeSegmentation;
 #[path = "text_links.rs"]
 pub mod links;
 
-fn runs(body: &TextBody) -> impl Iterator<Item = (Range<usize>, &Run)> {
-    let mut offset = 0;
-    body.paragraphs.iter().flat_map(move |paragraph| {
-        let mut start = offset;
-        offset += paragraph
-            .runs
-            .iter()
-            .map(|r| r.content().len())
-            .sum::<usize>()
-            + 1;
-        paragraph.runs.iter().map(move |run| {
-            let end = start + run.content().len();
-            let range = start..end;
-            start = end;
-            (range, run)
-        })
-    })
-}
-
-/// Expand a selection to whole fields or move an interior caret to its closest edge.
+/// Expand a selection to whole fields and equations, or move an interior caret to the closest edge.
 pub fn field_range(body: &TextBody, range: Range<usize>) -> Range<usize> {
     let (mut start, mut end) = (range.start, range.end);
-    for (field, _) in runs(body).filter(|(_, run)| matches!(run.kind, RunKind::Field { .. })) {
+    for (field, _) in body
+        .run_spans()
+        .filter(|(_, run)| matches!(run.kind, RunKind::Field { .. } | RunKind::Math { .. }))
+    {
         if range.is_empty() {
             if field.start < start && start < field.end {
                 let at = if start - field.start < field.end - start {
@@ -105,7 +89,7 @@ fn normalize_newlines(value: &str) -> String {
 }
 
 pub fn validate(body: &TextBody) -> Result<(), String> {
-    if body.text().len() > 65536
+    if body.byte_len() > 65536
         || body.paragraphs.len() > 4096
         || body.paragraphs.iter().map(|p| p.runs.len()).sum::<usize>() > 8192
     {
@@ -147,6 +131,13 @@ pub fn byte_pos(text: &str, pos: ed::Pos) -> usize {
     text.len()
 }
 pub fn replace(body: &mut TextBody, range: Range<usize>, value: &str) -> Result<(), String> {
+    let mut next = body.clone();
+    replace_draft(&mut next, range, value)?;
+    *body = next;
+    Ok(())
+}
+
+fn replace_draft(body: &mut TextBody, range: Range<usize>, value: &str) -> Result<(), String> {
     let text = body.text();
     if range.start > range.end
         || range.end > text.len()
@@ -192,7 +183,7 @@ pub struct Draft {
 impl Draft {
     pub fn new(body: TextBody) -> Self {
         Self {
-            selection: 0..body.text().len(),
+            selection: 0..body.byte_len(),
             body,
             reversed: false,
             marked: None,
@@ -300,7 +291,7 @@ impl Draft {
         let value = normalize_newlines(value);
         let mut body = self.body.clone();
         if text.get(range.clone()) != Some(value.as_str()) {
-            replace(&mut body, range.clone(), &value)?;
+            replace_draft(&mut body, range.clone(), &value)?;
         }
         if let Some(props) = &self.typing_props
             && !value.is_empty()

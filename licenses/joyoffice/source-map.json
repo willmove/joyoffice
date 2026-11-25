@@ -211,12 +211,13 @@
     "target_path": "crates/joydeck-engine/src/text.rs",
     "source_sha256": "0f5c0c5ba05a35a5f064271e1c3efd1bdf7afb959a8634b865206d9f1ed13de3",
     "local_changes": "Extract checked UTF-16/grapheme helpers; adapt composition draft to DeckCraft TextBody/edit; preserve rich runs/paragraphs, bounded drafts, no IO.",
-    "adapted_sha256": "592737f708f125560e7ebba6ad2b7dc4eb6e784181aed496b413bae962b4b66b",
+    "adapted_sha256": "b32a87d58de80e7213992b863be5dea24a9dd1999e29d2fba6a4f3d82f7c6714",
     "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained.",
     "native_text_ranges": "Protect committed graphemes, normalize native composition offsets and project input range geometry.",
     "ime_lifecycle": "Treat repeated empty preedit as an idempotent reset of the original body and selection.",
     "text_hyperlinks": "Expose range-scoped click-link editing through the text engine.",
-    "dynamic_text_fields": "Support atomic dynamic text fields, native authoring, and separate rendered/source offsets."
+    "dynamic_text_fields": "Support atomic dynamic text fields, native authoring, and separate rendered/source offsets.",
+    "stage2_rich_text": "Use JoyDeck run offsets and splicing, protect fields and equations, and stage bounded replacements before publishing."
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",

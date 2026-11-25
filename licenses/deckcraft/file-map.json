@@ -296,20 +296,21 @@
       "source_path": "crates/model/src/edit.rs",
       "source_sha256": "3952ebabd1b3589acbbf23e2f5097ad4c961c1da7e33b631ece895cfaad54481",
       "target_path": "crates/joydeck-model/src/edit.rs",
-      "adapted_sha256": "6a69b5715ef0e44337b64683c7fb81508a56bfa367b44fb7bd9c6ed37487dc83",
+      "adapted_sha256": "783343bbad8fe584758653140db5a1dd3c11bc40ca3dfce5e4eca27195607178",
       "changes": [
         "crate/import namespace deckcraft -> joydeck",
         "LF normalization",
         "package description credits origin",
         "rustfmt using repository Unix newline policy",
-        "test-only assertion lint allowances; production no-panic guards retained"
+        "test-only assertion lint allowances; production no-panic guards retained",
+        "Stage 2: retain navigation helpers and compatibility entry points; use the JoyDeck run splice for editing and formatting."
       ]
     },
     {
       "source_path": "crates/model/src/lib.rs",
       "source_sha256": "4b5a99b737768e630d877382837063a3f43ca12f9385ee8834e9437ed53b16d2",
       "target_path": "crates/joydeck-model/src/lib.rs",
-      "adapted_sha256": "497fca2fc21e954b2742ebc05715e9e6580d9be84c4c4fc607302adc618fd7be",
+      "adapted_sha256": "ae3a970785ff6df43f323753b8a4d0cb4200924a0a65f0193ab46a13f0d87b1e",
       "changes": [
         "crate/import namespace deckcraft -> joydeck",
         "LF normalization",
@@ -320,7 +321,8 @@
         "JD-307: deduplicate embedded media only against embedded resources with matching content type and bytes",
         "preserve recognized layout and master header/footer visibility flags without resolving inheritance",
         "Apply a validated two-axis update to a native callout vertex.",
-        "Stage 2: expose the JoyDeck slide-coordinate and connector attachment solver."
+        "Stage 2: expose the JoyDeck slide-coordinate and connector attachment solver.",
+        "Stage 2: register the JoyDeck rich text model, editing, and style resolution."
       ],
       "r9_ui2_adaptation": "Selection formatting, native workspace/review/control and migration changes; source fingerprint retained."
     },
@@ -341,12 +343,13 @@
       "source_path": "crates/model/src/resolve.rs",
       "source_sha256": "fa9f06a5f23b585e9c15b882c334a7a87b32690ed6f4571fe7e865de76a91feb",
       "target_path": "crates/joydeck-model/src/resolve.rs",
-      "adapted_sha256": "71475d2e9081484eea7afe47002eea617970e9446b97ce55f4a64e5766298d7b",
+      "adapted_sha256": "e6a2a872d5b9bc41877a0dac7d761a3d5d2658845ae995e136d4ade2e40fc02a",
       "changes": [
         "crate/import namespace deckcraft -> joydeck",
         "LF normalization",
         "package description credits origin",
-        "rustfmt using repository Unix newline policy"
+        "rustfmt using repository Unix newline policy",
+        "Stage 2: delegate paragraph, list, and run defaults to the JoyDeck text cascade."
       ]
     },
     {
@@ -392,13 +395,14 @@
       "source_path": "crates/model/src/text.rs",
       "source_sha256": "bfeeba6e1c07c4aa0f724c2d830b4483f8e7663d9459a22cba45cbc7420ecab8",
       "target_path": "crates/joydeck-model/src/text.rs",
-      "adapted_sha256": "27ed7b745221d14452618db657b9ae0d633113460f7a3b1d015f03d92f3c580e",
+      "adapted_sha256": "5a4c65024946e8a8115207704856b6bef0894fe2c4bf79941719c360cba4f4ac",
       "changes": [
         "crate/import namespace deckcraft -> joydeck",
         "LF normalization",
         "package description credits origin",
         "rustfmt using repository Unix newline policy",
-        "test-only assertion lint allowances; production no-panic guards retained"
+        "test-only assertion lint allowances; production no-panic guards retained",
+        "Stage 2: preserve the serialized style schema, expose JoyDeck paragraph and run content, and unify marker inheritance."
       ]
     },
     {
@@ -835,13 +839,14 @@
       "source_path": "crates/text/src/layout.rs",
       "source_sha256": "f7e5603ebd9908f0e769373d1e67c26a219162bdefeb49b31e9fe0e310bde0de",
       "target_path": "crates/joydeck-text/src/layout.rs",
-      "adapted_sha256": "b0c2457def780c86c146e2cc450bbc5363f0b05f67e1bec354884ffb7f4815e5",
+      "adapted_sha256": "2f26c61b104a49cdfd90c85f3ddffef1935f344fceca310bab4c89c75b21dad2",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
-        "Preserve invisible whitespace while reporting missing visible glyphs"
+        "Preserve invisible whitespace while reporting missing visible glyphs",
+        "Stage 2: consume list ordinals from the JoyDeck model before layout."
       ],
       "dynamic_text_fields": "Support atomic dynamic text fields, native authoring, and separate rendered/source offsets."
     },
