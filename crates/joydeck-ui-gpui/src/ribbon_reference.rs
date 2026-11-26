@@ -1,7 +1,7 @@
 //! Ribbon layouts for presentation features without a desktop authoring command.
 use super::*;
-use crate::viewer::chrome::{RIBBON_HEIGHT, col, group, row, tool};
-use gpui_kit::component::{Icon, Sizable, button::ButtonVariants};
+use crate::viewer::chrome::{RIBBON_HEIGHT, col, group, row, small, tool};
+use gpui_kit::component::{Icon, Sizable, button::ButtonVariants, popover::Popover};
 use joyoffice_ui::IconName as I;
 
 pub(super) const BLUE: u32 = 0x326797;
@@ -138,77 +138,287 @@ impl Viewer {
     }
 
     #[inline(never)]
-    pub(super) fn ribbon_transitions(&self, _: &mut Context<Self>) -> Div {
+    pub(super) fn ribbon_transitions(&self, cx: &mut Context<Self>) -> Div {
+        let p = self.palette();
+        let disabled = self.editor.is_none() || self.loading || self.composing();
         let transition = self.current_slide().and_then(|s| s.transition.as_ref());
         let current = transition.map_or("none", |t| t.kind.as_str());
-        let tiles = effects(
-            self.palette(),
-            &[
-                ("none", I::PanelTop, "无"),
-                ("morph", I::Layers2, "平滑"),
-                ("fade", I::Blend, "淡入/淡出"),
-                ("push", I::ArrowUpToLine, "推入"),
-                ("wipe", I::PanelLeft, "擦除"),
-                ("split", I::Columns2, "分割"),
-                ("reveal", I::SquareSplitHorizontal, "显示"),
-                ("cut", I::Layers, "切入"),
-                ("randomBar", I::ChartNoAxesColumn, "随机线条"),
-                ("shape", I::Shapes, "形状"),
-                ("uncover", I::ArrowLeftToLine, "揭开"),
-            ],
-            0x698eb4,
-            current,
-        );
-        let timing = |id, label: &str, value: String| {
-            Button::new(id)
-                .ghost()
-                .xsmall()
-                .h(px(23.))
-                .label(format!("{label}    {value}"))
-                .accessibility_label(format!("{label} {value}（暂不支持编辑）"))
-                .disabled(true)
-        };
-        let duration = transition.map_or("—".into(), |t| {
+        let current_opt = transition.map_or("", |t| t.option.as_str());
+        let on_click = transition.is_none_or(|t| t.advance_on_click);
+        let advance = transition.and_then(|t| t.advance_after_ms);
+        let duration_label = transition.map_or("—".into(), |t| {
             format!("{:.2} 秒", f64::from(t.duration_ms) / 1000.)
         });
-        let advance = transition.and_then(|t| t.advance_after_ms);
-        let sound = if transition.is_some_and(|t| t.sound.is_some() || t.stop_sound) {
-            "已设置"
-        } else {
-            "无声音"
-        };
+        let after_label = advance.map_or("自动换片：关".into(), |ms| {
+            format!("自动换片：{:.1} 秒", f64::from(ms) / 1000.)
+        });
+        let primary: &[(&'static str, I, &'static str)] = &[
+            ("none", I::PanelTop, "无"),
+            ("morph", I::Layers2, "平滑"),
+            ("fade", I::Blend, "淡入/淡出"),
+            ("push", I::ArrowUpToLine, "推入"),
+            ("wipe", I::PanelLeft, "擦除"),
+            ("split", I::Columns2, "分割"),
+            ("reveal", I::SquareSplitHorizontal, "显示"),
+            ("cut", I::Layers, "切入"),
+            ("randomBar", I::ChartNoAxesColumn, "随机线条"),
+            ("shape", I::Shapes, "形状"),
+            ("uncover", I::ArrowLeftToLine, "揭开"),
+        ];
+        let extra: &[(&'static str, &'static str)] = &[
+            ("cover", "覆盖"),
+            ("flash", "闪光"),
+            ("dissolve", "溶解"),
+            ("blinds", "百叶窗"),
+            ("clock", "时钟"),
+            ("checker", "棋盘"),
+            ("zoom", "缩放"),
+            ("cube", "立方体"),
+            ("flip", "翻转"),
+            ("orbit", "轨道旋转"),
+            ("wheel", "轮子"),
+            ("comb", "梳理"),
+            ("curtains", "帘式"),
+            ("doors", "门"),
+            ("origami", "折纸"),
+            ("vortex", "漩涡"),
+        ];
+        let tiles =
+            gallery(p).children(primary.iter().enumerate().map(|(i, (id, icon, label))| {
+                let selected = *id == current;
+                let effect_id = *id;
+                Button::new(("trans-tile", i))
+                    .ghost()
+                    .w(px(64.))
+                    .h(px(54.))
+                    .p_0()
+                    .rounded(px(2.))
+                    .disabled(disabled)
+                    .when(selected, |b| b.border_1().border_color(rgb(p.accent)))
+                    .accessibility_label(format!("切换效果：{label}"))
+                    .child(
+                        col()
+                            .items_center()
+                            .gap(px(1.))
+                            .child(Icon::new(*icon).size(px(28.)).text_color(rgb(0x698eb4)))
+                            .child(div().text_size(px(9.)).child(*label)),
+                    )
+                    .on_click(cx.listener(move |s, _, w, cx| {
+                        s.set_transition_effect(effect_id, w, cx);
+                    }))
+            }));
+
+        let more_view = cx.entity().downgrade();
+        let current_owned = current.to_string();
+        let more_btn = Popover::new("transition-more")
+            .trigger(
+                tool("transition-more-btn", I::Sparkles, "更多", 0x698eb4)
+                    .dropdown_caret(true)
+                    .disabled(disabled),
+            )
+            .content(move |_, _, cx| {
+                let popup = cx.entity().downgrade();
+                let mut left_col = col().gap_1();
+                let mut right_col = col().gap_1();
+                for (idx, (id, label)) in extra.iter().enumerate() {
+                    let view = more_view.clone();
+                    let popup = popup.clone();
+                    let active = current_owned == *id;
+                    let effect_id = *id;
+                    let btn = Button::new(("trans-extra", idx))
+                        .ghost()
+                        .xsmall()
+                        .h(px(22.))
+                        .label(if active {
+                            format!("✓ {label}")
+                        } else {
+                            (*label).into()
+                        })
+                        .on_click(move |_, w, cx| {
+                            let _ = popup.update(cx, |p, cx| p.dismiss(w, cx));
+                            let _ = view.update(cx, |s, cx| {
+                                s.set_transition_effect(effect_id, w, cx);
+                            });
+                        });
+                    if idx % 2 == 0 {
+                        left_col = left_col.child(btn);
+                    } else {
+                        right_col = right_col.child(btn);
+                    }
+                }
+                row().gap_2().child(left_col).child(right_col)
+            });
+
+        let options: &'static [&'static str] = joydeck_model::anim::TRANSITIONS
+            .iter()
+            .find(|(id, _, _, _, _)| *id == current)
+            .map_or(&[], |(_, _, _, _, opts)| *opts);
+        let opt_view = cx.entity().downgrade();
+        let current_for_opt = current.to_string();
+        let current_opt_owned = current_opt.to_string();
+        let options_btn = Popover::new("transition-options-pop")
+            .trigger(
+                tool("transition-options", I::SlidersHorizontal, "效果选项", BLUE)
+                    .dropdown_caret(true)
+                    .disabled(disabled || options.is_empty()),
+            )
+            .content(move |_, _, cx| {
+                let popup = cx.entity().downgrade();
+                col()
+                    .gap_1()
+                    .children(options.iter().enumerate().map(|(i, opt)| {
+                        let view = opt_view.clone();
+                        let popup = popup.clone();
+                        let opt_str = *opt;
+                        let active = current_opt_owned == opt_str;
+                        let text =
+                            joydeck_model::anim::transition_option_label(&current_for_opt, opt_str);
+                        Button::new(("trans-opt", i))
+                            .ghost()
+                            .xsmall()
+                            .h(px(22.))
+                            .label(if active { format!("✓ {text}") } else { text })
+                            .on_click(move |_, w, cx| {
+                                let _ = popup.update(cx, |p, cx| p.dismiss(w, cx));
+                                let _ = view.update(cx, |s, cx| {
+                                    s.set_transition_option(opt_str, w, cx);
+                                });
+                            })
+                    }))
+            });
+
+        let dur_view = cx.entity().downgrade();
+        let duration_btn = Popover::new("transition-duration-pop")
+            .trigger(
+                Button::new("transition-duration")
+                    .ghost()
+                    .xsmall()
+                    .h(px(23.))
+                    .label(format!("持续时间  {duration_label}"))
+                    .disabled(disabled || current == "none"),
+            )
+            .content(move |_, _, cx| {
+                let popup = cx.entity().downgrade();
+                let custom_view = dur_view.clone();
+                let custom_popup = popup.clone();
+                col()
+                    .gap_1()
+                    .children(
+                        [
+                            (300u32, "0.30 秒"),
+                            (500, "0.50 秒"),
+                            (700, "0.70 秒"),
+                            (1000, "1.00 秒"),
+                            (1500, "1.50 秒"),
+                            (2000, "2.00 秒"),
+                            (3000, "3.00 秒"),
+                        ]
+                        .into_iter()
+                        .map(|(ms, text)| {
+                            let view = dur_view.clone();
+                            let popup = popup.clone();
+                            Button::new(("trans-dur", ms))
+                                .ghost()
+                                .xsmall()
+                                .h(px(22.))
+                                .label(text)
+                                .on_click(move |_, w, cx| {
+                                    let _ = popup.update(cx, |p, cx| p.dismiss(w, cx));
+                                    let _ = view.update(cx, |s, cx| {
+                                        s.set_transition_duration(ms, w, cx);
+                                    });
+                                })
+                        }),
+                    )
+                    .child(small("trans-dur-custom", I::Timer, "自定义时长…").on_click(
+                        move |_, w, cx| {
+                            let _ = custom_popup.update(cx, |p, cx| p.dismiss(w, cx));
+                            let _ = custom_view.update(cx, |s, cx| {
+                                s.content_form(content_ui::Form::TransitionDuration, w, cx);
+                            });
+                        },
+                    ))
+            });
+
+        let after_view = cx.entity().downgrade();
+        let after_btn = Popover::new("transition-after-pop")
+            .trigger(
+                Button::new("transition-after")
+                    .ghost()
+                    .xsmall()
+                    .h(px(23.))
+                    .label(after_label)
+                    .disabled(disabled),
+            )
+            .content(move |_, _, cx| {
+                let popup = cx.entity().downgrade();
+                col().gap_1().children(
+                    [
+                        (None, "关闭自动换片"),
+                        (Some(2000u32), "2 秒后换片"),
+                        (Some(3000), "3 秒后换片"),
+                        (Some(5000), "5 秒后换片"),
+                        (Some(10000), "10 秒后换片"),
+                    ]
+                    .into_iter()
+                    .enumerate()
+                    .map(|(idx, (ms, text))| {
+                        let view = after_view.clone();
+                        let popup = popup.clone();
+                        Button::new(("trans-after-opt", idx))
+                            .ghost()
+                            .xsmall()
+                            .h(px(22.))
+                            .label(text)
+                            .on_click(move |_, w, cx| {
+                                let _ = popup.update(cx, |p, cx| p.dismiss(w, cx));
+                                let _ = view.update(cx, |s, cx| {
+                                    s.set_transition_after(ms, w, cx);
+                                });
+                            })
+                    }),
+                )
+            });
+
         row()
             .h(px(RIBBON_HEIGHT))
             .child(group(
                 "预览",
-                unavailable("transition-preview", I::MonitorPlay, "预览"),
+                tool("transition-preview", I::MonitorPlay, "预览", GREEN)
+                    .disabled(disabled)
+                    .on_click(cx.listener(|s, _, _, cx| s.start_show(false, false, cx))),
             ))
             .child(group(
                 "切换样式",
-                row().child(tiles).child(unavailable(
-                    "transition-options",
-                    I::SlidersHorizontal,
-                    "效果选项",
-                )),
+                row().child(tiles).child(more_btn).child(options_btn),
             ))
             .child(group(
                 "计时",
                 row()
                     .gap_2()
                     .child(
-                        col()
-                            .child(timing("transition-duration", "持续时间", duration))
-                            .child(timing("transition-sound", "声音", sound.into())),
+                        col().child(duration_btn).child(
+                            Button::new("transition-on-click")
+                                .ghost()
+                                .xsmall()
+                                .h(px(23.))
+                                .disabled(disabled)
+                                .label(if on_click {
+                                    "☑ 单击鼠标时"
+                                } else {
+                                    "☐ 单击鼠标时"
+                                })
+                                .on_click(cx.listener(|s, _, w, cx| {
+                                    s.toggle_transition_on_click(w, cx);
+                                })),
+                        ),
                     )
-                    .child(ribbon_checks(&[
-                        ("单击鼠标时", transition.is_none_or(|t| t.advance_on_click)),
-                        ("自动换片间隔", advance.is_some()),
-                    ]))
-                    .child(unavailable(
-                        "transition-apply-all",
-                        I::Layers,
-                        "应用到\n所有",
-                    )),
+                    .child(col().child(after_btn))
+                    .child(
+                        tool("transition-apply-all", I::Layers, "应用到\n所有", BLUE)
+                            .disabled(disabled)
+                            .on_click(cx.listener(|s, _, w, cx| s.apply_transition_all(w, cx))),
+                    ),
             ))
     }
 

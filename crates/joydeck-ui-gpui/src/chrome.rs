@@ -5,7 +5,7 @@ use super::ribbon_reference::{
 use super::ribbon_tabs::{RibbonTab, TabAction};
 use super::*;
 use gpui_kit::component::{Icon, Selectable, Sizable, button::ButtonVariants, popover::Popover};
-use joydeck_engine::Command;
+use joydeck_engine::{AlignEdge, Command, DistributeAxis};
 use joyoffice_ui::{IconName as I, Palette};
 
 pub(super) fn small(id: &'static str, icon: I, label: &'static str) -> Button {
@@ -616,8 +616,322 @@ impl Viewer {
         )
     }
     #[inline(never)]
+    fn shape_outline_popover(
+        &self,
+        id: &'static str,
+        trigger: Button,
+        cx: &mut Context<Self>,
+    ) -> Popover {
+        let view = cx.entity().downgrade();
+        let p = self.palette();
+        let colors: &[(u32, &'static str)] = &[
+            (0x1f2937, "深灰"),
+            (0x2678d0, "蓝色"),
+            (0xd04020, "红橙"),
+            (0x25805d, "绿色"),
+            (0xd99b26, "金黄"),
+            (0x7c4dff, "紫色"),
+            (0x6b7280, "中灰"),
+            (0xffffff, "白色"),
+        ];
+        Popover::new(id)
+            .trigger(trigger.disabled(!self.can_edit_outline()))
+            .content(move |_, _, cx| {
+                let popup = cx.entity().downgrade();
+                let color_row = row().gap_1().children(colors.iter().map(|(hex, tip)| {
+                    let view = view.clone();
+                    let popup = popup.clone();
+                    let rgb_val = *hex;
+                    Button::new(("outline-color", rgb_val))
+                        .ghost()
+                        .w(px(22.))
+                        .h(px(22.))
+                        .p_0()
+                        .tooltip(*tip)
+                        .child(
+                            div()
+                                .w(px(16.))
+                                .h(px(16.))
+                                .rounded(px(2.))
+                                .border_1()
+                                .border_color(rgb(p.border))
+                                .bg(rgb(rgb_val)),
+                        )
+                        .on_click(move |_, w, cx| {
+                            let _ = popup.update(cx, |pop, cx| pop.dismiss(w, cx));
+                            let _ = view.update(cx, |s, cx| {
+                                s.set_shape_line(Some(rgb_val), None, None, w, cx);
+                            });
+                        })
+                }));
+                let width_row = row().gap_1().children(
+                    [
+                        (0.75, "0.75pt"),
+                        (1.5, "1.5pt"),
+                        (2.25, "2.25pt"),
+                        (3.0, "3pt"),
+                        (4.5, "4.5pt"),
+                    ]
+                    .into_iter()
+                    .enumerate()
+                    .map(|(i, (pt, label))| {
+                        let view = view.clone();
+                        let popup = popup.clone();
+                        Button::new(("outline-w", i))
+                            .ghost()
+                            .xsmall()
+                            .h(px(20.))
+                            .label(label)
+                            .on_click(move |_, w, cx| {
+                                let _ = popup.update(cx, |pop, cx| pop.dismiss(w, cx));
+                                let _ = view.update(cx, |s, cx| {
+                                    let current_rgb = s
+                                        .current_slide()
+                                        .and_then(|sl| {
+                                            let id = *s
+                                                .editor
+                                                .as_ref()?
+                                                .session
+                                                .selection()
+                                                .shapes
+                                                .first()?;
+                                            sl.shape(id)?.line.as_ref()?.fill.as_ref()
+                                        })
+                                        .and_then(|f| match f {
+                                            joydeck_model::Fill::Solid { color } => {
+                                                match color.base {
+                                                    joydeck_model::style::ColorBase::Rgb {
+                                                        rgb,
+                                                    } => Some(
+                                                        ((rgb.r as u32) << 16)
+                                                            | ((rgb.g as u32) << 8)
+                                                            | (rgb.b as u32),
+                                                    ),
+                                                    _ => None,
+                                                }
+                                            }
+                                            _ => None,
+                                        })
+                                        .unwrap_or(0x2678d0);
+                                    s.set_shape_line(Some(current_rgb), Some(pt), None, w, cx);
+                                });
+                            })
+                    }),
+                );
+                let dash_row = row().gap_1().children(
+                    [
+                        ("solid", "实线"),
+                        ("dash", "虚线"),
+                        ("dot", "点线"),
+                        ("dashDot", "点划线"),
+                    ]
+                    .into_iter()
+                    .enumerate()
+                    .map(|(i, (preset, label))| {
+                        let view = view.clone();
+                        let popup = popup.clone();
+                        Button::new(("outline-d", i))
+                            .ghost()
+                            .xsmall()
+                            .h(px(20.))
+                            .label(label)
+                            .on_click(move |_, w, cx| {
+                                let _ = popup.update(cx, |pop, cx| pop.dismiss(w, cx));
+                                let _ = view.update(cx, |s, cx| {
+                                    let current_rgb = s
+                                        .current_slide()
+                                        .and_then(|sl| {
+                                            let id = *s
+                                                .editor
+                                                .as_ref()?
+                                                .session
+                                                .selection()
+                                                .shapes
+                                                .first()?;
+                                            sl.shape(id)?.line.as_ref()?.fill.as_ref()
+                                        })
+                                        .and_then(|f| match f {
+                                            joydeck_model::Fill::Solid { color } => {
+                                                match color.base {
+                                                    joydeck_model::style::ColorBase::Rgb {
+                                                        rgb,
+                                                    } => Some(
+                                                        ((rgb.r as u32) << 16)
+                                                            | ((rgb.g as u32) << 8)
+                                                            | (rgb.b as u32),
+                                                    ),
+                                                    _ => None,
+                                                }
+                                            }
+                                            _ => None,
+                                        })
+                                        .unwrap_or(0x2678d0);
+                                    s.set_shape_line(
+                                        Some(current_rgb),
+                                        None,
+                                        Some(preset.into()),
+                                        w,
+                                        cx,
+                                    );
+                                });
+                            })
+                    }),
+                );
+                let clear_view = view.clone();
+                let clear_popup = popup.clone();
+                let custom_view = view.clone();
+                let custom_popup = popup.clone();
+                col()
+                    .gap_2()
+                    .child(div().text_xs().text_color(rgb(p.muted)).child("轮廓颜色"))
+                    .child(color_row)
+                    .child(div().text_xs().text_color(rgb(p.muted)).child("粗细"))
+                    .child(width_row)
+                    .child(div().text_xs().text_color(rgb(p.muted)).child("虚线"))
+                    .child(dash_row)
+                    .child(
+                        row()
+                            .gap_2()
+                            .child(small("outline-none", I::ImageOff, "无轮廓").on_click(
+                                move |_, w, cx| {
+                                    let _ = clear_popup.update(cx, |pop, cx| pop.dismiss(w, cx));
+                                    let _ = clear_view.update(cx, |s, cx| {
+                                        s.set_shape_line(None, None, None, w, cx);
+                                    });
+                                },
+                            ))
+                            .child(small("outline-custom", I::PenLine, "自定义轮廓…").on_click(
+                                move |_, w, cx| {
+                                    let _ = custom_popup.update(cx, |pop, cx| pop.dismiss(w, cx));
+                                    let _ = custom_view.update(cx, |s, cx| {
+                                        s.content_form(content_ui::Form::ShapeLine, w, cx);
+                                    });
+                                },
+                            )),
+                    )
+            })
+    }
+
+    #[inline(never)]
+    fn align_popover(&self, id: &'static str, cx: &mut Context<Self>) -> Popover {
+        let view = cx.entity().downgrade();
+        let can_align = self.can_align();
+        let can_dist = self.can_distribute();
+        Popover::new(id)
+            .trigger(
+                tool("align-btn", I::LayoutGrid, "对齐", 0xa77436)
+                    .dropdown_caret(true)
+                    .disabled(!can_align),
+            )
+            .content(move |_, _, cx| {
+                let popup = cx.entity().downgrade();
+                let aligns = [
+                    ("align-left", I::TextAlignStart, "左对齐", AlignEdge::Left),
+                    (
+                        "align-center-h",
+                        I::TextAlignCenter,
+                        "水平居中",
+                        AlignEdge::CenterH,
+                    ),
+                    ("align-right", I::TextAlignEnd, "右对齐", AlignEdge::Right),
+                    ("align-top", I::ArrowUpToLine, "顶端对齐", AlignEdge::Top),
+                    (
+                        "align-middle-v",
+                        I::Columns2,
+                        "垂直居中",
+                        AlignEdge::MiddleV,
+                    ),
+                    (
+                        "align-bottom",
+                        I::ArrowLeftToLine,
+                        "底端对齐",
+                        AlignEdge::Bottom,
+                    ),
+                ];
+                let dists = [
+                    (
+                        "dist-h",
+                        I::MoveHorizontal,
+                        "横向分布",
+                        DistributeAxis::Horizontal,
+                    ),
+                    (
+                        "dist-v",
+                        I::GalleryVerticalEnd,
+                        "纵向分布",
+                        DistributeAxis::Vertical,
+                    ),
+                ];
+                col()
+                    .gap_1()
+                    .children(aligns.into_iter().map(|(bid, icon, label, edge)| {
+                        let view = view.clone();
+                        let popup = popup.clone();
+                        small(bid, icon, label)
+                            .disabled(!can_align)
+                            .on_click(move |_, w, cx| {
+                                let _ = popup.update(cx, |p, cx| p.dismiss(w, cx));
+                                let _ = view.update(cx, |s, cx| s.align_selected(edge, w, cx));
+                            })
+                    }))
+                    .children(dists.into_iter().map(|(bid, icon, label, axis)| {
+                        let view = view.clone();
+                        let popup = popup.clone();
+                        small(bid, icon, label)
+                            .disabled(!can_dist)
+                            .on_click(move |_, w, cx| {
+                                let _ = popup.update(cx, |p, cx| p.dismiss(w, cx));
+                                let _ = view.update(cx, |s, cx| s.distribute_selected(axis, w, cx));
+                            })
+                    }))
+            })
+    }
+
+    #[inline(never)]
+    fn group_popover(&self, id: &'static str, cx: &mut Context<Self>) -> Popover {
+        let view = cx.entity().downgrade();
+        let can_group = self.can_group();
+        let can_ungroup = self.can_ungroup();
+        Popover::new(id)
+            .trigger(
+                tool("group-btn", I::Box, "组合", 0xa77436)
+                    .dropdown_caret(true)
+                    .disabled(!can_group && !can_ungroup),
+            )
+            .content(move |_, _, cx| {
+                let popup = cx.entity().downgrade();
+                let gv = view.clone();
+                let gp = popup.clone();
+                let uv = view.clone();
+                let up = popup.clone();
+                col()
+                    .gap_1()
+                    .child(
+                        small("group-objs", I::Box, "组合")
+                            .disabled(!can_group)
+                            .on_click(move |_, w, cx| {
+                                let _ = gp.update(cx, |p, cx| p.dismiss(w, cx));
+                                let _ = gv.update(cx, |s, cx| s.group_selected(w, cx));
+                            }),
+                    )
+                    .child(
+                        small("ungroup-objs", I::SquareSplitHorizontal, "取消组合")
+                            .disabled(!can_ungroup)
+                            .on_click(move |_, w, cx| {
+                                let _ = up.update(cx, |p, cx| p.dismiss(w, cx));
+                                let _ = uv.update(cx, |s, cx| s.ungroup_selected(w, cx));
+                            }),
+                    )
+            })
+    }
+
+    #[inline(never)]
     fn home_arrange(&self, cx: &mut Context<Self>) -> Div {
         let view = cx.entity().downgrade();
+        let can_group = self.can_group();
+        let can_ungroup = self.can_ungroup();
+        let can_align = self.can_align();
+        let can_dist = self.can_distribute();
         let moves = [
             (
                 "forward",
@@ -651,7 +965,44 @@ impl Viewer {
                         .content(move |_, _, cx| {
                             let popup = cx.entity().downgrade();
                             let selection_view = view.clone();
+                            let gv = view.clone();
+                            let gp = popup.clone();
+                            let uv = view.clone();
+                            let up = popup.clone();
+                            let aligns = [
+                                ("home-align-l", I::TextAlignStart, "左对齐", AlignEdge::Left),
+                                (
+                                    "home-align-c",
+                                    I::TextAlignCenter,
+                                    "水平居中",
+                                    AlignEdge::CenterH,
+                                ),
+                                ("home-align-r", I::TextAlignEnd, "右对齐", AlignEdge::Right),
+                                ("home-align-t", I::ArrowUpToLine, "顶端对齐", AlignEdge::Top),
+                                ("home-align-m", I::Columns2, "垂直居中", AlignEdge::MiddleV),
+                                (
+                                    "home-align-b",
+                                    I::ArrowLeftToLine,
+                                    "底端对齐",
+                                    AlignEdge::Bottom,
+                                ),
+                            ];
+                            let dists = [
+                                (
+                                    "home-dist-h",
+                                    I::MoveHorizontal,
+                                    "横向分布",
+                                    DistributeAxis::Horizontal,
+                                ),
+                                (
+                                    "home-dist-v",
+                                    I::GalleryVerticalEnd,
+                                    "纵向分布",
+                                    DistributeAxis::Vertical,
+                                ),
+                            ];
                             col()
+                                .gap_1()
                                 .children(moves.into_iter().map(
                                     |(id, icon, label, edit, enabled)| {
                                         let view = view.clone();
@@ -666,6 +1017,46 @@ impl Viewer {
                                         )
                                     },
                                 ))
+                                .child(
+                                    small("home-group", I::Box, "组合")
+                                        .disabled(!can_group)
+                                        .on_click(move |_, w, cx| {
+                                            let _ = gp.update(cx, |p, cx| p.dismiss(w, cx));
+                                            let _ = gv.update(cx, |s, cx| s.group_selected(w, cx));
+                                        }),
+                                )
+                                .child(
+                                    small("home-ungroup", I::SquareSplitHorizontal, "取消组合")
+                                        .disabled(!can_ungroup)
+                                        .on_click(move |_, w, cx| {
+                                            let _ = up.update(cx, |p, cx| p.dismiss(w, cx));
+                                            let _ =
+                                                uv.update(cx, |s, cx| s.ungroup_selected(w, cx));
+                                        }),
+                                )
+                                .children(aligns.into_iter().map(|(id, icon, label, edge)| {
+                                    let view = view.clone();
+                                    let popup = popup.clone();
+                                    small(id, icon, label).disabled(!can_align).on_click(
+                                        move |_, w, cx| {
+                                            let _ = popup.update(cx, |p, cx| p.dismiss(w, cx));
+                                            let _ = view
+                                                .update(cx, |s, cx| s.align_selected(edge, w, cx));
+                                        },
+                                    )
+                                }))
+                                .children(dists.into_iter().map(|(id, icon, label, axis)| {
+                                    let view = view.clone();
+                                    let popup = popup.clone();
+                                    small(id, icon, label).disabled(!can_dist).on_click(
+                                        move |_, w, cx| {
+                                            let _ = popup.update(cx, |p, cx| p.dismiss(w, cx));
+                                            let _ = view.update(cx, |s, cx| {
+                                                s.distribute_selected(axis, w, cx)
+                                            });
+                                        },
+                                    )
+                                }))
                                 .child(small("selection", I::PanelRight, "选择窗格").on_click(
                                     move |_, w, cx| {
                                         let _ = popup.update(cx, |p, cx| p.dismiss(w, cx));
@@ -694,10 +1085,10 @@ impl Viewer {
                                     s.content_form(content_ui::Form::ShapeFill, w, cx)
                                 })),
                         )
-                        .child(small_unavailable(
-                            "home-shape-outline",
-                            I::PenLine,
-                            "形状轮廓",
+                        .child(self.shape_outline_popover(
+                            "home-shape-outline-pop",
+                            small("home-shape-outline", I::PenLine, "形状轮廓"),
+                            cx,
                         )),
                 ),
         )
@@ -962,6 +1353,8 @@ impl Viewer {
                     BasicEdit::SendBackward,
                     cx,
                 ))
+                .child(self.align_popover("object-align-pop", cx))
+                .child(self.group_popover("object-group-pop", cx))
                 .child(
                     tool("object-selection-pane", I::PanelRight, "选择\n窗格", BLUE)
                         .toggled(self.inspector)
@@ -1100,6 +1493,14 @@ impl Viewer {
                             cx.listener(|s, _, w, cx| {
                                 s.content_form(content_ui::Form::ShapeGradient, w, cx)
                             }),
+                        ),
+                    )
+                    .child(
+                        self.shape_outline_popover(
+                            "shape-outline-pop",
+                            tool("shape-outline", I::PenLine, "形状轮廓", 0x2678d0)
+                                .dropdown_caret(true),
+                            cx,
                         ),
                     ),
             ))

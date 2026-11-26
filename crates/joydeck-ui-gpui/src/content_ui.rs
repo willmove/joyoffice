@@ -1,6 +1,6 @@
 //! Contextual R5 controls, using JoyOffice shared palette and GPUI Kit inputs/dialogs.
 use super::*;
-use joydeck_engine::{Command, ContentAction};
+use joydeck_engine::{AlignEdge, Command, ContentAction, DistributeAxis};
 use joydeck_model::{ShapeKind, resolve};
 
 #[derive(Clone, Copy)]
@@ -16,6 +16,8 @@ pub(super) enum Form {
     Metadata,
     ShapeFill,
     ShapeGradient,
+    ShapeLine,
+    TransitionDuration,
     ImportPicture(bool),
 }
 impl Viewer {
@@ -154,6 +156,12 @@ impl Viewer {
                         cx.listener(|s, _, w, cx| s.content_form(Form::ShapeGradient, w, cx)),
                     ),
             );
+            panel = panel.child(
+                Button::new("shape-line-form")
+                    .label("形状轮廓")
+                    .disabled(!self.can_edit_outline())
+                    .on_click(cx.listener(|s, _, w, cx| s.content_form(Form::ShapeLine, w, cx))),
+            );
             for (name, label) in [
                 ("rect", "矩形"),
                 ("roundRect", "圆角矩形"),
@@ -285,6 +293,48 @@ impl Viewer {
                     ("角度 −360–360°", "45".into()),
                 ],
             ),
+            Form::ShapeLine => {
+                let current_line = shape.and_then(|s| s.line.as_ref());
+                let hex = current_line
+                    .and_then(|l| l.fill.as_ref())
+                    .and_then(|f| match f {
+                        joydeck_model::Fill::Solid { color } => match color.base {
+                            joydeck_model::style::ColorBase::Rgb { rgb } => Some(rgb.hex()),
+                            _ => None,
+                        },
+                        _ => None,
+                    })
+                    .unwrap_or_else(|| "2678D0".into());
+                let width = current_line
+                    .and_then(|l| l.width)
+                    .map(|w| format!("{w:.2}"))
+                    .unwrap_or_else(|| "1.50".into());
+                let dash = current_line
+                    .and_then(|l| l.dash.as_ref())
+                    .and_then(|d| match d {
+                        joydeck_model::style::Dash::Preset { name } => Some(name.clone()),
+                        _ => None,
+                    })
+                    .unwrap_or_else(|| "solid".into());
+                (
+                    "形状轮廓（留空颜色即无轮廓）".into(),
+                    vec![
+                        ("轮廓 RGB（留空=无轮廓）", hex),
+                        ("线宽 pt（0–144）", width),
+                        ("线型（solid/dash/dot/dashDot）", dash),
+                    ],
+                )
+            }
+            Form::TransitionDuration => {
+                let seconds = slide
+                    .transition
+                    .as_ref()
+                    .map_or(1.0, |t| f64::from(t.duration_ms) / 1000.0);
+                (
+                    "切换持续时间".into(),
+                    vec![("持续时间（秒，0–60）", format!("{seconds:.2}"))],
+                )
+            }
             Form::ImportPicture(replace) => (
                 if replace {
                     "替换所选图片"
@@ -455,6 +505,11 @@ impl Viewer {
                                         w.close_dialog(cx);
                                         if let Form::ImportPicture(replace) = form {
                                             s.import_picture(values[0].clone(), replace, cx);
+                                        } else if let Form::TransitionDuration = form
+                                            && let Ok(sec) = values[0].trim().parse::<f64>()
+                                        {
+                                            let ms = (sec.clamp(0.0, 60.0) * 1000.0).round() as u32;
+                                            s.set_transition_duration(ms, w, cx);
                                         }
                                     }
                                     Err(message) => error.update(cx, |s, cx| {
@@ -554,6 +609,283 @@ impl Viewer {
             });
         }));
     }
+
+    pub(super) fn can_edit_outline(&self) -> bool {
+        if self.loading || self.composing() {
+            return false;
+        }
+        let Some(e) = &self.editor else { return false };
+        let sel = &e.session.selection().shapes;
+        if sel.len() != 1 {
+            return false;
+        }
+        e.session
+            .model()
+            .slides
+            .get(self.page)
+            .and_then(|slide| slide.shape(sel[0]))
+            .is_some_and(|s| {
+                !s.locked && matches!(s.kind, ShapeKind::Shape | ShapeKind::Connector { .. })
+            })
+    }
+
+    pub(super) fn can_align(&self) -> bool {
+        if self.loading || self.composing() {
+            return false;
+        }
+        let Some(e) = &self.editor else { return false };
+        let sel = &e.session.selection().shapes;
+        !sel.is_empty()
+            && e.session
+                .model()
+                .slides
+                .get(self.page)
+                .is_some_and(|slide| {
+                    sel.iter()
+                        .all(|id| slide.shape(*id).is_some_and(|s| !s.locked))
+                })
+    }
+
+    pub(super) fn can_distribute(&self) -> bool {
+        self.can_align()
+            && self
+                .editor
+                .as_ref()
+                .is_some_and(|e| e.session.selection().shapes.len() >= 3)
+    }
+
+    pub(super) fn can_group(&self) -> bool {
+        self.can_align()
+            && self
+                .editor
+                .as_ref()
+                .is_some_and(|e| e.session.selection().shapes.len() >= 2)
+    }
+
+    pub(super) fn can_ungroup(&self) -> bool {
+        if self.loading || self.composing() {
+            return false;
+        }
+        let Some(e) = &self.editor else { return false };
+        let sel = &e.session.selection().shapes;
+        if sel.len() != 1 {
+            return false;
+        }
+        e.session
+            .model()
+            .slides
+            .get(self.page)
+            .and_then(|slide| slide.shape(sel[0]))
+            .is_some_and(|s| {
+                !s.locked
+                    && s.diagram.is_none()
+                    && matches!(&s.kind, ShapeKind::Group { children, .. } if !children.is_empty())
+            })
+    }
+
+    pub(super) fn set_shape_line(
+        &mut self,
+        rgb: Option<u32>,
+        width: Option<f64>,
+        dash: Option<String>,
+        w: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
+        self.dispatch(
+            Command::Content {
+                action: ContentAction::ShapeLine { rgb, width, dash },
+            },
+            w,
+            cx,
+        );
+    }
+
+    pub(super) fn align_selected(
+        &mut self,
+        edge: AlignEdge,
+        w: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
+        self.dispatch(
+            Command::Content {
+                action: ContentAction::AlignObjects { edge },
+            },
+            w,
+            cx,
+        );
+    }
+
+    pub(super) fn distribute_selected(
+        &mut self,
+        axis: DistributeAxis,
+        w: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
+        self.dispatch(
+            Command::Content {
+                action: ContentAction::DistributeObjects { axis },
+            },
+            w,
+            cx,
+        );
+    }
+
+    pub(super) fn group_selected(&mut self, w: &mut Window, cx: &mut Context<Self>) {
+        self.dispatch(
+            Command::Content {
+                action: ContentAction::GroupObjects,
+            },
+            w,
+            cx,
+        );
+    }
+
+    pub(super) fn ungroup_selected(&mut self, w: &mut Window, cx: &mut Context<Self>) {
+        self.dispatch(
+            Command::Content {
+                action: ContentAction::UngroupObjects,
+            },
+            w,
+            cx,
+        );
+    }
+
+    fn current_transition_parts(&self) -> (String, String, u32, bool, Option<u32>) {
+        if let Some(t) = self.current_slide().and_then(|s| s.transition.as_ref()) {
+            (
+                t.kind.clone(),
+                t.option.clone(),
+                t.duration_ms,
+                t.advance_on_click,
+                t.advance_after_ms,
+            )
+        } else {
+            ("none".into(), String::new(), 1000, true, None)
+        }
+    }
+
+    pub(super) fn set_transition_effect(
+        &mut self,
+        effect: &str,
+        w: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
+        let (_, _, _, advance_on_click, advance_after_ms) = self.current_transition_parts();
+        let (default_ms, default_opt) = joydeck_model::anim::TRANSITIONS
+            .iter()
+            .find(|(id, _, _, _, _)| *id == effect)
+            .map(|(_, _, _, ms, opts)| (*ms, opts.first().copied().unwrap_or("")))
+            .unwrap_or((1000, ""));
+        self.dispatch(
+            Command::Content {
+                action: ContentAction::SlideTransition {
+                    effect: effect.into(),
+                    option: default_opt.into(),
+                    duration_ms: default_ms,
+                    advance_on_click,
+                    advance_after_ms,
+                },
+            },
+            w,
+            cx,
+        );
+    }
+
+    pub(super) fn set_transition_option(
+        &mut self,
+        option: &str,
+        w: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
+        let (effect, _, duration_ms, advance_on_click, advance_after_ms) =
+            self.current_transition_parts();
+        self.dispatch(
+            Command::Content {
+                action: ContentAction::SlideTransition {
+                    effect,
+                    option: option.into(),
+                    duration_ms,
+                    advance_on_click,
+                    advance_after_ms,
+                },
+            },
+            w,
+            cx,
+        );
+    }
+
+    pub(super) fn set_transition_duration(
+        &mut self,
+        duration_ms: u32,
+        w: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
+        let (effect, option, _, advance_on_click, advance_after_ms) =
+            self.current_transition_parts();
+        self.dispatch(
+            Command::Content {
+                action: ContentAction::SlideTransition {
+                    effect,
+                    option,
+                    duration_ms,
+                    advance_on_click,
+                    advance_after_ms,
+                },
+            },
+            w,
+            cx,
+        );
+    }
+
+    pub(super) fn toggle_transition_on_click(&mut self, w: &mut Window, cx: &mut Context<Self>) {
+        let (effect, option, duration_ms, advance_on_click, advance_after_ms) =
+            self.current_transition_parts();
+        self.dispatch(
+            Command::Content {
+                action: ContentAction::SlideTransition {
+                    effect,
+                    option,
+                    duration_ms,
+                    advance_on_click: !advance_on_click,
+                    advance_after_ms,
+                },
+            },
+            w,
+            cx,
+        );
+    }
+
+    pub(super) fn set_transition_after(
+        &mut self,
+        advance_after_ms: Option<u32>,
+        w: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
+        let (effect, option, duration_ms, advance_on_click, _) = self.current_transition_parts();
+        self.dispatch(
+            Command::Content {
+                action: ContentAction::SlideTransition {
+                    effect,
+                    option,
+                    duration_ms,
+                    advance_on_click,
+                    advance_after_ms,
+                },
+            },
+            w,
+            cx,
+        );
+    }
+
+    pub(super) fn apply_transition_all(&mut self, w: &mut Window, cx: &mut Context<Self>) {
+        self.dispatch(
+            Command::Content {
+                action: ContentAction::ApplyTransitionAll,
+            },
+            w,
+            cx,
+        );
+    }
 }
 fn parse(form: Form, v: &[String]) -> Result<Option<Command>, String> {
     let n = |i: usize| {
@@ -597,6 +929,34 @@ fn parse(form: Form, v: &[String]) -> Result<Option<Command>, String> {
             end_rgb: rgb(1)?,
             angle: n(2)?,
         },
+        Form::ShapeLine => {
+            let raw = v[0].trim();
+            if raw.is_empty() {
+                ContentAction::ShapeLine {
+                    rgb: None,
+                    width: None,
+                    dash: None,
+                }
+            } else {
+                let dash = v[2].trim();
+                ContentAction::ShapeLine {
+                    rgb: Some(rgb(0)?),
+                    width: Some(n(1)?),
+                    dash: if dash.is_empty() {
+                        None
+                    } else {
+                        Some(dash.into())
+                    },
+                }
+            }
+        }
+        Form::TransitionDuration => {
+            let seconds = n(0)?;
+            if !(0.0..=60.0).contains(&seconds) {
+                return Err("持续时间需在 0 到 60 秒之间".into());
+            }
+            return Ok(None);
+        }
         Form::Picture => ContentAction::Picture {
             crop: [n(0)?, n(1)?, n(2)?, n(3)?],
             alpha: n(4)?,

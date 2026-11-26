@@ -23,7 +23,7 @@ mod clipboard_appearance;
 pub mod media_refs;
 #[path = "object_clipboard.rs"]
 pub mod transfer;
-pub use content::ContentAction;
+pub use content::{AlignEdge, ContentAction, DistributeAxis};
 pub mod formatting;
 pub mod text;
 pub mod text_resources;

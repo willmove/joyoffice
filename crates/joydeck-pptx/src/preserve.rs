@@ -688,9 +688,6 @@ pub fn export_preserving(
         if !existing {
             replace(&mut root, "timing", None);
         }
-        if slide.transition.is_none() && source_slide.transition.is_some() {
-            replace(&mut root, "transition", None);
-        }
         let deleted: Vec<_> = source_slide
             .shapes
             .iter()
@@ -751,6 +748,34 @@ pub fn export_preserving(
                 "showMasterSp",
                 if slide.show_master_shapes { "1" } else { "0" }.into(),
             );
+        }
+        if slide.transition != source_slide.transition {
+            let new_sound = slide.transition.as_ref().and_then(|t| t.sound);
+            let old_sound = source_slide.transition.as_ref().and_then(|t| t.sound);
+            if new_sound != old_sound && new_sound.is_some() {
+                return Err(error("edited transition sound requires .joydeck Save As"));
+            }
+            root.children.retain(|node| {
+                !matches!(node, Node::El(e) if e.is("transition") || (e.is("AlternateContent") && e.find("transition").is_some()))
+            });
+            if slide.transition.is_some()
+                && let Some(trans) = generated_root
+                    .elements()
+                    .find(|e| {
+                        e.is("transition")
+                            || (e.is("AlternateContent") && e.find("transition").is_some())
+                    })
+                    .cloned()
+            {
+                let insert_at = root
+                    .children
+                    .iter()
+                    .position(
+                        |node| matches!(node, Node::El(e) if e.is("timing") || e.is("extLst")),
+                    )
+                    .unwrap_or(root.children.len());
+                root.children.insert(insert_at, Node::El(trans));
+            }
         }
         let mut added_rels = vec![];
         let mut field_ids = fields::Ids::new(&root, part);

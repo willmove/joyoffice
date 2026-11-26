@@ -55,8 +55,21 @@ impl Viewer {
                                     .as_ref()
                                     .map(|d| d.info.slides[page].title.clone())
                                     .unwrap_or_default();
+                                let (hidden, has_transition) = s
+                                    .editor
+                                    .as_ref()
+                                    .and_then(|e| e.session.model().slides.get(page))
+                                    .map_or((false, false), |sl| {
+                                        (
+                                            sl.hidden,
+                                            sl.transition
+                                                .as_ref()
+                                                .is_some_and(|t| t.kind != "none"),
+                                        )
+                                    });
+                                let menu_view = cx.entity().downgrade();
                                 div()
-                                    .id(page)
+                                    .id(("rail-slide", page))
                                     .on_drag(s.slide_drag(page, cx), |drag, _, _, cx| {
                                         cx.new(|_| organize_ui::SlideDragPreview(drag.slides.len()))
                                     })
@@ -65,6 +78,12 @@ impl Viewer {
                                             s.drop_slides(drag, Some(page), w, cx)
                                         },
                                     ))
+                                    .on_mouse_down(
+                                        MouseButton::Right,
+                                        cx.listener(move |s, _, w, cx| {
+                                            s.select_slide_for_context(page, w, cx)
+                                        }),
+                                    )
                                     .h(px(height + 28.))
                                     .pt_3()
                                     .pr_2()
@@ -74,18 +93,34 @@ impl Viewer {
                                         div()
                                             .w(px(25.))
                                             .pt_1()
-                                            .text_center()
+                                            .flex()
+                                            .flex_col()
+                                            .items_center()
+                                            .gap(px(2.))
                                             .text_size(px(11.))
                                             .text_color(rgb(if s.page == page {
                                                 palette.accent
                                             } else {
                                                 palette.muted
                                             }))
-                                            .child(format!("{}", page + 1)),
+                                            .child(
+                                                div()
+                                                    .when(hidden, |d| d.line_through().opacity(0.6))
+                                                    .child(format!("{}", page + 1)),
+                                            )
+                                            .when(has_transition, |d| {
+                                                d.child(
+                                                    div()
+                                                        .text_size(px(9.))
+                                                        .text_color(rgb(palette.accent))
+                                                        .child("★"),
+                                                )
+                                            }),
                                     )
                                     .child(
                                         div()
                                             .rounded(px(5.))
+                                            .when(hidden, |d| d.opacity(0.55))
                                             .border(px(if s.page == page { 2. } else { 1. }))
                                             .border_color(rgb(if s.slide_selected(page) {
                                                 palette.accent
@@ -133,6 +168,15 @@ impl Viewer {
                                                     )),
                                             ),
                                     )
+                                    .context_menu(move |menu, w, cx| {
+                                        Viewer::build_slide_context_menu(
+                                            menu_view.clone(),
+                                            page,
+                                            menu,
+                                            w,
+                                            cx,
+                                        )
+                                    })
                             })
                             .collect::<Vec<_>>()
                     }),
@@ -164,6 +208,7 @@ impl Viewer {
                                 let mut row = div().w_full().h(px(205.)).flex().gap_6();
                                 let row_end = ((r + 1) * 3).min(count);
                                 for page in r * 3..row_end {
+                                    let menu_view = cx.entity().downgrade();
                                     row = row.child(
                                         div()
                                             .id(("sorter-drag", page))
@@ -177,6 +222,12 @@ impl Viewer {
                                                     s.drop_slides(drag, Some(page), w, cx)
                                                 },
                                             ))
+                                            .on_mouse_down(
+                                                MouseButton::Right,
+                                                cx.listener(move |s, _, w, cx| {
+                                                    s.select_slide_for_context(page, w, cx)
+                                                }),
+                                            )
                                             .flex_1()
                                             .min_w_0()
                                             .flex()
@@ -227,7 +278,16 @@ impl Viewer {
                                                 div()
                                                     .text_size(px(12.))
                                                     .child(format!("{}", page + 1)),
-                                            ),
+                                            )
+                                            .context_menu(move |menu, w, cx| {
+                                                Viewer::build_slide_context_menu(
+                                                    menu_view.clone(),
+                                                    page,
+                                                    menu,
+                                                    w,
+                                                    cx,
+                                                )
+                                            }),
                                     );
                                 }
                                 for _ in row_end..(r + 1) * 3 {

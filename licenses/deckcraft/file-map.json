@@ -2489,7 +2489,7 @@
       "source_path": "crates/ui-egui/src/theme.rs",
       "source_sha256": "d8d6f55195ac5b0c22d49ec313b716fcfab6cb2c08b3c15445b1ed1fcbe97c6a",
       "target_path": "crates/joydeck-ui-gpui/src/chrome.rs",
-      "adapted_sha256": "ffee2241383942c3d29c8a265ab4eca8d67374a70021970de91f7e2051f3366a",
+      "adapted_sha256": "39baf1c0c2d12ddc573c089bb27c9c954efa07807f158135be308e70f5d3e6dd",
       "changes": [
         "R8: adapt typed media references / object ID and resource remapping / layout and theme tokens to pure engine or GPUI Kit; no egui dependency",
         "rustfmt; bounded transactions, errors and clipboard serialization; original MIT attribution retained",
@@ -2513,7 +2513,7 @@
       "source_path": "crates/ui-egui/src/ribbon.rs",
       "source_sha256": "036692f8a885af7b61dfcd7e065f371f46c7db67854c0df9d205c91f35d9049a",
       "target_path": "crates/joydeck-ui-gpui/src/chrome.rs",
-      "adapted_sha256": "ffee2241383942c3d29c8a265ab4eca8d67374a70021970de91f7e2051f3366a",
+      "adapted_sha256": "39baf1c0c2d12ddc573c089bb27c9c954efa07807f158135be308e70f5d3e6dd",
       "changes": [
         "R8: adapt typed media references / object ID and resource remapping / layout and theme tokens to pure engine or GPUI Kit; no egui dependency",
         "rustfmt; bounded transactions, errors and clipboard serialization; original MIT attribution retained",
@@ -2537,7 +2537,7 @@
       "source_path": "crates/ui-egui/src/widgets.rs",
       "source_sha256": "d62cc3cce0436f1118c6486f52c5d90175aeaa79751602a89dbf01aa8d233bf9",
       "target_path": "crates/joydeck-ui-gpui/src/chrome.rs",
-      "adapted_sha256": "ffee2241383942c3d29c8a265ab4eca8d67374a70021970de91f7e2051f3366a",
+      "adapted_sha256": "39baf1c0c2d12ddc573c089bb27c9c954efa07807f158135be308e70f5d3e6dd",
       "changes": [
         "R8: adapt typed media references / object ID and resource remapping / layout and theme tokens to pure engine or GPUI Kit; no egui dependency",
         "rustfmt; bounded transactions, errors and clipboard serialization; original MIT attribution retained",

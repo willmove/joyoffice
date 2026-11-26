@@ -675,6 +675,54 @@ impl Viewer {
         cx.notify();
     }
 
+    pub(super) fn pointer_context_down(
+        &mut self,
+        event: &MouseDownEvent,
+        scale: f32,
+        w: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
+        if self.loading || self.benchmark.is_some() || self.composing() {
+            return;
+        }
+        self.focus.focus(w, cx);
+        self.commit_notes(w, cx);
+        self.end_inline(cx);
+        let Some(e) = &self.editor else { return };
+        let p = e.session.model();
+        let Some(slide) = p.slides.get(self.page) else {
+            return;
+        };
+        let Some(ctx) = resolve::Ctx::for_slide(p, slide) else {
+            return;
+        };
+        let point = page_point(event.position, self.canvas_bounds, scale);
+        let id = slide
+            .shapes
+            .iter()
+            .rev()
+            .filter(|s| !s.hidden && !s.locked)
+            .find(|shape| pointer_geometry::hits(&ctx, shape, point, 3. / f64::from(scale)))
+            .map(|s| s.id);
+        match id {
+            Some(id) => {
+                if !e.session.selection().shapes.contains(&id) {
+                    self.select_object(id, false, w, cx);
+                }
+            }
+            None => {
+                if !e.session.selection().shapes.is_empty()
+                    && let Some(e) = &mut self.editor
+                {
+                    let _ = e.session.select(self.page, vec![]);
+                    self.cell = None;
+                    self.cell_range = None;
+                    cx.notify();
+                }
+            }
+        }
+    }
+
     pub(super) fn pointer_down(
         &mut self,
         event: &MouseDownEvent,

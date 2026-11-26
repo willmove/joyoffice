@@ -3,6 +3,7 @@ use gpui_kit::component::{
     WindowExt,
     button::Button,
     input::{Input, InputState, Textarea, TextareaState},
+    menu::ContextMenuExt,
 };
 use gpui_kit::prelude::FluentBuilder;
 use gpui_kit::*;
@@ -63,6 +64,8 @@ mod chrome_edit;
 mod chrome_nav;
 #[path = "content_ui.rs"]
 mod content_ui;
+#[path = "context_menu_ui.rs"]
+mod context_menu_ui;
 #[path = "delivery_ui.rs"]
 mod delivery_ui;
 #[path = "desktop_control.rs"]
@@ -907,7 +910,19 @@ impl Render for Viewer {
                                     cx.listener(move |s, event, w, cx| {
                                         s.pointer_down(event, scale, w, cx)
                                     }),
-                                ),
+                                )
+                                .on_mouse_down(
+                                    MouseButton::Right,
+                                    cx.listener(move |s, event, w, cx| {
+                                        s.pointer_context_down(event, scale, w, cx)
+                                    }),
+                                )
+                                .context_menu({
+                                    let view = cx.entity().downgrade();
+                                    move |menu, w, cx| {
+                                        Viewer::build_canvas_context_menu(view.clone(), menu, w, cx)
+                                    }
+                                }),
                         ),
                 )
                 .into_any_element()

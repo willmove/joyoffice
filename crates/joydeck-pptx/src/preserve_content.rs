@@ -473,7 +473,7 @@ pub(super) fn shape(
     pictures: &mut Pictures<'_>,
 ) -> Result<(), PptxError> {
     if let Some(old) = old
-        && (new.fill != old.fill || new.geom != old.geom)
+        && (new.fill != old.fill || new.line != old.line || new.geom != old.geom)
     {
         let source = generated
             .child("spPr")
@@ -490,6 +490,9 @@ pub(super) fn shape(
             }) {
                 props.children.push(Node::El(fill.clone()));
             }
+        }
+        if new.line != old.line {
+            replace(props, "ln", source.child("ln").cloned());
         }
         if new.geom != old.geom && !update_callout(props, &old.geom, &new.geom)? {
             props
